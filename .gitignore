@@ -7,6 +7,11 @@ __pycache__/
 .coverage
 htmlcov/
 tests/.tmp/
+pytest-cache-files-*/
+*.egg-info/
+build/
+dist/
+.ipynb_checkpoints/
 
 # Local environments and IDE state
 .venv/
@@ -15,12 +20,34 @@ venv/
 .vscode/
 *.code-workspace
 
+# Package-manager and model-download caches
+.cache/
+.huggingface/
+huggingface/
+torch_extensions/
+
+# Local experiment trackers and transient model outputs
+wandb/
+mlruns/
+lightning_logs/
+tensorboard/
+runs/
+checkpoints/
+models/cache/
+models/downloaded/
+
 # Local secrets
 .env
 .env.*
 !.env.example
 *.pem
 *.key
+credentials*.json
+client_secret*.json
+service-account*.json
+.netrc
+.pypirc
+pip.conf
 
 # Reproducible but generated working trees
 work/
