@@ -1,0 +1,45 @@
+schema_version: 1
+gate: A1_DATA_QUALITY
+dataset_version: SKRU1_Data_Foundation_v3_2_1
+
+canonical:
+  features: SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/next_planned_features.csv
+  operational_targets: SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/next_planned_operational_targets.csv
+  feature_contract: SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/formal_feature_contract.csv
+  target_contract: SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/target_contract.json
+  early_warning_labels: SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/early_warning_labels_formal.csv
+
+historical_only:
+  features: SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/model_ready/next_cycle_features.csv
+  targets: SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/evaluation_only/next_cycle_targets.csv
+
+supporting:
+  membership: SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/campaign_point_membership.csv
+  adjusted_leveling: SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/leveling_adjusted_epochs.csv
+  survey_points: SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/survey_points.csv
+  survey_profiles: SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/survey_profiles.csv
+  static_features: SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/model_ready/static_point_features.csv
+
+split_contract:
+  train_target_end: 2023-12-31
+  validation_target_start: 2024-01-01
+  validation_target_end: 2024-12-31
+  test_target_start: 2025-01-01
+  t1_version: t1_v1
+  t5_version: t5_v1
+  t1_split_date_field: target_date
+  t5_split_date_field: label_horizon_end
+
+spatial_holdout:
+  version: spatial_quadrants_v1
+  method: median_coordinate_quadrants
+  source: supporting.survey_points
+  point_filter: point_type == WORK
+  purpose: split_metadata_only
+  estimator_use_allowed: false
+  note: Geometric proxy zones are frozen for reproducible OOD checks because no authoritative operational zone_id is present.
+
+test_access:
+  default: sealed
+  candidate_record: artifacts/model_selection/frozen_candidate.json
+  policy: A model-facing loader may open test only for a candidate with status=frozen and matching task/split/feature-contract hashes.

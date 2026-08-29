@@ -1,0 +1,32 @@
+check_id,severity,dimension,status,observed,expected,details
+A1-CAN-001,critical,canonical,PASS,5,5,Only the registered next-planned tables and contracts are canonical.
+A1-CAN-002,critical,canonical,PASS,0,0,Historical next_cycle tables do not overlap the canonical registry.
+A1-ID-001,critical,uniqueness,PASS,0,0,Canonical feature sample_id uniqueness.
+A1-ID-002,critical,uniqueness,PASS,0,0,T1 target sample_id uniqueness.
+A1-ID-003,critical,uniqueness,PASS,0,0,T5 label sample_id uniqueness.
+A1-GRAIN-001,critical,grain,PASS,0,0,One row per point/current campaign origin.
+A1-GRAIN-002,critical,grain,PASS,1274,1274,Frozen canonical origin row count.
+A1-GRAIN-003,critical,grain,PASS,98,98,Dependent point trajectories.
+A1-GRAIN-004,critical,grain,PASS,14,14,Profile groups.
+A1-GRAIN-005,critical,dependency,PASS,98,98,Every work point repeats across temporal origins.
+A1-GRAIN-006,critical,dependency,PASS,26,>0,Campaign dates are shared across profiles.
+A1-GRAIN-007,critical,dependency,PASS,0,0,34 split-safe static fields remain constant within point.
+A1-SPLIT-001,critical,split,PASS,0,0,No T1 sample_id overlap across manifests.
+A1-SPLIT-002,critical,split,PASS,0,0,No T5 sample_id overlap across manifests.
+A1-SPLIT-003,critical,split,PASS,0,0,T1 split is strictly derived from target_date.
+A1-SPLIT-004,critical,split,PASS,0,0,T5 split is strictly derived from label_horizon_end.
+A1-TIME-001,critical,temporal,PASS,0,0,T1 forecast_horizon_days > 0.
+A1-TIME-002,critical,temporal,PASS,0,0,T5 label_horizon_days > 0.
+A1-LEAK-001,critical,leakage,PASS,0,0,Canonical feature table is free of private/hidden/generator truth.
+A1-LEAK-002,critical,leakage,PASS,0,0,Estimator schema equals the formal allowlist and excludes IDs/campaign IDs.
+A1-LEAK-003,critical,leakage,PASS,0,0,"No model-facing source uses train_test_split, plain KFold, or shuffle=True."
+A1-LEAK-004,critical,leakage,PASS,1,1,Random train-test requests terminate with UnsafeSplitError.
+A1-LEAK-005,critical,leakage,PASS,1,1,Ordinary KFold requests terminate with UnsafeSplitError.
+A1-PREP-001,critical,preprocessing,PASS,1,1,Preprocessing fit accepts manifest train and rejects validation.
+A1-LEAK-006,critical,leakage,PASS,0,0,"T5 model-facing frames expose only onset_180d and censor/split metadata, never private evaluation diagnostics."
+A1-TEST-001,critical,test_access,PASS,1,1,Model-facing test load is sealed without a matching frozen candidate record.
+A1-JOIN-001,critical,referential_integrity,PASS,18 -> 6,18 -> 6,Membership rows and affected origin samples are reconciled by campaign_id + point_id.
+A1-ID-004,high,identifier_semantics,FAIL,58,0,sample_id is unique but its final token still reflects the historical next-available target in these rows; treat it as opaque.
+A1-VAL-001,critical,validation_design,PASS,5,>=3,Expanding rolling-origin folds are deterministic and time ordered.
+A1-VAL-002,critical,validation_design,PASS,14,14,One held-out fold per profile.
+A1-VAL-003,critical,validation_design,PASS,4,4,One held-out fold per frozen geometric proxy zone.

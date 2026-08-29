@@ -10,3 +10,6 @@ pyogrio
 matplotlib
 PyYAML
 pytest
+nbformat
+nbclient
+ipykernel

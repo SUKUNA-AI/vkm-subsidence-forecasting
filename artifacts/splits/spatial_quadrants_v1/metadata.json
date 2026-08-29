@@ -1,0 +1,7 @@
+{
+  "method": "median_coordinate_quadrants",
+  "source_sha256": "36c1b86e6e370a50cbb3bbf94e96684ef4c6b0b35a5cd62147cb6fd9869fb7f9",
+  "version": "spatial_quadrants_v1",
+  "x_median_cut_m": 24723.0155083643,
+  "y_median_cut_m": 42574.392525834846
+}

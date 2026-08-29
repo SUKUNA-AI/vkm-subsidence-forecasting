@@ -7,7 +7,16 @@ name = "skru1-research"
 version = "0.1.0"
 description = "Reproducible data and modelling workflow for the SKRU-1 diploma project"
 requires-python = ">=3.13,<3.14"
+dependencies = [
+    "numpy>=2.5,<3",
+    "pandas>=3.0,<4",
+    "PyYAML>=6,<7",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 addopts = "-ra -p no:cacheprovider"
 testpaths = ["tests"]
+pythonpath = ["src"]

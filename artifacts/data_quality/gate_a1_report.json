@@ -1,0 +1,927 @@
+{
+  "artifacts": {
+    "artifacts/data_quality/drift_summary.csv": "93f0633bd91539fc7cc47d8087dc362da95ac13a0edb0a3021c565e8f95cd98e",
+    "artifacts/data_quality/duplicate_and_grain_checks.csv": "278ecb66eacd2631c410aa598474495f2bb9f921a773eba62de0f93a6164390b",
+    "artifacts/data_quality/feature_missingness_by_split.csv": "c550fabe8673c2cced7fe55c15eb2b6a34399678a90647be083ca192d38a6461",
+    "artifacts/data_quality/gate_a1_findings.csv": "9b37572f3e7f843ecfd77273499d430f85a77fc9eee0a45d23d55037414ad2df",
+    "artifacts/data_quality/join_coverage.csv": "cf2f325fabedd2861bfc6d11b0434873c8c5e3c70b5a1538a784789e28ac0da0",
+    "artifacts/data_quality/membership_inconsistency_mapping.csv": "465e456debb85127c9697c751b94508f9516569add2133241a75a7d1e772a628",
+    "artifacts/data_quality/split_summary.csv": "f4794a43f0a747b412f17cdc77d3cdae09545ee02bcd25cce5d5bb661bdb23c6",
+    "artifacts/data_quality/validation_design_summary.csv": "ec47faf8d25e12e8cc96e62c5294edb8c0cbf33796eebf5ffa63adf11f37280f",
+    "artifacts/splits/spatial_quadrants_v1/metadata.json": "3ad5aa25be4af3ea34848adb1ea551f0eab089e342a6a8dfff5828dfac24262c",
+    "artifacts/splits/spatial_quadrants_v1/point_zone_map.csv": "2519e0ade79165cc53c675b526c40f577643e1e5339ae2e944526bc8b2922a48",
+    "artifacts/splits/t1_v1/test.csv": "d94b34cdcccdd0bea1af4e78e508f06f555cebe876a5a3846bb83f51a6484ac6",
+    "artifacts/splits/t1_v1/train.csv": "8961543c3a5220e17b45c9b34bc17857320f1b9b2c3985567c8a9c2ecb1fd9c5",
+    "artifacts/splits/t1_v1/validation.csv": "c38163f5fd586a69edfe647995c46649a3f13725f7a1d882e150805c9811bc60",
+    "artifacts/splits/t5_v1/test_censored.csv": "184fe757ba69ae979e3afde85342ff61edb3557e00c06ea93e438d54ddebd29e",
+    "artifacts/splits/t5_v1/test_complete.csv": "3aaad849035df1700fa7708bfa1279d4b1c6123777ebfd7f42a88f6e384bbbf2",
+    "artifacts/splits/t5_v1/train.csv": "03cab128de64be13f8bcb09d5da2c81c535fd8bbfd3579dfc2cbfa149e786d51",
+    "artifacts/splits/t5_v1/validation.csv": "748dfa18b7c2812007b10f2c8c918d7facbc9ebb49b7610f617245a06c82580b"
+  },
+  "canonical_inputs": {
+    "early_warning_labels": {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/early_warning_labels_formal.csv",
+      "role": "canonical",
+      "sha256": "6eb0c504d8bda621cfb82d59baefc8614c12fd3bec6561b9fa23a01daad30bc7"
+    },
+    "feature_contract": {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/formal_feature_contract.csv",
+      "role": "canonical",
+      "sha256": "241bad48e67659ffc953349cd2bce59e61f2a2867d57698abd6574edd4a05272"
+    },
+    "features": {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/next_planned_features.csv",
+      "role": "canonical",
+      "sha256": "5d360910e8eeea10a2572bb35d3de4f0b9b316ec5a6ee3b43389c07b09848ab6"
+    },
+    "operational_targets": {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/next_planned_operational_targets.csv",
+      "role": "canonical",
+      "sha256": "289912a0b2c79ee1163529c6998d879594062cf0d453ec7665b2bb06f562ee1b"
+    },
+    "target_contract": {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/target_contract.json",
+      "role": "canonical",
+      "sha256": "c679a6b83d26675d50b59de57cb3c12cdeacc6dd7c2e178364e434ed25a526e8"
+    }
+  },
+  "checks": [
+    {
+      "check_id": "A1-CAN-001",
+      "details": "Only the registered next-planned tables and contracts are canonical.",
+      "dimension": "canonical",
+      "expected": 5,
+      "observed": 5,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-CAN-002",
+      "details": "Historical next_cycle tables do not overlap the canonical registry.",
+      "dimension": "canonical",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-ID-001",
+      "details": "Canonical feature sample_id uniqueness.",
+      "dimension": "uniqueness",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-ID-002",
+      "details": "T1 target sample_id uniqueness.",
+      "dimension": "uniqueness",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-ID-003",
+      "details": "T5 label sample_id uniqueness.",
+      "dimension": "uniqueness",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-GRAIN-001",
+      "details": "One row per point/current campaign origin.",
+      "dimension": "grain",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-GRAIN-002",
+      "details": "Frozen canonical origin row count.",
+      "dimension": "grain",
+      "expected": 1274,
+      "observed": 1274,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-GRAIN-003",
+      "details": "Dependent point trajectories.",
+      "dimension": "grain",
+      "expected": 98,
+      "observed": 98,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-GRAIN-004",
+      "details": "Profile groups.",
+      "dimension": "grain",
+      "expected": 14,
+      "observed": 14,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-GRAIN-005",
+      "details": "Every work point repeats across temporal origins.",
+      "dimension": "dependency",
+      "expected": 98,
+      "observed": 98,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-GRAIN-006",
+      "details": "Campaign dates are shared across profiles.",
+      "dimension": "dependency",
+      "expected": ">0",
+      "observed": 26,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-GRAIN-007",
+      "details": "34 split-safe static fields remain constant within point.",
+      "dimension": "dependency",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-SPLIT-001",
+      "details": "No T1 sample_id overlap across manifests.",
+      "dimension": "split",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-SPLIT-002",
+      "details": "No T5 sample_id overlap across manifests.",
+      "dimension": "split",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-SPLIT-003",
+      "details": "T1 split is strictly derived from target_date.",
+      "dimension": "split",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-SPLIT-004",
+      "details": "T5 split is strictly derived from label_horizon_end.",
+      "dimension": "split",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-TIME-001",
+      "details": "T1 forecast_horizon_days > 0.",
+      "dimension": "temporal",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-TIME-002",
+      "details": "T5 label_horizon_days > 0.",
+      "dimension": "temporal",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-LEAK-001",
+      "details": "Canonical feature table is free of private/hidden/generator truth.",
+      "dimension": "leakage",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-LEAK-002",
+      "details": "Estimator schema equals the formal allowlist and excludes IDs/campaign IDs.",
+      "dimension": "leakage",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-LEAK-003",
+      "details": "No model-facing source uses train_test_split, plain KFold, or shuffle=True.",
+      "dimension": "leakage",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-LEAK-004",
+      "details": "Random train-test requests terminate with UnsafeSplitError.",
+      "dimension": "leakage",
+      "expected": 1,
+      "observed": 1,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-LEAK-005",
+      "details": "Ordinary KFold requests terminate with UnsafeSplitError.",
+      "dimension": "leakage",
+      "expected": 1,
+      "observed": 1,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-PREP-001",
+      "details": "Preprocessing fit accepts manifest train and rejects validation.",
+      "dimension": "preprocessing",
+      "expected": 1,
+      "observed": 1,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-LEAK-006",
+      "details": "T5 model-facing frames expose only onset_180d and censor/split metadata, never private evaluation diagnostics.",
+      "dimension": "leakage",
+      "expected": 0,
+      "observed": 0,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-TEST-001",
+      "details": "Model-facing test load is sealed without a matching frozen candidate record.",
+      "dimension": "test_access",
+      "expected": 1,
+      "observed": 1,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-JOIN-001",
+      "details": "Membership rows and affected origin samples are reconciled by campaign_id + point_id.",
+      "dimension": "referential_integrity",
+      "expected": "18 -> 6",
+      "observed": "18 -> 6",
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-ID-004",
+      "details": "sample_id is unique but its final token still reflects the historical next-available target in these rows; treat it as opaque.",
+      "dimension": "identifier_semantics",
+      "expected": 0,
+      "observed": 58,
+      "severity": "high",
+      "status": "FAIL"
+    },
+    {
+      "check_id": "A1-VAL-001",
+      "details": "Expanding rolling-origin folds are deterministic and time ordered.",
+      "dimension": "validation_design",
+      "expected": ">=3",
+      "observed": 5,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-VAL-002",
+      "details": "One held-out fold per profile.",
+      "dimension": "validation_design",
+      "expected": 14,
+      "observed": 14,
+      "severity": "critical",
+      "status": "PASS"
+    },
+    {
+      "check_id": "A1-VAL-003",
+      "details": "One held-out fold per frozen geometric proxy zone.",
+      "dimension": "validation_design",
+      "expected": 4,
+      "observed": 4,
+      "severity": "critical",
+      "status": "PASS"
+    }
+  ],
+  "code_state": {
+    "commit": "4c9c24cc598812f75faa94dd590a5e489bb782a0",
+    "working_tree_dirty": true
+  },
+  "dataset_version": "SKRU1_Data_Foundation_v3_2_1",
+  "findings": [
+    {
+      "confidence": "high",
+      "dimension": "dependency",
+      "evidence": "1274 origins collapse to 98 point trajectories and 14 profiles.",
+      "finding_id": "A1-F-001",
+      "impact": "Row-wise uncertainty estimates would be overconfident and random splits would leak trajectory identity.",
+      "remediation": "Use temporal manifests, rolling origin, leave-profile-out, and leave-zone-out only.",
+      "severity": "high",
+      "status": "CONTROLLED"
+    },
+    {
+      "confidence": "high",
+      "dimension": "referential_integrity",
+      "evidence": "18 inconsistent membership rows map to 6 unlabeled origins; 4 are REF and 8 WORK rows have no eligible prior origin.",
+      "finding_id": "A1-F-002",
+      "impact": "The previously disconnected counts 18 and 6 can now be audited row by row.",
+      "remediation": "Keep the 6 origins out of loss; patch membership status in the next source-data revision.",
+      "severity": "high",
+      "status": "CONTROLLED"
+    },
+    {
+      "confidence": "high",
+      "dimension": "identifier_semantics",
+      "evidence": "58 sample_id values encode a historical target token different from canonical target_campaign_id.",
+      "finding_id": "A1-F-003",
+      "impact": "Humans or code that parses sample_id may silently recover the wrong target semantics.",
+      "remediation": "Treat sample_id as an opaque join key in v1; regenerate IDs and version all manifests in a future data revision.",
+      "severity": "high",
+      "status": "OPEN"
+    },
+    {
+      "confidence": "high",
+      "dimension": "completeness",
+      "evidence": "terrain_TRI_relative missingness=32.418%; lithology uncertainty missingness=100.000%.",
+      "finding_id": "A1-F-004",
+      "impact": "Imputation and missingness indicators will materially affect several feature families.",
+      "remediation": "Fit imputation on train only, retain missing indicators, and report ablations for sparse terrain/uncertainty fields.",
+      "severity": "medium",
+      "status": "OPEN"
+    },
+    {
+      "confidence": "high",
+      "dimension": "class_balance",
+      "evidence": "T5 has 17 complete positive labels in total and only 1 in test_complete.",
+      "finding_id": "A1-F-005",
+      "impact": "Headline classification metrics will have very high variance and threshold tuning is fragile.",
+      "remediation": "Use average precision, fixed-FPR recall, confidence intervals, and treat T5 conclusions as exploratory.",
+      "severity": "high",
+      "status": "OPEN"
+    },
+    {
+      "confidence": "high",
+      "dimension": "temporal_drift",
+      "evidence": "Largest T1 train-to-test numeric drift is n_history with |SMD|=2.320.",
+      "finding_id": "A1-F-006",
+      "impact": "Temporal generalization is harder than within-period validation and must drive model selection.",
+      "remediation": "Report drift-aware temporal results and avoid random resampling.",
+      "severity": "high",
+      "status": "OPEN"
+    },
+    {
+      "confidence": "high",
+      "dimension": "spatial_validation",
+      "evidence": "No authoritative zone_id exists; spatial_quadrants_v1 freezes coordinate-median quadrants for split-only use.",
+      "finding_id": "A1-F-007",
+      "impact": "The proxy supports reproducible spatial OOD checks but is not an engineering zoning claim.",
+      "remediation": "Replace with a domain-governed zone map in a new split version when available.",
+      "severity": "medium",
+      "status": "CONTROLLED"
+    },
+    {
+      "confidence": "high",
+      "dimension": "test_governance",
+      "evidence": "The model-facing loader seals test until a matching frozen-candidate record is present; raw source CSVs remain audit-readable.",
+      "finding_id": "A1-F-008",
+      "impact": "Accidental model/test coupling is blocked in project APIs, but deliberate direct file access is not cryptographically prevented.",
+      "remediation": "Run models through skru1.splits.load_split_dataset and retain source-code scanning in CI.",
+      "severity": "medium",
+      "status": "CONTROLLED"
+    }
+  ],
+  "gate": "A1_DATA_QUALITY",
+  "generated_at_utc": "2026-08-29T13:13:56+00:00",
+  "grain": {
+    "current_dates_shared_by_multiple_profiles": 26,
+    "origin_rows": 1274,
+    "origins_per_point_max": 18,
+    "origins_per_point_median": 12.0,
+    "origins_per_point_min": 8,
+    "point_trajectories": 98,
+    "points_repeated_over_time": 98,
+    "profiles": 14,
+    "unique_sample_ids": 1274
+  },
+  "historical_only_inputs": {
+    "features": {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/model_ready/next_cycle_features.csv",
+      "role": "historical_comparison_only",
+      "sha256": "bd1eed0554b56a0daa2df725a06cbc9d77d07c1abfd3cc156bbee99bf60f2a58"
+    },
+    "targets": {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/evaluation_only/next_cycle_targets.csv",
+      "role": "historical_comparison_only",
+      "sha256": "9e9d2d2f0b8e186d88ca2519b15d7ae841b759ea4c301d7c3359ca3ed6370c4c"
+    }
+  },
+  "membership_reconciliation": {
+    "affected_model_origins": 6,
+    "membership_rows_without_adjustment": 18,
+    "reference_rows_outside_model_universe": 4,
+    "work_rows_without_eligible_origin": 8
+  },
+  "schema_version": 1,
+  "spatial_holdout": {
+    "limitation": "No authoritative operational zone_id exists for the 98 WORK points; v1 uses frozen coordinate quadrants as split-only proxy zones.",
+    "method": "median_coordinate_quadrants",
+    "source_sha256": "36c1b86e6e370a50cbb3bbf94e96684ef4c6b0b35a5cd62147cb6fd9869fb7f9",
+    "version": "spatial_quadrants_v1",
+    "x_median_cut_m": 24723.0155083643,
+    "y_median_cut_m": 42574.392525834846,
+    "zones": [
+      {
+        "points": 41,
+        "profiles": 6,
+        "zone_id": "GEO_NE"
+      },
+      {
+        "points": 8,
+        "profiles": 2,
+        "zone_id": "GEO_NW"
+      },
+      {
+        "points": 8,
+        "profiles": 2,
+        "zone_id": "GEO_SE"
+      },
+      {
+        "points": 41,
+        "profiles": 7,
+        "zone_id": "GEO_SW"
+      }
+    ]
+  },
+  "split_manifests": [
+    {
+      "allowed_feature_cells": 45550,
+      "censored": 0,
+      "current_date_max": "2023-07-25",
+      "current_date_min": "2018-10-16",
+      "label_horizon_end_max": null,
+      "label_horizon_end_min": null,
+      "label_status_json": "{\"observed\":911}",
+      "manifest_file_sha256": "8961543c3a5220e17b45c9b34bc17857320f1b9b2c3985567c8a9c2ecb1fd9c5",
+      "manifest_path": "artifacts/splits/t1_v1/train.csv",
+      "missing_feature_cells": 1475,
+      "missing_feature_fraction": 0.03238199780461032,
+      "negative": 0,
+      "points": 98,
+      "positive": 0,
+      "profiles": 14,
+      "rows": 911,
+      "sample_ids_sha256": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c",
+      "split": "train",
+      "target_date_max": "2023-11-07",
+      "target_date_min": "2019-02-12",
+      "target_distribution_json": "{\"count\":911,\"max\":151.49690590384623,\"mean\":31.64139524990965,\"median\":30.257692208035785,\"min\":-6.831907383358929,\"p05\":0.4201556133117253,\"p25\":17.29527773135473,\"p75\":39.2196510288839,\"p95\":75.18413609607143,\"std\":24.721206338161906}",
+      "task": "T1",
+      "version": "t1_v1"
+    },
+    {
+      "allowed_feature_cells": 6500,
+      "censored": 0,
+      "current_date_max": "2024-05-14",
+      "current_date_min": "2023-11-07",
+      "label_horizon_end_max": null,
+      "label_horizon_end_min": null,
+      "label_status_json": "{\"observed\":130}",
+      "manifest_file_sha256": "c38163f5fd586a69edfe647995c46649a3f13725f7a1d882e150805c9811bc60",
+      "manifest_path": "artifacts/splits/t1_v1/validation.csv",
+      "missing_feature_cells": 222,
+      "missing_feature_fraction": 0.03415384615384615,
+      "negative": 0,
+      "points": 90,
+      "positive": 0,
+      "profiles": 14,
+      "rows": 130,
+      "sample_ids_sha256": "f72ce0a50c16bccca3ca87df4f4a7465b4d9eca2933e0dec9b3bd39e7336a62e",
+      "split": "validation",
+      "target_date_max": "2024-09-03",
+      "target_date_min": "2024-01-30",
+      "target_distribution_json": "{\"count\":130,\"max\":156.2241939521429,\"mean\":45.044408547878014,\"median\":28.825722094444387,\"min\":-0.8029450546875254,\"p05\":3.624373162812398,\"p25\":14.651477200575403,\"p75\":40.913464781361476,\"p95\":151.11671969336848,\"std\":46.08496952727679}",
+      "task": "T1",
+      "version": "t1_v1"
+    },
+    {
+      "allowed_feature_cells": 8750,
+      "censored": 0,
+      "current_date_max": "2025-08-26",
+      "current_date_min": "2024-05-14",
+      "label_horizon_end_max": null,
+      "label_horizon_end_min": null,
+      "label_status_json": "{\"observed\":175}",
+      "manifest_file_sha256": "d94b34cdcccdd0bea1af4e78e508f06f555cebe876a5a3846bb83f51a6484ac6",
+      "manifest_path": "artifacts/splits/t1_v1/test.csv",
+      "missing_feature_cells": 293,
+      "missing_feature_fraction": 0.033485714285714285,
+      "negative": 0,
+      "points": 89,
+      "positive": 0,
+      "profiles": 14,
+      "rows": 175,
+      "sample_ids_sha256": "8d0db55dba8db96297c6b816e65e2601fdc4bbc014a81b298241b632bcf9a66a",
+      "split": "test",
+      "target_date_max": "2025-11-04",
+      "target_date_min": "2025-07-22",
+      "target_distribution_json": "{\"count\":175,\"max\":175.77774173571427,\"mean\":49.21028676533129,\"median\":29.35736148071415,\"min\":-6.225288301428583,\"p05\":2.0212368694181855,\"p25\":12.594073571025351,\"p75\":72.49853405388228,\"p95\":152.91391386128575,\"std\":51.032214923043604}",
+      "task": "T1",
+      "version": "t1_v1"
+    },
+    {
+      "allowed_feature_cells": 47100,
+      "censored": 0,
+      "current_date_max": "2023-05-16",
+      "current_date_min": "2018-10-16",
+      "label_horizon_end_max": "2023-11-12",
+      "label_horizon_end_min": "2019-04-14",
+      "label_status_json": "{\"complete\":942}",
+      "manifest_file_sha256": "03cab128de64be13f8bcb09d5da2c81c535fd8bbfd3579dfc2cbfa149e786d51",
+      "manifest_path": "artifacts/splits/t5_v1/train.csv",
+      "missing_feature_cells": 1534,
+      "missing_feature_fraction": 0.03256900212314225,
+      "negative": 930,
+      "points": 98,
+      "positive": 12,
+      "profiles": 14,
+      "rows": 942,
+      "sample_ids_sha256": "8533a2a79b340ccefa8762408391fd05e4a18cb39b32d017cc970332853f614f",
+      "split": "train",
+      "target_date_max": "2023-11-07",
+      "target_date_min": "2019-02-12",
+      "target_distribution_json": "{\"censored\":0,\"negative\":930,\"positive\":12,\"positive_fraction_complete\":0.012738853503184714}",
+      "task": "T5",
+      "version": "t5_v1"
+    },
+    {
+      "allowed_feature_cells": 10550,
+      "censored": 0,
+      "current_date_max": "2024-05-14",
+      "current_date_min": "2023-07-25",
+      "label_horizon_end_max": "2024-11-10",
+      "label_horizon_end_min": "2024-01-21",
+      "label_status_json": "{\"complete\":211}",
+      "manifest_file_sha256": "748dfa18b7c2812007b10f2c8c918d7facbc9ebb49b7610f617245a06c82580b",
+      "manifest_path": "artifacts/splits/t5_v1/validation.csv",
+      "missing_feature_cells": 355,
+      "missing_feature_fraction": 0.03364928909952607,
+      "negative": 207,
+      "points": 96,
+      "positive": 4,
+      "profiles": 14,
+      "rows": 211,
+      "sample_ids_sha256": "b17b2accb3e53d1a00e2a828fb3d6a9ceb3af2aa9fec3b8a07ce5130b235b9c1",
+      "split": "validation",
+      "target_date_max": "2025-07-22",
+      "target_date_min": "2023-11-07",
+      "target_distribution_json": "{\"censored\":0,\"negative\":207,\"positive\":4,\"positive_fraction_complete\":0.018957345971563982}",
+      "task": "T5",
+      "version": "t5_v1"
+    },
+    {
+      "allowed_feature_cells": 1400,
+      "censored": 0,
+      "current_date_max": "2024-09-03",
+      "current_date_min": "2024-07-09",
+      "label_horizon_end_max": "2025-03-02",
+      "label_horizon_end_min": "2025-01-05",
+      "label_status_json": "{\"complete\":28}",
+      "manifest_file_sha256": "3aaad849035df1700fa7708bfa1279d4b1c6123777ebfd7f42a88f6e384bbbf2",
+      "manifest_path": "artifacts/splits/t5_v1/test_complete.csv",
+      "missing_feature_cells": 52,
+      "missing_feature_fraction": 0.037142857142857144,
+      "negative": 27,
+      "points": 28,
+      "positive": 1,
+      "profiles": 5,
+      "rows": 28,
+      "sample_ids_sha256": "9ecd7202dc5d1fcbb05b8d6328d46b1bdb6dba1803682407f3874ec093c209b4",
+      "split": "test_complete",
+      "target_date_max": "2025-07-22",
+      "target_date_min": "2025-07-22",
+      "target_distribution_json": "{\"censored\":0,\"negative\":27,\"positive\":1,\"positive_fraction_complete\":0.03571428571428571}",
+      "task": "T5",
+      "version": "t5_v1"
+    },
+    {
+      "allowed_feature_cells": 4650,
+      "censored": 93,
+      "current_date_max": "2025-08-26",
+      "current_date_min": "2025-07-22",
+      "label_horizon_end_max": "2026-02-22",
+      "label_horizon_end_min": "2026-01-18",
+      "label_status_json": "{\"right_censored\":93}",
+      "manifest_file_sha256": "184fe757ba69ae979e3afde85342ff61edb3557e00c06ea93e438d54ddebd29e",
+      "manifest_path": "artifacts/splits/t5_v1/test_censored.csv",
+      "missing_feature_cells": 159,
+      "missing_feature_fraction": 0.034193548387096775,
+      "negative": 0,
+      "points": 84,
+      "positive": 0,
+      "profiles": 14,
+      "rows": 93,
+      "sample_ids_sha256": "3ff9331474211166bbe9b86166572d53d89a0e1b73d1d46b4b8f6f281ca455dc",
+      "split": "test_censored",
+      "target_date_max": "2025-11-04",
+      "target_date_min": "2025-08-26",
+      "target_distribution_json": "{\"censored\":93,\"negative\":0,\"positive\":0,\"positive_fraction_complete\":null}",
+      "task": "T5",
+      "version": "t5_v1"
+    }
+  ],
+  "status": "PASS_WITH_WARNINGS",
+  "summary": {
+    "checks": 31,
+    "critical_failures": 0,
+    "findings": 8,
+    "noncritical_failures": 1,
+    "t1_available_labels": 1216,
+    "t1_candidate_origins": 1274,
+    "t5_censored_labels": 93,
+    "t5_complete_labels": 1181
+  },
+  "test_access": {
+    "candidate_record": "artifacts/model_selection/frozen_candidate.json",
+    "model_loader": "skru1.splits.load_split_dataset",
+    "physical_scope": "Runtime/process guard for repository model code. Canonical source CSV files remain readable for audit and are not cryptographically blinded.",
+    "status": "sealed"
+  },
+  "validation_design": [
+    {
+      "design": "rolling_origin",
+      "fold_id": "rolling_01",
+      "held_out_group": "",
+      "task": "T1",
+      "train_rows": 823,
+      "train_sample_ids_sha256": "7ca94bfee9c05afaff4ff2480ac6104ebcb2c05c35614d4939bc437075c61ebb",
+      "validation_date": "2023-11-07",
+      "validation_rows": 88,
+      "validation_sample_ids_sha256": "6c8eebd6fa8419c9e7ac6945343b9a34a300c185cf77c3d37cada060b334893c"
+    },
+    {
+      "design": "rolling_origin",
+      "fold_id": "rolling_02",
+      "held_out_group": "",
+      "task": "T1",
+      "train_rows": 911,
+      "train_sample_ids_sha256": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c",
+      "validation_date": "2024-01-30",
+      "validation_rows": 14,
+      "validation_sample_ids_sha256": "b20b5bc8b39efed506c025f56569e19f41cdd83eac718aaa583257dda372244d"
+    },
+    {
+      "design": "rolling_origin",
+      "fold_id": "rolling_03",
+      "held_out_group": "",
+      "task": "T1",
+      "train_rows": 925,
+      "train_sample_ids_sha256": "686237bc74e73f1828459b8bdba9942c886b88e5acc7cf614f424ea513947f69",
+      "validation_date": "2024-05-14",
+      "validation_rows": 88,
+      "validation_sample_ids_sha256": "ecb9b74de9c4fb244c8a267313151ae002612ad83277182c0c2879152410b8ad"
+    },
+    {
+      "design": "rolling_origin",
+      "fold_id": "rolling_04",
+      "held_out_group": "",
+      "task": "T1",
+      "train_rows": 1013,
+      "train_sample_ids_sha256": "669c63c27d719990f96d36a181f3a8eaff5572e9d91db8d532f1c562011c5796",
+      "validation_date": "2024-07-09",
+      "validation_rows": 14,
+      "validation_sample_ids_sha256": "9b3c75cd9dca28f54b2b2d5658f7018533744e27a7e6dac7c8a78b20bb0b8993"
+    },
+    {
+      "design": "rolling_origin",
+      "fold_id": "rolling_05",
+      "held_out_group": "",
+      "task": "T1",
+      "train_rows": 1027,
+      "train_sample_ids_sha256": "bc199a378f30fe9fbd47539b1e60ec6a9fb9e836b70794e81c8f90efacd098e1",
+      "validation_date": "2024-09-03",
+      "validation_rows": 14,
+      "validation_sample_ids_sha256": "1a8a591e87f4629980e226845b3b59929fd5bf32198db80c3b1de9d0f685e459"
+    },
+    {
+      "design": "leave_profile_out",
+      "fold_id": "leave_profile_id_P-D01",
+      "held_out_group": "P-D01",
+      "task": "T1",
+      "train_rows": 942,
+      "train_sample_ids_sha256": "4faffa958fa31d43ef4c3e0dd668ffc50d22713d47a12d337b964d66a39c10b3",
+      "validation_date": "",
+      "validation_rows": 99,
+      "validation_sample_ids_sha256": "bb45a11b3c474f092fe6158a0d299434f5c547ea77a15e116928013375909351"
+    },
+    {
+      "design": "leave_profile_out",
+      "fold_id": "leave_profile_id_P-H01",
+      "held_out_group": "P-H01",
+      "task": "T1",
+      "train_rows": 958,
+      "train_sample_ids_sha256": "c7f224560f002ba5db8421c68548ac710d91673f16139e6c1ed0c9879ea36667",
+      "validation_date": "",
+      "validation_rows": 83,
+      "validation_sample_ids_sha256": "d6a9da0bf1a8675bcb86f8a9bcd46412d714e00df106b03bb4d7dbdba49263bf"
+    },
+    {
+      "design": "leave_profile_out",
+      "fold_id": "leave_profile_id_P-H02",
+      "held_out_group": "P-H02",
+      "task": "T1",
+      "train_rows": 955,
+      "train_sample_ids_sha256": "9ab3450c42b78bffa89723ae8bc5a108549052cfba601ed7ef7662fa3ec6efdb",
+      "validation_date": "",
+      "validation_rows": 86,
+      "validation_sample_ids_sha256": "0ce81db11239832afbbe887b44bf7d8d5cc838fddf7189f0126578d23f54dddf"
+    },
+    {
+      "design": "leave_profile_out",
+      "fold_id": "leave_profile_id_P-H03",
+      "held_out_group": "P-H03",
+      "task": "T1",
+      "train_rows": 942,
+      "train_sample_ids_sha256": "8b8bfdf9c6b055132d7577f0f3e5c4dc740d2a5b5b394cd9f152ba4cf72e9bfa",
+      "validation_date": "",
+      "validation_rows": 99,
+      "validation_sample_ids_sha256": "add6880391cb911277e808cd10fe0322018c9227e491dfca5174c5ace076e287"
+    },
+    {
+      "design": "leave_profile_out",
+      "fold_id": "leave_profile_id_P-H04",
+      "held_out_group": "P-H04",
+      "task": "T1",
+      "train_rows": 951,
+      "train_sample_ids_sha256": "84e6927b3de0f1b89a3d03e6ef2527795c492dcccdebe331b588a296ffe76005",
+      "validation_date": "",
+      "validation_rows": 90,
+      "validation_sample_ids_sha256": "b44d94965be292bcbc00684166d1d195db909a553f13d8ba624e962a20715091"
+    },
+    {
+      "design": "leave_profile_out",
+      "fold_id": "leave_profile_id_P-H05",
+      "held_out_group": "P-H05",
+      "task": "T1",
+      "train_rows": 983,
+      "train_sample_ids_sha256": "5ba4ddac6020239cb200a99e016c7d9d0e2b3911adaee81b42738ea539276910",
+      "validation_date": "",
+      "validation_rows": 58,
+      "validation_sample_ids_sha256": "3e90f3cd4899391c5416eac059b4ee01cc457088906551cbbb8a852cb44c68a9"
+    },
+    {
+      "design": "leave_profile_out",
+      "fold_id": "leave_profile_id_P-H06",
+      "held_out_group": "P-H06",
+      "task": "T1",
+      "train_rows": 979,
+      "train_sample_ids_sha256": "08c5af07be966c100feb73e48b6696af712bbe9ae39ab8d145c6cc3833ff5ed0",
+      "validation_date": "",
+      "validation_rows": 62,
+      "validation_sample_ids_sha256": "b705b76e3eadd0bb4232e5b6538e58744425a6637f2cff089019cea9b2badb37"
+    },
+    {
+      "design": "leave_profile_out",
+      "fold_id": "leave_profile_id_P-H07",
+      "held_out_group": "P-H07",
+      "task": "T1",
+      "train_rows": 990,
+      "train_sample_ids_sha256": "a629b1bae33095dfb158dab4bdef14d0b4d0d1af4f8af376ebf74c3a6954539c",
+      "validation_date": "",
+      "validation_rows": 51,
+      "validation_sample_ids_sha256": "374c3c229a266fc328b84707e958471858d5a080ae32f31326a5401b03cadba4"
+    },
+    {
+      "design": "leave_profile_out",
+      "fold_id": "leave_profile_id_P-V01",
+      "held_out_group": "P-V01",
+      "task": "T1",
+      "train_rows": 964,
+      "train_sample_ids_sha256": "74f799b8ede0f662ef75d65a9d4f482f3b280456523bdfe5eca3469ca544a877",
+      "validation_date": "",
+      "validation_rows": 77,
+      "validation_sample_ids_sha256": "672bd07e40f1b68e801b7747857623bd27aed83b6e6bafa9a74cde3d323ac93d"
+    },
+    {
+      "design": "leave_profile_out",
+      "fold_id": "leave_profile_id_P-V02",
+      "held_out_group": "P-V02",
+      "task": "T1",
+      "train_rows": 960,
+      "train_sample_ids_sha256": "e48519d53cee05b527c7eb0834e9f9e8d12f56476cc22089b760e6b5a8382c24",
+      "validation_date": "",
+      "validation_rows": 81,
+      "validation_sample_ids_sha256": "658a1afa50db8c3ba4f69f3d1489c4d69024a9ff6f4e627f02db26460f4ec485"
+    },
+    {
+      "design": "leave_profile_out",
+      "fold_id": "leave_profile_id_P-V03",
+      "held_out_group": "P-V03",
+      "task": "T1",
+      "train_rows": 971,
+      "train_sample_ids_sha256": "d973fe314404f18f8da05224aa0d3e071fa009333ec8644f20856b64f1d1b588",
+      "validation_date": "",
+      "validation_rows": 70,
+      "validation_sample_ids_sha256": "19bb11d21b0256abde4f60e89da4aa0cdf84c5e412e7df49861cc6f956fc93db"
+    },
+    {
+      "design": "leave_profile_out",
+      "fold_id": "leave_profile_id_P-V04",
+      "held_out_group": "P-V04",
+      "task": "T1",
+      "train_rows": 979,
+      "train_sample_ids_sha256": "bb0b9d994f57529a673be1f8b050f51ff0b069613f3240ec305d210d59846378",
+      "validation_date": "",
+      "validation_rows": 62,
+      "validation_sample_ids_sha256": "387b5f0e62c54ffa71c2456fe0ffcd48d10f5507d2c89a026bb84fa948b13adc"
+    },
+    {
+      "design": "leave_profile_out",
+      "fold_id": "leave_profile_id_P-V05",
+      "held_out_group": "P-V05",
+      "task": "T1",
+      "train_rows": 986,
+      "train_sample_ids_sha256": "4c02b16e9f06f177062a4f11ef9d3dd199a6711610c0c0301eadf558487cf18d",
+      "validation_date": "",
+      "validation_rows": 55,
+      "validation_sample_ids_sha256": "b2c29d2a9ed6c51d19e94cc87a9f8cabbf355ea0533dfe38f975403ff51bf44a"
+    },
+    {
+      "design": "leave_profile_out",
+      "fold_id": "leave_profile_id_P-V06",
+      "held_out_group": "P-V06",
+      "task": "T1",
+      "train_rows": 973,
+      "train_sample_ids_sha256": "89f36cd4c631609a5f217bb60f02f0841646f678ef2c05e3a1c44ad69d8e66c9",
+      "validation_date": "",
+      "validation_rows": 68,
+      "validation_sample_ids_sha256": "9260d97fbdadd5141b12371259ddd4e7b6c884983d52e3b7eae30783520d318b"
+    },
+    {
+      "design": "leave_zone_out",
+      "fold_id": "leave_zone_id_GEO_NE",
+      "held_out_group": "GEO_NE",
+      "task": "T1",
+      "train_rows": 691,
+      "train_sample_ids_sha256": "bf190dbcc68a431428b38f73719ce29e1740aa54b4e2b911b06b18a23651034d",
+      "validation_date": "",
+      "validation_rows": 350,
+      "validation_sample_ids_sha256": "da7232fec9adecd9797f6603c8bbdd1517dd528e98ed7c89bf118a9fc3a73396"
+    },
+    {
+      "design": "leave_zone_out",
+      "fold_id": "leave_zone_id_GEO_NW",
+      "held_out_group": "GEO_NW",
+      "task": "T1",
+      "train_rows": 951,
+      "train_sample_ids_sha256": "32a281ae327384083daa43b513739b5b76cc011b07bedfb27fed07a2f9904e7b",
+      "validation_date": "",
+      "validation_rows": 90,
+      "validation_sample_ids_sha256": "33c233d66d04a27bbf0e7a019013a02dfa6053a3e375d5969272331c5e781009"
+    },
+    {
+      "design": "leave_zone_out",
+      "fold_id": "leave_zone_id_GEO_SE",
+      "held_out_group": "GEO_SE",
+      "task": "T1",
+      "train_rows": 936,
+      "train_sample_ids_sha256": "e3c4780b72118c730e5eca2cc60946e6c6b8ecd5fd75660bcb7ef6db1abf8b02",
+      "validation_date": "",
+      "validation_rows": 105,
+      "validation_sample_ids_sha256": "5d6d87da0f30cd2609296f732076360fb91d703e7c98ba4daec9b205bb441647"
+    },
+    {
+      "design": "leave_zone_out",
+      "fold_id": "leave_zone_id_GEO_SW",
+      "held_out_group": "GEO_SW",
+      "task": "T1",
+      "train_rows": 545,
+      "train_sample_ids_sha256": "ca46dfd5625aa0967b90b33426a82c61df1a27c4511a14fd5ee5302f330c071a",
+      "validation_date": "",
+      "validation_rows": 496,
+      "validation_sample_ids_sha256": "4a68a82c91bd06b478d605f05bd1cdb63b63e0418469af1cc294a005986eb450"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+check_id,left_source,right_source,join_keys,left_rows,matched_rows,unmatched_rows,coverage,status,details
+JOIN-001,canonical features,T1 targets,sample_id,1274,1274,0,1.0,PASS,
+JOIN-002,canonical features,T5 labels,sample_id,1274,1274,0,1.0,PASS,
+JOIN-003,observed membership,adjusted leveling,campaign_id + point_id,2057,2039,18,0.9912493923189111,WARN,18 source membership claims have no adjusted leveling authority.
+JOIN-004,membership inconsistencies,unlabeled T1 origins,target_campaign_id + point_id,18,6,12,0.3333333333333333,PASS,The 18 membership rows map to 6 model origins at the coarser origin grain.
+JOIN-005,T1 candidate origins,available operational labels,sample_id,1274,1216,58,0.9544740973312402,WARN,Unavailable targets remain outside train/validation/test manifests.
+JOIN-006,T5 candidate origins,complete 180-day labels,sample_id,1274,1181,93,0.9270015698587127,WARN,Right-censored test origins are frozen separately.
