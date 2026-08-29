@@ -327,8 +327,8 @@
     }
   ],
   "code_state": {
-    "commit": "4c9c24cc598812f75faa94dd590a5e489bb782a0",
-    "working_tree_dirty": true
+    "commit": "a19ff7fa930fa687c97ab7ae5eeae81686a06695",
+    "working_tree_dirty": false
   },
   "dataset_version": "SKRU1_Data_Foundation_v3_2_1",
   "findings": [
@@ -414,7 +414,7 @@
     }
   ],
   "gate": "A1_DATA_QUALITY",
-  "generated_at_utc": "2026-08-29T13:13:56+00:00",
+  "generated_at_utc": "2026-08-29T13:16:55+00:00",
   "grain": {
     "current_dates_shared_by_multiple_profiles": 26,
     "origin_rows": 1274,
