@@ -1,0 +1,21 @@
+THE DATA ARE HERE:
+
+1) Core CSV tables:
+   01_reconstruction_v3_2/tables/
+
+2) Model-ready features:
+   01_reconstruction_v3_2/model_ready/
+   03_model_ready_only_v3_2/model_ready/
+
+3) Evaluation targets and synthetic truth:
+   01_reconstruction_v3_2/evaluation_only/
+
+4) EDA and formal target tables:
+   02_eda_targets_v1/tables/
+   02_eda_targets_v1/target_tables/
+
+5) Excel workbooks:
+   04_excel_workbooks/
+
+6) Full table inventory:
+   06_manifests/TABLE_INVENTORY.csv

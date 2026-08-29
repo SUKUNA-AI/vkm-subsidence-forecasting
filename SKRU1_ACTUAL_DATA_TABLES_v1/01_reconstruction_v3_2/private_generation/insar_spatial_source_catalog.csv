@@ -1,0 +1,6 @@
+﻿source_id,x_local_m,y_local_m,sigma_m,temporal_family,amplitude_mm_y,use_class
+ISRC-01,22584.95906,40745.59509,1300,uniform,18,private_generation_only
+ISRC-02,27154.59804,41086.09418,1100,decaying,75,private_generation_only
+ISRC-03,25660.6776,43946.28646,900,accelerating,110,private_generation_only
+ISRC-04,28033.37476,44218.68573,700,reactivated,95,private_generation_only
+ISRC-05,23463.73579,43265.2883,650,step_change,80,private_generation_only

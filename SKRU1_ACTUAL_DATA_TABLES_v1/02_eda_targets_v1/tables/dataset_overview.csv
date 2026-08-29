@@ -1,0 +1,15 @@
+﻿metric,value,source_table
+WORK points,98,survey_points.csv
+Reference points,28,survey_points.csv
+Profiles,14,survey_profiles.csv
+Campaigns,29,survey_campaigns.csv
+Full campaigns,15,survey_campaigns.csv
+Focused campaigns,14,survey_campaigns.csv
+Observed membership rows,2057,campaign_point_membership.csv
+Adjusted leveling epochs,2039,leveling_adjusted_epochs.csv
+Existing next-cycle samples,1274,next_cycle_features.csv
+Formal primary candidate origins,1274,next_planned_operational_targets.csv
+Formal primary available labels,1216,next_planned_operational_targets.csv
+Early-warning complete origins,1181,early_warning_labels_formal.csv
+Early-warning right-censored origins,93,early_warning_labels_formal.csv
+Profile target transitions,179,profile_next_full_campaign_targets.csv

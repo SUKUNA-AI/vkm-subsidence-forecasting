@@ -1,0 +1,21 @@
+﻿feature_or_group,status,class,rationale
+observed_settlement_mm,allowed,dynamic observation,Past adjusted leveling value.
+current_uncertainty_mm,allowed,measurement uncertainty,Use in state-space filter/weights.
+rate_1_mm_y,allowed,lagged dynamic,Most recent annualized rate.
+rate_2_mm_y,allowed,lagged dynamic,Second lag.
+rate_3_mm_y,allowed,lagged dynamic,Third lag.
+rate_mean3_mm_y,allowed,lagged dynamic,Rolling mean.
+rate_std3_mm_y,allowed,lagged dynamic,Rolling volatility.
+rate_change_1_mm_y,allowed,lagged dynamic,Recent rate change.
+dt_prev_y,allowed,time geometry,Known previous interval.
+dt_next_y,allowed_for_integration,forecast horizon,Known planned horizon; integrate predicted rate.
+calendar sin/cos,allowed,calendar,Known planned date.
+static reconstructed geology/mining fields,conditionally_allowed,static reconstructed,Only with per-feature provenance and uncertainty.
+current tilt/curvature/neighbor rates,conditionally_allowed,spatial dynamic,Only from current/past cycles; spatial holdout required.
+profile_type,allowed_with_caution,geometry class,Broad orientation only.
+settlement_anchor_map_mm,forbidden,terminal/reference map,Future leakage.
+regime/base_rate/event_amp/event_center/decay_tau,forbidden,latent generator,Generator leakage.
+true_*_evaluation_only,forbidden,hidden truth,Evaluation only.
+x_local_m/y_local_m,forbidden_primary,coordinates,Can memorize reconstructed map.
+point_id/profile_id,forbidden_primary,identity,Encodes individual history.
+target_*,target_only,target,Never in predictors.

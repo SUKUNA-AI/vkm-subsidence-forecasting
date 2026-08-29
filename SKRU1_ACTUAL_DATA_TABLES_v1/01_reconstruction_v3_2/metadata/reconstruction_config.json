@@ -1,0 +1,16 @@
+{
+  "dataset_version": "3.1",
+  "seed": 20260810,
+  "source_docx": "ВКР_Филатова_М_С.docx",
+  "source_docx_sha256": "45978d5fc446fa35d0b3e271c44a5790bc5b4101321b20f8078ff83dc8ae2931",
+  "local_bounds_m": [
+    20654.94365254474,
+    38573.75736824794,
+    29813.51721251509,
+    46019.680469691244
+  ],
+  "local_crs_wkt": "ENGCRS[\"SKRU-1 reconstructed local engineering CRS\",EDATUM[\"unknown\"],CS[Cartesian,2],AXIS[\"x\",east,ORDER[1],LENGTHUNIT[\"metre\",1]],AXIS[\"y\",north,ORDER[2],LENGTHUNIT[\"metre\",1]]]",
+  "reference_year": 2022,
+  "reference_date": null,
+  "reference_period_status": "year_supported_exact_date_unknown"
+}

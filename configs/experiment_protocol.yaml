@@ -1,0 +1,61 @@
+dataset_version: SKRU1_Data_Foundation_v3_2_1
+
+objectives:
+  primary: T1_RATE_NEXT_PLANNED
+  safety: T5_EW_ONSET_180D
+  derived:
+    - T1B_INCREMENT_NEXT_PLANNED
+    - T1C_CUMULATIVE_SETTLEMENT
+    - T6_PROFILE_KINEMATICS
+
+splits:
+  train_target_end: 2023-12-31
+  validation_target_year: 2024
+  test_target_start: 2025-01-01
+  t5_split_by_label_horizon_end: true
+
+model_stages:
+  stage_0_sanity:
+    families: [persistence, robust_trend, fixed_kalman]
+  stage_1_classical:
+    families: [ETS, ARIMA, GaussianProcess, SVR, RF, XGBoost, LightGBM, CatBoost, ENFS]
+  stage_2_state_space:
+    families: [AdaptiveKalman, IMM, SwitchingLDS, BOCPD, CUSUM, GLR]
+  stage_3_deep_temporal:
+    families: [LSTM, GRU, TCN, DeepAR, NBEATS, NHiTS, TSMixer, TFT, PatchTST, iTransformer]
+  stage_4_spatiotemporal:
+    families: [STGCN, DCRNN, GraphWaveNet, GAT_TCN, STTransformer, TGN]
+  stage_5_foundation_models:
+    families: [Chronos_like, TimesFM_like, Moirai_or_LagLlama_like, TabularFM]
+    mode: zero_or_few_shot_first
+  stage_6_hybrid_ensemble:
+    families: [IMM_CatBoost_residual, KalmanNet, NeuralODE, PhysicsGuidedResidual, MixtureOfExperts, Stacking]
+
+selection_policy:
+  tune_on: train_validation_only
+  test_use: final_once_per_frozen_candidate
+  minimum_seeds_dl: 5
+  report_parameter_count: true
+  report_training_time: true
+  report_inference_time: true
+  complexity_penalty: true
+
+validation:
+  - temporal_holdout
+  - rolling_origin
+  - leave_profile_out
+  - leave_zone_out
+  - leave_block_out
+  - regime_transition
+  - unseen_spatial_ood
+  - monte_carlo_transition_ood
+
+forbidden:
+  random_row_split: true
+  test_hyperparameter_tuning: true
+  hidden_truth_as_feature: true
+  generator_parameters_as_feature: true
+  terminal_map_as_feature: true
+  future_campaign_information: true
+  raw_point_id_memorization: true
+  direct_llm_numeric_forecaster_as_primary: true

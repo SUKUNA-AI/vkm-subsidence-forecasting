@@ -1,0 +1,11 @@
+﻿issue_id,severity,finding,required_action
+EDA-001,HIGH,18 membership rows are marked observed but have no adjusted leveling epoch.,Use adjusted leveling as label authority; patch P-H04/C005 and P-H07/C010 membership statuses in the next dataset revision.
+EDA-002,HIGH,The existing next-cycle target is next successful observation; 58 rows do not point to the next planned targeted campaign.,Use T1_RATE_NEXT_PLANNED as the primary operational target.
+EDA-003,HIGH,93 early-warning origins do not have a complete 180-day truth horizon.,Exclude as right-censored or extend truth to at least 2026-03 before final early-warning experiments.
+EDA-004,HIGH,"After strict horizon-end splitting, nominal early-warning test size is very small.",Extend temporal coverage and keep stress/OOD results separate from nominal results.
+EDA-005,MEDIUM,Terrain TRI and roughness are missing in 32.4% of next-cycle feature rows.,Use explicit missing indicators and report performance by missingness/provenance; never replace unknown uncertainty with zero.
+EDA-006,MEDIUM,Lithology uncertainty is absent for all rows.,Keep provenance as categorical quality information; do not fabricate numeric uncertainty.
+EDA-007,MEDIUM,Several uncertainty columns are deterministic functions of donor distance.,Run ablations and regularize; do not interpret both as independent evidence.
+EDA-008,HIGH,1274 rows represent only 98 dependent trajectories in 14 profiles.,Random row split is prohibited; use temporal and leave-profile/zone-out protocols.
+EDA-009,MEDIUM,Static reconstructed features have weak marginal association with rate change after persistence is removed.,Any geomechanical claim requires improvement over history-only baselines on temporal and spatial holdouts.
+EDA-010,HIGH,Enterprise deformation limits are absent.,Do not convert reference or illustrative thresholds into official risk labels.

@@ -1,0 +1,15 @@
+﻿profile_id,profile_type,length_inside_footprint_m,nominal_spacing_m
+P-H01,transverse,954.687240935462,190
+P-H02,transverse,534.262514816262,190
+P-H03,transverse,432.950750107691,190
+P-H04,transverse,599.470269379875,190
+P-H05,transverse,805.148168236701,190
+P-H06,transverse,742.720495828551,190
+P-H07,transverse,479.012610977137,190
+P-V01,longitudinal,604.520489424111,190
+P-V02,longitudinal,412.84326107012,190
+P-V03,longitudinal,324.376847983665,190
+P-V04,longitudinal,350.606363442632,190
+P-V05,longitudinal,353.865652345827,190
+P-V06,longitudinal,516.054076337656,190
+P-D01,diagonal,483.29466501094,190

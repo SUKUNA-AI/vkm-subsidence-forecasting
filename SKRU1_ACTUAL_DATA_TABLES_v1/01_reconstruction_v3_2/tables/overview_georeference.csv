@@ -1,0 +1,2 @@
+﻿transform_id,status,fit_basis,estimated_horizontal_uncertainty_m,object_coordinates_published,local_crs_primary,note
+OVERVIEW-01,context_only_not_engineering,Figure 13 OSM screenshot + public SKRU-1/Gorodishche context points,260,False,True,Official key or 4+ common geodetic points are required for engineering georeferencing.

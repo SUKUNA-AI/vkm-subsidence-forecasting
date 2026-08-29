@@ -1,0 +1,26 @@
+gates:
+  bootstrap:
+    all_required_inputs_hash_verified: true
+    absolute_host_paths_in_runtime_config: 0
+  data:
+    critical_validation_failures: 0
+    forbidden_features_in_model_ready: 0
+  screening:
+    every_model_compared_to_B1_and_B6: true
+    tuning_uses_test: false
+  deep_learning:
+    minimum_random_seeds: 5
+    early_stopping_on_validation_only: true
+    parameter_count_reported: true
+    compute_cost_reported: true
+  final_candidate:
+    temporal_mae_not_worse_than_B6_percent: 2
+    transition_mae_improvement_percent: 10
+    leave_profile_degradation_percent_max: 5
+    leave_zone_degradation_percent_max: 5
+    coverage_95_lower: 0.90
+    coverage_95_upper: 0.97
+  llm_layer:
+    source_grounded: true
+    no_numeric_primary_forecast: true
+    no_enterprise_risk_decision: true

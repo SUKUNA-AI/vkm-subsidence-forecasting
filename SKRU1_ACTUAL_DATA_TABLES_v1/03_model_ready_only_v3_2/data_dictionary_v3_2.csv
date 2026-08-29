@@ -1,0 +1,9 @@
+﻿table,field,description,unit_or_type,access_class
+tables/survey_points.csv,point_id,Stable point identifier,string,public
+tables/campaign_point_membership.csv,membership_status,observed/not_targeted/missing reason,category,public
+evaluation_only/truth_survey_points_monthly.csv,regime_stage,Time-dependent stage,category,evaluation_only
+model_ready/next_cycle_features.csv,forecast_horizon_days,Days to next observed cycle,days,model_ready
+evaluation_only/next_cycle_targets.csv,hidden_true_next_increment_mm,Synthetic truth increment,mm,evaluation_only
+tables/point_feature_lineage.csv,donor_distance_m,Distance to source/reconstruction donor,m,public
+tables/insar_observations_relative.csv,subvertical_estimate_relative_mm,Corrected relative InSAR estimate,mm,public
+external_validation/external_cycle_schema.csv,observed_settlement_mm,Required real external measurement,mm,external_input

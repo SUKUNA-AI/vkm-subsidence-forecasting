@@ -1,0 +1,14 @@
+﻿split,label_status,n
+test,censored_access,5
+test,censored_instrument,3
+test,censored_weather,1
+test,observed,175
+train,censored_access,21
+train,censored_instrument,3
+train,censored_weather,15
+train,observed,911
+train,observed_but_no_adjusted_leveling,6
+validation,censored_access,2
+validation,censored_instrument,1
+validation,censored_weather,1
+validation,observed,130

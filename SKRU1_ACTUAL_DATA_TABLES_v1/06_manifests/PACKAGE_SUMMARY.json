@@ -1,0 +1,17 @@
+{
+  "package": "SKRU1_ACTUAL_DATA_TABLES_v1",
+  "file_count_excluding_manifest_files": 237,
+  "csv_table_count": 149,
+  "xlsx_count": 8,
+  "gpkg_count": 1,
+  "total_uncompressed_bytes_excluding_manifest_files": 95573195,
+  "table_categories": {
+    "other_csv": 31,
+    "evaluation_only": 14,
+    "model_ready": 16,
+    "private_generation": 4,
+    "core_reconstruction_table": 48,
+    "eda_summary": 27,
+    "formal_target_table": 9
+  }
+}

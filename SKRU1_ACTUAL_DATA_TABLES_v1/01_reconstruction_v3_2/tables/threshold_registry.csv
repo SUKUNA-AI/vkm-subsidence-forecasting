@@ -1,0 +1,21 @@
+﻿threshold_id,threshold_class,parameter,value,authority,status,source,interpretation
+TH-001,measurement_qc,leveling_closure_mm,3*sqrt(L_km),regulatory,active,"Приказ №186, приложение 2, табл. 6","Контроль качества измерений, не порог геомеханической опасности."
+TH-002,measurement_qc,full_cycles_per_year,2,project_schedule,active,Расчетный проект наблюдений,Минимум два полных цикла плюс целевые серии.
+TH-003,descriptive,insar_analysis_floor_mm_y,20,published_observational,active_for_external_consistency,"Бабаянц, СКРУ-2, 2021–2022","Уровень информативного отображения относительно помех, не норматив риска."
+TH-004,descriptive,moderate_rate_mm_y,75–100,published_observational,reference_only,"Бабаянц, Березники",Наблюдавшийся диапазон локальных областей.
+TH-005,descriptive,intense_rate_mm_y,250–400,published_observational,stress_test_only,"Бабаянц, Березники",Интенсивные аварийно-нагруженные районы; не СКРУ-1.
+TH-006,experimental_class,subsidence_mm,250,experimental_inactive,inactive,"ВКР Филатовой, разд. 3.2",Порог классификационного эксперимента.
+TH-007,experimental_class,subsidence_mm,500,experimental_inactive,inactive,"ВКР Филатовой, разд. 3.2",Порог классификационного эксперимента.
+TH-008,experimental_class,subsidence_mm,1000,experimental_inactive,inactive,"ВКР Филатовой, разд. 3.2",Порог классификационного эксперимента.
+TH-009,experimental_class,subsidence_mm,1500,experimental_inactive,inactive,"ВКР Филатовой, разд. 3.2",Порог классификационного эксперимента.
+TH-010,experimental_class,subsidence_mm,2000,experimental_inactive,inactive,"ВКР Филатовой, разд. 3.2",Порог классификационного эксперимента.
+TH-011,illustrative,Scrit_mm,300,illustrative_inactive,inactive,"ВКР Филатовой, рис. 55–57",Прямо описано как иллюстративно принятое значение.
+TH-012,illustrative,Tcrit_mm_m,0.5,illustrative_inactive,inactive,"ВКР Филатовой, рис. 55–57",Не норматив предприятия.
+TH-013,illustrative,Kcrit_mm_m2,0.0005,illustrative_inactive,inactive,"ВКР Филатовой, рис. 55–57",Не норматив предприятия.
+TH-014,published_engineering,max_tilt_recommended_mm_m,10,peer_reviewed_engineering,reference_only_not_enterprise,"Барях, Тенисон, Горный журнал, 2021",Предлагаемый допустимый наклон для сохранности ВЗТ без дополнительных мер; не заменяет проект СКРУ-1.
+TH-015,published_engineering,max_tilt_limit_mm_m,15,peer_reviewed_engineering,reference_only_not_enterprise,"Барях, Тенисон, Горный журнал, 2021","Предельный наклон, при котором требуются дополнительные меры охраны; не норматив предприятия."
+TH-016,published_observed,critical_tilt_range_mm_m,21–30,peer_reviewed_observation,reference_only,"Барях, Тенисон, Горный журнал, 2021",Диапазон на потенциально опасных участках и БКПРУ-1; внешний ориентир.
+TH-017,project_required,allowable_subsidence_mm,,enterprise_project,required_missing,Проект наблюдательной станции/охраны объектов,Не заполнять без официального документа предприятия.
+TH-018,project_required,allowable_tilt_mm_m,,enterprise_project,required_missing,Проект наблюдательной станции/охраны объектов,Не заполнять без официального документа предприятия.
+TH-019,project_required,allowable_curvature_1_m,,enterprise_project,required_missing,Проект наблюдательной станции/охраны объектов,Не заполнять без официального документа предприятия.
+TH-020,project_required,allowable_horizontal_strain,,enterprise_project,required_missing,Проект наблюдательной станции/охраны объектов,Не заполнять без официального документа предприятия.

@@ -1,0 +1,31 @@
+* text=auto
+*.py text eol=lf
+*.md text eol=lf
+*.csv text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Source archives and binary research artifacts are versioned through Git LFS.
+*.zip filter=lfs diff=lfs merge=lfs -text
+*.xlsx filter=lfs diff=lfs merge=lfs -text
+*.xls filter=lfs diff=lfs merge=lfs -text
+*.gpkg filter=lfs diff=lfs merge=lfs -text
+*.pdf filter=lfs diff=lfs merge=lfs -text
+*.docx filter=lfs diff=lfs merge=lfs -text
+
+# Preserve every byte covered by the delivered manifests/checksums.
+CHANGELOG_v2.md -text -eol
+README_FIRST.md -text -eol
+BUNDLE_MANIFEST.csv -text -eol
+CHECKSUMS.sha256 -text -eol
+codex/** -text -eol
+configs/** -text -eol
+docs/governance/** -text -eol
+docs/user/** -text -eol
+inputs/** -text -eol
+repo_bootstrap/** -text -eol
+scripts/bootstrap_repo.ps1 -text -eol
+scripts/bootstrap_repo.sh -text -eol
+scripts/verify_inputs.py -text -eol
+SKRU1_ACTUAL_DATA_TABLES_v1/** -text -eol

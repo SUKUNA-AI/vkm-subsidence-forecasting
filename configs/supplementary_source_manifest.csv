@@ -1,0 +1,2 @@
+﻿source_id,relative_path,name,title,size_bytes,sha256,bundle_status,role,authority_class
+SUP01,inputs/sources/supplementary/geokniga-02obrabotka.pdf,geokniga-02obrabotka.pdf,Дополнительный материал по обработке данных,3576355,4d20f03c0c3a7bb7039c405e2aff2780a30d9f6e52e99fe5da50fa4c9ccbe947,bundled_verified,Методическая поддержка; не входит в ядро 11 первоисточников,supplementary_source

@@ -1,0 +1,32 @@
+{
+  "dataset_version": "3.2.0",
+  "checks_total": 18,
+  "checks_passed": 18,
+  "checks_failed": 0,
+  "overall_status": "PASS",
+  "regime_counts": {
+    "decaying": 28,
+    "uniform_creep": 26,
+    "stable": 18,
+    "accelerating": 12,
+    "reactivated": 8,
+    "step_change": 6
+  },
+  "velocity_max_mm_y": 194.06722627731386,
+  "velocity_gt250_fraction": 0.0,
+  "focused_coverage_median": 0.14285714285714285,
+  "full_coverage_median": 0.9523809523809523,
+  "campaign_interval_min_days": 35.0,
+  "campaign_interval_max_days": 322.0,
+  "gnss_network_points": 56,
+  "insar_points": 600,
+  "stress_zone_counts": {
+    "background": 18,
+    "moderate": 18,
+    "high": 18,
+    "unseen_spatial": 18
+  },
+  "natural_early_positive_rate": 0.033751962323390894,
+  "stress_early_positive_rate": 0.1746987951807229,
+  "external_test_status": "READY_PENDING_REAL_DATA"
+}

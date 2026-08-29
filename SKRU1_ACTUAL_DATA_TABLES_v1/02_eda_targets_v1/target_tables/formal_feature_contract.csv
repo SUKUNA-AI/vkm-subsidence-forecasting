@@ -1,0 +1,70 @@
+﻿field,role,allowed,reason
+sample_id,METADATA,False,"identifier or split metadata, retained for joins but excluded from estimator"
+point_id,METADATA,False,"identifier or split metadata, retained for joins but excluded from estimator"
+profile_id,METADATA,False,"identifier or split metadata, retained for joins but excluded from estimator"
+current_campaign_id,METADATA,False,"identifier or split metadata, retained for joins but excluded from estimator"
+current_date,METADATA,False,"identifier or split metadata, retained for joins but excluded from estimator"
+target_campaign_id,METADATA,False,"identifier or split metadata, retained for joins but excluded from estimator"
+target_date,METADATA,False,"identifier or split metadata, retained for joins but excluded from estimator"
+split,METADATA,False,"identifier or split metadata, retained for joins but excluded from estimator"
+n_history,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+last_settlement_mm,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+last_rate_mm_y,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+mean_last_3_rates_mm_y,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+std_last_3_rates_mm_y,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+recent_acceleration_mm_y2,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+current_standard_uncertainty_mm,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+days_since_previous_observation,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+forecast_horizon_days,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+current_campaign_type,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+missing_campaigns_since_previous,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+profile_mean_settlement_mm,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+profile_mean_rate_mm_y,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+profile_rate_std_mm_y,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+profile_n_observed,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+chainage_m,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+chainage_normalized_profile,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+kzt,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+kzt__standard_uncertainty,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+kzt__donor_distance_m,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+kzt__provenance,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+ko,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+ko__standard_uncertainty,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+ko__donor_distance_m,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+ko__provenance,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+seismic_energy_J_m2,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+seismic_energy_J_m2__standard_uncertainty,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+seismic_energy_J_m2__donor_distance_m,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+seismic_energy_J_m2__provenance,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+fill_density,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+fill_density__standard_uncertainty,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+fill_density__donor_distance_m,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+fill_density__provenance,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+fault_distance_m,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+fault_distance_m__standard_uncertainty,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+fault_distance_m__donor_distance_m,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+fault_distance_m__provenance,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+lithology,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+lithology__standard_uncertainty,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+lithology__donor_distance_m,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+lithology__provenance,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+terrain_TRI_relative,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+terrain_TRI_relative__standard_uncertainty,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+terrain_TRI_relative__donor_distance_m,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+terrain_TRI_relative__provenance,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+terrain_roughness_relative,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+terrain_roughness_relative__standard_uncertainty,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+terrain_roughness_relative__donor_distance_m,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+terrain_roughness_relative__provenance,MODEL_FEATURE,True,available at prediction time in the reconstructed monitoring workflow
+settlement_anchor_map_mm,PHYSICALLY_EXCLUDED,False,not present in model-ready files
+x_local_m,PHYSICALLY_EXCLUDED,False,not present in model-ready files
+y_local_m,PHYSICALLY_EXCLUDED,False,not present in model-ready files
+process_family,PHYSICALLY_EXCLUDED,False,not present in model-ready files
+regime_stage,PHYSICALLY_EXCLUDED,False,not present in model-ready files
+base_rate_mm_y,PHYSICALLY_EXCLUDED,False,not present in model-ready files
+event_onset_date,PHYSICALLY_EXCLUDED,False,not present in model-ready files
+event_amplitude_mm_y,PHYSICALLY_EXCLUDED,False,not present in model-ready files
+decay_tau_y,PHYSICALLY_EXCLUDED,False,not present in model-ready files
+true_settlement_mm,PHYSICALLY_EXCLUDED,False,not present in model-ready files
+true_velocity_mm_y,PHYSICALLY_EXCLUDED,False,not present in model-ready files
+target_campaign_type,MODEL_FEATURE,True,known from the frozen observation plan at prediction time

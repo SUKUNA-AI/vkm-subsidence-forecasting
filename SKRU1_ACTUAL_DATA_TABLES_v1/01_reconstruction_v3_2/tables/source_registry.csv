@@ -1,0 +1,7 @@
+﻿source_id,file_name,source_type,object,used_for,provenance_codes,sha256,limitations
+SRC-01,ВКР_Филатова_М_С.docx,ВКР,СКРУ-1,"12 source layers, figures 12–27, exact table fragments","P,D,C",45978d5fc446fa35d0b3e271c44a5790bc5b4101321b20f8078ff83dc8ae2931,Primary TAB/Excel unavailable; reconstructed layer membership remains candidate-level.
+SRC-02,Babayants-Disser.pdf,dissertation,Berezniki/Solikamsk,time-series regimes and InSAR uncertainty context,"P,C",,"External analogue, not SKRU-1 surveying journal."
+SRC-03,03-GR-24-2.pdf,article,Berezniki,published TerraSAR-X calendars and observed rates,"P,C",,External analogue; LOS-derived subvertical displacement.
+SRC-04,106_Губанова__Глебова.pdf,article,Tyubegatan,geomechanical stress envelopes,"P,C",,External stress scenarios only.
+SRC-05,НК 26 Бобровицкий Григорий.pdf,VKR,Gremyachinskoye,surveying formulas and profile forms,"P,C",,"Methodical structure, not SKRU-1 values."
+WEB-01,Приказ Ростехнадзора №186,regulation,Russia,measurement design and QC context,P/W,,Does not provide enterprise deformation limits for SKRU-1.

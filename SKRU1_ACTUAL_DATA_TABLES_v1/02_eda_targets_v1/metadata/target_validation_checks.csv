@@ -1,0 +1,13 @@
+﻿check_id,severity,status,observed,expected,note
+TGT-001,critical,PASS,1274,1274,Formal feature sample IDs must be unique.
+TGT-002,critical,PASS,1274,1274,Formal target sample IDs must be unique.
+TGT-003,critical,PASS,0,0,Features and operational targets must share the same sample universe.
+TGT-004,critical,PASS,0,0,Forecast horizons must be positive.
+TGT-005,critical,PASS,forbidden pattern scan,none,No latent or terminal-map leakage in formal features.
+TGT-006,critical,PASS,0.0,0.0,Rate target formula consistency.
+TGT-007,critical,PASS,1216,1216,Available primary labels.
+TGT-008,critical,PASS,52,52,Planned missing measurements must be censored.
+TGT-009,critical,PASS,6,6,Membership/leveling inconsistencies remain unlabeled.
+TGT-010,critical,PASS,93,93,Incomplete early-warning horizons must be right-censored.
+TGT-011,critical,PASS,0.9505494505494505,0.95±0.02,Synthetic target uncertainty should be calibrated.
+TGT-012,critical,PASS,179,>0,Profile-level derived target table must exist.

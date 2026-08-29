@@ -1,0 +1,14 @@
+{
+  "n": 49,
+  "MAE_mm": 2.4686285231572147,
+  "RMSE_mm": 4.319099021613444,
+  "Bias_mm": -0.49259383747046775,
+  "config": {
+    "model": "kalman_local_linear_trend",
+    "q": 250.0,
+    "selected_before_external_data": true,
+    "no_retraining": true,
+    "version": "3.2.0"
+  },
+  "retrained": false
+}

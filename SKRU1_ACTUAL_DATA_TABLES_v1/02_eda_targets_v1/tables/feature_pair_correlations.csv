@@ -1,0 +1,7 @@
+﻿feature_a,feature_b,spearman,abs_spearman
+ko__standard_uncertainty,ko__donor_distance_m,1.0,1.0
+seismic_energy_J_m2__standard_uncertainty,seismic_energy_J_m2__donor_distance_m,1.0,1.0
+kzt__standard_uncertainty,kzt__donor_distance_m,0.9999999999999998,0.9999999999999998
+last_rate_mm_y,mean_last_3_rates_mm_y,0.9677493089204987,0.9677493089204987
+chainage_m,chainage_normalized_profile,0.9259086673364979,0.9259086673364979
+profile_mean_rate_mm_y,profile_rate_std_mm_y,0.8937331641811878,0.8937331641811878

@@ -1,0 +1,9 @@
+﻿feature,value_missing_fraction,uncertainty_missing_fraction,uncertainty_median,uncertainty_p95,donor_distance_median_m,donor_distance_p95_m,donor_distance_max_m,provenance_distribution
+fault_distance_m,0.0,0.0,25.0,25.0,19.125340535,30.126002835,33.9050644,C/R:98
+fill_density,0.0,0.0,0.08,0.08,19.125340535,30.126002835,33.9050644,C/R:98
+ko,0.0,0.0,0.014,0.03408717406049999,0.0,86.95962940049986,100.0,D:82; R:16
+kzt,0.0,0.0,0.032,0.08929822128,0.0,158.113883,203.9947537,D:63; R:35
+lithology,1.0,1.0,,,0.0,47.236091005999974,80.94289744,D:88; R:10
+seismic_energy_J_m2,0.0,0.0,1.2,3.0,0.0,100.0,111.9892896,D:73; R:25
+terrain_TRI_relative,0.3163265306122449,0.0,0.1,0.1,19.125340535,30.126002835,33.9050644,C/R:98
+terrain_roughness_relative,0.3163265306122449,0.0,0.1,0.1,19.125340535,30.126002835,33.9050644,C/R:98

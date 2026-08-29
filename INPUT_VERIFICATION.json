@@ -1,0 +1,152 @@
+{
+  "root": "E:\\Диплом",
+  "checked": 16,
+  "passed": 16,
+  "failed": 0,
+  "results": [
+    {
+      "relative_path": "inputs/bootstrap/SKRU1_data_reconstruction_v3_2.zip",
+      "exists": true,
+      "expected_size": 28015302,
+      "actual_size": 28015302,
+      "expected_sha256": "b179505c22d7513e53622816532e174a0bd0611173a8a0f64a1250a3362ca99a",
+      "actual_sha256": "b179505c22d7513e53622816532e174a0bd0611173a8a0f64a1250a3362ca99a",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/bootstrap/SKRU1_v3_2_EDA_targets_v1.zip",
+      "exists": true,
+      "expected_size": 2050248,
+      "actual_size": 2050248,
+      "expected_sha256": "7a654c9989ff51494b077d602205e047e69b1733f50573353e8870f94179a387",
+      "actual_sha256": "7a654c9989ff51494b077d602205e047e69b1733f50573353e8870f94179a387",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/bootstrap/build_skru1_v3_2_1.py",
+      "exists": true,
+      "expected_size": 47044,
+      "actual_size": 47044,
+      "expected_sha256": "6c6e1f55a9240e1b4bb213ebcb984550248caa534bf71e8264f75b97725cd7c9",
+      "actual_sha256": "6c6e1f55a9240e1b4bb213ebcb984550248caa534bf71e8264f75b97725cd7c9",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/bootstrap/run_skru1_experiments_v1.py",
+      "exists": true,
+      "expected_size": 69178,
+      "actual_size": 69178,
+      "expected_sha256": "3b730a1aa74de2db3f1a0af0954d689c3b361c220af4a66ecbcb2c26c0451a88",
+      "actual_sha256": "3b730a1aa74de2db3f1a0af0954d689c3b361c220af4a66ecbcb2c26c0451a88",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/bootstrap/audit_skru1_experiment_suite_v1.py",
+      "exists": true,
+      "expected_size": 12268,
+      "actual_size": 12268,
+      "expected_sha256": "5fc59a5ec20291d121d042dc0fd6f90389b3720a462342b85da3664deaf00940",
+      "actual_sha256": "5fc59a5ec20291d121d042dc0fd6f90389b3720a462342b85da3664deaf00940",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/ВКР_Филатова_М_С.docx",
+      "exists": true,
+      "expected_size": 17826165,
+      "actual_size": 17826165,
+      "expected_sha256": "45978d5fc446fa35d0b3e271c44a5790bc5b4101321b20f8078ff83dc8ae2931",
+      "actual_sha256": "45978d5fc446fa35d0b3e271c44a5790bc5b4101321b20f8078ff83dc8ae2931",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/НК 26 Бобровицкий Григорий.pdf",
+      "exists": true,
+      "expected_size": 5766049,
+      "actual_size": 5766049,
+      "expected_sha256": "b83204aabdbb5902a8936a3b4d7393220ae4de0384b34b4db22b218df352ea59",
+      "actual_sha256": "b83204aabdbb5902a8936a3b4d7393220ae4de0384b34b4db22b218df352ea59",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/03-GR-24-2.pdf",
+      "exists": true,
+      "expected_size": 2233477,
+      "actual_size": 2233477,
+      "expected_sha256": "e134fc6d506d1e7ffcdabf4bd6da9e9a27554ce14139105310440490c7c86fda",
+      "actual_sha256": "e134fc6d506d1e7ffcdabf4bd6da9e9a27554ce14139105310440490c7c86fda",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/Babayants-Disser.pdf",
+      "exists": true,
+      "expected_size": 9870619,
+      "actual_size": 9870619,
+      "expected_sha256": "a80ae607e33ddf25f49073400fa138aeba67a86dd5abac7d131732c9491eff21",
+      "actual_sha256": "a80ae607e33ddf25f49073400fa138aeba67a86dd5abac7d131732c9491eff21",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/01006516068.pdf",
+      "exists": true,
+      "expected_size": 4385416,
+      "actual_size": 4385416,
+      "expected_sha256": "faf80647870baa85d11569ecec7a70989990dd607ab307e9141f30a9d1d77e4d",
+      "actual_sha256": "faf80647870baa85d11569ecec7a70989990dd607ab307e9141f30a9d1d77e4d",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/106_Губанова__Глебова.pdf",
+      "exists": true,
+      "expected_size": 1879377,
+      "actual_size": 1879377,
+      "expected_sha256": "2a4ff431d272cce17c873b65db589f41933332905ace3fd1abb550fb5c346350",
+      "actual_sha256": "2a4ff431d272cce17c873b65db589f41933332905ace3fd1abb550fb5c346350",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/Гусев_АП_Спутниковый_мониторинг_геодинамики.pdf",
+      "exists": true,
+      "expected_size": 3719355,
+      "actual_size": 3719355,
+      "expected_sha256": "c6fb2be70b04f8d868929b44de746729615eeb97375a9b442816cb022b200770",
+      "actual_sha256": "c6fb2be70b04f8d868929b44de746729615eeb97375a9b442816cb022b200770",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/Shirshova (1).pdf",
+      "exists": true,
+      "expected_size": 902713,
+      "actual_size": 902713,
+      "expected_sha256": "887d802ec7b7a0a8788b2527ac1240432cb353b655ed00dc51fd8d8269aa21bf",
+      "actual_sha256": "887d802ec7b7a0a8788b2527ac1240432cb353b655ed00dc51fd8d8269aa21bf",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/sputnikovaya_radarnaya_interferometriya_informatsionno_vychislitelnye.pdf",
+      "exists": true,
+      "expected_size": 7209923,
+      "actual_size": 7209923,
+      "expected_sha256": "fd03e70d87017a58b5f32533efb80861aeb0c3910f7c828ac18c6485037a4d0b",
+      "actual_sha256": "fd03e70d87017a58b5f32533efb80861aeb0c3910f7c828ac18c6485037a4d0b",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/02f4a17c7c7ba99cfc068395238c5ff9.pdf",
+      "exists": true,
+      "expected_size": 6312669,
+      "actual_size": 6312669,
+      "expected_sha256": "d5fb9946ec69d9cb9e5f4e1b5227570c8effa879b1549fe9d5e0ef65a0747f67",
+      "actual_sha256": "d5fb9946ec69d9cb9e5f4e1b5227570c8effa879b1549fe9d5e0ef65a0747f67",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/88q34t4oapf2ibwjcw2ie0oz2bjbtmc4.pdf",
+      "exists": true,
+      "expected_size": 3832123,
+      "actual_size": 3832123,
+      "expected_sha256": "c3a47a5df74dc38d648cdc3d962472e45cca9b8d1c4770687f244d2ad8fbdd74",
+      "actual_sha256": "c3a47a5df74dc38d648cdc3d962472e45cca9b8d1c4770687f244d2ad8fbdd74",
+      "status": "PASS"
+    }
+  ]
+}

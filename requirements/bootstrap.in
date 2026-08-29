@@ -1,0 +1,12 @@
+# Gate A0 and reconstruction dependencies.
+numpy
+pandas
+geopandas
+shapely>=2
+scipy
+opencv-python-headless
+Pillow
+pyogrio
+matplotlib
+PyYAML
+pytest

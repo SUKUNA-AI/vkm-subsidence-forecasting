@@ -1,0 +1,15 @@
+﻿published_row_id,plan_unit_id,link_status,distance_m,link_uncertainty_m
+PUBROW-01,PU-0265,inside,0,30
+PUBROW-02,PU-0290,inside,0,30
+PUBROW-03,PU-0290,inside,0,30
+PUBROW-04,PU-0432,inside,0,30
+PUBROW-05,PU-0432,inside,0,30
+PUBROW-06,PU-0414,inside,0,30
+PUBROW-07,PU-0385,inside,0,30
+PUBROW-08,PU-0362,inside,0,30
+PUBROW-09,PU-0362,inside,0,30
+PUBROW-10,PU-0356,inside,0,30
+PUBROW-11,PU-0362,inside,0,30
+PUBROW-12,PU-0298,nearest_within_uncertainty,9.09853670743185,30
+PUBROW-13,,unplaced_no_coordinate,,30
+PUBROW-14,,unplaced_no_coordinate,,30

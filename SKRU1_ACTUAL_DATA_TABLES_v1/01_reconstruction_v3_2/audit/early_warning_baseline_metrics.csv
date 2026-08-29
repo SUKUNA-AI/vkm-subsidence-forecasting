@@ -1,0 +1,2 @@
+﻿model,split,threshold_selected_on_validation,n,positive_rate,precision,recall,F1,average_precision,roc_auc
+Logistic balanced,test_2025,0.845,188,0.05319148936,0.09302325581,0.4,0.1509433962,0.2471477983,0.6617977528

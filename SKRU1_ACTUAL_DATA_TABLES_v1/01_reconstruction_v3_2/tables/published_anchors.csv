@@ -1,0 +1,46 @@
+﻿anchor_id,anchor_type,provenance,source_file,class_id,panel_or_block,name,caption,x_local_m,y_local_m,source_location,source_quality,block,zone,lithology,depth_roof_m,depth_alt_m,bed_thickness_m,chamber_width_m,pillar_width_m,load_coeff,axial_distance_m,mining_interval,fill_interval,fill_type,mining_method,disp_mean_mm,disp_min_mm,disp_max_mm,natural_factor
+COORD-01,coordinate,P,ВКР_Филатова_М_С.docx,92280000,60,138,КрII 0.36,24700.24467,41936.96624,Рисунок 14,exact_transcription,,,,,,,,,,,,,,,,,,
+COORD-02,coordinate,P,ВКР_Филатова_М_С.docx,92280000,28,209,КрII,23312.60481,41892.59055,Рисунок 14,exact_transcription,,,,,,,,,,,,,,,,,,
+COORD-03,coordinate,P,ВКР_Филатова_М_С.docx,92280000,68,146,КрII 0.34,24643.84888,42252.19899,Рисунок 14,exact_transcription,,,,,,,,,,,,,,,,,,
+COORD-04,coordinate,P,ВКР_Филатова_М_С.docx,92292000,1 ВП,4,"Вк: 0.3, Кр-2: 0.22",27226.78022,40430.63224,Рисунок 14,exact_transcription,,,,,,,,,,,,,,,,,,
+COORD-05,coordinate,P,ВКР_Филатова_М_С.docx,92292000,1 ВП,3,"Вк: 0.27, Кр-2: 0.23",26977.16358,40429.96277,Рисунок 14,exact_transcription,,,,,,,,,,,,,,,,,,
+COORD-06,coordinate,P,ВКР_Филатова_М_С.docx,92292000,1 ВП,2,"Вк: 0.26, Кр-2: 0.24",26666.67746,40429.58647,Рисунок 14,exact_transcription,,,,,,,,,,,,,,,,,,
+COORD-07,coordinate,P,ВКР_Филатова_М_С.docx,92292000,1 ВП,1,"Вк: 0.27, Кр-2: 0.22",26336.50615,40428.85001,Рисунок 14,exact_transcription,,,,,,,,,,,,,,,,,,
+COORD-08,coordinate,P,ВКР_Филатова_М_С.docx,92292000,1 ВП,5,"Вк: 0.3, Кр-2: 0.23",27398.72564,40429.90029,Рисунок 14,exact_transcription,,,,,,,,,,,,,,,,,,
+GEOM-01,mining_geometry,P,ВКР_Филатова_М_С.docx,,1 СЗП,,,,,Рисунок 15,exact_transcription,6,2,АБ,301.9,,3.19,5.5,6.4,,,,,,,,,,
+GEOM-02,mining_geometry,P,ВКР_Филатова_М_С.docx,,1 СЗП,,,,,Рисунок 15,exact_transcription,6,2,КпII,310.8,312.3,5.49,5.5,6.4,,,,,,,,,,
+GEOM-03,mining_geometry,P,ВКР_Филатова_М_С.docx,,1 СЗП,,,,,Рисунок 15,exact_transcription,6,2',КпII,307,,5.3,5.5,6.4,,,,,,,,,,
+TECH-01,mining_technical,P,ВКР_Филатова_М_С.docx,,18П блок,,,,,Рисунок 17,exact_transcription,208,,,260,,,15,12,0.33,27,1955–1957,1978–1980,сухая,БВР,,,,
+TECH-02,mining_technical,P,ВКР_Филатова_М_С.docx,,18П блок,,,,,Рисунок 17,exact_transcription,207,,,246,,,15,12,0.27,27,1956–1957,1978–1981,сухая,БВР,,,,
+TECH-03,mining_technical,P,ВКР_Филатова_М_С.docx,,18П блок,,,,,Рисунок 17,exact_transcription,207,,,260,,,15,12,0.33,27,1955–1957,1978–1980,сухая,БВР,,,,
+TECH-04,mining_technical,P,ВКР_Филатова_М_С.docx,,3П блок,,,,,Рисунок 17,exact_or_source_truncated,88,,,300,,,15,12,0.2,27,1935–1939,"1989–1999, 20…",сухая/гидро,БВР,,,,
+TECH-05,mining_technical,P,ВКР_Филатова_М_С.docx,,19П блок,,,,,Рисунок 17,exact_transcription,88,,,265,,,15,12,0.2,27,1934–1935,2016–2017,сухая,БВР,,,,
+TECH-06,mining_technical,P,ВКР_Филатова_М_С.docx,,55П блок,,,,,Рисунок 17,exact_transcription,98,,,205,,,16,11,0.25,27,1969–1971,"1994, 2002",сухая,комбайн+БВР,,,,
+TECH-07,mining_technical,P,ВКР_Филатова_М_С.docx,,76П блок,,,,,Рисунок 17,exact_or_source_truncated,110,,,195,,,16,11,0.212,27,1965–1970,"1997–2002, 20…",сухая/гидро,комбайн+БВР,,,,
+TECH-08,mining_technical,P,ВКР_Филатова_М_С.docx,,46П блок,,,,,Рисунок 17,exact_transcription,106,,,190,,,15,12,0.14,27,1961,2011–2012,гидро,БВР,,,,
+TECH-09,mining_technical,P,ВКР_Филатова_М_С.docx,,46П блок,,,,,Рисунок 17,exact_transcription,106,,,200,,,15,12,0.15,27,1962,2012,гидро,БВР,,,,
+TECH-10,mining_technical,P,ВКР_Филатова_М_С.docx,,54П блок,,,,,Рисунок 17,exact_or_source_truncated,118,,,229,,,15,12,0.26,27,1962–1965,"1996–1998, 20…",сухая/гидро,БВР,,,,
+TECH-11,mining_technical,P,ВКР_Филатова_М_С.docx,,46П блок,,,,,Рисунок 17,exact_transcription,107,,,200,,,15,12,0.15,27,1961–1962,2012,гидро,БВР,,,,
+TECH-12,mining_technical,P,ВКР_Филатова_М_С.docx,,52П блок,,,,,Рисунок 17,exact_transcription,127,,,250,,,15,12,0.3,27,1957–1959,"1996, 2011",сухая/гидро,БВР,,,,
+TECH-13,mining_technical,P,ВКР_Филатова_М_С.docx,,57П блок,,,,,Рисунок 17,exact_transcription,101,,,195,,,5,8.5,0.277,13.5,1989–1991,1989–1991,сухая,БВР,,,,
+TECH-14,mining_technical,P,ВКР_Филатова_М_С.docx,,57П блок,,,,,Рисунок 17,exact_or_source_truncated,101,,,220,,,16,11,0.303,27,1958–1959,"1971–1972, 1993–1998, 20…",сухая/гидро,комбайн+БВР,,,,
+DISP-01,subsidence_zonal_statistics,P,ВКР_Филатова_М_С.docx,,18П блок,,,,,Рисунок 18,exact_transcription,208,,,,,,,,,,,,,,195.35,100.016,408.821,
+DISP-02,subsidence_zonal_statistics,P,ВКР_Филатова_М_С.docx,,18П блок,,,,,Рисунок 18,exact_transcription,207,,,,,,,,,,,,,,170.135,100.008,281.119,
+DISP-03,subsidence_zonal_statistics,P,ВКР_Филатова_М_С.docx,,18П блок,,,,,Рисунок 18,exact_transcription,207,,,,,,,,,,,,,,170.135,100.008,281.119,
+DISP-04,subsidence_zonal_statistics,P,ВКР_Филатова_М_С.docx,,3П блок,,,,,Рисунок 18,exact_transcription,88,,,,,,,,,,,,,,179.612,100.002,304.108,
+DISP-05,subsidence_zonal_statistics,P,ВКР_Филатова_М_С.docx,,19П блок,,,,,Рисунок 18,exact_transcription,88,,,,,,,,,,,,,,179.612,100.002,304.108,
+DISP-06,subsidence_zonal_statistics,P,ВКР_Филатова_М_С.docx,,55П блок,,,,,Рисунок 18,exact_transcription,98,,,,,,,,,,,,,,246.316,100.001,600.284,
+DISP-07,subsidence_zonal_statistics,P,ВКР_Филатова_М_С.docx,,76П блок,,,,,Рисунок 18,exact_transcription,110,,,,,,,,,,,,,,284.252,100.24,403.494,
+DISP-08,subsidence_zonal_statistics,P,ВКР_Филатова_М_С.docx,,46П блок,,,,,Рисунок 18,exact_transcription,106,,,,,,,,,,,,,,220.325,141.391,283.09,
+NAT-01,natural_factor,P,ВКР_Филатова_М_С.docx,92280000,18П блок,,,23178.5,41913.4,Рисунок 16,visible_transcription,208,,КрII,,,,,,,,,,,,,,,Аномальная зона I группы (№1) на уровне кровли ВЗТ
+NAT-02,natural_factor,P,ВКР_Филатова_М_С.docx,92280000,18П блок,,,23057.4,41891.9,Рисунок 16,visible_transcription,207,,АБ,,,,,,,,,,,,,,,Аномальная зона I группы (№1) на уровне кровли ВЗТ
+NAT-03,natural_factor,P,ВКР_Филатова_М_С.docx,92280000,18П блок,,,23057.4,41891.9,Рисунок 16,visible_transcription,207,,КрII,,,,,,,,,,,,,,,Аномальная зона I группы (№1) на уровне кровли ВЗТ
+NAT-04,natural_factor,P,ВКР_Филатова_М_С.docx,92280000,3П блок,,,23989.5,40379,Рисунок 16,visible_transcription,88,,КрII,,,,,,,,,,,,,,,Зона влияния аномалии I группы (№2)
+NAT-05,natural_factor,P,ВКР_Филатова_М_С.docx,92280000,19П блок,,,24040.1,40453.2,Рисунок 16,visible_transcription,88,,КрII,,,,,,,,,,,,,,,Зона влияния аномалии I группы (№2)
+NAT-06,natural_factor,P,ВКР_Филатова_М_С.docx,92280000,55П блок,,,25023.2,40673.1,Рисунок 16,visible_transcription,98,,КрII,,,,,,,,,,,,,,,Зона влияния аномалии I группы (№2)
+NAT-07,natural_factor,P,ВКР_Филатова_М_С.docx,92291000,76П блок,,,25043.5,40971.6,Рисунок 16,visible_transcription,110,,КрII,,,,,,,,,,,,,,,Зона влияния аномалии I группы (№2)
+NAT-08,natural_factor,P,ВКР_Филатова_М_С.docx,92280000,46П блок,,,23984.2,41114.5,Рисунок 16,visible_transcription,106,,АБ,,,,,,,,,,,,,,,Зона влияния аномалии I группы (№2)
+NAT-09,natural_factor,P,ВКР_Филатова_М_С.docx,92280000,46П блок,,,23984.2,41114.5,Рисунок 16,visible_transcription,106,,КрII,,,,,,,,,,,,,,,Зона влияния аномалии I группы (№2)
+NAT-10,natural_factor,P,ВКР_Филатова_М_С.docx,92280000,54П блок,,,24446.1,41283.1,Рисунок 16,visible_transcription,118,,КрII,,,,,,,,,,,,,,,Зона влияния аномалии I группы (№2)
+NAT-11,natural_factor,P,ВКР_Филатова_М_С.docx,92280000,46П блок,,,24152.9,41088.1,Рисунок 16,visible_transcription,107,,КрII,,,,,,,,,,,,,,,Зона влияния аномалии I группы (№2)
+NAT-12,natural_factor,P,ВКР_Филатова_М_С.docx,92280000,52П блок,,,24538.7,41637.7,Рисунок 16,visible_transcription,127,,КрII,,,,,,,,,,,,,,,Зона влияния аномалии I группы (№2)

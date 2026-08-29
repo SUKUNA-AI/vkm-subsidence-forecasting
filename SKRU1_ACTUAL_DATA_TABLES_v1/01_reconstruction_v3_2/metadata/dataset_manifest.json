@@ -1,0 +1,12 @@
+{
+  "dataset_version": "3.2.0",
+  "files": 115,
+  "total_bytes": 57059627,
+  "access_counts": {
+    "PUBLIC_OR_DOCUMENTATION": 88,
+    "EVALUATION_ONLY": 14,
+    "MODEL_READY": 8,
+    "PRIVATE_GENERATION": 4,
+    "SOURCE_INPUT": 1
+  }
+}

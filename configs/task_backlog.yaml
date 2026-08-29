@@ -1,0 +1,25 @@
+phases:
+  - id: P00
+    name: verify_and_unpack_bundle
+  - id: P01
+    name: reproducible_data_foundation
+  - id: P02
+    name: broad_classical_model_screen
+  - id: P03
+    name: state_space_and_regime_models
+  - id: P04
+    name: deep_temporal_models
+  - id: P05
+    name: spatiotemporal_graph_models
+  - id: P06
+    name: time_series_foundation_models
+  - id: P07
+    name: hybrid_and_ensemble_models
+  - id: P08
+    name: uncertainty_and_conformal_calibration
+  - id: P09
+    name: spatial_temporal_ood_validation
+  - id: P10
+    name: llm_rag_explanation_layer
+  - id: P11
+    name: thesis_tables_figures_and_text

@@ -1,0 +1,10 @@
+﻿metric,value,unit
+MAE noise,0.9518797206486098,mm
+RMSE noise,1.1760363670552092,mm
+Median target sigma,1.1807218831586306,mm
+Coverage ±1 sigma,0.6923076923076923,fraction
+Coverage ±1.64 sigma,0.9050235478806907,fraction
+Coverage ±1.96 sigma,0.9505494505494505,fraction
+Coverage ±3 sigma,0.9960753532182104,fraction
+Increment vs horizon Pearson,0.4037114125229232,correlation
+Rate vs horizon Pearson,-0.12824640691134795,correlation

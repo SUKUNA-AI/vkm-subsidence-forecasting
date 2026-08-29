@@ -1,0 +1,2 @@
+﻿footprint_area_m2,grid_union_area_m2,effective_area_sum_m2,outside_footprint_area_m2,uncovered_footprint_area_m2,area_balance_error_m2,coverage_fraction,grid_cell_count,grid_step_m,method,provenance
+27655719.3161052,27655719.3161052,27655719.3161053,0,0,1.86264514923096e-08,0.999999999999999,16480,50,"geometry intersection and union, not centroid ownership",C

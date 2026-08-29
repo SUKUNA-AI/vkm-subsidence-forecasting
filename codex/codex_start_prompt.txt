@@ -1,0 +1,5 @@
+Read AGENTS.md and run `python scripts/verify_inputs.py --root .`.
+
+The previous documentation used stale `/mnt/data/...` paths. This v2 bundle is self-contained: five bootstrap inputs and eleven primary sources are in `inputs/` and must be addressed only through relative manifest paths.
+
+Execute Phase 00 and Phase 01 only. Do not implement the expanded model zoo until the reproducible rebuild and independent audit pass. Return concrete file paths, hashes, counts and failures; never return an unsupported “done”.

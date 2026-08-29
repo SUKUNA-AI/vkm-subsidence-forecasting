@@ -1,0 +1,868 @@
+{
+  "archive_integrity": {
+    "reconstruction_zip": {
+      "exists": true,
+      "testzip_bad_member": null,
+      "passed": true
+    },
+    "bundle_zip": {
+      "exists": true,
+      "testzip_bad_member": null,
+      "passed": true
+    }
+  },
+  "checksums": {
+    "declared": {
+      "SKRU1_data_reconstruction_v2_1.zip": "03f0465cb65a5940e8ff100ba40e2c16bfba9cc96c95941d672d02644a9ef579",
+      "SKRU1_data_bundle_v2_1.zip": "ce477252d90ad634df9a65fa2f382ca90db4eac34607662514dea2f460269ad9",
+      "SKRU1_data_audit_and_catalog_v2_1.xlsx": "9a533c58c3e37640afa558d89fe188b65e45b8c4576a42acaa57fb4197ad34ea"
+    },
+    "actual": {
+      "SKRU1_data_reconstruction_v2_1.zip": "03f0465cb65a5940e8ff100ba40e2c16bfba9cc96c95941d672d02644a9ef579",
+      "SKRU1_data_bundle_v2_1.zip": "ce477252d90ad634df9a65fa2f382ca90db4eac34607662514dea2f460269ad9",
+      "SKRU1_data_audit_and_catalog_v2_1.xlsx": "9a533c58c3e37640afa558d89fe188b65e45b8c4576a42acaa57fb4197ad34ea"
+    },
+    "all_match": true,
+    "per_file": {
+      "SKRU1_data_reconstruction_v2_1.zip": true,
+      "SKRU1_data_bundle_v2_1.zip": true,
+      "SKRU1_data_audit_and_catalog_v2_1.xlsx": true
+    }
+  },
+  "manifest": {
+    "declared_files": 65,
+    "actual_files": 67,
+    "missing_from_manifest": [
+      "metadata/dataset_manifest.csv",
+      "metadata/dataset_manifest.json"
+    ],
+    "missing_from_package": [],
+    "size_mismatches": []
+  },
+  "primary_keys": [
+    {
+      "table": "plan_units_digitized.csv",
+      "key": "geometry_id",
+      "rows": 536,
+      "unique_keys": 536,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "field_grid_50m.csv",
+      "key": "cell_id",
+      "rows": 11484,
+      "unique_keys": 11484,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "legacy_integrated_features_1665.csv",
+      "key": "source_row_surrogate_id",
+      "rows": 1665,
+      "unique_keys": 1665,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "survey_profiles.csv",
+      "key": "profile_id",
+      "rows": 15,
+      "unique_keys": 15,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "survey_points.csv",
+      "key": "point_id",
+      "rows": 333,
+      "unique_keys": 333,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "survey_campaigns.csv",
+      "key": "campaign_id",
+      "rows": 27,
+      "unique_keys": 27,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "truth_survey_points_monthly.csv",
+      "key": "point_id+date",
+      "rows": 31968,
+      "unique_keys": 31968,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "synthetic_truth_ensemble_monthly.csv",
+      "key": "realization_id+point_id+date",
+      "rows": 511488,
+      "unique_keys": 511488,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "synthetic_truth_quantiles_monthly.csv",
+      "key": "point_id+date",
+      "rows": 31968,
+      "unique_keys": 31968,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "leveling_runs_summary.csv",
+      "key": "run_id",
+      "rows": 654,
+      "unique_keys": 654,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "leveling_stations_raw.csv",
+      "key": "run_id+station_no",
+      "rows": 42449,
+      "unique_keys": 42449,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "leveling_adjusted_epochs.csv",
+      "key": "campaign_id+point_id",
+      "rows": 7362,
+      "unique_keys": 7362,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "gnss_sessions_raw.csv",
+      "key": "gnss_session_id",
+      "rows": 1920,
+      "unique_keys": 1920,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "gnss_adjusted_epochs.csv",
+      "key": "campaign_id+point_id",
+      "rows": 960,
+      "unique_keys": 960,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "insar_point_catalog.csv",
+      "key": "insar_point_id",
+      "rows": 3200,
+      "unique_keys": 3200,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "insar_acquisition_catalog.csv",
+      "key": "acquisition_id",
+      "rows": 52,
+      "unique_keys": 52,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "insar_truth_monthly.csv",
+      "key": "insar_point_id+date",
+      "rows": 307200,
+      "unique_keys": 307200,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "insar_observations.csv",
+      "key": "acquisition_id+insar_point_id",
+      "rows": 166400,
+      "unique_keys": 166400,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "stress_test_scenario_catalog.csv",
+      "key": "stress_scenario_id",
+      "rows": 36,
+      "unique_keys": 36,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "stress_test_truth_monthly.csv",
+      "key": "stress_scenario_id+date",
+      "rows": 3024,
+      "unique_keys": 3024,
+      "duplicate_keys": 0,
+      "passed": true
+    },
+    {
+      "table": "stress_test_measurements.csv",
+      "key": "stress_observation_id",
+      "rows": 972,
+      "unique_keys": 972,
+      "duplicate_keys": 0,
+      "passed": true
+    }
+  ],
+  "foreign_keys": [
+    {
+      "table": "legacy_integrated_features_1665.csv",
+      "field": "geometry_id",
+      "parent_set": "geom",
+      "nonempty_rows": 1665,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "anchor_spatial_links.csv",
+      "field": "geometry_id",
+      "parent_set": "geom",
+      "nonempty_rows": 40,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "survey_points.csv",
+      "field": "profile_id",
+      "parent_set": "prof",
+      "nonempty_rows": 333,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "survey_points.csv",
+      "field": "source_cell_id",
+      "parent_set": "cell",
+      "nonempty_rows": 303,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "process_parameters_survey_points.csv",
+      "field": "point_id",
+      "parent_set": "point",
+      "nonempty_rows": 333,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "truth_survey_points_monthly.csv",
+      "field": "point_id",
+      "parent_set": "point",
+      "nonempty_rows": 31968,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "synthetic_truth_ensemble_monthly.csv",
+      "field": "point_id",
+      "parent_set": "point",
+      "nonempty_rows": 511488,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "leveling_runs_summary.csv",
+      "field": "campaign_id",
+      "parent_set": "camp",
+      "nonempty_rows": 654,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "leveling_runs_summary.csv",
+      "field": "profile_id",
+      "parent_set": "prof",
+      "nonempty_rows": 654,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "leveling_stations_raw.csv",
+      "field": "campaign_id",
+      "parent_set": "camp",
+      "nonempty_rows": 42449,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "leveling_stations_raw.csv",
+      "field": "profile_id",
+      "parent_set": "prof",
+      "nonempty_rows": 42449,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "leveling_stations_raw.csv",
+      "field": "from_point_id",
+      "parent_set": "point",
+      "nonempty_rows": 42449,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "leveling_stations_raw.csv",
+      "field": "to_point_id",
+      "parent_set": "point",
+      "nonempty_rows": 42449,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "leveling_adjusted_epochs.csv",
+      "field": "campaign_id",
+      "parent_set": "camp",
+      "nonempty_rows": 7362,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "leveling_adjusted_epochs.csv",
+      "field": "profile_id",
+      "parent_set": "prof",
+      "nonempty_rows": 7362,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "leveling_adjusted_epochs.csv",
+      "field": "point_id",
+      "parent_set": "point",
+      "nonempty_rows": 7362,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "gnss_sessions_raw.csv",
+      "field": "campaign_id",
+      "parent_set": "camp",
+      "nonempty_rows": 1920,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "gnss_sessions_raw.csv",
+      "field": "point_id",
+      "parent_set": "point",
+      "nonempty_rows": 1920,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "gnss_adjusted_epochs.csv",
+      "field": "campaign_id",
+      "parent_set": "camp",
+      "nonempty_rows": 960,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "gnss_adjusted_epochs.csv",
+      "field": "point_id",
+      "parent_set": "point",
+      "nonempty_rows": 960,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "insar_point_catalog.csv",
+      "field": "source_cell_id",
+      "parent_set": "cell",
+      "nonempty_rows": 3200,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "insar_process_parameters.csv",
+      "field": "insar_point_id",
+      "parent_set": "inspt",
+      "nonempty_rows": 3200,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "insar_truth_monthly.csv",
+      "field": "insar_point_id",
+      "parent_set": "inspt",
+      "nonempty_rows": 307200,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "insar_observations.csv",
+      "field": "insar_point_id",
+      "parent_set": "inspt",
+      "nonempty_rows": 166400,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "insar_observations.csv",
+      "field": "acquisition_id",
+      "parent_set": "acq",
+      "nonempty_rows": 166400,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "stress_test_truth_monthly.csv",
+      "field": "stress_scenario_id",
+      "parent_set": "stress",
+      "nonempty_rows": 3024,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "stress_test_measurements.csv",
+      "field": "stress_scenario_id",
+      "parent_set": "stress",
+      "nonempty_rows": 972,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "stress_test_measurements.csv",
+      "field": "campaign_id",
+      "parent_set": "camp",
+      "nonempty_rows": 972,
+      "orphan_rows": 0,
+      "passed": true
+    },
+    {
+      "table": "stress_test_measurements.csv",
+      "field": "point_id",
+      "parent_set": "point",
+      "nonempty_rows": 972,
+      "orphan_rows": 0,
+      "passed": true
+    }
+  ],
+  "legacy_1665": {
+    "rows": 1665,
+    "layer_role_counts": {
+      "base_polygon": 536,
+      "mining_polygon": 536,
+      "overlapping_seam": 390,
+      "backfill_polygon": 175,
+      "anomaly_polygon": 14,
+      "anomaly_line_link": 14
+    },
+    "source_layer_counts": {
+      "zone_pol": 536,
+      "отрpol_ks": 156,
+      "отрpol_vs": 104,
+      "отрpol_kr2": 235,
+      "отрpol_vk": 325,
+      "отрpol_ab": 106,
+      "fact_zakl_Vk_01_10_2022": 53,
+      "fact_zakl_Kp2_01_10_2022": 42,
+      "fact_zakl_AB_01_10_2022": 45,
+      "fact_zakl_VS_01_10_2022": 35,
+      "AZOPOL_KR2": 14,
+      "AZOLIN_KR2": 14
+    },
+    "non_null_settlement_rows": 1343
+  },
+  "figure22_context": {
+    "paragraphs": [
+      "Полученные показатели преобразовываются в векторные линии (Рисунок 20) (стандартными алгоритмами выявления границ Канни и преобразования Хаффа) из которых далее вычисляются линейные плотности, для получения непрерывно распределенных полей параметров (Рисунок 21). Области современных тектонических движений находят свое отражение не столько в поле высот, кривизне и крутизне склонов, сколько в густоте и глубине расчленения. Наиболее подходящим к расчету параметров расчленения и не изменяющим геоморфологического смысла этого термина можно считать индекс TRI (terrain ruggedness index) [31] - меру вертикальной расчлененности в заданной окрестности. Для записи данных оседания земной поверхности выполнялась интерполяция изолиний в растр (Рисунок 22). Полученные растровые данные (Рисунок 21 и Рисунок 22) добавлялись в полигональные слои методов вычисления зональной статистики данных в пределах полигона участка. Для показателей , , , TRI вычислялось среднее арифметическое значение и размах значений (разница между максимальным и минимальным значением внутри участка). Для данных оседания вычислялись средние арифметические значения. В результате был сформирован один векторный слой данных, включающий в себя все доступные исходные данные (257 полей атрибутов, 1665 строк данных) (Рисунок 23).",
+      "Рисунок 20 - Показатели рельефа. а- рельеф; б- градиент рельефа; в- косинусное преобразование, мера рельефа, ; г- косинусное преобразование, мера рельефа, .",
+      "Рисунок 21 - Линейные плотности показателей рельефа. а- Индекс расчлененности рельефа TRI; б- градиент рельефа ; в- косинусное преобразование, мера рельефа, ; г- косинусное преобразование, мера рельефа, .",
+      "Рисунок 22 - Интерполяция данных оседания земной поверхности",
+      "Рисунок 23 - Интегральный слой векторных данных",
+      "3.1.4 Дополнение ГИС-проекта специализированными данными"
+    ],
+    "contains_2022": false
+  },
+  "geometry": {
+    "layers": {
+      "plan_units_local": {
+        "count": 536,
+        "crs": "",
+        "geometry": "Polygon"
+      },
+      "field_grid_50m_local": {
+        "count": 11484,
+        "crs": "",
+        "geometry": "Polygon"
+      },
+      "faults_local": {
+        "count": 55,
+        "crs": "",
+        "geometry": "LineString"
+      }
+    },
+    "plan_valid": 536,
+    "plan_count": 536,
+    "plan_area_km2": 28.809119064031737,
+    "plan_sum_over_union": 1.0000000000000004,
+    "plan_convex_hull_fill_ratio": 0.47047315859887945,
+    "grid_area_km2": 28.71,
+    "grid_outside_plan_km2": 3.131605723933599,
+    "grid_outside_plan_share": 0.1090771760339115,
+    "plan_uncovered_by_grid_km2": 3.230724787965342,
+    "plan_uncovered_share": 0.1121424358997117,
+    "fault_count": 55,
+    "fault_total_length_km": 155.768746270698,
+    "fault_length_inside_plan_share": 0.4094957072738918
+  },
+  "plan_units_missing_core": {
+    "count": 138,
+    "share": 0.2574626865671642
+  },
+  "geometry_heatmap_contamination": {
+    "threshold_mask_red_dominant_share": 0.28774704708641,
+    "threshold_mask_strong_red_share": 0.21705189263191624,
+    "strong_red_inside_hull_excluded_from_plan_share": 0.39141290777832055,
+    "strong_red_pixels_in_hull": 73692
+  },
+  "source_cdf": [
+    {
+      "dataset": "grid50",
+      "threshold_mm": 500,
+      "published_cumulative_share": 0.5,
+      "reconstructed_cumulative_share": 0.5759317311041449,
+      "difference_percentage_points": 7.593173110414487,
+      "non_null_n": 11484
+    },
+    {
+      "dataset": "grid50",
+      "threshold_mm": 1000,
+      "published_cumulative_share": 0.68,
+      "reconstructed_cumulative_share": 0.7601880877742947,
+      "difference_percentage_points": 8.018808777429465,
+      "non_null_n": 11484
+    },
+    {
+      "dataset": "grid50",
+      "threshold_mm": 1500,
+      "published_cumulative_share": 0.8,
+      "reconstructed_cumulative_share": 0.818617206548241,
+      "difference_percentage_points": 1.861720654824095,
+      "non_null_n": 11484
+    },
+    {
+      "dataset": "grid50",
+      "threshold_mm": 2000,
+      "published_cumulative_share": 0.88,
+      "reconstructed_cumulative_share": 0.8770463253221874,
+      "difference_percentage_points": -0.2953674677812601,
+      "non_null_n": 11484
+    },
+    {
+      "dataset": "plan_units",
+      "threshold_mm": 500,
+      "published_cumulative_share": 0.5,
+      "reconstructed_cumulative_share": 0.5150753768844221,
+      "difference_percentage_points": 1.5075376884422065,
+      "non_null_n": 398
+    },
+    {
+      "dataset": "plan_units",
+      "threshold_mm": 1000,
+      "published_cumulative_share": 0.68,
+      "reconstructed_cumulative_share": 0.6959798994974874,
+      "difference_percentage_points": 1.5979899497487349,
+      "non_null_n": 398
+    },
+    {
+      "dataset": "plan_units",
+      "threshold_mm": 1500,
+      "published_cumulative_share": 0.8,
+      "reconstructed_cumulative_share": 0.7688442211055276,
+      "difference_percentage_points": -3.115577889447241,
+      "non_null_n": 398
+    },
+    {
+      "dataset": "plan_units",
+      "threshold_mm": 2000,
+      "published_cumulative_share": 0.88,
+      "reconstructed_cumulative_share": 0.8517587939698492,
+      "difference_percentage_points": -2.824120603015079,
+      "non_null_n": 398
+    },
+    {
+      "dataset": "legacy1665_nonnull",
+      "threshold_mm": 500,
+      "published_cumulative_share": 0.5,
+      "reconstructed_cumulative_share": 0.5241995532390171,
+      "difference_percentage_points": 2.4199553239017124,
+      "non_null_n": 1343
+    },
+    {
+      "dataset": "legacy1665_nonnull",
+      "threshold_mm": 1000,
+      "published_cumulative_share": 0.68,
+      "reconstructed_cumulative_share": 0.7036485480268057,
+      "difference_percentage_points": 2.3648548026805605,
+      "non_null_n": 1343
+    },
+    {
+      "dataset": "legacy1665_nonnull",
+      "threshold_mm": 1500,
+      "published_cumulative_share": 0.8,
+      "reconstructed_cumulative_share": 0.7721518987341772,
+      "difference_percentage_points": -2.784810126582282,
+      "non_null_n": 1343
+    },
+    {
+      "dataset": "legacy1665_nonnull",
+      "threshold_mm": 2000,
+      "published_cumulative_share": 0.88,
+      "reconstructed_cumulative_share": 0.85331347728965,
+      "difference_percentage_points": -2.668652271034999,
+      "non_null_n": 1343
+    }
+  ],
+  "anchor_links": {
+    "total": 45,
+    "placed": 40,
+    "outside_digitized_unit": 26,
+    "outside_beyond_declared_uncertainty": 17,
+    "max_distance_m": 98.93643410852383
+  },
+  "anchor_residuals": [
+    {
+      "parameter": "axial_distance_m",
+      "n": 12,
+      "mae": 0.4166666666666667,
+      "median_absolute_error": 0.0,
+      "rmse": 0.6454972243679028,
+      "mean_absolute_relative_error": 0.015432098765432098,
+      "max_absolute_relative_error": 0.037037037037037035
+    },
+    {
+      "parameter": "chamber_width_m",
+      "n": 12,
+      "mae": 0.16666666666666666,
+      "median_absolute_error": 0.0,
+      "rmse": 0.408248290463863,
+      "mean_absolute_relative_error": 0.010416666666666666,
+      "max_absolute_relative_error": 0.0625
+    },
+    {
+      "parameter": "depth_roof_m",
+      "n": 12,
+      "mae": 29.61239725121145,
+      "median_absolute_error": 27.513737321660074,
+      "rmse": 35.0173676548947,
+      "mean_absolute_relative_error": 0.12796078335304795,
+      "max_absolute_relative_error": 0.25838556806942004
+    },
+    {
+      "parameter": "disp_max_mm",
+      "n": 6,
+      "mae": 1550.7884999999999,
+      "median_absolute_error": 1246.6189385964913,
+      "rmse": 1991.1300366165005,
+      "mean_absolute_relative_error": 4.813548382390862,
+      "max_absolute_relative_error": 10.13192358485755
+    },
+    {
+      "parameter": "disp_mean_mm",
+      "n": 6,
+      "mae": 1412.2854132553605,
+      "median_absolute_error": 1140.916880116959,
+      "rmse": 1928.764049070482,
+      "mean_absolute_relative_error": 7.135880681518138,
+      "max_absolute_relative_error": 16.547962059347423
+    },
+    {
+      "parameter": "disp_min_mm",
+      "n": 6,
+      "mae": 1348.4295789473686,
+      "median_absolute_error": 1197.4757192982458,
+      "rmse": 1843.800418365488,
+      "mean_absolute_relative_error": 13.47490150967996,
+      "max_absolute_relative_error": 27.477500625426092
+    },
+    {
+      "parameter": "load_coeff",
+      "n": 12,
+      "mae": 0.12360291994469548,
+      "median_absolute_error": 0.11221317809589189,
+      "rmse": 0.14148461741592028,
+      "mean_absolute_relative_error": 0.6694257964720182,
+      "max_absolute_relative_error": 1.5250136786384256
+    },
+    {
+      "parameter": "pillar_width_m",
+      "n": 12,
+      "mae": 0.5833333333333334,
+      "median_absolute_error": 1.0,
+      "rmse": 0.7637626158259734,
+      "mean_absolute_relative_error": 0.049873737373737376,
+      "max_absolute_relative_error": 0.09090909090909091
+    }
+  ],
+  "field_digitization": {
+    "ko_valid": {
+      "True": 4448,
+      "False": 7036
+    },
+    "ko_provenance": {
+      "D": 4448,
+      "R": 7036
+    },
+    "ko_reconstructed_share": 0.6126785092302334,
+    "kzt_valid": {
+      "True": 11459,
+      "False": 25
+    },
+    "seismic_valid": {
+      "True": 11484
+    },
+    "lithology_valid": {
+      "True": 11483,
+      "False": 1
+    },
+    "field_provenance": {
+      "D": 11484
+    }
+  },
+  "georef": {
+    "fit_controls": 2,
+    "validation_controls": 1,
+    "validation_residual_m": 261.37619812437146,
+    "x_scale_ratio": 0.9496285765122447,
+    "y_scale_ratio": 0.7808169299459686,
+    "scale_anisotropy": 1.2161987529880502,
+    "local_layers_crs": ""
+  },
+  "truth_temporal_consistency": {
+    "points": 333,
+    "nonmonotonic_points": 0,
+    "derivative_mae_all_mm_y": 0.0124451114202264,
+    "derivative_mae_work_mm_y": 4.197180151924187e-13,
+    "derivative_mae_reference_mm_y": 0.1381407367602739,
+    "zero_settlement_positive_velocity_rows": 1748,
+    "zero_settlement_positive_velocity_ref_rows": 1740
+  },
+  "ensemble_structure": {
+    "group_count_distribution": {
+      "16": 31968
+    },
+    "quantile_order_bad": 0
+  },
+  "stress_test": {
+    "scenarios": 36,
+    "actual_max_velocity_mm_y": 414.9235604088908,
+    "scenarios_over_410": 5
+  },
+  "leveling": {
+    "runs": 654,
+    "stations": 42449,
+    "run_attempt_status": {
+      "('1', 'True')": 606,
+      "('1', 'False')": 24,
+      "('2', 'True')": 24
+    },
+    "failed_first_attempts": 24,
+    "failed_second_attempts": 0,
+    "station_formula_max_abs_error_mm": 2.2737367544323206e-13,
+    "accepted_station_warning_rows": 471,
+    "adjusted_epochs": 7362,
+    "residual_mean_mm": -0.008550369766645062,
+    "residual_mae_mm": 0.4090649333134282,
+    "residual_rmse_mm": 0.5538184666924348,
+    "coverage_95": 0.97826677533279,
+    "first_endpoint_exact_zero": 315,
+    "first_endpoint_total": 315,
+    "all_endpoint_exact_zero": 423,
+    "endpoint_total": 630
+  },
+  "gnss": {
+    "epochs": 960,
+    "qc": {
+      "accepted": 960
+    },
+    "residual_mean_mm": -0.5159488029488188,
+    "residual_mae_mm": 4.646185115674282,
+    "residual_rmse_mm": 5.876954337747183,
+    "coverage_95": 0.846875,
+    "normalized_rmse": 1.3349558526215812,
+    "reference_coverage_95": 0.8854166666666666
+  },
+  "insar": {
+    "observations": 166400,
+    "points": 3200,
+    "qc": {
+      "low_coherence": 8684,
+      "accepted": 157716
+    },
+    "first_acquisition_nonzero_points": 3077,
+    "first_acquisition_nonzero_share": 0.9615625,
+    "first_true_vertical_median_mm": 383.38083024077434,
+    "first_true_vertical_max_mm": 3488.563734999017,
+    "residual_mean_mm": -0.7454719734779528,
+    "residual_mae_mm": 10.46625509933512,
+    "residual_rmse_mm": 15.843436286189766,
+    "coverage_95": 0.6932331730769231,
+    "normalized_rmse": 2.761806542576707,
+    "qc_vs_actual_coherence_mismatch_rows": 12703
+  },
+  "completeness": {
+    "missing_derived_engineering_tables": [
+      "curvatures.csv",
+      "horizontal_displacements.csv",
+      "horizontal_strains.csv",
+      "profile_kinematics.csv",
+      "tilts.csv"
+    ]
+  },
+  "reproducibility": {
+    "hardcoded_media_root": "/mnt/data/filatova_unpacked/word/media",
+    "missing_required_media": [
+      "/mnt/data/filatova_unpacked/word/media/image22.png",
+      "/mnt/data/filatova_unpacked/word/media/image23.png",
+      "/mnt/data/filatova_unpacked/word/media/image24.png",
+      "/mnt/data/filatova_unpacked/word/media/image25.png",
+      "/mnt/data/filatova_unpacked/word/media/image26.png",
+      "/mnt/data/filatova_unpacked/word/media/image27.png"
+    ],
+    "script_self_contained": false
+  },
+  "builtin_validation": {
+    "all_passed": true,
+    "count": 28,
+    "weak_or_tautological_checks": [
+      "context_georef_validation_under_1km",
+      "digitized_plan_units_gt_400",
+      "field_cells_inside_plan",
+      "legacy_is_not_regular_grid",
+      "no_predictive_model_artifacts",
+      "profiles_15",
+      "reconstruction_ensemble_16",
+      "settlement_range_0_4300",
+      "source_like_legacy_rows_1665",
+      "two_reference_points_each_profile",
+      "working_points_gt_280"
+    ]
+  },
+  "thresholds": {
+    "enterprise_missing_count": 4,
+    "external_reference_count": 5
+  },
+  "model_artifacts": [],
+  "workbook_scan": {
+    "exists": true,
+    "zip_valid": true,
+    "formula_error_strings": 0,
+    "sheet_count": 24,
+    "formulas": 5
+  },
+  "verdict": {
+    "status": "NO-GO",
+    "critical": 6,
+    "high": 12,
+    "medium": 2,
+    "low": 0,
+    "statement": "Пригоден только как черновой прототип структуры и генератор тестовых сценариев после изоляции дефектных блоков; не пригоден для обучения финальной модели и доказательных выводов диплома."
+  }
+}

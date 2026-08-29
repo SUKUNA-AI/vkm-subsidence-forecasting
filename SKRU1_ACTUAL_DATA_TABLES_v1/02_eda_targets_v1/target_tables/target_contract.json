@@ -1,0 +1,43 @@
+{
+  "dataset_version": "SKRU1 v3.2",
+  "sign_convention": "subsidence positive downward",
+  "origin": "after QC and adjustment of the current campaign",
+  "primary_target": "T1_RATE_NEXT_PLANNED",
+  "split_protocol": {
+    "regression": "by target_date",
+    "early_warning": "by label_horizon_end",
+    "spatial_secondary": [
+      "leave-profile-out",
+      "leave-zone-out"
+    ],
+    "forbidden": "random row split"
+  },
+  "uncertainty": {
+    "sigma_increment": "sqrt(sigma_current^2 + sigma_target^2) until covariance is available",
+    "sigma_rate": "365.25*sigma_increment/horizon_days",
+    "weight": "clip(median(sigma_rate^2)/sigma_rate_i^2,0.25,4), normalized to mean 1"
+  },
+  "metrics": {
+    "regression_primary": [
+      "MAE_rate_mm_y",
+      "RMSE_rate_mm_y",
+      "Bias_rate_mm_y"
+    ],
+    "regression_secondary": [
+      "MAE_increment_mm",
+      "MAE_level_mm",
+      "R2",
+      "coverage_80",
+      "coverage_95",
+      "WIS"
+    ],
+    "early_warning": [
+      "average_precision",
+      "precision",
+      "recall",
+      "F1",
+      "recall_at_fixed_FPR",
+      "lead_time_days"
+    ]
+  }
+}

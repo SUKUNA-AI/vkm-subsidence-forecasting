@@ -1,0 +1,13 @@
+﻿published_row_id,plan_unit_id,source_layer_name,membership_forced
+PUBROW-01,PU-0265,otrpol_kr2,True
+PUBROW-02,PU-0290,otrpol_ab,True
+PUBROW-03,PU-0290,otrpol_kr2,True
+PUBROW-04,PU-0432,otrpol_kr2,True
+PUBROW-05,PU-0432,otrpol_kr2,True
+PUBROW-06,PU-0414,otrpol_kr2,True
+PUBROW-07,PU-0385,otrpol_kr2,True
+PUBROW-08,PU-0362,otrpol_ab,True
+PUBROW-09,PU-0362,otrpol_kr2,True
+PUBROW-10,PU-0356,otrpol_kr2,True
+PUBROW-11,PU-0362,otrpol_kr2,True
+PUBROW-12,PU-0298,otrpol_kr2,True

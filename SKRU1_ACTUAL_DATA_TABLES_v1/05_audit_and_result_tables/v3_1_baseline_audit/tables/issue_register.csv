@@ -1,0 +1,19 @@
+﻿check_id,priority,category,check,status,severity,observed,interpretation,recommended_action
+DQ-016,P2,measurement,Injected gross-error detection,WARN,high,recall=86.2%; missed=4; false-fail=2.6%,Four injected gross errors pass closure.,Add robust station residual checks and propagate warning grade.
+DQ-017,P2,measurement,Adjusted-leveling QC diversity,WARN,medium,{'accepted': 3402},Final epoch warnings are not propagated.,Carry run/station warnings into adjusted epochs.
+DQ-018,P1,sampling,Focused campaign behavior,FAIL_FOR_FINAL_MODEL,high,all 27 campaigns contain 126 points; focused=7,campaign_type is decorative.,Generate true focused campaigns and missing patterns.
+DQ-019,P1,temporal_realism,Regime balance,FAIL_FOR_FINAL_MODEL,high,"{'accelerating': 91, 'uniform_creep': 7}",91/98 work points are accelerating.,Rebalance regimes; stable/uniform/decaying should dominate.
+DQ-020,P1,temporal_realism,Regime label vs late-stage dynamics,FAIL_FOR_FINAL_MODEL,high,median slope=-0.680; max=0.000,Most are plateauing/decaying by test time.,Use time-varying stage labels.
+DQ-021,P1,temporal_realism,Nominal rate tail,FAIL_FOR_FINAL_MODEL,high,max=656.6; >250=17.1%; >400=9.9%,Extreme tail too frequent.,Move most extreme rates to stress/OOD.
+DQ-022,P2,spatial,Spatial autocorrelation,WARN,high,settlement_reference_map_mm I=0.908; kzt_reconstructed I=0.959; ko_reconstructed I=0.567; seismic_energy_mid_J_m2_reconstructed I=0.950,Random split is optimistic.,Require temporal/profile/block/spatial-buffer validation.
+DQ-023,P1,leakage,Terminal settlement map feature,FAIL_FOR_FINAL_MODEL,critical,corr=0.960,Future leakage.,Remove terminal map from model-ready tables.
+DQ-024,P1,leakage,Latent generator parameters,FAIL_FOR_FINAL_MODEL,critical,regime/base_rate/event_amp/event_center/decay_tau exported,Generator is exposed.,Physically separate latent generator fields.
+DQ-025,P2,provenance,Point-level feature provenance,WARN,high,static values without per-feature provenance/uncertainty,Model cannot distinguish digitized from reconstructed.,Join provenance/donor distance/uncertainty to survey points.
+DQ-026,P2,measurement,GNSS sample representativeness,WARN,high,12 REF + top 30 WORK by anchor settlement,High-deformation bias.,Stratify GNSS sample.
+DQ-027,P2,measurement,InSAR spatial independence,WARN,high,100 points inherit truth from 43 survey points,Pseudo-replication.,Generate independent continuous InSAR truth or group by source point.
+DQ-028,P2,temporal_realism,Reference-date uncertainty,WARN,high,source date NULL; scenario date 2022-07-01,Not source-derived chronology.,Treat anchor date as scenario parameter and ensemble it.
+DQ-029,P2,stress_design,Stress scenario spatial coverage,WARN,medium,36 scenarios on 12 points; all top-30 anchors,Stress is concentrated on severe zones.,Add low/moderate and diverse stress points.
+DQ-030,P1,model_design,Raw increment target under variable intervals,FAIL_FOR_FINAL_MODEL,high,direct HGB=23.19; rate HGB=2.33,Schedule shift breaks direct target.,Predict annualized rate and integrate over known horizon.
+DQ-031,P1,validation,Random row split optimism,FAIL_FOR_FINAL_MODEL,high,random=2.04; temporal=2.55,Rows are dependent.,Ban random row split as headline.
+DQ-032,P2,predictability,Nominal temporal smoothness,WARN,high,corr last->next=0.9948; obs->truth=0.99977,Persistence is nearly optimal.,"Add change-points, drift, gaps, reactivations."
+DQ-033,P1,production_claims,External production validation,FAIL_FOR_PRODUCTION,critical,no real repeated SKRU-1 cycles,Synthetic metrics are not operational accuracy.,Wait for real cycles before production claims.

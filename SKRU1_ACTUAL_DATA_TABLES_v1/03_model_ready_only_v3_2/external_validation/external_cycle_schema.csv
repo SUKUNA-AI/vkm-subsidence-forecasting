@@ -1,0 +1,7 @@
+﻿field,required,dtype,unit,description
+point_id,True,string,,Stable point identifier within the real monitoring series.
+date,True,YYYY-MM-DD,,Observation date.
+observed_settlement_mm,True,float,mm,Cumulative settlement in the adopted sign convention.
+standard_uncertainty_mm,True,float > 0,mm,Standard uncertainty of the observation.
+campaign_id,False,string,,Optional real campaign identifier.
+profile_id,False,string,,Optional profile identifier.

@@ -1,0 +1,53 @@
+﻿model_id,model_name,family,task,stage,required_input,scientific_role
+B0,Zero increment,sanity,T1,mandatory,none,Detect target degeneration
+B1,Last observed rate,persistence,T1,mandatory,history,Primary persistence control
+B2,Mean last three rates,smoothing,T1,mandatory,history,Noise-reduced persistence
+B3,Robust linear trend,statistical,T1,mandatory,history,Huber/Theil-Sen trend
+B4,Quadratic trend,statistical,T1,mandatory,history,Simple acceleration baseline
+S1,Holt damped trend / ETS,statistical,T1,screen,history,Damped nonstationary trend
+S2,ARIMA / ARIMAX,statistical,T1,screen,history+exogenous,Classical autoregression
+S3,Gaussian Process regression,probabilistic,T1,screen,history+calendar,Uncertainty-aware smooth baseline
+S4,VAR / VARX by profile,multivariate statistical,T1,screen,profile history,Cross-reper dynamics
+K1,Fixed local linear Kalman,state-space,T1,mandatory,history+uncertainty,Irregular intervals
+K2,Adaptive Kalman,state-space,T1,mandatory,history+uncertainty,Adaptive process noise
+K3,Unscented / Extended Kalman,nonlinear state-space,T1,screen,history+physics,Nonlinear decay/acceleration
+K4,IMM-Kalman,switching state-space,T1/T5,final_candidate,history+uncertainty,Multiple deformation regimes
+K5,Switching LDS / HMM / HSMM,regime switching,T1/T5,screen,history,Duration-aware latent regimes
+K6,BOCPD / CUSUM / GLR,change detection,T5,mandatory,innovations,Onset and step detection
+M1,Ridge / ElasticNet,linear ML,T1,mandatory,safe tabular,Regularized interpretable control
+M2,SVR,kernel ML,T1,screen,safe tabular,Small-data nonlinear control
+M3,Random Forest / ExtraTrees,tree ensemble,T1,screen,safe tabular,Nonlinear interactions
+M4,XGBoost / LightGBM,gradient boosting,T1/T5,screen,safe tabular,Strong tabular benchmark
+M5,CatBoost,gradient boosting,T1/T5,mandatory,safe tabular,Missing/categorical support
+M6,Quantile boosting,probabilistic ML,T1,screen,safe tabular,Direct interval estimates
+M7,ANFIS / ENFS,neuro-fuzzy,T1,mandatory_comparison,selected tabular,Direct continuity with Filatova
+D1,MLP / residual MLP,deep tabular,T1,screen,window features,Simple neural benchmark
+D2,LSTM,recurrent DL,T1/T5,mandatory_dl,raw sequences,Long-term temporal dependencies
+D3,GRU,recurrent DL,T1/T5,mandatory_dl,raw sequences,Lower-parameter recurrent control
+D4,TCN,convolutional DL,T1/T5,mandatory_dl,raw sequences,Causal dilated convolutions
+D5,DeepAR,probabilistic RNN,T1,screen,multi-series,Probabilistic global sequence model
+D6,N-BEATS,deep forecasting,T1,screen,history,Trend/seasonality decomposition
+D7,N-HiTS,deep forecasting,T1,screen,history,Multi-rate interpolation
+D8,TSMixer / MLP-Mixer,all-MLP temporal,T1,screen,history+covariates,Lightweight sequence model
+D9,Temporal Fusion Transformer,attention DL,T1/T5,mandatory_dl,history+known covariates,Variable selection and interpretability
+D10,PatchTST,transformer,T1,mandatory_dl,raw sequences,Patch-based temporal encoding
+D11,iTransformer,transformer,T1,screen,multivariate sequences,Variable-token attention
+D12,Informer / Autoformer / FEDformer,long-sequence transformer,T1,screen,long sequences,Long-horizon comparison only
+G1,STGCN,spatiotemporal GNN,T1/T6,mandatory_spatial,graph+sequences,Graph convolution plus temporal conv
+G2,DCRNN,spatiotemporal GNN,T1/T6,screen,directed graph+sequences,Diffusion recurrent dynamics
+G3,Graph WaveNet,spatiotemporal GNN,T1/T6,screen,graph+sequences,Adaptive adjacency
+G4,GAT + TCN/GRU,spatiotemporal GNN,T1/T5/T6,mandatory_spatial,graph+sequences,Attention to neighbour importance
+G5,Spatio-temporal Transformer,graph transformer,T1/T5/T6,advanced,graph+sequences,Joint spatial and temporal attention
+G6,Temporal Graph Network,event graph DL,T5,advanced,irregular events,Irregular campaign modelling
+H1,Kalman/IMM + CatBoost residual,hybrid,T1,final_candidate,state+safe tabular,"Physics/time first, ML residual second"
+H2,KalmanNet / Deep Kalman Filter,neural state-space,T1/T5,advanced,sequences+uncertainty,Learned filtering components
+H3,Neural ODE / Neural CDE,continuous-time DL,T1/T5,advanced,irregular sequences,Continuous-time dynamics
+H4,Physics-guided neural residual,physics-informed DL,T1/T6,advanced,state+geomechanics,Penalty for nonphysical profiles
+H5,Mixture of Experts,ensemble,T1/T5,advanced,regime probabilities,Route samples to specialised models
+H6,Stacked/weighted ensemble,ensemble,T1,final_candidate,validation predictions,Robust combination after screening
+F1,Chronos-like time-series foundation model,foundation model,T1,optional_zero_shot,univariate/multivariate series,Zero/few-shot benchmark
+F2,TimesFM-like foundation model,foundation model,T1,optional_zero_shot,time series,Pretrained forecasting benchmark
+F3,Moirai/Lag-Llama-like probabilistic FM,foundation model,T1,optional_zero_shot,time series,Probabilistic zero/few-shot
+F4,Tabular foundation model,foundation model,T1/T5,optional,safe tabular,Small-data tabular benchmark
+L1,LLM report/RAG assistant,LLM support layer,explanation,optional_noncore,sources+metrics,Source-grounded experiment and error explanation
+L2,LLM tool-using experiment agent,LLM support layer,orchestration,optional_noncore,registry+tools,Runbook assistance; no scientific authority

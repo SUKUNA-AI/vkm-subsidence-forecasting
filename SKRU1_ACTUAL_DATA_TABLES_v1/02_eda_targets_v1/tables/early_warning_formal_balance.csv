@@ -1,0 +1,4 @@
+﻿split,origins_total,complete_n,right_censored_n,activity_positive_n,activity_positive_fraction,onset_positive_n,onset_positive_fraction,ongoing_positive_n
+test,121,28,93,3,0.10714285714285714,1,0.03571428571428571,1
+train,942,942,0,21,0.022292993630573247,12,0.012738853503184714,10
+validation,211,211,0,12,0.05687203791469194,4,0.018957345971563982,8

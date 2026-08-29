@@ -1,0 +1,3 @@
+﻿condition,n_profile_epochs,fraction,authority
+max_abs_tilt_mm_m > 10,15,0.06276150627615062,reference_only_not_enterprise
+max_abs_tilt_mm_m > 15,0,0.0,reference_only_not_enterprise

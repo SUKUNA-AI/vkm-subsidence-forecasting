@@ -1,0 +1,15 @@
+{
+  "dataset_version": "3.2.0",
+  "files": 8,
+  "total_bytes": 1415947,
+  "sha256": {
+    "model_ready/early_acceleration_balanced_index.csv": "c32814d9667cdef03a010574d697ee16aaabcfbe458b09476c699959e1521be2",
+    "model_ready/early_acceleration_features.csv": "f34494ce9df89561e77ffa3fbc4e590c26d40011f19584e72c6374d02adefd37",
+    "model_ready/feature_contract.csv": "643dce3c0030ff359bb0a469add725831d3d4e838cdb5878bddf52fb94b00d22",
+    "model_ready/next_cycle_features.csv": "bd1eed0554b56a0daa2df725a06cbc9d77d07c1abfd3cc156bbee99bf60f2a58",
+    "model_ready/point_feature_lineage_safe.csv": "58b40c88f3480b034a6de3c2e3873d719710a38b000af47f9320db8c4683e8ca",
+    "model_ready/static_point_features.csv": "42f8e0dc538acb6d107bf32a3781d080a2cc5a2e0ac69fe10f4113ce5d3a24a2",
+    "model_ready/stress_early_acceleration_features.csv": "b0f6f5c0ec281bd7ca2dadabd6df8446f57339a401d46095bc122208d1dc00a9",
+    "model_ready/stress_static_features.csv": "3e572a25936fe5e06c060c6019738ede89a398ade499f9a1a16e75883f5892af"
+  }
+}

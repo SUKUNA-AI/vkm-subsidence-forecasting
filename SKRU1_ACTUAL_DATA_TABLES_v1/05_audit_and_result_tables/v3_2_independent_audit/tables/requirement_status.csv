@@ -1,0 +1,13 @@
+﻿item,requirement,status,evidence
+1,Balanced regimes and full decaying/stable/reactivated/step_change,DONE,"{'decaying': 28, 'uniform_creep': 26, 'stable': 18, 'accelerating': 12, 'reactivated': 8, 'step_change': 6}"
+2,Time-dependent regime stages,DONE,"{'count': 98.0, 'mean': 2.489795918367347, 'std': 1.0378893924262853, 'min': 1.0, '25%': 2.0, '50%': 3.0, '75%': 3.0, 'max': 5.0}"
+3,Reduced nominal >250-400 mm/year tail,DONE,"{'max': 194.06722627731386, '>250_frac': 0.0}"
+4,Real focused cycles and missingness,DONE,"{'count': 14.0, 'mean': 0.14229024943310656, 'std': 0.014422182832679025, 'min': 0.1111111111111111, '25%': 0.14285714285714285, '50%': 0.14285714285714285, '75%': 0.14285714285714285, 'max': 0.16666666666666666} | {'observed': 2057, 'not_targeted': 1503, 'missing_access': 39, 'missing_weather': 26, 'missing_instrument': 18, 'missing_destroyed': 11}"
+5,Long and irregular intervals,DONE,"{'count': 28.0, 'mean': 97.5, 'std': 53.47792898840501, 'min': 35.0, '25%': 68.25, '50%': 91.0, '75%': 112.0, 'max': 322.0}"
+6,Physical model/evaluation/private separation,DONE,[]
+7,Point-level provenance uncertainty donor distance,DONE,"{'rows': 1134, 'columns': ['point_id', 'profile_id', 'point_type', 'feature', 'value', 'unit', 'provenance', 'standard_uncertainty', 'donor_distance_m', 'source_cell_id', 'model_feature_allowed', 'source_reference_year']}"
+8,Stratified GNSS network,DONE,"{'points': 56, 'profiles': {'P-D01': 4, 'P-H01': 4, 'P-H02': 4, 'P-H03': 4, 'P-H04': 4, 'P-H05': 4, 'P-H06': 4, 'P-H07': 4, 'P-V01': 4, 'P-V02': 4, 'P-V03': 4, 'P-V04': 4, 'P-V05': 4, 'P-V06': 4}}"
+9,Independent spatial-temporal InSAR field,DONE,"{'points': 600, 'unique_ratio': 1.0, 'nearest_truth_column': False}"
+10,Stress scenarios across background/moderate/high/unseen zones,DONE,"{'background': 18, 'moderate': 18, 'high': 18, 'unseen_spatial': 18}"
+11,Separate early acceleration task,DONE,"{'nominal_split_positives': {'test': 10, 'train': 25, 'validation': 8}, 'stress_positives': 232}"
+12,Frozen external no-retraining test harness,DONE,"{'status': 'PASS', 'note': 'Software smoke test on synthetic records only; not external validation.'}"

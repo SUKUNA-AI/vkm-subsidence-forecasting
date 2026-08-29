@@ -1,0 +1,13 @@
+﻿layer_id,source_layer_name,geometry_type,source_semantics,source_evidence,provenance,reconstruction_limit
+L01,zone_pol,polygon,base plan units,Figure 12 / image14,D,"geometry from clean red plan linework in Figure 13, not from settlement heatmap"
+L02,otrpol_ab,polygon,"mined areas, AB seam",Figure 12 / image14,R/D,candidate membership constrained by published AB anchors and spatial classes; exact original membership unavailable
+L03,otrpol_kr2,polygon,"mined areas, KrII seam",Figure 12 / image14,R/D,candidate membership constrained by published KrII anchors; exact original membership unavailable
+L04,otrpol_ks,polygon,"mined areas, KS seam",Figure 12 / image14,R/D,candidate membership derived from mixed-salt spatial class; exact original membership unavailable
+L05,otrpol_vk,polygon,"mined areas, Vk seam",Figure 12 / image14,R/D,candidate membership derived from carnallite spatial class and Vk captions
+L06,otrpol_vs,polygon,"mined areas, VS seam",Figure 12 / image14,R/D,candidate membership derived from sylvinite spatial class; exact original membership unavailable
+L07,AZOPOL_KR2,polygon,"anomaly areas, KrII",Figure 12 / image14; Figure 24a,D/R,"polygonized high/anomalous k_z,T regions and direct natural-factor anchors"
+L08,AZOLIN_KR2,line,"anomaly/structural lines, KrII",Figure 12 / image14; Figure 24d,D,line extraction from low-saturation dark linework in Figure 24d
+L09,fact_zakl_VS_01_10_2022,polygon,actual backfill VS at 2022-10-01,Figure 12 / image14; Figure 25b,D/R,backfill hatch mask intersected with VS candidate layer
+L10,fact_zakl_AB_01_10_2022,polygon,actual backfill AB at 2022-10-01,Figure 12 / image14; Figure 25b,D/R,backfill hatch mask intersected with AB candidate layer
+L11,fact_zakl_Vk_01_10_2022,polygon,actual backfill Vk at 2022-10-01,Figure 12 / image14; Figure 25b,D/R,backfill hatch mask intersected with Vk candidate layer
+L12,fact_zakl_Kp2_01_10_2022,polygon,actual backfill Kp2/KrII at 2022-10-01,Figure 12 / image14; Figure 25b,D/R,backfill hatch mask intersected with KrII candidate layer
