@@ -1,0 +1,36 @@
+{
+  "candidate_config": "artifacts/model_selection/t1_b0_b1_v1/candidate_config.json",
+  "candidate_config_sha256": "87182f1277584f63e8ce2060749966fe62d7e3224f4b1d86a57a485158437466",
+  "candidate_id": "t1-b0b1-v1-3bfcff231705",
+  "candidate_scope": "gate_b0_b1",
+  "development_report": "artifacts/model_selection/t1_b0_b1_v1/development_report.json",
+  "development_report_sha256": "0b97cf0bb8fc77030a7a35b8d89c768ad9a74a7dcfa8641e1b4ac0387518ae76",
+  "feature_contract_sha256": "241bad48e67659ffc953349cd2bce59e61f2a2867d57698abd6574edd4a05272",
+  "frozen_at_utc": "2026-08-30T10:58:00.617640+00:00",
+  "manifest_file_hashes": {
+    "train": "8961543c3a5220e17b45c9b34bc17857320f1b9b2c3985567c8a9c2ecb1fd9c5",
+    "validation": "c38163f5fd586a69edfe647995c46649a3f13725f7a1d882e150805c9811bc60"
+  },
+  "manifest_hashes": {
+    "train": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c",
+    "validation": "f72ce0a50c16bccca3ca87df4f4a7465b4d9eca2933e0dec9b3bd39e7336a62e"
+  },
+  "model_artifact": "artifacts/model_selection/t1_b0_b1_v1/frozen_candidate.joblib",
+  "model_artifact_sha256": "73d1bda10b52566683df3eeb0f8074bc027bc72a9baedfbb149fb99bc12c42dc",
+  "schema_version": 1,
+  "selected_model": "B1_persistence_last_rate",
+  "source_hashes": {
+    "configs/gate_b0_b1.yaml": "8f52a7953d3a247d419b8f7c65b8f16f277a2c2cc4f5388389ded94f488a5c93",
+    "requirements/modeling.lock.txt": "89682048eb81480aaaa50b24f806f844b44a6e97c526563ab7dc131331a58ecf",
+    "src/skru1/baselines.py": "5807dbd353d6bb41c1ab80c0ce37051a9fc4df949b618eb66ff5a6a118f71564",
+    "src/skru1/evaluation.py": "2d63260e4f5b7a788c257bb1227a06289d989d3c0f3bc0fc2ed7eca9fb425d4c",
+    "src/skru1/model_selection.py": "ef00d3d0095b03f247dad699928d096cdd4d862ab86da6b89ebcf17e15fef3ba",
+    "src/skru1/preprocessing.py": "8fcf3f29ceb1c8c6063450b1783c53fdd5b696bd90c6578e51f94e840eb89187",
+    "src/skru1/splits.py": "1b3de4afca8d3551f5c1a2723c65f4fd0ab365a2b570956dd11aa9f432c894ee"
+  },
+  "split_version": "t1_v1",
+  "status": "frozen",
+  "task": "t1",
+  "test_access_ledger": "artifacts/model_selection/t1_b0_b1_v1/test_access_ledger.json",
+  "test_access_policy": "candidate_record_once"
+}

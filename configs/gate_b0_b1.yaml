@@ -1,0 +1,94 @@
+schema_version: 1
+gate: B0_B1_T1_BASELINES
+task: t1
+split_version: t1_v1
+target_column: observed_rate_mm_y
+random_seed: 42117
+
+development_policy:
+  temporal_holdout: train_to_validation
+  rolling_origin_folds: 5
+  leave_profile_out_folds: 14
+  leave_zone_out_folds: 4
+  grouped_holdout_mode: forward_only
+  test_access: candidate_record_once
+  headline_metric: mae
+  secondary_metrics: [rmse, bias, r2, precision_weighted_mae]
+  training_weights:
+    source: sigma_rate_mm_y
+    fit_scope: train_only
+    inverse_variance_clip: [0.25, 4.0]
+
+models:
+  - model_id: B1_persistence_last_rate
+    family: persistence
+    complexity_penalty: 0.000
+    parameters:
+      fallback: train_target_median
+
+  - model_id: B3_profile_robust_trend
+    family: profile_robust_trend
+    complexity_penalty: 0.002
+    parameters:
+      instantaneous_weight: 0.50
+      mean_last_3_weight: 0.30
+      profile_mean_weight: 0.20
+      acceleration_integral_factor: 0.50
+      acceleration_clip_quantiles: [0.05, 0.95]
+
+  - model_id: B5_fixed_kalman
+    family: fixed_kalman
+    complexity_penalty: 0.003
+    parameters:
+      process_variance_q: 25.0
+      initial_velocity_variance: 400.0
+      minimum_measurement_variance: 0.01
+
+  - model_id: M1_ridge
+    family: ridge
+    complexity_penalty: 0.005
+    parameters:
+      alpha: 10.0
+      solver: lsqr
+      tolerance: 1.0e-8
+
+  - model_id: M2_extra_trees
+    family: extra_trees
+    complexity_penalty: 0.010
+    parameters:
+      n_estimators: 300
+      max_depth: 8
+      min_samples_leaf: 4
+      max_features: 0.75
+      bootstrap: false
+      n_jobs: 1
+
+selection:
+  reference_model: B1_persistence_last_rate
+  fixed_kalman_reference: B5_fixed_kalman
+  normalized_mae_weights:
+    temporal_holdout: 0.50
+    rolling_origin: 0.20
+    leave_profile_out: 0.20
+    leave_zone_out: 0.10
+  tie_break: [selection_score, temporal_holdout_mae, model_id]
+  candidate_scope: gate_b0_b1
+
+artifacts:
+  root: artifacts/model_selection/t1_b0_b1_v1
+  development_predictions: artifacts/model_selection/t1_b0_b1_v1/development_predictions.csv
+  fold_contracts: artifacts/model_selection/t1_b0_b1_v1/fold_contracts.csv
+  fold_metrics: artifacts/model_selection/t1_b0_b1_v1/fold_metrics.csv
+  model_states: artifacts/model_selection/t1_b0_b1_v1/model_states.csv
+  aggregate_metrics: artifacts/model_selection/t1_b0_b1_v1/aggregate_metrics.csv
+  model_comparison: artifacts/model_selection/t1_b0_b1_v1/model_comparison.csv
+  candidate_ranking: artifacts/model_selection/t1_b0_b1_v1/candidate_ranking.csv
+  development_report: artifacts/model_selection/t1_b0_b1_v1/development_report.json
+  model_artifact: artifacts/model_selection/t1_b0_b1_v1/frozen_candidate.joblib
+  candidate_config: artifacts/model_selection/t1_b0_b1_v1/candidate_config.json
+  candidate_record: artifacts/model_selection/frozen_candidate.json
+  test_access_ledger: artifacts/model_selection/t1_b0_b1_v1/test_access_ledger.json
+  test_predictions: artifacts/model_selection/t1_b0_b1_v1/test_predictions.csv
+  test_metrics: artifacts/model_selection/t1_b0_b1_v1/test_metrics.csv
+  final_test_report: artifacts/model_selection/t1_b0_b1_v1/final_test_report.json
+  validation_report: artifacts/model_selection/t1_b0_b1_v1/validation_report.json

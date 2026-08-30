@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "captured_at_utc": "2026-08-29T13:15:23.046140+00:00",
+  "captured_at_utc": "2026-08-30T11:02:02.117302+00:00",
   "repository_root": ".",
   "platform": {
     "system": "Windows",
@@ -17,9 +17,12 @@
   "hardware": {
     "logical_cpu_count": 28,
     "cpu": {
-      "Name": "Intel(R) Core(TM) i7-14700KF",
-      "NumberOfCores": 20,
-      "NumberOfLogicalProcessors": 28
+      "query": {
+        "available": true,
+        "returncode": 1,
+        "stdout": "",
+        "stderr": "Get-CimInstance : Отказано в доступе \nAt line:1 char:1\n+ Get-CimInstance Win32_Processor | Select-Object -First 1 Name,NumberO ...\n+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n    + CategoryInfo          : PermissionDenied: (root\\cimv2:Win32_Processor:String) [Get-CimInstance], CimException\n    + FullyQualifiedErrorId : HRESULT 0x80041003,Microsoft.Management.Infrastructure.CimCmdlets.GetCimInstanceCommand"
+      }
     },
     "total_memory_bytes": 68474896384,
     "nvidia_smi": {
@@ -29,20 +32,14 @@
       "stderr": ""
     },
     "nvidia_driver_cuda_compatibility": "13.4",
-    "physical_disks": [
-      {
-        "FriendlyName": "Samsung SSD 990 PRO with Heatsink 2TB",
-        "MediaType": "SSD",
-        "BusType": "NVMe",
-        "Size": 2000398934016
-      },
-      {
-        "FriendlyName": "Samsung SSD 990 PRO with Heatsink 1TB",
-        "MediaType": "SSD",
-        "BusType": "NVMe",
-        "Size": 1000204886016
+    "physical_disks": {
+      "query": {
+        "available": true,
+        "returncode": 0,
+        "stdout": "",
+        "stderr": "Exception calling \"MoveNext\" with \"0\" argument(s): \"Отказано в доступе \"\nAt C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules\\Storage\\StorageScripts.psm1:3524 char:24\n+                 while ($enumerator.MoveNext())\n+                        ~~~~~~~~~~~~~~~~~~~~~~\n    + CategoryInfo          : NotSpecified: (:) [], MethodInvocationException\n    + FullyQualifiedErrorId : CimException"
       }
-    ]
+    }
   },
   "packages": {
     "numpy": "2.5.2",
@@ -61,7 +58,7 @@
     "ipykernel": "7.3.0",
     "torch": null,
     "torchvision": null,
-    "scikit-learn": null,
+    "scikit-learn": "1.9.0",
     "lightgbm": null,
     "xgboost": null
   },
@@ -83,7 +80,7 @@
       "stderr": ""
     },
     "is_dirty": true,
-    "status_entry_count": 19
+    "status_entry_count": 16
   },
   "pip_freeze": {
     "path": "artifacts/environment/pip_freeze.txt",
@@ -91,7 +88,7 @@
     "command": {
       "available": true,
       "returncode": 0,
-      "stdout": "asttokens==3.0.2\nattrs==26.1.0\ncertifi==2026.7.22\ncolorama==0.4.6\ncomm==0.2.3\ncontourpy==1.3.3\ncycler==0.12.1\ndebugpy==1.8.21\nexecuting==2.2.1\nfastjsonschema==2.22.2\nfonttools==4.63.0\ngeopandas==1.1.4\niniconfig==2.3.0\nipykernel==7.3.0\nipython==9.17.0\nipython_pygments_lexers==1.1.1\njedi==0.20.0\njsonschema==4.26.0\njsonschema-specifications==2025.9.1\njupyter_client==8.10.0\njupyter_core==5.9.1\nkiwisolver==1.5.1\nmatplotlib==3.11.1\nmatplotlib-inline==0.2.2\nnbclient==0.11.0\nnbformat==5.11.1\nnest-asyncio2==1.7.2\nnumpy==2.5.2\nopencv-python-headless==5.0.0.93\npackaging==26.3\npandas==3.0.5\nparso==0.8.7\npillow==12.3.0\npip==26.0.1\nplatformdirs==4.11.5\npluggy==1.6.0\nprompt_toolkit==3.0.53\npsutil==7.2.2\npure_eval==0.2.3\nPygments==2.21.0\npyogrio==0.13.0\npyparsing==3.3.2\npyproj==3.7.2\npytest==9.1.1\npython-dateutil==2.9.0.post0\nPyYAML==6.0.3\npyzmq==27.2.0\nreferencing==0.37.0\nrpds-py==2026.6.3\nscipy==1.18.1\nshapely==2.1.2\nsix==1.17.0\nstack-data==0.6.3\ntornado==6.5.8\ntraitlets==5.16.1\ntyping_extensions==4.16.0\ntzdata==2026.3\nwcwidth==0.8.3",
+      "stdout": "asttokens==3.0.2\nattrs==26.1.0\ncertifi==2026.7.22\ncolorama==0.4.6\ncomm==0.2.3\ncontourpy==1.3.3\ncycler==0.12.1\ndebugpy==1.8.21\nexecuting==2.2.1\nfastjsonschema==2.22.2\nfonttools==4.63.0\ngeopandas==1.1.4\niniconfig==2.3.0\nipykernel==7.3.0\nipython==9.17.0\nipython_pygments_lexers==1.1.1\njedi==0.20.0\njoblib==1.5.3\njsonschema==4.26.0\njsonschema-specifications==2025.9.1\njupyter_client==8.10.0\njupyter_core==5.9.1\nkiwisolver==1.5.1\nmatplotlib==3.11.1\nmatplotlib-inline==0.2.2\nnarwhals==2.25.0\nnbclient==0.11.0\nnbformat==5.11.1\nnest-asyncio2==1.7.2\nnumpy==2.5.2\nopencv-python-headless==5.0.0.93\npackaging==26.3\npandas==3.0.5\nparso==0.8.7\npillow==12.3.0\npip==26.0.1\nplatformdirs==4.11.5\npluggy==1.6.0\nprompt_toolkit==3.0.53\npsutil==7.2.2\npure_eval==0.2.3\nPygments==2.21.0\npyogrio==0.13.0\npyparsing==3.3.2\npyproj==3.7.2\npytest==9.1.1\npython-dateutil==2.9.0.post0\nPyYAML==6.0.3\npyzmq==27.2.0\nreferencing==0.37.0\nrpds-py==2026.6.3\nscikit-learn==1.9.0\nscipy==1.18.1\nshapely==2.1.2\nsix==1.17.0\nstack-data==0.6.3\nthreadpoolctl==3.6.0\ntornado==6.5.8\ntraitlets==5.16.1\ntyping_extensions==4.16.0\ntzdata==2026.3\nwcwidth==0.8.3",
       "stderr": ""
     }
   }

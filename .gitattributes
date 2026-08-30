@@ -5,6 +5,8 @@
 *.json text eol=lf
 *.yaml text eol=lf
 *.yml text eol=lf
+requirements/*.in text eol=lf
+requirements/*.txt text eol=lf
 
 # Source archives and binary research artifacts are versioned through Git LFS.
 *.zip filter=lfs diff=lfs merge=lfs -text

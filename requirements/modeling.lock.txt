@@ -1,0 +1,12 @@
+# Gate B0/B1 modelling environment, captured on Windows / CPython 3.13.
+# Install with: python -m pip install -r requirements/modeling.lock.txt
+-e .
+joblib==1.5.3
+narwhals==2.25.0
+numpy==2.5.2
+pandas==3.0.5
+PyYAML==6.0.3
+scikit-learn==1.9.0
+scipy==1.18.1
+threadpoolctl==3.6.0
+

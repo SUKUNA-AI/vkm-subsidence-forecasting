@@ -1,0 +1,69 @@
+{
+  "candidate_scope": "gate_b0_b1",
+  "feature_contract_sha256": "241bad48e67659ffc953349cd2bce59e61f2a2867d57698abd6574edd4a05272",
+  "gate": "B0_B1_T1_BASELINES",
+  "model_state": {
+    "development_rows": 1041,
+    "development_sample_ids_sha256": "4b88accf9059625a628e348e1b2084a7f149d71c957636f9705ed99d49fffecc",
+    "fallback_rate": 30.18123823457142,
+    "family": "persistence",
+    "fit_seconds": 0.00047650000487919897,
+    "model_id": "B1_persistence_last_rate",
+    "parameter_count": 1,
+    "parameters": {
+      "fallback": "train_target_median"
+    }
+  },
+  "random_seed": 42117,
+  "schema_version": 1,
+  "selected_model_spec": {
+    "complexity_penalty": 0.0,
+    "family": "persistence",
+    "model_id": "B1_persistence_last_rate",
+    "parameters": {
+      "fallback": "train_target_median"
+    }
+  },
+  "selection_policy": {
+    "candidate_scope": "gate_b0_b1",
+    "fixed_kalman_reference": "B5_fixed_kalman",
+    "normalized_mae_weights": {
+      "leave_profile_out": 0.2,
+      "leave_zone_out": 0.1,
+      "rolling_origin": 0.2,
+      "temporal_holdout": 0.5
+    },
+    "reference_model": "B1_persistence_last_rate",
+    "tie_break": [
+      "selection_score",
+      "temporal_holdout_mae",
+      "model_id"
+    ]
+  },
+  "selection_result": {
+    "complexity_penalty": 0.0,
+    "leave_profile_out_mae": 7.31092175130067,
+    "leave_profile_out_normalized_mae": 1.0,
+    "leave_zone_out_mae": 7.31092175130067,
+    "leave_zone_out_normalized_mae": 1.0,
+    "model_id": "B1_persistence_last_rate",
+    "rank": 1,
+    "rolling_origin_mae": 6.8237937224175695,
+    "rolling_origin_normalized_mae": 1.0,
+    "selected": true,
+    "selection_score": 0.9999999999999999,
+    "temporal_holdout_mae": 7.31092175130067,
+    "temporal_holdout_normalized_mae": 1.0,
+    "weighted_normalized_mae": 0.9999999999999999
+  },
+  "split_version": "t1_v1",
+  "task": "t1",
+  "training_weight_policy": {
+    "fit_scope": "train_only",
+    "inverse_variance_clip": [
+      0.25,
+      4.0
+    ],
+    "source": "sigma_rate_mm_y"
+  }
+}

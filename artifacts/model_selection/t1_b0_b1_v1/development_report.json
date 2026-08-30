@@ -1,0 +1,160 @@
+{
+  "artifacts": {
+    "aggregate_metrics": "artifacts/model_selection/t1_b0_b1_v1/aggregate_metrics.csv",
+    "candidate_ranking": "artifacts/model_selection/t1_b0_b1_v1/candidate_ranking.csv",
+    "development_predictions": "artifacts/model_selection/t1_b0_b1_v1/development_predictions.csv",
+    "fold_contracts": "artifacts/model_selection/t1_b0_b1_v1/fold_contracts.csv",
+    "fold_metrics": "artifacts/model_selection/t1_b0_b1_v1/fold_metrics.csv",
+    "model_comparison": "artifacts/model_selection/t1_b0_b1_v1/model_comparison.csv",
+    "model_states": "artifacts/model_selection/t1_b0_b1_v1/model_states.csv"
+  },
+  "caveats": [
+    "This is a Gate B0/B1 stage candidate, not the final thesis model.",
+    "The adaptive B6 Kalman comparator required by the full screening acceptance gate is deferred to the next model stage.",
+    "Leave-profile-out and leave-zone-out use 2024 validation rows with only pre-2024 labels in fit; local feature history remains available to the fixed state-space baseline.",
+    "The frozen validation set has 130 origins over 90 points, so row-level precision must not be interpreted as 130 independent trajectories."
+  ],
+  "checks": {
+    "all_predictions_finite": true,
+    "canonical_training_weight_ignored": true,
+    "expected_fold_count": true,
+    "fit_preprocessing_train_only": true,
+    "identifier_estimator_features": 0,
+    "random_split_forbidden": true,
+    "test_not_loaded_during_selection": true
+  },
+  "data": {
+    "dataset_version": "SKRU1 v3.2",
+    "feature_contract_sha256": "241bad48e67659ffc953349cd2bce59e61f2a2867d57698abd6574edd4a05272",
+    "target": "observed_rate_mm_y",
+    "target_contract_sha256": "c679a6b83d26675d50b59de57cb3c12cdeacc6dd7c2e178364e434ed25a526e8",
+    "task": "T1_RATE_NEXT_PLANNED",
+    "train_rows": 911,
+    "train_sample_ids_sha256": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c",
+    "unit": "mm/year",
+    "validation_rows": 130,
+    "validation_sample_ids_sha256": "f72ce0a50c16bccca3ca87df4f4a7465b4d9eca2933e0dec9b3bd39e7336a62e"
+  },
+  "environment": {
+    "PyYAML": "6.0.3",
+    "joblib": "1.5.3",
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.9.0",
+    "scipy": "1.18.1"
+  },
+  "gate": "B0_B1_T1_BASELINES",
+  "gate_a1_report": {
+    "critical_failures": 0,
+    "path": "artifacts/data_quality/gate_a1_report.json",
+    "sha256": "179cbd97b94edb88948438fb93dc6defaa12d929b37796acf11d825a83ffe71a",
+    "status": "PASS_WITH_WARNINGS"
+  },
+  "models": [
+    {
+      "complexity_penalty": 0.0,
+      "family": "persistence",
+      "model_id": "B1_persistence_last_rate",
+      "parameters": {
+        "fallback": "train_target_median"
+      }
+    },
+    {
+      "complexity_penalty": 0.002,
+      "family": "profile_robust_trend",
+      "model_id": "B3_profile_robust_trend",
+      "parameters": {
+        "acceleration_clip_quantiles": [
+          0.05,
+          0.95
+        ],
+        "acceleration_integral_factor": 0.5,
+        "instantaneous_weight": 0.5,
+        "mean_last_3_weight": 0.3,
+        "profile_mean_weight": 0.2
+      }
+    },
+    {
+      "complexity_penalty": 0.003,
+      "family": "fixed_kalman",
+      "model_id": "B5_fixed_kalman",
+      "parameters": {
+        "initial_velocity_variance": 400.0,
+        "minimum_measurement_variance": 0.01,
+        "process_variance_q": 25.0
+      }
+    },
+    {
+      "complexity_penalty": 0.005,
+      "family": "ridge",
+      "model_id": "M1_ridge",
+      "parameters": {
+        "alpha": 10.0,
+        "solver": "lsqr",
+        "tolerance": 1e-08
+      }
+    },
+    {
+      "complexity_penalty": 0.01,
+      "family": "extra_trees",
+      "model_id": "M2_extra_trees",
+      "parameters": {
+        "bootstrap": false,
+        "max_depth": 8,
+        "max_features": 0.75,
+        "min_samples_leaf": 4,
+        "n_estimators": 300,
+        "n_jobs": 1
+      }
+    }
+  ],
+  "schema_version": 1,
+  "selection": {
+    "frozen_model_state": {
+      "development_rows": 1041,
+      "development_sample_ids_sha256": "4b88accf9059625a628e348e1b2084a7f149d71c957636f9705ed99d49fffecc",
+      "fallback_rate": 30.18123823457142,
+      "family": "persistence",
+      "fit_seconds": 0.00047650000487919897,
+      "model_id": "B1_persistence_last_rate",
+      "parameter_count": 1,
+      "parameters": {
+        "fallback": "train_target_median"
+      }
+    },
+    "policy": {
+      "candidate_scope": "gate_b0_b1",
+      "fixed_kalman_reference": "B5_fixed_kalman",
+      "normalized_mae_weights": {
+        "leave_profile_out": 0.2,
+        "leave_zone_out": 0.1,
+        "rolling_origin": 0.2,
+        "temporal_holdout": 0.5
+      },
+      "reference_model": "B1_persistence_last_rate",
+      "tie_break": [
+        "selection_score",
+        "temporal_holdout_mae",
+        "model_id"
+      ]
+    },
+    "selected_model": "B1_persistence_last_rate",
+    "selection_score": 0.9999999999999999,
+    "temporal_best_mae": 7.31092175130067,
+    "temporal_best_model": "B1_persistence_last_rate",
+    "temporal_holdout_mae": 7.31092175130067
+  },
+  "status": "PASS_WITH_CAVEATS",
+  "test_data_loaded": false,
+  "validation_design": {
+    "fold_contracts": "artifacts/model_selection/t1_b0_b1_v1/fold_contracts.csv",
+    "fold_counts": {
+      "leave_profile_out": 14,
+      "leave_zone_out": 4,
+      "rolling_origin": 5,
+      "temporal_holdout": 1
+    },
+    "forward_only": true,
+    "grouped_holdout_mode": "forward_only"
+  }
+}

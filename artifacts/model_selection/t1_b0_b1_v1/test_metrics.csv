@@ -1,0 +1,2 @@
+model_id,split,rows,sample_ids_sha256,inference_seconds,n,mae,rmse,bias,r2,precision_weighted_n,precision_weighted_mae,precision_weighted_rmse,precision_weighted_bias,precision_weighted_r2
+B1_persistence_last_rate,test,175,8d0db55dba8db96297c6b816e65e2601fdc4bbc014a81b298241b632bcf9a66a,5.4899996030144393e-05,175,10.134764846978783,19.877726895116904,-5.164626159041115,0.8482793821905941,175,9.136598426913151,17.618436942011872,-4.9577241478984915,0.850149043783119
