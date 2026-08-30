@@ -1,0 +1,1643 @@
+{
+  "checks": [
+    {
+      "check_id": "protected_test_files_unchanged",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check_id": "gate_b2_has_no_test_loader_call",
+      "expected": [],
+      "observed": [],
+      "passed": true
+    },
+    {
+      "check_id": "outer_fold_counts",
+      "expected": {
+        "leave_profile_out": 14,
+        "leave_zone_out": 4,
+        "rolling_origin": 5,
+        "temporal_holdout": 1
+      },
+      "observed": {
+        "leave_profile_out": 14,
+        "leave_zone_out": 4,
+        "rolling_origin": 5,
+        "temporal_holdout": 1
+      },
+      "passed": true
+    },
+    {
+      "check_id": "outer_folds_forward_only",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check_id": "nested_tuning_forward_only",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check_id": "one_selected_tuning_candidate_per_context",
+      "expected": "exactly one candidate key per context",
+      "observed": {
+        "calibration::rolling_01": 1,
+        "calibration::rolling_02": 1,
+        "calibration::rolling_03": 1,
+        "calibration::rolling_04": 1,
+        "calibration::rolling_05": 1,
+        "outer::leave_profile_out_P-D01": 1,
+        "outer::leave_profile_out_P-H01": 1,
+        "outer::leave_profile_out_P-H02": 1,
+        "outer::leave_profile_out_P-H03": 1,
+        "outer::leave_profile_out_P-H04": 1,
+        "outer::leave_profile_out_P-H05": 1,
+        "outer::leave_profile_out_P-H06": 1,
+        "outer::leave_profile_out_P-H07": 1,
+        "outer::leave_profile_out_P-V01": 1,
+        "outer::leave_profile_out_P-V02": 1,
+        "outer::leave_profile_out_P-V03": 1,
+        "outer::leave_profile_out_P-V04": 1,
+        "outer::leave_profile_out_P-V05": 1,
+        "outer::leave_profile_out_P-V06": 1,
+        "outer::leave_zone_out_GEO_NE": 1,
+        "outer::leave_zone_out_GEO_NW": 1,
+        "outer::leave_zone_out_GEO_SE": 1,
+        "outer::leave_zone_out_GEO_SW": 1,
+        "outer::rolling_01": 1,
+        "outer::rolling_02": 1,
+        "outer::rolling_03": 1,
+        "outer::rolling_04": 1,
+        "outer::rolling_05": 1,
+        "outer::temporal_validation_2024": 1
+      },
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_profile_out::B1_persistence_last_rate::mae",
+      "expected": 7.310921751300669,
+      "observed": 7.31092175130067,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_profile_out::B1_persistence_last_rate::rmse",
+      "expected": 11.071272766527729,
+      "observed": 11.071272766527729,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_profile_out::B1_persistence_last_rate::bias",
+      "expected": -3.0461735358418554,
+      "observed": -3.046173535841856,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_profile_out::B1_persistence_last_rate::r2",
+      "expected": 0.9422866223175526,
+      "observed": 0.9422866223175526,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_profile_out::B6_adaptive_kalman::mae",
+      "expected": 7.311447665392591,
+      "observed": 7.311447665392591,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_profile_out::B6_adaptive_kalman::rmse",
+      "expected": 11.792694062673833,
+      "observed": 11.792694062673837,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_profile_out::B6_adaptive_kalman::bias",
+      "expected": -2.8108890145321417,
+      "observed": -2.810889014532141,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_profile_out::B6_adaptive_kalman::r2",
+      "expected": 0.9345201834075664,
+      "observed": 0.9345201834075664,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_profile_out::B5_fixed_kalman::mae",
+      "expected": 8.03603639185759,
+      "observed": 8.03603639185759,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_profile_out::B5_fixed_kalman::rmse",
+      "expected": 13.360073223073746,
+      "observed": 13.360073223073746,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_profile_out::B5_fixed_kalman::bias",
+      "expected": -3.4842399683901646,
+      "observed": -3.484239968390165,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_profile_out::B5_fixed_kalman::r2",
+      "expected": 0.9159574797457477,
+      "observed": 0.9159574797457476,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_zone_out::B1_persistence_last_rate::mae",
+      "expected": 7.310921751300668,
+      "observed": 7.31092175130067,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_zone_out::B1_persistence_last_rate::rmse",
+      "expected": 11.071272766527727,
+      "observed": 11.071272766527729,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_zone_out::B1_persistence_last_rate::bias",
+      "expected": -3.0461735358418554,
+      "observed": -3.046173535841856,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_zone_out::B1_persistence_last_rate::r2",
+      "expected": 0.9422866223175526,
+      "observed": 0.9422866223175526,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_zone_out::B5_fixed_kalman::mae",
+      "expected": 8.03603639185759,
+      "observed": 8.03603639185759,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_zone_out::B5_fixed_kalman::rmse",
+      "expected": 13.360073223073746,
+      "observed": 13.360073223073746,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_zone_out::B5_fixed_kalman::bias",
+      "expected": -3.484239968390165,
+      "observed": -3.484239968390165,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_zone_out::B5_fixed_kalman::r2",
+      "expected": 0.9159574797457477,
+      "observed": 0.9159574797457476,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_zone_out::B6_adaptive_kalman::mae",
+      "expected": 8.405255456237963,
+      "observed": 8.405255456237965,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_zone_out::B6_adaptive_kalman::rmse",
+      "expected": 14.618287109978946,
+      "observed": 14.618287109978947,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_zone_out::B6_adaptive_kalman::bias",
+      "expected": -3.931423970321905,
+      "observed": -3.9314239703219047,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::leave_zone_out::B6_adaptive_kalman::r2",
+      "expected": 0.8993823046826817,
+      "observed": 0.8993823046826815,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::rolling_origin::B1_persistence_last_rate::mae",
+      "expected": 6.8237937224175695,
+      "observed": 6.8237937224175695,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::rolling_origin::B1_persistence_last_rate::rmse",
+      "expected": 10.832807537871393,
+      "observed": 10.832807537871396,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::rolling_origin::B1_persistence_last_rate::bias",
+      "expected": -1.4030715847121131,
+      "observed": -1.403071584712113,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::rolling_origin::B1_persistence_last_rate::r2",
+      "expected": 0.9352119754485313,
+      "observed": 0.9352119754485312,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::rolling_origin::B6_adaptive_kalman::mae",
+      "expected": 6.958573052227978,
+      "observed": 6.958573052227978,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::rolling_origin::B6_adaptive_kalman::rmse",
+      "expected": 11.332045321236711,
+      "observed": 11.332045321236713,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::rolling_origin::B6_adaptive_kalman::bias",
+      "expected": -1.9530100138686548,
+      "observed": -1.9530100138686552,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::rolling_origin::B6_adaptive_kalman::r2",
+      "expected": 0.9291027664558206,
+      "observed": 0.9291027664558206,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::rolling_origin::B5_fixed_kalman::mae",
+      "expected": 7.696273649794031,
+      "observed": 7.696273649794031,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::rolling_origin::B5_fixed_kalman::rmse",
+      "expected": 13.203883250069845,
+      "observed": 13.203883250069849,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::rolling_origin::B5_fixed_kalman::bias",
+      "expected": -2.412931870819735,
+      "observed": -2.412931870819736,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::rolling_origin::B5_fixed_kalman::r2",
+      "expected": 0.9037466098576213,
+      "observed": 0.9037466098576212,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::temporal_holdout::B1_persistence_last_rate::mae",
+      "expected": 7.310921751300669,
+      "observed": 7.31092175130067,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::temporal_holdout::B1_persistence_last_rate::rmse",
+      "expected": 11.071272766527729,
+      "observed": 11.071272766527729,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::temporal_holdout::B1_persistence_last_rate::bias",
+      "expected": -3.0461735358418554,
+      "observed": -3.046173535841856,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::temporal_holdout::B1_persistence_last_rate::r2",
+      "expected": 0.9422866223175526,
+      "observed": 0.9422866223175526,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::temporal_holdout::B6_adaptive_kalman::mae",
+      "expected": 7.453611564340219,
+      "observed": 7.453611564340219,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::temporal_holdout::B6_adaptive_kalman::rmse",
+      "expected": 12.046557206038587,
+      "observed": 12.046557206038589,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::temporal_holdout::B6_adaptive_kalman::bias",
+      "expected": -2.894875862058721,
+      "observed": -2.894875862058721,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::temporal_holdout::B6_adaptive_kalman::r2",
+      "expected": 0.9316706506420493,
+      "observed": 0.9316706506420492,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::temporal_holdout::B5_fixed_kalman::mae",
+      "expected": 8.03603639185759,
+      "observed": 8.03603639185759,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::temporal_holdout::B5_fixed_kalman::rmse",
+      "expected": 13.360073223073746,
+      "observed": 13.360073223073746,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::temporal_holdout::B5_fixed_kalman::bias",
+      "expected": -3.4842399683901646,
+      "observed": -3.484239968390165,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate::temporal_holdout::B5_fixed_kalman::r2",
+      "expected": 0.9159574797457477,
+      "observed": 0.9159574797457476,
+      "passed": true
+    },
+    {
+      "check_id": "calibration_ids_train_only",
+      "expected": {
+        "subset": "train",
+        "validation_overlap": 0
+      },
+      "observed": {
+        "rows": 292,
+        "validation_overlap": 0
+      },
+      "passed": true
+    },
+    {
+      "check_id": "outer_prediction_ids_development_only",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check_id": "calibration_oof_forward_only",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check_id": "conformal_qhat::0.8",
+      "expected": {
+        "probability": 0.8047945205479452,
+        "qhat": 2.005560603846204
+      },
+      "observed": {
+        "probability": 0.8047945205479452,
+        "qhat": 2.005560603846204
+      },
+      "passed": true
+    },
+    {
+      "check_id": "conformal_qhat::0.9",
+      "expected": {
+        "probability": 0.9041095890410958,
+        "qhat": 3.022870194686779
+      },
+      "observed": {
+        "probability": 0.9041095890410958,
+        "qhat": 3.022870194686779
+      },
+      "passed": true
+    },
+    {
+      "check_id": "conformal_qhat::0.95",
+      "expected": {
+        "probability": 0.9554794520547946,
+        "qhat": 4.701159237309707
+      },
+      "observed": {
+        "probability": 0.9554794520547946,
+        "qhat": 4.701159237309707
+      },
+      "passed": true
+    },
+    {
+      "check_id": "interval::0.8::coverage_empirical",
+      "expected": 0.8307692307692308,
+      "observed": 0.8307692307692308,
+      "passed": true
+    },
+    {
+      "check_id": "interval::0.8::mean_width_mm_y",
+      "expected": 20.08893866791938,
+      "observed": 20.088938667919383,
+      "passed": true
+    },
+    {
+      "check_id": "interval::0.8::median_width_mm_y",
+      "expected": 18.12284043160868,
+      "observed": 18.12284043160868,
+      "passed": true
+    },
+    {
+      "check_id": "interval::0.8::mean_interval_score",
+      "expected": 42.1386104378505,
+      "observed": 42.1386104378505,
+      "passed": true
+    },
+    {
+      "check_id": "interval::0.9::coverage_empirical",
+      "expected": 0.9076923076923077,
+      "observed": 0.9076923076923076,
+      "passed": true
+    },
+    {
+      "check_id": "interval::0.9::mean_width_mm_y",
+      "expected": 30.27894236937304,
+      "observed": 30.27894236937304,
+      "passed": true
+    },
+    {
+      "check_id": "interval::0.9::median_width_mm_y",
+      "expected": 27.31555161121193,
+      "observed": 27.31555161121193,
+      "passed": true
+    },
+    {
+      "check_id": "interval::0.9::mean_interval_score",
+      "expected": 60.47431008766657,
+      "observed": 60.47431008766657,
+      "passed": true
+    },
+    {
+      "check_id": "interval::0.95::coverage_empirical",
+      "expected": 0.9384615384615385,
+      "observed": 0.9384615384615383,
+      "passed": true
+    },
+    {
+      "check_id": "interval::0.95::mean_width_mm_y",
+      "expected": 47.089726137081385,
+      "observed": 47.089726137081385,
+      "passed": true
+    },
+    {
+      "check_id": "interval::0.95::median_width_mm_y",
+      "expected": 42.481069152413596,
+      "observed": 42.4810691524136,
+      "passed": true
+    },
+    {
+      "check_id": "interval::0.95::mean_interval_score",
+      "expected": 82.57784218005312,
+      "observed": 82.57784218005312,
+      "passed": true
+    },
+    {
+      "check_id": "transition_segments_exhaustive",
+      "expected": [
+        "accelerating",
+        "decelerating",
+        "stable",
+        "volatile_or_gap"
+      ],
+      "observed": [
+        "accelerating",
+        "decelerating",
+        "stable",
+        "volatile_or_gap"
+      ],
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B1_persistence_last_rate::all::all",
+      "expected": {
+        "mae": 7.310921751300669,
+        "rows": 130
+      },
+      "observed": {
+        "mae": 7.31092175130067,
+        "rows": 130
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B6_adaptive_kalman::all::all",
+      "expected": {
+        "mae": 7.311447665392591,
+        "rows": 130
+      },
+      "observed": {
+        "mae": 7.311447665392591,
+        "rows": 130
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B5_fixed_kalman::all::all",
+      "expected": {
+        "mae": 8.03603639185759,
+        "rows": 130
+      },
+      "observed": {
+        "mae": 8.03603639185759,
+        "rows": 130
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B1_persistence_last_rate::mechanism::accelerating",
+      "expected": {
+        "mae": 15.491772248984018,
+        "rows": 18
+      },
+      "observed": {
+        "mae": 15.491772248984017,
+        "rows": 18
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B6_adaptive_kalman::mechanism::accelerating",
+      "expected": {
+        "mae": 17.46275694418471,
+        "rows": 18
+      },
+      "observed": {
+        "mae": 17.46275694418471,
+        "rows": 18
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B5_fixed_kalman::mechanism::accelerating",
+      "expected": {
+        "mae": 22.229338612528757,
+        "rows": 18
+      },
+      "observed": {
+        "mae": 22.229338612528757,
+        "rows": 18
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B6_adaptive_kalman::mechanism::decelerating",
+      "expected": {
+        "mae": 3.8585872583821494,
+        "rows": 12
+      },
+      "observed": {
+        "mae": 3.858587258382149,
+        "rows": 12
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B5_fixed_kalman::mechanism::decelerating",
+      "expected": {
+        "mae": 3.8634148074683115,
+        "rows": 12
+      },
+      "observed": {
+        "mae": 3.863414807468312,
+        "rows": 12
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B1_persistence_last_rate::mechanism::decelerating",
+      "expected": {
+        "mae": 4.790889962941637,
+        "rows": 12
+      },
+      "observed": {
+        "mae": 4.790889962941637,
+        "rows": 12
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B5_fixed_kalman::mechanism::stable",
+      "expected": {
+        "mae": 4.7137975362680695,
+        "rows": 86
+      },
+      "observed": {
+        "mae": 4.713797536268069,
+        "rows": 86
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B6_adaptive_kalman::mechanism::stable",
+      "expected": {
+        "mae": 4.74409219301488,
+        "rows": 86
+      },
+      "observed": {
+        "mae": 4.744092193014879,
+        "rows": 86
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B1_persistence_last_rate::mechanism::stable",
+      "expected": {
+        "mae": 5.275722102237936,
+        "rows": 86
+      },
+      "observed": {
+        "mae": 5.275722102237933,
+        "rows": 86
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B1_persistence_last_rate::mechanism::volatile_or_gap",
+      "expected": {
+        "mae": 11.454653345686612,
+        "rows": 14
+      },
+      "observed": {
+        "mae": 11.454653345686612,
+        "rows": 14
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B6_adaptive_kalman::mechanism::volatile_or_gap",
+      "expected": {
+        "mae": 12.990256843274752,
+        "rows": 14
+      },
+      "observed": {
+        "mae": 12.990256843274755,
+        "rows": 14
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B5_fixed_kalman::mechanism::volatile_or_gap",
+      "expected": {
+        "mae": 13.772076436235375,
+        "rows": 14
+      },
+      "observed": {
+        "mae": 13.772076436235372,
+        "rows": 14
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B5_fixed_kalman::stable_vs_transition::stable",
+      "expected": {
+        "mae": 4.7137975362680695,
+        "rows": 86
+      },
+      "observed": {
+        "mae": 4.713797536268069,
+        "rows": 86
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B6_adaptive_kalman::stable_vs_transition::stable",
+      "expected": {
+        "mae": 4.74409219301488,
+        "rows": 86
+      },
+      "observed": {
+        "mae": 4.744092193014879,
+        "rows": 86
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B1_persistence_last_rate::stable_vs_transition::stable",
+      "expected": {
+        "mae": 5.275722102237936,
+        "rows": 86
+      },
+      "observed": {
+        "mae": 5.275722102237933,
+        "rows": 86
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B1_persistence_last_rate::stable_vs_transition::transition",
+      "expected": {
+        "mae": 11.28881197446874,
+        "rows": 44
+      },
+      "observed": {
+        "mae": 11.28881197446874,
+        "rows": 44
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B6_adaptive_kalman::stable_vs_transition::transition",
+      "expected": {
+        "mae": 12.329460634130845,
+        "rows": 44
+      },
+      "observed": {
+        "mae": 12.329460634130848,
+        "rows": 44
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_profile_out::B5_fixed_kalman::stable_vs_transition::transition",
+      "expected": {
+        "mae": 14.529503245964378,
+        "rows": 44
+      },
+      "observed": {
+        "mae": 14.529503245964376,
+        "rows": 44
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B1_persistence_last_rate::all::all",
+      "expected": {
+        "mae": 7.310921751300668,
+        "rows": 130
+      },
+      "observed": {
+        "mae": 7.31092175130067,
+        "rows": 130
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B5_fixed_kalman::all::all",
+      "expected": {
+        "mae": 8.03603639185759,
+        "rows": 130
+      },
+      "observed": {
+        "mae": 8.03603639185759,
+        "rows": 130
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B6_adaptive_kalman::all::all",
+      "expected": {
+        "mae": 8.405255456237963,
+        "rows": 130
+      },
+      "observed": {
+        "mae": 8.405255456237965,
+        "rows": 130
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B1_persistence_last_rate::mechanism::accelerating",
+      "expected": {
+        "mae": 13.137916856312998,
+        "rows": 20
+      },
+      "observed": {
+        "mae": 13.137916856313,
+        "rows": 20
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B5_fixed_kalman::mechanism::accelerating",
+      "expected": {
+        "mae": 18.974387455826136,
+        "rows": 20
+      },
+      "observed": {
+        "mae": 18.974387455826133,
+        "rows": 20
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B6_adaptive_kalman::mechanism::accelerating",
+      "expected": {
+        "mae": 21.766422999236493,
+        "rows": 20
+      },
+      "observed": {
+        "mae": 21.766422999236493,
+        "rows": 20
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B5_fixed_kalman::mechanism::decelerating",
+      "expected": {
+        "mae": 4.006911260889594,
+        "rows": 15
+      },
+      "observed": {
+        "mae": 4.006911260889595,
+        "rows": 15
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B6_adaptive_kalman::mechanism::decelerating",
+      "expected": {
+        "mae": 4.014491822189699,
+        "rows": 15
+      },
+      "observed": {
+        "mae": 4.014491822189699,
+        "rows": 15
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B1_persistence_last_rate::mechanism::decelerating",
+      "expected": {
+        "mae": 5.20269176716758,
+        "rows": 15
+      },
+      "observed": {
+        "mae": 5.202691767167579,
+        "rows": 15
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B6_adaptive_kalman::mechanism::stable",
+      "expected": {
+        "mae": 4.525094541671903,
+        "rows": 77
+      },
+      "observed": {
+        "mae": 4.525094541671902,
+        "rows": 77
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B5_fixed_kalman::mechanism::stable",
+      "expected": {
+        "mae": 4.537478037372803,
+        "rows": 77
+      },
+      "observed": {
+        "mae": 4.537478037372804,
+        "rows": 77
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B1_persistence_last_rate::mechanism::stable",
+      "expected": {
+        "mae": 4.953416234017138,
+        "rows": 77
+      },
+      "observed": {
+        "mae": 4.953416234017137,
+        "rows": 77
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B1_persistence_last_rate::mechanism::volatile_or_gap",
+      "expected": {
+        "mae": 12.67822577866632,
+        "rows": 18
+      },
+      "observed": {
+        "mae": 12.67822577866632,
+        "rows": 18
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B6_adaptive_kalman::mechanism::volatile_or_gap",
+      "expected": {
+        "mae": 13.816949571367969,
+        "rows": 18
+      },
+      "observed": {
+        "mae": 13.816949571367966,
+        "rows": 18
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B5_fixed_kalman::mechanism::volatile_or_gap",
+      "expected": {
+        "mae": 14.205972446328559,
+        "rows": 18
+      },
+      "observed": {
+        "mae": 14.205972446328555,
+        "rows": 18
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B6_adaptive_kalman::stable_vs_transition::stable",
+      "expected": {
+        "mae": 4.525094541671903,
+        "rows": 77
+      },
+      "observed": {
+        "mae": 4.525094541671902,
+        "rows": 77
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B5_fixed_kalman::stable_vs_transition::stable",
+      "expected": {
+        "mae": 4.537478037372803,
+        "rows": 77
+      },
+      "observed": {
+        "mae": 4.537478037372804,
+        "rows": 77
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B1_persistence_last_rate::stable_vs_transition::stable",
+      "expected": {
+        "mae": 4.953416234017138,
+        "rows": 77
+      },
+      "observed": {
+        "mae": 4.953416234017137,
+        "rows": 77
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B1_persistence_last_rate::stable_vs_transition::transition",
+      "expected": {
+        "mae": 10.735976936788065,
+        "rows": 53
+      },
+      "observed": {
+        "mae": 10.735976936788065,
+        "rows": 53
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B5_fixed_kalman::stable_vs_transition::transition",
+      "expected": {
+        "mae": 13.118847586109071,
+        "rows": 53
+      },
+      "observed": {
+        "mae": 13.118847586109068,
+        "rows": 53
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::leave_zone_out::B6_adaptive_kalman::stable_vs_transition::transition",
+      "expected": {
+        "mae": 14.042470369852808,
+        "rows": 53
+      },
+      "observed": {
+        "mae": 14.042470369852806,
+        "rows": 53
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B1_persistence_last_rate::all::all",
+      "expected": {
+        "mae": 6.8237937224175695,
+        "rows": 218
+      },
+      "observed": {
+        "mae": 6.8237937224175695,
+        "rows": 218
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B6_adaptive_kalman::all::all",
+      "expected": {
+        "mae": 6.958573052227978,
+        "rows": 218
+      },
+      "observed": {
+        "mae": 6.958573052227978,
+        "rows": 218
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B5_fixed_kalman::all::all",
+      "expected": {
+        "mae": 7.696273649794031,
+        "rows": 218
+      },
+      "observed": {
+        "mae": 7.696273649794031,
+        "rows": 218
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B1_persistence_last_rate::mechanism::accelerating",
+      "expected": {
+        "mae": 12.16593070139682,
+        "rows": 34
+      },
+      "observed": {
+        "mae": 12.16593070139682,
+        "rows": 34
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B6_adaptive_kalman::mechanism::accelerating",
+      "expected": {
+        "mae": 14.031459401640248,
+        "rows": 34
+      },
+      "observed": {
+        "mae": 14.031459401640252,
+        "rows": 34
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B5_fixed_kalman::mechanism::accelerating",
+      "expected": {
+        "mae": 18.978643784434958,
+        "rows": 34
+      },
+      "observed": {
+        "mae": 18.97864378443496,
+        "rows": 34
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B5_fixed_kalman::mechanism::decelerating",
+      "expected": {
+        "mae": 5.242645701537296,
+        "rows": 14
+      },
+      "observed": {
+        "mae": 5.242645701537295,
+        "rows": 14
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B6_adaptive_kalman::mechanism::decelerating",
+      "expected": {
+        "mae": 5.506831029842845,
+        "rows": 14
+      },
+      "observed": {
+        "mae": 5.506831029842845,
+        "rows": 14
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B1_persistence_last_rate::mechanism::decelerating",
+      "expected": {
+        "mae": 5.549320012882373,
+        "rows": 14
+      },
+      "observed": {
+        "mae": 5.549320012882371,
+        "rows": 14
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B5_fixed_kalman::mechanism::stable",
+      "expected": {
+        "mae": 4.515913189216542,
+        "rows": 148
+      },
+      "observed": {
+        "mae": 4.515913189216542,
+        "rows": 148
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B6_adaptive_kalman::mechanism::stable",
+      "expected": {
+        "mae": 4.752595415578905,
+        "rows": 148
+      },
+      "observed": {
+        "mae": 4.752595415578907,
+        "rows": 148
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B1_persistence_last_rate::mechanism::stable",
+      "expected": {
+        "mae": 4.956723452845488,
+        "rows": 148
+      },
+      "observed": {
+        "mae": 4.956723452845489,
+        "rows": 148
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B6_adaptive_kalman::mechanism::volatile_or_gap",
+      "expected": {
+        "mae": 11.791797718475122,
+        "rows": 22
+      },
+      "observed": {
+        "mae": 11.79179771847512,
+        "rows": 22
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B1_persistence_last_rate::mechanism::volatile_or_gap",
+      "expected": {
+        "mae": 11.939083474456943,
+        "rows": 22
+      },
+      "observed": {
+        "mae": 11.939083474456949,
+        "rows": 22
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B5_fixed_kalman::mechanism::volatile_or_gap",
+      "expected": {
+        "mae": 13.216435234488166,
+        "rows": 22
+      },
+      "observed": {
+        "mae": 13.216435234488165,
+        "rows": 22
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B5_fixed_kalman::stable_vs_transition::stable",
+      "expected": {
+        "mae": 4.515913189216542,
+        "rows": 148
+      },
+      "observed": {
+        "mae": 4.515913189216542,
+        "rows": 148
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B6_adaptive_kalman::stable_vs_transition::stable",
+      "expected": {
+        "mae": 4.752595415578905,
+        "rows": 148
+      },
+      "observed": {
+        "mae": 4.752595415578907,
+        "rows": 148
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B1_persistence_last_rate::stable_vs_transition::stable",
+      "expected": {
+        "mae": 4.956723452845488,
+        "rows": 148
+      },
+      "observed": {
+        "mae": 4.956723452845489,
+        "rows": 148
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B1_persistence_last_rate::stable_vs_transition::transition",
+      "expected": {
+        "mae": 10.7713137209414,
+        "rows": 70
+      },
+      "observed": {
+        "mae": 10.771313720941396,
+        "rows": 70
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B6_adaptive_kalman::stable_vs_transition::transition",
+      "expected": {
+        "mae": 11.62264005542887,
+        "rows": 70
+      },
+      "observed": {
+        "mae": 11.622640055428873,
+        "rows": 70
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::rolling_origin::B5_fixed_kalman::stable_vs_transition::transition",
+      "expected": {
+        "mae": 14.420464337872147,
+        "rows": 70
+      },
+      "observed": {
+        "mae": 14.420464337872149,
+        "rows": 70
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B1_persistence_last_rate::all::all",
+      "expected": {
+        "mae": 7.310921751300669,
+        "rows": 130
+      },
+      "observed": {
+        "mae": 7.31092175130067,
+        "rows": 130
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B6_adaptive_kalman::all::all",
+      "expected": {
+        "mae": 7.453611564340219,
+        "rows": 130
+      },
+      "observed": {
+        "mae": 7.453611564340219,
+        "rows": 130
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B5_fixed_kalman::all::all",
+      "expected": {
+        "mae": 8.03603639185759,
+        "rows": 130
+      },
+      "observed": {
+        "mae": 8.03603639185759,
+        "rows": 130
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B1_persistence_last_rate::mechanism::accelerating",
+      "expected": {
+        "mae": 15.899645907500352,
+        "rows": 17
+      },
+      "observed": {
+        "mae": 15.899645907500352,
+        "rows": 17
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B6_adaptive_kalman::mechanism::accelerating",
+      "expected": {
+        "mae": 19.40576378292797,
+        "rows": 17
+      },
+      "observed": {
+        "mae": 19.405763782927966,
+        "rows": 17
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B5_fixed_kalman::mechanism::accelerating",
+      "expected": {
+        "mae": 23.17777957432807,
+        "rows": 17
+      },
+      "observed": {
+        "mae": 23.177779574328067,
+        "rows": 17
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B6_adaptive_kalman::mechanism::decelerating",
+      "expected": {
+        "mae": 4.014221806040838,
+        "rows": 11
+      },
+      "observed": {
+        "mae": 4.014221806040838,
+        "rows": 11
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B5_fixed_kalman::mechanism::decelerating",
+      "expected": {
+        "mae": 4.034845855753165,
+        "rows": 11
+      },
+      "observed": {
+        "mae": 4.034845855753166,
+        "rows": 11
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B1_persistence_last_rate::mechanism::decelerating",
+      "expected": {
+        "mae": 4.765521845408721,
+        "rows": 11
+      },
+      "observed": {
+        "mae": 4.765521845408721,
+        "rows": 11
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B6_adaptive_kalman::mechanism::stable",
+      "expected": {
+        "mae": 4.71622489841151,
+        "rows": 88
+      },
+      "observed": {
+        "mae": 4.716224898411509,
+        "rows": 88
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B5_fixed_kalman::mechanism::stable",
+      "expected": {
+        "mae": 4.746310281314668,
+        "rows": 88
+      },
+      "observed": {
+        "mae": 4.746310281314668,
+        "rows": 88
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B1_persistence_last_rate::mechanism::stable",
+      "expected": {
+        "mae": 5.290341954457996,
+        "rows": 88
+      },
+      "observed": {
+        "mae": 5.290341954457996,
+        "rows": 88
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B1_persistence_last_rate::mechanism::volatile_or_gap",
+      "expected": {
+        "mae": 11.582501067841532,
+        "rows": 14
+      },
+      "observed": {
+        "mae": 11.582501067841532,
+        "rows": 14
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B6_adaptive_kalman::mechanism::volatile_or_gap",
+      "expected": {
+        "mae": 12.849092009127927,
+        "rows": 14
+      },
+      "observed": {
+        "mae": 12.849092009127926,
+        "rows": 14
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B5_fixed_kalman::mechanism::volatile_or_gap",
+      "expected": {
+        "mae": 13.471704929209556,
+        "rows": 14
+      },
+      "observed": {
+        "mae": 13.471704929209556,
+        "rows": 14
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B6_adaptive_kalman::stable_vs_transition::stable",
+      "expected": {
+        "mae": 4.71622489841151,
+        "rows": 88
+      },
+      "observed": {
+        "mae": 4.716224898411509,
+        "rows": 88
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B5_fixed_kalman::stable_vs_transition::stable",
+      "expected": {
+        "mae": 4.746310281314668,
+        "rows": 88
+      },
+      "observed": {
+        "mae": 4.746310281314668,
+        "rows": 88
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B1_persistence_last_rate::stable_vs_transition::stable",
+      "expected": {
+        "mae": 5.290341954457996,
+        "rows": 88
+      },
+      "observed": {
+        "mae": 5.290341954457996,
+        "rows": 88
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B1_persistence_last_rate::stable_vs_transition::transition",
+      "expected": {
+        "mae": 11.54451751611389,
+        "rows": 42
+      },
+      "observed": {
+        "mae": 11.544517516113888,
+        "rows": 42
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B6_adaptive_kalman::stable_vs_transition::transition",
+      "expected": {
+        "mae": 13.189088388190848,
+        "rows": 42
+      },
+      "observed": {
+        "mae": 13.189088388190848,
+        "rows": 42
+      },
+      "passed": true
+    },
+    {
+      "check_id": "transition::temporal_holdout::B5_fixed_kalman::stable_vs_transition::transition",
+      "expected": {
+        "mae": 14.928795861566563,
+        "rows": 42
+      },
+      "observed": {
+        "mae": 14.928795861566568,
+        "rows": 42
+      },
+      "passed": true
+    },
+    {
+      "check_id": "candidate_prohibits_current_test",
+      "expected": {
+        "authorized": false,
+        "used": false
+      },
+      "observed": {
+        "authorized": false,
+        "policy": "no_test_phase_current_holdout_ineligible",
+        "used": false
+      },
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::configs/final_holdout_v2.yaml",
+      "expected": "bef9916326df6e1136155bb68cc62e3a555871f84962fd11146f21d9db32e418",
+      "observed": "bef9916326df6e1136155bb68cc62e3a555871f84962fd11146f21d9db32e418",
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::configs/gate_b2.yaml",
+      "expected": "01dea4454ee6468cfd23ec2d736bb16d99cd5090ec3ae9dff4c82ad7929ec4c3",
+      "observed": "01dea4454ee6468cfd23ec2d736bb16d99cd5090ec3ae9dff4c82ad7929ec4c3",
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::scripts/run_gate_b2.py",
+      "expected": "c43d1d4a05248a6b5eb2b55e293f347e7d7d1b6a365d2fa18f2819baf82b2c76",
+      "observed": "c43d1d4a05248a6b5eb2b55e293f347e7d7d1b6a365d2fa18f2819baf82b2c76",
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::src/skru1/adaptive_kalman.py",
+      "expected": "a9420a277cfc5f985d0ff179972a1f9813f35162a9e4e2f0f029ca33dcc512bd",
+      "observed": "a9420a277cfc5f985d0ff179972a1f9813f35162a9e4e2f0f029ca33dcc512bd",
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::src/skru1/gate_b2.py",
+      "expected": "9d5b780d783bb0fe91f1362b47f0a61ab4adc375e130540060b13743f63f39dc",
+      "observed": "9d5b780d783bb0fe91f1362b47f0a61ab4adc375e130540060b13743f63f39dc",
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::src/skru1/transition_validation.py",
+      "expected": "f5b269ff962c5587cddabffac981142d23100446005c13fa17aab3986fe40426",
+      "observed": "f5b269ff962c5587cddabffac981142d23100446005c13fa17aab3986fe40426",
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::src/skru1/uncertainty.py",
+      "expected": "c6539c1067fb452bbe223d112ceeb284c509812e138fd750fb4c0acfab54f477",
+      "observed": "c6539c1067fb452bbe223d112ceeb284c509812e138fd750fb4c0acfab54f477",
+      "passed": true
+    },
+    {
+      "check_id": "candidate_parameters_match_temporal_train_tuning",
+      "expected": {
+        "acceleration_gain": 0.0,
+        "q_base": 10.0
+      },
+      "observed": {
+        "acceleration_gain": 0.0,
+        "q_base": 10.0
+      },
+      "passed": true
+    },
+    {
+      "check_id": "gate_report_hash_frozen",
+      "expected": "861e4f993c66110bba19a8c7d518491e8e05a437647b23dcc0cc1de089a58f72",
+      "observed": "861e4f993c66110bba19a8c7d518491e8e05a437647b23dcc0cc1de089a58f72",
+      "passed": true
+    },
+    {
+      "check_id": "report_confirms_no_test_load",
+      "expected": {
+        "test_data_loaded": false,
+        "test_phase_available": false
+      },
+      "observed": {
+        "test_data_loaded": false,
+        "test_phase_available": false
+      },
+      "passed": true
+    },
+    {
+      "check_id": "final_holdout_pending",
+      "expected": {
+        "current_t1_test_eligible": false,
+        "final_claim_allowed": false,
+        "status": "PENDING_DATA"
+      },
+      "observed": {
+        "current_t1_test_eligible": false,
+        "final_claim_allowed": false,
+        "status": "PENDING_DATA"
+      },
+      "passed": true
+    }
+  ],
+  "gate": "B2_T1_ADAPTIVE_KALMAN",
+  "methodology_review": {
+    "data_boundary": "calibration IDs are train-only; outer IDs are train/validation only; AST scan found no test loader call",
+    "interval_recomputation": "coverage, width, interval score, and finite-sample qhat independently recomputed",
+    "metric_recomputation": "all aggregate MAE/RMSE/bias/R2 values recomputed from prediction rows",
+    "transition_recomputation": "each saved transition MAE and row count recomputed"
+  },
+  "overall_assessment": "Share with caveats",
+  "question": "Are adaptive B6 tuning, train-only interval calibration, transition validation, and the no-current-test boundary internally reproducible?",
+  "remaining_caveats": [
+    "No new unseen final holdout exists yet.",
+    "Transition labels are origin-feature proxies rather than independently adjudicated regime events.",
+    "Validation precision is limited by repeated points/profiles and 130 temporal validation origins."
+  ],
+  "schema_version": 1,
+  "status": "PASS",
+  "summary": {
+    "checks": 169,
+    "failed": 0
+  }
+}

@@ -1,0 +1,4 @@
+coverage,alpha,calibration_rows,quantile_probability,qhat,method
+0.8,0.19999999999999996,292,0.8047945205479452,2.005560603846204,scaled_absolute_residual_finite_sample_higher
+0.9,0.09999999999999998,292,0.9041095890410958,3.022870194686779,scaled_absolute_residual_finite_sample_higher
+0.95,0.050000000000000044,292,0.9554794520547946,4.701159237309707,scaled_absolute_residual_finite_sample_higher

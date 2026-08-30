@@ -1,0 +1,78 @@
+{
+  "candidate_id": "t1-b2-v1-54f5e3756c2f",
+  "candidate_scope": "gate_b2_train_validation_only",
+  "current_t1_test_authorized": false,
+  "current_t1_test_used": false,
+  "eligible_for_final_claim": false,
+  "feature_contract_sha256": "241bad48e67659ffc953349cd2bce59e61f2a2867d57698abd6574edd4a05272",
+  "final_evaluation_status": "PENDING_NEW_HOLDOUT_OR_GOVERNANCE_DECISION",
+  "gate_report": "artifacts/model_selection/t1_b2_v1/gate_b2_report.json",
+  "gate_report_sha256": "861e4f993c66110bba19a8c7d518491e8e05a437647b23dcc0cc1de089a58f72",
+  "manifest_hashes": {
+    "train": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c",
+    "validation": "f72ce0a50c16bccca3ca87df4f4a7465b4d9eca2933e0dec9b3bd39e7336a62e"
+  },
+  "model_state": {
+    "acceleration_scale": 23.05665753,
+    "fallback_rate": 30.257692208035785,
+    "family": "adaptive_kalman",
+    "model_id": "B6_adaptive_kalman",
+    "parameter_count": 2,
+    "parameters": {
+      "acceleration_clip_ratio": 4.0,
+      "acceleration_gain": 0.0,
+      "acceleration_weight": 0.75,
+      "adaptation_quantile": 0.8,
+      "gap_weight": 0.25,
+      "initial_velocity_variance": 400.0,
+      "maximum_feature_ratio": 4.0,
+      "minimum_measurement_variance": 0.01,
+      "minimum_rate_measurement_variance": 1.0,
+      "process_scale_max": 10.0,
+      "process_scale_min": 1.0,
+      "q_base": 10.0,
+      "rate_measurement_variance_multiplier": 4.0,
+      "raw_sigma_floor_mm_y": 1.0,
+      "volatility_weight": 0.5
+    },
+    "train_sample_ids_sha256": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c",
+    "volatility_scale": 5.568641825
+  },
+  "schema_version": 1,
+  "selected_model": "B6_adaptive_kalman",
+  "selected_parameters": {
+    "acceleration_clip_ratio": 4.0,
+    "acceleration_gain": 0.0,
+    "acceleration_weight": 0.75,
+    "adaptation_quantile": 0.8,
+    "gap_weight": 0.25,
+    "initial_velocity_variance": 400.0,
+    "maximum_feature_ratio": 4.0,
+    "minimum_measurement_variance": 0.01,
+    "minimum_rate_measurement_variance": 1.0,
+    "process_scale_max": 10.0,
+    "process_scale_min": 1.0,
+    "q_base": 10.0,
+    "rate_measurement_variance_multiplier": 4.0,
+    "raw_sigma_floor_mm_y": 1.0,
+    "volatility_weight": 0.5
+  },
+  "selection_data": [
+    "t1_v1/train",
+    "t1_v1/validation"
+  ],
+  "source_hashes": {
+    "configs/final_holdout_v2.yaml": "bef9916326df6e1136155bb68cc62e3a555871f84962fd11146f21d9db32e418",
+    "configs/gate_b2.yaml": "01dea4454ee6468cfd23ec2d736bb16d99cd5090ec3ae9dff4c82ad7929ec4c3",
+    "scripts/run_gate_b2.py": "c43d1d4a05248a6b5eb2b55e293f347e7d7d1b6a365d2fa18f2819baf82b2c76",
+    "src/skru1/adaptive_kalman.py": "a9420a277cfc5f985d0ff179972a1f9813f35162a9e4e2f0f029ca33dcc512bd",
+    "src/skru1/gate_b2.py": "9d5b780d783bb0fe91f1362b47f0a61ab4adc375e130540060b13743f63f39dc",
+    "src/skru1/transition_validation.py": "f5b269ff962c5587cddabffac981142d23100446005c13fa17aab3986fe40426",
+    "src/skru1/uncertainty.py": "c6539c1067fb452bbe223d112ceeb284c509812e138fd750fb4c0acfab54f477"
+  },
+  "split_version": "t1_v1",
+  "status": "validation_recorded",
+  "target_contract_sha256": "c679a6b83d26675d50b59de57cb3c12cdeacc6dd7c2e178364e434ed25a526e8",
+  "task": "t1",
+  "test_access_policy": "no_test_phase_current_holdout_ineligible"
+}

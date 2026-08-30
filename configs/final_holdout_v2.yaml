@@ -1,0 +1,49 @@
+schema_version: 1
+policy_id: T1_FINAL_HOLDOUT_V2
+status: PENDING_DATA
+task: t1
+purpose: final_model_evaluation_only
+
+excluded_evaluation_sets:
+  - split: t1_v1/test
+    reason: disclosed_once_for_gate_b0_b1_stage_candidate
+    permitted_role: historical_diagnostic_only
+
+preferred_option:
+  type: future_temporal_holdout
+  eligibility:
+    target_date_strictly_after: 2025-11-04
+    target_date_not_before: 2026-01-01
+    source_package_must_be_new: true
+    labels_must_be_unseen_before_candidate_freeze: true
+  minimum_scope:
+    observed_origins: 100
+    unique_points: 75
+    unique_profiles: 12
+    distinct_target_campaign_dates: 2
+
+alternative_option:
+  type: external_holdout
+  eligibility:
+    independent_site_or_campaign_package: true
+    schema_mapping_frozen_before_labels: true
+    target_definition_equivalent_to_T1_RATE_NEXT_PLANNED: true
+    no_training_overlap: true
+
+access_protocol:
+  candidate_record_required: true
+  candidate_commit_sha_required: true
+  holdout_manifest_hash_required: true
+  one_access_event_only: true
+  tuning_after_access: prohibited
+  model_selection_after_access: prohibited
+  failed_access_is_consumed: true
+
+fallback_governance_decision:
+  allowed: true
+  required_document: docs/governance/FINAL_EVALUATION_POLICY_V2.md
+  must_state:
+    - why_no_new_holdout_is_available
+    - which_claims_are_downgraded
+    - that_t1_v1_test_is_not_an_unseen_final_estimate
+    - uncertainty_and_external_validity_limits

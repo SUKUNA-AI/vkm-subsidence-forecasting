@@ -1,0 +1,128 @@
+{
+  "candidate_id": "t1-b2-v1-54f5e3756c2f",
+  "caveats": [
+    "Gate B2 is train/validation evidence and is not an unseen final estimate.",
+    "Transition categories are origin-only proxies, not private event labels or causal regimes.",
+    "Rows repeat points and profiles; row counts are not independent trajectory counts.",
+    "Conformal coverage is assessed on 130 validation origins and is conditional on the frozen temporal split.",
+    "A new future or external holdout, or an explicit governance decision, is required for final claims."
+  ],
+  "data": {
+    "target": "observed_rate_mm_y",
+    "task": "T1_RATE_NEXT_PLANNED",
+    "train_rows": 911,
+    "train_sample_ids_sha256": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c",
+    "train_target_date_max": "2023-11-07",
+    "unit": "mm/year",
+    "validation_rows": 130,
+    "validation_sample_ids_sha256": "f72ce0a50c16bccca3ca87df4f4a7465b4d9eca2933e0dec9b3bd39e7336a62e",
+    "validation_target_date_max": "2024-09-03"
+  },
+  "environment": {
+    "PyYAML": "6.0.3",
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.9.0",
+    "scipy": "1.18.1"
+  },
+  "gate": "B2_T1_ADAPTIVE_KALMAN",
+  "governance": {
+    "current_t1_test_role": "historical_stage_candidate_diagnostic_only",
+    "current_t1_test_used": false,
+    "final_claim_allowed_now": false,
+    "new_holdout_policy": "configs/final_holdout_v2.yaml"
+  },
+  "intervals": [
+    {
+      "coverage_empirical": 0.8307692307692308,
+      "coverage_gap": 0.03076923076923077,
+      "coverage_nominal": 0.8,
+      "mean_interval_score": 42.1386104378505,
+      "mean_width_mm_y": 20.088938667919383,
+      "median_width_mm_y": 18.12284043160868,
+      "qhat": 2.005560603846204,
+      "rows": 130
+    },
+    {
+      "coverage_empirical": 0.9076923076923077,
+      "coverage_gap": 0.007692307692307665,
+      "coverage_nominal": 0.9,
+      "mean_interval_score": 60.47431008766657,
+      "mean_width_mm_y": 30.27894236937304,
+      "median_width_mm_y": 27.31555161121193,
+      "qhat": 3.022870194686779,
+      "rows": 130
+    },
+    {
+      "coverage_empirical": 0.9384615384615385,
+      "coverage_gap": -0.011538461538461497,
+      "coverage_nominal": 0.95,
+      "mean_interval_score": 82.57784218005312,
+      "mean_width_mm_y": 47.089726137081385,
+      "median_width_mm_y": 42.481069152413596,
+      "qhat": 4.701159237309707,
+      "rows": 130
+    }
+  ],
+  "model": {
+    "adaptation": "train-fold quantile scales for acceleration, volatility, and campaign gaps",
+    "model_id": "B6_adaptive_kalman",
+    "rate_anchor": "origin-known last_rate with uncertainty-derived variance",
+    "selected_acceleration_gain": 0.0,
+    "selected_q_base": 10.0
+  },
+  "schema_version": 1,
+  "screening": {
+    "all_pass": false,
+    "checks": {
+      "coverage_95": true,
+      "leave_profile_degradation": true,
+      "leave_zone_degradation": false,
+      "temporal_vs_b1": true,
+      "transition_improvement": false
+    },
+    "criteria": {
+      "coverage_95_max": 0.97,
+      "coverage_95_min": 0.9,
+      "leave_profile_mae_degradation_vs_temporal_percent_max": 5.0,
+      "leave_zone_mae_degradation_vs_temporal_percent_max": 5.0,
+      "status_if_no_new_holdout": "validation_only_not_final",
+      "temporal_mae_ratio_vs_b1_max": 1.02,
+      "transition_mae_improvement_vs_b1_percent_min": 10.0
+    },
+    "observed": {
+      "coverage_95_empirical": 0.9384615384615385,
+      "coverage_95_mean_width_mm_y": 47.089726137081385,
+      "leave_profile_mae": 7.311447665392591,
+      "leave_profile_mae_degradation_vs_temporal_percent": -1.907315637801317,
+      "leave_zone_mae": 8.405255456237965,
+      "leave_zone_mae_degradation_vs_temporal_percent": 12.767554140473694,
+      "temporal_b1_mae": 7.31092175130067,
+      "temporal_mae": 7.453611564340219,
+      "temporal_mae_ratio_vs_b1": 1.0195173492335852,
+      "transition_b1_mae": 11.544517516113888,
+      "transition_mae": 13.189088388190847,
+      "transition_mae_improvement_vs_b1_percent": -14.245470802755149,
+      "transition_rows": 42
+    },
+    "scope": "development_screening_only_no_final_holdout"
+  },
+  "status": "VALIDATION_RECORDED_SCREENING_CRITERIA_NOT_MET",
+  "test_data_loaded": false,
+  "test_phase_available": false,
+  "transition_proxy": {
+    "definition": "accelerating/decelerating at train-fold q80 absolute acceleration; otherwise volatility at train-fold q80 or at least two missing campaigns",
+    "future_or_private_fields_used": []
+  },
+  "validation_design": {
+    "calibration": "five nested rolling train-only OOF folds",
+    "fold_counts": {
+      "leave_profile_out": 14,
+      "leave_zone_out": 4,
+      "rolling_origin": 5,
+      "temporal_holdout": 1
+    },
+    "inner_tuning_forward_only": true,
+    "outer_forward_only": true
+  }
+}

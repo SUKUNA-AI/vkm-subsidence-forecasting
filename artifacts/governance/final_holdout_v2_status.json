@@ -1,0 +1,15 @@
+{
+  "candidate_eligible_if_screening_passed": false,
+  "candidate_id": "t1-b2-v1-54f5e3756c2f",
+  "current_t1_test_eligible": false,
+  "current_t1_test_role": "historical_stage_candidate_diagnostic_only",
+  "final_claim_allowed": false,
+  "policy_config": "configs/final_holdout_v2.yaml",
+  "policy_config_sha256": "bef9916326df6e1136155bb68cc62e3a555871f84962fd11146f21d9db32e418",
+  "policy_document": "docs/governance/FINAL_EVALUATION_POLICY_V2.md",
+  "policy_document_sha256": "258be5617bec03d062838ada2efc73faa69fa565ad3792382f85680cfa0e7568",
+  "policy_id": "T1_FINAL_HOLDOUT_V2",
+  "required_next_event": "freeze_new_future_or_external_holdout_manifest",
+  "schema_version": 1,
+  "status": "PENDING_DATA"
+}
