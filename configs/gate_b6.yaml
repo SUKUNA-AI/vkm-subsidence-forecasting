@@ -1,0 +1,363 @@
+schema_version: 1
+gate: B6_EXPANDED_CLASSICAL_PROBABILISTIC_SMALL_DATA_SCREENING
+task: t1
+source_split: t1_v1/train
+benchmark_version: t1_train_benchmark_v1
+artifact_version: t1_b6_expanded_v1
+scientific_scope: train_only_internal_research
+random_seed: 42117
+
+data_boundary:
+  allowed_model_data: [t1_v1/train]
+  prohibited_model_data: [t1_v1/validation, t1_v1/test]
+  external_holdout_available: false
+  external_holdout_simulated: false
+  final_quality_claim_allowed: false
+
+selection:
+  point_objective: inner_mae
+  probabilistic_objective: inner_crps
+  probabilistic_mae_ratio_vs_b1_max: 1.05
+  transition_guardrail:
+    reference: B1_persistence_last_rate
+    minimum_inner_origins: 20
+    maximum_mae_ratio_vs_b1: 1.10
+    unavailable_status: TRANSITION_GUARDRAIL_UNAVAILABLE_LOW_SUPPORT
+  tie_break: [objective, transition_mae, parameter_json]
+
+temporal_screen:
+  required_rolling_folds: 11
+  pooled_mae_ratio_vs_b1_max: 1.10
+  median_fold_mae_ratio_vs_b1_max: 1.10
+  worst_fold_mae_ratio_vs_b1_max: 2.00
+  rejected_status: REJECTED_TEMPORAL_SCREEN
+  frozen_comparators_always_advance: true
+
+suite_v4_eligibility:
+  rolling_mae_ratio_vs_b7_max: 1.02
+  audit_tail_mae_ratio_vs_b7_max: 1.02
+  transition_improvement_vs_b1_min: 0.10
+  volatile_or_gap_reference: best_of_B1_B7
+  leave_profile_macro_degradation_max: 0.05
+  leave_zone_macro_degradation_max: 0.05
+  worst_zone_degradation_max: 0.05
+  conformal_95_coverage_min: 0.90
+  conformal_95_coverage_max: 0.97
+  rolling_date_improvement_sign_min: 7
+  rolling_date_units: 11
+  profile_improvement_sign_min: 8
+  profile_units: 14
+  lexicographic_order:
+    - rolling_mae
+    - transition_mae
+    - worst_zone_mae
+    - conformal_95_weighted_interval_score
+    - fit_time
+    - model_id
+  fallback_primary: B7_two_regime_imm
+  pass_new_status: PASS_NEW_INTERNAL_PRIMARY
+  pass_fallback_status: PASS_NO_NEW_PRIMARY
+  protocol_failure_status: FAIL_PROTOCOL
+
+conformal:
+  method: scaled_absolute_residual
+  calibration_source: inner_rolling_oof_only
+  levels: [0.50, 0.80, 0.95]
+  scale_inputs: [forecast_horizon_days, current_standard_uncertainty_mm]
+  scale_formula: sqrt(horizon_over_train_median)*sqrt(uncertainty_over_train_median)
+  scale_clip: [0.25, 4.0]
+
+paired_sensitivity:
+  references: [B1_persistence_last_rate, B7_two_regime_imm]
+  replicates: 2000
+  seed: 42117
+  profile_cluster: profile_id
+  target_date_block: target_date
+  zone_inference: descriptive_only_four_values_and_worst_zone
+
+transition_validation:
+  acceleration_absolute_quantile: 0.80
+  volatility_quantile: 0.80
+  missing_campaigns_threshold: 2
+  threshold_fit_scope: each_outer_or_inner_train_only
+
+feature_views:
+  SAFE_ALL: configs/gate_b5.yaml#feature_views.SAFE_ALL
+  DYNAMIC_CORE_17: configs/gate_b5.yaml#feature_views.DYNAMIC_CORE_17
+  NATIVE_CATEGORICAL: configs/gate_b5.yaml#feature_views.NATIVE_CATEGORICAL
+
+environments:
+  b6_cpu:
+    python: "3.13"
+    lock: requirements/b6_cpu.lock.txt
+    cpu_only: true
+  b6_ngboost:
+    python: "3.13"
+    lock: requirements/b6_ngboost.lock.txt
+    cpu_only: true
+  b6_torch:
+    python: "3.13"
+    lock: requirements/b6_torch.lock.txt
+    cuda_wheel_index: https://download.pytorch.org/whl/cu130
+    accelerator_models: [Z12_residual_mlp, Z13_enfs_replica, Z14_tabpfn_v2_6]
+
+frozen_comparators:
+  - {model_id: B1_persistence_last_rate, family: persistence, environment_id: b6_cpu, feature_view: SAFE_ALL}
+  - {model_id: B3_profile_robust_trend, family: profile_robust_trend, environment_id: b6_cpu, feature_view: SAFE_ALL}
+  - {model_id: B5_fixed_kalman, family: fixed_kalman, environment_id: b6_cpu, feature_view: SAFE_ALL}
+  - {model_id: B6_adaptive_kalman, family: adaptive_kalman, environment_id: b6_cpu, feature_view: SAFE_ALL}
+  - {model_id: B7_two_regime_imm, family: imm_damped_acceleration, environment_id: b6_cpu, feature_view: SAFE_ALL}
+  - {model_id: B8_student_t_robust_imm, family: imm_student_t_robust_observation, environment_id: b6_cpu, feature_view: SAFE_ALL}
+  - {model_id: M1_ridge, family: ridge, environment_id: b6_cpu, feature_view: SAFE_ALL}
+  - {model_id: M2_extra_trees, family: extra_trees, environment_id: b6_cpu, feature_view: SAFE_ALL}
+
+models:
+  - model_id: Z01_elastic_net
+    family: elastic_net
+    environment_id: b6_cpu
+    feature_view: SAFE_ALL
+    seeds: [42117]
+    probabilistic_capabilities: []
+    grid:
+      alpha: [0.01, 0.1, 1.0, 10.0]
+      l1_ratio: [0.1, 0.5, 0.9]
+
+  - model_id: Z02_huber
+    family: huber
+    environment_id: b6_cpu
+    feature_view: SAFE_ALL
+    seeds: [42117]
+    probabilistic_capabilities: []
+    grid:
+      epsilon: [1.1, 1.35, 1.75]
+      alpha: [0.0001, 0.01, 1.0]
+
+  - model_id: Z03_rbf_svr
+    family: rbf_svr
+    environment_id: b6_cpu
+    feature_view: DYNAMIC_CORE_17
+    seeds: [42117]
+    probabilistic_capabilities: []
+    grid:
+      C: [1.0, 10.0, 100.0]
+      gamma: [scale, 0.01]
+      epsilon: [0.5, 2.0, 5.0]
+
+  - model_id: Z04_gaussian_process
+    family: gaussian_process
+    environment_id: b6_cpu
+    feature_view: DYNAMIC_CORE_17
+    seeds: [42117]
+    probabilistic_capabilities: [normal_mean_variance, native_intervals]
+    fixed: {normalize_y: true, optimizer_restarts: 2}
+    grid:
+      kernel: [constant_times_rbf, constant_times_matern_1_5]
+      alpha_scale: [0.5, 1.0, 2.0]
+
+  - model_id: Z05_gaussian_gee
+    family: gaussian_gee
+    environment_id: b6_cpu
+    feature_view: DYNAMIC_CORE_17
+    seeds: [42117]
+    probabilistic_capabilities: [normal_mean_variance]
+    fit_context_requirements: [point_id, current_date]
+    fixed: {family: Gaussian, link: identity, time_scale: fractional_years}
+    grid:
+      working_correlation: [Independence, Exchangeable, AR1]
+
+  - model_id: Z06_hist_gradient_boosting
+    family: hist_gradient_boosting
+    environment_id: b6_cpu
+    feature_view: SAFE_ALL
+    seeds: [42117]
+    probabilistic_capabilities: []
+    fixed: {max_iter: 1000, early_stopping_rounds: 100}
+    grid:
+      loss: [absolute_error, squared_error]
+      max_leaf_nodes: [7, 15]
+      learning_rate: [0.05, 0.1]
+      l2_regularization: [1.0, 10.0]
+
+  - model_id: Z07_quantile_hist_gradient_boosting
+    family: quantile_hist_gradient_boosting
+    environment_id: b6_cpu
+    feature_view: SAFE_ALL
+    seeds: [42117]
+    probabilistic_capabilities: [native_quantiles, native_intervals]
+    fixed:
+      quantiles: [0.025, 0.10, 0.25, 0.50, 0.75, 0.90, 0.975]
+      max_iter: 1000
+      early_stopping_rounds: 100
+    grid:
+      max_leaf_nodes: [7, 15]
+      learning_rate: [0.05, 0.1]
+      l2_regularization: [1.0, 10.0]
+
+  - model_id: Z08_xgboost
+    family: xgboost
+    environment_id: b6_cpu
+    feature_view: SAFE_ALL
+    seeds: [42117]
+    probabilistic_capabilities: []
+    fixed:
+      tree_method: hist
+      device: cpu
+      subsample: 0.8
+      colsample_bytree: 0.8
+      reg_lambda: 10.0
+      n_estimators: 2000
+      early_stopping_rounds: 100
+      n_jobs: 1
+    grid:
+      objective: [reg:absoluteerror, reg:squarederror]
+      max_depth: [3, 5]
+      min_child_weight: [5, 20]
+      learning_rate: [0.03, 0.1]
+
+  - model_id: Z09_lightgbm
+    family: lightgbm
+    environment_id: b6_cpu
+    feature_view: SAFE_ALL
+    seeds: [42117]
+    probabilistic_capabilities: []
+    fixed:
+      device_type: cpu
+      deterministic: true
+      force_col_wise: true
+      learning_rate: 0.05
+      n_estimators: 2000
+      early_stopping_rounds: 100
+      n_jobs: 1
+    grid:
+      objective: [l1, l2]
+      num_leaves: [7, 15]
+      min_child_samples: [10, 30]
+      reg_lambda: [1.0, 10.0]
+
+  - model_id: Z10_catboost
+    family: catboost
+    environment_id: b6_cpu
+    feature_view: NATIVE_CATEGORICAL
+    seeds: [42117]
+    probabilistic_capabilities: []
+    fixed:
+      task_type: CPU
+      iterations: 2000
+      early_stopping_rounds: 100
+      thread_count: 1
+      allow_writing_files: false
+    grid:
+      loss_function: [MAE, RMSE]
+      depth: [4, 6]
+      l2_leaf_reg: [3.0, 10.0]
+      learning_rate: [0.03, 0.1]
+
+  - model_id: Z11_ebm
+    family: explainable_boosting_machine
+    environment_id: b6_cpu
+    feature_view: NATIVE_CATEGORICAL
+    seeds: [42117]
+    probabilistic_capabilities: []
+    fixed: {learning_rate: 0.04, outer_bags: 8, max_rounds: 5000, n_jobs: 1}
+    grid:
+      interactions: [0, 5, 10]
+      max_bins: [64, 128]
+      min_samples_leaf: [5, 10]
+
+  - model_id: Z12_ngboost
+    family: ngboost_normal
+    environment_id: b6_ngboost
+    feature_view: SAFE_ALL
+    seeds: [42117]
+    probabilistic_capabilities: [normal_distribution, native_intervals]
+    grid:
+      score: [LogScore, CRPScore]
+      base_tree_depth: [2, 3]
+      learning_rate: [0.01, 0.03]
+      n_estimators: [500, 1000]
+
+  - model_id: Z13_residual_mlp
+    family: residual_mlp
+    environment_id: b6_torch
+    feature_view: DYNAMIC_CORE_17
+    seeds: [42117]
+    probabilistic_capabilities: []
+    fixed: {loss: Huber, optimizer: AdamW, learning_rate: 0.001, batch_size: 32, max_epochs: 2000, patience: 100}
+    grid:
+      hidden_layout: [[32], [64, 32]]
+      dropout: [0.0, 0.1]
+      weight_decay: [0.0001, 0.01]
+
+  - model_id: Z14_enfs_replica
+    family: protocol_safe_enfs_replica
+    environment_id: b6_torch
+    feature_view: DYNAMIC_CORE_17
+    seeds: [42117]
+    probabilistic_capabilities: []
+    fixed:
+      fuzzy_rules: 8
+      membership: pi
+      rule_network: [50, 50]
+      activation: tanh
+      learning_rate_start: 0.01
+      learning_rate_end: 0.002
+      scheduler_gamma: 0.9999
+      max_epochs: 100000
+      early_stopping_patience: 1000
+      claim: method_replica_not_numerical_result_reproduction
+    grid: {}
+
+  - model_id: Z15_tabpfn_v2_6
+    family: local_tabpfn
+    environment_id: b6_torch
+    feature_view: SAFE_ALL
+    seeds: [42117, 42118, 42119, 42120, 42121]
+    probabilistic_capabilities: [predictive_ensemble, native_quantiles]
+    fixed:
+      model_version: v2.6
+      fine_tuning: false
+      posthoc_tuning: false
+      network_access_during_worker: false
+      checkpoint_source: external_model_manifest
+    grid: {}
+
+external_model_policy:
+  tabpfn:
+    local_only: true
+    api_mode_allowed: false
+    license_acceptance_required: true
+    cache_root: models/downloaded/tabpfn
+    manifest: artifacts/model_selection/t1_b6_expanded_v1/external_model_manifest.json
+    invalidate_shards_on_weight_hash_change: true
+
+artifacts:
+  root: artifacts/model_selection/t1_b6_expanded_v1
+  model_registry: artifacts/model_selection/t1_b6_expanded_v1/model_registry.json
+  frozen_job_manifest: artifacts/model_selection/t1_b6_expanded_v1/frozen_job_manifest.json
+  environment_manifest: artifacts/model_selection/t1_b6_expanded_v1/environment_manifest.json
+  external_model_manifest: artifacts/model_selection/t1_b6_expanded_v1/external_model_manifest.json
+  environment_smoke_report: artifacts/model_selection/t1_b6_expanded_v1/environment_smoke_report.json
+  determinism_report: artifacts/model_selection/t1_b6_expanded_v1/determinism_report.json
+  prediction_shard_inventory: artifacts/model_selection/t1_b6_expanded_v1/prediction_shard_inventory.csv
+  temporal_predictions: artifacts/model_selection/t1_b6_expanded_v1/temporal_predictions.csv
+  temporal_fold_metrics: artifacts/model_selection/t1_b6_expanded_v1/temporal_fold_metrics.csv
+  temporal_aggregate_metrics: artifacts/model_selection/t1_b6_expanded_v1/temporal_aggregate_metrics.csv
+  tuning_results: artifacts/model_selection/t1_b6_expanded_v1/tuning_results.csv
+  selected_parameter_registry: artifacts/model_selection/t1_b6_expanded_v1/selected_parameter_registry.json
+  screening_register: artifacts/model_selection/t1_b6_expanded_v1/screening_register.csv
+  robustness_predictions: artifacts/model_selection/t1_b6_expanded_v1/robustness_predictions.csv
+  group_metrics: artifacts/model_selection/t1_b6_expanded_v1/group_metrics.csv
+  transition_metrics: artifacts/model_selection/t1_b6_expanded_v1/transition_metrics.csv
+  calibration_predictions: artifacts/model_selection/t1_b6_expanded_v1/calibration_predictions.csv
+  calibration_parameters: artifacts/model_selection/t1_b6_expanded_v1/calibration_parameters.json
+  probabilistic_metrics: artifacts/model_selection/t1_b6_expanded_v1/probabilistic_metrics.csv
+  paired_sensitivity: artifacts/model_selection/t1_b6_expanded_v1/paired_sensitivity.csv
+  jackknife: artifacts/model_selection/t1_b6_expanded_v1/leave_one_profile_out_jackknife.csv
+  learning_curves: artifacts/model_selection/t1_b6_expanded_v1/learning_curves.csv
+  rejection_register: artifacts/model_selection/t1_b6_expanded_v1/rejection_register.csv
+  internal_shortlist: artifacts/model_selection/t1_b6_expanded_v1/internal_shortlist.json
+  suite_v4: artifacts/governance/final_candidate_suite_v4.json
+  full_train_model: artifacts/model_selection/t1_b6_expanded_v1/full_train_primary.joblib
+  gate_report: artifacts/model_selection/t1_b6_expanded_v1/gate_b6_report.json
+  validation_report: artifacts/model_selection/t1_b6_expanded_v1/validation_report.json
+  artifact_inventory: artifacts/model_selection/t1_b6_expanded_v1/artifact_inventory.csv

@@ -1,0 +1,185 @@
+schema_version: 1
+gate: B5_EVIDENCE_AND_BENCHMARK_PROTOCOL
+task: t1
+source_split: t1_v1/train
+benchmark_version: t1_train_benchmark_v1
+evidence_version: t1_b5_evidence_v1
+target_column: observed_rate_mm_y
+random_seed: 42117
+
+data_boundary:
+  allowed_model_data: [t1_v1/train]
+  prohibited_model_data: [t1_v1/validation, t1_v1/test]
+  historical_validation_role: descriptive_history_not_loaded
+  disclosed_test_role: historical_diagnostic_not_loaded
+  external_holdout_role: unavailable_not_simulated
+  scientific_scope: train_only_internal_research
+
+resampling:
+  rolling_outer_dates:
+    - 2021-05-18
+    - 2021-07-13
+    - 2021-11-02
+    - 2022-03-01
+    - 2022-05-17
+    - 2022-07-19
+    - 2022-10-18
+    - 2023-01-17
+    - 2023-05-16
+    - 2023-07-25
+    - 2023-11-07
+  spatial_outer_dates: [2022-10-18, 2023-05-16, 2023-11-07]
+  focused_rolling_only_dates: [2023-01-17, 2023-07-25]
+  inner_forward_folds: 3
+  minimum_inner_train_dates: 4
+  expected_profiles: 14
+  expected_zones: 4
+  expected_outer_counts:
+    rolling_origin: 11
+    spatiotemporal_leave_profile_out: 42
+    spatiotemporal_leave_zone_out: 12
+
+learning_curves:
+  audit_target_date: 2023-11-07
+  trailing_core_campaigns_to_rows:
+    5: 217
+    9: 423
+    14: 708
+    18: 823
+  retune_hyperparameters: false
+
+feature_views:
+  SAFE_ALL:
+    source: formal_feature_contract.csv
+    categorical_mode: one_hot_train_fitted
+  DYNAMIC_CORE_17:
+    categorical_mode: one_hot_train_fitted
+    fields:
+      - n_history
+      - last_settlement_mm
+      - last_rate_mm_y
+      - mean_last_3_rates_mm_y
+      - std_last_3_rates_mm_y
+      - recent_acceleration_mm_y2
+      - current_standard_uncertainty_mm
+      - days_since_previous_observation
+      - forecast_horizon_days
+      - missing_campaigns_since_previous
+      - profile_mean_settlement_mm
+      - profile_mean_rate_mm_y
+      - profile_rate_std_mm_y
+      - profile_n_observed
+      - chainage_normalized_profile
+      - current_campaign_type
+      - target_campaign_type
+  NATIVE_CATEGORICAL:
+    source: formal_feature_contract.csv
+    categorical_mode: native_train_fitted
+
+transition_validation:
+  acceleration_absolute_quantile: 0.80
+  volatility_quantile: 0.80
+  missing_campaigns_threshold: 2
+  threshold_fit_scope: each_train_role_only
+
+support_policy:
+  minimum_origins_for_selection: 20
+  minimum_profiles_for_selection: 5
+  low_support_status: DESCRIPTIVE_LOW_SUPPORT
+  adequate_support_status: ELIGIBLE_SUPPORT
+
+frozen_comparators:
+  - model_id: B1_persistence_last_rate
+    family: persistence
+    feature_view: SAFE_ALL
+    parameters: {fallback: train_target_median}
+  - model_id: B3_profile_robust_trend
+    family: profile_robust_trend
+    feature_view: SAFE_ALL
+    parameters:
+      instantaneous_weight: 0.50
+      mean_last_3_weight: 0.30
+      profile_mean_weight: 0.20
+      acceleration_integral_factor: 0.50
+      acceleration_clip_quantiles: [0.05, 0.95]
+  - model_id: B5_fixed_kalman
+    family: fixed_kalman
+    feature_view: SAFE_ALL
+    parameters:
+      process_variance_q: 25.0
+      initial_velocity_variance: 400.0
+      minimum_measurement_variance: 0.01
+  - model_id: B6_adaptive_kalman
+    family: adaptive_kalman
+    feature_view: SAFE_ALL
+    frozen_source: configs/gate_b4.yaml
+  - model_id: B7_two_regime_imm
+    family: imm_damped_acceleration
+    feature_view: SAFE_ALL
+    frozen_source: configs/gate_b4.yaml
+  - model_id: B8_student_t_robust_imm
+    family: imm_student_t_robust_observation
+    feature_view: SAFE_ALL
+    frozen_source: artifacts/model_selection/t1_b4_train_only_v1/research_candidate.json
+  - model_id: M1_ridge
+    family: ridge
+    feature_view: SAFE_ALL
+    parameters: {alpha: 10.0, solver: lsqr, tolerance: 1.0e-8}
+  - model_id: M2_extra_trees
+    family: extra_trees
+    feature_view: SAFE_ALL
+    parameters:
+      n_estimators: 300
+      max_depth: 8
+      min_samples_leaf: 4
+      max_features: 0.75
+      bootstrap: false
+      n_jobs: 1
+
+protected_roots:
+  - artifacts/model_selection/t1_b0_b1_v1
+  - artifacts/model_selection/t1_b2_v1
+  - artifacts/model_selection/t1_b3_v1
+  - artifacts/model_selection/t1_b4_train_only_v1
+  - artifacts/governance/final_candidate_suite_v3.json
+
+preregistered_sources:
+  - configs/gate_b5.yaml
+  - configs/gate_b6.yaml
+  - requirements/modeling.lock.txt
+  - requirements/b6_cpu.lock.txt
+  - requirements/b6_ngboost.lock.txt
+  - requirements/b6_torch.lock.txt
+  - src/skru1/benchmarking.py
+  - src/skru1/benchmark_metrics.py
+  - src/skru1/b5_splits.py
+  - src/skru1/gate_b5.py
+  - scripts/run_gate_b5.py
+
+method_exclusions:
+  - method_id: ETS
+    status: NOT_ELIGIBLE_DATA_GEOMETRY
+  - method_id: ARIMA_ARIMAX
+    status: NOT_ELIGIBLE_DATA_GEOMETRY
+  - method_id: PROFILE_VAR
+    status: NOT_ELIGIBLE_DATA_GEOMETRY
+
+artifacts:
+  split_root: artifacts/splits/t1_train_benchmark_v1
+  evidence_root: artifacts/model_selection/t1_b5_evidence_v1
+  benchmark_plan: artifacts/splits/t1_train_benchmark_v1/benchmark_plan.json
+  outer_assignments: artifacts/splits/t1_train_benchmark_v1/outer_assignments.csv
+  inner_assignments: artifacts/splits/t1_train_benchmark_v1/inner_assignments.csv
+  fold_contracts: artifacts/splits/t1_train_benchmark_v1/fold_contracts.csv
+  feature_views: artifacts/splits/t1_train_benchmark_v1/feature_views.json
+  split_inventory: artifacts/splits/t1_train_benchmark_v1/artifact_inventory.csv
+  protected_snapshot: artifacts/model_selection/t1_b5_evidence_v1/protected_predecessor_snapshot.json
+  error_atlas: artifacts/model_selection/t1_b5_evidence_v1/error_atlas.csv
+  residual_dependence: artifacts/model_selection/t1_b5_evidence_v1/residual_dependence.csv
+  independent_units: artifacts/model_selection/t1_b5_evidence_v1/independent_units.csv
+  learning_curve_predictions: artifacts/model_selection/t1_b5_evidence_v1/learning_curve_predictions.csv
+  learning_curves: artifacts/model_selection/t1_b5_evidence_v1/learning_curves.csv
+  method_cards: artifacts/model_selection/t1_b5_evidence_v1/method_cards.json
+  gate_report: artifacts/model_selection/t1_b5_evidence_v1/gate_b5_report.json
+  validation_report: artifacts/model_selection/t1_b5_evidence_v1/validation_report.json
+  artifact_inventory: artifacts/model_selection/t1_b5_evidence_v1/artifact_inventory.csv

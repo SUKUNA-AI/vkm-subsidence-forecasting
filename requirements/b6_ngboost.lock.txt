@@ -1,0 +1,11 @@
+# Gate B6 NGBoost compatibility environment (NGBoost 0.5.11 requires sklearn <1.7).
+-e .
+joblib==1.5.3
+numpy==2.5.2
+pandas==3.0.5
+PyYAML==6.0.3
+scikit-learn==1.6.1
+scipy==1.18.1
+threadpoolctl==3.6.0
+ngboost==0.5.11
+psutil==7.2.2

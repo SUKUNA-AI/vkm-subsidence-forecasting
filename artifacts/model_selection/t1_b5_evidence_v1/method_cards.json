@@ -1,0 +1,57 @@
+{
+  "methods": [
+    {
+      "decision_stage": "B5_pre_screening",
+      "method_id": "ETS",
+      "not_a_missing_implementation": true,
+      "observed_geometry": {
+        "available_history_max": 16,
+        "available_history_min": 3,
+        "campaign_interval_days_max": 560,
+        "campaign_interval_days_min": 42,
+        "missing_campaigns_present": true,
+        "model_origins_per_point_max": 14,
+        "model_origins_per_point_min": 4,
+        "profiles": 14
+      },
+      "reason": "Short, irregular and gapped point histories would require unvalidated regular-grid interpolation.",
+      "status": "NOT_ELIGIBLE_DATA_GEOMETRY"
+    },
+    {
+      "decision_stage": "B5_pre_screening",
+      "method_id": "ARIMA_ARIMAX",
+      "not_a_missing_implementation": true,
+      "observed_geometry": {
+        "available_history_max": 16,
+        "available_history_min": 3,
+        "campaign_interval_days_max": 560,
+        "campaign_interval_days_min": 42,
+        "missing_campaigns_present": true,
+        "model_origins_per_point_max": 14,
+        "model_origins_per_point_min": 4,
+        "profiles": 14
+      },
+      "reason": "Only 3-16 observations are available at issue time and campaign intervals are irregular; ARIMA identification is not supported without speculative interpolation.",
+      "status": "NOT_ELIGIBLE_DATA_GEOMETRY"
+    },
+    {
+      "decision_stage": "B5_pre_screening",
+      "method_id": "PROFILE_VAR",
+      "not_a_missing_implementation": true,
+      "observed_geometry": {
+        "available_history_max": 16,
+        "available_history_min": 3,
+        "campaign_interval_days_max": 560,
+        "campaign_interval_days_min": 42,
+        "missing_campaigns_present": true,
+        "model_origins_per_point_max": 14,
+        "model_origins_per_point_min": 4,
+        "profiles": 14
+      },
+      "reason": "Fourteen profiles and incomplete synchronous campaigns make a profile VAR non-identifiable or extremely unstable at this sample size.",
+      "status": "NOT_ELIGIBLE_DATA_GEOMETRY"
+    }
+  ],
+  "schema_version": 1,
+  "scope": "t1_v1/train_only"
+}

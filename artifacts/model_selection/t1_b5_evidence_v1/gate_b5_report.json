@@ -1,0 +1,74 @@
+{
+  "benchmark": {
+    "all_forward_only": true,
+    "all_held_groups_excluded": true,
+    "inner_folds": 195,
+    "outer_counts": {
+      "rolling_origin": 11,
+      "spatiotemporal_leave_profile_out": 42,
+      "spatiotemporal_leave_zone_out": 12
+    },
+    "outer_folds": 65,
+    "plan_sha256": "d143f1c057f176f49c78d9433e4305557339854d1c1faaad77bc356aca8fd926",
+    "version": "t1_train_benchmark_v1"
+  },
+  "claim_boundary": "no_final_model_quality_claim_without_new_future_or_external_holdout",
+  "current_t1_test_loaded": false,
+  "data": {
+    "disclosed_test_rows_loaded": 0,
+    "external_holdout_rows_loaded": 0,
+    "historical_validation_rows_loaded": 0,
+    "points": 98,
+    "profiles": 14,
+    "rows": 911,
+    "sample_ids_sha256": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c",
+    "source": "t1_v1/train",
+    "target_dates": 19,
+    "zones": 4
+  },
+  "evidence": {
+    "b4_prediction_rows_audited": 2780,
+    "error_atlas_rows": 2620,
+    "excluded_method_cards": 3,
+    "learning_curve_metric_rows": 32,
+    "learning_curve_prediction_rows": 2816,
+    "residual_dependence_rows": 60
+  },
+  "feature_contract_sha256": "241bad48e67659ffc953349cd2bce59e61f2a2867d57698abd6574edd4a05272",
+  "gate": "B5_EVIDENCE_AND_BENCHMARK_PROTOCOL",
+  "historical_validation_loaded": false,
+  "metric_suite": {
+    "cluster_sensitivity_replicates": 2000,
+    "cluster_sensitivity_seed": 42117,
+    "headline": "mae",
+    "interval_levels": [
+      0.5,
+      0.8,
+      0.95
+    ],
+    "point_metrics": [
+      "mae",
+      "median_absolute_error",
+      "rmse",
+      "bias",
+      "absolute_bias",
+      "p90_absolute_error",
+      "p95_absolute_error",
+      "max_absolute_error",
+      "r2_descriptive",
+      "precision_weighted_mae",
+      "precision_weighted_rmse",
+      "b1_skill",
+      "mase",
+      "direction_accuracy"
+    ]
+  },
+  "metric_suite_sha256": "ab85f6ca6e9f0c313a77e41862ceaa3580de60b985a26d83e7fa136ce1dd2572",
+  "new_holdout_seen": false,
+  "protected_predecessor_snapshot_sha256": "41fb67b4c607b408d95c1aca84c538b4a6f391dfb10a853f5c167bc4516b9707",
+  "protected_predecessors_match": true,
+  "schema_version": 1,
+  "scientific_scope": "train_only_internal_research",
+  "status": "PASS_PROTOCOL_FROZEN",
+  "target_contract_sha256": "c679a6b83d26675d50b59de57cb3c12cdeacc6dd7c2e178364e434ed25a526e8"
+}

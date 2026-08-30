@@ -1,0 +1,119 @@
+{
+  "checks": [
+    {
+      "check": "benchmark_source_is_train_only",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "outer_fold_count_is_65",
+      "observed": 65,
+      "passed": true
+    },
+    {
+      "check": "inner_fold_count_is_195",
+      "observed": 195,
+      "passed": true
+    },
+    {
+      "check": "all_folds_forward_only",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "all_held_groups_absent_from_train",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "saved_contracts_equal_rebuild",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "saved_outer_assignments_equal_rebuild",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "saved_inner_assignments_equal_rebuild",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "protected_predecessors_unchanged",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "three_feature_views_frozen",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "no_identifiers_in_feature_views",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "three_ineligible_method_cards",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "validation_not_loaded",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "test_not_loaded",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "new_holdout_not_seen",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "learning_curve_exact_sizes",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "learning_curve_audit_rows",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "learning_curve_hyperparameters_not_retuned",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "error_atlas_recomputes",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "independent_units_recompute",
+      "observed": null,
+      "passed": true
+    }
+  ],
+  "current_t1_test_loaded": false,
+  "gate": "B5_EVIDENCE_AND_BENCHMARK_PROTOCOL",
+  "historical_validation_loaded": false,
+  "schema_version": 1,
+  "status": "PASS",
+  "summary": {
+    "checks": 20,
+    "failed": 0,
+    "passed": 20
+  },
+  "validator_data_access": [
+    "t1_v1/train",
+    "saved_machine_artifacts",
+    "immutable_B4_predictions"
+  ]
+}

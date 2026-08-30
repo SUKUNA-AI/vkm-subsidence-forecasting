@@ -1,0 +1,16 @@
+# Gate B6 CPU environment. Install into an isolated CPython 3.13 environment.
+-e .
+joblib==1.5.3
+narwhals==2.25.0
+numpy==2.5.2
+pandas==3.0.5
+PyYAML==6.0.3
+scikit-learn==1.9.0
+scipy==1.18.1
+threadpoolctl==3.6.0
+xgboost==3.4.1
+lightgbm==4.7.0
+catboost==1.2.10
+interpret-core==0.7.8
+statsmodels==0.15.0
+psutil==7.2.2
