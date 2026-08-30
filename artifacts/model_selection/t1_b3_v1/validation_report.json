@@ -1,0 +1,621 @@
+{
+  "checks": [
+    {
+      "check_id": "protected_predecessors_unchanged",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check_id": "gate_b3_has_no_test_loader_call",
+      "expected": [],
+      "observed": [],
+      "passed": true
+    },
+    {
+      "check_id": "fold_contracts_equal_frozen_b2",
+      "expected": 24,
+      "observed": 24,
+      "passed": true
+    },
+    {
+      "check_id": "outer_fold_counts",
+      "expected": {
+        "leave_profile_out": 14,
+        "leave_zone_out": 4,
+        "rolling_origin": 5,
+        "temporal_holdout": 1
+      },
+      "observed": {
+        "leave_profile_out": 14,
+        "leave_zone_out": 4,
+        "rolling_origin": 5,
+        "temporal_holdout": 1
+      },
+      "passed": true
+    },
+    {
+      "check_id": "outer_folds_forward_only",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check_id": "nested_tuning_forward_only",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check_id": "predeclared_grid_size_every_context",
+      "expected": 16,
+      "observed": {
+        "calibration::rolling_01": 16,
+        "calibration::rolling_02": 16,
+        "calibration::rolling_03": 16,
+        "calibration::rolling_04": 16,
+        "calibration::rolling_05": 16,
+        "outer::leave_profile_out_P-D01": 16,
+        "outer::leave_profile_out_P-H01": 16,
+        "outer::leave_profile_out_P-H02": 16,
+        "outer::leave_profile_out_P-H03": 16,
+        "outer::leave_profile_out_P-H04": 16,
+        "outer::leave_profile_out_P-H05": 16,
+        "outer::leave_profile_out_P-H06": 16,
+        "outer::leave_profile_out_P-H07": 16,
+        "outer::leave_profile_out_P-V01": 16,
+        "outer::leave_profile_out_P-V02": 16,
+        "outer::leave_profile_out_P-V03": 16,
+        "outer::leave_profile_out_P-V04": 16,
+        "outer::leave_profile_out_P-V05": 16,
+        "outer::leave_profile_out_P-V06": 16,
+        "outer::leave_zone_out_GEO_NE": 16,
+        "outer::leave_zone_out_GEO_NW": 16,
+        "outer::leave_zone_out_GEO_SE": 16,
+        "outer::leave_zone_out_GEO_SW": 16,
+        "outer::rolling_01": 16,
+        "outer::rolling_02": 16,
+        "outer::rolling_03": 16,
+        "outer::rolling_04": 16,
+        "outer::rolling_05": 16,
+        "outer::temporal_validation_2024": 16
+      },
+      "passed": true
+    },
+    {
+      "check_id": "one_selected_candidate_per_context",
+      "expected": "exactly one candidate key per context",
+      "observed": {
+        "calibration::rolling_01": 1,
+        "calibration::rolling_02": 1,
+        "calibration::rolling_03": 1,
+        "calibration::rolling_04": 1,
+        "calibration::rolling_05": 1,
+        "outer::leave_profile_out_P-D01": 1,
+        "outer::leave_profile_out_P-H01": 1,
+        "outer::leave_profile_out_P-H02": 1,
+        "outer::leave_profile_out_P-H03": 1,
+        "outer::leave_profile_out_P-H04": 1,
+        "outer::leave_profile_out_P-H05": 1,
+        "outer::leave_profile_out_P-H06": 1,
+        "outer::leave_profile_out_P-H07": 1,
+        "outer::leave_profile_out_P-V01": 1,
+        "outer::leave_profile_out_P-V02": 1,
+        "outer::leave_profile_out_P-V03": 1,
+        "outer::leave_profile_out_P-V04": 1,
+        "outer::leave_profile_out_P-V05": 1,
+        "outer::leave_profile_out_P-V06": 1,
+        "outer::leave_zone_out_GEO_NE": 1,
+        "outer::leave_zone_out_GEO_NW": 1,
+        "outer::leave_zone_out_GEO_SE": 1,
+        "outer::leave_zone_out_GEO_SW": 1,
+        "outer::rolling_01": 1,
+        "outer::rolling_02": 1,
+        "outer::rolling_03": 1,
+        "outer::rolling_04": 1,
+        "outer::rolling_05": 1,
+        "outer::temporal_validation_2024": 1
+      },
+      "passed": true
+    },
+    {
+      "check_id": "selected_candidate_minimizes_predeclared_score",
+      "expected": {
+        "calibration::rolling_01": 0.8440110823167526,
+        "calibration::rolling_02": 0.8651789289068602,
+        "calibration::rolling_03": 0.9091292078158496,
+        "calibration::rolling_04": 0.8472067926453852,
+        "calibration::rolling_05": 0.8530246285453178,
+        "outer::leave_profile_out_P-D01": 0.8891722465411338,
+        "outer::leave_profile_out_P-H01": 0.8961514793365792,
+        "outer::leave_profile_out_P-H02": 0.8106641557625243,
+        "outer::leave_profile_out_P-H03": 0.8441932525676554,
+        "outer::leave_profile_out_P-H04": 0.9239706859816836,
+        "outer::leave_profile_out_P-H05": 0.8899896190679146,
+        "outer::leave_profile_out_P-H06": 0.8876731175208317,
+        "outer::leave_profile_out_P-H07": 0.8845904415370194,
+        "outer::leave_profile_out_P-V01": 0.883801745752741,
+        "outer::leave_profile_out_P-V02": 0.8923242259027679,
+        "outer::leave_profile_out_P-V03": 0.8911564482128929,
+        "outer::leave_profile_out_P-V04": 0.8965140739267539,
+        "outer::leave_profile_out_P-V05": 0.8854091635939344,
+        "outer::leave_profile_out_P-V06": 0.887672983611525,
+        "outer::leave_zone_out_GEO_NE": 0.8950474639909248,
+        "outer::leave_zone_out_GEO_NW": 0.8913514204586381,
+        "outer::leave_zone_out_GEO_SE": 0.8462250988672315,
+        "outer::leave_zone_out_GEO_SW": 0.897842759469814,
+        "outer::rolling_01": 0.8530246285453178,
+        "outer::rolling_02": 0.8834961281604723,
+        "outer::rolling_03": 0.9526642493240554,
+        "outer::rolling_04": 0.934998936048401,
+        "outer::rolling_05": 0.9778600213752175,
+        "outer::temporal_validation_2024": 0.8834961281604723
+      },
+      "observed": {
+        "calibration::rolling_01": 0.8440110823167526,
+        "calibration::rolling_02": 0.8651789289068602,
+        "calibration::rolling_03": 0.9091292078158496,
+        "calibration::rolling_04": 0.8472067926453852,
+        "calibration::rolling_05": 0.8530246285453178,
+        "outer::leave_profile_out_P-D01": 0.8891722465411338,
+        "outer::leave_profile_out_P-H01": 0.8961514793365792,
+        "outer::leave_profile_out_P-H02": 0.8106641557625243,
+        "outer::leave_profile_out_P-H03": 0.8441932525676554,
+        "outer::leave_profile_out_P-H04": 0.9239706859816836,
+        "outer::leave_profile_out_P-H05": 0.8899896190679146,
+        "outer::leave_profile_out_P-H06": 0.8876731175208317,
+        "outer::leave_profile_out_P-H07": 0.8845904415370194,
+        "outer::leave_profile_out_P-V01": 0.883801745752741,
+        "outer::leave_profile_out_P-V02": 0.8923242259027679,
+        "outer::leave_profile_out_P-V03": 0.8911564482128929,
+        "outer::leave_profile_out_P-V04": 0.8965140739267539,
+        "outer::leave_profile_out_P-V05": 0.8854091635939344,
+        "outer::leave_profile_out_P-V06": 0.887672983611525,
+        "outer::leave_zone_out_GEO_NE": 0.8950474639909248,
+        "outer::leave_zone_out_GEO_NW": 0.8913514204586381,
+        "outer::leave_zone_out_GEO_SE": 0.8462250988672315,
+        "outer::leave_zone_out_GEO_SW": 0.897842759469814,
+        "outer::rolling_01": 0.8530246285453178,
+        "outer::rolling_02": 0.8834961281604723,
+        "outer::rolling_03": 0.9526642493240554,
+        "outer::rolling_04": 0.934998936048401,
+        "outer::rolling_05": 0.9778600213752175,
+        "outer::temporal_validation_2024": 0.8834961281604723
+      },
+      "passed": true
+    },
+    {
+      "check_id": "comparators_reused_unchanged",
+      "expected": 1824,
+      "observed": 1824,
+      "passed": true
+    },
+    {
+      "check_id": "imm_keys_match_frozen_comparators",
+      "expected": 608,
+      "observed": 608,
+      "passed": true
+    },
+    {
+      "check_id": "calibration_ids_train_only",
+      "expected": {
+        "subset": "train",
+        "validation_overlap": 0
+      },
+      "observed": {
+        "rows": 292,
+        "validation_overlap": 0
+      },
+      "passed": true
+    },
+    {
+      "check_id": "outer_ids_development_only",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check_id": "calibration_oof_forward_only",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check_id": "fold_metrics_recomputed",
+      "expected": 96,
+      "observed": 96,
+      "passed": true
+    },
+    {
+      "check_id": "aggregate_metrics_recomputed",
+      "expected": 16,
+      "observed": 16,
+      "passed": true
+    },
+    {
+      "check_id": "model_comparison_recomputed",
+      "expected": 16,
+      "observed": 16,
+      "passed": true
+    },
+    {
+      "check_id": "transition_metrics_recomputed",
+      "expected": 112,
+      "observed": 112,
+      "passed": true
+    },
+    {
+      "check_id": "problem_transition_metrics_recomputed",
+      "expected": 16,
+      "observed": 16,
+      "passed": true
+    },
+    {
+      "check_id": "regime_summary_recomputed",
+      "expected": 16,
+      "observed": 16,
+      "passed": true
+    },
+    {
+      "check_id": "imm_probabilities_valid",
+      "expected": 0.0,
+      "observed": 3.3306690738754696e-16,
+      "passed": true
+    },
+    {
+      "check_id": "no_numerical_fallbacks",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check_id": "conformal_qhat::0.8",
+      "expected": {
+        "probability": 0.8047945205479452,
+        "qhat": 2.1651681664159166
+      },
+      "observed": {
+        "probability": 0.8047945205479452,
+        "qhat": 2.1651681664159166
+      },
+      "passed": true
+    },
+    {
+      "check_id": "conformal_qhat::0.9",
+      "expected": {
+        "probability": 0.9041095890410958,
+        "qhat": 3.229760169764953
+      },
+      "observed": {
+        "probability": 0.9041095890410958,
+        "qhat": 3.229760169764953
+      },
+      "passed": true
+    },
+    {
+      "check_id": "conformal_qhat::0.95",
+      "expected": {
+        "probability": 0.9554794520547946,
+        "qhat": 5.091614781427236
+      },
+      "observed": {
+        "probability": 0.9554794520547946,
+        "qhat": 5.091614781427236
+      },
+      "passed": true
+    },
+    {
+      "check_id": "interval_metrics_recomputed",
+      "expected": 3,
+      "observed": 3,
+      "passed": true
+    },
+    {
+      "check_id": "screening_checks_recomputed",
+      "expected": {
+        "accelerating_vs_b1": true,
+        "coverage_95": true,
+        "leave_profile_degradation": true,
+        "leave_zone_degradation": false,
+        "leave_zone_vs_b1": true,
+        "problem_transition_vs_b1": false,
+        "problem_transition_vs_b6": true,
+        "temporal_vs_b6": true,
+        "volatile_or_gap_vs_b1": false
+      },
+      "observed": {
+        "accelerating_vs_b1": true,
+        "coverage_95": true,
+        "leave_profile_degradation": true,
+        "leave_zone_degradation": false,
+        "leave_zone_vs_b1": true,
+        "problem_transition_vs_b1": false,
+        "problem_transition_vs_b6": true,
+        "temporal_vs_b6": true,
+        "volatile_or_gap_vs_b1": false
+      },
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::temporal_mae",
+      "expected": 6.544990086139617,
+      "observed": 6.544990086139617,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::temporal_b6_mae",
+      "expected": 7.453611564340219,
+      "observed": 7.453611564340219,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::temporal_mae_ratio_vs_b6",
+      "expected": 0.8780964811008323,
+      "observed": 0.8780964811008323,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::problem_transition_rows",
+      "expected": 31,
+      "observed": 31,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::problem_transition_mae",
+      "expected": 13.487032520467999,
+      "observed": 13.487032520467999,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::problem_transition_b1_mae",
+      "expected": 13.949967592815721,
+      "observed": 13.949967592815721,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::problem_transition_b6_mae",
+      "expected": 16.44468620766343,
+      "observed": 16.44468620766343,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::problem_transition_improvement_vs_b1_percent",
+      "expected": 3.3185386938542814,
+      "observed": 3.3185386938542814,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::problem_transition_improvement_vs_b6_percent",
+      "expected": 17.98546746253588,
+      "observed": 17.98546746253588,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::accelerating_mae",
+      "expected": 12.878184476932852,
+      "observed": 12.878184476932852,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::accelerating_b1_mae",
+      "expected": 15.899645907500352,
+      "observed": 15.899645907500352,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::accelerating_mae_ratio_vs_b1",
+      "expected": 0.8099667471750308,
+      "observed": 0.8099667471750308,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::volatile_or_gap_mae",
+      "expected": 14.226348001903535,
+      "observed": 14.226348001903535,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::volatile_or_gap_b1_mae",
+      "expected": 11.582501067841532,
+      "observed": 11.582501067841532,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::volatile_or_gap_mae_ratio_vs_b1",
+      "expected": 1.2282621791767034,
+      "observed": 1.2282621791767034,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::leave_profile_mae",
+      "expected": 6.573024472010513,
+      "observed": 6.573024472010513,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::leave_profile_mae_degradation_vs_temporal_percent",
+      "expected": 0.42833351161623123,
+      "observed": 0.42833351161623123,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::leave_zone_mae",
+      "expected": 7.064226316272913,
+      "observed": 7.064226316272913,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::leave_zone_b1_mae",
+      "expected": 7.31092175130067,
+      "observed": 7.31092175130067,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::leave_zone_mae_degradation_vs_temporal_percent",
+      "expected": 7.9333386804189026,
+      "observed": 7.9333386804189026,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::leave_zone_mae_ratio_vs_b1",
+      "expected": 0.966256589330358,
+      "observed": 0.966256589330358,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::coverage_95_empirical",
+      "expected": 0.9615384615384616,
+      "observed": 0.9615384615384616,
+      "passed": true
+    },
+    {
+      "check_id": "screening_observed::coverage_95_mean_width_mm_y",
+      "expected": 47.618297034682286,
+      "observed": 47.61829703468228,
+      "passed": true
+    },
+    {
+      "check_id": "candidate_parameters_match_temporal_train_tuning",
+      "expected": {
+        "p_stable_stay": 0.99,
+        "p_transition_stay": 0.75,
+        "q_stable": 0.5,
+        "q_transition": 200.0
+      },
+      "observed": {
+        "p_stable_stay": 0.99,
+        "p_transition_stay": 0.75,
+        "q_stable": 0.5,
+        "q_transition": 200.0
+      },
+      "passed": true
+    },
+    {
+      "check_id": "candidate_prohibits_current_test",
+      "expected": {
+        "authorized": false,
+        "eligible_for_final_claim": false,
+        "used": false
+      },
+      "observed": {
+        "authorized": false,
+        "eligible_for_final_claim": false,
+        "used": false
+      },
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::configs/final_holdout_v2.yaml",
+      "expected": "bef9916326df6e1136155bb68cc62e3a555871f84962fd11146f21d9db32e418",
+      "observed": "bef9916326df6e1136155bb68cc62e3a555871f84962fd11146f21d9db32e418",
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::configs/gate_b3.yaml",
+      "expected": "95375b3e50aead2f9942d3b707d93be1f618042f4e72dfd7cda3330eeb9ac0f9",
+      "observed": "95375b3e50aead2f9942d3b707d93be1f618042f4e72dfd7cda3330eeb9ac0f9",
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::docs/governance/GATE_B3_PROTOCOL.md",
+      "expected": "6cdc3bbed60da1988ab1eec6e405b1f0c9a221b9594cb1c2ad7f8dcfc472da5f",
+      "observed": "6cdc3bbed60da1988ab1eec6e405b1f0c9a221b9594cb1c2ad7f8dcfc472da5f",
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::scripts/run_gate_b3.py",
+      "expected": "1cc2db6ad9696d9cafbfd6bec16e40c3c00f7829a5b4ca6e3f0b6c37514bd299",
+      "observed": "1cc2db6ad9696d9cafbfd6bec16e40c3c00f7829a5b4ca6e3f0b6c37514bd299",
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::src/skru1/adaptive_kalman.py",
+      "expected": "a9420a277cfc5f985d0ff179972a1f9813f35162a9e4e2f0f029ca33dcc512bd",
+      "observed": "a9420a277cfc5f985d0ff179972a1f9813f35162a9e4e2f0f029ca33dcc512bd",
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::src/skru1/gate_b3.py",
+      "expected": "e8de20910a2509029cb079879e6f105a0b1e7be2513e7cc79b2191466f2fffdc",
+      "observed": "e8de20910a2509029cb079879e6f105a0b1e7be2513e7cc79b2191466f2fffdc",
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::src/skru1/imm_kalman.py",
+      "expected": "4770b9761bea9e777631d92f99a5739315a4ffa1b6475398427eaeb9bf30ba85",
+      "observed": "4770b9761bea9e777631d92f99a5739315a4ffa1b6475398427eaeb9bf30ba85",
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::src/skru1/transition_validation.py",
+      "expected": "f5b269ff962c5587cddabffac981142d23100446005c13fa17aab3986fe40426",
+      "observed": "f5b269ff962c5587cddabffac981142d23100446005c13fa17aab3986fe40426",
+      "passed": true
+    },
+    {
+      "check_id": "candidate_source_hash::src/skru1/uncertainty.py",
+      "expected": "c6539c1067fb452bbe223d112ceeb284c509812e138fd750fb4c0acfab54f477",
+      "observed": "c6539c1067fb452bbe223d112ceeb284c509812e138fd750fb4c0acfab54f477",
+      "passed": true
+    },
+    {
+      "check_id": "gate_report_hash_frozen",
+      "expected": "042acf4c72d28006d482ee505f94ddddcba42544a3283fba76a9b2397dabd4e0",
+      "observed": "042acf4c72d28006d482ee505f94ddddcba42544a3283fba76a9b2397dabd4e0",
+      "passed": true
+    },
+    {
+      "check_id": "report_confirms_frozen_comparators",
+      "expected": {
+        "mode": "frozen_predictions_only_no_refit",
+        "test_data_loaded": false
+      },
+      "observed": {
+        "mode": "frozen_predictions_only_no_refit",
+        "test_data_loaded": false
+      },
+      "passed": true
+    },
+    {
+      "check_id": "final_holdout_pending",
+      "expected": {
+        "excluded": "t1_v1/test",
+        "status": "PENDING_DATA"
+      },
+      "observed": {
+        "excluded": "t1_v1/test",
+        "status": "PENDING_DATA"
+      },
+      "passed": true
+    }
+  ],
+  "gate": "B3_T1_TWO_REGIME_IMM",
+  "methodology_review": {
+    "comparator_reuse": "frozen Gate B2 prediction rows compared to the B3 copy",
+    "data_boundary": "calibration IDs are train-only; outer IDs are train/validation only; AST scan found no test loader call",
+    "interval_recomputation": "finite-sample qhat and interval metrics recomputed",
+    "metric_recomputation": "fold, aggregate, transition, problem-transition, and regime summaries recomputed from rows",
+    "tuning_audit": "all contexts use the fixed 16-candidate grid and choose the minimum predeclared score"
+  },
+  "overall_assessment": "Share with caveats",
+  "question": "Are the predeclared IMM experiment, frozen B1/B5/B6 comparison, transition/leave-zone claims, train-only calibration, and no-test boundary reproducible?",
+  "remaining_caveats": [
+    "No new unseen final holdout exists yet.",
+    "The hypothesis was motivated by known validation segment failures, even though the B7 protocol was fixed before B7 execution.",
+    "Transition labels are origin-feature proxies and IMM regimes are statistical, not physical-state labels.",
+    "Validation precision is limited by repeated points/profiles and 130 temporal validation origins."
+  ],
+  "schema_version": 1,
+  "serialization_reconciliation": {
+    "applied": true,
+    "evidence": "artifacts/model_selection/t1_b3_v1/audit_reconciliation.json",
+    "model_outputs_changed": false,
+    "reason": "csv_empty_string_round_trip_as_na",
+    "scope": "fold_metrics held_out_group representation only"
+  },
+  "status": "PASS",
+  "summary": {
+    "checks": 64,
+    "failed": 0
+  }
+}

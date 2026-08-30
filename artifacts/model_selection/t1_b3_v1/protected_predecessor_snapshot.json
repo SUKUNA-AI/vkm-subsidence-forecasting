@@ -1,0 +1,119 @@
+{
+  "after_generation_sha256": {
+    "artifacts/model_selection/frozen_candidate.json": "705c4712e4dc6e75aed5773c355518fe9cf1a3aa0ef21e654a7df539ba7587cd",
+    "artifacts/model_selection/t1_b0_b1_v1/final_test_report.json": "39123904ac39712f58701c9fc062fc21a8b6420dff9193e1d0128fa8233cf919",
+    "artifacts/model_selection/t1_b0_b1_v1/test_access_ledger.json": "86110ea4cc25e4dcd4bb7b2355db2c128b6f864102f3d3b8fec5568bee7c75bf",
+    "artifacts/model_selection/t1_b0_b1_v1/test_metrics.csv": "c23d225e028ae140a7c4569173726b26b53919c19aa347da3a784b99d141c760",
+    "artifacts/model_selection/t1_b0_b1_v1/test_predictions.csv": "bec1066be04c8cffcb0db5adfba98a1038d699b1068faa900d0dafdac980dc0b",
+    "artifacts/model_selection/t1_b2_v1/aggregate_metrics.csv": "c118303c2c5c42c2342b57c65cd1d5f8bd6681f25059699053214571683e0bd2",
+    "artifacts/model_selection/t1_b2_v1/artifact_inventory.csv": "8d1d5f22f797ab553f5229bfb62ff7ac0c134ed327533a11317274499ae334fb",
+    "artifacts/model_selection/t1_b2_v1/development_candidate.json": "d8d2307bda5735c172116375c9c9b7b01e37c46b6c0b0fa3c86b3c7cef58fdf8",
+    "artifacts/model_selection/t1_b2_v1/fold_contracts.csv": "e94ce90e6172d2d078af31477a8ba0222b0be892dfe6016aac8d21c2f7da4c10",
+    "artifacts/model_selection/t1_b2_v1/outer_fold_predictions.csv": "e1b933e35aa126719fac31ca0d9b468e4feb70c296beaa8faa1b25cf3120a79f",
+    "artifacts/model_selection/t1_b2_v1/transition_thresholds.csv": "84edcc548f8addbe862bee1d7e5ddd91177474db3490562beef58902c0bd05a9",
+    "artifacts/model_selection/t1_b2_v1/validation_report.json": "d5603d94be590a77ddb001b0b402fec4e61f40c2ba4fb590b535e3a1937d38b6"
+  },
+  "all_match": true,
+  "policy": "hash_only_no_test_loader_frozen_b2_predictions",
+  "protected_files": [
+    {
+      "expected_sha256": "705c4712e4dc6e75aed5773c355518fe9cf1a3aa0ef21e654a7df539ba7587cd",
+      "matches": true,
+      "observed_sha256": "705c4712e4dc6e75aed5773c355518fe9cf1a3aa0ef21e654a7df539ba7587cd",
+      "relative_path": "artifacts/model_selection/frozen_candidate.json",
+      "role": "disclosed_test",
+      "size_bytes": 2181
+    },
+    {
+      "expected_sha256": "86110ea4cc25e4dcd4bb7b2355db2c128b6f864102f3d3b8fec5568bee7c75bf",
+      "matches": true,
+      "observed_sha256": "86110ea4cc25e4dcd4bb7b2355db2c128b6f864102f3d3b8fec5568bee7c75bf",
+      "relative_path": "artifacts/model_selection/t1_b0_b1_v1/test_access_ledger.json",
+      "role": "disclosed_test",
+      "size_bytes": 1301
+    },
+    {
+      "expected_sha256": "bec1066be04c8cffcb0db5adfba98a1038d699b1068faa900d0dafdac980dc0b",
+      "matches": true,
+      "observed_sha256": "bec1066be04c8cffcb0db5adfba98a1038d699b1068faa900d0dafdac980dc0b",
+      "relative_path": "artifacts/model_selection/t1_b0_b1_v1/test_predictions.csv",
+      "role": "disclosed_test",
+      "size_bytes": 31182
+    },
+    {
+      "expected_sha256": "c23d225e028ae140a7c4569173726b26b53919c19aa347da3a784b99d141c760",
+      "matches": true,
+      "observed_sha256": "c23d225e028ae140a7c4569173726b26b53919c19aa347da3a784b99d141c760",
+      "relative_path": "artifacts/model_selection/t1_b0_b1_v1/test_metrics.csv",
+      "role": "disclosed_test",
+      "size_bytes": 470
+    },
+    {
+      "expected_sha256": "39123904ac39712f58701c9fc062fc21a8b6420dff9193e1d0128fa8233cf919",
+      "matches": true,
+      "observed_sha256": "39123904ac39712f58701c9fc062fc21a8b6420dff9193e1d0128fa8233cf919",
+      "relative_path": "artifacts/model_selection/t1_b0_b1_v1/final_test_report.json",
+      "role": "disclosed_test",
+      "size_bytes": 1265
+    },
+    {
+      "expected_sha256": "8d1d5f22f797ab553f5229bfb62ff7ac0c134ed327533a11317274499ae334fb",
+      "matches": true,
+      "observed_sha256": "8d1d5f22f797ab553f5229bfb62ff7ac0c134ed327533a11317274499ae334fb",
+      "relative_path": "artifacts/model_selection/t1_b2_v1/artifact_inventory.csv",
+      "role": "frozen_comparator",
+      "size_bytes": 2210
+    },
+    {
+      "expected_sha256": "e1b933e35aa126719fac31ca0d9b468e4feb70c296beaa8faa1b25cf3120a79f",
+      "matches": true,
+      "observed_sha256": "e1b933e35aa126719fac31ca0d9b468e4feb70c296beaa8faa1b25cf3120a79f",
+      "relative_path": "artifacts/model_selection/t1_b2_v1/outer_fold_predictions.csv",
+      "role": "frozen_comparator",
+      "size_bytes": 492462
+    },
+    {
+      "expected_sha256": "e94ce90e6172d2d078af31477a8ba0222b0be892dfe6016aac8d21c2f7da4c10",
+      "matches": true,
+      "observed_sha256": "e94ce90e6172d2d078af31477a8ba0222b0be892dfe6016aac8d21c2f7da4c10",
+      "relative_path": "artifacts/model_selection/t1_b2_v1/fold_contracts.csv",
+      "role": "frozen_comparator",
+      "size_bytes": 5284
+    },
+    {
+      "expected_sha256": "84edcc548f8addbe862bee1d7e5ddd91177474db3490562beef58902c0bd05a9",
+      "matches": true,
+      "observed_sha256": "84edcc548f8addbe862bee1d7e5ddd91177474db3490562beef58902c0bd05a9",
+      "relative_path": "artifacts/model_selection/t1_b2_v1/transition_thresholds.csv",
+      "role": "frozen_comparator",
+      "size_bytes": 3828
+    },
+    {
+      "expected_sha256": "c118303c2c5c42c2342b57c65cd1d5f8bd6681f25059699053214571683e0bd2",
+      "matches": true,
+      "observed_sha256": "c118303c2c5c42c2342b57c65cd1d5f8bd6681f25059699053214571683e0bd2",
+      "relative_path": "artifacts/model_selection/t1_b2_v1/aggregate_metrics.csv",
+      "role": "frozen_comparator",
+      "size_bytes": 1623
+    },
+    {
+      "expected_sha256": "d8d2307bda5735c172116375c9c9b7b01e37c46b6c0b0fa3c86b3c7cef58fdf8",
+      "matches": true,
+      "observed_sha256": "d8d2307bda5735c172116375c9c9b7b01e37c46b6c0b0fa3c86b3c7cef58fdf8",
+      "relative_path": "artifacts/model_selection/t1_b2_v1/development_candidate.json",
+      "role": "frozen_comparator",
+      "size_bytes": 3296
+    },
+    {
+      "expected_sha256": "d5603d94be590a77ddb001b0b402fec4e61f40c2ba4fb590b535e3a1937d38b6",
+      "matches": true,
+      "observed_sha256": "d5603d94be590a77ddb001b0b402fec4e61f40c2ba4fb590b535e3a1937d38b6",
+      "relative_path": "artifacts/model_selection/t1_b2_v1/validation_report.json",
+      "role": "frozen_comparator",
+      "size_bytes": 43949
+    }
+  ],
+  "schema_version": 1,
+  "unchanged_during_gate_b3": true,
+  "verified_after_generation": true
+}

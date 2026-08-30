@@ -1,0 +1,403 @@
+{
+  "candidate_id": "t1-b3-v1-15208e3b1684",
+  "caveats": [
+    "Gate B3 is train/validation evidence and not an unseen final estimate.",
+    "The two regimes are statistical filters, not identified physical process states.",
+    "Transition categories remain origin-only proxies rather than adjudicated events.",
+    "Rows repeat points and profiles; row counts are not independent trajectories.",
+    "The same validation period motivated the narrow hypothesis, so successful screening still requires a new holdout."
+  ],
+  "comparators": {
+    "mode": "frozen_predictions_only_no_refit",
+    "models": [
+      "B1_persistence_last_rate",
+      "B5_fixed_kalman",
+      "B6_adaptive_kalman"
+    ],
+    "source": "artifacts/model_selection/t1_b2_v1/outer_fold_predictions.csv",
+    "source_sha256": "e1b933e35aa126719fac31ca0d9b468e4feb70c296beaa8faa1b25cf3120a79f"
+  },
+  "data": {
+    "target": "observed_rate_mm_y",
+    "task": "T1_RATE_NEXT_PLANNED",
+    "train_rows": 911,
+    "train_sample_ids_sha256": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c",
+    "train_target_date_max": "2023-11-07",
+    "unit": "mm/year",
+    "validation_rows": 130,
+    "validation_sample_ids_sha256": "f72ce0a50c16bccca3ca87df4f4a7465b4d9eca2933e0dec9b3bd39e7336a62e",
+    "validation_target_date_max": "2024-09-03"
+  },
+  "environment": {
+    "PyYAML": "6.0.3",
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.9.0",
+    "scipy": "1.18.1"
+  },
+  "gate": "B3_T1_TWO_REGIME_IMM",
+  "governance": {
+    "current_t1_test_role": "historical_stage_candidate_diagnostic_only",
+    "current_t1_test_used": false,
+    "final_claim_allowed_now": false,
+    "new_holdout_policy": "configs/final_holdout_v2.yaml",
+    "protocol": "docs/governance/GATE_B3_PROTOCOL.md",
+    "protocol_frozen_before_outer_run": true
+  },
+  "hypothesis": "A predeclared two-regime IMM reduces accelerating/volatile transition error and leave-zone instability without materially degrading B6 temporal MAE.",
+  "intervals": [
+    {
+      "coverage_empirical": 0.8846153846153846,
+      "coverage_gap": 0.08461538461538454,
+      "coverage_nominal": 0.8,
+      "mean_interval_score": 34.92032585050053,
+      "mean_width_mm_y": 20.249297188490562,
+      "median_width_mm_y": 18.19485824898492,
+      "qhat": 2.1651681664159166,
+      "rows": 130
+    },
+    {
+      "coverage_empirical": 0.9230769230769231,
+      "coverage_gap": 0.023076923076923106,
+      "coverage_nominal": 0.9,
+      "mean_interval_score": 50.25394527536951,
+      "mean_width_mm_y": 30.20567849627123,
+      "median_width_mm_y": 27.14109203090988,
+      "qhat": 3.229760169764953,
+      "rows": 130
+    },
+    {
+      "coverage_empirical": 0.9615384615384616,
+      "coverage_gap": 0.011538461538461608,
+      "coverage_nominal": 0.95,
+      "mean_interval_score": 67.63181170886901,
+      "mean_width_mm_y": 47.61829703468228,
+      "median_width_mm_y": 42.78707337539391,
+      "qhat": 5.091614781427236,
+      "rows": 130
+    }
+  ],
+  "model": {
+    "candidate_grid_size": 16,
+    "family": "imm_damped_acceleration",
+    "model_id": "B7_two_regime_imm",
+    "regimes": [
+      "stable",
+      "transition"
+    ],
+    "selected_parameters": {
+      "acceleration_clip_ratio": 4.0,
+      "acceleration_measurement_scale_multiplier": 1.0,
+      "acceleration_scale_quantile": 0.8,
+      "covariance_jitter": 1e-08,
+      "initial_acceleration_variance": 2500.0,
+      "initial_position_variance": 4.0,
+      "initial_transition_probability": 0.1,
+      "initial_velocity_variance": 400.0,
+      "likelihood_variance_floor": 1e-10,
+      "minimum_acceleration_measurement_variance": 25.0,
+      "minimum_measurement_variance": 0.01,
+      "minimum_rate_measurement_variance": 1.0,
+      "p_stable_stay": 0.99,
+      "p_transition_stay": 0.75,
+      "q_stable": 0.5,
+      "q_transition": 200.0,
+      "rate_measurement_variance_multiplier": 4.0,
+      "raw_sigma_floor_mm_y": 1.0,
+      "stable_acceleration_retention_per_year": 0.2,
+      "transition_acceleration_retention_per_year": 0.95
+    },
+    "state": [
+      "settlement_mm",
+      "velocity_mm_y",
+      "acceleration_mm_y2"
+    ]
+  },
+  "regime_diagnostics": [
+    {
+      "design": "leave_profile_out",
+      "mae": 12.393470153963907,
+      "points": 15,
+      "profiles": 6,
+      "regime_entropy_mean": 0.4085110178021438,
+      "rows": 18,
+      "transition_probability_ge_0_5_rate": 0.5,
+      "transition_probability_mean": 0.43202247152847767,
+      "transition_probability_median": 0.3830755797288824,
+      "transition_probability_q90": 0.9996808484195627,
+      "transition_segment": "accelerating"
+    },
+    {
+      "design": "leave_profile_out",
+      "mae": 3.9487424699535203,
+      "points": 12,
+      "profiles": 5,
+      "regime_entropy_mean": 0.3839050880704999,
+      "rows": 12,
+      "transition_probability_ge_0_5_rate": 0.16666666666666666,
+      "transition_probability_mean": 0.2350189365528025,
+      "transition_probability_median": 0.09582007987722752,
+      "transition_probability_q90": 0.8753293380861843,
+      "transition_segment": "decelerating"
+    },
+    {
+      "design": "leave_profile_out",
+      "mae": 4.4494166790165925,
+      "points": 75,
+      "profiles": 14,
+      "regime_entropy_mean": 0.35868719197653975,
+      "rows": 86,
+      "transition_probability_ge_0_5_rate": 0.046511627906976744,
+      "transition_probability_mean": 0.10779396320878655,
+      "transition_probability_median": 0.035505178029945676,
+      "transition_probability_q90": 0.3319310756783155,
+      "transition_segment": "stable"
+    },
+    {
+      "design": "leave_profile_out",
+      "mae": 14.383998182510505,
+      "points": 14,
+      "profiles": 9,
+      "regime_entropy_mean": 0.40716564390866367,
+      "rows": 14,
+      "transition_probability_ge_0_5_rate": 0.35714285714285715,
+      "transition_probability_mean": 0.3392963501093417,
+      "transition_probability_median": 0.16713147450848945,
+      "transition_probability_q90": 0.8662033028313004,
+      "transition_segment": "volatile_or_gap"
+    },
+    {
+      "design": "leave_zone_out",
+      "mae": 14.663104664974497,
+      "points": 14,
+      "profiles": 5,
+      "regime_entropy_mean": 0.3680990302511848,
+      "rows": 20,
+      "transition_probability_ge_0_5_rate": 0.35,
+      "transition_probability_mean": 0.3400364061190248,
+      "transition_probability_median": 0.09968333105803376,
+      "transition_probability_q90": 0.9556888839819755,
+      "transition_segment": "accelerating"
+    },
+    {
+      "design": "leave_zone_out",
+      "mae": 3.33685794842454,
+      "points": 15,
+      "profiles": 5,
+      "regime_entropy_mean": 0.5864228592689593,
+      "rows": 15,
+      "transition_probability_ge_0_5_rate": 0.2,
+      "transition_probability_mean": 0.3112186184443493,
+      "transition_probability_median": 0.17545871803867216,
+      "transition_probability_q90": 0.8562121988820408,
+      "transition_segment": "decelerating"
+    },
+    {
+      "design": "leave_zone_out",
+      "mae": 4.354510677867239,
+      "points": 71,
+      "profiles": 14,
+      "regime_entropy_mean": 0.41459500246532666,
+      "rows": 77,
+      "transition_probability_ge_0_5_rate": 0.03896103896103896,
+      "transition_probability_mean": 0.1283820473387577,
+      "transition_probability_median": 0.0682684505388152,
+      "transition_probability_q90": 0.38796375355341844,
+      "transition_segment": "stable"
+    },
+    {
+      "design": "leave_zone_out",
+      "mae": 13.318729799657957,
+      "points": 17,
+      "profiles": 9,
+      "regime_entropy_mean": 0.42888441006786926,
+      "rows": 18,
+      "transition_probability_ge_0_5_rate": 0.2777777777777778,
+      "transition_probability_mean": 0.2862818650703554,
+      "transition_probability_median": 0.09765359830461567,
+      "transition_probability_q90": 0.8204988745116811,
+      "transition_segment": "volatile_or_gap"
+    },
+    {
+      "design": "rolling_origin",
+      "mae": 10.809476611719983,
+      "points": 25,
+      "profiles": 7,
+      "regime_entropy_mean": 0.4451471665818577,
+      "rows": 34,
+      "transition_probability_ge_0_5_rate": 0.4411764705882353,
+      "transition_probability_mean": 0.4538330600892231,
+      "transition_probability_median": 0.3568085359156424,
+      "transition_probability_q90": 0.9968301152212586,
+      "transition_segment": "accelerating"
+    },
+    {
+      "design": "rolling_origin",
+      "mae": 6.624806833721464,
+      "points": 14,
+      "profiles": 7,
+      "regime_entropy_mean": 0.44485266654646327,
+      "rows": 14,
+      "transition_probability_ge_0_5_rate": 0.07142857142857142,
+      "transition_probability_mean": 0.16938168875285337,
+      "transition_probability_median": 0.09587641935531643,
+      "transition_probability_q90": 0.2282654798039907,
+      "transition_segment": "decelerating"
+    },
+    {
+      "design": "rolling_origin",
+      "mae": 4.180765689314391,
+      "points": 77,
+      "profiles": 14,
+      "regime_entropy_mean": 0.3326548144081729,
+      "rows": 148,
+      "transition_probability_ge_0_5_rate": 0.04054054054054054,
+      "transition_probability_mean": 0.09694918710824728,
+      "transition_probability_median": 0.03107614442098495,
+      "transition_probability_q90": 0.28014195059185315,
+      "transition_segment": "stable"
+    },
+    {
+      "design": "rolling_origin",
+      "mae": 13.692784406384696,
+      "points": 20,
+      "profiles": 12,
+      "regime_entropy_mean": 0.4110600332882062,
+      "rows": 22,
+      "transition_probability_ge_0_5_rate": 0.3181818181818182,
+      "transition_probability_mean": 0.32468697124812046,
+      "transition_probability_median": 0.11728237625727168,
+      "transition_probability_q90": 0.9048672419047192,
+      "transition_segment": "volatile_or_gap"
+    },
+    {
+      "design": "temporal_holdout",
+      "mae": 12.878184476932852,
+      "points": 14,
+      "profiles": 5,
+      "regime_entropy_mean": 0.4158993978561106,
+      "rows": 17,
+      "transition_probability_ge_0_5_rate": 0.47058823529411764,
+      "transition_probability_mean": 0.4252612649985905,
+      "transition_probability_median": 0.4123888601665492,
+      "transition_probability_q90": 0.9995974722718487,
+      "transition_segment": "accelerating"
+    },
+    {
+      "design": "temporal_holdout",
+      "mae": 3.7195562470828567,
+      "points": 11,
+      "profiles": 4,
+      "regime_entropy_mean": 0.3972596833016823,
+      "rows": 11,
+      "transition_probability_ge_0_5_rate": 0.09090909090909091,
+      "transition_probability_mean": 0.16974845244017803,
+      "transition_probability_median": 0.07943531511065811,
+      "transition_probability_q90": 0.18876814913853235,
+      "transition_segment": "decelerating"
+    },
+    {
+      "design": "temporal_holdout",
+      "mae": 4.452677094837849,
+      "points": 75,
+      "profiles": 14,
+      "regime_entropy_mean": 0.3577137283190082,
+      "rows": 88,
+      "transition_probability_ge_0_5_rate": 0.045454545454545456,
+      "transition_probability_mean": 0.10674184501886277,
+      "transition_probability_median": 0.03540181116843136,
+      "transition_probability_q90": 0.3258987824137341,
+      "transition_segment": "stable"
+    },
+    {
+      "design": "temporal_holdout",
+      "mae": 14.226348001903535,
+      "points": 14,
+      "profiles": 9,
+      "regime_entropy_mean": 0.4245484903111762,
+      "rows": 14,
+      "transition_probability_ge_0_5_rate": 0.42857142857142855,
+      "transition_probability_mean": 0.4119498594580247,
+      "transition_probability_median": 0.2839905609028858,
+      "transition_probability_q90": 0.9438368577025213,
+      "transition_segment": "volatile_or_gap"
+    }
+  ],
+  "schema_version": 1,
+  "screening": {
+    "all_pass": false,
+    "checks": {
+      "accelerating_vs_b1": true,
+      "coverage_95": true,
+      "leave_profile_degradation": true,
+      "leave_zone_degradation": false,
+      "leave_zone_vs_b1": true,
+      "problem_transition_vs_b1": false,
+      "problem_transition_vs_b6": true,
+      "temporal_vs_b6": true,
+      "volatile_or_gap_vs_b1": false
+    },
+    "criteria": {
+      "accelerating_mae_ratio_vs_b1_max": 1.0,
+      "coverage_95_max": 0.97,
+      "coverage_95_min": 0.9,
+      "leave_profile_mae_degradation_vs_temporal_percent_max": 5.0,
+      "leave_zone_mae_degradation_vs_temporal_percent_max": 5.0,
+      "leave_zone_mae_ratio_vs_b1_max": 1.0,
+      "problem_transition_improvement_vs_b1_percent_min": 10.0,
+      "problem_transition_improvement_vs_b6_percent_min": 10.0,
+      "status_if_no_new_holdout": "validation_only_not_final",
+      "temporal_mae_ratio_vs_b6_max": 1.02,
+      "volatile_or_gap_mae_ratio_vs_b1_max": 1.0
+    },
+    "observed": {
+      "accelerating_b1_mae": 15.899645907500352,
+      "accelerating_mae": 12.878184476932852,
+      "accelerating_mae_ratio_vs_b1": 0.8099667471750308,
+      "coverage_95_empirical": 0.9615384615384616,
+      "coverage_95_mean_width_mm_y": 47.61829703468228,
+      "leave_profile_mae": 6.573024472010513,
+      "leave_profile_mae_degradation_vs_temporal_percent": 0.42833351161623123,
+      "leave_zone_b1_mae": 7.31092175130067,
+      "leave_zone_mae": 7.064226316272913,
+      "leave_zone_mae_degradation_vs_temporal_percent": 7.9333386804189026,
+      "leave_zone_mae_ratio_vs_b1": 0.966256589330358,
+      "problem_transition_b1_mae": 13.949967592815721,
+      "problem_transition_b6_mae": 16.44468620766343,
+      "problem_transition_improvement_vs_b1_percent": 3.3185386938542814,
+      "problem_transition_improvement_vs_b6_percent": 17.98546746253588,
+      "problem_transition_mae": 13.487032520467999,
+      "problem_transition_rows": 31,
+      "temporal_b6_mae": 7.453611564340219,
+      "temporal_mae": 6.544990086139617,
+      "temporal_mae_ratio_vs_b6": 0.8780964811008323,
+      "volatile_or_gap_b1_mae": 11.582501067841532,
+      "volatile_or_gap_mae": 14.226348001903535,
+      "volatile_or_gap_mae_ratio_vs_b1": 1.2282621791767034
+    },
+    "scope": "development_screening_only_no_final_holdout"
+  },
+  "status": "VALIDATION_RECORDED_SCREENING_CRITERIA_NOT_MET",
+  "test_data_loaded": false,
+  "test_phase_available": false,
+  "validation_design": {
+    "calibration": "five nested rolling train-only OOF folds",
+    "fold_counts": {
+      "leave_profile_out": 14,
+      "leave_zone_out": 4,
+      "rolling_origin": 5,
+      "temporal_holdout": 1
+    },
+    "inner_tuning_forward_only": true,
+    "outer_forward_only": true,
+    "tuning_objective": {
+      "minimum_problem_transition_rows": 5,
+      "overall_normalized_mae_weight": 0.5,
+      "problem_transition_normalized_mae_weight": 0.5,
+      "problem_transition_segments": [
+        "accelerating",
+        "volatile_or_gap"
+      ]
+    }
+  }
+}

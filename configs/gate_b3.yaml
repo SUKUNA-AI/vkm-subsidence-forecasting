@@ -1,0 +1,134 @@
+schema_version: 1
+gate: B3_T1_TWO_REGIME_IMM
+task: t1
+split_version: t1_v1
+target_column: observed_rate_mm_y
+random_seed: 42117
+
+test_policy:
+  current_t1_test_role: historical_stage_candidate_diagnostic_only
+  model_selection_access: prohibited
+  final_acceptance_access: prohibited
+  replacement_holdout_policy: configs/final_holdout_v2.yaml
+  protected_files:
+    artifacts/model_selection/frozen_candidate.json: 705c4712e4dc6e75aed5773c355518fe9cf1a3aa0ef21e654a7df539ba7587cd
+    artifacts/model_selection/t1_b0_b1_v1/test_access_ledger.json: 86110ea4cc25e4dcd4bb7b2355db2c128b6f864102f3d3b8fec5568bee7c75bf
+    artifacts/model_selection/t1_b0_b1_v1/test_predictions.csv: bec1066be04c8cffcb0db5adfba98a1038d699b1068faa900d0dafdac980dc0b
+    artifacts/model_selection/t1_b0_b1_v1/test_metrics.csv: c23d225e028ae140a7c4569173726b26b53919c19aa347da3a784b99d141c760
+    artifacts/model_selection/t1_b0_b1_v1/final_test_report.json: 39123904ac39712f58701c9fc062fc21a8b6420dff9193e1d0128fa8233cf919
+
+comparator_policy:
+  mode: frozen_predictions_only_no_refit
+  expected_models:
+    - B1_persistence_last_rate
+    - B5_fixed_kalman
+    - B6_adaptive_kalman
+  protected_files:
+    artifacts/model_selection/t1_b2_v1/artifact_inventory.csv: 8d1d5f22f797ab553f5229bfb62ff7ac0c134ed327533a11317274499ae334fb
+    artifacts/model_selection/t1_b2_v1/outer_fold_predictions.csv: e1b933e35aa126719fac31ca0d9b468e4feb70c296beaa8faa1b25cf3120a79f
+    artifacts/model_selection/t1_b2_v1/fold_contracts.csv: e94ce90e6172d2d078af31477a8ba0222b0be892dfe6016aac8d21c2f7da4c10
+    artifacts/model_selection/t1_b2_v1/transition_thresholds.csv: 84edcc548f8addbe862bee1d7e5ddd91177474db3490562beef58902c0bd05a9
+    artifacts/model_selection/t1_b2_v1/aggregate_metrics.csv: c118303c2c5c42c2342b57c65cd1d5f8bd6681f25059699053214571683e0bd2
+    artifacts/model_selection/t1_b2_v1/development_candidate.json: d8d2307bda5735c172116375c9c9b7b01e37c46b6c0b0fa3c86b3c7cef58fdf8
+    artifacts/model_selection/t1_b2_v1/validation_report.json: d5603d94be590a77ddb001b0b402fec4e61f40c2ba4fb590b535e3a1937d38b6
+
+development_policy:
+  outer_designs:
+    temporal_holdout: 1
+    rolling_origin: 5
+    leave_profile_out: 14
+    leave_zone_out: 4
+  outer_grouped_holdout_mode: forward_only
+  inner_rolling_origin_folds: 3
+  inner_minimum_train_dates: 4
+  calibration_rolling_origin_folds: 5
+  headline_metric: mae
+  secondary_metrics: [rmse, bias, r2]
+  tuning_reference: B1_persistence_last_rate
+  tuning_objective:
+    overall_normalized_mae_weight: 0.50
+    problem_transition_normalized_mae_weight: 0.50
+    problem_transition_segments: [accelerating, volatile_or_gap]
+    minimum_problem_transition_rows: 5
+  tuning_tie_break:
+    - tuning_score
+    - problem_transition_normalized_mae
+    - overall_normalized_mae
+    - q_transition
+    - p_transition_stay
+
+imm_model:
+  model_id: B7_two_regime_imm
+  family: imm_damped_acceleration
+  regimes: [stable, transition]
+  q_stable_grid: [0.5, 2.0]
+  q_transition_grid: [50.0, 200.0]
+  p_stable_stay_grid: [0.97, 0.99]
+  p_transition_stay_grid: [0.75, 0.90]
+  parameters:
+    stable_acceleration_retention_per_year: 0.20
+    transition_acceleration_retention_per_year: 0.95
+    initial_transition_probability: 0.10
+    initial_position_variance: 4.0
+    initial_velocity_variance: 400.0
+    initial_acceleration_variance: 2500.0
+    minimum_measurement_variance: 0.01
+    minimum_rate_measurement_variance: 1.0
+    rate_measurement_variance_multiplier: 4.0
+    acceleration_scale_quantile: 0.80
+    acceleration_measurement_scale_multiplier: 1.0
+    minimum_acceleration_measurement_variance: 25.0
+    acceleration_clip_ratio: 4.0
+    raw_sigma_floor_mm_y: 1.0
+    covariance_jitter: 1.0e-8
+    likelihood_variance_floor: 1.0e-10
+
+interval_calibration:
+  method: nested_rolling_scaled_conformal
+  coverage_levels: [0.80, 0.90, 0.95]
+  quantile_method: finite_sample_higher
+  sigma_floor_mm_y: 1.0
+  calibration_source: nested_train_oof_only
+
+transition_validation:
+  source: frozen_gate_b2_outer_assignments
+  problem_transition_segments: [accelerating, volatile_or_gap]
+  inner_acceleration_absolute_quantile: 0.80
+  inner_volatility_quantile: 0.80
+  inner_missing_campaigns_threshold: 2
+  inner_threshold_fit_scope: inner_train_only
+
+acceptance:
+  temporal_mae_ratio_vs_b6_max: 1.02
+  problem_transition_improvement_vs_b1_percent_min: 10.0
+  problem_transition_improvement_vs_b6_percent_min: 10.0
+  accelerating_mae_ratio_vs_b1_max: 1.00
+  volatile_or_gap_mae_ratio_vs_b1_max: 1.00
+  leave_profile_mae_degradation_vs_temporal_percent_max: 5.0
+  leave_zone_mae_degradation_vs_temporal_percent_max: 5.0
+  leave_zone_mae_ratio_vs_b1_max: 1.00
+  coverage_95_min: 0.90
+  coverage_95_max: 0.97
+  status_if_no_new_holdout: validation_only_not_final
+
+artifacts:
+  root: artifacts/model_selection/t1_b3_v1
+  protected_predecessor_snapshot: artifacts/model_selection/t1_b3_v1/protected_predecessor_snapshot.json
+  fold_contracts: artifacts/model_selection/t1_b3_v1/fold_contracts.csv
+  imm_tuning: artifacts/model_selection/t1_b3_v1/imm_tuning.csv
+  imm_outer_predictions: artifacts/model_selection/t1_b3_v1/imm_outer_predictions.csv
+  comparison_predictions: artifacts/model_selection/t1_b3_v1/comparison_predictions.csv
+  fold_metrics: artifacts/model_selection/t1_b3_v1/fold_metrics.csv
+  aggregate_metrics: artifacts/model_selection/t1_b3_v1/aggregate_metrics.csv
+  model_comparison: artifacts/model_selection/t1_b3_v1/model_comparison.csv
+  calibration_predictions: artifacts/model_selection/t1_b3_v1/calibration_predictions.csv
+  interval_calibration: artifacts/model_selection/t1_b3_v1/interval_calibration.csv
+  validation_intervals: artifacts/model_selection/t1_b3_v1/validation_intervals.csv
+  interval_metrics: artifacts/model_selection/t1_b3_v1/interval_metrics.csv
+  transition_metrics: artifacts/model_selection/t1_b3_v1/transition_metrics.csv
+  problem_transition_metrics: artifacts/model_selection/t1_b3_v1/problem_transition_metrics.csv
+  regime_summary: artifacts/model_selection/t1_b3_v1/regime_summary.csv
+  development_candidate: artifacts/model_selection/t1_b3_v1/development_candidate.json
+  gate_report: artifacts/model_selection/t1_b3_v1/gate_b3_report.json
+  validation_report: artifacts/model_selection/t1_b3_v1/validation_report.json
+  artifact_inventory: artifacts/model_selection/t1_b3_v1/artifact_inventory.csv
