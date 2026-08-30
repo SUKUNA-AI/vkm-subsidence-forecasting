@@ -1,0 +1,25 @@
+{
+  "audit_tail_points": 88,
+  "audit_tail_profiles": 14,
+  "audit_tail_rows": 88,
+  "audit_tail_zones": 4,
+  "audit_target_date": "2023-11-07",
+  "core_rows": 823,
+  "design_counts": {
+    "internal_temporal": 1,
+    "train_leave_profile_out": 14,
+    "train_leave_zone_out": 4,
+    "train_rolling_origin": 5
+  },
+  "files": {
+    "artifacts/splits/t1_train_research_v1/audit_tail.csv": "dbac53f3162621849af0f4aa315aa969a95636958469634d44a44ee225e84821",
+    "artifacts/splits/t1_train_research_v1/core.csv": "56fffe8d7a0fa909b5e5feb2224442141eb18ef7d938863969dfd20d575ada0d",
+    "artifacts/splits/t1_train_research_v1/fold_assignments.csv": "a48924ea6a7e0055953dd7ed35dc43c7dd01f81d82f091eeb162151e5542a449",
+    "artifacts/splits/t1_train_research_v1/fold_contracts.csv": "dd2ab51f2d8fff3386a7d07b1d0099286a8648e055cc4ca4d907dfd460fa04c4"
+  },
+  "schema_version": 1,
+  "source_rows": 911,
+  "source_sample_ids_sha256": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c",
+  "source_split": "t1_v1/train",
+  "split_version": "t1_train_research_v1"
+}

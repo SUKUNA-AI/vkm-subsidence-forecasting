@@ -52,6 +52,10 @@ pip.conf
 # Reproducible but generated working trees
 work/
 
+# Local sealed final-holdout package; commit only its instructions and frozen hashes.
+inputs/holdout_candidates/t1_final_v3/*
+!inputs/holdout_candidates/t1_final_v3/README.md
+
 # Runtime logs and temporary files
 *.log
 *.tmp

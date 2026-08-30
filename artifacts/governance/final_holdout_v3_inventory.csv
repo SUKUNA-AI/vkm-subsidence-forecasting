@@ -1,0 +1,4 @@
+role,relative_path,exists,size_bytes,sha256,content_parsed_before_freeze
+package_manifest,inputs/holdout_candidates/t1_final_v3/package_manifest.json,False,,,False
+origins,inputs/holdout_candidates/t1_final_v3/holdout_origins.csv,False,,,False
+sealed_targets,inputs/holdout_candidates/t1_final_v3/holdout_targets.sealed.csv,False,,,False

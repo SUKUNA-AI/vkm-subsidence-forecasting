@@ -1,0 +1,165 @@
+schema_version: 1
+gate: B4_T1_TRAIN_ONLY_ROBUST_INNOVATION
+task: t1
+source_split: t1_v1/train
+research_split_version: t1_train_research_v1
+target_column: observed_rate_mm_y
+random_seed: 42117
+
+source_files:
+  - configs/final_holdout_v3.yaml
+  - configs/gate_b4.yaml
+  - docs/governance/GATE_B4_TRAIN_ONLY_PROTOCOL.md
+  - src/skru1/data_contracts.py
+  - src/skru1/splits.py
+  - src/skru1/leakage.py
+  - src/skru1/preprocessing.py
+  - src/skru1/baselines.py
+  - src/skru1/metrics.py
+  - src/skru1/evaluation.py
+  - src/skru1/transition_validation.py
+  - src/skru1/adaptive_kalman.py
+  - src/skru1/imm_kalman.py
+  - src/skru1/robust_imm.py
+  - src/skru1/train_research_splits.py
+  - src/skru1/gate_b4.py
+  - src/skru1/holdout_intake.py
+  - scripts/run_gate_b4.py
+  - scripts/run_holdout_v3.py
+
+data_boundary:
+  allowed_model_selection_data: [t1_v1/train]
+  prohibited_model_selection_data: [t1_v1/validation, t1_v1/test]
+  current_validation_role: historical_descriptive_only_not_loaded
+  current_test_role: disclosed_historical_diagnostic_only_not_loaded
+  future_holdout_policy: configs/final_holdout_v3.yaml
+
+protected_predecessors:
+  artifacts/splits/t1_v1/validation.csv: c38163f5fd586a69edfe647995c46649a3f13725f7a1d882e150805c9811bc60
+  artifacts/splits/t1_v1/test.csv: d94b34cdcccdd0bea1af4e78e508f06f555cebe876a5a3846bb83f51a6484ac6
+  artifacts/model_selection/frozen_candidate.json: 705c4712e4dc6e75aed5773c355518fe9cf1a3aa0ef21e654a7df539ba7587cd
+  artifacts/model_selection/t1_b2_v1/development_candidate.json: d8d2307bda5735c172116375c9c9b7b01e37c46b6c0b0fa3c86b3c7cef58fdf8
+  artifacts/model_selection/t1_b3_v1/development_candidate.json: 98127c07fde863ab2dc04fffe69922620c4cd4c43ee09dd336b40e47dad90ac7
+  configs/gate_b2.yaml: 01dea4454ee6468cfd23ec2d736bb16d99cd5090ec3ae9dff4c82ad7929ec4c3
+  configs/gate_b3.yaml: 95375b3e50aead2f9942d3b707d93be1f618042f4e72dfd7cda3330eeb9ac0f9
+  src/skru1/adaptive_kalman.py: a9420a277cfc5f985d0ff179972a1f9813f35162a9e4e2f0f029ca33dcc512bd
+  src/skru1/imm_kalman.py: 4770b9761bea9e777631d92f99a5739315a4ffa1b6475398427eaeb9bf30ba85
+  artifacts/model_selection/t1_b0_b1_v1/test_access_ledger.json: 86110ea4cc25e4dcd4bb7b2355db2c128b6f864102f3d3b8fec5568bee7c75bf
+  artifacts/model_selection/t1_b0_b1_v1/test_predictions.csv: bec1066be04c8cffcb0db5adfba98a1038d699b1068faa900d0dafdac980dc0b
+  artifacts/model_selection/t1_b0_b1_v1/test_metrics.csv: c23d225e028ae140a7c4569173726b26b53919c19aa347da3a784b99d141c760
+  artifacts/model_selection/t1_b0_b1_v1/final_test_report.json: 39123904ac39712f58701c9fc062fc21a8b6420dff9193e1d0128fa8233cf919
+
+resampling:
+  internal_temporal_tail_campaigns: 1
+  rolling_origin_folds: 5
+  leave_profile_out_folds: 14
+  leave_zone_out_folds: 4
+  grouped_holdout_mode: forward_only
+  inner_rolling_origin_folds: 3
+  inner_minimum_train_dates: 4
+
+frozen_comparators:
+  - model_id: B1_persistence_last_rate
+    family: persistence
+    parameters:
+      fallback: train_target_median
+  - model_id: B5_fixed_kalman
+    family: fixed_kalman
+    parameters:
+      process_variance_q: 25.0
+      initial_velocity_variance: 400.0
+      minimum_measurement_variance: 0.01
+  - model_id: B6_adaptive_kalman
+    family: adaptive_kalman
+    parameters:
+      q_base: 10.0
+      acceleration_gain: 0.0
+      initial_velocity_variance: 400.0
+      minimum_measurement_variance: 0.01
+      minimum_rate_measurement_variance: 1.0
+      rate_measurement_variance_multiplier: 4.0
+      adaptation_quantile: 0.80
+      acceleration_weight: 0.75
+      volatility_weight: 0.50
+      gap_weight: 0.25
+      maximum_feature_ratio: 4.0
+      process_scale_min: 1.0
+      process_scale_max: 10.0
+      acceleration_clip_ratio: 4.0
+      raw_sigma_floor_mm_y: 1.0
+  - model_id: B7_two_regime_imm
+    family: imm_damped_acceleration
+    parameters:
+      q_stable: 0.5
+      q_transition: 200.0
+      p_stable_stay: 0.99
+      p_transition_stay: 0.75
+      stable_acceleration_retention_per_year: 0.20
+      transition_acceleration_retention_per_year: 0.95
+      initial_transition_probability: 0.10
+      initial_position_variance: 4.0
+      initial_velocity_variance: 400.0
+      initial_acceleration_variance: 2500.0
+      minimum_measurement_variance: 0.01
+      minimum_rate_measurement_variance: 1.0
+      rate_measurement_variance_multiplier: 4.0
+      acceleration_scale_quantile: 0.80
+      acceleration_measurement_scale_multiplier: 1.0
+      minimum_acceleration_measurement_variance: 25.0
+      acceleration_clip_ratio: 4.0
+      raw_sigma_floor_mm_y: 1.0
+      covariance_jitter: 1.0e-8
+      likelihood_variance_floor: 1.0e-10
+
+robust_model:
+  model_id: B8_student_t_robust_imm
+  family: imm_student_t_robust_observation
+  hypothesis: bounded_innovation_influence_reduces_volatile_or_gap_error
+  student_t_df_grid: [3.0, 5.0, 10.0, 30.0]
+  fixed_parameters:
+    minimum_robust_weight: 0.05
+  frozen_dynamics_source: B7_two_regime_imm
+
+selection:
+  objective:
+    overall_normalized_mae_weight: 0.50
+    volatile_or_gap_normalized_mae_weight: 0.50
+  reference_model: B7_two_regime_imm
+  segment: volatile_or_gap
+  minimum_segment_rows: 5
+  tie_break: [tuning_score, volatile_or_gap_normalized_mae, overall_normalized_mae, student_t_df]
+
+transition_validation:
+  acceleration_absolute_quantile: 0.80
+  volatility_quantile: 0.80
+  missing_campaigns_threshold: 2
+  threshold_fit_scope: each_outer_or_inner_train_only
+
+acceptance:
+  internal_temporal_mae_ratio_vs_b7_max: 1.02
+  volatile_or_gap_improvement_vs_b7_percent_min: 10.0
+  accelerating_mae_ratio_vs_b7_max: 1.02
+  leave_profile_degradation_vs_internal_temporal_percent_max: 5.0
+  leave_zone_degradation_vs_internal_temporal_percent_max: 5.0
+  leave_zone_mae_ratio_vs_b7_max: 1.00
+  robust_downweighted_updates_min: 1
+  status_if_pass: train_only_frozen_research_candidate
+  status_if_fail: train_only_research_recorded
+
+artifacts:
+  root: artifacts/model_selection/t1_b4_train_only_v1
+  protected_predecessor_snapshot: artifacts/model_selection/t1_b4_train_only_v1/protected_predecessor_snapshot.json
+  split_record: artifacts/model_selection/t1_b4_train_only_v1/split_record.json
+  fold_contracts: artifacts/model_selection/t1_b4_train_only_v1/fold_contracts.csv
+  robust_tuning: artifacts/model_selection/t1_b4_train_only_v1/robust_tuning.csv
+  outer_predictions: artifacts/model_selection/t1_b4_train_only_v1/outer_predictions.csv
+  fold_metrics: artifacts/model_selection/t1_b4_train_only_v1/fold_metrics.csv
+  aggregate_metrics: artifacts/model_selection/t1_b4_train_only_v1/aggregate_metrics.csv
+  transition_metrics: artifacts/model_selection/t1_b4_train_only_v1/transition_metrics.csv
+  robustness_diagnostics: artifacts/model_selection/t1_b4_train_only_v1/robustness_diagnostics.csv
+  research_candidate: artifacts/model_selection/t1_b4_train_only_v1/research_candidate.json
+  candidate_suite: artifacts/governance/final_candidate_suite_v3.json
+  gate_report: artifacts/model_selection/t1_b4_train_only_v1/gate_b4_report.json
+  validation_report: artifacts/model_selection/t1_b4_train_only_v1/validation_report.json
+  artifact_inventory: artifacts/model_selection/t1_b4_train_only_v1/artifact_inventory.csv
+  split_root: artifacts/splits/t1_train_research_v1

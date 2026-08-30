@@ -1,0 +1,10 @@
+{
+  "candidate_directory": "inputs/holdout_candidates/t1_final_v3",
+  "eligible": false,
+  "next_action": "place an authorized package matching FINAL_HOLDOUT_INTAKE_V3.md",
+  "policy_id": "T1_FINAL_HOLDOUT_V3",
+  "reason": "no_future_or_external_candidate_package_present",
+  "schema_version": 1,
+  "sealed_target_values_read": false,
+  "status": "PENDING_DATA"
+}

@@ -1,0 +1,106 @@
+{
+  "candidate_id": "t1-b4-train-v1-0dedd1296459",
+  "candidate_suite_id": "t1-final-suite-v3-0dedd1296459",
+  "current_t1_test_loaded": false,
+  "data": {
+    "current_test_rows_loaded": 0,
+    "historical_validation_rows_loaded": 0,
+    "internal_audit_tail_rows": 88,
+    "points": 98,
+    "profiles": 14,
+    "rows": 911,
+    "source": "t1_v1/train",
+    "target_date_max": "2023-11-07",
+    "target_date_min": "2019-02-12",
+    "train_sample_ids_sha256": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c"
+  },
+  "final_holdout_status": "PENDING_DATA",
+  "gate": "B4_T1_TRAIN_ONLY_ROBUST_INNOVATION",
+  "historical_validation_loaded": false,
+  "model": {
+    "df_grid": [
+      3.0,
+      5.0,
+      10.0,
+      30.0
+    ],
+    "family": "imm_student_t_robust_observation",
+    "frozen_dynamics_source": "B7_two_regime_imm",
+    "minimum_robust_weight": 0.05,
+    "model_id": "B8_student_t_robust_imm",
+    "selected_student_t_df": 30.0
+  },
+  "new_final_holdout_loaded": false,
+  "predeclared_primary_model_id": "B7_two_regime_imm",
+  "protected_predecessors_match": true,
+  "question": "Does a predeclared Student-t robust observation channel improve volatile/gap behaviour under nested train-only resampling?",
+  "resampling": {
+    "audit_tail_points": 88,
+    "audit_tail_profiles": 14,
+    "audit_tail_rows": 88,
+    "audit_tail_zones": 4,
+    "audit_target_date": "2023-11-07",
+    "core_rows": 823,
+    "design_counts": {
+      "internal_temporal": 1,
+      "train_leave_profile_out": 14,
+      "train_leave_zone_out": 4,
+      "train_rolling_origin": 5
+    },
+    "files": {
+      "artifacts/splits/t1_train_research_v1/audit_tail.csv": "dbac53f3162621849af0f4aa315aa969a95636958469634d44a44ee225e84821",
+      "artifacts/splits/t1_train_research_v1/core.csv": "56fffe8d7a0fa909b5e5feb2224442141eb18ef7d938863969dfd20d575ada0d",
+      "artifacts/splits/t1_train_research_v1/fold_assignments.csv": "a48924ea6a7e0055953dd7ed35dc43c7dd01f81d82f091eeb162151e5542a449",
+      "artifacts/splits/t1_train_research_v1/fold_contracts.csv": "dd2ab51f2d8fff3386a7d07b1d0099286a8648e055cc4ca4d907dfd460fa04c4"
+    },
+    "schema_version": 1,
+    "source_rows": 911,
+    "source_sample_ids_sha256": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c",
+    "source_split": "t1_v1/train",
+    "split_version": "t1_train_research_v1"
+  },
+  "schema_version": 1,
+  "screening": {
+    "all_pass": false,
+    "checks": {
+      "accelerating_vs_b7": true,
+      "internal_temporal_vs_b7": true,
+      "leave_profile_stability": true,
+      "leave_zone_stability": true,
+      "leave_zone_vs_b7": true,
+      "robust_mechanism_active": true,
+      "volatile_or_gap_vs_b7": false
+    },
+    "criteria": {
+      "accelerating_mae_ratio_vs_b7_max": 1.02,
+      "internal_temporal_mae_ratio_vs_b7_max": 1.02,
+      "leave_profile_degradation_vs_internal_temporal_percent_max": 5.0,
+      "leave_zone_degradation_vs_internal_temporal_percent_max": 5.0,
+      "leave_zone_mae_ratio_vs_b7_max": 1.0,
+      "robust_downweighted_updates_min": 1,
+      "status_if_fail": "train_only_research_recorded",
+      "status_if_pass": "train_only_frozen_research_candidate",
+      "volatile_or_gap_improvement_vs_b7_percent_min": 10.0
+    },
+    "observed": {
+      "accelerating_b7_mae": 8.733772005043363,
+      "accelerating_b8_mae": 8.87833201431487,
+      "accelerating_mae_ratio_vs_b7": 1.0165518414252204,
+      "internal_temporal_b7_mae": 6.014953289421122,
+      "internal_temporal_b8_mae": 5.831074817936809,
+      "internal_temporal_mae_ratio_vs_b7": 0.9694297756546653,
+      "leave_profile_b8_mae": 5.820914038763101,
+      "leave_profile_degradation_vs_internal_temporal_percent": -0.17425225178816828,
+      "leave_zone_b7_mae": 6.04617258266821,
+      "leave_zone_b8_mae": 5.857715885707418,
+      "leave_zone_degradation_vs_internal_temporal_percent": 0.4568809113657641,
+      "leave_zone_mae_ratio_vs_b7": 0.9688304138884463,
+      "robust_downweighted_updates": 5365,
+      "volatile_or_gap_b7_mae": 12.76033714696039,
+      "volatile_or_gap_b8_mae": 12.818370584588216,
+      "volatile_or_gap_improvement_vs_b7_percent": -0.45479548823402005
+    },
+    "scope": "t1_v1_train_nested_resampling_only"
+  },
+  "status": "train_only_research_recorded"
+}

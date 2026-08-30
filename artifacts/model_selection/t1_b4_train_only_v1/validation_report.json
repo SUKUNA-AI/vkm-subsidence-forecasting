@@ -1,0 +1,712 @@
+{
+  "checks": [
+    {
+      "check": "artifact_exists::protected_predecessor_snapshot",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "artifact_exists::split_record",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "artifact_exists::fold_contracts",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "artifact_exists::robust_tuning",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "artifact_exists::outer_predictions",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "artifact_exists::fold_metrics",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "artifact_exists::aggregate_metrics",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "artifact_exists::transition_metrics",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "artifact_exists::robustness_diagnostics",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "artifact_exists::research_candidate",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "artifact_exists::candidate_suite",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "artifact_exists::gate_report",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "protected_snapshot_recomputed",
+      "expected": {
+        "all_match": true,
+        "policy": "hash_only_no_validation_or_test_loader",
+        "protected_files": [
+          {
+            "expected_sha256": "c38163f5fd586a69edfe647995c46649a3f13725f7a1d882e150805c9811bc60",
+            "matches": true,
+            "observed_sha256": "c38163f5fd586a69edfe647995c46649a3f13725f7a1d882e150805c9811bc60",
+            "relative_path": "artifacts/splits/t1_v1/validation.csv",
+            "size_bytes": 3000
+          },
+          {
+            "expected_sha256": "d94b34cdcccdd0bea1af4e78e508f06f555cebe876a5a3846bb83f51a6484ac6",
+            "matches": true,
+            "observed_sha256": "d94b34cdcccdd0bea1af4e78e508f06f555cebe876a5a3846bb83f51a6484ac6",
+            "relative_path": "artifacts/splits/t1_v1/test.csv",
+            "size_bytes": 4035
+          },
+          {
+            "expected_sha256": "705c4712e4dc6e75aed5773c355518fe9cf1a3aa0ef21e654a7df539ba7587cd",
+            "matches": true,
+            "observed_sha256": "705c4712e4dc6e75aed5773c355518fe9cf1a3aa0ef21e654a7df539ba7587cd",
+            "relative_path": "artifacts/model_selection/frozen_candidate.json",
+            "size_bytes": 2181
+          },
+          {
+            "expected_sha256": "d8d2307bda5735c172116375c9c9b7b01e37c46b6c0b0fa3c86b3c7cef58fdf8",
+            "matches": true,
+            "observed_sha256": "d8d2307bda5735c172116375c9c9b7b01e37c46b6c0b0fa3c86b3c7cef58fdf8",
+            "relative_path": "artifacts/model_selection/t1_b2_v1/development_candidate.json",
+            "size_bytes": 3296
+          },
+          {
+            "expected_sha256": "98127c07fde863ab2dc04fffe69922620c4cd4c43ee09dd336b40e47dad90ac7",
+            "matches": true,
+            "observed_sha256": "98127c07fde863ab2dc04fffe69922620c4cd4c43ee09dd336b40e47dad90ac7",
+            "relative_path": "artifacts/model_selection/t1_b3_v1/development_candidate.json",
+            "size_bytes": 5127
+          },
+          {
+            "expected_sha256": "01dea4454ee6468cfd23ec2d736bb16d99cd5090ec3ae9dff4c82ad7929ec4c3",
+            "matches": true,
+            "observed_sha256": "01dea4454ee6468cfd23ec2d736bb16d99cd5090ec3ae9dff4c82ad7929ec4c3",
+            "relative_path": "configs/gate_b2.yaml",
+            "size_bytes": 4585
+          },
+          {
+            "expected_sha256": "95375b3e50aead2f9942d3b707d93be1f618042f4e72dfd7cda3330eeb9ac0f9",
+            "matches": true,
+            "observed_sha256": "95375b3e50aead2f9942d3b707d93be1f618042f4e72dfd7cda3330eeb9ac0f9",
+            "relative_path": "configs/gate_b3.yaml",
+            "size_bytes": 6346
+          },
+          {
+            "expected_sha256": "a9420a277cfc5f985d0ff179972a1f9813f35162a9e4e2f0f029ca33dcc512bd",
+            "matches": true,
+            "observed_sha256": "a9420a277cfc5f985d0ff179972a1f9813f35162a9e4e2f0f029ca33dcc512bd",
+            "relative_path": "src/skru1/adaptive_kalman.py",
+            "size_bytes": 17811
+          },
+          {
+            "expected_sha256": "4770b9761bea9e777631d92f99a5739315a4ffa1b6475398427eaeb9bf30ba85",
+            "matches": true,
+            "observed_sha256": "4770b9761bea9e777631d92f99a5739315a4ffa1b6475398427eaeb9bf30ba85",
+            "relative_path": "src/skru1/imm_kalman.py",
+            "size_bytes": 23808
+          },
+          {
+            "expected_sha256": "86110ea4cc25e4dcd4bb7b2355db2c128b6f864102f3d3b8fec5568bee7c75bf",
+            "matches": true,
+            "observed_sha256": "86110ea4cc25e4dcd4bb7b2355db2c128b6f864102f3d3b8fec5568bee7c75bf",
+            "relative_path": "artifacts/model_selection/t1_b0_b1_v1/test_access_ledger.json",
+            "size_bytes": 1301
+          },
+          {
+            "expected_sha256": "bec1066be04c8cffcb0db5adfba98a1038d699b1068faa900d0dafdac980dc0b",
+            "matches": true,
+            "observed_sha256": "bec1066be04c8cffcb0db5adfba98a1038d699b1068faa900d0dafdac980dc0b",
+            "relative_path": "artifacts/model_selection/t1_b0_b1_v1/test_predictions.csv",
+            "size_bytes": 31182
+          },
+          {
+            "expected_sha256": "c23d225e028ae140a7c4569173726b26b53919c19aa347da3a784b99d141c760",
+            "matches": true,
+            "observed_sha256": "c23d225e028ae140a7c4569173726b26b53919c19aa347da3a784b99d141c760",
+            "relative_path": "artifacts/model_selection/t1_b0_b1_v1/test_metrics.csv",
+            "size_bytes": 470
+          },
+          {
+            "expected_sha256": "39123904ac39712f58701c9fc062fc21a8b6420dff9193e1d0128fa8233cf919",
+            "matches": true,
+            "observed_sha256": "39123904ac39712f58701c9fc062fc21a8b6420dff9193e1d0128fa8233cf919",
+            "relative_path": "artifacts/model_selection/t1_b0_b1_v1/final_test_report.json",
+            "size_bytes": 1265
+          }
+        ],
+        "schema_version": 1
+      },
+      "observed": {
+        "all_match": true,
+        "policy": "hash_only_no_validation_or_test_loader",
+        "protected_files": [
+          {
+            "expected_sha256": "c38163f5fd586a69edfe647995c46649a3f13725f7a1d882e150805c9811bc60",
+            "matches": true,
+            "observed_sha256": "c38163f5fd586a69edfe647995c46649a3f13725f7a1d882e150805c9811bc60",
+            "relative_path": "artifacts/splits/t1_v1/validation.csv",
+            "size_bytes": 3000
+          },
+          {
+            "expected_sha256": "d94b34cdcccdd0bea1af4e78e508f06f555cebe876a5a3846bb83f51a6484ac6",
+            "matches": true,
+            "observed_sha256": "d94b34cdcccdd0bea1af4e78e508f06f555cebe876a5a3846bb83f51a6484ac6",
+            "relative_path": "artifacts/splits/t1_v1/test.csv",
+            "size_bytes": 4035
+          },
+          {
+            "expected_sha256": "705c4712e4dc6e75aed5773c355518fe9cf1a3aa0ef21e654a7df539ba7587cd",
+            "matches": true,
+            "observed_sha256": "705c4712e4dc6e75aed5773c355518fe9cf1a3aa0ef21e654a7df539ba7587cd",
+            "relative_path": "artifacts/model_selection/frozen_candidate.json",
+            "size_bytes": 2181
+          },
+          {
+            "expected_sha256": "d8d2307bda5735c172116375c9c9b7b01e37c46b6c0b0fa3c86b3c7cef58fdf8",
+            "matches": true,
+            "observed_sha256": "d8d2307bda5735c172116375c9c9b7b01e37c46b6c0b0fa3c86b3c7cef58fdf8",
+            "relative_path": "artifacts/model_selection/t1_b2_v1/development_candidate.json",
+            "size_bytes": 3296
+          },
+          {
+            "expected_sha256": "98127c07fde863ab2dc04fffe69922620c4cd4c43ee09dd336b40e47dad90ac7",
+            "matches": true,
+            "observed_sha256": "98127c07fde863ab2dc04fffe69922620c4cd4c43ee09dd336b40e47dad90ac7",
+            "relative_path": "artifacts/model_selection/t1_b3_v1/development_candidate.json",
+            "size_bytes": 5127
+          },
+          {
+            "expected_sha256": "01dea4454ee6468cfd23ec2d736bb16d99cd5090ec3ae9dff4c82ad7929ec4c3",
+            "matches": true,
+            "observed_sha256": "01dea4454ee6468cfd23ec2d736bb16d99cd5090ec3ae9dff4c82ad7929ec4c3",
+            "relative_path": "configs/gate_b2.yaml",
+            "size_bytes": 4585
+          },
+          {
+            "expected_sha256": "95375b3e50aead2f9942d3b707d93be1f618042f4e72dfd7cda3330eeb9ac0f9",
+            "matches": true,
+            "observed_sha256": "95375b3e50aead2f9942d3b707d93be1f618042f4e72dfd7cda3330eeb9ac0f9",
+            "relative_path": "configs/gate_b3.yaml",
+            "size_bytes": 6346
+          },
+          {
+            "expected_sha256": "a9420a277cfc5f985d0ff179972a1f9813f35162a9e4e2f0f029ca33dcc512bd",
+            "matches": true,
+            "observed_sha256": "a9420a277cfc5f985d0ff179972a1f9813f35162a9e4e2f0f029ca33dcc512bd",
+            "relative_path": "src/skru1/adaptive_kalman.py",
+            "size_bytes": 17811
+          },
+          {
+            "expected_sha256": "4770b9761bea9e777631d92f99a5739315a4ffa1b6475398427eaeb9bf30ba85",
+            "matches": true,
+            "observed_sha256": "4770b9761bea9e777631d92f99a5739315a4ffa1b6475398427eaeb9bf30ba85",
+            "relative_path": "src/skru1/imm_kalman.py",
+            "size_bytes": 23808
+          },
+          {
+            "expected_sha256": "86110ea4cc25e4dcd4bb7b2355db2c128b6f864102f3d3b8fec5568bee7c75bf",
+            "matches": true,
+            "observed_sha256": "86110ea4cc25e4dcd4bb7b2355db2c128b6f864102f3d3b8fec5568bee7c75bf",
+            "relative_path": "artifacts/model_selection/t1_b0_b1_v1/test_access_ledger.json",
+            "size_bytes": 1301
+          },
+          {
+            "expected_sha256": "bec1066be04c8cffcb0db5adfba98a1038d699b1068faa900d0dafdac980dc0b",
+            "matches": true,
+            "observed_sha256": "bec1066be04c8cffcb0db5adfba98a1038d699b1068faa900d0dafdac980dc0b",
+            "relative_path": "artifacts/model_selection/t1_b0_b1_v1/test_predictions.csv",
+            "size_bytes": 31182
+          },
+          {
+            "expected_sha256": "c23d225e028ae140a7c4569173726b26b53919c19aa347da3a784b99d141c760",
+            "matches": true,
+            "observed_sha256": "c23d225e028ae140a7c4569173726b26b53919c19aa347da3a784b99d141c760",
+            "relative_path": "artifacts/model_selection/t1_b0_b1_v1/test_metrics.csv",
+            "size_bytes": 470
+          },
+          {
+            "expected_sha256": "39123904ac39712f58701c9fc062fc21a8b6420dff9193e1d0128fa8233cf919",
+            "matches": true,
+            "observed_sha256": "39123904ac39712f58701c9fc062fc21a8b6420dff9193e1d0128fa8233cf919",
+            "relative_path": "artifacts/model_selection/t1_b0_b1_v1/final_test_report.json",
+            "size_bytes": 1265
+          }
+        ],
+        "schema_version": 1
+      },
+      "passed": true
+    },
+    {
+      "check": "fold_contracts_recomputed",
+      "expected": 24,
+      "observed": 24,
+      "passed": true
+    },
+    {
+      "check": "design_counts",
+      "expected": {
+        "internal_temporal": 1,
+        "train_leave_profile_out": 14,
+        "train_leave_zone_out": 4,
+        "train_rolling_origin": 5
+      },
+      "observed": {
+        "internal_temporal": 1,
+        "train_leave_profile_out": 14,
+        "train_leave_zone_out": 4,
+        "train_rolling_origin": 5
+      },
+      "passed": true
+    },
+    {
+      "check": "all_outer_folds_forward_only",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "prediction_ids_subset_train",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check": "model_set_exact",
+      "expected": [
+        "B1_persistence_last_rate",
+        "B5_fixed_kalman",
+        "B6_adaptive_kalman",
+        "B7_two_regime_imm",
+        "B8_student_t_robust_imm"
+      ],
+      "observed": [
+        "B1_persistence_last_rate",
+        "B5_fixed_kalman",
+        "B6_adaptive_kalman",
+        "B7_two_regime_imm",
+        "B8_student_t_robust_imm"
+      ],
+      "passed": true
+    },
+    {
+      "check": "model_rows_aligned",
+      "expected": 5,
+      "observed": 5,
+      "passed": true
+    },
+    {
+      "check": "predictions_finite",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "fold_metrics_recomputed",
+      "expected": 120,
+      "observed": 120,
+      "passed": true
+    },
+    {
+      "check": "aggregate_metrics_recomputed",
+      "expected": 20,
+      "observed": 20,
+      "passed": true
+    },
+    {
+      "check": "transition_metrics_recomputed",
+      "expected": 140,
+      "observed": 140,
+      "passed": true
+    },
+    {
+      "check": "robustness_diagnostics_recomputed",
+      "expected": 24,
+      "observed": 24,
+      "passed": true
+    },
+    {
+      "check": "four_candidates_per_tuning_context",
+      "expected": "all 4",
+      "observed": {
+        "final_spec::full_train": 4,
+        "outer::rolling_01": 4,
+        "outer::rolling_02": 4,
+        "outer::rolling_03": 4,
+        "outer::rolling_04": 4,
+        "outer::rolling_05": 4,
+        "outer::train_leave_profile_out_P-D01": 4,
+        "outer::train_leave_profile_out_P-H01": 4,
+        "outer::train_leave_profile_out_P-H02": 4,
+        "outer::train_leave_profile_out_P-H03": 4,
+        "outer::train_leave_profile_out_P-H04": 4,
+        "outer::train_leave_profile_out_P-H05": 4,
+        "outer::train_leave_profile_out_P-H06": 4,
+        "outer::train_leave_profile_out_P-H07": 4,
+        "outer::train_leave_profile_out_P-V01": 4,
+        "outer::train_leave_profile_out_P-V02": 4,
+        "outer::train_leave_profile_out_P-V03": 4,
+        "outer::train_leave_profile_out_P-V04": 4,
+        "outer::train_leave_profile_out_P-V05": 4,
+        "outer::train_leave_profile_out_P-V06": 4,
+        "outer::train_leave_zone_out_GEO_NE": 4,
+        "outer::train_leave_zone_out_GEO_NW": 4,
+        "outer::train_leave_zone_out_GEO_SE": 4,
+        "outer::train_leave_zone_out_GEO_SW": 4,
+        "outer::train_tail_2023-11-07": 4
+      },
+      "passed": true
+    },
+    {
+      "check": "one_selected_per_tuning_context",
+      "expected": "all 1",
+      "observed": {
+        "final_spec::full_train": 1,
+        "outer::rolling_01": 1,
+        "outer::rolling_02": 1,
+        "outer::rolling_03": 1,
+        "outer::rolling_04": 1,
+        "outer::rolling_05": 1,
+        "outer::train_leave_profile_out_P-D01": 1,
+        "outer::train_leave_profile_out_P-H01": 1,
+        "outer::train_leave_profile_out_P-H02": 1,
+        "outer::train_leave_profile_out_P-H03": 1,
+        "outer::train_leave_profile_out_P-H04": 1,
+        "outer::train_leave_profile_out_P-H05": 1,
+        "outer::train_leave_profile_out_P-H06": 1,
+        "outer::train_leave_profile_out_P-H07": 1,
+        "outer::train_leave_profile_out_P-V01": 1,
+        "outer::train_leave_profile_out_P-V02": 1,
+        "outer::train_leave_profile_out_P-V03": 1,
+        "outer::train_leave_profile_out_P-V04": 1,
+        "outer::train_leave_profile_out_P-V05": 1,
+        "outer::train_leave_profile_out_P-V06": 1,
+        "outer::train_leave_zone_out_GEO_NE": 1,
+        "outer::train_leave_zone_out_GEO_NW": 1,
+        "outer::train_leave_zone_out_GEO_SE": 1,
+        "outer::train_leave_zone_out_GEO_SW": 1,
+        "outer::train_tail_2023-11-07": 1
+      },
+      "passed": true
+    },
+    {
+      "check": "selected_candidate_minimizes_score",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "all_inner_folds_forward_only",
+      "expected": true,
+      "observed": true,
+      "passed": true
+    },
+    {
+      "check": "screening_recomputed",
+      "expected": {
+        "all_pass": false,
+        "checks": {
+          "accelerating_vs_b7": true,
+          "internal_temporal_vs_b7": true,
+          "leave_profile_stability": true,
+          "leave_zone_stability": true,
+          "leave_zone_vs_b7": true,
+          "robust_mechanism_active": true,
+          "volatile_or_gap_vs_b7": false
+        },
+        "criteria": {
+          "accelerating_mae_ratio_vs_b7_max": 1.02,
+          "internal_temporal_mae_ratio_vs_b7_max": 1.02,
+          "leave_profile_degradation_vs_internal_temporal_percent_max": 5.0,
+          "leave_zone_degradation_vs_internal_temporal_percent_max": 5.0,
+          "leave_zone_mae_ratio_vs_b7_max": 1.0,
+          "robust_downweighted_updates_min": 1,
+          "status_if_fail": "train_only_research_recorded",
+          "status_if_pass": "train_only_frozen_research_candidate",
+          "volatile_or_gap_improvement_vs_b7_percent_min": 10.0
+        },
+        "observed": {
+          "accelerating_b7_mae": 8.733772005043363,
+          "accelerating_b8_mae": 8.87833201431487,
+          "accelerating_mae_ratio_vs_b7": 1.0165518414252204,
+          "internal_temporal_b7_mae": 6.014953289421122,
+          "internal_temporal_b8_mae": 5.831074817936809,
+          "internal_temporal_mae_ratio_vs_b7": 0.9694297756546653,
+          "leave_profile_b8_mae": 5.820914038763101,
+          "leave_profile_degradation_vs_internal_temporal_percent": -0.17425225178816828,
+          "leave_zone_b7_mae": 6.04617258266821,
+          "leave_zone_b8_mae": 5.857715885707418,
+          "leave_zone_degradation_vs_internal_temporal_percent": 0.4568809113657641,
+          "leave_zone_mae_ratio_vs_b7": 0.9688304138884463,
+          "robust_downweighted_updates": 5365,
+          "volatile_or_gap_b7_mae": 12.76033714696039,
+          "volatile_or_gap_b8_mae": 12.818370584588216,
+          "volatile_or_gap_improvement_vs_b7_percent": -0.45479548823402005
+        },
+        "scope": "t1_v1_train_nested_resampling_only"
+      },
+      "observed": {
+        "all_pass": false,
+        "checks": {
+          "accelerating_vs_b7": true,
+          "internal_temporal_vs_b7": true,
+          "leave_profile_stability": true,
+          "leave_zone_stability": true,
+          "leave_zone_vs_b7": true,
+          "robust_mechanism_active": true,
+          "volatile_or_gap_vs_b7": false
+        },
+        "criteria": {
+          "accelerating_mae_ratio_vs_b7_max": 1.02,
+          "internal_temporal_mae_ratio_vs_b7_max": 1.02,
+          "leave_profile_degradation_vs_internal_temporal_percent_max": 5.0,
+          "leave_zone_degradation_vs_internal_temporal_percent_max": 5.0,
+          "leave_zone_mae_ratio_vs_b7_max": 1.0,
+          "robust_downweighted_updates_min": 1,
+          "status_if_fail": "train_only_research_recorded",
+          "status_if_pass": "train_only_frozen_research_candidate",
+          "volatile_or_gap_improvement_vs_b7_percent_min": 10.0
+        },
+        "observed": {
+          "accelerating_b7_mae": 8.73377200504336,
+          "accelerating_b8_mae": 8.87833201431487,
+          "accelerating_mae_ratio_vs_b7": 1.0165518414252208,
+          "internal_temporal_b7_mae": 6.014953289421122,
+          "internal_temporal_b8_mae": 5.831074817936809,
+          "internal_temporal_mae_ratio_vs_b7": 0.9694297756546653,
+          "leave_profile_b8_mae": 5.820914038763101,
+          "leave_profile_degradation_vs_internal_temporal_percent": -0.17425225178816828,
+          "leave_zone_b7_mae": 6.04617258266821,
+          "leave_zone_b8_mae": 5.857715885707418,
+          "leave_zone_degradation_vs_internal_temporal_percent": 0.4568809113657641,
+          "leave_zone_mae_ratio_vs_b7": 0.9688304138884463,
+          "robust_downweighted_updates": 5365,
+          "volatile_or_gap_b7_mae": 12.76033714696039,
+          "volatile_or_gap_b8_mae": 12.818370584588216,
+          "volatile_or_gap_improvement_vs_b7_percent": -0.45479548823402005
+        },
+        "scope": "t1_v1_train_nested_resampling_only"
+      },
+      "passed": true
+    },
+    {
+      "check": "candidate_df_matches_full_train_tuning",
+      "expected": 30.0,
+      "observed": 30.0,
+      "passed": true
+    },
+    {
+      "check": "suite_primary_predeclared_rule",
+      "expected": "B7_two_regime_imm",
+      "observed": "B7_two_regime_imm",
+      "passed": true
+    },
+    {
+      "check": "suite_never_saw_holdout",
+      "expected": {
+        "new_holdout_seen": false,
+        "primary_selected_from_holdout": false
+      },
+      "observed": {
+        "new_holdout_seen": false,
+        "primary_selected_from_holdout": false
+      },
+      "passed": true
+    },
+    {
+      "check": "candidate_boundary",
+      "expected": "train only; no validation/test; not final",
+      "observed": {
+        "current_t1_test_used": false,
+        "historical_validation_used": false,
+        "selection_data": [
+          "t1_v1/train"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::configs/final_holdout_v3.yaml",
+      "expected": "6499cafc73eaf27c541e437bbd3c5b42098598f85953d95cde47f37cccd48f57",
+      "observed": "6499cafc73eaf27c541e437bbd3c5b42098598f85953d95cde47f37cccd48f57",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::configs/gate_b4.yaml",
+      "expected": "aaf51ea1e1ae07219961c2085b34bf68c56655b6d3b233ad32e1f00a6777d8f4",
+      "observed": "aaf51ea1e1ae07219961c2085b34bf68c56655b6d3b233ad32e1f00a6777d8f4",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::docs/governance/GATE_B4_TRAIN_ONLY_PROTOCOL.md",
+      "expected": "d7cbcd5b4043d69d077860a13a92cd30fe66216ede7ef9e4d507e8ceac0ce27f",
+      "observed": "d7cbcd5b4043d69d077860a13a92cd30fe66216ede7ef9e4d507e8ceac0ce27f",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::scripts/run_gate_b4.py",
+      "expected": "1282b5f12ca4cb58ec6819f63549fe20081948a6687908277c943c69d8975274",
+      "observed": "1282b5f12ca4cb58ec6819f63549fe20081948a6687908277c943c69d8975274",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::scripts/run_holdout_v3.py",
+      "expected": "d2f6b388e8b6f1b3cd0b3179795f047105515a81bebf8ee16d60461072e3db19",
+      "observed": "d2f6b388e8b6f1b3cd0b3179795f047105515a81bebf8ee16d60461072e3db19",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::src/skru1/adaptive_kalman.py",
+      "expected": "a9420a277cfc5f985d0ff179972a1f9813f35162a9e4e2f0f029ca33dcc512bd",
+      "observed": "a9420a277cfc5f985d0ff179972a1f9813f35162a9e4e2f0f029ca33dcc512bd",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::src/skru1/baselines.py",
+      "expected": "5807dbd353d6bb41c1ab80c0ce37051a9fc4df949b618eb66ff5a6a118f71564",
+      "observed": "5807dbd353d6bb41c1ab80c0ce37051a9fc4df949b618eb66ff5a6a118f71564",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::src/skru1/data_contracts.py",
+      "expected": "7029901eca6323e24db9818c97c5c15a1d4630ed66eeefcdc774085b1e586d20",
+      "observed": "7029901eca6323e24db9818c97c5c15a1d4630ed66eeefcdc774085b1e586d20",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::src/skru1/evaluation.py",
+      "expected": "2d63260e4f5b7a788c257bb1227a06289d989d3c0f3bc0fc2ed7eca9fb425d4c",
+      "observed": "2d63260e4f5b7a788c257bb1227a06289d989d3c0f3bc0fc2ed7eca9fb425d4c",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::src/skru1/gate_b4.py",
+      "expected": "97a02aa7d78470e8e0da1194c09c098a66ce3ae4f6545614eff266ad579be52b",
+      "observed": "97a02aa7d78470e8e0da1194c09c098a66ce3ae4f6545614eff266ad579be52b",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::src/skru1/holdout_intake.py",
+      "expected": "63c0b4e552cbdfcbf6060e381741bfa3fdc35a4de37b95226de49f9d9ef6dabf",
+      "observed": "63c0b4e552cbdfcbf6060e381741bfa3fdc35a4de37b95226de49f9d9ef6dabf",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::src/skru1/imm_kalman.py",
+      "expected": "4770b9761bea9e777631d92f99a5739315a4ffa1b6475398427eaeb9bf30ba85",
+      "observed": "4770b9761bea9e777631d92f99a5739315a4ffa1b6475398427eaeb9bf30ba85",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::src/skru1/leakage.py",
+      "expected": "cb32437113af3e2e915e052845a3136fdef3943fba817bc16a653c2c9e4db13a",
+      "observed": "cb32437113af3e2e915e052845a3136fdef3943fba817bc16a653c2c9e4db13a",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::src/skru1/metrics.py",
+      "expected": "959d8ddf002a29b49a11890455f601010c861a00cb72bbea1eb5d5f6c1f0b742",
+      "observed": "959d8ddf002a29b49a11890455f601010c861a00cb72bbea1eb5d5f6c1f0b742",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::src/skru1/preprocessing.py",
+      "expected": "8fcf3f29ceb1c8c6063450b1783c53fdd5b696bd90c6578e51f94e840eb89187",
+      "observed": "8fcf3f29ceb1c8c6063450b1783c53fdd5b696bd90c6578e51f94e840eb89187",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::src/skru1/robust_imm.py",
+      "expected": "7bc3e0d360a8a43232d13acfb75704c89457f28d556b4536dba05ee46b3ac170",
+      "observed": "7bc3e0d360a8a43232d13acfb75704c89457f28d556b4536dba05ee46b3ac170",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::src/skru1/splits.py",
+      "expected": "1b3de4afca8d3551f5c1a2723c65f4fd0ab365a2b570956dd11aa9f432c894ee",
+      "observed": "1b3de4afca8d3551f5c1a2723c65f4fd0ab365a2b570956dd11aa9f432c894ee",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::src/skru1/train_research_splits.py",
+      "expected": "43e1e39ec436d7541f761be4bff17434d390e0e8a42d79c847e13df3734e73d0",
+      "observed": "43e1e39ec436d7541f761be4bff17434d390e0e8a42d79c847e13df3734e73d0",
+      "passed": true
+    },
+    {
+      "check": "candidate_source_hash::src/skru1/transition_validation.py",
+      "expected": "f5b269ff962c5587cddabffac981142d23100446005c13fa17aab3986fe40426",
+      "observed": "f5b269ff962c5587cddabffac981142d23100446005c13fa17aab3986fe40426",
+      "passed": true
+    },
+    {
+      "check": "no_validation_or_test_loader_call",
+      "expected": [],
+      "observed": [],
+      "passed": true
+    },
+    {
+      "check": "new_holdout_pending",
+      "expected": "PENDING_DATA",
+      "observed": "PENDING_DATA",
+      "passed": true
+    }
+  ],
+  "gate": "B4_T1_TRAIN_ONLY_ROBUST_INNOVATION",
+  "methodology_review": {
+    "data_boundary": "every scored sample ID independently shown to belong to t1_v1/train; AST scan rejects validation/test loader calls",
+    "holdout": "candidate suite names its primary before any new holdout exists",
+    "metrics": "fold, aggregate, transition, and robust influence summaries recomputed from prediction rows",
+    "resampling": "24 forward-only outer contracts rebuilt from train and all tuning contexts assert three forward inner folds",
+    "selection": "four predeclared degrees-of-freedom candidates per context and deterministic minimum-score selection"
+  },
+  "overall_assessment": "Share with caveats",
+  "question": "Are Gate B4 train-only boundaries, nested selection, frozen comparators, metrics, diagnostics, and candidate-suite rule reproducible?",
+  "remaining_caveats": [
+    "The internal audit tail is part of the original train era and is not an external-validity estimate.",
+    "Profile and zone folds reuse the same internal tail, so fold scores are dependent.",
+    "The Student-t mechanism changes all scalar observation channels with one shared degrees of freedom.",
+    "No eligible future/external final holdout is currently available."
+  ],
+  "schema_version": 1,
+  "status": "PASS",
+  "summary": {
+    "checks": 54,
+    "failed": 0
+  }
+}

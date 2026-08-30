@@ -1,0 +1,133 @@
+{
+  "comparator_results_role": "context_only_no_post_holdout_selection",
+  "current_t1_test_loaded_by_gate_b4": false,
+  "feature_contract_sha256": "241bad48e67659ffc953349cd2bce59e61f2a2867d57698abd6574edd4a05272",
+  "historical_validation_loaded_by_gate_b4": false,
+  "models": [
+    {
+      "family": "persistence",
+      "model_id": "B1_persistence_last_rate",
+      "parameters": {
+        "fallback": "train_target_median"
+      }
+    },
+    {
+      "family": "fixed_kalman",
+      "model_id": "B5_fixed_kalman",
+      "parameters": {
+        "initial_velocity_variance": 400.0,
+        "minimum_measurement_variance": 0.01,
+        "process_variance_q": 25.0
+      }
+    },
+    {
+      "family": "adaptive_kalman",
+      "model_id": "B6_adaptive_kalman",
+      "parameters": {
+        "acceleration_clip_ratio": 4.0,
+        "acceleration_gain": 0.0,
+        "acceleration_weight": 0.75,
+        "adaptation_quantile": 0.8,
+        "gap_weight": 0.25,
+        "initial_velocity_variance": 400.0,
+        "maximum_feature_ratio": 4.0,
+        "minimum_measurement_variance": 0.01,
+        "minimum_rate_measurement_variance": 1.0,
+        "process_scale_max": 10.0,
+        "process_scale_min": 1.0,
+        "q_base": 10.0,
+        "rate_measurement_variance_multiplier": 4.0,
+        "raw_sigma_floor_mm_y": 1.0,
+        "volatility_weight": 0.5
+      }
+    },
+    {
+      "family": "imm_damped_acceleration",
+      "model_id": "B7_two_regime_imm",
+      "parameters": {
+        "acceleration_clip_ratio": 4.0,
+        "acceleration_measurement_scale_multiplier": 1.0,
+        "acceleration_scale_quantile": 0.8,
+        "covariance_jitter": 1e-08,
+        "initial_acceleration_variance": 2500.0,
+        "initial_position_variance": 4.0,
+        "initial_transition_probability": 0.1,
+        "initial_velocity_variance": 400.0,
+        "likelihood_variance_floor": 1e-10,
+        "minimum_acceleration_measurement_variance": 25.0,
+        "minimum_measurement_variance": 0.01,
+        "minimum_rate_measurement_variance": 1.0,
+        "p_stable_stay": 0.99,
+        "p_transition_stay": 0.75,
+        "q_stable": 0.5,
+        "q_transition": 200.0,
+        "rate_measurement_variance_multiplier": 4.0,
+        "raw_sigma_floor_mm_y": 1.0,
+        "stable_acceleration_retention_per_year": 0.2,
+        "transition_acceleration_retention_per_year": 0.95
+      }
+    },
+    {
+      "family": "imm_student_t_robust_observation",
+      "gate_b4_candidate_id": "t1-b4-train-v1-0dedd1296459",
+      "model_id": "B8_student_t_robust_imm",
+      "parameters": {
+        "acceleration_clip_ratio": 4.0,
+        "acceleration_measurement_scale_multiplier": 1.0,
+        "acceleration_scale_quantile": 0.8,
+        "covariance_jitter": 1e-08,
+        "initial_acceleration_variance": 2500.0,
+        "initial_position_variance": 4.0,
+        "initial_transition_probability": 0.1,
+        "initial_velocity_variance": 400.0,
+        "likelihood_variance_floor": 1e-10,
+        "minimum_acceleration_measurement_variance": 25.0,
+        "minimum_measurement_variance": 0.01,
+        "minimum_rate_measurement_variance": 1.0,
+        "minimum_robust_weight": 0.05,
+        "p_stable_stay": 0.99,
+        "p_transition_stay": 0.75,
+        "q_stable": 0.5,
+        "q_transition": 200.0,
+        "rate_measurement_variance_multiplier": 4.0,
+        "raw_sigma_floor_mm_y": 1.0,
+        "stable_acceleration_retention_per_year": 0.2,
+        "student_t_df": 30.0,
+        "transition_acceleration_retention_per_year": 0.95
+      }
+    }
+  ],
+  "new_holdout_seen": false,
+  "primary_model_id": "B7_two_regime_imm",
+  "primary_selected_from_holdout": false,
+  "primary_selection_rule": "B8 only if every predeclared train-only Gate B4 screening check passes; otherwise frozen B7",
+  "schema_version": 1,
+  "source_hashes": {
+    "configs/final_holdout_v3.yaml": "6499cafc73eaf27c541e437bbd3c5b42098598f85953d95cde47f37cccd48f57",
+    "configs/gate_b4.yaml": "aaf51ea1e1ae07219961c2085b34bf68c56655b6d3b233ad32e1f00a6777d8f4",
+    "docs/governance/GATE_B4_TRAIN_ONLY_PROTOCOL.md": "d7cbcd5b4043d69d077860a13a92cd30fe66216ede7ef9e4d507e8ceac0ce27f",
+    "scripts/run_gate_b4.py": "1282b5f12ca4cb58ec6819f63549fe20081948a6687908277c943c69d8975274",
+    "scripts/run_holdout_v3.py": "d2f6b388e8b6f1b3cd0b3179795f047105515a81bebf8ee16d60461072e3db19",
+    "src/skru1/adaptive_kalman.py": "a9420a277cfc5f985d0ff179972a1f9813f35162a9e4e2f0f029ca33dcc512bd",
+    "src/skru1/baselines.py": "5807dbd353d6bb41c1ab80c0ce37051a9fc4df949b618eb66ff5a6a118f71564",
+    "src/skru1/data_contracts.py": "7029901eca6323e24db9818c97c5c15a1d4630ed66eeefcdc774085b1e586d20",
+    "src/skru1/evaluation.py": "2d63260e4f5b7a788c257bb1227a06289d989d3c0f3bc0fc2ed7eca9fb425d4c",
+    "src/skru1/gate_b4.py": "97a02aa7d78470e8e0da1194c09c098a66ce3ae4f6545614eff266ad579be52b",
+    "src/skru1/holdout_intake.py": "63c0b4e552cbdfcbf6060e381741bfa3fdc35a4de37b95226de49f9d9ef6dabf",
+    "src/skru1/imm_kalman.py": "4770b9761bea9e777631d92f99a5739315a4ffa1b6475398427eaeb9bf30ba85",
+    "src/skru1/leakage.py": "cb32437113af3e2e915e052845a3136fdef3943fba817bc16a653c2c9e4db13a",
+    "src/skru1/metrics.py": "959d8ddf002a29b49a11890455f601010c861a00cb72bbea1eb5d5f6c1f0b742",
+    "src/skru1/preprocessing.py": "8fcf3f29ceb1c8c6063450b1783c53fdd5b696bd90c6578e51f94e840eb89187",
+    "src/skru1/robust_imm.py": "7bc3e0d360a8a43232d13acfb75704c89457f28d556b4536dba05ee46b3ac170",
+    "src/skru1/splits.py": "1b3de4afca8d3551f5c1a2723c65f4fd0ab365a2b570956dd11aa9f432c894ee",
+    "src/skru1/train_research_splits.py": "43e1e39ec436d7541f761be4bff17434d390e0e8a42d79c847e13df3734e73d0",
+    "src/skru1/transition_validation.py": "f5b269ff962c5587cddabffac981142d23100446005c13fa17aab3986fe40426"
+  },
+  "status": "frozen_before_new_holdout_labels",
+  "suite_id": "t1-final-suite-v3-0dedd1296459",
+  "target_contract_sha256": "c679a6b83d26675d50b59de57cb3c12cdeacc6dd7c2e178364e434ed25a526e8",
+  "train_sample_ids_sha256": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c",
+  "training_data": [
+    "t1_v1/train"
+  ]
+}

@@ -1,0 +1,66 @@
+schema_version: 1
+policy_id: T1_FINAL_HOLDOUT_V3
+status: PENDING_DATA
+task: t1
+purpose: one_shot_final_evaluation_of_predeclared_primary_and_comparators
+
+excluded_evaluation_sets:
+  - split: t1_v1/test
+    reason: disclosed_once_for_gate_b0_b1_stage_candidate
+    permitted_role: historical_diagnostic_only
+  - split: t1_v1/validation
+    reason: used_for_historical_model_development_through_gate_b3
+    permitted_role: historical_descriptive_only
+
+candidate_package:
+  directory: inputs/holdout_candidates/t1_final_v3
+  package_manifest: package_manifest.json
+  origins_file: holdout_origins.csv
+  sealed_targets_file: holdout_targets.sealed.csv
+  target_values_must_remain_unread_until_evaluate_once: true
+  required_target_columns: [sample_id, observed_rate_mm_y]
+  target_definition: T1_RATE_NEXT_PLANNED
+
+eligible_options:
+  future_temporal_holdout:
+    target_date_strictly_after: 2025-11-04
+    target_date_not_before: 2026-01-01
+    source_package_must_be_new: true
+    labels_must_be_unseen_before_candidate_freeze: true
+    point_overlap_with_development_allowed: true
+  external_holdout:
+    independent_site_or_campaign_package: true
+    schema_mapping_frozen_before_labels: true
+    target_definition_equivalent: true
+    sample_id_overlap_with_development_allowed: false
+    point_id_overlap_with_development_allowed: false
+
+minimum_scope:
+  observed_origins: 100
+  unique_points: 75
+  unique_profiles: 12
+  distinct_target_campaign_dates: 2
+
+freeze_protocol:
+  candidate_suite: artifacts/governance/final_candidate_suite_v3.json
+  candidate_commit_sha_required: true
+  origins_and_targets_sha256_required: true
+  sample_id_manifest_required: true
+  target_file_hash_only_before_access: true
+  one_access_event_only: true
+  failed_access_is_consumed: true
+  tuning_after_access: prohibited
+  model_selection_after_access: prohibited
+  primary_model_must_be_declared_before_access: true
+  comparator_results_are_context_only: true
+
+artifacts:
+  status: artifacts/governance/final_holdout_v3_status.json
+  intake_inventory: artifacts/governance/final_holdout_v3_inventory.csv
+  frozen_root: artifacts/governance/t1_final_holdout_v3
+  frozen_record: artifacts/governance/t1_final_holdout_v3/frozen_record.json
+  sample_manifest: artifacts/splits/t1_final_holdout_v3/manifest.csv
+  access_ledger: artifacts/governance/t1_final_holdout_v3/access_ledger.json
+  predictions: artifacts/final_evaluation/t1_final_holdout_v3/predictions.csv
+  metrics: artifacts/final_evaluation/t1_final_holdout_v3/metrics.csv
+  final_report: artifacts/final_evaluation/t1_final_holdout_v3/final_report.json

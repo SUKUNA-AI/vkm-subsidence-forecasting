@@ -1,0 +1,98 @@
+{
+  "all_match": true,
+  "policy": "hash_only_no_validation_or_test_loader",
+  "protected_files": [
+    {
+      "expected_sha256": "c38163f5fd586a69edfe647995c46649a3f13725f7a1d882e150805c9811bc60",
+      "matches": true,
+      "observed_sha256": "c38163f5fd586a69edfe647995c46649a3f13725f7a1d882e150805c9811bc60",
+      "relative_path": "artifacts/splits/t1_v1/validation.csv",
+      "size_bytes": 3000
+    },
+    {
+      "expected_sha256": "d94b34cdcccdd0bea1af4e78e508f06f555cebe876a5a3846bb83f51a6484ac6",
+      "matches": true,
+      "observed_sha256": "d94b34cdcccdd0bea1af4e78e508f06f555cebe876a5a3846bb83f51a6484ac6",
+      "relative_path": "artifacts/splits/t1_v1/test.csv",
+      "size_bytes": 4035
+    },
+    {
+      "expected_sha256": "705c4712e4dc6e75aed5773c355518fe9cf1a3aa0ef21e654a7df539ba7587cd",
+      "matches": true,
+      "observed_sha256": "705c4712e4dc6e75aed5773c355518fe9cf1a3aa0ef21e654a7df539ba7587cd",
+      "relative_path": "artifacts/model_selection/frozen_candidate.json",
+      "size_bytes": 2181
+    },
+    {
+      "expected_sha256": "d8d2307bda5735c172116375c9c9b7b01e37c46b6c0b0fa3c86b3c7cef58fdf8",
+      "matches": true,
+      "observed_sha256": "d8d2307bda5735c172116375c9c9b7b01e37c46b6c0b0fa3c86b3c7cef58fdf8",
+      "relative_path": "artifacts/model_selection/t1_b2_v1/development_candidate.json",
+      "size_bytes": 3296
+    },
+    {
+      "expected_sha256": "98127c07fde863ab2dc04fffe69922620c4cd4c43ee09dd336b40e47dad90ac7",
+      "matches": true,
+      "observed_sha256": "98127c07fde863ab2dc04fffe69922620c4cd4c43ee09dd336b40e47dad90ac7",
+      "relative_path": "artifacts/model_selection/t1_b3_v1/development_candidate.json",
+      "size_bytes": 5127
+    },
+    {
+      "expected_sha256": "01dea4454ee6468cfd23ec2d736bb16d99cd5090ec3ae9dff4c82ad7929ec4c3",
+      "matches": true,
+      "observed_sha256": "01dea4454ee6468cfd23ec2d736bb16d99cd5090ec3ae9dff4c82ad7929ec4c3",
+      "relative_path": "configs/gate_b2.yaml",
+      "size_bytes": 4585
+    },
+    {
+      "expected_sha256": "95375b3e50aead2f9942d3b707d93be1f618042f4e72dfd7cda3330eeb9ac0f9",
+      "matches": true,
+      "observed_sha256": "95375b3e50aead2f9942d3b707d93be1f618042f4e72dfd7cda3330eeb9ac0f9",
+      "relative_path": "configs/gate_b3.yaml",
+      "size_bytes": 6346
+    },
+    {
+      "expected_sha256": "a9420a277cfc5f985d0ff179972a1f9813f35162a9e4e2f0f029ca33dcc512bd",
+      "matches": true,
+      "observed_sha256": "a9420a277cfc5f985d0ff179972a1f9813f35162a9e4e2f0f029ca33dcc512bd",
+      "relative_path": "src/skru1/adaptive_kalman.py",
+      "size_bytes": 17811
+    },
+    {
+      "expected_sha256": "4770b9761bea9e777631d92f99a5739315a4ffa1b6475398427eaeb9bf30ba85",
+      "matches": true,
+      "observed_sha256": "4770b9761bea9e777631d92f99a5739315a4ffa1b6475398427eaeb9bf30ba85",
+      "relative_path": "src/skru1/imm_kalman.py",
+      "size_bytes": 23808
+    },
+    {
+      "expected_sha256": "86110ea4cc25e4dcd4bb7b2355db2c128b6f864102f3d3b8fec5568bee7c75bf",
+      "matches": true,
+      "observed_sha256": "86110ea4cc25e4dcd4bb7b2355db2c128b6f864102f3d3b8fec5568bee7c75bf",
+      "relative_path": "artifacts/model_selection/t1_b0_b1_v1/test_access_ledger.json",
+      "size_bytes": 1301
+    },
+    {
+      "expected_sha256": "bec1066be04c8cffcb0db5adfba98a1038d699b1068faa900d0dafdac980dc0b",
+      "matches": true,
+      "observed_sha256": "bec1066be04c8cffcb0db5adfba98a1038d699b1068faa900d0dafdac980dc0b",
+      "relative_path": "artifacts/model_selection/t1_b0_b1_v1/test_predictions.csv",
+      "size_bytes": 31182
+    },
+    {
+      "expected_sha256": "c23d225e028ae140a7c4569173726b26b53919c19aa347da3a784b99d141c760",
+      "matches": true,
+      "observed_sha256": "c23d225e028ae140a7c4569173726b26b53919c19aa347da3a784b99d141c760",
+      "relative_path": "artifacts/model_selection/t1_b0_b1_v1/test_metrics.csv",
+      "size_bytes": 470
+    },
+    {
+      "expected_sha256": "39123904ac39712f58701c9fc062fc21a8b6420dff9193e1d0128fa8233cf919",
+      "matches": true,
+      "observed_sha256": "39123904ac39712f58701c9fc062fc21a8b6420dff9193e1d0128fa8233cf919",
+      "relative_path": "artifacts/model_selection/t1_b0_b1_v1/final_test_report.json",
+      "size_bytes": 1265
+    }
+  ],
+  "schema_version": 1
+}
