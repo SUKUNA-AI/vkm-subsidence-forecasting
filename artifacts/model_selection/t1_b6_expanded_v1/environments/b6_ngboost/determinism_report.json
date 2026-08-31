@@ -1,0 +1,14 @@
+{
+  "environment_id": "b6_ngboost",
+  "models": [
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "Z12_ngboost",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    }
+  ],
+  "schema_version": 1,
+  "status": "PASS"
+}

@@ -1,0 +1,24 @@
+{
+  "environment_id": "b6_torch",
+  "governance_excluded_model_ids": [
+    "Z15_tabpfn_v2_6"
+  ],
+  "models": [
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "Z13_residual_mlp",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-05
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "Z14_enfs_replica",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-05
+    }
+  ],
+  "schema_version": 1,
+  "status": "PASS"
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "reviewed_at": "2026-08-31",
+  "reviewed_figures": 7,
+  "figure_manifest_sha256": "9ba6506503fe06d1025679b65d91cb20be782e770abcbedd22e80dc58f3040f8",
+  "review_scope": "rendered_png_manual_visual_inspection",
+  "checks": {
+    "title_subtitle_separation": "PASS",
+    "axis_and_label_clipping": "PASS",
+    "legend_clarity": "PASS",
+    "units_and_scales": "PASS",
+    "reference_lines": "PASS",
+    "low_support_and_train_only_caveats": "PASS"
+  },
+  "notes": [
+    "All seven figures were inspected from their final rendered PNG files after the final Gate B6 aggregation.",
+    "No model training was performed by the figure builder or during visual QA."
+  ]
+}

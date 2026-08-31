@@ -1,0 +1,13 @@
+# Gate B6 CUDA runtime after governance amendment B6-GOV-001.
+# Historical requirements/b6_torch.lock.txt remains immutable B5 evidence.
+# python -m pip install --index-url https://download.pytorch.org/whl/cu130 torch==2.13.0
+-e .
+joblib==1.5.3
+numpy==2.5.2
+pandas==3.0.5
+PyYAML==6.0.3
+scikit-learn==1.9.0
+scipy==1.18.1
+threadpoolctl==3.6.0
+torch==2.13.0
+psutil==7.2.2

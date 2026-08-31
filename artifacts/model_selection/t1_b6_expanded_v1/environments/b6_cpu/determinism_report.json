@@ -1,0 +1,140 @@
+{
+  "environment_id": "b6_cpu",
+  "models": [
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "B1_persistence_last_rate",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "B3_profile_robust_trend",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "B5_fixed_kalman",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "B6_adaptive_kalman",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "B7_two_regime_imm",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "B8_student_t_robust_imm",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "M1_ridge",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "M2_extra_trees",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "Z01_elastic_net",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "Z02_huber",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "Z03_rbf_svr",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "Z04_gaussian_process",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "Z05_gaussian_gee",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "Z06_hist_gradient_boosting",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "Z07_quantile_hist_gradient_boosting",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "Z08_xgboost",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "Z09_lightgbm",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "Z10_catboost",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "Z11_ebm",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-10
+    }
+  ],
+  "schema_version": 1,
+  "status": "PASS"
+}

@@ -1,0 +1,56 @@
+{
+  "figures": [
+    {
+      "bytes": 178376,
+      "height_px": 1686,
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/figures/01_temporal_screen_mae.png",
+      "sha256": "da73ab5ec3a51076fa9705ee420a1ca4ec14778fdd12968da941980263f31e9f",
+      "width_px": 2294
+    },
+    {
+      "bytes": 314740,
+      "height_px": 1075,
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/figures/02_rolling_mae_by_date.png",
+      "sha256": "5a2418b4a54163dfb9eb34ae31b47d54b0f053f93e020fe19d47829ff9772a00",
+      "width_px": 1932
+    },
+    {
+      "bytes": 105445,
+      "height_px": 1292,
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/figures/03_spatial_stability.png",
+      "sha256": "f19a2c3beef304f2d84f7f2c26f8af2cdab8d7198dd84fcc7e6ee900b2e715a4",
+      "width_px": 2028
+    },
+    {
+      "bytes": 160213,
+      "height_px": 1360,
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/figures/04_transition_error_heatmap.png",
+      "sha256": "5f3d3637636357edd7cd1b9be1ccaeb9b46b2f9cd6a7568f7ceff65e7ff2b6cc",
+      "width_px": 1700
+    },
+    {
+      "bytes": 177797,
+      "height_px": 1213,
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/figures/05_conformal_calibration.png",
+      "sha256": "9459b92f863427b3879f791886e96cdac9d262835e16799b9b5a8ae7b83cf347",
+      "width_px": 1321
+    },
+    {
+      "bytes": 113138,
+      "height_px": 1134,
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/figures/06_learning_curves.png",
+      "sha256": "a118dcac1260f4d4f6322fc4839c60f8e05bbaa42b5032ef346afb769e6d852f",
+      "width_px": 1590
+    },
+    {
+      "bytes": 92934,
+      "height_px": 1213,
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/figures/07_profile_cluster_sensitivity.png",
+      "sha256": "482ef2b76e8e72f9f660d573bbf9bfe5b75dce53f6ea50371f667ca876cb5e02",
+      "width_px": 1888
+    }
+  ],
+  "model_training_calls": 0,
+  "schema_version": 1,
+  "visual_qa_required": true
+}

@@ -1,0 +1,34 @@
+{
+  "environment": {
+    "implementation_name": "cpython",
+    "implementation_version": "3.13.13",
+    "os_name": "nt",
+    "platform_machine": "AMD64",
+    "platform_python_implementation": "CPython",
+    "platform_release": "11",
+    "platform_system": "Windows",
+    "python_full_version": "3.13.13",
+    "python_version": "3.13",
+    "sys_platform": "win32"
+  },
+  "install": [
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {}
+        },
+        "url": "repo-relative:."
+      },
+      "is_direct": true,
+      "is_yanked": false,
+      "metadata": {
+        "name": "skru1-research",
+        "requires_python": "<3.14,>=3.13",
+        "version": "0.1.0"
+      },
+      "requested": true
+    }
+  ],
+  "pip_version": "26.0.1",
+  "version": "1"
+}

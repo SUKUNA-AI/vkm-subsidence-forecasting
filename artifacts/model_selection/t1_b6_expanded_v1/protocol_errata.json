@@ -1,0 +1,57 @@
+{
+  "records": [
+    {
+      "authoritative_values": [
+        "Z13_residual_mlp",
+        "Z14_enfs_replica",
+        "Z15_tabpfn_v2_6"
+      ],
+      "data_boundary_changed": false,
+      "declared_values": [
+        "Z12_residual_mlp",
+        "Z13_enfs_replica",
+        "Z14_tabpfn_v2_6"
+      ],
+      "detected_stage": "after_B5_freeze_before_B6_screen_aggregation",
+      "erratum_id": "B6-ERRATUM-001",
+      "field": "environments.b6_torch.accelerator_models",
+      "grids_changed": false,
+      "impact": "none; the non-authoritative convenience list is not consumed by workers",
+      "runtime_authority": "models[].environment_id expanded into model_registry.json",
+      "scientific_protocol_changed": false,
+      "selection_rule_changed": false,
+      "status": "RECORDED_NON_OPERATIVE_METADATA"
+    },
+    {
+      "ambiguous_text": "feature-view narrative mentioned native categorical handling while the explicit model-zoo row specified SAFE_ALL",
+      "authoritative_value": "SAFE_ALL",
+      "categorical_handling": "train-fitted SAFE_ALL numeric preprocessing; identifiers remain excluded",
+      "data_boundary_changed": false,
+      "detected_stage": "B6_implementation_review",
+      "erratum_id": "B6-ERRATUM-003",
+      "field": "Z15_tabpfn_v2_6.feature_view",
+      "grids_changed": false,
+      "impact": "none; the historical per-model specification resolves the frozen record and B6-GOV-001 removes runtime use",
+      "runtime_authority": "frozen configs/gate_b6.yaml models[].feature_view and model_registry.json",
+      "runtime_relevance_after_amendment": "none; model excluded before license, weights, predictions, or scoring",
+      "scientific_protocol_changed": false,
+      "status": "RECORDED_AMBIGUITY_RESOLUTION",
+      "superseded_for_execution_by": "B6-GOV-001"
+    },
+    {
+      "detected_stage": "B6_report_preparation",
+      "eligibility_decision_changed": false,
+      "erratum_id": "B6-ERRATUM-002",
+      "field": "B5 method_cards.methods[].observed_geometry.campaign_interval_days_max",
+      "impact": "none; the longer observed gap strengthens rather than weakens the exclusion rationale",
+      "one_step_forecast_horizon_days_max": 210,
+      "one_step_forecast_horizon_days_min": 42,
+      "scientific_protocol_changed": false,
+      "status": "RECORDED_SEMANTIC_CLARIFICATION",
+      "stored_value": 560,
+      "stored_value_meaning": "maximum point-level inter-observation gap after skipped campaigns"
+    }
+  ],
+  "schema_version": 1,
+  "status": "RECORDED"
+}

@@ -1,0 +1,131 @@
+{
+  "audience": "technical",
+  "charts": [
+    {
+      "analytical_question": "Which executed model has the lowest pooled rolling-origin MAE?",
+      "family": "comparison_and_ranking_horizontal_bar",
+      "fields": [
+        "model_id",
+        "mae",
+        "screen_status"
+      ],
+      "final_qa_surface": "rendered PNG and executed notebook",
+      "height_px": 1686,
+      "non_color_distinction": "direct labels, ordering, markers, and reference lines",
+      "output": "artifacts/model_selection/t1_b6_expanded_v1/figures/01_temporal_screen_mae.png",
+      "palette_policy": "hard_two_root_cap_plus_neutrals",
+      "renderer": "matplotlib_static_png",
+      "supported_takeaway": "B7_two_regime_imm ranks first at 5.640 mm/year.",
+      "width_px": 2294
+    },
+    {
+      "analytical_question": "Is pooled model ranking stable across the 11 forward target dates?",
+      "family": "trend_highlighted_multi_series_line",
+      "fields": [
+        "target_date",
+        "model_id",
+        "mae"
+      ],
+      "final_qa_surface": "rendered PNG and executed notebook",
+      "height_px": 1075,
+      "non_color_distinction": "direct labels, ordering, markers, and reference lines",
+      "output": "artifacts/model_selection/t1_b6_expanded_v1/figures/02_rolling_mae_by_date.png",
+      "palette_policy": "hard_two_root_cap_plus_neutrals",
+      "renderer": "matplotlib_static_png",
+      "supported_takeaway": "Performance varies materially by date, so pooled MAE is not used without fold stability checks.",
+      "width_px": 1932
+    },
+    {
+      "analytical_question": "How much do advanced models degrade under profile and zone holdouts?",
+      "family": "uncertainty_and_benchmark_connected_dot",
+      "fields": [
+        "model_id",
+        "scope",
+        "mae"
+      ],
+      "final_qa_surface": "rendered PNG and executed notebook",
+      "height_px": 1292,
+      "non_color_distinction": "direct labels, ordering, markers, and reference lines",
+      "output": "artifacts/model_selection/t1_b6_expanded_v1/figures/03_spatial_stability.png",
+      "palette_policy": "hard_two_root_cap_plus_neutrals",
+      "renderer": "matplotlib_static_png",
+      "supported_takeaway": "Profile and zone macro MAE are shown separately because the four-zone result is descriptive, not inferential.",
+      "width_px": 2028
+    },
+    {
+      "analytical_question": "Which advanced models remain stable across transition regimes?",
+      "family": "matrix_and_cohort_heatmap",
+      "fields": [
+        "model_id",
+        "transition_segment",
+        "mae",
+        "support_status"
+      ],
+      "final_qa_surface": "rendered PNG and executed notebook",
+      "height_px": 1360,
+      "non_color_distinction": "direct labels, ordering, markers, and reference lines",
+      "output": "artifacts/model_selection/t1_b6_expanded_v1/figures/04_transition_error_heatmap.png",
+      "palette_policy": "hard_two_root_cap_plus_neutrals",
+      "renderer": "matplotlib_static_png",
+      "supported_takeaway": "Transition regimes expose error patterns hidden by pooled MAE; low-support cells remain descriptive.",
+      "width_px": 1700
+    },
+    {
+      "analytical_question": "Do common conformal intervals achieve their nominal coverage?",
+      "family": "uncertainty_and_benchmark_calibration_line",
+      "fields": [
+        "model_id",
+        "coverage_50",
+        "coverage_80",
+        "coverage_95"
+      ],
+      "final_qa_surface": "rendered PNG and executed notebook",
+      "height_px": 1213,
+      "non_color_distinction": "direct labels, ordering, markers, and reference lines",
+      "output": "artifacts/model_selection/t1_b6_expanded_v1/figures/05_conformal_calibration.png",
+      "palette_policy": "hard_two_root_cap_plus_neutrals",
+      "renderer": "matplotlib_static_png",
+      "supported_takeaway": "Coverage is assessed against the ideal diagonal using inner-OOF-only calibration.",
+      "width_px": 1321
+    },
+    {
+      "analytical_question": "Does audit-tail error change as more train campaigns become available?",
+      "family": "trend_highlighted_multi_series_line",
+      "fields": [
+        "training_rows",
+        "model_id",
+        "mae"
+      ],
+      "final_qa_surface": "rendered PNG and executed notebook",
+      "height_px": 1134,
+      "non_color_distinction": "direct labels, ordering, markers, and reference lines",
+      "output": "artifacts/model_selection/t1_b6_expanded_v1/figures/06_learning_curves.png",
+      "palette_policy": "hard_two_root_cap_plus_neutrals",
+      "renderer": "matplotlib_static_png",
+      "supported_takeaway": "The fixed-parameter curves diagnose data sufficiency without creating a new tuning loop.",
+      "width_px": 1590
+    },
+    {
+      "analytical_question": "Are paired MAE differences versus B7 robust to profile-cluster resampling?",
+      "family": "uncertainty_and_benchmark_forest_interval",
+      "fields": [
+        "model_id",
+        "mean_absolute_error_delta",
+        "lower_025",
+        "upper_975"
+      ],
+      "final_qa_surface": "rendered PNG and executed notebook",
+      "height_px": 1213,
+      "non_color_distinction": "direct labels, ordering, markers, and reference lines",
+      "output": "artifacts/model_selection/t1_b6_expanded_v1/figures/07_profile_cluster_sensitivity.png",
+      "palette_policy": "hard_two_root_cap_plus_neutrals",
+      "renderer": "matplotlib_static_png",
+      "supported_takeaway": "Intervals are reported as small-cluster sensitivity evidence rather than naive row-level inference.",
+      "width_px": 1888
+    }
+  ],
+  "delivery_surface": "static_png_and_artifact_only_notebook",
+  "model_training_calls": 0,
+  "schema_version": 1,
+  "source_scope": "saved Gate B6 machine artifacts only"
+}

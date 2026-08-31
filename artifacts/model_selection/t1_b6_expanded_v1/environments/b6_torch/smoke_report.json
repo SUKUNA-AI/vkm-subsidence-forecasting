@@ -1,0 +1,58 @@
+{
+  "environment_id": "b6_torch",
+  "governance_excluded_model_ids": [
+    "Z15_tabpfn_v2_6"
+  ],
+  "models": [
+    {
+      "elapsed_seconds": 6.930350800001179,
+      "finite": true,
+      "model_id": "Z13_residual_mlp",
+      "rows": 84,
+      "serialization_roundtrip": "PASS",
+      "serialized_adapter_bytes": 13310,
+      "smoke_parameters": {
+        "batch_size": 32,
+        "dropout": 0.0,
+        "early_stopping_patience": 2,
+        "hidden_layout": [
+          32
+        ],
+        "learning_rate": 0.001,
+        "loss": "Huber",
+        "max_epochs": 5,
+        "optimizer": "AdamW",
+        "patience": 2,
+        "weight_decay": 0.0001
+      },
+      "status": "PASS"
+    },
+    {
+      "elapsed_seconds": 0.5885453000082634,
+      "finite": true,
+      "model_id": "Z14_enfs_replica",
+      "rows": 84,
+      "serialization_roundtrip": "PASS",
+      "serialized_adapter_bytes": 144615,
+      "smoke_parameters": {
+        "activation": "tanh",
+        "claim": "method_replica_not_numerical_result_reproduction",
+        "early_stopping_patience": 2,
+        "fuzzy_rules": 8,
+        "learning_rate_end": 0.002,
+        "learning_rate_start": 0.01,
+        "max_epochs": 5,
+        "membership": "pi",
+        "patience": 2,
+        "rule_network": [
+          50,
+          50
+        ],
+        "scheduler_gamma": 0.9999
+      },
+      "status": "PASS"
+    }
+  ],
+  "schema_version": 1,
+  "status": "PASS"
+}

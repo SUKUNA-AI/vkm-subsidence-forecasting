@@ -1,0 +1,87 @@
+{
+  "amendment": {
+    "amendment_id": "B6-GOV-001",
+    "claim_scope": "train_only_internal_research",
+    "effective_date": "2026-08-30",
+    "environment_overrides": {
+      "b6_torch": {
+        "effective_runtime_lock": "requirements/b6_torch_runtime.lock.txt",
+        "historical_frozen_lock": "requirements/b6_torch.lock.txt"
+      }
+    },
+    "excluded_models": [
+      {
+        "eligible_for_spatial_audit": false,
+        "eligible_for_suite_v4": false,
+        "eligible_for_temporal_screen": false,
+        "execution_status": "EXCLUDED_GOVERNANCE_USER_WITHDRAWAL",
+        "external_api_used": false,
+        "family": "local_tabpfn",
+        "license_accepted": false,
+        "model_id": "Z15_tabpfn_v2_6",
+        "predictions_existed_at_exclusion": false,
+        "scientific_status": "NOT_EVALUATED",
+        "weights_downloaded": false
+      }
+    ],
+    "execution_catalog": {
+      "executable_model_count": 22,
+      "executable_preregistered_candidate_count": 14,
+      "original_preregistered_candidate_count": 15,
+      "original_registry_model_count": 23
+    },
+    "original_protocol_immutability": {
+      "b5_benchmark_plan_changed": false,
+      "configs_gate_b6_yaml_changed": false,
+      "frozen_job_manifest_history_preserved": true,
+      "model_registry_history_preserved": true
+    },
+    "reason": "explicit_user_withdrawal_of_external_licensed_model",
+    "runtime_policy": {
+      "tabpfn_api_mode_allowed": false,
+      "tabpfn_checkpoint_staging_allowed": false,
+      "tabpfn_import_allowed": false,
+      "tabpfn_network_access_allowed": false,
+      "tabpfn_worker_dispatch_allowed": false
+    },
+    "schema_version": 1,
+    "scope": "execution_catalog_only",
+    "status": "FROZEN_BEFORE_B6_SCREEN_AGGREGATION"
+  },
+  "amendment_payload_sha256": "6c55d155426175ed08fe28002aaac469d996f1dc273d1fb7e077c490f0a84754",
+  "amendment_source": "configs/gate_b6_amendment_no_tabpfn.yaml",
+  "amendment_source_sha256": "94f60882d4e900e5587940bfcae8ef9e23944222953214b81c2a94c0c8aad06d",
+  "excluded_model_ids": [
+    "Z15_tabpfn_v2_6"
+  ],
+  "executable_model_count": 22,
+  "executable_model_ids": [
+    "B1_persistence_last_rate",
+    "B3_profile_robust_trend",
+    "B5_fixed_kalman",
+    "B6_adaptive_kalman",
+    "B7_two_regime_imm",
+    "B8_student_t_robust_imm",
+    "M1_ridge",
+    "M2_extra_trees",
+    "Z01_elastic_net",
+    "Z02_huber",
+    "Z03_rbf_svr",
+    "Z04_gaussian_process",
+    "Z05_gaussian_gee",
+    "Z06_hist_gradient_boosting",
+    "Z07_quantile_hist_gradient_boosting",
+    "Z08_xgboost",
+    "Z09_lightgbm",
+    "Z10_catboost",
+    "Z11_ebm",
+    "Z12_ngboost",
+    "Z13_residual_mlp",
+    "Z14_enfs_replica"
+  ],
+  "historical_job_manifest_rewritten": false,
+  "historical_registry_rewritten": false,
+  "original_registry_model_count": 23,
+  "schema_version": 1,
+  "selection_evidence_used_for_exclusion": false
+}

@@ -1,0 +1,21 @@
+{
+  "byte_identical_sha256_maps": true,
+  "changed_or_missing_files": [],
+  "current_test_loaded": false,
+  "files_compared": 16,
+  "gate": "B5_EVIDENCE_AND_BENCHMARK_PROTOCOL",
+  "historical_validation_loaded": false,
+  "run_records": [
+    {
+      "returncode": 0,
+      "stdout_tail": "[\n  {\n    \"phase\": \"freeze\",\n    \"status\": \"PASS\",\n    \"benchmark_version\": \"t1_train_benchmark_v1\",\n    \"benchmark_plan_sha256\": \"d143f1c057f176f49c78d9433e4305557339854d1c1faaad77bc356aca8fd926\",\n    \"outer_folds\": 65,\n    \"inner_folds\": 195,\n    \"selection_data\": [\n      \"t1_v1/train\"\n    ],\n    \"historical_validation_loaded\": false,\n    \"current_test_loaded\": false\n  },\n  {\n    \"phase\": \"analyze\",\n    \"status\": \"PASS_PROTOCOL_FROZEN\",\n    \"benchmark_plan_sha256\": \"d143f1c057f176f49c78d9433e4305557339854d1c1faaad77bc356aca8fd926\",\n    \"error_atlas_rows\": 2620,\n    \"learning_curve_rows\": 32,\n    \"historical_validation_loaded\": false,\n    \"current_test_loaded\": false\n  },\n  {\n    \"phase\": \"validate\",\n    \"status\": \"PASS\",\n    \"checks\": 20,\n    \"failed\": 0\n  }\n]\n"
+    },
+    {
+      "returncode": 0,
+      "stdout_tail": "[\n  {\n    \"phase\": \"freeze\",\n    \"status\": \"PASS\",\n    \"benchmark_version\": \"t1_train_benchmark_v1\",\n    \"benchmark_plan_sha256\": \"d143f1c057f176f49c78d9433e4305557339854d1c1faaad77bc356aca8fd926\",\n    \"outer_folds\": 65,\n    \"inner_folds\": 195,\n    \"selection_data\": [\n      \"t1_v1/train\"\n    ],\n    \"historical_validation_loaded\": false,\n    \"current_test_loaded\": false\n  },\n  {\n    \"phase\": \"analyze\",\n    \"status\": \"PASS_PROTOCOL_FROZEN\",\n    \"benchmark_plan_sha256\": \"d143f1c057f176f49c78d9433e4305557339854d1c1faaad77bc356aca8fd926\",\n    \"error_atlas_rows\": 2620,\n    \"learning_curve_rows\": 32,\n    \"historical_validation_loaded\": false,\n    \"current_test_loaded\": false\n  },\n  {\n    \"phase\": \"validate\",\n    \"status\": \"PASS\",\n    \"checks\": 20,\n    \"failed\": 0\n  }\n]\n"
+    }
+  ],
+  "runs": 2,
+  "schema_version": 1,
+  "status": "PASS"
+}

@@ -1,0 +1,20 @@
+{
+  "api_mode": "PROHIBITED",
+  "cache_entries": [],
+  "execution_allowed": false,
+  "family": "local_tabpfn",
+  "governance_amendment": "configs/gate_b6_amendment_no_tabpfn.yaml",
+  "license_marker_present": false,
+  "license_status": "NOT_ACCEPTED_USER_WITHDREW_MODEL",
+  "model_id": "Z15_tabpfn_v2_6",
+  "model_version": "v2.6",
+  "relative_path": null,
+  "runtime_network_access": "PROHIBITED",
+  "schema_version": 1,
+  "scientific_status": "NOT_EVALUATED",
+  "sha256": null,
+  "size_bytes": null,
+  "staging_allowed": false,
+  "status": "EXCLUDED_GOVERNANCE_USER_WITHDRAWAL",
+  "weights_downloaded": false
+}

@@ -1,0 +1,22 @@
+{
+  "environment_id": "b6_ngboost",
+  "models": [
+    {
+      "elapsed_seconds": 1.3043504999950528,
+      "finite": true,
+      "model_id": "Z12_ngboost",
+      "rows": 84,
+      "serialization_roundtrip": "PASS",
+      "serialized_adapter_bytes": 94046,
+      "smoke_parameters": {
+        "base_tree_depth": 2,
+        "learning_rate": 0.01,
+        "n_estimators": 30,
+        "score": "CRPScore"
+      },
+      "status": "PASS"
+    }
+  ],
+  "schema_version": 1,
+  "status": "PASS"
+}

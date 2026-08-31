@@ -1,0 +1,610 @@
+{
+  "environment": {
+    "implementation_name": "cpython",
+    "implementation_version": "3.13.13",
+    "os_name": "nt",
+    "platform_machine": "AMD64",
+    "platform_python_implementation": "CPython",
+    "platform_release": "11",
+    "platform_system": "Windows",
+    "python_full_version": "3.13.13",
+    "python_version": "3.13",
+    "sys_platform": "win32"
+  },
+  "install": [
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {}
+        },
+        "url": "repo-relative:."
+      },
+      "is_direct": true,
+      "is_yanked": false,
+      "metadata": {
+        "name": "skru1-research",
+        "requires_python": "<3.14,>=3.13",
+        "version": "0.1.0"
+      },
+      "requested": true
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "85aaccb24182c25df891ad0ec333585967e115269d5f1b17f2c9ae005bc96657"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/15/20/f3489f86d81ea460b2bcdceaed094142ca6579f6be0ec527b781d39afe68/numpy-2.5.2-cp313-cp313-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "numpy",
+        "requires_python": ">=3.12",
+        "version": "2.5.2"
+      },
+      "requested": true
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "0d298e951f23016ce4699951d044ae6418dbc91bf68cefca0f77666fcbb4e5c6"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/9c/ba/18c4ec8a746e177da05a9e7a7963781d8ea195780724f854601b6ebd6b78/pandas-3.0.5-cp313-cp313-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "pandas",
+        "requires_python": ">=3.11",
+        "version": "3.0.5"
+      },
+      "requested": true
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "79005a0d97d5ddabfeeea4cf676af11e647e41d81c9a7722a193022accdb6b7c"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/97/c9/39d5b874e8b28845e4ec2202b5da735d0199dbe5b8fb85f91398814a9a46/pyyaml-6.0.3-cp313-cp313-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "PyYAML",
+        "requires_python": ">=3.8",
+        "version": "6.0.3"
+      },
+      "requested": true
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "5fc3c5039fc5ca8c0276333a188bbd59d6b7ab37fe6632daa76bc7f9ec18e713"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/7b/91/984aca2ec129e2757d1e4e3c81c3fcda9d0f85b74670a094cc443d9ee949/joblib-1.5.3-py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "joblib",
+        "requires_python": ">=3.9",
+        "version": "1.5.3"
+      },
+      "requested": true
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "1f0f403e8c7e4463cde9bfe78b12fdd809e3ae3dda6d9b2f802934fb9c7a6a8f"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/eb/dc/55481808fd70ef1567cf13540ffd4702af3f74b112e35427564b03f79c2d/narwhals-2.25.0-py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "narwhals",
+        "requires_python": ">=3.10",
+        "version": "2.25.0"
+      },
+      "requested": true
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "5808d98f15c6bf6d9d96d2348c1997392a5888ce7097e664105f930c4bca1277"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/20/3f/7917ca72464038f6240ec70c29f94862d08a34a74291ae4d4ec5eb8186a0/scikit_learn-1.9.0-cp313-cp313-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "scikit-learn",
+        "requires_python": ">=3.11",
+        "version": "1.9.0"
+      },
+      "requested": true
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "559ed65f60c1af5a03f3912605a1b5114f522c7c32fb23c3376ae8f03219fe28"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/93/0e/e0348fbc0dbab65c114cf78957e7dfeb49f8e8b556b4d930cc12ff195e18/scipy-1.18.1-cp313-cp313-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "scipy",
+        "requires_python": ">=3.12",
+        "version": "1.18.1"
+      },
+      "requested": true
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "43a0b8fd5a2928500110039e43a5eed8480b918967083ea48dc3ab9f13c4a7fb"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/32/d5/f9a850d79b0851d1d4ef6456097579a9005b31fea68726a4ae5f2d82ddd9/threadpoolctl-3.6.0-py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "threadpoolctl",
+        "requires_python": ">=3.9",
+        "version": "3.6.0"
+      },
+      "requested": true
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "2d30fa513673101f542fdcbd18f30c8f96c064046f798635ac08663e9969f81b"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/2f/3c/925394671f6a1668e2a71886de66e80be694eaf37f615cec74eefaf43107/xgboost-3.4.1-py3-none-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "xgboost",
+        "requires_python": ">=3.12",
+        "version": "3.4.1"
+      },
+      "requested": true
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "f42d1e5b32b6f170e606d7c689c6165671da98d7bf37f1addec2623efc8740c9"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/d5/0b/c5c17d862b12ce292f24cd85d40f2f8f8981668fbdbd43fdc2625eccbc79/lightgbm-4.7.0-py3-none-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "lightgbm",
+        "requires_python": ">=3.10",
+        "version": "4.7.0"
+      },
+      "requested": true
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "5ede858e634d6d0f521bf6dd6fad9374f23d37049ee48e0779ccd2a372632cb1"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/69/71/a9e9a06418832fbea9d7cefda585d53395358d498537b6bdd3cf7364cd29/catboost-1.2.10-cp313-cp313-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "catboost",
+        "requires_python": null,
+        "version": "1.2.10"
+      },
+      "requested": true
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "6644f1498b8d247c5004fe691a9815ff0efc74af243f249f295a5e9f3202b483"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/1b/ba/3075daaf19b8873f207a94e524f52f9a236836729828a64ee0281c723e00/interpret_core-0.7.8-py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "interpret-core",
+        "requires_python": null,
+        "version": "0.7.8"
+      },
+      "requested": true
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "081adf7e5f2da63f63cbd90491447de5d4c4c2921f19814f235bcf3e736edd3c"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/15/b4/a8a4d89918599309bebfc09a2f793a910279f3900671bc959ac8c810edd1/statsmodels-0.15.0-cp313-cp313-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "statsmodels",
+        "requires_python": ">=3.10",
+        "version": "0.15.0"
+      },
+      "requested": true
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "eb7e81434c8d223ec4a219b5fc1c47d0417b12be7ea866e24fb5ad6e84b3d988"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/b4/90/e2159492b5426be0c1fef7acba807a03511f97c5f86b3caeda6ad92351a7/psutil-7.2.2-cp37-abi3-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "psutil",
+        "requires_python": ">=3.6",
+        "version": "7.2.2"
+      },
+      "requested": true
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "0f84ff49e3fc9dc0e68ab08a0a9427874021aa6c558e66b44dc634a35739b09b"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/fc/75/0576b03f7889ad25b5385b4f6c69e0543713425a6f193b056c9b0a2e65ce/formulaic-1.2.2-py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "formulaic",
+        "requires_python": ">=3.9",
+        "version": "1.2.2"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "f38016bef9a4429b6d0792d809be7b65e9781820c674bf7f463999086b6e6323"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/a1/d3/20a61a248feb1249cd81f83ce731f0bdf5170ed96a08a298f7081cda9e90/interface_meta-2.0.1-py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "interface_meta",
+        "requires_python": ">=3.10",
+        "version": "2.0.1"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "packaging",
+        "requires_python": ">=3.9",
+        "version": "26.3"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "d3dbebe8fd5f46e29912d030b63c6268647b59bf788a99e2af28a30234cf357c"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/20/70/cd3cf5cff538323076a879edef02cce6f13f7d75e03d12f211b0a0dbd178/patsy-1.0.3-py2.py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "patsy",
+        "requires_python": ">=3.6",
+        "version": "1.0.3"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "python-dateutil",
+        "requires_python": "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7",
+        "version": "2.9.0.post0"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "six",
+        "requires_python": ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*",
+        "version": "1.17.0"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "typing_extensions",
+        "requires_python": ">=3.9",
+        "version": "4.16.0"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "b1737f46b1e4a81eb93500a7f2854319e1c7a86e8863fb050b7b4daadd5a4178"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/fe/1e/e782b511c680dbe7369c92e7d981484aacca0cda584da1f28a84cd9a8e1a/wrapt-2.4.0-cp313-cp313-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "wrapt",
+        "requires_python": ">=3.9",
+        "version": "2.4.0"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "54f33de9f4f911d7e84e4191749cac8cc5653f815b06738c54db9a15ab8b1e42"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/91/4c/e0ce1ef95d4000ebc1c11801f9b944fa5910ecc15b5e351865763d8657f8/graphviz-0.21-py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "graphviz",
+        "requires_python": ">=3.9",
+        "version": "0.21"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "68408341f2312836fbbdf6b3c78047f65b2d8752f5fd221c3e72d348f5b34f8b"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/0d/3a/3d5e1f42dc761bf53401a62a83ff93389b37de9d2c093b2a3aa49ac34f1b/matplotlib-3.11.1-cp313-cp313-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "matplotlib",
+        "requires_python": ">=3.11",
+        "version": "3.11.1"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "1cadd8b8969f060ba45ed7c1b714fe69185812ab43bd6b86a9123fe8f99c3263"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/18/0b/0098c214843213759692cc638fce7de5c289200a830e5035d1791d7a2338/contourpy-1.3.3-cp313-cp313-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "contourpy",
+        "requires_python": ">=3.11",
+        "version": "1.3.3"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "85cef7cff222d8644161529808465972e51340599459b8ac3ccbac5a854e0d30"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/e7/05/c19819d5e3d95294a6f5947fb9b9629efb316b96de511b418c53d245aae6/cycler-0.12.1-py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "cycler",
+        "requires_python": ">=3.8",
+        "version": "0.12.1"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "ba04cb5891d4c0c21b6da95eda8d7b090021508a294fff33464fc7d241e0856b"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/92/46/5177b01f3b4abfdd4409f31cca4ab279c9343a26efbe9ec78c97fc612e02/fonttools-4.63.0-cp313-cp313-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "fonttools",
+        "requires_python": ">=3.10",
+        "version": "4.63.0"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "dc23390afe9f4ef9ac3bcc72a03a56eebbde03f4c571a32cb38f859cff9a6524"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/f5/22/deabbb3ad6d918d74b7831b2d8ae7151b09d21c87974e5ee8a456f58c94c/kiwisolver-1.5.1-cp313-cp313-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "kiwisolver",
+        "requires_python": ">=3.10",
+        "version": "1.5.1"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "1cca606cd25738df4ed873d5ad46bbdb3d83b5cbca291f6b4ff13a4df6b0bbe8"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/a6/9b/7a58e61d62be561da3a356fe2384d4059a6345fc130e23ef1c36a5b81d24/pillow-12.3.0-cp313-cp313-win_amd64.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "pillow",
+        "requires_python": ">=3.10",
+        "version": "12.3.0"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "850ba148bd908d7e2411587e247a1e4f0327839c40e2e5e6d05a007ecc69911d"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/10/bd/c038d7cc38edc1aa5bf91ab8068b63d4308c66c4c8bb3cbba7dfbc049f9c/pyparsing-3.3.2-py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "pyparsing",
+        "requires_python": ">=3.9",
+        "version": "3.3.2"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "78cbf7bd06d1b05bb3b8ec1b709864695229b55151b6f7530fbf55517ead6fdd"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/e0/2f/6f492108d9955bac97979d9949c1b35eab30fc630b1f22bbdd2c7cacbab4/plotly-7.0.0-py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "plotly",
+        "requires_python": ">=3.8",
+        "version": "7.0.0"
+      },
+      "requested": false
+    },
+    {
+      "download_info": {
+        "archive_info": {
+          "hashes": {
+            "sha256": "dc096730c87af6cab1b171c9d532be840741ff5d459015e7f6947bd7d7e54931"
+          }
+        },
+        "url": "https://files.pythonhosted.org/packages/e5/6d/b53b99a9f2766d095985947a5782f1702cabb129a34f7a802d7197af832f/tzdata-2026.3-py2.py3-none-any.whl"
+      },
+      "is_direct": false,
+      "is_yanked": false,
+      "metadata": {
+        "name": "tzdata",
+        "requires_python": ">=2",
+        "version": "2026.3"
+      },
+      "requested": false
+    }
+  ],
+  "pip_version": "26.0.1",
+  "version": "1"
+}

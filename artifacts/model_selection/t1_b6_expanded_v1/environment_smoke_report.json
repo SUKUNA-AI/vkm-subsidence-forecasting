@@ -1,0 +1,453 @@
+{
+  "environments": {
+    "b6_cpu": {
+      "environment_id": "b6_cpu",
+      "models": [
+        {
+          "elapsed_seconds": 0.04065199999604374,
+          "finite": true,
+          "model_id": "B1_persistence_last_rate",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 455499,
+          "smoke_parameters": {
+            "fallback": "train_target_median"
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 0.038984099999652244,
+          "finite": true,
+          "model_id": "B3_profile_robust_trend",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 455827,
+          "smoke_parameters": {
+            "acceleration_clip_quantiles": [
+              0.05,
+              0.95
+            ],
+            "acceleration_integral_factor": 0.5,
+            "instantaneous_weight": 0.5,
+            "mean_last_3_weight": 0.3,
+            "profile_mean_weight": 0.2
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 0.45633169999928214,
+          "finite": true,
+          "model_id": "B5_fixed_kalman",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 455622,
+          "smoke_parameters": {
+            "initial_velocity_variance": 400.0,
+            "minimum_measurement_variance": 0.01,
+            "process_variance_q": 25.0
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 0.09660540000186302,
+          "finite": true,
+          "model_id": "B6_adaptive_kalman",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 456294,
+          "smoke_parameters": {
+            "acceleration_clip_ratio": 4.0,
+            "acceleration_gain": 0.0,
+            "acceleration_weight": 0.75,
+            "adaptation_quantile": 0.8,
+            "gap_weight": 0.25,
+            "initial_velocity_variance": 400.0,
+            "maximum_feature_ratio": 4.0,
+            "minimum_measurement_variance": 0.01,
+            "minimum_rate_measurement_variance": 1.0,
+            "process_scale_max": 10.0,
+            "process_scale_min": 1.0,
+            "q_base": 10.0,
+            "rate_measurement_variance_multiplier": 4.0,
+            "raw_sigma_floor_mm_y": 1.0,
+            "volatility_weight": 0.5
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 0.21176600000762846,
+          "finite": true,
+          "model_id": "B7_two_regime_imm",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 456621,
+          "smoke_parameters": {
+            "acceleration_clip_ratio": 4.0,
+            "acceleration_measurement_scale_multiplier": 1.0,
+            "acceleration_scale_quantile": 0.8,
+            "covariance_jitter": 1e-08,
+            "initial_acceleration_variance": 2500.0,
+            "initial_position_variance": 4.0,
+            "initial_transition_probability": 0.1,
+            "initial_velocity_variance": 400.0,
+            "likelihood_variance_floor": 1e-10,
+            "minimum_acceleration_measurement_variance": 25.0,
+            "minimum_measurement_variance": 0.01,
+            "minimum_rate_measurement_variance": 1.0,
+            "p_stable_stay": 0.99,
+            "p_transition_stay": 0.75,
+            "q_stable": 0.5,
+            "q_transition": 200.0,
+            "rate_measurement_variance_multiplier": 4.0,
+            "raw_sigma_floor_mm_y": 1.0,
+            "stable_acceleration_retention_per_year": 0.2,
+            "transition_acceleration_retention_per_year": 0.95
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 0.28208710000035353,
+          "finite": true,
+          "model_id": "B8_student_t_robust_imm",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 457505,
+          "smoke_parameters": {
+            "acceleration_clip_ratio": 4.0,
+            "acceleration_measurement_scale_multiplier": 1.0,
+            "acceleration_scale_quantile": 0.8,
+            "covariance_jitter": 1e-08,
+            "initial_acceleration_variance": 2500.0,
+            "initial_position_variance": 4.0,
+            "initial_transition_probability": 0.1,
+            "initial_velocity_variance": 400.0,
+            "likelihood_variance_floor": 1e-10,
+            "minimum_acceleration_measurement_variance": 25.0,
+            "minimum_measurement_variance": 0.01,
+            "minimum_rate_measurement_variance": 1.0,
+            "minimum_robust_weight": 0.05,
+            "p_stable_stay": 0.99,
+            "p_transition_stay": 0.75,
+            "q_stable": 0.5,
+            "q_transition": 200.0,
+            "rate_measurement_variance_multiplier": 4.0,
+            "raw_sigma_floor_mm_y": 1.0,
+            "stable_acceleration_retention_per_year": 0.2,
+            "student_t_df": 30.0,
+            "transition_acceleration_retention_per_year": 0.95
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 0.13226749999739695,
+          "finite": true,
+          "model_id": "M1_ridge",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 461632,
+          "smoke_parameters": {
+            "alpha": 10.0,
+            "solver": "lsqr",
+            "tolerance": 1e-08
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 0.19096039999567438,
+          "finite": true,
+          "model_id": "M2_extra_trees",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 688785,
+          "smoke_parameters": {
+            "bootstrap": false,
+            "max_depth": 8,
+            "max_features": 0.75,
+            "min_samples_leaf": 4,
+            "n_estimators": 30,
+            "n_jobs": 1
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 0.11076239999965765,
+          "finite": true,
+          "model_id": "Z01_elastic_net",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 13963,
+          "smoke_parameters": {
+            "alpha": 0.01,
+            "l1_ratio": 0.1
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 0.20425819999945816,
+          "finite": true,
+          "model_id": "Z02_huber",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 14133,
+          "smoke_parameters": {
+            "alpha": 0.0001,
+            "epsilon": 1.1
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 0.055291099997702986,
+          "finite": true,
+          "model_id": "Z03_rbf_svr",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 67654,
+          "smoke_parameters": {
+            "C": 1.0,
+            "epsilon": 0.5,
+            "gamma": "scale"
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 1.5714975000009872,
+          "finite": true,
+          "model_id": "Z04_gaussian_process",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 875049,
+          "smoke_parameters": {
+            "alpha_scale": 0.5,
+            "kernel": "constant_times_matern_1_5",
+            "normalize_y": true,
+            "optimizer_restarts": 0
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 0.6880902999982936,
+          "finite": true,
+          "model_id": "Z05_gaussian_gee",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 8900,
+          "smoke_parameters": {
+            "family": "Gaussian",
+            "link": "identity",
+            "time_scale": "fractional_years",
+            "working_correlation": "AR1"
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 1.0009041000012076,
+          "finite": true,
+          "model_id": "Z06_hist_gradient_boosting",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 74944,
+          "smoke_parameters": {
+            "early_stopping_rounds": 100,
+            "l2_regularization": 1.0,
+            "learning_rate": 0.05,
+            "loss": "absolute_error",
+            "max_iter": 30,
+            "max_leaf_nodes": 15
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 3.004886200011242,
+          "finite": true,
+          "model_id": "Z07_quantile_hist_gradient_boosting",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 364241,
+          "smoke_parameters": {
+            "early_stopping_rounds": 100,
+            "l2_regularization": 1.0,
+            "learning_rate": 0.05,
+            "max_iter": 30,
+            "max_leaf_nodes": 15,
+            "quantiles": [
+              0.025,
+              0.1,
+              0.25,
+              0.5,
+              0.75,
+              0.9,
+              0.975
+            ]
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 0.27533090001088567,
+          "finite": true,
+          "model_id": "Z08_xgboost",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 53056,
+          "smoke_parameters": {
+            "colsample_bytree": 0.8,
+            "device": "cpu",
+            "early_stopping_rounds": 100,
+            "learning_rate": 0.03,
+            "max_depth": 3,
+            "min_child_weight": 20,
+            "n_estimators": 30,
+            "n_jobs": 1,
+            "objective": "reg:absoluteerror",
+            "reg_lambda": 10.0,
+            "subsample": 0.8,
+            "tree_method": "hist"
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 0.17327869999280665,
+          "finite": true,
+          "model_id": "Z09_lightgbm",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 70231,
+          "smoke_parameters": {
+            "deterministic": true,
+            "device_type": "cpu",
+            "early_stopping_rounds": 100,
+            "force_col_wise": true,
+            "learning_rate": 0.05,
+            "min_child_samples": 10,
+            "n_estimators": 30,
+            "n_jobs": 1,
+            "num_leaves": 15,
+            "objective": "l1",
+            "reg_lambda": 1.0
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 1.4039270000066608,
+          "finite": true,
+          "model_id": "Z10_catboost",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 33727,
+          "smoke_parameters": {
+            "allow_writing_files": false,
+            "depth": 4,
+            "early_stopping_rounds": 100,
+            "iterations": 30,
+            "l2_leaf_reg": 10.0,
+            "learning_rate": 0.03,
+            "loss_function": "MAE",
+            "task_type": "CPU",
+            "thread_count": 1
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 0.49625600001309067,
+          "finite": true,
+          "model_id": "Z11_ebm",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 241181,
+          "smoke_parameters": {
+            "interactions": 0,
+            "learning_rate": 0.04,
+            "max_bins": 128,
+            "max_rounds": 30,
+            "min_samples_leaf": 10,
+            "n_jobs": 1,
+            "outer_bags": 8
+          },
+          "status": "PASS"
+        }
+      ],
+      "schema_version": 1,
+      "status": "PASS"
+    },
+    "b6_ngboost": {
+      "environment_id": "b6_ngboost",
+      "models": [
+        {
+          "elapsed_seconds": 1.3043504999950528,
+          "finite": true,
+          "model_id": "Z12_ngboost",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 94046,
+          "smoke_parameters": {
+            "base_tree_depth": 2,
+            "learning_rate": 0.01,
+            "n_estimators": 30,
+            "score": "CRPScore"
+          },
+          "status": "PASS"
+        }
+      ],
+      "schema_version": 1,
+      "status": "PASS"
+    },
+    "b6_torch": {
+      "environment_id": "b6_torch",
+      "governance_excluded_model_ids": [
+        "Z15_tabpfn_v2_6"
+      ],
+      "models": [
+        {
+          "elapsed_seconds": 6.930350800001179,
+          "finite": true,
+          "model_id": "Z13_residual_mlp",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 13310,
+          "smoke_parameters": {
+            "batch_size": 32,
+            "dropout": 0.0,
+            "early_stopping_patience": 2,
+            "hidden_layout": [
+              32
+            ],
+            "learning_rate": 0.001,
+            "loss": "Huber",
+            "max_epochs": 5,
+            "optimizer": "AdamW",
+            "patience": 2,
+            "weight_decay": 0.0001
+          },
+          "status": "PASS"
+        },
+        {
+          "elapsed_seconds": 0.5885453000082634,
+          "finite": true,
+          "model_id": "Z14_enfs_replica",
+          "rows": 84,
+          "serialization_roundtrip": "PASS",
+          "serialized_adapter_bytes": 144615,
+          "smoke_parameters": {
+            "activation": "tanh",
+            "claim": "method_replica_not_numerical_result_reproduction",
+            "early_stopping_patience": 2,
+            "fuzzy_rules": 8,
+            "learning_rate_end": 0.002,
+            "learning_rate_start": 0.01,
+            "max_epochs": 5,
+            "membership": "pi",
+            "patience": 2,
+            "rule_network": [
+              50,
+              50
+            ],
+            "scheduler_gamma": 0.9999
+          },
+          "status": "PASS"
+        }
+      ],
+      "schema_version": 1,
+      "status": "PASS"
+    }
+  },
+  "schema_version": 1
+}

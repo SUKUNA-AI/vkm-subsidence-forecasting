@@ -1,0 +1,88 @@
+{
+  "benchmark_plan_sha256": "d143f1c057f176f49c78d9433e4305557339854d1c1faaad77bc356aca8fd926",
+  "completed_folds": 54,
+  "current_test_loaded": false,
+  "environment_id": "b6_cpu",
+  "expected_folds": 54,
+  "failures": [],
+  "historical_validation_loaded": false,
+  "inner_selection_rejections": [
+    {
+      "fold_id": "lpo_2022-10-18_P-H02",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    },
+    {
+      "fold_id": "lpo_2022-10-18_P-H03",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    },
+    {
+      "fold_id": "lpo_2022-10-18_P-H04",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    },
+    {
+      "fold_id": "lpo_2022-10-18_P-H05",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    },
+    {
+      "fold_id": "lpo_2022-10-18_P-H06",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    },
+    {
+      "fold_id": "lpo_2022-10-18_P-H07",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    },
+    {
+      "fold_id": "lpo_2022-10-18_P-V01",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    },
+    {
+      "fold_id": "lpo_2022-10-18_P-V02",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    },
+    {
+      "fold_id": "lpo_2022-10-18_P-V03",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    },
+    {
+      "fold_id": "lpo_2022-10-18_P-V04",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    },
+    {
+      "fold_id": "lpo_2022-10-18_P-V05",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    },
+    {
+      "fold_id": "lpo_2022-10-18_P-V06",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    },
+    {
+      "fold_id": "lpo_2023-05-16_P-H04",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    },
+    {
+      "fold_id": "lpo_2023-11-07_P-H04",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    },
+    {
+      "fold_id": "lzo_2022-10-18_GEO_NW",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    },
+    {
+      "fold_id": "lzo_2022-10-18_GEO_SE",
+      "selection_status": "FROZEN_COMPARATOR_FIXED_SPEC"
+    }
+  ],
+  "job_manifest_sha256": "99db7142395de2fd50b467bd0d7ac9071293d2c18ac3b984a30c7ed50d063a21",
+  "learning_curve_prediction_rows": 352,
+  "model_id": "B5_fixed_kalman",
+  "model_spec_sha256": "4494e2867936d8711b9da7b12fc503322d3a94cf447f9e1b69d1118c54d30dfb",
+  "phase": "robustness",
+  "prediction_rows": 532,
+  "registry_sha256": "59a60926ee298d846ec0fc291450381a1bf21b9270be0735ffce059b4b11d7b1",
+  "schema_version": 1,
+  "selected_inner_oof_rows": 5676,
+  "source_split": "t1_v1/train",
+  "status": "PASS",
+  "tuning_rows": 54,
+  "worker_source_sha256": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff"
+}

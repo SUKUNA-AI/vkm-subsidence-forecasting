@@ -1,0 +1,38 @@
+{
+  "current_t1_test_loaded": false,
+  "excluded_model_ids": [
+    "Z15_tabpfn_v2_6"
+  ],
+  "final_quality_claim_allowed": false,
+  "full_train_primary": {
+    "bytes": 457262,
+    "current_test_loaded": false,
+    "environment_id": "b6_cpu",
+    "external_weight_sha256": null,
+    "historical_validation_loaded": false,
+    "model_id": "B7_two_regime_imm",
+    "model_spec_sha256": "3f5b40e28b1abb881a3a8158b999cee3c9c6fa8bdabfc6978b6cdf651efd4889",
+    "relative_path": "artifacts/model_selection/t1_b6_expanded_v1/full_train_primary.joblib",
+    "schema_version": 1,
+    "seeds": [
+      42117
+    ],
+    "selected_parameter_sha256": "549d213d1928f93aec31f15da59301a1b3d90cfb3ea14b365d90482a8380b0b7",
+    "sha256": "df1ef40667562ae41ba8ab1dfc36354844d7e4d33a93caa862746beb4acaf206",
+    "source_split": "t1_v1/train",
+    "train_sample_ids_sha256": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c"
+  },
+  "gate": "B6_EXPANDED_CLASSICAL_PROBABILISTIC_SMALL_DATA_SCREENING",
+  "historical_validation_loaded": false,
+  "models_advanced": 11,
+  "models_excluded_governance": 1,
+  "models_screened": 22,
+  "new_holdout_seen": false,
+  "new_models_eligible": 0,
+  "primary_model_id": "B7_two_regime_imm",
+  "registry_models": 23,
+  "schema_version": 1,
+  "scientific_scope": "train_only_internal_research",
+  "status": "PASS_NO_NEW_PRIMARY",
+  "suite_id": "t1-final-suite-v4-053aadeded50"
+}

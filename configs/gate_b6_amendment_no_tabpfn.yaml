@@ -1,0 +1,39 @@
+schema_version: 1
+amendment_id: B6-GOV-001
+effective_date: '2026-08-30'
+status: FROZEN_BEFORE_B6_SCREEN_AGGREGATION
+scope: execution_catalog_only
+reason: explicit_user_withdrawal_of_external_licensed_model
+original_protocol_immutability:
+  configs_gate_b6_yaml_changed: false
+  b5_benchmark_plan_changed: false
+  model_registry_history_preserved: true
+  frozen_job_manifest_history_preserved: true
+excluded_models:
+  - model_id: Z15_tabpfn_v2_6
+    family: local_tabpfn
+    execution_status: EXCLUDED_GOVERNANCE_USER_WITHDRAWAL
+    scientific_status: NOT_EVALUATED
+    predictions_existed_at_exclusion: false
+    license_accepted: false
+    weights_downloaded: false
+    external_api_used: false
+    eligible_for_temporal_screen: false
+    eligible_for_spatial_audit: false
+    eligible_for_suite_v4: false
+execution_catalog:
+  original_registry_model_count: 23
+  executable_model_count: 22
+  original_preregistered_candidate_count: 15
+  executable_preregistered_candidate_count: 14
+runtime_policy:
+  tabpfn_import_allowed: false
+  tabpfn_worker_dispatch_allowed: false
+  tabpfn_checkpoint_staging_allowed: false
+  tabpfn_network_access_allowed: false
+  tabpfn_api_mode_allowed: false
+environment_overrides:
+  b6_torch:
+    historical_frozen_lock: requirements/b6_torch.lock.txt
+    effective_runtime_lock: requirements/b6_torch_runtime.lock.txt
+claim_scope: train_only_internal_research

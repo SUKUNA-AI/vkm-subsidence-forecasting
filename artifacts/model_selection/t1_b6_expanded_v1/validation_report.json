@@ -1,0 +1,817 @@
+{
+  "checks": [
+    {
+      "check": "suite_v4_links_immutable_suite_v3",
+      "observed": {
+        "immutable": true,
+        "primary_model_id": "B7_two_regime_imm",
+        "relative_path": "artifacts/governance/final_candidate_suite_v3.json",
+        "sha256": "5eefcf03db3bc126a577f97539ab81a9264c3d8369c08b3cdbe5e7144d69117d",
+        "suite_id": "t1-final-suite-v3-0dedd1296459"
+      },
+      "passed": true
+    },
+    {
+      "check": "screen_status_exact_executable_catalog",
+      "observed": [
+        "B1_persistence_last_rate",
+        "B3_profile_robust_trend",
+        "B5_fixed_kalman",
+        "B6_adaptive_kalman",
+        "B7_two_regime_imm",
+        "B8_student_t_robust_imm",
+        "M1_ridge",
+        "M2_extra_trees",
+        "Z01_elastic_net",
+        "Z02_huber",
+        "Z03_rbf_svr",
+        "Z04_gaussian_process",
+        "Z05_gaussian_gee",
+        "Z06_hist_gradient_boosting",
+        "Z07_quantile_hist_gradient_boosting",
+        "Z08_xgboost",
+        "Z09_lightgbm",
+        "Z10_catboost",
+        "Z11_ebm",
+        "Z12_ngboost",
+        "Z13_residual_mlp",
+        "Z14_enfs_replica"
+      ],
+      "passed": true
+    },
+    {
+      "check": "screen_register_preserves_full_historical_catalog",
+      "observed": [
+        "B1_persistence_last_rate",
+        "B3_profile_robust_trend",
+        "B5_fixed_kalman",
+        "B6_adaptive_kalman",
+        "B7_two_regime_imm",
+        "B8_student_t_robust_imm",
+        "M1_ridge",
+        "M2_extra_trees",
+        "Z01_elastic_net",
+        "Z02_huber",
+        "Z03_rbf_svr",
+        "Z04_gaussian_process",
+        "Z05_gaussian_gee",
+        "Z06_hist_gradient_boosting",
+        "Z07_quantile_hist_gradient_boosting",
+        "Z08_xgboost",
+        "Z09_lightgbm",
+        "Z10_catboost",
+        "Z11_ebm",
+        "Z12_ngboost",
+        "Z13_residual_mlp",
+        "Z14_enfs_replica",
+        "Z15_tabpfn_v2_6"
+      ],
+      "passed": true
+    },
+    {
+      "check": "governance_exclusion_is_not_scored_or_advanced",
+      "observed": [
+        {
+          "advanced_to_robustness": false,
+          "checks_json": "{\"excluded_before_screen_aggregation\":true,\"external_api_used\":false,\"license_accepted\":false,\"predictions_existed_at_exclusion\":false,\"weights_downloaded\":false}",
+          "environment_id": "b6_torch",
+          "family": "local_tabpfn",
+          "model_id": "Z15_tabpfn_v2_6",
+          "observed_json": "{\"scientific_status\":\"NOT_EVALUATED\",\"selection_evidence_used_for_exclusion\":false}",
+          "registry_status": "PREREGISTERED_CANDIDATE",
+          "screen_passed": false,
+          "screen_status": "EXCLUDED_GOVERNANCE_USER_WITHDRAWAL"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "check": "screen_has_no_protocol_worker_failure",
+      "observed": {
+        "B1_persistence_last_rate": "PASS",
+        "B3_profile_robust_trend": "PASS",
+        "B5_fixed_kalman": "PASS",
+        "B6_adaptive_kalman": "PASS",
+        "B7_two_regime_imm": "PASS",
+        "B8_student_t_robust_imm": "PASS",
+        "M1_ridge": "PASS",
+        "M2_extra_trees": "PASS",
+        "Z01_elastic_net": "PASS",
+        "Z02_huber": "PASS",
+        "Z03_rbf_svr": "PASS",
+        "Z04_gaussian_process": "PASS",
+        "Z05_gaussian_gee": "PASS",
+        "Z06_hist_gradient_boosting": "PASS",
+        "Z07_quantile_hist_gradient_boosting": "PASS",
+        "Z08_xgboost": "PASS",
+        "Z09_lightgbm": "PASS",
+        "Z10_catboost": "PASS",
+        "Z11_ebm": "PASS",
+        "Z12_ngboost": "PASS",
+        "Z13_residual_mlp": "PASS",
+        "Z14_enfs_replica": "PASS"
+      },
+      "passed": true
+    },
+    {
+      "check": "screen_workers_match_current_source_sha256",
+      "observed": {
+        "B1_persistence_last_rate": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "B3_profile_robust_trend": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "B5_fixed_kalman": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "B6_adaptive_kalman": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "B7_two_regime_imm": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "B8_student_t_robust_imm": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "M1_ridge": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "M2_extra_trees": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z01_elastic_net": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z02_huber": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z03_rbf_svr": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z04_gaussian_process": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z05_gaussian_gee": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z06_hist_gradient_boosting": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z07_quantile_hist_gradient_boosting": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z08_xgboost": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z09_lightgbm": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z10_catboost": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z11_ebm": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z12_ngboost": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z13_residual_mlp": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z14_enfs_replica": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff"
+      },
+      "passed": true
+    },
+    {
+      "check": "robustness_worker_set_exact",
+      "observed": {
+        "expected": [
+          "B1_persistence_last_rate",
+          "B3_profile_robust_trend",
+          "B5_fixed_kalman",
+          "B6_adaptive_kalman",
+          "B7_two_regime_imm",
+          "B8_student_t_robust_imm",
+          "M1_ridge",
+          "M2_extra_trees",
+          "Z01_elastic_net",
+          "Z08_xgboost",
+          "Z09_lightgbm"
+        ],
+        "observed": [
+          "B1_persistence_last_rate",
+          "B3_profile_robust_trend",
+          "B5_fixed_kalman",
+          "B6_adaptive_kalman",
+          "B7_two_regime_imm",
+          "B8_student_t_robust_imm",
+          "M1_ridge",
+          "M2_extra_trees",
+          "Z01_elastic_net",
+          "Z08_xgboost",
+          "Z09_lightgbm"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "check": "robustness_workers_protocol_clean",
+      "observed": {
+        "B1_persistence_last_rate": "PASS",
+        "B3_profile_robust_trend": "PASS",
+        "B5_fixed_kalman": "PASS",
+        "B6_adaptive_kalman": "PASS",
+        "B7_two_regime_imm": "PASS",
+        "B8_student_t_robust_imm": "PASS",
+        "M1_ridge": "PASS",
+        "M2_extra_trees": "PASS",
+        "Z01_elastic_net": "PASS",
+        "Z08_xgboost": "PASS",
+        "Z09_lightgbm": "PASS"
+      },
+      "passed": true
+    },
+    {
+      "check": "robustness_workers_match_current_source_sha256",
+      "observed": {
+        "B1_persistence_last_rate": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "B3_profile_robust_trend": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "B5_fixed_kalman": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "B6_adaptive_kalman": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "B7_two_regime_imm": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "B8_student_t_robust_imm": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "M1_ridge": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "M2_extra_trees": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z01_elastic_net": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z08_xgboost": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff",
+        "Z09_lightgbm": "8962ffaafa1c2c9c623b593088c77b8cd0ad199039085ddfa8ab4c89643f33ff"
+      },
+      "passed": true
+    },
+    {
+      "check": "saved_temporal_predictions_match_validated_shards",
+      "observed": {
+        "saved_rows": 13090,
+        "shard_rows": 13090
+      },
+      "passed": true
+    },
+    {
+      "check": "saved_robustness_predictions_match_validated_shards",
+      "observed": {
+        "saved_rows": 5852,
+        "shard_rows": 5852
+      },
+      "passed": true
+    },
+    {
+      "check": "suite_has_exactly_one_primary",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_new_holdout_not_seen",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_primary_not_selected_from_holdout",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "report_validation_not_loaded",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "report_test_not_loaded",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "temporal_predictions_no_duplicates",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "robustness_predictions_no_duplicates",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "all_prediction_values_finite",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "conformal_calibration_hash_present",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "temporal_fold_metrics_recomputed_from_prediction_rows",
+      "observed": {
+        "recomputed_rows": 242,
+        "saved_rows": 242
+      },
+      "passed": true
+    },
+    {
+      "check": "temporal_aggregate_metrics_recomputed_from_prediction_rows",
+      "observed": {
+        "recomputed_rows": 22,
+        "saved_rows": 22
+      },
+      "passed": true
+    },
+    {
+      "check": "group_metrics_recomputed_from_prediction_rows",
+      "observed": {
+        "recomputed_rows": 264,
+        "saved_rows": 264
+      },
+      "passed": true
+    },
+    {
+      "check": "transition_metrics_recomputed_from_prediction_rows",
+      "observed": {
+        "recomputed_rows": 594,
+        "saved_rows": 594
+      },
+      "passed": true
+    },
+    {
+      "check": "learning_curves_recomputed_from_prediction_rows",
+      "observed": {
+        "recomputed_rows": 44,
+        "saved_rows": 44
+      },
+      "passed": true
+    },
+    {
+      "check": "probabilistic_metrics_recomputed_from_prediction_rows",
+      "observed": {
+        "recomputed_rows": 1425,
+        "saved_rows": 1425
+      },
+      "passed": true
+    },
+    {
+      "check": "paired_sensitivity_recomputed_from_prediction_rows",
+      "observed": {
+        "recomputed_rows": 40,
+        "saved_rows": 40
+      },
+      "passed": true
+    },
+    {
+      "check": "leave_one_profile_out_jackknife_recomputed_from_prediction_rows",
+      "observed": {
+        "recomputed_rows": 280,
+        "saved_rows": 280
+      },
+      "passed": true
+    },
+    {
+      "check": "calibrated_predictions_recomputed_from_inner_oof",
+      "observed": {
+        "recomputed_rows": 18942,
+        "saved_rows": 18942
+      },
+      "passed": true
+    },
+    {
+      "check": "calibration_parameters_recomputed_from_inner_oof",
+      "observed": 836,
+      "passed": true
+    },
+    {
+      "check": "temporal_screen_reproduced",
+      "observed": 23,
+      "passed": true
+    },
+    {
+      "check": "global_parameters_reproduced_from_screen_inner_results",
+      "observed": 22,
+      "passed": true
+    },
+    {
+      "check": "suite_v4_primary_rule_reproduced",
+      "observed": "B7_two_regime_imm",
+      "passed": true
+    },
+    {
+      "check": "suite_v4_status_reproduced",
+      "observed": "PASS_NO_NEW_PRIMARY",
+      "passed": true
+    },
+    {
+      "check": "suite_v4_eligibility_records_reproduced",
+      "observed": 14,
+      "passed": true
+    },
+    {
+      "check": "all_environments_ready",
+      "observed": {
+        "b6_cpu": "READY",
+        "b6_ngboost": "READY",
+        "b6_torch": "READY"
+      },
+      "passed": true
+    },
+    {
+      "check": "environment_contracts_unchanged",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "torch_runtime_uses_governance_lock_without_tabpfn",
+      "observed": {
+        "lock_path": "requirements/b6_torch_runtime.lock.txt",
+        "pip_freeze_contains_tabpfn": false,
+        "wheel_report_contains_tabpfn": false
+      },
+      "passed": true
+    },
+    {
+      "check": "environment_smoke_reports_pass",
+      "observed": {
+        "b6_cpu": "PASS",
+        "b6_ngboost": "PASS",
+        "b6_torch": "PASS"
+      },
+      "passed": true
+    },
+    {
+      "check": "two_run_determinism_reports_pass",
+      "observed": {
+        "b6_cpu": "PASS",
+        "b6_ngboost": "PASS",
+        "b6_torch": "PASS"
+      },
+      "passed": true
+    },
+    {
+      "check": "environment_smoke_exact_executable_model_sets",
+      "observed": {
+        "b6_cpu": [
+          "B1_persistence_last_rate",
+          "B3_profile_robust_trend",
+          "B5_fixed_kalman",
+          "B6_adaptive_kalman",
+          "B7_two_regime_imm",
+          "B8_student_t_robust_imm",
+          "M1_ridge",
+          "M2_extra_trees",
+          "Z01_elastic_net",
+          "Z02_huber",
+          "Z03_rbf_svr",
+          "Z04_gaussian_process",
+          "Z05_gaussian_gee",
+          "Z06_hist_gradient_boosting",
+          "Z07_quantile_hist_gradient_boosting",
+          "Z08_xgboost",
+          "Z09_lightgbm",
+          "Z10_catboost",
+          "Z11_ebm"
+        ],
+        "b6_ngboost": [
+          "Z12_ngboost"
+        ],
+        "b6_torch": [
+          "Z13_residual_mlp",
+          "Z14_enfs_replica"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "check": "tabpfn_excluded_without_license_or_weights",
+      "observed": {
+        "api_mode": "PROHIBITED",
+        "cache_entries": [],
+        "execution_allowed": false,
+        "family": "local_tabpfn",
+        "governance_amendment": "configs/gate_b6_amendment_no_tabpfn.yaml",
+        "license_marker_present": false,
+        "license_status": "NOT_ACCEPTED_USER_WITHDREW_MODEL",
+        "model_id": "Z15_tabpfn_v2_6",
+        "model_version": "v2.6",
+        "relative_path": null,
+        "runtime_network_access": "PROHIBITED",
+        "schema_version": 1,
+        "scientific_status": "NOT_EVALUATED",
+        "sha256": null,
+        "size_bytes": null,
+        "staging_allowed": false,
+        "status": "EXCLUDED_GOVERNANCE_USER_WITHDRAWAL",
+        "weights_downloaded": false
+      },
+      "passed": true
+    },
+    {
+      "check": "external_model_manifest_unchanged",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "governance_amendment_unchanged",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "tabpfn_has_no_prediction_or_worker_shards",
+      "observed": [],
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::artifacts/model_selection/t1_b6_expanded_v1/environment_manifest.json",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::artifacts/model_selection/t1_b6_expanded_v1/external_model_manifest.json",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::artifacts/model_selection/t1_b6_expanded_v1/model_registry.json",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::artifacts/model_selection/t1_b6_expanded_v1/protocol_amendment.json",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::artifacts/model_selection/t1_b6_expanded_v1/protocol_errata.json",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::artifacts/model_selection/t1_b6_expanded_v1/selected_parameter_registry.json",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::artifacts/splits/t1_train_benchmark_v1/benchmark_plan.json",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::configs/final_holdout_v3.yaml",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::configs/gate_b5.yaml",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::configs/gate_b6.yaml",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::configs/gate_b6_amendment_no_tabpfn.yaml",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::requirements/b6_cpu.lock.txt",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::requirements/b6_ngboost.lock.txt",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::requirements/b6_torch.lock.txt",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::requirements/b6_torch_runtime.lock.txt",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::scripts/run_b6_environment_smoke.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::scripts/run_gate_b5.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::scripts/run_gate_b6.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::scripts/run_gate_b6_full_train_worker.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::scripts/run_gate_b6_worker.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::scripts/stage_b6_environment.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/__init__.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/adaptive_kalman.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/artifact_io.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/b5_splits.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/b6_evaluation.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/b6_governance.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/b6_models.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/b6_probabilistic.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/b6_registry.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/b6_worker.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/baselines.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/benchmark_metrics.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/benchmarking.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/data_contracts.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/environment_staging.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/evaluation.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/gate_b2.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/gate_b3.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/gate_b3_audit.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/gate_b4.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/gate_b5.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/gate_b6.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/holdout_intake.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/imm_kalman.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/leakage.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/metrics.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/model_selection.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/preprocessing.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/robust_imm.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/splits.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/train_research_splits.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/transition_validation.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "suite_source_hash_current::src/skru1/uncertainty.py",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "full_train_primary_artifact_hash_valid",
+      "observed": "artifacts/model_selection/t1_b6_expanded_v1/full_train_primary.joblib",
+      "passed": true
+    },
+    {
+      "check": "full_train_primary_train_hash_valid",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "worker_has_no_validation_loader",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "worker_has_no_test_loader",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "check": "durable_artifacts_have_no_absolute_paths_or_secret_tokens",
+      "observed": [],
+      "passed": true
+    },
+    {
+      "check": "b5_two_run_outputs_byte_identical",
+      "observed": [],
+      "passed": true
+    },
+    {
+      "check": "B0_B4_predecessors_unchanged",
+      "observed": null,
+      "passed": true
+    }
+  ],
+  "current_test_loaded": false,
+  "gate": "B6_EXPANDED_CLASSICAL_PROBABILISTIC_SMALL_DATA_SCREENING",
+  "historical_validation_loaded": false,
+  "recomputed_tables": [
+    "temporal_fold_metrics",
+    "temporal_aggregate_metrics",
+    "group_metrics",
+    "transition_metrics",
+    "learning_curves",
+    "calibrated_predictions",
+    "probabilistic_metrics",
+    "paired_sensitivity",
+    "leave_one_profile_out_jackknife",
+    "screening_register",
+    "suite_v4_eligibility"
+  ],
+  "schema_version": 1,
+  "status": "PASS",
+  "summary": {
+    "checks": 106,
+    "failed": 0,
+    "passed": 106
+  },
+  "validator_recomputed_from_prediction_rows": true
+}
