@@ -19,6 +19,8 @@ from .data_contracts import (
     load_canonical_bundle,
     sha256_file,
 )
+from .b6_models import create_adapter
+from .b6_registry import model_spec_from_registry
 from .evaluation import causal_feature_history
 from .gate_b4 import _build_gate_b4_model
 from .metrics import regression_metrics
@@ -252,10 +254,9 @@ def freeze_holdout(root: Path, config: Mapping[str, Any]) -> dict[str, Any]:
         raise ContractViolation(f"Holdout cannot be frozen from status {status['status']}")
     suite_path = resolve_repo_path(root, config["freeze_protocol"]["candidate_suite"])
     if not suite_path.is_file():
-        raise FileNotFoundError("Run Gate B4 to freeze final_candidate_suite_v3.json first")
+        raise FileNotFoundError("Run Gate B6 to freeze final_candidate_suite_v4.json first")
     suite = json.loads(suite_path.read_text(encoding="utf-8"))
-    if suite.get("status") != "frozen_before_new_holdout_labels":
-        raise ContractViolation("Candidate suite is not frozen before holdout labels")
+    _assert_suite_frozen_before_holdout(suite)
     _verify_suite_source_hashes(root, suite)
     _verify_suite_contracts(root, suite)
     commit_sha = _git_head(root)
@@ -326,6 +327,7 @@ def evaluate_holdout_once(root: Path, config: Mapping[str, Any]) -> dict[str, An
     if sha256_file(suite_path) != frozen["candidate_suite_sha256"]:
         raise ContractViolation("Frozen candidate suite hash changed")
     suite = json.loads(suite_path.read_text(encoding="utf-8"))
+    _assert_suite_frozen_before_holdout(suite)
     _verify_suite_source_hashes(root, suite)
     _verify_suite_contracts(root, suite)
     package = config["candidate_package"]
@@ -401,21 +403,71 @@ def evaluate_holdout_once(root: Path, config: Mapping[str, Any]) -> dict[str, An
         gate_b4_config = yaml.safe_load(
             (root / "configs" / "gate_b4.yaml").read_text(encoding="utf-8")
         )
+        registry = json.loads(
+            (
+                root
+                / "artifacts"
+                / "model_selection"
+                / "t1_b6_expanded_v1"
+                / "model_registry.json"
+            ).read_text(encoding="utf-8")
+        )
         prediction_frames: list[pd.DataFrame] = []
         metric_rows: list[dict[str, Any]] = []
         truth = frame["observed_rate_mm_y"].to_numpy(float)
         for spec in suite["models"]:
-            model = _build_gate_b4_model(spec, bundle=bundle, config=gate_b4_config)
-            model.fit(train)
-            prediction = model.predict(holdout, history_frame=history)
+            model_id = str(spec["model_id"])
+            registry_spec = model_spec_from_registry(registry, model_id)
+            if str(spec["model_spec_sha256"]) != registry_spec.spec_sha256:
+                raise ContractViolation(
+                    "Frozen suite model specification differs from the B6 registry: "
+                    f"{model_id}"
+                )
+            if model_id in {
+                "B1_persistence_last_rate",
+                "B5_fixed_kalman",
+                "B6_adaptive_kalman",
+                "B7_two_regime_imm",
+                "B8_student_t_robust_imm",
+            }:
+                gate_b4_spec = {**spec, "family": registry_spec.family}
+                model = _build_gate_b4_model(
+                    gate_b4_spec,
+                    bundle=bundle,
+                    config=gate_b4_config,
+                )
+                model.fit(train)
+                prediction = model.predict(holdout, history_frame=history)
+                family = str(model.family)
+            else:
+                model_spec = registry_spec
+                if model_spec.environment_id != "b6_cpu":
+                    raise ContractViolation(
+                        "One-shot holdout adapter requires an explicitly staged "
+                        f"environment worker: {model_spec.environment_id}/{model_id}"
+                    )
+                seeds = tuple(map(int, model_spec.seed_policy["seeds"]))
+                if len(seeds) != 1:
+                    raise ContractViolation(
+                        f"One-shot holdout adapter requires one frozen seed: {model_id}"
+                    )
+                adapter = create_adapter(
+                    model_spec,
+                    spec["parameters"],
+                    contract=bundle.feature_contract,
+                    seed=seeds[0],
+                )
+                adapter.fit(train)
+                prediction = adapter.predict(holdout).mean
+                family = str(model_spec.family)
             if prediction.shape != truth.shape or not np.isfinite(prediction).all():
-                raise RuntimeError(f"Frozen model produced invalid holdout predictions: {model.model_id}")
+                raise RuntimeError(f"Frozen model produced invalid holdout predictions: {model_id}")
             metrics = regression_metrics(truth, prediction)
             metric_rows.append(
                 {
-                    "model_id": model.model_id,
-                    "family": model.family,
-                    "role": "primary" if model.model_id == suite["primary_model_id"] else "context_comparator",
+                    "model_id": model_id,
+                    "family": family,
+                    "role": "primary" if model_id == suite["primary_model_id"] else "context_comparator",
                     **metrics,
                 }
             )
@@ -429,12 +481,12 @@ def evaluate_holdout_once(root: Path, config: Mapping[str, Any]) -> dict[str, An
                     "forecast_horizon_days",
                 ]
             ].copy()
-            output.insert(0, "model_id", model.model_id)
-            output.insert(1, "family", model.family)
+            output.insert(0, "model_id", model_id)
+            output.insert(1, "family", family)
             output.insert(
                 2,
                 "role",
-                "primary" if model.model_id == suite["primary_model_id"] else "context_comparator",
+                "primary" if model_id == suite["primary_model_id"] else "context_comparator",
             )
             output["y_true"] = truth
             output["y_pred"] = prediction
@@ -494,6 +546,21 @@ def _verify_suite_source_hashes(root: Path, suite: Mapping[str, Any]) -> None:
         path = resolve_repo_path(root, relative)
         if not path.is_file() or sha256_file(path) != expected_hash:
             raise ContractViolation(f"Frozen candidate source changed: {relative}")
+
+
+def _assert_suite_frozen_before_holdout(suite: Mapping[str, Any]) -> None:
+    status = str(suite.get("status", ""))
+    legacy_frozen = status == "frozen_before_new_holdout_labels"
+    b6_frozen = status in {"PASS_NO_NEW_PRIMARY", "PASS_NEW_INTERNAL_PRIMARY"}
+    if not (legacy_frozen or b6_frozen):
+        raise ContractViolation("Candidate suite is not frozen before holdout labels")
+    if b6_frozen:
+        if suite.get("new_holdout_seen") is not False:
+            raise ContractViolation("Suite v4 was frozen after observing a new holdout")
+        if suite.get("primary_selected_from_holdout") is not False:
+            raise ContractViolation("Suite v4 primary was selected from holdout evidence")
+        if int(suite.get("primary_count", 0)) != 1:
+            raise ContractViolation("Suite v4 must contain exactly one primary")
 
 
 def _verify_suite_contracts(root: Path, suite: Mapping[str, Any]) -> None:

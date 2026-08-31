@@ -3,7 +3,7 @@
 ## Current status
 
 No eligible future or independent external labelled package is present in the
-repository. Gate B4 therefore records `PENDING_DATA`; synthetic smoke fixtures,
+repository. Gate B6 therefore retains `PENDING_DATA`; synthetic smoke fixtures,
 model predictions, the disclosed `t1_v1/test`, and the historical validation
 split cannot be relabelled as a new holdout.
 
@@ -34,9 +34,11 @@ mapping frozen before labels.
 
 Before access the repository records the candidate-suite hash, primary model,
 code commit, origin and target hashes, and a frozen ordered sample manifest.
-The suite contains one predeclared primary, B7. B1/B5/B6 and the retained B8
-are contextual comparators, not alternatives from which a winner may be
-selected after observing holdout scores.
+Suite v4 contains one predeclared primary, B7. B1/B5/B6, the retained B8 and
+the interpretable Z01 ElasticNet record are contextual comparators, not
+alternatives from which a winner may be selected after observing holdout
+scores. The suite is accepted only when `new_holdout_seen=false`,
+`primary_selected_from_holdout=false`, and `primary_count=1`.
 
 ## One-shot evaluation
 

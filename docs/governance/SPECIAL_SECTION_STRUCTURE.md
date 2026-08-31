@@ -46,3 +46,17 @@ Repository architecture, contracts, manifests, checksums and reproducibility.
 ## 6.8 Error analysis and adaptive monitoring
 
 Error Atlas, repeat-observation priorities, GNSS/InSAR and limits of deployment.
+
+## Evidence-to-section mapping
+
+- Gate B5 supplies the reproducible benchmark, Error Atlas, dependence audit,
+  independent-unit accounting and formal exclusions for 6.4, 6.6, 6.7 and
+  6.8.
+- Gate B6 supplies the classical/probabilistic/neuro-fuzzy
+  comparison, spatial stability, conformal calibration and compute evidence
+  for 6.5.1–6.5.3, 6.5.9 and 6.7.1–6.7.6. It does not supply evidence for
+  6.5.7 after the foundation comparator was governance-excluded.
+- Gate C remains the source for 6.5.4–6.5.5 and is not claimed by the small
+  neural controls used in B6.
+- External/frozen validation in 6.7.7 remains pending until a genuinely new
+  future or external holdout is obtained.

@@ -36,4 +36,3 @@ def quantile_crps_approximation(
     error = truth[:, None] - values
     pinball = np.maximum(taus[None, :] * error, (taus[None, :] - 1.0) * error)
     return 2.0 * np.sum(pinball * weights[None, :], axis=1)
-

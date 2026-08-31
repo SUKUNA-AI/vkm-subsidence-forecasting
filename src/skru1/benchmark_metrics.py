@@ -427,4 +427,3 @@ def _array(values: Iterable[float], name: str) -> np.ndarray:
     if result.ndim != 1:
         raise ValueError(f"{name} must be one-dimensional")
     return result
-

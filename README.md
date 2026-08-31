@@ -1,44 +1,86 @@
 # SKRU-1: воспроизводимый контур специальной части
 
-Репозиторий фиксирует исходные данные дипломного проекта, контракты качества,
-временные разбиения, модели T1 и governance-процедуру честной финальной оценки.
-Все operational paths относительны корню репозитория; исходные ZIP и первичные
-таблицы не изменяются на месте; временные результаты создаются только в
-`work/`.
+Репозиторий содержит проверяемый data foundation, train-only model research,
+контракты против leakage и governance-процедуру однократной будущей оценки
+прогноза оседаний T1. Все operational paths относительны корню; исходные ZIP и
+первичные таблицы не изменяются на месте; временные результаты создаются
+только в `work/`.
 
-## Текущее состояние
+## Текущее состояние: Gate B5/B6 завершены
 
-Завершены Gate A0/A1 и модельные этапы B0/B1–B4. Последний эксперимент,
-**Gate B4**, исследует новую observation model только внутри
-`artifacts/splits/t1_v1/train.csv`:
+Gate B5 заморозил расширенный train-only benchmark. Gate B6 исполнил
+классические, вероятностные, longitudinal, boosting, glassbox, small neural и
+neuro-fuzzy comparators только на `t1_v1/train`.
 
-- 911 train origins, 98 points и 14 profiles;
-- внутренний temporal core — 823 origins, audit-tail — 88 origins на
-  2023-11-07;
-- 1 internal temporal, 5 rolling-origin, 14 forward leave-profile-out и 4
-  forward leave-zone-out folds;
-- Student-t degrees of freedom выбирается только по трём nested rolling folds
-  внутри каждого outer-train;
-- B1, B5, B6 и B7 используются с замороженными спецификациями;
-- исторический validation и раскрытый test не загружаются.
+Итог B6 — **`PASS_NO_NEW_PRIMARY`**:
 
-Выбран `B8_student_t_robust_imm` с `ν=30`. На внутреннем temporal tail его MAE
-равна 5,831 мм/год против 6,015 у B7; leave-zone MAE — 5,858 против 6,046.
-Однако на целевом `volatile_or_gap` сегменте B8 хуже B7 на 0,45%, а
-заранее заданный порог требовал улучшение не менее 10%. На pooled rolling
-origins B8 также хуже B7 на 4,52%.
+- `B7_two_regime_imm` остаётся единственным primary suite v4;
+- rolling-origin pooled MAE B7 — **5,640 мм/год**;
+- MAE B1 persistence — **6,311 мм/год**;
+- train-only B7 skill относительно B1 — **+10,64%**;
+- 95% conformal coverage B7 — **0,951**;
+- ни одна новая модель не прошла одновременно rolling, audit-tail,
+  transition, profile/zone, interval, sign-consistency и protocol gates;
+- historical validation, раскрытый T1 test и новый holdout в B5/B6 не
+  загружались.
 
-Поэтому B8 имеет статус `train_only_research_recorded`, а заранее объявленным
-primary для будущего one-shot holdout остаётся `B7_two_regime_imm`. Машинный
-audit Gate B4 прошёл 54 проверки без ошибок.
+Это **не финальная оценка внешней валидности**. Научный scope артефактов —
+`train_only_internal_research`; production/final claim запрещён до появления
+и однократного открытия заранее замороженного future/external holdout.
 
-Нового future/external holdout в данных пока нет. Статус intake v3 —
-`PENDING_DATA`; synthetic smoke fixtures, model predictions, старый validation
-и раскрытый test не являются заменой независимому holdout.
+Подробный результат с семью проверенными графиками:
+[`docs/reports/GATE_B6_EXPANDED_SCREENING_RU.md`](docs/reports/GATE_B6_EXPANDED_SCREENING_RU.md).
+
+## Геометрия benchmark
+
+Неизменяемый источник `t1_v1/train` содержит 911 model origins, но только 98
+point trajectories, 14 profiles, четыре frozen spatial proxy zones и 19
+target dates. Строки зависимы во времени и пространстве, поэтому random split,
+обычный KFold и i.i.d. row bootstrap запрещены.
+
+`t1_train_benchmark_v1` содержит:
+
+- 11 rolling-origin outer folds и по три forward-only inner folds;
+- 42 spatio-temporal leave-profile-out folds;
+- 12 spatio-temporal leave-zone-out folds;
+- всего 65 outer и 195 inner tuning contexts;
+- learning curves на audit tail 2023-11-07 для 217, 423, 708 и 823 train
+  origins без перенастройки параметров.
+
+Held-out profile/zone исключается не только из outer train, но и из каждого
+inner tuning fold. Focused campaigns 2023-01-17 и 2023-07-25 участвуют в
+temporal evidence, но не в spatial CV из-за узкой географической поддержки.
+
+## Исполненный model zoo
+
+Исторически замороженный каталог содержит 23 записи, из которых реально
+исполнены 22:
+
+- frozen B1/B3/B5/B6/B7/B8, M1 Ridge и M2 ExtraTrees;
+- ElasticNet, Huber, RBF-SVR, GPR и Gaussian GEE;
+- HistGradientBoosting, quantile HGB, XGBoost, LightGBM и CatBoost;
+- EBM и NGBoost;
+- небольшой residual MLP и protocol-safe ENFS replica.
+
+`Z15_tabpfn_v2_6` **исключён** governance-поправкой `B6-GOV-001` по решению
+владельца проекта до лицензии, загрузки весов, predictions и scoring. Веса,
+API-вызовы и TabPFN shards отсутствуют; runtime import/dispatch/network
+запрещены. Historical row и старый lock остаются только как неизменяемая часть
+B5 freeze, а current torch environment использует отдельный
+`requirements/b6_torch_runtime.lock.txt` без этого package.
+
+Полный статус моделей:
+[`docs/governance/MODEL_CATALOG_B6.md`](docs/governance/MODEL_CATALOG_B6.md).
+
+ETS, ARIMA/ARIMAX и VAR не обучаются механически: короткие нерегулярные
+истории, пропуски campaigns и неполная синхронность делают такую оценку
+зависимой от недоказанной интерполяции. Формальные cards имеют статус
+`NOT_ELIGIBLE_DATA_GEOMETRY`.
 
 ## Быстрый запуск в PowerShell
 
-Требуется CPython 3.13. Проверенная локальная среда:
+Требуется CPython 3.13. Базовая среда для contracts, orchestration, tests и
+reports:
 
 ```powershell
 py -3.13 -m venv .venv
@@ -46,87 +88,117 @@ py -3.13 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements\bootstrap.lock.txt
 .\.venv\Scripts\python.exe -m pip install -r requirements\modeling.lock.txt
 .\.venv\Scripts\python.exe scripts\verify_inputs.py --root .
-.\.venv\Scripts\python.exe -m pytest
+.\.venv\Scripts\python.exe -m pytest -p no:cacheprovider
 ```
 
-Повторный воспроизводимый Gate B4 и notebook:
+Gate B5:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\run_gate_b4.py --phase all --root .
-.\.venv\Scripts\python.exe scripts\build_gate_b4_notebook.py --root .
+.\.venv\Scripts\python.exe scripts\run_gate_b5.py --phase all
+.\.venv\Scripts\python.exe scripts\verify_gate_b5_two_run.py
 ```
 
-Gate B4 runner не имеет phase для validation/test/final-test. Он работает
-только с `t1_v1/train` и откажется менять уже замороженные
-`t1_train_research_v1` manifests.
+Изолированные B6 environments создаются отдельно; exact package versions,
+wheel URLs и SHA-256 сохраняются в durable manifests:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\stage_b6_environment.py --environment-id b6_cpu
+.\.venv\Scripts\python.exe scripts\stage_b6_environment.py --environment-id b6_ngboost
+.\.venv\Scripts\python.exe scripts\stage_b6_environment.py --environment-id b6_torch
+
+.\.venv\Scripts\python.exe scripts\run_b6_environment_smoke.py --environment-id b6_cpu
+.\.venv\Scripts\python.exe scripts\run_b6_environment_smoke.py --environment-id b6_ngboost
+.\.venv\Scripts\python.exe scripts\run_b6_environment_smoke.py --environment-id b6_torch
+```
+
+Полный B6 workflow:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase preflight
+.\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase screen
+.\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase robustness
+.\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase calibrate
+.\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase freeze
+.\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase validate
+```
+
+Worker CLI не принимает validation/test manifests. Каждый shard проверяется по
+environment ID, frozen model/job/fold hashes, exact sample IDs, duplicate
+constraints и train-only provenance.
+
+Графики и executed notebooks строятся только из сохранённых machine artifacts
+и ничего не переобучают:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\build_gate_b6_figures.py --root .
+.\.venv\Scripts\python.exe scripts\build_gate_b5_b6_notebooks.py --gate all --root .
+```
+
+## Ключевые артефакты
+
+- B5 protocol: [`docs/governance/GATE_B5_B6_TRAIN_ONLY_PROTOCOL.md`](docs/governance/GATE_B5_B6_TRAIN_ONLY_PROTOCOL.md);
+- B5 split design: `artifacts/splits/t1_train_benchmark_v1/`;
+- B5 evidence: `artifacts/model_selection/t1_b5_evidence_v1/`;
+- B6 evidence: `artifacts/model_selection/t1_b6_expanded_v1/`;
+- frozen suite v4: `artifacts/governance/final_candidate_suite_v4.json`;
+- B5 report: [`docs/reports/GATE_B5_EVIDENCE_BENCHMARK_RU.md`](docs/reports/GATE_B5_EVIDENCE_BENCHMARK_RU.md);
+- B6 report: [`docs/reports/GATE_B6_EXPANDED_SCREENING_RU.md`](docs/reports/GATE_B6_EXPANDED_SCREENING_RU.md);
+- B5 notebook: `notebooks/06_gate_b5_evidence_audit.ipynb`;
+- B6 notebook: `notebooks/07_gate_b6_model_comparison.ipynb`;
+- B6 model cards: `docs/model_cards/`;
+- independent validation: `artifacts/model_selection/t1_b6_expanded_v1/validation_report.json`;
+- SHA-256 inventory: `artifacts/model_selection/t1_b6_expanded_v1/artifact_inventory.csv`.
+
+Предыдущие Gate A0/A1 и B0–B4 сохранены как историческая, hash-protected
+цепочка в `artifacts/`, notebooks и reader-facing reports.
 
 ## Новый final holdout v3
 
-Безопасная проверка текущего состояния не читает target values:
+Реального future/external holdout пока нет. Безопасная status-фаза не читает
+target values:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_holdout_v3.py --phase status --root .
 ```
 
-Реальный пакет предоставляет владелец данных локально в
-`inputs/holdout_candidates/t1_final_v3/`; содержимое этой папки, кроме
-инструкции, игнорируется Git. Контракт пакета и критерии eligibility описаны в
-`docs/governance/FINAL_HOLDOUT_INTAKE_V3.md` и
-`configs/final_holdout_v3.yaml`.
+Авторизованный владелец данных размещает локальный пакет в
+`inputs/holdout_candidates/t1_final_v3/`; содержимое, кроме инструкции,
+игнорируется Git. Перед доступом фиксируются eligibility, ordered sample
+manifest, suite-v4 SHA-256, commit SHA, origins hash и sealed target hash.
 
-После независимого review порядок строго такой:
+После независимого review порядок один:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_holdout_v3.py --phase status --root .
 .\.venv\Scripts\python.exe scripts\run_holdout_v3.py --phase freeze --root .
-# frozen record и ordered manifest должны быть проверены и закоммичены
+# frozen record и ordered manifest проверяются и коммитятся до доступа
 .\.venv\Scripts\python.exe scripts\run_holdout_v3.py --phase evaluate-once --root .
 ```
 
-`evaluate-once` сначала переводит ledger в consumed state и только затем читает
-labels. Любая ошибка после начала доступа также расходует единственную попытку.
-Post-access tuning, смена primary, feature engineering по результатам holdout и
-повторный доступ запрещены. B1/B5/B6/B8 оцениваются только как контекстные
-comparators; выбирать из них победителя после открытия нельзя.
+`evaluate-once` сначала необратимо расходует access ledger и только затем
+читает labels. Любая ошибка после начала доступа также расходует попытку.
+Post-access tuning, смена primary и выбор победителя среди context models
+запрещены. Suite v4 заранее содержит B7 primary и B1/B5/B6/B8/Z01 только как
+контекст.
 
-## Основные артефакты Gate B4
+## Окружения и ПК
 
-- протокол: `docs/governance/GATE_B4_TRAIN_ONLY_PROTOCOL.md`;
-- конфигурация: `configs/gate_b4.yaml`;
-- train-only split manifests: `artifacts/splits/t1_train_research_v1/`;
-- machine report и validation: `artifacts/model_selection/t1_b4_train_only_v1/`;
-- frozen future-holdout suite:
-  `artifacts/governance/final_candidate_suite_v3.json`;
-- reader-facing report: `docs/reports/GATE_B4_ROBUST_INNOVATION_RU.md`;
-- executed notebook: `notebooks/05_gate_b4_robust_innovation.ipynb`;
-- holdout status: `artifacts/governance/final_holdout_v3_status.json`.
+Проверенная конфигурация пользователя: RTX 5070 Ti, Core i7-14700KF, 64 ГБ
+DDR5-6400 и Samsung 990 Pro. Classical/state-space/boosting jobs запускаются на
+CPU. CUDA используется только для residual MLP и ENFS; это уменьшает
+недетерминизм boosters и сохраняет отдельную доказательную границу между
+средами.
 
-Предыдущие Gate B0/B1, B2 и B3 сохранены как неизменяемая история в
-`artifacts/model_selection/`, соответствующих notebooks и reports.
+Полноценный Gate C для LSTM/GRU/TCN/TFT/PatchTST и других sequence models ещё
+не начат. Малый B6 MLP и ENFS не заменяют sequence-specific protocol. Gate E
+foundation models также остаётся отдельным будущим этапом; B6 после
+`B6-GOV-001` не содержит foundation comparator.
 
-## Источники и воспроизводимость
+## Научная граница и следующий шаг
 
-- Канонические bootstrap ZIP: `inputs/bootstrap/*.zip`.
-- Внешний контроль: `configs/input_manifest.csv` и
-  `configs/source_manifest.csv`.
-- Внутренний контроль: manifests внутри архивов.
-- Канонические T1 tables и feature/target contracts задаются Gate A1.
-- Любая ошибка размера, SHA-256, структуры ZIP, schema, grain, временного
-  порядка или split membership завершает соответствующую фазу ненулевым кодом.
-- `work/run_01` и `work/run_02` воспроизводят распаковку независимо и не
-  коммитятся; проверяемые inventories и отчёты находятся в `artifacts/`.
-
-Конфигурация ПК пользователя (RTX 5070 Ti, Core i7-14700KF, 64 ГБ DDR5,
-Samsung 990 Pro) более чем достаточна для текущих classical/state-space gates.
-Gate B4 выполняется на CPU; отдельная CUDA/PyTorch lock-среда должна быть
-зафиксирована до начала DL/GNN/foundation-model этапов, а не смешиваться с
-текущим reproducible environment.
-
-## Научная граница
-
-Текущие результаты являются train-only и historical validation evidence, а не
-финальной оценкой внешней валидности. Ни B7, ни B8 нельзя объявлять
-production-quality/final model до однократного нового future/external holdout.
-Количество сложных моделей само по себе не считается доказательством; каждая
-следующая гипотеза требует preregistration, причинных признаков, временной и
-пространственной проверки и нового независимого evaluation resource.
+Главный текущий вывод — B7 остаётся наиболее устойчивым внутренним primary,
+но это утверждение ограничено train-only evidence. Следующий внешний выбор
+разрешён только после появления нового real future/external holdout,
+замороженного до доступа к labels. До этого допустимы новые заранее
+специфицированные nested train-only исследования и подготовка Gate C, но не
+дальнейшая настройка по историческому validation или раскрытому test.

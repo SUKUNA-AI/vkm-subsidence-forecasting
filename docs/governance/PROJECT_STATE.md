@@ -1,4 +1,4 @@
-# Project State v3
+# Project State v4
 
 ## Verified bundled inputs
 
@@ -24,11 +24,17 @@ The five bootstrap artifacts and eleven primary sources are physically included 
 - B8 changes only the B7 scalar observation model to a bounded-influence Student-t likelihood; nested train-only tuning selected `student_t_df=30` from the fixed grid `[3, 5, 10, 30]` while all B7 dynamics remained frozen;
 - B8 internal-temporal MAE is 5.831 mm/year versus 6.015 for B7, and leave-zone MAE is 5.858 versus 6.046; however `volatile_or_gap` MAE is 0.45% worse than B7 instead of at least 10% better, and pooled rolling-origin MAE is 4.52% worse;
 - the Gate B4 record is `t1-b4-train-v1-0dedd1296459` with status `train_only_research_recorded`; machine validation passed 54 checks with zero failures, historical validation/test rows loaded are both zero, and B8 is not eligible for a final claim;
-- final candidate suite v3 was frozen before new holdout labels with B7 as the single primary and B1/B5/B6/B8 as context-only comparators; the primary may not be changed from future holdout results;
+- Gate B5 is complete with status `PASS_PROTOCOL_FROZEN`: `t1_train_benchmark_v1` freezes 11 rolling-origin, 42 spatio-temporal leave-profile-out and 12 leave-zone-out outer folds over the immutable 911-row T1 train set, with three forward-only inner folds per outer context (65 outer and 195 inner folds total);
+- B5 records executable `SAFE_ALL`, `DYNAMIC_CORE_17` and `NATIVE_CATEGORICAL` feature views, an error atlas, residual-dependence evidence, independent-unit counts, fixed-parameter learning curves, formal ETS/ARIMA/VAR data-geometry exclusions, and SHA-256 protection of B0–B4 plus suite v3; the independent validator passed 20 checks and the two-run manifest comparison is byte-identical;
+- Gate B6 is complete entirely inside `t1_v1/train` with status `PASS_NO_NEW_PRIMARY`: 22 executable models completed the 11-fold temporal screen, 11 models advanced to 42 profile plus 12 zone folds, 18,942 calibrated prediction rows were evaluated, and historical validation/current test/new holdout rows loaded are all zero;
+- B7 has the best B6 rolling MAE at 5.640 mm/year versus 6.311 for B1 (10.64% skill), improves on B1 for 10 of 11 target dates and 13 of 14 profiles, has equal-profile macro MAE 5.676, equal-zone macro MAE 4.975, worst-zone MAE 8.478, and 95% conformal coverage 0.951;
+- no new model passed every preregistered suite-v4 gate; ElasticNet, XGBoost and LightGBM reached the full spatial audit but failed rolling/audit-tail/transition/spatial/sign-consistency requirements, and XGBoost additionally failed a spatial inner guardrail; NGBoost was rejected at temporal screening because three inner selections had no eligible probabilistic candidate;
+- the historical B5 registry retains 23 rows, but `Z15_tabpfn_v2_6` is excluded before scoring by frozen amendment `B6-GOV-001`; no license was accepted, no weights were downloaded, no API/network access occurred, no predictions exist, and the executable catalog contains 22 models;
+- final candidate suite v3 remains immutable historical evidence; suite v4 is the current pre-holdout authority with B7 as its single primary, B1/B5/B6/B8 as context-only comparators and Z01 ElasticNet as interpretable context-only; primary selection after observing a future holdout is prohibited;
 - final T1 holdout policy v3 is `PENDING_DATA`: no eligible local future/external package exists, target values have not been read, and a sealed status/freeze/evaluate-once ledger is implemented; the disclosed `t1_v1/test` and historical validation remain diagnostic only;
 - T5 is technically prepared but remains exploratory because only 17 complete positive labels exist;
 - hotfix and baseline scripts exist;
-- deep model zoo, graph models, foundation models and LLM layer are planned but must be implemented and evaluated after Gate A/B;
+- full temporal deep models, graph models, foundation models and the LLM support layer remain future gates after independent B5/B6 validation; the small B6 MLP and ENFS replica do not consume Gate C;
 - no final production-quality model claim is allowed from synthetic data.
 
 The machine-readable Gate A1 authority is `artifacts/data_quality/gate_a1_report.json`; the reader-facing report is `docs/reports/GATE_A1_DATA_QUALITY_RU.md`.
@@ -39,7 +45,11 @@ The machine-readable Gate B2 validation authority is `artifacts/model_selection/
 
 The machine-readable Gate B3 validation authority is `artifacts/model_selection/t1_b3_v1/validation_report.json`; the immutable-run reconciliation is `artifacts/model_selection/t1_b3_v1/audit_reconciliation.json`; the reader-facing report is `docs/reports/GATE_B3_IMM_RU.md`; and the executed notebook is `notebooks/04_gate_b3_imm.ipynb`. B7 is retained as a strong comparator because it improves overall and accelerating errors, but it is not a final candidate because volatile/gap and relative leave-zone criteria failed. No B7 hyperparameter may be changed from the current validation evidence.
 
-The machine-readable Gate B4 validation authority is `artifacts/model_selection/t1_b4_train_only_v1/validation_report.json`; the reader-facing report is `docs/reports/GATE_B4_ROBUST_INNOVATION_RU.md`; and the executed notebook is `notebooks/05_gate_b4_robust_innovation.ipynb`. The governed future-holdout suite is `artifacts/governance/final_candidate_suite_v3.json`, and the non-consuming local intake status is `artifacts/governance/final_holdout_v3_status.json`. Gate B4 found useful overall/spatial effects from robust innovations but did not confirm the predeclared volatile/gap hypothesis, so B7 remains the holdout primary.
+The machine-readable Gate B4 validation authority is `artifacts/model_selection/t1_b4_train_only_v1/validation_report.json`; the reader-facing report is `docs/reports/GATE_B4_ROBUST_INNOVATION_RU.md`; and the executed notebook is `notebooks/05_gate_b4_robust_innovation.ipynb`. Suite v3 remains its immutable historical governance record. Gate B4 found useful overall/spatial effects from robust innovations but did not confirm the predeclared volatile/gap hypothesis.
+
+The Gate B5 benchmark authority is `artifacts/splits/t1_train_benchmark_v1/benchmark_plan.json`; the machine validation authority is `artifacts/model_selection/t1_b5_evidence_v1/validation_report.json`; the reader-facing report is `docs/reports/GATE_B5_EVIDENCE_BENCHMARK_RU.md`; and the executed notebook is `notebooks/06_gate_b5_evidence_audit.ipynb`.
+
+The Gate B6 machine authority is `artifacts/model_selection/t1_b6_expanded_v1/validation_report.json`; detailed point/group/transition/probabilistic metrics and prediction provenance live under the same artifact root. The reader-facing report is `docs/reports/GATE_B6_EXPANDED_SCREENING_RU.md`, the executed artifact-only notebook is `notebooks/07_gate_b6_model_comparison.ipynb`, and the model catalog is `docs/governance/MODEL_CATALOG_B6.md`. The current governed future-holdout suite is `artifacts/governance/final_candidate_suite_v4.json`; non-consuming intake status remains `artifacts/governance/final_holdout_v3_status.json`.
 
 ## Path policy
 

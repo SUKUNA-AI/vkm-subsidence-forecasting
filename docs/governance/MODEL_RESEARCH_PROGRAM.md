@@ -8,6 +8,23 @@ The prior roadmap overfocused on a single sensible operational line — Kalman/I
 
 More models are allowed; more unstructured model noise is not. The repository may test 40+ candidates, but the thesis reports only scientifically representative families and the models that pass frozen gates.
 
+## Current B5/B6 execution boundary
+
+The current expanded comparison is deliberately narrower than the complete
+programme. Gate B5 freezes a 65-outer-fold train-only benchmark and Gate B6
+preserves 23 historical preregistered specifications but executes 22 models on
+the 911 origins of `t1_v1/train`. `Z15_tabpfn_v2_6` was governance-excluded
+before scoring by `B6-GOV-001`, with no license, weights, API or prediction
+shards. Historical validation, the disclosed T1 test and a synthetic
+replacement for the missing future holdout are prohibited model inputs.
+The completed B6 outcome is `PASS_NO_NEW_PRIMARY`: B7 remains the single
+suite-v4 primary and Z01 ElasticNet is retained only as interpretable context.
+
+The B6 residual MLP tests whether modest neural nonlinearity helps on this
+small tabular sample, and the ENFS model is a protocol-safe method replica.
+Neither is a full deep temporal model. LSTM, GRU, TCN, TFT, PatchTST and other sequence
+architectures remain reserved for Gate C with a separately frozen protocol.
+
 ## Families
 
 ### A. Sanity and statistical baselines
@@ -57,13 +74,16 @@ LLMs may not:
 
 ## Screening stages
 
-1. Broad classical screening on train/validation.
-2. State-space and regime models.
-3. Deep temporal models with at least five seeds.
-4. Graph/spatial models.
-5. Foundation-model zero/few-shot benchmarks.
-6. Hybrid and ensemble selection.
-7. Final temporal/spatial/OOD evaluation once candidates are frozen.
+1. B5 evidence/protocol freeze on canonical train only.
+2. B6 broad temporal screening with nested forward-only tuning.
+3. B6 spatio-temporal profile/zone and transition audit.
+4. Interval calibration, learning curves and frozen internal suite v4.
+5. Deep temporal models with at least five seeds under Gate C.
+6. Graph/spatial models.
+7. Temporal foundation-model zero/few-shot benchmarks.
+8. Hybrid and ensemble selection.
+9. Final temporal/spatial/OOD evaluation once candidates and a genuinely new
+   holdout are frozen.
 
 ## Complexity accounting
 

@@ -874,7 +874,12 @@ def run_gate_b4_development(root: Path, config: Mapping[str, Any]) -> dict[str, 
     }
 
 
-def run_gate_b4_validation(root: Path, config: Mapping[str, Any]) -> dict[str, Any]:
+def run_gate_b4_validation(
+    root: Path,
+    config: Mapping[str, Any],
+    *,
+    write_outputs: bool = True,
+) -> dict[str, Any]:
     """Independently recompute published Gate B4 contracts and key metrics."""
 
     checks: list[dict[str, Any]] = []
@@ -1097,11 +1102,26 @@ def run_gate_b4_validation(root: Path, config: Mapping[str, Any]) -> dict[str, A
     )
     for relative, expected_hash in candidate["source_hashes"].items():
         observed_hash = sha256_file(resolve_repo_path(root, relative))
+        governed_successor = _governed_suite_v4_source_hash_matches(
+            root,
+            relative,
+            observed_hash,
+        )
         add(
             f"candidate_source_hash::{relative}",
-            observed_hash == expected_hash,
-            observed_hash,
-            expected_hash,
+            observed_hash == expected_hash or governed_successor,
+            {
+                "sha256": observed_hash,
+                "acceptance": (
+                    "historical_exact"
+                    if observed_hash == expected_hash
+                    else "governed_suite_v4_successor"
+                ),
+            },
+            {
+                "historical_sha256": expected_hash,
+                "governed_successor_allowed": True,
+            },
         )
     scan_paths = [resolve_repo_path(root, relative) for relative in config["source_files"] if str(relative).endswith(".py")]
     findings = find_forbidden_split_loader_calls(scan_paths)
@@ -1136,24 +1156,29 @@ def run_gate_b4_validation(root: Path, config: Mapping[str, Any]) -> dict[str, A
             "No eligible future/external final holdout is currently available.",
         ],
     }
-    write_json_atomic(root, paths["validation_report"], validation_report)
     artifact_root = resolve_repo_path(root, config["artifacts"]["root"])
     inventory_path = paths["artifact_inventory"]
-    sources = sorted(
-        [path for path in artifact_root.rglob("*") if path.is_file() and path != inventory_path],
-        key=lambda path: path.relative_to(root).as_posix(),
-    )
-    inventory = pd.DataFrame(
-        [
-            {
-                "relative_path": path.relative_to(root).as_posix(),
-                "size_bytes": path.stat().st_size,
-                "sha256": sha256_file(path),
-            }
-            for path in sources
-        ]
-    )
-    write_csv_atomic(root, inventory_path, inventory)
+    if write_outputs:
+        write_json_atomic(root, paths["validation_report"], validation_report)
+        sources = sorted(
+            [
+                path
+                for path in artifact_root.rglob("*")
+                if path.is_file() and path != inventory_path
+            ],
+            key=lambda path: path.relative_to(root).as_posix(),
+        )
+        inventory = pd.DataFrame(
+            [
+                {
+                    "relative_path": path.relative_to(root).as_posix(),
+                    "size_bytes": path.stat().st_size,
+                    "sha256": sha256_file(path),
+                }
+                for path in sources
+            ]
+        )
+        write_csv_atomic(root, inventory_path, inventory)
     return {
         "phase": "validate",
         "status": validation_report["status"],
@@ -1161,6 +1186,7 @@ def run_gate_b4_validation(root: Path, config: Mapping[str, Any]) -> dict[str, A
         "checks": len(checks),
         "failed": len(failed),
         "artifact_inventory": inventory_path.relative_to(root).as_posix(),
+        "outputs_written": write_outputs,
     }
 
 
@@ -1226,6 +1252,37 @@ def frames_equivalent(left: pd.DataFrame, right: pd.DataFrame) -> bool:
     except AssertionError:
         return False
     return True
+
+
+def _governed_suite_v4_source_hash_matches(
+    root: Path,
+    relative: str,
+    observed_hash: str | None,
+) -> bool:
+    """Accept a changed historical source only when frozen suite v4 owns its hash."""
+
+    if observed_hash is None:
+        return False
+    suite_path = root / "artifacts" / "governance" / "final_candidate_suite_v4.json"
+    if not suite_path.is_file():
+        return False
+    suite = json.loads(suite_path.read_text(encoding="utf-8"))
+    predecessor = suite.get("predecessor_suite", {})
+    predecessor_relative = predecessor.get("relative_path")
+    if (
+        suite.get("new_holdout_seen") is not False
+        or suite.get("primary_selected_from_holdout") is not False
+        or predecessor.get("immutable") is not True
+        or predecessor_relative
+        != "artifacts/governance/final_candidate_suite_v3.json"
+    ):
+        return False
+    predecessor_path = resolve_repo_path(root, predecessor_relative)
+    return bool(
+        predecessor_path.is_file()
+        and sha256_file(predecessor_path) == predecessor.get("sha256")
+        and suite.get("source_hashes", {}).get(relative) == observed_hash
+    )
 
 
 def mappings_close(left: Any, right: Any) -> bool:

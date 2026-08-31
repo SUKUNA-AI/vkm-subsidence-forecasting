@@ -1,4 +1,43 @@
-# SKRU1 Project Documentation v2 — FULL, self-contained
+# SKRU1 reproducible research entrypoint
+
+## Current execution boundary
+
+The repository now contains the frozen Gate B5 train-only benchmark and the
+Gate B6 expanded classical/probabilistic/small-data workflow. Gate B5/B6 model
+workers can access only `t1_v1/train`; historical validation, the disclosed T1
+test and the missing future/external holdout are not worker inputs. Any B6
+result is therefore `train_only_internal_research`, not a final quality claim.
+Gate B6 completed with `PASS_NO_NEW_PRIMARY`: B7 remains the single suite-v4
+primary with rolling MAE 5.640 mm/year and 10.64% train-only skill versus B1.
+
+Read these authorities before running experiments:
+
+1. `docs/governance/PROJECT_STATE.md`;
+2. `docs/governance/PATH_POLICY.md`;
+3. `docs/governance/GATE_B5_B6_TRAIN_ONLY_PROTOCOL.md`;
+4. `configs/gate_b5.yaml` and `configs/gate_b6.yaml`.
+5. `docs/reports/GATE_B6_EXPANDED_SCREENING_RU.md`.
+
+The reproducibility entrypoints are:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\verify_inputs.py --root .
+.\.venv\Scripts\python.exe scripts\run_gate_b5.py --phase validate
+.\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase preflight
+.\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase validate
+```
+
+`run_gate_b6.py --phase all` is intentionally expensive: it dispatches the
+complete frozen temporal and spatial job catalogue. Reuse of completed shards
+is hash/schema guarded. The historical registry still records the originally
+preregistered TabPFN row, but amendment `B6-GOV-001` excludes it before any
+scoring: no adapter, staging script, license flow, checkpoint or API path is
+available. The executable B6 catalogue therefore contains 22 models.
+The one-shot future holdout policy now hashes and consumes
+`artifacts/governance/final_candidate_suite_v4.json`; it remains
+`PENDING_DATA` until a real eligible package is supplied.
+
+## Bundled data foundation
 
 This bundle fixes two defects of v1:
 

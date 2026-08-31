@@ -42,7 +42,7 @@ minimum_scope:
   distinct_target_campaign_dates: 2
 
 freeze_protocol:
-  candidate_suite: artifacts/governance/final_candidate_suite_v3.json
+  candidate_suite: artifacts/governance/final_candidate_suite_v4.json
   candidate_commit_sha_required: true
   origins_and_targets_sha256_required: true
   sample_id_manifest_required: true

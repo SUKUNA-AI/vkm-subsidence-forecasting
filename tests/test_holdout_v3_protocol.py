@@ -54,6 +54,9 @@ def test_holdout_v3_policy_keeps_old_sets_excluded() -> None:
     assert config["freeze_protocol"]["one_access_event_only"] is True
     assert config["freeze_protocol"]["failed_access_is_consumed"] is True
     assert config["freeze_protocol"]["primary_model_must_be_declared_before_access"] is True
+    assert config["freeze_protocol"]["candidate_suite"] == (
+        "artifacts/governance/final_candidate_suite_v4.json"
+    )
 
 
 def test_holdout_v3_synthetic_success_consumes_exactly_one_access() -> None:
@@ -68,7 +71,15 @@ def test_holdout_v3_synthetic_success_consumes_exactly_one_access() -> None:
     assert report["status"] == "ONE_SHOT_EVALUATION_COMPLETE"
     assert report["primary_model_id"] == "B7_two_regime_imm"
     assert report["rows"] == len(targets) == 100
-    assert len(report["metrics"]) == 5
+    assert len(report["metrics"]) == 6
+    assert {row["model_id"] for row in report["metrics"]} == {
+        "B1_persistence_last_rate",
+        "B5_fixed_kalman",
+        "B6_adaptive_kalman",
+        "B7_two_regime_imm",
+        "B8_student_t_robust_imm",
+        "Z01_elastic_net",
+    }
     ledger_path = ROOT / config["artifacts"]["access_ledger"]
     ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
     assert ledger["state"] == "CONSUMED_SUCCESS"
