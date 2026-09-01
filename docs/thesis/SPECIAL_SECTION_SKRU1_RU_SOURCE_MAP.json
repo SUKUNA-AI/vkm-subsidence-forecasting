@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "document": "docs/thesis/SPECIAL_SECTION_SKRU1_RU.docx",
+  "document_bytes": 1683453,
+  "document_sha256": "e491e9acb7f00e8a4907d33d8e6049109f290080e5d1883f1ed1c7b8a6535958",
+  "generated_on": "2026-09-01",
+  "design_preset": "gost_vkr_ru",
+  "format_basis": [
+    "GOST 7.32-2017",
+    "GOST R 7.0.100-2018",
+    "GOST R 7.0.5-2008"
+  ],
+  "institutional_rules_override": true,
+  "claim_boundary": "train_only_internal_research_no_final_quality_claim",
+  "gate_c_model_training_calls": 0,
+  "historical_validation_loaded_for_gate_c": false,
+  "current_test_loaded_for_gate_c": false,
+  "table_count": 14,
+  "figure_count": 13,
+  "sources": [
+    {
+      "name": "gate_a1",
+      "path": "artifacts/data_quality/gate_a1_report.json",
+      "bytes": 35569,
+      "sha256": "179cbd97b94edb88948438fb93dc6defaa12d929b37796acf11d825a83ffe71a"
+    },
+    {
+      "name": "gate_b5",
+      "path": "artifacts/model_selection/t1_b5_evidence_v1/gate_b5_report.json",
+      "bytes": 2350,
+      "sha256": "d375ef341d9270e1cffcafba99e6fc53c01322d3ddfd36e5eb8be9bb8ef564af"
+    },
+    {
+      "name": "gate_b6",
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/gate_b6_report.json",
+      "bytes": 1408,
+      "sha256": "0c182e9eee184ff590b1b2a8ada5098bd780e0090d43b51f4daecff69f603292"
+    },
+    {
+      "name": "b6_analytics",
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/analytics_summary.json",
+      "bytes": 16487,
+      "sha256": "561918dca53b68cf242f347bba7d480eb1e034f862ec7b37a76fd89d90df0525"
+    },
+    {
+      "name": "b6_temporal_metrics",
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/temporal_aggregate_metrics.csv",
+      "bytes": 13621,
+      "sha256": "b33d6ffd10ecfd1ef2a48698f858770af4a6128f2032b2e0cfc380ec4563ed23"
+    },
+    {
+      "name": "gate_c0",
+      "path": "artifacts/model_selection/t1_gate_c0_sequence_audit_v1/gate_c0_report.json",
+      "bytes": 3203,
+      "sha256": "2b651034468b8e53d3d57a0edc02e8998b08f3812d06e022a1ed401071ef310d"
+    },
+    {
+      "name": "gate_c0_validation",
+      "path": "artifacts/model_selection/t1_gate_c0_sequence_audit_v1/validation_report.json",
+      "bytes": 2110,
+      "sha256": "0eb7f6c57a53d73b39aeb273d80e5cc6afe0fe276952f121b6defed913efc705"
+    },
+    {
+      "name": "gate_c_architecture",
+      "path": "artifacts/model_selection/t1_gate_c0_sequence_audit_v1/architecture_eligibility.csv",
+      "bytes": 2532,
+      "sha256": "b32dc3b9c62b5d6eb07f11b4a39562dce33bb8e5c2f109883c693bbfdbe5369e"
+    },
+    {
+      "name": "gate_c_lengths",
+      "path": "artifacts/model_selection/t1_gate_c0_sequence_audit_v1/sequence_length_distribution.csv",
+      "bytes": 571,
+      "sha256": "ff00d700a7b92f86e67d262fb81ee60631d55f48bb14224679c4d5f5d694116c"
+    },
+    {
+      "name": "suite_v4",
+      "path": "artifacts/governance/final_candidate_suite_v4.json",
+      "bytes": 26012,
+      "sha256": "b975dfb3dbd377fc640c6c7f2fa53b1518978a0bbe444a91e1c2ab7ab1635601"
+    },
+    {
+      "name": "holdout_v3",
+      "path": "artifacts/governance/final_holdout_v3_status.json",
+      "bytes": 364,
+      "sha256": "b373325f3baa0337d2707ae12e371dc0021cb0443fa263a1171d7ac489fcbb2e"
+    },
+    {
+      "name": "feature_contract",
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/formal_feature_contract.csv",
+      "bytes": 7427,
+      "sha256": "241bad48e67659ffc953349cd2bce59e61f2a2867d57698abd6574edd4a05272"
+    },
+    {
+      "name": "target_contract",
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/target_contract.json",
+      "bytes": 1119,
+      "sha256": "c679a6b83d26675d50b59de57cb3c12cdeacc6dd7c2e178364e434ed25a526e8"
+    },
+    {
+      "name": "filatova_thesis",
+      "path": "inputs/sources/primary/ВКР_Филатова_М_С.docx",
+      "bytes": 17826165,
+      "sha256": "45978d5fc446fa35d0b3e271c44a5790bc5b4101321b20f8078ff83dc8ae2931"
+    },
+    {
+      "name": "network",
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/figures/02_survey_network_v3.png",
+      "bytes": 262206,
+      "sha256": "24e19a321b63fbd5ccbdea8777fa7e9f7dba6521f9a8f651be35145e919d8c1e"
+    },
+    {
+      "name": "coverage",
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/figures_v3_2/03_campaign_coverage.png",
+      "bytes": 41219,
+      "sha256": "889f955c8907d39a7289003ec612b3874344a4595444d85dedaac5f21be6557c"
+    },
+    {
+      "name": "b6_temporal",
+      "path": "docs/thesis/figures/01_temporal_screen_mae.png",
+      "bytes": 186235,
+      "sha256": "1bfb808f91bc6f28e978547a20c92eaff0f38714ceea0cb6caf56796491d4af9"
+    },
+    {
+      "name": "b6_rolling",
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/figures/02_rolling_mae_by_date.png",
+      "bytes": 314740,
+      "sha256": "5a2418b4a54163dfb9eb34ae31b47d54b0f053f93e020fe19d47829ff9772a00"
+    },
+    {
+      "name": "b6_spatial",
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/figures/03_spatial_stability.png",
+      "bytes": 105445,
+      "sha256": "f19a2c3beef304f2d84f7f2c26f8af2cdab8d7198dd84fcc7e6ee900b2e715a4"
+    },
+    {
+      "name": "b6_transition",
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/figures/04_transition_error_heatmap.png",
+      "bytes": 160213,
+      "sha256": "5f3d3637636357edd7cd1b9be1ccaeb9b46b2f9cd6a7568f7ceff65e7ff2b6cc"
+    },
+    {
+      "name": "b6_calibration",
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/figures/05_conformal_calibration.png",
+      "bytes": 177797,
+      "sha256": "9459b92f863427b3879f791886e96cdac9d262835e16799b9b5a8ae7b83cf347"
+    },
+    {
+      "name": "b6_learning",
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/figures/06_learning_curves.png",
+      "bytes": 113138,
+      "sha256": "a118dcac1260f4d4f6322fc4839c60f8e05bbaa42b5032ef346afb769e6d852f"
+    },
+    {
+      "name": "b6_sensitivity",
+      "path": "artifacts/model_selection/t1_b6_expanded_v1/figures/07_profile_cluster_sensitivity.png",
+      "bytes": 92934,
+      "sha256": "482ef2b76e8e72f9f660d573bbf9bfe5b75dce53f6ea50371f667ca876cb5e02"
+    },
+    {
+      "name": "c_length",
+      "path": "artifacts/model_selection/t1_gate_c0_sequence_audit_v1/figures/01_sequence_length_distribution.png",
+      "bytes": 53633,
+      "sha256": "5448ad2a929f5b8defa692c1bff22e177cf0a6e4320fe793690e8cdb4b696dd7"
+    },
+    {
+      "name": "c_gaps",
+      "path": "artifacts/model_selection/t1_gate_c0_sequence_audit_v1/figures/02_gap_and_missingness_geometry.png",
+      "bytes": 96791,
+      "sha256": "78651e977d60d0997fa68bbcfd7ae13c0d78a4ce36763ef431e689d8f08b1baa"
+    },
+    {
+      "name": "c_arch",
+      "path": "artifacts/model_selection/t1_gate_c0_sequence_audit_v1/figures/03_architecture_eligibility.png",
+      "bytes": 131890,
+      "sha256": "5030de1fdefab2ecb005299e0987a46a6077f73e5e3b8b838eb99c308d6ea800"
+    },
+    {
+      "name": "c_folds",
+      "path": "artifacts/model_selection/t1_gate_c0_sequence_audit_v1/figures/04_fold_design.png",
+      "bytes": 44478,
+      "sha256": "339bccfa8197a63e0ea5bac864a32903f9d959b0f4215201ba52cb6a5937c7b4"
+    }
+  ]
+}

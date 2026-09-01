@@ -6,7 +6,7 @@
 первичные таблицы не изменяются на месте; временные результаты создаются
 только в `work/`.
 
-## Текущее состояние: Gate B5/B6 завершены
+## Текущее состояние: Gate B5/B6 завершены, Gate C0 заморожен
 
 Gate B5 заморозил расширенный train-only benchmark. Gate B6 исполнил
 классические, вероятностные, longitudinal, boosting, glassbox, small neural и
@@ -30,6 +30,20 @@ neuro-fuzzy comparators только на `t1_v1/train`.
 
 Подробный результат с семью проверенными графиками:
 [`docs/reports/GATE_B6_EXPANDED_SCREENING_RU.md`](docs/reports/GATE_B6_EXPANDED_SCREENING_RU.md).
+
+Gate C0 завершён со статусом **`PASS_PROTOCOL_FROZEN`**. На неизменяемых 911
+строках `t1_v1/train` построено causal sequence representation: 14 576
+нормализованных строк, 6 878 наблюдаемых tokens, длина истории 3–16
+(медиана 7), интервалы 42–560 дней (медиана 168). Для каждого origin
+зафиксированы ordered observation IDs, `delta_t`, padding/observation/missing
+masks, fold provenance и SHA-256. Проверено: future/target observations во
+входах — 0, identifier features в сети — 0, model-training calls — 0,
+historical validation/test rows loaded — 0.
+
+Suite v4 и holdout-policy v3 не изменены. Gate C может создать suite v5
+только по nested train-only evidence до появления новых labels; если ни одна
+sequence-модель не проходит frozen gates, primary автоматически остаётся B7.
+Для suite v5 потребуется новая версия holdout policy/intake.
 
 ## Геометрия benchmark
 
@@ -62,12 +76,10 @@ temporal evidence, но не в spatial CV из-за узкой географи
 - EBM и NGBoost;
 - небольшой residual MLP и protocol-safe ENFS replica.
 
-`Z15_tabpfn_v2_6` **исключён** governance-поправкой `B6-GOV-001` по решению
-владельца проекта до лицензии, загрузки весов, predictions и scoring. Веса,
-API-вызовы и TabPFN shards отсутствуют; runtime import/dispatch/network
-запрещены. Historical row и старый lock остаются только как неизменяемая часть
-B5 freeze, а current torch environment использует отдельный
-`requirements/b6_torch_runtime.lock.txt` без этого package.
+Одна первоначально preregistered external-model строка исключена governance-
+поправкой `B6-GOV-001` до лицензии, загрузки весов, predictions и scoring.
+Она остаётся только в неизменяемом историческом B5 registry; executable B6
+catalog и актуальные runtime environments её не содержат.
 
 Полный статус моделей:
 [`docs/governance/MODEL_CATALOG_B6.md`](docs/governance/MODEL_CATALOG_B6.md).
@@ -94,9 +106,15 @@ py -3.13 -m venv .venv
 Gate B5:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\run_gate_b5.py --phase all
+.\.venv\Scripts\python.exe scripts\run_gate_b5.py --phase validate
 .\.venv\Scripts\python.exe scripts\verify_gate_b5_two_run.py
 ```
+
+После B6/C0 нельзя повторно создавать B5 freeze поверх immutable manifests:
+preregistered source hashes уже имеют governed successors. Two-run helper
+поэтому дважды выполняет frozen validation и доказывает, что оба B5 artifact
+root не изменились; исторический create-from-empty отчёт остаётся в B6
+evidence.
 
 Изолированные B6 environments создаются отдельно; exact package versions,
 wheel URLs и SHA-256 сохраняются в durable manifests:
@@ -121,6 +139,17 @@ wheel URLs и SHA-256 сохраняются в durable manifests:
 .\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase freeze
 .\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase validate
 ```
+
+Gate C0 protocol freeze и artifact-only notebook:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_gate_c.py --phase all
+.\.venv\Scripts\python.exe scripts\build_gate_c_notebook.py
+```
+
+`run_gate_c.py` не принимает manifest path, validation или test arguments и
+не содержит model fit. Следующий C1 runner обязан читать только замороженные
+job/sequence manifests и использовать inner rolling folds для early stopping.
 
 Worker CLI не принимает validation/test manifests. Каждый shard проверяется по
 environment ID, frozen model/job/fold hashes, exact sample IDs, duplicate
@@ -147,7 +176,14 @@ constraints и train-only provenance.
 - B6 notebook: `notebooks/07_gate_b6_model_comparison.ipynb`;
 - B6 model cards: `docs/model_cards/`;
 - independent validation: `artifacts/model_selection/t1_b6_expanded_v1/validation_report.json`;
-- SHA-256 inventory: `artifacts/model_selection/t1_b6_expanded_v1/artifact_inventory.csv`.
+- SHA-256 inventory: `artifacts/model_selection/t1_b6_expanded_v1/artifact_inventory.csv`;
+- Gate C protocol: [`docs/governance/GATE_C_PROTOCOL.md`](docs/governance/GATE_C_PROTOCOL.md);
+- Gate C sequence split: `artifacts/splits/t1_train_gate_c_v1/`;
+- Gate C0 evidence: `artifacts/model_selection/t1_gate_c0_sequence_audit_v1/`;
+- Gate C0 report: [`docs/reports/GATE_C0_SEQUENCE_PROTOCOL_RU.md`](docs/reports/GATE_C0_SEQUENCE_PROTOCOL_RU.md);
+- Gate C0 notebook: `notebooks/08_gate_c_sequence_audit.ipynb`;
+- черновик специальной части: `docs/thesis/SPECIAL_SECTION_SKRU1_RU.docx`;
+- source map специальной части: `docs/thesis/SPECIAL_SECTION_SKRU1_RU_SOURCE_MAP.json`.
 
 Предыдущие Gate A0/A1 и B0–B4 сохранены как историческая, hash-protected
 цепочка в `artifacts/`, notebooks и reader-facing reports.
@@ -189,16 +225,19 @@ CPU. CUDA используется только для residual MLP и ENFS; э�
 недетерминизм boosters и сохраняет отдельную доказательную границу между
 средами.
 
-Полноценный Gate C для LSTM/GRU/TCN/TFT/PatchTST и других sequence models ещё
-не начат. Малый B6 MLP и ENFS не заменяют sequence-specific protocol. Gate E
-foundation models также остаётся отдельным будущим этапом; B6 после
-`B6-GOV-001` не содержит foundation comparator.
+Gate C0 уже заморозил sequence-specific protocol. Обязательный compact screen
+C1 включает GRU, LSTM, causal TCN и probabilistic Student-t GRU; TSMixer и
+compact TFT имеют условный статус. N-BEATS/N-HiTS, PatchTST и iTransformer
+получили `NOT_ELIGIBLE_DATA_GEOMETRY` для текущих коротких нерегулярных историй,
+а не будут обучаться через недоказанную интерполяцию. Малый B6 MLP и ENFS не
+заменяют этот sequence-specific эксперимент.
 
 ## Научная граница и следующий шаг
 
 Главный текущий вывод — B7 остаётся наиболее устойчивым внутренним primary,
-но это утверждение ограничено train-only evidence. Следующий внешний выбор
-разрешён только после появления нового real future/external holdout,
-замороженного до доступа к labels. До этого допустимы новые заранее
-специфицированные nested train-only исследования и подготовка Gate C, но не
-дальнейшая настройка по историческому validation или раскрытому test.
+но это утверждение ограничено train-only evidence. Следующий внутренний этап —
+Gate C1 compact DL screen по уже замороженному протоколу, с пятью seeds и
+неизменяемыми B1/B7/B8 comparators. Затем следуют spatial/transition audit,
+calibration и seed stability; suite v5 создаётся только до появления новых
+labels. Внешний финальный вывод разрешён лишь после нового real
+future/external holdout, замороженного до доступа к targets.

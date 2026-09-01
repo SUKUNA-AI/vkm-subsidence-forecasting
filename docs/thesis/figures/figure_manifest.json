@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "source": "artifacts/model_selection/t1_b6_expanded_v1/temporal_aggregate_metrics.csv",
+  "source_sha256": "b33d6ffd10ecfd1ef2a48698f858770af4a6128f2032b2e0cfc380ec4563ed23",
+  "figure": "docs/thesis/figures/01_temporal_screen_mae.png",
+  "figure_sha256": "1bfb808f91bc6f28e978547a20c92eaff0f38714ceea0cb6caf56796491d4af9",
+  "claim_boundary": "train_only_internal_research"
+}

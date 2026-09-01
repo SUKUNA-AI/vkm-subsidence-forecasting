@@ -1,4 +1,4 @@
-# Project State v4
+# Project State v5
 
 ## Verified bundled inputs
 
@@ -29,12 +29,16 @@ The five bootstrap artifacts and eleven primary sources are physically included 
 - Gate B6 is complete entirely inside `t1_v1/train` with status `PASS_NO_NEW_PRIMARY`: 22 executable models completed the 11-fold temporal screen, 11 models advanced to 42 profile plus 12 zone folds, 18,942 calibrated prediction rows were evaluated, and historical validation/current test/new holdout rows loaded are all zero;
 - B7 has the best B6 rolling MAE at 5.640 mm/year versus 6.311 for B1 (10.64% skill), improves on B1 for 10 of 11 target dates and 13 of 14 profiles, has equal-profile macro MAE 5.676, equal-zone macro MAE 4.975, worst-zone MAE 8.478, and 95% conformal coverage 0.951;
 - no new model passed every preregistered suite-v4 gate; ElasticNet, XGBoost and LightGBM reached the full spatial audit but failed rolling/audit-tail/transition/spatial/sign-consistency requirements, and XGBoost additionally failed a spatial inner guardrail; NGBoost was rejected at temporal screening because three inner selections had no eligible probabilistic candidate;
-- the historical B5 registry retains 23 rows, but `Z15_tabpfn_v2_6` is excluded before scoring by frozen amendment `B6-GOV-001`; no license was accepted, no weights were downloaded, no API/network access occurred, no predictions exist, and the executable catalog contains 22 models;
+- the historical B5 registry retains 23 rows, but one external-model specification is excluded before scoring by frozen amendment `B6-GOV-001`; no license was accepted, no weights were downloaded, no API/network access occurred, no predictions exist, and the executable catalog contains 22 models;
 - final candidate suite v3 remains immutable historical evidence; suite v4 is the current pre-holdout authority with B7 as its single primary, B1/B5/B6/B8 as context-only comparators and Z01 ElasticNet as interpretable context-only; primary selection after observing a future holdout is prohibited;
 - final T1 holdout policy v3 is `PENDING_DATA`: no eligible local future/external package exists, target values have not been read, and a sealed status/freeze/evaluate-once ledger is implemented; the disclosed `t1_v1/test` and historical validation remain diagnostic only;
+- Gate C0 is complete with status `PASS_PROTOCOL_FROZEN`: the immutable `t1_train_gate_c_v1` representation covers all 911 `t1_v1/train` origins as 14,576 normalized rows and 6,878 observed tokens, with histories of 3–16 observations (median 7), positive `delta_t` of 42–560 days (median 168), left padding to 16 and explicit observation/padding/missing-campaign masks;
+- the Gate C0 validator passed 11 checks with zero failures: sequence and fold artifacts reproduce exactly, all 65 outer and 195 inner contexts are forward-only, held profiles/zones are excluded from outer and inner train, future/target observations in inputs are zero, identifier network features are zero, and historical validation/current test/new holdout rows loaded are zero;
+- Gate C0 performed zero model-training calls; C01 compact GRU, C02 compact LSTM, C03 causal TCN and C04 probabilistic Student-t GRU are required for C1, while compact TSMixer/TFT are conditional and four regular-grid/long-context architectures are formally `NOT_ELIGIBLE_DATA_GEOMETRY`;
+- suite v4 and holdout policy v3 remain immutable. Gate C may create suite v5 only from nested `t1_v1/train` evidence before new labels exist; B7 is the automatic fallback, primary changes after holdout access are prohibited, and a suite-v5 primary requires a new holdout policy/intake version;
 - T5 is technically prepared but remains exploratory because only 17 complete positive labels exist;
 - hotfix and baseline scripts exist;
-- full temporal deep models, graph models, foundation models and the LLM support layer remain future gates after independent B5/B6 validation; the small B6 MLP and ENFS replica do not consume Gate C;
+- Gate C1 model training, graph models, temporal foundation models and the LLM support layer remain future execution gates; the small B6 MLP and ENFS replica do not consume Gate C;
 - no final production-quality model claim is allowed from synthetic data.
 
 The machine-readable Gate A1 authority is `artifacts/data_quality/gate_a1_report.json`; the reader-facing report is `docs/reports/GATE_A1_DATA_QUALITY_RU.md`.
@@ -50,6 +54,8 @@ The machine-readable Gate B4 validation authority is `artifacts/model_selection/
 The Gate B5 benchmark authority is `artifacts/splits/t1_train_benchmark_v1/benchmark_plan.json`; the machine validation authority is `artifacts/model_selection/t1_b5_evidence_v1/validation_report.json`; the reader-facing report is `docs/reports/GATE_B5_EVIDENCE_BENCHMARK_RU.md`; and the executed notebook is `notebooks/06_gate_b5_evidence_audit.ipynb`.
 
 The Gate B6 machine authority is `artifacts/model_selection/t1_b6_expanded_v1/validation_report.json`; detailed point/group/transition/probabilistic metrics and prediction provenance live under the same artifact root. The reader-facing report is `docs/reports/GATE_B6_EXPANDED_SCREENING_RU.md`, the executed artifact-only notebook is `notebooks/07_gate_b6_model_comparison.ipynb`, and the model catalog is `docs/governance/MODEL_CATALOG_B6.md`. The current governed future-holdout suite is `artifacts/governance/final_candidate_suite_v4.json`; non-consuming intake status remains `artifacts/governance/final_holdout_v3_status.json`.
+
+The Gate C governance authority is `docs/governance/GATE_C_PROTOCOL.md` with machine configuration `configs/gate_c.yaml`. The causal sequence/fold authority is `artifacts/splits/t1_train_gate_c_v1/sequence_contract.json`; the Gate C0 machine validation authority is `artifacts/model_selection/t1_gate_c0_sequence_audit_v1/validation_report.json`. The reader-facing report is `docs/reports/GATE_C0_SEQUENCE_PROTOCOL_RU.md`, and the executed artifact-only notebook is `notebooks/08_gate_c_sequence_audit.ipynb`. The current Word draft of the special section is `docs/thesis/SPECIAL_SECTION_SKRU1_RU.docx`, backed by `docs/thesis/SPECIAL_SECTION_SKRU1_RU_SOURCE_MAP.json`.
 
 ## Path policy
 

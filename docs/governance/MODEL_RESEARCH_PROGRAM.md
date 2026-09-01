@@ -8,22 +8,27 @@ The prior roadmap overfocused on a single sensible operational line — Kalman/I
 
 More models are allowed; more unstructured model noise is not. The repository may test 40+ candidates, but the thesis reports only scientifically representative families and the models that pass frozen gates.
 
-## Current B5/B6 execution boundary
+## Current B5/B6/C0 execution boundary
 
 The current expanded comparison is deliberately narrower than the complete
 programme. Gate B5 freezes a 65-outer-fold train-only benchmark and Gate B6
 preserves 23 historical preregistered specifications but executes 22 models on
-the 911 origins of `t1_v1/train`. `Z15_tabpfn_v2_6` was governance-excluded
-before scoring by `B6-GOV-001`, with no license, weights, API or prediction
-shards. Historical validation, the disclosed T1 test and a synthetic
+the 911 origins of `t1_v1/train`. One external-model specification was
+governance-excluded before scoring by `B6-GOV-001`, with no license, weights,
+API or prediction shards. Historical validation, the disclosed T1 test and a synthetic
 replacement for the missing future holdout are prohibited model inputs.
 The completed B6 outcome is `PASS_NO_NEW_PRIMARY`: B7 remains the single
 suite-v4 primary and Z01 ElasticNet is retained only as interpretable context.
 
 The B6 residual MLP tests whether modest neural nonlinearity helps on this
 small tabular sample, and the ENFS model is a protocol-safe method replica.
-Neither is a full deep temporal model. LSTM, GRU, TCN, TFT, PatchTST and other sequence
-architectures remain reserved for Gate C with a separately frozen protocol.
+Neither is a full deep temporal model. Gate C0 now freezes the causal sequence
+representation, inner/outer fold provenance, train-only preprocessing, five
+seeds and suite-v5 fallback without fitting a model. The required C1 screen is
+compact GRU/LSTM/causal-TCN plus a probabilistic Student-t GRU; TSMixer and
+compact TFT are conditional. Architectures requiring an unjustified regular
+grid or long patch context are formally pre-screened as ineligible for the
+current 3–16-observation geometry.
 
 ## Families
 
@@ -78,11 +83,13 @@ LLMs may not:
 2. B6 broad temporal screening with nested forward-only tuning.
 3. B6 spatio-temporal profile/zone and transition audit.
 4. Interval calibration, learning curves and frozen internal suite v4.
-5. Deep temporal models with at least five seeds under Gate C.
-6. Graph/spatial models.
-7. Temporal foundation-model zero/few-shot benchmarks.
-8. Hybrid and ensemble selection.
-9. Final temporal/spatial/OOD evaluation once candidates and a genuinely new
+5. C0 causal sequence/protocol freeze with zero model fitting.
+6. C1 compact deep-temporal screen with five seeds and B1/B7/B8 comparators.
+7. C2 spatial/transition audit, calibration and suite-v5 freeze or B7 fallback.
+8. Graph/spatial models.
+9. Temporal foundation-model zero/few-shot benchmarks.
+10. Hybrid and ensemble selection.
+11. Final temporal/spatial/OOD evaluation once candidates and a genuinely new
    holdout are frozen.
 
 ## Complexity accounting

@@ -9,14 +9,19 @@ test and the missing future/external holdout are not worker inputs. Any B6
 result is therefore `train_only_internal_research`, not a final quality claim.
 Gate B6 completed with `PASS_NO_NEW_PRIMARY`: B7 remains the single suite-v4
 primary with rolling MAE 5.640 mm/year and 10.64% train-only skill versus B1.
+Gate C0 then froze a causal sequence protocol over the same 911 train origins
+with status `PASS_PROTOCOL_FROZEN`; it performed zero model-training calls and
+loaded zero historical-validation, disclosed-test or future-holdout rows.
 
 Read these authorities before running experiments:
 
 1. `docs/governance/PROJECT_STATE.md`;
 2. `docs/governance/PATH_POLICY.md`;
 3. `docs/governance/GATE_B5_B6_TRAIN_ONLY_PROTOCOL.md`;
-4. `configs/gate_b5.yaml` and `configs/gate_b6.yaml`.
-5. `docs/reports/GATE_B6_EXPANDED_SCREENING_RU.md`.
+4. `configs/gate_b5.yaml` and `configs/gate_b6.yaml`;
+5. `docs/governance/GATE_C_PROTOCOL.md` and `configs/gate_c.yaml`;
+6. `docs/reports/GATE_B6_EXPANDED_SCREENING_RU.md`;
+7. `docs/reports/GATE_C0_SEQUENCE_PROTOCOL_RU.md`.
 
 The reproducibility entrypoints are:
 
@@ -25,17 +30,23 @@ The reproducibility entrypoints are:
 .\.venv\Scripts\python.exe scripts\run_gate_b5.py --phase validate
 .\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase preflight
 .\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase validate
+.\.venv\Scripts\python.exe scripts\run_gate_c.py --phase validate
 ```
 
 `run_gate_b6.py --phase all` is intentionally expensive: it dispatches the
 complete frozen temporal and spatial job catalogue. Reuse of completed shards
-is hash/schema guarded. The historical registry still records the originally
-preregistered TabPFN row, but amendment `B6-GOV-001` excludes it before any
-scoring: no adapter, staging script, license flow, checkpoint or API path is
-available. The executable B6 catalogue therefore contains 22 models.
+is hash/schema guarded. A governance-excluded external-model row remains only
+in the immutable historical B5 registry; no adapter, checkpoint, API path or
+prediction shard is available. The executable B6 catalogue contains 22
+models.
 The one-shot future holdout policy now hashes and consumes
 `artifacts/governance/final_candidate_suite_v4.json`; it remains
 `PENDING_DATA` until a real eligible package is supplied.
+
+The next executable research stage is Gate C1: five-seed compact GRU/LSTM/TCN
+and probabilistic recurrent screening under the frozen Gate C0 manifests.
+Early stopping means only inner rolling validation inside `t1_v1/train`, never
+the historical validation split.
 
 ## Bundled data foundation
 

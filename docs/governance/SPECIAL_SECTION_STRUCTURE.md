@@ -47,6 +47,11 @@ Repository architecture, contracts, manifests, checksums and reproducibility.
 
 Error Atlas, repeat-observation priorities, GNSS/InSAR and limits of deployment.
 
+## 6.9 Conclusions of the special section
+
+Verified findings, scientific claim boundary, Gate C status and requirements
+for a genuinely new future/external holdout.
+
 ## Evidence-to-section mapping
 
 - Gate B5 supplies the reproducible benchmark, Error Atlas, dependence audit,
@@ -56,7 +61,22 @@ Error Atlas, repeat-observation priorities, GNSS/InSAR and limits of deployment.
   comparison, spatial stability, conformal calibration and compute evidence
   for 6.5.1–6.5.3, 6.5.9 and 6.7.1–6.7.6. It does not supply evidence for
   6.5.7 after the foundation comparator was governance-excluded.
-- Gate C remains the source for 6.5.4–6.5.5 and is not claimed by the small
-  neural controls used in B6.
+- Gate C0 supplies the causal sequence representation, masking, fold and
+  preprocessing protocol, architecture eligibility and suite-v5 governance
+  for 6.5.4–6.5.5 and 6.6. It deliberately supplies no deep-model quality
+  numbers; these remain pending Gate C1/C2.
 - External/frozen validation in 6.7.7 remains pending until a genuinely new
   future or external holdout is obtained.
+
+## Current Word draft
+
+The reader-facing special section is generated at
+`docs/thesis/SPECIAL_SECTION_SKRU1_RU.docx` with A4 page geometry, 30/15/20/20
+mm margins, Times New Roman 14 pt, 1.5 line spacing and bibliography formatted
+against GOST 7.32-2017, GOST R 7.0.100-2018 and GOST R 7.0.5-2008. Local
+university requirements remain authoritative over the repository baseline.
+
+The current draft has 35 pages, 14 tables and 13 figures. Its machine-readable
+provenance is `docs/thesis/SPECIAL_SECTION_SKRU1_RU_SOURCE_MAP.json`; figures
+are sourced from frozen Gate A/B/C0 artifacts. The document explicitly marks
+Gate C model training and the final future/external evaluation as pending.
