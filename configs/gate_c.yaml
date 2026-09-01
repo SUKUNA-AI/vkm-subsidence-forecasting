@@ -1,0 +1,303 @@
+schema_version: 1
+gate: C0_SEQUENCE_PROTOCOL_FREEZE
+task: t1
+source_split: t1_v1/train
+benchmark_source: t1_train_benchmark_v1
+split_version: t1_train_gate_c_v1
+artifact_version: t1_gate_c0_sequence_audit_v1
+scientific_scope: train_only_internal_research
+random_seed: 42117
+
+data_boundary:
+  allowed_model_data: [t1_v1/train]
+  prohibited_model_data: [t1_v1/validation, t1_v1/test]
+  historical_validation_role: descriptive_history_not_loaded
+  disclosed_test_role: historical_diagnostic_not_loaded
+  external_holdout_role: pending_data_not_simulated
+  final_quality_claim_allowed: false
+  runner_manifest_arguments_allowed: false
+  training_enabled_in_gate_c0: false
+
+governance:
+  predecessor_suite: artifacts/governance/final_candidate_suite_v4.json
+  predecessor_primary: B7_two_regime_imm
+  predecessor_suite_mutable: false
+  gate_c_may_create_suite_v5: true
+  suite_v5_selection_source: nested_t1_v1_train_only
+  suite_v5_freeze_must_precede_new_holdout_labels: true
+  fallback_primary: B7_two_regime_imm
+  primary_change_after_holdout_access: prohibited
+  final_holdout_v3_mutable: false
+  suite_v5_requires_new_holdout_policy_version: true
+  candidate_statuses:
+    pass_new: PASS_NEW_INTERNAL_PRIMARY
+    pass_fallback: PASS_NO_NEW_PRIMARY
+    protocol_failure: FAIL_PROTOCOL
+
+sequence_contract:
+  chronology_source: SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/leveling_adjusted_epochs.csv
+  membership_source: SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/campaign_point_membership.csv
+  origin_source: SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/next_planned_features.csv
+  source_manifest: artifacts/splits/t1_v1/train.csv
+  padding_side: left
+  truncation_side_for_future_longer_histories: left_drop_oldest
+  max_sequence_length: 16
+  minimum_observed_history: 3
+  observation_id_format: "{point_id}::{campaign_id}"
+  include_current_observation: true
+  strict_input_boundary: observation_date_lte_current_date
+  target_observation_allowed_in_input: false
+  raw_target_values_exported: false
+  sequence_feature_channels:
+    - last_settlement_mm
+    - last_rate_mm_y
+    - current_standard_uncertainty_mm
+    - days_since_previous_observation
+    - missing_campaigns_since_previous
+    - current_campaign_type
+  structural_channels:
+    - padding_mask
+    - observation_mask
+    - missing_campaign_mask
+  identifier_metadata_only:
+    - sample_id
+    - point_id
+    - profile_id
+    - zone_id
+    - campaign_id
+    - current_campaign_id
+    - target_campaign_id
+    - observation_id
+  forbidden_network_features:
+    - sample_id
+    - point_id
+    - profile_id
+    - zone_id
+    - campaign_id
+    - current_campaign_id
+    - target_campaign_id
+    - observation_id
+  forbidden_name_fragments:
+    - true_
+    - hidden
+    - private
+    - generator
+    - event_onset_date
+    - process_family
+    - regime_stage
+  fold_provenance:
+    outer_assignments: artifacts/splits/t1_train_benchmark_v1/outer_assignments.csv
+    inner_assignments: artifacts/splits/t1_train_benchmark_v1/inner_assignments.csv
+    fold_contracts: artifacts/splits/t1_train_benchmark_v1/fold_contracts.csv
+    benchmark_plan: artifacts/splits/t1_train_benchmark_v1/benchmark_plan.json
+    representation: normalized_hash_join_by_sample_id
+
+preprocessing:
+  fit_role: train
+  fit_scope: each_outer_or_inner_train_fold_only
+  numeric_imputer: train_median
+  numeric_scaler: train_mean_standard_deviation
+  categorical_encoder: train_fitted_unknown_zero
+  padding_rows_excluded_from_fit: true
+  structural_group_keys_passed_separately: true
+
+early_stopping:
+  allowed_scope: inner_rolling_validation_within_t1_v1_train
+  historical_validation_allowed: false
+  outer_validation_allowed_for_epoch_selection: false
+  aggregate_inner_best_epoch: median
+  refit_outer_train_after_selection: true
+
+resampling:
+  reuse_frozen_b5_benchmark: true
+  required_outer_counts:
+    rolling_origin: 11
+    spatiotemporal_leave_profile_out: 42
+    spatiotemporal_leave_zone_out: 12
+  required_inner_folds_per_outer: 3
+  random_kfold_allowed: false
+  random_train_test_split_allowed: false
+
+compact_screen:
+  seeds: [42117, 42118, 42119, 42120, 42121]
+  headline_design: rolling_origin
+  required_rolling_folds: 11
+  comparators:
+    - B1_persistence_last_rate
+    - B7_two_regime_imm
+    - B8_student_t_robust_imm
+  primary_metric: mae_mm_per_year
+  selection_metric: inner_mae
+  probabilistic_selection_metric: inner_crps
+  conformal_source: inner_rolling_oof_only
+  max_parameter_count: 100000
+  training_device: cuda_if_available_else_cpu
+  deterministic_algorithms_requested: true
+  mixed_precision: false
+
+architecture_registry:
+  - model_id: C01_compact_gru
+    family: gated_recurrent_unit
+    status: REQUIRED_COMPACT_SCREEN
+    probabilistic: false
+    grid:
+      hidden_size: [16, 32]
+      layers: [1, 2]
+      dropout: [0.0, 0.1]
+      weight_decay: [0.0001, 0.01]
+  - model_id: C02_compact_lstm
+    family: long_short_term_memory
+    status: REQUIRED_COMPACT_SCREEN
+    probabilistic: false
+    grid:
+      hidden_size: [16, 32]
+      layers: [1, 2]
+      dropout: [0.0, 0.1]
+      weight_decay: [0.0001, 0.01]
+  - model_id: C03_causal_tcn
+    family: temporal_convolutional_network
+    status: REQUIRED_COMPACT_SCREEN
+    probabilistic: false
+    grid:
+      channels: [[16, 16], [32, 32]]
+      kernel_size: [2, 3]
+      dropout: [0.0, 0.1]
+      weight_decay: [0.0001, 0.01]
+  - model_id: C04_probabilistic_gru_student_t
+    family: irregular_time_probabilistic_recurrent
+    status: REQUIRED_COMPACT_SCREEN
+    probabilistic: true
+    distribution: StudentT
+    grid:
+      hidden_size: [16, 32]
+      layers: [1]
+      dropout: [0.0, 0.1]
+      weight_decay: [0.0001, 0.01]
+  - model_id: C05_tsmixer_compact
+    family: time_series_mixer
+    status: CONDITIONAL_COMPACT_SCREEN
+    probabilistic: false
+    condition: masked_fixed_length_representation_passes_c0_audit
+    grid:
+      hidden_size: [16, 32]
+      blocks: [1, 2]
+      dropout: [0.0, 0.1]
+  - model_id: C06_tft_compact
+    family: temporal_fusion_transformer
+    status: CONDITIONAL_COMPACT_SCREEN
+    probabilistic: true
+    condition: parameter_count_lte_100000_and_no_identifier_embeddings
+    grid:
+      hidden_size: [8, 16]
+      attention_heads: [1, 2]
+      dropout: [0.0, 0.1]
+  - model_id: C07_nbeats
+    family: n_beats
+    status: NOT_ELIGIBLE_DATA_GEOMETRY
+    reason: requires_unjustified_regular_grid_or_interpolation_for_3_to_16_irregular_observations
+    grid: {}
+  - model_id: C08_nhits
+    family: n_hits
+    status: NOT_ELIGIBLE_DATA_GEOMETRY
+    reason: hierarchical_downsampling_not_identifiable_on_3_to_16_irregular_observations
+    grid: {}
+  - model_id: C09_patchtst
+    family: patch_time_series_transformer
+    status: NOT_ELIGIBLE_DATA_GEOMETRY
+    reason: patch_context_is_too_short_and_sparse_without_unjustified_interpolation
+    grid: {}
+  - model_id: C10_itransformer
+    family: inverted_transformer
+    status: NOT_ELIGIBLE_DATA_GEOMETRY
+    reason: sample_and_channel_geometry_is_insufficient_for_stable_attention_screening
+    grid: {}
+
+training_defaults:
+  loss: Huber
+  optimizer: AdamW
+  learning_rate: 0.001
+  batch_size: 32
+  max_epochs: 2000
+  early_stopping_patience: 100
+  gradient_clip_norm: 1.0
+
+temporal_screen:
+  pooled_mae_ratio_vs_b1_max: 1.10
+  median_fold_mae_ratio_vs_b1_max: 1.10
+  worst_fold_mae_ratio_vs_b1_max: 2.00
+  all_five_seeds_required: true
+  finite_exact_predictions_required: true
+  rejection_status: REJECTED_TEMPORAL_SCREEN
+
+suite_v5_eligibility:
+  rolling_mae_ratio_vs_b7_max: 1.02
+  audit_tail_mae_ratio_vs_b7_max: 1.02
+  transition_improvement_vs_b1_min: 0.10
+  volatile_or_gap_reference: best_of_B1_B7
+  leave_profile_macro_degradation_max: 0.05
+  leave_zone_macro_degradation_max: 0.05
+  worst_zone_degradation_max: 0.05
+  conformal_95_coverage_min: 0.90
+  conformal_95_coverage_max: 0.97
+  rolling_date_improvement_sign_min: 7
+  profile_improvement_sign_min: 8
+  seed_mae_iqr_max_mm_per_year: 0.50
+  seed_mae_cv_max: 0.10
+  all_environment_and_leakage_checks_required: true
+  lexicographic_order:
+    - rolling_mae
+    - transition_mae
+    - worst_zone_mae
+    - conformal_95_weighted_interval_score
+    - seed_mae_iqr
+    - fit_time
+    - parameter_count
+    - model_id
+
+environment:
+  environment_id: gate_c_torch
+  python: "3.13"
+  lock: requirements/gate_c_torch.lock.txt
+  torch_wheel_index: https://download.pytorch.org/whl/cu130
+  accelerator: RTX_5070_Ti
+  cpu: Intel_Core_i7_14700KF
+  ram_gb: 64
+  external_pretrained_models_allowed: false
+  network_access_during_training: false
+
+protected_roots:
+  - artifacts/model_selection/t1_b0_b1_v1
+  - artifacts/model_selection/t1_b2_v1
+  - artifacts/model_selection/t1_b3_v1
+  - artifacts/model_selection/t1_b4_train_only_v1
+  - artifacts/model_selection/t1_b5_evidence_v1
+  - artifacts/model_selection/t1_b6_expanded_v1
+  - artifacts/splits/t1_train_benchmark_v1
+  - artifacts/governance/final_candidate_suite_v4.json
+  - configs/final_holdout_v3.yaml
+  - artifacts/governance/final_holdout_v3_status.json
+
+preregistered_sources:
+  - configs/gate_c.yaml
+  - requirements/gate_c_torch.lock.txt
+  - docs/governance/GATE_C_PROTOCOL.md
+  - src/skru1/sequences.py
+  - src/skru1/gate_c.py
+  - scripts/run_gate_c.py
+
+artifacts:
+  split_root: artifacts/splits/t1_train_gate_c_v1
+  audit_root: artifacts/model_selection/t1_gate_c0_sequence_audit_v1
+  sequence_manifest: artifacts/splits/t1_train_gate_c_v1/sequence_manifest.csv
+  sequence_rows: artifacts/splits/t1_train_gate_c_v1/sequence_rows.csv
+  sequence_contract: artifacts/splits/t1_train_gate_c_v1/sequence_contract.json
+  fold_sequence_contracts: artifacts/splits/t1_train_gate_c_v1/fold_sequence_contracts.csv
+  split_inventory: artifacts/splits/t1_train_gate_c_v1/artifact_inventory.csv
+  protected_snapshot: artifacts/model_selection/t1_gate_c0_sequence_audit_v1/protected_predecessor_snapshot.json
+  architecture_eligibility: artifacts/model_selection/t1_gate_c0_sequence_audit_v1/architecture_eligibility.csv
+  length_distribution: artifacts/model_selection/t1_gate_c0_sequence_audit_v1/sequence_length_distribution.csv
+  gap_summary: artifacts/model_selection/t1_gate_c0_sequence_audit_v1/sequence_gap_summary.csv
+  fold_summary: artifacts/model_selection/t1_gate_c0_sequence_audit_v1/fold_summary.csv
+  gate_report: artifacts/model_selection/t1_gate_c0_sequence_audit_v1/gate_c0_report.json
+  validation_report: artifacts/model_selection/t1_gate_c0_sequence_audit_v1/validation_report.json
+  artifact_inventory: artifacts/model_selection/t1_gate_c0_sequence_audit_v1/artifact_inventory.csv

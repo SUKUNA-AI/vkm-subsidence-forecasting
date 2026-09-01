@@ -1,0 +1,7 @@
+level,design,folds,train_origins_min,train_origins_median,train_origins_max,validation_origins_min,validation_origins_median,validation_origins_max,all_forward_only,all_held_groups_excluded
+inner,rolling_origin,33,205,503.0,809,12,15.0,91,True,True
+inner,spatiotemporal_leave_profile_out,126,452,580.0,772,6,14.0,84,True,True
+inner,spatiotemporal_leave_zone_out,36,225,462.5,735,4,14.0,83,True,True
+outer,rolling_origin,11,316,606.0,823,12,84.0,91,True,True
+outer,spatiotemporal_leave_profile_out,42,558,671.0,786,3,7.0,7,True,True
+outer,spatiotemporal_leave_zone_out,12,333,548.5,749,7,20.5,40,True,True

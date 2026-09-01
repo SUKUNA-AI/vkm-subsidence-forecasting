@@ -1,0 +1,9 @@
+dimension,segment,observation_tokens,origins,points,profiles,median_delta_t_days,max_missing_campaigns
+gap_days,151_210,4176,888,98,14,175.0,1
+gap_days,1_90,563,343,47,7,56.0,0
+gap_days,91_150,946,422,55,8,105.0,1
+gap_days,gt_210,282,263,43,12,385.0,5
+gap_days,origin_token,911,911,98,14,0.0,0
+missing_campaigns,0,3072,911,98,14,91.0,0
+missing_campaigns,1,3544,890,98,14,182.0,1
+missing_campaigns,ge_2,262,243,41,12,385.0,5

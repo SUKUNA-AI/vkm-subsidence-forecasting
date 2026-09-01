@@ -1,0 +1,95 @@
+{
+  "architecture_prescreen": {
+    "conditional_compact_screen": [
+      "C05_tsmixer_compact",
+      "C06_tft_compact"
+    ],
+    "not_eligible_data_geometry": [
+      "C07_nbeats",
+      "C08_nhits",
+      "C09_patchtst",
+      "C10_itransformer"
+    ],
+    "required_compact_screen": [
+      "C01_compact_gru",
+      "C02_compact_lstm",
+      "C03_causal_tcn",
+      "C04_probabilistic_gru_student_t"
+    ]
+  },
+  "benchmark": {
+    "all_forward_only": true,
+    "all_held_groups_excluded": true,
+    "early_stopping_scope": "inner_rolling_validation_within_t1_v1_train",
+    "inner_folds": 195,
+    "outer_counts": {
+      "rolling_origin": 11,
+      "spatiotemporal_leave_profile_out": 42,
+      "spatiotemporal_leave_zone_out": 12
+    },
+    "preprocessing_fit_scope": "each_fold_train_only"
+  },
+  "claim_boundary": "no_final_model_quality_claim_without_new_future_or_external_holdout",
+  "current_t1_test_loaded": false,
+  "data": {
+    "delta_t_days_max": 560,
+    "delta_t_days_median_positive": 168.0,
+    "delta_t_days_min_positive": 42,
+    "history_length_max": 16,
+    "history_length_median": 7.0,
+    "history_length_min": 3,
+    "missing_campaigns_max": 5,
+    "normalized_rows": 14576,
+    "observation_tokens": 6878,
+    "origins": 911,
+    "origins_with_any_missing_campaign": 892,
+    "points": 98,
+    "profiles": 14,
+    "source": "t1_v1/train",
+    "source_sample_ids_sha256": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c",
+    "target_dates": 19,
+    "zones": 4
+  },
+  "environment": {
+    "environment_id": "gate_c_torch",
+    "lock": "requirements/gate_c_torch.lock.txt",
+    "network_access_during_training": false,
+    "torch_wheel_index": "https://download.pytorch.org/whl/cu130"
+  },
+  "gate": "C0_SEQUENCE_PROTOCOL_FREEZE",
+  "governance": {
+    "final_holdout_v3_unchanged": true,
+    "primary_change_after_holdout_access": "prohibited",
+    "suite_v4_immutable": true,
+    "suite_v4_primary": "B7_two_regime_imm",
+    "suite_v5_fallback": "B7_two_regime_imm",
+    "suite_v5_may_be_created_from_nested_train_only_evidence": true,
+    "suite_v5_requires_new_holdout_policy_version": true
+  },
+  "historical_validation_loaded": false,
+  "model_training_calls": 0,
+  "new_holdout_seen": false,
+  "protected_predecessor_snapshot_sha256": "5c8eca11c8babdd06dd1695fb4fbe8ba748cc76414bfedd1f1dda1ed349761bd",
+  "protected_predecessors_match": true,
+  "schema_version": 1,
+  "scientific_scope": "train_only_internal_research",
+  "sequence_contract": {
+    "contract_sha256": "439a3031133051c0f3dd9f8d84438d2b2e73a62486d9312c8940faa8c2ffe95f",
+    "formal_feature_contract_sha256": "241bad48e67659ffc953349cd2bce59e61f2a2867d57698abd6574edd4a05272",
+    "future_observations_in_inputs": 0,
+    "identifier_features_in_network": [],
+    "max_sequence_length": 16,
+    "padding_side": "left",
+    "sequence_feature_channels": [
+      "last_settlement_mm",
+      "last_rate_mm_y",
+      "current_standard_uncertainty_mm",
+      "days_since_previous_observation",
+      "missing_campaigns_since_previous",
+      "current_campaign_type"
+    ],
+    "target_observations_in_inputs": 0,
+    "truncated_train_sequences": 0
+  },
+  "status": "PASS_PROTOCOL_FROZEN"
+}

@@ -1,0 +1,63 @@
+{
+  "chronology_source": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/leveling_adjusted_epochs.csv",
+  "chronology_source_sha256": "0177b382bf2e7c4a1dcbc8b0131614634ce695fe6cb1717fb2d3e1c288eb72db",
+  "contract_sha256": "439a3031133051c0f3dd9f8d84438d2b2e73a62486d9312c8940faa8c2ffe95f",
+  "current_test_loaded": false,
+  "early_stopping_scope": "inner_rolling_validation_within_t1_v1_train",
+  "feature_contract_sha256": "241bad48e67659ffc953349cd2bce59e61f2a2867d57698abd6574edd4a05272",
+  "fold_sequence_contracts_sha256": "206a2d9f928f2bcf55f4db9ae87e2820d71b8643c0ed212d5b62ea2ace419ae4",
+  "future_observations_in_inputs": 0,
+  "gate": "C0_SEQUENCE_PROTOCOL_FREEZE",
+  "historical_validation_loaded": false,
+  "history_length_max": 16,
+  "history_length_min": 3,
+  "identifiers_in_network_matrix": [],
+  "inner_fold_count": 195,
+  "max_sequence_length": 16,
+  "membership_source": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/campaign_point_membership.csv",
+  "membership_source_sha256": "13c507b8707ea160d0c670a8d2fddc363be13352e11a30a9f51be8f80be6ebae",
+  "model_training_calls": 0,
+  "new_holdout_seen": false,
+  "normalized_rows": 14576,
+  "origins": 911,
+  "outer_fold_counts": {
+    "rolling_origin": 11,
+    "spatiotemporal_leave_profile_out": 42,
+    "spatiotemporal_leave_zone_out": 12
+  },
+  "padding_side": "left",
+  "points": 98,
+  "preregistered_source_hashes": {
+    "configs/gate_c.yaml": "b5a659c5fd427d2877485beeee8b1f8c6b5358b3929095c5be0c13135f2c4e6e",
+    "docs/governance/GATE_C_PROTOCOL.md": "04b4a11a40a00c75dc648f0c6deafbbc53636376bf277e27df120d37685584ca",
+    "requirements/gate_c_torch.lock.txt": "8a432d04f2ae58319e48573111ad1b35e5fd623b85b26bad0266b039522cbddc",
+    "scripts/run_gate_c.py": "1282420f81b62098cdd6a7c49d1e5422e45e67c2fc3b0a7e88ba0a5fd819ea8e",
+    "src/skru1/gate_c.py": "874ead43f28e1f54ba2af9fd0d3cf24d8f0a34a68db14bd99c5d60b392fa0141",
+    "src/skru1/sequences.py": "019cd0da82980a0e1959504e22e82a98b847d8134a8cf14a95e2eacc057c0b87"
+  },
+  "profiles": 14,
+  "schema_version": 1,
+  "scientific_scope": "train_only_internal_research",
+  "sequence_feature_channels": [
+    "last_settlement_mm",
+    "last_rate_mm_y",
+    "current_standard_uncertainty_mm",
+    "days_since_previous_observation",
+    "missing_campaigns_since_previous",
+    "current_campaign_type"
+  ],
+  "sequence_manifest_sha256": "2c84eea6e036a14951c9bc8a744a2e7aceeb26d1fa8febdfe68f1f1727506b1d",
+  "sequence_rows_sha256": "e5cd7a35e3ac38493d9d97e15a07d75f2af787dc9ee49d03b13835a8f46b8b1c",
+  "source_manifest_sha256": "8961543c3a5220e17b45c9b34bc17857320f1b9b2c3985567c8a9c2ecb1fd9c5",
+  "source_sample_ids_sha256": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c",
+  "source_split": "t1_v1/train",
+  "split_version": "t1_train_gate_c_v1",
+  "structural_channels": [
+    "padding_mask",
+    "observation_mask",
+    "missing_campaign_mask"
+  ],
+  "target_contract_sha256": "c679a6b83d26675d50b59de57cb3c12cdeacc6dd7c2e178364e434ed25a526e8",
+  "target_observations_in_inputs": 0,
+  "zones": 4
+}

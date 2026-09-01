@@ -1,0 +1,75 @@
+{
+  "check_count": 11,
+  "checks": [
+    {
+      "check_id": "sequence_contract_runtime",
+      "detail": "causal manifest and masks validated",
+      "status": "PASS"
+    },
+    {
+      "check_id": "sequence_manifest_reproducible",
+      "detail": "regenerated sequence manifest matches frozen file",
+      "status": "PASS"
+    },
+    {
+      "check_id": "sequence_rows_reproducible",
+      "detail": "regenerated normalized sequence rows match frozen file",
+      "status": "PASS"
+    },
+    {
+      "check_id": "fold_contracts_reproducible",
+      "detail": "regenerated fold-sequence contracts match frozen file",
+      "status": "PASS"
+    },
+    {
+      "check_id": "saved_fold_counts",
+      "detail": "exact 65 outer and 195 inner folds",
+      "status": "PASS"
+    },
+    {
+      "check_id": "strict_forward_only",
+      "detail": "all outer and inner folds are forward-only",
+      "status": "PASS"
+    },
+    {
+      "check_id": "held_groups_excluded",
+      "detail": "held profile/zone is absent from train and follows validation contract",
+      "status": "PASS"
+    },
+    {
+      "check_id": "no_validation_or_test_access",
+      "detail": "only t1_v1/train was loaded",
+      "status": "PASS"
+    },
+    {
+      "check_id": "no_model_training",
+      "detail": "Gate C0 contains no fit calls",
+      "status": "PASS"
+    },
+    {
+      "check_id": "predecessor_snapshot_unchanged",
+      "detail": "suite v4, B0-B6, B5 folds, and holdout v3 remain unchanged",
+      "status": "PASS"
+    },
+    {
+      "check_id": "sequence_contract_digest",
+      "detail": "sequence contract self-digest is valid",
+      "status": "PASS"
+    }
+  ],
+  "current_test_loaded": false,
+  "failed_checks": 0,
+  "gate": "C0_SEQUENCE_PROTOCOL_FREEZE",
+  "historical_validation_loaded": false,
+  "holdout_v3_unchanged": true,
+  "inner_folds": 195,
+  "model_training_calls": 0,
+  "new_holdout_seen": false,
+  "normalized_rows": 14576,
+  "origins": 911,
+  "outer_folds": 65,
+  "schema_version": 1,
+  "scientific_scope": "train_only_internal_research",
+  "status": "PASS_PROTOCOL_FROZEN",
+  "suite_v4_unchanged": true
+}
