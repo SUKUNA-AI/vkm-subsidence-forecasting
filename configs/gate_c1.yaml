@@ -1,0 +1,337 @@
+schema_version: 2
+gate: C1_COMPACT_SEQUENCE_TEMPORAL_SCREEN
+task: t1
+source_split: t1_v1/train
+artifact_version: t1_gate_c1_compact_screen_v1
+scientific_scope: train_only_internal_research
+execution_boundary: temporal_screen_only
+
+frozen_predecessors:
+  gate_c0_contract_content_sha256: 439a3031133051c0f3dd9f8d84438d2b2e73a62486d9312c8940faa8c2ffe95f
+  files:
+    configs/gate_c.yaml: b5a659c5fd427d2877485beeee8b1f8c6b5358b3929095c5be0c13135f2c4e6e
+    src/skru1/sequences.py: 019cd0da82980a0e1959504e22e82a98b847d8134a8cf14a95e2eacc057c0b87
+    src/skru1/gate_c.py: 874ead43f28e1f54ba2af9fd0d3cf24d8f0a34a68db14bd99c5d60b392fa0141
+    scripts/run_gate_c.py: 1282420f81b62098cdd6a7c49d1e5422e45e67c2fc3b0a7e88ba0a5fd819ea8e
+    requirements/gate_c_torch.lock.txt: 8a432d04f2ae58319e48573111ad1b35e5fd623b85b26bad0266b039522cbddc
+    docs/governance/GATE_C_PROTOCOL.md: 04b4a11a40a00c75dc648f0c6deafbbc53636376bf277e27df120d37685584ca
+    artifacts/splits/t1_train_gate_c_v1/sequence_contract.json: f518be9e38fe00b35fb1d3305bf7a0b6d61bdaaa483ad30d304d850d2c7acd8f
+    artifacts/splits/t1_train_gate_c_v1/sequence_manifest.csv: 2c84eea6e036a14951c9bc8a744a2e7aceeb26d1fa8febdfe68f1f1727506b1d
+    artifacts/splits/t1_train_gate_c_v1/sequence_rows.csv: e5cd7a35e3ac38493d9d97e15a07d75f2af787dc9ee49d03b13835a8f46b8b1c
+    artifacts/splits/t1_train_gate_c_v1/fold_sequence_contracts.csv: 206a2d9f928f2bcf55f4db9ae87e2820d71b8643c0ed212d5b62ea2ace419ae4
+    artifacts/splits/t1_train_benchmark_v1/benchmark_plan.json: bc4fdad1ab2d003804eec134ebacc493f33db3f37d55f10e3f8c31ea93b4f20a
+    artifacts/splits/t1_train_benchmark_v1/outer_assignments.csv: 150f9f5d9c1fd3cbb61d304af62c5651ed0eb68c717bd7acd605e25b01baac9d
+    artifacts/splits/t1_train_benchmark_v1/inner_assignments.csv: 544bfd62a0bcd27d77692345e4617ecd7a3f4c9e6ef1b2078c47f603ea1937ed
+    artifacts/splits/t1_train_benchmark_v1/fold_contracts.csv: 7b5080f7a89822f8908e665c28eff57ca258105491a1cf4a3a2b4519728af58f
+    artifacts/governance/final_candidate_suite_v4.json: b975dfb3dbd377fc640c6c7f2fa53b1518978a0bbe444a91e1c2ab7ab1635601
+    configs/final_holdout_v3.yaml: cf1ef7f062a8224c2f847b36a8f34187520225c179e6756798d9a7bd59c30a92
+    artifacts/model_selection/t1_b6_expanded_v1/temporal_predictions.csv: 3b0e0e1e54446fb248dff1db93f29cb54fcdfe8926f0c4d8155beefe084cf2fc
+
+data_boundary:
+  allowed_model_data: [t1_v1/train]
+  prohibited_model_data: [t1_v1/validation, t1_v1/test, future_external_holdout]
+  historical_validation_loaded: false
+  current_test_loaded: false
+  new_holdout_seen: false
+  worker_outer_labels_allowed: false
+  worker_manifest_arguments_allowed: false
+  final_quality_claim_allowed: false
+
+sequence:
+  sequence_manifest: artifacts/splits/t1_train_gate_c_v1/sequence_manifest.csv
+  sequence_rows: artifacts/splits/t1_train_gate_c_v1/sequence_rows.csv
+  sequence_contract: artifacts/splits/t1_train_gate_c_v1/sequence_contract.json
+  fold_contracts: artifacts/splits/t1_train_gate_c_v1/fold_sequence_contracts.csv
+  max_length: 16
+  padding_side: left
+  numeric_channels:
+    - last_settlement_mm
+    - last_rate_mm_y
+    - current_standard_uncertainty_mm
+    - days_since_previous_observation
+    - missing_campaigns_since_previous
+  categorical_channels: [current_campaign_type]
+  masks: [padding_mask, observation_mask, missing_campaign_mask]
+  metadata_only:
+    - sample_id
+    - point_id
+    - profile_id
+    - zone_id
+    - campaign_id
+    - current_campaign_id
+    - target_campaign_id
+    - observation_id
+
+resampling:
+  benchmark_plan: artifacts/splits/t1_train_benchmark_v1/benchmark_plan.json
+  outer_assignments: artifacts/splits/t1_train_benchmark_v1/outer_assignments.csv
+  inner_assignments: artifacts/splits/t1_train_benchmark_v1/inner_assignments.csv
+  fold_contracts: artifacts/splits/t1_train_benchmark_v1/fold_contracts.csv
+  design: rolling_origin
+  outer_folds: 11
+  inner_folds_per_outer: 3
+  unique_inner_manifest_pairs: 13
+  random_kfold_allowed: false
+  random_split_allowed: false
+
+architecture_source:
+  config: configs/gate_c.yaml
+  config_sha256: b5a659c5fd427d2877485beeee8b1f8c6b5358b3929095c5be0c13135f2c4e6e
+  include_status: REQUIRED_COMPACT_SCREEN
+  required_model_ids:
+    - C01_compact_gru
+    - C02_compact_lstm
+    - C03_causal_tcn
+    - C04_probabilistic_gru_student_t
+  expected_configuration_counts:
+    C01_compact_gru: 16
+    C02_compact_lstm: 16
+    C03_causal_tcn: 16
+    C04_probabilistic_gru_student_t: 8
+  total_configurations: 56
+
+training:
+  seeds: [42117, 42118, 42119, 42120, 42121]
+  point_loss: huber
+  huber_delta_standardized: 1.0
+  probabilistic_loss: student_t_nll
+  optimizer: AdamW
+  learning_rate: 0.001
+  batch_size: 32
+  max_epochs: 2000
+  patience: 100
+  min_delta: 0.0
+  gradient_clip_norm: 1.0
+  device: cuda
+  dataloader_workers: 0
+  deterministic_algorithms: true
+  cublas_workspace_config: ':4096:8'
+  cudnn_benchmark: false
+  tf32: false
+  mixed_precision: false
+  max_parameter_count: 100000
+  outer_epoch_rule: median_of_15_selected_inner_best_epochs
+  optimizer_backend: fused_adamw_cuda
+  validation_metric_device: cuda
+  recurrent_execution: vectorized_right_padding_dense_cuda
+  inference_mode: true
+  torch_compile: false
+
+checkpointing:
+  root: work/gate_c1/checkpoints
+  keep_top_k: 5
+  stage_interval_epochs: 50
+  inner_ranking: metric_ascending_then_epoch
+  inner_selection: rank_1_inner_objective
+  outer_ranking: latest_epoch_fixed_final
+  outer_selection: fixed_final_epoch
+  ranked_checkpoint_payload: full_training_state
+  recovery_checkpoint: latest_completed_50_epoch_stage_and_terminal
+  persistence_scope: work_only
+  atomic_writes: true
+  outer_labels_allowed: false
+
+selection:
+  point_models_objective: pooled_row_level_inner_mae
+  probabilistic_model_objective: pooled_row_level_inner_crps
+  probabilistic_tie_breaker: pooled_row_level_inner_mae
+  common_tie_breakers: [primary_objective, parameter_count, canonical_parameter_json]
+  seed_selection_allowed: false
+  transition_metrics_allowed: false
+  profile_metrics_allowed: false
+  zone_metrics_allowed: false
+  crps_quantile_grid:
+    start: 0.01
+    stop: 0.99
+    step: 0.01
+
+cache:
+  enabled: true
+  root: work/gate_c1/inner_cache
+  logical_inner_fits: 9240
+  expected_physical_inner_fits: 3640
+  exact_hash_match_required: true
+  cache_key_fields:
+    - model_spec_sha256
+    - parameter_sha256
+    - seed
+    - train_sample_ids_sha256
+    - validation_sample_ids_sha256
+    - train_sequence_pairs_sha256
+    - validation_sequence_pairs_sha256
+    - train_target_sha256
+    - validation_target_sha256
+    - preprocessing_contract_sha256
+    - code_sha256
+    - environment_sha256
+
+environment:
+  environment_id: gate_c_torch
+  path: work/environments/gate_c_torch
+  lock: requirements/gate_c_torch.lock.txt
+  python_version: '3.13'
+  torch_version: 2.13.0+cu130
+  cuda_runtime: '13.0'
+  required_gpu_name: NVIDIA GeForce RTX 5070 Ti
+  torch_wheel_index: https://download.pytorch.org/whl/cu130
+  runtime_network_allowed: false
+  deterministic_tolerance: 1.0e-6
+  external_pretrained_models_allowed: false
+
+prediction_schema:
+  worker_forbidden_columns: [y_true, observed_rate_mm_y, target_value]
+  required_columns:
+    - model_id
+    - family
+    - fold_id
+    - seed
+    - sample_id
+    - y_pred
+    - environment_id
+    - model_spec_sha256
+    - config_sha256
+    - code_sha256
+    - environment_sha256
+    - expected_sample_ids_sha256
+    - selected_parameter_sha256
+    - selected_parameter_json
+    - epoch_count
+    - parameter_count
+    - fit_seconds
+    - inference_seconds
+    - peak_ram_mb
+    - peak_vram_mb
+    - aggregation
+  probabilistic_optional_columns:
+    - distribution_family
+    - distribution_loc
+    - distribution_scale
+    - distribution_df
+    - q025
+    - q10
+    - q25
+    - q50
+    - q75
+    - q90
+    - q975
+
+metrics:
+  point:
+    - mae
+    - median_absolute_error
+    - rmse
+    - bias
+    - absolute_bias
+    - p90_absolute_error
+    - p95_absolute_error
+    - max_absolute_error
+    - r2_descriptive
+    - precision_weighted_mae
+    - precision_weighted_rmse
+    - b1_skill
+    - mase
+    - direction_accuracy
+  native_student_t:
+    - crps
+    - nll
+    - coverage_50
+    - coverage_80
+    - coverage_95
+    - mean_interval_width
+    - median_interval_width
+    - interval_score
+
+temporal_admission:
+  required_outer_folds: 11
+  required_seeds: 5
+  pooled_mae_ratio_vs_b1_max: 1.10
+  median_fold_mae_ratio_vs_b1_max: 1.10
+  worst_fold_mae_ratio_vs_b1_max: 2.00
+  seed_iqr_descriptive_max_mm_per_year: 0.50
+  seed_cv_descriptive_max: 0.10
+  statuses:
+    admitted: PASSED_TEMPORAL_SCREEN
+    quality_rejection: REJECTED_TEMPORAL_SCREEN
+    execution_rejection: REJECTED_MODEL_EXECUTION
+    protocol_failure: FAIL_PROTOCOL
+    gate_success: PASS_C1_TEMPORAL_SCREEN
+
+expected_counts:
+  outer_jobs: 44
+  outer_refits: 220
+  distinct_outer_origins: 595
+  deep_single_seed_prediction_rows: 11900
+  deep_ensemble_prediction_rows: 2380
+  comparator_prediction_rows: 1785
+  scored_prediction_rows: 16065
+
+comparators:
+  source: artifacts/model_selection/t1_b6_expanded_v1/temporal_predictions.csv
+  model_ids: [B1_persistence_last_rate, B7_two_regime_imm, B8_student_t_robust_imm]
+  selection_role: context_only
+
+protected_roots:
+  - configs/gate_c.yaml
+  - src/skru1/sequences.py
+  - src/skru1/gate_c.py
+  - scripts/run_gate_c.py
+  - requirements/gate_c_torch.lock.txt
+  - docs/governance/GATE_C_PROTOCOL.md
+  - artifacts/splits/t1_train_gate_c_v1
+  - artifacts/splits/t1_train_benchmark_v1
+  - artifacts/model_selection/t1_gate_c0_sequence_audit_v1
+  - artifacts/model_selection/t1_b0_b1_v1
+  - artifacts/model_selection/t1_b2_v1
+  - artifacts/model_selection/t1_b3_v1
+  - artifacts/model_selection/t1_b4_train_only_v1
+  - artifacts/model_selection/t1_b5_evidence_v1
+  - artifacts/model_selection/t1_b6_expanded_v1
+  - artifacts/governance/final_candidate_suite_v4.json
+  - configs/final_holdout_v3.yaml
+  - artifacts/governance/final_holdout_v3_status.json
+
+code_sources:
+  - configs/gate_c1.yaml
+  - docs/governance/GATE_C1_PROTOCOL.md
+  - src/skru1/gate_c1_interfaces.py
+  - src/skru1/gate_c1_checkpoints.py
+  - src/skru1/gate_c1_models.py
+  - src/skru1/gate_c1_probabilistic.py
+  - src/skru1/gate_c1_worker.py
+  - src/skru1/gate_c1_evaluation.py
+  - src/skru1/gate_c1.py
+  - src/skru1/gate_c1_environment.py
+  - scripts/run_gate_c1.py
+  - scripts/run_gate_c1_worker.py
+  - scripts/stage_gate_c1_environment.py
+  - scripts/run_gate_c1_environment_smoke.py
+
+artifacts:
+  root: artifacts/model_selection/t1_gate_c1_compact_screen_v1
+  model_registry: artifacts/model_selection/t1_gate_c1_compact_screen_v1/model_registry.json
+  job_manifest: artifacts/model_selection/t1_gate_c1_compact_screen_v1/frozen_job_manifest.json
+  protocol_freeze: artifacts/model_selection/t1_gate_c1_compact_screen_v1/protocol_freeze.json
+  protected_snapshot: artifacts/model_selection/t1_gate_c1_compact_screen_v1/protected_predecessor_snapshot.json
+  environment_root: artifacts/model_selection/t1_gate_c1_compact_screen_v1/environment
+  tuning_inventory: artifacts/model_selection/t1_gate_c1_compact_screen_v1/tuning_inventory.csv
+  selected_inner_oof: artifacts/model_selection/t1_gate_c1_compact_screen_v1/selected_inner_oof_predictions.csv
+  worker_status: artifacts/model_selection/t1_gate_c1_compact_screen_v1/worker_status.csv
+  worker_exit_ledger: artifacts/model_selection/t1_gate_c1_compact_screen_v1/worker_process_exit_ledger.csv
+  execution_incident: artifacts/model_selection/t1_gate_c1_compact_screen_v1/execution_incident_register.json
+  shard_inventory: artifacts/model_selection/t1_gate_c1_compact_screen_v1/prediction_shard_inventory.csv
+  scored_predictions: artifacts/model_selection/t1_gate_c1_compact_screen_v1/scored_temporal_predictions.csv
+  fold_metrics: artifacts/model_selection/t1_gate_c1_compact_screen_v1/temporal_fold_metrics.csv
+  aggregate_metrics: artifacts/model_selection/t1_gate_c1_compact_screen_v1/temporal_aggregate_metrics.csv
+  seed_stability: artifacts/model_selection/t1_gate_c1_compact_screen_v1/seed_stability_metrics.csv
+  native_metrics: artifacts/model_selection/t1_gate_c1_compact_screen_v1/student_t_native_metrics.csv
+  screening_register: artifacts/model_selection/t1_gate_c1_compact_screen_v1/screening_register.csv
+  rejection_register: artifacts/model_selection/t1_gate_c1_compact_screen_v1/rejection_register.csv
+  admission_manifest: artifacts/model_selection/t1_gate_c1_compact_screen_v1/c2_admission_manifest.json
+  label_access_ledger: artifacts/model_selection/t1_gate_c1_compact_screen_v1/outer_label_access_ledger.json
+  compute_inventory: artifacts/model_selection/t1_gate_c1_compact_screen_v1/compute_resource_inventory.csv
+  checkpoint_inventory: artifacts/model_selection/t1_gate_c1_compact_screen_v1/checkpoint_inventory.csv
+  validation_report: artifacts/model_selection/t1_gate_c1_compact_screen_v1/validation_report.json
+  artifact_inventory: artifacts/model_selection/t1_gate_c1_compact_screen_v1/artifact_inventory.csv
+  notebook_execution_report: artifacts/model_selection/t1_gate_c1_compact_screen_v1/notebook_execution_report.json
+  visual_qa_report: artifacts/model_selection/t1_gate_c1_compact_screen_v1/visual_qa_report.json
+  figure_manifest: artifacts/model_selection/t1_gate_c1_compact_screen_v1/figure_manifest.json

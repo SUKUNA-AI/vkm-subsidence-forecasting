@@ -1,0 +1,544 @@
+{
+  "code_sha256": "5a84f27899c20bd37e8318cdc99009da9cb2fc71b7090dead1ca57fee9e7db6a",
+  "config_sha256": "340f5e8ac2d6df6696e2ea0267670ec4d5d1ef1265aa1ecb1a2cebed848a9eba",
+  "configuration_count": 56,
+  "gate": "C1_COMPACT_SEQUENCE_TEMPORAL_SCREEN",
+  "model_count": 4,
+  "models": [
+    {
+      "categorical_channels": [
+        "current_campaign_type"
+      ],
+      "environment_id": "gate_c_torch",
+      "family": "gated_recurrent_unit",
+      "masks": [
+        "padding_mask",
+        "observation_mask",
+        "missing_campaign_mask"
+      ],
+      "model_id": "C01_compact_gru",
+      "numeric_channels": [
+        "last_settlement_mm",
+        "last_rate_mm_y",
+        "current_standard_uncertainty_mm",
+        "days_since_previous_observation",
+        "missing_campaigns_since_previous"
+      ],
+      "parameter_count_limit": 100000,
+      "parameter_grid": [
+        {
+          "dropout": 0.0,
+          "hidden_size": 16,
+          "layers": 1,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 16,
+          "layers": 1,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 16,
+          "layers": 2,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 16,
+          "layers": 2,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 32,
+          "layers": 1,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 32,
+          "layers": 1,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 32,
+          "layers": 2,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 32,
+          "layers": 2,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 16,
+          "layers": 1,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 16,
+          "layers": 1,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 16,
+          "layers": 2,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 16,
+          "layers": 2,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 32,
+          "layers": 1,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 32,
+          "layers": 1,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 32,
+          "layers": 2,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 32,
+          "layers": 2,
+          "weight_decay": 0.01
+        }
+      ],
+      "probabilistic": false,
+      "seeds": [
+        42117,
+        42118,
+        42119,
+        42120,
+        42121
+      ],
+      "selection_objective": "pooled_inner_mae",
+      "spec_sha256": "93d6a231e88abd7219722c0fb59328fbdb4063caf9d8ab33a5570465fdfe8a6d",
+      "status": "REQUIRED_COMPACT_SCREEN",
+      "training_objective": "huber_delta_1_standardized"
+    },
+    {
+      "categorical_channels": [
+        "current_campaign_type"
+      ],
+      "environment_id": "gate_c_torch",
+      "family": "long_short_term_memory",
+      "masks": [
+        "padding_mask",
+        "observation_mask",
+        "missing_campaign_mask"
+      ],
+      "model_id": "C02_compact_lstm",
+      "numeric_channels": [
+        "last_settlement_mm",
+        "last_rate_mm_y",
+        "current_standard_uncertainty_mm",
+        "days_since_previous_observation",
+        "missing_campaigns_since_previous"
+      ],
+      "parameter_count_limit": 100000,
+      "parameter_grid": [
+        {
+          "dropout": 0.0,
+          "hidden_size": 16,
+          "layers": 1,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 16,
+          "layers": 1,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 16,
+          "layers": 2,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 16,
+          "layers": 2,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 32,
+          "layers": 1,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 32,
+          "layers": 1,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 32,
+          "layers": 2,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 32,
+          "layers": 2,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 16,
+          "layers": 1,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 16,
+          "layers": 1,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 16,
+          "layers": 2,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 16,
+          "layers": 2,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 32,
+          "layers": 1,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 32,
+          "layers": 1,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 32,
+          "layers": 2,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 32,
+          "layers": 2,
+          "weight_decay": 0.01
+        }
+      ],
+      "probabilistic": false,
+      "seeds": [
+        42117,
+        42118,
+        42119,
+        42120,
+        42121
+      ],
+      "selection_objective": "pooled_inner_mae",
+      "spec_sha256": "f99687d640a37074a07552ad50b3eae061763384f09506e48598c8ac438cf425",
+      "status": "REQUIRED_COMPACT_SCREEN",
+      "training_objective": "huber_delta_1_standardized"
+    },
+    {
+      "categorical_channels": [
+        "current_campaign_type"
+      ],
+      "environment_id": "gate_c_torch",
+      "family": "temporal_convolutional_network",
+      "masks": [
+        "padding_mask",
+        "observation_mask",
+        "missing_campaign_mask"
+      ],
+      "model_id": "C03_causal_tcn",
+      "numeric_channels": [
+        "last_settlement_mm",
+        "last_rate_mm_y",
+        "current_standard_uncertainty_mm",
+        "days_since_previous_observation",
+        "missing_campaigns_since_previous"
+      ],
+      "parameter_count_limit": 100000,
+      "parameter_grid": [
+        {
+          "channels": [
+            16,
+            16
+          ],
+          "dropout": 0.0,
+          "kernel_size": 2,
+          "weight_decay": 0.0001
+        },
+        {
+          "channels": [
+            16,
+            16
+          ],
+          "dropout": 0.0,
+          "kernel_size": 2,
+          "weight_decay": 0.01
+        },
+        {
+          "channels": [
+            16,
+            16
+          ],
+          "dropout": 0.0,
+          "kernel_size": 3,
+          "weight_decay": 0.0001
+        },
+        {
+          "channels": [
+            16,
+            16
+          ],
+          "dropout": 0.0,
+          "kernel_size": 3,
+          "weight_decay": 0.01
+        },
+        {
+          "channels": [
+            16,
+            16
+          ],
+          "dropout": 0.1,
+          "kernel_size": 2,
+          "weight_decay": 0.0001
+        },
+        {
+          "channels": [
+            16,
+            16
+          ],
+          "dropout": 0.1,
+          "kernel_size": 2,
+          "weight_decay": 0.01
+        },
+        {
+          "channels": [
+            16,
+            16
+          ],
+          "dropout": 0.1,
+          "kernel_size": 3,
+          "weight_decay": 0.0001
+        },
+        {
+          "channels": [
+            16,
+            16
+          ],
+          "dropout": 0.1,
+          "kernel_size": 3,
+          "weight_decay": 0.01
+        },
+        {
+          "channels": [
+            32,
+            32
+          ],
+          "dropout": 0.0,
+          "kernel_size": 2,
+          "weight_decay": 0.0001
+        },
+        {
+          "channels": [
+            32,
+            32
+          ],
+          "dropout": 0.0,
+          "kernel_size": 2,
+          "weight_decay": 0.01
+        },
+        {
+          "channels": [
+            32,
+            32
+          ],
+          "dropout": 0.0,
+          "kernel_size": 3,
+          "weight_decay": 0.0001
+        },
+        {
+          "channels": [
+            32,
+            32
+          ],
+          "dropout": 0.0,
+          "kernel_size": 3,
+          "weight_decay": 0.01
+        },
+        {
+          "channels": [
+            32,
+            32
+          ],
+          "dropout": 0.1,
+          "kernel_size": 2,
+          "weight_decay": 0.0001
+        },
+        {
+          "channels": [
+            32,
+            32
+          ],
+          "dropout": 0.1,
+          "kernel_size": 2,
+          "weight_decay": 0.01
+        },
+        {
+          "channels": [
+            32,
+            32
+          ],
+          "dropout": 0.1,
+          "kernel_size": 3,
+          "weight_decay": 0.0001
+        },
+        {
+          "channels": [
+            32,
+            32
+          ],
+          "dropout": 0.1,
+          "kernel_size": 3,
+          "weight_decay": 0.01
+        }
+      ],
+      "probabilistic": false,
+      "seeds": [
+        42117,
+        42118,
+        42119,
+        42120,
+        42121
+      ],
+      "selection_objective": "pooled_inner_mae",
+      "spec_sha256": "24e95f611985cd7e566c7782e9a8a39fe5820cc6f4de0c848135a7d1ca297046",
+      "status": "REQUIRED_COMPACT_SCREEN",
+      "training_objective": "huber_delta_1_standardized"
+    },
+    {
+      "categorical_channels": [
+        "current_campaign_type"
+      ],
+      "environment_id": "gate_c_torch",
+      "family": "irregular_time_probabilistic_recurrent",
+      "masks": [
+        "padding_mask",
+        "observation_mask",
+        "missing_campaign_mask"
+      ],
+      "model_id": "C04_probabilistic_gru_student_t",
+      "numeric_channels": [
+        "last_settlement_mm",
+        "last_rate_mm_y",
+        "current_standard_uncertainty_mm",
+        "days_since_previous_observation",
+        "missing_campaigns_since_previous"
+      ],
+      "parameter_count_limit": 100000,
+      "parameter_grid": [
+        {
+          "dropout": 0.0,
+          "hidden_size": 16,
+          "layers": 1,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 16,
+          "layers": 1,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 32,
+          "layers": 1,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.0,
+          "hidden_size": 32,
+          "layers": 1,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 16,
+          "layers": 1,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 16,
+          "layers": 1,
+          "weight_decay": 0.01
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 32,
+          "layers": 1,
+          "weight_decay": 0.0001
+        },
+        {
+          "dropout": 0.1,
+          "hidden_size": 32,
+          "layers": 1,
+          "weight_decay": 0.01
+        }
+      ],
+      "probabilistic": true,
+      "seeds": [
+        42117,
+        42118,
+        42119,
+        42120,
+        42121
+      ],
+      "selection_objective": "pooled_inner_crps",
+      "spec_sha256": "cfcbdc11c6feb4758ee49b08dc482ca665a6bdeac3fc36ccd96efbed7617f16e",
+      "status": "REQUIRED_COMPACT_SCREEN",
+      "training_objective": "student_t_nll"
+    }
+  ],
+  "registry_sha256": "86339fe7213b124532f71ef126ca8c46183d0c5f83f498afce25ad1b8380e01b",
+  "schema_version": 1,
+  "scientific_scope": "train_only_internal_research",
+  "seeds": [
+    42117,
+    42118,
+    42119,
+    42120,
+    42121
+  ],
+  "source_split": "t1_v1/train"
+}
