@@ -1,0 +1,150 @@
+{
+  "admitted_models": [
+    "C01_compact_gru"
+  ],
+  "check_count": 26,
+  "checks": [
+    {
+      "detail": "C0/B5/B6/suite-v4/holdout-v3 hashes",
+      "name": "protected_predecessors",
+      "status": "PASS"
+    },
+    {
+      "detail": "4 models, 56 grids",
+      "name": "registry",
+      "status": "PASS"
+    },
+    {
+      "detail": "4 x 11 frozen jobs",
+      "name": "outer_jobs",
+      "status": "PASS"
+    },
+    {
+      "detail": "all logical evaluations present",
+      "name": "logical_inner_fits",
+      "status": "PASS"
+    },
+    {
+      "detail": "13 pairs x 56 grids x 5 seeds",
+      "name": "physical_cache_keys",
+      "status": "PASS"
+    },
+    {
+      "detail": "five seeds per job",
+      "name": "outer_refits",
+      "status": "PASS"
+    },
+    {
+      "detail": "3640 inner plus 220 outer work-only top-five manifests",
+      "name": "checkpoint_inventory",
+      "status": "PASS"
+    },
+    {
+      "detail": "44 label-free shards",
+      "name": "unlabeled_shards",
+      "status": "PASS"
+    },
+    {
+      "detail": "11900 + 2380 + 1785",
+      "name": "scored_rows",
+      "status": "PASS"
+    },
+    {
+      "detail": "four models x five seeds x 595 origins",
+      "name": "deep_single_seed_rows",
+      "status": "PASS"
+    },
+    {
+      "detail": "four canonical ensembles x 595 origins",
+      "name": "deep_ensemble_rows",
+      "status": "PASS"
+    },
+    {
+      "detail": "B1/B7/B8 exact matched origins",
+      "name": "comparator_rows",
+      "status": "PASS"
+    },
+    {
+      "detail": "eleven target dates",
+      "name": "fold_metrics",
+      "status": "PASS"
+    },
+    {
+      "detail": "all scores finite",
+      "name": "finite_predictions",
+      "status": "PASS"
+    },
+    {
+      "detail": "canonical ensemble equals arithmetic mean of all five seeds",
+      "name": "ensemble_exact_mean",
+      "status": "PASS"
+    },
+    {
+      "detail": "ensemble publishes point mean only",
+      "name": "no_pseudo_student_t_ensemble",
+      "status": "PASS"
+    },
+    {
+      "detail": "all workers completed without outer labels",
+      "name": "worker_status",
+      "status": "PASS"
+    },
+    {
+      "detail": "44 isolated process exits accepted only after artifact validation",
+      "name": "worker_process_exit_ledger",
+      "status": "PASS"
+    },
+    {
+      "detail": "invalidated diagnostics are registered and excluded before label scoring",
+      "name": "execution_incident_register",
+      "status": "PASS"
+    },
+    {
+      "detail": "single scorer-only access after shard freeze",
+      "name": "label_access_ledger",
+      "status": "PASS"
+    },
+    {
+      "detail": "manifest follows screening register",
+      "name": "admission_reproducible",
+      "status": "PASS"
+    },
+    {
+      "detail": "all four models have scientific terminal status",
+      "name": "terminal_model_statuses",
+      "status": "PASS"
+    },
+    {
+      "detail": "C1 remains temporal train-only research",
+      "name": "boundary_flags",
+      "status": "PASS"
+    },
+    {
+      "detail": "frozen config unchanged",
+      "name": "config_hash",
+      "status": "PASS"
+    },
+    {
+      "detail": "execution code unchanged",
+      "name": "code_hash",
+      "status": "PASS"
+    },
+    {
+      "detail": "fresh gate_c_torch authority",
+      "name": "environment_authority",
+      "status": "PASS"
+    }
+  ],
+  "current_test_loaded": false,
+  "failed_checks": 0,
+  "gate": "C1_COMPACT_SEQUENCE_TEMPORAL_SCREEN",
+  "historical_validation_loaded": false,
+  "models": 4,
+  "new_holdout_seen": false,
+  "profile_zone_transition_audit_executed": false,
+  "schema_version": 1,
+  "scientific_scope": "train_only_internal_research",
+  "scored_prediction_rows": 16065,
+  "status": "PASS_C1_TEMPORAL_SCREEN",
+  "suite_v5_created": false
+}

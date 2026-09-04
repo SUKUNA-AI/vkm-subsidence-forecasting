@@ -1,0 +1,21 @@
+{
+  "absolute_paths_persisted": false,
+  "authority_path": "work/environments/gate_c_torch",
+  "determinism_report_sha256": "265a12f2f01c66f8ca5c274dff1307ce31743cf1a9a050b820f4feb9dcf306ce",
+  "environment_id": "gate_c_torch",
+  "environment_manifest_content_sha256": "0ee1c88b8a4106feab70d1913f4186a06e5361e4e0528f71ca4ddaa3f3165c6d",
+  "evidence_refreshed_after_code_revision": true,
+  "external_pretrained_models": false,
+  "fresh_environment_created": true,
+  "hardware_report_sha256": "4234d69c617b7d67b1147e5f858d6ea05638134c962cd4ea35294108890643a2",
+  "lock_path": "requirements/gate_c_torch.lock.txt",
+  "lock_sha256": "8a432d04f2ae58319e48573111ad1b35e5fd623b85b26bad0266b039522cbddc",
+  "network_scope": "environment_staging_only",
+  "pip_freeze_sha256": "79f0e598f4abc5c680fc5dd5bbd194501e8bb2c6e3e3ed41dbeb6012f63f96bc",
+  "pip_install_report_sha256": "979fe94d5c5ed6a705a138cfe0f4c15256624f993880cf47c98dc1f2b53586d0",
+  "runtime_network_allowed": false,
+  "schema_version": 1,
+  "smoke_report_sha256": "a99026986741ff4e724c5da58d65a106ce59e11e9eec5233fc0040b5579864bd",
+  "status": "PASS",
+  "wheel_manifest_sha256": "ccf771ebcc32271e7ba7f6ac498ac47684c1511174b163cc4b5a3d7087ed953f"
+}

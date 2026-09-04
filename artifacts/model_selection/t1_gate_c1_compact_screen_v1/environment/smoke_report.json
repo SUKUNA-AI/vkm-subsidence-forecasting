@@ -1,0 +1,51 @@
+{
+  "all_parameter_counts_lte_100000": true,
+  "checkpoint_roundtrip": true,
+  "environment_id": "gate_c_torch",
+  "external_pretrained_dependencies": false,
+  "fused_adamw_cuda": true,
+  "grid_configurations_checked": 56,
+  "input_channels": 8,
+  "maximum_parameter_count": 13857,
+  "models": [
+    {
+      "elapsed_seconds": 0.37180159997660667,
+      "finite_predictions": true,
+      "model_id": "C01_compact_gru",
+      "serialization_max_abs_delta": 0.0,
+      "serialization_roundtrip": true,
+      "status": "PASS"
+    },
+    {
+      "elapsed_seconds": 0.024433500017039478,
+      "finite_predictions": true,
+      "model_id": "C02_compact_lstm",
+      "serialization_max_abs_delta": 0.0,
+      "serialization_roundtrip": true,
+      "status": "PASS"
+    },
+    {
+      "elapsed_seconds": 0.08087219996377826,
+      "finite_predictions": true,
+      "model_id": "C03_causal_tcn",
+      "serialization_max_abs_delta": 0.0,
+      "serialization_roundtrip": true,
+      "status": "PASS"
+    },
+    {
+      "elapsed_seconds": 0.4828820999828167,
+      "finite_predictions": true,
+      "model_id": "C04_probabilistic_gru_student_t",
+      "serialization_max_abs_delta": 0.0,
+      "serialization_roundtrip": true,
+      "status": "PASS"
+    }
+  ],
+  "real_train_only_inner_flow": true,
+  "recurrent_execution": "vectorized_right_padding_dense_cuda",
+  "runtime_network_allowed": false,
+  "schema_version": 1,
+  "status": "PASS",
+  "torch_compile": false,
+  "validation_metric_device": "cuda"
+}

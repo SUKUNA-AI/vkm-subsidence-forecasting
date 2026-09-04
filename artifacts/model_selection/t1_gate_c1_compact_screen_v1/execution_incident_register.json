@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "gate": "C1_COMPACT_SEQUENCE_TEMPORAL_SCREEN",
+  "incidents": [
+    {
+      "incident_id": "C1-EXEC-001",
+      "detected_on": "2026-09-03",
+      "classification": "WINDOWS_CUDA_PROCESS_TEARDOWN_AFTER_ATOMIC_ARTIFACT_COMMIT",
+      "symptom": "isolated worker returned NTSTATUS 0xC0000409 after writing and flushing a terminal COMPLETED status",
+      "old_code_sha256": "ea3c28724c8f04b9f99add725941f117fb20b72f5f7bdc41acba03d169e5405a",
+      "old_environment_sha256": "9187bec0f2d33c649ce460991d61c8035ecbfbf83fd893587b7ffd221d8dcbb8",
+      "config_sha256": "ae7c6e5e6cf1590501307a1d1df07130a5fc724550db7e18ea021065c30a025a",
+      "invalidated_shards": [
+        {
+          "job_id": "C01_compact_gru::rolling_origin_2021-05-18",
+          "unlabeled_prediction_sha256": "61e52b54a54f85e0d06c05ece06967d389c26a0629b998287eaaad7c3dd45e07"
+        },
+        {
+          "job_id": "C01_compact_gru::rolling_origin_2021-07-13",
+          "unlabeled_prediction_sha256": "ced37d9dcb8168fc639ab6ce99910f05e2486ff2a78d064dbc03093e7e2a004c"
+        }
+      ],
+      "invalidated_scope": [
+        "artifacts/model_selection/t1_gate_c1_compact_screen_v1/environment",
+        "artifacts/model_selection/t1_gate_c1_compact_screen_v1/prediction_shards",
+        "artifacts/model_selection/t1_gate_c1_compact_screen_v1/selected_inner_oof_shards",
+        "artifacts/model_selection/t1_gate_c1_compact_screen_v1/tuning_shards",
+        "artifacts/model_selection/t1_gate_c1_compact_screen_v1/worker_status",
+        "work/gate_c1",
+        "work/environments/gate_c_torch"
+      ],
+      "outer_label_scoring_started": false,
+      "outer_label_access_events": 0,
+      "historical_validation_loaded": false,
+      "current_test_loaded": false,
+      "new_holdout_seen": false,
+      "resolution": "flush stdout and stderr, then use an isolated hard process exit before process-global CUDA destructor teardown; this mitigation was subsequently shown to be insufficient for a full RNN job",
+      "new_code_sha256": "086191fc40af987e651037a5a456645bac2e0728e24a45f63126ecd420cc009c",
+      "new_environment_sha256": "f70dd50cc73d58133273de418872f25c62c961df944eda984a4e46465a00b6db",
+      "authoritative_commit": "5b325d45428b02dcc3c88469e4c3502d5a780bbe",
+      "status": "MITIGATION_INSUFFICIENT_SUPERSEDED",
+      "invalidated_results_used_for_selection": false
+    },
+    {
+      "incident_id": "C1-EXEC-002",
+      "detected_on": "2026-09-03",
+      "classification": "WINDOWS_CUDA_PROCESS_TEARDOWN_AFTER_ATOMIC_ARTIFACT_COMMIT",
+      "symptom": "isolated full GRU worker still returned NTSTATUS 0xC0000409 after atomic artifacts and explicit hard exit; minimal CUDA normal and hard-exit probes returned zero",
+      "old_code_sha256": "086191fc40af987e651037a5a456645bac2e0728e24a45f63126ecd420cc009c",
+      "old_environment_sha256": "f70dd50cc73d58133273de418872f25c62c961df944eda984a4e46465a00b6db",
+      "config_sha256": "ae7c6e5e6cf1590501307a1d1df07130a5fc724550db7e18ea021065c30a025a",
+      "invalidated_shards": [
+        {
+          "job_id": "C01_compact_gru::rolling_origin_2021-05-18",
+          "unlabeled_prediction_sha256": "19683ca585613c279cf47fb80ac43f91a162942f105c8b606c832f98c770798e"
+        }
+      ],
+      "invalidated_scope": [
+        "artifacts/model_selection/t1_gate_c1_compact_screen_v1/environment",
+        "artifacts/model_selection/t1_gate_c1_compact_screen_v1/prediction_shards",
+        "artifacts/model_selection/t1_gate_c1_compact_screen_v1/selected_inner_oof_shards",
+        "artifacts/model_selection/t1_gate_c1_compact_screen_v1/tuning_shards",
+        "artifacts/model_selection/t1_gate_c1_compact_screen_v1/worker_status",
+        "artifacts/model_selection/t1_gate_c1_compact_screen_v1/worker_process_exit_ledger.csv",
+        "work/gate_c1",
+        "work/environments/gate_c_torch"
+      ],
+      "outer_label_scoring_started": false,
+      "outer_label_access_events": 0,
+      "historical_validation_loaded": false,
+      "current_test_loaded": false,
+      "new_holdout_seen": false,
+      "resolution": "accept only the exact post-commit return code 0xC0000409 after fail-closed parent revalidation of terminal identity, all artifact hashes, exact sample universe, label-free schema, tuning completeness, and code/config/environment provenance; record every process exit in a frozen ledger",
+      "new_code_sha256": "ed5770370b44e1b1d16eff07d962ebabb22ddebcb517d311d5725e123f3bce36",
+      "new_environment_sha256": "0c98e1612e7463b17a4b8cb69384fcdc3b92ee7ade75567316278717351fbd1b",
+      "authoritative_commit": "c26a49431bfd684ace85df84d782b7df41b40448",
+      "status": "RESOLVED_WITH_FAIL_CLOSED_PARENT_VALIDATION_BEFORE_AUTHORITATIVE_SCREEN",
+      "invalidated_results_used_for_selection": false
+    },
+    {
+      "incident_id": "C1-EXEC-003",
+      "detected_on": "2026-09-04",
+      "classification": "PREREGISTERED_CHECKPOINT_AND_CUDA_EXECUTION_REVISION_BEFORE_OUTER_SCORING",
+      "symptom": "the initial authority run remained slow because recurrent minibatches performed a Python row loop with CPU/CUDA synchronization and copied the best state to CPU on every improving epoch",
+      "old_code_sha256": "ed5770370b44e1b1d16eff07d962ebabb22ddebcb517d311d5725e123f3bce36",
+      "old_config_sha256": "dd30eeadcf9b36e016ae71f9f9232ba921d801d93c1a637b91c642db66646080",
+      "old_environment_sha256": "0c98e1612e7463b17a4b8cb69384fcdc3b92ee7ade75567316278717351fbd1b",
+      "invalidated_physical_inner_fits": 820,
+      "invalidated_completed_outer_jobs": 8,
+      "invalidated_shards": [
+        {
+          "job_id": "C01_compact_gru::rolling_origin_2021-05-18",
+          "unlabeled_prediction_sha256": "f40ccb5ba0c42c41bcb6d3fe9a3cf185d97667b454975f142a447ec8a237a2a3"
+        },
+        {
+          "job_id": "C01_compact_gru::rolling_origin_2021-07-13",
+          "unlabeled_prediction_sha256": "6c947a077c0d9ed5341dc061d1ef8fba4dc240be8021a17497dc35c2f8b52943"
+        },
+        {
+          "job_id": "C01_compact_gru::rolling_origin_2021-11-02",
+          "unlabeled_prediction_sha256": "13884880d8f83464ec7e24e82866f8e0c4fad0f439e184fe9986bdddc8c4b128"
+        },
+        {
+          "job_id": "C01_compact_gru::rolling_origin_2022-03-01",
+          "unlabeled_prediction_sha256": "bf0e047da047bc41ac114795eeb4f98a0e71eafba78e6d4dd914db5184c8ea6b"
+        },
+        {
+          "job_id": "C01_compact_gru::rolling_origin_2022-05-17",
+          "unlabeled_prediction_sha256": "87a7651ef6d0357be6ab809d00c125a5828167744af0524f357076f62c50ec33"
+        },
+        {
+          "job_id": "C01_compact_gru::rolling_origin_2022-07-19",
+          "unlabeled_prediction_sha256": "161112b6424f6a712932891daba9915c6844146e775623cd468240dc26c8ed6a"
+        },
+        {
+          "job_id": "C01_compact_gru::rolling_origin_2022-10-18",
+          "unlabeled_prediction_sha256": "04b9a694e09659420b4c2e4ba3ac7cd7b86a7a618f785cf09ca733dbd841f58f"
+        },
+        {
+          "job_id": "C01_compact_gru::rolling_origin_2023-01-17",
+          "unlabeled_prediction_sha256": "8ec62284485f7516faa7e275c913fc90270bcaaefae4d18e35ab9b78f7fea7d9"
+        }
+      ],
+      "quarantine_path": "work/quarantine/gate_c1_pre_checkpoint_cuda_20260904T120000",
+      "outer_label_scoring_started": false,
+      "outer_label_access_events": 0,
+      "historical_validation_loaded": false,
+      "current_test_loaded": false,
+      "new_holdout_seen": false,
+      "resolution": "freeze a versioned top-five full-state checkpoint contract, retain recovery stages every 50 epochs, replace row-wise recurrent packing with an equivalent vectorized dense CUDA path, use fused AdamW and GPU-native validation metrics, then rerun the whole authoritative screen under new hashes",
+      "matched_runtime_benchmark": {
+        "model_id": "C01_compact_gru",
+        "fold_id": "rolling_origin_2021-05-18",
+        "fits_each_run": 240,
+        "old_mean_fit_seconds": 4.449041689165946,
+        "new_mean_fit_seconds_including_checkpointing": 3.30103015083126,
+        "mean_speedup_ratio": 1.3477737208930356,
+        "old_median_fit_seconds": 3.903004050021991,
+        "new_median_fit_seconds_including_checkpointing": 2.482394300022861,
+        "median_speedup_ratio": 1.57227401383658,
+        "old_p95_fit_seconds": 7.259095099987462,
+        "new_p95_fit_seconds_including_checkpointing": 7.411608599999454,
+        "old_total_fit_seconds": 1067.770005399827,
+        "new_total_fit_seconds_including_checkpointing": 792.2472361995024,
+        "old_mean_epochs": 137.54166666666666,
+        "new_mean_epochs": 138.27916666666667,
+        "comparison_scope": "same model, fold, 16 configurations, three inner folds and five seeds; new timings include top-five persistence"
+      },
+      "new_code_sha256": "5a84f27899c20bd37e8318cdc99009da9cb2fc71b7090dead1ca57fee9e7db6a",
+      "new_config_sha256": "340f5e8ac2d6df6696e2ea0267670ec4d5d1ef1265aa1ecb1a2cebed848a9eba",
+      "new_environment_sha256": "4a1388db6a465b41decad90e9701c9312bb7aa844e8aeb133c461ed0a4bd9258",
+      "authoritative_commit": "cfaa1563835250c7c42a63dd95d75020ae4c0d10",
+      "status": "INVALIDATED_BEFORE_LABEL_ACCESS_AND_QUARANTINED",
+      "invalidated_results_used_for_selection": false
+    }
+  ]
+}

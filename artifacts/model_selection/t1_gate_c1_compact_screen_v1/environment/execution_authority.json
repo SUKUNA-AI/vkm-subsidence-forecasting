@@ -1,0 +1,38 @@
+{
+  "checks": {
+    "all_adapter_smokes_pass": true,
+    "all_grid_parameter_counts_pass": true,
+    "checkpoint_roundtrip": true,
+    "cuda_130": true,
+    "cuda_available": true,
+    "determinism_pass": true,
+    "determinism_tolerance": true,
+    "environment_manifest_pass": true,
+    "external_pretrained_dependencies_absent": true,
+    "fused_adamw_cuda": true,
+    "python_313": true,
+    "real_train_only_inner_flow": true,
+    "rtx_5070_ti": true,
+    "torch_213_cu130": true,
+    "vectorized_dense_recurrent": true
+  },
+  "code_sha256": "5a84f27899c20bd37e8318cdc99009da9cb2fc71b7090dead1ca57fee9e7db6a",
+  "config_sha256": "340f5e8ac2d6df6696e2ea0267670ec4d5d1ef1265aa1ecb1a2cebed848a9eba",
+  "environment_evidence_hashes": {
+    "determinism_report.json": "265a12f2f01c66f8ca5c274dff1307ce31743cf1a9a050b820f4feb9dcf306ce",
+    "environment_manifest.json": "2c009f88447e6dbd50ad2471d530faf3456cb3b04cd21eeea5494919630f3a9c",
+    "hardware_report.json": "4234d69c617b7d67b1147e5f858d6ea05638134c962cd4ea35294108890643a2",
+    "pip_freeze.txt": "79f0e598f4abc5c680fc5dd5bbd194501e8bb2c6e3e3ed41dbeb6012f63f96bc",
+    "pip_install_report.json": "979fe94d5c5ed6a705a138cfe0f4c15256624f993880cf47c98dc1f2b53586d0",
+    "smoke_report.json": "a99026986741ff4e724c5da58d65a106ce59e11e9eec5233fc0040b5579864bd",
+    "wheel_manifest.csv": "ccf771ebcc32271e7ba7f6ac498ac47684c1511174b163cc4b5a3d7087ed953f"
+  },
+  "environment_id": "gate_c_torch",
+  "environment_sha256": "4a1388db6a465b41decad90e9701c9312bb7aa844e8aeb133c461ed0a4bd9258",
+  "execution_authority_sha256": "a6c7db6ec88548555e84d1f069ce896a917dff32b869e09fc522502955dfad4f",
+  "network_access_during_runtime": false,
+  "preflight_status": "PASS",
+  "protocol_freeze_sha256": "505e974f6e66cdaa84804e0e8bf854466e950c8b188101e8f78c513e484eed15",
+  "schema_version": 1,
+  "status": "PASS"
+}

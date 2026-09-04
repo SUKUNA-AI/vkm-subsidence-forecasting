@@ -1,0 +1,78 @@
+{
+  "checkpoint_persistence_scope": "work_only",
+  "checkpoint_policy": "top_5_inner_objective_and_outer_fixed_final",
+  "current_test_loaded": false,
+  "fold_id": "rolling_origin_2021-07-13",
+  "historical_validation_loaded": false,
+  "job_id": "C04_probabilistic_gru_student_t::rolling_origin_2021-07-13",
+  "logical_inner_evaluations": 120,
+  "model_id": "C04_probabilistic_gru_student_t",
+  "new_holdout_seen": false,
+  "outer_checkpoint_manifest_count": 5,
+  "outer_checkpoint_manifests": [
+    {
+      "fit_id": "ec599b81f4edff28001cf9f51f9a6ea8bc5d3682d080f15a261bc9854789f02b",
+      "path": "work/gate_c1/checkpoints/outer/ec599b81f4edff28001cf9f51f9a6ea8bc5d3682d080f15a261bc9854789f02b/manifest.json",
+      "retained_checkpoint_count": 5,
+      "seed": 42117,
+      "selected_checkpoint_epoch": 31,
+      "sha256": "dbc84719ed1b60241c3c49173ab06d478ea9eb2f4b7e5ffcbdcacec0ef9dfe1b"
+    },
+    {
+      "fit_id": "e3798b092a66afac6c87b026b5bd68b49de969c1706ce909e85d2dccd55484e8",
+      "path": "work/gate_c1/checkpoints/outer/e3798b092a66afac6c87b026b5bd68b49de969c1706ce909e85d2dccd55484e8/manifest.json",
+      "retained_checkpoint_count": 5,
+      "seed": 42118,
+      "selected_checkpoint_epoch": 31,
+      "sha256": "30b7c1390700640fb16b4c9dce852820aa31aec116fc1949eeefd020284b185e"
+    },
+    {
+      "fit_id": "9fb25838f6a566d824523ceec489e9d2467f7c2aef26b3d66d25f63674aabed3",
+      "path": "work/gate_c1/checkpoints/outer/9fb25838f6a566d824523ceec489e9d2467f7c2aef26b3d66d25f63674aabed3/manifest.json",
+      "retained_checkpoint_count": 5,
+      "seed": 42119,
+      "selected_checkpoint_epoch": 31,
+      "sha256": "3d8116baa01869e737650adfba5832db5bccaf7454ea67927877785a71c312fe"
+    },
+    {
+      "fit_id": "b7d880d5e6e5c9136722b0476e5ec65264c6f2da44c74b5dd508df110ca86d6c",
+      "path": "work/gate_c1/checkpoints/outer/b7d880d5e6e5c9136722b0476e5ec65264c6f2da44c74b5dd508df110ca86d6c/manifest.json",
+      "retained_checkpoint_count": 5,
+      "seed": 42120,
+      "selected_checkpoint_epoch": 31,
+      "sha256": "ecbb5387cdf0bcc2460d99309dd2a566c5c4d3f4bdd3d2e3db90e6d31354339c"
+    },
+    {
+      "fit_id": "2f3a14d02cf4a43d8b27a2d0f7ad8d4df28ce2a4962cfccc2919c373dc989e60",
+      "path": "work/gate_c1/checkpoints/outer/2f3a14d02cf4a43d8b27a2d0f7ad8d4df28ce2a4962cfccc2919c373dc989e60/manifest.json",
+      "retained_checkpoint_count": 5,
+      "seed": 42121,
+      "selected_checkpoint_epoch": 31,
+      "sha256": "16df799cf8107788d20c8f3263ff89efd4638ffffa5278244d996139210be9fe"
+    }
+  ],
+  "outer_epoch_count": 31,
+  "outer_labels_used_for_checkpoint_selection": false,
+  "outer_prediction_rows": 60,
+  "outer_refits": 5,
+  "outer_validation_labels_loaded_by_worker": false,
+  "physical_inner_fits_executed": 40,
+  "physical_inner_fits_reused": 80,
+  "runtime_network_allowed": false,
+  "schema_version": 1,
+  "seeds": [
+    42117,
+    42118,
+    42119,
+    42120,
+    42121
+  ],
+  "selected_inner_oof_sha256": "e9ebcf78f963fbfd22707f448434dfad707111165606a9c7d043c33eefc29b3b",
+  "selected_parameter_index": 6,
+  "selected_parameter_json": "{\"dropout\":0.1,\"hidden_size\":32,\"layers\":1,\"weight_decay\":0.0001}",
+  "selected_parameter_sha256": "9acda4007ade9993e564b90034a5a44b6bf546e21fa4b5e9747a920027080aea",
+  "status": "COMPLETED",
+  "tuning_shard_sha256": "6afec251eb10c22d198cdfffc1430eea9dd8eb9a344b9d425e1b68966ec86854",
+  "unlabeled_prediction_sha256": "89e1f97a72853b0ba77ac0daaac80a68c7404b423c3981558cec8d055658c62f",
+  "unlabeled_prediction_shard": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/prediction_shards/C04_probabilistic_gru_student_t/rolling_origin_2021-07-13.csv"
+}

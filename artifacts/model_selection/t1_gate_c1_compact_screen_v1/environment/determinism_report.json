@@ -1,0 +1,40 @@
+{
+  "cublas_workspace_config": ":4096:8",
+  "deterministic_algorithms": true,
+  "environment_id": "gate_c_torch",
+  "mixed_precision": false,
+  "models": [
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "C01_compact_gru",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-06
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "C02_compact_lstm",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-06
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "C03_causal_tcn",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-06
+    },
+    {
+      "maximum_absolute_delta": 0.0,
+      "model_id": "C04_probabilistic_gru_student_t",
+      "runs": 2,
+      "status": "PASS",
+      "tolerance": 1e-06
+    }
+  ],
+  "schema_version": 1,
+  "status": "PASS",
+  "tf32": false,
+  "tolerance": 1e-06
+}

@@ -1,0 +1,19 @@
+{
+  "access_event": 1,
+  "access_is_model_facing": false,
+  "access_purpose": "independent_outer_scoring_after_unlabeled_shard_hash_freeze",
+  "all_shards_hash_frozen_before_access": true,
+  "all_shards_unlabeled": true,
+  "canonical_train_manifest_sha256": "8961543c3a5220e17b45c9b34bc17857320f1b9b2c3985567c8a9c2ecb1fd9c5",
+  "canonical_train_sample_ids_sha256": "2cd9ef9d27536d6d4e63ef0a56ad51002823d1306ff7c39ac6538586596b6a8c",
+  "current_test_loaded": false,
+  "historical_validation_loaded": false,
+  "ledger_sha256": "9833c7b1122b0a2e9f63c5f02abfca8d025331883f68a9d1031f40ece3f2160c",
+  "new_holdout_seen": false,
+  "outer_label_universe_sha256": "0b06e9694756f0e5c2849322f25931c16846b64eeaf7f52ec82abbbf3cabae2b",
+  "schema_version": 1,
+  "scorer_source_split": "t1_v1/train",
+  "shard_inventory_content_sha256": "d3bea2c898d929960b2cb037db8baef2558bb182c65d4fdaa27c83104538065d",
+  "shards_verified": 44,
+  "worker_outer_validation_labels_loaded": false
+}

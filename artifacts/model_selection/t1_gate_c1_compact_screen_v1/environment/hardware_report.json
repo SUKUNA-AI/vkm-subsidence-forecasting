@@ -1,0 +1,21 @@
+{
+  "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+  "cuda_available": true,
+  "cudnn_benchmark": false,
+  "deterministic_algorithms": true,
+  "environment_id": "gate_c_torch",
+  "gpu_compute_capability": "12.0",
+  "gpu_driver_version": "616.56",
+  "gpu_memory_mib": 16303.0,
+  "gpu_name": "NVIDIA GeForce RTX 5070 Ti",
+  "logical_cpu_count": 28,
+  "mixed_precision": false,
+  "os": "Windows-11-10.0.26100-SP0",
+  "physical_cpu_count": 20,
+  "python_version": "3.13.13",
+  "ram_bytes": 68474896384,
+  "schema_version": 1,
+  "tf32": false,
+  "torch_cuda_version": "13.0",
+  "torch_version": "2.13.0+cu130"
+}
