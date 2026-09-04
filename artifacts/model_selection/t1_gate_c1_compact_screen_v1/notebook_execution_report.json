@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "executed_code_cells": 11,
+  "rich_outputs": 13,
+  "error_outputs": 0,
+  "model_training_calls": 0,
+  "gate": "C1_COMPACT_SEQUENCE_TEMPORAL_SCREEN",
+  "scientific_scope": "train_only_internal_research",
+  "notebook": "notebooks/09_gate_c1_compact_sequence_screen.ipynb",
+  "artifact_only": true
+}

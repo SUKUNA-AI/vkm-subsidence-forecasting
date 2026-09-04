@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "checks": [
+    {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figures/01_ensemble_temporal_mae.png",
+      "sha256": "18dd7ee1cbfed9d26b0f610f826612cb21171baca25e7ea56d90d7379fef0816",
+      "width_px": 2223,
+      "height_px": 1273,
+      "non_white_fraction": 0.4527076952760171,
+      "status": "PASS"
+    },
+    {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figures/02_rolling_mae_by_target_date.png",
+      "sha256": "cfc83c476e1e6ce9c1c0a4648f720f7e2d8a532b0c7b85c6eedcfa942dd4bc12",
+      "width_px": 2488,
+      "height_px": 1329,
+      "non_white_fraction": 0.06764932171034964,
+      "status": "PASS"
+    },
+    {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figures/03_seed_stability.png",
+      "sha256": "d9dcc525e7ce2072f9151741d405b488531a44fd5047b746cefe864eccfd1c4b",
+      "width_px": 2222,
+      "height_px": 1272,
+      "non_white_fraction": 0.02980557489711235,
+      "status": "PASS"
+    },
+    {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figures/04_mae_vs_complexity.png",
+      "sha256": "7f05a254226d13af0bd4f152e14f6b6248bba6c7e770906cc8a8297dfe6ca8c7",
+      "width_px": 2477,
+      "height_px": 1100,
+      "non_white_fraction": 0.030273424597203363,
+      "status": "PASS"
+    }
+  ],
+  "manual_visual_review_required": true,
+  "manual_visual_review_completed": true,
+  "manual_visual_review_notes": [
+    "Все четыре финальных PNG просмотрены в original resolution.",
+    "Оси, единицы, benchmark-линии, подписи значений и легенды читаемы и не обрезаны.",
+    "Temporal line содержит 11 последовательных target dates; четыре точки complexity-графика являются полным заранее зарегистрированным набором architectures и подписаны напрямую.",
+    "Графики не утверждают внешнее качество и сохраняют границу train_only_internal_research."
+  ],
+  "model_training_calls": 0
+}

@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "gate": "C1_COMPACT_SEQUENCE_TEMPORAL_SCREEN",
+  "status": "PASS_C1_TEMPORAL_SCREEN",
+  "scientific_scope": "train_only_internal_research",
+  "canonical_models": [
+    {
+      "model_id": "B7_two_regime_imm",
+      "mae": 5.639718690598765,
+      "median_fold_mae": 5.743942188690407,
+      "rmse": 9.983170312126028,
+      "b1_skill": 0.1063663313155258,
+      "parameter_count_max": 0,
+      "fit_seconds_total": 0.0060599000134966
+    },
+    {
+      "model_id": "B8_student_t_robust_imm",
+      "mae": 5.748334120825838,
+      "median_fold_mae": 5.764174270250599,
+      "rmse": 10.241953332716756,
+      "b1_skill": 0.0891558265519883,
+      "parameter_count_max": 0,
+      "fit_seconds_total": 0.0058249999856338
+    },
+    {
+      "model_id": "C01_compact_gru",
+      "mae": 6.287934504543562,
+      "median_fold_mae": 6.456679038524832,
+      "rmse": 10.817206422522972,
+      "b1_skill": 0.0036542090104891,
+      "parameter_count_max": 10401,
+      "fit_seconds_total": 259.19353789964225
+    },
+    {
+      "model_id": "B1_persistence_last_rate",
+      "mae": 6.310996203736419,
+      "median_fold_mae": 6.278201475220701,
+      "rmse": 10.809518679762842,
+      "b1_skill": 0.0,
+      "parameter_count_max": 1,
+      "fit_seconds_total": 0.0058565999788693
+    },
+    {
+      "model_id": "C02_compact_lstm",
+      "mae": 6.466581579598985,
+      "median_fold_mae": 7.127496125114129,
+      "rmse": 11.340542295376476,
+      "b1_skill": -0.0246530612346831,
+      "parameter_count_max": 13857,
+      "fit_seconds_total": 198.86820500018075
+    },
+    {
+      "model_id": "C03_causal_tcn",
+      "mae": 6.551860225503132,
+      "median_fold_mae": 6.949976883632214,
+      "rmse": 11.125948822696165,
+      "b1_skill": -0.0381657687615324,
+      "parameter_count_max": 4225,
+      "fit_seconds_total": 180.35351679997984
+    },
+    {
+      "model_id": "C04_probabilistic_gru_student_t",
+      "mae": 7.177393404799803,
+      "median_fold_mae": 7.714051038088895,
+      "rmse": 13.69801159067479,
+      "b1_skill": -0.1372837461937364,
+      "parameter_count_max": 4131,
+      "fit_seconds_total": 169.7580241995165
+    }
+  ],
+  "admitted_model_ids": [
+    "C01_compact_gru"
+  ],
+  "historical_validation_loaded": false,
+  "current_test_loaded": false,
+  "new_holdout_seen": false,
+  "profile_zone_transition_audit_executed": false,
+  "suite_v5_created": false,
+  "model_training_calls": 0
+}

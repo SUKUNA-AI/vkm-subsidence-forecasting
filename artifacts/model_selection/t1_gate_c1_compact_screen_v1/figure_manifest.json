@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "gate": "C1_COMPACT_SEQUENCE_TEMPORAL_SCREEN",
+  "scientific_scope": "train_only_internal_research",
+  "sources": {
+    "aggregate": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/temporal_aggregate_metrics.csv",
+      "sha256": "e8e8a33e21068f0adb62ca43b71d652f732e4217479a998e66a86dc4fe222156"
+    },
+    "folds": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/temporal_fold_metrics.csv",
+      "sha256": "83eefecef33d0630b21d544417b0dfeab3da262adcaef45be5699c8de166ff4a"
+    },
+    "seed": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/seed_stability_metrics.csv",
+      "sha256": "42137a00dacaa4c79979207a1494213def72bdfc580347dfa3fad4805d833219"
+    },
+    "compute": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/compute_resource_inventory.csv",
+      "sha256": "b014f33c0063b885d80d30b3109359acee0f376dfb7f07e7da6503ff55c26d7e"
+    },
+    "screening": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/screening_register.csv",
+      "sha256": "e73e325b4a463c09f53890a8210703f8597873e8f1ec413245e76729e63d594a"
+    },
+    "admission": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/c2_admission_manifest.json",
+      "sha256": "ba9a12233c1a1ac2fe51a2efb05282322be065f095bf7d514d87c267611ace1a"
+    },
+    "validation": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/validation_report.json",
+      "sha256": "f2d7fbdfcdab7ee223a2a5e605fd42c698743de3ff73a2233e34802729b71044"
+    }
+  },
+  "figures": [
+    {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figures/01_ensemble_temporal_mae.png",
+      "sha256": "18dd7ee1cbfed9d26b0f610f826612cb21171baca25e7ea56d90d7379fef0816",
+      "width_px": 2223,
+      "height_px": 1273,
+      "non_white_fraction": 0.4527076952760171,
+      "status": "PASS"
+    },
+    {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figures/02_rolling_mae_by_target_date.png",
+      "sha256": "cfc83c476e1e6ce9c1c0a4648f720f7e2d8a532b0c7b85c6eedcfa942dd4bc12",
+      "width_px": 2488,
+      "height_px": 1329,
+      "non_white_fraction": 0.06764932171034964,
+      "status": "PASS"
+    },
+    {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figures/03_seed_stability.png",
+      "sha256": "d9dcc525e7ce2072f9151741d405b488531a44fd5047b746cefe864eccfd1c4b",
+      "width_px": 2222,
+      "height_px": 1272,
+      "non_white_fraction": 0.02980557489711235,
+      "status": "PASS"
+    },
+    {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figures/04_mae_vs_complexity.png",
+      "sha256": "7f05a254226d13af0bd4f152e14f6b6248bba6c7e770906cc8a8297dfe6ca8c7",
+      "width_px": 2477,
+      "height_px": 1100,
+      "non_white_fraction": 0.030273424597203363,
+      "status": "PASS"
+    }
+  ],
+  "chart_map": [
+    {
+      "figure": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figures/01_ensemble_temporal_mae.png",
+      "analytical_question": "Как canonical temporal MAE deep-моделей соотносится с B1, B7 и B8?",
+      "family": "Comparison & Ranking",
+      "variant": "sorted horizontal bar with frozen benchmark rules",
+      "fields": [
+        "model_id",
+        "mae",
+        "status"
+      ],
+      "supported_takeaway": "C01 — единственная deep-модель около уровня B1; B7 остаётся сильнее всех C1 architectures.",
+      "palette_policy": "hard two-root cap plus neutral context"
+    },
+    {
+      "figure": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figures/02_rolling_mae_by_target_date.png",
+      "analytical_question": "Насколько ошибки меняются по 11 последовательным target dates?",
+      "family": "Trend",
+      "variant": "highlighted multi-series line",
+      "fields": [
+        "target_date",
+        "model_id",
+        "mae"
+      ],
+      "supported_takeaway": "Aggregate MAE скрывает сильную fold-to-fold неоднородность; ни одна deep-модель не доминирует на всех датах.",
+      "palette_policy": "relaxed multi-category with line-style context"
+    },
+    {
+      "figure": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figures/03_seed_stability.png",
+      "analytical_question": "Насколько canonical результат зависит от пяти фиксированных seeds?",
+      "family": "Distribution across groups",
+      "variant": "labeled dot-and-range with ensemble marker",
+      "fields": [
+        "model_id",
+        "seed",
+        "mae",
+        "ensemble_mae"
+      ],
+      "supported_takeaway": "Все четыре модели проходят описательные IQR/CV guards; ensemble улучшает median single-seed MAE.",
+      "palette_policy": "single-root preferred with gold ensemble marker"
+    },
+    {
+      "figure": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figures/04_mae_vs_complexity.png",
+      "analytical_question": "Как temporal MAE четырёх заранее заданных architectures связано с размером и временем outer refit?",
+      "family": "Relationship",
+      "variant": "two labeled small-multiple scatters; four preregistered models are intentionally exhaustive",
+      "fields": [
+        "model_id",
+        "mae",
+        "parameter_count_max",
+        "fit_seconds_total"
+      ],
+      "supported_takeaway": "C01 даёт лучший deep MAE, но является крупнейшей и самой дорогой из четырёх выбранных outer specifications.",
+      "palette_policy": "relaxed multi-category for four model identities"
+    }
+  ],
+  "analytics_summary": {
+    "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/analytics_summary.json",
+    "sha256": "41309df475ab0cbce42536f665aa2ea8fe549604ae6bad3937b172c0b3759ef6"
+  },
+  "model_training_calls": 0
+}

@@ -1,4 +1,4 @@
-# Project State v5
+# Project State v6
 
 ## Verified bundled inputs
 
@@ -35,10 +35,13 @@ The five bootstrap artifacts and eleven primary sources are physically included 
 - Gate C0 is complete with status `PASS_PROTOCOL_FROZEN`: the immutable `t1_train_gate_c_v1` representation covers all 911 `t1_v1/train` origins as 14,576 normalized rows and 6,878 observed tokens, with histories of 3–16 observations (median 7), positive `delta_t` of 42–560 days (median 168), left padding to 16 and explicit observation/padding/missing-campaign masks;
 - the Gate C0 validator passed 11 checks with zero failures: sequence and fold artifacts reproduce exactly, all 65 outer and 195 inner contexts are forward-only, held profiles/zones are excluded from outer and inner train, future/target observations in inputs are zero, identifier network features are zero, and historical validation/current test/new holdout rows loaded are zero;
 - Gate C0 performed zero model-training calls; C01 compact GRU, C02 compact LSTM, C03 causal TCN and C04 probabilistic Student-t GRU are required for C1, while compact TSMixer/TFT are conditional and four regular-grid/long-context architectures are formally `NOT_ELIGIBLE_DATA_GEOMETRY`;
+- Gate C1 is complete with status `PASS_C1_TEMPORAL_SCREEN`: all four required architectures completed 11 nested rolling-origin folds and five fixed seeds on exactly 595 `t1_v1/train` origins; the independent validator passed 26 checks with zero failures, and historical validation/current test/new holdout rows loaded are all zero;
+- canonical mean-of-five-seeds MAE is 6.288 mm/year for C01 compact GRU, 6.467 for C02 compact LSTM, 6.552 for C03 causal TCN and 7.177 for C04 Student-t GRU, versus 6.311 for B1 and 5.640 for B7; only C01 passed the frozen temporal admission, while C02/C03 failed the median-fold guard and C04 failed both pooled and median-fold guards;
+- Gate C1 executed 9,240 logical inner evaluations as 3,640 hash-distinct physical fits plus 220 outer refits. All 3,860 fit manifests retain five full work-only training states; inner rank 1 is selected only by the frozen inner objective, outer refits select their preregistered final epoch without outer-label ranking, and the matched CUDA benchmark records 1.35x mean and 1.57x median speed-up including checkpoint I/O;
 - suite v4 and holdout policy v3 remain immutable. Gate C may create suite v5 only from nested `t1_v1/train` evidence before new labels exist; B7 is the automatic fallback, primary changes after holdout access are prohibited, and a suite-v5 primary requires a new holdout policy/intake version;
 - T5 is technically prepared but remains exploratory because only 17 complete positive labels exist;
 - hotfix and baseline scripts exist;
-- Gate C1 model training, graph models, temporal foundation models and the LLM support layer remain future execution gates; the small B6 MLP and ENFS replica do not consume Gate C;
+- Gate C2 spatial/transition/calibration audit, graph models, temporal foundation models and the LLM support layer remain future execution gates; only C01 may enter C2 as a deep candidate, while B1/B7/B8 remain frozen contextual comparators;
 - no final production-quality model claim is allowed from synthetic data.
 
 The machine-readable Gate A1 authority is `artifacts/data_quality/gate_a1_report.json`; the reader-facing report is `docs/reports/GATE_A1_DATA_QUALITY_RU.md`.
@@ -55,7 +58,7 @@ The Gate B5 benchmark authority is `artifacts/splits/t1_train_benchmark_v1/bench
 
 The Gate B6 machine authority is `artifacts/model_selection/t1_b6_expanded_v1/validation_report.json`; detailed point/group/transition/probabilistic metrics and prediction provenance live under the same artifact root. The reader-facing report is `docs/reports/GATE_B6_EXPANDED_SCREENING_RU.md`, the executed artifact-only notebook is `notebooks/07_gate_b6_model_comparison.ipynb`, and the model catalog is `docs/governance/MODEL_CATALOG_B6.md`. The current governed future-holdout suite is `artifacts/governance/final_candidate_suite_v4.json`; non-consuming intake status remains `artifacts/governance/final_holdout_v3_status.json`.
 
-The Gate C governance authority is `docs/governance/GATE_C_PROTOCOL.md` with machine configuration `configs/gate_c.yaml`. The causal sequence/fold authority is `artifacts/splits/t1_train_gate_c_v1/sequence_contract.json`; the Gate C0 machine validation authority is `artifacts/model_selection/t1_gate_c0_sequence_audit_v1/validation_report.json`. The reader-facing report is `docs/reports/GATE_C0_SEQUENCE_PROTOCOL_RU.md`, and the executed artifact-only notebook is `notebooks/08_gate_c_sequence_audit.ipynb`. The current Word draft of the special section is `docs/thesis/SPECIAL_SECTION_SKRU1_RU.docx`, backed by `docs/thesis/SPECIAL_SECTION_SKRU1_RU_SOURCE_MAP.json`.
+The Gate C governance authority is `docs/governance/GATE_C_PROTOCOL.md` with machine configuration `configs/gate_c.yaml`. The causal sequence/fold authority is `artifacts/splits/t1_train_gate_c_v1/sequence_contract.json`; the Gate C0 machine validation authority is `artifacts/model_selection/t1_gate_c0_sequence_audit_v1/validation_report.json`. Gate C1 is governed by `docs/governance/GATE_C1_PROTOCOL.md` and `configs/gate_c1.yaml`; its machine authority is `artifacts/model_selection/t1_gate_c1_compact_screen_v1/validation_report.json`, its admission authority is `artifacts/model_selection/t1_gate_c1_compact_screen_v1/c2_admission_manifest.json`, its reader-facing report is `docs/reports/GATE_C1_COMPACT_SEQUENCE_SCREEN_RU.md`, and its executed artifact-only notebook is `notebooks/09_gate_c1_compact_sequence_screen.ipynb`. The current Word draft of the special section is `docs/thesis/SPECIAL_SECTION_SKRU1_RU.docx`, backed by `docs/thesis/SPECIAL_SECTION_SKRU1_RU_SOURCE_MAP.json`.
 
 ## Path policy
 

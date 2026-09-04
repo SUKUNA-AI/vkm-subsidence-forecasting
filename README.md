@@ -6,7 +6,7 @@
 первичные таблицы не изменяются на месте; временные результаты создаются
 только в `work/`.
 
-## Текущее состояние: Gate B5/B6 завершены, Gate C0 заморожен
+## Текущее состояние: Gate B5/B6 и Gate C1 завершены
 
 Gate B5 заморозил расширенный train-only benchmark. Gate B6 исполнил
 классические, вероятностные, longitudinal, boosting, glassbox, small neural и
@@ -44,6 +44,18 @@ Suite v4 и holdout-policy v3 не изменены. Gate C может созд�
 только по nested train-only evidence до появления новых labels; если ни одна
 sequence-модель не проходит frozen gates, primary автоматически остаётся B7.
 Для suite v5 потребуется новая версия holdout policy/intake.
+
+Gate C1 завершён со статусом **`PASS_C1_TEMPORAL_SCREEN`**: четыре compact
+sequence-архитектуры прошли 11 nested rolling-origin folds и пять фиксированных
+seeds. На одинаковых 595 origins canonical mean-of-five-seeds MAE составил
+6,288 мм/год для C01 GRU, 6,467 для C02 LSTM, 6,552 для C03 TCN и 7,177 для
+C04 Student-t GRU. Только `C01_compact_gru` прошёл frozen temporal admission и
+может перейти в Gate C2. Это не новый primary: B7 остаётся лучше с MAE
+5,640 мм/год, suite v4 не изменена, а profile/zone/transition audit,
+conformal calibration и suite v5 ещё не выполнены.
+
+Подробный validated результат и четыре machine-derived figures:
+[`docs/reports/GATE_C1_COMPACT_SEQUENCE_SCREEN_RU.md`](docs/reports/GATE_C1_COMPACT_SEQUENCE_SCREEN_RU.md).
 
 ## Геометрия benchmark
 
@@ -148,8 +160,17 @@ Gate C0 protocol freeze и artifact-only notebook:
 ```
 
 `run_gate_c.py` не принимает manifest path, validation или test arguments и
-не содержит model fit. Следующий C1 runner обязан читать только замороженные
-job/sequence manifests и использовать inner rolling folds для early stopping.
+не содержит model fit. Исполненный C1 runner читает только замороженные
+job/sequence manifests и использует inner rolling folds для early stopping.
+
+Gate C1 validation и artifact-only reporting:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_gate_c1.py --phase validate
+.\.venv\Scripts\python.exe scripts\build_gate_c1_figures.py
+.\.venv\Scripts\python.exe scripts\build_gate_c1_notebook.py
+.\.venv\Scripts\python.exe scripts\build_gate_c1_reader_materials.py
+```
 
 Worker CLI не принимает validation/test manifests. Каждый shard проверяется по
 environment ID, frozen model/job/fold hashes, exact sample IDs, duplicate
@@ -182,6 +203,10 @@ constraints и train-only provenance.
 - Gate C0 evidence: `artifacts/model_selection/t1_gate_c0_sequence_audit_v1/`;
 - Gate C0 report: [`docs/reports/GATE_C0_SEQUENCE_PROTOCOL_RU.md`](docs/reports/GATE_C0_SEQUENCE_PROTOCOL_RU.md);
 - Gate C0 notebook: `notebooks/08_gate_c_sequence_audit.ipynb`;
+- Gate C1 evidence: `artifacts/model_selection/t1_gate_c1_compact_screen_v1/`;
+- Gate C1 report: [`docs/reports/GATE_C1_COMPACT_SEQUENCE_SCREEN_RU.md`](docs/reports/GATE_C1_COMPACT_SEQUENCE_SCREEN_RU.md);
+- Gate C1 notebook: `notebooks/09_gate_c1_compact_sequence_screen.ipynb`;
+- Gate C1 model catalog: [`docs/governance/MODEL_CATALOG_C1.md`](docs/governance/MODEL_CATALOG_C1.md);
 - черновик специальной части: `docs/thesis/SPECIAL_SECTION_SKRU1_RU.docx`;
 - source map специальной части: `docs/thesis/SPECIAL_SECTION_SKRU1_RU_SOURCE_MAP.json`.
 
@@ -221,9 +246,28 @@ Post-access tuning, смена primary и выбор победителя сре
 
 Проверенная конфигурация пользователя: RTX 5070 Ti, Core i7-14700KF, 64 ГБ
 DDR5-6400 и Samsung 990 Pro. Classical/state-space/boosting jobs запускаются на
-CPU. CUDA используется только для residual MLP и ENFS; это уменьшает
-недетерминизм boosters и сохраняет отдельную доказательную границу между
-средами.
+CPU. CUDA используется для residual MLP, ENFS и compact sequence-adapters
+Gate C; boosters остаются на CPU для детерминированности. C1 применяет
+векторизованный device-side recurrent path, fused AdamW и GPU-native validation
+metrics без изменения frozen architecture grids, objectives и folds.
+
+Каждый C1 fit атомарно фиксирует recovery state после каждой 50-epoch
+стадии и terminal epoch, хранит top-5 полных training states и выбирает
+inner rank 1 только по frozen inner objective. Outer refit всегда выбирает
+preregistered final epoch; outer labels не участвуют в checkpoint ranking.
+
+На matched C01/first-fold benchmark из 240 одинаковых fits mean time снизилось с
+4,449 до 3,301 с (1,35×), median — с 3,903 до 2,482 с (1,57×). Новые
+timings включают top-5 checkpoint I/O; сравнивались одинаковые model,
+fold, grids, inner folds и seeds.
+
+Полного насыщения 16 ГиБ VRAM здесь ожидать не следует: крупнейшая C1
+configuration содержит 13 857 параметров, sequence length не превышает 16,
+batch size заморожен на 32, а protocol разрешает один deterministic GPU worker.
+Максимальная зарегистрированная tensor allocation — 88,5 MB. Искусственно
+увеличивать batch или параллельно запускать folds нельзя без изменения frozen
+execution semantics и воспроизводимости; поэтому оптимизация оценивается по
+ускорению одинаковой работы, а не по проценту занятой памяти GPU.
 
 Gate C0 уже заморозил sequence-specific protocol. Обязательный compact screen
 C1 включает GRU, LSTM, causal TCN и probabilistic Student-t GRU; TSMixer и
@@ -235,9 +279,10 @@ compact TFT имеют условный статус. N-BEATS/N-HiTS, PatchTST �
 ## Научная граница и следующий шаг
 
 Главный текущий вывод — B7 остаётся наиболее устойчивым внутренним primary,
-но это утверждение ограничено train-only evidence. Следующий внутренний этап —
-Gate C1 compact DL screen по уже замороженному протоколу, с пятью seeds и
-неизменяемыми B1/B7/B8 comparators. Затем следуют spatial/transition audit,
-calibration и seed stability; suite v5 создаётся только до появления новых
-labels. Внешний финальный вывод разрешён лишь после нового real
-future/external holdout, замороженного до доступа к targets.
+но это утверждение ограничено train-only evidence. Gate C1 завершён; C01 GRU
+получил только право перейти в C2, а C02/C03/C04 отклонены temporal screen без
+software failure. Следующий внутренний этап — Gate C2: 42 leave-profile-out,
+12 leave-zone-out, transition audit, calibration и дополнительная seed
+stability для C01 с неизменяемыми B1/B7/B8 comparators. Suite v5 создаётся
+только до появления новых labels; внешний финальный вывод разрешён лишь после
+нового real future/external holdout, замороженного до доступа к targets.

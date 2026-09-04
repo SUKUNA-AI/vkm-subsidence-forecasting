@@ -8,7 +8,7 @@ The prior roadmap overfocused on a single sensible operational line — Kalman/I
 
 More models are allowed; more unstructured model noise is not. The repository may test 40+ candidates, but the thesis reports only scientifically representative families and the models that pass frozen gates.
 
-## Current B5/B6/C0 execution boundary
+## Current B5/B6/C0/C1 execution boundary
 
 The current expanded comparison is deliberately narrower than the complete
 programme. Gate B5 freezes a 65-outer-fold train-only benchmark and Gate B6
@@ -29,6 +29,24 @@ compact GRU/LSTM/causal-TCN plus a probabilistic Student-t GRU; TSMixer and
 compact TFT are conditional. Architectures requiring an unjustified regular
 grid or long patch context are formally pre-screened as ineligible for the
 current 3–16-observation geometry.
+
+The C1 execution layer keeps the scientific specification unchanged while
+moving recurrent token reordering, validation metrics and fused AdamW onto
+CUDA. Each physical fit has a work-only, hash-verified recovery stream after
+every completed 50-epoch stage and at termination, plus five retained full
+training states. Inner rank 1 is selected only by the preregistered inner
+objective; outer refits select the fixed final epoch and cannot rank states by
+outer labels.
+
+Gate C1 is now complete with `PASS_C1_TEMPORAL_SCREEN`. All four required
+architectures completed 11 rolling folds and five fixed seeds. Only
+`C01_compact_gru` passed the frozen broad temporal screen: its canonical MAE
+is 6.288 mm/year, approximately equal to B1 at 6.311 but worse than B7 at
+5.640. C02 LSTM and C03 TCN failed the median-fold guard; C04 probabilistic
+GRU failed pooled and median-fold guards. These are scientific rejections, not
+execution failures. C2 is therefore restricted to C01 plus frozen B1/B7/B8
+context comparators; profile/zone/transition evidence, conformal calibration
+and suite-v5 selection remain pending.
 
 ## Families
 
@@ -84,8 +102,10 @@ LLMs may not:
 3. B6 spatio-temporal profile/zone and transition audit.
 4. Interval calibration, learning curves and frozen internal suite v4.
 5. C0 causal sequence/protocol freeze with zero model fitting.
-6. C1 compact deep-temporal screen with five seeds and B1/B7/B8 comparators.
-7. C2 spatial/transition audit, calibration and suite-v5 freeze or B7 fallback.
+6. C1 compact deep-temporal screen with five seeds and B1/B7/B8 comparators —
+   complete, with only C01 admitted.
+7. C2 spatial/transition audit, calibration and suite-v5 freeze or B7 fallback
+   — next executable gate.
 8. Graph/spatial models.
 9. Temporal foundation-model zero/few-shot benchmarks.
 10. Hybrid and ensemble selection.

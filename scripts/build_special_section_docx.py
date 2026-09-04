@@ -8,6 +8,7 @@ from hashlib import sha256
 import json
 from pathlib import Path
 from typing import Iterable, Sequence
+from uuid import uuid4
 
 import pandas as pd
 from docx import Document
@@ -36,6 +37,29 @@ DATA_PATHS = {
     "gate_c0_validation": ROOT / "artifacts" / "model_selection" / "t1_gate_c0_sequence_audit_v1" / "validation_report.json",
     "gate_c_architecture": ROOT / "artifacts" / "model_selection" / "t1_gate_c0_sequence_audit_v1" / "architecture_eligibility.csv",
     "gate_c_lengths": ROOT / "artifacts" / "model_selection" / "t1_gate_c0_sequence_audit_v1" / "sequence_length_distribution.csv",
+    "gate_c1_validation": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "validation_report.json",
+    "gate_c1_protocol_freeze": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "protocol_freeze.json",
+    "gate_c1_admission": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "c2_admission_manifest.json",
+    "gate_c1_label_access": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "outer_label_access_ledger.json",
+    "gate_c1_registry": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "model_registry.json",
+    "gate_c1_temporal_metrics": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "temporal_aggregate_metrics.csv",
+    "gate_c1_fold_metrics": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "temporal_fold_metrics.csv",
+    "gate_c1_seed_stability": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "seed_stability_metrics.csv",
+    "gate_c1_native_metrics": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "student_t_native_metrics.csv",
+    "gate_c1_compute": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "compute_resource_inventory.csv",
+    "gate_c1_checkpoints": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "checkpoint_inventory.csv",
+    "gate_c1_execution_incident": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "execution_incident_register.json",
+    "gate_c1_screening": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "screening_register.csv",
+    "gate_c1_worker_status": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "worker_status.csv",
+    "gate_c1_tuning_inventory": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "tuning_inventory.csv",
+    "gate_c1_scored_predictions": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "scored_temporal_predictions.csv",
+    "gate_c1_artifact_inventory": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "artifact_inventory.csv",
+    "gate_c1_figure_manifest": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "figure_manifest.json",
+    "gate_c1_notebook_report": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "notebook_execution_report.json",
+    "gate_c1_visual_qa": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "visual_qa_report.json",
+    "gate_c1_environment": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "environment" / "hardware_report.json",
+    "gate_c1_reader_manifest": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "reader_materials_manifest.json",
+    "gate_c1_reporting_inventory": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "reporting_artifact_inventory.csv",
     "suite_v4": ROOT / "artifacts" / "governance" / "final_candidate_suite_v4.json",
     "holdout_v3": ROOT / "artifacts" / "governance" / "final_holdout_v3_status.json",
     "feature_contract": ROOT / "SKRU1_ACTUAL_DATA_TABLES_v1" / "02_eda_targets_v1" / "target_tables" / "formal_feature_contract.csv",
@@ -58,6 +82,9 @@ FIGURES = {
     "c_gaps": ROOT / "artifacts" / "model_selection" / "t1_gate_c0_sequence_audit_v1" / "figures" / "02_gap_and_missingness_geometry.png",
     "c_arch": ROOT / "artifacts" / "model_selection" / "t1_gate_c0_sequence_audit_v1" / "figures" / "03_architecture_eligibility.png",
     "c_folds": ROOT / "artifacts" / "model_selection" / "t1_gate_c0_sequence_audit_v1" / "figures" / "04_fold_design.png",
+    "c1_temporal": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "figures" / "01_ensemble_temporal_mae.png",
+    "c1_rolling": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "figures" / "02_rolling_mae_by_target_date.png",
+    "c1_seed": ROOT / "artifacts" / "model_selection" / "t1_gate_c1_compact_screen_v1" / "figures" / "03_seed_stability.png",
 }
 
 
@@ -81,6 +108,7 @@ REFERENCES = [
     "Cho K. [et al.]. Learning Phrase Representations using RNN Encoder–Decoder for Statistical Machine Translation : arXiv:1406.1078. — 2014.",
     "Bai S., Kolter J. Z., Koltun V. An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling : arXiv:1803.01271. — 2018.",
     "Lim B., Arık S. Ö., Loeff N., Pfister T. Temporal Fusion Transformers for Interpretable Multi-horizon Time Series Forecasting // International Journal of Forecasting. — 2021. — Vol. 37, no. 4. — P. 1748–1764. — DOI 10.1016/j.ijforecast.2021.03.012.",
+    "Gate C1: пятиseedовый compact sequence temporal screen : машинный отчет. — Локальный репозиторий проекта, 2026. — Путь: docs/reports/GATE_C1_COMPACT_SEQUENCE_SCREEN_RU.md.",
 ]
 
 
@@ -97,6 +125,43 @@ class SpecialSectionBuilder:
         self.c0_validation = json.loads(DATA_PATHS["gate_c0_validation"].read_text(encoding="utf-8"))
         self.architecture = pd.read_csv(DATA_PATHS["gate_c_architecture"])
         self.lengths = pd.read_csv(DATA_PATHS["gate_c_lengths"])
+        self.c1_validation = json.loads(DATA_PATHS["gate_c1_validation"].read_text(encoding="utf-8"))
+        self.c1_admission = json.loads(DATA_PATHS["gate_c1_admission"].read_text(encoding="utf-8"))
+        self.c1_registry = json.loads(DATA_PATHS["gate_c1_registry"].read_text(encoding="utf-8"))
+        self.c1_temporal = pd.read_csv(DATA_PATHS["gate_c1_temporal_metrics"])
+        self.c1_folds = pd.read_csv(DATA_PATHS["gate_c1_fold_metrics"])
+        self.c1_seeds = pd.read_csv(DATA_PATHS["gate_c1_seed_stability"])
+        self.c1_native = pd.read_csv(DATA_PATHS["gate_c1_native_metrics"])
+        self.c1_compute = pd.read_csv(DATA_PATHS["gate_c1_compute"])
+        self.c1_checkpoints = pd.read_csv(DATA_PATHS["gate_c1_checkpoints"])
+        self.c1_execution_incident = json.loads(
+            DATA_PATHS["gate_c1_execution_incident"].read_text(encoding="utf-8")
+        )
+        self.c1_screen = pd.read_csv(DATA_PATHS["gate_c1_screening"])
+        self.c1_workers = pd.read_csv(DATA_PATHS["gate_c1_worker_status"])
+        self.c1_environment = json.loads(DATA_PATHS["gate_c1_environment"].read_text(encoding="utf-8"))
+        deep = self.c1_temporal.loc[
+            self.c1_temporal["model_id"].astype(str).str.startswith("C0")
+            & self.c1_temporal["aggregation"].eq("mean_of_fixed_seeds")
+        ]
+        comparators = self.c1_temporal.loc[
+            self.c1_temporal["model_id"].isin(
+                ["B1_persistence_last_rate", "B7_two_regime_imm", "B8_student_t_robust_imm"]
+            )
+        ]
+        self.c1_canonical = pd.concat((comparators, deep), ignore_index=True).sort_values(
+            ["mae", "model_id"], kind="mergesort"
+        )
+        if len(self.c1_canonical) != 7 or self.c1_canonical["model_id"].nunique() != 7:
+            raise RuntimeError("Gate C1 canonical temporal evidence is incomplete")
+        if (
+            len(self.c1_checkpoints) != 3860
+            or int(self.c1_checkpoints["role"].eq("inner").sum()) != 3640
+            or int(self.c1_checkpoints["role"].eq("outer").sum()) != 220
+            or not self.c1_checkpoints["keep_top_k"].eq(5).all()
+            or self.c1_checkpoints["outer_labels_used_for_ranking"].astype(bool).any()
+        ):
+            raise RuntimeError("Gate C1 checkpoint evidence is incomplete or unsafe")
         self.suite_v4 = json.loads(DATA_PATHS["suite_v4"].read_text(encoding="utf-8"))
         self.holdout_v3 = json.loads(DATA_PATHS["holdout_v3"].read_text(encoding="utf-8"))
         self.doc = Document()
@@ -178,11 +243,11 @@ class SpecialSectionBuilder:
 
         properties = document.core_properties
         properties.title = "Специальная часть ВКР: прогнозирование скорости оседания SKRU-1"
-        properties.subject = "Gate A/B evidence and Gate C0 sequence protocol"
+        properties.subject = "Gate A/B evidence and Gate C0/C1 sequence research"
         properties.author = "Проект SKRU-1"
         properties.keywords = "SKRU-1; оседание; прогнозирование; Kalman; IMM; sequence models"
         properties.created = datetime(2026, 9, 1)
-        properties.modified = datetime(2026, 9, 1)
+        properties.modified = datetime(2026, 9, 5)
 
         settings = document.settings._element
         update_fields = OxmlElement("w:updateFields")
@@ -343,11 +408,11 @@ class SpecialSectionBuilder:
             1,
         )
         self.status_box(
-            "Статус доказательной базы на 01.09.2026: Gate A1 и Gate B5/B6 завершены; suite v4 заморожена с B7 в роли primary; Gate C0 завершён как PASS_PROTOCOL_FROZEN без обучения deep-моделей; новый future/external holdout отсутствует и имеет статус PENDING_DATA."
+            f'Статус доказательной базы на 05.09.2026: Gate A1 и Gate B5/B6 завершены; suite v4 заморожена с B7 в роли primary; Gate C0 имеет статус PASS_PROTOCOL_FROZEN; Gate C1 завершён как {self.c1_validation["status"]}, к Gate C2 допущено моделей: {len(self.c1_admission["admitted_model_ids"])}. Новый future/external holdout отсутствует и имеет статус PENDING_DATA.'
         )
         self.paragraphs(
             [
-                "Раздел представляет воспроизводимое исследование прогнозирования скорости оседания земной поверхности для следующей плановой нивелирной кампании. Текст собран из проверяемых machine artifacts репозитория: контрактов данных, frozen split manifests, внешних и внутренних аудитов, fold-level predictions и агрегированных метрик. Числовые результаты в настоящей редакции не переносились вручную из промежуточных вычислений: источником служат опубликованные JSON/CSV-артефакты Gate A–C0 [7–10].",
+                "Раздел представляет воспроизводимое исследование прогнозирования скорости оседания земной поверхности для следующей плановой нивелирной кампании. Текст собран из проверяемых machine artifacts репозитория: контрактов данных, frozen split manifests, внешних и внутренних аудитов, fold-level predictions и агрегированных метрик. Числовые результаты в настоящей редакции не переносились вручную из промежуточных вычислений: источником служат опубликованные JSON/CSV-артефакты Gate A–C1 [7–10, 20].",
                 "Доказательная граница принципиальна. Исходный набор является реконструированным исследовательским пакетом с синтетическими и восстановленными компонентами, а не новым эксплуатационным массивом реальных наблюдений. Поэтому полученные оценки характеризуют внутреннее поведение методов на зафиксированной геометрии данных, но не доказывают готовность модели к промышленному применению. Окончательная проверка возможна только после получения заранее замороженного future/external holdout.",
                 "Оформление выполнено в рабочем GOST-aligned профиле: формат A4, поля 30/15/20/20 мм, шрифт Times New Roman 14 pt, полуторный интервал и абзац 1,25 см в соответствии с ГОСТ 7.32–2017 [1]. Библиографические описания и ссылки ориентированы на ГОСТ Р 7.0.100–2018 и ГОСТ Р 7.0.5–2008 [2, 3]. Если методические указания конкретного вуза устанавливают иные требования, они имеют приоритет и должны быть применены перед включением раздела в итоговую ВКР.",
             ]
@@ -359,7 +424,7 @@ class SpecialSectionBuilder:
                 "Источники данных, provenance, канонические таблицы и качество.",
                 "Реконструкция мониторинговой сети и зависимость наблюдений.",
                 "Разведочный анализ, пропуски, режимы и формирование target.",
-                "Алгоритмы прогнозирования: baselines, Kalman/IMM, classical ML, ENFS, uncertainty и Gate C sequence protocol.",
+                "Алгоритмы прогнозирования: baselines, Kalman/IMM, classical ML, ENFS, uncertainty и compact sequence-модели Gate C1.",
                 "Программная реализация, leakage guards и воспроизводимость.",
                 "Экспериментальное исследование temporal, spatial, transition и probabilistic качества.",
                 "Error Atlas, ограничения мониторинга и границы применимости.",
@@ -404,7 +469,8 @@ class SpecialSectionBuilder:
             ["Уровень", "Разрешённый вывод", "Запрещённый вывод"],
             [
                 ("Gate A/B", "Сравнение методов внутри frozen development geometry", "Промышленная точность на реальных будущих данных"),
-                ("Gate C0", "Пригодность sequence representation и протокола", "Качество LSTM/GRU/TCN до обучения"),
+                ("Gate C0", "Пригодность sequence representation и протокола", "Качество моделей до C1"),
+                ("Gate C1", "Temporal train-only screening compact sequence-моделей", "Spatial/transition/final quality"),
                 ("Suite v5", "Заранее выбранный train-only candidate", "Смена primary после holdout"),
                 ("Future/external holdout", "Однократная внешняя оценка frozen primary", "Повторный тюнинг по результату holdout"),
             ],
@@ -578,9 +644,9 @@ class SpecialSectionBuilder:
                 "Гиперпараметры выбирались только по трём forward-only inner folds каждого outer train. Для probabilistic models использовался CRPS с guardrail: point MAE не хуже B1 более чем на 5%. Early stopping для boosters и neural methods не использовал outer labels.",
             ]
         )
-        self.heading("6.5.4 Sequence representation Gate C0", 3)
+        self.heading("6.5.4 Sequence representation, compact GRU и LSTM", 3)
         self.status_box(
-            "Раздел 6.5.4 фиксирует подготовленное представление и leakage guards. Результаты качества GRU/LSTM/TCN отсутствуют, потому что Gate C0 намеренно не обучает модели."
+            f'Gate C0: PASS_PROTOCOL_FROZEN; Gate C1: {self.c1_validation["status"]}. Все приведённые deep-model metrics относятся только к nested temporal screen внутри t1_v1/train.'
         )
         self.paragraphs(
             [
@@ -591,12 +657,50 @@ class SpecialSectionBuilder:
         )
         self.figure(FIGURES["c_length"], "Распределение фактической длины sequence history")
         self.figure(FIGURES["c_gaps"], "Нерегулярность интервалов и missing-campaign gaps")
-        self.heading("6.5.5 Полноценные deep temporal models: замороженный протокол", 3)
+        c1_metrics = self.c1_canonical.set_index("model_id")
+        c1_screen = self.c1_screen.set_index("model_id")
+        c1_compute = self.c1_compute.set_index("model_id")
+        c1_status_display = {
+            "PASSED_TEMPORAL_SCREEN": "PASSED",
+            "REJECTED_TEMPORAL_SCREEN": "REJECTED",
+            "REJECTED_MODEL_EXECUTION": "EXECUTION REJECT",
+        }
+        compact_descriptions = {
+            "C01_compact_gru": ("GRU, последний valid hidden", "Huber; inner MAE"),
+            "C02_compact_lstm": ("LSTM, последний valid hidden", "Huber; inner MAE"),
+            "C03_causal_tcn": ("2 causal residual Conv1d blocks", "Huber; inner MAE"),
+            "C04_probabilistic_gru_student_t": ("GRU + loc/scale/df head", "Student-t NLL; inner CRPS"),
+        }
+        self.table(
+            "Компактные sequence-архитектуры Gate C1",
+            ["Model", "Encoder/head", "Objective/selection", "Grid", "Параметры", "C1 status"],
+            [
+                (
+                    model_id.split("_")[0],
+                    compact_descriptions[model_id][0],
+                    compact_descriptions[model_id][1],
+                    len(next(item for item in self.c1_registry["models"] if item["model_id"] == model_id)["parameter_grid"]),
+                    f'{int(c1_compute.loc[model_id, "parameter_count_min"])}–{int(c1_compute.loc[model_id, "parameter_count_max"])}',
+                    c1_status_display[str(c1_screen.loc[model_id, "status"])],
+                )
+                for model_id in compact_descriptions
+            ],
+            [1.5, 4.1, 3.8, 1.2, 2.6, 3.3],
+        )
         self.paragraphs(
             [
-                "Обязательный compact screen включает GRU, LSTM, causal TCN и probabilistic GRU со Student-t output. Эти архитектуры обладают различными inductive biases: gated recurrence накапливает состояние, LSTM использует раздельные memory/control gates [16], GRU сокращает число параметров [17], TCN применяет causal dilated convolutions [18].",
-                "TSMixer и compact TFT допускаются условно. TFT сохраняется только при числе параметров не более 100 000 и полном отсутствии identifier embeddings; исходная архитектура предназначена для более богатого multi-horizon контекста [19], поэтому на 3–16 наблюдениях рассматривается лишь малая версия. N-BEATS, N-HiTS, PatchTST и iTransformer получили NOT_ELIGIBLE_DATA_GEOMETRY до обучения.",
-                "Для каждой обучаемой модели заморожены пять seeds 42117–42121. Broad screen проходит все 11 rolling folds; spatial/transition audit получают модели, которые не хуже B1 более чем на 10% по pooled и median rolling MAE, не дают fold хуже B1 более чем вдвое и не имеют leakage/convergence failure. B1, B7 и B8 проходят полный audit независимо от screening.",
+                f'C01 compact GRU достигла canonical mean-of-five-seeds MAE {c1_metrics.loc["C01_compact_gru", "mae"]:.3f} мм/год при median fold MAE {c1_metrics.loc["C01_compact_gru", "median_fold_mae"]:.3f}; temporal status — {c1_screen.loc["C01_compact_gru", "status"]}.',
+                f'C02 compact LSTM получила MAE {c1_metrics.loc["C02_compact_lstm", "mae"]:.3f} мм/год и median fold MAE {c1_metrics.loc["C02_compact_lstm", "median_fold_mae"]:.3f}; temporal status — {c1_screen.loc["C02_compact_lstm", "status"]}. Различия между GRU и LSTM на этой выборке нельзя трактовать как общий рейтинг архитектур: независимых temporal units только 11, а пространственный audit ещё не выполнен.',
+                "Для recurrent adapters left-padded tokens перед packing сдвигаются в начало без изменения хронологического порядка. Числовые каналы и target масштабируются только по соответствующему train role; неизвестная campaign category получает заранее предусмотренный unknown bucket.",
+            ]
+        )
+        self.heading("6.5.5 Causal TCN и probabilistic Student-t GRU", 3)
+        self.paragraphs(
+            [
+                f'C03 causal TCN использует два residual causal Conv1d blocks с dilation 1/2 и повторным masking padded activations. Её canonical MAE составила {c1_metrics.loc["C03_causal_tcn", "mae"]:.3f} мм/год, temporal status — {c1_screen.loc["C03_causal_tcn", "status"]}. Causal left convolution исключает доступ к будущим token positions; изменение padding values проверяется отдельным инвариантным тестом.',
+                f'C04 probabilistic GRU выдаёт параметры Student-t: loc без ограничения, scale = softplus(raw)+10⁻³ и df = 2,01+softplus(raw). Point prediction равен loc в мм/год; canonical point MAE составила {c1_metrics.loc["C04_probabilistic_gru_student_t", "mae"]:.3f}, temporal status — {c1_screen.loc["C04_probabilistic_gru_student_t", "status"]}. Native CRPS/NLL и coverage публикуются отдельно по каждому seed; параметры пяти распределений не усредняются в псевдо-Student-t.',
+                "Пять seeds 42117–42121 участвуют как в inner tuning, так и в outer refit; ни один seed не выбирается отдельно. C01–C03 выбираются по pooled inner MAE, C04 — по pooled inner CRPS с MAE tie-breaker. Outer epoch count равен медиане 15 inner best epochs выбранной configuration.",
+                "TSMixer и compact TFT остаются условными будущими гипотезами и не входят в C1. N-BEATS, N-HiTS, PatchTST и iTransformer сохраняют статус NOT_ELIGIBLE_DATA_GEOMETRY. Leave-profile, leave-zone, transition audit, conformal calibration и suite v5 явно отложены до Gate C2.",
             ]
         )
         self.figure(FIGURES["c_arch"], "Предварительная пригодность sequence-архитектур")
@@ -682,6 +786,12 @@ class SpecialSectionBuilder:
                 ("FitContext", "Train hash, feature hash, seed, groups", "Groups отдельно от X"),
                 ("PredictionBundle", "Единая prediction schema", "Exact sample hash и no duplicates"),
                 ("SequenceBundle", "Causal padded histories", "No future/target observation"),
+                ("SequenceModelSpec", "Architecture, grid, seeds, channels", "Canonical spec SHA-256"),
+                ("SequenceTensorBatch", "Channels, masks, lengths", "IDs хранятся отдельно от tensor"),
+                ("SequenceTargetScaler", "Train-only target mean/std", "Fit provenance и state hash"),
+                ("SequencePredictionBundle", "Unlabeled deep predictions", "Worker shard не содержит y_true"),
+                ("C1BenchmarkPlan", "11 outer и 33 logical inner contexts", "Forward-only sample/sequence hashes"),
+                ("TemporalAdmissionRecord", "Программный C2 admission", "Только PASSED_TEMPORAL_SCREEN"),
             ],
             [3.6, 6.8, 6.1],
         )
@@ -698,14 +808,16 @@ class SpecialSectionBuilder:
                 "ordinary KFold/random split завершаются исключением;",
                 "test loader sealed до frozen candidate;",
                 "Gate C history заканчивается на current_date и не содержит target observation;",
-                "early stopping разрешён только во внутреннем rolling fold outer train.",
+                "early stopping разрешён только во внутреннем rolling fold outer train;",
+                "outer-validation labels отсутствуют в worker shard и присоединяются независимым scorer только после hash freeze всех 44 shards;",
+                "runtime network guard завершает C1 job при попытке socket или URL access.",
             ]
         )
         self.heading("6.6.3 Среды выполнения и hardware", 3)
         self.paragraphs(
             [
-                "Классические и probabilistic models разделены на b6_cpu и b6_ngboost из-за несовместимых диапазонов scikit-learn. MLP/ENFS использовали b6_torch. Gate C получает отдельный gate_c_torch lock. Boosters обучаются на CPU для детерминированности; CUDA разрешена sequence models.",
-                "Целевая рабочая станция: NVIDIA GeForce RTX 5070 Ti, Intel Core i7-14700KF, 64 ГБ DDR5-6400 и Samsung 990 Pro. Небольшой объём данных не гарантирует преимущества GPU по времени, но позволяет выполнять multi-seed neural screen и сохранять VRAM telemetry. Результат каждой среды должен содержать pip freeze, OS/CPU/RAM/GPU/driver/CUDA capture, smoke report и two-run determinism report.",
+                "Классические и probabilistic models разделены на b6_cpu и b6_ngboost из-за несовместимых диапазонов scikit-learn. MLP/ENFS использовали b6_torch. Для C1 создана свежая отдельная среда gate_c_torch строго из неизменяемого lock; B6 torch environment не использовалась как execution authority. Boosters обучаются на CPU для детерминированности; CUDA разрешена sequence models.",
+                f'Авторитетный C1 screen выполнен на {self.c1_environment["gpu_name"]} с {self.c1_environment["gpu_memory_mib"]:.0f} MiB VRAM, Python {self.c1_environment["python_version"]}, PyTorch {self.c1_environment["torch_version"]} и CUDA {self.c1_environment["torch_cuda_version"]}; driver {self.c1_environment["gpu_driver_version"]}. Зафиксированы pip freeze, wheel URLs/SHA-256, OS/CPU/RAM/GPU capture, serialization smoke и два последовательных deterministic CUDA fits с tolerance 10⁻⁶. Mixed precision и TF32 выключены, DataLoader workers = 0.',
             ]
         )
         self.table(
@@ -715,18 +827,40 @@ class SpecialSectionBuilder:
                 ("b6_cpu", "Linear, GPR/GEE, trees, EBM", "CPU", "Deterministic single-thread where required"),
                 ("b6_ngboost", "NGBoost", "CPU", "Отдельный sklearn-compatible lock"),
                 ("b6_torch", "Residual MLP, ENFS", "CUDA/CPU", "Историческая B6 среда"),
-                ("gate_c_torch", "GRU, LSTM, TCN, compact TFT", "CUDA/CPU", "PyTorch cu130"),
+                ("gate_c_torch", "GRU, LSTM, TCN, Student-t GRU", "RTX 5070 Ti", "PyTorch 2.13.0+cu130; deterministic"),
             ],
             [3.0, 5.2, 2.6, 5.7],
+        )
+        self.heading("6.6.4 Checkpoint/recovery и CUDA-оптимизация", 3)
+        benchmark = self.c1_execution_incident["incidents"][-1]["matched_runtime_benchmark"]
+        checkpoint_bytes = int(self.c1_checkpoints["ranked_checkpoint_bytes"].sum())
+        self.paragraphs(
+            [
+                "Для каждого C1 fit заморожена восстанавливаемая checkpoint-схема: model, optimizer, shuffle generator, Python/NumPy/Torch CPU/CUDA RNG states и provenance. Recovery checkpoint атомарно записывается после каждой завершённой стадии в 50 эпох и на terminal epoch. Каждый manifest хранит SHA-256 и пять полных ranked states.",
+                "Для inner fits top-5 ранжируются по заранее заданной early-stopping metric, а для prediction восстанавливается rank 1. В outer refit хранятся последние пять эпох, но выбор всегда остаётся на preregistered final epoch. Outer labels не участвуют ни в ранжировании, ни в выборе checkpoint.",
+                f'Инвентаризация содержит 3 860 manifests: 3 640 inner и 220 outer, всего 19 300 retained states объёмом {checkpoint_bytes / (1024 ** 3):.2f} ГиБ. Бинарные checkpoints хранятся только в gitignored work/; в artifacts публикуются лишь их машинная инвентаризация.',
+                f'Без изменения model logic recurrent input переведён на векторизованный device-side gather; убраны per-row CPU/CUDA synchronization, AdamW запускается в fused CUDA mode, validation metrics считаются на GPU. В matched benchmark на {int(benchmark["fits_each_run"])} одинаковых fits mean time снижено с {benchmark["old_mean_fit_seconds"]:.3f} до {benchmark["new_mean_fit_seconds_including_checkpointing"]:.3f} с ({benchmark["mean_speedup_ratio"]:.2f}×), median — с {benchmark["old_median_fit_seconds"]:.3f} до {benchmark["new_median_fit_seconds_including_checkpointing"]:.3f} с ({benchmark["median_speedup_ratio"]:.2f}×). Новые timings уже включают top-5 checkpoint I/O.',
+                f'Полное насыщение 16 ГиБ VRAM для этой задачи не ожидается: peak tensor allocation равна {self.c1_compute["peak_vram_mb"].max():.1f} MB, крупнейшая configuration содержит {int(self.c1_compute["parameter_count_max"].max())} параметров, sequence length не превышает 16, batch size заморожен на 32 и разрешён один deterministic GPU worker. Искусственное увеличение batch или параллельный запуск folds изменили бы execution semantics либо ослабили воспроизводимость. Поэтому корректный результат оптимизации — измеренное сокращение времени, а не максимальная занятость памяти GPU.',
+            ]
+        )
+        self.table(
+            "Checkpoint inventory Gate C1",
+            ["Role", "Manifests", "Retained states", "Ranking", "Selected state"],
+            [
+                ("inner", "3 640", "18 200", "Frozen validation metric", "Rank 1"),
+                ("outer", "220", "1 100", "Последние пять epochs", "Fixed final epoch"),
+            ],
+            [2.0, 2.3, 3.0, 4.5, 4.5],
         )
 
     def _section_67(self) -> None:
         self.heading("6.7 Экспериментальное исследование", 2)
-        self.heading("6.7.1 Протокол B5/B6", 3)
+        self.heading("6.7.1 Протокол B5/B6 и Gate C1", 3)
         self.paragraphs(
             [
                 "B5/B6 используют только 911 строк t1_v1/train. Broad temporal evidence образуют 11 rolling target dates с 18.05.2021 по 07.11.2023. Перед первым outer fold доступны 316 origins из восьми предыдущих target campaigns. Каждый outer train содержит последние три допустимые forward-only inner folds для tuning.",
                 "Spatial design образуют 14 профилей × 3 полные кампании и 4 proxy-зоны × 3 кампании. Held group полностью исключается из outer train и всех inner folds. После shortlist строятся learning curves на audit tail 07.11.2023 с 217, 423, 708 и 823 train origins; гиперпараметры не перенастраиваются.",
+                "Gate C1 повторяет только temporal часть frozen benchmark: четыре обязательные compact architectures × 11 outer folds × 5 seeds. В каждом outer train используются ровно три forward-only inner folds; 9 240 logical inner evaluations сведены к 3 640 физическим fits только при полном совпадении model/parameter/seed/sample/sequence/target/preprocessing/code/environment hashes. После tuning выполнено 220 outer refits. Spatial и transition designs намеренно не открываются до C2 admission.",
             ]
         )
         self.figure(FIGURES["b6_temporal"], "Temporal screen MAE моделей Gate B6")
@@ -755,7 +889,50 @@ class SpecialSectionBuilder:
             ]
         )
         self.figure(FIGURES["b6_rolling"], "MAE по 11 rolling target dates")
-        self.heading("6.7.3 Spatial устойчивость", 3)
+        c1_status = self.c1_screen.set_index("model_id")["status"].to_dict()
+        c1_status_display = {
+            "PASSED_TEMPORAL_SCREEN": "PASSED",
+            "REJECTED_TEMPORAL_SCREEN": "REJECTED",
+            "REJECTED_MODEL_EXECUTION": "EXECUTION REJECT",
+        }
+        self.table(
+            "Temporal metrics Gate C1 на одинаковых 595 origins",
+            ["Model", "Role/status", "MAE", "Median fold MAE", "RMSE", "P95 AE", "B1 skill"],
+            [
+                (
+                    row.model_id.split("_")[0],
+                    "Context"
+                    if str(row.model_id).startswith("B")
+                    else c1_status_display[c1_status[row.model_id]],
+                    f"{row.mae:.3f}",
+                    f"{row.median_fold_mae:.3f}",
+                    f"{row.rmse:.3f}",
+                    f"{row.p95_absolute_error:.3f}",
+                    f"{100 * row.b1_skill:.1f}%",
+                )
+                for row in self.c1_canonical.itertuples(index=False)
+            ],
+            [1.5, 4.1, 2.0, 2.8, 2.0, 2.1, 2.0],
+        )
+        c1_best = self.c1_canonical.loc[
+            self.c1_canonical["model_id"].astype(str).str.startswith("C0")
+        ].sort_values(["mae", "model_id"], kind="mergesort").iloc[0]
+        b1_c1 = self.c1_canonical.loc[
+            self.c1_canonical["model_id"].eq("B1_persistence_last_rate")
+        ].iloc[0]
+        b7_c1 = self.c1_canonical.loc[
+            self.c1_canonical["model_id"].eq("B7_two_regime_imm")
+        ].iloc[0]
+        admitted_text = ", ".join(self.c1_admission["admitted_model_ids"]) or "нет"
+        self.paragraphs(
+            [
+                f'Лучшая deep-архитектура по canonical mean-of-five-seeds — {c1_best["model_id"]}: MAE {c1_best["mae"]:.3f} мм/год. На том же universe B1 имеет {b1_c1["mae"]:.3f}, действующий primary B7 — {b7_c1["mae"]:.3f} мм/год. Это temporal train-only comparison, а не финальный рейтинг.',
+                f'Программный C1 admission сформирован без weighted score: pooled и median fold MAE должны быть не хуже B1 более чем на 10%, worst fold — не более 2× B1, а execution/leakage checks обязаны пройти полностью. Допущенные к C2 deep model IDs: {admitted_text}. Низкое качество получает REJECTED_TEMPORAL_SCREEN и не считается software failure.',
+            ]
+        )
+        self.figure(FIGURES["c1_temporal"], "Gate C1: canonical temporal MAE относительно B1, B7 и B8")
+        self.figure(FIGURES["c1_rolling"], "Gate C1: MAE по 11 rolling target dates")
+        self.heading("6.7.3 Spatial устойчивость", 3, page_break_before=True)
         spatial_focus = [
             item
             for item in self.b6a["focus_spatial_metrics"]
@@ -846,10 +1023,29 @@ class SpecialSectionBuilder:
             [
                 "Learning curves строятся на неизменном audit tail; увеличение числа кампаний меняет не только объём, но и историческое покрытие regimes. Параметры на кривых не перенастраиваются, поэтому они отражают data sufficiency, а не новый tuning loop.",
                 "Paired absolute-error deltas оцениваются двумя sensitivity procedures по 2 000 replicates: resampling 14 profile clusters и 11 target-date blocks с seed 42117. Наивный i.i.d. bootstrap по origins не используется. Из-за четырёх зон inferential confidence interval для zone effect не интерпретируется; публикуются все значения и worst-zone [15].",
+                "Для Gate C1 отдельно проверена seed stability. Все пять заранее фиксированных seeds участвуют и в tuning, и в outer refit; их нельзя отбрасывать по качеству. Пороговые признаки IQR ≤ 0,50 мм/год и CV ≤ 10% публикуются сейчас описательно, но становятся обязательными только при будущей suite-v5 eligibility в Gate C2.",
             ]
+        )
+        self.table(
+            "Пятиseedовая устойчивость compact sequence-моделей",
+            ["Model", "Mean seed MAE", "IQR", "CV", "Range", "Ensemble MAE", "Дат лучше B1/B7"],
+            [
+                (
+                    row.model_id.split("_")[0],
+                    f"{row.seed_mae_mean:.3f}",
+                    f"{row.seed_mae_iqr:.3f}",
+                    f"{100 * row.seed_mae_cv:.2f}%",
+                    f"{row.seed_mae_range:.3f}",
+                    f"{row.ensemble_mae:.3f}",
+                    f"{int(row.dates_improved_vs_b1)}/{int(row.dates_improved_vs_b7)}",
+                )
+                for row in self.c1_seeds.itertuples(index=False)
+            ],
+            [1.6, 2.8, 1.8, 1.8, 1.9, 2.7, 3.4],
         )
         self.figure(FIGURES["b6_learning"], "Learning curves frozen comparators и shortlisted models")
         self.figure(FIGURES["b6_sensitivity"], "Profile-cluster sensitivity paired deltas относительно B7")
+        self.figure(FIGURES["c1_seed"], "Gate C1: разброс пяти fixed-seed MAE и canonical ensemble")
         self.heading("6.7.7 Итог Gate B6 и переход к C", 3)
         self.status_box(
             f'Gate B6: {self.b6["status"]}. Screened models: {self.b6["models_screened"]}; advanced: {self.b6["models_advanced"]}; new eligible: {self.b6["new_models_eligible"]}; primary: {self.b6["primary_model_id"]}. Final quality claim allowed: {str(self.b6["final_quality_claim_allowed"]).lower()}.'
@@ -857,7 +1053,7 @@ class SpecialSectionBuilder:
         self.paragraphs(
             [
                 "Suite v4 заморожена до нового holdout. B1/B5/B6/B7/B8 сохраняются как context comparators, а лучший interpretable/probabilistic result не может post-hoc изменить primary после holdout. Такое решение предотвращает переобучение исследовательского процесса, даже если отдельная новая модель выигрывает на одном сегменте.",
-                "Gate C0 не продолжает тюнинг B7. Он вводит новый класс hypotheses — compact sequence models — и заранее фиксирует их данные, grids, seeds, screening и fallback. Тем самым следующий эксперимент становится проверкой новой модели, а не очередным поиском по уже просмотренным ошибкам.",
+                f'Gate C1 проверил новый класс hypotheses без продолжения тюнинга B7 и завершился статусом {self.c1_validation["status"]}. Он сформировал только temporal admission manifest; profile/zone/transition/calibration audit и suite v5 остаются PENDING. Поэтому suite v4 и B7 primary в настоящей редакции не изменены.',
             ]
         )
 
@@ -892,6 +1088,7 @@ class SpecialSectionBuilder:
                 "Sequence models видят много overlapping prefixes одной траектории. Это увеличивает число training origins, но не число независимых физических объектов. Поэтому multi-seed stability и spatial holdouts обязательны, а parameter budget ограничен 100 000. Большая transformer-модель не считается более научной только из-за архитектурной новизны.",
                 "Left padding до 16 не создаёт искусственных наблюдений: padding rows маскируются и не участвуют в preprocessing fit. Если будущая история станет длиннее 16, протокол заранее предписывает удалять самые старые tokens. Изменение длины контекста после появления holdout потребует новой версии suite и policy.",
                 "Current campaign type и target campaign type являются планово известными категориями, но campaign IDs запрещены. Это разделяет доступный календарный контекст и memorization конкретной даты. Аналогично point/profile/zone используются для resampling и диагностики, но не как embeddings.",
+                "Gate C1 ограничен temporal screen. Даже PASSED_TEMPORAL_SCREEN не означает spatial или transition eligibility: leave-profile-out, leave-zone-out, transition/gap audit и common conformal calibration не вычислялись. Пять seeds характеризуют algorithmic variability, но не заменяют независимые физические объекты и новый внешний holdout.",
             ]
         )
         self.heading("6.8.4 Требования к эксплуатационному продолжению", 3, page_break_before=True)
@@ -913,8 +1110,8 @@ class SpecialSectionBuilder:
                 "Построен воспроизводимый контур прогнозирования next-planned скорости оседания T1. Канонические таблицы и contracts отделены от historical/private/evaluation-only данных; split manifests и model-facing loaders предотвращают случайное открытие test и random row resampling. Grain 1 274 origins → 98 trajectories → 14 profiles учтён temporal, rolling, profile и zone designs.",
                 "На расширенном train-only benchmark лучшим frozen candidate остаётся B7 two-regime IMM: rolling MAE 5,640 мм/год, skill 10,6% относительно B1, equal-profile macro 5,676 и equal-zone macro 4,975 мм/год. B7 сохраняет 95% conformal coverage 0,951 при WIS 3,788. При этом pooled transition improvement не достигает preregistered 10%, а rare extreme errors сохраняются; поэтому результат не интерпретируется как окончательный.",
                 "Gate B6 корректно завершился PASS_NO_NEW_PRIMARY. Новые tabular/probabilistic models не прошли одновременно temporal, transition, spatial и calibration criteria. Это подтверждает необходимость governance, в котором отдельная победа на pooled MAE не перекрывает worst-zone или sign-consistency failure.",
-                "Gate C0 заморозил sequence representation всех 911 train origins, 65 outer и 195 inner folds, feature/mask contract, compact architecture registry, пять seeds и suite-v5 fallback. Проверено отсутствие future/target observations, identifier features и historical validation/test access. Обучение GRU/LSTM/TCN ещё не выполнялось; соответствующие числовые результаты в настоящем документе отсутствуют намеренно.",
-                "Следующий этап — Gate C1 compact screen с B1/B7/B8 comparators. Если ни одна deep-модель не проходит все frozen guards, B7 остаётся primary suite v5. Окончательный вывод возможен только после нового real future/external holdout; на текущем этапе статус финальной оценки PENDING_DATA.",
+                f'Gate C0 заморозил sequence representation всех 911 train origins, feature/mask contract и causal fold bindings. Gate C1 затем выполнил четыре обязательные compact sequence architectures на 11 rolling folds и пяти seeds, сохранил 11 900 single-seed и 2 380 ensemble deep prediction rows, а также 1 785 frozen comparator rows. Независимый validator завершился статусом {self.c1_validation["status"]}.',
+                f'К Gate C2 допущены: {", ".join(self.c1_admission["admitted_model_ids"]) or "ни одна deep-модель"}. Это только temporal admission. Следующий этап должен выполнить profile/zone/transition audit и calibration без исторического validation/test; suite v5 пока не создана, suite v4 с B7 не изменена. Окончательный вывод возможен только после нового real future/external holdout; статус финальной оценки — PENDING_DATA.',
             ]
         )
 
@@ -933,7 +1130,11 @@ class SpecialSectionBuilder:
 
     def save(self) -> None:
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-        self.doc.save(OUTPUT_PATH)
+        work = ROOT / "work" / "gate_c1_reporting"
+        work.mkdir(parents=True, exist_ok=True)
+        temporary_docx = work / f"{OUTPUT_PATH.stem}.{uuid4().hex}.docx"
+        self.doc.save(temporary_docx)
+        temporary_docx.replace(OUTPUT_PATH)
         source_rows = []
         for name, path in {**DATA_PATHS, **FIGURES}.items():
             source_rows.append(
@@ -949,22 +1150,37 @@ class SpecialSectionBuilder:
             "document": OUTPUT_PATH.relative_to(ROOT).as_posix(),
             "document_bytes": OUTPUT_PATH.stat().st_size,
             "document_sha256": _sha256_file(OUTPUT_PATH),
-            "generated_on": "2026-09-01",
+            "generated_on": "2026-09-05",
             "design_preset": "gost_vkr_ru",
             "format_basis": ["GOST 7.32-2017", "GOST R 7.0.100-2018", "GOST R 7.0.5-2008"],
             "institutional_rules_override": True,
             "claim_boundary": "train_only_internal_research_no_final_quality_claim",
-            "gate_c_model_training_calls": 0,
-            "historical_validation_loaded_for_gate_c": False,
-            "current_test_loaded_for_gate_c": False,
-            "table_count": self.table_number,
+            "gate_c0_model_training_calls": 0,
+            "gate_c1_logical_inner_evaluations": int(self.c1_compute["logical_inner_evaluations"].sum()),
+            "gate_c1_physical_inner_fits": int(self.c1_compute["physical_inner_fits_executed"].sum()),
+            "gate_c1_outer_refits": int(self.c1_compute["outer_refits"].sum()),
+            "gate_c1_model_training_calls": int(
+                self.c1_compute["physical_inner_fits_executed"].sum()
+                + self.c1_compute["outer_refits"].sum()
+            ),
+            "gate_c1_reporting_training_calls": 0,
+            "historical_validation_loaded_for_gate_c1": False,
+            "current_test_loaded_for_gate_c1": False,
+            "new_holdout_seen_for_gate_c1": False,
+            "profile_zone_transition_audit_executed": False,
+            "suite_v5_created": False,
+            "numbered_table_count": self.table_number,
+            "physical_table_count": len(self.doc.tables),
             "figure_count": self.figure_number,
             "sources": source_rows,
         }
-        SOURCE_MAP_PATH.write_text(
+        temporary_map = work / f"{SOURCE_MAP_PATH.name}.{uuid4().hex}.tmp"
+        temporary_map.write_text(
             json.dumps(source_map, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
+            newline="\n",
         )
+        temporary_map.replace(SOURCE_MAP_PATH)
         print(json.dumps(source_map, ensure_ascii=False, indent=2))
 
 

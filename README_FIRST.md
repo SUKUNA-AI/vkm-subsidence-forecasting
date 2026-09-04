@@ -12,6 +12,11 @@ primary with rolling MAE 5.640 mm/year and 10.64% train-only skill versus B1.
 Gate C0 then froze a causal sequence protocol over the same 911 train origins
 with status `PASS_PROTOCOL_FROZEN`; it performed zero model-training calls and
 loaded zero historical-validation, disclosed-test or future-holdout rows.
+Gate C1 is now complete with `PASS_C1_TEMPORAL_SCREEN`: all four required
+compact architectures completed 11 rolling folds and five fixed seeds. Only
+`C01_compact_gru` passed temporal admission. Its canonical MAE is 6.288
+mm/year versus 6.311 for B1 and 5.640 for B7, so it advances only to C2 and
+does not replace the suite-v4 primary.
 
 Read these authorities before running experiments:
 
@@ -21,7 +26,9 @@ Read these authorities before running experiments:
 4. `configs/gate_b5.yaml` and `configs/gate_b6.yaml`;
 5. `docs/governance/GATE_C_PROTOCOL.md` and `configs/gate_c.yaml`;
 6. `docs/reports/GATE_B6_EXPANDED_SCREENING_RU.md`;
-7. `docs/reports/GATE_C0_SEQUENCE_PROTOCOL_RU.md`.
+7. `docs/reports/GATE_C0_SEQUENCE_PROTOCOL_RU.md`;
+8. `configs/gate_c1.yaml` and `docs/governance/GATE_C1_PROTOCOL.md`;
+9. `docs/reports/GATE_C1_COMPACT_SEQUENCE_SCREEN_RU.md`.
 
 The reproducibility entrypoints are:
 
@@ -31,6 +38,7 @@ The reproducibility entrypoints are:
 .\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase preflight
 .\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase validate
 .\.venv\Scripts\python.exe scripts\run_gate_c.py --phase validate
+.\.venv\Scripts\python.exe scripts\run_gate_c1.py --phase validate
 ```
 
 `run_gate_b6.py --phase all` is intentionally expensive: it dispatches the
@@ -43,10 +51,22 @@ The one-shot future holdout policy now hashes and consumes
 `artifacts/governance/final_candidate_suite_v4.json`; it remains
 `PENDING_DATA` until a real eligible package is supplied.
 
-The next executable research stage is Gate C1: five-seed compact GRU/LSTM/TCN
-and probabilistic recurrent screening under the frozen Gate C0 manifests.
-Early stopping means only inner rolling validation inside `t1_v1/train`, never
-the historical validation split.
+The next executable research stage is Gate C2 for the admitted
+`C01_compact_gru` only: 42 leave-profile-out folds, 12 leave-zone-out folds,
+transition audit, calibration and suite-v5 eligibility. B1/B7/B8 remain frozen
+context comparators. Historical validation, disclosed test and the absent
+future/external holdout remain unavailable to model-facing processes.
+
+Gate C1 uses one deterministic CUDA worker. Recurrent inputs are transformed
+with a vectorized device-side path, AdamW uses the fused CUDA implementation,
+and validation metrics stay on the GPU; the frozen batch size, folds, grids
+and objectives are unchanged. Every physical fit writes an atomic recovery
+state after each completed 50-epoch stage and at the terminal epoch, retains
+five full training states, and records a hash-checked manifest. Inner fits
+restore rank 1 by the frozen inner objective. Outer refits retain the latest
+five epochs but always select the preregistered final epoch, never an
+outer-label-ranked checkpoint. Checkpoint binaries remain under ignored
+`work/`; only their inventory and hashes are publishable artifacts.
 
 ## Bundled data foundation
 

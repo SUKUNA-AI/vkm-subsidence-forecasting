@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "document": "docs/thesis/SPECIAL_SECTION_SKRU1_RU.docx",
-  "document_bytes": 1683453,
-  "document_sha256": "e491e9acb7f00e8a4907d33d8e6049109f290080e5d1883f1ed1c7b8a6535958",
-  "generated_on": "2026-09-01",
+  "document_bytes": 2259712,
+  "document_sha256": "0310b89dba925e2e395119816356b62b94de158b237afa4dc85e01bc3f67ad75",
+  "generated_on": "2026-09-05",
   "design_preset": "gost_vkr_ru",
   "format_basis": [
     "GOST 7.32-2017",
@@ -12,11 +12,20 @@
   ],
   "institutional_rules_override": true,
   "claim_boundary": "train_only_internal_research_no_final_quality_claim",
-  "gate_c_model_training_calls": 0,
-  "historical_validation_loaded_for_gate_c": false,
-  "current_test_loaded_for_gate_c": false,
-  "table_count": 14,
-  "figure_count": 13,
+  "gate_c0_model_training_calls": 0,
+  "gate_c1_logical_inner_evaluations": 9240,
+  "gate_c1_physical_inner_fits": 3640,
+  "gate_c1_outer_refits": 220,
+  "gate_c1_model_training_calls": 3860,
+  "gate_c1_reporting_training_calls": 0,
+  "historical_validation_loaded_for_gate_c1": false,
+  "current_test_loaded_for_gate_c1": false,
+  "new_holdout_seen_for_gate_c1": false,
+  "profile_zone_transition_audit_executed": false,
+  "suite_v5_created": false,
+  "numbered_table_count": 18,
+  "physical_table_count": 21,
+  "figure_count": 16,
   "sources": [
     {
       "name": "gate_a1",
@@ -71,6 +80,144 @@
       "path": "artifacts/model_selection/t1_gate_c0_sequence_audit_v1/sequence_length_distribution.csv",
       "bytes": 571,
       "sha256": "ff00d700a7b92f86e67d262fb81ee60631d55f48bb14224679c4d5f5d694116c"
+    },
+    {
+      "name": "gate_c1_validation",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/validation_report.json",
+      "bytes": 3783,
+      "sha256": "f2d7fbdfcdab7ee223a2a5e605fd42c698743de3ff73a2233e34802729b71044"
+    },
+    {
+      "name": "gate_c1_protocol_freeze",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/protocol_freeze.json",
+      "bytes": 2960,
+      "sha256": "1c292ca21556a1cb673c628efc989ff4f6621428b3e28c8438a6715750e0e225"
+    },
+    {
+      "name": "gate_c1_admission",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/c2_admission_manifest.json",
+      "bytes": 7498,
+      "sha256": "ba9a12233c1a1ac2fe51a2efb05282322be065f095bf7d514d87c267611ace1a"
+    },
+    {
+      "name": "gate_c1_label_access",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/outer_label_access_ledger.json",
+      "bytes": 966,
+      "sha256": "f5f006069806f6764196c9bba6ced01435bb8aa9d167b33b1245e7896749cdaa"
+    },
+    {
+      "name": "gate_c1_registry",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/model_registry.json",
+      "bytes": 12539,
+      "sha256": "f8967d7b31ea91672b5a4b2d51f7c75dc1ab2f49236d273d43febf203ba96b21"
+    },
+    {
+      "name": "gate_c1_temporal_metrics",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/temporal_aggregate_metrics.csv",
+      "bytes": 15411,
+      "sha256": "e8e8a33e21068f0adb62ca43b71d652f732e4217479a998e66a86dc4fe222156"
+    },
+    {
+      "name": "gate_c1_fold_metrics",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/temporal_fold_metrics.csv",
+      "bytes": 153347,
+      "sha256": "83eefecef33d0630b21d544417b0dfeab3da262adcaef45be5699c8de166ff4a"
+    },
+    {
+      "name": "gate_c1_seed_stability",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/seed_stability_metrics.csv",
+      "bytes": 1073,
+      "sha256": "42137a00dacaa4c79979207a1494213def72bdfc580347dfa3fad4805d833219"
+    },
+    {
+      "name": "gate_c1_native_metrics",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/student_t_native_metrics.csv",
+      "bytes": 21467,
+      "sha256": "0dad3acbd3c2dd33a17585023aa6c7e5e9bdcc3e3908354105736e5f94effb90"
+    },
+    {
+      "name": "gate_c1_compute",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/compute_resource_inventory.csv",
+      "bytes": 826,
+      "sha256": "b014f33c0063b885d80d30b3109359acee0f376dfb7f07e7da6503ff55c26d7e"
+    },
+    {
+      "name": "gate_c1_checkpoints",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/checkpoint_inventory.csv",
+      "bytes": 1654462,
+      "sha256": "94dfa71687905cb3682df5a2ab0b11971115c22d9aa5b4540da247d83204b6b7"
+    },
+    {
+      "name": "gate_c1_execution_incident",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/execution_incident_register.json",
+      "bytes": 9254,
+      "sha256": "7c3d2a75b0156aa79639b780085cf2ca81a2d89a9eb7e86d8ce8102bb148d109"
+    },
+    {
+      "name": "gate_c1_screening",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/screening_register.csv",
+      "bytes": 1403,
+      "sha256": "e73e325b4a463c09f53890a8210703f8597873e8f1ec413245e76729e63d594a"
+    },
+    {
+      "name": "gate_c1_worker_status",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/worker_status.csv",
+      "bytes": 32141,
+      "sha256": "aa8b6396c1327b9968c411219848682f5c692ac2c9dd14a819f451927b83534b"
+    },
+    {
+      "name": "gate_c1_tuning_inventory",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/tuning_inventory.csv",
+      "bytes": 12087694,
+      "sha256": "bc265ecf779f6eb201743c03c83eb4a47b012168e7097803528531b77755839d"
+    },
+    {
+      "name": "gate_c1_scored_predictions",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/scored_temporal_predictions.csv",
+      "bytes": 14321739,
+      "sha256": "7ef1e216820d9012c3d9bac6b9b05695a9ccdb6bd054929fe5abe4063fc724d8"
+    },
+    {
+      "name": "gate_c1_artifact_inventory",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/artifact_inventory.csv",
+      "bytes": 38914,
+      "sha256": "0d4f0be99cbd677eceb2fa12880cb74596498ca7de1858389a595664f898e727"
+    },
+    {
+      "name": "gate_c1_figure_manifest",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figure_manifest.json",
+      "bytes": 6097,
+      "sha256": "8b1f0d7ec164d69b7c206cb84e9c93dca302b15420b420e1cc29ec2723de05f3"
+    },
+    {
+      "name": "gate_c1_notebook_report",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/notebook_execution_report.json",
+      "bytes": 321,
+      "sha256": "a3ef301ed545b85de06bbf76825d2d412a4e4b246e7e5d9d90a19a9382d9585a"
+    },
+    {
+      "name": "gate_c1_visual_qa",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/visual_qa_report.json",
+      "bytes": 2193,
+      "sha256": "c1437ad37b286dcc402b59b12aa449f609be7f2200c5cd89d8ccf340ef807563"
+    },
+    {
+      "name": "gate_c1_environment",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/environment/hardware_report.json",
+      "bytes": 622,
+      "sha256": "4234d69c617b7d67b1147e5f858d6ea05638134c962cd4ea35294108890643a2"
+    },
+    {
+      "name": "gate_c1_reader_manifest",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/reader_materials_manifest.json",
+      "bytes": 5127,
+      "sha256": "93569d1a6f56c5070d2fecbb9291f745e0a41e33dc0c130bc2f69c15cea43f47"
+    },
+    {
+      "name": "gate_c1_reporting_inventory",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/reporting_artifact_inventory.csv",
+      "bytes": 41286,
+      "sha256": "a88ba96da4f045b1910001a3ed07597c2826ab15b338aa0d402a127fdef07b1e"
     },
     {
       "name": "suite_v4",
@@ -179,6 +326,24 @@
       "path": "artifacts/model_selection/t1_gate_c0_sequence_audit_v1/figures/04_fold_design.png",
       "bytes": 44478,
       "sha256": "339bccfa8197a63e0ea5bac864a32903f9d959b0f4215201ba52cb6a5937c7b4"
+    },
+    {
+      "name": "c1_temporal",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figures/01_ensemble_temporal_mae.png",
+      "bytes": 133003,
+      "sha256": "18dd7ee1cbfed9d26b0f610f826612cb21171baca25e7ea56d90d7379fef0816"
+    },
+    {
+      "name": "c1_rolling",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figures/02_rolling_mae_by_target_date.png",
+      "bytes": 388927,
+      "sha256": "cfc83c476e1e6ce9c1c0a4648f720f7e2d8a532b0c7b85c6eedcfa942dd4bc12"
+    },
+    {
+      "name": "c1_seed",
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figures/03_seed_stability.png",
+      "bytes": 88558,
+      "sha256": "d9dcc525e7ce2072f9151741d405b488531a44fd5047b746cefe864eccfd1c4b"
     }
   ]
 }

@@ -64,7 +64,13 @@ for a genuinely new future/external holdout.
 - Gate C0 supplies the causal sequence representation, masking, fold and
   preprocessing protocol, architecture eligibility and suite-v5 governance
   for 6.5.4–6.5.5 and 6.6. It deliberately supplies no deep-model quality
-  numbers; these remain pending Gate C1/C2.
+  numbers.
+- Gate C1 supplies the five-seed nested rolling-origin temporal evidence for
+  compact GRU, compact LSTM, causal TCN and probabilistic Student-t GRU in
+  6.5.4–6.5.5, the CUDA/checkpoint reproducibility evidence in 6.6 and the
+  broad-screen, temporal and complexity results in 6.7.1, 6.7.2 and 6.7.6.
+  Only compact GRU is admitted to C2. Leave-profile, leave-zone, transition,
+  conformal-calibration and suite-v5 evidence remains pending Gate C2.
 - External/frozen validation in 6.7.7 remains pending until a genuinely new
   future or external holdout is obtained.
 
@@ -76,7 +82,10 @@ mm margins, Times New Roman 14 pt, 1.5 line spacing and bibliography formatted
 against GOST 7.32-2017, GOST R 7.0.100-2018 and GOST R 7.0.5-2008. Local
 university requirements remain authoritative over the repository baseline.
 
-The current draft has 35 pages, 14 tables and 13 figures. Its machine-readable
-provenance is `docs/thesis/SPECIAL_SECTION_SKRU1_RU_SOURCE_MAP.json`; figures
-are sourced from frozen Gate A/B/C0 artifacts. The document explicitly marks
-Gate C model training and the final future/external evaluation as pending.
+The current 41-page draft is generated from frozen Gate A/B/C0 and validated
+Gate C1 artifacts. It contains 18 numbered data tables (21 physical OOXML
+tables including layout/status blocks) and 16 figures. The exact counts are
+recorded by `docs/thesis/SPECIAL_SECTION_SKRU1_RU_SOURCE_MAP.json` and the
+structural and render QA report `docs/thesis/SPECIAL_SECTION_SKRU1_RU_QA.json`.
+The document explicitly marks Gate C2 spatial/transition/calibration work,
+suite v5 and the final future/external evaluation as pending.

@@ -36,18 +36,29 @@ budget before any model fit. Early stopping is allowed only on inner rolling
 validation inside `t1_v1/train`; historical validation and outer labels are
 not epoch-selection inputs.
 
-Current status: C0 is `PASS_PROTOCOL_FROZEN`. The required C1 compact screen
-contains GRU, LSTM, causal TCN and probabilistic Student-t GRU. TSMixer and
-compact TFT are conditional. N-BEATS/N-HiTS, PatchTST and iTransformer are
+Current status: C0 is `PASS_PROTOCOL_FROZEN`; C1 is
+`PASS_C1_TEMPORAL_SCREEN`. All four required compact models completed 11
+nested rolling-origin folds and five fixed seeds. Only `C01_compact_gru` was
+admitted to C2: its canonical MAE is 6.288 mm/year versus 6.311 for B1 and
+5.640 for B7. C02 LSTM and C03 TCN failed the median-fold guard, while C04
+Student-t GRU failed pooled and median-fold guards. C1 loaded zero historical
+validation, disclosed-test and new-holdout rows. TSMixer and compact TFT remain
+conditional; N-BEATS/N-HiTS, PatchTST and iTransformer remain
 `NOT_ELIGIBLE_DATA_GEOMETRY` on 3–16 irregular observations unless a future
-protocol version establishes a defensible representation. C0 performed zero
-training calls and did not load historical validation, disclosed test or new
-holdout rows.
+protocol version establishes a defensible representation.
 
-The small residual MLP and ENFS replica in B6 do not consume Gate C. Gate C
-uses the already frozen 11 rolling, 42 profile and 12 zone outer folds, with
-three forward-only inner folds per context. C1 must report five-seed stability,
-parameter count, CPU/GPU time, RAM/VRAM and inference latency.
+The small residual MLP and ENFS replica in B6 do not consume Gate C. C1 used
+the frozen 11 rolling folds with three forward-only inner folds per context;
+it published five-seed stability, parameter count, fit/inference time and
+RAM/VRAM evidence. Its 3,860 physical fits each have a work-only top-five
+full-state checkpoint manifest. CUDA-side batching and fused AdamW reduced
+matched mean fit time from 4.449 to 3.301 seconds (1.35x), including checkpoint
+I/O, without changing the frozen model grid or scientific objective.
+
+The next executable stage is C2. It may run the 42 leave-profile-out and 12
+leave-zone-out folds, transition audit and conformal calibration only for
+`C01_compact_gru`, with B1/B7/B8 retained as frozen context comparators. C2
+then freezes suite v5 or applies the preregistered B7 fallback.
 
 ## Gate D — Spatio-temporal models
 
@@ -71,7 +82,9 @@ Source-grounded explanation and reporting only. No numeric-primary or safety aut
 
 Tables, figures, error atlas, model cards, reproducibility appendix and written sections.
 
-Current status: a 35-page Russian Word draft of the special section is built
-from frozen Gate A/B/C0 artifacts at
-`docs/thesis/SPECIAL_SECTION_SKRU1_RU.docx`; deep-model result subsections stay
-explicitly pending until Gate C1/C2 produce machine evidence.
+Current status: the 41-page Russian Word draft of the special section is
+generated from frozen Gate A/B/C0 and validated C1 artifacts at
+`docs/thesis/SPECIAL_SECTION_SKRU1_RU.docx`. It includes C1 temporal,
+seed-stability, checkpoint and CUDA evidence. C2 spatial/transition/calibration
+results, suite v5 and final future/external validation remain explicitly
+pending.

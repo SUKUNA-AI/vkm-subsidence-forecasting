@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "gate": "C1_COMPACT_SEQUENCE_TEMPORAL_SCREEN",
+  "status": "PASS",
+  "scientific_scope": "train_only_internal_research",
+  "sources": {
+    "validation": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/validation_report.json",
+      "sha256": "f2d7fbdfcdab7ee223a2a5e605fd42c698743de3ff73a2233e34802729b71044"
+    },
+    "admission": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/c2_admission_manifest.json",
+      "sha256": "ba9a12233c1a1ac2fe51a2efb05282322be065f095bf7d514d87c267611ace1a"
+    },
+    "ledger": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/outer_label_access_ledger.json",
+      "sha256": "f5f006069806f6764196c9bba6ced01435bb8aa9d167b33b1245e7896749cdaa"
+    },
+    "protocol": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/protocol_freeze.json",
+      "sha256": "1c292ca21556a1cb673c628efc989ff4f6621428b3e28c8438a6715750e0e225"
+    },
+    "environment": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/environment/execution_authority.json",
+      "sha256": "c2a00f8b48a2dc29e5180b690040baf144ec1a1d6b1e6063c7d57a44d05d9c2e"
+    },
+    "hardware": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/environment/hardware_report.json",
+      "sha256": "4234d69c617b7d67b1147e5f858d6ea05638134c962cd4ea35294108890643a2"
+    },
+    "registry": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/model_registry.json",
+      "sha256": "f8967d7b31ea91672b5a4b2d51f7c75dc1ab2f49236d273d43febf203ba96b21"
+    },
+    "aggregate": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/temporal_aggregate_metrics.csv",
+      "sha256": "e8e8a33e21068f0adb62ca43b71d652f732e4217479a998e66a86dc4fe222156"
+    },
+    "folds": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/temporal_fold_metrics.csv",
+      "sha256": "83eefecef33d0630b21d544417b0dfeab3da262adcaef45be5699c8de166ff4a"
+    },
+    "seeds": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/seed_stability_metrics.csv",
+      "sha256": "42137a00dacaa4c79979207a1494213def72bdfc580347dfa3fad4805d833219"
+    },
+    "native": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/student_t_native_metrics.csv",
+      "sha256": "0dad3acbd3c2dd33a17585023aa6c7e5e9bdcc3e3908354105736e5f94effb90"
+    },
+    "screening": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/screening_register.csv",
+      "sha256": "e73e325b4a463c09f53890a8210703f8597873e8f1ec413245e76729e63d594a"
+    },
+    "compute": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/compute_resource_inventory.csv",
+      "sha256": "b014f33c0063b885d80d30b3109359acee0f376dfb7f07e7da6503ff55c26d7e"
+    },
+    "figures": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/figure_manifest.json",
+      "sha256": "8b1f0d7ec164d69b7c206cb84e9c93dca302b15420b420e1cc29ec2723de05f3"
+    },
+    "visual_qa": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/visual_qa_report.json",
+      "sha256": "c1437ad37b286dcc402b59b12aa449f609be7f2200c5cd89d8ccf340ef807563"
+    },
+    "notebook": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/notebook_execution_report.json",
+      "sha256": "a3ef301ed545b85de06bbf76825d2d412a4e4b246e7e5d9d90a19a9382d9585a"
+    },
+    "artifact_inventory": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/artifact_inventory.csv",
+      "sha256": "0d4f0be99cbd677eceb2fa12880cb74596498ca7de1858389a595664f898e727"
+    },
+    "execution_incident": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/execution_incident_register.json",
+      "sha256": "7c3d2a75b0156aa79639b780085cf2ca81a2d89a9eb7e86d8ce8102bb148d109"
+    },
+    "checkpoints": {
+      "path": "artifacts/model_selection/t1_gate_c1_compact_screen_v1/checkpoint_inventory.csv",
+      "sha256": "94dfa71687905cb3682df5a2ab0b11971115c22d9aa5b4540da247d83204b6b7"
+    }
+  },
+  "outputs": [
+    {
+      "path": "docs/reports/GATE_C1_COMPACT_SEQUENCE_SCREEN_RU.md",
+      "sha256": "b833dc81e6bda0a1b9f228b419294238071768e7d68690085173b25cc25b1d71"
+    },
+    {
+      "path": "docs/governance/MODEL_CATALOG_C1.md",
+      "sha256": "83c0f7831f60a99343347d4a254d4ded15ea94dd7a1d6bfd5c647903d79ea73d"
+    },
+    {
+      "path": "docs/model_cards/gate_c1/C01_compact_gru.md",
+      "sha256": "2d1e95f121515682f77978c2b546e5a9ecda3f8138bfbbe77b585eeaee79f736"
+    },
+    {
+      "path": "docs/model_cards/gate_c1/C02_compact_lstm.md",
+      "sha256": "0a5053309d3327cce48c9c66018ea08f8ec0b1f8221d472d14e1049182c0c9a7"
+    },
+    {
+      "path": "docs/model_cards/gate_c1/C03_causal_tcn.md",
+      "sha256": "52bf4f2167a994cd87bfcc5c8eb3339867c194d839e41a60ca19942a77b7d2b0"
+    },
+    {
+      "path": "docs/model_cards/gate_c1/C04_probabilistic_gru_student_t.md",
+      "sha256": "91df534f7d4ccaa2d5719c2bd8c5babb0bf67e3782f45d56b56d1fe44142b441"
+    }
+  ],
+  "model_training_calls": 0
+}
