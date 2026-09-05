@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "dataset_id": "SKRU1_RECONSTRUCTION_RESEARCH_V1",
+  "parent_commit": "2c5eec48d523cf3fbc15898b0b44ac929b9b7c14",
+  "source_constraints": {
+    "original_measurements_and_gis": "unavailable_not_expected",
+    "evidence": "explicit_user_decision_after_pit_stop",
+    "external_measurements_required_for_project_completion": false,
+    "industrial_or_field_accuracy_claim": false
+  },
+  "completed_task": "repair_catalog_provenance_availability_and_observation_status",
+  "current_task": "validate_reconstruction_against_published_figures_and_constraints",
+  "next_task": "freeze_scenario_protocol_and_migrate_b1_imm",
+  "research_domain": "publication_constrained_reconstruction_and_simulation",
+  "default_feature_view": "history_and_plan",
+  "output_directory": "data/reconstruction_research_v1",
+  "raw_input_directory": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2",
+  "parent_target_directory": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables",
+  "scenario_time_origin": "2018-01-01",
+  "assumptions": {
+    "SIM_PLAN_KNOWN": "The synthetic survey plan is declared at scenario start; these are not recorded historical plan-publication dates.",
+    "SIM_STATIC_KNOWN": "Only in the explicit reconstruction_assumptions view, reconstructed spatial descriptors are assumed constant and known at scenario start. Their real source availability remains unknown.",
+    "SIM_ADJUSTMENT_INSTANT": "Accepted synthetic adjustments and same-campaign aggregates are available at the current campaign date; real processing latency is not measured."
+  },
+  "final_evaluation": {
+    "domain": "simulation_only",
+    "protocol_status": "not_yet_frozen",
+    "must_hold_out": ["generator_families_or_mechanisms", "parameter_regions", "missingness_patterns"],
+    "new_random_seed_alone_is_external_validation": false,
+    "legacy_final_holdout_v3": "unchanged_historical_optional_external_extension"
+  },
+  "model_scope": {
+    "historical_reference": "B7_two_regime_imm",
+    "initial_comparison": ["B1_persistence_last_rate", "B7_two_regime_imm"],
+    "compact_gru": "retain_existing_result_optional_after_data_and_scenario_checks",
+    "broad_architecture_expansion": "deferred"
+  },
+  "performance_work": {
+    "status": "planned_after_representative_profile",
+    "preserve_reference_behavior": true,
+    "prefer_existing_optimized_operators": true,
+    "custom_kernels_require_measured_hotspot": true,
+    "required_results": ["profile", "numerical_parity", "full_workload_timing", "peak_memory", "fallback"]
+  }
+}

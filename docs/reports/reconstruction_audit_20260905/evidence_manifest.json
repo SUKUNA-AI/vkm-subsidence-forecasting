@@ -1,0 +1,26 @@
+{
+  "parent_commit": "2c5eec48d523cf3fbc15898b0b44ac929b9b7c14",
+  "scope": "prior_audit_of_parent_release_not_metrics_of_repaired_data",
+  "files": [
+    {
+      "file": "audit_summary.json",
+      "sha256": "fbc4010ac102185a296c79bb7bea45af3e778011d70f70ac4fc6550b7f02b160",
+      "size_bytes": 2387
+    },
+    {
+      "file": "membership_mismatches.csv",
+      "sha256": "ce9d8a651e17e52bceeb7b5fc1d3b01c1fbdca43bd533bd454535dc7af262961",
+      "size_bytes": 1862
+    },
+    {
+      "file": "reconstruction_audit.json",
+      "sha256": "7384ca3bb95844a83eb1b06d84c6831bca1527814cd76ad92859c19b65a1b44f",
+      "size_bytes": 1929
+    },
+    {
+      "file": "conformal_counterexamples.json",
+      "sha256": "0ab64c521d6d22a2e0101aa656026e78f4dde0489ecf307bf72345de3b1dd51b",
+      "size_bytes": 571
+    }
+  ]
+}

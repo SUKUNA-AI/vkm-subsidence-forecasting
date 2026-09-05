@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "base_commit": "2c5eec48d523cf3fbc15898b0b44ac929b9b7c14",
+  "two_builds_byte_identical": true,
+  "generated_files_verified": 11,
+  "input_hashes_verified": 15,
+  "original_source_paths_sizes_hashes_unchanged": true,
+  "accepted_synthetic_observations": 2039,
+  "targets_exactly_equal_to_parent_except_status_metadata": true,
+  "unchanged_feature_cells_preserve_original_csv_tokens": true,
+  "default_allowlist_exact": 16,
+  "known_source_year_only_for_verified_Es_2023": true,
+  "tests": {
+    "passed": 60,
+    "failed": 0,
+    "scope": "repair,feature,target,split,leakage,causal-sequence contracts",
+    "latest_repair_module_tests": 12
+  },
+  "audit_environment": {
+    "python": "3.12.13",
+    "numpy": "2.5.2",
+    "pandas": "3.0.5"
+  },
+  "limitations": [
+    "No complete model training replay",
+    "Project CPython 3.13 environment not reproduced",
+    "Legacy B/C runners still use parent data",
+    "Spatial accuracy and scenario transfer remain unvalidated"
+  ]
+}

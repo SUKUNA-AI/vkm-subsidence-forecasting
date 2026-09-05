@@ -46,3 +46,4 @@ scripts/bootstrap_repo.ps1 -text -eol
 scripts/bootstrap_repo.sh -text -eol
 scripts/verify_inputs.py -text -eol
 SKRU1_ACTUAL_DATA_TABLES_v1/** -text -eol
+data/reconstruction_research_v1/** -text -eol whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

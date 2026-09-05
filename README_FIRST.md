@@ -1,6 +1,35 @@
 # SKRU1 reproducible research entrypoint
 
-## Current execution boundary
+## Current direction after the 2026-09-05 audit
+
+Read `docs/governance/RESEARCH_DIRECTION_RU.md` first. Original measurements
+and GIS tables are unavailable and are not expected. Both approved titles are
+fixed; their exact wording is recorded in section 3 of that document. The main
+deliverable remains the forecasting algorithm. Publication-based reconstruction
+and explicit simulation scenarios support its preparation and evaluation.
+Obtaining external data and expanding the model catalogue
+are not completion requirements. This does not establish field accuracy.
+
+The first implemented repair is `SKRU1_RECONSTRUCTION_RESEARCH_V1`:
+
+```bash
+python scripts/repair_reconstruction_data.py --root .
+```
+
+It verifies sources and parent tables, repairs observation status and missing
+counts, and writes a field/availability catalogue and model feature views to
+`data/reconstruction_research_v1/`. The default view has 16 history/plan fields;
+the augmented view requires an explicit simulation assumption. Unknown real
+source availability remains unknown. See that directory's `README.md`.
+
+The next task is to validate reconstruction against published figures and
+record the supported scenario constraints. C2 is deferred. Instructions for
+local Codex are in `docs/prompts/LOCAL_CODEX_RECONSTRUCTION_HANDOFF_RU.md`.
+Existing B/C runners still reproduce their frozen parent experiment; migrating
+to the repaired release requires a separate protocol and adapter, not a path
+substitution. Historical scores below are not scores of the repaired release.
+
+## Historical execution boundary at parent commit 2c5eec4
 
 The repository now contains the frozen Gate B5 train-only benchmark and the
 Gate B6 expanded classical/probabilistic/small-data workflow. Gate B5/B6 model
@@ -51,7 +80,7 @@ The one-shot future holdout policy now hashes and consumes
 `artifacts/governance/final_candidate_suite_v4.json`; it remains
 `PENDING_DATA` until a real eligible package is supplied.
 
-The next executable research stage is Gate C2 for the admitted
+The historical next research stage was Gate C2 for the admitted
 `C01_compact_gru` only: 42 leave-profile-out folds, 12 leave-zone-out folds,
 transition audit, calibration and suite-v5 eligibility. B1/B7/B8 remain frozen
 context comparators. Historical validation, disclosed test and the absent
@@ -99,6 +128,6 @@ python .\scripts\verify_inputs.py --root .
 
 Do not use `/mnt/data`, `E:\Диплом` or any other hard-coded host path in code. All operational paths are relative to the extracted bundle/repository root.
 
-## Scientific boundary
+## Historical model programme boundary
 
 DL breadth is expanded aggressively, but model count is not treated as evidence. Every complex model must beat strong temporal baselines under temporal, spatial and OOD validation. LLMs are an auxiliary source-grounded interface and experiment-analysis layer; direct LLM numeric prediction is not accepted as the primary scientific algorithm.

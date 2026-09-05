@@ -1,0 +1,15 @@
+﻿sample_id,field,old_value,new_value
+P-H04-W001::C007::C008,missing_campaigns_since_previous,2,3
+P-H04-W002::C007::C008,missing_campaigns_since_previous,2,3
+P-H04-W003::C007::C008,missing_campaigns_since_previous,2,3
+P-H04-W004::C007::C008,missing_campaigns_since_previous,2,3
+P-H04-W005::C007::C008,missing_campaigns_since_previous,2,3
+P-H04-W006::C007::C008,missing_campaigns_since_previous,2,3
+P-H04-W007::C007::C008,missing_campaigns_since_previous,2,3
+P-H07-W001::C012::C014,missing_campaigns_since_previous,2,3
+P-H07-W002::C012::C014,missing_campaigns_since_previous,2,3
+P-H07-W003::C012::C014,missing_campaigns_since_previous,2,3
+P-H07-W004::C012::C014,missing_campaigns_since_previous,2,3
+P-H07-W005::C012::C014,missing_campaigns_since_previous,2,3
+P-H07-W006::C012::C014,missing_campaigns_since_previous,3,4
+P-H07-W007::C012::C014,missing_campaigns_since_previous,2,3

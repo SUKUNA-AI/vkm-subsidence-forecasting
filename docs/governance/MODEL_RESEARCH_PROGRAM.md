@@ -1,6 +1,22 @@
 # Expanded Model Research Programme
 
-## Why the v1 list was insufficient
+## Current scope decision, 2026-09-05
+
+`RESEARCH_DIRECTION_RU.md` is the current authority for scope and sequencing.
+The original-measurement constraint is permanent. The next experiment must
+answer a question about publication-constrained reconstruction and simulation
+robustness; it does not need to execute every family in this historical menu.
+Start with B1 and IMM after spatial validation and a new scenario protocol.
+Retain the existing GRU result as evidence; additional GRU work is conditional
+on a specific unanswered hypothesis. C2, GNN, foundation-model and LLM layers
+are deferred, not diploma completion requirements. The final simulation
+evaluation must be named separately from the sealed legacy external holdout.
+
+The catalogue and stages below document the earlier broad-screening rationale.
+They do not override the current scope decision or authorize retrospective
+changes to completed experiment specifications and scores.
+
+## Historical rationale: why the v1 list was considered insufficient
 
 The prior roadmap overfocused on a single sensible operational line — Kalman/IMM/CatBoost — and therefore underspecified the comparative research required for a diploma whose direct predecessor explicitly studied neural, neuro-fuzzy and ensemble architectures. The corrected programme separates broad screening from final selection.
 

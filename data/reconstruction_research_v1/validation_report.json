@@ -1,0 +1,36 @@
+{
+  "dataset_id": "SKRU1_RECONSTRUCTION_RESEARCH_V1",
+  "claim_domain": "publication_constrained_reconstruction_and_simulation",
+  "bundled_inputs_verified": 17,
+  "parent_tables_verified": 7,
+  "membership_rows": 3654,
+  "membership_corrected": 18,
+  "membership_conflicts_after": 0,
+  "correction_reasons": {
+    "rejected_after_qc": 18
+  },
+  "candidate_origins": 1274,
+  "available_targets": 1216,
+  "label_status_counts": {
+    "observed": 1216,
+    "censored_access": 28,
+    "censored_weather": 17,
+    "censored_instrument": 7,
+    "censored_rejected_after_qc": 6
+  },
+  "historical_feature_values_corrected": 14,
+  "catalog_fields": 69,
+  "history_plan_feature_count": 16,
+  "augmented_feature_count": 50,
+  "real_source_available_at_values_invented": 0,
+  "models_trained": 0,
+  "numeric_targets_unchanged": true,
+  "frozen_benchmarks_modified": false,
+  "new_external_holdout_opened": false,
+  "remaining_work": [
+    "spatial_reconstruction_validation",
+    "scenario_protocol",
+    "runner_migration",
+    "performance_profile"
+  ]
+}

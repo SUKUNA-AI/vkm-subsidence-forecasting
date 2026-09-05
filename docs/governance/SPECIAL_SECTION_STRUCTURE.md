@@ -1,5 +1,37 @@
 # Corrected Special Section Structure
 
+## Current structure after the 2026-09-05 audit
+
+The approved titles are fixed and must be preserved exactly:
+
+- Diploma: «Горные и маркшейдерские работы при разработке Верхнекамского месторождения».
+- Special section: «Алгоритм прогнозирования оседаний земной поверхности на ВКМ на основе маркшейдерских измерений».
+
+The main deliverable remains the forecasting algorithm for surveying observation
+histories. Reconstruction and simulation support its implementation and evaluation;
+they do not replace the approved topic. Explain data limitations in the body.
+
+The current scope is defined in `RESEARCH_DIRECTION_RU.md`: original inputs are
+unavailable; the contribution is reconstruction, a tested forecasting method
+and a reproducible simulation study with explicit limits. Use this structure:
+
+1. Problem, estimand, next-planned target, available information and scope.
+2. Published sources, field provenance, units, dates and reconstruction limits.
+3. Spatial reconstruction with source overlays and independent checks where possible.
+4. Scenario mechanisms, irregular observations, missingness and assumptions.
+5. Baseline and IMM mechanics; representative existing model comparisons.
+6. Implementation, data contracts, tests, reproducibility and measured performance.
+7. Experiments: held mechanisms/parameter regions, ablations, error and interval analysis.
+8. Demonstration, verified findings, limitations and optional future field evaluation.
+
+A new architecture chapter is not required for every family in the old menu.
+The existing Word draft still reflects the historical scope and needs a later
+source-grounded revision. In that revision correct the Filatova bibliography,
+replace 'next actual observation' with 'next planned campaign', distinguish
+published/reconstructed/synthetic information, and avoid claiming field accuracy.
+
+## Historical structure and mapping for the existing Word draft
+
 ## 6.1 Problem statement
 
 Object, horizons, units, censoring and limitations.

@@ -1,0 +1,26 @@
+[
+  {
+    "n": 100,
+    "coverage": 0.95,
+    "required_rank": 96,
+    "correct_quantile": 96.0,
+    "legacy_uncertainty_function": 97.0,
+    "current_benchmark_function": 96.0
+  },
+  {
+    "n": 10,
+    "coverage": 0.8,
+    "required_rank": 9,
+    "correct_quantile": 9.0,
+    "legacy_uncertainty_function": 10.0,
+    "current_benchmark_function": 9.0
+  },
+  {
+    "n": 9,
+    "coverage": 0.95,
+    "required_rank": 10,
+    "correct_quantile": "infinity (rank exceeds calibration size)",
+    "legacy_uncertainty_function": 9.0,
+    "current_benchmark_function": 9.0
+  }
+]

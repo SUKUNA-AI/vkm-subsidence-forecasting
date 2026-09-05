@@ -1,10 +1,36 @@
-# Project State v6
+# Project State v7
+
+## Current direction: reconstruction and simulation, 2026-09-05
+
+The user confirmed that original measurements/GIS will not be supplied.
+`RESEARCH_DIRECTION_RU.md` supersedes the previous future-work priorities.
+The approved diploma and special-section titles are fixed, as recorded in
+section 3 of that document. The main result is the forecasting algorithm for
+surveying observation histories; reconstruction and simulation support its
+evaluation under irregular observations and uncertain inputs.
+External field validation is an optional extension, not a diploma completion
+gate. No legacy holdout is opened, renamed or marked as passed by this decision.
+
+Implemented in `data/reconstruction_research_v1/`: corrected source catalogue,
+69-field provenance/availability catalogue, 18 observation membership corrections,
+6 clarified censored target statuses and 14 historical missing-count corrections.
+The 1274 candidate origins, 1216 available targets, numeric labels and dates are
+preserved. Default model view: 16 history/plan fields; 50-field augmented view:
+explicit reconstruction assumptions only. Rebuild and verification:
+`python scripts/repair_reconstruction_data.py --root .`.
+
+Current next task: reproduce and assess the published spatial schemes, then
+freeze diverse scenario mechanisms and migrate B1/IMM to a separate experiment.
+Broader model expansion and C2 are deferred. Performance profiling, existing
+optimized operators and conditional custom kernels are recorded as PERF-01.
+No model was retrained in this repair. Existing B/C runners still load the
+frozen parent release. The historical results below describe that release.
 
 ## Verified bundled inputs
 
 The five bootstrap artifacts and eleven primary sources are physically included in this bundle and verified against SHA-256 manifests. Their status is `bundled_verified`, not merely `present_in_previous_runtime`.
 
-## Current scientific state
+## Historical scientific state at parent commit 2c5eec4
 
 - spatial reconstruction v3.2 exists;
 - EDA and target contracts exist;

@@ -1,0 +1,84 @@
+{
+  "commit": "2c5eec48d523cf3fbc15898b0b44ac929b9b7c14",
+  "tracked_files": 1044,
+  "code_files": 122,
+  "code_lines": 46526,
+  "original_mapinfo_members": [],
+  "original_mapinfo_files": [],
+  "canonical": {
+    "origins": 1274,
+    "allowed_features": 50,
+    "available_targets": 1216,
+    "status_counts": {
+      "observed": 1216,
+      "censored_access": 28,
+      "censored_weather": 17,
+      "censored_instrument": 7,
+      "observed_but_no_adjusted_leveling": 6
+    },
+    "train_rows": 911,
+    "train_origins_before_2022": 593,
+    "train_origins_before_2023": 795,
+    "points": 98,
+    "profiles": 14
+  },
+  "membership_mismatches": 18,
+  "anchor_conditioning": {
+    "overlapping_support_assignments": 20,
+    "mean_matches_lost_after_subsequent_writes": 2,
+    "max_final_mean_residual_mm": 1.0037689189989578,
+    "largest_preconditioning_mean_difference_mm": 2704.00464757103
+  },
+  "headline": {
+    "B1_persistence_last_rate": {
+      "model_id": "B1_persistence_last_rate",
+      "origins": 595,
+      "unique_origins": 595,
+      "mae_recomputed": 6.310996203736419,
+      "rmse_recomputed": 10.809518679762842
+    },
+    "B7_two_regime_imm": {
+      "model_id": "B7_two_regime_imm",
+      "origins": 595,
+      "unique_origins": 595,
+      "mae_recomputed": 5.639718690598765,
+      "rmse_recomputed": 9.983170312126028
+    },
+    "B7_coverage95_recomputed": 0.9512605042016806,
+    "B7_interval_width95_mean": 51.40480833928998,
+    "B7_skill_percent": 10.636633131552585
+  },
+  "c1": [
+    {
+      "model_id": "C01_compact_gru",
+      "aggregation": "mean_of_fixed_seeds",
+      "origins": 595,
+      "mae_recomputed": 6.287934504543562
+    },
+    {
+      "model_id": "C02_compact_lstm",
+      "aggregation": "mean_of_fixed_seeds",
+      "origins": 595,
+      "mae_recomputed": 6.466581579598985
+    },
+    {
+      "model_id": "C03_causal_tcn",
+      "aggregation": "mean_of_fixed_seeds",
+      "origins": 595,
+      "mae_recomputed": 6.551860225503131
+    },
+    {
+      "model_id": "C04_probabilistic_gru_student_t",
+      "aggregation": "mean_of_fixed_seeds",
+      "origins": 595,
+      "mae_recomputed": 7.177393404799803
+    }
+  ],
+  "test_environment": {
+    "python": "3.12.13",
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "note": "Linux audit environment; not the exact Windows CPython 3.13 lock; no full training rerun."
+  },
+  "git_status": ""
+}
