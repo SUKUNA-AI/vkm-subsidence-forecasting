@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "checks": {
+    "source_pdf_hash_verified": true,
+    "native_source_images_hash_verified": true,
+    "digitization_input_hash_verified": true,
+    "four_profiles_present": true,
+    "candidate_and_finite_counts_match": true,
+    "readability_counts_match": true,
+    "unresolved_values_not_interpolated": true,
+    "axis_calibration_reproduces_saved_values": true,
+    "categorical_axes_preserved": true,
+    "no_synthetic_profile_mapping_invented": true,
+    "not_a_time_series": true
+  },
+  "candidate_positions": 258,
+  "finite_digitized_values": 252,
+  "readability_counts": {
+    "unresolved_occlusion": 6,
+    "digitized_marker_or_visible_curve": 186,
+    "partially_occluded_approximation": 66
+  },
+  "maximum_absolute_axis_calibration_residual_mm": 0.049423,
+  "dataset_linkage": "NO_NUMERIC_PROFILE_LINK_FOUND",
+  "models_trained": 0,
+  "generator_executed": false,
+  "new_holdout_opened": false,
+  "environment": {
+    "python": "3.13.13",
+    "numpy": "2.5.2",
+    "matplotlib": "3.11.1"
+  }
+}

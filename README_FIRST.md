@@ -22,9 +22,12 @@ counts, and writes a field/availability catalogue and model feature views to
 the augmented view requires an explicit simulation assumption. Unknown real
 source availability remains unknown. See that directory's `README.md`.
 
-The next task is to validate reconstruction against published figures and
-record the supported scenario constraints. C2 is deferred. Instructions for
-local Codex are in `docs/prompts/LOCAL_CODEX_RECONSTRUCTION_HANDOFF_RU.md`.
+The reconstruction atlas and source-aware scenario-constraint registry are now
+implemented and validated; see `docs/reports/RECONSTRUCTION_ATLAS_V1_RU.md`.
+The next task is to freeze diverse temporal, missingness and measurement-error
+mechanisms in a versioned simulator, then migrate B1/IMM through a separate
+adapter and protocol. C2 is deferred. The completed local handoff instructions
+remain in `docs/prompts/LOCAL_CODEX_RECONSTRUCTION_HANDOFF_RU.md` as provenance.
 Existing B/C runners still reproduce their frozen parent experiment; migrating
 to the repaired release requires a separate protocol and adapter, not a path
 substitution. Historical scores below are not scores of the repaired release.

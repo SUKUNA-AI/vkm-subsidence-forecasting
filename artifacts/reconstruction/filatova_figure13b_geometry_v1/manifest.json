@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "artifact_id": "FILATOVA_FIGURE13B_GEOMETRY_V1",
+  "source_data_commit": "90e2e293cf868a6ef191f2eddc0f52d46f94d4b8",
+  "command": "python scripts/reconstruct_filatova_figure13b.py --root .",
+  "inputs": [
+    {
+      "path": "inputs/sources/primary/ВКР_Филатова_М_С.docx",
+      "sha256": "45978d5fc446fa35d0b3e271c44a5790bc5b4101321b20f8078ff83dc8ae2931",
+      "size_bytes": 17826165
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/reproduce_v3.py",
+      "sha256": "0d238f938183494ac9dbd8c523c4c01dedd018061edb0a550f5de229179d9f49",
+      "size_bytes": 104959
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/plan_units_reconstructed.csv",
+      "sha256": "00361808b863838a705662ee7c863732cf0443c9db462cbc7c85306bb347d3e5",
+      "size_bytes": 304579
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/overview_georeference.csv",
+      "sha256": "d6a1fb766ae6bf5c4ae6a10f8530e661a89530b1e330ec99c03d65d2df5f3945",
+      "size_bytes": 331
+    },
+    {
+      "path": "configs/filatova_figure13b_geometry_v1.json",
+      "sha256": "8cdb2377e2091bee003b1ef4269d37a2ecaa47349fd96285971f7e6fadcb7312",
+      "size_bytes": 2993
+    },
+    {
+      "path": "scripts/reconstruct_filatova_figure13b.py",
+      "sha256": "0439832b54fcf0ff13dca1ecd6e6f5f917dbf38146012208aeba0f5cda66a240",
+      "size_bytes": 23736
+    }
+  ],
+  "outputs": [
+    {
+      "path": "README.md",
+      "sha256": "dfdc955a320026b919bd770f123a0abbbd7e7ce60efd17c7a54bc89e57a472b4",
+      "size_bytes": 938
+    },
+    {
+      "path": "comparison.png",
+      "sha256": "a1dcb50712f2f593073f31adb45f45898512b544e7015d25b4ee237f155e8175",
+      "size_bytes": 2090270
+    },
+    {
+      "path": "limitations.json",
+      "sha256": "684f36791292a1832759ca3172ab780f7fed3127998c2afdb7ba2deb78e4f7bb",
+      "size_bytes": 908
+    },
+    {
+      "path": "method_sensitivity.json",
+      "sha256": "78ced30e6ef42032f8452a1d0f4f4c555c119170589ee2cacc6ec330df29fee9",
+      "size_bytes": 742
+    },
+    {
+      "path": "plan_units_pixel.csv",
+      "sha256": "da43324264f3b0df3875c37eed561ea971f3f81a699fad9d2a08e16124d94a05",
+      "size_bytes": 165491
+    },
+    {
+      "path": "reconstructed_scheme.png",
+      "sha256": "256d3e2a5ee2c1e5006714c6993c1857a3bf412c0e521be1716c7244bd2d1bd3",
+      "size_bytes": 375241
+    },
+    {
+      "path": "source_figure13.png",
+      "sha256": "37b6b614a1d13771588abe2f606d7ecd701f971a0e1787f0ac6f12ae80bd108e",
+      "size_bytes": 572663
+    },
+    {
+      "path": "source_overlay.png",
+      "sha256": "c56cceee8b243d3c4e72ca8f8c5387c5b3d9fde453ee7fa9eee8aa6ad488c915",
+      "size_bytes": 1949152
+    },
+    {
+      "path": "source_plan_crop.png",
+      "sha256": "bcf934edac8233333f2b4068d80ea509724370570ff160c3d541297277d0e49f",
+      "size_bytes": 307381
+    },
+    {
+      "path": "threshold_sensitivity.csv",
+      "sha256": "867f62caa0ec2e8a3cf3c1f4db807c69dee67d21708831cfddda89b308d69abd",
+      "size_bytes": 53664
+    },
+    {
+      "path": "unreadable_regions.csv",
+      "sha256": "5c7f603f2b3efa0cdd51eb595327933454532f6c0a37a6d32b1a8aa4bd8b6114",
+      "size_bytes": 1518
+    },
+    {
+      "path": "validation_report.json",
+      "sha256": "4a409a38413530bfd14b083b526d20a18a3fc9cc392cb6d282c433ed5b225804",
+      "size_bytes": 915
+    }
+  ]
+}

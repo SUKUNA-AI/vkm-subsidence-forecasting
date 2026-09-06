@@ -19,8 +19,16 @@ preserved. Default model view: 16 history/plan fields; 50-field augmented view:
 explicit reconstruction assumptions only. Rebuild and verification:
 `python scripts/repair_reconstruction_data.py --root .`.
 
-Current next task: reproduce and assess the published spatial schemes, then
-freeze diverse scenario mechanisms and migrate B1/IMM to a separate experiment.
+The first source atlas is complete: four Musikhin profiles preserve 258 plotted
+positions (252 readable values and 6 unresolved), and Filatova Figure 13b is
+reproduced as 538 source-pixel regions with 13 threshold-sensitive regions.
+Each scheme retains source, overlay, digitization, unreadable/sensitive cases,
+method uncertainty and limitations. The 31-row scenario-constraint registry
+separates source envelopes, context-only evidence and four design assumptions.
+See `docs/reports/RECONSTRUCTION_ATLAS_V1_RU.md`.
+
+Current next task: freeze diverse scenario mechanisms in a versioned generator,
+then migrate B1/IMM to a separate experiment.
 Broader model expansion and C2 are deferred. Performance profiling, existing
 optimized operators and conditional custom kernels are recorded as PERF-01.
 No model was retrained in this repair. Existing B/C runners still load the

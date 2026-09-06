@@ -1,0 +1,14 @@
+﻿unit_id,strict_iou,strict_centroid_shift_px,lenient_iou,lenient_centroid_shift_px,classification,interpretation
+F13B-PX-0021,0.0,,0.997159,0.036483,threshold_sensitive,color-threshold repeatability_not_geodetic_accuracy
+F13B-PX-0065,0.940299,0.210842,0.365079,3.243594,threshold_sensitive,color-threshold repeatability_not_geodetic_accuracy
+F13B-PX-0072,1.0,0.0,0.0,,threshold_sensitive,color-threshold repeatability_not_geodetic_accuracy
+F13B-PX-0133,0.803922,1.469338,0.0,,threshold_sensitive,color-threshold repeatability_not_geodetic_accuracy
+F13B-PX-0146,1.0,0.0,0.0,,threshold_sensitive,color-threshold repeatability_not_geodetic_accuracy
+F13B-PX-0164,1.0,0.0,0.0,,threshold_sensitive,color-threshold repeatability_not_geodetic_accuracy
+F13B-PX-0188,1.0,0.0,0.0,,threshold_sensitive,color-threshold repeatability_not_geodetic_accuracy
+F13B-PX-0223,0.978558,0.11662,0.47676,12.393987,threshold_sensitive,color-threshold repeatability_not_geodetic_accuracy
+F13B-PX-0314,0.625,3.0,0.0,,threshold_sensitive,color-threshold repeatability_not_geodetic_accuracy
+F13B-PX-0321,0.794118,0.57748,0.0,,threshold_sensitive,color-threshold repeatability_not_geodetic_accuracy
+F13B-PX-0332,0.893939,0.504072,0.59322,1.44825,threshold_sensitive,color-threshold repeatability_not_geodetic_accuracy
+F13B-PX-0397,0.69186,1.777825,0.495798,3.889531,threshold_sensitive,color-threshold repeatability_not_geodetic_accuracy
+F13B-PX-0399,0.885714,0.272867,0.0,,threshold_sensitive,color-threshold repeatability_not_geodetic_accuracy

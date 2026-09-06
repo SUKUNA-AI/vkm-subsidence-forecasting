@@ -1,0 +1,37 @@
+{
+  "status": "PASS",
+  "checks": {
+    "fourteen_ordered_positions": true,
+    "readability_counts": true,
+    "signed_values_preserved": true,
+    "unresolved_not_interpolated": true,
+    "native_pixel_coordinates_inside_image": true,
+    "nonmetric_source_x_recognized": true,
+    "repeat_reading_within_two_native_pixels": true,
+    "no_numeric_profile_link_in_available_generator": true,
+    "no_invented_date_or_synthetic_id": true,
+    "not_a_time_series": true,
+    "accepted_repaired_tables_unchanged": true
+  },
+  "inputs_verified": 19,
+  "readability_counts": {
+    "clear_marker_center": 7,
+    "partially_occluded_approximation": 4,
+    "unresolved_occlusion": 3
+  },
+  "numerically_reconstructed_positions": 11,
+  "independent_repeat_count": 5,
+  "max_abs_repeat_difference_mm": 0.877,
+  "repeat_rmse_mm": 0.6297108860421582,
+  "repeat_error_meaning": "same-source method repeatability only; neither field accuracy nor a second-observer study",
+  "models_trained": 0,
+  "generator_executed": false,
+  "new_holdout_opened": false,
+  "dataset_linkage": "NO_NUMERIC_PROFILE_LINK_FOUND",
+  "environment": {
+    "python": "3.13.13",
+    "numpy": "2.5.2",
+    "matplotlib": "3.11.1",
+    "renderer": "Poppler pdftoppm 300 dpi"
+  }
+}

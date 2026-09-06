@@ -1,0 +1,44 @@
+{
+  "gridline_calibration": [
+    {
+      "rendered_pixel_y": 501,
+      "signed_mm": 0
+    },
+    {
+      "rendered_pixel_y": 552,
+      "signed_mm": -50
+    },
+    {
+      "rendered_pixel_y": 602,
+      "signed_mm": -100
+    },
+    {
+      "rendered_pixel_y": 651,
+      "signed_mm": -150
+    },
+    {
+      "rendered_pixel_y": 701,
+      "signed_mm": -200
+    },
+    {
+      "rendered_pixel_y": 751,
+      "signed_mm": -250
+    },
+    {
+      "rendered_pixel_y": 801,
+      "signed_mm": -300
+    },
+    {
+      "rendered_pixel_y": 852,
+      "signed_mm": -350
+    },
+    {
+      "rendered_pixel_y": 902,
+      "signed_mm": -400
+    }
+  ],
+  "mm_per_rendered_y_pixel": -0.9993194360195875,
+  "intercept_mm": 500.96706662129515,
+  "method": "Separate Poppler 300 dpi PDF render, blue vertical-span midpoint, independent nine-gridline vertical calibration; no reuse of primary y coordinates.",
+  "operator_independence": "different_extraction_method_same_source_not_second_human_observer"
+}

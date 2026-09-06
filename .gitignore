@@ -52,6 +52,10 @@ pip.conf
 # Reproducible but generated working trees
 work/
 
+# Local distribution archive. Its 241 files are byte-identical to the
+# versioned SKRU1_ACTUAL_DATA_TABLES_v1/ tree; keep the duplicate out of Git.
+/SKRU1_ACTUAL_DATA_TABLES_v1.zip
+
 # Local sealed final-holdout package; commit only its instructions and frozen hashes.
 inputs/holdout_candidates/t1_final_v3/*
 !inputs/holdout_candidates/t1_final_v3/README.md

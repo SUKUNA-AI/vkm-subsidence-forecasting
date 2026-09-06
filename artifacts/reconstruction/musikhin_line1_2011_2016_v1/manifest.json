@@ -1,0 +1,174 @@
+{
+  "artifact_id": "MUSIKHIN_LINE1_LEVELING_2011_2016_V1",
+  "source_data_commit": "90e2e293cf868a6ef191f2eddc0f52d46f94d4b8",
+  "command": "python scripts/reconstruct_musikhin_line1.py --root .",
+  "inputs": [
+    {
+      "path": "inputs/sources/supplementary/geokniga-02obrabotka.pdf",
+      "sha256": "4d20f03c0c3a7bb7039c405e2aff2780a30d9f6e52e99fe5da50fa4c9ccbe947",
+      "size_bytes": 3576355
+    },
+    {
+      "path": "artifacts/reconstruction/musikhin_line1_2011_2016_v1/inputs/source_line1_native.png",
+      "sha256": "254b82c1eb8aecb1dbacd071257cbade8d69bfca628367af6f067bafc114ea97",
+      "size_bytes": 59637
+    },
+    {
+      "path": "artifacts/reconstruction/musikhin_line1_2011_2016_v1/inputs/handoff_line1_leveling_2011_2016.csv",
+      "sha256": "fdd17589cba9c884bc2368dd01ac042e785c7bc15cfb19af374836148eb7401f",
+      "size_bytes": 3217
+    },
+    {
+      "path": "artifacts/reconstruction/musikhin_line1_2011_2016_v1/inputs/extraction_manifest.json",
+      "sha256": "f39ba1e702b94b44cafde19b977d082f3153f6e17e42b1aac4bed7fc731ab54b",
+      "size_bytes": 1354
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/reproduce_v3.py",
+      "sha256": "0d238f938183494ac9dbd8c523c4c01dedd018061edb0a550f5de229179d9f49",
+      "size_bytes": 104959
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/reproduce_v3_2.py",
+      "sha256": "1141d84bfb7b1e5f8af5309421c37343ae136b571606ab4eac4936818a231691",
+      "size_bytes": 127593
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/metadata/reconstruction_config.json",
+      "sha256": "6c9629dd564a20db28139f2b0da194a681ce44d7551749d012a36322dde686ec",
+      "size_bytes": 648
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/source_registry.csv",
+      "sha256": "bb0abaab709b3dde2677b2ce3603777f889976b7baa4dab666fcf34737381d8e",
+      "size_bytes": 1162
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/survey_profiles.csv",
+      "sha256": "51b718e103d6993493810cc8a4df384ce57db45bb325f4cbec55c8da09bb0e49",
+      "size_bytes": 611
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/survey_campaigns.csv",
+      "sha256": "c193ece0a743a42447cffa38a3a77f855557c706d094c682c70bf121086aced3",
+      "size_bytes": 2359
+    },
+    {
+      "path": "src/skru1/reconstruction_data.py",
+      "sha256": "a784d5094c739db61b09c3b693c2cc9aff68609905c45ed1e0ad5fffdce561f3",
+      "size_bytes": 27250
+    },
+    {
+      "path": "src/skru1/data_contracts.py",
+      "sha256": "7029901eca6323e24db9818c97c5c15a1d4630ed66eeefcdc774085b1e586d20",
+      "size_bytes": 11780
+    },
+    {
+      "path": "scripts/verify_inputs.py",
+      "sha256": "680a5931bb903d217147807e7cb1da11c918749fbb52a902575624315699d541",
+      "size_bytes": 2150
+    },
+    {
+      "path": "configs/reconstruction_research_v1.json",
+      "sha256": "c4e4585389bcf79e17ce3e9c821f1e39e81aff12f406a5b83028c354544ae4a1",
+      "size_bytes": 2553
+    },
+    {
+      "path": "configs/reconstruction_parent_manifest.csv",
+      "sha256": "27fd3150cc83d5852600616853ef57f49753bf1811c65dda6f65e737c95394f3",
+      "size_bytes": 1146
+    },
+    {
+      "path": "configs/supplementary_source_manifest.csv",
+      "sha256": "9ed4885c5e4607fc6445ef4c01c35ab3a1ca70a81dc5301b9aee4a54f0a251ef",
+      "size_bytes": 1364
+    },
+    {
+      "path": "configs/gate_a1.yaml",
+      "sha256": "ec567b165d1c3c517970f4d425c17930ba7c9520680d6ad587cce7d7c47121d1",
+      "size_bytes": 2230
+    },
+    {
+      "path": "data/reconstruction_research_v1/point_feature_lineage.csv",
+      "sha256": "5b6d9e14497178a5b41bbea1caaefc2cc02713c20aae990a9232d796d183058d",
+      "size_bytes": 425623
+    },
+    {
+      "path": "data/reconstruction_research_v1/manifest.json",
+      "sha256": "c999d2ef98da1645de4831e30b131c8da72abde2f4f1372d1cb9868b98df0dd2",
+      "size_bytes": 4722
+    },
+    {
+      "path": "configs/musikhin_line1_digitization_v1.json",
+      "sha256": "e8bcaf788b7d11ab75375a544c93a0b6db414fd6a2c7bd4da92dffb782e740a4",
+      "size_bytes": 12859
+    },
+    {
+      "path": "scripts/reconstruct_musikhin_line1.py",
+      "sha256": "21a285d81a920b8e15d63c4bfd332df1ef7d1ac60a92fc90434334d1e072e646",
+      "size_bytes": 27795
+    }
+  ],
+  "outputs": [
+    {
+      "path": "points.csv",
+      "sha256": "257f643f300a58fce6699cd9938292ae63f0958857b2a996f58b1db13d8274cb",
+      "size_bytes": 7235
+    },
+    {
+      "path": "repeat_readings.csv",
+      "sha256": "c2710feb2dd491c67e37ba02b8642c7776d53ee1d3c756cb4e657e936404c52a",
+      "size_bytes": 721
+    },
+    {
+      "path": "axis_diagnostics.json",
+      "sha256": "181c8943f7feeb1891179337005c77cf910884680aa1444f17fbf3c50f7a36a8",
+      "size_bytes": 2003
+    },
+    {
+      "path": "repeat_calibration.json",
+      "sha256": "25bf2c5eb316050502f4977c531b3cfec2f4559957fcd951a3830d9c7dcab42d",
+      "size_bytes": 991
+    },
+    {
+      "path": "dataset_linkage.json",
+      "sha256": "dd30b8da9b6ecfc04a9a7043f874df9436ebc12110495f88c3d7e7bc67c7445a",
+      "size_bytes": 2397
+    },
+    {
+      "path": "source_fragment.png",
+      "sha256": "5e7f3a6ba5a2bf71f17977297ea01f2fc431ac1b9273152a1208093e1d7a1246",
+      "size_bytes": 58625
+    },
+    {
+      "path": "source_overlay.png",
+      "sha256": "4f277ed6714cc084bae02af5f3e2f67c4bb6946921ac07a515ef63020d14bd1f",
+      "size_bytes": 352180
+    },
+    {
+      "path": "reconstructed_profile.png",
+      "sha256": "fd4af5cd2d021e179cdb348760cbd49e9416aa684b1b4c93607c269a80e934ad",
+      "size_bytes": 107690
+    },
+    {
+      "path": "comparison.png",
+      "sha256": "8138e9b059f5136485c19c3b09e2cf70a7a44a5e41c1fb28545aad08d82aeda7",
+      "size_bytes": 478199
+    },
+    {
+      "path": "validation_report.json",
+      "sha256": "cb7e1abfca948082889794fe5d080ca639e993c0526db83aac63e4bcc83df09f",
+      "size_bytes": 1241
+    },
+    {
+      "path": "limitations.json",
+      "sha256": "cba98cf5d7456865b422cb45b7beb762693f823f7fa5a0fa9bfe67225abc31c0",
+      "size_bytes": 739
+    },
+    {
+      "path": "README.md",
+      "sha256": "f356cd5720c667d2a3b1833832f08c982d4c00102f3b8511110d98e8cd5f84ca",
+      "size_bytes": 1260
+    }
+  ]
+}

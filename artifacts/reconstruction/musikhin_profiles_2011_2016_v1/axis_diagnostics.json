@@ -1,0 +1,66 @@
+{
+  "1": {
+    "vertical_anchors": [
+      {
+        "pixel_y": 91,
+        "signed_mm": 0
+      },
+      {
+        "pixel_y": 426,
+        "signed_mm": -400
+      }
+    ],
+    "slope_mm_per_native_pixel": -1.1940298507462686,
+    "intercept_mm": 108.65671641791045,
+    "maximum_absolute_saved_value_residual_mm": 0.049254,
+    "horizontal_numeric_affine_calibration_allowed": false
+  },
+  "5": {
+    "vertical_anchors": [
+      {
+        "pixel_y": 91,
+        "signed_mm": 0
+      },
+      {
+        "pixel_y": 426,
+        "signed_mm": -350
+      }
+    ],
+    "slope_mm_per_native_pixel": -1.044776119402985,
+    "intercept_mm": 95.07462686567163,
+    "maximum_absolute_saved_value_residual_mm": 0.049254,
+    "horizontal_numeric_affine_calibration_allowed": false
+  },
+  "17": {
+    "vertical_anchors": [
+      {
+        "pixel_y": 91,
+        "signed_mm": 0
+      },
+      {
+        "pixel_y": 426,
+        "signed_mm": -200
+      }
+    ],
+    "slope_mm_per_native_pixel": -0.5970149253731343,
+    "intercept_mm": 54.32835820895522,
+    "maximum_absolute_saved_value_residual_mm": 0.049254,
+    "horizontal_numeric_affine_calibration_allowed": false
+  },
+  "6": {
+    "vertical_anchors": [
+      {
+        "pixel_y": 91,
+        "signed_mm": 10
+      },
+      {
+        "pixel_y": 524,
+        "signed_mm": -60
+      }
+    ],
+    "slope_mm_per_native_pixel": -0.16166281755196305,
+    "intercept_mm": 24.711316397228636,
+    "maximum_absolute_saved_value_residual_mm": 0.049423,
+    "horizontal_numeric_affine_calibration_allowed": false
+  }
+}

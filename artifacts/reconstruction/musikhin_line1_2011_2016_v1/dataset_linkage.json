@@ -1,0 +1,74 @@
+{
+  "status": "NO_NUMERIC_PROFILE_LINK_FOUND",
+  "scope": "Available generation code, parent source registry, repaired lineage and release input paths",
+  "generation_source_docx": "ВКР_Филатова_М_С.docx",
+  "generation_source_docx_sha256": "45978d5fc446fa35d0b3e271c44a5790bc5b4101321b20f8078ff83dc8ae2931",
+  "published_profile_references_in_generation_scripts": [],
+  "parent_source_registry_contains_SUP01_or_geokniga": false,
+  "repaired_lineage_source_ids": [
+    "SRC01"
+  ],
+  "synthetic_profile_ids": [
+    "P-H01",
+    "P-H02",
+    "P-H03",
+    "P-H04",
+    "P-H05",
+    "P-H06",
+    "P-H07",
+    "P-V01",
+    "P-V02",
+    "P-V03",
+    "P-V04",
+    "P-V05",
+    "P-V06",
+    "P-D01"
+  ],
+  "synthetic_campaign_date_min": "2018-05-15",
+  "synthetic_campaign_date_max": "2025-11-04",
+  "source_profile_to_synthetic_id_mapping": null,
+  "supplementary_pdf_role_in_repair": "File integrity verification only; no profile values are parsed into the seven parent tables",
+  "evidence": [
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/reproduce_v3.py",
+      "lines": [
+        815,
+        846
+      ],
+      "meaning": "Constructed P-H/P-V/P-D lines, nominal spacing and synthetic point identifiers"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/reproduce_v3.py",
+      "lines": [
+        1331,
+        1349
+      ],
+      "meaning": "Filatova DOCX media and published anchors feed the reconstructed grid and designed network"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/reproduce_v3_2.py",
+      "lines": [
+        1954,
+        1966
+      ],
+      "meaning": "Inherited point/grid tables feed temporal generation and measurement simulation"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/reproduce_v3_2.py",
+      "lines": [
+        173,
+        330
+      ],
+      "meaning": "Scenario dynamics and a 2022 map anchor; not a 2011-2016 leveling-history import"
+    },
+    {
+      "path": "src/skru1/reconstruction_data.py",
+      "lines": [
+        302,
+        336
+      ],
+      "meaning": "Seven repair-table inputs and separate source hash verification"
+    }
+  ],
+  "limits": "No geographic correspondences or original benchmark IDs tie Line 1 to this network. Absence of a numeric link does not erase its separately catalogued documentary role."
+}

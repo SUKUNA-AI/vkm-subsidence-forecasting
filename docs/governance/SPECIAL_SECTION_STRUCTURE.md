@@ -29,6 +29,10 @@ The existing Word draft still reflects the historical scope and needs a later
 source-grounded revision. In that revision correct the Filatova bibliography,
 replace 'next actual observation' with 'next planned campaign', distinguish
 published/reconstructed/synthetic information, and avoid claiming field accuracy.
+The first evidence package for section 3 is now
+`docs/reports/RECONSTRUCTION_ATLAS_V1_RU.md`: four Musikhin profiles, Filatova
+Figure 13b, their overlays, unreadable/sensitive cases and the scenario-constraint
+registry. It supplies reconstruction evidence, not field-validation evidence.
 
 ## Historical structure and mapping for the existing Word draft
 

@@ -1,0 +1,17 @@
+{
+  "source": "ВКР_Филатова_М_С.docx",
+  "source_location": "Рисунок 13б",
+  "reconstructed_object": "closed regions bounded by the red plan overlay",
+  "coordinate_system": "zero_based_source_raster_upper_left_x_right_y_down",
+  "metric_georeferencing_accuracy_established": false,
+  "original_mapinfo_or_gis_available": false,
+  "background_map_role": "visual context only",
+  "unreadable_or_sensitive_region_count": 13,
+  "limits": [
+    "The 538 regions reproduce the nominal segmentation topology; they are not 538 independent measurements.",
+    "Threshold sensitivity measures image-processing repeatability only.",
+    "No official coordinate key or independent control points establish metre-level accuracy.",
+    "Labels, symbols and map background may interrupt or merge red linework.",
+    "The source figure cannot recover the original 1665-row, 257-field GIS table."
+  ]
+}

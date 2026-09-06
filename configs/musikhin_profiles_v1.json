@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "artifact_id": "MUSIKHIN_PUBLISHED_PROFILES_V1",
+  "accepted_data_commit": "90e2e293cf868a6ef191f2eddc0f52d46f94d4b8",
+  "output_directory": "artifacts/reconstruction/musikhin_profiles_2011_2016_v1",
+  "source_pdf": {
+    "path": "inputs/sources/supplementary/geokniga-02obrabotka.pdf",
+    "sha256": "4d20f03c0c3a7bb7039c405e2aff2780a30d9f6e52e99fe5da50fa4c9ccbe947",
+    "size_bytes": 3576355,
+    "pdf_page": 15
+  },
+  "digitization": {
+    "path": "data/published_figure_digitization_v1/musikhin_profiles_digitization.csv",
+    "sha256": "2fc8ac5cd0a40eff9c230e641fe5a3c1a7e1522d41dd989d9abf7eda4af02761",
+    "size_bytes": 54267,
+    "expected_rows": 258,
+    "expected_finite_values": 252,
+    "expected_status_counts": {
+      "digitized_marker_or_visible_curve": 186,
+      "partially_occluded_approximation": 66,
+      "unresolved_occlusion": 6
+    }
+  },
+  "dataset_linkage_evidence": {
+    "path": "artifacts/reconstruction/musikhin_line1_2011_2016_v1/dataset_linkage.json",
+    "sha256": "dd30b8da9b6ecfc04a9a7043f874df9436ebc12110495f88c3d7e7bc67c7445a",
+    "size_bytes": 2397,
+    "required_status": "NO_NUMERIC_PROFILE_LINK_FOUND"
+  },
+  "profiles": [
+    {
+      "profile_label": "1",
+      "pdf_xobject": "/Image157",
+      "source_image_path": "data/published_figure_digitization_v1/source_profile_1_native.png",
+      "source_image_sha256": "254b82c1eb8aecb1dbacd071257cbade8d69bfca628367af6f067bafc114ea97",
+      "source_image_size_bytes": 59637,
+      "native_size_px": [900, 731],
+      "pdf_placement_points": [311.88, 0, 0, 209.76, 25.5, 235.98],
+      "plot_bbox_native_px": [100, 91, 875, 426],
+      "vertical_anchors": [
+        {"pixel_y": 91, "signed_mm": 0},
+        {"pixel_y": 426, "signed_mm": -400}
+      ],
+      "expected_rows": 56
+    },
+    {
+      "profile_label": "5",
+      "pdf_xobject": "/Image159",
+      "source_image_path": "data/published_figure_digitization_v1/source_profile_5_native.png",
+      "source_image_sha256": "7ccbcd0bc9300472354f1e53cdc54851e682998be9d97b3463a8de6567936fb2",
+      "source_image_size_bytes": 62192,
+      "native_size_px": [900, 731],
+      "pdf_placement_points": [317.64, 0, 0, 209.76, 382.62, 235.98],
+      "plot_bbox_native_px": [100, 91, 875, 426],
+      "vertical_anchors": [
+        {"pixel_y": 91, "signed_mm": 0},
+        {"pixel_y": 426, "signed_mm": -350}
+      ],
+      "expected_rows": 96
+    },
+    {
+      "profile_label": "17",
+      "pdf_xobject": "/Image161",
+      "source_image_path": "data/published_figure_digitization_v1/source_profile_17_native.png",
+      "source_image_sha256": "bfef815b174e50db7add90a0debca2d9f4c06e2c6fdc0fded600a5e5b558eef0",
+      "source_image_size_bytes": 51207,
+      "native_size_px": [900, 731],
+      "pdf_placement_points": [328.86, 0, 0, 194.58, 25.5, 35.64],
+      "plot_bbox_native_px": [100, 91, 875, 426],
+      "vertical_anchors": [
+        {"pixel_y": 91, "signed_mm": 0},
+        {"pixel_y": 426, "signed_mm": -200}
+      ],
+      "expected_rows": 44
+    },
+    {
+      "profile_label": "6",
+      "pdf_xobject": "/Image163",
+      "source_image_path": "data/published_figure_digitization_v1/source_profile_6_native.png",
+      "source_image_sha256": "3d68aef28ce7c2398a2bed91cb6894bdcd95d7d0f894ede10b57e2ae2bcdf325",
+      "source_image_size_bytes": 52950,
+      "native_size_px": [900, 731],
+      "pdf_placement_points": [338.88, 0, 0, 194.82, 360, 35.4],
+      "plot_bbox_native_px": [100, 91, 875, 524],
+      "vertical_anchors": [
+        {"pixel_y": 91, "signed_mm": 10},
+        {"pixel_y": 524, "signed_mm": -60}
+      ],
+      "expected_rows": 62
+    }
+  ],
+  "series": [
+    {"method": "leveling", "interval": "2011-2016", "label_ru": "Нивелирование, 2011-2016", "color": "#2864A8", "marker": "D", "line_style": "-", "filled": true},
+    {"method": "leveling", "interval": "2015-2016", "label_ru": "Нивелирование, 2015-2016", "color": "#2864A8", "marker": "s", "line_style": "--", "filled": false},
+    {"method": "radar", "interval": "2011-2016", "label_ru": "Радар, 2011-2016", "color": "#8AAE45", "marker": "^", "line_style": "-", "filled": true},
+    {"method": "radar", "interval": "2015-2016", "label_ru": "Радар, 2015-2016", "color": "#8AAE45", "marker": "x", "line_style": "--", "filled": false}
+  ],
+  "chart_contract": {
+    "question": "Какие пространственные профили и значения можно повторно получить из опубликованного рисунка 15?",
+    "takeaway": "Оцифрованы четыре пространственных профиля и 252 значения; это не журнал наблюдений и не временные ряды искусственной сети.",
+    "family": "ordered multi-series line with reading envelopes",
+    "renderer": "Matplotlib Agg plus Pillow",
+    "surface": "standalone PNG atlas",
+    "palette_policy": "hard two-root cap for authored marks; source colors are preserved only in source panels",
+    "non_color_encoding": "method by marker, interval by line style and fill, partial readings by orange open rings",
+    "qa": "inspect every comparison.png and atlas.png at full resolution"
+  }
+}
