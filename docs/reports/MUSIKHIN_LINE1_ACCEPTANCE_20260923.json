@@ -1,0 +1,604 @@
+{
+  "status": "PASS",
+  "date": "2026-09-23",
+  "scope": "one_published_spatial_profile_acceptance_no_training",
+  "head_before_acceptance": "9d58f7bebcd323c23b319ab34b4e7ba62362fea6",
+  "accepted_data_commit": "90e2e293cf868a6ef191f2eddc0f52d46f94d4b8",
+  "checks": [
+    {
+      "check": "source_and_parent_manifests",
+      "status": "PASS",
+      "files": 24
+    },
+    {
+      "check": "manifest:data/reconstruction_research_v1/manifest.json",
+      "status": "PASS",
+      "verified_files": 26
+    },
+    {
+      "check": "manifest:artifacts/reconstruction/musikhin_line1_2011_2016_v1/manifest.json",
+      "status": "PASS",
+      "verified_files": 33
+    },
+    {
+      "check": "manifest:artifacts/reconstruction/musikhin_profiles_2011_2016_v1/manifest.json",
+      "status": "PASS",
+      "verified_files": 39
+    },
+    {
+      "check": "manifest:artifacts/reconstruction/scenario_constraints_v1/manifest.json",
+      "status": "PASS",
+      "verified_files": 9
+    },
+    {
+      "check": "original_handoff_equals_versioned_copy",
+      "status": "PASS",
+      "sha256": "2fc8ac5cd0a40eff9c230e641fe5a3c1a7e1522d41dd989d9abf7eda4af02761"
+    },
+    {
+      "check": "handoff_subset_values_preserved",
+      "status": "PASS",
+      "rows": 14
+    },
+    {
+      "check": "frozen_native_pixels_equal_pdf_xobject",
+      "status": "PASS",
+      "size": [
+        900,
+        731
+      ],
+      "page": 15,
+      "xobject": "/Image157"
+    },
+    {
+      "check": "all_profile_outputs_byte_identical",
+      "status": "PASS",
+      "files": 12
+    },
+    {
+      "check": "profile_rebuild_passed",
+      "status": "PASS",
+      "details": {
+        "status": "PASS",
+        "checks": {
+          "fourteen_ordered_positions": true,
+          "readability_counts": true,
+          "signed_values_preserved": true,
+          "unresolved_not_interpolated": true,
+          "native_pixel_coordinates_inside_image": true,
+          "nonmetric_source_x_recognized": true,
+          "repeat_reading_within_two_native_pixels": true,
+          "no_numeric_profile_link_in_available_generator": true,
+          "no_invented_date_or_synthetic_id": true,
+          "not_a_time_series": true,
+          "accepted_repaired_tables_unchanged": true
+        },
+        "inputs_verified": 19,
+        "readability_counts": {
+          "clear_marker_center": 7,
+          "partially_occluded_approximation": 4,
+          "unresolved_occlusion": 3
+        },
+        "numerically_reconstructed_positions": 11,
+        "independent_repeat_count": 5,
+        "max_abs_repeat_difference_mm": 0.877,
+        "repeat_rmse_mm": 0.6297108860421582,
+        "repeat_error_meaning": "same-source method repeatability only; neither field accuracy nor a second-observer study",
+        "models_trained": 0,
+        "generator_executed": false,
+        "new_holdout_opened": false,
+        "dataset_linkage": "NO_NUMERIC_PROFILE_LINK_FOUND",
+        "environment": {
+          "python": "3.13.13",
+          "numpy": "2.5.2",
+          "matplotlib": "3.11.1",
+          "renderer": "Poppler pdftoppm 300 dpi"
+        }
+      }
+    },
+    {
+      "check": "registered_envelope_matches_original_atlas",
+      "status": "PASS",
+      "values": 10,
+      "lower_mm": -349.3,
+      "upper_mm": -96.1
+    },
+    {
+      "check": "scenario_mechanisms_do_not_reference_musikhin_constraints",
+      "status": "PASS",
+      "selected_ids": [
+        "FIL-DISP_MAX-ENVELOPE",
+        "FIL-DISP_MEAN-ENVELOPE",
+        "FIL-FIG13B-CLOSED-REGIONS",
+        "SIM-TEMPORAL-MECHANISM"
+      ]
+    },
+    {
+      "check": "accepted_data_commit_excludes_zip_backup_and_work",
+      "status": "PASS",
+      "commit": "90e2e293cf868a6ef191f2eddc0f52d46f94d4b8",
+      "changed_paths": [
+        ".gitattributes",
+        "README.md",
+        "README_FIRST.md",
+        "configs/reconstruction_parent_manifest.csv",
+        "configs/reconstruction_research_v1.json",
+        "configs/source_manifest.csv",
+        "configs/supplementary_source_manifest.csv",
+        "data/reconstruction_research_v1/README.md",
+        "data/reconstruction_research_v1/campaign_point_membership.csv",
+        "data/reconstruction_research_v1/feature_changes.csv",
+        "data/reconstruction_research_v1/field_catalog.csv",
+        "data/reconstruction_research_v1/formal_feature_contract.csv",
+        "data/reconstruction_research_v1/manifest.json",
+        "data/reconstruction_research_v1/membership_corrections.csv",
+        "data/reconstruction_research_v1/next_planned_features.csv",
+        "data/reconstruction_research_v1/next_planned_features_all.csv",
+        "data/reconstruction_research_v1/next_planned_features_reconstruction_assumptions.csv",
+        "data/reconstruction_research_v1/next_planned_operational_targets.csv",
+        "data/reconstruction_research_v1/point_feature_lineage.csv",
+        "data/reconstruction_research_v1/validation_report.json",
+        "docs/governance/MODEL_RESEARCH_PROGRAM.md",
+        "docs/governance/PROJECT_STATE.md",
+        "docs/governance/RESEARCH_DIRECTION_RU.md",
+        "docs/governance/SPECIAL_SECTION_STRUCTURE.md",
+        "docs/prompts/LOCAL_CODEX_RECONSTRUCTION_HANDOFF_RU.md",
+        "docs/reports/reconstruction_audit_20260905/README.md",
+        "docs/reports/reconstruction_audit_20260905/audit_summary.json",
+        "docs/reports/reconstruction_audit_20260905/conformal_counterexamples.json",
+        "docs/reports/reconstruction_audit_20260905/evidence_manifest.json",
+        "docs/reports/reconstruction_audit_20260905/local_acceptance_windows.json",
+        "docs/reports/reconstruction_audit_20260905/membership_mismatches.csv",
+        "docs/reports/reconstruction_audit_20260905/reconstruction_audit.json",
+        "docs/reports/reconstruction_audit_20260905/repair_validation.json",
+        "scripts/repair_reconstruction_data.py",
+        "src/skru1/reconstruction_data.py",
+        "tests/test_reconstruction_data.py"
+      ]
+    },
+    {
+      "check": "tracked_worktree_unchanged_before_report",
+      "status": "PASS"
+    },
+    {
+      "check": "targeted_data_repair_tests",
+      "status": "PASS",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "source_manifest_results": [
+    {
+      "relative_path": "inputs/bootstrap/SKRU1_data_reconstruction_v3_2.zip",
+      "exists": true,
+      "expected_size": 28015302,
+      "actual_size": 28015302,
+      "expected_sha256": "b179505c22d7513e53622816532e174a0bd0611173a8a0f64a1250a3362ca99a",
+      "actual_sha256": "b179505c22d7513e53622816532e174a0bd0611173a8a0f64a1250a3362ca99a",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/bootstrap/SKRU1_v3_2_EDA_targets_v1.zip",
+      "exists": true,
+      "expected_size": 2050248,
+      "actual_size": 2050248,
+      "expected_sha256": "7a654c9989ff51494b077d602205e047e69b1733f50573353e8870f94179a387",
+      "actual_sha256": "7a654c9989ff51494b077d602205e047e69b1733f50573353e8870f94179a387",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/bootstrap/build_skru1_v3_2_1.py",
+      "exists": true,
+      "expected_size": 47044,
+      "actual_size": 47044,
+      "expected_sha256": "6c6e1f55a9240e1b4bb213ebcb984550248caa534bf71e8264f75b97725cd7c9",
+      "actual_sha256": "6c6e1f55a9240e1b4bb213ebcb984550248caa534bf71e8264f75b97725cd7c9",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/bootstrap/run_skru1_experiments_v1.py",
+      "exists": true,
+      "expected_size": 69178,
+      "actual_size": 69178,
+      "expected_sha256": "3b730a1aa74de2db3f1a0af0954d689c3b361c220af4a66ecbcb2c26c0451a88",
+      "actual_sha256": "3b730a1aa74de2db3f1a0af0954d689c3b361c220af4a66ecbcb2c26c0451a88",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/bootstrap/audit_skru1_experiment_suite_v1.py",
+      "exists": true,
+      "expected_size": 12268,
+      "actual_size": 12268,
+      "expected_sha256": "5fc59a5ec20291d121d042dc0fd6f90389b3720a462342b85da3664deaf00940",
+      "actual_sha256": "5fc59a5ec20291d121d042dc0fd6f90389b3720a462342b85da3664deaf00940",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/ВКР_Филатова_М_С.docx",
+      "exists": true,
+      "expected_size": 17826165,
+      "actual_size": 17826165,
+      "expected_sha256": "45978d5fc446fa35d0b3e271c44a5790bc5b4101321b20f8078ff83dc8ae2931",
+      "actual_sha256": "45978d5fc446fa35d0b3e271c44a5790bc5b4101321b20f8078ff83dc8ae2931",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/НК 26 Бобровицкий Григорий.pdf",
+      "exists": true,
+      "expected_size": 5766049,
+      "actual_size": 5766049,
+      "expected_sha256": "b83204aabdbb5902a8936a3b4d7393220ae4de0384b34b4db22b218df352ea59",
+      "actual_sha256": "b83204aabdbb5902a8936a3b4d7393220ae4de0384b34b4db22b218df352ea59",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/03-GR-24-2.pdf",
+      "exists": true,
+      "expected_size": 2233477,
+      "actual_size": 2233477,
+      "expected_sha256": "e134fc6d506d1e7ffcdabf4bd6da9e9a27554ce14139105310440490c7c86fda",
+      "actual_sha256": "e134fc6d506d1e7ffcdabf4bd6da9e9a27554ce14139105310440490c7c86fda",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/Babayants-Disser.pdf",
+      "exists": true,
+      "expected_size": 9870619,
+      "actual_size": 9870619,
+      "expected_sha256": "a80ae607e33ddf25f49073400fa138aeba67a86dd5abac7d131732c9491eff21",
+      "actual_sha256": "a80ae607e33ddf25f49073400fa138aeba67a86dd5abac7d131732c9491eff21",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/01006516068.pdf",
+      "exists": true,
+      "expected_size": 4385416,
+      "actual_size": 4385416,
+      "expected_sha256": "faf80647870baa85d11569ecec7a70989990dd607ab307e9141f30a9d1d77e4d",
+      "actual_sha256": "faf80647870baa85d11569ecec7a70989990dd607ab307e9141f30a9d1d77e4d",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/106_Губанова__Глебова.pdf",
+      "exists": true,
+      "expected_size": 1879377,
+      "actual_size": 1879377,
+      "expected_sha256": "2a4ff431d272cce17c873b65db589f41933332905ace3fd1abb550fb5c346350",
+      "actual_sha256": "2a4ff431d272cce17c873b65db589f41933332905ace3fd1abb550fb5c346350",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/Гусев_АП_Спутниковый_мониторинг_геодинамики.pdf",
+      "exists": true,
+      "expected_size": 3719355,
+      "actual_size": 3719355,
+      "expected_sha256": "c6fb2be70b04f8d868929b44de746729615eeb97375a9b442816cb022b200770",
+      "actual_sha256": "c6fb2be70b04f8d868929b44de746729615eeb97375a9b442816cb022b200770",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/Shirshova (1).pdf",
+      "exists": true,
+      "expected_size": 902713,
+      "actual_size": 902713,
+      "expected_sha256": "887d802ec7b7a0a8788b2527ac1240432cb353b655ed00dc51fd8d8269aa21bf",
+      "actual_sha256": "887d802ec7b7a0a8788b2527ac1240432cb353b655ed00dc51fd8d8269aa21bf",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/sputnikovaya_radarnaya_interferometriya_informatsionno_vychislitelnye.pdf",
+      "exists": true,
+      "expected_size": 7209923,
+      "actual_size": 7209923,
+      "expected_sha256": "fd03e70d87017a58b5f32533efb80861aeb0c3910f7c828ac18c6485037a4d0b",
+      "actual_sha256": "fd03e70d87017a58b5f32533efb80861aeb0c3910f7c828ac18c6485037a4d0b",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/02f4a17c7c7ba99cfc068395238c5ff9.pdf",
+      "exists": true,
+      "expected_size": 6312669,
+      "actual_size": 6312669,
+      "expected_sha256": "d5fb9946ec69d9cb9e5f4e1b5227570c8effa879b1549fe9d5e0ef65a0747f67",
+      "actual_sha256": "d5fb9946ec69d9cb9e5f4e1b5227570c8effa879b1549fe9d5e0ef65a0747f67",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/primary/88q34t4oapf2ibwjcw2ie0oz2bjbtmc4.pdf",
+      "exists": true,
+      "expected_size": 3832123,
+      "actual_size": 3832123,
+      "expected_sha256": "c3a47a5df74dc38d648cdc3d962472e45cca9b8d1c4770687f244d2ad8fbdd74",
+      "actual_sha256": "c3a47a5df74dc38d648cdc3d962472e45cca9b8d1c4770687f244d2ad8fbdd74",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "inputs/sources/supplementary/geokniga-02obrabotka.pdf",
+      "exists": true,
+      "expected_size": 3576355,
+      "actual_size": 3576355,
+      "expected_sha256": "4d20f03c0c3a7bb7039c405e2aff2780a30d9f6e52e99fe5da50fa4c9ccbe947",
+      "actual_sha256": "4d20f03c0c3a7bb7039c405e2aff2780a30d9f6e52e99fe5da50fa4c9ccbe947",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/campaign_point_membership.csv",
+      "exists": true,
+      "expected_size": 338011,
+      "actual_size": 338011,
+      "expected_sha256": "13c507b8707ea160d0c670a8d2fddc363be13352e11a30a9f51be8f80be6ebae",
+      "actual_sha256": "13c507b8707ea160d0c670a8d2fddc363be13352e11a30a9f51be8f80be6ebae",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/leveling_adjusted_epochs.csv",
+      "exists": true,
+      "expected_size": 354118,
+      "actual_size": 354118,
+      "expected_sha256": "0177b382bf2e7c4a1dcbc8b0131614634ce695fe6cb1717fb2d3e1c288eb72db",
+      "actual_sha256": "0177b382bf2e7c4a1dcbc8b0131614634ce695fe6cb1717fb2d3e1c288eb72db",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/leveling_runs_summary.csv",
+      "exists": true,
+      "expected_size": 24984,
+      "actual_size": 24984,
+      "expected_sha256": "a638daf28a5a45bd67f88c74d1c84e17c9eadb1d46a3640a04ffb9dcc75cd750",
+      "actual_sha256": "a638daf28a5a45bd67f88c74d1c84e17c9eadb1d46a3640a04ffb9dcc75cd750",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/point_feature_lineage.csv",
+      "exists": true,
+      "expected_size": 99765,
+      "actual_size": 99765,
+      "expected_sha256": "0f2849ec1a0a4912a0fe1342779b0a479d0fbf077c627f88b6de88ef109496ca",
+      "actual_sha256": "0f2849ec1a0a4912a0fe1342779b0a479d0fbf077c627f88b6de88ef109496ca",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/next_planned_features.csv",
+      "exists": true,
+      "expected_size": 567264,
+      "actual_size": 567264,
+      "expected_sha256": "5d360910e8eeea10a2572bb35d3de4f0b9b316ec5a6ee3b43389c07b09848ab6",
+      "actual_sha256": "5d360910e8eeea10a2572bb35d3de4f0b9b316ec5a6ee3b43389c07b09848ab6",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/next_planned_operational_targets.csv",
+      "exists": true,
+      "expected_size": 306693,
+      "actual_size": 306693,
+      "expected_sha256": "289912a0b2c79ee1163529c6998d879594062cf0d453ec7665b2bb06f562ee1b",
+      "actual_sha256": "289912a0b2c79ee1163529c6998d879594062cf0d453ec7665b2bb06f562ee1b",
+      "status": "PASS"
+    },
+    {
+      "relative_path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/formal_feature_contract.csv",
+      "exists": true,
+      "expected_size": 7427,
+      "actual_size": 7427,
+      "expected_sha256": "241bad48e67659ffc953349cd2bce59e61f2a2867d57698abd6574edd4a05272",
+      "actual_sha256": "241bad48e67659ffc953349cd2bce59e61f2a2867d57698abd6574edd4a05272",
+      "status": "PASS"
+    }
+  ],
+  "reproduced_outputs": [
+    {
+      "path": "points.csv",
+      "sha256": "257f643f300a58fce6699cd9938292ae63f0958857b2a996f58b1db13d8274cb",
+      "byte_identical": true
+    },
+    {
+      "path": "repeat_readings.csv",
+      "sha256": "c2710feb2dd491c67e37ba02b8642c7776d53ee1d3c756cb4e657e936404c52a",
+      "byte_identical": true
+    },
+    {
+      "path": "axis_diagnostics.json",
+      "sha256": "181c8943f7feeb1891179337005c77cf910884680aa1444f17fbf3c50f7a36a8",
+      "byte_identical": true
+    },
+    {
+      "path": "repeat_calibration.json",
+      "sha256": "25bf2c5eb316050502f4977c531b3cfec2f4559957fcd951a3830d9c7dcab42d",
+      "byte_identical": true
+    },
+    {
+      "path": "dataset_linkage.json",
+      "sha256": "dd30b8da9b6ecfc04a9a7043f874df9436ebc12110495f88c3d7e7bc67c7445a",
+      "byte_identical": true
+    },
+    {
+      "path": "source_fragment.png",
+      "sha256": "5e7f3a6ba5a2bf71f17977297ea01f2fc431ac1b9273152a1208093e1d7a1246",
+      "byte_identical": true
+    },
+    {
+      "path": "source_overlay.png",
+      "sha256": "4f277ed6714cc084bae02af5f3e2f67c4bb6946921ac07a515ef63020d14bd1f",
+      "byte_identical": true
+    },
+    {
+      "path": "reconstructed_profile.png",
+      "sha256": "fd4af5cd2d021e179cdb348760cbd49e9416aa684b1b4c93607c269a80e934ad",
+      "byte_identical": true
+    },
+    {
+      "path": "comparison.png",
+      "sha256": "8138e9b059f5136485c19c3b09e2cf70a7a44a5e41c1fb28545aad08d82aeda7",
+      "byte_identical": true
+    },
+    {
+      "path": "validation_report.json",
+      "sha256": "cb7e1abfca948082889794fe5d080ca639e993c0526db83aac63e4bcc83df09f",
+      "byte_identical": true
+    },
+    {
+      "path": "limitations.json",
+      "sha256": "cba98cf5d7456865b422cb45b7beb762693f823f7fa5a0fa9bfe67225abc31c0",
+      "byte_identical": true
+    },
+    {
+      "path": "README.md",
+      "sha256": "f356cd5720c667d2a3b1833832f08c982d4c00102f3b8511110d98e8cd5f84ca",
+      "byte_identical": true
+    }
+  ],
+  "detailed_profile": {
+    "numeric_count": 11,
+    "lower_mm": -349.9,
+    "upper_mm": -96.7
+  },
+  "linkage": {
+    "repaired_dataset": "NO_NUMERIC_PROFILE_LINK_FOUND",
+    "atlas_and_constraint_registry": "NUMERIC_DOCUMENTARY_LINK_PRESENT",
+    "registry_constraint": {
+      "constraint_id": "MUS-P1-LEVELING-2011-2016-SIGNED-DISP",
+      "domain": "published_spatial_profile",
+      "quantity": "signed_displacement_envelope",
+      "lower_bound": "-349.3",
+      "upper_bound": "-96.1",
+      "unit": "mm",
+      "allowed_values": "",
+      "basis_type": "published_graph_digitization",
+      "source_id": "SUP01",
+      "source_location": "geokniga-02obrabotka.pdf, p.15, profile 1, leveling, 2011-2016",
+      "dependency": "profile label, method, observation interval and printed categorical position order",
+      "confidence": "medium",
+      "use_scope": "scenario_conditioning_and_stress_design_not_parameter_prior",
+      "status": "SOURCE_ENVELOPE",
+      "notes": "Envelope of 10 readable digitized values; not a time series and not mapped to synthetic points."
+    },
+    "registry_uses": "original_handoff_values_not_detailed_line1_revision",
+    "current_scenario_generator": "INTEGRITY_AND_PROVENANCE_DEPENDENCY_ONLY_NO_NUMERIC_PROFILE_CONSUMPTION",
+    "generator_is_untracked": true,
+    "code_evidence": [
+      {
+        "path": "scripts/reconstruct_musikhin_profiles.py",
+        "symbol": "normalize_rows",
+        "transformation": "handoff values to signed_displacement_mm"
+      },
+      {
+        "path": "scripts/build_scenario_constraints.py",
+        "symbol": "musikhin_rows",
+        "transformation": "group by profile/method/interval, take min/max of readable values"
+      },
+      {
+        "path": "src/skru1/scenario_simulation.py",
+        "symbol": "verify_upstream",
+        "transformation": "verify manifest input/output hashes only"
+      },
+      {
+        "path": "src/skru1/scenario_simulation.py",
+        "symbol": "_latent_surface",
+        "transformation": "configured amplitude times assumed temporal and spatial factors; no profile CSV read"
+      }
+    ],
+    "synthetic_point_mapping": null,
+    "constraint_registry_not_rewritten": true
+  },
+  "models_trained": 0,
+  "scenario_generator_executed": false,
+  "experiment_or_holdout_run": false,
+  "evidence": [
+    {
+      "path": "configs/musikhin_line1_digitization_v1.json",
+      "sha256": "e8bcaf788b7d11ab75375a544c93a0b6db414fd6a2c7bd4da92dffb782e740a4",
+      "size_bytes": 12859
+    },
+    {
+      "path": "scripts/reconstruct_musikhin_line1.py",
+      "sha256": "21a285d81a920b8e15d63c4bfd332df1ef7d1ac60a92fc90434334d1e072e646",
+      "size_bytes": 27795
+    },
+    {
+      "path": "data/published_figure_digitization_v1/musikhin_profiles_digitization.csv",
+      "sha256": "2fc8ac5cd0a40eff9c230e641fe5a3c1a7e1522d41dd989d9abf7eda4af02761",
+      "size_bytes": 54267
+    },
+    {
+      "path": "scripts/reconstruct_musikhin_profiles.py",
+      "sha256": "e4153905f60715a8b0f75eb8838ae7b6183420f7f0e7dbff737d5bae372d7ee6",
+      "size_bytes": 28092
+    },
+    {
+      "path": "scripts/build_scenario_constraints.py",
+      "sha256": "8b51b40c33fd8f01ed2ad1ef44c34da84dc233b5083151aff877a5436c3ea5b3",
+      "size_bytes": 17533
+    },
+    {
+      "path": "artifacts/reconstruction/scenario_constraints_v1/scenario_constraints.csv",
+      "sha256": "a73d0decc0a0c3b082656354c686f3d248e0993533bdc0e7a6b9bf64d8cf0fb8",
+      "size_bytes": 13809
+    },
+    {
+      "path": "configs/scenario_simulation_v1.json",
+      "sha256": "5e82d7061d660b18d3a4aa8be2a02bd4cb58cfda3a62be54918df6237a489208",
+      "size_bytes": 6511
+    },
+    {
+      "path": "src/skru1/scenario_simulation.py",
+      "sha256": "c80cb731936203ded228388562190427ecb3de000b0e03235617e6e017d44713",
+      "size_bytes": 47320
+    },
+    {
+      "path": "data/scenario_simulation_v1/manifest.json",
+      "sha256": "ff4273970cc34b08e6c45c952f8ff013cad84c08f8b845f9b8d5a0b25855ea40",
+      "size_bytes": 3161
+    },
+    {
+      "path": "docs/reports/reconstruction_audit_20260905/local_acceptance_windows.json",
+      "sha256": "9c251b9cbb59e82d39a935944b147331b8342f600373e4fdb62a984578b09027",
+      "size_bytes": 7647
+    },
+    {
+      "path": "docs/governance/SPECIAL_SECTION_STRUCTURE.md",
+      "sha256": "32ed75d3f07f8c8463670cc9eb76b48552f9b7f4c18ae39bc381564bc3d37e47",
+      "size_bytes": 6287
+    },
+    {
+      "path": "tests/test_reconstruction_data.py",
+      "sha256": "8aa7c0a5b1af24a5c828122d87b76aa9a88e11b7a2554e8eeb5b3afd353d8cc8",
+      "size_bytes": 5275
+    },
+    {
+      "path": "work/profile_line1/pytest_20260923.xml",
+      "sha256": "6896e2c2f0cd79ed4582936d426cd1df7a31ed96157ecfa91e22395378c0210c",
+      "size_bytes": 1835
+    },
+    {
+      "path": "work/profile_line1/audit_20260923.py",
+      "sha256": "bf021a22f19e41b3c155ca2c8265b978cbef31bc1f62165ee3cc5e268c8aa226",
+      "size_bytes": 9160
+    },
+    {
+      "path": "data/reconstruction_research_v1/manifest.json",
+      "sha256": "c999d2ef98da1645de4831e30b131c8da72abde2f4f1372d1cb9868b98df0dd2",
+      "size_bytes": 4722
+    },
+    {
+      "path": "artifacts/reconstruction/musikhin_line1_2011_2016_v1/manifest.json",
+      "sha256": "5081dc8ce463119774cb4a6e3ffdd121a1a38e9b3bd0cee75e0382dbb6ce9f06",
+      "size_bytes": 6262
+    },
+    {
+      "path": "artifacts/reconstruction/musikhin_profiles_2011_2016_v1/manifest.json",
+      "sha256": "7740a92603762c9fb7db3c264db95c257bcf28d635aea54a2775676956e2bac4",
+      "size_bytes": 7045
+    },
+    {
+      "path": "artifacts/reconstruction/scenario_constraints_v1/manifest.json",
+      "sha256": "c4d19250233087658c373794f84e05c5e49687238beb0dc42505b8d8039eacdd",
+      "size_bytes": 1961
+    }
+  ],
+  "commands": [
+    ".\\.venv\\Scripts\\python.exe scripts/reconstruct_musikhin_line1.py --root . --output work/profile_line1/recheck_20260923",
+    ".\\.venv\\Scripts\\python.exe -m pytest tests/test_reconstruction_data.py -q -p no:cacheprovider --basetemp work/profile_line1/pytest_20260923 --junitxml work/profile_line1/pytest_20260923.xml"
+  ]
+}
