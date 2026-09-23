@@ -1,0 +1,206 @@
+{
+  "schema_version": 2,
+  "dataset_id": "SKRU1_SCENARIO_SIMULATION_V2",
+  "source_release_id": "SKRU1_RECONSTRUCTION_RESEARCH_V1",
+  "constraints_version": "SKRU1_SCENARIO_CONSTRAINTS_V2",
+  "claim_domain": "synthetic_publication_envelope_conditioned_not_field_validation",
+  "source_data_commit": "9d58f7bebcd323c23b319ab34b4e7ba62362fea6",
+  "code_commit": "93463fbea798697183c1b0b1d3180eea934dea0f",
+  "code_state": "uncommitted_source_hashes_authoritative",
+  "random_seeds": [
+    104729,
+    130363
+  ],
+  "inputs": [
+    {
+      "path": "artifacts/reconstruction/scenario_constraints_v2/canonical_digitization.csv",
+      "sha256": "f33c22a8b6af4a8def6aeffc696cedc73434fb704fe174907a453c11f224abe0",
+      "size_bytes": 149769
+    },
+    {
+      "path": "artifacts/reconstruction/scenario_constraints_v2/manifest.json",
+      "sha256": "96b88b61cf766062c1f831e32b50bdd82441da63c50ce41569a5ffad297de6ef",
+      "size_bytes": 6213
+    },
+    {
+      "path": "artifacts/reconstruction/scenario_constraints_v2/profile_series_inventory.csv",
+      "sha256": "569391023196200b52045ef187a8ca1e2b490dd6bec093e11ce786451a6a6e5f",
+      "size_bytes": 3208
+    },
+    {
+      "path": "artifacts/reconstruction/scenario_constraints_v2/scenario_constraints.csv",
+      "sha256": "46478e6d94da50d12c6ce7e9b0fbf13ef9d476b069dd369f7df0a63649e94f8f",
+      "size_bytes": 37762
+    },
+    {
+      "path": "configs/scenario_simulation_v2.json",
+      "sha256": "1c7e1ec25f7fab4850de2e911e5b1f514893a166a8d4d65bc281d96e0fb9a866",
+      "size_bytes": 7754
+    },
+    {
+      "path": "data/reconstruction_research_v1/campaign_point_membership.csv",
+      "sha256": "8bcd4c1cc938d6e3f3e505547900c7acf55b3208b5396f3bb1479bac21f8e48d",
+      "size_bytes": 785435
+    },
+    {
+      "path": "data/reconstruction_research_v1/formal_feature_contract.csv",
+      "sha256": "381e0781f3fbf5713165885fe469a1f2cc28bebcae4616f6a9d93e17d37c2658",
+      "size_bytes": 8415
+    },
+    {
+      "path": "data/reconstruction_research_v1/manifest.json",
+      "sha256": "c999d2ef98da1645de4831e30b131c8da72abde2f4f1372d1cb9868b98df0dd2",
+      "size_bytes": 4722
+    },
+    {
+      "path": "data/reconstruction_research_v1/next_planned_features_all.csv",
+      "sha256": "7c0303b89f391a1b2e0b13579071bb7b92239b896d9a42e61f5a7e261f1dfb95",
+      "size_bytes": 558347
+    },
+    {
+      "path": "scripts/generate_scenario_v2.py",
+      "sha256": "11a00169edd8913f73cc2868aaca91af3ca41acda03a90b7654ed9561f6c4cd7",
+      "size_bytes": 664
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/survey_points.csv",
+      "sha256": "36c1b86e6e370a50cbb3bbf94e96684ef4c6b0b35a5cd62147cb6fd9869fb7f9",
+      "size_bytes": 22322
+    },
+    {
+      "path": "src/skru1/empirical_constraints_v2.py",
+      "sha256": "a800e7051b7c24c5018d0f757323338677ed4ec02618c183b98317222b2697ed",
+      "size_bytes": 10951
+    },
+    {
+      "path": "src/skru1/scenario_simulation.py",
+      "sha256": "c80cb731936203ded228388562190427ecb3de000b0e03235617e6e017d44713",
+      "size_bytes": 47320
+    },
+    {
+      "path": "src/skru1/scenario_simulation_v2.py",
+      "sha256": "dfb0b983e2a0b31e25373004dc1e2f46ec700a36152c9552677b93e07e152e31",
+      "size_bytes": 47857
+    }
+  ],
+  "outputs": [
+    {
+      "path": "campaign_catalog.csv",
+      "sha256": "7436eb7d0000f3ed87d3111e84f498ed541fa725a41410a3a3861b9dc1be62c2",
+      "size_bytes": 685,
+      "deterministic": true
+    },
+    {
+      "path": "causal_history.csv.gz",
+      "sha256": "353a5eb72dab8b97d6fe6915b4395b7e473bb3815c595febaa4d91c502226f42",
+      "size_bytes": 14787378,
+      "deterministic": true
+    },
+    {
+      "path": "distribution_summary.json",
+      "sha256": "1df2620a3ba6ccb4134e4374e3a44e55c09634a39a48c7df8cd4895dc167536f",
+      "size_bytes": 4615,
+      "deterministic": true
+    },
+    {
+      "path": "environment.json",
+      "sha256": "42772129c77491c461e030dbaec805be5955cf6256d153140f398f4c61db63f1",
+      "size_bytes": 110,
+      "deterministic": true
+    },
+    {
+      "path": "evaluator/campaign_truth.csv.gz",
+      "sha256": "835a5effd54e5ba72c4f72e0df4892cad93f5a0e4ec4e6cda8da8248aa07821e",
+      "size_bytes": 20780157,
+      "deterministic": true
+    },
+    {
+      "path": "evaluator/conditioning_log.csv",
+      "sha256": "2dfe390e5da171b1c2f9a1416901fa503669e756bad54e0007a8a4d7c21becba",
+      "size_bytes": 338172,
+      "deterministic": true
+    },
+    {
+      "path": "evaluator/next_planned_truth.csv.gz",
+      "sha256": "8b22f15256c590ed4aa798a80c78c9432642912207ba8664a774b9f911cd2c85",
+      "size_bytes": 19036531,
+      "deterministic": true
+    },
+    {
+      "path": "feature_contract.json",
+      "sha256": "f877cbfacfb39df2d0c52e106ab78ffff3f621d2f5199cf3210bf045d28afba9",
+      "size_bytes": 1079,
+      "deterministic": true
+    },
+    {
+      "path": "field_provenance.json",
+      "sha256": "08bef9c7969ca1d4eeee3d1c542d4e7aa5f582f4e5801d851e30755c356011b3",
+      "size_bytes": 898,
+      "deterministic": true
+    },
+    {
+      "path": "generation_config.json",
+      "sha256": "652fb1115445c960f36f9630808a0932549607def8e254e32ff8481ed0f8b221",
+      "size_bytes": 7555,
+      "deterministic": true
+    },
+    {
+      "path": "model_features.csv.gz",
+      "sha256": "5461059ebda0ec2eeaa6ff5ee0ffe4a5ade082645f3210cc60c1379e6f88d5fa",
+      "size_bytes": 18206301,
+      "deterministic": true
+    },
+    {
+      "path": "point_roster.csv",
+      "sha256": "feb31c0a0e936921f910ed1b4f8c131f8fdf6dd2dbdf703842bb5137214d2dad",
+      "size_bytes": 3727,
+      "deterministic": true
+    },
+    {
+      "path": "README.md",
+      "sha256": "c067cdb83be375a27af1711683d2801dac542000948952766ddbdfbde30385eb",
+      "size_bytes": 4792,
+      "deterministic": true
+    },
+    {
+      "path": "scenario_catalog.csv",
+      "sha256": "a42fcfc66fb1d2a05c71eeabf62658c5d99ac9308e81ca99544986945eda4a5c",
+      "size_bytes": 370648,
+      "deterministic": true
+    },
+    {
+      "path": "sequence_windows.csv.gz",
+      "sha256": "e44c03f265af9451e7662548d2103f1f126af3444212a67f5b1007dabfba863d",
+      "size_bytes": 5731486,
+      "deterministic": true
+    },
+    {
+      "path": "split_assignments.csv.gz",
+      "sha256": "39e73d58e8bda1adb7c95e5ba4d027154b49f86fc88abc66264b606b8adde77d",
+      "size_bytes": 1264028,
+      "deterministic": true
+    },
+    {
+      "path": "targets/calibration_observed.csv.gz",
+      "sha256": "7362e90be1534ac7f81ef7a9e3097c06d35fc8067be72640a216aaa80612ff87",
+      "size_bytes": 357229,
+      "deterministic": true
+    },
+    {
+      "path": "targets/train_observed.csv.gz",
+      "sha256": "cb4f77b1135a759f67731fb6750c05940894c620798e2fd813340c504ea93e65",
+      "size_bytes": 1269736,
+      "deterministic": true
+    },
+    {
+      "path": "validation_report.json",
+      "sha256": "aaac413046b8d8b9427106396a1fd5af4b9ad7e9e1ca616cf96fff4f90e5a2eb",
+      "size_bytes": 1818,
+      "deterministic": true
+    }
+  ],
+  "release_policy": "append_only_refuse_nonempty_destination",
+  "models_trained": 0,
+  "legacy_label_access": "none; only source geometry/planned membership columns were parsed",
+  "command": "python scripts/generate_scenario_v2.py --root ."
+}

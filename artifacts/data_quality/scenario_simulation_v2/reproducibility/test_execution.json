@@ -1,0 +1,36 @@
+{
+  "status": "PASS",
+  "passed": 40,
+  "runs": [
+    {
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "pytest",
+        "tests/test_data_foundation_v2.py",
+        "tests/test_reconstruction_data.py",
+        "tests/test_reconstruction_atlas.py",
+        "-q",
+        "--basetemp=work/data_foundation_v2/pytest_receipt_v2"
+      ],
+      "exit_code": 0,
+      "log": "artifacts/data_quality/scenario_simulation_v2/reproducibility/pytest_1.txt"
+    },
+    {
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "pytest",
+        "tests/test_scenario_simulation_v1.py",
+        "-k",
+        "catalog_is_full or static_temporal or generated_release or adapter_exposes",
+        "-q",
+        "--basetemp=work/data_foundation_v2/pytest_receipt_v1"
+      ],
+      "exit_code": 0,
+      "log": "artifacts/data_quality/scenario_simulation_v2/reproducibility/pytest_2.txt"
+    }
+  ],
+  "scope": "data/reconstruction only; no model fits",
+  "repository_wide_tests_run": false
+}

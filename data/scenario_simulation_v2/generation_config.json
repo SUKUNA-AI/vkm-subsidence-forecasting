@@ -1,0 +1,269 @@
+{
+  "schema_version": 2,
+  "dataset_id": "SKRU1_SCENARIO_SIMULATION_V2",
+  "output_directory": "data/scenario_simulation_v2",
+  "source_data_commit": "9d58f7bebcd323c23b319ab34b4e7ba62362fea6",
+  "code_commit": "93463fbea798697183c1b0b1d3180eea934dea0f",
+  "source_release": {
+    "manifest": "data/reconstruction_research_v1/manifest.json",
+    "sha256": "c999d2ef98da1645de4831e30b131c8da72abde2f4f1372d1cb9868b98df0dd2",
+    "size_bytes": 4722,
+    "dataset_id": "SKRU1_RECONSTRUCTION_RESEARCH_V1"
+  },
+  "inputs": [
+    {
+      "path": "artifacts/reconstruction/scenario_constraints_v2/manifest.json",
+      "sha256": "96b88b61cf766062c1f831e32b50bdd82441da63c50ce41569a5ffad297de6ef",
+      "size_bytes": 6213
+    },
+    {
+      "path": "artifacts/reconstruction/scenario_constraints_v2/scenario_constraints.csv",
+      "sha256": "46478e6d94da50d12c6ce7e9b0fbf13ef9d476b069dd369f7df0a63649e94f8f",
+      "size_bytes": 37762
+    },
+    {
+      "path": "artifacts/reconstruction/scenario_constraints_v2/profile_series_inventory.csv",
+      "sha256": "569391023196200b52045ef187a8ca1e2b490dd6bec093e11ce786451a6a6e5f",
+      "size_bytes": 3208
+    },
+    {
+      "path": "artifacts/reconstruction/scenario_constraints_v2/canonical_digitization.csv",
+      "sha256": "f33c22a8b6af4a8def6aeffc696cedc73434fb704fe174907a453c11f224abe0",
+      "size_bytes": 149769
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/survey_points.csv",
+      "sha256": "36c1b86e6e370a50cbb3bbf94e96684ef4c6b0b35a5cd62147cb6fd9869fb7f9",
+      "size_bytes": 22322
+    },
+    {
+      "path": "data/reconstruction_research_v1/next_planned_features_all.csv",
+      "sha256": "7c0303b89f391a1b2e0b13579071bb7b92239b896d9a42e61f5a7e261f1dfb95",
+      "size_bytes": 558347
+    },
+    {
+      "path": "data/reconstruction_research_v1/campaign_point_membership.csv",
+      "sha256": "8bcd4c1cc938d6e3f3e505547900c7acf55b3208b5396f3bb1479bac21f8e48d",
+      "size_bytes": 785435
+    },
+    {
+      "path": "data/reconstruction_research_v1/manifest.json",
+      "sha256": "c999d2ef98da1645de4831e30b131c8da72abde2f4f1372d1cb9868b98df0dd2",
+      "size_bytes": 4722
+    },
+    {
+      "path": "data/reconstruction_research_v1/formal_feature_contract.csv",
+      "sha256": "381e0781f3fbf5713165885fe469a1f2cc28bebcae4616f6a9d93e17d37c2658",
+      "size_bytes": 8415
+    }
+  ],
+  "foundation": {
+    "geometry": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/survey_points.csv",
+    "chainage": "data/reconstruction_research_v1/next_planned_features_all.csv",
+    "membership": "data/reconstruction_research_v1/campaign_point_membership.csv"
+  },
+  "constraints_table": "artifacts/reconstruction/scenario_constraints_v2/scenario_constraints.csv",
+  "profile_inventory": "artifacts/reconstruction/scenario_constraints_v2/profile_series_inventory.csv",
+  "random_seeds": [
+    104729,
+    130363
+  ],
+  "points_per_profile": 3,
+  "minimum_observed_history": 3,
+  "warmup_protected_targeted_observations": 3,
+  "sequence_max_length": 16,
+  "time_split": {
+    "train_target_end": "2022-10-18",
+    "calibration_target_start": "2023-01-17",
+    "calibration_target_end": "2023-11-07",
+    "development_evaluation_target_start": "2024-01-30"
+  },
+  "integration_steps": 2001,
+  "smooth_step_width_fraction": 0.02,
+  "spatial_parameters": {
+    "centre": [
+      0.4,
+      0.6
+    ],
+    "width": [
+      0.16,
+      0.3
+    ],
+    "localized_width_multiplier": 0.65,
+    "peak_fraction": [
+      0.7,
+      1.0
+    ],
+    "moving_distance": 0.5,
+    "moving_floor": 0.2
+  },
+  "temporal_parameter_ranges": {
+    "base": [
+      0.2,
+      0.5
+    ],
+    "tau": [
+      0.12,
+      0.5
+    ],
+    "power": [
+      1.5,
+      3.0
+    ],
+    "steepness": [
+      6.0,
+      14.0
+    ],
+    "onset": [
+      0.3,
+      0.7
+    ],
+    "event1": [
+      0.22,
+      0.4
+    ],
+    "event2": [
+      0.62,
+      0.78
+    ],
+    "event_width": [
+      0.03,
+      0.08
+    ]
+  },
+  "observation_conditions": [
+    {
+      "name": "ordinary_independent",
+      "missingness": "independent",
+      "error": "ordinary_noise"
+    },
+    {
+      "name": "long_gap_gross",
+      "missingness": "long_gap",
+      "error": "gross_error"
+    },
+    {
+      "name": "campaign_failure_systematic",
+      "missingness": "planned_campaign_failure",
+      "error": "systematic_shift"
+    },
+    {
+      "name": "reflector_seasonal",
+      "missingness": "seasonal_reflector",
+      "error": "thermal_reflector"
+    },
+    {
+      "name": "state_dependent_ordinary",
+      "missingness": "state_dependent",
+      "error": "ordinary_noise"
+    }
+  ],
+  "missingness_parameters": {
+    "independent": {
+      "probability": 0.1
+    },
+    "long_gap": {
+      "background_probability": 0.03,
+      "affected_point_fraction": 0.4,
+      "gap_length_targeted_campaigns": 3
+    },
+    "state_dependent": {
+      "base_probability": 0.04,
+      "maximum_additional_probability": 0.3,
+      "rate_power": 1.5,
+      "rate_scale_mm_y": 100.0
+    },
+    "planned_campaign_failure": {
+      "background_probability": 0.02,
+      "campaign_fractions": [
+        0.46,
+        0.72
+      ]
+    }
+  },
+  "reflector_missing_months": [
+    11,
+    12
+  ],
+  "measurement_parameters": {
+    "ordinary_sigma_options_mm": [
+      0.4,
+      0.8,
+      1.6
+    ],
+    "focused_multiplier": 1.25,
+    "outlier_probability": 0.06,
+    "outlier_magnitude_mm": [
+      8.0,
+      20.0
+    ],
+    "systematic_onset_fraction": 0.58,
+    "systematic_offset_mm": 8.0,
+    "systematic_drift_mm_y": 1.0,
+    "thermal_start_day": 75,
+    "thermal_rise_days": 90,
+    "reflector_fraction": 0.5
+  },
+  "process_families": [
+    {
+      "name": "stable",
+      "role": "development",
+      "motivation": "exact_null_negative_control_design_only"
+    },
+    {
+      "name": "uniform",
+      "role": "development",
+      "motivation": "BAB-UNIFORM-RATE;constant_velocity_design"
+    },
+    {
+      "name": "exponential_decay",
+      "role": "development",
+      "motivation": "source_reports_stabilization;exponential_law_is_engineering_stress"
+    },
+    {
+      "name": "logarithmic_decay",
+      "role": "development",
+      "motivation": "decay_model_misspecification_control_not_empirically_fitted"
+    },
+    {
+      "name": "smooth_acceleration",
+      "role": "development",
+      "motivation": "BAB-ACCELERATION-SCREEN;nonquadratic_power_stress"
+    },
+    {
+      "name": "saturating_acceleration",
+      "role": "development",
+      "motivation": "BAB-ACCELERATION-SCREEN;bounded_velocity_softplus_stress"
+    },
+    {
+      "name": "temporary_acceleration",
+      "role": "development",
+      "motivation": "finite_episode_negative_acceleration_recovery_stress"
+    },
+    {
+      "name": "reactivation",
+      "role": "heldout_mechanism",
+      "motivation": "two_separated_episodes_transfer_stress_no_observed_SKRU1_trajectory"
+    },
+    {
+      "name": "smooth_step",
+      "role": "development",
+      "motivation": "smoothed_displacement_step_engineering_stress"
+    },
+    {
+      "name": "moving_spatial_focus",
+      "role": "heldout_mechanism",
+      "motivation": "MUS-SPATIAL-SHAPES;moving_centre_stress_not_measured_propagation"
+    }
+  ],
+  "constraints_manifest": {
+    "manifest": "artifacts/reconstruction/scenario_constraints_v2/manifest.json",
+    "sha256": "96b88b61cf766062c1f831e32b50bdd82441da63c50ce41569a5ffad297de6ef",
+    "size_bytes": 6213,
+    "artifact_id": "SKRU1_SCENARIO_CONSTRAINTS_V2"
+  },
+  "thermal_amplitude_source_bounds_mm": [
+    30.0,
+    50.0
+  ]
+}

@@ -47,3 +47,41 @@ scripts/bootstrap_repo.sh -text -eol
 scripts/verify_inputs.py -text -eol
 SKRU1_ACTUAL_DATA_TABLES_v1/** -text -eol
 data/reconstruction_research_v1/** -text -eol whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# Scenario v2 freeze: retain exact bytes referenced by release manifests.
+# The v1 data/code below are immutable dependencies and the differential baseline.
+.gitattributes text eol=lf
+data/scenario_simulation_v1/** -text -eol
+data/scenario_simulation_v2/** -text -eol
+artifacts/reconstruction/scenario_constraints_v2/** -text -eol
+artifacts/data_quality/scenario_simulation_v2/** -text -eol
+artifacts/data_quality/scenario_simulation_v2_freeze/** -text -eol
+src/skru1/scenario_simulation.py -text -eol
+src/skru1/empirical_constraints_v2.py -text -eol
+src/skru1/scenario_simulation_v2.py -text -eol
+scripts/generate_scenario_v1.py -text -eol
+scripts/build_scenario_constraints_v2.py -text -eol
+scripts/generate_scenario_v2.py -text -eol
+scripts/audit_scenario_v2.py -text -eol
+scripts/validate_scenario_v2.py -text -eol
+scripts/build_data_foundation_v2_report.py -text -eol
+scripts/finalize_data_foundation_v2.py -text -eol
+scripts/recheck_scenario_v2_release.py -text -eol
+tests/test_data_foundation_v2.py -text -eol
+docs/reports/DATA_FOUNDATION_V2_RU.md -text -eol
+docs/reports/DATA_FOUNDATION_V2_RU.html -text -eol
+docs/reports/IMM_V2_IMPROVEMENT_DESIGN_RU.md -text -eol
+docs/reports/SCENARIO_SIMULATION_V2_FREEZE_RU.md -text -eol
+
+# Existing binary-data LFS policy, scoped to these compressed release tables.
+data/scenario_simulation_v1/**/*.gz filter=lfs diff=lfs merge=lfs -text -eol
+data/scenario_simulation_v1/*.gz filter=lfs diff=lfs merge=lfs -text -eol
+data/scenario_simulation_v2/**/*.gz filter=lfs diff=lfs merge=lfs -text -eol
+data/scenario_simulation_v2/*.gz filter=lfs diff=lfs merge=lfs -text -eol
+
+# CRLF in hashed receipts is intentional; do not rewrite it to satisfy diff QA.
+artifacts/data_quality/scenario_simulation_v2/** whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+artifacts/data_quality/scenario_simulation_v2_freeze/** whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+configs/scenario*_v2.json whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+docs/reports/DATA_FOUNDATION_V2_RU.* whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+src/skru1/scenario_simulation_v2.py whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

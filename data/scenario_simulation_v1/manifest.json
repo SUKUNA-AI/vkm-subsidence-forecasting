@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "dataset_id": "SKRU1_SCENARIO_SIMULATION_V1",
+  "source_data_commit": "9d58f7bebcd323c23b319ab34b4e7ba62362fea6",
+  "claim_domain": "simulation_only_publication_constrained",
+  "command": "python scripts/generate_scenario_v1.py --root .",
+  "inputs": [
+    {
+      "path": "data/reconstruction_research_v1/manifest.json",
+      "sha256": "c999d2ef98da1645de4831e30b131c8da72abde2f4f1372d1cb9868b98df0dd2",
+      "size_bytes": 4722
+    },
+    {
+      "path": "artifacts/reconstruction/scenario_constraints_v1/manifest.json",
+      "sha256": "c4d19250233087658c373794f84e05c5e49687238beb0dc42505b8d8039eacdd",
+      "size_bytes": 1961
+    },
+    {
+      "path": "data/reconstruction_research_v1/campaign_point_membership.csv",
+      "sha256": "8bcd4c1cc938d6e3f3e505547900c7acf55b3208b5396f3bb1479bac21f8e48d",
+      "size_bytes": 785435
+    },
+    {
+      "path": "data/reconstruction_research_v1/next_planned_features_all.csv",
+      "sha256": "7c0303b89f391a1b2e0b13579071bb7b92239b896d9a42e61f5a7e261f1dfb95",
+      "size_bytes": 558347
+    },
+    {
+      "path": "data/reconstruction_research_v1/formal_feature_contract.csv",
+      "sha256": "381e0781f3fbf5713165885fe469a1f2cc28bebcae4616f6a9d93e17d37c2658",
+      "size_bytes": 8415
+    },
+    {
+      "path": "configs/scenario_simulation_v1.json",
+      "sha256": "5e82d7061d660b18d3a4aa8be2a02bd4cb58cfda3a62be54918df6237a489208",
+      "size_bytes": 6511
+    },
+    {
+      "path": "src/skru1/scenario_simulation.py",
+      "sha256": "c80cb731936203ded228388562190427ecb3de000b0e03235617e6e017d44713",
+      "size_bytes": 47320
+    },
+    {
+      "path": "scripts/generate_scenario_v1.py",
+      "sha256": "73ed494207214b4ceca6b8278d04bd6a30d115bbd04e640a21b0d9df1b3847af",
+      "size_bytes": 1227
+    }
+  ],
+  "outputs": [
+    {
+      "path": "README.md",
+      "sha256": "d89a044361a246ace566948651a96832d14c1862c9e24637c10785da83cc28ac",
+      "size_bytes": 1873,
+      "deterministic": true
+    },
+    {
+      "path": "scenario_catalog.csv",
+      "sha256": "9c32b8f12c5e81b0cbe7446d57d52acc25098dc7870912cac8f6345db2f5bae8",
+      "size_bytes": 19401,
+      "deterministic": true
+    },
+    {
+      "path": "campaign_observations.csv.gz",
+      "sha256": "26a6bd1e6b58451f66c950e69e06301fb1f3a448e86496081bcb94877a596bbb",
+      "size_bytes": 1942053,
+      "deterministic": true
+    },
+    {
+      "path": "causal_history.csv.gz",
+      "sha256": "5008994de1c71d1c9d29bd28d75568760db5e4d0a4130d9c3fa024a5889d811b",
+      "size_bytes": 1477608,
+      "deterministic": true
+    },
+    {
+      "path": "next_planned_samples.csv.gz",
+      "sha256": "cb1fb0195743ec574a361425d0ca1236a8511e4566b2a55e1b573be5369e67ae",
+      "size_bytes": 3182741,
+      "deterministic": true
+    },
+    {
+      "path": "split_assignments.csv.gz",
+      "sha256": "cdaeb464a939cc731ff3412ee6aef5113abf230408360182d441b6fde537325b",
+      "size_bytes": 125761,
+      "deterministic": true
+    },
+    {
+      "path": "validation_report.json",
+      "sha256": "7f603bc4bf6bcef47f55fd5d73feb8806c20699461160d89ea6f2389b0b7df23",
+      "size_bytes": 2006,
+      "deterministic": true
+    }
+  ]
+}

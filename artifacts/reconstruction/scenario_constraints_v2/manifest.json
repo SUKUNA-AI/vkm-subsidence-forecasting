@@ -1,0 +1,169 @@
+{
+  "schema_version": 2,
+  "artifact_id": "SKRU1_SCENARIO_CONSTRAINTS_V2",
+  "inputs": [
+    {
+      "path": "artifacts/reconstruction/musikhin_line1_2011_2016_v1/manifest.json",
+      "sha256": "5081dc8ce463119774cb4a6e3ffdd121a1a38e9b3bd0cee75e0382dbb6ce9f06",
+      "size_bytes": 6262
+    },
+    {
+      "path": "artifacts/reconstruction/musikhin_line1_2011_2016_v1/points.csv",
+      "sha256": "257f643f300a58fce6699cd9938292ae63f0958857b2a996f58b1db13d8274cb",
+      "size_bytes": 7235
+    },
+    {
+      "path": "artifacts/reconstruction/musikhin_profiles_2011_2016_v1/manifest.json",
+      "sha256": "7740a92603762c9fb7db3c264db95c257bcf28d635aea54a2775676956e2bac4",
+      "size_bytes": 7045
+    },
+    {
+      "path": "artifacts/reconstruction/musikhin_profiles_2011_2016_v1/profile_1/points.csv",
+      "sha256": "aa60e9e03de1ef5d4caa1a78962efb5287e2984cf17c3da5d0054fba1bb3d109",
+      "size_bytes": 18681
+    },
+    {
+      "path": "artifacts/reconstruction/musikhin_profiles_2011_2016_v1/profile_17/points.csv",
+      "sha256": "425aa933d91e523941b576464ffb82cbb5cba462b9d0d5462940a801a191eac4",
+      "size_bytes": 14598
+    },
+    {
+      "path": "artifacts/reconstruction/musikhin_profiles_2011_2016_v1/profile_5/points.csv",
+      "sha256": "63553b4642da045cbdf9c324574e96728bff5becae7c8f9005dbde9068c89f95",
+      "size_bytes": 32257
+    },
+    {
+      "path": "artifacts/reconstruction/musikhin_profiles_2011_2016_v1/profile_6/points.csv",
+      "sha256": "cffccc80e392dde55522139528602ee024b86cf40fa59b8c19f91bc49f74bf27",
+      "size_bytes": 19935
+    },
+    {
+      "path": "artifacts/reconstruction/scenario_constraints_v1/scenario_constraints.csv",
+      "sha256": "a73d0decc0a0c3b082656354c686f3d248e0993533bdc0e7a6b9bf64d8cf0fb8",
+      "size_bytes": 13809
+    },
+    {
+      "path": "configs/scenario_constraints_v2.json",
+      "sha256": "9684bf393de438bee87de4d9efa6e04a60a86d2cbb7a6e3712697f2aa62ddf67",
+      "size_bytes": 49143
+    },
+    {
+      "path": "configs/source_manifest.csv",
+      "sha256": "8c9de321be4871e63f8300b2a38eaaea546e02cc24ad0ee1f0b20637e3eb5ceb",
+      "size_bytes": 13369
+    },
+    {
+      "path": "configs/supplementary_source_manifest.csv",
+      "sha256": "9ed4885c5e4607fc6445ef4c01c35ab3a1ca70a81dc5301b9aee4a54f0a251ef",
+      "size_bytes": 1364
+    },
+    {
+      "path": "inputs/sources/primary/01006516068.pdf",
+      "sha256": "faf80647870baa85d11569ecec7a70989990dd607ab307e9141f30a9d1d77e4d",
+      "size_bytes": 4385416
+    },
+    {
+      "path": "inputs/sources/primary/02f4a17c7c7ba99cfc068395238c5ff9.pdf",
+      "sha256": "d5fb9946ec69d9cb9e5f4e1b5227570c8effa879b1549fe9d5e0ef65a0747f67",
+      "size_bytes": 6312669
+    },
+    {
+      "path": "inputs/sources/primary/03-GR-24-2.pdf",
+      "sha256": "e134fc6d506d1e7ffcdabf4bd6da9e9a27554ce14139105310440490c7c86fda",
+      "size_bytes": 2233477
+    },
+    {
+      "path": "inputs/sources/primary/106_Губанова__Глебова.pdf",
+      "sha256": "2a4ff431d272cce17c873b65db589f41933332905ace3fd1abb550fb5c346350",
+      "size_bytes": 1879377
+    },
+    {
+      "path": "inputs/sources/primary/88q34t4oapf2ibwjcw2ie0oz2bjbtmc4.pdf",
+      "sha256": "c3a47a5df74dc38d648cdc3d962472e45cca9b8d1c4770687f244d2ad8fbdd74",
+      "size_bytes": 3832123
+    },
+    {
+      "path": "inputs/sources/primary/Babayants-Disser.pdf",
+      "sha256": "a80ae607e33ddf25f49073400fa138aeba67a86dd5abac7d131732c9491eff21",
+      "size_bytes": 9870619
+    },
+    {
+      "path": "inputs/sources/primary/Shirshova (1).pdf",
+      "sha256": "887d802ec7b7a0a8788b2527ac1240432cb353b655ed00dc51fd8d8269aa21bf",
+      "size_bytes": 902713
+    },
+    {
+      "path": "inputs/sources/primary/sputnikovaya_radarnaya_interferometriya_informatsionno_vychislitelnye.pdf",
+      "sha256": "fd03e70d87017a58b5f32533efb80861aeb0c3910f7c828ac18c6485037a4d0b",
+      "size_bytes": 7209923
+    },
+    {
+      "path": "inputs/sources/primary/ВКР_Филатова_М_С.docx",
+      "sha256": "45978d5fc446fa35d0b3e271c44a5790bc5b4101321b20f8078ff83dc8ae2931",
+      "size_bytes": 17826165
+    },
+    {
+      "path": "inputs/sources/primary/Гусев_АП_Спутниковый_мониторинг_геодинамики.pdf",
+      "sha256": "c6fb2be70b04f8d868929b44de746729615eeb97375a9b442816cb022b200770",
+      "size_bytes": 3719355
+    },
+    {
+      "path": "inputs/sources/primary/НК 26 Бобровицкий Григорий.pdf",
+      "sha256": "b83204aabdbb5902a8936a3b4d7393220ae4de0384b34b4db22b218df352ea59",
+      "size_bytes": 5766049
+    },
+    {
+      "path": "inputs/sources/supplementary/geokniga-02obrabotka.pdf",
+      "sha256": "4d20f03c0c3a7bb7039c405e2aff2780a30d9f6e52e99fe5da50fa4c9ccbe947",
+      "size_bytes": 3576355
+    },
+    {
+      "path": "scripts/build_scenario_constraints_v2.py",
+      "sha256": "c3fe6b0aa3810675edbdc2188503121d7a3a578fd10a27ddc73bf79b4e47b781",
+      "size_bytes": 722
+    },
+    {
+      "path": "src/skru1/empirical_constraints_v2.py",
+      "sha256": "a800e7051b7c24c5018d0f757323338677ed4ec02618c183b98317222b2697ed",
+      "size_bytes": 10951
+    }
+  ],
+  "outputs": [
+    {
+      "path": "canonical_digitization.csv",
+      "sha256": "f33c22a8b6af4a8def6aeffc696cedc73434fb704fe174907a453c11f224abe0",
+      "size_bytes": 149769,
+      "deterministic": true
+    },
+    {
+      "path": "modality_comparison.csv",
+      "sha256": "a35539cb7c4e1f112d771ac5fae8faaacbee3ac2697dd9a7572f031cd87fde7e",
+      "size_bytes": 1335,
+      "deterministic": true
+    },
+    {
+      "path": "profile_series_inventory.csv",
+      "sha256": "569391023196200b52045ef187a8ca1e2b490dd6bec093e11ce786451a6a6e5f",
+      "size_bytes": 3208,
+      "deterministic": true
+    },
+    {
+      "path": "scenario_constraints.csv",
+      "sha256": "46478e6d94da50d12c6ce7e9b0fbf13ef9d476b069dd369f7df0a63649e94f8f",
+      "size_bytes": 37762,
+      "deterministic": true
+    },
+    {
+      "path": "validation_report.json",
+      "sha256": "4fc9954378283a473da6b194f9337628535cd2aa2baf8bff50e67d11c228d432",
+      "size_bytes": 305,
+      "deterministic": true
+    }
+  ],
+  "provenance_classes": [
+    "PUBLISHED",
+    "DIGITIZED",
+    "DERIVED"
+  ],
+  "models_trained": 0
+}

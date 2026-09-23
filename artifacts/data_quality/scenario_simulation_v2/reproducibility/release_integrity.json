@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "comparisons": [
+    {
+      "release": "data/scenario_simulation_v2",
+      "files": 20,
+      "both_runs_and_release_identical": true
+    },
+    {
+      "release": "artifacts/reconstruction/scenario_constraints_v2",
+      "files": 6,
+      "both_runs_and_release_identical": true
+    }
+  ],
+  "old_files_verified": 1059,
+  "changed_old_files": [],
+  "geometry_and_dates_unchanged": true,
+  "geometry_columns_checked": [
+    "point_id",
+    "profile_id",
+    "chainage_m",
+    "x_local_m",
+    "y_local_m"
+  ],
+  "geometry_verification": "same serialized point/profile IDs mapped to unchanged source coordinates; zones are a common QA partition"
+}

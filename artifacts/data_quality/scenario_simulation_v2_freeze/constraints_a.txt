@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "constraint_count": 42,
+  "profile_series_count": 14,
+  "numeric_generation_series": 7,
+  "readable": 253,
+  "unresolved": 5,
+  "line1_detailed_reading_precedence": true,
+  "cross_period_subtraction": false,
+  "field_measurement_precision_inferred": false,
+  "models_trained": 0
+}

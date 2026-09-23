@@ -1,0 +1,8 @@
+﻿profile_label,interval,paired_readable,signed_radar_minus_leveling_mean_mm,median_mm,rms_disagreement_mm,max_abs_mm,correlation,fraction_reading_intervals_overlap,interpretation
+1,2011-2016,11,-1.354545455,-1.800000000,27.445367220,46.000000000,0.967023290,0.363636364,plotted_modality_disagreement_not_leveling_error_or_independent_validation
+1,2015-2016,14,5.892857143,5.650000000,8.799391213,15.000000000,0.965933414,0.714285714,plotted_modality_disagreement_not_leveling_error_or_independent_validation
+17,2011-2016,9,15.166666667,22.100000000,23.524242815,31.000000000,0.916523273,0.000000000,plotted_modality_disagreement_not_leveling_error_or_independent_validation
+17,2015-2016,11,5.100000000,6.600000000,5.844577907,8.600000000,0.869075597,0.545454545,plotted_modality_disagreement_not_leveling_error_or_independent_validation
+5,2011-2016,24,23.825000000,15.650000000,41.776847655,95.100000000,0.857547576,0.291666667,plotted_modality_disagreement_not_leveling_error_or_independent_validation
+5,2015-2016,24,-1.837500000,-3.650000000,9.090127429,14.100000000,0.691453390,0.708333333,plotted_modality_disagreement_not_leveling_error_or_independent_validation
+6,2015-2016,31,-2.158064516,-3.300000000,7.599681657,17.400000000,0.876748110,0.096774194,plotted_modality_disagreement_not_leveling_error_or_independent_validation

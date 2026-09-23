@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "indexed_payloads_checked": 1095,
+  "versioned_baseline_entries": 993,
+  "selected_release_entries": 116,
+  "all_indexed_bytes_match_worktree_or_lfs_oid": true,
+  "lfs_objects_hashed": 42,
+  "staged_lfs_tables": 12,
+  "dependency_closure": "All dataset/constraints/finalization dependencies are tracked or staged; local-only historical benchmark and egg-info excluded from checkout baseline.",
+  "whitespace_review": {
+    "exit_code": 2,
+    "accepted_frozen_finding": "src/skru1/scenario_simulation_v2.py:699: new blank line at EOF."
+  },
+  "staged_inventory_sha256": "ada9ba9ac5aae9eec3dd9f48b5fc8c78343da688ace0549a598f167c66f7e997",
+  "models_executed": 0,
+  "legacy_holdout_labels_parsed": 0
+}

@@ -1,0 +1,8 @@
+{
+  "status": "PASS_COMPUTATIONAL",
+  "model_training_calls": 0,
+  "old_source": "public_scenario_v1_not_legacy_BC_labels",
+  "new_source": "synthetic_QA_evaluator_not_external_holdout",
+  "chart_count": 10,
+  "visual_inspection": "pending_separate_reader_check"
+}

@@ -1,0 +1,52 @@
+[
+  {
+    "file": "figures/01_temporal_families.png",
+    "claim": "Diverse assumed temporal laws; no real monitoring history is plotted",
+    "source": "new evaluator synthetic QA truth; source constraints separately labelled"
+  },
+  {
+    "file": "figures/02_settlement_velocity_acceleration.png",
+    "claim": "Rates refer to intervals; acceleration to spacing of interval midpoints",
+    "source": "new evaluator synthetic QA truth; source constraints separately labelled"
+  },
+  {
+    "file": "figures/03_published_profiles_and_analogues.png",
+    "claim": "Ordinal comparison only; simulations constrained in interval scale and broad shape, not pointwise agreement",
+    "source": "new evaluator synthetic QA truth; source constraints separately labelled"
+  },
+  {
+    "file": "figures/04_empirical_vs_simulated_ranges.png",
+    "claim": "Do not interpret extrema of readable points as population extrema or exact annual rates",
+    "source": "new evaluator synthetic QA truth; source constraints separately labelled"
+  },
+  {
+    "file": "figures/05_old_new_distributions.png",
+    "claim": "Full experimental mixtures, not paired causal effect of one change",
+    "source": "new evaluator synthetic QA truth; source constraints separately labelled"
+  },
+  {
+    "file": "figures/06_cadence_missingness.png",
+    "claim": "Snow unavailability applies only to reflector contamination scenario",
+    "source": "new evaluator synthetic QA truth; source constraints separately labelled"
+  },
+  {
+    "file": "figures/07_measurement_noise_components.png",
+    "claim": "NaN components on missing observations are not zero errors",
+    "source": "new evaluator synthetic QA truth; source constraints separately labelled"
+  },
+  {
+    "file": "figures/08_true_vs_pseudo_transition.png",
+    "claim": "Pseudo-transition cases have exactly constant latent velocity",
+    "source": "new evaluator synthetic QA truth; source constraints separately labelled"
+  },
+  {
+    "file": "figures/09_extreme_cases.png",
+    "claim": "Descriptive worst data cases, not selected using model errors",
+    "source": "new evaluator synthetic QA truth; source constraints separately labelled"
+  },
+  {
+    "file": "figures/10_spatial_snapshots.png",
+    "claim": "Point-supported surface snapshots only; not the real 2016 velocity map",
+    "source": "new evaluator synthetic QA truth; source constraints separately labelled"
+  }
+]
