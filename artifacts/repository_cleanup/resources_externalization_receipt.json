@@ -1,32 +1,44 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "date": "2026-09-25",
   "operation": "externalize_evidence_archive_and_consolidate_main",
+  "status": "SUPERSEDED_IN_PART_BY_LEGACY_RETIREMENT",
+  "superseded_by": "artifacts/repository_cleanup/legacy_data_retirement_receipt.json",
   "main_repository": "SUKUNA-AI/vkm-subsidence-forecasting",
   "main_parent_commit": "10452b011b1e9685efe8de29ceb22c18f5e64c30",
   "main_externalization_commit": "d25f4587cb8ba90761f399b6293499eb94daaa2a",
   "private_resources_repository": "SUKUNA-AI/vkm-subsidence-forecasting_resourses",
-  "private_resources_baseline": "941f457dc62726073f972f14cca9131ee864145d",
-  "externalized_paths": [
+  "original_private_resources_baseline": "941f457dc62726073f972f14cca9131ee864145d",
+  "original_externalized_paths": [
     "inputs/sources/",
     "inputs/bootstrap/",
     "SKRU1_ACTUAL_DATA_TABLES_v1/"
   ],
-  "private_snapshot_paths": [
-    "08_data_archives/main_repo_snapshots/inputs_sources/",
+  "current_interpretation": {
+    "inputs/sources/": "ACTIVE_SCIENTIFIC_EVIDENCE_EXTERNALIZED_TO_PRIVATE_RESOURCES",
+    "inputs/bootstrap/": "LEGACY_RETIRED_GIT_HISTORY_ONLY",
+    "SKRU1_ACTUAL_DATA_TABLES_v1/": "LEGACY_RETIRED_GIT_HISTORY_ONLY"
+  },
+  "removed_from_current_private_tree_after_review": [
+    "08_data_archives/SKRU1_ACTUAL_DATA_TABLES_v1.zip",
+    "08_data_archives/main_repo_snapshots/SKRU1_ACTUAL_DATA_TABLES_v1/",
     "08_data_archives/main_repo_snapshots/inputs_bootstrap/",
-    "08_data_archives/main_repo_snapshots/SKRU1_ACTUAL_DATA_TABLES_v1/"
+    "08_data_archives/excel_workbooks/",
+    "08_data_archives/original_archives/",
+    "08_data_archives/main_repo_source_inputs/"
   ],
-  "archived_skru1_source_zip": {
-    "path": "08_data_archives/SKRU1_ACTUAL_DATA_TABLES_v1.zip",
+  "active_private_snapshot_path": "08_data_archives/main_repo_snapshots/inputs_sources/",
+  "historical_skru1_zip_record": {
     "size_bytes": 63048195,
-    "sha256": "edcced26f827fc1d24939eabb86d1a1cf5a41669ebe2b9e680af9a955cb733a7"
+    "sha256": "edcced26f827fc1d24939eabb86d1a1cf5a41669ebe2b9e680af9a955cb733a7",
+    "current_status": "LEGACY_RETIRED_NOT_REQUIRED_IN_CURRENT_TREE"
   },
   "phys_mech_working_pdf": {
     "path": "03_books/Baryakh_Asanov_Pankov_phys_mech_salt_rocks_VKM_merged.pdf",
     "size_bytes": 96179474,
     "sha256": "3c13bddaebed84da4b363a69bf154ebbe35860cad6a194cd979574fdf4b69913",
-    "source_archive_status": "original_local_zip_deleted_after_pdf_assembly"
+    "source_archive_status": "original_local_zip_deleted_after_pdf_assembly",
+    "current_status": "ACTIVE_SCIENTIFIC_EVIDENCE"
   },
   "frozen_hashes": {
     "scenario_v2_1_manifest": "a268cd7800e1320a1cc61172f95cf458c7ac7434237b32b288f23a83a97a2c95",
