@@ -1,5 +1,9 @@
 # Model Card: B7 two-regime IMM
 
+> Историческая card B6/suite v4. Она не выбирает primary для current v2.1.
+> Первый полный IMM experiment и текущие границы результатов разделены в
+> [каноническом состоянии](../CANONICAL_RESEARCH_STATE_RU.md).
+
 ## Роль и статус
 
 - Model ID: `B7_two_regime_imm`.
@@ -68,7 +72,7 @@ i.i.d. confidence interval.
 ## Артефакт и воспроизводимость
 
 Full-train artifact:
-`artifacts/model_selection/t1_b6_expanded_v1/full_train_primary.joblib`.
+[artifacts/model_selection/t1_b6_expanded_v1/full_train_primary.joblib (historical c5da110)](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/model_selection/t1_b6_expanded_v1/full_train_primary.joblib).
 Manifest фиксирует train sample-ID hash, model spec hash, selected-parameter
 hash, environment и artifact SHA-256. Перед применением обязательна проверка
 suite v4 и independent validation report.

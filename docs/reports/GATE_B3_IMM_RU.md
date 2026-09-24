@@ -288,7 +288,7 @@ volatile threshold на текущем validation. Корректны два в�
 .\.venv\Scripts\python.exe -m pytest
 ```
 
-Reader-facing companion: `notebooks/04_gate_b3_imm.ipynb`. Машинный report:
+Reader-facing companion: [notebooks/04_gate_b3_imm.ipynb (historical c5da110)](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/notebooks/04_gate_b3_imm.ipynb). Машинный report:
 `artifacts/model_selection/t1_b3_v1/gate_b3_report.json`; authoritative QA:
 `artifacts/model_selection/t1_b3_v1/validation_report.json`; полный inventory:
 `artifacts/model_selection/t1_b3_v1/artifact_inventory.csv`.

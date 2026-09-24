@@ -1,5 +1,13 @@
 # Data foundation v2: источники → ограничения → отдельный сценарный release
 
+## Статус после консолидации
+
+Описание ниже фиксирует foundation predecessor v2. Current release — v2.1;
+актуальные source/data claims ограничены R2, включая donor attribution,
+pure-stress reflector и инженерные доли temporal families. См.
+[каноническое состояние](../CANONICAL_RESEARCH_STATE_RU.md).
+Ссылки на удалённые промежуточные свидетельства адресуют их Git snapshot.
+
 Дата завершения: 2026-09-24. Область: только evidence, генерация, data contracts и воспроизводимость. Модели, Gate B/C selection и исторические holdout/test labels не использовались. Все пути ниже относительны корню репозитория, если не оформлены как ссылка из этого отчёта.
 
 ## A. EXECUTIVE SUMMARY
@@ -14,7 +22,7 @@ Release содержит 640 observation scenarios, 128 latent-world IDs (127 р
 
 Два независимых запуска генератора дали одинаковые 20 файлов; две сборки constraints — одинаковые 6 файлов. Независимый validator пересчитал все origins и sequence windows. Data/reconstruction tests: 40 passed. Все 1 059 файлов начального inventory сохранили hashes. Старые результаты моделей не перенесены, suite primary не менялся, auto-commit не выполнялся.
 
-Основные deliverables: [dataset card](../../data/scenario_simulation_v2/README.md), [dataset manifest](../../data/scenario_simulation_v2/manifest.json), [constraints manifest](../../artifacts/reconstruction/scenario_constraints_v2/manifest.json), [QA tables/figures manifest](../../artifacts/data_quality/scenario_simulation_v2/manifest.json), [migration protocol](../governance/SCENARIO_EXPERIMENT_V2_PROTOCOL.md), [IMM design note](IMM_V2_IMPROVEMENT_DESIGN_RU.md).
+Основные deliverables: [dataset card](../../data/scenario_simulation_v2/README.md), [dataset manifest](../../data/scenario_simulation_v2/manifest.json), [constraints manifest](../../artifacts/reconstruction/scenario_constraints_v2/manifest.json), [QA tables/figures manifest](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/manifest.json), [migration protocol](../governance/SCENARIO_EXPERIMENT_V2_PROTOCOL.md), [IMM design note](IMM_V2_IMPROVEMENT_DESIGN_RU.md).
 
 ## B. EMPIRICAL EVIDENCE AUDIT
 
@@ -50,7 +58,7 @@ Release содержит 640 observation scenarios, 128 latent-world IDs (127 р
 | SRC11 | [88q34t4oapf2ibwjcw2ie0oz2bjbtmc4.pdf](../../inputs/sources/primary/88q34t4oapf2ibwjcw2ie0oz2bjbtmc4.pdf) |
 | SUP01 | [geokniga-02obrabotka.pdf](../../inputs/sources/supplementary/geokniga-02obrabotka.pdf) |
 
-Проверены существующие source manifests, acceptance reports, figure atlas, points/linkage tables и код их чтения. Исходные 17 входов проверены по SHA256 до извлечения. Для применимых evidence просмотрены страницы SUP01 11–15, SRC03 13–14, SRC05 12–13; остальные источники проверены в пределах численных/структурных кандидатов. Это целевой просмотр существующего корпуса, не новый неограниченный literature review. Извлечение и rendering остаются в `work/data_foundation_v2/`; [extraction manifest](../../artifacts/data_quality/scenario_simulation_v2/reproducibility/source_extraction_manifest.json) фиксирует происхождение. Полнотекстовые исходники не подменены пересказом README.
+Проверены существующие source manifests, acceptance reports, figure atlas, points/linkage tables и код их чтения. Исходные 17 входов проверены по SHA256 до извлечения. Для применимых evidence просмотрены страницы SUP01 11–15, SRC03 13–14, SRC05 12–13; остальные источники проверены в пределах численных/структурных кандидатов. Это целевой просмотр существующего корпуса, не новый неограниченный literature review. Извлечение и rendering остаются в `work/data_foundation_v2/`; [extraction manifest](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/reproducibility/source_extraction_manifest.json) фиксирует происхождение. Полнотекстовые исходники не подменены пересказом README.
 
 ### Полный реестр решений
 
@@ -245,7 +253,7 @@ A_p определяется случайной широкой spatial shape и 
 | Next-planned horizon, дни | v1 | 35 | 175 | 171.478 | 434 | 434 | 434 |
 | Next-planned horizon, дни | v2 | 35 | 168 | 171.423 | 434 | 434 | 434 |
 
-Полные min/p05/median/mean/p95/p99/max и число доступных значений: [differential_statistics.csv](../../artifacts/data_quality/scenario_simulation_v2/differential_statistics.csv). Latent distribution измерена на всех campaign-point-condition rows; observed distribution — только available rows; target distribution — на origins. Равные latent replicas увеличивают N, не information content. Missingness denominator — targeted, а не все campaign rows (not_targeted — не пропуск).
+Полные min/p05/median/mean/p95/p99/max и число доступных значений: [differential_statistics.csv](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/differential_statistics.csv). Latent distribution измерена на всех campaign-point-condition rows; observed distribution — только available rows; target distribution — на origins. Равные latent replicas увеличивают N, не information content. Missingness denominator — targeted, а не все campaign rows (not_targeted — не пропуск).
 
 Порог diagnostic transition = |разность interval rates / midpoint spacing| >10 мм/год² выбран только для описания данных. Это не частота реальных переключений и не IMM label. Доля снизилась с 34,20% до 22,71%; одновременно max interval rate вырос с 137,74 до 730,07 мм/год и max latent settlement с 401,14 до 892,27 мм. Узкие step/episode laws — engineering stress, не эмпирически подтверждённые extrema СКРУ-1. Карта 2016 не использована как жёсткий global clip.
 
@@ -324,61 +332,61 @@ A_p определяется случайной широкой spatial shape и 
 
 Выбор примеров фиксирован seed 1729 в random_example_selection.json. Все линии — synthetic latent truth; это не восстановленные ряды реальных реперов. Показаны разные формы динамики, а не реализации двухрежимного IMM.
 
-![1. Случайные temporal trajectories](../../artifacts/data_quality/scenario_simulation_v2/figures/01_temporal_families.png)
+[Historical figure: 1. Случайные temporal trajectories](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/figures/01_temporal_families.png)
 
 ### 2. Settlement / velocity / acceleration
 
 Скорости являются средними по интервалу. Ускорение вычислено между серединами соседних интервалов; значения при коротком интервале и скачке не трактуются как подтверждённые полевые ускорения.
 
-![2. Settlement / velocity / acceleration](../../artifacts/data_quality/scenario_simulation_v2/figures/02_settlement_velocity_acceleration.png)
+[Historical figure: 2. Settlement / velocity / acceleration](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/figures/02_settlement_velocity_acceleration.png)
 
 ### 3. Published profiles и ensemble аналогов
 
 Оранжевые точки — только читаемые leveling values и консервативные read bounds; знак для сравнения обращён в positive-down. Синие формы имеют сопоставимый масштаб и широкий структурный тип. Ось — порядковая/нормированная, без координатного соответствия. Эти ансамбли не являются pointwise fit и не обязаны покрывать каждый маркер. Неизвестные позиции не дорисованы. Небольшой опубликованный подъём на Line 6 не воспроизводится subsidence-only latent laws.
 
-![3. Published profiles и ensemble аналогов](../../artifacts/data_quality/scenario_simulation_v2/figures/03_published_profiles_and_analogues.png)
+[Historical figure: 3. Published profiles и ensemble аналогов](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/figures/03_published_profiles_and_analogues.png)
 
 ### 4. Published bounds и simulated interval maxima
 
 Сравнение выполняется по отдельным номинальным окнам 1/5 лет, а не по полному накоплению за 2018–2025. Огибающие относятся к читаемым позициям. Это не распределение реальных annual rates и не независимая валидация: bounds уже использованы генератором.
 
-![4. Published bounds и simulated interval maxima](../../artifacts/data_quality/scenario_simulation_v2/figures/04_empirical_vs_simulated_ranges.png)
+[Historical figure: 4. Published bounds и simulated interval maxima](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/figures/04_empirical_vs_simulated_ranges.png)
 
 ### 5. Распределения v1/v2
 
 Сравниваются полные проектные смеси с разными законами и весами. Изменение нельзя причинно приписать только одной новой публикации или только устранению ошибки реконструкции.
 
-![5. Распределения v1/v2](../../artifacts/data_quality/scenario_simulation_v2/figures/05_old_new_distributions.png)
+[Historical figure: 5. Распределения v1/v2](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/figures/05_old_new_distributions.png)
 
 ### 6. Campaign cadence и missingness
 
 Календарь плановых кампаний сохранён; наблюдаемые интервалы меняются из-за пропусков. Зимняя недоступность относится к reflector contamination. Частоты пропусков — synthetic assumptions, не оценка реального журнала нивелирования.
 
-![6. Campaign cadence и missingness](../../artifacts/data_quality/scenario_simulation_v2/figures/06_cadence_missingness.png)
+[Historical figure: 6. Campaign cadence и missingness](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/figures/06_cadence_missingness.png)
 
 ### 7. Процесс наблюдений
 
 Показаны независимый шум, грубые выбросы, общий datum shift и эффект отражателя. Reported σ описывает обычную компоненту, не полную ошибку с bias/outlier. Отсутствующее наблюдение не означает нулевую ошибку.
 
-![7. Процесс наблюдений](../../artifacts/data_quality/scenario_simulation_v2/figures/07_measurement_noise_components.png)
+[Historical figure: 7. Процесс наблюдений](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/figures/07_measurement_noise_components.png)
 
 ### 8. True transition и pseudo-transition
 
 Справа latent velocity строго постоянна: кажущееся изменение создаёт measurement process. Слева true nonlinear acceleration. Температурный рисунок — стресс-аналог мотива из источника, не физически идентифицированная модель InSAR или здания.
 
-![8. True transition и pseudo-transition](../../artifacts/data_quality/scenario_simulation_v2/figures/08_true_vs_pseudo_transition.png)
+[Historical figure: 8. True transition и pseudo-transition](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/figures/08_true_vs_pseudo_transition.png)
 
 ### 9. Экстремальные случаи
 
 Выбор сделан по данным — максимальной скорости/ускорению/пропуску, без model errors. Короткие smooth-step stress episodes выходят за масштаб карты 2016. Эти случаи проверяют устойчивость и не объявлены характерными для СКРУ-1.
 
-![9. Экстремальные случаи](../../artifacts/data_quality/scenario_simulation_v2/figures/09_extreme_cases.png)
+[Historical figure: 9. Экстремальные случаи](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/figures/09_extreme_cases.png)
 
 ### 10. Пространственные snapshots
 
 Те же 42 точки реконструированной локальной сети, три даты, синтетическое оседание. Интерполированная поверхность и привязка к реальной карте скоростей 2016 не создавались.
 
-![10. Пространственные snapshots](../../artifacts/data_quality/scenario_simulation_v2/figures/10_spatial_snapshots.png)
+[Historical figure: 10. Пространственные snapshots](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/figures/10_spatial_snapshots.png)
 
 ## E. REMAINING ASSUMPTIONS
 
@@ -454,7 +462,7 @@ Constraints manifest SHA256:
 .\.venv\Scripts\python.exe scripts/build_data_foundation_v2_report.py
 ```
 
-Сборка dataset использует уже замороженный constraints release, проверяя его против config; scratch constraints предназначены для побайтового сравнения, не для неявной подмены входов. [Reproducibility receipt](../../artifacts/data_quality/scenario_simulation_v2/reproducibility/dataset_reproducibility.json) содержит hashes всех 20 файлов и подтверждает равенство двух runs и опубликованной копии. [Constraints receipt](../../artifacts/data_quality/scenario_simulation_v2/reproducibility/constraints_reproducibility.json) подтверждает 6 файлов.
+Сборка dataset использует уже замороженный constraints release, проверяя его против config; scratch constraints предназначены для побайтового сравнения, не для неявной подмены входов. [Reproducibility receipt](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/reproducibility/dataset_reproducibility.json) содержит hashes всех 20 файлов и подтверждает равенство двух runs и опубликованной копии. [Constraints receipt](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/reproducibility/constraints_reproducibility.json) подтверждает 6 файлов.
 
 ### Проверки и их границы
 
@@ -475,6 +483,6 @@ Constraints manifest SHA256:
 
 Полные `tests/test_target_contract.py` и `test_feature_contract.py` здесь не запускались: их `load_canonical_bundle` открывает historical labels, что запрещено текущим заданием. Они не отключены и не переписаны. Соответствующие v2 contracts проверены новым serialized validator. Явный `-k` исключает три v1 tests: IMM fit, аудит benchmark results и calibration-rank utility вне текущего data-generation scope. Импорт тестового модуля не выполняет fit. Поэтому утверждается проверка релевантного data path, а не полный repository-wide test pass.
 
-Доказательства: [independent validation](../../artifacts/data_quality/scenario_simulation_v2/reproducibility/independent_validation_release.json), [test execution](../../artifacts/data_quality/scenario_simulation_v2/reproducibility/test_execution.json), [reader QA](../../artifacts/data_quality/scenario_simulation_v2/reproducibility/reader_qa.json), [initial inventory](../../artifacts/data_quality/scenario_simulation_v2/reproducibility/baseline_inventory.json), [git status](../../artifacts/data_quality/scenario_simulation_v2/reproducibility/git_status.txt), [change inventory](../../artifacts/data_quality/scenario_simulation_v2/reproducibility/change_inventory.json), [new text files patch](../../artifacts/data_quality/scenario_simulation_v2/reproducibility/new_text_files.patch), [finalization manifest](../../artifacts/data_quality/scenario_simulation_v2/finalization_manifest.json).
+Доказательства: [independent validation](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/reproducibility/independent_validation_release.json), [test execution](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/reproducibility/test_execution.json), [reader QA](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/reproducibility/reader_qa.json), [initial inventory](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/reproducibility/baseline_inventory.json), [git status](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/reproducibility/git_status.txt), [change inventory](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/reproducibility/change_inventory.json), [new text files patch](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/reproducibility/new_text_files.patch), [finalization manifest](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/artifacts/data_quality/scenario_simulation_v2/finalization_manifest.json).
 
 Начальный Git уже содержал untracked v1 scenario/benchmark files. Они сохранены отдельно от новых v2 additions в change inventory. Tracked diff пуст; содержательный diff новых untracked файлов сохранён явно, generated releases представлены manifest hashes. Никакие источники/ZIP, старые releases и frozen experiments не перезаписаны. Коммит, обучение, выбор победителя и изменение suite primary не выполнялись.

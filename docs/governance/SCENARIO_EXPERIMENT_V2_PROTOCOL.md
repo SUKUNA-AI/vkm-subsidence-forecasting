@@ -1,5 +1,10 @@
 # SKRU1_SCENARIO_SIMULATION_V2: data release и следующий ограниченный benchmark
 
+> Историческая спецификация predecessor v2. Текущий dataset — v2.1;
+> актуальная интерпретация и ограничения R2 находятся в
+> [каноническом состоянии](../CANONICAL_RESEARCH_STATE_RU.md).
+> Ниже сохранена постановка выпуска; она не заменяет последующий erratum.
+
 Дата: 2026-09-23. Текущее разрешённое действие — data generation/validation only.
 Этот протокол не разрешает запуск моделей без следующего отдельного задания.
 Historical Gate B/C, suite v4 и legacy holdout policy сохраняют прежний смысл.

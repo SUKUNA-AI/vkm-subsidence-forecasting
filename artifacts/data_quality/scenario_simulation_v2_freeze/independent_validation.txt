@@ -1,7 +1,0 @@
-{
-  "status": "PASS",
-  "rows_recomputed": 321766,
-  "sequence_windows_checked": 321766,
-  "preexisting_files_verified": 1059,
-  "changed_preexisting_files": []
-}

@@ -129,6 +129,6 @@ Test MAE на 38.6% выше temporal validation MAE. Это терминаль�
 .\.venv\Scripts\python.exe -m pytest
 ```
 
-Машинная authority: `artifacts/model_selection/t1_b0_b1_v1/validation_report.json`. Reader-facing companion: `notebooks/02_gate_b0_b1_t1_baselines.ipynb`.
+Машинная authority: `artifacts/model_selection/t1_b0_b1_v1/validation_report.json`. Reader-facing companion: [notebooks/02_gate_b0_b1_t1_baselines.ipynb (historical c5da110)](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/notebooks/02_gate_b0_b1_t1_baselines.ipynb).
 
 SHA-256 и размеры всех опубликованных Gate B0/B1 артефактов зафиксированы в `artifacts/model_selection/t1_b0_b1_v1/artifact_inventory.csv` (сам inventory исключён из самореферентного списка).

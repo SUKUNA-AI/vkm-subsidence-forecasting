@@ -148,4 +148,4 @@ B6 следует сохранить как обязательный comparator,
 .\.venv\Scripts\python.exe -m pytest
 ```
 
-У runner нет `final-test` phase. Reader-facing companion: `notebooks/03_gate_b2_adaptive_kalman.ipynb`. Полный SHA-256 inventory: `artifacts/model_selection/t1_b2_v1/artifact_inventory.csv`; сам inventory исключён из самореферентного списка.
+У runner нет `final-test` phase. Reader-facing companion: [notebooks/03_gate_b2_adaptive_kalman.ipynb (historical c5da110)](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/c5da1103154c29e2ffe9c52bbceacaa032f1690f/notebooks/03_gate_b2_adaptive_kalman.ipynb). Полный SHA-256 inventory: `artifacts/model_selection/t1_b2_v1/artifact_inventory.csv`; сам inventory исключён из самореферентного списка.

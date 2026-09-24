@@ -1,5 +1,0 @@
-﻿diagnostic,sample_id,value,mechanism
-latent_rate_mm_y,V2-W120-O1::P-H05-W007::C010::C012,649.970849882,smooth_step
-observed_rate_mm_y,V2-W120-O4::P-H05-W007::C010::C012,663.212493717,smooth_step
-recent_acceleration_mm_y2,V2-W056-O4::P-H03-W001::C010::C012,1868.106363124,smooth_step
-days_since_previous_observation,V2-W019-O4::P-V04-W004::C027::C029,1525.000000000,logarithmic_decay

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -9,7 +8,6 @@ import pytest
 
 from skru1.adaptive_kalman import prepare_kalman_history
 from skru1.evaluation import causal_feature_history, derived_dataset
-from skru1.gate_b4 import load_gate_b4_config, robust_parameters, tune_robust_df
 from skru1.leakage import LeakageViolation
 from skru1.robust_imm import (
     RobustInnovationIMMRate,
@@ -23,10 +21,32 @@ ROOT = Path(__file__).resolve().parents[1]
 
 @pytest.fixture(scope="module")
 def b4_context():
-    _, config = load_gate_b4_config(ROOT)
+    # Frozen numerical fixture; the retired B4 tuning pipeline is not needed.
+    config = {}
     train = load_split_dataset("t1", "train", root=ROOT)
     history = causal_feature_history(train)
-    parameters = robust_parameters(config, 5.0)
+    parameters = {'q_stable': 0.5,
+     'q_transition': 200.0,
+     'p_stable_stay': 0.99,
+     'p_transition_stay': 0.75,
+     'stable_acceleration_retention_per_year': 0.2,
+     'transition_acceleration_retention_per_year': 0.95,
+     'initial_transition_probability': 0.1,
+     'initial_position_variance': 4.0,
+     'initial_velocity_variance': 400.0,
+     'initial_acceleration_variance': 2500.0,
+     'minimum_measurement_variance': 0.01,
+     'minimum_rate_measurement_variance': 1.0,
+     'rate_measurement_variance_multiplier': 4.0,
+     'acceleration_scale_quantile': 0.8,
+     'acceleration_measurement_scale_multiplier': 1.0,
+     'minimum_acceleration_measurement_variance': 25.0,
+     'acceleration_clip_ratio': 4.0,
+     'raw_sigma_floor_mm_y': 1.0,
+     'covariance_jitter': 1e-08,
+     'likelihood_variance_floor': 1e-10,
+     'minimum_robust_weight': 0.05,
+     'student_t_df': 5.0}
     return config, train, history, parameters
 
 
@@ -123,25 +143,3 @@ def test_robust_imm_is_invariant_to_future_history(b4_context) -> None:
         history_frame=pd.concat([history, future], ignore_index=True),
     )
     np.testing.assert_allclose(original, changed, rtol=0, atol=1e-12)
-
-
-def test_reduced_nested_tuning_selects_minimum_train_only_score(b4_context) -> None:
-    config, train, history, _ = b4_context
-    reduced = deepcopy(config)
-    reduced["robust_model"]["student_t_df_grid"] = [3.0, 10.0]
-    reduced["resampling"]["inner_rolling_origin_folds"] = 2
-    selected, tuning = tune_robust_df(
-        train,
-        prepared_history=prepare_kalman_history(history),
-        config=reduced,
-        context="unit",
-    )
-    assert selected["student_t_df"] in {3.0, 10.0}
-    assert tuning["student_t_df"].nunique() == 2
-    assert tuning["inner_folds"].eq(2).all()
-    assert tuning["all_inner_folds_forward_only"].all()
-    assert tuning["selected"].sum() == 1
-    assert np.isclose(
-        tuning.loc[tuning["selected"], "tuning_score"].iloc[0],
-        tuning["tuning_score"].min(),
-    )

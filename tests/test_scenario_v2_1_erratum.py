@@ -55,8 +55,12 @@ def test_invariant_detects_old_bug_and_does_not_allow_tolerance():
         sim.validate_calendar_elapsed(h, f)
 
 
-def test_frozen_destination_and_v2_are_protected():
+def test_frozen_destination_and_v2_are_protected(tmp_path):
+    # A clean checkout need not contain the previous author's ignored work tree.
+    occupied = tmp_path / "work/scenario_v2_1_erratum/occupied"
+    occupied.mkdir(parents=True)
+    (occupied / "existing.txt").write_text("frozen", encoding="utf-8")
     with pytest.raises(FileExistsError):
-        sim.empty_destination(ROOT, ROOT / "work/scenario_v2_1_erratum", "data/scenario_simulation_v2_1")
+        sim.empty_destination(tmp_path, occupied, "data/scenario_simulation_v2_1")
     with pytest.raises(ValueError):
-        sim.empty_destination(ROOT, ROOT / "data/scenario_simulation_v2", "data/scenario_simulation_v2_1")
+        sim.empty_destination(tmp_path, tmp_path / "data/scenario_simulation_v2", "data/scenario_simulation_v2_1")
