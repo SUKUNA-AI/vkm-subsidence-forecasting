@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-25",
+  "decision": "legacy_data_retirement",
+  "status": "LEGACY_RETIRED",
+  "retired_prefixes": [
+    "SKRU1_ACTUAL_DATA_TABLES_v1/",
+    "inputs/bootstrap/"
+  ],
+  "retired_classes": [
+    "v3/v3.2 reconstruction",
+    "model-ready features",
+    "EDA/target/evaluation-only tables",
+    "historical project Excel/audit packages",
+    "old bootstrap packages"
+  ],
+  "reason": "These project-generated artifacts were created during an earlier exploratory branch under a data and temporal-reconstruction interpretation that is no longer accepted as the current scientific basis.",
+  "not_primary_skru1_survey_data": true,
+  "not_current_scientific_evidence": true,
+  "not_required_for_physical_evidence_consolidation": true,
+  "not_required_for_physical_world_v1": true,
+  "not_required_for_opengEOSys": true,
+  "historical_reproduction_policy": "Use the corresponding historical Git commit, including Gate B3 at ce8e57ee3dfd82579fb00c8ab5d17bf1b925c9a4.",
+  "frozen_manifest_policy": "Do not rewrite frozen manifests. Historical references to retired paths are provenance only and do not create current dependencies.",
+  "private_resources_policy": "Keep active scientific evidence only; retired project-generated packages remain available through Git history.",
+  "private_cleanup_commit": "b1b63f9a0d4ffdfb93477b032e19335eb505677b",
+  "frozen_hashes": {
+    "scenario_v2_1_manifest": "a268cd7800e1320a1cc61172f95cf458c7ac7434237b32b288f23a83a97a2c95",
+    "scenario_constraints_v2_manifest": "96b88b61cf766062c1f831e32b50bdd82441da63c50ce41569a5ffad297de6ef",
+    "representation_v2_1_r1_manifest": "0e5501cb4c3cff570fbd3763047a8dd8738d45706dd6f549556ac428521f5a6d"
+  },
+  "models_executed": 0,
+  "training_executed": false,
+  "tuning_executed": false,
+  "solver_runs_executed": 0,
+  "datasets_regenerated": false,
+  "scientific_current_release_hashes_changed": false
+}
