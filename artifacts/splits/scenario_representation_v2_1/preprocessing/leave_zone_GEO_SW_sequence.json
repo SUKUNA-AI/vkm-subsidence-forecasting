@@ -1,0 +1,56 @@
+{
+  "creation_identity": {
+    "representation_id": "SKRU1_SCENARIO_REPRESENTATION_V2_1_R1",
+    "dataset_manifest_sha256": "a268cd7800e1320a1cc61172f95cf458c7ac7434237b32b288f23a83a97a2c95"
+  },
+  "kind": "sequence",
+  "fold_id": "leave_zone_GEO_SW",
+  "ordered_train_sample_sha256": "17dcf4cd0a02d77cc2bd9ba031d16d968da7fcd3b649278c1cdac36b16faee36",
+  "feature_schema_sha256": "3ef2fac57e0c422599e4beee0a3dc255a3c4438c7f90982e092b74738d683360",
+  "schema": {
+    "authority": "f877cbfacfb39df2d0c52e106ab78ffff3f621d2f5199cf3210bf045d28afba9",
+    "kind": "sequence",
+    "columns": [
+      "last_settlement_mm",
+      "last_rate_mm_y",
+      "current_standard_uncertainty_mm",
+      "days_since_previous_observation",
+      "missing_campaigns_since_previous"
+    ],
+    "normalization": "median_then_population_zscore",
+    "categories": "fit_only_unknown_zero"
+  },
+  "fold_record_sha256": "4b2b6ac7f4accaf59787670b08b91f94abcfd8b7f58a08e6a466e8977047a217",
+  "fit_origins": 48660,
+  "fit_rows_or_real_tokens": 246935,
+  "parameters": {
+    "last_settlement_mm": {
+      "median": 13.618783496,
+      "mean": 28.55405948744462,
+      "scale": 43.64329877571766
+    },
+    "last_rate_mm_y": {
+      "median": 22.482298374,
+      "mean": 28.825548444760685,
+      "scale": 30.243141479158457
+    },
+    "current_standard_uncertainty_mm": {
+      "median": 0.8,
+      "mean": 0.8575212100350297,
+      "scale": 0.5100255488027443
+    },
+    "days_since_previous_observation": {
+      "median": 168.0,
+      "mean": 168.75557535383805,
+      "scale": 53.218693755692556
+    },
+    "missing_campaigns_since_previous": {
+      "median": 0.0,
+      "mean": 0.04037499746896957,
+      "scale": 0.22139278699573098
+    }
+  },
+  "categories": {},
+  "category_mappings": {},
+  "unknown_category_code": 0
+}

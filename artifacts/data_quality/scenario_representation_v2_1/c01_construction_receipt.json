@@ -1,0 +1,37 @@
+{
+  "status": "PASS_ARCHITECTURE_CONSTRUCTION_ONLY",
+  "dataset_manifest_sha256": "a268cd7800e1320a1cc61172f95cf458c7ac7434237b32b288f23a83a97a2c95",
+  "models_fitted": 0,
+  "models_executed": 0,
+  "model_scoring": 0,
+  "model_forward_calls": 0,
+  "legacy_holdout_labels_parsed": 0,
+  "architecture": {
+    "identity": "C01_ARCHITECTURE_V2_1_FIVE_NUMERIC_CHANNELS",
+    "class": "PackedRecurrentRegressor",
+    "input_size": 5,
+    "hidden_size": 16,
+    "layers": 1,
+    "dropout": 0.0,
+    "cell": "gru",
+    "weights": "random_untrained_no_checkpoint",
+    "seed": 0,
+    "scope": "construction_only_not_historical_reproduction",
+    "fit_allowed": false,
+    "forward_executed": false
+  },
+  "torch_version": "2.13.0+cu130",
+  "checkpoint_loaded": false,
+  "input_shape": [
+    "batch",
+    16,
+    5
+  ],
+  "weight_ih_l0_shape": [
+    48,
+    5
+  ],
+  "historical_C01_reproduction": false,
+  "missing_campaign_type_invented": false,
+  "forward_executed": false
+}

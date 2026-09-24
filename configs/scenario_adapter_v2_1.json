@@ -1,0 +1,15 @@
+{
+  "representation_id": "SKRU1_SCENARIO_REPRESENTATION_V2_1_R1",
+  "dataset_manifest_sha256": "a268cd7800e1320a1cc61172f95cf458c7ac7434237b32b288f23a83a97a2c95",
+  "constraints_manifest_sha256": "96b88b61cf766062c1f831e32b50bdd82441da63c50ce41569a5ffad297de6ef",
+  "dataset_directory": "data/scenario_simulation_v2_1",
+  "outer_counts": {"train": 122047, "calibration": 35148, "evaluation": 133833, "excluded": 30738},
+  "embargo_days": 30,
+  "inner_validation_years": [2020, 2021, 2022],
+  "world_bucket_rule": "int(sha256(utf8(world_id)),16) % 3",
+  "spatial_validation_year": 2022,
+  "spatial_context": "exclude_held_group_in_fit_and_validation_profile_aggregates",
+  "zone_semantics": "synthetic_coordinate_quadrants_not_geological_zones",
+  "normalization": "exact_fold_fit_only",
+  "models_executed": 0
+}

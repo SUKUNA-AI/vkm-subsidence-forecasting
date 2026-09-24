@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "builds": [
+    "work/scenario_v2_1_erratum/build01",
+    "work/scenario_v2_1_erratum/build02"
+  ],
+  "final_release": "data/scenario_simulation_v2_1",
+  "final_matches_both": true,
+  "deterministic_files": 20,
+  "mismatch_count": 0,
+  "hashes": {
+    "campaign_catalog.csv": "7436eb7d0000f3ed87d3111e84f498ed541fa725a41410a3a3861b9dc1be62c2",
+    "causal_history.csv.gz": "353a5eb72dab8b97d6fe6915b4395b7e473bb3815c595febaa4d91c502226f42",
+    "distribution_summary.json": "30f7df6aff6d1b73787cc06c92630efe11fe37959131a910798b2859e85a0945",
+    "environment.json": "42772129c77491c461e030dbaec805be5955cf6256d153140f398f4c61db63f1",
+    "feature_contract.json": "f877cbfacfb39df2d0c52e106ab78ffff3f621d2f5199cf3210bf045d28afba9",
+    "field_provenance.json": "08bef9c7969ca1d4eeee3d1c542d4e7aa5f582f4e5801d851e30755c356011b3",
+    "generation_config.json": "611630eace9f10a3cab3d11956fa04c4b36752b54b10ebff443a47b5c0affd83",
+    "manifest.json": "a268cd7800e1320a1cc61172f95cf458c7ac7434237b32b288f23a83a97a2c95",
+    "model_features.csv.gz": "d34e6a9854f21842f3c529950af34ddaa5a20031868ec5a59f25339eaa9d959f",
+    "point_roster.csv": "feb31c0a0e936921f910ed1b4f8c131f8fdf6dd2dbdf703842bb5137214d2dad",
+    "README.md": "75d153f11dd04e5e0f95a2fa3c278234d571c9aaccfbc623f144ea5ac790b006",
+    "scenario_catalog.csv": "a42fcfc66fb1d2a05c71eeabf62658c5d99ac9308e81ca99544986945eda4a5c",
+    "sequence_windows.csv.gz": "e44c03f265af9451e7662548d2103f1f126af3444212a67f5b1007dabfba863d",
+    "split_assignments.csv.gz": "39e73d58e8bda1adb7c95e5ba4d027154b49f86fc88abc66264b606b8adde77d",
+    "validation_report.json": "641891036733adcd1f47f55e0cad1d939b3b9620eb9ff701cf689b062c47b2ba",
+    "evaluator/campaign_truth.csv.gz": "835a5effd54e5ba72c4f72e0df4892cad93f5a0e4ec4e6cda8da8248aa07821e",
+    "evaluator/conditioning_log.csv": "2dfe390e5da171b1c2f9a1416901fa503669e756bad54e0007a8a4d7c21becba",
+    "evaluator/next_planned_truth.csv.gz": "8b22f15256c590ed4aa798a80c78c9432642912207ba8664a774b9f911cd2c85",
+    "targets/calibration_observed.csv.gz": "7362e90be1534ac7f81ef7a9e3097c06d35fc8067be72640a216aaa80612ff87",
+    "targets/train_observed.csv.gz": "cb4f77b1135a759f67731fb6750c05940894c620798e2fd813340c504ea93e65"
+  }
+}

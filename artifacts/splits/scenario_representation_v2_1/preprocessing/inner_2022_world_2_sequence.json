@@ -1,0 +1,56 @@
+{
+  "creation_identity": {
+    "representation_id": "SKRU1_SCENARIO_REPRESENTATION_V2_1_R1",
+    "dataset_manifest_sha256": "a268cd7800e1320a1cc61172f95cf458c7ac7434237b32b288f23a83a97a2c95"
+  },
+  "kind": "sequence",
+  "fold_id": "inner_2022_world_2",
+  "ordered_train_sample_sha256": "654680d362537b65c1994c7429d7d90c8972e600565696c8845112afdf35b1d2",
+  "feature_schema_sha256": "3ef2fac57e0c422599e4beee0a3dc255a3c4438c7f90982e092b74738d683360",
+  "schema": {
+    "authority": "f877cbfacfb39df2d0c52e106ab78ffff3f621d2f5199cf3210bf045d28afba9",
+    "kind": "sequence",
+    "columns": [
+      "last_settlement_mm",
+      "last_rate_mm_y",
+      "current_standard_uncertainty_mm",
+      "days_since_previous_observation",
+      "missing_campaigns_since_previous"
+    ],
+    "normalization": "median_then_population_zscore",
+    "categories": "fit_only_unknown_zero"
+  },
+  "fold_record_sha256": "33c1e1f428b1baa0abec90f32208a84f54b7bd4b3a0fd01dcbee9d939f5760e5",
+  "fit_origins": 61960,
+  "fit_rows_or_real_tokens": 321425,
+  "parameters": {
+    "last_settlement_mm": {
+      "median": 14.263655403,
+      "mean": 29.929619504466324,
+      "scale": 45.07801892300151
+    },
+    "last_rate_mm_y": {
+      "median": 23.274721434,
+      "mean": 29.850152757488033,
+      "scale": 31.5314778628993
+    },
+    "current_standard_uncertainty_mm": {
+      "median": 0.8,
+      "mean": 0.8809566772964144,
+      "scale": 0.4977115736257888
+    },
+    "days_since_previous_observation": {
+      "median": 168.0,
+      "mean": 164.21018900210004,
+      "scale": 54.61239852011194
+    },
+    "missing_campaigns_since_previous": {
+      "median": 0.0,
+      "mean": 0.04084000933343704,
+      "scale": 0.22457615708373166
+    }
+  },
+  "categories": {},
+  "category_mappings": {},
+  "unknown_category_code": 0
+}

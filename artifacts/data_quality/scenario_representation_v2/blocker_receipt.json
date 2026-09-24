@@ -1,0 +1,93 @@
+{
+  "status": "BLOCKED_NOT_FROZEN",
+  "blocker_id": "V2-REP-001",
+  "origins_checked": 321766,
+  "affected_origins": 31283,
+  "affected_percent": 9.722282652610904,
+  "by_outer_role": {
+    "calibration": 39,
+    "evaluation": 24824,
+    "excluded": 2017,
+    "train": 4403
+  },
+  "difference_days_counts": {
+    "-1.0": 31283
+  },
+  "frozen_data_modified": false,
+  "model_fit_calls": 0,
+  "model_predict_calls": 0,
+  "model_forward_calls": 0,
+  "models_executed": 0,
+  "legacy_holdout_labels_parsed": 0,
+  "root_cause": "int((integer_days / 365.25) * 365.25) truncates floating round-trip error",
+  "source_lines": {
+    "src/skru1/scenario_simulation_v2.py": [
+      303,
+      310,
+      416
+    ]
+  },
+  "examples": [
+    {
+      "sample_id": "V2-W001-O1::P-H04-W001::C012::C013",
+      "model_role": "train",
+      "point_id": "V2-W001-O1::P-H04-W001",
+      "previous_observation_date": "2021-01-26",
+      "current_date": "2021-05-18",
+      "days_since_previous_observation": 111,
+      "exact_elapsed_days": 112.0,
+      "difference_days": -1.0
+    },
+    {
+      "sample_id": "V2-W001-O1::P-H04-W004::C012::C013",
+      "model_role": "train",
+      "point_id": "V2-W001-O1::P-H04-W004",
+      "previous_observation_date": "2021-01-26",
+      "current_date": "2021-05-18",
+      "days_since_previous_observation": 111,
+      "exact_elapsed_days": 112.0,
+      "difference_days": -1.0
+    },
+    {
+      "sample_id": "V2-W001-O1::P-H04-W007::C012::C013",
+      "model_role": "train",
+      "point_id": "V2-W001-O1::P-H04-W007",
+      "previous_observation_date": "2021-01-26",
+      "current_date": "2021-05-18",
+      "days_since_previous_observation": 111,
+      "exact_elapsed_days": 112.0,
+      "difference_days": -1.0
+    },
+    {
+      "sample_id": "V2-W001-O1::P-V02-W001::C012::C014",
+      "model_role": "train",
+      "point_id": "V2-W001-O1::P-V02-W001",
+      "previous_observation_date": "2021-01-26",
+      "current_date": "2021-05-18",
+      "days_since_previous_observation": 111,
+      "exact_elapsed_days": 112.0,
+      "difference_days": -1.0
+    },
+    {
+      "sample_id": "V2-W001-O1::P-V02-W007::C012::C014",
+      "model_role": "train",
+      "point_id": "V2-W001-O1::P-V02-W007",
+      "previous_observation_date": "2021-01-26",
+      "current_date": "2021-05-18",
+      "days_since_previous_observation": 111,
+      "exact_elapsed_days": 112.0,
+      "difference_days": -1.0
+    },
+    {
+      "sample_id": "V2-W001-O1::P-H04-W001::C013::C014",
+      "model_role": "train",
+      "point_id": "V2-W001-O1::P-H04-W001",
+      "previous_observation_date": "2021-05-18",
+      "current_date": "2021-07-13",
+      "days_since_previous_observation": 55,
+      "exact_elapsed_days": 56.0,
+      "difference_days": -1.0
+    }
+  ],
+  "resolution": "Requires explicit versioned correction policy; do not mutate frozen v2 or silently override its estimator feature."
+}

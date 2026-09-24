@@ -1,0 +1,55 @@
+{
+  "representation_id": "SKRU1_SCENARIO_SEQUENCES_V2_1_R1",
+  "window_authority": "data/scenario_simulation_v2_1/sequence_windows.csv.gz",
+  "max_length": 16,
+  "padding": "left_zero_after_transform",
+  "numeric_channels": [
+    "last_settlement_mm",
+    "last_rate_mm_y",
+    "current_standard_uncertainty_mm",
+    "days_since_previous_observation",
+    "missing_campaigns_since_previous"
+  ],
+  "categorical_channels": [],
+  "masks": [
+    "padding_mask",
+    "observation_mask",
+    "missing_campaign_mask",
+    "value_valid_mask"
+  ],
+  "channel_contract": "docs/governance/SCENARIO_V2_1_REPRESENTATION_PROTOCOL.md",
+  "normalization": "exact_fold_fit_origins_real_tokens_only",
+  "first_gap": "NaN_no_predecessor",
+  "truncated_first_gap": "actual_elapsed_from_predecessor_in_full_causal_history",
+  "interpolation": false,
+  "C01_architecture": "PackedRecurrentRegressor(input_size=5)",
+  "legacy_C01_worker_compatible": false,
+  "model_forward_executed": false,
+  "architecture_construction_spec": {
+    "identity": "C01_ARCHITECTURE_V2_1_FIVE_NUMERIC_CHANNELS",
+    "class": "PackedRecurrentRegressor",
+    "input_size": 5,
+    "hidden_size": 16,
+    "layers": 1,
+    "dropout": 0.0,
+    "cell": "gru",
+    "weights": "random_untrained_no_checkpoint",
+    "seed": 0,
+    "scope": "construction_only_not_historical_reproduction",
+    "fit_allowed": false,
+    "forward_executed": false
+  },
+  "origins": 321766,
+  "channels": [
+    "last_settlement_mm",
+    "last_rate_mm_y",
+    "current_standard_uncertainty_mm",
+    "days_since_previous_observation",
+    "missing_campaigns_since_previous"
+  ],
+  "tensor_storage": "lazy_runtime_only",
+  "raw_dtype": "float64",
+  "network_dtype": "float32",
+  "history_rows": 395334,
+  "adapter_manifest_sha256": "28480599eb573222821dedffbb41f4769ca1f7922128266b6992c1de08857d97"
+}

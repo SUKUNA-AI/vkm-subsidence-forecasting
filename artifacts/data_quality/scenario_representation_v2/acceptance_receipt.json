@@ -1,0 +1,153 @@
+{
+  "status": "BLOCKED_NOT_FROZEN",
+  "blocker_id": "V2-REP-001",
+  "head": "ffcf86972d31bd9f0dbd62d1265001f5c722e253",
+  "branch": "main",
+  "dataset_manifest_sha256": "7bb67939314fbcf548686893e6868c90a2303e1303c401377f197e077fec8c13",
+  "constraints_manifest_sha256": "96b88b61cf766062c1f831e32b50bdd82441da63c50ce41569a5ffad297de6ef",
+  "representation_release_frozen": false,
+  "representation_release_hash": null,
+  "origins_checked_independently": 321766,
+  "origins_accepted": null,
+  "gap_feature_mismatches": 31283,
+  "frozen_windows_checked": 321766,
+  "runtime_full_sequence_parity_completed": false,
+  "two_run_representation_reproducibility_completed": false,
+  "tests": {
+    "passed": 25,
+    "failed": 1,
+    "independent_checks_passed": 67,
+    "independent_checks_failed": 1
+  },
+  "preexisting_files_unchanged": 1286,
+  "changed_preexisting_files": [],
+  "models_executed": 0,
+  "estimator_constructors_smoked": [
+    "B1",
+    "B5",
+    "B6",
+    "B7",
+    "B8"
+  ],
+  "model_fit_calls": 0,
+  "model_predict_calls": 0,
+  "model_forward_calls": 0,
+  "C01_construction_smoke_completed": false,
+  "legacy_holdout_labels_parsed": 0,
+  "frozen_v2_semantics_unchanged": true,
+  "benchmark_authorized": false,
+  "commit_created": false,
+  "push_performed": false,
+  "environment": {
+    "python": "3.13.13",
+    "numpy": "2.5.2",
+    "pandas": "3.0.5"
+  },
+  "draft_files_and_evidence": [
+    {
+      "path": "artifacts/data_quality/scenario_representation_v2/blocker_receipt.json",
+      "sha256": "7106b51c3739551e3b0cde28055a1f4d07039606ae00104359ddc5306e2dc158",
+      "size_bytes": 2987
+    },
+    {
+      "path": "artifacts/data_quality/scenario_representation_v2/elapsed_days_mismatches.csv.gz",
+      "sha256": "fff387f9e419d68a6ad3f21dc78c73bdb327e049cbe299b3a08b72e7618292ad",
+      "size_bytes": 192377
+    },
+    {
+      "path": "artifacts/data_quality/scenario_representation_v2/independent_validation.json",
+      "sha256": "02909b6db51feb5f901e2513a566c196810828944051b0a7c06cbc70c94c349a",
+      "size_bytes": 4329
+    },
+    {
+      "path": "artifacts/data_quality/scenario_representation_v2/preexisting_integrity_receipt.json",
+      "sha256": "30cefeb8c3c23d0f6fec053f4f05a155cef7e860fef74a0a9c3c2c4a29ad75be",
+      "size_bytes": 244
+    },
+    {
+      "path": "artifacts/data_quality/scenario_representation_v2/test_execution_receipt.json",
+      "sha256": "1d9e95c8d1335dc1147b1a7178e40e2872ede2a88289643d5c589f51aba1b39b",
+      "size_bytes": 3508
+    },
+    {
+      "path": "configs/scenario_adapter_v2.json",
+      "sha256": "8b24912a7497fea7e1a961be22f2f1dc98e72dbc23b84d481e916caeec084bb9",
+      "size_bytes": 808
+    },
+    {
+      "path": "configs/scenario_sequences_v2.json",
+      "sha256": "6bc7eae068f3826c5c60eb52bcc545a84a46f205ea1390a602cb4f5b857a5692",
+      "size_bytes": 921
+    },
+    {
+      "path": "docs/governance/SCENARIO_V2_REPRESENTATION_PROTOCOL.md",
+      "sha256": "d23af8b5714f5598ee2db55f05dbebfe02152cdfee77c04a071b6f73a6caacfd",
+      "size_bytes": 9359
+    },
+    {
+      "path": "docs/reports/SCENARIO_V2_ADAPTER_ACCEPTANCE_RU.md",
+      "sha256": "efb126af8a0d0d4a910685f692077222c71174a64d14e985d5f6ecb81b3ffdf3",
+      "size_bytes": 7926
+    },
+    {
+      "path": "docs/reports/SCENARIO_V2_SEQUENCE_ACCEPTANCE_RU.md",
+      "sha256": "67429afd303d8826c2ee4e4d52e76a8223742e3d8d97c00865bf3f7d99e84ba3",
+      "size_bytes": 3629
+    },
+    {
+      "path": "scripts/build_scenario_representation_v2.py",
+      "sha256": "afa972d2d9995306db01b7c272676421e75f9c8f0c805672ea37fbd8e047d09e",
+      "size_bytes": 5776
+    },
+    {
+      "path": "scripts/validate_scenario_representation_v2.py",
+      "sha256": "a438c9ce75affbe511894c496d9f32edd414f5fea179c910b14491289afbd9ea",
+      "size_bytes": 9541
+    },
+    {
+      "path": "src/skru1/scenario_adapter_v2.py",
+      "sha256": "4da594e58c9a4046010e9a1bfe4b36edb967e10444dba23fd452b83c7f343aa0",
+      "size_bytes": 8737
+    },
+    {
+      "path": "src/skru1/scenario_boundary_v2.py",
+      "sha256": "be81f3a45c777d77cb3c9e9130169fe3ea3e619e2c001d77b8eb096de7b31641",
+      "size_bytes": 3806
+    },
+    {
+      "path": "src/skru1/scenario_preprocessing_v2.py",
+      "sha256": "f31d38e64822cd64fd02f63bff0e625ea3f334aaf846ed5ef962a9703423f751",
+      "size_bytes": 5197
+    },
+    {
+      "path": "src/skru1/scenario_scorer_v2.py",
+      "sha256": "31688dfff7adb5ff008597657577af75706784c9ad9a5fdd73907ef42c9a0d62",
+      "size_bytes": 1815
+    },
+    {
+      "path": "src/skru1/scenario_sequences_v2.py",
+      "sha256": "60749bc10634c7e8dec029081b80b988ac65d9fb8e8066843f6224ecdda6bdcd",
+      "size_bytes": 3431
+    },
+    {
+      "path": "src/skru1/scenario_splits_v2.py",
+      "sha256": "fe839fac95c33a38eb3c13ced590f3a4d6036bec7b4aa2f212c70910d1e03dcb",
+      "size_bytes": 8951
+    },
+    {
+      "path": "src/skru1/scenario_worker_v2.py",
+      "sha256": "7e035ad93f8687233ab39976797a5ac35ea71847264591e34460b0075153db8f",
+      "size_bytes": 1272
+    },
+    {
+      "path": "tests/test_scenario_representation_v2.py",
+      "sha256": "d25d246361cf12c2065f65e7023d7fd360bca694e90530386e633e000495d742",
+      "size_bytes": 14134
+    }
+  ],
+  "notes": [
+    "This is a blocker receipt, not a release acceptance.",
+    "Scratch outputs remain under ignored work/.",
+    "Existing v1 untracked paths were neither modified nor used as a v2 release."
+  ]
+}

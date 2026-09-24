@@ -1,0 +1,130 @@
+{
+  "creation_identity": {
+    "representation_id": "SKRU1_SCENARIO_REPRESENTATION_V2_1_R1",
+    "dataset_manifest_sha256": "a268cd7800e1320a1cc61172f95cf458c7ac7434237b32b288f23a83a97a2c95"
+  },
+  "kind": "tabular",
+  "fold_id": "leave_profile_P-H07",
+  "ordered_train_sample_sha256": "2e0418d0d0ec49e291285627afbe9d210810d403c763f138fd56c9f890314862",
+  "feature_schema_sha256": "91f2cc24a05888e000d5e848d8a3b646a6c5caa7e5dc7d118d817645e158c3f9",
+  "schema": {
+    "authority": "f877cbfacfb39df2d0c52e106ab78ffff3f621d2f5199cf3210bf045d28afba9",
+    "kind": "tabular",
+    "columns": [
+      "n_history",
+      "last_settlement_mm",
+      "last_rate_mm_y",
+      "mean_last_3_rates_mm_y",
+      "std_last_3_rates_mm_y",
+      "recent_acceleration_mm_y2",
+      "current_standard_uncertainty_mm",
+      "days_since_previous_observation",
+      "forecast_horizon_days",
+      "current_campaign_type",
+      "missing_campaigns_since_previous",
+      "profile_mean_settlement_mm",
+      "profile_mean_rate_mm_y",
+      "profile_rate_std_mm_y",
+      "profile_n_observed",
+      "target_campaign_type"
+    ],
+    "normalization": "median_then_population_zscore",
+    "categories": "fit_only_unknown_zero"
+  },
+  "fold_record_sha256": "2bcac5bcca0f05cb12d86c1734e6818c8be98d5da0ad95cba7eb7727fa862140",
+  "fit_origins": 84359,
+  "fit_rows_or_real_tokens": 84359,
+  "parameters": {
+    "n_history": {
+      "median": 5.0,
+      "mean": 5.213930938014912,
+      "scale": 1.6772153188699275
+    },
+    "last_settlement_mm": {
+      "median": 37.970631645,
+      "mean": 56.575248748640945,
+      "scale": 60.245839014197124
+    },
+    "last_rate_mm_y": {
+      "median": 24.504298171,
+      "mean": 33.154838600120996,
+      "scale": 42.65210779916596
+    },
+    "mean_last_3_rates_mm_y": {
+      "median": 22.941466855,
+      "mean": 31.20664197994738,
+      "scale": 31.46486978811281
+    },
+    "std_last_3_rates_mm_y": {
+      "median": 3.958217344,
+      "mean": 9.821869364959374,
+      "scale": 18.475553197435794
+    },
+    "recent_acceleration_mm_y2": {
+      "median": -0.093511902,
+      "mean": 6.797875797880665,
+      "scale": 99.7184627925039
+    },
+    "current_standard_uncertainty_mm": {
+      "median": 0.8,
+      "mean": 0.8667622897379058,
+      "scale": 0.516805781364825
+    },
+    "days_since_previous_observation": {
+      "median": 175.0,
+      "mean": 177.43094394196234,
+      "scale": 72.26558133599657
+    },
+    "forecast_horizon_days": {
+      "median": 168.0,
+      "mean": 158.61054540712905,
+      "scale": 44.76497854835505
+    },
+    "missing_campaigns_since_previous": {
+      "median": 0.0,
+      "mean": 0.09847200654346305,
+      "scale": 0.35221168535155584
+    },
+    "profile_mean_settlement_mm": {
+      "median": 40.32199796933333,
+      "mean": 56.697752390585954,
+      "scale": 56.18987661445302
+    },
+    "profile_mean_rate_mm_y": {
+      "median": 25.83964271266667,
+      "mean": 33.22426264494153,
+      "scale": 39.24773259400279
+    },
+    "profile_rate_std_mm_y": {
+      "median": 7.772507706338445,
+      "mean": 11.119383134443186,
+      "scale": 12.644361594393462
+    },
+    "profile_n_observed": {
+      "median": 3.0,
+      "mean": 2.825804004314892,
+      "scale": 0.40727959449257456
+    }
+  },
+  "categories": {
+    "current_campaign_type": [
+      "focused",
+      "full"
+    ],
+    "target_campaign_type": [
+      "focused",
+      "full"
+    ]
+  },
+  "category_mappings": {
+    "current_campaign_type": {
+      "focused": 1,
+      "full": 2
+    },
+    "target_campaign_type": {
+      "focused": 1,
+      "full": 2
+    }
+  },
+  "unknown_category_code": 0
+}

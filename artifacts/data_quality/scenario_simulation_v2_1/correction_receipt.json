@@ -1,0 +1,208 @@
+{
+  "status": "PASS",
+  "blocker_id": "V2-REP-001",
+  "original_release_id": "SKRU1_SCENARIO_SIMULATION_V2",
+  "original_manifest_sha256": "7bb67939314fbcf548686893e6868c90a2303e1303c401377f197e077fec8c13",
+  "new_release_id": "SKRU1_SCENARIO_SIMULATION_V2_1",
+  "new_manifest_sha256": "a268cd7800e1320a1cc61172f95cf458c7ac7434237b32b288f23a83a97a2c95",
+  "constraints_manifest_sha256": "96b88b61cf766062c1f831e32b50bdd82441da63c50ce41569a5ffad297de6ef",
+  "origins_checked": 321766,
+  "elapsed_day_mismatches": 0,
+  "affected_origins": 31283,
+  "differences": {
+    "+1": 31283,
+    "0": 290483
+  },
+  "other_15_features_and_all_metadata": "EXACT",
+  "historical_blocker_ids": "EXACT",
+  "windows_checked": 321766,
+  "unexpected_difference_count": 0,
+  "output_parity": [
+    {
+      "path": "README.md",
+      "classification": "SEMANTICALLY_IDENTICAL_REVERSIONED",
+      "reason": "new identity and explicit erratum notice",
+      "old_sha256": "c067cdb83be375a27af1711683d2801dac542000948952766ddbdfbde30385eb",
+      "new_sha256": "75d153f11dd04e5e0f95a2fa3c278234d571c9aaccfbc623f144ea5ac790b006"
+    },
+    {
+      "path": "campaign_catalog.csv",
+      "classification": "BYTE_IDENTICAL",
+      "reason": "exact bytes, including all table values",
+      "old_sha256": "7436eb7d0000f3ed87d3111e84f498ed541fa725a41410a3a3861b9dc1be62c2",
+      "new_sha256": "7436eb7d0000f3ed87d3111e84f498ed541fa725a41410a3a3861b9dc1be62c2"
+    },
+    {
+      "path": "causal_history.csv.gz",
+      "classification": "BYTE_IDENTICAL",
+      "reason": "exact bytes, including all table values",
+      "old_sha256": "353a5eb72dab8b97d6fe6915b4395b7e473bb3815c595febaa4d91c502226f42",
+      "new_sha256": "353a5eb72dab8b97d6fe6915b4395b7e473bb3815c595febaa4d91c502226f42"
+    },
+    {
+      "path": "distribution_summary.json",
+      "classification": "EXPECTED_CHANGED",
+      "reason": "only observed_history_gap_days statistics",
+      "old_sha256": "1df2620a3ba6ccb4134e4374e3a44e55c09634a39a48c7df8cd4895dc167536f",
+      "new_sha256": "30f7df6aff6d1b73787cc06c92630efe11fe37959131a910798b2859e85a0945"
+    },
+    {
+      "path": "environment.json",
+      "classification": "BYTE_IDENTICAL",
+      "reason": "exact bytes, including all table values",
+      "old_sha256": "42772129c77491c461e030dbaec805be5955cf6256d153140f398f4c61db63f1",
+      "new_sha256": "42772129c77491c461e030dbaec805be5955cf6256d153140f398f4c61db63f1"
+    },
+    {
+      "path": "evaluator/campaign_truth.csv.gz",
+      "classification": "BYTE_IDENTICAL",
+      "reason": "exact bytes, including all table values",
+      "old_sha256": "835a5effd54e5ba72c4f72e0df4892cad93f5a0e4ec4e6cda8da8248aa07821e",
+      "new_sha256": "835a5effd54e5ba72c4f72e0df4892cad93f5a0e4ec4e6cda8da8248aa07821e"
+    },
+    {
+      "path": "evaluator/conditioning_log.csv",
+      "classification": "BYTE_IDENTICAL",
+      "reason": "exact bytes, including all table values",
+      "old_sha256": "2dfe390e5da171b1c2f9a1416901fa503669e756bad54e0007a8a4d7c21becba",
+      "new_sha256": "2dfe390e5da171b1c2f9a1416901fa503669e756bad54e0007a8a4d7c21becba"
+    },
+    {
+      "path": "evaluator/next_planned_truth.csv.gz",
+      "classification": "BYTE_IDENTICAL",
+      "reason": "exact bytes, including all table values",
+      "old_sha256": "8b22f15256c590ed4aa798a80c78c9432642912207ba8664a774b9f911cd2c85",
+      "new_sha256": "8b22f15256c590ed4aa798a80c78c9432642912207ba8664a774b9f911cd2c85"
+    },
+    {
+      "path": "feature_contract.json",
+      "classification": "BYTE_IDENTICAL",
+      "reason": "exact bytes, including all table values",
+      "old_sha256": "f877cbfacfb39df2d0c52e106ab78ffff3f621d2f5199cf3210bf045d28afba9",
+      "new_sha256": "f877cbfacfb39df2d0c52e106ab78ffff3f621d2f5199cf3210bf045d28afba9"
+    },
+    {
+      "path": "field_provenance.json",
+      "classification": "BYTE_IDENTICAL",
+      "reason": "exact bytes, including all table values",
+      "old_sha256": "08bef9c7969ca1d4eeee3d1c542d4e7aa5f582f4e5801d851e30755c356011b3",
+      "new_sha256": "08bef9c7969ca1d4eeee3d1c542d4e7aa5f582f4e5801d851e30755c356011b3"
+    },
+    {
+      "path": "generation_config.json",
+      "classification": "SEMANTICALLY_IDENTICAL_REVERSIONED",
+      "reason": "generation parameters unchanged; identity/lineage only",
+      "old_sha256": "652fb1115445c960f36f9630808a0932549607def8e254e32ff8481ed0f8b221",
+      "new_sha256": "611630eace9f10a3cab3d11956fa04c4b36752b54b10ebff443a47b5c0affd83"
+    },
+    {
+      "path": "manifest.json",
+      "classification": "SEMANTICALLY_IDENTICAL_REVERSIONED",
+      "reason": "identity, erratum lineage, source/output hashes",
+      "old_sha256": "7bb67939314fbcf548686893e6868c90a2303e1303c401377f197e077fec8c13",
+      "new_sha256": "a268cd7800e1320a1cc61172f95cf458c7ac7434237b32b288f23a83a97a2c95"
+    },
+    {
+      "path": "model_features.csv.gz",
+      "classification": "EXPECTED_CHANGED",
+      "reason": "exactly 31283 cells in elapsed days, +1",
+      "old_sha256": "5461059ebda0ec2eeaa6ff5ee0ffe4a5ade082645f3210cc60c1379e6f88d5fa",
+      "new_sha256": "d34e6a9854f21842f3c529950af34ddaa5a20031868ec5a59f25339eaa9d959f"
+    },
+    {
+      "path": "point_roster.csv",
+      "classification": "BYTE_IDENTICAL",
+      "reason": "exact bytes, including all table values",
+      "old_sha256": "feb31c0a0e936921f910ed1b4f8c131f8fdf6dd2dbdf703842bb5137214d2dad",
+      "new_sha256": "feb31c0a0e936921f910ed1b4f8c131f8fdf6dd2dbdf703842bb5137214d2dad"
+    },
+    {
+      "path": "scenario_catalog.csv",
+      "classification": "BYTE_IDENTICAL",
+      "reason": "exact bytes, including all table values",
+      "old_sha256": "a42fcfc66fb1d2a05c71eeabf62658c5d99ac9308e81ca99544986945eda4a5c",
+      "new_sha256": "a42fcfc66fb1d2a05c71eeabf62658c5d99ac9308e81ca99544986945eda4a5c"
+    },
+    {
+      "path": "sequence_windows.csv.gz",
+      "classification": "BYTE_IDENTICAL",
+      "reason": "exact bytes, including all table values",
+      "old_sha256": "e44c03f265af9451e7662548d2103f1f126af3444212a67f5b1007dabfba863d",
+      "new_sha256": "e44c03f265af9451e7662548d2103f1f126af3444212a67f5b1007dabfba863d"
+    },
+    {
+      "path": "split_assignments.csv.gz",
+      "classification": "BYTE_IDENTICAL",
+      "reason": "exact bytes, including all table values",
+      "old_sha256": "39e73d58e8bda1adb7c95e5ba4d027154b49f86fc88abc66264b606b8adde77d",
+      "new_sha256": "39e73d58e8bda1adb7c95e5ba4d027154b49f86fc88abc66264b606b8adde77d"
+    },
+    {
+      "path": "targets/calibration_observed.csv.gz",
+      "classification": "BYTE_IDENTICAL",
+      "reason": "exact bytes, including all table values",
+      "old_sha256": "7362e90be1534ac7f81ef7a9e3097c06d35fc8067be72640a216aaa80612ff87",
+      "new_sha256": "7362e90be1534ac7f81ef7a9e3097c06d35fc8067be72640a216aaa80612ff87"
+    },
+    {
+      "path": "targets/train_observed.csv.gz",
+      "classification": "BYTE_IDENTICAL",
+      "reason": "exact bytes, including all table values",
+      "old_sha256": "cb4f77b1135a759f67731fb6750c05940894c620798e2fd813340c504ea93e65",
+      "new_sha256": "cb4f77b1135a759f67731fb6750c05940894c620798e2fd813340c504ea93e65"
+    },
+    {
+      "path": "validation_report.json",
+      "classification": "EXPECTED_CHANGED",
+      "reason": "two constructive invariants added; all prior fields exact",
+      "old_sha256": "aaac413046b8d8b9427106396a1fd5af4b9ad7e9e1ca616cf96fff4f90e5a2eb",
+      "new_sha256": "641891036733adcd1f47f55e0cad1d939b3b9620eb9ff701cf689b062c47b2ba"
+    }
+  ],
+  "old_gap_statistics": {
+    "n": 321766,
+    "min": 35.0,
+    "q05": 70.0,
+    "q50": 182.0,
+    "mean": 204.6719976628979,
+    "std": 111.52853670754824,
+    "q95": 433.0,
+    "q99": 574.0,
+    "max": 1525.0
+  },
+  "new_gap_statistics": {
+    "n": 321766,
+    "min": 35.0,
+    "q05": 70.0,
+    "q50": 182.0,
+    "mean": 204.769220489424,
+    "std": 111.59313609526282,
+    "q95": 434.0,
+    "q99": 574.0,
+    "max": 1526.0
+  },
+  "models_executed": 0,
+  "model_scoring": 0,
+  "legacy_labels_parsed": 0,
+  "two_run_result": "BYTE_IDENTICAL_ALL_20_FILES",
+  "final_matches_both": true,
+  "data_tests_passed": 51,
+  "initial_files_unchanged": 1307,
+  "changed_initial_files": [],
+  "source_code_diff": "versioned module clone; calendar assignment + new identity/invariants/card/output guard only",
+  "freeze_policy": "append_only_do_not_change_after_model_results",
+  "qa_files": [
+    {
+      "path": "artifacts/data_quality/scenario_simulation_v2_1/output_parity.csv",
+      "sha256": "b86e39bf7ba5d62ffec64bbd6de1c52f797d7cfa02798699ad73b5f645a72399"
+    },
+    {
+      "path": "artifacts/data_quality/scenario_simulation_v2_1/test_execution_receipt.json",
+      "sha256": "1690207f75140d2cb83312bde77b1266dd16ba050cb73c1dd063c6b9274934ba"
+    },
+    {
+      "path": "artifacts/data_quality/scenario_simulation_v2_1/two_run_receipt.json",
+      "sha256": "a9055fedebc635befb845607746c08eebe1eb265a5ff2f96e45de0997c0c1e37"
+    }
+  ]
+}

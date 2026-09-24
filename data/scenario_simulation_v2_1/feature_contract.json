@@ -1,0 +1,37 @@
+{
+  "features": [
+    "n_history",
+    "last_settlement_mm",
+    "last_rate_mm_y",
+    "mean_last_3_rates_mm_y",
+    "std_last_3_rates_mm_y",
+    "recent_acceleration_mm_y2",
+    "current_standard_uncertainty_mm",
+    "days_since_previous_observation",
+    "forecast_horizon_days",
+    "current_campaign_type",
+    "missing_campaigns_since_previous",
+    "profile_mean_settlement_mm",
+    "profile_mean_rate_mm_y",
+    "profile_rate_std_mm_y",
+    "profile_n_observed",
+    "target_campaign_type"
+  ],
+  "metadata": [
+    "sample_id",
+    "scenario_id",
+    "point_id",
+    "base_point_id",
+    "profile_id",
+    "base_profile_id",
+    "current_campaign_id",
+    "current_date",
+    "target_campaign_id",
+    "target_date"
+  ],
+  "target": "average_rate_until_next_planned_targeted_campaign",
+  "sequence_max_length": 16,
+  "sequence_padding": "left; observation and padding masks required; no interpolation",
+  "normalization": "future_training_fold_only",
+  "prohibited": "all columns outside the feature allowlist; no IDs, source, parameters, labels or truth as predictors"
+}
