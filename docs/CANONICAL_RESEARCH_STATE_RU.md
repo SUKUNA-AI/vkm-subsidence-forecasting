@@ -1,9 +1,13 @@
 # Каноническое состояние исследования СКРУ-1
 
-Дата консолидации: 24 сентября 2026 года. Этот документ определяет, какие
-выпуски и выводы актуальны. Сохранённые frozen cards и receipts описывают
-состояние на момент выпуска; ограничения источников уточнены последующим R2.
-Удалённые промежуточные состояния доступны в Git history.
+Дата исходной консолидации: 24 сентября 2026 года.
+Обновление после externalization resources: 25 сентября 2026 года.
+
+Этот документ определяет, какие выпуски и выводы актуальны. Сохранённые frozen
+cards и receipts описывают состояние на момент выпуска; ограничения источников
+уточнены последующим R2 и новым physical-evidence corpus. Удалённые
+промежуточные состояния доступны в Git history, а externalized source/data
+containers — в private resources repository.
 
 ## 1. Историческая отправная точка
 
@@ -17,10 +21,10 @@ Bootstrap `1d9514d` содержит более ранние аудиты рек
 Поэтому они не заменяют выбранную историческую точку.
 
 Постановка: T1, скорость до **следующей плановой кампании**, исторический
-`SKRU1_Data_Foundation_v3_2_1`, разбиения `t1_v1`. Источники данных и SHA-256:
-[input manifest](../configs/input_manifest.csv),
-[историческая конфигурация данных](../configs/gate_a1.yaml),
-[инвентарь таблиц поставки](../SKRU1_ACTUAL_DATA_TABLES_v1/06_manifests/TABLE_INVENTORY.csv).
+`SKRU1_Data_Foundation_v3_2_1`, разбиения `t1_v1`. Исторические manifests
+сохранены в `configs/`, а exact historical data/bootstrap/source containers
+после externalization находятся в private repository
+`SUKUNA-AI/vkm-subsidence-forecasting_resourses` и в Git history.
 Исходные features имеют SHA-256
 `5d360910e8eeea10a2572bb35d3de4f0b9b316ec5a6ee3b43389c07b09848ab6`;
 next-planned targets —
@@ -84,7 +88,12 @@ bytes, календарь и перечень исправленных origins. 
 исправлено 31 283 значения на +1 день; другие научные значения не менялись.
 Таблица mismatch IDs сохранена как hash-pinned свидетельство этой проверки.
 
-## 3. R1 и R2
+Часть frozen manifests исторически ссылается на source/data paths, которые
+теперь externalized. Их bytes не изменены: exact snapshots сохранены в
+private resources repository. `scripts/verify_canonical_repository.py`
+разрешает эти зависимости через private snapshot и проверяет исходные hashes.
+
+## 3. R1, R2 и physical branch
 
 **R1**: [neural comparator review](research/NEURAL_COMPARATORS_V2_1_RESEARCH_RU.md),
 [decision matrix](research/NEURAL_COMPARATORS_V2_1_DECISION_MATRIX.csv),
@@ -94,37 +103,59 @@ bytes, календарь и перечень исправленных origins. 
 анализа R1; C1 config не является current launch config. Его зависимости
 относятся к checkout `c5da110`, где выполнялся обзор.
 
-**R2** — текущий source/data/physics audit:
+**R2** — source/data/physics audit:
 [verdict](research/r2_adversarial_audit/01_EXECUTIVE_VERDICT_RU.md),
 [claims](research/r2_adversarial_audit/03_CURRENT_DATA_CLAIMS_MATRIX.csv),
 [machine receipt](../artifacts/research/r2_adversarial_audit/audit_receipt.json).
 Вердикт v2.1 — **SUPPORTED_WITH_LIMITATIONS** как factorial stress benchmark.
-Обязательные оговорки:
+
+Обязательные оговорки R2:
 
 - Атрибуция доноров конкретному руднику неоднозначна: Соликамск,
   территория СКРУ-1/СКРУ-2; семь series не равны семи независимым профилям.
 - `reflector_seasonal` — **pure stress**; календарь противоречит источникам.
 - Доли temporal families — **engineering design**, не частоты природных режимов.
-- Готовность physical worlds — **WEAK**; site-specific geomechanical parameters,
-  initial stress, boundary conditions и полная chronology недостаточны.
+- На момент R2 site-specific geomechanical parameters, initial stress,
+  boundary conditions и полная chronology были недостаточны.
 - IMM задаёт кинематический prior; геомеханической калибровки он не доказывает.
+
+После R2 собран дополнительный corpus:
+Лебедева 2023, Кудряшов 2013, Барях–Асанов–Паньков,
+Соловьёв–Секунцов, Беляков–Беликов, GPR 2026, длительные наблюдения,
+источники по геодинамическим зонам, InSAR и технологии разработки.
+Актуальная интерпретация зафиксирована в
+[physical-world evidence state](research/PHYSICAL_WORLD_EVIDENCE_STATE_RU.md).
+
+Это не превращает проект в 3D digital twin. Однако evidence теперь достаточно,
+чтобы проектировать первый ограниченный **2D/2.5D physical case** с явным
+разделением `SITE_SPECIFIC / VKM_REGIONAL / OTHER_SITE / ASSUMPTION`.
 
 R2 inventories и reviewed hashes фиксируют дерево на `c5da110` и локальные
 источники на дату аудита. Упоминания удалённых файлов в этих снимках —
-историческая provenance, не обещание их наличия в current tree. Audit receipt
-описывает исходный аудит, а cleanup receipt — последующую упаковку/консолидацию.
+историческая provenance, не обещание их наличия в current tree.
 
-## 4. Что признано obsolete
+## 4. Что признано obsolete и externalized
 
 Поздние B4/B5/B6/C execution trees, их generated model-selection artifacts,
 notebooks, промежуточные отчёты/Word-черновик, дубли bootstrap-инструкций,
-старый v1 scenario release и заблокированный v2 adapter удалены из текущего
-дерева. Все они доступны в milestone
+старый v1 scenario release и заблокированный v2 adapter удалены ещё первым
+cleanup. Все они доступны в milestone
 [`c5da110`](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/tree/c5da1103154c29e2ffe9c52bbceacaa032f1690f).
-Отдельные общие алгоритмы и provenance dependencies сохранены по фактическому
-использованию. Удаление obsolete launch paths не меняет поведение оставшихся
-производственных модулей. Таблица решений — `work/repo_cleanup/classification.csv`;
+
+После формирования private evidence archive из current main дополнительно
+externalized:
+
+- `inputs/sources/`;
+- `inputs/bootstrap/`;
+- `SKRU1_ACTUAL_DATA_TABLES_v1/`.
+
+Exact copies находятся в private resources repository, а исходные версии также
+доступны в Git history. Это packaging cleanup, а не изменение научных данных.
+
+Таблица решений первого cleanup — `work/repo_cleanup/classification.csv`;
 итог — [cleanup receipt](../artifacts/repository_cleanup/canonical_cleanup_receipt.json).
+Новая фиксация externalization:
+[REPOSITORY_CONSOLIDATION_2026-09-25_RU.md](REPOSITORY_CONSOLIDATION_2026-09-25_RU.md).
 
 Нельзя смешивать исторические B3/B6/C1 scores, reconstructed source values,
 v2.1 synthetic values и будущую field evaluation. Не переносить scores на
@@ -132,38 +163,55 @@ v2.1 synthetic values и будущую field evaluation. Не переноси�
 
 ## 5. Рабочие команды и следующий шаг
 
-Из корня, после установки существующих project dependencies, текущая безопасная
-проверка inputs/manifests: `python scripts/verify_canonical_repository.py`.
-Она хеширует payloads как непрозрачные bytes; evaluator truth не парсит,
+Безопасная проверка current core:
+
+```powershell
+python scripts/verify_canonical_repository.py
+```
+
+Для полной проверки externalized bytes:
+
+```powershell
+$env:VKM_RESOURCES_ROOT = "E:\Диплом\vkm-subsidence-forecasting_resourses"
+python scripts/verify_canonical_repository.py
+```
+
+Verifier хеширует payloads как непрозрачные bytes, evaluator truth не парсит,
 модели не запускает, отчёт пишет в `work/repo_cleanup/`.
 
-Текущие reproduction entrypoints: `repair_reconstruction_data.py`,
-`reconstruct_musikhin_profiles.py`, `reconstruct_musikhin_line1.py`,
-`reconstruct_filatova_figure13b.py`, `build_scenario_constraints_v2.py`,
-`generate_scenario_v2_1.py`, `build_scenario_representation_v2_1.py`.
-Параметры конкретного инструмента доступны через `--help`. Воспроизведение
-проводят в разрешённом `work/` destination, не поверх frozen release.
-`scripts/research/r2_checks.py` и `r2_independent_digitization.py` воспроизводят
-data-only проверки R2 с контролем входных хешей; результаты остаются в `work/`.
-Во время этой консолидации datasets не регенерировались.
+Статус `PASS_CORE_EXTERNAL_UNCHECKED` допустим, если private repository
+отсутствует локально: это означает, что main core цел, но external archive
+не был повторно хеширован. При доступном private repo ожидается `PASS`.
 
-Следующее исследовательское направление: отдельный preregistered эксперимент
-по устойчивости B1/IMM и допущенным R1 comparators на v2.1, с независимыми
-mechanism/parameter holdouts и оговорками R2. Это план, а не разрешение
-запускать обучение. Physical worlds — будущее направление; R2 фиксирует
-`MORE EVIDENCE REQUIRED`. Решатели и новые статьи в cleanup не добавлялись.
+Reconstruction entrypoints остаются research code, но для полного rebuild
+нужны externalized source/data bytes. Не копировать их обратно в Git index:
+использовать private repository/work area.
+
+Следующий исследовательский этап — **Physical Evidence Consolidation**:
+собрать machine-readable parameter/source registry, после чего зафиксировать
+`Physical World v1 contract` и первый 2D/2.5D OpenGeoSys reference case.
+Новый model benchmark до этого не запускается.
 
 ## 6. Внешние ресурсы и фиксированные названия
 
-Книги, статьи, source PDFs, крупный корпус и источниковые архивы впоследствии
-будут отдельно организованы в уже созданном private resources repository
-`vkm-subsidence-forecasting\_resourses`. В этой задаче он не открывался,
-не клонировался и не изменялся. Кандидаты для будущего переноса:
-`inputs/sources/`, источниковая часть `inputs/bootstrap/`,
-`SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/source_inputs/`,
-`SKRU1_ACTUAL_DATA_TABLES_v1/07_original_archives/`, после ручной проверки —
-`SKRU1_ACTUAL_DATA_TABLES_v1/04_excel_workbooks/`.
-Миграция потребует отдельного плана manifests/hashes и доступности воспроизведения.
+Private resources repository:
+
+`SUKUNA-AI/vkm-subsidence-forecasting_resourses`
+
+Resources baseline на момент externalization:
+`941f457dc62726073f972f14cca9131ee864145d`.
+
+В нём находятся:
+
+- exact snapshots бывших `inputs/sources/` и `inputs/bootstrap/`;
+- exact snapshot `SKRU1_ACTUAL_DATA_TABLES_v1/`;
+- исходный `SKRU1_ACTUAL_DATA_TABLES_v1.zip`;
+- книги, статьи, диссертации, GPR/InSAR/geomechanics corpus;
+- Excel/GPKG/source archives;
+- `SOURCE_REGISTER.csv` и SHA-256 receipts;
+- snapshot ключевой документации main repository.
+
+Raw source binaries впредь добавляются только туда.
 
 Утверждённые названия остаются прежними:
 

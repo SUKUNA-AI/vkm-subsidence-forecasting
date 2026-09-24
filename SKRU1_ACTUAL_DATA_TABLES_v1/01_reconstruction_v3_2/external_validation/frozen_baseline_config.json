@@ -1,7 +1,0 @@
-{
-  "model": "kalman_local_linear_trend",
-  "q": 250.0,
-  "selected_before_external_data": true,
-  "no_retraining": true,
-  "version": "3.2.0"
-}

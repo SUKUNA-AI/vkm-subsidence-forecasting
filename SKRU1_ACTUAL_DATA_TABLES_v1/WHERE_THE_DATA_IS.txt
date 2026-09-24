@@ -1,4 +1,0 @@
-Historical foundation: see README_FIRST.md in this directory.
-Current release: data/scenario_simulation_v2_1 at repository root.
-Canonical map: docs/CANONICAL_RESEARCH_STATE_RU.md at repository root.
-Original delivery manifests are retained under 06_manifests as historical snapshots.

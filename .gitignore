@@ -52,9 +52,17 @@ pip.conf
 # Reproducible but generated working trees
 work/
 
-# Local distribution archive. Its 241 files are byte-identical to the
-# versioned SKRU1_ACTUAL_DATA_TABLES_v1/ tree; keep the duplicate out of Git.
+# Externalized evidence/archive trees.
+# Canonical bytes live in the private vkm-subsidence-forecasting_resourses repo
+# and remain recoverable from Git history. Do not re-add them to current main.
+/SKRU1_ACTUAL_DATA_TABLES_v1/
 /SKRU1_ACTUAL_DATA_TABLES_v1.zip
+/inputs/bootstrap/
+/inputs/sources/
+
+# Actual local layout currently used by the project: private repo nested under
+# the diploma directory. Keep the nested repository out of the main Git index.
+/vkm-subsidence-forecasting_resourses/
 
 # Local sealed final-holdout package; commit only its instructions and frozen hashes.
 inputs/holdout_candidates/t1_final_v3/*
