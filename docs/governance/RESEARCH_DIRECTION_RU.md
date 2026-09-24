@@ -3,7 +3,10 @@
 Авторитетное состояние и границы исторических/текущих результатов:
 [CANONICAL_RESEARCH_STATE_RU.md](../CANONICAL_RESEARCH_STATE_RU.md).
 
-Фиксация нового layout:
+Решение по старому reconstructed/model-ready пакету:
+[LEGACY_DATA_RETIREMENT_2026-09-25_RU.md](../LEGACY_DATA_RETIREMENT_2026-09-25_RU.md).
+
+Фиксация layout:
 [REPOSITORY_CONSOLIDATION_2026-09-25_RU.md](../REPOSITORY_CONSOLIDATION_2026-09-25_RU.md).
 
 R2 и его ограничения:
@@ -14,6 +17,13 @@ R2 и его ограничения:
 site-specific GIS/3D mine model не предоставлены. Публикационная реконструкция
 и v2.1 stress lab поддерживают разработку и controlled robustness testing,
 но не доказывают field accuracy.
+
+`SKRU1_ACTUAL_DATA_TABLES_v1`, old v3/v3.2 reconstruction/model-ready/EDA
+packages и bootstrap branch имеют статус **LEGACY_RETIRED**. Они отражают
+раннюю exploratory-ветку с впоследствии признанным ошибочным представлением о
+доступных данных/temporal reconstruction. Это не current evidence и не вход
+будущей physical branch. Historical reproduction выполняется через historical
+Git commits, а не восстановлением этих пакетов в current tree.
 
 После R2 собран расширенный evidence corpus по геологии ВКМ, свойствам соляных
 пород, реологии, горной технологии, закладке, GPR, InSAR и геомеханическому
