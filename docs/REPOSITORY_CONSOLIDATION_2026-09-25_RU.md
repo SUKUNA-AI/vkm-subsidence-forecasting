@@ -1,104 +1,112 @@
-# Консолидация основного репозитория и private evidence archive
+# Консолидация основного репозитория и private evidence repository
 
-Дата фиксации: **25 сентября 2026 года**.
+Дата исходной фиксации: **25 сентября 2026 года**.  
+Корректировка после анализа legacy package: **25 сентября 2026 года**.
 
-Этот документ фиксирует состояние проекта после второго этапа cleanup:
-крупные исходные материалы и исторические data/bootstrap containers вынесены
-из current `main` в отдельный private resources repository, а основной
-репозиторий оставлен как рабочее исследовательское ядро.
+> **Важно:** первоначальная externalization формулировала старые
+> `SKRU1_ACTUAL_DATA_TABLES_v1` / v3.x / bootstrap packages как exact external
+> archive, который нужно продолжать побайтово проверять. Последующий review
+> показал, что это неверная current-policy интерпретация. Эти project-generated
+> packages созданы на раннем этапе при впоследствии признанном ошибочным
+> представлении о данных и теперь имеют статус **LEGACY_RETIRED**.
 
-## 1. Репозитории и роли
+Авторитетное решение:
+[LEGACY_DATA_RETIREMENT_2026-09-25_RU.md](LEGACY_DATA_RETIREMENT_2026-09-25_RU.md).
+
+## 1. Роли репозиториев
 
 ### Основной
 
 `SUKUNA-AI/vkm-subsidence-forecasting`
 
-Назначение:
+Хранит:
 
 - current frozen stress benchmark v2.1;
 - representation v2.1 R1;
-- код и тесты;
-- исторический Gate B3 как минимальная reproducibility/provenance точка;
-- R1 comparator research;
-- R2 adversarial source/data/physics audit;
-- physical-world research и будущие contracts;
-- manifests, receipts и governance.
+- код/tests/configs;
+- historical Gate B3 documentation;
+- R1/R2;
+- current reconstruction research;
+- future physical-world contracts;
+- governance/receipts.
 
-### Private evidence/archive repository
+### Private scientific evidence
 
 `SUKUNA-AI/vkm-subsidence-forecasting_resourses`
 
-Зафиксированный resources baseline на момент этой консолидации:
-`941f457dc62726073f972f14cca9131ee864145d`.
+Хранит актуальные научные источники:
 
-Назначение:
+- книги;
+- статьи;
+- диссертации;
+- primary/secondary source files;
+- GPR/InSAR/geology/geomechanics/mining evidence;
+- SHA-256 registry/provenance;
+- будущие curated physical-evidence tables.
 
-- книги, статьи, диссертации и source PDFs;
-- exact snapshots бывших source/bootstrap trees основного repo;
-- исторический `SKRU1_ACTUAL_DATA_TABLES_v1`;
-- original ZIP/Excel/GPKG/source containers;
-- physical-evidence corpus;
-- SHA-256 registry и provenance.
+Private repo **не должен быть музеем всех исторических reconstructed datasets**.
 
-## 2. Что было вынесено из current main
+## 2. Что было удалено из current main
 
-После проверки private archive из current tree удаляются:
+Во время externalization из current tree были удалены:
 
 - `inputs/sources/`;
 - `inputs/bootstrap/`;
 - `SKRU1_ACTUAL_DATA_TABLES_v1/`.
 
-Это не удаление доказательств.
+После последующего review эти группы разделены по смыслу.
 
-Exact snapshots этих деревьев сохранены в private repo:
+### Active scientific sources
 
-- `08_data_archives/main_repo_snapshots/inputs_sources/`;
-- `08_data_archives/main_repo_snapshots/inputs_bootstrap/`;
-- `08_data_archives/main_repo_snapshots/SKRU1_ACTUAL_DATA_TABLES_v1/`.
+`inputs/sources/**` содержит реальные внешние книги/articles/theses/source
+materials. Их canonical copies в private repo остаются актуальным evidence и
+проверяются по SHA-256.
 
-Кроме развёрнутого snapshot сохранён исходный архив
-`08_data_archives/SKRU1_ACTUAL_DATA_TABLES_v1.zip`:
+### Retired project-generated packages
 
-- size: `63048195` bytes;
-- SHA-256:
-  `edcced26f827fc1d24939eabb86d1a1cf5a41669ebe2b9e680af9a955cb733a7`.
+`inputs/bootstrap/**` и `SKRU1_ACTUAL_DATA_TABLES_v1/**` являются legacy
+project-generated artifacts старой reconstructed/model-ready ветки.
 
-Git history основного репозитория также сохраняет старые состояния.
+Они:
 
-## 3. Физико-механический источник
+- не являются current evidence;
+- не нужны Physical Evidence Consolidation;
+- не нужны Physical World v1 / OpenGeoSys;
+- не требуют exact snapshot maintenance в current private tree;
+- доступны через Git history, если понадобится историческая археология.
 
-Книга/учебное пособие по физико-механическим свойствам соляных пород ВКМ
-изначально была получена как ZIP с отдельными page/SVG files.
+Старый `SKRU1_ACTUAL_DATA_TABLES_v1.zip` был успешно импортирован и его SHA
+когда-то проверялся (`edcced26...33a7`), но после retirement сам archive **не
+является current required artifact** и может быть удалён из current resources
+branch. Его наличие в локальном `work/resource_inbox` также не требуется.
 
-Из этого source container был собран единый читаемый PDF:
+## 3. Физико-механический источник Барях–Асанов–Паньков
+
+Рабочая читаемая копия:
 
 `03_books/Baryakh_Asanov_Pankov_phys_mech_salt_rocks_VKM_merged.pdf`
 
 - size: `96179474` bytes;
-- SHA-256:
-  `3c13bddaebed84da4b363a69bf154ebbe35860cad6a194cd979574fdf4b69913`.
+- SHA-256: `3c13bddaebed84da4b363a69bf154ebbe35860cad6a194cd979574fdf4b69913`.
 
-Исходный локальный ZIP после сборки PDF был удалён. Это явно записано в
-private `SOURCE_REGISTER.csv`; проект не считается blocked из-за отсутствия
-этого ZIP. Сохранённый PDF является рабочей копией для чтения и evidence
-extraction, а hash исходного контейнера оставлен как provenance record.
+Исходный page/SVG ZIP после сборки PDF был локально удалён. Его hash остаётся
+provenance record, но восстановление ZIP не требуется.
 
-## 4. Что остаётся каноническим в main
+## 4. Current canonical scientific state
 
 ### Historical baseline
 
-Первый полный B1/B5/B6/B7 experiment: Gate B3, commit `ce8e57e`.
+Gate B3 / commit `ce8e57e` — historical B1/B5/B6/B7 validation point.
 
-Он остаётся исторической точкой. Historical scores нельзя переносить на v2.1
-или будущие physical worlds.
+Historical scores остаются привязаны к historical commit/data state.
+Точное повторение выполняется checkout соответствующего commit, а не
+восстановлением retired package в current main.
 
 ### Current stress lab
 
-Authoritative dataset:
-`SKRU1_SCENARIO_SIMULATION_V2_1`.
+`SKRU1_SCENARIO_SIMULATION_V2_1`
 
-Authoritative representation:
-`SKRU1_SCENARIO_REPRESENTATION_V2_1_R1`.
+`SKRU1_SCENARIO_REPRESENTATION_V2_1_R1`
 
 Frozen SHA-256:
 
@@ -108,105 +116,76 @@ Frozen SHA-256:
 | constraints | `96b88b61cf766062c1f831e32b50bdd82441da63c50ce41569a5ffad297de6ef` |
 | representation | `0e5501cb4c3cff570fbd3763047a8dd8738d45706dd6f549556ac428521f5a6d` |
 
-Эта консолидация не изменяет содержимое этих frozen releases.
-
 v2.1 остаётся publication-envelope-conditioned factorial/adversarial stress
-benchmark. Это не field validation и не digital twin СКРУ-1.
+benchmark, не field validation/digital twin.
 
-## 5. Что было сделано после R2
+Frozen v2.1 manifest содержит historical provenance reference на retired
+`SKRU1_ACTUAL_DATA_TABLES_v1/.../survey_points.csv`. Manifest не изменяется.
+После retirement ссылка не создаёт current dependency на весь legacy package.
 
-R2 первоначально фиксировал physical-world readiness как слабую из-за нехватки
-site-specific parameters, initial stress, boundary conditions и chronology.
+## 5. Physical evidence after R2
 
-После R2 добавлен и сохранён отдельный physical-evidence corpus, в том числе:
+Собран scientific corpus:
 
-- Лебедева 2023 — междушахтные целики СКРУ-1–СКРУ-2/СКРУ-2–СКРУ-3,
-  геология, Vp, свойства, FEM, маркшейдерские наблюдения;
-- Кудряшов 2013 — региональная геология ВКМ;
-- Барях–Асанов–Паньков — физико-механические свойства соляных пород ВКМ;
-- Соловьёв–Секунцов — технология разработки, камеры/целики, устойчивость,
-  закладка и time-to-stability;
-- Беляков–Беликов — опубликованный FEM reference case;
-- GPR 2026 — георадарная гипсометрия и observation layer;
-- длительные наблюдения оседаний по ВКМ;
-- источники по геодинамическим зонам, InSAR и горной технологии.
+- Лебедева 2023;
+- Кудряшов 2013;
+- Барях–Асанов–Паньков;
+- Соловьёв–Секунцов;
+- Беляков–Беликов;
+- GPR 2026;
+- long-term monitoring;
+- geodynamic/InSAR/mining sources.
 
-Следствие: полноценный site-specific 3D digital twin всё ещё преждевременен,
-но первый evidence-backed 2D/2.5D physical case по выбранному профилю уже
-можно проектировать научно корректно.
+Следствие: первый evidence-backed 2D/2.5D physical case проектируем, но full
+site-specific 3D digital twin пока не обоснован.
 
-## 6. Новый принцип хранения
+## 6. Storage policy после корректировки
 
-Основной repo больше не является складом source PDFs и исторических архивов.
-
-Правило:
-
-- raw books/PDFs/dissertations/ZIP/XLSX/GIS source containers -> private resources;
-- current code/contracts/manifests/derived machine-readable research artifacts -> main;
-- historical exact states -> Git history + private snapshots;
+- raw **scientific evidence** -> private resources;
+- current code/contracts/manifests/derived research artifacts -> main;
+- retired project-generated v3.x/bootstrap packages -> Git history;
 - temporary/generated work -> `work/`.
 
-Новые источники сначала регистрируются в private `00_registry/SOURCE_REGISTER.csv`
-с SHA-256, scope и provenance, и только затем используются в research contracts.
+Новые источники сначала регистрируются в private `SOURCE_REGISTER.csv`.
+Retired reconstructed/model-ready packages обратно не импортируются.
 
-## 7. Проверка после externalization
-
-`python scripts/verify_canonical_repository.py`
-
-проверяет current frozen core.
-
-Для полной проверки externalized bytes verifier использует
-`VKM_RESOURCES_ROOT` или автоматически найденный private repo.
-
-Пример:
+## 7. Canonical verification
 
 ```powershell
 $env:VKM_RESOURCES_ROOT = "E:\Диплом\vkm-subsidence-forecasting_resourses"
 python scripts/verify_canonical_repository.py
 ```
 
-Статусы:
+Verifier обязан проверять current frozen core и active scientific source bytes.
+Он **не должен** fail из-за historical references на:
 
-- `PASS` — main core и externalized archive проверены;
-- `PASS_CORE_EXTERNAL_UNCHECKED` — main core корректен, но private archive
-  отсутствовал локально и source bytes повторно не хешировались;
-- `FAIL` — нарушен frozen hash, размер, manifest dependency или локальная ссылка.
+- `SKRU1_ACTUAL_DATA_TABLES_v1/**`;
+- `inputs/bootstrap/**`;
+- old v3.x model-ready/EDA/target files.
 
-Verifier не запускает модели и не читает evaluator truth как таблицы.
+Такие записи являются `retired_legacy_references_skipped`.
 
-## 8. Что сознательно не делалось
+Verifier не запускает модели и не читает evaluator truth.
 
-В рамках этой консолидации:
+## 8. Что не выполнялось
 
-- модели не запускались;
-- обучение не выполнялось;
-- tuning не выполнялся;
-- frozen v2.1 не регенерировался;
-- representation не пересобирался;
-- evaluator truth не использовался для model selection;
-- научные значения frozen releases не менялись.
+В рамках cleanup/retirement:
+
+- model runs: 0;
+- training: 0;
+- tuning: 0;
+- solver runs: 0;
+- v2.1 regeneration: 0;
+- representation regeneration: 0;
+- evaluator truth model-selection: 0.
+
+Frozen scientific values current releases не менялись.
 
 ## 9. Следующий этап
 
-Следующий этап — **Physical Evidence Consolidation**.
+**Physical Evidence Consolidation**:
 
-Нужно превратить private corpus в machine-readable evidence model:
-
-- parameter / variable;
-- value/range/formula;
-- units;
-- source + page/table/figure;
-- object/site;
-- evidence scope;
-- `LAB / MASSIF / CALIBRATED_EFFECTIVE_MODEL`;
-- transferability to SKRU-1;
-- uncertainty;
-- identifiability;
-- usability in OpenGeoSys;
-- assumption status.
-
-После этого фиксируется `Physical World v1 contract` и только затем
-строится первый 2D/2.5D OpenGeoSys reference case.
+`scientific sources -> claim/source graph -> parameter registry -> Physical World v1 -> 2D/2.5D OpenGeoSys reference case -> physical ensemble -> новый preregistered algorithm benchmark`.
 
 ## 10. Зафиксированные названия
 
