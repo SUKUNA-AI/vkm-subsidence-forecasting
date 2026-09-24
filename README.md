@@ -1,7 +1,8 @@
 # SKRU-1: канонический исследовательский репозиторий
 
-Начните с [канонического состояния](docs/CANONICAL_RESEARCH_STATE_RU.md) и
-[фиксации консолидации 25.09.2026](docs/REPOSITORY_CONSOLIDATION_2026-09-25_RU.md).
+Начните с [канонического состояния](docs/CANONICAL_RESEARCH_STATE_RU.md),
+[фиксации консолидации 25.09.2026](docs/REPOSITORY_CONSOLIDATION_2026-09-25_RU.md) и
+[решения по legacy-данным](docs/LEGACY_DATA_RETIREMENT_2026-09-25_RU.md).
 
 | Слой | Авторитетный материал |
 |---|---|
@@ -27,20 +28,34 @@ digital twin СКРУ-1 по-прежнему не обоснован.
 Основной репозиторий содержит код, current stress lab, frozen manifests,
 исследовательские протоколы, R1/R2 и будущие physical-world contracts.
 
-Исходные PDF/книги/диссертации, исторические bootstrap/data packages и полный
-архив доказательной базы вынесены в private repository:
+Private repository:
 
 `SUKUNA-AI/vkm-subsidence-forecasting_resourses`
 
-Текущий main намеренно не содержит этих крупных binary/source trees.
-Их exact snapshots и SHA-256 сохранены в private archive и Git history.
+хранит **актуальные научные источники/evidence**: книги, статьи, диссертации,
+source PDFs, GPR/InSAR/geomechanics materials и их SHA/provenance.
+
+### Legacy v3.x data package
+
+`SKRU1_ACTUAL_DATA_TABLES_v1`, старые v3.x reconstructed/model-ready/EDA tables,
+bootstrap scripts и связанные проектные архивы переведены в `LEGACY_RETIRED`.
+Они создавались при более раннем и впоследствии признанном ошибочным
+представлении о данных и **не являются current scientific evidence**.
+
+Они не требуются для Physical Evidence Consolidation, Physical World v1 или
+OpenGeoSys и не должны поддерживаться побайтово в current trees. Исторические
+версии доступны через Git history. Frozen v2.1 сохраняет некоторые старые
+provenance references внутри immutable manifest; это не делает retired package
+текущей зависимостью.
+
+Подробнее: [LEGACY_DATA_RETIREMENT_2026-09-25_RU.md](docs/LEGACY_DATA_RETIREMENT_2026-09-25_RU.md).
 
 ## Начало работы
 
 Python 3.13; существующие зависимости — [pyproject.toml](pyproject.toml) и
 [requirements](requirements/).
 
-Безопасная проверка current repository:
+Проверка current canonical state:
 
 ```powershell
 python scripts/verify_canonical_repository.py
@@ -55,9 +70,9 @@ $env:VKM_RESOURCES_ROOT = "E:\Диплом\vkm-subsidence-forecasting_resourses"
 python scripts/verify_canonical_repository.py
 ```
 
-Без private archive возможен статус `PASS_CORE_EXTERNAL_UNCHECKED`: frozen core
-проверен, но externalized source bytes не были повторно хешированы. При наличии
-private repo ожидается полный `PASS`.
+Verifier проверяет current frozen core и active external scientific sources.
+Retired v3.x project package не является blocking dependency и не должен
+вызывать FAIL только из-за исторических SHA/path references.
 
 Проверка не запускает модели и не парсит evaluator truth. Отчёт сохраняется
 в `work/repo_cleanup/`. Все рабочие пути относительны корню, временные outputs
