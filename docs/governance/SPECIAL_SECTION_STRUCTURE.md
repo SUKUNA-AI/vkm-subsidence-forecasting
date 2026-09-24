@@ -1,127 +1,23 @@
-# Corrected Special Section Structure
+# Структура специальной части
 
-## Current structure after the 2026-09-05 audit
+Утверждённые названия неизменны:
 
-The approved titles are fixed and must be preserved exactly:
+- Диплом: «Горные и маркшейдерские работы при разработке Верхнекамского месторождения».
+- Спецчасть: «Алгоритм прогнозирования оседаний земной поверхности на ВКМ на основе маркшейдерских измерений».
 
-- Diploma: «Горные и маркшейдерские работы при разработке Верхнекамского месторождения».
-- Special section: «Алгоритм прогнозирования оседаний земной поверхности на ВКМ на основе маркшейдерских измерений».
+Канонические версии, доказательства и границы результатов:
+[CANONICAL_RESEARCH_STATE_RU.md](../CANONICAL_RESEARCH_STATE_RU.md).
 
-The main deliverable remains the forecasting algorithm for surveying observation
-histories. Reconstruction and simulation support its implementation and evaluation;
-they do not replace the approved topic. Explain data limitations in the body.
+1. Постановка T1: история наблюдений, следующая плановая кампания, доступность входов.
+2. Публикационные источники, source provenance и ограничения R2.
+3. Пространственная реконструкция, неопределённость оцифровки и её проверка.
+4. v2.1: publication-envelope-conditioned factorial stress benchmark.
+5. Алгоритмы B1/IMM; historical baseline Gate B3 и будущий протокол R1.
+6. Реализация, manifests, leakage boundaries, tests и воспроизводимость.
+7. Раздельное изложение исторических результатов и будущих scenario experiments.
+8. Ограничения: отсутствие field validation, readiness физических миров WEAK.
 
-The current scope is defined in `RESEARCH_DIRECTION_RU.md`: original inputs are
-unavailable; the contribution is reconstruction, a tested forecasting method
-and a reproducible simulation study with explicit limits. Use this structure:
-
-1. Problem, estimand, next-planned target, available information and scope.
-2. Published sources, field provenance, units, dates and reconstruction limits.
-3. Spatial reconstruction with source overlays and independent checks where possible.
-4. Scenario mechanisms, irregular observations, missingness and assumptions.
-5. Baseline and IMM mechanics; representative existing model comparisons.
-6. Implementation, data contracts, tests, reproducibility and measured performance.
-7. Experiments: held mechanisms/parameter regions, ablations, error and interval analysis.
-8. Demonstration, verified findings, limitations and optional future field evaluation.
-
-A new architecture chapter is not required for every family in the old menu.
-The existing Word draft still reflects the historical scope and needs a later
-source-grounded revision. In that revision correct the Filatova bibliography,
-replace 'next actual observation' with 'next planned campaign', distinguish
-published/reconstructed/synthetic information, and avoid claiming field accuracy.
-The first evidence package for section 3 is now
-`docs/reports/RECONSTRUCTION_ATLAS_V1_RU.md`: four Musikhin profiles, Filatova
-Figure 13b, their overlays, unreadable/sensitive cases and the scenario-constraint
-registry. It supplies reconstruction evidence, not field-validation evidence.
-
-## Historical structure and mapping for the existing Word draft
-
-## 6.1 Problem statement
-
-Object, horizons, units, censoring and limitations.
-
-## 6.2 Source materials
-
-TAB layers, Excel attributes, maps, provenance and uncertainty.
-
-## 6.3 Reconstruction and monitoring network
-
-Spatial database, profiles, campaigns and QC.
-
-## 6.4 EDA and target formation
-
-Regimes, intervals, missingness, autocorrelation and formal target semantics.
-
-## 6.5 Algorithms and model families
-
-### 6.5.1 Statistical and persistence baselines
-### 6.5.2 State-space models and regime switching
-### 6.5.3 Classical ML and neuro-fuzzy systems
-### 6.5.4 Deep temporal models: LSTM, GRU, TCN, N-BEATS/N-HiTS
-### 6.5.5 Transformers: TFT, PatchTST, iTransformer and long-sequence models
-### 6.5.6 Spatio-temporal GNNs and graph transformers
-### 6.5.7 Time-series foundation models and zero/few-shot evaluation
-### 6.5.8 Physics-guided, neural state-space and residual hybrids
-### 6.5.9 Uncertainty, ensembles and conformal calibration
-### 6.5.10 LLM/RAG explanatory and orchestration layer
-
-## 6.6 Software implementation
-
-Repository architecture, contracts, manifests, checksums and reproducibility.
-
-## 6.7 Experimental study
-
-### 6.7.1 Broad screening
-### 6.7.2 Temporal and rolling-origin tests
-### 6.7.3 Spatial and graph validation
-### 6.7.4 Regime-transition and OOD tests
-### 6.7.5 Ablation and sensor fusion
-### 6.7.6 Model complexity, compute cost and seed stability
-### 6.7.7 External/frozen validation
-
-## 6.8 Error analysis and adaptive monitoring
-
-Error Atlas, repeat-observation priorities, GNSS/InSAR and limits of deployment.
-
-## 6.9 Conclusions of the special section
-
-Verified findings, scientific claim boundary, Gate C status and requirements
-for a genuinely new future/external holdout.
-
-## Evidence-to-section mapping
-
-- Gate B5 supplies the reproducible benchmark, Error Atlas, dependence audit,
-  independent-unit accounting and formal exclusions for 6.4, 6.6, 6.7 and
-  6.8.
-- Gate B6 supplies the classical/probabilistic/neuro-fuzzy
-  comparison, spatial stability, conformal calibration and compute evidence
-  for 6.5.1–6.5.3, 6.5.9 and 6.7.1–6.7.6. It does not supply evidence for
-  6.5.7 after the foundation comparator was governance-excluded.
-- Gate C0 supplies the causal sequence representation, masking, fold and
-  preprocessing protocol, architecture eligibility and suite-v5 governance
-  for 6.5.4–6.5.5 and 6.6. It deliberately supplies no deep-model quality
-  numbers.
-- Gate C1 supplies the five-seed nested rolling-origin temporal evidence for
-  compact GRU, compact LSTM, causal TCN and probabilistic Student-t GRU in
-  6.5.4–6.5.5, the CUDA/checkpoint reproducibility evidence in 6.6 and the
-  broad-screen, temporal and complexity results in 6.7.1, 6.7.2 and 6.7.6.
-  Only compact GRU is admitted to C2. Leave-profile, leave-zone, transition,
-  conformal-calibration and suite-v5 evidence remains pending Gate C2.
-- External/frozen validation in 6.7.7 remains pending until a genuinely new
-  future or external holdout is obtained.
-
-## Current Word draft
-
-The reader-facing special section is generated at
-`docs/thesis/SPECIAL_SECTION_SKRU1_RU.docx` with A4 page geometry, 30/15/20/20
-mm margins, Times New Roman 14 pt, 1.5 line spacing and bibliography formatted
-against GOST 7.32-2017, GOST R 7.0.100-2018 and GOST R 7.0.5-2008. Local
-university requirements remain authoritative over the repository baseline.
-
-The current 41-page draft is generated from frozen Gate A/B/C0 and validated
-Gate C1 artifacts. It contains 18 numbered data tables (21 physical OOXML
-tables including layout/status blocks) and 16 figures. The exact counts are
-recorded by `docs/thesis/SPECIAL_SECTION_SKRU1_RU_SOURCE_MAP.json` and the
-structural and render QA report `docs/thesis/SPECIAL_SECTION_SKRU1_RU_QA.json`.
-The document explicitly marks Gate C2 spatial/transition/calibration work,
-suite v5 and the final future/external evaluation as pending.
+Старый Word-черновик отражал B6/C1 и доступен в
+[историческом milestone](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/tree/2c5eec4/docs/thesis).
+Он не является текущим изложением R2. Формулировка названия не разрешает
+представлять синтетические ряды как первичные измерения СКРУ-1.

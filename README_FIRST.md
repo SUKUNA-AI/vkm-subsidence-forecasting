@@ -1,136 +1,19 @@
-# SKRU1 reproducible research entrypoint
+# SKRU-1: порядок работы
 
-## Current direction after the 2026-09-05 audit
+Текущая карта репозитория — [CANONICAL_RESEARCH_STATE_RU.md](docs/CANONICAL_RESEARCH_STATE_RU.md).
+Historical baseline: Gate B3 / `ce8e57e`. Current data: scenario v2.1 и
+representation v2.1 R1. R1 — дизайн будущего сравнения; R2 — authoritative
+source/data/physics audit. Исторические scores не переносятся на новые данные.
 
-Read `docs/governance/RESEARCH_DIRECTION_RU.md` first. Original measurements
-and GIS tables are unavailable and are not expected. Both approved titles are
-fixed; their exact wording is recorded in section 3 of that document. The main
-deliverable remains the forecasting algorithm. Publication-based reconstruction
-and explicit simulation scenarios support its preparation and evaluation.
-Obtaining external data and expanding the model catalogue
-are not completion requirements. This does not establish field accuracy.
+До изменений прочитайте документы, перечисленные в [AGENTS.md](AGENTS.md).
+Проверка входов и frozen hashes: `python scripts/verify_canonical_repository.py`.
+Временные результаты создаются только в `work/`; первичные данные и ZIP
+не изменяются на месте. Запуски моделей требуют отдельной задачи и протокола.
 
-The first implemented repair is `SKRU1_RECONSTRUCTION_RESEARCH_V1`:
+v2.1 поддержан с ограничениями как factorial stress benchmark. Атрибуция
+доноров неоднозначна, reflector_seasonal — pure stress, доли temporal families
+заданы инженерно. Physical world readiness — WEAK. Это не полевая валидация.
 
-```bash
-python scripts/repair_reconstruction_data.py --root .
-```
-
-It verifies sources and parent tables, repairs observation status and missing
-counts, and writes a field/availability catalogue and model feature views to
-`data/reconstruction_research_v1/`. The default view has 16 history/plan fields;
-the augmented view requires an explicit simulation assumption. Unknown real
-source availability remains unknown. See that directory's `README.md`.
-
-The reconstruction atlas and source-aware scenario-constraint registry are now
-implemented and validated; see `docs/reports/RECONSTRUCTION_ATLAS_V1_RU.md`.
-The next task is to freeze diverse temporal, missingness and measurement-error
-mechanisms in a versioned simulator, then migrate B1/IMM through a separate
-adapter and protocol. C2 is deferred. The completed local handoff instructions
-remain in `docs/prompts/LOCAL_CODEX_RECONSTRUCTION_HANDOFF_RU.md` as provenance.
-Existing B/C runners still reproduce their frozen parent experiment; migrating
-to the repaired release requires a separate protocol and adapter, not a path
-substitution. Historical scores below are not scores of the repaired release.
-
-## Historical execution boundary at parent commit 2c5eec4
-
-The repository now contains the frozen Gate B5 train-only benchmark and the
-Gate B6 expanded classical/probabilistic/small-data workflow. Gate B5/B6 model
-workers can access only `t1_v1/train`; historical validation, the disclosed T1
-test and the missing future/external holdout are not worker inputs. Any B6
-result is therefore `train_only_internal_research`, not a final quality claim.
-Gate B6 completed with `PASS_NO_NEW_PRIMARY`: B7 remains the single suite-v4
-primary with rolling MAE 5.640 mm/year and 10.64% train-only skill versus B1.
-Gate C0 then froze a causal sequence protocol over the same 911 train origins
-with status `PASS_PROTOCOL_FROZEN`; it performed zero model-training calls and
-loaded zero historical-validation, disclosed-test or future-holdout rows.
-Gate C1 is now complete with `PASS_C1_TEMPORAL_SCREEN`: all four required
-compact architectures completed 11 rolling folds and five fixed seeds. Only
-`C01_compact_gru` passed temporal admission. Its canonical MAE is 6.288
-mm/year versus 6.311 for B1 and 5.640 for B7, so it advances only to C2 and
-does not replace the suite-v4 primary.
-
-Read these authorities before running experiments:
-
-1. `docs/governance/PROJECT_STATE.md`;
-2. `docs/governance/PATH_POLICY.md`;
-3. `docs/governance/GATE_B5_B6_TRAIN_ONLY_PROTOCOL.md`;
-4. `configs/gate_b5.yaml` and `configs/gate_b6.yaml`;
-5. `docs/governance/GATE_C_PROTOCOL.md` and `configs/gate_c.yaml`;
-6. `docs/reports/GATE_B6_EXPANDED_SCREENING_RU.md`;
-7. `docs/reports/GATE_C0_SEQUENCE_PROTOCOL_RU.md`;
-8. `configs/gate_c1.yaml` and `docs/governance/GATE_C1_PROTOCOL.md`;
-9. `docs/reports/GATE_C1_COMPACT_SEQUENCE_SCREEN_RU.md`.
-
-The reproducibility entrypoints are:
-
-```powershell
-.\.venv\Scripts\python.exe scripts\verify_inputs.py --root .
-.\.venv\Scripts\python.exe scripts\run_gate_b5.py --phase validate
-.\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase preflight
-.\.venv\Scripts\python.exe scripts\run_gate_b6.py --phase validate
-.\.venv\Scripts\python.exe scripts\run_gate_c.py --phase validate
-.\.venv\Scripts\python.exe scripts\run_gate_c1.py --phase validate
-```
-
-`run_gate_b6.py --phase all` is intentionally expensive: it dispatches the
-complete frozen temporal and spatial job catalogue. Reuse of completed shards
-is hash/schema guarded. A governance-excluded external-model row remains only
-in the immutable historical B5 registry; no adapter, checkpoint, API path or
-prediction shard is available. The executable B6 catalogue contains 22
-models.
-The one-shot future holdout policy now hashes and consumes
-`artifacts/governance/final_candidate_suite_v4.json`; it remains
-`PENDING_DATA` until a real eligible package is supplied.
-
-The historical next research stage was Gate C2 for the admitted
-`C01_compact_gru` only: 42 leave-profile-out folds, 12 leave-zone-out folds,
-transition audit, calibration and suite-v5 eligibility. B1/B7/B8 remain frozen
-context comparators. Historical validation, disclosed test and the absent
-future/external holdout remain unavailable to model-facing processes.
-
-Gate C1 uses one deterministic CUDA worker. Recurrent inputs are transformed
-with a vectorized device-side path, AdamW uses the fused CUDA implementation,
-and validation metrics stay on the GPU; the frozen batch size, folds, grids
-and objectives are unchanged. Every physical fit writes an atomic recovery
-state after each completed 50-epoch stage and at the terminal epoch, retains
-five full training states, and records a hash-checked manifest. Inner fits
-restore rank 1 by the frozen inner objective. Outer refits retain the latest
-five epochs but always select the preregistered final epoch, never an
-outer-label-ranked checkpoint. Checkpoint binaries remain under ignored
-`work/`; only their inventory and hashes are publishable artifacts.
-
-## Bundled data foundation
-
-This bundle fixes two defects of v1:
-
-1. The modelling programme was too narrow and underrepresented DL, spatio-temporal models, foundation models and LLM-support experiments.
-2. The inventory used stale absolute paths such as `/mnt/data/...` and marked files `present` even though the files were not included in the documentation archive.
-
-## What is physically bundled
-
-- 5 verified bootstrap artifacts in `inputs/bootstrap/`;
-- 11 primary sources in `inputs/sources/primary/`;
-- 1 supplementary source in `inputs/sources/supplementary/`;
-- portable relative-path manifests;
-- expanded model research programme;
-- Codex prompts for classical ML, DL, GNN, time-series foundation models, hybrid models and LLM support;
-- a cross-platform verifier.
-
-## First action
-
-```bash
-python scripts/verify_inputs.py --root .
-```
-
-On Windows PowerShell:
-
-```powershell
-python .\scripts\verify_inputs.py --root .
-```
-
-Do not use `/mnt/data`, `E:\Диплом` or any other hard-coded host path in code. All operational paths are relative to the extracted bundle/repository root.
-
-## Historical model programme boundary
-
-DL breadth is expanded aggressively, but model count is not treated as evidence. Every complex model must beat strong temporal baselines under temporal, spatial and OOD validation. LLMs are an auxiliary source-grounded interface and experiment-analysis layer; direct LLM numeric prediction is not accepted as the primary scientific algorithm.
+Старые B/C конфигурации, receipts и source inventories, где они сохранены,
+описывают соответствующие исторические commits. Source resources пока
+остаются здесь; перенос в private resources repository — отдельная задача.

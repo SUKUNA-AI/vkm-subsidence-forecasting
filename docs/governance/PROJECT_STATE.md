@@ -1,99 +1,21 @@
-# Project State v7
+# Project State — canonical consolidation, 2026-09-24
 
-## Current direction: reconstruction and simulation, 2026-09-05
+Единая актуальная карта: [CANONICAL_RESEARCH_STATE_RU.md](../CANONICAL_RESEARCH_STATE_RU.md).
 
-The user confirmed that original measurements/GIS will not be supplied.
-`RESEARCH_DIRECTION_RU.md` supersedes the previous future-work priorities.
-The approved diploma and special-section titles are fixed, as recorded in
-section 3 of that document. The main result is the forecasting algorithm for
-surveying observation histories; reconstruction and simulation support its
-evaluation under irregular observations and uncertain inputs.
-External field validation is an optional extension, not a diploma completion
-gate. No legacy holdout is opened, renamed or marked as passed by this decision.
+- Historical baseline: первый законченный B1/B5/B6/B7 experiment, Gate B3,
+  `ce8e57ee3dfd82579fb00c8ab5d17bf1b925c9a4`; `validation_recorded`, без final claim.
+- Current: `SKRU1_SCENARIO_SIMULATION_V2_1` и `SKRU1_SCENARIO_REPRESENTATION_V2_1_R1`.
+- R1: frozen neural comparator review; нового model run нет.
+- R2: authoritative source/data/physics audit; `SUPPORTED_WITH_LIMITATIONS`
+  как factorial stress benchmark, physical world readiness `WEAK`.
+- v2 сохранён для hash-pinned differential verification erratum; v1 scenario
+  release и поздние model execution stages доступны в Git history.
 
-Implemented in `data/reconstruction_research_v1/`: corrected source catalogue,
-69-field provenance/availability catalogue, 18 observation membership corrections,
-6 clarified censored target statuses and 14 historical missing-count corrections.
-The 1274 candidate origins, 1216 available targets, numeric labels and dates are
-preserved. Default model view: 16 history/plan fields; 50-field augmented view:
-explicit reconstruction assumptions only. Rebuild and verification:
-`python scripts/repair_reconstruction_data.py --root .`.
+Ограничения R2: donor attribution ambiguity; reflector_seasonal = pure stress;
+temporal family proportions = engineering design; site-specific geomechanical
+parameters недостаточны. Physical worlds являются будущим исследованием.
 
-The first source atlas is complete: four Musikhin profiles preserve 258 plotted
-positions (252 readable values and 6 unresolved), and Filatova Figure 13b is
-reproduced as 538 source-pixel regions with 13 threshold-sensitive regions.
-Each scheme retains source, overlay, digitization, unreadable/sensitive cases,
-method uncertainty and limitations. The 31-row scenario-constraint registry
-separates source envelopes, context-only evidence and four design assumptions.
-See `docs/reports/RECONSTRUCTION_ATLAS_V1_RU.md`.
-
-Current next task: freeze diverse scenario mechanisms in a versioned generator,
-then migrate B1/IMM to a separate experiment.
-Broader model expansion and C2 are deferred. Performance profiling, existing
-optimized operators and conditional custom kernels are recorded as PERF-01.
-No model was retrained in this repair. Existing B/C runners still load the
-frozen parent release. The historical results below describe that release.
-
-## Verified bundled inputs
-
-The five bootstrap artifacts and eleven primary sources are physically included in this bundle and verified against SHA-256 manifests. Their status is `bundled_verified`, not merely `present_in_previous_runtime`.
-
-## Historical scientific state at parent commit 2c5eec4
-
-- spatial reconstruction v3.2 exists;
-- EDA and target contracts exist;
-- Gate A0 input verification and two-run reconstruction are complete;
-- Gate A1 is `PASS_WITH_WARNINGS`: canonical next-planned tables and v1 manifests are frozen, executable leakage guards pass, and model-facing test access is sealed;
-- Gate B0/B1 is complete with caveats: five T1 baselines were evaluated over 1 temporal, 5 rolling-origin, 14 forward leave-profile-out, and 4 forward leave-zone-out folds;
-- `B1_persistence_last_rate` is frozen as stage candidate `t1-b0b1-v1-3bfcff231705` (validation MAE 7.311 mm/year);
-- that candidate consumed its single governed T1 test access (175 origins; MAE 10.135 mm/year); the result is terminal and may not be used for post-test tuning;
-- Gate B2 is complete on train/validation only: adaptive `B6_adaptive_kalman`, nested train-only hyperparameter tuning, scaled conformal intervals, and origin-only transition validation were evaluated without a current-test loading path;
-- B6 selected `q_base=10` and `acceleration_gain=0`; temporal validation MAE is 7.454 mm/year, 95% coverage is 0.938, but transition MAE is 14.25% worse than B1 and leave-zone degradation is 12.77%, so the record is not eligible for a final claim;
-- the Gate B2 development record is `t1-b2-v1-54f5e3756c2f` with status `validation_recorded`; machine validation passed 169 checks with zero failures;
-- Gate B3 is complete on train/validation only under the protocol frozen in `configs/gate_b3.yaml` and `docs/governance/GATE_B3_PROTOCOL.md`; the two-regime `B7_two_regime_imm` reused hash-protected B1/B5/B6 predictions without refitting comparators or loading the current test;
-- B7 selected `q_stable=0.5`, `q_transition=200`, `p_stable_stay=0.99`, and `p_transition_stay=0.75`; temporal MAE is 6.545 mm/year (12.19% better than B6), accelerating MAE is 12.878 mm/year (19.00% better than B1), and leave-zone MAE is 7.064 mm/year (15.95% better than B6);
-- Gate B3 nevertheless failed its complete predeclared screening: accelerating plus volatile/gap improvement versus B1 is only 3.32% instead of 10%, volatile/gap MAE is 22.83% worse than B1, and leave-zone degradation versus B7 temporal is 7.93% instead of at most 5%; 95% coverage is 0.962 and passes;
-- the Gate B3 development record is `t1-b3-v1-15208e3b1684` with status `validation_recorded`; the authoritative post-run audit passed 64 checks with zero failures and documented one CSV empty-string/NA serialization reconciliation without changing any model output;
-- Gate B4 is complete entirely inside `t1_v1/train`: 823 origins form the internal temporal core, 88 origins at target date 2023-11-07 form the audit tail, and the frozen design contains 1 internal temporal, 5 rolling-origin, 14 forward leave-profile-out, and 4 forward leave-zone-out folds;
-- B8 changes only the B7 scalar observation model to a bounded-influence Student-t likelihood; nested train-only tuning selected `student_t_df=30` from the fixed grid `[3, 5, 10, 30]` while all B7 dynamics remained frozen;
-- B8 internal-temporal MAE is 5.831 mm/year versus 6.015 for B7, and leave-zone MAE is 5.858 versus 6.046; however `volatile_or_gap` MAE is 0.45% worse than B7 instead of at least 10% better, and pooled rolling-origin MAE is 4.52% worse;
-- the Gate B4 record is `t1-b4-train-v1-0dedd1296459` with status `train_only_research_recorded`; machine validation passed 54 checks with zero failures, historical validation/test rows loaded are both zero, and B8 is not eligible for a final claim;
-- Gate B5 is complete with status `PASS_PROTOCOL_FROZEN`: `t1_train_benchmark_v1` freezes 11 rolling-origin, 42 spatio-temporal leave-profile-out and 12 leave-zone-out outer folds over the immutable 911-row T1 train set, with three forward-only inner folds per outer context (65 outer and 195 inner folds total);
-- B5 records executable `SAFE_ALL`, `DYNAMIC_CORE_17` and `NATIVE_CATEGORICAL` feature views, an error atlas, residual-dependence evidence, independent-unit counts, fixed-parameter learning curves, formal ETS/ARIMA/VAR data-geometry exclusions, and SHA-256 protection of B0–B4 plus suite v3; the independent validator passed 20 checks and the two-run manifest comparison is byte-identical;
-- Gate B6 is complete entirely inside `t1_v1/train` with status `PASS_NO_NEW_PRIMARY`: 22 executable models completed the 11-fold temporal screen, 11 models advanced to 42 profile plus 12 zone folds, 18,942 calibrated prediction rows were evaluated, and historical validation/current test/new holdout rows loaded are all zero;
-- B7 has the best B6 rolling MAE at 5.640 mm/year versus 6.311 for B1 (10.64% skill), improves on B1 for 10 of 11 target dates and 13 of 14 profiles, has equal-profile macro MAE 5.676, equal-zone macro MAE 4.975, worst-zone MAE 8.478, and 95% conformal coverage 0.951;
-- no new model passed every preregistered suite-v4 gate; ElasticNet, XGBoost and LightGBM reached the full spatial audit but failed rolling/audit-tail/transition/spatial/sign-consistency requirements, and XGBoost additionally failed a spatial inner guardrail; NGBoost was rejected at temporal screening because three inner selections had no eligible probabilistic candidate;
-- the historical B5 registry retains 23 rows, but one external-model specification is excluded before scoring by frozen amendment `B6-GOV-001`; no license was accepted, no weights were downloaded, no API/network access occurred, no predictions exist, and the executable catalog contains 22 models;
-- final candidate suite v3 remains immutable historical evidence; suite v4 is the current pre-holdout authority with B7 as its single primary, B1/B5/B6/B8 as context-only comparators and Z01 ElasticNet as interpretable context-only; primary selection after observing a future holdout is prohibited;
-- final T1 holdout policy v3 is `PENDING_DATA`: no eligible local future/external package exists, target values have not been read, and a sealed status/freeze/evaluate-once ledger is implemented; the disclosed `t1_v1/test` and historical validation remain diagnostic only;
-- Gate C0 is complete with status `PASS_PROTOCOL_FROZEN`: the immutable `t1_train_gate_c_v1` representation covers all 911 `t1_v1/train` origins as 14,576 normalized rows and 6,878 observed tokens, with histories of 3–16 observations (median 7), positive `delta_t` of 42–560 days (median 168), left padding to 16 and explicit observation/padding/missing-campaign masks;
-- the Gate C0 validator passed 11 checks with zero failures: sequence and fold artifacts reproduce exactly, all 65 outer and 195 inner contexts are forward-only, held profiles/zones are excluded from outer and inner train, future/target observations in inputs are zero, identifier network features are zero, and historical validation/current test/new holdout rows loaded are zero;
-- Gate C0 performed zero model-training calls; C01 compact GRU, C02 compact LSTM, C03 causal TCN and C04 probabilistic Student-t GRU are required for C1, while compact TSMixer/TFT are conditional and four regular-grid/long-context architectures are formally `NOT_ELIGIBLE_DATA_GEOMETRY`;
-- Gate C1 is complete with status `PASS_C1_TEMPORAL_SCREEN`: all four required architectures completed 11 nested rolling-origin folds and five fixed seeds on exactly 595 `t1_v1/train` origins; the independent validator passed 26 checks with zero failures, and historical validation/current test/new holdout rows loaded are all zero;
-- canonical mean-of-five-seeds MAE is 6.288 mm/year for C01 compact GRU, 6.467 for C02 compact LSTM, 6.552 for C03 causal TCN and 7.177 for C04 Student-t GRU, versus 6.311 for B1 and 5.640 for B7; only C01 passed the frozen temporal admission, while C02/C03 failed the median-fold guard and C04 failed both pooled and median-fold guards;
-- Gate C1 executed 9,240 logical inner evaluations as 3,640 hash-distinct physical fits plus 220 outer refits. All 3,860 fit manifests retain five full work-only training states; inner rank 1 is selected only by the frozen inner objective, outer refits select their preregistered final epoch without outer-label ranking, and the matched CUDA benchmark records 1.35x mean and 1.57x median speed-up including checkpoint I/O;
-- suite v4 and holdout policy v3 remain immutable. Gate C may create suite v5 only from nested `t1_v1/train` evidence before new labels exist; B7 is the automatic fallback, primary changes after holdout access are prohibited, and a suite-v5 primary requires a new holdout policy/intake version;
-- T5 is technically prepared but remains exploratory because only 17 complete positive labels exist;
-- hotfix and baseline scripts exist;
-- Gate C2 spatial/transition/calibration audit, graph models, temporal foundation models and the LLM support layer remain future execution gates; only C01 may enter C2 as a deep candidate, while B1/B7/B8 remain frozen contextual comparators;
-- no final production-quality model claim is allowed from synthetic data.
-
-The machine-readable Gate A1 authority is `artifacts/data_quality/gate_a1_report.json`; the reader-facing report is `docs/reports/GATE_A1_DATA_QUALITY_RU.md`.
-
-The machine-readable Gate B0/B1 validation authority is `artifacts/model_selection/t1_b0_b1_v1/validation_report.json`; the reader-facing report is `docs/reports/GATE_B0_B1_T1_BASELINES_RU.md`.
-
-The machine-readable Gate B2 validation authority is `artifacts/model_selection/t1_b2_v1/validation_report.json`; the reader-facing report is `docs/reports/GATE_B2_ADAPTIVE_KALMAN_RU.md`, and the executed notebook is `notebooks/03_gate_b2_adaptive_kalman.ipynb`. Adaptive B6 and interval acceptance are now measured, but full screening remains failed on transition and leave-zone criteria. Because the current T1 test has been seen, later final model comparison needs the newly governed temporal/external holdout defined by `configs/final_holdout_v2.yaml` or an explicit governance decision.
-
-The machine-readable Gate B3 validation authority is `artifacts/model_selection/t1_b3_v1/validation_report.json`; the immutable-run reconciliation is `artifacts/model_selection/t1_b3_v1/audit_reconciliation.json`; the reader-facing report is `docs/reports/GATE_B3_IMM_RU.md`; and the executed notebook is `notebooks/04_gate_b3_imm.ipynb`. B7 is retained as a strong comparator because it improves overall and accelerating errors, but it is not a final candidate because volatile/gap and relative leave-zone criteria failed. No B7 hyperparameter may be changed from the current validation evidence.
-
-The machine-readable Gate B4 validation authority is `artifacts/model_selection/t1_b4_train_only_v1/validation_report.json`; the reader-facing report is `docs/reports/GATE_B4_ROBUST_INNOVATION_RU.md`; and the executed notebook is `notebooks/05_gate_b4_robust_innovation.ipynb`. Suite v3 remains its immutable historical governance record. Gate B4 found useful overall/spatial effects from robust innovations but did not confirm the predeclared volatile/gap hypothesis.
-
-The Gate B5 benchmark authority is `artifacts/splits/t1_train_benchmark_v1/benchmark_plan.json`; the machine validation authority is `artifacts/model_selection/t1_b5_evidence_v1/validation_report.json`; the reader-facing report is `docs/reports/GATE_B5_EVIDENCE_BENCHMARK_RU.md`; and the executed notebook is `notebooks/06_gate_b5_evidence_audit.ipynb`.
-
-The Gate B6 machine authority is `artifacts/model_selection/t1_b6_expanded_v1/validation_report.json`; detailed point/group/transition/probabilistic metrics and prediction provenance live under the same artifact root. The reader-facing report is `docs/reports/GATE_B6_EXPANDED_SCREENING_RU.md`, the executed artifact-only notebook is `notebooks/07_gate_b6_model_comparison.ipynb`, and the model catalog is `docs/governance/MODEL_CATALOG_B6.md`. The current governed future-holdout suite is `artifacts/governance/final_candidate_suite_v4.json`; non-consuming intake status remains `artifacts/governance/final_holdout_v3_status.json`.
-
-The Gate C governance authority is `docs/governance/GATE_C_PROTOCOL.md` with machine configuration `configs/gate_c.yaml`. The causal sequence/fold authority is `artifacts/splits/t1_train_gate_c_v1/sequence_contract.json`; the Gate C0 machine validation authority is `artifacts/model_selection/t1_gate_c0_sequence_audit_v1/validation_report.json`. Gate C1 is governed by `docs/governance/GATE_C1_PROTOCOL.md` and `configs/gate_c1.yaml`; its machine authority is `artifacts/model_selection/t1_gate_c1_compact_screen_v1/validation_report.json`, its admission authority is `artifacts/model_selection/t1_gate_c1_compact_screen_v1/c2_admission_manifest.json`, its reader-facing report is `docs/reports/GATE_C1_COMPACT_SEQUENCE_SCREEN_RU.md`, and its executed artifact-only notebook is `notebooks/09_gate_c1_compact_sequence_screen.ipynb`. The current Word draft of the special section is `docs/thesis/SPECIAL_SECTION_SKRU1_RU.docx`, backed by `docs/thesis/SPECIAL_SECTION_SKRU1_RU_SOURCE_MAP.json`.
-
-## Path policy
-
-All paths in manifests are repository-relative. Absolute paths from previous environments are historical provenance only and may not be used as execution inputs.
+Утверждённые названия зафиксированы в
+[структуре спецчасти](SPECIAL_SECTION_STRUCTURE.md). Нет полевой валидации;
+historical metrics нельзя представлять как v2.1 results. Очередное обучение,
+новые scores, physical solvers и миграция external corpus не входят в cleanup.
