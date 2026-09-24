@@ -3,6 +3,9 @@
 Текущий scope и порядок работы:
 [каноническое состояние](../CANONICAL_RESEARCH_STATE_RU.md).
 
+Политика legacy data:
+[LEGACY_DATA_RETIREMENT_2026-09-25_RU.md](../LEGACY_DATA_RETIREMENT_2026-09-25_RU.md).
+
 R1 фиксирует варианты будущего model comparison, R2 ограничивает
 интерпретацию stress-lab данных. После R2 приоритет исследования изменён:
 сначала evidence-backed physical branch, затем новый model benchmark.
@@ -14,6 +17,12 @@ R1 фиксирует варианты будущего model comparison, R2 о�
 3. Первый ограниченный 2D/2.5D OpenGeoSys reference case.
 4. Physical ensemble / mechanistic robustness layer.
 5. Только после этого — новый preregistered comparison B1/Kalman/IMM/R1 comparators.
+
+`SKRU1_ACTUAL_DATA_TABLES_v1`, old v3/v3.2 model-ready/EDA/target packages и
+старые bootstrap pipelines имеют статус **LEGACY_RETIRED**. Они не используются
+как датасет для новых model runs и не восстанавливаются в current tree ради
+нового benchmark. Исторические scores/experiments остаются привязаны к своим
+historical commits.
 
 Ни число моделей, ни neural architecture не являются доказательством качества.
 Model selection не использует evaluation truth; historical results остаются
