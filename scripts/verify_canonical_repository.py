@@ -1,16 +1,19 @@
-"""Verify the canonical repository without model execution or truth parsing.
+"""Verify the current canonical repository without model execution or truth parsing.
 
-Run from a checkout:
-    python scripts/verify_canonical_repository.py
+The current research state distinguishes two kinds of external paths:
 
-The current main repository intentionally externalizes source PDFs, historical
-bootstrap packages and the legacy SKRU1_ACTUAL_DATA_TABLES_v1 tree into the
-private resources repository. If that repository is available, set
-VKM_RESOURCES_ROOT or keep it at one of the detected local locations; external
-dependencies will then be hash-verified as well.
+1. ACTIVE scientific evidence (books/articles/theses/source PDFs), stored in the
+   private resources repository and hash-verified when available.
+2. LEGACY_RETIRED project-generated packages (`SKRU1_ACTUAL_DATA_TABLES_v1`,
+   old v3.x reconstructed/model-ready/EDA artifacts and `inputs/bootstrap`).
+   These are historical provenance only and are not current dependencies.
 
-Binary payloads, including sealed files, are streamed only into SHA-256.
-No transformation, dataset regeneration, evaluation or network access occurs.
+Frozen manifests are never rewritten merely to remove historical references.
+References to retired paths are reported as skipped legacy references and do
+not make canonical verification fail.
+
+No transformation, dataset regeneration, model execution, evaluator-truth
+parsing or network access occurs.
 """
 from __future__ import annotations
 
@@ -24,17 +27,26 @@ import subprocess
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
+
 PINNED = {
     "data/scenario_simulation_v2_1/manifest.json": "a268cd7800e1320a1cc61172f95cf458c7ac7434237b32b288f23a83a97a2c95",
     "artifacts/reconstruction/scenario_constraints_v2/manifest.json": "96b88b61cf766062c1f831e32b50bdd82441da63c50ce41569a5ffad297de6ef",
     "artifacts/splits/scenario_representation_v2_1/representation_manifest.json": "0e5501cb4c3cff570fbd3763047a8dd8738d45706dd6f549556ac428521f5a6d",
 }
-EXTERNAL_PREFIX_MAP = {
-    "inputs/bootstrap/": "08_data_archives/main_repo_snapshots/inputs_bootstrap/",
+
+# Only actual scientific source evidence is an active external dependency.
+ACTIVE_EXTERNAL_PREFIX_MAP = {
     "inputs/sources/primary/": "08_data_archives/main_repo_snapshots/inputs_sources/primary/",
     "inputs/sources/supplementary/": "08_data_archives/main_repo_snapshots/inputs_sources/supplementary/",
-    "SKRU1_ACTUAL_DATA_TABLES_v1/": "08_data_archives/main_repo_snapshots/SKRU1_ACTUAL_DATA_TABLES_v1/",
 }
+
+# These paths describe the retired exploratory/reconstructed project branch.
+# They remain valid historical provenance strings inside immutable manifests,
+# but current research does not require their bytes.
+RETIRED_PREFIXES = (
+    "SKRU1_ACTUAL_DATA_TABLES_v1/",
+    "inputs/bootstrap/",
+)
 
 
 def sha256(path: Path) -> str:
@@ -55,18 +67,21 @@ def detect_resources_root(root: Path) -> Path | None:
     return None
 
 
-def external_target(name: str, resources_root: Path | None) -> Path | None:
+def is_active_external(name: str) -> bool:
+    return any(name.startswith(prefix) for prefix in ACTIVE_EXTERNAL_PREFIX_MAP)
+
+
+def is_retired(name: str) -> bool:
+    return any(name.startswith(prefix) for prefix in RETIRED_PREFIXES)
+
+
+def active_external_target(name: str, resources_root: Path | None) -> Path | None:
     if resources_root is None:
         return None
-    for prefix, mapped_prefix in EXTERNAL_PREFIX_MAP.items():
+    for prefix, mapped_prefix in ACTIVE_EXTERNAL_PREFIX_MAP.items():
         if name.startswith(prefix):
-            suffix = name[len(prefix):]
-            return resources_root / mapped_prefix / suffix
+            return resources_root / mapped_prefix / name[len(prefix):]
     return None
-
-
-def is_externalized(name: str) -> bool:
-    return any(name.startswith(prefix) for prefix in EXTERNAL_PREFIX_MAP)
 
 
 def verify(root: Path) -> dict:
@@ -74,7 +89,9 @@ def verify(root: Path) -> dict:
     checked: dict[str, str] = {}
     external_checked: dict[str, str] = {}
     external_unchecked: list[dict] = []
+    retired_skipped: list[dict] = []
     externalized_markdown_links: list[dict] = []
+    retired_markdown_links: list[dict] = []
     visited: set[str] = set()
     resources_root = detect_resources_root(root)
 
@@ -84,16 +101,30 @@ def verify(root: Path) -> dict:
         except ValueError:
             return None
 
+    def record_retired(name: str, expected: str | None = None, source: str = "manifest") -> None:
+        record = {"path": name, "source": source}
+        if expected is not None:
+            record["historical_expected_sha256"] = expected
+        if record not in retired_skipped:
+            retired_skipped.append(record)
+
     def check(path: Path, expected: str, size=None) -> bool:
         name = relative_name(path)
         if name is None:
             errors.append({"kind": "unsafe_path", "path": str(path)})
             return False
 
+        # A retired historical reference is intentionally not resolved to a
+        # current byte payload. Git history is the archive for that branch.
+        if is_retired(name):
+            record_retired(name, expected)
+            return True
+
         candidate = path
         origin = "main"
-        if not candidate.is_file() and is_externalized(name):
-            candidate = external_target(name, resources_root)
+
+        if not candidate.is_file() and is_active_external(name):
+            candidate = active_external_target(name, resources_root)
             origin = "private_resources"
             if candidate is None:
                 external_unchecked.append(
@@ -111,10 +142,12 @@ def verify(root: Path) -> dict:
 
         actual = sha256(candidate)
         valid = actual == expected and (size is None or candidate.stat().st_size == int(size))
+
         if origin == "main":
             checked.setdefault(name, actual)
         else:
             external_checked.setdefault(name, actual)
+
         if not valid:
             errors.append(
                 {
@@ -139,6 +172,8 @@ def verify(root: Path) -> dict:
                     continue
                 child = (path.parent if section == "outputs" else root) / record["path"]
                 if check(child, record["sha256"], record.get("size_bytes")):
+                    # Recurse only into current real manifest files. Retired
+                    # references intentionally have no current file to recurse into.
                     if child.is_file() and child.name in {"manifest.json", "representation_manifest.json"}:
                         manifest(child)
 
@@ -146,7 +181,10 @@ def verify(root: Path) -> dict:
         if check(root / name, expected):
             manifest(root / name)
 
-    for name in ("input_manifest.csv", "source_manifest.csv", "supplementary_source_manifest.csv"):
+    # `input_manifest.csv` belongs to the retired v3.x project package and is
+    # retained only as historical provenance. Active scientific source manifests
+    # remain strict dependencies.
+    for name in ("source_manifest.csv", "supplementary_source_manifest.csv"):
         with (root / "configs" / name).open(encoding="utf-8-sig", newline="") as stream:
             for record in csv.DictReader(stream):
                 check(root / record["relative_path"], record["sha256"], record["size_bytes"])
@@ -164,7 +202,8 @@ def verify(root: Path) -> dict:
     names = subprocess.check_output(
         ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"], cwd=root
     ).decode("utf-8").strip("\0").split("\0")
-    broken = []
+
+    broken: list[dict] = []
     markdown_count = 0
     for name in sorted(set(names)):
         path = root / name
@@ -183,7 +222,11 @@ def verify(root: Path) -> dict:
             if resolved.exists() and not resolved.is_relative_to(root / "work"):
                 continue
             rel = relative_name(resolved)
-            if rel is not None and is_externalized(rel):
+            if rel is not None and is_retired(rel):
+                retired_markdown_links.append({"path": name, "target": target})
+                record_retired(rel, source="markdown")
+                continue
+            if rel is not None and is_active_external(rel):
                 externalized_markdown_links.append({"path": name, "target": target})
                 continue
             broken.append({"path": name, "target": target})
@@ -203,9 +246,11 @@ def verify(root: Path) -> dict:
         "manifests_checked": len(visited),
         "markdown_files_checked": markdown_count,
         "resources_root": str(resources_root) if resources_root else None,
-        "external_archive_required": True,
+        "active_external_evidence_required": True,
         "externalized_inputs_unchecked": external_unchecked,
+        "retired_legacy_references_skipped": retired_skipped,
         "externalized_markdown_links": externalized_markdown_links,
+        "retired_markdown_links": retired_markdown_links,
         "errors": errors,
         "broken_local_markdown_links": broken,
         "link_scope": "local Markdown inline file/image targets; network URLs and anchors are not fetched",
