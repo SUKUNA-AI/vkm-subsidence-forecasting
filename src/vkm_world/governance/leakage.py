@@ -14,6 +14,19 @@ from pathlib import Path
 FORBIDDEN_EXT = {".pdf", ".djvu", ".docx", ".doc", ".zip", ".7z", ".rar", ".xlsx", ".xls", ".tif", ".tiff"}
 FORBIDDEN_COLUMNS = {"quote", "verbatim_quote", "ocr_text", "page_text", "full_text"}
 FORBIDDEN_PATH_FRAGMENTS = ("/home/user/vkm-subsidence-forecasting_resourses/", "E:\\Диплом", "work/ocr/")
+# absolute home/cloud-VM prefixes: never portable, rewritten by ``sanitize_paths`` when publishing
+MACHINE_PATH_FRAGMENTS = ("/home/user/", "/tmp/claude-", "/root/.claude/")
+RELATIVE_FRAGMENTS_ALLOWED_IN_PROSE = frozenset({"work/ocr/"})
+# logical names used instead of machine paths in published text
+PATH_REWRITES: tuple[tuple[str, str], ...] = (
+    ("/home/user/vkm-subsidence-forecasting_resourses/", "$VKM_RESOURCES_ROOT/"),
+    ("/home/user/vkm-subsidence-forecasting/", "<PUBLIC>/"),
+    ("/home/user/work/synth/", "PRIVATE 11_evidence_vnext/canonical/"),
+    ("/home/user/work/merged/", "PRIVATE 11_evidence_vnext/merged/"),
+    ("/home/user/work/", "$VKM_WORK/"),
+    ("/home/user/.venv-research/bin/python", "python"),
+    ("/home/user/.venv-research", "<cloud research venv>"),
+)
 MAX_TEXT_BYTES = 5_000_000
 # historical public artifacts that predate the reset (kept on 'legacy'); listed explicitly, never extended silently
 ALLOWLIST: set[str] = set()
@@ -22,7 +35,14 @@ ALLOWLIST: set[str] = set()
 # environment (docs/reset_2026_09/run_kit/tools/_roots.py)
 PATH_CHECK_EXEMPT_PREFIXES: tuple[str, ...] = ("docs/reset_2026_09/run_kit/",)
 PATH_CHECK_NEVER_EXEMPT_SUFFIXES = {".py"}
-PATH_CHECK_SUFFIXES = {".py", ".yaml", ".yml", ".json", ".jsonl", ".csv", ".toml"}
+PATH_CHECK_SUFFIXES = {".py", ".yaml", ".yml", ".json", ".jsonl", ".csv", ".toml", ".md"}
+
+
+def sanitize_paths(text: str) -> str:
+    """Replace machine-specific absolute paths with logical names (idempotent)."""
+    for old, new in PATH_REWRITES:
+        text = text.replace(old, new)
+    return text
 
 
 def tracked_files(root: Path) -> list[Path]:
@@ -71,7 +91,13 @@ def scan(root: str | Path, files: list[Path] | None = None, check_paths: bool = 
                     txt = p.read_text(encoding="utf-8")
                 except UnicodeDecodeError:
                     continue
-                for frag in FORBIDDEN_PATH_FRAGMENTS:
-                    if frag in txt and "governance/leakage.py" not in rel and "test_leakage" not in rel:
-                        problems.append(f"{rel}: contains private/absolute path fragment '{frag}'")
+                if "governance/leakage.py" in rel or "test_leakage" in rel:
+                    continue
+                # prose may name the git-ignored relative OCR work dir; code/config/data may not
+                frags = FORBIDDEN_PATH_FRAGMENTS + MACHINE_PATH_FRAGMENTS
+                if p.suffix.lower() == ".md":
+                    frags = tuple(f for f in frags if f not in RELATIVE_FRAGMENTS_ALLOWED_IN_PROSE)
+                hits = [f for f in frags if f in txt]
+                if hits:
+                    problems.append(f"{rel}: contains private/absolute path fragment(s) {hits}")
     return problems

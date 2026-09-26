@@ -198,7 +198,7 @@ def test_public_tree_has_no_private_leakage():
 def test_leakage_scanner_detects_violations(tmp_path):
     (tmp_path / "a.pdf").write_bytes(b"%PDF")
     (tmp_path / "t.csv").write_text("id,quote\n1,текст\n", encoding="utf-8")
-    (tmp_path / "c.py").write_text("P='/home/user/" + "vkm-subsidence-forecasting_resourses/x'\n", encoding="utf-8")
+    (tmp_path / "c.py").write_text("P='/home/" + "user/vkm-subsidence-forecasting_resourses/x'\n", encoding="utf-8")
     probs = scan(tmp_path, files=list(tmp_path.iterdir()))
     assert len(probs) == 3
 
@@ -206,7 +206,7 @@ def test_leakage_scanner_detects_violations(tmp_path):
 def test_run_kit_code_is_not_exempt_from_path_check(tmp_path):
     kit = tmp_path / "docs" / "reset_2026_09" / "run_kit"
     (kit / "tools").mkdir(parents=True)
-    private = "/home/user/" + "vkm-subsidence-forecasting_resourses/x"
+    private = "/home/" + "user/vkm-subsidence-forecasting_resourses/x"
     (kit / "tools" / "tool.py").write_text(f"P = '{private}'\n", encoding="utf-8")
     (kit / "plan.json").write_text(f'{{"text": "{private}"}}\n', encoding="utf-8")   # historical data: exempt
     probs = scan(tmp_path, files=[kit / "tools" / "tool.py", kit / "plan.json"])
@@ -239,3 +239,15 @@ def test_other_event_needs_explicit_class_and_new_types():
     assert f.event_class is EventClass.PHYSICAL
     d = ev("E-D", EventType.DESIGN_DOCUMENT, (), date(2002, 1, 1))
     assert d.event_class is EventClass.INFORMATION
+
+
+def test_machine_paths_are_flagged_and_sanitized(tmp_path):
+    from vkm_world.governance.leakage import sanitize_paths
+    home = "/home/" + "user/"
+    ocr_dir = "work/" + "ocr/"      # relative OCR work dir: allowed in prose, not in code/data
+    (tmp_path / "r.md").write_text(f"see {home}work/synth/X/a.csv and `{ocr_dir}` dir\n", encoding="utf-8")
+    probs = scan(tmp_path, files=[tmp_path / "r.md"])
+    assert len(probs) == 1 and ocr_dir not in probs[0]
+    clean = sanitize_paths(f"{home}work/synth/X/a.csv {home}work/run/img/p.png {home}vkm-subsidence-forecasting_resourses/00")
+    assert home not in clean and "PRIVATE 11_evidence_vnext/canonical/X/a.csv" in clean
+    assert sanitize_paths(clean) == clean

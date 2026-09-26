@@ -3,7 +3,8 @@
 PRIVATE canonical CSVs (with verbatim quotes) live in
 ``$VKM_RESOURCES_ROOT/11_evidence_vnext/canonical/``. This script copies the catalogues listed in
 ``scripts/public_catalogue_map.json`` into the PUBLIC tree, dropping forbidden text columns
-(quote, verbatim_quote, ocr_text, page_text, full_text), and writes a manifest with SHA-256 of every
+(quote, verbatim_quote, ocr_text, page_text, full_text), rewrites machine-specific absolute paths to
+logical names (``sanitize_paths``), and writes a manifest with SHA-256 of every
 input and output. It never copies binaries. Deterministic: rows keep their canonical order.
 
 Usage:  VKM_RESOURCES_ROOT=/path/to/resources python scripts/build_public_catalogues.py
@@ -19,7 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from vkm_world.governance.leakage import FORBIDDEN_COLUMNS, scan  # noqa: E402
+from vkm_world.governance.leakage import FORBIDDEN_COLUMNS, sanitize_paths, scan  # noqa: E402
 
 csv.field_size_limit(sys.maxsize)
 
@@ -53,11 +54,10 @@ def main() -> int:
             with open(dst, "w", encoding="utf-8", newline="") as f:
                 w = csv.writer(f, lineterminator="\n")
                 for r in rows:
-                    w.writerow([r[i] if i < len(r) else "" for i in keep])
+                    w.writerow([sanitize_paths(r[i]) if i < len(r) else "" for i in keep])
             dropped = [header[i] for i in range(len(header)) if i not in keep]
         else:
-            data = src.read_bytes()
-            dst.write_bytes(data)
+            dst.write_text(sanitize_paths(src.read_text(encoding="utf-8")), encoding="utf-8", newline="\n")
             dropped = []
         outs.append(dst)
         manifest["files"].append({"source": src_rel, "source_sha256": sha(src), "target": dst_rel,

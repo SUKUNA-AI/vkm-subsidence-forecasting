@@ -97,7 +97,7 @@
    "source_sha256": "6b8a6526ce70c389a3ba8c943a6d506bdbd5368a7496d10716408bac7a145045",
    "status": "OK",
    "target": "evidence/coordinates/coordinate_datum_evidence.csv",
-   "target_sha256": "a41f653fd314129f4e5a93f6bf7f1771e78915b186b18c5310a35fa6568644dd"
+   "target_sha256": "97bd377e380c15c336289e19746892362d7e7b116572bf73083c6acaf36404e4"
   },
   {
    "dropped_columns": [
@@ -261,7 +261,7 @@
    "source_sha256": "15199acaf8b074de8d4391b66de1b31fce257e9e590b47ddb9d60234a6da2522",
    "status": "OK",
    "target": "evidence/mining/mining_geometry_catalog.csv",
-   "target_sha256": "3791448e33f271f3418a471ac3ecbe724c5159d61f49f577f6e52847fb0c849f"
+   "target_sha256": "2d60ac924e2979a03af04456282613d952dfcbe63ecccc545066f059b348af19"
   },
   {
    "dropped_columns": [
