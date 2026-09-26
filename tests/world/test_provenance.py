@@ -81,3 +81,56 @@ def test_information_availability():
     assert TemporalSupport().usable_at(date(2024, 1, 1)) is None
     with pytest.raises(ValueError, match="available_from precedes"):
         TemporalSupport(measurement_date=date(2015, 6, 1), available_from=date(2014, 1, 1))
+
+
+def _q(scope, status=S.FACT, scale=Scale.LAB, transfer=None, name="ucs"):
+    kw = {"sources": SRC} if status in (S.FACT, S.DERIVATION, S.ANALOGUE) else {}
+    if status is S.DERIVATION:
+        kw["method"] = "test"
+    if status in (S.MODEL_CHOICE, S.ENGINEERING_ASSUMPTION):
+        kw["rationale"] = "test"
+    return Quantity(name=name, unit="MPa", value=20.0,
+                    provenance=Provenance(status=status, scope=scope, scale=scale, transfer=transfer, **kw))
+
+
+def test_pillar_zone_is_not_field_wide_skru1():
+    """ATTRIBUTION-007 / TRANSFER-023: the SKRU-1/SKRU-2 pillar zone is SKRU-1 data only locally."""
+    q = _q(Scope.SKRU1_SKRU2_PILLAR)
+    assert check_site_use(q, Scope.SKRU1)
+    assert check_site_use(q, Scope.SKRU1, local_to_pillar=True) == []
+    moved = _q(Scope.SKRU1_SKRU2_PILLAR, transfer=Transfer(from_scope=Scope.SKRU1_SKRU2_PILLAR, to_scope=Scope.SKRU1,
+                                                          method="pillar zone → field, stated assumption",
+                                                          status=S.ENGINEERING_ASSUMPTION, rationale="test"))
+    assert check_site_use(moved, Scope.SKRU1) == []
+    assert check_site_use(_q(Scope.SKRU1), Scope.SKRU1) == []
+
+
+@pytest.mark.parametrize("scope", [Scope.SKRU1_OR_SKRU2_UNATTRIBUTED, Scope.SOLIKAMSK_GROUP, Scope.SKRU1_SKRU2,
+                                   Scope.GENERAL_METHOD])
+def test_unattributed_pooled_legacy_and_general_values_need_explicit_status(scope):
+    """TRANSFER-023/024: unattributed, pooled, legacy joint and literature-range FACTs are not SKRU-1 values."""
+    assert check_site_use(_q(scope), Scope.SKRU1)
+    assert check_site_use(_q(scope, status=S.MODEL_CHOICE), Scope.SKRU1) == []
+
+
+def test_analogue_allowed_for_pooled_but_not_for_pillar_scope():
+    Provenance(status=S.ANALOGUE, sources=SRC, scope=Scope.SOLIKAMSK_GROUP)
+    with pytest.raises(ValueError, match="ANALOGUE cannot have an SKRU-1 scope"):
+        Provenance(status=S.ANALOGUE, sources=SRC, scope=Scope.SKRU1_SKRU2_PILLAR)
+
+
+def test_unstated_scale_is_not_a_free_pass():
+    """TRANSFER-024: the default scale is UNSTATED and blocks use at any required scale."""
+    q = _q(Scope.SKRU1, scale=Scale.UNSTATED)
+    assert Provenance(status=S.FACT, sources=SRC).scale is Scale.UNSTATED
+    assert check_scale_use(q, Scale.MASSIF)
+    assert check_scale_use(_q(Scope.SKRU1, scale=Scale.NOT_APPLICABLE), Scale.MASSIF) == []
+
+
+def test_material_parameter_requires_a_scale():
+    from vkm_world.materials.parameters import MaterialParameter
+    with pytest.raises(ValueError, match="must state its scale"):
+        MaterialParameter(id="MP-1", variable="ucs", material="сильвинит", provenance=Provenance(status=S.FACT, sources=SRC),
+                          quantity=_q(Scope.SKRU1, scale=Scale.NOT_APPLICABLE))
+    MaterialParameter(id="MP-2", variable="ucs", material="сильвинит", provenance=Provenance(status=S.FACT, sources=SRC),
+                      quantity=_q(Scope.SKRU1, scale=Scale.LAB))

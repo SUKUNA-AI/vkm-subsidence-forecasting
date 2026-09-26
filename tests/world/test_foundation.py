@@ -120,9 +120,9 @@ def test_interpolated_surface_must_be_interpolation():
 
 
 # ---------------------------------------------------------------- chronology
-def ev(i, t, objs, d0, d1=None):
-    return Event(id=i, event_type=t, objects=objs, provenance=FACT,
-                 time=TemporalSupport(event_date=d0, event_date_end=d1))
+def ev(i, t, objs, d0, d1=None, precision="day", revealed_by=(), **time_kw):
+    return Event(id=i, event_type=t, objects=objs, provenance=FACT, revealed_by=revealed_by,
+                 time=TemporalSupport(event_date=d0, event_date_end=d1, precision=precision, **time_kw))
 
 
 def test_backfill_before_excavation_and_before_commissioning():
@@ -251,3 +251,34 @@ def test_machine_paths_are_flagged_and_sanitized(tmp_path):
     clean = sanitize_paths(f"{home}work/synth/X/a.csv {home}work/run/img/p.png {home}vkm-subsidence-forecasting_resourses/00")
     assert home not in clean and "PRIVATE 11_evidence_vnext/canonical/X/a.csv" in clean
     assert sanitize_paths(clean) == clean
+
+
+def test_chronology_compares_imprecise_dates_as_intervals():
+    """Year-precision rows must not create false order errors, and the most precise commissioning row wins
+    (review finding CHRONOLOGY-014, SKRU-1: commissioned May 1930, a table also says «1930»)."""
+    events = [ev("C-Y", EventType.MINE_COMMISSIONING, ("SKRU1",), date(1930, 1, 1), precision="year"),
+              ev("C-M", EventType.MINE_COMMISSIONING, ("SKRU1",), date(1930, 5, 1), precision="month"),
+              ev("X-Y", EventType.EXTRACTION_START, ("BLK-1",), date(1930, 1, 1), precision="year"),
+              ev("B-Y", EventType.BACKFILL_START, ("CH-1",), date(1939, 1, 1), precision="year"),
+              ev("X2", EventType.EXTRACTION_START, ("BLK-2",), date(1939, 6, 1)),
+              ev("B2", EventType.BACKFILL_START, ("CH-2",), date(1939, 1, 1), precision="year"),
+              ev("X3", EventType.EXTRACTION_START, ("BLK-3",), date(1930, 3, 1))]
+    errs = chronology_errors(events, parent_of={"CH-1": "BLK-1", "CH-2": "BLK-2"},
+                             mine_of={"BLK-1": "SKRU1", "BLK-2": "SKRU1", "BLK-3": "SKRU1"})
+    assert not any("X-Y" in e for e in errs)          # «1930» extraction is not certainly before May 1930
+    assert not any("B2" in e for e in errs)           # backfill «1939» vs extraction June 1939: not certain
+    assert any("X3" in e and "before commissioning of SKRU1 (1930-05-01)" in e for e in errs)
+
+
+def test_known_physical_at_fails_closed_and_follows_revealing_information():
+    """Backfill 2016–2017 of a zone is known to an outside forecaster only when the GIS snapshot / thesis that
+    reports it is available (review finding CHRONOLOGY-023)."""
+    from vkm_world.chronology.events import known_physical_at
+    bf = ev("BF", EventType.BACKFILL_PERIOD, ("Z-88",), date(2016, 1, 1), date(2017, 12, 31), revealed_by=("GIS-2022",))
+    gis = Event(id="GIS-2022", event_type=EventType.PUBLICATION, provenance=FACT,
+                time=TemporalSupport(event_date=date(2026, 6, 1), available_from=date(2026, 6, 1), precision="day"))
+    silent = ev("X", EventType.EXTRACTION_PERIOD, ("Z-88",), date(2010, 1, 1), precision="year")
+    assert known_physical_at([bf, gis, silent], date(2018, 1, 1)) == []
+    assert known_physical_at([bf, gis, silent], date(2026, 7, 1)) == [bf]
+    dated = ev("BF2", EventType.BACKFILL_PERIOD, ("Z-89",), date(2016, 1, 1), available_from=date(2018, 3, 1))
+    assert known_physical_at([dated], date(2018, 3, 1)) == [dated]

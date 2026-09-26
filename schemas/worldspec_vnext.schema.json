@@ -772,6 +772,15 @@
     "provenance": {
      "$ref": "#/$defs/Provenance"
     },
+    "revealed_by": {
+     "default": [],
+     "description": "ids of INFORMATION events that recorded this physical event (survey, GIS snapshot, publication)",
+     "items": {
+      "type": "string"
+     },
+     "title": "Revealed By",
+     "type": "array"
+    },
     "time": {
      "$ref": "#/$defs/TemporalSupport"
     }
@@ -2588,7 +2597,7 @@
     },
     "scale": {
      "$ref": "#/$defs/Scale",
-     "default": "NOT_APPLICABLE"
+     "default": "UNSTATED"
     },
     "scope": {
      "$ref": "#/$defs/Scope",
@@ -2725,15 +2734,19 @@
     "CALIBRATED_EFFECTIVE_MODEL",
     "FIELD",
     "DESIGN",
-    "NOT_APPLICABLE"
+    "NOT_APPLICABLE",
+    "UNSTATED"
    ],
    "title": "Scale",
    "type": "string"
   },
   "Scope": {
-   "description": "Site scope of a datum. Only SKRU1 (and SKRU1_* joint scopes) are site-specific for SKRU-1.",
+   "description": "Site scope of a datum. Only SKRU1 is field-wide site-specific for SKRU-1.\n\nThe SKRU-1/SKRU-2 joint labels are kept apart (review finding TRANSFER-023):\n``SKRU1_SKRU2_PILLAR`` — the intermine pillar zone on the SKRU-1/SKRU-2 boundary (usable for SKRU-1 only locally,\nat the pillar, or through an explicit Transfer); ``SKRU1_OR_SKRU2_UNATTRIBUTED`` — the source does not say which\nof the two mines; ``SOLIKAMSK_GROUP`` — pooled over SKRU-1, SKRU-2 and SKRU-3. ``SKRU1_SKRU2`` is the legacy\nambiguous label of the first Phase-1 catalogues; it is valid but never counts as SKRU-1 data.",
    "enum": [
     "SKRU1",
+    "SKRU1_SKRU2_PILLAR",
+    "SKRU1_OR_SKRU2_UNATTRIBUTED",
+    "SOLIKAMSK_GROUP",
     "SKRU1_SKRU2",
     "SKRU2",
     "SKRU3",
@@ -3248,6 +3261,19 @@
      "default": null,
      "title": "Available From"
     },
+    "available_from_precision": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "precision of available_from if it differs from ``precision`` (e.g. a publication year)",
+     "title": "Available From Precision"
+    },
     "event_date": {
      "anyOf": [
       {
@@ -3301,7 +3327,7 @@
     },
     "precision": {
      "default": "unknown",
-     "description": "day|month|year|decade|unknown",
+     "description": "precision of the event/measurement dates: day|month|year|decade|unknown",
      "title": "Precision",
      "type": "string"
     },

@@ -155,14 +155,14 @@ def test_unknown_or_future_availability_is_unusable(support):
 
 
 def test_known_availability_at_origin_is_usable():
-    s = TemporalSupport(measurement_date=date(2020, 5, 1), available_from=ORIGIN)
+    s = TemporalSupport(measurement_date=date(2020, 5, 1), available_from=ORIGIN, precision="day")
     assert s.usable_at(ORIGIN) is True and availability_reason(s, ORIGIN) is None
     assert_available_at({"x": s}, ORIGIN)
 
 
 def campaign(cid, measured, available=None):
     return Event(id=cid, event_type=EventType.MONITORING_CAMPAIGN, provenance=FACT,
-                 time=TemporalSupport(measurement_date=measured, available_from=available))
+                 time=TemporalSupport(measurement_date=measured, available_from=available, precision="day"))
 
 
 def test_known_at_checks_availability_timestamp_not_measurement_date():
@@ -352,3 +352,15 @@ def test_finite_sample_conformal_quantile():
     assert conformal_quantile(scores[:5], 0.9) == math.inf       # rank 6 > n: not clipped to the maximum
     with pytest.raises(ValueError):
         conformal_quantile([], 0.9)
+
+
+def test_imprecise_availability_resolves_to_the_latest_day():
+    """A publication of «2020» (year precision) is not usable in mid-2020 (review finding CHRONOLOGY-014)."""
+    book = TemporalSupport(publication_date=date(2020, 1, 1), available_from=date(2020, 1, 1),
+                           available_from_precision="year")
+    assert book.usable_at(date(2020, 6, 30)) is False
+    assert book.usable_at(date(2020, 12, 31)) is True
+    unknown = TemporalSupport(available_from=date(2020, 3, 1))           # precision not recorded → conservative
+    assert unknown.usable_at(date(2020, 3, 1)) is False and unknown.usable_at(date(2021, 1, 1)) is True
+    with pytest.raises(ValueError):
+        TemporalSupport(precision="week")

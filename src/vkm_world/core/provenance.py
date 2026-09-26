@@ -21,6 +21,8 @@ Scientific rules enforced here (see ``validate_quantity``):
 """
 from __future__ import annotations
 
+import calendar
+import re
 from datetime import date
 from enum import Enum
 from typing import Any
@@ -55,9 +57,19 @@ class EvidenceType(str, Enum):
 
 
 class Scope(str, Enum):
-    """Site scope of a datum. Only SKRU1 (and SKRU1_* joint scopes) are site-specific for SKRU-1."""
+    """Site scope of a datum. Only SKRU1 is field-wide site-specific for SKRU-1.
+
+    The SKRU-1/SKRU-2 joint labels are kept apart (review finding TRANSFER-023):
+    ``SKRU1_SKRU2_PILLAR`` — the intermine pillar zone on the SKRU-1/SKRU-2 boundary (usable for SKRU-1 only locally,
+    at the pillar, or through an explicit Transfer); ``SKRU1_OR_SKRU2_UNATTRIBUTED`` — the source does not say which
+    of the two mines; ``SOLIKAMSK_GROUP`` — pooled over SKRU-1, SKRU-2 and SKRU-3. ``SKRU1_SKRU2`` is the legacy
+    ambiguous label of the first Phase-1 catalogues; it is valid but never counts as SKRU-1 data.
+    """
 
     SKRU1 = "SKRU1"
+    SKRU1_SKRU2_PILLAR = "SKRU1_SKRU2_PILLAR"
+    SKRU1_OR_SKRU2_UNATTRIBUTED = "SKRU1_OR_SKRU2_UNATTRIBUTED"
+    SOLIKAMSK_GROUP = "SOLIKAMSK_GROUP"
     SKRU1_SKRU2 = "SKRU1_SKRU2"
     SKRU2 = "SKRU2"
     SKRU3 = "SKRU3"
@@ -75,7 +87,12 @@ class Scope(str, Enum):
     UNSTATED = "UNSTATED"
 
 
-SKRU1_SCOPES = frozenset({Scope.SKRU1, Scope.SKRU1_SKRU2})
+# field-wide SKRU-1 data; the related scopes touch SKRU-1 at least partly (for filtering, never for silent use)
+SKRU1_SCOPES = frozenset({Scope.SKRU1})
+SKRU1_RELATED_SCOPES = frozenset({Scope.SKRU1, Scope.SKRU1_SKRU2_PILLAR, Scope.SKRU1_OR_SKRU2_UNATTRIBUTED,
+                                  Scope.SOLIKAMSK_GROUP, Scope.SKRU1_SKRU2})
+# scopes an ANALOGUE value can never carry (it would claim to be SKRU-1 data)
+SITE_SPECIFIC_SKRU1_SCOPES = frozenset({Scope.SKRU1, Scope.SKRU1_SKRU2_PILLAR})
 
 
 class Scale(str, Enum):
@@ -84,7 +101,8 @@ class Scale(str, Enum):
     CALIBRATED_EFFECTIVE_MODEL = "CALIBRATED_EFFECTIVE_MODEL"
     FIELD = "FIELD"
     DESIGN = "DESIGN"
-    NOT_APPLICABLE = "NOT_APPLICABLE"
+    NOT_APPLICABLE = "NOT_APPLICABLE"   # the quantity has no material scale (a date, a geometry, a dimensionless code)
+    UNSTATED = "UNSTATED"               # default: scale not recorded yet — an error wherever a scale is required
 
 
 class SpatialLevel(str, Enum):
@@ -143,6 +161,50 @@ class SpatialSupport(BaseModel):
     entity_id: str | None = Field(None, description="id of a node in the WorldSpec spatial hierarchy")
 
 
+DATE_PRECISIONS = ("day", "month", "year", "decade", "unknown")
+_PRECISION_RANK = {p: i for i, p in enumerate(DATE_PRECISIONS)}
+
+
+def date_bounds(d: date, precision: str | None) -> tuple[date, date]:
+    """Earliest and latest calendar day a date of the given precision can mean.
+
+    ``unknown`` is treated like ``year`` (conservative for availability: a date of unknown precision is not
+    assumed to be exact). Review finding CHRONOLOGY-014.
+    """
+    precision = precision or "unknown"
+    if precision == "day":
+        return d, d
+    if precision == "month":
+        return date(d.year, d.month, 1), date(d.year, d.month, calendar.monthrange(d.year, d.month)[1])
+    if precision == "decade":
+        y0 = d.year - d.year % 10
+        return date(y0, 1, 1), date(y0 + 9, 12, 31)
+    return date(d.year, 1, 1), date(d.year, 12, 31)
+
+
+_PARTIAL = re.compile(r"^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$|^(\d{3})(?:0s|x)$")
+
+
+def parse_partial_date(text: str) -> tuple[date, str]:
+    """Parse '1930', '1930-05', '1930-05-17', '1930s' / '193x' into (first day, precision)."""
+    m = _PARTIAL.match(text.strip())
+    if not m:
+        raise ValueError(f"not a partial ISO date: {text!r}")
+    if m.group(4):
+        return date(int(m.group(4)) * 10, 1, 1), "decade"
+    y, mo, d = m.group(1), m.group(2), m.group(3)
+    if d:
+        return date(int(y), int(mo), int(d)), "day"
+    if mo:
+        return date(int(y), int(mo), 1), "month"
+    return date(int(y), 1, 1), "year"
+
+
+def finer(p1: str | None, p2: str | None) -> bool:
+    """True if precision p1 is strictly finer than p2."""
+    return _PRECISION_RANK.get(p1 or "unknown", 4) < _PRECISION_RANK.get(p2 or "unknown", 4)
+
+
 class TemporalSupport(BaseModel):
     """Physical time vs information time.
 
@@ -162,11 +224,17 @@ class TemporalSupport(BaseModel):
     processing_date: date | None = None
     publication_date: date | None = None
     available_from: date | None = None
-    precision: str = Field("unknown", description="day|month|year|decade|unknown")
+    precision: str = Field("unknown", description="precision of the event/measurement dates: day|month|year|decade|unknown")
+    available_from_precision: str | None = Field(
+        None, description="precision of available_from if it differs from ``precision`` (e.g. a publication year)")
     notes: str | None = None
 
     @model_validator(mode="after")
     def _ordered(self) -> "TemporalSupport":
+        for name in ("precision", "available_from_precision"):
+            v = getattr(self, name)
+            if v is not None and v not in DATE_PRECISIONS:
+                raise ValueError(f"{name} must be one of {DATE_PRECISIONS}, got {v!r}")
         if self.event_date and self.event_date_end and self.event_date_end < self.event_date:
             raise ValueError("event_date_end precedes event_date")
         if self.measurement_date and self.processing_date and self.processing_date < self.measurement_date:
@@ -178,11 +246,29 @@ class TemporalSupport(BaseModel):
                     raise ValueError(f"available_from precedes {name}: information cannot be available before it exists")
         return self
 
-    def usable_at(self, origin: date) -> bool | None:
-        """True/False if availability is known, None if it is not (then the datum must not be used)."""
+    def available_latest(self) -> date | None:
+        """Last day the information may have become available (a year-precision date means 31 December)."""
         if self.available_from is None:
             return None
-        return self.available_from <= origin
+        return date_bounds(self.available_from, self.available_from_precision or self.precision)[1]
+
+    def event_bounds(self) -> tuple[date, date] | None:
+        """(earliest start, latest end) of the physical event, honouring ``precision``."""
+        start = self.event_date or self.measurement_date
+        if start is None:
+            return None
+        end = self.event_date_end or start
+        return date_bounds(start, self.precision)[0], date_bounds(end, self.precision)[1]
+
+    def usable_at(self, origin: date) -> bool | None:
+        """True/False if availability is known, None if it is not (then the datum must not be used).
+
+        Imprecise availability is resolved to its latest possible day: a book of «1999» is usable from 1999-12-31
+        on, never from 1 January (review finding CHRONOLOGY-014, decision D-03)."""
+        latest = self.available_latest()
+        if latest is None:
+            return None
+        return latest <= origin
 
 
 class UncertaintyKind(str, Enum):
@@ -239,7 +325,7 @@ class Provenance(BaseModel):
     sources: tuple[SourceRef, ...] = ()
     evidence_type: EvidenceType = EvidenceType.NOT_APPLICABLE
     scope: Scope = Scope.UNSTATED
-    scale: Scale = Scale.NOT_APPLICABLE
+    scale: Scale = Scale.UNSTATED
     spatial: SpatialSupport = Field(default_factory=SpatialSupport)
     temporal: TemporalSupport = Field(default_factory=TemporalSupport)
     method: str | None = Field(None, description="derivation / interpolation method")
@@ -270,7 +356,7 @@ def provenance_errors(p: Provenance) -> list[str]:
         errs.append("INTERPOLATION requires method and inputs")
     if s in (EpistemicStatus.MODEL_CHOICE, EpistemicStatus.ENGINEERING_ASSUMPTION) and not p.rationale:
         errs.append(f"{s.value} requires a written rationale")
-    if s is EpistemicStatus.ANALOGUE and p.scope in SKRU1_SCOPES:
+    if s is EpistemicStatus.ANALOGUE and p.scope in SITE_SPECIFIC_SKRU1_SCOPES:
         errs.append("ANALOGUE cannot have an SKRU-1 scope")
     if s is EpistemicStatus.ANALOGUE and not p.sources:
         errs.append("ANALOGUE requires the analogue source")
@@ -318,8 +404,15 @@ def quantity_errors(q: Quantity) -> list[str]:
 
 
 def check_scale_use(q: Quantity, required: Scale) -> list[str]:
-    """Return errors if ``q`` is used at a scale it was not obtained at without an explicit Transfer."""
+    """Return errors if ``q`` is used at a scale it was not obtained at without an explicit Transfer.
+
+    UNSTATED is an error (review finding TRANSFER-024: the old default NOT_APPLICABLE let unscaled material values
+    pass as MASSIF). NOT_APPLICABLE passes: it is reserved for quantities without a material scale; material
+    parameters must state their scale (``MaterialParameter`` enforces it)."""
     p = q.provenance
+    if p.scale is Scale.UNSTATED and required is not Scale.UNSTATED:
+        return [f"{q.name}: scale not stated; record LAB/MASSIF/FIELD/DESIGN/CALIBRATED_EFFECTIVE_MODEL before using it "
+                f"as {required.value}"]
     if p.scale in (required, Scale.NOT_APPLICABLE):
         return []
     if p.transfer and p.transfer.to_scale == required:
@@ -327,14 +420,25 @@ def check_scale_use(q: Quantity, required: Scale) -> list[str]:
     return [f"{q.name}: {p.scale.value} value used as {required.value} without an explicit Transfer record"]
 
 
-def check_site_use(q: Quantity, target: Scope = Scope.SKRU1) -> list[str]:
-    """Return errors if an off-site value is used as a target-site value without ANALOGUE/Transfer."""
+def check_site_use(q: Quantity, target: Scope = Scope.SKRU1, local_to_pillar: bool = False) -> list[str]:
+    """Return errors if an off-site value is used as a target-site value without ANALOGUE/Transfer.
+
+    * only the target scope itself passes silently;
+    * ``SKRU1_SKRU2_PILLAR`` passes for SKRU-1 only when the use is local to the intermine pillar zone
+      (``local_to_pillar=True``); field-wide use needs a Transfer (review findings ATTRIBUTION-007, TRANSFER-023);
+    * unattributed (SKRU-1 or SKRU-2), pooled (SKRU-1+2+3), legacy SKRU1_SKRU2 and GENERAL_METHOD values need
+      ANALOGUE / MODEL_CHOICE / ENGINEERING_ASSUMPTION status or a Transfer (TRANSFER-024);
+    * PROJECT scope passes for this project's own DERIVATION / INTERPOLATION."""
     p = q.provenance
-    if p.scope in SKRU1_SCOPES or p.scope in (Scope.GENERAL_METHOD, Scope.PROJECT):
+    if p.scope == target:
         return []
     if p.status in (EpistemicStatus.ANALOGUE, EpistemicStatus.MODEL_CHOICE, EpistemicStatus.ENGINEERING_ASSUMPTION):
         return []
     if p.transfer and p.transfer.to_scope == target:
+        return []
+    if target is Scope.SKRU1 and p.scope is Scope.SKRU1_SKRU2_PILLAR and local_to_pillar:
+        return []
+    if p.scope is Scope.PROJECT and p.status in (EpistemicStatus.DERIVATION, EpistemicStatus.INTERPOLATION):
         return []
     return [f"{q.name}: scope {p.scope.value} used for {target.value} with status {p.status.value} (needs ANALOGUE or Transfer)"]
 

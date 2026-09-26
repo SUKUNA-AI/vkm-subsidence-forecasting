@@ -10,7 +10,14 @@ Ordering rules checked by ``chronology_errors``:
 * extraction/backfill inside a mine does not precede that mine's commissioning, if dated;
 * extraction does not end before it starts across paired START/END events;
 * every event references existing objects.
-Dates as precise as the source gives them; imprecise dates carry ``precision``.
+Dates as precise as the source gives them; imprecise dates carry ``precision`` and are compared as intervals
+(a year means the whole year): an order error is reported only when it is certain, e.g. the LATEST possible
+start of a backfill precedes the EARLIEST possible start of the extraction. For a mine commissioned on several
+dated rows the most precise date is used, not the earliest (review finding CHRONOLOGY-014).
+
+Two availability views (review finding CHRONOLOGY-023): ``known_at`` — information events usable at t0;
+``known_physical_at`` — physical events a forecaster at t0 knows about: their own ``available_from`` (or that of an
+information event listed in ``revealed_by``) is known and not later than t0. Unknown availability fails closed.
 """
 from __future__ import annotations
 
@@ -20,7 +27,7 @@ from enum import Enum
 from pydantic import Field
 
 from ..core.base import WorldObject, duplicate_ids
-from ..core.provenance import TemporalSupport
+from ..core.provenance import TemporalSupport, date_bounds, finer
 
 
 class EventClass(str, Enum):
@@ -81,6 +88,8 @@ class Event(WorldObject):
     time: TemporalSupport
     description: str | None = None
     event_class_override: EventClass | None = Field(None, description="explicit class, required for OTHER events")
+    revealed_by: tuple[str, ...] = Field((), description="ids of INFORMATION events that recorded this physical event "
+                                                         "(survey, GIS snapshot, publication)")
 
     @property
     def event_class(self) -> EventClass:
@@ -95,6 +104,11 @@ class Event(WorldObject):
     @property
     def end(self) -> date | None:
         return self.time.event_date_end or self.start
+
+    @property
+    def bounds(self) -> tuple[date, date] | None:
+        """(earliest start, latest end) honouring the date precision."""
+        return self.time.event_bounds()
 
 
 def chronology_errors(events: list[Event], known_ids: set[str] | None = None,
@@ -121,40 +135,61 @@ def chronology_errors(events: list[Event], known_ids: set[str] | None = None,
     for e in events:
         if e.event_type is EventType.OTHER and e.event_class_override is None:
             errs.append(f"event {e.id}: OTHER event must state event_class_override (PHYSICAL or INFORMATION)")
+    # earliest possible start of the first extraction of each object
     first_extraction: dict[str, date] = {}
     for e in events:
-        if e.event_type in EXTRACTION_TYPES and e.start:
+        if e.event_type in EXTRACTION_TYPES and e.bounds:
             for o in e.objects:
-                if o not in first_extraction or e.start < first_extraction[o]:
-                    first_extraction[o] = e.start
-    commissioning: dict[str, date] = {}
+                lo = e.bounds[0]
+                if o not in first_extraction or lo < first_extraction[o]:
+                    first_extraction[o] = lo
+    # commissioning: the most precise dated row per mine (ties → earlier), compared by its earliest day
+    commissioning: dict[str, tuple[date, str]] = {}
     for e in events:
-        if e.event_type is EventType.MINE_COMMISSIONING and e.start:
+        if e.event_type is EventType.MINE_COMMISSIONING and e.bounds:
             for o in e.objects:
-                commissioning[o] = min(e.start, commissioning.get(o, e.start))
+                cur = commissioning.get(o)
+                cand = (e.bounds[0], e.time.precision)
+                if cur is None or finer(cand[1], cur[1]) or (cand[1] == cur[1] and cand[0] < cur[0]):
+                    commissioning[o] = cand
     for e in events:
-        if e.event_type in BACKFILL_TYPES and e.start:
+        if not e.bounds:
+            continue
+        s_lo, _ = e.bounds
+        s_hi = date_bounds(e.start, e.time.precision)[1] if e.start else s_lo
+        if e.event_type in BACKFILL_TYPES:
             for o in e.objects:
                 ext = [first_extraction[x] for x in lineage(o) if x in first_extraction]
-                if ext and e.start < min(ext):
+                if ext and s_hi < min(ext):
                     errs.append(f"event {e.id}: backfill of {o} starts {e.start} before its extraction {min(ext)}")
-        if e.event_type in EXTRACTION_TYPES | BACKFILL_TYPES and e.start:
+        if e.event_type in EXTRACTION_TYPES | BACKFILL_TYPES:
             for o in e.objects:
                 m = mine_of.get(o)
-                if m and m in commissioning and e.start < commissioning[m]:
+                if m and m in commissioning and s_hi < commissioning[m][0]:
                     errs.append(f"event {e.id}: {e.event_type.value} of {o} on {e.start} before commissioning of {m} "
-                                f"({commissioning[m]})")
+                                f"({commissioning[m][0]})")
     ends: dict[str, date] = {}
     for e in events:
-        if e.event_type is EventType.EXTRACTION_END and e.start:
+        if e.event_type is EventType.EXTRACTION_END and e.bounds:
             for o in e.objects:
-                ends[o] = e.start
-    for o, end in ends.items():
-        if o in first_extraction and end < first_extraction[o]:
-            errs.append(f"object {o}: extraction ends {end} before it starts {first_extraction[o]}")
+                ends[o] = e.bounds[1]          # latest possible end
+    for o, end_hi in ends.items():
+        if o in first_extraction and end_hi < first_extraction[o]:
+            errs.append(f"object {o}: extraction ends {end_hi} before it starts {first_extraction[o]}")
     return errs
 
 
 def known_at(events: list[Event], origin: date) -> list[Event]:
     """Information events usable by a forecaster at ``origin`` (availability must be known and <= origin)."""
     return [e for e in events if e.event_class is EventClass.INFORMATION and e.time.usable_at(origin) is True]
+
+
+def known_physical_at(events: list[Event], origin: date) -> list[Event]:
+    """Physical events a forecaster at ``origin`` knows about.
+
+    A physical event is known when its own ``available_from`` is known and <= origin, or when one of the information
+    events in ``revealed_by`` is known at origin. Physical events with unknown availability are NOT returned (fail
+    closed): the world state at t0 is what was known at t0, not every event with event_date <= t0."""
+    info_known = {e.id for e in known_at(events, origin)}
+    return [e for e in events if e.event_class is EventClass.PHYSICAL
+            and (e.time.usable_at(origin) is True or any(r in info_known for r in e.revealed_by))]

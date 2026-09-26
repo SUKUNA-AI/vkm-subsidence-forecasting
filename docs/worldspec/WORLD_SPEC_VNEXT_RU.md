@@ -39,10 +39,10 @@ OGS, MATLAB, FLAC/PLAXIS, gprMax, GemPy, Micromine — **адаптеры** (п�
 | `status` | `FACT` · `DERIVATION` · `INTERPOLATION` · `MODEL_CHOICE` · `ENGINEERING_ASSUMPTION` · `ANALOGUE` · `UNKNOWN` |
 | `sources` | `SourceRef(source_id, pdf_page, printed_page, locator, evidence_ids, extraction_method)` |
 | `evidence_type` | MEASURED, LAB_TEST, NORMATIVE, DESIGN_VALUE, CALCULATED_BY_AUTHOR, MODEL_CALIBRATED, TEACHING_EXAMPLE … |
-| `scope` | SKRU1, SKRU1_SKRU2, SKRU2, …, BKPRU1–4, USOLSKY, OTHER_VKM_SITE, VKM_REGIONAL, OTHER_POTASH_SITE, NON_VKM, GENERAL_METHOD |
-| `scale` | LAB · MASSIF · CALIBRATED_EFFECTIVE_MODEL · FIELD · DESIGN |
+| `scope` | SKRU1 (всё шахтное поле); SKRU1_SKRU2_PILLAR (зона междушахтного целика СКРУ-1/СКРУ-2 — для СКРУ-1 только локально или через `Transfer`); SKRU1_OR_SKRU2_UNATTRIBUTED (источник не разделяет рудники); SOLIKAMSK_GROUP (пул СКРУ-1/2/3); SKRU1_SKRU2 (устаревшая неоднозначная метка первых каталогов — СКРУ-1 не засчитывается); SKRU2, SKRU3, BKPRU1–4, USOLSKY, OTHER_VKM_SITE, VKM_REGIONAL, OTHER_POTASH_SITE, NON_VKM, GENERAL_METHOD, PROJECT, UNSTATED |
+| `scale` | LAB · MASSIF · CALIBRATED_EFFECTIVE_MODEL · FIELD · DESIGN · NOT_APPLICABLE (у величины нет масштаба материала: дата, геометрия) · UNSTATED (по умолчанию; ошибка там, где масштаб нужен; параметр материала обязан указать масштаб) |
 | `spatial` | уровень иерархии и узел, к которому относится утверждение |
-| `temporal` | `event_date`, `measurement_date`, `processing_date`, `publication_date`, **`available_from`** |
+| `temporal` | `event_date`, `measurement_date`, `processing_date`, `publication_date`, **`available_from`**; точность `precision` и `available_from_precision` (day · month · year · decade · unknown) |
 | `uncertainty` | тип (интервал, распределение, набор гипотез, UNKNOWN) и компоненты: measurement, spatial, temporal, source_conflict, interpolation, model_form, parameter, transferability, engineering_assumption |
 | `transfer` | явная запись переноса LAB→MASSIF или аналог→СКРУ-1 (метод, статус, обоснование) |
 
@@ -53,6 +53,8 @@ OGS, MATLAB, FLAC/PLAXIS, gprMax, GemPy, Micromine — **адаптеры** (п�
 - MODEL_CHOICE и ENGINEERING_ASSUMPTION требуют письменного обоснования.
 - TEACHING_EXAMPLE никогда не FACT. ANALOGUE никогда не имеет scope СКРУ-1.
 - LAB-значение как MASSIF или значение соседнего рудника как значение СКРУ-1 — только через явный `Transfer`.
+  Без `Transfer` для СКРУ-1 не засчитываются: зона целика (кроме локального использования), данные без атрибуции
+  между СКРУ-1 и СКРУ-2, пул трёх рудников, литературные диапазоны (GENERAL_METHOD) со статусом FACT.
 - диапазоны не схлопываются в точку, а противоречащие гипотезы (например, K0 = 0.6 | 0.71 | ≈1)
   хранятся как `DISCRETE_SET`.
 
@@ -130,8 +132,21 @@ start/end/period, закладка, обрушения, динамические
 - выемка и закладка не раньше ввода рудника в эксплуатацию, если дата ввода известна;
 - все ссылки на объекты существуют.
 
+Неточные даты сравниваются как интервалы. «1930» с точностью «год» означает весь 1930 год. Ошибка порядка
+фиксируется, только если она достоверна: самое позднее возможное начало закладки раньше самого раннего
+возможного начала выемки. Для ввода рудника берётся самая точная из записанных дат: «май 1930» важнее «1930».
+
 **Семантика доступности.** У каждого информационного объекта есть `available_from`.
 `known_at(events, t0)` возвращает только то, что прогнозист мог использовать на дату t0.
+Неточная доступность разворачивается к последнему возможному дню. Книга «1999» доступна с 31.12.1999, а не с 1 января
+(решение D-03, находка CHRONOLOGY-014).
+
+Состояние мира на t0 — это физические события, **о которых было известно** на t0, а не все события с
+`event_date ≤ t0`. Функция `known_physical_at(events, t0)` возвращает физическое событие, если известна и не позже t0
+его собственная `available_from` или доступность информационного события из `revealed_by` (съёмка, срез ГИС,
+публикация). Пример: закладка 2016–2017 гг. зоны, опубликованная срезом ГИС в 2026 г., не видна на t0 = 2018.
+Роль прогнозиста (оператор рудника или внешний исследователь) задаёт, какие информационные события ему доступны.
+По умолчанию проект моделирует внешнего исследователя.
 Если доступность неизвестна, данные **не используются** (`usable_at → None`). Это основа будущего
 честного walk-forward бенчмарка (Phase 3+).
 

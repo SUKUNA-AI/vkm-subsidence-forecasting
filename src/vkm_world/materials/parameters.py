@@ -42,6 +42,10 @@ class MaterialParameter(WorldObject):
         probs = check_unit(self.variable, self.quantity.unit)
         if is_hard_error(probs) and not self.variable.startswith("creep_param"):
             raise ValueError(f"{self.id}: " + "; ".join(probs))
+        prov = self.quantity.provenance
+        if prov.status.value != "UNKNOWN" and prov.scale in (Scale.UNSTATED, Scale.NOT_APPLICABLE):
+            raise ValueError(f"{self.id}: a material parameter must state its scale (LAB/MASSIF/FIELD/DESIGN/"
+                             f"CALIBRATED_EFFECTIVE_MODEL), got {prov.scale.value}")
         return self
 
     def use_errors(self, as_scale: Scale = Scale.MASSIF, for_scope: Scope = Scope.SKRU1) -> list[str]:
