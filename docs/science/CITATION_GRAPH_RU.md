@@ -28,7 +28,7 @@
 
 ---
 
-## 2. Файлы потока (`/home/user/work/synth/CITATIONS/`)
+## 2. Файлы потока (`PRIVATE 11_evidence_vnext/canonical/CITATIONS/`)
 
 | Файл | Строк | Назначение |
 |---|---|---|
@@ -234,4 +234,4 @@ UNKNOWN не означает «вторичный». Основание эвр�
 
 ## 9. Воспроизводимость
 
-`scripts/run_all.sh`: stage1 → stage2 → stage3 → stage4 → stage5 → stage6 → stage8 → stage7 (graphml, venv-research) → `validate_outputs.py`. Входные данные только читаются; запись идёт только в `/home/user/work/synth/CITATIONS/`. Текущий прогон: validation **OK**, sha256 файлов — в `validation_receipt.json`. Репозитории не изменялись.
+`scripts/run_all.sh`: stage1 → stage2 → stage3 → stage4 → stage5 → stage6 → stage8 → stage7 (graphml, venv-research) → `validate_outputs.py`. Входные данные только читаются; запись идёт только в `PRIVATE 11_evidence_vnext/canonical/CITATIONS/`. Текущий прогон: validation **OK**, sha256 файлов — в `validation_receipt.json`. Репозитории не изменялись.

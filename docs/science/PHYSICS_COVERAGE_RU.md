@@ -5,7 +5,7 @@
 напряжений, не интегрировалась ползучесть, не пересчитывались опубликованные примеры. Все «план исполнения» и
 «готовность» — это проектные статусы для будущей локальной фазы (Phase 2).
 
-Входы: объединённые записи сплошного прочтения корпуса `/home/user/work/merged/all_records.jsonl` (13 572 записи после
+Входы: объединённые записи сплошного прочтения корпуса `PRIVATE 11_evidence_vnext/merged/all_records.jsonl` (13 572 записи после
 финального слияния 11:58, включая поздние источники VKM-SRC-009, VKM-SRC-010 и VKM-SRC-024/c3), предыдущий выпуск
 `physical_evidence_v1` (реестр законов ползучести CL-01…CL-21, пробелы GAP-001…GAP-015, таксономия TX-*),
 типизированная схема `src/vkm_world/` (статусы/области/масштабы — `core/provenance.py`; `physics/processes.py` —
@@ -13,7 +13,7 @@
 черновики потоков MECH_RHEO (отчёт готов), FORMULAS (реестр `MATHEMATICAL_MODEL_REGISTRY.csv` — черновой снимок),
 HYDRO_THERMAL_GEOPHYS, MINING, MONITORING_LIFECYCLE.
 
-## 1. Состав выпуска (`/home/user/work/synth/PHYSICS_CAUSAL/`)
+## 1. Состав выпуска (`PRIVATE 11_evidence_vnext/canonical/PHYSICS_CAUSAL/`)
 
 | Файл | Строк | Содержание |
 |---|---|---|
@@ -232,9 +232,9 @@ Vp→E для несоляных пород. Ни одно значение не
 ## 9. Воспроизводимость
 
 ```
-cd /home/user/work/synth/PHYSICS_CAUSAL/scripts
+cd PRIVATE 11_evidence_vnext/canonical/PHYSICS_CAUSAL/scripts
 python3 build_matrix.py        # матрица + process_evidence_links
-/home/user/.venv-research/bin/python build_graph.py   # граф + валидация networkx
+python build_graph.py   # граф + валидация networkx
 python3 build_obs.py           # операторы наблюдений
 python3 build_conflicts.py     # конфликты
 ```

@@ -4,8 +4,8 @@
 Поток: `HYDRO_THERMAL_GEOPHYS`. Фаза: только информация и архитектура. Численных расчётов нет: напряжения, интегрирование ползучести, интерполяция, кригинг и пересчёт опубликованных примеров не выполнялись.
 
 Дата: 2026-09-26. Входные данные:
-- записи merged sweep `/home/user/work/merged/all_records.jsonl`;
-- тексты страниц корпуса `/home/user/work/corpus/`;
+- записи merged sweep `PRIVATE 11_evidence_vnext/merged/all_records.jsonl`;
+- тексты страниц корпуса `$VKM_WORK/corpus/`;
 - артефакты `physical_evidence_v1` предыдущего релиза: `evidence_gaps.csv`, `claims.jsonl`, `creep_law_registry.csv`.
 
 Репозитории не изменялись.
@@ -310,7 +310,7 @@
 
 ## 9. Журнал визуальных перепроверок этого потока
 
-Все рендеры лежат в `/home/user/work/run/img`; все значения **CONFIRMED**.
+Все рендеры лежат в `$VKM_WORK/run/img`; все значения **CONFIRMED**.
 
 | Источник, стр. | Что проверено |
 |---|---|

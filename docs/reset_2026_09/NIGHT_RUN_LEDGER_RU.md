@@ -1,7 +1,7 @@
 # Журнал ночного UltraCode-run (scientific reset → WorldSpec vNext)
 
 Журнал ведётся по этапам, чтобы работа была восстановима при прерывании cloud VM.
-Рабочие (не коммитящиеся) материалы run: `/home/user/work/` (corpus text, OCR, выходы агентов).
+Рабочие (не коммитящиеся) материалы run: `$VKM_WORK/` (corpus text, OCR, выходы агентов).
 
 ## Этап 0. Preflight (завершён)
 
@@ -68,7 +68,7 @@ Parent task: «CLOUD ULTRACODE — ПРОДОЛЖЕНИЕ SCIENTIFIC RESET ПР�
 ## P1.1 Полный sweep корпуса (в работе)
 
 - 65 чтений / 39 документов, 5 параллельных workflow по 13 чтений (лимит VM — 2 агента на workflow).
-- Промежуточные результаты: `/home/user/work/sweep_results/<SID>/<chunk>/`; фоновый snapshot каждые
+- Промежуточные результаты: `$VKM_WORK/sweep_results/<SID>/<chunk>/`; фоновый snapshot каждые
   40 мин в PRIVATE `11_evidence_vnext/sweep_raw/` (commit + push, без LFS).
 - Параллельно: read-only аудит PUBLIC repo, старого PW v1/OGS и воспроизводимости.
 

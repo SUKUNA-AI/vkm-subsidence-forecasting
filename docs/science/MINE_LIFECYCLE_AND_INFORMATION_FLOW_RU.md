@@ -3,7 +3,7 @@
 
 Поток: `MONITORING_LIFECYCLE`. Дата: 2026-09-26. Фаза: только сбор информации и архитектура. Никаких расчётов не выполнялось: ни напряжений, ни ползучести, ни интерполяции, ни пересчёта опубликованных значений. В таблицах только извлечённые и классифицированные сведения. Все значения сохраняют статус из записей‑источников (`FACT / DERIVATION / INTERPOLATION / MODEL_CHOICE / ENGINEERING_ASSUMPTION / ANALOGUE / UNKNOWN`).
 
-Входные данные: окончательный merged‑корпус `/home/user/work/merged/all_records.jsonl` (13 572 записи, `merge_log_final.txt`, 11:58). Поздние источники VKM‑SRC‑009, VKM‑SRC‑010 и VKM‑SRC‑024/c3 вошли в окончательный merge под своими `vn_id`, их записи учтены. Схема совместимости: `src/vkm_world` (`core/provenance.py`, `observations/catalog.py`, `chronology/events.py`, `mining/*`).
+Входные данные: окончательный merged‑корпус `PRIVATE 11_evidence_vnext/merged/all_records.jsonl` (13 572 записи, `merge_log_final.txt`, 11:58). Поздние источники VKM‑SRC‑009, VKM‑SRC‑010 и VKM‑SRC‑024/c3 вошли в окончательный merge под своими `vn_id`, их записи учтены. Схема совместимости: `src/vkm_world` (`core/provenance.py`, `observations/catalog.py`, `chronology/events.py`, `mining/*`).
 
 ---
 
