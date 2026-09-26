@@ -1,5 +1,7 @@
 # Каноническое состояние исследования СКРУ-1
 
+> **Исторический документ (состояние до scientific reset 26.09.2026).** Текущее состояние — [PROJECT_STATE_RU.md](../../PROJECT_STATE_RU.md). Относительные ссылки ниже указывают на файлы, которые живут в ветке `legacy` (`d54025d`).
+
 Дата исходной консолидации: 24 сентября 2026 года.  
 Externalization resources: 25 сентября 2026 года.  
 Retirement legacy v3.x package: 25 сентября 2026 года.
@@ -191,7 +193,7 @@ packages и `SKRU1_ACTUAL_DATA_TABLES_v1.zip` не являются current evid
 Проверка:
 
 ```powershell
-$env:VKM_RESOURCES_ROOT = "E:\Диплом\vkm-subsidence-forecasting_resourses"
+$env:VKM_RESOURCES_ROOT = "<локальный каталог диплома>\vkm-subsidence-forecasting_resourses"
 python scripts/verify_canonical_repository.py
 ```
 

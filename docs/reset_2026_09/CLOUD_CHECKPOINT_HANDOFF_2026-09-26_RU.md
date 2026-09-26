@@ -1,5 +1,7 @@
 # CLOUD → LOCAL HANDOFF: ночной scientific reset VKM/SKRU-1
 
+> **Исторический checkpoint первой cloud-сессии (ночной run).** Заменён актуальным [CLOUD_TO_LOCAL_PHASE2_HANDOFF_RU.md](../../CLOUD_TO_LOCAL_PHASE2_HANDOFF_RU.md). Пути cloud VM заменены логическими именами (`$VKM_WORK`, `$VKM_RESOURCES_ROOT`).
+
 Дата: 26.09.2026. Составлено в cloud VM по прямому указанию пользователя: остановить запуск
 новых исследовательских workflow и передать работу на локальную workstation.
 Ничего не удалялось, reset не выполнялся.
@@ -268,9 +270,9 @@ Derived excerpt Жукова (`00_registry/intake/.../derived/Zhukov_GPR_VKM_ch4
 **PRIVATE (запушено):** `00_registry/cloud_checkpoint_2026-09-26/` — OCR all.txt ×2,
 ocr_manifest ×2, копия handoff.
 
-**Только в VM (не в Git; регенерируемо):** `/home/user/work/corpus/**` (постраничный текст),
-`filatova.pdf` + конвертированные EMF, 240 отрендеренных PNG (`/home/user/work/run/img`),
-per-source дайджесты старых claims (`/home/user/work/run/existing`), OCR TSV,
+**Только в VM (не в Git; регенерируемо):** `$VKM_WORK/corpus/**` (постраничный текст),
+`filatova.pdf` + конвертированные EMF, 240 отрендеренных PNG (`$VKM_WORK/run/img`),
+per-source дайджесты старых claims (`$VKM_WORK/run/existing`), OCR TSV,
 transcript'ы остановленных агентов, `.venv-research`.
 
 ---

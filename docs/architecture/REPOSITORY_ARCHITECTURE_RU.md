@@ -23,7 +23,7 @@ README.md  CLAUDE.md  AGENTS.md  PROJECT_STATE_RU.md  CLOUD_TO_LOCAL_PHASE2_HAND
 pyproject.toml  .gitattributes  .gitignore  .python-version
 schemas/                     JSON Schema WorldSpec vNext (генерируется из кода)
 src/vkm_world/               типизированный фундамент
-  core/                      provenance, статусы, неопределённость, метаданные единиц, базовые объекты
+  core/                      provenance, статусы, неопределённость, метаданные единиц, базовые объекты, io (атомарная запись, sha256)
   evidence/                  реестр источников, уровни покрытия
   spatial/                   иерархия ВКМ→…→репер, CRS/высотные системы (метаданные)
   geology/                   стратиграфия, скважины (наблюдение ≠ интерпретация), горизонты, структуры
@@ -34,7 +34,9 @@ src/vkm_world/               типизированный фундамент
   mathmeta/                  метаданные математических моделей
   observations/              системы наблюдений, датасеты, спецификации операторов наблюдения
   worldspec/                 агрегат WorldSpec, валидация, детерминированная сериализация
-  governance/                страж утечки PRIVATE→PUBLIC
+  governance/                страж утечки PRIVATE→PUBLIC, санитизация машинных путей
+  validation/                обобщённые стражи валидации (перенесены из legacy как REUSE_GENERIC): утечка признаков,
+                             разбиения по времени, журнал доступа к test, метрики — без привязки к старым моделям
 evidence/                    public-safe каталоги evidence (CSV без цитат), по доменам:
   sources/ boreholes/ geology/ coordinates/ mining/ backfill/ materials/
   hydro_thermal/ geophysics/ monitoring/ lifecycle/ qa/
@@ -43,7 +45,7 @@ catalogues/                  метаданные моделей и процес
   physics/                   physics_coverage_and_execution_matrix.csv
   causal/                    причинный граф (узлы, рёбра, JSON)
   observations/              дизайн операторов наблюдения
-world/                       экземпляры WorldSpec (Phase 1 — DESIGN/EVIDENCE_POPULATED, без интерполяций)
+world/                       (Phase 2) экземпляры WorldSpec: EVIDENCE_POPULATED без интерполяций, затем DIAGNOSTIC
 scripts/                     сборка public-каталогов из private evidence, экспорт схемы, проверка репозитория
 tests/world/                 лёгкие тесты схем/провенанса/хронологии/утечки
 docs/
@@ -52,15 +54,16 @@ docs/
                              гидро/термо/геофизика, мониторинг, OCR-QA, цитирование, математика, физика, причинность)
   architecture/              этот документ; контракты адаптеров решателей и визуализации
   governance/                научные правила, политика данных и путей
-  roadmap/                   дорожная карта и backlog локальной Phase 2
-  reset_2026_09/             preflight, журнал run, run kit, аудиты, воспроизводимость, финальный отчёт
-  legacy/                    индекс того, что живёт в ветке legacy, и как это воспроизвести
+  reset_2026_09/             preflight, журнал run, run kit, аудиты, воспроизводимость, финальный отчёт Phase 1,
+                             исторический checkpoint первой cloud-сессии
+  legacy/                    индекс того, что живёт в ветке legacy, и исторические state-документы до reset
 ```
 
-Зарезервированные, но пустые в Phase 1: `src/vkm_world/solver_adapters/` (контракт: адаптер
-получает срез WorldSpec и возвращает производный объект с провенансом) и `src/vkm_world/validation/`
-(сравнение предсказанных и реальных наблюдений с учётом доступности во времени).
-Они появятся в Phase 2+.
+Зарезервирован, но не создан в Phase 1: `src/vkm_world/solver_adapters/`. Контракт: адаптер получает срез
+WorldSpec и возвращает производный объект с провенансом. Сравнение предсказанных и реальных наблюдений
+с учётом доступности во времени строится в Phase 2+ поверх `validation/`. Сейчас там только обобщённые стражи:
+разбиения, журнал доступа к test, метрики, проверка утечки признаков.
+План следующей фазы — `CLOUD_TO_LOCAL_PHASE2_HANDOFF_RU.md` в корне.
 
 ## 3. Структура PRIVATE (дополнения Phase 1)
 
