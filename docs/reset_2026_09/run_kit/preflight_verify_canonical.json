@@ -1,0 +1,147 @@
+{
+  "status": "PASS",
+  "pinned_hashes": {
+    "data/scenario_simulation_v2_1/manifest.json": "a268cd7800e1320a1cc61172f95cf458c7ac7434237b32b288f23a83a97a2c95",
+    "artifacts/reconstruction/scenario_constraints_v2/manifest.json": "96b88b61cf766062c1f831e32b50bdd82441da63c50ce41569a5ffad297de6ef",
+    "artifacts/splits/scenario_representation_v2_1/representation_manifest.json": "0e5501cb4c3cff570fbd3763047a8dd8738d45706dd6f549556ac428521f5a6d"
+  },
+  "files_hash_checked_main": 197,
+  "files_hash_checked_private_resources": 12,
+  "manifests_checked": 7,
+  "markdown_files_checked": 51,
+  "resources_root": "/home/user/vkm-subsidence-forecasting_resourses",
+  "active_external_evidence_required": true,
+  "externalized_inputs_unchecked": [],
+  "retired_legacy_references_skipped": [
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/reproduce_v3.py",
+      "source": "manifest",
+      "historical_expected_sha256": "0d238f938183494ac9dbd8c523c4c01dedd018061edb0a550f5de229179d9f49"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/reproduce_v3_2.py",
+      "source": "manifest",
+      "historical_expected_sha256": "1141d84bfb7b1e5f8af5309421c37343ae136b571606ab4eac4936818a231691"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/metadata/reconstruction_config.json",
+      "source": "manifest",
+      "historical_expected_sha256": "6c9629dd564a20db28139f2b0da194a681ce44d7551749d012a36322dde686ec"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/source_registry.csv",
+      "source": "manifest",
+      "historical_expected_sha256": "bb0abaab709b3dde2677b2ce3603777f889976b7baa4dab666fcf34737381d8e"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/survey_profiles.csv",
+      "source": "manifest",
+      "historical_expected_sha256": "51b718e103d6993493810cc8a4df384ce57db45bb325f4cbec55c8da09bb0e49"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/survey_campaigns.csv",
+      "source": "manifest",
+      "historical_expected_sha256": "c193ece0a743a42447cffa38a3a77f855557c706d094c682c70bf121086aced3"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/campaign_point_membership.csv",
+      "source": "manifest",
+      "historical_expected_sha256": "13c507b8707ea160d0c670a8d2fddc363be13352e11a30a9f51be8f80be6ebae"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/leveling_adjusted_epochs.csv",
+      "source": "manifest",
+      "historical_expected_sha256": "0177b382bf2e7c4a1dcbc8b0131614634ce695fe6cb1717fb2d3e1c288eb72db"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/leveling_runs_summary.csv",
+      "source": "manifest",
+      "historical_expected_sha256": "a638daf28a5a45bd67f88c74d1c84e17c9eadb1d46a3640a04ffb9dcc75cd750"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/point_feature_lineage.csv",
+      "source": "manifest",
+      "historical_expected_sha256": "0f2849ec1a0a4912a0fe1342779b0a479d0fbf077c627f88b6de88ef109496ca"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/next_planned_features.csv",
+      "source": "manifest",
+      "historical_expected_sha256": "5d360910e8eeea10a2572bb35d3de4f0b9b316ec5a6ee3b43389c07b09848ab6"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/next_planned_operational_targets.csv",
+      "source": "manifest",
+      "historical_expected_sha256": "289912a0b2c79ee1163529c6998d879594062cf0d453ec7665b2bb06f562ee1b"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/formal_feature_contract.csv",
+      "source": "manifest",
+      "historical_expected_sha256": "241bad48e67659ffc953349cd2bce59e61f2a2867d57698abd6574edd4a05272"
+    },
+    {
+      "path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/survey_points.csv",
+      "source": "manifest",
+      "historical_expected_sha256": "36c1b86e6e370a50cbb3bbf94e96684ef4c6b0b35a5cd62147cb6fd9869fb7f9"
+    }
+  ],
+  "externalized_markdown_links": [
+    {
+      "path": "docs/reports/DATA_FOUNDATION_V2_RU.md",
+      "target": "../../inputs/sources/primary/ВКР_Филатова_М_С.docx"
+    },
+    {
+      "path": "docs/reports/DATA_FOUNDATION_V2_RU.md",
+      "target": "../../inputs/sources/primary/НК 26 Бобровицкий Григорий.pdf"
+    },
+    {
+      "path": "docs/reports/DATA_FOUNDATION_V2_RU.md",
+      "target": "../../inputs/sources/primary/03-GR-24-2.pdf"
+    },
+    {
+      "path": "docs/reports/DATA_FOUNDATION_V2_RU.md",
+      "target": "../../inputs/sources/primary/Babayants-Disser.pdf"
+    },
+    {
+      "path": "docs/reports/DATA_FOUNDATION_V2_RU.md",
+      "target": "../../inputs/sources/primary/01006516068.pdf"
+    },
+    {
+      "path": "docs/reports/DATA_FOUNDATION_V2_RU.md",
+      "target": "../../inputs/sources/primary/106_Губанова__Глебова.pdf"
+    },
+    {
+      "path": "docs/reports/DATA_FOUNDATION_V2_RU.md",
+      "target": "../../inputs/sources/primary/Гусев_АП_Спутниковый_мониторинг_геодинамики.pdf"
+    },
+    {
+      "path": "docs/reports/DATA_FOUNDATION_V2_RU.md",
+      "target": "../../inputs/sources/primary/Shirshova (1).pdf"
+    },
+    {
+      "path": "docs/reports/DATA_FOUNDATION_V2_RU.md",
+      "target": "../../inputs/sources/primary/sputnikovaya_radarnaya_interferometriya_informatsionno_vychislitelnye.pdf"
+    },
+    {
+      "path": "docs/reports/DATA_FOUNDATION_V2_RU.md",
+      "target": "../../inputs/sources/primary/02f4a17c7c7ba99cfc068395238c5ff9.pdf"
+    },
+    {
+      "path": "docs/reports/DATA_FOUNDATION_V2_RU.md",
+      "target": "../../inputs/sources/primary/88q34t4oapf2ibwjcw2ie0oz2bjbtmc4.pdf"
+    },
+    {
+      "path": "docs/reports/DATA_FOUNDATION_V2_RU.md",
+      "target": "../../inputs/sources/supplementary/geokniga-02obrabotka.pdf"
+    },
+    {
+      "path": "docs/reports/MUSIKHIN_LINE1_ACCEPTANCE_20260923_RU.md",
+      "target": "../../inputs/sources/supplementary/geokniga-02obrabotka.pdf"
+    }
+  ],
+  "retired_markdown_links": [],
+  "errors": [],
+  "broken_local_markdown_links": [],
+  "link_scope": "local Markdown inline file/image targets; network URLs and anchors are not fetched",
+  "models_executed": 0,
+  "evaluator_truth_parsed": false
+}

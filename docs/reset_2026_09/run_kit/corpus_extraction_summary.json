@@ -1,0 +1,278 @@
+{
+ "VKM-SRC-001": {
+  "path": "02_dissertations/Musikhin_2012_authorabstract.pdf",
+  "pages": 22,
+  "pages_text": 22,
+  "chars": 47504,
+  "images": 23
+ },
+ "VKM-SRC-002": {
+  "path": "01_primary_sources/Musikhin_VKM_radar_interferometry_slides.pdf",
+  "pages": 17,
+  "pages_text": 13,
+  "chars": 8386,
+  "images": 122
+ },
+ "VKM-SRC-003": {
+  "path": "02_dissertations/Babayants_dissertation_SAR_subsidence.pdf",
+  "pages": 126,
+  "pages_text": 122,
+  "chars": 232637,
+  "images": 72
+ },
+ "VKM-SRC-004": {
+  "path": "04_articles/insar/Babayants_et_al_2023_persistent_scatterers_Berezniki.pdf",
+  "pages": 19,
+  "pages_text": 19,
+  "chars": 52261,
+  "images": 22
+ },
+ "VKM-SRC-005": {
+  "path": "04_articles/geomechanics/Gubanova_Glebova_2022_InSAR_geomechanical_calibration.pdf",
+  "pages": 6,
+  "pages_text": 6,
+  "chars": 13222,
+  "images": 4
+ },
+ "VKM-SRC-006": {
+  "path": "03_books/Gusev_satellite_geodynamic_monitoring.pdf",
+  "pages": 94,
+  "pages_text": 94,
+  "chars": 179217,
+  "images": 22
+ },
+ "VKM-SRC-007": {
+  "path": "04_articles/insar/Shirshova_2020_DInSAR_urban_subsidence.pdf",
+  "pages": 10,
+  "pages_text": 10,
+  "chars": 34274,
+  "images": 8
+ },
+ "VKM-SRC-008": {
+  "path": "04_articles/insar/Shokin_et_al_2016_radar_interferometry_computational_aspects.pdf",
+  "pages": 11,
+  "pages_text": 11,
+  "chars": 24332,
+  "images": 8
+ },
+ "VKM-SRC-009": {
+  "path": "04_articles/insar/Gorsky_Khomenkov_2012_Starobin_potash_SAR.pdf",
+  "pages": 11,
+  "pages_text": 11,
+  "chars": 23977,
+  "images": 16
+ },
+ "VKM-SRC-010": {
+  "path": "04_articles/insar/Mikov_Potapov_2024_radar_geomechanics_Kuzbass.pdf",
+  "pages": 10,
+  "pages_text": 10,
+  "chars": 22256,
+  "images": 13
+ },
+ "VKM-SRC-011": {
+  "path": "03_books/Kudryashov_2013_Verkhnekamskoe_mestorozhdenie_solei.pdf",
+  "pages": 186,
+  "pages_text": 182,
+  "chars": 1270787,
+  "images": 252
+ },
+ "VKM-SRC-012": {
+  "path": "02_dissertations/Lebedeva_2023_intermine_pillars_VKM.pdf",
+  "pages": 131,
+  "pages_text": 129,
+  "chars": 171285,
+  "images": 70
+ },
+ "VKM-SRC-013": {
+  "path": "03_books/Baryakh_Asanov_Pankov_phys_mech_salt_rocks_VKM.zip",
+  "status": "MISSING"
+ },
+ "VKM-SRC-014": {
+  "path": "03_books/Soloviev_Sekuntsov_2013_razrabotka_kaliinyh_mestorozhdenii.pdf",
+  "pages": 265,
+  "pages_text": 265,
+  "chars": 347634,
+  "images": 2522
+ },
+ "VKM-SRC-015": {
+  "path": "06_geophysics/gpr/Voroshilov_et_al_2026_GPR_hypsometry_VKM.pdf",
+  "pages": 15,
+  "pages_text": 15,
+  "chars": 42279,
+  "images": 7
+ },
+ "VKM-SRC-016": {
+  "path": "04_articles/geomechanics/Belyakov_Belikov_2022_WPS_integrity_VKM.pdf",
+  "pages": 14,
+  "pages_text": 14,
+  "chars": 40201,
+  "images": 8
+ },
+ "VKM-SRC-017": {
+  "path": "04_articles/monitoring/Gusev_Epin_Tsvetkov_2022_uneven_settlement_Berezniki.pdf",
+  "pages": 10,
+  "pages_text": 10,
+  "chars": 39838,
+  "images": 62
+ },
+ "VKM-SRC-018": {
+  "path": "04_articles/geology/Kopylov_geodynamic_active_zones_VKM.pdf",
+  "pages": 8,
+  "pages_text": 8,
+  "chars": 15095,
+  "images": 16
+ },
+ "VKM-SRC-019": {
+  "path": "04_articles/mining/Anikin_2019_large_chambers_VKM.pdf",
+  "pages": 5,
+  "pages_text": 5,
+  "chars": 12829,
+  "images": 83
+ },
+ "VKM-SRC-020": {
+  "path": "03_books/Uralkali_1998_mining_combiner_complexes_part1.pdf",
+  "pages": 273,
+  "pages_text": 267,
+  "chars": 454782,
+  "images": 391
+ },
+ "VKM-SRC-021": {
+  "path": "04_articles/geomechanics/Evseev_Zhukova_2024_mine_field_zoning_VKM.pdf",
+  "pages": 5,
+  "pages_text": 5,
+  "chars": 15014,
+  "images": 1
+ },
+ "VKM-SRC-022": {
+  "path": "08_data_archives/SKRU1_ACTUAL_DATA_TABLES_v1.zip",
+  "status": "MISSING"
+ },
+ "VKM-SRC-023": {
+  "path": "01_primary_sources/Filatova_VKR_SKRU1.docx",
+  "chars": 241769,
+  "media": 64
+ },
+ "VKM-SRC-024": {
+  "path": "04_analogue_projects/Bobrovitsky_Gremyachinsk_mining_surveying_VKR.pdf",
+  "pages": 158,
+  "pages_text": 157,
+  "chars": 220027,
+  "images": 48
+ },
+ "VKM-SRC-025": {
+  "path": "03_books/Baryakh_Asanov_Pankov_phys_mech_salt_rocks_VKM_merged.pdf",
+  "pages": 198,
+  "pages_text": 0,
+  "chars": 0,
+  "images": 43
+ },
+ "VKM-SRC-026": {
+  "path": "03_books/Nesterova_2018_VKM_mining_methods_TEP_manual.pdf",
+  "pages": 42,
+  "pages_text": 42,
+  "chars": 78939,
+  "images": 21
+ },
+ "VKM-SRC-027": {
+  "path": "04_analogue_projects/mining/Toksarov_Kostin_2017_Usolsky_pillar_design_VKM.pdf",
+  "pages": 7,
+  "pages_text": 7,
+  "chars": 17295,
+  "images": 0
+ },
+ "VKM-SRC-028": {
+  "path": "03_books/Uralkali_1999_mining_combiner_complexes_part2.pdf",
+  "pages": 426,
+  "pages_text": 403,
+  "chars": 583110,
+  "images": 426
+ },
+ "VKM-SRC-029": {
+  "path": "02_dissertations/Beltyukov_2019_Kaiser_in_situ_stress_VKM.pdf",
+  "pages": 159,
+  "pages_text": 158,
+  "chars": 239788,
+  "images": 179
+ },
+ "VKM-SRC-030": {
+  "path": "04_articles/Toksarov_2020_in_situ_stress_Solikamsk_depression.pdf",
+  "pages": 6,
+  "pages_text": 6,
+  "chars": 15409,
+  "images": 2
+ },
+ "VKM-SRC-031": {
+  "path": "04_articles/Glebova_2022_pillar_loading_stopped_boundary.pdf",
+  "pages": 5,
+  "pages_text": 5,
+  "chars": 11965,
+  "images": 3
+ },
+ "VKM-SRC-032": {
+  "path": "04_articles/Lomakin_2022_pillar_loading_misaligned_rooms.pdf",
+  "pages": 6,
+  "pages_text": 6,
+  "chars": 13826,
+  "images": 3
+ },
+ "VKM-SRC-033": {
+  "path": "04_articles/Baryakh_Lomakin_2011_pillar_clay_interlayers.pdf",
+  "pages": 5,
+  "pages_text": 5,
+  "chars": 8389,
+  "images": 67
+ },
+ "VKM-SRC-034": {
+  "path": "04_articles/Evseev_Vasileva_2023_pillar_deformation_surface_subsidence.pdf",
+  "pages": 5,
+  "pages_text": 5,
+  "chars": 12670,
+  "images": 2
+ },
+ "VKM-SRC-035": {
+  "path": "04_articles/Baryakh_Samodelkina_2011_VZT_integrity_criteria.pdf",
+  "pages": 5,
+  "pages_text": 5,
+  "chars": 8722,
+  "images": 1
+ },
+ "VKM-SRC-036": {
+  "path": "04_articles/Baryakh_Tsayukov_2024_elastic_viscoplastic_salt.pdf",
+  "pages": 18,
+  "pages_text": 18,
+  "chars": 41462,
+  "images": 40
+ },
+ "VKM-SRC-037": {
+  "path": "05_regulations/Solovyev_1992_VKM_mining_methodical_guidance.djvu",
+  "status": "NEEDS_OCR_.djvu"
+ },
+ "VKM-SRC-038": {
+  "path": "04_analogue_projects/Samodelkina_Baryakh_2009_surface_deformation_salt_dissolution.pdf",
+  "pages": 6,
+  "pages_text": 6,
+  "chars": 14428,
+  "images": 2
+ },
+ "VKM-SRC-039": {
+  "path": "04_analogue_projects/Lobanov_Fedoseev_2022_boundary_angles_deep_potash.pdf",
+  "pages": 5,
+  "pages_text": 5,
+  "chars": 10243,
+  "images": 4
+ },
+ "VKM-SRC-040": {
+  "path": "02_dissertations/Zhukov_GPR_VKM_dissertation.pdf",
+  "pages": 154,
+  "pages_text": 154,
+  "chars": 179449,
+  "images": 102
+ },
+ "VKM-SRC-041": {
+  "path": "06_geophysics/Kovin_Zhukov_Voroshilov_2017_sylvinite_GPR_anisotropy.pdf",
+  "pages": 4,
+  "pages_text": 4,
+  "chars": 6472,
+  "images": 2
+ }
+}
