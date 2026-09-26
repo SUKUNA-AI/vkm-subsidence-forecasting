@@ -1,6 +1,0 @@
-{
-  "status": "PASS",
-  "preexisting_files_checked": 1286,
-  "changed_preexisting_files": [],
-  "scope": "All initially tracked files plus the three preexisting historical untracked paths; opaque hashing only, no legacy label parsing."
-}

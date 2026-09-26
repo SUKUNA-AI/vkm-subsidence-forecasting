@@ -1,5 +1,0 @@
-# Preserve hashes of original BLOCKED evidence and both new acceptance releases.
-data_quality/scenario_representation_v2/** -text -eol
-data_quality/scenario_simulation_v2_1/** -text -eol
-data_quality/scenario_representation_v2_1/** -text -eol
-splits/scenario_representation_v2_1/** -text -eol
