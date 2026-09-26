@@ -462,10 +462,10 @@
   {
    "dropped_columns": [],
    "source": "MONITORING_LIFECYCLE/FIX_LOG.csv",
-   "source_sha256": "f6b5fa4b9d22dd646f8d1fee0273f70e36455758cfd8b374badfd856b94a1bb5",
+   "source_sha256": "5b68ed99b049a4c5929e86aab152864f40883c3b0780bdd0574450aa2f4ae05f",
    "status": "OK",
    "target": "evidence/qa/review_fixes/monitoring_lifecycle_fix_log.csv",
-   "target_sha256": "f6b5fa4b9d22dd646f8d1fee0273f70e36455758cfd8b374badfd856b94a1bb5"
+   "target_sha256": "5b68ed99b049a4c5929e86aab152864f40883c3b0780bdd0574450aa2f4ae05f"
   },
   {
    "dropped_columns": [],
@@ -480,10 +480,10 @@
     "quote"
    ],
    "source": "MONITORING_LIFECYCLE/information_lifecycle_matrix.csv",
-   "source_sha256": "fbb2d70016ccd3aed76824960fe3d7ae202a90179579904009a9a408048f73a0",
+   "source_sha256": "195e82aa628a7ca1e71c89ec194e41c62238cbbafe24abdf3ebd3b4a78985849",
    "status": "OK",
    "target": "evidence/lifecycle/information_lifecycle_matrix.csv",
-   "target_sha256": "d7c50198e1032b63ea92c3e209e35519f58d097502083cefd69a83f676d46f18"
+   "target_sha256": "d938e0fb9afbd31b35c94368fb156b04a96f3dc39aaa82f0f08ec9e162330718"
   },
   {
    "dropped_columns": [
@@ -518,10 +518,10 @@
     "quote"
    ],
    "source": "MONITORING_LIFECYCLE/lifecycle_stages.csv",
-   "source_sha256": "c437818b0d27b0cf6ee590f7f9dd605ab2c6cd6708e1ae4906cef808f31b4ebc",
+   "source_sha256": "e47afd0b5e083ec5cdbda06282a71307d4bee397e9bb6fdb179756515f0e0817",
    "status": "OK",
    "target": "evidence/lifecycle/lifecycle_stages.csv",
-   "target_sha256": "d221d6e9e312ee53695f942d6c2f26e190ca51185b3352ef39d335923351755b"
+   "target_sha256": "4ad4210d873502c4870b0cd1fc2fb84392840b1c066e3c4b2133a8f022861b38"
   },
   {
    "dropped_columns": [
