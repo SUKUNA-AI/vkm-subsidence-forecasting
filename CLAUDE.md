@@ -71,8 +71,9 @@
 - PUBLIC (этот): код, схемы, public-safe каталоги (без цитат), документы, тесты, receipts.
 - PRIVATE `SUKUNA-AI/vkm-subsidence-forecasting_resourses`: источники, OCR, полные evidence-записи с цитатами
   (`11_evidence_vnext/`).
-- Каталоги попадают в PUBLIC только через `scripts/build_public_catalogues.py`. Скрипт удаляет колонки с цитатами
-  и заменяет машинные пути логическими именами.
+- Каталоги попадают в PUBLIC только через `scripts/build_public_catalogues.py` (и `scripts/build_evidence_from_legacy.py`
+  для оцифровки Мусихина). Скрипт удаляет колонки с цитатами, сокращает фрагменты ≥ 25 слов, совпадающие с цитатами
+  PRIVATE, и заменяет машинные пути логическими именами. Отчёты публикуются `run_kit/tools/publish_reports.py`.
 - Страж утечки: `vkm_world.governance.leakage.scan`, тест `test_public_tree_has_no_private_leakage`.
 - PRIVATE находится через `VKM_RESOURCES_ROOT`. Абсолютные пути машины (`/home/...`, диски Windows)
   в отслеживаемые файлы не пишутся.

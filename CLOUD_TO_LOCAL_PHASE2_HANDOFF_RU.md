@@ -27,7 +27,9 @@
 ```bash
 git clone https://github.com/SUKUNA-AI/vkm-subsidence-forecasting.git
 git clone https://github.com/SUKUNA-AI/vkm-subsidence-forecasting_resourses.git
-cd vkm-subsidence-forecasting_resourses && git lfs install --local && git lfs pull && cd ..
+# пока PR не слиты, main в обоих репозиториях — состояние до reset: нужна ветка Phase 1
+cd vkm-subsidence-forecasting_resourses && git checkout research/evidence-worldspec-reset
+git lfs install --local && git lfs pull && cd ..
 cd vkm-subsidence-forecasting && git checkout research/evidence-worldspec-reset
 python -m venv .venv && . .venv/bin/activate            # Python 3.13
 pip install -r requirements/worldspec.lock.txt && pip install -e .
@@ -123,7 +125,10 @@ python scripts/export_worldspec_schema.py && git diff --exit-code schemas/
 ### 5.1 Скважины — `evidence/boreholes/`
 
 - **Каталог.** `borehole_catalog.csv` — 1110 строк.
-  - Одна строка на скважину в контексте нумерации (43 контекста). Строки объединены, только если идентичность доказана.
+  - Одна строка на скважину в контексте нумерации (43 контекста). Упоминания объединялись по пяти правилам
+    идентичности (отчёт, § 1). Из 273 объединений 101 имеет `identity_confidence = MEDIUM`: основание, как правило, —
+    воспроизведение одного рисунка в разных книгах. Прежде чем использовать объединённую строку в 3D, проверьте
+    уверенность идентичности.
   - Типы: 676 разведочных, 55 нефтяных, 39 геотехнических, 39 подземных, 197 неизвестного типа, 16 безымянных групп и др.
   - С рудником «СКРУ-1» явно связаны 42 строки.
 - **Отбивки.** `borehole_picks.csv` — 714 отбивок «как напечатано».
@@ -329,18 +334,23 @@ python scripts/export_worldspec_schema.py && git diff --exit-code schemas/
 6. Цифровые ряды нивелирования профильных линий СКРУ-1 (линия 12 и другие) с классом точности и нулевой эпохой.
 7. Оригинал плана СКРУ-1 с координатной сеткой (две подписи «129»).
 8. Работа Дубининой 1960 г. и паспорт скв. 75.
-9. Первоисточники, недоступные из cloud: цели P1/P2 из `evidence/sources/primary_source_targets.csv`, помеченные
-   во внешнем поиске как METADATA_ONLY или NOT_FOUND. Их нужно искать через библиотеку или научные порталы с workstation.
+9. Первоисточники, недоступные из cloud. Список целей — `evidence/sources/primary_source_targets.csv`.
+   Результат внешнего поиска по ним — `evidence/external/target_resolution.csv`. Искать через библиотеку или научные
+   порталы с workstation нужно цели без найденного источника и цели с доступом METADATA_ONLY / ABSTRACT_ONLY /
+   PARTIAL_TEXT_QUERY / NOT_FOUND / PAYWALL (`evidence/external/external_sources.csv`, колонка `access`).
+   Списки «что не удалось открыть» есть в конце каждого отчёта `docs/science/external/`.
 
 ## 10. Известные ограничения Phase 1
 
 - Классы части строк (геология RULE_BASED, механика и интерфейсы tier B) назначены правилами по ключевым словам.
 - 500 цитат не найдены в текстовом слое (NOT_FOUND). 1025 не совпадают с OCR (OCR_TEXT_MISMATCH).
 - Графические значения — «как прочитано», с погрешностью чтения.
-- Внешний поиск шёл без полного текста:
-  - у Firecrawl кончились кредиты;
-  - научные домены закрыты egress-политикой окружения;
-  - доступны были только результаты поиска.
+- Внешний поиск (131 источник) был ограничен:
+  - до исчерпания кредитов Firecrawl полностью прочитано 18 источников (FULL_TEXT_READ), 6 — частично
+    (PARTIAL_TEXT_QUERY: первые страницы или ответы на запросы);
+  - затем научные домены оказались закрыты egress-политикой окружения, и работал только WebSearch:
+    24 ABSTRACT_ONLY, 73 METADATA_ONLY, 9 NOT_FOUND, 1 PAYWALL;
+  - утверждения, взятые только из машинной сводки поисковика, помечены как наводки (confidence LOW).
 - Сборщики потоков в PRIVATE `canonical/<STREAM>/` содержат пути cloud VM.
   Воспроизведение описано в `docs/reset_2026_09/run_kit/README_RU.md`.
 

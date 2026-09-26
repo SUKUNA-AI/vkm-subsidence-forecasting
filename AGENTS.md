@@ -35,7 +35,14 @@ Frozen-релизы проверяются по git-объектам (`scripts/f
 
 - Пути в коде и конфигах — относительные к корню репозитория. PRIVATE находится через `VKM_RESOURCES_ROOT`.
 - Научные бинарники (PDF/DjVu/DOCX/архивы/сканы), дословные цитаты и OCR-дампы в PUBLIC не добавляются.
-- Public-каталоги строятся только скриптом `scripts/build_public_catalogues.py` из PRIVATE `11_evidence_vnext/canonical/`.
+- Public-каталоги строятся только скриптами:
+  - `scripts/build_public_catalogues.py` — из PRIVATE `11_evidence_vnext/canonical/`: удаляет колонки с цитатами,
+    сокращает фрагменты ≥ 25 слов, совпадающие с цитатами, и заменяет машинные пути;
+  - `scripts/build_evidence_from_legacy.py` — оцифровка Мусихина и карта старых id источников из git-объектов `legacy`.
+- Отчёты синтеза публикуются в `docs/science/` инструментом `docs/reset_2026_09/run_kit/tools/publish_reports.py`
+  (санитизация путей, ссылки на public-каталоги).
+- Проверка `catalogue_sync` верификатора (при заданном `VKM_RESOURCES_ROOT`) падает, если PUBLIC отстал от PRIVATE
+  или повторяет ≥ 25 слов цитаты подряд.
 - Временные результаты — только в git-ignored `work/` или во внешнем каталоге.
 - Каждое преобразование оставляет manifest или receipt (входы, команда, SHA-256 выходов).
 - Сгенерированные файлы детерминированы.

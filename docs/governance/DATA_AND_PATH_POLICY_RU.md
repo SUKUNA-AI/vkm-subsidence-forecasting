@@ -7,8 +7,15 @@
    - PUBLIC хранит код, схемы, public-safe каталоги (без колонок `quote`/`ocr_text`), документы,
      тесты, receipts.
 2. **Запрет утечки.** В PUBLIC нельзя класть PDF/DjVu/DOCX/архивы корпуса, дословные цитаты,
-   OCR-дампы и приватные абсолютные пути. Проверка: `vkm_world.governance.leakage.scan`
-   (тест `tests/world/test_foundation.py::test_public_tree_has_no_private_leakage`).
+   OCR-дампы и приватные абсолютные пути. Проверки:
+   - `vkm_world.governance.leakage.scan` (тест `tests/world/test_foundation.py::test_public_tree_has_no_private_leakage`) —
+     бинарники, колонки и ключи JSON с цитатами, машинные пути;
+   - группа `catalogue_sync` верификатора (при заданном `VKM_RESOURCES_ROOT`): PUBLIC-каталоги равны свежей сборке
+     из PRIVATE, и ни один PUBLIC-текст не повторяет ≥ 25 слов прозы цитаты PRIVATE подряд. Сборщик public-каталогов
+     применяет то же правило и сокращает такие ячейки.
+
+   Пути публикации: `scripts/build_public_catalogues.py`, `scripts/build_evidence_from_legacy.py`,
+   `docs/reset_2026_09/run_kit/tools/publish_reports.py`.
 3. **Пути.**
    - Рабочие пути в PUBLIC относительны корню репозитория.
    - PRIVATE находится через `VKM_RESOURCES_ROOT`.
