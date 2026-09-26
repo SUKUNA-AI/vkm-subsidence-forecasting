@@ -1,6 +1,8 @@
 """Merge per-chunk sweep outputs into consolidated tables + deterministic quote verification.
 
-Usage: python merge_sweep.py  (reads /home/user/work/run/sweep/**, writes /home/user/work/run/merged/)
+Usage: python merge_sweep.py  (reads $VKM_WORK/run/sweep/**, writes $VKM_WORK/run/merged/)
+Page texts for quote checks: $VKM_WORK/corpus/<SID>/pNNNN.txt and the per-page OCR text kept under the
+work directory of the resources checkout (VKM_RESOURCES_ROOT). Roots: see _roots.py.
 """
 from __future__ import annotations
 
@@ -11,10 +13,13 @@ import pathlib
 import re
 import unicodedata
 
-SWEEP = pathlib.Path('/home/user/work/run/sweep')
-OUT = pathlib.Path('/home/user/work/run/merged')
-CORPUS = pathlib.Path('/home/user/work/corpus')
-OCR = pathlib.Path('/home/user/vkm-subsidence-forecasting_resourses/work/ocr')
+from _roots import root
+
+WORK, RES = root('VKM_WORK'), root('VKM_RESOURCES_ROOT')
+SWEEP = WORK / 'run' / 'sweep'
+OUT = WORK / 'run' / 'merged'
+CORPUS = WORK / 'corpus'
+OCR = RES / 'work' / 'ocr'
 OUT.mkdir(parents=True, exist_ok=True)
 
 

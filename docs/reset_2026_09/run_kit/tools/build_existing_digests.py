@@ -1,7 +1,12 @@
 """Per-source digest of the previous evidence release (claims.jsonl) for sweep readers.
-Usage: python build_existing_digests.py <RESOURCES_ROOT> <OUT_DIR>   -> <OUT_DIR>/<SOURCE_ID>.tsv"""
+Usage: python build_existing_digests.py [<RESOURCES_ROOT> <OUT_DIR>]   -> <OUT_DIR>/<SOURCE_ID>.tsv
+Without arguments: RESOURCES_ROOT = $VKM_RESOURCES_ROOT, OUT_DIR = $VKM_WORK/run/existing (see _roots.py)."""
 import collections, json, pathlib, sys
-root, out = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+if len(sys.argv) == 3:
+    root, out = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+else:
+    from _roots import root as env_root
+    root, out = env_root('VKM_RESOURCES_ROOT'), env_root('VKM_WORK') / 'run' / 'existing'
 out.mkdir(parents=True, exist_ok=True)
 recs = [json.loads(l) for l in open(root / '10_physics_evidence/physical_evidence_v1/claims.jsonl', encoding='utf-8')]
 by = collections.defaultdict(list)

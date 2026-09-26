@@ -1,7 +1,11 @@
 """Domain-vocabulary hit map for a page range of a corpus source.
 Usage: python grep_vocab.py <SOURCE_ID> <first> <last>
-Prints, per page, the vocabulary groups that hit (to prioritise deep reading; NOT a substitute for reading)."""
+Prints, per page, the vocabulary groups that hit (to prioritise deep reading; NOT a substitute for reading).
+Page texts: $VKM_WORK/corpus/<SID>/pNNNN.txt and the OCR pages under the work directory of VKM_RESOURCES_ROOT
+(the longer text wins). Roots: see _roots.py."""
 import sys, re, pathlib
+from _roots import root
+WORK, RES = root('VKM_WORK'), root('VKM_RESOURCES_ROOT')
 sid, a, b = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
 V = {
  'borehole': r'скважин|скв\.|№\s*\d+[а-я]?\b|разрез|колонк|керн|отбивк|каротаж',
@@ -21,10 +25,10 @@ V = {
  'formula': r'=|формул|уравнени',
  'skru': r'СКРУ|СКПРУ|Соликамск|БКПРУ|Березник|Уралкали|Сильвинит|Усольск|Ново-Соликамск',
 }
-base = pathlib.Path('/home/user/work/corpus')/sid
+base = WORK / 'corpus' / sid
 def page_text(p):
     best = ''
-    for cand in [base/f'p{p:04d}.txt', pathlib.Path(f'/home/user/vkm-subsidence-forecasting_resourses/work/ocr/{sid}/p{p:04d}.txt')]:
+    for cand in [base/f'p{p:04d}.txt', RES / 'work' / 'ocr' / sid / f'p{p:04d}.txt']:
         if cand.exists():
             t = cand.read_text(encoding='utf-8', errors='replace')
             if len(t.strip()) > len(best.strip()): best = t

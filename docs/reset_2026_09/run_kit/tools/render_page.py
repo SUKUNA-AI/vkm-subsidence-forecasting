@@ -1,19 +1,23 @@
 """Render one page of a corpus source to PNG for visual checking.
 Usage: python render_page.py <SOURCE_ID> <page> [dpi] [--clip x0,y0,x1,y1 (fractions)]
-Writes /home/user/work/run/img/<SOURCE_ID>_p<page>_<dpi>.png and prints the path.
-For VKM-SRC-037 (djvu) page = djvu page (2-up spread). For VKM-SRC-023 page = page of the LibreOffice-rendered filatova.pdf."""
+Writes $VKM_WORK/run/img/<SOURCE_ID>_p<page>_<dpi>.png and prints the path.
+Roots come from VKM_RESOURCES_ROOT (register + registered files) and VKM_WORK (see _roots.py).
+For VKM-SRC-037 (djvu) page = djvu page (2-up spread). For VKM-SRC-023 page = page of the LibreOffice-rendered
+$VKM_WORK/corpus/VKM-SRC-023/filatova.pdf."""
 import sys, subprocess, pathlib, csv
 import pymupdf
-RES = pathlib.Path('/home/user/vkm-subsidence-forecasting_resourses')
+from _roots import root
+RES, WORK = root('VKM_RESOURCES_ROOT'), root('VKM_WORK')
 reg = {r['resource_id']: r['canonical_path'] for r in csv.DictReader(open(RES/'00_registry/SOURCE_REGISTER.csv', encoding='utf-8'))}
 sid, page = sys.argv[1], int(sys.argv[2])
 dpi = int(sys.argv[3]) if len(sys.argv) > 3 and not sys.argv[3].startswith('--') else 150
 clip = None
 if '--clip' in sys.argv:
     clip = [float(v) for v in sys.argv[sys.argv.index('--clip')+1].split(',')]
-out = pathlib.Path('/home/user/work/run/img') / f'{sid}_p{page}_{dpi}{"_clip" if clip else ""}.png'
+out = WORK / 'run' / 'img' / f'{sid}_p{page}_{dpi}{"_clip" if clip else ""}.png'
+out.parent.mkdir(parents=True, exist_ok=True)
 if sid == 'VKM-SRC-023':
-    src = pathlib.Path('/home/user/work/corpus/VKM-SRC-023/filatova.pdf')
+    src = WORK / 'corpus' / 'VKM-SRC-023' / 'filatova.pdf'
 else:
     src = RES / reg[sid]
 if src.suffix == '.djvu':

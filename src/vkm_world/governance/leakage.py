@@ -17,8 +17,11 @@ FORBIDDEN_PATH_FRAGMENTS = ("/home/user/vkm-subsidence-forecasting_resourses/", 
 MAX_TEXT_BYTES = 5_000_000
 # historical public artifacts that predate the reset (kept on 'legacy'); listed explicitly, never extended silently
 ALLOWLIST: set[str] = set()
-# run-kit files of the cloud run intentionally carry VM paths (rewritten by localize_paths.sh)
+# run-kit data/log files of the cloud run keep their historical text (chunk_plan.json names the private OCR
+# page files of the resources checkout); executable code is never exempt: tools read their roots from the
+# environment (docs/reset_2026_09/run_kit/tools/_roots.py)
 PATH_CHECK_EXEMPT_PREFIXES: tuple[str, ...] = ("docs/reset_2026_09/run_kit/",)
+PATH_CHECK_NEVER_EXEMPT_SUFFIXES = {".py"}
 PATH_CHECK_SUFFIXES = {".py", ".yaml", ".yml", ".json", ".jsonl", ".csv", ".toml"}
 
 
@@ -61,7 +64,9 @@ def scan(root: str | Path, files: list[Path] | None = None, check_paths: bool = 
         if p.suffix.lower() in {".md", ".csv", ".json", ".jsonl", ".py", ".yaml", ".yml", ".txt"}:
             if p.stat().st_size > MAX_TEXT_BYTES:
                 problems.append(f"{rel}: text file larger than {MAX_TEXT_BYTES} bytes")
-            if check_paths and p.suffix.lower() in PATH_CHECK_SUFFIXES and not rel.startswith(PATH_CHECK_EXEMPT_PREFIXES):
+            exempt = (rel.startswith(PATH_CHECK_EXEMPT_PREFIXES)
+                      and p.suffix.lower() not in PATH_CHECK_NEVER_EXEMPT_SUFFIXES)
+            if check_paths and p.suffix.lower() in PATH_CHECK_SUFFIXES and not exempt:
                 try:
                     txt = p.read_text(encoding="utf-8")
                 except UnicodeDecodeError:

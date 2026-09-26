@@ -201,3 +201,13 @@ def test_leakage_scanner_detects_violations(tmp_path):
     (tmp_path / "c.py").write_text("P='/home/user/" + "vkm-subsidence-forecasting_resourses/x'\n", encoding="utf-8")
     probs = scan(tmp_path, files=list(tmp_path.iterdir()))
     assert len(probs) == 3
+
+
+def test_run_kit_code_is_not_exempt_from_path_check(tmp_path):
+    kit = tmp_path / "docs" / "reset_2026_09" / "run_kit"
+    (kit / "tools").mkdir(parents=True)
+    private = "/home/user/" + "vkm-subsidence-forecasting_resourses/x"
+    (kit / "tools" / "tool.py").write_text(f"P = '{private}'\n", encoding="utf-8")
+    (kit / "plan.json").write_text(f'{{"text": "{private}"}}\n', encoding="utf-8")   # historical data: exempt
+    probs = scan(tmp_path, files=[kit / "tools" / "tool.py", kit / "plan.json"])
+    assert len(probs) == 1 and probs[0].startswith("docs/reset_2026_09/run_kit/tools/tool.py")
