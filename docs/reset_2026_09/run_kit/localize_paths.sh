@@ -21,7 +21,7 @@ set -euo pipefail
 KIT="$(cd "$(dirname "$0")" && pwd)"
 OUT="$WORK/run"
 cd "$KIT"
-files=(SWEEP_PROTOCOL.md MATH_PROTOCOL.md tools/*.py workflows/*.js)
+files=(SWEEP_PROTOCOL.md MATH_PROTOCOL.md SWEEP_PROTOCOL_PHASE1.md CONTEXT_PREAMBLE.md CONTEXT_PREAMBLE_PHASE1.md tools/*.py workflows/*.js)
 mkdir -p "$OUT/tools" "$OUT/workflows"
 esc() { printf '%s' "$1" | sed -e 's/[\\&#]/\\&/g'; }   # экранирование для правой части s###
 copies=()

@@ -1,6 +1,6 @@
 """Merge per-chunk sweep outputs into consolidated tables + deterministic quote verification.
 
-Usage: python merge_sweep.py  (reads $VKM_WORK/run/sweep/**, writes $VKM_WORK/run/merged/)
+Usage: python merge_sweep.py  (reads the sweep dir, writes the merged dir; see _roots.sweep_dir/merged_dir)
 Page texts for quote checks: $VKM_WORK/corpus/<SID>/pNNNN.txt and the per-page OCR text kept under the
 work directory of the resources checkout (VKM_RESOURCES_ROOT). Roots: see _roots.py.
 """
@@ -13,13 +13,14 @@ import pathlib
 import re
 import unicodedata
 
-from _roots import root
+import sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from _roots import merged_dir, root, sweep_dir  # noqa: E402
 
-WORK, RES = root('VKM_WORK'), root('VKM_RESOURCES_ROOT')
-SWEEP = WORK / 'run' / 'sweep'
-OUT = WORK / 'run' / 'merged'
-CORPUS = WORK / 'corpus'
-OCR = RES / 'work' / 'ocr'
+SWEEP = sweep_dir()
+OUT = merged_dir()
+CORPUS = root('VKM_WORK') / 'corpus'
+OCR = root('VKM_RESOURCES_ROOT') / 'work' / 'ocr'
 OUT.mkdir(parents=True, exist_ok=True)
 
 
@@ -102,10 +103,15 @@ def load():
                 bad.append({'file': str(cov), 'error': repr(e)})
         rf = d / 'records.jsonl'
         if rf.exists():
+            seen_lines = set()
             for i, line in enumerate(rf.read_text(encoding='utf-8').splitlines(), 1):
                 line = line.strip()
                 if not line:
                     continue
+                if line in seen_lines:  # exact duplicate (scratch-script collision incident 26.09)
+                    bad.append({'file': str(rf), 'line': i, 'error': 'EXACT_DUPLICATE_LINE_DROPPED'})
+                    continue
+                seen_lines.add(line)
                 try:
                     r = json.loads(line)
                 except Exception as e:  # noqa: BLE001
