@@ -47,7 +47,7 @@ history не переписывается.
 
 ## 4. Frozen artifacts и manifests
 
-`scripts/verify_canonical_repository.py` (с `VKM_RESOURCES_ROOT=/home/user/vkm-subsidence-forecasting_resourses`)
+`scripts/verify_canonical_repository.py` (с `VKM_RESOURCES_ROOT=<клон PRIVATE>`)
 после `git lfs pull`: **PASS**; 197 файлов main и 12 файлов private проверены по SHA,
 7 manifests, 51 Markdown-файл; retired-ссылки v3.x пропущены как historical;
 `models_executed = 0`, `evaluator_truth_parsed = false`.
@@ -90,7 +90,7 @@ LEGACY_DATA_RETIREMENT 25.09.2026. То есть старый main уже не �
 - Существующий evidence-релиз `10_physics_evidence/physical_evidence_v1`: 3019 записей
   claims, 2163 параметра, 22 закона ползучести, CASE 00–22 OGS.
 
-## 7. Cloud toolkit (`/home/user/.venv-research`, не коммитится)
+## 7. Cloud toolkit (`<cloud research venv>`, не коммитится)
 
 Команда: `uv venv .venv-research --python /usr/bin/python3.13` +
 `uv pip install …` (полный freeze — в финальном отчёте, раздел 35).

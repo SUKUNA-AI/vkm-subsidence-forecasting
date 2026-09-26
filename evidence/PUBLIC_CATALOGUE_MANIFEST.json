@@ -1,0 +1,837 @@
+{
+ "dropped_columns": [
+  "full_text",
+  "ocr_text",
+  "page_text",
+  "quote",
+  "verbatim_quote"
+ ],
+ "files": [
+  {
+   "dropped_columns": [],
+   "source": "BOREHOLES/FIX_LOG.csv",
+   "source_sha256": "f734ec1e7b27b5fbc744aae54cdf80aab8dac4bf0f317061e400c002ed530509",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/boreholes_fix_log.csv",
+   "target_sha256": "73c718cfda6548a7b52011bf9bfa68b2eab92990655719969a87f53fd1729922"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "BOREHOLES/borehole_catalog.csv",
+   "source_sha256": "e9b5845df95867a3fbfcd2d63cd01553c0b0ae708ac992062bfdb51d734d3353",
+   "status": "OK",
+   "target": "evidence/boreholes/borehole_catalog.csv",
+   "target_sha256": "8e45e084959fff78b939d5a49aafd8dca50349b1309b6ff2b8d75d1e669dc3f5"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "BOREHOLES/borehole_identity_issues.csv",
+   "source_sha256": "b9385fd6e55f29582f3dbdb42d221b3090ad9d10b246393c77227527137106df",
+   "status": "OK",
+   "target": "evidence/boreholes/borehole_identity_issues.csv",
+   "target_sha256": "2e57c6f336edf880773db83d5e7d405a46f77021bc2df63b7188c02bb3e83c23"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "BOREHOLES/borehole_picks.csv",
+   "source_sha256": "e01fa6688ed6b1b3183e56154d2006cc842aaa72d30c4d87a152c09a97c3a918",
+   "status": "OK",
+   "target": "evidence/boreholes/borehole_picks.csv",
+   "target_sha256": "1fd7dffd1b4753ac1cc55150f83f91c45f56e9f40b8d663c9f506890e7906409"
+  },
+  {
+   "dropped_columns": [],
+   "source": "BOREHOLES/build/horizon_pick_routing.csv",
+   "source_sha256": "9972cd076b7d0c5c8f3c28f550b20c5c92138c1f59a108451f0fc8c2776c269a",
+   "status": "OK",
+   "target": "evidence/boreholes/horizon_pick_routing.csv",
+   "target_sha256": "346b83cd8d4265c07fd85e3b6760f5ca2ed590edd13a020de4e3e7ddc84d06b4"
+  },
+  {
+   "dropped_columns": [],
+   "source": "CITATIONS/FIX_LOG.csv",
+   "source_sha256": "031f5a13d542144fea6db71da080a66c6ab0b6278c41d108d088aac4597698da",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/citations_fix_log.csv",
+   "target_sha256": "09ec7cf1e31780b1a4ca7f9af667368e04a9f1a2ffbe68676978c59b5da0f19b"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "CITATIONS/SOURCE_CITATION_GRAPH.csv",
+   "source_sha256": "060123993acd6169a4cb676923f27b153b87c7d043a747c70876e8d4e88d3c4d",
+   "status": "OK",
+   "target": "evidence/sources/SOURCE_CITATION_GRAPH.csv",
+   "target_sha256": "abc3e700dc4e94c9d2f3525a51a9c8ce695984f3420a0d0413478b31d3fe1135"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "CITATIONS/foreign_page_references.csv",
+   "source_sha256": "35b970eef19e5aca05dab3ce5703f3695c7ab3509e78ee6d8ac056adc55eca6e",
+   "status": "OK",
+   "target": "evidence/sources/foreign_page_references.csv",
+   "target_sha256": "377ee8fdcd6fc6ceb9cd47db1ec0de5d61d60a46237473d1c2c922879e95607c"
+  },
+  {
+   "dropped_columns": [],
+   "source": "CITATIONS/lineage_affected_records.csv",
+   "source_sha256": "65c7b6f7b410e173e6d0c2a26a6ad2d9aac7bbb43aca087c7947a7c98cf39c93",
+   "status": "OK",
+   "target": "evidence/sources/lineage_affected_records.csv",
+   "target_sha256": "46c8502b61758aa7776ca11562f757005bebe08d53e3b9d55adb5364739d5592"
+  },
+  {
+   "dropped_columns": [],
+   "source": "CITATIONS/multi_source_cited_works.csv",
+   "source_sha256": "8164cc2e387df2cbc3c8e7cb0ef3df85c1c050b835e6e86824c17d358fb67f22",
+   "status": "OK",
+   "target": "evidence/sources/multi_source_cited_works.csv",
+   "target_sha256": "5ea09c46348ddeda236feab68175317232eaf3971507ca8c0d48f82c54d76e62"
+  },
+  {
+   "dropped_columns": [],
+   "source": "CITATIONS/primary_source_targets.csv",
+   "source_sha256": "9bfb7ad2c1bd4de566961bbc4a29897929005470b8b1d54c0b34d1b72802af08",
+   "status": "OK",
+   "target": "evidence/sources/primary_source_targets.csv",
+   "target_sha256": "9dccd080215ef928443fe6d48d968ce38def001cfa44c8add95c6b741ca39c89"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "CITATIONS/repeated_secondary_citations.csv",
+   "source_sha256": "cfa69046c215cb28a619307fc3ca6c88647089edb39cedc703e8e496360dc694",
+   "status": "OK",
+   "target": "evidence/sources/repeated_secondary_citations.csv",
+   "target_sha256": "79f58ba24f762504b0672a0811ff22f5ea8347411243e591522aa03d96f4057f"
+  },
+  {
+   "dropped_columns": [],
+   "source": "CITATIONS/source_families.csv",
+   "source_sha256": "0d5802b35afbeff72f49ae5588e983aa9e078ebe5b61866f84f1671091dbc078",
+   "status": "OK",
+   "target": "evidence/sources/source_families.csv",
+   "target_sha256": "cd8a73cd8cf91085bc7cb24d957ef0eedde2d0072e083135d6febd3cff5715d9"
+  },
+  {
+   "dropped_columns": [],
+   "source": "CITATIONS/source_family_membership.csv",
+   "source_sha256": "191b93e61f0a54334029861c2bd486915bf8be6161feb12a085e691a1dd8bc29",
+   "status": "OK",
+   "target": "evidence/sources/source_family_membership.csv",
+   "target_sha256": "4f857714f777fca67c20cea69ac70b91b5de9873f6f0719969512a749a25266a"
+  },
+  {
+   "dropped_columns": [],
+   "source": "CITATIONS/visual_checks.csv",
+   "source_sha256": "23b8d755c57fc199eb7af773e3eea2371d8f95a2597592e23e6d25c3bde3bb41",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/citations_visual_checks.csv",
+   "target_sha256": "8c2cf79d50c2155880543955326e7e6a78c7308ec4ce37e8ddd7b6087c579165"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "EXTERNAL/external_findings.csv",
+   "source_sha256": "c89c9cd80f9c4ab26be4cd75d00ae8fe87c136c93d1ba42b69926569004d566d",
+   "status": "OK",
+   "target": "evidence/external/external_findings.csv",
+   "target_sha256": "497feeed97d721868f260ea2b86791471242c30a1f00f377faad084ba6bf9a48"
+  },
+  {
+   "dropped_columns": [],
+   "source": "EXTERNAL/external_sources.csv",
+   "source_sha256": "ee9c48bc29a9d60bf5397aba66b2eb335debbf56f75d692472cfe879fed13e37",
+   "status": "OK",
+   "target": "evidence/external/external_sources.csv",
+   "target_sha256": "ee9c48bc29a9d60bf5397aba66b2eb335debbf56f75d692472cfe879fed13e37"
+  },
+  {
+   "dropped_columns": [],
+   "source": "EXTERNAL/formula_verifications.csv",
+   "source_sha256": "e52df939e9c088bf3b81f7bb5f7b2b42a058dd93c4c47e6a166365d70f81e5ed",
+   "status": "OK",
+   "target": "evidence/external/formula_verifications.csv",
+   "target_sha256": "e52df939e9c088bf3b81f7bb5f7b2b42a058dd93c4c47e6a166365d70f81e5ed"
+  },
+  {
+   "dropped_columns": [],
+   "source": "EXTERNAL/target_resolution.csv",
+   "source_sha256": "8d7bf9065038573dce4a9bf981f581f440c0bd22872d12ba72893c91404de507",
+   "status": "OK",
+   "target": "evidence/external/target_resolution.csv",
+   "target_sha256": "8d7bf9065038573dce4a9bf981f581f440c0bd22872d12ba72893c91404de507"
+  },
+  {
+   "dropped_columns": [],
+   "source": "FORMULAS/FIX_LOG.csv",
+   "source_sha256": "879d96e99f5146481dfa93523ead84937f89ff933bd2b9edc24f49da8de0497f",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/formulas_fix_log.csv",
+   "target_sha256": "0289c29909e044d1b373fa74e4df84572cff6779da528909ef1e1be958b44ed5"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "FORMULAS/FORMULA_CONFLICTS.csv",
+   "source_sha256": "3ae44d9f4894a6a426cb83a4680db81432a7ae040c05794b744d59f1d8661d51",
+   "status": "OK",
+   "target": "catalogues/mathematics/formula_conflicts.csv",
+   "target_sha256": "8cd6aff6b0649a9b55edd68fd330cb1f50252a6555a0039921a19098ce4710fd"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "FORMULAS/FORMULA_VISUAL_CHECKS.csv",
+   "source_sha256": "02c50b4f35f342f756e82d992caa3f73f6eb7e5cf209f0e9d2b79206c0f2f8da",
+   "status": "OK",
+   "target": "catalogues/mathematics/formula_visual_checks.csv",
+   "target_sha256": "0e60f17bf4d87fadb6dc146e5f1e62804bbed8e27cf31b3579d6babde69cba5e"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv",
+   "source_sha256": "498805eb02fad038c86a7894a1b48894983c4263708c399ec5a64f452c7161b3",
+   "status": "OK",
+   "target": "catalogues/mathematics/MATHEMATICAL_MODEL_REGISTRY.csv",
+   "target_sha256": "bcbfe7408d3eb8266bad9b21020db564ef5b1f9cccf9cd7740ea895331c60d8f"
+  },
+  {
+   "dropped_columns": [],
+   "source": "FORMULAS/RECORD_TO_MODEL_MAP.csv",
+   "source_sha256": "280f3e464cee62f25300e9f35aaad3e779471bba05898f5a18132b9163b2e0aa",
+   "status": "OK",
+   "target": "catalogues/mathematics/record_to_model_map.csv",
+   "target_sha256": "7618261f217778f91102e9cd289e6d45a3e8758d1dd788adc164ab79ba6a1a3c"
+  },
+  {
+   "dropped_columns": [],
+   "source": "GEOLOGY_COORDS/FIX_LOG.csv",
+   "source_sha256": "37d7e473ac631d6d5b6623161e60a706be3af08f534cf609d85d45327656b89a",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/geology_coords_fix_log.csv",
+   "target_sha256": "818d273d767c8ad23a94c42d6546e24eeaa6f59665cc854b130ffff09545a874"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "GEOLOGY_COORDS/coordinate_datum_evidence.csv",
+   "source_sha256": "e675cc5b4b7b5b77c88e973343993288bf4bf070d1184bf25e6e00a9b4478985",
+   "status": "OK",
+   "target": "evidence/coordinates/coordinate_datum_evidence.csv",
+   "target_sha256": "0fc46086154ecdd0ab2d168053fcc85b4a5f748eae0b75181ac6f819fb243d9d"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "GEOLOGY_COORDS/geology_evidence.csv",
+   "source_sha256": "a66dc71302b29d302c4b1ec7afa81f6ffb2bc6451c5db5883b15ad46d1081083",
+   "status": "OK",
+   "target": "evidence/geology/geology_evidence.csv",
+   "target_sha256": "a192caca7fa7da72c9d601ecda00200ac5de3d3e67985982d23ab243f9f27e97"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "GEOLOGY_COORDS/stratigraphic_thickness_observations.csv",
+   "source_sha256": "79d7ef6c532766234297b228113cae042bb7d494c264376e4f77279e1dfc76ee",
+   "status": "OK",
+   "target": "evidence/geology/stratigraphic_thickness_observations.csv",
+   "target_sha256": "26f27165ac0b5e1906336bb796be6b782dc988693606da6125fc34750dbf6a7f"
+  },
+  {
+   "dropped_columns": [],
+   "source": "GEOLOGY_COORDS/stratigraphic_units.csv",
+   "source_sha256": "f0832ab6772f8595cf38aed5dcf6d91d8047229890f5bc07e635ebc72c961f90",
+   "status": "OK",
+   "target": "evidence/geology/stratigraphic_units.csv",
+   "target_sha256": "231f3452e03f05187b1f1e7feb03cebe3939aa7d702a08c1370ed967016b464a"
+  },
+  {
+   "dropped_columns": [],
+   "source": "GEOLOGY_COORDS/stratigraphy_conflicts.csv",
+   "source_sha256": "00ac0e66b9f82041ffcd09ee127f02e44af5b39ac3840c2b436a4875a92eacb6",
+   "status": "OK",
+   "target": "evidence/geology/stratigraphy_conflicts.csv",
+   "target_sha256": "93c5941a9462ee120866c168e5ffdaeb78fbbf614b4991105a5246b294a53fe9"
+  },
+  {
+   "dropped_columns": [],
+   "source": "HYDRO_THERMAL_GEOPHYS/FIX_LOG.csv",
+   "source_sha256": "f98e459f3c29f28b983e248d4b9c90c812c47365703de550d3098a410a7e5fcc",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/hydro_thermal_geophys_fix_log.csv",
+   "target_sha256": "80de8cf1d615a61570eed170211825121015ca315b21d9de86455b1b094e649e"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "HYDRO_THERMAL_GEOPHYS/gpr_evidence_catalog.csv",
+   "source_sha256": "3a39496ad216b92a587d48c9fc0d37990e7d7f413893f8d1e8f669ca4c6c15df",
+   "status": "OK",
+   "target": "evidence/geophysics/gpr_evidence_catalog.csv",
+   "target_sha256": "7511fa6929e2e6ef640ce6c7e3ab543e2b392c61d2795f9cf61d896bfd5afa46"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "HYDRO_THERMAL_GEOPHYS/hydro_evidence_catalog.csv",
+   "source_sha256": "d4a4df54cbad42f2edf1f9b9af3d1bcd48579bb903832e705c4773a1b6403d48",
+   "status": "OK",
+   "target": "evidence/hydro_thermal/hydro_evidence_catalog.csv",
+   "target_sha256": "2bf9f28998afd3e3db023584b19f2ea46dd6c2fd30f655bc8f0e0885e47d31ce"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "HYDRO_THERMAL_GEOPHYS/seismic_geophysics_catalog.csv",
+   "source_sha256": "251d778a07a8424aabd2e8db9b8b47576ff789215bb51e8ae7680757f61c7bb7",
+   "status": "OK",
+   "target": "evidence/geophysics/seismic_geophysics_catalog.csv",
+   "target_sha256": "be500cca4e989acf5c1a24b3551e1994a1608ace04d0ed8afc335d00802fd958"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "HYDRO_THERMAL_GEOPHYS/thermal_evidence_catalog.csv",
+   "source_sha256": "b969e8dc209329639cb075e1b6fad2b2617c4ce4d82ab0fd4553ddf071dc83ca",
+   "status": "OK",
+   "target": "evidence/hydro_thermal/thermal_evidence_catalog.csv",
+   "target_sha256": "d9f86e49946a67600842014700cde7fd32fa4011ae68a39c6a0936b3ca494258"
+  },
+  {
+   "dropped_columns": [],
+   "source": "MECH_RHEO/FIX_LOG.csv",
+   "source_sha256": "e977437e04c6a66f6b555c250e75bae7e8c4eecb379e61e0c1c6caafabd157d5",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/mech_rheo_fix_log.csv",
+   "target_sha256": "e977437e04c6a66f6b555c250e75bae7e8c4eecb379e61e0c1c6caafabd157d5"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MECH_RHEO/interfaces_damage_catalog.csv",
+   "source_sha256": "7888bf525a67bff236f3599c6853f5fe2b5aa1dc0a0ff96b4d6fc1d0d1f0f368",
+   "status": "OK",
+   "target": "evidence/materials/interfaces_damage_catalog.csv",
+   "target_sha256": "7361961ce6f0e93158d0e6227baa2f27c61e589ecf86335f7eb9f0ca44813778"
+  },
+  {
+   "dropped_columns": [],
+   "source": "MECH_RHEO/mech_rheo_conflicts.csv",
+   "source_sha256": "073ee6d58ee62c7b6dd86566bb0897039bf631515c2061e07fc4f4740cad6d6c",
+   "status": "OK",
+   "target": "evidence/materials/mech_rheo_conflicts.csv",
+   "target_sha256": "97d969fbb04d09443a0315b678f6846d4c0ca8838794a3f5c1e69fe1a718426a"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MECH_RHEO/mechanics_evidence_catalog.csv",
+   "source_sha256": "b955941822face06cd10491fdc347563f9a1ae30e54fb1e686a0b4cd5b0b6acd",
+   "status": "OK",
+   "target": "evidence/materials/mechanics_evidence_catalog.csv",
+   "target_sha256": "ec1a64f09ade43b15603c4afabb41321e4bfdbcbd2924a909387a8da7ca6f8a3"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MECH_RHEO/rheology_evidence_catalog.csv",
+   "source_sha256": "7b475748d59fc481ec353dbf834caa484fd5bad99bc1d3fdfffacfe495da26bc",
+   "status": "OK",
+   "target": "evidence/materials/rheology_evidence_catalog.csv",
+   "target_sha256": "aedab3e6aefe7b4c05bfa0e157aeca249484545d48b00d84455301a0877ba1d6"
+  },
+  {
+   "dropped_columns": [],
+   "source": "MECH_RHEO/visual_rechecks.csv",
+   "source_sha256": "afe9d34533291613db5c33f1211298952e16d6119007a57c8cf832d88e36a2d1",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/mech_rheo_visual_rechecks.csv",
+   "target_sha256": "ae7c5b75a157960efbe5e8701c10f9ba4578e99ac741558495512e97e4d0d1fd"
+  },
+  {
+   "dropped_columns": [],
+   "source": "MINING/FIX_LOG.csv",
+   "source_sha256": "4aaf7dff4141b8cece74bb07b8e8424223a0b217b4bec9dbf5ae4673a41f9750",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/mining_fix_log.csv",
+   "target_sha256": "51c3b0ef683989cd5001c2f4d5bca1d1b86a8944c73432d20d175d4d811bc1c5"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MINING/backfill_event_catalog.csv",
+   "source_sha256": "e4a493b502d5e988628f8b9c82d6636cdc53a95f8c5f2f7e2d5a486f634c5e4f",
+   "status": "OK",
+   "target": "evidence/backfill/backfill_event_catalog.csv",
+   "target_sha256": "4129859d0c24bd986b1d547dc96733735d5cc566490d059143da401dc0c3afdd"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MINING/chronology_conflicts.csv",
+   "source_sha256": "3f32f4b8f58f7abbc3a1d60cd0913f28500d192cb18b3e57689ddbc44cdc790a",
+   "status": "OK",
+   "target": "evidence/mining/chronology_conflicts.csv",
+   "target_sha256": "e3560ccd86c78f4567c5cd65bc8a3074a2cd6785161c6a722228e28fa91995d2"
+  },
+  {
+   "dropped_columns": [],
+   "source": "MINING/geometry_row_id_rename_receipt.csv",
+   "source_sha256": "50c2ee21c5deaa0ffb4ecf00a583fe3a1bf5c543751825d97b7b67a1f14fb8cc",
+   "status": "OK",
+   "target": "evidence/mining/geometry_row_id_rename_receipt.csv",
+   "target_sha256": "78bd6a7ffafe8fc72959ae3a23c75e30aea730d9e5573fdb6834ce4e3a9c8c38"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MINING/mining_chronology_catalog.csv",
+   "source_sha256": "3101ec3f3bb1c11438e1f4d67e3c4c179c8f43606c588b8f3fa31893dc177045",
+   "status": "OK",
+   "target": "evidence/mining/mining_chronology_catalog.csv",
+   "target_sha256": "c69f8f6008872494a2b1e593290c64b01da66c5f1b08738d64344dd37a8f7abb"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MINING/mining_conflicts.csv",
+   "source_sha256": "5facb9659ae9ab8530807f4dc51928ed457a69d58a3d8bf32841e8d59d5a6449",
+   "status": "OK",
+   "target": "evidence/mining/mining_conflicts.csv",
+   "target_sha256": "a5808f46fe978b1e5a0d3261d27d527cb9e5639baa999c3cf1a9f22b8da6f0e0"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MINING/mining_geometry_catalog.csv",
+   "source_sha256": "75867bd4dee9c3e65b2d7312d9ad34ebae7d1be239c6d770a04647cba91d3c71",
+   "status": "OK",
+   "target": "evidence/mining/mining_geometry_catalog.csv",
+   "target_sha256": "4be32d8ef33ca984d789921fc18ae01214bc2f9da64405b329e8c78cd8359710"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MINING/spatial_hierarchy.csv",
+   "source_sha256": "4ec7216ac7abd29e6560cbb98777138de79866dfa8d3304640d27bc9a6ce4380",
+   "status": "OK",
+   "target": "evidence/mining/spatial_hierarchy.csv",
+   "target_sha256": "352d6c3b623d4f0f56770d3d96c7e1a4f6580503c4c3fc875e41003535d264b1"
+  },
+  {
+   "dropped_columns": [],
+   "source": "MINING/visual_rechecks.csv",
+   "source_sha256": "c6055f759a1be7000367204949bd8d787d8ac6fa76adebbe941666e09a13a76b",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/mining_visual_rechecks.csv",
+   "target_sha256": "7d729a298ceb85246d0dd8c125df8c2ba886e5ef2b845998289ef0bb6a6892b4"
+  },
+  {
+   "dropped_columns": [],
+   "source": "MONITORING_LIFECYCLE/FIX_LOG.csv",
+   "source_sha256": "5b68ed99b049a4c5929e86aab152864f40883c3b0780bdd0574450aa2f4ae05f",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/monitoring_lifecycle_fix_log.csv",
+   "target_sha256": "5b68ed99b049a4c5929e86aab152864f40883c3b0780bdd0574450aa2f4ae05f"
+  },
+  {
+   "dropped_columns": [],
+   "source": "MONITORING_LIFECYCLE/catalogue_id_map.csv",
+   "source_sha256": "1d6d64471988fc2700d577bcd96c765ec64338314a8e6340c0087572dfd9dc55",
+   "status": "OK",
+   "target": "evidence/monitoring/catalogue_id_map.csv",
+   "target_sha256": "1d6d64471988fc2700d577bcd96c765ec64338314a8e6340c0087572dfd9dc55"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MONITORING_LIFECYCLE/information_lifecycle_matrix.csv",
+   "source_sha256": "195e82aa628a7ca1e71c89ec194e41c62238cbbafe24abdf3ebd3b4a78985849",
+   "status": "OK",
+   "target": "evidence/lifecycle/information_lifecycle_matrix.csv",
+   "target_sha256": "d938e0fb9afbd31b35c94368fb156b04a96f3dc39aaa82f0f08ec9e162330718"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MONITORING_LIFECYCLE/information_lifecycle_record_map.csv",
+   "source_sha256": "ce5bdf0b89232cf633925f0463b6d9ed22c295dc39629a59953521f2fdac4207",
+   "status": "OK",
+   "target": "evidence/lifecycle/information_lifecycle_record_map.csv",
+   "target_sha256": "8d3e470f4a729f0c9b502ae45cda1f898e4d931ffe9f4b3896fe18195d270787"
+  },
+  {
+   "dropped_columns": [],
+   "source": "MONITORING_LIFECYCLE/lifecycle_graph_edges.csv",
+   "source_sha256": "7f8926ccc89375dd24e8c6fa2b3e6dc3446c81089b2aee27a38e641272bfa877",
+   "status": "OK",
+   "target": "evidence/lifecycle/lifecycle_graph_edges.csv",
+   "target_sha256": "996bc7f650dad66a1a09970802d83deb95360e4a4c0e7bd01f3329cccee87bc8"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MONITORING_LIFECYCLE/lifecycle_stage_record_map.csv",
+   "source_sha256": "05070d6c9e6fedbc002679ca7b2ff77c8a1404f5cb9ed787b924e39edbd922e1",
+   "status": "OK",
+   "target": "evidence/lifecycle/lifecycle_stage_record_map.csv",
+   "target_sha256": "a9591533abf478c34b60986639c0e56389d12d7cbd19847a37d8f25a5a78e2da"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MONITORING_LIFECYCLE/lifecycle_stages.csv",
+   "source_sha256": "e47afd0b5e083ec5cdbda06282a71307d4bee397e9bb6fdb179756515f0e0817",
+   "status": "OK",
+   "target": "evidence/lifecycle/lifecycle_stages.csv",
+   "target_sha256": "4ad4210d873502c4870b0cd1fc2fb84392840b1c066e3c4b2133a8f022861b38"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv",
+   "source_sha256": "6681a5b3c6fd49351111cdc3d00b1d7e04f978423203f317eb1635a8d4775e84",
+   "status": "OK",
+   "target": "evidence/monitoring/monitoring_campaigns_timeline.csv",
+   "target_sha256": "8db42dd57913f26e257f67fe54d8cf592b3bc763d1fb75110b363e3ee8150ab5"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MONITORING_LIFECYCLE/monitoring_conflicts.csv",
+   "source_sha256": "e79ea2c3ff13454c25139c27c014025ba8dbd3ca40796036d04036296fe1850b",
+   "status": "OK",
+   "target": "evidence/monitoring/monitoring_conflicts.csv",
+   "target_sha256": "565cb244b098ce5ad9549d361be8b0b618256e3d469996e6292853028e1c83e5"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MONITORING_LIFECYCLE/monitoring_observation_catalog.csv",
+   "source_sha256": "281af5d2d26542b627a13f0f47c9be9045a9f87ab0bff4961bfa8ea250bc97d6",
+   "status": "OK",
+   "target": "evidence/monitoring/monitoring_observation_catalog.csv",
+   "target_sha256": "4df5b5cc693683171c6a202c3ba366c29dc8241f6eed35fe9b8d033e35778dd8"
+  },
+  {
+   "dropped_columns": [],
+   "source": "MONITORING_LIFECYCLE/monitoring_systems_by_site.csv",
+   "source_sha256": "2ce0cf91aec8e9555d7b927a6cc8639279aa749ad36960d5b8997ae4a0d8cec2",
+   "status": "OK",
+   "target": "evidence/monitoring/monitoring_systems_by_site.csv",
+   "target_sha256": "6c19fb6298ed3de3de6c472e15e2170a3a08ee9942c4ca6c42bc870a999ac516"
+  },
+  {
+   "dropped_columns": [],
+   "source": "MONITORING_LIFECYCLE/visual_rechecks.csv",
+   "source_sha256": "237668d4939d29364d435be972b73bc3aace49b25833547ecdb2f040a39a97be",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/monitoring_lifecycle_visual_rechecks.csv",
+   "target_sha256": "579e2ceab70813bc0b1e8083120b46de0a638dc1e9564ba89ef6eb3180f469e5"
+  },
+  {
+   "dropped_columns": [],
+   "source": "OCR_VISUAL_QA/correction_impact.csv",
+   "source_sha256": "86dc8708def50ba2b9f7ed9f512bbb917b5c759dcf8d69a8c6d791a5fd1856b9",
+   "status": "OK",
+   "target": "evidence/qa/correction_impact.csv",
+   "target_sha256": "86dc8708def50ba2b9f7ed9f512bbb917b5c759dcf8d69a8c6d791a5fd1856b9"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "OCR_VISUAL_QA/evidence_corrections.csv",
+   "source_sha256": "64fc2bc522d92645523b980f9d74857ab5ed48d77a082152c6b92ad0b1a19380",
+   "status": "OK",
+   "target": "evidence/qa/evidence_corrections.csv",
+   "target_sha256": "1cc0ee0ff2bda46dbaf7b5214d29e98dea70d0014175e9de4c25c2eed9ea9769"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "OCR_VISUAL_QA/visual_ocr_qa_ledger.csv",
+   "source_sha256": "1663ea48614cf26a6dbefa9c5296d31ca16692e0aa85d455427ada9e4fbba7a6",
+   "status": "OK",
+   "target": "evidence/qa/visual_ocr_qa_ledger.csv",
+   "target_sha256": "77bcfc958b451262bd2d39038ff0767f00f2c08fc43e238449c5a206fef5439b"
+  },
+  {
+   "dropped_columns": [],
+   "source": "PHYSICS_CAUSAL/FIX_LOG.csv",
+   "source_sha256": "bc2dcfacaad1ef5a45b3c03815c04acf475ac8ce0a375f82e7ffe39a31196f58",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/physics_causal_fix_log.csv",
+   "target_sha256": "70b46672e0c2467beef3a62f939600c731916ebde06c7b5eb6279bcbfe2a197e"
+  },
+  {
+   "dropped_columns": [],
+   "source": "PHYSICS_CAUSAL/causal_graph.json",
+   "source_sha256": "71a17b338b45f460bd43f412f0a39783d0a875cc0edf87370d9084f62fe058c6",
+   "status": "OK",
+   "target": "catalogues/causal/causal_graph.json",
+   "target_sha256": "71a17b338b45f460bd43f412f0a39783d0a875cc0edf87370d9084f62fe058c6"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "PHYSICS_CAUSAL/causal_graph_edges.csv",
+   "source_sha256": "5cb4c1e451f0f2bc7e1b449d71f384a46d5e0c85bc92fb0cc617adec952c5ed2",
+   "status": "OK",
+   "target": "catalogues/causal/causal_graph_edges.csv",
+   "target_sha256": "35251c77cc0a396da48047b6f6f469e227d3aa84a8ca4837604d55a77c8f1681"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "PHYSICS_CAUSAL/causal_graph_nodes.csv",
+   "source_sha256": "c19f984f9609b4d0838779b5e4bf264406d33355b9109471b8d8fefa8052e2c6",
+   "status": "OK",
+   "target": "catalogues/causal/causal_graph_nodes.csv",
+   "target_sha256": "6523801f5e336d063d9a64c22ed22dfc1e83e97a0686c1f64e9171306d13c2bc"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "PHYSICS_CAUSAL/observation_operator_design.csv",
+   "source_sha256": "f4c4226d41b74afa0221f5140a36ca9eb37119d701c54bc70a11f79ff9633ea8",
+   "status": "OK",
+   "target": "catalogues/observations/observation_operator_design.csv",
+   "target_sha256": "821cc1857a033f072f3ccadf6f190ad23020a5ac128bb20071333a3bb4b15307"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "PHYSICS_CAUSAL/physics_conflicts.csv",
+   "source_sha256": "131de95d3c1b086d68a5ae859c53e4f623ef467a7081fe6fbf28d74350e039a3",
+   "status": "OK",
+   "target": "catalogues/physics/physics_conflicts.csv",
+   "target_sha256": "c8379d6a8bc165bd680495053d78c0ba12f9a0dcc99f45b5740465ff5bb77d84"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "PHYSICS_CAUSAL/physics_coverage_and_execution_matrix.csv",
+   "source_sha256": "6d7a293a404cd44271a641df2d0f08c71e83e4503be80566ea1d1f6007e3ba70",
+   "status": "OK",
+   "target": "catalogues/physics/physics_coverage_and_execution_matrix.csv",
+   "target_sha256": "d77c81eba72a96b8fb0e06eb559acde55bbdaedeb35fd27dd7eccd15316802eb"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "PHYSICS_CAUSAL/physics_visual_checks.csv",
+   "source_sha256": "ed5075d44cfc56147cec8c0cd1a63f658f1210013d2e6d46abf38c54870bb1c6",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/physics_visual_checks.csv",
+   "target_sha256": "3be0e0b88ee1ac15fe95b3dfd79d14eb9824165b1b0edd59af267d05c9eae2a1"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "PHYSICS_CAUSAL/process_evidence_links.csv",
+   "source_sha256": "0126203d71522090258c55f28eeed4e800fd1a432c0f004d65e2e59bebeffb54",
+   "status": "OK",
+   "target": "catalogues/physics/process_evidence_links.csv",
+   "target_sha256": "8d8c7aa130123bd9b4ea69dc2d2b8521f8a2135cffb9f16979da4d14f7d1e3df"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SOURCES/SOURCE_COVERAGE_MASTER.csv",
+   "source_sha256": "16e4e9ae3e079a92046dc2ebb7607db6f1bb24c4eb4aaf3bc4390f931cc700f4",
+   "status": "OK",
+   "target": "evidence/sources/SOURCE_COVERAGE_MASTER.csv",
+   "target_sha256": "b76358585fd1549e41e38003e8755bd0879badbbbdeddb13e722cc966b9b025a"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SOURCES/vn_index.csv",
+   "source_sha256": "79d92f02ccd0fe367438c3ed1539f38e39364e621c2d7fb7ceb18989d9c86481",
+   "status": "OK",
+   "target": "evidence/sources/record_index.csv",
+   "target_sha256": "79d92f02ccd0fe367438c3ed1539f38e39364e621c2d7fb7ceb18989d9c86481"
+  }
+ ],
+ "generator": "scripts/build_public_catalogues.py",
+ "leakage_problems": [],
+ "private_root_rel": "11_evidence_vnext/canonical",
+ "verbatim_guard": {
+  "cells_shortened": [
+   {
+    "column": "lithology",
+    "copied_words": 44,
+    "row": 161,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 37,
+    "row": 164,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 27,
+    "row": 184,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 30,
+    "row": 185,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 25,
+    "row": 187,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 31,
+    "row": 195,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 26,
+    "row": 197,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 33,
+    "row": 202,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 31,
+    "row": 203,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 40,
+    "row": 451,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 28,
+    "row": 895,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 31,
+    "row": 909,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "variables",
+    "copied_words": 26,
+    "row": 7,
+    "target": "catalogues/mathematics/MATHEMATICAL_MODEL_REGISTRY.csv"
+   },
+   {
+    "column": "what_is_stated",
+    "copied_words": 32,
+    "row": 442,
+    "target": "evidence/coordinates/coordinate_datum_evidence.csv"
+   },
+   {
+    "column": "name_as_printed",
+    "copied_words": 26,
+    "row": 708,
+    "target": "evidence/geology/geology_evidence.csv"
+   },
+   {
+    "column": "description",
+    "copied_words": 32,
+    "row": 708,
+    "target": "evidence/geology/geology_evidence.csv"
+   },
+   {
+    "column": "dimensions_as_printed",
+    "copied_words": 25,
+    "row": 987,
+    "target": "evidence/geology/geology_evidence.csv"
+   },
+   {
+    "column": "description",
+    "copied_words": 32,
+    "row": 987,
+    "target": "evidence/geology/geology_evidence.csv"
+   },
+   {
+    "column": "name",
+    "copied_words": 32,
+    "row": 389,
+    "target": "evidence/mining/spatial_hierarchy.csv"
+   },
+   {
+    "column": "dimensions_as_printed",
+    "copied_words": 32,
+    "row": 469,
+    "target": "evidence/mining/spatial_hierarchy.csv"
+   },
+   {
+    "column": "notes",
+    "copied_words": 30,
+    "row": 6234,
+    "target": "evidence/qa/visual_ocr_qa_ledger.csv"
+   }
+  ],
+  "rule": ">= 25 consecutive alphabetic words of a PRIVATE quote are cut to their first 20 words in PUBLIC"
+ }
+}

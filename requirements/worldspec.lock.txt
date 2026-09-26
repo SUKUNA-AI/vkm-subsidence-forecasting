@@ -1,0 +1,20 @@
+# Exact pins for requirements/worldspec.in, taken from the research venv freeze
+# (docs/reset_2026_09/run_kit/venv_research_freeze.txt: cloud VM, CPython 3.13, Linux, 26.09.2026).
+# Closure: numpy; pydantic -> annotated-types, pydantic-core (-> typing-extensions), typing-extensions,
+# typing-inspection; pytest -> iniconfig, packaging, pluggy, pygments (+ colorama on Windows).
+# The committed JSON schema is generated with exactly this pydantic/pydantic-core pair.
+#
+#   python -m pip install -r requirements/worldspec.lock.txt
+#   python -m pip install -e . --no-deps
+annotated-types==0.8.0
+colorama==0.4.6 ; sys_platform == "win32"
+iniconfig==2.3.0
+numpy==2.5.3
+packaging==26.3
+pluggy==1.6.0
+pydantic==2.13.5
+pydantic-core==2.46.5
+pygments==2.21.0
+pytest==9.1.1
+typing-extensions==4.16.0
+typing-inspection==0.4.4

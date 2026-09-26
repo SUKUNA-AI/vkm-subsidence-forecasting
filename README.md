@@ -1,85 +1,85 @@
-# SKRU-1: канонический исследовательский репозиторий
+# ВКМ / СКРУ-1: evidence-backed 3D+time мир для прогнозирования оседаний
 
-Начните с [канонического состояния](docs/CANONICAL_RESEARCH_STATE_RU.md),
-[фиксации консолидации 25.09.2026](docs/REPOSITORY_CONSOLIDATION_2026-09-25_RU.md) и
-[решения по legacy-данным](docs/LEGACY_DATA_RETIREMENT_2026-09-25_RU.md).
+Дипломная работа: «Горные и маркшейдерские работы при разработке Верхнекамского месторождения».
+Специальная часть: «Алгоритм прогнозирования оседаний земной поверхности на ВКМ на основе маркшейдерских измерений».
+Названия фиксированы.
 
-| Слой | Авторитетный материал |
+## Что это за репозиторий сейчас
+
+26.09.2026 проект прошёл **scientific reset**. Раньше исследование шло по цепочке «одна скважина (№ 75) →
+упрощённый 2D Physical World → модель OpenGeoSys». Теперь оно строится вокруг **WorldSpec**: доказательно
+трассируемого описания мира Верхнекамского месторождения и рудника СКРУ-1 в 3D и во времени, собранного
+из **всего** научного корпуса.
+
+В WorldSpec разделены четыре слоя:
+
+- мир — что существует;
+- процессы — как их считать;
+- наблюдения — что и как измеряется;
+- валидация — сравнение с учётом доступности данных во времени.
+
+Мир не зависит от решателя (решение пользователя D-18). Цепочка: evidence → интерпретация → WorldSpec →
+представление под конкретный решатель. 2D-сечения — только производные представления. Роли инструментов:
+
+- OGS + MFront — основная открытая ветка геомеханики и кастомной реологии соли;
+- ANSYS Mechanical — независимая промышленная FEM-сверка на согласованных benchmark-сценариях, а не источник истины;
+- gprMax — оператор наблюдения для георадара, а не модель оседаний.
+
+Field validation — по реальным маркшейдерским, GNSS и InSAR наблюдениям в пределах их применимости.
+
+| Где | Что |
 |---|---|
-| Historical baseline | [Gate B3, commit ce8e57e](docs/reports/GATE_B3_IMM_RU.md): первый завершённый B1/B5/B6/B7 experiment; screening IMM не пройден полностью |
-| Current stress lab | [SKRU1_SCENARIO_SIMULATION_V2_1](data/scenario_simulation_v2_1/manifest.json) и [SKRU1_SCENARIO_REPRESENTATION_V2_1_R1](artifacts/splits/scenario_representation_v2_1/representation_manifest.json) |
-| R1 | [Neural comparator review](docs/research/NEURAL_COMPARATORS_V2_1_RESEARCH_RU.md), исследовательский дизайн без нового обучения |
-| R2 | [Source/data/physics audit](docs/research/r2_adversarial_audit/01_EXECUTIVE_VERDICT_RU.md), ограничения текущих научных утверждений |
-| Physical branch | [Physical-world evidence state](docs/research/PHYSICAL_WORLD_EVIDENCE_STATE_RU.md), переход к evidence-backed геомеханическим мирам |
+| [PROJECT_STATE_RU.md](PROJECT_STATE_RU.md) | **каноническое текущее состояние** проекта: что известно, что нет, что дальше |
+| [docs/worldspec/WORLD_SPEC_VNEXT_RU.md](docs/worldspec/WORLD_SPEC_VNEXT_RU.md) | архитектура мира: эпистемика, иерархия, время, наблюдения |
+| [docs/governance/SCIENTIFIC_RULES_RU.md](docs/governance/SCIENTIFIC_RULES_RU.md) | научные правила: статусы, запреты подмены, прослеживаемость |
+| [docs/architecture/REPOSITORY_ARCHITECTURE_RU.md](docs/architecture/REPOSITORY_ARCHITECTURE_RU.md) | структура двух репозиториев |
+| `src/vkm_world/` | типизированный фундамент (pydantic): провенанс, иерархия, скважины, хронология, горные объекты, материалы, процессы, наблюдения, валидация |
+| `schemas/worldspec_vnext.schema.json` | машиночитаемая JSON Schema WorldSpec |
+| `evidence/` | public-safe каталоги evidence (без дословных цитат): источники и покрытие, скважины, геология, координаты, горные работы, закладка, материалы, гидро/термо, геофизика, мониторинг, жизненный цикл информации |
+| `catalogues/` | каталоги процессов, математических моделей, причинный граф, дизайн операторов наблюдения |
+| [docs/science/](docs/science/) | предметные отчёты синтеза (скважины, геология, горные работы, механика/реология, мониторинг, причинность …) |
+| [docs/legacy/LEGACY_INDEX_RU.md](docs/legacy/LEGACY_INDEX_RU.md) | что сохранено в ветке `legacy` и как это проверить/воспроизвести |
+| [docs/reset_2026_09/](docs/reset_2026_09/) | журнал run, preflight, аудиты, отчёты, run kit |
 
-v2.1 — publication-envelope-conditioned factorial / adversarial stress benchmark.
-Это не field validation, digital twin или геомеханическая калибровка СКРУ-1.
-Исторические model scores не являются результатами v2.1.
+## Быстрый старт
 
-R2 зафиксировал `SUPPORTED_WITH_LIMITATIONS`: атрибуция доноров неоднозначна,
-`reflector_seasonal` — pure stress, доли temporal families — engineering design.
-После R2 собран дополнительный корпус по геологии, механике соляных пород,
-реологии, горной технологии, GPR и геомеханическому моделированию. Поэтому
-первый 2D/2.5D physical case теперь научно проектируем, но полноценный 3D
-digital twin СКРУ-1 по-прежнему не обоснован.
-
-## Репозитории
-
-Основной репозиторий содержит код, current stress lab, frozen manifests,
-исследовательские протоколы, R1/R2 и будущие physical-world contracts.
-
-Private repository:
-
-`SUKUNA-AI/vkm-subsidence-forecasting_resourses`
-
-хранит **актуальные научные источники/evidence**: книги, статьи, диссертации,
-source PDFs, GPR/InSAR/geomechanics materials и их SHA/provenance.
-
-### Legacy v3.x data package
-
-`SKRU1_ACTUAL_DATA_TABLES_v1`, старые v3.x reconstructed/model-ready/EDA tables,
-bootstrap scripts и связанные проектные архивы переведены в `LEGACY_RETIRED`.
-Они создавались при более раннем и впоследствии признанном ошибочным
-представлении о данных и **не являются current scientific evidence**.
-
-Они не требуются для Physical Evidence Consolidation, Physical World v1 или
-OpenGeoSys и не должны поддерживаться побайтово в current trees. Исторические
-версии доступны через Git history. Frozen v2.1 сохраняет некоторые старые
-provenance references внутри immutable manifest; это не делает retired package
-текущей зависимостью.
-
-Подробнее: [LEGACY_DATA_RETIREMENT_2026-09-25_RU.md](docs/LEGACY_DATA_RETIREMENT_2026-09-25_RU.md).
-
-## Начало работы
-
-Python 3.13; существующие зависимости — [pyproject.toml](pyproject.toml) и
-[requirements](requirements/).
-
-Проверка current canonical state:
-
-```powershell
-python scripts/verify_canonical_repository.py
+```bash
+git clone https://github.com/SUKUNA-AI/vkm-subsidence-forecasting.git && cd vkm-subsidence-forecasting
+git checkout research/evidence-worldspec-reset    # пока PR Phase 1 не слит в main (то же — в клоне PRIVATE)
+git lfs install --local && git lfs pull          # LFS используется только историческими объектами
+python -m venv .venv && . .venv/bin/activate     # Python 3.13
+pip install -r requirements/worldspec.lock.txt && pip install -e .
+python -m pytest -q tests/world                  # все тесты должны проходить
+# проверка репозитория (frozen-ссылки из git-объектов, ссылки, утечка, пути, схема):
+VKM_RESOURCES_ROOT=<путь к клону PRIVATE> python scripts/verify_canonical_repository.py
 ```
 
-Если private resources repository находится локально, verifier автоматически
-ищет его в `./vkm-subsidence-forecasting_resourses` и рядом с main repo.
-Можно явно указать путь:
+На Windows (PowerShell): `$env:VKM_RESOURCES_ROOT = "<путь к клону PRIVATE>"`.
+PRIVATE-репозиторий `SUKUNA-AI/vkm-subsidence-forecasting_resourses` хранит научные источники (PDF/DjVu/DOCX),
+OCR и полные evidence-записи с цитатами (`11_evidence_vnext/`). PUBLIC никогда не содержит этих бинарников и цитат.
 
-```powershell
-$env:VKM_RESOURCES_ROOT = "E:\Диплом\vkm-subsidence-forecasting_resourses"
-python scripts/verify_canonical_repository.py
-```
+## Что сознательно НЕ сделано в текущей фазе
 
-Verifier проверяет current frozen core и active external scientific sources.
-Retired v3.x project package не является blocking dependency и не должен
-вызывать FAIL только из-за исторических SHA/path references.
+Phase 1 (cloud) завершена. Это была только информация и архитектура: полный sweep корпуса, каталоги, провенанс,
+хронология, дизайн WorldSpec, схемы, лёгкие тесты, самопроверка. Модельные и статистические расчёты не выполнялись
+(была только арифметика над напечатанными числами — разности дат, MD − TVD, RMS и r оцифровок Мусихина, DERIVATION):
 
-Проверка не запускает модели и не парсит evaluator truth. Отчёт сохраняется
-в `work/repo_cleanup/`. Все рабочие пути относительны корню, временные outputs
-допустимы только в `work/`; frozen releases не перезаписываются.
+- напряжения, ползучесть;
+- интерполяция, кригинг, LOO-CV;
+- 3D-реконструкция, сетки;
+- OGS + MFront, ANSYS Mechanical, gprMax;
+- Monte Carlo, чувствительность;
+- ML, прогнозный бенчмарк.
 
-Точное повторение первого исторического эксперимента выполняют на `ce8e57e`.
-Поздние B/C runs и устаревшие отчёты доступны в Git history.
+Это задачи локальной Phase 2, см. [CLOUD_TO_LOCAL_PHASE2_HANDOFF_RU.md](CLOUD_TO_LOCAL_PHASE2_HANDOFF_RU.md).
 
-Основные правила: [AGENTS.md](AGENTS.md), [README_FIRST.md](README_FIRST.md),
-[path policy](docs/governance/PATH_POLICY.md).
+## История
+
+Старая архитектура целиком сохранена в ветке **`legacy`** (`d54025d`):
+
+- synthetic stress lab v2/v2.1;
+- Gate A/B/C (Kalman/IMM);
+- реконструкции;
+- документы Physical World v1.
+
+Frozen-релизы проверяются из git-объектов без checkout (`scripts/frozen_references.json`).

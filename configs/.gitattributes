@@ -1,2 +1,0 @@
-# Versioned v2.1 configs are hashed inputs; preserve their exact bytes on checkout.
-scenario_*_v2_1.json -text -eol

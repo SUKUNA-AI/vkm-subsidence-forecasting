@@ -1,6 +1,0 @@
-﻿figure_order,distance_label_as_printed,repeat_render_dpi,repeat_pixel_x,repeat_pixel_y,blue_vertical_span_render_pixels,repeat_signed_mm,primary_signed_mm,repeat_minus_primary_mm,method
-5,0.5,300,610,602.0,27,-100.623,-101.5,0.877,independent_PDF_render_blue_span_midpoint_and_nine_gridlines
-6,0.6,300,690,643.0,27,-141.595,-142.1,0.505,independent_PDF_render_blue_span_midpoint_and_nine_gridlines
-9,0.9,300,929,717.0,27,-215.545,-216.1,0.555,independent_PDF_render_blue_span_midpoint_and_nine_gridlines
-10,1,300,1011,742.0,27,-240.528,-241.2,0.672,independent_PDF_render_blue_span_midpoint_and_nine_gridlines
-13,1.3,300,1250,851.0,27,-349.454,-349.9,0.446,independent_PDF_render_blue_span_midpoint_and_nine_gridlines

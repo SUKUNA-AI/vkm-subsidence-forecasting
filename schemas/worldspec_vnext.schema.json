@@ -1,0 +1,3892 @@
+{
+ "$defs": {
+  "AxisConvention": {
+   "enum": [
+    "x_east_y_north_z_up",
+    "x_north_y_east",
+    "unknown"
+   ],
+   "title": "AxisConvention",
+   "type": "string"
+  },
+  "BackfillMethod": {
+   "enum": [
+    "hydraulic",
+    "dry",
+    "paste",
+    "pneumatic",
+    "self_fill",
+    "none",
+    "unknown"
+   ],
+   "title": "BackfillMethod",
+   "type": "string"
+  },
+  "BackfillRecord": {
+   "additionalProperties": false,
+   "properties": {
+    "compaction": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Compaction"
+    },
+    "convergence_relation": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Convergence Relation"
+    },
+    "deformation_modulus": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "delay_after_extraction": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "density": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "events": {
+     "default": [],
+     "description": "chronology event ids (BACKFILL_START/END/PERIOD)",
+     "items": {
+      "type": "string"
+     },
+     "title": "Events",
+     "type": "array"
+    },
+    "fill_ratio": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "material": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "e.g. галитовые отходы, глинисто-солевые шламы — as printed",
+     "title": "Material"
+    },
+    "method": {
+     "$ref": "#/$defs/BackfillMethod",
+     "default": "unknown"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "porosity": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "roof_contact": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "контакт с кровлей / недозаклад, as printed",
+     "title": "Roof Contact"
+    },
+    "strength": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "target_objects": {
+     "description": "mining objects (chambers/blocks/panels) filled",
+     "items": {
+      "type": "string"
+     },
+     "title": "Target Objects",
+     "type": "array"
+    },
+    "water_content": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "target_objects"
+   ],
+   "title": "BackfillRecord",
+   "type": "object"
+  },
+  "BoreholeRecord": {
+   "additionalProperties": false,
+   "properties": {
+    "aliases": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Aliases",
+     "type": "array"
+    },
+    "borehole_type": {
+     "$ref": "#/$defs/BoreholeType",
+     "default": "unknown"
+    },
+    "drilled": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "date/period as printed",
+     "title": "Drilled"
+    },
+    "has_core": {
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Has Core"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "lab_tests": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Lab Tests",
+     "type": "array"
+    },
+    "location": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Location"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "logging": {
+     "default": [],
+     "description": "log types reported: gamma, acoustic, Vp, resistivity, ...",
+     "items": {
+      "type": "string"
+     },
+     "title": "Logging",
+     "type": "array"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "open_questions": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Open Questions",
+     "type": "array"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "site_scope": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Site Scope"
+    },
+    "spatial_node": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Spatial Node"
+    },
+    "total_depth": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "usability_reason": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Usability Reason"
+    },
+    "usable_for_3d": {
+     "$ref": "#/$defs/Usability3D",
+     "default": "UNKNOWN"
+    }
+   },
+   "required": [
+    "id",
+    "provenance"
+   ],
+   "title": "BoreholeRecord",
+   "type": "object"
+  },
+  "BoreholeType": {
+   "enum": [
+    "exploration",
+    "hydrogeological",
+    "oil",
+    "underground",
+    "geotechnical",
+    "observation",
+    "structural",
+    "unknown"
+   ],
+   "title": "BoreholeType",
+   "type": "string"
+  },
+  "CRSKind": {
+   "enum": [
+    "STATE_GEODETIC",
+    "STATE_PROJECTED",
+    "LOCAL_MINE_GRID",
+    "MAP_ONLY",
+    "PROJECT_ENGINEERING",
+    "UNKNOWN"
+   ],
+   "title": "CRSKind",
+   "type": "string"
+  },
+  "Contact": {
+   "additionalProperties": false,
+   "properties": {
+    "horizon_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Horizon Id"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "kind": {
+     "$ref": "#/$defs/ContactKind",
+     "default": "unknown"
+    },
+    "mechanical_relevance": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Mechanical Relevance"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    }
+   },
+   "required": [
+    "id",
+    "provenance"
+   ],
+   "title": "Contact",
+   "type": "object"
+  },
+  "ContactKind": {
+   "enum": [
+    "conformable",
+    "clay_interlayer",
+    "weak_contact",
+    "unconformity",
+    "unknown"
+   ],
+   "title": "ContactKind",
+   "type": "string"
+  },
+  "CoordinateSystem": {
+   "additionalProperties": false,
+   "properties": {
+    "axes": {
+     "$ref": "#/$defs/AxisConvention",
+     "default": "unknown"
+    },
+    "description": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Description"
+    },
+    "epsg": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Epsg"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "kind": {
+     "$ref": "#/$defs/CRSKind"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "units": {
+     "default": "m",
+     "title": "Units",
+     "type": "string"
+    },
+    "used_by_sources": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Used By Sources",
+     "type": "array"
+    },
+    "vertical": {
+     "$ref": "#/$defs/VerticalKind",
+     "default": "UNKNOWN"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "kind"
+   ],
+   "title": "CoordinateSystem",
+   "type": "object"
+  },
+  "CoordinateTransform": {
+   "additionalProperties": false,
+   "description": "A KNOWN relation between two systems. Parameters stay None (UNKNOWN) unless source-backed.",
+   "properties": {
+    "control_points": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Control Points",
+     "type": "array"
+    },
+    "from_crs": {
+     "title": "From Crs",
+     "type": "string"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "kind": {
+     "$ref": "#/$defs/TransformKind",
+     "default": "UNKNOWN"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "parameters": {
+     "additionalProperties": {
+      "type": "number"
+     },
+     "title": "Parameters",
+     "type": "object"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "residual_rms_m": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Residual Rms M"
+    },
+    "to_crs": {
+     "title": "To Crs",
+     "type": "string"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "from_crs",
+    "to_crs"
+   ],
+   "title": "CoordinateTransform",
+   "type": "object"
+  },
+  "DepthReference": {
+   "enum": [
+    "depth_below_collar",
+    "absolute_elevation",
+    "thickness_only",
+    "unknown"
+   ],
+   "title": "DepthReference",
+   "type": "string"
+  },
+  "DesignOrActual": {
+   "enum": [
+    "DESIGN",
+    "ACTUAL",
+    "TEACHING",
+    "RECORDED",
+    "UNRESOLVED",
+    "UNKNOWN"
+   ],
+   "title": "DesignOrActual",
+   "type": "string"
+  },
+  "EpistemicStatus": {
+   "enum": [
+    "FACT",
+    "DERIVATION",
+    "INTERPOLATION",
+    "MODEL_CHOICE",
+    "ENGINEERING_ASSUMPTION",
+    "ANALOGUE",
+    "UNKNOWN"
+   ],
+   "title": "EpistemicStatus",
+   "type": "string"
+  },
+  "Event": {
+   "additionalProperties": false,
+   "properties": {
+    "description": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Description"
+    },
+    "event_class_override": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/EventClass"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "explicit class, required for OTHER events"
+    },
+    "event_type": {
+     "$ref": "#/$defs/EventType"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "objects": {
+     "default": [],
+     "description": "ids of mining objects / spatial nodes / datasets affected",
+     "items": {
+      "type": "string"
+     },
+     "title": "Objects",
+     "type": "array"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "revealed_by": {
+     "default": [],
+     "description": "ids of INFORMATION events that recorded this physical event (survey, GIS snapshot, publication)",
+     "items": {
+      "type": "string"
+     },
+     "title": "Revealed By",
+     "type": "array"
+    },
+    "time": {
+     "$ref": "#/$defs/TemporalSupport"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "event_type",
+    "time"
+   ],
+   "title": "Event",
+   "type": "object"
+  },
+  "EventClass": {
+   "enum": [
+    "PHYSICAL",
+    "INFORMATION"
+   ],
+   "title": "EventClass",
+   "type": "string"
+  },
+  "EventType": {
+   "enum": [
+    "GEOLOGICAL",
+    "EXPLORATION_DRILLING",
+    "MINE_CONSTRUCTION",
+    "SHAFT_SINKING",
+    "MINE_COMMISSIONING",
+    "DEVELOPMENT",
+    "EXTRACTION_START",
+    "EXTRACTION_END",
+    "EXTRACTION_PERIOD",
+    "BACKFILL_START",
+    "BACKFILL_END",
+    "BACKFILL_PERIOD",
+    "BACKFILL_STATE_CHANGE",
+    "TECHNOLOGY_CHANGE",
+    "INTERSEAM_FAILURE",
+    "ROOF_FALL",
+    "PILLAR_FAILURE",
+    "COLLAPSE",
+    "DYNAMIC_EVENT",
+    "WATER_INFLOW",
+    "FLOODING",
+    "HYDRO_REGIME_CHANGE",
+    "MINE_CLOSURE",
+    "MONITORING_CAMPAIGN",
+    "SURVEY_OF_WORKINGS",
+    "LAB_TESTING",
+    "GEOPHYSICAL_SURVEY",
+    "GEOLOGICAL_MODEL_UPDATE",
+    "DATA_PROCESSING",
+    "PUBLICATION",
+    "NORMATIVE_IN_FORCE",
+    "DESIGN_DOCUMENT",
+    "DATA_AVAILABILITY",
+    "OTHER"
+   ],
+   "title": "EventType",
+   "type": "string"
+  },
+  "EvidenceType": {
+   "enum": [
+    "MEASURED",
+    "FIELD_OBSERVATION",
+    "LAB_TEST",
+    "NORMATIVE",
+    "DESIGN_VALUE",
+    "CALCULATED_BY_AUTHOR",
+    "MODEL_CALIBRATED",
+    "TEACHING_EXAMPLE",
+    "LITERATURE_CITED",
+    "INTERPRETATION",
+    "DESCRIPTIVE",
+    "COMPUTED_THIS_PROJECT",
+    "NOT_APPLICABLE"
+   ],
+   "title": "EvidenceType",
+   "type": "string"
+  },
+  "ExecutionStatus": {
+   "description": "Planned treatment of a process in future computations (design/planning statuses in Phase 1).",
+   "enum": [
+    "COMPUTED_3D",
+    "COMPUTED_2D_SECTION",
+    "COMPUTED_LOCAL",
+    "ANALYTICAL",
+    "SEMI_ANALYTICAL",
+    "EMPIRICAL",
+    "COUPLED_PROCESS",
+    "INITIAL_CONDITION",
+    "BOUNDARY_CONDITION",
+    "OBSERVATION_OPERATOR",
+    "CONSTRAINT_CHECK",
+    "CONTEXT_ONLY",
+    "RESEARCH_REQUIRED",
+    "UNKNOWN"
+   ],
+   "title": "ExecutionStatus",
+   "type": "string"
+  },
+  "Horizon": {
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "lower_unit": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Lower Unit"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "representations": {
+     "default": [],
+     "items": {
+      "$ref": "#/$defs/HorizonRepresentation"
+     },
+     "title": "Representations",
+     "type": "array"
+    },
+    "upper_unit": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Upper Unit"
+    }
+   },
+   "required": [
+    "id",
+    "provenance"
+   ],
+   "title": "Horizon",
+   "type": "object"
+  },
+  "HorizonRepresentation": {
+   "additionalProperties": false,
+   "properties": {
+    "artifact_path": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "future grid/mesh file; None in Phase 1",
+     "title": "Artifact Path"
+    },
+    "extent": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "spatial node id(s) covered",
+     "title": "Extent"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "inputs": {
+     "default": [],
+     "description": "pick ids / figure locators / profile ids",
+     "items": {
+      "type": "string"
+     },
+     "title": "Inputs",
+     "type": "array"
+    },
+    "kind": {
+     "$ref": "#/$defs/HorizonRepresentationKind"
+    },
+    "method": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Method"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "kind"
+   ],
+   "title": "HorizonRepresentation",
+   "type": "object"
+  },
+  "HorizonRepresentationKind": {
+   "enum": [
+    "PICKS_ONLY",
+    "SOURCE_MAP",
+    "SOURCE_SECTION",
+    "INTERPOLATED_SURFACE",
+    "GPR_TRACED",
+    "SEISMIC_TRACED"
+   ],
+   "title": "HorizonRepresentationKind",
+   "type": "string"
+  },
+  "Location": {
+   "additionalProperties": false,
+   "description": "Collar location exactly as available; coordinates may be UNKNOWN (None) with a map reference.",
+   "properties": {
+    "collar_elevation": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "crs_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Crs Id"
+    },
+    "description": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Description"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "map_reference": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "figure/map where the hole is plotted, if coordinates are not printed",
+     "title": "Map Reference"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "x": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "y": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    }
+   },
+   "required": [
+    "id",
+    "provenance"
+   ],
+   "title": "Location",
+   "type": "object"
+  },
+  "MaterialParameter": {
+   "additionalProperties": false,
+   "properties": {
+    "conditions": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "stress level, strain rate, temperature, moisture, specimen size",
+     "title": "Conditions"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "law_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "math registry id if the parameter belongs to a constitutive law",
+     "title": "Law Id"
+    },
+    "material": {
+     "description": "lithology as printed (галит, сильвинит, карналлит, глина, ...)",
+     "title": "Material",
+     "type": "string"
+    },
+    "n_samples": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "N Samples"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "quantity": {
+     "$ref": "#/$defs/Quantity"
+    },
+    "test_method": {
+     "$ref": "#/$defs/TestMethod",
+     "default": "unknown"
+    },
+    "unit_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "stratigraphic unit/seam id if stated",
+     "title": "Unit Id"
+    },
+    "variable": {
+     "description": "density, youngs_modulus, poisson_ratio, ucs, creep_param_<law>_<name>, ...",
+     "title": "Variable",
+     "type": "string"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "variable",
+    "material",
+    "quantity"
+   ],
+   "title": "MaterialParameter",
+   "type": "object"
+  },
+  "MathClass": {
+   "enum": [
+    "ALGEBRAIC",
+    "SYSTEM_ALGEBRAIC",
+    "ODE",
+    "DAE",
+    "PDE_ELLIPTIC",
+    "PDE_PARABOLIC",
+    "PDE_HYPERBOLIC",
+    "PDE_SYSTEM",
+    "INTEGRAL",
+    "INTEGRO_DIFFERENTIAL",
+    "HEREDITARY",
+    "FRACTIONAL",
+    "CONVOLUTION",
+    "GREEN_FUNCTION",
+    "VARIATIONAL",
+    "STOCHASTIC",
+    "STATISTICAL",
+    "INVERSE",
+    "GEOMETRIC",
+    "EMPIRICAL_TABLE",
+    "OTHER"
+   ],
+   "title": "MathClass",
+   "type": "string"
+  },
+  "MathModelRecord": {
+   "additionalProperties": true,
+   "properties": {
+    "assumptions": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Assumptions"
+    },
+    "conflicting_forms": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Conflicting Forms"
+    },
+    "equation_latex": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Equation Latex"
+    },
+    "equation_plain": {
+     "title": "Equation Plain",
+     "type": "string"
+    },
+    "future_execution": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Future Execution"
+    },
+    "intended_role": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Intended Role"
+    },
+    "known_variants": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Known Variants"
+    },
+    "locator": {
+     "title": "Locator",
+     "type": "string"
+    },
+    "math_class": {
+     "$ref": "#/$defs/MathClass"
+    },
+    "model_id": {
+     "title": "Model Id",
+     "type": "string"
+    },
+    "name_ru": {
+     "title": "Name Ru",
+     "type": "string"
+    },
+    "origin": {
+     "$ref": "#/$defs/Origin"
+    },
+    "physical_meaning_ru": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Physical Meaning Ru"
+    },
+    "scale": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Scale"
+    },
+    "site_applicability": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Site Applicability"
+    },
+    "source_ids": {
+     "title": "Source Ids",
+     "type": "string"
+    },
+    "status": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Status"
+    },
+    "variables": {
+     "description": "symbol:meaning[unit]; …",
+     "title": "Variables",
+     "type": "string"
+    }
+   },
+   "required": [
+    "model_id",
+    "name_ru",
+    "math_class",
+    "equation_plain",
+    "variables",
+    "source_ids",
+    "locator",
+    "origin"
+   ],
+   "title": "MathModelRecord",
+   "type": "object"
+  },
+  "MiningObject": {
+   "additionalProperties": false,
+   "properties": {
+    "depth": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "design_or_actual": {
+     "$ref": "#/$defs/DesignOrActual",
+     "default": "UNKNOWN"
+    },
+    "extraction_ratio": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "geometry_ref": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Geometry Ref"
+    },
+    "height": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "kind": {
+     "$ref": "#/$defs/MiningObjectKind"
+    },
+    "length": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "loading_degree": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "mine": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "spatial node id of the mine",
+     "title": "Mine"
+    },
+    "mining_system": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "e.g. камерная система с ленточными целиками, as printed",
+     "title": "Mining System"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "parent_object": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Parent Object"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "seams": {
+     "default": [],
+     "description": "stratigraphic unit ids mined / affected",
+     "items": {
+      "type": "string"
+     },
+     "title": "Seams",
+     "type": "array"
+    },
+    "spatial_node": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Spatial Node"
+    },
+    "width": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "kind"
+   ],
+   "title": "MiningObject",
+   "type": "object"
+  },
+  "MiningObjectKind": {
+   "enum": [
+    "shaft",
+    "capital_working",
+    "development_working",
+    "panel",
+    "block",
+    "chamber",
+    "pillar",
+    "barrier_pillar",
+    "intermine_pillar",
+    "protective_pillar",
+    "mined_area",
+    "backfilled_volume",
+    "other"
+   ],
+   "title": "MiningObjectKind",
+   "type": "string"
+  },
+  "Modality": {
+   "enum": [
+    "levelling",
+    "profile_line",
+    "horizontal_deformation",
+    "gnss",
+    "insar",
+    "hydrostatic_levelling",
+    "underground_station",
+    "convergence",
+    "gpr",
+    "borehole_logging",
+    "seismic_survey",
+    "seismic_monitoring",
+    "ultrasonic",
+    "lab_test",
+    "other"
+   ],
+   "title": "Modality",
+   "type": "string"
+  },
+  "NomenclatureCrosswalk": {
+   "additionalProperties": false,
+   "description": "Correspondence between naming schemes of different epochs (e.g. SKRU-1 panels ~1990 vs 2013).\nPairs are only recorded when a source states or a figure shows the identity; otherwise UNKNOWN.",
+   "properties": {
+    "epoch_from": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Epoch From"
+    },
+    "epoch_to": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Epoch To"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "pairs": {
+     "default": [],
+     "items": {
+      "maxItems": 2,
+      "minItems": 2,
+      "prefixItems": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "type": "array"
+     },
+     "title": "Pairs",
+     "type": "array"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "scheme_from": {
+     "title": "Scheme From",
+     "type": "string"
+    },
+    "scheme_to": {
+     "title": "Scheme To",
+     "type": "string"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "scheme_from",
+    "scheme_to"
+   ],
+   "title": "NomenclatureCrosswalk",
+   "type": "object"
+  },
+  "ObservationDataset": {
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "is_digitized_from_figure": {
+     "default": false,
+     "title": "Is Digitized From Figure",
+     "type": "boolean"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "spatial_nodes": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Spatial Nodes",
+     "type": "array"
+    },
+    "system_id": {
+     "title": "System Id",
+     "type": "string"
+    },
+    "time": {
+     "$ref": "#/$defs/TemporalSupport"
+    },
+    "values_available_in_corpus": {
+     "default": false,
+     "title": "Values Available In Corpus",
+     "type": "boolean"
+    },
+    "values_location": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "where the actual values are (source figure/table, private file); None if not available",
+     "title": "Values Location"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "system_id",
+    "time"
+   ],
+   "title": "ObservationDataset",
+   "type": "object"
+  },
+  "ObservationOperatorSpec": {
+   "additionalProperties": false,
+   "description": "Conceptual interface H: state → predicted measurement. No forward model in Phase 1.",
+   "properties": {
+    "candidate_tools": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Candidate Tools",
+     "type": "array"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "math_models": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Math Models",
+     "type": "array"
+    },
+    "modality": {
+     "$ref": "#/$defs/Modality"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "noise_model": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Noise Model"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "output": {
+     "title": "Output",
+     "type": "string"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "state_inputs": {
+     "description": "latent variables consumed (u_z, u, geometry, eps_r, sigma, Vp ...)",
+     "items": {
+      "type": "string"
+     },
+     "title": "State Inputs",
+     "type": "array"
+    },
+    "status": {
+     "$ref": "#/$defs/OperatorStatus",
+     "default": "DESIGN"
+    },
+    "support_transform": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "point/area/footprint averaging, reference differencing",
+     "title": "Support Transform"
+    },
+    "world_inputs": {
+     "default": [],
+     "description": "WorldSpec objects consumed (benchmarks, LOS geometry, profiles)",
+     "items": {
+      "type": "string"
+     },
+     "title": "World Inputs",
+     "type": "array"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "modality",
+    "state_inputs",
+    "output"
+   ],
+   "title": "ObservationOperatorSpec",
+   "type": "object"
+  },
+  "ObservationSystem": {
+   "additionalProperties": false,
+   "properties": {
+    "crs_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Crs Id"
+    },
+    "datum": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "reference benchmark / reference point / height system",
+     "title": "Datum"
+    },
+    "equipment": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Equipment"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "latent_state_link": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "which latent state variable it observes (u_z, u vector, geometry+EM, ...)",
+     "title": "Latent State Link"
+    },
+    "modality": {
+     "$ref": "#/$defs/Modality"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "observable": {
+     "description": "what is actually measured, e.g. height difference, LOS phase, TWT",
+     "title": "Observable",
+     "type": "string"
+    },
+    "precision": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "as printed, with conditions (e.g. II class, mm per km)",
+     "title": "Precision"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "site_scope": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Site Scope"
+    },
+    "spatial_support": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "points/lines/pixels; spacing; footprint",
+     "title": "Spatial Support"
+    },
+    "systematic_errors": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Systematic Errors"
+    },
+    "temporal_support": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "campaign frequency / revisit / continuous",
+     "title": "Temporal Support"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "modality",
+    "observable"
+   ],
+   "title": "ObservationSystem",
+   "type": "object"
+  },
+  "OperatorStatus": {
+   "enum": [
+    "DESIGN",
+    "IMPLEMENTED_LOCAL",
+    "VALIDATED"
+   ],
+   "title": "OperatorStatus",
+   "type": "string"
+  },
+  "Origin": {
+   "enum": [
+    "ORIGINAL_SOURCE",
+    "CITED_IN_SOURCE",
+    "EXTERNAL_PRIMARY",
+    "TEXTBOOK_STANDARD",
+    "DERIVED_THIS_PROJECT"
+   ],
+   "title": "Origin",
+   "type": "string"
+  },
+  "PickInterpretation": {
+   "additionalProperties": false,
+   "properties": {
+    "borehole_id": {
+     "title": "Borehole Id",
+     "type": "string"
+    },
+    "bottom": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "from_observations": {
+     "items": {
+      "type": "string"
+     },
+     "title": "From Observations",
+     "type": "array"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "rationale": {
+     "title": "Rationale",
+     "type": "string"
+    },
+    "reference": {
+     "$ref": "#/$defs/DepthReference",
+     "default": "unknown"
+    },
+    "top": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "unit_id": {
+     "title": "Unit Id",
+     "type": "string"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "borehole_id",
+    "unit_id",
+    "from_observations",
+    "rationale"
+   ],
+   "title": "PickInterpretation",
+   "type": "object"
+  },
+  "PickObservation": {
+   "additionalProperties": false,
+   "properties": {
+    "borehole_id": {
+     "title": "Borehole Id",
+     "type": "string"
+    },
+    "bottom": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "reference": {
+     "$ref": "#/$defs/DepthReference"
+    },
+    "thickness": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "top": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Quantity"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "unit_as_printed": {
+     "title": "Unit As Printed",
+     "type": "string"
+    },
+    "unit_id": {
+     "description": "stratigraphic unit (id in the column) or 'UNRESOLVED:<as printed>'",
+     "title": "Unit Id",
+     "type": "string"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "borehole_id",
+    "unit_id",
+    "unit_as_printed",
+    "reference"
+   ],
+   "title": "PickObservation",
+   "type": "object"
+  },
+  "ProcessDefinition": {
+   "additionalProperties": false,
+   "properties": {
+    "candidate_tools": {
+     "default": [],
+     "description": "OGS, MATLAB, FLAC, PLAXIS, gprMax, GemPy, Micromine ...",
+     "items": {
+      "type": "string"
+     },
+     "title": "Candidate Tools",
+     "type": "array"
+    },
+    "causal_role": {
+     "title": "Causal Role",
+     "type": "string"
+    },
+    "domain": {
+     "description": "mechanics|rheology|damage|interfaces|backfill|hydro|thermal|dynamics|EM|surface",
+     "title": "Domain",
+     "type": "string"
+    },
+    "evidence": {
+     "default": [],
+     "description": "evidence ids / source ids",
+     "items": {
+      "type": "string"
+     },
+     "title": "Evidence",
+     "type": "array"
+    },
+    "governing_variables": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Governing Variables",
+     "type": "array"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "identifiability": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Identifiability"
+    },
+    "math_models": {
+     "default": [],
+     "description": "MATHEMATICAL_MODEL_REGISTRY ids",
+     "items": {
+      "type": "string"
+     },
+     "title": "Math Models",
+     "type": "array"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "parameters_needed": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Parameters Needed",
+     "type": "array"
+    },
+    "planned_treatment": {
+     "$ref": "#/$defs/ExecutionStatus",
+     "default": "UNKNOWN"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "readiness": {
+     "$ref": "#/$defs/Readiness",
+     "default": "UNKNOWN"
+    },
+    "site_relevance": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Site Relevance"
+    },
+    "spatial_scale": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Spatial Scale"
+    },
+    "temporal_scale": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Temporal Scale"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "domain",
+    "causal_role"
+   ],
+   "title": "ProcessDefinition",
+   "type": "object"
+  },
+  "Provenance": {
+   "additionalProperties": false,
+   "properties": {
+    "confidence": {
+     "default": "UNSTATED",
+     "title": "Confidence",
+     "type": "string"
+    },
+    "evidence_type": {
+     "$ref": "#/$defs/EvidenceType",
+     "default": "NOT_APPLICABLE"
+    },
+    "inputs": {
+     "default": [],
+     "description": "ids of WorldSpec items this was derived/interpolated from",
+     "items": {
+      "type": "string"
+     },
+     "title": "Inputs",
+     "type": "array"
+    },
+    "method": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "derivation / interpolation method",
+     "title": "Method"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "rationale": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "mandatory for MODEL_CHOICE / ENGINEERING_ASSUMPTION",
+     "title": "Rationale"
+    },
+    "scale": {
+     "$ref": "#/$defs/Scale",
+     "default": "UNSTATED"
+    },
+    "scope": {
+     "$ref": "#/$defs/Scope",
+     "default": "UNSTATED"
+    },
+    "sources": {
+     "default": [],
+     "items": {
+      "$ref": "#/$defs/SourceRef"
+     },
+     "title": "Sources",
+     "type": "array"
+    },
+    "spatial": {
+     "$ref": "#/$defs/SpatialSupport"
+    },
+    "status": {
+     "$ref": "#/$defs/EpistemicStatus"
+    },
+    "temporal": {
+     "$ref": "#/$defs/TemporalSupport"
+    },
+    "transfer": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Transfer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    }
+   },
+   "required": [
+    "status"
+   ],
+   "title": "Provenance",
+   "type": "object"
+  },
+  "Quantity": {
+   "additionalProperties": false,
+   "description": "A physical quantity with provenance. Point OR range OR discrete set OR nothing (UNKNOWN).",
+   "properties": {
+    "high": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "High"
+    },
+    "low": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Low"
+    },
+    "name": {
+     "title": "Name",
+     "type": "string"
+    },
+    "original": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "value/unit exactly as printed in the source",
+     "title": "Original"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "uncertainty": {
+     "$ref": "#/$defs/Uncertainty"
+    },
+    "unit": {
+     "description": "SI or explicit unit string understood by vkm_world.core.units",
+     "title": "Unit",
+     "type": "string"
+    },
+    "value": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Value"
+    }
+   },
+   "required": [
+    "name",
+    "unit",
+    "provenance"
+   ],
+   "title": "Quantity",
+   "type": "object"
+  },
+  "Readiness": {
+   "enum": [
+    "READY_FOR_LOCAL",
+    "PARAMETERS_MISSING",
+    "GEOMETRY_MISSING",
+    "EVIDENCE_WEAK",
+    "NOT_APPLICABLE_NORMAL_SCENARIO",
+    "UNKNOWN"
+   ],
+   "title": "Readiness",
+   "type": "string"
+  },
+  "Scale": {
+   "enum": [
+    "LAB",
+    "MASSIF",
+    "CALIBRATED_EFFECTIVE_MODEL",
+    "FIELD",
+    "DESIGN",
+    "NOT_APPLICABLE",
+    "UNSTATED"
+   ],
+   "title": "Scale",
+   "type": "string"
+  },
+  "Scope": {
+   "description": "Site scope of a datum. Only SKRU1 is field-wide site-specific for SKRU-1.\n\nThe SKRU-1/SKRU-2 joint labels are kept apart (review finding TRANSFER-023):\n``SKRU1_SKRU2_PILLAR`` — the intermine pillar zone on the SKRU-1/SKRU-2 boundary (usable for SKRU-1 only locally,\nat the pillar, or through an explicit Transfer); ``SKRU1_OR_SKRU2_UNATTRIBUTED`` — the source does not say which\nof the two mines; ``SOLIKAMSK_GROUP`` — pooled over SKRU-1, SKRU-2 and SKRU-3. ``SKRU1_SKRU2`` is the legacy\nambiguous label of the first Phase-1 catalogues; it is valid but never counts as SKRU-1 data.",
+   "enum": [
+    "SKRU1",
+    "SKRU1_SKRU2_PILLAR",
+    "SKRU1_OR_SKRU2_UNATTRIBUTED",
+    "SOLIKAMSK_GROUP",
+    "SKRU1_SKRU2",
+    "SKRU2",
+    "SKRU3",
+    "BKPRU1",
+    "BKPRU2",
+    "BKPRU3",
+    "BKPRU4",
+    "USOLSKY",
+    "OTHER_VKM_SITE",
+    "VKM_REGIONAL",
+    "OTHER_POTASH_SITE",
+    "NON_VKM",
+    "GENERAL_METHOD",
+    "PROJECT",
+    "UNSTATED"
+   ],
+   "title": "Scope",
+   "type": "string"
+  },
+  "SourceRef": {
+   "additionalProperties": false,
+   "description": "Pointer into the registered private corpus (or an external source).",
+   "properties": {
+    "evidence_ids": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Evidence Ids",
+     "type": "array"
+    },
+    "extraction_method": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Extraction Method"
+    },
+    "locator": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "table/figure/equation/section/rendered page",
+     "title": "Locator"
+    },
+    "pdf_page": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Pdf Page"
+    },
+    "printed_page": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Printed Page"
+    },
+    "source_id": {
+     "description": "VKM-SRC-xxx, EXT-SRC-xxx or EXTWEB-xxx",
+     "title": "Source Id",
+     "type": "string"
+    }
+   },
+   "required": [
+    "source_id"
+   ],
+   "title": "SourceRef",
+   "type": "object"
+  },
+  "SpatialLevel": {
+   "description": "Spatial hierarchy of the VKM / SKRU-1 world, coarse → fine.",
+   "enum": [
+    "deposit",
+    "district",
+    "mine",
+    "neighbour_mine",
+    "intermine_pillar",
+    "exploration_area",
+    "deposit_part",
+    "mine_field",
+    "shaft",
+    "mine_horizon",
+    "panel",
+    "block",
+    "site",
+    "working",
+    "chamber",
+    "pillar",
+    "seam",
+    "interseam",
+    "geological_element",
+    "borehole",
+    "borehole_interval",
+    "gpr_profile",
+    "survey_line",
+    "benchmark",
+    "specimen",
+    "point",
+    "unstated"
+   ],
+   "title": "SpatialLevel",
+   "type": "string"
+  },
+  "SpatialNode": {
+   "additionalProperties": false,
+   "properties": {
+    "also_within": {
+     "default": [],
+     "description": "other containers (e.g. a survey line crossing panels)",
+     "items": {
+      "type": "string"
+     },
+     "title": "Also Within",
+     "type": "array"
+    },
+    "geometry_ref": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "id of a geometry object (outline/trace/point) if any",
+     "title": "Geometry Ref"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "level": {
+     "$ref": "#/$defs/SpatialLevel"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "parent_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Parent Id"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "site_scope": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "Scope enum value; SKRU1 only if truly site-specific",
+     "title": "Site Scope"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "level"
+   ],
+   "title": "SpatialNode",
+   "type": "object"
+  },
+  "SpatialSupport": {
+   "additionalProperties": false,
+   "properties": {
+    "entity_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "id of a node in the WorldSpec spatial hierarchy",
+     "title": "Entity Id"
+    },
+    "level": {
+     "$ref": "#/$defs/SpatialLevel",
+     "default": "unstated"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    }
+   },
+   "title": "SpatialSupport",
+   "type": "object"
+  },
+  "StratigraphicUnit": {
+   "additionalProperties": false,
+   "properties": {
+    "abbrev": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Abbrev"
+    },
+    "age": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Age"
+    },
+    "aliases": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Aliases",
+     "type": "array"
+    },
+    "functional": {
+     "default": false,
+     "description": "True for engineering units (ВЗТ) defined across formations",
+     "title": "Functional",
+     "type": "boolean"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "lithology": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Lithology"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "order_index": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "top→bottom order within its parent (0 = uppermost)",
+     "title": "Order Index"
+    },
+    "parent_unit": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Parent Unit"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "rank": {
+     "$ref": "#/$defs/UnitRank"
+    },
+    "thickness_ranges": {
+     "default": [],
+     "description": "as reported by sources, per site; never averaged here",
+     "items": {
+      "$ref": "#/$defs/Quantity"
+     },
+     "title": "Thickness Ranges",
+     "type": "array"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "rank"
+   ],
+   "title": "StratigraphicUnit",
+   "type": "object"
+  },
+  "StructuralFeature": {
+   "additionalProperties": false,
+   "properties": {
+    "affected_units": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Affected Units",
+     "type": "array"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "kind": {
+     "$ref": "#/$defs/StructureKind"
+    },
+    "location": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "spatial node / map locator",
+     "title": "Location"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "orientation": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "dip/strike/axis as printed",
+     "title": "Orientation"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "scale": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Scale"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "kind"
+   ],
+   "title": "StructuralFeature",
+   "type": "object"
+  },
+  "StructureKind": {
+   "enum": [
+    "fold",
+    "flexure",
+    "fault",
+    "disturbed_zone",
+    "geodynamic_zone",
+    "salt_dissolution_zone",
+    "subsidence_basin",
+    "boudinage",
+    "washout",
+    "anomaly",
+    "other"
+   ],
+   "title": "StructureKind",
+   "type": "string"
+  },
+  "TemporalSupport": {
+   "additionalProperties": false,
+   "description": "Physical time vs information time.\n\n``event_date``        when the physical event happened (e.g. chamber mined);\n``measurement_date``  when it was measured;\n``processing_date``   when the measurement was processed/interpreted;\n``publication_date``  when it was published;\n``available_from``    the earliest date a forecaster could have used it (information availability).\nA forecast issued at origin t0 may only use data with ``available_from <= t0``.",
+   "properties": {
+    "available_from": {
+     "anyOf": [
+      {
+       "format": "date",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Available From"
+    },
+    "available_from_precision": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "precision of available_from if it differs from ``precision`` (e.g. a publication year)",
+     "title": "Available From Precision"
+    },
+    "event_date": {
+     "anyOf": [
+      {
+       "format": "date",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Date"
+    },
+    "event_date_end": {
+     "anyOf": [
+      {
+       "format": "date",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Event Date End"
+    },
+    "measurement_date": {
+     "anyOf": [
+      {
+       "format": "date",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Measurement Date"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "precision": {
+     "default": "unknown",
+     "description": "precision of the event/measurement dates: day|month|year|decade|unknown",
+     "title": "Precision",
+     "type": "string"
+    },
+    "processing_date": {
+     "anyOf": [
+      {
+       "format": "date",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Processing Date"
+    },
+    "publication_date": {
+     "anyOf": [
+      {
+       "format": "date",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Publication Date"
+    }
+   },
+   "title": "TemporalSupport",
+   "type": "object"
+  },
+  "TestMethod": {
+   "enum": [
+    "uniaxial_compression",
+    "tensile_brazilian",
+    "direct_tension",
+    "triaxial",
+    "creep_constant_load",
+    "relaxation",
+    "shear",
+    "ultrasonic",
+    "dynamic",
+    "in_situ",
+    "back_analysis",
+    "normative",
+    "literature",
+    "unknown"
+   ],
+   "title": "TestMethod",
+   "type": "string"
+  },
+  "Transfer": {
+   "additionalProperties": false,
+   "description": "Explicit record of moving a value across scale or site (LAB→MASSIF, analogue→SKRU-1).",
+   "properties": {
+    "from_scale": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Scale"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "from_scope": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Scope"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "method": {
+     "description": "e.g. scale-effect factor from VKM-SRC-025 p.31, or ENGINEERING_ASSUMPTION",
+     "title": "Method",
+     "type": "string"
+    },
+    "rationale": {
+     "title": "Rationale",
+     "type": "string"
+    },
+    "status": {
+     "$ref": "#/$defs/EpistemicStatus"
+    },
+    "to_scale": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Scale"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "to_scope": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Scope"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    }
+   },
+   "required": [
+    "method",
+    "status",
+    "rationale"
+   ],
+   "title": "Transfer",
+   "type": "object"
+  },
+  "TransformKind": {
+   "enum": [
+    "HELMERT_7",
+    "AFFINE_2D",
+    "SIMILARITY_2D",
+    "VERTICAL_OFFSET",
+    "GEOREFERENCED_MAP",
+    "UNKNOWN"
+   ],
+   "title": "TransformKind",
+   "type": "string"
+  },
+  "Uncertainty": {
+   "additionalProperties": false,
+   "properties": {
+    "components": {
+     "default": [],
+     "items": {
+      "$ref": "#/$defs/UncertaintyComponent"
+     },
+     "title": "Components",
+     "type": "array"
+    },
+    "kind": {
+     "$ref": "#/$defs/UncertaintyKind",
+     "default": "UNKNOWN"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "params": {
+     "additionalProperties": {
+      "type": "number"
+     },
+     "title": "Params",
+     "type": "object"
+    },
+    "values": {
+     "default": [],
+     "items": {
+      "type": "number"
+     },
+     "title": "Values",
+     "type": "array"
+    }
+   },
+   "title": "Uncertainty",
+   "type": "object"
+  },
+  "UncertaintyComponent": {
+   "enum": [
+    "measurement",
+    "spatial",
+    "temporal",
+    "source_conflict",
+    "interpolation",
+    "model_form",
+    "parameter",
+    "transferability",
+    "engineering_assumption"
+   ],
+   "title": "UncertaintyComponent",
+   "type": "string"
+  },
+  "UncertaintyKind": {
+   "enum": [
+    "NONE_STATED",
+    "INTERVAL",
+    "NORMAL",
+    "LOGNORMAL",
+    "UNIFORM",
+    "TRIANGULAR",
+    "DISCRETE_SET",
+    "UNKNOWN"
+   ],
+   "title": "UncertaintyKind",
+   "type": "string"
+  },
+  "UnitRank": {
+   "enum": [
+    "complex",
+    "formation",
+    "zone",
+    "seam",
+    "interseam",
+    "marker",
+    "interlayer",
+    "protective",
+    "other"
+   ],
+   "title": "UnitRank",
+   "type": "string"
+  },
+  "UnknownItem": {
+   "additionalProperties": false,
+   "description": "An explicit gap. UNKNOWN is a first-class citizen of the world.",
+   "properties": {
+    "blocks": {
+     "default": [],
+     "description": "process / object ids blocked by this gap",
+     "items": {
+      "type": "string"
+     },
+     "title": "Blocks",
+     "type": "array"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "resolution_path": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Resolution Path"
+    },
+    "what": {
+     "title": "What",
+     "type": "string"
+    },
+    "why_it_matters": {
+     "title": "Why It Matters",
+     "type": "string"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "what",
+    "why_it_matters"
+   ],
+   "title": "UnknownItem",
+   "type": "object"
+  },
+  "Usability3D": {
+   "enum": [
+    "YES",
+    "PARTIAL",
+    "NO",
+    "UNKNOWN"
+   ],
+   "title": "Usability3D",
+   "type": "string"
+  },
+  "VerticalKind": {
+   "enum": [
+    "BALTIC_1977",
+    "ABSOLUTE_UNSPECIFIED",
+    "DEPTH_BELOW_COLLAR",
+    "DEPTH_BELOW_SURFACE",
+    "RELATIVE_LOCAL",
+    "UNKNOWN"
+   ],
+   "title": "VerticalKind",
+   "type": "string"
+  },
+  "WorldMeta": {
+   "additionalProperties": false,
+   "properties": {
+    "created": {
+     "anyOf": [
+      {
+       "format": "date",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Created"
+    },
+    "description": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Description"
+    },
+    "evidence_snapshot": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "PRIVATE resources commit the evidence was taken from",
+     "title": "Evidence Snapshot"
+    },
+    "schema_version": {
+     "default": "worldspec-vnext/0.1",
+     "title": "Schema Version",
+     "type": "string"
+    },
+    "status": {
+     "$ref": "#/$defs/WorldStatus",
+     "default": "DESIGN"
+    },
+    "target_scope": {
+     "$ref": "#/$defs/Scope",
+     "default": "SKRU1"
+    },
+    "title": {
+     "title": "Title",
+     "type": "string"
+    },
+    "world_id": {
+     "title": "World Id",
+     "type": "string"
+    }
+   },
+   "required": [
+    "world_id",
+    "title"
+   ],
+   "title": "WorldMeta",
+   "type": "object"
+  },
+  "WorldStatus": {
+   "enum": [
+    "DESIGN",
+    "EVIDENCE_POPULATED",
+    "DIAGNOSTIC",
+    "FROZEN"
+   ],
+   "title": "WorldStatus",
+   "type": "string"
+  }
+ },
+ "$id": "https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/schemas/worldspec_vnext.schema.json",
+ "additionalProperties": false,
+ "properties": {
+  "backfill": {
+   "items": {
+    "$ref": "#/$defs/BackfillRecord"
+   },
+   "title": "Backfill",
+   "type": "array"
+  },
+  "boreholes": {
+   "items": {
+    "$ref": "#/$defs/BoreholeRecord"
+   },
+   "title": "Boreholes",
+   "type": "array"
+  },
+  "contacts": {
+   "items": {
+    "$ref": "#/$defs/Contact"
+   },
+   "title": "Contacts",
+   "type": "array"
+  },
+  "coordinate_systems": {
+   "items": {
+    "$ref": "#/$defs/CoordinateSystem"
+   },
+   "title": "Coordinate Systems",
+   "type": "array"
+  },
+  "crosswalks": {
+   "items": {
+    "$ref": "#/$defs/NomenclatureCrosswalk"
+   },
+   "title": "Crosswalks",
+   "type": "array"
+  },
+  "events": {
+   "items": {
+    "$ref": "#/$defs/Event"
+   },
+   "title": "Events",
+   "type": "array"
+  },
+  "horizons": {
+   "items": {
+    "$ref": "#/$defs/Horizon"
+   },
+   "title": "Horizons",
+   "type": "array"
+  },
+  "materials": {
+   "items": {
+    "$ref": "#/$defs/MaterialParameter"
+   },
+   "title": "Materials",
+   "type": "array"
+  },
+  "math_models": {
+   "items": {
+    "$ref": "#/$defs/MathModelRecord"
+   },
+   "title": "Math Models",
+   "type": "array"
+  },
+  "meta": {
+   "$ref": "#/$defs/WorldMeta"
+  },
+  "mining_objects": {
+   "items": {
+    "$ref": "#/$defs/MiningObject"
+   },
+   "title": "Mining Objects",
+   "type": "array"
+  },
+  "observation_datasets": {
+   "items": {
+    "$ref": "#/$defs/ObservationDataset"
+   },
+   "title": "Observation Datasets",
+   "type": "array"
+  },
+  "observation_operators": {
+   "items": {
+    "$ref": "#/$defs/ObservationOperatorSpec"
+   },
+   "title": "Observation Operators",
+   "type": "array"
+  },
+  "observation_systems": {
+   "items": {
+    "$ref": "#/$defs/ObservationSystem"
+   },
+   "title": "Observation Systems",
+   "type": "array"
+  },
+  "pick_interpretations": {
+   "items": {
+    "$ref": "#/$defs/PickInterpretation"
+   },
+   "title": "Pick Interpretations",
+   "type": "array"
+  },
+  "picks": {
+   "items": {
+    "$ref": "#/$defs/PickObservation"
+   },
+   "title": "Picks",
+   "type": "array"
+  },
+  "processes": {
+   "items": {
+    "$ref": "#/$defs/ProcessDefinition"
+   },
+   "title": "Processes",
+   "type": "array"
+  },
+  "spatial_nodes": {
+   "items": {
+    "$ref": "#/$defs/SpatialNode"
+   },
+   "title": "Spatial Nodes",
+   "type": "array"
+  },
+  "stratigraphy": {
+   "items": {
+    "$ref": "#/$defs/StratigraphicUnit"
+   },
+   "title": "Stratigraphy",
+   "type": "array"
+  },
+  "structures": {
+   "items": {
+    "$ref": "#/$defs/StructuralFeature"
+   },
+   "title": "Structures",
+   "type": "array"
+  },
+  "transforms": {
+   "items": {
+    "$ref": "#/$defs/CoordinateTransform"
+   },
+   "title": "Transforms",
+   "type": "array"
+  },
+  "unknowns": {
+   "items": {
+    "$ref": "#/$defs/UnknownItem"
+   },
+   "title": "Unknowns",
+   "type": "array"
+  }
+ },
+ "required": [
+  "meta"
+ ],
+ "title": "VKM/SKRU-1 WorldSpec vNext",
+ "type": "object"
+}

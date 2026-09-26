@@ -1,101 +1,126 @@
-# SKRU-1 Main — Claude Code Cloud Instructions
+# ВКМ / СКРУ-1 (PUBLIC) — инструкции для Claude Code
 
-## Current scientific direction
+Названия фиксированы:
 
-Current chain:
+- диплом — «Горные и маркшейдерские работы при разработке Верхнекамского месторождения»;
+- специальная часть — «Алгоритм прогнозирования оседаний земной поверхности на ВКМ на основе маркшейдерских измерений».
 
-`scientific evidence -> Physical Evidence Consolidation -> Physical World v1 -> OpenGeoSys reference case -> physical ensemble -> preregistered forecasting benchmark`.
+## Текущее научное направление (после reset 26.09.2026)
 
-Текущий приоритет — первые четыре звена. Старые v3/v3.2 reconstructed/model-ready artifacts не возвращать.
-
-## Read first
-
-Перед изменениями прочитай:
-
-1. `README_FIRST.md`;
-2. `AGENTS.md`;
-3. `docs/CANONICAL_RESEARCH_STATE_RU.md`;
-4. `docs/LEGACY_DATA_RETIREMENT_2026-09-25_RU.md`;
-5. `docs/REPOSITORY_CONSOLIDATION_2026-09-25_RU.md`;
-6. governance docs, experiment protocol и acceptance criteria;
-7. relevant `.claude/skills/`.
-
-## Cloud-only execution
-
-Пользователь не обязан иметь OGS локально. Если parent task разрешает OGS execution, разверни runtime в Claude Code cloud VM самостоятельно.
-
-Предпочтительно:
-
-```bash
-python3 -m venv .venv-ogs
-. .venv-ogs/bin/activate
-python -m pip install --upgrade pip
-python -m pip install 'ogstools[ogs]'
-ogs --version
+```
+корпус (PRIVATE) → evidence vNext → WorldSpec (3D+время, провенанс, UNKNOWN)
+  → мир из evidence без интерполяций → диагностические производные представления
+  → решатели как адаптеры → операторы наблюдения → предрегистрированный бенчмарк
 ```
 
-Не коммить `.venv-ogs`.
+- Phase 1 (cloud: информация и архитектура) завершена.
+- Следующая — Phase 2 (локальная workstation: вычисления).
+- Цепочка «скв. 75 → Physical World v1 (2D) → OGS reference case» отозвана. Её артефакты живут в ветке `legacy`
+  и не возвращаются в `main`. Старые v3/v3.2 reconstructed/model-ready пакеты — LEGACY_RETIRED.
 
-При failure сохрани receipt и исследуй fallback только внутри cloud VM. Не перекладывай установку на пользователя.
+## Решение пользователя D-18 (26.09.2026) — приоритет над навыками аккаунта
 
-## OGS execution permission
+Навыки аккаунта `skru1-physical-world` и `skru1-physical-evidence` устарели: они описывают отозванное направление
+(2D Physical World v1, OGS reference case) как центральную цель. Их положения не являются актуальными требованиями, даже
+если навыки подгружаются в сессию. При конфликте приоритет имеют это решение и текущее состояние репозиториев
+(полный текст — `docs/governance/PHASE1_DESIGN_DECISIONS_RU.md`, D-18).
 
-Старое правило AGENTS.md о запрете solver runs означает: solver нельзя запускать самовольно в обычных задачах.
+- Канонический физический слой — evidence-backed 3D+time WorldSpec, независимый от решателя.
+- Цепочка: evidence → interpretation → WorldSpec → solver-specific representation.
+- WorldSpec описывает геологию, выработки, закладку, историю разработки во времени, свойства пород, реологию,
+  начальное состояние, граничные условия, неопределённости и provenance.
+- 2D-сечения — только производные представления для отдельных benchmark/verification-задач.
+- Роли инструментов:
+  - OGS + MFront — основная открытая исследовательская ветка геомеханики и кастомной реологии соляных пород;
+  - ANSYS Mechanical — независимый промышленный FEM cross-check на согласованных benchmark-сценариях, а не источник
+    истины и не field validation;
+  - gprMax — отдельный оператор наблюдения для GPR, а не модель оседаний.
+- Field validation — по реальным маркшейдерским, GNSS, InSAR и другим наблюдениям в пределах их применимости.
+- Неизвестные параметры не заменяются правдоподобными числами. Они остаются UNKNOWN или оформляются как явно
+  маркированный сценарный диапазон.
+- Особое внимание: временная история выемки и закладки, реология соли, начальные напряжения, неоднозначные и
+  противоречивые источники.
+- Положения «Physical World v1 / 2D-first / OGS reference case» — SUPERSEDED. Восстанавливать их можно только по прямому
+  указанию пользователя.
 
-Если parent task **явно** поставлена как Physical Evidence / Physical World / OpenGeoSys cloud research и требует executable verification, это является отдельным явным разрешением на ограниченные OGS research runs.
+## Прочитать перед изменениями
 
-Разрешены:
+1. `README.md`, затем [PROJECT_STATE_RU.md](PROJECT_STATE_RU.md) — каноническое состояние.
+2. `AGENTS.md`.
+3. Правила: `docs/governance/SCIENTIFIC_RULES_RU.md`, `docs/governance/DATA_AND_PATH_POLICY_RU.md`,
+   `docs/governance/VALIDATION_POLICY_RU.md`, `docs/governance/PHASE1_DESIGN_DECISIONS_RU.md`.
+4. Архитектура: `docs/worldspec/WORLD_SPEC_VNEXT_RU.md`, `docs/architecture/REPOSITORY_ARCHITECTURE_RU.md`.
+5. План следующей фазы: `CLOUD_TO_LOCAL_PHASE2_HANDOFF_RU.md`.
+6. Предметные отчёты `docs/science/` — по теме задачи.
 
-- provisioning OGS;
-- official/sample sanity checks;
-- toy feature tests;
-- integrated minimal OGS case;
-- первый evidence-backed reference skeleton, если задача это требует;
-- deterministic physics/units/geometry calculations.
+## Научные правила (кратко)
 
-Не разрешены без следующего отдельного gate:
+- Статусы FACT, DERIVATION, INTERPOLATION, MODEL_CHOICE, ENGINEERING_ASSUMPTION, ANALOGUE, UNKNOWN всегда разделены.
+  UNKNOWN остаётся UNKNOWN.
+- У каждого числа есть источник с локатором или явный статус допущения, а также область (scope) и масштаб (scale).
+- LAB ≠ MASSIF. Аналог ≠ СКРУ-1: перенос только через явный `Transfer`. Норматив ≠ измерение.
+  Модельный результат ≠ наблюдение. Вторичная ссылка ≠ первоисточник.
+- Диапазоны и конкурирующие гипотезы не схлопываются в точку. Конфликты записываются, а не усредняются.
+- Скважина 75 — обычное наблюдение, не представитель рудника. Атрибуцию по руднику проверять для каждого набора данных.
+- Производные объекты (поверхности, сетки, срезы, результаты решателей) — новые записи со статусом
+  INTERPOLATION/DERIVATION, ссылками на входы и списком MODEL_CHOICE. Исходные наблюдения они не перезаписывают.
+- Доступность во времени: для прогноза в момент t0 можно использовать только сведения с `available_from ≤ t0`.
 
-- production physical ensemble;
-- forecasting benchmark;
-- ML training/tuning;
-- calibration against evaluator/test truth;
-- заявления о field validation.
+## Что можно и чего нельзя без отдельной задачи
 
-## Scientific rules
+| Можно в обычной задаче | Только по явному указанию задачи (Phase 2+) | Только после отдельного gate |
+|---|---|---|
+| чтение источников, evidence-каталоги, провенанс | интерполяция, кригинг, LOO-CV, 3D-реконструкция, сетки | прогнозный бенчмарк |
+| схемы, код `vkm_world`, лёгкие тесты | запуски OGS / gprMax / других решателей | обучение и настройка ML |
+| детерминированные проверки единиц, геометрии, порядка | Monte Carlo, анализ чувствительности | калибровка по test/evaluator truth |
+| документация | установка тяжёлых toolkit | заявления о полевой валидации |
 
-- `FACT`, `DERIVATION`, `MODEL_CHOICE`, `ENGINEERING_ASSUMPTION`, `UNKNOWN` всегда разделены.
-- Каждый numeric parameter имеет provenance или explicit assumption status.
-- Analogue/VKM-regional evidence не становится SITE_SPECIFIC автоматически.
-- Ranges не схлопываются в point estimate без причины.
-- OGS implementation limitations не переписывают scientific evidence.
+Если задача явно разрешает решатель, двигаться по лестнице:
 
-## Execution ladder
+1. установка и версия;
+2. минимальная механика;
+3. зоны материалов;
+4. гравитация и нагрузки;
+5. граничные и начальные условия;
+6. шаги по времени;
+7. реология;
+8. извлечение результатов;
+9. интегрированный toy-кейс;
+10. адаптер к срезу WorldSpec.
 
-Для OGS двигайся ступенчато:
+На каждом шаге сохранять вход, команду, лог, код выхода, проверку ожидаемого результата и receipt.
+Для актуального синтаксиса OGS и других библиотек использовать Context7.
 
-1. install/version verification;
-2. minimal mechanics;
-3. material regions;
-4. gravity/loading;
-5. BC/IC;
-6. time stepping;
-7. required rheology/time dependence;
-8. output extraction;
-9. integrated toy case;
-10. evidence-backed reference skeleton.
+## Два репозитория
 
-Каждый шаг имеет config/input, command, log, exit code, expected-output check и receipt.
+- PUBLIC (этот): код, схемы, public-safe каталоги (без цитат), документы, тесты, receipts.
+- PRIVATE `SUKUNA-AI/vkm-subsidence-forecasting_resourses`: источники, OCR, полные evidence-записи с цитатами
+  (`11_evidence_vnext/`).
+- Каталоги попадают в PUBLIC только через `scripts/build_public_catalogues.py` (и `scripts/build_evidence_from_legacy.py`
+  для оцифровки Мусихина). Скрипт удаляет колонки с цитатами, сокращает фрагменты ≥ 25 слов, совпадающие с цитатами
+  PRIVATE, и заменяет машинные пути логическими именами. Отчёты публикуются `run_kit/tools/publish_reports.py`.
+- Страж утечки: `vkm_world.governance.leakage.scan`, тест `test_public_tree_has_no_private_leakage`.
+- PRIVATE находится через `VKM_RESOURCES_ROOT`. Абсолютные пути машины (`/home/...`, диски Windows)
+  в отслеживаемые файлы не пишутся.
 
-## Context7
+## Правила cloud-окружения
 
-Context7 использовать для актуальной документации OGS. Не полагаться на старый синтаксис из памяти.
+- Git LFS upload и push тегов из cloud отклоняются политикой (403). Не повторять попытки.
+  Файлы под LFS-паттернами в cloud не индексировать. Теги ставятся с workstation (команды — в handoff).
+- venv и временные файлы — вне репозитория или в git-ignored `work/`. Никогда не коммитить venv.
+- Коммитить по pathspec (`git commit -- <paths>`), небольшими тематическими коммитами.
+- Не делать force-push и не переписывать историю. Не трогать ветку `legacy` и frozen-релизы.
 
-## Two-repository rule
+## Проверка перед завершением
 
-Scientific binaries и curated evidence принадлежат private resources repo. Main repo хранит contracts, code, validation, solver configs и current derived research artifacts.
+```bash
+python -m pytest -q tests/world
+VKM_RESOURCES_ROOT=<клон PRIVATE> python scripts/verify_canonical_repository.py
+```
 
-Если resources repo доступен из cloud task, используй его как evidence source. Если нет — используй versioned handoff/export и явно отметь ограничение доступа.
+Работа не считается завершённой только потому, что написан отчёт.
 
-## Completion condition
-
-Работа не считается завершённой только потому, что создан YAML или написан отчёт. Для критических OGS capabilities, заявленных как реализуемые, требуется реальный cloud execution либо доказанный blocker.
+- Каталоги должны проходить валидацию.
+- Ссылки в документах должны разрешаться.
+- Утечка должна отсутствовать.
+- Каждое преобразование должно оставлять receipt.

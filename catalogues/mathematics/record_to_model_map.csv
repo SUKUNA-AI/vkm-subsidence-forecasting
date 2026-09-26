@@ -1,0 +1,1027 @@
+vn_id,kind,source_id,pdf_page,locator_extra,in_merged,model_ids,disposition,reason
+EV-VN-S001-0018,formula,VKM-SRC-001,8,формула (1),True,MM-INSAR-007,MAPPED,
+EV-VN-S001-0019,formula,VKM-SRC-001,8,формула (2),True,MM-INSAR-001,MAPPED,
+EV-VN-S001-0020,formula,VKM-SRC-001,8,"формула (3), пояснение на с.9",True,MM-INSAR-003,MAPPED,
+EV-VN-S001-0021,formula,VKM-SRC-001,9,формула (4),True,MM-INSAR-004,MAPPED,
+EV-VN-S001-0047,subsidence_method,VKM-SRC-001,14,текст с.14-15,True,MM-INSAR-009,MAPPED,
+EV-VN-S001-0049,engineering_rule,VKM-SRC-001,15,текст с.15,True,,EXCLUDED,"NO_EQUATION: требования к InSAR-съёмке (цикл 11/22 сут, ≥6–8 сцен) — правило дизайна наблюдений, не математическая модель"
+EV-VN-S001-0056,formula,VKM-SRC-001,17,формула (5),True,MM-INSAR-005;MM-DEF-001,MAPPED,
+EV-VN-S001-0057,formula,VKM-SRC-001,17,формула (6),True,MM-INSAR-005,MAPPED,
+EV-VN-S001-0058,formula,VKM-SRC-001,17,формула (7),True,MM-INSAR-006,MAPPED,
+EV-VN-S001-0059,formula,VKM-SRC-001,17,формула (8),True,MM-INSAR-006,MAPPED,
+EV-VN-S001-0060,formula,VKM-SRC-001,17,формула (9),True,MM-STAT-005,MAPPED,
+EV-VN-S001-0064,engineering_rule,VKM-SRC-001,18,текст с.18,True,,EXCLUDED,NO_EQUATION: проектирование многосезонного InSAR-мониторинга (числовые требования к сценам) — правило дизайна наблюдений
+EV-VN-S001-0065,engineering_rule,VKM-SRC-001,18,текст с.18-19,True,,EXCLUDED,NO_EQUATION: компоновка цепочек интерферограмм — правило дизайна наблюдений
+EV-VN-S001-0066,subsidence_method,VKM-SRC-001,19,текст с.19,True,MM-INSAR-010,MAPPED,
+EV-VN-S002-0004,engineering_rule,VKM-SRC-002,3,"слайд 3, таблица 'Выбор компонентов системы мониторинга в зависимости от размера месторождения'",True,,EXCLUDED,NO_EQUATION: матрица состава системы мониторинга — не математическая модель
+EV-VN-S002-0016,formula,VKM-SRC-002,10,"слайд 10, верхняя формула",True,MM-INSAR-008,MAPPED,
+EV-VN-S002-0017,formula,VKM-SRC-002,10,"слайд 10, нижняя формула",True,MM-INSAR-002;MM-INSAR-008,MAPPED,
+EV-VN-S002-0019,subsidence_method,VKM-SRC-002,10,слайд 10 'Интерпретация результатов' + рисунок,True,MM-INSAR-011,MAPPED,
+EV-VN-S003-0014,subsidence_method,VKM-SRC-003,6,"Введение, Методология; ссылка [32]",True,MM-ELAST-001;MM-SUBS-001,MAPPED,
+EV-VN-S003-0017,formula,VKM-SRC-003,7,Введение (словесная формулировка); ссылка [59],True,MM-INSAR-012,MAPPED,
+EV-VN-S003-0047,formula,VKM-SRC-003,15,"формула (1.1), стр.15-16; Рис. 1.2",True,MM-INSAR-001;MM-INSAR-002,MAPPED,
+EV-VN-S003-0053,formula,VKM-SRC-003,17,формула (1.2),True,MM-INSAR-001,MAPPED,
+EV-VN-S003-0057,formula,VKM-SRC-003,18,формула (1.3),True,MM-INSAR-016,MAPPED,
+EV-VN-S003-0068,formula,VKM-SRC-003,21,формула (1.4); стр.20-21,True,MM-INSAR-012,MAPPED,
+EV-VN-S003-0069,formula,VKM-SRC-003,21,формула (1.5),True,MM-INSAR-013,MAPPED,
+EV-VN-S003-0070,formula,VKM-SRC-003,21,формула (1.6),True,MM-INSAR-013,MAPPED,
+EV-VN-S003-0073,formula,VKM-SRC-003,21,формула (1.7),True,MM-INSAR-014,MAPPED,
+EV-VN-S003-0075,subsidence_method,VKM-SRC-003,22,"§1.2.1, Рис. 1.3",True,MM-INSAR-018,MAPPED,
+EV-VN-S003-0082,subsidence_method,VKM-SRC-003,24,"§1.2.3, Рис. 1.4 (стр.24-25)",True,MM-INSAR-019,MAPPED,
+EV-VN-S003-0087,subsidence_method,VKM-SRC-003,26,"§1.2.3 IPTA, стр.26-27",True,MM-INSAR-010;MM-INSAR-019,MAPPED,
+EV-VN-S003-0093,subsidence_method,VKM-SRC-003,28,"§1.3 метод офсетов, стр.28-29",True,MM-INSAR-020,MAPPED,
+EV-VN-S003-0119,subsidence_method,VKM-SRC-003,35,"§2.2 (метод Std, развертка)",True,MM-INSAR-005;MM-INSAR-021,MAPPED,
+EV-VN-S003-0121,formula,VKM-SRC-003,35,§2.2 (применение формулы 1.7),True,MM-INSAR-014,MAPPED,
+EV-VN-S003-0130,subsidence_method,VKM-SRC-003,37,§2.2 метод Step (стр.37-38),True,MM-INSAR-022,MAPPED,
+EV-VN-S003-0220,subsidence_method,VKM-SRC-003,61,§3.3 p.61,True,MM-INSAR-014,MAPPED,
+EV-VN-S003-0262,formula,VKM-SRC-003,72,"§3.5 p.72, step 2",True,MM-INSAR-017,MAPPED,
+EV-VN-S003-0263,subsidence_method,VKM-SRC-003,72,§3.5 p.72,True,MM-INSAR-017,MAPPED,
+EV-VN-S003-0264,subsidence_method,VKM-SRC-003,73,"§3.5 p.73, step 3",True,MM-INSAR-017,MAPPED,
+EV-VN-S003-0265,formula,VKM-SRC-003,73,§3.5 p.73,True,MM-INSAR-017,MAPPED,
+EV-VN-S003-0266,formula,VKM-SRC-003,72,§3.5 p.72 step 1,True,MM-INSAR-017,MAPPED,
+EV-VN-S003-0276,engineering_rule,VKM-SRC-003,75,"Выводы по главе 3, p.75",True,MM-INSAR-021;MM-INSAR-022,MAPPED,
+EV-VN-S003-0279,formula,VKM-SRC-003,77,"формула (4.1) (= (1.4)), §4.1.1",True,MM-INSAR-012,MAPPED,
+EV-VN-S003-0281,formula,VKM-SRC-003,77,формула (4.2),True,MM-INSAR-013,MAPPED,
+EV-VN-S003-0282,formula,VKM-SRC-003,78,формула (4.3),True,MM-INSAR-013,MAPPED,
+EV-VN-S003-0283,subsidence_method,VKM-SRC-003,78,§4.1.1 p.78,True,MM-INSAR-014;MM-INSAR-015,MAPPED,
+EV-VN-S003-0284,formula,VKM-SRC-003,78,формула (4.4),True,MM-INSAR-015,MAPPED,
+EV-VN-S003-0285,formula,VKM-SRC-003,78,формула (4.5),True,MM-INSAR-015,MAPPED,
+EV-VN-S003-0288,formula,VKM-SRC-003,79,формула (4.6),True,MM-UGS-001,MAPPED,
+EV-VN-S003-0290,formula,VKM-SRC-003,79,формула (4.7),True,MM-ELAST-001,MAPPED,
+EV-VN-S003-0291,formula,VKM-SRC-003,79,формула (4.8),True,MM-ELAST-002,MAPPED,
+EV-VN-S003-0292,formula,VKM-SRC-003,80,формула (4.9),True,MM-ELAST-003,MAPPED,
+EV-VN-S003-0293,formula,VKM-SRC-003,80,формула (4.10),True,MM-ELAST-004,MAPPED,
+EV-VN-S003-0318,subsidence_method,VKM-SRC-003,85,§4.1 конец,True,MM-INSAR-014,MAPPED,
+EV-VN-S003-0329,formula,VKM-SRC-003,87,формула (4.11),True,MM-SUBS-001,MAPPED,
+EV-VN-S003-0330,formula,VKM-SRC-003,87,формула (4.12),True,MM-SUBS-002,MAPPED,
+EV-VN-S003-0331,formula,VKM-SRC-003,87,формула (4.13),True,MM-SUBS-002,MAPPED,
+EV-VN-S003-0336,formula,VKM-SRC-003,88,формула (4.14),True,MM-SUBS-001,MAPPED,
+EV-VN-S003-0337,formula,VKM-SRC-003,88,формула (4.15),True,MM-SUBS-001,MAPPED,
+EV-VN-S003-0338,formula,VKM-SRC-003,89,формула (4.16),True,MM-SUBS-001,MAPPED,
+EV-VN-S003-0346,subsidence_method,VKM-SRC-003,88,"§4.2.2, (4.11)-(4.16), табл. 4.1-4.2",True,MM-SUBS-001,MAPPED,
+EV-VN-S003-0348,subsidence_method,VKM-SRC-003,90,§4.2.3,True,MM-INSAR-012,MAPPED,
+EV-VN-S003-0366,subsidence_method,VKM-SRC-003,96,§4.2.6,True,MM-INV-002,MAPPED,
+EV-VN-S003-0373,formula,VKM-SRC-003,101,"формула (5.1), рис. 5.2",True,MM-INSAR-025,MAPPED,
+EV-VN-S003-0379,formula,VKM-SRC-003,105,"формула (5.2), §5.2.2",True,MM-INSAR-025,MAPPED,
+EV-VN-S003-0386,formula,VKM-SRC-003,108,"§5.3, угол подвижки",True,MM-INV-001,MAPPED,
+EV-VN-S003-0387,formula,VKM-SRC-003,109,формула (5.3),True,MM-INV-001,MAPPED,
+EV-VN-S004-0015,formula,VKM-SRC-004,3,формула (1),True,MM-INSAR-001,MAPPED,
+EV-VN-S004-0038,formula,VKM-SRC-004,7,"p.7 (formula stated verbally, no number)",True,MM-INSAR-014,MAPPED,
+EV-VN-S004-0062,formula,VKM-SRC-004,13,p.13 (unnumbered),True,MM-INSAR-017,MAPPED,
+EV-VN-S005-0008,subsidence_method,VKM-SRC-005,2,§Методические положения расчетов; refs [4-8],True,MM-GEOMECH-001,MAPPED,
+EV-VN-S006-0069,formula,VKM-SRC-006,30,"§3.2, с. 30, Рис. 3.1",True,MM-STAT-001,MAPPED,
+EV-VN-S006-0073,formula,VKM-SRC-006,31,"§3.2, с. 31",True,MM-STAT-001,MAPPED,
+EV-VN-S006-0075,formula,VKM-SRC-006,32,"§3.2, с. 32",True,MM-STAT-001,MAPPED,
+EV-VN-S006-0076,formula,VKM-SRC-006,32,"§3.2, с. 32",True,MM-STAT-002,MAPPED,
+EV-VN-S006-0077,formula,VKM-SRC-006,32,"§3.2, с. 32",True,MM-STAT-002,MAPPED,
+EV-VN-S006-0085,formula,VKM-SRC-006,36,"§3.2, с. 36",True,MM-STAT-003,MAPPED,
+EV-VN-S006-0091,formula,VKM-SRC-006,38,"§3.3, с. 38-39",True,MM-STAT-004,MAPPED,
+EV-VN-S006-0146,engineering_rule,VKM-SRC-006,61,§5.3,True,MM-GEODYN-001,MAPPED,
+EV-VN-S006-0162,formula,VKM-SRC-006,68,§6.1 p.68,True,MM-RS-001,MAPPED,
+EV-VN-S006-0163,formula,VKM-SRC-006,68,§6.1 p.68,True,MM-RS-001,MAPPED,
+EV-VN-S006-0166,formula,VKM-SRC-006,71,§6.2 p.71,True,MM-RS-002,MAPPED,
+EV-VN-S006-0167,formula,VKM-SRC-006,71,§6.2 p.71,True,MM-RS-002,MAPPED,
+EV-VN-S006-0176,engineering_rule,VKM-SRC-006,74,§6.3 p.74,True,,EXCLUDED,NO_EQUATION: буфер ≥100 м при дешифрировании карста — правило интерпретации
+EV-VN-S007-0019,formula,VKM-SRC-007,5,Рис. 2 (DInSAR concept) [22],True,MM-INSAR-001;MM-INSAR-002,MAPPED,
+EV-VN-S007-0020,subsidence_method,VKM-SRC-007,6,"Рис. 3, Рис. 4 (блок-схема), Рис. 5 (SNAP graphs)",True,MM-INSAR-023,MAPPED,
+EV-VN-S008-0004,subsidence_method,VKM-SRC-008,2,Рис. 1 Этапы интерферометрической обработки снимков,True,MM-INSAR-024,MAPPED,
+EV-VN-S009-0015,subsidence_method,VKM-SRC-009,3,Рис. 2 Блок-схема обработки в ENVI+SARscape; §1–8,True,MM-INSAR-026;MM-INSAR-027,MAPPED,
+EV-VN-S009-0019,formula,VKM-SRC-009,4,§3 Генерация интерферограммы; Рис. 5,True,MM-INSAR-002,MAPPED,
+EV-VN-S009-0023,formula,VKM-SRC-009,4,§8 Преобразование фазы в смещения,True,MM-INSAR-026,MAPPED,
+EV-VN-S009-0030,subsidence_method,VKM-SRC-009,5,Рис. 4 Технология построения ЦМР,True,MM-INSAR-027,MAPPED,
+EV-VN-S010-0004,formula,VKM-SRC-010,2,Принцип радарной интерферометрии (verbal),True,MM-INSAR-002,MAPPED,
+EV-VN-S010-0007,subsidence_method,VKM-SRC-010,3,"Методы DInSAR, SBaS, PS",True,MM-INSAR-028,MAPPED,
+EV-VN-S010-0016,formula,VKM-SRC-010,7,Рис. 7 Общая схема расчета температуры поверхности по данным Landsat-8,True,MM-THERM-001,MAPPED,
+EV-VN-S011-0238,engineering_rule,VKM-SRC-011,13,§1.2 литологические карты,True,,EXCLUDED,CLASSIFICATION_THRESHOLD (KCl ≥18% / 5–18%) без уравнения → каталог литологии (поток геологии)
+EV-VN-S011-0239,formula,VKM-SRC-011,13,§1.2 (без номера),True,MM-GEOL-001,MAPPED,
+EV-VN-S011-0384,engineering_rule,VKM-SRC-011,24,§1.3.3 термины,True,,EXCLUDED,"DEFINITIONS (РФСД, ТДР, ДРК) — терминология, не модель"
+EV-VN-S011-0517,formula,VKM-SRC-011,28,"текст с.55, формула без номера; [339]",True,MM-GEOL-002,MAPPED,
+EV-VN-S011-0521,engineering_rule,VKM-SRC-011,29,текст с.57; табл. 1.13,True,MM-GEOL-003,MAPPED,
+EV-VN-S011-0538,engineering_rule,VKM-SRC-011,30,текст с.58-59; [335],True,,EXCLUDED,CLASSIFICATION rule (достоверность разломов ОД/П/М по числу методов) — не уравнение
+EV-VN-S011-1069,formula,VKM-SRC-011,56,стр. 110,True,MM-STAT-006,MAPPED,
+EV-VN-S011-1078,formula,VKM-SRC-011,57,Табл. 2.7,True,MM-GEOL-004,MAPPED,
+EV-VN-S011-1079,formula,VKM-SRC-011,57,Табл. 2.7,True,MM-GEOL-004,MAPPED,
+EV-VN-S011-1080,formula,VKM-SRC-011,57,Табл. 2.7,True,MM-GEOL-004,MAPPED,
+EV-VN-S011-1081,formula,VKM-SRC-011,57,Табл. 2.7,True,MM-GEOL-004,MAPPED,
+EV-VN-S011-1082,formula,VKM-SRC-011,57,Табл. 2.7,True,MM-GEOL-004,MAPPED,
+EV-VN-S011-1083,formula,VKM-SRC-011,57,Табл. 2.7,True,MM-GEOL-004,MAPPED,
+EV-VN-S011-1084,formula,VKM-SRC-011,57,Табл. 2.7,True,MM-GEOL-004,MAPPED,
+EV-VN-S011-1396,formula,VKM-SRC-011,66,стр. 131,True,MM-STAT-007,MAPPED,
+EV-VN-S011-1482,formula,VKM-SRC-011,73,с.145 (бром-хлорный коэффициент),True,MM-GEOCHEM-001,MAPPED,
+EV-VN-S011-1537,engineering_rule,VKM-SRC-011,78,Рис. 2.95,True,,EXCLUDED,NO_EQUATION: контур предохранительного целика скважины без размеров
+EV-VN-S011-1546,formula,VKM-SRC-011,79,"с.157, формула [205]",True,MM-GEOCHEM-002,MAPPED,
+EV-VN-S011-1549,formula,VKM-SRC-011,80,"с.158, формула [205]",True,MM-GEOCHEM-002,MAPPED,
+EV-VN-S011-1567,formula,VKM-SRC-011,82,с.162-163 (статистика латеральной изменчивости),True,MM-STAT-008,MAPPED,
+EV-VN-S011-1632,formula,VKM-SRC-011,90,"Табл. 2.45, примечание",True,MM-GEOCHEM-003,MAPPED,
+EV-VN-S011-1634,formula,VKM-SRC-011,91,"Табл. 2.47, примечание",True,MM-GEOCHEM-004,MAPPED,
+EV-VN-S011-1665,formula,VKM-SRC-011,96,"Табл. 2.57, примечание",True,MM-GEOCHEM-004,MAPPED,
+EV-VN-S011-1717,formula,VKM-SRC-011,101,p.201,True,MM-HYDRO-002,MAPPED,
+EV-VN-S011-1718,formula,VKM-SRC-011,101,p.201,True,MM-HYDRO-001,MAPPED,
+EV-VN-S011-1747,formula,VKM-SRC-011,106,"§3.4, p.210",True,MM-HYDRO-003,MAPPED,
+EV-VN-S011-1773,formula,VKM-SRC-011,109,p.216,True,MM-THERM-002,MAPPED,
+EV-VN-S011-1776,formula,VKM-SRC-011,109,p.216,True,MM-THERM-002,MAPPED,
+EV-VN-S011-1983,rheology_law,VKM-SRC-011,115,"§3.6, p.228-229, [242, 359]",True,MM-CREEP-007,MAPPED,
+EV-VN-S011-1986,formula,VKM-SRC-011,116,"§3.6, p.230",True,MM-GEOL-005,MAPPED,
+EV-VN-S011-2012,formula,VKM-SRC-011,118,"§3.8, p.234",True,MM-FRAC-001,MAPPED,
+EV-VN-S011-2013,subsidence_method,VKM-SRC-011,118,"§3.8, p.234-236, Рис. 3.16, 3.18",True,MM-FRAC-002,MAPPED,
+EV-VN-S011-2038,formula,VKM-SRC-011,121,"Рис. 3.29а, текст стр. 240",True,MM-HYDRO-004,MAPPED,
+EV-VN-S011-2039,formula,VKM-SRC-011,121,"формулы (3.1)-(3.5), Рис. 3.29б",True,MM-HYDRO-005,MAPPED,
+EV-VN-S011-2040,formula,VKM-SRC-011,121,формулы (3.6)-(3.8),True,MM-HYDRO-005,MAPPED,
+EV-VN-S011-2041,formula,VKM-SRC-011,121,"формулы (3.9),(3.10)",True,MM-HYDRO-005,MAPPED,
+EV-VN-S011-2049,formula,VKM-SRC-011,123,"стр. 244, табл. 3.5-3.7",True,MM-GEOCHEM-005,MAPPED,
+EV-VN-S011-2068,engineering_rule,VKM-SRC-011,128,"стр. 254, п.1",True,,EXCLUDED,QUALITATIVE: оценка ВЗТ как интегрального фактора — без уравнения
+EV-VN-S011-2070,engineering_rule,VKM-SRC-011,128,стр. 254 пп. 5-10,True,,EXCLUDED,QUALITATIVE: факторы устойчивости междупластий — без уравнения
+EV-VN-S011-2073,engineering_rule,VKM-SRC-011,128,стр. 255,True,,EXCLUDED,QUALITATIVE classification of ВЗТ structure (Методические рекомендации 2008) — без уравнения
+EV-VN-S011-2077,formula,VKM-SRC-011,129,стр. 256; Рис. 4.3,True,MM-GEOL-006,MAPPED,
+EV-VN-S011-2078,formula,VKM-SRC-011,129,стр. 257,True,MM-ROOF-001,MAPPED,
+EV-VN-S011-2079,formula,VKM-SRC-011,129,стр. 257,True,MM-ROOF-001,MAPPED,
+EV-VN-S011-2080,subsidence_method,VKM-SRC-011,129,"стр. 257; Рис. 4.4, 4.5",True,MM-GEOL-007,MAPPED,
+EV-VN-S011-2083,formula,VKM-SRC-011,130,стр. 258,True,MM-ROOF-001,MAPPED,
+EV-VN-S011-3955,rheology_law,VKM-SRC-011,183,English SUMMARY 3.6 Causes and mechanisms of salt stratum deformation; Russian pdf pp.115-116,True,MM-CREEP-007,MAPPED,
+EV-VN-S012-0020,engineering_rule,VKM-SRC-012,13,§1.1,True,,EXCLUDED,NO_EQUATION: назначение междушахтных целиков (предохранительный характер)
+EV-VN-S012-0021,engineering_rule,VKM-SRC-012,13,"§1.1, сноска 1",True,,EXCLUDED,NO_EQUATION: требование ФНиП п.211 (гидроизолированные участки)
+EV-VN-S012-0024,subsidence_method,VKM-SRC-012,14,§1.1,True,MM-SUBS-013,MAPPED,
+EV-VN-S012-0026,engineering_rule,VKM-SRC-012,14,§1.1,True,MM-SUBS-013,MAPPED,
+EV-VN-S012-0029,formula,VKM-SRC-012,14,формула (1.1),True,MM-PROT-001,MAPPED,
+EV-VN-S012-0031,formula,VKM-SRC-012,15,формула (1.2),True,MM-PROT-002,MAPPED,
+EV-VN-S012-0032,engineering_rule,VKM-SRC-012,15,§1.1,True,MM-PROT-002,MAPPED,
+EV-VN-S012-0035,engineering_rule,VKM-SRC-012,16,§1.1 (end),True,MM-PROT-002,MAPPED,
+EV-VN-S012-0039,formula,VKM-SRC-012,17,формула (1.3),True,MM-CREEP-101,MAPPED,
+EV-VN-S012-0040,rheology_law,VKM-SRC-012,18,формулы (1.3)-(1.5),True,MM-CREEP-101;MM-CREEP-102,MAPPED,
+EV-VN-S012-0041,formula,VKM-SRC-012,18,формула (1.4),True,MM-CREEP-102,MAPPED,
+EV-VN-S012-0042,formula,VKM-SRC-012,18,формула (1.5),True,MM-CREEP-102,MAPPED,
+EV-VN-S012-0046,rheology_law,VKM-SRC-012,19,"§1.2, нормативная методика [69]",True,MM-CREEP-102,MAPPED,
+EV-VN-S012-0047,engineering_rule,VKM-SRC-012,19,"§1.2, нормативная методика [69]",True,MM-FRAC-003,MAPPED,
+EV-VN-S012-0048,formula,VKM-SRC-012,19,"§1.2, критерий трещинообразования [69]",True,MM-FRAC-003,MAPPED,
+EV-VN-S012-0070,engineering_rule,VKM-SRC-012,27,§1.4.1,True,,EXCLUDED,NO_EQUATION: длительная прочность как основание нормативной степени нагружения (см. CL-02)
+EV-VN-S012-0188,engineering_rule,VKM-SRC-012,38,§1.6 Выводы п.1,True,MM-PROT-002,MAPPED,
+EV-VN-S012-0196,engineering_rule,VKM-SRC-012,41,§2.1,True,,EXCLUDED,"LAYOUT_RULE: схема опорных реперов (треугольник 50 м, 45–60 м) — геометрия сети наблюдений, не модель"
+EV-VN-S012-0200,engineering_rule,VKM-SRC-012,41,§2.1 pp.41-42,True,MM-OBS-001,MAPPED,
+EV-VN-S012-0256,subsidence_method,VKM-SRC-012,54,§2.4 pp.54-55,True,MM-SUBS-010,MAPPED,
+EV-VN-S012-0257,engineering_rule,VKM-SRC-012,54,§2.4,True,MM-SUBS-013,MAPPED,
+EV-VN-S012-0258,engineering_rule,VKM-SRC-012,54,§2.4,True,MM-SUBS-014,MAPPED,
+EV-VN-S012-0259,formula,VKM-SRC-012,54,формула (2.1),True,MM-SUBS-011,MAPPED,
+EV-VN-S012-0260,formula,VKM-SRC-012,54,формула (2.2) pp.54-55,True,MM-SUBS-011,MAPPED,
+EV-VN-S012-0261,engineering_rule,VKM-SRC-012,55,§2.4 p.55,True,MM-SUBS-011,MAPPED,
+EV-VN-S012-0262,formula,VKM-SRC-012,55,формула (2.3),True,MM-SUBS-012,MAPPED,
+EV-VN-S012-0432,formula,VKM-SRC-012,76,формула (3.1),True,MM-ELAST-005,MAPPED,
+EV-VN-S012-0446,formula,VKM-SRC-012,78,Рис. 3.13 (уравнение на графике),True,MM-PETRO-001,MAPPED,
+EV-VN-S012-0449,formula,VKM-SRC-012,79,Рис. 3.14 (уравнение на графике),True,MM-PETRO-002,MAPPED,
+EV-VN-S012-0454,formula,VKM-SRC-012,81,формула (3.2),True,MM-STR-001,MAPPED,
+EV-VN-S012-0455,formula,VKM-SRC-012,81,формула (3.3),True,MM-STR-001,MAPPED,
+EV-VN-S012-0505,subsidence_method,VKM-SRC-012,95,§4.1,True,MM-GEOMECH-002,MAPPED,
+EV-VN-S012-0508,formula,VKM-SRC-012,95,формула (4.1),True,MM-STR-002,MAPPED,
+EV-VN-S012-0509,formula,VKM-SRC-012,96,формула (4.2),True,MM-STR-002,MAPPED,
+EV-VN-S012-0526,subsidence_method,VKM-SRC-012,99,§4.2,True,MM-SCALE-001,MAPPED,
+EV-VN-S012-0576,engineering_rule,VKM-SRC-012,106,§4.2 p.106,True,,EXCLUDED,NO_EQUATION: своевременная закладка камер у целика
+EV-VN-S012-0740,subsidence_method,VKM-SRC-012,109,§4.2–4.3 pp.99-113,True,MM-CREEP-008;MM-GEOMECH-002,MAPPED,
+EV-VN-S014-0012,engineering_rule,VKM-SRC-014,7,Предисловие,True,,EXCLUDED,STATUS_FLAG: методики практикума учебные (учтено в notes всех моделей VKM-SRC-014)
+EV-VN-S014-0214,engineering_rule,VKM-SRC-014,19,§1.3,True,,EXCLUDED,NO_EQUATION: схема тектонического районирования (РФСД)
+EV-VN-S014-0301,engineering_rule,VKM-SRC-014,22,§1.4 ВЗТ,True,,EXCLUDED,DEFINITION: ВЗТ (не уравнение)
+EV-VN-S014-0302,engineering_rule,VKM-SRC-014,22,§1.4 ВЗТ,True,,EXCLUDED,CLASSIFICATION: полнота разреза ВЗТ (не уравнение)
+EV-VN-S014-0340,engineering_rule,VKM-SRC-014,28,§2.1,True,,EXCLUDED,NO_EQUATION: деление шахтного поля СКРУ-2 на гидроизолированные участки
+EV-VN-S014-0346,engineering_rule,VKM-SRC-014,29,§2.1,True,,EXCLUDED,"NO_EQUATION: проходка стволов замораживанием, тюбинги"
+EV-VN-S014-0394,formula,VKM-SRC-014,45,§2.4 (fan characteristic parameters),True,MM-VENT-001,MAPPED,
+EV-VN-S014-0395,formula,VKM-SRC-014,46,"§2.4, формулы (2.1)-(2.2)",True,MM-VENT-001,MAPPED,
+EV-VN-S014-0403,engineering_rule,VKM-SRC-014,52,§2.5,True,,EXCLUDED,NO_EQUATION: выбор жёстких/податливых целиков
+EV-VN-S014-0411,engineering_rule,VKM-SRC-014,54,§2.5,True,,EXCLUDED,TECHNOLOGY_RULE: ширина/высота камер (Вк ≤ 10 м) — каталог горной технологии
+EV-VN-S014-0415,engineering_rule,VKM-SRC-014,54,"§2.5, «Указания по защите рудников от затопления…»",True,,EXCLUDED,TECHNOLOGY_RULE: условия выбора параметров системы (опережение верхнего пласта ≥50 м) — каталог горной технологии
+EV-VN-S014-0432,engineering_rule,VKM-SRC-014,59,§2.6,True,,EXCLUDED,TECHNOLOGY_RULE: анкерное крепление
+EV-VN-S014-0545,engineering_rule,VKM-SRC-014,82,§3.1,True,,EXCLUDED,TECHNOLOGY_RULE: прямой порядок отработки СКРУ-1 (хронология)
+EV-VN-S014-0577,engineering_rule,VKM-SRC-014,93,Рис. 3.10 legend,True,,EXCLUDED,NO_EQUATION: легенда карты аномальных зон
+EV-VN-S014-0657,engineering_rule,VKM-SRC-014,102,"§3.4, Рис. 3.17",True,,EXCLUDED,TECHNOLOGY_RULE: бетонные перемычки с врубами
+EV-VN-S014-0675,engineering_rule,VKM-SRC-014,106,§3.5,True,,EXCLUDED,TECHNOLOGY_RULE: порядок отработки блоков БКПРУ-4
+EV-VN-S014-0677,engineering_rule,VKM-SRC-014,106,Рис. 3.21,True,,EXCLUDED,TECHNOLOGY_RULE: ≥2 м соли до маркирующей глины
+EV-VN-S014-0803,engineering_rule,VKM-SRC-014,108,§3.6,True,,EXCLUDED,TECHNOLOGY_RULE: дренажные шпуры
+EV-VN-S014-0817,engineering_rule,VKM-SRC-014,111,§3.7,True,,EXCLUDED,"DESIGN_VALUE: целик 60,8 м между КБС (параметр, не модель)"
+EV-VN-S014-0826,engineering_rule,VKM-SRC-014,113,§4.1,True,,EXCLUDED,TECHNOLOGY_RULE: подрезка коржей СКРУ-1
+EV-VN-S014-0827,engineering_rule,VKM-SRC-014,113,§4.1 (pp.113–115),True,,EXCLUDED,TECHNOLOGY_RULE: анкерное крепление СКРУ-1
+EV-VN-S014-0835,engineering_rule,VKM-SRC-014,115,§4.2,True,,EXCLUDED,"TIME_WINDOW_RULE: выемка надработанного слоя Вк через 2–45 сут (хронология/технология, не уравнение)"
+EV-VN-S014-0842,engineering_rule,VKM-SRC-014,116,§4.2 (pp.116–118),True,,EXCLUDED,TECHNOLOGY_RULE: геометрия торпедирования (неравенства по R_эф)
+EV-VN-S014-0846,engineering_rule,VKM-SRC-014,118,Рис. 4.3,True,,EXCLUDED,TECHNOLOGY_RULE: конструкция заряда (неравенства длин)
+EV-VN-S014-0847,formula,VKM-SRC-014,118,"формула (4.1), Рис. 4.4",True,MM-GASDYN-001,MAPPED,
+EV-VN-S014-0856,engineering_rule,VKM-SRC-014,120,§4.2,True,MM-GASDYN-001,MAPPED,
+EV-VN-S014-0857,formula,VKM-SRC-014,120,формула (4.2),True,MM-GASDYN-001,MAPPED,
+EV-VN-S014-0860,engineering_rule,VKM-SRC-014,121,§4.2 (pp.120–121),True,,EXCLUDED,TECHNOLOGY_RULE: профилактическое взрывание (заряды)
+EV-VN-S014-0861,engineering_rule,VKM-SRC-014,121,§4.2,True,,EXCLUDED,TIME_WINDOW_RULE: ≤70 сут между торпедированием и выемкой
+EV-VN-S014-0863,engineering_rule,VKM-SRC-014,121,§4.2,True,,EXCLUDED,"TECHNOLOGY_RULE: подрубка кровли ≤0,3 м"
+EV-VN-S014-0866,engineering_rule,VKM-SRC-014,122,§4.3 (pp.122–123),True,,EXCLUDED,TECHNOLOGY_RULE: подрезка коржей СКРУ-2
+EV-VN-S014-0877,engineering_rule,VKM-SRC-014,129,Рис. 4.11 (сечения А–А),True,,EXCLUDED,TECHNOLOGY_RULE: дегазационные шпуры СКРУ-3
+EV-VN-S014-0889,engineering_rule,VKM-SRC-014,132,Рис. 4.14,True,,EXCLUDED,"TECHNOLOGY_RULE: анкеры 1,5×1,5 м"
+EV-VN-S014-0896,engineering_rule,VKM-SRC-014,135,§4.6,True,,EXCLUDED,TECHNOLOGY_RULE: условия крепления кровли БКПРУ-4
+EV-VN-S014-0902,engineering_rule,VKM-SRC-014,139,§5.1,True,,EXCLUDED,"TECHNOLOGY_RULE: зазоры при механической закладке (≤1,0 м) — упомянуто в MM-BACKFILL-003"
+EV-VN-S014-0935,formula,VKM-SRC-014,151,формула (6.1),True,MM-BACKFILL-001,MAPPED,
+EV-VN-S014-0936,formula,VKM-SRC-014,151,формула (6.2),True,MM-BACKFILL-001,MAPPED,
+EV-VN-S014-0937,formula,VKM-SRC-014,151,формула (6.3),True,MM-BACKFILL-001,MAPPED,
+EV-VN-S014-0941,formula,VKM-SRC-014,152,формула (6.4),True,MM-BACKFILL-002,MAPPED,
+EV-VN-S014-0943,formula,VKM-SRC-014,153,формула (6.5),True,MM-BACKFILL-002,MAPPED,
+EV-VN-S014-0944,formula,VKM-SRC-014,153,формула (6.6),True,MM-BACKFILL-002,MAPPED,
+EV-VN-S014-0945,formula,VKM-SRC-014,153,формула (6.7),True,MM-HYDTR-001,MAPPED,
+EV-VN-S014-0947,formula,VKM-SRC-014,153,формула (6.8),True,MM-HYDTR-001,MAPPED,
+EV-VN-S014-0948,formula,VKM-SRC-014,153,формула (6.9),True,MM-HYDTR-001,MAPPED,
+EV-VN-S014-0949,formula,VKM-SRC-014,154,формула (6.10),True,MM-BACKFILL-002,MAPPED,
+EV-VN-S014-0950,formula,VKM-SRC-014,154,формула (6.11),True,MM-BACKFILL-002,MAPPED,
+EV-VN-S014-0951,formula,VKM-SRC-014,154,формула (6.12),True,MM-HYDTR-001,MAPPED,
+EV-VN-S014-0952,formula,VKM-SRC-014,154,формула (6.13),True,MM-HYDTR-001,MAPPED,
+EV-VN-S014-0953,formula,VKM-SRC-014,155,формула (6.14),True,MM-HYDTR-001,MAPPED,
+EV-VN-S014-0954,formula,VKM-SRC-014,155,формула (6.15),True,MM-HYDTR-001,MAPPED,
+EV-VN-S014-0957,formula,VKM-SRC-014,156,формула (6.16),True,MM-HYDTR-001,MAPPED,
+EV-VN-S014-0958,formula,VKM-SRC-014,156,формула (6.17),True,MM-HYDTR-001,MAPPED,
+EV-VN-S014-0968,formula,VKM-SRC-014,161,"§6.3, формула (6.18)",True,MM-BACKFILL-003,MAPPED,
+EV-VN-S014-0969,formula,VKM-SRC-014,161,"§6.3, формула (6.19)",True,MM-BACKFILL-003,MAPPED,
+EV-VN-S014-0970,formula,VKM-SRC-014,161,"§6.3, формула (6.20)",True,MM-BACKFILL-003,MAPPED,
+EV-VN-S014-0971,formula,VKM-SRC-014,161,"§6.3, формула (6.21)",True,MM-BACKFILL-003,MAPPED,
+EV-VN-S014-0974,formula,VKM-SRC-014,162,"§6.3, Рис. 6.2, формула (6.22)",True,MM-BACKFILL-004,MAPPED,
+EV-VN-S014-0979,formula,VKM-SRC-014,163,"§6.3, Рис. 6.3, формула (6.23)",True,MM-BACKFILL-004,MAPPED,
+EV-VN-S014-0980,formula,VKM-SRC-014,164,"§6.3, Рис. 6.4, формула (6.24)",True,MM-BACKFILL-004,MAPPED,
+EV-VN-S014-0981,formula,VKM-SRC-014,164,"§6.3, Рис. 6.5, формула (6.25)",True,MM-BACKFILL-004,MAPPED,
+EV-VN-S014-0993,formula,VKM-SRC-014,167,"§6.4 «Расчет производительности самоходного вагона при закладке камер», (6.26)",True,MM-BACKFILL-005,MAPPED,
+EV-VN-S014-0995,formula,VKM-SRC-014,168,"§6.4, (6.27)-(6.28)",True,MM-BACKFILL-005,MAPPED,
+EV-VN-S014-0997,formula,VKM-SRC-014,169,"§6.4, (6.29)",True,MM-BACKFILL-005,MAPPED,
+EV-VN-S014-1002,formula,VKM-SRC-014,172,"§7.1, (7.1)-(7.2)",True,MM-ROOF-002,MAPPED,
+EV-VN-S014-1003,formula,VKM-SRC-014,172,"§7.1, (7.3)-(7.4)",True,MM-ROOF-003,MAPPED,
+EV-VN-S014-1004,formula,VKM-SRC-014,173,"§7.1, (7.5)",True,MM-ROOF-004,MAPPED,
+EV-VN-S014-1005,engineering_rule,VKM-SRC-014,173,§7.1,True,MM-ROOF-004,MAPPED,
+EV-VN-S014-1006,formula,VKM-SRC-014,173,"§7.1, (7.6), Рис. 7.1",True,MM-ROOF-004,MAPPED,
+EV-VN-S014-1008,formula,VKM-SRC-014,174,"§7.1, (7.7), Рис. 7.2",True,MM-ROOF-004,MAPPED,
+EV-VN-S014-1009,formula,VKM-SRC-014,174,"§7.1, (7.8), Рис. 7.3",True,MM-ROOF-004,MAPPED,
+EV-VN-S014-1011,formula,VKM-SRC-014,175,"§7.1, (7.9)-(7.11), Рис. 7.4–7.6",True,MM-ROOF-004,MAPPED,
+EV-VN-S014-1012,engineering_rule,VKM-SRC-014,176,§7.1,True,MM-ROOF-004,MAPPED,
+EV-VN-S014-1013,engineering_rule,VKM-SRC-014,176,§7.1,True,MM-ROOF-004,MAPPED,
+EV-VN-S014-1015,engineering_rule,VKM-SRC-014,176,§7.1,True,MM-ROOF-004,MAPPED,
+EV-VN-S014-1016,formula,VKM-SRC-014,177,"§7.1, (7.12)-(7.13)",True,MM-ROOF-005,MAPPED,
+EV-VN-S014-1018,engineering_rule,VKM-SRC-014,178,§7.1,True,MM-ROOF-004,MAPPED,
+EV-VN-S014-1019,formula,VKM-SRC-014,178,"§7.1, (7.14)-(7.15), Рис. 7.7",True,MM-ROOF-006,MAPPED,
+EV-VN-S014-1029,formula,VKM-SRC-014,181,"§7.1, Примеры 1–2",True,MM-STR-003,MAPPED,
+EV-VN-S014-1035,formula,VKM-SRC-014,183,"§7.1, Пример 2",True,MM-ROOF-003,MAPPED,
+EV-VN-S014-1041,engineering_rule,VKM-SRC-014,185,§7.2,True,,EXCLUDED,"VALIDITY_DOMAIN of §7.2 (падение ≤15°, асимметрия целиков ≤10%) — учтено в assumptions MM-ROOF-008..010 и MM-CREEP-004"
+EV-VN-S014-1043,formula,VKM-SRC-014,185,"§7.2, (7.16)",True,MM-ROOF-007,MAPPED,
+EV-VN-S014-1045,formula,VKM-SRC-014,186,"§7.2, (7.17)",True,MM-ROOF-008,MAPPED,
+EV-VN-S014-1046,engineering_rule,VKM-SRC-014,186,§7.2,True,MM-ROOF-008,MAPPED,
+EV-VN-S014-1047,rheology_law,VKM-SRC-014,186,"§7.2, (7.18)",True,MM-CREEP-004,MAPPED,
+EV-VN-S014-1049,formula,VKM-SRC-014,186,"§7.2, (7.19), Рис. 7.11",True,MM-ROOF-009,MAPPED,
+EV-VN-S014-1051,formula,VKM-SRC-014,186,"§7.2, (7.20)",True,MM-ROOF-009,MAPPED,
+EV-VN-S014-1052,formula,VKM-SRC-014,187,"§7.2, (7.21)",True,MM-ROOF-009,MAPPED,
+EV-VN-S014-1053,formula,VKM-SRC-014,187,"§7.2, (7.22)",True,MM-ROOF-010,MAPPED,
+EV-VN-S014-1054,formula,VKM-SRC-014,187,"§7.2, (7.23)",True,MM-ROOF-006,MAPPED,
+EV-VN-S014-1055,formula,VKM-SRC-014,188,"§7.2, (7.24)",True,MM-ROOF-010,MAPPED,
+EV-VN-S014-1056,engineering_rule,VKM-SRC-014,188,"§7.2, (7.25)",True,MM-ROOF-009,MAPPED,
+EV-VN-S014-1069,formula,VKM-SRC-014,193,"§7.3, (7.26)-(7.27)",True,MM-IS-001,MAPPED,
+EV-VN-S014-1071,formula,VKM-SRC-014,193,"§7.3, (7.28)",True,MM-IS-002,MAPPED,
+EV-VN-S014-1072,formula,VKM-SRC-014,194,"§7.3, (7.29), Рис. 7.13",True,MM-IS-001,MAPPED,
+EV-VN-S014-1074,formula,VKM-SRC-014,194,"§7.3, (7.30)",True,MM-IS-001,MAPPED,
+EV-VN-S014-1075,formula,VKM-SRC-014,195,"§7.3, (7.31)",True,MM-STR-003,MAPPED,
+EV-VN-S014-1076,formula,VKM-SRC-014,195,"§7.3, (7.32)",True,MM-IS-001,MAPPED,
+EV-VN-S014-1078,formula,VKM-SRC-014,195,"§7.3, (7.33)",True,MM-IS-002,MAPPED,
+EV-VN-S014-1079,rheology_law,VKM-SRC-014,195,"§7.3, (7.34)",True,MM-CREEP-003,MAPPED,
+EV-VN-S014-1081,formula,VKM-SRC-014,196,"§7.3, (7.35)-(7.36)",True,MM-STR-003;MM-IS-002,MAPPED,
+EV-VN-S014-1082,engineering_rule,VKM-SRC-014,196,§7.3,True,MM-IS-002,MAPPED,
+EV-VN-S014-1101,engineering_rule,VKM-SRC-014,204,§8.2.1,True,,EXCLUDED,"ANALOGUE_RULE без уравнения (Эстерхези, извлечение ≤40%)"
+EV-VN-S014-1108,engineering_rule,VKM-SRC-014,207,"§8.2.2, p.207",True,,EXCLUDED,"ANALOGUE_RULE без уравнения (разгрузочные выработки, Канада)"
+EV-VN-S014-1109,engineering_rule,VKM-SRC-014,207,"§8.2.2, pp.207–208",True,,EXCLUDED,"ANALOGUE_RULE без уравнения (интервал между камерами — месяцы, Канада)"
+EV-VN-S014-1118,engineering_rule,VKM-SRC-014,212,§8.2.4,True,,EXCLUDED,"ANALOGUE_RULE без уравнения (реагирование на прорыв воды, Канада)"
+EV-VN-S014-1122,engineering_rule,VKM-SRC-014,182,"§7.1, Пример 1",True,MM-ROOF-002,MAPPED,
+EV-VN-S014-1160,engineering_rule,VKM-SRC-014,222,§8.3.2,True,,EXCLUDED,ANALOGUE_RULE без уравнения (Старобин: мощность водозащитной толщи)
+EV-VN-S014-1177,engineering_rule,VKM-SRC-014,231,§8.4.3,True,,EXCLUDED,ANALOGUE_RULE без уравнения (Германия)
+EV-VN-S014-1198,engineering_rule,VKM-SRC-014,240,§8.5.2,True,,EXCLUDED,"ANALOGUE_RULE без уравнения (Боулби: 1,5 м руды в кровле)"
+EV-VN-S015-0009,engineering_rule,VKM-SRC-015,3,Введение,True,,EXCLUDED,TECHNOLOGY_RULE: подрезка коржа / защитная пачка (без значений)
+EV-VN-S015-0011,engineering_rule,VKM-SRC-015,3,Введение,True,,EXCLUDED,TECHNOLOGY_RULE: регламентируемая мощность подрубки (без значения)
+EV-VN-S015-0055,formula,VKM-SRC-015,9,формула (1),True,MM-MINE-001,MAPPED,
+EV-VN-S015-0056,formula,VKM-SRC-015,9,формула (2),True,MM-MINE-001,MAPPED,
+EV-VN-S015-0064,formula,VKM-SRC-015,10,формула (3),True,MM-MINE-002,MAPPED,
+EV-VN-S015-0067,engineering_rule,VKM-SRC-015,10,§Улучшение технологических процессов; рис. 7,True,,EXCLUDED,TECHNOLOGY_RULE: угол изменения траектории комбайна ±12°
+EV-VN-S016-0008,engineering_rule,VKM-SRC-016,1,Аннотация (вывод),True,,EXCLUDED,NO_EQUATION: учёт реологии МКЦ при оценке ВЗТ (вывод)
+EV-VN-S016-0031,formula,VKM-SRC-016,5,формула (1),True,MM-STR-004,MAPPED,
+EV-VN-S016-0032,rheology_law,VKM-SRC-016,5,текст p.5; Рис.4; формула (2) p.6; табл.1 [29],True,MM-CREEP-005,MAPPED,
+EV-VN-S016-0054,formula,VKM-SRC-016,6,формула (2),True,MM-CREEP-005,MAPPED,
+EV-VN-S016-0067,engineering_rule,VKM-SRC-016,8,"§Методика определения целостности ВЗТ, пп.1-2",True,MM-STR-004,MAPPED,
+EV-VN-S016-0076,engineering_rule,VKM-SRC-016,10,§Результаты,True,,EXCLUDED,NO_EQUATION: минимальные требования Указаний к мощности ВЗТ (значение не напечатано)
+EV-VN-S016-0079,engineering_rule,VKM-SRC-016,10,Заключение,True,,EXCLUDED,NO_EQUATION: меры защиты ВЗТ
+EV-VN-S017-0013,formula,VKM-SRC-017,2,p.2 (unnumbered formula),True,MM-DEF-001,MAPPED,
+EV-VN-S017-0015,engineering_rule,VKM-SRC-017,2,p.2; СНиП 2.02.01-83,True,MM-DEF-001,MAPPED,
+EV-VN-S017-0016,formula,VKM-SRC-017,2,p.2,True,MM-DEF-002,MAPPED,
+EV-VN-S018-0043,engineering_rule,VKM-SRC-018,7,"Рис. 3, таблица",True,,EXCLUDED,CLASSIFICATION: категория сложности инженерно-геологических условий (СП 11-105-97)
+EV-VN-S019-0009,engineering_rule,VKM-SRC-019,1,"§1 item 1, [3]",True,,EXCLUDED,"DESIGN_LIMIT: ширина/высота КБС ≤20 м (параметр, не модель)"
+EV-VN-S019-0010,formula,VKM-SRC-019,2,"формула (1), §1 item 2",True,MM-PROT-003,MAPPED,
+EV-VN-S019-0012,engineering_rule,VKM-SRC-019,2,"§1 item 3, [3]",True,,EXCLUDED,DESIGN_LIMIT: ≥8 м от маркирующей глины до КБС (используется в MM-PROT-003)
+EV-VN-S019-0013,formula,VKM-SRC-019,2,"формула (2), §1 item 4",True,MM-WPS-001,MAPPED,
+EV-VN-S019-0014,engineering_rule,VKM-SRC-019,2,"§1 item 5, [3]",True,MM-PILLAR-003-B,MAPPED,
+EV-VN-S019-0015,engineering_rule,VKM-SRC-019,2,"§1 item 6, [3]",True,,EXCLUDED,DESIGN_VALUE: устойчивый пролёт каменной соли 8 м; m₀ ≤ 6 м
+EV-VN-S019-0016,engineering_rule,VKM-SRC-019,2,"§1 item 7, [3]",True,,EXCLUDED,SITING_RULE: размещение КБС вне влияния застройки/аномалий
+EV-VN-S019-0022,engineering_rule,VKM-SRC-019,3,"§2 item 2, [5]",True,,EXCLUDED,DESIGN_VALUE: длина КБС 200 м по кабелю
+EV-VN-S019-0023,engineering_rule,VKM-SRC-019,3,§2 item 3,True,,EXCLUDED,DESIGN_VALUE: высота КБС 20 м
+EV-VN-S019-0029,engineering_rule,VKM-SRC-019,3,§2 item 5,True,MM-WPS-001,MAPPED,
+EV-VN-S019-0030,formula,VKM-SRC-019,3,§2 item 6,True,MM-PROT-003,MAPPED,
+EV-VN-S019-0032,formula,VKM-SRC-019,3,формула (3),True,MM-PROT-003,MAPPED,
+EV-VN-S019-0033,formula,VKM-SRC-019,4,"формула (4), §2 item 7",True,MM-PROT-003,MAPPED,
+EV-VN-S019-0036,engineering_rule,VKM-SRC-019,5,§2 item 9,True,,EXCLUDED,"DESIGN_RULE: необходимость крепления КБС (5,5 < 8 м)"
+EV-VN-S020-0099,engineering_rule,VKM-SRC-020,11,§1.2.1,True,,EXCLUDED,DESIGN_RULE: число и крепь стволов
+EV-VN-S020-0100,engineering_rule,VKM-SRC-020,11,§1.2.1,True,,EXCLUDED,"DESIGN_RULE: стволы при ВЗТ ≥30–40 м, 150–200 м между стволами"
+EV-VN-S020-0125,engineering_rule,VKM-SRC-020,17,§1.2.2,True,,EXCLUDED,DESIGN_RULE: ориентация камер по осям складок
+EV-VN-S020-0140,engineering_rule,VKM-SRC-020,20,§1.3,True,,EXCLUDED,QUALITATIVE: факторы ширины МКЦ
+EV-VN-S020-0141,engineering_rule,VKM-SRC-020,20,"§1.3, рис.1.13",True,,EXCLUDED,DESIGN_RULE: соосность камер по пластам
+EV-VN-S020-0148,engineering_rule,VKM-SRC-020,22,§1.3,True,,EXCLUDED,"DESIGN_RULE: сопряжения камер (7–8 м, 4 м)"
+EV-VN-S020-0153,engineering_rule,VKM-SRC-020,23,§1.3,True,,EXCLUDED,DESIGN_LIMIT: высота камер пласта В ≤10 м
+EV-VN-S020-0179,engineering_rule,VKM-SRC-020,29,§1.5,True,,EXCLUDED,SAFETY_RULE: рабочие зоны по газу (50/100 м)
+EV-VN-S020-0181,engineering_rule,VKM-SRC-020,31,§1.5,True,,EXCLUDED,CLASSIFICATION: группы газовой опасности
+EV-VN-S020-0185,engineering_rule,VKM-SRC-020,32,"§1.5, Табл.1.1",True,,EXCLUDED,SAFETY_NORM: состав рудничной атмосферы
+EV-VN-S020-0187,engineering_rule,VKM-SRC-020,35,§1.6,True,,EXCLUDED,"SAFETY_NORM: подача воздуха (1,4/2,1 м³/мин)"
+EV-VN-S020-0203,engineering_rule,VKM-SRC-020,66,§1.11,True,,EXCLUDED,SAFETY_NORM: заземление ≤10 Ом
+EV-VN-S020-0211,formula,VKM-SRC-020,69,§2.2,True,MM-MINE-007,MAPPED,
+EV-VN-S020-0219,engineering_rule,VKM-SRC-020,73,§2.2,True,,EXCLUDED,"TECHNOLOGY_RULE: допуски вождения комбайна ±0,2 м, ≤12°"
+EV-VN-S020-0229,engineering_rule,VKM-SRC-020,77,§2.3,True,,EXCLUDED,SAFETY_RULE: дегазационные шпуры
+EV-VN-S020-0232,engineering_rule,VKM-SRC-020,81,§2.4,True,,EXCLUDED,SAFETY_RULE: газовые замеры
+EV-VN-S020-0255,engineering_rule,VKM-SRC-020,98,§2.5.4,True,,EXCLUDED,EQUIPMENT_LIMIT: длина кабеля комбайна
+EV-VN-S020-0256,formula,VKM-SRC-020,97,§2.5.4,True,MM-ELEC-001,MAPPED,
+EV-VN-S020-0257,engineering_rule,VKM-SRC-020,99,§2.5.5 (по ЕПБ [7]),True,,EXCLUDED,EQUIPMENT_RULE: прокладка кабелей
+EV-VN-S020-0293,engineering_rule,VKM-SRC-020,115,"§3.4, с.115",True,,EXCLUDED,PRINCIPLE: принципы маркшейдерских съёмок (без уравнения)
+EV-VN-S020-0296,formula,VKM-SRC-020,119,"§3.5 п.2, рис. 3.15",True,MM-GEOD-001,MAPPED,
+EV-VN-S020-0297,formula,VKM-SRC-020,121,"§3.5 п.3, рис. 3.17",True,MM-GEOD-002,MAPPED,
+EV-VN-S020-0299,formula,VKM-SRC-020,123,"§3.5 п.3, рис. 3.19 а-г",True,MM-GEOD-002,MAPPED,
+EV-VN-S020-0300,engineering_rule,VKM-SRC-020,123,"§3.5 п.3, с.123",True,MM-GEOD-002,MAPPED,
+EV-VN-S020-0305,engineering_rule,VKM-SRC-020,124,§3.6 п.1,True,,EXCLUDED,SURVEY_RULE: задание направления (точки через 1–3 м)
+EV-VN-S020-0306,formula,VKM-SRC-020,125,"§3.6 п.2, рис. 3.22",True,MM-GEOD-003,MAPPED,
+EV-VN-S020-0308,engineering_rule,VKM-SRC-020,126,"§3.6 п.3, рис. 3.23-3.24",True,MM-GEOD-003,MAPPED,
+EV-VN-S020-0309,formula,VKM-SRC-020,126,§3.6 п.3,True,MM-GEOD-003,MAPPED,
+EV-VN-S020-0314,formula,VKM-SRC-020,127,§3.6 п.5,True,MM-MINE-008,MAPPED,
+EV-VN-S020-0343,engineering_rule,VKM-SRC-020,156,"§4.2, табл. 4.8",True,,EXCLUDED,EQUIPMENT_LIMIT: БП-14А
+EV-VN-S020-0346,engineering_rule,VKM-SRC-020,159,"§4.3, табл. 4.9 (с.159-160)",True,,EXCLUDED,EQUIPMENT_LIMIT: вагон 5ВС-15М
+EV-VN-S020-0355,engineering_rule,VKM-SRC-020,163,"§4.4.1, табл. 4.10",True,,EXCLUDED,EQUIPMENT_LIMIT: УБШ-208
+EV-VN-S020-0358,engineering_rule,VKM-SRC-020,167,"§4.4.3, табл. 4.12",True,,EXCLUDED,EQUIPMENT_LIMIT: станок 1ПНБ-2+БГД-2М
+EV-VN-S020-0362,engineering_rule,VKM-SRC-020,172,"§4.4.4, табл. 4.15",True,,EXCLUDED,EQUIPMENT_LIMIT: сверло СРЗ
+EV-VN-S020-0363,engineering_rule,VKM-SRC-020,174,"§4.4.5, табл. 4.16",True,,EXCLUDED,EQUIPMENT_LIMIT: АК-19
+EV-VN-S020-0367,engineering_rule,VKM-SRC-020,176,"§4.5.1, с.176",True,,EXCLUDED,EQUIPMENT_LIMIT: дробилка ДКЗ
+EV-VN-S020-0368,engineering_rule,VKM-SRC-020,177,"§4.5.1, табл. 4.19 (с.177-178)",True,,EXCLUDED,EQUIPMENT_LIMIT: конвейер СПШ1
+EV-VN-S020-0382,engineering_rule,VKM-SRC-020,191,§4.8,True,,EXCLUDED,SAFETY_RULE: проветривание тупиков
+EV-VN-S020-0407,formula,VKM-SRC-020,221,"§6.5, с. 221-222",True,MM-ECON-001,MAPPED,
+EV-VN-S020-0408,formula,VKM-SRC-020,221,"§6.5, с. 221",True,MM-ECON-001,MAPPED,
+EV-VN-S020-0414,engineering_rule,VKM-SRC-020,222,§7.1,True,,EXCLUDED,SAFETY_RULE: после обрушения кровли
+EV-VN-S020-0420,engineering_rule,VKM-SRC-020,230,§7.1 (СТХ-9),True,,EXCLUDED,SAFETY_RULE: СТХ-9
+EV-VN-S020-0424,engineering_rule,VKM-SRC-020,247,"§7.1 (ПБ-2), с. 249-251",True,,EXCLUDED,"SAFETY_CRITERION: выбросоопасность кровли по давлению в шпуре (пороги 1,5/0,8 кГс/см²; без уравнения)"
+EV-VN-S020-0433,engineering_rule,VKM-SRC-020,250,§7.2.1,True,,EXCLUDED,SAFETY_RULE: паспорта работ
+EV-VN-S020-0436,engineering_rule,VKM-SRC-020,251,"§7.2.2, §7.2.3",True,,EXCLUDED,SAFETY_RULE: работы у забоя
+EV-VN-S020-0448,engineering_rule,VKM-SRC-020,264,§8,True,,EXCLUDED,SAFETY_RULE: замер газов у кровли
+EV-VN-S020-0449,engineering_rule,VKM-SRC-020,265,§8,True,,EXCLUDED,SAFETY_RULE: содержание выработок
+EV-VN-S021-0013,engineering_rule,VKM-SRC-021,2,введение,True,,EXCLUDED,NO_EQUATION: жёсткие целики + закладка как защита ВЗТ
+EV-VN-S021-0019,engineering_rule,VKM-SRC-021,2,"введение, ссылка [4]",True,MM-WPS-002,MAPPED,
+EV-VN-S021-0023,engineering_rule,VKM-SRC-021,3,классификация категорий,True,,EXCLUDED,CLASSIFICATION: категории опасности ВЗТ 1–3
+EV-VN-S021-0024,engineering_rule,VKM-SRC-021,3,поэтапная методика районирования,True,,EXCLUDED,PROCEDURE: поэтапная методика районирования (без уравнения)
+EV-VN-S021-0025,engineering_rule,VKM-SRC-021,3,поэтапная методика,True,MM-PILLAR-003-B,MAPPED,
+EV-VN-S021-0047,engineering_rule,VKM-SRC-021,5,заключение,True,,EXCLUDED,NO_EQUATION: меры после районирования
+EV-VN-S023-0164,formula,VKM-SRC-023,35,rendered p.35; §2.3,True,MM-STRESS-001,MAPPED,
+EV-VN-S023-0174,formula,VKM-SRC-023,36,rendered p.36; §2.4 Горнотехнические условия месторождения,True,MM-PILLAR-005,MAPPED,
+EV-VN-S023-0175,engineering_rule,VKM-SRC-023,36,rendered p.36; §2.4 Горнотехнические условия месторождения,True,MM-PILLAR-005,MAPPED,
+EV-VN-S023-0176,engineering_rule,VKM-SRC-023,36,rendered p.36; §2.4 Горнотехнические условия месторождения,True,MM-PILLAR-005,MAPPED,
+EV-VN-S023-0283,formula,VKM-SRC-023,44,§3.1.3 формула (1.1) (all.md; blank in rendered PDF),True,MM-DEM-001,MAPPED,
+EV-VN-S023-0284,formula,VKM-SRC-023,44,§3.1.3 формула (1.2) (all.md; blank in rendered PDF),True,MM-DEM-001,MAPPED,
+EV-VN-S023-0285,formula,VKM-SRC-023,44,§3.1.3 формула (1.3) (all.md; blank in rendered PDF),True,MM-DEM-001,MAPPED,
+EV-VN-S023-0286,formula,VKM-SRC-023,44,§3.1.3 формула (1.4) (all.md; blank in rendered PDF),True,MM-DEM-001,MAPPED,
+EV-VN-S023-0287,formula,VKM-SRC-023,44,§3.1.3 формула (1.5) (all.md; blank in rendered PDF),True,MM-DEM-001,MAPPED,
+EV-VN-S023-0288,formula,VKM-SRC-023,44,§3.1.3 формула (1.6) (all.md; blank in rendered PDF),True,MM-DEM-001,MAPPED,
+EV-VN-S023-0289,formula,VKM-SRC-023,44,§3.1.3 формула (1.7) (all.md; blank in rendered PDF),True,MM-DEM-001,MAPPED,
+EV-VN-S023-0331,subsidence_method,VKM-SRC-023,55,"§3.2.2, rendered pp.55-57",True,MM-STAT-009,MAPPED,
+EV-VN-S023-0332,formula,VKM-SRC-023,55,§3.2.2 формула (2.1) (all.md; blank in rendered PDF),True,MM-STAT-009,MAPPED,
+EV-VN-S023-0333,formula,VKM-SRC-023,55,§3.2.2 формула (2.2) (all.md; blank in rendered PDF),True,MM-STAT-009,MAPPED,
+EV-VN-S023-0334,formula,VKM-SRC-023,55,§3.2.2 формула (2.3) (all.md; blank in rendered PDF),True,MM-STAT-009,MAPPED,
+EV-VN-S023-0335,formula,VKM-SRC-023,56,§3.2.2 формула (2.4) (all.md; blank in rendered PDF),True,MM-STAT-009,MAPPED,
+EV-VN-S023-0336,formula,VKM-SRC-023,56,§3.2.2 формула (2.5) (all.md; blank in rendered PDF),True,MM-STAT-009,MAPPED,
+EV-VN-S023-0337,formula,VKM-SRC-023,57,§3.2.2 формула (2.6) (all.md; blank in rendered PDF),True,MM-STAT-009,MAPPED,
+EV-VN-S023-0338,formula,VKM-SRC-023,58,§3.2.2 формула (2.7) (all.md; blank in rendered PDF),True,MM-ML-001,MAPPED,
+EV-VN-S023-0339,formula,VKM-SRC-023,60,§3.2.2 формула (2.8) (all.md; blank in rendered PDF),True,MM-ML-001,MAPPED,
+EV-VN-S023-0340,formula,VKM-SRC-023,60,§3.2.2 формула (2.9) (all.md; blank in rendered PDF),True,MM-ML-001,MAPPED,
+EV-VN-S023-0342,engineering_rule,VKM-SRC-023,57,"§3.2.2 (all.md), rendered p.57",True,MM-STAT-009,MAPPED,
+EV-VN-S023-0347,formula,VKM-SRC-023,61,§3.2.3 формула (3.1) (all.md; blank in rendered PDF),True,MM-STAT-010,MAPPED,
+EV-VN-S023-0348,formula,VKM-SRC-023,61,§3.2.3 формула (3.2) (all.md; blank in rendered PDF),True,MM-STAT-010,MAPPED,
+EV-VN-S023-0349,formula,VKM-SRC-023,61,§3.2.3 формула (3.3) (all.md; blank in rendered PDF),True,MM-STAT-010,MAPPED,
+EV-VN-S023-0363,formula,VKM-SRC-023,66,§3.3.2 формула (3.4) (all.md; blank in rendered PDF),True,MM-STAT-011,MAPPED,
+EV-VN-S023-0364,formula,VKM-SRC-023,67,§3.3.2 формула (3.5) (all.md; blank in rendered PDF),True,MM-STAT-011,MAPPED,
+EV-VN-S023-0365,formula,VKM-SRC-023,67,§3.3.2 формула (3.6) (all.md; blank in rendered PDF),True,MM-STAT-011,MAPPED,
+EV-VN-S023-0366,formula,VKM-SRC-023,67,§3.3.2 формула (3.7) (all.md; blank in rendered PDF),True,MM-STAT-011,MAPPED,
+EV-VN-S023-0367,formula,VKM-SRC-023,67,§3.3.2 формула (3.8) (all.md; blank in rendered PDF),True,MM-STAT-011,MAPPED,
+EV-VN-S023-0368,formula,VKM-SRC-023,67,§3.3.2 формула (3.9) (all.md; blank in rendered PDF),True,MM-STAT-011,MAPPED,
+EV-VN-S023-0369,formula,VKM-SRC-023,67,§3.3.2 формула (3.10) (all.md; blank in rendered PDF),True,MM-STAT-011,MAPPED,
+EV-VN-S023-0396,formula,VKM-SRC-023,76,§4.1.1 формула (4.1) (all.md; blank in rendered PDF),True,MM-ML-002,MAPPED,
+EV-VN-S023-0397,formula,VKM-SRC-023,77,§4.1.1 формула (4.2) (all.md; blank in rendered PDF),True,MM-ML-002,MAPPED,
+EV-VN-S023-0398,formula,VKM-SRC-023,77,§4.1.1 формула (4.3) (all.md; blank in rendered PDF),True,MM-ML-002,MAPPED,
+EV-VN-S023-0399,formula,VKM-SRC-023,77,§4.1.1 формула (4.4) (all.md; blank in rendered PDF),True,MM-ML-002,MAPPED,
+EV-VN-S023-0400,formula,VKM-SRC-023,77,§4.1.1 формула (4.5) (all.md; blank in rendered PDF),True,MM-ML-002,MAPPED,
+EV-VN-S023-0408,formula,VKM-SRC-023,78,"rendered p.78; формула (4.6) (media/image45.png), Рис. 40б",True,MM-MINE-009,MAPPED,
+EV-VN-S023-0435,formula,VKM-SRC-023,88,"rendered p.88; §4.2 п.2 Модель ANFIS, class MembershipFunction (rendered p.88-89)",True,MM-ML-002,MAPPED,
+EV-VN-S023-0438,formula,VKM-SRC-023,92,rendered p.92; §4.2 п.6 Метрики качества (code),True,MM-STAT-012,MAPPED,
+EV-VN-S023-0454,formula,VKM-SRC-023,101,"rendered p.101; формула (4.7) (docx OMML, all.md; blank in rendered PDF)",True,MM-RISK-001,MAPPED,
+EV-VN-S023-0455,formula,VKM-SRC-023,102,"rendered p.102; формула (4.8) (docx OMML, all.md; blank in rendered PDF)",True,MM-RISK-002,MAPPED,
+EV-VN-S023-0461,subsidence_method,VKM-SRC-023,101,"rendered p.101; §4.2 ИПР + матрица риска (Табл. 4.6, Рис. 55-57)",True,MM-RISK-001,MAPPED,
+EV-VN-S024-0015,engineering_rule,VKM-SRC-024,10,"§1, ref [7]",True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0044,engineering_rule,VKM-SRC-024,18,§3,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0049,formula,VKM-SRC-024,21,"§4, формула (1)",True,MM-ECON-003,MAPPED,
+EV-VN-S024-0061,engineering_rule,VKM-SRC-024,26,"§5.1.4, ref [1]",True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0078,engineering_rule,VKM-SRC-024,31,§5.2.2,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0079,engineering_rule,VKM-SRC-024,31,§5.2.3,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0080,formula,VKM-SRC-024,31,§5.2.3,True,MM-GEOD-004,MAPPED,
+EV-VN-S024-0081,formula,VKM-SRC-024,31,§5.2.3,True,MM-GEOD-004,MAPPED,
+EV-VN-S024-0082,formula,VKM-SRC-024,31,§5.2.3,True,MM-GEOD-004,MAPPED,
+EV-VN-S024-0087,engineering_rule,VKM-SRC-024,33,§5.3.1 (pp.33-34),True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0088,engineering_rule,VKM-SRC-024,34,Табл. 2,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0089,engineering_rule,VKM-SRC-024,34,"§5.3.1, ref [1] (pp.34-35)",True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0091,engineering_rule,VKM-SRC-024,35,§5.3.2,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0095,engineering_rule,VKM-SRC-024,38,"§5.4.1, refs [1], [13]",True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0098,engineering_rule,VKM-SRC-024,40,§5.4.2,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0099,engineering_rule,VKM-SRC-024,41,§5.4.2,True,,EXCLUDED,"TOLERANCE_RULE: допуски фактических размеров выработок ±0,2–0,5 м (аналог; неопределённость геометрии — для потока mining geometry)"
+EV-VN-S024-0100,engineering_rule,VKM-SRC-024,41,§5.4.3,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0102,engineering_rule,VKM-SRC-024,42,§5.5.1,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0113,engineering_rule,VKM-SRC-024,49,"§6.1.1, ref [11]",True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0114,engineering_rule,VKM-SRC-024,49,"§6.1.1, ref [12]",True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0117,engineering_rule,VKM-SRC-024,50,§6.1.2,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0119,engineering_rule,VKM-SRC-024,51,§6.1.2 (pp.51-52),True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0121,engineering_rule,VKM-SRC-024,52,"Табл. 5 (pp.52-53), refs [3], [1]",True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0123,engineering_rule,VKM-SRC-024,53,§6.1.2,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0143,engineering_rule,VKM-SRC-024,54,§6.1.4,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0150,engineering_rule,VKM-SRC-024,58,§6.2.2 pp.57-58,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0156,engineering_rule,VKM-SRC-024,59,§6.2.3,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0166,engineering_rule,VKM-SRC-024,63,§6.2.4,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0175,engineering_rule,VKM-SRC-024,66,§6.2.4,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0181,formula,VKM-SRC-024,69,§6.2.5 p.69,True,MM-ROOF-007,MAPPED,
+EV-VN-S024-0183,formula,VKM-SRC-024,70,§6.2.5 p.70,True,MM-ROOF-022,MAPPED,
+EV-VN-S024-0189,formula,VKM-SRC-024,73,"формула (2), §6.3.1",True,MM-DEF-003,MAPPED,
+EV-VN-S024-0191,formula,VKM-SRC-024,73,"формула (3), pp.73-74",True,MM-DEF-003,MAPPED,
+EV-VN-S024-0192,formula,VKM-SRC-024,74,"формула (4), p.74",True,MM-DEF-003,MAPPED,
+EV-VN-S024-0193,formula,VKM-SRC-024,74,"формула (5), p.74",True,MM-DEF-003,MAPPED,
+EV-VN-S024-0195,formula,VKM-SRC-024,74,"формула (6), p.74",True,MM-DEF-003,MAPPED,
+EV-VN-S024-0196,formula,VKM-SRC-024,74,"формула (7), pp.74-75",True,MM-DEF-003,MAPPED,
+EV-VN-S024-0197,formula,VKM-SRC-024,75,"формула (8), p.75",True,MM-DEF-003,MAPPED,
+EV-VN-S024-0198,formula,VKM-SRC-024,75,§6.3.1 p.75,True,MM-DEF-003,MAPPED,
+EV-VN-S024-0319,engineering_rule,VKM-SRC-024,103,Прил.1 §1.6 p.103,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0332,subsidence_method,VKM-SRC-024,72,§6.3.1 pp.72-75,True,MM-DEF-003,MAPPED,
+EV-VN-S024-0339,engineering_rule,VKM-SRC-024,107,Прил.1 §1.7,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0378,engineering_rule,VKM-SRC-024,119,Прил.1 §2.2.6,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0422,engineering_rule,VKM-SRC-024,122,"Прил.1 §2.4.1, refs [10], [11]",True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0426,engineering_rule,VKM-SRC-024,124,Прил.1 §2.4.1 Проходка буровзрывным способом,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0436,engineering_rule,VKM-SRC-024,128,Прил.1 §2.5.1 (pp.128-129),True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0441,engineering_rule,VKM-SRC-024,136,Прил.1 §3.2 Требования безопасности во время работы,True,,EXCLUDED,"SURVEY/DESIGN/SAFETY RULE без уравнения (VKM-SRC-024, аналог/норматив маркшейдерских работ)"
+EV-VN-S024-0452,formula,VKM-SRC-024,151,"Прил.1 §4.4, формула (1)",True,MM-ECON-003,MAPPED,
+EV-VN-S025-0124,engineering_rule,VKM-SRC-025,16,§1.3,True,,EXCLUDED,DEFINITION: ВЗТ (сохранение водонепроницаемости)
+EV-VN-S025-0132,engineering_rule,VKM-SRC-025,17,§1.3,True,,EXCLUDED,NO_EQUATION: отрабатываемые пласты КрII и АБ; зоны смягчения
+EV-VN-S025-0133,engineering_rule,VKM-SRC-025,17,§1.3,True,,EXCLUDED,DESIGN_RULE: целики до 200 м вокруг разведочных скважин (геометрия — поток mining)
+EV-VN-S025-0154,formula,VKM-SRC-025,22,"формула (2.1), §2.1",True,MM-STR-001,MAPPED,
+EV-VN-S025-0157,rheology_law,VKM-SRC-025,24,"рис. 2.1, стадии ползучести",True,MM-CREEP-022,MAPPED,
+EV-VN-S025-0160,engineering_rule,VKM-SRC-025,25,§2.2,True,,EXCLUDED,LAB_PROCEDURE: стандарт МБМГП на испытания σ_сж
+EV-VN-S025-0167,formula,VKM-SRC-025,28,"формула (2.2), §2.2",True,MM-ELAST-005,MAPPED,
+EV-VN-S025-0169,engineering_rule,VKM-SRC-025,28,"§2.2, рис. 2.6 (с.29)",True,MM-LAB-005,MAPPED,
+EV-VN-S025-0171,rheology_law,VKM-SRC-025,29,рис. 2.7 Схема определения предела длительной прочности,True,MM-CREEP-002,MAPPED,
+EV-VN-S025-0187,formula,VKM-SRC-025,31,"§2.3 (в тексте, без номера)",True,MM-LAB-006,MAPPED,
+EV-VN-S025-0201,engineering_rule,VKM-SRC-025,33,§2.4 (продолжение на с.34),True,,EXCLUDED,SAMPLING_RULE: отбор керна
+EV-VN-S025-0216,engineering_rule,VKM-SRC-025,34,§2.4,True,,EXCLUDED,SAMPLING_RULE: подземное бурение (сеть 400×400 м)
+EV-VN-S025-0218,engineering_rule,VKM-SRC-025,34,§2.4,True,,EXCLUDED,SAMPLING_RULE: этикетки образцов
+EV-VN-S025-0222,engineering_rule,VKM-SRC-025,35,Рис. 2.8; §2.4,True,,EXCLUDED,SAMPLING_RULE: отбор монолитов
+EV-VN-S025-0229,engineering_rule,VKM-SRC-025,39,§2.5,True,,EXCLUDED,LAB_PROCEDURE: допуски геометрии образцов
+EV-VN-S025-0230,engineering_rule,VKM-SRC-025,39,§2.5,True,MM-STAT-013,MAPPED,
+EV-VN-S025-0233,formula,VKM-SRC-025,40,"формула (2.3), §2.6",True,MM-LAB-008,MAPPED,
+EV-VN-S025-0238,engineering_rule,VKM-SRC-025,41,§2.6,True,MM-LAB-008,MAPPED,
+EV-VN-S025-0253,formula,VKM-SRC-025,44,"формулы (2.4)-(2.5), §2.7",True,MM-STR-007,MAPPED,
+EV-VN-S025-0271,formula,VKM-SRC-025,51,"формула (2.6), §2.9",True,MM-LAB-005,MAPPED,
+EV-VN-S025-0273,formula,VKM-SRC-025,52,формула (2.7),True,MM-LAB-005,MAPPED,
+EV-VN-S025-0274,formula,VKM-SRC-025,52,формула (2.8),True,MM-LAB-005,MAPPED,
+EV-VN-S025-0275,formula,VKM-SRC-025,52,p.52 unnumbered,True,MM-LAB-005,MAPPED,
+EV-VN-S025-0276,formula,VKM-SRC-025,52,формула (2.9),True,MM-LAB-005,MAPPED,
+EV-VN-S025-0277,formula,VKM-SRC-025,53,формула (2.10),True,MM-LAB-005,MAPPED,
+EV-VN-S025-0278,formula,VKM-SRC-025,53,формула (2.11),True,MM-LAB-005,MAPPED,
+EV-VN-S025-0280,formula,VKM-SRC-025,53,формула (2.12),True,MM-LAB-005,MAPPED,
+EV-VN-S025-0281,formula,VKM-SRC-025,53,формула (2.13),True,MM-LAB-005,MAPPED,
+EV-VN-S025-0283,formula,VKM-SRC-025,54,"формула (2.14), Рис. 2.18",True,MM-STR-008,MAPPED,
+EV-VN-S025-0284,formula,VKM-SRC-025,54,формула (2.15),True,MM-STR-008,MAPPED,
+EV-VN-S025-0285,formula,VKM-SRC-025,55,"формула (2.16), Рис. 2.18",True,MM-STR-008,MAPPED,
+EV-VN-S025-0287,formula,VKM-SRC-025,55,§2.9 p.55,True,MM-STAT-013,MAPPED,
+EV-VN-S025-0316,engineering_rule,VKM-SRC-025,61,§2.10 p.61,True,,EXCLUDED,LAB_STUDY: изменчивость карналлита пласта В (состав)
+EV-VN-S025-0323,engineering_rule,VKM-SRC-025,63,§2.10 p.63,True,,EXCLUDED,DESIGN_RULE: использовать фактические свойства участков
+EV-VN-S025-0335,engineering_rule,VKM-SRC-025,66,§3.1 p.66,True,MM-LAB-009,MAPPED,
+EV-VN-S025-0336,formula,VKM-SRC-025,66,§3.1 p.66,True,MM-LAB-009,MAPPED,
+EV-VN-S025-0341,formula,VKM-SRC-025,67,формула (3.1),True,MM-LAB-004,MAPPED,
+EV-VN-S025-0342,formula,VKM-SRC-025,67,формула (3.2),True,MM-LAB-010,MAPPED,
+EV-VN-S025-0343,formula,VKM-SRC-025,67,формула (3.3),True,MM-LAB-003,MAPPED,
+EV-VN-S025-0344,formula,VKM-SRC-025,67,"формула (3.4), «Указания...» [77]",True,MM-LAB-009,MAPPED,
+EV-VN-S025-0345,engineering_rule,VKM-SRC-025,67,формула (3.4); p.69,True,MM-LAB-009,MAPPED,
+EV-VN-S025-0356,formula,VKM-SRC-025,70,формула (3.5),True,MM-LAB-011,MAPPED,
+EV-VN-S025-0364,formula,VKM-SRC-025,72,формула (3.6),True,MM-LAB-011,MAPPED,
+EV-VN-S025-0365,formula,VKM-SRC-025,73,"Табл. 3.1, каменная соль",True,MM-LAB-011,MAPPED,
+EV-VN-S025-0366,formula,VKM-SRC-025,73,"Табл. 3.1, сильвинит (пл. КрII и АБ)",True,MM-LAB-011,MAPPED,
+EV-VN-S025-0367,formula,VKM-SRC-025,73,"Табл. 3.1, карналлит (пл. В)",True,MM-LAB-011,MAPPED,
+EV-VN-S025-0371,engineering_rule,VKM-SRC-025,73,p.73 below Табл. 3.1,True,MM-LAB-011,MAPPED,
+EV-VN-S025-0401,rheology_law,VKM-SRC-025,76,Табл. 3.2 σ_дл column,True,MM-CREEP-002,MAPPED,
+EV-VN-S025-0414,engineering_rule,VKM-SRC-025,79,p.79,True,,EXCLUDED,LAB_RULE: поперечный размер образца ≥20 зёрен
+EV-VN-S025-0418,formula,VKM-SRC-025,80,формула (3.7),True,MM-LAB-005-B,MAPPED,
+EV-VN-S025-0508,formula,VKM-SRC-025,96,формула (4.1),True,MM-LAB-012,MAPPED,
+EV-VN-S025-0509,formula,VKM-SRC-025,97,p.97 (unnumbered),True,MM-LAB-012,MAPPED,
+EV-VN-S025-0512,formula,VKM-SRC-025,97,формула (4.2),True,MM-LAB-012,MAPPED,
+EV-VN-S025-0518,formula,VKM-SRC-025,99,формула (4.3),True,MM-PETRO-003,MAPPED,
+EV-VN-S025-0525,formula,VKM-SRC-025,100,"Гл.IV §4.1, формула (4.4), рис. 4.3 кривая 2",True,MM-PETRO-003,MAPPED,
+EV-VN-S025-0529,formula,VKM-SRC-025,100,§4.1 p.100 (in-text definition),True,MM-PETRO-003,MAPPED,
+EV-VN-S025-0534,formula,VKM-SRC-025,102,§4.1 формула (4.5),True,MM-DAMAGE-001,MAPPED,
+EV-VN-S025-0535,formula,VKM-SRC-025,103,§4.1 формула (4.6),True,MM-DAMAGE-001,MAPPED,
+EV-VN-S025-0536,formula,VKM-SRC-025,103,§4.1 формула (4.7),True,MM-DAMAGE-001,MAPPED,
+EV-VN-S025-0539,formula,VKM-SRC-025,103,"§4.1 формула (4.8), рис. 4.6",True,MM-DAMAGE-001,MAPPED,
+EV-VN-S025-0543,formula,VKM-SRC-025,104,§4.1 формула (4.9),True,MM-DAMAGE-001,MAPPED,
+EV-VN-S025-0602,formula,VKM-SRC-025,112,§4.3 формула (4.10),True,MM-PETRO-004,MAPPED,
+EV-VN-S025-0603,formula,VKM-SRC-025,113,§4.3 формула (4.11),True,MM-PETRO-004,MAPPED,
+EV-VN-S025-0604,formula,VKM-SRC-025,113,"Табл. 4.5 row Каменная соль / σсж, МПа",True,MM-PETRO-004,MAPPED,
+EV-VN-S025-0605,formula,VKM-SRC-025,113,"Табл. 4.5 row Каменная соль / εр, %",True,MM-PETRO-004,MAPPED,
+EV-VN-S025-0606,formula,VKM-SRC-025,113,"Табл. 4.5 row Каменная соль / D, ГПа",True,MM-PETRO-004,MAPPED,
+EV-VN-S025-0607,formula,VKM-SRC-025,113,"Табл. 4.5 row Сильвинит красный / σсж, МПа",True,MM-PETRO-004,MAPPED,
+EV-VN-S025-0608,formula,VKM-SRC-025,113,"Табл. 4.5 row Сильвинит красный / εр, %",True,MM-PETRO-004,MAPPED,
+EV-VN-S025-0609,formula,VKM-SRC-025,113,"Табл. 4.5 row Сильвинит красный / D, ГПа",True,MM-PETRO-004,MAPPED,
+EV-VN-S025-0652,formula,VKM-SRC-025,119,§4.4 формула (4.12) pp.119-120,True,MM-PILLAR-006,MAPPED,
+EV-VN-S025-0654,engineering_rule,VKM-SRC-025,120,"§4.4 p.120, cites [77]",True,MM-PILLAR-006,MAPPED,
+EV-VN-S025-0688,formula,VKM-SRC-025,126,§4.6 формула (4.13),True,MM-PETRO-005,MAPPED,
+EV-VN-S025-0732,formula,VKM-SRC-025,134,"§5.1, Рис. 5.4",True,MM-CONTACT-001,MAPPED,
+EV-VN-S025-0775,formula,VKM-SRC-025,141,"§5.2, формула (5.1)",True,MM-CONTACT-003,MAPPED,
+EV-VN-S025-0776,formula,VKM-SRC-025,141,"§5.2, формула (5.2)",True,MM-CONTACT-003,MAPPED,
+EV-VN-S025-0788,formula,VKM-SRC-025,144,"§5.3, формула (5.3)",True,MM-CONTACT-001,MAPPED,
+EV-VN-S025-0789,formula,VKM-SRC-025,144,"§5.3, формула (5.4)",True,MM-CONTACT-001,MAPPED,
+EV-VN-S025-0791,formula,VKM-SRC-025,145,"§5.3, формула (5.5)",True,MM-CONTACT-001,MAPPED,
+EV-VN-S025-0792,formula,VKM-SRC-025,145,"§5.3, формула (5.6)",True,MM-CONTACT-001,MAPPED,
+EV-VN-S025-0793,formula,VKM-SRC-025,145,"§5.3, формула (5.7)",True,MM-CONTACT-001,MAPPED,
+EV-VN-S025-0794,formula,VKM-SRC-025,145,"§5.3, формула (5.8)",True,MM-CONTACT-001,MAPPED,
+EV-VN-S025-0795,formula,VKM-SRC-025,145,"§5.3, формула (5.9), с.145-146",True,MM-CONTACT-001,MAPPED,
+EV-VN-S025-0797,formula,VKM-SRC-025,146,"§5.3, формула (5.10)",True,MM-CONTACT-002,MAPPED,
+EV-VN-S025-0798,formula,VKM-SRC-025,146,"§5.3, формула (5.11)",True,MM-CONTACT-002-B,MAPPED,
+EV-VN-S025-0799,formula,VKM-SRC-025,146,"§5.3, формула (5.12), Рис. 5.10",True,MM-CONTACT-002,MAPPED,
+EV-VN-S025-0802,engineering_rule,VKM-SRC-025,147,"§5.3, с.147",True,MM-CONTACT-002,MAPPED,
+EV-VN-S025-0818,formula,VKM-SRC-025,148,"§5.4, формула (5.13)",True,MM-CONTACT-004,MAPPED,
+EV-VN-S025-0826,formula,VKM-SRC-025,150,"§5.5, с.150, Рис. 5.13",True,MM-CONTACT-005,MAPPED,
+EV-VN-S025-0829,formula,VKM-SRC-025,150,"§5.5, формула (5.14)",True,MM-CONTACT-005,MAPPED,
+EV-VN-S025-0830,formula,VKM-SRC-025,150,"§5.5, формула (5.15)",True,MM-CONTACT-005,MAPPED,
+EV-VN-S025-0831,formula,VKM-SRC-025,151,"§5.5, формула (5.16)",True,MM-CONTACT-005,MAPPED,
+EV-VN-S025-0832,formula,VKM-SRC-025,151,"§5.5, формула (5.17)",True,MM-CONTACT-005,MAPPED,
+EV-VN-S025-0833,rheology_law,VKM-SRC-025,151,"§5.5, с.151, (5.15)-(5.17)",True,MM-CONTACT-005,MAPPED,
+EV-VN-S025-0848,rheology_law,VKM-SRC-025,154,"§6.1, с.154, Рис. 6.3",True,MM-CREEP-022,MAPPED,
+EV-VN-S025-0851,engineering_rule,VKM-SRC-025,155,"§6.1, с.155-156",True,MM-CREEP-022,MAPPED,
+EV-VN-S025-0856,formula,VKM-SRC-025,157,"§6.1, формула (6.1), Рис. 6.5",True,MM-CREEP-001,MAPPED,
+EV-VN-S025-0857,rheology_law,VKM-SRC-025,157,"§6.1, (6.1)",True,MM-CREEP-001,MAPPED,
+EV-VN-S025-0866,formula,VKM-SRC-025,160,"§6.2, формула (6.2), Рис. 6.7",True,MM-CREEP-023,MAPPED,
+EV-VN-S025-0868,formula,VKM-SRC-025,161,"§6.2, формула (6.3)",True,MM-CREEP-023,MAPPED,
+EV-VN-S025-0869,formula,VKM-SRC-025,161,"§6.2, формула (6.4)",True,MM-CREEP-023,MAPPED,
+EV-VN-S025-0871,formula,VKM-SRC-025,162,"§6.2, формула (6.5)",True,MM-CREEP-023,MAPPED,
+EV-VN-S025-0898,engineering_rule,VKM-SRC-025,164,"§6.3, с.164-165",True,MM-CREEP-024,MAPPED,
+EV-VN-S025-0899,formula,VKM-SRC-025,165,"§6.3, формула (6.6)",True,MM-CREEP-024,MAPPED,
+EV-VN-S025-0900,engineering_rule,VKM-SRC-025,165,"§6.3, с.165, Рис. 6.10",True,MM-CREEP-024,MAPPED,
+EV-VN-S025-0912,formula,VKM-SRC-025,166,"формула (7.1), §7.1",True,MM-FRAC-004,MAPPED,
+EV-VN-S025-0917,formula,VKM-SRC-025,167,"формула (7.2), §7.1",True,MM-FRAC-004,MAPPED,
+EV-VN-S025-0919,formula,VKM-SRC-025,168,"формула (7.3), рис. 7.1, §7.1",True,MM-FRAC-004,MAPPED,
+EV-VN-S025-0922,formula,VKM-SRC-025,168,"формула (7.4), §7.1",True,MM-FRAC-004,MAPPED,
+EV-VN-S025-0939,formula,VKM-SRC-025,170,"формула (7.5), рис. 7.2, §7.2",True,MM-LAB-006,MAPPED,
+EV-VN-S025-0940,formula,VKM-SRC-025,170,"формула (7.6), рис. 7.2, §7.2",True,MM-LAB-006,MAPPED,
+EV-VN-S025-0941,formula,VKM-SRC-025,170,"формула (7.7), рис. 7.2, §7.2",True,MM-LAB-006,MAPPED,
+EV-VN-S025-0942,formula,VKM-SRC-025,170,"формула (7.8), рис. 7.2, §7.2",True,MM-LAB-006,MAPPED,
+EV-VN-S025-0943,engineering_rule,VKM-SRC-025,170,"формулы (7.5)-(7.8), §7.2",True,MM-LAB-006,MAPPED,
+EV-VN-S025-0971,engineering_rule,VKM-SRC-025,171,"Табл. 7.2, строка «Критические значения»",True,MM-LAB-006,MAPPED,
+EV-VN-S025-0975,formula,VKM-SRC-025,172,"формула (7.9), §7.3",True,MM-LAB-006,MAPPED,
+EV-VN-S025-0986,formula,VKM-SRC-025,173,"формула (7.10), §7.3",True,MM-LAB-006,MAPPED,
+EV-VN-S025-0987,formula,VKM-SRC-025,173,"формула (7.11), §7.3",True,MM-LAB-006,MAPPED,
+EV-VN-S025-0988,formula,VKM-SRC-025,173,"формула (7.12), §7.3",True,MM-LAB-006,MAPPED,
+EV-VN-S025-1011,engineering_rule,VKM-SRC-025,175,"§7.4, p.175-176",True,MM-LAB-006,MAPPED,
+EV-VN-S025-1027,formula,VKM-SRC-025,179,§7.5 (без номера),True,MM-LAB-008,MAPPED,
+EV-VN-S025-1031,formula,VKM-SRC-025,180,"формула (7.13), рис. 7.5",True,MM-LAB-013,MAPPED,
+EV-VN-S026-0007,engineering_rule,VKM-SRC-026,4,Введение,True,,EXCLUDED,CONTEXT: единственная система разработки — камерная с ленточными МКЦ (без уравнения)
+EV-VN-S026-0009,engineering_rule,VKM-SRC-026,4,Введение,True,,EXCLUDED,CONTEXT: горные работы по технологическим регламентам
+EV-VN-S026-0010,engineering_rule,VKM-SRC-026,4,"Введение, ссылка [1]",True,,EXCLUDED,DESIGN_RULE: изолированные участки и гидроизолирующие целики (размеры не приведены)
+EV-VN-S026-0011,engineering_rule,VKM-SRC-026,4,Введение,True,,EXCLUDED,DESIGN_RULE: число одновременно отрабатываемых пластов (качественно)
+EV-VN-S026-0012,engineering_rule,VKM-SRC-026,4,"Введение, ссылка [2]",True,,EXCLUDED,"DESIGN_RULE: соосность камер, опережение верхнего пласта ≥ 50 м (значение → MINING поток)"
+EV-VN-S026-0041,engineering_rule,VKM-SRC-026,9,§2,True,,EXCLUDED,DESIGN_PRINCIPLE: исключение проникновения надсолевых вод (без уравнения)
+EV-VN-S026-0044,engineering_rule,VKM-SRC-026,9,"§2, ссылка [5]",True,,EXCLUDED,DESIGN_RULE: гидроизолированные участки (качественно)
+EV-VN-S026-0045,engineering_rule,VKM-SRC-026,9,Табл. 1,True,,EXCLUDED,CLASSIFICATION: классификация целиков (табл. 1)
+EV-VN-S026-0046,engineering_rule,VKM-SRC-026,9,§2,True,,EXCLUDED,DESIGN_RULE: управление кровлей только поддержанием на МКЦ (качественно)
+EV-VN-S026-0048,engineering_rule,VKM-SRC-026,9,"§2, сноска 3, ссылка [5]",True,,EXCLUDED,DESIGN_RULE: доработка запасов предохранительных целиков
+EV-VN-S026-0050,subsidence_method,VKM-SRC-026,9,§2,True,,EXCLUDED,QUALITATIVE_METHOD: целики + закладка уменьшают прогиб ВЗТ и оседание — расчётного метода нет
+EV-VN-S026-0062,engineering_rule,VKM-SRC-026,13,§4,True,,EXCLUDED,DESIGN_RULE: факторы ширины и высоты камеры (качественно)
+EV-VN-S026-0064,engineering_rule,VKM-SRC-026,13,"§4, ссылка [5]",True,,EXCLUDED,DESIGN_RULE: ширина МКЦ по Указаниям [5] — метод в источнике не приведён (см. MM-PILLAR-010)
+EV-VN-S026-0070,engineering_rule,VKM-SRC-026,14,§4.1,True,,EXCLUDED,"DESIGN_RULE: прямой порядок, опережение ≤ 300 м (значение → MINING поток)"
+EV-VN-S026-0082,engineering_rule,VKM-SRC-026,17,§4.2,True,,EXCLUDED,"DESIGN_RULE: обратный порядок, тупики ≤ 300 м"
+EV-VN-S026-0099,engineering_rule,VKM-SRC-026,20,§4.2,True,,EXCLUDED,DESIGN_RULE: диагональные камеры по осям складок
+EV-VN-S026-0106,engineering_rule,VKM-SRC-026,21,§4.3,True,,EXCLUDED,DESIGN_LIMIT: высота камер пласта В ≤ 10 м
+EV-VN-S026-0115,engineering_rule,VKM-SRC-026,22,"§4.3, ссылка [10]",True,,EXCLUDED,SAFETY_RULE: предварительная дегазация торпедированием
+EV-VN-S026-0123,formula,VKM-SRC-026,25,§5.1,True,MM-MINE-010,MAPPED,
+EV-VN-S026-0124,formula,VKM-SRC-026,25,§5.1,True,MM-MINE-011,MAPPED,
+EV-VN-S026-0125,formula,VKM-SRC-026,25,§5.1,True,MM-MINE-011,MAPPED,
+EV-VN-S026-0127,formula,VKM-SRC-026,26,"§5.1, сноска 11",True,MM-MINE-011,MAPPED,
+EV-VN-S026-0128,formula,VKM-SRC-026,26,§5.1,True,MM-MINE-011,MAPPED,
+EV-VN-S026-0129,formula,VKM-SRC-026,26,§5.1 p26,True,MM-MINE-011,MAPPED,
+EV-VN-S026-0130,formula,VKM-SRC-026,27,"§5.1, сноска 12",True,MM-MINE-011,MAPPED,
+EV-VN-S026-0132,formula,VKM-SRC-026,27,§5.1,True,MM-MINE-011,MAPPED,
+EV-VN-S026-0133,formula,VKM-SRC-026,28,§5.1 p27-28,True,MM-MINE-011,MAPPED,
+EV-VN-S026-0135,formula,VKM-SRC-026,28,§5.1,True,MM-MINE-010,MAPPED,
+EV-VN-S026-0137,formula,VKM-SRC-026,29,"§5.2, сноски 14, 15",True,MM-MINE-010,MAPPED,
+EV-VN-S026-0138,formula,VKM-SRC-026,29,§5.3,True,MM-ECON-004,MAPPED,
+EV-VN-S026-0139,formula,VKM-SRC-026,30,"§5.3, сноска 17",True,MM-ECON-004,MAPPED,
+EV-VN-S026-0140,formula,VKM-SRC-026,30,§5.3 p30-31,True,MM-ECON-004,MAPPED,
+EV-VN-S026-0144,formula,VKM-SRC-026,31,§5.3,True,MM-ECON-004,MAPPED,
+EV-VN-S027-0014,engineering_rule,VKM-SRC-027,3,§ нормативная база,True,,EXCLUDED,CONTEXT: соответствие ФНП (без уравнения)
+EV-VN-S027-0016,engineering_rule,VKM-SRC-027,3,§ меры для сложных условий,True,,EXCLUDED,DESIGN_VALUE: размеры панелей/блоков Усольского КК (→ MINING поток)
+EV-VN-S027-0019,engineering_rule,VKM-SRC-027,3,§ допустимая степень нагружения,True,MM-PILLAR-010,MAPPED,
+EV-VN-S027-0021,engineering_rule,VKM-SRC-027,4,§ методика,True,MM-PILLAR-007,MAPPED,
+EV-VN-S027-0058,formula,VKM-SRC-027,6,Табл. 2 / § методика (формула отсутствует),True,MM-PILLAR-007,MAPPED,
+EV-VN-S027-0063,engineering_rule,VKM-SRC-027,6,"Выводы, п. 3",True,,EXCLUDED,DESIGN_PRINCIPLE: расчёт по наихудшим исходным данным (без уравнения)
+EV-VN-S028-0012,engineering_rule,VKM-SRC-028,6,"разд.1, п.1 Проходческо-очистные комбайны, общие требования",True,,EXCLUDED,DESIGN_RULE: форма сечения комбайновых выработок
+EV-VN-S028-0017,engineering_rule,VKM-SRC-028,8,разд.1,True,,EXCLUDED,EQUIPMENT: дискретные типоразмеры органов
+EV-VN-S028-0019,engineering_rule,VKM-SRC-028,8,разд.1,True,,EXCLUDED,EQUIPMENT: автоматическое вождение
+EV-VN-S028-0031,engineering_rule,VKM-SRC-028,18,"§2.1.1 Исполнительные органы, требования",True,,EXCLUDED,EQUIPMENT: регулирование органа по гипсометрии
+EV-VN-S028-0068,engineering_rule,VKM-SRC-028,65,§2.1.3,True,,EXCLUDED,EQUIPMENT: удержание на пологих пластах
+EV-VN-S028-0082,engineering_rule,VKM-SRC-028,90,"§2.2.1, текст стр. 90-92, рис. 2.45-2.47",True,,EXCLUDED,EQUIPMENT: D и L органов (без уравнения)
+EV-VN-S028-0116,engineering_rule,VKM-SRC-028,191,§3.4 Электроснабжение комбайнов,True,,EXCLUDED,EQUIPMENT_LIMIT: кабель ≤350 м
+EV-VN-S028-0129,engineering_rule,VKM-SRC-028,267,§4.1.5 Совместная работа комбайнов с бункером-перегружателем; дистанционное управление при признаках выброса,True,,EXCLUDED,SAFETY_RULE: дистанционное управление при признаках выброса
+EV-VN-S028-0134,formula,VKM-SRC-028,268,§4.1.6 Защита и контроль; уставка ПМЗ (формула без номера),True,MM-ELEC-001,MAPPED,
+EV-VN-S028-0135,formula,VKM-SRC-028,269,§4.1.6 Защита и контроль; проверка уставки по току двухфазного КЗ,True,MM-ELEC-001,MAPPED,
+EV-VN-S028-0140,engineering_rule,VKM-SRC-028,293,§5.1.3 Монтаж комбайнов,True,,EXCLUDED,SAFETY_RULE: монтажные камеры
+EV-VN-S028-0154,engineering_rule,VKM-SRC-028,316,§5.4.2 Монтаж конвейеров и подготовка их к работе,True,,EXCLUDED,EQUIPMENT_RULE: конвейерный штрек
+EV-VN-S028-0159,engineering_rule,VKM-SRC-028,321,"§6.1 Подготовка комбайнов к работе, п.1.5",True,,EXCLUDED,SAFETY_RULE: проверка кровли
+EV-VN-S028-0165,engineering_rule,VKM-SRC-028,325,§6.1,True,,EXCLUDED,EQUIPMENT_RULE: нагрузка двигателей
+EV-VN-S028-0169,engineering_rule,VKM-SRC-028,330,"§6.3 (повторено §6.4, p.332)",True,,EXCLUDED,SAFETY_RULE: газовый режим
+EV-VN-S028-0178,engineering_rule,VKM-SRC-028,386,§7.4,True,,EXCLUDED,SAFETY_RULE: кровля перед ремонтом
+EV-VN-S028-0188,engineering_rule,VKM-SRC-028,413,§9.1 «Передвижение самоходных вагонов по выработкам»,True,,EXCLUDED,SAFETY_LIMIT: зазоры для самоходного вагона
+EV-VN-S028-0193,engineering_rule,VKM-SRC-028,418,§9.2-9.3,True,,EXCLUDED,SAFETY_RULE: бункер-перегружатель
+EV-VN-S029-0024,formula,VKM-SRC-029,15,"формулы (1.1)-(1.3), Рис. 1.2",True,MM-STRESS-002,MAPPED,
+EV-VN-S029-0028,formula,VKM-SRC-029,16,"§1.1.2 HTPF, рис. 1.3",True,MM-STRESS-002,MAPPED,
+EV-VN-S029-0029,formula,VKM-SRC-029,18,"формулы (1.5)-(1.6), рис. 1.4",True,MM-STRESS-002,MAPPED,
+EV-VN-S029-0041,formula,VKM-SRC-029,27,"формула (1.7), рис. 1.10",True,MM-STRESS-004,MAPPED,
+EV-VN-S029-0051,formula,VKM-SRC-029,39,"§1.2.3, закономерность 1-2 (in-text)",True,MM-STRESS-005,MAPPED,
+EV-VN-S029-0067,formula,VKM-SRC-029,48,"§1.3.2, способ 3 (in-text)",True,MM-STRESS-005,MAPPED,
+EV-VN-S029-0086,formula,VKM-SRC-029,55,"формула (1.8), refs [62, 67-69]",True,MM-STRESS-006,MAPPED,
+EV-VN-S029-0108,formula,VKM-SRC-029,65,"§2.1, ref [80]",True,MM-STRESS-008,MAPPED,
+EV-VN-S029-0112,formula,VKM-SRC-029,67,"формулы (2.1, 2.2), ref [56]",True,MM-STRESS-007,MAPPED,
+EV-VN-S029-0155,formula,VKM-SRC-029,90,Рис. 3.1,True,MM-STR-009,MAPPED,
+EV-VN-S029-0177,formula,VKM-SRC-029,102,"формула (3.1), ref [17]",True,MM-STRESS-008,MAPPED,
+EV-VN-S029-0181,formula,VKM-SRC-029,105,"формула (3.2), ref [95]",True,MM-STRESS-008,MAPPED,
+EV-VN-S029-0194,formula,VKM-SRC-029,110,"§4.1.1, Рис. 4.1",True,MM-STRESS-008,MAPPED,
+EV-VN-S029-0220,formula,VKM-SRC-029,126,§4.3 пп.2-4,True,MM-STRESS-005,MAPPED,
+EV-VN-S029-0222,formula,VKM-SRC-029,127,§4.3 пп.5-6,True,MM-STRESS-005,MAPPED,
+EV-VN-S030-0042,formula,VKM-SRC-030,4,формула (1),True,MM-STRESS-003,MAPPED,
+EV-VN-S030-0043,formula,VKM-SRC-030,5,формула (2),True,MM-STRESS-003,MAPPED,
+EV-VN-S030-0044,formula,VKM-SRC-030,5,формула (3),True,MM-STRESS-003,MAPPED,
+EV-VN-S030-0045,formula,VKM-SRC-030,5,формула (4),True,MM-STRESS-003,MAPPED,
+EV-VN-S030-0046,formula,VKM-SRC-030,5,формула (5),True,MM-STRESS-003,MAPPED,
+EV-VN-S030-0047,formula,VKM-SRC-030,5,p.5 before Табл. 2,True,MM-STRESS-001,MAPPED,
+EV-VN-S030-0049,engineering_rule,VKM-SRC-030,5,p.5,True,MM-STRESS-003,MAPPED,
+EV-VN-S031-0002,formula,VKM-SRC-031,1,Введение,True,MM-PILLAR-010,MAPPED,
+EV-VN-S031-0005,formula,VKM-SRC-031,1,§Методы и подходы,True,MM-PILLAR-010,MAPPED,
+EV-VN-S031-0009,formula,VKM-SRC-031,2,§Методы и подходы,True,MM-SUBS-011,MAPPED,
+EV-VN-S031-0010,subsidence_method,VKM-SRC-031,2,§Методы и подходы,True,MM-SUBS-011,MAPPED,
+EV-VN-S031-0012,rheology_law,VKM-SRC-031,2,§Методы и подходы,True,MM-CREEP-012,MAPPED,
+EV-VN-S031-0019,formula,VKM-SRC-031,3,§Результаты,True,MM-PILLAR-001,MAPPED,
+EV-VN-S032-0003,formula,VKM-SRC-032,1,формула (1),True,MM-PILLAR-010,MAPPED,
+EV-VN-S032-0004,engineering_rule,VKM-SRC-032,1,формула (1),True,MM-PILLAR-010,MAPPED,
+EV-VN-S032-0006,formula,VKM-SRC-032,2,p2 текст,True,MM-PILLAR-008,MAPPED,
+EV-VN-S032-0007,formula,VKM-SRC-032,2,p2 текст,True,MM-PILLAR-008,MAPPED,
+EV-VN-S032-0008,formula,VKM-SRC-032,2,формула (3),True,MM-PILLAR-008,MAPPED,
+EV-VN-S032-0020,formula,VKM-SRC-032,4,формула (4),True,MM-PILLAR-008,MAPPED,
+EV-VN-S033-0004,engineering_rule,VKM-SRC-033,1,Введение; ref [1],True,MM-PILLAR-006,MAPPED,
+EV-VN-S033-0015,formula,VKM-SRC-033,2,p2,True,MM-PILLAR-011,MAPPED,
+EV-VN-S033-0016,formula,VKM-SRC-033,2,формула (1),True,MM-PILLAR-011,MAPPED,
+EV-VN-S034-0004,engineering_rule,VKM-SRC-034,1,вводная часть,True,,EXCLUDED,MONITORING_RULE: устойчивость МКЦ по скорости деформирования → решения о закладке (без уравнения; → MONITORING_LIFECYCLE)
+EV-VN-S034-0005,subsidence_method,VKM-SRC-034,1,вводная часть,True,MM-CREEP-012,MAPPED,
+EV-VN-S034-0029,formula,VKM-SRC-034,2,§ участок 2 (пересчёт конвергенции в продольную деформацию),True,MM-PILLAR-009,MAPPED,
+EV-VN-S034-0041,subsidence_method,VKM-SRC-034,4,весь текст,True,MM-PILLAR-009,MAPPED,
+EV-VN-S035-0006,subsidence_method,VKM-SRC-035,1,введение; рис. 1; ссылка [1],True,MM-CREEP-012,MAPPED,
+EV-VN-S035-0016,formula,VKM-SRC-035,3,"подписи Рис. 2б, Рис. 3, Рис. 5",True,MM-WPS-007,MAPPED,
+EV-VN-S035-0020,engineering_rule,VKM-SRC-035,4,текст p.4-5; Рис. 5,True,MM-WPS-007,MAPPED,
+EV-VN-S036-0017,formula,VKM-SRC-036,2,"eq. (1), §Mathematical model",True,MM-CREEP-103,MAPPED,
+EV-VN-S036-0018,formula,VKM-SRC-036,3,eq. (2),True,MM-CREEP-103,MAPPED,
+EV-VN-S036-0020,formula,VKM-SRC-036,3,eq. (3),True,MM-STR-010,MAPPED,
+EV-VN-S036-0021,formula,VKM-SRC-036,3,eq. (4),True,MM-STR-010,MAPPED,
+EV-VN-S036-0022,formula,VKM-SRC-036,3,eq. (5),True,MM-STR-011,MAPPED,
+EV-VN-S036-0023,formula,VKM-SRC-036,3,eq. (6),True,MM-STR-011,MAPPED,
+EV-VN-S036-0026,formula,VKM-SRC-036,4,eq. (7),True,MM-NUM-001,MAPPED,
+EV-VN-S036-0027,formula,VKM-SRC-036,4,eq. (8),True,MM-NUM-001,MAPPED,
+EV-VN-S036-0028,formula,VKM-SRC-036,4,eq. (9),True,MM-NUM-001,MAPPED,
+EV-VN-S036-0030,rheology_law,VKM-SRC-036,4,"eq. (10)-(11), §Viscoplasticity laws: Bingham's law",True,MM-CREEP-018,MAPPED,
+EV-VN-S036-0031,formula,VKM-SRC-036,4,eq. (10),True,MM-CREEP-018,MAPPED,
+EV-VN-S036-0032,formula,VKM-SRC-036,4,eq. (11),True,MM-CREEP-018,MAPPED,
+EV-VN-S036-0034,formula,VKM-SRC-036,5,eq. (12),True,MM-CREEP-018,MAPPED,
+EV-VN-S036-0035,formula,VKM-SRC-036,5,eq. (13),True,MM-CREEP-018,MAPPED,
+EV-VN-S036-0037,formula,VKM-SRC-036,5,eq. (14),True,MM-STR-010,MAPPED,
+EV-VN-S036-0039,formula,VKM-SRC-036,5,eq. (15),True,MM-CREEP-018,MAPPED,
+EV-VN-S036-0041,formula,VKM-SRC-036,6,eq. (16),True,MM-STR-010,MAPPED,
+EV-VN-S036-0042,formula,VKM-SRC-036,6,eq. (17),True,MM-CREEP-018,MAPPED,
+EV-VN-S036-0044,rheology_law,VKM-SRC-036,6,Table 1: “Mohr-Coulomb + Bingham” model parameters,True,MM-CREEP-018,MAPPED,
+EV-VN-S036-0046,formula,VKM-SRC-036,6,eq. (18),True,MM-CREEP-018,MAPPED,
+EV-VN-S036-0047,formula,VKM-SRC-036,6,eq. (19),True,MM-CREEP-018,MAPPED,
+EV-VN-S036-0048,formula,VKM-SRC-036,7,eq. (20),True,MM-STR-011,MAPPED,
+EV-VN-S036-0049,rheology_law,VKM-SRC-036,7,Table 2: “Volumetric + Bingham” model parameters,True,MM-CREEP-018,MAPPED,
+EV-VN-S036-0052,rheology_law,VKM-SRC-036,7,"eq. (21)-(22), §Duvaut-Lions law",True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0053,formula,VKM-SRC-036,7,eq. (21),True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0054,formula,VKM-SRC-036,7,eq. (22),True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0055,formula,VKM-SRC-036,8,eq. (23),True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0056,formula,VKM-SRC-036,8,eq. (24),True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0057,formula,VKM-SRC-036,8,eq. (25),True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0058,formula,VKM-SRC-036,8,eq. (26),True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0059,formula,VKM-SRC-036,8,eq. (27),True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0060,formula,VKM-SRC-036,8,eq. (28),True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0061,formula,VKM-SRC-036,9,eq. (29),True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0062,formula,VKM-SRC-036,9,eq. (30),True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0064,rheology_law,VKM-SRC-036,9,Table 3: “Mohr-Coulomb + Duvaut-Lions” model parameters,True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0067,formula,VKM-SRC-036,9,eq. (31),True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0068,formula,VKM-SRC-036,9,eq. (32),True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0069,formula,VKM-SRC-036,10,eq. (33),True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0070,rheology_law,VKM-SRC-036,10,Table 4: “Volumetric + Duvaut-Lions” model parameters,True,MM-CREEP-019,MAPPED,
+EV-VN-S036-0072,rheology_law,VKM-SRC-036,10,"eq. (34), §Perzyna's law",True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0073,formula,VKM-SRC-036,10,eq. (34),True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0077,formula,VKM-SRC-036,11,eq. (35),True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0078,formula,VKM-SRC-036,11,eq. (36),True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0079,formula,VKM-SRC-036,11,eq. (37),True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0081,formula,VKM-SRC-036,11,eq. (38),True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0083,formula,VKM-SRC-036,11,eq. (39),True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0084,formula,VKM-SRC-036,11,eq. (40),True,MM-STR-010,MAPPED,
+EV-VN-S036-0085,formula,VKM-SRC-036,11,eq. (41),True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0086,formula,VKM-SRC-036,12,eq. (42),True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0087,formula,VKM-SRC-036,12,eq. (43),True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0089,formula,VKM-SRC-036,12,eq. (44),True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0090,formula,VKM-SRC-036,12,eq. (45),True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0091,rheology_law,VKM-SRC-036,12,Table 5: “Mohr-Coulomb + Perzyna” model parameters,True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0093,formula,VKM-SRC-036,13,eq. (46),True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0094,formula,VKM-SRC-036,13,eq. (47),True,MM-STR-011,MAPPED,
+EV-VN-S036-0095,formula,VKM-SRC-036,13,eq. (48),True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0096,rheology_law,VKM-SRC-036,13,Table 6: “Volumetric + Perzyna” model parameters,True,MM-CREEP-020,MAPPED,
+EV-VN-S036-0099,rheology_law,VKM-SRC-036,14,"eq. (49)-(51), §Perić's law",True,MM-CREEP-021,MAPPED,
+EV-VN-S036-0100,formula,VKM-SRC-036,14,eq. (49),True,MM-CREEP-021,MAPPED,
+EV-VN-S036-0101,formula,VKM-SRC-036,14,eq. (50),True,MM-CREEP-021,MAPPED,
+EV-VN-S036-0102,formula,VKM-SRC-036,14,eq. (51),True,MM-CREEP-021,MAPPED,
+EV-VN-S036-0103,formula,VKM-SRC-036,14,eq. (52),True,MM-CREEP-021,MAPPED,
+EV-VN-S036-0104,formula,VKM-SRC-036,14,eq. (53),True,MM-CREEP-021,MAPPED,
+EV-VN-S036-0106,formula,VKM-SRC-036,14,eq. (54),True,MM-CREEP-021,MAPPED,
+EV-VN-S036-0107,formula,VKM-SRC-036,15,eq. (55),True,MM-CREEP-021,MAPPED,
+EV-VN-S036-0108,rheology_law,VKM-SRC-036,15,Table 7: “Mohr-Coulomb + Perić” model parameters,True,MM-CREEP-021,MAPPED,
+EV-VN-S036-0110,formula,VKM-SRC-036,15,eq. (56),True,MM-CREEP-021,MAPPED,
+EV-VN-S036-0111,formula,VKM-SRC-036,15,eq. (57),True,MM-CREEP-021,MAPPED,
+EV-VN-S036-0116,rheology_law,VKM-SRC-036,16,Table 8: “Volumetric + Perić” model parameters,True,MM-CREEP-021,MAPPED,
+EV-VN-S037-0049,engineering_rule,VKM-SRC-037,5,§1.1.2,True,,EXCLUDED,DEFINITION: кровля ВЗТ по верхнему соляному прослою (геология)
+EV-VN-S037-0119,formula,VKM-SRC-037,10,"§1.2.1, эмпирическая зависимость σсж(h/d)",True,MM-LAB-001,MAPPED,
+EV-VN-S037-0126,formula,VKM-SRC-037,11,"Табл. 1.1, строка 1 (рекомендация Международного бюро по механике горных пород)",True,MM-LAB-002,MAPPED,
+EV-VN-S037-0127,formula,VKM-SRC-037,11,"Табл. 1.1, строка 2 (рекомендация ВНИМИ)",True,MM-LAB-003,MAPPED,
+EV-VN-S037-0128,formula,VKM-SRC-037,11,"Табл. 1.1, строка 3 (коэффициент Церна)",True,MM-LAB-004,MAPPED,
+EV-VN-S037-0129,formula,VKM-SRC-037,11,"Табл. 1.1, строка 4 (рекомендация УФ ВНИИГ)",True,MM-LAB-001,MAPPED,
+EV-VN-S037-0130,formula,VKM-SRC-037,11,"§1.2.1, коэффициент относительного изменения прочности",True,MM-LAB-005-B,MAPPED,
+EV-VN-S037-0139,formula,VKM-SRC-037,12,"§1.2.1, определение модуля упругости",True,MM-LAB-005,MAPPED,
+EV-VN-S037-0140,formula,VKM-SRC-037,12,"§1.2.1, определение модуля деформации",True,MM-LAB-005,MAPPED,
+EV-VN-S037-0143,rheology_law,VKM-SRC-037,13,Рис. 1.13,True,MM-CREEP-002,MAPPED,
+EV-VN-S037-0145,formula,VKM-SRC-037,13,"§1.2.1, коэффициент Пуассона",True,MM-LAB-005,MAPPED,
+EV-VN-S037-0146,formula,VKM-SRC-037,13,"§1.2.1, коэффициент поперечной деформации",True,MM-LAB-005,MAPPED,
+EV-VN-S037-0174,engineering_rule,VKM-SRC-037,15,"Табл. 1.5, примечание",True,,EXCLUDED,USAGE_RULE: усреднённые характеристики табл. 1.5 только при отсутствии данных участка (учесть в параметрах)
+EV-VN-S037-0205,engineering_rule,VKM-SRC-037,19,§1.3.2,True,,EXCLUDED,DESIGN_RULE: панельная подготовка (ширина панели 400 м)
+EV-VN-S037-0223,engineering_rule,VKM-SRC-037,23,"§1.3.3, высота камер",True,,EXCLUDED,DESIGN_RULE: высота камер = мощность пласта (В ≤ 10 м)
+EV-VN-S037-0224,engineering_rule,VKM-SRC-037,23,"§1.3.3, «зоны смягчения»",True,,EXCLUDED,DESIGN_RULE: зоны смягчения (без уравнения)
+EV-VN-S037-0262,engineering_rule,VKM-SRC-037,30,"§1.3.6, маломощные пласты",True,,EXCLUDED,"CLASSIFICATION: маломощные пласты ≤3,5 м"
+EV-VN-S037-0280,engineering_rule,VKM-SRC-037,34,"§2.2, с.67; рис. 2.4",True,,EXCLUDED,TECHNOLOGY_RULE: перемычки с врубами
+EV-VN-S037-0301,engineering_rule,VKM-SRC-037,36,"§2.4, с.70",True,,EXCLUDED,"TECHNOLOGY_RULE: прямой порядок отработки панелей СКПРУ-1, временные целики"
+EV-VN-S037-0305,engineering_rule,VKM-SRC-037,36,"§2.6, с.71",True,,EXCLUDED,DESIGN_VALUE: временные целики 400/160 м (СКПРУ-3)
+EV-VN-S037-0340,engineering_rule,VKM-SRC-037,42,"§2.8, с.83",True,,EXCLUDED,NO_EQUATION: запрет подземных складов токсичных отходов
+EV-VN-S037-0347,engineering_rule,VKM-SRC-037,42,"§2.8, с.83–84",True,,EXCLUDED,NO_EQUATION: подземная лечебница
+EV-VN-S037-0348,engineering_rule,VKM-SRC-037,43,"§2.9, с.84; рис. 2.19–2.20",True,,EXCLUDED,NO_EQUATION: шламовые камеры (размещение)
+EV-VN-S037-0373,engineering_rule,VKM-SRC-037,48,"§3.4, с.95–96; рис. 3.11",True,,EXCLUDED,TECHNOLOGY_RULE: разрезные выработки в складчатом пласте Вк
+EV-VN-S037-0380,engineering_rule,VKM-SRC-037,50,"§3.4, с.98; рис. 3.16",True,,EXCLUDED,TECHNOLOGY_RULE: 2 ч проветривания после взрывания
+EV-VN-S037-0388,engineering_rule,VKM-SRC-037,52,"рис. 3.19 а–г; §3.5, с.99",True,,EXCLUDED,"TECHNOLOGY_RULE: дренажные шпуры 1,2–4 м"
+EV-VN-S037-0400,engineering_rule,VKM-SRC-037,54,рис. 3.23 подпись (БКЗ-4),True,,EXCLUDED,DESIGN_RULE: выбор схемы многопластовой выемки по мощности ВЗТ (>80 / >60 м)
+EV-VN-S037-0417,engineering_rule,VKM-SRC-037,56,рис. 3.32 а–г (варианты отработки при вскрытии складок),True,,EXCLUDED,TECHNOLOGY_RULE: проход складок комбайном
+EV-VN-S037-0419,engineering_rule,VKM-SRC-037,57,"§3.10, с.112; рис. 3.35",True,,EXCLUDED,TECHNOLOGY_RULE: разрезная выработка у почвы
+EV-VN-S037-0433,engineering_rule,VKM-SRC-037,60,"§3.11, с.118 (СКПРУ-1)",True,,EXCLUDED,"TECHNOLOGY_RULE: 2 ч проветривания (СКПРУ-1, пласт В)"
+EV-VN-S037-0440,engineering_rule,VKM-SRC-037,62,Рис. 3.47 (с.122),True,MM-PILLAR-003,MAPPED,
+EV-VN-S037-0445,engineering_rule,VKM-SRC-037,63,"§3.14, меры безопасности (с.125)",True,,EXCLUDED,DESIGN_LIMIT: междупластье БВ ≥ 2 м
+EV-VN-S037-0476,formula,VKM-SRC-037,72,§4.2 (с.143),True,MM-BACKFILL-003,MAPPED,
+EV-VN-S037-0480,engineering_rule,VKM-SRC-037,75,§4.3 (с.148),True,MM-BACKFILL-003,MAPPED,
+EV-VN-S037-0484,engineering_rule,VKM-SRC-037,75,§4.4 (с.148),True,,EXCLUDED,TECHNOLOGY_RULE: чередование шламовых камер
+EV-VN-S037-0485,engineering_rule,VKM-SRC-037,75,§4.4 (с.148–149),True,,EXCLUDED,TECHNOLOGY_RULE: намывные перемычки
+EV-VN-S037-0494,engineering_rule,VKM-SRC-037,77,§4.6 (с.153),True,,EXCLUDED,DESIGN_RULE: шламовые камеры ниже маркирующей глины (условие 50 % заполнения)
+EV-VN-S037-0505,engineering_rule,VKM-SRC-037,79,§5.1 (с.157),True,,EXCLUDED,FIELD_OBSERVATION: нарушение паспорта защитной пачки → рост ГДЯ (без уравнения)
+EV-VN-S037-0529,formula,VKM-SRC-037,83,"§5.3, формула (5.1) (с.165)",True,MM-GASDYN-002,MAPPED,
+EV-VN-S037-0530,formula,VKM-SRC-037,85,"§5.3, формула (5.2) (с.168)",True,MM-GASDYN-002,MAPPED,
+EV-VN-S037-0531,formula,VKM-SRC-037,85,"§5.3, формула (5.3) (с.168)",True,MM-GASDYN-002,MAPPED,
+EV-VN-S037-0532,formula,VKM-SRC-037,85,"§5.3, формула (5.4) (с.168)",True,MM-GASDYN-002,MAPPED,
+EV-VN-S037-0540,formula,VKM-SRC-037,86,"§5.4, формула (5.5) (с.170)",True,MM-GASDYN-003,MAPPED,
+EV-VN-S037-0541,formula,VKM-SRC-037,86,"§5.4, формула (5.6) (с.171)",True,MM-GASDYN-003,MAPPED,
+EV-VN-S037-0542,engineering_rule,VKM-SRC-037,86,§5.4 (с.171),True,MM-GASDYN-003,MAPPED,
+EV-VN-S037-0546,engineering_rule,VKM-SRC-037,87,§5.5 (с.172–173),True,,EXCLUDED,SEQUENCING_RULE: безопасный порядок отработки выбросоопасных пластов (разрыв фронтов не указан)
+EV-VN-S037-0547,engineering_rule,VKM-SRC-037,87,"§5.5 (с.173), рис. 5.8, 5.9",True,MM-GASDYN-004,MAPPED,
+EV-VN-S037-0549,engineering_rule,VKM-SRC-037,87,§6.1 (с.173),True,MM-ROOF-002,MAPPED,
+EV-VN-S037-0553,formula,VKM-SRC-037,89,"§6.2, формула (6.1) (с.176)",True,MM-ROOF-004,MAPPED,
+EV-VN-S037-0554,formula,VKM-SRC-037,89,"§6.2, формула (6.2) (с.176)",True,MM-STR-005,MAPPED,
+EV-VN-S037-0555,rheology_law,VKM-SRC-037,89,§6.2 (с.176),True,MM-ROOF-002,MAPPED,
+EV-VN-S037-0558,formula,VKM-SRC-037,89,"§6.2, формула (6.3) (с.177)",True,MM-ROOF-008,MAPPED,
+EV-VN-S037-0559,formula,VKM-SRC-037,89,"§6.2, формула (6.4) (с.177)",True,MM-ROOF-011,MAPPED,
+EV-VN-S037-0560,formula,VKM-SRC-037,89,"§6.2, формула (6.5) (с.177)",True,MM-ROOF-002,MAPPED,
+EV-VN-S037-0561,rheology_law,VKM-SRC-037,89,"§6.2, (6.5)–(6.8) (с.177–178)",True,MM-ROOF-002,MAPPED,
+EV-VN-S037-0562,formula,VKM-SRC-037,90,"§6.2, формула (6.6) (с.178)",True,MM-ROOF-002,MAPPED,
+EV-VN-S037-0563,formula,VKM-SRC-037,90,"§6.2, формула (6.7) (с.178)",True,MM-ROOF-002,MAPPED,
+EV-VN-S037-0564,formula,VKM-SRC-037,90,"§6.2, K_mn и формула (6.8) (с.179)",True,MM-ROOF-002,MAPPED,
+EV-VN-S037-0565,engineering_rule,VKM-SRC-037,90,Табл. 6.1 (с.178),True,MM-ROOF-002,MAPPED,
+EV-VN-S037-0571,engineering_rule,VKM-SRC-037,90,§6.3 (с.179),True,,EXCLUDED,"DEFINITION: сопряжение ствола (≤1,5 D)"
+EV-VN-S037-0574,engineering_rule,VKM-SRC-037,91,"§6.3, Рис. 6.4 (типы сопряжений I, II, III)",True,,EXCLUDED,CLASSIFICATION: типы сопряжений ствола I–III
+EV-VN-S037-0578,subsidence_method,VKM-SRC-037,91,§6.3 (методика НЗНД),True,MM-GEOMECH-003,MAPPED,
+EV-VN-S037-0579,formula,VKM-SRC-037,91,"с. 181–182, формула изолинии границы НЗНД (без номера)",True,MM-STR-006,MAPPED,
+EV-VN-S037-0583,formula,VKM-SRC-037,93,"с. 185, табл. 6.3",True,MM-STR-006,MAPPED,
+EV-VN-S037-0584,engineering_rule,VKM-SRC-037,94,Табл. 6.2,True,MM-STR-006,MAPPED,
+EV-VN-S037-0585,engineering_rule,VKM-SRC-037,94,Табл. 6.3,True,MM-STR-006,MAPPED,
+EV-VN-S037-0588,engineering_rule,VKM-SRC-037,93,§6.4,True,,EXCLUDED,DESIGN_RULE: перевод категории устойчивости мерами
+EV-VN-S037-0589,engineering_rule,VKM-SRC-037,93,§6.4,True,,EXCLUDED,"TECHNOLOGY_RULE: защитный слой 0,9–1,0 м при БВР"
+EV-VN-S037-0590,engineering_rule,VKM-SRC-037,94,Табл. 6.4 «Рекомендуемые меры поддержания горных выработок»,True,,EXCLUDED,CLASSIFICATION: меры поддержания по категориям
+EV-VN-S037-0591,engineering_rule,VKM-SRC-037,94,§6.5,True,,EXCLUDED,TECHNOLOGY_RULE: очерёдность работ на сопряжении
+EV-VN-S037-0594,engineering_rule,VKM-SRC-037,95,Табл. 6.5 «Рекомендуемые способы охраны сопряжений ствола с горизонтальной выработкой»,True,,EXCLUDED,CLASSIFICATION: крепь сопряжений по категориям
+EV-VN-S037-0595,engineering_rule,VKM-SRC-037,95,"§6.5, с. 188",True,,EXCLUDED,TECHNOLOGY_RULE: балки на скользящих опорах
+EV-VN-S037-0598,formula,VKM-SRC-037,95,с. 189,True,MM-ROOF-002,MAPPED,
+EV-VN-S037-0601,engineering_rule,VKM-SRC-037,96,Рис. 6.9 «Типы крепи горизонтальных горных выработок»,True,,EXCLUDED,CLASSIFICATION: типы крепи
+EV-VN-S037-0603,engineering_rule,VKM-SRC-037,96,"§6.6, с. 190",True,,EXCLUDED,TECHNOLOGY_RULE: «сосулька» в кровле
+EV-VN-S037-0604,formula,VKM-SRC-037,96,с. 190 (формула без номера),True,MM-ROOF-002,MAPPED,
+EV-VN-S037-0605,formula,VKM-SRC-037,98,"с. 194, формула (6.5) в примере 1 (определение (6.5) — в §6.2, вне чанка)",True,MM-ROOF-002,MAPPED,
+EV-VN-S037-0606,formula,VKM-SRC-037,98,"с. 194, формула (6.7) в примере 2 (определение (6.7) — в §6.2, вне чанка)",True,MM-ROOF-002,MAPPED,
+EV-VN-S037-0620,formula,VKM-SRC-037,99,"§6.7, с. 197 (условие НЗНД)",True,MM-STR-006,MAPPED,
+EV-VN-S037-0630,engineering_rule,VKM-SRC-037,102,"§6.8, с. 202",True,,EXCLUDED,DESIGN_RULE: камеры у ствола (≥2D)
+EV-VN-S037-0631,formula,VKM-SRC-037,102,"§6.9.1, формулы (6.9), (6.10)",True,MM-ROOF-013,MAPPED,
+EV-VN-S037-0632,formula,VKM-SRC-037,103,"§6.9.1, формула (6.11)",True,MM-ROOF-013,MAPPED,
+EV-VN-S037-0637,formula,VKM-SRC-037,103,"§6.9.1, формулы (6.12)–(6.14), табл. 6.8",True,MM-ROOF-014,MAPPED,
+EV-VN-S037-0641,engineering_rule,VKM-SRC-037,104,§6.9.2,True,,EXCLUDED,SITING_RULE: сопряжения в монолитных породах
+EV-VN-S037-0642,formula,VKM-SRC-037,104,"§6.9.2, с. 207, h=0,7Lр и (6.15)",True,MM-ROOF-003;MM-ROOF-007,MAPPED,
+EV-VN-S037-0643,formula,VKM-SRC-037,104,"§6.9.2, формула (6.16)",True,MM-ROOF-015,MAPPED,
+EV-VN-S037-0646,engineering_rule,VKM-SRC-037,105,"§6.9.2, с. 208, рис. 6.19–6.22",True,MM-ROOF-015,MAPPED,
+EV-VN-S037-0649,formula,VKM-SRC-037,105,"§6.9.3, формула (6.17)",True,MM-ROOF-016,MAPPED,
+EV-VN-S037-0652,engineering_rule,VKM-SRC-037,106,"§6.9.3, формула (6.18)",True,MM-ROOF-016,MAPPED,
+EV-VN-S037-0654,formula,VKM-SRC-037,107,"§6.10.1, формула (6.19), табл. 6.11",True,MM-ROOF-017,MAPPED,
+EV-VN-S037-0656,formula,VKM-SRC-037,107,"§6.10.1, формулы (6.20), (6.21)",True,MM-ROOF-004;MM-STR-005,MAPPED,
+EV-VN-S037-0664,formula,VKM-SRC-037,108,"§6.10.1, формулы (6.22), (6.23), табл. 6.14",True,MM-ROOF-012,MAPPED,
+EV-VN-S037-0667,engineering_rule,VKM-SRC-037,108,"§6.10.1, с. 215",True,MM-ROOF-004,MAPPED,
+EV-VN-S037-0670,formula,VKM-SRC-037,108,"§6.10.1, формулы (6.24), (6.25)",True,MM-ROOF-003;MM-ROOF-017,MAPPED,
+EV-VN-S037-0672,formula,VKM-SRC-037,109,"§6.10.1, формула (6.26)",True,MM-ROOF-005,MAPPED,
+EV-VN-S037-0677,formula,VKM-SRC-037,109,"§6.10.1, формула (6.27)",True,MM-ROOF-017,MAPPED,
+EV-VN-S037-0678,engineering_rule,VKM-SRC-037,110,"§6.10.1, с. 218",True,MM-ROOF-017,MAPPED,
+EV-VN-S037-0688,formula,VKM-SRC-037,111,"§6.10.2, формула (6.28), табл. 6.19",True,MM-ROOF-018,MAPPED,
+EV-VN-S037-0692,formula,VKM-SRC-037,112,"§6.10.3, формулы (6.29), (6.30)",True,MM-ROOF-019,MAPPED,
+EV-VN-S037-0696,engineering_rule,VKM-SRC-037,114,"§6.10.3, формулы (6.31)–(6.32)",True,MM-ROOF-019,MAPPED,
+EV-VN-S037-0697,engineering_rule,VKM-SRC-037,114,Табл. 6.20 «Высота зоны возможного обрушения пород кровли при сроке службы выработки до 5 лет»,True,MM-ROOF-019,MAPPED,
+EV-VN-S037-0699,formula,VKM-SRC-037,115,"§6.10.3, формулы (6.33)–(6.38), табл. 6.21–6.22",True,MM-SUPPORT-001,MAPPED,
+EV-VN-S037-0702,formula,VKM-SRC-037,116,"§6.10.3, формулы (6.39)–(6.42)",True,MM-SUPPORT-001,MAPPED,
+EV-VN-S037-0708,formula,VKM-SRC-037,118,"§6.10.4, формула Hпр=H·Kс и (6.43)",True,MM-ROOF-012,MAPPED,
+EV-VN-S037-0712,engineering_rule,VKM-SRC-037,119,"§6.10.4, (6.44)–(6.46)",True,MM-ROOF-018,MAPPED,
+EV-VN-S037-0713,formula,VKM-SRC-037,119,"§6.10.4, формулы Lэ=2S/p, (6.47)–(6.53)",True,MM-ROOF-014,MAPPED,
+EV-VN-S037-0716,formula,VKM-SRC-037,120,"§6.10.4, формула (6.54)",True,MM-ROOF-012,MAPPED,
+EV-VN-S037-0730,formula,VKM-SRC-037,121,"§6.10.4, пример: длина анкеров",True,MM-SUPPORT-001,MAPPED,
+EV-VN-S037-0732,formula,VKM-SRC-037,121,"§6.10.4 пример: число анкеров и расстояние до 2-го ряда, ф. (6.50)-(6.52)",True,MM-SUPPORT-001,MAPPED,
+EV-VN-S037-0733,formula,VKM-SRC-037,121,§6.10.4 пример: время устойчивого состояния сечения сопряжения по ф. (6.28),True,MM-ROOF-018,MAPPED,
+EV-VN-S037-0736,formula,VKM-SRC-037,122,"§6.10.5, ф. (6.55)",True,MM-ROOF-020,MAPPED,
+EV-VN-S037-0737,formula,VKM-SRC-037,122,"§6.10.5, ф. (6.56), (6.57)",True,MM-ROOF-020,MAPPED,
+EV-VN-S037-0743,formula,VKM-SRC-037,122,"§7.1.1, ф. (7.1)–(7.4)",True,MM-ECON-001,MAPPED,
+EV-VN-S037-0759,formula,VKM-SRC-037,127,"Табл. 7.9, ф. (7.5)–(7.18): регрессии производительности комбайновых комплексов",True,MM-MINE-003,MAPPED,
+EV-VN-S037-0770,formula,VKM-SRC-037,130,"§7.3.1, ф. (7.19)",True,MM-ECON-001,MAPPED,
+EV-VN-S037-0771,formula,VKM-SRC-037,131,"§7.3.1, ф. (7.20), (7.21); рис. 7.10 граф трудоемкости",True,MM-ECON-001,MAPPED,
+EV-VN-S037-0772,formula,VKM-SRC-037,132,"§7.3.1, экономико-математическая модель (7.22)–(7.27)",True,MM-ECON-001,MAPPED,
+EV-VN-S037-0774,engineering_rule,VKM-SRC-037,133,"§7.3.1, п. 1",True,,EXCLUDED,SEQUENCING_RULE: опережение вышележащих пластов (качественно)
+EV-VN-S037-0791,formula,VKM-SRC-037,137,"§8.1.1, ф. (8.1)–(8.4)",True,MM-MINE-004,MAPPED,
+EV-VN-S037-0792,formula,VKM-SRC-037,138,"§8.1.1, ф. (8.5)–(8.15); рис. 8.1",True,MM-MINE-004,MAPPED,
+EV-VN-S037-0795,formula,VKM-SRC-037,139,"§8.1.1, ф. (8.16)–(8.21); табл. 8.1 «Расчетные формулы для определения показателей работы комбайнового комплекса»",True,MM-MINE-004,MAPPED,
+EV-VN-S037-0796,formula,VKM-SRC-037,140,"§8.1.2, ф. (8.22), (8.23)",True,MM-MINE-004,MAPPED,
+EV-VN-S037-0798,formula,VKM-SRC-037,140,"§8.1.3, ф. (8.24)–(8.32)",True,MM-MINE-004,MAPPED,
+EV-VN-S037-0799,formula,VKM-SRC-037,141,"§8.1.3, ф. (8.33); рис. 8.2",True,MM-MINE-004,MAPPED,
+EV-VN-S037-0801,formula,VKM-SRC-037,141,"§8.1.4, ф. (8.34)–(8.40)",True,MM-MINE-004,MAPPED,
+EV-VN-S037-0802,formula,VKM-SRC-037,142,"§8.1.4, ф. (8.41)–(8.52)",True,MM-MINE-004,MAPPED,
+EV-VN-S037-0803,formula,VKM-SRC-037,142,"§8.1.5–8.1.6, ф. (8.53)–(8.58)",True,MM-MINE-004,MAPPED,
+EV-VN-S037-0806,formula,VKM-SRC-037,143,"§8.1.7, ф. (8.59)–(8.61) и таблица k_v",True,MM-MINE-004,MAPPED,
+EV-VN-S037-0810,formula,VKM-SRC-037,145,"§8.1.7, ф. (8.62)",True,MM-MINE-004,MAPPED,
+EV-VN-S037-0821,formula,VKM-SRC-037,148,"§8.2.1, ф. (8.63)–(8.69); табл. 8.8",True,MM-BLAST-001,MAPPED,
+EV-VN-S037-0833,formula,VKM-SRC-037,151,формула (8.70),True,MM-BLAST-001,MAPPED,
+EV-VN-S037-0835,formula,VKM-SRC-037,151,формулы (8.71)-(8.76),True,MM-BLAST-001,MAPPED,
+EV-VN-S037-0836,engineering_rule,VKM-SRC-037,151,"§8.2.3, к (8.73)",True,MM-BLAST-001,MAPPED,
+EV-VN-S037-0843,engineering_rule,VKM-SRC-037,152,"§8.2.4, сноска *",True,,EXCLUDED,DESIGN_LIMIT: ≤600 кг ВВ под городской застройкой
+EV-VN-S037-0846,formula,VKM-SRC-037,153,формулы (8.79)-(8.82),True,MM-VENT-002,MAPPED,
+EV-VN-S037-0848,formula,VKM-SRC-037,154,формулы к (8.82)-(8.85); Табл. 8.12,True,MM-VENT-002,MAPPED,
+EV-VN-S037-0849,engineering_rule,VKM-SRC-037,155,"§8.3.1, выбор ГВУ",True,,EXCLUDED,EQUIPMENT_RULE: выбор ГВУ по депрессии
+EV-VN-S037-0853,formula,VKM-SRC-037,156,"формулы (8.86)-(8.99); табл. 8.14, 8.15; рис. 8.6-8.8",True,MM-VENT-002,MAPPED,
+EV-VN-S037-0858,engineering_rule,VKM-SRC-037,160,§8.3.3,True,MM-VENT-002,MAPPED,
+EV-VN-S037-0861,formula,VKM-SRC-037,160,"формулы (8.100), (8.101)",True,MM-VENT-002,MAPPED,
+EV-VN-S037-0865,formula,VKM-SRC-037,161,формулы (8.102)-(8.104),True,MM-VENT-002,MAPPED,
+EV-VN-S037-0870,formula,VKM-SRC-037,162,формулы (8.105)-(8.110),True,MM-VENT-002,MAPPED,
+EV-VN-S037-0874,formula,VKM-SRC-037,163,формулы (8.111)-(8.122); табл. 8.24,True,MM-VENT-002,MAPPED,
+EV-VN-S037-0878,engineering_rule,VKM-SRC-037,166,§8.4 (вводная),True,MM-PILLAR-003,MAPPED,
+EV-VN-S037-0880,engineering_rule,VKM-SRC-037,166,§8.4.1,True,MM-PILLAR-003,MAPPED,
+EV-VN-S037-0881,formula,VKM-SRC-037,166,"формулы (8.123), (8.124)",True,MM-PILLAR-001,MAPPED,
+EV-VN-S037-0884,formula,VKM-SRC-037,166,формула (8.125),True,MM-PILLAR-002,MAPPED,
+EV-VN-S037-0892,formula,VKM-SRC-037,167,"формулы (8.126), (8.127)",True,MM-STR-003;MM-PILLAR-002,MAPPED,
+EV-VN-S037-0898,formula,VKM-SRC-037,167,формула (8.128),True,MM-PILLAR-003,MAPPED,
+EV-VN-S037-0900,engineering_rule,VKM-SRC-037,167,§8.4.2,True,MM-PILLAR-004,MAPPED,
+EV-VN-S037-0902,rheology_law,VKM-SRC-037,168,Рис. 8.13 б,True,MM-PILLAR-004,MAPPED,
+EV-VN-S037-0905,formula,VKM-SRC-037,168,"§8.4.2, рис. 8.14",True,MM-PILLAR-004,MAPPED,
+EV-VN-S037-0906,subsidence_method,VKM-SRC-037,168,"§8.4.2, рис. 8.14",True,MM-PILLAR-004,MAPPED,
+EV-VN-S037-0907,engineering_rule,VKM-SRC-037,168,§8.4.3,True,MM-ROOF-021,MAPPED,
+EV-VN-S037-0909,formula,VKM-SRC-037,168,формула (8.129),True,MM-ROOF-007;MM-ROOF-021,MAPPED,
+EV-VN-S037-0910,formula,VKM-SRC-037,168,формула (8.130),True,MM-ROOF-021;MM-STRESS-001,MAPPED,
+EV-VN-S037-0913,rheology_law,VKM-SRC-037,169,Рис. 8.15 б,True,MM-ROOF-021,MAPPED,
+EV-VN-S037-0914,formula,VKM-SRC-037,169,формула (8.131),True,MM-ROOF-021,MAPPED,
+EV-VN-S037-0916,formula,VKM-SRC-037,169,формулы (8.132)-(8.134),True,MM-ROOF-021,MAPPED,
+EV-VN-S037-0918,subsidence_method,VKM-SRC-037,169,§8.4.3 (кровля),True,MM-ROOF-021,MAPPED,
+EV-VN-S037-0924,subsidence_method,VKM-SRC-037,169,§8.5.1,True,MM-SUBS-010,MAPPED,
+EV-VN-S037-0925,formula,VKM-SRC-037,169,формула (8.135),True,MM-SUBS-015,MAPPED,
+EV-VN-S037-0926,formula,VKM-SRC-037,170,формула (8.136),True,MM-SUBS-015,MAPPED,
+EV-VN-S037-0930,formula,VKM-SRC-037,170,формула (8.137),True,MM-SUBS-012,MAPPED,
+EV-VN-S037-0933,formula,VKM-SRC-037,170,"§8.5.1, методика типовых кривых; (8.138)-(8.142)",True,MM-SUBS-010,MAPPED,
+EV-VN-S037-0935,subsidence_method,VKM-SRC-037,170,Табл. 8.26,True,MM-SUBS-017,MAPPED,
+EV-VN-S037-0939,engineering_rule,VKM-SRC-037,171,§8.5.2 п.1-2; (8.143),True,MM-WPS-003,MAPPED,
+EV-VN-S037-0940,formula,VKM-SRC-037,171,формула (8.143),True,MM-WPS-003,MAPPED,
+EV-VN-S037-0942,engineering_rule,VKM-SRC-037,171,§8.5.2 п.2,True,MM-WPS-003,MAPPED,
+EV-VN-S037-0944,formula,VKM-SRC-037,171,формула (8.144),True,MM-WPS-004,MAPPED,
+EV-VN-S037-0947,subsidence_method,VKM-SRC-037,171,Табл. 8.27,True,MM-SUBS-017,MAPPED,
+EV-VN-S037-0951,formula,VKM-SRC-037,172,формула (8.145),True,MM-WPS-005,MAPPED,
+EV-VN-S037-0952,engineering_rule,VKM-SRC-037,172,§8.5.2 п.7 а)-е),True,MM-WPS-004,MAPPED,
+EV-VN-S037-0954,formula,VKM-SRC-037,172,формула (8.146),True,MM-WPS-004,MAPPED,
+EV-VN-S037-0955,formula,VKM-SRC-037,172,формула (8.147),True,MM-WPS-006,MAPPED,
+EV-VN-S037-0959,formula,VKM-SRC-037,173,формулы (8.148)-(8.157),True,MM-BACKFILL-005,MAPPED,
+EV-VN-S037-0964,formula,VKM-SRC-037,174,формулы (8.158)-(8.160),True,MM-BACKFILL-005,MAPPED,
+EV-VN-S037-0969,formula,VKM-SRC-037,175,формулы (8.161)-(8.164),True,MM-BACKFILL-005,MAPPED,
+EV-VN-S037-0972,formula,VKM-SRC-037,176,формулы (8.165)-(8.179),True,MM-BACKFILL-005,MAPPED,
+EV-VN-S037-0978,formula,VKM-SRC-037,179,формулы (8.180)-(8.182),True,MM-HYDTR-001,MAPPED,
+EV-VN-S037-0982,formula,VKM-SRC-037,180,формулы (8.183)-(8.191),True,MM-HYDTR-001,MAPPED,
+EV-VN-S037-1010,formula,VKM-SRC-037,181,"формула (8.192), с.361",True,MM-HYDTR-001,MAPPED,
+EV-VN-S037-1011,formula,VKM-SRC-037,181,"формула (8.193), с.361",True,MM-HYDTR-001,MAPPED,
+EV-VN-S037-1013,formula,VKM-SRC-037,182,"формула (8.194), с.362",True,MM-HYDTR-001,MAPPED,
+EV-VN-S037-1014,formula,VKM-SRC-037,182,"формула (8.195), с.362",True,MM-HYDTR-001,MAPPED,
+EV-VN-S037-1016,formula,VKM-SRC-037,182,"§8.6.4, формула (8.196), с.362; рис. 8.23",True,MM-BACKFILL-006,MAPPED,
+EV-VN-S037-1019,formula,VKM-SRC-037,182,"формула (8.197), с.363",True,MM-BACKFILL-006,MAPPED,
+EV-VN-S037-1020,formula,VKM-SRC-037,182,"формула (8.198), с.363",True,MM-BACKFILL-006,MAPPED,
+EV-VN-S037-1022,formula,VKM-SRC-037,182,"формула (8.199), с.363",True,MM-BACKFILL-006,MAPPED,
+EV-VN-S037-1024,formula,VKM-SRC-037,183,"формула (8.200), с.364",True,MM-BACKFILL-006,MAPPED,
+EV-VN-S037-1027,formula,VKM-SRC-037,183,"§8.6.5, формула (8.201), с.364; рис. 8.24",True,MM-BACKFILL-004,MAPPED,
+EV-VN-S037-1028,formula,VKM-SRC-037,183,"формула (8.202), с.365",True,MM-BACKFILL-004,MAPPED,
+EV-VN-S037-1035,formula,VKM-SRC-037,183,"формула (8.203), с.365",True,MM-BACKFILL-004,MAPPED,
+EV-VN-S037-1036,formula,VKM-SRC-037,183,"формула (8.204), с.365; рис. 8.25",True,MM-BACKFILL-004,MAPPED,
+EV-VN-S037-1037,formula,VKM-SRC-037,183,"формула (8.205), с.365",True,MM-BACKFILL-004,MAPPED,
+EV-VN-S037-1040,formula,VKM-SRC-037,184,"формулы (8.206)-(8.208), с.366",True,MM-BACKFILL-004,MAPPED,
+EV-VN-S037-1041,formula,VKM-SRC-037,184,"формула (8.209), с.366",True,MM-BACKFILL-004,MAPPED,
+EV-VN-S037-1042,formula,VKM-SRC-037,184,"формула (8.210), с.366",True,MM-BACKFILL-004,MAPPED,
+EV-VN-S037-1043,formula,VKM-SRC-037,184,"формула (8.211), с.366",True,MM-BACKFILL-004,MAPPED,
+EV-VN-S037-1044,formula,VKM-SRC-037,184,"формулы (8.212), (8.213), с.367",True,MM-BACKFILL-004,MAPPED,
+EV-VN-S037-1045,formula,VKM-SRC-037,184,"формулы (8.214), (8.215), с.367",True,MM-BACKFILL-003,MAPPED,
+EV-VN-S037-1049,formula,VKM-SRC-037,185,"§8.6.6, формула (8.216), с.369",True,MM-BACKFILL-001,MAPPED,
+EV-VN-S037-1062,engineering_rule,VKM-SRC-037,186,"§8.6.7, с.371",True,,EXCLUDED,ANALOGUE_RULE: размеры перемычек по аналогии с плотинами
+EV-VN-S037-1063,engineering_rule,VKM-SRC-037,187,"§8.6.7, с.372",True,,EXCLUDED,TECHNOLOGY_RULE: намыв перемычек
+EV-VN-S037-1070,engineering_rule,VKM-SRC-037,187,"§8.6.7, с.373",True,,EXCLUDED,SITING_RULE: шламовый горизонт у границ поля
+EV-VN-S037-1084,engineering_rule,VKM-SRC-037,189,"§8.6.7, с.376",True,,EXCLUDED,USAGE_RULE: плотность шламового массива — по натурному опробованию
+EV-VN-S037-1085,formula,VKM-SRC-037,189,"формулы (8.217), (8.218), с.376",True,MM-BACKFILL-001,MAPPED,
+EV-VN-S037-1086,formula,VKM-SRC-037,189,"формулы (8.219), (8.220), с.376",True,MM-BACKFILL-001,MAPPED,
+EV-VN-S037-1088,formula,VKM-SRC-037,189,"формулы (8.221)-(8.224), с.377",True,MM-BACKFILL-001,MAPPED,
+EV-VN-S037-1089,formula,VKM-SRC-037,189,"формулы (8.225)-(8.227), с.377",True,MM-BACKFILL-001,MAPPED,
+EV-VN-S037-1094,formula,VKM-SRC-037,190,"формулы (8.228), (8.229), с.379",True,MM-GEOL-008,MAPPED,
+EV-VN-S037-1095,formula,VKM-SRC-037,190,"формула (8.230), с.379",True,MM-GEOL-008,MAPPED,
+EV-VN-S037-1096,subsidence_method,VKM-SRC-037,190,"§8.7.2, с.379, рис. 8.31",True,MM-GEOL-008,MAPPED,
+EV-VN-S037-1099,engineering_rule,VKM-SRC-037,191,"§8.7.2, с.380",True,MM-GEOL-008,MAPPED,
+EV-VN-S037-1100,formula,VKM-SRC-037,191,"формула (8.231), с.380",True,MM-GEOL-008,MAPPED,
+EV-VN-S037-1105,formula,VKM-SRC-037,191,"формулы (8.232)-(8.235), с.381",True,MM-MINE-005,MAPPED,
+EV-VN-S037-1106,formula,VKM-SRC-037,191,"формула (8.236), с.381-383",True,MM-MINE-005,MAPPED,
+EV-VN-S037-1107,formula,VKM-SRC-037,192,"Табл. 8.30, с.382",True,MM-MINE-005,MAPPED,
+EV-VN-S037-1109,formula,VKM-SRC-037,192,"Табл. 8.31, с.382",True,MM-MINE-005,MAPPED,
+EV-VN-S037-1110,formula,VKM-SRC-037,192,"Табл. 8.32, с.383",True,MM-MINE-005,MAPPED,
+EV-VN-S037-1111,formula,VKM-SRC-037,192,"формулы (8.237), (8.238), с.383",True,MM-MINE-005,MAPPED,
+EV-VN-S037-1114,formula,VKM-SRC-037,193,"формула (8.239), с.384",True,MM-GEOL-009,MAPPED,
+EV-VN-S037-1117,formula,VKM-SRC-037,193,"формула (8.240), с.384",True,MM-GEOL-008,MAPPED,
+EV-VN-S037-1118,formula,VKM-SRC-037,193,"формулы (8.241)-(8.244), с.385",True,MM-MINE-002,MAPPED,
+EV-VN-S037-1123,formula,VKM-SRC-037,194,"формулы (8.245)-(8.250), с.386",True,MM-MINE-002,MAPPED,
+EV-VN-S037-1124,formula,VKM-SRC-037,194,"формулы (8.251)-(8.256), с.387",True,MM-MINE-002,MAPPED,
+EV-VN-S037-1128,engineering_rule,VKM-SRC-037,195,"§8.7.6, Пример 1, с.388",True,,EXCLUDED,"DESIGN_EXAMPLE: защитный слой 0,6 м (пример)"
+EV-VN-S037-1137,formula,VKM-SRC-037,198,"формулы (8.257), (8.258), с.394",True,MM-ECON-002,MAPPED,
+EV-VN-S037-1138,formula,VKM-SRC-037,198,"формулы (8.259)-(8.261), с.394",True,MM-ECON-002,MAPPED,
+EV-VN-S037-1139,formula,VKM-SRC-037,198,"Табл. 8.35, с.395",True,MM-GEOL-010,MAPPED,
+EV-VN-S037-1143,formula,VKM-SRC-037,199,"формула (8.262), с.396",True,MM-ECON-002,MAPPED,
+EV-VN-S037-1152,formula,VKM-SRC-037,201,"Табл. 8.38 (формулы в графе показателей), с.400",True,MM-ECON-002,MAPPED,
+EV-VN-S037-1154,formula,VKM-SRC-037,202,"формулы (8.263), (8.264), с.402",True,MM-ECON-002,MAPPED,
+EV-VN-S037-1157,formula,VKM-SRC-037,202,"формулы (8.265)-(8.271), с.403",True,MM-MINE-002,MAPPED,
+EV-VN-S037-1165,engineering_rule,VKM-SRC-037,204,"Табл. 8.39, примечание, с.406",True,,EXCLUDED,"DESIGN_EXAMPLE: защитная пачка 0,5 м (БКПРУ-2)"
+EV-VN-S037-1181,engineering_rule,VKM-SRC-037,209,"гл. 9, §9.x бункеры-перегружатели; бункер БПС-22 (рис. 9.8)",True,,EXCLUDED,EQUIPMENT_LIMIT: размеры выработок для БПС-22
+EV-VN-S037-1201,engineering_rule,VKM-SRC-037,220,"гл. 9, погрузочные машины 1ПНБ-2, 2ПНБ-2, ПНБ-3Д2 (рис. 9.23), тех. характеристики с. 439-441",True,,EXCLUDED,EQUIPMENT_LIMIT: размеры выработок для погрузочных машин
+EV-VN-S037-1239,formula,VKM-SRC-037,232,"Приложение, рис. П.16 «Аэродинамические характеристики вентиляторной установки ВЦД-47У»",True,MM-VENT-001,MAPPED,
+EV-VN-S038-0013,formula,VKM-SRC-038,2,Таблица (без номера) «новые» параметры отработки пласта В,True,MM-DISS-001,MAPPED,
+EV-VN-S038-0015,subsidence_method,VKM-SRC-038,2,с. 241–242,True,MM-DISS-001,MAPPED,
+EV-VN-S038-0016,formula,VKM-SRC-038,2,"с. 241, конец 2-й колонки",True,MM-DISS-001,MAPPED,
+EV-VN-S038-0017,rheology_law,VKM-SRC-038,3,"с. 242, 1-я колонка (метод переменных модулей)",True,MM-CREEP-012,MAPPED,
+EV-VN-S038-0018,formula,VKM-SRC-038,3,"с. 242, 1-я колонка",True,MM-CREEP-012,MAPPED,
+EV-VN-S038-0024,formula,VKM-SRC-038,4,формула (1),True,MM-WPS-008,MAPPED,
+EV-VN-S038-0025,formula,VKM-SRC-038,4,после формулы (1),True,MM-WPS-008,MAPPED,
+EV-VN-S038-0026,formula,VKM-SRC-038,4,"с. 243, 1-я колонка (итерационная корректировка)",True,MM-WPS-008,MAPPED,
+EV-VN-S038-0029,subsidence_method,VKM-SRC-038,4,с. 243–245,True,MM-GEOMECH-004,MAPPED,
+EV-VN-S038-0034,engineering_rule,VKM-SRC-038,6,с. 245,True,MM-OBS-002,MAPPED,
+EV-VN-S038-0036,engineering_rule,VKM-SRC-038,6,с. 245,True,MM-OBS-002,MAPPED,
+EV-VN-S039-0007,subsidence_method,VKM-SRC-039,2,с. 58 (постановка модели),True,MM-GEOMECH-004,MAPPED,
+EV-VN-S039-0012,engineering_rule,VKM-SRC-039,3,"с. 59, 1-й абзац",True,MM-SUBS-018,MAPPED,
+EV-VN-S039-0014,formula,VKM-SRC-039,3,"с. 59, 2-й абзац",True,MM-SUBS-019,MAPPED,
+EV-VN-S040-0006,engineering_rule,VKM-SRC-040,5,Введение,True,,EXCLUDED,SAFETY_RULE: визуальный осмотр крепи стволов (ЕПБ)
+EV-VN-S040-0042,engineering_rule,VKM-SRC-040,14,§1.1,True,,EXCLUDED,CONTEXT: Указания 2004 основаны на петротектонической концепции (без уравнения)
+EV-VN-S040-0052,engineering_rule,VKM-SRC-040,17,§1.1,True,,EXCLUDED,PRINCIPLE: сохранность ВЗТ и герметичность крепи стволов (без уравнения; → PHYSICS_CAUSAL)
+EV-VN-S040-0097,engineering_rule,VKM-SRC-040,35,§1.3,True,,EXCLUDED,PRINCIPLE: главный критерий безопасности — сохранность ВЗТ (без уравнения)
+EV-VN-S040-0105,engineering_rule,VKM-SRC-040,37,§1.3.1,True,,EXCLUDED,PROCEDURE: комплекс геофизических исследований ВЗТ по инструкции Уралкалия [18]
+EV-VN-S040-0165,formula,VKM-SRC-040,71,§2.2.5 p.71,True,MM-GPR-001,MAPPED,
+EV-VN-S040-0199,engineering_rule,VKM-SRC-040,88,§3.1 p.88,True,,EXCLUDED,SURVEY_RULE: прижим антенны ГРЛ
+EV-VN-S040-0209,engineering_rule,VKM-SRC-040,93,§3.1 p.93,True,,EXCLUDED,SURVEY_RULE: очистка штыба перед ГРЛ/УЗТ
+EV-VN-S040-0243,engineering_rule,VKM-SRC-040,106,выводы по опытным работам в стволе,True,,EXCLUDED,"SURVEY_RULE: ГРЛ крепи ствола (одометр, соляная корка)"
+EV-VN-S040-0253,engineering_rule,VKM-SRC-040,111,§3.5 Георадиолокационные исследования,True,,EXCLUDED,SURVEY_RULE: схема профилей ГРЛ ≤ 1 м
+EV-VN-S040-0256,engineering_rule,VKM-SRC-040,112,§3.5,True,,EXCLUDED,"SURVEY_RULE: привязка расстояний, профили ≤ 10 м"
+EV-VN-S040-0264,engineering_rule,VKM-SRC-040,114,§3.5 Ультразвуковые исследования,True,,EXCLUDED,SURVEY_RULE: УЗ-томография крепи (сетка 200×100 мм)
+EV-VN-S040-0274,formula,VKM-SRC-040,118,§4.1 (p118-119),True,MM-GPR-001,MAPPED,
+EV-VN-S040-0318,formula,VKM-SRC-040,130,Рис. 4.14 (equations printed on figure only),True,MM-GPR-003,MAPPED,
+EV-VN-S040-0320,formula,VKM-SRC-040,131,Рис. 4.15 (equations on figure) + text p131,True,MM-GPR-003,MAPPED,
+EV-VN-S040-0346,engineering_rule,VKM-SRC-040,137,§5.1,True,,EXCLUDED,SAFETY_RULE: запрет работ в выработках с заколами
+EV-VN-S040-0351,engineering_rule,VKM-SRC-040,139,§5.1,True,,EXCLUDED,SURVEY_RULE: технология ГРЛ кровли требует опробования
+EV-VN-S040-0353,engineering_rule,VKM-SRC-040,139,§5.2,True,,EXCLUDED,PROCEDURE: контроль МКЦ опробованием и расчётом нагрузки (без уравнения; см. MM-PILLAR-010)
+EV-VN-S040-0366,engineering_rule,VKM-SRC-040,142,§5.3,True,,EXCLUDED,DESIGN_RULE: варианты паспорта по коржам (нормативы не приведены)
+EV-VN-S040-0367,engineering_rule,VKM-SRC-040,142,§5.3,True,,EXCLUDED,"ANALOGUE_RULE: Канада — соляная балка ≥ 0,5–1 м под глиной (OTHER_POTASH_SITE; → MINING/GEOLOGY)"
+EV-VN-S041-0019,formula,VKM-SRC-041,3,формула (1),True,MM-GPR-001,MAPPED,
+EV-VN-S041-0020,formula,VKM-SRC-041,3,формула (2),True,MM-GPR-001,MAPPED,
+EV-VN-S041-0024,formula,VKM-SRC-041,4,формула (3),True,MM-GPR-002,MAPPED,

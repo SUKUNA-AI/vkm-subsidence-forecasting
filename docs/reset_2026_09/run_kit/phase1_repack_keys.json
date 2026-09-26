@@ -1,0 +1,90 @@
+{
+"R01": [
+"VKM-SRC-011:c1",
+"VKM-SRC-011:c5",
+"VKM-SRC-014:c5",
+"VKM-SRC-003:c2",
+"VKM-SRC-029:c2"
+],
+"R02": [
+"VKM-SRC-011:c2",
+"VKM-SRC-011:c6",
+"VKM-SRC-012:c2",
+"VKM-SRC-003:c3",
+"VKM-SRC-029:c3"
+],
+"R03": [
+"VKM-SRC-012:c1",
+"VKM-SRC-037:c7",
+"VKM-SRC-025:c5",
+"VKM-SRC-020:c3",
+"VKM-SRC-028:c4"
+],
+"R04": [
+"VKM-SRC-014:c1",
+"VKM-SRC-037:c8",
+"VKM-SRC-025:c6",
+"VKM-SRC-003:c1",
+"VKM-SRC-029:c1"
+],
+"R05": [
+"VKM-SRC-014:c2",
+"VKM-SRC-011:c3",
+"VKM-SRC-014:c3",
+"VKM-SRC-026:c1",
+"VKM-SRC-024:c3",
+"VKM-SRC-007+008+009+010:g3"
+],
+"R06": [
+"VKM-SRC-023:c1",
+"VKM-SRC-011:c4",
+"VKM-SRC-014:c4",
+"VKM-SRC-036:g8",
+"VKM-SRC-028:c1",
+"VKM-SRC-015+041:g4"
+],
+"R07": [
+"VKM-SRC-037:c1",
+"VKM-SRC-011:c7",
+"VKM-SRC-023:c2",
+"VKM-SRC-006:c1",
+"VKM-SRC-005+031+032+033:g2",
+"VKM-SRC-018+030+019:g6"
+],
+"R08": [
+"VKM-SRC-037:c2",
+"VKM-SRC-011:c8",
+"VKM-SRC-012:c3",
+"VKM-SRC-006:c2",
+"VKM-SRC-027+034+038+039:g7",
+"VKM-SRC-004+017:g1"
+],
+"R09": [
+"VKM-SRC-040:c1",
+"VKM-SRC-037:c5",
+"VKM-SRC-025:c3",
+"VKM-SRC-020:c1",
+"VKM-SRC-028:c2"
+],
+"R10": [
+"VKM-SRC-040:c3",
+"VKM-SRC-037:c6",
+"VKM-SRC-025:c4",
+"VKM-SRC-020:c2",
+"VKM-SRC-028:c3"
+],
+"R11": [
+"VKM-SRC-037:c3",
+"VKM-SRC-025:c1",
+"VKM-SRC-023:c3",
+"VKM-SRC-024:c1",
+"VKM-SRC-016+035+021:g5"
+],
+"R12": [
+"VKM-SRC-037:c4",
+"VKM-SRC-025:c2",
+"VKM-SRC-012:c4",
+"VKM-SRC-024:c2",
+"VKM-SRC-001+002:g0"
+]
+}

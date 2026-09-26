@@ -1,14 +1,19 @@
 """Per-page text-layer extraction of every registered source (as run in the cloud VM 26.09.2026).
 
-Usage: python extract_corpus_text.py <RESOURCES_ROOT> <OUT_DIR>
+Usage: python extract_corpus_text.py [<RESOURCES_ROOT> <OUT_DIR>]
+Without arguments: RESOURCES_ROOT = $VKM_RESOURCES_ROOT, OUT_DIR = $VKM_WORK/corpus (see _roots.py).
 Writes <OUT_DIR>/<SOURCE_ID>/pNNNN.txt, all.txt, and extraction_summary.json.
-docx (VKM-SRC-023) -> pandoc plain text + media; render to PDF separately with LibreOffice (see README_RUN_KIT_RU.md).
+docx (VKM-SRC-023) -> pandoc plain text + media; render to PDF separately with LibreOffice (see SWEEP_PROTOCOL.md).
 DjVu (VKM-SRC-037) and scanned VKM-SRC-025 need OCR (ocr_source_pages.py in the resources repo).
 """
 import csv, json, pathlib, subprocess, sys
 import pymupdf
 
-root, out = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+if len(sys.argv) == 3:
+    root, out = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+else:
+    from _roots import root as env_root
+    root, out = env_root('VKM_RESOURCES_ROOT'), env_root('VKM_WORK') / 'corpus'
 out.mkdir(parents=True, exist_ok=True)
 reg = list(csv.DictReader(open(root / '00_registry/SOURCE_REGISTER.csv', encoding='utf-8')))
 summary = {}

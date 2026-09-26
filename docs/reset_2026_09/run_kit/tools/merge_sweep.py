@@ -1,20 +1,28 @@
 """Merge per-chunk sweep outputs into consolidated tables + deterministic quote verification.
 
-Usage: python merge_sweep.py  (reads /home/user/work/run/sweep/**, writes /home/user/work/run/merged/)
+Usage: python merge_sweep.py  (reads the sweep dir, writes the merged dir; see _roots.sweep_dir/merged_dir)
+Page texts for quote checks: $VKM_WORK/corpus/<SID>/pNNNN.txt and the per-page OCR text kept under the
+work directory of the resources checkout (VKM_RESOURCES_ROOT). Roots: see _roots.py.
 """
 from __future__ import annotations
 
 import collections
 import csv
+import hashlib
 import json
+import os
 import pathlib
 import re
 import unicodedata
 
-SWEEP = pathlib.Path('/home/user/work/run/sweep')
-OUT = pathlib.Path('/home/user/work/run/merged')
-CORPUS = pathlib.Path('/home/user/work/corpus')
-OCR = pathlib.Path('/home/user/vkm-subsidence-forecasting_resourses/work/ocr')
+import sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from _roots import merged_dir, root, sweep_dir  # noqa: E402
+
+SWEEP = sweep_dir()
+OUT = merged_dir()
+CORPUS = root('VKM_WORK') / 'corpus'
+OCR = root('VKM_RESOURCES_ROOT') / 'work' / 'ocr'
 OUT.mkdir(parents=True, exist_ok=True)
 
 
@@ -97,10 +105,15 @@ def load():
                 bad.append({'file': str(cov), 'error': repr(e)})
         rf = d / 'records.jsonl'
         if rf.exists():
+            seen_lines = set()
             for i, line in enumerate(rf.read_text(encoding='utf-8').splitlines(), 1):
                 line = line.strip()
                 if not line:
                     continue
+                if line in seen_lines:  # exact duplicate (scratch-script collision incident 26.09)
+                    bad.append({'file': str(rf), 'line': i, 'error': 'EXACT_DUPLICATE_LINE_DROPPED'})
+                    continue
+                seen_lines.add(line)
                 try:
                     r = json.loads(line)
                 except Exception as e:  # noqa: BLE001
@@ -113,14 +126,52 @@ def load():
     return recs, covs, bad
 
 
+VN_INDEX_COLUMNS = ['vn_id', 'source_id', 'dir', 'line', 'pdf_page', 'kind', 'record_sha1']
+
+
+def record_sha1(line_obj: dict) -> str:
+    """Hash of a raw sweep record (without the merge-time fields) — the anchor of its vn_id."""
+    raw = {k: v for k, v in line_obj.items() if k not in ('_dir', '_line', 'vn_id', 'quote_check')}
+    return hashlib.sha1(json.dumps(raw, ensure_ascii=False, sort_keys=True).encode('utf-8')).hexdigest()
+
+
+def check_page_texts(recs: list[dict]) -> list[str]:
+    """Sources that have sweep records but no page texts: quote checks would silently become NO_PAGE_TEXT."""
+    missing = sorted({r.get('source_id') for r in recs if r.get('source_id')}
+                     - {d.name for d in CORPUS.glob('*') if d.is_dir()} - {d.name for d in OCR.glob('*') if d.is_dir()})
+    return missing
+
+
 def main():
     recs, covs, bad = load()
+    missing = check_page_texts(recs)
+    if missing and '--allow-missing-text' not in sys.argv:
+        sys.exit(f'page texts missing for {len(missing)} source(s) ({", ".join(missing[:8])}…): run '
+                 f'extract_corpus_text.py / split_ocr_all.py first (run_kit/README_RU.md), or pass --allow-missing-text '
+                 f'knowing that quote checks then differ from the committed ones (review finding DOCS_LEAKAGE-020)')
     counters = collections.Counter()
     for n, r in enumerate(recs, 1):
         sid = r.get('source_id', 'UNK')
         counters[sid] += 1
         r['vn_id'] = f"EV-VN-{sid.replace('VKM-SRC-', 'S')}-{counters[sid]:04d}"
         r['quote_check'] = verify_quote(r)
+    # vn_id is positional: pin it to the raw record (review finding COVERAGE_DUPLICATES-018). If a committed index
+    # exists, every id must still point to the same raw record; renumbering is an error, not a silent change.
+    index = [{'vn_id': r['vn_id'], 'source_id': r.get('source_id'), 'dir': r['_dir'], 'line': r['_line'],
+              'pdf_page': r.get('pdf_page'), 'kind': r.get('kind'), 'record_sha1': record_sha1(r)} for r in recs]
+    committed = pathlib.Path(os.environ.get('VKM_VN_INDEX', '')) if os.environ.get('VKM_VN_INDEX') else None
+    if committed and committed.exists():
+        with open(committed, encoding='utf-8', newline='') as f:
+            old = {row['vn_id']: row for row in csv.DictReader(f)}
+        moved = [x['vn_id'] for x in index if x['vn_id'] in old and old[x['vn_id']]['record_sha1'] != x['record_sha1']]
+        lost = sorted(set(old) - {x['vn_id'] for x in index})
+        if moved or lost:
+            sys.exit(f'vn_id drift against {committed}: {len(moved)} id(s) now point to other records '
+                     f'(e.g. {moved[:3]}), {len(lost)} id(s) disappeared (e.g. {lost[:3]}); refusing to renumber')
+    with open(OUT / 'vn_index.csv', 'w', encoding='utf-8', newline='') as f:
+        w = csv.DictWriter(f, fieldnames=VN_INDEX_COLUMNS, lineterminator='\n')
+        w.writeheader()
+        w.writerows(index)
     with open(OUT / 'all_records.jsonl', 'w', encoding='utf-8') as f:
         for r in recs:
             f.write(json.dumps(r, ensure_ascii=False) + '\n')
