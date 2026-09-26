@@ -88,3 +88,20 @@ Parent task: «CLOUD ULTRACODE — ПРОДОЛЖЕНИЕ SCIENTIFIC RESET ПР�
   `DATA_AND_PATH_POLICY_RU.md`, `docs/architecture/REPOSITORY_ARCHITECTURE_RU.md` (`fb460de`).
 - Подготовлены: сборщик `SOURCE_COVERAGE_MASTER` (детерминированные правила уровней покрытия),
   синтез-workflow (10 потоков), `scripts/build_public_catalogues.py` (PRIVATE canonical → PUBLIC без цитат).
+
+### P1.3 Аудит репозитория и охрана исторических ссылок
+
+- Аудит PUBLIC (Task A) и ревизия старого PW v1/OGS (Task B) готовы; воспроизводимость (Task C) в работе.
+  Итог A: из 525 файлов в новом `main` остаётся 74; 451 уходит (FROZEN_REFERENCE/MOVE_TO_LEGACY/REMOVE)
+  после переноса REUSE-кода и пересборки verifier. Все 63 падающих старых теста — отсутствие retired-данных.
+- Итог B: слой доказательств почти не зависит от скв. 75 (одна запись EV-GEO-0202 из табл. 3.1 Лебедевой);
+  от неё зависит 2D-мир PW v1 и OGS-кейсы 09-P2…22 (91 из 421 позиции). Выбор был MODEL_CHOICE RD-021
+  («ближайшая к медиане»), правило чувствительно (медоид — скв. 23).
+- Запущен workflow переноса REUSE_GENERIC (validation/io) и verifier v2 на git-объектах.
+- Созданы локальные annotated tags: `legacy/final`→d54025d, `frozen/gate-b3`→ce8e57e,
+  `frozen/scenario-v2.1`→71d705d, `frozen/scenario-v2`→ffcf869, `archive/v3.2-last`→10452b0,
+  `frozen/r2`→2794c87, `frozen/r1`→c5da110. **Push тегов из cloud отклонён прокси (HTTP 403)** —
+  команды создания тегов переданы в handoff для выполнения на workstation.
+- Инцидент sweep: коллизия общих имён скриптов в scratchpad → дубль пачки в VKM-SRC-025/c4 (23 строки).
+  Меры: протокол требует изолированных каталогов; merge удаляет точные дубли; после sweep — аудит
+  «pages_done без записей» для поиска потерянных пачек.
