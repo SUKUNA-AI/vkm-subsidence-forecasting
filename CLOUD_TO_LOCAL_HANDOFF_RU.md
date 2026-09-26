@@ -12,6 +12,12 @@
 > audit **нет**. Следующий локальный этап — запуск Stage 1 (sweep + audit + math wave 1) по
 > готовому run kit.
 
+> **Обновление 26.09.2026 (после checkpoint).** По просьбе пользователя рабочая ветка
+> `claude/practical-volta-l67oia` влита в `main` обоих репозиториев fast-forward'ом: PUBLIC и
+> PRIVATE, включая этот handoff и OCR-checkpoint. Старое состояние PUBLIC `main` сохранено в ветке
+> `legacy` = `d54025d`. Локально можно работать от `main`. Незапушенный LFS-commit `292655a`
+> (раздел 1) в `main` не входит.
+
 ---
 
 ## 1. Commits и ветки
@@ -339,8 +345,8 @@ export WORK=$ROOT/work VENV=$ROOT/.venv-research
 # 1. Репозитории и ветки
 git clone https://github.com/SUKUNA-AI/vkm-subsidence-forecasting.git $PUB
 git clone https://github.com/SUKUNA-AI/vkm-subsidence-forecasting_resourses.git $RES
-git -C $PUB checkout claude/practical-volta-l67oia
-git -C $RES checkout claude/practical-volta-l67oia
+git -C $PUB checkout main   # рабочая ветка влита в main (claude/practical-volta-l67oia = тот же снимок)
+git -C $RES checkout main
 git -C $PUB lfs install --local && git -C $PUB lfs pull
 git -C $RES lfs install --local && git -C $RES lfs pull
 
