@@ -3,7 +3,7 @@
 Архитектура выводится из доменной модели WorldSpec (`docs/worldspec/WORLD_SPEC_VNEXT_RU.md`), а не
 из истории проекта. Старое состояние PUBLIC целиком сохранено в ветке **`legacy` = `d54025d`**.
 В новый `main` из него переносится только то, что прошло аудит как `KEEP_CURRENT` или
-`REUSE_GENERIC` (см. `docs/reset_2026_09/PUBLIC_REPO_AUDIT_RU.md`).
+`REUSE_GENERIC` (см. [PUBLIC_REPO_AUDIT_RU.md](../reset_2026_09/audit/PUBLIC_REPO_AUDIT_RU.md)).
 
 ## 1. Два репозитория — два назначения
 
