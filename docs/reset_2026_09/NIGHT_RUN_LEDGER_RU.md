@@ -236,6 +236,8 @@ Parent task: «CLOUD ULTRACODE — ПРОДОЛЖЕНИЕ SCIENTIFIC RESET ПР�
   - обновлён handoff: числа после исправлений, роли инструментов по D-18, задачи P2-04 и P2-05;
   - исправлены формулировки D-05 и D-07 и отчёт по геологии (CHRONOLOGY-021).
 - `f0b6d23` — текст D-12 дополнен меткой PARTIAL_TEXT_QUERY.
-- Итоговый отчёт — `docs/reset_2026_09/CLOUD_ULTRACODE_PHASE1_FINAL_REPORT_RU.md` (в работе).
+- Итоговый отчёт — [CLOUD_ULTRACODE_PHASE1_FINAL_REPORT_RU.md](CLOUD_ULTRACODE_PHASE1_FINAL_REPORT_RU.md).
+  При его сверке с каталогами найдены и исправлены ещё три ошибки: COORDINATOR-POSTMERGE-01, -02, -03 (PRIVATE
+  `5b96c2e`, `636eaf4`, `f73da08`). Детерминизм после них проверен повторно (`b78cefe`, `a484ad6`).
   Журнал исправлений координатора и копии отчёта и handoff — в PRIVATE.
 - PR `research/evidence-worldspec-reset` → `main` в обоих репозиториях.

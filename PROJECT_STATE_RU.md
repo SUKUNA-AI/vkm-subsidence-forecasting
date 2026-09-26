@@ -288,7 +288,7 @@ UNKNOWN — полноправное значение. Масштаб по ум�
   `scripts/verify_canonical_repository.py` с `VKM_RESOURCES_ROOT` — 42/42 PASS. Группа `catalogue_sync` проверяет,
   что PUBLIC-каталоги совпадают со свежей сборкой из PRIVATE и что ни один текст PUBLIC не повторяет 25 и более слов
   цитаты подряд.
-- **Итоговый отчёт cloud-run:** `docs/reset_2026_09/CLOUD_ULTRACODE_PHASE1_FINAL_REPORT_RU.md`.
+- **Итоговый отчёт cloud-run:** [CLOUD_ULTRACODE_PHASE1_FINAL_REPORT_RU.md](docs/reset_2026_09/CLOUD_ULTRACODE_PHASE1_FINAL_REPORT_RU.md).
 
 ## 8. Что дальше
 

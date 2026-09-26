@@ -9,7 +9,7 @@
   решателя; цепочка evidence → interpretation → WorldSpec → solver-specific representation.
 - Этот документ — вход для Phase 2 на локальной workstation.
 - Текущее состояние науки — [PROJECT_STATE_RU.md](PROJECT_STATE_RU.md).
-- Итог cloud-run — `docs/reset_2026_09/CLOUD_ULTRACODE_PHASE1_FINAL_REPORT_RU.md`.
+- Итог cloud-run — [CLOUD_ULTRACODE_PHASE1_FINAL_REPORT_RU.md](docs/reset_2026_09/CLOUD_ULTRACODE_PHASE1_FINAL_REPORT_RU.md).
 
 ## 1. Где что лежит
 
