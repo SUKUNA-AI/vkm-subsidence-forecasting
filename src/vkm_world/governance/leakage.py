@@ -22,7 +22,9 @@ PATH_REWRITES: tuple[tuple[str, str], ...] = (
     ("/home/user/vkm-subsidence-forecasting_resourses/", "$VKM_RESOURCES_ROOT/"),
     ("/home/user/vkm-subsidence-forecasting/", "<PUBLIC>/"),
     ("/home/user/work/synth/", "PRIVATE 11_evidence_vnext/canonical/"),
-    ("/home/user/work/merged/", "PRIVATE 11_evidence_vnext/merged/"),
+    # all_records.jsonl / kind_*.csv live only in the rebuilt merge dir (run kit merge_sweep.py); the committed
+    # summaries are in PRIVATE 11_evidence_vnext/merged/ (review finding DOCS_LEAKAGE-016)
+    ("/home/user/work/merged/", "$VKM_WORK/merged/"),
     ("/home/user/work/", "$VKM_WORK/"),
     ("/home/user/.venv-research/bin/python", "python"),
     ("/home/user/.venv-research", "<cloud research venv>"),

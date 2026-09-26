@@ -8,6 +8,10 @@
  "CITATIONS/repeated_secondary_citations.csv": "evidence/sources/repeated_secondary_citations.csv",
  "CITATIONS/source_families.csv": "evidence/sources/source_families.csv",
  "CITATIONS/source_family_membership.csv": "evidence/sources/source_family_membership.csv",
+ "EXTERNAL/external_findings.csv": "evidence/external/external_findings.csv",
+ "EXTERNAL/external_sources.csv": "evidence/external/external_sources.csv",
+ "EXTERNAL/formula_verifications.csv": "evidence/external/formula_verifications.csv",
+ "EXTERNAL/target_resolution.csv": "evidence/external/target_resolution.csv",
  "FORMULAS/FORMULA_CONFLICTS.csv": "catalogues/mathematics/formula_conflicts.csv",
  "FORMULAS/FORMULA_VISUAL_CHECKS.csv": "catalogues/mathematics/formula_visual_checks.csv",
  "FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv": "catalogues/mathematics/MATHEMATICAL_MODEL_REGISTRY.csv",
@@ -38,11 +42,15 @@
  "MONITORING_LIFECYCLE/monitoring_conflicts.csv": "evidence/monitoring/monitoring_conflicts.csv",
  "MONITORING_LIFECYCLE/monitoring_observation_catalog.csv": "evidence/monitoring/monitoring_observation_catalog.csv",
  "MONITORING_LIFECYCLE/monitoring_systems_by_site.csv": "evidence/monitoring/monitoring_systems_by_site.csv",
+ "OCR_VISUAL_QA/correction_impact.csv": "evidence/qa/correction_impact.csv",
+ "OCR_VISUAL_QA/evidence_corrections.csv": "evidence/qa/evidence_corrections.csv",
+ "OCR_VISUAL_QA/visual_ocr_qa_ledger.csv": "evidence/qa/visual_ocr_qa_ledger.csv",
  "PHYSICS_CAUSAL/causal_graph.json": "catalogues/causal/causal_graph.json",
  "PHYSICS_CAUSAL/causal_graph_edges.csv": "catalogues/causal/causal_graph_edges.csv",
  "PHYSICS_CAUSAL/causal_graph_nodes.csv": "catalogues/causal/causal_graph_nodes.csv",
  "PHYSICS_CAUSAL/observation_operator_design.csv": "catalogues/observations/observation_operator_design.csv",
  "PHYSICS_CAUSAL/physics_conflicts.csv": "catalogues/physics/physics_conflicts.csv",
  "PHYSICS_CAUSAL/physics_coverage_and_execution_matrix.csv": "catalogues/physics/physics_coverage_and_execution_matrix.csv",
- "SOURCES/SOURCE_COVERAGE_MASTER.csv": "evidence/sources/SOURCE_COVERAGE_MASTER.csv"
+ "SOURCES/SOURCE_COVERAGE_MASTER.csv": "evidence/sources/SOURCE_COVERAGE_MASTER.csv",
+ "SOURCES/vn_index.csv": "evidence/sources/record_index.csv"
 }

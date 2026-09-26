@@ -85,7 +85,7 @@ def main(out_path):
         sid = r['resource_id']
         i = inv.get(sid, {})
         chunks = sorted((SWEEP / sid).glob('*/')) if (SWEEP / sid).exists() else []
-        full, skim, unread, viewed = set(), set(), set(), set()
+        full, skim, unread, viewed, done = set(), set(), set(), set(), set()
         chapters, domains, scopes, summaries, questions, under = [], set(), set(), [], [], []
         feats = collections.Counter()
         methods, statuses, biblio = set(), [], None
@@ -97,7 +97,7 @@ def main(out_path):
                 try:
                     pj = json.loads(prog.read_text(encoding='utf-8'))
                     st = pj.get('status', 'UNKNOWN')
-                    full |= expand(pj.get('pages_done'))
+                    done |= expand(pj.get('pages_done'))   # processed pages; NOT evidence of a full read (review COVERAGE_DUPLICATES-001)
                 except Exception:  # noqa: BLE001
                     st = 'PROGRESS_UNREADABLE'
             if cov.exists():
@@ -128,7 +128,7 @@ def main(out_path):
         rs = recs.get(sid, [])
         kinds = collections.Counter(x.get('kind') for x in rs)
         n_new = sum(1 for x in rs if x.get('is_new') is True)
-        covered = full | skim
+        covered = full | skim | done
         if sid in OVERRIDES:
             level, basis = OVERRIDES[sid]
         elif not chunks:
@@ -146,8 +146,9 @@ def main(out_path):
                 level = 'LOW_RELEVANCE_CONFIRMED'
             else:
                 level = 'PARTIAL_IN_PROGRESS'
-            basis = (f'all {len(chunks)} chunk(s) DONE; pages read fully {len(full)}/{npages}, skimmed {len(skim)}, '
-                     f'unreadable {len(unread)}, rendered+viewed {len(viewed)}')
+            basis = (f'all {len(chunks)} chunk(s) DONE; pages read fully {len(full)}/{npages} (coverage.json), '
+                     f'processed {len(covered)}/{npages}, skimmed {len(skim)}, unreadable {len(unread)}, '
+                     f'rendered+viewed {len(viewed)}; rule: FULLY_REVIEWED needs processed >= 95 % and read fully >= 85 %')
         dom_counts = {d: sum(kinds.get(k, 0) for k in ks) for d, ks in DOMAIN_KINDS.items()}
         rows.append({
             'source_id': sid, 'filename': r['canonical_path'], 'original_filename': r['original_filename'],

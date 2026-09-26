@@ -52,7 +52,9 @@ def test_manifest_matches_committed_catalogues():
 
 # link / long-form tables whose first column legitimately repeats (one row per membership, lineage version, site group)
 LINK_TABLES = {"evidence/sources/source_family_membership.csv", "evidence/sources/repeated_secondary_citations.csv",
-               "evidence/monitoring/monitoring_systems_by_site.csv"}
+               "evidence/monitoring/monitoring_systems_by_site.csv", "evidence/qa/correction_impact.csv",
+               "evidence/external/target_resolution.csv"}
+VN_ID = re.compile(r"EV-VN-S(\d{3})-\d{4}")
 CSV_TARGETS = sorted(t for t in json.loads((ROOT / "scripts" / "public_catalogue_map.json").read_text(encoding="utf-8"))
                      .values() if t.endswith(".csv"))
 
@@ -106,3 +108,20 @@ def test_spatial_hierarchy_catalogue_satisfies_schema():
                          provenance=prov) for r in rows]
     assert len(nodes) >= 600
     assert hierarchy_errors(nodes) == []
+
+
+def test_every_sweep_record_reference_resolves():
+    """vn_ids are positional merge ids; the committed record index pins them (review COVERAGE_DUPLICATES-018).
+    Every EV-VN id cited in a PUBLIC catalogue or report must exist and belong to the source its S-code names."""
+    index = {r["vn_id"]: r for r in _rows(ROOT / "evidence" / "sources" / "record_index.csv")}
+    assert len(index) == 13572
+    assert all(r["source_id"] == "VKM-SRC-" + r["vn_id"][7:10] for r in index.values())
+    unknown: dict[str, set[str]] = {}
+    files = [ROOT / t for t in CSV_TARGETS if not t.endswith("record_index.csv")]
+    files += sorted((ROOT / "docs" / "science").glob("*.md")) + [ROOT / "PROJECT_STATE_RU.md",
+                                                               ROOT / "CLOUD_TO_LOCAL_PHASE2_HANDOFF_RU.md"]
+    for f in files:
+        for m in VN_ID.finditer(f.read_text(encoding="utf-8")):
+            if m.group(0) not in index:
+                unknown.setdefault(f.relative_to(ROOT).as_posix(), set()).add(m.group(0))
+    assert not unknown, {k: sorted(v)[:5] for k, v in unknown.items()}
