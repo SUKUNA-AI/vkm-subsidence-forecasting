@@ -253,8 +253,8 @@ Pytest запускался при HEAD `1c1f816`. Новые коммиты к�
 
 | Где | Что | Действие |
 |---|---|---|
-| README.md:69, README_FIRST.md:45, docs/CANONICAL_RESEARCH_STATE_RU.md:194, docs/REPOSITORY_CONSOLIDATION…:336 | `$env:VKM_RESOURCES_ROOT = "E:\Диплом\…"` | REBUILD-доки |
-| docs/research/PHYSICAL_WORLD_EVIDENCE_STATE_RU.md:539–543 | `E:\vkm-…`, `E:\Диплом\work\resource_inbox\` | LEGACY |
+| README.md:69, README_FIRST.md:45, docs/CANONICAL_RESEARCH_STATE_RU.md:194, docs/REPOSITORY_CONSOLIDATION…:336 | `$env:VKM_RESOURCES_ROOT = "<локальный каталог диплома>\…"` | REBUILD-доки |
+| docs/research/PHYSICAL_WORLD_EVIDENCE_STATE_RU.md:539–543 | `E:\vkm-…`, `<локальный каталог диплома>\work\resource_inbox\` | LEGACY |
 | scripts/reconstruct_{musikhin_line1,musikhin_profiles,filatova_figure13b}.py, build_scenario_constraints.py, run_gate_a1.py:870–872, src/skru1/scenario_simulation.py:966 | `.\.venv\Scripts\python.exe …` внутри генерируемых README и отчётов | уходят с кодом |
 | 4 README в `artifacts/reconstruction/*`, docs/reports (DATA_FOUNDATION_V2 ×9, GATE_A1 ×3, B0_B1 ×6, B2 ×3, B3 ×4, RECONSTRUCTION_ATLAS ×4, MUSIKHIN_LINE1 ×1 + JSON ×2) | Windows-команды воспроизведения | уходят |
 | artifacts/environment/environment.json:40 | `C:\WINDOWS\system32\WindowsPowerShell…` | LEGACY |

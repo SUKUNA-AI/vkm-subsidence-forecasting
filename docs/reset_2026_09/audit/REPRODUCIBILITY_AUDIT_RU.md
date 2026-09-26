@@ -201,12 +201,12 @@ receipt, а не в manifest.
 ## 8. Пути и платформенная зависимость
 
 - PowerShell-only: инструкции в `README.md`, `README_FIRST.md`, `CANONICAL_RESEARCH_STATE_RU.md`,
-  `REPOSITORY_CONSOLIDATION_*.md` (`$env:VKM_RESOURCES_ROOT = "E:\Диплом\…"`); PRIVATE `scripts/*.ps1`;
+  `REPOSITORY_CONSOLIDATION_*.md` (`$env:VKM_RESOURCES_ROOT = "<локальный каталог диплома>\…"`); PRIVATE `scripts/*.ps1`;
   PUBLIC `bootstrap_repo.ps1`; receipt erratum (`.venv/Scripts/python.exe`).
 - В исполняемом коде PUBLIC абсолютных путей нет, кроме run kit (разрешённое исключение политики).
   В committed-логах есть `/home/user` (80 строк в `preflight_public_pytest.txt`, `preflight_verify_canonical.json`)
   и `C:\WINDOWS` (`artifacts/environment/environment.json`). В PRIVATE 222 строки `/home/user` в review-логах.
-- Противоречие по раскладке: PRIVATE README советует `E:\Диплом\vkm-subsidence-forecasting_resourses\`, PUBLIC
+- Противоречие по раскладке: PRIVATE README советует `<локальный каталог диплома>\vkm-subsidence-forecasting_resourses\`, PUBLIC
   `PHYSICAL_WORLD_EVIDENCE_STATE_RU.md` советует не вкладывать туда private repo. `.gitignore` и verifier
   поддерживают обе схемы.
 - `.venv-ogs/` и `.venv-research/` не игнорируются ни в одном репозитории. `CLAUDE.md` предлагает создавать
