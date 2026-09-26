@@ -211,3 +211,31 @@ def test_run_kit_code_is_not_exempt_from_path_check(tmp_path):
     (kit / "plan.json").write_text(f'{{"text": "{private}"}}\n', encoding="utf-8")   # historical data: exempt
     probs = scan(tmp_path, files=[kit / "tools" / "tool.py", kit / "plan.json"])
     assert len(probs) == 1 and probs[0].startswith("docs/reset_2026_09/run_kit/tools/tool.py")
+
+
+# ---------------------------------------------------------------- evidence-driven schema extensions (MINING synthesis)
+def test_block_without_panel_and_mine_field_pillar_are_allowed():
+    nodes = [SpatialNode(id="VKM", level=L.DEPOSIT, provenance=FACT),
+             SpatialNode(id="SOL", level=L.DISTRICT, parent_id="VKM", provenance=FACT),
+             SpatialNode(id="SKRU1", level=L.MINE, parent_id="SOL", provenance=FACT),
+             SpatialNode(id="SKRU1-F", level=L.MINE_FIELD, parent_id="SKRU1", provenance=FACT),
+             SpatialNode(id="BLK-129", level=L.BLOCK, parent_id="SKRU1-F", provenance=FACT),
+             SpatialNode(id="PIL-SH1", level=L.PILLAR, parent_id="SKRU1-F", provenance=FACT),
+             SpatialNode(id="SH-2BIS", level=L.SHAFT, parent_id="SKRU1", provenance=FACT),
+             SpatialNode(id="HOR-143", level=L.MINE_HORIZON, parent_id="SKRU1", provenance=FACT),
+             SpatialNode(id="LINE-129", level=L.SURVEY_LINE, parent_id="BLK-129", provenance=FACT),
+             SpatialNode(id="GPR-X", level=L.GPR_PROFILE, parent_id="VKM", provenance=FACT)]
+    assert hierarchy_errors(nodes) == []
+
+
+def test_other_event_needs_explicit_class_and_new_types():
+    from vkm_world.chronology.events import EventClass
+    e = ev("E-O", EventType.OTHER, (), date(1990, 1, 1))
+    assert any("event_class_override" in x for x in chronology_errors([e]))
+    ok = Event(id="E-O2", event_type=EventType.OTHER, objects=(), provenance=FACT, event_class_override=EventClass.INFORMATION,
+               time=TemporalSupport(event_date=date(1990, 1, 1)))
+    assert chronology_errors([ok]) == [] and ok.event_class is EventClass.INFORMATION
+    f = ev("E-F", EventType.INTERSEAM_FAILURE, ("BLK-129",), date(1984, 1, 1))
+    assert f.event_class is EventClass.PHYSICAL
+    d = ev("E-D", EventType.DESIGN_DOCUMENT, (), date(2002, 1, 1))
+    assert d.event_class is EventClass.INFORMATION

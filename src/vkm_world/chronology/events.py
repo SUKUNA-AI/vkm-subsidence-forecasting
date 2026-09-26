@@ -43,6 +43,8 @@ class EventType(str, Enum):
     BACKFILL_END = "BACKFILL_END"
     BACKFILL_PERIOD = "BACKFILL_PERIOD"
     BACKFILL_STATE_CHANGE = "BACKFILL_STATE_CHANGE"
+    TECHNOLOGY_CHANGE = "TECHNOLOGY_CHANGE"         # e.g. switch drill-and-blast → combine, start of hydraulic backfill
+    INTERSEAM_FAILURE = "INTERSEAM_FAILURE"         # разрушение междупластья (e.g. block 129, 1984–85)
     ROOF_FALL = "ROOF_FALL"
     PILLAR_FAILURE = "PILLAR_FAILURE"
     COLLAPSE = "COLLAPSE"
@@ -60,12 +62,15 @@ class EventType(str, Enum):
     DATA_PROCESSING = "DATA_PROCESSING"
     PUBLICATION = "PUBLICATION"
     NORMATIVE_IN_FORCE = "NORMATIVE_IN_FORCE"
+    DESIGN_DOCUMENT = "DESIGN_DOCUMENT"             # проект / регламент / паспорт issued
+    DATA_AVAILABILITY = "DATA_AVAILABILITY"         # e.g. satellite mission start, archive release
     OTHER = "OTHER"
 
 
 INFORMATION_TYPES = frozenset({EventType.MONITORING_CAMPAIGN, EventType.SURVEY_OF_WORKINGS, EventType.LAB_TESTING,
                                EventType.GEOPHYSICAL_SURVEY, EventType.GEOLOGICAL_MODEL_UPDATE,
-                               EventType.DATA_PROCESSING, EventType.PUBLICATION, EventType.NORMATIVE_IN_FORCE})
+                               EventType.DATA_PROCESSING, EventType.PUBLICATION, EventType.NORMATIVE_IN_FORCE,
+                               EventType.DESIGN_DOCUMENT, EventType.DATA_AVAILABILITY})
 EXTRACTION_TYPES = frozenset({EventType.EXTRACTION_START, EventType.EXTRACTION_PERIOD})
 BACKFILL_TYPES = frozenset({EventType.BACKFILL_START, EventType.BACKFILL_PERIOD})
 
@@ -75,9 +80,12 @@ class Event(WorldObject):
     objects: tuple[str, ...] = Field((), description="ids of mining objects / spatial nodes / datasets affected")
     time: TemporalSupport
     description: str | None = None
+    event_class_override: EventClass | None = Field(None, description="explicit class, required for OTHER events")
 
     @property
     def event_class(self) -> EventClass:
+        if self.event_class_override is not None:
+            return self.event_class_override
         return EventClass.INFORMATION if self.event_type in INFORMATION_TYPES else EventClass.PHYSICAL
 
     @property
@@ -110,6 +118,9 @@ def chronology_errors(events: list[Event], known_ids: set[str] | None = None,
             cur = parent_of.get(cur)
         return out
 
+    for e in events:
+        if e.event_type is EventType.OTHER and e.event_class_override is None:
+            errs.append(f"event {e.id}: OTHER event must state event_class_override (PHYSICAL or INFORMATION)")
     first_extraction: dict[str, date] = {}
     for e in events:
         if e.event_type in EXTRACTION_TYPES and e.start:

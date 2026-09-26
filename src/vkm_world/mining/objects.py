@@ -29,6 +29,8 @@ class DesignOrActual(str, Enum):
     DESIGN = "DESIGN"           # проект / норматив
     ACTUAL = "ACTUAL"           # фактически отработано (маркшейдерская съёмка)
     TEACHING = "TEACHING"       # учебный пример — never a site fact
+    RECORDED = "RECORDED"       # enterprise record (GIS/plan attribute) whose design-vs-as-built status is not stated
+    UNRESOLVED = "UNRESOLVED"   # sources disagree or do not allow the distinction
     UNKNOWN = "UNKNOWN"
 
 
@@ -67,3 +69,14 @@ def mining_object_errors(objs: list[MiningObject], spatial_ids: set[str] | None 
         if o.design_or_actual is DesignOrActual.TEACHING and o.provenance.status.value == "FACT":
             errs.append(f"{o.id}: teaching example stored as FACT")
     return errs
+
+
+class NomenclatureCrosswalk(WorldObject):
+    """Correspondence between naming schemes of different epochs (e.g. SKRU-1 panels ~1990 vs 2013).
+    Pairs are only recorded when a source states or a figure shows the identity; otherwise UNKNOWN."""
+
+    scheme_from: str
+    scheme_to: str
+    epoch_from: str | None = None
+    epoch_to: str | None = None
+    pairs: tuple[tuple[str, str], ...] = ()

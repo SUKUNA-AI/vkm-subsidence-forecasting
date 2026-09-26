@@ -681,6 +681,8 @@
     "DESIGN",
     "ACTUAL",
     "TEACHING",
+    "RECORDED",
+    "UNRESOLVED",
     "UNKNOWN"
    ],
    "title": "DesignOrActual",
@@ -713,6 +715,18 @@
      ],
      "default": null,
      "title": "Description"
+    },
+    "event_class_override": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/EventClass"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "description": "explicit class, required for OTHER events"
     },
     "event_type": {
      "$ref": "#/$defs/EventType"
@@ -771,6 +785,14 @@
    "title": "Event",
    "type": "object"
   },
+  "EventClass": {
+   "enum": [
+    "PHYSICAL",
+    "INFORMATION"
+   ],
+   "title": "EventClass",
+   "type": "string"
+  },
   "EventType": {
    "enum": [
     "GEOLOGICAL",
@@ -786,6 +808,8 @@
     "BACKFILL_END",
     "BACKFILL_PERIOD",
     "BACKFILL_STATE_CHANGE",
+    "TECHNOLOGY_CHANGE",
+    "INTERSEAM_FAILURE",
     "ROOF_FALL",
     "PILLAR_FAILURE",
     "COLLAPSE",
@@ -802,6 +826,8 @@
     "DATA_PROCESSING",
     "PUBLICATION",
     "NORMATIVE_IN_FORCE",
+    "DESIGN_DOCUMENT",
+    "DATA_AVAILABILITY",
     "OTHER"
    ],
    "title": "EventType",
@@ -1678,6 +1704,102 @@
    ],
    "title": "Modality",
    "type": "string"
+  },
+  "NomenclatureCrosswalk": {
+   "additionalProperties": false,
+   "description": "Correspondence between naming schemes of different epochs (e.g. SKRU-1 panels ~1990 vs 2013).\nPairs are only recorded when a source states or a figure shows the identity; otherwise UNKNOWN.",
+   "properties": {
+    "epoch_from": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Epoch From"
+    },
+    "epoch_to": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Epoch To"
+    },
+    "id": {
+     "description": "stable identifier, unique within its collection",
+     "title": "Id",
+     "type": "string"
+    },
+    "name": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Name"
+    },
+    "notes": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Notes"
+    },
+    "pairs": {
+     "default": [],
+     "items": {
+      "maxItems": 2,
+      "minItems": 2,
+      "prefixItems": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "string"
+       }
+      ],
+      "type": "array"
+     },
+     "title": "Pairs",
+     "type": "array"
+    },
+    "provenance": {
+     "$ref": "#/$defs/Provenance"
+    },
+    "scheme_from": {
+     "title": "Scheme From",
+     "type": "string"
+    },
+    "scheme_to": {
+     "title": "Scheme To",
+     "type": "string"
+    }
+   },
+   "required": [
+    "id",
+    "provenance",
+    "scheme_from",
+    "scheme_to"
+   ],
+   "title": "NomenclatureCrosswalk",
+   "type": "object"
   },
   "ObservationDataset": {
    "additionalProperties": false,
@@ -2712,7 +2834,11 @@
     "mine",
     "neighbour_mine",
     "intermine_pillar",
+    "exploration_area",
+    "deposit_part",
     "mine_field",
+    "shaft",
+    "mine_horizon",
     "panel",
     "block",
     "site",
@@ -3607,6 +3733,13 @@
     "$ref": "#/$defs/CoordinateSystem"
    },
    "title": "Coordinate Systems",
+   "type": "array"
+  },
+  "crosswalks": {
+   "items": {
+    "$ref": "#/$defs/NomenclatureCrosswalk"
+   },
+   "title": "Crosswalks",
    "type": "array"
   },
   "events": {

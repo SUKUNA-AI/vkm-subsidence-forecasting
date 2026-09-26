@@ -20,7 +20,7 @@ from ..geology.stratigraphy import StratigraphicUnit, column_errors
 from ..materials.parameters import MaterialParameter
 from ..mathmeta.models import MathModelRecord
 from ..mining.backfill import BackfillRecord
-from ..mining.objects import MiningObject, mining_object_errors
+from ..mining.objects import MiningObject, NomenclatureCrosswalk, mining_object_errors
 from ..observations.catalog import ObservationDataset, ObservationOperatorSpec, ObservationSystem
 from ..physics.processes import ProcessDefinition
 from ..spatial.crs import CoordinateSystem, CoordinateTransform, crs_reference_errors
@@ -73,6 +73,7 @@ class WorldSpec(BaseModel):
     contacts: list[Contact] = Field(default_factory=list)
     structures: list[StructuralFeature] = Field(default_factory=list)
     mining_objects: list[MiningObject] = Field(default_factory=list)
+    crosswalks: list[NomenclatureCrosswalk] = Field(default_factory=list)
     backfill: list[BackfillRecord] = Field(default_factory=list)
     events: list[Event] = Field(default_factory=list)
     materials: list[MaterialParameter] = Field(default_factory=list)
@@ -88,7 +89,7 @@ class WorldSpec(BaseModel):
         ids: set[str] = set()
         for coll in (self.coordinate_systems, self.transforms, self.spatial_nodes, self.stratigraphy, self.boreholes,
                      self.picks, self.pick_interpretations, self.horizons, self.contacts, self.structures,
-                     self.mining_objects, self.backfill, self.events, self.materials, self.processes,
+                     self.mining_objects, self.crosswalks, self.backfill, self.events, self.materials, self.processes,
                      self.observation_systems, self.observation_datasets, self.observation_operators, self.unknowns):
             ids |= {o.id for o in coll}
         return ids
@@ -96,7 +97,7 @@ class WorldSpec(BaseModel):
     def _provenances(self):
         for coll in (self.coordinate_systems, self.transforms, self.spatial_nodes, self.stratigraphy, self.boreholes,
                      self.picks, self.pick_interpretations, self.horizons, self.contacts, self.structures,
-                     self.mining_objects, self.backfill, self.events, self.materials, self.processes,
+                     self.mining_objects, self.crosswalks, self.backfill, self.events, self.materials, self.processes,
                      self.observation_systems, self.observation_datasets, self.observation_operators, self.unknowns):
             for o in coll:
                 yield o.id, o.provenance

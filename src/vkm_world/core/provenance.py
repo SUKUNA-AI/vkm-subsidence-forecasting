@@ -95,7 +95,11 @@ class SpatialLevel(str, Enum):
     MINE = "mine"                       # СКРУ-1
     NEIGHBOUR_MINE = "neighbour_mine"   # СКРУ-2, СКРУ-3 ...
     INTERMINE_PILLAR = "intermine_pillar"  # межрудничные / защитные целики
+    EXPLORATION_AREA = "exploration_area"   # участок детальной разведки (e.g. Соликамский, Ново-Соликамский)
+    DEPOSIT_PART = "deposit_part"           # северная/центральная/южная часть месторождения
     MINE_FIELD = "mine_field"
+    SHAFT = "shaft"                         # ствол
+    MINE_HORIZON = "mine_horizon"           # горизонт рудника (e.g. −113/−143/−240 m)
     PANEL = "panel"
     BLOCK = "block"
     SITE = "site"                       # участок
