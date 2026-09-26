@@ -67,6 +67,7 @@ MAX_SCAN_BYTES = 5_000_000                       # host-path scan skips larger t
 REGISTER_REL = "00_registry/SOURCE_REGISTER.csv"
 REGISTER_REQUIRED = ("resource_id", "canonical_path", "sha256")
 DUPLICATE_SNAPSHOT_PREFIX = "08_data_archives/main_repo_snapshots/"   # never read (byte duplicates)
+REGISTER_ABSENCE_RE = re.compile(r"DELETED|RETIRED", re.I)   # migration_status/evidence_scope: absence expected
 CATALOGUE_DIRS = ("evidence", "catalogues")
 CATALOGUE_ID_COLUMNS = {"source_id", "resource_id", "vkm_src_id", "vkm_source_id", "src_id"}
 CATALOGUE_SHA_COLUMNS = {"sha256", "source_sha256", "file_sha256", "register_sha256"}
@@ -82,9 +83,15 @@ SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.\-]+:")      # http:, mailto:, dat
 
 # host paths; patterns are written so that this file does not match itself
 HOST_PATH_SUFFIXES = {".py", ".yaml", ".yml", ".json", ".toml"}
-HOST_PATH_EXEMPT_PREFIXES: tuple[str, ...] = ("docs/reset_2026_09/run_kit/",)   # DATA_AND_PATH_POLICY_RU §3
+# Documented exemptions (reported in every run, never extended silently): prefix -> reason.
+HOST_PATH_EXEMPTIONS = {
+    "docs/reset_2026_09/run_kit/": "historical cloud run kit, rewritten by localize_paths.sh (DATA_AND_PATH_POLICY_RU §3)",
+    "tests/": "negative fixtures of path/leakage guards; a real host-path dependency breaks the tests elsewhere",
+    "src/vkm_world/governance/leakage.py": "forbidden-fragment patterns of the leakage guard itself",
+}
+HOST_PATH_PRAGMA = "host-path-ok"            # a line carrying this marker (with a reason) is exempt
 HOST_PATH_PATTERNS = (
-    ("windows_drive", re.compile(r"(?<![A-Za-z0-9_])[A-Z]:(?:\\{1,2}|/)(?=[\w$.~%\-Ѐ-ӿ])")),
+    ("windows_drive", re.compile(r"(?<![A-Za-z0-9_])[A-Z]:(?:\\{1,2}|/)(?=\w)")),
     ("windows_venv", re.compile(r"\.venv(?:\\{1,2}|/)Scripts(?:\\{1,2}|/)python", re.I)),
     ("posix_host_dir", re.compile(r"(?<![\w.~/\-])/(?:home|Users|root|mnt|media)/[\w.\-]")),
 )
@@ -348,6 +355,9 @@ def _verify_closure_item(ctx: Context, commit: str, path: str, expected: str, si
     retired_prefixes = tuple(reg.get("retired_prefixes", []))
     external_prefixes = tuple(reg.get("externalized_prefixes", []))
     expected = str(expected).lower()
+    if (path, expected) in acc["seen"]:           # already verified through another manifest
+        return acc["seen"][(path, expected)]
+    acc["seen"][(path, expected)] = False
     if retired_prefixes and path.startswith(retired_prefixes):
         seen = ctx.retired_seen.setdefault(path, {"sha256": set(), "via": set()})
         seen["sha256"].add(expected)
@@ -389,6 +399,7 @@ def _verify_closure_item(ctx: Context, commit: str, path: str, expected: str, si
             acc["errors"].append({"kind": "externalized_not_in_private_register", "path": path, "expected": expected})
         else:
             acc["externalized_matched"][path] = rid
+    acc["seen"][(path, expected)] = True
     return True
 
 
@@ -445,7 +456,7 @@ def _walk_csv_inventory(ctx: Context, commit: str, path: str, data: bytes, closu
 
 def _verify_reference_at(ctx: Context, entry: dict, ref: str, commit: str, sha_by_id: dict) -> Check:
     acc = {"files": 0, "manifests": 0, "by_method": {}, "errors": [], "externalized_matched": {},
-           "externalized_unchecked": 0, "retired_deferred": 0}
+           "externalized_unchecked": 0, "retired_deferred": 0, "seen": {}}
     check_id = f"frozen:{entry['id']}@{_ref_label(ref)}"
     data = ctx.git.read(commit, entry["path"])
     base = {"reference": entry["id"], "path": entry["path"], "ref": ref, "commit": commit}
@@ -483,7 +494,7 @@ def _verify_reference_at(ctx: Context, entry: dict, ref: str, commit: str, sha_b
     if acc["errors"]:
         return Check(check_id, "frozen_references", FAIL, True,
                      f"{len(acc['errors'])} closure error(s) at {ref}", base)
-    note = f"pinned + {acc['files']} closure files verified from git objects at {ref}"
+    note = f"pinned + {acc['files']} closure files verified from git objects at {_ref_label(ref)}"
     if acc["externalized_unchecked"]:
         note += f"; {acc['externalized_unchecked']} externalized sources unchecked (set VKM_RESOURCES_ROOT)"
     return Check(check_id, "frozen_references", PASS, True, note, base)
@@ -637,7 +648,7 @@ def check_private_sources(ctx: Context) -> list[Check]:
         out[0] = Check("private:register", "private_sources", FAIL, True, "duplicate resource_id in PRIVATE register",
                        {**out[0].details, "duplicates": sorted(set(ctx.register_duplicates))})
     bad_sha = [rid for rid, row in ctx.register.items() if not SHA256_RE.match((row.get("sha256") or "").strip().lower())]
-    verified, missing, pointers, mismatches, snapshot_rows = [], [], [], [], []
+    verified, missing, expected_absent, pointers, mismatches, snapshot_rows = [], [], [], [], [], []
     for rid, row in sorted(ctx.register.items()):
         rel = (row.get("canonical_path") or "").strip().replace("\\", "/")
         want = (row.get("sha256") or "").strip().lower()
@@ -649,7 +660,9 @@ def check_private_sources(ctx: Context) -> list[Check]:
             continue
         kind, actual, extra = _hash_registered_file(ctx.resources_root, rel)
         if kind == "missing":
-            missing.append({"id": rid, "canonical_path": rel})
+            marker = f"{row.get('migration_status') or ''} {row.get('evidence_scope') or ''}"
+            (expected_absent if REGISTER_ABSENCE_RE.search(marker) else missing).append(
+                {"id": rid, "canonical_path": rel, "migration_status": row.get("migration_status")})
         elif kind == "lfs_pointer":
             entry = {"id": rid, "canonical_path": rel, "status": "SKIPPED_LFS_POINTER",
                      "pointer_oid_matches_register": actual == want}
@@ -665,8 +678,10 @@ def check_private_sources(ctx: Context) -> list[Check]:
     status = FAIL if (mismatches or bad_sha) else (WARN if (missing or pointers or snapshot_rows) else PASS)
     out.append(Check("private:registered_files", "private_sources", status, True,
                      f"{len(verified)} registered files sha256-verified on disk; {len(pointers)} LFS pointers skipped "
-                     f"(not materialized); {len(missing)} not on disk; {len(mismatches)} mismatches",
+                     f"(not materialized); {len(missing)} unexpectedly not on disk; {len(expected_absent)} absent by "
+                     f"register status; {len(mismatches)} mismatches",
                      {"verified": len(verified), "lfs_pointers_skipped": _capped(pointers), "missing_on_disk": _capped(missing),
+                      "absent_by_register_status": expected_absent,
                       "mismatches": _capped(mismatches), "invalid_register_sha256": bad_sha,
                       "rows_pointing_to_duplicate_snapshots_not_read": snapshot_rows}))
     rows, files = _public_catalogue_rows(ctx)
@@ -712,7 +727,9 @@ def check_markdown_links(ctx: Context) -> list[Check]:
     dirs = {posixpath.dirname(f) for f in files}
     dirs |= {d for f in files for d in _parents(f)}
     root_resolved = ctx.root.resolve()
-    broken, checked_links, md_files = [], 0, 0
+    reg = ctx.registry or {}
+    offloaded = tuple(reg.get("externalized_prefixes", [])) + tuple(reg.get("retired_prefixes", []))
+    broken, offloaded_links, checked_links, md_files = [], [], 0, 0
     for name in files:
         if not name.lower().endswith(".md"):
             continue
@@ -742,14 +759,23 @@ def check_markdown_links(ctx: Context) -> list[Check]:
                 continue
             if rel in existing or rel in dirs or rel == "":
                 continue
+            if offloaded and rel.startswith(offloaded):
+                offloaded_links.append({"file": name, "line": line, "target": raw})
+                continue
             reason = "target does not exist"
             if (root_resolved / rel).exists():
                 reason = "target exists only as an ignored/untracked local file (e.g. work/)"
             broken.append({"file": name, "line": line, "target": raw, "reason": reason})
-    return [Check("markdown:links", "markdown_links", FAIL if broken else PASS, True,
-                  f"{md_files} Markdown files, {checked_links} local links, {len(broken)} broken",
-                  {"broken": _capped(broken, 200),
-                   "scope": "inline links/images and reference definitions outside code; URLs and anchors not fetched"})]
+    out = [Check("markdown:links", "markdown_links", FAIL if broken else PASS, True,
+                 f"{md_files} Markdown files, {checked_links} local links, {len(broken)} broken",
+                 {"broken": _capped(broken, 200),
+                  "scope": "inline links/images and reference definitions outside code; URLs and anchors not fetched"})]
+    if offloaded_links:
+        out.append(Check("markdown:offloaded_links", "markdown_links", WARN, False,
+                         f"{len(offloaded_links)} links into externalized/retired trees (bytes live in PRIVATE or in "
+                         f"git history; cite by VKM-SRC id / commit instead)",
+                         {"prefixes": list(offloaded), "links": _capped(offloaded_links, 200)}))
+    return out
 
 
 def _parents(path: str) -> list[str]:
@@ -774,29 +800,33 @@ def check_leakage(ctx: Context) -> list[Check]:
 
 
 # --------------------------------------------------------------------------- 6. host paths
-def _exempt_prefixes(ctx: Context) -> tuple[str, ...]:
-    prefixes = set(HOST_PATH_EXEMPT_PREFIXES)
+def _host_path_exemptions(ctx: Context) -> dict[str, str]:
+    exemptions = dict(HOST_PATH_EXEMPTIONS)
     try:
-        prefixes |= set(_import_vkm_world(ctx).PATH_CHECK_EXEMPT_PREFIXES)
-    except Exception:  # noqa: BLE001 - exemptions of the leakage guard are optional here
+        for prefix in _import_vkm_world(ctx).PATH_CHECK_EXEMPT_PREFIXES:
+            exemptions.setdefault(prefix, "PATH_CHECK_EXEMPT_PREFIXES of vkm_world.governance.leakage")
+    except Exception:  # noqa: BLE001 - the leakage guard's exemptions are optional here
         pass
-    return tuple(sorted(prefixes))
+    return exemptions
 
 
 def scan_host_paths(text: str) -> list[tuple[int, str, str]]:
-    """(line, kind, excerpt) of absolute/Windows host paths in ``text``."""
+    """(line, kind, excerpt) of absolute/Windows host paths in ``text``; pragma lines are skipped."""
     hits, lines = [], None
     for kind, regex in HOST_PATH_PATTERNS:
         for m in regex.finditer(text):
             lines = lines if lines is not None else text.split("\n")
             lineno = text.count("\n", 0, m.start()) + 1
+            if HOST_PATH_PRAGMA in lines[lineno - 1]:
+                continue
             hits.append((lineno, kind, lines[lineno - 1].strip()[:160]))
     return sorted(set(hits))
 
 
 def check_host_paths(ctx: Context) -> list[Check]:
-    exempt = _exempt_prefixes(ctx)
-    hits, exempt_hits, scanned, skipped_large = [], 0, 0, []
+    exemptions = _host_path_exemptions(ctx)
+    prefixes = tuple(exemptions)
+    hits, exempt_hits, scanned, skipped_large = [], {}, 0, []
     for name in ctx.repo_files():
         if Path(name).suffix.lower() not in HOST_PATH_SUFFIXES:
             continue
@@ -807,18 +837,19 @@ def check_host_paths(ctx: Context) -> list[Check]:
         data = path.read_bytes()
         if parse_lfs_pointer(data):
             continue
-        text = data.decode("utf-8", "replace")
-        found = scan_host_paths(text)
-        if name.startswith(exempt):
-            exempt_hits += len(found)
+        found = scan_host_paths(data.decode("utf-8", "replace"))
+        if name.startswith(prefixes):
+            if found:
+                prefix = next(p for p in prefixes if name.startswith(p))
+                exempt_hits[prefix] = exempt_hits.get(prefix, 0) + len(found)
             continue
         scanned += 1
         hits.extend({"file": name, "line": ln, "kind": kind, "excerpt": excerpt} for ln, kind, excerpt in found)
     return [Check("host_paths:code_config", "host_paths", FAIL if hits else PASS, True,
                   f"{scanned} code/config files scanned; {len(hits)} absolute/Windows host paths outside exemptions",
-                  {"suffixes": sorted(HOST_PATH_SUFFIXES), "exempt_prefixes": list(exempt),
-                   "hits_in_exempt_prefixes": exempt_hits, "skipped_larger_than_bytes": {str(MAX_SCAN_BYTES): skipped_large},
-                   "hits": _capped(hits, 200)})]
+                  {"suffixes": sorted(HOST_PATH_SUFFIXES), "exemptions": exemptions, "pragma": HOST_PATH_PRAGMA,
+                   "hits_in_exemptions": dict(sorted(exempt_hits.items())),
+                   "skipped_larger_than_bytes": {str(MAX_SCAN_BYTES): skipped_large}, "hits": _capped(hits, 200)})]
 
 
 # --------------------------------------------------------------------------- 7. worldspec schema
