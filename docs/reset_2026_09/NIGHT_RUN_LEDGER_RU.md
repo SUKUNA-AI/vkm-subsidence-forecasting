@@ -44,3 +44,30 @@
   (локальный commit PRIVATE `292655a`). OCR-текст передан обычными txt-файлами.
 - Создан `CLOUD_TO_LOCAL_HANDOFF_RU.md` (корень PUBLIC; копия в PRIVATE
   `00_registry/cloud_checkpoint_2026-09-26/`). Следующий этап — Stage 1 локально.
+
+---
+
+# PHASE 1 (cloud): информационная и архитектурная часть — продолжение reset
+
+Parent task: «CLOUD ULTRACODE — ПРОДОЛЖЕНИЕ SCIENTIFIC RESET ПРОЕКТА VKM/SKRU-1».
+Стратегия: в cloud — только чтение, извлечение, провенанс, каталоги, дизайн WorldSpec,
+архитектура репозитория, лёгкие схемы и тесты. Тяжёлые вычисления отложены в локальную Phase 2.
+
+## P1.0 Старт (выполнено)
+
+- Исходные SHA: PUBLIC `main` = `1c1f816`, PRIVATE `main` = `9e4bf11`; `legacy` = `d54025d` не трогается.
+- Рабочие ветки: `research/evidence-worldspec-reset` в обоих репозиториях (от актуального `main`), запушены.
+- VM та же, что в предыдущем run: постраничный текст 39 документов, OCR, дайджесты старых claims и
+  240 отрендеренных страниц сохранились — подготовка не повторялась.
+- Новый протокол `SWEEP_PROTOCOL_PHASE1.md`: инкрементальное сохранение каждые ≤5 страниц
+  (`progress.json` + дозапись `records.jsonl`), запрет численных расчётов, добавлены виды записей
+  `information_lifecycle` и `lifecycle_stage`.
+- Для каждого агента — явная context preamble (parent task, проект, шаг; промежуточные вопросы
+  пользователя задачу не отменяют).
+
+## P1.1 Полный sweep корпуса (в работе)
+
+- 65 чтений / 39 документов, 5 параллельных workflow по 13 чтений (лимит VM — 2 агента на workflow).
+- Промежуточные результаты: `/home/user/work/sweep_results/<SID>/<chunk>/`; фоновый snapshot каждые
+  40 мин в PRIVATE `11_evidence_vnext/sweep_raw/` (commit + push, без LFS).
+- Параллельно: read-only аудит PUBLIC repo, старого PW v1/OGS и воспроизводимости.
