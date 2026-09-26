@@ -36,7 +36,7 @@
 | Блок | Результат | Где |
 |---|---|---|
 | Сплошное чтение корпуса | 65/65 чтений по 39 документам. 13 572 записи evidence, 28 видов записей. Покрытие: 39 документов FULLY_REVIEWED; VKM-SRC-013 — SUPERSEDED_BY_COPY; VKM-SRC-022 — RETIRED_NOT_EVIDENCE. Статуса UNSEEN нет | `evidence/sources/SOURCE_COVERAGE_MASTER.csv`; PRIVATE `11_evidence_vnext/` |
-| Проверка цитат | Каждая цитата сверена с текстовым слоем или OCR: EXACT 7585, EXACT_SEGMENTS 381, PARTIAL 331, FUZZY 2030, VISUAL_NOT_IN_TEXT_LAYER 1111, OCR_TEXT_MISMATCH 1025, NOT_FOUND 500 | PRIVATE `11_evidence_vnext/merged/quote_check_v2.csv` |
+| Проверка цитат | Каждая цитата сверена с текстовым слоем или OCR (13 572 записи): EXACT 7585, EXACT_ADJACENT_PAGE 60, EXACT_SEGMENTS 381, PARTIAL_SEGMENTS 331, FUZZY 2030, VISUAL_NOT_IN_TEXT_LAYER 1111, OCR_TEXT_MISMATCH 1025, NOT_FOUND 500, NO_QUOTE 549 (цитата короче 8 символов) | PRIVATE `11_evidence_vnext/merged/quote_check_v2.csv` |
 | Граф цитирований | 2091 ребро, 1960 цитируемых работ, 86 работ, цитируемых ≥ 2 источниками, 257 целей для поиска первоисточников, 24 линии повторов и искажений | `evidence/sources/`, [отчёт](docs/science/CITATION_GRAPH_RU.md) |
 | Скважины | 1110 строк каталога, 714 отбивок «как напечатано», 241 вопрос идентичности | `evidence/boreholes/`, [отчёт](docs/science/BOREHOLE_AND_3D_RECONSTRUCTION_RU.md) |
 | Геология, координаты | 172 стратиграфические единицы, 627 наблюдений мощности, 995 геологических признаков, 465 записей о системах координат и высот | `evidence/geology/`, `evidence/coordinates/`, [геология](docs/science/GEOLOGY_EVIDENCE_RU.md), [CRS-аудит](docs/science/COORDINATE_DATUM_AUDIT_RU.md) |
