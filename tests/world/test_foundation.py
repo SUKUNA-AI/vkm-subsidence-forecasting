@@ -251,6 +251,12 @@ def test_machine_paths_are_flagged_and_sanitized(tmp_path):
     clean = sanitize_paths(f"{home}work/synth/X/a.csv {home}work/run/img/p.png {home}vkm-subsidence-forecasting_resourses/00")
     assert home not in clean and "PRIVATE 11_evidence_vnext/canonical/X/a.csv" in clean
     assert sanitize_paths(clean) == clean
+    note = f"OCR layer {ocr_dir}VKM-SRC-025/p0107"   # a catalogue cell may not name the OCR work dir, prose may
+    assert sanitize_paths(note) == note
+    cell = sanitize_paths(note, data=True)
+    assert ocr_dir not in cell and "VKM-SRC-025/p0107" in cell and sanitize_paths(cell, data=True) == cell
+    (tmp_path / "c.csv").write_text(f"id,notes\nA,{cell}\n", encoding="utf-8")
+    assert scan(tmp_path, files=[tmp_path / "c.csv"]) == []
 
 
 def test_chronology_compares_imprecise_dates_as_intervals():

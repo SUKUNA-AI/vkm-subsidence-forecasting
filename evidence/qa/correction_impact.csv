@@ -79,25 +79,25 @@ QA-C-M009,MAJOR,PROPOSED,HIGH,epistemic_status,EV-GEO-0181,MINING/spatial_hierar
 QA-C-M009,MAJOR,PROPOSED,HIGH,epistemic_status,EV-GEO-0181,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0012,existing_evidence_ids
 QA-C-M009,MAJOR,PROPOSED,HIGH,epistemic_status,EV-GEO-0181,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0013,existing_evidence_ids
 QA-C-M009,MAJOR,PROPOSED,HIGH,epistemic_status,EV-GEO-0181,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0013,notes
-QA-C-M010,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-0302,MINING/mining_geometry_catalog.csv,GEO-0196,existing_evidence_ids
+QA-C-M010,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-0302,MINING/mining_geometry_catalog.csv,MGEO-0196,existing_evidence_ids
 QA-C-M010,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-0302,MINING/spatial_hierarchy.csv,SKRU1:PAN13:1SZP,existing_evidence_ids
 QA-C-M010,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-0302,MINING/spatial_hierarchy.csv,SKRU1:PAN13:1SZP:B6,existing_evidence_ids
 QA-C-M010,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-0302,MINING/spatial_hierarchy.csv,SKRU1:ZONE:1SZP-B6-2,existing_evidence_ids
 QA-C-M010,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-0302,SOURCES/SOURCE_COVERAGE_MASTER.csv,VKM-SRC-023,new_findings
 QA-C-M010,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-0328,MINING/spatial_hierarchy.csv,SKRU1:ZONE:1VP-5,existing_evidence_ids
-QA-C-M011,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-1311,MINING/mining_geometry_catalog.csv,GEO-0353,existing_evidence_ids
+QA-C-M011,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-1311,MINING/mining_geometry_catalog.csv,MGEO-0353,existing_evidence_ids
 QA-C-M011,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-1311,SOURCES/SOURCE_COVERAGE_MASTER.csv,VKM-SRC-037,new_findings
-QA-C-M011,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-1327,MINING/mining_geometry_catalog.csv,GEO-0356,existing_evidence_ids
-QA-C-M012,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-0570,MINING/mining_geometry_catalog.csv,GEO-0258,existing_evidence_ids
-QA-C-M012,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-0571,MINING/mining_geometry_catalog.csv,GEO-0258,existing_evidence_ids
-QA-C-M012,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-0572,MINING/mining_geometry_catalog.csv,GEO-0258,existing_evidence_ids
-QA-C-M012,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-0573,MINING/mining_geometry_catalog.csv,GEO-0258,existing_evidence_ids
-QA-C-M013,MAJOR,PROPOSED,HIGH,conflict_note (add),EV-MIN-0570,MINING/mining_geometry_catalog.csv,GEO-0258,existing_evidence_ids
-QA-C-M013,MAJOR,PROPOSED,HIGH,conflict_note (add),EV-MIN-1326,MINING/mining_geometry_catalog.csv,GEO-0356,existing_evidence_ids
+QA-C-M011,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-1327,MINING/mining_geometry_catalog.csv,MGEO-0356,existing_evidence_ids
+QA-C-M012,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-0570,MINING/mining_geometry_catalog.csv,MGEO-0258,existing_evidence_ids
+QA-C-M012,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-0571,MINING/mining_geometry_catalog.csv,MGEO-0258,existing_evidence_ids
+QA-C-M012,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-0572,MINING/mining_geometry_catalog.csv,MGEO-0258,existing_evidence_ids
+QA-C-M012,MINOR,PROPOSED,MEDIUM,locator_verification,EV-MIN-0573,MINING/mining_geometry_catalog.csv,MGEO-0258,existing_evidence_ids
+QA-C-M013,MAJOR,PROPOSED,HIGH,conflict_note (add),EV-MIN-0570,MINING/mining_geometry_catalog.csv,MGEO-0258,existing_evidence_ids
+QA-C-M013,MAJOR,PROPOSED,HIGH,conflict_note (add),EV-MIN-1326,MINING/mining_geometry_catalog.csv,MGEO-0356,existing_evidence_ids
 QA-C-M013,MAJOR,PROPOSED,HIGH,conflict_note (add),EV-VN-S037-0414,MINING/mining_conflicts.csv,MC-GE-01,vn_ids_b
-QA-C-M013,MAJOR,PROPOSED,HIGH,conflict_note (add),EV-VN-S037-0414,MINING/mining_geometry_catalog.csv,GEO-0356,vn_ids
-QA-C-M014,MINOR,PROPOSED,MEDIUM,locator_verification + scope,EV-MIN-0337,MINING/mining_geometry_catalog.csv,GEO-0231,existing_evidence_ids
-QA-C-M014,MINOR,PROPOSED,MEDIUM,locator_verification + scope,EV-MIN-0337,MINING/mining_geometry_catalog.csv,GEO-0231,notes
+QA-C-M013,MAJOR,PROPOSED,HIGH,conflict_note (add),EV-VN-S037-0414,MINING/mining_geometry_catalog.csv,MGEO-0356,vn_ids
+QA-C-M014,MINOR,PROPOSED,MEDIUM,locator_verification + scope,EV-MIN-0337,MINING/mining_geometry_catalog.csv,MGEO-0231,existing_evidence_ids
+QA-C-M014,MINOR,PROPOSED,MEDIUM,locator_verification + scope,EV-MIN-0337,MINING/mining_geometry_catalog.csv,MGEO-0231,notes
 QA-C-M015,MINOR,PROPOSED,MEDIUM,locator_verification,EV-SYN-0002,GEOLOGY_COORDS/stratigraphic_thickness_observations.csv,STO-0566,existing_evidence_ids
 QA-C-M015,MINOR,PROPOSED,MEDIUM,locator_verification,EV-SYN-0003,GEOLOGY_COORDS/stratigraphic_thickness_observations.csv,STO-0567,existing_evidence_ids
 QA-C-M016,MAJOR,PROPOSED,HIGH,site / evidence_scope,EV-RMR-1089,BOREHOLES/borehole_catalog.csv,BH-SIB-S025-561,notes
@@ -111,6 +111,7 @@ QA-C-M018,MINOR,PROPOSED,MEDIUM,limitations / epistemic_status,EV-SYN-0021,MININ
 QA-C-M018,MINOR,PROPOSED,MEDIUM,limitations / epistemic_status,EV-SYN-0021,MINING/spatial_hierarchy.csv,SKRU1:PIL:BOREHOLES,existing_evidence_ids
 QA-C-M018,MINOR,PROPOSED,MEDIUM,limitations / epistemic_status,EV-SYN-0021,SOURCES/SOURCE_COVERAGE_MASTER.csv,VKM-SRC-012,new_findings
 QA-C-M020,MAJOR,PROPOSED,HIGH,epistemic_status / spatial_support,EV-MON-0058,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0101,existing_evidence_ids
+QA-C-M020,MAJOR,PROPOSED,HIGH,epistemic_status / spatial_support,EV-MON-0059,MINING/spatial_hierarchy.csv,SL:SRC002:1,existing_evidence_ids
 QA-C-M020,MAJOR,PROPOSED,HIGH,epistemic_status / spatial_support,EV-MON-0059,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0003,existing_evidence_ids
 QA-C-M020,MAJOR,PROPOSED,HIGH,epistemic_status / spatial_support,EV-MON-0060,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0004,existing_evidence_ids
 QA-C-M020,MAJOR,PROPOSED,HIGH,epistemic_status / spatial_support,EV-MON-0061,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0006,existing_evidence_ids
@@ -124,9 +125,9 @@ QA-C-M022,MAJOR,PROPOSED,HIGH,status,EV-VN-S023-0380,MONITORING_LIFECYCLE/inform
 QA-C-M022,MAJOR,PROPOSED,HIGH,status,EV-VN-S023-0380,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0469,vn_ids
 QA-C-M022,MAJOR,PROPOSED,HIGH,status,EV-VN-S023-0380,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1,vn_ids
 QA-C-M023,MAJOR,PROPOSED,HIGH,scope,EV-VN-S023-0182,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0312,vn_id
-QA-C-M023,MAJOR,PROPOSED,HIGH,scope,EV-VN-S023-0182,MINING/mining_geometry_catalog.csv,GEO-0194,vn_ids
+QA-C-M023,MAJOR,PROPOSED,HIGH,scope,EV-VN-S023-0182,MINING/mining_geometry_catalog.csv,MGEO-0194,vn_ids
 QA-C-M023,MAJOR,PROPOSED,HIGH,scope,EV-VN-S023-0183,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0313,vn_id
-QA-C-M023,MAJOR,PROPOSED,HIGH,scope,EV-VN-S023-0183,MINING/mining_geometry_catalog.csv,GEO-0195,vn_ids
+QA-C-M023,MAJOR,PROPOSED,HIGH,scope,EV-VN-S023-0183,MINING/mining_geometry_catalog.csv,MGEO-0195,vn_ids
 QA-C-M024,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0370,BOREHOLES/borehole_catalog.csv,BH-SOL-74,provenance_vn_ids
 QA-C-M024,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0370,BOREHOLES/borehole_catalog.csv,BH-SOL-74,xy_alternative_readings
 QA-C-M024,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0370,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0455,vn_id
@@ -141,9 +142,26 @@ QA-C-M025,MAJOR,PROPOSED,HIGH,quote / lithology_notes / core,EV-VN-S011-1321,BOR
 QA-C-M025,MAJOR,PROPOSED,HIGH,quote / lithology_notes / core,EV-VN-S011-1321,BOREHOLES/borehole_picks.csv,PK-00294,vn_id
 QA-C-M025,MAJOR,PROPOSED,HIGH,quote / lithology_notes / core,EV-VN-S011-1321,BOREHOLES/borehole_picks.csv,PK-00295,vn_id
 QA-C-M025,MAJOR,PROPOSED,HIGH,quote / lithology_notes / core,EV-VN-S011-1321,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0454,vn_id
+QA-C-M027,MINOR,PROPOSED,MEDIUM,usage flag,EV-VN-S037-0682,CITATIONS/repeated_secondary_citations.csv,LIN-27,vn_ids
 QA-C-M027,MINOR,PROPOSED,MEDIUM,usage flag,EV-VN-S037-0682,MECH_RHEO/mech_rheo_conflicts.csv,MR-CONF-006,vn_ids
 QA-C-M027,MINOR,PROPOSED,MEDIUM,usage flag,EV-VN-S037-0682,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-1713,vn_ids
+QA-C-M027,MINOR,PROPOSED,MEDIUM,usage flag,EV-VN-S037-0685,CITATIONS/repeated_secondary_citations.csv,LIN-27,vn_ids
+QA-C-M028,MINOR,PROPOSED,MEDIUM,evidence_type / spatial_support,EV-VN-S037-0323,GEOLOGY_COORDS/stratigraphic_thickness_observations.csv,STO-0629,vn_id
+QA-C-M028,MINOR,PROPOSED,MEDIUM,evidence_type / spatial_support,EV-VN-S037-0323,GEOLOGY_COORDS/stratigraphic_thickness_observations.csv,STO-0630,vn_id
+QA-C-M028,MINOR,PROPOSED,MEDIUM,evidence_type / spatial_support,EV-VN-S037-0323,GEOLOGY_COORDS/stratigraphic_thickness_observations.csv,STO-0631,vn_id
+QA-C-M028,MINOR,PROPOSED,MEDIUM,evidence_type / spatial_support,EV-VN-S037-0323,GEOLOGY_COORDS/stratigraphic_units.csv,S_AB,thickness_ranges_by_source_as_printed
+QA-C-M028,MINOR,PROPOSED,MEDIUM,evidence_type / spatial_support,EV-VN-S037-0323,GEOLOGY_COORDS/stratigraphic_units.csv,S_AB,vn_ids
+QA-C-M028,MINOR,PROPOSED,MEDIUM,evidence_type / spatial_support,EV-VN-S037-0323,GEOLOGY_COORDS/stratigraphic_units.csv,S_A_KR1,thickness_ranges_by_source_as_printed
+QA-C-M028,MINOR,PROPOSED,MEDIUM,evidence_type / spatial_support,EV-VN-S037-0323,GEOLOGY_COORDS/stratigraphic_units.csv,S_A_KR1,vn_ids
+QA-C-M028,MINOR,PROPOSED,MEDIUM,evidence_type / spatial_support,EV-VN-S037-0323,GEOLOGY_COORDS/stratigraphic_units.csv,S_KR1,thickness_ranges_by_source_as_printed
+QA-C-M028,MINOR,PROPOSED,MEDIUM,evidence_type / spatial_support,EV-VN-S037-0323,GEOLOGY_COORDS/stratigraphic_units.csv,S_KR1,vn_ids
+QA-C-M028,MINOR,PROPOSED,MEDIUM,evidence_type / spatial_support,EV-VN-S037-0323,GEOLOGY_COORDS/stratigraphic_units.csv,S_KR1_KR2,thickness_ranges_by_source_as_printed
+QA-C-M028,MINOR,PROPOSED,MEDIUM,evidence_type / spatial_support,EV-VN-S037-0323,GEOLOGY_COORDS/stratigraphic_units.csv,S_KR1_KR2,vn_ids
+QA-C-M028,MINOR,PROPOSED,MEDIUM,evidence_type / spatial_support,EV-VN-S037-0323,GEOLOGY_COORDS/stratigraphic_units.csv,S_KR2,thickness_ranges_by_source_as_printed
+QA-C-M028,MINOR,PROPOSED,MEDIUM,evidence_type / spatial_support,EV-VN-S037-0323,GEOLOGY_COORDS/stratigraphic_units.csv,S_KR2,vn_ids
+QA-C-M029,MINOR,PROPOSED,MEDIUM,conditions,EV-VN-S037-0169,CITATIONS/repeated_secondary_citations.csv,LIN-25,vn_ids
 QA-C-M029,MINOR,PROPOSED,MEDIUM,conditions,EV-VN-S037-0169,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0964,vn_ids
+QA-C-M029,MINOR,PROPOSED,MEDIUM,conditions,EV-VN-S037-0172,CITATIONS/repeated_secondary_citations.csv,LIN-25,vn_ids
 QA-C-M029,MINOR,PROPOSED,MEDIUM,conditions,EV-VN-S037-0172,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0967,vn_ids
 QA-C-M030,MINOR,PROPOSED,MEDIUM,borehole_id aliases + independence,EV-VN-S020-0050,BOREHOLES/borehole_catalog.csv,BH-SECBL-2539,provenance_vn_ids
 QA-C-M030,MINOR,PROPOSED,MEDIUM,borehole_id aliases + independence,EV-VN-S020-0051,BOREHOLES/borehole_catalog.csv,BH-SECBL-4057,provenance_vn_ids
@@ -221,6 +239,10 @@ QA-C-M040,MINOR,PROPOSED,MEDIUM,value (Rp14.1 η),EV-VN-S024-0455,MONITORING_LIF
 QA-C-M040,MINOR,PROPOSED,MEDIUM,value (Rp14.1 η),EV-VN-S024-0455,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-18,vn_ids
 QA-C-M040,MINOR,PROPOSED,MEDIUM,value (Rp14.1 η),EV-VN-S024-0455,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0274,vn_ids
 QA-C-M040,MINOR,PROPOSED,MEDIUM,value (Rp14.1 η),EV-VN-S024-0455,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,АНАЛОГ другое калийное м-е,vn_ids
+QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S037-0192,BOREHOLES/borehole_catalog.csv,BH-SHS1-stvol_1,provenance_vn_ids
+QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S037-0192,BOREHOLES/borehole_catalog.csv,BH-SHS1-stvol_2,provenance_vn_ids
+QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S037-0192,BOREHOLES/borehole_catalog.csv,BH-SHS1-stvol_2-bis,provenance_vn_ids
+QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S037-0192,BOREHOLES/borehole_identity_issues.csv,ISS-SHAFT-2BIS,vn_ids
 QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S037-0192,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0422,vn_id
 QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S037-0192,HYDRO_THERMAL_GEOPHYS/hydro_evidence_catalog.csv,HYD-041,vn_ids
 QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S037-0192,HYDRO_THERMAL_GEOPHYS/hydro_evidence_catalog.csv,HYD-134,vn_ids
@@ -232,11 +254,11 @@ QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S037-0192,MI
 QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S037-0193,MINING/mining_conflicts.csv,MC-SP-08,vn_ids_b
 QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S037-0193,MINING/spatial_hierarchy.csv,SKRU1:SHAFT:2BIS,vn_ids
 QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S040-0056,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-02065,dependent_claims
-QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S040-0056,CITATIONS/primary_source_targets.csv,63,dependent_claims
+QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S040-0056,CITATIONS/primary_source_targets.csv,65,dependent_claims
 QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S040-0056,HYDRO_THERMAL_GEOPHYS/hydro_evidence_catalog.csv,HYD-041,vn_ids
 QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S040-0056,HYDRO_THERMAL_GEOPHYS/hydro_evidence_catalog.csv,HYD-134,vn_ids
 QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S040-0056,MINING/mining_conflicts.csv,MC-SP-08,vn_ids_a
-QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S040-0056,MINING/mining_geometry_catalog.csv,GEO-0418,vn_ids
+QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S040-0056,MINING/mining_geometry_catalog.csv,MGEO-0418,vn_ids
 QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S040-0056,MINING/spatial_hierarchy.csv,SKRU1:SHAFT:2BIS,vn_ids
 QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S040-0126,BOREHOLES/borehole_catalog.csv,BH-SHS1-stvol_2-bis,provenance_vn_ids
 QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S040-0126,BOREHOLES/borehole_identity_issues.csv,ISS-SHAFT-2BIS,vn_ids
@@ -252,6 +274,7 @@ QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S040-0126,BO
 QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S040-0126,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0464,vn_id
 QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S040-0126,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0465,vn_id
 QA-C-M041,MAJOR,PROPOSED,HIGH,"depth_m (shaft 2-bis, SKRU-1)",EV-VN-S040-0126,MINING/spatial_hierarchy.csv,SKRU1:SHAFT:2BIS,vn_ids
+QA-C-M042,MAJOR,PROPOSED,HIGH,"equation_plain (6.26), stage 2",EV-VN-S037-0672,CITATIONS/repeated_secondary_citations.csv,LIN-27,vn_ids
 QA-C-M042,MAJOR,PROPOSED,HIGH,"equation_plain (6.26), stage 2",EV-VN-S037-0672,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-ROOF-005,vn_ids
 QA-C-M042,MAJOR,PROPOSED,HIGH,"equation_plain (6.26), stage 2",EV-VN-S037-0672,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S037-0672,vn_id
 QA-C-M042,MAJOR,PROPOSED,HIGH,"equation_plain (6.26), stage 2",EV-VN-S037-0672,MECH_RHEO/rheology_evidence_catalog.csv,MR-RHEO-N18,vn_ids
@@ -315,6 +338,7 @@ QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN
 QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0048,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,Березники/другие участки ВКМ,vn_ids
 QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0354,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0334,vn_id
 QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0355,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0049,vn_id
+QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0373,FORMULAS/FORMULA_CONFLICTS.csv,FC-040,vn_ids
 QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0375,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0335,vn_id
 QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0375,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0468,vn_ids
 QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0375,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1,vn_ids
@@ -327,6 +351,9 @@ QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN
 QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0382,MINING/spatial_hierarchy.csv,SKRU1:SITE:SUBS_TROUGHS,vn_ids
 QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0384,MINING/spatial_hierarchy.csv,GEO:SKRU1_ANOMALY_ZONES,vn_ids
 QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0386,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0340,vn_id
+QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0442,FORMULAS/FORMULA_CONFLICTS.csv,FC-039,vn_ids
+QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0442,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-ML-001,notes
+QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0442,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-ML-002,notes
 QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0445,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0050,vn_id
 QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0446,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0345,vn_id
 QA-C-M045,MAJOR,PROPOSED,HIGH,status / crs of latitude-longitude positions,EV-VN-S023-0446,MINING/spatial_hierarchy.csv,MF:SKRU1,vn_ids
@@ -341,10 +368,10 @@ QA-C-M046,MINOR,PROPOSED,MEDIUM,value / epistemic_status (intermine pillar width
 QA-C-M046,MINOR,PROPOSED,MEDIUM,value / epistemic_status (intermine pillar widths),EV-SYN-0021,SOURCES/SOURCE_COVERAGE_MASTER.csv,VKM-SRC-012,new_findings
 QA-C-M046,MINOR,PROPOSED,MEDIUM,value / epistemic_status (intermine pillar widths),EV-VN-S012-0571,MINING/spatial_hierarchy.csv,IMP:SKRU2-SKRU3,vn_ids
 QA-C-M046,MINOR,PROPOSED,MEDIUM,value / epistemic_status (intermine pillar widths),EV-VN-S012-0581,MINING/spatial_hierarchy.csv,IMP:SKRU1-SKRU2,vn_ids
-QA-C-M047,MAJOR,PROPOSED,HIGH,claim (meaning of 26 m / 52 m on Ris.4.2),EV-MIN-0109,MINING/mining_geometry_catalog.csv,GEO-0099,existing_evidence_ids
-QA-C-M048,MINOR,PROPOSED,HIGH,conflict_note (supplement to QA-C-M013),EV-MIN-0109,MINING/mining_geometry_catalog.csv,GEO-0099,existing_evidence_ids
-QA-C-M048,MINOR,PROPOSED,HIGH,conflict_note (supplement to QA-C-M013),EV-MIN-0570,MINING/mining_geometry_catalog.csv,GEO-0258,existing_evidence_ids
-QA-C-M048,MINOR,PROPOSED,HIGH,conflict_note (supplement to QA-C-M013),EV-MIN-1326,MINING/mining_geometry_catalog.csv,GEO-0356,existing_evidence_ids
+QA-C-M047,MAJOR,PROPOSED,HIGH,claim (meaning of 26 m / 52 m on Ris.4.2),EV-MIN-0109,MINING/mining_geometry_catalog.csv,MGEO-0099,existing_evidence_ids
+QA-C-M048,MINOR,PROPOSED,HIGH,conflict_note (supplement to QA-C-M013),EV-MIN-0109,MINING/mining_geometry_catalog.csv,MGEO-0099,existing_evidence_ids
+QA-C-M048,MINOR,PROPOSED,HIGH,conflict_note (supplement to QA-C-M013),EV-MIN-0570,MINING/mining_geometry_catalog.csv,MGEO-0258,existing_evidence_ids
+QA-C-M048,MINOR,PROPOSED,HIGH,conflict_note (supplement to QA-C-M013),EV-MIN-1326,MINING/mining_geometry_catalog.csv,MGEO-0356,existing_evidence_ids
 QA-C-M049,MAJOR,PROPOSED,MEDIUM,boundary conditions,EV-RMB-0004,SOURCES/SOURCE_COVERAGE_MASTER.csv,VKM-SRC-016,summary_ru
 QA-C-M050,MINOR,PROPOSED,HIGH,pdf_page / locator,EV-VN-S025-0502,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0871,vn_ids
 QA-C-M051,MAJOR,PROPOSED,HIGH,"conflict flag (deformation modulus D of motley sylvinite, Tabl.3.3)",EV-RMR-0440,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0723,prev_evidence_ids
@@ -472,7 +499,7 @@ QA-C-M053,MINOR,PROPOSED,HIGH,equation flag (5.2),EV-VN-S025-0776,FORMULAS/MATHE
 QA-C-M053,MINOR,PROPOSED,HIGH,equation flag (5.2),EV-VN-S025-0776,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S025-0776,vn_id
 QA-C-M055,MINOR,PROPOSED,HIGH,model_choice note,EV-VN-S012-0571,MINING/spatial_hierarchy.csv,IMP:SKRU2-SKRU3,vn_ids
 QA-C-M055,MINOR,PROPOSED,HIGH,model_choice note,EV-VN-S012-0581,MINING/spatial_hierarchy.csv,IMP:SKRU1-SKRU2,vn_ids
-QA-C-M055,MINOR,PROPOSED,HIGH,model_choice note,EV-VN-S012-0587,MINING/mining_geometry_catalog.csv,GEO-0045,vn_ids
+QA-C-M055,MINOR,PROPOSED,HIGH,model_choice note,EV-VN-S012-0587,MINING/mining_geometry_catalog.csv,MGEO-0045,vn_ids
 QA-C-M058,MINOR,PROPOSED,MEDIUM,pdf_page (split locator),EV-VN-S002-0010,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0001,vn_id
 QA-C-M058,MINOR,PROPOSED,MEDIUM,pdf_page (split locator),EV-VN-S012-0221,MINING/spatial_hierarchy.csv,SL:23,vn_ids
 QA-C-M058,MINOR,PROPOSED,MEDIUM,pdf_page (split locator),EV-VN-S012-0221,MINING/spatial_hierarchy.csv,SL:3PNIPU,vn_ids
@@ -484,7 +511,7 @@ QA-C-M058,MINOR,PROPOSED,MEDIUM,pdf_page (split locator),EV-VN-S027-0058,CITATIO
 QA-C-M058,MINOR,PROPOSED,MEDIUM,pdf_page (split locator),EV-VN-S027-0058,CITATIONS/primary_source_targets.csv,24,dependent_claims
 QA-C-M058,MINOR,PROPOSED,MEDIUM,pdf_page (split locator),EV-VN-S027-0058,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-PILLAR-007,vn_ids
 QA-C-M058,MINOR,PROPOSED,MEDIUM,pdf_page (split locator),EV-VN-S027-0058,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S027-0058,vn_id
-QA-C-M058,MINOR,PROPOSED,MEDIUM,pdf_page (split locator),EV-VN-S037-0364,MINING/mining_geometry_catalog.csv,GEO-0343,vn_ids
+QA-C-M058,MINOR,PROPOSED,MEDIUM,pdf_page (split locator),EV-VN-S037-0364,MINING/mining_geometry_catalog.csv,MGEO-0343,vn_ids
 QA-C-M059,MINOR,PROPOSED,HIGH,quote / spatial attribution,EV-VN-S012-0352,MINING/mining_chronology_catalog.csv,CHR-0155,vn_ids
 QA-C-M059,MINOR,PROPOSED,HIGH,quote / spatial attribution,EV-VN-S012-0352,MINING/spatial_hierarchy.csv,SL:7,vn_ids
 QA-C-M059,MINOR,PROPOSED,HIGH,quote / spatial attribution,EV-VN-S012-0352,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-004,vn_ids
@@ -537,7 +564,7 @@ QA-C-R1-001,MAJOR,PROPOSED,HIGH,status,EV-VN-S001-0041,MONITORING_LIFECYCLE/moni
 QA-C-R1-001,MAJOR,PROPOSED,HIGH,status,EV-VN-S001-0041,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-05,vn_ids
 QA-C-R1-001,MAJOR,PROPOSED,HIGH,status,EV-VN-S001-0041,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-15,vn_ids
 QA-C-R1-001,MAJOR,PROPOSED,HIGH,status,EV-VN-S001-0041,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0002,vn_ids
-QA-C-R1-001,MAJOR,PROPOSED,HIGH,status,EV-VN-S001-0041,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1/СКРУ-2 (м/ш целик / Соликамск без разделения),vn_ids
+QA-C-R1-001,MAJOR,PROPOSED,HIGH,status,EV-VN-S001-0041,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,Соликамск: СКРУ-1 или СКРУ-2 (не разделено),vn_ids
 QA-C-R1-001,MAJOR,PROPOSED,HIGH,status,EV-VN-S001-0041,PHYSICS_CAUSAL/physics_conflicts.csv,PCF-14,vn_ids
 QA-C-R1-001,MAJOR,PROPOSED,HIGH,status,EV-VN-S001-0051,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-014,vn_ids
 QA-C-R1-001,MAJOR,PROPOSED,HIGH,status,EV-VN-S001-0051,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0090,vn_ids
@@ -556,18 +583,23 @@ QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0030,MONITORING_LIFECYCLE/moni
 QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0030,PHYSICS_CAUSAL/observation_operator_design.csv,OO-05,vn_ids
 QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0030,PHYSICS_CAUSAL/physics_coverage_and_execution_matrix.csv,PC-63,vn_ids
 QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0030,PHYSICS_CAUSAL/physics_coverage_and_execution_matrix.csv,PC-68,vn_ids
+QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0032,MINING/spatial_hierarchy.csv,SL:SRC002:1,vn_ids
 QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-012,vn_ids
+QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-27,quote_vn_id
+QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-27,vn_ids
+QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-28,quote_vn_id
+QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-28,vn_ids
 QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0003,vn_ids
-QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1/СКРУ-2 (м/ш целик / Соликамск без разделения),vn_ids
+QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,Соликамск: СКРУ-1 или СКРУ-2 (не разделено),vn_ids
 QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0033,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-012,vn_ids
 QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0033,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0004,vn_ids
-QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0033,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1/СКРУ-2 (м/ш целик / Соликамск без разделения),vn_ids
+QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0033,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,Соликамск: СКРУ-1 или СКРУ-2 (не разделено),vn_ids
 QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0034,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-012,vn_ids
 QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0034,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0005,vn_ids
-QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0034,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1/СКРУ-2 (м/ш целик / Соликамск без разделения),vn_ids
+QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0034,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,Соликамск: СКРУ-1 или СКРУ-2 (не разделено),vn_ids
 QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0035,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-012,vn_ids
 QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0035,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0006,vn_ids
-QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0035,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1/СКРУ-2 (м/ш целик / Соликамск без разделения),vn_ids
+QA-C-R1-002,MAJOR,PROPOSED,HIGH,status,EV-VN-S002-0035,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,Соликамск: СКРУ-1 или СКРУ-2 (не разделено),vn_ids
 QA-C-R1-003,MAJOR,PROPOSED,HIGH,status,EV-VN-S003-0260,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0145,vn_ids
 QA-C-R1-003,MAJOR,PROPOSED,HIGH,status,EV-VN-S003-0260,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,Березники/другие участки ВКМ,vn_ids
 QA-C-R1-003,MAJOR,PROPOSED,HIGH,status,EV-VN-S003-0267,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0146,vn_ids
@@ -679,20 +711,29 @@ QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0239,MONITORING_LIFECYCLE/moni
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0239,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-2,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0240,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-003,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0240,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-02,vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0240,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-28,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0240,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0027,vn_ids
-QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0240,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1/СКРУ-2 (м/ш целик / Соликамск без разделения),vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0240,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0027-B,vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0240,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-2,vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0240,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,зона м/ш целика СКРУ-1–СКРУ-2,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0240,PHYSICS_CAUSAL/observation_operator_design.csv,OO-01,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0240,PHYSICS_CAUSAL/physics_coverage_and_execution_matrix.csv,PC-60,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0241,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-004,quote_vn_id
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0241,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-004,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0241,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0028,vn_ids
-QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0241,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1/СКРУ-2 (м/ш целик / Соликамск без разделения),vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0241,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0028-B,vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0241,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-2,vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0241,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,зона м/ш целика СКРУ-1–СКРУ-2,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0242,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-006,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0242,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-01,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0242,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0029,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0242,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-2,vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0278,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-28,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0278,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0033,vn_ids
-QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0278,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1/СКРУ-2 (м/ш целик / Соликамск без разделения),vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0278,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0033-B,vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0278,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0033-C,vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0278,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-2,vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0278,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,зона м/ш целика СКРУ-1–СКРУ-2,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0340,BOREHOLES/borehole_catalog.csv,BH-SOL-131,provenance_vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0340,BOREHOLES/borehole_catalog.csv,BH-SOL-131,xy_locator
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0340,BOREHOLES/borehole_identity_issues.csv,ISS-131-131C,vn_ids
@@ -816,7 +857,7 @@ QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0444,HYDRO_THERMAL_GEOPHYS/sei
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0444,HYDRO_THERMAL_GEOPHYS/seismic_geophysics_catalog.csv,SGP-051,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0444,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0594,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0447,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-01556,dependent_claims
-QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0447,CITATIONS/primary_source_targets.csv,57,dependent_claims
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0447,CITATIONS/primary_source_targets.csv,60,dependent_claims
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0447,HYDRO_THERMAL_GEOPHYS/seismic_geophysics_catalog.csv,SGP-051,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0447,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0595,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0450,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0068,vn_ids
@@ -824,18 +865,24 @@ QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0459,MECH_RHEO/mechanics_evide
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0561,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-003,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0561,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-02,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0561,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0036,vn_ids
-QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0561,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1/СКРУ-2 (м/ш целик / Соликамск без разделения),vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0561,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0036-B,vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0561,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-2,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0562,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-011,quote_vn_id
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0562,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-011,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0562,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0037,vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0562,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0037-B,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0562,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-2,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0568,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0229,vn_id
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0568,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0039,vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0568,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0039-B,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0568,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-2,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0571,MINING/spatial_hierarchy.csv,IMP:SKRU2-SKRU3,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0579,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0231,vn_id
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0579,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0040,vn_ids
-QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0579,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1/СКРУ-2 (м/ш целик / Соликамск без разделения),vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0579,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0040-B,vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0579,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0040-C,vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0579,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-2,vn_ids
+QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0579,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,зона м/ш целика СКРУ-1–СКРУ-2,vn_ids
 QA-C-R1-005,MAJOR,PROPOSED,HIGH,status,EV-VN-S012-0581,MINING/spatial_hierarchy.csv,IMP:SKRU1-SKRU2,vn_ids
 QA-C-R1-006,MAJOR,PROPOSED,HIGH,status,EV-VN-S014-0914,MINING/backfill_event_catalog.csv,BF-0111,vn_ids
 QA-C-R1-006,MAJOR,PROPOSED,HIGH,status,EV-VN-S014-0915,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0044,vn_ids
@@ -900,7 +947,7 @@ QA-C-R1-012,MAJOR,PROPOSED,HIGH,status,EV-VN-S029-0057,CITATIONS/primary_source_
 QA-C-R1-012,MAJOR,PROPOSED,HIGH,status,EV-VN-S029-0057,CITATIONS/repeated_secondary_citations.csv,LIN-14,vn_ids
 QA-C-R1-012,MAJOR,PROPOSED,HIGH,status,EV-VN-S029-0057,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-1565,vn_ids
 QA-C-R1-012,MAJOR,PROPOSED,HIGH,status,EV-VN-S029-0074,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-01923,dependent_claims
-QA-C-R1-012,MAJOR,PROPOSED,HIGH,status,EV-VN-S029-0074,CITATIONS/primary_source_targets.csv,115,dependent_claims
+QA-C-R1-012,MAJOR,PROPOSED,HIGH,status,EV-VN-S029-0074,CITATIONS/primary_source_targets.csv,116,dependent_claims
 QA-C-R1-012,MAJOR,PROPOSED,HIGH,status,EV-VN-S029-0074,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-1568,vn_ids
 QA-C-R1-012,MAJOR,PROPOSED,HIGH,status,EV-VN-S029-0125,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0816,vn_ids
 QA-C-R1-012,MAJOR,PROPOSED,HIGH,status,EV-VN-S029-0202,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-01946,dependent_claims
@@ -993,11 +1040,11 @@ QA-C-R2-002,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S003-0302,CITATIONS/SOURCE_CITATIO
 QA-C-R2-002,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S003-0302,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-00268,intext_usage_vn_ids
 QA-C-R2-002,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S003-0387,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-00253,dependent_claims
 QA-C-R2-002,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S003-0387,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-00269,dependent_claims
-QA-C-R2-002,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S003-0387,CITATIONS/primary_source_targets.csv,103,dependent_claims
+QA-C-R2-002,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S003-0387,CITATIONS/primary_source_targets.csv,104,dependent_claims
 QA-C-R2-002,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S003-0387,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-INV-001,vn_ids
 QA-C-R2-002,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S003-0387,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S003-0387,vn_id
 QA-C-R2-003,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S004-0015,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-00322,dependent_claims
-QA-C-R2-003,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S004-0015,CITATIONS/primary_source_targets.csv,213,dependent_claims
+QA-C-R2-003,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S004-0015,CITATIONS/primary_source_targets.csv,214,dependent_claims
 QA-C-R2-003,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S004-0015,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-INSAR-001,vn_ids
 QA-C-R2-003,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S004-0015,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S004-0015,vn_id
 QA-C-R2-004,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S005-0020,GEOLOGY_COORDS/stratigraphic_thickness_observations.csv,STO-0002,vn_id
@@ -1105,7 +1152,7 @@ QA-C-R2-006,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S011-1339,BOREHOLES/borehole_ident
 QA-C-R2-006,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S011-1339,BOREHOLES/borehole_picks.csv,PK-00090,vn_id
 QA-C-R2-006,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S011-1339,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-00136,dependent_claims
 QA-C-R2-006,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S011-1339,CITATIONS/multi_source_cited_works.csv,CW-0046,dependent_claims
-QA-C-R2-006,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S011-1339,CITATIONS/primary_source_targets.csv,41,dependent_claims
+QA-C-R2-006,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S011-1339,CITATIONS/primary_source_targets.csv,42,dependent_claims
 QA-C-R2-006,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S011-1339,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0454,vn_id
 QA-C-R2-006,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S011-1340,BOREHOLES/borehole_catalog.csv,BH-DUR-S011-273a,provenance_vn_ids
 QA-C-R2-006,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S011-1340,BOREHOLES/borehole_identity_issues.csv,ISS-AUTO-273a,vn_ids
@@ -1189,7 +1236,7 @@ QA-C-R2-006,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S011-3921,BOREHOLES/borehole_ident
 QA-C-R2-006,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S011-3921,BOREHOLES/borehole_identity_issues.csv,ISS-MENTION-EV-VN-S011-3921-179,vn_ids
 QA-C-R2-006,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S011-3974,GEOLOGY_COORDS/geology_evidence.csv,GEO-0665,vn_id
 QA-C-R2-007,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S012-0085,BOREHOLES/borehole_catalog.csv,BHG-S012-0085,provenance_vn_ids
-QA-C-R2-007,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S012-0163,MINING/mining_geometry_catalog.csv,GEO-0026,vn_ids
+QA-C-R2-007,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S012-0163,MINING/mining_geometry_catalog.csv,MGEO-0026,vn_ids
 QA-C-R2-007,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S012-0163,MINING/spatial_hierarchy.csv,SKRU1:PAN13:12ZP,vn_ids
 QA-C-R2-007,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S012-0163,MINING/spatial_hierarchy.csv,SKRU1:PAN13:3YuZP,vn_ids
 QA-C-R2-007,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S012-0163,MINING/spatial_hierarchy.csv,SKRU1:PAN13:4YuZP,vn_ids
@@ -1220,6 +1267,7 @@ QA-C-R2-012,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S026-0180,CITATIONS/SOURCE_CITATIO
 QA-C-R2-012,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S026-0180,CITATIONS/multi_source_cited_works.csv,CW-0007,dependent_claims
 QA-C-R2-012,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S026-0180,CITATIONS/primary_source_targets.csv,2,dependent_claims
 QA-C-R2-012,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S026-0184,GEOLOGY_COORDS/geology_evidence.csv,GEO-0867,vn_id
+QA-C-R2-014,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S037-0699,CITATIONS/repeated_secondary_citations.csv,LIN-27,vn_ids
 QA-C-R2-014,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S037-0699,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-SUPPORT-001,vn_ids
 QA-C-R2-014,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S037-0699,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S037-0699,vn_id
 QA-C-R2-014,MAJOR,PROPOSED,MEDIUM,quote,EV-VN-S037-0732,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-SUPPORT-001,vn_ids
@@ -1264,12 +1312,12 @@ QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/mul
 QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/multi_source_cited_works.csv,CW-0024,dependent_claims
 QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/multi_source_cited_works.csv,CW-0060,dependent_claims
 QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/primary_source_targets.csv,1,dependent_claims
-QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/primary_source_targets.csv,256,dependent_claims
-QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/primary_source_targets.csv,45,dependent_claims
-QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/primary_source_targets.csv,57,dependent_claims
+QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/primary_source_targets.csv,100,dependent_claims
+QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/primary_source_targets.csv,101,dependent_claims
+QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/primary_source_targets.csv,257,dependent_claims
+QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/primary_source_targets.csv,46,dependent_claims
+QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/primary_source_targets.csv,60,dependent_claims
 QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/primary_source_targets.csv,9,dependent_claims
-QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/primary_source_targets.csv,96,dependent_claims
-QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/primary_source_targets.csv,97,dependent_claims
 QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/primary_source_targets.csv,98,dependent_claims
 QA-C-R3-020,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S012-0358,CITATIONS/primary_source_targets.csv,99,dependent_claims
 QA-C-R3-021,MAJOR,PROPOSED,MEDIUM,quote / pdf_page,EV-VN-S014-0881,GEOLOGY_COORDS/geology_evidence.csv,GEO-0730,vn_id
@@ -1294,18 +1342,23 @@ QA-C-R4-028,MAJOR,RESOLVED_BY_QA,MEDIUM,pdf_page,EV-VN-S027-0058,CITATIONS/prima
 QA-C-R4-028,MAJOR,RESOLVED_BY_QA,MEDIUM,pdf_page,EV-VN-S027-0058,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-PILLAR-007,vn_ids
 QA-C-R4-028,MAJOR,RESOLVED_BY_QA,MEDIUM,pdf_page,EV-VN-S027-0058,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S027-0058,vn_id
 QA-C-R4-029,MAJOR,PROPOSED,MEDIUM,pdf_page,EV-VN-S037-0388,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S037-0388,vn_id
+QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0032,MINING/spatial_hierarchy.csv,SL:SRC002:1,vn_ids
 QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-012,vn_ids
+QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-27,quote_vn_id
+QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-27,vn_ids
+QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-28,quote_vn_id
+QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-28,vn_ids
 QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0003,vn_ids
-QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1/СКРУ-2 (м/ш целик / Соликамск без разделения),vn_ids
+QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0032,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,Соликамск: СКРУ-1 или СКРУ-2 (не разделено),vn_ids
 QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0033,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-012,vn_ids
 QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0033,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0004,vn_ids
-QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0033,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1/СКРУ-2 (м/ш целик / Соликамск без разделения),vn_ids
+QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0033,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,Соликамск: СКРУ-1 или СКРУ-2 (не разделено),vn_ids
 QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0034,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-012,vn_ids
 QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0034,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0005,vn_ids
-QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0034,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1/СКРУ-2 (м/ш целик / Соликамск без разделения),vn_ids
+QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0034,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,Соликамск: СКРУ-1 или СКРУ-2 (не разделено),vn_ids
 QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0035,MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-012,vn_ids
 QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0035,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0006,vn_ids
-QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0035,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1/СКРУ-2 (м/ш целик / Соликамск без разделения),vn_ids
+QA-C-R5-030,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S002-0035,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,Соликамск: СКРУ-1 или СКРУ-2 (не разделено),vn_ids
 QA-C-R5-031,MAJOR,DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S003-0144,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0091,vn_id
 QA-C-R5-031,MAJOR,DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S003-0144,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0115,vn_ids
 QA-C-R5-031,MAJOR,DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S003-0144,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,Березники/БКПРУ,vn_ids
@@ -1321,7 +1374,7 @@ QA-C-R5-033,MAJOR,DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S005-0023,G
 QA-C-R5-033,MAJOR,DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S005-0036,BOREHOLES/borehole_catalog.csv,BH-TYU-S005-47,other_evidence_mentions
 QA-C-R5-033,MAJOR,DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S005-0036,BOREHOLES/borehole_catalog.csv,BH-TYU-S005-55,other_evidence_mentions
 QA-C-R5-033,MAJOR,DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S005-0036,BOREHOLES/borehole_catalog.csv,BH-TYU-S005-89,other_evidence_mentions
-QA-C-R5-033,MAJOR,DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S005-0036,MINING/mining_geometry_catalog.csv,GEO-0002,vn_ids
+QA-C-R5-033,MAJOR,DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S005-0036,MINING/mining_geometry_catalog.csv,MGEO-0002,vn_ids
 QA-C-R5-034,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S011-0491,BOREHOLES/borehole_catalog.csv,BH-B1-91,provenance_vn_ids
 QA-C-R5-034,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S011-0491,BOREHOLES/borehole_picks.csv,PK-00047,vn_id
 QA-C-R5-034,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S011-0491,BOREHOLES/borehole_picks.csv,PK-00048,vn_id
@@ -1378,9 +1431,9 @@ QA-C-R5-034,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S01
 QA-C-R5-034,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S011-0904,BOREHOLES/borehole_catalog.csv,BH-B4-186,provenance_vn_ids
 QA-C-R5-034,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S011-0904,BOREHOLES/borehole_identity_issues.csv,ISS-AUTO-186,vn_ids
 QA-C-R5-034,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S011-1536,BOREHOLES/borehole_catalog.csv,BH-SOL-250,provenance_vn_ids
-QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0076,MINING/mining_geometry_catalog.csv,GEO-0024,vn_ids
+QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0076,MINING/mining_geometry_catalog.csv,MGEO-0024,vn_ids
 QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0421,BOREHOLES/borehole_catalog.csv,BH-SOL-1404,other_evidence_mentions
-QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0490,MINING/mining_geometry_catalog.csv,GEO-0041,vn_ids
+QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0490,MINING/mining_geometry_catalog.csv,MGEO-0041,vn_ids
 QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0491,MINING/spatial_hierarchy.csv,SE:S012-0491,vn_ids
 QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0513,GEOLOGY_COORDS/stratigraphic_thickness_observations.csv,STO-0178,vn_id
 QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0514,MINING/mining_conflicts.csv,MC-GE-10,vn_ids_a
@@ -1390,9 +1443,9 @@ QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-
 QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0570,MONITORING_LIFECYCLE/information_lifecycle_matrix.csv,DC31,vn_ids
 QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0571,MINING/spatial_hierarchy.csv,IMP:SKRU2-SKRU3,vn_ids
 QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0574,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0230,vn_id
-QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0574,MINING/mining_geometry_catalog.csv,GEO-0044,vn_ids
+QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0574,MINING/mining_geometry_catalog.csv,MGEO-0044,vn_ids
 QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0581,MINING/spatial_hierarchy.csv,IMP:SKRU1-SKRU2,vn_ids
-QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0587,MINING/mining_geometry_catalog.csv,GEO-0045,vn_ids
+QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0587,MINING/mining_geometry_catalog.csv,MGEO-0045,vn_ids
 QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0732,HYDRO_THERMAL_GEOPHYS/seismic_geophysics_catalog.csv,SGP-030,vn_ids
 QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0732,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0356,vn_ids
 QA-C-R5-035,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S012-0732,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,ВКМКС регионально (рудник не указан),vn_ids
@@ -1457,7 +1510,7 @@ QA-C-R5-039,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S02
 QA-C-R5-039,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S020-0070,BOREHOLES/borehole_catalog.csv,BH-SECBL-R-5,provenance_vn_ids
 QA-C-R5-039,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S020-0071,BOREHOLES/borehole_catalog.csv,BH-SECBL-R-81,provenance_vn_ids
 QA-C-R5-039,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S020-0072,BOREHOLES/borehole_catalog.csv,BH-SECBL-R-90,provenance_vn_ids
-QA-C-R5-039,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S020-0145,MINING/mining_geometry_catalog.csv,GEO-0159,vn_ids
+QA-C-R5-039,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S020-0145,MINING/mining_geometry_catalog.csv,MGEO-0159,vn_ids
 QA-C-R5-040,MAJOR,DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S021-0044,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0044,vn_id
 QA-C-R5-041,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S023-0204,MONITORING_LIFECYCLE/information_lifecycle_matrix.csv,DC29,vn_ids
 QA-C-R5-041,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S023-0204,MONITORING_LIFECYCLE/monitoring_conflicts.csv,MCF-23,quote_vn_id
@@ -1468,7 +1521,11 @@ QA-C-R5-041,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S023-0205,MIN
 QA-C-R5-041,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S023-0205,MONITORING_LIFECYCLE/information_lifecycle_matrix.csv,DC16,vn_ids
 QA-C-R5-041,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S023-0281,MINING/backfill_event_catalog.csv,BF-0090,vn_ids
 QA-C-R5-041,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S023-0281,MINING/mining_chronology_catalog.csv,CHR-0037,vn_ids
+QA-C-R5-041,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S023-0281,MINING/mining_chronology_catalog.csv,CHR-0037.2,vn_ids
+QA-C-R5-041,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S023-0304,CITATIONS/repeated_secondary_citations.csv,LIN-26,vn_ids
 QA-C-R5-041,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S023-0304,MINING/backfill_event_catalog.csv,BF-0133,vn_ids
+QA-C-R5-041,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S023-0305,CITATIONS/repeated_secondary_citations.csv,LIN-26,vn_ids
+QA-C-R5-041,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S023-0305,HYDRO_THERMAL_GEOPHYS/hydro_evidence_catalog.csv,HYD-156,vn_ids
 QA-C-R5-041,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S023-0352,MONITORING_LIFECYCLE/lifecycle_stages.csv,21,vn_ids
 QA-C-R5-041,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S023-0352,MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0477,vn_ids
 QA-C-R5-041,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S023-0352,MONITORING_LIFECYCLE/monitoring_systems_by_site.csv,СКРУ-1,vn_ids
@@ -1503,6 +1560,7 @@ QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S02
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0565,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0374,vn_ids
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0565,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0736,vn_ids
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0565,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-1077,vn_ids
+QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0571,CITATIONS/repeated_secondary_citations.csv,LIN-04,vn_ids
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0571,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0395,vn_ids
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0571,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0396,vn_ids
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0571,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0397,vn_ids
@@ -1536,6 +1594,7 @@ QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S02
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0629,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0915,vn_ids
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0629,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-1120,vn_ids
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0629,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-1121,vn_ids
+QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0692,FORMULAS/FORMULA_CONFLICTS.csv,FC-041,vn_ids
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0799,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-CONTACT-002,vn_ids
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0799,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S025-0799,vn_id
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0799,MECH_RHEO/interfaces_damage_catalog.csv,MR-IDC-0003,vn_ids
@@ -1553,22 +1612,22 @@ QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S02
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0857,PHYSICS_CAUSAL/physics_coverage_and_execution_matrix.csv,PC-15,key_vn_id
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0857,PHYSICS_CAUSAL/physics_coverage_and_execution_matrix.csv,PC-15,vn_ids
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0939,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-01799,dependent_claims
-QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0939,CITATIONS/primary_source_targets.csv,110,dependent_claims
+QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0939,CITATIONS/primary_source_targets.csv,111,dependent_claims
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0939,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-LAB-006,vn_ids
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0939,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S025-0939,vn_id
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0940,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-01799,dependent_claims
-QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0940,CITATIONS/primary_source_targets.csv,110,dependent_claims
+QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0940,CITATIONS/primary_source_targets.csv,111,dependent_claims
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0940,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-LAB-006,vn_ids
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0940,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S025-0940,vn_id
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0941,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-01799,dependent_claims
-QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0941,CITATIONS/primary_source_targets.csv,110,dependent_claims
+QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0941,CITATIONS/primary_source_targets.csv,111,dependent_claims
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0941,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-LAB-006,vn_ids
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0941,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S025-0941,vn_id
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0942,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-01799,dependent_claims
-QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0942,CITATIONS/primary_source_targets.csv,110,dependent_claims
+QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0942,CITATIONS/primary_source_targets.csv,111,dependent_claims
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0942,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-LAB-006,vn_ids
 QA-C-R5-042,MAJOR,CHECKED_BY_QA_OPEN_ISSUE,MEDIUM,locator_verification,EV-VN-S025-0942,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S025-0942,vn_id
-QA-C-R5-043,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S028-0038,MINING/mining_geometry_catalog.csv,GEO-0276,vn_ids
+QA-C-R5-043,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S028-0038,MINING/mining_geometry_catalog.csv,MGEO-0276,vn_ids
 QA-C-R5-044,MAJOR,DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S029-0220,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-STRESS-005,vn_ids
 QA-C-R5-044,MAJOR,DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S029-0220,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S029-0220,vn_id
 QA-C-R5-045,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S030-0035,BOREHOLES/borehole_catalog.csv,BH-OIL-S030-590,provenance_vn_ids
@@ -1585,9 +1644,9 @@ QA-C-R5-047,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S036-0026,CIT
 QA-C-R5-047,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S036-0026,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-01991,dependent_claims
 QA-C-R5-047,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S036-0026,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-01992,dependent_claims
 QA-C-R5-047,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S036-0026,CITATIONS/multi_source_cited_works.csv,CW-0084,dependent_claims
-QA-C-R5-047,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S036-0026,CITATIONS/primary_source_targets.csv,72,dependent_claims
-QA-C-R5-047,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S036-0026,CITATIONS/primary_source_targets.csv,76,dependent_claims
-QA-C-R5-047,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S036-0026,CITATIONS/primary_source_targets.csv,79,dependent_claims
+QA-C-R5-047,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S036-0026,CITATIONS/primary_source_targets.csv,74,dependent_claims
+QA-C-R5-047,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S036-0026,CITATIONS/primary_source_targets.csv,78,dependent_claims
+QA-C-R5-047,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S036-0026,CITATIONS/primary_source_targets.csv,81,dependent_claims
 QA-C-R5-047,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S036-0026,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-NUM-001,vn_ids
 QA-C-R5-047,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S036-0026,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S036-0026,vn_id
 QA-C-R5-047,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S036-0039,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-CREEP-018,vn_ids
@@ -1639,6 +1698,10 @@ QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0084,BOREHOLES/borehole_catalog.csv,BH-SECBL-178,provenance_vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0102,GEOLOGY_COORDS/geology_evidence.csv,GEO-0906,vn_id
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0103,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0066,vn_id
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0192,BOREHOLES/borehole_catalog.csv,BH-SHS1-stvol_1,provenance_vn_ids
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0192,BOREHOLES/borehole_catalog.csv,BH-SHS1-stvol_2,provenance_vn_ids
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0192,BOREHOLES/borehole_catalog.csv,BH-SHS1-stvol_2-bis,provenance_vn_ids
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0192,BOREHOLES/borehole_identity_issues.csv,ISS-SHAFT-2BIS,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0192,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0422,vn_id
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0192,HYDRO_THERMAL_GEOPHYS/hydro_evidence_catalog.csv,HYD-041,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0192,HYDRO_THERMAL_GEOPHYS/hydro_evidence_catalog.csv,HYD-134,vn_ids
@@ -1653,14 +1716,27 @@ QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0195,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0424,vn_id
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0197,MINING/mining_chronology_catalog.csv,CHR-0150,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0197,MINING/spatial_hierarchy.csv,SKRU1:SHAFT:1,vn_ids
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0406,GEOLOGY_COORDS/stratigraphic_thickness_observations.csv,STO-0632,vn_id
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0406,GEOLOGY_COORDS/stratigraphic_thickness_observations.csv,STO-0633,vn_id
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0406,GEOLOGY_COORDS/stratigraphic_units.csv,S_A_KR1,thickness_ranges_by_source_as_printed
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0406,GEOLOGY_COORDS/stratigraphic_units.csv,S_A_KR1,vn_ids
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0406,GEOLOGY_COORDS/stratigraphic_units.csv,S_KR1,thickness_ranges_by_source_as_printed
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0406,GEOLOGY_COORDS/stratigraphic_units.csv,S_KR1,vn_ids
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0406,GEOLOGY_COORDS/stratigraphic_units.csv,S_KR1_KR2,thickness_ranges_by_source_as_printed
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0406,GEOLOGY_COORDS/stratigraphic_units.csv,S_KR1_KR2,vn_ids
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0406,GEOLOGY_COORDS/stratigraphic_units.csv,S_KR2,thickness_ranges_by_source_as_printed
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0406,GEOLOGY_COORDS/stratigraphic_units.csv,S_KR2,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0566,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0036,vn_ids
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0664,CITATIONS/repeated_secondary_citations.csv,LIN-27,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0664,FORMULAS/FORMULA_CONFLICTS.csv,FC-007,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0664,FORMULAS/FORMULA_CONFLICTS.csv,FC-008,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0664,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-ROOF-012,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0664,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S037-0664,vn_id
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0672,CITATIONS/repeated_secondary_citations.csv,LIN-27,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0672,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-ROOF-005,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0672,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S037-0672,vn_id
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0672,MECH_RHEO/rheology_evidence_catalog.csv,MR-RHEO-N18,vn_ids
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0692,CITATIONS/repeated_secondary_citations.csv,LIN-27,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0692,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-ROOF-019,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0692,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S037-0692,vn_id
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0692,MECH_RHEO/rheology_evidence_catalog.csv,MR-RHEO-N20,vn_ids
@@ -1668,11 +1744,12 @@ QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0713,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-ROOF-014,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0713,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S037-0713,vn_id
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0731,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0038,vn_ids
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0733,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-ROOF-018,notes
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0733,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-ROOF-018,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0733,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S037-0733,vn_id
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0733,MECH_RHEO/rheology_evidence_catalog.csv,MR-RHEO-N19,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0757,MINING/chronology_conflicts.csv,CC-12,vn_ids_b
-QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0757,MINING/mining_geometry_catalog.csv,GEO-0382,vn_ids
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0757,MINING/mining_geometry_catalog.csv,MGEO-0382,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0791,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-MINE-004,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0791,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S037-0791,vn_id
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0792,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-MINE-004,vn_ids
@@ -1683,6 +1760,7 @@ QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0803,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S037-0803,vn_id
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0933,CITATIONS/repeated_secondary_citations.csv,LIN-13,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0933,FORMULAS/FORMULA_CONFLICTS.csv,FC-004,vn_ids
+QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0933,FORMULAS/FORMULA_CONFLICTS.csv,FC-042,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0933,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-SUBS-010,vn_ids
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0933,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S037-0933,vn_id
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-0933,PHYSICS_CAUSAL/physics_coverage_and_execution_matrix.csv,PC-67,equation_vn_ids
@@ -1706,7 +1784,7 @@ QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-
 QA-C-R5-048,MAJOR,CHECKED_OR_DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S037-1124,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S037-1124,vn_id
 QA-C-R5-049,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S038-0024,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-00080,dependent_claims
 QA-C-R5-049,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S038-0024,CITATIONS/multi_source_cited_works.csv,CW-0020,dependent_claims
-QA-C-R5-049,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S038-0024,CITATIONS/primary_source_targets.csv,94,dependent_claims
+QA-C-R5-049,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S038-0024,CITATIONS/primary_source_targets.csv,96,dependent_claims
 QA-C-R5-049,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S038-0024,FORMULAS/FORMULA_CONFLICTS.csv,FC-036,vn_ids
 QA-C-R5-049,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S038-0024,FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv,MM-WPS-008,vn_ids
 QA-C-R5-049,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S038-0024,FORMULAS/RECORD_TO_MODEL_MAP.csv,EV-VN-S038-0024,vn_id
@@ -1721,11 +1799,11 @@ QA-C-R5-049,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S038-0024,PHY
 QA-C-R5-049,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S038-0024,PHYSICS_CAUSAL/physics_coverage_and_execution_matrix.csv,PC-34,governing_equations
 QA-C-R5-050,MAJOR,DOWNGRADED_BY_QA,MEDIUM,locator_verification,EV-VN-S039-0010,BOREHOLES/borehole_catalog.csv,BHG-S039-0010,provenance_vn_ids
 QA-C-R5-051,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S040-0056,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-02065,dependent_claims
-QA-C-R5-051,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S040-0056,CITATIONS/primary_source_targets.csv,63,dependent_claims
+QA-C-R5-051,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S040-0056,CITATIONS/primary_source_targets.csv,65,dependent_claims
 QA-C-R5-051,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S040-0056,HYDRO_THERMAL_GEOPHYS/hydro_evidence_catalog.csv,HYD-041,vn_ids
 QA-C-R5-051,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S040-0056,HYDRO_THERMAL_GEOPHYS/hydro_evidence_catalog.csv,HYD-134,vn_ids
 QA-C-R5-051,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S040-0056,MINING/mining_conflicts.csv,MC-SP-08,vn_ids_a
-QA-C-R5-051,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S040-0056,MINING/mining_geometry_catalog.csv,GEO-0418,vn_ids
+QA-C-R5-051,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S040-0056,MINING/mining_geometry_catalog.csv,MGEO-0418,vn_ids
 QA-C-R5-051,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S040-0056,MINING/spatial_hierarchy.csv,SKRU1:SHAFT:2BIS,vn_ids
 QA-C-R5-051,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S040-0059,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0074,vn_id
 QA-C-R5-051,MAJOR,RESOLVED_BY_QA,MEDIUM,locator_verification,EV-VN-S040-0080,BOREHOLES/borehole_catalog.csv,BH-SHB4-stvol_1_BKPRU-4,provenance_vn_ids
@@ -1774,7 +1852,7 @@ QA-C-S-006,MINOR,PROPOSED,MEDIUM,UNIT_DOUBT,EV-RMB-0116,BOREHOLES/borehole_catal
 QA-C-S-006,MINOR,PROPOSED,MEDIUM,UNIT_DOUBT,EV-RMB-0116,BOREHOLES/borehole_catalog.csv,BH-TYU-S005-55,notes
 QA-C-S-006,MINOR,PROPOSED,MEDIUM,UNIT_DOUBT,EV-RMB-0116,BOREHOLES/borehole_catalog.csv,BH-TYU-S005-89,notes
 QA-C-S-006,MINOR,PROPOSED,MEDIUM,UNIT_DOUBT,EV-RMB-0116,BOREHOLES/borehole_catalog.csv,BH-TYU-S005-BZK-8,notes
-QA-C-S-006,MINOR,PROPOSED,MEDIUM,UNIT_DOUBT,EV-RMB-0116,MINING/mining_geometry_catalog.csv,GEO-0002,existing_evidence_ids
+QA-C-S-006,MINOR,PROPOSED,MEDIUM,UNIT_DOUBT,EV-RMB-0116,MINING/mining_geometry_catalog.csv,MGEO-0002,existing_evidence_ids
 QA-C-S-010,MAJOR,PROPOSED,HIGH,UNCLEAR_MINE_ATTRIBUTION,EV-GEO-0144,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0154,what_is_stated
 QA-C-S-010,MAJOR,PROPOSED,HIGH,UNCLEAR_MINE_ATTRIBUTION,EV-GEO-0144,GEOLOGY_COORDS/geology_evidence.csv,GEO-0360,existing_evidence_ids
 QA-C-S-010,MAJOR,PROPOSED,HIGH,UNCLEAR_MINE_ATTRIBUTION,EV-GEO-0144,GEOLOGY_COORDS/geology_evidence.csv,GEO-0360,notes
@@ -1803,11 +1881,11 @@ QA-C-S-028,MINOR,PROPOSED,HIGH,OK_CONFIRMED,EV-GEO-0244,GEOLOGY_COORDS/stratigra
 QA-C-S-028,MINOR,PROPOSED,HIGH,OK_CONFIRMED,EV-GEO-0244,GEOLOGY_COORDS/stratigraphic_thickness_observations.csv,STO-0321,existing_evidence_ids
 QA-C-S-028,MINOR,PROPOSED,HIGH,OK_CONFIRMED,EV-GEO-0250,GEOLOGY_COORDS/stratigraphic_thickness_observations.csv,STO-0581,notes
 QA-C-S-028,MINOR,PROPOSED,HIGH,OK_CONFIRMED,EV-GEO-0250,GEOLOGY_COORDS/stratigraphic_thickness_observations.csv,STO-0626,existing_evidence_ids
-QA-C-S-028,MINOR,PROPOSED,HIGH,OK_CONFIRMED,EV-GEO-0250,MINING/mining_geometry_catalog.csv,GEO-0191,existing_evidence_ids
+QA-C-S-028,MINOR,PROPOSED,HIGH,OK_CONFIRMED,EV-GEO-0250,MINING/mining_geometry_catalog.csv,MGEO-0191,existing_evidence_ids
 QA-C-S-029,MAJOR,PROPOSED,HIGH,MAP_ATTRIBUTION,EV-MIN-0296,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0311,what_is_stated
-QA-C-S-029,MAJOR,PROPOSED,HIGH,MAP_ATTRIBUTION,EV-MIN-0296,MINING/mining_geometry_catalog.csv,GEO-0189,notes
-QA-C-S-029,MAJOR,PROPOSED,HIGH,MAP_ATTRIBUTION,EV-MIN-0296,MINING/mining_geometry_catalog.csv,GEO-0190,notes
-QA-C-S-029,MAJOR,PROPOSED,HIGH,MAP_ATTRIBUTION,EV-MIN-0296,MINING/mining_geometry_catalog.csv,GEO-0193,existing_evidence_ids
+QA-C-S-029,MAJOR,PROPOSED,HIGH,MAP_ATTRIBUTION,EV-MIN-0296,MINING/mining_geometry_catalog.csv,MGEO-0189,notes
+QA-C-S-029,MAJOR,PROPOSED,HIGH,MAP_ATTRIBUTION,EV-MIN-0296,MINING/mining_geometry_catalog.csv,MGEO-0190,notes
+QA-C-S-029,MAJOR,PROPOSED,HIGH,MAP_ATTRIBUTION,EV-MIN-0296,MINING/mining_geometry_catalog.csv,MGEO-0193,existing_evidence_ids
 QA-C-S-030,MAJOR,PROPOSED,HIGH,LABEL_ERROR,EV-VN-S023-0208,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0316,vn_id
 QA-C-S-031,MAJOR,PROPOSED,LOW,VISUAL_NOT_CHECKABLE,EV-VN-S023-0403,GEOLOGY_COORDS/coordinate_datum_evidence.csv,CDE-0341,vn_id
 QA-C-S-033,MINOR,PROPOSED,HIGH,OCR_ONLY,EV-MIN-0338,MINING/backfill_event_catalog.csv,BF-0095,existing_evidence_ids
@@ -1821,7 +1899,7 @@ QA-C-S-037,MAJOR,PROPOSED,HIGH,UNCLEAR_MINE_ATTRIBUTION,EV-RMR-0472,MECH_RHEO/me
 QA-C-S-037,MAJOR,PROPOSED,HIGH,UNCLEAR_MINE_ATTRIBUTION,EV-RMR-0506,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0317,prev_evidence_ids
 QA-C-S-040,MAJOR,PROPOSED,HIGH,OK_CONFIRMED,EV-RMR-0602,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0732,prev_evidence_ids
 QA-C-S-040,MAJOR,PROPOSED,HIGH,OK_CONFIRMED,EV-RMR-0708,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-0426,prev_evidence_ids
-QA-C-S-045,MINOR,PROPOSED,HIGH,OK_CONFIRMED,EV-MIN-0519,MINING/mining_geometry_catalog.csv,GEO-0239,existing_evidence_ids
+QA-C-S-045,MINOR,PROPOSED,HIGH,OK_CONFIRMED,EV-MIN-0519,MINING/mining_geometry_catalog.csv,MGEO-0239,existing_evidence_ids
 QA-C-S-047,MINOR,PROPOSED,HIGH,LABEL_ERROR,EV-RMB-0205,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-1565,prev_evidence_ids
 QA-C-S-047,MINOR,PROPOSED,HIGH,LABEL_ERROR,EV-RMB-0205,SOURCES/SOURCE_COVERAGE_MASTER.csv,VKM-SRC-029,new_findings
 QA-C-S-048,MINOR,PROPOSED,HIGH,FIGURE_REPRODUCED_FROM_OTHER_SOURCE,EV-RMB-0205,MECH_RHEO/mechanics_evidence_catalog.csv,MR-MECH-1565,prev_evidence_ids
@@ -1843,5 +1921,5 @@ QA-C-S-059,MINOR,PROPOSED,HIGH,LABEL_ERROR,EV-MIN-1356,MECH_RHEO/mechanics_evide
 QA-C-S-059,MINOR,PROPOSED,HIGH,LABEL_ERROR,EV-MIN-1356,MECH_RHEO/rheology_evidence_catalog.csv,MR-RHEO-N26,prev_evidence_ids
 QA-C-S-059,MINOR,PROPOSED,HIGH,LABEL_ERROR,EV-MIN-1356,MECH_RHEO/rheology_evidence_catalog.csv,MR-RHEO-N26,relation_to_v1_registry
 QA-C-S-065,MINOR,PROPOSED,MEDIUM,UNCLEAR_MINE_ATTRIBUTION,EV-VN-S040-0225,CITATIONS/SOURCE_CITATION_GRAPH.csv,CG-02066,dependent_claims
-QA-C-S-065,MINOR,PROPOSED,MEDIUM,UNCLEAR_MINE_ATTRIBUTION,EV-VN-S040-0225,CITATIONS/primary_source_targets.csv,82,dependent_claims
+QA-C-S-065,MINOR,PROPOSED,MEDIUM,UNCLEAR_MINE_ATTRIBUTION,EV-VN-S040-0225,CITATIONS/primary_source_targets.csv,84,dependent_claims
 QA-C-S-065,MINOR,PROPOSED,MEDIUM,UNCLEAR_MINE_ATTRIBUTION,EV-VN-S040-0225,HYDRO_THERMAL_GEOPHYS/gpr_evidence_catalog.csv,GPR-096,vn_ids

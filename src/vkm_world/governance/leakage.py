@@ -41,9 +41,15 @@ PATH_CHECK_NEVER_EXEMPT_SUFFIXES = {".py"}
 PATH_CHECK_SUFFIXES = {".py", ".yaml", ".yml", ".json", ".jsonl", ".csv", ".toml", ".md"}
 
 
-def sanitize_paths(text: str) -> str:
-    """Replace machine-specific absolute paths with logical names (idempotent)."""
-    for old, new in PATH_REWRITES:
+# catalogue cells may not name the PRIVATE OCR work dir even relatively (prose may: RELATIVE_FRAGMENTS_ALLOWED_IN_PROSE)
+DATA_PATH_REWRITES: tuple[tuple[str, str], ...] = (("work/ocr/", "PRIVATE:ocr/"),)
+
+
+def sanitize_paths(text: str, data: bool = False) -> str:
+    """Replace machine-specific absolute paths with logical names (idempotent).
+
+    ``data=True`` (catalogue cells, JSON) also rewrites relative references to the PRIVATE OCR work dir."""
+    for old, new in PATH_REWRITES + (DATA_PATH_REWRITES if data else ()):
         text = text.replace(old, new)
     return text
 
@@ -51,7 +57,7 @@ def sanitize_paths(text: str) -> str:
 # ---------------------------------------------------------------- verbatim text (review finding DOCS_LEAKAGE-023)
 SHINGLE_WORDS = 12
 VERBATIM_LIMIT_WORDS = 25            # a PUBLIC text may not repeat this many consecutive words of a source quote
-BIBLIO_COLUMN_HINTS = ("cited_work", "title", "authors", "bibliograph", "reference")
+BIBLIO_COLUMN_HINTS = ("cited_work", "citation", "title", "authors", "bibliograph", "reference")  # bibliographic entries, not quotes
 _WORD = re.compile(r"[0-9a-zа-яё]+", re.IGNORECASE)
 
 

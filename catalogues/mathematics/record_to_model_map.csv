@@ -305,7 +305,7 @@ EV-VN-S019-0009,engineering_rule,VKM-SRC-019,1,"§1 item 1, [3]",True,,EXCLUDED,
 EV-VN-S019-0010,formula,VKM-SRC-019,2,"формула (1), §1 item 2",True,MM-PROT-003,MAPPED,
 EV-VN-S019-0012,engineering_rule,VKM-SRC-019,2,"§1 item 3, [3]",True,,EXCLUDED,DESIGN_LIMIT: ≥8 м от маркирующей глины до КБС (используется в MM-PROT-003)
 EV-VN-S019-0013,formula,VKM-SRC-019,2,"формула (2), §1 item 4",True,MM-WPS-001,MAPPED,
-EV-VN-S019-0014,engineering_rule,VKM-SRC-019,2,"§1 item 5, [3]",True,MM-PILLAR-003,MAPPED,
+EV-VN-S019-0014,engineering_rule,VKM-SRC-019,2,"§1 item 5, [3]",True,MM-PILLAR-003-B,MAPPED,
 EV-VN-S019-0015,engineering_rule,VKM-SRC-019,2,"§1 item 6, [3]",True,,EXCLUDED,DESIGN_VALUE: устойчивый пролёт каменной соли 8 м; m₀ ≤ 6 м
 EV-VN-S019-0016,engineering_rule,VKM-SRC-019,2,"§1 item 7, [3]",True,,EXCLUDED,SITING_RULE: размещение КБС вне влияния застройки/аномалий
 EV-VN-S019-0022,engineering_rule,VKM-SRC-019,3,"§2 item 2, [5]",True,,EXCLUDED,DESIGN_VALUE: длина КБС 200 м по кабелю
@@ -366,7 +366,7 @@ EV-VN-S021-0013,engineering_rule,VKM-SRC-021,2,введение,True,,EXCLUDED,N
 EV-VN-S021-0019,engineering_rule,VKM-SRC-021,2,"введение, ссылка [4]",True,MM-WPS-002,MAPPED,
 EV-VN-S021-0023,engineering_rule,VKM-SRC-021,3,классификация категорий,True,,EXCLUDED,CLASSIFICATION: категории опасности ВЗТ 1–3
 EV-VN-S021-0024,engineering_rule,VKM-SRC-021,3,поэтапная методика районирования,True,,EXCLUDED,PROCEDURE: поэтапная методика районирования (без уравнения)
-EV-VN-S021-0025,engineering_rule,VKM-SRC-021,3,поэтапная методика,True,MM-PILLAR-003,MAPPED,
+EV-VN-S021-0025,engineering_rule,VKM-SRC-021,3,поэтапная методика,True,MM-PILLAR-003-B,MAPPED,
 EV-VN-S021-0047,engineering_rule,VKM-SRC-021,5,заключение,True,,EXCLUDED,NO_EQUATION: меры после районирования
 EV-VN-S023-0164,formula,VKM-SRC-023,35,rendered p.35; §2.3,True,MM-STRESS-001,MAPPED,
 EV-VN-S023-0174,formula,VKM-SRC-023,36,rendered p.36; §2.4 Горнотехнические условия месторождения,True,MM-PILLAR-005,MAPPED,
@@ -508,7 +508,7 @@ EV-VN-S025-0367,formula,VKM-SRC-025,73,"Табл. 3.1, карналлит (пл.
 EV-VN-S025-0371,engineering_rule,VKM-SRC-025,73,p.73 below Табл. 3.1,True,MM-LAB-011,MAPPED,
 EV-VN-S025-0401,rheology_law,VKM-SRC-025,76,Табл. 3.2 σ_дл column,True,MM-CREEP-002,MAPPED,
 EV-VN-S025-0414,engineering_rule,VKM-SRC-025,79,p.79,True,,EXCLUDED,LAB_RULE: поперечный размер образца ≥20 зёрен
-EV-VN-S025-0418,formula,VKM-SRC-025,80,формула (3.7),True,MM-LAB-005,MAPPED,
+EV-VN-S025-0418,formula,VKM-SRC-025,80,формула (3.7),True,MM-LAB-005-B,MAPPED,
 EV-VN-S025-0508,formula,VKM-SRC-025,96,формула (4.1),True,MM-LAB-012,MAPPED,
 EV-VN-S025-0509,formula,VKM-SRC-025,97,p.97 (unnumbered),True,MM-LAB-012,MAPPED,
 EV-VN-S025-0512,formula,VKM-SRC-025,97,формула (4.2),True,MM-LAB-012,MAPPED,
@@ -542,7 +542,7 @@ EV-VN-S025-0793,formula,VKM-SRC-025,145,"§5.3, формула (5.7)",True,MM-CO
 EV-VN-S025-0794,formula,VKM-SRC-025,145,"§5.3, формула (5.8)",True,MM-CONTACT-001,MAPPED,
 EV-VN-S025-0795,formula,VKM-SRC-025,145,"§5.3, формула (5.9), с.145-146",True,MM-CONTACT-001,MAPPED,
 EV-VN-S025-0797,formula,VKM-SRC-025,146,"§5.3, формула (5.10)",True,MM-CONTACT-002,MAPPED,
-EV-VN-S025-0798,formula,VKM-SRC-025,146,"§5.3, формула (5.11)",True,MM-CONTACT-002,MAPPED,
+EV-VN-S025-0798,formula,VKM-SRC-025,146,"§5.3, формула (5.11)",True,MM-CONTACT-002-B,MAPPED,
 EV-VN-S025-0799,formula,VKM-SRC-025,146,"§5.3, формула (5.12), Рис. 5.10",True,MM-CONTACT-002,MAPPED,
 EV-VN-S025-0802,engineering_rule,VKM-SRC-025,147,"§5.3, с.147",True,MM-CONTACT-002,MAPPED,
 EV-VN-S025-0818,formula,VKM-SRC-025,148,"§5.4, формула (5.13)",True,MM-CONTACT-004,MAPPED,
@@ -756,7 +756,7 @@ EV-VN-S037-0126,formula,VKM-SRC-037,11,"Табл. 1.1, строка 1 (реко�
 EV-VN-S037-0127,formula,VKM-SRC-037,11,"Табл. 1.1, строка 2 (рекомендация ВНИМИ)",True,MM-LAB-003,MAPPED,
 EV-VN-S037-0128,formula,VKM-SRC-037,11,"Табл. 1.1, строка 3 (коэффициент Церна)",True,MM-LAB-004,MAPPED,
 EV-VN-S037-0129,formula,VKM-SRC-037,11,"Табл. 1.1, строка 4 (рекомендация УФ ВНИИГ)",True,MM-LAB-001,MAPPED,
-EV-VN-S037-0130,formula,VKM-SRC-037,11,"§1.2.1, коэффициент относительного изменения прочности",True,MM-LAB-005,MAPPED,
+EV-VN-S037-0130,formula,VKM-SRC-037,11,"§1.2.1, коэффициент относительного изменения прочности",True,MM-LAB-005-B,MAPPED,
 EV-VN-S037-0139,formula,VKM-SRC-037,12,"§1.2.1, определение модуля упругости",True,MM-LAB-005,MAPPED,
 EV-VN-S037-0140,formula,VKM-SRC-037,12,"§1.2.1, определение модуля деформации",True,MM-LAB-005,MAPPED,
 EV-VN-S037-0143,rheology_law,VKM-SRC-037,13,Рис. 1.13,True,MM-CREEP-002,MAPPED,

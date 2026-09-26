@@ -83,7 +83,7 @@ def main() -> int:
             with open(dst, "w", encoding="utf-8", newline="") as f:
                 w = csv.writer(f, lineterminator="\n")
                 for n, r in enumerate(rows):
-                    cells = [sanitize_paths(r[i]) if i < len(r) else "" for i in keep]
+                    cells = [sanitize_paths(r[i], data=True) if i < len(r) else "" for i in keep]
                     if n:
                         for j, i in enumerate(keep):
                             cell = cells[j]
@@ -106,7 +106,7 @@ def main() -> int:
                 if removed:              # review finding DOCS_LEAKAGE-023: quote keys never reach PUBLIC JSON
                     text = json.dumps(clean, ensure_ascii=False, indent=1) + "\n"
                     dropped = sorted(set(removed))
-            dst.write_text(sanitize_paths(text), encoding="utf-8", newline="\n")
+            dst.write_text(sanitize_paths(text, data=True), encoding="utf-8", newline="\n")
         outs.append(dst)
         manifest["files"].append({"source": src_rel, "source_sha256": sha(src), "target": dst_rel,
                                   "target_sha256": sha(dst), "dropped_columns": dropped, "status": "OK"})

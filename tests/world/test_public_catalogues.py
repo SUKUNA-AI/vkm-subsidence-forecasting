@@ -14,6 +14,7 @@ from pathlib import Path
 
 import pytest
 
+from vkm_world.chronology.events import INFORMATION_TYPES, EventType
 from vkm_world.core.provenance import EpistemicStatus as S
 from vkm_world.core.provenance import Provenance
 from vkm_world.core.provenance import SpatialLevel as L
@@ -53,7 +54,10 @@ def test_manifest_matches_committed_catalogues():
 # link / long-form tables whose first column legitimately repeats (one row per membership, lineage version, site group)
 LINK_TABLES = {"evidence/sources/source_family_membership.csv", "evidence/sources/repeated_secondary_citations.csv",
                "evidence/monitoring/monitoring_systems_by_site.csv", "evidence/qa/correction_impact.csv",
-               "evidence/external/target_resolution.csv"}
+               "evidence/external/target_resolution.csv", "evidence/sources/lineage_affected_records.csv",
+               "catalogues/physics/process_evidence_links.csv", "evidence/qa/review_fixes/mech_rheo_visual_rechecks.csv"}
+# first columns that reference records, sources, findings, retired ids or ranks instead of naming a new object
+NATURAL_KEYS = frozenset({"vn_id", "source_id", "finding_id", "target", "old_row_id", "rank", "order"})
 VN_ID = re.compile(r"EV-VN-S(\d{3})-\d{4}")
 CSV_TARGETS = sorted(t for t in json.loads((ROOT / "scripts" / "public_catalogue_map.json").read_text(encoding="utf-8"))
                      .values() if t.endswith(".csv"))
@@ -72,6 +76,44 @@ def test_public_catalogue_has_no_quote_columns_and_unique_ids(target):
     ids = [r[header[0]] for r in rows]          # every other catalogue is keyed by its first column
     dups = sorted({i for i in ids if ids.count(i) > 1})
     assert not dups and all(ids), f"{target}: empty or duplicate ids {dups[:5]}"
+
+
+def test_object_ids_are_unique_across_catalogues():
+    """One id names one object in the whole PUBLIC tree (review finding DOCS_LEAKAGE-019: GEO-dddd named both a
+    mining-geometry row and a geology row). Link tables and first columns in NATURAL_KEYS are not object ids."""
+    first_seen: dict[str, str] = {}
+    clashes = []
+    for target in CSV_TARGETS:
+        if target in LINK_TABLES:
+            continue
+        with (ROOT / target).open(encoding="utf-8", newline="") as stream:
+            reader = csv.reader(stream)
+            if next(reader)[0] in NATURAL_KEYS:
+                continue
+            for row in reader:
+                other = first_seen.setdefault(row[0], target)
+                if other != target:
+                    clashes.append(f"{row[0]}: {other} and {target}")
+    assert not clashes, clashes[:5]
+
+
+def test_chronology_event_types_belong_to_the_schema():
+    """Every event_type_vkm is an EventType and the stated class agrees with the schema (review finding CHRONOLOGY-027):
+    planned rows are information events (a plan, not a physical event), OTHER rows state their class."""
+    rows = _rows(ROOT / "evidence" / "mining" / "mining_chronology_catalog.csv")
+    assert not sorted({r["event_type_vkm"] for r in rows} - set(EventType.__members__))
+    wrong = []
+    for r in rows:
+        t = EventType[r["event_type_vkm"]]
+        if r["planned_or_actual"].startswith("PLANNED"):
+            expected = {"INFORMATION"}
+        elif t is EventType.OTHER:
+            expected = {"PHYSICAL", "INFORMATION"}
+        else:
+            expected = {"INFORMATION" if t in INFORMATION_TYPES else "PHYSICAL"}
+        if r["event_class"] not in expected:
+            wrong.append((r["event_id"], t.value, r["event_class"]))
+    assert not wrong, wrong[:5]
 
 
 def test_math_registry_rows_match_schema():
@@ -125,3 +167,13 @@ def test_every_sweep_record_reference_resolves():
             if m.group(0) not in index:
                 unknown.setdefault(f.relative_to(ROOT).as_posix(), set()).add(m.group(0))
     assert not unknown, {k: sorted(v)[:5] for k, v in unknown.items()}
+
+
+def test_record_routing_index_is_current():
+    """evidence/sources/record_routing.csv lists, for every sweep record, the PUBLIC catalogues citing it (review finding
+    COVERAGE_DUPLICATES-016, mechanical part). It must match a rebuild from the committed catalogues."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from build_record_routing import OUT, build
+    assert (ROOT / OUT).read_text(encoding="utf-8") == build(ROOT), "rerun scripts/build_record_routing.py"
+    rows = _rows(ROOT / OUT)
+    assert len(rows) == 13572 and {r["routing"] for r in rows} <= {"DOMAIN", "QA_ONLY", "UNROUTED"}
