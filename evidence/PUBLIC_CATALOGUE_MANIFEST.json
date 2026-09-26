@@ -93,6 +93,44 @@
    "dropped_columns": [
     "quote"
    ],
+   "source": "FORMULAS/FORMULA_CONFLICTS.csv",
+   "source_sha256": "cc8e759883d78e6976e093d4caf21239a402a93a087951aebddda0cddcfdb838",
+   "status": "OK",
+   "target": "catalogues/mathematics/formula_conflicts.csv",
+   "target_sha256": "4f29a04605ce586c313de911bba647f5f596ebd235173dafeedc9302008b731b"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "FORMULAS/FORMULA_VISUAL_CHECKS.csv",
+   "source_sha256": "02c50b4f35f342f756e82d992caa3f73f6eb7e5cf209f0e9d2b79206c0f2f8da",
+   "status": "OK",
+   "target": "catalogues/mathematics/formula_visual_checks.csv",
+   "target_sha256": "0e60f17bf4d87fadb6dc146e5f1e62804bbed8e27cf31b3579d6babde69cba5e"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv",
+   "source_sha256": "9b1d81b2bedec222e850a5a896ff3e4387eadfa3961b8e9182de43056bb56684",
+   "status": "OK",
+   "target": "catalogues/mathematics/MATHEMATICAL_MODEL_REGISTRY.csv",
+   "target_sha256": "d9eed3dcdf4f36c2bf2433f4923a83aada6ac0d5e305e159ba1d10bdaefdf446"
+  },
+  {
+   "dropped_columns": [],
+   "source": "FORMULAS/RECORD_TO_MODEL_MAP.csv",
+   "source_sha256": "ed9a53906ba7e9d19e0c370a70d1a2f60f263a5e14edfe901193056819aab60e",
+   "status": "OK",
+   "target": "catalogues/mathematics/record_to_model_map.csv",
+   "target_sha256": "0b393cae262045e38f68a30dee4a7116d44c8383c2d4bc9f6d82de96f751e835"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
    "source": "GEOLOGY_COORDS/coordinate_datum_evidence.csv",
    "source_sha256": "6b8a6526ce70c389a3ba8c943a6d506bdbd5368a7496d10716408bac7a145045",
    "status": "OK",
