@@ -1,0 +1,335 @@
+{
+ "artifact_id": "OBS-MUS-P15",
+ "decision": "D-07, docs/governance/PHASE1_DESIGN_DECISIONS_RU.md",
+ "generator": "scripts/build_evidence_from_legacy.py",
+ "command": "python scripts/build_evidence_from_legacy.py monitoring",
+ "source": {
+  "source_id": "VKM-SRC-002",
+  "legacy_source_id": "SUP01",
+  "sha256": "4d20f03c0c3a7bb7039c405e2aff2780a30d9f6e52e99fe5da50fa4c9ccbe947",
+  "locator": "PDF p.15",
+  "pdf_xobjects_by_line": {
+   "1": "/Image157",
+   "5": "/Image159",
+   "17": "/Image161",
+   "6": "/Image163"
+  },
+  "register_scope": "VKM_Solikamsk"
+ },
+ "legacy_commit": "d54025d4c47b79b864076a33a4ecf877174ec922",
+ "inputs": [
+  {
+   "key": "canonical",
+   "path": "artifacts/reconstruction/scenario_constraints_v2/canonical_digitization.csv",
+   "sha256": "f33c22a8b6af4a8def6aeffc696cedc73434fb704fe174907a453c11f224abe0",
+   "role": "accepted readings (values, reading status, reading bounds, raster coordinates)"
+  },
+  {
+   "key": "comparison",
+   "path": "artifacts/reconstruction/scenario_constraints_v2/modality_comparison.csv",
+   "sha256": "a35539cb7c4e1f112d771ac5fae8faaacbee3ac2697dd9a7572f031cd87fde7e",
+   "role": "legacy modality comparison, recomputed and compared"
+  },
+  {
+   "key": "constraints_manifest",
+   "path": "artifacts/reconstruction/scenario_constraints_v2/manifest.json",
+   "sha256": "96b88b61cf766062c1f831e32b50bdd82441da63c50ce41569a5ffad297de6ef",
+   "role": "closure link: pins canonical_digitization.csv and modality_comparison.csv"
+  },
+  {
+   "key": "digitization",
+   "path": "data/published_figure_digitization_v1/musikhin_profiles_digitization.csv",
+   "sha256": "2fc8ac5cd0a40eff9c230e641fe5a3c1a7e1522d41dd989d9abf7eda4af02761",
+   "role": "frozen manual digitization (printed x labels, cross-check of values)"
+  },
+  {
+   "key": "digitization_manifest",
+   "path": "data/published_figure_digitization_v1/extraction_manifest.json",
+   "sha256": "e8ce3f949feb747a55b99340a7491cb29e8f80546e8235e09e3dfc4727096278",
+   "role": "provenance of the digitization and native rasters"
+  },
+  {
+   "key": "line1_points",
+   "path": "artifacts/reconstruction/musikhin_line1_2011_2016_v1/points.csv",
+   "sha256": "257f643f300a58fce6699cd9938292ae63f0958857b2a996f58b1db13d8274cb",
+   "role": "independent detailed re-read of line 1 levelling 2011-2016 (cross-check)"
+  },
+  {
+   "key": "line1_manifest",
+   "path": "artifacts/reconstruction/musikhin_line1_2011_2016_v1/manifest.json",
+   "sha256": "5081dc8ce463119774cb4a6e3ffdd121a1a38e9b3bd0cee75e0382dbb6ce9f06",
+   "role": "provenance"
+  },
+  {
+   "key": "profiles_manifest",
+   "path": "artifacts/reconstruction/musikhin_profiles_2011_2016_v1/manifest.json",
+   "sha256": "7740a92603762c9fb7db3c264db95c257bcf28d635aea54a2775676956e2bac4",
+   "role": "provenance"
+  },
+  {
+   "key": "atlas_1",
+   "path": "artifacts/reconstruction/musikhin_profiles_2011_2016_v1/profile_1/points.csv",
+   "sha256": "aa60e9e03de1ef5d4caa1a78962efb5287e2984cf17c3da5d0054fba1bb3d109",
+   "role": "atlas readings (cross-check)"
+  },
+  {
+   "key": "atlas_5",
+   "path": "artifacts/reconstruction/musikhin_profiles_2011_2016_v1/profile_5/points.csv",
+   "sha256": "63553b4642da045cbdf9c324574e96728bff5becae7c8f9005dbde9068c89f95",
+   "role": "atlas readings (cross-check)"
+  },
+  {
+   "key": "atlas_17",
+   "path": "artifacts/reconstruction/musikhin_profiles_2011_2016_v1/profile_17/points.csv",
+   "sha256": "425aa933d91e523941b576464ffb82cbb5cba462b9d0d5462940a801a191eac4",
+   "role": "atlas readings (cross-check)"
+  },
+  {
+   "key": "atlas_6",
+   "path": "artifacts/reconstruction/musikhin_profiles_2011_2016_v1/profile_6/points.csv",
+   "sha256": "cffccc80e392dde55522139528602ee024b86cf40fa59b8c19f91bc49f74bf27",
+   "role": "atlas readings (cross-check)"
+  }
+ ],
+ "outputs": [
+  {
+   "path": "evidence/monitoring/musikhin_vkm_src002_p15_profiles.csv",
+   "sha256": "a0e81486e7d62906a28eda6ac065ad77a0b3c3c18d2f3018881e412e952e7e7c",
+   "rows": 258
+  },
+  {
+   "path": "evidence/monitoring/musikhin_modality_comparison.csv",
+   "sha256": "5d6b80c54fa568e01bc4b12dea13276d087d1578925fe83738b10193d7fa1488",
+   "rows": 7
+  }
+ ],
+ "counts": {
+  "rows": 258,
+  "values": 253,
+  "digitization_status": {
+   "digitized_marker_or_visible_curve": 185,
+   "partially_occluded_approximation": 68,
+   "unresolved_occlusion": 5
+  },
+  "status": {
+   "FACT": 253,
+   "UNKNOWN": 5
+  },
+  "reading_origin": {
+   "atlas_digitization": 244,
+   "independent_detailed_reread": 14
+  },
+  "series": [
+   {
+    "line": "1",
+    "method": "levelling",
+    "interval": "2011-2016",
+    "positions": 14,
+    "values": 11
+   },
+   {
+    "line": "1",
+    "method": "levelling",
+    "interval": "2015-2016",
+    "positions": 14,
+    "values": 14
+   },
+   {
+    "line": "1",
+    "method": "insar",
+    "interval": "2011-2016",
+    "positions": 14,
+    "values": 14
+   },
+   {
+    "line": "1",
+    "method": "insar",
+    "interval": "2015-2016",
+    "positions": 14,
+    "values": 14
+   },
+   {
+    "line": "5",
+    "method": "levelling",
+    "interval": "2011-2016",
+    "positions": 24,
+    "values": 24
+   },
+   {
+    "line": "5",
+    "method": "levelling",
+    "interval": "2015-2016",
+    "positions": 24,
+    "values": 24
+   },
+   {
+    "line": "5",
+    "method": "insar",
+    "interval": "2011-2016",
+    "positions": 24,
+    "values": 24
+   },
+   {
+    "line": "5",
+    "method": "insar",
+    "interval": "2015-2016",
+    "positions": 24,
+    "values": 24
+   },
+   {
+    "line": "17",
+    "method": "levelling",
+    "interval": "2011-2016",
+    "positions": 11,
+    "values": 9
+   },
+   {
+    "line": "17",
+    "method": "levelling",
+    "interval": "2015-2016",
+    "positions": 11,
+    "values": 11
+   },
+   {
+    "line": "17",
+    "method": "insar",
+    "interval": "2011-2016",
+    "positions": 11,
+    "values": 11
+   },
+   {
+    "line": "17",
+    "method": "insar",
+    "interval": "2015-2016",
+    "positions": 11,
+    "values": 11
+   },
+   {
+    "line": "6",
+    "method": "levelling",
+    "interval": "2015-2016",
+    "positions": 31,
+    "values": 31
+   },
+   {
+    "line": "6",
+    "method": "insar",
+    "interval": "2015-2016",
+    "positions": 31,
+    "values": 31
+   }
+  ]
+ },
+ "printed_label_corrections": [
+  {
+   "line": "1",
+   "position_index": 10,
+   "legacy_label": "1.0",
+   "as_printed": "1"
+  },
+  {
+   "line": "5",
+   "position_index": 2,
+   "legacy_label": "0.10",
+   "as_printed": "0.1"
+  },
+  {
+   "line": "5",
+   "position_index": 4,
+   "legacy_label": "0.20",
+   "as_printed": "0.2"
+  },
+  {
+   "line": "5",
+   "position_index": 6,
+   "legacy_label": "0.30",
+   "as_printed": "0.3"
+  },
+  {
+   "line": "5",
+   "position_index": 8,
+   "legacy_label": "0.40",
+   "as_printed": "0.4"
+  },
+  {
+   "line": "5",
+   "position_index": 10,
+   "legacy_label": "0.50",
+   "as_printed": "0.5"
+  },
+  {
+   "line": "5",
+   "position_index": 12,
+   "legacy_label": "0.60",
+   "as_printed": "0.6"
+  },
+  {
+   "line": "5",
+   "position_index": 14,
+   "legacy_label": "0.70",
+   "as_printed": "0.7"
+  },
+  {
+   "line": "5",
+   "position_index": 16,
+   "legacy_label": "0.80",
+   "as_printed": "0.8"
+  },
+  {
+   "line": "5",
+   "position_index": 18,
+   "legacy_label": "0.90",
+   "as_printed": "0.9"
+  },
+  {
+   "line": "5",
+   "position_index": 20,
+   "legacy_label": "1.00",
+   "as_printed": "1"
+  },
+  {
+   "line": "5",
+   "position_index": 22,
+   "legacy_label": "1.10",
+   "as_printed": "1.1"
+  },
+  {
+   "line": "5",
+   "position_index": 24,
+   "legacy_label": "1.20",
+   "as_printed": "1.2"
+  }
+ ],
+ "mapping": {
+  "method": {
+   "leveling": "levelling",
+   "radar": "insar"
+  },
+  "status": "FACT if a value was read, UNKNOWN for unresolved occlusions",
+  "id": "OBS-MUS-P15-<line>-<METHOD>-<nnn>, nnn over (interval_start, position_index)",
+  "dropped_legacy_fields": [
+   "eligible_as_t1_time_series",
+   "mapped_synthetic_point_id",
+   "distance_value_from_label_km",
+   "source_file",
+   "input_table*"
+  ]
+ },
+ "checks": {
+  "inputs_sha256_pinned": true,
+  "constraints_v2_manifest_pins_inputs": true,
+  "canonical_equals_atlas_or_detailed_reread": true,
+  "atlas_equals_frozen_digitization": true,
+  "unresolved_positions_not_filled": true,
+  "x_labels_identical_across_series_of_a_line": true,
+  "modality_comparison_recomputed_equals_legacy_1e-6": true
+ },
+ "limits": [
+  "Manual digitization of four charts on slides (not peer reviewed); discovery-only until the primary publication of the profile lines is found.",
+  "Mine not proven: the slides concern the Solikamsk area (SKRU-1 and/or SKRU-2).",
+  "Each value is the displacement over one interval labelled by years (2011-2016 or 2015-2016); exact campaign dates and the common datum are unknown. Not a time series; intervals must not be subtracted from each other.",
+  "The x axis is categorical (printed km labels, repeated or missing labels kept as printed); no georeference, no metric gradients, no mapping to benchmark or synthetic point ids.",
+  "digitization_uncertainty_mm is a conservative chart-reading half-width, not a measurement sigma or a confidence interval.",
+  "Levelling and InSAR are different modalities with different observation operators; neither is ground truth for the other."
+ ]
+}
