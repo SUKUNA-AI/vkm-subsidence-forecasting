@@ -15,6 +15,7 @@ dist/
 
 # Local environments and IDE state
 .venv/
+.venv*/
 venv/
 .idea/
 .vscode/
@@ -51,6 +52,8 @@ pip.conf
 
 # Reproducible but generated working trees
 work/
+# written by the retired legacy scripts/verify_inputs.py into the repository root
+INPUT_VERIFICATION.json
 
 # Externalized evidence/archive trees.
 # Canonical bytes live in the private vkm-subsidence-forecasting_resourses repo

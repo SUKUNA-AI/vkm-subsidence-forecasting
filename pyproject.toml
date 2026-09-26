@@ -3,19 +3,21 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "skru1-research"
+name = "vkm-world"
 version = "0.1.0"
-description = "Reproducible data and modelling workflow for the SKRU-1 diploma project"
+description = "Typed, evidence-backed world specification (WorldSpec) for surface subsidence research at the Verkhnekamskoye potash deposit (VKM, SKRU-1)"
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "numpy>=2.5,<3",
-    "pandas>=3.0,<4",
-    "PyYAML>=6,<7",
-    "pydantic>=2.13,<3",
+    "numpy>=2.5.3,<3",
+    "pydantic>=2.13.5,<3",
 ]
+
+[project.optional-dependencies]
+test = ["pytest>=9.1.1"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["vkm_world*"]
 
 [tool.pytest.ini_options]
 addopts = "-ra -p no:cacheprovider"

@@ -1,0 +1,6 @@
+# Direct requirements of src/vkm_world, tests/world and the kept scripts
+# (export_worldspec_schema, verify_canonical_repository, build_public_catalogues, build_evidence_from_legacy).
+# Lower bounds = versions of the research venv freeze (docs/reset_2026_09/run_kit/venv_research_freeze.txt).
+numpy>=2.5.3,<3
+pydantic>=2.13.5,<3
+pytest>=9.1.1
