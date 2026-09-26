@@ -51,7 +51,7 @@ PASS, FAIL, WARN = "PASS", "FAIL", "WARN"
 PASS_WITH_NONBLOCKING = "PASS_WITH_NONBLOCKING"   # overall: no blocking FAIL, but SKIPPED/WARN entries exist
 SKIPPED, SKIPPED_REF = "SKIPPED", "SKIPPED_REF_UNAVAILABLE"
 GROUPS = ("registry", "frozen_references", "retired_references", "private_sources", "markdown_links", "leakage",
-          "host_paths", "worldspec_schema")
+          "host_paths", "worldspec_schema", "catalogue_sync")
 
 REF_HELP = ("ref not available locally (shallow clone or tags/branches not fetched): run "
             "'git fetch --unshallow origin' (if shallow), 'git fetch origin legacy:legacy' and "
@@ -895,6 +895,70 @@ def check_worldspec_schema(ctx: Context) -> list[Check]:
                    "generated_sha256": sha256_bytes(generated.encode("utf-8"))})]
 
 
+# ---------------------------------------------------------------------------- catalogue sync / verbatim text
+QUOTE_COLUMN_NAMES = {"quote", "verbatim_quote", "ocr_text", "page_text", "full_text"}
+
+
+def check_catalogue_sync(ctx: Context) -> list[Check]:
+    """PUBLIC catalogues equal a fresh build from PRIVATE canonical (review DOCS_LEAKAGE-027), and no PUBLIC text
+    repeats ≥ 25 consecutive words of a PRIVATE verbatim quote (review DOCS_LEAKAGE-023)."""
+    ids = ("catalogue_sync:public_vs_private", "catalogue_sync:verbatim")
+    if ctx.resources_root is None:
+        return [Check(i, "catalogue_sync", SKIPPED, False, "PRIVATE resources not configured",
+                      {"how_to_enable": "set VKM_RESOURCES_ROOT to the resources checkout"}) for i in ids]
+    canon = ctx.resources_root / "11_evidence_vnext" / "canonical"
+    manifest_path = ctx.root / "evidence" / "PUBLIC_CATALOGUE_MANIFEST.json"
+    if not manifest_path.is_file():
+        return [Check(i, "catalogue_sync", FAIL, True, "evidence/PUBLIC_CATALOGUE_MANIFEST.json missing") for i in ids]
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    stale: list[dict] = []
+    for f in manifest.get("files", []):
+        src, tgt = canon / f["source"], ctx.root / f["target"]
+        if not src.is_file():
+            stale.append({"source": f["source"], "problem": "missing in PRIVATE canonical"})
+        elif sha256_file(src) != f.get("source_sha256"):
+            stale.append({"source": f["source"], "problem": "PRIVATE changed after the PUBLIC build: run "
+                                                          "scripts/build_public_catalogues.py"})
+        if not tgt.is_file() or sha256_file(tgt) != f.get("target_sha256"):
+            stale.append({"target": f["target"], "problem": "PUBLIC file differs from the build manifest"})
+    out = [Check(ids[0], "catalogue_sync", FAIL if stale else PASS, True,
+                 f"{len(manifest.get('files', []))} catalogues; {len(stale)} out of sync", {"problems": _capped(stale)})]
+    lk = _import_vkm_world(ctx)          # same verbatim rule as scripts/build_public_catalogues.py
+    shingles: set[str] = set()
+    for f in manifest.get("files", []):
+        src = canon / f["source"]
+        if src.suffix.lower() != ".csv" or not src.is_file():
+            continue
+        with open(src, encoding="utf-8", newline="") as fh:
+            rd = csv.reader(fh)
+            header = next(rd, [])
+            qi = [i for i, h in enumerate(header) if h.strip().lower() in QUOTE_COLUMN_NAMES]
+            shingles |= lk.quote_shingles(row[i] for row in rd for i in qi if i < len(row))
+    hits: list[dict] = []
+    texts: list[tuple[str, str, str]] = []
+    for rel in ctx.repo_files():
+        path = ctx.root / rel
+        if rel.endswith(".csv") and (rel.startswith("evidence/") or rel.startswith("catalogues/")):
+            with open(path, encoding="utf-8", newline="") as fh:
+                rd = csv.reader(fh)
+                header = next(rd, [])
+                for n, row in enumerate(rd, 2):
+                    for h, cell in zip(header, row):
+                        if len(cell) > 80 and not any(x in h.lower() for x in lk.BIBLIO_COLUMN_HINTS):
+                            texts.append((rel, f"line {n} [{h}]", cell))
+        elif rel.endswith(".md") and not rel.startswith("docs/reset_2026_09/run_kit/"):
+            texts.append((rel, "document", path.read_text(encoding="utf-8", errors="replace")))
+    for rel, where, text in texts:
+        longest = lk.longest_shared_run(lk.words(text), shingles)[0]
+        if longest >= lk.VERBATIM_LIMIT_WORDS:
+            hits.append({"file": rel, "where": where, "words": longest})
+    out.append(Check(ids[1], "catalogue_sync", FAIL if hits else PASS, True,
+                     f"{len(texts)} PUBLIC texts checked against {len(shingles)} {lk.SHINGLE_WORDS}-word shingles of "
+                     f"PRIVATE quotes; {len(hits)} with ≥ {lk.VERBATIM_LIMIT_WORDS} consecutive quoted words",
+                     {"hits": _capped(hits)}))
+    return out
+
+
 CHECKS = {
     "registry": check_registry,
     "frozen_references": check_frozen_references,
@@ -904,6 +968,7 @@ CHECKS = {
     "leakage": check_leakage,
     "host_paths": check_host_paths,
     "worldspec_schema": check_worldspec_schema,
+    "catalogue_sync": check_catalogue_sync,
 }
 
 

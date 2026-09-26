@@ -20,9 +20,26 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from vkm_world.governance.leakage import FORBIDDEN_COLUMNS, sanitize_paths, scan  # noqa: E402
+from vkm_world.governance.leakage import (  # noqa: E402
+    BIBLIO_COLUMN_HINTS, FORBIDDEN_COLUMNS, VERBATIM_LIMIT_WORDS, longest_shared_run, quote_shingles, sanitize_paths, scan,
+    words)
 
 csv.field_size_limit(sys.maxsize)
+
+
+def strip_forbidden_keys(obj, removed: list[str]):
+    """Copy of a JSON value without keys named like verbatim/OCR text columns (at any depth)."""
+    if isinstance(obj, dict):
+        out = {}
+        for k, v in obj.items():
+            if isinstance(k, str) and k.strip().lower() in FORBIDDEN_COLUMNS:
+                removed.append(k)
+                continue
+            out[k] = strip_forbidden_keys(v, removed)
+        return out
+    if isinstance(obj, list):
+        return [strip_forbidden_keys(v, removed) for v in obj]
+    return obj
 
 
 def sha(p: Path) -> str:
@@ -39,6 +56,18 @@ def main() -> int:
     manifest = {"generator": "scripts/build_public_catalogues.py", "private_root_rel": "11_evidence_vnext/canonical",
                 "dropped_columns": sorted(FORBIDDEN_COLUMNS), "files": []}
     outs = []
+    # verbatim guard (review finding DOCS_LEAKAGE-023): shingles of every PRIVATE quote column of the mapped catalogues
+    shingles: set[str] = set()
+    for src_rel in sorted(mapping):
+        src = canon / src_rel
+        if src.suffix.lower() == ".csv" and src.exists():
+            with open(src, encoding="utf-8", newline="") as f:
+                rd = csv.reader(f)
+                header = next(rd, [])
+                qi = [i for i, h in enumerate(header) if h.strip().lower() in FORBIDDEN_COLUMNS]
+                shingles |= quote_shingles(row[i] for row in rd for i in qi if i < len(row))
+    manifest["verbatim_guard"] = {"rule": f">= {VERBATIM_LIMIT_WORDS} consecutive alphabetic words of a PRIVATE quote "
+                                          "are cut to their first 20 words in PUBLIC", "cells_shortened": []}
     for src_rel, dst_rel in sorted(mapping.items()):
         src, dst = canon / src_rel, ROOT / dst_rel
         if not src.exists():
@@ -53,12 +82,31 @@ def main() -> int:
             keep = [i for i, h in enumerate(header) if h.strip().lower() not in FORBIDDEN_COLUMNS]
             with open(dst, "w", encoding="utf-8", newline="") as f:
                 w = csv.writer(f, lineterminator="\n")
-                for r in rows:
-                    w.writerow([sanitize_paths(r[i]) if i < len(r) else "" for i in keep])
+                for n, r in enumerate(rows):
+                    cells = [sanitize_paths(r[i]) if i < len(r) else "" for i in keep]
+                    if n:
+                        for j, i in enumerate(keep):
+                            cell = cells[j]
+                            if len(cell) <= 80 or any(x in header[i].lower() for x in BIBLIO_COLUMN_HINTS):
+                                continue
+                            alpha, _, _ = longest_shared_run(words(cell), shingles)
+                            if alpha >= VERBATIM_LIMIT_WORDS:
+                                cells[j] = " ".join(cell.split()[:20]) + " … [сокращено: дословный текст источника — только в PRIVATE]"
+                                manifest["verbatim_guard"]["cells_shortened"].append(
+                                    {"target": dst_rel, "row": n + 1, "column": header[i], "copied_words": alpha})
+                    w.writerow(cells)
             dropped = [header[i] for i in range(len(header)) if i not in keep]
         else:
-            dst.write_text(sanitize_paths(src.read_text(encoding="utf-8")), encoding="utf-8", newline="\n")
+            text = src.read_text(encoding="utf-8")
             dropped = []
+            if src.suffix.lower() == ".json":
+                data = json.loads(text)
+                removed: list[str] = []
+                clean = strip_forbidden_keys(data, removed)
+                if removed:              # review finding DOCS_LEAKAGE-023: quote keys never reach PUBLIC JSON
+                    text = json.dumps(clean, ensure_ascii=False, indent=1) + "\n"
+                    dropped = sorted(set(removed))
+            dst.write_text(sanitize_paths(text), encoding="utf-8", newline="\n")
         outs.append(dst)
         manifest["files"].append({"source": src_rel, "source_sha256": sha(src), "target": dst_rel,
                                   "target_sha256": sha(dst), "dropped_columns": dropped, "status": "OK"})

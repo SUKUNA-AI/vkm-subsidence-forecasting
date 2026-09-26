@@ -38,8 +38,9 @@ def fix(text: str, report_name: str) -> tuple[str, list[str]]:
         notes.append(f'unlinked: {target}')
         return f'{label} (`{target}`, PRIVATE/рабочие материалы)' if label != target else f'`{target}`'
     out = LINK.sub(rep, text)
-    for q in re.findall(r'«([^»]{300,})»', out):
-        notes.append(f'long quotation {len(q)} chars: {q[:60]}…')
+    for q in re.findall(r'«([^»]+)»', out):          # D-12 / DOCS_LEAKAGE-023: quotations over 25 words
+        if len(q.split()) > 25:
+            notes.append(f'long quotation {len(q.split())} words: {q[:60]}…')
     return out, notes
 
 

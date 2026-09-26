@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -47,6 +48,60 @@ def sanitize_paths(text: str) -> str:
     return text
 
 
+# ---------------------------------------------------------------- verbatim text (review finding DOCS_LEAKAGE-023)
+SHINGLE_WORDS = 12
+VERBATIM_LIMIT_WORDS = 25            # a PUBLIC text may not repeat this many consecutive words of a source quote
+BIBLIO_COLUMN_HINTS = ("cited_work", "title", "authors", "bibliograph", "reference")
+_WORD = re.compile(r"[0-9a-zа-яё]+", re.IGNORECASE)
+
+
+def words(text: str) -> list[str]:
+    return [w.replace("ё", "е") for w in _WORD.findall(text.lower())]
+
+
+def quote_shingles(texts) -> set[str]:
+    """All 12-word shingles of the given verbatim quotes."""
+    out: set[str] = set()
+    for text in texts:
+        w = words(text)
+        out.update(" ".join(w[k:k + SHINGLE_WORDS]) for k in range(len(w) - SHINGLE_WORDS + 1))
+    return out
+
+
+def longest_shared_run(tokens: list[str], shingles: set[str]) -> tuple[int, int, int]:
+    """(alphabetic words, start, end) of the longest stretch of ``tokens`` covered by consecutive known shingles.
+
+    Numbers are values, which PUBLIC may hold; only the prose part of a copied stretch counts."""
+    best = (0, 0, 0)
+    start = None
+    n = len(tokens) - SHINGLE_WORDS + 1
+    for k in range(n + 1):
+        hit = k < n and " ".join(tokens[k:k + SHINGLE_WORDS]) in shingles
+        if hit and start is None:
+            start = k
+        if not hit and start is not None:
+            end = k - 1 + SHINGLE_WORDS
+            alpha = sum(1 for w in tokens[start:end] if not w.isdigit())
+            if alpha > best[0]:
+                best = (alpha, start, end)
+            start = None
+    return best
+
+
+def _json_keys(obj) -> set[str]:
+    """All object keys of a JSON value, lower-cased, at any depth (review finding DOCS_LEAKAGE-023)."""
+    keys: set[str] = set()
+    stack = [obj]
+    while stack:
+        cur = stack.pop()
+        if isinstance(cur, dict):
+            keys |= {k.strip().lower() for k in cur if isinstance(k, str)}
+            stack.extend(cur.values())
+        elif isinstance(cur, list):
+            stack.extend(cur)
+    return keys
+
+
 def tracked_files(root: Path) -> list[Path]:
     try:
         out = subprocess.run(["git", "-C", str(root), "ls-files"], capture_output=True, text=True, check=True).stdout
@@ -74,11 +129,14 @@ def scan(root: str | Path, files: list[Path] | None = None, check_paths: bool = 
                     problems.append(f"{rel}: verbatim/OCR text columns {sorted(bad)} not allowed in PUBLIC")
             except (UnicodeDecodeError, StopIteration):
                 pass
-        if p.suffix.lower() == ".jsonl":
+        if p.suffix.lower() in (".jsonl", ".json"):
             try:
                 with open(p, encoding="utf-8") as f:
-                    first = json.loads(f.readline() or "{}")
-                bad = FORBIDDEN_COLUMNS & set(first)
+                    docs = ([json.loads(line) for line in f if line.strip()] if p.suffix.lower() == ".jsonl"
+                            else [json.load(f)])
+                bad = set()
+                for d in docs:
+                    bad |= FORBIDDEN_COLUMNS & _json_keys(d)
                 if bad:
                     problems.append(f"{rel}: verbatim/OCR text fields {sorted(bad)} not allowed in PUBLIC")
             except (UnicodeDecodeError, json.JSONDecodeError):

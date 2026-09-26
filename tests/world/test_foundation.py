@@ -282,3 +282,22 @@ def test_known_physical_at_fails_closed_and_follows_revealing_information():
     assert known_physical_at([bf, gis, silent], date(2026, 7, 1)) == [bf]
     dated = ev("BF2", EventType.BACKFILL_PERIOD, ("Z-89",), date(2016, 1, 1), available_from=date(2018, 3, 1))
     assert known_physical_at([dated], date(2018, 3, 1)) == [dated]
+
+
+def test_verbatim_guard_counts_prose_not_numbers():
+    """DOCS_LEAKAGE-023: ≥ 25 consecutive words of a PRIVATE quote may not appear in PUBLIC; numbers are values."""
+    from vkm_world.governance.leakage import longest_shared_run, quote_shingles, words
+    quote = ("каменная соль серая крупнокристаллическая с редкими прослоями глины мощностью до пяти сантиметров "
+             "и включениями ангидрита по всей толще пласта в нижней части разреза наблюдаются следы "
+             "перекристаллизации и мелкие трещины заполненные галитом")
+    sh = quote_shingles([quote])
+    assert longest_shared_run(words("Описание: " + quote), sh)[0] >= 25
+    assert longest_shared_run(words("каменная соль серая, с прослоями глины"), sh)[0] == 0
+    table = " ".join(str(x) for x in range(100, 140))
+    assert longest_shared_run(words(table), quote_shingles([table]))[0] == 0      # a row of numbers is a value
+
+
+def test_forbidden_keys_detected_in_nested_json(tmp_path):
+    (tmp_path / "g.json").write_text('{"nodes": [{"id": 1, "props": {"Quote": "текст"}}]}', encoding="utf-8")
+    probs = scan(tmp_path, files=[tmp_path / "g.json"])
+    assert len(probs) == 1 and "quote" in probs[0]

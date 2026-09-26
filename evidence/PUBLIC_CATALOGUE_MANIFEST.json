@@ -15,7 +15,7 @@
    "source_sha256": "45ae75e2a7ebb9eb9210c07679681b2a0353fd4bc321cee2be7384c1da4fb360",
    "status": "OK",
    "target": "evidence/boreholes/borehole_catalog.csv",
-   "target_sha256": "3e40125ccce030446b1640889380a34673a0006ba46815b18a9245303784b875"
+   "target_sha256": "af196a5e435fb11f52c08b47942c7e7051a82936a26e83ca3f7a315a2edfba79"
   },
   {
    "dropped_columns": [
@@ -151,7 +151,7 @@
    "source_sha256": "9b1d81b2bedec222e850a5a896ff3e4387eadfa3961b8e9182de43056bb56684",
    "status": "OK",
    "target": "catalogues/mathematics/MATHEMATICAL_MODEL_REGISTRY.csv",
-   "target_sha256": "d9eed3dcdf4f36c2bf2433f4923a83aada6ac0d5e305e159ba1d10bdaefdf446"
+   "target_sha256": "979f434369ffd2b67aeeb674b1414bc2e015ba6763056d5f92678f676543d9f0"
   },
   {
    "dropped_columns": [],
@@ -169,7 +169,7 @@
    "source_sha256": "6b8a6526ce70c389a3ba8c943a6d506bdbd5368a7496d10716408bac7a145045",
    "status": "OK",
    "target": "evidence/coordinates/coordinate_datum_evidence.csv",
-   "target_sha256": "97bd377e380c15c336289e19746892362d7e7b116572bf73083c6acaf36404e4"
+   "target_sha256": "0dcc7de809756352a83218171084329c090fd52f1a07156cd933783622172c8b"
   },
   {
    "dropped_columns": [
@@ -179,7 +179,7 @@
    "source_sha256": "c0678a983bee2a5049605bb5a952cf8ae0aacfa18ca33f1a37d2b6eed4fbac36",
    "status": "OK",
    "target": "evidence/geology/geology_evidence.csv",
-   "target_sha256": "9e1b4d662fe1822f4ce677703790f4308dccdfe3f880bdc321da87c72ed69d91"
+   "target_sha256": "2881b1a00678ae01e91a79fc0631bd021722d2daf9653928e37f3de4009d180f"
   },
   {
    "dropped_columns": [
@@ -343,7 +343,7 @@
    "source_sha256": "efe784871875a067b183fa7b59313cbea394f17b9b8bc1ee9aeb6abdbda0c3b8",
    "status": "OK",
    "target": "evidence/mining/spatial_hierarchy.csv",
-   "target_sha256": "e8b342405e8653a3633155f31acd91c3ad01e40289db34ed0215ac4f46efd142"
+   "target_sha256": "25be20ce98fe38e81c330e307e54eb1017664d1c8715b75fe01f5f70964f3d8e"
   },
   {
    "dropped_columns": [
@@ -437,7 +437,7 @@
    "source_sha256": "1663ea48614cf26a6dbefa9c5296d31ca16692e0aa85d455427ada9e4fbba7a6",
    "status": "OK",
    "target": "evidence/qa/visual_ocr_qa_ledger.csv",
-   "target_sha256": "fee52890c0c0a1da9a230dd6e62cd604d25b79db06d4c445d833e6858490b095"
+   "target_sha256": "77bcfc958b451262bd2d39038ff0767f00f2c08fc43e238449c5a206fef5439b"
   },
   {
    "dropped_columns": [],
@@ -516,5 +516,136 @@
  ],
  "generator": "scripts/build_public_catalogues.py",
  "leakage_problems": [],
- "private_root_rel": "11_evidence_vnext/canonical"
+ "private_root_rel": "11_evidence_vnext/canonical",
+ "verbatim_guard": {
+  "cells_shortened": [
+   {
+    "column": "lithology",
+    "copied_words": 44,
+    "row": 160,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 37,
+    "row": 163,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 27,
+    "row": 183,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 30,
+    "row": 184,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 25,
+    "row": 186,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 31,
+    "row": 194,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 26,
+    "row": 196,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 33,
+    "row": 201,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 31,
+    "row": 202,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 40,
+    "row": 450,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 28,
+    "row": 894,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "lithology",
+    "copied_words": 31,
+    "row": 908,
+    "target": "evidence/boreholes/borehole_catalog.csv"
+   },
+   {
+    "column": "variables",
+    "copied_words": 26,
+    "row": 7,
+    "target": "catalogues/mathematics/MATHEMATICAL_MODEL_REGISTRY.csv"
+   },
+   {
+    "column": "what_is_stated",
+    "copied_words": 32,
+    "row": 442,
+    "target": "evidence/coordinates/coordinate_datum_evidence.csv"
+   },
+   {
+    "column": "name_as_printed",
+    "copied_words": 26,
+    "row": 705,
+    "target": "evidence/geology/geology_evidence.csv"
+   },
+   {
+    "column": "description",
+    "copied_words": 32,
+    "row": 705,
+    "target": "evidence/geology/geology_evidence.csv"
+   },
+   {
+    "column": "dimensions_as_printed",
+    "copied_words": 25,
+    "row": 984,
+    "target": "evidence/geology/geology_evidence.csv"
+   },
+   {
+    "column": "description",
+    "copied_words": 32,
+    "row": 984,
+    "target": "evidence/geology/geology_evidence.csv"
+   },
+   {
+    "column": "name",
+    "copied_words": 32,
+    "row": 381,
+    "target": "evidence/mining/spatial_hierarchy.csv"
+   },
+   {
+    "column": "dimensions_as_printed",
+    "copied_words": 32,
+    "row": 461,
+    "target": "evidence/mining/spatial_hierarchy.csv"
+   },
+   {
+    "column": "notes",
+    "copied_words": 30,
+    "row": 6234,
+    "target": "evidence/qa/visual_ocr_qa_ledger.csv"
+   }
+  ],
+  "rule": ">= 25 consecutive alphabetic words of a PRIVATE quote are cut to their first 20 words in PUBLIC"
+ }
 }
