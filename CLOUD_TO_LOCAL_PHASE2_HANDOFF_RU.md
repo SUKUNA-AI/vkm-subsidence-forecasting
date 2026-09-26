@@ -35,7 +35,9 @@ python -m pytest -q tests/world
 VKM_RESOURCES_ROOT=../vkm-subsidence-forecasting_resourses python scripts/verify_canonical_repository.py
 ```
 
-Без `git lfs pull` проверка PRIVATE-регистра ложно падает: вместо бинарников остаются LFS-указатели.
+Без `git lfs pull` бинарники PRIVATE остаются LFS-указателями. Верификатор тогда их не сверяет: пишет WARN
+«LFS pointers skipped» и завершается с кодом 0. Строгого режима (`--require-external`) пока нет, поэтому
+перед проверкой всегда нужен `git lfs pull`.
 
 ### 2.2 Действия, которые cloud выполнить не смог (политика среды → 403)
 
@@ -53,8 +55,19 @@ VKM_RESOURCES_ROOT=../vkm-subsidence-forecasting_resourses python scripts/verify
    ```
 
    Затем на GitHub защитить ветку `legacy` (branch protection).
+   В PRIVATE тегов нет. Якорь V23 валидатора PE v1 (`3a5761a`) и версии `pw2d_generator.py` достижимы только из
+   `origin/claude/eloquent-goodall-ka7n0u`. Поставить теги до любой чистки веток:
+
+   ```bash
+   git tag -a archive/eloquent-goodall-ka7n0u 3a5761a -m "PE v1 validator V23 anchor"
+   git tag -a pe-v1-pass4 9b53896 -m "physical_evidence_v1 pass 4"
+   git push origin --tags
+   ```
+
 2. **LFS.** Cloud не индексировал файлы под LFS-паттернами. OCR первой сессии закоммичен как обычный текст
    (`00_registry/cloud_checkpoint_2026-09-26/`). Если нужны растры рендеров или сканы, коммитить их с workstation.
+   OCR-архив с пословной уверенностью (объект `bd983e29…`, локальный коммит `292655a` cloud VM) не переносится.
+   При необходимости его пересчитывают: tesseract 5.3.4 rus, 300 dpi.
 3. **Рендеры визуальных проверок** — рабочие PNG cloud (`$VKM_WORK/run/img`). В git они не вошли,
    кроме `11_evidence_vnext/figures/musikhin/`. Каталоги ссылаются на них по имени.
    Воспроизводятся `docs/reset_2026_09/run_kit/tools/render_page.py <SID> <page>`.
@@ -89,7 +102,7 @@ python scripts/export_worldspec_schema.py && git diff --exit-code schemas/
 
 В cloud VM цепочка воспроизведена побайтово: 13 572 записи, 24 точных дубликата отброшены, счётчики совпадают
 с `11_evidence_vnext/merged/merge_summary.json`. Подробности — в
-`docs/reset_2026_09/REPRODUCIBILITY_REPORT_RU.md` (в работе).
+[REPRODUCIBILITY_REPORT_RU.md](docs/reset_2026_09/REPRODUCIBILITY_REPORT_RU.md).
 
 ## 4. Что исследовано полностью
 

@@ -410,10 +410,10 @@
     "quote"
    ],
    "source": "PHYSICS_CAUSAL/observation_operator_design.csv",
-   "source_sha256": "cd43dc25e2269a4ecd1ed6fdd510c268b60297b61743ee0b1966f1f966895eeb",
+   "source_sha256": "eccd5dd633d9fdd565b131b09d3cd767e464ed7f560e88b3fe2c1c9ffd228c0a",
    "status": "OK",
    "target": "catalogues/observations/observation_operator_design.csv",
-   "target_sha256": "dbd39f193aa6f260304f5e7853ce734ceb9be4863036aa3718fc22ecc520806e"
+   "target_sha256": "4537cc48993b425c65e09b155c09f41390b7d73ff5be60facf4cc0c074fddd7c"
   },
   {
    "dropped_columns": [
@@ -430,10 +430,10 @@
     "quote"
    ],
    "source": "PHYSICS_CAUSAL/physics_coverage_and_execution_matrix.csv",
-   "source_sha256": "90a18973239cbcaf89fded2589c391d85ff3c5a946dd78647c851c5694a6d548",
+   "source_sha256": "e80ff714764470922ac5b94c9b653a6aab752d82a0fa600bce3589c1fc296451",
    "status": "OK",
    "target": "catalogues/physics/physics_coverage_and_execution_matrix.csv",
-   "target_sha256": "e51c0bcd1c7c41ddd3bd34645afa7edb8142f310fcd957230434726d2fe836ec"
+   "target_sha256": "844e98b2ba27b6a8e2748b36520791a627881d324c53cfb467d3377aa8198065"
   },
   {
    "dropped_columns": [],
