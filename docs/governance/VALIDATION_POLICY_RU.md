@@ -94,6 +94,10 @@ claim даёт `RepeatedTestAccessError`. Без замороженного ка
     (`PHASE1_DESIGN_DECISIONS_RU.md`): для литературы это дата публикации с пометкой
     `ASSUMED_FROM_PUBLICATION`, для внутренних данных предприятия — UNKNOWN, пока нет свидетельства.
   - Guard доступность не выводит.
+- Роль прогнозиста по умолчанию — внешний исследователь (`EXTERNAL`) без доступа к внутренним данным
+  предприятия (D-03, D-16). Роль оператора (`OPERATOR`) допускается, только если бенчмарк явно объявит её при
+  предрегистрации. Правила по классам данных для обеих ролей — колонки `forecaster_role` и `benchmark_rule`
+  матрицы `evidence/lifecycle/information_lifecycle_matrix.csv` (находка CHRONOLOGY-022).
 - Измерение до `t0`, обработанное после `t0`, на дату `t0` недоступно.
 - Для каждого образца `origin < target`, горизонт положителен и равен `target − origin` в днях
   (`assert_time_alignment`, `assert_positive_horizon`).
