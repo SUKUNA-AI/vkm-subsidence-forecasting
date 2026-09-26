@@ -7,7 +7,10 @@
   `workflows/{corpus_sweep,math_foundation_wave1,repo_audit}.js`;
 - **Phase 1** (вторая сессия, «CLOUD ULTRACODE»): полный sweep 65 чтений, синтез, внешний поиск.
   Файлы: `SWEEP_PROTOCOL_PHASE1.md`, `CONTEXT_PREAMBLE_PHASE1.md`, `phase1_repack_keys.json`,
-  `workflows/phase1_{corpus_sweep,synthesis,external_research,resume_after_limit}.js`.
+  `workflows/phase1_{corpus_sweep,synthesis,external_research,resume_after_limit}.js`;
+- **самопроверка Phase 1**: шесть линз adversarial review, затем исправления по потокам (решение D-14).
+  Файлы: `workflows/phase1_adversarial_review.js`, `workflows/phase1_review_fixes.js`. Находки и журналы —
+  PRIVATE `11_evidence_vnext/receipts/review_phase1/` и `canonical/<STREAM>/FIX_LOG.csv`.
 
 Протоколы и workflow-скрипты — это данные прогона: в них остались пути облачной VM. Код инструментов (`tools/*.py`)
 путей машины не содержит и читает корни из окружения (`tools/_roots.py`).
@@ -36,7 +39,7 @@
 export VKM_PUB=... VKM_RESOURCES_ROOT=... VKM_WORK=... VKM_MERGED_DIR=$VKM_WORK/merged
 python tools/merge_sweep.py            # all_records.jsonl, kind_*.csv, merge_summary.json, parse_errors.json
 python tools/quote_check_v2.py         # quote_check_v2.csv
-python tools/build_coverage_master.py  # SOURCE_COVERAGE_MASTER.csv
+python tools/build_coverage_master.py  # SOURCE_COVERAGE_MASTER.csv (поправки страниц и отложенных вопросов — в сборщике)
 python tools/batch_loss_audit.py       # batch_loss_audit.csv
 python tools/status.py                 # 81 чанков, 81 DONE
 ```
@@ -49,3 +52,22 @@ python tools/status.py                 # 81 чанков, 81 DONE
 Сборщики отдельных потоков синтеза лежат рядом с каталогами в PRIVATE `11_evidence_vnext/canonical/<STREAM>/`
 (`build/`, `scripts/`, `_build/`, `defs/`). Это квитанции прогона: пути VM в них не переписаны.
 Для повторного запуска на другой машине их копируют и заменяют корни так же, как в `localize_paths.sh`.
+
+После самопроверки `build_coverage_master.py` получил оверлей поправок страниц (COVERAGE_DUPLICATES-002) и пометки
+вопросов, закрытых в другом чанке (COVERAGE_DUPLICATES-011). Пересборка и её хеши —
+PRIVATE `11_evidence_vnext/receipts/coverage_master_rebuild_2026-09-26.txt`. Уровни покрытия не изменились.
+
+## Публикация отчётов в PUBLIC
+
+```bash
+VKM_PUB=... VKM_RESOURCES_ROOT=... python tools/publish_reports.py --all
+```
+
+`--all` публикует все 18 отчётов Phase 1:
+
+- 12 отчётов синтеза — в `docs/science/`;
+- 6 отчётов внешнего поиска — в `docs/science/external/EXTERNAL_RESEARCH_*`.
+
+Ссылки на опубликованные каталоги переписываются в относительные пути PUBLIC. Имя файла, которое встречается
+в нескольких потоках (`FIX_LOG.csv`), разрешается сначала внутри своего потока. Пути машины заменяются
+логическими корнями.
