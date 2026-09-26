@@ -222,20 +222,20 @@
   {
    "dropped_columns": [],
    "source": "GEOLOGY_COORDS/FIX_LOG.csv",
-   "source_sha256": "1aa43339568a6d47b5ac7a7526ac31f74b72cf3e03a623595831ded8d03a0365",
+   "source_sha256": "37d7e473ac631d6d5b6623161e60a706be3af08f534cf609d85d45327656b89a",
    "status": "OK",
    "target": "evidence/qa/review_fixes/geology_coords_fix_log.csv",
-   "target_sha256": "9059c6e5e4558ea643587c1bb6083c658dc92210b77042569254d2344b15c038"
+   "target_sha256": "818d273d767c8ad23a94c42d6546e24eeaa6f59665cc854b130ffff09545a874"
   },
   {
    "dropped_columns": [
     "quote"
    ],
    "source": "GEOLOGY_COORDS/coordinate_datum_evidence.csv",
-   "source_sha256": "a1544c564512d86d0dc89f6178d4487f22013badb6fa75772f4141f0859bd874",
+   "source_sha256": "e675cc5b4b7b5b77c88e973343993288bf4bf070d1184bf25e6e00a9b4478985",
    "status": "OK",
    "target": "evidence/coordinates/coordinate_datum_evidence.csv",
-   "target_sha256": "b15bd12ce057e5eb1a18f06a94592b95a5dfa3bf527ac5259d49d964a218ee39"
+   "target_sha256": "0fc46086154ecdd0ab2d168053fcc85b4a5f748eae0b75181ac6f819fb243d9d"
   },
   {
    "dropped_columns": [
