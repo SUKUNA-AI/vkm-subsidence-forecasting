@@ -1,6 +1,7 @@
 # Состояние проекта ВКМ / СКРУ-1 (каноническое)
 
-Дата среза: 26.09.2026. Ветка работы: `research/evidence-worldspec-reset` в обоих репозиториях (PR в `main`).
+Дата среза: 26.09.2026. Ветка работы: `research/evidence-worldspec-reset` в обоих репозиториях. PR в `main`:
+[PUBLIC #1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/pull/1), [PRIVATE #1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting_resourses/pull/1) — сливать вместе.
 
 - **Phase 1 (cloud) — информация и архитектура — завершена**, вместе с самопроверкой и волной исправлений.
 - Следующая фаза — **Phase 2 (локальная workstation): вычисления**.

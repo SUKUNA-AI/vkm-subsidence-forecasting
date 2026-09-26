@@ -75,7 +75,7 @@ push тегов и выгрузка LFS (политика 403); команды �
 |---|---|---|---|
 | Начало первой сессии (ночной run) | `main` = `d54025d` | `main` = `482bec0` | деревья чистые; ветка `legacy` = `d54025d` создана до любых изменений |
 | Начало Phase 1 (эта сессия) | `main` = `1c1f816` | `main` = `9e4bf11` | checkpoint первой сессии влит в `main` fast-forward'ом; рабочая ветка `research/evidence-worldspec-reset` создана от них |
-| Конец Phase 1 | ветка `research/evidence-worldspec-reset` (раздел 31) | то же | PR в `main` обоих репозиториев открываются при закрытии Phase 1 (раздел 31) |
+| Конец Phase 1 | ветка `research/evidence-worldspec-reset` (раздел 31) | то же | PR в `main`: [PUBLIC #1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/pull/1), [PRIVATE #1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting_resourses/pull/1) |
 
 Окружение: Linux, 4 CPU, 15 ГБ RAM, Python 3.13.
 
@@ -1453,11 +1453,11 @@ Cмп ≤ 0,2; критическая деформация 0,3hмп/min(a1, a2).
 
 | Репозиторий | Ветка | Состояние |
 |---|---|---|
-| PUBLIC | `research/evidence-worldspec-reset` | работа Phase 1 — коммиты от `1c1f816`; PR в `main` открывается при закрытии Phase 1 |
+| PUBLIC | `research/evidence-worldspec-reset` | работа Phase 1 — коммиты от `1c1f816`; [PR #1 в `main`](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/pull/1) |
 | PUBLIC | `main` | `1c1f816` до слияния PR |
 | PUBLIC | `legacy` | `d54025d`, не трогается |
-| PUBLIC и PRIVATE | `claude/practical-volta-l67oia` | назначенная ветка cloud-задачи; до закрытия Phase 1 указывала на стартовые `1c1f816` / `9e4bf11`, при открытии PR получает коммиты Phase 1 (fast-forward) |
-| PRIVATE | `research/evidence-worldspec-reset` | работа Phase 1 — коммиты от `9e4bf11`; PR в `main` открывается при закрытии Phase 1 |
+| PUBLIC и PRIVATE | `claude/practical-volta-l67oia` | назначенная ветка cloud-задачи; до закрытия Phase 1 указывала на стартовые `1c1f816` / `9e4bf11`, при открытии PR получила коммиты Phase 1 (fast-forward) |
+| PRIVATE | `research/evidence-worldspec-reset` | работа Phase 1 — коммиты от `9e4bf11`; [PR #1 в `main`](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting_resourses/pull/1) |
 | PRIVATE | `main` | `9e4bf11` до слияния PR |
 
 Не отправлено из cloud (политика 403):
