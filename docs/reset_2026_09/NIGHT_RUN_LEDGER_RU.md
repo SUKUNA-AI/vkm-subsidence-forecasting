@@ -71,3 +71,20 @@ Parent task: «CLOUD ULTRACODE — ПРОДОЛЖЕНИЕ SCIENTIFIC RESET ПР�
 - Промежуточные результаты: `/home/user/work/sweep_results/<SID>/<chunk>/`; фоновый snapshot каждые
   40 мин в PRIVATE `11_evidence_vnext/sweep_raw/` (commit + push, без LFS).
 - Параллельно: read-only аудит PUBLIC repo, старого PW v1/OGS и воспроизводимости.
+
+### P1.1a Перепаковка sweep (≈11:05 UTC)
+
+- Плотные источники читались ~5 мин/страницу (Кудряшов, норматив 1992); при 2 агентах на workflow группы A/D
+  заняли бы 10–12 ч. Загрузка VM была низкой (load ≈ 1), поэтому 5 workflow остановлены и 64 оставшихся
+  чтения перепакованы в 12 workflow (R01–R12, ≈24 агента одновременно). Незавершённые чтения продолжаются
+  с `progress.json` (протокол требует resume), потеря — не более одной пачки страниц.
+- Готово к этому моменту: VKM-SRC-040 c2, VKM-SRC-012 c1.
+
+## P1.2 Фундамент и дизайн (выполнено параллельно со sweep)
+
+- `src/vkm_world/**`: типизированная схема WorldSpec vNext (pydantic), 29 тестов (`tests/world`), JSON Schema
+  `schemas/worldspec_vnext.schema.json` (commit `e9f3a57`).
+- `docs/worldspec/WORLD_SPEC_VNEXT_RU.md` (`d353c84`); `docs/governance/SCIENTIFIC_RULES_RU.md`,
+  `DATA_AND_PATH_POLICY_RU.md`, `docs/architecture/REPOSITORY_ARCHITECTURE_RU.md` (`fb460de`).
+- Подготовлены: сборщик `SOURCE_COVERAGE_MASTER` (детерминированные правила уровней покрытия),
+  синтез-workflow (10 потоков), `scripts/build_public_catalogues.py` (PRIVATE canonical → PUBLIC без цитат).
