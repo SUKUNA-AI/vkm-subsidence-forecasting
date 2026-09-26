@@ -123,3 +123,52 @@ Parent task: «CLOUD ULTRACODE — ПРОДОЛЖЕНИЕ SCIENTIFIC RESET ПР�
 - PRIVATE: `11_evidence_vnext/` (sweep_raw + merged + receipts), commit `a1cf849`.
 
 ## P1.4 — синтез (в работе): 10 потоков; reset репозитория (в работе): 2 агента
+
+## P1.4 — ЗАВЕРШЕНО: центральный синтез и публикация каталогов
+
+- 10 потоков синтеза готовы:
+  - SOURCES, CITATIONS, BOREHOLES, GEOLOGY_COORDS, MINING;
+  - MECH_RHEO, HYDRO_THERMAL_GEOPHYS, MONITORING_LIFECYCLE, PHYSICS_CAUSAL, FORMULAS.
+- Где лежат результаты:
+  - PRIVATE `11_evidence_vnext/canonical/<STREAM>/` (с цитатами): `2f6fc0b`, `9415f60`, `4fe2bf9`, `d5452fb`;
+  - PUBLIC `evidence/`, `catalogues/` (без цитат, 46 файлов): `95218c5`, `b641c12`;
+  - отчёты `docs/science/` (11).
+- Реестр математических моделей: 276 моделей (валидны по `MathModelRecord`), 38 конфликтов формул.
+  Все ссылки на модели из матрицы физики, операторов и конфликтов разрешаются. Это закреплено тестом.
+- Схема расширена по evidence: уровни иерархии SHAFT / MINE_HORIZON / EXPLORATION_AREA / DEPOSIT_PART,
+  DesignOrActual.RECORDED / UNRESOLVED. Все 636 узлов иерархии проходят `hierarchy_errors` (`77b2666`).
+
+## P1.5 — ЗАВЕРШЕНО: reset документации
+
+- PUBLIC:
+  - новые README, `PROJECT_STATE_RU.md`, CLAUDE.md, AGENTS.md, `CLOUD_TO_LOCAL_PHASE2_HANDOFF_RU.md`;
+  - `README_FIRST.md` удалён;
+  - state-документы до reset перенесены в `docs/legacy/`, checkpoint первой сессии — в `docs/reset_2026_09/` (`dd174ff`).
+- PRIVATE: README и CLAUDE.md на русском, README `11_evidence_vnext`, пометка «исторический» на state-документе (`c026bd6`).
+- Страж утечки: машинные пути (домашний каталог VM, временные каталоги агентов) запрещены в коде, данных и прозе.
+  При публикации их заменяет `sanitize_paths` (`f0c5e86`, `bbda7a2`).
+- Инцидент: при публикации аудитов в PUBLIC попал путь рабочей станции `E:\…`. Причина: тест утечки видит только
+  отслеживаемые файлы, а запускался до `git add`. Исправлено (`db90a13`). Правило: верификатор запускать после индексации.
+
+## P1.6 — воспроизводимость
+
+- Аудиты до reset опубликованы: `docs/reset_2026_09/audit/` (`2b06acf`); PRIVATE-копия — `receipts/audit/` (`294fa4c`).
+- Инструменты Phase 1 перенесены в run kit с корнями из окружения (`5e08baa`). `quote_check_v2.py` восстановлен
+  из инлайн-команды координатора.
+- Пересборка из закоммиченного `sweep_raw/` совпадает побайтово:
+  - `all_records.jsonl`;
+  - `merge_summary.json`, `quote_check_v2.csv`, `SOURCE_COVERAGE_MASTER.csv`, `batch_loss_audit.csv`.
+- Сверка 36 находок RPR — в `REPRODUCIBILITY_REPORT_RU.md`.
+
+## P1.7 — прерывание по лимиту и сетевые ограничения
+
+- ~14:20 UTC лимит использования аккаунта оборвал 4 фоновых workflow: FORMULAS, OCR_VISUAL_QA и 6 потоков
+  внешнего поиска. Инкрементальное сохранение сработало.
+  - FORMULAS успел завершиться.
+  - Остальные продолжены с сохранённого прогресса (workflow `phase1_resume_after_limit.js`).
+- Сеть:
+  - Firecrawl отвечает 402 (кончились кредиты);
+  - egress-политика окружения закрывает научные домены (cyberleninka, elibrary, journal.permsc.ru, gorniyzhurnal.ru,
+    doi.org, crossref, uralkali.com, docs.cntd.ru и др.);
+  - доступен только WebSearch (метаданные и аннотации).
+  - Внешний поиск продолжен с честной пометкой уровня доступа. Недоступные первоисточники переданы в Phase 2.
