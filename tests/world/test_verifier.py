@@ -87,6 +87,13 @@ def test_never_raises_on_missing_root_or_broken_registry(tmp_path):
                       use_env=False)
     checks = _checks(report)
     assert checks["registry:load"]["status"] == "FAIL" and report["exit_code"] == 1
+    bad.write_text(json.dumps({"references": [{"id": "X", "path": "a.json", "sha256": "abc"}]}), encoding="utf-8")
+    report = V.verify(tmp_path, registry_path=bad, groups=["registry", "frozen_references", "retired_references"],
+                      use_env=False)
+    checks = _checks(report)
+    assert checks["registry:schema"]["status"] == "FAIL"
+    assert checks["frozen_references:registry"]["status"] == "SKIPPED"
+    assert not any(c["id"].endswith(":error") for c in report["checks"])
 
 
 def test_cli_writes_report_and_returns_exit_code(tmp_path, capsys):

@@ -292,12 +292,11 @@ def load_private_register(ctx: Context) -> None:
 
 
 # --------------------------------------------------------------------------- 0. registry
-def check_registry(ctx: Context) -> list[Check]:
-    rel = _display_path(ctx.registry_path, ctx.root)
-    if ctx.registry is None:
-        return [Check("registry:load", "registry", FAIL, True, f"cannot load registry {rel}",
-                      {"error": ctx.registry_error})]
-    reg, problems = ctx.registry, []
+def registry_problems(reg: dict) -> list[str]:
+    """Schema problems of a FROZEN_REFERENCE registry (empty list = well formed)."""
+    if not isinstance(reg, dict):
+        return ["registry is not a JSON object"]
+    problems: list[str] = []
     refs = reg.get("references")
     if not isinstance(refs, list) or not refs:
         problems.append("'references' must be a non-empty list")
@@ -317,29 +316,48 @@ def check_registry(ctx: Context) -> list[Check]:
             problems.append(f"{rid}: sha256 is not 64 lowercase hex")
         if not COMMIT_RE.match(str(r.get("commit", ""))):
             problems.append(f"{rid}: commit is not a full 40-hex SHA")
-        if not isinstance(r.get("verify_at"), list) or not r["verify_at"]:
-            problems.append(f"{rid}: verify_at must be a non-empty list")
-        rule = (r.get("closure") or {}).get("rule")
+        if not isinstance(r.get("verify_at"), list) or not r["verify_at"] or \
+                not all(isinstance(x, str) and x for x in r["verify_at"]):
+            problems.append(f"{rid}: verify_at must be a non-empty list of refs")
+        rule = (r.get("closure") or {}).get("rule", "none")
         if rule not in known_rules:
             problems.append(f"{rid}: unknown closure rule {rule!r}")
         for cc in r.get("cross_checks", []) or []:
-            if cc.get("equals_reference") not in ids:
-                problems.append(f"{rid}: cross-check target {cc.get('equals_reference')!r} is not a registered id")
+            if not isinstance(cc, dict) or not cc.get("json_field") or cc.get("equals_reference") not in ids:
+                problems.append(f"{rid}: cross-check needs json_field and a registered equals_reference")
     for a in reg.get("anchors", []) or []:
-        if a.get("kind") not in {"branch", "tag"} or not COMMIT_RE.match(str(a.get("commit", ""))):
-            problems.append(f"anchor {a.get('name')!r}: kind must be branch/tag and commit a full SHA")
+        if not isinstance(a, dict) or not a.get("name") or a.get("kind") not in {"branch", "tag"} \
+                or not COMMIT_RE.match(str(a.get("commit", ""))):
+            problems.append(f"anchor {a!r}: needs name, kind branch/tag and a full commit SHA")
     retired = reg.get("retired_references") or {}
     if retired:
         if not COMMIT_RE.match(str(retired.get("commit", ""))):
             problems.append("retired_references.commit is not a full SHA")
         for f in retired.get("files", []) or []:
-            if not SHA256_RE.match(str(f.get("sha256", ""))):
-                problems.append(f"retired {f.get('path')}: invalid sha256")
+            if not isinstance(f, dict) or not f.get("path") or not SHA256_RE.match(str(f.get("sha256", ""))):
+                problems.append(f"retired entry {f!r}: needs path and sha256")
+    return problems
+
+
+def _registry_unusable(ctx: Context, group: str) -> list[Check] | None:
+    if ctx.registry is None or registry_problems(ctx.registry):
+        return [Check(f"{group}:registry", group, SKIPPED, False, "registry missing or malformed (see registry:*)")]
+    return None
+
+
+def check_registry(ctx: Context) -> list[Check]:
+    rel = _display_path(ctx.registry_path, ctx.root)
+    if ctx.registry is None:
+        return [Check("registry:load", "registry", FAIL, True, f"cannot load registry {rel}",
+                      {"error": ctx.registry_error})]
+    problems = registry_problems(ctx.registry)
     if problems:
         return [Check("registry:schema", "registry", FAIL, True, f"registry {rel} is malformed",
                       {"problems": _capped(problems)})]
+    reg = ctx.registry
+    retired = reg.get("retired_references") or {}
     return [Check("registry:schema", "registry", PASS, True,
-                  f"registry {rel}: {len(refs)} references, {len(reg.get('anchors', []) or [])} anchors, "
+                  f"registry {rel}: {len(reg['references'])} references, {len(reg.get('anchors', []) or [])} anchors, "
                   f"{len(retired.get('files', []) or [])} retired files",
                   {"registry_sha256": sha256_file(ctx.registry_path)})]
 
@@ -428,7 +446,7 @@ def _walk_json_manifest(ctx: Context, commit: str, path: str, closure: dict, acc
             if section in local:
                 child = posixpath.join(posixpath.dirname(path), child)
             child = posixpath.normpath(child)
-            if child.startswith("../") or child.startswith("/"):
+            if child == ".." or child.startswith("../") or child.startswith("/"):
                 acc["errors"].append({"kind": "unsafe_path", "path": child, "via": path})
                 continue
             if _verify_closure_item(ctx, commit, child, record["sha256"], record.get("size_bytes"), path, acc) \
@@ -501,8 +519,9 @@ def _verify_reference_at(ctx: Context, entry: dict, ref: str, commit: str, sha_b
 
 
 def check_frozen_references(ctx: Context) -> list[Check]:
-    if ctx.registry is None:
-        return [Check("frozen:registry", "frozen_references", SKIPPED, False, "registry unavailable")]
+    unusable = _registry_unusable(ctx, "frozen_references")
+    if unusable:
+        return unusable
     if not ctx.git.available:
         return [Check("frozen:git", "frozen_references", SKIPPED_REF, False,
                       "not a git work tree: frozen references cannot be read from git objects", {"how_to_fix": REF_HELP})]
@@ -548,6 +567,9 @@ def check_frozen_references(ctx: Context) -> list[Check]:
 
 # --------------------------------------------------------------------------- 2. retired references
 def check_retired_references(ctx: Context) -> list[Check]:
+    unusable = _registry_unusable(ctx, "retired_references")
+    if unusable:
+        return unusable
     spec = (ctx.registry or {}).get("retired_references") or {}
     if not spec:
         return [Check("retired:registry", "retired_references", SKIPPED, False, "no retired_references in registry")]
@@ -956,7 +978,8 @@ def verify(root: str | Path = DEFAULT_ROOT, registry_path: str | Path | None = N
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--root", default=str(DEFAULT_ROOT), help="repository root (default: parent of scripts/)")
-    parser.add_argument("--registry", default=None, help="FROZEN_REFERENCE registry (default: scripts/frozen_references.json)")
+    parser.add_argument("--registry", default=None,
+                        help="FROZEN_REFERENCE registry (default: frozen_references.json next to this script)")
     parser.add_argument("--resources-root", default=None, help="PRIVATE checkout (default: $VKM_RESOURCES_ROOT)")
     parser.add_argument("--output", nargs="?", const=DEFAULT_OUTPUT, default=None,
                         help=f"also write the report to this path (relative to --root; default {DEFAULT_OUTPUT})")
