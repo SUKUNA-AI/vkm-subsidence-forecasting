@@ -241,3 +241,21 @@ Parent task: «CLOUD ULTRACODE — ПРОДОЛЖЕНИЕ SCIENTIFIC RESET ПР�
   `5b96c2e`, `636eaf4`, `f73da08`). Детерминизм после них проверен повторно (`b78cefe`, `a484ad6`).
   Журнал исправлений координатора и копии отчёта и handoff — в PRIVATE.
 - PR `research/evidence-worldspec-reset` → `main` в обоих репозиториях.
+
+## P1.13 — проверка итогового отчёта, слияние в `main`
+
+- Состязательная проверка итогового отчёта:
+  - `f654903` (PUBLIC) — поправки отчёта, PROJECT_STATE и handoff;
+  - `4cb0b6e` (PRIVATE) — формулировки трёх отчётов потоков (COORDINATOR-POSTMERGE-04).
+- `85f6c78` — ссылки на PR в отчёте, PROJECT_STATE и handoff. `4edf989` (PRIVATE) — копии отчёта и handoff
+  в `00_registry/cloud_phase1_2026-09-26/`.
+- 26.09.2026 PR слиты merge-коммитами:
+  - PUBLIC [#1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/pull/1) → `40ca0ed`;
+  - PRIVATE [#1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting_resourses/pull/1) → `07838a1`.
+
+  Деревья `main` совпадают с проверенными головами веток (`85f6c78`, `4edf989`). История ветки сохранена, поэтому
+  хэши в документах достижимы из `main`.
+- После слияния:
+  - формулировки «до слияния» в PROJECT_STATE, handoff и README заменены;
+  - сборка EXTERNAL на `07838a1` повторно проверена: таблицы и копии отчётов совпали побайтово (PRIVATE
+    `11_evidence_vnext/receipts/determinism_check_postmerge_2026-09-26.txt`).

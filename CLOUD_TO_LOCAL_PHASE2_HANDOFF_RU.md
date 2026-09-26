@@ -15,8 +15,8 @@
 
 | Репозиторий | Ветка | Что |
 |---|---|---|
-| PUBLIC `SUKUNA-AI/vkm-subsidence-forecasting` | `research/evidence-worldspec-reset` ([PR #1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/pull/1) в `main`) | код `src/vkm_world`, схема, public-safe каталоги `evidence/`, `catalogues/`, документы |
-| PRIVATE `SUKUNA-AI/vkm-subsidence-forecasting_resourses` | `research/evidence-worldspec-reset` ([PR #1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting_resourses/pull/1) в `main`) | `11_evidence_vnext/`: сырые выходы sweep, merged-записи, канонические каталоги с цитатами, receipts |
+| PUBLIC `SUKUNA-AI/vkm-subsidence-forecasting` | `main` (Phase 1 слита: [PR #1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/pull/1) → `40ca0ed`) | код `src/vkm_world`, схема, public-safe каталоги `evidence/`, `catalogues/`, документы |
+| PRIVATE `SUKUNA-AI/vkm-subsidence-forecasting_resourses` | `main` (Phase 1 слита: [PR #1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting_resourses/pull/1) → `07838a1`) | `11_evidence_vnext/`: сырые выходы sweep, merged-записи, канонические каталоги с цитатами, receipts |
 | PUBLIC | `legacy` = `d54025d` | вся старая архитектура (v2.1, Gate A/B/C, PW v1, OGS-пакеты) — не трогать |
 
 Тяжёлый объединённый файл `all_records.jsonl` (13 572 записи, 22 МБ) в git не входит.
@@ -29,10 +29,8 @@
 ```bash
 git clone https://github.com/SUKUNA-AI/vkm-subsidence-forecasting.git
 git clone https://github.com/SUKUNA-AI/vkm-subsidence-forecasting_resourses.git
-# пока PR не слиты, main в обоих репозиториях — состояние до reset: нужна ветка Phase 1
-cd vkm-subsidence-forecasting_resourses && git checkout research/evidence-worldspec-reset
-git lfs install --local && git lfs pull && cd ..
-cd vkm-subsidence-forecasting && git checkout research/evidence-worldspec-reset
+cd vkm-subsidence-forecasting_resourses && git lfs install --local && git lfs pull && cd ..
+cd vkm-subsidence-forecasting
 python -m venv .venv && . .venv/bin/activate            # Python 3.13
 pip install -r requirements/worldspec.lock.txt && pip install -e .
 python -m pytest -q tests/world

@@ -45,7 +45,6 @@ Field validation — по реальным маркшейдерским, GNSS и
 
 ```bash
 git clone https://github.com/SUKUNA-AI/vkm-subsidence-forecasting.git && cd vkm-subsidence-forecasting
-git checkout research/evidence-worldspec-reset    # пока PR Phase 1 не слит в main (то же — в клоне PRIVATE)
 git lfs install --local && git lfs pull          # LFS используется только историческими объектами
 python -m venv .venv && . .venv/bin/activate     # Python 3.13
 pip install -r requirements/worldspec.lock.txt && pip install -e .

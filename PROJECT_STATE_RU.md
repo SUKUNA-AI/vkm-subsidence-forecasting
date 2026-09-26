@@ -1,7 +1,10 @@
 # Состояние проекта ВКМ / СКРУ-1 (каноническое)
 
-Дата среза: 26.09.2026. Ветка работы: `research/evidence-worldspec-reset` в обоих репозиториях. PR в `main`:
-[PUBLIC #1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/pull/1), [PRIVATE #1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting_resourses/pull/1) — сливать вместе.
+Дата среза: 26.09.2026. Phase 1 слита в `main` обоих репозиториев merge-коммитами:
+[PUBLIC #1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/pull/1) → `40ca0ed`,
+[PRIVATE #1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting_resourses/pull/1) → `07838a1`.
+Работа шла в ветке `research/evidence-worldspec-reset`. История ветки сохранена, поэтому хэши коммитов в документах
+достижимы из `main`.
 
 - **Phase 1 (cloud) — информация и архитектура — завершена**, вместе с самопроверкой и волной исправлений.
 - Следующая фаза — **Phase 2 (локальная workstation): вычисления**.
@@ -11,14 +14,18 @@
 - диплом — «Горные и маркшейдерские работы при разработке Верхнекамского месторождения»;
 - специальная часть — «Алгоритм прогнозирования оседаний земной поверхности на ВКМ на основе маркшейдерских измерений».
 
-Опорные коммиты среза:
+Срез — `main` после слияния: PUBLIC `40ca0ed`, PRIVATE `07838a1`. Опорные коммиты Phase 1:
 
 - PRIVATE:
-  - `29f09e8` — канонические каталоги после волны исправлений;
-  - `a627ce6` — проверка детерминизма;
-  - `9c3050f` — квитанции самопроверки и пересборка мастера покрытия.
+  - `29f09e8` — канонические каталоги после волны исправлений самопроверки;
+  - `a627ce6` — проверка детерминизма этих каталогов;
+  - `9c3050f` — квитанции самопроверки и пересборка мастера покрытия;
+  - `5b96c2e`, `f73da08`, `4cb0b6e` — исправления координатора после сверки итогового отчёта с каталогами
+    (COORDINATOR-POSTMERGE-01…04);
+  - `b78cefe`, `a484ad6` — повторные проверки детерминизма на `5b96c2e` и `f73da08`.
 - PUBLIC:
-  - `f3e8cd4` — public-каталоги, собранные из этого canonical.
+  - `f3e8cd4` — public-каталоги, собранные из canonical `29f09e8`;
+  - `3fafb55`, `a8df082` — пересборка public-каталогов после исправлений координатора.
 
 Документ заменяет прежние `README_FIRST.md` и `docs/CANONICAL_RESEARCH_STATE_RU.md`. Их содержание сохранено
 в `docs/legacy/` и в ветке `legacy`.
@@ -91,7 +98,7 @@ Field validation ведётся по реальным маркшейдерски
 | Визуальная и OCR-проверка | Журнал 6902 строки, 200 поправок (оверлей, решение D-13), таблица влияния на 1924 строки. Критических нерешённых строк 193, у каждой указан класс причины | `evidence/qa/`, [отчёт](docs/science/VISUAL_OCR_QA_RU.md) |
 | Внешний поиск | 131 источник с честными метками доступа (D-12), 194 находки, 31 сверка формул, 321 строка «цель → источник» (поле `target` местами разрезано по запятым — это не число целей). Работали только WebSearch и ограниченный доступ | `evidence/external/`, [отчёты](docs/science/external/) |
 | WorldSpec | Спецификация и типизированный фундамент `src/vkm_world` (pydantic v2), JSON Schema. Решения D-01…D-18, 209 лёгких тестов `tests/world` | [спецификация](docs/worldspec/WORLD_SPEC_VNEXT_RU.md), `schemas/`, `tests/world/` |
-| Reset репозитория | На ветке `research/evidence-worldspec-reset` коммит `ac7795d` убрал из дерева 451 файл прежней архитектуры; `main` получит это при слиянии PR. Прежняя архитектура сохранена в `legacy`, frozen-ссылки проверяются по git-объектам | [индекс legacy](docs/legacy/LEGACY_INDEX_RU.md) |
+| Reset репозитория | Коммит `ac7795d` ветки `research/evidence-worldspec-reset` убрал из дерева 451 файл прежней архитектуры; с 26.09.2026 это в `main` ([PR #1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/pull/1)). Прежняя архитектура сохранена в `legacy`, frozen-ссылки проверяются по git-объектам | [индекс legacy](docs/legacy/LEGACY_INDEX_RU.md) |
 
 ## 3. Что известно (главные научные результаты)
 
@@ -281,6 +288,9 @@ UNKNOWN — полноправное значение. Масштаб по ум�
 - **Детерминизм.**
   - Все 9 исправленных потоков пересобраны из закоммиченных файлов дважды: со случайным и с фиксированным hash seed.
     Каталоги совпали побайтово (PRIVATE `11_evidence_vnext/receipts/determinism_check_2026-09-26.txt`).
+  - После исправлений координатора (COORDINATOR-POSTMERGE-01…04) проверка в строгом режиме повторена на `5b96c2e`
+    и `f73da08`. Все каталоги снова совпали побайтово. Сборка EXTERNAL на `main` побайтово воспроизводит свои таблицы
+    и копии отчётов (PRIVATE `11_evidence_vnext/receipts/determinism_check_postmerge_2026-09-26.txt`).
   - Цепочка объединения sweep тоже воспроизводится побайтово
     ([REPRODUCIBILITY_REPORT_RU.md](docs/reset_2026_09/REPRODUCIBILITY_REPORT_RU.md)).
 - **Проверки PUBLIC.** `python -m pytest -q tests/world` — 209 тестов. Среди них:
