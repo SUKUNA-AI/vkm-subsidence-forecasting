@@ -154,7 +154,8 @@ def leave_one_group_out_assignments(sample_groups: Mapping[str, Any], *, group_k
             for g in distinct for s in sorted(groups)]
 
 
-def leave_one_borehole_out(sample_boreholes: Mapping[str, Any], *, sealed: Collection[str] = ()) -> list[FoldAssignment]:
+def leave_one_borehole_out(sample_boreholes: Mapping[str, Any], *,
+                           sealed: Collection[str] = ()) -> list[FoldAssignment]:
     return leave_one_group_out_assignments(sample_boreholes, group_kind="borehole", sealed=sealed)
 
 

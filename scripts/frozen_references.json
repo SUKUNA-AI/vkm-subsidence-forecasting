@@ -1,0 +1,173 @@
+{
+ "schema": "vkm_frozen_references/1",
+ "description": "Machine-readable FROZEN_REFERENCE registry. The bytes of these releases are not in the working tree of the new main; their identity is verified from git objects by scripts/verify_canonical_repository.py. Human-readable index: docs/legacy/LEGACY_INDEX_RU.md.",
+ "origin": "PUBLIC_REPO_AUDIT_RU.md section 6 (structural audit 2026-09-26, tree d95344e); commits resolved to full SHA-1",
+ "hash_rules": {
+  "git_blob": "sha256 of the bytes of 'git cat-file blob <commit>:<path>' equals the expected sha256; size_bytes, when given, equals the blob length",
+  "lfs_pointer": "the blob is a Git LFS v1 pointer: its 'oid sha256:<hex>' equals the expected sha256 (the LFS oid is the sha256 of the content) and its 'size' equals size_bytes when given; no LFS download is needed",
+  "externalized_source": "a path under externalized_prefixes that is absent at the ref is matched by sha256 against PRIVATE 00_registry/SOURCE_REGISTER.csv (VKM_RESOURCES_ROOT); when present at the ref it is hash-checked and, if the register is available, also matched against it",
+  "retired": "a path under retired_prefixes is not resolved at the reference commit; it is verified separately at retired_references.commit"
+ },
+ "closure_rules": {
+  "none": "only the pinned object itself",
+  "json_manifest": "JSON object; every record {path, sha256[, size_bytes]} in the listed sections is verified at the same ref; sections listed in relative_to_manifest_dir resolve against the manifest directory, all others against the repository root; nested files named in nested_manifest_names are walked recursively",
+  "csv_inventory": "CSV with a path column, sha256 and optional size_bytes; paths are relative to the repository root"
+ },
+ "nested_manifest_names": ["manifest.json", "representation_manifest.json"],
+ "retired_prefixes": ["SKRU1_ACTUAL_DATA_TABLES_v1/", "inputs/bootstrap/"],
+ "externalized_prefixes": ["inputs/sources/"],
+ "anchors": [
+  {"name": "legacy", "kind": "branch", "commit": "d54025d4c47b79b864076a33a4ecf877174ec922", "note": "pre-reset architecture; must stay at this commit (protect the branch on GitHub)"},
+  {"name": "legacy/final", "kind": "tag", "commit": "d54025d4c47b79b864076a33a4ecf877174ec922"},
+  {"name": "frozen/gate-b3", "kind": "tag", "commit": "ce8e57ee3dfd82579fb00c8ab5d17bf1b925c9a4"},
+  {"name": "frozen/scenario-v2.1", "kind": "tag", "commit": "71d705d092403a8aae3a5300dec57938df11ad02"},
+  {"name": "frozen/scenario-v2", "kind": "tag", "commit": "ffcf86972d31bd9f0dbd62d1265001f5c722e253"},
+  {"name": "frozen/r1", "kind": "tag", "commit": "c5da1103154c29e2ffe9c52bbceacaa032f1690f"},
+  {"name": "frozen/r2", "kind": "tag", "commit": "2794c877369e6fc77629a7a6933e8869e8233bcc"},
+  {"name": "archive/v3.2-last", "kind": "tag", "commit": "10452b011b1e9685efe8de29ceb22c18f5e64c30"}
+ ],
+ "references": [
+  {
+   "id": "SKRU1_SCENARIO_SIMULATION_V2_1",
+   "path": "data/scenario_simulation_v2_1/manifest.json",
+   "sha256": "a268cd7800e1320a1cc61172f95cf458c7ac7434237b32b288f23a83a97a2c95",
+   "commit": "71d705d092403a8aae3a5300dec57938df11ad02",
+   "tag": "frozen/scenario-v2.1",
+   "verify_at": ["71d705d092403a8aae3a5300dec57938df11ad02", "legacy"],
+   "closure": {"rule": "json_manifest", "sections": ["inputs", "sources", "outputs"], "relative_to_manifest_dir": ["outputs"]},
+   "status_ru": "синтетический factorial stress benchmark (v2 + erratum), не полевые данные СКРУ-1"
+  },
+  {
+   "id": "SKRU1_SCENARIO_CONSTRAINTS_V2",
+   "path": "artifacts/reconstruction/scenario_constraints_v2/manifest.json",
+   "sha256": "96b88b61cf766062c1f831e32b50bdd82441da63c50ce41569a5ffad297de6ef",
+   "commit": "ffcf86972d31bd9f0dbd62d1265001f5c722e253",
+   "tag": "frozen/scenario-v2",
+   "verify_at": ["ffcf86972d31bd9f0dbd62d1265001f5c722e253", "legacy"],
+   "closure": {"rule": "json_manifest", "sections": ["inputs", "sources", "outputs"], "relative_to_manifest_dir": ["outputs"]},
+   "status_ru": "эмпирические ограничения генератора v2/v2.1 (оцифровка слайдов Мусихина); не наблюдения СКРУ-1"
+  },
+  {
+   "id": "SKRU1_SCENARIO_REPRESENTATION_V2_1_R1",
+   "path": "artifacts/splits/scenario_representation_v2_1/representation_manifest.json",
+   "sha256": "0e5501cb4c3cff570fbd3763047a8dd8738d45706dd6f549556ac428521f5a6d",
+   "commit": "71d705d092403a8aae3a5300dec57938df11ad02",
+   "tag": "frozen/scenario-v2.1",
+   "verify_at": ["71d705d092403a8aae3a5300dec57938df11ad02", "legacy"],
+   "closure": {"rule": "json_manifest", "sections": ["inputs", "sources", "outputs"], "relative_to_manifest_dir": ["outputs"]},
+   "cross_checks": [
+    {"json_field": "dataset_sha256", "equals_reference": "SKRU1_SCENARIO_SIMULATION_V2_1"},
+    {"json_field": "data_correction_receipt_sha256", "equals_reference": "SKRU1_SCENARIO_V2_1_CORRECTION_RECEIPT"},
+    {"json_field": "constraints_sha256", "equals_reference": "SKRU1_SCENARIO_CONSTRAINTS_V2"}
+   ],
+   "status_ru": "замороженное представление (адаптер, окна, сплиты) для v2.1; write-once до любых результатов моделей"
+  },
+  {
+   "id": "SKRU1_SCENARIO_V2_1_CORRECTION_RECEIPT",
+   "path": "artifacts/data_quality/scenario_simulation_v2_1/correction_receipt.json",
+   "sha256": "5fc8b24111503e997e6896e7ca6ee1cd7a8628be633d70f7a2febb840d0a2cf5",
+   "commit": "71d705d092403a8aae3a5300dec57938df11ad02",
+   "tag": "frozen/scenario-v2.1",
+   "verify_at": ["71d705d092403a8aae3a5300dec57938df11ad02", "legacy"],
+   "closure": {"rule": "json_manifest", "sections": ["qa_files"], "relative_to_manifest_dir": []},
+   "cross_checks": [
+    {"json_field": "original_manifest_sha256", "equals_reference": "SKRU1_SCENARIO_SIMULATION_V2"},
+    {"json_field": "new_manifest_sha256", "equals_reference": "SKRU1_SCENARIO_SIMULATION_V2_1"},
+    {"json_field": "constraints_manifest_sha256", "equals_reference": "SKRU1_SCENARIO_CONSTRAINTS_V2"}
+   ],
+   "status_ru": "receipt erratum v2 -> v2.1 (календарное поле days_since_previous_observation)"
+  },
+  {
+   "id": "SKRU1_SCENARIO_SIMULATION_V2",
+   "path": "data/scenario_simulation_v2/manifest.json",
+   "sha256": "7bb67939314fbcf548686893e6868c90a2303e1303c401377f197e077fec8c13",
+   "commit": "ffcf86972d31bd9f0dbd62d1265001f5c722e253",
+   "tag": "frozen/scenario-v2",
+   "verify_at": ["ffcf86972d31bd9f0dbd62d1265001f5c722e253", "legacy"],
+   "closure": {"rule": "json_manifest", "sections": ["inputs", "sources", "outputs"], "relative_to_manifest_dir": ["outputs"]},
+   "status_ru": "предшественник v2.1 (синтетический); заменён erratum v2.1"
+  },
+  {
+   "id": "SKRU1_RECONSTRUCTION_RESEARCH_V1",
+   "path": "data/reconstruction_research_v1/manifest.json",
+   "sha256": "c999d2ef98da1645de4831e30b131c8da72abde2f4f1372d1cb9868b98df0dd2",
+   "commit": "90e2e293cf868a6ef191f2eddc0f52d46f94d4b8",
+   "tag": null,
+   "verify_at": ["90e2e293cf868a6ef191f2eddc0f52d46f94d4b8", "legacy"],
+   "closure": {"rule": "json_manifest", "sections": ["inputs", "sources", "outputs"], "relative_to_manifest_dir": ["outputs"]},
+   "status_ru": "ремонт синтетических таблиц retired v3.2 (observation_origin=synthetic_monitoring_simulation); не наблюдения"
+  },
+  {
+   "id": "MUSIKHIN_LINE1_2011_2016_V1",
+   "path": "artifacts/reconstruction/musikhin_line1_2011_2016_v1/manifest.json",
+   "sha256": "5081dc8ce463119774cb4a6e3ffdd121a1a38e9b3bd0cee75e0382dbb6ce9f06",
+   "commit": "9d58f7bebcd323c23b319ab34b4e7ba62362fea6",
+   "tag": null,
+   "verify_at": ["9d58f7bebcd323c23b319ab34b4e7ba62362fea6", "legacy"],
+   "closure": {"rule": "json_manifest", "sections": ["inputs", "sources", "outputs"], "relative_to_manifest_dir": ["outputs"]},
+   "status_ru": "ручная оцифровка линии 1 со слайдов (VKM-SRC-002, discovery-only); невоспроизводима без retired v3.2"
+  },
+  {
+   "id": "MUSIKHIN_PROFILES_2011_2016_V1",
+   "path": "artifacts/reconstruction/musikhin_profiles_2011_2016_v1/manifest.json",
+   "sha256": "7740a92603762c9fb7db3c264db95c257bcf28d635aea54a2775676956e2bac4",
+   "commit": "9d58f7bebcd323c23b319ab34b4e7ba62362fea6",
+   "tag": null,
+   "verify_at": ["9d58f7bebcd323c23b319ab34b4e7ba62362fea6", "legacy"],
+   "closure": {"rule": "json_manifest", "sections": ["inputs", "sources", "outputs"], "relative_to_manifest_dir": ["outputs"]},
+   "status_ru": "оцифровка профильных линий 1/5/17/6 со слайдов (VKM-SRC-002); интервальные смещения, не временной ряд"
+  },
+  {
+   "id": "GATE_B3_T1_B3_V1",
+   "path": "artifacts/model_selection/t1_b3_v1/artifact_inventory.csv",
+   "sha256": "127fa1943159c1bf8b605c1926601dc664f7f15196b5f245410b79650dfaacd4",
+   "commit": "ce8e57ee3dfd82579fb00c8ab5d17bf1b925c9a4",
+   "tag": "frozen/gate-b3",
+   "verify_at": ["ce8e57ee3dfd82579fb00c8ab5d17bf1b925c9a4", "legacy"],
+   "closure": {"rule": "csv_inventory", "path_column": "relative_path", "sha256_column": "sha256", "size_column": "size_bytes"},
+   "status_ru": "Gate B3 two-regime IMM (B7); исторический результат на retired v3.2, не оценка текущего мира"
+  },
+  {
+   "id": "R2_ADVERSARIAL_AUDIT",
+   "path": "artifacts/research/r2_adversarial_audit/audit_receipt.json",
+   "sha256": "f8d0b1d42fc9aae27179ba766364e51e5eb235c848738f704dfffa68363136d6",
+   "commit": "2794c877369e6fc77629a7a6933e8869e8233bcc",
+   "tag": "frozen/r2",
+   "verify_at": ["2794c877369e6fc77629a7a6933e8869e8233bcc", "legacy"],
+   "closure": {"rule": "none"},
+   "status_ru": "adversarial-аудит источников и физической evidence (R2)"
+  },
+  {
+   "id": "R1_NEURAL_COMPARATORS_REVIEW",
+   "path": "docs/research/NEURAL_COMPARATORS_V2_1_RESEARCH_RU.md",
+   "sha256": "932c4ee3bf45a68b1b61fea4d82dc1a20f0dd8f60a41b14344bfb0bcb5151bf3",
+   "commit": "c5da1103154c29e2ffe9c52bbceacaa032f1690f",
+   "tag": "frozen/r1",
+   "verify_at": ["c5da1103154c29e2ffe9c52bbceacaa032f1690f", "legacy"],
+   "closure": {"rule": "none"},
+   "status_ru": "обзор нейросетевых компараторов (R1): только design review, обучения не было"
+  }
+ ],
+ "retired_references": {
+  "id": "SKRU1_RETIRED_V3_2_INPUTS",
+  "commit": "10452b011b1e9685efe8de29ceb22c18f5e64c30",
+  "tag": "archive/v3.2-last",
+  "status_ru": "LEGACY_RETIRED: входы v3.2, на которые ссылаются frozen manifests; последний commit перед удалением в d25f458; только историческая provenance",
+  "files": [
+   {"path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/metadata/reconstruction_config.json", "sha256": "6c9629dd564a20db28139f2b0da194a681ce44d7551749d012a36322dde686ec", "referenced_by": ["MUSIKHIN_LINE1_2011_2016_V1"]},
+   {"path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/reproduce_v3.py", "sha256": "0d238f938183494ac9dbd8c523c4c01dedd018061edb0a550f5de229179d9f49", "referenced_by": ["MUSIKHIN_LINE1_2011_2016_V1"]},
+   {"path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/reproduce_v3_2.py", "sha256": "1141d84bfb7b1e5f8af5309421c37343ae136b571606ab4eac4936818a231691", "referenced_by": ["MUSIKHIN_LINE1_2011_2016_V1"]},
+   {"path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/campaign_point_membership.csv", "sha256": "13c507b8707ea160d0c670a8d2fddc363be13352e11a30a9f51be8f80be6ebae", "referenced_by": ["SKRU1_RECONSTRUCTION_RESEARCH_V1"]},
+   {"path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/leveling_adjusted_epochs.csv", "sha256": "0177b382bf2e7c4a1dcbc8b0131614634ce695fe6cb1717fb2d3e1c288eb72db", "referenced_by": ["SKRU1_RECONSTRUCTION_RESEARCH_V1"]},
+   {"path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/leveling_runs_summary.csv", "sha256": "a638daf28a5a45bd67f88c74d1c84e17c9eadb1d46a3640a04ffb9dcc75cd750", "referenced_by": ["SKRU1_RECONSTRUCTION_RESEARCH_V1"]},
+   {"path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/point_feature_lineage.csv", "sha256": "0f2849ec1a0a4912a0fe1342779b0a479d0fbf077c627f88b6de88ef109496ca", "referenced_by": ["SKRU1_RECONSTRUCTION_RESEARCH_V1"]},
+   {"path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/source_registry.csv", "sha256": "bb0abaab709b3dde2677b2ce3603777f889976b7baa4dab666fcf34737381d8e", "referenced_by": ["MUSIKHIN_LINE1_2011_2016_V1"]},
+   {"path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/survey_campaigns.csv", "sha256": "c193ece0a743a42447cffa38a3a77f855557c706d094c682c70bf121086aced3", "referenced_by": ["MUSIKHIN_LINE1_2011_2016_V1"]},
+   {"path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/survey_points.csv", "sha256": "36c1b86e6e370a50cbb3bbf94e96684ef4c6b0b35a5cd62147cb6fd9869fb7f9", "referenced_by": ["SKRU1_SCENARIO_SIMULATION_V2", "SKRU1_SCENARIO_SIMULATION_V2_1"]},
+   {"path": "SKRU1_ACTUAL_DATA_TABLES_v1/01_reconstruction_v3_2/tables/survey_profiles.csv", "sha256": "51b718e103d6993493810cc8a4df384ce57db45bb325f4cbec55c8da09bb0e49", "referenced_by": ["MUSIKHIN_LINE1_2011_2016_V1"]},
+   {"path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/formal_feature_contract.csv", "sha256": "241bad48e67659ffc953349cd2bce59e61f2a2867d57698abd6574edd4a05272", "referenced_by": ["SKRU1_RECONSTRUCTION_RESEARCH_V1"]},
+   {"path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/next_planned_features.csv", "sha256": "5d360910e8eeea10a2572bb35d3de4f0b9b316ec5a6ee3b43389c07b09848ab6", "referenced_by": ["SKRU1_RECONSTRUCTION_RESEARCH_V1"]},
+   {"path": "SKRU1_ACTUAL_DATA_TABLES_v1/02_eda_targets_v1/target_tables/next_planned_operational_targets.csv", "sha256": "289912a0b2c79ee1163529c6998d879594062cf0d453ec7665b2bb06f562ee1b", "referenced_by": ["SKRU1_RECONSTRUCTION_RESEARCH_V1"]}
+  ]
+ }
+}
