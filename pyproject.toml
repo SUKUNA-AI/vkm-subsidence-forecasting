@@ -14,12 +14,47 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest>=9.1.1"]
+# VKM Corpus Platform v0 (decision CP-02): exact pins live in requirements/corpus*.lock.txt, built with
+# `-c requirements/worldspec.lock.txt` so that pydantic/pydantic-core never move (the WorldSpec schema depends on them).
+corpus = [
+    "pyarrow>=25.0.1,<26",
+    "polars>=1.44.2,<2",
+    "duckdb>=1.5.5,<2",
+    "pymupdf>=1.28.2,<1.29",
+    "pypdfium2>=5.13.0,<6",
+    "lxml>=6.1",
+    "pillow>=12.3",
+    "python-docx>=1.2",
+    "httpx>=0.28",
+    "psycopg[binary]>=3.3",
+]
+corpus-services = [
+    "fastapi>=0.141.1,<0.142",
+    "uvicorn>=0.40",
+    "mcp==2.2.0",
+    "neo4j>=6.3.1,<7",
+    "opensearch-py>=3.2.0,<4",
+    "httpx>=0.28",
+]
+desktop = [
+    "mcp==2.2.0",
+    "ezdxf>=1.4",
+    "pywin32>=312; sys_platform == 'win32'",
+]
+
+[project.scripts]
+vkm-corpus = "vkm_corpus.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["vkm_world*"]
+include = ["vkm_world*", "vkm_corpus*", "vkm_cad*", "vkm_drawio*"]
 
 [tool.pytest.ini_options]
 addopts = "-ra -p no:cacheprovider"
 testpaths = ["tests"]
 pythonpath = ["src"]
+markers = [
+    "services: needs live Neo4j/OpenSearch/PostgreSQL/rerankers (skipped -> NOT_RUN when absent)",
+    "gpu: needs a CUDA GPU or a running GLM-OCR/reranker model service",
+    "desktop: needs Windows desktop tools (AutoCAD, draw.io)",
+]

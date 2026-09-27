@@ -1,0 +1,72 @@
+# VKM Corpus Platform v0 — persistent projection services on CORE.
+# Rebuildable projections of the canonical Parquet layer: nothing here is a source of truth.
+# Host paths come only from ${VKM_DATA_ROOT} and ${VKM_SECRETS_DIR} (host-local .env, never committed).
+# Ports are published on loopback only: clients (projectors, VKM API/MCP) run on CORE; admins use an SSH tunnel.
+name: vkm-core
+
+services:
+  neo4j:
+    image: ${VKM_NEO4J_IMAGE:-neo4j:5.26.31-community}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7474:7474"   # HTTP / Neo4j Browser (SSH tunnel)
+      - "127.0.0.1:7687:7687"   # Bolt
+    environment:
+      NEO4J_AUTH_FILE: /run/secrets/neo4j_auth
+      NEO4J_server_memory_heap_initial__size: 2g
+      NEO4J_server_memory_heap_max__size: 2g
+      NEO4J_server_memory_pagecache_size: 2g
+      NEO4J_db_memory_transaction_total_max: 1g
+      NEO4J_db_tx__log_rotation_retention__policy: "1G size"
+      NEO4J_server_jvm_additional: "-XX:+ExitOnOutOfMemoryError"
+      NEO4J_dbms_usage__report_enabled: "false"
+    secrets:
+      - neo4j_auth
+    volumes:
+      - ${VKM_DATA_ROOT}/neo4j/data:/data
+      - ${VKM_DATA_ROOT}/neo4j/logs:/logs
+      - ${VKM_DATA_ROOT}/neo4j/import:/import
+    mem_limit: 6g
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/7687' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    logging:
+      driver: json-file
+      options: {max-size: "50m", max-file: "5"}
+
+  opensearch:
+    image: ${VKM_OPENSEARCH_IMAGE:-opensearchproject/opensearch:3.8.0}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9200:9200"   # REST; 9600 (Performance Analyzer) is not published
+    environment:
+      cluster.name: vkm-core
+      node.name: vkm-os-1
+      discovery.type: single-node
+      bootstrap.memory_lock: "true"
+      OPENSEARCH_JAVA_OPTS: "-Xms3g -Xmx3g"
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      DISABLE_SECURITY_PLUGIN: "true"
+      action.destructive_requires_name: "true"
+    ulimits:
+      memlock: {soft: -1, hard: -1}
+      nofile: {soft: 65536, hard: 65536}
+    volumes:
+      - ${VKM_DATA_ROOT}/opensearch/data:/usr/share/opensearch/data
+    mem_limit: 6g
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s' >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    logging:
+      driver: json-file
+      options: {max-size: "50m", max-file: "5"}
+
+secrets:
+  neo4j_auth:
+    file: ${VKM_SECRETS_DIR}/neo4j_auth   # host-local "neo4j/<password>", mode 600, outside any repository
