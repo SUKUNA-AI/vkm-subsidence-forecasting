@@ -755,6 +755,109 @@ class ApiService:
                                count=stale)] if stale else []
         return Result(items=items, warnings=warnings)
 
+    # ------------------------------------------------------------------ NAV graph (agent G): paths and neighbourhoods
+    # in the Neo4j projection of the navigation layer (vkm_corpus.graph.nav_query); DERIVED, never evidence.
+    NAV_GRAPH_FAMILIES = ("concepts", "formulas", "sections", "topics")
+
+    def _nav_graph(self) -> tuple[Any, dict[str, Any]]:
+        graph = _require(self.deps.graph, "neo4j", "neo4j")
+        if not hasattr(graph, "nav_state"):
+            raise ApiFailure("DEPENDENCY_UNAVAILABLE", "the NAV graph is not available on this API instance",
+                             stage="nav_graph", tool="neo4j")
+        state = graph.nav_state()
+        if state.get("state") != "READY":
+            raise ApiFailure("DEPENDENCY_UNAVAILABLE", f"the NAV graph is {str(state.get('state', 'unknown')).lower()}",
+                             stage="nav_graph", tool="neo4j",
+                             hint="vkm-corpus nav graph-load --nav-dir derived/navigation/<snapshot_id>")
+        return graph, state
+
+    def _nav_graph_result(self, kind: str, object_id: str, record: dict[str, Any], state: dict[str, Any], *,
+                          source_id: str | None = None, page_id: str | None = None) -> Result:
+        from vkm_corpus.graph.nav_query import NOTE
+
+        canon_snapshot = self.canon.snapshot_id()
+        nav_snapshot = state.get("snapshot_id")
+        env = Envelope(object_id=object_id, object_kind=kind, source_id=source_id, page_id=page_id,
+                       review_status="AUTO_EXTRACTED_UNREVIEWED", layer="PROJECTION", payload_form="NORMALIZED",
+                       origin="DERIVED",
+                       projection=Projection(engine="neo4j", index_or_graph="NavigationLayer",
+                                             build_id=state.get("run_id"), built_from_snapshot_id=nav_snapshot,
+                                             matches_canonical_snapshot=nav_snapshot == canon_snapshot))
+        warnings = []
+        if nav_snapshot and nav_snapshot != canon_snapshot:
+            warnings.append(ApiWarning(code="NAV_SNAPSHOT_BEHIND", message="the NAV graph was built from another "
+                                       "canonical snapshot; ids are stable, counts may differ"))
+        body = jsonable({**record, "nav_snapshot_id": nav_snapshot, "note": NOTE})
+        return Result(item=Item(envelope=env, record=body), warnings=warnings)
+
+    def _nav_resolve_term(self, graph: Any, text: str) -> tuple[list[dict[str, Any]], str]:
+        from vkm_corpus.graph.nav_query import rank_terms, term_keys
+        from vkm_corpus.navigation.ids import norm_text
+
+        if not text or not text.strip() or len(text) > 200:
+            raise ApiFailure("INVALID_ARGUMENT", "a term is 1..200 characters (a phrase in any form or a TRM- id)")
+        keys, method = term_keys(text.strip())
+        found = rank_terms(graph.nav_find_terms(text.strip(), keys, norm_text(text), 5), text.strip(), keys)
+        if not found:
+            raise ApiFailure("NOT_FOUND", f"no term of the NAV graph matches {text[:60]!r}", stage="nav_graph",
+                             tool="neo4j", hint="try explore_concept or search_sections, or a shorter phrase")
+        return found, method
+
+    def nav_graph_paths(self, term_a: str, term_b: str, max_len: int = 4, limit: int = 5,
+                        via: list[str] | None = None) -> Result:
+        from vkm_corpus.graph.nav_query import MAX_PATH_LEN, PATH_CAP, path_rel_types, shape_paths
+
+        if not 1 <= int(max_len) <= MAX_PATH_LEN:
+            raise ApiFailure("INVALID_ARGUMENT", f"max_len is 1..{MAX_PATH_LEN}")
+        if not 1 <= int(limit) <= 20:
+            raise ApiFailure("INVALID_ARGUMENT", "limit is 1..20")
+        bad = sorted(set(via or []) - set(self.NAV_GRAPH_FAMILIES))
+        if bad:
+            raise ApiFailure("INVALID_ARGUMENT", f"via is a subset of {list(self.NAV_GRAPH_FAMILIES)}",
+                             details={"unknown": bad})
+        graph, state = self._nav_graph()
+        a_found, method = self._nav_resolve_term(graph, term_a)
+        b_found = self._nav_resolve_term(graph, term_b)[0]
+        a, b = a_found[0], b_found[0]
+        rel_types = path_rel_types(list(via) if via else None)
+        raw = [] if a["term_id"] == b["term_id"] else graph.nav_paths(a["term_id"], b["term_id"], rel_types,
+                                                                        int(max_len), PATH_CAP)
+        paths = shape_paths(raw, int(limit)) if raw else []
+        record = {"from": a, "to": b, "alternatives": {"from": a_found[1:4], "to": b_found[1:4]},
+                  "via": list(via) if via else list(self.NAV_GRAPH_FAMILIES), "relationship_types": rel_types,
+                  "max_len": int(max_len), "n_shortest_paths_found": len(raw), "paths": paths,
+                  "term_resolution": method}
+        if not paths:
+            record["hint"] = ("the same term" if a["term_id"] == b["term_id"] else
+                              f"no path within {max_len} hops: raise max_len, widen via, or check the alternatives")
+        return self._nav_graph_result("NAV_GRAPH_PATHS", f"paths:{a['term_id']}:{b['term_id']}", record, state)
+
+    def nav_graph_neighbourhood(self, node_id: str, depth: int = 1, limit: int = 50) -> Result:
+        from vkm_corpus.graph.nav_query import depth2_ids, layer_of, shape_neighbourhood
+
+        if not node_id or len(node_id) > 120 or not re.fullmatch(r"[A-Za-z0-9_:\-]+", node_id):
+            raise ApiFailure("INVALID_ARGUMENT", "node_id is a NAV id (SEC-, TRM-, FSY-, FPR-, topic) or a VKM id")
+        if int(depth) not in (1, 2):
+            raise ApiFailure("INVALID_ARGUMENT", "depth is 1 or 2")
+        if not 1 <= int(limit) <= 200:
+            raise ApiFailure("INVALID_ARGUMENT", "limit is 1..200")
+        graph, state = self._nav_graph()
+        raw = graph.nav_neighbourhood(node_id, layer_of(node_id), int(limit))
+        if not raw:
+            raise ApiFailure("NOT_FOUND", f"{node_id} is not a node of the NAV or DOCUMENT graph", stage="nav_graph",
+                             tool="neo4j", object_id=node_id)
+        shaped = shape_neighbourhood(raw["node"], raw.get("groups") or [], {}, int(limit))
+        if int(depth) == 2:
+            mids = depth2_ids(shaped, per_node=min(10, int(limit)))
+            second = graph.nav_neighbourhood_2(mids, node_id, 3) if mids else {}
+            shaped = shape_neighbourhood(raw["node"], raw.get("groups") or [], second, int(limit))
+        node = shaped["node"]
+        source_id = raw["node"].get("source_id") if layer_of(node_id) == "DOCUMENT" else None
+        page_id = node_id if node.get("kind") == "PAGE" and source_id else None
+        return self._nav_graph_result("NAV_GRAPH_NEIGHBOURHOOD", node_id, {"depth": int(depth), **shaped}, state,
+                                      source_id=source_id, page_id=page_id)
+    # ------------------------------------------------------------------ end NAV graph (agent G)
+
     # ------------------------------------------------------------------ navigation layer (NAV, derived, not evidence)
     _NAV_NOTE = "navigation layer: derived from the canon without models, AUTO_EXTRACTED_UNREVIEWED, not evidence"
 

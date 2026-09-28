@@ -1,0 +1,352 @@
+{
+ "schema": "vkm-nav-graph-receipt-v1",
+ "agent": "G",
+ "date": "2026-09-28",
+ "branch": "claude/agent-g-nav-graph-2026-09-28",
+ "status": "DRY_RUN: row counts, accounting and preflight without a database; DDL, load and checks N1-N7 run on CORE (coordinator)",
+ "layer": "NAVIGATION (label NavigationLayer, DDL prefix nav_): DERIVED, AUTO_EXTRACTED_UNREVIEWED; navigation, never evidence",
+ "graph_schema_version": "nav-graph/1.0",
+ "loader_version": "nav_graph_v1",
+ "command": "vkm-corpus nav graph-load --nav-dir <NAV build of the snapshot> --dry-run --canon-duckdb <canonical DuckDB of the same snapshot>",
+ "environment": {
+  "python": "3.13",
+  "morphology_for_symbol_of": "pymorphy3",
+  "note": "the CORE job image installs the navigation extra (pymorphy3), the morphology of the NAV build"
+ },
+ "input": {
+  "datasets": {
+   "formula_context": {
+    "rows": 108904,
+    "sha256": "b2d72bf2f1ff6e18a81655f6ef09721682f82c02aeea17ee64793492243beb53"
+   },
+   "formula_parameters": {
+    "rows": 2106,
+    "sha256": "d64c92bc58fea45867fb26bb91e6d2196064ccb7612b1644642d0da1126b17f0"
+   },
+   "formula_refs": {
+    "rows": 16112,
+    "sha256": "2c4f1fba3d968d5e562cc7253623aa5f201f4484d15d56b74eedaa4bd1209445"
+   },
+   "formula_symbols": {
+    "rows": 338625,
+    "sha256": "02e61aa17c9b8a8026e8d4a063d07152362531a8e4e27f6a96b060a06437a2bf"
+   },
+   "section_pages": {
+    "rows": 27270,
+    "sha256": "02667f39b7bdf63e0a3fbc1ae3c7dc86db9c303191f2e4ab440c952d09456b32"
+   },
+   "sections": {
+    "rows": 9105,
+    "sha256": "ec949fbd5cb5c8affc50e37d7df16d808477cea4c50b0cdecd816fb2885ed223"
+   },
+   "term_edges": {
+    "rows": 1563617,
+    "sha256": "0bac6e4de2609146b026493295fe7b20ecdfb102be9da05440d99c76b391f36d"
+   },
+   "term_mentions": {
+    "rows": 1579906,
+    "sha256": "2b1911d59335cd76e9d5f8fa2ce8774dbafc7e830012945d2108b5961c7df3c2"
+   },
+   "terms": {
+    "rows": 96205,
+    "sha256": "3a60509dd427b7152b354a3c0fa8a5d1fee60a57e061c3ce8841529e5020b92c"
+   }
+  },
+  "manifest_built_at": "2026-09-28T17:25:45Z",
+  "nav_manifest_sha256": "8970892e7bd31a05a239653653fd1f4871ca5fc5840f7150efe80a36282b49d3",
+  "parts": {
+   "concepts": {
+    "rule_version": "concepts_v1",
+    "status": "BUILT"
+   },
+   "formulas": {
+    "rule_version": "formula_context_v1",
+    "status": "BUILT"
+   },
+   "sections": {
+    "rule_version": "sections_v1",
+    "status": "BUILT"
+   }
+  },
+  "snapshot_id": "snap-20260928T160616Z-5d669f09"
+ },
+ "rules": {
+  "covers_page": "covers_page_v1",
+  "formula_symbols": "rows with a definition only",
+  "mentions": {
+   "rule": "mentions_top_v1",
+   "top_per_section": 20,
+   "top_per_term": 5
+  },
+  "same_as_unkept": "folded into Term.same_as_refs",
+  "symbol_of": {
+   "fallback": "symbol_of_surface_v1",
+   "morphology": "auto",
+   "rule": "symbol_of_v1"
+  }
+ },
+ "expected_counts": {
+  "nodes": {
+   "FormulaSymbol": 5394,
+   "NavSection": 9105,
+   "NavTopic": 0,
+   "ParameterCandidate": 2106,
+   "Term": 96205
+  },
+  "rels": {
+   "CONTAINS_TERM": 149505,
+   "COVERS_PAGE": 51662,
+   "CO_OCCURS": 1412065,
+   "DEFINED_AS": 991,
+   "DEFINED_FOR": 8835,
+   "HAS_NAV_SECTION": 2050,
+   "IN_SECTION": 108706,
+   "IN_TOPIC": 0,
+   "MENTIONED_IN": 442713,
+   "NAV_BLOCK_REFERS_TO": 8960,
+   "NAV_CHILD_OF:NavSection": 7055,
+   "NAV_CHILD_OF:NavTopic": 0,
+   "NAV_REFERS_TO": 7152,
+   "NEAR_FORMULA": 2106,
+   "RELATED_TOPIC": 0,
+   "SAME_TERM_AS": 540,
+   "SYMBOL_OF": 4795
+  },
+  "skipped": {
+   "IN_TOPIC": "dataset(s) absent: topic_members, topics",
+   "NAV_CHILD_OF:NavTopic": "dataset(s) absent: topics",
+   "NavTopic": "dataset(s) absent: topics",
+   "RELATED_TOPIC": "dataset(s) absent: topic_edges, topics"
+  }
+ },
+ "totals": {
+  "nodes": 112811,
+  "rels": 2207135,
+  "note": "nodes include one NavMeta; topics (agent T) not built yet: NavTopic, IN_TOPIC, RELATED_TOPIC and the topic tree are skipped with the reason"
+ },
+ "accounting": {
+  "formula_context": {
+   "closed": true,
+   "folded": {},
+   "loaded": {
+    "IN_SECTION": 108706
+   },
+   "rows": 108904,
+   "skipped": {
+    "no section": 198
+   }
+  },
+  "formula_parameters": {
+   "closed": true,
+   "edges": {
+    "NEAR_FORMULA": 2106
+   },
+   "folded": {},
+   "loaded": {
+    "ParameterCandidate": 2106
+   },
+   "rows": 2106,
+   "skipped": {
+    "no id": 0
+   }
+  },
+  "formula_refs": {
+   "closed": true,
+   "folded": {},
+   "loaded": {
+    "NAV_BLOCK_REFERS_TO": 8960,
+    "NAV_REFERS_TO": 7152
+   },
+   "rows": 16112,
+   "skipped": {
+    "unresolved (no formula)": 0
+   }
+  },
+  "formula_symbols": {
+   "closed": true,
+   "folded": {},
+   "loaded": {
+    "DEFINED_FOR": 8835
+   },
+   "nodes": {
+    "FormulaSymbol": 5394
+   },
+   "rows": 338625,
+   "skipped": {
+    "no definition (bare occurrence)": 329790
+   }
+  },
+  "section_pages": {
+   "closed": true,
+   "folded": {
+    "COVERS_PAGE.deepest": 27270
+   },
+   "loaded": {},
+   "rows": 27270,
+   "skipped": {
+    "duplicate (section, page)": 0,
+    "section or page not covered": 0
+   }
+  },
+  "sections": {
+   "closed": true,
+   "edges": {
+    "HAS_NAV_SECTION": 2050,
+    "NAV_CHILD_OF:NavSection": 7055,
+    "one_tree_edge_per_section": true
+   },
+   "folded": {},
+   "loaded": {
+    "NavSection": 9105
+   },
+   "rows": 9105,
+   "skipped": {
+    "duplicate or invalid id": 0
+   }
+  },
+  "term_edges": {
+   "closed": true,
+   "folded": {
+    "Term.same_as_refs": 516
+   },
+   "loaded": {
+    "CONTAINS_TERM": 149505,
+    "CO_OCCURS": 1412065,
+    "DEFINED_AS": 991,
+    "SAME_TERM_AS": 540
+   },
+   "rows": 1563617,
+   "skipped": {
+    "unknown kind or term": 0
+   }
+  },
+  "term_mentions": {
+   "closed": true,
+   "folded": {
+    "windows of one (term, section) pair": 136820
+   },
+   "loaded": {
+    "MENTIONED_IN": 442713
+   },
+   "rows": 1579906,
+   "skipped": {
+    "below top-5/term and top-20/section": 982404,
+    "unit without a section (heading group, page)": 17969
+   }
+  },
+  "terms": {
+   "closed": true,
+   "folded": {},
+   "loaded": {
+    "Term": 96205
+   },
+   "rows": 96205,
+   "skipped": {}
+  }
+ },
+ "symbol_of": {
+  "SYMBOL_OF": 4795,
+  "definitions": 8835,
+  "definitions_matched": 5204,
+  "distinct_definitions": 5987,
+  "edges_by_match": {
+   "FULL": 1200,
+   "NEAR_START": 1396,
+   "PREFIX": 2199
+  },
+  "morphology": "pymorphy3",
+  "rule_version": "symbol_of_v1",
+  "symbols_linked": 3499,
+  "terms_morphology": "pymorphy3"
+ },
+ "preflight": [
+  {
+   "check_id": "P1",
+   "count": 0,
+   "status": "PASS",
+   "title": "NAV node ids are unique and not null"
+  },
+  {
+   "check_id": "P2",
+   "count": 0,
+   "status": "PASS",
+   "title": "tree parents exist; section page ranges are valid"
+  },
+  {
+   "check_id": "P3",
+   "count": 0,
+   "status": "PASS",
+   "title": "NAV trees (sections, topics) are acyclic with one parent per node"
+  },
+  {
+   "check_id": "P4",
+   "count": 0,
+   "status": "PASS",
+   "title": "every section covers at least one page of section_pages"
+  },
+  {
+   "check_id": "P5",
+   "count": 0,
+   "status": "PASS",
+   "title": "every dataset row is loaded, folded or skipped by a named rule"
+  },
+  {
+   "check_id": "P6",
+   "count": 0,
+   "status": "PASS",
+   "title": "references between NAV datasets resolve (rows that do not are skipped)"
+  }
+ ],
+ "preflight_summary": {
+  "FAIL": 0,
+  "PASS": 6,
+  "SKIP": 0,
+  "WARN": 0
+ },
+ "document_references": {
+  "all_resolved": true,
+  "canonical_snapshot_id": "snap-20260928T160616Z-5d669f09",
+  "matches_nav_snapshot": true,
+  "missing": {
+   "COVERS_PAGE.Page": {
+    "examples": [],
+    "n": 0
+   },
+   "DEFINED_AS.Block": {
+    "examples": [],
+    "n": 0
+   },
+   "DEFINED_FOR.Formula": {
+    "examples": [],
+    "n": 0
+   },
+   "HAS_NAV_SECTION.Source": {
+    "examples": [],
+    "n": 0
+   },
+   "IN_SECTION.Formula": {
+    "examples": [],
+    "n": 0
+   },
+   "NAV_BLOCK_REFERS_TO.Block": {
+    "examples": [],
+    "n": 0
+   },
+   "NAV_BLOCK_REFERS_TO.Formula": {
+    "examples": [],
+    "n": 0
+   },
+   "NAV_REFERS_TO.Formula": {
+    "examples": [],
+    "n": 0
+   },
+   "NEAR_FORMULA.Formula": {
+    "examples": [],
+    "n": 0
+   }
+  }
+ },
+ "timings_s": {
+  "dry_run_total": 4.06
+ }
+}

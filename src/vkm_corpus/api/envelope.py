@@ -26,6 +26,8 @@ Layer = Literal["CANONICAL", "ARTIFACT", "PROJECTION", "OPERATIONAL", "SERVICE",
 PayloadForm = Literal["NORMALIZED", "RAW", "BINARY", "REFERENCE"]
 # object kinds of API results that are not canonical rows
 ApiObjectKind = Literal["ARTIFACT", "PROCESSING_RUN", "JOB", "RERANK_RESULT", "SEARCH_RESULT", "STATUS",
+                        # NAV graph in Neo4j (agent G): concept paths and neighbourhoods
+                        "NAV_GRAPH_PATHS", "NAV_GRAPH_NEIGHBOURHOOD",
                         # navigation layer (DERIVED, AUTO_EXTRACTED_UNREVIEWED): docs/corpus_platform/NAVIGATION_LAYER.md
                         "NAV_OUTLINE", "NAV_SECTION", "NAV_SECTIONS", "NAV_FORMULA", "NAV_FORMULAS", "NAV_CONCEPT"]
 # interpretation flags added by the API (the canonical quality_flags stay as stored)

@@ -248,27 +248,37 @@ class CanonMapper:
                 image_artifact_id=f.image_artifact_id, image_dpi=None))
         return rows
 
+    def _bib_anchor(self, first: Any, ordinal: int, text: str) -> tuple[str, str]:
+        """(scope, anchor) of a bibliography entry: its first fragment's DOCX path or box, else ordinal + text."""
+        if first.region_origin == "DOCX_ELEMENT":
+            return ids.document_id(self.src.source_id), ids.xml_anchor(first.docx_paragraph_path)
+        if first.bbox_space == "PAGE_PT_TL":
+            return first.page_id, ids.bbox_anchor(first.bbox_x0, first.bbox_y0, first.bbox_x1, first.bbox_y1)
+        return first.page_id, ids.ordinal_anchor(ordinal, text)
+
     def bibliography(self, block_rows: list[Any]) -> list[Any]:
         """Reference-list entries assembled from the primary-layer blocks (``extract.bibliography``, CP-38): the
         envelope, region and text layer of an entry are those of its first fragment; the id anchor is that
-        fragment's box (several entries of one block get dup:n in reading order)."""
+        fragment's box (several entries of one block get dup:n in reading order). The raw_config_hash of an entry
+        is that of the oldest rules segmenting its id group the same way (``bib.raw_config_hashes``): entries whose
+        text did not change keep their ids across rule versions, B04 recomputes every id from the row."""
         from vkm_corpus.extract import bibliography as bib
 
         entries, _ = bib.extract_entries(block_rows)
+
+        def group(first: Any, ordinal: int, text: str) -> tuple[Any, ...]:
+            models = tuple((m.role, m.model_id, m.model_revision) for m in _models(first.models))
+            return (*self._bib_anchor(first, ordinal, text), first.origin, first.region_origin, models)
+
+        raw_hashes = bib.raw_config_hashes(entries, block_rows, group)
         rows = []
-        for e in entries:
+        for e, raw_hash in zip(entries, raw_hashes):
             first = e.blocks[0]
             prod = ProducerContext(pipeline_version=PIPELINE_VERSION, processing_run_id=self.run_id,
                                    extractor_id=bib.EXTRACTOR_ID, extractor_version=bib.EXTRACTOR_VERSION,
-                                   config_hash=bib.CONFIG_HASH, raw_config_hash=bib.CONFIG_HASH,
+                                   config_hash=bib.CONFIG_HASH, raw_config_hash=raw_hash,
                                    extraction_generation=1, models=_models(first.models))
-            if first.region_origin == "DOCX_ELEMENT":
-                scope, anchor = ids.document_id(self.src.source_id), ids.xml_anchor(first.docx_paragraph_path)
-            elif first.bbox_space == "PAGE_PT_TL":
-                scope = first.page_id
-                anchor = ids.bbox_anchor(first.bbox_x0, first.bbox_y0, first.bbox_x1, first.bbox_y1)
-            else:
-                scope, anchor = first.page_id, ids.ordinal_anchor(e.ordinal, e.text)
+            scope, anchor = self._bib_anchor(first, e.ordinal, e.text)
             oid, dup = self.alloc.allocate(scope, "BIBLIOGRAPHY_ENTRY", first.origin, first.region_origin, anchor,
                                            prod.producer_key())
             flags = [f for b in e.blocks for f in (b.quality_flags or [])]

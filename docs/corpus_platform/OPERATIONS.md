@@ -103,8 +103,12 @@ reconcile на CORE с подстановкой `{run_id}`, например
 | откат поиска на предыдущую сборку | `search rollback` |
 | все три по порядку | `core reconcile --run-id <RUN>` |
 | векторы (dense) | `search export-units`, затем `search build-vectors --embeddings <каталог или отчёт encode>` (§4a) |
+| граф NAV (навигация) | `nav graph-ddl`, затем `nav graph-load --nav-dir /data/derived/navigation/<снимок>`; проверка — `nav graph-verify` |
 
-`graph rebuild --plan-only` и `search build --plan-only` печатают ожидаемые числа без записи.
+`graph rebuild --plan-only` и `search build --plan-only` печатают ожидаемые числа без записи; `nav graph-load --dry-run`
+— то же для графа NAV. Пока граф NAV загружен, `graph rebuild` без `--cascade` отказывает (`E_CROSS_LAYER_LOSS`):
+`graph rebuild --mode wipe --cascade` сначала удаляет производный слой NAV (или `nav graph-drop --yes` отдельно);
+`core reconcile` делает это сам. После сборки NAV нового снимка — снова `nav graph-load` (NAVIGATION_LAYER.md, §1).
 
 ### 4a. Векторы и гибридный поиск (лаборатория retrieval, этап 2)
 

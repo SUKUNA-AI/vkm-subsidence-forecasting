@@ -226,6 +226,82 @@ class Neo4jBackend:
 
         return self._read(read_citations(Namespace(), "out" if direction == "cites" else "in"), work_id=work_id)
 
+    # ---------------------------------------------------------------- NAV graph (agent G): the navigation layer in Neo4j
+    # READ transactions with a timeout (vkm_corpus.graph.nav_query); IDs, short names and page IDs only.
+    def _nav_read(self, query: str, **params: Any) -> list[dict[str, Any]]:
+        from vkm_corpus.graph.nav_query import READ_TIMEOUT_S, timed
+
+        try:
+            records, _, _ = self._connect().execute_query(timed(query, READ_TIMEOUT_S), parameters_=params,
+                                                          database_=self.settings.neo4j_database, routing_="r")
+        except ApiFailure:
+            raise
+        except Exception as exc:  # noqa: BLE001 — no address or credentials in the message
+            name = type(exc).__name__
+            timed_out = "Timeout" in name or "TimedOut" in str(getattr(exc, "code", ""))
+            raise ApiFailure("DEPENDENCY_TIMEOUT" if timed_out else "DEPENDENCY_UNAVAILABLE",
+                             f"NAV graph query failed ({name})", stage="nav_graph", tool="neo4j") from exc
+        return [dict(r) for r in records]
+
+    def nav_state(self) -> dict[str, Any]:
+        from vkm_corpus.graph import nav_schema
+        from vkm_corpus.graph.nav_query import cy_meta
+        from vkm_corpus.graph.schema import Namespace
+
+        rows = self._nav_read(cy_meta(Namespace()), id=nav_schema.META_ID)
+        props = dict(rows[0].get("props") or {}) if rows else {}
+        if not props:
+            return {"state": "EMPTY"}
+        status = props.get("status")
+        return {"state": "READY" if status == "COMPLETE" else ("LOADING" if status == "LOADING" else "FAILED"),
+                "snapshot_id": props.get("snapshot_id"), "run_id": props.get("run_id"),
+                "finished_at": str(props.get("finished_at") or "") or None,
+                "graph_schema_version": props.get("graph_schema_version")}
+
+    def nav_find_terms(self, text: str, keys: list[str], norm: str, limit: int = 5) -> list[dict[str, Any]]:
+        from vkm_corpus.graph.nav_query import cy_find_terms, cy_find_terms_by_name
+        from vkm_corpus.graph.schema import Namespace
+
+        rows = self._nav_read(cy_find_terms(Namespace()), text=text, keys=keys, limit=int(limit))
+        if not rows and norm:
+            rows = self._nav_read(cy_find_terms_by_name(Namespace()), norm=norm, limit=int(limit))
+        return rows
+
+    def nav_paths(self, a: str, b: str, rel_types: list[str], max_len: int, cap: int) -> list[dict[str, Any]]:
+        """All shortest paths: the length first, then the paths (ranked in the database when they are short)."""
+        from vkm_corpus.graph import nav_schema
+        from vkm_corpus.graph.nav_query import cy_paths, cy_shortest_length
+        from vkm_corpus.graph.schema import Namespace
+
+        labels = list(nav_schema.PATH_LABELS)
+        params = {"a": a, "b": b, "rel_types": rel_types, "labels": labels}
+        found = self._nav_read(cy_shortest_length(Namespace(), rel_types, max_len, tuple(labels)), **params)
+        if not found:
+            return []
+        length = int(found[0]["n"])
+        return self._nav_read(cy_paths(Namespace(), rel_types, length, tuple(labels), ordered=length <= 2),
+                              cap=int(cap), **params)
+
+    def nav_neighbourhood(self, node_id: str, layer: str, per_type: int) -> dict[str, Any] | None:
+        from vkm_corpus.graph.nav_query import cy_neighbourhood
+        from vkm_corpus.graph.schema import Namespace
+
+        rows = self._nav_read(cy_neighbourhood(Namespace(), layer), id=node_id, per_type=int(per_type))
+        return rows[0] if rows else None
+
+    def nav_neighbourhood_2(self, ids: list[tuple[str, str]], root: str, per_type: int) -> dict[str, Any]:
+        from vkm_corpus.graph.nav_query import cy_neighbourhood_2
+        from vkm_corpus.graph.schema import Namespace
+
+        out: dict[str, Any] = {}
+        for layer in sorted({layer for _i, layer in ids}):
+            wanted = [i for i, lay in ids if lay == layer]
+            for row in self._nav_read(cy_neighbourhood_2(Namespace(), layer), ids=wanted, root=root,
+                                      per_type=int(per_type)):
+                out[row["mid"]] = row.get("groups") or []
+        return out
+    # ---------------------------------------------------------------- end NAV graph (agent G)
+
 
 # ---------------------------------------------------------------------------------------------------- rerank
 def _rerank_failure(exc: Exception, kind: str) -> ApiFailure:

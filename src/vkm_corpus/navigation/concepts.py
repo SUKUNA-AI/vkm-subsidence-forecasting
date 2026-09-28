@@ -19,7 +19,9 @@ AUTO_EXTRACTED_UNREVIEWED). Morphology degrades gracefully: pymorphy3 (POS patte
 crude suffix stripping. Lemma keys, and so term ids, depend on it: the backend is written into every ``terms`` row
 (``morphology``). Pair counting (the heavy part) runs on the GPU with cuDF when it is importable and in DuckDB
 otherwise; both return the same rows (NPMI rounded half-up to 6 decimals, deterministic tie-breaks). Leiden
-communities of the co-occurrence graph need cuGraph (``community`` is NULL without it).
+communities of the co-occurrence graph need cuGraph (``community`` is NULL without it). With
+``drop_duplicate_blocks=True`` and the ``dup_members`` dataset of the NAV part ``duplicates`` (built earlier in the
+same run), passages copied from another source are left out, so that reprints and repeated abstracts are counted once.
 """
 from __future__ import annotations
 
@@ -64,6 +66,7 @@ DEFAULTS: dict[str, Any] = {
     "backend": "auto",          # pair counting: "auto" | "cudf" | "duckdb"
     "communities": "auto",      # Leiden via cuGraph: "auto" | True | False
     "morphology": "auto",       # "auto" | "pymorphy3" | "snowball" | "crude"
+    "drop_duplicate_blocks": False,  # with ``dup_members`` (NAV part duplicates): a copied passage is counted once
 }
 
 # ---------------------------------------------------------------------------------------------------------- vocabularies
@@ -897,6 +900,24 @@ def _load_blocks(con: Any) -> pa.Table:
     return tbl.append_column("block_idx", pa.array(np.arange(tbl.num_rows, dtype=np.int32)))
 
 
+def _drop_duplicate_blocks(blocks: pa.Table, dup_members: Any) -> tuple[pa.Table, int]:
+    """Leave out the blocks of passages that repeat the text of another source (``dup_members`` of the NAV part
+    ``duplicates``): each duplicated passage is then counted once, in its reference source."""
+    if dup_members is None:
+        raise ValueError("drop_duplicate_blocks needs the dup_members dataset (build the duplicates part first)")
+    import pyarrow.compute as pc  # noqa: PLC0415
+
+    from vkm_corpus.navigation.duplicates import copy_block_ids  # noqa: PLC0415
+
+    drop = copy_block_ids(dup_members)
+    if not drop:
+        return blocks, 0
+    kept = blocks.filter(pc.invert(pc.is_in(blocks.column("block_id"), value_set=pa.array(sorted(drop), pa.string()))))
+    kept = kept.set_column(kept.schema.get_field_index("block_idx"), "block_idx",
+                           pa.array(np.arange(kept.num_rows, dtype=np.int32)))
+    return kept, blocks.num_rows - kept.num_rows
+
+
 def _source_languages(con: Any) -> dict[str, str]:
     links, works = _canon(con, "source_work_links"), _canon(con, "works")
     try:
@@ -1219,6 +1240,9 @@ def build(con: Any, *, section_pages: Any = None, seeds: Iterable[str] | None = 
         backend = "cudf" if _gpu_available() else "duckdb"
 
     blocks = _load_blocks(con)
+    dropped = 0
+    if p["drop_duplicate_blocks"]:
+        blocks, dropped = _drop_duplicate_blocks(blocks, options.get("dup_members"))
     src_lang = _source_languages(con)
     sp = _section_pages_table(section_pages, con)
     timings["load"] = time.time() - t_start
@@ -1509,7 +1533,8 @@ def build(con: Any, *, section_pages: Any = None, seeds: Iterable[str] | None = 
     info = {
         "rule_version": RULE_VERSION, "morphology": morph.name, "backend": backend,
         "communities": community is not None, "params": {k: p[k] for k in DEFAULTS if k != "workers"},
-        "counts": {"blocks": blocks.num_rows, "units": n_units, "unit_kinds": unit_counts,
+        "counts": {"blocks": blocks.num_rows, "blocks_dropped_as_copies": dropped, "units": n_units,
+                   "unit_kinds": unit_counts,
                    "candidates": n_candidates, "terms": terms.num_rows,
                    "terms_by_language": dict(Counter(terms.column("language").to_pylist())),
                    "seed_terms": int(sum(terms.column("seed").to_pylist())), "mentions": mentions.num_rows,

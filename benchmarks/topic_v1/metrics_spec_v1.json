@@ -1,0 +1,88 @@
+{
+ "spec": "vkm.topic_benchmark_spec/1",
+ "benchmark": "TOPIC_BENCHMARK_V1",
+ "author": "agent Q",
+ "frozen_at": "2026-09-28",
+ "status": "PREREGISTERED (fixed before the first evaluation run; any change = topic_v2 with a note)",
+ "canonical_snapshot_id": "snap-20260928T160616Z-5d669f09",
+ "set": {
+  "file": "topic_set_v1.jsonl",
+  "sha256": "4dbc595723cbb9ed3e59d1a71cbe84301c9554ecedc41b7f3abf654258bac2b1",
+  "queries_file": "topic_queries_v1.tsv",
+  "queries_sha256": "7619e469f86959503cd8e2fa306377750228c08db1489a9fabf9220bc47ad1e5",
+  "page_mapping_receipt": "page_mapping_v1.json",
+  "page_mapping_sha256": "d76fc8568e63264f1038d285eb1b975cf227aeb721722cd8e5867f1defb8a814",
+  "topics": 117,
+  "queries": 351,
+  "targets": 886,
+  "tracks": {"PROCESS": "72 processes PC-xx of catalogues/physics (name + 2 paraphrases; targets = evidence pages of process_evidence_links.csv)",
+             "MODEL_FAMILY": "45 families MM-<FAMILY> of MATHEMATICAL_MODEL_REGISTRY.csv (a Russian family title + 2 paraphrases written for the set; targets = VKM-SRC locator pages); PDE (no corpus locator) and DER (derived by this project) excluded"},
+  "query_rule": "the NAME variant of a process is the catalogue name verbatim; paraphrases and family titles are written by agent Q without corpus text",
+  "target_rule": "one target per unique canonical page of a topic; acceptable alternates: quote-anchored page (catalogue locator off by 1-3 pages), DOCX 023 render drift, duplicate-group pages; grade 2 = KEY link, 1 = SUPPORT link or registry locator; primary metrics are binary",
+  "nature_of_truth": "the targets are a human-curated sample of relevant pages, not an exhaustive judgement: recall-oriented metrics only, no precision"
+ },
+ "systems": {
+  "bm25": {"role": "auxiliary baseline", "call": "POST /v1/search", "body": {"kinds": ["PAGE"], "limit": 50}},
+  "hybrid_late": {"role": "deployed default of search_hybrid (MCP)", "call": "POST /v1/search/hybrid",
+                  "body": {"kinds": ["PAGE"], "limit": 50, "candidates": 100, "late": null, "late_candidates": 100},
+                  "note": "late = null means the server default (VKM_HYBRID_LATE_DEFAULT); the answer's record.late is recorded"},
+  "hybrid_nolate": {"role": "hybrid BM25 + dense RRF without the late stage", "call": "POST /v1/search/hybrid",
+                    "body": {"kinds": ["PAGE"], "limit": 50, "candidates": 100, "late": false}},
+  "nav": {"role": "NAV-only: search_sections + explore_concept neighbours -> sections",
+          "calls": ["GET /v1/nav/sections?q=<query>&limit=20", "GET /v1/nav/concept?term=<query>&limit=20",
+                    "GET /v1/nav/concept?term=<TRM id>&limit=20 for each of the top 5 neighbours"],
+          "ranking": "weighted RRF (k = 60) of node lists: search_sections order (w 1), matched term top_units (w 1), each neighbour's top_units (w 0.5); a unit with a section_id is that section (entry pages = the unit's page_ids), a unit without one is a pseudo-node of its page_ids; ties by first appearance",
+          "pages": "two passes over the ranked nodes: (1) entry pages (unit page_ids; the first page of a section from search_sections), (2) the remaining pages of each node's range in reading order; duplicates removed; first 50 pages"},
+  "dossier": {"role": "reconstruct_topic dossier (agent D) - adapter only; run by the coordinator after deploy",
+              "call": "configurable route/method/parameter (harness --dossier-route/--dossier-method/--dossier-param)",
+              "ranking": "page ids in document order of the JSON answer (page part of block/object ids included), then the pages of the section ids it names; sections = its section ids, else the deepest sections of its first 10 pages"}
+ },
+ "metrics": {
+  "matching": "a target is found at rank r if its primary page, an alternate, or a duplicate alias of the r-th retrieved page (the API collapses duplicate pages) coincide",
+  "page_recall@k": "found targets within the first k pages / all targets of the topic; k in 10, 20, 50",
+  "capped_recall@k": "found targets within k / min(k, n_targets) (secondary)",
+  "success@10": "1 if any target within the first 10 pages (secondary)",
+  "mrr@50": "1 / rank of the first retrieved page matching any target; 0 if none within 50",
+  "source_recall@10": "target sources present among the sources of the first 10 retrieved pages (aliases included) / target sources",
+  "section_hit@10": "1 if a target page lies inside the pages of the top-10 section nodes; nodes of page systems = the deepest NAV sections (from /v1/nav/outline) of their first 10 pages, a page outside every section being its own node; nodes of nav = its first 10 ranked nodes",
+  "section_recall@10": "targets inside the top-10 nodes / targets (secondary)",
+  "section_pages@10": "number of pages inside the top-10 nodes: the reading budget behind section_hit (reported next to it)"
+ },
+ "aggregation": {
+  "per_query": "every query (3 per topic) is scored separately",
+  "means": "mean over queries of a system; breakdowns by track, by process group (14 groups of the PROCESS track), by variant (NAME / PARA1 / PARA2)",
+  "tests_unit": "topic (mean of its 3 variants): the paraphrases of a topic are not independent"
+ },
+ "comparisons": {
+  "primary_metrics": ["page_recall@20", "mrr@50"],
+  "pairs": [["hybrid_late", "hybrid_nolate"], ["hybrid_late", "nav"], ["hybrid_late", "bm25"]],
+  "test": "paired sign-flip randomization over topic means, two-sided, n = 10000, seed 20260928; 95 % percentile bootstrap CI of the mean difference (same seed); Holm correction over the 6 tests",
+  "secondary": "all other metrics and pairs are descriptive"
+ },
+ "acceptance_levels": {
+  "note": "orientation levels chosen before the run without prior data (MODEL_CHOICE of agent Q): the first screen should show evidence for most topics, and a 50-page reading budget should reach a substantial share of the known evidence",
+  "over": "mean over all 351 queries of a system",
+  "levels": {"success@10": 0.80, "source_recall@10": 0.60, "page_recall@50": 0.40}
+ },
+ "failure_analysis": {
+  "reference_system": "hybrid_late (deployed default); nav is analysed separately",
+  "missed_target": "a target not found within the first 50 pages by any of the 3 queries of its topic",
+  "causes_in_precedence": [
+   "NO_TEXT: page char_count < 100, page_status PARTIAL/OCR_REQUIRED or EMPTY_PAGE/IMAGE_NO_TEXT/VECTOR_NO_TEXT flags",
+   "VISUAL_EVIDENCE: evidence read from a figure/table image (VISUAL_READ, GRAPH_DIGITIZED_APPROX) or a page with a figure/table and < 800 characters of text",
+   "LANGUAGE: share of Cyrillic letters in the page text < 0.5 (queries are Russian)",
+   "OCR_QUALITY: text quality flags (GARBAGE_GLYPHS, BROKEN_TEXT_LAYER, LOW_FUNCTION_WORD_RATE, MOJIBAKE_NOT_REPAIRABLE, TRUNCATED, FONT_WITHOUT_TOUNICODE, UNMAPPED_SYMBOL_GLYPHS, PUA_GLYPHS)",
+   "TERMINOLOGY: < 25 % of the topic's query stems (5-letter prefixes of words of >= 5 letters, all 3 variants) occur on the page",
+   "SECTION_MISSING (nav only): the page lies outside every NAV section",
+   "DILUTION: another page of the same source is within the first 50 (the page loses to its neighbours)",
+   "OTHER"
+  ],
+  "worst_queries": "10 queries of the reference system with the lowest page_recall@50, ties by mrr@50 then query_id (ids only)"
+ },
+ "run_rules": {
+  "where": "inside the VKM API container on CORE (docker exec into vkm-core-api-1), read-only API calls, token read from the mounted file and never printed",
+  "concurrency": 1,
+  "retries": "one retry after 2 s on a transport error or HTTP 5xx; failures are recorded, not re-drawn",
+  "outputs": "raw answers as IDs only (page, section, term ids, ranks, timings) in a host-local work directory; PUBLIC gets metrics and IDs, never corpus text"
+ }
+}

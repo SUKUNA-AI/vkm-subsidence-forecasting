@@ -338,6 +338,39 @@ def build_read_server(api: ApiClient) -> MCPServer:
         return await call("get_citations", "GET", f"/v1/citations/{work_id}",
                           params={"direction": direction, "include_unlinked": include_unlinked, "limit": limit})
 
+    # ------------------------------------------------ NAV graph in Neo4j (agent G): concept paths and neighbourhoods
+    @server.tool(name="concept_paths", annotations=READ_ONLY)
+    async def concept_paths(
+            term_a: Annotated[str, Field(min_length=1, max_length=200, description="a phrase in any form or a TRM- id")],
+            term_b: Annotated[str, Field(min_length=1, max_length=200)],
+            max_len: Annotated[int, Field(ge=1, le=6, description="hops")] = 4,
+            limit: Annotated[int, Field(ge=1, le=20)] = 5,
+            via: Annotated[list[Literal["concepts", "formulas", "sections", "topics"]] | None, Field(
+                max_length=4, description="relationship families (default all): concepts = co-occurrence, "
+                                          "containment, translations; formulas = symbol definitions and formula "
+                                          "references; sections = mentions and the section tree; topics")] = None
+    ) -> CallToolResult:
+        """How two concepts connect in the corpus navigation graph: the shortest paths through terms, formula symbols,
+        formulas, sections and topics (e.g. ползучесть соли → скорость ползучести → конвергенция → оседание), ranked
+        by co-occurrence strength, with page IDs for every hop and the number of sources behind a co-occurrence.
+        Navigation, not a causal chain: read the pages of the hops to answer."""
+        return await call("concept_paths", "GET", "/v1/nav/graph/paths",
+                          params={"term_a": term_a, "term_b": term_b, "max_len": max_len, "limit": limit, "via": via})
+
+    @server.tool(name="graph_neighbourhood", annotations=READ_ONLY)
+    async def graph_neighbourhood(
+            node_id: Annotated[str, Field(min_length=1, max_length=120, pattern=r"^[A-Za-z0-9_:\-]+$",
+                                          description="a NAV id (SEC-, TRM-, FSY-, FPR-, topic) or any VKM id "
+                                                      "(source, page, formula, block)")],
+            depth: Annotated[int, Field(ge=1, le=2)] = 1,
+            limit: Annotated[int, Field(ge=1, le=200)] = 50) -> CallToolResult:
+        """Neighbours of a node of the navigation graph or the document graph, grouped by relationship with totals:
+        a formula's section, symbols with definitions, formulas it refers to and that refer to it, parameter
+        candidates; a term's co-occurring terms, sections and symbols; a section's parent, pages, key terms and topic;
+        a page's sections. depth=2 adds the neighbours of the strongest neighbours. IDs, short names, page IDs."""
+        return await call("graph_neighbourhood", "GET", f"/v1/nav/graph/neighbourhood/{node_id}",
+                          params={"depth": depth, "limit": limit})
+
     # ------------------------------------------------ navigation layer (derived from the canon, not evidence)
     @server.tool(name="get_outline", annotations=READ_ONLY)
     async def get_outline(source_id: SourceId) -> CallToolResult:

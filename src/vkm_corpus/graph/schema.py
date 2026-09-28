@@ -24,9 +24,10 @@ from vkm_corpus.contracts import vocab
 GRAPH_SCHEMA_VERSION = "doc-graph/1.0"
 LAYER = "DOCUMENT"
 
-# R1: one layer label per layer; only DOCUMENT is populated in v0
+# R1: one layer label per layer; DOCUMENT and the derived NAVIGATION layer (vkm_corpus.graph.nav_schema) are populated
 LAYER_LABELS: dict[str, str] = {
     "DOCUMENT": "DocumentLayer",
+    "NAVIGATION": "NavigationLayer",
     "EVIDENCE": "EvidenceLayer",
     "PHYSICS": "PhysicsLayer",
     "REPRESENTATION": "RepresentationLayer",
@@ -36,6 +37,7 @@ LAYER_LABELS: dict[str, str] = {
 # R5 as a DAG (H-31): layer → layers its edges may point to. The place of SolverRun is not fixed in v0.
 LAYER_DEPENDENCIES: dict[str, frozenset[str]] = {
     "DOCUMENT": frozenset(),
+    "NAVIGATION": frozenset({"DOCUMENT"}),          # derived navigation, never evidence
     "EVIDENCE": frozenset({"DOCUMENT"}),
     "PHYSICS": frozenset({"EVIDENCE", "DOCUMENT"}),
     "REPRESENTATION": frozenset({"PHYSICS"}),
@@ -44,8 +46,8 @@ LAYER_DEPENDENCIES: dict[str, frozenset[str]] = {
 }
 # R8: DDL name prefix per layer
 LAYER_DDL_PREFIX: dict[str, str] = {
-    "DOCUMENT": "doc_", "EVIDENCE": "ev_", "PHYSICS": "phys_", "REPRESENTATION": "rep_", "OBSERVATION": "obs_",
-    "PROVENANCE": "prov_",
+    "DOCUMENT": "doc_", "NAVIGATION": "nav_", "EVIDENCE": "ev_", "PHYSICS": "phys_", "REPRESENTATION": "rep_",
+    "OBSERVATION": "obs_", "PROVENANCE": "prov_",
 }
 SYSTEM_DDL_PREFIX = "sys_"
 PROJECTION_RUN_LABEL = "ProjectionRun"
