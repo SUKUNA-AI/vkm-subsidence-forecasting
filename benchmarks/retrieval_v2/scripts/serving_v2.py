@@ -141,6 +141,68 @@ def q8(key: str) -> dict:
     return rep
 
 
+def qvl(gguf_path: str) -> dict:
+    """Qwen3-VL-Embedding-2B text tower as a llama.cpp GGUF (``qwen3vl`` arch, converted with the pinned llama.cpp):
+    query ids = the model's chat template (system = the V2 query instruction, user = the query, generation prompt), as
+    in the model's own embedder; last-token pooling; cos to the GPU bf16 query vectors of ``vis/qwen3-vl-2b``."""
+    from transformers import AutoTokenizer
+
+    m = model_cfg("qwen3-vl-2b")
+    hf = Path(os.environ["VKM_MODELS_DIR"]) / "Qwen__Qwen3-VL-Embedding-2B" / "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda"
+    tok = AutoTokenizer.from_pretrained(str(hf), local_files_only=True)
+    bench = B.load_benchmark(REPO / "benchmarks/retrieval_v0")
+    qs = [(q.query_id, q.text) for q in bench.queries]
+    gguf = Path(gguf_path)
+    port = 18412
+    cmd = [str(Path(os.environ["V2_LLAMA_BIN"]) / "llama-server"), "-m", str(gguf), "--embeddings", "--pooling",
+           "last", "-c", "4096", "-b", "4096", "-ub", "4096", "-np", "1", "-t", "16", "--host", "127.0.0.1",
+           "--port", str(port)]
+    logf = open(WORK / "logs" / "llama_qwen3-vl-2b.log", "w", encoding="utf-8")
+    proc = subprocess.Popen(cmd, stdout=logf, stderr=subprocess.STDOUT)
+    client = LlamaServerClient(f"http://127.0.0.1:{port}", pooled=True, b64=False)
+    try:
+        t0 = time.time()
+        while time.time() - t0 < 300:
+            try:
+                if client.health().get("http_status") == 200:
+                    break
+            except Exception:  # noqa: BLE001
+                pass
+            if proc.poll() is not None:
+                raise SystemExit(f"llama-server exited {proc.returncode}")
+            time.sleep(0.5)
+        vecs, lat, ntok = [], [], []
+        for _qid, text in qs:
+            conv = [{"role": "system", "content": [{"type": "text", "text": m["query_prompt"]}]},
+                    {"role": "user", "content": [{"type": "text", "text": text}]}]
+            ids = tok.apply_chat_template(conv, add_generation_prompt=True, tokenize=True)
+            if isinstance(ids, dict):
+                ids = ids["input_ids"]
+            t1 = time.perf_counter()
+            res = client.embed_ids([list(ids)])
+            lat.append((time.perf_counter() - t1) * 1000)
+            ntok.append(len(ids))
+            vecs.append(res.vectors[0])
+    finally:
+        client.close()
+        proc.terminate()
+        proc.wait(timeout=30)
+        logf.close()
+    q8v = l2_normalize(np.stack(vecs).astype(np.float32))
+    out = WORK / "vis" / "qwen3-vl-2b"
+    np.save(out / "queries_q8.f32.npy", q8v)
+    gpu = np.load(out / "queries.f32.npy")
+    cos = (q8v * gpu).sum(axis=1)
+    rep = {"key": "qwen3-vl-2b", "gguf": gguf.name, "gguf_sha256": sha256_file(gguf), "queries": len(qs),
+           "cos_q8_vs_gpu_bf16": {"mean": float(cos.mean()), "min": float(cos.min())},
+           "tokens_per_query": {"mean": float(np.mean(ntok)), "max": int(np.max(ntok))},
+           "cpu_latency_ms": {"p50": float(np.percentile(lat, 50)), "p95": float(np.percentile(lat, 95))},
+           "conversion": "convert_hf_to_gguf.py (llama.cpp 4da6337767f9, text model, arch qwen3vl) → llama-quantize Q8_0"}
+    (out / "serving_q8.json").write_text(json.dumps(rep, indent=1), encoding="utf-8")
+    print(json.dumps(rep))
+    return rep
+
+
 def tower(vis: str, text: str) -> None:
     a = np.load(WORK / "vis" / vis / "queries.f32.npy")
     b = np.load(WORK / "vec" / text / "queries.f32.npy")
@@ -199,6 +261,21 @@ def feasibility() -> None:
             f["rx580_vram_mib"] = K_MATRIX["jina-v5-small-retrieval"][0]
             f["rx580_query_ms_p50"], f["rx580_query_ms_p95"] = K_MATRIX["jina-v5-small-retrieval"][1:3]
             f["feasible"] = bool(t["identical_within_1e-3"] and js.get("q8_parity_ok"))
+        elif (WORK / "vis" / key / "serving_q8.json").is_file():
+            s = json.load(open(WORK / "vis" / key / "serving_q8.json", encoding="utf-8"))
+            f["text_tower"] = "own GGUF: " + s["conversion"]
+            f["q8_cos_mean"] = s["cos_q8_vs_gpu_bf16"]["mean"]
+            f["q8_cos_min"] = s["cos_q8_vs_gpu_bf16"]["min"]
+            par = {}
+            for label in ("verified", "verified+pooled"):
+                for track in ("visual", "text"):
+                    p = (((results.get("sets") or {}).get(label) or {}).get(track) or {}).get("pairs", {})
+                    d = (p.get(f"E+VIS:{key}~q8 ~ E+VIS:{key}") or {}).get("ndcg@10")
+                    if d:
+                        par[f"{label}/{track}"] = d["delta"]
+            f["q8_delta_ndcg10"] = par or None
+            f["rx580_gate"] = "NOT_RUN: agent K's Vulkan parity gate on the RX580 is required before deployment"
+            f["feasible"] = None
         else:
             f["text_tower"] = "no GGUF of the text tower on the pin (llama.cpp conversion not attempted)"
             f["feasible"] = None
@@ -223,6 +300,8 @@ if __name__ == "__main__":
             q8(k)
     elif cmd == "tower":
         tower(sys.argv[2], sys.argv[3])
+    elif cmd == "qvl":
+        qvl(sys.argv[2])
     elif cmd == "feasibility":
         feasibility()
     else:
