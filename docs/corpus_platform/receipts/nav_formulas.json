@@ -1,0 +1,518 @@
+{
+ "receipt": "nav_formulas",
+ "agent": "N2",
+ "date": "2026-09-28",
+ "snapshot_id": "snap-20260928T160616Z-5d669f09",
+ "rule_version": "formula_context_v1",
+ "review_status": "AUTO_EXTRACTED_UNREVIEWED",
+ "code": {
+  "branch": "claude/agent-n2-nav-formulas-2026-09-28",
+  "commit": "7429b2f",
+  "module": "src/vkm_corpus/navigation/formulas.py",
+  "query": "src/vkm_corpus/navigation/formulas_query.py",
+  "tests": "tests/corpus/test_nav_formulas.py (11 passed, WSL venv-corpus)"
+ },
+ "input": "read-only local DuckDB copy of the final canon (canonical.formulas, canonical.blocks primary layer, canonical.pages); no services touched",
+ "output": "workstation-local nav/out/formulas/<dataset>.parquet + manifest.json (not committed)",
+ "section_pages": "not given (N1 dataset pending): section_id is NULL, chapter preference in resolution off",
+ "build_seconds": 13.2,
+ "datasets": {
+  "formula_context": {
+   "rows": 108904,
+   "sha256": "b0563680b3c2148de5b53ac9476a45d3f1319149be7344f8c104b90a77ca1127"
+  },
+  "formula_symbols": {
+   "rows": 338625,
+   "sha256": "42fe530c0dd0cb7b27c5cca9cd052f8812acbb7065080e231ee18dc813935ebc"
+  },
+  "formula_refs": {
+   "rows": 16129,
+   "sha256": "282162dcf6658186e6b326e574812d600d69f0617ea9e380db21b305b01f2441"
+  },
+  "formula_parameters": {
+   "rows": 2106,
+   "sha256": "957ddcde7e471539b1a672a06f20d21f9c20a00322bab4a665937e44cae8af71"
+  }
+ },
+ "counts": {
+  "formulas": 108904,
+  "display": 36039,
+  "inline": 72865,
+  "sources": 220,
+  "display_with_number": 21760,
+  "all_with_number": 21865,
+  "number_methods": {
+   "EQUATION_LABEL": 728,
+   "FORMULA_NUMBER_BLOCK": 10232,
+   "LATEX_TAG": 124,
+   "TEXT_LAYER_NUMBER": 10781
+  },
+  "display_with_intro": 35126,
+  "display_with_where": 7182,
+  "inline_with_host": 66706,
+  "display_with_section": 0,
+  "symbol_rows": 338625,
+  "symbols_in_formulas": 336027,
+  "symbols_with_definition": 6237,
+  "definitions_not_matched": 2598,
+  "definitions_with_unit": 944,
+  "formulas_with_defined_symbol": 3501,
+  "definition_keys": 5829,
+  "definition_keys_in_2plus_sources": 240,
+  "refs": 16129,
+  "ref_types": {
+   "DERIVATION_HINT": 3740,
+   "MENTION": 10903,
+   "SUBSTITUTION": 1486
+  },
+  "ref_resolution": {
+   "NEAREST_FOLLOWING": 1,
+   "NEAREST_PRECEDING": 1447,
+   "UNIQUE": 14681
+  },
+  "refs_with_citing_formula": 7160,
+  "formulas_referenced": 9199,
+  "parameters": 2106,
+  "parameters_in_formula": 1499,
+  "parameters_with_unit": 605,
+  "parameter_context": {
+   "FORMULA_SELF": 1144,
+   "NEXT_BLOCK": 699,
+   "WHERE_BLOCK": 263
+  }
+ },
+ "qa": {
+  "numbers": {
+   "criterion": "the number printed beside a DISPLAY formula is assigned to that formula (page layout checked)",
+   "seed": 7,
+   "population": 21760,
+   "n_sampled": 40,
+   "n_correct": 40,
+   "precision": 1.0,
+   "errors": [],
+   "sample_ids": [
+    "VKM-SRC-231:p0304:m49da34fd1cc3",
+    "VKM-SRC-218:p0197:m8037b2d5c6c0",
+    "VKM-SRC-234:p0365:mc39a2ace761c",
+    "VKM-SRC-250:p0215:maa6e467097bb",
+    "VKM-SRC-053:p0127:m71444aaaedcb",
+    "VKM-SRC-066:p0124:m5c0470c84849",
+    "VKM-SRC-240:p0034:m377670d75f72",
+    "VKM-SRC-173:p0066:m99af2508ad2a",
+    "VKM-SRC-234:p0165:mcb11c4b6a92f",
+    "VKM-SRC-244:p0350:m0e681b2e9065",
+    "VKM-SRC-054:p0188:mfb511a8546e8",
+    "VKM-SRC-235:p0625:m32f1c500b088",
+    "VKM-SRC-226:p0662:m7849f58243cf",
+    "VKM-SRC-052:p0022:m4db7dd4aacd0",
+    "VKM-SRC-145:p0004:m6b6916f41b71",
+    "VKM-SRC-235:p0103:m6efdbfba0255",
+    "VKM-SRC-234:p0595:m5c440e02c581",
+    "VKM-SRC-066:p0086:m8b7ba82232de",
+    "VKM-SRC-227:p0230:md6f967847c5f",
+    "VKM-SRC-150:p0232:m8eb314c5f62c",
+    "VKM-SRC-244:p0052:m01eab99c38ea",
+    "VKM-SRC-235:p0043:m82780df3189b",
+    "VKM-SRC-054:p0210:m5e9cef42043c",
+    "VKM-SRC-244:p0148:m1c6e0985f76a",
+    "VKM-SRC-210:p0040:m2ad9793fdc8c",
+    "VKM-SRC-226:p0809:m454058d2af0c",
+    "VKM-SRC-249:s0132:mf395dcdb9467",
+    "VKM-SRC-249:s0108:mf911b6da5998",
+    "VKM-SRC-244:p0351:m941b1495aec2",
+    "VKM-SRC-062:p0003:m62cdad2b7e1b",
+    "VKM-SRC-244:p0275:mbe30e523a73f",
+    "VKM-SRC-244:p0375:m20add66618de",
+    "VKM-SRC-234:p0380:m774d69149cba",
+    "VKM-SRC-053:p0146:m3cf91f73dceb",
+    "VKM-SRC-226:p0760:mf391586df5b8",
+    "VKM-SRC-053:p0091:md99821a1bbcc",
+    "VKM-SRC-244:p0090:ma10538b823b1",
+    "VKM-SRC-213:p0052:mac51c7de70a0",
+    "VKM-SRC-230:p0172:m545493945ce3",
+    "VKM-SRC-234:p0601:m418cac23c5dd"
+   ]
+  },
+  "where": {
+   "criterion": "the attached block is the where-clause that follows the formula (or its formula group)",
+   "seed": 7,
+   "population": 7182,
+   "n_sampled": 40,
+   "n_correct": 40,
+   "precision": 1.0,
+   "errors": [],
+   "sample_ids": [
+    "VKM-SRC-226:p0312:mad164c5085db",
+    "VKM-SRC-107:p0007:m6b6095d5f4b8",
+    "VKM-SRC-227:p0067:mdfd05727c1f2",
+    "VKM-SRC-234:p0548:m76f8ef03d342",
+    "VKM-SRC-037:p0191:mefe4f84da0bc",
+    "VKM-SRC-047:p0138:m66086defe267",
+    "VKM-SRC-244:p0301:m3d0f704537a2",
+    "VKM-SRC-231:p0293:m53293c26f647",
+    "VKM-SRC-052:p0011:m23790e910a7f",
+    "VKM-SRC-226:p0656:ma303481adcd1",
+    "VKM-SRC-234:p0142:m72f6a4605636",
+    "VKM-SRC-044:p0069:m0b8dbc352a46",
+    "VKM-SRC-230:p0295:m77e9e6ce887e",
+    "VKM-SRC-194:p0020:mdcafd47b9877",
+    "VKM-SRC-037:p0159:m45226f1abd33",
+    "VKM-SRC-050:p0045:m29e5b2e32224",
+    "VKM-SRC-227:p0338:ma6c411e63976",
+    "VKM-SRC-227:p0240:m9387d391904b",
+    "VKM-SRC-047:p0097:m6bba4585542c",
+    "VKM-SRC-209:p0011:m033b8d634097",
+    "VKM-SRC-050:p0114:ma985fc30ed87",
+    "VKM-SRC-232:p0096:mba6639c5baa1",
+    "VKM-SRC-227:p0289:m0024b15c1584",
+    "VKM-SRC-044:p0078:mb80070ad6eb9",
+    "VKM-SRC-244:p0388:mc0972fc232a1",
+    "VKM-SRC-234:p0034:m6d7792aee90c",
+    "VKM-SRC-065:p0042:madb5fa987a5c",
+    "VKM-SRC-203:p0128:mee217475136b",
+    "VKM-SRC-234:p0404:m464bd50fda59",
+    "VKM-SRC-234:p0382:mc85cfabae5e6",
+    "VKM-SRC-234:p0142:m82148e7f0b77",
+    "VKM-SRC-044:p0117:m7e5bdcb1d88d",
+    "VKM-SRC-234:p0110:m79b817d37e88",
+    "VKM-SRC-234:p0150:mf7c254e1e0ac",
+    "VKM-SRC-227:p0085:m25471a9b14fa",
+    "VKM-SRC-037:p0194:m86e6c84e63a8",
+    "VKM-SRC-202:p0170:m6664b5c185be",
+    "VKM-SRC-037:p0183:m064b58b8df71",
+    "VKM-SRC-232:p0226:md64885e7018e",
+    "VKM-SRC-251:p0036:m88af22b43450"
+   ]
+  },
+  "defs": {
+   "criterion": "the definition describes this symbol of the formula (pairing and meaning)",
+   "seed": 7,
+   "population": 6237,
+   "n_sampled": 40,
+   "n_correct": 38,
+   "precision": 0.95,
+   "errors": [
+    {
+     "index": 32,
+     "kind": "DESCRIPTION_NOT_A_MEANING"
+    },
+    {
+     "index": 39,
+     "kind": "SYMBOL_OF_A_COMPOUND_TERM"
+    }
+   ],
+   "sample_ids": [
+    {
+     "formula_id": "VKM-SRC-218:p0158:ma4da9b1060f7",
+     "symbol_id": "FSY-4d201cad2356b7c2"
+    },
+    {
+     "formula_id": "VKM-SRC-065:p0041:mf269a95196fb",
+     "symbol_id": "FSY-72fe18167248d6d1"
+    },
+    {
+     "formula_id": "VKM-SRC-226:p0723:m8af249eb8c30",
+     "symbol_id": "FSY-39e288f3f5bbea8e"
+    },
+    {
+     "formula_id": "VKM-SRC-235:p0625:mdefbc3abfdba",
+     "symbol_id": "FSY-cebeb899db887625"
+    },
+    {
+     "formula_id": "VKM-SRC-037:p0163:m6d61d84b7965",
+     "symbol_id": "FSY-f04324bd87ee47f3"
+    },
+    {
+     "formula_id": "VKM-SRC-037:p0198:m0509444edc0e",
+     "symbol_id": "FSY-fbb1c2a006fb88d0"
+    },
+    {
+     "formula_id": "VKM-SRC-234:p0158:m5fb6459c2179",
+     "symbol_id": "FSY-f9bfd9f69e8036ae"
+    },
+    {
+     "formula_id": "VKM-SRC-044:p0171:m5a5608c4dcd4",
+     "symbol_id": "FSY-237619775aad514e"
+    },
+    {
+     "formula_id": "VKM-SRC-226:p0397:me10fa17163ae",
+     "symbol_id": "FSY-e3e07db7237e7da6"
+    },
+    {
+     "formula_id": "VKM-SRC-234:p0521:mf88ada3c71c7",
+     "symbol_id": "FSY-7a17979a5222b837"
+    },
+    {
+     "formula_id": "VKM-SRC-037:p0175:m1a5ffeb660b2",
+     "symbol_id": "FSY-68a28df836bb1148"
+    },
+    {
+     "formula_id": "VKM-SRC-231:p0474:ma2626c035f7d",
+     "symbol_id": "FSY-b035593499fdd4fe"
+    },
+    {
+     "formula_id": "VKM-SRC-173:p0113:ma355e9d4eb68",
+     "symbol_id": "FSY-4963c1ca4f6b5151"
+    },
+    {
+     "formula_id": "VKM-SRC-037:p0142:m2946236174b7",
+     "symbol_id": "FSY-dac317ededf032d3"
+    },
+    {
+     "formula_id": "VKM-SRC-044:p0076:m40ffad7bdffe",
+     "symbol_id": "FSY-a30207e9dee810d9"
+    },
+    {
+     "formula_id": "VKM-SRC-227:p0395:m35419322b36f",
+     "symbol_id": "FSY-acc80f14b39edb2c"
+    },
+    {
+     "formula_id": "VKM-SRC-227:p0238:mf1df9fcb5488",
+     "symbol_id": "FSY-031ea0cb893e76cd"
+    },
+    {
+     "formula_id": "VKM-SRC-037:p0194:m86e6c84e63a8",
+     "symbol_id": "FSY-27805da6e7ab0117"
+    },
+    {
+     "formula_id": "VKM-SRC-193:p0550:mb2ff8c98af05",
+     "symbol_id": "FSY-7b79606d6e4214d7"
+    },
+    {
+     "formula_id": "VKM-SRC-044:p0130:mfae9a0c2092f",
+     "symbol_id": "FSY-4715fb6c60eaefb6"
+    },
+    {
+     "formula_id": "VKM-SRC-234:p0244:m4ccf8807d391",
+     "symbol_id": "FSY-5df9206058a94a6a"
+    },
+    {
+     "formula_id": "VKM-SRC-227:p0305:ma2b7469ddb0c",
+     "symbol_id": "FSY-f507a963e9dadba0"
+    },
+    {
+     "formula_id": "VKM-SRC-037:p0175:mf0b34c7e926c",
+     "symbol_id": "FSY-2552475f29d5c8a7"
+    },
+    {
+     "formula_id": "VKM-SRC-234:p0372:m9c63d563cd97",
+     "symbol_id": "FSY-557e9d4e0bfad980"
+    },
+    {
+     "formula_id": "VKM-SRC-052:p0035:mf3e6c4a14eb4",
+     "symbol_id": "FSY-24c5a9a1d3b6d33f"
+    },
+    {
+     "formula_id": "VKM-SRC-173:p0206:mdaf93b0bef92",
+     "symbol_id": "FSY-b3711387a4729780"
+    },
+    {
+     "formula_id": "VKM-SRC-235:p0381:m35eb9e97ccae",
+     "symbol_id": "FSY-e1b600c924257536"
+    },
+    {
+     "formula_id": "VKM-SRC-235:p0362:m6834049fc2d9",
+     "symbol_id": "FSY-7adeaef2a3003288"
+    },
+    {
+     "formula_id": "VKM-SRC-234:p0521:mf88ada3c71c7",
+     "symbol_id": "FSY-2a0dfdaa86936968"
+    },
+    {
+     "formula_id": "VKM-SRC-037:p0179:mf6bab4fdb836",
+     "symbol_id": "FSY-6fee748710423e3c"
+    },
+    {
+     "formula_id": "VKM-SRC-234:p0486:m20918f6ae9b6",
+     "symbol_id": "FSY-e0a2afac4a845e29"
+    },
+    {
+     "formula_id": "VKM-SRC-234:p0540:mbf1a8fc384ea",
+     "symbol_id": "FSY-d13e12d4b47d3db9"
+    },
+    {
+     "formula_id": "VKM-SRC-226:p0732:mbfa92c1e2556",
+     "symbol_id": "FSY-e73880122cebb908"
+    },
+    {
+     "formula_id": "VKM-SRC-037:p0166:m3520afe575f2",
+     "symbol_id": "FSY-11141f29cbe99f49"
+    },
+    {
+     "formula_id": "VKM-SRC-173:p0186:m2f3a921a3839",
+     "symbol_id": "FSY-f8c9227dcd699bd5"
+    },
+    {
+     "formula_id": "VKM-SRC-037:p0162:m2c6916d1c5cf",
+     "symbol_id": "FSY-45841e530f2a5a3c"
+    },
+    {
+     "formula_id": "VKM-SRC-234:p0288:mfddfcdc527d9",
+     "symbol_id": "FSY-d17524c11cae8f44"
+    },
+    {
+     "formula_id": "VKM-SRC-054:p0088:m3f0c74ad70ac",
+     "symbol_id": "FSY-4e74c4870247144c"
+    },
+    {
+     "formula_id": "VKM-SRC-210:p0095:mdcc729a3ccbe",
+     "symbol_id": "FSY-d84292e783deea55"
+    },
+    {
+     "formula_id": "VKM-SRC-227:p0255:m57437c0e1aa2",
+     "symbol_id": "FSY-ff9dd4b91106d7c2"
+    }
+   ]
+  },
+  "refs": {
+   "criterion": "the textual reference points to the formula it cites (same number, right one of the source)",
+   "seed": 7,
+   "population": 16129,
+   "n_sampled": 40,
+   "n_correct": 40,
+   "precision": 1.0,
+   "errors": [],
+   "sample_ids": [
+    "FRF-550a1cc1f3bf2dd7",
+    "FRF-f745072bfc260292",
+    "FRF-27076983f2e9d97f",
+    "FRF-6762ff7f6356f2bf",
+    "FRF-aa843519e0d2166f",
+    "FRF-0c0497a1b98c3eb3",
+    "FRF-12b479badbaffbe4",
+    "FRF-d57addfb98441db6",
+    "FRF-8c76c417e369d59a",
+    "FRF-1824fe1d69aa98c1",
+    "FRF-6000af3bdb7ec07b",
+    "FRF-98780acfcd2ff146",
+    "FRF-0eb39a8400fa2604",
+    "FRF-ed73f99378b0a53f",
+    "FRF-84e0e846a4c4955f",
+    "FRF-3838b2dec8aef22a",
+    "FRF-0949272b46017333",
+    "FRF-1646f9b5941a0981",
+    "FRF-716e8e06ca226145",
+    "FRF-6d64fe2764fdcb9e",
+    "FRF-12081fde3d887d50",
+    "FRF-3f0537f041d3eaf0",
+    "FRF-176846638d45ce49",
+    "FRF-906fa3428aded69f",
+    "FRF-6ee65024fef77628",
+    "FRF-0f025f22ca251196",
+    "FRF-d6f91fc846b3f861",
+    "FRF-93d066395fac00d1",
+    "FRF-1fffbe4589f43521",
+    "FRF-f7284f39cf6af038",
+    "FRF-3a57d2e85f4922c5",
+    "FRF-a5985e19d32503c3",
+    "FRF-a4a4b0c98d168b03",
+    "FRF-98850e002f836604",
+    "FRF-f738967845b9c83d",
+    "FRF-0fb82030d0cf3c88",
+    "FRF-97060c2485b03561",
+    "FRF-9930d7117a91d1e3",
+    "FRF-6805e9887c0bfa09",
+    "FRF-0c7a5d3c0c535437"
+   ],
+   "ref_type_correct": 39,
+   "ref_type_note": "one DERIVATION_HINT that reads as a substitution («replacing … yields»)"
+  },
+  "params": {
+   "criterion": "symbol, value and unit (if any) form a value assignment of a quantity (strict: case values, index assignments and wrong units are errors)",
+   "seed": 13,
+   "population": 2106,
+   "n_sampled": 40,
+   "n_correct": 31,
+   "precision": 0.775,
+   "errors": [
+    {
+     "index": 2,
+     "kind": "EXPONENT_LOST_IN_TEXT_LAYER"
+    },
+    {
+     "index": 17,
+     "kind": "INDEX_ASSIGNMENT"
+    },
+    {
+     "index": 18,
+     "kind": "CASE_VALUE"
+    },
+    {
+     "index": 20,
+     "kind": "UNIT_TRUNCATED"
+    },
+    {
+     "index": 23,
+     "kind": "GARBLED_TEXT"
+    },
+    {
+     "index": 26,
+     "kind": "INDEX_ASSIGNMENT"
+    },
+    {
+     "index": 30,
+     "kind": "CASE_VALUE"
+    },
+    {
+     "index": 37,
+     "kind": "FUNCTION_OF_SYMBOL"
+    },
+    {
+     "index": 38,
+     "kind": "INDEX_ENUMERATION"
+    }
+   ],
+   "sample_ids": [
+    "FPR-79dc4f1643aeb4bb",
+    "FPR-8c5a6195a73cf847",
+    "FPR-562450ce0f12f603",
+    "FPR-6b5fa8f20b2a34e0",
+    "FPR-4533a6fcccc1a91b",
+    "FPR-67ae5329dce01d7e",
+    "FPR-56e4ec557378f2ab",
+    "FPR-3f3e0c2c9033465a",
+    "FPR-21c014d180adde13",
+    "FPR-63871e57fd997743",
+    "FPR-8dc8f7f07296f1c6",
+    "FPR-0e96f8cd5d989e2d",
+    "FPR-d2f245b269df7410",
+    "FPR-3d31a12fc3971448",
+    "FPR-07e4682d43c81e0f",
+    "FPR-856b7c005be6ab7f",
+    "FPR-4512a95e04c3d20c",
+    "FPR-2930313cf0f31c3c",
+    "FPR-7c3c6c1e79ff7965",
+    "FPR-dd236279a7221124",
+    "FPR-d5852b34ffca3bbd",
+    "FPR-42ca8da253de3e6b",
+    "FPR-7878145270e2e5c2",
+    "FPR-ac6b32d4be299bda",
+    "FPR-6da805f5a3c25e0d",
+    "FPR-f11ebed7179ceec1",
+    "FPR-d1c2841fbc33f156",
+    "FPR-b037125a20d21aa3",
+    "FPR-d1e26821a893c1d8",
+    "FPR-978b59b441bbf99e",
+    "FPR-39318460d796263c",
+    "FPR-a85e36ab0c199069",
+    "FPR-7c834df19610aa15",
+    "FPR-dafb1ba5ba570fef",
+    "FPR-41314489e9ddb1d9",
+    "FPR-d739d487d4a41700",
+    "FPR-d87801abd3b039f8",
+    "FPR-52e196769c64a753",
+    "FPR-8d72a28270063131",
+    "FPR-5eaed7f8021ce72a"
+   ]
+  }
+ },
+ "development_samples_before_rule_fixes": {
+  "seed": 20260928,
+  "numbers": "35/40 (text-layer digits without parentheses, an index (1) inside a formula line)",
+  "where": "40/40",
+  "defs": "36/40 (pointer descriptions «given by Eq. …»)",
+  "refs": "38/40 (simple numbers resolved far away)",
+  "params": "14/40 useful (conditions t = 0, enumerations n = 1,2,…)",
+  "params_seed_11_intermediate": "34/40"
+ }
+}
