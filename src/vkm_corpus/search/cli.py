@@ -166,7 +166,7 @@ def _cmd_hybrid(args: argparse.Namespace) -> int:
         out = hybrid_search(_client(settings), embed, HybridRequest(
             query=args.text, kinds=tuple(args.kind or ["PAGE"]), filters=_parse_filters(args.filter or []),
             size=args.size, candidates=args.candidates, include_duplicates=args.duplicates, late=args.late,
-            late_candidates=args.late_candidates), _prefix(settings, args))
+            late_candidates=args.late_candidates, bib_route=args.bib_route), _prefix(settings, args))
     except (SearchRequestError, HybridError, ProjectionError) as exc:
         return _fail(exc.code, exc.message)
     finally:
@@ -328,6 +328,9 @@ def register(subparsers: argparse._SubParsersAction) -> None:
                     help="late interaction stage (MaxSim on the RX580) over the RRF top --late-candidates")
     hy.add_argument("--no-late", dest="late", action="store_false")
     hy.add_argument("--late-candidates", type=int, default=100)
+    hy.add_argument("--bib-route", dest="bib_route", action="store_true", default=None,
+                    help="force the bibliographic route (BIB_ENTRY channel); default: the query's cues decide")
+    hy.add_argument("--no-bib-route", dest="bib_route", action="store_false")
     hy.set_defaults(func=_cmd_hybrid)
 
     hs = sub.add_parser("hybrid-smoke", help="3 Russian hybrid queries through the VKM API; exit code = verdict")

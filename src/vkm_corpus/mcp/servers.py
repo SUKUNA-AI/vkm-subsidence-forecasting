@@ -146,13 +146,13 @@ def build_read_server(api: ApiClient) -> MCPServer:
                     source_scope: list[str] | None, year_from: int | None, year_to: int | None,
                     available_until: str | None, unknown_policy: str | None, limit: int, candidates: int,
                     cursor: str | None = None, late: bool | None = None,
-                    late_candidates: int = 100) -> dict[str, Any]:
+                    late_candidates: int = 100, bib_route: bool | None = None) -> dict[str, Any]:
         filters = {k: v for k, v in {
             "source_ids": source_ids, "work_ids": work_ids, "source_scope": source_scope, "year_from": year_from,
             "year_to": year_to, "available_until": available_until, "unknown_policy": unknown_policy}.items()
             if v is not None}
         return {"query": query, "kinds": kinds, "filters": filters, "limit": limit, "candidates": candidates,
-                "cursor": cursor, "late": late, "late_candidates": late_candidates}
+                "cursor": cursor, "late": late, "late_candidates": late_candidates, "bib_route": bib_route}
 
     @server.tool(name="search_hybrid", annotations=READ_ONLY)
     async def search_hybrid(
@@ -171,16 +171,22 @@ def build_read_server(api: ApiClient) -> MCPServer:
             cursor: Annotated[str | None, Field(max_length=10)] = None,
             late: Annotated[bool | None, Field(description="late interaction (mLateOn MaxSim) over the RRF top "
                                                            "late_candidates; null = server default")] = None,
-            late_candidates: Annotated[int, Field(ge=1, le=200)] = 100) -> CallToolResult:
+            late_candidates: Annotated[int, Field(ge=1, le=200)] = 100,
+            bib_route: Annotated[bool | None, Field(description="bibliographic route: also search the reference-list "
+                                                               "entries (BIB_ENTRY) and score pages with them; null "
+                                                               "= automatic from the query's bibliographic cues")]
+            = None) -> CallToolResult:
         """Hybrid search: BM25 + dense embeddings (RX580 query encoder, OpenSearch k-NN over embedding units),
         fused by reciprocal rank, then (late) re-scored by late interaction (mLateOn MaxSim over token vectors; a page
         scores its best unit). Pages (every unit of a page counts for it) or figures/tables/formulas. Each hit has a
         trace (bm25_rank, dense_rank, fused_rank, late_rank/late_score, the dense and late units) and a
-        rerank_candidate for rerank_text. Fails with DEPENDENCY_UNAVAILABLE when the encoder, the vector index or
-        (late) the token store is missing (use search_text, or late=false, then)."""
+        rerank_candidate for rerank_text. A bibliographic question («список литературы», «работы Баряха», DOI,
+        «et al.») also searches the reference-list entries (route in the result record; trace bib_rank/bib_unit).
+        Fails with DEPENDENCY_UNAVAILABLE when the encoder, the vector index or (late) the token store is missing
+        (use search_text, or late=false, then)."""
         return await call("search_hybrid", "POST", "/v1/search/hybrid", body=hybrid_body(
             query, kinds, source_ids, work_ids, source_scope, year_from, year_to, available_until, unknown_policy,
-            limit, candidates, cursor, late, late_candidates))
+            limit, candidates, cursor, late, late_candidates, bib_route))
 
     @server.tool(name="retrieval_trace", annotations=READ_ONLY)
     async def retrieval_trace(
