@@ -1,0 +1,569 @@
+{
+ "pages": [
+  {
+   "id": "hosts",
+   "name": "Топология хостов",
+   "layout": "none",
+   "page_width": 1760,
+   "page_height": 860,
+   "background": "#ffffff",
+   "nodes": [
+    {
+     "id": "title",
+     "label": "VKM Corpus Platform v0 — топология хостов (только роли; без адресов, портов и секретов)",
+     "x": 20,
+     "y": 10,
+     "w": 1500,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=16;fontStyle=1;"
+    },
+    {
+     "id": "lane_ws",
+     "label": "WORKSTATION (Windows 11 + WSL archlinux)",
+     "x": 20,
+     "y": 60,
+     "w": 620,
+     "h": 700,
+     "preset": "swimlane",
+     "style": "swimlane;whiteSpace=wrap;html=1;startSize=26;container=1;collapsible=0;fontStyle=1;swimlaneFillColor=#ffffff;fillColor=#dae8fc;strokeColor=#6c8ebf;"
+    },
+    {
+     "id": "ws_wsl",
+     "label": "WSL archlinux",
+     "x": 20,
+     "y": 40,
+     "w": 280,
+     "h": 560,
+     "style": "rounded=0;whiteSpace=wrap;html=1;container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;dashed=1;fillColor=none;",
+     "parent": "lane_ws"
+    },
+    {
+     "id": "pipeline",
+     "label": "Pipeline (venv, Python 3.13):\nизвлечение, рендер, layout",
+     "x": 30,
+     "y": 40,
+     "w": 220,
+     "h": 60,
+     "parent": "ws_wsl"
+    },
+    {
+     "id": "glmocr",
+     "label": "GLM-OCR: vLLM в Docker\n(GPU; порт только loopback)",
+     "x": 30,
+     "y": 130,
+     "w": 220,
+     "h": 60,
+     "parent": "ws_wsl"
+    },
+    {
+     "id": "staging",
+     "label": "STAGING-корень\n(маркер корня STAGING)",
+     "x": 30,
+     "y": 220,
+     "w": 220,
+     "h": 80,
+     "preset": "cylinder",
+     "parent": "ws_wsl"
+    },
+    {
+     "id": "worker",
+     "label": "Воркер заданий\n(единственный планировщик)",
+     "x": 30,
+     "y": 330,
+     "w": 220,
+     "h": 60,
+     "parent": "ws_wsl"
+    },
+    {
+     "id": "backup",
+     "label": "Обратная копия канона\nи KEEP_RAW (H-10)",
+     "x": 30,
+     "y": 420,
+     "w": 220,
+     "h": 80,
+     "preset": "cylinder",
+     "parent": "ws_wsl"
+    },
+    {
+     "id": "ws_win",
+     "label": "Windows",
+     "x": 320,
+     "y": 40,
+     "w": 280,
+     "h": 560,
+     "style": "rounded=0;whiteSpace=wrap;html=1;container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;dashed=1;fillColor=none;",
+     "parent": "lane_ws"
+    },
+    {
+     "id": "claude",
+     "label": "Claude Code\n(агент, MCP-клиент)",
+     "x": 30,
+     "y": 40,
+     "w": 220,
+     "h": 60,
+     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;rounded=1;",
+     "parent": "ws_win"
+    },
+    {
+     "id": "drawio_mcp",
+     "label": "vkm-drawio (stdio MCP)",
+     "x": 30,
+     "y": 140,
+     "w": 220,
+     "h": 50,
+     "parent": "ws_win"
+    },
+    {
+     "id": "drawio_app",
+     "label": "draw.io Desktop\n(CLI: экспорт, раскладка)",
+     "x": 30,
+     "y": 220,
+     "w": 220,
+     "h": 60,
+     "parent": "ws_win"
+    },
+    {
+     "id": "cad_mcp",
+     "label": "vkm-cad (stdio MCP)",
+     "x": 30,
+     "y": 320,
+     "w": 220,
+     "h": 50,
+     "parent": "ws_win"
+    },
+    {
+     "id": "acad",
+     "label": "AutoCAD 2026 / Civil 3D 2026\n(COM: attach, только чтение)",
+     "x": 30,
+     "y": 400,
+     "w": 220,
+     "h": 60,
+     "parent": "ws_win"
+    },
+    {
+     "id": "scratch",
+     "label": "CAD scratch-каталог\n(ezdxf: DXF, $INSUNITS=0)",
+     "x": 30,
+     "y": 480,
+     "w": 220,
+     "h": 70,
+     "preset": "cylinder",
+     "parent": "ws_win"
+    },
+    {
+     "id": "lane_core",
+     "label": "CORE (Linux · Docker Compose «vkm-core»)",
+     "x": 700,
+     "y": 60,
+     "w": 600,
+     "h": 700,
+     "preset": "swimlane",
+     "style": "swimlane;whiteSpace=wrap;html=1;startSize=26;container=1;collapsible=0;fontStyle=1;swimlaneFillColor=#ffffff;fillColor=#d5e8d4;strokeColor=#82b366;"
+    },
+    {
+     "id": "net",
+     "label": "внутренняя сеть vkm-core",
+     "x": 20,
+     "y": 40,
+     "w": 560,
+     "h": 330,
+     "style": "rounded=0;whiteSpace=wrap;html=1;container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;dashed=1;fillColor=none;",
+     "parent": "lane_core"
+    },
+    {
+     "id": "mcp",
+     "label": "mcp — vkm-corpus\n(read; LAN)",
+     "x": 20,
+     "y": 40,
+     "w": 230,
+     "h": 60,
+     "parent": "net"
+    },
+    {
+     "id": "mcpadmin",
+     "label": "mcp-admin — vkm-corpus-admin\n(write, plan-first)",
+     "x": 20,
+     "y": 130,
+     "w": 230,
+     "h": 70,
+     "parent": "net"
+    },
+    {
+     "id": "api",
+     "label": "api — VKM API /v1\n(LAN-адрес CORE;\nмонтирование :ro)",
+     "x": 290,
+     "y": 40,
+     "w": 250,
+     "h": 160,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;rounded=1;",
+     "parent": "net"
+    },
+    {
+     "id": "neo4j",
+     "label": "neo4j 5.26\n(только loopback)",
+     "x": 20,
+     "y": 240,
+     "w": 160,
+     "h": 70,
+     "parent": "net"
+    },
+    {
+     "id": "opensearch",
+     "label": "opensearch 3.8\n(только loopback)",
+     "x": 200,
+     "y": 240,
+     "w": 160,
+     "h": 70,
+     "parent": "net"
+    },
+    {
+     "id": "duckdb",
+     "label": "DuckDB-файл\n(read-only)",
+     "x": 380,
+     "y": 240,
+     "w": 160,
+     "h": 70,
+     "parent": "net"
+    },
+    {
+     "id": "data",
+     "label": "Корень данных CANONICAL:\ncanonical/ · artifacts/ · duckdb/",
+     "x": 20,
+     "y": 400,
+     "w": 560,
+     "h": 110,
+     "preset": "cylinder",
+     "parent": "lane_core"
+    },
+    {
+     "id": "lane_edge",
+     "label": "EDGE (Linux · Docker · GPU GTX 1650)",
+     "x": 1360,
+     "y": 60,
+     "w": 380,
+     "h": 700,
+     "preset": "swimlane",
+     "style": "swimlane;whiteSpace=wrap;html=1;startSize=26;container=1;collapsible=0;fontStyle=1;swimlaneFillColor=#ffffff;fillColor=#ffe6cc;strokeColor=#d79b00;"
+    },
+    {
+     "id": "gateway",
+     "label": "vkm-rerank-gateway\n(LAN, токен из *_FILE)",
+     "x": 30,
+     "y": 50,
+     "w": 320,
+     "h": 60,
+     "parent": "lane_edge"
+    },
+    {
+     "id": "text",
+     "label": "Jina v3.5 — текст\n(существующий сервис,\nне трогаем)",
+     "x": 30,
+     "y": 160,
+     "w": 150,
+     "h": 80,
+     "parent": "lane_edge"
+    },
+    {
+     "id": "visual",
+     "label": "Jina m0 Q6_K\n(llama-server,\nloopback)",
+     "x": 200,
+     "y": 160,
+     "w": 150,
+     "h": 80,
+     "parent": "lane_edge"
+    },
+    {
+     "id": "pg",
+     "label": "PostgreSQL: БД VKM\ncontrol plane (задания, не канон)",
+     "x": 30,
+     "y": 300,
+     "w": 320,
+     "h": 100,
+     "preset": "cylinder",
+     "parent": "lane_edge"
+    },
+    {
+     "id": "legend",
+     "label": "Роли хостов без адресов: IP, порты, логины и секреты — только в host-local .env и *_FILE. Neo4j и OpenSearch слушают только loopback; в LAN публикуются только API, MCP и rerank-gateway.",
+     "x": 20,
+     "y": 790,
+     "w": 1720,
+     "h": 50,
+     "preset": "note",
+     "style": "align=left;verticalAlign=middle;spacingLeft=6;"
+    }
+   ],
+   "edges": [
+    {
+     "id": "t_draw",
+     "source": "claude",
+     "target": "drawio_mcp",
+     "label": "stdio",
+     "style": "exitX=0.5;exitY=1;entryX=0.5;entryY=0;"
+    },
+    {
+     "id": "t_cad",
+     "source": "claude",
+     "target": "cad_mcp",
+     "label": "stdio",
+     "style": "exitX=0;exitY=0.5;entryX=0;entryY=0.5;",
+     "waypoints": [
+      [
+       355,
+       170
+      ],
+      [
+       355,
+       445
+      ]
+     ]
+    },
+    {
+     "id": "t_drawio_cli",
+     "source": "drawio_mcp",
+     "target": "drawio_app",
+     "label": "CLI",
+     "style": "exitX=0.5;exitY=1;entryX=0.5;entryY=0;"
+    },
+    {
+     "id": "t_com",
+     "source": "cad_mcp",
+     "target": "acad",
+     "label": "COM (attach)",
+     "style": "exitX=0.5;exitY=1;entryX=0.5;entryY=0;"
+    },
+    {
+     "id": "t_dxf",
+     "source": "cad_mcp",
+     "target": "scratch",
+     "label": "ezdxf",
+     "style": "exitX=1;exitY=0.5;entryX=1;entryY=0.5;",
+     "waypoints": [
+      [
+       605,
+       445
+      ],
+      [
+       605,
+       615
+      ]
+     ]
+    },
+    {
+     "id": "t_mcp",
+     "source": "claude",
+     "target": "mcp",
+     "label": "MCP: HTTP + bearer",
+     "style": "exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+    },
+    {
+     "id": "t_mcp_admin",
+     "source": "claude",
+     "target": "mcpadmin",
+     "label": "только осознанно",
+     "style": "exitX=1;exitY=0.85;entryX=0;entryY=0.5;",
+     "waypoints": [
+      [
+       670,
+       191
+      ],
+      [
+       670,
+       265
+      ]
+     ],
+     "preset": "dashed"
+    },
+    {
+     "id": "t_api1",
+     "source": "mcp",
+     "target": "api",
+     "label": "",
+     "style": "exitX=1;exitY=0.5;entryX=0;entryY=0.19;"
+    },
+    {
+     "id": "t_api2",
+     "source": "mcpadmin",
+     "target": "api",
+     "label": "",
+     "style": "exitX=1;exitY=0.5;entryX=0;entryY=0.78;"
+    },
+    {
+     "id": "t_duck",
+     "source": "api",
+     "target": "duckdb",
+     "label": "",
+     "style": "exitX=0.68;exitY=1;entryX=0.5;entryY=0;"
+    },
+    {
+     "id": "t_os",
+     "source": "api",
+     "target": "opensearch",
+     "label": "только ID",
+     "style": "exitX=0.14;exitY=1;entryX=0.78;entryY=0;"
+    },
+    {
+     "id": "t_neo",
+     "source": "api",
+     "target": "neo4j",
+     "label": "",
+     "style": "exitX=0.04;exitY=1;entryX=0.5;entryY=0;",
+     "waypoints": [
+      [
+       1020,
+       320
+      ],
+      [
+       820,
+       320
+      ]
+     ]
+    },
+    {
+     "id": "t_ro",
+     "source": "api",
+     "target": "data",
+     "label": ":ro",
+     "style": "exitX=1;exitY=0.69;entryX=1;entryY=0.5;",
+     "waypoints": [
+      [
+       1290,
+       250
+      ],
+      [
+       1290,
+       515
+      ]
+     ]
+    },
+    {
+     "id": "t_ocr",
+     "source": "pipeline",
+     "target": "glmocr",
+     "label": "HTTP (loopback)",
+     "style": "exitX=0.5;exitY=1;entryX=0.5;entryY=0;"
+    },
+    {
+     "id": "t_stage",
+     "source": "pipeline",
+     "target": "staging",
+     "label": "Parquet + raw",
+     "style": "exitX=1;exitY=0.5;entryX=1;entryY=0.5;",
+     "waypoints": [
+      [
+       305,
+       170
+      ],
+      [
+       305,
+       360
+      ]
+     ]
+    },
+    {
+     "id": "t_pub",
+     "source": "staging",
+     "target": "data",
+     "label": "публикация: rsync (SSH) → core admit",
+     "style": "exitX=0;exitY=0.5;entryX=0;entryY=0.5;",
+     "waypoints": [
+      [
+       55,
+       360
+      ],
+      [
+       55,
+       690
+      ],
+      [
+       690,
+       690
+      ],
+      [
+       690,
+       515
+      ]
+     ]
+    },
+    {
+     "id": "t_back",
+     "source": "data",
+     "target": "backup",
+     "label": "обратная копия",
+     "style": "exitX=0.1;exitY=1;entryX=0.5;entryY=1;",
+     "waypoints": [
+      [
+       776,
+       715
+      ],
+      [
+       180,
+       715
+      ]
+     ],
+     "preset": "dashed"
+    },
+    {
+     "id": "t_rr",
+     "source": "api",
+     "target": "gateway",
+     "label": "реранк: HTTP + токен",
+     "style": "exitX=1;exitY=0.125;entryX=0;entryY=0.83;"
+    },
+    {
+     "id": "t_plan",
+     "source": "api",
+     "target": "pg",
+     "label": "PLAN_REQUEST",
+     "style": "exitX=1;exitY=0.75;entryX=0;entryY=0.5;",
+     "waypoints": [
+      [
+       1340,
+       260
+      ],
+      [
+       1340,
+       410
+      ]
+     ]
+    },
+    {
+     "id": "t_text",
+     "source": "gateway",
+     "target": "text",
+     "label": "",
+     "style": "exitX=0.234;exitY=1;entryX=0.5;entryY=0;"
+    },
+    {
+     "id": "t_visual",
+     "source": "gateway",
+     "target": "visual",
+     "label": "",
+     "style": "exitX=0.766;exitY=1;entryX=0.5;entryY=0;"
+    },
+    {
+     "id": "t_jobs",
+     "source": "worker",
+     "target": "pg",
+     "label": "задания: план → plan_sha256 → запуск",
+     "style": "exitX=1;exitY=0.5;entryX=0.5;entryY=1;",
+     "waypoints": [
+      [
+       330,
+       460
+      ],
+      [
+       330,
+       740
+      ],
+      [
+       1550,
+       740
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

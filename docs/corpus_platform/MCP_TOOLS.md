@@ -1,0 +1,220 @@
+# VKM Corpus Platform v0 — MCP-серверы и tools
+
+Практический справочник по четырём MCP-серверам платформы: что они умеют, в каком виде отвечают, как их подключить к
+Claude Code. Решения — [журнал координатора](../implementation_work/COORDINATOR_DECISIONS.md) (CP-16, CP-19, ответы на
+H-12, H-13, H-18, H-20, H-38…H-40, H-45, H-47), проект — [проект G](../implementation_work/AGENT_G_API_MCP_CAD_DESIGN.md).
+Схемы: [поток данных](../diagrams/platform_data_flow.svg), [топология хостов](../diagrams/platform_hosts.svg).
+
+| Сервер | Где работает | Транспорт | Назначение | Подключается по умолчанию |
+|---|---|---|---|---|
+| `vkm-corpus` | CORE (compose `vkm-core`, сервис `mcp`) | streamable HTTP (stateless, JSON) + bearer | чтение корпуса через VKM API | да |
+| `vkm-corpus-admin` | CORE (сервис `mcp-admin`, профиль `admin`) | streamable HTTP + отдельный bearer | переобработка plan-first | **нет** — только осознанно |
+| `vkm-cad` | WORKSTATION (Windows) | stdio | AutoCAD/Civil 3D: детектор, чтение открытых чертежей, scratch-DXF | да (локально) |
+| `vkm-drawio` | WORKSTATION (Windows) | stdio | детерминированные схемы draw.io | да (локально) |
+
+MCP-серверы корпуса — тонкие адаптеры поверх VKM API (`/v1`): у них нет драйверов DuckDB, Neo4j, OpenSearch и
+PostgreSQL (тест), поэтому «сырой SQL/Cypher» через MCP невозможен. Код: `vkm_corpus.mcp.servers`,
+`vkm_corpus.mcp.http`; API — `vkm_corpus.api`; мосты — пакеты `vkm_cad` и `vkm_drawio`.
+
+## 1. Ответ корпуса: `ApiResponse` и конверт `vkm.envelope/1`
+
+Каждый tool серверов корпуса возвращает ответ API как `structured_content` и тем же JSON в текстовом блоке;
+`is_error = not ok`. Тело:
+
+| Поле | Смысл |
+|---|---|
+| `ok` | `true` / `false` |
+| `meta` | `request_id` (он же `log_ref` в логах), `api_version`, `canonical_snapshot_id`, `elapsed_ms`, `warnings[]` |
+| `item` / `items[]` | объект(ы): `{envelope, record}`; `record` — канонические поля без дублей конверта |
+| `next_cursor` | курсор следующей страницы результата |
+| `error` | `code`, `message`, `retryable`, `stage`, `tool`, `object_id`, `hint`, `log_ref`, `details` |
+
+Конверт отвечает на вопросы §50 без догадок агента:
+
+| Вопрос | Поля конверта |
+|---|---|
+| что это? | `object_kind`, `object_id`, `object_version` (`content_sha256@commit_id`) |
+| где оригинал? | `source_id`, `page_id`, `page_index` (физический, с 1), `page_label` (печатный), `geometry` (PAGE_PT_TL, pt, левый верхний угол), `provenance.source_sha256` |
+| кто/что создал? | `provenance` (`processing_run_id`, `extractor_id/version`, `extraction_generation`, `models[]` с ролями LAYOUT/RECOGNITION, `config_hash`) |
+| native или OCR? | `origin` (NATIVE / EMBEDDED_OCR / OCR / DERIVED / REGISTRY), `text_layer`, `region_origin` |
+| auto или reviewed? | `review_status`: автоматические объекты всегда `AUTO_EXTRACTED_UNREVIEWED`, статус источника не наследуется |
+| canonical, raw или projection? | `layer` (CANONICAL / ARTIFACT / PROJECTION / OPERATIONAL / SERVICE / WORKSPACE), `payload_form` (NORMALIZED / RAW / BINARY / REFERENCE), `projection` (движок, `build_id`, `built_from_snapshot_id`, совпадает ли со снимком) |
+| область | `source_scope` — область **источника**; на объектах она унаследована (`inherited_from_source`, флаг `SCOPE_INHERITED_FROM_SOURCE`, H-18) |
+
+Флаги интерпретации API (`flags`): `SCOPE_INHERITED_FROM_SOURCE`, `REGISTER_NOTES_NOT_EVIDENCE` (H-47),
+`WORK_HAS_MULTIPLE_COPIES`, `CITING_WORK_IS_CONTAINER` (H-49), `PAGE_HAS_FOREIGN_CONTENT` (H-16: на странице
+содержимое другой работы — `record.foreign_content`: `work_ids`, `unidentified_work`), `AUTHOR_NAME_KEY_ONLY` (H-15),
+`TEXT_TRUNCATED`, `TOMBSTONE`. `work_id` страницы и объекта — работа, экземпляром которой является источник
+(INSTANCE_OF, как в документах поиска E); для страницы с чужим содержимым он не означает авторства этой страницы. Предупреждения `meta.warnings`: `STALE_PROJECTION` (ID из индекса или графа нет в каноне — отброшен),
+`PROJECTION_BUILD_MISMATCH`, `WORK_HAS_MULTIPLE_COPIES`, `DEGRADED_DEPENDENCY`, `TOMBSTONE`.
+
+Коды ошибок и HTTP: `INVALID_ARGUMENT`/`INVALID_ID` 400, `UNAUTHORIZED` 401, `FORBIDDEN` 403, `NOT_FOUND` 404 (с
+подсказкой; 410 не используется, H-38), `NOT_REPROCESSABLE`/`PLAN_NOT_READY`/`PLAN_CHANGED`/`JOB_STATE_CONFLICT`/`ARTIFACT_NOT_MATERIALIZED`
+409, `PAYLOAD_TOO_LARGE` 413, `NO_IMAGE_ARTIFACT`/`NO_RERANK_TEXT` 422, `RATE_LIMITED` 429, `INTERNAL`/
+`ARTIFACT_HASH_MISMATCH`/`ARTIFACT_NOT_DECODABLE` 500 (последние два — дефект данных, повтор не поможет),
+`DEPENDENCY_ERROR` 502, `SNAPSHOT_UNAVAILABLE`/`DEPENDENCY_UNAVAILABLE` 503,
+`DEPENDENCY_TIMEOUT` 504. Подмены канона текстом проекции нет: без DuckDB-снимка ответ — 503.
+
+## 2. `vkm-corpus` — read-tools
+
+Все tools: `read_only_hint = true`, `destructive_hint = false`.
+
+| Tool | Главные аргументы | Что возвращает | Эндпоинт API |
+|---|---|---|---|
+| `search_text` | `query`, `kinds` (PAGE, BLOCK, FIGURE, TABLE, FORMULA), фильтры (`source_ids`, `work_ids`, `source_scope`, `source_scope_raw`, `review_status`, `origin`, `language`, `year_from/to`, `available_until` + `unknown_policy`, `quality_flags_none`), `limit`, `cursor` | кандидаты с каноническими конвертами, сниппеты индекса (`highlight_origin = SEARCH_INDEX`), `rerank_candidate` | `POST /v1/search` |
+| `search_objects` | `kinds`, `source_ids`, `work_ids`, `page_from/to`, `figure_types`, `review_status`, `origin`, `quality_flags_any/none`, `has_image`, `source_scope*`, `caption_query` | объекты без текстовых тел | `POST /v1/objects/query` |
+| `get_source` | `source_id` | строка реестра, `lifecycle_status` (013/022 — 200), связи с Work, сводка обработки | `GET /v1/source/{id}` |
+| `get_work` | `work_id` | Work, авторы (`name_as_listed`, NAME_KEY_ONLY), экземпляры-Source, `work_copy_count`, `resolved_work_id` | `GET /v1/work/{id}` |
+| `get_page` | `page_id`, `include` (text, blocks, objects), `max_chars` (≤ 60 000), `text_offset` | страница, окно `normalized_text`, объекты страницы | `GET /v1/page/{id}` |
+| `get_page_image` | `page_id`, `max_side` (256–1568, по умолчанию 1024), `format` | `ImageContent` + конверт + `pixel_to_page` | `GET /v1/page/{id}/image` |
+| `get_figure` | `figure_id`, `include_image` (true), `max_side` | рисунок (bbox, подпись, тип или UNKNOWN_FIGURE_TYPE, векторы) + кроп | `GET /v1/figure/{id}` (+ `/image`) |
+| `get_table` | `table_id`, `include_image`, `max_chars` | таблица: сырьё распознавания, сетка, текст, кроп | `GET /v1/table/{id}` |
+| `get_formula` | `formula_id`, `include_image` | формула: сырьё, LaTeX, нативные глифы | `GET /v1/formula/{id}` |
+| `get_object` | `object_id` (любой ID) | объект с конвертом | `GET /v1/object/{id}` |
+| `get_document_neighbors` | `object_id`, `rel_types`, `direction`, `limit` | соседи из графа (проекция), гидратированные из канона | `GET /v1/neighbors/{id}` |
+| `get_citations` | `work_id`, `direction` (cites, cited_by, both), `include_unlinked` | записи библиографии (LINKED / CANDIDATE / UNLINKED), цитирующие работы | `GET /v1/citations/{id}` |
+| `rerank_text` | `query`, `candidate_ids` (≤ 24), `top_n`, `passages[]` | ранжирование; текст кандидатов — из view `rerank_text` канона; блок SERVICE с моделью | `POST /v1/rerank/text` |
+| `rerank_visual` | `query`, `candidate_ids` (≤ 8: страницы, рисунки, таблицы, артефакты-изображения), `top_n`, `max_side` | ранжирование по изображениям; кандидаты без изображения — в `rejected` | `POST /v1/rerank/visual` |
+| `get_processing_status` | один из `source_id`, `page_id`, `run_id`, `job_id` | статусы, последние попытки стадий, ошибки, задания | `GET /v1/processing/status` |
+| `trace_document_provenance` | `object_id` | цепочка провенанса + ответы §50 (`interpretability`) | `GET /v1/provenance/{id}` |
+| `get_artifact` | `artifact_id` | метаданные артефакта | `GET /v1/artifact/{id}` |
+| `list_source_pages` | `source_id`, `from_page`, `to_page`, `limit`, `cursor` | страницы источника | `GET /v1/source/{id}/pages` |
+| `get_corpus_status` | — | снимок и счётчики, сборки проекций, модели реранка и лицензии, задания; только роли хостов | `GET /v1/status` |
+
+Лимиты (H-13, H-45): текстовый реранк — не больше 24 кандидатов за вызов (больше — 413, пачки не склеиваются);
+визуальный — не больше 8 изображений, таймаут клиента 330 с (реранкер обрабатывает изображение секунды);
+изображения — длинная сторона по умолчанию 1024 px, PNG при размере до 1,5 МБ, иначе JPEG q85.
+
+## 3. `vkm-corpus-admin` — переобработка plan-first (H-12)
+
+| Tool | Аннотации | Аргументы | Результат |
+|---|---|---|---|
+| `reprocess_source` | write, не destructive, idempotent | `source_id`, `reason` (≥ 10 символов), `force`, `recall_model`, `no_ocr`, `job_id`, `plan_sha256` | задание control plane |
+| `reprocess_page` | то же | `page_id`, … | то же |
+| `get_job` | read-only | `job_id` | состояние, план (`vkm.ops_plan/1`) и `plan_sha256` |
+| `cancel_job` | write, destructive | `job_id`, `reason` | задание `CANCELLED` (только до запуска: `PLAN_REQUESTED`, `PLANNED`, `CONFIRMED`) |
+
+Порядок: (1) вызов без `job_id` ставит задание `PLAN_REQUESTED`; (2) воркер (единственный планировщик) публикует план —
+`get_job` показывает `PLANNED` и `plan_sha256`; (3) человек проверяет план, повторный вызов с `job_id` и `plan_sha256`
+подтверждает именно этот план (`CONFIRMED`); воркер перед запуском пересчитывает план и отказывается при другом хеше.
+Отказ человека — `cancel_job`. Опции — ровно те, что исполняет воркер v0 (`request.options`): `force` (пересчёт строк
+из кешей, модели не вызываются, H-05), `recall_model` (повторный вызов моделей — время GPU), `no_ocr`; выбора стадий в
+v0 нет. Повтор запроса по той же цели с теми же опциями возвращает активное задание (`deduplicated`), с другими —
+`JOB_STATE_CONFLICT` (сначала `cancel_job`); источники вне жизненного цикла ACTIVE (013, 022) — `NOT_REPROCESSABLE`;
+активных заданий не больше 20 для страниц и 3 для источников (`RATE_LIMITED`). Канон API и MCP не пишут никогда.
+
+## 4. `vkm-cad` — мост Autodesk (WORKSTATION)
+
+| Tool | Класс | Что делает | Ошибки |
+|---|---|---|---|
+| `cad_status` | read | установленные AutoCAD/Civil 3D и версии (реестр и файлы, без запуска AutoCAD и без COM), запущенные процессы, .NET/COM, возможности моста, scratch-корень | — |
+| `cad_list_open_documents` | read | открытые документы — только attach к запущенному пользователем AutoCAD (`GetActiveObject`) | `CAD_UNAVAILABLE`, `CAD_NOT_RUNNING`, `CAD_BUSY`, `CAD_TIMEOUT` |
+| `cad_get_layers` | read | слои документа | + `CAD_DOCUMENT_NOT_FOUND` |
+| `cad_get_extents` | read | EXTMIN/EXTMAX, INSUNITS, MEASUREMENT | то же |
+| `cad_list_entities` | read | объекты пространства модели (≤ 1000 за вызов, курсор) | то же |
+| `cad_get_coordinate_system` | read | код системы координат чертежа (CGEOCS) как есть; `crs_status = UNKNOWN_CRS`, EPSG не выводится | то же |
+| `cad_create_scratch_document` | scratch | пустой DXF (ezdxf) | `EZDXF_UNAVAILABLE`, `SCRATCH_UNAVAILABLE` |
+| `cad_import_pdf_vector` | scratch | артефакт `VECTOR_PATHS_JSON` (`vkm.vector_paths/1`) → DXF: 1 единица = 1 pt, ось Y перевёрнута | `NO_VECTOR_ARTIFACT`, `ARTIFACT_HASH_MISMATCH`, `CRS_STATUS_NOT_ALLOWED` |
+| `cad_extract_geometry` | scratch | геометрия DXF → `out/geometry.jsonl` + сводка | `SCRATCH_DOC_NOT_FOUND`, `FORMAT_NOT_SUPPORTED` |
+| `cad_export_dxf` | scratch | DXF нужной версии (R2000…R2018) с фиксированными датами | `WOULD_OVERWRITE` |
+| `cad_save_copy` | scratch | байтовая копия **сохранённого** файла открытого документа в scratch (sha до и после; несохранённые правки отмечаются) | `CAD_*` |
+
+Правила (H-20): DXF моста — `$INSUNITS = 0` и XDATA `VKM_UNITS=PAGE_PT`, фиксированные даты и GUID заголовка,
+`coordinate_space = DRAWING_UNITS`, `crs_status = UNKNOWN_CRS` (`SCHEMATIC` — только с обоснованием, записывается как
+MODEL_CHOICE), `epsg = null`, `review_status = AUTO_EXTRACTED_UNREVIEWED`; CAD-выходы никогда не вход извлечения. Мост
+не запускает AutoCAD, не вызывает команды и не сохраняет документы пользователя; `accoreconsole` и .NET-плагин в v0 не
+используются. Scratch-корень — `VKM_CAD_SCRATCH` или `$VKM_WORK/cad_scratch` (не в PRIVATE, не в каноне, в PUBLIC — только
+в git-ignored `work/`). Векторный артефакт ищется в `$VKM_DATA_ROOT/artifacts`, в `inbox/` scratch-корня и через VKM API.
+
+## 5. `vkm-drawio` — схемы draw.io (WORKSTATION)
+
+| Tool | Класс | Что делает | Нужен draw.io Desktop |
+|---|---|---|---|
+| `drawio_status` | read | найден ли draw.io (Store-пакет, `VKM_DRAWIO_EXE`, Program Files, PATH), версия, корни | нет |
+| `drawio_create_diagram` | write | структурированная спецификация (страницы → узлы, рёбра) → детерминированный несжатый `.drawio`; раскладка: явные координаты, `grid` или `drawio:<preset>` (CLI + канонизация) | только для `drawio:*` |
+| `drawio_read_diagram` | read | `.drawio` (обычный или сжатый), `.svg`/`.png` со встроенной моделью | нет |
+| `drawio_update_diagram` | write | операции `add/update/remove_node`, `add/update/remove_edge`, `add/rename/remove_page`, `canonicalize`; требует `expected_sha256` | нет |
+| `drawio_export` | write | png, svg, jpg; pdf — только в корень `work` | да |
+| `drawio_render_preview` | read | PNG-превью страницы как `ImageContent` (ничего не пишет) | да |
+| `drawio_open` | GUI | открывает схему в окне draw.io (отдельный процесс, без ожидания) | да |
+| `drawio_list_diagrams` | read | список схем корня | нет |
+
+Корни записи: `public` = `docs/diagrams/` (коммитится; политика утечки: без машинных путей, частных адресов, секретов и
+встроенных растров) и `work` = `$VKM_WORK/diagrams`. Пути — относительные, без `..`, дисков, UNC, `:` и ссылок
+(junction/symlink); перезапись — только с `overwrite = true`. Примеры в `docs/diagrams/` пересобираются из
+`docs/diagrams/specs/*.spec.json` командой `python -m vkm_drawio.cli create --root public --path <имя>.drawio --spec
+docs/diagrams/specs/<имя>.spec.json --overwrite` (тест сверяет байты).
+
+## 6. Подключение к Claude Code
+
+`.mcp.json` в репозиторий не коммитится (DN-G7): скопируйте шаблон в неотслеживаемый `.mcp.json` в корне клона или
+добавьте серверы командой `claude mcp add -s local`. Значения — только переменные окружения пользователя (URL, токены,
+рабочие каталоги); в шаблоне нет путей и секретов. Claude Code подставляет `${VAR}` и `${VAR:-default}`; незаданную
+переменную серверы `vkm-cad` и `vkm-drawio` считают незаданной.
+
+```json
+{
+  "mcpServers": {
+    "vkm-corpus": {
+      "type": "http",
+      "url": "${VKM_MCP_URL}",
+      "headers": {"Authorization": "Bearer ${VKM_MCP_TOKEN}"}
+    },
+    "vkm-cad": {
+      "type": "stdio",
+      "command": "${VKM_PYTHON:-python}",
+      "args": ["-m", "vkm_cad.mcp_server"],
+      "env": {"PYTHONUTF8": "1", "VKM_WORK": "${VKM_WORK}", "VKM_CAD_SCRATCH": "${VKM_CAD_SCRATCH:-}",
+              "VKM_API_URL": "${VKM_API_URL:-}", "VKM_API_TOKEN": "${VKM_API_TOKEN:-}"}
+    },
+    "vkm-drawio": {
+      "type": "stdio",
+      "command": "${VKM_PYTHON:-python}",
+      "args": ["-m", "vkm_drawio.mcp_server"],
+      "env": {"PYTHONUTF8": "1", "VKM_WORK": "${VKM_WORK}", "VKM_DRAWIO_EXE": "${VKM_DRAWIO_EXE:-}"}
+    }
+  }
+}
+```
+
+Администрирование подключается отдельно и только на время работы (каждый вызов подтверждает человек; tools
+`mcp__vkm-corpus-admin__*` не добавлять в allow-списки):
+
+```json
+{"mcpServers": {"vkm-corpus-admin": {"type": "http", "url": "${VKM_MCP_ADMIN_URL}",
+                                     "headers": {"Authorization": "Bearer ${VKM_MCP_ADMIN_TOKEN}"}}}}
+```
+
+`VKM_PYTHON` — интерпретатор окружения, где пакет установлен (`pip install -e ".[desktop]"` для мостов,
+`".[corpus-services]"` для скриптового клиента). Stdio-серверы пишут логи в stderr и в `$VKM_WORK/logs/*.jsonl`; stdout —
+только протокол (тест).
+
+## 7. Развёртывание на CORE
+
+Образ `infra/core/api/Dockerfile` (python:3.13-slim по digest, без прав root, секретов нет) используют четыре сервиса
+compose-проекта `vkm-core` (`infra/core/compose.yml`): `api` (`vkm-corpus api serve`), `mcp` (`mcp serve --kind
+read`), `mcp-admin` (`--kind admin`, профиль `admin`) и разовый `vkm-job` (профиль `jobs`: `canon init --kind
+CANONICAL`, `core reconcile --run-id <RUN>`). Все они работают от владельца канонического корня
+(`VKM_DATA_UID:VKM_DATA_GID` из host-local `.env`), с корневой ФС только для чтения и tmpfs `/tmp`. `api` монтирует
+корень `:ro` (маркер, `canonical/`, `artifacts/`, `duckdb/`), пишет в корень только `vkm-job`. API отказывается
+работать на корне STAGING (H-07) и в `/v1/status` сверяет снимок DuckDB с `CURRENT` (H-48). Токены — compose secrets
+через `*_FILE`: `VKM_API_TOKEN_FILE` (чтение), `VKM_API_WRITE_TOKEN_FILE` (переобработка), `VKM_MCP_TOKEN_FILE`,
+`VKM_MCP_ADMIN_TOKEN_FILE`, `VKM_NEO4J_PASSWORD_FILE` (отдельный файл `neo4j_password`, не `neo4j_auth` самого Neo4j);
+файлы секретов принадлежат `VKM_DATA_UID`, режим 0400. Сервер `mcp` получает только токен чтения API. Разрешённые
+значения `Host` — `VKM_MCP_ALLOWED_HOSTS` (чужой `Host` → 421; пусто — только loopback). Шаблон переменных —
+`infra/core/.env.example`.
+
+## 8. Приёмка §60
+
+Сценарий: `search_text` → кандидаты-страницы → `rerank_text` → `get_page` → рисунки → `rerank_visual` → `get_object` →
+`trace_document_provenance`.
+
+1. Скриптовый клиент (gate, детерминированный): `python -m vkm_corpus.mcp.acceptance --url "$VKM_MCP_URL" --out
+   receipt.json` (токен — из `VKM_MCP_TOKEN[_FILE]`). Проверяет каждый шаг, поля конвертов и ответы провенанса,
+   пишет JSON-receipt без текста документов. Режим `--dry-run` прогоняет ту же цепочку на синтетическом каноне внутри
+   процесса.
+2. Прогон агентом (только с согласия пользователя — расходует план): `claude -p` с `--mcp-config <файл с одним
+   vkm-corpus> --strict-mcp-config --tools "" --allowedTools "mcp__vkm-corpus" --permission-mode dontAsk --output-format
+   stream-json`; вердикт — по аудиту транскрипта: все `tool_use` — `mcp__vkm-corpus__*`, цепочка в нужном порядке,
+   ответы `rerank_visual` ссылаются на артефакты-изображения, итог называет `object_id` с `processing_run_id` и
+   `review_status` и не выдаёт автоматические объекты за факты.

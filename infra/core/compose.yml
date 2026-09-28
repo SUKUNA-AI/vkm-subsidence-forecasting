@@ -5,6 +5,23 @@
 # by service name on the internal network (H-26). Images are pinned by digest (K-24).
 name: vkm-core
 
+# Application services (agent G, CP-19): one image built from infra/core/api/Dockerfile. They all run as the owner of
+# the canonical root (host .env VKM_DATA_UID/VKM_DATA_GID; the root is 0750 for its owner): api reads it through :ro
+# mounts, mcp/mcp-admin only talk to the api, and only the one-shot vkm-job writes it. Compose file-secrets are bind
+# mounts that keep the host owner and mode, so each secret file of these services is owned by VKM_DATA_UID with mode
+# 0400 (neo4j_auth stays Neo4j's own; the app services read neo4j_password). Features used exist in Compose 2.26.
+x-vkm-app: &vkm-app
+  image: ${VKM_API_IMAGE:-vkm-corpus-api:0.1.0}
+  user: "${VKM_DATA_UID:?}:${VKM_DATA_GID:?}"
+  read_only: true
+  tmpfs: [/tmp]
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  networks: [vkm_internal]
+  logging:
+    driver: json-file
+    options: {max-size: "50m", max-file: "5"}
+
 services:
   neo4j:
     image: ${VKM_NEO4J_IMAGE:-neo4j:5.26.31-community@sha256:5eb12ad77fa46ab73e23df9ea1f43f5c0f2a79523435577648e046be042b9b93}
@@ -70,9 +87,148 @@ services:
       driver: json-file
       options: {max-size: "50m", max-file: "5"}
 
+  # VKM API (FastAPI /v1): reads only the CANONICAL snapshot (H-07); CORE LAN address only (H-26).
+  api:
+    <<: *vkm-app
+    restart: unless-stopped
+    command: ["api", "serve", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      VKM_DATA_ROOT: /data
+      VKM_DATA_ROLE: canonical
+      VKM_NEO4J_URI: bolt://neo4j:7687
+      VKM_NEO4J_PASSWORD_FILE: /run/secrets/neo4j_password
+      VKM_OPENSEARCH_URL: http://opensearch:9200
+      VKM_RERANK_URL: ${VKM_RERANK_URL:-}
+      VKM_RERANK_TOKEN_FILE: /run/secrets/rerank_token
+      VKM_PG_DSN_FILE: /run/secrets/pg_dsn
+      VKM_API_TOKEN_FILE: /run/secrets/api_read_token
+      VKM_API_WRITE_TOKEN_FILE: /run/secrets/api_write_token
+      VKM_LOG_LEVEL: INFO
+    secrets: [api_read_token, api_write_token, neo4j_password, rerank_token, pg_dsn]
+    # Directories (not files), so an atomic replace (CURRENT, the DuckDB file) is seen by the container. Long syntax
+    # with create_host_path: false — a missing path (duckdb/ exists only after the first reconcile) fails `up`
+    # instead of being created by the daemon as root, which would lock vkm-job out of it.
+    volumes:
+      - type: bind
+        source: ${VKM_DATA_ROOT_HOST:?}/.vkm_root.json
+        target: /data/.vkm_root.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${VKM_DATA_ROOT_HOST:?}/canonical
+        target: /data/canonical
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${VKM_DATA_ROOT_HOST:?}/artifacts
+        target: /data/artifacts
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${VKM_DATA_ROOT_HOST:?}/duckdb
+        target: /data/duckdb
+        read_only: true
+        bind: {create_host_path: false}
+    ports:
+      - "${VKM_CORE_LAN_ADDR:?}:${VKM_API_PORT:-8000}:8000"
+    mem_limit: 2g
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/v1/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # MCP vkm-corpus (read tools, streamable HTTP, stateless): uses only the API read token.
+  mcp:
+    <<: *vkm-app
+    restart: unless-stopped
+    command: ["mcp", "serve", "--kind", "read", "--host", "0.0.0.0", "--port", "8765"]
+    environment:
+      VKM_API_URL: http://api:8000
+      VKM_API_TOKEN_FILE: /run/secrets/api_read_token
+      VKM_MCP_TOKEN_FILE: /run/secrets/mcp_token
+      VKM_MCP_ALLOWED_HOSTS: ${VKM_MCP_ALLOWED_HOSTS:?}
+      VKM_LOG_LEVEL: INFO
+    secrets: [api_read_token, mcp_token]
+    ports:
+      - "${VKM_CORE_LAN_ADDR:?}:${VKM_MCP_PORT:-8765}:8765"
+    depends_on:
+      api: {condition: service_healthy}
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/healthz', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # MCP vkm-corpus-admin (reprocess plan-first, H-12): started only with --profile admin; uses the API write token.
+  mcp-admin:
+    <<: *vkm-app
+    profiles: ["admin"]
+    restart: unless-stopped
+    command: ["mcp", "serve", "--kind", "admin", "--host", "0.0.0.0", "--port", "8766"]
+    environment:
+      VKM_API_URL: http://api:8000
+      VKM_API_WRITE_TOKEN_FILE: /run/secrets/api_write_token
+      VKM_MCP_ADMIN_TOKEN_FILE: /run/secrets/mcp_admin_token
+      VKM_MCP_ALLOWED_HOSTS: ${VKM_MCP_ADMIN_ALLOWED_HOSTS:-}   # empty -> loopback only (fails closed)
+      VKM_LOG_LEVEL: INFO
+    secrets: [api_write_token, mcp_admin_token]
+    ports:
+      - "${VKM_CORE_LAN_ADDR:?}:${VKM_MCP_ADMIN_PORT:-8766}:8766"
+    depends_on:
+      api: {condition: service_healthy}
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8766/healthz', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # One-shot jobs on the CANONICAL root (the only writer on CORE), e.g.
+  #   docker compose --profile jobs run --rm vkm-job canon init --kind CANONICAL
+  #   docker compose --profile jobs run --rm vkm-job core reconcile --run-id <RUN>
+  vkm-job:
+    <<: *vkm-app
+    profiles: ["jobs"]
+    restart: "no"
+    entrypoint: ["vkm-corpus"]
+    command: ["core", "reconcile", "--help"]
+    environment:
+      VKM_DATA_ROOT: /data
+      VKM_DATA_ROLE: canonical
+      VKM_NEO4J_URI: bolt://neo4j:7687
+      VKM_NEO4J_PASSWORD_FILE: /run/secrets/neo4j_password
+      VKM_OPENSEARCH_URL: http://opensearch:9200
+      VKM_LOG_LEVEL: INFO
+    secrets: [neo4j_password]
+    volumes:   # read-WRITE: only this service
+      - type: bind
+        source: ${VKM_DATA_ROOT_HOST:?}
+        target: /data
+        bind: {create_host_path: false}
+
 networks:
   vkm_internal: {}
 
 secrets:
   neo4j_auth:
     file: ${VKM_SECRETS_DIR}/neo4j_auth   # host-local "neo4j/<password>", mode 600, outside any repository
+  # secrets of the app services: owned by VKM_DATA_UID, mode 0400 (see .env.example)
+  neo4j_password:
+    file: ${VKM_SECRETS_DIR}/neo4j_password     # the Neo4j password (bare, or "neo4j/<password>")
+  api_read_token:
+    file: ${VKM_SECRETS_DIR}/api_read_token
+  api_write_token:
+    file: ${VKM_SECRETS_DIR}/api_write_token
+  mcp_token:
+    file: ${VKM_SECRETS_DIR}/mcp_token
+  mcp_admin_token:
+    file: ${VKM_SECRETS_DIR}/mcp_admin_token
+  rerank_token:
+    file: ${VKM_SECRETS_DIR}/rerank_token
+  pg_dsn:
+    file: ${VKM_SECRETS_DIR}/${VKM_APP_PG_DSN_FILE:-pg_dsn}   # a copy owned by VKM_DATA_UID if pg_dsn is not
