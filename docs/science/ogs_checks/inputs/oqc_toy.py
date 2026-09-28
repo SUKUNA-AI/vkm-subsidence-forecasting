@@ -77,6 +77,36 @@ LAMBDAS = {  # PC-03 DISCRETE_SET (status of each value kept)
 }
 CREEP_FACTORS = [0.1, 1.0, 10.0]
 
+# Initial-stress scenarios of the dossier docs/science/topic_dossiers/INITIAL_STRESS_RU.md (TD-INITIAL-STRESS,
+# section 9, table IS-SC; MODEL_CHOICE labelled scenarios, never averaged). Plane strain: x = in-plane horizontal,
+# z = out-of-plane horizontal. "ob" = non-salt overburden (Q+TKT+SMT). Ratio = sigma_h / sigma_v.
+STRESS_SCENARIOS = {
+    # id: (spec, run-name prefix, label, role)
+    "IS-SC-A": ({"salt": (1.0, 1.0), "ob": (1.0, 1.0)}, "L1",
+                "HYDROSTATIC_SALT: salt 1, overburden 1", "ensemble"),
+    "IS-SC-A/OB0.7": ({"salt": (1.0, 1.0), "ob": (0.7, 0.7)}, "SCA-OB0.7",
+                      "HYDROSTATIC_SALT sub-case: salt 1, overburden 0.7", "overburden check"),
+    "IS-SC-B/0.6": ({"salt": (0.6, 0.6), "ob": (0.6, 0.6)}, "L0.6",
+                    "SUBHYDROSTATIC lower end 0.6 (salt and overburden)", "ensemble"),
+    "IS-SC-B/0.8": ({"salt": (0.8, 0.8), "ob": (0.8, 0.8)}, "SCB0.8",
+                    "SUBHYDROSTATIC upper end 0.8 (salt and overburden)", "ensemble"),
+    "IS-SC-C": ({"salt": (1.0, 1.0), "ob": (0.43, 0.43)}, "SCC",
+                "ELASTIC_DINNIK_OVERBURDEN: salt 1, overburden nu/(1-nu) = 0.43 (toy nu = 0.3; range 0.43-0.82)",
+                "overburden check"),
+    "IS-SC-D": ({"salt": (1.3, 0.8), "ob": (1.3, 0.8)}, "SCD",
+                "TECTONIC_ANISOTROPIC: in-plane 1.3 (section along sigma1, MODEL_CHOICE), out-of-plane 0.8; "
+                "overburden as salt (SKRU-1 1989 full unloading 1.29:1:0.82, secondary retelling IS-P-14)",
+                "ensemble"),
+    "IS-SC-E": ({"salt": (2.8, 1.9), "ob": (2.8, 1.9)}, "SCE",
+                "HIGH_HORIZONTAL_HF2016 upper ends: in-plane sigma_max/sigma_v 2.8, out-of-plane sigma_min/sigma_v "
+                "1.9 (section along sigma_max, MODEL_CHOICE); overburden UNKNOWN -> labelled assumption 'as salt'",
+                "ensemble"),
+    "NORMATIVE-0.45": ({"salt": (0.45, 0.45), "ob": (0.45, 0.45)}, "L0.45",
+                       "NORMATIVE roof-calculation constant 0.45 (IS-P-29), not a measurement", "reference outside ensemble"),
+    "IS-P-21-0.71": ({"salt": (0.71, 0.71), "ob": (0.71, 0.71)}, "L0.71",
+                     "Kaiser-effect core value 0.71 (IS-P-21, LAB, secondary), inside IS-SC-B", "extra point inside B"),
+}
+
 
 def mat_lith(mid: int) -> str:
     return {M_OB: "marl", M_SALT_UP: "rock_salt", M_KP: "rock_salt", M_SYLV: "sylvinite",
@@ -134,9 +164,18 @@ def room_condition() -> str:
             f"(abs(x - {PITCH!r}*round(x/{PITCH!r})) < {ROOM_W / 2.0!r})")
 
 
-def initial_stress_expressions(lam: float, with_rooms: bool) -> list[str]:
+def initial_stress_expressions(lam, with_rooms: bool) -> list[str]:
+    """lam: float (same lambda for both horizontal components in all layers) or a dict
+    {"salt": (lx, lz), "ob": (lx, lz)} with in-plane (x) and out-of-plane (z) ratios sigma_h / sigma_v
+    for the salt series and for the non-salt overburden (y > salt mirror)."""
     sv = sigma_v_expression()
-    comps = [f"{lam!r}*({sv})", sv, f"{lam!r}*({sv})", "0.0"]
+    if isinstance(lam, dict):
+        (sx, sz), (ox, oz) = lam["salt"], lam["ob"]
+        fx = f"if(y > {Y_SALT_MIRROR!r}, {ox!r}, {sx!r})"
+        fz = f"if(y > {Y_SALT_MIRROR!r}, {oz!r}, {sz!r})"
+        comps = [f"({fx})*({sv})", sv, f"({fz})*({sv})", "0.0"]
+    else:
+        comps = [f"{lam!r}*({sv})", sv, f"{lam!r}*({sv})", "0.0"]
     if not with_rooms:
         return comps
     rc = room_condition()
@@ -247,8 +286,11 @@ def parameter_table() -> list[dict]:
              source="MR-RHEO-CL-10, CL-15", status="SCENARIO (маркированный диапазон)"),
         dict(name="Температура", value="не представлена (Q = 0)", basis="в законах ВКМ температурного члена нет; T опытов UNKNOWN",
              source="MECH_RHEO §5.2", status="UNKNOWN (не заменено числом)"),
-        dict(name="λ = σh/σv", value="0,45 / 0,6 / 0,71 / 1,0", basis="набор гипотез PC-03, σH = σh (изотропно в плане)",
-             source="PC-03; PCF-01", status="DISCRETE_SET: NORMATIVE / ANALOGUE / ANALOGUE / MODEL_CHOICE"),
+        dict(name="Начальное поле (σh/σv)", value="IS-SC-A: 1/1; IS-SC-B: 0,6 и 0,8; IS-SC-C: соль 1, надсолевая 0,43; "
+             "IS-SC-D: 1,3 в плоскости / 0,8 из плоскости; IS-SC-E: 2,8 / 1,9; справочно NORMATIVE 0,45 и точка 0,71",
+             basis="пять маркированных сценариев досье (сценарии не усредняются); ориентация сечения к σ1 — MODEL_CHOICE",
+             source="docs/science/topic_dossiers/INITIAL_STRESS_RU.md §9, табл. IS-SC; IS-P-14, IS-P-21, IS-P-26, IS-P-29; PC-03",
+             status="MODEL_CHOICE (сценарии); λ(СКРУ-1) — UNKNOWN; 0,45 — NORMATIVE вне ансамбля"),
         dict(name="Закладка: время", value="10 лет после выемки", basis="«традиционно 10–20 лет»",
              source="VKM-SRC-037 (MC-BF-02, CC-18)", status="SCENARIO"),
         dict(name="Закладка: модуль", value="мягкая 50 МПа / жёсткая 500 МПа, ν = 0,2; полный контакт (kзап = 1)",

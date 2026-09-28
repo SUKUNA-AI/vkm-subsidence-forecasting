@@ -129,8 +129,14 @@ def run_ogs(prj: Path, outdir: Path, log: Path, extra: list[str] | None = None,
             timeout: float | None = None) -> dict:
     outdir.mkdir(parents=True, exist_ok=True)
     cmd = [str(OGS_BIN), "-o", str(outdir)] + list(extra or []) + [str(prj)]
+    # Shared workstation limits (user instruction 28.09): one OGS run at a time, memory capped per run
+    # (systemd user scope, no swap), OMP threads <= 8. OQC_MEMCAP="" disables the cap (not recommended).
+    memcap = os.environ.get("OQC_MEMCAP", "12G")
+    if memcap:
+        cmd = ["systemd-run", "--user", "--scope", "--quiet", "-p", f"MemoryMax={memcap}",
+               "-p", "MemorySwapMax=0"] + cmd
     env = dict(os.environ)
-    env.setdefault("OMP_NUM_THREADS", "1")
+    env["OMP_NUM_THREADS"] = str(min(8, int(env.get("OMP_NUM_THREADS", "1") or 1)))
     env["PATH"] = f"{OGS_BUILD / 'bin'}:{env.get('PATH', '')}"  # vtkdiff for '-r' comparisons
     t0 = time.time()
     with open(log, "w") as lf:

@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<OpenGeoSysProject>
+    <mesh>toy_rooms.vtu</mesh>
+    <geometry>toy.gml</geometry>
+    <search_length_algorithm><type>fixed</type><value>1e-6</value>
+</search_length_algorithm>
+    
+    <processes>
+        <process>
+            <name>SD</name>
+            <type>SMALL_DEFORMATION</type>
+            <integration_order>3</integration_order>
+            <constitutive_relation id="0"><type>LinearElasticIsotropic</type>
+<youngs_modulus>E_marl</youngs_modulus>
+<poissons_ratio>nu_marl</poissons_ratio>
+</constitutive_relation>
+<constitutive_relation id="1"><type>CreepBGRa</type>
+<youngs_modulus>E_rock_salt</youngs_modulus>
+<poissons_ratio>nu_rock_salt</poissons_ratio>
+<a>A_rock_salt</a>
+<n>n_rock_salt</n>
+<sigma0>s0</sigma0>
+<q>Q</q>
+<nonlinear_solver>
+<maximum_iterations>200</maximum_iterations>
+<residuum_tolerance>1e-6</residuum_tolerance>
+<increment_tolerance>1e-9</increment_tolerance>
+</nonlinear_solver>
+</constitutive_relation>
+<constitutive_relation id="2"><type>CreepBGRa</type>
+<youngs_modulus>E_rock_salt</youngs_modulus>
+<poissons_ratio>nu_rock_salt</poissons_ratio>
+<a>A_rock_salt</a>
+<n>n_rock_salt</n>
+<sigma0>s0</sigma0>
+<q>Q</q>
+<nonlinear_solver>
+<maximum_iterations>200</maximum_iterations>
+<residuum_tolerance>1e-6</residuum_tolerance>
+<increment_tolerance>1e-9</increment_tolerance>
+</nonlinear_solver>
+</constitutive_relation>
+<constitutive_relation id="5"><type>CreepBGRa</type>
+<youngs_modulus>E_rock_salt</youngs_modulus>
+<poissons_ratio>nu_rock_salt</poissons_ratio>
+<a>A_rock_salt</a>
+<n>n_rock_salt</n>
+<sigma0>s0</sigma0>
+<q>Q</q>
+<nonlinear_solver>
+<maximum_iterations>200</maximum_iterations>
+<residuum_tolerance>1e-6</residuum_tolerance>
+<increment_tolerance>1e-9</increment_tolerance>
+</nonlinear_solver>
+</constitutive_relation>
+<constitutive_relation id="3"><type>CreepBGRa</type>
+<youngs_modulus>E_sylvinite</youngs_modulus>
+<poissons_ratio>nu_sylvinite</poissons_ratio>
+<a>A_sylvinite</a>
+<n>n_sylvinite</n>
+<sigma0>s0</sigma0>
+<q>Q</q>
+<nonlinear_solver>
+<maximum_iterations>200</maximum_iterations>
+<residuum_tolerance>1e-6</residuum_tolerance>
+<increment_tolerance>1e-9</increment_tolerance>
+</nonlinear_solver>
+</constitutive_relation>
+<constitutive_relation id="4"><type>LinearElasticIsotropic</type>
+<youngs_modulus>E_room</youngs_modulus>
+<poissons_ratio>nu_room</poissons_ratio>
+</constitutive_relation>
+            <specific_body_force>0.0 -9.81</specific_body_force>
+            <initial_stress>sigma0</initial_stress>
+            <reference_temperature>T_ref</reference_temperature>
+            
+            <process_variables>
+<process_variable>displacement</process_variable>
+</process_variables>
+            <secondary_variables>
+<secondary_variable name="sigma"/>
+<secondary_variable name="epsilon"/>
+</secondary_variables>
+        </process>
+    </processes>
+    <time_loop>
+        <processes>
+            <process ref="SD">
+                <nonlinear_solver>basic_newton</nonlinear_solver>
+                <convergence_criterion><type>DeltaX</type>
+<norm_type>NORM2</norm_type>
+<abstol>1e-07</abstol>
+<reltol>1e-09</reltol>
+</convergence_criterion>
+                <time_discretization><type>BackwardEuler</type>
+</time_discretization>
+                <time_stepping><type>IterationNumberBasedTimeStepping</type>
+<t_initial>0.0</t_initial>
+<t_end>1577880000.0</t_end>
+<initial_dt>1.0</initial_dt>
+<minimum_dt>0.001</minimum_dt>
+<maximum_dt>15778800.0</maximum_dt>
+<number_iterations>2 4 6 10 15</number_iterations>
+<multiplier>5.0 2.0 1.2 0.8 0.5</multiplier>
+</time_stepping>
+            </process>
+        </processes>
+        <output><type>VTK</type>
+<prefix>L0.45_C0.1_Bstiff</prefix>
+<data_mode>Ascii</data_mode>
+<compress_output>false</compress_output>
+<fixed_output_times>1.0 31557600.0 63115200.0 157788000.0 315576000.0 347133600.0 473364000.0 631152000.0 946728000.0 1262304000.0 1577880000.0</fixed_output_times>
+<variables>
+<variable>displacement</variable>
+<variable>sigma</variable>
+</variables>
+<suffix>_ts_{:timestep}_t_{:time}</suffix>
+</output>
+    </time_loop>
+    <media>
+<medium id="0">
+<phases>
+<phase><type>Solid</type>
+<properties>
+<property><name>density</name><type>Constant</type><value>2242.609582059123</value>
+</property>
+</properties>
+</phase>
+</phases>
+</medium>
+<medium id="1">
+<phases>
+<phase><type>Solid</type>
+<properties>
+<property><name>density</name><type>Constant</type><value>2242.609582059123</value>
+</property>
+</properties>
+</phase>
+</phases>
+</medium>
+<medium id="2">
+<phases>
+<phase><type>Solid</type>
+<properties>
+<property><name>density</name><type>Constant</type><value>2242.609582059123</value>
+</property>
+</properties>
+</phase>
+</phases>
+</medium>
+<medium id="3">
+<phases>
+<phase><type>Solid</type>
+<properties>
+<property><name>density</name><type>Constant</type><value>2140.6727828746175</value>
+</property>
+</properties>
+</phase>
+</phases>
+</medium>
+<medium id="5">
+<phases>
+<phase><type>Solid</type>
+<properties>
+<property><name>density</name><type>Constant</type><value>2242.609582059123</value>
+</property>
+</properties>
+</phase>
+</phases>
+</medium>
+<medium id="4">
+<phases>
+<phase><type>Solid</type>
+<properties>
+<property><name>density</name><type>Constant</type><value>0.0</value>
+</property>
+</properties>
+</phase>
+</phases>
+</medium>
+</media>
+    <parameters>
+        <parameter><name>zero</name><type>Constant</type><value>0.0</value>
+</parameter>
+<parameter><name>u0</name><type>Constant</type><values>0.0 0.0</values>
+</parameter>
+<parameter><name>s0</name><type>Constant</type><value>1000000.0</value>
+</parameter>
+<parameter><name>Q</name><type>Constant</type><value>0.0</value>
+</parameter>
+<parameter><name>T_ref</name><type>Constant</type><value>293.15</value>
+</parameter>
+<parameter><name>E_marl</name><type>Constant</type><value>600000000.0</value>
+</parameter>
+<parameter><name>nu_marl</name><type>Constant</type><value>0.3</value>
+</parameter>
+<parameter><name>E_rock_salt</name><type>Constant</type><value>9500000000.0</value>
+</parameter>
+<parameter><name>nu_rock_salt</name><type>Constant</type><value>0.3</value>
+</parameter>
+<parameter><name>E_sylvinite</name><type>Constant</type><value>10800000000.0</value>
+</parameter>
+<parameter><name>nu_sylvinite</name><type>Constant</type><value>0.2</value>
+</parameter>
+<parameter><name>A_rock_salt</name><type>Constant</type><value>1.5277777777777777e-19</value>
+</parameter>
+<parameter><name>n_rock_salt</name><type>Constant</type><value>6.5</value>
+</parameter>
+<parameter><name>A_sylvinite</name><type>Constant</type><value>2.4537037037037038e-19</value>
+</parameter>
+<parameter><name>n_sylvinite</name><type>Constant</type><value>6.5</value>
+</parameter>
+<parameter><name>sigma0</name><type>Function</type><expression>if((y &lt; -294.0) and (y &gt; -299.5) and (x &lt; 170.0) and (abs(x - 27.0*round(x/27.0)) &lt; 8.0), 0.0, 0.45*(if(y &gt; -185.9, (0.0 + 22000.0*(y - (0.0))), if(y &gt; -194.4, (-4089800.0 + 22000.0*(y - (-185.9))), if(y &gt; -205.4, (-4276800.0 + 22000.0*(y - (-194.4))), if(y &gt; -287.4, (-4518800.0 + 22000.0*(y - (-205.4))), if(y &gt; -294.0, (-6322799.999999999 + 21000.0*(y - (-287.4))), if(y &gt; -299.5, (-6461400.0 + 21000.0*(y - (-294.0))), if(y &gt; -304.4, (-6576900.0 + 21000.0*(y - (-299.5))), (-6679799.999999999 + 22000.0*(y - (-304.4))))))))))))</expression><expression>if((y &lt; -294.0) and (y &gt; -299.5) and (x &lt; 170.0) and (abs(x - 27.0*round(x/27.0)) &lt; 8.0), 0.0, if(y &gt; -185.9, (0.0 + 22000.0*(y - (0.0))), if(y &gt; -194.4, (-4089800.0 + 22000.0*(y - (-185.9))), if(y &gt; -205.4, (-4276800.0 + 22000.0*(y - (-194.4))), if(y &gt; -287.4, (-4518800.0 + 22000.0*(y - (-205.4))), if(y &gt; -294.0, (-6322799.999999999 + 21000.0*(y - (-287.4))), if(y &gt; -299.5, (-6461400.0 + 21000.0*(y - (-294.0))), if(y &gt; -304.4, (-6576900.0 + 21000.0*(y - (-299.5))), (-6679799.999999999 + 22000.0*(y - (-304.4)))))))))))</expression><expression>if((y &lt; -294.0) and (y &gt; -299.5) and (x &lt; 170.0) and (abs(x - 27.0*round(x/27.0)) &lt; 8.0), 0.0, 0.45*(if(y &gt; -185.9, (0.0 + 22000.0*(y - (0.0))), if(y &gt; -194.4, (-4089800.0 + 22000.0*(y - (-185.9))), if(y &gt; -205.4, (-4276800.0 + 22000.0*(y - (-194.4))), if(y &gt; -287.4, (-4518800.0 + 22000.0*(y - (-205.4))), if(y &gt; -294.0, (-6322799.999999999 + 21000.0*(y - (-287.4))), if(y &gt; -299.5, (-6461400.0 + 21000.0*(y - (-294.0))), if(y &gt; -304.4, (-6576900.0 + 21000.0*(y - (-299.5))), (-6679799.999999999 + 22000.0*(y - (-304.4))))))))))))</expression><expression>0.0</expression>
+</parameter>
+<parameter><name>E_room</name><type>Function</type><expression>if(t &lt; 315576001.0, 100000.0, 500000000.0)</expression>
+</parameter>
+<parameter><name>nu_room</name><type>Function</type><expression>if(t &lt; 315576001.0, 0.0, 0.2)</expression>
+</parameter>
+    </parameters>
+    <process_variables>
+        <process_variable>
+            <name>displacement</name>
+            <components>2</components>
+            <order>2</order>
+            <initial_condition>u0</initial_condition>
+            
+            <boundary_conditions>
+<boundary_condition>
+<geometrical_set>toy</geometrical_set>
+<geometry>LEFT</geometry><type>Dirichlet</type>
+<component>0</component>
+<parameter>zero</parameter>
+</boundary_condition>
+<boundary_condition>
+<geometrical_set>toy</geometrical_set>
+<geometry>RIGHT</geometry><type>Dirichlet</type>
+<component>0</component>
+<parameter>zero</parameter>
+</boundary_condition>
+<boundary_condition>
+<geometrical_set>toy</geometrical_set>
+<geometry>BOTTOM</geometry><type>Dirichlet</type>
+<component>1</component>
+<parameter>zero</parameter>
+</boundary_condition>
+</boundary_conditions>
+        </process_variable>
+    </process_variables>
+    <nonlinear_solvers>
+        <nonlinear_solver><name>basic_newton</name><type>Newton</type>
+<max_iter>25</max_iter>
+        <linear_solver>general_linear_solver</linear_solver>
+</nonlinear_solver>
+    </nonlinear_solvers>
+    <linear_solvers>
+        <linear_solver><name>general_linear_solver</name>
+        <eigen>
+<solver_type>SparseLU</solver_type>
+<scaling>true</scaling>
+</eigen>
+</linear_solver>
+    </linear_solvers>
+</OpenGeoSysProject>
