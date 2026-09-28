@@ -117,7 +117,9 @@ def q8(key: str) -> dict:
             res = client.embed_ids([list(enc.ids)])
             lat.append((time.perf_counter() - t1) * 1000)
             ntok.append(len(enc.ids))
-            vecs.append(finalize_dense(spec, res.vectors[0]).vector)
+            out = finalize_dense(spec, res.vectors[0])
+            # pplx: the model's own output is the int8 code (the GPU run used the model's int8 quantizer module)
+            vecs.append(out.int8.astype(np.float32) if spec.output_transform == "tanh_int8" else out.vector)
     finally:
         client.close()
         proc.terminate()

@@ -113,7 +113,10 @@ def build() -> None:
     new12 = new1 | {(q, p) for q, d in pool2_10.items() for p in d}
     depth2 = 10 if len(new12) <= MAX_NEW_FULL else 5
     only_p1 = "--only-p1" in sys.argv
-    pool2 = {} if only_p1 else (pool2_10 if depth2 == 10 else collect(p2, 5))
+    # an interim build may judge P2 to depth 5 first (needed under either outcome of the rule), then extend
+    forced = next((int(a.split("=", 1)[1]) for a in sys.argv if a.startswith("--p2-depth=")), None)
+    use2 = min(depth2, forced) if forced else depth2
+    pool2 = {} if only_p1 else (pool2_10 if use2 == 10 else collect(p2, use2))
     merged: dict[str, dict[str, dict[str, int]]] = defaultdict(dict)
     for pl in (pool1, pool2):
         for q, d in pl.items():
@@ -134,7 +137,8 @@ def build() -> None:
             cands.append({"cid": cid, "page_id": p, "systems": merged[q][p]})
         pool_out[q] = cands
     stats = {"p1_systems": sorted(p1), "p2_systems": sorted(p2), "p1_new_pages": len(new1),
-             "p1_p2_new_pages_at_10": len(new12), "p2_depth": depth2, "only_p1": only_p1,
+             "p1_p2_new_pages_at_10": len(new12), "p2_depth_rule": depth2, "p2_depth": 0 if only_p1 else use2,
+             "only_p1": only_p1,
              "pool_pages": sum(len(v) for v in pool_out.values()), "queries": len(pool_out)}
     POOL.mkdir(parents=True, exist_ok=True)
     (POOL / "pool.json").write_text(json.dumps({"stats": stats, "pool": pool_out}, ensure_ascii=False, indent=0),

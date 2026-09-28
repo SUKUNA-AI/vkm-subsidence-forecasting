@@ -269,10 +269,11 @@ def main() -> None:
     partial: dict[str, set] = {}
     if (WORK / "pool" / "pool.json").is_file():
         pool_stats = json.load(open(WORK / "pool" / "pool.json", encoding="utf-8"))["stats"]
-        if pool_stats.get("p2_depth") == 5 or pool_stats.get("only_p1"):
+        if pool_stats.get("only_p1") or pool_stats.get("p2_depth", 10) < 10:
+            # P2 judged to depth 5 only: its systems are flagged on P (text track: all P2 systems; visual track: all
+            # but VIS, which is P1 there)
             p2 = set(pool_stats.get("p2_systems", []))
-            partial = {"text": {s for s in p2 if not s.startswith("VIS:")} | {s for s in p2 if s.startswith("VIS:")},
-                       "visual": {s for s in p2 if not s.startswith("VIS:")}}
+            partial = {"text": p2, "visual": {s for s in p2 if not s.startswith("VIS:")}}
     serving = {}
     if (WORK / "out" / "serving_v2.json").is_file():
         serving = json.load(open(WORK / "out" / "serving_v2.json", encoding="utf-8")).get("feasibility", {})
