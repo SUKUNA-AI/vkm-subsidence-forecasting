@@ -21,3 +21,4 @@
 | `bibliography_final.json` | списки литературы (CP-38, CP-41): записи, разбор полей, связи с работами, CITES, ручная проверка |
 | `late_interaction_encode_final.json` | late interaction (агент L): кодирование mLateOn всех единиц, проверки §64 |
 | `late_interaction_deploy.json` | развёртывание late: pack, горячая замена, smoke, латентность, включение по умолчанию |
+| `nav_parameters.json` | NAV §8 (агент P): параметры-кандидаты — счётчики, sha256, итоговая выборка QA по полям (ID и вердикты), прокси полноты по evidence |
