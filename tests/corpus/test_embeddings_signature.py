@@ -33,7 +33,7 @@ ALTERED = {
     "quantization": "Q6_K", "mode": "multivector", "dimension": 512, "pooling": "mean", "normalization": "none",
     "output_transform": "tanh_int8", "document_instruction": "Document: ", "text_rule": "embed_text_v2",
     "max_len": 1024, "tokenizer_sha256": "d" * 64, "heads_sha256": "e" * 64, "storage_precision": "float16",
-    "late": {"token_dim": 128}, "pipeline_version": "emb-0.2.0",
+    "late": {"token_dim": 128}, "pipeline_version": "emb-0.2.0", "backend": "flagembedding-cpu-fp32",
 }
 
 
@@ -69,7 +69,8 @@ def _q_cfg(**kw) -> QueryConfig:
 Q_ALTERED = {"model_id": "x/y", "model_revision": "s" * 40, "weights_sha256": "c" * 64, "quantization": "F16",
              "query_instruction": "Instruct: salt\nQuery:", "dimension": 256, "pooling": "last",
              "normalization": "none", "tokenizer_sha256": "d" * 64, "max_len": 32, "output_transform": "tanh_int8",
-             "late": {"query_maxlen": 32}, "heads_sha256": "e" * 64, "pipeline_version": "emb-9"}
+             "late": {"query_maxlen": 32}, "heads_sha256": "e" * 64, "pipeline_version": "emb-9",
+             "backend": "flagembedding-cpu-fp32"}
 
 
 @pytest.mark.parametrize("field_name", sorted(Q_ALTERED))
@@ -100,3 +101,13 @@ def test_builders_fill_late_and_matryoshka_settings():
     dense = query_config(get("qwen3-emb-0.6b"), weights_sha256=SHA, quantization="Q8_0", tokenizer_sha256="b" * 64,
                          dimension=512, query_instruction="Instruct: VKM\nQuery:")
     assert dense.dimension == 512 and dense.query_instruction.startswith("Instruct: VKM")
+
+
+def test_reference_backend_enters_the_signature_only_when_set():
+    """GGUF encodings keep one signature across GPU backends (DN-K2, backend ""); a reference implementation with its
+    own numerics (FlagEmbedding on CPU) is a different config."""
+    plain = _doc_cfg()
+    ref = _doc_cfg(backend="flagembedding-cpu-fp32")
+    assert "backend" not in plain.as_dict() and ref.as_dict()["backend"] == "flagembedding-cpu-fp32"
+    assert plain.signature() != ref.signature()
+    assert _q_cfg().signature() != _q_cfg(backend="flagembedding-cpu-fp32").signature()

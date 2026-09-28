@@ -1,0 +1,14 @@
+# Reference-quality BGE-M3 on CPU (CORE): the official FlagEmbedding BGEM3FlagModel, fp32, no GPU.
+# Research/lab image of agent K — not a production service. Versions are recorded by `pip freeze` into the run receipt.
+#   docker build -f infra/core/rx580/research/Dockerfile.flagref -t vkm-rx580-flagref:1 infra/core/rx580/research
+ARG PYTHON_IMAGE=python:3.13-slim@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+FROM ${PYTHON_IMAGE}
+ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1 PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+RUN python -m pip install --upgrade pip \
+ && pip install --index-url https://download.pytorch.org/whl/cpu torch \
+ && (pip install "FlagEmbedding" "transformers>=4.44,<5" "pyarrow>=19" "numpy>=2" \
+     || pip install "FlagEmbedding" "pyarrow>=19" "numpy>=2") \
+ && pip freeze > /opt/pip-freeze.txt
+RUN groupadd --system --gid 10001 vkm && useradd --system --uid 10001 --gid vkm --no-create-home --shell /usr/sbin/nologin vkm
+USER vkm:vkm
+WORKDIR /tmp

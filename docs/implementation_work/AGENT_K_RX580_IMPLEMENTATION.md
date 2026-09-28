@@ -167,6 +167,48 @@ mLateOn, 128 у jina-colbert-v2 (после маски пунктуации), 19
   один клиент, потоки `-t 2` сервиса, длинные OCR-тексты и запись Parquet в том же процессе; массовое кодирование —
   отдельный воркер (CONCURRENCY_RESULTS §4). Размер: 191 MB на 1788 объектов в двух конфигурациях.
 
+## 4b. Эталонные кодировки BGE-M3 для J (FlagEmbedding, CPU fp32; 28.09, решение пользователя)
+
+Задача координатора (после поправки пользователя): BGE-M3 **не** на RX580 (карта — production-пара и stage-2), а
+официальный FlagEmbedding `BGEM3FlagModel` в полной точности на CPU CORE — эталонная замена планируемому fp16.
+
+- Модель: `BAAI/bge-m3` @ `5617a9f61b028005a4858fdac845db406aefb181` (закреплённый снимок, sha256 в `RECEIPT.json`
+  снимка): `pytorch_model.bin` b5e0ce34…, `colbert_linear.pt` 19bfbae3…, `sparse_linear.pt` и `tokenizer.json` — в
+  квитанции прогона.
+- Среда: одноразовый образ `vkm-rx580-flagref:1` (`infra/core/rx580/research/Dockerfile.flagref`: python 3.13-slim
+  по digest, torch 2.14.0+cpu, FlagEmbedding 1.4.2, transformers 4.57.6; `pip freeze` — в квитанции), контейнер
+  `--cpus 12 --memory 10g`, `nice -n 10`, 12 потоков; пакеты хоста не ставились.
+- Вход: юниты `vkm-units-v1` снимка canary `snap-20260928T073057Z-a2696925` — те же тексты, что кодирует J
+  (`docs.jsonl` J, 13 172 юнита, 1 966 465 токенов XLM-R после усечения до 512; 386 юнитов упираются в 512), и
+  189 запросов бенчмарка (`benchmarks/retrieval_v0/queries.jsonl`, до 128 токенов, как `max_query_tokens` J).
+- Выходы одного прохода, как в FlagEmbedding: dense (CLS, L2, 1024), sparse (`relu(sparse_linear)`, максимум по
+  token id, без cls/eos/pad/unk), multi-vector (`colbert_linear` по всем токенам кроме CLS, L2, 1024 на токен;
+  хранение float16). Три конфигурации derived-артефактов с подписями, в которые входят веса и головы (sha256),
+  `max_len`, нормализация, правило текста и backend `flagembedding-cpu-fp32` (новое необязательное поле подписи:
+  пустое значение не меняет прежние подписи GGUF-конфигураций, DN-K2).
+- Модуль `vkm_corpus.embeddings.m3_flag` (идемпотентен: уже закодированное по подписи пропускается, §46; проверки
+  §64 — multi-vector проверяется векторизованно по частям), `export-lab-cache` — копия в раскладке `VectorCache`
+  лаборатории J (ключи — sha256 текста). Тесты: `test_embeddings_m3_flag.py`.
+
+<!-- M3FLAG:BEGIN -->
+Итог прогона (CORE, 28.09, 12:57–13:42 MSK; квитанция `/srv/vkm-rx580/lab/bge-m3-flag/run/RECEIPT.json`):
+
+| Выход | Подпись конфигурации | Строк | Проверки §64 | Объём |
+|---|---|---|---|---|
+| dense (CLS, L2, 1024, float32) | `fe00573df5698ba837e9941ad24e9d6dfabf0eb45acb29ac664881737e650912` | 13 172 | OK | 63 MB |
+| sparse (lexical weights, float32) | `d83f099ecc885d0759fa68f6e43157c14e48fe6839e80eb9d21efe5f0948abe4` | 13 172 | OK | 6,6 MB |
+| multi-vector (1024 на токен, float16) | `c69b8760f638e7eab33c5e85de3eefc7c27ccfe15c08d81033c6c67c81bd51d4` | 13 172 (1 953 293 токенов) | OK | 3,5 GB |
+
+- Артефакты: `/srv/vkm-rx580/lab/bge-m3-flag/root/derived/embeddings/<kind>/BAAI__bge-m3/<rev>/<подпись>/`
+  (не production-корень данных); запросы — `run/queries/queries.npz` (подписи запросов dense `63720dd6…`, sparse
+  `1813621c…`, multi-vector `777c53bf…`).
+- Производительность CPU fp32 (12 потоков, nice 10): 2654 с на 13 172 юнита — 4,96 юнита/с, 741 токен/с (по частям:
+  ≈ 580 ток/с на самых коротких юнитах, ≈ 1000 ток/с на средних, ≈ 680 ток/с на длинных — до 512 токенов); загрузка модели 0,6 с; 189 запросов — 8,3 с;
+  RAM контейнера ≈ 1,7 GB. Для сравнения: BGE-M3 на RX580 — Q8_0 ≈ 3300 ток/с, F16 ≈ 2550 ток/с (MODEL_MATRIX).
+- Сверка J: его кодировщик лаборатории (fp32 CPU, transformers) на 189 запросах дал те же выходы, что FlagEmbedding
+  (dense cos min 1,000000, те же числа токенов и token cos min 1,000000, разница sparse по L1 — 0).
+<!-- M3FLAG:END -->
+
 ## 5. Тесты
 
 | Файл | Что проверяет |
@@ -178,6 +220,7 @@ mLateOn, 128 у jina-colbert-v2 (после маски пунктуации), 19
 | `test_embeddings_postprocess.py` | pooling, MRL, int8, ColBERT, sparse, MaxSim, Spearman/Kendall/nDCG, parity gate |
 | `test_embeddings_worker.py` | два устройства на одной очереди без двойной работы, идемпотентный повтор, повтор/отказ, область подписи |
 | `test_embeddings_encode_cli.py` | `embed encode` через фейковый `llama-server`: 3 задания, артефакты проходят §64, повторный прогон — 0 инференса |
+| `test_embeddings_m3_flag.py` | эталон BGE-M3 (FlagEmbedding): подписи с backend, юниты, проверка multi-vector по частям, экспорт в кеш лаборатории |
 | `test_embeddings_summarize.py` | таблицы отчётов; вердикты §31 (dev + canary, production-бэкенд, исследовательские варианты не считаются) |
 | `test_retrieval_service_contract.py` | все эндпоинты с фейковыми бэкендами, trace, токен, метрики, **отсутствие глобальной блокировки** |
 | `test_retrieval_service_residency.py` | реальные дочерние процессы (фейковый llama-server): две резидентные модели, keepalive, перезапуск и счётчик |

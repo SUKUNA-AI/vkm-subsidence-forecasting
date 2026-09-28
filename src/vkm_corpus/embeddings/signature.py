@@ -65,9 +65,15 @@ class EmbeddingConfig:
     storage_precision: StoragePrecision = "float32"
     late: dict[str, Any] = field(default_factory=dict)   # ColBERT document settings (marker, skiplist, token dim)
     pipeline_version: str = EMBEDDINGS_PIPELINE_VERSION
+    # A reference implementation with its own numerics (e.g. "flagembedding-cpu-fp32") is part of the signature; the
+    # default "" (llama.cpp GGUF on any GPU backend, DN-K2) is omitted, so existing signatures are unchanged.
+    backend: str = ""
 
     def as_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        d = asdict(self)
+        if not d.get("backend"):
+            d.pop("backend", None)
+        return d
 
     def signature(self) -> str:
         return sha256_text("vkm-emb-config-v1|" + canonical_json(self.as_dict()))
@@ -98,9 +104,13 @@ class QueryConfig:
     late: dict[str, Any] = field(default_factory=dict)   # query marker, query_maxlen, expansion token, attend flag
     heads_sha256: str = ""
     pipeline_version: str = EMBEDDINGS_PIPELINE_VERSION
+    backend: str = ""                                  # as in EmbeddingConfig: in the signature only when set
 
     def as_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        d = asdict(self)
+        if not d.get("backend"):
+            d.pop("backend", None)
+        return d
 
     def signature(self) -> str:
         return sha256_text("vkm-query-config-v1|" + canonical_json(self.as_dict()))

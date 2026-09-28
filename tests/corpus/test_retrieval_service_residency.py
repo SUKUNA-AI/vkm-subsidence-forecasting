@@ -16,6 +16,7 @@ if os.name != "posix":
     pytest.skip("process groups / killpg are POSIX-only", allow_module_level=True)
 
 import vkm_corpus  # noqa: E402
+from vkm_corpus.embeddings.llama import LlamaError  # noqa: E402
 from vkm_corpus.retrieval_service.config import ModelSlot, ServiceConfig  # noqa: E402
 from vkm_corpus.retrieval_service.residency import ResidencyManager  # noqa: E402
 
@@ -67,7 +68,14 @@ def test_two_resident_models_keepalive_and_restart(tmp_path):
         late = mgr.processes["late"]
         assert _wait(lambda: late.state.restarts >= 1, 15.0)
         assert _wait(lambda: late.alive(), 10.0)
-        assert late.client.embed_ids([[1, 2]]).vectors[0].shape == (2, 4)
+
+        def _served() -> bool:          # the fake server keeps dying after 3 requests (warm-up and keepalives count)
+            try:
+                return late.client.embed_ids([[1, 2]]).vectors[0].shape == (2, 4)
+            except LlamaError:
+                return False
+
+        assert _wait(_served, 10.0)
         assert mgr.health()["models"][1]["restarts"] >= 1
     finally:
         mgr.stop()
