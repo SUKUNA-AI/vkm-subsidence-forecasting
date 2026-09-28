@@ -19,6 +19,7 @@
 | `search_projection_final.json` | итоговая проекция OpenSearch: индексы, счётчики, поток документов |
 | `rebuild_demo_final.json` | §46: удаление и пересборка DuckDB, Neo4j и OpenSearch из канона |
 | `bibliography_final.json` | списки литературы (CP-38, CP-41): записи, разбор полей, связи с работами, CITES, ручная проверка |
+| `bibliography_v3_dryrun.json` | правила `bib_rules_v3` (агент B3): пробный прогон по копии снимка без коммитов — записи без авторов по причинам, доли полей v2 → v3, стабильность ID, размеченная выборка из 100 записей |
 | `late_interaction_encode_final.json` | late interaction (агент L): кодирование mLateOn всех единиц, проверки §64 |
 | `late_interaction_deploy.json` | развёртывание late: pack, горячая замена, smoke, латентность, включение по умолчанию |
 | `nav_sections.json` | навигационный слой, разделы (агент N1): методы, покрытие страниц, проверки вложенности, ручная выборка |
