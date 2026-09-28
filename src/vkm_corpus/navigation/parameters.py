@@ -93,19 +93,26 @@ def _copy_plain(s: str, a: int, b: int, out: list[str], pos: list[int]) -> None:
                 out.append("^")
                 pos.append(j)
             out.append(ch.translate(_SUPER))
+        elif "ﬀ" <= ch <= "ﬆ":               # a typographic ligature («sandﬁll»): its letters, one source char
+            for x in unicodedata.normalize("NFKC", ch):
+                out.append(x)
+                pos.append(j)
+            continue
         else:
             out.append(_fold_char(ch))
         pos.append(j)
 
 
-_LAT2CYR_LOWER = str.maketrans("acekmopxytdlnuh", "асекморхутдлпин")
+_LAT2CYR_LOWER = str.maketrans("acekmopxytdlnuhi", "асекморхутдлпини")
 _MIXED_WORD = re.compile(r"[a-zа-яё]*(?:[a-z][а-яё]|[а-яё][a-z])[a-zа-яё]*")
 
 
 def lower_same_length(s: str) -> str:
     """Lower case with «ё» → «е», keeping the length (offsets of the plain text stay valid). OCR repairs of the same
-    length: Latin letters inside a Cyrillic word («прочнocти», «Пределdlительной») become Cyrillic, «козфф» → «коэфф»."""
-    low = "".join(c.lower() if len(c.lower()) == 1 else c for c in s).replace("ё", "е")
+    length: Latin letters inside a Cyrillic word («прочнocти», «Пределdlительной») become Cyrillic, «козфф» → «коэфф»,
+    Ukrainian «і» of the OCR («Сільвинит») is «и»."""
+    low = "".join(c.lower() if len(c.lower()) == 1 else c for c in s).replace("ё", "е").replace("і", "и")
+    low = low.replace("ї", "и")
     if re.search(r"[a-z]", low) and re.search(r"[а-я]", low):
         low = _MIXED_WORD.sub(lambda m: m.group(0).translate(_LAT2CYR_LOWER)
                               if len(re.findall(r"[а-я]", m.group(0))) >= 2 else m.group(0), low)
@@ -144,6 +151,7 @@ class Unit:
     canon: str
     start: int
     end: int
+    complete: bool = True     # nothing continues it («МПа» of «МПа⁻ⁿ·с⁻¹» is not complete)
 
 
 _UNIT_RX: list[tuple[re.Pattern, str, float, str]] = [(re.compile(p, re.I), d, f, c) for p, d, f, c in V.UNITS]
@@ -159,6 +167,7 @@ _EXTRA_UNITS: list[tuple[re.Pattern, str, float, str]] = [
 ]
 _ALL_UNITS = _EXTRA_UNITS + _UNIT_RX
 _BARE_TIME_OK = frozenset({"сут", "год", "мес", "ч", "мин"})      # a bare «с»/«s»/«a»/«d» is never a time unit
+_UNIT_CONT = re.compile(r"\s?(?:[⁻⁺^·⋅∙*×/]|[-−–]\s?[\dn])")
 
 
 def match_unit(plain: str, pos: int) -> Unit | None:
@@ -180,6 +189,8 @@ def match_unit(plain: str, pos: int) -> Unit | None:
             continue
         if best is None or end - p > best.end - best.start:
             best = Unit(plain[p:end], dim, f, canon, p, end)
+    if best is not None and _UNIT_CONT.match(plain, best.end):
+        best.complete = False
     return best
 
 
@@ -190,9 +201,11 @@ _EXP = (r"(?:\s*[·⋅∙×xхЧ*´]\s*10\s*(?:\^\s*\(?\s*(?P<e1>[-−–]?\s*\d
 _NUMBER = re.compile(r"(?P<sign>[-−–](?=\d))?(?P<core>" + _NUM_CORE + r")(?:" + _EXP + r")?")
 _POWER_ONLY = re.compile(r"10\s*\^\s*\(?\s*(?P<e>[-−–]?\d{1,3})(?:\s*\))?")
 _NUM_START = re.compile(r"(?<![\w.,/^_\\])(?<![^\W\d_][-–−])(?:[-−–](?=\d)|\d)")   # not «СКРУ-1», «α−1»
-_RANGE_SEP = re.compile(r"\s*(?:–|—|-|−|÷|\.{2,3}|…)\s*")
-_FROM = re.compile(r"(?:(?<![\w-])(?:от|from|between|с))\s+$", re.I)
+_RANGE_SEP = re.compile(r"\s*(?:–|—|-|−|÷|\.{2,3}|…)\s*|~\s?(?=\d)")          # «126~960 m»: «~» right after a number
+# «от 10 до 15», «с глубины 15,3 м до 121,0 м» (a noun of the position between «с» and the number)
+_FROM = re.compile(r"(?:(?<![\w-])(?:от|from|between|с)(?:\s+(?:глубин\w*|отметк\w*|высот\w*|уровн\w*))?)\s+$", re.I)
 _TO = re.compile(r"\s+(?:до|to|and|по)\s+", re.I)
+_EN_TO = re.compile(r"\s+to\s+", re.I)
 _PM = re.compile(r"\s*(?:±|\+/-|\+-)\s*")
 _LIST_GAP = re.compile(r"\s*(?:,|;|и|and|or|или)\s*", re.I)
 _TUPLE_AFTER = re.compile(r"\s*[×xх*]\s*\d")
@@ -289,6 +302,12 @@ def _one_value(plain: str, s: int, lang: str | None) -> Val | None:
             if u2 is not None and u2.canon == u_mid.canon:
                 sep_at = u_mid.end
     tm = _TO.match(plain, sep_at) if _FROM.search(pre) else None
+    if tm is None:                  # «25 to 30 MPa», «2500 m to 3000 m»: an English range without «from»
+        t2 = _EN_TO.match(plain, e1 if u_mid is None else u_mid.end)
+        n2 = number_at(plain, t2.end(), lang) if t2 else None
+        u2 = match_unit(plain, n2.end) if n2 is not None else None
+        if u2 is not None and (u_mid is None or u2.canon == u_mid.canon):
+            tm = t2
     rm = _RANGE_SEP.match(plain, sep_at) if tm is None else None
     pm = _PM.match(plain, e1)
     if tm is not None or rm is not None:
@@ -343,6 +362,8 @@ def scan_values(plain: str, lang: str | None = None) -> list[Val]:
         unit = match_unit(plain, val.end)
         if unit is None and re.match(r"\s*/\s*[^\W\d_]", plain[val.end:val.end + 4]):
             val.reject = val.reject or "fraction"            # «1/φ», «1/сут» standing alone: a formula or a unit
+        if re.search(r"[√∛∜]\s*$", plain[max(0, val.start - 3):val.start]):
+            val.reject = val.reject or "formula"             # «K = √3»
         if unit is None and val.end < n and plain[val.end].isalpha():
             val.reject = val.reject or "identifier"
         if unit is not None and unit.dim == V.ANGLE and val.qualifier == "=":
@@ -379,7 +400,7 @@ def scan_values(plain: str, lang: str | None = None) -> list[Val]:
             if last.unit is not None and last.reject is None:
                 for x in vals[k:j]:
                     u = last.unit
-                    x.unit = Unit(u.raw, u.dim, u.factor, u.canon, u.start, u.end)
+                    x.unit = Unit(u.raw, u.dim, u.factor, u.canon, u.start, u.end, u.complete)
                     x.unit_inherited = True
             lid += 1
         k = j + 1
@@ -408,20 +429,30 @@ _PROP_RX: dict[str, re.Pattern] = {
     p.key: re.compile(r"(?<![\w-])(?:" + "|".join(p.patterns) + r")", re.I) for p in V.PROPERTIES}
 _EXCLUDE_BEFORE: dict[str, re.Pattern] = {
     "cohesion": re.compile(r"(?:муфт\w*|сил\w*|надежн\w*|полн\w*|жестк\w*|услови\w*)\s+$", re.I),
-    "permeability": re.compile(r"(?:диэлектрическ\w*|магнитн\w*|относительн\w*|dielectric|magnetic|relative)\s+$", re.I),
+    "permeability": re.compile(r"(?:диэлектрическ\w*|магнитн\w*|относительн\w*|dielectric|magnetic|relative)\s+$",
+                               re.I),
     "density": re.compile(r"(?:probability|current|energy|spectral|charge|flux|power|point|scatterer|pixel|crack|"
-                          r"fracture|вероятност\w*|тока|энерги\w*|потока|отражател\w*|сети|трещин\w*)\s+$", re.I),
+                          r"fracture|excess|вероятност\w*|тока|энерги\w*|потока|отражател\w*|сети|трещин\w*|"
+                          r"разност\w*|перепад\w*|контраст\w*|избыточн\w*)\s+$", re.I),
+    "limit_strain": re.compile(r"(?:упруг|пластическ|остаточн|elastic|plastic)\w*\s+$", re.I),  # a part of it
+    # «deceleration of subsidence by 3–5 cm»: a change of the movement, not a subsidence
+    "subsidence": re.compile(r"(?:decelerat|accelerat|замедлени|ускорени)\w*\s+(?:of\s+)?$", re.I),
 }
+# «… на контуре до 0,2 % на глубине 1 м», «в кровле на глубине 2 м»: a distance into the rock, not a depth of mining
+_INTO_ROCK_BEFORE = re.compile(r"(?:контур|стенк|обнажени|кровл|почв|целик|забо)\w*", re.I)
 _EXCLUDE_AFTER: dict[str, re.Pattern] = {
     "friction_coefficient": re.compile(r"^\s*(?:гидравлическ|сопротивлени)", re.I),
     "density": re.compile(r"^\s*(?:вероятност|распределени|тока|потока|энерги|сети|отражател|точек|трещин|"
-                          r"постоянн\w* отражател|of (?:probability|states|scatterers|points))", re.I),
+                          r"постоянн\w* отражател|of (?:probability|states|scatterers|points)|contrasts?\b|"
+                          r"differences?\b|anomal|excess)", re.I),
     "depth": re.compile(r"^\s*(?:скважин|шпур|промерзани|проникновени|резкост|модуляци)", re.I),
     "depth_unspecified": re.compile(r"^\s*(?:скважин|шпур|промерзани|проникновени|резкост|модуляци|грунтов|"
                                     r"of (?:field|focus|penetration|investigation)|резания|рыхлени|трещин)", re.I),
     "thickness_unspecified": re.compile(r"^\s*(?:дозы|излучени|сигнал|двигател|привод|электр|насос|of the signal)",
                                         re.I),
     "subsidence": re.compile(r"^\s*(?:рельс|фундамент|сооружени|здани|опор)", re.I),
+    # «степень нагружения образцов» is the load level of a laboratory test, not of a pillar
+    "loading_degree": re.compile(r"^\s*(?:\([^)]{0,12}\)\s*)?(?:образц|проб|specimen|sample)", re.I),
 }
 _PHRASE_UNIT = re.compile(r"\s*(?:,|\(|в\s+(?=\S))\s*", re.I)
 _PAREN_SYMBOL = re.compile(r"\s*\(\s*([^\s(),;]{1,8})\s*\)")
@@ -456,6 +487,9 @@ def find_mentions(plain: str, low: str) -> list[Mention]:
         for m in _PROP_RX[p.key].finditer(low):
             ex = _EXCLUDE_BEFORE.get(p.key)
             if ex is not None and ex.search(low[max(0, m.start() - 24):m.start()]):
+                continue
+            if p.key == "depth" and low.startswith("на глубин", m.start()) and _INTO_ROCK_BEFORE.search(
+                    low[max(0, m.start() - 30):m.start()]):
                 continue
             ea = _EXCLUDE_AFTER.get(p.key)
             if ea is not None and ea.search(low[m.end():m.end() + 30]):
@@ -506,10 +540,16 @@ _MAT_RX: list[tuple[V.MaterialDef, re.Pattern, re.Pattern | None]] = [
      re.compile(r"(?<![\w-])(?:" + "|".join(md.abbr) + r")(?![\w-])") if md.abbr else None)
     for md in V.MATERIALS]
 _MAT_PREFILTER = ("сол", "сильвин", "карнал", "галит", "ангидр", "доломит", "мерг", "глин", "аргил", "алевр", "песч",
-                  "извест", "гипс", "толщ", "пачк", "отложен", "заклад", "отход", "шлам", "рассол", "уг", "руд", "salt",
+                  "извест", "гипс", "толщ", "пачк", "отложен", "заклад", "отход", "шлам", "рассол", "уг", "руд",
+                  "тверд", "salt",
                   "halit", "sylvin", "carnal", "anhydr", "dolom", "marl", "clay", "mudst", "siltst", "sandst",
                   "limest", "gyps", "fill", "brine", "coal", "ore", "overburden", "potash")
 _ABBR_UPPER = re.compile(r"[А-ЯЁA-Z]{2,}")
+_INCLUSION_BEFORE = re.compile(r"(?<![\w-])(?:с|со|with)\s+(?:(?:тонк|редк|част|многочисленн|отдельн|thin)\w*\s+)?"
+                               r"(?P<w>(?:прослоя\w*|прослойк\w*|прослоями|включени\w*|примес\w*|ячейк\w*|гнезд\w*|"
+                               r"вкраплени\w*|линз\w*|interlayers?|inclusions?|layers of)\s+)?$", re.I)
+_INCLUSION_WORD = re.compile(r"прослой|прослоя|прослое|включени|примес|interlayer|inclusion", re.I)
+_NEGATED_BEFORE = re.compile(r"(?<![\w-])(?:без|without|no)\s+$", re.I)          # «Без закладки»
 _LAT2CYR_UPPER = str.maketrans("ABCEHKMOPTX", "АВСЕНКМОРТХ")      # OCR «CMT», «B3T» for «СМТ», «ВЗТ»
 
 
@@ -532,6 +572,11 @@ def find_materials(plain: str, low: str) -> list[Tagged]:
     for md, rx, ab in _MAT_RX:
         for m in rx.finditer(low):
             if md.label == "сильвинит" and V.COMPANY_BEFORE.search(plain[max(0, m.start() - 14):m.start()]):
+                continue
+            inc = _INCLUSION_BEFORE.search(low[max(0, m.start() - 40):m.start()])
+            if inc and (inc.group("w") or _INCLUSION_WORD.search(low[m.start():m.end()])):
+                continue            # «сильвинит с глинистыми прослойками», «с прослоями глины»: not the rock itself
+            if _NEGATED_BEFORE.search(low[max(0, m.start() - 10):m.start()]):
                 continue
             out.append(Tagged(md.label, md.group, m.start(), m.end(), plain[m.start():m.end()]))
         if ab is not None and has_abbr:
@@ -631,9 +676,9 @@ _REF_ALWAYS = re.compile(r"(?:(?<![\w-])(?:рис|табл|стр|с|гл|раз
 _REF_NUMBERING = re.compile(r"(?<![\w-])(?:пласт\w*|блок\w*|панел\w*|лав\w*|вариант\w*|лини[июя]\w*|профил\w*|"
                             r"станци\w*|участ\w*|сери[июя]\w*|тип\w*|образц\w*|образец|опыт\w*|точк\w*|репер\w*|"
                             r"пункт\w*|скважин\w*|шахт\w*|рудник\w*|ствол\w*|групп\w*|этап\w*|стади\w*|случа\w*|"
-                            r"схем\w*|модел\w*|слой|сло[яеи]|зон\w*|type|case|sample|specimen|model|zone|layer|stage|"
-                            r"scheme|borehole|well|line|station|point|block|panel|series|group|variant|step)\s*$",
-                            re.I)
+                            r"схем\w*|модел\w*|слой|сло[яеи]|зон\w*|крив(?:ая|ой|ую|ые|ых|ым|ыми)|type|case|sample|"
+                            r"specimen|model|zone|layer|stage|scheme|borehole|well|line|station|point|block|panel|"
+                            r"series|group|variant|step|curves?)\s*$", re.I)
 _ASSIGN_TAIL = re.compile(r"(?<![\w])(?P<sym>[A-Za-zА-Яа-яЁёΑ-Ωα-ωϑϕ][\w′'*^]{0,7}(?:_\{?[\w.,]{1,8}\}?)?)\s*"
                           r"(?P<op>=|≈|≅|~|≤|≥|<|>)\s*$")
 _SOFT_WORDS = frozenset("""соответственно составляет составляют составил составила составило составили равен равна
@@ -725,8 +770,8 @@ _CONTENT_WORD = re.compile(r"[a-zа-яё]{3,}")
 
 _ERROR_BEFORE = re.compile(r"(?:погрешност|ошибк|расхождени|отклонени|невязк|точност|разброс|error|uncertaint|"
                            r"deviation|accuracy|misfit|residual)\w*(?:\s+[^\s,.;]+){0,3}\s*$", re.I)
-_SUBCLAUSE_START = re.compile(r",\s*(?:котор\w*|[а-яё]+(?:ющ|ущ|ащ|ящ|вш|ем|им)(?:ий|ая|ее|ие|его|ей|их|ую|ым|ыми|ой|ом)"
-                              r"|which|that)\b[^,]*$", re.I)
+_SUBCLAUSE_START = re.compile(r",\s*(?:котор\w*|[а-яё]+(?:ющ|ущ|ащ|ящ|вш|ем|им)"
+                              r"(?:ий|ая|ее|ие|его|ей|их|ую|ым|ыми|ой|ом)|which|that)\b[^,]*$", re.I)
 
 
 def _in_subclause(plain: str, m: Mention, val: Val) -> bool:
@@ -839,6 +884,7 @@ def text_candidates(text: str | None, lang: str | None = None, *, max_gap: int =
     by_sent: dict[int, list[Mention]] = defaultdict(list)
     for m in mentions:
         by_sent[sentence_of(starts, m.start)].append(m)
+    first_sym: dict[int, str] = {}              # mention start → the symbol its first value was assigned to
     out: list[Cand] = []
     for val in vals:
         si = sentence_of(starts, val.start)
@@ -885,8 +931,9 @@ def text_candidates(text: str | None, lang: str | None = None, *, max_gap: int =
                 break                       # «… D0 = 260 м; продвижение лавы: 900 м»: a label of another quantity
             am = _ASSIGN_TAIL.search(gap)
             sym = symbolish(am.group("sym"), assigned=True) if am else None
-            if sym and m.symbol and symbol_key(sym, loose=True) != symbol_key(m.symbol, loose=True):
-                break                       # «E = 20 ГПа, ν = 0,3»: the value is assigned to another symbol
+            own = m.symbol or first_sym.get(m.start)
+            if sym and own and symbol_key(sym, loose=True) != symbol_key(own, loose=True):
+                break                       # «E = 20 ГПа, ν = 0,3», «глубина H = 480 м; … b = 3,7 м»: another symbol
             if not sym and _other_label_before(gap, m):
                 break                       # «… B1, sec-1 7.1·10⁶»: a flattened table row of another label
             lo, hi = _si_or_bare(val, unit)
@@ -898,6 +945,7 @@ def text_candidates(text: str | None, lang: str | None = None, *, max_gap: int =
                 c.qualifier = "mean"
             if sym:
                 c.symbol = sym
+                first_sym.setdefault(m.start, sym)
                 op = am.group("op")
                 if op in ("≈", "≅", "~"):
                     c.qualifier = "≈"
@@ -922,7 +970,6 @@ def text_candidates(text: str | None, lang: str | None = None, *, max_gap: int =
         if chosen.val.vmin == chosen.val.vmax == 0 and (chosen.unit is None or chosen.unit_inherited):
             continue                                  # a bare «0»: an axis origin or a list item, not a value
         _assign_material(chosen, plain, low, mats, starts, si, inner)
-        _assign_scale_site(chosen, low, cues, sites, starts, si)
         out.append(chosen)
     # a series under a phrase unit that is an arithmetic progression («Porosity, % 45 30 15 0») is an axis scale
     series: dict[int, list[Cand]] = defaultdict(list)
@@ -931,6 +978,10 @@ def text_candidates(text: str | None, lang: str | None = None, *, max_gap: int =
             series[c.mention.start].append(c)
     ticks = {id(c) for cs in series.values() if _arithmetic([c.val.vmin for c in cs]) for c in cs}
     out = [c for c in out if id(c) not in ticks]
+    cspans = [(c.mention.start if c.mention is not None else c.val.start, c.val.span_end) for c in out]
+    for k, c in enumerate(out):
+        _assign_scale_site(c, low, cues, sites, starts, sentence_of(starts, c.val.start), vals=vals,
+                           cand_spans=cspans[:k] + cspans[k + 1:], mentions=mentions)
     _respectively(out, low, mats)
     for c in out:
         c.confidence = _confidence(c, "TEXT")
@@ -1007,27 +1058,70 @@ def _assign_material(c: Cand, plain: str, low: str, mats: list[Tagged], starts: 
         c.material_raw = " | ".join(dict.fromkeys(t.raw for t in before))
 
 
+_AFTER_CUE_MAX = 40
+_WORDS_ONLY = re.compile(r"[^\W\d_\s]*\s*[^\W\d_\s]*\s*")          # «нормативного| значения |степени нагружения»
+
+
+def _local_cues(c: Cand, sent: list[Tagged], vals: list[Val], cand_spans: list[tuple[int, int]],
+                s1: int, low: str = "", mentions: list[Mention] | None = None) -> list[Tagged]:
+    """The cues of the sentence that qualify this value rather than a neighbour:
+    - between its phrase and the value, with no other value in between («модуль образцов 20 ГПа, в массиве — 5 ГПа»);
+    - before its phrase, outside the phrase…value span of another candidate, not right before the phrase of another
+      property («нормативного значения степени нагружения … целики шириной 14,6 м»), and with no value outside the
+      vocabulary in between (references «[20]» do not count): the head of an enumeration («при моделировании приняты:
+      E = 20 ГПа, ν = 0,3»), not the cue of another quantity («плотность в массиве 2,7 т/м³, … предел прочности»);
+    - right after the value (≤ 40 chars) when no other value follows in the sentence."""
+    v0, v1 = c.val.start, c.val.span_end
+    m0 = c.mention.start if c.mention is not None else v0
+    lid = c.val.list_id
+    others = [v for v in vals if not (v0 <= v.start < v1 or v.start <= v0 < v.end)
+              and not (lid >= 0 and v.list_id == lid)
+              and not (low and _REF_ALWAYS.search(low[max(0, v.start - 16):v.start]))]
+    cand_vals = {v.start for v in others if any(a <= v.start < b for a, b in cand_spans)}
+    foreign = [(m.start, m.end) for m in mentions or [] if m.prop.key != c.prop.key]
+    out = []
+    for t in sent:
+        if m0 <= t.start and t.end <= v0:
+            if not any(t.end <= v.start < v0 for v in others):
+                out.append(t)
+        elif t.end <= m0:
+            if any(a <= t.start and t.end <= b for a, b in cand_spans):
+                continue
+            if any((t.end <= a <= t.end + 12 and a < m0 and _WORDS_ONLY.fullmatch(low[t.end:a])) or a <= t.start < b
+                   for a, b in foreign):
+                continue
+            if any(t.end <= v.start < m0 and v.start not in cand_vals for v in others):
+                continue
+            out.append(t)
+        elif t.start >= v1:
+            if t.start - v1 <= _AFTER_CUE_MAX and not any(v1 <= v.start < s1 for v in others):
+                out.append(t)
+    return out
+
+
 def _assign_scale_site(c: Cand, low: str, cues: list[Tagged], sites: list[Tagged], starts: list[int],
-                       si: int) -> None:
+                       si: int, *, vals: list[Val] | None = None, cand_spans: list[tuple[int, int]] | None = None,
+                       mentions: list[Mention] | None = None) -> None:
     s0 = starts[si]
     s1 = starts[si + 1] if si + 1 < len(starts) else len(low)
     pos = (c.val.start + c.val.end) / 2.0
     sent = [t for t in cues if s0 <= t.start < s1]
-    if sent:
-        c.scale_cues = sorted({t.group for t in sent})
-        cats = {t.label for t in sent}
+    local = _local_cues(c, sent, vals or [], cand_spans or [], s1, low, mentions) if sent else []
+    if local:
+        c.scale_cues = sorted({t.group for t in local})
+        cats = {t.label for t in local}
         if len(cats) == 1:
-            c.scale, c.scale_basis = cats.pop(), "SENTENCE"
+            c.scale, c.scale_basis = cats.pop(), "LOCAL"
         else:
-            lab = nearest_label(sent, pos)
+            lab = nearest_label(local, pos)
             if lab is not None:
-                c.scale, c.scale_basis = lab, "SENTENCE_NEAREST"
+                c.scale, c.scale_basis = lab, "LOCAL_NEAREST"
             else:
                 c.flags.append("SCALE_CONFLICT")
-    elif cues:
-        # a cue in another sentence of the block is only reported, never taken as the scale of this value
-        c.scale_cues = sorted({t.group for t in cues})
-        c.scale_basis = "NONE_BLOCK_CUES"
+    elif sent or cues:
+        # a cue of a neighbouring value or of another sentence of the block is only reported, never taken as the scale
+        c.scale_cues = sorted({t.group for t in (sent or cues)})
+        c.scale_basis = "NONE_SENTENCE_CUES" if sent else "NONE_BLOCK_CUES"
     sent_sites = [t for t in sites if s0 <= t.start < s1]
     if sent_sites:
         lab = specific_site(sent_sites) or nearest_label(sent_sites, pos)
@@ -1097,7 +1191,7 @@ _GENERIC_VALUE_HEADER = re.compile(r"^\s*(?:значени\w*|величин\w*|
 _METHOD_HEADER = re.compile(r"(?<![\w-])(?:метод\w*|method\w*|способ\w*|средн\w*|mean|average|min|max|мин\.?|"
                             r"макс\.?|минимальн\w*|максимальн\w*)(?![\w-])", re.I)
 _LITHO_HEADER = re.compile(r"тип\w* пород|(?<![\w-])пород\w*|литолог\w*|состав\w*|lithology|rock type|\brock\b", re.I)
-_LOST_POWER_UNIT = re.compile(r"[(,]\s*10([1-9]\d?)\s+(?=[^\W\d_])")
+_LOST_POWER_UNIT = re.compile(r"[(,]\s*10([1-9]\d?)\s*(?:,\s*|\s+)(?=[^\W\d_])")   # «(1021 Pa s)», «,104,МПа»
 _CAPTION_CONDITION = re.compile(r"(?<![\w-])(?:в интервале|в диапазоне|при|в зависимости|зависимост\w*|для|"
                                 r"at|for|in the interval|as a function|versus|vs)(?![\w-])", re.I)
 _NUMBERING_HEADER = re.compile(r"^\s*(?:№|n|no\.?|#)\s*(?:п/п|пп|n/n)?\s*$", re.I)
@@ -1105,8 +1199,14 @@ _NUMBERING_HEADER = re.compile(r"^\s*(?:№|n|no\.?|#)\s*(?:п/п|пп|n/n)?\s*$
 _PURE_SYMBOL = re.compile(r"[^\W\d_]{1,3}(?:_[^\W\d_]{1,4})?")
 _COUNT_HEADER = re.compile(r"кол(?:-во|ичеств)\w*|числ(?:о|а)\b|№|номер\w*|\bnumber\b|\bcount\b|\bn\s*=|год\w*|дат\w*|"
                            r"\byear\b|\bdate\b|глубин\w*|интервал\w*|размер\w*|h/d|\bsize\b", re.I)
-_MULT_IN_HEADER = re.compile(r"(?:[·⋅∙×xхЧ*´]\s*10\s*(?:\^\s*\(?\s*([-−–]?\s*\d{1,2})(?:\s*\))?|([-−–]\s?\d{1,2})(?!\d)|"
-                             r"(\d{1,2})(?!\d))|(?<![\d.,])10\s*\^\s*\(?\s*([-−–]?\s*\d{1,2})(?:\s*\))?)")
+# a dispersion of the values («Коэф. вар., %», «Квадр. откл.», «СКО», «Std. dev.»): not a value of the property
+_DISPERSION = re.compile(r"коэф\w*\.?\s*вар\w*|вариаци\w*|квадр\w*\.?\s*(?:откл|ошиб)\w*|ср\.?\s*кв\.?\s*откл\w*|"
+                         r"стандартн\w*\s*(?:откл|ошиб)\w*|станд\.?\s*откл\w*|дисперси\w*|погрешност\w*|"
+                         r"доверительн\w*|(?<![\w-])ско(?![\w-])|std\.?(?![\w-])|standard\s+(?:deviation|error)|"
+                         r"coefficient\s+of\s+variation|(?<![\w-])c\.?o\.?v\.?(?![\w-])|variance", re.I)
+_MULT_IN_HEADER = re.compile(r"(?:[·⋅∙×xхЧ*´]\s*10\s*(?:\^\s*\(?\s*([-−–]?\s*\d{1,2})(?:\s*\))?|"
+                             r"([-−–]\s?\d{1,2})(?!\d)|(\d{1,2})(?!\d))|"
+                             r"(?<![\d.,])10\s*\^\s*\(?\s*([-−–]?\s*\d{1,2})(?:\s*\))?)")
 
 
 def _hint_key(sym: str) -> str:
@@ -1175,7 +1275,8 @@ def header_unit(text: str) -> Unit | None:
 
 def parse_header(text: str, source_symbols: dict[str, str] | None = None) -> HeaderInfo:
     """Property, unit, power multiplier, statistic, symbol and materials named in a header, row label or caption.
-    ``source_symbols`` — symbols the same source defines by a phrase («σпр — предел прочности»), loose key → property."""
+    ``source_symbols`` — symbols the same source defines by a phrase («σпр — предел прочности»), loose key →
+    property."""
     h = HeaderInfo(text)
     if not text:
         return h
@@ -1276,7 +1377,8 @@ def table_candidates(cells: list[dict[str, Any]], n_rows: int | None, n_cols: in
                      label: str | None = None, lang: str | None = None, header_rows: int | None = None,
                      source_symbols: dict[str, str] | None = None) -> list[tuple[Cand, int, int]]:
     """Candidates of one table (pure): (candidate, row, col) for every numeric cell under a property header (or in a
-    row whose label names a property). ``source_symbols``: symbols the source defines by a phrase (header «Dпр, ГПа»)."""
+    row whose label names a property). ``source_symbols``: symbols the source defines by a phrase (header
+    «Dпр, ГПа»)."""
     if not cells:
         return []
     n_rows = int(n_rows or max(int(c.get("row") or 0) + int(c.get("row_span") or 1) for c in cells))
@@ -1375,18 +1477,29 @@ def table_candidates(cells: list[dict[str, Any]], n_rows: int | None, n_cols: in
             if label_cols)
     ctx_low = lower_same_length(" ".join([cap_text] + [h.text for h in headers.values() if h.text]))
     t_cues, t_sites = find_scale_cues(ctx_low), find_sites(ctx_low)
+    # a caption cue right before the phrase of a property («допустимой степени нагружения») is that property's only
+    cap_all = find_mentions(cap_text, lower_same_length(cap_text)) if cap_text else []
+    cue_owner = {t.start: m.prop.key for t in t_cues if t.start < len(cap_text)
+                 for m in cap_all if 0 <= m.start - t.end <= 3 or m.start <= t.start < m.end}
     group = parse_header(first_group) if first_group else HeaderInfo("")
+    # labels that name materials: a value under a label of its own that names none («Mudstone | Interlayer») is of
+    # another body, so the material of the caption is not given to it
+    mat_cols = {c for c in range(n_cols) if headers[c].materials}
+    row_texts = {r: " ".join(dict.fromkeys(grid[r][c] for c in label_cols if grid[r][c])) for r in rows}
+    mat_rows = {r for r, t in row_texts.items() if t and find_materials(t, lower_same_length(t))}
     out: list[tuple[Cand, int, int]] = []
+    keys: list[tuple[str, int]] = []
     for r in body:
         if group_row(r):
             group = parse_header(grid[r][own_texts(r)[0]], source_symbols)
             continue
         if r not in rows:
             continue
-        row_text = " ".join(dict.fromkeys(grid[r][c] for c in label_cols if grid[r][c]))
+        row_text = row_texts[r]
         rh = parse_header(row_text, source_symbols) if row_text else HeaderInfo("")
         row_unit = match_unit(grid[r][units_col], 0) if units_col is not None else None
         row_low = lower_same_length(" ".join(x for x in (group.text, row_text) if x))
+        row_dispersion = bool(_DISPERSION.search(lower_same_length(row_text))) if row_text else False
         for c in range(n_cols):
             v = parsed[r][c]
             if v is None or c in label_cols or c == units_col:
@@ -1394,6 +1507,8 @@ def table_candidates(cells: list[dict[str, Any]], n_rows: int | None, n_cols: in
             ch = headers[c]
             if ch.prop is not None and rh.prop is not None and ch.prop.key != rh.prop.key:
                 continue
+            if row_dispersion or (ch.text and _DISPERSION.search(lower_same_length(ch.text))):
+                continue                    # a coefficient of variation or a standard deviation, not a value
             if ch.prop is not None:
                 prop, src, hdr = ch.prop, "COL", ch
             elif rh.prop is not None:
@@ -1420,7 +1535,7 @@ def table_candidates(cells: list[dict[str, Any]], n_rows: int | None, n_cols: in
                 other = rh if src == "COL" else ch
                 for u in (hdr.unit, row_unit, other.unit if other.prop is None else None):
                     if u is not None:
-                        unit, inherited = Unit(u.raw, u.dim, u.factor, u.canon, u.start, u.end), True
+                        unit, inherited = Unit(u.raw, u.dim, u.factor, u.canon, u.start, u.end, u.complete), True
                         flags.append("UNIT_FROM_HEADER")
                         break
             if not _dims_ok(prop, unit):
@@ -1478,11 +1593,14 @@ def table_candidates(cells: list[dict[str, Any]], n_rows: int | None, n_cols: in
                 cand.flags.append("MATERIAL_FROM_GROUP_ROW")
             elif col_m and len({t.label for t in col_m}) == 1:
                 _set_mat(cand, col_m[-1])
-            elif prop.key not in _NO_MATERIAL_PROPS and len({t.label for t in cap.materials}) == 1:
+            elif prop.key not in _NO_MATERIAL_PROPS and len({t.label for t in cap.materials}) == 1 and not (
+                    (src == "ROW" and ch.text and not _GENERIC_VALUE_HEADER.match(ch.text) and mat_cols - {c}) or
+                    (src != "ROW" and row_text and mat_rows - {r})):
                 _set_mat(cand, cap.materials[-1])
                 cand.flags.append("MATERIAL_FROM_CAPTION")
             # scale and site: the property's own header or label, then the caption and all headers, then the row
-            cues = find_scale_cues(lower_same_length(hdr.text)) or t_cues or find_scale_cues(row_low)
+            cues = find_scale_cues(lower_same_length(hdr.text)) or [
+                t for t in t_cues if cue_owner.get(t.start, prop.key) == prop.key] or find_scale_cues(row_low)
             if cues:
                 cand.scale_cues = sorted({t.group for t in cues})
                 cats = {t.label for t in cues}
@@ -1499,6 +1617,10 @@ def table_candidates(cells: list[dict[str, Any]], n_rows: int | None, n_cols: in
                     cand.flags.append("SITE_CONFLICT")
             cand.confidence = _confidence(cand, "TABLE")
             out.append((cand, r, c))
+            keys.append(("COL", c) if src != "ROW" else ("ROW", r))
+    # a lone dimensionless symbol («v» over a frequency column) does not make a table a table of properties
+    if out and len(set(keys)) == 1 and all("SYMBOL_ONLY_HEADER" in x.flags and x.unit is None for x, _, _ in out):
+        return []
     return out
 
 
@@ -1551,7 +1673,8 @@ def formula_candidates(params: list[dict[str, Any]], definitions: dict[tuple[str
                 probe = Cand(prop, Val(k, k + len(p["value_text"]), p["value_text"], val.vmin, val.vmax, "="), unit,
                              None)
                 _assign_scale_site(probe, low, find_scale_cues(low), find_sites(low), starts,
-                                   sentence_of(starts, k))
+                                   sentence_of(starts, k),
+                                   vals=[v for v in scan_values(plain) if v.reject is None])
                 c.scale, c.scale_basis, c.scale_cues = probe.scale, probe.scale_basis, probe.scale_cues
                 c.site, c.site_basis = probe.site, probe.site_basis
                 c.flags.extend(f for f in probe.flags if f.endswith("_CONFLICT"))
@@ -1565,6 +1688,11 @@ def formula_candidates(params: list[dict[str, Any]], definitions: dict[tuple[str
 def _cand_record(c: Cand, method: str, *, block_id: str | None = None, pmap: list[int] | None = None,
                  table_id: str | None = None, row: int | None = None, col: int | None = None) -> dict[str, Any]:
     v = c.val
+    if V.ANY in c.prop.dims and c.unit is not None and not c.unit.complete:
+        # a rheological constant has a compound unit («МПа⁻ⁿ·с⁻¹»): a matched fragment would mislead, so none is kept
+        c.unit = None
+        c.flags.append("UNIT_NOT_PARSED")
+        c.confidence = _confidence(c, method)
     if c.unit is not None:
         lo, hi, pm_si = value_si(v.vmin, v.vmax, v.pm, c.unit)
         unit_si = V.SI_UNIT.get(c.unit.dim)
@@ -1832,6 +1960,9 @@ class _SectionIndex:
 
 
 _NORMATIVE_CLASSES = frozenset({"normative_document", "methodical_guidance"})
+_DESCRIBES_DEPOSIT = frozenset({"depth", "depth_unspecified", "seam_thickness", "layer_thickness",
+                                "thickness_unspecified"})
+_OTHER_MEANING = "__other__"                          # a symbol definition naming no property of the vocabulary
 
 
 def source_symbol_table(defs: dict[str, dict[str, Counter]]) -> dict[str, dict[str, str]]:
@@ -1841,7 +1972,7 @@ def source_symbol_table(defs: dict[str, dict[str, Counter]]) -> dict[str, dict[s
     for sid, table in defs.items():
         keep = {}
         for k, c in table.items():
-            if not k or len(c) != 1:
+            if not k or len(c) != 1 or _OTHER_MEANING in c:
                 continue
             if len(k) < 2:
                 continue                        # «a», «P», «E»: a one-letter symbol means too many things in a book
@@ -1925,8 +2056,10 @@ def build(con: Any, *, section_pages: Any = None, sections: Any = None, formula_
         if s.get("definition") and s.get("source_id") and (not only or s["source_id"] in only):
             dtext = s["definition"]
             ms = [m for m in find_mentions(dtext, lower_same_length(dtext)) if m.start <= 12]
-            if len({m.prop.key for m in ms}) == 1:
-                defs[s["source_id"]][_hint_key(s["symbol"])][ms[0].prop.key] += 1
+            # a definition naming no property of the vocabulary («половина высоты выработки») still counts: the
+            # symbol then means two things in that source and is not used
+            prop_key = ms[0].prop.key if len({m.prop.key for m in ms}) == 1 else _OTHER_MEANING
+            defs[s["source_id"]][_hint_key(s["symbol"])][prop_key] += 1
     source_symbols = source_symbol_table(defs)
     counters["source_symbols"] = sum(len(v) for v in source_symbols.values())
     # ---- tables
@@ -1998,8 +2131,9 @@ def build(con: Any, *, section_pages: Any = None, sections: Any = None, formula_
         m = meta.get(r["source_id"] or "", {})
         r["source_site_scope"] = m.get("site_scope", [])
         r["source_class"] = m.get("source_class")
+        # a value of a normative document is normative, but not a depth or a thickness it describes the deposit with
         if r["scale_hint"] == V.UNKNOWN and m.get("source_class") in _NORMATIVE_CLASSES \
-                and "SCALE_CONFLICT" not in r["flags"]:
+                and "SCALE_CONFLICT" not in r["flags"] and r["property_key"] not in _DESCRIBES_DEPOSIT:
             r["scale_hint"], r["scale_basis"] = V.NORMATIVE, "SOURCE_CLASS"
         anchor = r["block_id"] or r["table_id"] or r["formula_id"] or ""
         loc = f"{r['table_row']}:{r['table_col']}" if r["table_id"] else str(r["char_start"])
