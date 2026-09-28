@@ -102,6 +102,69 @@ def test_text_rejections():
     assert P.text_candidates(None)[0] == []
 
 
+def test_scale_cues_are_local_and_rheological_units_are_not_parsed():
+    c = _one("Плотность соли в массиве 2,1 т/м3, влажность 1–2 %, предел прочности на сжатие 15–25 МПа.")
+    assert [(x.scale, x.scale_basis) for x in c if x.prop.key == "ucs"] == [("UNKNOWN", "NONE_SENTENCE_CUES")]
+    c = _one("При моделировании приняты: модуль деформации 20 ГПа, коэффициент Пуассона 0,3.")
+    assert [(x.prop.key, x.scale) for x in c] == [("deformation_modulus", "MODEL"), ("poisson_ratio", "MODEL")]
+    c = _one("Модуль деформации образцов 20 ГПа, в массиве — 5 ГПа.")
+    assert [(x.val.vmin, x.scale) for x in c] == [(20.0, "LAB"), (5.0, "MASSIF")]
+    (c,) = _one("Коэффициент ползучести равен 0,05 МПа-n·сут-1.")
+    rec = P._cand_record(c, "TEXT")
+    assert rec["unit_raw"] is None and rec["value_si_min"] is None and "UNIT_NOT_PARSED" in rec["flags"]
+    (c,) = _one("Коэффициент ползучести равен 0,05 1/сут.")
+    assert P._cand_record(c, "TEXT")["unit_raw"].startswith("1/сут")        # a complete unit is kept
+
+
+def test_labels_ranges_contrasts_inclusions_and_ocr_letters():
+    assert _one("Коэффициент бокового распора близок к единице (см. рис. 4, кривая 2).") == []   # a curve number
+    (v,) = P.scan_values("a depth range of 700 m to 900 m", "en")
+    assert (v.vmin, v.vmax, v.qualifier, v.unit.dim) == (700.0, 900.0, "range", V.LENGTH)
+    assert _one("The density contrast between brine and halite is 900 kg/m3.", "en") == []
+    c = _one("Влажность соли падает с 1,1 % у контура до 0,4 % на глубине 2,5 м.")
+    assert [x.prop.key for x in c if x.val.vmin == 2.5] == ["depth_unspecified"]       # into the rock, not mining
+    text = "Сільвинит пестрый с глинистыми прослоями"                                    # OCR «і», an inclusion
+    assert [t.label for t in P.find_materials(text, P.lower_same_length(text))] == ["сильвинит"]
+    plain, pmap = P.plain_with_map("cemented sandﬁll")
+    assert plain == "cemented sandfill" and len(pmap) == len(plain)
+    assert [t.label for t in P.find_materials(plain, P.lower_same_length(plain))] == ["закладочный материал"]
+    for text, top in (("керн отобран с глубины 40,5 м до 62,0 м", 62.0), ("the seam lies at 300~450 m", 450.0)):
+        (v,) = [x for x in P.scan_values(text) if x.reject is None]
+        assert v.qualifier == "range" and v.vmax == top
+    for text, mats in (("Ангидрит (с гнездами галита)", ["ангидрит"]), ("Образцы без закладки", [])):
+        assert [t.label for t in P.find_materials(text, P.lower_same_length(text))] == mats
+    c = _one("а — глубина H = 350 м; ширина выработки b = 5 м; б — H = 410 м, b = 4,2 м.")
+    assert [x.val.vmin for x in c if x.prop.key.startswith("depth")] == [350.0, 410.0]
+    assert _one("Cells at several depths have a grid dimension of dx = 5 m.", "en") == []
+    assert _one("A winter deceleration of subsidence by 2 cm was seen.", "en") == []
+
+
+def test_scale_cues_of_neighbours_and_references():
+    c = _one("Для выполнения нормативного значения степени нагружения С = 0,35 необходимо оставлять целики шириной "
+             "12 м.")
+    assert [(x.prop.key, x.scale) for x in c if x.prop.key == "pillar_width"] == [("pillar_width", "UNKNOWN")]
+    c = _one("По данным испытаний образцов сильвинита [7] коэффициент Пуассона составил 0,27.")
+    assert [(x.prop.key, x.scale) for x in c] == [("poisson_ratio", "LAB")]
+    cells = [_cell(0, 0, "Блок"), _cell(0, 1, "Ширина целика, м"), _cell(1, 0, "6"), _cell(1, 1, "5,4")]
+    got = P.table_candidates(cells, 2, 2, "Допустимая степень нагружения целиков по блокам")
+    assert [(x.prop.key, x.scale) for x, _, _ in got] == [("pillar_width", "UNKNOWN")]
+
+
+def test_table_dispersion_lone_symbol_and_caption_material():
+    disp = [_cell(0, 0, "Показатель"), _cell(0, 1, "Ед. изм."), _cell(0, 2, "Среднее"), _cell(0, 3, "Коэф. вар., %"),
+            _cell(1, 0, "Предел прочности на сжатие"), _cell(1, 1, "МПа"), _cell(1, 2, "21,7"), _cell(1, 3, "9")]
+    assert [(x.prop.key, x.val.vmin, c) for x, _, c in P.table_candidates(disp, 2, 4)] == [("ucs", 21.7, 2)]
+    lone = [_cell(0, 0, "Run"), _cell(0, 1, "v"), _cell(0, 2, "tan δ"),
+            _cell(1, 0, "1"), _cell(1, 1, "0,021"), _cell(1, 2, "0,004")]
+    assert P.table_candidates(lone, 2, 3, "Dielectric data of halite") == []
+    two = [_cell(0, 0, "Parameter"), _cell(0, 1, "Siltstone"), _cell(0, 2, "Parting"),
+           _cell(1, 0, "Tensile strength (MPa)"), _cell(1, 1, "2.6"), _cell(1, 2, "0.9")]
+    got = P.table_candidates(two, 2, 3, "Parameters of the siltstone and the seam parting", lang="en")
+    assert [(x.material, c) for x, _, c in got] == [("алевролит", 1), (None, 2)]
+    lab = [_cell(0, 0, "Число проб"), _cell(0, 1, "σсж, МПа"), _cell(1, 0, "7"), _cell(1, 1, "18,2")]
+    assert [x.scale for x, _, _ in P.table_candidates(lab, 2, 2, "Прочность сильвинита")] == ["LAB"]
+
+
 def test_symbol_definitions_and_source_table():
     defs = []
     P.text_candidates("где Dпр — предельный модуль деформации; модуль спада (М, ГПа) и σсж = 25 МПа", "ru",
