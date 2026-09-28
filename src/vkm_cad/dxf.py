@@ -94,9 +94,10 @@ def to_bytes(doc: Any) -> bytes:
 
 
 def read_bytes(data: bytes) -> Any:
+    """ASCII DXF (LF or CRLF line ends, as AutoCAD writes them) → ezdxf document."""
     ezdxf = ezdxf_module()
     try:
-        return ezdxf.read(io.StringIO(_decode_dxf(data)))
+        return ezdxf.read(io.StringIO(_decode_dxf(data).replace("\r\n", "\n")))
     except Exception as exc:  # noqa: BLE001 - ezdxf raises several structure errors
         raise ToolFailure("DXF_READ_ERROR", f"cannot read DXF: {type(exc).__name__}") from exc
 
