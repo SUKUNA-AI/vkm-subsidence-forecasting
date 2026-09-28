@@ -17,6 +17,10 @@ def f3(x):
     return "—" if x is None or x != x else f"{x:.3f}"
 
 
+def f5(x):
+    return "—" if x is None or x != x else f"{x:.5f}"
+
+
 def fp(p):
     if p is None:
         return "—"
@@ -130,7 +134,7 @@ def main() -> None:
             q = f.get("q8_delta_ndcg10") or {}
             print(f"| {k} | {f.get('gate', f.get('text_tower', '—'))} | {f.get('rx580_vram_mib', '—')} | "
                   f"{f.get('rx580_query_ms_p50', '—')} / {f.get('rx580_query_ms_p95', '—')} | "
-                  f"{f3(f.get('q8_cos_mean'))} / {f3(f.get('q8_cos_min'))} | "
+                  f"{f5(f.get('q8_cos_mean'))} / {f5(f.get('q8_cos_min'))} | "
                   f"{dl(q.get('verified'))} / {dl(q.get('verified+pooled'))} | "
                   f"{f.get('reencode_current_snapshot_min_5070ti', f.get('reencode_pages_min_5070ti', '—'))} |")
     print("\n### Пропускная способность (RTX 5070 Ti, bf16)\n")

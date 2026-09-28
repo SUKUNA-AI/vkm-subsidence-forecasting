@@ -20,12 +20,14 @@ from __future__ import annotations
 
 import dataclasses
 import hashlib
+import itertools
 import json
 import os
 import platform
 import sys
 import time
 import traceback
+from collections import deque
 from pathlib import Path
 
 import numpy as np
@@ -44,7 +46,20 @@ CFG = json.loads((REPO / "benchmarks/retrieval_v2/configs/models_v2.json").read_
 SPECS = load_specs(REPO / "benchmarks/retrieval_v0/configs/models.json")
 CHUNK_UNITS = 8192
 CHUNK_PAGES = 512
+PREFETCH_PAGES = 16
 LOG = None
+
+
+def rss_mib() -> int:
+    """Resident host memory of this process (MiB), from /proc (0 where unavailable)."""
+    try:
+        with open("/proc/self/status", encoding="ascii") as f:
+            for line in f:
+                if line.startswith("VmRSS:"):
+                    return int(line.split()[1]) >> 10
+    except OSError:
+        pass
+    return 0
 
 
 def log(*a) -> None:
@@ -356,9 +371,17 @@ def _single_image_encoder(model, m: dict):
         return {k: v for k, v in out.items() if torch.is_tensor(v)}
 
     def run(images):
+        # bounded prefetch: ``ex.map`` submits the whole chunk at once, so the CPU runs ahead of the GPU and the pixel
+        # tensors of up to 512 pages pile up in host RAM (the first full run grew past 20 GB and was OOM-killed)
         vecs = []
+        it = iter(images)
         with ThreadPoolExecutor(6) as ex:
-            for inputs in ex.map(prep, images):
+            pending = deque(ex.submit(prep, img) for img in itertools.islice(it, PREFETCH_PAGES))
+            while pending:
+                inputs = pending.popleft().result()
+                nxt = next(it, None)
+                if nxt is not None:
+                    pending.append(ex.submit(prep, nxt))
                 inputs = {k: v.to("cuda") for k, v in inputs.items()}
                 inputs["position_ids"] = mod._get_1d_position_ids(inputs["attention_mask"])
                 with torch.no_grad():
@@ -422,26 +445,36 @@ def encode_visual(key: str, limit: int | None = None) -> None:
     vecs = None
     t0 = time.time()
     done = 0
+    encoded = 0          # pages encoded in THIS run (resumed chunks are loaded, not timed)
+    enc_s = 0.0
+    rss_limit = int(os.environ.get("V2_RSS_LIMIT_MIB", "20000"))
     for c0 in range(0, len(pages), CHUNK_PAGES):
         cpath = out / "chunks" / f"p{c0 // CHUNK_PAGES:04d}.npy"
         chunk = pages[c0:c0 + CHUNK_PAGES]
         if cpath.is_file():
             v = np.load(cpath)
         else:
+            tc = time.time()
             imgs = load_images([root / p["relpath"] for p in chunk])
             v = np.asarray(enc_docs(imgs), dtype=np.float32)
+            del imgs
             if not np.isfinite(v).all():
                 raise RuntimeError(f"non-finite page vectors in chunk {c0 // CHUNK_PAGES}")
             np.save(cpath, v)
+            enc_s += time.time() - tc
+            encoded += len(chunk)
         if vecs is None:
             vecs = np.zeros((len(pages), v.shape[1]), dtype=np.float32)
         vecs[c0:c0 + len(chunk)] = v
         done += len(chunk)
-        el = time.time() - t0
-        log(key, f"{done}/{len(pages)} pages, {done / max(el, 1e-9):.2f} p/s, "
-                 f"eta {int((len(pages) - done) / max(done / max(el, 1e-9), 1e-9))} s, "
-                 f"peak MiB {torch.cuda.max_memory_allocated() >> 20}")
-    enc_s = time.time() - t0
+        rate = encoded / enc_s if enc_s > 0 else 0.0
+        rss = rss_mib()
+        log(key, f"{done}/{len(pages)} pages, {rate:.2f} p/s (encoded this run {encoded}), "
+                 f"eta {int((len(pages) - done) / rate) if rate else '?'} s, "
+                 f"peak MiB {torch.cuda.max_memory_allocated() >> 20}, rss MiB {rss}")
+        if rss > rss_limit:
+            raise RuntimeError(f"host RSS {rss} MiB > V2_RSS_LIMIT_MIB {rss_limit}; stopping (chunks are resumable)")
+    wall_s = time.time() - t0
     vecs = l2_normalize(vecs)
     qs = queries()
     tq = time.time()
@@ -461,7 +494,9 @@ def encode_visual(key: str, limit: int | None = None) -> None:
             "doc_prompt": m.get("doc_prompt") or m.get("doc_prompt_name"),
             "query_prompt": m.get("query_prompt") or m.get("query_prompt_name"), "batch": m["batch"],
             "input": "PAGE_PREVIEW JPEG (long side 1024 px) of the producer STAGING, as stored",
-            "load_s": round(load_s, 1), "encode_s": round(enc_s, 1), "pages_per_s": round(len(pages) / max(enc_s, 1e-9), 2),
+            "load_s": round(load_s, 1), "encode_s": round(enc_s, 1), "wall_s": round(wall_s, 1),
+            "pages_encoded_this_run": encoded, "pages_resumed_from_chunks": len(pages) - encoded,
+            "pages_per_s": round(encoded / enc_s, 2) if enc_s > 0 else None,
             "queries": len(qs), "queries_s": round(q_s, 2), "peak_vram_mib": int(torch.cuda.max_memory_allocated() >> 20),
             "weights": receipt_entry(spec.model_id, spec.revision), "env": env_versions(), "probe": bool(limit),
             "finished_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
