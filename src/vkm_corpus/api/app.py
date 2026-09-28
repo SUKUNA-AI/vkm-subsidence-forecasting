@@ -485,6 +485,35 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                   limit: Annotated[int, Query(ge=1, le=500)] = 200) -> JSONResponse:
         return respond(request, service.citations(work_id, direction, include_unlinked, limit))
 
+    # ---------------------------------------------------------------- navigation layer (derived, not evidence)
+    @app.get("/v1/nav/outline/{source_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_outline(request: Request, source_id: str, _auth: Read) -> JSONResponse:
+        return respond(request, service.nav_outline(source_id))
+
+    @app.get("/v1/nav/section/{section_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_section(request: Request, section_id: str, _auth: Read) -> JSONResponse:
+        return respond(request, service.nav_section(section_id))
+
+    @app.get("/v1/nav/sections", tags=["navigation"], **JSON_RESPONSES)
+    def nav_sections(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],
+                     source_id: str | None = None, limit: Annotated[int, Query(ge=1, le=100)] = 20) -> JSONResponse:
+        return respond(request, service.nav_sections(q, source_id, limit))
+
+    @app.get("/v1/nav/formula/{formula_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_formula(request: Request, formula_id: str, _auth: Read) -> JSONResponse:
+        return respond(request, service.nav_formula(formula_id))
+
+    @app.get("/v1/nav/formulas", tags=["navigation"], **JSON_RESPONSES)
+    def nav_formulas(request: Request, _auth: Read, concept: Annotated[str | None, Query(max_length=200)] = None,
+                     symbol: Annotated[str | None, Query(max_length=64)] = None, source_id: str | None = None,
+                     limit: Annotated[int, Query(ge=1, le=200)] = 50) -> JSONResponse:
+        return respond(request, service.nav_formulas(concept, symbol, source_id, limit))
+
+    @app.get("/v1/nav/concept", tags=["navigation"], **JSON_RESPONSES)
+    def nav_concept(request: Request, _auth: Read, term: Annotated[str, Query(min_length=1, max_length=200)],
+                    limit: Annotated[int, Query(ge=1, le=100)] = 20) -> JSONResponse:
+        return respond(request, service.nav_concept(term, limit))
+
     @app.get("/v1/provenance/{object_id}", tags=["provenance"], **JSON_RESPONSES)
     def provenance(request: Request, object_id: str, _auth: Read) -> JSONResponse:
         return respond(request, service.provenance(object_id))
@@ -536,4 +565,7 @@ def build_from_settings(settings: Any = None) -> FastAPI:
                    graph=Neo4jBackend(settings) if settings.neo4j_uri else None,
                    rerank=GatewayRerankBackend(settings) if settings.rerank_url else None,
                    control=PgControlPlane(settings) if settings.pg_dsn else None)
+    from vkm_corpus.navigation.store import NavStore
+
+    deps.nav = NavStore(root)                  # served only once derived/navigation/CURRENT is published
     return create_app(ApiService(deps), ApiConfig.from_settings(settings))

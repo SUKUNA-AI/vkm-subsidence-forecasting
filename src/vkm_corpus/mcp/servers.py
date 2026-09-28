@@ -332,6 +332,53 @@ def build_read_server(api: ApiClient) -> MCPServer:
         return await call("get_citations", "GET", f"/v1/citations/{work_id}",
                           params={"direction": direction, "include_unlinked": include_unlinked, "limit": limit})
 
+    # ------------------------------------------------ navigation layer (derived from the canon, not evidence)
+    @server.tool(name="get_outline", annotations=READ_ONLY)
+    async def get_outline(source_id: SourceId) -> CallToolResult:
+        """Table of contents of a source: chapters → sections → subsections with page ranges and the method each
+        node came from (native bookmarks, printed contents page, numbered or layout headings). Navigation, not
+        evidence: cite the pages."""
+        return await call("get_outline", "GET", f"/v1/nav/outline/{source_id}")
+
+    @server.tool(name="get_section", annotations=READ_ONLY)
+    async def get_section(section_id: Annotated[str, Field(pattern=r"^SEC-[0-9a-f]{16}$")]) -> CallToolResult:
+        """One section: its title path, parent and children, pages, and what is on them (figures, tables, formulas,
+        bibliography entries, key terms). Read the pages it lists to answer; the section itself is navigation."""
+        return await call("get_section", "GET", f"/v1/nav/section/{section_id}")
+
+    @server.tool(name="search_sections", annotations=READ_ONLY)
+    async def search_sections(query: Annotated[str, Field(min_length=1, max_length=512)],
+                              source_id: SourceId | None = None,
+                              limit: Annotated[int, Field(ge=1, le=100)] = 20) -> CallToolResult:
+        """Sections whose headings (and key terms) match the query — the entry point for overview questions («что в
+        корпусе о ползучести соли»): pick sections, then read their pages."""
+        return await call("search_sections", "GET", "/v1/nav/sections",
+                          params={"q": query, "source_id": source_id, "limit": limit})
+
+    @server.tool(name="get_formula_context", annotations=READ_ONLY)
+    async def get_formula_context(formula_id: ObjectId) -> CallToolResult:
+        """Where a formula stands and how it is read: its printed number, section, the text before it, the «где …»
+        definitions of its symbols (meaning, unit), formulas it refers to and that refer to it, parameter values
+        printed next to it (candidates, unreviewed)."""
+        return await call("get_formula_context", "GET", f"/v1/nav/formula/{formula_id}")
+
+    @server.tool(name="find_formulas", annotations=READ_ONLY)
+    async def find_formulas(concept: Annotated[str | None, Field(max_length=200)] = None,
+                            symbol: Annotated[str | None, Field(max_length=64)] = None,
+                            source_id: SourceId | None = None,
+                            limit: Annotated[int, Field(ge=1, le=200)] = 50) -> CallToolResult:
+        """Formulas by meaning (words of their symbol definitions, e.g. «скорость ползучести») across sources, or by
+        a symbol inside one source (symbols are not global: σ in two books may be two quantities)."""
+        return await call("find_formulas", "GET", "/v1/nav/formulas",
+                          params={"concept": concept, "symbol": symbol, "source_id": source_id, "limit": limit})
+
+    @server.tool(name="explore_concept", annotations=READ_ONLY)
+    async def explore_concept(term: Annotated[str, Field(min_length=1, max_length=200)],
+                              limit: Annotated[int, Field(ge=1, le=100)] = 20) -> CallToolResult:
+        """A concept of the corpus: its definitions, the concepts most often discussed with it (with counts of
+        sections/sources and example pages), and where it is discussed. Co-occurrence, not a physical claim."""
+        return await call("explore_concept", "GET", "/v1/nav/concept", params={"term": term, "limit": limit})
+
     @server.tool(name="rerank_text", annotations=READ_ONLY)
     async def rerank_text(query: Annotated[str, Field(min_length=1, max_length=2048)],
                           candidate_ids: Annotated[IdList, Field(max_length=24)],

@@ -25,7 +25,9 @@ API_VERSION = "0.1.0"
 Layer = Literal["CANONICAL", "ARTIFACT", "PROJECTION", "OPERATIONAL", "SERVICE", "WORKSPACE"]
 PayloadForm = Literal["NORMALIZED", "RAW", "BINARY", "REFERENCE"]
 # object kinds of API results that are not canonical rows
-ApiObjectKind = Literal["ARTIFACT", "PROCESSING_RUN", "JOB", "RERANK_RESULT", "SEARCH_RESULT", "STATUS"]
+ApiObjectKind = Literal["ARTIFACT", "PROCESSING_RUN", "JOB", "RERANK_RESULT", "SEARCH_RESULT", "STATUS",
+                        # navigation layer (DERIVED, AUTO_EXTRACTED_UNREVIEWED): docs/corpus_platform/NAVIGATION_LAYER.md
+                        "NAV_OUTLINE", "NAV_SECTION", "NAV_SECTIONS", "NAV_FORMULA", "NAV_FORMULAS", "NAV_CONCEPT"]
 # interpretation flags added by the API (the canonical quality_flags stay as stored)
 API_FLAGS = frozenset({
     "SCOPE_INHERITED_FROM_SOURCE",   # H-18: the area is the source's, not established for this object
@@ -103,7 +105,7 @@ class Provenance(_Model):
 
 
 class Projection(_Model):
-    engine: Literal["opensearch", "neo4j"]
+    engine: Literal["opensearch", "neo4j", "navigation"]
     index_or_graph: str | None = None
     build_id: str | None = None
     built_from_snapshot_id: str | None = None
