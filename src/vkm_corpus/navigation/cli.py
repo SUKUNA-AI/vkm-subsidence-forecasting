@@ -9,8 +9,9 @@
 Parts are dispatched through :data:`PARTS` (``module:function``), imported lazily; a part whose module is absent is
 skipped and recorded as such. A builder has the signature ``build(con, **kwargs) -> dict[str, pyarrow.Table]`` and
 receives only the keyword arguments it declares among ``outlines`` (native outlines), ``datasets`` (tables built by
-earlier parts of the same run) and ``stats`` (a dict it may fill with counters for the manifest). Tables of earlier
-parts are also registered in the connection as ``nav_<dataset>`` (e.g. ``nav_sections``).
+earlier parts of the same run), each earlier table by its dataset name (e.g. ``section_pages``) and ``stats`` (a dict
+it may fill with counters for the manifest). Tables of earlier parts are also registered in the connection as
+``nav_<dataset>`` (e.g. ``nav_sections``).
 """
 from __future__ import annotations
 
@@ -98,7 +99,8 @@ def build_parts(con, out_dir: Path, parts: list[str], *, outlines: dict | None =
             continue
         stats: dict[str, Any] = {}
         t0 = time.monotonic()
-        tables = call_builder(builder, con, {"outlines": outlines, "datasets": dict(built), "stats": stats})
+        # earlier datasets are also offered by name (e.g. ``section_pages=``) to builders that declare them
+        tables = call_builder(builder, con, {**built, "outlines": outlines, "datasets": dict(built), "stats": stats})
         names = []
         for name, table in tables.items():
             path = out_dir / f"{name}.parquet"

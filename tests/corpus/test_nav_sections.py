@@ -451,6 +451,34 @@ def test_cli_build_writes_parquet_manifest_and_attach_reads_it(tmp_path, monkeyp
         con.close()
 
 
+def test_build_parts_offers_earlier_datasets_by_name(tmp_path, monkeypatch):
+    import sys
+    import types
+
+    seen: dict = {}
+
+    def first(con):
+        return {"alpha": pa.table({"x": [1, 2]})}
+
+    def second(con, *, alpha=None, datasets=None):
+        seen["alpha"] = None if alpha is None else alpha.num_rows
+        seen["datasets"] = sorted(datasets)
+        return {"beta": pa.table({"y": [3]})}
+
+    mod = types.ModuleType("vkm_nav_fake_parts")
+    mod.first, mod.second = first, second
+    monkeypatch.setitem(sys.modules, "vkm_nav_fake_parts", mod)
+    monkeypatch.setitem(nav_cli.PARTS, "p1", "vkm_nav_fake_parts:first")
+    monkeypatch.setitem(nav_cli.PARTS, "p2", "vkm_nav_fake_parts:second")
+    con = duckdb.connect()
+    try:
+        m = nav_cli.build_parts(con, tmp_path / "nav", ["p1", "p2"])
+    finally:
+        con.close()
+    assert seen == {"alpha": 2, "datasets": ["alpha"]}
+    assert m["parts"]["p2"]["datasets"] == ["beta"]
+
+
 # ------------------------------------------------------------------------------------------ native outlines
 def _epub(path: Path) -> None:
     container = ('<?xml version="1.0"?><container xmlns="urn:oasis:names:tc:opendocument:xmlns:container">'
