@@ -51,6 +51,9 @@ class LateTarget(BaseModel):
 class LateSearchBody(SearchRequestBody):
     candidates: Optional[list[str]] = Field(default=None, max_length=1000)
     targets: Optional[list[LateTarget]] = Field(default=None, max_length=1000)
+    # CP-42: a page scores over its units except these kinds (a reference list is not the page's topic)
+    page_exclude_kinds: list[Literal["BLOCK_GROUP", "FIGURE", "TABLE", "FORMULA", "BIB_ENTRY"]] = \
+        Field(default_factory=lambda: ["BIB_ENTRY"], max_length=5)
 
 
 def _round(v, nd: int = 6):
@@ -251,7 +254,8 @@ def create_app(config=None, *, encoders: Optional[dict] = None, residency=None, 
             lq = await encode("late", body.query)
             t0 = time.perf_counter()
             targets = [(t.id, t.kind) for t in body.targets]
-            scored = await asyncio.to_thread(store.score_targets, lq.vectors, targets)
+            scored = await asyncio.to_thread(store.score_targets, lq.vectors, targets,
+                                             page_exclude_kinds=tuple(body.page_exclude_kinds))
             ms = round((time.perf_counter() - t0) * 1e3, 2)
             metrics.observe_ms("maxsim", ms, model=lq.key)
             order = sorted((r for r in scored if r.status == "SCORED"), key=lambda r: (-r.late_score, r.id))
@@ -261,6 +265,7 @@ def create_app(config=None, *, encoders: Optional[dict] = None, residency=None, 
                     "n_query_tokens": int(lq.vectors.shape[0]), "store": info,
                     "timings_ms": {"late_encode": lq.encode_ms, "maxsim": ms},
                     "targets": len(targets), "scored": len(order), "unscored": len(targets) - len(order),
+                    "page_exclude_kinds": list(body.page_exclude_kinds),
                     "results": [{**r.as_dict(), "late_rank": rank.get(r.id)} for r in scored]}
         if body.candidates:
             cands = [Hit(c, 0.0, {}, {"candidate_rank": i}) for i, c in enumerate(body.candidates, start=1)]

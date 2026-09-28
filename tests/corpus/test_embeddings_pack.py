@@ -126,6 +126,23 @@ def test_maxsim_of_targets_matches_the_float32_rows(tmp_path):
     assert store.get(["u1-00000000000000a2", "x"]).keys() == {"u1-00000000000000a2"}
 
 
+def test_page_targets_can_exclude_bibliography_units_cp42(tmp_path):
+    bib = ("u1-00000000000000a0", "BIB_ENTRY", P1, ["VKM-SRC-001:p0001:r01"], 7)
+    units = [*UNITS, bib]
+    art = _artifacts(tmp_path, units=units)
+    store = PackStore(art / PACKS_DIR / build_pack(art, _units_dir(tmp_path, units=units))["pack_id"])
+    assert len(store.rows_for(P1, "PAGE")) == 3
+    rows = store.rows_for(P1, "PAGE", page_exclude_kinds=("BIB_ENTRY",))
+    assert [store.kinds[r] for r in rows] == ["BLOCK_GROUP", "FIGURE"]
+    Q = _tokens(bib[0], 7)[:3]                                  # the bibliography unit would win the page
+    with_bib, = store.score_targets(Q, [(P1, "PAGE")])
+    without, = store.score_targets(Q, [(P1, "PAGE")], page_exclude_kinds=("BIB_ENTRY",))
+    assert with_bib.best_unit_id == bib[0] and with_bib.units == 3
+    assert without.best_unit_id != bib[0] and without.units == 2 and without.late_score < with_bib.late_score
+    ref, = store.score_targets(Q, [("VKM-SRC-001:p0001:r01", "BIB_ENTRY")], page_exclude_kinds=("BIB_ENTRY",))
+    assert ref.status == "SCORED" and ref.best_unit_id == bib[0]            # explicit bibliography targets still work
+
+
 @pytest.mark.parametrize("case", ["missing", "nan", "duplicate", "stale_text", "rule"])
 def test_failed_checks_write_no_pack_and_keep_current(tmp_path, case):
     art, units = _artifacts(tmp_path), _units_dir(tmp_path)

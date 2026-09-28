@@ -11,6 +11,9 @@ interaction stage (mLateOn MaxSim), with a per-stage trace (постановка
   duplicate collapsing, one page per ``dup_group_id`` as in the BM25 path); ``FIGURE`` / ``TABLE`` / ``FORMULA`` → the
   object id of the unit (one unit = one object). Per kind the BM25 list and the dense list are ranked separately and
   one RRF (k = 60 by default, J's design §16) sums the reciprocal ranks — kinds never compare raw scores (H-44).
+* PAGE level without bibliography (CP-42): a reference list is not the page's topic, so BIB_ENTRY units never
+  feed page ranking — the PAGE leg of the dense k-NN excludes them (``must_not``) and the late stage scores a page
+  over its other units. They stay encoded and indexed for an explicit bibliography search.
 * Filters: E's whitelist (``vkm_corpus.search.query.FILTERS``) on page-level fields, applied to both legs (vector
   documents carry the same fields); object-type filters (block_type, figure_type, layout_class, text_layer) have no
   page-level meaning and are refused.
@@ -41,6 +44,8 @@ HYBRID_KINDS: tuple[str, ...] = ("PAGE", "FIGURE", "TABLE", "FORMULA")
 UNIT_KINDS: dict[str, tuple[str, ...] | None] = {"PAGE": None, "FIGURE": ("FIGURE",), "TABLE": ("TABLE",),
                                                  "FORMULA": ("FORMULA",)}
 UNSUPPORTED_FILTERS = frozenset({"block_type", "figure_type", "layout_class", "text_layer"})
+PAGE_EXCLUDED_UNIT_KINDS: tuple[str, ...] = ("BIB_ENTRY",)   # CP-42: never page-level ranking signals
+EXCLUDED_UNIT_KINDS: dict[str, tuple[str, ...]] = {"PAGE": PAGE_EXCLUDED_UNIT_KINDS}
 MAX_CANDIDATES = MAX_SIZE                 # per leg and kind (E's single-kind size limit)
 PAGE_OVERSAMPLE = 3                       # units fetched per wanted page (several units of one page)
 MAX_KNN = 1000
@@ -116,8 +121,10 @@ class EmbedClient:
                               tool="rx580-retrieval") from exc
         return QueryVector(vector, dense.get("model"), dense.get("signature"), len(vector), dense.get("encode_ms"))
 
-    def late_scores(self, query: str, targets: list[dict[str, str]]) -> "LateResult":
-        """``POST /search/late`` with targets: the late query encoding + MaxSim on the service's token store."""
+    def late_scores(self, query: str, targets: list[dict[str, str]],
+                    page_exclude_kinds: tuple[str, ...] = PAGE_EXCLUDED_UNIT_KINDS) -> "LateResult":
+        """``POST /search/late`` with targets: the late query encoding + MaxSim on the service's token store (a page
+        over its units except ``page_exclude_kinds``)."""
         import httpx
 
         tool = "rx580-retrieval"
@@ -125,7 +132,8 @@ class EmbedClient:
             raise HybridError("DEPENDENCY_UNAVAILABLE", "VKM_EMBED_URL is not configured (RX580 retrieval service)",
                               stage="late", tool=tool)
         try:
-            r = self._http.post("/search/late", json={"query": query, "targets": targets, "k": 1},
+            r = self._http.post("/search/late", json={"query": query, "targets": targets, "k": 1,
+                                                      "page_exclude_kinds": list(page_exclude_kinds)},
                                 timeout=LATE_TIMEOUT_S)
         except httpx.TimeoutException as exc:
             raise HybridError("DEPENDENCY_TIMEOUT", "late interaction did not answer in time", stage="late",
@@ -263,10 +271,13 @@ def check_encoder(meta: dict[str, Any], q: QueryVector) -> None:
                           details={"query_model": q.model, "index_model": meta.get("model_key")})
 
 
-def knn_body(vector: list[float], k: int, filters: dict[str, Any], unit_kinds: tuple[str, ...] | None) -> dict[str, Any]:
+def knn_body(vector: list[float], k: int, filters: dict[str, Any], unit_kinds: tuple[str, ...] | None,
+             exclude_kinds: tuple[str, ...] = ()) -> dict[str, Any]:
     clauses, must_not = compile_filters(filters)
     if unit_kinds:
         clauses = [*clauses, {"terms": {"unit_kind": list(unit_kinds)}}]
+    if exclude_kinds:
+        must_not = [*must_not, {"terms": {"unit_kind": list(exclude_kinds)}}]
     knn: dict[str, Any] = {"vector": vector, "k": int(k)}
     if clauses or must_not:
         knn["filter"] = {"bool": {"filter": clauses, "must_not": must_not}}
@@ -367,7 +378,8 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
         rankings[f"bm25:{kind}"] = bm_list
         t1 = time.perf_counter()
         k = min(MAX_KNN, req.candidates * (PAGE_OVERSAMPLE if kind == "PAGE" else 1))
-        resp = client.search(index=meta["alias"], body=knn_body(q.vector, k, req.filters, UNIT_KINDS[kind]))
+        resp = client.search(index=meta["alias"], body=knn_body(q.vector, k, req.filters, UNIT_KINDS[kind],
+                                                                EXCLUDED_UNIT_KINDS.get(kind, ())))
         timings[f"dense_{kind.lower()}"] = round((time.perf_counter() - t1) * 1e3, 2)
         dense = dense_ranking(resp, kind, req.candidates, collapse_duplicates=not req.include_duplicates)
         for d in dense:
@@ -396,7 +408,8 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                       "query_tokens": lr.n_query_tokens, "store": lr.store, "candidates": len(head),
                       "scored": len(head) - len(unscored), "unscored": len(unscored), "unscored_ids": unscored[:20],
                       "ordering": "per kind by MaxSim inside the kind's RRF positions (H-44); unscored after scored",
-                      "page_score": "max MaxSim over the units of the page", "timings_ms": lr.timings_ms}
+                      "page_score": "max MaxSim over the units of the page except "
+                                    f"{', '.join(PAGE_EXCLUDED_UNIT_KINDS)} (CP-42)", "timings_ms": lr.timings_ms}
     ranks = {name: {key: i for i, (key, _s) in enumerate(lst, 1)} for name, lst in rankings.items()}
     scores = {name: dict(lst) for name, lst in rankings.items()}
     hits = []

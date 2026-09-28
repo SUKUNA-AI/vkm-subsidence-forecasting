@@ -194,6 +194,26 @@ def test_snapshot_mismatch_of_the_pack_is_a_warning_and_validation():
         assert exc.value.code == "E_BAD_SIZE"
 
 
+def test_bibliography_units_never_rank_pages_cp42():
+    """CP-42: a BIB_ENTRY unit (here the best dense match, on a page no other leg finds) does not bring its page
+    into the PAGE ranking; the late stage asks for pages without BIB_ENTRY units; object kinds are unaffected."""
+    c = _client()
+    name = f"vkm-vectors-m1-{META['build_id']}"
+    c.indices_[name]["docs"]["u1-00000000000b"] = _unit("u1-00000000000b", "VKM-SRC-001:p0009", "BIB_ENTRY",
+                                                        ["VKM-SRC-001:p0009:r001"], vec=[1.0, 0.0, 0.0, 0.0])[1]
+    svc = _service({P2: 1.0, P1: 2.0, P5: 3.0, P3: 4.0})
+    out = hybrid_search(c, svc, HybridRequest(query="x", candidates=10, late=True), "vkm")
+    assert "VKM-SRC-001:p0009" not in [h["id"] for h in out["hits"]]
+    page_knn = next(b for _i, b in c.searches if "knn" in b["query"])["query"]["knn"]["vector"]
+    assert {"terms": {"unit_kind": ["BIB_ENTRY"]}} in page_knn["filter"]["bool"]["must_not"]
+    assert svc.calls[-1][1]["page_exclude_kinds"] == ["BIB_ENTRY"] and "CP-42" in out["stages"]["late"]["page_score"]
+    fig = _client()
+    hybrid_search(fig, _service({F1: 1.0}), HybridRequest(query="x", kinds=("FIGURE",), candidates=10, late=True),
+                  "vkm")
+    fig_knn = next(b for _i, b in fig.searches if "knn" in b["query"])["query"]["knn"]["vector"]
+    assert "must_not" not in fig_knn["filter"]["bool"] or not fig_knn["filter"]["bool"]["must_not"]
+
+
 def test_health_reports_the_late_store():
     def handler(request):
         return httpx.Response(200, json={"status": "ok", "models": [{"role": "late", "key": "mlateon"}],

@@ -101,6 +101,20 @@ def test_late_targets_score_pages_and_objects_against_the_pack(tmp_path):
     assert health["late_store"]["status"] == "READY" and health["late_store"]["pack_id"] == rep["pack_id"]
 
 
+def test_pages_exclude_bibliography_units_by_default_cp42(tmp_path):
+    units = [*UNITS, ("u1-0000000000000009", "BIB_ENTRY", P1, ["VKM-SRC-001:p0001:r1"], 6)]
+    art, _rep = _pack(tmp_path, units=units)
+    t = [{"id": P1, "kind": "PAGE"}, {"id": "VKM-SRC-001:p0001:r1", "kind": "BIB_ENTRY"}]
+    with TestClient(_app(PackHandle(art))) as c:
+        default = c.post("/search/late", json={"query": "x", "targets": t}).json()
+        everything = c.post("/search/late", json={"query": "x", "targets": t, "page_exclude_kinds": []}).json()
+        bad = c.post("/search/late", json={"query": "x", "targets": t, "page_exclude_kinds": ["PAGE"]})
+    d = {r["id"]: r for r in default["results"]}
+    e = {r["id"]: r for r in everything["results"]}
+    assert default["page_exclude_kinds"] == ["BIB_ENTRY"] and d[P1]["units"] == 2 and e[P1]["units"] == 3
+    assert d["VKM-SRC-001:p0001:r1"]["status"] == "SCORED" and bad.status_code == 422
+
+
 def test_missing_store_or_model_is_an_error_not_a_fallback(tmp_path):
     empty = tmp_path / "multivector" / "m" / "r" / "sig"
     empty.mkdir(parents=True)

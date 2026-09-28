@@ -132,20 +132,23 @@ class InMemoryMultiVectorStore:
     def info(self) -> dict[str, Any]:
         return {"pack_id": None, "store": "memory", "count": len(self.data)}
 
-    def rows_for(self, target_id: str, kind: str) -> list[str]:
+    def rows_for(self, target_id: str, kind: str, *, page_exclude_kinds: Iterable[str] = ()) -> list[str]:
         if kind == "UNIT":
             return [target_id] if target_id in self.data else []
         if kind == "PAGE":
-            return sorted(u for u, m in self.units.items() if m.get("page_id") == target_id and u in self.data)
+            skip = frozenset(page_exclude_kinds)
+            return sorted(u for u, m in self.units.items() if m.get("page_id") == target_id and u in self.data
+                          and m.get("kind") not in skip)
         return sorted(u for u, m in self.units.items() if m.get("kind") == kind and
                       list(m.get("object_ids") or []) == [target_id] and u in self.data)
 
-    def score_targets(self, Q: np.ndarray, targets: Sequence[tuple[str, str]]) -> list[Any]:
+    def score_targets(self, Q: np.ndarray, targets: Sequence[tuple[str, str]], *,
+                      page_exclude_kinds: Iterable[str] = ()) -> list[Any]:
         from vkm_corpus.embeddings.pack import TargetScore
 
         out = []
         for tid, kind in targets:
-            units = self.rows_for(tid, kind)
+            units = self.rows_for(tid, kind, page_exclude_kinds=page_exclude_kinds)
             if not units:
                 out.append(TargetScore(tid, kind, "NO_TOKENS"))
                 continue

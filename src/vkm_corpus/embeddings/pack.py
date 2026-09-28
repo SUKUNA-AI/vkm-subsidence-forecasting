@@ -669,15 +669,18 @@ class PackStore:
                 "dimension": self.dim, "count": len(self), "total_tokens": self.total, "bytes": m.get("bytes"),
                 "units_sha256": m.get("units_sha256"), "created_at": m.get("created_at")}
 
-    def rows_for(self, target_id: str, kind: str) -> list[int]:
-        """Unit rows of a target: UNIT → the unit; PAGE → every unit of the page; FIGURE/TABLE/FORMULA/BIB_ENTRY →
-        the unit of that one object."""
+    def rows_for(self, target_id: str, kind: str, *, page_exclude_kinds: Iterable[str] = ()) -> list[int]:
+        """Unit rows of a target: UNIT → the unit; PAGE → every unit of the page except ``page_exclude_kinds``;
+        FIGURE/TABLE/FORMULA/BIB_ENTRY → the unit of that one object."""
         if kind == "UNIT":
             r = self._row.get(target_id)
             return [] if r is None else [r]
         if kind == "PAGE":
             rng = self._page.get(target_id)
-            return [] if rng is None else list(range(rng[0], rng[1]))
+            if rng is None:
+                return []
+            skip = frozenset(page_exclude_kinds)
+            return [r for r in range(rng[0], rng[1]) if self.kinds[r] not in skip]
         if kind in OBJECT_KINDS:
             r = self._object.get(target_id)
             return [] if r is None or self.kinds[r] != kind else [r]
@@ -747,10 +750,12 @@ class PackStore:
             i = j
         return out
 
-    def score_targets(self, Q: np.ndarray, targets: Sequence[tuple[str, str]]) -> list[TargetScore]:
-        """Late score of each (id, kind) target = max MaxSim over its units (a page: every unit of the page; an
-        object: its unit); targets without token vectors are NO_TOKENS."""
-        resolved = [(tid, kind, self.rows_for(tid, kind)) for tid, kind in targets]
+    def score_targets(self, Q: np.ndarray, targets: Sequence[tuple[str, str]], *,
+                      page_exclude_kinds: Iterable[str] = ()) -> list[TargetScore]:
+        """Late score of each (id, kind) target = max MaxSim over its units (a page: every unit of the page except
+        ``page_exclude_kinds``; an object: its unit); targets without token vectors are NO_TOKENS."""
+        skip = tuple(page_exclude_kinds)
+        resolved = [(tid, kind, self.rows_for(tid, kind, page_exclude_kinds=skip)) for tid, kind in targets]
         scores = self.unit_scores(Q, (r for _t, _k, rows in resolved for r in rows))
         out = []
         for tid, kind, rows in resolved:
