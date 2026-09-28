@@ -8,9 +8,8 @@ line. Progress goes to stderr. Concurrency is 1 (the RX580 retrieval service is 
 
 Systems: bm25, hybrid_late (server default late stage), hybrid_nolate, nav (search_sections + explore_concept and
 the top units of its neighbours), dossier (adapter for the ``reconstruct_topic`` route; opt-in with --dossier-route).
+No ``from __future__`` import: the set is prepended to this file (Python >= 3.10 in the API image).
 """
-from __future__ import annotations
-
 import argparse
 import json
 import os
