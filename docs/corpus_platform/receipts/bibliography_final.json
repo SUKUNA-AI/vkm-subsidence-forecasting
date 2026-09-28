@@ -1,0 +1,166 @@
+{
+ "schema": "vkm.receipt.bibliography/1",
+ "snapshot_id": "snap-20260928T160616Z-5d669f09",
+ "extractor": "bib-segmenter 0.2.0",
+ "rules": [
+  "bib_rules_v2"
+ ],
+ "match_rule": "bibliography_match_v2",
+ "cites_rule": "cites_v2",
+ "entries": 23350,
+ "sources_with_entries": 234,
+ "by_origin": {
+  "NATIVE": 16813,
+  "EMBEDDED_OCR": 3966,
+  "OCR": 2571
+ },
+ "by_language": {
+  "en": 14543,
+  "ru": 8401,
+  "de": 406
+ },
+ "by_parse_style": {
+  "bib_rules_v2/author_year": 9048,
+  "bib_rules_v2/gost": 7758,
+  "bib_rules_v2/plain": 5206,
+  "bib_rules_v2/quoted": 1338
+ },
+ "parsed_fields": {
+  "year": 22793,
+  "authors": 20943,
+  "title": 23229,
+  "venue": 12637,
+  "pages": 12146,
+  "volume": 4057,
+  "issue": 5717,
+  "doi": 1172,
+  "isbn": 67,
+  "url": 603,
+  "confidence_ge_0_8": 20637,
+  "cross_page": 401
+ },
+ "citing_work_resolution": {
+  "UNIQUE_LINK": 23315,
+  "FOREIGN_CONTENT": 35
+ },
+ "links": [
+  {
+   "method": "DOI_EXACT",
+   "status": "AUTO_EXACT_ID_MATCH",
+   "n": 72
+  },
+  {
+   "method": "ISBN_EXACT",
+   "status": "AUTO_EXACT_ID_MATCH",
+   "n": 2
+  },
+  {
+   "method": "TITLE_AUTHOR_YEAR",
+   "status": "AUTO_STRONG_MATCH",
+   "n": 133
+  },
+  {
+   "method": "TITLE_AUTHOR_YEAR",
+   "status": "CANDIDATE",
+   "n": 3
+  },
+  {
+   "method": "TITLE_YEAR",
+   "status": "AUTO_STRONG_MATCH",
+   "n": 17
+  }
+ ],
+ "entries_resolved": 224,
+ "cites": {
+  "edges": 190,
+  "citing_entries": 213,
+  "citing_works": 83,
+  "cited_works": 67,
+  "edges_with_an_exact_id_entry": 54,
+  "edges_from_title_rules_only": 136
+ },
+ "most_cited_works": [
+  {
+   "work_id": "VKM-WRK-044",
+   "citing_works": 20,
+   "citing_entries": 21
+  },
+  {
+   "work_id": "VKM-WRK-043",
+   "citing_works": 19,
+   "citing_entries": 21
+  },
+  {
+   "work_id": "VKM-WRK-054",
+   "citing_works": 11,
+   "citing_entries": 12
+  },
+  {
+   "work_id": "VKM-WRK-048",
+   "citing_works": 10,
+   "citing_entries": 16
+  },
+  {
+   "work_id": "VKM-WRK-094",
+   "citing_works": 10,
+   "citing_entries": 11
+  },
+  {
+   "work_id": "VKM-WRK-090",
+   "citing_works": 8,
+   "citing_entries": 8
+  },
+  {
+   "work_id": "VKM-WRK-053",
+   "citing_works": 5,
+   "citing_entries": 6
+  },
+  {
+   "work_id": "VKM-WRK-042",
+   "citing_works": 5,
+   "citing_entries": 5
+  },
+  {
+   "work_id": "VKM-WRK-082",
+   "citing_works": 4,
+   "citing_entries": 7
+  },
+  {
+   "work_id": "VKM-WRK-037",
+   "citing_works": 4,
+   "citing_entries": 4
+  }
+ ],
+ "manual_qa": {
+  "sample": "50 random entries of the final snapshot (seed 2809), judged against the extracted text by the coordinator",
+  "segmentation_correct": 44,
+  "segmentation_errors": 6,
+  "error_kinds": {
+   "tail_of_previous_entry_glued_to_next_on_one_line": 5,
+   "index_entry_merged_through_ocr_garbage": 1
+  },
+  "year_correct": 49,
+  "year_note": "the 50th has no year (in press) and none was parsed",
+  "earlier_rounds": [
+   {
+    "stage": "development, rules v1 before fixes",
+    "sample": 40,
+    "segmentation_correct": 35
+   },
+   {
+    "stage": "development, rules v1 after fixes",
+    "sample": 40,
+    "segmentation_correct": 35
+   }
+  ]
+ },
+ "pipeline": {
+  "rebuild": "run extract --no-ocr --max-model-calls 0 (caches only)",
+  "model_calls": 0,
+  "commit_signature": "to_canon_v3 + bibliography rules hash",
+  "source_statuses_unchanged": {
+   "complete": 221,
+   "partial": 28
+  }
+ }
+}

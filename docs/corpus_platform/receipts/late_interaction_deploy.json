@@ -1,0 +1,50 @@
+{
+ "schema": "vkm.receipt.late_interaction_deploy/1",
+ "snapshot_id": "snap-20260928T160616Z-5d669f09",
+ "images": {
+  "api_mcp": "vkm-corpus-api:0.1.0-744ad09dbb86",
+  "rx580_service": "vkm-rx580-retrieval:0.1.2-744ad09dbb86"
+ },
+ "approval": "deployed by the coordinator on the user's explicit instruction (agent L was denied the shared build directory)",
+ "config_backups": [
+  "rx580.json",
+  ".env",
+  "compose.yml",
+  "vkm-job wrapper",
+  "lab_stage3.sh"
+ ],
+ "pack": {
+  "pack_id": "snap-20260928T160616Z-5d669f09-86e7faa77770",
+  "units": 205457,
+  "tokens": 24303679,
+  "dimension": 128,
+  "dtype": "float16",
+  "bytes": 6221741824,
+  "checks_64_ok": true,
+  "orphaned_history_rows": 5147,
+  "service_reload": "hot, no restart",
+  "late_store_status": "READY"
+ },
+ "smoke": {
+  "queries": 5,
+  "pass": 5,
+  "hits_with_late_rank": "10/10 each",
+  "late_scored_per_query": 100,
+  "cold_latency_ms": {
+   "p50": 1058.8,
+   "p95": 1634.1
+  }
+ },
+ "latency_warm_10_queries_ms": {
+  "hybrid": {
+   "p50": 76.4,
+   "p95": 92.1
+  },
+  "hybrid_late_100": {
+   "p50": 147.8,
+   "p95": 181.2
+  },
+  "late_stage_p50": 49.0
+ },
+ "default": "VKM_HYBRID_LATE_DEFAULT=1 on api (MCP search_hybrid goes through the API)"
+}

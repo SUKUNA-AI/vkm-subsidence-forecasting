@@ -106,6 +106,8 @@ services:
       # query embeddings for /v1/search/hybrid (RX580 retrieval service on the internal network)
       VKM_EMBED_URL: http://rx580-retrieval:8790
       VKM_EMBED_TOKEN_FILE: /run/secrets/embed_token
+      # late interaction (mLateOn MaxSim over the RRF top-100) on by default: warm p50 148 ms vs 76 ms without (28.09)
+      VKM_HYBRID_LATE_DEFAULT: "1"
       VKM_LOG_LEVEL: INFO
     secrets: [api_read_token, api_write_token, neo4j_password, rerank_token, pg_dsn, embed_token]
     # Directories (not files), so an atomic replace (CURRENT, the DuckDB file) is seen by the container. Long syntax
