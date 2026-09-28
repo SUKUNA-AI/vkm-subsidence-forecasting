@@ -33,6 +33,8 @@ ApiObjectKind = Literal["ARTIFACT", "PROCESSING_RUN", "JOB", "RERANK_RESULT", "S
                         # topics (RAPTOR tree, agent T) and duplicates/reprints (agent U)
                         "NAV_TOPIC", "NAV_TOPICS", "NAV_SIMILAR_SECTIONS", "NAV_SECTION_TOPICS", "NAV_COPIES",
                         "NAV_SOURCE_OVERLAP",
+                        # parameter-value candidates (agent P): navigation, never recommended values
+                        "NAV_PARAMETERS", "NAV_PARAMETER_SUMMARY",
                         # topic dossier (reconstruct_topic): NAV + search + PUBLIC catalogues, navigation not evidence
                         "TOPIC_DOSSIER"]
 # interpretation flags added by the API (the canonical quality_flags stay as stored)

@@ -51,7 +51,11 @@ def _functions():
                 {"section_id": section_id, "similar": [{"section_id": "SEC-0000000000000002"}][:k]},
             "section_topics": lambda con, section_id: [{"topic_id": TOP, "level": 1}],
             "copies_of": lambda con, ref, limit=50: {"match": ref, "clusters": []},
-            "source_overlap": lambda con, source_id, limit=50: {"source_id": source_id, "overlaps": []}}
+            "source_overlap": lambda con, source_id, limit=50: {"source_id": source_id, "overlaps": []},
+            "find_parameters": lambda con, property=None, material=None, site=None, scale=None, source_id=None,
+            limit=50: {"query": {"property": property, "scale": scale}, "total": 1,
+                       "candidates": [{"value_si_min": 1.0}]},
+            "parameter_summary": lambda con, property, material=None: {"query": {"property": property}, "rows": []}}
 
 
 @pytest.fixture()
@@ -128,3 +132,15 @@ def test_topics_and_duplicates_routes(env):
     overlap = _ok(client.get("/v1/nav/overlap/VKM-SRC-001", headers=HR))
     assert overlap["item"]["envelope"]["source_id"] == "VKM-SRC-001"
     assert client.get("/v1/nav/overlap/SRC-1", headers=HR).json()["error"]["code"] == "INVALID_ARGUMENT"
+
+
+def test_parameter_routes(env):
+    client, _ = env
+    body = _ok(client.get("/v1/nav/parameters", params={"property": "модуль деформации", "scale": "lab"}, headers=HR))
+    assert body["item"]["envelope"]["object_kind"] == "NAV_PARAMETERS"
+    assert body["item"]["record"]["query"]["scale"] == "LAB"
+    assert client.get("/v1/nav/parameters", headers=HR).json()["error"]["code"] == "INVALID_ARGUMENT"
+    assert client.get("/v1/nav/parameters", params={"property": "E", "scale": "X"},
+                      headers=HR).json()["error"]["code"] == "INVALID_ARGUMENT"
+    summary = _ok(client.get("/v1/nav/parameter_summary", params={"property": "ucs"}, headers=HR))
+    assert summary["item"]["envelope"]["object_kind"] == "NAV_PARAMETER_SUMMARY"

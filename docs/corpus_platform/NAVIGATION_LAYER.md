@@ -179,6 +179,7 @@ N1–N7 → `NavMeta = COMPLETE | FAILED` → квитанция `receipts/proje
 | `find_topics(terms, limit?, level?)` / `get_topic(topic_id)` | темы §7: поиск по фразам и карточка темы |
 | `similar_sections(section_id, k?, other_sources_only?)` / `section_topics(section_id)` | похожие разделы других книг; темы раздела |
 | `copies_of(ref)` / `source_overlap(source_id)` | дубликаты и перепечатки §9 |
+| `find_parameters(property?, material?, site?, scale?, source_id?)` / `parameter_summary(property, material?)` | параметры-кандидаты §8 |
 
 ### Досье темы (`reconstruct_topic`, `GET/POST /v1/topic`)
 

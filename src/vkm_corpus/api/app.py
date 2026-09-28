@@ -578,6 +578,23 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                     limit: Annotated[int, Query(ge=1, le=200)] = 50) -> JSONResponse:
         return respond(request, service.nav_source_overlap(source_id, limit))
 
+    # parameter-value candidates (agent P): navigation, never recommended values
+    @app.get("/v1/nav/parameters", tags=["navigation"], **JSON_RESPONSES)
+    def nav_parameters(request: Request, _auth: Read,
+                       property: Annotated[str | None, Query(max_length=200)] = None,  # noqa: A002
+                       material: Annotated[str | None, Query(max_length=200)] = None,
+                       site: Annotated[str | None, Query(max_length=100)] = None,
+                       scale: Annotated[str | None, Query(max_length=20)] = None,
+                       source_id: Annotated[str | None, Query(max_length=20)] = None,
+                       limit: Annotated[int, Query(ge=1, le=200)] = 50) -> JSONResponse:
+        return respond(request, service.nav_parameters(property, material, site, scale, source_id, limit))
+
+    @app.get("/v1/nav/parameter_summary", tags=["navigation"], **JSON_RESPONSES)
+    def nav_parameter_summary(request: Request, _auth: Read,
+                              property: Annotated[str, Query(min_length=1, max_length=200)],  # noqa: A002
+                              material: Annotated[str | None, Query(max_length=200)] = None) -> JSONResponse:
+        return respond(request, service.nav_parameter_summary(property, material))
+
     # ---------------------------------------------------------------- topic dossier (navigation + catalogues)
     @app.get("/v1/topic", tags=["navigation"], **JSON_RESPONSES)
     def topic_get(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],

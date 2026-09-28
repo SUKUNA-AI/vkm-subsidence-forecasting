@@ -7,7 +7,7 @@
 ``get_artifact``, ``list_source_pages``, ``get_corpus_status``; navigation: ``get_outline``, ``get_section``,
 ``search_sections``, ``get_formula_context``, ``find_formulas``, ``explore_concept``, ``reconstruct_topic``;
 topics and duplicates: ``find_topics``, ``get_topic``, ``similar_sections``, ``section_topics``, ``copies_of``,
-``source_overlap``.
+``source_overlap``; parameters: ``find_parameters``, ``parameter_summary``.
 
 ``vkm-corpus-admin`` (write, plan-first H-12): ``reprocess_source``, ``reprocess_page``, ``get_job``.
 
@@ -481,6 +481,31 @@ def build_read_server(api: ApiClient) -> MCPServer:
                              limit: Annotated[int, Field(ge=1, le=200)] = 50) -> CallToolResult:
         """Sources that repeat text of this source: shared passages, shares on both sides, which is earlier."""
         return await call("source_overlap", "GET", f"/v1/nav/overlap/{source_id}", params={"limit": limit})
+
+    # parameter-value candidates (agent P) — AUTO_EXTRACTED_UNREVIEWED leads with page locators, never values to use
+    @server.tool(name="find_parameters", annotations=READ_ONLY)
+    async def find_parameters(
+            property: Annotated[str | None, Field(max_length=200,  # noqa: A002
+                                                  description="«модуль деформации», «E», «ucs» …")] = None,
+            material: Annotated[str | None, Field(max_length=200, description="«каменная соль», «сильвинит» …")] = None,
+            site: Annotated[str | None, Field(max_length=100, description="«СКРУ-1», «ВКМ», «ANALOGUE»")] = None,
+            scale: Annotated[str | None, Field(pattern=r"^(LAB|MASSIF|NORMATIVE|MODEL|UNKNOWN)$")] = None,
+            source_id: Annotated[str | None, Field(pattern=r"^VKM-SRC-\d{3,}$")] = None,
+            limit: Annotated[int, Field(ge=1, le=200)] = 50) -> CallToolResult:
+        """Candidate values of material and mining parameters found in tables and text of the corpus, each with its
+        source, page, block/table cell, unit (raw and SI), material, scale hint (LAB/MASSIF/NORMATIVE/MODEL) and site
+        hint. Leads to verify on the page — not evidence and never a recommended value."""
+        return await call("find_parameters", "GET", "/v1/nav/parameters",
+                          params={"property": property, "material": material, "site": site, "scale": scale,
+                                  "source_id": source_id, "limit": limit})
+
+    @server.tool(name="parameter_summary", annotations=READ_ONLY)
+    async def parameter_summary(property: Annotated[str, Field(min_length=1, max_length=200)],  # noqa: A002
+                                material: Annotated[str | None, Field(max_length=200)] = None) -> CallToolResult:
+        """Per material and scale hint: how many candidates, sources and pages a property has and their SI range — a
+        map of what the corpus reports, never a value to use."""
+        return await call("parameter_summary", "GET", "/v1/nav/parameter_summary",
+                          params={"property": property, "material": material})
 
     @server.tool(name="reconstruct_topic", annotations=READ_ONLY)
     async def reconstruct_topic(

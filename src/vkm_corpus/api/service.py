@@ -987,6 +987,29 @@ class ApiService:
         data, snap = self._nav_run(lambda nav: nav.run("source_overlap", source_id, limit=limit))
         return self._nav_result("NAV_SOURCE_OVERLAP", source_id, data, snap, source_id=source_id)
 
+    # ------------------------------------------------------------------ parameter candidates (agent P)
+    _SCALES = frozenset({"LAB", "MASSIF", "NORMATIVE", "MODEL", "UNKNOWN"})
+
+    def nav_parameters(self, property: str | None, material: str | None, site: str | None,  # noqa: A002
+                       scale: str | None, source_id: str | None, limit: int) -> Result:
+        if not any((property, material, site, source_id)):
+            raise ApiFailure("INVALID_ARGUMENT", "give at least one of property, material, site, source_id")
+        if scale is not None and scale.upper() not in self._SCALES:
+            raise ApiFailure("INVALID_ARGUMENT", f"scale is one of {sorted(self._SCALES)}")
+        if source_id is not None and not re.fullmatch(r"VKM-SRC-\d{3,}", source_id):
+            raise ApiFailure("INVALID_ARGUMENT", "source_id has the form VKM-SRC-NNN")
+        data, snap = self._nav_run(lambda nav: nav.run("find_parameters", property=property, material=material,
+                                                       site=site, scale=scale.upper() if scale else None,
+                                                       source_id=source_id, limit=limit))
+        key = "|".join(str(x) for x in (property, material, site, scale, source_id) if x)[:60]
+        return self._nav_result("NAV_PARAMETERS", f"parameters:{key}", data, snap, source_id=source_id)
+
+    def nav_parameter_summary(self, property: str, material: str | None) -> Result:  # noqa: A002
+        if not property or len(property) > 200:
+            raise ApiFailure("INVALID_ARGUMENT", "property is 1..200 characters")
+        data, snap = self._nav_run(lambda nav: nav.run("parameter_summary", property, material=material))
+        return self._nav_result("NAV_PARAMETER_SUMMARY", f"parameter_summary:{property[:40]}", data, snap)
+
     # ------------------------------------------------------------------ topic dossier (navigation + catalogues)
     def reconstruct_topic(self, query: str, *, budget_chars: int = 12_000, source_ids: list[str] | None = None,
                           max_sources: int = 10, max_sections: int = 12, max_formulas: int = 10,
