@@ -152,3 +152,40 @@ def test_scan_failures_are_loud(case, code):
     with pytest.raises(HybridError) as exc:
         hybrid_search(_client(), svc, HybridRequest(query=BIB_QUERY, candidates=10, late=True), "vkm")
     assert exc.value.code == code and exc.value.stage == "bib_scan"
+
+
+def _smoke_answer(route: str, trace: dict) -> dict:
+    return {"ok": True, "items": [{"envelope": {"object_id": R1}, "record": {"trace": trace}}],
+            "item": {"record": {"route": route, "timings_ms": {"total": 300.0, "bib_scan": 210.0, "late": 30.0},
+                                "stages": {"late": {"scored": 1, "unscored": 0, "store": {"pack_id": "p"}},
+                                           "bib_route": {"status": "APPLIED", "cues": ["works_of_author"],
+                                                         "weak_cues": [], "units_scanned": 3, "pages_kept": 3}}}}}
+
+
+@pytest.mark.parametrize("expect,route,ok", [("bibliographic", "bibliographic", True),
+                                             ("bibliographic", "default", False), (None, "default", True)])
+def test_hybrid_smoke_reports_the_route_and_counts_bib_only_hits(monkeypatch, tmp_path, capsys, expect, route, ok):
+    from vkm_corpus.search import cli
+
+    token = tmp_path / "token"
+    token.write_text("test-token-for-smoke", encoding="utf-8")
+    monkeypatch.setenv("VKM_API_TOKEN_FILE", str(token))
+    trace = {"fused_rank": 1, "bm25_rank": None, "dense_rank": None, "bib_rank": 1, "late_rank": 1,
+             "late_status": "SCORED"}                              # a page found only by the BIB channel
+    seen = []
+
+    def handler(request):
+        seen.append(json.loads(request.content))
+        return httpx.Response(200, json=_smoke_answer(route, trace))
+
+    real = httpx.Client
+    monkeypatch.setattr(httpx, "Client", lambda **kw: real(transport=httpx.MockTransport(handler), **kw))
+    args = cli.argparse.Namespace(api_url="http://api.test", query=[BIB_QUERY], limit=10, late=True,
+                                  late_candidates=100, expect_route=expect)
+    rc = cli._cmd_hybrid_smoke(args)
+    out = json.loads(capsys.readouterr().out)
+    assert (rc == 0) is ok and out["status"] == ("PASS" if ok else "FAIL")
+    q = out["queries"][0]
+    assert q["route"] == route and q["hits_with_trace"] == 1 and q["bib_route"]["status"] == "APPLIED"
+    assert q["server_ms"]["bib_scan"] == 210.0 and q["top"][0]["trace"]["bib_rank"] == 1
+    assert seen[0]["late"] is True and "bib_route" not in seen[0]         # the server's detector decides
