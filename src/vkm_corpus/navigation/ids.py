@@ -7,7 +7,9 @@ IDs are content-derived and stable across rebuilds of the same snapshot with the
 * ``FSY-<16 hex>`` — a symbol of a formula inside its source: (source_id, normalised symbol) — symbols are never
   global (σ in two books may be two different quantities);
 * ``FRF-<16 hex>`` — a textual reference to a formula: (citing block, formula);
-* ``FPR-<16 hex>`` — a parameter-value candidate near a formula: (formula, symbol, value text).
+* ``FPR-<16 hex>`` — a parameter-value candidate near a formula: (formula, symbol, value text);
+* ``PRM-<16 hex>`` — a parameter-value candidate of the part ``parameters``: (anchor block/table/formula, locator
+  — character offset or table cell, property key, value text).
 """
 from __future__ import annotations
 
@@ -19,6 +21,7 @@ RULE_VERSIONS: dict[str, str] = {
     "sections": "sections_v1",
     "formulas": "formula_context_v1",
     "concepts": "concepts_v1",
+    "parameters": "parameters_v1",
 }
 
 # derived datasets under $VKM_DATA_ROOT/derived/navigation/<snapshot_id>/<name>.parquet
@@ -26,6 +29,7 @@ DATASETS: tuple[str, ...] = (
     "sections", "section_pages",
     "formula_context", "formula_symbols", "formula_refs", "formula_parameters",
     "terms", "term_mentions", "term_edges",
+    "parameter_candidates", "parameter_summary",
 )
 
 
@@ -56,3 +60,7 @@ def formula_ref_id(block_id: str, formula_id: str) -> str:
 
 def parameter_id(formula_id: str, symbol: str, value_text: str) -> str:
     return "FPR-" + _h("vkm-nav-fparam-v1", formula_id, symbol, value_text)
+
+
+def parameter_candidate_id(anchor_id: str, locator: str, property_key: str, value_text: str) -> str:
+    return "PRM-" + _h("vkm-nav-param-v1", anchor_id, locator, property_key, value_text)
