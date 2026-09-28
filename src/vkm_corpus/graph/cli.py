@@ -60,7 +60,8 @@ def _cmd_rebuild(args: argparse.Namespace) -> int:
     _configure_logs(settings)
     options = RebuildOptions(mode=args.mode, snapshot_id=args.snapshot, batch_size=args.batch_size,
                              plan_only=args.plan_only, hash_files=not args.skip_file_hash,
-                             sample_per_label=args.sample, command=" ".join(["graph", "rebuild", *sys.argv[3:]]))
+                             sample_per_label=args.sample, command=" ".join(["graph", "rebuild", *sys.argv[3:]]),
+                             cascade=args.cascade)
     try:
         receipt = rebuild(settings, options)
     except ProjectionError as exc:
@@ -116,6 +117,8 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     rb.add_argument("--plan-only", action="store_true", help="preflight and expected counts only; no writes")
     rb.add_argument("--skip-file-hash", action="store_true", help="check manifest file sizes but not sha256")
     rb.add_argument("--sample", type=int, default=200, help="nodes per label in the trace check C10")
+    rb.add_argument("--cascade", action="store_true",
+                    help="R6: drop the dependent NAV layer first (reload it afterwards with `nav graph-load`)")
     rb.set_defaults(func=_cmd_rebuild)
 
     vf = sub.add_parser("verify", help="checks C1-C16 and digests of the current graph, without writing")

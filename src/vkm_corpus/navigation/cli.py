@@ -166,9 +166,156 @@ def cmd_outlines(args: argparse.Namespace) -> int:
     return 0
 
 
+# ---------------------------------------------------------------- NAV graph in Neo4j (agent G): graph-ddl/-load/-verify/-drop
+def _graph_print(obj: Any) -> None:
+    from vkm_corpus.graph.common import normalize_value
+
+    print(json.dumps(normalize_value(obj), ensure_ascii=False, indent=1, sort_keys=True, default=str))
+
+
+def _graph_fail(exc: Any) -> int:
+    print(json.dumps({"status": "FAILED", "error": exc.as_dict()}, ensure_ascii=False, indent=1, default=str),
+          file=sys.stderr)
+    return 1
+
+
+def _graph_options(args: argparse.Namespace, command: str):
+    from vkm_corpus.graph.nav import NavLoadOptions
+    from vkm_corpus.graph.nav_rows import ProjectionOptions
+
+    return NavLoadOptions(
+        nav_dir=Path(args.nav_dir), batch_nodes=getattr(args, "batch_nodes", 5_000),
+        batch_rels=getattr(args, "batch_rels", 10_000), dry_run=getattr(args, "dry_run", False),
+        allow_snapshot_mismatch=getattr(args, "allow_snapshot_mismatch", False),
+        canon_duckdb=Path(args.canon_duckdb) if getattr(args, "canon_duckdb", None) else None,
+        projection=ProjectionOptions(mentions_top_per_term=args.mentions_per_term,
+                                     mentions_top_per_section=args.mentions_per_section,
+                                     symbol_morphology=args.symbol_morphology,
+                                     verify_files=not args.skip_file_hash),
+        command=command)
+
+
+def cmd_graph_ddl(args: argparse.Namespace) -> int:
+    from vkm_corpus.graph import nav_schema
+
+    if args.print:
+        sys.stdout.write(nav_schema.ddl_script())
+        return 0
+    from vkm_corpus.config import load_settings
+    from vkm_corpus.graph import client
+    from vkm_corpus.graph.common import ProjectionError
+    from vkm_corpus.graph.nav import apply_ddl
+    from vkm_corpus.graph.schema import Namespace
+
+    settings = load_settings()
+    try:
+        driver = client.connect(settings)
+    except ProjectionError as exc:
+        return _graph_fail(exc)
+    try:
+        _graph_print(apply_ddl(driver, settings.neo4j_database, Namespace()))
+    except ProjectionError as exc:
+        return _graph_fail(exc)
+    finally:
+        driver.close()
+    return 0
+
+
+def cmd_graph_load(args: argparse.Namespace) -> int:
+    from vkm_corpus.config import load_settings
+    from vkm_corpus.graph.common import ProjectionError
+    from vkm_corpus.graph.nav import load
+
+    options = _graph_options(args, " ".join(["nav", "graph-load", *sys.argv[3:]]))
+    settings = None if args.dry_run else load_settings()
+    try:
+        receipt = load(settings, options)
+    except ProjectionError as exc:
+        return _graph_fail(exc)
+    if args.out:
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        from vkm_corpus.graph.common import normalize_value
+
+        out.write_bytes((json.dumps(normalize_value(receipt), ensure_ascii=False, indent=1, sort_keys=True,
+                                    default=str) + "\n").encode("utf-8"))
+    keys = ("status", "run_id", "receipt_ref", "input", "totals", "expected_counts", "preflight_summary",
+            "checks_summary", "document", "sweep", "timings_s", "document_references")
+    _graph_print({k: receipt.get(k) for k in keys if k in receipt})
+    return 0 if receipt.get("status") in ("COMPLETE", "DRY_RUN") else 1
+
+
+def cmd_graph_verify(args: argparse.Namespace) -> int:
+    from vkm_corpus.config import load_settings
+    from vkm_corpus.graph.common import ProjectionError
+    from vkm_corpus.graph.nav import verify
+
+    try:
+        result = verify(load_settings(), _graph_options(args, "nav graph-verify"))
+    except ProjectionError as exc:
+        return _graph_fail(exc)
+    _graph_print(result)
+    return 0 if result["status"] == "PASS" else 1
+
+
+def cmd_graph_drop(args: argparse.Namespace) -> int:
+    from vkm_corpus.config import load_settings
+    from vkm_corpus.graph import client
+    from vkm_corpus.graph.common import ProjectionError
+    from vkm_corpus.graph.nav import drop_layer
+
+    if not args.yes:
+        print("refusing to drop the NAV layer without --yes (DOCUMENT is not touched)", file=sys.stderr)
+        return 2
+    settings = load_settings()
+    try:
+        driver = client.connect(settings)
+    except ProjectionError as exc:
+        return _graph_fail(exc)
+    try:
+        _graph_print(drop_layer(driver, settings.neo4j_database))
+    finally:
+        driver.close()
+    return 0
+
+
+def _register_graph(sub) -> None:
+    def projection_args(parser: argparse.ArgumentParser) -> None:
+        parser.add_argument("--nav-dir", required=True,
+                            help="NAV build directory (<dataset>.parquet + manifest.json), e.g. "
+                                 "$VKM_DATA_ROOT/derived/navigation/<snapshot_id>")
+        parser.add_argument("--mentions-per-term", type=int, default=5, help="MENTIONED_IN: top sections per term")
+        parser.add_argument("--mentions-per-section", type=int, default=20, help="MENTIONED_IN: top terms per section")
+        parser.add_argument("--symbol-morphology", choices=["auto", "surface"], default="auto",
+                            help="SYMBOL_OF: the builder's morphology when importable (auto) or surface forms")
+        parser.add_argument("--skip-file-hash", action="store_true", help="do not recompute dataset sha256")
+
+    d = sub.add_parser("graph-ddl", help="NAV graph: apply the idempotent Neo4j DDL (constraints, indexes)")
+    d.add_argument("--print", action="store_true", help="print the DDL script instead of applying it")
+    d.set_defaults(func=cmd_graph_ddl)
+    ld = sub.add_parser("graph-load", help="NAV graph: load a NAV build into Neo4j (MERGE by ids, checks N1-N7)")
+    projection_args(ld)
+    ld.add_argument("--dry-run", action="store_true", help="row counts, accounting and preflight only; no database")
+    ld.add_argument("--canon-duckdb", default=None, help="dry run: also resolve DOCUMENT ids in this canonical DuckDB")
+    ld.add_argument("--batch-nodes", type=int, default=5_000)
+    ld.add_argument("--batch-rels", type=int, default=10_000)
+    ld.add_argument("--allow-snapshot-mismatch", action="store_true",
+                    help="load although the DOCUMENT graph was built from another snapshot")
+    ld.add_argument("--out", default=None, help="also write the full receipt JSON here")
+    ld.set_defaults(func=cmd_graph_load)
+    vf = sub.add_parser("graph-verify", help="NAV graph: checks N1-N7 of the loaded layer, without writing")
+    projection_args(vf)
+    vf.set_defaults(func=cmd_graph_verify)
+    dr = sub.add_parser("graph-drop", help="NAV graph: remove the NAV layer (before a DOCUMENT rebuild)")
+    dr.add_argument("--yes", action="store_true", help="confirm")
+    dr.set_defaults(func=cmd_graph_drop)
+# ---------------------------------------------------------------- end NAV graph (agent G)
+
+
 def register(subparsers) -> None:
     p = subparsers.add_parser("nav", help="navigation layer: outlines, sections, formulas, concepts (derived)")
     sub = p.add_subparsers(dest="nav_cmd", metavar="<command>")
+    _register_graph(sub)
     o = sub.add_parser("outlines", help="native outlines of the PRIVATE files (workstation) → JSON")
     o.add_argument("--out", required=True, help="output JSON file")
     o.add_argument("--resources", default=None, help="PRIVATE clone (default: $VKM_RESOURCES_ROOT)")
