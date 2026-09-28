@@ -254,7 +254,7 @@ def test_v3_tex_spacing_accents_are_joined_in_the_parse_view():
     assert _authors("Sj¨ostrand, J., 2004. Borehole tests. Rock Mech. J. 12, 1–5.") == ["Sjöstrand, J"]
     assert _authors("Vavraˇcek, V., Svoboda, T., 2015. Salt anisotropy. Rock J. 8, 1–9.") == \
         ["Vavraček, V", "Svoboda, T"]
-    assert _authors("Doblar´e, M., 1997. Finite elements. Salt J. 3, 1–5.") == ["Doblaré, M"]
+    assert _authors("Mollar´e, M., 1997. Finite elements. Salt J. 3, 1–5.") == ["Mollaré, M"]
     assert _authors("O´Dell, K., 2003, Radar targets. Radar J. 5, 11–17.") == ["O´Dell, K"]
 
 
@@ -355,7 +355,7 @@ def test_v3_index_given_names_and_text_layers_without_spaces():
         ["Smith B", "Jones T", "Brown S"]
 
 
-# ------------------------------------------------------------------------------------------------ rules v3: segmentation
+# ----------------------------------------------------------------------------------------------- rules v3: segmentation
 def test_v3_blocks_holding_a_tail_and_the_next_start():
     # the layout cut every block after a finished-looking line: the venue of one entry + the start of the next
     blocks = [
@@ -436,6 +436,23 @@ def test_v3_next_expected_number_inside_a_line():
                         "Л. Н. Соли натрия. Агрохимия, 1972, № 3, с. 51."),
              blk(45, 2, "55460. Орлов, О. О. Гипс. Агрохимия, 1972, № 3, с. 52.")]
     assert [e.label for e in bib.extract_entries(index)[0]] == ["55458", "55459", "55460"]
+    # an index rubric with a small number does not hold the five-digit entry numbers back
+    rubric = [blk(49, 1, "2. Горное дело. Руководство рудниками и шахтами"),
+              blk(49, 2, "55001. Иванов, И. Проходка стволов. Горное дело, 1970, № 3, с. 12— 16."),
+              blk(49, 3, "55002. Петров, П. Крепь выработок. Горное дело, 1970, № 3, с. 17— 19.\n"
+                         "55003. Сидоров, С. Закладка камер. Горное дело, 1970, № 4, с. 5— 9.")]
+    entries, _ = bib.extract_entries(rubric)
+    assert [e.label for e in entries] == ["55001", "55002", "55003"]
+    assert len(bib.extract_entries(rubric, bib.SEG_V2)[0]) == 2, "rules v2 glued them to the rubric"
+    # the sequence restarts from an unexpected number only when the next numbers continue from it
+    def lst(page, labels):
+        return [blk(page, i + 1, f"{n}. Иванов И.И. Статья {n} // Журнал. 1990. № 1. С. {n}–{n + 1}.") for i, n in
+                enumerate(labels)]
+    jumped = lst(50, [10, 11, 25]) + [blk(50, 4, "26. Петров П.П. Статья // Журнал. 1991. № 2. С. 5–9.\n"
+                                                 "27. Орлов О.О. Статья // Журнал. 1992. № 3. С. 5–9.")]
+    assert [e.label for e in bib.extract_entries(jumped)[0]] == ["10", "11", "25", "26", "27"]
+    misread = lst(51, [10, 11, 12, 71, 14, 15])
+    assert [e.label for e in bib.extract_entries(misread)[0]] == ["10", "11", "12", "71", "14", "15"]
 
 
 def test_v3_corporate_and_normative_entries_open_entries_in_author_led_lists():
