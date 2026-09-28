@@ -39,6 +39,8 @@ QUERY_FUNCTIONS: dict[str, str] = {
     "find_topics": "vkm_corpus.navigation.topics_query:find_topics",
     "similar_sections": "vkm_corpus.navigation.topics_query:similar_sections",
     "section_topics": "vkm_corpus.navigation.topics_query:section_topics",
+    "copies_of": "vkm_corpus.navigation.duplicates_query:copies_of",
+    "source_overlap": "vkm_corpus.navigation.duplicates_query:source_overlap",
 }
 
 
