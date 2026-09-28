@@ -1,0 +1,200 @@
+# AGENT L — late interaction (mLateOn MaxSim) для всего корпуса и поздняя стадия гибридного поиска
+
+Дата: 28.09.2026. Ветка `claude/agent-l-late-interaction-2026-09-28` (от `claude/corpus-platform-v0-2026-09-28`,
+база `02727ae`). Пункт техдолга «late interaction mLateOn для всего корпуса» из `docs/corpus_platform/V0_FINAL_REPORT.md`
+§12. Публичная квитанция — [late_interaction_encode_final.json](../corpus_platform/receipts/late_interaction_encode_final.json).
+
+## 0. Итог
+
+| Результат | Статус |
+|---|---|
+| 1. Late-кодирование всего снимка `snap-20260928T113713Z-fa0aa127` (186 116 единиц) на RX580, без присмотра (`infra/core/lab_stage3.sh`) | **сделано**: 186 116 / 186 116 строк, §64 — OK, ≈ 47 мин работы RX580 |
+| 2. Память-безопасное хранилище токен-векторов (pack: float16 memmap + индекс + манифест, `packs/CURRENT`) | **код и тесты готовы**; pack на CORE **не собран** (нужен новый образ, см. §7) |
+| 3. Поздняя стадия в `/v1/search/hybrid` и MCP `search_hybrid` (`late`, `late_candidates`) | **код и тесты готовы**; на CORE **не развёрнута** |
+| 4. Тесты с фейками | 37 новых тестов; WSL: 633 passed; Windows-venv с fastapi/mcp: 132 passed (§6) |
+| 5. Развёртывание на CORE + smoke | **не выполнено**: классификатор разрешений отклонил размещение дерева сборки в общем каталоге сборки CORE («Modify Shared Resources»); по правилу работа над этим шагом остановлена |
+| 6. Отчёт и квитанция | этот документ + квитанция |
+
+Умолчание поздней стадии: **выключена в коде** (`LATE_DEFAULT = False`), включается без пересборки переменной
+`VKM_HYBRID_LATE_DEFAULT=1` у сервиса `api`. Измерено на CORE: гибрид без late — p50 115 мс / p95 141 мс (клиент),
+сервер 87 мс. Оценка добавки late (не измерена на CORE): кодирование запроса ≈ 14 мс (K) + MaxSim по 100 страницам
+≈ 16–20 мс (синтетика) + чтение страниц pack'а → ожидаемо p50 ≈ 0,2 с, на порядок ниже цели 1,5 с. Включать по
+замеру smoke после развёртывания (§7, шаг 7).
+
+## 1. Что построено
+
+| Файл | Что |
+|---|---|
+| `src/vkm_corpus/embeddings/pack.py` (новый) | pack: сборка из Parquet-частей со стриминговыми проверками §64, `PackStore` (memmap + индекс, MaxSim по страницам/объектам/единицам, ограничение RSS), `PackHandle` (следит за `packs/CURRENT`, горячая замена, отказ пакету чужой модели), `verify_pack` (отклонение float16) |
+| `src/vkm_corpus/embeddings/cli.py` | `embed pack (--artifacts DIR \| --config SERVICE.json) --units DIR [--publish] [--keep N]`, `embed pack-verify`; общая функция `slot_document_config` у `encode` и `pack` (одна и та же подпись = один каталог) |
+| `src/vkm_corpus/retrieval_service/{app,search,config}.py` | `POST /search/late` с `targets` (UNIT, PAGE, FIGURE, TABLE, FORMULA, BIB_ENTRY), `late_store` в `/health`, `search.multivector_dir` открывает `PackHandle` (Parquet-строки в RAM больше не грузятся), настройки `multivector_check_s`, `multivector_rss_budget_mib` |
+| `src/vkm_corpus/search/hybrid.py` | поздняя стадия гибридного поиска: RRF top-N → `/search/late` → порядок по MaxSim; трасса; громкие отказы |
+| `src/vkm_corpus/api/{app,service,backends}.py` | поля `late`, `late_candidates` (POST и GET), `late_score` в записи, `VKM_HYBRID_LATE_DEFAULT`, `late_interaction` в `/v1/status` |
+| `src/vkm_corpus/mcp/servers.py` | `search_hybrid` и `retrieval_trace`: `late`, `late_candidates` |
+| `src/vkm_corpus/search/cli.py` | `search hybrid --late`, `search hybrid-smoke --late --late-candidates N` (проверка трассы late, латентность p50/p95) |
+| `infra/core/lab_stage3.sh`, `lab_stage3.example.json` (новые) | stage 3 без присмотра: снимок → единицы → кодирование N клиентами → pack + publish → проверка горячей замены → smoke |
+| `infra/core/rx580/rx580.example.json` | описаны настройки pack |
+| тесты | `test_embeddings_pack.py`, `test_retrieval_service_late.py`, `test_search_hybrid_late.py`, `test_api_hybrid_late.py`, `test_search_lab_stage3.py` |
+
+## 2. Late-кодирование всего корпуса (FACT, CORE)
+
+Конфигурация (подпись документа `65c7e886cdd4…e035241`): `lightonai/mLateOn` @ `edd378f9…`, GGUF Q8_0 (резидентный
+late-слот `rx580-retrieval`), голова 768→128 на стороне шлюза, `doc_max_len` 512, правило текста `vkm-units-v1/A`,
+хранение float32 (подпись по умолчанию, как у canary-прогона K). Каталог
+`derived/embeddings/multivector/lightonai__mLateOn/<revision>/<signature>/`.
+
+Пилоты (срезы по 1000 случайных единиц снимка, те же подпись и каталог — строки пилота засчитаны в итог):
+
+| Прогон | Клиенты | Единиц | Время, с | Ед./с |
+|---|---|---|---|---|
+| пилот A | 1 | 1000 | 22,3 | 44,8 |
+| пилот B | 2 × 500 | 1000 | 15,7 | 63,7 |
+
+Полный прогон (`lab_stage3.sh`, `systemd-run --user`, flock, квитанция + STATUS):
+
+| Прогон | Клиенты, потоки BLAS | Ед./с | Итог |
+|---|---|---|---|
+| `lab3-20260928T145021Z` | 3, по умолчанию (все ядра) | 51 | остановлен мной: клиенты упирались в CPU (366–708 % на клиент), GPU простаивал примерно в половине замеров |
+| `lab3-20260928T145516Z` | 3, по умолчанию | 51 | остановлен (старая копия скрипта) |
+| `lab3-20260928T145733Z` | 4, `OPENBLAS_NUM_THREADS=OMP_NUM_THREADS=1` | **68,5** | **ENCODED**: план unchanged 21 968 / new 164 148; 164 148 закодировано за 2397 с; GPU занят ≈ 100 % замеров |
+
+Находка: голова 768→128 — маленькое матричное умножение на документ; OpenBLAS по умолчанию запускает 16 потоков на
+клиента, они крутятся вхолостую и отнимают CPU у `llama-server` (у него `-t 2`). Один поток BLAS на клиента → +34 %
+пропускной способности; теперь это настройка `blas_threads` (по умолчанию 1).
+
+Итог по артефакту (проверка §64 — стриминговая, только чтение, по частям, образом API, 74,5 с):
+
+| Показатель | Значение |
+|---|---|
+| строк / ожидалось | **186 116 / 186 116** (пропусков 0, дублей 0, сирот 0, устаревших 0) |
+| частей / манифестов писателей | 375 / 13 |
+| контрольные суммы, подпись конфигурации, подписи строк, размерность 128, token_count > 0 | все совпали |
+| конечность, L2-норма токенов | все конечны; макс. |‖t‖ − 1| = 1,8·10⁻⁷ |
+| размер каталога (Parquet float32, zstd) | 11,87 ГБ |
+| токенов всего | 24 235 936; на единицу: среднее 130,2, p50 81, p95 386, макс. 512 |
+| упёрлись в `doc_max_len` 512 | 3612 единиц (1,9 %) — в основном TABLE (среднее 342 токена) и BLOCK_GROUP (245) |
+| токенов на единицу по видам | BLOCK_GROUP 244,9; FIGURE 85,5; FORMULA 67,9; TABLE 342,4 |
+| ожидаемый размер pack (float16) | 6,20 ГБ + индекс |
+| память контейнера `rx580-retrieval` при 4 клиентах | anon 2,9–3,1 ГиБ из лимита 4 ГиБ, OOM-kill 0; dense и late оставались резидентными |
+
+Время работы RX580 на всё кодирование ≈ 47 мин (пилоты + три прогона). Повторный запуск на том же снимке кодирует 0
+единиц (§46: та же подпись и тот же `text_hash`); на новом снимке — только новые/изменённые (ожидаются BIB_ENTRY).
+
+## 3. Формат хранилища токен-векторов (pack)
+
+Parquet-части остаются каноническим хранилищем; pack — пересобираемая проекция их текущих строк для единиц одного
+снимка (`vkm.multivector_pack/1`):
+
+```
+<late config dir>/packs/<pack-id>/
+    tokens.f16      float16 [токенов, 128], row-major, little-endian, без заголовка (np.memmap)
+    index.parquet   строка на единицу в порядке pack'а: unit_id, kind, page_id, source_id, object_ids, text_hash,
+                    token_offset (int64), n_tokens (int32)
+    pack.json       манифест (пишется последним): конфигурация и её подпись, снимок, units_sha256, счётчики,
+                    размеры и sha256 файлов, sha256 манифестов артефакта, отчёт §64, время
+<late config dir>/packs/CURRENT   указатель {"pack_id", …}; атомарная замена после проверенной сборки (--publish)
+```
+
+- Порядок: единицы одной страницы подряд (page_id, затем unit_id) — MaxSim страницы читает один непрерывный отрезок.
+- `pack-id = <snapshot>-<sha256(подпись, unit, text_hash, часть, строка …)>[:12]`: та же выборка — тот же pack
+  (повтор — `EXISTS`). Хранится ≤ `--keep` pack'ов; тот, на который указывает CURRENT, не удаляется никогда.
+- Проверки §64 до записи: суммы частей, одна подпись (и model id/revision), ожидаемые единицы = единицы снимка, нет
+  дублей (unit, text_hash), нет пропусков, подпись строки, token_count > 0, размерность, конечность, L2-норма
+  каждого токена. Провал — pack не пишется, CURRENT не двигается.
+- float16 — MODEL_CHOICE пути обслуживания (вдвое меньше байт); отклонение MaxSim измеряет `embed pack-verify`
+  (на тестовых данных < 0,5 % относительного; для корпуса — шаг 2 runbook'а).
+- Сервис: `PackStore` держит в памяти только индекс (id, страницы, объекты, смещения); токены — `np.memmap`, ОС
+  подгружает затронутые запросом страницы. После каждых `multivector_rss_budget_mib` (256) прочитанных МиБ
+  отображение сбрасывается `madvise(MADV_DONTNEED)` — страницы остаются в page cache, RSS процесса ограничен
+  (синтетика: RssFile 57 МБ при pack'е 1,5 ГБ). `PackHandle` перечитывает `packs/CURRENT` не чаще раза в
+  `multivector_check_s` (10 с) и подменяет pack без перезапуска (запросы в полёте дорабатывают на старом); pack чужой
+  модели (веса, квантизация, токенизатор, голова, размерность ≠ late-кодировщику запроса) — отказ (`MISMATCH`).
+- `InMemoryMultiVectorStore` оставлен для тестов и малых наборов (умеет те же цели при переданных метаданных единиц).
+
+## 4. Поздняя стадия гибридного поиска (контракт)
+
+- Запрос: `late: bool | null` (null — умолчание сервера), `late_candidates` 1…200 (по умолчанию 100 — схема J
+  «RRF(BM25, dense) top-100 → mLateOn»). Поля есть у POST/GET `/v1/search/hybrid`, MCP `search_hybrid` и
+  `retrieval_trace`, CLI `search hybrid` / `hybrid-smoke`.
+- API → RX580 `POST /search/late` с `targets = [{"id", "kind"}]` первых N ключей RRF. Страница (PAGE) получает
+  max MaxSim по всем единицам страницы; FIGURE/TABLE/FORMULA — MaxSim своей единицы (одна единица = один объект).
+- Порядок: разные виды не сравнивают сырые оценки (H-44) — каждый вид сохраняет позиции, которые ему дал RRF, и
+  внутри них переупорядочивается по MaxSim; при одном виде это просто порядок по MaxSim. Кандидаты без
+  токен-векторов идут после оценённых своего вида в порядке RRF и перечислены (`late_status = NO_TOKENS`,
+  `stages.late.unscored_ids`); ключи за пределами N сохраняют порядок RRF (`NOT_CANDIDATE`).
+- Трасса хита: `late_rank` (внутри вида), `late_score`, `late_status`, `late_unit` (лучшая единица, число единиц и
+  токенов), `final_rank`; `fused_rank`, `rrf_score` и ранги BM25/dense сохраняются. `stages.late`: модель, подпись
+  запроса, число токенов запроса, pack (id, снимок, подпись, размеры), кандидаты / оценено / без токенов, время.
+  Предупреждение `LATE_STORE_SNAPSHOT_MISMATCH`, если pack и векторный индекс построены из разных снимков.
+- Отказы громкие: нет late-модели (404), нет хранилища, нет опубликованного pack'а, pack чужой модели (503),
+  сервис недоступен — `DEPENDENCY_UNAVAILABLE` (стадия `hybrid_late`); 401/403, ответ старого контракта или ответ не
+  по тем целям — `DEPENDENCY_ERROR`; тайм-аут — `DEPENDENCY_TIMEOUT`. Подмены «RRF без late» нет.
+
+## 5. Латентность
+
+| Что | Где | p50 | p95 |
+|---|---|---|---|
+| гибрид без late (BM25 + dense + RRF), клиент в контейнере `api` | CORE, 10 запросов × 2 тёплых прохода | 115,4 мс | 141,2 мс |
+| то же, сервер `timings_ms.total` (embed 15,7; BM25 49,5; k-NN 14,9) | CORE | 86,9 мс | 121,0 мс |
+| late-кодирование запроса | CORE, замер K (§4a его отчёта) | 13,7 мс | 16,5 мс |
+| MaxSim `PackStore.score_targets`, 100 страниц ≈ 677 единиц ≈ 94 тыс. токенов | рабочая станция, синтетический pack с распределением единиц по страницам корпуса | 15,8 мс | 20,1 мс |
+| гибрид + late | CORE | **не измерено** (не развёрнуто); оценка ≈ 0,2 с | — |
+
+Диск CORE — SATA SSD; холодный запрос читает ≈ 25 МБ pack'а (страницы подряд), тёплый — из page cache. Лимит
+памяти контейнера (4 ГиБ) ограничивает и его page cache: тёплой будет примерно половина pack'а — поэтому латентность
+надо мерить на CORE (§7, шаг 6).
+
+## 6. Тесты
+
+- Новые: 37 (`pack` 12, сервис late 4, гибрид late 13, API/MCP late 4, `lab_stage3` 4). Фейки: OpenSearch,
+  RX580-сервис (httpx MockTransport), энкодеры (FakeBackend/FakeTokenizer), docker (для скрипта); pack — настоящий на
+  диске. Живых сервисов нет.
+- WSL, `~/vkm/venv-corpus`, `tests/corpus`: **633 passed**, 25 skipped, 5 failed + 1 deselected. 5 failed —
+  `test_public_hygiene`: git в WSL не читает `.git`-файл рабочего дерева, созданного в Windows (эти же 6 тестов
+  проходят с Windows-git). Deselected — `test_parquet_commits::test_admission_conflict_does_not_block_others`: падает
+  и на базовом коммите `02727ae`; координатор уже исправил его в `c1fba33`.
+- Windows-venv агента G (fastapi, mcp, duckdb, pyarrow): тесты API, MCP, контракта и late-стадии сервиса, гибрида,
+  pack'а, артефактов, воркера, гигиены — **132 passed**, 2 skipped (POSIX-only и без tokenizers).
+- Скрипт `lab_stage3.sh` — `bash -n` и 4 теста с фейковым docker (dry run, полный проход, образ без `embed pack` →
+  ENCODED, провал горячей замены и чужой модели).
+
+## 7. Что не сделано и что нужно от координатора
+
+Мой шаг «скопировать дерево коммита в каталог сборки CORE и собрать образы» отклонил классификатор разрешений
+(Modify Shared Resources). По правилу я не обходил отказ: образы не собраны, `rx580.json` и `.env` не менялись,
+сервисы не перезапускались. Кодирование шло в уже развёрнутом образе; единственные записи на CORE — derived-артефакты
+late-конфигурации, квитанции `receipts/lab_stage3/`, скрипт `lab_stage3.sh` + пример в каталоге compose (скопированы
+до отказа; финальная версия — в ветке) и временные шарды (удалены). Для развёртывания (командами из каталога compose;
+`<C>` — коммит слияния моей ветки, `<snap>` — CURRENT):
+
+1. Образы из дерева `<C>` (контекст — корень, как раньше):
+   `docker build -f infra/core/api/Dockerfile -t vkm-corpus-api:0.1.0-<C12> .` и
+   `docker build -f infra/core/rx580/Dockerfile.service -t vkm-rx580-retrieval:0.1.2-<C12> .`
+2. Pack без перезапуска сервиса (одноразовый воркер нового образа):
+   `VKM_RX580_IMAGE=vkm-rx580-retrieval:0.1.2-<C12> docker compose --profile jobs run --rm -T rx580-embed-worker pack --config /config/rx580.json --data-root /data --units /data/derived/embeddings/units/<snap>/vkm-units-v1-A --text-rule vkm-units-v1/A --publish --keep 2`
+   (≈ 12 ГБ чтения, 6,2 ГБ записи; затем `… rx580-embed-worker pack-verify --pack <pack dir> --artifacts <late dir>`).
+3. `rx580.json` (резервная копия рядом): `"search": {…, "multivector_dir": "/data/derived/embeddings/multivector/lightonai__mLateOn/edd378f99593c0ac8a15518b97ad89786b02685e/65c7e886cdd4cfe612be36582f17109208ea6377d33363999cd9d33ceb035241"}`.
+4. `.env` (резервная копия): `VKM_RX580_IMAGE=vkm-rx580-retrieval:0.1.2-<C12>`; `docker compose up -d --no-deps rx580-retrieval`;
+   `/health`: обе модели `resident`, `late_store.status = READY`, `pack_id` = из шага 2.
+5. `.env`: `VKM_API_IMAGE=vkm-corpus-api:0.1.0-<C12>`; `docker compose up -d --no-deps api mcp mcp-admin`.
+6. Smoke и латентность: `docker compose exec -T api vkm-corpus search hybrid-smoke --api-url http://127.0.0.1:8000 --late --late-candidates 100 --query "оседание земной поверхности над выработками ВКМ" --query "ползучесть каменной соли" --query "закладка выработанного пространства"`
+   (вывод: PASS/FAIL, `latency.p50_ms/p95_ms`, late-ранги).
+7. Если p50 ≤ 1,5 с — `VKM_HYBRID_LATE_DEFAULT: "1"` в environment сервиса `api` (compose — файл координатора) и
+   `up -d --no-deps api`.
+8. Новый снимок (библиография): финальную `lab_stage3.sh` из ветки — в каталог compose, затем
+   `systemd-run --user --unit vkm-lab-stage3 --collect <каталог compose>/lab_stage3.sh --after-snapshot snap-20260928T113713Z-fa0aa127`
+   — дождётся нового CURRENT, закодирует только новые/изменённые единицы, соберёт и опубликует pack; сервис подхватит
+   его за ≤ 10 с без перезапуска; smoke с late. Статус — `receipts/lab_stage3/STATUS`.
+
+## 8. Открытые вопросы
+
+- Развёртывание и замер hybrid + late на CORE — за координатором (§7).
+- Во время массового кодирования late-запросы пользователей делят с ним один `llama-server` (очередь внутри сервера):
+  латентность late на время прогона выше. Для полного перекодирования — окно без нагрузки; инкрементальные прогоны
+  короткие.
+- Память `rx580-retrieval` при 4 клиентах — ≈ 3,1 из 4 ГиБ (anon); больше 4 клиентов не ставить, при 4 ГиБ лимите
+  pack в page cache контейнера помещается примерно наполовину.
+- 1,9 % единиц усечены по `doc_max_len` 512 (таблицы и длинные группы блоков) — параметр слота, как в бенчмарке;
+  его изменение = новая подпись и полное перекодирование.
+- Поля `late`/`late_candidates` запроса проходят через API и MCP; при `late=true` и нескольких видах сравнение идёт
+  только внутри вида (H-44) — межвидовое смешивание MaxSim не вводилось.

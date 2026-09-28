@@ -1,0 +1,103 @@
+{
+ "schema": "vkm.agent_l.late_interaction.receipt/1",
+ "agent": "L",
+ "date": "2026-09-28",
+ "branch": "claude/agent-l-late-interaction-2026-09-28",
+ "snapshot_id": "snap-20260928T113713Z-fa0aa127",
+ "units": {
+  "rule": "vkm-units-v1/A",
+  "count": 186116,
+  "by_kind": {"BLOCK_GROUP": 58800, "FIGURE": 15074, "FORMULA": 108852, "TABLE": 3390},
+  "units_sha256": "b7bf39293a16bae9c46b07c5567722292ab8c988e915d93d78eefd8590d18971",
+  "pages_with_units": 26366,
+  "units_per_page": {"mean": 7.06, "p50": 4, "p90": 16, "p99": 32, "max": 106}
+ },
+ "late_config": {
+  "model_key": "mlateon",
+  "model_id": "lightonai/mLateOn",
+  "model_revision": "edd378f99593c0ac8a15518b97ad89786b02685e",
+  "quantization": "Q8_0",
+  "weights_sha256": "45b1c5af45eaec1d3fcfe514634c86e7e540abfaa4fd954e140c763464876bd0",
+  "tokenizer_sha256": "33b6ce1724e107a3298219a322b4c963fcfcb9c8661bd1f30189bdd0d36c4669",
+  "heads_sha256": "e80af8ccd4e92dd60eeedffb398ef901e28e84b59517ed0cec0cc19f1be8af76",
+  "dimension": 128,
+  "doc_max_len": 512,
+  "query_max_len": 64,
+  "storage_precision": "float32",
+  "config_signature": "65c7e886cdd4cfe612be36582f17109208ea6377d33363999cd9d33ceb035241",
+  "backend": "llama.cpp-vulkan (resident late llama-server of rx580-retrieval, image 0.1.1-1b838cfa534f)"
+ },
+ "encode": {
+  "pilots": [
+   {"clients": 1, "units": 1000, "seconds": 22.32, "units_per_s": 44.8, "batch": 8},
+   {"clients": 2, "units": 1000, "seconds": 15.7, "units_per_s": 63.7, "batch": 8}
+  ],
+  "runs": [
+   {"run_id": "lab3-20260928T145021Z", "clients": 3, "blas_threads": "default (all cores)", "units_per_s": 51,
+    "status": "FAILED", "note": "stopped by the operator to retune: clients CPU-bound, GPU idle in about half of the samples"},
+   {"run_id": "lab3-20260928T145516Z", "clients": 3, "blas_threads": "default (all cores)", "units_per_s": 51,
+    "status": "FAILED", "note": "stopped by the operator (old script copy), restarted with blas_threads 1"},
+   {"run_id": "lab3-20260928T145733Z", "clients": 4, "blas_threads": 1, "status": "ENCODED",
+    "plan": {"objects": 186116, "unchanged": 21968, "new": 164148, "to_embed": 164148},
+    "embedded": 164148, "wall_seconds": 2397, "units_per_s": 68.5, "gpu_busy": "about 100 % of samples",
+    "container_anon_memory_gib": [2.9, 3.1], "container_memory_limit_gib": 4, "oom_kills": 0,
+    "note": "pack/reload/smoke steps detected as missing from the deployed image (status ENCODED)"}
+  ],
+  "rx580_encode_seconds_total_approx": 2820,
+  "units_total": 186116
+ },
+ "artifacts": {
+  "kind": "multivector",
+  "rows": 186116,
+  "parts": 375,
+  "writer_manifests": 13,
+  "bytes": 11867866659,
+  "tokens_total": 24235936,
+  "tokens_per_unit": {"mean": 130.2, "p50": 81, "p95": 386, "max": 512, "at_512_cap": 3612},
+  "tokens_by_kind": {"BLOCK_GROUP": 244.9, "FIGURE": 85.5, "FORMULA": 67.9, "TABLE": 342.4}
+ },
+ "checks_64": {
+  "tool": "read-only streamed check (deployed API image, pyarrow), part by part",
+  "ok": true,
+  "expected": 186116,
+  "present_current": 186116,
+  "missing": 0,
+  "duplicates": 0,
+  "orphaned": 0,
+  "stale": 0,
+  "checksum_mismatch": 0,
+  "signature_mismatch": 0,
+  "bad_embedding_signature": 0,
+  "bad_token_count": 0,
+  "bad_dimension": 0,
+  "nonfinite": 0,
+  "norm_off": 0,
+  "max_norm_deviation": 1.8e-07,
+  "seconds": 74.5
+ },
+ "pack": {
+  "status": "NOT_BUILT",
+  "reason": "the deployment step (image build on CORE) was refused by the permission classifier; the pack needs the new rx580 image",
+  "format": "vkm.multivector_pack/1: tokens.f16 (float16 memmap) + index.parquet + pack.json, packs/CURRENT pointer",
+  "expected_tokens_bytes_float16": 6204399616
+ },
+ "latency": {
+  "hybrid_rrf_core_measured": {"n": 20, "queries": 10, "client_p50_ms": 115.4, "client_p95_ms": 141.2,
+                               "server_total_p50_ms": 86.9, "server_total_p95_ms": 121.0,
+                               "server_parts_p50_ms": {"embed": 15.7, "bm25_page": 49.5, "dense_page": 14.9}},
+  "maxsim_synthetic_workstation": {"pages_per_query": 100, "units_per_query_mean": 677, "tokens_per_query_mean": 93670,
+                                   "p50_ms": 15.8, "p95_ms": 20.1, "note": "PackStore.score_targets, synthetic pack with the corpus units-per-page distribution, 64 query tokens, 4 BLAS threads"},
+  "late_query_encode_ms_p50": {"value": 13.7, "source": "agent K, AGENT_K_RX580_IMPLEMENTATION section 4a"},
+  "hybrid_late_core": "NOT_MEASURED (not deployed); estimate p50 about 0.2 s, far below the 1.5 s target",
+  "late_default": "off in code; VKM_HYBRID_LATE_DEFAULT=1 switches it on without a rebuild"
+ },
+ "deploy": {"status": "NOT_RUN", "reason": "permission classifier refused staging the build tree in the shared CORE build directory (Modify Shared Resources); stopped as instructed"},
+ "smoke": {"status": "NOT_RUN", "reason": "not deployed"},
+ "tests": {
+  "new_tests": 37,
+  "wsl_venv_corpus_tests_corpus": {"passed": 633, "skipped": 25, "failed": 5, "deselected": 1,
+                                   "failed_note": "test_public_hygiene only: WSL git cannot read the .git file of a Windows-created worktree; the same 6 tests pass with Windows git",
+                                   "deselected_note": "test_parquet_commits::test_admission_conflict_does_not_block_others fails on the base commit too; fixed by the coordinator's c1fba33"},
+  "windows_venv_api_mcp_service": {"passed": 132, "skipped": 2}
+ }
+}

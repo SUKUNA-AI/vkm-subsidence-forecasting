@@ -112,7 +112,7 @@ def test_image_without_pack_command_ends_encoded(host):
     assert json.loads((_out(host) / "latest.json").read_text(encoding="utf-8"))["failed_step"] is None
 
 
-def test_encode_failure_and_missing_reload_fail_the_run(host):
+def test_missing_reload_or_wrong_model_fail_the_run(host):
     cfg = host["tmp"] / "lab.json"
     cfg.write_text(json.dumps({"clients": 2, "wait_reload_s": 0}), encoding="utf-8")
     r = _run(host, "--config", str(cfg), "--skip-encode", FAKE_NO_RELOAD="1")
