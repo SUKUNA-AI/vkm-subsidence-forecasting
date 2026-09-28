@@ -264,17 +264,29 @@ class CanonMapper:
             if p.page_status in ("NATIVE_OK",) and primary_origin is None:
                 primary_layer, primary_origin = (file_layer, vocab.TEXT_LAYER_ORIGIN.get(file_layer)) \
                     if file_layer != "NONE" else ("PDF_TEXT_LAYER", "NATIVE")
+            # the page envelope follows its primary text layer (DATA_CONTRACTS §4): OCR text makes the page OCR, with
+            # the recognition model of its primary blocks; a foreign embedded layer makes it EMBEDDED_OCR (H-02)
+            page_models = list(p.models)
+            if primary_origin == "OCR":
+                page_models += [m for b in by_page.get(pid, []) if getattr(b, "is_primary_layer", True)
+                                for m in b.models if m.role == "RECOGNITION"]
+            if self.fmt == "DOCX":
+                page_origin = "DERIVED"
+            elif primary_origin in ("OCR", "EMBEDDED_OCR"):
+                page_origin = primary_origin
+            else:
+                page_origin = "NATIVE"
             prod = ProducerContext(pipeline_version=PIPELINE_VERSION, processing_run_id=self.run_id,
                                    extractor_id="vkm-pipeline", extractor_version="0.1.0",
                                    config_hash=self.hashes.get("page", self.hashes.get("objects")),
                                    raw_config_hash=self.hashes.get("page", self.hashes.get("objects")),
-                                   models=_models(p.models))
+                                   models=_models(page_models))
             for aid in [p.native_raw_artifact_id, p.layout_raw_artifact_id, p.render_artifact_id,
                         p.layout_render_artifact_id] + list(p.ocr_raw_artifact_ids):
                 if aid:
                     self.out.artifact_ids.add(aid)
             env = doc_envelope(self.ctx, prod, object_kind="PAGE", object_id=pid,
-                               origin="DERIVED" if self.fmt == "DOCX" else "NATIVE", created_at=self.now,
+                               origin=page_origin, created_at=self.now,
                                page_id=pid, raw_artifact_id=p.native_raw_artifact_id,
                                quality_flags=_flags(p.quality_flags, "pages"))
             page_class = p.page_class if p.page_class in {c.value for c in vocab.PageClass} else "UNKNOWN"

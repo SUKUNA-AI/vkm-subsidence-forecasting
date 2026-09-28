@@ -544,6 +544,13 @@ class Validator:
             UNION ALL SELECT b.object_id FROM canonical.blocks b JOIN canonical.pages p ON p.page_id = b.page_id
              WHERE p.page_kind = 'DJVU_PAGE' AND b.origin = 'NATIVE'
             LIMIT 20""")
+        self.count_sql("E13", "science", "a page with text carries the origin of its primary text layer; OCR pages "
+                       "name the recognition model (DATA_CONTRACTS §4)", """
+            SELECT page_id FROM canonical.pages
+             WHERE primary_text_origin IN ('OCR', 'EMBEDDED_OCR') AND origin <> primary_text_origin
+            UNION ALL SELECT page_id FROM canonical.pages
+             WHERE primary_text_origin = 'OCR' AND (model_id IS NULL OR model_revision IS NULL)
+            LIMIT 20""", blocking=False)   # v0: reported (WARN); becomes blocking once the corpus is re-assembled
         self.check_page_text()
 
     def check_page_text(self) -> None:

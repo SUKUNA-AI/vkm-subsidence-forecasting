@@ -126,7 +126,7 @@ def commit_signature(cfg: PipelineConfig, cache: Any, src: SourceInput, prep: di
                       "visual_complete": (visual or {}).get("complete"),
                       "configs": {k: cfg.stage_config(k) for k in ("REGIONS", "OCR", "NORMALIZE", "SCENARIO_B")},
                       "ocr_results": _cfg_hash({"ids": calls}), "decision": (decision or {}).get("decision"),
-                      "to_canon": "to_canon_v1"})
+                      "to_canon": "to_canon_v2"})
 
 
 # ---------------------------------------------------------------------------------------------------- commit

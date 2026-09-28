@@ -141,6 +141,10 @@ def test_end_to_end_no_page_loss_and_idempotency(env):
     assert by[1]["page_status"] == "NATIVE_OK" and by[1]["primary_text_origin"] == "NATIVE"
     assert by[3]["page_class"] == "RASTER_SCAN" and by[3]["page_status"] == "OCR_OK"
     assert by[3]["primary_text_origin"] == "OCR" and by[3]["normalized_text"]
+    # the page envelope follows the primary text layer and names the recognition model (DATA_CONTRACTS §4)
+    assert by[3]["origin"] == "OCR" and by[3]["model_id"] and by[3]["model_revision"]
+    assert any(m["role"] == "RECOGNITION" for m in by[3]["models"])
+    assert by[1]["origin"] == "NATIVE" and by[1]["model_id"] is None
     assert by[5]["page_route"] == "NATIVE_REPAIR" and "ENCODING_REPAIRED" not in by[5]["quality_flags"]
     blocks = _rows(env, "blocks", "VKM-SRC-901")
     assert any(b["origin"] == "OCR" and b["region_origin"] == "LAYOUT_MODEL" for b in blocks)
