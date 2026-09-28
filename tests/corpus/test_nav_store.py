@@ -47,9 +47,37 @@ def test_pack_publish_and_serve(tmp_path):
     store.publish(root, SNAP)
     assert nav.snapshot_id() == SNAP and nav.meta()["counts"] == {"sections": 2}
     assert nav.run("outline", "VKM-SRC-901") == [("SEC-0000000000000001", 1), ("SEC-0000000000000002", 2)]
-    hits = nav.search_sections("ползучесть соли")
-    assert hits and hits[0]["section_id"] == "SEC-0000000000000001" and hits[0]["score"] == 2
+    hits = nav.search_sections("ползучести солей")                    # lemmas, not substrings of the query
+    assert hits and hits[0]["section_id"] == "SEC-0000000000000001" and 1.0 <= hits[0]["score"] <= 1.15
     assert nav.search_sections("прочность", source_id="VKM-SRC-901")[0]["level"] == 2
+    assert nav.search_sections("гидрогеология") == [] and nav.search_sections("и в на") == []
+
+
+def test_search_sections_lemmas_key_terms_and_depth(tmp_path):
+    root = tmp_path / "data"
+    (root / "duckdb").mkdir(parents=True)
+    duckdb.connect(str(root / "duckdb" / "vkm_corpus.duckdb")).close()
+    nav_dir = root / "derived" / "navigation" / SNAP
+    nav_dir.mkdir(parents=True)
+    ids = [f"SEC-000000000000000{i}" for i in range(1, 5)]
+    pq.write_table(pa.table({
+        "section_id": ids, "source_id": ["VKM-SRC-901"] * 4, "level": [1, 2, 2, 1],
+        "title": ["Глава 1. Закладка", "1.1 Закладка камер", "1.2 Консолидация", "Глава 2. Прочее"],
+        "title_path": ["Глава 1. Закладка", "Глава 1 › 1.1 Закладка камер", "Глава 1 › 1.2 Консолидация",
+                       "Глава 2. Прочее"],
+        "key_terms": [[], [], ["закладочный массив", "закладка"], []],
+        "page_start_index": [1, 1, 5, 20], "page_end_index": [19, 4, 19, 30],
+        "page_start_id": ["VKM-SRC-901:p0001"] * 4, "page_end_id": ["VKM-SRC-901:p0019"] * 4,
+        "method": ["PDF_OUTLINE"] * 4}), nav_dir / "sections.parquet")
+    store.pack(nav_dir)
+    store.publish(root, SNAP)
+    nav = store.NavStore(root)
+    hits = nav.search_sections("закладки")
+    got = [h["section_id"] for h in hits]
+    assert got[:2] == [ids[1], ids[0]]                    # equal title score: the subsection before the chapter
+    assert ids[2] in got and ids[3] not in got            # a key-term match counts (less than a title)
+    by = {h["section_id"]: h for h in hits}
+    assert by[ids[2]]["score"] < by[ids[0]]["score"] and by[ids[1]]["matched"]
 
 
 def test_missing_query_module_is_unavailable(tmp_path):

@@ -80,6 +80,8 @@ def test_outline_section_search_concept_formulas(env):
     assert _ok(client.get(f"/v1/nav/section/{SEC}", headers=HR))["item"]["envelope"]["source_id"] == "VKM-SRC-001"
     hits = _ok(client.get("/v1/nav/sections", params={"q": "ползучесть"}, headers=HR))["item"]["record"]["items"]
     assert hits[0]["section_id"] == SEC
+    empty = _ok(client.get("/v1/nav/sections", params={"q": "гидрогеология"}, headers=HR))   # 200, not 404
+    assert empty["item"]["record"]["items"] == []
     concept = _ok(client.get("/v1/nav/concept", params={"term": "ползучесть соли"}, headers=HR))
     assert concept["item"]["record"]["neighbours"][0]["term"] == "реология"
     formulas = _ok(client.get("/v1/nav/formulas", params={"concept": "скорость ползучести"}, headers=HR))

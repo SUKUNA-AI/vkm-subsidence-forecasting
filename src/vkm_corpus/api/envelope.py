@@ -29,7 +29,9 @@ ApiObjectKind = Literal["ARTIFACT", "PROCESSING_RUN", "JOB", "RERANK_RESULT", "S
                         # NAV graph in Neo4j (agent G): concept paths and neighbourhoods
                         "NAV_GRAPH_PATHS", "NAV_GRAPH_NEIGHBOURHOOD",
                         # navigation layer (DERIVED, AUTO_EXTRACTED_UNREVIEWED): docs/corpus_platform/NAVIGATION_LAYER.md
-                        "NAV_OUTLINE", "NAV_SECTION", "NAV_SECTIONS", "NAV_FORMULA", "NAV_FORMULAS", "NAV_CONCEPT"]
+                        "NAV_OUTLINE", "NAV_SECTION", "NAV_SECTIONS", "NAV_FORMULA", "NAV_FORMULAS", "NAV_CONCEPT",
+                        # topic dossier (reconstruct_topic): NAV + search + PUBLIC catalogues, navigation not evidence
+                        "TOPIC_DOSSIER"]
 # interpretation flags added by the API (the canonical quality_flags stay as stored)
 API_FLAGS = frozenset({
     "SCOPE_INHERITED_FROM_SOURCE",   # H-18: the area is the source's, not established for this object
@@ -107,7 +109,7 @@ class Provenance(_Model):
 
 
 class Projection(_Model):
-    engine: Literal["opensearch", "neo4j", "navigation"]
+    engine: Literal["opensearch", "neo4j", "navigation", "catalogues"]
     index_or_graph: str | None = None
     build_id: str | None = None
     built_from_snapshot_id: str | None = None

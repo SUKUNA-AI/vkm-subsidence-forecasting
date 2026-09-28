@@ -160,6 +160,19 @@ class ObjectsQueryBody(_Body):
     cursor: str | None = Field(None, max_length=10)
 
 
+class TopicBody(_Body):
+    query: str = Field(min_length=1, max_length=512, description="a topic or question, Russian or English")
+    budget_chars: int = Field(12_000, ge=1_000, le=60_000, description="hard cap of the markdown rendering; the "
+                                                                       "lowest-ranked items are trimmed first")
+    source_ids: list[Annotated[str, Field(pattern=SOURCE_ID)]] = Field(default_factory=list, max_length=20)
+    paraphrases: list[Annotated[str, Field(min_length=1, max_length=512)]] = Field(
+        default_factory=list, max_length=4, description="other wordings of the topic (other terms, English); fused "
+                                                        "with the query by RRF")
+    max_sources: int = Field(10, ge=1, le=50)
+    max_sections: int = Field(12, ge=1, le=50)
+    max_formulas: int = Field(10, ge=0, le=50)
+
+
 class Passage(_Body):
     candidate_id: IdStr
     object_ids: list[IdStr] = Field(min_length=1, max_length=20)
@@ -535,6 +548,33 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                     limit: Annotated[int, Query(ge=1, le=100)] = 20) -> JSONResponse:
         return respond(request, service.nav_concept(term, limit))
 
+    # ---------------------------------------------------------------- topic dossier (navigation + catalogues)
+    @app.get("/v1/topic", tags=["navigation"], **JSON_RESPONSES)
+    def topic_get(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],
+                  budget: Annotated[int, Query(ge=1_000, le=60_000)] = 12_000,
+                  source_id: Annotated[list[Annotated[str, Field(pattern=SOURCE_ID)]] | None,
+                                       Query(max_length=20)] = None,
+                  paraphrase: Annotated[list[Annotated[str, Field(min_length=1, max_length=512)]] | None,
+                                        Query(max_length=4)] = None,
+                  max_sources: Annotated[int, Query(ge=1, le=50)] = 10,
+                  max_sections: Annotated[int, Query(ge=1, le=50)] = 12,
+                  max_formulas: Annotated[int, Query(ge=0, le=50)] = 10) -> JSONResponse:
+        request.state.query_sha256 = hashlib.sha256(q.encode("utf-8")).hexdigest()
+        return respond(request, service.reconstruct_topic(q, budget_chars=budget, source_ids=list(source_id or []),
+                                                          max_sources=max_sources, max_sections=max_sections,
+                                                          max_formulas=max_formulas,
+                                                          paraphrases=list(paraphrase or [])))
+
+    @app.post("/v1/topic", tags=["navigation"], **JSON_RESPONSES)
+    def topic_post(request: Request, body: TopicBody, _auth: Read) -> JSONResponse:
+        request.state.query_sha256 = hashlib.sha256(body.query.encode("utf-8")).hexdigest()
+        return respond(request, service.reconstruct_topic(body.query, budget_chars=body.budget_chars,
+                                                          source_ids=list(body.source_ids),
+                                                          max_sources=body.max_sources,
+                                                          max_sections=body.max_sections,
+                                                          max_formulas=body.max_formulas,
+                                                          paraphrases=list(body.paraphrases)))
+
     @app.get("/v1/provenance/{object_id}", tags=["provenance"], **JSON_RESPONSES)
     def provenance(request: Request, object_id: str, _auth: Read) -> JSONResponse:
         return respond(request, service.provenance(object_id))
@@ -586,7 +626,9 @@ def build_from_settings(settings: Any = None) -> FastAPI:
                    graph=Neo4jBackend(settings) if settings.neo4j_uri else None,
                    rerank=GatewayRerankBackend(settings) if settings.rerank_url else None,
                    control=PgControlPlane(settings) if settings.pg_dsn else None)
+    from vkm_corpus.catalogues.store import CatalogueStore
     from vkm_corpus.navigation.store import NavStore
 
     deps.nav = NavStore(root)                  # served only once derived/navigation/CURRENT is published
+    deps.catalogues = CatalogueStore(root)     # served only once derived/catalogues/CURRENT is published
     return create_app(ApiService(deps), ApiConfig.from_settings(settings))

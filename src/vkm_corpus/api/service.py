@@ -81,6 +81,8 @@ class ApiDeps:
     control: ControlPlane | None = None
     hybrid: HybridBackend | None = None
     nav: Any = None                     # vkm_corpus.navigation.store.NavStore (navigation layer, optional)
+    catalogues: Any = None              # vkm_corpus.catalogues.store.CatalogueStore (PUBLIC catalogues, optional)
+    topic_retrieval: Any = None         # retrieval of the topic dossier (api.topic.TopicRetrieval); None → hybrid
 
 
 def _require(dep: Any, name: str, stage: str) -> Any:
@@ -100,6 +102,7 @@ def _window(text: str | None, offset: int, max_chars: int) -> tuple[str | None, 
 class ApiService:
     def __init__(self, deps: ApiDeps) -> None:
         self.deps = deps
+        self._topic_cache: dict[str, Any] = {}           # section index of the served NAV build (topic dossier)
         self._search_status: tuple[float, dict[str, Any]] | None = None
         self._snapshot_cache: tuple[str | None, dict[str, str | None], dict[str, dict[str, Any]] | None] = (
             None, {}, None)
@@ -878,8 +881,12 @@ class ApiService:
                              tool="nav") from exc
 
     def _nav_result(self, kind: str, object_id: str, data: Any, nav_snapshot: str | None, *,
-                    source_id: str | None = None, page_id: str | None = None) -> Result:
-        if data is None or data == [] or data == {}:
+                    source_id: str | None = None, page_id: str | None = None, search: bool = False) -> Result:
+        """A NAV answer; a lookup of one object that is not there is NOT_FOUND, a search without hits is an empty
+        list (200)."""
+        if search and not data:
+            data = []
+        elif data is None or data == [] or data == {}:
             raise ApiFailure("NOT_FOUND", f"{object_id} is not in the navigation layer", stage="navigation",
                              tool="nav")
         record = data if isinstance(data, dict) else {"items": data}
@@ -913,7 +920,7 @@ class ApiService:
         if source_id:
             self._check("source", source_id)
         data, snap = self._nav_run(lambda nav: nav.search_sections(text, source_id=source_id, limit=limit))
-        return self._nav_result("NAV_SECTIONS", f"search:{text[:60]}", data or [], snap)
+        return self._nav_result("NAV_SECTIONS", f"search:{text[:60]}", data or [], snap, search=True)
 
     def nav_formula(self, formula_id: str) -> Result:
         self._check("object", formula_id)
@@ -932,13 +939,62 @@ class ApiService:
         data, snap = self._nav_run(lambda nav: nav.run("find_formulas", concept=concept, symbol=symbol,
                                                        source_id=source_id))
         items = list(data or [])[:limit] if not isinstance(data, dict) else data
-        return self._nav_result("NAV_FORMULAS", f"formulas:{concept or symbol}", items, snap, source_id=source_id)
+        return self._nav_result("NAV_FORMULAS", f"formulas:{concept or symbol}", items, snap, source_id=source_id,
+                                search=True)
 
     def nav_concept(self, term: str, limit: int) -> Result:
         if not term or not term.strip() or len(term) > 200:
             raise ApiFailure("INVALID_ARGUMENT", "term is 1..200 characters")
         data, snap = self._nav_run(lambda nav: nav.run("explore_concept", term, limit=limit))
         return self._nav_result("NAV_CONCEPT", f"concept:{term[:60]}", data, snap)
+
+    # ------------------------------------------------------------------ topic dossier (navigation + catalogues)
+    def reconstruct_topic(self, query: str, *, budget_chars: int = 12_000, source_ids: list[str] | None = None,
+                          max_sources: int = 10, max_sections: int = 12, max_formulas: int = 10,
+                          paraphrases: list[str] | None = None) -> Result:
+        """«От А до Я» on a topic in one call: ranked NAV sections in two tiers (the VKM core and the rest of the
+        corpus; hybrid search over ≤ 5 formulations fused by RRF + titles), formulas, figures and tables near the
+        hits, the concept, sources with provenance and CITES, the PUBLIC catalogues (processes with evidence records,
+        models, conflicts, causal neighbours) and the UNKNOWN gaps — a budgeted, cited map (``api.topic``);
+        navigation, not evidence. Parts whose dependency is missing are left out with a warning."""
+        from vkm_corpus.api import topic
+
+        query = (query or "").strip()
+        if not query or len(query) > 512:
+            raise ApiFailure("INVALID_ARGUMENT", "query is 1..512 characters")
+        paraphrases = [p.strip() for p in (paraphrases or []) if p and p.strip()]
+        if len(paraphrases) > topic.MAX_PARAPHRASES or any(len(p) > 512 for p in paraphrases):
+            raise ApiFailure("INVALID_ARGUMENT", f"at most {topic.MAX_PARAPHRASES} paraphrases of ≤ 512 characters")
+        if not topic.MIN_BUDGET <= int(budget_chars) <= topic.MAX_BUDGET:
+            raise ApiFailure("INVALID_ARGUMENT", f"budget_chars must be {topic.MIN_BUDGET}…{topic.MAX_BUDGET}")
+        if not (1 <= max_sources <= 50 and 1 <= max_sections <= 50 and 0 <= max_formulas <= 50):
+            raise ApiFailure("INVALID_ARGUMENT", "max_sources and max_sections 1…50, max_formulas 0…50")
+        sources = sorted(set(source_ids or []))
+        if len(sources) > 20:
+            raise ApiFailure("INVALID_ARGUMENT", "at most 20 source ids")
+        for sid in sources:
+            self._check("source", sid)
+        canon_snapshot = self.canon.snapshot_id()          # SNAPSHOT_UNAVAILABLE without a canon: no dossier
+        builder = topic.DossierBuilder(self.canon, self.deps.nav, self.deps.catalogues,
+                                       topic.make_retrieval(self.deps.topic_retrieval, self.deps.hybrid),
+                                       cache=self._topic_cache)
+        dossier = builder.build(topic.TopicRequest(query=query, budget_chars=int(budget_chars),
+                                                   source_ids=tuple(sources), max_sources=max_sources,
+                                                   max_sections=max_sections, max_formulas=max_formulas,
+                                                   paraphrases=tuple(paraphrases)))
+        proj = dossier.projection or {}
+        built_from = proj.get("built_from_snapshot_id")
+        envelope = Envelope(
+            object_id=topic.dossier_id(query, sources), object_kind="TOPIC_DOSSIER",
+            review_status="AUTO_EXTRACTED_UNREVIEWED", layer="PROJECTION", payload_form="NORMALIZED",
+            origin="DERIVED", canonical_snapshot_id=canon_snapshot,
+            source_id=sources[0] if len(sources) == 1 else None,
+            projection=Projection(engine=proj.get("engine", "navigation"), index_or_graph=proj.get("index_or_graph"),
+                                  build_id=proj.get("build_id"), built_from_snapshot_id=built_from,
+                                  matches_canonical_snapshot=None if built_from is None else
+                                  built_from == canon_snapshot))
+        warnings = [ApiWarning(code=w["code"], message=w["message"], count=w.get("count")) for w in dossier.warnings]
+        return Result(item=Item(envelope=envelope, record=jsonable(dossier.record)), warnings=warnings)
 
     def citations(self, work_id: str, direction: str, include_unlinked: bool, limit: int) -> Result:
         self._check("work", work_id)

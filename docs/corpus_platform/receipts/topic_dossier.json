@@ -1,0 +1,1686 @@
+{
+ "receipt": "topic_dossier",
+ "agent": "D",
+ "date": "2026-09-28",
+ "branch": "claude/agent-d-topic-dossier-2026-09-28",
+ "commits": {
+  "catalogues pack/store/CLI": "58cc8ac",
+  "api + mcp reconstruct_topic (v1)": "5417c31",
+  "tests (v1)": "40296d7",
+  "refinements after the v1 dry run": "c46d7a3",
+  "get_topic detail": "94200a7",
+  "docs and receipt (v1)": "605e9c6",
+  "search_sections by lemmas (benchmark finding)": "8f3510e",
+  "dossier v2: formulations + RRF, two tiers, visual evidence, nav empty search 200": "4b2541c"
+ },
+ "status": "DERIVED navigation map (AUTO_EXTRACTED_UNREVIEWED); catalogue records keep their own status, scope and scale; gaps are UNKNOWN and never filled; snippets exist only in API answers (none here)",
+ "code": {
+  "dossier": "src/vkm_corpus/api/topic.py (rule topic_dossier_v2)",
+  "service": "ApiService.reconstruct_topic (src/vkm_corpus/api/service.py)",
+  "routes": "GET /v1/topic?q=&budget=&source_id=&paraphrase= ; POST /v1/topic {query, budget_chars, source_ids, paraphrases, max_*}",
+  "mcp_tool": "reconstruct_topic(query, budget_chars, source_ids, paraphrases) on the vkm-corpus read server: text = markdown, structured = ApiResponse",
+  "nav_search": "NavStore.search_sections: lemmas (pymorphy3 with the navigation extra) in title, key_terms and path, idf-weighted; deeper sections first; empty search = 200 + []",
+  "catalogues": "src/vkm_corpus/catalogues/ (pack, publish, CatalogueStore, CLI `vkm-corpus catalogues`)",
+  "envelope": "object_kind TOPIC_DOSSIER, layer PROJECTION, origin DERIVED; Projection.engine += catalogues"
+ },
+ "v2_changes_from_the_topic_benchmark": [
+  "up to 5 formulations (query, caller paraphrases <= 4, concept synonyms, query + 2 concept neighbours), each searched over the VKM core tier and the whole corpus, fused by RRF (k=60) per tier within the old page budget (core 50, rest 25 pages)",
+  "two tiers: core = sources named by the evidence catalogues (source_coverage_master, process_evidence_links, model registry, coverage matrix) + register scope VKM/SKRU/BKPRU/Solikamsk/Usolsk (mapped or verbatim); sections, sources and pages shown per tier",
+  "the concept widens the query and strengthens sections found otherwise; it adds no sections of its own",
+  "search_sections by lemmas with key_terms; deeper sections before chapters; /v1/nav/sections and /v1/nav/formulas answer an empty search with 200 and []",
+  "visual evidence: figure captions and table headers with the query words on and next to the hit pages; «где…» definitions near the hits"
+ ],
+ "catalogue_pack": {
+  "pack_id": "82a9493531a6",
+  "git_commit": "82a9493531a6da5cad0ff0b8dfb635a75b5c1f89",
+  "working_tree": "clean",
+  "n_files": 79,
+  "n_rows": 53943,
+  "content_sha256": "ac9fd7eca10ac77687d29b58da761f003fed8b49b62df58a6ebabb653e2134a3",
+  "db_sha256": "6ce97974e517bda65b02fbd7e791f5c47033e122a0bf8fc5a6c8328b9adaacb0",
+  "db_bytes": 35139584,
+  "pack_seconds": 3.1,
+  "tables": 79,
+  "roots": [
+   "catalogues",
+   "evidence"
+  ],
+  "note": "every CSV of catalogues/ and evidence/; row counts equal csv.reader counts (test)"
+ },
+ "dry_run": {
+  "where": "workstation (WSL), a separate dry-run data root: symlinks to the read-only canon copy and to the full NAV build, the catalogue pack published into it; CORE and EDGE untouched",
+  "canonical_snapshot_id": "snap-20260928T160616Z-5d669f09",
+  "nav_build": {
+   "snapshot_id": "snap-20260928T160616Z-5d669f09",
+   "sections": 9105,
+   "section_pages": 27270,
+   "formula_context": 108904,
+   "formula_symbols": 338625,
+   "formula_refs": 16112,
+   "formula_parameters": 2106,
+   "terms": 96205,
+   "term_mentions": 1579906,
+   "term_edges": 1563617,
+   "morphology": "pymorphy3 (venv with the navigation extra)"
+  },
+  "core_tier": {
+   "sources": 144,
+   "of_register": 251,
+   "note": "143 before the verbatim-scope rule; the one added source has an unmapped register scope listing SKRU mines and is not named by the catalogues"
+  },
+  "retrieval": "the hybrid search runs on CORE and is not reachable from the workstation: NAV_ONLY dossiers and the full path with a lexical page-scan stand-in (a DuckDB regex scan: pages with the most query stems, then the most occurrences) — a dry-run aid, not the product retrieval; its timings (retrieval 3-6 s) are the scan's",
+  "budget_chars": 12000,
+  "nav_only": [
+   {
+    "query": "начальные напряжения",
+    "mode": "NAV_ONLY",
+    "formulations": [
+     "query",
+     "synonyms",
+     "neighbours"
+    ],
+    "markdown_chars": 11845,
+    "wall_ms": 10954.0,
+    "timings_ms": {
+     "concept": 362.3,
+     "retrieval": 0.1,
+     "sections": 1321.2,
+     "formulas": 432.9,
+     "visual": 281.7,
+     "topics": 0.0,
+     "sources": 8046.3,
+     "catalogues": 145.8,
+     "total": 10885.6
+    },
+    "warnings": [
+     "CITES_PENDING",
+     "RETRIEVAL_UNAVAILABLE"
+    ],
+    "pages": {
+     "core": 50,
+     "rest": 22
+    },
+    "counts": {
+     "sections": 9,
+     "sections_by_tier": {
+      "CORE": 6,
+      "REST": 3
+     },
+     "sources_by_tier": {
+      "CORE": 2,
+      "REST": 0
+     },
+     "visual": 1,
+     "formulas": 2,
+     "concept": true,
+     "topics": 0,
+     "sources": 2,
+     "processes": 4,
+     "models": 1,
+     "conflicts": 2,
+     "evidence_rows": 0,
+     "operators": 0,
+     "causal": 0,
+     "gaps": 10
+    },
+    "gaps_by_coverage": {
+     "CURATED_GAP": 4,
+     "LINKED_OTHER_SCOPE": 2,
+     "NO_LINKED_RECORD": 4
+    },
+    "trimmed": {
+     "causal": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 47
+     },
+     "evidence": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 2
+     },
+     "formulas": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 151
+     },
+     "visual": {
+      "dropped_by_budget": 7
+     },
+     "sources_core": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 9
+     },
+     "models": {
+      "dropped_by_budget": 5,
+      "beyond_limits": 14
+     },
+     "operators": {
+      "dropped_by_budget": 2
+     },
+     "sources_rest": {
+      "dropped_by_budget": 5
+     },
+     "sections_core": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 137
+     },
+     "conflicts": {
+      "dropped_by_budget": 4,
+      "beyond_limits": 2
+     },
+     "concept": {
+      "dropped_by_budget": 1
+     },
+     "sections_rest": {
+      "dropped_by_budget": 3,
+      "beyond_limits": 84
+     },
+     "gaps": {
+      "dropped_by_budget": 6
+     },
+     "processes": {
+      "dropped_by_budget": 2,
+      "beyond_limits": 3
+     }
+    },
+    "section_ids": [
+     "SEC-fb27ee166a7c4147",
+     "SEC-efec9064e60c7ed1",
+     "SEC-55ac73f0a7251c04",
+     "SEC-8731366e3519b53e",
+     "SEC-3d907b3660897fac",
+     "SEC-12a8094870cc8e5c",
+     "SEC-3f6cc799e069e2a9",
+     "SEC-68aa28ba4260a0bb",
+     "SEC-efc191cfc554e018"
+    ],
+    "process_ids": [
+     "PC-02",
+     "PC-03",
+     "PC-05",
+     "PC-01"
+    ]
+   },
+   {
+    "query": "закладка",
+    "mode": "NAV_ONLY",
+    "formulations": [
+     "query",
+     "synonyms",
+     "neighbours"
+    ],
+    "markdown_chars": 11957,
+    "wall_ms": 2105.5,
+    "timings_ms": {
+     "concept": 220.8,
+     "retrieval": 0.1,
+     "sections": 673.0,
+     "formulas": 570.3,
+     "visual": 327.2,
+     "topics": 0.0,
+     "sources": 49.9,
+     "catalogues": 71.2,
+     "total": 2104.6
+    },
+    "warnings": [
+     "CITES_PENDING",
+     "RETRIEVAL_UNAVAILABLE"
+    ],
+    "pages": {
+     "core": 46,
+     "rest": 25
+    },
+    "counts": {
+     "sections": 9,
+     "sections_by_tier": {
+      "CORE": 6,
+      "REST": 3
+     },
+     "sources_by_tier": {
+      "CORE": 2,
+      "REST": 0
+     },
+     "visual": 1,
+     "formulas": 3,
+     "concept": true,
+     "topics": 0,
+     "sources": 2,
+     "processes": 4,
+     "models": 1,
+     "conflicts": 2,
+     "evidence_rows": 0,
+     "operators": 0,
+     "causal": 0,
+     "gaps": 12
+    },
+    "gaps_by_coverage": {
+     "CURATED_GAP": 4,
+     "LINKED_OTHER_SCOPE": 2,
+     "NOT_MATCHED": 3,
+     "NO_LINKED_RECORD": 3
+    },
+    "trimmed": {
+     "causal": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 31
+     },
+     "evidence": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 193
+     },
+     "formulas": {
+      "dropped_by_budget": 7,
+      "beyond_limits": 37
+     },
+     "visual": {
+      "dropped_by_budget": 7,
+      "beyond_limits": 5
+     },
+     "sources_core": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 2
+     },
+     "models": {
+      "dropped_by_budget": 5,
+      "beyond_limits": 7
+     },
+     "operators": {
+      "dropped_by_budget": 2
+     },
+     "sources_rest": {
+      "dropped_by_budget": 5
+     },
+     "sections_core": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 8
+     },
+     "conflicts": {
+      "dropped_by_budget": 4,
+      "beyond_limits": 4
+     },
+     "concept": {
+      "dropped_by_budget": 1
+     },
+     "sections_rest": {
+      "dropped_by_budget": 3,
+      "beyond_limits": 42
+     },
+     "gaps": {
+      "dropped_by_budget": 6
+     },
+     "processes": {
+      "dropped_by_budget": 2,
+      "beyond_limits": 6
+     }
+    },
+    "section_ids": [
+     "SEC-6c2ce7538d33a8be",
+     "SEC-0530ee58785c3e0c",
+     "SEC-603dfa5241e55895",
+     "SEC-ba9ceb9dda2f6d7f",
+     "SEC-7aa92127e3b8d7f0",
+     "SEC-22af63fa7adc68ea",
+     "SEC-20d435c36018dcc6",
+     "SEC-ab266fd2d8c1ecf6",
+     "SEC-4604ce4069b8703c"
+    ],
+    "process_ids": [
+     "PC-39",
+     "PC-38",
+     "PC-37",
+     "PC-40"
+    ]
+   },
+   {
+    "query": "гипотезы начальных напряжений",
+    "mode": "NAV_ONLY",
+    "formulations": [
+     "query",
+     "synonyms",
+     "neighbours"
+    ],
+    "markdown_chars": 11930,
+    "wall_ms": 2513.8,
+    "timings_ms": {
+     "concept": 327.7,
+     "retrieval": 0.1,
+     "sections": 820.6,
+     "formulas": 666.3,
+     "visual": 386.1,
+     "topics": 0.0,
+     "sources": 42.3,
+     "catalogues": 89.3,
+     "total": 2512.4
+    },
+    "warnings": [
+     "CITES_PENDING",
+     "RETRIEVAL_UNAVAILABLE"
+    ],
+    "pages": {
+     "core": 50,
+     "rest": 25
+    },
+    "counts": {
+     "sections": 9,
+     "sections_by_tier": {
+      "CORE": 6,
+      "REST": 3
+     },
+     "sources_by_tier": {
+      "CORE": 2,
+      "REST": 0
+     },
+     "visual": 1,
+     "formulas": 2,
+     "concept": true,
+     "topics": 0,
+     "sources": 2,
+     "processes": 4,
+     "models": 1,
+     "conflicts": 2,
+     "evidence_rows": 0,
+     "operators": 0,
+     "causal": 0,
+     "gaps": 10
+    },
+    "gaps_by_coverage": {
+     "CURATED_GAP": 4,
+     "LINKED_OTHER_SCOPE": 2,
+     "NO_LINKED_RECORD": 4
+    },
+    "trimmed": {
+     "causal": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 40
+     },
+     "formulas": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 216
+     },
+     "evidence": {
+      "dropped_by_budget": 5
+     },
+     "sources_core": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 7
+     },
+     "models": {
+      "dropped_by_budget": 5,
+      "beyond_limits": 6
+     },
+     "operators": {
+      "dropped_by_budget": 2
+     },
+     "sections_core": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 136
+     },
+     "sources_rest": {
+      "dropped_by_budget": 4
+     },
+     "conflicts": {
+      "dropped_by_budget": 4,
+      "beyond_limits": 1
+     },
+     "concept": {
+      "dropped_by_budget": 1
+     },
+     "sections_rest": {
+      "dropped_by_budget": 3,
+      "beyond_limits": 82
+     },
+     "visual": {
+      "dropped_by_budget": 3
+     },
+     "gaps": {
+      "dropped_by_budget": 6
+     },
+     "processes": {
+      "dropped_by_budget": 2,
+      "beyond_limits": 3
+     }
+    },
+    "section_ids": [
+     "SEC-fb27ee166a7c4147",
+     "SEC-55ac73f0a7251c04",
+     "SEC-8731366e3519b53e",
+     "SEC-12a8094870cc8e5c",
+     "SEC-6178024ab2f21b65",
+     "SEC-8568473919b65a2e",
+     "SEC-72546a045959b579",
+     "SEC-efc191cfc554e018",
+     "SEC-3eecf441839dc124"
+    ],
+    "process_ids": [
+     "PC-03",
+     "PC-02",
+     "PC-01",
+     "PC-05"
+    ]
+   },
+   {
+    "query": "механика закладки",
+    "mode": "NAV_ONLY",
+    "formulations": [
+     "query",
+     "synonyms",
+     "neighbours"
+    ],
+    "markdown_chars": 11959,
+    "wall_ms": 2320.7,
+    "timings_ms": {
+     "concept": 292.8,
+     "retrieval": 0.1,
+     "sections": 803.8,
+     "formulas": 610.8,
+     "visual": 321.5,
+     "topics": 0.0,
+     "sources": 50.5,
+     "catalogues": 70.5,
+     "total": 2319.9
+    },
+    "warnings": [
+     "CITES_PENDING",
+     "RETRIEVAL_UNAVAILABLE"
+    ],
+    "pages": {
+     "core": 50,
+     "rest": 25
+    },
+    "counts": {
+     "sections": 9,
+     "sections_by_tier": {
+      "CORE": 6,
+      "REST": 3
+     },
+     "sources_by_tier": {
+      "CORE": 2,
+      "REST": 0
+     },
+     "visual": 1,
+     "formulas": 3,
+     "concept": true,
+     "topics": 0,
+     "sources": 2,
+     "processes": 4,
+     "models": 1,
+     "conflicts": 2,
+     "evidence_rows": 0,
+     "operators": 0,
+     "causal": 0,
+     "gaps": 11
+    },
+    "gaps_by_coverage": {
+     "CURATED_GAP": 4,
+     "LINKED_OTHER_SCOPE": 2,
+     "NOT_MATCHED": 2,
+     "NO_LINKED_RECORD": 3
+    },
+    "trimmed": {
+     "causal": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 31
+     },
+     "evidence": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 191
+     },
+     "formulas": {
+      "dropped_by_budget": 7,
+      "beyond_limits": 65
+     },
+     "visual": {
+      "dropped_by_budget": 7,
+      "beyond_limits": 3
+     },
+     "sources_core": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 3
+     },
+     "models": {
+      "dropped_by_budget": 5,
+      "beyond_limits": 8
+     },
+     "operators": {
+      "dropped_by_budget": 2
+     },
+     "sources_rest": {
+      "dropped_by_budget": 5
+     },
+     "sections_core": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 41
+     },
+     "conflicts": {
+      "dropped_by_budget": 4,
+      "beyond_limits": 6
+     },
+     "concept": {
+      "dropped_by_budget": 1
+     },
+     "sections_rest": {
+      "dropped_by_budget": 3,
+      "beyond_limits": 49
+     },
+     "gaps": {
+      "dropped_by_budget": 7
+     },
+     "processes": {
+      "dropped_by_budget": 2,
+      "beyond_limits": 3
+     }
+    },
+    "section_ids": [
+     "SEC-ba9ceb9dda2f6d7f",
+     "SEC-22af63fa7adc68ea",
+     "SEC-603dfa5241e55895",
+     "SEC-d8720169a18a2863",
+     "SEC-6c2ce7538d33a8be",
+     "SEC-0530ee58785c3e0c",
+     "SEC-20d435c36018dcc6",
+     "SEC-4604ce4069b8703c",
+     "SEC-41d9cab5682a6b7d"
+    ],
+    "process_ids": [
+     "PC-39",
+     "PC-37",
+     "PC-38",
+     "PC-40"
+    ]
+   },
+   {
+    "query": "ползучесть каменной соли",
+    "mode": "NAV_ONLY",
+    "formulations": [
+     "query",
+     "neighbours"
+    ],
+    "markdown_chars": 11715,
+    "wall_ms": 2124.2,
+    "timings_ms": {
+     "concept": 234.5,
+     "retrieval": 0.0,
+     "sections": 650.6,
+     "formulas": 519.2,
+     "visual": 343.6,
+     "topics": 0.0,
+     "sources": 61.9,
+     "catalogues": 105.4,
+     "total": 2123.4
+    },
+    "warnings": [
+     "CITES_PENDING",
+     "RETRIEVAL_UNAVAILABLE"
+    ],
+    "pages": {
+     "core": 50,
+     "rest": 25
+    },
+    "counts": {
+     "sections": 9,
+     "sections_by_tier": {
+      "CORE": 6,
+      "REST": 3
+     },
+     "sources_by_tier": {
+      "CORE": 3,
+      "REST": 0
+     },
+     "visual": 1,
+     "formulas": 3,
+     "concept": true,
+     "topics": 0,
+     "sources": 3,
+     "processes": 4,
+     "models": 1,
+     "conflicts": 2,
+     "evidence_rows": 0,
+     "operators": 0,
+     "causal": 0,
+     "gaps": 10
+    },
+    "gaps_by_coverage": {
+     "CURATED_GAP": 3,
+     "LINKED_OTHER_SCOPE": 2,
+     "NOT_MATCHED": 2,
+     "NO_LINKED_RECORD": 3
+    },
+    "trimmed": {
+     "causal": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 29
+     },
+     "evidence": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 93
+     },
+     "formulas": {
+      "dropped_by_budget": 7,
+      "beyond_limits": 81
+     },
+     "visual": {
+      "dropped_by_budget": 7,
+      "beyond_limits": 9
+     },
+     "sources_core": {
+      "dropped_by_budget": 7,
+      "beyond_limits": 1
+     },
+     "models": {
+      "dropped_by_budget": 5,
+      "beyond_limits": 9
+     },
+     "operators": {
+      "dropped_by_budget": 2
+     },
+     "sources_rest": {
+      "dropped_by_budget": 5
+     },
+     "sections_core": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 234
+     },
+     "concept": {
+      "dropped_by_budget": 1
+     },
+     "sections_rest": {
+      "dropped_by_budget": 3,
+      "beyond_limits": 13
+     },
+     "gaps": {
+      "dropped_by_budget": 9
+     },
+     "conflicts": {
+      "dropped_by_budget": 2
+     },
+     "processes": {
+      "dropped_by_budget": 2,
+      "beyond_limits": 8
+     }
+    },
+    "section_ids": [
+     "SEC-1e55dc83409d0d18",
+     "SEC-4a844c068aef9293",
+     "SEC-6a4bc5133b91c56b",
+     "SEC-31f8d89fb590a1ff",
+     "SEC-ade25bb52c54e07b",
+     "SEC-19115f3f4b978016",
+     "SEC-514befdd33a15d78",
+     "SEC-bf685212b7806788",
+     "SEC-6b79d3682bca7023"
+    ],
+    "process_ids": [
+     "PC-13",
+     "PC-18",
+     "PC-26",
+     "PC-20"
+    ]
+   }
+  ],
+  "full_path_lexical_stand_in": [
+   {
+    "query": "начальные напряжения",
+    "hard_group": "INIT",
+    "paraphrases": [
+     "напряжённое состояние нетронутого массива",
+     "коэффициент бокового распора"
+    ],
+    "mode": "FULL",
+    "formulations": [
+     "query",
+     "paraphrase",
+     "paraphrase",
+     "synonyms",
+     "neighbours"
+    ],
+    "markdown_chars": 11953,
+    "wall_ms": 16791.5,
+    "timings_ms": {
+     "concept": 356.9,
+     "retrieval": 5081.5,
+     "sections": 2002.6,
+     "formulas": 548.5,
+     "visual": 438.2,
+     "topics": 0.0,
+     "sources": 8041.4,
+     "catalogues": 155.1,
+     "total": 16731.3
+    },
+    "warnings": [
+     "CITES_PENDING"
+    ],
+    "pages": {
+     "core": 50,
+     "rest": 25
+    },
+    "counts": {
+     "sections": 8,
+     "sections_by_tier": {
+      "CORE": 6,
+      "REST": 2
+     },
+     "sources_by_tier": {
+      "CORE": 2,
+      "REST": 0
+     },
+     "visual": 1,
+     "formulas": 2,
+     "concept": true,
+     "topics": 0,
+     "sources": 2,
+     "processes": 4,
+     "models": 1,
+     "conflicts": 2,
+     "evidence_rows": 0,
+     "operators": 0,
+     "causal": 0,
+     "gaps": 10
+    },
+    "gaps_by_coverage": {
+     "CURATED_GAP": 4,
+     "LINKED_OTHER_SCOPE": 3,
+     "NO_LINKED_RECORD": 3
+    },
+    "trimmed": {
+     "causal": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 46
+     },
+     "evidence": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 6
+     },
+     "formulas": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 111
+     },
+     "visual": {
+      "dropped_by_budget": 7,
+      "beyond_limits": 15
+     },
+     "sources_core": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 18
+     },
+     "models": {
+      "dropped_by_budget": 5,
+      "beyond_limits": 12
+     },
+     "operators": {
+      "dropped_by_budget": 2
+     },
+     "sources_rest": {
+      "dropped_by_budget": 5,
+      "beyond_limits": 4
+     },
+     "sections_core": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 229
+     },
+     "conflicts": {
+      "dropped_by_budget": 4,
+      "beyond_limits": 2
+     },
+     "concept": {
+      "dropped_by_budget": 1
+     },
+     "sections_rest": {
+      "dropped_by_budget": 4,
+      "beyond_limits": 123
+     },
+     "gaps": {
+      "dropped_by_budget": 4
+     },
+     "processes": {
+      "dropped_by_budget": 2,
+      "beyond_limits": 5
+     }
+    },
+    "section_ids": [
+     "SEC-fb27ee166a7c4147",
+     "SEC-5f7f09bb8d9da18c",
+     "SEC-3e7fc918d3347de9",
+     "SEC-efec9064e60c7ed1",
+     "SEC-dd7c8b910bb7846f",
+     "SEC-4be2897c0e83cd45",
+     "SEC-353a19018ad28778",
+     "SEC-3eecf441839dc124"
+    ],
+    "process_ids": [
+     "PC-03",
+     "PC-02",
+     "PC-04",
+     "PC-01"
+    ]
+   },
+   {
+    "query": "закладка",
+    "hard_group": "BACKFILL",
+    "paraphrases": [
+     "закладка выработанного пространства",
+     "гидравлическая закладка камер"
+    ],
+    "mode": "FULL",
+    "formulations": [
+     "query",
+     "paraphrase",
+     "paraphrase",
+     "neighbours"
+    ],
+    "markdown_chars": 11896,
+    "wall_ms": 7660.7,
+    "timings_ms": {
+     "concept": 126.5,
+     "retrieval": 4716.4,
+     "sections": 1706.9,
+     "formulas": 513.8,
+     "visual": 494.0,
+     "topics": 0.0,
+     "sources": 42.2,
+     "catalogues": 55.3,
+     "total": 7659.8
+    },
+    "warnings": [
+     "CITES_PENDING"
+    ],
+    "pages": {
+     "core": 50,
+     "rest": 25
+    },
+    "counts": {
+     "sections": 8,
+     "sections_by_tier": {
+      "CORE": 6,
+      "REST": 2
+     },
+     "sources_by_tier": {
+      "CORE": 2,
+      "REST": 0
+     },
+     "visual": 0,
+     "formulas": 2,
+     "concept": true,
+     "topics": 0,
+     "sources": 2,
+     "processes": 4,
+     "models": 1,
+     "conflicts": 2,
+     "evidence_rows": 0,
+     "operators": 0,
+     "causal": 0,
+     "gaps": 9
+    },
+    "gaps_by_coverage": {
+     "CURATED_GAP": 3,
+     "LINKED_OTHER_SCOPE": 2,
+     "NOT_MATCHED": 2,
+     "NO_LINKED_RECORD": 2
+    },
+    "trimmed": {
+     "causal": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 31
+     },
+     "evidence": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 193
+     },
+     "formulas": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 294
+     },
+     "visual": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 21
+     },
+     "sources_core": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 14
+     },
+     "models": {
+      "dropped_by_budget": 5,
+      "beyond_limits": 7
+     },
+     "operators": {
+      "dropped_by_budget": 2
+     },
+     "sources_rest": {
+      "dropped_by_budget": 5,
+      "beyond_limits": 2
+     },
+     "sections_core": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 65
+     },
+     "conflicts": {
+      "dropped_by_budget": 4,
+      "beyond_limits": 4
+     },
+     "concept": {
+      "dropped_by_budget": 1
+     },
+     "sections_rest": {
+      "dropped_by_budget": 4,
+      "beyond_limits": 54
+     },
+     "gaps": {
+      "dropped_by_budget": 9
+     },
+     "processes": {
+      "dropped_by_budget": 2,
+      "beyond_limits": 6
+     }
+    },
+    "section_ids": [
+     "SEC-6c2ce7538d33a8be",
+     "SEC-0530ee58785c3e0c",
+     "SEC-7aa92127e3b8d7f0",
+     "SEC-603dfa5241e55895",
+     "SEC-097d1352ea5ad3aa",
+     "SEC-ba9ceb9dda2f6d7f",
+     "SEC-ab266fd2d8c1ecf6",
+     "SEC-20d435c36018dcc6"
+    ],
+    "process_ids": [
+     "PC-39",
+     "PC-38",
+     "PC-40",
+     "PC-37"
+    ]
+   },
+   {
+    "query": "ползучесть каменной соли",
+    "hard_group": "RHEO",
+    "paraphrases": [
+     "реологические свойства соляных пород",
+     "длительная прочность соли"
+    ],
+    "mode": "FULL",
+    "formulations": [
+     "query",
+     "paraphrase",
+     "paraphrase",
+     "neighbours"
+    ],
+    "markdown_chars": 11715,
+    "wall_ms": 6286.0,
+    "timings_ms": {
+     "concept": 175.2,
+     "retrieval": 3916.1,
+     "sections": 1129.6,
+     "formulas": 493.4,
+     "visual": 457.8,
+     "topics": 0.0,
+     "sources": 37.4,
+     "catalogues": 72.7,
+     "total": 6285.5
+    },
+    "warnings": [
+     "CITES_PENDING"
+    ],
+    "pages": {
+     "core": 50,
+     "rest": 8
+    },
+    "counts": {
+     "sections": 8,
+     "sections_by_tier": {
+      "CORE": 6,
+      "REST": 2
+     },
+     "sources_by_tier": {
+      "CORE": 2,
+      "REST": 0
+     },
+     "visual": 1,
+     "formulas": 2,
+     "concept": true,
+     "topics": 0,
+     "sources": 2,
+     "processes": 4,
+     "models": 1,
+     "conflicts": 2,
+     "evidence_rows": 0,
+     "operators": 0,
+     "causal": 0,
+     "gaps": 10
+    },
+    "gaps_by_coverage": {
+     "CURATED_GAP": 3,
+     "LINKED_OTHER_SCOPE": 2,
+     "NOT_MATCHED": 1,
+     "NO_LINKED_RECORD": 4
+    },
+    "trimmed": {
+     "causal": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 21
+     },
+     "evidence": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 81
+     },
+     "formulas": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 85
+     },
+     "visual": {
+      "dropped_by_budget": 7,
+      "beyond_limits": 50
+     },
+     "sources_core": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 7
+     },
+     "models": {
+      "dropped_by_budget": 5,
+      "beyond_limits": 8
+     },
+     "sources_rest": {
+      "dropped_by_budget": 5,
+      "beyond_limits": 1
+     },
+     "sections_core": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 329
+     },
+     "operators": {
+      "dropped_by_budget": 1
+     },
+     "concept": {
+      "dropped_by_budget": 1
+     },
+     "sections_rest": {
+      "dropped_by_budget": 4,
+      "beyond_limits": 91
+     },
+     "gaps": {
+      "dropped_by_budget": 8
+     },
+     "conflicts": {
+      "dropped_by_budget": 2
+     },
+     "processes": {
+      "dropped_by_budget": 2,
+      "beyond_limits": 9
+     }
+    },
+    "section_ids": [
+     "SEC-f085a399353de2b4",
+     "SEC-6c604b35145e8a0c",
+     "SEC-5ceded90940e1c85",
+     "SEC-8784cce1e5ea7b6a",
+     "SEC-1e55dc83409d0d18",
+     "SEC-367476e1b39df0df",
+     "SEC-514befdd33a15d78",
+     "SEC-bf685212b7806788"
+    ],
+    "process_ids": [
+     "PC-13",
+     "PC-20",
+     "PC-18",
+     "PC-47"
+    ]
+   },
+   {
+    "query": "тепловой режим массива",
+    "hard_group": "THERMAL",
+    "paraphrases": [
+     "температура горных пород на глубине",
+     "геотермический градиент"
+    ],
+    "mode": "FULL",
+    "formulations": [
+     "query",
+     "paraphrase",
+     "paraphrase",
+     "synonyms",
+     "neighbours"
+    ],
+    "markdown_chars": 11707,
+    "wall_ms": 7064.5,
+    "timings_ms": {
+     "concept": 179.0,
+     "retrieval": 5055.8,
+     "sections": 1097.0,
+     "formulas": 340.2,
+     "visual": 299.1,
+     "topics": 0.0,
+     "sources": 29.1,
+     "catalogues": 60.3,
+     "total": 7063.7
+    },
+    "warnings": [
+     "CITES_PENDING"
+    ],
+    "pages": {
+     "core": 50,
+     "rest": 25
+    },
+    "counts": {
+     "sections": 8,
+     "sections_by_tier": {
+      "CORE": 6,
+      "REST": 2
+     },
+     "sources_by_tier": {
+      "CORE": 2,
+      "REST": 0
+     },
+     "visual": 1,
+     "formulas": 2,
+     "concept": true,
+     "topics": 0,
+     "sources": 2,
+     "processes": 4,
+     "models": 1,
+     "conflicts": 2,
+     "evidence_rows": 0,
+     "operators": 0,
+     "causal": 0,
+     "gaps": 12
+    },
+    "gaps_by_coverage": {
+     "CURATED_GAP": 3,
+     "LINKED_OTHER_SCOPE": 3,
+     "NOT_MATCHED": 2,
+     "NO_LINKED_RECORD": 4
+    },
+    "trimmed": {
+     "causal": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 18
+     },
+     "formulas": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 79
+     },
+     "visual": {
+      "dropped_by_budget": 7,
+      "beyond_limits": 12
+     },
+     "operators": {
+      "dropped_by_budget": 3
+     },
+     "sources_core": {
+      "dropped_by_budget": 8
+     },
+     "evidence": {
+      "dropped_by_budget": 4
+     },
+     "sources_rest": {
+      "dropped_by_budget": 5,
+      "beyond_limits": 7
+     },
+     "sections_core": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 315
+     },
+     "concept": {
+      "dropped_by_budget": 1
+     },
+     "sections_rest": {
+      "dropped_by_budget": 4,
+      "beyond_limits": 99
+     },
+     "gaps": {
+      "dropped_by_budget": 5
+     },
+     "processes": {
+      "dropped_by_budget": 2,
+      "beyond_limits": 1
+     },
+     "conflicts": {
+      "dropped_by_budget": 1
+     }
+    },
+    "section_ids": [
+     "SEC-2ea3eeb404f7148d",
+     "SEC-8056b87223d1b311",
+     "SEC-be15f6ee2d55bd82",
+     "SEC-b4dd537c0dfbfdc2",
+     "SEC-96685fec50512068",
+     "SEC-0838293e6c68de2e",
+     "SEC-b551920e6f444313",
+     "SEC-33753c3fba635040"
+    ],
+    "process_ids": [
+     "PC-48",
+     "PC-52",
+     "PC-51",
+     "PC-10"
+    ]
+   },
+   {
+    "query": "система разработки",
+    "hard_group": "MINING",
+    "paraphrases": [
+     "камерная система разработки",
+     "параметры камер и междукамерных целиков"
+    ],
+    "mode": "FULL",
+    "formulations": [
+     "query",
+     "paraphrase",
+     "paraphrase",
+     "neighbours"
+    ],
+    "markdown_chars": 11977,
+    "wall_ms": 4712.3,
+    "timings_ms": {
+     "concept": 84.5,
+     "retrieval": 3113.7,
+     "sections": 816.0,
+     "formulas": 296.5,
+     "visual": 287.1,
+     "topics": 0.0,
+     "sources": 31.5,
+     "catalogues": 79.5,
+     "total": 4711.7
+    },
+    "warnings": [],
+    "pages": {
+     "core": 50,
+     "rest": 12
+    },
+    "counts": {
+     "sections": 9,
+     "sections_by_tier": {
+      "CORE": 6,
+      "REST": 3
+     },
+     "sources_by_tier": {
+      "CORE": 2,
+      "REST": 0
+     },
+     "visual": 1,
+     "formulas": 2,
+     "concept": true,
+     "topics": 0,
+     "sources": 2,
+     "processes": 4,
+     "models": 1,
+     "conflicts": 2,
+     "evidence_rows": 0,
+     "operators": 0,
+     "causal": 0,
+     "gaps": 9
+    },
+    "gaps_by_coverage": {
+     "CURATED_GAP": 4,
+     "NOT_MATCHED": 3,
+     "NO_LINKED_RECORD": 2
+    },
+    "trimmed": {
+     "causal": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 61
+     },
+     "evidence": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 27
+     },
+     "formulas": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 33
+     },
+     "visual": {
+      "dropped_by_budget": 7,
+      "beyond_limits": 30
+     },
+     "operators": {
+      "dropped_by_budget": 3
+     },
+     "sources_core": {
+      "dropped_by_budget": 8,
+      "beyond_limits": 13
+     },
+     "models": {
+      "dropped_by_budget": 5,
+      "beyond_limits": 11
+     },
+     "sources_rest": {
+      "dropped_by_budget": 5,
+      "beyond_limits": 2
+     },
+     "sections_core": {
+      "dropped_by_budget": 6,
+      "beyond_limits": 264
+     },
+     "conflicts": {
+      "dropped_by_budget": 4,
+      "beyond_limits": 2
+     },
+     "citations": {
+      "dropped_by_budget": 2
+     },
+     "concept": {
+      "dropped_by_budget": 1
+     },
+     "sections_rest": {
+      "dropped_by_budget": 3,
+      "beyond_limits": 117
+     },
+     "gaps": {
+      "dropped_by_budget": 7
+     },
+     "processes": {
+      "dropped_by_budget": 2,
+      "beyond_limits": 3
+     }
+    },
+    "section_ids": [
+     "SEC-f5e9833a6096a497",
+     "SEC-b4c1bd2a09d15412",
+     "SEC-7c3c1e2f87ec0c6d",
+     "SEC-b826845b8710d8f7",
+     "SEC-626d2637e0a5f03c",
+     "SEC-1fa801465e86cb24",
+     "SEC-73476c9899f049df",
+     "SEC-3b1a5cf8e1fd67fc",
+     "SEC-722b3692ce4186c2"
+    ],
+    "process_ids": [
+     "PC-23",
+     "PC-41",
+     "PC-29",
+     "PC-24"
+    ]
+   }
+  ],
+  "cites_note": "CITES is read once per snapshot in a background thread: 30-45 s on this workstation copy, whose DuckDB file predates the materialised bibliography link rows (commit a179271); the call that starts the read waits 8 s, later calls do not wait and warn CITES_PENDING until it is there; NAV_ONLY calls then take 2.1-2.5 s here, of which sections 0.65-0.8 s",
+  "hard_groups_check": {
+   "what": "relative diagnostic of the dossier page list (record.pages: core, then rest; first 50) on the hard groups of TOPIC_BENCHMARK_V1 (agent Q's frozen topic set, branch claude/agent-q-topic-benchmark-2026-09-28): INIT, RHEO, THERMAL, MINING — 22 topics, 123 target pages (catalogue evidence pages, alt pages accepted)",
+   "caveats": [
+    "lexical stand-in, not the hybrid search: absolute numbers do not transfer to CORE",
+    "diagnostic only: no weight was tuned on these targets; the official run of the benchmark belongs to agent Q",
+    "only record.pages is scored: the process part cites catalogue evidence records (the benchmark's ground truth) by design and must not be scored"
+   ],
+   "configs": {
+    "NAV": "no retrieval (section best pages, then their other pages)",
+    "ONE": "the topic name + automatic formulations (concept synonyms, neighbours)",
+    "PARA": "the name + the two frozen paraphrases (PARA1, PARA2) + automatic formulations",
+    "RAW1": "the stand-in alone: the name, whole corpus, top 50",
+    "RAW1_CORE": "the stand-in alone: the name, core tier first",
+    "RAW3": "the stand-in alone: RRF of name + 2 paraphrases, whole corpus",
+    "RAW3_CORE": "the stand-in alone: RRF of the three, core tier first"
+   },
+   "mean_page_recall_at_50": {
+    "NAV": 0.0838,
+    "ONE": 0.1831,
+    "PARA": 0.2528,
+    "RAW1": 0.1865,
+    "RAW1_CORE": 0.2031,
+    "RAW3": 0.1755,
+    "RAW3_CORE": 0.1869
+   },
+   "by_group": {
+    "NAV": {
+     "INIT": 0.05,
+     "MINING": 0.1083,
+     "RHEO": 0.1107,
+     "THERMAL": 0.0417
+    },
+    "ONE": {
+     "INIT": 0.23,
+     "MINING": 0.2983,
+     "RHEO": 0.1316,
+     "THERMAL": 0.0833
+    },
+    "PARA": {
+     "INIT": 0.2383,
+     "MINING": 0.3567,
+     "RHEO": 0.1774,
+     "THERMAL": 0.2916
+    },
+    "RAW1": {
+     "INIT": 0.27,
+     "MINING": 0.24,
+     "RHEO": 0.1316,
+     "THERMAL": 0.125
+    },
+    "RAW1_CORE": {
+     "INIT": 0.27,
+     "MINING": 0.3133,
+     "RHEO": 0.1316,
+     "THERMAL": 0.125
+    },
+    "RAW3": {
+     "INIT": 0.2383,
+     "MINING": 0.1667,
+     "RHEO": 0.1253,
+     "THERMAL": 0.2083
+    },
+    "RAW3_CORE": {
+     "INIT": 0.2383,
+     "MINING": 0.1667,
+     "RHEO": 0.1565,
+     "THERMAL": 0.2083
+    }
+   },
+   "found_at_50_per_topic": {
+    "PC-01": {
+     "group": "INIT",
+     "n_targets": 6,
+     "NAV": 0,
+     "ONE": 0,
+     "PARA": 1,
+     "RAW1_CORE": 0,
+     "RAW3_CORE": 1
+    },
+    "PC-02": {
+     "group": "INIT",
+     "n_targets": 5,
+     "NAV": 0,
+     "ONE": 2,
+     "PARA": 2,
+     "RAW1_CORE": 3,
+     "RAW3_CORE": 2
+    },
+    "PC-03": {
+     "group": "INIT",
+     "n_targets": 8,
+     "NAV": 2,
+     "ONE": 4,
+     "PARA": 3,
+     "RAW1_CORE": 4,
+     "RAW3_CORE": 3
+    },
+    "PC-04": {
+     "group": "INIT",
+     "n_targets": 6,
+     "NAV": 0,
+     "ONE": 0,
+     "PARA": 0,
+     "RAW1_CORE": 0,
+     "RAW3_CORE": 0
+    },
+    "PC-05": {
+     "group": "INIT",
+     "n_targets": 4,
+     "NAV": 0,
+     "ONE": 1,
+     "PARA": 1,
+     "RAW1_CORE": 1,
+     "RAW3_CORE": 1
+    },
+    "PC-13": {
+     "group": "RHEO",
+     "n_targets": 7,
+     "NAV": 1,
+     "ONE": 2,
+     "PARA": 2,
+     "RAW1_CORE": 2,
+     "RAW3_CORE": 2
+    },
+    "PC-14": {
+     "group": "RHEO",
+     "n_targets": 10,
+     "NAV": 0,
+     "ONE": 1,
+     "PARA": 1,
+     "RAW1_CORE": 1,
+     "RAW3_CORE": 1
+    },
+    "PC-15": {
+     "group": "RHEO",
+     "n_targets": 7,
+     "NAV": 1,
+     "ONE": 0,
+     "PARA": 0,
+     "RAW1_CORE": 0,
+     "RAW3_CORE": 0
+    },
+    "PC-16": {
+     "group": "RHEO",
+     "n_targets": 2,
+     "NAV": 0,
+     "ONE": 0,
+     "PARA": 0,
+     "RAW1_CORE": 0,
+     "RAW3_CORE": 0
+    },
+    "PC-17": {
+     "group": "RHEO",
+     "n_targets": 5,
+     "NAV": 0,
+     "ONE": 0,
+     "PARA": 0,
+     "RAW1_CORE": 0,
+     "RAW3_CORE": 0
+    },
+    "PC-18": {
+     "group": "RHEO",
+     "n_targets": 5,
+     "NAV": 3,
+     "ONE": 0,
+     "PARA": 1,
+     "RAW1_CORE": 0,
+     "RAW3_CORE": 1
+    },
+    "PC-19": {
+     "group": "RHEO",
+     "n_targets": 4,
+     "NAV": 0,
+     "ONE": 2,
+     "PARA": 2,
+     "RAW1_CORE": 2,
+     "RAW3_CORE": 2
+    },
+    "PC-20": {
+     "group": "RHEO",
+     "n_targets": 6,
+     "NAV": 0,
+     "ONE": 1,
+     "PARA": 2,
+     "RAW1_CORE": 1,
+     "RAW3_CORE": 1
+    },
+    "PC-28": {
+     "group": "MINING",
+     "n_targets": 6,
+     "NAV": 1,
+     "ONE": 1,
+     "PARA": 2,
+     "RAW1_CORE": 1,
+     "RAW3_CORE": 1
+    },
+    "PC-29": {
+     "group": "MINING",
+     "n_targets": 6,
+     "NAV": 0,
+     "ONE": 3,
+     "PARA": 3,
+     "RAW1_CORE": 3,
+     "RAW3_CORE": 1
+    },
+    "PC-30": {
+     "group": "MINING",
+     "n_targets": 8,
+     "NAV": 1,
+     "ONE": 3,
+     "PARA": 3,
+     "RAW1_CORE": 3,
+     "RAW3_CORE": 1
+    },
+    "PC-31": {
+     "group": "MINING",
+     "n_targets": 8,
+     "NAV": 2,
+     "ONE": 2,
+     "PARA": 3,
+     "RAW1_CORE": 1,
+     "RAW3_CORE": 3
+    },
+    "PC-32": {
+     "group": "MINING",
+     "n_targets": 5,
+     "NAV": 0,
+     "ONE": 1,
+     "PARA": 1,
+     "RAW1_CORE": 2,
+     "RAW3_CORE": 0
+    },
+    "PC-48": {
+     "group": "THERMAL",
+     "n_targets": 6,
+     "NAV": 1,
+     "ONE": 0,
+     "PARA": 2,
+     "RAW1_CORE": 1,
+     "RAW3_CORE": 2
+    },
+    "PC-49": {
+     "group": "THERMAL",
+     "n_targets": 3,
+     "NAV": 0,
+     "ONE": 1,
+     "PARA": 1,
+     "RAW1_CORE": 1,
+     "RAW3_CORE": 0
+    },
+    "PC-50": {
+     "group": "THERMAL",
+     "n_targets": 2,
+     "NAV": 0,
+     "ONE": 0,
+     "PARA": 1,
+     "RAW1_CORE": 0,
+     "RAW3_CORE": 1
+    },
+    "PC-51": {
+     "group": "THERMAL",
+     "n_targets": 4,
+     "NAV": 0,
+     "ONE": 0,
+     "PARA": 0,
+     "RAW1_CORE": 0,
+     "RAW3_CORE": 0
+    }
+   }
+  },
+  "judgement": [
+   "useful as the first call on a topic: sections of the VKM core come first, every item carries ids and pages, catalogue records carry status/scope/scale, gaps are explicit and never filled",
+   "INIT (начальные напряжения): VKM-SRC-044 6.1 and VKM-SRC-012 1.4 on top in both modes; NAV_ONLY adds VKM-SRC-045 (core since the verbatim-scope rule), the full path VKM-SRC-030 and VKM-SRC-089; processes PC-02/PC-03/PC-01 with PC-05 (NAV_ONLY) or PC-04 (with paraphrases); model MM-STRESS-001; conflicts FC-033 and PCF-06 or PCF-01 (lambda); lambda for SKRU-1 UNKNOWN (other-site records only)",
+   "RHEO (ползучесть каменной соли): rheology chapters of VKM-SRC-049/097/103/025/045/054, creep studies VKM-SRC-175/172 in the rest tier; a creep-law formula and a creep-rate figure near the hits; processes PC-13/PC-20/PC-18/PC-47; model MM-CREEP-022; conflicts PCF-03/PCF-08",
+   "THERMAL (тепловой режим массива): with the paraphrases PC-48 (geothermal field) ranks first and PC-51 (microclimate) enters; conflict PCF-05 (air vs massif temperature, UNKNOWN); sections lean to mine microclimate (VKM-SRC-173) and the rest tier catches the surveying sense of «градиент» (VKM-SRC-219)",
+   "MINING (система разработки): chamber-mining sections of VKM-SRC-026/014/096/054, a figure of the chamber system near the hits; processes PC-23/PC-29/PC-24 plus PC-41 by the generic word «система» (lexical process matching)",
+   "BACKFILL (закладка): backfill sections of VKM-SRC-058/020/014/046/037; processes PC-39/PC-38/PC-40/PC-37; model MM-BACKFILL-003 (fill ratio); conflict FC-005",
+   "page list on the hard groups (stand-in): paraphrases help — PARA finds 31 of 123 target pages against 24 for ONE (better on 7 topics, worse on 1) and beats every stand-in baseline (RAW3_CORE: better on 6, worse on none); without paraphrases the automatic formulations give no gain over the stand-in's own core-first list (24 vs 26 targets, within noise); the hybrid search on CORE decides the absolute level",
+   "limits: homonyms in NAV_ONLY («метод начальных напряжений») and in paraphrases («градиент»); the 12 000-character default keeps about 6 core and 2-3 rest sections, 2-3 formulas, 0-1 figure or table and 4 processes — a larger budget or source_ids give the rest (ids listed in the footer)"
+  ],
+  "improvements_made_after_reading_the_v2_dry_run": [
+   "core tier also by the verbatim register scope (an unmapped value listing SKRU mines had left a VKM dissertation in the rest)",
+   "the core-tier size is reported on every call (was only on the first)",
+   "formulas: a long section (chapter) lends its rank only to formulas near its hit pages; core-tier sections before rest-tier ones",
+   "catalogue processes also match the paraphrases and synonyms, and rank up when their evidence pages are among the pages found",
+   "caller paraphrases (<= 4) all used, before the automatic formulations",
+   "CITES: only the call that starts the background read waits"
+  ]
+ },
+ "tests": {
+  "windows_api_env": "API/MCP/topic/NAV/catalogues/hygiene set + the leakage test: 154 passed, 13 skipped (pymorphy3 and cuDF absent there); a local venv built offline from the pip cache with the API image pins (fastapi 0.141.1, mcp 2.2.0, duckdb 1.5.5, pyarrow 25.0.1); hygiene and leakage run with Windows Python as required",
+  "wsl_venv_nav_n3_cpu": "tests/corpus/test_nav_store.py, test_nav_concepts.py with pymorphy3 (the navigation extra): 19 passed, 1 skipped (cuDF); test_api_topic is skipped there (no PIL)",
+  "wsl_venv_corpus": "tests/corpus: 745 passed, 40 skipped, 5 failed = test_public_hygiene only (git cannot read a Windows worktree from WSL; expected there, run with Windows Python instead, where they pass)",
+  "new_tests": "test_api_topic: 15 (text helpers, NAV-only parts, formulations/tiers/RRF, two tiers, core-tier rule, paraphrases in catalogue matching, formulas near hits in long sections, figures and tables, hybrid adapter, budget, degradation, topics, arguments, HTTP incl. paraphrases, MCP); test_nav_store: lemma search, key_terms, depth; test_api_nav: empty search = 200",
+  "wsl_tests_world": "tests/world: 207 passed, 2 skipped (legacy branch not in the clone); on Windows 3 of them fail for platform reasons (symlink privilege, file hashing, a synthetic git repo), unrelated to this work"
+ }
+}
