@@ -23,13 +23,15 @@
 #          --skip-encode        only checks + pack + reload + smoke (e.g. after deploying the pack-capable image)
 #          --dry-run            check the configuration, print the plan, run no container
 # Environment: VKM_COMPOSE_DIR (default: the script's directory; compose.yml + .env), VKM_DATA_ROOT_HOST (default:
-# from .env), VKM_DOCKER (default: docker), VKM_LAB3_POLL_S (default 60).
+# from .env), VKM_DOCKER (default: docker), VKM_LAB3_POLL_S (default 60; snapshot wait), VKM_LAB3_PROGRESS_S
+# (default 60; progress in STATUS while encoding).
 set -Eeuo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_DIR="${VKM_COMPOSE_DIR:-$HERE}"
 DOCKER="${VKM_DOCKER:-docker}"
 POLL_S="${VKM_LAB3_POLL_S:-60}"
+PROGRESS_S="${VKM_LAB3_PROGRESS_S:-60}"
 CONFIG="" AFTER="" DRY=0 SKIP_ENCODE=0
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -37,7 +39,7 @@ while [ $# -gt 0 ]; do
     --after-snapshot) AFTER="$2"; shift 2 ;;
     --skip-encode) SKIP_ENCODE=1; shift ;;
     --dry-run) DRY=1; shift ;;
-    -h|--help) sed -n '2,28p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,27p' "$0"; exit 0 ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
 done
@@ -95,18 +97,38 @@ TEXT_RULE="$(jget "$CONFIG" text_rule)"; TEXT_RULE="${TEXT_RULE:-vkm-units-v1/$V
 CLIENTS="$(jget "$CONFIG" clients)"; CLIENTS="${CLIENTS:-3}"
 JOB_SIZE="$(jget "$CONFIG" job_size)"; JOB_SIZE="${JOB_SIZE:-512}"
 BATCH="$(jget "$CONFIG" batch)"; BATCH="${BATCH:-8}"
+BLAS_THREADS="$(jget "$CONFIG" blas_threads)"; BLAS_THREADS="${BLAS_THREADS:-1}"
 KEEP_PACKS="$(jget "$CONFIG" keep_packs)"; KEEP_PACKS="${KEEP_PACKS:-2}"
 WAIT_RELOAD_S="$(jget "$CONFIG" wait_reload_s)"; WAIT_RELOAD_S="${WAIT_RELOAD_S:-180}"
 WAIT_SNAPSHOT_S="$(jget "$CONFIG" wait_snapshot_s)"; WAIT_SNAPSHOT_S="${WAIT_SNAPSHOT_S:-86400}"
 LATE_CANDIDATES="$(jget "$CONFIG" smoke_late_candidates)"; LATE_CANDIDATES="${LATE_CANDIDATES:-100}"
 mapfile -t QUERIES < <(python3 -c 'import json,sys; [print(q) for q in json.load(open(sys.argv[1], encoding="utf-8")).get("smoke_queries") or []]' "$CONFIG")
 [[ "$CLIENTS" =~ ^[1-8]$ ]] || { echo "clients must be 1..8" >&2; exit 2; }
+[[ "$BLAS_THREADS" =~ ^[1-9][0-9]?$ ]] || { echo "blas_threads must be 1..99" >&2; exit 2; }
 DC=("$DOCKER" compose --project-directory "$COMPOSE_DIR" -f "$COMPOSE_DIR/compose.yml")
 WRITER="rx580L-${RUN_ID#lab3-}"
 SHARD_DIR="/cache/lab3/$RUN_ID"          # container path (rx580-retrieval: /cache = the service's writable cache dir)
 STEP="init" SNAP="" UNITS_DIR="" ART_DIR="" RESULT="FAILED" NOTE="" PROG_PID=""
 
 log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
+
+# late-encode clients of THIS run inside rx580-retrieval (a docker exec client does not take its process with it)
+KILL_CLIENTS='import os, signal, sys
+w = sys.argv[1].encode()
+for p in os.listdir("/proc"):
+    if p.isdigit() and p != str(os.getpid()):
+        try:
+            c = open(f"/proc/{p}/cmdline", "rb").read().replace(b"\0", b" ")
+        except OSError:
+            continue
+        if b"vkm_corpus.embeddings.cli encode" in c and b"--roles late" in c and b"--writer " + w in c:
+            os.kill(int(p), signal.SIGTERM)'
+
+on_signal() {  # systemctl --user stop: stop this run's clients in the container; the EXIT trap writes the receipt
+  NOTE="stopped by signal"
+  "${DC[@]}" exec -T rx580-retrieval python -c "$KILL_CLIENTS" "$WRITER" </dev/null >/dev/null 2>&1 || true
+  exit 143
+}
 
 finish() {    # receipt.json + latest.json + STATUS (also on failure)
   local rc=$?
@@ -165,6 +187,7 @@ PY
   log "finished: $RESULT (step $STEP, exit $rc); receipt $RUN_DIR/receipt.json"
 }
 trap finish EXIT
+trap on_signal TERM INT
 
 status_line() {   # progress for readers of STATUS while the run is active
   printf '%s %s RUNNING step=%s snapshot=%s%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$RUN_ID" "$STEP" "${SNAP:--}" \
@@ -194,8 +217,8 @@ if [ "$DRY" = 1 ]; then
   SNAP="$(current_snapshot 2>/dev/null || true)"
   log "DRY RUN — planned commands:"
   log "  ${DC[*]} --profile jobs run --rm -T vkm-job search export-units --variant $VARIANT"
-  log "  ${DC[*]} exec -T rx580-retrieval python -m vkm_corpus.embeddings.cli encode --config $SERVICE_CONFIG" \
-      "--docs $SHARD_DIR/shard-<i>.jsonl --data-root /data --roles late --text-rule $TEXT_RULE --writer $WRITER-a<n>s<i>" \
+  log "  ${DC[*]} exec -T -e OPENBLAS_NUM_THREADS=$BLAS_THREADS -e OMP_NUM_THREADS=$BLAS_THREADS rx580-retrieval" \
+      "python -m vkm_corpus.embeddings.cli encode --config $SERVICE_CONFIG --docs $SHARD_DIR/shard-<i>.jsonl --data-root /data --roles late --text-rule $TEXT_RULE --writer $WRITER-a<n>s<i>" \
       "--device RX580 --job-size $JOB_SIZE --batch $BATCH --skip-validate   (× $CLIENTS concurrent clients)"
   log "  ${DC[*]} --profile jobs run --rm -T rx580-embed-worker pack --config $SERVICE_CONFIG --data-root /data" \
       "--units <units dir> --text-rule $TEXT_RULE --publish --keep $KEEP_PACKS"
@@ -251,8 +274,14 @@ for p in os.listdir("/proc"):
 print(n)' </dev/null)"
   [ "${running//[^0-9]/}" = "0" ] || { NOTE="a late encode is already running in rx580-retrieval"; exit 1; }
   # disjoint shards of the units (line i → shard i mod N) in the service's cache dir; removed at the end of the run
-  "${DC[@]}" exec -T rx580-retrieval python -c 'import os, sys
+  # (shards of an earlier, interrupted run go first: one run at a time holds the lock)
+  "${DC[@]}" exec -T rx580-retrieval python -c 'import os, shutil, sys
 src, out, n = sys.argv[1], sys.argv[2], int(sys.argv[3])
+parent = os.path.dirname(out)
+if os.path.isdir(parent):
+    for old in os.listdir(parent):
+        if old.startswith("lab3-") and os.path.join(parent, old) != out:
+            shutil.rmtree(os.path.join(parent, old), ignore_errors=True)
 os.makedirs(out, mode=0o700, exist_ok=True)
 fhs = [open(os.path.join(out, f"shard-{i}.jsonl"), "w", encoding="utf-8") for i in range(n)]
 k = 0
@@ -265,14 +294,15 @@ for f in fhs:
     f.close()
 print(k)' "$UNITS_DIR/docs.jsonl" "$SHARD_DIR" "$CLIENTS" > "$RUN_DIR/shards.txt" </dev/null
   log "encoding with ${late_key} in $CLIENTS clients over $(tr -d '[:space:]' < "$RUN_DIR/shards.txt") units (writer $WRITER); already encoded units are skipped"
-  ( while sleep "$POLL_S"; do status_line "late_rows=$(late_rows)/$UNITS_COUNT"; done ) &
+  ( while sleep "$PROGRESS_S"; do status_line "late_rows=$(late_rows)/$UNITS_COUNT"; done ) &
   PROG_PID=$!
   t_enc=$(date +%s)
   ok=0
   for attempt in 1 2 3; do   # a transient backend error stops a client; written parts are kept (§46 resume)
     pids=()
     for i in $(seq 0 $((CLIENTS - 1))); do
-      "${DC[@]}" exec -T rx580-retrieval python -m vkm_corpus.embeddings.cli encode --config "$SERVICE_CONFIG" \
+      "${DC[@]}" exec -T -e OPENBLAS_NUM_THREADS="$BLAS_THREADS" -e OMP_NUM_THREADS="$BLAS_THREADS" \
+        rx580-retrieval python -m vkm_corpus.embeddings.cli encode --config "$SERVICE_CONFIG" \
         --docs "$SHARD_DIR/shard-$i.jsonl" --data-root /data --roles late --text-rule "$TEXT_RULE" \
         --writer "$WRITER-a${attempt}s$i" --device RX580 --job-size "$JOB_SIZE" --batch "$BATCH" --skip-validate \
         > "$RUN_DIR/encode-late-a$attempt-s$i.json" </dev/null &
