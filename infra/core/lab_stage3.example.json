@@ -1,0 +1,18 @@
+{
+  "_comment": "Retrieval lab stage 3 on CORE (infra/core/lab_stage3.sh): late interaction for the whole corpus. Copy to lab_stage3.json next to compose.yml to change it. The late model is the late slot of the RX580 service config (container path); expect_late_key/quant are assertions: the run stops if the service serves another late encoder. clients = concurrent encode clients against the one resident late llama-server (pilot 28.09: 1 client 44.8 units/s, 2 clients 64). The pack is served by rx580-retrieval when search.multivector_dir of rx580.json names the late artifact directory.",
+  "schema": "vkm.lab_stage3/1",
+  "service_config": "/config/rx580.json",
+  "expect_late_key": "mlateon",
+  "expect_late_quant": "Q8_0",
+  "context_variant": "A",
+  "text_rule": "vkm-units-v1/A",
+  "clients": 3,
+  "job_size": 512,
+  "batch": 8,
+  "keep_packs": 2,
+  "wait_reload_s": 180,
+  "wait_snapshot_s": 86400,
+  "smoke_late_candidates": 100,
+  "smoke_queries": ["оседание земной поверхности над выработками ВКМ", "ползучесть каменной соли",
+                    "закладка выработанного пространства", "мульда сдвижения", "водозащитная толща"]
+}
