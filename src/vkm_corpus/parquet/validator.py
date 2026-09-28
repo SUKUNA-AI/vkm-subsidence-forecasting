@@ -253,8 +253,13 @@ class Validator:
                     "bbox_x0", "bbox_y0", "bbox_x1", "bbox_y1", "docx_paragraph_path", "extractor_id",
                     "extraction_generation", "raw_config_hash", "models", "quality_flags"]
             extra = ", reading_order, text" if name == "blocks" else ", NULL AS reading_order, NULL AS text"
-            for r in self.con.execute(f'SELECT {", ".join(cols)}{extra} FROM canonical."{name}"').fetchall():
-                row = dict(zip(cols + ["reading_order", "text"], r))
+            rows = [dict(zip(cols + ["reading_order", "text"], r))
+                    for r in self.con.execute(f'SELECT {", ".join(cols)}{extra} FROM canonical."{name}"').fetchall()]
+            # identical anchors get dup:0…n-1 from the allocator (no upper bound): allow as many as the rows sharing
+            # the same (scope, kind, origin, region, anchor, producer) — not a fixed 8
+            same: dict[tuple, int] = {}
+            keyed = []
+            for row in rows:
                 if row["region_origin"] == "DOCX_ELEMENT":
                     scope, anchor = ids.document_id(row["source_id"]), ids.xml_anchor(row["docx_paragraph_path"])
                 elif row["bbox_space"] == "PAGE_PT_TL":
@@ -267,11 +272,15 @@ class Validator:
                     continue
                 pk = ids.producer_key(row["extractor_id"], row["extraction_generation"], row["raw_config_hash"],
                                       row["models"] or [])
+                key = (scope, row["object_kind"], row["origin"], row["region_origin"] or "-", anchor, pk)
+                same[key] = same.get(key, 0) + 1
+                keyed.append((row, key))
+            for row, (scope, kind, origin, region, anchor, pk) in keyed:
+                n_same = same[(scope, kind, origin, region, anchor, pk)]
+                dups = n_same - 1 if "DUPLICATE_DETECTION_DISAMBIGUATED" in (row["quality_flags"] or []) else 0
                 ok = False
-                dups = 8 if "DUPLICATE_DETECTION_DISAMBIGUATED" in (row["quality_flags"] or []) else 0
-                for dup in range(0, dups + 1):
-                    if ids.object_id(scope, row["object_kind"], row["origin"], row["region_origin"], anchor, pk,
-                                     dup) == row["object_id"]:
+                for dup in range(0, max(dups, 0) + 1):
+                    if ids.object_id(scope, kind, origin, row["region_origin"], anchor, pk, dup) == row["object_id"]:
                         ok = True
                         break
                 if not ok:
