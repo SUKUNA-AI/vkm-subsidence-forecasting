@@ -32,13 +32,12 @@ def attach(con: Any, nav_dir: str | Path, *, sections_dir: str | Path | None = N
     """Temporary views ``nav_<dataset>`` over ``<nav_dir>/<dataset>.parquet`` (+ ``nav_sections`` from
     ``sections_dir`` or ``nav_dir`` when the file is there)."""
     d = Path(nav_dir)
-    for name in DATASETS:
-        if (d / f"{name}.parquet").exists():
-            con.execute(f"CREATE OR REPLACE TEMP VIEW nav_{name} AS SELECT * FROM read_parquet({_lit(d / (name + '.parquet'))})")
     s = Path(sections_dir) if sections_dir else d
-    for name in ("sections", "section_pages"):
-        if (s / f"{name}.parquet").exists():
-            con.execute(f"CREATE OR REPLACE TEMP VIEW nav_{name} AS SELECT * FROM read_parquet({_lit(s / (name + '.parquet'))})")
+    for base, names in ((d, DATASETS), (s, ("sections", "section_pages"))):
+        for name in names:
+            f = base / f"{name}.parquet"
+            if f.exists():
+                con.execute(f"CREATE OR REPLACE TEMP VIEW nav_{name} AS SELECT * FROM read_parquet({_lit(f)})")
 
 
 def _rows(con: Any, sql: str, params: Any = None) -> list[dict[str, Any]]:
