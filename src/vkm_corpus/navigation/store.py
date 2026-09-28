@@ -160,6 +160,8 @@ class NavStore:
         for (t,) in con.execute("SELECT table_name FROM duckdb_tables() WHERE database_name = 'nav' "
                                 "AND schema_name = 'main'").fetchall():
             con.execute(f'CREATE VIEW "{t}" AS SELECT * FROM nav.main."{t}"')
+            if not t.startswith("nav_"):     # the part modules query nav_<dataset> (as `vkm-corpus nav build` names them)
+                con.execute(f'CREATE VIEW "nav_{t}" AS SELECT * FROM nav.main."{t}"')
         self._con, self._stamp, self._snapshot = con, stamp, snap
         return con
 
