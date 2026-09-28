@@ -183,7 +183,8 @@ class JobsService:
         atomic_write_json(draft.dir / "job.json", spec.to_dict())
         atomic_write_json(draft.dir / "status.json", {
             "schema": STATUS_SCHEMA, "job_id": spec.job_id, "status": "QUEUED", "app": spec.app, "kind": spec.kind,
-            "label": spec.label, "pool": spec.pool, "queued_at": utc_now(), "updated_at": utc_now()})
+            "label": spec.label, "pool": spec.pool, "queued_at": utc_now(), "updated_at": utc_now(),
+            "queued_ns": time.time_ns()})                       # FIFO order = submission order, not runner start
         argv = [self.python, "-m", "vkm_jobs.runner", str(draft.dir)]
         pid, mode = self._spawner(argv, draft.dir, self.runner_env(), draft.dir / "logs" / "runner.log")
         atomic_write_json(draft.dir / "spawn.json", {"spawned_at": utc_now(), "detached": mode, "spawn_pid": pid})

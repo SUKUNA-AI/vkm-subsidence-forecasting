@@ -107,7 +107,7 @@ def test_leftover_children_are_killed_after_grace(tmp_path):
 
 def test_pool_queue_is_fifo_and_exclusive(tmp_path):
     jobs = service(tmp_path)
-    first, first_draft = submit(jobs, "import time; time.sleep(4)", pool="qtest")
+    first, first_draft = submit(jobs, "import time; time.sleep(10)", pool="qtest")    # long enough on slow disks
     wait_for(lambda: jobs.status(first["job_id"])["status"] == "RUNNING")
     second, _ = submit(jobs, "print('second')", pool="qtest")
     third, _ = submit(jobs, "print('third')", pool="qtest")
@@ -125,7 +125,7 @@ def test_pool_queue_is_fifo_and_exclusive(tmp_path):
 
 def test_cancel_while_queued(tmp_path):
     jobs = service(tmp_path)
-    first, _ = submit(jobs, "import time; time.sleep(5)", pool="qtest")
+    first, _ = submit(jobs, "import time; time.sleep(10)", pool="qtest")
     wait_for(lambda: jobs.status(first["job_id"])["status"] == "RUNNING")
     queued, _ = submit(jobs, "print('never')", pool="qtest")
     wait_for(lambda: jobs.status(queued["job_id"]).get("queue_position") == 0)

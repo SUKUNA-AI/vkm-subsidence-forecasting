@@ -99,7 +99,7 @@ class Runner:
 
     def _run(self) -> int:
         spec = self.spec
-        queued_ns = time.time_ns()
+        queued_ns = int(self.status.get("queued_ns") or time.time_ns())      # set by the server at submission
         self._write(status="QUEUED", app=spec.app, kind=spec.kind, label=spec.label, pool=spec.pool,
                     runner={**(self.status.get("runner") or {}), "pid": os.getpid()},
                     queued_at=self.status.get("queued_at") or utc_now())
