@@ -13,6 +13,12 @@ WORK = Path(os.environ["V2_WORK"])
 REPO = Path(__file__).resolve().parents[3]
 V2_DIR = REPO / "benchmarks/retrieval_v2"
 OUT = REPO / "docs/corpus_platform/receipts/retrieval_v2.json"
+# which local llama.cpp CPU build produced each model's Q8_0 query vectors (same RX580 source tree; the patched build
+# carries infra/core/rx580/patches 0002–0004, required for the bidirectional Qwen3 models; FACT of the runs)
+LLAMA_BUILD = {k: "RX580 tree, CPU, no patches" for k in ("nano-gpu", "qwen3-0.6b", "bge-m3", "jina-small",
+                                                           "qwen3-vl-2b")}
+LLAMA_BUILD.update({k: "RX580 tree, CPU, patches 0002-0004" for k in ("giga-480m", "pplx-0.6b", "granite-311m",
+                                                                       "mdenseon", "granite-97m")})
 
 
 def sha(p: Path) -> str:
@@ -42,6 +48,8 @@ def main() -> None:
             for extra in ("serving_q8.json", "rx580_calibration.json"):
                 if (d / extra).is_file():
                     keep[extra.split(".")[0]] = json.loads((d / extra).read_text(encoding="utf-8"))
+            if "serving_q8" in keep:
+                keep["serving_q8"]["llama_build"] = LLAMA_BUILD.get(d.name, "see RESULTS_V2.md")
             models[d.name] = keep
     decision = res["decision"]
     summary = {}
@@ -55,8 +63,10 @@ def main() -> None:
     pool = json.load(open(WORK / "pool" / "pool.json", encoding="utf-8"))["stats"] if \
         (WORK / "pool" / "pool.json").is_file() else {}
     commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=REPO, capture_output=True, text=True).stdout.strip()
+    # a linked worktree created on Windows is not resolvable by git inside WSL: the caller passes the hash then
+    commit = commit or os.environ.get("V2_COMMIT", "")
     receipt = {
-        "schema": "vkm.retrieval_benchmark.v2.receipt/1", "agent": "V2", "date": "2026-09-28",
+        "schema": "vkm.retrieval_benchmark.v2.receipt/1", "agent": "V2", "date": "2026-09-28", "finished": "2026-09-29",
         "branch": "claude/agent-v2-embeddings-gpu-2026-09-28", "code_commit_at_receipt": commit,
         "preregistration": {"file": "benchmarks/retrieval_v2/PREREGISTRATION.md",
                             "sha256": (V2_DIR / "PREREGISTRATION.sha256").read_text(encoding="utf-8").split()[0],

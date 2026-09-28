@@ -130,6 +130,8 @@ def main() -> None:
         visual[d.name] = (pids, scores(P, np.load(d / "queries.f32.npy")))
         if (d / "queries_q8.f32.npy").is_file():            # serving parity (§7): Q8_0 text-tower queries
             visual[d.name + "~q8"] = (pids, scores(P, np.load(d / "queries_q8.f32.npy")))
+        if (d / "queries_f16_diag.f32.npy").is_file():      # diagnostic, not in the rule: F16 GGUF text-tower queries
+            visual[d.name + "~f16"] = (pids, scores(P, np.load(d / "queries_f16_diag.f32.npy")))
         del P
         log("visual scores", d.name, visual[d.name][1].shape)
 

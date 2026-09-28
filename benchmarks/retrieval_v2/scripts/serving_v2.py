@@ -282,6 +282,28 @@ def feasibility() -> None:
                     if d:
                         par[f"{label}/{track}"] = d["delta"]
             f["q8_delta_ndcg10"] = par or None
+            f["q8_parity_ok"] = (bool(par) and all(abs(v) <= 0.005 for v in par.values())
+                                 and f["q8_cos_mean"] >= 0.999) if par else None
+            f["q8_cpu_latency_ms"] = s.get("cpu_latency_ms")
+            # diagnostic outside the rule: the F16 GGUF of the same text tower (queries_f16_diag.f32.npy)
+            fd = WORK / "vis" / key / "serving_f16_diag.json"
+            if fd.is_file():
+                s16 = json.load(open(fd, encoding="utf-8"))
+                d16 = {}
+                for label in ("verified", "verified+pooled"):
+                    for track in ("visual", "text"):
+                        p = (((results.get("sets") or {}).get(label) or {}).get(track) or {}).get("pairs", {})
+                        d = (p.get(f"E+VIS:{key}~f16 ~ E+VIS:{key}") or {}).get("ndcg@10")
+                        if d:
+                            d16[f"{label}/{track}"] = d["delta"]
+                f["f16_diag"] = {"cos_mean": s16["cos_q8_vs_gpu_bf16"]["mean"],
+                                 "cos_min": s16["cos_q8_vs_gpu_bf16"]["min"],
+                                 "cpu_latency_ms": s16.get("cpu_latency_ms"), "delta_ndcg10": d16 or None,
+                                 "parity_ok": (bool(d16) and all(abs(v) <= 0.005 for v in d16.values())
+                                               and s16["cos_q8_vs_gpu_bf16"]["mean"] >= 0.999) if d16 else None}
+            gdir = WORK / "gguf" / key
+            if gdir.is_dir():
+                f["gguf_file_mib"] = {g.name: round(g.stat().st_size / 2**20, 1) for g in sorted(gdir.glob("*.gguf"))}
             f["rx580_gate"] = "NOT_RUN: agent K's Vulkan parity gate on the RX580 is required before deployment"
             f["feasible"] = None
         else:
