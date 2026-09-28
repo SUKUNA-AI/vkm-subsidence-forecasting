@@ -4,7 +4,11 @@
 * ``embed signature --key K --gguf F --quant Q --tokenizer-dir D [--mode dense] [--dim N] [--max-len N]`` — document
   config signature (§37) and query signature (§38) of a deployment;
 * ``embed plan --dir ARTIFACT_DIR --canon objects.jsonl`` — re-embed plan (§46) against an artifact directory;
-* ``embed validate --dir ARTIFACT_DIR --canon objects.jsonl`` — pre-import checks (§64).
+* ``embed validate --dir ARTIFACT_DIR --canon objects.jsonl`` — pre-import checks (§64);
+* ``embed encode --config SERVICE.json --docs docs.jsonl --data-root ROOT --roles dense|late`` — derived artifacts;
+* ``embed pack (--artifacts DIR | --config SERVICE.json) --units UNITS_DIR [--publish]`` — §64 checks (streamed) +
+  the memory-mapped token-vector pack of late interaction (agent L, :mod:`vkm_corpus.embeddings.pack`);
+* ``embed pack-verify --pack PACK_DIR --artifacts DIR`` — sampled float16 deviation of a pack.
 
 ``objects.jsonl`` rows: ``{"object_id", "text_hash", …}`` (the canonical objects of the config's text rule).
 """
@@ -92,6 +96,73 @@ def _validate(args: argparse.Namespace) -> int:
     return 0 if rep.ok else 1
 
 
+def slot_document_config(slot, *, text_rule: str):
+    """(artifact kind, EmbeddingConfig) of the documents a service model slot encodes (late → multivector): the one
+    definition shared by ``embed encode`` and ``embed pack``, so both name the same artifact directory."""
+    from vkm_corpus.embeddings.signature import document_config
+    from vkm_corpus.embeddings.specs import get
+    from vkm_corpus.embeddings.tokenize import file_sha256
+
+    spec = get(slot.key)
+    mode = "multivector" if slot.role == "late" else "dense"
+    tok_path = Path(slot.tokenizer_dir) / spec.tokenizer_file
+    config = document_config(
+        spec, mode=mode, weights_file=Path(slot.gguf).name,
+        weights_sha256=slot.gguf_sha256 or file_sha256(slot.gguf), quantization=slot.quant,
+        tokenizer_sha256=slot.tokenizer_sha256 or file_sha256(tok_path), dimension=slot.dimension,
+        max_len=slot.doc_max_len, heads_sha256=slot.heads_sha256 or (file_sha256(slot.heads) if slot.heads else ""),
+        text_rule=text_rule)
+    return mode, config
+
+
+def _pack(args: argparse.Namespace) -> int:
+    """§64 checks + token-vector pack of a multivector artifact directory for the units of one snapshot."""
+    import os
+    import sys
+
+    from vkm_corpus.embeddings.artifacts import config_dir
+    from vkm_corpus.embeddings.pack import PackError, build_pack
+
+    if args.artifacts:
+        art = Path(args.artifacts)
+    else:
+        if not args.config:
+            print(json.dumps({"status": "FAILED", "error": {"code": "E_PREFLIGHT",
+                                                            "message": "--artifacts or --config is required"}}))
+            return 2
+        from vkm_corpus.retrieval_service.config import load_config
+
+        cfg = load_config(path=args.config)
+        slot = cfg.slot(args.role)
+        if slot is None:
+            print(json.dumps({"status": "FAILED", "error": {"code": "E_PREFLIGHT",
+                                                            "message": f"no {args.role} slot in the config"}}))
+            return 2
+        mode, config = slot_document_config(slot, text_rule=args.text_rule)
+        root = args.data_root or os.environ.get("VKM_DATA_ROOT", "")
+        art = config_dir(Path(root), mode, config)
+    try:
+        receipt = build_pack(art, Path(args.units), publish_current=args.publish, keep=args.keep,
+                             verify_checksums=not args.skip_checksums,
+                             progress=lambda m: print(f"[pack] {m}", file=sys.stderr, flush=True))
+    except PackError as exc:
+        print(json.dumps({"status": "FAILED", "artifact_dir": str(art), "error": exc.as_dict()}, indent=1,
+                         ensure_ascii=False))
+        return 1
+    receipt["artifact_dir"] = str(art)
+    print(json.dumps(receipt, indent=1, ensure_ascii=False))
+    return 0
+
+
+def _pack_verify(args: argparse.Namespace) -> int:
+    """Sampled comparison of a pack with its Parquet rows: token values and the float16 MaxSim deviation."""
+    from vkm_corpus.embeddings.pack import verify_pack
+
+    rep = verify_pack(Path(args.pack), Path(args.artifacts), sample=args.sample, seed=args.seed)
+    print(json.dumps(rep, indent=1, ensure_ascii=False))
+    return 0 if rep.get("ok") else 1
+
+
 def _encode(args: argparse.Namespace) -> int:
     """Texts of canonical objects → running llama-servers of a service config → derived artifacts, through the
     in-memory job queue (same claim/idempotency semantics as the PostgreSQL queue), then the §64 validation."""
@@ -102,9 +173,9 @@ def _encode(args: argparse.Namespace) -> int:
     from vkm_corpus.embeddings.artifacts import ArtifactWriter, existing_hashes_in, validate
     from vkm_corpus.embeddings.llama import LlamaServerClient
     from vkm_corpus.embeddings.reembed import CanonObject, plan
-    from vkm_corpus.embeddings.signature import document_config, text_hash
+    from vkm_corpus.embeddings.signature import text_hash
     from vkm_corpus.embeddings.specs import get
-    from vkm_corpus.embeddings.tokenize import SpecTokenizer, file_sha256
+    from vkm_corpus.embeddings.tokenize import SpecTokenizer
     from vkm_corpus.embeddings.worker import EmbeddingWorker, InMemoryJobQueue, LlamaDocumentEncoder
     from vkm_corpus.retrieval_service.config import load_config
 
@@ -130,14 +201,7 @@ def _encode(args: argparse.Namespace) -> int:
         if args.roles and slot.role not in args.roles:
             continue
         spec = get(slot.key)
-        mode = "multivector" if slot.role == "late" else "dense"
-        tok_path = Path(slot.tokenizer_dir) / spec.tokenizer_file
-        config = document_config(
-            spec, mode=mode, weights_file=Path(slot.gguf).name,
-            weights_sha256=slot.gguf_sha256 or file_sha256(slot.gguf), quantization=slot.quant,
-            tokenizer_sha256=slot.tokenizer_sha256 or file_sha256(tok_path), dimension=slot.dimension,
-            max_len=slot.doc_max_len, heads_sha256=slot.heads_sha256 or (file_sha256(slot.heads) if slot.heads else ""),
-            text_rule=args.text_rule)
+        mode, config = slot_document_config(slot, text_rule=args.text_rule)
         writer = ArtifactWriter(Path(args.data_root), mode, config, writer_id=args.writer)
         existing = existing_hashes_in(writer.dir)          # key columns only (corpus scale)
         p = plan(config.signature(), canon.values(), existing)
@@ -206,6 +270,24 @@ def register(subparsers) -> None:
     s.add_argument("--skip-validate", action="store_true",
                    help="skip the in-memory §64 check (large corpora: `search build-vectors` validates by streaming)")
     s.set_defaults(func=_encode)
+    s = sub.add_parser("pack", help="§64 checks + token-vector pack (float16 memmap + index) of a multivector "
+                                    "artifact directory for the units of a snapshot (late interaction serving)")
+    s.add_argument("--artifacts", help="multivector artifact config directory")
+    s.add_argument("--config", help="service config JSON: pack the artifact directory of its late slot instead")
+    s.add_argument("--role", default="late", choices=["late"])
+    s.add_argument("--data-root", help="root of derived/embeddings (default: $VKM_DATA_ROOT) with --config")
+    s.add_argument("--text-rule", default="vkm-units-v1/A")
+    s.add_argument("--units", required=True, help="units export directory of the snapshot (units.json, units.jsonl)")
+    s.add_argument("--publish", action="store_true", help="point packs/CURRENT at the verified pack")
+    s.add_argument("--keep", type=int, default=2, help="packs kept (the CURRENT one always)")
+    s.add_argument("--skip-checksums", action="store_true", help="do not re-hash the Parquet parts")
+    s.set_defaults(func=_pack)
+    s = sub.add_parser("pack-verify", help="sampled comparison of a pack with its Parquet rows (float16 deviation)")
+    s.add_argument("--pack", required=True)
+    s.add_argument("--artifacts", required=True)
+    s.add_argument("--sample", type=int, default=200)
+    s.add_argument("--seed", type=int, default=20260928)
+    s.set_defaults(func=_pack_verify)
 
 
 def main(argv: list[str] | None = None) -> int:

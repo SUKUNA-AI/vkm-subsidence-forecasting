@@ -1,5 +1,5 @@
 {
-  "_comment": "Example deployment of the RX580 retrieval service (paths are container paths). The model pair is an EXAMPLE, not a selection: production encoders are chosen by the Retrieval Lab benchmark (agent J, coordinator). sha256 values are filled by `vkm-corpus embed signature` at deployment. expected_vram_mib = VRAM of the model after warm-up measured on the RX580 (MODEL_MATRIX); /health reports a model as resident at >= 80 % of it.",
+  "_comment": "Example deployment of the RX580 retrieval service (paths are container paths). The model pair is an EXAMPLE, not a selection: production encoders are chosen by the Retrieval Lab benchmark (agent J, coordinator). sha256 values are filled by `vkm-corpus embed signature` at deployment. expected_vram_mib = VRAM of the model after warm-up measured on the RX580 (MODEL_MATRIX); /health reports a model as resident at >= 80 % of it. search.multivector_dir = the late slot's multivector artifact directory (container path derived/embeddings/multivector/<model>/<revision>/<signature>): the service serves its packs/CURRENT token-vector pack by mmap (embed pack --publish; re-read every multivector_check_s, no restart) and drops touched pages from its RSS after multivector_rss_budget_mib; null = no late stage (POST /search/late answers 503).",
   "service": {
     "spawn": true,
     "llama_server": "/opt/llama/bin/llama-server",
@@ -55,6 +55,8 @@
     "dense_field": "vector",
     "id_field": "id",
     "multivector_dir": null,
+    "multivector_check_s": 10.0,
+    "multivector_rss_budget_mib": 256,
     "rrf_k": 60
   }
 }

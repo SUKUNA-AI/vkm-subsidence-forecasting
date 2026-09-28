@@ -4,6 +4,11 @@ Endpoints: ``GET /health`` (no auth), ``GET /model-info``, ``POST /embed/query``
 ``POST /search/hybrid``, ``POST /search/late``, ``GET /metrics`` (no auth). With a configured token every other
 endpoint needs ``Authorization: Bearer <token>`` (compared in constant time).
 
+``POST /search/late`` with ``targets`` (``[{"id", "kind"}]``, kind UNIT | PAGE | FIGURE | TABLE | FORMULA |
+BIB_ENTRY) is the late stage of the VKM API's hybrid search: the late query encoding and MaxSim against the token-vector
+pack (``search.multivector_dir``: memory-mapped, hot-reloaded from ``packs/CURRENT``). No store, no pack or a pack of
+another model → HTTP 503, never a silent fallback; ``/health`` reports the store as ``late_store``.
+
 Every encode runs in a worker thread (``asyncio.to_thread``); dense and late encodes of one request run concurrently
 (``asyncio.gather``) and requests of different clients are never serialised by the service — there is no global lock.
 
@@ -38,8 +43,17 @@ class SearchRequestBody(BaseModel):
     filters: Optional[dict[str, Any]] = None
 
 
+class LateTarget(BaseModel):
+    id: str = Field(min_length=1, max_length=200)
+    kind: Literal["UNIT", "PAGE", "FIGURE", "TABLE", "FORMULA", "BIB_ENTRY"] = "UNIT"
+
+
 class LateSearchBody(SearchRequestBody):
     candidates: Optional[list[str]] = Field(default=None, max_length=1000)
+    targets: Optional[list[LateTarget]] = Field(default=None, max_length=1000)
+    # CP-42: a page scores over its units except these kinds (a reference list is not the page's topic)
+    page_exclude_kinds: list[Literal["BLOCK_GROUP", "FIGURE", "TABLE", "FORMULA", "BIB_ENTRY"]] = \
+        Field(default_factory=lambda: ["BIB_ENTRY"], max_length=5)
 
 
 def _round(v, nd: int = 6):
@@ -145,6 +159,9 @@ def create_app(config=None, *, encoders: Optional[dict] = None, residency=None, 
                 models.append({"role": role, "key": enc.spec.key, "quant": enc.slot.quant, "loaded": ok,
                                "resident": ok, "vram_mib": None})
             body["models"] = models
+        from vkm_corpus.retrieval_service.search import store_status
+
+        body["late_store"] = await asyncio.to_thread(store_status, state["store"])
         all_ok = bool(models) and all(m["loaded"] and m["resident"] for m in models)
         body["status"] = "ok" if all_ok and state["ready"] else ("degraded" if any(m["loaded"] for m in models)
                                                                   else "down")
@@ -225,12 +242,31 @@ def create_app(config=None, *, encoders: Optional[dict] = None, residency=None, 
 
     @app.post("/search/late", dependencies=[Depends(require_token)])
     async def search_late(body: LateSearchBody):
-        from vkm_corpus.retrieval_service.search import Hit, late_rerank
+        from vkm_corpus.retrieval_service.search import Hit, current_store, late_rerank
 
-        store = state["store"]
-        if store is None:
-            raise HTTPException(status_code=503, detail="late-interaction token store is not configured")
+        encoder("late")                                   # 404 before any work when no late model is configured
+        try:
+            store = await asyncio.to_thread(current_store, state["store"])
+        except LookupError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)[:300]) from exc
         timings: dict[str, float] = {}
+        if body.targets is not None:
+            lq = await encode("late", body.query)
+            t0 = time.perf_counter()
+            targets = [(t.id, t.kind) for t in body.targets]
+            scored = await asyncio.to_thread(store.score_targets, lq.vectors, targets,
+                                             page_exclude_kinds=tuple(body.page_exclude_kinds))
+            ms = round((time.perf_counter() - t0) * 1e3, 2)
+            metrics.observe_ms("maxsim", ms, model=lq.key)
+            order = sorted((r for r in scored if r.status == "SCORED"), key=lambda r: (-r.late_score, r.id))
+            rank = {r.id: i for i, r in enumerate(order, start=1)}
+            info = store.info() if hasattr(store, "info") else {}
+            return {"mode": "late-targets", "model": lq.key, "query_signature": lq.signature,
+                    "n_query_tokens": int(lq.vectors.shape[0]), "store": info,
+                    "timings_ms": {"late_encode": lq.encode_ms, "maxsim": ms},
+                    "targets": len(targets), "scored": len(order), "unscored": len(targets) - len(order),
+                    "page_exclude_kinds": list(body.page_exclude_kinds),
+                    "results": [{**r.as_dict(), "late_rank": rank.get(r.id)} for r in scored]}
         if body.candidates:
             cands = [Hit(c, 0.0, {}, {"candidate_rank": i}) for i, c in enumerate(body.candidates, start=1)]
             lq = await encode("late", body.query)
@@ -260,7 +296,7 @@ def build_production_app():
     from vkm_corpus.retrieval_service.config import load_config
     from vkm_corpus.retrieval_service.encoders import QueryEncoder
     from vkm_corpus.retrieval_service.residency import ResidencyManager
-    from vkm_corpus.retrieval_service.search import HttpSearchBackend, Searcher, load_multivector_store
+    from vkm_corpus.retrieval_service.search import HttpSearchBackend, Searcher
 
     from vkm_corpus.embeddings.specs import get
 
@@ -281,5 +317,17 @@ def build_production_app():
         searcher = Searcher(HttpSearchBackend(cfg.search.opensearch_url), cfg.search.text_index,
                             cfg.search.text_fields, cfg.search.dense_index, cfg.search.dense_field,
                             cfg.search.id_field, cfg.search.rrf_k)
-    store = load_multivector_store(cfg.search.multivector_dir) if cfg.search.multivector_dir else None
+    store = None
+    if cfg.search.multivector_dir:        # memory-mapped pack (never the Parquet rows in RAM), hot-reloaded
+        from vkm_corpus.embeddings.pack import PackHandle
+
+        late = encs.get("late")
+        expect = None
+        if late is not None:
+            q = late.qconfig
+            expect = {"model_id": q.model_id, "model_revision": q.model_revision, "weights_sha256": q.weights_sha256,
+                      "quantization": q.quantization, "tokenizer_sha256": q.tokenizer_sha256,
+                      "heads_sha256": q.heads_sha256, "dimension": q.dimension}
+        store = PackHandle(cfg.search.multivector_dir, expect=expect, check_s=cfg.search.multivector_check_s,
+                           rss_budget_bytes=cfg.search.multivector_rss_budget_mib << 20)
     return create_app(cfg, encoders=encs, residency=residency, searcher=searcher, store=store)

@@ -165,7 +165,8 @@ def _cmd_hybrid(args: argparse.Namespace) -> int:
     try:
         out = hybrid_search(_client(settings), embed, HybridRequest(
             query=args.text, kinds=tuple(args.kind or ["PAGE"]), filters=_parse_filters(args.filter or []),
-            size=args.size, candidates=args.candidates, include_duplicates=args.duplicates), _prefix(settings, args))
+            size=args.size, candidates=args.candidates, include_duplicates=args.duplicates, late=args.late,
+            late_candidates=args.late_candidates), _prefix(settings, args))
     except (SearchRequestError, HybridError, ProjectionError) as exc:
         return _fail(exc.code, exc.message)
     finally:
@@ -176,7 +177,11 @@ def _cmd_hybrid(args: argparse.Namespace) -> int:
 
 def _cmd_hybrid_smoke(args: argparse.Namespace) -> int:
     """Hybrid search through the VKM API (read token from VKM_API_TOKEN_FILE): each query needs ≥ 1 hit whose
-    trace has a fused rank and at least one stage rank; the exit code is the verdict."""
+    trace has a fused rank and at least one stage rank; with ``--late`` also the late stage (a stage record, every
+    hit with a late status, ≥ 1 hit with a late rank). Latency per query (client and server timings) and p50/p95 are
+    reported; the exit code is the verdict."""
+    import time
+
     import httpx
 
     settings = load_settings()
@@ -188,11 +193,16 @@ def _cmd_hybrid_smoke(args: argparse.Namespace) -> int:
                       trust_env=False) as http:
         for text in args.query or SMOKE_QUERIES:
             entry: dict[str, Any] = {"query": text}
+            req: dict[str, Any] = {"query": text, "kinds": ["PAGE"], "limit": args.limit}
+            if args.late is not None:
+                req.update({"late": args.late, "late_candidates": args.late_candidates})
+            t0 = time.perf_counter()
             try:
-                r = http.post("/v1/search/hybrid", json={"query": text, "kinds": ["PAGE"], "limit": args.limit})
+                r = http.post("/v1/search/hybrid", json=req)
                 body = r.json()
             except (httpx.HTTPError, ValueError) as exc:
                 body, r = {"ok": False, "error": {"code": type(exc).__name__}}, None
+            entry["elapsed_ms"] = round((time.perf_counter() - t0) * 1e3, 1)
             items = body.get("items") or []
             traces = [(it.get("record") or {}).get("trace") or {} for it in items]
             good = [t for t in traces if t.get("fused_rank") and (t.get("bm25_rank") or t.get("dense_rank"))]
@@ -200,13 +210,32 @@ def _cmd_hybrid_smoke(args: argparse.Namespace) -> int:
                           "hits": len(items), "hits_with_trace": len(good),
                           "both_stages": sum(1 for t in good if t.get("bm25_rank") and t.get("dense_rank")),
                           "top": [{"id": (it.get("envelope") or {}).get("object_id"),
-                                   "trace": {k: t.get(k) for k in ("fused_rank", "bm25_rank", "dense_rank")}}
+                                   "trace": {k: t.get(k) for k in ("fused_rank", "bm25_rank", "dense_rank",
+                                                                   "late_rank") if k in t}}
                                   for it, t in list(zip(items, traces))[:3]],
                           "error": (body.get("error") or {}).get("code")})
+            record = (body.get("item") or {}).get("record") or {}
+            entry["server_ms"] = {k: v for k, v in (record.get("timings_ms") or {}).items()
+                                  if k in ("total", "embed", "late", "bm25_page", "dense_page")}
             entry["pass"] = entry["ok"] and entry["hits"] >= 1 and entry["hits_with_trace"] == entry["hits"]
+            if args.late:
+                late = (record.get("stages") or {}).get("late")
+                entry.update({"late_stage": isinstance(late, dict),
+                              "hits_with_late_rank": sum(1 for t in traces if t.get("late_rank")),
+                              "hits_with_late_status": sum(1 for t in traces if t.get("late_status")),
+                              "late_scored": late.get("scored") if isinstance(late, dict) else None,
+                              "late_unscored": late.get("unscored") if isinstance(late, dict) else None,
+                              "late_pack": ((late.get("store") or {}).get("pack_id")
+                                            if isinstance(late, dict) else None)})
+                entry["pass"] = entry["pass"] and entry["late_stage"] and entry["hits_with_late_rank"] >= 1 and \
+                    entry["hits_with_late_status"] == entry["hits"]
             ok_all = ok_all and entry["pass"]
             results.append(entry)
-    _print({"status": "PASS" if ok_all else "FAIL", "queries": results})
+    lat = sorted(e["elapsed_ms"] for e in results)
+    summary = {"n": len(lat), "p50_ms": lat[(len(lat) - 1) // 2] if lat else None,
+               "p95_ms": lat[min(len(lat) - 1, int(round(0.95 * (len(lat) - 1))))] if lat else None,
+               "max_ms": lat[-1] if lat else None}
+    _print({"status": "PASS" if ok_all else "FAIL", "late": args.late, "latency": summary, "queries": results})
     return 0 if ok_all else 1
 
 
@@ -295,12 +324,20 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     hy.add_argument("--duplicates", action="store_true")
     hy.add_argument("--embed-url", help="RX580 retrieval service (default VKM_EMBED_URL)")
     hy.add_argument("--prefix")
+    hy.add_argument("--late", dest="late", action="store_true", default=None,
+                    help="late interaction stage (MaxSim on the RX580) over the RRF top --late-candidates")
+    hy.add_argument("--no-late", dest="late", action="store_false")
+    hy.add_argument("--late-candidates", type=int, default=100)
     hy.set_defaults(func=_cmd_hybrid)
 
     hs = sub.add_parser("hybrid-smoke", help="3 Russian hybrid queries through the VKM API; exit code = verdict")
     hs.add_argument("--api-url", help="VKM API base URL (default VKM_API_URL)")
     hs.add_argument("--query", action="append", help="override the smoke queries")
     hs.add_argument("--limit", type=int, default=10)
+    hs.add_argument("--late", dest="late", action="store_true", default=None,
+                    help="request the late stage and check its trace (default: the server's default)")
+    hs.add_argument("--no-late", dest="late", action="store_false")
+    hs.add_argument("--late-candidates", type=int, default=100)
     hs.set_defaults(func=_cmd_hybrid_smoke)
 
     r = sub.add_parser("rollback", help="move aliases back to the previous COMPLETE build")
