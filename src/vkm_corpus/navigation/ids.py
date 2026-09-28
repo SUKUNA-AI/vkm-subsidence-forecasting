@@ -1,0 +1,58 @@
+"""Shared identifiers and dataset names of the navigation layer (NAV).
+
+IDs are content-derived and stable across rebuilds of the same snapshot with the same rule version:
+
+* ``SEC-<16 hex>`` — a section of a source: (source_id, method, level, ordinal, normalised title);
+* ``TRM-<16 hex>`` — a concept (term): its lemma key (lower case, ё → е, single spaces);
+* ``FSY-<16 hex>`` — a symbol of a formula inside its source: (source_id, normalised symbol) — symbols are never
+  global (σ in two books may be two different quantities);
+* ``FRF-<16 hex>`` — a textual reference to a formula: (citing block, formula);
+* ``FPR-<16 hex>`` — a parameter-value candidate near a formula: (formula, symbol, value text).
+"""
+from __future__ import annotations
+
+import hashlib
+import re
+import unicodedata
+
+RULE_VERSIONS: dict[str, str] = {
+    "sections": "sections_v1",
+    "formulas": "formula_context_v1",
+    "concepts": "concepts_v1",
+}
+
+# derived datasets under $VKM_DATA_ROOT/derived/navigation/<snapshot_id>/<name>.parquet
+DATASETS: tuple[str, ...] = (
+    "sections", "section_pages",
+    "formula_context", "formula_symbols", "formula_refs", "formula_parameters",
+    "terms", "term_mentions", "term_edges",
+)
+
+
+def _h(*parts: object) -> str:
+    return hashlib.sha256("|".join(str(p) for p in parts).encode("utf-8")).hexdigest()[:16]
+
+
+def norm_text(text: str | None) -> str:
+    t = unicodedata.normalize("NFKC", text or "").casefold().replace("ё", "е")
+    return re.sub(r"\s+", " ", re.sub(r"[^\w\s]+", " ", t)).strip()
+
+
+def section_id(source_id: str, method: str, level: int, ordinal: int, title: str | None) -> str:
+    return "SEC-" + _h("vkm-nav-section-v1", source_id, method, int(level), int(ordinal), norm_text(title))
+
+
+def term_id(lemma_key: str) -> str:
+    return "TRM-" + _h("vkm-nav-term-v1", norm_text(lemma_key))
+
+
+def symbol_id(source_id: str, symbol: str) -> str:
+    return "FSY-" + _h("vkm-nav-symbol-v1", source_id, symbol)
+
+
+def formula_ref_id(block_id: str, formula_id: str) -> str:
+    return "FRF-" + _h("vkm-nav-fref-v1", block_id, formula_id)
+
+
+def parameter_id(formula_id: str, symbol: str, value_text: str) -> str:
+    return "FPR-" + _h("vkm-nav-fparam-v1", formula_id, symbol, value_text)
