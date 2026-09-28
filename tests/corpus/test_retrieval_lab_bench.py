@@ -130,8 +130,10 @@ def test_real_v1_h_review_sample_matches_pooled_labels():
     if not (sample.is_file() and path.is_file()):
         pytest.skip("V1 files not present")
     grade = {(r["query_id"], r["doc_id"]): r["grade"] for r in B.load_pooled_qrels(path)}
+    # the sample table only (the H review appended a table of disagreements with numeric first cells too)
     rows = [line.split("|")[1:-1] for line in sample.read_text(encoding="utf-8").splitlines()
-            if line.startswith("| ") and line.split("|")[1].strip().isdigit()]
+            if line.startswith("| ") and line.split("|")[1].strip().isdigit()
+            and line.split("|")[2].strip()[:2] in ("T-", "V-")]
     assert len(rows) == 60
     for cells in rows:
         qid, page, g = cells[1].strip(), cells[3].strip(), cells[4].strip()
