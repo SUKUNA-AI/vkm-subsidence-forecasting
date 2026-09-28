@@ -109,12 +109,13 @@ def cancel(conn, job_id: int, by: str, note: str = "") -> None:
 
 # ---------------------------------------------------------------- worker side
 def claim_next(conn, worker_id: str, states: tuple[str, ...] = ("PLAN_REQUESTED", "CONFIRMED"),
-               lease_seconds: int = 900) -> dict[str, Any] | None:
-    """Take the oldest job in ``states`` that is not leased by a live worker."""
+               lease_seconds: int = 900, requested_by: str | None = None) -> dict[str, Any] | None:
+    """Take the oldest job in ``states`` that is not leased by a live worker (optionally of one requester)."""
     with conn.cursor() as cur:
         cur.execute(
             "SELECT job_id FROM ops.job WHERE state = ANY(%s) AND (lease_until IS NULL OR lease_until < now()) "
-            "ORDER BY job_id FOR UPDATE SKIP LOCKED LIMIT 1", (list(states),))
+            "AND (%s::text IS NULL OR requested_by = %s::text) "
+            "ORDER BY job_id FOR UPDATE SKIP LOCKED LIMIT 1", (list(states), requested_by, requested_by))
         found = cur.fetchone()
         if found is None:
             conn.commit()
@@ -126,6 +127,17 @@ def claim_next(conn, worker_id: str, states: tuple[str, ...] = ("PLAN_REQUESTED"
         job = cur.fetchone()
     conn.commit()
     return job
+
+
+def extend_lease(conn, job_id: int, worker_id: str, lease_seconds: int = 900) -> bool:
+    """Keep the lease of a job this worker still holds (a no-op once the job has left the worker)."""
+    with conn.cursor() as cur:
+        cur.execute(
+            "UPDATE ops.job SET lease_until = now() + make_interval(secs => %s) "
+            "WHERE job_id = %s AND locked_by = %s AND lease_until IS NOT NULL", (lease_seconds, job_id, worker_id))
+        extended = cur.rowcount == 1
+    conn.commit()
+    return extended
 
 
 def record_plan(conn, job_id: int, plan: dict[str, Any], planned_by: str) -> str:
