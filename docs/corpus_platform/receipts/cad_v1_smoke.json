@@ -1,6 +1,6 @@
 {
  "receipt": "vkm-cad.v1_smoke/1",
- "created_utc": "2026-09-28T19:28:53+00:00",
+ "created_utc": "2026-09-28T19:41:13+00:00",
  "bridge_version": "1.0.0",
  "host_role": "WORKSTATION",
  "data": "synthetic toy data only",
@@ -30,7 +30,7 @@
  "steps": [
   {
    "step": "cad_capabilities",
-   "seconds": 0.32,
+   "seconds": 0.21,
    "core_console": true,
    "dotnet": "VS_ROSLYN",
    "civil_references": true
@@ -41,19 +41,19 @@
   },
   {
    "step": "c3d_points_from_table E1 (inline rows)",
-   "seconds": 5.08,
+   "seconds": 5.16,
    "added": 100,
    "engine": "CIVIL3D_HEADLESS_DOTNET"
   },
   {
    "step": "c3d_points_from_table E2 (CSV ; decimal comma)",
-   "seconds": 3.23,
+   "seconds": 3.7,
    "added": 100,
    "input_sha256": "0ba4880d8651bf5bf09044d8d227763ac38fdb7ad03691d14a7bda90cce31414"
   },
   {
    "step": "c3d_tin_surface S1",
-   "seconds": 3.49,
+   "seconds": 3.68,
    "points": 100,
    "triangles": 162,
    "z_min": 100,
@@ -61,7 +61,7 @@
   },
   {
    "step": "c3d_tin_surface S2",
-   "seconds": 3.54,
+   "seconds": 3.68,
    "points": 100,
    "triangles": 162,
    "z_min": 98.9909,
@@ -69,14 +69,14 @@
   },
   {
    "step": "c3d_contours S2 (0.25 / 1.0)",
-   "seconds": 3.47,
+   "seconds": 3.66,
    "count": 8,
    "major": 2,
    "levels": 8
   },
   {
    "step": "c3d_difference_surface TROUGH",
-   "seconds": 3.54,
+   "seconds": 3.72,
    "cut_volume": 3566.15,
    "fill_volume": 0,
    "dz_min": -1.4091,
@@ -84,63 +84,63 @@
   },
   {
    "step": "c3d_alignment_profile LINE1",
-   "seconds": 3.5,
+   "seconds": 3.67,
    "samples": 19,
    "length": 90
   },
   {
    "step": "cad_layout_sheet A3 1:500",
-   "seconds": 3.99,
+   "seconds": 3.92,
    "media": "ISO_full_bleed_A3_(420.00_x_297.00_MM)",
    "scale_denominator": 500,
    "model_window_source": "union of the job's surfaces (+5%)"
   },
   {
    "step": "cad_plot_pdf VKM_A3",
-   "seconds": 3.72,
+   "seconds": 3.64,
    "bytes": 197366,
-   "sha256": "288269eca254f70a2a4cd7e0efee47ddda76fefddec8f210dc95c6185fb7dd0c"
+   "sha256": "535aa3d7279824b31934f8fedb02134b1657760ff1f4d546760bec8d6d09d4dc"
   },
   {
    "step": "cad_query lisp",
-   "seconds": 3.22,
+   "seconds": 3.4,
    "value": "\"Model\""
   },
   {
    "step": "cad_query csharp",
-   "seconds": 3.45,
+   "seconds": 3.66,
    "value": 4
   },
   {
    "step": "cad_exec scr",
-   "seconds": 3.49,
+   "seconds": 3.42,
    "ok": true
   },
   {
    "step": "cad_exec lisp",
-   "seconds": 3.45,
+   "seconds": 3.42,
    "value": "1"
   },
   {
    "step": "cad_exec csharp",
-   "seconds": 3.5,
+   "seconds": 3.91,
    "value": 1
   },
   {
    "step": "cad_draw → DWG",
-   "seconds": 1.95,
+   "seconds": 1.92,
    "dxf_bytes": 58506,
-   "dwg_bytes": 21385,
-   "dwg_sha256": "e451f5c0ef4d01a6ebd199f648fd9d7e783a4c7211c8b522c1ff99e67c37c5d6"
+   "dwg_bytes": 21417,
+   "dwg_sha256": "756bcc49cb8a0cec4dabe314784e763bd313348936cb1317a6890d400ce69dc8"
   },
   {
    "step": "cad_convert DWG → DXF",
-   "seconds": 1.95,
+   "seconds": 1.9,
    "bytes": 103762
   },
   {
    "step": "cad_pdf_import synthetic",
-   "seconds": 3.3,
+   "seconds": 2.68,
    "entities": 4,
    "by_type": {
     "LWPOLYLINE": 2,
@@ -165,98 +165,98 @@
    "run_id": "R001",
    "kind": "host:c3d.points",
    "status": "OK",
-   "duration_s": 4.29,
+   "duration_s": 4.03,
    "exit_code": 0
   },
   {
    "run_id": "R002",
    "kind": "host:c3d.points",
    "status": "OK",
-   "duration_s": 2.52,
+   "duration_s": 3.02,
    "exit_code": 0
   },
   {
    "run_id": "R003",
    "kind": "host:c3d.tin",
    "status": "OK",
-   "duration_s": 2.77,
+   "duration_s": 3.03,
    "exit_code": 0
   },
   {
    "run_id": "R004",
    "kind": "host:c3d.tin",
    "status": "OK",
-   "duration_s": 2.78,
+   "duration_s": 3.03,
    "exit_code": 0
   },
   {
    "run_id": "R005",
    "kind": "host:c3d.contours",
    "status": "OK",
-   "duration_s": 2.77,
+   "duration_s": 3.02,
    "exit_code": 0
   },
   {
    "run_id": "R006",
    "kind": "host:c3d.volume",
    "status": "OK",
-   "duration_s": 2.78,
+   "duration_s": 3.03,
    "exit_code": 0
   },
   {
    "run_id": "R007",
    "kind": "host:c3d.alignment_profile",
    "status": "OK",
-   "duration_s": 2.79,
+   "duration_s": 3.02,
    "exit_code": 0
   },
   {
    "run_id": "R008",
    "kind": "host:acad.layout_sheet",
    "status": "OK",
-   "duration_s": 3.29,
+   "duration_s": 3.28,
    "exit_code": 0
   },
   {
    "run_id": "R009",
    "kind": "plot_pdf",
    "status": "OK",
-   "duration_s": 3.03,
+   "duration_s": 3.02,
    "exit_code": 0
   },
   {
    "run_id": "R010",
    "kind": "query:lisp",
    "status": "OK",
-   "duration_s": 2.52,
+   "duration_s": 2.77,
    "exit_code": 0
   },
   {
    "run_id": "R011",
    "kind": "query:csharp",
    "status": "OK",
-   "duration_s": 2.78,
+   "duration_s": 2.77,
    "exit_code": 0
   },
   {
    "run_id": "R012",
    "kind": "exec:scr",
    "status": "OK",
-   "duration_s": 2.8,
+   "duration_s": 2.77,
    "exit_code": 0
   },
   {
    "run_id": "R013",
    "kind": "exec:lisp",
    "status": "OK",
-   "duration_s": 2.77,
+   "duration_s": 2.78,
    "exit_code": 0
   },
   {
    "run_id": "R014",
    "kind": "exec:csharp",
    "status": "OK",
-   "duration_s": 2.78,
+   "duration_s": 3.02,
    "exit_code": 0
   }
  ],
@@ -265,7 +265,7 @@
    "path": "out/points_E1.dxf",
    "kind": "CAD_DXF",
    "bytes": 77577,
-   "sha256": "9df3f3e383d1b4b86dd47f9cc029dcf1a63715543ae3c421d7aabe47f9bfdc6f"
+   "sha256": "bfe719ed71f6637654033ae2d1d22d3aec5c4defa948e05ec0c6f0c4ad86391b"
   },
   {
    "path": "out/points_E1.json",
@@ -277,7 +277,7 @@
    "path": "out/points_E2.dxf",
    "kind": "CAD_DXF",
    "bytes": 77833,
-   "sha256": "f11c59c7f87d25687899e21ed5f2a8d670653eb8308b62d9dc8c05355001f5b1"
+   "sha256": "6cf914cbf9f41bc49955766432036d98dd7284502c8099fcc42a02c666c32ca4"
   },
   {
    "path": "out/points_E2.json",
@@ -289,7 +289,7 @@
    "path": "out/tin_S1.dxf",
    "kind": "CAD_DXF",
    "bytes": 84422,
-   "sha256": "d0b5ca080171f18cf72c6725d1f8c5d5661b12d585af7ad4c2738cbedd987f35"
+   "sha256": "a9bad2b50aafd9c70a091494baa432a77798e761e7dcc7bfce2908ac8f68e11e"
   },
   {
    "path": "out/tin_S1.json",
@@ -301,7 +301,7 @@
    "path": "out/tin_S2.dxf",
    "kind": "CAD_DXF",
    "bytes": 86058,
-   "sha256": "ee2db93ee3907bf6f6b884624478fd1c3dd622d4963eef5e7f6d221e422f9b05"
+   "sha256": "d7e2f4777cd344b51f93188e96664976b623e74eb8491ce50026959431346c42"
   },
   {
    "path": "out/tin_S2.json",
@@ -313,7 +313,7 @@
    "path": "out/contours_S2.dxf",
    "kind": "CAD_DXF",
    "bytes": 61416,
-   "sha256": "0a774c314e3dda7bb51039e805d5c26de76c5a1f73d5bb897a482f95d0341971"
+   "sha256": "c718814dd7b400cd4fb485360788b5d3f3d8c9768eea5470269ffe85d626d767"
   },
   {
    "path": "out/contours_S2.json",
@@ -325,7 +325,7 @@
    "path": "out/diff_TROUGH.dxf",
    "kind": "CAD_DXF",
    "bytes": 91267,
-   "sha256": "d09b76d85a1de08ff254873a89b82185ab582031d2ed417cae5bb7d9eb83c3de"
+   "sha256": "c5572220ff9de6b02438980c3747c48599e4a9d5c4ae80fdabf2787e8dd4af83"
   },
   {
    "path": "out/diff_TROUGH.json",
@@ -343,13 +343,13 @@
    "path": "out/profile_LINE1.dxf",
    "kind": "CAD_DXF",
    "bytes": 56587,
-   "sha256": "01e3651540c33859414a558e41a43abcd222812b44e026009234b1e28a2a2f2c"
+   "sha256": "329c0d60faada40c7384b07a494fbb2a3fb45c738b007099b5513448237f939a"
   },
   {
    "path": "out/trough_sheet.pdf",
    "kind": "PDF",
    "bytes": 197366,
-   "sha256": "288269eca254f70a2a4cd7e0efee47ddda76fefddec8f210dc95c6185fb7dd0c"
+   "sha256": "535aa3d7279824b31934f8fedb02134b1657760ff1f4d546760bec8d6d09d4dc"
   }
  ],
  "side_effects_audit_last_run": {
@@ -362,10 +362,10 @@
   "status": "AUDITED"
  },
  "live_run": {
-  "time_local": "28.09.2026 22:28 (UTC+3)",
+  "time_local": "28.09.2026 22:41 (UTC+3)",
   "after_licensing_fix": true,
   "test": "tests/corpus/test_cad_live.py (VKM_TEST_CAD_LIVE=1)",
-  "timing_note": "each Civil 3D run ≈3.5 s (Core Console start + NETLOAD + operation) once the isolated profile exists; creating it the first time ≈13 s"
+  "timing_note": "each Civil 3D run ≈3.5 s (Core Console start + NETLOAD + operation) once the isolated profile exists; the first run in a new isolated profile 5-17 s"
  },
  "exploration": {
   "note": "probes before the bridge code was written (28.09.2026, local time UTC+3); not bridge jobs",
