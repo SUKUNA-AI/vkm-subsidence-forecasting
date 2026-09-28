@@ -485,6 +485,22 @@ def main() -> None:
     elif cmd == "visual":
         LOG = WORK / "logs" / f"encode_{sys.argv[2]}.log"
         encode_visual(sys.argv[2], int(os.environ["V2_LIMIT"]) if os.environ.get("V2_LIMIT") else None)
+    elif cmd == "queries32":
+        # fp32 reference query vectors (serving parity: separates bf16 noise from Q8_0 quantisation)
+        import torch
+
+        for key in sys.argv[2].split(","):
+            _, m = model_cfg(key)
+            spec = dataclasses.replace(SPECS[m["spec"]], max_query_tokens=CFG["query_max_tokens"],
+                                       **({"family": m["family_override"]} if m.get("family_override") else {}))
+            enc = make_encoder(spec, MODELS_DIR, device="cuda", precision="fp32", batch_size=16)
+            qs = queries()
+            qv = l2_normalize(np.asarray(enc.encode_queries([t for _q, t in qs]), dtype=np.float32))
+            np.save(WORK / "vec" / key / "queries_fp32.f32.npy", qv)
+            bf = np.load(WORK / "vec" / key / "queries.f32.npy")
+            print(key, "cos(bf16, fp32) mean", float((qv * bf).sum(1).mean()), "min", float((qv * bf).sum(1).min()))
+            del enc
+            torch.cuda.empty_cache()
     elif cmd == "queue":
         LOG = WORK / "logs" / "queue.log"
         for item in sys.argv[2].split(","):
