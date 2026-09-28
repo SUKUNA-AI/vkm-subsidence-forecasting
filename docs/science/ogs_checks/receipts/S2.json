@@ -1,0 +1,75 @@
+{
+  "step": "S2",
+  "title": "Single QUAD8 element, plane strain, linear elastic vs Hooke's law",
+  "created": "2026-09-28T19:31:18+00:00",
+  "status_note": "MODEL result of a verification toy; not SKRU-1, not a forecast, not an observation, not validated against field data.",
+  "versions": {
+    "ogs_version": "6.5.9",
+    "ogs_cmake_arguments": "-DOGS_BUILD_GUI=\"OFF\" -DOGS_CPU_ARCHITECTURE=\"native\" -DOGS_USE_MFRONT=\"ON\" -DOGS_USE_PIP=\"OFF\"",
+    "ogs_binary": "<OGS_BUILD>/bin/ogs",
+    "ogs_source_commit": "77b4c4fd12f2fa0c5c67a81c06ce4620653a48a5",
+    "tfel_version": "tfel-config 4.2.6-dev (git hash: 1c931d0e1)",
+    "python": "3.13.15",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "meshio": "5.3.5",
+    "platform": "Linux 6.6.114.1-microsoft-standard-WSL2 x86_64"
+  },
+  "inputs_sha256": {
+    "S2_single_element_hooke.prj": "b3c7c60df949e9cb17075edbdb428388fb33f58c5e47a8e830822f16e07797de",
+    "s2_square_quad8.vtu": "3fa0a0a102aeba4d768cc11d5a7cd24c3a7017a715f105ee13f87716d6afcdd4",
+    "s2_square.gml": "38f5ffbd3e3338b4cec14b5e0c79d15baca1cd2877608b8ed3e19c6746dae9a1"
+  },
+  "run": {
+    "command": "<OGS_BUILD>/bin/ogs -o <RUN_ROOT>/S2/out <RUN_ROOT>/S2/S2_single_element_hooke.prj",
+    "exit_code": 0,
+    "wall_time_s": 0.07,
+    "log": "<RUN_ROOT>/S2/ogs.log",
+    "log_sha256": "4ea7cf0b4544a8b786e2a66718b9257bd8d03a5c61e46a6b9955642afa1edbda"
+  },
+  "test_values": {
+    "E_Pa": 10000000000.0,
+    "nu": 0.25,
+    "sigma_yy_Pa": -10000000.0
+  },
+  "note": "E, nu, load are TEST_VALUE numbers, not rock properties",
+  "checks": {
+    "sigma_yy": {
+      "ogs": -9999999.999999993,
+      "analytic": -10000000.0,
+      "max_rel_err": 2.048909664154053e-15
+    },
+    "sigma_xx": {
+      "ogs_max_abs_Pa": 4.117864868666504e-09,
+      "analytic": 0.0
+    },
+    "sigma_zz": {
+      "ogs": -2499999.999999998,
+      "analytic": -2500000.0,
+      "max_rel_err": 2.2351741790771483e-15
+    },
+    "eps_yy": {
+      "ogs": -0.0009374999999999993,
+      "analytic": -0.0009375,
+      "max_rel_err": 1.734723475976807e-15
+    },
+    "eps_xx": {
+      "ogs": 0.00031249999999999984,
+      "analytic": 0.0003125,
+      "max_rel_err": 1.5612511283791264e-15
+    },
+    "u_y_top": {
+      "ogs": -0.0009375,
+      "analytic": -0.0009375,
+      "max_rel_err": 1.1564823173178715e-16
+    },
+    "u_x_right": {
+      "ogs": 0.00031250000000000006,
+      "analytic": 0.0003125,
+      "max_rel_err": 1.734723475976807e-16
+    }
+  },
+  "tolerance_rel": 1e-08,
+  "worst_rel_err": 2.2351741790771483e-15,
+  "pass": true
+}
