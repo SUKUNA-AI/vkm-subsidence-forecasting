@@ -233,6 +233,24 @@ def test_printed_toc_maps_labels_offset_and_heading_offset():
     assert st == {}
 
 
+def test_unmappable_printed_page_is_dropped_not_guessed():
+    from collections import Counter
+    lm = S.label_map([(p, [str(p - 2)], "CONSISTENT_SEQUENCE") for p in range(3, 20)])
+    cnt: Counter = Counter()
+    ents = S.toc_candidates(["Preface ..... xvii", "Глава 1. Начало", "1.1 Intro ..... 1", "1.2 Theory ..... 5"],
+                            lm, 19, [], cnt)
+    assert [(e.title, e.page, e.page_origin) for e in ents] == [("Начало", 3, "NEXT_ENTRY"), ("Intro", 3, "LABEL"),
+                                                                ("Theory", 7, "LABEL")]
+    assert cnt["toc_entries_unmapped_page"] == 1
+
+
+def test_numbered_title_block_is_not_merged_into_the_title():
+    ents = S.layout_candidates([S.Block("t1", 1, 1, "TITLE", "Оседания над рудником"),
+                                S.Block("t2", 1, 2, "TITLE", "II. Метод устойчивых отражателей")], [])
+    assert [(e.title, e.numbering) for e in ents] == [("Оседания над рудником", None),
+                                                      ("Метод устойчивых отражателей", "II")]
+
+
 def test_toc_entry_moves_to_its_heading_within_two_pages():
     c = Canon()
     c.source("SRC-T", 30, offset=0)

@@ -98,7 +98,7 @@ _JUNK_TITLE = re.compile(r"(\.(pdf|djvu?|docx?|tiff?|jpe?g|png)$|^microsoft word
 def clean_title(text: Any) -> str:
     t = unicodedata.normalize("NFKC", _CTRL.sub(" ", str(text or "")))
     t = re.sub(r"[*#|]+", " ", t)
-    return re.sub(r"\s+", " ", t).strip(" .·…_-–—:;")
+    return re.sub(r"\s+", " ", t).strip(" .,·…_-–—:;")
 
 
 def roman_value(token: str) -> int | None:
@@ -480,10 +480,12 @@ def toc_candidates(texts: list[str], labels: LabelMap, page_count: int,
         off, cnt = h_offsets.most_common(1)[0]
         if cnt >= 2 and cnt >= 0.5 * sum(h_offsets.values()):
             h_offset = off
+    unmapped: set[int] = set()
     for e in entries:
         token, e.page_origin = e.page_origin, ""
         if not token:
             continue
+        unmapped.add(id(e))          # a printed page that cannot be mapped is dropped, never guessed
         low = token.lower()
         if low in labels.direct:
             e.page, e.page_origin = labels.direct[low], "LABEL"
@@ -493,13 +495,16 @@ def toc_candidates(texts: list[str], labels: LabelMap, page_count: int,
             e.page, e.page_origin = int(token) + h_offset, "HEADING_OFFSET"
         if e.page is not None and not 1 <= e.page <= page_count:
             e.page, e.page_origin = None, ""
-    # a page-less chapter title takes the page of the next entry that has one
+        if e.page is not None:
+            unmapped.discard(id(e))
+    # a page-less chapter title (no printed page at all) takes the page of the next entry that has one
     nxt = None
     for e in reversed(entries):
-        if e.page is None and nxt is not None:
+        if e.page is None and nxt is not None and id(e) not in unmapped:
             e.page, e.page_origin = nxt, "NEXT_ENTRY"
         elif e.page is not None:
             nxt = e.page
+    stats["toc_entries_unmapped_page"] += len(unmapped)
     mapped = [e for e in entries if e.page is not None]
     stats["toc_entries_mapped"] += len(mapped)
     for e in mapped:
@@ -584,14 +589,15 @@ def layout_candidates(titles: list[Block], headings: list[Block]) -> list[Entry]
     """TITLE blocks (merged when consecutive on a page) at rank 1, HEADING blocks at rank 2 (+ numbering depth)."""
     merged: list[tuple[Block, str]] = []
     for b in titles:
-        if merged and merged[-1][0].page == b.page and b.order - merged[-1][0].order <= 3:
+        if merged and merged[-1][0].page == b.page and b.order - merged[-1][0].order <= 3 \
+                and parse_numbering(b.text)[0] is None:
             prev, text = merged[-1]
             merged[-1] = (Block(prev.block_id, prev.page, b.order, "TITLE", prev.text), f"{text} {b.text}")
             continue
         merged.append((b, b.text))
     items: list[tuple[int, int, Entry]] = []
-    for b, text in merged:
-        e = make_entry(text, b.page, b.order, rank=1)
+    for b, text in merged:      # a numbered TITLE block («II. Метод …») is a part of the title above it
+        e = make_entry(text, b.page, b.order, rank=1 if parse_numbering(text)[0] is None else 2)
         if e is not None and not heading_is_noise(text):
             e.heading_block_id = b.block_id
             items.append((b.page, b.order, e))
