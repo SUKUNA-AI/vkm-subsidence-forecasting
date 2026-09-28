@@ -1,6 +1,7 @@
 # GLM-OCR model server on WORKSTATION (Docker Desktop, WSL2 backend, NVIDIA GPU).
 # Pinned: vLLM v0.30.0 image by digest (CUDA 13.0.3, torch 2.13.0, sm_120) and zai-org/GLM-OCR by revision.
-# Offline at runtime: weights are mounted read-only from ${VKM_MODELS_DIR}; no telemetry; loopback-only port.
+# Offline and without egress (H-06): the model server sits only on an internal network (no route out); a socat proxy
+# publishes it on loopback. Weights are mounted read-only from ${VKM_MODELS_DIR}; no telemetry.
 # The OCR client (vkm_corpus.ocr) keeps every raw response; this server is a stateless recognizer.
 name: vkm-glm-ocr
 
@@ -8,10 +9,9 @@ services:
   glm-ocr:
     image: ${VKM_GLM_OCR_IMAGE:-vllm/vllm-openai@sha256:8a69ffad015f138d7170c4ddc429e230a3bc1c1719f67e14324749df200a4b90}
     restart: "no"
-    ports:
-      - "127.0.0.1:${VKM_GLM_OCR_PORT:-8080}:8000"
     ipc: host
     gpus: all
+    networks: [ocr_internal]
     environment:
       HF_HUB_OFFLINE: "1"
       TRANSFORMERS_OFFLINE: "1"
@@ -42,3 +42,17 @@ services:
     logging:
       driver: json-file
       options: {max-size: "50m", max-file: "3"}
+
+  glm-ocr-proxy:
+    image: ${VKM_SOCAT_IMAGE:-alpine/socat@sha256:5ffbd6ae916cbad86a58fabe0d6d5a6fd5c2b47ddf031e82996baac9300e732f}
+    restart: "no"
+    command: ["tcp-listen:8000,fork,reuseaddr", "tcp-connect:glm-ocr:8000"]
+    networks: [ocr_internal, ocr_publish]
+    ports:
+      - "127.0.0.1:${VKM_GLM_OCR_PORT:-8080}:8000"
+    depends_on: [glm-ocr]
+
+networks:
+  ocr_internal:
+    internal: true
+  ocr_publish: {}

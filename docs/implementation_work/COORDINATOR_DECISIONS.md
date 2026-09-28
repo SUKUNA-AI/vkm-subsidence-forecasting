@@ -201,7 +201,7 @@ MINOR приняты 22, H-41 (сужение порта существующе�
 | H-43, H-44, H-45 | приняты | Neo4j в v0 только `wipe` + 503 на время сборки; `vkm-objects` — слияние по рангу (RRF); изображения по умолчанию 1024 px | E, C, G, F |
 | H-46 | принято | схема не замораживается в `1.0.0`, пока в таблице §50 есть «нет» и не пройдены метрики canary | координатор, D |
 | H-47, H-48, H-49, H-50 | приняты | `REGISTER_NOTES_NOT_EVIDENCE`; сборка DuckDB сверяет `content_fingerprint` с manifest; `CITING_WORK_IS_CONTAINER`, `n_citing_entries` + `n_citing_sources`, `work_copy_count`; якорь блока DOCX — `docx_paragraph_path` + `render_page_id` (RENDER_DEPENDENT) | G, D, E, C |
-| H-51 | ждёт пользователя | до решения 239 — `UNSUPPORTED` с кодом политики прав, не молча | координатор |
+| H-51 | решено пользователем 28.09 | 239 и любые другие PDF с ограничениями копирования/печати от издательства обрабатываются как обычные файлы: без статуса UNSUPPORTED, без кода политики прав и без флагов (флаги прав — не шифрование; корпус локальный, тексты не распространяются, цитирование допустимо) | C |
 
 **CP-16 Единый контракт — ACCEPTED (владелец реализации — D; до первого кода других агентов).**
 
@@ -261,6 +261,38 @@ D — `contracts/`, `ids/`, `registry/`, `parquet/`, `duckdb/`; C — `extract/`
 `ops/`, `publish/`, `infra/core/`, `pyproject.toml`, `docs/corpus_platform/`, общие тесты. Тесты — `tests/corpus/` с
 префиксом файла по агенту (`test_contracts_*`, `test_extract_*`/`test_ocr_*`/`test_pipeline_*`, `test_graph_*`/
 `test_search_*`, `test_rerank_*`, `test_api_*`/`test_mcp_*`/`test_cad_*`/`test_drawio_*`).
+
+**CP-26 Retrieval lab — ACCEPTED (дополнительная задача пользователя 28.09, [постановка](TASK_SPEC_RETRIEVAL_LAB_RU.md)).**
+
+- Агенты J (benchmark, выбор моделей) и K (RX580 8 GB на CORE как постоянный retrieval-ускоритель) работают параллельно
+  с основной платформой и не задерживают её. Одновременная резидентность dense + late-interaction на RX580 — целевой
+  сценарий (уточнение пользователя); reload — только по измерениям.
+- RTX 5070 Ti: приоритет у GLM-OCR и layout pipeline C; сервер vLLM не перезапускается и не выгружается ради
+  benchmark; массовые прогоны J — только когда очередь OCR пуста (метрика vLLM `num_requests_running = 0`), малые
+  проверки допустимы при свободной VRAM; OOM сервера OCR недопустим.
+- Векторный поиск — только OpenSearch k-NN (встроен в дистрибутив 3.8.0); Milvus/Qdrant и т.п. не используются.
+  Канон эмбеддингов — derived artifacts в `$VKM_DATA_ROOT/derived/embeddings/{dense,sparse,multivector,visual}/…`
+  (Parquet/Arrow; multi-vector — Arrow nested или sharded mmap); OpenSearch — пересобираемая проекция без GPU.
+- Владение: J — `src/vkm_corpus/retrieval_lab/`, `benchmarks/retrieval_v0/` (запросы, qrels, hard negatives, конфиги —
+  без цитат источников), экспериментальные индексы OpenSearch с префиксом `vkm-exp-`, отчёты AGENT_J_*.md,
+  `tests/corpus/test_retrieval_lab_*.py`; K — `src/vkm_corpus/embeddings/` (подпись эмбеддинга §37, подпись запроса §38,
+  схема и писатель/читатель derived-артефактов, бэкенды кодировщиков, воркеры заданий), `src/vkm_corpus/retrieval_service/`
+  (сервис CORE `/health /model-info /embed/query /search/dense /search/hybrid /search/late /metrics`),
+  `infra/core/rx580/`, отчёты AGENT_K_*.md, `tests/corpus/test_embeddings_*.py`, `test_retrieval_service_*.py`.
+  Новые MCP-инструменты (`search_hybrid`, `search_visual`, `retrieval_trace`) — G после появления сервиса K;
+  production-поля векторов в индексах E — после выбора победителя (решение координатора); очередь заданий
+  эмбеддинга в PostgreSQL — координатор (`ops`), интерфейс воркера — K.
+- Qrels: graded 0–3; источники — reviewed evidence vNext (локаторы `pdf_page` → `page_id`), метаданные источников,
+  индекс объектов СКРУ-1, явная проверка страниц; LLM-предложения — только кандидаты до проверки; спорные —
+  NEEDS_REVIEW. Benchmark V0 строится на canary + нативных источниках после публикации их канона.
+- После benchmark — ревью H (§60 постановки лаборатории).
+
+**CP-25 INSTANCE_OF и копии — ACCEPTED (28.09, по вопросу E).** `INSTANCE_OF` строится из всех основных
+(`is_primary`) не-FOREIGN_CONTENT связей Source→Work независимо от `lifecycle_status` (013 — тоже экземпляр
+`VKM-WRK-013`: регистрационный факт не зависит от наличия файла; узел Source несёт статус). Проверка К-14 ревью H
+уточнена: `INSTANCE_OF` у 013, 025 и 202; ни одного `INSTANCE_OF` из `FOREIGN_CONTENT`. Счётчик копий в выдаче поиска
+(`work_copy_count`) — число доступных (ACTIVE) источников работы; view D отдаёт `n_sources_total` и `n_sources_active`.
+Коды ошибок проекций E входят в закрытый `ErrorCode` (H-01).
 
 **CP-17 Проекции — ACCEPTED (по отчёту E с упрощениями H).** Neo4j Community 5.26 LTS (5.26.31), label слоя
 `:DocumentLayer`, в графе только ID, статусы, структура и `text_sha256`; в v0 только rebuild `wipe` (H-43); правила

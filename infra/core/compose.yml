@@ -1,12 +1,13 @@
 # VKM Corpus Platform v0 — persistent projection services on CORE.
 # Rebuildable projections of the canonical Parquet layer: nothing here is a source of truth.
 # Host paths come only from ${VKM_DATA_ROOT} and ${VKM_SECRETS_DIR} (host-local .env, never committed).
-# Ports are published on loopback only: clients (projectors, VKM API/MCP) run on CORE; admins use an SSH tunnel.
+# Ports of the databases are published on loopback only (admins use an SSH tunnel); VKM API/MCP containers reach them
+# by service name on the internal network (H-26). Images are pinned by digest (K-24).
 name: vkm-core
 
 services:
   neo4j:
-    image: ${VKM_NEO4J_IMAGE:-neo4j:5.26.31-community}
+    image: ${VKM_NEO4J_IMAGE:-neo4j:5.26.31-community@sha256:5eb12ad77fa46ab73e23df9ea1f43f5c0f2a79523435577648e046be042b9b93}
     restart: unless-stopped
     ports:
       - "127.0.0.1:7474:7474"   # HTTP / Neo4j Browser (SSH tunnel)
@@ -27,6 +28,7 @@ services:
       - ${VKM_DATA_ROOT}/neo4j/logs:/logs
       - ${VKM_DATA_ROOT}/neo4j/import:/import
     mem_limit: 6g
+    networks: [vkm_internal]
     healthcheck:
       test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/7687' || exit 1"]
       interval: 30s
@@ -38,7 +40,7 @@ services:
       options: {max-size: "50m", max-file: "5"}
 
   opensearch:
-    image: ${VKM_OPENSEARCH_IMAGE:-opensearchproject/opensearch:3.8.0}
+    image: ${VKM_OPENSEARCH_IMAGE:-opensearchproject/opensearch:3.8.0@sha256:fafe3fc3587088674669235575aa166228c48bdb940294a8cdbbc1da75236a40}
     restart: unless-stopped
     ports:
       - "127.0.0.1:9200:9200"   # REST; 9600 (Performance Analyzer) is not published
@@ -57,6 +59,7 @@ services:
     volumes:
       - ${VKM_DATA_ROOT}/opensearch/data:/usr/share/opensearch/data
     mem_limit: 6g
+    networks: [vkm_internal]
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s' >/dev/null || exit 1"]
       interval: 30s
@@ -66,6 +69,9 @@ services:
     logging:
       driver: json-file
       options: {max-size: "50m", max-file: "5"}
+
+networks:
+  vkm_internal: {}
 
 secrets:
   neo4j_auth:
