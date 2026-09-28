@@ -1,0 +1,462 @@
+{
+ "receipt": "nav_sections",
+ "agent": "N1",
+ "date": "2026-09-28",
+ "rule_version": "sections_v1",
+ "outline_rule_version": "outline_v1",
+ "status": "DERIVED",
+ "review_status": "AUTO_EXTRACTED_UNREVIEWED",
+ "snapshot": {
+  "manifest_sha256": "f5a2fc899d618e1eba6d1471b1eb0b2a1102990584d8ba68214d354290d7f6b8",
+  "pipeline_version": "0.1.0",
+  "snapshot_id": "snap-20260928T160616Z-5d669f09"
+ },
+ "command": "vkm-corpus nav outlines --out outlines.json; vkm-corpus nav build --duckdb <snapshot copy> --out <dir> --outlines outlines.json --part sections",
+ "outlines": {
+  "extractors": {
+   "djvulibre": "3.5.30",
+   "pymupdf": "1.28.2",
+   "rule_version": "outline_v1"
+  },
+  "stats": {
+   "errors": 0,
+   "missing": 2,
+   "no_outline_format": 1,
+   "registered": 251,
+   "with_entries": 50
+  },
+  "file_sha256": "6c9b475b2d20c358478f189f81cd231c56c45168617d29079f22a73580d405d9",
+  "sources_with_entries": 50
+ },
+ "datasets": {
+  "section_pages": {
+   "rows": 27270,
+   "sha256": "45c4b78569e35ef7d4174ad18606c17948a13e15e034f0394de2985d400672cf"
+  },
+  "sections": {
+   "rows": 9105,
+   "sha256": "52ad86f94301ad483ba20a221d7c336aee2c5a852062ba8f0842c3f491d4b8f8"
+  }
+ },
+ "totals": {
+  "sources": 249,
+  "sources_by_method": {
+   "DJVU_OUTLINE": 1,
+   "EPUB_NAV": 1,
+   "HEADING_LAYOUT": 126,
+   "HEADING_NUMBERING": 30,
+   "PDF_OUTLINE": 37,
+   "PRINTED_TOC": 46,
+   "WHOLE_SOURCE": 8
+  },
+  "sections": 9105,
+  "sections_by_method": {
+   "DJVU_OUTLINE": 91,
+   "EPUB_NAV": 563,
+   "HEADING_LAYOUT": 1282,
+   "HEADING_NUMBERING": 1425,
+   "PDF_OUTLINE": 3156,
+   "PRINTED_TOC": 2580,
+   "WHOLE_SOURCE": 8
+  },
+  "sections_by_level": {
+   "1": 2050,
+   "2": 4117,
+   "3": 2253,
+   "4": 676,
+   "5": 9
+  },
+  "section_pages": 27270,
+  "pages_total": 26483,
+  "pages_covered": 26034,
+  "page_coverage": 0.983,
+  "heading_block_found": 8352,
+  "sources_with_conflicts": 33
+ },
+ "counters": {
+  "agreement_djvu_outline_vs_heading_layout_agreeing": 84,
+  "agreement_djvu_outline_vs_heading_layout_sections": 91,
+  "agreement_djvu_outline_vs_heading_numbering_agreeing": 71,
+  "agreement_djvu_outline_vs_heading_numbering_sections": 91,
+  "agreement_djvu_outline_vs_printed_toc_agreeing": 43,
+  "agreement_djvu_outline_vs_printed_toc_sections": 91,
+  "agreement_epub_nav_vs_heading_layout_agreeing": 558,
+  "agreement_epub_nav_vs_heading_layout_sections": 563,
+  "agreement_epub_nav_vs_heading_numbering_agreeing": 541,
+  "agreement_epub_nav_vs_heading_numbering_sections": 563,
+  "agreement_heading_layout_vs_printed_toc_agreeing": 15,
+  "agreement_heading_layout_vs_printed_toc_sections": 500,
+  "agreement_heading_numbering_vs_heading_layout_agreeing": 1425,
+  "agreement_heading_numbering_vs_heading_layout_sections": 1425,
+  "agreement_heading_numbering_vs_printed_toc_agreeing": 53,
+  "agreement_heading_numbering_vs_printed_toc_sections": 275,
+  "agreement_pdf_outline_vs_heading_layout_agreeing": 2526,
+  "agreement_pdf_outline_vs_heading_layout_sections": 3156,
+  "agreement_pdf_outline_vs_heading_numbering_agreeing": 2128,
+  "agreement_pdf_outline_vs_heading_numbering_sections": 2756,
+  "agreement_pdf_outline_vs_printed_toc_agreeing": 2228,
+  "agreement_pdf_outline_vs_printed_toc_sections": 2852,
+  "agreement_printed_toc_vs_heading_layout_agreeing": 2068,
+  "agreement_printed_toc_vs_heading_layout_sections": 2580,
+  "agreement_printed_toc_vs_heading_numbering_agreeing": 1650,
+  "agreement_printed_toc_vs_heading_numbering_sections": 2338,
+  "conflicts": 217,
+  "dropped_non_monotonic_djvu_outline": 0,
+  "dropped_non_monotonic_epub_nav": 0,
+  "dropped_non_monotonic_pdf_outline": 14,
+  "dropped_non_monotonic_printed_toc": 6,
+  "numbering_dropped_out_of_order": 383,
+  "outline_rejected_collapsed_destinations": 3,
+  "outline_rejected_junk_titles": 2,
+  "outline_rejected_more_entries_than_3x_pages": 2,
+  "outline_rejected_too_few_entries": 4,
+  "toc_entries_mapped": 6467,
+  "toc_entries_parsed": 7333,
+  "toc_entries_unmapped_page": 802,
+  "toc_page_heading_offset": 531,
+  "toc_page_label": 4134,
+  "toc_page_next_entry": 145,
+  "toc_page_offset": 1657,
+  "toc_page_shifted_to_heading": 83,
+  "toc_rejected_inconsistent": 1,
+  "toc_rejected_unanchored": 7
+ },
+ "checks": {
+  "duplicate_ids": 0,
+  "section_pages_orphans": 0,
+  "sections": 9105,
+  "sibling_shared_boundary_page": 1362
+ },
+ "start_page_check_by_method": {
+  "DJVU_OUTLINE": {
+   "sections": 91,
+   "heading_block": 89,
+   "title_in_page_text": 83,
+   "found": 89,
+   "found_share": 0.978
+  },
+  "EPUB_NAV": {
+   "sections": 563,
+   "heading_block": 558,
+   "title_in_page_text": 558,
+   "found": 558,
+   "found_share": 0.9911
+  },
+  "HEADING_LAYOUT": {
+   "sections": 1282,
+   "heading_block": 1282,
+   "title_in_page_text": 1278,
+   "found": 1282,
+   "found_share": 1.0
+  },
+  "HEADING_NUMBERING": {
+   "sections": 1425,
+   "heading_block": 1425,
+   "title_in_page_text": 1425,
+   "found": 1425,
+   "found_share": 1.0
+  },
+  "PDF_OUTLINE": {
+   "sections": 3156,
+   "heading_block": 2744,
+   "title_in_page_text": 2905,
+   "found": 2974,
+   "found_share": 0.9423
+  },
+  "PRINTED_TOC": {
+   "sections": 2580,
+   "heading_block": 2253,
+   "title_in_page_text": 2171,
+   "found": 2432,
+   "found_share": 0.9426
+  },
+  "WHOLE_SOURCE": {
+   "sections": 8,
+   "heading_block": 1,
+   "title_in_page_text": 7,
+   "found": 7,
+   "found_share": 0.875
+  }
+ },
+ "manual_qa": {
+  "procedure": "per source an evenly spaced sample of sections; the start page is compared with the HEADING/TITLE blocks of that page in the DuckDB copy and the next same-or-higher section starts after page_end",
+  "sources": [
+   {
+    "source_id": "VKM-SRC-226",
+    "kind": "big book with PDF outline",
+    "source_class": "monograph",
+    "format_class": "PDF/NATIVE",
+    "method": "PDF_OUTLINE",
+    "sections": 683,
+    "levels": 4,
+    "pages": 871,
+    "covered_pages": 868,
+    "conflicts": 8,
+    "methods_available": [
+     "HEADING_LAYOUT",
+     "HEADING_NUMBERING",
+     "PDF_OUTLINE",
+     "PRINTED_TOC"
+    ],
+    "start_page_found_share": {
+     "PDF_OUTLINE": 0.9985
+    },
+    "manual_sample": {
+     "sampled": 8,
+     "verifiable": 8,
+     "start_page_correct": 8
+    },
+    "notes": []
+   },
+   {
+    "source_id": "VKM-SRC-222",
+    "kind": "big book without outline, printed TOC",
+    "source_class": "monograph",
+    "format_class": "PDF/NATIVE",
+    "method": "PRINTED_TOC",
+    "sections": 72,
+    "levels": 2,
+    "pages": 731,
+    "covered_pages": 709,
+    "conflicts": 0,
+    "methods_available": [
+     "HEADING_LAYOUT",
+     "HEADING_NUMBERING",
+     "PRINTED_TOC"
+    ],
+    "start_page_found_share": {
+     "PRINTED_TOC": 1.0
+    },
+    "manual_sample": {
+     "sampled": 8,
+     "verifiable": 8,
+     "start_page_correct": 8
+    },
+    "notes": [
+     "before fix: front-matter entry with a roman page got the next entry's page; now dropped"
+    ]
+   },
+   {
+    "source_id": "VKM-SRC-234",
+    "kind": "big book, collapsed junk outline, no TOC",
+    "source_class": "monograph",
+    "format_class": "PDF/NATIVE",
+    "method": "HEADING_NUMBERING",
+    "sections": 125,
+    "levels": 2,
+    "pages": 741,
+    "covered_pages": 735,
+    "conflicts": 0,
+    "methods_available": [
+     "HEADING_LAYOUT",
+     "HEADING_NUMBERING"
+    ],
+    "start_page_found_share": {
+     "HEADING_NUMBERING": 1.0
+    },
+    "manual_sample": {
+     "sampled": 8,
+     "verifiable": 8,
+     "start_page_correct": 8
+    },
+    "notes": [
+     "numbered headings; chapters level 1"
+    ]
+   },
+   {
+    "source_id": "VKM-SRC-003",
+    "kind": "dissertation, printed TOC",
+    "source_class": "dissertation",
+    "format_class": "PDF/NATIVE",
+    "method": "PRINTED_TOC",
+    "sections": 44,
+    "levels": 3,
+    "pages": 126,
+    "covered_pages": 123,
+    "conflicts": 3,
+    "methods_available": [
+     "HEADING_LAYOUT",
+     "HEADING_NUMBERING",
+     "PRINTED_TOC"
+    ],
+    "start_page_found_share": {
+     "PRINTED_TOC": 1.0
+    },
+    "manual_sample": {
+     "sampled": 8,
+     "verifiable": 8,
+     "start_page_correct": 8
+    },
+    "notes": []
+   },
+   {
+    "source_id": "VKM-SRC-004",
+    "kind": "journal article, layout headings",
+    "source_class": "journal_article",
+    "format_class": "PDF/NATIVE",
+    "method": "HEADING_LAYOUT",
+    "sections": 5,
+    "levels": 2,
+    "pages": 19,
+    "covered_pages": 19,
+    "conflicts": 0,
+    "methods_available": [
+     "HEADING_LAYOUT"
+    ],
+    "start_page_found_share": {
+     "HEADING_LAYOUT": 1.0
+    },
+    "manual_sample": {
+     "sampled": 5,
+     "verifiable": 5,
+     "start_page_correct": 5
+    },
+    "notes": [
+     "Russian and English title blocks are two level-1 sections"
+    ]
+   },
+   {
+    "source_id": "VKM-SRC-207",
+    "kind": "journal issue, printed TOC",
+    "source_class": "journal_issue",
+    "format_class": "PDF/NATIVE",
+    "method": "PRINTED_TOC",
+    "sections": 19,
+    "levels": 1,
+    "pages": 61,
+    "covered_pages": 59,
+    "conflicts": 0,
+    "methods_available": [
+     "HEADING_LAYOUT",
+     "PRINTED_TOC"
+    ],
+    "start_page_found_share": {
+     "PRINTED_TOC": 0.5789
+    },
+    "manual_sample": {
+     "sampled": 8,
+     "verifiable": 6,
+     "start_page_correct": 6
+    },
+    "notes": [
+     "TOC titles carry author names and rubrics as printed; 2 start pages have no heading blocks"
+    ]
+   },
+   {
+    "source_id": "VKM-SRC-053",
+    "kind": "DjVu scan with DjVu outline",
+    "source_class": "monograph",
+    "format_class": "DJVU/SCANNED_WITH_TEXT_LAYER",
+    "method": "DJVU_OUTLINE",
+    "sections": 91,
+    "levels": 3,
+    "pages": 384,
+    "covered_pages": 384,
+    "conflicts": 2,
+    "methods_available": [
+     "DJVU_OUTLINE",
+     "HEADING_LAYOUT",
+     "HEADING_NUMBERING",
+     "PRINTED_TOC"
+    ],
+    "start_page_found_share": {
+     "DJVU_OUTLINE": 0.978
+    },
+    "manual_sample": {
+     "sampled": 8,
+     "verifiable": 8,
+     "start_page_correct": 8
+    },
+    "notes": []
+   },
+   {
+    "source_id": "VKM-SRC-230",
+    "kind": "DjVu scan, printed TOC",
+    "source_class": "textbook",
+    "format_class": "DJVU/SCANNED_WITH_TEXT_LAYER",
+    "method": "PRINTED_TOC",
+    "sections": 50,
+    "levels": 1,
+    "pages": 562,
+    "covered_pages": 555,
+    "conflicts": 0,
+    "methods_available": [
+     "HEADING_LAYOUT",
+     "HEADING_NUMBERING",
+     "PRINTED_TOC"
+    ],
+    "start_page_found_share": {
+     "PRINTED_TOC": 1.0
+    },
+    "manual_sample": {
+     "sampled": 8,
+     "verifiable": 7,
+     "start_page_correct": 7
+    },
+    "notes": [
+     "flat: part headings absent from TOC, § numbering restarts per part; OCR noise in TOC titles"
+    ]
+   },
+   {
+    "source_id": "VKM-SRC-249",
+    "kind": "EPUB with navigation",
+    "source_class": "textbook",
+    "format_class": "EPUB/REFLOWABLE_EPUB",
+    "method": "EPUB_NAV",
+    "sections": 563,
+    "levels": 5,
+    "pages": 391,
+    "covered_pages": 390,
+    "conflicts": 1,
+    "methods_available": [
+     "EPUB_NAV",
+     "HEADING_LAYOUT",
+     "HEADING_NUMBERING"
+    ],
+    "start_page_found_share": {
+     "EPUB_NAV": 0.9911
+    },
+    "manual_sample": {
+     "sampled": 8,
+     "verifiable": 7,
+     "start_page_correct": 7
+    },
+    "notes": [
+     "half-title spine item has no heading block"
+    ]
+   },
+   {
+    "source_id": "VKM-SRC-227",
+    "kind": "scanned PDF without text layer (GLM-OCR), printed TOC",
+    "source_class": "monograph",
+    "format_class": "PDF/SCANNED_NO_TEXT",
+    "method": "PRINTED_TOC",
+    "sections": 219,
+    "levels": 3,
+    "pages": 572,
+    "covered_pages": 559,
+    "conflicts": 0,
+    "methods_available": [
+     "HEADING_LAYOUT",
+     "HEADING_NUMBERING",
+     "PRINTED_TOC"
+    ],
+    "start_page_found_share": {
+     "PRINTED_TOC": 1.0
+    },
+    "manual_sample": {
+     "sampled": 8,
+     "verifiable": 8,
+     "start_page_correct": 8
+    },
+    "notes": []
+   }
+  ],
+  "total": {
+   "sampled": 77,
+   "verifiable": 73,
+   "start_page_correct": 73
+  }
+ },
+ "build_seconds": 10.23
+}
