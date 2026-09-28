@@ -10,7 +10,7 @@ set -euo pipefail
 REPO=${1:?public repo root}
 OUT=${2:?receipt dir}
 LLAMA_TAG=${LLAMA_TAG:-vkm/llama-server-cu132-sm75:b11223-4da6337767f9-p1}
-GATEWAY_TAG=${GATEWAY_TAG:-vkm/rerank-gateway:0.1.0}
+GATEWAY_TAG=${GATEWAY_TAG:-vkm/rerank-gateway:0.1.1}
 BUILD_JOBS=${BUILD_JOBS:-6}
 mkdir -p "$OUT"
 

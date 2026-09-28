@@ -118,7 +118,10 @@ docker compose --env-file .env -f compose.yml down               # остано�
 - Токен для VKM API на CORE координатор копирует из `secrets/rerank_gateway_token` в секреты CORE
   (`VKM_RERANK_TOKEN_FILE`); в git — только `.env.example`.
 - Образы (`infra/edge/build_images.sh`): `vkm/llama-server-cu132-sm75:b11223-4da6337767f9-p1`
-  (id `sha256:456889f5…`), `vkm/rerank-gateway:0.1.0` (id `sha256:106974ad…`); базы закреплены digest-ом в Dockerfile.
+  (id `sha256:456889f5…`), `vkm/rerank-gateway:0.1.0` (id `sha256:106974ad…`); базы закреплены digest-ом в Dockerfile. С 28.09 работает
+  `vkm/rerank-gateway:0.1.1` (id `sha256:73ef20f2…`): при разрешённом усечении шлюз подгоняет кандидатов под
+  измеренную разметку listwise-промпта v3.5 (497–625 токенов при n=24) вместо ответа 413 (находка 7 бенчмарка J);
+  пересоздан только контейнер шлюза, text-сервис и m0 не перезапускались.
   **EDGE — ноутбук**: компиляция llama.cpp только с `BUILD_JOBS=6` под `nice -n 10`, без лишних пересборок (слой с
   патчем отдельный); тяжёлую сборку лучше делать на WORKSTATION и переносить `docker save <tag> | ssh edge docker load`.
   Первая сборка шла с 12 потоками (CPU 100 %, Tctl ≈ 99.5 °C) — это больше не повторяется.
