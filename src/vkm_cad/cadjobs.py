@@ -394,13 +394,19 @@ class CadJobs:
         return out
 
     def convert(self, job_id: str, source: str = "drawing", to: str = "dxf", name: str | None = None,
-                dxf_version: str = "2018") -> dict[str, Any]:
-        """``source``: ``drawing`` (the job drawing) or a job file ``out/…``/``in/…``; ``to``: dwg or dxf."""
+                dxf_version: str = "2018", source_file: Path | None = None) -> dict[str, Any]:
+        """``source``: ``drawing`` (the job drawing) or a job file ``out/…``/``in/…``; ``source_file``: a local DXF/DWG
+        (e.g. a scratch document of ``cad_import_pdf_vector``) copied into ``in/`` first; ``to``: dwg or dxf."""
         job = self.store.get(job_id)
         if to not in ("dwg", "dxf"):
             raise ToolFailure("INVALID_ARGUMENT", "to is dwg or dxf")
         if dxf_version not in ("2000", "2004", "2007", "2010", "2013", "2018"):
             raise ToolFailure("INVALID_ARGUMENT", "dxf_version is 2000…2018")
+        if source_file is not None:
+            if Path(source_file).suffix.lower() not in (".dxf", ".dwg"):
+                raise ToolFailure("FORMAT_NOT_SUPPORTED", "only .dxf and .dwg files are converted")
+            entry = job.copy_input(Path(source_file), env=self.env)
+            source = entry["path"]
         if source == "drawing":
             if not job.has_drawing():
                 raise ToolFailure("INPUT_NOT_FOUND", "the job has no drawing yet")

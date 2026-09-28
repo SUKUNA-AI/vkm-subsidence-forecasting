@@ -16,7 +16,7 @@
 | полный .NET API AutoCAD и **Civil 3D** (`cad_exec csharp`, все `c3d_*`, листы) | headless: `accoreconsole /product C3D` + плагин `VkmCadHost` | да |
 | COGO-точки и группы, TIN (точки, структурные линии, граница), горизонтали, поверхность объёмов и dz-TIN (мульда), трасса + профили | headless .NET | да (сетка 10 × 10 с синтетической мульдой) |
 | лист A4…A0 с рамкой, видовым экраном 1:N и основной надписью; печать в PDF | headless (.NET + `-PLOT`) | да |
-| PDF → чертёж (`-PDFIMPORT`), DXF ↔ DWG | headless | да |
+| PDF → чертёж (`-PDFIMPORT`), DXF ↔ DWG, векторы PDF корпуса (scratch DXF v0) → DWG | headless | да |
 | ActiveX (`vla-*`) и COM Civil 3D (`AeccXUiLand`) — `cad_exec python_com` | скрытый полный `acad.exe` | только разведка (§5.2): по умолчанию выключено |
 | TIN, горизонтали, разность поверхностей, профили без Autodesk | чистый Python (scipy) | да, сверка с Civil 3D |
 

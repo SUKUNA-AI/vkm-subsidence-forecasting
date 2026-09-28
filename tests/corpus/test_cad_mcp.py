@@ -84,9 +84,20 @@ def test_results_and_errors(tmp_path):
                 "engine": "fallback"})
             listing = await client.call_tool("cad_job_list", {})
             bad_id = await client.call_tool("cad_job_status", {"job_id": "CADJ-20260101T000000Z-00000000"})
-            return status, docs, created, missing, exact, caps, job, run, com, points, listing, bad_id
+            scratch_id = created.structured_content["result"]["scratch_doc_id"]
+            conv = await client.call_tool("cad_convert", {"job_id": job_id, "source": f"scratch:{scratch_id}/doc.dxf",
+                                                          "to": "dwg"})
+            escape = await client.call_tool("cad_convert", {"job_id": job_id, "source": f"scratch:{scratch_id}/../x",
+                                                            "to": "dwg"})
+            after = await client.call_tool("cad_job_status", {"job_id": job_id})
+            return (status, docs, created, missing, exact, caps, job, run, com, points, listing, bad_id, conv, escape,
+                    after)
 
-    status, docs, created, missing, exact, caps, job, run, com, points, listing, bad_id = asyncio.run(go())
+    (status, docs, created, missing, exact, caps, job, run, com, points, listing, bad_id, conv, escape,
+     after) = asyncio.run(go())
+    assert conv.is_error and conv.structured_content["error"]["code"] == "CAD_ENGINE_UNAVAILABLE"
+    assert any(i["path"] == "in/doc.dxf" for i in after.structured_content["result"]["inputs"])   # copied first
+    assert escape.is_error and escape.structured_content["error"]["code"] == "INVALID_ARGUMENT"
     assert status.structured_content["schema"] == RESULT_SCHEMA and status.structured_content["ok"]
     assert status.structured_content["result"]["scratch"]["available"] is True
     assert status.structured_content["result"]["jobs"]["available"] is True

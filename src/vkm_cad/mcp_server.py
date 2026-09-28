@@ -266,8 +266,20 @@ def register_v1(server: MCPServer, svc: CadService) -> None:
                           to: Literal["dwg", "dxf"] = "dxf", name: ObjName | None = None,
                           dxf_version: Literal["2000", "2004", "2007", "2010", "2013", "2018"] = "2018"
                           ) -> CallToolResult:
-        """DXF ↔ DWG with AutoCAD (SAVEAS / DXFOUT). source: 'drawing' (the job drawing) or a job file out/… in/…"""
-        return await _call("cad_convert", lambda: jobs.convert(job_id, source, to, name, dxf_version))
+        """DXF ↔ DWG with AutoCAD (SAVEAS / DXFOUT). source: 'drawing' (the job drawing), a job file out/… in/…, or a
+        scratch document 'scratch:CADS-…/doc.dxf' (e.g. PDF vector paths from cad_import_pdf_vector) → DWG."""
+        def run() -> Any:
+            if source.startswith("scratch:"):
+                doc_id, _, rel = source[len("scratch:"):].partition("/")
+                if not rel or ".." in rel or "\\" in rel:
+                    raise ToolFailure("INVALID_ARGUMENT", "scratch source is scratch:<scratch_doc_id>/<file>")
+                path = svc.scratch.doc_dir(doc_id) / rel
+                if not path.is_file():
+                    raise ToolFailure("INPUT_NOT_FOUND", f"{source} does not exist")
+                return jobs.convert(job_id, "drawing", to, name or doc_id, dxf_version, source_file=path)
+            return jobs.convert(job_id, source, to, name, dxf_version)
+
+        return await _call("cad_convert", run)
 
     @server.tool(name="c3d_points_from_table", annotations=JOB)
     async def c3d_points_from_table(

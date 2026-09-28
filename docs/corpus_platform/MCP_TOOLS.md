@@ -144,7 +144,7 @@ Read-инструменты не вызывают команды и не сох�
 | `cad_exec` | **code** | `scr` (командные строки), `lisp` (значение последнего выражения; в `scr`/`lisp` доступны `(vkm:result v)` и `(vkm:fail "причина")`), `csharp` (операторы C# с `ctx.Doc/Db/Ed/Tr` и `civil`, `return` — результат), `python_com` (скрытый полный AutoCAD: `app`, `doc`, `civil()`) | Core Console; `python_com` — скрытый экземпляр |
 | `cad_query` | **code** | выражение LISP или C# на чертеже задания без сохранения | Core Console |
 | `cad_draw` | job | чертёж из JSON-спецификации (слои, точки, полилинии 2D/3D, окружности, дуги, тексты, штриховки, блоки с атрибутами, размеры) → DXF, по желанию DWG и чертёж задания | ezdxf (+ Core Console) |
-| `cad_convert` | job | DXF ↔ DWG (SAVEAS 2018 / DXFOUT 2000…2018) | Core Console |
+| `cad_convert` | job | DXF ↔ DWG (SAVEAS 2018 / DXFOUT 2000…2018); источник — чертёж задания, файл задания или scratch-документ `scratch:CADS-…/doc.dxf` (векторы PDF корпуса из `cad_import_pdf_vector` → DWG) | Core Console |
 | `c3d_points_from_table` | job | таблица (CSV/TSV, `;` и десятичная запятая, JSON, Parquet или строки) → COGO-точки + группа; копии DXF/JSON; `name_policy` | .NET (Civil 3D) / резерв |
 | `c3d_tin_surface` | job | TIN из группы или точек, структурные линии, внешняя граница, макс. ребро; статистика, DXF треугольников | .NET / резерв |
 | `c3d_contours` | job | горизонтали кратно интервалу, основные — на отдельном слое | .NET / резерв |
