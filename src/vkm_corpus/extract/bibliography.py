@@ -35,8 +35,8 @@ from vkm_corpus.contracts.text_rules import normalize_text_v1
 from vkm_corpus.ids import normalize_doi, normalize_isbn, parse_page_id
 
 EXTRACTOR_ID = "bib-segmenter"
-EXTRACTOR_VERSION = "0.1.0"
-RULES_VERSION = "bib_rules_v1"
+EXTRACTOR_VERSION = "0.2.0"
+RULES_VERSION = "bib_rules_v2"
 
 # the rule configuration: its hash is the raw_config_hash of every entry (part of the object id, H-14) — change it
 # (or the rules) only together with a new extraction_generation
@@ -68,7 +68,9 @@ BIB_HEADING = re.compile(
     r"|библиографическ\w+\s+список|библиография|список\s+публикаций|cписок\s+литературы"
     r"|references(?:\s+cited)?|bibliography|literature(?:\s+cited)?|literatur(?:verzeichnis)?|quellenverzeichnis)"
     r"\s*[:.]?\s*$", re.IGNORECASE)
-LABEL = re.compile(r"^\s*(?:\[(\d{1,5})\]|(\d{1,5})\s?[.)](?![\d]))\s*")
+LABEL = re.compile(r"^\s*(?:\[(\d{1,5})\]|(\d{1,5})\s?[.)](?![\d])|(\d{1,3})\s(?=[А-ЯЁA-Z«\"][а-яёa-z]+[\s,]))\s*")
+# list bullets drawn as glyphs of symbol fonts (Private Use Area) or bullet signs before a name or a number
+BULLET = re.compile(r"^[ \t •·●▪◦‣⁃∙*-]+")
 
 _RU_SURNAME = r"[А-ЯЁ][а-яё]+(?:[-‐][А-ЯЁ]?[а-яё]+){0,3}"
 _LAT_UP = "A-ZÀ-ÖØ-Þ"
@@ -157,7 +159,7 @@ def _block_lines(block: Any) -> list[str]:
 
         text = text_from_markdown(text)
     text = unicodedata.normalize("NFC", text.replace("\r\n", "\n").replace("\r", "\n"))
-    return [ln.rstrip() for ln in text.split("\n")]
+    return [BULLET.sub("", ln).rstrip() for ln in text.split("\n")]
 
 
 def _page_index(block: Any) -> int:
@@ -227,7 +229,7 @@ def _label(line: str) -> tuple[int, str, int] | None:
     m = LABEL.match(line)
     if not m:
         return None
-    raw = m.group(1) or m.group(2)
+    raw = m.group(1) or m.group(2) or m.group(3)
     printed = f"[{raw}]" if m.group(1) else raw
     return int(raw), printed, m.end()
 
@@ -601,9 +603,9 @@ def _title_venue(rest: str, style: str) -> tuple[str | None, str | None]:
 
 def parse_entry(text: str) -> Parsed:
     """Rule-based parse of one entry (GOST 7.1/7.0.5, author–year and numbered English styles)."""
-    t = _fold(normalize_text_v1(text))
+    t = BULLET.sub("", _fold(normalize_text_v1(text)))
     lab = _label(t)
-    body = t[lab[2]:] if lab else t
+    body = BULLET.sub("", t[lab[2]:]) if lab else t
     p = Parsed(language=_language(body))
     d = DOI.search(body)
     p.doi = normalize_doi(d.group(1)) if d else None

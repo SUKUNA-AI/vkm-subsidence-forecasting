@@ -117,7 +117,7 @@ def test_parse_gost_journal_article():
     assert p.authors == ["Иванов И.И", "Петров П.П"]
     assert p.title == "Модель оседания поверхности" and p.venue == "Горный журнал"
     assert (p.year, p.issue, p.pages, p.language) == (2001, "3", "12–17", "ru")
-    assert p.method == "bib_rules_v1/gost" and p.confidence == 1.0
+    assert p.method == "bib_rules_v2/gost" and p.confidence == 1.0
 
 
 def test_parse_title_first_with_statement_of_responsibility():
@@ -211,3 +211,19 @@ def test_canon_rows_validate_and_ids_recompute_like_b04():
     third = rows[2]
     assert third.continues_on_page_id == f"{SID}:p0006" and "CROSS_PAGE_CONTINUATION" in third.quality_flags
     assert third.parsed_year == 1999 and third.parsed_pages == "40–48"
+
+
+def test_bullets_and_numbers_without_a_dot():
+    bullets = [blk(12, 1, "Литература", bt="HEADING"),
+               blk(12, 2, " Орлов О.О., Лебедев Л.Л. Анализ оседаний // Маркшейдерия. 2012. № 1. С. 3–8."),
+               blk(12, 3, " Лебедев Л.Л. Сдвижение толщи. – М.: Недра, 1990. – 200 с.")]
+    entries, _ = bib.extract_entries(bullets)
+    assert [e.parsed.authors for e in entries] == [["Орлов О.О", "Лебедев Л.Л"], ["Лебедев Л.Л"]]
+    assert not entries[0].text.startswith("")
+    numbers = [blk(13, 1, "1 Орлов О.О. Прогноз оседаний // Маркшейдерия. 2009. № 2. С. 5–9."),
+               blk(13, 2, "2 Космические методы в геологии / под ред. А. В. Орлова. – СПб : Наука, 2000. – 316 с."),
+               blk(13, 3, "3 Лебедев Л.Л. Сдвижение толщи. – М.: Недра, 1990. – 200 с.")]
+    entries, _ = bib.extract_entries(numbers)
+    assert [e.label for e in entries] == ["1", "2", "3"]
+    assert [e.parsed.authors for e in entries] == [["Орлов О.О"], [], ["Лебедев Л.Л"]]
+    assert entries[1].parsed.title == "Космические методы в геологии"
