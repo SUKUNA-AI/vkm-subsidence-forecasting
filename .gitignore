@@ -78,3 +78,8 @@ inputs/holdout_candidates/t1_final_v3/*
 ~$*
 .DS_Store
 Thumbs.db
+
+# Local Claude Code config: MCP servers (addresses, token references) and local state — never committed
+.mcp.json
+.claude/worktrees/
+.claude/settings.local.json
