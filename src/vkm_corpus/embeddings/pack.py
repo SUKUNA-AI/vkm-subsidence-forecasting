@@ -15,13 +15,15 @@ the units of one snapshot, laid out for random reads without loading it::
     <config dir>/packs/CURRENT   pointer ``{"pack_id", …}``, replaced atomically after a verified build (publish)
 
 * Pack order groups the units of a page (``page_id``, then ``unit_id``): the token matrices of a page are one
-  contiguous slice, so page-level MaxSim reads one range.
+  contiguous slice, so page-level MaxSim reads one range. Units of the *trailing kinds* (``BIB_ENTRY``) come after all
+  other units, again grouped by page: CP-42 page scoring never touches them, and the bibliographic channel scans them
+  as one contiguous region (``PackStore.scan``). A page's units then lie in at most two ranges.
 * §64 before anything is written: part checksums, one config signature (model id and revision), expected units = the
   units of the snapshot, no duplicate (unit, text hash) rows, no missing unit, the per-row embedding signature, token
   count > 0, dimension, finite values, L2 norm of every token ≈ 1. A failed check writes no pack and never moves
   CURRENT. Rows of units that left the snapshot are orphaned history (§46): reported, never packed.
-* ``pack-id = <snapshot>-<sha256 of (config signature, unit, text hash, part, row)…>[:12]``: the same selection gives
-  the same pack, so a re-run on an unchanged artifact is ``EXISTS``.
+* ``pack-id = <snapshot>-<sha256 of (config signature, unit, text hash, part, row)… in pack order>[:12]``: the same
+  selection and layout give the same pack, so a re-run on an unchanged artifact is ``EXISTS``.
 * float16 storage of the L2-normalised token vectors is a MODEL_CHOICE of the serving path (half the bytes of the
   float32 rows; the MaxSim deviation is measured and reported); the Parquet rows keep the encoder output.
 
@@ -59,6 +61,7 @@ POINTER = "CURRENT"
 TOKENS_FILE, INDEX_FILE, MANIFEST_FILE = "tokens.f16", "index.parquet", "pack.json"
 UNITS_MANIFEST, UNITS_FILE = "units.json", "units.jsonl"
 DTYPE = np.dtype("<f2")
+TRAILING_KINDS: tuple[str, ...] = ("BIB_ENTRY",)       # stored after all other units (one contiguous region)
 OBJECT_KINDS = frozenset({"FIGURE", "TABLE", "FORMULA", "BIB_ENTRY"})     # one unit = one object
 TARGET_KINDS = ("UNIT", "PAGE", *sorted(OBJECT_KINDS))
 # embedding-config fields a pack must share with the late query encoder (same weights, tokenizer, heads, dimension)
@@ -300,9 +303,13 @@ def _list_values(table: Any, column: str) -> tuple[np.ndarray, np.ndarray]:
 
 
 # ------------------------------------------------------------------------------------------------ build
-def pack_order(selection: Mapping[str, Selected], units: Mapping[str, Mapping[str, Any]]) -> list[str]:
-    """Units of a page together (page id, then unit id); units without a page last."""
-    return sorted(selection, key=lambda u: (units[u].get("page_id") is None, units[u].get("page_id") or "", u))
+def pack_order(selection: Mapping[str, Selected], units: Mapping[str, Mapping[str, Any]],
+               trailing_kinds: Sequence[str] = TRAILING_KINDS) -> list[str]:
+    """Units of a page together (page id, then unit id), units without a page last; the units of ``trailing_kinds``
+    after all others, in the same order within their region."""
+    trailing = {k: i for i, k in enumerate(trailing_kinds)}
+    return sorted(selection, key=lambda u: (trailing.get(units[u].get("kind"), -1), units[u].get("page_id") is None,
+                                            units[u].get("page_id") or "", u))
 
 
 def pack_id_of(snapshot_id: str, config_signature: str, order: Sequence[str],
@@ -374,9 +381,12 @@ def _quantiles(n: np.ndarray) -> dict[str, float]:
 
 def build_pack(artifact_dir: Path, units_dir: Path, *, publish_current: bool = False, keep: int = 2,
                verify_checksums: bool = True, norm_tol: float | None = None,
-               progress: Callable[[str], None] | None = None) -> dict[str, Any]:
+               progress: Callable[[str], None] | None = None, packs_dir: Path | None = None,
+               trailing_kinds: Sequence[str] = TRAILING_KINDS) -> dict[str, Any]:
     """§64 checks + pack of the current rows of ``artifact_dir`` for the units of ``units_dir``; returns the receipt.
-    Raises :class:`PackError` (nothing written, CURRENT untouched) when a check fails."""
+    Raises :class:`PackError` (nothing written, CURRENT untouched) when a check fails. ``packs_dir`` (default
+    ``<artifact_dir>/packs``) lets a copy of an artifact directory be packed elsewhere (benchmarks, read-only
+    sources)."""
     import pyarrow as pa
     import pyarrow.parquet as pq
 
@@ -399,8 +409,8 @@ def build_pack(artifact_dir: Path, units_dir: Path, *, publish_current: bool = F
                                "units_sha256": umeta.get("units_sha256"), "config_signature": sig,
                                "model_id": config.model_id, "model_revision": config.model_revision,
                                "dimension": dim, "dtype": "float16", "started_at": _utc()}
-    packs = artifact_dir / PACKS_DIR
-    packs.mkdir(exist_ok=True)
+    packs = Path(packs_dir) if packs_dir else artifact_dir / PACKS_DIR
+    packs.mkdir(parents=True, exist_ok=True)
     with _Lock(packs / ".lock"):
         say("key pass (§64 key columns of every part)")
         check, selection, _parts = select_current(artifact_dir, config, expected, verify_checksums=verify_checksums)
@@ -409,7 +419,7 @@ def build_pack(artifact_dir: Path, units_dir: Path, *, publish_current: bool = F
         if not check.ok:
             raise PackError("E_CHECK_FAILED", "pre-pack checks (§64) failed; nothing was packed",
                             details=check.as_dict())
-        order = pack_order(selection, units)
+        order = pack_order(selection, units, trailing_kinds)
         pid = pack_id_of(snapshot_id, sig, order, selection)
         final = packs / pid
         receipt["pack_id"] = pid
@@ -498,6 +508,7 @@ def build_pack(artifact_dir: Path, units_dir: Path, *, publish_current: bool = F
                    "model_revision": config.model_revision, "dimension": dim,
                    "normalization": config.normalization, "dtype": "float16", "byte_order": "little",
                    "source_precision": config.storage_precision, "count": len(order), "total_tokens": total,
+                   "layout": {"order": "page_id, unit_id", "trailing_kinds": list(trailing_kinds)},
                    "bytes": files[TOKENS_FILE]["bytes"], "by_kind": dict(sorted(by_kind.items())),
                    "tokens_per_unit": _quantiles(ntok), "files": files,
                    "artifact_manifests_sha256": _manifests_sha256(artifact_dir), "artifact_parts": check.parts,
@@ -510,7 +521,7 @@ def build_pack(artifact_dir: Path, units_dir: Path, *, publish_current: bool = F
             shutil.rmtree(tmp, ignore_errors=True)
             raise
         receipt.update({k: man.get(k) for k in ("count", "total_tokens", "bytes", "by_kind", "tokens_per_unit",
-                                                "files", "artifact_manifests_sha256")})
+                                                "files", "artifact_manifests_sha256", "layout")})
         receipt["status"] = "BUILT"
         if publish_current:
             receipt["published"] = publish(packs, man)
@@ -637,16 +648,27 @@ class PackStore:
                 (len(self.unit_ids) and int(self.offsets[-1] + self.ntok[-1]) != self.total):
             raise PackError("E_DIGEST_MISMATCH", f"{INDEX_FILE} does not match the manifest")
         self._row = {u: i for i, u in enumerate(self.unit_ids)}
-        self._page: dict[str, list[int]] = {}
+        # page → row ranges (one per region of the layout), page code per row (for scans), rows per kind
+        self._page: dict[str, list[list[int]]] = {}
+        self._page_names: list[str] = []
+        codes = np.full(len(self.unit_ids), -1, dtype=np.int32)
+        code_of: dict[str, int] = {}
         for i, p in enumerate(idx.column("page_id").to_pylist()):
-            if p:
-                rng = self._page.get(p)
-                if rng is not None and rng[1] == i:
-                    rng[1] = i + 1                              # contiguous by construction (pack order)
-                elif rng is None:
-                    self._page[p] = [i, i + 1]
-                else:                                           # not contiguous: a foreign pack order
-                    raise PackError("E_DIGEST_MISMATCH", "units of a page are not contiguous in the pack")
+            if not p:
+                continue
+            c = code_of.get(p)
+            if c is None:
+                c = code_of[p] = len(self._page_names)
+                self._page_names.append(p)
+            codes[i] = c
+            ranges = self._page.setdefault(p, [])
+            if ranges and ranges[-1][1] == i:
+                ranges[-1][1] = i + 1
+            else:
+                ranges.append([i, i + 1])
+        self._page_code = codes
+        kinds_arr = np.asarray(self.kinds, dtype=object)
+        self._kind_rows = {k: np.flatnonzero(kinds_arr == k).astype(np.int64) for k in sorted(set(self.kinds))}
         self._object: dict[str, int] = {}
         for i, (k, objs) in enumerate(zip(self.kinds, idx.column("object_ids").to_pylist())):
             if k in OBJECT_KINDS and objs and len(objs) == 1:
@@ -667,7 +689,8 @@ class PackStore:
         return {"pack_id": m.get("pack_id"), "snapshot_id": m.get("snapshot_id"),
                 "config_signature": m.get("config_signature"), "model_id": m.get("model_id"),
                 "dimension": self.dim, "count": len(self), "total_tokens": self.total, "bytes": m.get("bytes"),
-                "units_sha256": m.get("units_sha256"), "created_at": m.get("created_at")}
+                "units_sha256": m.get("units_sha256"), "created_at": m.get("created_at"),
+                "trailing_kinds": (m.get("layout") or {}).get("trailing_kinds", [])}
 
     def rows_for(self, target_id: str, kind: str, *, page_exclude_kinds: Iterable[str] = ()) -> list[int]:
         """Unit rows of a target: UNIT → the unit; PAGE → every unit of the page except ``page_exclude_kinds``;
@@ -676,11 +699,8 @@ class PackStore:
             r = self._row.get(target_id)
             return [] if r is None else [r]
         if kind == "PAGE":
-            rng = self._page.get(target_id)
-            if rng is None:
-                return []
             skip = frozenset(page_exclude_kinds)
-            return [r for r in range(rng[0], rng[1]) if self.kinds[r] not in skip]
+            return [r for a, b in self._page.get(target_id, ()) for r in range(a, b) if self.kinds[r] not in skip]
         if kind in OBJECT_KINDS:
             r = self._object.get(target_id)
             return [] if r is None or self.kinds[r] != kind else [r]
@@ -722,33 +742,60 @@ class PackStore:
                 pass
 
     # -------------------------------------------------------------------------------------------- scoring
-    def unit_scores(self, Q: np.ndarray, rows: Iterable[int], *, chunk_tokens: int = 32768) -> dict[int, float]:
-        """MaxSim ``Σ_q max_t ⟨q, d_t⟩`` of every unit row (float32 compute). Consecutive rows are read as one slice
-        of the memmap and scored with one product per slice (segment maxima by ``reduceat``)."""
+    def unit_scores_array(self, Q: np.ndarray, rows: Iterable[int] | np.ndarray, *,
+                          chunk_tokens: int = 32768) -> tuple[np.ndarray, np.ndarray]:
+        """(sorted unique rows, MaxSim ``Σ_q max_t ⟨q, d_t⟩`` of each) in float32. Consecutive rows are read as one
+        slice of the memmap (≤ ``chunk_tokens`` tokens) and scored with one product per slice (segment maxima by
+        ``reduceat``)."""
         Q = np.ascontiguousarray(np.asarray(Q, dtype=np.float32))
-        rows_s = sorted(set(int(r) for r in rows))
-        out: dict[int, float] = {}
-        if not rows_s:
-            return out
-        if Q.size == 0:
-            return {r: 0.0 for r in rows_s}
-        i = 0
-        while i < len(rows_s):
+        rows_s = np.unique(np.asarray(list(rows) if not isinstance(rows, np.ndarray) else rows, dtype=np.int64))
+        out = np.zeros(len(rows_s), dtype=np.float32)
+        if not len(rows_s) or Q.size == 0:
+            return rows_s, out
+        starts = self.offsets[rows_s]
+        ends = starts + self.ntok[rows_s]
+        i, n = 0, len(rows_s)
+        while i < n:
             j = i + 1
-            start = int(self.offsets[rows_s[i]])
-            while j < len(rows_s) and rows_s[j] == rows_s[j - 1] + 1 and \
-                    int(self.offsets[rows_s[j]] + self.ntok[rows_s[j]]) - start <= chunk_tokens:
+            s0 = int(starts[i])
+            while j < n and rows_s[j] == rows_s[j - 1] + 1 and int(ends[j]) - s0 <= chunk_tokens:
                 j += 1
-            stop = int(self.offsets[rows_s[j - 1]] + self.ntok[rows_s[j - 1]])
-            block = np.array(self._mm[start:stop], dtype=np.float32)
-            self._touch((stop - start) * self.dim * DTYPE.itemsize)
+            e0 = int(ends[j - 1])
+            block = np.array(self._mm[s0:e0], dtype=np.float32)
+            self._touch((e0 - s0) * self.dim * DTYPE.itemsize)
             sims = Q @ block.T                                            # [q, tokens of the slice]
-            seg = (self.offsets[rows_s[i:j]] - start).astype(np.int64)
-            scores = np.maximum.reduceat(sims, seg, axis=1).sum(axis=0)
-            for r, s in zip(rows_s[i:j], scores.tolist()):
-                out[r] = float(s)
+            out[i:j] = np.maximum.reduceat(sims, (starts[i:j] - s0).astype(np.int64), axis=1).sum(axis=0)
             i = j
-        return out
+        return rows_s, out
+
+    def unit_scores(self, Q: np.ndarray, rows: Iterable[int], *, chunk_tokens: int = 32768) -> dict[int, float]:
+        """MaxSim of every unit row as ``{row: score}`` (see :meth:`unit_scores_array`)."""
+        r, s = self.unit_scores_array(Q, rows, chunk_tokens=chunk_tokens)
+        return {int(a): float(b) for a, b in zip(r.tolist(), s.tolist())}
+
+    def kind_rows(self, kind: str) -> np.ndarray:
+        return self._kind_rows.get(kind, np.zeros(0, dtype=np.int64))
+
+    def scan(self, Q: np.ndarray, kind: str, *, top_pages: int = 100,
+             chunk_tokens: int = 131072) -> list[dict[str, Any]]:
+        """MaxSim over every unit of ``kind`` (e.g. all BIB_ENTRY units: the bibliographic channel) → the pages ranked
+        by their best unit of that kind, with the best unit and the number of such units on the page. In the
+        kind-grouped layout the units of a trailing kind are one contiguous region (a few large products)."""
+        rows, scores = self.unit_scores_array(Q, self.kind_rows(kind), chunk_tokens=chunk_tokens)
+        codes = self._page_code[rows] if len(rows) else np.zeros(0, dtype=np.int32)
+        keep = codes >= 0
+        rows, scores, codes = rows[keep], scores[keep], codes[keep]
+        if not len(rows):
+            return []
+        order = np.lexsort((rows, -scores, codes))                   # per page: best score first (ties: lower row)
+        c_sorted = codes[order]
+        first = np.ones(len(order), dtype=bool)
+        first[1:] = c_sorted[1:] != c_sorted[:-1]
+        best = order[first]
+        per_page = np.bincount(codes, minlength=int(codes.max()) + 1)
+        best = best[np.lexsort((rows[best], -scores[best]))][:max(0, int(top_pages))]
+        return [{"page_id": self._page_names[int(codes[t])], "late_score": round(float(scores[t]), 6),
+                 "best_unit_id": self.unit_ids[int(rows[t])], "units": int(per_page[int(codes[t])])} for t in best]
 
     def score_targets(self, Q: np.ndarray, targets: Sequence[tuple[str, str]], *,
                       page_exclude_kinds: Iterable[str] = ()) -> list[TargetScore]:

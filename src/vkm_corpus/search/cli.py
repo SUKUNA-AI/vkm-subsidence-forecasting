@@ -114,7 +114,9 @@ def _cmd_smoke(args: argparse.Namespace) -> int:
 
     settings = load_settings()
     try:
-        results = run_smoke(_client(settings), _prefix(settings, args), t0=args.t0, min_total=args.min_total)
+        only = tuple(x.strip().upper() for x in args.only.split(",") if x.strip()) if args.only else None
+        results = run_smoke(_client(settings), _prefix(settings, args), t0=args.t0, min_total=args.min_total,
+                            only=only)
     except ProjectionError as exc:
         return _fail(exc.code, exc.message)
     _print([r.as_dict() for r in results])
@@ -166,7 +168,7 @@ def _cmd_hybrid(args: argparse.Namespace) -> int:
         out = hybrid_search(_client(settings), embed, HybridRequest(
             query=args.text, kinds=tuple(args.kind or ["PAGE"]), filters=_parse_filters(args.filter or []),
             size=args.size, candidates=args.candidates, include_duplicates=args.duplicates, late=args.late,
-            late_candidates=args.late_candidates), _prefix(settings, args))
+            late_candidates=args.late_candidates, bib_route=args.bib_route), _prefix(settings, args))
     except (SearchRequestError, HybridError, ProjectionError) as exc:
         return _fail(exc.code, exc.message)
     finally:
@@ -177,9 +179,10 @@ def _cmd_hybrid(args: argparse.Namespace) -> int:
 
 def _cmd_hybrid_smoke(args: argparse.Namespace) -> int:
     """Hybrid search through the VKM API (read token from VKM_API_TOKEN_FILE): each query needs ≥ 1 hit whose
-    trace has a fused rank and at least one stage rank; with ``--late`` also the late stage (a stage record, every
-    hit with a late status, ≥ 1 hit with a late rank). Latency per query (client and server timings) and p50/p95 are
-    reported; the exit code is the verdict."""
+    trace has a fused rank and at least one stage rank (BM25, dense or the bibliographic channel); with ``--late``
+    also the late stage (a stage record, every hit with a late status, ≥ 1 hit with a late rank); with
+    ``--expect-route`` the route the server chose (``bibliographic`` / ``default``). Latency per query (client and
+    server timings) and p50/p95 are reported; the exit code is the verdict."""
     import time
 
     import httpx
@@ -205,19 +208,28 @@ def _cmd_hybrid_smoke(args: argparse.Namespace) -> int:
             entry["elapsed_ms"] = round((time.perf_counter() - t0) * 1e3, 1)
             items = body.get("items") or []
             traces = [(it.get("record") or {}).get("trace") or {} for it in items]
-            good = [t for t in traces if t.get("fused_rank") and (t.get("bm25_rank") or t.get("dense_rank"))]
+            good = [t for t in traces if t.get("fused_rank") and
+                    (t.get("bm25_rank") or t.get("dense_rank") or t.get("bib_rank"))]
             entry.update({"http_status": r.status_code if r is not None else None, "ok": bool(body.get("ok")),
                           "hits": len(items), "hits_with_trace": len(good),
                           "both_stages": sum(1 for t in good if t.get("bm25_rank") and t.get("dense_rank")),
                           "top": [{"id": (it.get("envelope") or {}).get("object_id"),
                                    "trace": {k: t.get(k) for k in ("fused_rank", "bm25_rank", "dense_rank",
-                                                                   "late_rank") if k in t}}
+                                                                   "bib_rank", "late_rank") if k in t}}
                                   for it, t in list(zip(items, traces))[:3]],
                           "error": (body.get("error") or {}).get("code")})
             record = (body.get("item") or {}).get("record") or {}
             entry["server_ms"] = {k: v for k, v in (record.get("timings_ms") or {}).items()
-                                  if k in ("total", "embed", "late", "bm25_page", "dense_page")}
+                                  if k in ("total", "embed", "late", "bm25_page", "dense_page", "bib_scan",
+                                           "bib_page_filter")}
+            bib = (record.get("stages") or {}).get("bib_route")
+            entry["route"] = record.get("route")
+            if isinstance(bib, dict):
+                entry["bib_route"] = {k: bib.get(k) for k in ("status", "cues", "weak_cues", "units_scanned",
+                                                              "pages_kept") if k in bib}
             entry["pass"] = entry["ok"] and entry["hits"] >= 1 and entry["hits_with_trace"] == entry["hits"]
+            if args.expect_route:
+                entry["pass"] = entry["pass"] and entry["route"] == args.expect_route
             if args.late:
                 late = (record.get("stages") or {}).get("late")
                 entry.update({"late_stage": isinstance(late, dict),
@@ -291,6 +303,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     sm.add_argument("--t0", default="2009-12-31", help="availability date for the filter check")
     sm.add_argument("--min-total", type=int, default=10, help="minimum hits for «оседание земной поверхности»")
     sm.add_argument("--prefix")
+    sm.add_argument("--only", help="comma-separated check ids to run (e.g. Q5); default: all")
     sm.set_defaults(func=_cmd_smoke)
 
     eu = sub.add_parser("export-units", help="embedding units (vkm-units-v1) of the CURRENT snapshot → "
@@ -328,6 +341,9 @@ def register(subparsers: argparse._SubParsersAction) -> None:
                     help="late interaction stage (MaxSim on the RX580) over the RRF top --late-candidates")
     hy.add_argument("--no-late", dest="late", action="store_false")
     hy.add_argument("--late-candidates", type=int, default=100)
+    hy.add_argument("--bib-route", dest="bib_route", action="store_true", default=None,
+                    help="force the bibliographic route (BIB_ENTRY channel); default: the query's cues decide")
+    hy.add_argument("--no-bib-route", dest="bib_route", action="store_false")
     hy.set_defaults(func=_cmd_hybrid)
 
     hs = sub.add_parser("hybrid-smoke", help="3 Russian hybrid queries through the VKM API; exit code = verdict")
@@ -338,6 +354,8 @@ def register(subparsers: argparse._SubParsersAction) -> None:
                     help="request the late stage and check its trace (default: the server's default)")
     hs.add_argument("--no-late", dest="late", action="store_false")
     hs.add_argument("--late-candidates", type=int, default=100)
+    hs.add_argument("--expect-route", choices=("bibliographic", "default"),
+                    help="every query must take this route (bibliographic: the BIB_ENTRY channel was applied)")
     hs.set_defaults(func=_cmd_hybrid_smoke)
 
     r = sub.add_parser("rollback", help="move aliases back to the previous COMPLETE build")

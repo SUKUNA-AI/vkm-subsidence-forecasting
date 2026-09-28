@@ -6,8 +6,10 @@ endpoint needs ``Authorization: Bearer <token>`` (compared in constant time).
 
 ``POST /search/late`` with ``targets`` (``[{"id", "kind"}]``, kind UNIT | PAGE | FIGURE | TABLE | FORMULA |
 BIB_ENTRY) is the late stage of the VKM API's hybrid search: the late query encoding and MaxSim against the token-vector
-pack (``search.multivector_dir``: memory-mapped, hot-reloaded from ``packs/CURRENT``). No store, no pack or a pack of
-another model → HTTP 503, never a silent fallback; ``/health`` reports the store as ``late_store``.
+pack (``search.multivector_dir``: memory-mapped, hot-reloaded from ``packs/CURRENT``). With ``scan_kind`` it also
+scans every unit of that kind (``BIB_ENTRY``: the bibliographic channel of the API's hybrid search) and returns the
+pages ranked by their best such unit. No store, no pack or a pack of another model → HTTP 503, never a silent
+fallback; ``/health`` reports the store as ``late_store``.
 
 Every encode runs in a worker thread (``asyncio.to_thread``); dense and late encodes of one request run concurrently
 (``asyncio.gather``) and requests of different clients are never serialised by the service — there is no global lock.
@@ -54,6 +56,9 @@ class LateSearchBody(SearchRequestBody):
     # CP-42: a page scores over its units except these kinds (a reference list is not the page's topic)
     page_exclude_kinds: list[Literal["BLOCK_GROUP", "FIGURE", "TABLE", "FORMULA", "BIB_ENTRY"]] = \
         Field(default_factory=lambda: ["BIB_ENTRY"], max_length=5)
+    # full MaxSim over every unit of one kind → pages by their best unit of that kind (the bibliographic channel)
+    scan_kind: Optional[Literal["BIB_ENTRY", "FIGURE", "TABLE", "FORMULA", "BLOCK_GROUP"]] = None
+    scan_top: int = Field(default=100, ge=1, le=1000)
 
 
 def _round(v, nd: int = 6):
@@ -250,23 +255,38 @@ def create_app(config=None, *, encoders: Optional[dict] = None, residency=None, 
         except LookupError as exc:
             raise HTTPException(status_code=503, detail=str(exc)[:300]) from exc
         timings: dict[str, float] = {}
-        if body.targets is not None:
+        if body.targets is not None or body.scan_kind is not None:
+            if body.scan_kind is not None and not hasattr(store, "scan"):
+                raise HTTPException(status_code=503, detail="the token store cannot scan by kind")
             lq = await encode("late", body.query)
-            t0 = time.perf_counter()
-            targets = [(t.id, t.kind) for t in body.targets]
-            scored = await asyncio.to_thread(store.score_targets, lq.vectors, targets,
-                                             page_exclude_kinds=tuple(body.page_exclude_kinds))
-            ms = round((time.perf_counter() - t0) * 1e3, 2)
-            metrics.observe_ms("maxsim", ms, model=lq.key)
-            order = sorted((r for r in scored if r.status == "SCORED"), key=lambda r: (-r.late_score, r.id))
-            rank = {r.id: i for i, r in enumerate(order, start=1)}
             info = store.info() if hasattr(store, "info") else {}
-            return {"mode": "late-targets", "model": lq.key, "query_signature": lq.signature,
-                    "n_query_tokens": int(lq.vectors.shape[0]), "store": info,
-                    "timings_ms": {"late_encode": lq.encode_ms, "maxsim": ms},
-                    "targets": len(targets), "scored": len(order), "unscored": len(targets) - len(order),
-                    "page_exclude_kinds": list(body.page_exclude_kinds),
-                    "results": [{**r.as_dict(), "late_rank": rank.get(r.id)} for r in scored]}
+            out: dict[str, Any] = {"mode": "late-targets" if body.scan_kind is None else "late-scan",
+                                   "model": lq.key, "query_signature": lq.signature,
+                                   "n_query_tokens": int(lq.vectors.shape[0]), "store": info,
+                                   "timings_ms": {"late_encode": lq.encode_ms}}
+            if body.scan_kind is not None:
+                t0 = time.perf_counter()
+                pages = await asyncio.to_thread(store.scan, lq.vectors, body.scan_kind, top_pages=body.scan_top)
+                ms = round((time.perf_counter() - t0) * 1e3, 2)
+                metrics.observe_ms("scan", ms, model=lq.key, kind=body.scan_kind)
+                out["timings_ms"]["scan"] = ms
+                out.update({"scan_kind": body.scan_kind, "scan_units": int(len(store.kind_rows(body.scan_kind)))
+                            if hasattr(store, "kind_rows") else None,
+                            "scan": [{**p, "scan_rank": i} for i, p in enumerate(pages, start=1)]})
+            if body.targets is not None:
+                t0 = time.perf_counter()
+                targets = [(t.id, t.kind) for t in body.targets]
+                scored = await asyncio.to_thread(store.score_targets, lq.vectors, targets,
+                                                 page_exclude_kinds=tuple(body.page_exclude_kinds))
+                ms = round((time.perf_counter() - t0) * 1e3, 2)
+                metrics.observe_ms("maxsim", ms, model=lq.key)
+                order = sorted((r for r in scored if r.status == "SCORED"), key=lambda r: (-r.late_score, r.id))
+                rank = {r.id: i for i, r in enumerate(order, start=1)}
+                out["timings_ms"]["maxsim"] = ms
+                out.update({"targets": len(targets), "scored": len(order), "unscored": len(targets) - len(order),
+                            "page_exclude_kinds": list(body.page_exclude_kinds),
+                            "results": [{**r.as_dict(), "late_rank": rank.get(r.id)} for r in scored]})
+            return out
         if body.candidates:
             cands = [Hit(c, 0.0, {}, {"candidate_rank": i}) for i, c in enumerate(body.candidates, start=1)]
             lq = await encode("late", body.query)

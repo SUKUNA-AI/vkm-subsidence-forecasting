@@ -4,8 +4,13 @@
   filter is ``source_scope`` (H-18: it is the *source's* area, inherited by every object). Availability
   ``available_until`` requires an explicit ``unknown_policy`` (EXCLUDE | INCLUDE) and the answer carries counts by
   ``available_basis`` (H-19). By default only the primary text layer is searched (H-30).
-* Per type the query is ``multi_match`` (best fields, boosts ``FIELDS``) + phrase boost on the exact sub-field + a
-  term boost when the query names an object number («рис. 3.1», «табл. 2», «(3.12)»). Ties break on ``id``.
+* Per type the query is ``multi_match`` (best fields, boosts ``FIELDS``) + phrase boost on the exact sub-field.
+  Ties break on ``id``.
+* An explicit object number («рис. 3.1», «табл. 2», «(3.12)») is a *gated* boost (agent L, smoke Q5): every book has
+  its own «рис. 3.1», so the figure/table/formula kinds are ranked by the query **without** the number (the topic),
+  and among the topic's top ``LABEL_TOPIC_K`` hits those whose printed number equals the asked one move to the front
+  (topic order kept); a labelled object that does not match the topic is never pulled up. A query that is only a
+  number («рис. 3.1») keeps the plain term boost. Hits carry ``fields.topic_rank`` and ``fields.label_promoted``.
 * Blocks collapse by ``page_id`` (``best_blocks``); pages collapse duplicate pages by ``dup_group_id``.
 * Several kinds are never ranked by raw BM25 across indices (their statistics differ): one query per kind
   (``_msearch``), then reciprocal-rank fusion (H-44).
@@ -15,7 +20,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import date
 from typing import Any
 
@@ -60,6 +65,7 @@ HIGHLIGHT: dict[str, dict[str, Any]] = {
                                                                           "number_of_fragments": 1}},
 }
 LABEL_FIELD = {"figures": "object_label", "tables": "object_label", "formulas": "equation_label"}
+LABEL_TOPIC_K = 20                # topical candidates among which an exact object number is promoted (MODEL_CHOICE)
 _LABEL_QUERY = re.compile(r"(?:рис(?:унок|унке|\.)?|fig(?:ure|\.)?|табл(?:ица|ице|\.)?|table)\s*"
                           r"(\d+(?:[.\-]\d+)*[a-zа-я]?)", re.IGNORECASE)
 _EQUATION_QUERY = re.compile(r"\((\d+(?:\.\d+)*)\)")
@@ -123,6 +129,29 @@ def parse_object_label(query: str) -> str | None:
     """«рис. 3.1», «Рисунок 3.1», «Fig. 3.1», «табл. 2», «(3.12)» → the printed number."""
     match = _LABEL_QUERY.search(query) or _EQUATION_QUERY.search(query)
     return match.group(1).lower() if match else None
+
+
+def topic_of(query: str) -> str:
+    """The query without its object-number phrase («рис. 3.1 мульда сдвижения» → «мульда сдвижения»)."""
+    match = _LABEL_QUERY.search(query) or _EQUATION_QUERY.search(query)
+    if not match:
+        return query.strip()
+    rest = query[:match.start()] + " " + query[match.end():]
+    return re.sub(r"\s+", " ", rest).strip(" \t,.;:–—-")
+
+
+def promote_labels(hits: list["SearchHit"], label: str, field_name: str, k: int = LABEL_TOPIC_K) -> list["SearchHit"]:
+    """Hits of one kind in topic order → the hits among the first ``k`` whose number equals ``label`` first (topic
+    order kept), then the others; ranks renumbered from 1."""
+    head, tail = hits[:k], hits[k:]
+    promoted = {id(h) for h in head if str(h.fields.get(field_name) or "").lower() == label}
+    out = [h for h in head if id(h) in promoted] + [h for h in head if id(h) not in promoted] + tail
+    for i, h in enumerate(out, 1):
+        h.fields.setdefault("topic_rank", h.rank)
+        h.fields["label_promoted"] = id(h) in promoted
+        h.rank = i
+        h.rank_in_kind = i
+    return out
 
 
 def _as_list(name: str, value: Any) -> list[Any]:
@@ -309,6 +338,17 @@ def _availability(resp: dict[str, Any]) -> dict[str, int]:
     return {b["key"]: int(b["doc_count"]) for b in buckets}
 
 
+def _gated_label(req: SearchRequest, kind: str) -> tuple[str, SearchRequest] | None:
+    """(label, topical request) when ``kind`` has object numbers and the query names one next to a topic."""
+    if KIND_INDEX[kind] not in LABEL_FIELD:
+        return None
+    label = parse_object_label(req.query)
+    topic = topic_of(req.query) if label else ""
+    if not label or len(topic) < 3:
+        return None
+    return label, replace(req, query=topic)
+
+
 def search(client: Any, req: SearchRequest, prefix: str, *, indices: dict[str, str] | None = None) -> SearchResponse:
     """Run a request against the type aliases (or explicit ``indices`` — build checks run before the alias swap)."""
     req.validate()
@@ -318,22 +358,36 @@ def search(client: Any, req: SearchRequest, prefix: str, *, indices: dict[str, s
     warnings: list[str] = []
     if len(req.kinds) == 1:
         kind = req.kinds[0]
-        resp = client.search(index=targets[kind], body=build_body(KIND_INDEX[kind], req, size=req.size,
-                                                                  offset=req.offset))
-        hits, warnings = parse_hits(resp, kind, req.offset)
+        gate = _gated_label(req, kind)
+        if gate is None:
+            resp = client.search(index=targets[kind], body=build_body(KIND_INDEX[kind], req, size=req.size,
+                                                                      offset=req.offset))
+            hits, warnings = parse_hits(resp, kind, req.offset)
+        else:                                  # topic first, then the exact number among the topic's top hits
+            label, topical = gate
+            window = min(max(req.size + req.offset, LABEL_TOPIC_K), MAX_WINDOW)
+            resp = client.search(index=targets[kind], body=build_body(KIND_INDEX[kind], topical, size=window,
+                                                                      offset=0))
+            hits, warnings = parse_hits(resp, kind)
+            hits = promote_labels(hits, label, LABEL_FIELD[KIND_INDEX[kind]])[req.offset:req.offset + req.size]
         totals[kind] = int(resp["hits"]["total"]["value"])
         availability = _availability(resp)
         return SearchResponse(req.query, req.kinds, hits, totals, availability, "NONE", warnings)
     window = min(max(req.size + req.offset, req.window), MAX_WINDOW)
     lines: list[dict[str, Any]] = []
+    gates = {kind: _gated_label(req, kind) for kind in req.kinds}
     for kind in req.kinds:
-        lines += [{"index": targets[kind]}, build_body(KIND_INDEX[kind], req, size=window, offset=0)]
+        body_req = gates[kind][1] if gates[kind] else req
+        lines += [{"index": targets[kind]}, build_body(KIND_INDEX[kind], body_req, size=max(window, LABEL_TOPIC_K)
+                                                       if gates[kind] else window, offset=0)]
     responses = client.msearch(body=lines)["responses"]
     per_kind: dict[str, list[SearchHit]] = {}
     for kind, resp in zip(req.kinds, responses):
         if "error" in resp:
             raise SearchRequestError("E_SEARCH_FAILED", f"{kind}: {resp['error']}")
         per_kind[kind], w = parse_hits(resp, kind)
+        if gates[kind]:
+            per_kind[kind] = promote_labels(per_kind[kind], gates[kind][0], LABEL_FIELD[KIND_INDEX[kind]])
         warnings += w
         totals[kind] = int(resp["hits"]["total"]["value"])
         for key, n in _availability(resp).items():

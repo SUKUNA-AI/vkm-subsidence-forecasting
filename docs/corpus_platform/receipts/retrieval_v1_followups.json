@@ -1,0 +1,103 @@
+{
+ "schema": "vkm.receipt.retrieval_v1_followups/1",
+ "agent": "L",
+ "date": "2026-09-28",
+ "branch": "claude/agent-l-late-interaction-2026-09-28",
+ "base": "ff0c225",
+ "commits": {
+  "intent_detector": "18eebe4",
+  "pack_layout_and_scan": "5a16f75",
+  "service_scan_kind": "2f89577",
+  "hybrid_bib_route": "5024378",
+  "api_object_label_and_bib_route": "983db4c",
+  "topic_gated_label_q5": "e5b387d",
+  "v1_route_evaluation": "8525e15",
+  "refresh_job": "481a204",
+  "hybrid_smoke_route": "8f415f6",
+  "search_smoke_only": "22b2ee0"
+ },
+ "benchmark": {
+  "harness": "RETRIEVAL_BENCHMARK_V1 (J-V1 artifacts, read only)",
+  "snapshot_id": "snap-20260928T160616Z-5d669f09",
+  "queries_evaluated": 186,
+  "subsets": {"bibliographic": 7, "other_text": 137, "visual": 42},
+  "label_sets": {"V": "VERIFIED", "P": "VERIFIED + pooled LLM_AGENT_V1"},
+  "statistics": "paired randomization test and bootstrap CI (metrics.compare), nDCG@10",
+  "e_recomputed_equals_v1_e": {"max_abs_ndcg10_diff": 5.0e-05, "n": 186},
+  "public_results": "benchmarks/retrieval_v1/bib_route_v1.json"
+ },
+ "detector": {
+  "fired": 8,
+  "recall_on_bibliographic": "7/7",
+  "fired_outside_bibliographic": ["T-ENT-006"],
+  "cues_on_bibliographic": {"bibliography_phrase": 4, "works_of_author": 2, "citation_phrase": 1, "quoted_title": 1,
+                            "journal_of": 1}
+ },
+ "route_chosen": {
+  "name": "cand",
+  "definition": "BIB_ENTRY late scan → pages by best entry (duplicates collapsed) as a third RRF leg of the PAGE candidates; late stage over all units of the page, BIB_ENTRY included; only for detected queries",
+  "bibliographic_7": {
+   "P": {"ndcg10_E": 0.5968, "ndcg10_route": 0.7922, "delta": 0.1954, "ci95": [0.1221, 0.2726], "p": 0.0162,
+         "wins_losses": [7, 0], "recall50_delta": 0.3986, "recall50_p": 0.0162, "judged10": 1.0},
+   "V": {"ndcg10_E": 0.0818, "ndcg10_route": 0.2361, "delta": 0.1542, "ci95": [-0.0107, 0.3126], "p": 0.1552,
+         "wins_losses": [5, 1], "recall50_delta": 0.7, "recall50_p": 0.0305}
+  },
+  "other_text_137": {"P": {"delta": 0.0, "wins_losses": [0, 0]}, "V": {"delta": 0.0, "wins_losses": [0, 0]}},
+  "visual_42": {"P": {"delta": 0.0}, "V": {"delta": 0.0}},
+  "after_dense_refresh_approximation": {
+   "P": {"delta": 0.1942, "p": 0.0162, "wins_losses": [7, 0]},
+   "V": {"delta": 0.1545, "p": 0.1552, "wins_losses": [5, 1]}
+  },
+  "cost_if_applied_to_every_query_other_text_137": {
+   "P": {"ndcg10_delta": -0.0048, "p": 0.1936, "recall50_delta": -0.0263, "recall50_p": 0.0001},
+   "V": {"ndcg10_delta": -0.0032, "p": 0.409, "recall50_delta": -0.0413, "recall50_p": 0.0003}
+  }
+ },
+ "routes_compared_bibliographic_7_P": {
+  "late_rescore_only": {"delta": 0.2008, "p": 0.0162, "after_refresh_delta": 0.1447, "ungated_cost_other_text": -0.0054},
+  "rrf_leg_with_cp42_late": {"delta": 0.1467, "p": 0.0907, "ungated_cost_other_text": -0.4678},
+  "cand_with_cp42_late": {"delta": -0.0135, "wins_losses": [0, 4]},
+  "cand_without_duplicate_collapse": {"delta": 0.1958, "p": 0.0162}
+ },
+ "q5_topic_gated_label": {
+  "label_topic_k": 20,
+  "live_api_simulation_read_only": {
+   "probe_targets_rank_1_kept": ["2.10", "4.12", "3.3", "4.1"],
+   "improved": {"6.3": [3, 2]},
+   "q5_off_topic_3_1_pulled_up": false,
+   "q5_first_3_1_rank_before": 10
+  },
+  "smoke_q5": "checks the gating invariants against the topic ranking"
+ },
+ "object_label": {
+  "fields": ["object_label", "object_number", "object_label_raw", "object_label_origin"],
+  "endpoints": ["/v1/search", "/v1/search/hybrid", "/v1/objects/query"],
+  "origins": ["CANON", "NAV (formula_context equation number, formulas without a canonical label)"]
+ },
+ "pack_layout": {
+  "trailing_kinds": ["BIB_ENTRY"],
+  "local_build_same_snapshot": {"units": 205457, "tokens": 24303679, "bytes": 6221741824, "seconds": 60,
+                                "bib_rows": 23350, "bib_region_contiguous": true},
+  "scan_bib_entry_ms_workstation_4_blas_threads": {"p50": 335, "p95": 367},
+  "page_targets_100_ms": {"cp42": 14.6, "all_units": 18.7},
+  "scan_equals_harness_channel": {"top10_equal": "7/7", "top100_overlap_min": 99}
+ },
+ "refresh_job": {
+  "script": "infra/core/lab_refresh.sh",
+  "parameter": "--snapshot ID (required), --wait-s N",
+  "guard": "rx580-retrieval must run VKM_RX580_IMAGE (the pack worker image)",
+  "done_when": "stage 2 and stage 3 DONE on ID; units = dense index = late pack",
+  "run_on_core": "NOT_RUN (coordinator runs it on the post-B3 snapshot)"
+ },
+ "tests": {
+  "new_tests": 70,
+  "after_merge_of": "4a91b78",
+  "wsl_tests_corpus": {"passed": 885, "failed": 6, "skipped": 43,
+                       "failed_expected_hygiene_in_wsl": 5,
+                       "failed_upstream": "test_retrieval_lab_bench.py::test_real_v1_h_review_sample_matches_pooled_labels (67 sample rows after 41b38d1, test expects 60; files identical to the platform branch)"},
+  "wsl_tests_world": {"passed": 207, "skipped": 2},
+  "windows_venv_api_mcp_service_search_embeddings": {"passed": 311, "skipped": 24},
+  "windows_public_hygiene": {"passed": 6},
+  "verify_canonical_repository": "PASS_WITH_NONBLOCKING (only frozen tags not available locally)"
+ }
+}

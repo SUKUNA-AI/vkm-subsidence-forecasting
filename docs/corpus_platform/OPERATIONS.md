@@ -143,6 +143,16 @@ journalctl --user -u vkm-lab-stage2 -f                  # журнал; полн
 трассой). Повторный запуск ничего не пересчитывает: экспорт — `EXISTS`, кодирование — 0 новых единиц, индекс —
 `SKIPPED_CURRENT`.
 
+Обновление dense и late до нового снимка одним заданием — `infra/core/lab_refresh.sh` (агент L). Задание ждёт, пока
+CURRENT станет `<ID>`, проверяет, что `rx580-retrieval` работает на образе воркера pack'а (`VKM_RX580_IMAGE`), и
+последовательно запускает `lab_stage2.sh` и `lab_stage3.sh`. Итог DONE, только если обе стадии DONE на `<ID>` и
+совпадают число единиц снимка, векторов dense-индекса и единиц pack'а. Квитанция —
+`receipts/lab_refresh/<run>/receipt.json`, строка статуса — `receipts/lab_refresh/STATUS`:
+
+```bash
+systemd-run --user --unit vkm-lab-refresh --collect bash <каталог compose>/lab_refresh.sh --snapshot <ID> [--wait-s N]
+```
+
 ## 5. Резервные копии
 
 | Что | Как | Нужно ли |

@@ -14,6 +14,14 @@ interaction stage (mLateOn MaxSim), with a per-stage trace (постановка
 * PAGE level without bibliography (CP-42): a reference list is not the page's topic, so BIB_ENTRY units never
   feed page ranking — the PAGE leg of the dense k-NN excludes them (``must_not``) and the late stage scores a page
   over its other units. They stay encoded and indexed for an explicit bibliography search.
+* Bibliographic route (agent L, V1 follow-up): a query that ``vkm_corpus.search.intent.bibliographic_intent`` marks as
+  bibliographic («список литературы», «работы Баряха», DOI, «et al.» …; or ``bib_route=True``) additionally searches
+  the BIB_ENTRY units: the RX580 service scans all of them with late MaxSim (``/search/late`` ``scan_kind``) and ranks
+  pages by their best entry; that list is a third RRF leg of the PAGE candidates (filters and duplicate collapsing
+  applied through the page index), and the late stage then scores these queries' pages over all their units,
+  BIB_ENTRY included. V1 harness (``benchmarks/retrieval_v1/bib_route_v1.json``): +0.195 nDCG@10 on the 7
+  bibliographic queries (VERIFIED + pooled, 7/0, p = 0.016), nDCG@10 of the 137 other text queries unchanged. CP-42
+  stays for every other query. The route needs the late stage (``SKIPPED_LATE_OFF`` otherwise).
 * Filters: E's whitelist (``vkm_corpus.search.query.FILTERS``) on page-level fields, applied to both legs (vector
   documents carry the same fields); object-type filters (block_type, figure_type, layout_class, text_layer) have no
   page-level meaning and are refused.
@@ -35,6 +43,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from vkm_corpus.retrieval_lab.fusion import rrf
+from vkm_corpus.search.intent import bibliographic_intent
+from vkm_corpus.search.mappings import alias_name
 from vkm_corpus.search.query import (MAX_SIZE, MAX_WINDOW, RRF_K, SearchRequest, SearchRequestError,
                                      compile_filters, search)
 from vkm_corpus.search.vectors import (COMPLETE, UNIT_SOURCE_FIELDS, VECTOR_FIELD, alias_indices,
@@ -54,6 +64,7 @@ LATE_TIMEOUT_S = 30.0
 MAX_LATE_CANDIDATES = 200
 LATE_CANDIDATES = 100                     # J's service scheme: RRF top-100 → mLateOn
 LATE_DEFAULT = False                      # late stage when the request does not say (agent L: from CORE latency)
+BIB_KIND = "BIB_ENTRY"                    # the kind the bibliographic route scans (CP-42 keeps it out of PAGE ranking)
 
 
 class HybridError(RuntimeError):
@@ -121,26 +132,22 @@ class EmbedClient:
                               tool="rx580-retrieval") from exc
         return QueryVector(vector, dense.get("model"), dense.get("signature"), len(vector), dense.get("encode_ms"))
 
-    def late_scores(self, query: str, targets: list[dict[str, str]],
-                    page_exclude_kinds: tuple[str, ...] = PAGE_EXCLUDED_UNIT_KINDS) -> "LateResult":
-        """``POST /search/late`` with targets: the late query encoding + MaxSim on the service's token store (a page
-        over its units except ``page_exclude_kinds``)."""
+    def _late_post(self, body: dict[str, Any], stage: str) -> dict[str, Any]:
+        """``POST /search/late`` with the error mapping of the late stage (no silent fallback)."""
         import httpx
 
         tool = "rx580-retrieval"
         if self._http is None:
             raise HybridError("DEPENDENCY_UNAVAILABLE", "VKM_EMBED_URL is not configured (RX580 retrieval service)",
-                              stage="late", tool=tool)
+                              stage=stage, tool=tool)
         try:
-            r = self._http.post("/search/late", json={"query": query, "targets": targets, "k": 1,
-                                                      "page_exclude_kinds": list(page_exclude_kinds)},
-                                timeout=LATE_TIMEOUT_S)
+            r = self._http.post("/search/late", json=body, timeout=LATE_TIMEOUT_S)
         except httpx.TimeoutException as exc:
-            raise HybridError("DEPENDENCY_TIMEOUT", "late interaction did not answer in time", stage="late",
+            raise HybridError("DEPENDENCY_TIMEOUT", "late interaction did not answer in time", stage=stage,
                               tool=tool) from exc
         except httpx.HTTPError as exc:
             raise HybridError("DEPENDENCY_UNAVAILABLE", f"late interaction not reachable ({type(exc).__name__})",
-                              stage="late", tool=tool) from exc
+                              stage=stage, tool=tool) from exc
         detail = None
         if r.status_code != 200:
             try:
@@ -149,25 +156,49 @@ class EmbedClient:
                 detail = None
         if r.status_code in (401, 403):
             raise HybridError("DEPENDENCY_ERROR", "late interaction refused the token (VKM_EMBED_TOKEN_FILE)",
-                              stage="late", tool=tool, details={"status": r.status_code})
+                              stage=stage, tool=tool, details={"status": r.status_code})
         if r.status_code in (404, 502, 503):
             raise HybridError("DEPENDENCY_UNAVAILABLE", "late interaction unavailable (no late encoder or no token "
-                              "store)" + (f": {detail}" if detail else ""), stage="late", tool=tool,
+                              "store)" + (f": {detail}" if detail else ""), stage=stage, tool=tool,
                               details={"status": r.status_code})
         if r.status_code != 200:
-            raise HybridError("DEPENDENCY_ERROR", f"late interaction answered HTTP {r.status_code}", stage="late",
+            raise HybridError("DEPENDENCY_ERROR", f"late interaction answered HTTP {r.status_code}", stage=stage,
                               tool=tool, details={"status": r.status_code})
         try:
-            body = r.json()
+            return r.json()
+        except ValueError as exc:
+            raise HybridError("DEPENDENCY_ERROR", "late interaction answer is not JSON", stage=stage,
+                              tool=tool) from exc
+
+    def late_scores(self, query: str, targets: list[dict[str, str]],
+                    page_exclude_kinds: tuple[str, ...] = PAGE_EXCLUDED_UNIT_KINDS) -> "LateResult":
+        """``POST /search/late`` with targets: the late query encoding + MaxSim on the service's token store (a page
+        over its units except ``page_exclude_kinds``)."""
+        body = self._late_post({"query": query, "targets": targets, "k": 1,
+                                "page_exclude_kinds": list(page_exclude_kinds)}, "late")
+        try:
             results = {str(x["id"]): x for x in body["results"]}
-        except (ValueError, KeyError, TypeError) as exc:
+        except (KeyError, TypeError) as exc:
             raise HybridError("DEPENDENCY_ERROR", "late interaction answer has no per-target results (service image "
-                              "without the targets contract?)", stage="late", tool=tool) from exc
+                              "without the targets contract?)", stage="late", tool="rx580-retrieval") from exc
         if set(results) != {t["id"] for t in targets}:
             raise HybridError("DEPENDENCY_ERROR", "late interaction answered for other targets", stage="late",
-                              tool=tool)
+                              tool="rx580-retrieval")
         return LateResult(results, body.get("model"), body.get("query_signature"), body.get("store") or {},
                           body.get("timings_ms") or {}, body.get("n_query_tokens"))
+
+    def late_scan(self, query: str, kind: str = BIB_KIND, top: int = 100) -> "LateScan":
+        """``POST /search/late`` with ``scan_kind``: MaxSim over every unit of ``kind`` in the token store → pages by
+        their best unit of that kind (the bibliographic channel)."""
+        body = self._late_post({"query": query, "scan_kind": kind, "scan_top": int(top), "k": 1}, "bib_scan")
+        try:
+            pages = [{"page_id": str(x["page_id"]), "late_score": float(x["late_score"]),
+                      "best_unit_id": x.get("best_unit_id"), "units": x.get("units")} for x in body["scan"]]
+        except (KeyError, TypeError, ValueError) as exc:
+            raise HybridError("DEPENDENCY_ERROR", "late interaction answer has no scan (service image without the "
+                              "scan contract?)", stage="bib_scan", tool="rx580-retrieval") from exc
+        return LateScan(pages, body.get("model"), body.get("query_signature"), body.get("store") or {},
+                        body.get("timings_ms") or {}, body.get("scan_units"))
 
     def health(self) -> dict[str, Any]:
         """``GET /health`` of the service (no token): status and the resident models (role, key, quant)."""
@@ -189,6 +220,16 @@ class EmbedClient:
     def close(self) -> None:
         if self._http is not None:
             self._http.close()
+
+
+@dataclass
+class LateScan:
+    pages: list[dict[str, Any]]                   # page_id, late_score (best unit of the kind), best_unit_id, units
+    model: str | None
+    query_signature: str | None
+    store: dict[str, Any]
+    timings_ms: dict[str, Any]
+    units_scanned: int | None = None
 
 
 @dataclass
@@ -215,6 +256,7 @@ class HybridRequest:
     exact: bool = False
     late: bool | None = None               # None → LATE_DEFAULT
     late_candidates: int = LATE_CANDIDATES
+    bib_route: bool | None = None          # None → the bibliographic intent detector decides
 
     def validate(self) -> None:
         if not self.query or not self.query.strip() or len(self.query) > 512:
@@ -317,6 +359,38 @@ def dense_ranking(resp: dict[str, Any], kind: str, limit: int, *, collapse_dupli
     return out
 
 
+# ---------------------------------------------------------------- bibliographic route
+def bib_route_status(req: HybridRequest) -> tuple[str, Any]:
+    """(status, intent): APPLIED | NOT_DETECTED | OFF | SKIPPED_NO_PAGE_KIND | SKIPPED_LATE_OFF."""
+    intent = bibliographic_intent(req.query)
+    if req.bib_route is False:
+        return "OFF", intent
+    if "PAGE" not in req.kinds:
+        return "SKIPPED_NO_PAGE_KIND", intent
+    if not (req.bib_route or intent.bibliographic):
+        return "NOT_DETECTED", intent
+    if not req.late:
+        return "SKIPPED_LATE_OFF", intent
+    return "APPLIED", intent
+
+
+def page_filter(client: Any, prefix: str, page_ids: list[str], filters: dict[str, Any]) -> dict[str, str]:
+    """page id → duplicate group of the pages that are in the page index and pass the page-level filters (one query
+    on E's pages alias; the BIB channel of the service knows no filter fields)."""
+    if not page_ids:
+        return {}
+    clauses, must_not = compile_filters(filters)
+    body = {"size": len(page_ids), "_source": {"includes": ["id", "dup_group_id"]},
+            "query": {"bool": {"filter": [{"ids": {"values": list(page_ids)}}, *clauses], "must_not": must_not}}}
+    resp = client.search(index=alias_name(prefix, "pages"), body=body)
+    out = {}
+    for h in resp.get("hits", {}).get("hits", []):
+        src = h.get("_source") or {}
+        pid = str(src.get("id") or h.get("_id"))
+        out[pid] = str(src.get("dup_group_id") or pid)
+    return out
+
+
 # ---------------------------------------------------------------- late stage
 def late_order(fused: list[tuple[str, float]], kind_of: dict[str, str], results: dict[str, dict[str, Any]],
                n: int) -> tuple[list[tuple[str, float]], dict[str, int]]:
@@ -388,6 +462,35 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
         rankings[f"dense:{kind}"] = [(d.key, d.score) for d in dense]
         totals[kind] = {"bm25": int(bm.totals.get(kind, len(bm.hits))), "bm25_returned": len(bm.hits),
                         "dense_returned": len(dense)}
+    bib_status, intent = bib_route_status(req)
+    bib_stage: dict[str, Any] = {"status": bib_status, "cues": list(intent.cues), "weak_cues": list(intent.weak)}
+    bib_info: dict[str, dict[str, Any]] = {}
+    if bib_status == "APPLIED":
+        t1 = time.perf_counter()
+        scan = embed.late_scan(req.query, BIB_KIND, top=req.candidates)
+        timings["bib_scan"] = round((time.perf_counter() - t1) * 1e3, 2)
+        t1 = time.perf_counter()
+        allowed = page_filter(client, prefix, [p["page_id"] for p in scan.pages], req.filters)
+        timings["bib_page_filter"] = round((time.perf_counter() - t1) * 1e3, 2)
+        bib_list, groups = [], set()
+        for p in scan.pages:
+            pid = p["page_id"]
+            if pid not in allowed:
+                continue
+            group = pid if req.include_duplicates else allowed[pid]
+            if group in groups:
+                continue
+            groups.add(group)
+            bib_list.append((pid, p["late_score"]))
+            bib_info[pid] = p
+            kind_of.setdefault(pid, "PAGE")
+        rankings["bib:PAGE"] = bib_list
+        totals.setdefault("PAGE", {})["bib_returned"] = len(bib_list)
+        bib_stage.update({"engine": "rx580-retrieval", "scan_kind": BIB_KIND, "units_scanned": scan.units_scanned,
+                          "pages_scanned": len(scan.pages), "pages_kept": len(bib_list), "model_key": scan.model,
+                          "query_signature": scan.query_signature, "store": scan.store, "timings_ms": scan.timings_ms,
+                          "fusion": "third RRF leg of the PAGE candidates (pages by their best BIB_ENTRY unit)",
+                          "late_page_score": "max MaxSim over all units of the page, BIB_ENTRY included"})
     fused = rrf(rankings, k=req.rrf_k)
     fused_rank = {key: i for i, (key, _s) in enumerate(fused, 1)}
     late_stage: dict[str, Any] | str = "NOT_RUN (late=false; MaxSim over token vectors on the RX580 with late=true)"
@@ -395,7 +498,9 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
     if req.late and fused:
         t1 = time.perf_counter()
         head = fused[:req.late_candidates]
-        lr = embed.late_scores(req.query, [{"id": key, "kind": kind_of[key]} for key, _s in head])
+        page_excl = () if bib_status == "APPLIED" else PAGE_EXCLUDED_UNIT_KINDS
+        lr = embed.late_scores(req.query, [{"id": key, "kind": kind_of[key]} for key, _s in head],
+                               page_exclude_kinds=page_excl)
         timings["late"] = round((time.perf_counter() - t1) * 1e3, 2)
         late_results = lr.results
         order, late_rank = late_order(fused, kind_of, late_results, len(head))
@@ -408,8 +513,10 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                       "query_tokens": lr.n_query_tokens, "store": lr.store, "candidates": len(head),
                       "scored": len(head) - len(unscored), "unscored": len(unscored), "unscored_ids": unscored[:20],
                       "ordering": "per kind by MaxSim inside the kind's RRF positions (H-44); unscored after scored",
-                      "page_score": "max MaxSim over the units of the page except "
-                                    f"{', '.join(PAGE_EXCLUDED_UNIT_KINDS)} (CP-42)", "timings_ms": lr.timings_ms}
+                      "page_score": ("max MaxSim over all units of the page, BIB_ENTRY included (bibliographic "
+                                     "route)" if bib_status == "APPLIED" else "max MaxSim over the units of the page "
+                                     f"except {', '.join(PAGE_EXCLUDED_UNIT_KINDS)} (CP-42)"),
+                      "page_exclude_kinds": list(page_excl), "timings_ms": lr.timings_ms}
     ranks = {name: {key: i for i, (key, _s) in enumerate(lst, 1)} for name, lst in rankings.items()}
     scores = {name: dict(lst) for name, lst in rankings.items()}
     hits = []
@@ -424,6 +531,12 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                  "dense_rank": ranks[f"dense:{kind}"].get(key), "dense_score": scores[f"dense:{kind}"].get(key),
                  "fused_rank": fused_rank[key], "rrf_score": round(score, 8), "rrf_k": req.rrf_k,
                  "late_rank": None, "rerank_rank": None}
+        if bib_status == "APPLIED" and kind == "PAGE":
+            info = bib_info.get(key)
+            trace["bib_rank"] = ranks["bib:PAGE"].get(key)
+            trace["bib_score"] = None if info is None else info.get("late_score")
+            if info is not None:
+                trace["bib_unit"] = {"unit_id": info.get("best_unit_id"), "units": info.get("units")}
         if req.late:
             res = late_results.get(key)
             trace.update({"late_rank": late_rank.get(key),
@@ -439,7 +552,8 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
         hit: dict[str, Any] = {
             "id": key, "object_type": kind, "rank": rank, "score": round(score, 8),
             "page_id": (bmh.page_id if bmh else None) or (key if kind == "PAGE" else src.get("page_id")),
-            "source_id": (bmh.source_id if bmh else None) or src.get("source_id"),
+            "source_id": (bmh.source_id if bmh else None) or src.get("source_id") or
+            (key.split(":")[0] if kind == "PAGE" and ":" in key else None),
             "work_id": (bmh.work_id if bmh else None) or src.get("work_id"),
             "page_index": (bmh.page_index if bmh else None) or src.get("page_index"),
             "index": bmh.index if bmh else meta["index"], "build_id": bmh.build_id if bmh else meta["build_id"],
@@ -451,6 +565,7 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
     return {"query": req.query, "kinds": list(req.kinds), "hits": hits, "fusion": "RRF", "rrf_k": req.rrf_k,
             "candidates": req.candidates, "fused_total": len(fused), "totals": totals, "warnings": warnings,
             "late": bool(req.late), "late_candidates": req.late_candidates if req.late else None,
+            "route": "bibliographic" if bib_status == "APPLIED" else "default",
             "stages": {"bm25": {"engine": "opensearch", "indices": "per-kind aliases of E"},
                        "dense": {"engine": "opensearch-knn", "alias": meta["alias"], "index": meta["index"],
                                  "build_id": meta["build_id"], "built_from_snapshot_id":
@@ -458,6 +573,6 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                                  "model_key": meta.get("model_key"), "query_model": q.model,
                                  "query_signature": q.signature, "dimension": q.dimension,
                                  "space_type": meta.get("space_type"), "encode_ms": q.encode_ms},
-                       "late": late_stage,
+                       "late": late_stage, "bib_route": bib_stage,
                        "rerank": "NOT_RUN here (EDGE text reranker: rerank_text over rerank_candidate)"},
             "timings_ms": timings}
