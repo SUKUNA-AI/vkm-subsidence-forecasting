@@ -77,17 +77,30 @@ desktop = [
     "ezdxf>=1.4",
     "pywin32>=312; sys_platform == 'win32'",
 ]
+# vkm-ansys stdio MCP server (plan docs/planning/ENGINEERING_TOOLS_MCP_PLAN_RU.md §4.6): its own venv work/venv-ansys,
+# exact pins in requirements/ansys.lock.txt (built with -c requirements/worldspec.lock.txt)
+ansys = [
+    "mcp==2.2.0",
+    "pywin32>=312; sys_platform == 'win32'",
+    "psutil>=7",
+    "ansys-mapdl-core==0.74.1",
+    "ansys-dpf-core==0.16.1",
+    "ansys-mechanical-core==0.13.3",
+    "ansys-workbench-core==0.14.0",
+    "ansys-optislang-core==1.6.1",
+]
 
 [project.scripts]
 vkm-corpus = "vkm_corpus.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["vkm_world*", "vkm_corpus*", "vkm_cad*", "vkm_drawio*"]
+include = ["vkm_world*", "vkm_corpus*", "vkm_cad*", "vkm_drawio*", "vkm_jobs*", "vkm_matlab*", "vkm_ansys*"]
 
 [tool.setuptools.package-data]
 # non-Python files read at run time (a non-editable install, e.g. the CORE image, has only what is listed here)
 vkm_corpus = ["duckdb/sql/*.sql", "ops/schema.sql"]
+vkm_ansys = ["ladder/*.inp", "ladder/*.json"]
 
 [tool.pytest.ini_options]
 addopts = "-ra -p no:cacheprovider"
@@ -97,4 +110,6 @@ markers = [
     "services: needs live Neo4j/OpenSearch/PostgreSQL/rerankers (skipped -> NOT_RUN when absent)",
     "gpu: needs a CUDA GPU or a running GLM-OCR/reranker model service",
     "desktop: needs Windows desktop tools (AutoCAD, draw.io)",
+    "matlab: needs MATLAB and takes a MATLAB licence (run only with -m matlab and a task that allows it)",
+    "ansys: needs Ansys 2026 R1 and takes an Ansys licence (run only with -m ansys and VKM_ANSYS_LIVE=1)",
 ]
