@@ -140,6 +140,12 @@ services:
         target: /data/derived/navigation
         read_only: true
         bind: {create_host_path: false}
+      # PUBLIC evidence catalogues pack for reconstruct_topic: derived/catalogues/<commit12>/ + CURRENT
+      - type: bind
+        source: ${VKM_DATA_ROOT_HOST:?}/derived/catalogues
+        target: /data/derived/catalogues
+        read_only: true
+        bind: {create_host_path: false}
     ports:
       - "${VKM_CORE_LAN_ADDR:?}:${VKM_API_PORT:-8000}:8000"
     mem_limit: 2g
