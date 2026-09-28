@@ -18,3 +18,4 @@
 | `graph_projection_final.json` | итоговая проекция Neo4j: счётчики, проверки C1–C16, дайджест |
 | `search_projection_final.json` | итоговая проекция OpenSearch: индексы, счётчики, поток документов |
 | `rebuild_demo_final.json` | §46: удаление и пересборка DuckDB, Neo4j и OpenSearch из канона |
+| `cad_v1_smoke.json` | `vkm-cad` v1 на WORKSTATION без GUI: точки → TIN → горизонтали → мульда → профиль → лист → PDF, DXF ↔ DWG, импорт PDF, каналы scr/lisp/csharp, резерв на Python; журнал проб (до и после исправления лицензии, две аварии ядра) |
