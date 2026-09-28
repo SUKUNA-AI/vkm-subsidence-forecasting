@@ -1,0 +1,1439 @@
+{
+ "schema": "vkm-nav-concepts-receipt-v1",
+ "agent": "N3",
+ "date": "2026-09-28",
+ "branch": "claude/nav-concepts-n3-2026-09-28",
+ "status": "DERIVED, AUTO_EXTRACTED_UNREVIEWED (navigation hints, not physical claims)",
+ "snapshot": "snap-20260928T160616Z-5d669f09 (local read-only DuckDB copy)",
+ "rule_version": "concepts_v1",
+ "morphology": "pymorphy3",
+ "params": {
+  "max_unit_pages": 5,
+  "min_df_units": 2,
+  "min_df_sources": 2,
+  "top_k": 30,
+  "min_npmi": 0.2,
+  "min_shared_units": 3,
+  "min_edge_sources": 2,
+  "max_nested_share": 0.9,
+  "max_terms": null,
+  "backend": "auto",
+  "communities": "auto",
+  "morphology": "auto"
+ },
+ "counts": {
+  "blocks": 424281,
+  "units": 10901,
+  "unit_kinds": {
+   "PAGE": 75,
+   "HEADING_GROUP": 10826
+  },
+  "candidates": 654585,
+  "terms": 96205,
+  "terms_by_language": {
+   "ru": 52132,
+   "en": 43906,
+   "de": 167
+  },
+  "seed_terms": 230,
+  "mentions": 1452875,
+  "edges": {
+   "CONTAINS": 149505,
+   "CO_OCCURS": 1257830,
+   "DEFINED_AS": 991,
+   "SAME_AS": 1056
+  }
+ },
+ "cross_language_co_occurs_edges": 9036,
+ "defined_as_same_as_by_rule": {
+  "def_en_called": 572,
+  "def_en_defined_as": 7,
+  "def_eto": 60,
+  "def_etym": 1,
+  "def_nazyvaetsya": 318,
+  "def_ponimaetsya": 33,
+  "paren_abbreviation": 964,
+  "paren_translation": 92
+ },
+ "communities": {
+  "method": "cuGraph Leiden, resolution 1.0, random_state 42, weights = NPMI",
+  "n_communities": 26,
+  "terms_with_community": 64711
+ },
+ "backends": {
+  "cpu_duckdb": {
+   "wall_s": 30.5,
+   "timings_s": {
+    "load": 0.25,
+    "extract": 7.04,
+    "filter": 1.27,
+    "mentions": 1.71,
+    "cooccurrence": 11.45,
+    "communities": 0.0,
+    "display": 5.99,
+    "tables": 2.43
+   }
+  },
+  "gpu_cudf": {
+   "wall_s": 32.7,
+   "timings_s": {
+    "load": 0.79,
+    "extract": 7.16,
+    "filter": 1.15,
+    "mentions": 1.71,
+    "cooccurrence": 10.21,
+    "communities": 1.55,
+    "display": 5.89,
+    "tables": 3.53
+   }
+  },
+  "equality": "terms (except community), term_mentions, term_edges: IDENTICAL row by row (full corpus)"
+ },
+ "qa": {
+  "method": "explore_concept(limit=15, diversify=True); agent N3 judged each of the top-15 neighbours (sensible = a related domain concept; not sensible = OCR/fragment junk, author names, generic words). InSAR and «интерферометрия» are one topic (two queries pooled).",
+  "topics": [
+   {
+    "query": "ползучесть соли",
+    "match": "ползучесть солей",
+    "df_units": 5,
+    "df_sources": 4,
+    "seed": true,
+    "community": 3,
+    "focus": "ползучесть",
+    "definitions": 0,
+    "same_as": [],
+    "neighbours": [
+     {
+      "lemma": "релаксация",
+      "npmi": 0.647523,
+      "n_units": 84,
+      "n_sources": 22,
+      "sensible": true
+     },
+     {
+      "lemma": "длительная прочность",
+      "npmi": 0.591979,
+      "n_units": 80,
+      "n_sources": 28,
+      "sensible": true
+     },
+     {
+      "lemma": "деформирование",
+      "npmi": 0.581939,
+      "n_units": 196,
+      "n_sources": 50,
+      "sensible": true
+     },
+     {
+      "lemma": "реологические свойства",
+      "npmi": 0.57388,
+      "n_units": 65,
+      "n_sources": 24,
+      "sensible": true
+     },
+     {
+      "lemma": "нагружение",
+      "npmi": 0.56226,
+      "n_units": 169,
+      "n_sources": 49,
+      "sensible": true
+     },
+     {
+      "lemma": "длительные испытания",
+      "npmi": 0.577182,
+      "n_units": 35,
+      "n_sources": 20,
+      "sensible": true
+     },
+     {
+      "lemma": "деформации",
+      "npmi": 0.548629,
+      "n_units": 272,
+      "n_sources": 62,
+      "sensible": true
+     },
+     {
+      "lemma": "напряжения",
+      "npmi": 0.519955,
+      "n_units": 219,
+      "n_sources": 48,
+      "sensible": true
+     },
+     {
+      "lemma": "конвергенция",
+      "npmi": 0.53278,
+      "n_units": 57,
+      "n_sources": 15,
+      "sensible": true
+     },
+     {
+      "lemma": "образцы",
+      "npmi": 0.519651,
+      "n_units": 181,
+      "n_sources": 41,
+      "sensible": true
+     },
+     {
+      "lemma": "соляные породы",
+      "npmi": 0.502358,
+      "n_units": 173,
+      "n_sources": 40,
+      "sensible": true
+     },
+     {
+      "lemma": "уровень нагрузки",
+      "npmi": 0.52271,
+      "n_units": 33,
+      "n_sources": 14,
+      "sensible": true
+     },
+     {
+      "lemma": "разрушение",
+      "npmi": 0.496438,
+      "n_units": 168,
+      "n_sources": 44,
+      "sensible": true
+     },
+     {
+      "lemma": "наследственность",
+      "npmi": 0.518932,
+      "n_units": 29,
+      "n_sources": 13,
+      "sensible": true
+     },
+     {
+      "lemma": "модифицированный метод",
+      "npmi": 0.531985,
+      "n_units": 20,
+      "n_sources": 2,
+      "sensible": false
+     }
+    ],
+    "sensible": 14,
+    "judged": 15,
+    "share": 0.933
+   },
+   {
+    "query": "оседание земной поверхности",
+    "match": "оседания земной поверхности",
+    "df_units": 290,
+    "df_sources": 86,
+    "seed": true,
+    "community": 1,
+    "focus": null,
+    "definitions": 0,
+    "same_as": [],
+    "neighbours": [
+     {
+      "lemma": "нарастание оседаний",
+      "npmi": 0.684662,
+      "n_units": 56,
+      "n_sources": 28,
+      "sensible": true
+     },
+     {
+      "lemma": "скорость оседания",
+      "npmi": 0.65481,
+      "n_units": 77,
+      "n_sources": 42,
+      "sensible": true
+     },
+     {
+      "lemma": "сдвижение",
+      "npmi": 0.626394,
+      "n_units": 143,
+      "n_sources": 53,
+      "sensible": true
+     },
+     {
+      "lemma": "подработанный массив",
+      "npmi": 0.628792,
+      "n_units": 66,
+      "n_sources": 43,
+      "sensible": true
+     },
+     {
+      "lemma": "прогноз оседаний",
+      "npmi": 0.615178,
+      "n_units": 30,
+      "n_sources": 12,
+      "sensible": true
+     },
+     {
+      "lemma": "максимальное оседание",
+      "npmi": 0.590374,
+      "n_units": 63,
+      "n_sources": 34,
+      "sensible": true
+     },
+     {
+      "lemma": "мульда",
+      "npmi": 0.574125,
+      "n_units": 92,
+      "n_sources": 42,
+      "sensible": true
+     },
+     {
+      "lemma": "ВЗТ",
+      "npmi": 0.562518,
+      "n_units": 87,
+      "n_sources": 40,
+      "sensible": true
+     },
+     {
+      "lemma": "водозащитная толща",
+      "npmi": 0.557781,
+      "n_units": 87,
+      "n_sources": 51,
+      "sensible": true
+     },
+     {
+      "lemma": "целиков",
+      "npmi": 0.552256,
+      "n_units": 140,
+      "n_sources": 59,
+      "sensible": true
+     },
+     {
+      "lemma": "подработка",
+      "npmi": 0.554219,
+      "n_units": 90,
+      "n_sources": 45,
+      "sensible": true
+     },
+     {
+      "lemma": "затопление",
+      "npmi": 0.555441,
+      "n_units": 81,
+      "n_sources": 48,
+      "sensible": true
+     },
+     {
+      "lemma": "графика нарастания",
+      "npmi": 0.584061,
+      "n_units": 25,
+      "n_sources": 16,
+      "sensible": true
+     },
+     {
+      "lemma": "градиенты оседаний",
+      "npmi": 0.584061,
+      "n_units": 25,
+      "n_sources": 12,
+      "sensible": true
+     },
+     {
+      "lemma": "выработанное пространство",
+      "npmi": 0.547246,
+      "n_units": 111,
+      "n_sources": 57,
+      "sensible": true
+     }
+    ],
+    "sensible": 15,
+    "judged": 15,
+    "share": 1.0
+   },
+   {
+    "query": "закладка",
+    "match": "закладка",
+    "df_units": 317,
+    "df_sources": 72,
+    "seed": true,
+    "community": 1,
+    "focus": null,
+    "definitions": 0,
+    "same_as": [],
+    "neighbours": [
+     {
+      "lemma": "закладочный массив",
+      "npmi": 0.671455,
+      "n_units": 59,
+      "n_sources": 20,
+      "sensible": true
+     },
+     {
+      "lemma": "выработанное пространство",
+      "npmi": 0.635175,
+      "n_units": 150,
+      "n_sources": 53,
+      "sensible": true
+     },
+     {
+      "lemma": "закладочный материал",
+      "npmi": 0.646682,
+      "n_units": 54,
+      "n_sources": 26,
+      "sensible": true
+     },
+     {
+      "lemma": "заполнение камер",
+      "npmi": 0.621004,
+      "n_units": 41,
+      "n_sources": 17,
+      "sensible": true
+     },
+     {
+      "lemma": "закладочные работы",
+      "npmi": 0.608271,
+      "n_units": 56,
+      "n_sources": 22,
+      "sensible": true
+     },
+     {
+      "lemma": "солеотходы",
+      "npmi": 0.599238,
+      "n_units": 38,
+      "n_sources": 14,
+      "sensible": true
+     },
+     {
+      "lemma": "пульпа",
+      "npmi": 0.564303,
+      "n_units": 33,
+      "n_sources": 10,
+      "sensible": true
+     },
+     {
+      "lemma": "приготовление",
+      "npmi": 0.555559,
+      "n_units": 29,
+      "n_sources": 8,
+      "sensible": false
+     },
+     {
+      "lemma": "степень заполнения",
+      "npmi": 0.557657,
+      "n_units": 25,
+      "n_sources": 16,
+      "sensible": true
+     },
+     {
+      "lemma": "коэффициент заполнения",
+      "npmi": 0.5543,
+      "n_units": 23,
+      "n_sources": 12,
+      "sensible": true
+     },
+     {
+      "lemma": "целиков",
+      "npmi": 0.516561,
+      "n_units": 134,
+      "n_sources": 51,
+      "sensible": true
+     },
+     {
+      "lemma": "выемка",
+      "npmi": 0.516654,
+      "n_units": 99,
+      "n_sources": 29,
+      "sensible": true
+     },
+     {
+      "lemma": "твердеющие смеси",
+      "npmi": 0.551294,
+      "n_units": 21,
+      "n_sources": 3,
+      "sensible": true
+     },
+     {
+      "lemma": "отработка",
+      "npmi": 0.509258,
+      "n_units": 156,
+      "n_sources": 59,
+      "sensible": true
+     },
+     {
+      "lemma": "система разработки",
+      "npmi": 0.506959,
+      "n_units": 107,
+      "n_sources": 48,
+      "sensible": true
+     }
+    ],
+    "sensible": 14,
+    "judged": 15,
+    "share": 0.933
+   },
+   {
+    "query": "водозащитная толща",
+    "match": "водозащитная толща",
+    "df_units": 221,
+    "df_sources": 88,
+    "seed": true,
+    "community": 1,
+    "focus": null,
+    "definitions": 1,
+    "same_as": [
+     "ВЗТ"
+    ],
+    "neighbours": [
+     {
+      "lemma": "ВЗТ",
+      "npmi": 0.711403,
+      "n_units": 113,
+      "n_sources": 54,
+      "sensible": true
+     },
+     {
+      "lemma": "затопление",
+      "npmi": 0.630795,
+      "n_units": 86,
+      "n_sources": 52,
+      "sensible": true
+     },
+     {
+      "lemma": "сплошность",
+      "npmi": 0.633055,
+      "n_units": 72,
+      "n_sources": 50,
+      "sensible": true
+     },
+     {
+      "lemma": "верхнекамское месторождение",
+      "npmi": 0.55499,
+      "n_units": 124,
+      "n_sources": 73,
+      "sensible": true
+     },
+     {
+      "lemma": "оседания земной поверхности",
+      "npmi": 0.557781,
+      "n_units": 87,
+      "n_sources": 51,
+      "sensible": true
+     },
+     {
+      "lemma": "пресные воды",
+      "npmi": 0.5712,
+      "n_units": 35,
+      "n_sources": 29,
+      "sensible": true
+     },
+     {
+      "lemma": "водоносные горизонты",
+      "npmi": 0.55965,
+      "n_units": 47,
+      "n_sources": 36,
+      "sensible": true
+     },
+     {
+      "lemma": "подработанный массив",
+      "npmi": 0.558279,
+      "n_units": 44,
+      "n_sources": 34,
+      "sensible": true
+     },
+     {
+      "lemma": "водорастворимые руды",
+      "npmi": 0.578238,
+      "n_units": 22,
+      "n_sources": 17,
+      "sensible": true
+     },
+     {
+      "lemma": "отрабатываемые пласты",
+      "npmi": 0.553503,
+      "n_units": 41,
+      "n_sources": 33,
+      "sensible": true
+     },
+     {
+      "lemma": "камерная система разработки",
+      "npmi": 0.544755,
+      "n_units": 62,
+      "n_sources": 46,
+      "sensible": true
+     },
+     {
+      "lemma": "прорыв",
+      "npmi": 0.544721,
+      "n_units": 43,
+      "n_sources": 33,
+      "sensible": true
+     },
+     {
+      "lemma": "сохранность",
+      "npmi": 0.54079,
+      "n_units": 45,
+      "n_sources": 33,
+      "sensible": true
+     },
+     {
+      "lemma": "защита рудников",
+      "npmi": 0.547053,
+      "n_units": 32,
+      "n_sources": 26,
+      "sensible": true
+     },
+     {
+      "lemma": "опасность нарушения",
+      "npmi": 0.570276,
+      "n_units": 18,
+      "n_sources": 13,
+      "sensible": true
+     }
+    ],
+    "sensible": 15,
+    "judged": 15,
+    "share": 1.0
+   },
+   {
+    "query": "мульда сдвижения",
+    "match": "мульда сдвижения",
+    "df_units": 113,
+    "df_sources": 35,
+    "seed": true,
+    "community": 1,
+    "focus": null,
+    "definitions": 1,
+    "same_as": [],
+    "neighbours": [
+     {
+      "lemma": "максимальное оседание",
+      "npmi": 0.745255,
+      "n_units": 58,
+      "n_sources": 23,
+      "sensible": true
+     },
+     {
+      "lemma": "процесс сдвижения",
+      "npmi": 0.691348,
+      "n_units": 64,
+      "n_sources": 23,
+      "sensible": true
+     },
+     {
+      "lemma": "неполная подработка",
+      "npmi": 0.702789,
+      "n_units": 26,
+      "n_sources": 7,
+      "sensible": true
+     },
+     {
+      "lemma": "градиенты оседаний",
+      "npmi": 0.703308,
+      "n_units": 22,
+      "n_sources": 11,
+      "sensible": true
+     },
+     {
+      "lemma": "граничные углы",
+      "npmi": 0.681585,
+      "n_units": 31,
+      "n_sources": 11,
+      "sensible": true
+     },
+     {
+      "lemma": "сдвижение земной поверхности",
+      "npmi": 0.672191,
+      "n_units": 40,
+      "n_sources": 20,
+      "sensible": true
+     },
+     {
+      "lemma": "полумульда",
+      "npmi": 0.680057,
+      "n_units": 27,
+      "n_sources": 6,
+      "sensible": true
+     },
+     {
+      "lemma": "сечения мульды",
+      "npmi": 0.677543,
+      "n_units": 20,
+      "n_sources": 9,
+      "sensible": true
+     },
+     {
+      "lemma": "высокие градиенты",
+      "npmi": 0.676113,
+      "n_units": 19,
+      "n_sources": 10,
+      "sensible": true
+     },
+     {
+      "lemma": "длина краевой части",
+      "npmi": 0.686322,
+      "n_units": 14,
+      "n_sources": 6,
+      "sensible": false
+     },
+     {
+      "lemma": "полная подработка",
+      "npmi": 0.630823,
+      "n_units": 32,
+      "n_sources": 15,
+      "sensible": true
+     },
+     {
+      "lemma": "горизонтальные деформации",
+      "npmi": 0.627052,
+      "n_units": 34,
+      "n_sources": 13,
+      "sensible": true
+     },
+     {
+      "lemma": "главные сечения",
+      "npmi": 0.658687,
+      "n_units": 16,
+      "n_sources": 6,
+      "sensible": true
+     },
+     {
+      "lemma": "оседания земной поверхности",
+      "npmi": 0.600077,
+      "n_units": 65,
+      "n_sources": 32,
+      "sensible": true
+     },
+     {
+      "lemma": "выработанное пространство",
+      "npmi": 0.59264,
+      "n_units": 70,
+      "n_sources": 27,
+      "sensible": true
+     }
+    ],
+    "sensible": 14,
+    "judged": 15,
+    "share": 0.933
+   },
+   {
+    "query": "рассолопроявления",
+    "match": "рассолопроявления",
+    "df_units": 14,
+    "df_sources": 10,
+    "seed": true,
+    "community": 1,
+    "focus": null,
+    "definitions": 0,
+    "same_as": [],
+    "neighbours": [
+     {
+      "lemma": "водопроявления",
+      "npmi": 0.713745,
+      "n_units": 4,
+      "n_sources": 4,
+      "sensible": true
+     },
+     {
+      "lemma": "дебит рассолов",
+      "npmi": 0.727544,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": true
+     },
+     {
+      "lemma": "затопление рудника",
+      "npmi": 0.567587,
+      "n_units": 6,
+      "n_sources": 5,
+      "sensible": true
+     },
+     {
+      "lemma": "увеличение водопритока",
+      "npmi": 0.692452,
+      "n_units": 3,
+      "n_sources": 2,
+      "sensible": true
+     },
+     {
+      "lemma": "водоносные горизонты",
+      "npmi": 0.530967,
+      "n_units": 7,
+      "n_sources": 4,
+      "sensible": true
+     },
+     {
+      "lemma": "состав рассолов",
+      "npmi": 0.678085,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": true
+     },
+     {
+      "lemma": "гидроизолирующий целик",
+      "npmi": 0.665233,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": true
+     },
+     {
+      "lemma": "ВЗТ",
+      "npmi": 0.465794,
+      "n_units": 8,
+      "n_sources": 7,
+      "sensible": true
+     },
+     {
+      "lemma": "березниковский рудник",
+      "npmi": 0.547421,
+      "n_units": 4,
+      "n_sources": 4,
+      "sensible": true
+     },
+     {
+      "lemma": "водонепроницаемость",
+      "npmi": 0.607902,
+      "n_units": 3,
+      "n_sources": 2,
+      "sensible": true
+     },
+     {
+      "lemma": "водозащитная толща",
+      "npmi": 0.436054,
+      "n_units": 7,
+      "n_sources": 6,
+      "sensible": true
+     },
+     {
+      "lemma": "соляные рудники",
+      "npmi": 0.558443,
+      "n_units": 3,
+      "n_sources": 2,
+      "sensible": true
+     },
+     {
+      "lemma": "гидрогеология",
+      "npmi": 0.548679,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": true
+     },
+     {
+      "lemma": "авария",
+      "npmi": 0.457047,
+      "n_units": 5,
+      "n_sources": 5,
+      "sensible": true
+     },
+     {
+      "lemma": "приток",
+      "npmi": 0.450487,
+      "n_units": 5,
+      "n_sources": 4,
+      "sensible": true
+     }
+    ],
+    "sensible": 15,
+    "judged": 15,
+    "share": 1.0
+   },
+   {
+    "query": "длительная прочность",
+    "match": "длительная прочность",
+    "df_units": 137,
+    "df_sources": 41,
+    "seed": true,
+    "community": 4,
+    "focus": null,
+    "definitions": 2,
+    "same_as": [],
+    "neighbours": [
+     {
+      "lemma": "уровень нагружения",
+      "npmi": 0.666506,
+      "n_units": 33,
+      "n_sources": 15,
+      "sensible": true
+     },
+     {
+      "lemma": "время разрушения",
+      "npmi": 0.668297,
+      "n_units": 17,
+      "n_sources": 11,
+      "sensible": true
+     },
+     {
+      "lemma": "свойства соляных пород",
+      "npmi": 0.614522,
+      "n_units": 43,
+      "n_sources": 21,
+      "sensible": true
+     },
+     {
+      "lemma": "ползучесть",
+      "npmi": 0.591979,
+      "n_units": 80,
+      "n_sources": 28,
+      "sensible": true
+     },
+     {
+      "lemma": "реологические свойства",
+      "npmi": 0.603342,
+      "n_units": 40,
+      "n_sources": 17,
+      "sensible": true
+     },
+     {
+      "lemma": "релаксация напряжений",
+      "npmi": 0.627733,
+      "n_units": 21,
+      "n_sources": 10,
+      "sensible": true
+     },
+     {
+      "lemma": "определение предела",
+      "npmi": 0.607774,
+      "n_units": 27,
+      "n_sources": 8,
+      "sensible": false
+     },
+     {
+      "lemma": "прочность соляных пород",
+      "npmi": 0.598657,
+      "n_units": 30,
+      "n_sources": 18,
+      "sensible": true
+     },
+     {
+      "lemma": "предел прочности",
+      "npmi": 0.574872,
+      "n_units": 69,
+      "n_sources": 30,
+      "sensible": true
+     },
+     {
+      "lemma": "прочность горных пород",
+      "npmi": 0.595346,
+      "n_units": 24,
+      "n_sources": 14,
+      "sensible": true
+     },
+     {
+      "lemma": "длительные испытания",
+      "npmi": 0.596964,
+      "n_units": 21,
+      "n_sources": 11,
+      "sensible": true
+     },
+     {
+      "lemma": "мгновенная прочность",
+      "npmi": 0.619644,
+      "n_units": 14,
+      "n_sources": 7,
+      "sensible": true
+     },
+     {
+      "lemma": "форма образцов",
+      "npmi": 0.583906,
+      "n_units": 18,
+      "n_sources": 9,
+      "sensible": true
+     },
+     {
+      "lemma": "ускоренный метод",
+      "npmi": 0.625767,
+      "n_units": 10,
+      "n_sources": 7,
+      "sensible": true
+     },
+     {
+      "lemma": "продольные деформации",
+      "npmi": 0.552849,
+      "n_units": 29,
+      "n_sources": 14,
+      "sensible": true
+     }
+    ],
+    "sensible": 14,
+    "judged": 15,
+    "share": 0.933
+   },
+   {
+    "query": "InSAR",
+    "match": "InSAR",
+    "df_units": 131,
+    "df_sources": 28,
+    "seed": true,
+    "community": 7,
+    "focus": null,
+    "definitions": 0,
+    "same_as": [
+     "interferometric synthetic aperture radar",
+     "спутниковая радиолокационная интерферометрия",
+     "ru:метод интерферометрический обработка данные",
+     "метод радарной интерферометрии"
+    ],
+    "neighbours": [
+     {
+      "lemma": "interferometric",
+      "npmi": 0.686573,
+      "n_units": 70,
+      "n_sources": 20,
+      "sensible": true
+     },
+     {
+      "lemma": "synthetic aperture radar",
+      "npmi": 0.692349,
+      "n_units": 32,
+      "n_sources": 19,
+      "sensible": true
+     },
+     {
+      "lemma": "interferogram",
+      "npmi": 0.663968,
+      "n_units": 70,
+      "n_sources": 11,
+      "sensible": true
+     },
+     {
+      "lemma": "SAR",
+      "npmi": 0.657302,
+      "n_units": 71,
+      "n_sources": 20,
+      "sensible": true
+     },
+     {
+      "lemma": "LOS",
+      "npmi": 0.655031,
+      "n_units": 36,
+      "n_sources": 13,
+      "sensible": true
+     },
+     {
+      "lemma": "tropospheric",
+      "npmi": 0.647202,
+      "n_units": 29,
+      "n_sources": 7,
+      "sensible": true
+     },
+     {
+      "lemma": "GNSS",
+      "npmi": 0.627587,
+      "n_units": 27,
+      "n_sources": 8,
+      "sensible": true
+     },
+     {
+      "lemma": "time series",
+      "npmi": 0.598096,
+      "n_units": 41,
+      "n_sources": 11,
+      "sensible": true
+     },
+     {
+      "lemma": "hanssen",
+      "npmi": 0.602211,
+      "n_units": 26,
+      "n_sources": 8,
+      "sensible": false
+     },
+     {
+      "lemma": "GPS",
+      "npmi": 0.575573,
+      "n_units": 58,
+      "n_sources": 15,
+      "sensible": true
+     },
+     {
+      "lemma": "decorrelation",
+      "npmi": 0.589992,
+      "n_units": 29,
+      "n_sources": 9,
+      "sensible": true
+     },
+     {
+      "lemma": "pixel",
+      "npmi": 0.581274,
+      "n_units": 37,
+      "n_sources": 9,
+      "sensible": true
+     },
+     {
+      "lemma": "emardson",
+      "npmi": 0.635551,
+      "n_units": 13,
+      "n_sources": 4,
+      "sensible": false
+     },
+     {
+      "lemma": "interferometry",
+      "npmi": 0.563162,
+      "n_units": 39,
+      "n_sources": 15,
+      "sensible": true
+     },
+     {
+      "lemma": "water vapor",
+      "npmi": 0.573885,
+      "n_units": 28,
+      "n_sources": 5,
+      "sensible": true
+     }
+    ],
+    "sensible": 28,
+    "judged": 30,
+    "share": 0.933,
+    "pooled_with": "интерферометрия"
+   },
+   {
+    "query": "напряжённое состояние массива",
+    "match": "напряжённое состояние массива",
+    "df_units": 20,
+    "df_sources": 10,
+    "seed": false,
+    "community": 4,
+    "focus": null,
+    "definitions": 0,
+    "same_as": [],
+    "neighbours": [
+     {
+      "lemma": "состояние массива горных пород",
+      "npmi": 0.702683,
+      "n_units": 10,
+      "n_sources": 7,
+      "sensible": true
+     },
+     {
+      "lemma": "поле напряжений",
+      "npmi": 0.601088,
+      "n_units": 12,
+      "n_sources": 6,
+      "sensible": true
+     },
+     {
+      "lemma": "определение напряжений",
+      "npmi": 0.679148,
+      "n_units": 6,
+      "n_sources": 2,
+      "sensible": true
+     },
+     {
+      "lemma": "главные напряжения",
+      "npmi": 0.58052,
+      "n_units": 10,
+      "n_sources": 6,
+      "sensible": true
+     },
+     {
+      "lemma": "измерение напряжений",
+      "npmi": 0.597176,
+      "n_units": 6,
+      "n_sources": 2,
+      "sensible": true
+     },
+     {
+      "lemma": "нагружение стенок",
+      "npmi": 0.610295,
+      "n_units": 5,
+      "n_sources": 2,
+      "sensible": true
+     },
+     {
+      "lemma": "нетронутый массив",
+      "npmi": 0.559747,
+      "n_units": 6,
+      "n_sources": 5,
+      "sensible": true
+     },
+     {
+      "lemma": "стенки скважины",
+      "npmi": 0.549153,
+      "n_units": 5,
+      "n_sources": 2,
+      "sensible": true
+     },
+     {
+      "lemma": "массив соляных пород",
+      "npmi": 0.539745,
+      "n_units": 5,
+      "n_sources": 3,
+      "sensible": true
+     },
+     {
+      "lemma": "оценка устойчивости",
+      "npmi": 0.504816,
+      "n_units": 6,
+      "n_sources": 4,
+      "sensible": true
+     },
+     {
+      "lemma": "максимальное горизонтальное напряжение",
+      "npmi": 0.6101,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": true
+     },
+     {
+      "lemma": "массив пород",
+      "npmi": 0.484792,
+      "n_units": 6,
+      "n_sources": 5,
+      "sensible": true
+     },
+     {
+      "lemma": "приконтурный массив",
+      "npmi": 0.529772,
+      "n_units": 4,
+      "n_sources": 3,
+      "sensible": true
+     },
+     {
+      "lemma": "контур скважины",
+      "npmi": 0.580682,
+      "n_units": 3,
+      "n_sources": 2,
+      "sensible": true
+     },
+     {
+      "lemma": "эффект памяти",
+      "npmi": 0.580682,
+      "n_units": 3,
+      "n_sources": 2,
+      "sensible": true
+     }
+    ],
+    "sensible": 15,
+    "judged": 15,
+    "share": 1.0
+   },
+   {
+    "query": "карналлит",
+    "match": "карналлит",
+    "df_units": 262,
+    "df_sources": 49,
+    "seed": true,
+    "community": 3,
+    "focus": null,
+    "definitions": 0,
+    "same_as": [],
+    "neighbours": [
+     {
+      "lemma": "карналлитовые породы",
+      "npmi": 0.705747,
+      "n_units": 102,
+      "n_sources": 21,
+      "sensible": true
+     },
+     {
+      "lemma": "сильвинит",
+      "npmi": 0.689893,
+      "n_units": 205,
+      "n_sources": 43,
+      "sensible": true
+     },
+     {
+      "lemma": "каменная соль",
+      "npmi": 0.65742,
+      "n_units": 208,
+      "n_sources": 41,
+      "sensible": true
+     },
+     {
+      "lemma": "галит",
+      "npmi": 0.64496,
+      "n_units": 92,
+      "n_sources": 19,
+      "sensible": true
+     },
+     {
+      "lemma": "сильвин",
+      "npmi": 0.640896,
+      "n_units": 77,
+      "n_sources": 16,
+      "sensible": true
+     },
+     {
+      "lemma": "сильвинитизация",
+      "npmi": 0.639702,
+      "n_units": 35,
+      "n_sources": 6,
+      "sensible": true
+     },
+     {
+      "lemma": "соляные породы",
+      "npmi": 0.572361,
+      "n_units": 174,
+      "n_sources": 39,
+      "sensible": true
+     },
+     {
+      "lemma": "текстура",
+      "npmi": 0.571162,
+      "n_units": 57,
+      "n_sources": 9,
+      "sensible": true
+     },
+     {
+      "lemma": "минералы",
+      "npmi": 0.557035,
+      "n_units": 70,
+      "n_sources": 11,
+      "sensible": true
+     },
+     {
+      "lemma": "ВКМКМС",
+      "npmi": 0.559642,
+      "n_units": 34,
+      "n_sources": 2,
+      "sensible": true
+     },
+     {
+      "lemma": "галитизация",
+      "npmi": 0.565285,
+      "n_units": 28,
+      "n_sources": 5,
+      "sensible": true
+     },
+     {
+      "lemma": "перекристаллизация",
+      "npmi": 0.550598,
+      "n_units": 34,
+      "n_sources": 3,
+      "sensible": true
+     },
+     {
+      "lemma": "породы пласта",
+      "npmi": 0.546487,
+      "n_units": 36,
+      "n_sources": 11,
+      "sensible": true
+     },
+     {
+      "lemma": "карналлитовый пласт",
+      "npmi": 0.5381,
+      "n_units": 43,
+      "n_sources": 19,
+      "sensible": true
+     },
+     {
+      "lemma": "кристаллы",
+      "npmi": 0.530633,
+      "n_units": 57,
+      "n_sources": 11,
+      "sensible": true
+     }
+    ],
+    "sensible": 15,
+    "judged": 15,
+    "share": 1.0
+   }
+  ],
+  "mean_share": 0.967,
+  "control_rare_term": [
+   {
+    "query": "реология",
+    "match": "реология",
+    "df_units": 17,
+    "df_sources": 12,
+    "seed": true,
+    "community": 11,
+    "focus": null,
+    "definitions": 0,
+    "same_as": [],
+    "neighbours": [
+     {
+      "lemma": "негативные воздействия подземной разработки",
+      "npmi": 0.817085,
+      "n_units": 4,
+      "n_sources": 4,
+      "sensible": false
+     },
+     {
+      "lemma": "анализ негативных воздействий",
+      "npmi": 0.817085,
+      "n_units": 4,
+      "n_sources": 4,
+      "sensible": false
+     },
+     {
+      "lemma": "элемент обеспечения безопасности",
+      "npmi": 0.788875,
+      "n_units": 4,
+      "n_sources": 4,
+      "sensible": false
+     },
+     {
+      "lemma": "оценка изменения напряженно-деформированного состояния",
+      "npmi": 0.765827,
+      "n_units": 4,
+      "n_sources": 4,
+      "sensible": true
+     },
+     {
+      "lemma": "определяющее развитие",
+      "npmi": 0.788412,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": false
+     },
+     {
+      "lemma": "конечно-элементная процедура рас",
+      "npmi": 0.788412,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": false
+     },
+     {
+      "lemma": "моделирование деформирования камерного блока",
+      "npmi": 0.788412,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": true
+     },
+     {
+      "lemma": "момент окончания процессов сдвижения",
+      "npmi": 0.788412,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": true
+     },
+     {
+      "lemma": "анализ динамики напряженно-деформированного состояния",
+      "npmi": 0.788412,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": true
+     },
+     {
+      "lemma": "зона полной отработки",
+      "npmi": 0.788412,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": false
+     },
+     {
+      "lemma": "действие техногенных факторов",
+      "npmi": 0.788412,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": false
+     },
+     {
+      "lemma": "учёт реологических процессов",
+      "npmi": 0.788412,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": true
+     },
+     {
+      "lemma": "эмпирические наблюдения",
+      "npmi": 0.788412,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": false
+     },
+     {
+      "lemma": "время процесса сдвижения",
+      "npmi": 0.788412,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": true
+     },
+     {
+      "lemma": "моделирование деформации камерного блока",
+      "npmi": 0.788412,
+      "n_units": 3,
+      "n_sources": 3,
+      "sensible": true
+     }
+    ],
+    "sensible": 7,
+    "judged": 15,
+    "share": 0.467
+   }
+  ]
+ }
+}
