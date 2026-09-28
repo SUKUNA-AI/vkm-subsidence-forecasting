@@ -3,7 +3,7 @@
 * ``nav outlines --out FILE [--resources ROOT] [--source SID …]`` — WORKSTATION: native outlines of the PRIVATE
   files (PDF bookmarks, EPUB navigation, DjVu outline) → one JSON per snapshot (:mod:`vkm_corpus.navigation.outline`);
 * ``nav build --duckdb PATH --out DIR [--outlines FILE] [--vectors DIR] [--inputs DIR] [--option PART.KEY=VALUE …]
-  [--part sections|formulas|duplicates|concepts|topics|all]`` — derived datasets from a DuckDB copy of the canon
+  [--part sections|formulas|parameters|duplicates|concepts|topics|all]`` — derived datasets from a DuckDB copy of the canon
   (opened read only) → ``<DIR>/<dataset>.parquet`` + ``manifest.json`` (rule versions, row counts, sha256, snapshot
   id, the options given to each part).
 
@@ -34,6 +34,7 @@ from typing import Any
 PARTS: dict[str, str] = {
     "sections": "vkm_corpus.navigation.sections:build",
     "formulas": "vkm_corpus.navigation.formulas:build",
+    "parameters": "vkm_corpus.navigation.parameters:build",
     "duplicates": "vkm_corpus.navigation.duplicates:build",
     "concepts": "vkm_corpus.navigation.concepts:build",
     "topics": "vkm_corpus.navigation.topics:build",
@@ -82,6 +83,7 @@ def datasets_of(part: str) -> tuple[str, ...]:
     """Datasets a part writes (so ``--inputs`` never shadows what the run rebuilds)."""
     return {"sections": ("sections", "section_pages"),
             "formulas": ("formula_context", "formula_symbols", "formula_refs", "formula_parameters"),
+            "parameters": ("parameter_candidates", "parameter_summary"),
             "duplicates": ("dup_clusters", "dup_members", "source_overlap"),
             "concepts": ("terms", "term_mentions", "term_edges"),
             "topics": ("section_aggregates", "section_vectors", "topics", "topic_members", "topic_edges"),
@@ -411,7 +413,7 @@ def _register_graph(sub) -> None:
 
 
 def register(subparsers) -> None:
-    p = subparsers.add_parser("nav", help="navigation layer: outlines, sections, formulas, duplicates, concepts, topics "
+    p = subparsers.add_parser("nav", help="navigation layer: outlines, sections, formulas, parameters, duplicates, concepts, topics "
                                           "(derived)")
     sub = p.add_subparsers(dest="nav_cmd", metavar="<command>")
     _register_graph(sub)
