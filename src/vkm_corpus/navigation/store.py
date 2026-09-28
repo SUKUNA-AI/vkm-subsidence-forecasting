@@ -16,9 +16,12 @@ from __future__ import annotations
 
 import importlib
 import json
+import math
 import os
+import re
 import threading
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Callable
 
@@ -119,6 +122,7 @@ class NavStore:
         self._con: Any = None
         self._stamp: tuple | None = None
         self._snapshot: str | None = None
+        self._titles: tuple | None = None          # (stamp, lemma index of the section titles) for search_sections
 
     # -------------------------------------------------------------- instance
     def _paths(self) -> tuple[Path, Path, str]:
@@ -196,24 +200,65 @@ class NavStore:
             cur.close()
 
     def search_sections(self, text: str, *, source_id: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
-        """Sections whose title path (and key terms, when present) contain the query words; more words first."""
-        words = [w for w in "".join(ch.lower() if ch.isalnum() else " " for ch in text).split() if len(w) > 2][:8]
-        if not words:
+        """Sections whose titles (and key terms, when the build has them) carry the lemmas of the query — the
+        morphology of the concept graph (pymorphy3; stems without it), not raw substrings.
+
+        ``score`` = idf-weighted share of the query lemmas found in the title (key terms count 0.6, the ancestors'
+        titles 0.3), + 0.15 when the lemmas stand together as in the query; at an equal score deeper sections come
+        before whole chapters (TOPIC_BENCHMARK_V1: 61 % of the old top 5 were level 1). ``matched`` names the
+        lemmas found. No hit → an empty list."""
+        query = _lemmas(text)
+        if not query:
             return []
+        index = self._title_index()
+        idf = {q: math.log((index["n"] + 1) / (index["df"].get(q, 0) + 1)) + 1.0 for q in set(query)}
+        total = sum(idf.values())
+        wanted = list(dict.fromkeys(query))
+        out = []
+        for row, title, keys, path in index["rows"]:
+            if source_id and row["source_id"] != source_id:
+                continue
+            in_title = {q for q in wanted if q in title}
+            in_keys = {q for q in wanted if q in keys} - in_title
+            if not (in_title or in_keys):
+                continue
+            in_path = {q for q in wanted if q in path} - in_title - in_keys
+            score = (sum(idf[q] for q in in_title) + 0.6 * sum(idf[q] for q in in_keys)
+                     + 0.3 * sum(idf[q] for q in in_path)) / total
+            if len(wanted) > 1 and _together(wanted, index["seq"][row["section_id"]]):
+                score += 0.15
+            out.append({**row, "score": round(score, 4), "matched": sorted(in_title | in_keys)})
+        out.sort(key=lambda r: (-r["score"], -int(r.get("level") or 0), r.get("_span", 0), r["section_id"]))
+        return [{k: v for k, v in r.items() if k != "_span"} for r in out[: max(1, int(limit))]]
+
+    def _title_index(self) -> dict[str, Any]:
+        """Lemmas of every section title, key terms and ancestor path — built once per served NAV build."""
+        with self._lock:
+            self._instance()
+            stamp = self._stamp
+        cached = self._titles
+        if cached and cached[0] == stamp:
+            return cached[1]
         cols = {r["column_name"] for r in self.query("SELECT column_name FROM duckdb_columns() "
                                                      "WHERE table_name = 'sections'")}
-        parts = [f"coalesce({c}, '')" for c in ("title_path", "title") if c in cols]
-        if "key_terms" in cols:
-            parts.append("coalesce(array_to_string(key_terms, ' '), '')")
-        hay = "lower(" + " || ' ' || ".join(parts or ["''"]) + ")"
-        score = " + ".join(f"CASE WHEN strpos({hay}, ?) > 0 THEN 1 ELSE 0 END" for _ in words)
-        where = "WHERE source_id = ?" if source_id else ""
-        params: list[Any] = [*words, *([source_id] if source_id else [])]
-        shown = ", ".join(c for c in ("section_id", "source_id", "level", "title", "title_path", "page_start_id",
-                                      "page_end_id", "method") if c in cols)
-        rows = self.query(f"SELECT {shown}, ({score}) AS score FROM sections {where} "
-                          f"ORDER BY score DESC, level, section_id LIMIT {int(limit) * 3}", params)
-        return [r for r in rows if r["score"]][:limit]
+        shown = [c for c in ("section_id", "source_id", "level", "title", "title_path", "page_start_id", "page_end_id",
+                             "method") if c in cols]
+        extra = [c for c in ("key_terms", "page_start_index", "page_end_index") if c in cols]
+        rows, df, seq = [], {}, {}
+        for r in self.query(f"SELECT {', '.join(shown + extra)} FROM sections ORDER BY section_id"):
+            title_seq = _lemmas(r.get("title") or "")
+            title = set(title_seq)
+            keys = set(_lemmas(" ; ".join(r.get("key_terms") or []))) if "key_terms" in r else set()
+            path = set(_lemmas(r.get("title_path") or ""))
+            for q in title | keys:
+                df[q] = df.get(q, 0) + 1
+            span = (int(r["page_end_index"]) - int(r["page_start_index"])) \
+                if r.get("page_start_index") is not None and r.get("page_end_index") is not None else 0
+            seq[r["section_id"]] = title_seq
+            rows.append(({**{k: r.get(k) for k in shown}, "_span": span}, title, keys, path))
+        index = {"rows": rows, "df": df, "seq": seq, "n": len(rows)}
+        self._titles = (stamp, index)
+        return index
 
 
 def _sql_path(p: Path) -> str:
@@ -221,3 +266,57 @@ def _sql_path(p: Path) -> str:
     if "'" in s:
         raise ValueError("path with a quote")
     return s
+
+
+# ------------------------------------------------------------------ lemmas for search_sections
+_WORD = re.compile(r"[^\W\d_]+", re.UNICODE)
+_CRUDE_ENDINGS = tuple(sorted(set("""ями ами ого его ому ему ыми ими ых их ой ей ый ий ая яя ое ее ые ие ую юю ом ем
+    ам ям ах ях ов ев ью ия ья ье ы и а я о е у ю ь""".split()), key=len, reverse=True))
+_STOP_FALLBACK = frozenset("""и в во на по для о об от до из с со к ко при за под над без через между как что это или
+    а также не но the of and in on for to an with by from as at is are""".split())
+
+
+@lru_cache(maxsize=1)
+def _analyser() -> Any:
+    """The concept graph's morphology (``concepts_query._morph``: pymorphy3 → Snowball → crude) and its stop lists;
+    None when the concept modules cannot be imported (then a crude suffix stripper)."""
+    try:
+        from vkm_corpus.navigation import concepts, concepts_query
+
+        stop = concepts.STOP_WORDS_RU | concepts.PREPOSITIONS_RU | concepts.STOP_EN
+        return concepts_query._morph(), stop, concepts._singular_en
+    except Exception:  # noqa: BLE001 - numpy/pyarrow or the dictionaries missing: crude stems
+        return None
+
+
+@lru_cache(maxsize=200_000)
+def _lemma(word: str) -> str:
+    found = _analyser()
+    if found is None:
+        for e in _CRUDE_ENDINGS:
+            if word.endswith(e) and len(word) - len(e) >= 3:
+                return word[: -len(e)]
+        return word
+    morph, _stop, singular = found
+    if not re.search("[а-я]", word):
+        return singular(word)
+    if morph.name == "pymorphy3":
+        rw = morph.ru_word(word)
+        return (rw.noun[0] if rw.noun else rw.adj[0] if rw.adj else word).replace("ё", "е")
+    return morph.ru_stem(word)
+
+
+def _lemmas(text: str) -> list[str]:
+    """Lemmas of the content words of a text, in order (stop words and words under 3 letters dropped)."""
+    found = _analyser()
+    stop = found[1] if found is not None else _STOP_FALLBACK
+    return [_lemma(w) for w in _WORD.findall((text or "").lower().replace("ё", "е")) if len(w) >= 3 and w not in stop]
+
+
+def _together(query: list[str], title: list[str]) -> bool:
+    """The query lemmas stand next to each other in the title (in the query's order or reversed)."""
+    for seq in (query, query[::-1]):
+        n = len(seq)
+        if any(title[i:i + n] == seq for i in range(len(title) - n + 1)):
+            return True
+    return False
