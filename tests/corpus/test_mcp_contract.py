@@ -41,7 +41,7 @@ READ_TOOLS = {"search_text", "search_hybrid", "retrieval_trace", "search_objects
               "trace_document_provenance", "get_artifact", "list_source_pages", "get_corpus_status",
               # navigation layer (derived, not evidence)
               "get_outline", "get_section", "search_sections", "get_formula_context", "find_formulas",
-              "explore_concept"}
+              "explore_concept", "reconstruct_topic"}
 ADMIN_TOOLS = {"reprocess_source", "reprocess_page", "get_job", "cancel_job"}
 
 
