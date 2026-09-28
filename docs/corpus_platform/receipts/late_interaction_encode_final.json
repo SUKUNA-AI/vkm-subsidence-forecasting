@@ -88,9 +88,9 @@
  "smoke": {"status": "NOT_RUN", "reason": "not deployed"},
  "tests": {
   "new_tests": 40,
-  "wsl_venv_corpus_tests_corpus": {"passed": 633, "skipped": 25, "failed": 5, "deselected": 1,
+  "wsl_venv_corpus_tests_corpus": {"passed": 635, "skipped": 25, "failed": 5, "deselected": 1,
                                    "failed_note": "test_public_hygiene only: WSL git cannot read the .git file of a Windows-created worktree; the same 6 tests pass with Windows git",
                                    "deselected_note": "test_parquet_commits::test_admission_conflict_does_not_block_others fails on the base commit too; fixed by the coordinator's c1fba33"},
-  "windows_venv_api_mcp_service": {"passed": 132, "skipped": 2}
+  "windows_venv_api_mcp_service": {"passed": 135, "skipped": 2}
  }
 }

@@ -11,7 +11,7 @@
 | 1. Late-кодирование всего корпуса на RX580 без присмотра (`infra/core/lab_stage3.sh`), инкрементально | **сделано**: снимок `snap-20260928T113713Z-fa0aa127` — 186 116 / 186 116 (≈ 47 мин RX580); итоговый снимок с библиографией `snap-20260928T160616Z-5d669f09` — докодированы только новые/изменённые 24 488 единиц за 223 с, текущих строк 205 457 / 205 457; §64 — OK на обоих |
 | 2. Память-безопасное хранилище токен-векторов (pack: float16 memmap + индекс + манифест, `packs/CURRENT`) | **код и тесты готовы**; pack на CORE **не собран** (нужен новый образ, см. §7) |
 | 3. Поздняя стадия в `/v1/search/hybrid` и MCP `search_hybrid` (`late`, `late_candidates`), CP-42 (BIB_ENTRY не ранжирует страницы) | **код и тесты готовы**; на CORE **не развёрнута** |
-| 4. Тесты с фейками | 40 новых тестов; WSL: 633 passed; Windows-venv с fastapi/mcp: 132 passed (§6) |
+| 4. Тесты с фейками | 40 новых тестов; WSL: 635 passed; Windows-venv с fastapi/mcp: 135 passed (§6) |
 | 5. Развёртывание на CORE + smoke | **не выполнено**: классификатор разрешений отклонил размещение дерева сборки в общем каталоге сборки CORE («Modify Shared Resources»); по правилу работа над этим шагом остановлена |
 | 6. Отчёт и квитанция | этот документ + квитанция |
 
@@ -174,12 +174,12 @@ Parquet-части остаются каноническим хранилище�
   сервисе и гибриде). Фейки: OpenSearch,
   RX580-сервис (httpx MockTransport), энкодеры (FakeBackend/FakeTokenizer), docker (для скрипта); pack — настоящий на
   диске. Живых сервисов нет.
-- WSL, `~/vkm/venv-corpus`, `tests/corpus`: **633 passed**, 25 skipped, 5 failed + 1 deselected. 5 failed —
+- WSL, `~/vkm/venv-corpus`, `tests/corpus`: **635 passed**, 25 skipped, 5 failed + 1 deselected. 5 failed —
   `test_public_hygiene`: git в WSL не читает `.git`-файл рабочего дерева, созданного в Windows (эти же 6 тестов
   проходят с Windows-git). Deselected — `test_parquet_commits::test_admission_conflict_does_not_block_others`: падает
   и на базовом коммите `02727ae`; координатор уже исправил его в `c1fba33`.
 - Windows-venv агента G (fastapi, mcp, duckdb, pyarrow): тесты API, MCP, контракта и late-стадии сервиса, гибрида,
-  pack'а, артефактов, воркера, гигиены — **132 passed**, 2 skipped (POSIX-only и без tokenizers).
+  pack'а, артефактов, воркера, гигиены — **135 passed**, 2 skipped (POSIX-only и без tokenizers).
 - Скрипт `lab_stage3.sh` — `bash -n` и 4 теста с фейковым docker (dry run, полный проход, образ без `embed pack` →
   ENCODED, провал горячей замены и чужой модели).
 
