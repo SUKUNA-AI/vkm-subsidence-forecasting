@@ -1,0 +1,745 @@
+{
+ "$defs": {
+  "AvailableBasis": {
+   "description": "Basis of availability dates. In the canon only UNKNOWN and CURATED; ASSUMED_FROM_PUBLICATION exists only in the\nview ``works_availability`` and in the search index (H-19).",
+   "enum": [
+    "UNKNOWN",
+    "CURATED",
+    "ASSUMED_FROM_PUBLICATION"
+   ],
+   "title": "AvailableBasis",
+   "type": "string"
+  },
+  "CurationStatus": {
+   "enum": [
+    "AUTO_PROPOSED",
+    "CURATED",
+    "REJECTED"
+   ],
+   "title": "CurationStatus",
+   "type": "string"
+  },
+  "DatePrecision": {
+   "description": "Same values as ``vkm_world.core.provenance.DATE_PRECISIONS``.",
+   "enum": [
+    "day",
+    "month",
+    "year",
+    "decade",
+    "unknown"
+   ],
+   "title": "DatePrecision",
+   "type": "string"
+  },
+  "ExternalId": {
+   "additionalProperties": false,
+   "properties": {
+    "relation": {
+     "$ref": "#/$defs/ExternalIdRelation"
+    },
+    "scheme": {
+     "$ref": "#/$defs/ExternalIdScheme"
+    },
+    "value": {
+     "minLength": 1,
+     "title": "Value",
+     "type": "string"
+    }
+   },
+   "required": [
+    "scheme",
+    "value",
+    "relation"
+   ],
+   "title": "ExternalId",
+   "type": "object"
+  },
+  "ExternalIdRelation": {
+   "enum": [
+    "SAME_WORK",
+    "COMPONENT",
+    "OTHER_EDITION",
+    "NOT_SAME",
+    "CITED_AS"
+   ],
+   "title": "ExternalIdRelation",
+   "type": "string"
+  },
+  "ExternalIdScheme": {
+   "enum": [
+    "PWL",
+    "CW",
+    "WG",
+    "EXT_SRC",
+    "EXTWEB",
+    "DOI",
+    "ISBN",
+    "ASIN",
+    "URN_UUID",
+    "OPENALEX"
+   ],
+   "title": "ExternalIdScheme",
+   "type": "string"
+  },
+  "MetadataBasis": {
+   "enum": [
+    "TITLE_PAGE_VERIFIED",
+    "TEXT_LAYER_VERIFIED",
+    "EPUB_OPF_METADATA",
+    "EXTERNAL_CATALOGUE",
+    "HUNT_TABLE",
+    "PHASE1_COVERAGE_MASTER",
+    "INTAKE_MANIFEST",
+    "REGISTER_NOTES",
+    "CATALOGUE_DATA_UNVERIFIED",
+    "FILENAME_PAGECOUNT_UNVERIFIED",
+    "FILE_EMBEDDED_METADATA",
+    "CURATED_MANUAL",
+    "UNKNOWN"
+   ],
+   "title": "MetadataBasis",
+   "type": "string"
+  },
+  "ObjectKind": {
+   "enum": [
+    "SOURCE",
+    "WORK",
+    "DOCUMENT",
+    "PAGE",
+    "BLOCK",
+    "FIGURE",
+    "TABLE",
+    "FORMULA",
+    "BIBLIOGRAPHY_ENTRY",
+    "AUTHOR",
+    "VENUE",
+    "SOURCE_WORK_LINK",
+    "WORK_RELATION",
+    "SOURCE_RELATION",
+    "WORK_AUTHOR",
+    "BIBLIOGRAPHY_LINK"
+   ],
+   "title": "ObjectKind",
+   "type": "string"
+  },
+  "Origin": {
+   "enum": [
+    "NATIVE",
+    "EMBEDDED_OCR",
+    "OCR",
+    "DERIVED",
+    "REGISTRY",
+    "CURATED"
+   ],
+   "title": "Origin",
+   "type": "string"
+  },
+  "QualityFlag": {
+   "enum": [
+    "LOW_OCR_CONFIDENCE",
+    "BROKEN_TEXT_LAYER",
+    "GARBAGE_GLYPHS",
+    "PUA_GLYPHS",
+    "MOJIBAKE_NOT_REPAIRABLE",
+    "REPAIRABLE_CP1251_REMAP",
+    "ENCODING_REPAIRED",
+    "UNMAPPED_SYMBOL_GLYPHS",
+    "FONT_WITHOUT_TOUNICODE",
+    "TYPE3_FONT",
+    "LOW_FUNCTION_WORD_RATE",
+    "MIXED_TEXT_LAYER",
+    "EMBEDDED_TEXT_LAYER",
+    "HIDDEN_TEXT_LAYER",
+    "TEXT_LAYER_VISIBLE_MODE",
+    "NATIVE_OCR_DISAGREE",
+    "LANGUAGE_UNCERTAIN",
+    "TRUNCATED",
+    "REPETITION",
+    "ROTATED",
+    "SKEW_CORRECTED",
+    "LOW_RESOLUTION_SCAN",
+    "SPREAD_2UP",
+    "EMPTY_PAGE",
+    "VECTOR_NO_TEXT",
+    "IMAGE_NO_TEXT",
+    "DUPLICATE_PAGE_CANDIDATE",
+    "FOREIGN_WORK_CONTENT",
+    "EPUB_PAGE_ANCHOR_CALIBRE",
+    "BBOX_APPROX",
+    "CROSS_PAGE_CONTINUATION",
+    "DUPLICATE_DETECTION_DISAMBIGUATED",
+    "SCOPE_INHERITED_FROM_SOURCE",
+    "CAPTION_NOT_FOUND",
+    "CAPTION_ASSOCIATION_UNCERTAIN",
+    "FIGURE_TYPE_LOW_CONFIDENCE",
+    "TABLE_STRUCTURE_UNCERTAIN",
+    "SPANNING_CELLS",
+    "EMPTY_CELLS_RATIO",
+    "NUMERIC_PARSE_FAILURES",
+    "FORMULA_LATEX_UNPARSEABLE",
+    "LATEX_UNBALANCED",
+    "CONVERSION_FAILED",
+    "CITING_WORK_IS_CONTAINER",
+    "LEADING_BYTES_BEFORE_HEADER",
+    "ENCRYPTED_SOURCE",
+    "PDF_PERMISSIONS_RESTRICTED",
+    "PAGECOUNT_DIFFERS_FROM_REGISTER_HINT",
+    "REGISTER_NOTES_NOT_EVIDENCE",
+    "DJVU_TITLE_NOT_VERIFIED"
+   ],
+   "title": "QualityFlag",
+   "type": "string"
+  },
+  "ReviewStatus": {
+   "description": "Review state (contract v0.2 §47). Automatic L1 objects are always AUTO_EXTRACTED_UNREVIEWED.\n\nNOT_APPLICABLE: sources absent/retired by the register, works (H-28), authors and venues (H-25) and curated\nregistry links (their check is ``curation_status``).",
+   "enum": [
+    "UNSEEN",
+    "QUICK_LOOK_ONLY",
+    "AUTO_EXTRACTED_UNREVIEWED",
+    "RELEVANT_SECTIONS_REVIEWED",
+    "FULLY_REVIEWED",
+    "NOT_APPLICABLE"
+   ],
+   "title": "ReviewStatus",
+   "type": "string"
+  },
+  "WorkIdentityStatus": {
+   "enum": [
+    "VERIFIED_IN_FILE",
+    "CATALOGUE_UNVERIFIED",
+    "FILENAME_PAGECOUNT_UNVERIFIED"
+   ],
+   "title": "WorkIdentityStatus",
+   "type": "string"
+  },
+  "WorkMetadataBasis": {
+   "additionalProperties": false,
+   "description": "Basis of each group of bibliographic fields of a Work.",
+   "properties": {
+    "authors": {
+     "$ref": "#/$defs/MetadataBasis"
+    },
+    "identifiers": {
+     "$ref": "#/$defs/MetadataBasis"
+    },
+    "title": {
+     "$ref": "#/$defs/MetadataBasis"
+    },
+    "venue": {
+     "$ref": "#/$defs/MetadataBasis"
+    },
+    "year": {
+     "$ref": "#/$defs/MetadataBasis"
+    }
+   },
+   "required": [
+    "title",
+    "authors",
+    "year",
+    "venue",
+    "identifiers"
+   ],
+   "title": "WorkMetadataBasis",
+   "type": "object"
+  },
+  "WorkStatus": {
+   "enum": [
+    "ACTIVE",
+    "MERGED_INTO",
+    "WITHDRAWN"
+   ],
+   "title": "WorkStatus",
+   "type": "string"
+  },
+  "WorkType": {
+   "enum": [
+    "JOURNAL_ARTICLE",
+    "CONFERENCE_PAPER",
+    "BOOK_CHAPTER",
+    "MONOGRAPH",
+    "TEXTBOOK",
+    "TEACHING_MANUAL",
+    "TRAINING_MANUAL",
+    "PRACTICE_MANUAL",
+    "DISSERTATION",
+    "DISSERTATION_ABSTRACT",
+    "THESIS",
+    "PROCEEDINGS_VOLUME",
+    "JOURNAL_ISSUE",
+    "NORMATIVE_DOCUMENT",
+    "METHODICAL_GUIDANCE",
+    "TECHNICAL_REPORT",
+    "INSTITUTIONAL_REPORT",
+    "PRESENTATION",
+    "PATENT",
+    "DATASET",
+    "BIBLIOGRAPHIC_INDEX",
+    "REFERENCE_TABLES",
+    "PROJECT_DATA_PACKAGE",
+    "OTHER",
+    "UNKNOWN"
+   ],
+   "title": "WorkType",
+   "type": "string"
+  }
+ },
+ "$id": "https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/schemas/corpus/works.schema.json",
+ "additionalProperties": false,
+ "description": "A bibliographic work (Work ≠ Source). Built from the curated PRIVATE work register; tombstones are kept for\never. ``review_status`` is NOT_APPLICABLE (H-28): reading coverage is per source.",
+ "properties": {
+  "anchor_source_id": {
+   "pattern": "^VKM-SRC-[0-9]{3}$",
+   "title": "Anchor Source Id",
+   "type": "string"
+  },
+  "authors_display": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "authors as curated, separated by '; '",
+   "title": "Authors Display"
+  },
+  "available_from": {
+   "anyOf": [
+    {
+     "format": "date",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "curated availability; NULL = UNKNOWN (no D-03 here)",
+   "title": "Available From"
+  },
+  "available_from_basis": {
+   "$ref": "#/$defs/AvailableBasis",
+   "default": "UNKNOWN"
+  },
+  "available_from_precision": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/DatePrecision"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null
+  },
+  "config_hash": {
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Config Hash",
+   "type": "string"
+  },
+  "content_sha256": {
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Content Sha256",
+   "type": "string"
+  },
+  "created_at": {
+   "format": "date-time",
+   "title": "Created At",
+   "type": "string"
+  },
+  "curated_at": {
+   "anyOf": [
+    {
+     "format": "date",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Curated At"
+  },
+  "curated_by": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Curated By"
+  },
+  "curation_receipt": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Curation Receipt"
+  },
+  "curation_status": {
+   "$ref": "#/$defs/CurationStatus"
+  },
+  "doi": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Doi"
+  },
+  "edition": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Edition"
+  },
+  "external_ids": {
+   "items": {
+    "$ref": "#/$defs/ExternalId"
+   },
+   "title": "External Ids",
+   "type": "array"
+  },
+  "extractor_id": {
+   "minLength": 1,
+   "title": "Extractor Id",
+   "type": "string"
+  },
+  "extractor_version": {
+   "minLength": 1,
+   "title": "Extractor Version",
+   "type": "string"
+  },
+  "identity_status": {
+   "$ref": "#/$defs/WorkIdentityStatus"
+  },
+  "input_ref": {
+   "description": "logical path of the input file, e.g. PRIVATE:00_registry/...",
+   "minLength": 1,
+   "title": "Input Ref",
+   "type": "string"
+  },
+  "input_row": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": 1,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "data row number (provenance only, not identity)",
+   "title": "Input Row"
+  },
+  "input_sha256": {
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Input Sha256",
+   "type": "string"
+  },
+  "isbn": {
+   "items": {
+    "type": "string"
+   },
+   "title": "Isbn",
+   "type": "array"
+  },
+  "issue": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Issue"
+  },
+  "languages": {
+   "items": {
+    "type": "string"
+   },
+   "title": "Languages",
+   "type": "array"
+  },
+  "merged_into_work_id": {
+   "anyOf": [
+    {
+     "pattern": "^VKM-WRK-[0-9]{3}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Merged Into Work Id"
+  },
+  "metadata_basis": {
+   "$ref": "#/$defs/WorkMetadataBasis"
+  },
+  "notes": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Notes"
+  },
+  "object_id": {
+   "title": "Object Id",
+   "type": "string"
+  },
+  "object_kind": {
+   "$ref": "#/$defs/ObjectKind"
+  },
+  "origin": {
+   "$ref": "#/$defs/Origin",
+   "description": "REGISTRY (loaded from PRIVATE 00_registry) or DERIVED"
+  },
+  "pages_range": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Pages Range"
+  },
+  "pipeline_version": {
+   "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+   "title": "Pipeline Version",
+   "type": "string"
+  },
+  "processing_run_id": {
+   "pattern": "^RUN-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$",
+   "title": "Processing Run Id",
+   "type": "string"
+  },
+  "publication_date": {
+   "anyOf": [
+    {
+     "format": "date",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Publication Date"
+  },
+  "publication_date_precision": {
+   "$ref": "#/$defs/DatePrecision",
+   "default": "unknown"
+  },
+  "publication_year": {
+   "anyOf": [
+    {
+     "maximum": 32767,
+     "minimum": -32768,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Publication Year"
+  },
+  "publication_year_raw": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Publication Year Raw"
+  },
+  "publisher": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Publisher"
+  },
+  "publisher_city": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Publisher City"
+  },
+  "quality_flags": {
+   "items": {
+    "$ref": "#/$defs/QualityFlag"
+   },
+   "title": "Quality Flags",
+   "type": "array"
+  },
+  "review_status": {
+   "$ref": "#/$defs/ReviewStatus"
+  },
+  "schema_version": {
+   "description": "semver of the dataset schema at write time",
+   "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+   "title": "Schema Version",
+   "type": "string"
+  },
+  "status": {
+   "$ref": "#/$defs/WorkStatus"
+  },
+  "title": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Title"
+  },
+  "title_en": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Title En"
+  },
+  "title_variants": {
+   "items": {
+    "type": "string"
+   },
+   "title": "Title Variants",
+   "type": "array"
+  },
+  "venue_display": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Venue Display"
+  },
+  "venue_id": {
+   "anyOf": [
+    {
+     "pattern": "^VEN-[0-9a-f]{12}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Venue Id"
+  },
+  "volume": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Volume"
+  },
+  "work_id": {
+   "pattern": "^VKM-WRK-[0-9]{3}$",
+   "title": "Work Id",
+   "type": "string"
+  },
+  "work_type": {
+   "$ref": "#/$defs/WorkType"
+  }
+ },
+ "required": [
+  "schema_version",
+  "object_id",
+  "object_kind",
+  "origin",
+  "pipeline_version",
+  "processing_run_id",
+  "extractor_id",
+  "extractor_version",
+  "config_hash",
+  "content_sha256",
+  "created_at",
+  "review_status",
+  "input_ref",
+  "input_sha256",
+  "work_id",
+  "status",
+  "anchor_source_id",
+  "work_type",
+  "metadata_basis",
+  "identity_status",
+  "curation_status"
+ ],
+ "title": "VKM corpus dataset works",
+ "type": "object",
+ "x-vkm-dataset": "works",
+ "x-vkm-dataset-class": "REGISTRY_GLOBAL",
+ "x-vkm-envelope-profile": "REG",
+ "x-vkm-primary-key": [
+  "work_id"
+ ],
+ "x-vkm-schema-fingerprint": "c2cee21baccf0a113e11a25dd26e62cc60d311a7c2b20245eeae99e9964e0557",
+ "x-vkm-schema-version": "0.1.0"
+}

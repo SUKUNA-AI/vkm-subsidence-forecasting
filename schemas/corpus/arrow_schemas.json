@@ -1,0 +1,4144 @@
+{
+ "datasets": {
+  "artifacts": {
+   "dataset_class": "APPEND_LOG",
+   "envelope_profile": "LOG",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "artifact_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "artifact_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "media_type",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "size_bytes",
+     "nullable": true,
+     "type": "int64"
+    },
+    {
+     "name": "storage_relpath",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "retention_class",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "materialization",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "recipe",
+     "nullable": true,
+     "type": "struct<tool: string not null, tool_version: string not null, profile: string not null, source_sha256: string, page_id: string, params_json: string not null>"
+    },
+    {
+     "name": "pixel_sha256",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "image_width_px",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "image_height_px",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "image_dpi",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "coordinate_space",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "crs_status",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "producer_signature",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "attempt",
+     "nullable": true,
+     "type": "int16"
+    },
+    {
+     "name": "producer_step_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "created_by_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "registered_source_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "registered_page_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    }
+   ],
+   "partition_keys": [
+    "run"
+   ],
+   "primary_key": [
+    "artifact_id",
+    "created_by_run_id"
+   ],
+   "schema_fingerprint": "c19b3753af8b52e16fe840f43bdcaefbb44bedfbf83547f9dd5e67358f6258b3",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "artifact_id",
+    "created_by_run_id"
+   ]
+  },
+  "authors": {
+   "dataset_class": "REGISTRY_GLOBAL",
+   "envelope_profile": "REG",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "content_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "quality_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "input_ref",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_row",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "author_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "name_display",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "name_key",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "script",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "identity_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "same_as_author_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "orcid",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "derived_from_work_ids",
+     "nullable": false,
+     "type": "list<item: string>"
+    }
+   ],
+   "partition_keys": [
+    "run"
+   ],
+   "primary_key": [
+    "author_id"
+   ],
+   "schema_fingerprint": "4a6a5b8314ea96c3da10833f8ef73bc27f51f38b3c4d8d030220627a44d6ded8",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "author_id"
+   ]
+  },
+  "bibliography_entries": {
+   "dataset_class": "HEAD_PER_SOURCE",
+   "envelope_profile": "DOC",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "page_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "source_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_site_scope",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "source_site_scope_raw",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_site_scope_mapping",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extraction_generation",
+     "nullable": false,
+     "type": "int16"
+    },
+    {
+     "name": "model_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "model_revision",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "models",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, model_id: string not null, model_revision: string not null>>"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extraction_signature",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "raw_content_sha256",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "content_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "raw_artifacts",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, artifact_id: string not null>>"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "quality_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "region_origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "text_layer",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "bbox_x0",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_y0",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_x1",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_y1",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_space",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "docx_paragraph_path",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "entry_label",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "ordinal_in_list",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "list_block_ids",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "continues_on_page_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "text",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "normalized_text",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "parsed_authors",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "parsed_title",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "parsed_year_raw",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "parsed_year",
+     "nullable": true,
+     "type": "int16"
+    },
+    {
+     "name": "parsed_venue",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "parsed_volume",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "parsed_issue",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "parsed_pages",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "parsed_url",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "parsed_doi",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "parsed_isbn",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "parse_method",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "parse_confidence",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "language",
+     "nullable": true,
+     "type": "string"
+    }
+   ],
+   "partition_keys": [
+    "source_id",
+    "run"
+   ],
+   "primary_key": [
+    "object_id"
+   ],
+   "schema_fingerprint": "4e5d9db288d4a76406aedb77252987e754d60c27a7a87568cb2c20eeef57b31a",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "page_id",
+    "ordinal_in_list",
+    "object_id"
+   ]
+  },
+  "bibliography_links": {
+   "dataset_class": "DERIVED_VIEW",
+   "envelope_profile": "LINK",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "entry_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "citing_source_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "citing_page_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "citing_work_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "citing_work_resolution",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "citing_work_is_container",
+     "nullable": false,
+     "type": "bool"
+    },
+    {
+     "name": "cited_work_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "match_method",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "match_score",
+     "nullable": false,
+     "type": "double"
+    },
+    {
+     "name": "match_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "matched_fields",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "rule_version",
+     "nullable": false,
+     "type": "string"
+    }
+   ],
+   "partition_keys": [],
+   "primary_key": [
+    "object_id"
+   ],
+   "schema_fingerprint": "318ca35ed3e680524b5ca1a3561e096b8f7bf2ae84caf79bab6d2447015b10a4",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "citing_source_id",
+    "entry_id",
+    "cited_work_id"
+   ]
+  },
+  "blocks": {
+   "dataset_class": "HEAD_PER_SOURCE",
+   "envelope_profile": "DOC",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "page_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "source_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_site_scope",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "source_site_scope_raw",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_site_scope_mapping",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extraction_generation",
+     "nullable": false,
+     "type": "int16"
+    },
+    {
+     "name": "model_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "model_revision",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "models",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, model_id: string not null, model_revision: string not null>>"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extraction_signature",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "raw_content_sha256",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "content_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "raw_artifacts",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, artifact_id: string not null>>"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "quality_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "region_origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "text_layer",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "bbox_x0",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_y0",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_x1",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_y1",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_space",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "docx_paragraph_path",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "is_primary_layer",
+     "nullable": false,
+     "type": "bool"
+    },
+    {
+     "name": "block_type",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "reading_order",
+     "nullable": false,
+     "type": "int32"
+    },
+    {
+     "name": "reading_order_method",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "native_order",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "text",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "normalized_text",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "char_count",
+     "nullable": false,
+     "type": "int32"
+    },
+    {
+     "name": "language",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "language_confidence",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "recognition_confidence",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "raw_locator",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "embedded_layer_evidence",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "text_layer_producer",
+     "nullable": true,
+     "type": "string"
+    }
+   ],
+   "partition_keys": [
+    "source_id",
+    "run"
+   ],
+   "primary_key": [
+    "object_id"
+   ],
+   "schema_fingerprint": "4f349b3ea0f5fee5fc05aa990e2b8efb855c6430ca40a0c76694f254555de7f0",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "page_id",
+    "text_layer",
+    "reading_order",
+    "object_id"
+   ]
+  },
+  "documents": {
+   "dataset_class": "HEAD_PER_SOURCE",
+   "envelope_profile": "DOC",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "page_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "source_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_site_scope",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "source_site_scope_raw",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_site_scope_mapping",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extraction_generation",
+     "nullable": false,
+     "type": "int16"
+    },
+    {
+     "name": "model_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "model_revision",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "models",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, model_id: string not null, model_revision: string not null>>"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extraction_signature",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "raw_content_sha256",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "content_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "raw_artifacts",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, artifact_id: string not null>>"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "quality_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "format_detected",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "format_version",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "container_detail",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "pagination_basis",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "page_unit",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "page_count",
+     "nullable": false,
+     "type": "int32"
+    },
+    {
+     "name": "page_count_check",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "page_count_check_method",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "register_page_count_hint",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "shared_component_count",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "pagination_render_profile",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "pagination_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "document_class",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "classifier_version",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "is_encrypted",
+     "nullable": false,
+     "type": "bool"
+    },
+    {
+     "name": "text_extraction_permitted",
+     "nullable": true,
+     "type": "bool"
+    },
+    {
+     "name": "has_native_page_labels",
+     "nullable": true,
+     "type": "bool"
+    },
+    {
+     "name": "text_layer_producer",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "file_meta_title",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "file_meta_author",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "file_meta_subject",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "file_meta_keywords",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "file_meta_creator",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "file_meta_producer",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "file_meta_created_raw",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "file_meta_modified_raw",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "file_identifiers",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "file_languages",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "processing_status",
+     "nullable": false,
+     "type": "string"
+    }
+   ],
+   "partition_keys": [
+    "source_id",
+    "run"
+   ],
+   "primary_key": [
+    "object_id"
+   ],
+   "schema_fingerprint": "2fd5139f2e7b9b2d3a1910d4be9481a246eab83a1eedbeb12344bd705955903d",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "object_id"
+   ]
+  },
+  "errors": {
+   "dataset_class": "APPEND_LOG",
+   "envelope_profile": "LOG",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "error_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "step_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "source_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "page_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "page_index",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "stage",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "code",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "tool",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "tool_version",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "message",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "retryable",
+     "nullable": false,
+     "type": "bool"
+    },
+    {
+     "name": "severity",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "attempt",
+     "nullable": true,
+     "type": "int16"
+    },
+    {
+     "name": "log_ref",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "exception_type",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    }
+   ],
+   "partition_keys": [
+    "run"
+   ],
+   "primary_key": [
+    "error_id"
+   ],
+   "schema_fingerprint": "dac594dcd6bd3484a4a1399a101d8a604749a3a664503999ab5aba3e0c9ef7bd",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "source_id",
+    "page_id",
+    "created_at",
+    "error_id"
+   ]
+  },
+  "figures": {
+   "dataset_class": "HEAD_PER_SOURCE",
+   "envelope_profile": "DOC",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "page_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "source_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_site_scope",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "source_site_scope_raw",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_site_scope_mapping",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extraction_generation",
+     "nullable": false,
+     "type": "int16"
+    },
+    {
+     "name": "model_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "model_revision",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "models",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, model_id: string not null, model_revision: string not null>>"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extraction_signature",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "raw_content_sha256",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "content_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "raw_artifacts",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, artifact_id: string not null>>"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "quality_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "region_origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "text_layer",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "bbox_x0",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_y0",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_x1",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_y1",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_space",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "docx_paragraph_path",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "figure_label",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "caption",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "caption_normalized",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "caption_block_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "layout_class",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "layout_score",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "detected_figure_type",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "figure_type_method",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "figure_type_confidence",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "figure_type_threshold",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "image_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "image_dpi",
+     "nullable": true,
+     "type": "int16"
+    },
+    {
+     "name": "embedded_image_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "embedded_image_transcoded",
+     "nullable": true,
+     "type": "bool"
+    },
+    {
+     "name": "original_filter",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "vector_artifacts",
+     "nullable": false,
+     "type": "list<item: struct<format: string not null, artifact_id: string not null>>"
+    }
+   ],
+   "partition_keys": [
+    "source_id",
+    "run"
+   ],
+   "primary_key": [
+    "object_id"
+   ],
+   "schema_fingerprint": "898cc0fa9f8ed1aadc3a6f71f635b885cf06cf9f28d595e70e5fed2b19a5cc50",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "page_id",
+    "bbox_y0",
+    "bbox_x0",
+    "object_id"
+   ]
+  },
+  "formulas": {
+   "dataset_class": "HEAD_PER_SOURCE",
+   "envelope_profile": "DOC",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "page_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "source_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_site_scope",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "source_site_scope_raw",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_site_scope_mapping",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extraction_generation",
+     "nullable": false,
+     "type": "int16"
+    },
+    {
+     "name": "model_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "model_revision",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "models",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, model_id: string not null, model_revision: string not null>>"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extraction_signature",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "raw_content_sha256",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "content_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "raw_artifacts",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, artifact_id: string not null>>"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "quality_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "region_origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "text_layer",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "bbox_x0",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_y0",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_x1",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_y1",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_space",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "docx_paragraph_path",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "formula_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "equation_label",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "recognition_method",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_format",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_output",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "normalized_latex",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "latex_parse_ok",
+     "nullable": true,
+     "type": "bool"
+    },
+    {
+     "name": "native_glyph_text",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "recognition_confidence",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "image_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "image_dpi",
+     "nullable": true,
+     "type": "int16"
+    }
+   ],
+   "partition_keys": [
+    "source_id",
+    "run"
+   ],
+   "primary_key": [
+    "object_id"
+   ],
+   "schema_fingerprint": "1f94c66a512a6cdd9a617b822754a01bf0e2cb327905067ad73ca160d39e2c0f",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "page_id",
+    "bbox_y0",
+    "bbox_x0",
+    "object_id"
+   ]
+  },
+  "pages": {
+   "dataset_class": "HEAD_PER_SOURCE",
+   "envelope_profile": "DOC",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "page_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "source_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_site_scope",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "source_site_scope_raw",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_site_scope_mapping",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extraction_generation",
+     "nullable": false,
+     "type": "int16"
+    },
+    {
+     "name": "model_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "model_revision",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "models",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, model_id: string not null, model_revision: string not null>>"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extraction_signature",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "raw_content_sha256",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "content_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "raw_artifacts",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, artifact_id: string not null>>"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "quality_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "page_index",
+     "nullable": false,
+     "type": "int32"
+    },
+    {
+     "name": "page_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "page_class",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "page_route",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "printed_page_raw",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "printed_page_labels",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "printed_label_origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "printed_label_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "printed_label_extractor",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "is_spread",
+     "nullable": true,
+     "type": "bool"
+    },
+    {
+     "name": "width_pt",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "height_pt",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "rotation_deg",
+     "nullable": false,
+     "type": "int16"
+    },
+    {
+     "name": "page_box",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "native_dpi",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_space",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "file_text_layer",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "file_text_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "file_text_char_count",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "embedded_layer_evidence",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "text_layer_producer",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "ocr_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "ocr_char_count",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "page_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "primary_text_layer",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "primary_text_origin",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "normalized_text",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "text_rule",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "text_sha256",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "char_count",
+     "nullable": false,
+     "type": "int32"
+    },
+    {
+     "name": "native_ocr_cer",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "native_raw_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "layout_raw_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "ocr_raw_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "render_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "render_dpi",
+     "nullable": true,
+     "type": "int16"
+    },
+    {
+     "name": "preview_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "spine_href",
+     "nullable": true,
+     "type": "string"
+    }
+   ],
+   "partition_keys": [
+    "source_id",
+    "run"
+   ],
+   "primary_key": [
+    "page_id"
+   ],
+   "schema_fingerprint": "4c26e1e26e86b93311dbf51ebea1d552f016a06543275adf63e08f2e6bb82160",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "page_index"
+   ]
+  },
+  "processing_runs": {
+   "dataset_class": "APPEND_LOG",
+   "envelope_profile": "LOG",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "record_phase",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "run_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "started_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "finished_at",
+     "nullable": true,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "cli_command",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "cli_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "plan_only",
+     "nullable": false,
+     "type": "bool"
+    },
+    {
+     "name": "selection",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "code_revision",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "code_dirty",
+     "nullable": false,
+     "type": "bool"
+    },
+    {
+     "name": "dependency_lock_sha256",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "private_registry_revision",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "source_register_sha256",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "work_register_sha256",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "work_links_sha256",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "host_role",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "clock_source",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "python_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "platform",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "config_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "log_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "models",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, model_id: string not null, model_revision: string not null, weights_sha256: string, backend: string, backend_version: string, quantization: string, device: string>>"
+    },
+    {
+     "name": "n_sources_planned",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "n_pages_planned",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "n_steps_executed",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "n_steps_reused",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "n_steps_failed",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "n_model_calls",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "parent_run_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "control_plane_ref",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    }
+   ],
+   "partition_keys": [
+    "run"
+   ],
+   "primary_key": [
+    "processing_run_id",
+    "record_phase"
+   ],
+   "schema_fingerprint": "b90d659d3949547864a9d54f14614a8d1ea57929699bed7f67c4172edb9e15b2",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "processing_run_id",
+    "record_phase"
+   ]
+  },
+  "processing_steps": {
+   "dataset_class": "APPEND_LOG",
+   "envelope_profile": "LOG",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "step_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "page_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "page_index",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "stage",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "attempt",
+     "nullable": false,
+     "type": "int16"
+    },
+    {
+     "name": "outcome",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "reason_code",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "stage_signature",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "call_signature",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "source_sha256",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extraction_generation",
+     "nullable": false,
+     "type": "int16"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "model_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "model_revision",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "models",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, model_id: string not null, model_revision: string not null>>"
+    },
+    {
+     "name": "input_artifact_ids",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "output_artifact_ids",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "n_objects_out",
+     "nullable": false,
+     "type": "int32"
+    },
+    {
+     "name": "started_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "finished_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "duration_ms",
+     "nullable": false,
+     "type": "int64"
+    },
+    {
+     "name": "commit_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "log_ref",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "host_role",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "control_job_ref",
+     "nullable": true,
+     "type": "string"
+    }
+   ],
+   "partition_keys": [
+    "run"
+   ],
+   "primary_key": [
+    "step_id"
+   ],
+   "schema_fingerprint": "498ad9cb831492b29d5abe6c5e1b1fdf692c00064a19f19ac6fd233b508ad784",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "source_id",
+    "page_index",
+    "stage",
+    "attempt",
+    "step_id"
+   ]
+  },
+  "source_relations": {
+   "dataset_class": "REGISTRY_GLOBAL",
+   "envelope_profile": "LINK",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "content_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "quality_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "input_ref",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_row",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "curation_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "basis",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "notes",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "from_source_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "relation",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "to_source_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "from_page_start",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "from_page_end",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "to_page_start",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "to_page_end",
+     "nullable": true,
+     "type": "int32"
+    }
+   ],
+   "partition_keys": [
+    "run"
+   ],
+   "primary_key": [
+    "object_id"
+   ],
+   "schema_fingerprint": "85e6583e6270b20f9d62c5d7cb178bbb874c23289a58b3dea3c5daf480a9f4e6",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "from_source_id",
+    "relation",
+    "to_source_id",
+    "object_id"
+   ]
+  },
+  "source_work_links": {
+   "dataset_class": "REGISTRY_GLOBAL",
+   "envelope_profile": "LINK",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "content_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "quality_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "input_ref",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_row",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "curation_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "basis",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "notes",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "source_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "work_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "link_type",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "is_primary",
+     "nullable": false,
+     "type": "bool"
+    },
+    {
+     "name": "page_start",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "page_end",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "part_label",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "printed_range",
+     "nullable": true,
+     "type": "string"
+    }
+   ],
+   "partition_keys": [
+    "run"
+   ],
+   "primary_key": [
+    "object_id"
+   ],
+   "schema_fingerprint": "c5511da2edaca43da867cfa6fbaeba8d5bf1b1a5cbdb069eedc8f1203657de31",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "source_id",
+    "link_type",
+    "object_id"
+   ]
+  },
+  "sources": {
+   "dataset_class": "REGISTRY_GLOBAL",
+   "envelope_profile": "REG",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "content_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "quality_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "input_ref",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_row",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "source_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "size_bytes",
+     "nullable": false,
+     "type": "int64"
+    },
+    {
+     "name": "canonical_path",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "original_filename",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "file_extension",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "format_detected",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "file_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "observed_sha256",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "observed_size_bytes",
+     "nullable": true,
+     "type": "int64"
+    },
+    {
+     "name": "lifecycle_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "register_skip_status",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "register_skip_reason",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "source_class_raw",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "priority",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "site_scope_raw",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "site_scope",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "site_scope_candidates",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "site_scope_mapping",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "site_scope_map_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "review_status_basis",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "evidence_coverage_raw",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "register_scientific_role",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "register_migration_source",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "register_migration_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "register_notes",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "ingestion_date",
+     "nullable": true,
+     "type": "date32[day]"
+    },
+    {
+     "name": "ingestion_date_precision",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "ingestion_basis",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "register_row_sha256",
+     "nullable": false,
+     "type": "string"
+    }
+   ],
+   "partition_keys": [
+    "run"
+   ],
+   "primary_key": [
+    "source_id"
+   ],
+   "schema_fingerprint": "d3fc14710f7a929da7695ae4c2738407de18fe2cc3b133fb35a31d9bd31156fa",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "source_id"
+   ]
+  },
+  "tables": {
+   "dataset_class": "HEAD_PER_SOURCE",
+   "envelope_profile": "DOC",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "page_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "source_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_site_scope",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "source_site_scope_raw",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "source_site_scope_mapping",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extraction_generation",
+     "nullable": false,
+     "type": "int16"
+    },
+    {
+     "name": "model_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "model_revision",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "models",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, model_id: string not null, model_revision: string not null>>"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extraction_signature",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "raw_content_sha256",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "content_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "raw_artifacts",
+     "nullable": false,
+     "type": "list<item: struct<role: string not null, artifact_id: string not null>>"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "quality_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "region_origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "text_layer",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "bbox_x0",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_y0",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_x1",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_y1",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "bbox_space",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "docx_paragraph_path",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "table_label",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "caption",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "caption_normalized",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "caption_block_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "recognition_method",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_format",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "raw_output",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "n_rows",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "n_cols",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "header_rows",
+     "nullable": true,
+     "type": "int16"
+    },
+    {
+     "name": "cells",
+     "nullable": false,
+     "type": "list<item: struct<row: int32 not null, col: int32 not null, row_span: int16 not null, col_span: int16 not null, is_header: bool not null, text: string not null>>"
+    },
+    {
+     "name": "normalized_text",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "normalized_html",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "structure_confidence",
+     "nullable": true,
+     "type": "double"
+    },
+    {
+     "name": "image_artifact_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "image_dpi",
+     "nullable": true,
+     "type": "int16"
+    },
+    {
+     "name": "continues_object_id",
+     "nullable": true,
+     "type": "string"
+    }
+   ],
+   "partition_keys": [
+    "source_id",
+    "run"
+   ],
+   "primary_key": [
+    "object_id"
+   ],
+   "schema_fingerprint": "087678688e16af432f289c530c3ba76dad7c8ff1ba6a8bd7f050ff0502b1a1e8",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "page_id",
+    "bbox_y0",
+    "bbox_x0",
+    "object_id"
+   ]
+  },
+  "venues": {
+   "dataset_class": "REGISTRY_GLOBAL",
+   "envelope_profile": "REG",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "content_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "quality_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "input_ref",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_row",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "venue_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "venue_type",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "title_display",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "title_key",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "script",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "issn",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "identity_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "same_as_venue_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "derived_from_work_ids",
+     "nullable": false,
+     "type": "list<item: string>"
+    }
+   ],
+   "partition_keys": [
+    "run"
+   ],
+   "primary_key": [
+    "venue_id"
+   ],
+   "schema_fingerprint": "18082810b2a00b5e788e34f7eb3700d4aed2f71470247b5df7cf8d8fd2c8bc5c",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "venue_id"
+   ]
+  },
+  "work_authors": {
+   "dataset_class": "REGISTRY_GLOBAL",
+   "envelope_profile": "LINK",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "content_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "quality_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "input_ref",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_row",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "curation_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "basis",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "notes",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "work_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "author_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "ordinal",
+     "nullable": false,
+     "type": "int16"
+    },
+    {
+     "name": "role",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "name_as_listed",
+     "nullable": false,
+     "type": "string"
+    }
+   ],
+   "partition_keys": [
+    "run"
+   ],
+   "primary_key": [
+    "object_id"
+   ],
+   "schema_fingerprint": "40fe970a25423f8b85f8a29d76c43ad4c5b26298b7486ed110a216d6744de240",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "work_id",
+    "ordinal"
+   ]
+  },
+  "work_relations": {
+   "dataset_class": "REGISTRY_GLOBAL",
+   "envelope_profile": "LINK",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "content_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "quality_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "input_ref",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_row",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "curation_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "basis",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "notes",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "from_work_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "relation",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "to_work_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "is_symmetric",
+     "nullable": false,
+     "type": "bool"
+    }
+   ],
+   "partition_keys": [
+    "run"
+   ],
+   "primary_key": [
+    "object_id"
+   ],
+   "schema_fingerprint": "07fb17002c066862017a30eda99bda5841d7a1ec04d01a8f7e2dd0e82db4bfab",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "from_work_id",
+    "relation",
+    "to_work_id"
+   ]
+  },
+  "works": {
+   "dataset_class": "REGISTRY_GLOBAL",
+   "envelope_profile": "REG",
+   "fields": [
+    {
+     "name": "schema_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "object_kind",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "origin",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "pipeline_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "processing_run_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "extractor_version",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "config_hash",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "content_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "created_at",
+     "nullable": false,
+     "type": "timestamp[us, tz=UTC]"
+    },
+    {
+     "name": "review_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "quality_flags",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "input_ref",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_sha256",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "input_row",
+     "nullable": true,
+     "type": "int32"
+    },
+    {
+     "name": "work_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "merged_into_work_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "anchor_source_id",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "work_type",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "title",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "title_en",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "title_variants",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "authors_display",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "publication_year",
+     "nullable": true,
+     "type": "int16"
+    },
+    {
+     "name": "publication_year_raw",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "publication_date",
+     "nullable": true,
+     "type": "date32[day]"
+    },
+    {
+     "name": "publication_date_precision",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "venue_id",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "venue_display",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "volume",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "issue",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "pages_range",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "edition",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "publisher",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "publisher_city",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "doi",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "isbn",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "languages",
+     "nullable": false,
+     "type": "list<item: string>"
+    },
+    {
+     "name": "external_ids",
+     "nullable": false,
+     "type": "list<item: struct<scheme: string not null, value: string not null, relation: string not null>>"
+    },
+    {
+     "name": "metadata_basis",
+     "nullable": false,
+     "type": "struct<title: string not null, authors: string not null, year: string not null, venue: string not null, identifiers: string not null>"
+    },
+    {
+     "name": "identity_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "available_from",
+     "nullable": true,
+     "type": "date32[day]"
+    },
+    {
+     "name": "available_from_precision",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "available_from_basis",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "curation_status",
+     "nullable": false,
+     "type": "string"
+    },
+    {
+     "name": "curated_by",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "curated_at",
+     "nullable": true,
+     "type": "date32[day]"
+    },
+    {
+     "name": "curation_receipt",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "notes",
+     "nullable": true,
+     "type": "string"
+    }
+   ],
+   "partition_keys": [
+    "run"
+   ],
+   "primary_key": [
+    "work_id"
+   ],
+   "schema_fingerprint": "c2cee21baccf0a113e11a25dd26e62cc60d311a7c2b20245eeae99e9964e0557",
+   "schema_version": "0.1.0",
+   "sort_key": [
+    "work_id"
+   ]
+  }
+ }
+}

@@ -27,6 +27,7 @@ corpus = [
     "python-docx>=1.2",
     "httpx>=0.28",
     "psycopg[binary]>=3.3",
+    "pytz>=2025.2",  # DuckDB returns TIMESTAMPTZ values to Python through pytz
 ]
 corpus-services = [
     "fastapi>=0.141.1,<0.142",

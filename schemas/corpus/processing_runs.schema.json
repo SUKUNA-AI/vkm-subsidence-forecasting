@@ -1,0 +1,497 @@
+{
+ "$defs": {
+  "HostRole": {
+   "enum": [
+    "WORKSTATION",
+    "CORE",
+    "EDGE"
+   ],
+   "title": "HostRole",
+   "type": "string"
+  },
+  "ModelRole": {
+   "enum": [
+    "LAYOUT",
+    "RECOGNITION"
+   ],
+   "title": "ModelRole",
+   "type": "string"
+  },
+  "RecordPhase": {
+   "enum": [
+    "START",
+    "END"
+   ],
+   "title": "RecordPhase",
+   "type": "string"
+  },
+  "RunKind": {
+   "enum": [
+    "REGISTRY_IMPORT",
+    "EXTRACTION",
+    "OCR",
+    "DERIVATION",
+    "SNAPSHOT_BUILD",
+    "SCHEMA_MIGRATION",
+    "VALIDATION",
+    "PLAN",
+    "ADMIT"
+   ],
+   "title": "RunKind",
+   "type": "string"
+  },
+  "RunModelInfo": {
+   "additionalProperties": false,
+   "description": "A model used by a processing run: revision and weights hash identify it; backend info is recorded but is not\npart of any cache signature (H-05).",
+   "properties": {
+    "backend": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Backend"
+    },
+    "backend_version": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Backend Version"
+    },
+    "device": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Device"
+    },
+    "model_id": {
+     "minLength": 1,
+     "title": "Model Id",
+     "type": "string"
+    },
+    "model_revision": {
+     "minLength": 1,
+     "title": "Model Revision",
+     "type": "string"
+    },
+    "quantization": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Quantization"
+    },
+    "role": {
+     "$ref": "#/$defs/ModelRole"
+    },
+    "weights_sha256": {
+     "anyOf": [
+      {
+       "pattern": "^[0-9a-f]{64}$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Weights Sha256"
+    }
+   },
+   "required": [
+    "role",
+    "model_id",
+    "model_revision"
+   ],
+   "title": "RunModelInfo",
+   "type": "object"
+  },
+  "RunStatus": {
+   "enum": [
+    "STARTED",
+    "SUCCEEDED",
+    "PARTIAL",
+    "FAILED",
+    "ABORTED"
+   ],
+   "title": "RunStatus",
+   "type": "string"
+  }
+ },
+ "$id": "https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/schemas/corpus/processing_runs.schema.json",
+ "additionalProperties": false,
+ "description": "Two immutable records per run: START and END (a START without END is a visible crash, H-11).",
+ "properties": {
+  "cli_command": {
+   "description": "argv with logical roots instead of machine paths",
+   "title": "Cli Command",
+   "type": "string"
+  },
+  "cli_flags": {
+   "items": {
+    "type": "string"
+   },
+   "title": "Cli Flags",
+   "type": "array"
+  },
+  "clock_source": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Clock Source"
+  },
+  "code_dirty": {
+   "title": "Code Dirty",
+   "type": "boolean"
+  },
+  "code_revision": {
+   "title": "Code Revision",
+   "type": "string"
+  },
+  "config_artifact_id": {
+   "anyOf": [
+    {
+     "pattern": "^sha256:[0-9a-f]{64}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Config Artifact Id"
+  },
+  "config_hash": {
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Config Hash",
+   "type": "string"
+  },
+  "control_plane_ref": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "optional PostgreSQL job key; the canon never needs it",
+   "title": "Control Plane Ref"
+  },
+  "created_at": {
+   "format": "date-time",
+   "title": "Created At",
+   "type": "string"
+  },
+  "dependency_lock_sha256": {
+   "anyOf": [
+    {
+     "pattern": "^[0-9a-f]{64}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Dependency Lock Sha256"
+  },
+  "finished_at": {
+   "anyOf": [
+    {
+     "format": "date-time",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Finished At"
+  },
+  "host_role": {
+   "$ref": "#/$defs/HostRole"
+  },
+  "log_artifact_id": {
+   "anyOf": [
+    {
+     "pattern": "^sha256:[0-9a-f]{64}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "RUN_LOG artifact (KEEP_RAW), H-11",
+   "title": "Log Artifact Id"
+  },
+  "models": {
+   "items": {
+    "$ref": "#/$defs/RunModelInfo"
+   },
+   "title": "Models",
+   "type": "array"
+  },
+  "n_model_calls": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": -2147483648,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "N Model Calls"
+  },
+  "n_pages_planned": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": -2147483648,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "N Pages Planned"
+  },
+  "n_sources_planned": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": -2147483648,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "N Sources Planned"
+  },
+  "n_steps_executed": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": -2147483648,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "N Steps Executed"
+  },
+  "n_steps_failed": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": -2147483648,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "N Steps Failed"
+  },
+  "n_steps_reused": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": -2147483648,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "N Steps Reused"
+  },
+  "parent_run_id": {
+   "anyOf": [
+    {
+     "pattern": "^RUN-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "run resumed by this one (--resume)",
+   "title": "Parent Run Id"
+  },
+  "pipeline_version": {
+   "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+   "title": "Pipeline Version",
+   "type": "string"
+  },
+  "plan_only": {
+   "default": false,
+   "title": "Plan Only",
+   "type": "boolean"
+  },
+  "platform": {
+   "title": "Platform",
+   "type": "string"
+  },
+  "private_registry_revision": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Private Registry Revision"
+  },
+  "processing_run_id": {
+   "pattern": "^RUN-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$",
+   "title": "Processing Run Id",
+   "type": "string"
+  },
+  "python_version": {
+   "title": "Python Version",
+   "type": "string"
+  },
+  "record_phase": {
+   "$ref": "#/$defs/RecordPhase"
+  },
+  "run_kind": {
+   "$ref": "#/$defs/RunKind"
+  },
+  "schema_version": {
+   "description": "semver of the dataset schema at write time",
+   "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+   "title": "Schema Version",
+   "type": "string"
+  },
+  "selection": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Selection"
+  },
+  "source_register_sha256": {
+   "anyOf": [
+    {
+     "pattern": "^[0-9a-f]{64}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Source Register Sha256"
+  },
+  "started_at": {
+   "format": "date-time",
+   "title": "Started At",
+   "type": "string"
+  },
+  "status": {
+   "$ref": "#/$defs/RunStatus"
+  },
+  "work_links_sha256": {
+   "anyOf": [
+    {
+     "pattern": "^[0-9a-f]{64}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Work Links Sha256"
+  },
+  "work_register_sha256": {
+   "anyOf": [
+    {
+     "pattern": "^[0-9a-f]{64}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Work Register Sha256"
+  }
+ },
+ "required": [
+  "schema_version",
+  "processing_run_id",
+  "record_phase",
+  "run_kind",
+  "status",
+  "started_at",
+  "cli_command",
+  "pipeline_version",
+  "code_revision",
+  "code_dirty",
+  "host_role",
+  "python_version",
+  "platform",
+  "config_hash",
+  "created_at"
+ ],
+ "title": "VKM corpus dataset processing_runs",
+ "type": "object",
+ "x-vkm-dataset": "processing_runs",
+ "x-vkm-dataset-class": "APPEND_LOG",
+ "x-vkm-envelope-profile": "LOG",
+ "x-vkm-primary-key": [
+  "processing_run_id",
+  "record_phase"
+ ],
+ "x-vkm-schema-fingerprint": "b90d659d3949547864a9d54f14614a8d1ea57929699bed7f67c4172edb9e15b2",
+ "x-vkm-schema-version": "0.1.0"
+}

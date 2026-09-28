@@ -1,0 +1,384 @@
+{
+ "$defs": {
+  "HostRole": {
+   "enum": [
+    "WORKSTATION",
+    "CORE",
+    "EDGE"
+   ],
+   "title": "HostRole",
+   "type": "string"
+  },
+  "ModelRef": {
+   "additionalProperties": false,
+   "description": "A model that produced the region (LAYOUT) or the content (RECOGNITION) of an object (H-03).",
+   "properties": {
+    "model_id": {
+     "minLength": 1,
+     "title": "Model Id",
+     "type": "string"
+    },
+    "model_revision": {
+     "minLength": 1,
+     "title": "Model Revision",
+     "type": "string"
+    },
+    "role": {
+     "$ref": "#/$defs/ModelRole"
+    }
+   },
+   "required": [
+    "role",
+    "model_id",
+    "model_revision"
+   ],
+   "title": "ModelRef",
+   "type": "object"
+  },
+  "ModelRole": {
+   "enum": [
+    "LAYOUT",
+    "RECOGNITION"
+   ],
+   "title": "ModelRole",
+   "type": "string"
+  },
+  "ProcessingStatus": {
+   "description": "Status of a page or a processing step. Minimum of task §44 plus H-02 and CP-05 additions.",
+   "enum": [
+    "NATIVE_OK",
+    "EMBEDDED_TEXT_OK",
+    "OCR_REQUIRED",
+    "OCR_OK",
+    "PARTIAL",
+    "UNSUPPORTED",
+    "FAILED",
+    "NEEDS_REVIEW",
+    "SKIPPED_BY_REGISTER",
+    "NOT_PROCESSED"
+   ],
+   "title": "ProcessingStatus",
+   "type": "string"
+  },
+  "Stage": {
+   "description": "Processing stages: union of the stages of agents C and D, with CLASSIFY and LAYOUT (CP-16 p. 2).",
+   "enum": [
+    "REGISTRY",
+    "INSPECT",
+    "PAGINATE",
+    "CLASSIFY",
+    "NATIVE_TEXT",
+    "NATIVE_LAYOUT",
+    "NATIVE_VECTOR",
+    "NATIVE_IMAGES",
+    "RENDER",
+    "LAYOUT",
+    "OCR",
+    "TABLES",
+    "FORMULAS",
+    "FIGURES",
+    "CAPTIONS",
+    "BIBLIOGRAPHY",
+    "NORMALIZE",
+    "OBJECTS",
+    "COMMIT",
+    "DERIVE",
+    "VALIDATE",
+    "SNAPSHOT",
+    "ADMIT"
+   ],
+   "title": "Stage",
+   "type": "string"
+  },
+  "StepOutcome": {
+   "enum": [
+    "EXECUTED",
+    "REUSED_CACHED",
+    "SKIPPED_UP_TO_DATE",
+    "SKIPPED_BY_POLICY",
+    "NOT_ATTEMPTED"
+   ],
+   "title": "StepOutcome",
+   "type": "string"
+  }
+ },
+ "$id": "https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/schemas/corpus/processing_steps.schema.json",
+ "additionalProperties": false,
+ "properties": {
+  "attempt": {
+   "default": 1,
+   "maximum": 32767,
+   "minimum": -32768,
+   "title": "Attempt",
+   "type": "integer"
+  },
+  "call_signature": {
+   "anyOf": [
+    {
+     "pattern": "^[0-9a-f]{64}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Call Signature"
+  },
+  "commit_id": {
+   "anyOf": [
+    {
+     "pattern": "^CMT-[0-9a-f]{16}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Commit Id"
+  },
+  "config_hash": {
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Config Hash",
+   "type": "string"
+  },
+  "control_job_ref": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Control Job Ref"
+  },
+  "duration_ms": {
+   "minimum": 0,
+   "title": "Duration Ms",
+   "type": "integer"
+  },
+  "extraction_generation": {
+   "default": 1,
+   "maximum": 32767,
+   "minimum": -32768,
+   "title": "Extraction Generation",
+   "type": "integer"
+  },
+  "extractor_id": {
+   "title": "Extractor Id",
+   "type": "string"
+  },
+  "extractor_version": {
+   "title": "Extractor Version",
+   "type": "string"
+  },
+  "finished_at": {
+   "format": "date-time",
+   "title": "Finished At",
+   "type": "string"
+  },
+  "host_role": {
+   "$ref": "#/$defs/HostRole"
+  },
+  "input_artifact_ids": {
+   "items": {
+    "type": "string"
+   },
+   "title": "Input Artifact Ids",
+   "type": "array"
+  },
+  "log_ref": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Log Ref"
+  },
+  "model_id": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Model Id"
+  },
+  "model_revision": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Model Revision"
+  },
+  "models": {
+   "items": {
+    "$ref": "#/$defs/ModelRef"
+   },
+   "title": "Models",
+   "type": "array"
+  },
+  "n_objects_out": {
+   "default": 0,
+   "maximum": 2147483647,
+   "minimum": -2147483648,
+   "title": "N Objects Out",
+   "type": "integer"
+  },
+  "outcome": {
+   "$ref": "#/$defs/StepOutcome"
+  },
+  "output_artifact_ids": {
+   "items": {
+    "type": "string"
+   },
+   "title": "Output Artifact Ids",
+   "type": "array"
+  },
+  "page_id": {
+   "anyOf": [
+    {
+     "pattern": "^VKM-SRC-[0-9]{3}:[prs][0-9]{4}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Page Id"
+  },
+  "page_index": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": -2147483648,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Page Index"
+  },
+  "pipeline_version": {
+   "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+   "title": "Pipeline Version",
+   "type": "string"
+  },
+  "processing_run_id": {
+   "pattern": "^RUN-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$",
+   "title": "Processing Run Id",
+   "type": "string"
+  },
+  "reason_code": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "SkipReason or ErrorCode behind a skip/failure",
+   "title": "Reason Code"
+  },
+  "schema_version": {
+   "description": "semver of the dataset schema at write time",
+   "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+   "title": "Schema Version",
+   "type": "string"
+  },
+  "source_id": {
+   "anyOf": [
+    {
+     "pattern": "^VKM-SRC-[0-9]{3}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Source Id"
+  },
+  "source_sha256": {
+   "anyOf": [
+    {
+     "pattern": "^[0-9a-f]{64}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Source Sha256"
+  },
+  "stage": {
+   "$ref": "#/$defs/Stage"
+  },
+  "stage_signature": {
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Stage Signature",
+   "type": "string"
+  },
+  "started_at": {
+   "format": "date-time",
+   "title": "Started At",
+   "type": "string"
+  },
+  "status": {
+   "$ref": "#/$defs/ProcessingStatus"
+  },
+  "step_id": {
+   "pattern": "^STP-[0-9a-f]{16}$",
+   "title": "Step Id",
+   "type": "string"
+  }
+ },
+ "required": [
+  "schema_version",
+  "step_id",
+  "processing_run_id",
+  "stage",
+  "outcome",
+  "status",
+  "stage_signature",
+  "pipeline_version",
+  "extractor_id",
+  "extractor_version",
+  "config_hash",
+  "started_at",
+  "finished_at",
+  "duration_ms",
+  "host_role"
+ ],
+ "title": "VKM corpus dataset processing_steps",
+ "type": "object",
+ "x-vkm-dataset": "processing_steps",
+ "x-vkm-dataset-class": "APPEND_LOG",
+ "x-vkm-envelope-profile": "LOG",
+ "x-vkm-primary-key": [
+  "step_id"
+ ],
+ "x-vkm-schema-fingerprint": "498ad9cb831492b29d5abe6c5e1b1fdf692c00064a19f19ac6fd233b508ad784",
+ "x-vkm-schema-version": "0.1.0"
+}

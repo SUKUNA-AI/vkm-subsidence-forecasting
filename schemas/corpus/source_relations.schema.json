@@ -1,0 +1,350 @@
+{
+ "$defs": {
+  "CurationStatus": {
+   "enum": [
+    "AUTO_PROPOSED",
+    "CURATED",
+    "REJECTED"
+   ],
+   "title": "CurationStatus",
+   "type": "string"
+  },
+  "LinkBasis": {
+   "enum": [
+    "BOOTSTRAP_SINGLETON",
+    "REGISTER_NOTES",
+    "INTAKE_MANIFEST",
+    "HUNT_TABLE",
+    "PHASE1_EVIDENCE",
+    "REPOSITORY_AUDIT",
+    "TITLE_PAGE_VERIFIED",
+    "SHA256_IDENTITY",
+    "CURATED_MANUAL"
+   ],
+   "title": "LinkBasis",
+   "type": "string"
+  },
+  "ObjectKind": {
+   "enum": [
+    "SOURCE",
+    "WORK",
+    "DOCUMENT",
+    "PAGE",
+    "BLOCK",
+    "FIGURE",
+    "TABLE",
+    "FORMULA",
+    "BIBLIOGRAPHY_ENTRY",
+    "AUTHOR",
+    "VENUE",
+    "SOURCE_WORK_LINK",
+    "WORK_RELATION",
+    "SOURCE_RELATION",
+    "WORK_AUTHOR",
+    "BIBLIOGRAPHY_LINK"
+   ],
+   "title": "ObjectKind",
+   "type": "string"
+  },
+  "Origin": {
+   "enum": [
+    "NATIVE",
+    "EMBEDDED_OCR",
+    "OCR",
+    "DERIVED",
+    "REGISTRY",
+    "CURATED"
+   ],
+   "title": "Origin",
+   "type": "string"
+  },
+  "QualityFlag": {
+   "enum": [
+    "LOW_OCR_CONFIDENCE",
+    "BROKEN_TEXT_LAYER",
+    "GARBAGE_GLYPHS",
+    "PUA_GLYPHS",
+    "MOJIBAKE_NOT_REPAIRABLE",
+    "REPAIRABLE_CP1251_REMAP",
+    "ENCODING_REPAIRED",
+    "UNMAPPED_SYMBOL_GLYPHS",
+    "FONT_WITHOUT_TOUNICODE",
+    "TYPE3_FONT",
+    "LOW_FUNCTION_WORD_RATE",
+    "MIXED_TEXT_LAYER",
+    "EMBEDDED_TEXT_LAYER",
+    "HIDDEN_TEXT_LAYER",
+    "TEXT_LAYER_VISIBLE_MODE",
+    "NATIVE_OCR_DISAGREE",
+    "LANGUAGE_UNCERTAIN",
+    "TRUNCATED",
+    "REPETITION",
+    "ROTATED",
+    "SKEW_CORRECTED",
+    "LOW_RESOLUTION_SCAN",
+    "SPREAD_2UP",
+    "EMPTY_PAGE",
+    "VECTOR_NO_TEXT",
+    "IMAGE_NO_TEXT",
+    "DUPLICATE_PAGE_CANDIDATE",
+    "FOREIGN_WORK_CONTENT",
+    "EPUB_PAGE_ANCHOR_CALIBRE",
+    "BBOX_APPROX",
+    "CROSS_PAGE_CONTINUATION",
+    "DUPLICATE_DETECTION_DISAMBIGUATED",
+    "SCOPE_INHERITED_FROM_SOURCE",
+    "CAPTION_NOT_FOUND",
+    "CAPTION_ASSOCIATION_UNCERTAIN",
+    "FIGURE_TYPE_LOW_CONFIDENCE",
+    "TABLE_STRUCTURE_UNCERTAIN",
+    "SPANNING_CELLS",
+    "EMPTY_CELLS_RATIO",
+    "NUMERIC_PARSE_FAILURES",
+    "FORMULA_LATEX_UNPARSEABLE",
+    "LATEX_UNBALANCED",
+    "CONVERSION_FAILED",
+    "CITING_WORK_IS_CONTAINER",
+    "LEADING_BYTES_BEFORE_HEADER",
+    "ENCRYPTED_SOURCE",
+    "PDF_PERMISSIONS_RESTRICTED",
+    "PAGECOUNT_DIFFERS_FROM_REGISTER_HINT",
+    "REGISTER_NOTES_NOT_EVIDENCE",
+    "DJVU_TITLE_NOT_VERIFIED"
+   ],
+   "title": "QualityFlag",
+   "type": "string"
+  },
+  "ReviewStatus": {
+   "description": "Review state (contract v0.2 §47). Automatic L1 objects are always AUTO_EXTRACTED_UNREVIEWED.\n\nNOT_APPLICABLE: sources absent/retired by the register, works (H-28), authors and venues (H-25) and curated\nregistry links (their check is ``curation_status``).",
+   "enum": [
+    "UNSEEN",
+    "QUICK_LOOK_ONLY",
+    "AUTO_EXTRACTED_UNREVIEWED",
+    "RELEVANT_SECTIONS_REVIEWED",
+    "FULLY_REVIEWED",
+    "NOT_APPLICABLE"
+   ],
+   "title": "ReviewStatus",
+   "type": "string"
+  },
+  "SourceRelationType": {
+   "enum": [
+    "DERIVED_FROM",
+    "CONTAINS_COPY_OF",
+    "SHARES_PAGES_WITH"
+   ],
+   "title": "SourceRelationType",
+   "type": "string"
+  }
+ },
+ "$id": "https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/schemas/corpus/source_relations.schema.json",
+ "additionalProperties": false,
+ "properties": {
+  "basis": {
+   "$ref": "#/$defs/LinkBasis"
+  },
+  "config_hash": {
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Config Hash",
+   "type": "string"
+  },
+  "content_sha256": {
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Content Sha256",
+   "type": "string"
+  },
+  "created_at": {
+   "format": "date-time",
+   "title": "Created At",
+   "type": "string"
+  },
+  "curation_status": {
+   "$ref": "#/$defs/CurationStatus"
+  },
+  "extractor_id": {
+   "minLength": 1,
+   "title": "Extractor Id",
+   "type": "string"
+  },
+  "extractor_version": {
+   "minLength": 1,
+   "title": "Extractor Version",
+   "type": "string"
+  },
+  "from_page_end": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": 1,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "From Page End"
+  },
+  "from_page_start": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": 1,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "From Page Start"
+  },
+  "from_source_id": {
+   "pattern": "^VKM-SRC-[0-9]{3}$",
+   "title": "From Source Id",
+   "type": "string"
+  },
+  "input_ref": {
+   "description": "logical path of the input file, e.g. PRIVATE:00_registry/...",
+   "minLength": 1,
+   "title": "Input Ref",
+   "type": "string"
+  },
+  "input_row": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": 1,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "data row number (provenance only, not identity)",
+   "title": "Input Row"
+  },
+  "input_sha256": {
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Input Sha256",
+   "type": "string"
+  },
+  "notes": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Notes"
+  },
+  "object_id": {
+   "title": "Object Id",
+   "type": "string"
+  },
+  "object_kind": {
+   "$ref": "#/$defs/ObjectKind"
+  },
+  "origin": {
+   "$ref": "#/$defs/Origin",
+   "description": "REGISTRY (loaded from PRIVATE 00_registry) or DERIVED"
+  },
+  "pipeline_version": {
+   "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+   "title": "Pipeline Version",
+   "type": "string"
+  },
+  "processing_run_id": {
+   "pattern": "^RUN-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$",
+   "title": "Processing Run Id",
+   "type": "string"
+  },
+  "quality_flags": {
+   "items": {
+    "$ref": "#/$defs/QualityFlag"
+   },
+   "title": "Quality Flags",
+   "type": "array"
+  },
+  "relation": {
+   "$ref": "#/$defs/SourceRelationType"
+  },
+  "review_status": {
+   "$ref": "#/$defs/ReviewStatus"
+  },
+  "schema_version": {
+   "description": "semver of the dataset schema at write time",
+   "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+   "title": "Schema Version",
+   "type": "string"
+  },
+  "to_page_end": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": 1,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "To Page End"
+  },
+  "to_page_start": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": 1,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "To Page Start"
+  },
+  "to_source_id": {
+   "pattern": "^VKM-SRC-[0-9]{3}$",
+   "title": "To Source Id",
+   "type": "string"
+  }
+ },
+ "required": [
+  "schema_version",
+  "object_id",
+  "object_kind",
+  "origin",
+  "pipeline_version",
+  "processing_run_id",
+  "extractor_id",
+  "extractor_version",
+  "config_hash",
+  "content_sha256",
+  "created_at",
+  "review_status",
+  "input_ref",
+  "input_sha256",
+  "curation_status",
+  "basis",
+  "from_source_id",
+  "relation",
+  "to_source_id"
+ ],
+ "title": "VKM corpus dataset source_relations",
+ "type": "object",
+ "x-vkm-dataset": "source_relations",
+ "x-vkm-dataset-class": "REGISTRY_GLOBAL",
+ "x-vkm-envelope-profile": "LINK",
+ "x-vkm-primary-key": [
+  "object_id"
+ ],
+ "x-vkm-schema-fingerprint": "85e6583e6270b20f9d62c5d7cb178bbb874c23289a58b3dea3c5daf480a9f4e6",
+ "x-vkm-schema-version": "0.1.0"
+}

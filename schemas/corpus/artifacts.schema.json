@@ -1,0 +1,375 @@
+{
+ "$defs": {
+  "ArtifactKind": {
+   "enum": [
+    "PAGE_RENDER",
+    "PAGE_PREVIEW",
+    "OCR_INPUT",
+    "FIGURE_CROP",
+    "TABLE_CROP",
+    "FORMULA_CROP",
+    "EMBEDDED_IMAGE",
+    "VECTOR_PATHS_JSON",
+    "VECTOR_SVG",
+    "NATIVE_RAW",
+    "LAYOUT_RAW",
+    "OCR_RAW",
+    "DOCX_RENDERED_PDF",
+    "RUN_CONFIG",
+    "RUN_LOG",
+    "RUN_PLAN",
+    "VALIDATION_REPORT",
+    "CAD_DWG",
+    "CAD_DXF",
+    "CAD_GEOMETRY_JSONL",
+    "CAD_LOG"
+   ],
+   "title": "ArtifactKind",
+   "type": "string"
+  },
+  "ArtifactRecipe": {
+   "additionalProperties": false,
+   "description": "How to reproduce an artifact that is not stored (H-23) or how it was produced.",
+   "properties": {
+    "page_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Page Id"
+    },
+    "params_json": {
+     "default": "{}",
+     "description": "canonical JSON of the remaining parameters",
+     "title": "Params Json",
+     "type": "string"
+    },
+    "profile": {
+     "description": "render/extraction profile id, e.g. r200g",
+     "minLength": 1,
+     "title": "Profile",
+     "type": "string"
+    },
+    "source_sha256": {
+     "anyOf": [
+      {
+       "pattern": "^[0-9a-f]{64}$",
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Source Sha256"
+    },
+    "tool": {
+     "minLength": 1,
+     "title": "Tool",
+     "type": "string"
+    },
+    "tool_version": {
+     "minLength": 1,
+     "title": "Tool Version",
+     "type": "string"
+    }
+   },
+   "required": [
+    "tool",
+    "tool_version",
+    "profile"
+   ],
+   "title": "ArtifactRecipe",
+   "type": "object"
+  },
+  "BboxSpace": {
+   "description": "Coordinate space of a bbox or of an artifact's geometry. PAGE_PT_TL: PostScript points, top-left origin of the\nupright displayed page (after /Rotate, CropBox∩MediaBox). Not a CRS.",
+   "enum": [
+    "PAGE_PT_TL",
+    "IMAGE_PIXEL",
+    "DRAWING_UNITS",
+    "GEO",
+    "NONE"
+   ],
+   "title": "BboxSpace",
+   "type": "string"
+  },
+  "CrsStatus": {
+   "enum": [
+    "EXACT_COORDINATED",
+    "LOCAL_COORDINATES",
+    "UNKNOWN_CRS",
+    "MAP_DIGITIZED",
+    "RELATIVE",
+    "SCHEMATIC",
+    "UNKNOWN"
+   ],
+   "title": "CrsStatus",
+   "type": "string"
+  },
+  "Materialization": {
+   "enum": [
+    "STORED",
+    "NOT_STORED_REPRODUCIBLE"
+   ],
+   "title": "Materialization",
+   "type": "string"
+  },
+  "RetentionClass": {
+   "enum": [
+    "KEEP_RAW",
+    "KEEP_REFERENCED"
+   ],
+   "title": "RetentionClass",
+   "type": "string"
+  }
+ },
+ "$id": "https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/schemas/corpus/artifacts.schema.json",
+ "additionalProperties": false,
+ "description": "Index row of a content-addressed blob; describes the CONTENT (context is in the referencing rows).",
+ "properties": {
+  "artifact_id": {
+   "pattern": "^sha256:[0-9a-f]{64}$",
+   "title": "Artifact Id",
+   "type": "string"
+  },
+  "artifact_kind": {
+   "$ref": "#/$defs/ArtifactKind"
+  },
+  "attempt": {
+   "anyOf": [
+    {
+     "maximum": 32767,
+     "minimum": -32768,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "attempt number of a model call with the same call_signature",
+   "title": "Attempt"
+  },
+  "coordinate_space": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/BboxSpace"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null
+  },
+  "created_at": {
+   "format": "date-time",
+   "title": "Created At",
+   "type": "string"
+  },
+  "created_by_run_id": {
+   "pattern": "^RUN-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$",
+   "title": "Created By Run Id",
+   "type": "string"
+  },
+  "crs_status": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/CrsStatus"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null
+  },
+  "image_dpi": {
+   "anyOf": [
+    {
+     "type": "number"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Image Dpi"
+  },
+  "image_height_px": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": -2147483648,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Image Height Px"
+  },
+  "image_width_px": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": -2147483648,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Image Width Px"
+  },
+  "materialization": {
+   "$ref": "#/$defs/Materialization",
+   "default": "STORED"
+  },
+  "media_type": {
+   "title": "Media Type",
+   "type": "string"
+  },
+  "pixel_sha256": {
+   "anyOf": [
+    {
+     "pattern": "^[0-9a-f]{64}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "hash of decoded pixels (mode, size, buffer): cache key independent of PNG encoder (H-05, H-23)",
+   "title": "Pixel Sha256"
+  },
+  "producer_signature": {
+   "anyOf": [
+    {
+     "pattern": "^[0-9a-f]{64}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "call_signature for OCR_RAW/LAYOUT_RAW",
+   "title": "Producer Signature"
+  },
+  "producer_step_id": {
+   "anyOf": [
+    {
+     "pattern": "^STP-[0-9a-f]{16}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Producer Step Id"
+  },
+  "recipe": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/ArtifactRecipe"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null
+  },
+  "registered_page_id": {
+   "anyOf": [
+    {
+     "pattern": "^VKM-SRC-[0-9]{3}:[prs][0-9]{4}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Registered Page Id"
+  },
+  "registered_source_id": {
+   "anyOf": [
+    {
+     "pattern": "^VKM-SRC-[0-9]{3}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Registered Source Id"
+  },
+  "retention_class": {
+   "$ref": "#/$defs/RetentionClass"
+  },
+  "schema_version": {
+   "description": "semver of the dataset schema at write time",
+   "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+   "title": "Schema Version",
+   "type": "string"
+  },
+  "size_bytes": {
+   "anyOf": [
+    {
+     "minimum": 0,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "NULL only for NOT_STORED_REPRODUCIBLE",
+   "title": "Size Bytes"
+  },
+  "storage_relpath": {
+   "anyOf": [
+    {
+     "minLength": 1,
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "<kind_dir>/<hh>/<hh>/<sha256>.<ext> under $VKM_DATA_ROOT/artifacts; NULL if not stored",
+   "title": "Storage Relpath"
+  }
+ },
+ "required": [
+  "schema_version",
+  "artifact_id",
+  "artifact_kind",
+  "media_type",
+  "retention_class",
+  "created_by_run_id",
+  "created_at"
+ ],
+ "title": "VKM corpus dataset artifacts",
+ "type": "object",
+ "x-vkm-dataset": "artifacts",
+ "x-vkm-dataset-class": "APPEND_LOG",
+ "x-vkm-envelope-profile": "LOG",
+ "x-vkm-primary-key": [
+  "artifact_id",
+  "created_by_run_id"
+ ],
+ "x-vkm-schema-fingerprint": "c19b3753af8b52e16fe840f43bdcaefbb44bedfbf83547f9dd5e67358f6258b3",
+ "x-vkm-schema-version": "0.1.0"
+}

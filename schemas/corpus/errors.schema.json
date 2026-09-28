@@ -1,0 +1,309 @@
+{
+ "$defs": {
+  "ErrorCode": {
+   "description": "Closed error vocabulary; absorbs the ``E_*`` codes of agent C (``C_ERROR_CODE_MAP``, correspondence test).",
+   "enum": [
+    "SOURCE_FILE_MISSING",
+    "SOURCE_LFS_POINTER",
+    "SOURCE_SHA256_MISMATCH",
+    "SOURCE_SIZE_MISMATCH",
+    "SOURCE_UNREADABLE",
+    "SOURCE_BINDING_CHANGED",
+    "ENCRYPTED_PASSWORD_REQUIRED",
+    "ENCRYPTED_NO_PERMISSION",
+    "PERMISSION_POLICY",
+    "FORMAT_UNSUPPORTED",
+    "PAGINATION_FAILED",
+    "PAGECOUNT_MISMATCH",
+    "DECODER_MISSING",
+    "RENDER_FAILED",
+    "TIMEOUT",
+    "MEMORY_LIMIT",
+    "WORKER_CRASHED",
+    "NATIVE_EXTRACT_FAILED",
+    "LAYOUT_FAILED",
+    "OCR_FAILED",
+    "OCR_HTTP",
+    "OCR_TIMEOUT",
+    "OCR_OOM",
+    "OCR_TRUNCATED",
+    "OCR_EMPTY_ON_INK",
+    "OCR_QUALITY_STOP",
+    "MODEL_UNAVAILABLE",
+    "MODEL_CALL_BUDGET_EXHAUSTED",
+    "RAW_OUTPUT_UNPARSEABLE",
+    "NORMALIZE_FAILED",
+    "NATIVE_OCR_CONFLICT",
+    "ARTIFACT_WRITE_FAILED",
+    "ARTIFACT_HASH_MISMATCH",
+    "ARTIFACT_MISSING",
+    "ID_COLLISION",
+    "SCHEMA_VALIDATION_FAILED",
+    "SCHEMA_UNKNOWN",
+    "COMMIT_FAILED",
+    "COMMIT_CONFLICT",
+    "INTERNAL_ERROR",
+    "E_ANALYZER_MISMATCH",
+    "E_BAD_FILTER",
+    "E_BAD_KIND",
+    "E_BAD_MODE",
+    "E_BAD_PREFIX",
+    "E_BAD_QUERY",
+    "E_BAD_SIZE",
+    "E_BUILD_CHECK_FAILED",
+    "E_BULK_FAILED",
+    "E_CANON_MANIFEST_MISMATCH",
+    "E_CANON_MAPPING",
+    "E_CHECK_FAILED",
+    "E_COUNT_MISMATCH",
+    "E_CROSS_LAYER_LOSS",
+    "E_DANGLING_REFERENCE",
+    "E_DDL",
+    "E_DIGEST_MISMATCH",
+    "E_DUPLICATE_ID",
+    "E_FORBIDDEN_STATUS",
+    "E_INTERNAL",
+    "E_INVARIANT_VIOLATION",
+    "E_LOAD_MISMATCH",
+    "E_MODE_UNSUPPORTED",
+    "E_NO_CREDENTIALS",
+    "E_NO_DATA_ROOT",
+    "E_NO_PREVIOUS_BUILD",
+    "E_NO_SERVICE",
+    "E_NO_SNAPSHOT",
+    "E_ORPHAN_NODES",
+    "E_PAGE_GAP",
+    "E_PREFLIGHT",
+    "E_PROJECTION_BUSY",
+    "E_REFUSED",
+    "E_RELATION_CONFLICT",
+    "E_SEARCH_FAILED",
+    "E_SERVER_UNAVAILABLE",
+    "E_SMOKE",
+    "E_STAGING_ROOT",
+    "E_STALE_RUN",
+    "E_TOO_MANY_CANDIDATES",
+    "E_TRACE_MISMATCH",
+    "E_UNKNOWN_FILTER",
+    "E_UNKNOWN_POLICY_REQUIRED",
+    "E_UNKNOWN_RELATION_TYPE",
+    "E_UNKNOWN_VALUE",
+    "E_WIPE_INCOMPLETE"
+   ],
+   "title": "ErrorCode",
+   "type": "string"
+  },
+  "Severity": {
+   "enum": [
+    "ERROR",
+    "FATAL"
+   ],
+   "title": "Severity",
+   "type": "string"
+  },
+  "Stage": {
+   "description": "Processing stages: union of the stages of agents C and D, with CLASSIFY and LAYOUT (CP-16 p. 2).",
+   "enum": [
+    "REGISTRY",
+    "INSPECT",
+    "PAGINATE",
+    "CLASSIFY",
+    "NATIVE_TEXT",
+    "NATIVE_LAYOUT",
+    "NATIVE_VECTOR",
+    "NATIVE_IMAGES",
+    "RENDER",
+    "LAYOUT",
+    "OCR",
+    "TABLES",
+    "FORMULAS",
+    "FIGURES",
+    "CAPTIONS",
+    "BIBLIOGRAPHY",
+    "NORMALIZE",
+    "OBJECTS",
+    "COMMIT",
+    "DERIVE",
+    "VALIDATE",
+    "SNAPSHOT",
+    "ADMIT"
+   ],
+   "title": "Stage",
+   "type": "string"
+  }
+ },
+ "$id": "https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/schemas/corpus/errors.schema.json",
+ "additionalProperties": false,
+ "description": "Error record (task §44): code, stage, tool, message, retryable, source, page, log reference.",
+ "properties": {
+  "attempt": {
+   "anyOf": [
+    {
+     "maximum": 32767,
+     "minimum": -32768,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Attempt"
+  },
+  "code": {
+   "$ref": "#/$defs/ErrorCode"
+  },
+  "created_at": {
+   "format": "date-time",
+   "title": "Created At",
+   "type": "string"
+  },
+  "error_id": {
+   "pattern": "^ERR-[0-9a-f]{16}$",
+   "title": "Error Id",
+   "type": "string"
+  },
+  "exception_type": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Exception Type"
+  },
+  "log_ref": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Log Ref"
+  },
+  "message": {
+   "description": "sanitised: no absolute paths",
+   "title": "Message",
+   "type": "string"
+  },
+  "page_id": {
+   "anyOf": [
+    {
+     "pattern": "^VKM-SRC-[0-9]{3}:[prs][0-9]{4}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Page Id"
+  },
+  "page_index": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": -2147483648,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "set when pagination failed and no page_id exists",
+   "title": "Page Index"
+  },
+  "processing_run_id": {
+   "pattern": "^RUN-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$",
+   "title": "Processing Run Id",
+   "type": "string"
+  },
+  "retryable": {
+   "title": "Retryable",
+   "type": "boolean"
+  },
+  "schema_version": {
+   "description": "semver of the dataset schema at write time",
+   "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+   "title": "Schema Version",
+   "type": "string"
+  },
+  "severity": {
+   "$ref": "#/$defs/Severity",
+   "default": "ERROR"
+  },
+  "source_id": {
+   "anyOf": [
+    {
+     "pattern": "^VKM-SRC-[0-9]{3}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Source Id"
+  },
+  "stage": {
+   "$ref": "#/$defs/Stage"
+  },
+  "step_id": {
+   "anyOf": [
+    {
+     "pattern": "^STP-[0-9a-f]{16}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Step Id"
+  },
+  "tool": {
+   "title": "Tool",
+   "type": "string"
+  },
+  "tool_version": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Tool Version"
+  }
+ },
+ "required": [
+  "schema_version",
+  "error_id",
+  "processing_run_id",
+  "stage",
+  "code",
+  "tool",
+  "message",
+  "retryable",
+  "created_at"
+ ],
+ "title": "VKM corpus dataset errors",
+ "type": "object",
+ "x-vkm-dataset": "errors",
+ "x-vkm-dataset-class": "APPEND_LOG",
+ "x-vkm-envelope-profile": "LOG",
+ "x-vkm-primary-key": [
+  "error_id"
+ ],
+ "x-vkm-schema-fingerprint": "dac594dcd6bd3484a4a1399a101d8a604749a3a664503999ab5aba3e0c9ef7bd",
+ "x-vkm-schema-version": "0.1.0"
+}
