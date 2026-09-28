@@ -7,6 +7,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -49,9 +50,17 @@ def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+# Variables that redirect git to another repository. Exported by a caller (e.g. to run tests from WSL against a
+# Windows worktree), they override `-C` and made `git init` below write core.worktree into the shared config of the
+# real repository and commit into its branch (28.09.2026, twice) — the synthetic repo must never see them.
+_GIT_REDIRECT_VARS = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY", "GIT_COMMON_DIR",
+                      "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_NAMESPACE", "GIT_CONFIG", "GIT_CONFIG_GLOBAL")
+
+
 def _git(root: Path, *args: str) -> str:
+    env = {k: v for k, v in os.environ.items() if k not in _GIT_REDIRECT_VARS}
     done = subprocess.run(["git", "-C", str(root), "-c", "user.name=test", "-c", "user.email=test@example.org",
-                           "-c", "commit.gpgsign=false", *args], capture_output=True, text=True, check=True)
+                           "-c", "commit.gpgsign=false", *args], capture_output=True, text=True, check=True, env=env)
     return done.stdout.strip()
 
 
@@ -191,6 +200,8 @@ def test_closures_from_git_objects_in_synthetic_repo(tmp_path):
              "data/inventory.csv": inventory}
     _tree(root, files)
     _git(root, "init", "-q")
+    # the synthetic repository must be the one git operates on, never the real one
+    assert Path(_git(root, "rev-parse", "--show-toplevel")).resolve() == root.resolve()
     _git(root, "add", "-A")
     _git(root, "commit", "-q", "-m", "frozen")
     head = _git(root, "rev-parse", "HEAD")
