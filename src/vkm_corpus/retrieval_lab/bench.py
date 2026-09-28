@@ -376,3 +376,75 @@ def validate_benchmark(bench: Benchmark, *, min_text: int = 0, min_visual: int =
     if n_text < min_text or n_visual < min_visual:
         problems.append(f"too few queries: text {n_text} < {min_text} or visual {n_visual} < {min_visual}")
     return problems
+
+
+# ------------------------------------------------------------------ pooled labels (V1: separate label source, §12)
+POOLED_COLUMNS: tuple[str, ...] = ("query_id", "level", "doc_id", "grade", "status", "basis", "label_source",
+                                   "pooled_from", "rationale")
+POOLED_LABEL_SOURCES: tuple[str, ...] = ("LLM_AGENT_V1",)
+MAX_RATIONALE_CHARS = 160            # a one-line reason in own words; never a quote
+_POOLED_FROM = re.compile(r"^[A-Za-z0-9_]+@[0-9]{1,3}(,[A-Za-z0-9_]+@[0-9]{1,3})*$")
+
+
+def load_pooled_qrels(path: str | Path) -> list[dict[str, str]]:
+    """Rows of a pooled-labels file (header checked). Pooled labels never mix with ``qrels.tsv``: they keep their own
+    ``label_source`` and status CANDIDATE; a VERIFIED label always wins where both exist."""
+    with Path(path).open(encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        if tuple(reader.fieldnames or ()) != POOLED_COLUMNS:
+            raise BenchmarkError(f"{Path(path).name}: header {reader.fieldnames} != {POOLED_COLUMNS}")
+        return list(reader)
+
+
+def pooled_judgments(rows: Iterable[dict[str, str]], level: str = "PAGE") -> dict[str, dict[str, int]]:
+    out: dict[str, dict[str, int]] = defaultdict(dict)
+    for r in rows:
+        if r["level"] == level:
+            out[r["query_id"]][r["doc_id"]] = int(r["grade"])
+    return dict(out)
+
+
+def merge_judgments(verified: dict[str, dict[str, int]],
+                    pooled: dict[str, dict[str, int]]) -> dict[str, dict[str, int]]:
+    """VERIFIED ∪ pooled; a VERIFIED grade always wins."""
+    out = {q: dict(j) for q, j in verified.items()}
+    for q, j in pooled.items():
+        tgt = out.setdefault(q, {})
+        for d, g in j.items():
+            tgt.setdefault(d, g)
+    return out
+
+
+def validate_pooled_qrels(rows: list[dict[str, str]], bench: Benchmark) -> list[str]:
+    """Schema problems of pooled labels (empty list = valid): known query, PAGE id grammar, grade 0..3, status
+    CANDIDATE, basis POOL_JUDGMENT, known label source, ``name@rank`` provenance, a short one-line rationale (own
+    words; the public-hygiene and leakage tests guard against corpus text), no duplicate pair and no pair that already
+    has a VERIFIED label."""
+    problems: list[str] = []
+    known = {q.query_id for q in bench.queries}
+    verified = bench.judgments(level="PAGE", statuses=("VERIFIED",))
+    seen: set[tuple[str, str]] = set()
+    for r in rows:
+        where = f"pooled {r.get('query_id')} {r.get('doc_id')}"
+        if r["query_id"] not in known:
+            problems.append(f"{where}: unknown query")
+        if r["level"] != "PAGE" or not validate_doc_id("PAGE", r["doc_id"]):
+            problems.append(f"{where}: bad level/doc_id")
+        if not r["grade"].isdigit() or int(r["grade"]) not in GRADES:
+            problems.append(f"{where}: grade {r['grade']!r} not in 0..3")
+        if r["status"] != "CANDIDATE" or r["basis"] != "POOL_JUDGMENT":
+            problems.append(f"{where}: status/basis {r['status']}/{r['basis']}")
+        if r["label_source"] not in POOLED_LABEL_SOURCES:
+            problems.append(f"{where}: label_source {r['label_source']!r}")
+        if not _POOLED_FROM.match(r["pooled_from"] or ""):
+            problems.append(f"{where}: pooled_from {r['pooled_from']!r}")
+        why = r["rationale"] or ""
+        if not why.strip() or len(why) > MAX_RATIONALE_CHARS or any(c in why for c in "\t\n\r"):
+            problems.append(f"{where}: rationale must be one short line (≤ {MAX_RATIONALE_CHARS} chars)")
+        key = (r["query_id"], r["doc_id"])
+        if key in seen:
+            problems.append(f"{where}: duplicate pair")
+        seen.add(key)
+        if r["doc_id"] in verified.get(r["query_id"], {}):
+            problems.append(f"{where}: pair already has a VERIFIED label")
+    return problems
