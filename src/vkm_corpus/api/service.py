@@ -81,6 +81,8 @@ class ApiDeps:
     control: ControlPlane | None = None
     hybrid: HybridBackend | None = None
     nav: Any = None                     # vkm_corpus.navigation.store.NavStore (navigation layer, optional)
+    catalogues: Any = None              # vkm_corpus.catalogues.store.CatalogueStore (PUBLIC catalogues, optional)
+    topic_retrieval: Any = None         # retrieval of the topic dossier (api.topic.TopicRetrieval); None → hybrid
 
 
 def _require(dep: Any, name: str, stage: str) -> Any:
@@ -100,6 +102,7 @@ def _window(text: str | None, offset: int, max_chars: int) -> tuple[str | None, 
 class ApiService:
     def __init__(self, deps: ApiDeps) -> None:
         self.deps = deps
+        self._topic_cache: dict[str, Any] = {}           # section index of the served NAV build (topic dossier)
         self._search_status: tuple[float, dict[str, Any]] | None = None
         self._snapshot_cache: tuple[str | None, dict[str, str | None], dict[str, dict[str, Any]] | None] = (
             None, {}, None)
@@ -816,6 +819,52 @@ class ApiService:
             raise ApiFailure("INVALID_ARGUMENT", "term is 1..200 characters")
         data, snap = self._nav_run(lambda nav: nav.run("explore_concept", term, limit=limit))
         return self._nav_result("NAV_CONCEPT", f"concept:{term[:60]}", data, snap)
+
+    # ------------------------------------------------------------------ topic dossier (navigation + catalogues)
+    def reconstruct_topic(self, query: str, *, budget_chars: int = 12_000, source_ids: list[str] | None = None,
+                          max_sources: int = 10, max_sections: int = 12, max_formulas: int = 10) -> Result:
+        """«От А до Я» on a topic in one call: ranked NAV sections (hybrid search + titles + concepts), formulas, the
+        concept, sources with provenance and CITES, the PUBLIC catalogues (processes with evidence records, models,
+        conflicts, causal neighbours) and the UNKNOWN gaps — a budgeted, cited map (``api.topic``); navigation, not
+        evidence. Parts whose dependency is missing are left out with a warning."""
+        from vkm_corpus.api import topic
+
+        query = (query or "").strip()
+        if not query or len(query) > 512:
+            raise ApiFailure("INVALID_ARGUMENT", "query is 1..512 characters")
+        if not topic.MIN_BUDGET <= int(budget_chars) <= topic.MAX_BUDGET:
+            raise ApiFailure("INVALID_ARGUMENT", f"budget_chars must be {topic.MIN_BUDGET}…{topic.MAX_BUDGET}")
+        if not (1 <= max_sources <= 50 and 1 <= max_sections <= 50 and 0 <= max_formulas <= 50):
+            raise ApiFailure("INVALID_ARGUMENT", "max_sources and max_sections 1…50, max_formulas 0…50")
+        sources = sorted(set(source_ids or []))
+        if len(sources) > 20:
+            raise ApiFailure("INVALID_ARGUMENT", "at most 20 source ids")
+        for sid in sources:
+            self._check("source", sid)
+        canon_snapshot = self.canon.snapshot_id()          # SNAPSHOT_UNAVAILABLE without a canon: no dossier
+        builder = topic.DossierBuilder(self.canon, self.deps.nav, self.deps.catalogues,
+                                       topic.make_retrieval(self.deps.topic_retrieval, self.deps.hybrid),
+                                       cache=self._topic_cache)
+        dossier = builder.build(topic.TopicRequest(query=query, budget_chars=int(budget_chars),
+                                                   source_ids=tuple(sources), max_sources=max_sources,
+                                                   max_sections=max_sections, max_formulas=max_formulas))
+        proj = dossier.projection or {}
+        built_from = proj.get("built_from_snapshot_id")
+        envelope = Envelope(
+            object_id=topic.dossier_id(query, sources), object_kind="TOPIC_DOSSIER",
+            review_status="AUTO_EXTRACTED_UNREVIEWED", layer="PROJECTION", payload_form="NORMALIZED",
+            origin="DERIVED", canonical_snapshot_id=canon_snapshot,
+            source_id=sources[0] if len(sources) == 1 else None,
+            projection=Projection(engine=proj.get("engine", "navigation"), index_or_graph=proj.get("index_or_graph"),
+                                  build_id=proj.get("build_id"), built_from_snapshot_id=built_from,
+                                  matches_canonical_snapshot=None if built_from is None else
+                                  built_from == canon_snapshot))
+        warnings = [ApiWarning(code=w["code"], message=w["message"], count=w.get("count")) for w in dossier.warnings]
+        nav_snapshot = (dossier.record.get("inputs") or {}).get("nav_snapshot_id")
+        if nav_snapshot and nav_snapshot != canon_snapshot:
+            warnings.append(ApiWarning(code="NAV_SNAPSHOT_BEHIND", message="the navigation layer was built from "
+                                       "another canonical snapshot; ids are stable, counts may differ"))
+        return Result(item=Item(envelope=envelope, record=jsonable(dossier.record)), warnings=warnings)
 
     def citations(self, work_id: str, direction: str, include_unlinked: bool, limit: int) -> Result:
         self._check("work", work_id)
