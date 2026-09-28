@@ -191,6 +191,9 @@ def init_root(root: str | Path, kind: RootKind | str, *, note: str | None = None
         tmp.write_text(json.dumps(body, indent=1, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
         os.replace(tmp, layout.marker)
     layout.ensure_dirs()
+    if kind == RootKind.CANONICAL:
+        # the API mounts duckdb/ read-only with create_host_path: false; it must exist before the first reconcile
+        (layout.root / "duckdb").mkdir(exist_ok=True)
     return layout
 
 
