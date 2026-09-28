@@ -6,7 +6,9 @@ BM25-проекция — проект E §4–5 ([AGENT_E_GRAPH_SEARCH_DESIGN.m
 F §5 ([AGENT_F_RERANKER_DEPLOYMENT.md](AGENT_F_RERANKER_DEPLOYMENT.md)).
 
 Версия документа: 2 (28.09.2026): учтены ответы координатора на вопросы §20 (GPU-окна, состав V0, CLI, OpenSearch)
-и факты первых CPU-проверок моделей (§6, §7.3). Данные канона для бенчмарка ещё не опубликованы.
+и факты первых CPU-проверок моделей (§6, §7.3). Результаты V0 на canary-снимке —
+[RESULTS_V0.md](../../benchmarks/retrieval_v0/RESULTS_V0.md), выбор пары для сервиса RX580 —
+[MODEL_SELECTION_V0.md](../../benchmarks/retrieval_v0/MODEL_SELECTION_V0.md).
 
 ## 0. Итог
 
