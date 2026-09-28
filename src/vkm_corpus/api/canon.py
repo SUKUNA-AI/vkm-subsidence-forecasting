@@ -142,7 +142,17 @@ class CanonStore:
         if self._con is None or stamp != self._stamp:
             import duckdb
 
+            # close the old connection FIRST: DuckDB caches database instances by path inside the process, so a new
+            # connect() while the old one is open returns the old (replaced) file and the API would keep serving the
+            # previous snapshot after a reconcile. A query in flight on the old connection at this moment may fail
+            # once and succeed on retry.
             old, self._con = self._con, None
+            if old is not None:
+                try:
+                    old.close()
+                except Exception:  # noqa: BLE001
+                    pass
+                old = None
             try:
                 con = duckdb.connect(str(self.path), read_only=True)
                 # spills go to the (tmpfs) temp dir, never next to the read-only database file
