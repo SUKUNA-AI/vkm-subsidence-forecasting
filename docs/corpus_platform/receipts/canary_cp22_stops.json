@@ -1,0 +1,51 @@
+{
+  "completed_by": [
+    "RUN-20260928T015230Z-e02b7d48",
+    "RUN-20260928T015743Z-f4085157",
+    "RUN-20260928T020146Z-3606de3b"
+  ],
+  "open_question": "window per call trips on local clusters (dot leaders, dense tables) although the run-wide rates are far below the thresholds; options: count per page, keep resume-after-investigation, or raise the table cap / narrow table bands",
+  "receipt": "vkm.cp22_stops/1",
+  "rule": "CP-22: stop over the last 200 calls when finish_reason=length > 2 %, empty-on-ink > 1 % or repetition > 1 %",
+  "run_totals": {
+    "empty_on_ink_share": 0.0,
+    "errors": 2,
+    "finish_length_share": 0.00211,
+    "ocr_calls": 17080,
+    "repetition_share_rule_v2": 0.00023
+  },
+  "stops": [
+    {
+      "after_calls": 362,
+      "cause": "detector v1 counted HTML table markup: 5 of 8 REPETITION flags were real tables (014 p111, p160, p167); 3 were table OCR on mine plans labelled 'table' by PP-DocLayoutV3 (014 p104, p105)",
+      "fix": "ocr_quality_v2 (loops measured on recognised text only; flags recomputed at commit); with v2 the window holds REPETITION 2 (014 p103, p105) and TRUNCATED 3",
+      "rule": "ocr_quality_v1",
+      "run_id": "RUN-20260928T010532Z-218b7c44",
+      "window": "TRUNCATED=0.015, EMPTY_ON_INK=0.000, REPETITION=0.035"
+    },
+    {
+      "after_calls": 8479,
+      "cause": "GLM-OCR loops on dot leaders ('. . . .') in 037 specification sheets up to the 4096-token cap (12 calls, pp. 39-208)",
+      "fix": "none (model behaviour); resumed after investigation",
+      "rule": "ocr_quality_v2",
+      "run_id": "RUN-20260928T012147Z-fea1b2a7",
+      "window": "TRUNCATED=0.025, EMPTY_ON_INK=0.000, REPETITION=0.005"
+    },
+    {
+      "after_calls": 4038,
+      "cause": "052 dense scanned numeric tables: after the last printed row the model emits empty <tr> until the 6144-token cap (8 calls); 037 dot leaders (3 calls)",
+      "fix": "ocr_normalize_v2 keeps the complete rows of a cut table and drops trailing empty rows; band slivers (3-4 px, 2 server errors) removed (band_min_tail_px = 64)",
+      "rule": "ocr_quality_v2",
+      "run_id": "RUN-20260928T013435Z-ba41d1db",
+      "window": "TRUNCATED=0.035, EMPTY_ON_INK=0.000, REPETITION=0.000"
+    },
+    {
+      "after_calls": 224,
+      "cause": "052 dense tables (10 of 224 calls)",
+      "fix": "the 14 other sources were finished first; the remaining 052 work (60 main + 1434 re-OCR calls) ran without flags",
+      "rule": "ocr_quality_v2",
+      "run_id": "RUN-20260928T014600Z-9fc0a0a7",
+      "window": "TRUNCATED=0.045, EMPTY_ON_INK=0.000, REPETITION=0.000"
+    }
+  ]
+}

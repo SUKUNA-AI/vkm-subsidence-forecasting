@@ -1,0 +1,112 @@
+diff --git a/conversion/__init__.py b/conversion/__init__.py
+index 85db1d643..d2ae1902b 100644
+--- a/conversion/__init__.py
++++ b/conversion/__init__.py
+@@ -231,6 +231,8 @@ TEXT_MODEL_MAP: dict[str, str] = {
+     "Qwen3ASRForConditionalGeneration": "qwen3vl",
+     "Qwen3ForCausalLM": "qwen",
+     "Qwen3Model": "qwen",
++    "PPLXQwen3Model": "qwen",  # VKM rx580 patch 0001
++    "Qwen3BidirectionalModel": "qwen",  # VKM rx580 patch 0001 (Giga-Embeddings)
+     "Qwen3MoeForCausalLM": "qwen",
+     "Qwen3NextForCausalLM": "qwen",
+     "Qwen3OmniMoeForConditionalGeneration": "qwen3vl",
+@@ -280,6 +282,7 @@ TEXT_MODEL_MAP: dict[str, str] = {
+     "WavTokenizerDec": "wavtokenizer",
+     "XLMRobertaForSequenceClassification": "bert",
+     "XLMRobertaModel": "bert",
++    "HF_ColBERT": "bert",  # VKM rx580 patch 0001 (jina-colbert-v2)
+     "XverseForCausalLM": "xverse",
+     "YoutuForCausalLM": "deepseek",
+     "YoutuVLForConditionalGeneration": "deepseek",
+diff --git a/conversion/bert.py b/conversion/bert.py
+index 23d8b9333..3c4aac6f4 100644
+--- a/conversion/bert.py
++++ b/conversion/bert.py
+@@ -567,6 +567,22 @@ class XLMRobertaModel(BertModel):
+             lora_writer.close()
+ 
+ 
++@ModelBase.register("HF_ColBERT")
++@ModelBase.example("jinaai/jina-colbert-v2")
++class JinaColBertV2Model(XLMRobertaModel):
++    """VKM rx580 patch 0001: jinaai/jina-colbert-v2 backbone = XLM-RoBERTa with rotary positions (the
++    jina-embeddings-v3 architecture without LoRA adapters). The ColBERT head (linear.weight, 1024->128, no bias) and
++    the unused pooler are not stored: the VKM gateway applies the head to the token outputs (pooling none)."""
++    model_arch = gguf.MODEL_ARCH.JINA_BERT_V3
++
++    @classmethod
++    def filter_tensors(cls, item: tuple[str, Callable[[], Tensor]]) -> tuple[str, Callable[[], Tensor]] | None:
++        name, _ = item
++        if name == "linear.weight" or ".pooler." in name or name.startswith("pooler."):
++            return None
++        return super().filter_tensors(item)
++
++
+ @ModelBase.register("JinaBertModel", "JinaBertForMaskedLM")
+ @ModelBase.example("jinaai/jina-embeddings-v2-base-en")
+ class JinaBertV2Model(BertModel):
+@@ -604,8 +620,24 @@ class ModernBertModel(BertModel):
+         self.gguf_writer.add_add_bos_token(True)
+         self.gguf_writer.add_add_eos_token(True)
+         self.gguf_writer.add_add_sep_token(True)
++        if self._is_metaspace_bpe():
++            # VKM rx580 patch 0001: mmBERT-style ModernBERT (lightonai mDenseOn / mLateOn) ships a Gemma-2 SentencePiece
++            # BPE tokenizer.json (Metaspace + byte fallback) without tokenizer.model: an SPM ("llama") vocabulary,
++            # not a GPT-2 BPE one whose pre-tokenizer hash is unknown.
++            self._set_vocab_llama_hf()
++            return
+         self._set_vocab_gpt2()
+ 
++    def _is_metaspace_bpe(self) -> bool:
++        tokenizer_json = self.dir_model / "tokenizer.json"
++        if not tokenizer_json.is_file():
++            return False
++        with open(tokenizer_json, "r", encoding="utf-8") as f:
++            tj = json.load(f)
++        pre = tj.get("pre_tokenizer") or {}
++        model = tj.get("model") or {}
++        return pre.get("type") == "Metaspace" and model.get("type") == "BPE" and bool(model.get("byte_fallback"))
++
+     def set_gguf_parameters(self):
+         super().set_gguf_parameters()
+         self.gguf_writer.add_sliding_window(self.hparams["local_attention"])
+diff --git a/conversion/qwen.py b/conversion/qwen.py
+index 64d606176..48e4ba172 100644
+--- a/conversion/qwen.py
++++ b/conversion/qwen.py
+@@ -255,6 +255,34 @@ class Qwen3Model(Qwen2Model):
+         yield from super().modify_tensors(data_torch, name, bid)
+ 
+ 
++@ModelBase.register("PPLXQwen3Model", "Qwen3BidirectionalModel")
++@ModelBase.example("perplexity-ai/pplx-embed-v1-0.6b")
++class PPLXQwen3Model(Qwen3Model):
++    """VKM rx580 patch 0001: Perplexity pplx-embed-v1 family (dense, context, late): Qwen3 weights with bidirectional
++    attention (PPLXQwen3Model sets is_causal=False on every layer); pooling from 1_Pooling when present."""
++    model_arch = gguf.MODEL_ARCH.QWEN3
++
++    def set_gguf_parameters(self):
++        super().set_gguf_parameters()
++        self.gguf_writer.add_causal_attention(False)
++
++    def set_vocab(self):
++        try:
++            super().set_vocab()
++        except NotImplementedError as exc:
++            # Giga-Embeddings ships an o200k-style BPE whose pre-tokenizer hash is unknown to this converter. The VKM
++            # service always sends token ids produced by the pinned tokenizer.json, so the GGUF vocabulary is only
++            # structural here: write it with the "default" pre-tokenizer and say so.
++            logger.warning(f"VKM: unknown BPE pre-tokenizer ({exc}); writing pre=default (id-based use only)")
++            self.get_vocab_base_pre = lambda tokenizer: "default"  # ty: ignore[invalid-assignment]
++            self._set_vocab_gpt2()
++
++    def modify_tensors(self, data_torch: Tensor, name: str, bid: int | None) -> Iterable[tuple[str, Tensor]]:
++        if not name.startswith("model.") and not name.startswith("lm_head"):
++            name = f"model.{name}"  # PPLXQwen3Model is a bare Qwen3Model: map to Qwen3ForCausalLM tensor names
++        yield from super().modify_tensors(data_torch, name, bid)
++
++
+ @ModelBase.register("Qwen3MoeForCausalLM")
+ @ModelBase.example("Qwen/Qwen3-30B-A3B")
+ class Qwen3MoeModel(Qwen2MoeModel):

@@ -1,0 +1,24 @@
+diff --git a/src/models/qwen2vl.cpp b/src/models/qwen2vl.cpp
+--- a/src/models/qwen2vl.cpp
++++ b/src/models/qwen2vl.cpp
+@@ -133,11 +133,16 @@ llama_model_qwen2vl::graph::graph(const llama_model & model, const llm_graph_params & params) : llm_graph_context(params) {
+     cb(cur, "result_norm", -1);
+     res->t_embd = cur;
+ 
+-    // lm_head
+-    cur = build_lora_mm(model.output, cur, model.output_s);
++    // VKM D-F1: with --embeddings only the normed hidden states are read (pooling last); the lm_head would compute
++    // logits for every token of the ubatch (n_ubatch x n_vocab x 4 B, 593 MiB at -ub 1024) and, with op offload,
++    // copy the CPU-resident output weights to the GPU. Skip it; t_logits stays nullptr (handled by llama_context).
++    if (!cparams.embeddings) {
++        // lm_head
++        cur = build_lora_mm(model.output, cur, model.output_s);
+ 
+-    cb(cur, "result_output", -1);
+-    res->t_logits = cur;
++        cb(cur, "result_output", -1);
++        res->t_logits = cur;
++    }
+ 
+     ggml_build_forward_expand(gf, cur);
+ }

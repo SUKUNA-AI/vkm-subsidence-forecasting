@@ -1,0 +1,216 @@
+# VKM Corpus Platform v0 — итоговый отчёт
+
+Дата: 28.09.2026. Постановка — [TASK_SPEC_CORPUS_PLATFORM_V0_RU.md](../implementation_work/TASK_SPEC_CORPUS_PLATFORM_V0_RU.md)
+и [TASK_SPEC_RETRIEVAL_LAB_RU.md](../implementation_work/TASK_SPEC_RETRIEVAL_LAB_RU.md); решения —
+[COORDINATOR_DECISIONS.md](../implementation_work/COORDINATOR_DECISIONS.md); независимая проверка —
+[AGENT_I_VERIFICATION.md](../implementation_work/AGENT_I_VERIFICATION.md). Квитанции — [receipts/](receipts/).
+
+**Итог: Corpus Platform v0 — READY** (независимая проверка агента I на итоговом снимке
+`snap-20260928T113713Z-fa0aa127`: 14 критериев PASS; открыто: smoke Q5 — усиление по номеру рисунка; NOT_RUN: прогон
+`claude -p`, живое чтение COM AutoCAD; отклонение по решению пользователя: списки литературы и цитирование, CP-38).
+Найдены и исправлены в ходе проверки: происхождение OCR-страниц (3d65454), API не переоткрывал новый снимок (53de9a2),
+незавершённый OCR сценария A после стопа CP-22 (CP-40).
+
+## 1. Репозитории и ветки
+
+| | PUBLIC | PRIVATE |
+|---|---|---|
+| исходный HEAD (`main`) | `f461fb6` | `c575a07` |
+| рабочая ветка | `claude/corpus-platform-v0-2026-09-28` | `claude/corpus-platform-v0-2026-09-28` |
+| итоговый HEAD | ветка `claude/corpus-platform-v0-2026-09-28` → `main` через PR #5 (хеш слияния — в описании PR) | `d9a5b3f` (слияние PR #5) |
+| PR | [SUKUNA-AI/vkm-subsidence-forecasting#5](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/pull/5) | [SUKUNA-AI/vkm-subsidence-forecasting_resourses#5](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting_resourses/pull/5) — слит |
+
+## 2. Агенты: что нашёл и что сделал каждый
+
+| Агент | Роль | Главное |
+|---|---|---|
+| A | аудит репозиториев и контрактов | карта источников, группы копий и «чужие страницы» (§2.8), риски идентичности |
+| B | инвентаризация инфраструктуры | CareerOps оказался живой системой; план вывода с проверками выживания; KEEP-объекты с историческими именами |
+| C | извлечение и OCR | pipeline native-first, DjVu/EPUB/DOCX, PP-DocLayoutV3, GLM-OCR, сценарий B, canary (K-01…K-19), проверка титулов DjVu |
+| D | канонические данные | единый контракт (CP-16), ID, реестр, коммиты Parquet, допуск, снимки и валидатор, DuckDB, seed таблицы произведений |
+| E | граф и поиск | Neo4j DOCUMENT graph (проверки C1–C16), OpenSearch (индексы по типам, русский анализатор, smoke) |
+| F | реранкеры | шлюз `vkm.rerank/1`, m0 Q6_K на GTX 1650 рядом с v3.5, patch D-F1, parity, приёмка 9/9 |
+| G | API, MCP, CAD, draw.io | VKM API, MCP read/admin, мост Autodesk (только чтение COM), MCP draw.io, compose CORE |
+| H | ревью архитектуры | 51 замечание (H-01…H-51), принятые решения вошли в CP-15…CP-26 |
+| I | независимая проверка | 14 критериев на итоговом снимке: READY; нашёл 4 проблемы (происхождение OCR-страниц, устаревший снимок в API, незавершённый OCR сценария A, отсутствие библиографии) — три исправлены, одна отложена решением CP-38 |
+| J | бенчмарк retrieval | дизайн, 189 запросов, qrels, лицензии, харнесс; V0 на снимке canary (133 из 189 запросов, BGE-M3 включена): главный выигрыш — late interaction mLateOn, выбор пары для RX 580 |
+| K | RX 580 | Vulkan/RADV + llama.cpp, патчи 0001–0004, матрица 14 моделей, parity, резидентность двух моделей, сервис |
+
+## 3. Разногласия и решения
+
+| Вопрос | Позиции | Решение |
+|---|---|---|
+| CareerOps на EDGE | B: живая система, не «остатки» | вывод по плану B после явного «да» пользователя, с экспортом и проверками выживания (CP-20) |
+| лицензия PyMuPDF (AGPL) | C: лучший экстрактор; риск лицензии PUBLIC | решение пользователя: принять (CP-14) |
+| PDF с запретом копирования (например, 239) | H-51: отдельный флаг | решение пользователя: обрабатывать как обычные файлы, без флага |
+| быстрый отказ 503 для перегруженного text-реранкера | H-41 предлагал | отклонено: всплески ждут в очереди, таймаут шлюза 300 с (CP-36) |
+| размещение m0 на GTX 1650 | план F: ≈24 из 28 слоёв | измерено: 20 слоёв (бюджет VRAM), скорость почти не зависит от числа слоёв; патч D-F1 оказался обязателен |
+| окно аварийной остановки OCR (CP-22) | 200 вызовов останавливали прогон на локальных кластерах | для полного прогона окно 2000 при прежних порогах (CP-32) |
+| число страниц 053 в реестре (423 вместо 384) | исправить реестр | реестр закреплён по SHA-256 и используется прогонами — правка записана как предложение (CP-28) |
+| объекты DOCX без страницы | контракт D допускает, проверка графа E требовала `page_id` | `page_id` для объектов необязателен (CP-33) |
+| развёртывание API/MCP | политика разрешений отказала агенту G | вынесено пользователю; развернул координатор (CP-34) |
+| backend RX 580 | Vulkan/RADV или ROCm/HIP (gfx803) | Vulkan; HIP отклонён (сбои test-backend-ops, в 1,9–2,8 раза медленнее) |
+| BGE-M3 multi-vector | Q8_0 для всех моделей | не проходит предрегистрированный gate на Q8_0 — только F16 |
+| привязка DOCX 023 | совпадение с Phase 1 | RENDER_DEPENDENT: закреплённый рендер LibreOffice 24.2, рецепт в квитанции |
+
+## 4. Инфраструктура и топология
+
+| Хост | Роль | Что работает |
+|---|---|---|
+| WORKSTATION (Windows 11, WSL `archlinux`, RTX 5070 Ti 16 GB) | единственный producer | pipeline и STAGING-корень (`~/vkm/staging` в WSL); GLM-OCR (vLLM в Docker Desktop, только loopback); PP-DocLayoutV3; MCP `vkm-cad` и `vkm-drawio` (stdio); архив на разделе данных |
+| CORE (Debian 13, Ryzen 7 5800X, RX 580 8 GB) | единственный CANONICAL-корень | `VKM_DATA_ROOT` = `/srv/vkm/data`; compose `vkm-core`: Neo4j 5.26.31 и OpenSearch 3.8.0 (loopback), VKM API :8000, MCP :8765, MCP admin :8766 (LAN, токены), задание `vkm-job`; сервис RX 580 (loopback, отдельный контейнер) |
+| EDGE (Debian 13, GTX 1650 4 GB) | реранкеры и control plane | шлюз `vkm.rerank/1` :18084 (LAN, токен); text-реранкер Jina v3.5 (существующий сервис); visual m0 (llama-server, loopback); PostgreSQL 18.6, БД `vkm_ops` |
+
+Поток: WORKSTATION пишет неизменяемые партиции в STAGING → `vkm-corpus core publish` (rsync, маркеры последними) →
+на CORE `core reconcile` (допуск → снимок и валидатор → DuckDB → Neo4j → OpenSearch). Проекции строятся только из
+`CURRENT` CANONICAL-корня.
+
+## 5. Вывод CareerOps
+
+Полная квитанция — [CAREEROPS_MIGRATION_RECEIPT.md](CAREEROPS_MIGRATION_RECEIPT.md). Архив: `<ARCHIVE_DRIVE>:\VKM_ARCHIVE\careerops_2026-09-28\`
+на разделе данных WORKSTATION, 317 MB, в каждом подкаталоге `SHA256SUMS`; секреты не архивировались (только их имена).
+Удалены: таймеры и сервисы CareerOps, worker-контейнеры, SeaweedFS и его данные, БД `careerops`, VM `k8s-cp01`,
+промежуточные копии архива. Сохранены: PostgreSQL-сервер (compose перенесён в нейтральный каталог), text-реранкер
+(не перезапускался), SSH и сеть, YouTrack и Caddy (используются другими проектами). Приёмка §54 — все пункты PASS.
+
+## 6. Модели и сервисы
+
+| Сервис | Модель и ревизия | Backend | Состояние |
+|---|---|---|---|
+| OCR | `zai-org/GLM-OCR` @ `2e85a62840ccac27daa451df36c736c4636b8628` | vLLM v0.30.0 (`sha256:8a69ffad…`), CUDA 13.0.3, bf16, MTP k=3, `--gpu-memory-utilization 0.66` | работает; canary: 17 080 вызовов, 2 ошибки, 0 вытеснений |
+| разметка страниц | `PaddlePaddle/PP-DocLayoutV3_safetensors` @ `97d101e6…` | transformers 5.17, torch 2.13 cu130, in-process | ≈70 мс/стр., регионы детерминированы (K-04: 108/108) |
+| text-реранкер | `jinaai/jina-reranker-v3.5` @ `e8a93f33…` | существующий сервис на EDGE, fp16 | не перезапускался; бюджет 4096 токенов |
+| visual-реранкер | `jinaai/jina-reranker-m0-GGUF` @ `61490ce6…`, Q6_K (`115f0be6…`) + mmproj Q8_0 (`91628a15…`) | llama.cpp b11223 CUDA sm_75 + patch D-F1, 20/28 слоёв на GPU, MLP-голова в шлюзе | parity PASS (max \|Δ\| 0,025, top-1 5/5) |
+| retrieval-ускоритель | пара granite-embedding-311m-multilingual-r2 + mLateOn, Q8_0 | RX 580, Vulkan/RADV (Mesa 25.0.7), llama.cpp b11223 + патчи 0001–0004 | 371 MiB VRAM на двоих; p50 ≈ 14 мс; 207 запросов/с при 8 клиентах |
+
+**Одновременная работа реранкеров на GTX 1650 (§31, §56)** — приёмка 9/9: обе модели загружены (text 1674 MiB,
+m0 1868 MiB, свободно 170 MiB из 3716); text top-3 5/5, visual top-1 5/5 на настоящих изображениях страниц; три
+text-вызова (10,2–10,6 с) завершились внутри одного visual-вызова (78 с), оба процесса активны в одну секунду;
+всплески 12 и 16 запросов — все 200, без 5xx; OOM нет; перезагрузок моделей нет (text-сервис: тот же StartedAt,
+RestartCount 0). Латентность с учётом всплесков p50/p95: text 31,6/94,2 с, visual 46,3/132,6 с; одиночный
+text-вызов на 24 пассажа — 5,2 с, одно изображение — ≈7,7 с.
+
+## 7. Канон и проекции
+
+Итоговый снимок `snap-20260928T113713Z-fa0aa127` (reconcile `RUN-20260928T113641Z-final04`, валидатор PASS, 0
+блокирующих, `canon validate --deep --acceptance --expected-sources 251` — PASS). Схемы: контракт `0.1.0`
+(`SCHEMA_VERSION`), раскладка корня `1`, pipeline `0.1.0`, граф `doc-graph/1.0`, маппинг поиска `1`, ops `ops-0.1.0`.
+
+| Показатель | Значение |
+|---|---|
+| источники | 251: 221 полных, 28 частичных, 0 сбоев, 2 пропущены по реестру (013, 022) |
+| страницы | 26 483: нативный текст 16 455; чужой встроенный OCR-слой 3 505; GLM-OCR 6 387; частичные 135; без текста 1 (VKM-SRC-221); сбоев 0 |
+| объекты | 621 497 блоков, 17 784 рисунка, 3 391 таблица, 108 904 формулы; библиографии 0 (CP-38) |
+| OCR | ≈ 181,5 тыс. вызовов GLM-OCR за день, 0 ошибок, 148 обрезанных ответов (0,08 %); сценарий B перераспознал ≈ 2,5 тыс. страниц с плохими чужими слоями |
+| происхождение | 6 502 OCR-страницы несут `origin = OCR` и модель распознавания; встроенные слои — `EMBEDDED_OCR` (проверка E13 — 0 нарушений) |
+| прогоны | нативный проход 1 ч 45 мин (24 124 вызова разметки), OCR 1 ч 04 мин + дозапуск 58 мин (CP-40), 0 падений воркеров |
+
+Проекции: DuckDB собрана из снимка; Neo4j и OpenSearch — Neo4j — сборка `VKM-PRJ-DOC-20260928T115006Z-656fd511`, READY, проверки графа C1–C16 PASS (после исправления удаления слоя, dc00b78); OpenSearch — сборка `20260928t114733z-a64578c3` за алиасами, счётчики равны канону (26 483 / 621 497 / 17 784 / 3 391 / 108 904), русский smoke — все пункты PASS, кроме Q5 (усиление по номеру «рис. 3.1» на полном корпусе не выводит подписанный рисунок в топ-5: вопрос настройки релевантности, техдолг). API переключился на итоговый снимок сам, без
+перезапуска (исправление 53de9a2 подтверждено агентом I вживую).
+
+## 8. API, MCP, мост Autodesk, draw.io
+
+- **VKM API** (CORE :8000, `/v1`): health, status, search (GET/POST), objects/query, source (+pages), work, page
+  (+image), object (+image), figure/table/formula (+image), artifact (+content), rerank/text, rerank/visual, neighbors,
+  citations, provenance, processing/status, jobs/{id}, jobs/{id}/cancel, reprocess/source, reprocess/page. Токены
+  чтения и записи; без токена — 401, токен чтения на запись — 403, чужой `Host` — 421.
+- **VKM Corpus MCP** (CORE :8765, streamable HTTP): 19 read-инструментов — search_text, search_objects, get_source,
+  get_work, get_page, get_page_image, get_figure, get_table, get_formula, get_object, get_document_neighbors,
+  get_citations, rerank_text, rerank_visual, get_processing_status, trace_document_provenance, get_artifact,
+  list_source_pages, get_corpus_status. **Admin MCP** (:8766): reprocess_source, reprocess_page, get_job, cancel_job —
+  только постановка заданий plan-first; исполняет воркер на WORKSTATION.
+- **Мост Autodesk** (`vkm-cad`, stdio, 11 инструментов): обнаружение установок, чтение открытого документа только через
+  `GetActiveObject`, запись — только в scratch через ezdxf. Живое чтение COM при запущенном AutoCAD не проверялось
+  (AutoCAD не был запущен).
+- **draw.io** (`vkm-drawio`, stdio, 8 инструментов): создание, правка, раскладка, экспорт (svg/png/pdf) и открытие схем;
+  схемы платформы в `docs/diagrams/` пересобираются из спецификаций байт-в-байт.
+
+## 9. Тесты
+
+| Набор | Где | Результат |
+|---|---|---|
+| `tests/corpus` + `tests/world`, без маркеров `services`/`gpu`/`desktop` | WSL, venv pipeline, HEAD | **819 passed, 0 failed**, 13 skipped (нет необязательных пакетов: fastapi, mcp, ezdxf, neo4j, opensearch-py, snowballstemmer), 10 deselected |
+| тесты API, MCP, шлюза реранка, CAD, draw.io, гибридного поиска (пропущенные выше) | Windows venv с fastapi/mcp/ezdxf | PASS (агент I: 167 passed; после исправлений — 51 API/MCP + 18 шлюза) |
+| `services`: PostgreSQL control plane и воркер | живой PostgreSQL на EDGE | PASS |
+| `services`: Neo4j/OpenSearch live | тестовые namespace/префиксы (агент E) | PASS 11; на рабочих сервисах не запускались (политика) |
+| `gpu`: GLM-OCR и layout live | RTX 5070 Ti | PASS 2 (агент C) |
+| `desktop`: draw.io | WORKSTATION | PASS 1 (opt-in); живое чтение COM AutoCAD — NOT_RUN |
+| гигиена PUBLIC (`test_public_hygiene`, leakage, `verify_canonical_repository.py`) | WSL/Windows | PASS (frozen-теги — SKIPPED_REF_UNAVAILABLE локально) |
+
+## 10. Лаборатория retrieval
+
+Постановка — [TASK_SPEC_RETRIEVAL_LAB_RU.md](../implementation_work/TASK_SPEC_RETRIEVAL_LAB_RU.md). Бенчмарк V0 —
+[RESULTS_V0.md](../../benchmarks/retrieval_v0/RESULTS_V0.md) и [MODEL_SELECTION_V0.md](../../benchmarks/retrieval_v0/MODEL_SELECTION_V0.md);
+RX 580 — [AGENT_K_RX580_PARITY_RESULTS.md](../implementation_work/AGENT_K_RX580_PARITY_RESULTS.md) и соседние отчёты K.
+
+**RX 580 (8 GB, gfx803).** Backend — Vulkan/RADV (Mesa 25.0.7) + llama.cpp b11223 в Docker, патчи 0001–0004 (каждый с
+проверкой бит-в-бит); test-backend-ops 18 834/18 834; HIP/ROCm отклонён. 14 кандидатов запущены; предрегистрированный
+parity-гейт на двух пробах корпуса (1 918 и 1 788 объектов) пройден в Q8_0 у 13 моделей (top-10 0,967–0,992,
+Spearman 0,993–0,999); BGE-M3 multi-vector — только F16. Резидентность двух моделей (dense + late одновременно,
+параллельные запросы, без общей блокировки, без перезагрузок) — PASS на 7 парах. Сервис `rx580-retrieval` в compose
+CORE: jina-v5-nano (211 MiB) + mLateOn (171 MiB), keepalive от засыпания карты (12 мс против 877 мс после простоя).
+
+**Бенчмарк V0** (снимок canary, 107 текстовых и 26 визуальных запросов, VERIFIED qrels, парный рандомизационный тест;
+56 запросов NOT_RUN — их источников нет в canary):
+
+| Система | nDCG@10 | R@50 | Δ к BM25 (p) |
+|---|---|---|---|
+| BM25 (анализатор `vkm_text`) | 0,419 | 0,681 | — |
+| dense granite-311m-r2 | 0,359 | 0,632 | −0,060 (0,076) |
+| dense Qwen3-Embedding-0.6B | 0,431 | 0,741 | +0,012 (0,73) |
+| dense jina-v5-nano | 0,439 | 0,755 | +0,020 (0,57) |
+| dense BGE-M3 (FlagEmbedding fp32) | 0,424 | 0,762 | +0,005 (0,87) |
+| sparse BGE-M3 | 0,355 | 0,625 | −0,064 (0,025) |
+| late mLateOn (полный MaxSim) | **0,510** | 0,809 | **+0,091 (0,002)** |
+| late jina-colbert-v2 | 0,483 | 0,763 | +0,064 (0,030) |
+| late BGE-M3 multi-vector | 0,489 | 0,784 | +0,070 (0,020) |
+| BGE-M3 unified 0,4/0,2/0,4 | 0,472 | 0,796 | +0,053 (0,073) |
+| схема сервиса: RRF(BM25, dense) → mLateOn | 0,507–0,515 | 0,774–0,781 | +0,088…+0,096 (≤ 0,001) |
+| RRF(BM25, BGE-M3, mLateOn) | 0,519 | 0,795 | +0,100 (< 0,001) |
+| BM25 → реранк v3.5 top-24 | 0,436 | 0,681 | +0,017 (0,32) |
+
+Выводы: главный источник качества — late interaction (mLateOn); схема сервиса «гибрид → mLateOn» не хуже полного MaxSim;
+dense нужен как источник кандидатов, но сам по себе BM25 не превосходит; BGE-M3 пару не меняет; текстовый реранк v3.5
+и визуальный m0 значимого выигрыша не дали. Пара сервиса: mLateOn + jina-v5-nano (решение пользователя CP-39;
+рекомендация J — Qwen3, равноценна по качеству, в 5 раз медленнее кодирование).
+
+**Этап 2** (векторный индекс + гибридный поиск BM25 + dense в API и MCP, `search_hybrid`, `retrieval_trace`): код и
+тесты готовы, сервисы развёрнуты; кодирование всего корпуса jina-v5-nano на RX 580 и сборка векторного индекса идут
+автономно на CORE после финального снимка (запущено 28.09 в 14:51 на снимке итогового прогона; статус — `receipts/lab_stage2/STATUS` на CORE). Late interaction для всего корпуса, векторный трек
+(Qwen3-VL / jina-omni), V1 на полном корпусе — следующий шаг.
+
+## 11. Частичные и неудачные источники
+
+28 источников с частичными страницами (135 страниц): обрезанные ответы модели на плотных числовых таблицах (221,
+052), точки-заполнители оглавлений (037), планы горных работ, распознанные разметкой как таблицы (014), и отдельные
+страницы крупных сканов (227, 228, 230–235, 238, 243–246, 248, 250, 251 и др.). Одна страница без текста —
+VKM-SRC-221. Список по источникам — в квитанциях прогонов (`receipts/`); страницы помечены статусом `PARTIAL` и
+флагами качества, текст на них есть.
+
+## 12. Технический долг
+
+| Долг | Где | Следующий шаг |
+|---|---|---|
+| сегментация списков литературы, связи CITES (§24, §58) | pipeline, канон | отложено решением пользователя (CP-38): вечером 28.09 после OCR — извлечение, пересборка из кешей, reconcile |
+| late interaction mLateOn для всего корпуса | лаборатория, RX 580 | мультивекторные артефакты (~10–15 GB), потоковая проверка, стадия MaxSim в гибридном поиске |
+| бенчмарк V1 на полном корпусе, пул-разметка top-10, ревью H (§60 лаборатории) | лаборатория | после эмбеддингов всего корпуса |
+| 35 источников с частичными страницами (обрезанные ответы на плотных числовых таблицах, точки-заполнители, планы горных работ, распознанные как таблицы) | OCR | защита от зацикливания GLM, поворот и выравнивание, отдельный маршрут для карт и планов |
+| проверка E13 (происхождение страниц) — не блокирующая в v0 | валидатор | сделать блокирующей после пересборки |
+| smoke Q5: номер рисунка («рис. 3.1») не поднимает подписанный рисунок в топ-5 на полном корпусе | OpenSearch | усилить буст `object_label` при явном номере в запросе; проверка в V1 |
+| прогон `claude -p` только с инструментами MCP | приёмка §60 | NOT_RUN: CLI Claude на WORKSTATION не авторизован (`claude /login`) |
+| живое чтение COM при запущенном AutoCAD | мост CAD | проверить при следующем запуске AutoCAD |
+| text-реранкер слушает все интерфейсы (D-F7); усечение кандидатов ≈150 токенов при n=24 | EDGE | закрыть порт на loopback при плановом окне; в V1 подобрать глубину 8–12 |
+| DOCX 023 — привязка RENDER_DEPENDENT (43/115 страниц совпадают с Phase 1) | канон | рецепт рендера закреплён; решение о шрифтах |
+| правки реестра 053 (384 страницы) и 054 (заглушка стр. 270) не применены | PRIVATE | отдельным коммитом реестра по решению пользователя |
+| очередь заданий эмбеддингов в PostgreSQL (протокол K) | ops | сейчас кодирование идёт автономным скриптом этапа 2 |
+| host-local обёртка `vkm-job` на CORE | CORE | заменить на compose-сервис `vkm-job` |
+| образы и данные, которые можно удалить: CUDA devel на EDGE (7 GB), висячие образы K на CORE (3,6 GB), лабораторные каталоги J и K на CORE | CORE, EDGE | удалить по одному, без `prune` |
+| пустой анонимный том SeaweedFS на EDGE; у подкаталога `workstation/` архива CareerOps нет `SHA256SUMS` | EDGE, архив | удалить том; дописать суммы |
+| поля Settings для токенов MCP и допустимых хостов; якоря EPUB через XPath; `document_class` у 025 | код | мелкие правки контрактов |
+
+## 13. Что сознательно не сделано в v0
+
+Сознательно не делалось (§63 постановки): генерация PhysicalWorld и World-0, OGS/MFront/ANSYS, PhysicsNeMo/GNN,
+прогнозные модели, научное повышение статусов evidence, интерфейс ревью. Всё извлечённое автоматически остаётся
+`AUTO_EXTRACTED_UNREVIEWED`; документный слой не содержит физических сущностей и представлений мира. Отложено решением
+пользователя: списки литературы и цитирование (CP-38).

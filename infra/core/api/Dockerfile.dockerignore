@@ -1,0 +1,8 @@
+# Build context of infra/core/api/Dockerfile (BuildKit reads <Dockerfile>.dockerignore next to the Dockerfile):
+# only the package sources, pyproject.toml and the lock files; never data, work trees, venvs or the PRIVATE clone.
+*
+!pyproject.toml
+!requirements/
+!src/
+src/**/__pycache__/
+src/*.egg-info/

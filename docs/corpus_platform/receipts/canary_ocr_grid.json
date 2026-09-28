@@ -1,0 +1,175 @@
+{
+ "source": "VKM-SRC-044",
+ "pages_per_config": 20,
+ "runs": [
+  {
+   "dpi": 200,
+   "concurrency": 12,
+   "page_range": [
+    21,
+    40
+   ],
+   "pages": 20,
+   "calls": 253,
+   "ok": 253,
+   "wall_s": 13.57,
+   "pages_per_s": 1.474,
+   "calls_per_s": 18.64,
+   "completion_tokens_per_s": 1196.3,
+   "prompt_tokens_per_s": 2137.7,
+   "latency_ms_p50": 416,
+   "latency_ms_p95": 1923,
+   "finish_length": 0,
+   "kv_cache_peak": 0.0601,
+   "preemptions": 0.0
+  },
+  {
+   "dpi": 200,
+   "concurrency": 24,
+   "page_range": [
+    41,
+    60
+   ],
+   "pages": 20,
+   "calls": 202,
+   "ok": 202,
+   "wall_s": 9.42,
+   "pages_per_s": 2.122,
+   "calls_per_s": 21.44,
+   "completion_tokens_per_s": 1353.5,
+   "prompt_tokens_per_s": 2600.1,
+   "latency_ms_p50": 565,
+   "latency_ms_p95": 3235,
+   "finish_length": 0,
+   "kv_cache_peak": 0.1092,
+   "preemptions": 0.0
+  },
+  {
+   "dpi": 200,
+   "concurrency": 32,
+   "page_range": [
+    61,
+    80
+   ],
+   "pages": 20,
+   "calls": 309,
+   "ok": 309,
+   "wall_s": 9.42,
+   "pages_per_s": 2.124,
+   "calls_per_s": 32.81,
+   "completion_tokens_per_s": 1722.9,
+   "prompt_tokens_per_s": 2888.4,
+   "latency_ms_p50": 569,
+   "latency_ms_p95": 2680,
+   "finish_length": 0,
+   "kv_cache_peak": 0.1199,
+   "preemptions": 0.0
+  },
+  {
+   "dpi": 200,
+   "concurrency": 48,
+   "page_range": [
+    81,
+    100
+   ],
+   "pages": 20,
+   "calls": 249,
+   "ok": 249,
+   "wall_s": 16.89,
+   "pages_per_s": 1.184,
+   "calls_per_s": 14.74,
+   "completion_tokens_per_s": 1101.9,
+   "prompt_tokens_per_s": 1508.1,
+   "latency_ms_p50": 833,
+   "latency_ms_p95": 3414,
+   "finish_length": 1,
+   "kv_cache_peak": 0.2234,
+   "preemptions": 0.0
+  },
+  {
+   "dpi": 300,
+   "concurrency": 12,
+   "page_range": [
+    101,
+    120
+   ],
+   "pages": 20,
+   "calls": 236,
+   "ok": 236,
+   "wall_s": 13.5,
+   "pages_per_s": 1.481,
+   "calls_per_s": 17.48,
+   "completion_tokens_per_s": 1003.7,
+   "prompt_tokens_per_s": 3750.4,
+   "latency_ms_p50": 357,
+   "latency_ms_p95": 2318,
+   "finish_length": 0,
+   "kv_cache_peak": 0.109,
+   "preemptions": 0.0
+  },
+  {
+   "dpi": 300,
+   "concurrency": 24,
+   "page_range": [
+    121,
+    140
+   ],
+   "pages": 20,
+   "calls": 189,
+   "ok": 189,
+   "wall_s": 11.45,
+   "pages_per_s": 1.747,
+   "calls_per_s": 16.51,
+   "completion_tokens_per_s": 1338.5,
+   "prompt_tokens_per_s": 4825.2,
+   "latency_ms_p50": 901,
+   "latency_ms_p95": 3475,
+   "finish_length": 0,
+   "kv_cache_peak": 0.1939,
+   "preemptions": 0.0
+  },
+  {
+   "dpi": 300,
+   "concurrency": 32,
+   "page_range": [
+    141,
+    160
+   ],
+   "pages": 20,
+   "calls": 216,
+   "ok": 216,
+   "wall_s": 10.86,
+   "pages_per_s": 1.842,
+   "calls_per_s": 19.9,
+   "completion_tokens_per_s": 1481.3,
+   "prompt_tokens_per_s": 5176.5,
+   "latency_ms_p50": 876,
+   "latency_ms_p95": 4957,
+   "finish_length": 0,
+   "kv_cache_peak": 0.3816,
+   "preemptions": 0.0
+  },
+  {
+   "dpi": 300,
+   "concurrency": 48,
+   "page_range": [
+    161,
+    180
+   ],
+   "pages": 20,
+   "calls": 183,
+   "ok": 183,
+   "wall_s": 7.84,
+   "pages_per_s": 2.551,
+   "calls_per_s": 23.34,
+   "completion_tokens_per_s": 1503.4,
+   "prompt_tokens_per_s": 6153.9,
+   "latency_ms_p50": 1572,
+   "latency_ms_p95": 3986,
+   "finish_length": 0,
+   "kv_cache_peak": 0.4287,
+   "preemptions": 0.0
+  }
+ ],
+ "note": "each configuration uses a disjoint slice of 20 pages, so no request repeats an image"
+}

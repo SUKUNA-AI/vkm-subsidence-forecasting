@@ -1,0 +1,584 @@
+{
+  "kind": "RECONCILE",
+  "run_id": "RUN-20260928T073056Z-canary02",
+  "started_at": "2026-09-28T07:30:57+00:00",
+  "steps": [
+    {
+      "step": "admit",
+      "status": "OK",
+      "seconds": 0.34
+    },
+    {
+      "step": "snapshot",
+      "status": "OK",
+      "seconds": 8.99
+    },
+    {
+      "step": "duckdb",
+      "status": "OK",
+      "seconds": 7.48
+    },
+    {
+      "step": "graph",
+      "status": "OK",
+      "seconds": 21.26
+    },
+    {
+      "step": "search",
+      "status": "OK",
+      "seconds": 17.57
+    }
+  ],
+  "admission": {
+    "admitted": 0,
+    "rejected": 0,
+    "pending": 0
+  },
+  "rejected": [],
+  "snapshot": {
+    "snapshot_id": "snap-20260928T073057Z-a2696925",
+    "status": "PASS",
+    "current_moved": true,
+    "manifest_sha256": "699721fc31975e301fd1ec58feeea2738856008b3e26a9f85831658dd59cfffe",
+    "blocking_failures": 0,
+    "counts": {
+      "sources_total": 251,
+      "sources_complete": 12,
+      "sources_partial": 3,
+      "sources_needs_review": 0,
+      "sources_failed": 0,
+      "sources_unsupported": 0,
+      "sources_not_processed": 234,
+      "sources_skipped_by_register": 2,
+      "pages_total": 2251,
+      "pages_native": 1132,
+      "pages_embedded_text": 0,
+      "pages_ocr": 1087,
+      "pages_failed": 0,
+      "blocks": 39334,
+      "figures": 2173,
+      "tables": 612,
+      "formulas": 6526,
+      "bibliography_entries": 0,
+      "rollup_closed": true
+    }
+  },
+  "duckdb": {
+    "snapshot_id": "snap-20260928T073057Z-a2696925"
+  },
+  "graph": {
+    "status": "COMPLETE",
+    "content_digest": {
+      "digest": "d9f8f6528c0e1c74547e52cf750a103b88b979b8b4bc4f35215e8f7ab2b3f30a",
+      "parts": [
+        {
+          "name": "Work",
+          "count": 247,
+          "sha256": "b0c2ba75541d10edf83de82b727d648411f1ff0084c4a1d6b478422147767b68"
+        },
+        {
+          "name": "Author",
+          "count": 397,
+          "sha256": "c30c7625a21d357f278b4a24643d78e50d165729130500d191ad59389ae9d965"
+        },
+        {
+          "name": "Venue",
+          "count": 73,
+          "sha256": "df22cf8f25328d3f9d34bbfa6a07c432f9630f413eb5d1e3b464fb2c011e6303"
+        },
+        {
+          "name": "Source",
+          "count": 251,
+          "sha256": "d29e5e6300ff25e43b91914f2e57f36a04d73fa0ba44ec7621261c80d71b4ba8"
+        },
+        {
+          "name": "Page",
+          "count": 2251,
+          "sha256": "be15623114907105d95e04ccbbe0e36d083d09c10b264ff307c435298bb9848b"
+        },
+        {
+          "name": "Block",
+          "count": 39334,
+          "sha256": "e46313d94ca4876c25c6b446c05475e45520b0e4efa7e980b00a00e9ecc984f5"
+        },
+        {
+          "name": "Figure",
+          "count": 2173,
+          "sha256": "c1c4a1d983ae0764c16cc9d82c0156f7061e68fd0def7d2c50db4a27e118efbb"
+        },
+        {
+          "name": "Table",
+          "count": 612,
+          "sha256": "300785cdea660a778fc56675ccb83921facca5567c7e0568f3f9a11c0e046dfc"
+        },
+        {
+          "name": "Formula",
+          "count": 6526,
+          "sha256": "de4799d87e9c5628b9899492d0f9825d835b61491c26705f020493efa8ff92bc"
+        },
+        {
+          "name": "BibliographyEntry",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "INSTANCE_OF",
+          "count": 251,
+          "sha256": "81b0a7e4d1e9150f3680d43d0f5ae17921077f27573ce13821ba9c8a930dd45a"
+        },
+        {
+          "name": "AUTHORED_BY",
+          "count": 598,
+          "sha256": "40ebc8cda5ff07b9327524421aac78191f1d339982ed488f160c5c73382120d5"
+        },
+        {
+          "name": "PUBLISHED_IN",
+          "count": 139,
+          "sha256": "b7821202a3c9203e52ae5d12e777510f4916521eec4fe639e5bd31b67bd34923"
+        },
+        {
+          "name": "HAS_PAGE",
+          "count": 2251,
+          "sha256": "57d48f75c50587a8cc99c6c2395acac16ad7925a9c033d286600e6fe45c16760"
+        },
+        {
+          "name": "PRECEDES",
+          "count": 2236,
+          "sha256": "7951feb8ecedc63a879711906aea19d909db018c674bdbfb237513dd4086972b"
+        },
+        {
+          "name": "HAS_BLOCK",
+          "count": 39323,
+          "sha256": "d005b650b74ab310f3940e6e8fcc43187ccaee64496408c957c8da1973e4c9a7"
+        },
+        {
+          "name": "HAS_FIGURE",
+          "count": 2109,
+          "sha256": "a97e24f617c368a0093a56aa84361a7d1383ee15e9c0624bba077175dac8f55e"
+        },
+        {
+          "name": "HAS_TABLE",
+          "count": 611,
+          "sha256": "df4ece1da2dd1c0cbc69ad1ef1c8cfc3ef8e24db4bed3514ce25bd68ac5902ca"
+        },
+        {
+          "name": "HAS_FORMULA",
+          "count": 6474,
+          "sha256": "6e5a1118e788666f1f58815d22d3f57b6399a337765be52fcb5fb0a97a3fcfb3"
+        },
+        {
+          "name": "HAS_BIBLIOGRAPHY_ENTRY",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "REFERENCE_OF",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "RESOLVES_TO",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "CITES",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "CARRIES_FOREIGN_CONTENT_OF",
+          "count": 1,
+          "sha256": "76892d11a50d967a2ce61dabcca3ca6ae734c1f6f4da1be15e2f768e082ae009"
+        },
+        {
+          "name": "ABSTRACT_OF",
+          "count": 1,
+          "sha256": "453ab9bf4f2e1218856e999328d3860d1c499d79a13b8612153d99378247a123"
+        },
+        {
+          "name": "EDITION_OF",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "TRANSLATION_OF",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "VOLUME_SET_SIBLING",
+          "count": 1,
+          "sha256": "0f9211d11fea64e83e50fbca57ee2d6727e4880f4e9332fcfa60fa6e8ed0747e"
+        },
+        {
+          "name": "SERIES_SIBLING",
+          "count": 1,
+          "sha256": "934fa679c07952b3e307ad5a271a94eeb119804c79bad3aef087c555a0ceb9d4"
+        },
+        {
+          "name": "COMPANION_OF",
+          "count": 1,
+          "sha256": "ed4b4670445582a2b72c2d36a48da2089cc407ffac5f928f3a48db672651fbe4"
+        },
+        {
+          "name": "NOT_SAME",
+          "count": 1,
+          "sha256": "11b1d01edd9e41a57068edc16ea4de53075c03faf0b24e59ce2a427ae004a6ab"
+        },
+        {
+          "name": "DERIVED_FROM",
+          "count": 1,
+          "sha256": "c7d6bff220546bb34e75e5efc9199a15ef0e2be7fd5c6195d9f68ca11966a8ad"
+        },
+        {
+          "name": "CONTAINS_COPY_OF",
+          "count": 1,
+          "sha256": "26ae5683a9c4a83f71b78a9d366fb4d6d1e48a072b3ff0a7e9edb69f9b83906f"
+        },
+        {
+          "name": "SHARES_PAGES_WITH",
+          "count": 3,
+          "sha256": "cb2c824889fe0106cce660258c2c5fcd4fad47381b5486f490cafea33b190e87"
+        },
+        {
+          "name": "DUPLICATE_CANDIDATE_OF",
+          "count": 2,
+          "sha256": "f0f6c233a0196f28cc82097ca757a3e357726acb36c2c58b5779ea92bb083d54"
+        }
+      ]
+    },
+    "expected_digest": {
+      "digest": "d9f8f6528c0e1c74547e52cf750a103b88b979b8b4bc4f35215e8f7ab2b3f30a",
+      "parts": [
+        {
+          "name": "Work",
+          "count": 247,
+          "sha256": "b0c2ba75541d10edf83de82b727d648411f1ff0084c4a1d6b478422147767b68"
+        },
+        {
+          "name": "Author",
+          "count": 397,
+          "sha256": "c30c7625a21d357f278b4a24643d78e50d165729130500d191ad59389ae9d965"
+        },
+        {
+          "name": "Venue",
+          "count": 73,
+          "sha256": "df22cf8f25328d3f9d34bbfa6a07c432f9630f413eb5d1e3b464fb2c011e6303"
+        },
+        {
+          "name": "Source",
+          "count": 251,
+          "sha256": "d29e5e6300ff25e43b91914f2e57f36a04d73fa0ba44ec7621261c80d71b4ba8"
+        },
+        {
+          "name": "Page",
+          "count": 2251,
+          "sha256": "be15623114907105d95e04ccbbe0e36d083d09c10b264ff307c435298bb9848b"
+        },
+        {
+          "name": "Block",
+          "count": 39334,
+          "sha256": "e46313d94ca4876c25c6b446c05475e45520b0e4efa7e980b00a00e9ecc984f5"
+        },
+        {
+          "name": "Figure",
+          "count": 2173,
+          "sha256": "c1c4a1d983ae0764c16cc9d82c0156f7061e68fd0def7d2c50db4a27e118efbb"
+        },
+        {
+          "name": "Table",
+          "count": 612,
+          "sha256": "300785cdea660a778fc56675ccb83921facca5567c7e0568f3f9a11c0e046dfc"
+        },
+        {
+          "name": "Formula",
+          "count": 6526,
+          "sha256": "de4799d87e9c5628b9899492d0f9825d835b61491c26705f020493efa8ff92bc"
+        },
+        {
+          "name": "BibliographyEntry",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "INSTANCE_OF",
+          "count": 251,
+          "sha256": "81b0a7e4d1e9150f3680d43d0f5ae17921077f27573ce13821ba9c8a930dd45a"
+        },
+        {
+          "name": "AUTHORED_BY",
+          "count": 598,
+          "sha256": "40ebc8cda5ff07b9327524421aac78191f1d339982ed488f160c5c73382120d5"
+        },
+        {
+          "name": "PUBLISHED_IN",
+          "count": 139,
+          "sha256": "b7821202a3c9203e52ae5d12e777510f4916521eec4fe639e5bd31b67bd34923"
+        },
+        {
+          "name": "HAS_PAGE",
+          "count": 2251,
+          "sha256": "57d48f75c50587a8cc99c6c2395acac16ad7925a9c033d286600e6fe45c16760"
+        },
+        {
+          "name": "PRECEDES",
+          "count": 2236,
+          "sha256": "7951feb8ecedc63a879711906aea19d909db018c674bdbfb237513dd4086972b"
+        },
+        {
+          "name": "HAS_BLOCK",
+          "count": 39323,
+          "sha256": "d005b650b74ab310f3940e6e8fcc43187ccaee64496408c957c8da1973e4c9a7"
+        },
+        {
+          "name": "HAS_FIGURE",
+          "count": 2109,
+          "sha256": "a97e24f617c368a0093a56aa84361a7d1383ee15e9c0624bba077175dac8f55e"
+        },
+        {
+          "name": "HAS_TABLE",
+          "count": 611,
+          "sha256": "df4ece1da2dd1c0cbc69ad1ef1c8cfc3ef8e24db4bed3514ce25bd68ac5902ca"
+        },
+        {
+          "name": "HAS_FORMULA",
+          "count": 6474,
+          "sha256": "6e5a1118e788666f1f58815d22d3f57b6399a337765be52fcb5fb0a97a3fcfb3"
+        },
+        {
+          "name": "HAS_BIBLIOGRAPHY_ENTRY",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "REFERENCE_OF",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "RESOLVES_TO",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "CITES",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "CARRIES_FOREIGN_CONTENT_OF",
+          "count": 1,
+          "sha256": "76892d11a50d967a2ce61dabcca3ca6ae734c1f6f4da1be15e2f768e082ae009"
+        },
+        {
+          "name": "ABSTRACT_OF",
+          "count": 1,
+          "sha256": "453ab9bf4f2e1218856e999328d3860d1c499d79a13b8612153d99378247a123"
+        },
+        {
+          "name": "EDITION_OF",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "TRANSLATION_OF",
+          "count": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "VOLUME_SET_SIBLING",
+          "count": 1,
+          "sha256": "0f9211d11fea64e83e50fbca57ee2d6727e4880f4e9332fcfa60fa6e8ed0747e"
+        },
+        {
+          "name": "SERIES_SIBLING",
+          "count": 1,
+          "sha256": "934fa679c07952b3e307ad5a271a94eeb119804c79bad3aef087c555a0ceb9d4"
+        },
+        {
+          "name": "COMPANION_OF",
+          "count": 1,
+          "sha256": "ed4b4670445582a2b72c2d36a48da2089cc407ffac5f928f3a48db672651fbe4"
+        },
+        {
+          "name": "NOT_SAME",
+          "count": 1,
+          "sha256": "11b1d01edd9e41a57068edc16ea4de53075c03faf0b24e59ce2a427ae004a6ab"
+        },
+        {
+          "name": "DERIVED_FROM",
+          "count": 1,
+          "sha256": "c7d6bff220546bb34e75e5efc9199a15ef0e2be7fd5c6195d9f68ca11966a8ad"
+        },
+        {
+          "name": "CONTAINS_COPY_OF",
+          "count": 1,
+          "sha256": "26ae5683a9c4a83f71b78a9d366fb4d6d1e48a072b3ff0a7e9edb69f9b83906f"
+        },
+        {
+          "name": "SHARES_PAGES_WITH",
+          "count": 3,
+          "sha256": "cb2c824889fe0106cce660258c2c5fcd4fad47381b5486f490cafea33b190e87"
+        },
+        {
+          "name": "DUPLICATE_CANDIDATE_OF",
+          "count": 2,
+          "sha256": "f0f6c233a0196f28cc82097ca757a3e357726acb36c2c58b5779ea92bb083d54"
+        }
+      ]
+    },
+    "checks": [
+      {
+        "check_id": "C1",
+        "title": "node counts per label equal the canon",
+        "status": "PASS",
+        "count": 0
+      },
+      {
+        "check_id": "C2",
+        "title": "relationship counts per type equal the expected rows",
+        "status": "PASS",
+        "count": 0
+      },
+      {
+        "check_id": "C3",
+        "title": "every page and page object has exactly one parent",
+        "status": "PASS",
+        "count": 0
+      },
+      {
+        "check_id": "C3w",
+        "title": "authors/venues without works; ACTIVE sources without INSTANCE_OF (WORK_UNKNOWN)",
+        "status": "PASS",
+        "count": 0
+      },
+      {
+        "check_id": "C4",
+        "title": "pages per source in the graph equal the canon (no silent page loss)",
+        "status": "PASS",
+        "count": 0
+      },
+      {
+        "check_id": "C4w",
+        "title": "sources whose canon has fewer pages than page_count (D's roll-up explains)",
+        "status": "PASS",
+        "count": 0
+      },
+      {
+        "check_id": "C5",
+        "title": "PRECEDES links consecutive pages of one source, at most one in/out",
+        "status": "PASS",
+        "count": 0
+      },
+      {
+        "check_id": "C6",
+        "title": "each layer node has one registry type label; no unregistered nodes (R7)",
+        "status": "PASS",
+        "count": 0
+      },
+      {
+        "check_id": "C7",
+        "title": "relationship types come from the registry and join the declared labels",
+        "status": "PASS",
+        "count": 0
+      },
+      {
+        "check_id": "C8",
+        "title": "required properties present, no property outside the whitelist",
+        "status": "PASS",
+        "count": 0
+      },
+      {
+        "check_id": "C9",
+        "title": "no promoted statuses; objects AUTO_EXTRACTED_UNREVIEWED; registry entities NOT_APPLICABLE",
+        "status": "PASS",
+        "count": 0
+      },
+      {
+        "check_id": "C10",
+        "title": "sampled nodes equal their canonical rows (traceability)",
+        "status": "PASS",
+        "count": 0
+      },
+      {
+        "check_id": "C11",
+        "title": "content_digest (graph export) equals expected_digest (canon)",
+        "status": "PASS",
+        "count": 0,
+        "details": {
+          "expected_digest": "d9f8f6528c0e1c74547e52cf750a103b88b979b8b4bc4f35215e8f7ab2b3f30a",
+          "content_digest": "d9f8f6528c0e1c74547e52cf750a103b88b979b8b4bc4f35215e8f7ab2b3f30a"
+        }
+      },
+      {
+        "check_id": "C12",
+        "title": "same snapshot rebuilt → same content_digest",
+        "status": "SKIP",
+        "count": 0,
+        "details": {
+          "reason": "no previous COMPLETE run of this snapshot"
+        }
+      },
+      {
+        "check_id": "C13",
+        "title": "no NOT_SAME loop (two 'not same' works merged)",
+        "status": "PASS",
+        "count": 0
+      },
+      {
+        "check_id": "C14",
+        "title": "bibliography attribution (REFERENCE_OF only from citing_work_id, CITES only from REFERENCE_OF+RESOLVES_TO) and INSTANCE_OF only from the primary non-foreign link",
+        "status": "PASS",
+        "count": 0
+      },
+      {
+        "check_id": "C15",
+        "title": "symmetric relations stored once; duplicate pages across sources, one group",
+        "status": "PASS",
+        "count": 0
+      },
+      {
+        "check_id": "C16",
+        "title": "sources = sum of D's roll-up classes; skipped sources have no pages",
+        "status": "PASS",
+        "count": 0,
+        "details": {
+          "by_rollup": {
+            "COMPLETE": 12,
+            "NOT_PROCESSED": 234,
+            "PARTIAL": 3,
+            "SKIPPED_BY_REGISTER": 2
+          },
+          "total": 251
+        }
+      }
+    ]
+  },
+  "search": {
+    "status": "COMPLETE",
+    "indices": {
+      "pages": "vkm-pages-m1-20260928t073136z-699721fc",
+      "blocks": "vkm-blocks-m1-20260928t073136z-699721fc",
+      "figures": "vkm-figures-m1-20260928t073136z-699721fc",
+      "tables": "vkm-tables-m1-20260928t073136z-699721fc",
+      "formulas": "vkm-formulas-m1-20260928t073136z-699721fc"
+    },
+    "counts": {
+      "pages": 2251,
+      "blocks": 39334,
+      "figures": 2173,
+      "tables": 612,
+      "formulas": 6526
+    },
+    "doc_stream_sha256": {
+      "pages": "22ccec4b51bff6d74dc65469ec0f6245a99845a23ce397f7f592ecff7cd21fd6",
+      "blocks": "9d400800976a5b6fdae7541eb7cd12253ad5cd8a8e15ee616a4ddec5e4654efc",
+      "figures": "86a48fc925ae4a61ee4323365bc6aa45f205901e97a9f459ef904b5f76dcdd81",
+      "tables": "8c12cbb29cecb3e47dec4753bdefd7dc8555d837c0ae00416cdae52925ce115e",
+      "formulas": "b39d206443c6390661e4973e20cd187e9f01cf6c347aa45852f6001f8df71500"
+    }
+  },
+  "result": "RECONCILED",
+  "finished_at": "2026-09-28T07:31:52+00:00"
+}

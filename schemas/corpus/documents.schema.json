@@ -1,0 +1,788 @@
+{
+ "$defs": {
+  "DocumentClass": {
+   "description": "Source-level class (agent C §2.4); thresholds are parameters of ``classifier_version``.",
+   "enum": [
+    "NATIVE",
+    "SCANNED_NO_TEXT",
+    "SCANNED_WITH_TEXT_LAYER",
+    "SCANNED_PARTIAL_TEXT_LAYER",
+    "BROKEN_TEXT_LAYER",
+    "MIXED",
+    "REFLOWABLE_EPUB",
+    "WORD_DOCX",
+    "UNKNOWN"
+   ],
+   "title": "DocumentClass",
+   "type": "string"
+  },
+  "FileFormat": {
+   "enum": [
+    "PDF",
+    "DJVU",
+    "EPUB",
+    "DOCX",
+    "ZIP",
+    "IMAGE",
+    "UNKNOWN"
+   ],
+   "title": "FileFormat",
+   "type": "string"
+  },
+  "ModelRef": {
+   "additionalProperties": false,
+   "description": "A model that produced the region (LAYOUT) or the content (RECOGNITION) of an object (H-03).",
+   "properties": {
+    "model_id": {
+     "minLength": 1,
+     "title": "Model Id",
+     "type": "string"
+    },
+    "model_revision": {
+     "minLength": 1,
+     "title": "Model Revision",
+     "type": "string"
+    },
+    "role": {
+     "$ref": "#/$defs/ModelRole"
+    }
+   },
+   "required": [
+    "role",
+    "model_id",
+    "model_revision"
+   ],
+   "title": "ModelRef",
+   "type": "object"
+  },
+  "ModelRole": {
+   "enum": [
+    "LAYOUT",
+    "RECOGNITION"
+   ],
+   "title": "ModelRole",
+   "type": "string"
+  },
+  "ObjectKind": {
+   "enum": [
+    "SOURCE",
+    "WORK",
+    "DOCUMENT",
+    "PAGE",
+    "BLOCK",
+    "FIGURE",
+    "TABLE",
+    "FORMULA",
+    "BIBLIOGRAPHY_ENTRY",
+    "AUTHOR",
+    "VENUE",
+    "SOURCE_WORK_LINK",
+    "WORK_RELATION",
+    "SOURCE_RELATION",
+    "WORK_AUTHOR",
+    "BIBLIOGRAPHY_LINK"
+   ],
+   "title": "ObjectKind",
+   "type": "string"
+  },
+  "Origin": {
+   "enum": [
+    "NATIVE",
+    "EMBEDDED_OCR",
+    "OCR",
+    "DERIVED",
+    "REGISTRY",
+    "CURATED"
+   ],
+   "title": "Origin",
+   "type": "string"
+  },
+  "PageUnit": {
+   "description": "Letter of the page unit inside ``page_id`` (CP-08): physical page, pinned render page, EPUB spine item.",
+   "enum": [
+    "p",
+    "r",
+    "s"
+   ],
+   "title": "PageUnit",
+   "type": "string"
+  },
+  "PaginationBasis": {
+   "enum": [
+    "PDF_PAGE_TREE",
+    "DJVU_PAGE_ORDER",
+    "DOCX_PINNED_RENDER",
+    "EPUB_SPINE",
+    "IMAGE_FRAMES"
+   ],
+   "title": "PaginationBasis",
+   "type": "string"
+  },
+  "QualityFlag": {
+   "enum": [
+    "LOW_OCR_CONFIDENCE",
+    "BROKEN_TEXT_LAYER",
+    "GARBAGE_GLYPHS",
+    "PUA_GLYPHS",
+    "MOJIBAKE_NOT_REPAIRABLE",
+    "REPAIRABLE_CP1251_REMAP",
+    "ENCODING_REPAIRED",
+    "UNMAPPED_SYMBOL_GLYPHS",
+    "FONT_WITHOUT_TOUNICODE",
+    "TYPE3_FONT",
+    "LOW_FUNCTION_WORD_RATE",
+    "MIXED_TEXT_LAYER",
+    "EMBEDDED_TEXT_LAYER",
+    "HIDDEN_TEXT_LAYER",
+    "TEXT_LAYER_VISIBLE_MODE",
+    "NATIVE_OCR_DISAGREE",
+    "LANGUAGE_UNCERTAIN",
+    "TRUNCATED",
+    "REPETITION",
+    "ROTATED",
+    "SKEW_CORRECTED",
+    "LOW_RESOLUTION_SCAN",
+    "SPREAD_2UP",
+    "EMPTY_PAGE",
+    "VECTOR_NO_TEXT",
+    "IMAGE_NO_TEXT",
+    "DUPLICATE_PAGE_CANDIDATE",
+    "FOREIGN_WORK_CONTENT",
+    "EPUB_PAGE_ANCHOR_CALIBRE",
+    "BBOX_APPROX",
+    "CROSS_PAGE_CONTINUATION",
+    "DUPLICATE_DETECTION_DISAMBIGUATED",
+    "SCOPE_INHERITED_FROM_SOURCE",
+    "CAPTION_NOT_FOUND",
+    "CAPTION_ASSOCIATION_UNCERTAIN",
+    "FIGURE_TYPE_LOW_CONFIDENCE",
+    "TABLE_STRUCTURE_UNCERTAIN",
+    "SPANNING_CELLS",
+    "EMPTY_CELLS_RATIO",
+    "NUMERIC_PARSE_FAILURES",
+    "FORMULA_LATEX_UNPARSEABLE",
+    "LATEX_UNBALANCED",
+    "CONVERSION_FAILED",
+    "CITING_WORK_IS_CONTAINER",
+    "LEADING_BYTES_BEFORE_HEADER",
+    "ENCRYPTED_SOURCE",
+    "PDF_PERMISSIONS_RESTRICTED",
+    "PAGECOUNT_DIFFERS_FROM_REGISTER_HINT",
+    "REGISTER_NOTES_NOT_EVIDENCE",
+    "DJVU_TITLE_NOT_VERIFIED"
+   ],
+   "title": "QualityFlag",
+   "type": "string"
+  },
+  "RawArtifactRef": {
+   "additionalProperties": false,
+   "description": "A raw artifact behind an object, with its role (H-24): e.g. find_tables JSON and the OCR response.",
+   "properties": {
+    "artifact_id": {
+     "pattern": "^sha256:[0-9a-f]{64}$",
+     "title": "Artifact Id",
+     "type": "string"
+    },
+    "role": {
+     "$ref": "#/$defs/RawArtifactRole"
+    }
+   },
+   "required": [
+    "role",
+    "artifact_id"
+   ],
+   "title": "RawArtifactRef",
+   "type": "object"
+  },
+  "RawArtifactRole": {
+   "description": "Role of a raw artifact attached to an object (``raw_artifacts[]``, H-24).",
+   "enum": [
+    "NATIVE_EXTRACT",
+    "NATIVE_TABLE_FINDER",
+    "EMBEDDED_TEXT_LAYER",
+    "LAYOUT_DETECTIONS",
+    "OCR_RESPONSE",
+    "SOURCE_MARKUP"
+   ],
+   "title": "RawArtifactRole",
+   "type": "string"
+  },
+  "ReviewStatus": {
+   "description": "Review state (contract v0.2 §47). Automatic L1 objects are always AUTO_EXTRACTED_UNREVIEWED.\n\nNOT_APPLICABLE: sources absent/retired by the register, works (H-28), authors and venues (H-25) and curated\nregistry links (their check is ``curation_status``).",
+   "enum": [
+    "UNSEEN",
+    "QUICK_LOOK_ONLY",
+    "AUTO_EXTRACTED_UNREVIEWED",
+    "RELEVANT_SECTIONS_REVIEWED",
+    "FULLY_REVIEWED",
+    "NOT_APPLICABLE"
+   ],
+   "title": "ReviewStatus",
+   "type": "string"
+  },
+  "SiteScopeMapping": {
+   "enum": [
+    "EXACT",
+    "CASE",
+    "SYNONYM",
+    "LOSSY",
+    "MULTI",
+    "AMBIGUOUS",
+    "NOT_A_SCOPE"
+   ],
+   "title": "SiteScopeMapping",
+   "type": "string"
+  },
+  "SourceProcessingStatus": {
+   "description": "Roll-up of a source (view ``source_status_summary``): 251 = sum of these classes.",
+   "enum": [
+    "COMPLETE",
+    "PARTIAL",
+    "NEEDS_REVIEW",
+    "FAILED",
+    "UNSUPPORTED",
+    "NOT_PROCESSED",
+    "SKIPPED_BY_REGISTER"
+   ],
+   "title": "SourceProcessingStatus",
+   "type": "string"
+  }
+ },
+ "$id": "https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/schemas/corpus/documents.schema.json",
+ "additionalProperties": false,
+ "description": "A parsed source file (one row per processed source; 013 and 022 have none).",
+ "properties": {
+  "classifier_version": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Classifier Version"
+  },
+  "config_hash": {
+   "description": "sha256 of the canonical JSON of the stage configuration",
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Config Hash",
+   "type": "string"
+  },
+  "container_detail": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Container Detail"
+  },
+  "content_sha256": {
+   "description": "hash of all non-envelope fields",
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Content Sha256",
+   "type": "string"
+  },
+  "created_at": {
+   "description": "processing time (finished_at of the producing step); outside hashes",
+   "format": "date-time",
+   "title": "Created At",
+   "type": "string"
+  },
+  "document_class": {
+   "$ref": "#/$defs/DocumentClass"
+  },
+  "extraction_generation": {
+   "default": 1,
+   "description": "semantic generation of the producer; part of the object ID (H-14)",
+   "maximum": 32767,
+   "minimum": -32768,
+   "title": "Extraction Generation",
+   "type": "integer"
+  },
+  "extraction_signature": {
+   "anyOf": [
+    {
+     "pattern": "^[0-9a-f]{64}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "stage_signature of the producing step",
+   "title": "Extraction Signature"
+  },
+  "extractor_id": {
+   "minLength": 1,
+   "title": "Extractor Id",
+   "type": "string"
+  },
+  "extractor_version": {
+   "description": "software version; not part of the object ID (H-14)",
+   "minLength": 1,
+   "title": "Extractor Version",
+   "type": "string"
+  },
+  "file_identifiers": {
+   "items": {
+    "type": "string"
+   },
+   "title": "File Identifiers",
+   "type": "array"
+  },
+  "file_languages": {
+   "items": {
+    "type": "string"
+   },
+   "title": "File Languages",
+   "type": "array"
+  },
+  "file_meta_author": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "File Meta Author"
+  },
+  "file_meta_created_raw": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "File Meta Created Raw"
+  },
+  "file_meta_creator": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "File Meta Creator"
+  },
+  "file_meta_keywords": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "File Meta Keywords"
+  },
+  "file_meta_modified_raw": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "File Meta Modified Raw"
+  },
+  "file_meta_producer": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "File Meta Producer"
+  },
+  "file_meta_subject": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "File Meta Subject"
+  },
+  "file_meta_title": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "embedded metadata, verbatim; a hint, never truth",
+   "title": "File Meta Title"
+  },
+  "format_detected": {
+   "$ref": "#/$defs/FileFormat"
+  },
+  "format_version": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Format Version"
+  },
+  "has_native_page_labels": {
+   "anyOf": [
+    {
+     "type": "boolean"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Has Native Page Labels"
+  },
+  "is_encrypted": {
+   "default": false,
+   "title": "Is Encrypted",
+   "type": "boolean"
+  },
+  "model_id": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "model that produced the CONTENT (RECOGNITION); see models[]",
+   "title": "Model Id"
+  },
+  "model_revision": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Model Revision"
+  },
+  "models": {
+   "description": "all models that produced region or content",
+   "items": {
+    "$ref": "#/$defs/ModelRef"
+   },
+   "title": "Models",
+   "type": "array"
+  },
+  "object_id": {
+   "description": "stable ID (ids grammar); = page_id for pages, <source_id>:doc for documents",
+   "title": "Object Id",
+   "type": "string"
+  },
+  "object_kind": {
+   "$ref": "#/$defs/ObjectKind"
+  },
+  "origin": {
+   "$ref": "#/$defs/Origin",
+   "description": "NATIVE | EMBEDDED_OCR | OCR | DERIVED (what produced the content)"
+  },
+  "page_count": {
+   "description": "number of page units: exactly this many rows in pages",
+   "maximum": 2147483647,
+   "minimum": -2147483648,
+   "title": "Page Count",
+   "type": "integer"
+  },
+  "page_count_check": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": -2147483648,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "the same count by a second independent method",
+   "title": "Page Count Check"
+  },
+  "page_count_check_method": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Page Count Check Method"
+  },
+  "page_id": {
+   "anyOf": [
+    {
+     "pattern": "^VKM-SRC-[0-9]{3}:[prs][0-9]{4}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "page of the object; for DOCX objects the pinned render page (RENDER_DEPENDENT, H-50)",
+   "title": "Page Id"
+  },
+  "page_unit": {
+   "$ref": "#/$defs/PageUnit"
+  },
+  "pagination_artifact_id": {
+   "anyOf": [
+    {
+     "pattern": "^sha256:[0-9a-f]{64}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Pagination Artifact Id"
+  },
+  "pagination_basis": {
+   "$ref": "#/$defs/PaginationBasis"
+  },
+  "pagination_render_profile": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "DOCX: renderer, version, fonts hash",
+   "title": "Pagination Render Profile"
+  },
+  "pipeline_version": {
+   "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+   "title": "Pipeline Version",
+   "type": "string"
+  },
+  "processing_run_id": {
+   "pattern": "^RUN-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$",
+   "title": "Processing Run Id",
+   "type": "string"
+  },
+  "processing_status": {
+   "$ref": "#/$defs/SourceProcessingStatus"
+  },
+  "quality_flags": {
+   "items": {
+    "$ref": "#/$defs/QualityFlag"
+   },
+   "title": "Quality Flags",
+   "type": "array"
+  },
+  "raw_artifact_id": {
+   "anyOf": [
+    {
+     "pattern": "^sha256:[0-9a-f]{64}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "main raw output behind this row",
+   "title": "Raw Artifact Id"
+  },
+  "raw_artifacts": {
+   "items": {
+    "$ref": "#/$defs/RawArtifactRef"
+   },
+   "title": "Raw Artifacts",
+   "type": "array"
+  },
+  "raw_config_hash": {
+   "description": "hash of the configuration part that affects the raw output; part of producer_key",
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Raw Config Hash",
+   "type": "string"
+  },
+  "raw_content_sha256": {
+   "anyOf": [
+    {
+     "pattern": "^[0-9a-f]{64}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "hash of the raw content; invariant for a given object_id across snapshots (B07)",
+   "title": "Raw Content Sha256"
+  },
+  "register_page_count_hint": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": -2147483648,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Register Page Count Hint"
+  },
+  "review_status": {
+   "$ref": "#/$defs/ReviewStatus",
+   "default": "AUTO_EXTRACTED_UNREVIEWED"
+  },
+  "schema_version": {
+   "description": "semver of the dataset schema at write time",
+   "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+   "title": "Schema Version",
+   "type": "string"
+  },
+  "shared_component_count": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": -2147483648,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "DjVu DJVI components (not pages)",
+   "title": "Shared Component Count"
+  },
+  "source_id": {
+   "pattern": "^VKM-SRC-[0-9]{3}$",
+   "title": "Source Id",
+   "type": "string"
+  },
+  "source_sha256": {
+   "description": "sha256 of the processed file; must equal the register",
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Source Sha256",
+   "type": "string"
+  },
+  "source_site_scope": {
+   "description": "scope of the whole SOURCE (vkm_world Scope values), not of this object (H-18)",
+   "items": {
+    "type": "string"
+   },
+   "title": "Source Site Scope",
+   "type": "array"
+  },
+  "source_site_scope_mapping": {
+   "$ref": "#/$defs/SiteScopeMapping"
+  },
+  "source_site_scope_raw": {
+   "description": "register evidence_scope, verbatim",
+   "title": "Source Site Scope Raw",
+   "type": "string"
+  },
+  "text_extraction_permitted": {
+   "anyOf": [
+    {
+     "type": "boolean"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Text Extraction Permitted"
+  },
+  "text_layer_producer": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "PDF Producer/Creator of the text layer, if known",
+   "title": "Text Layer Producer"
+  }
+ },
+ "required": [
+  "schema_version",
+  "object_id",
+  "object_kind",
+  "source_id",
+  "source_sha256",
+  "source_site_scope_raw",
+  "source_site_scope_mapping",
+  "origin",
+  "pipeline_version",
+  "processing_run_id",
+  "extractor_id",
+  "extractor_version",
+  "config_hash",
+  "raw_config_hash",
+  "content_sha256",
+  "created_at",
+  "format_detected",
+  "pagination_basis",
+  "page_unit",
+  "page_count",
+  "document_class",
+  "processing_status"
+ ],
+ "title": "VKM corpus dataset documents",
+ "type": "object",
+ "x-vkm-dataset": "documents",
+ "x-vkm-dataset-class": "HEAD_PER_SOURCE",
+ "x-vkm-envelope-profile": "DOC",
+ "x-vkm-primary-key": [
+  "object_id"
+ ],
+ "x-vkm-schema-fingerprint": "2fd5139f2e7b9b2d3a1910d4be9481a246eab83a1eedbeb12344bd705955903d",
+ "x-vkm-schema-version": "0.1.0"
+}

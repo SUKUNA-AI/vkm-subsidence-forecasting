@@ -1,0 +1,126 @@
+# VKM rerank services on EDGE (decision CP-18): visual backend (llama-server + jina-reranker-m0) and the gateway.
+# The text backend is the EXISTING container careerops-reranker (127.0.0.1:18082, host network): it is not part of
+# this project and is never started, stopped, rebuilt or reconfigured from here.
+# Host paths and the LAN address come only from the host-local .env next to this file (see .env.example).
+# Both services use the host network: m0 listens on loopback only; the gateway listens on the LAN address of EDGE and
+# on loopback, and reaches both backends on 127.0.0.1.
+name: vkm-rerank
+
+x-hardening: &hardening
+  restart: unless-stopped
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,nodev,size=256m,mode=1777
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "3"
+
+services:
+  m0:
+    <<: *hardening
+    container_name: vkm-rerank-m0
+    image: ${VKM_RERANK_LLAMA_IMAGE:?pinned llama-server image}
+    network_mode: host
+    user: "10001:10001"
+    volumes:
+      - ${VKM_EDGE_ROOT:?}/models/jina-reranker-m0-GGUF/61490ce6a4799192781ab7beab4ee4661675488c:/models/m0:ro
+      - ${VKM_EDGE_ROOT:?}/models/jina-reranker-m0-mmproj/llama.cpp-4da6337767f9:/models/mmproj:ro
+    command:
+      - -m
+      - /models/m0/jina-reranker-m0-Q6_K.gguf
+      - --mmproj
+      - /models/mmproj/mmproj-jina-reranker-m0-Q8_0.gguf
+      - --embeddings
+      - --pooling
+      - last
+      - -ngl
+      - "${VKM_RERANK_M0_NGL:-20}"
+      - --fit
+      - "off"
+      - -fa
+      - "${VKM_RERANK_M0_FA:-on}"
+      - -c
+      - "1024"
+      - -np
+      - "1"
+      - -b
+      - "1024"
+      - -ub
+      - "512"
+      - --image-min-tokens
+      - "4"
+      - --image-max-tokens
+      - "768"
+      - --no-warmup
+      - --cache-ram
+      - "0"
+      - --no-webui
+      - --metrics
+      - -t
+      - "6"
+      - --host
+      - 127.0.0.1
+      - --port
+      - "18083"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:18083/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 180s
+
+  gateway:
+    <<: *hardening
+    container_name: vkm-rerank-gateway
+    image: ${VKM_RERANK_GATEWAY_IMAGE:?pinned gateway image}
+    network_mode: host
+    user: "10001:10001"
+    command: ["--host", "${VKM_EDGE_LAN_ADDR:?LAN address of EDGE}", "--host", "127.0.0.1", "--port", "18084"]
+    environment:
+      VKM_RERANK_TEXT_URL: http://127.0.0.1:18082
+      VKM_RERANK_VISUAL_URL: http://127.0.0.1:18083
+      VKM_RERANK_V35_TOKENIZER: /models/v35/tokenizer.json
+      VKM_RERANK_M0_TOKENIZER: /models/m0-src/tokenizer.json
+      VKM_RERANK_M0_TOKENIZER_SHA256: ${VKM_RERANK_M0_TOKENIZER_SHA256:-}
+      VKM_RERANK_M0_HEAD: /models/m0/mlp_weights.npz
+      VKM_RERANK_M0_NGL: "${VKM_RERANK_M0_NGL:-20}"
+      VKM_RERANK_M0_QUANT: "${VKM_RERANK_M0_QUANT:-Q6_K}"
+      VKM_RERANK_M0_DEVIATION: "${VKM_RERANK_M0_DEVIATION:-}"
+      VKM_RERANK_LLAMA_IMAGE: "${VKM_RERANK_LLAMA_IMAGE}"
+      VKM_RERANK_TEXT_MAX_INFLIGHT: "${VKM_RERANK_TEXT_MAX_INFLIGHT:-0}"
+      VKM_RERANK_VISUAL_MAX_INFLIGHT: "1"      # = llama-server -np 1
+      VKM_RERANK_VISUAL_MAX_QUEUE: "8"
+      VKM_RERANK_TOKEN_FILE: /run/secrets/rerank_token
+      VKM_LOG_LEVEL: INFO
+    secrets:
+      - rerank_token
+    volumes:
+      - ${VKM_EDGE_ROOT:?}/models/jina-reranker-v3.5/e8a93f33f0b22108f8c2364f8484ce3422552fbc:/models/v35:ro
+      - ${VKM_EDGE_ROOT:?}/models/jina-reranker-m0/94bfe0aeb2d4dd7978362699cddd5893d4e0adc8:/models/m0-src:ro
+      - ${VKM_EDGE_ROOT:?}/models/jina-reranker-m0-GGUF/61490ce6a4799192781ab7beab4ee4661675488c:/models/m0:ro
+    depends_on:
+      m0:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:18084/health', timeout=4).read()"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+secrets:
+  rerank_token:
+    file: ${VKM_EDGE_ROOT:?}/secrets/rerank_gateway_token   # host-local, root:10001 0440, never in git

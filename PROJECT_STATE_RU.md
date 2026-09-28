@@ -11,6 +11,10 @@
 - Следующая фаза — **Phase 2 (локальная workstation): вычисления**.
 - 27.09.2026 — литературная разведка для физических миров, новые источники в PRIVATE и поиск материалов по объекту
   СКРУ-1 (§2a).
+- 28.09.2026 — **VKM Corpus Platform v0**: весь реестр (251 источник) обработан в канонический документный слой
+  (26 483 страницы, OCR GLM-OCR там, где нужно), проекции DuckDB, Neo4j и OpenSearch, реранкеры, API и MCP, лаборатория
+  retrieval (RX 580). Итоговый отчёт — [docs/corpus_platform/V0_FINAL_REPORT.md](docs/corpus_platform/V0_FINAL_REPORT.md),
+  независимая проверка — READY. Всё извлечённое автоматически — `AUTO_EXTRACTED_UNREVIEWED`, это не evidence.
 
 Названия фиксированы и не меняются:
 

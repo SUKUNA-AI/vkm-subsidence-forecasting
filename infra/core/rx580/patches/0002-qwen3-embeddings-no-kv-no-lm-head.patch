@@ -1,0 +1,67 @@
+diff --git a/src/llama-model.cpp b/src/llama-model.cpp
+index ab5e744b5..0ca98fa87 100644
+--- a/src/llama-model.cpp
++++ b/src/llama-model.cpp
+@@ -2341,6 +2341,14 @@ ggml_tensor * llama_model::get_rope_factors(const llama_cparams & cparams, int i
+ llama_memory_i * llama_model::create_memory(const llama_memory_params & params, const llama_cparams & cparams) const {
+     llama_memory_i * res;
+ 
++    // VKM rx580 patch 0002: a *bidirectional* Qwen3 encoder (pplx-embed: attention.causal = false) used for embeddings
++    // needs no KV cache: every sequence is encoded in one ubatch through llama_context::encode(), which runs non-causal
++    // attention - correct only for non-causal models. Causal Qwen3 embedders (Qwen3-Embedding, jina-v5-small) keep the
++    // cache so that decode() keeps the causal mask.
++    if (arch == LLM_ARCH_QWEN3 && cparams.embeddings && !cparams.causal_attn) {
++        return nullptr;
++    }
++
+     switch (arch) {
+         // Models that need specific instantiation should be handled in the
+         // switch statement
+diff --git a/src/models/qwen3.cpp b/src/models/qwen3.cpp
+index f4b2a2aeb..6a48e89cc 100644
+--- a/src/models/qwen3.cpp
++++ b/src/models/qwen3.cpp
+@@ -64,7 +64,9 @@ llama_model_qwen3::graph::graph(const llama_model & model, const llm_graph_param
+     // inp_pos - contains the positions
+     ggml_tensor * inp_pos = build_inp_pos();
+ 
+-    auto * inp_attn = build_attn_inp_kv();
++    // VKM rx580 patch 0002: embeddings contexts have no memory (see llama_model::create_memory)
++    llm_graph_input_attn_kv       * inp_attn    = mctx ? build_attn_inp_kv()       : nullptr;
++    llm_graph_input_attn_no_cache * inp_attn_nc = mctx ? nullptr : build_attn_inp_no_cache();
+ 
+     ggml_tensor * inp_out_ids = build_inp_out_ids();
+ 
+@@ -107,7 +109,11 @@ llama_model_qwen3::graph::graph(const llama_model & model, const llm_graph_param
+             cb(Kcur, "Kcur", il);
+             cb(Vcur, "Vcur", il);
+ 
+-            cur = build_attn(inp_attn,
++            cur = inp_attn
++                ? build_attn(inp_attn,
++                    model.layers[il].wo, model.layers[il].wo_b, model.layers[il].wo_s,
++                    Qcur, Kcur, Vcur, nullptr, nullptr, nullptr, 1.0f/sqrtf(float(n_embd_head)), il)
++                : build_attn(inp_attn_nc,
+                     model.layers[il].wo, model.layers[il].wo_b, model.layers[il].wo_s,
+                     Qcur, Kcur, Vcur, nullptr, nullptr, nullptr, 1.0f/sqrtf(float(n_embd_head)), il);
+         }
+@@ -149,11 +155,15 @@ llama_model_qwen3::graph::graph(const llama_model & model, const llm_graph_param
+     cb(cur, "result_norm", -1);
+     res->t_embd = cur;
+ 
+-    // lm_head
+-    cur = build_lora_mm(model.output, cur, model.output_s);
++    // VKM rx580 patch 0002: an embeddings context never reads logits; skip the vocab projection
++    // (n_tokens x n_vocab: ~1.2 GiB of compute buffer at ubatch 2048 for a 152k vocabulary).
++    if (!cparams.embeddings) {
++        // lm_head
++        cur = build_lora_mm(model.output, cur, model.output_s);
+ 
+-    cb(cur, "result_output", -1);
+-    res->t_logits = cur;
++        cb(cur, "result_output", -1);
++        res->t_logits = cur;
++    }
+ 
+     ggml_build_forward_expand(gf, cur);
+ }

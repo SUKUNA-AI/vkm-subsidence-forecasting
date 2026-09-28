@@ -1,0 +1,16 @@
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+index 27b9a38d7..60e3f6227 100644
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -2111,7 +2111,10 @@ uint32_t llama_context::output_reserve(int32_t n_outputs) {
+     const auto n_embd     = hparams.n_embd;
+     const auto n_embd_out = hparams.n_embd_out();
+ 
+-    bool has_logits     = true;
++    // VKM 0004: an embeddings context never returns logits (encoders have no lm_head in the graph; extraction below
++    // is guarded by logits.data). Reserving them costs n_vocab x n_outputs floats of pinned host memory per process
++    // (1-2 GiB at n_batch 2048 for 150k-256k vocabularies).
++    bool has_logits     = !cparams.embeddings;
+     bool has_embd       = cparams.embeddings;
+     bool has_embd_nextn = cparams.embeddings_nextn;
+ 

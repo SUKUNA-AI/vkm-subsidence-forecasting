@@ -14,12 +14,79 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest>=9.1.1"]
+# VKM Corpus Platform v0 (decision CP-02): exact pins live in requirements/corpus*.lock.txt, built with
+# `-c requirements/worldspec.lock.txt` so that pydantic/pydantic-core never move (the WorldSpec schema depends on them).
+corpus = [
+    "pyarrow>=25.0.1,<26",
+    "polars>=1.44.2,<2",
+    "duckdb>=1.5.5,<2",
+    "pymupdf>=1.28.2,<1.29",
+    "pypdfium2>=5.13.0,<6",
+    "lxml>=6.1",
+    "pillow>=12.3",
+    "python-docx>=1.2",
+    "httpx>=0.28",
+    "psycopg[binary]>=3.3",
+    "pytz>=2025.2",  # DuckDB returns TIMESTAMPTZ values to Python through pytz
+]
+corpus-services = [
+    "fastapi>=0.141.1,<0.142",
+    "uvicorn>=0.40",
+    "mcp==2.2.0",
+    "neo4j>=6.3.1,<7",
+    "opensearch-py>=3.2.0,<4",
+    "httpx>=0.28",
+]
+# PP-DocLayoutV3 on the workstation GPU (in-process, transformers). torch/torchvision come from the CUDA 13.0 wheel
+# index (https://download.pytorch.org/whl/cu130); the pipeline venv pins torch 2.13.0+cu130.
+corpus-layout = [
+    "torch>=2.13,<2.14",
+    "torchvision>=0.28,<0.29",
+    "transformers>=5.17,<6",
+    "accelerate>=1.15",
+    "safetensors>=0.8",
+]
+# RX580 retrieval service and embedding jobs on CORE (agent K): the service image adds these to corpus-services
+retrieval-rx580 = [
+    "tokenizers>=0.22,<1",
+    "pyarrow>=25.0.1,<26",
+    "numpy>=2.5",
+]
+# retrieval benchmark harness (agent J; reproducing V0 needs corpus + retrieval-rx580 + this extra)
+retrieval-lab = [
+    "snowballstemmer>=3.1,<4",
+    "sentence-transformers>=6.1,<7",
+    "scikit-learn>=1.9",
+    "scipy>=1.18",
+    "einops>=0.8",
+]
+# scripts/fetch_models.py (pinned snapshots from infra/models/model_pins.json)
+models = [
+    "huggingface_hub>=1.33,<2",
+]
+desktop = [
+    "mcp==2.2.0",
+    "ezdxf>=1.4",
+    "pywin32>=312; sys_platform == 'win32'",
+]
+
+[project.scripts]
+vkm-corpus = "vkm_corpus.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["vkm_world*"]
+include = ["vkm_world*", "vkm_corpus*", "vkm_cad*", "vkm_drawio*"]
+
+[tool.setuptools.package-data]
+# non-Python files read at run time (a non-editable install, e.g. the CORE image, has only what is listed here)
+vkm_corpus = ["duckdb/sql/*.sql", "ops/schema.sql"]
 
 [tool.pytest.ini_options]
 addopts = "-ra -p no:cacheprovider"
 testpaths = ["tests"]
 pythonpath = ["src"]
+markers = [
+    "services: needs live Neo4j/OpenSearch/PostgreSQL/rerankers (skipped -> NOT_RUN when absent)",
+    "gpu: needs a CUDA GPU or a running GLM-OCR/reranker model service",
+    "desktop: needs Windows desktop tools (AutoCAD, draw.io)",
+]

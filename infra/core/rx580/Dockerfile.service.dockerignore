@@ -1,0 +1,7 @@
+# Build context of infra/core/rx580/Dockerfile.service (repository root): package sources, pyproject and lock files only.
+*
+!pyproject.toml
+!requirements/
+!src/
+src/**/__pycache__/
+src/*.egg-info/

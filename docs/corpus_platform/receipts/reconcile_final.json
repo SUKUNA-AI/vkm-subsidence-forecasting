@@ -1,0 +1,73 @@
+{
+  "kind": "RECONCILE",
+  "run_id": "RUN-20260928T113641Z-final04",
+  "started_at": "2026-09-28T11:36:42+00:00",
+  "steps": [
+    {
+      "step": "admit",
+      "status": "OK",
+      "seconds": 30.56
+    },
+    {
+      "step": "snapshot",
+      "status": "OK",
+      "seconds": 55.32
+    },
+    {
+      "step": "duckdb",
+      "status": "OK",
+      "seconds": 103.16
+    },
+    {
+      "step": "graph",
+      "status": "FAILED",
+      "seconds": 10.41,
+      "error": "TransientError: {neo4j_code: Neo.TransientError.General.MemoryPoolOutOfMemoryError} {message: Unable to complete transaction.: The memory pool limit was exceeded. The corresponding setting can be found in the error message} {gql_status: 50N42} {gql_status_description: error: general processing exception - unexpected error. Unexpected error has occurred. See debug log for details.}"
+    },
+    {
+      "step": "search",
+      "status": "FAILED",
+      "seconds": 220.1,
+      "error": "ProjectionError: E_SMOKE: build checks failed: Q5"
+    }
+  ],
+  "admission": {
+    "admitted": 24,
+    "rejected": 0,
+    "pending": 0
+  },
+  "rejected": [],
+  "snapshot": {
+    "snapshot_id": "snap-20260928T113713Z-fa0aa127",
+    "status": "PASS",
+    "current_moved": true,
+    "manifest_sha256": "a64578c3ee8eda9550f84e741154009db09c05c6fec8409de4dff6c2d01567c1",
+    "blocking_failures": 0,
+    "counts": {
+      "sources_total": 251,
+      "sources_complete": 221,
+      "sources_partial": 28,
+      "sources_needs_review": 0,
+      "sources_failed": 0,
+      "sources_unsupported": 0,
+      "sources_not_processed": 0,
+      "sources_skipped_by_register": 2,
+      "pages_total": 26483,
+      "pages_native": 16455,
+      "pages_embedded_text": 3505,
+      "pages_ocr": 6387,
+      "pages_failed": 0,
+      "blocks": 621497,
+      "figures": 17784,
+      "tables": 3391,
+      "formulas": 108904,
+      "bibliography_entries": 0,
+      "rollup_closed": true
+    }
+  },
+  "duckdb": {
+    "snapshot_id": "snap-20260928T113713Z-fa0aa127"
+  },
+  "result": "RECONCILED_WITH_FAILURES",
+  "finished_at": "2026-09-28T11:43:42+00:00"
+}

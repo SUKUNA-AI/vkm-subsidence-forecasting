@@ -1,0 +1,216 @@
+{
+ "$defs": {
+  "CitingWorkResolution": {
+   "enum": [
+    "UNIQUE_LINK",
+    "RANGED_COMPONENT",
+    "AMBIGUOUS",
+    "FOREIGN_CONTENT",
+    "NO_LINK"
+   ],
+   "title": "CitingWorkResolution",
+   "type": "string"
+  },
+  "DerivedRule": {
+   "description": "Versions of the derived SQL rules (``vkm_corpus/duckdb/sql``); carried as ``rule_version`` (H-17).",
+   "enum": [
+    "citing_work_v1",
+    "bibliography_match_v1",
+    "cites_v1",
+    "page_sequence_v1",
+    "duplicate_pages_v1",
+    "source_scope_v1"
+   ],
+   "title": "DerivedRule",
+   "type": "string"
+  },
+  "MatchMethod": {
+   "enum": [
+    "DOI_EXACT",
+    "ISBN_EXACT",
+    "TITLE_AUTHOR_YEAR",
+    "TITLE_YEAR",
+    "PHASE1_CITATION_GRAPH"
+   ],
+   "title": "MatchMethod",
+   "type": "string"
+  },
+  "MatchStatus": {
+   "description": "Bibliography entry → Work match (H-29): no curated matches in v0.",
+   "enum": [
+    "CANDIDATE",
+    "AUTO_EXACT_ID_MATCH",
+    "REJECTED"
+   ],
+   "title": "MatchStatus",
+   "type": "string"
+  },
+  "ObjectKind": {
+   "enum": [
+    "SOURCE",
+    "WORK",
+    "DOCUMENT",
+    "PAGE",
+    "BLOCK",
+    "FIGURE",
+    "TABLE",
+    "FORMULA",
+    "BIBLIOGRAPHY_ENTRY",
+    "AUTHOR",
+    "VENUE",
+    "SOURCE_WORK_LINK",
+    "WORK_RELATION",
+    "SOURCE_RELATION",
+    "WORK_AUTHOR",
+    "BIBLIOGRAPHY_LINK"
+   ],
+   "title": "ObjectKind",
+   "type": "string"
+  },
+  "Origin": {
+   "enum": [
+    "NATIVE",
+    "EMBEDDED_OCR",
+    "OCR",
+    "DERIVED",
+    "REGISTRY",
+    "CURATED"
+   ],
+   "title": "Origin",
+   "type": "string"
+  },
+  "ReviewStatus": {
+   "description": "Review state (contract v0.2 §47). Automatic L1 objects are always AUTO_EXTRACTED_UNREVIEWED.\n\nNOT_APPLICABLE: sources absent/retired by the register, works (H-28), authors and venues (H-25) and curated\nregistry links (their check is ``curation_status``).",
+   "enum": [
+    "UNSEEN",
+    "QUICK_LOOK_ONLY",
+    "AUTO_EXTRACTED_UNREVIEWED",
+    "RELEVANT_SECTIONS_REVIEWED",
+    "FULLY_REVIEWED",
+    "NOT_APPLICABLE"
+   ],
+   "title": "ReviewStatus",
+   "type": "string"
+  }
+ },
+ "$id": "https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/schemas/corpus/bibliography_links.schema.json",
+ "additionalProperties": false,
+ "description": "Row shape of the SQL view ``bibliography_links`` (DERIVED_VIEW, rule ``bibliography_match_v1``): never stored.\n\n``match_status`` is CANDIDATE or AUTO_EXACT_ID_MATCH (H-29); CITES edges come only from AUTO_EXACT_ID_MATCH.",
+ "properties": {
+  "cited_work_id": {
+   "pattern": "^VKM-WRK-[0-9]{3}$",
+   "title": "Cited Work Id",
+   "type": "string"
+  },
+  "citing_page_id": {
+   "anyOf": [
+    {
+     "pattern": "^VKM-SRC-[0-9]{3}:[prs][0-9]{4}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Citing Page Id"
+  },
+  "citing_source_id": {
+   "pattern": "^VKM-SRC-[0-9]{3}$",
+   "title": "Citing Source Id",
+   "type": "string"
+  },
+  "citing_work_id": {
+   "anyOf": [
+    {
+     "pattern": "^VKM-WRK-[0-9]{3}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Citing Work Id"
+  },
+  "citing_work_is_container": {
+   "title": "Citing Work Is Container",
+   "type": "boolean"
+  },
+  "citing_work_resolution": {
+   "$ref": "#/$defs/CitingWorkResolution"
+  },
+  "entry_id": {
+   "pattern": "^VKM-SRC-[0-9]{3}:(?:[prs][0-9]{4}|doc):[bftmc][0-9a-f]{12}$",
+   "title": "Entry Id",
+   "type": "string"
+  },
+  "match_method": {
+   "$ref": "#/$defs/MatchMethod"
+  },
+  "match_score": {
+   "maximum": 1.0,
+   "minimum": 0.0,
+   "title": "Match Score",
+   "type": "number"
+  },
+  "match_status": {
+   "$ref": "#/$defs/MatchStatus"
+  },
+  "matched_fields": {
+   "items": {
+    "type": "string"
+   },
+   "title": "Matched Fields",
+   "type": "array"
+  },
+  "object_id": {
+   "title": "Object Id",
+   "type": "string"
+  },
+  "object_kind": {
+   "$ref": "#/$defs/ObjectKind"
+  },
+  "origin": {
+   "$ref": "#/$defs/Origin",
+   "default": "DERIVED"
+  },
+  "review_status": {
+   "$ref": "#/$defs/ReviewStatus",
+   "default": "AUTO_EXTRACTED_UNREVIEWED"
+  },
+  "rule_version": {
+   "$ref": "#/$defs/DerivedRule",
+   "default": "bibliography_match_v1"
+  },
+  "schema_version": {
+   "description": "semver of the dataset schema at write time",
+   "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+   "title": "Schema Version",
+   "type": "string"
+  }
+ },
+ "required": [
+  "schema_version",
+  "object_id",
+  "object_kind",
+  "entry_id",
+  "citing_source_id",
+  "citing_work_resolution",
+  "citing_work_is_container",
+  "cited_work_id",
+  "match_method",
+  "match_score",
+  "match_status"
+ ],
+ "title": "VKM corpus dataset bibliography_links",
+ "type": "object",
+ "x-vkm-dataset": "bibliography_links",
+ "x-vkm-dataset-class": "DERIVED_VIEW",
+ "x-vkm-envelope-profile": "LINK",
+ "x-vkm-primary-key": [
+  "object_id"
+ ],
+ "x-vkm-schema-fingerprint": "318ca35ed3e680524b5ca1a3561e096b8f7bf2ae84caf79bab6d2447015b10a4",
+ "x-vkm-schema-version": "0.1.0"
+}

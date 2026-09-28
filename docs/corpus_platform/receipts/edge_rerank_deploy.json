@@ -1,0 +1,251 @@
+{
+  "receipt": "vkm-rerank-deploy/1",
+  "created_utc": "2026-09-28T01:52:51Z",
+  "host_role": "EDGE",
+  "data_root": "$VKM_EDGE_ROOT",
+  "compose_project": "vkm-rerank",
+  "services": {
+    "text-rerank (existing, unchanged)": {
+      "container": "careerops-reranker",
+      "bind": "loopback:18082 (also all interfaces, techdebt D-F7)",
+      "image_id": "sha256:77f07d5a523075f591c58f766f7813c8ea62ffabc4e54ea2da2f9f8004969330",
+      "started_at": "2026-09-10T10:58:55.889648906Z",
+      "restart_count": 0
+    },
+    "visual-rerank": {
+      "container": "vkm-rerank-m0",
+      "bind": "loopback:18083",
+      "image": "vkm/llama-server-cu132-sm75:b11223-4da6337767f9-p1",
+      "image_id": "sha256:456889f579db75828ab0bbb7721491ca647d4b06af1f9ecbdf82892dc67a537f"
+    },
+    "gateway": {
+      "container": "vkm-rerank-gateway",
+      "bind": "EDGE LAN address:18084 + loopback:18084",
+      "image": "vkm/rerank-gateway:0.1.0",
+      "image_id": "sha256:106974ad1ebc970b443140117f08afeb780b7df0babaae8094fd4cf34b0d7901",
+      "auth": "X-VKM-Rerank-Token (host-local file $VKM_EDGE_ROOT/secrets/rerank_gateway_token, root:10001 0440)"
+    }
+  },
+  "base_images": {
+    "nvidia/cuda:13.2.1-devel-ubuntu24.04": "sha256:44a9504c6dfb50b1241464241b02a93871928f373de6f5a644cf5fe9f080aa63",
+    "nvidia/cuda:13.2.1-runtime-ubuntu24.04": "sha256:4c17c2e7474ca1d470428b25e87e95756f51e7da3b663859894a03bc5a7ebdae",
+    "python:3.13-slim-bookworm": "sha256:2325bb286ec344af3e5898cc224b5844e2707ac6e26b1632516fd3edc84a5e26"
+  },
+  "llama_cpp": {
+    "commit": "4da6337767f973e2b4d0797e5b323d77d8565e4a",
+    "tag": "b11223",
+    "cmake": "-DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75 -DGGML_NATIVE=OFF -DGGML_BACKEND_DL=ON -DGGML_CPU_ALL_VARIANTS=ON -DLLAMA_CURL=OFF -DLLAMA_BUILD_TESTS=ON",
+    "patches": {
+      "0001-qwen2vl-skip-lm-head-for-embeddings.patch": "9a0abe9fe5a4953a1db6ccd541e5c7d611319bb98f4961cdbe53899998008f16"
+    },
+    "binaries_sha256": {
+      "llama-server": "02bdb11c138ee178ac3e93393f57b5073f159f42be5b2df6f4e832477eae78fc",
+      "libggml-cuda.so": "7ad463eea24f60f70873ef44e4ec98ed5097ca509dd1dd811c34adb16e69dce0",
+      "libmtmd.so": "e69c9fba44a16d05c9fae5360ce0aea49dac0269ca539c5b1d0fc7031b268e14",
+      "libllama.so": "7f9dfe56aabbe7183f119db666069cebb201d5eafa50c18fd4aa679b63324900"
+    },
+    "dockerfile_sha256_at_build": "e6484a2b1aa73b4bfb063a619a4c2302d3ca7245e1e9f290b1b53df75481ae6c",
+    "build_note": "built on EDGE with -j nproc before the coordinator note of 28.09; the repository Dockerfile now limits BUILD_JOBS=6 under nice -n 10 (same outputs)"
+  },
+  "gateway_build": {
+    "dockerfile_sha256": "53d7708b13f8efbaa7683483bee2a60a1fc443bd49b2638a0d0a9e4c9d56f49b",
+    "requirements_sha256": "02055cb7c5acf754d918278bff9badf0bfe0a76a93e85576f1b6981d99c153ed",
+    "pip_freeze": "fastapi==0.141.1 starlette==1.7.0 uvicorn==0.54.0 httpx==0.28.1 pydantic==2.13.5 pydantic_core==2.46.5 numpy==2.5.3 pillow==12.3.0 tokenizers==0.23.2"
+  },
+  "models": {
+    "text": {
+      "model_id": "jinaai/jina-reranker-v3.5",
+      "revision": "e8a93f33f0b22108f8c2364f8484ce3422552fbc",
+      "weights_sha256": "50c684b703a1770389cd2992c6ca3c5f76ad0a270e975374c182cde3e5dfb6fe",
+      "tokenizer_sha256": "4e95945ab0cef486709f760b81efcc7a6e75747f9165d13ead29159737455803",
+      "quant": "fp16 (no quantization)",
+      "license": "CC-BY-NC-4.0"
+    },
+    "visual_llm": {
+      "model_id": "jinaai/jina-reranker-m0-GGUF",
+      "revision": "61490ce6a4799192781ab7beab4ee4661675488c",
+      "file": "jina-reranker-m0-Q6_K.gguf",
+      "bytes": 1272737984,
+      "sha256": "115f0be6a38939fc7a960d088588c2d28ad1db26da1a89a0e465c932d8ace6d5",
+      "quant": "Q6_K",
+      "license": "CC-BY-NC-4.0"
+    },
+    "visual_head": {
+      "file": "mlp_weights.npz",
+      "sha256": "b7bea0fbe19940fbd1a98ffb3287bc74aec064646b4f602d287605ead9e36448"
+    },
+    "visual_mmproj": {
+      "file": "mmproj-jina-reranker-m0-Q8_0.gguf",
+      "bytes": 712893536,
+      "sha256": "91628a15717f4aceeafe36b529329e57ee01af6ce4707545413be7c0844337b9",
+      "derived_from": "jinaai/jina-reranker-m0@94bfe0aeb2d4dd7978362699cddd5893d4e0adc8 (model.safetensors 1d0a7b5fd0966512850481633159f357450dc738665870c9ac4f2b2da252f5e2)",
+      "tool": "convert_hf_to_gguf.py --mmproj --outtype q8_0 @ 4da6337767f9",
+      "config_change": "local copy of config.json: architectures JinaVLForRanking -> Qwen2VLForConditionalGeneration, auto_map removed (sha256 0471a8a5… -> 09873de3…)",
+      "f16_variant_sha256": "cb95999547919fec363feb2ecea97ce0b8a6e702cb577f038da57e66732283d4"
+    },
+    "visual_tokenizer": {
+      "file": "tokenizer.json",
+      "sha256": "091aa7594dc2fcfbfa06b9e3c22a5f0562ac14f30375c13af7309407a0e67b8a"
+    }
+  },
+  "m0_command": "-ngl 20 --fit off -fa on -c 1024 -np 1 -b 1024 -ub 512 --embeddings --pooling last --image-min-tokens 4 --image-max-tokens 768 --no-warmup --cache-ram 0 --no-webui --metrics -t 6 --host 127.0.0.1 --port 18083",
+  "placement": "mmproj=GPU; llm_layers_gpu=20/28; output=CPU (op offload on)",
+  "vram_mib": {
+    "usable": 3716,
+    "text_idle_before": 1250,
+    "text_high_water_after_ptext": 1674,
+    "m0_after_warmup_ngl20": 1852,
+    "gpu_used_after_deploy": 3530,
+    "gpu_free_after_deploy": 186,
+    "floor": 128,
+    "budget_m0_formula": "3716 - P_text - 128 = 1914"
+  },
+  "memory_probes": [
+    {
+      "image": "unpatched",
+      "ngl": 0,
+      "ub": 1024,
+      "c": 2048,
+      "np": 2,
+      "llm_cuda_compute_mib": 782.07,
+      "m0_after_warmup": 1662,
+      "note": "logits 1024x151936x4 = 593 MiB + op-offload copy of output weights 191 MiB"
+    },
+    {
+      "image": "unpatched",
+      "ngl": 28,
+      "ub": 1024,
+      "result": "cudaMalloc OOM loading mmproj (679.9 MiB)"
+    },
+    {
+      "image": "unpatched",
+      "ngl": 24,
+      "ub": 1024,
+      "result": "crash at the first image (OOM)"
+    },
+    {
+      "image": "p1",
+      "ngl": 0,
+      "ub": 1024,
+      "c": 2048,
+      "np": 2,
+      "llm_cuda_compute_mib": 139.79,
+      "m0_start": 872,
+      "m0_after_warmup": 1018
+    },
+    {
+      "image": "p1",
+      "ngl": 22,
+      "ub": 1024,
+      "c": 2048,
+      "np": 2,
+      "m0_after_warmup": 2012,
+      "gpu_free": 26
+    },
+    {
+      "image": "p1",
+      "ngl": 24,
+      "ub": 1024,
+      "c": 2048,
+      "np": 2,
+      "result": "crash at the first image (OOM)"
+    },
+    {
+      "image": "p1",
+      "ngl": 20,
+      "ub": 512,
+      "c": 1024,
+      "np": 1,
+      "m0_after_warmup": 1852,
+      "gpu_free": 186
+    },
+    {
+      "image": "p1",
+      "ngl": 22,
+      "ub": 512,
+      "c": 1024,
+      "np": 1,
+      "m0_after_warmup": 1926,
+      "gpu_free": 112,
+      "llm_cuda_model_buffer_mib": 951.73,
+      "kv_cuda_mib": 21.0,
+      "llm_cuda_compute_mib": 77.13,
+      "vit_cuda_compute_mib": 96.94
+    },
+    {
+      "image": "p1",
+      "ngl": 12,
+      "ub": 512,
+      "c": 1024,
+      "np": 1,
+      "m0_after_warmup": 1550,
+      "gpu_free": 488
+    }
+  ],
+  "latency_s": {
+    "warmup_max_image_ngl20": 8.4,
+    "parity_30_pairs_ngl20": 231.2,
+    "parity_30_pairs_ngl12": 236.4,
+    "text_service_by_tokens": {
+      "1787": 5.745,
+      "2939": 10.9841,
+      "4091": 16.6159
+    }
+  },
+  "parity": {
+    "gate": {
+      "spearman_min": 0.9,
+      "max_abs_diff": 0.05,
+      "top1": "equal"
+    },
+    "reference": "transformers 4.57.3, bf16, RTX 5070 Ti, slow Qwen2VL processor, 5 queries x 6 images",
+    "edge_ngl20": {
+      "verdict": "PASS",
+      "max_abs_diff": 0.02538,
+      "mean_abs_diff": 0.00665,
+      "min_spearman": 0.9429
+    },
+    "edge_ngl12": {
+      "verdict": "PASS",
+      "max_abs_diff": 0.02644,
+      "mean_abs_diff": 0.0068,
+      "min_spearman": 0.9429
+    },
+    "workstation_cpu": {
+      "verdict": "PASS",
+      "max_abs_diff": 0.0229,
+      "mean_abs_diff": 0.00676,
+      "min_spearman": 0.9429
+    },
+    "layout_ngl20_vs_ngl12": {
+      "max_abs_diff": 0.00651,
+      "mean_abs_diff": 0.00233,
+      "min_spearman": 0.9429,
+      "pre_registered_threshold": 0.001,
+      "verdict": "above threshold (informational, not the gate)"
+    }
+  },
+  "backend_ops_tu117": {
+    "MUL_MAT": "1297/1297",
+    "FLASH_ATTN_EXT": "3979/3982 (3 fails only at head dim 512, ERR 5.6e-4..8.6e-4 > 5e-4; m0 uses 128 and 80)",
+    "SOFT_MAX": "214/214",
+    "ROPE": "450/450",
+    "RMS_NORM": "51/51",
+    "NORM": "50/50",
+    "IM2COL": "92/92",
+    "GET_ROWS": "216/216",
+    "CPY": "249/249",
+    "ADD": "103/103",
+    "MUL": "93/93",
+    "SCALE": "4/4",
+    "CONT": "78/78",
+    "CONCAT": "177/177"
+  },
+  "text_backend_concurrency": {
+    "source": "careerops-reranker src (bundle, commit 41bc243)",
+    "server": "ThreadingHTTPServer (thread per request)",
+    "inference": "JinaRerankerRuntime.rerank holds one threading.Lock over token count and model.rerank",
+    "gateway_limit": "none (H-41)",
+    "service_budget_check": "exact_total_tokens vs token_budget before inference -> 413"
+  }
+}

@@ -1,0 +1,223 @@
+{
+ "created_at": "2026-09-28T07:45:34+00:00",
+ "notes": [],
+ "problems": [],
+ "schema": "vkm.mcp_acceptance/1",
+ "server_version": null,
+ "steps": [
+  {
+   "arguments": {
+    "kinds": [
+     "BLOCK",
+     "PAGE"
+    ],
+    "limit": 20,
+    "query": "оседание земной поверхности мульда сдвижения"
+   },
+   "duration_ms": 109.8,
+   "envelope_problems": [],
+   "error_code": null,
+   "is_error": false,
+   "n_images": 0,
+   "n_items": 20,
+   "ok": true,
+   "request_id": "cbc41273e2184f80",
+   "result_sha256": "056352151546d66160914ab1964f1a75e9490bdcc8bff79283fbfe0373d7eec5",
+   "step": 1,
+   "tool": "search_text"
+  },
+  {
+   "arguments": {
+    "candidate_ids": [
+     "VKM-SRC-045:p0090",
+     "VKM-SRC-045:p0124",
+     "VKM-SRC-045:p0091",
+     "VKM-SRC-045:p0121",
+     "VKM-SRC-045:p0092",
+     "VKM-SRC-045:p0026",
+     "VKM-SRC-045:p0093",
+     "VKM-SRC-045:p0119",
+     "VKM-SRC-045:p0027",
+     "VKM-SRC-045:p0112",
+     "VKM-SRC-045:p0076",
+     "VKM-SRC-037:p0170",
+     "VKM-SRC-045:p0089",
+     "VKM-SRC-045:p0010"
+    ],
+    "passages": [
+     {
+      "candidate_id": "VKM-SRC-045:p0090",
+      "object_ids": [
+       "VKM-SRC-045:p0090:bbadbb0c9c02c"
+      ]
+     },
+     {
+      "candidate_id": "VKM-SRC-045:p0091",
+      "object_ids": [
+       "VKM-SRC-045:p0091:b364dc2c1ab08"
+      ]
+     },
+     {
+      "candidate_id": "VKM-SRC-045:p0092",
+      "object_ids": [
+       "VKM-SRC-045:p0092:b696e159d9d0f"
+      ]
+     },
+     {
+      "candidate_id": "VKM-SRC-045:p0093",
+      "object_ids": [
+       "VKM-SRC-045:p0093:be5f64cabcdeb"
+      ]
+     },
+     {
+      "candidate_id": "VKM-SRC-045:p0027",
+      "object_ids": [
+       "VKM-SRC-045:p0027:b2da958c52cb8",
+       "VKM-SRC-045:p0027:badb5bc3a358b",
+       "VKM-SRC-045:p0027:bd8622efd42b9"
+      ]
+     },
+     {
+      "candidate_id": "VKM-SRC-045:p0089",
+      "object_ids": [
+       "VKM-SRC-045:p0089:b977465feb606",
+       "VKM-SRC-045:p0089:b635236d86b25"
+      ]
+     }
+    ],
+    "query": "оседание земной поверхности мульда сдвижения"
+   },
+   "duration_ms": 10360.4,
+   "envelope_problems": [],
+   "error_code": null,
+   "is_error": false,
+   "n_images": 0,
+   "n_items": 14,
+   "ok": true,
+   "request_id": "36c6bca099c24b07",
+   "result_sha256": "13a6b4478900a94bdb98b51f51b0c7181e50f08f16e1e3b1093ea43e39123671",
+   "step": 2,
+   "tool": "rerank_text"
+  },
+  {
+   "arguments": {
+    "include": [
+     "objects"
+    ],
+    "max_chars": 2000,
+    "page_id": "VKM-SRC-045:p0091"
+   },
+   "duration_ms": 15.0,
+   "envelope_problems": [],
+   "error_code": null,
+   "is_error": false,
+   "n_images": 0,
+   "n_items": 0,
+   "ok": true,
+   "request_id": "626d5463d1dd431a",
+   "result_sha256": "9eeecba7f5c9c92d9a4a83ea72e6a471fb7bf7a5bd2784f4f4689508a8973dde",
+   "step": 3,
+   "tool": "get_page"
+  },
+  {
+   "arguments": {
+    "figure_id": "VKM-SRC-045:p0091:f8c6c54a9fad0",
+    "include_image": true
+   },
+   "duration_ms": 95.3,
+   "envelope_problems": [],
+   "error_code": null,
+   "is_error": false,
+   "n_images": 1,
+   "n_items": 0,
+   "ok": true,
+   "request_id": "852545c1572a4e44",
+   "result_sha256": "b7b02a17ab76042274c9b0d7ba9449d64eeedc0ac067dd0e5f18df83a01a3aaf",
+   "step": 4,
+   "tool": "get_figure"
+  },
+  {
+   "arguments": {
+    "candidate_ids": [
+     "VKM-SRC-045:p0091:f8c6c54a9fad0",
+     "VKM-SRC-045:p0091:fa492289a081e",
+     "VKM-SRC-045:p0091",
+     "VKM-SRC-045:p0090"
+    ],
+    "query": "оседание земной поверхности мульда сдвижения"
+   },
+   "duration_ms": 30009.5,
+   "envelope_problems": [],
+   "error_code": null,
+   "is_error": false,
+   "n_images": 0,
+   "n_items": 4,
+   "ok": true,
+   "request_id": "47970ced6a8e4dbd",
+   "result_sha256": "6319bbf1da41291c141e739fe361ec817cc535fb15007e724a8032b581aa7254",
+   "step": 5,
+   "tool": "rerank_visual"
+  },
+  {
+   "arguments": {
+    "object_id": "VKM-SRC-045:p0091"
+   },
+   "duration_ms": 15.6,
+   "envelope_problems": [],
+   "error_code": null,
+   "is_error": false,
+   "n_images": 0,
+   "n_items": 0,
+   "ok": true,
+   "request_id": "b443099532434d68",
+   "result_sha256": "122c7cf6e5d314003ca392a78abd8c3cdee1dbfc9b0652ac5e7cffa53c5152f8",
+   "step": 6,
+   "tool": "get_object"
+  },
+  {
+   "arguments": {
+    "object_id": "VKM-SRC-045:p0091"
+   },
+   "duration_ms": 45.0,
+   "envelope_problems": [],
+   "error_code": null,
+   "is_error": false,
+   "n_images": 0,
+   "n_items": 0,
+   "ok": true,
+   "request_id": "4b61584c81f84520",
+   "result_sha256": "5e5c74a52ef838e772eb7075e967cd6f95f51e31c848803969e07401ced8546e",
+   "step": 7,
+   "tool": "trace_document_provenance"
+  }
+ ],
+ "summary": {
+  "best_visual_object_id": "VKM-SRC-045:p0091",
+  "n_text_candidates": 14,
+  "n_visual_candidates": 4
+ },
+ "tools": [
+  "get_artifact",
+  "get_citations",
+  "get_corpus_status",
+  "get_document_neighbors",
+  "get_figure",
+  "get_formula",
+  "get_object",
+  "get_page",
+  "get_page_image",
+  "get_processing_status",
+  "get_source",
+  "get_table",
+  "get_work",
+  "list_source_pages",
+  "rerank_text",
+  "rerank_visual",
+  "search_objects",
+  "search_text",
+  "trace_document_provenance"
+ ],
+ "tools_sha256": "1a199413f1807c20ffdad1f36c3dc1204e4ba28d478079102ced88b8786b996a",
+ "transport": "streamable-http",
+ "verdict": "PASS"
+}

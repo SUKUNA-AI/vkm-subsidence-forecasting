@@ -1,0 +1,51 @@
+{
+  "schema": "vkm.model_pins/1",
+  "note": "Pinned model snapshots of the Corpus Platform services. Fetch and verify with scripts/fetch_models.py; the models directory is VKM_MODELS_DIR (outside every git tree). Retrieval-lab candidates are pinned by the lab's own registry.",
+  "models": [
+    {
+      "key": "glm-ocr",
+      "repo_id": "zai-org/GLM-OCR",
+      "revision": "2e85a62840ccac27daa451df36c736c4636b8628",
+      "local_dir": "zai-org__GLM-OCR/2e85a62840ccac27daa451df36c736c4636b8628",
+      "role": "OCR",
+      "host": "WORKSTATION",
+      "served_by": "infra/workstation/glm-ocr/compose.yml"
+    },
+    {
+      "key": "pp-doclayout-v3",
+      "repo_id": "PaddlePaddle/PP-DocLayoutV3_safetensors",
+      "revision": "97d101e6db2642e162a1d05392d1b0231c91033e",
+      "local_dir": "PaddlePaddle__PP-DocLayoutV3_safetensors/97d101e6db2642e162a1d05392d1b0231c91033e",
+      "role": "LAYOUT",
+      "host": "WORKSTATION",
+      "served_by": "vkm_corpus.layout (in-process, pipeline venv)"
+    },
+    {
+      "key": "jina-reranker-v3.5",
+      "repo_id": "jinaai/jina-reranker-v3.5",
+      "revision": "e8a93f33f0b22108f8c2364f8484ce3422552fbc",
+      "local_dir": "jinaai__jina-reranker-v3.5/e8a93f33f0b22108f8c2364f8484ce3422552fbc",
+      "role": "TEXT_RERANK",
+      "host": "EDGE",
+      "served_by": "existing text reranker service (kept as is); local copy for parity checks"
+    },
+    {
+      "key": "jina-reranker-m0-gguf",
+      "repo_id": "jinaai/jina-reranker-m0-GGUF",
+      "revision": "61490ce6a4799192781ab7beab4ee4661675488c",
+      "local_dir": "jinaai__jina-reranker-m0-GGUF/61490ce6a4799192781ab7beab4ee4661675488c",
+      "role": "VISUAL_RERANK",
+      "host": "EDGE",
+      "served_by": "infra/edge/compose.yml"
+    },
+    {
+      "key": "jina-reranker-m0",
+      "repo_id": "jinaai/jina-reranker-m0",
+      "revision": "94bfe0aeb2d4dd7978362699cddd5893d4e0adc8",
+      "local_dir": "jinaai__jina-reranker-m0/94bfe0aeb2d4dd7978362699cddd5893d4e0adc8",
+      "role": "VISUAL_RERANK_SOURCE",
+      "host": "EDGE",
+      "served_by": "source of the converted vision projector, the scoring head and the parity reference"
+    }
+  ]
+}

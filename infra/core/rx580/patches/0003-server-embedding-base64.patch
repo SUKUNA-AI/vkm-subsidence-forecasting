@@ -1,0 +1,78 @@
+diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
+index 611e82a6a..dfed4b79f 100644
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -2166,6 +2166,7 @@ private:
+         res->index     = slot.task->index;
+         res->n_tokens  = slot.task->n_tokens();
+         res->res_type  = slot.task->params.res_type;
++        res->b64       = slot.task->params.embd_b64; // VKM rx580 patch 0003
+ 
+         const int n_embd_out = llama_model_n_embd_out(model_tgt);
+ 
+@@ -5466,6 +5467,7 @@ std::unique_ptr<server_res_generator> server_routes::handle_embeddings_impl(cons
+             // OAI-compat
+             task.params.res_type = res_type;
+             task.params.embd_normalize = embd_normalize;
++            task.params.embd_b64 = use_base64 && res_type == TASK_RESPONSE_TYPE_NONE; // VKM rx580 patch 0003
+ 
+             tasks.push_back(std::move(task));
+         }
+diff --git a/tools/server/server-task.cpp b/tools/server/server-task.cpp
+index 0d3beb313..a82039b39 100644
+--- a/tools/server/server-task.cpp
++++ b/tools/server/server-task.cpp
+@@ -9,6 +9,8 @@
+ #include "sampling.h"
+ #include "speculative.h"
+ #include "server-common.h"
++#include "base64.hpp"
++#include <cstring>
+ 
+ #include <sstream>
+ 
+@@ -1470,6 +1472,23 @@ json server_task_result_embd::to_json() {
+ }
+ 
+ json server_task_result_embd::to_json_non_oaicompat() {
++    if (b64) {
++        // VKM rx580 patch 0003: token matrices (pooling none) are large; send raw little-endian float32 rows as base64
++        // instead of decimal JSON (≈ 3x smaller, no float formatting/parsing on either side)
++        const size_t n_rows = embedding.size();
++        const size_t n_cols = n_rows ? embedding[0].size() : 0;
++        std::string raw(n_rows * n_cols * sizeof(float), 0);
++        for (size_t r = 0; r < n_rows; ++r) {
++            GGML_ASSERT(embedding[r].size() == n_cols);
++            memcpy(&raw[r * n_cols * sizeof(float)], embedding[r].data(), n_cols * sizeof(float));
++        }
++        return json {
++            {"index",         index},
++            {"embedding_b64", base64::encode(raw.data(), raw.size())},
++            {"n_rows",        n_rows},
++            {"n_cols",        n_cols},
++        };
++    }
+     return json {
+         {"index",     index},
+         {"embedding", embedding},
+diff --git a/tools/server/server-task.h b/tools/server/server-task.h
+index 9c99143f8..471ecfba4 100644
+--- a/tools/server/server-task.h
++++ b/tools/server/server-task.h
+@@ -96,6 +96,7 @@ struct task_params {
+ 
+     // Embeddings
+     int32_t embd_normalize = 2; // (-1=none, 0=max absolute int16, 1=taxicab, 2=Euclidean/L2, >2=p-norm)
++    bool    embd_b64       = false; // VKM rx580 patch 0003: non-OAI /embedding returns float32 rows as base64
+ 
+     json format_logit_bias(const std::vector<llama_logit_bias> & logit_bias) const;
+     json to_json(bool only_metrics = false) const;
+@@ -454,6 +455,8 @@ struct server_task_result_cmpl_partial : server_task_result {
+ struct server_task_result_embd : server_task_result {
+     std::vector<std::vector<float>> embedding;
+ 
++    bool b64 = false; // VKM rx580 patch 0003
++
+     int32_t n_tokens;
+ 
+     // response formatting

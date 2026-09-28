@@ -1,0 +1,479 @@
+{
+ "version": 1,
+ "unit_rule": "vkm-units-v1",
+ "max_query_tokens_default": 128,
+ "max_doc_tokens_default": 512,
+ "models": [
+  {
+   "key": "D1",
+   "model_id": "jinaai/jina-embeddings-v5-text-small-retrieval",
+   "revision": "6856e76bb72982e58de0620458a4e8b3614da340",
+   "family": "st_dense",
+   "role": "mandatory",
+   "dim": 1024,
+   "mrl_dims": [
+    512,
+    256
+   ],
+   "pooling": "last_token",
+   "query_prefix": "Query: ",
+   "doc_prefix": "Document: ",
+   "weights_dtype": "bf16",
+   "license": "CC-BY-NC-4.0",
+   "notes": "official retrieval variant (retrieval LoRA merged); base Qwen3-0.6B-Base",
+   "modes": [
+    "dense"
+   ]
+  },
+  {
+   "key": "D2",
+   "model_id": "jinaai/jina-embeddings-v5-text-nano-retrieval",
+   "revision": "ac5d898c8d382b17167c33e5c8af644a3519b47d",
+   "family": "st_dense",
+   "role": "mandatory",
+   "dim": 768,
+   "mrl_dims": [
+    512,
+    384,
+    256
+   ],
+   "pooling": "last_token",
+   "query_prefix": "Query: ",
+   "doc_prefix": "Document: ",
+   "trust_remote_code": true,
+   "weights_dtype": "bf16",
+   "license": "CC-BY-NC-4.0",
+   "notes": "EuroBERT-210m base; remote code in the repo; GGUF needs Jina's llama.cpp fork",
+   "modes": [
+    "dense"
+   ]
+  },
+  {
+   "key": "D3",
+   "model_id": "ibm-granite/granite-embedding-311m-multilingual-r2",
+   "revision": "44399559930365213510b1ee2eb15ded83374f0e",
+   "family": "st_dense",
+   "role": "mandatory",
+   "dim": 768,
+   "mrl_dims": [
+    512,
+    384,
+    256
+   ],
+   "pooling": "cls",
+   "weights_dtype": "bf16",
+   "license": "Apache-2.0",
+   "modes": [
+    "dense"
+   ]
+  },
+  {
+   "key": "D4",
+   "model_id": "ibm-granite/granite-embedding-97m-multilingual-r2",
+   "revision": "835ad14087e140460703cf0fae09f97d469d65c2",
+   "family": "st_dense",
+   "role": "mandatory",
+   "dim": 384,
+   "mrl_dims": [
+    256
+   ],
+   "pooling": "cls",
+   "weights_dtype": "bf16",
+   "license": "Apache-2.0",
+   "modes": [
+    "dense"
+   ]
+  },
+  {
+   "key": "D5",
+   "model_id": "perplexity-ai/pplx-embed-v1-0.6b",
+   "revision": "2c4d510dd4a732063c31a0f70193e35067b51fd8",
+   "family": "st_dense",
+   "role": "mandatory",
+   "dim": 1024,
+   "mrl_dims": [
+    512,
+    256
+   ],
+   "pooling": "mean",
+   "trust_remote_code": true,
+   "weights_dtype": "fp32",
+   "license": "MIT",
+   "native_precision": "int8",
+   "notes": "no instruction; native output int8 tanh-quantised (compare by cosine)",
+   "modes": [
+    "dense"
+   ]
+  },
+  {
+   "key": "D6",
+   "model_id": "perplexity-ai/pplx-embed-context-v1-0.6b",
+   "revision": "b42df969d4d78d1840769e45c68c4e4ce763768b",
+   "family": "pplx_context",
+   "role": "mandatory",
+   "dim": 1024,
+   "mrl_dims": [
+    512,
+    256
+   ],
+   "pooling": "mean_late_chunking",
+   "trust_remote_code": true,
+   "weights_dtype": "fp32",
+   "license": "MIT",
+   "native_precision": "int8",
+   "notes": "contextual: windows of consecutive units (ctx_windows); queries as one-chunk documents",
+   "modes": [
+    "dense"
+   ]
+  },
+  {
+   "key": "D7",
+   "model_id": "lightonai/mDenseOn",
+   "revision": "a5fdb000f7a21da96c3bddde3a782ef777316df3",
+   "family": "st_dense",
+   "role": "mandatory",
+   "dim": 768,
+   "pooling": "cls",
+   "query_prefix": "query: ",
+   "doc_prefix": "document: ",
+   "weights_dtype": "fp32",
+   "license": "Apache-2.0",
+   "notes": "mmBERT-base; retrieval training languages without Russian",
+   "modes": [
+    "dense"
+   ]
+  },
+  {
+   "key": "D8",
+   "model_id": "Qwen/Qwen3-Embedding-0.6B",
+   "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+   "family": "st_dense",
+   "role": "mandatory",
+   "dim": 1024,
+   "mrl_dims": [
+    512,
+    256
+   ],
+   "pooling": "last_token",
+   "query_prefix": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "weights_dtype": "bf16",
+   "license": "Apache-2.0",
+   "modes": [
+    "dense"
+   ]
+  },
+  {
+   "key": "D9",
+   "model_id": "BAAI/bge-m3",
+   "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+   "family": "bge_m3",
+   "role": "mandatory",
+   "dim": 1024,
+   "modes": [
+    "dense",
+    "sparse",
+    "multivector"
+   ],
+   "pooling": "cls",
+   "weights_dtype": "fp32",
+   "license": "MIT",
+   "notes": "pytorch_model.bin loaded with weights_only; sparse and colbert heads"
+  },
+  {
+   "key": "L1",
+   "model_id": "perplexity-ai/pplx-embed-v1-late-0.6b",
+   "revision": "4d28cf627d225552cfc29fb7df6cb0705ea0f1b3",
+   "family": "multivector",
+   "role": "mandatory",
+   "dim": 128,
+   "modes": [
+    "multivector"
+   ],
+   "pooling": "tokens",
+   "max_query_tokens": 32,
+   "max_doc_tokens": 512,
+   "trust_remote_code": true,
+   "weights_dtype": "fp32",
+   "license": "MIT",
+   "late": {
+    "query_prefix": "[Q] ",
+    "document_prefix": "[D] ",
+    "query_length": 32,
+    "document_length": 512,
+    "attend_to_expansion_tokens": true,
+    "do_query_expansion": true,
+    "skiplist_words": [
+     "!",
+     "\"",
+     "#",
+     "$",
+     "%",
+     "&",
+     "'",
+     "(",
+     ")",
+     "*",
+     "+",
+     ",",
+     "-",
+     ".",
+     "/",
+     ":",
+     ";",
+     "<",
+     "=",
+     ">",
+     "?",
+     "@",
+     "[",
+     "\\",
+     "]",
+     "^",
+     "_",
+     "`",
+     "{",
+     "|",
+     "}",
+     "~"
+    ]
+   }
+  },
+  {
+   "key": "L2",
+   "model_id": "lightonai/mLateOn",
+   "revision": "edd378f99593c0ac8a15518b97ad89786b02685e",
+   "family": "multivector",
+   "role": "mandatory",
+   "dim": 128,
+   "modes": [
+    "multivector"
+   ],
+   "pooling": "tokens",
+   "max_query_tokens": 128,
+   "max_doc_tokens": 512,
+   "weights_dtype": "fp32",
+   "license": "Apache-2.0",
+   "late": {
+    "query_prefix": "[Q] ",
+    "document_prefix": "[D] ",
+    "query_length": 128,
+    "document_length": 512,
+    "attend_to_expansion_tokens": false,
+    "do_query_expansion": false,
+    "skiplist_words": []
+   },
+   "notes": "card lengths 8192; benchmark caps 128/512 like all models; retrieval languages without Russian"
+  },
+  {
+   "key": "L3",
+   "model_id": "jinaai/jina-colbert-v2",
+   "revision": "a9dc5cd7293d4c71dbbba04829923ba4d0e4f6ea",
+   "family": "multivector",
+   "role": "mandatory",
+   "dim": 128,
+   "mrl_dims": [
+    96,
+    64
+   ],
+   "modes": [
+    "multivector"
+   ],
+   "pooling": "tokens",
+   "max_query_tokens": 32,
+   "max_doc_tokens": 512,
+   "trust_remote_code": true,
+   "weights_dtype": "bf16",
+   "license": "CC-BY-NC-4.0",
+   "code_repos": {
+    "jinaai/xlm-roberta-flash-implementation": "bd55a5ec8e6c0fb1d6c26efb4b6a4a74ce8a88d3"
+   },
+   "late": {
+    "query_prefix": "[QueryMarker]",
+    "document_prefix": "[DocumentMarker]",
+    "query_length": 32,
+    "document_length": 512,
+    "attend_to_expansion_tokens": true,
+    "do_query_expansion": true,
+    "skiplist_words": [
+     "!",
+     "\"",
+     "#",
+     "$",
+     "%",
+     "&",
+     "'",
+     "(",
+     ")",
+     "*",
+     "+",
+     ",",
+     "-",
+     ".",
+     "/",
+     ":",
+     ";",
+     "<",
+     "=",
+     ">",
+     "?",
+     "@",
+     "[",
+     "\\",
+     "]",
+     "^",
+     "_",
+     "`",
+     "{",
+     "|",
+     "}",
+     "~"
+    ]
+   },
+   "notes": "96 = MRL truncation of the 128 head (checked against the 64 checkpoint)"
+  },
+  {
+   "key": "L3-64",
+   "model_id": "jinaai/jina-colbert-v2-64",
+   "revision": "7c9f323b61e6f96754300dea81bb51c3cc1d3f34",
+   "family": "multivector",
+   "role": "mandatory",
+   "dim": 64,
+   "modes": [
+    "multivector"
+   ],
+   "pooling": "tokens",
+   "max_query_tokens": 32,
+   "max_doc_tokens": 512,
+   "trust_remote_code": true,
+   "weights_dtype": "bf16",
+   "license": "CC-BY-NC-4.0",
+   "code_repos": {
+    "jinaai/xlm-roberta-flash-implementation": "bd55a5ec8e6c0fb1d6c26efb4b6a4a74ce8a88d3"
+   },
+   "late": {
+    "query_prefix": "[QueryMarker]",
+    "document_prefix": "[DocumentMarker]",
+    "query_length": 32,
+    "document_length": 512,
+    "attend_to_expansion_tokens": true,
+    "do_query_expansion": true,
+    "skiplist_words": [
+     "!",
+     "\"",
+     "#",
+     "$",
+     "%",
+     "&",
+     "'",
+     "(",
+     ")",
+     "*",
+     "+",
+     ",",
+     "-",
+     ".",
+     "/",
+     ":",
+     ";",
+     "<",
+     "=",
+     ">",
+     "?",
+     "@",
+     "[",
+     "\\",
+     "]",
+     "^",
+     "_",
+     "`",
+     "{",
+     "|",
+     "}",
+     "~"
+    ]
+   }
+  },
+  {
+   "key": "X1",
+   "model_id": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+   "revision": "1763d603adac8057bd6482a708001b0ed2e0a903",
+   "family": "st_dense",
+   "role": "secondary",
+   "dim": 1024,
+   "pooling": "mean",
+   "query_prefix": "Instruct: Given a query, retrieve relevant passages\nQuery: ",
+   "trust_remote_code": true,
+   "weights_dtype": "bf16",
+   "license": "MIT",
+   "notes": "WHY: Russian-first 2026 model (ru+en); none of the mandatory models is Russian-first; fits RX580",
+   "modes": [
+    "dense"
+   ]
+  },
+  {
+   "key": "X2",
+   "model_id": "microsoft/harrier-oss-v1-270m",
+   "revision": "31de22b673913c7d658c0f03f792d77c2dcf8ebd",
+   "family": "st_dense",
+   "role": "secondary",
+   "dim": 640,
+   "pooling": "last_token",
+   "query_prefix": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: ",
+   "weights_dtype": "bf16",
+   "license": "MIT",
+   "notes": "WHY: 2026 multilingual 270M, 32K context — ultra-light competitor of granite-97m and jina-nano",
+   "modes": [
+    "dense"
+   ]
+  },
+  {
+   "key": "V1",
+   "model_id": "Qwen/Qwen3-VL-Embedding-2B",
+   "revision": "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+   "family": "visual_st",
+   "role": "visual",
+   "dim": 2048,
+   "mrl_dims": [
+    1024,
+    512
+   ],
+   "pooling": "last_token",
+   "weights_dtype": "bf16",
+   "license": "Apache-2.0",
+   "notes": "default instruction: Represent the user's input.",
+   "modes": [
+    "dense"
+   ]
+  },
+  {
+   "key": "V2",
+   "model_id": "jinaai/jina-embeddings-v5-omni-small-retrieval",
+   "revision": "e3ae4b6e4af4ec0799cd931aefaff03235b5f9d4",
+   "family": "visual_st",
+   "role": "visual",
+   "dim": 1024,
+   "pooling": "last_token",
+   "trust_remote_code": true,
+   "weights_dtype": "bf16",
+   "license": "CC-BY-NC-4.0",
+   "notes": "secondary visual model (instead of jina-embeddings-v4)",
+   "modes": [
+    "dense"
+   ]
+  },
+  {
+   "key": "FAKE",
+   "model_id": "fake/hash",
+   "revision": "0000000000000000000000000000000000000000",
+   "family": "fake",
+   "role": "fake",
+   "dim": 64,
+   "modes": [
+    "dense",
+    "sparse",
+    "multivector"
+   ],
+   "notes": "hashing encoder for tests"
+  }
+ ]
+}

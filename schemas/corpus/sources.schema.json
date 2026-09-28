@@ -1,0 +1,532 @@
+{
+ "$defs": {
+  "DatePrecision": {
+   "description": "Same values as ``vkm_world.core.provenance.DATE_PRECISIONS``.",
+   "enum": [
+    "day",
+    "month",
+    "year",
+    "decade",
+    "unknown"
+   ],
+   "title": "DatePrecision",
+   "type": "string"
+  },
+  "FileFormat": {
+   "enum": [
+    "PDF",
+    "DJVU",
+    "EPUB",
+    "DOCX",
+    "ZIP",
+    "IMAGE",
+    "UNKNOWN"
+   ],
+   "title": "FileFormat",
+   "type": "string"
+  },
+  "FileStatus": {
+   "enum": [
+    "PRESENT_VERIFIED",
+    "MISSING",
+    "SHA256_MISMATCH",
+    "SIZE_MISMATCH",
+    "LFS_POINTER_ONLY",
+    "UNREADABLE"
+   ],
+   "title": "FileStatus",
+   "type": "string"
+  },
+  "IngestionBasis": {
+   "enum": [
+    "INTAKE_MANIFEST",
+    "MIGRATION_SOURCE_TEXT",
+    "REGISTER_GIT_HISTORY",
+    "UNKNOWN"
+   ],
+   "title": "IngestionBasis",
+   "type": "string"
+  },
+  "LifecycleStatus": {
+   "enum": [
+    "ACTIVE",
+    "ABSENT_BY_REGISTER",
+    "RETIRED"
+   ],
+   "title": "LifecycleStatus",
+   "type": "string"
+  },
+  "ObjectKind": {
+   "enum": [
+    "SOURCE",
+    "WORK",
+    "DOCUMENT",
+    "PAGE",
+    "BLOCK",
+    "FIGURE",
+    "TABLE",
+    "FORMULA",
+    "BIBLIOGRAPHY_ENTRY",
+    "AUTHOR",
+    "VENUE",
+    "SOURCE_WORK_LINK",
+    "WORK_RELATION",
+    "SOURCE_RELATION",
+    "WORK_AUTHOR",
+    "BIBLIOGRAPHY_LINK"
+   ],
+   "title": "ObjectKind",
+   "type": "string"
+  },
+  "Origin": {
+   "enum": [
+    "NATIVE",
+    "EMBEDDED_OCR",
+    "OCR",
+    "DERIVED",
+    "REGISTRY",
+    "CURATED"
+   ],
+   "title": "Origin",
+   "type": "string"
+  },
+  "ProcessingStatus": {
+   "description": "Status of a page or a processing step. Minimum of task §44 plus H-02 and CP-05 additions.",
+   "enum": [
+    "NATIVE_OK",
+    "EMBEDDED_TEXT_OK",
+    "OCR_REQUIRED",
+    "OCR_OK",
+    "PARTIAL",
+    "UNSUPPORTED",
+    "FAILED",
+    "NEEDS_REVIEW",
+    "SKIPPED_BY_REGISTER",
+    "NOT_PROCESSED"
+   ],
+   "title": "ProcessingStatus",
+   "type": "string"
+  },
+  "QualityFlag": {
+   "enum": [
+    "LOW_OCR_CONFIDENCE",
+    "BROKEN_TEXT_LAYER",
+    "GARBAGE_GLYPHS",
+    "PUA_GLYPHS",
+    "MOJIBAKE_NOT_REPAIRABLE",
+    "REPAIRABLE_CP1251_REMAP",
+    "ENCODING_REPAIRED",
+    "UNMAPPED_SYMBOL_GLYPHS",
+    "FONT_WITHOUT_TOUNICODE",
+    "TYPE3_FONT",
+    "LOW_FUNCTION_WORD_RATE",
+    "MIXED_TEXT_LAYER",
+    "EMBEDDED_TEXT_LAYER",
+    "HIDDEN_TEXT_LAYER",
+    "TEXT_LAYER_VISIBLE_MODE",
+    "NATIVE_OCR_DISAGREE",
+    "LANGUAGE_UNCERTAIN",
+    "TRUNCATED",
+    "REPETITION",
+    "ROTATED",
+    "SKEW_CORRECTED",
+    "LOW_RESOLUTION_SCAN",
+    "SPREAD_2UP",
+    "EMPTY_PAGE",
+    "VECTOR_NO_TEXT",
+    "IMAGE_NO_TEXT",
+    "DUPLICATE_PAGE_CANDIDATE",
+    "FOREIGN_WORK_CONTENT",
+    "EPUB_PAGE_ANCHOR_CALIBRE",
+    "BBOX_APPROX",
+    "CROSS_PAGE_CONTINUATION",
+    "DUPLICATE_DETECTION_DISAMBIGUATED",
+    "SCOPE_INHERITED_FROM_SOURCE",
+    "CAPTION_NOT_FOUND",
+    "CAPTION_ASSOCIATION_UNCERTAIN",
+    "FIGURE_TYPE_LOW_CONFIDENCE",
+    "TABLE_STRUCTURE_UNCERTAIN",
+    "SPANNING_CELLS",
+    "EMPTY_CELLS_RATIO",
+    "NUMERIC_PARSE_FAILURES",
+    "FORMULA_LATEX_UNPARSEABLE",
+    "LATEX_UNBALANCED",
+    "CONVERSION_FAILED",
+    "CITING_WORK_IS_CONTAINER",
+    "LEADING_BYTES_BEFORE_HEADER",
+    "ENCRYPTED_SOURCE",
+    "PDF_PERMISSIONS_RESTRICTED",
+    "PAGECOUNT_DIFFERS_FROM_REGISTER_HINT",
+    "REGISTER_NOTES_NOT_EVIDENCE",
+    "DJVU_TITLE_NOT_VERIFIED"
+   ],
+   "title": "QualityFlag",
+   "type": "string"
+  },
+  "ReviewStatus": {
+   "description": "Review state (contract v0.2 §47). Automatic L1 objects are always AUTO_EXTRACTED_UNREVIEWED.\n\nNOT_APPLICABLE: sources absent/retired by the register, works (H-28), authors and venues (H-25) and curated\nregistry links (their check is ``curation_status``).",
+   "enum": [
+    "UNSEEN",
+    "QUICK_LOOK_ONLY",
+    "AUTO_EXTRACTED_UNREVIEWED",
+    "RELEVANT_SECTIONS_REVIEWED",
+    "FULLY_REVIEWED",
+    "NOT_APPLICABLE"
+   ],
+   "title": "ReviewStatus",
+   "type": "string"
+  },
+  "ReviewStatusBasis": {
+   "enum": [
+    "PHASE1_COVERAGE_MASTER",
+    "INTAKE_QUICK_LOOK_MARKER",
+    "DEFAULT_UNSEEN",
+    "LIFECYCLE"
+   ],
+   "title": "ReviewStatusBasis",
+   "type": "string"
+  },
+  "SiteScopeMapping": {
+   "enum": [
+    "EXACT",
+    "CASE",
+    "SYNONYM",
+    "LOSSY",
+    "MULTI",
+    "AMBIGUOUS",
+    "NOT_A_SCOPE"
+   ],
+   "title": "SiteScopeMapping",
+   "type": "string"
+  },
+  "SkipReason": {
+   "description": "Why the register itself excludes a source from processing (CP-05).",
+   "enum": [
+    "ARCHIVE_DELETED_AFTER_ASSEMBLY",
+    "RETIRED_NOT_EVIDENCE"
+   ],
+   "title": "SkipReason",
+   "type": "string"
+  }
+ },
+ "$id": "https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/schemas/corpus/sources.schema.json",
+ "additionalProperties": false,
+ "description": "A registered file (one row per register entry, 251 including 013 and 022 — CP-05). Raw register fields are\nkept verbatim; register notes are hints, never evidence (flag REGISTER_NOTES_NOT_EVIDENCE).",
+ "properties": {
+  "canonical_path": {
+   "description": "path relative to $VKM_RESOURCES_ROOT",
+   "minLength": 1,
+   "title": "Canonical Path",
+   "type": "string"
+  },
+  "config_hash": {
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Config Hash",
+   "type": "string"
+  },
+  "content_sha256": {
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Content Sha256",
+   "type": "string"
+  },
+  "created_at": {
+   "format": "date-time",
+   "title": "Created At",
+   "type": "string"
+  },
+  "evidence_coverage_raw": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "Phase-1 CoverageLevel verbatim (001–041)",
+   "title": "Evidence Coverage Raw"
+  },
+  "extractor_id": {
+   "minLength": 1,
+   "title": "Extractor Id",
+   "type": "string"
+  },
+  "extractor_version": {
+   "minLength": 1,
+   "title": "Extractor Version",
+   "type": "string"
+  },
+  "file_extension": {
+   "title": "File Extension",
+   "type": "string"
+  },
+  "file_status": {
+   "$ref": "#/$defs/FileStatus"
+  },
+  "format_detected": {
+   "$ref": "#/$defs/FileFormat"
+  },
+  "ingestion_basis": {
+   "$ref": "#/$defs/IngestionBasis",
+   "default": "UNKNOWN"
+  },
+  "ingestion_date": {
+   "anyOf": [
+    {
+     "format": "date",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Ingestion Date"
+  },
+  "ingestion_date_precision": {
+   "$ref": "#/$defs/DatePrecision",
+   "default": "unknown"
+  },
+  "input_ref": {
+   "description": "logical path of the input file, e.g. PRIVATE:00_registry/...",
+   "minLength": 1,
+   "title": "Input Ref",
+   "type": "string"
+  },
+  "input_row": {
+   "anyOf": [
+    {
+     "maximum": 2147483647,
+     "minimum": 1,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "data row number (provenance only, not identity)",
+   "title": "Input Row"
+  },
+  "input_sha256": {
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Input Sha256",
+   "type": "string"
+  },
+  "lifecycle_status": {
+   "$ref": "#/$defs/LifecycleStatus"
+  },
+  "object_id": {
+   "title": "Object Id",
+   "type": "string"
+  },
+  "object_kind": {
+   "$ref": "#/$defs/ObjectKind"
+  },
+  "observed_sha256": {
+   "anyOf": [
+    {
+     "pattern": "^[0-9a-f]{64}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Observed Sha256"
+  },
+  "observed_size_bytes": {
+   "anyOf": [
+    {
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Observed Size Bytes"
+  },
+  "origin": {
+   "$ref": "#/$defs/Origin",
+   "description": "REGISTRY (loaded from PRIVATE 00_registry) or DERIVED"
+  },
+  "original_filename": {
+   "title": "Original Filename",
+   "type": "string"
+  },
+  "pipeline_version": {
+   "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+   "title": "Pipeline Version",
+   "type": "string"
+  },
+  "priority": {
+   "title": "Priority",
+   "type": "string"
+  },
+  "processing_run_id": {
+   "pattern": "^RUN-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}$",
+   "title": "Processing Run Id",
+   "type": "string"
+  },
+  "quality_flags": {
+   "items": {
+    "$ref": "#/$defs/QualityFlag"
+   },
+   "title": "Quality Flags",
+   "type": "array"
+  },
+  "register_migration_source": {
+   "title": "Register Migration Source",
+   "type": "string"
+  },
+  "register_migration_status": {
+   "title": "Register Migration Status",
+   "type": "string"
+  },
+  "register_notes": {
+   "title": "Register Notes",
+   "type": "string"
+  },
+  "register_row_sha256": {
+   "description": "sha256 of the canonical register row (detects row edits)",
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Register Row Sha256",
+   "type": "string"
+  },
+  "register_scientific_role": {
+   "title": "Register Scientific Role",
+   "type": "string"
+  },
+  "register_skip_reason": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/SkipReason"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null
+  },
+  "register_skip_status": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/ProcessingStatus"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "SKIPPED_BY_REGISTER when lifecycle is not ACTIVE (CP-05)"
+  },
+  "review_status": {
+   "$ref": "#/$defs/ReviewStatus"
+  },
+  "review_status_basis": {
+   "$ref": "#/$defs/ReviewStatusBasis"
+  },
+  "schema_version": {
+   "description": "semver of the dataset schema at write time",
+   "pattern": "^(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)$",
+   "title": "Schema Version",
+   "type": "string"
+  },
+  "site_scope": {
+   "items": {
+    "type": "string"
+   },
+   "title": "Site Scope",
+   "type": "array"
+  },
+  "site_scope_candidates": {
+   "description": "only for AMBIGUOUS; never a filter",
+   "items": {
+    "type": "string"
+   },
+   "title": "Site Scope Candidates",
+   "type": "array"
+  },
+  "site_scope_map_version": {
+   "title": "Site Scope Map Version",
+   "type": "string"
+  },
+  "site_scope_mapping": {
+   "$ref": "#/$defs/SiteScopeMapping"
+  },
+  "site_scope_raw": {
+   "description": "register evidence_scope, verbatim (CP-07)",
+   "title": "Site Scope Raw",
+   "type": "string"
+  },
+  "size_bytes": {
+   "minimum": 0,
+   "title": "Size Bytes",
+   "type": "integer"
+  },
+  "source_class_raw": {
+   "title": "Source Class Raw",
+   "type": "string"
+  },
+  "source_id": {
+   "pattern": "^VKM-SRC-[0-9]{3}$",
+   "title": "Source Id",
+   "type": "string"
+  },
+  "source_sha256": {
+   "description": "register sha256 (= LFS oid); bound to source_id for life",
+   "pattern": "^[0-9a-f]{64}$",
+   "title": "Source Sha256",
+   "type": "string"
+  }
+ },
+ "required": [
+  "schema_version",
+  "object_id",
+  "object_kind",
+  "origin",
+  "pipeline_version",
+  "processing_run_id",
+  "extractor_id",
+  "extractor_version",
+  "config_hash",
+  "content_sha256",
+  "created_at",
+  "review_status",
+  "input_ref",
+  "input_sha256",
+  "source_id",
+  "source_sha256",
+  "size_bytes",
+  "canonical_path",
+  "original_filename",
+  "file_extension",
+  "format_detected",
+  "file_status",
+  "lifecycle_status",
+  "source_class_raw",
+  "priority",
+  "site_scope_raw",
+  "site_scope_mapping",
+  "site_scope_map_version",
+  "review_status_basis",
+  "register_scientific_role",
+  "register_migration_source",
+  "register_migration_status",
+  "register_notes",
+  "register_row_sha256"
+ ],
+ "title": "VKM corpus dataset sources",
+ "type": "object",
+ "x-vkm-dataset": "sources",
+ "x-vkm-dataset-class": "REGISTRY_GLOBAL",
+ "x-vkm-envelope-profile": "REG",
+ "x-vkm-primary-key": [
+  "source_id"
+ ],
+ "x-vkm-schema-fingerprint": "d3fc14710f7a929da7695ae4c2738407de18fe2cc3b133fb35a31d9bd31156fa",
+ "x-vkm-schema-version": "0.1.0"
+}
