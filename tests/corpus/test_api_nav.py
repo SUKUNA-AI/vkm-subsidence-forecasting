@@ -20,6 +20,7 @@ READ = "read-token-for-tests-0000000000000000"
 HR = {"Authorization": f"Bearer {READ}"}
 NAV_SNAP = "snap-nav-test"
 SEC = "SEC-0000000000000001"
+TOP = "TOP-00000000000000aa"
 
 
 def _functions():
@@ -41,7 +42,16 @@ def _functions():
                                                                                           "n_units": 3}][:limit]},
             "find_formulas": lambda con, concept=None, symbol=None, source_id=None: [{"formula_id": "f1",
                                                                                      "concept": concept}],
-            "formula_context": lambda con, formula_id: None}
+            "formula_context": lambda con, formula_id: None,
+            # topics (agent T) and duplicates (agent U)
+            "topic": lambda con, topic_id: {"topic_id": topic_id, "level": 1, "members": [{"section_id": SEC}]}
+            if topic_id == TOP else None,
+            "find_topics": lambda con, terms, limit=10, level=None: [{"topic_id": TOP, "terms": list(terms)}][:limit],
+            "similar_sections": lambda con, section_id, k=10, other_sources_only=True:
+                {"section_id": section_id, "similar": [{"section_id": "SEC-0000000000000002"}][:k]},
+            "section_topics": lambda con, section_id: [{"topic_id": TOP, "level": 1}],
+            "copies_of": lambda con, ref, limit=50: {"match": ref, "clusters": []},
+            "source_overlap": lambda con, source_id, limit=50: {"source_id": source_id, "overlaps": []}}
 
 
 @pytest.fixture()
@@ -100,3 +110,21 @@ def test_errors(env):
     service.deps.nav = store.NavStore(service.deps.nav.data_root / "missing")
     assert client.get(f"/v1/nav/section/{SEC}", headers=HR).json()["error"]["code"] == "DEPENDENCY_UNAVAILABLE"
     assert client.get(f"/v1/nav/section/{SEC}").status_code == 401
+
+
+def test_topics_and_duplicates_routes(env):
+    client, _ = env
+    body = _ok(client.get(f"/v1/nav/topic/{TOP}", headers=HR))
+    assert body["item"]["envelope"]["object_kind"] == "NAV_TOPIC" and body["item"]["record"]["level"] == 1
+    assert client.get("/v1/nav/topic/TOP-bad", headers=HR).json()["error"]["code"] == "INVALID_ARGUMENT"
+    assert client.get("/v1/nav/topic/TOP-00000000000000bb", headers=HR).json()["error"]["code"] == "NOT_FOUND"
+    topics = _ok(client.get("/v1/nav/topics", params=[("term", "закладка"), ("term", "усадка")], headers=HR))
+    assert topics["item"]["record"]["items"][0]["terms"] == ["закладка", "усадка"]
+    sim = _ok(client.get(f"/v1/nav/similar/{SEC}", params={"k": 5}, headers=HR))
+    assert sim["item"]["envelope"]["object_kind"] == "NAV_SIMILAR_SECTIONS"
+    assert _ok(client.get(f"/v1/nav/section_topics/{SEC}", headers=HR))["item"]["record"]["items"][0]["topic_id"] == TOP
+    copies = _ok(client.get("/v1/nav/copies", params={"ref": "VKM-SRC-001:p0001"}, headers=HR))
+    assert copies["item"]["envelope"]["object_kind"] == "NAV_COPIES"
+    overlap = _ok(client.get("/v1/nav/overlap/VKM-SRC-001", headers=HR))
+    assert overlap["item"]["envelope"]["source_id"] == "VKM-SRC-001"
+    assert client.get("/v1/nav/overlap/SRC-1", headers=HR).json()["error"]["code"] == "INVALID_ARGUMENT"

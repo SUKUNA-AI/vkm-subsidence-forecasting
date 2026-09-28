@@ -176,6 +176,9 @@ N1–N7 → `NavMeta = COMPLETE | FAILED` → квитанция `receipts/proje
 | `concept_paths(term_a, term_b, max_len, limit, via)` | кратчайшие пути в графе NAV через термины, символы, формулы, разделы и темы; у каждого шага — ID страниц |
 | `graph_neighbourhood(node_id, depth, limit)` | соседи любого узла NAV или DOCUMENT по типам рёбер со счётчиками; `depth = 2` — соседи соседей |
 | `reconstruct_topic(query, budget_chars?, source_ids?, paraphrases?)` | досье темы «от А до Я» одним вызовом (ниже) |
+| `find_topics(terms, limit?, level?)` / `get_topic(topic_id)` | темы §7: поиск по фразам и карточка темы |
+| `similar_sections(section_id, k?, other_sources_only?)` / `section_topics(section_id)` | похожие разделы других книг; темы раздела |
+| `copies_of(ref)` / `source_overlap(source_id)` | дубликаты и перепечатки §9 |
 
 ### Досье темы (`reconstruct_topic`, `GET/POST /v1/topic`)
 

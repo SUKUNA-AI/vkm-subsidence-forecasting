@@ -948,6 +948,45 @@ class ApiService:
         data, snap = self._nav_run(lambda nav: nav.run("explore_concept", term, limit=limit))
         return self._nav_result("NAV_CONCEPT", f"concept:{term[:60]}", data, snap)
 
+    # ------------------------------------------------------------------ topics (agent T) and duplicates (agent U)
+    def nav_topic(self, topic_id: str) -> Result:
+        if not re.fullmatch(r"TOP-[0-9a-f]{16}", topic_id or ""):
+            raise ApiFailure("INVALID_ARGUMENT", "topic_id has the form TOP-<16 hex>")
+        data, snap = self._nav_run(lambda nav: nav.run("topic", topic_id))
+        return self._nav_result("NAV_TOPIC", topic_id, data, snap)
+
+    def nav_topics(self, terms: list[str], limit: int, level: int | None = None) -> Result:
+        terms = [t.strip() for t in terms or [] if t and t.strip()]
+        if not terms or len(terms) > 5 or any(len(t) > 200 for t in terms):
+            raise ApiFailure("INVALID_ARGUMENT", "1..5 terms of 1..200 characters")
+        data, snap = self._nav_run(lambda nav: nav.run("find_topics", terms, limit=limit, level=level))
+        return self._nav_result("NAV_TOPICS", "topics:" + "|".join(terms)[:60], data, snap, search=True)
+
+    def nav_similar_sections(self, section_id: str, k: int, other_sources_only: bool) -> Result:
+        if not re.fullmatch(r"SEC-[0-9a-f]{16}", section_id or ""):
+            raise ApiFailure("INVALID_ARGUMENT", "section_id has the form SEC-<16 hex>")
+        data, snap = self._nav_run(lambda nav: nav.run("similar_sections", section_id, k=k,
+                                                       other_sources_only=other_sources_only))
+        return self._nav_result("NAV_SIMILAR_SECTIONS", section_id, data, snap)
+
+    def nav_section_topics(self, section_id: str) -> Result:
+        if not re.fullmatch(r"SEC-[0-9a-f]{16}", section_id or ""):
+            raise ApiFailure("INVALID_ARGUMENT", "section_id has the form SEC-<16 hex>")
+        data, snap = self._nav_run(lambda nav: nav.run("section_topics", section_id))
+        return self._nav_result("NAV_SECTION_TOPICS", section_id, data, snap, search=True)
+
+    def nav_copies(self, ref: str, limit: int) -> Result:
+        if not ref or len(ref) > 200:
+            raise ApiFailure("INVALID_ARGUMENT", "ref is a unit (u1-…), page or block id")
+        data, snap = self._nav_run(lambda nav: nav.run("copies_of", ref, limit=limit))
+        return self._nav_result("NAV_COPIES", ref, data, snap)
+
+    def nav_source_overlap(self, source_id: str, limit: int) -> Result:
+        if not re.fullmatch(r"VKM-SRC-\d{3,}", source_id or ""):
+            raise ApiFailure("INVALID_ARGUMENT", "source_id has the form VKM-SRC-NNN")
+        data, snap = self._nav_run(lambda nav: nav.run("source_overlap", source_id, limit=limit))
+        return self._nav_result("NAV_SOURCE_OVERLAP", source_id, data, snap, source_id=source_id)
+
     # ------------------------------------------------------------------ topic dossier (navigation + catalogues)
     def reconstruct_topic(self, query: str, *, budget_chars: int = 12_000, source_ids: list[str] | None = None,
                           max_sources: int = 10, max_sections: int = 12, max_formulas: int = 10,

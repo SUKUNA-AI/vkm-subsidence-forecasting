@@ -43,7 +43,9 @@ READ_TOOLS = {"search_text", "search_hybrid", "retrieval_trace", "search_objects
               "concept_paths", "graph_neighbourhood",
               # navigation layer (derived, not evidence)
               "get_outline", "get_section", "search_sections", "get_formula_context", "find_formulas",
-              "explore_concept", "reconstruct_topic"}
+              "explore_concept", "reconstruct_topic",
+              # topics (agent T) and duplicates (agent U)
+              "find_topics", "get_topic", "similar_sections", "section_topics", "copies_of", "source_overlap"}
 ADMIN_TOOLS = {"reprocess_source", "reprocess_page", "get_job", "cancel_job"}
 
 

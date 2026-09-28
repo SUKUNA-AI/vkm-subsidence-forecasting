@@ -548,6 +548,36 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                     limit: Annotated[int, Query(ge=1, le=100)] = 20) -> JSONResponse:
         return respond(request, service.nav_concept(term, limit))
 
+    # topics (RAPTOR tree, agent T) and duplicates / reprints (agent U)
+    @app.get("/v1/nav/topic/{topic_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_topic(request: Request, _auth: Read, topic_id: str) -> JSONResponse:
+        return respond(request, service.nav_topic(topic_id))
+
+    @app.get("/v1/nav/topics", tags=["navigation"], **JSON_RESPONSES)
+    def nav_topics(request: Request, _auth: Read, term: Annotated[list[str], Query(min_length=1, max_length=5)],
+                   limit: Annotated[int, Query(ge=1, le=50)] = 10,
+                   level: Annotated[int | None, Query(ge=1, le=3)] = None) -> JSONResponse:
+        return respond(request, service.nav_topics(term, limit, level))
+
+    @app.get("/v1/nav/similar/{section_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_similar(request: Request, _auth: Read, section_id: str, k: Annotated[int, Query(ge=1, le=50)] = 10,
+                    other_sources_only: bool = True) -> JSONResponse:
+        return respond(request, service.nav_similar_sections(section_id, k, other_sources_only))
+
+    @app.get("/v1/nav/section_topics/{section_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_section_topics(request: Request, _auth: Read, section_id: str) -> JSONResponse:
+        return respond(request, service.nav_section_topics(section_id))
+
+    @app.get("/v1/nav/copies", tags=["navigation"], **JSON_RESPONSES)
+    def nav_copies(request: Request, _auth: Read, ref: Annotated[str, Query(min_length=1, max_length=200)],
+                   limit: Annotated[int, Query(ge=1, le=200)] = 50) -> JSONResponse:
+        return respond(request, service.nav_copies(ref, limit))
+
+    @app.get("/v1/nav/overlap/{source_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_overlap(request: Request, _auth: Read, source_id: str,
+                    limit: Annotated[int, Query(ge=1, le=200)] = 50) -> JSONResponse:
+        return respond(request, service.nav_source_overlap(source_id, limit))
+
     # ---------------------------------------------------------------- topic dossier (navigation + catalogues)
     @app.get("/v1/topic", tags=["navigation"], **JSON_RESPONSES)
     def topic_get(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],

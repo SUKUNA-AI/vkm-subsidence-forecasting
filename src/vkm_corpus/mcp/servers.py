@@ -5,7 +5,9 @@
 ``get_page_image``, ``get_figure``, ``get_table``, ``get_formula``, ``get_object``, ``get_document_neighbors``,
 ``get_citations``, ``rerank_text``, ``rerank_visual``, ``get_processing_status``, ``trace_document_provenance``,
 ``get_artifact``, ``list_source_pages``, ``get_corpus_status``; navigation: ``get_outline``, ``get_section``,
-``search_sections``, ``get_formula_context``, ``find_formulas``, ``explore_concept``, ``reconstruct_topic``.
+``search_sections``, ``get_formula_context``, ``find_formulas``, ``explore_concept``, ``reconstruct_topic``;
+topics and duplicates: ``find_topics``, ``get_topic``, ``similar_sections``, ``section_topics``, ``copies_of``,
+``source_overlap``.
 
 ``vkm-corpus-admin`` (write, plan-first H-12): ``reprocess_source``, ``reprocess_page``, ``get_job``.
 
@@ -437,6 +439,48 @@ def build_read_server(api: ApiClient) -> MCPServer:
         """A concept of the corpus: its definitions, the concepts most often discussed with it (with counts of
         sections/sources and example pages), and where it is discussed. Co-occurrence, not a physical claim."""
         return await call("explore_concept", "GET", "/v1/nav/concept", params={"term": term, "limit": limit})
+
+    # topics (RAPTOR tree without LLM, agent T) and duplicates / reprints (agent U) — navigation, not evidence
+    @server.tool(name="find_topics", annotations=READ_ONLY)
+    async def find_topics(terms: Annotated[list[str], Field(min_length=1, max_length=5)],
+                          limit: Annotated[int, Field(ge=1, le=50)] = 10,
+                          level: Annotated[int | None, Field(ge=1, le=3)] = None) -> CallToolResult:
+        """Cross-book topics (level 1 fine … 3 coarse) whose labels or member sections match all the given phrases
+        (lemmas, SAME_AS abbreviations). A topic groups sections of several books about the same subject."""
+        return await call("find_topics", "GET", "/v1/nav/topics", params={"term": terms, "limit": limit,
+                                                                          "level": level})
+
+    @server.tool(name="get_topic", annotations=READ_ONLY)
+    async def get_topic(topic_id: Annotated[str, Field(pattern=r"^TOP-[0-9a-f]{16}$")]) -> CallToolResult:
+        """A topic: path to the root, children, member sections (source, title, pages; closest first), central
+        sections, sources and neighbour topics."""
+        return await call("get_topic", "GET", f"/v1/nav/topic/{topic_id}")
+
+    @server.tool(name="similar_sections", annotations=READ_ONLY)
+    async def similar_sections(section_id: Annotated[str, Field(pattern=r"^SEC-[0-9a-f]{16}$")],
+                               k: Annotated[int, Field(ge=1, le=50)] = 10,
+                               other_sources_only: bool = True) -> CallToolResult:
+        """Sections of other books closest to this one by meaning (cosine of section vectors), with their topics."""
+        return await call("similar_sections", "GET", f"/v1/nav/similar/{section_id}",
+                          params={"k": k, "other_sources_only": other_sources_only})
+
+    @server.tool(name="section_topics", annotations=READ_ONLY)
+    async def section_topics(section_id: Annotated[str, Field(pattern=r"^SEC-[0-9a-f]{16}$")]) -> CallToolResult:
+        """The topics a section belongs to, on every level."""
+        return await call("section_topics", "GET", f"/v1/nav/section_topics/{section_id}")
+
+    @server.tool(name="copies_of", annotations=READ_ONLY)
+    async def copies_of(ref: Annotated[str, Field(min_length=1, max_length=200)],
+                        limit: Annotated[int, Field(ge=1, le=200)] = 50) -> CallToolResult:
+        """Where the same text appears in other sources (reprints, copies of one work, shared abstracts,
+        boilerplate) for a unit (u1-…), page or block id; the earliest source first (a hint, not authorship)."""
+        return await call("copies_of", "GET", "/v1/nav/copies", params={"ref": ref, "limit": limit})
+
+    @server.tool(name="source_overlap", annotations=READ_ONLY)
+    async def source_overlap(source_id: Annotated[str, Field(pattern=r"^VKM-SRC-\d{3,}$")],
+                             limit: Annotated[int, Field(ge=1, le=200)] = 50) -> CallToolResult:
+        """Sources that repeat text of this source: shared passages, shares on both sides, which is earlier."""
+        return await call("source_overlap", "GET", f"/v1/nav/overlap/{source_id}", params={"limit": limit})
 
     @server.tool(name="reconstruct_topic", annotations=READ_ONLY)
     async def reconstruct_topic(

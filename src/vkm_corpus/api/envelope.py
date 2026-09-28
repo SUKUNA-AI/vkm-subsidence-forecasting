@@ -30,6 +30,9 @@ ApiObjectKind = Literal["ARTIFACT", "PROCESSING_RUN", "JOB", "RERANK_RESULT", "S
                         "NAV_GRAPH_PATHS", "NAV_GRAPH_NEIGHBOURHOOD",
                         # navigation layer (DERIVED, AUTO_EXTRACTED_UNREVIEWED): docs/corpus_platform/NAVIGATION_LAYER.md
                         "NAV_OUTLINE", "NAV_SECTION", "NAV_SECTIONS", "NAV_FORMULA", "NAV_FORMULAS", "NAV_CONCEPT",
+                        # topics (RAPTOR tree, agent T) and duplicates/reprints (agent U)
+                        "NAV_TOPIC", "NAV_TOPICS", "NAV_SIMILAR_SECTIONS", "NAV_SECTION_TOPICS", "NAV_COPIES",
+                        "NAV_SOURCE_OVERLAP",
                         # topic dossier (reconstruct_topic): NAV + search + PUBLIC catalogues, navigation not evidence
                         "TOPIC_DOSSIER"]
 # interpretation flags added by the API (the canonical quality_flags stay as stored)
