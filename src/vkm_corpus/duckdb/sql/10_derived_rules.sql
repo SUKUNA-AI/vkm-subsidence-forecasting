@@ -82,7 +82,9 @@ CREATE OR REPLACE VIEW bibliography AS
 --   * shorter equal titles, similarity 0.85-0.90, or a year off by one        -> CANDIDATE.
 -- An entry resolves to at most one work: if its best level holds several works, they all stay CANDIDATE (ambiguous
 -- titles of different works are never merged). No curated matches in v0.
-CREATE OR REPLACE VIEW bibliography_links AS
+-- The rows are computed once when the rules are applied (a table: Levenshtein over candidate pairs is too slow to
+-- repeat per API request); the view ``bibliography_links`` below is the interface.
+CREATE OR REPLACE TABLE bibliography_link_rows AS
   WITH e AS (
     SELECT object_id, parsed_doi, parsed_isbn, parsed_year,
            trim(regexp_replace(replace(lower(coalesce(parsed_title, '')), 'ё', 'е'), '[^\pL\pN]+', ' ', 'g')) AS nt,
@@ -103,6 +105,7 @@ CREATE OR REPLACE VIEW bibliography_links AS
     SELECT e.object_id AS entry_id, w.work_id AS cited_work_id, e.parsed_year = w.publication_year AS same_year,
            1.0 - levenshtein(e.nt, w.nt) / greatest(length(e.nt), length(w.nt)) AS sim
     FROM e JOIN w ON abs(e.parsed_year - w.publication_year) <= 1 AND length(e.nt) >= 10 AND length(w.nt) >= 10
+     AND abs(length(e.nt) - length(w.nt)) <= 0.15 * greatest(length(e.nt), length(w.nt))
      AND len(list_intersect(e.sur, w.sur)) > 0
   ), m AS (
     SELECT e.object_id AS entry_id, w.work_id AS cited_work_id, 'DOI_EXACT' AS match_method, 1.0 AS match_score,
@@ -142,6 +145,8 @@ CREATE OR REPLACE VIEW bibliography_links AS
          r.matched_fields, 'DERIVED' AS origin,
          'AUTO_EXTRACTED_UNREVIEWED' AS review_status, 'bibliography_match_v2' AS rule_version
   FROM res r JOIN bibliography b ON b.object_id = r.entry_id;
+
+CREATE OR REPLACE VIEW bibliography_links AS SELECT * FROM bibliography_link_rows;
 
 -- rule cites_v2: Work CITES Work from accepted matches (exact identifiers and strong title matches, CP-41) with a
 -- known citing work; a bibliographic index lists works, it does not cite them. Citation != agreement.
