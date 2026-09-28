@@ -58,8 +58,10 @@ class SearchTargets:
     dense_index: str | None = None
     dense_field: str = "vector"
     id_field: str = "id"
-    multivector_dir: str | None = None        # derived artifact dir (or its mmap pack) of the late config
+    multivector_dir: str | None = None        # late artifact config dir (its packs/CURRENT) or one pack directory
     rrf_k: int = 60
+    multivector_check_s: float = 10.0         # how often packs/CURRENT is re-read (hot reload of a new pack)
+    multivector_rss_budget_mib: int = 256     # mapped token pages dropped from the RSS after this many MiB read
 
 
 @dataclass(frozen=True)
@@ -108,7 +110,9 @@ def load_config(env: Mapping[str, str] | None = None, *, path: str | Path | None
         opensearch_url=env.get("VKM_OPENSEARCH_URL", "").strip() or s.get("opensearch_url"),
         text_index=s.get("text_index", "vkm-blocks"), text_fields=tuple(s.get("text_fields", ("text^1.0",))),
         dense_index=s.get("dense_index"), dense_field=s.get("dense_field", "vector"), id_field=s.get("id_field", "id"),
-        multivector_dir=s.get("multivector_dir"), rrf_k=int(s.get("rrf_k", 60)))
+        multivector_dir=s.get("multivector_dir"), rrf_k=int(s.get("rrf_k", 60)),
+        multivector_check_s=float(s.get("multivector_check_s", 10.0)),
+        multivector_rss_budget_mib=int(s.get("multivector_rss_budget_mib", 256)))
     svc = raw.get("service", {})
     token = None
     tf = env.get("VKM_RX580_TOKEN_FILE", "").strip()

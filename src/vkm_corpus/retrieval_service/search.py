@@ -4,7 +4,10 @@
 * hybrid — BM25 (``multi_match`` over the text fields) and dense k-NN, fused by RRF (k = 60, rank-based, no score
   mixing to tune on held-out data); every hit carries its per-stage ranks (explainability trace, §54);
 * late — candidates (given ids or the hybrid top-N) re-scored with MaxSim of the late query vectors against the stored
-  document token vectors (derived multivector artifacts; OpenSearch holds no token vectors).
+  document token vectors (derived multivector artifacts; OpenSearch holds no token vectors);
+* late targets — the late stage of the VKM API's hybrid search: pages (score = max MaxSim over the page's units) and
+  figures/tables/formulas (their unit) scored against the token-vector pack (:mod:`vkm_corpus.embeddings.pack`,
+  memory-mapped; the in-memory store is for tests and small sets only).
 
 The OpenSearch transport is injected (``post(index, body) -> dict``) so the API contract is testable without a
 cluster; production uses :class:`HttpSearchBackend` (httpx, loopback only).
@@ -111,8 +114,14 @@ class MultiVectorStore(Protocol):
 
 
 class InMemoryMultiVectorStore:
-    def __init__(self, data: dict[str, np.ndarray] | None = None) -> None:
+    """Token matrices in RAM (tests and small sets; the corpus uses the memory-mapped pack). ``units`` (unit id →
+    ``{"kind", "page_id", "object_ids"}``) enables page/object targets like :class:`~vkm_corpus.embeddings.pack.
+    PackStore`."""
+
+    def __init__(self, data: dict[str, np.ndarray] | None = None,
+                 units: dict[str, dict[str, Any]] | None = None) -> None:
         self.data = {k: np.asarray(v, dtype=np.float16) for k, v in (data or {}).items()}
+        self.units = dict(units or {})
 
     def get(self, object_ids: Iterable[str]) -> dict[str, np.ndarray]:
         return {o: self.data[o] for o in object_ids if o in self.data}
@@ -120,12 +129,55 @@ class InMemoryMultiVectorStore:
     def __len__(self) -> int:
         return len(self.data)
 
+    def info(self) -> dict[str, Any]:
+        return {"pack_id": None, "store": "memory", "count": len(self.data)}
+
+    def rows_for(self, target_id: str, kind: str) -> list[str]:
+        if kind == "UNIT":
+            return [target_id] if target_id in self.data else []
+        if kind == "PAGE":
+            return sorted(u for u, m in self.units.items() if m.get("page_id") == target_id and u in self.data)
+        return sorted(u for u, m in self.units.items() if m.get("kind") == kind and
+                      list(m.get("object_ids") or []) == [target_id] and u in self.data)
+
+    def score_targets(self, Q: np.ndarray, targets: Sequence[tuple[str, str]]) -> list[Any]:
+        from vkm_corpus.embeddings.pack import TargetScore
+
+        out = []
+        for tid, kind in targets:
+            units = self.rows_for(tid, kind)
+            if not units:
+                out.append(TargetScore(tid, kind, "NO_TOKENS"))
+                continue
+            scores = {u: maxsim(Q, np.asarray(self.data[u], dtype=np.float32)) for u in units}
+            best = max(units, key=lambda u: (scores[u], u))
+            out.append(TargetScore(tid, kind, "SCORED", scores[best], best, len(units),
+                                   int(sum(self.data[u].shape[0] for u in units))))
+        return out
+
 
 def load_multivector_store(directory: str | Path) -> InMemoryMultiVectorStore:
-    """Current rows of a multivector artifact directory as float16 token matrices (loaded once)."""
+    """Current rows of a multivector artifact directory as float16 token matrices, loaded into RAM — small sets and
+    tests only (the whole corpus is ≈ 10 GB: the service uses :class:`~vkm_corpus.embeddings.pack.PackHandle`)."""
     from vkm_corpus.embeddings.artifacts import iter_current_vectors
 
     return InMemoryMultiVectorStore({oid: m for oid, m in iter_current_vectors(Path(directory))})
+
+
+def current_store(store: Any) -> Any:
+    """The store to use now: a :class:`~vkm_corpus.embeddings.pack.PackHandle` resolves to its current pack
+    (``LookupError`` when none is loaded); any other store is used as is."""
+    if store is None:
+        raise LookupError("late-interaction token store is not configured (search.multivector_dir)")
+    return store.current() if hasattr(store, "current") else store
+
+
+def store_status(store: Any) -> dict[str, Any]:
+    if store is None:
+        return {"status": "NOT_CONFIGURED"}
+    if hasattr(store, "status"):
+        return store.status()
+    return {"status": "READY", **(store.info() if hasattr(store, "info") else {"count": len(store)})}
 
 
 def late_rerank(query_vectors: np.ndarray, candidates: list[Hit], store: MultiVectorStore) -> tuple[list[Hit], int]:
