@@ -26,7 +26,9 @@ services:
       - --max-model-len=16384
       - --max-num-seqs=64
       - --max-num-batched-tokens=32768
-      - --gpu-memory-utilization=0.80
+      # 0.66 (~10.8 GB of 16 GB): together with the desktop compositor (~3.2 GB) and the layout model (~1.2 GB) the
+      # whole KV cache stays in VRAM; at 0.80 the tail spilled to shared system memory and generation collapsed.
+      - --gpu-memory-utilization=0.66
       - --limit-mm-per-prompt={"image":1}
       - --speculative-config={"method":"mtp","num_speculative_tokens":3}
       - --enable-prefix-caching

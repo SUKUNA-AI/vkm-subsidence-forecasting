@@ -70,6 +70,7 @@ class Settings:
     api_token: str | None
     api_write_token: str | None
     log_level: str
+    models_dir: Path | None = None  # local model snapshots (GLM-OCR, layout); read-only
 
     # ---------------------------------------------------------------- accessors with checks
     def require_data_root(self) -> Path:
@@ -133,4 +134,5 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         api_token=_secret(env, "VKM_API_TOKEN"),
         api_write_token=_secret(env, "VKM_API_WRITE_TOKEN"),
         log_level=env.get("VKM_LOG_LEVEL", "INFO").strip().upper() or "INFO",
+        models_dir=_path(env, "VKM_MODELS_DIR"),
     )
