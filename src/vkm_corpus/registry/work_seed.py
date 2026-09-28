@@ -44,8 +44,11 @@ GENRE_TO_WORK_TYPE = {
     "retired_legacy_archive": "PROJECT_DATA_PACKAGE",
 }
 # the 8 DjVu files whose title pages were not verified (CP-10)
-DJVU_UNVERIFIED = {"VKM-SRC-053", "VKM-SRC-054", "VKM-SRC-221", "VKM-SRC-229", "VKM-SRC-230", "VKM-SRC-240",
-                   "VKM-SRC-245", "VKM-SRC-248"}
+# DjVu files whose identity rested on file name and page count only. All eight were checked on their title pages by
+# agent C on 2026-09-28 (CP-10; receipt PRIVATE 00_registry/djvu_title_check_2026-09-28/RECEIPT.json), so none is left.
+DJVU_UNVERIFIED: set[str] = set()
+TITLE_PAGE_VERIFIED = {"VKM-SRC-053", "VKM-SRC-054", "VKM-SRC-221", "VKM-SRC-229", "VKM-SRC-230", "VKM-SRC-240",
+                       "VKM-SRC-245", "VKM-SRC-248"}
 CONTAINERS = {"VKM-SRC-089", "VKM-SRC-193", "VKM-SRC-203", "VKM-SRC-204", "VKM-SRC-205", "VKM-SRC-206",
               "VKM-SRC-207"}
 VOLUME_TYPES = {"proceedings_volume", "journal_issue", "collection", "book"}
@@ -110,10 +113,26 @@ FOREIGN_CONTENT = [  # (source, first page, last page, foreign work source or No
 NEVER_LINK = {S(205): "contradictory 'contains' of the hunt rows (issue numbers disagree); not linked in v0"}
 # works whose bibliographic data must be set by hand (no usable catalogue row); curated from register notes
 MANUAL_METADATA = {
-    S(230): {"title": "Механика сплошной среды. Т. 2", "authors": "Седов Л.И.", "year": "", "language": "ru",
-             "basis": "CATALOGUE_DATA_UNVERIFIED"},
-    S(229): {"title": "Механика сплошной среды. Т. 1", "authors": "Седов Л.И.", "year": "", "language": "ru",
-             "basis": "CATALOGUE_DATA_UNVERIFIED"},
+    # title pages of the eight DjVu files (agent C, 2026-09-28, CP-10)
+    S(230): {"title": "Механика сплошной среды. Т. 2", "authors": "Седов Л.И.", "year": "2004", "language": "ru",
+             "publisher_city": "Санкт-Петербург: Лань", "basis": "TITLE_PAGE_VERIFIED"},
+    S(229): {"title": "Механика сплошной среды. Т. 1", "authors": "Седов Л.И.", "year": "1994", "language": "ru",
+             "publisher_city": "Москва: Наука", "isbn": "5-02-007052-1", "basis": "TITLE_PAGE_VERIFIED"},
+    S(221): {"title": "Таблицы координат Гаусса–Крюгера для широт от 32° до 80° через 5′ и для долгот от 0° до 3½° "
+                      "через 7½′ и таблицы размеров рамок и площадей трапеций топографических съёмок. Эллипсоид "
+                      "Красовского",
+             "authors": "Вировец А.М.|COMPILER; Мауэрер В.Г.|COMPILER; Троицкий Б.В.|COMPILER; Иванов В.Ф.|COMPILER; "
+                        "Петрова Е.Ф.|COMPILER; Барвенко Е.И.|COMPILER; Шишкин В.Н.|COMPILER",
+             "year": "1948", "language": "ru",
+             "publisher_city": "Москва: Издательство геодезической и картографической литературы ГУГК",
+             "basis": "TITLE_PAGE_VERIFIED"},
+    S(240): {"title": "Математические методы в гидрогеологии и инженерной геологии", "authors": "Антонов В.В.",
+             "year": "1987", "language": "ru",
+             "publisher_city": "Ленинград: Ленинградский горный институт им. Г.В. Плеханова",
+             "basis": "TITLE_PAGE_VERIFIED"},
+    S(53): {"publisher_city": "Москва: Наука", "basis": "TITLE_PAGE_VERIFIED"},
+    S(245): {"publisher_city": "Москва: Советское радио", "basis": "TITLE_PAGE_VERIFIED"},
+    S(248): {"publisher_city": "Москва: Мир", "basis": "TITLE_PAGE_VERIFIED"},
     S(203): {"title": "Стратегия и процессы освоения георесурсов: материалы научной сессии Горного института УрО "
                       "РАН, 19–23 апреля 2004 г.", "year": "2004", "language": "ru", "basis": "REGISTER_NOTES"},
     S(204): {"title": "Стратегия и процессы освоения георесурсов: сборник научных трудов. Вып. 12", "year": "2014",
@@ -137,6 +156,13 @@ EXTRA_FACTS = {
             "notes": "not the Borzakovsky-Papulov handbook (register notes: its ISBN is recorded as NOT_SAME)"},
     S(34): {"notes": "not S01 (Gornyi Zhurnal 2023 no. 11) per audit A §2.8"},
     S(14): {"notes": "NOT_SAME as VKM-WRK-037 (look-alike title)"},
+    S(229): {"edition": "5-е изд., испр.",
+             "notes": "volume 1; volume 2 (VKM-WRK-230) is another edition and publisher"},
+    S(230): {"edition": "6-е изд., стер.",
+             "notes": "volume 2; series 'Классический университетский учебник'; volume 1 (VKM-WRK-229) is another "
+                      "edition and publisher"},
+    S(240): {"notes": "учебное пособие"},
+    S(54): {"notes": "physical page 270 is a placeholder page of the source electronic library, not a book page"},
 }
 _EDITORIAL = ("ред.", "ред ", "отв.", "сост.", "пер.", "под ред", "редакционн", "зав. ред")
 _DOI = re.compile(r"\b(10\.[0-9]{4,9}/[^\s;,]+)", re.I)
@@ -180,6 +206,9 @@ def split_people(text: str) -> list[tuple[str, str]]:
                 or name.lower().startswith(("et al", "и др") + _EDITORIAL)):
             continue
         role = "CORPORATE_AUTHOR" if any("корпоратив" in r for r in remarks) else "AUTHOR"
+        if "|" in name:                        # explicit role of curated metadata: "Name|COMPILER"
+            name, _, explicit = name.rpartition("|")
+            name, role = name.strip(), explicit.strip() or role
         out.append((name, role))
         for r in remarks:
             m = re.search(r"рук\.?\s*(?:[\wа-яё.,\-]+\s+){0,4}?((?:[А-ЯЁ]\.\s?){1,2}[А-ЯЁ][а-яё\-]+|[А-ЯЁ][а-яё\-]+"
@@ -389,7 +418,7 @@ def propose_work_registry(resources_root: Path, coverage_path: Path, *, curated_
             doi = _doi(r["notes"])
             if doi:
                 basis["identifiers"] = "REGISTER_NOTES"
-        f["doi"] = doi or ""
+        f["doi"] = doi or f.get("doi", "")
         isbns = _isbns(hrow.get("isbn", "")) if hrow else []
         if isbns:
             basis["identifiers"] = "HUNT_TABLE" if basis["identifiers"] == "UNKNOWN" else basis["identifiers"]
@@ -398,7 +427,16 @@ def propose_work_registry(resources_root: Path, coverage_path: Path, *, curated_
             isbns = _isbns("ISBN " + first.group(1)) if first else []
             if isbns and basis["identifiers"] == "UNKNOWN":
                 basis["identifiers"] = "REGISTER_NOTES"
+        if not isbns and manual and manual.get("isbn"):
+            isbns = _isbns("ISBN " + manual["isbn"])
+            basis["identifiers"] = manual["basis"]
         f["isbn"] = "; ".join(isbns)
+        if sid in TITLE_PAGE_VERIFIED:          # the title page agrees with these values (CP-10 receipt)
+            for k in ("title", "authors", "year"):
+                if f.get(k):
+                    basis[k] = "TITLE_PAGE_VERIFIED"
+            if f.get("venue") or f.get("publisher_city"):
+                basis["venue"] = "TITLE_PAGE_VERIFIED"
         if f.get("title"):
             f["title"] = _strip_author_prefix(f["title"])
         return f, basis
@@ -406,6 +444,8 @@ def propose_work_registry(resources_root: Path, coverage_path: Path, *, curated_
     def identity_for(sid: str) -> str:
         if sid in DJVU_UNVERIFIED:
             return "FILENAME_PAGECOUNT_UNVERIFIED"
+        if sid in TITLE_PAGE_VERIFIED:
+            return "VERIFIED_IN_FILE"
         if sid in coverage and coverage[sid].get("coverage_level") in ("FULLY_REVIEWED", "RELEVANT_SECTIONS_REVIEWED"):
             return "VERIFIED_IN_FILE"
         ib = " ".join(intake.get(sid, {}).get(k, "") for k in ("identity_basis", "identity_check"))
