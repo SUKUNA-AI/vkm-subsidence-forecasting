@@ -21,3 +21,4 @@
 | `bibliography_final.json` | списки литературы (CP-38, CP-41): записи, разбор полей, связи с работами, CITES, ручная проверка |
 | `late_interaction_encode_final.json` | late interaction (агент L): кодирование mLateOn всех единиц, проверки §64 |
 | `late_interaction_deploy.json` | развёртывание late: pack, горячая замена, smoke, латентность, включение по умолчанию |
+| `nav_topics.json` | NAV, темы (агент T): векторы и агрегаты разделов, дерево тем 3 уровней без LLM, отсев устаревших векторов, GPU/CPU, QA 20 тем и пяти предметов |
