@@ -170,17 +170,25 @@ def test_attach_errors_and_session_behaviour():
 
 
 FORBIDDEN_NAMES = {"Dispatch", "DispatchEx", "EnsureDispatch", "CreateObject", "SendCommand", "PostCommand",
-                   "DynamicDispatch", "CoCreateInstance"}
+                   "DynamicDispatch", "CoCreateInstance", "GetActiveObject"}
+# v1: the hidden-instance runner wraps the ROT object of the AutoCAD process it started itself (PID-checked);
+# COM activation (DispatchEx/CreateObject/CoCreateInstance), GetActiveObject and command members stay forbidden there
+ALLOWED_BY_FILE = {"hidden_runner.py": {"Dispatch"}, "com_read.py": {"GetActiveObject"}}
 
 
 def test_bridge_source_never_creates_automation_objects():
-    """CAD-05: no call or attribute of launching/command members anywhere in src/vkm_cad."""
+    """CAD-05: no COM activation, no attach to a running session outside the read module, no command members."""
     hits = []
     for path in (ROOT / "src" / "vkm_cad").rglob("*.py"):
+        allowed = ALLOWED_BY_FILE.get(path.name, set())
         for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
             name = node.attr if isinstance(node, ast.Attribute) else node.id if isinstance(node, ast.Name) else None
-            if name in FORBIDDEN_NAMES:
+            if name in FORBIDDEN_NAMES and name not in allowed:
                 hits.append(f"{path.name}:{node.lineno} {name}")
     assert hits == []
-    assert "GetActiveObject" in (ROOT / "src" / "vkm_cad" / "com_read.py").read_text(encoding="utf-8")
+    read_module = (ROOT / "src" / "vkm_cad" / "com_read.py").read_text(encoding="utf-8")
+    assert "GetActiveObject" in read_module
+    runner = (ROOT / "src" / "vkm_cad" / "hidden_runner.py").read_text(encoding="utf-8")
+    assert "GetWindowThreadProcessId" in runner and "owner == pid" in runner       # only its own started process
+    assert "_acad_pids()" in runner                                                  # refuses a running user session
     assert not (com_read.READ_ALLOWLIST & FORBIDDEN_NAMES)
