@@ -63,6 +63,10 @@ vkm-corpus = "vkm_corpus.cli:main"
 where = ["src"]
 include = ["vkm_world*", "vkm_corpus*", "vkm_cad*", "vkm_drawio*"]
 
+[tool.setuptools.package-data]
+# non-Python files read at run time (a non-editable install, e.g. the CORE image, has only what is listed here)
+vkm_corpus = ["duckdb/sql/*.sql", "ops/schema.sql"]
+
 [tool.pytest.ini_options]
 addopts = "-ra -p no:cacheprovider"
 testpaths = ["tests"]
