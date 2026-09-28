@@ -2,16 +2,20 @@
 
 * ``nav outlines --out FILE [--resources ROOT] [--source SID …]`` — WORKSTATION: native outlines of the PRIVATE
   files (PDF bookmarks, EPUB navigation, DjVu outline) → one JSON per snapshot (:mod:`vkm_corpus.navigation.outline`);
-* ``nav build --duckdb PATH --out DIR [--outlines FILE] [--part sections|formulas|concepts|all]`` — derived datasets
-  from a DuckDB copy of the canon (opened read only) → ``<DIR>/<dataset>.parquet`` + ``manifest.json`` (rule versions,
-  row counts, sha256, snapshot id).
+* ``nav build --duckdb PATH --out DIR [--outlines FILE] [--vectors DIR] [--inputs DIR]
+  [--part sections|formulas|concepts|topics|all]`` — derived datasets from a DuckDB copy of the canon (opened read
+  only) → ``<DIR>/<dataset>.parquet`` + ``manifest.json`` (rule versions, row counts, sha256, snapshot id).
 
 Parts are dispatched through :data:`PARTS` (``module:function``), imported lazily; a part whose module is absent is
 skipped and recorded as such. A builder has the signature ``build(con, **kwargs) -> dict[str, pyarrow.Table]`` and
-receives only the keyword arguments it declares among ``outlines`` (native outlines), ``datasets`` (tables built by
-earlier parts of the same run), each earlier table by its dataset name (e.g. ``section_pages``) and ``stats`` (a dict
-it may fill with counters for the manifest). Tables of earlier parts are also registered in the connection as
-``nav_<dataset>`` (e.g. ``nav_sections``).
+receives only the keyword arguments it declares among ``outlines`` (native outlines), ``vectors`` (``--vectors``: a
+directory of unit vectors ``part-*.parquet`` of one embedding config — the topics part needs it), ``datasets``
+(tables built by earlier parts of the same run), each earlier table by its dataset name (e.g. ``section_pages``) and
+``stats`` (a dict it may fill with counters for the manifest). ``--inputs DIR`` offers the datasets of an earlier
+build of the same snapshot (``<DIR>/<dataset>.parquet``, read only, never copied) the same way, so one part can be
+rebuilt on its own (``--part topics --inputs <nav dir>``). Tables of earlier parts are also registered in the
+connection as ``nav_<dataset>`` (e.g. ``nav_sections``). A builder that returns ``None`` (a required input is absent)
+is recorded as ``SKIPPED_NO_INPUT``.
 """
 from __future__ import annotations
 
@@ -29,6 +33,7 @@ PARTS: dict[str, str] = {
     "sections": "vkm_corpus.navigation.sections:build",
     "formulas": "vkm_corpus.navigation.formulas:build",
     "concepts": "vkm_corpus.navigation.concepts:build",
+    "topics": "vkm_corpus.navigation.topics:build",
 }
 MANIFEST_FORMAT = "vkm-nav-manifest-v1"
 
@@ -70,9 +75,46 @@ def snapshot_of(con) -> dict[str, Any]:
     return dict(zip(("snapshot_id", "manifest_sha256", "pipeline_version"), row or (None, None, None)))
 
 
+def datasets_of(part: str) -> tuple[str, ...]:
+    """Datasets a part writes (so ``--inputs`` never shadows what the run rebuilds)."""
+    return {"sections": ("sections", "section_pages"),
+            "formulas": ("formula_context", "formula_symbols", "formula_refs", "formula_parameters"),
+            "concepts": ("terms", "term_mentions", "term_edges"),
+            "topics": ("section_aggregates", "section_vectors", "topics", "topic_members", "topic_edges"),
+            }.get(part, ())
+
+
+def load_inputs(inputs_dir: Path, snapshot_id: str | None,
+                skip: tuple[str, ...] = ()) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Datasets of an earlier build (``<dir>/<dataset>.parquet``) as Arrow tables + a manifest reference. The earlier
+    manifest, when present, must be of the same snapshot; datasets named in ``skip`` are not read."""
+    import pyarrow.parquet as pq
+
+    d = Path(inputs_dir)
+    mpath = d / "manifest.json"
+    ref: dict[str, Any] = {"dir": d.name, "datasets": {}}
+    if mpath.is_file():
+        old = json.loads(mpath.read_text(encoding="utf-8"))
+        snap = (old.get("snapshot") or {}).get("snapshot_id") or old.get("snapshot_id")
+        if snapshot_id and snap and snap != snapshot_id:
+            raise ValueError(f"--inputs is a build of {snap}, the canon is {snapshot_id}")
+        ref["snapshot_id"] = snap
+    tables: dict[str, Any] = {}
+    for f in sorted(d.glob("*.parquet")):
+        name = f.stem
+        if not name.replace("_", "").isalnum() or name in skip:
+            continue
+        tables[name] = pq.read_table(f)
+        ref["datasets"][name] = {"rows": tables[name].num_rows, "sha256": _sha256_file(f)}
+    return tables, ref
+
+
 def build_parts(con, out_dir: Path, parts: list[str], *, outlines: dict | None = None,
-                outlines_ref: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Build the requested parts over an open DuckDB connection and write Parquet files + ``manifest.json``."""
+                outlines_ref: dict[str, Any] | None = None, vectors: str | None = None,
+                vectors_ref: dict[str, Any] | None = None, inputs: dict[str, Any] | None = None,
+                inputs_ref: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Build the requested parts over an open DuckDB connection and write Parquet files + ``manifest.json``.
+    ``inputs`` — earlier datasets offered to the builders (``--inputs``); datasets built in this run win."""
     import pyarrow.parquet as pq
 
     from vkm_corpus.navigation.ids import RULE_VERSIONS
@@ -91,7 +133,13 @@ def build_parts(con, out_dir: Path, parts: list[str], *, outlines: dict | None =
     manifest.setdefault("datasets", {})
     if outlines_ref is not None:
         manifest["outlines"] = outlines_ref
+    if vectors_ref is not None:
+        manifest["vectors"] = vectors_ref
+    if inputs_ref is not None:
+        manifest["inputs"] = inputs_ref
     built: dict[str, Any] = {}
+    for name, table in (inputs or {}).items():
+        con.register(f"nav_{name}", table)
     for part in parts:
         builder = resolve_part(part)
         if builder is None:
@@ -100,7 +148,13 @@ def build_parts(con, out_dir: Path, parts: list[str], *, outlines: dict | None =
         stats: dict[str, Any] = {}
         t0 = time.monotonic()
         # earlier datasets are also offered by name (e.g. ``section_pages=``) to builders that declare them
-        tables = call_builder(builder, con, {**built, "outlines": outlines, "datasets": dict(built), "stats": stats})
+        offered = {**(inputs or {}), **built}
+        tables = call_builder(builder, con, {**offered, "outlines": outlines, "vectors": vectors,
+                                             "datasets": dict(offered), "stats": stats})
+        if tables is None:
+            manifest["parts"][part] = {"status": "SKIPPED_NO_INPUT", "rule_version": RULE_VERSIONS.get(part),
+                                       "seconds": round(time.monotonic() - t0, 2), "stats": stats}
+            continue
         names = []
         for name, table in tables.items():
             path = out_dir / f"{name}.parquet"
@@ -132,9 +186,23 @@ def cmd_build(args: argparse.Namespace) -> int:
         ref = {"file": Path(args.outlines).name, "sha256": _sha256_file(Path(args.outlines)),
                "n_sources": len(outlines)}
     parts = list(PARTS) if args.part == "all" else [args.part]
+    vectors_ref = None
+    if args.vectors:
+        vdir = Path(args.vectors)
+        n_parts = len(list(vdir.glob("part-*.parquet")))
+        if not n_parts:
+            raise SystemExit(f"--vectors {vdir.name}: no part-*.parquet")
+        cfg = vdir / "config.json"
+        vectors_ref = {"dir": vdir.name, "n_parts": n_parts,
+                       "config_sha256": _sha256_file(cfg) if cfg.is_file() else None}
     con = duckdb.connect(str(args.duckdb), read_only=True)
     try:
-        manifest = build_parts(con, Path(args.out), parts, outlines=outlines, outlines_ref=ref)
+        inputs, inputs_ref = None, None
+        if args.inputs:
+            rebuilt = tuple(n for p in parts for n in datasets_of(p))
+            inputs, inputs_ref = load_inputs(Path(args.inputs), snapshot_of(con)["snapshot_id"], skip=rebuilt)
+        manifest = build_parts(con, Path(args.out), parts, outlines=outlines, outlines_ref=ref,
+                               vectors=args.vectors, vectors_ref=vectors_ref, inputs=inputs, inputs_ref=inputs_ref)
     finally:
         con.close()
     summary = {"snapshot": manifest["snapshot"],
@@ -313,7 +381,8 @@ def _register_graph(sub) -> None:
 
 
 def register(subparsers) -> None:
-    p = subparsers.add_parser("nav", help="navigation layer: outlines, sections, formulas, concepts (derived)")
+    p = subparsers.add_parser("nav", help="navigation layer: outlines, sections, formulas, concepts, topics "
+                                          "(derived)")
     sub = p.add_subparsers(dest="nav_cmd", metavar="<command>")
     _register_graph(sub)
     o = sub.add_parser("outlines", help="native outlines of the PRIVATE files (workstation) → JSON")
@@ -326,6 +395,11 @@ def register(subparsers) -> None:
     b.add_argument("--duckdb", required=True, help="DuckDB file of a snapshot (opened read only)")
     b.add_argument("--out", required=True, help="output directory (<dataset>.parquet + manifest.json)")
     b.add_argument("--outlines", default=None, help="outlines JSON of `nav outlines` (same snapshot)")
+    b.add_argument("--vectors", default=None,
+                   help="unit vectors of one embedding config (<dir>/part-*.parquet + config.json): topics part")
+    b.add_argument("--inputs", default=None,
+                   help="directory of an earlier NAV build of the same snapshot: its datasets are offered to the "
+                        "builders (read only, not copied)")
     b.add_argument("--part", default="all", choices=[*PARTS, "all"])
     b.set_defaults(func=cmd_build)
     p.set_defaults(func=lambda args: (p.print_help(), 2)[1])

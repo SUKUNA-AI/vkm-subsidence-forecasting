@@ -1,0 +1,1471 @@
+{
+ "schema": "vkm-nav-topics-receipt-v1",
+ "agent": "T",
+ "date": "2026-09-28",
+ "branch": "claude/agent-t-nav-topics-2026-09-28",
+ "code_revision": "ab6e446",
+ "status": "DERIVED, AUTO_EXTRACTED_UNREVIEWED (navigation: sections that read alike, not physical claims)",
+ "snapshot": "snap-20260928T160616Z-5d669f09 (local read-only DuckDB copy)",
+ "rule_version": "topics_v1",
+ "embeddings": {
+  "config_signature": "24705922826ba53cc4c9782b00410f67eb27222420199597a1c17b0a7e3d69e6",
+  "model_id": "jinaai/jina-embeddings-v5-text-nano-retrieval",
+  "model_revision": "ac5d898c8d382b17167c33e5c8af644a3519b47d",
+  "dimension": 768,
+  "text_rule": "vkm-units-v1/A",
+  "normalization": "l2",
+  "parts": 364,
+  "rows": 186116,
+  "config_json_sha256": "5ecd253fba3ddeb1e4228757e3f146f195b2b5a0edd15460002911fa10d8a86c",
+  "one_config_signature_across_parts": true,
+  "bad_embedding_signature": 0,
+  "bad_dimension": 0,
+  "duplicates_dropped": 0,
+  "stale_not_in_snapshot": 5147,
+  "text_hash_mismatch": 0,
+  "apparatus_text_units": 927,
+  "apparatus_page_headings": 0,
+  "used": 180042,
+  "units_in_snapshot": 205457,
+  "units_without_vector": {
+   "BIB_ENTRY": 23350,
+   "BLOCK_GROUP": 1138
+  },
+  "unit_rule": "vkm-units-v1",
+  "note": "the vector set was embedded for the previous snapshot: 5147 text units of pages with reference lists changed with bib_rules_v2 and are dropped by the text-hash / unit-id check"
+ },
+ "inputs": {
+  "sections": {
+   "rows": 9105,
+   "sha256": "ec949fbd5cb5c8affc50e37d7df16d808477cea4c50b0cdecd816fb2885ed223"
+  },
+  "section_pages": {
+   "rows": 27270,
+   "sha256": "02667f39b7bdf63e0a3fbc1ae3c7dc86db9c303191f2e4ab440c952d09456b32"
+  },
+  "terms": {
+   "rows": 96205,
+   "sha256": "3a60509dd427b7152b354a3c0fa8a5d1fee60a57e061c3ce8841529e5020b92c"
+  },
+  "term_mentions": {
+   "rows": 1579906,
+   "sha256": "2b1911d59335cd76e9d5f8fa2ce8774dbafc7e830012945d2108b5961c7df3c2"
+  }
+ },
+ "inputs_snapshot": "snap-20260928T160616Z-5d669f09",
+ "assignment": {
+  "assignments": 181077,
+  "on_shared_pages": 7834,
+  "outside_sections": 872,
+  "pages": 26034,
+  "placed_by_heading": 7081,
+  "sections_in_section_pages": 8158,
+  "shared_pages": 883,
+  "shared_unplaced": 753
+ },
+ "topic_space": {
+  "centred_languages": {
+   "en": 5041,
+   "ru": 2801
+  },
+  "language_centering": true,
+  "section_languages": {
+   "en": 5041,
+   "ru": 2801,
+   "und": 27
+  }
+ },
+ "params": {
+  "backend": "auto",
+  "check_text_hash": true,
+  "edge_min_cosine": 0.6,
+  "edge_min_k": 3,
+  "edge_top_k": 8,
+  "kind_weights": {
+   "BLOCK_GROUP": 1.0,
+   "FIGURE": 1.0,
+   "FORMULA": 0.5,
+   "TABLE": 1.0
+  },
+  "knn_k": [
+   16,
+   10,
+   8
+  ],
+  "knn_same_source": null,
+  "language_centering": true,
+  "max_apparatus_share": 0.5,
+  "max_central_per_source": 2,
+  "min_language_sections": 20,
+  "min_topic_size": [
+   3,
+   2,
+   2
+  ],
+  "n_central_sections": 5,
+  "n_central_units": 5,
+  "n_key_terms": 10,
+  "n_labels": 8,
+  "resolution": [
+   90.0,
+   20.0,
+   6.0
+  ],
+  "seed": 42,
+  "upper_graph": "centroid_knn",
+  "weight_power": 1.0
+ },
+ "model_choices": {
+  "central": "central units: closest to the section centroid; central sections: closest to the topic centroid, at most max_central_per_source per source",
+  "communities": "GPU: cuGraph Leiden (float64 dyadic weights, random_state=seed — repeatable); CPU: deterministic Louvain; modularity resolution per level; smaller than min_topic_size → merged into the best-linked neighbour",
+  "excluded_units": "BIB_ENTRY units; text units with >= max_apparatus_share of their characters in REFERENCE_LIST / TABLE_OF_CONTENTS blocks; lone headings on such pages",
+  "graph": "exact cosine kNN, knn_k per level, plain (no quota of other sources: quotas lowered the term coherence of the topics, also across sources, on the 28.09 canon)",
+  "labels": "c-TF-IDF of N3 term tf over the members × (0.5 + 0.5·share of members with the term); a label occurs in >= 2 member sections; nested terms skipped; fallback: word unigrams/bigrams of the text units",
+  "numerics": "unit/section vectors on a 2^-24 grid, kNN weights on a 2^-20 grid: float64 sums exact in any order",
+  "section_vector": "L2-normalised weighted mean of the unit vectors of the section's own pages (section_pages); kind_weights: FORMULA 0.5 (58 % of the units, they repeat the text around them; best term coherence per granularity on the 28.09 canon)",
+  "shared_pages": "a page of several sections is split at the headings of the sections starting on it: text units by the majority of their characters, formulas/figures/tables/bibliography entries by the block just above them; without an anchor the unit counts for every section of the page",
+  "topic_edges": "a topic's edge_min_k nearest centroids, plus up to edge_top_k with cosine >= edge_min_cosine (topic space); n_links = level-1 kNN links between their sections",
+  "topic_space": "the tree is built on the section vectors minus the mean vector of their language (ru / en by Cyrillic vs Latin letters of the units, >= 2:1; else und), renormalised: RU→EN neighbours ×4, mixed-language level-1 topics ×2.3 and higher same-language term coherence at every level at equal granularity (28.09 canon); section_vectors stay the plain means",
+  "unit_vectors": "a vector is used only if its unit (vkm-units-v1) is in this snapshot, its text hash equals the unit text (context variant A) and its embedding_signature is consistent",
+  "upper_levels": "levels 2–3: kNN graph of the topic centroids of the level below (RAPTOR analogue), nested by construction"
+ },
+ "counts": {
+  "dimension": 768,
+  "sections_in_section_pages": 8158,
+  "sections_total": 9105,
+  "sections_with_vector": 7869,
+  "share_of_sections_with_vector": 0.86425,
+  "topic_edges": 2377,
+  "topic_members": 23607,
+  "topics": 720,
+  "sections_by_language_with_units": {
+   "en": 5041,
+   "ru": 2801,
+   "und": 27
+  }
+ },
+ "coverage": {
+  "sections_with_vector_of_all_sections": 0.8643,
+  "sections_with_vector_of_section_pages": 0.9646
+ },
+ "levels": [
+  {
+   "level": 1,
+   "nodes": 7869,
+   "graph_edges": 92098,
+   "communities_raw": 632,
+   "topics": 610,
+   "size_quantiles": {
+    "0": 3,
+    "10": 5,
+    "25": 8,
+    "50": 12,
+    "75": 17,
+    "90": 22,
+    "100": 38
+   },
+   "topics_multi_source": 475,
+   "share_topics_multi_source": 0.778689,
+   "sections_in_multi_source_topics": 6253,
+   "mean_coherence": 0.511406,
+   "resolution": 90.0,
+   "knn_k": 16,
+   "topics_mixing_ru_and_en": 163,
+   "edge_degree_min_median_max": [
+    3,
+    5.0,
+    23
+   ]
+  },
+  {
+   "level": 2,
+   "nodes": 610,
+   "graph_edges": 4174,
+   "communities_raw": 96,
+   "topics": 91,
+   "size_quantiles": {
+    "0": 11,
+    "10": 31,
+    "25": 42,
+    "50": 73,
+    "75": 110,
+    "90": 171,
+    "100": 260
+   },
+   "topics_multi_source": 91,
+   "share_topics_multi_source": 1.0,
+   "sections_in_multi_source_topics": 7869,
+   "mean_coherence": 0.356808,
+   "resolution": 20.0,
+   "knn_k": 10,
+   "topics_mixing_ru_and_en": 69,
+   "edge_degree_min_median_max": [
+    3,
+    5.0,
+    20
+   ]
+  },
+  {
+   "level": 3,
+   "nodes": 91,
+   "graph_edges": 494,
+   "communities_raw": 29,
+   "topics": 19,
+   "size_quantiles": {
+    "0": 95,
+    "10": 190,
+    "25": 279,
+    "50": 375,
+    "75": 531,
+    "90": 628,
+    "100": 890
+   },
+   "topics_multi_source": 19,
+   "share_topics_multi_source": 1.0,
+   "sections_in_multi_source_topics": 7869,
+   "mean_coherence": 0.235628,
+   "resolution": 6.0,
+   "knn_k": 8,
+   "topics_mixing_ru_and_en": 19,
+   "edge_degree_min_median_max": [
+    3,
+    4.0,
+    7
+   ]
+  }
+ ],
+ "datasets": {
+  "section_aggregates": {
+   "rows": 8158,
+   "sha256": "57f9d3c7b4265887fdcdfd77b6feb91239842362db36e2ef43ca3380905fe74c"
+  },
+  "section_vectors": {
+   "rows": 7869,
+   "sha256": "822689944b16b3a38e55ed1603c708bdd953e804ab22c3bcadac1b896cd437ea"
+  },
+  "topic_edges": {
+   "rows": 2377,
+   "sha256": "8992a05e77e58d7c506d58278f4410bb80990b8f14f1a37552e2e5109d1253cd"
+  },
+  "topic_members": {
+   "rows": 23607,
+   "sha256": "29f42de4811143ccbe015fa9076bf595f6c4a74a26a56da33b571316306d3e63"
+  },
+  "topics": {
+   "rows": 720,
+   "sha256": "fadfcfb05fbfd82729824f94cb2bade7291ff24b5df4c895e8e19e9c4403e70a"
+  }
+ },
+ "timings_s": {
+  "gpu": {
+   "backend": "gpu (CuPy + cuGraph Leiden, RTX 5070 Ti)",
+   "part_seconds": 27.9,
+   "steps": {
+    "assign": 0.253,
+    "canon_units": 6.772,
+    "key_terms": 1.65,
+    "level1_communities": 1.702,
+    "level1_knn": 0.543,
+    "level2_communities": 0.211,
+    "level2_knn": 0.02,
+    "level3_communities": 0.068,
+    "level3_knn": 0.032,
+    "match_vectors": 0.571,
+    "read_vectors": 6.239,
+    "section_vectors": 0.997,
+    "tables": 4.705,
+    "total": 27.359,
+    "tree": 2.749
+   },
+   "gpu_peak_mib_above_baseline": 776.0
+  },
+  "cpu": {
+   "backend": "cpu (numpy + deterministic Louvain)",
+   "wall_s": 34.32,
+   "steps": {
+    "read_vectors": 7.089,
+    "canon_units": 7.841,
+    "match_vectors": 0.656,
+    "assign": 0.25,
+    "section_vectors": 2.995,
+    "key_terms": 1.694,
+    "level1_knn": 3.794,
+    "level1_communities": 0.535,
+    "level2_knn": 0.021,
+    "level2_communities": 0.031,
+    "level3_knn": 0.001,
+    "level3_communities": 0.003,
+    "tree": 4.691,
+    "tables": 6.09,
+    "total": 33.864
+   }
+  }
+ },
+ "backend_parity": {
+  "identical_gpu_cpu": {
+   "section_aggregates": true,
+   "section_vectors": true,
+   "topics": false,
+   "topic_members": false,
+   "topic_edges": false
+  },
+  "topics_gpu": 720,
+  "topics_cpu": 716,
+  "topic_ids_shared": 86,
+  "repeatability": "two GPU builds and two CPU builds (separate processes) gave identical tables; cuGraph Leiden with float32 weights did not (3 outcomes in 8 runs)",
+  "cpu_levels": [
+   {
+    "level": 1,
+    "topics": 607,
+    "communities_raw": 651,
+    "share_topics_multi_source": 0.78089,
+    "mean_coherence": 0.509717
+   },
+   {
+    "level": 2,
+    "topics": 90,
+    "communities_raw": 101,
+    "share_topics_multi_source": 1.0,
+    "mean_coherence": 0.353146
+   },
+   {
+    "level": 3,
+    "topics": 19,
+    "communities_raw": 27,
+    "share_topics_multi_source": 1.0,
+    "mean_coherence": 0.235932
+   }
+  ]
+ },
+ "qa": {
+  "random_level1_topics": [
+   {
+    "topic_id": "TOP-e7d717630e182783",
+    "n_sections": 9,
+    "n_sources": 5,
+    "coherence": 0.549977,
+    "label_terms": [
+     "образцы",
+     "деформации",
+     "нагрузка",
+     "ползучесть",
+     "сутки"
+    ],
+    "source_ids": [
+     "VKM-SRC-054",
+     "VKM-SRC-025",
+     "VKM-SRC-066",
+     "VKM-SRC-119",
+     "VKM-SRC-202"
+    ],
+    "parent_topic_id": "TOP-a1ccbbe511a9e017"
+   },
+   {
+    "topic_id": "TOP-7624d243d6931c05",
+    "n_sections": 4,
+    "n_sources": 1,
+    "coherence": 0.520496,
+    "label_terms": [
+     "параметры системы",
+     "расчет параметров",
+     "почва",
+     "целка",
+     "целковы"
+    ],
+    "source_ids": [
+     "VKM-SRC-054"
+    ],
+    "parent_topic_id": "TOP-4c7408b39fba0b5b"
+   },
+   {
+    "topic_id": "TOP-0cc0454f77819abc",
+    "n_sections": 17,
+    "n_sources": 2,
+    "coherence": 0.43337,
+    "label_terms": [
+     "arch",
+     "computation",
+     "foundation",
+     "earth dam",
+     "finite element"
+    ],
+    "source_ids": [
+     "VKM-SRC-226",
+     "VKM-SRC-231"
+    ],
+    "parent_topic_id": "TOP-5c418f69733aad52"
+   },
+   {
+    "topic_id": "TOP-599313d8edf2c321",
+    "n_sections": 10,
+    "n_sources": 2,
+    "coherence": 0.628918,
+    "label_terms": [
+     "координаты",
+     "эллипсоид",
+     "cos cos",
+     "cos sin",
+     "sin cos"
+    ],
+    "source_ids": [
+     "VKM-SRC-218",
+     "VKM-SRC-217"
+    ],
+    "parent_topic_id": "TOP-6913ba8fd96f1768"
+   },
+   {
+    "topic_id": "TOP-25234bc45bac78a4",
+    "n_sections": 26,
+    "n_sources": 1,
+    "coherence": 0.409406,
+    "label_terms": [
+     "heat",
+     "mantle",
+     "temperature",
+     "oceanic",
+     "crust"
+    ],
+    "source_ids": [
+     "VKM-SRC-249"
+    ],
+    "parent_topic_id": "TOP-4356d23b5e3162b3"
+   },
+   {
+    "topic_id": "TOP-bd019c1cf98bc543",
+    "n_sections": 26,
+    "n_sources": 3,
+    "coherence": 0.564759,
+    "label_terms": [
+     "двигатели",
+     "цепь",
+     "управление",
+     "комбайн",
+     "кнопка"
+    ],
+    "source_ids": [
+     "VKM-SRC-028",
+     "VKM-SRC-020",
+     "VKM-SRC-172"
+    ],
+    "parent_topic_id": "TOP-d6867c0f37f3993f"
+   },
+   {
+    "topic_id": "TOP-917f4d3a166f80d1",
+    "n_sections": 7,
+    "n_sources": 1,
+    "coherence": 0.671789,
+    "label_terms": [
+     "интеграл",
+     "принцип",
+     "функционал",
+     "функция",
+     "интегрирование"
+    ],
+    "source_ids": [
+     "VKM-SRC-053"
+    ],
+    "parent_topic_id": "TOP-4bfe361839d91120"
+   },
+   {
+    "topic_id": "TOP-5299de9de9e210bc",
+    "n_sections": 18,
+    "n_sources": 1,
+    "coherence": 0.392268,
+    "label_terms": [
+     "stray",
+     "clay",
+     "CRD",
+     "b-scan",
+     "a-scan"
+    ],
+    "source_ids": [
+     "VKM-SRC-128"
+    ],
+    "parent_topic_id": "TOP-ede5ec1299aa43dc"
+   },
+   {
+    "topic_id": "TOP-8b17bcfc34bf06a7",
+    "n_sections": 12,
+    "n_sources": 3,
+    "coherence": 0.503367,
+    "label_terms": [
+     "геолого-геомеханическая модель",
+     "массив горных пород",
+     "ВЗТ",
+     "состояние массива",
+     "НДС"
+    ],
+    "source_ids": [
+     "VKM-SRC-012",
+     "VKM-SRC-103",
+     "VKM-SRC-044"
+    ],
+    "parent_topic_id": "TOP-53cc5711f1958a5d"
+   },
+   {
+    "topic_id": "TOP-d718ef9089788b37",
+    "n_sections": 17,
+    "n_sources": 4,
+    "coherence": 0.49356,
+    "label_terms": [
+     "измерения",
+     "сеть",
+     "угол",
+     "пункты",
+     "уравнивание"
+    ],
+    "source_ids": [
+     "VKM-SRC-217",
+     "VKM-SRC-218",
+     "VKM-SRC-219",
+     "VKM-SRC-226"
+    ],
+    "parent_topic_id": "TOP-6913ba8fd96f1768"
+   },
+   {
+    "topic_id": "TOP-c4e595d9239593b4",
+    "n_sections": 5,
+    "n_sources": 4,
+    "coherence": 0.435767,
+    "label_terms": [
+     "трение",
+     "резание",
+     "породы",
+     "показатели",
+     "коэффициент"
+    ],
+    "source_ids": [
+     "VKM-SRC-054",
+     "VKM-SRC-148",
+     "VKM-SRC-163",
+     "VKM-SRC-204"
+    ],
+    "parent_topic_id": "TOP-dbe7bdce60703326"
+   },
+   {
+    "topic_id": "TOP-0be4d08d7c082e10",
+    "n_sections": 28,
+    "n_sources": 9,
+    "coherence": 0.408007,
+    "label_terms": [
+     "earthquake",
+     "землетрясения",
+     "magnitude",
+     "магнитуда",
+     "ground motion"
+    ],
+    "source_ids": [
+     "VKM-SRC-249",
+     "VKM-SRC-203",
+     "VKM-SRC-204",
+     "VKM-SRC-205",
+     "VKM-SRC-206"
+    ],
+    "parent_topic_id": "TOP-bc7b7aa39244299f"
+   },
+   {
+    "topic_id": "TOP-6c88ec7d51cc4f74",
+    "n_sections": 17,
+    "n_sources": 2,
+    "coherence": 0.405971,
+    "label_terms": [
+     "interpretation",
+     "qualitative",
+     "quantitative",
+     "sect",
+     "geological"
+    ],
+    "source_ids": [
+     "VKM-SRC-250",
+     "VKM-SRC-222"
+    ],
+    "parent_topic_id": "TOP-cbaba1099ba79b16"
+   },
+   {
+    "topic_id": "TOP-a332045bebe72673",
+    "n_sections": 17,
+    "n_sources": 13,
+    "coherence": 0.371877,
+    "label_terms": [
+     "content",
+     "radar",
+     "испытания",
+     "azimuth",
+     "angle"
+    ],
+    "source_ids": [
+     "VKM-SRC-246",
+     "VKM-SRC-237",
+     "VKM-SRC-251",
+     "VKM-SRC-054",
+     "VKM-SRC-067"
+    ],
+    "parent_topic_id": "TOP-7e7a8bd9b20d6dbe"
+   },
+   {
+    "topic_id": "TOP-f547ea1baf881e3d",
+    "n_sections": 5,
+    "n_sources": 1,
+    "coherence": 0.699502,
+    "label_terms": [
+     "caving",
+     "sublevel",
+     "fragmentation",
+     "extraction",
+     "draw"
+    ],
+    "source_ids": [
+     "VKM-SRC-231"
+    ],
+    "parent_topic_id": "TOP-6afae10f0d8070ae"
+   },
+   {
+    "topic_id": "TOP-df7886651b5d78dc",
+    "n_sections": 10,
+    "n_sources": 7,
+    "coherence": 0.525915,
+    "label_terms": [
+     "salt rock",
+     "triaxial",
+     "testing",
+     "DOI",
+     "behaviour"
+    ],
+    "source_ids": [
+     "VKM-SRC-154",
+     "VKM-SRC-056",
+     "VKM-SRC-066",
+     "VKM-SRC-073",
+     "VKM-SRC-161"
+    ],
+    "parent_topic_id": "TOP-94713cce52baaabd"
+   },
+   {
+    "topic_id": "TOP-26a89f6751c13d76",
+    "n_sections": 8,
+    "n_sources": 1,
+    "coherence": 0.631514,
+    "label_terms": [
+     "plane waves",
+     "particle motion",
+     "homogeneous",
+     "inhomogeneous",
+     "vector"
+    ],
+    "source_ids": [
+     "VKM-SRC-235"
+    ],
+    "parent_topic_id": "TOP-e3da42c12d12b523"
+   },
+   {
+    "topic_id": "TOP-169829e1038cb119",
+    "n_sections": 25,
+    "n_sources": 1,
+    "coherence": 0.50794,
+    "label_terms": [
+     "resistivity",
+     "saturation",
+     "archie",
+     "porosity",
+     "hydrocarbon"
+    ],
+    "source_ids": [
+     "VKM-SRC-236"
+    ],
+    "parent_topic_id": "TOP-d56c908269962d6a"
+   },
+   {
+    "topic_id": "TOP-4da2c9fe5ed513f9",
+    "n_sections": 7,
+    "n_sources": 3,
+    "coherence": 0.406268,
+    "label_terms": [
+     "температура",
+     "crystal",
+     "мергель",
+     "скорость деформирования",
+     "половодовский участок"
+    ],
+    "source_ids": [
+     "VKM-SRC-150",
+     "VKM-SRC-175",
+     "VKM-SRC-204"
+    ],
+    "parent_topic_id": "TOP-7fecabb442afc88a"
+   },
+   {
+    "topic_id": "TOP-71fef825818f9fd1",
+    "n_sections": 16,
+    "n_sources": 3,
+    "coherence": 0.667455,
+    "label_terms": [
+     "wave",
+     "x-direction",
+     "wavefront",
+     "seismometer",
+     "one-dimensional"
+    ],
+    "source_ids": [
+     "VKM-SRC-249",
+     "VKM-SRC-234",
+     "VKM-SRC-235"
+    ],
+    "parent_topic_id": "TOP-339b5ea4a4f13a61"
+   }
+  ],
+  "targets": {
+   "initial_stresses": [
+    {
+     "topic_id": "TOP-23fa06649691da7b",
+     "level": 1,
+     "n_sections": 7,
+     "n_sources": 6,
+     "label_terms": [
+      "массив горных пород",
+      "горизонтальные компоненты",
+      "природное поле напряжений",
+      "deformation characteristics",
+      "inverse problem"
+     ],
+     "score": 1.1857,
+     "query": "природное поле напряжений"
+    },
+    {
+     "topic_id": "TOP-33282530b383589b",
+     "level": 1,
+     "n_sections": 7,
+     "n_sources": 2,
+     "label_terms": [
+      "массив горных пород",
+      "напряжения",
+      "состояние массива",
+      "массив пород",
+      "объемные силы"
+     ],
+     "score": 1.0286,
+     "query": "напряженное состояние массива"
+    },
+    {
+     "topic_id": "TOP-5ef1f7f5b49e0681",
+     "level": 1,
+     "n_sections": 22,
+     "n_sources": 4,
+     "label_terms": [
+      "stress",
+      "hole",
+      "excavation",
+      "opening",
+      "state"
+     ],
+     "score": 0.4364,
+     "query": "in situ stress"
+    },
+    {
+     "topic_id": "TOP-5c418f69733aad52",
+     "level": 2,
+     "n_sections": 79,
+     "n_sources": 5,
+     "label_terms": [
+      "stress",
+      "crack",
+      "concrete",
+      "element",
+      "rock"
+     ],
+     "score": 0.338,
+     "query": "in situ stress"
+    },
+    {
+     "topic_id": "TOP-f11b1953159b98f3",
+     "level": 3,
+     "n_sections": 371,
+     "n_sources": 38,
+     "label_terms": [
+      "stress",
+      "strain",
+      "напряжения",
+      "fracture",
+      "деформации"
+     ],
+     "score": 0.3081,
+     "query": "in situ stress"
+    },
+    {
+     "topic_id": "TOP-f48940cfad32c03f",
+     "level": 1,
+     "n_sections": 15,
+     "n_sources": 7,
+     "label_terms": [
+      "напряжения",
+      "гидродомкрат",
+      "кайзер",
+      "нагружение",
+      "АЭ"
+     ],
+     "score": 0.3,
+     "query": "начальные напряжения"
+    },
+    {
+     "topic_id": "TOP-a22249cac46b90fe",
+     "level": 1,
+     "n_sections": 4,
+     "n_sources": 1,
+     "label_terms": [
+      "напряжения",
+      "угол внутреннего трения",
+      "ползучесть",
+      "деформирование",
+      "напряжённое состояние"
+     ],
+     "score": 0.3,
+     "query": "начальные напряжения"
+    },
+    {
+     "topic_id": "TOP-1c4728e99a929cbc",
+     "level": 1,
+     "n_sections": 19,
+     "n_sources": 5,
+     "label_terms": [
+      "stress",
+      "axis",
+      "components",
+      "principal",
+      "deviator"
+     ],
+     "score": 0.3,
+     "query": "in situ stress"
+    }
+   ],
+   "backfill": [
+    {
+     "topic_id": "TOP-2303ad879c08566a",
+     "level": 1,
+     "n_sections": 17,
+     "n_sources": 8,
+     "label_terms": [
+      "закладка",
+      "закладочный массив",
+      "камера",
+      "закладочные работы",
+      "смесь"
+     ],
+     "score": 2.0,
+     "query": "закладка"
+    },
+    {
+     "topic_id": "TOP-30611a0cabc61e46",
+     "level": 1,
+     "n_sections": 9,
+     "n_sources": 1,
+     "label_terms": [
+      "закладочный материал",
+      "прочность",
+      "искусственные целики",
+      "массив",
+      "свод"
+     ],
+     "score": 1.5778,
+     "query": "закладка"
+    },
+    {
+     "topic_id": "TOP-44cb2beb8c144a80",
+     "level": 1,
+     "n_sections": 21,
+     "n_sources": 2,
+     "label_terms": [
+      "шлам",
+      "солеотходы",
+      "размещение",
+      "смесь",
+      "перемычки"
+     ],
+     "score": 1.4071,
+     "query": "закладка"
+    },
+    {
+     "topic_id": "TOP-2f9896ad33bc622f",
+     "level": 2,
+     "n_sections": 121,
+     "n_sources": 21,
+     "label_terms": [
+      "камера",
+      "штрек",
+      "пласт",
+      "схема",
+      "закладка"
+     ],
+     "score": 1.1388,
+     "query": "закладка"
+    },
+    {
+     "topic_id": "TOP-108479a66d656708",
+     "level": 1,
+     "n_sections": 13,
+     "n_sources": 7,
+     "label_terms": [
+      "камера",
+      "потеря",
+      "производительность",
+      "руда",
+      "коэффициент"
+     ],
+     "score": 1.0077,
+     "query": "закладка"
+    },
+    {
+     "topic_id": "TOP-70b04533597782ea",
+     "level": 1,
+     "n_sections": 30,
+     "n_sources": 11,
+     "label_terms": [
+      "реперы",
+      "станция",
+      "наблюдения",
+      "линия",
+      "сдвижение"
+     ],
+     "score": 0.8667,
+     "query": "закладка"
+    },
+    {
+     "topic_id": "TOP-25155952352c7258",
+     "level": 1,
+     "n_sections": 9,
+     "n_sources": 2,
+     "label_terms": [
+      "смесь",
+      "трубопровод",
+      "транспортирование",
+      "напор",
+      "поток"
+     ],
+     "score": 0.2222,
+     "query": "закладка"
+    },
+    {
+     "topic_id": "TOP-609b78196fcc04a3",
+     "level": 1,
+     "n_sections": 15,
+     "n_sources": 1,
+     "label_terms": [
+      "система разработки",
+      "схема",
+      "выемка",
+      "руда",
+      "отбоийка"
+     ],
+     "score": 0.2,
+     "query": "закладка"
+    }
+   ],
+   "salt_creep": [
+    {
+     "topic_id": "TOP-718c1ccfaaf8e0a2",
+     "level": 1,
+     "n_sections": 8,
+     "n_sources": 4,
+     "label_terms": [
+      "ползучесть",
+      "ядро",
+      "параметры",
+      "образцы",
+      "соляные породы"
+     ],
+     "score": 1.75,
+     "query": "ползучесть"
+    },
+    {
+     "topic_id": "TOP-59050093219a26e9",
+     "level": 1,
+     "n_sections": 3,
+     "n_sources": 3,
+     "label_terms": [
+      "ползучесть",
+      "модуль",
+      "разрушение",
+      "деформации",
+      "описание"
+     ],
+     "score": 1.6667,
+     "query": "ползучесть"
+    },
+    {
+     "topic_id": "TOP-5afb24bfea730738",
+     "level": 1,
+     "n_sections": 9,
+     "n_sources": 4,
+     "label_terms": [
+      "релаксация",
+      "ползучесть",
+      "параметры модели",
+      "эксперименты",
+      "объемный критерий"
+     ],
+     "score": 1.6167,
+     "query": "ползучесть"
+    },
+    {
+     "topic_id": "TOP-a50c9d2a2514f569",
+     "level": 1,
+     "n_sections": 5,
+     "n_sources": 1,
+     "label_terms": [
+      "кривая",
+      "ядро",
+      "разгрузка",
+      "опыт",
+      "ползучесть"
+     ],
+     "score": 1.6,
+     "query": "ползучесть"
+    },
+    {
+     "topic_id": "TOP-547bee6e52bf22d1",
+     "level": 1,
+     "n_sections": 8,
+     "n_sources": 7,
+     "label_terms": [
+      "ползучесть",
+      "теория",
+      "деформации",
+      "модель",
+      "напряжения"
+     ],
+     "score": 1.5,
+     "query": "ползучесть"
+    },
+    {
+     "topic_id": "TOP-97480283c4d70de9",
+     "level": 1,
+     "n_sections": 7,
+     "n_sources": 7,
+     "label_terms": [
+      "длительная прочность",
+      "ползучесть",
+      "предел",
+      "горные породы",
+      "напряжения"
+     ],
+     "score": 1.3786,
+     "query": "ползучесть"
+    },
+    {
+     "topic_id": "TOP-3e3698085d84d748",
+     "level": 1,
+     "n_sections": 15,
+     "n_sources": 3,
+     "label_terms": [
+      "текучесть",
+      "trial",
+      "напряжения",
+      "ползучесть",
+      "невязки"
+     ],
+     "score": 1.3167,
+     "query": "ползучесть"
+    },
+    {
+     "topic_id": "TOP-3749459c5e600436",
+     "level": 2,
+     "n_sections": 58,
+     "n_sources": 11,
+     "label_terms": [
+      "напряжения",
+      "контакт",
+      "ползучесть",
+      "образцы",
+      "параметры"
+     ],
+     "score": 1.2793,
+     "query": "ползучесть"
+    }
+   ],
+   "surface_subsidence": [
+    {
+     "topic_id": "TOP-e9ebf1ee67eff381",
+     "level": 1,
+     "n_sections": 25,
+     "n_sources": 1,
+     "label_terms": [
+      "сдвижение",
+      "угол",
+      "полумульда",
+      "отработка запасов",
+      "мульда"
+     ],
+     "score": 1.96,
+     "query": "сдвижение"
+    },
+    {
+     "topic_id": "TOP-fffc924e51fba3f0",
+     "level": 1,
+     "n_sections": 8,
+     "n_sources": 6,
+     "label_terms": [
+      "сдвижение",
+      "мульда",
+      "оседания",
+      "земная поверхность",
+      "полость растворения"
+     ],
+     "score": 1.875,
+     "query": "сдвижение"
+    },
+    {
+     "topic_id": "TOP-9d37374680ccce9b",
+     "level": 1,
+     "n_sections": 13,
+     "n_sources": 9,
+     "label_terms": [
+      "оседания земной поверхности",
+      "нарастание",
+      "функция ползучести",
+      "упругие смещения",
+      "напряжённо-деформированное состояние"
+     ],
+     "score": 1.8462,
+     "query": "оседание земной поверхности"
+    },
+    {
+     "topic_id": "TOP-a33469a3735b1f95",
+     "level": 1,
+     "n_sections": 28,
+     "n_sources": 8,
+     "label_terms": [
+      "сдвижение",
+      "мульда",
+      "оседания",
+      "подработка",
+      "земная поверхность"
+     ],
+     "score": 1.7857,
+     "query": "сдвижение"
+    },
+    {
+     "topic_id": "TOP-1ba39976c03bd45d",
+     "level": 1,
+     "n_sections": 9,
+     "n_sources": 8,
+     "label_terms": [
+      "ВЗТ",
+      "оседания земной поверхности",
+      "растворение",
+      "затопление",
+      "мульда сдвижения"
+     ],
+     "score": 1.6167,
+     "query": "оседание земной поверхности"
+    },
+    {
+     "topic_id": "TOP-6749efb709cae9fd",
+     "level": 2,
+     "n_sections": 105,
+     "n_sources": 14,
+     "label_terms": [
+      "сдвижение",
+      "угол",
+      "мульда",
+      "оседания",
+      "смещения"
+     ],
+     "score": 1.5048,
+     "query": "сдвижение"
+    },
+    {
+     "topic_id": "TOP-4137d543a7d7ab16",
+     "level": 1,
+     "n_sections": 8,
+     "n_sources": 5,
+     "label_terms": [
+      "охрана",
+      "сдвижение горных пород",
+      "инструкция",
+      "природные объекты",
+      "горные разработки"
+     ],
+     "score": 1.375,
+     "query": "сдвижение"
+    },
+    {
+     "topic_id": "TOP-f860bf5bb247492a",
+     "level": 1,
+     "n_sections": 11,
+     "n_sources": 6,
+     "label_terms": [
+      "сдвижение",
+      "земная поверхность",
+      "угол",
+      "выработанное пространство",
+      "обрушение"
+     ],
+     "score": 1.3636,
+     "query": "сдвижение"
+    }
+   ],
+   "water_protective_strata": [
+    {
+     "topic_id": "TOP-6835393ea44309c5",
+     "level": 1,
+     "n_sections": 5,
+     "n_sources": 4,
+     "label_terms": [
+      "ВЗТ",
+      "целостность",
+      "обеспечение",
+      "водозащитная толща",
+      "затопление"
+     ],
+     "score": 1.8,
+     "query": "водозащитная толща"
+    },
+    {
+     "topic_id": "TOP-9c45a79b1c30cc13",
+     "level": 1,
+     "n_sections": 13,
+     "n_sources": 10,
+     "label_terms": [
+      "ВЗТ",
+      "подработанный массив",
+      "техногенная нарушенность",
+      "оседания",
+      "земная поверхность"
+     ],
+     "score": 1.6923,
+     "query": "водозащитная толща"
+    },
+    {
+     "topic_id": "TOP-1ba39976c03bd45d",
+     "level": 1,
+     "n_sections": 9,
+     "n_sources": 8,
+     "label_terms": [
+      "ВЗТ",
+      "оседания земной поверхности",
+      "растворение",
+      "затопление",
+      "мульда сдвижения"
+     ],
+     "score": 1.6667,
+     "query": "водозащитная толща"
+    },
+    {
+     "topic_id": "TOP-2eb8e5d333f8b39b",
+     "level": 1,
+     "n_sections": 7,
+     "n_sources": 1,
+     "label_terms": [
+      "канат",
+      "крепь",
+      "ВЗТ",
+      "НДС",
+      "МКЦ"
+     ],
+     "score": 1.6143,
+     "query": "водозащитная толща"
+    },
+    {
+     "topic_id": "TOP-8b17bcfc34bf06a7",
+     "level": 1,
+     "n_sections": 12,
+     "n_sources": 3,
+     "label_terms": [
+      "геолого-геомеханическая модель",
+      "массив горных пород",
+      "ВЗТ",
+      "состояние массива",
+      "НДС"
+     ],
+     "score": 1.2333,
+     "query": "водозащитная толща"
+    },
+    {
+     "topic_id": "TOP-79d730bd3e8f07d0",
+     "level": 1,
+     "n_sections": 11,
+     "n_sources": 6,
+     "label_terms": [
+      "СМТ",
+      "выщелачивание",
+      "ритмопачки",
+      "ВЗТ",
+      "брекчии"
+     ],
+     "score": 1.1227,
+     "query": "водозащитная толща"
+    },
+    {
+     "topic_id": "TOP-425cfef7ff74af85",
+     "level": 1,
+     "n_sections": 3,
+     "n_sources": 2,
+     "label_terms": [
+      "RU",
+      "патент",
+      "надсол",
+      "изобретение",
+      "SU"
+     ],
+     "score": 0.6667,
+     "query": "водозащитная толща"
+    },
+    {
+     "topic_id": "TOP-5ef2cf76b873a131",
+     "level": 1,
+     "n_sections": 10,
+     "n_sources": 3,
+     "label_terms": [
+      "разломы",
+      "надвиг",
+      "зона",
+      "разрез",
+      "шахтное поле"
+     ],
+     "score": 0.4,
+     "query": "водозащитная толща"
+    }
+   ]
+  },
+  "cross_language_creep": {
+   "ru_level1_topics": [
+    {
+     "topic_id": "TOP-718c1ccfaaf8e0a2",
+     "n_sections": 8,
+     "n_sources": 4,
+     "parent_topic_id": "TOP-0842fb4caeccaed7"
+    },
+    {
+     "topic_id": "TOP-59050093219a26e9",
+     "n_sections": 3,
+     "n_sources": 3,
+     "parent_topic_id": "TOP-3749459c5e600436"
+    },
+    {
+     "topic_id": "TOP-5afb24bfea730738",
+     "n_sections": 9,
+     "n_sources": 4,
+     "parent_topic_id": "TOP-3749459c5e600436"
+    },
+    {
+     "topic_id": "TOP-a50c9d2a2514f569",
+     "n_sections": 5,
+     "n_sources": 1,
+     "parent_topic_id": "TOP-3749459c5e600436"
+    },
+    {
+     "topic_id": "TOP-547bee6e52bf22d1",
+     "n_sections": 8,
+     "n_sources": 7,
+     "parent_topic_id": "TOP-3af646f228f649f3"
+    },
+    {
+     "topic_id": "TOP-97480283c4d70de9",
+     "n_sections": 7,
+     "n_sources": 7,
+     "parent_topic_id": "TOP-a1ccbbe511a9e017"
+    },
+    {
+     "topic_id": "TOP-3e3698085d84d748",
+     "n_sections": 15,
+     "n_sources": 3,
+     "parent_topic_id": "TOP-3749459c5e600436"
+    },
+    {
+     "topic_id": "TOP-9d37374680ccce9b",
+     "n_sections": 13,
+     "n_sources": 9,
+     "parent_topic_id": "TOP-4c7408b39fba0b5b"
+    },
+    {
+     "topic_id": "TOP-e7d717630e182783",
+     "n_sections": 9,
+     "n_sources": 5,
+     "parent_topic_id": "TOP-a1ccbbe511a9e017"
+    },
+    {
+     "topic_id": "TOP-a22249cac46b90fe",
+     "n_sections": 4,
+     "n_sources": 1,
+     "parent_topic_id": "TOP-3749459c5e600436"
+    }
+   ],
+   "en_level1_topics": [
+    {
+     "topic_id": "TOP-3d1836ddf798938a",
+     "n_sections": 7,
+     "n_sources": 2,
+     "parent_topic_id": "TOP-0a9c91c4531dec0f"
+    },
+    {
+     "topic_id": "TOP-7c9fb0c527967a2d",
+     "n_sections": 8,
+     "n_sources": 3,
+     "parent_topic_id": "TOP-0a9c91c4531dec0f"
+    },
+    {
+     "topic_id": "TOP-c80240a6d181d702",
+     "n_sections": 6,
+     "n_sources": 1,
+     "parent_topic_id": "TOP-993d017998c86622"
+    },
+    {
+     "topic_id": "TOP-b944bae5ca45ffd5",
+     "n_sections": 16,
+     "n_sources": 3,
+     "parent_topic_id": "TOP-7fecabb442afc88a"
+    },
+    {
+     "topic_id": "TOP-2fe41e74b19c08c7",
+     "n_sections": 16,
+     "n_sources": 1,
+     "parent_topic_id": "TOP-a58ee74e0ee5748a"
+    },
+    {
+     "topic_id": "TOP-320a906780a2eee9",
+     "n_sections": 20,
+     "n_sources": 3,
+     "parent_topic_id": "TOP-7fecabb442afc88a"
+    },
+    {
+     "topic_id": "TOP-728807355e1051bc",
+     "n_sections": 12,
+     "n_sources": 2,
+     "parent_topic_id": "TOP-94713cce52baaabd"
+    },
+    {
+     "topic_id": "TOP-16e427e1d3c8cb91",
+     "n_sections": 10,
+     "n_sources": 1,
+     "parent_topic_id": "TOP-0a9c91c4531dec0f"
+    },
+    {
+     "topic_id": "TOP-e59d1ed109c41f1c",
+     "n_sections": 4,
+     "n_sources": 3,
+     "parent_topic_id": "TOP-993d017998c86622"
+    },
+    {
+     "topic_id": "TOP-759f32ee1ed0519a",
+     "n_sections": 12,
+     "n_sources": 2,
+     "parent_topic_id": "TOP-a1ccbbe511a9e017"
+    },
+    {
+     "topic_id": "TOP-59681ffc00ad3e65",
+     "n_sections": 16,
+     "n_sources": 2,
+     "parent_topic_id": "TOP-40d05a28e8ed4f9c"
+    },
+    {
+     "topic_id": "TOP-2abe7b384e9e69b8",
+     "n_sections": 26,
+     "n_sources": 2,
+     "parent_topic_id": "TOP-0a9c91c4531dec0f"
+    }
+   ],
+   "shared_level2_parents": [
+    "TOP-a1ccbbe511a9e017"
+   ],
+   "level1_topics_labelled_both_ru_and_en": 0
+  }
+ }
+}
