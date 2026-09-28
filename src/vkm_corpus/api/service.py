@@ -735,88 +735,6 @@ class ApiService:
                                count=stale)] if stale else []
         return Result(items=items, warnings=warnings)
 
-    # ------------------------------------------------------------------ navigation layer (NAV, derived, not evidence)
-    _NAV_NOTE = "navigation layer: derived from the canon without models, AUTO_EXTRACTED_UNREVIEWED, not evidence"
-
-    def _nav_run(self, fn: Callable[[Any], Any]) -> tuple[Any, str | None]:
-        from vkm_corpus.navigation.store import NavUnavailable
-
-        nav = self.deps.nav
-        if nav is None:
-            raise ApiFailure("DEPENDENCY_UNAVAILABLE", "the navigation layer is not configured on this API instance",
-                             stage="navigation", tool="nav")
-        try:
-            return fn(nav), nav.snapshot_id()
-        except NavUnavailable as exc:
-            raise ApiFailure("DEPENDENCY_UNAVAILABLE", str(exc), stage="navigation", tool="nav",
-                             hint="vkm-corpus nav build → nav pack → nav publish") from exc
-        except LookupError as exc:
-            raise ApiFailure("NOT_FOUND", f"not in the navigation layer: {exc}", stage="navigation",
-                             tool="nav") from exc
-
-    def _nav_result(self, kind: str, object_id: str, data: Any, nav_snapshot: str | None, *,
-                    source_id: str | None = None, page_id: str | None = None) -> Result:
-        if data is None or data == [] or data == {}:
-            raise ApiFailure("NOT_FOUND", f"{object_id} is not in the navigation layer", stage="navigation",
-                             tool="nav")
-        record = data if isinstance(data, dict) else {"items": data}
-        record = jsonable({**record, "nav_snapshot_id": nav_snapshot, "note": self._NAV_NOTE})
-        canon_snapshot = self.canon.snapshot_id()
-        env = Envelope(object_id=object_id, object_kind=kind, source_id=source_id, page_id=page_id,
-                       review_status="AUTO_EXTRACTED_UNREVIEWED", layer="PROJECTION", payload_form="NORMALIZED",
-                       origin="DERIVED",
-                       projection=Projection(engine="navigation", index_or_graph="nav.duckdb", build_id=nav_snapshot,
-                                             built_from_snapshot_id=nav_snapshot,
-                                             matches_canonical_snapshot=nav_snapshot == canon_snapshot))
-        warnings = []
-        if nav_snapshot and nav_snapshot != canon_snapshot:
-            warnings.append(ApiWarning(code="NAV_SNAPSHOT_BEHIND", message="the navigation layer was built from "
-                                       "another canonical snapshot; ids are stable, counts may differ"))
-        return Result(item=Item(envelope=env, record=record), warnings=warnings)
-
-    def nav_outline(self, source_id: str) -> Result:
-        self._check("source", source_id)
-        data, snap = self._nav_run(lambda nav: nav.run("outline", source_id))
-        return self._nav_result("NAV_OUTLINE", source_id, data, snap, source_id=source_id)
-
-    def nav_section(self, section_id: str) -> Result:
-        if not re.fullmatch(r"SEC-[0-9a-f]{16}", section_id or ""):
-            raise ApiFailure("INVALID_ARGUMENT", "section_id is SEC-<16 hex>")
-        data, snap = self._nav_run(lambda nav: nav.run("section", section_id))
-        src = data.get("source_id") if isinstance(data, dict) else None
-        return self._nav_result("NAV_SECTION", section_id, data, snap, source_id=src)
-
-    def nav_sections(self, text: str, source_id: str | None, limit: int) -> Result:
-        if source_id:
-            self._check("source", source_id)
-        data, snap = self._nav_run(lambda nav: nav.search_sections(text, source_id=source_id, limit=limit))
-        return self._nav_result("NAV_SECTIONS", f"search:{text[:60]}", data or [], snap)
-
-    def nav_formula(self, formula_id: str) -> Result:
-        self._check("object", formula_id)
-        data, snap = self._nav_run(lambda nav: nav.run("formula_context", formula_id))
-        src = data.get("source_id") if isinstance(data, dict) else None
-        page = data.get("page_id") if isinstance(data, dict) else None
-        return self._nav_result("NAV_FORMULA", formula_id, data, snap, source_id=src, page_id=page)
-
-    def nav_formulas(self, concept: str | None, symbol: str | None, source_id: str | None, limit: int) -> Result:
-        if not (concept or symbol):
-            raise ApiFailure("INVALID_ARGUMENT", "give a concept (words of symbol definitions) or a symbol")
-        if symbol and not source_id:
-            raise ApiFailure("INVALID_ARGUMENT", "a symbol is looked up inside one source (symbols are not global)")
-        if source_id:
-            self._check("source", source_id)
-        data, snap = self._nav_run(lambda nav: nav.run("find_formulas", concept=concept, symbol=symbol,
-                                                       source_id=source_id))
-        items = list(data or [])[:limit] if not isinstance(data, dict) else data
-        return self._nav_result("NAV_FORMULAS", f"formulas:{concept or symbol}", items, snap, source_id=source_id)
-
-    def nav_concept(self, term: str, limit: int) -> Result:
-        if not term or not term.strip() or len(term) > 200:
-            raise ApiFailure("INVALID_ARGUMENT", "term is 1..200 characters")
-        data, snap = self._nav_run(lambda nav: nav.run("explore_concept", term, limit=limit))
-        return self._nav_result("NAV_CONCEPT", f"concept:{term[:60]}", data, snap)
-
     # ------------------------------------------------------------------ NAV graph (agent G): paths and neighbourhoods
     # in the Neo4j projection of the navigation layer (vkm_corpus.graph.nav_query); DERIVED, never evidence.
     NAV_GRAPH_FAMILIES = ("concepts", "formulas", "sections", "topics")
@@ -919,6 +837,88 @@ class ApiService:
         return self._nav_graph_result("NAV_GRAPH_NEIGHBOURHOOD", node_id, {"depth": int(depth), **shaped}, state,
                                       source_id=source_id, page_id=page_id)
     # ------------------------------------------------------------------ end NAV graph (agent G)
+
+    # ------------------------------------------------------------------ navigation layer (NAV, derived, not evidence)
+    _NAV_NOTE = "navigation layer: derived from the canon without models, AUTO_EXTRACTED_UNREVIEWED, not evidence"
+
+    def _nav_run(self, fn: Callable[[Any], Any]) -> tuple[Any, str | None]:
+        from vkm_corpus.navigation.store import NavUnavailable
+
+        nav = self.deps.nav
+        if nav is None:
+            raise ApiFailure("DEPENDENCY_UNAVAILABLE", "the navigation layer is not configured on this API instance",
+                             stage="navigation", tool="nav")
+        try:
+            return fn(nav), nav.snapshot_id()
+        except NavUnavailable as exc:
+            raise ApiFailure("DEPENDENCY_UNAVAILABLE", str(exc), stage="navigation", tool="nav",
+                             hint="vkm-corpus nav build → nav pack → nav publish") from exc
+        except LookupError as exc:
+            raise ApiFailure("NOT_FOUND", f"not in the navigation layer: {exc}", stage="navigation",
+                             tool="nav") from exc
+
+    def _nav_result(self, kind: str, object_id: str, data: Any, nav_snapshot: str | None, *,
+                    source_id: str | None = None, page_id: str | None = None) -> Result:
+        if data is None or data == [] or data == {}:
+            raise ApiFailure("NOT_FOUND", f"{object_id} is not in the navigation layer", stage="navigation",
+                             tool="nav")
+        record = data if isinstance(data, dict) else {"items": data}
+        record = jsonable({**record, "nav_snapshot_id": nav_snapshot, "note": self._NAV_NOTE})
+        canon_snapshot = self.canon.snapshot_id()
+        env = Envelope(object_id=object_id, object_kind=kind, source_id=source_id, page_id=page_id,
+                       review_status="AUTO_EXTRACTED_UNREVIEWED", layer="PROJECTION", payload_form="NORMALIZED",
+                       origin="DERIVED",
+                       projection=Projection(engine="navigation", index_or_graph="nav.duckdb", build_id=nav_snapshot,
+                                             built_from_snapshot_id=nav_snapshot,
+                                             matches_canonical_snapshot=nav_snapshot == canon_snapshot))
+        warnings = []
+        if nav_snapshot and nav_snapshot != canon_snapshot:
+            warnings.append(ApiWarning(code="NAV_SNAPSHOT_BEHIND", message="the navigation layer was built from "
+                                       "another canonical snapshot; ids are stable, counts may differ"))
+        return Result(item=Item(envelope=env, record=record), warnings=warnings)
+
+    def nav_outline(self, source_id: str) -> Result:
+        self._check("source", source_id)
+        data, snap = self._nav_run(lambda nav: nav.run("outline", source_id))
+        return self._nav_result("NAV_OUTLINE", source_id, data, snap, source_id=source_id)
+
+    def nav_section(self, section_id: str) -> Result:
+        if not re.fullmatch(r"SEC-[0-9a-f]{16}", section_id or ""):
+            raise ApiFailure("INVALID_ARGUMENT", "section_id is SEC-<16 hex>")
+        data, snap = self._nav_run(lambda nav: nav.run("section", section_id))
+        src = data.get("source_id") if isinstance(data, dict) else None
+        return self._nav_result("NAV_SECTION", section_id, data, snap, source_id=src)
+
+    def nav_sections(self, text: str, source_id: str | None, limit: int) -> Result:
+        if source_id:
+            self._check("source", source_id)
+        data, snap = self._nav_run(lambda nav: nav.search_sections(text, source_id=source_id, limit=limit))
+        return self._nav_result("NAV_SECTIONS", f"search:{text[:60]}", data or [], snap)
+
+    def nav_formula(self, formula_id: str) -> Result:
+        self._check("object", formula_id)
+        data, snap = self._nav_run(lambda nav: nav.run("formula_context", formula_id))
+        src = data.get("source_id") if isinstance(data, dict) else None
+        page = data.get("page_id") if isinstance(data, dict) else None
+        return self._nav_result("NAV_FORMULA", formula_id, data, snap, source_id=src, page_id=page)
+
+    def nav_formulas(self, concept: str | None, symbol: str | None, source_id: str | None, limit: int) -> Result:
+        if not (concept or symbol):
+            raise ApiFailure("INVALID_ARGUMENT", "give a concept (words of symbol definitions) or a symbol")
+        if symbol and not source_id:
+            raise ApiFailure("INVALID_ARGUMENT", "a symbol is looked up inside one source (symbols are not global)")
+        if source_id:
+            self._check("source", source_id)
+        data, snap = self._nav_run(lambda nav: nav.run("find_formulas", concept=concept, symbol=symbol,
+                                                       source_id=source_id))
+        items = list(data or [])[:limit] if not isinstance(data, dict) else data
+        return self._nav_result("NAV_FORMULAS", f"formulas:{concept or symbol}", items, snap, source_id=source_id)
+
+    def nav_concept(self, term: str, limit: int) -> Result:
+        if not term or not term.strip() or len(term) > 200:
+            raise ApiFailure("INVALID_ARGUMENT", "term is 1..200 characters")
+        data, snap = self._nav_run(lambda nav: nav.run("explore_concept", term, limit=limit))
+        return self._nav_result("NAV_CONCEPT", f"concept:{term[:60]}", data, snap)
 
     def citations(self, work_id: str, direction: str, include_unlinked: bool, limit: int) -> Result:
         self._check("work", work_id)

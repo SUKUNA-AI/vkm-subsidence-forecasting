@@ -39,11 +39,11 @@ READ_TOOLS = {"search_text", "search_hybrid", "retrieval_trace", "search_objects
               "get_page", "get_page_image", "get_figure", "get_table", "get_formula", "get_object",
               "get_document_neighbors", "get_citations", "rerank_text", "rerank_visual", "get_processing_status",
               "trace_document_provenance", "get_artifact", "list_source_pages", "get_corpus_status",
+              # NAV graph in Neo4j (agent G)
+              "concept_paths", "graph_neighbourhood",
               # navigation layer (derived, not evidence)
               "get_outline", "get_section", "search_sections", "get_formula_context", "find_formulas",
-              "explore_concept",
-              # NAV graph in Neo4j (agent G)
-              "concept_paths", "graph_neighbourhood"}
+              "explore_concept"}
 ADMIN_TOOLS = {"reprocess_source", "reprocess_page", "get_job", "cancel_job"}
 
 
