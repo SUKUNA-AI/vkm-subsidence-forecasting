@@ -230,17 +230,34 @@ async def rerank_text(req: M.TextRerankRequest, res: Resources, cfg: GatewayConf
     top_n = min(req.top_n or n, n)
     if req.top_n and req.top_n > n:
         warnings.append("TOP_N_CLAMPED")
-    texts, per = [], []
-    for c in req.candidates:
-        if req.truncate_to_tokens:
-            text, ntok, cut = res.v35_tokens.truncate(c.text, req.truncate_to_tokens)
-        else:
-            text, ntok, cut = c.text, res.v35_tokens.count(c.text), False
-        texts.append(text)
-        per.append({"n_tokens": ntok, "truncated": cut, "end": len(text)})
+    def cut_all(cap: int | None) -> tuple[list[str], list[dict[str, Any]]]:
+        texts_, per_ = [], []
+        for c in req.candidates:
+            if cap:
+                text, ntok, cut = res.v35_tokens.truncate(c.text, cap)
+            else:
+                text, ntok, cut = c.text, res.v35_tokens.count(c.text), False
+            texts_.append(text)
+            per_.append({"n_tokens": ntok, "truncated": cut, "end": len(text)})
+        return texts_, per_
+
+    cap = req.truncate_to_tokens
+    if cap:
+        # the caller allowed truncation: fit the listwise prompt into the budget. The markup of the v3.5 prompt
+        # (instruction with the query, passage tags, special tokens, the query block) is measured with the pinned
+        # tokenizer instead of a fixed reserve, so n=24 no longer overflows into 413 (finding 7 of the lab).
+        markup = res.v35_tokens.v35_prompt_tokens(req.query, [""] * n)
+        cap = max(16, min(cap, (cfg.text_token_budget - markup) // max(n, 1)))
+    texts, per = cut_all(cap)
+    total = res.v35_tokens.v35_prompt_tokens(req.query, texts)
+    for _ in range(3):                      # boundary effects of tokenising in context: shrink a little and retry
+        if not cap or total <= cfg.text_token_budget or cap <= 16:
+            break
+        cap = max(16, int(cap * 0.95))
+        texts, per = cut_all(cap)
+        total = res.v35_tokens.v35_prompt_tokens(req.query, texts)
     if any(p["truncated"] for p in per):
         warnings.append("CANDIDATES_TRUNCATED")
-    total = res.v35_tokens.v35_prompt_tokens(req.query, texts)
     if total > cfg.text_token_budget:
         raise RerankError(M.E_PAYLOAD_TOO_LARGE, f"listwise prompt needs {total} tokens > {cfg.text_token_budget}",
                           stage="text_tokens", details={"n_tokens_total": total, "budget": cfg.text_token_budget,

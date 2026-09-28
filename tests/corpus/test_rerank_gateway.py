@@ -174,6 +174,22 @@ def test_text_truncation_and_top_n_clamp():
         assert "TOP_N_CLAMPED" in data.warnings and "CANDIDATES_TRUNCATED" in data.warnings and data.top_n == 2
 
 
+def test_truncation_fits_the_measured_prompt_markup():
+    """24 long candidates with truncate_to_tokens=160 overflowed 4096 by the prompt markup (lab finding 7): the gateway
+    now measures the markup and shrinks the per-candidate cap instead of answering 413."""
+    client, res = make_client(overhead=560)
+    with client:
+        body = {"query": "оседание земной поверхности",
+                "candidates": [{"id": f"c{i}", "text": " ".join(["слово"] * 300)} for i in range(24)],
+                "truncate_to_tokens": 160}
+        r = client.post("/v1/rerank/text", json=body, headers=_hdr())
+        assert r.status_code == 200, r.text
+        data = M.RerankResponse.model_validate(r.json())
+        assert all(x.truncated and x.n_tokens <= 147 for x in data.results)
+        assert "CANDIDATES_TRUNCATED" in data.warnings
+        assert len(res.text.calls) == 1
+
+
 def test_validation_errors_are_422_and_do_not_echo_input():
     client, _ = make_client()
     with client:
