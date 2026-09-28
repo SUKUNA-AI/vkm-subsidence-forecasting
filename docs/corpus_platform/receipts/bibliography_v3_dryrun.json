@@ -16,52 +16,52 @@
  "model_calls": 0,
  "timing_s": {
   "v2_run": 2.9,
-  "v3_run": 3.2,
-  "v3_cpu": 44.3,
+  "v3_run": 3.9,
+  "v3_cpu": 51.9,
   "workers": 26,
-  "v3_with_raw_config_hashes_wall": 8.6,
-  "slowest_source_v3": 2.3
+  "v3_with_raw_config_hashes_wall": 11.7,
+  "slowest_source_v3": 3.1
  },
  "entries": {
   "v2": 23350,
-  "v3": 23372,
+  "v3": 23682,
   "sources_with_entries_v2": 234,
   "sources_with_entries_v3": 234
  },
  "rates": {
   "authors": {
    "v2": 20943,
-   "v3": 22082,
+   "v3": 22403,
    "v2_pct": 89.7,
-   "v3_pct": 94.5
+   "v3_pct": 94.6
   },
   "year": {
    "v2": 22793,
-   "v3": 22999,
+   "v3": 23294,
    "v2_pct": 97.6,
    "v3_pct": 98.4
   },
   "title": {
    "v2": 23229,
-   "v3": 23336,
+   "v3": 23646,
    "v2_pct": 99.5,
    "v3_pct": 99.8
   },
   "venue": {
    "v2": 12637,
-   "v3": 13678,
+   "v3": 13766,
    "v2_pct": 54.1,
-   "v3_pct": 58.5
+   "v3_pct": 58.1
   },
   "pages": {
    "v2": 12146,
-   "v3": 12402,
+   "v3": 12593,
    "v2_pct": 52.0,
-   "v3_pct": 53.1
+   "v3_pct": 53.2
   },
   "doi": {
    "v2": 1172,
-   "v3": 1183
+   "v3": 1186
   },
   "isbn": {
    "v2": 67,
@@ -73,27 +73,27 @@
   },
   "conf_ge_0_8": {
    "v2": 20637,
-   "v3": 21847,
+   "v3": 22165,
    "v2_pct": 88.4,
-   "v3_pct": 93.5
+   "v3_pct": 93.6
   },
   "cross_page": {
    "v2": 401,
-   "v3": 495
+   "v3": 490
   },
   "author_names": {
    "v2": 43943,
-   "v3": 46984
+   "v3": 47613
   }
  },
  "authors_by_language_pct": {
   "en": {
    "v2": 92.4,
-   "v3": 97.7
+   "v3": 97.6
   },
   "ru": {
    "v2": 85.1,
-   "v3": 88.9
+   "v3": 89.4
   },
   "de": {
    "v2": 86.9,
@@ -158,14 +158,14 @@
   }
  },
  "without_authors_v2_outcome_in_v3": {
-  "STILL_NONE": 1284,
-  "PARSED": 550,
-  "RESEGMENTED_PARSED": 573,
+  "STILL_NONE": 1245,
+  "RESEGMENTED_PARSED": 615,
+  "PARSED": 547,
   "by_class": {
    "TITLE_FIRST": {
-    "STILL_NONE": 247,
-    "PARSED": 16,
-    "RESEGMENTED_PARSED": 95,
+    "STILL_NONE": 233,
+    "PARSED": 28,
+    "RESEGMENTED_PARSED": 97,
     "total": 358
    },
    "NORMATIVE": {
@@ -175,15 +175,15 @@
     "total": 335
    },
    "OTHER": {
-    "STILL_NONE": 165,
-    "PARSED": 17,
-    "RESEGMENTED_PARSED": 63,
+    "STILL_NONE": 155,
+    "RESEGMENTED_PARSED": 74,
+    "PARSED": 16,
     "total": 245
    },
    "CORPORATE": {
-    "STILL_NONE": 130,
-    "PARSED": 61,
-    "RESEGMENTED_PARSED": 33,
+    "STILL_NONE": 126,
+    "PARSED": 63,
+    "RESEGMENTED_PARSED": 35,
     "total": 224
    },
    "TAIL_THEN_ENTRY": {
@@ -192,14 +192,14 @@
     "total": 205
    },
    "MISS_LETTER_SPACED": {
-    "PARSED": 146,
-    "STILL_NONE": 34,
-    "RESEGMENTED_PARSED": 2,
+    "PARSED": 137,
+    "STILL_NONE": 29,
+    "RESEGMENTED_PARSED": 16,
     "total": 182
    },
    "REPORT": {
-    "STILL_NONE": 86,
-    "RESEGMENTED_PARSED": 27,
+    "STILL_NONE": 84,
+    "RESEGMENTED_PARSED": 29,
     "PARSED": 19,
     "total": 132
    },
@@ -217,13 +217,14 @@
    },
    "MISS_SURNAME_FULL_GIVEN": {
     "STILL_NONE": 12,
-    "RESEGMENTED_PARSED": 14,
-    "PARSED": 40,
+    "RESEGMENTED_PARSED": 16,
+    "PARSED": 38,
     "total": 66
    },
    "MISS_MIXED_SCRIPT_HOMOGLYPH": {
-    "PARSED": 26,
+    "PARSED": 25,
     "STILL_NONE": 35,
+    "RESEGMENTED_PARSED": 1,
     "total": 61
    },
    "MISS_ALLCAPS": {
@@ -233,19 +234,20 @@
     "total": 59
    },
    "MISS_AUTHORS_LISTED_AFTER": {
-    "PARSED": 46,
-    "STILL_NONE": 6,
+    "PARSED": 45,
+    "RESEGMENTED_PARSED": 3,
+    "STILL_NONE": 4,
     "total": 52
    },
    "MISS_PARTICLE": {
-    "PARSED": 18,
+    "PARSED": 17,
     "STILL_NONE": 22,
-    "RESEGMENTED_PARSED": 11,
+    "RESEGMENTED_PARSED": 12,
     "total": 51
    },
    "NOT_AN_ENTRY": {
-    "STILL_NONE": 38,
-    "PARSED": 1,
+    "STILL_NONE": 36,
+    "PARSED": 3,
     "RESEGMENTED_PARSED": 2,
     "total": 41
    },
@@ -257,7 +259,8 @@
    },
    "MISS_OCR_BROKEN": {
     "STILL_NONE": 3,
-    "PARSED": 34,
+    "PARSED": 31,
+    "RESEGMENTED_PARSED": 3,
     "total": 37
    },
    "MISS_OTHER": {
@@ -283,7 +286,8 @@
    },
    "MISS_NO_SPACES": {
     "STILL_NONE": 3,
-    "PARSED": 7,
+    "PARSED": 6,
+    "RESEGMENTED_PARSED": 1,
     "total": 10
    },
    "PREFIX": {
@@ -308,23 +312,23 @@
   }
  },
  "without_authors_v3": {
-  "entries": 1290,
+  "entries": 1279,
   "groups": {
    "segmentation": {
-    "total": 72,
+    "total": 69,
     "classes": {
      "TAIL_THEN_ENTRY": 18,
      "TAIL_ONLY": 16,
-     "NOT_AN_ENTRY": 38
+     "NOT_AN_ENTRY": 35
     }
    },
    "no_personal_author_by_nature": {
-    "total": 746,
+    "total": 749,
     "classes": {
      "NORMATIVE": 326,
-     "TITLE_FIRST": 245,
-     "REPORT": 87,
-     "EDITED": 88
+     "TITLE_FIRST": 249,
+     "REPORT": 85,
+     "EDITED": 89
     }
    },
    "corporate_author": {
@@ -334,14 +338,14 @@
     }
    },
    "names_printed_but_missed": {
-    "total": 178,
+    "total": 176,
     "classes": {
-     "MISS_LETTER_SPACED": 34,
-     "MISS_SURNAME_FULL_GIVEN": 12,
+     "MISS_LETTER_SPACED": 30,
+     "MISS_SURNAME_FULL_GIVEN": 13,
      "MISS_MIXED_SCRIPT_HOMOGLYPH": 35,
      "MISS_ALLCAPS": 41,
-     "MISS_AUTHORS_LISTED_AFTER": 6,
-     "MISS_PARTICLE": 22,
+     "MISS_AUTHORS_LISTED_AFTER": 5,
+     "MISS_PARTICLE": 24,
      "MISS_TRANSLIT_INITIAL": 1,
      "MISS_OCR_BROKEN": 3,
      "MISS_FULL_NAMES": 1,
@@ -355,46 +359,54 @@
     }
    },
    "other": {
-    "total": 161,
+    "total": 152,
     "classes": {
-     "OTHER": 161
+     "OTHER": 152
     }
    }
   }
  },
  "segmentation_changes": {
-  "v2_texts_gone": 1478,
-  "v3_texts_new": 1500,
+  "v2_texts_gone": 1659,
+  "v3_texts_new": 1991,
   "tails_attached_to_their_entry": 226,
-  "glued_entries_split": 198,
-  "boundaries_moved_tail_to_previous_entry": 508,
-  "suspect_merges_of_two_full_entries": 2
+  "glued_entries_split": 354,
+  "boundaries_moved_tail_to_previous_entry": 509,
+  "suspect_merges_of_two_full_entries": 2,
+  "splits_with_a_piece_without_author_and_year": 7,
+  "splits_note": "read: separate numbered entries without author and year (URL, «Reference [n], p. x»), not broken entries",
+  "numbering_check": {
+   "sample": 20,
+   "boundaries_right": 18,
+   "ocr_garbage_appended": 2,
+   "note": "random v3 entries of numbered lists whose text is new (numbering restarts, next number inside a line)"
+  }
  },
  "author_changes_same_text": {
-  "same": 20790,
-  "found_where_v2_had_none": 550,
-  "list_extended": 220,
-  "list_changed": 481,
+  "same": 20618,
+  "found_where_v2_had_none": 547,
+  "list_extended": 217,
+  "list_changed": 478,
   "lost": 10,
   "lost_note": "v2 names that were not authors: standards («BS EN», «GOST R»), project names, editors and compilers after «/ отв. ред.», «Ed.»"
  },
  "ids": {
-  "entries_v3": 23372,
+  "entries_v3": 23682,
   "entries_v2": 23350,
-  "v3_ids_equal_to_a_v2_id": 21192,
-  "share_of_v3_entries_keeping_v2_id": 0.9067,
+  "v3_ids_equal_to_a_v2_id": 20860,
+  "share_of_v3_entries_keeping_v2_id": 0.8808,
   "raw_config_hash_used": {
-   "v2": 21192,
-   "v3": 2180
+   "v2": 20860,
+   "v3": 2822
   },
   "b07_same_id_other_text": 0,
   "b04_not_recomputable": 0,
   "duplicate_ids": 0,
-  "wall_s_with_raw_config_hashes": 8.6,
+  "wall_s_with_raw_config_hashes": 11.7,
   "rule": "raw_config_hash of an id group = hash of the oldest rules segmenting it the same way (bib.raw_config_hashes); config_hash = v3"
  },
  "labelled_sample": {
-  "draw": "100 random entries of the v3 dry run, stratified by language (en 50, ru 40, de 10), seed 2812; entry texts kept only in the git-ignored work/ directory",
+  "draw": "100 random entries of the v3 dry run, stratified by language (en 50, ru 40, de 10), seed 2812, drawn before the last numbering change; verdicts scored with the final rules; entry texts kept only in the git-ignored work/ directory",
   "guideline": "authors = persons (or a corporate body in the author-year slot) in the heading or the statement of responsibility / «Авт.:» list; editors, compilers, supervisors, translators introduced by a role word are not authors; heading editors («…, eds.») count; «et al.» is not a name; a name is correct if it identifies the right person",
   "still_entries_of_final_run": 99,
   "expected_names": 196,
@@ -1209,8 +1221,8 @@
    {
     "n": 60,
     "source_id": "VKM-SRC-216",
-    "object_id_v3": "VKM-SRC-216:p0069:cf74b44a9002c",
-    "id_kept_from_v2": true,
+    "object_id_v3": "VKM-SRC-216:p0069:c16afb049bbf2",
+    "id_kept_from_v2": false,
     "language": "ru",
     "expected_authors": 1,
     "v3_parsed": 1,
