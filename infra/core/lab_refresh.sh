@@ -17,7 +17,7 @@
 # DONE only when both stages are DONE on the requested snapshot (a stage run against an image without the needed step
 # reports ENCODED) and the three counts are equal; otherwise INCOMPLETE or FAILED, with a non-zero exit status.
 #
-# Start detached:  systemd-run --user --unit vkm-lab-refresh --collect /bin/bash <compose dir>/lab_refresh.sh --snapshot <ID>
+# Start detached:  systemd-run --user --unit vkm-lab-refresh --collect bash <compose dir>/lab_refresh.sh --snapshot <ID>
 # Follow:          cat <data root>/receipts/lab_refresh/STATUS ; journalctl --user -u vkm-lab-refresh -f
 # Options:         --snapshot ID   the snapshot to refresh to (required unless --dry-run)
 #                  --wait-s N      wait up to N s until canonical/CURRENT is ID (default 0: it must be already)
