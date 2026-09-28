@@ -148,15 +148,22 @@ def _norm(text: str) -> str:
     return (text or "").casefold().replace("ё", "е")
 
 
+_CYRILLIC = re.compile(r"[а-яё]")
+
+
 def _stems(phrase: str) -> list[str]:
-    """Inflection-tolerant prefixes of the words of a phrase (crude, no lemmatiser): a word of up to 6 letters loses
-    its last two (at least 3 kept: «соли» → «сол»), a longer one keeps about 3/4 («напряжения» → «напряжен»)."""
+    """Inflection-tolerant prefixes of the words of a phrase (crude, no lemmatiser). Russian: a word of up to 6
+    letters loses its last two (at least 3 kept: «соли» → «сол»), a longer one keeps about 3/4 («напряжения» →
+    «напряжен»); other scripts only lose a plural ending («stresses» → «stress», «situ» stays)."""
     out = []
     for w in _WORD.findall(_norm(phrase)):
         n = len(w)
         if n < 3:
             continue
-        out.append(w if n <= 3 else w[: max(3, n - 2)] if n <= 6 else w[: max(4, round(n * 0.75))])
+        if not _CYRILLIC.search(w):
+            out.append(re.sub(r"(es|s)$", "", w) if n >= 5 else w)
+        else:
+            out.append(w if n <= 3 else w[: max(3, n - 2)] if n <= 6 else w[: max(4, round(n * 0.75))])
     return out
 
 
