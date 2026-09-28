@@ -64,12 +64,14 @@ def test_document_checks_tolerate_the_nav_layer():
 
     from vkm_corpus.cli import build_parser
     from vkm_corpus.graph import loader, verify
+    from vkm_corpus.publish import reconcile
 
     src = inspect.getsource(verify.run_checks)
     assert "other_layers" in src and "nav_schema.REL_TYPE_NAMES" in src
     argv = ["graph", "rebuild", "--cascade"]
     assert build_parser(argv).parse_args(argv).cascade is True
     assert loader.RebuildOptions().cascade is False and "drop_layer" in inspect.getsource(loader._execute)
+    assert "cascade=True" in inspect.getsource(reconcile.reconcile)       # a new snapshot drops the stale NAV graph
 
 
 # ------------------------------------------------------------------------------------------------ rows

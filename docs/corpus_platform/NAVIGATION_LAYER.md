@@ -60,9 +60,9 @@
 | `IN_TOPIC`, `RELATED_TOPIC` | `NavSection` → `NavTopic`; `NavTopic` — `NavTopic` | близость и косинус агента T |
 
 Рёбра NAV принадлежат NAV при любом направлении: их создаёт и удаляет только загрузчик. Пока они есть, пересборка
-DOCUMENT отказывает (`E_CROSS_LAYER_LOSS`): `graph rebuild --cascade` (или `nav graph-drop --yes`) сначала удаляет слой
-NAV, после пересборки — снова `nav graph-load`. Проверки C6/C7 слоя DOCUMENT считают узлы и типы NAV зарегистрированным
-слоем.
+DOCUMENT без `--cascade` отказывает (`E_CROSS_LAYER_LOSS`): `graph rebuild --cascade` (или `nav graph-drop --yes`)
+сначала удаляет слой NAV; `core reconcile` пересобирает граф с `--cascade`. После сборки NAV нового снимка — снова
+`nav graph-load`. Проверки C6/C7 слоя DOCUMENT считают узлы и типы NAV зарегистрированным слоем.
 
 Команды (на CORE — в `vkm-job`):
 

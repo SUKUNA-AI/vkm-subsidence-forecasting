@@ -106,9 +106,9 @@ reconcile на CORE с подстановкой `{run_id}`, например
 | граф NAV (навигация) | `nav graph-ddl`, затем `nav graph-load --nav-dir /data/derived/navigation/<снимок>`; проверка — `nav graph-verify` |
 
 `graph rebuild --plan-only` и `search build --plan-only` печатают ожидаемые числа без записи; `nav graph-load --dry-run`
-— то же для графа NAV. Пока граф NAV загружен, `graph rebuild` (и шаг графа в `core reconcile`) отказывает
-(`E_CROSS_LAYER_LOSS`): `graph rebuild --mode wipe --cascade` сначала удаляет производный слой NAV (или
-`nav graph-drop --yes` отдельно), после новой сборки NAV — снова `nav graph-load` (NAVIGATION_LAYER.md, §1).
+— то же для графа NAV. Пока граф NAV загружен, `graph rebuild` без `--cascade` отказывает (`E_CROSS_LAYER_LOSS`):
+`graph rebuild --mode wipe --cascade` сначала удаляет производный слой NAV (или `nav graph-drop --yes` отдельно);
+`core reconcile` делает это сам. После сборки NAV нового снимка — снова `nav graph-load` (NAVIGATION_LAYER.md, §1).
 
 ### 4a. Векторы и гибридный поиск (лаборатория retrieval, этап 2)
 
