@@ -21,3 +21,4 @@
 | `bibliography_final.json` | списки литературы (CP-38, CP-41): записи, разбор полей, связи с работами, CITES, ручная проверка |
 | `late_interaction_encode_final.json` | late interaction (агент L): кодирование mLateOn всех единиц, проверки §64 |
 | `late_interaction_deploy.json` | развёртывание late: pack, горячая замена, smoke, латентность, включение по умолчанию |
+| `topic_dossier.json` | досье темы `reconstruct_topic` (агент D): пакет каталогов (коммит, файлы, строки, sha256); пробный прогон NAV_ONLY и полного пути на копии снимка — счётчики, тайминги, ID разделов и процессов, пробелы по классам |
