@@ -1,0 +1,424 @@
+{
+ "receipt": "vkm-cad.v1_smoke/1",
+ "created_utc": "2026-09-28T19:41:13+00:00",
+ "bridge_version": "1.0.0",
+ "host_role": "WORKSTATION",
+ "data": "synthetic toy data only",
+ "products": {
+  "C3D": "13.8.280.0",
+  "ACAD": "25.1.60.0"
+ },
+ "channels": {
+  "core_console": {
+   "available": true,
+   "file_version": "25.1.164.0"
+  },
+  "dotnet": {
+   "available": true,
+   "compiler": "VS_ROSLYN",
+   "runtime": "Microsoft.NETCore.App 8.0.22",
+   "civil_references": true
+  },
+  "hidden_instance": {
+   "allowed": false
+  },
+  "fallback_python": {
+   "available": true,
+   "scipy": "1.18.1"
+  }
+ },
+ "steps": [
+  {
+   "step": "cad_capabilities",
+   "seconds": 0.21,
+   "core_console": true,
+   "dotnet": "VS_ROSLYN",
+   "civil_references": true
+  },
+  {
+   "step": "cad_job_create C3D",
+   "seconds": 0.0
+  },
+  {
+   "step": "c3d_points_from_table E1 (inline rows)",
+   "seconds": 5.16,
+   "added": 100,
+   "engine": "CIVIL3D_HEADLESS_DOTNET"
+  },
+  {
+   "step": "c3d_points_from_table E2 (CSV ; decimal comma)",
+   "seconds": 3.7,
+   "added": 100,
+   "input_sha256": "0ba4880d8651bf5bf09044d8d227763ac38fdb7ad03691d14a7bda90cce31414"
+  },
+  {
+   "step": "c3d_tin_surface S1",
+   "seconds": 3.68,
+   "points": 100,
+   "triangles": 162,
+   "z_min": 100,
+   "z_max": 100.9
+  },
+  {
+   "step": "c3d_tin_surface S2",
+   "seconds": 3.68,
+   "points": 100,
+   "triangles": 162,
+   "z_min": 98.9909,
+   "z_max": 100.8905
+  },
+  {
+   "step": "c3d_contours S2 (0.25 / 1.0)",
+   "seconds": 3.66,
+   "count": 8,
+   "major": 2,
+   "levels": 8
+  },
+  {
+   "step": "c3d_difference_surface TROUGH",
+   "seconds": 3.72,
+   "cut_volume": 3566.15,
+   "fill_volume": 0,
+   "dz_min": -1.4091,
+   "isolines": 5
+  },
+  {
+   "step": "c3d_alignment_profile LINE1",
+   "seconds": 3.67,
+   "samples": 19,
+   "length": 90
+  },
+  {
+   "step": "cad_layout_sheet A3 1:500",
+   "seconds": 3.92,
+   "media": "ISO_full_bleed_A3_(420.00_x_297.00_MM)",
+   "scale_denominator": 500,
+   "model_window_source": "union of the job's surfaces (+5%)"
+  },
+  {
+   "step": "cad_plot_pdf VKM_A3",
+   "seconds": 3.64,
+   "bytes": 197366,
+   "sha256": "535aa3d7279824b31934f8fedb02134b1657760ff1f4d546760bec8d6d09d4dc"
+  },
+  {
+   "step": "cad_query lisp",
+   "seconds": 3.4,
+   "value": "\"Model\""
+  },
+  {
+   "step": "cad_query csharp",
+   "seconds": 3.66,
+   "value": 4
+  },
+  {
+   "step": "cad_exec scr",
+   "seconds": 3.42,
+   "ok": true
+  },
+  {
+   "step": "cad_exec lisp",
+   "seconds": 3.42,
+   "value": "1"
+  },
+  {
+   "step": "cad_exec csharp",
+   "seconds": 3.91,
+   "value": 1
+  },
+  {
+   "step": "cad_draw → DWG",
+   "seconds": 1.92,
+   "dxf_bytes": 58506,
+   "dwg_bytes": 21417,
+   "dwg_sha256": "756bcc49cb8a0cec4dabe314784e763bd313348936cb1317a6890d400ce69dc8"
+  },
+  {
+   "step": "cad_convert DWG → DXF",
+   "seconds": 1.9,
+   "bytes": 103762
+  },
+  {
+   "step": "cad_pdf_import synthetic",
+   "seconds": 2.68,
+   "entities": 4,
+   "by_type": {
+    "LWPOLYLINE": 2,
+    "MTEXT": 1,
+    "SPLINE": 1
+   },
+   "extents": "(0.694442 0.694443 -1.16415e-08) (7.56944 11.0 -1.16415e-08)"
+  },
+  {
+   "step": "fallback points ×2",
+   "seconds": 0.04
+  },
+  {
+   "step": "fallback difference",
+   "seconds": 0.04,
+   "cut_volume": 3567.365,
+   "dz_min": -1.4091
+  }
+ ],
+ "civil_job_runs": [
+  {
+   "run_id": "R001",
+   "kind": "host:c3d.points",
+   "status": "OK",
+   "duration_s": 4.03,
+   "exit_code": 0
+  },
+  {
+   "run_id": "R002",
+   "kind": "host:c3d.points",
+   "status": "OK",
+   "duration_s": 3.02,
+   "exit_code": 0
+  },
+  {
+   "run_id": "R003",
+   "kind": "host:c3d.tin",
+   "status": "OK",
+   "duration_s": 3.03,
+   "exit_code": 0
+  },
+  {
+   "run_id": "R004",
+   "kind": "host:c3d.tin",
+   "status": "OK",
+   "duration_s": 3.03,
+   "exit_code": 0
+  },
+  {
+   "run_id": "R005",
+   "kind": "host:c3d.contours",
+   "status": "OK",
+   "duration_s": 3.02,
+   "exit_code": 0
+  },
+  {
+   "run_id": "R006",
+   "kind": "host:c3d.volume",
+   "status": "OK",
+   "duration_s": 3.03,
+   "exit_code": 0
+  },
+  {
+   "run_id": "R007",
+   "kind": "host:c3d.alignment_profile",
+   "status": "OK",
+   "duration_s": 3.02,
+   "exit_code": 0
+  },
+  {
+   "run_id": "R008",
+   "kind": "host:acad.layout_sheet",
+   "status": "OK",
+   "duration_s": 3.28,
+   "exit_code": 0
+  },
+  {
+   "run_id": "R009",
+   "kind": "plot_pdf",
+   "status": "OK",
+   "duration_s": 3.02,
+   "exit_code": 0
+  },
+  {
+   "run_id": "R010",
+   "kind": "query:lisp",
+   "status": "OK",
+   "duration_s": 2.77,
+   "exit_code": 0
+  },
+  {
+   "run_id": "R011",
+   "kind": "query:csharp",
+   "status": "OK",
+   "duration_s": 2.77,
+   "exit_code": 0
+  },
+  {
+   "run_id": "R012",
+   "kind": "exec:scr",
+   "status": "OK",
+   "duration_s": 2.77,
+   "exit_code": 0
+  },
+  {
+   "run_id": "R013",
+   "kind": "exec:lisp",
+   "status": "OK",
+   "duration_s": 2.78,
+   "exit_code": 0
+  },
+  {
+   "run_id": "R014",
+   "kind": "exec:csharp",
+   "status": "OK",
+   "duration_s": 3.02,
+   "exit_code": 0
+  }
+ ],
+ "civil_job_outputs": [
+  {
+   "path": "out/points_E1.dxf",
+   "kind": "CAD_DXF",
+   "bytes": 77577,
+   "sha256": "bfe719ed71f6637654033ae2d1d22d3aec5c4defa948e05ec0c6f0c4ad86391b"
+  },
+  {
+   "path": "out/points_E1.json",
+   "kind": "POINTS_JSON",
+   "bytes": 8829,
+   "sha256": "1143122c91b714e97365fd584db532591fd56b51d675b729295c61ad164afe69"
+  },
+  {
+   "path": "out/points_E2.dxf",
+   "kind": "CAD_DXF",
+   "bytes": 77833,
+   "sha256": "6cf914cbf9f41bc49955766432036d98dd7284502c8099fcc42a02c666c32ca4"
+  },
+  {
+   "path": "out/points_E2.json",
+   "kind": "POINTS_JSON",
+   "bytes": 9085,
+   "sha256": "0d6fa62be22f6cce0701fef9ee5adadada96ba8b20284e59db31a8d968c8428c"
+  },
+  {
+   "path": "out/tin_S1.dxf",
+   "kind": "CAD_DXF",
+   "bytes": 84422,
+   "sha256": "a9bad2b50aafd9c70a091494baa432a77798e761e7dcc7bfce2908ac8f68e11e"
+  },
+  {
+   "path": "out/tin_S1.json",
+   "kind": "SURFACE_STATS_JSON",
+   "bytes": 731,
+   "sha256": "6ec238d2cfdd597761087f50251595b9e645b977cb361d66c7837b4061543ba4"
+  },
+  {
+   "path": "out/tin_S2.dxf",
+   "kind": "CAD_DXF",
+   "bytes": 86058,
+   "sha256": "d7e2f4777cd344b51f93188e96664976b623e74eb8491ce50026959431346c42"
+  },
+  {
+   "path": "out/tin_S2.json",
+   "kind": "SURFACE_STATS_JSON",
+   "bytes": 743,
+   "sha256": "2b3f7d472fdaed362a1c2302c3ad59846f0477133502b92f1f49fa228493cbcd"
+  },
+  {
+   "path": "out/contours_S2.dxf",
+   "kind": "CAD_DXF",
+   "bytes": 61416,
+   "sha256": "c718814dd7b400cd4fb485360788b5d3f3d8c9768eea5470269ffe85d626d767"
+  },
+  {
+   "path": "out/contours_S2.json",
+   "kind": "CONTOURS_JSON",
+   "bytes": 9583,
+   "sha256": "ea880d91fef2f648a8c17821f45f3481aeafba69de09e4e5f3ab8426184f1286"
+  },
+  {
+   "path": "out/diff_TROUGH.dxf",
+   "kind": "CAD_DXF",
+   "bytes": 91267,
+   "sha256": "c5572220ff9de6b02438980c3747c48599e4a9d5c4ae80fdabf2787e8dd4af83"
+  },
+  {
+   "path": "out/diff_TROUGH.json",
+   "kind": "DIFFERENCE_JSON",
+   "bytes": 8712,
+   "sha256": "12e50fbdd71d7dbcf3f34a5bdb4ae370dc4d49bcb418e018aca61e74e30ffd36"
+  },
+  {
+   "path": "out/profile_LINE1.csv",
+   "kind": "PROFILE_CSV",
+   "bytes": 463,
+   "sha256": "063677dbc6f8c21bd2c90aaec0d8ef50de4036ecba82d4bdf3fffe7e81739fcb"
+  },
+  {
+   "path": "out/profile_LINE1.dxf",
+   "kind": "CAD_DXF",
+   "bytes": 56587,
+   "sha256": "329c0d60faada40c7384b07a494fbb2a3fb45c738b007099b5513448237f939a"
+  },
+  {
+   "path": "out/trough_sheet.pdf",
+   "kind": "PDF",
+   "bytes": 197366,
+   "sha256": "535aa3d7279824b31934f8fedb02134b1657760ff1f4d546760bec8d6d09d4dc"
+  }
+ ],
+ "side_effects_audit_last_run": {
+  "profile_file_changes": [],
+  "profile_file_changes_count": 0,
+  "registry_changes": [],
+  "registry_changes_count": 0,
+  "registry_root": "HKCU\\Software\\Autodesk\\AutoCAD",
+  "restored": false,
+  "status": "AUDITED"
+ },
+ "live_run": {
+  "time_local": "28.09.2026 22:41 (UTC+3)",
+  "after_licensing_fix": true,
+  "test": "tests/corpus/test_cad_live.py (VKM_TEST_CAD_LIVE=1)",
+  "timing_note": "each Civil 3D run ≈3.5 s (Core Console start + NETLOAD + operation) once the isolated profile exists; the first run in a new isolated profile 5-17 s"
+ },
+ "exploration": {
+  "note": "probes before the bridge code was written (28.09.2026, local time UTC+3); not bridge jobs",
+  "licensing_fix": "the user repaired AutoCAD + Civil 3D licensing at about 21:17; probes before and after ran without licence errors",
+  "probes": [
+   {
+    "time": "21:03-21:05",
+    "before_licensing_fix": true,
+    "what": "Core Console: LISP, SAVEAS/DXFOUT, -PLOT (canonical and localized media names), -PDFIMPORT, script encodings",
+    "result": "OK; a localized media name in a UTF-8 script without BOM aborts the script"
+   },
+   {
+    "time": "21:05",
+    "before_licensing_fix": true,
+    "what": "accoreconsole /product C3D",
+    "result": "AECC modules loaded; template _Autodesk Civil 3D (Metric) NCS.dwt"
+   },
+   {
+    "time": "21:07-21:11",
+    "before_licensing_fix": true,
+    "what": "hidden instance: DispatchEx, /Automation + class factory, /Automation + ROT by PID",
+    "result": "DispatchEx starts plain AutoCAD (CurVer); the class factory attached to a new process; ROT by PID works and AeccXUiLand 13.8 is reachable; every run changed the user profile (registry reverted, files: see AGENT_CAD_V1.md 5.2)"
+   },
+   {
+    "time": "21:13-21:16",
+    "before_licensing_fix": true,
+    "what": ".NET plugin compiled with Roslyn against the .NET 8 runtime: 100 COGO points, TIN",
+    "result": "OK: 162 triangles headless"
+   },
+   {
+    "time": "21:21-21:30",
+    "before_licensing_fix": false,
+    "what": ".NET layout + -PLOT of the layout, -PDFIMPORT and DXF -> DWG with Cyrillic paths",
+    "result": "OK"
+   },
+   {
+    "time": "21:33:20",
+    "before_licensing_fix": false,
+    "what": "probe t10: (command \"_.CIRCLE\" \"0,0\" \"-5\") inside vl-catch-all-apply, plain AutoCAD",
+    "result": "CRASH: 0xE0000001 in KERNELBASE.dll, then 0xC0000005 (null pointer) in accore.dll; exit code 1 after 21.3 s; CER message box on the desktop",
+    "reproducible": true
+   },
+   {
+    "time": "21:35:05",
+    "before_licensing_fix": false,
+    "what": "probe t11-b: the same command at top level",
+    "result": "CRASH repeated: exit code 1 after 3.9 s",
+    "reproducible": true
+   }
+  ],
+  "crash_cause": "an invalid (command ...) input leaves the command waiting; the following script lines are fed to it and the core crashes. Bridge-generated scripts never pass such input; user code is contained: CAD_ENGINE_CRASHED, processes killed, drawing not promoted",
+  "crash_reports": "three CER packages queued (21:33:21, 21:33:38, 21:35:07); never sent or touched; the user later disabled senddmp",
+  "coordinator_hang": "accoreconsole waits for keyboard input when its /s script is not read (it prints the prompt three times); the bridge passes stdin=DEVNULL and absolute Windows paths (CAD_SCRIPT_NOT_READ instead of a hang)",
+  "empty_line_bug": "an empty line at the command prompt repeats the last command: the .NET host ran three times in the first bridge runs (duplicate COGO names); fixed, covered by a unit test"
+ }
+}

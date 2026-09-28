@@ -76,6 +76,7 @@ desktop = [
     "mcp==2.2.0",
     "ezdxf>=1.4",
     "pywin32>=312; sys_platform == 'win32'",
+    "scipy>=1.18",  # vkm-cad v1 pure-Python fallback (Delaunay TIN); tested 1.18.1
 ]
 
 [project.scripts]
@@ -88,6 +89,7 @@ include = ["vkm_world*", "vkm_corpus*", "vkm_cad*", "vkm_drawio*"]
 [tool.setuptools.package-data]
 # non-Python files read at run time (a non-editable install, e.g. the CORE image, has only what is listed here)
 vkm_corpus = ["duckdb/sql/*.sql", "ops/schema.sql"]
+vkm_cad = ["plugin/*.cs"]
 
 [tool.pytest.ini_options]
 addopts = "-ra -p no:cacheprovider"

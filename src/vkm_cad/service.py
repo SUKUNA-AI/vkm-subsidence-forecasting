@@ -1,10 +1,10 @@
-"""The eleven ``vkm-cad`` operations as plain Python (the MCP layer only wraps them).
+"""The v0 ``vkm-cad`` operations as plain Python (the MCP layer only wraps them); v1 jobs live in ``self.jobs``.
 
 Read tools (``cad_status`` and five COM tools) never change anything. Scratch tools write only below the scratch root;
 their outputs are DERIVED artifacts described by ``manifest.json`` (``coordinate_space = DRAWING_UNITS``, ``crs_status``
 ``UNKNOWN_CRS`` unless ``SCHEMATIC`` is chosen with a rationale, ``epsg = null``, ``review_status =
 AUTO_EXTRACTED_UNREVIEWED``). Importing them into the corpus is a separate control-plane job (DN-G9), never a direct
-write.
+write. v1 job operations (:class:`vkm_cad.cadjobs.CadJobs`) write only inside ``$VKM_WORK/cad_jobs``.
 """
 from __future__ import annotations
 
@@ -18,8 +18,10 @@ from typing import Any, Callable, Mapping
 
 from vkm_cad import __version__
 from vkm_cad import com_read, dxf
+from vkm_cad.cadjobs import CadJobs
 from vkm_cad.detect import DetectEnv, detect, progids
 from vkm_cad.errors import ToolFailure
+from vkm_cad.jobs import JobStore
 from vkm_cad.scratch import ScratchStore, env_value, sha256_file, utc_now
 from vkm_corpus.ids.grammar import matches
 
@@ -63,13 +65,16 @@ def _crs(crs_status: str, rationale: str | None) -> tuple[str, dict[str, Any] | 
 class CadService:
     def __init__(self, scratch: ScratchStore, *, detect_env: DetectEnv | None = None,
                  com: com_read.ComSession | None = None, artifact_roots: list[Path] | None = None,
-                 fetcher: ArtifactFetcher | None = None, detector: Callable[[], dict[str, Any]] | None = None) -> None:
+                 fetcher: ArtifactFetcher | None = None, detector: Callable[[], dict[str, Any]] | None = None,
+                 jobs: CadJobs | None = None) -> None:
         self.scratch = scratch
         self._detect = detector or (lambda: detect(detect_env))
         self._report: dict[str, Any] | None = None
         self.com = com or com_read.ComSession()
         self.artifact_roots = artifact_roots or []
         self.fetcher = fetcher
+        self.jobs = jobs or CadJobs(JobStore(None, "set VKM_CAD_JOBS or VKM_WORK"), installation=lambda: None,
+                                    report=self.report)
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> "CadService":
@@ -87,7 +92,9 @@ class CadService:
                 fetcher = ArtifactFetcher(settings.api_url, settings.api_token)
         except ConfigError:
             fetcher = None
-        return cls(ScratchStore.from_env(env), artifact_roots=roots, fetcher=fetcher)
+        svc = cls(ScratchStore.from_env(env), artifact_roots=roots, fetcher=fetcher)
+        svc.jobs = CadJobs(JobStore.from_env(env), env=env, report=svc.report)
+        return svc
 
     # -------------------------------------------------------------------------------------------- read tools
     def report(self, refresh: bool = False) -> dict[str, Any]:
@@ -99,7 +106,9 @@ class CadService:
         report = self.report(refresh=True)
         scratch = {"available": self.scratch.root is not None, "reason": self.scratch.reason,
                    "logical": "$VKM_CAD_SCRATCH (or $VKM_WORK/cad_scratch)", "warnings": self.scratch.warnings()}
-        return {**report, "scratch": scratch,
+        jobs = {"available": self.jobs.store.root is not None, "reason": self.jobs.store.reason,
+                "logical": "$VKM_CAD_JOBS (or $VKM_WORK/cad_jobs)", "details": "cad_capabilities"}
+        return {**report, "scratch": scratch, "jobs": jobs,
                 "vector_sources": {"data_root_artifacts": bool(self.artifact_roots), "scratch_inbox": True,
                                    "vkm_api": self.fetcher is not None}}
 
