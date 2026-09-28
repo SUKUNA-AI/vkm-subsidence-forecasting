@@ -1,0 +1,106 @@
+! S02 minimal mechanics: SOLID185 column A_SIDE x A_SIDE x L_COL, pressure P_TOP on the top face.
+! Supports: UZ = 0 at z = 0, UX = 0 on x = 0, UY = 0 on y = 0 (symmetry rollers): the lateral faces are free to
+! expand, so the state is uniaxial stress. Closed form: uz(top) = -P_TOP*L_COL/E_MOD, SZ = -P_TOP, SX = SY = 0.
+/TITLE,VKM ladder S02 - minimal mechanics (uniaxial stress column)
+/PREP7
+ET,1,SOLID185
+MP,EX,1,E_MOD
+MP,PRXY,1,NU
+BLOCK,0,A_SIDE,0,A_SIDE,0,L_COL
+LSEL,S,LOC,Z,L_COL/2
+LESIZE,ALL,,,N_Z
+LSEL,INVE
+LESIZE,ALL,,,N_XY
+LSEL,ALL
+MSHAPE,0,3D
+MSHKEY,1
+VMESH,ALL
+FINISH
+/SOLU
+ANTYPE,STATIC
+NSEL,S,LOC,Z,0
+D,ALL,UZ,0
+NSEL,S,LOC,X,0
+D,ALL,UX,0
+NSEL,S,LOC,Y,0
+D,ALL,UY,0
+NSEL,S,LOC,Z,L_COL
+SF,ALL,PRES,P_TOP
+ALLSEL,ALL
+OUTRES,ALL,ALL
+SOLVE
+FINISH
+/POST1
+SET,LAST
+NSEL,S,LOC,Z,L_COL
+NSORT,U,Z
+*GET,UZT_MIN,SORT,0,MIN
+*GET,UZT_MAX,SORT,0,MAX
+NUSORT
+ALLSEL,ALL
+ETABLE,ESX,S,X
+ETABLE,ESY,S,Y
+ETABLE,ESZ,S,Z
+ESORT,ETAB,ESZ
+*GET,SZ_MIN,SORT,0,MIN
+*GET,SZ_MAX,SORT,0,MAX
+ESORT,ETAB,ESX
+*GET,SX_MIN,SORT,0,MIN
+*GET,SX_MAX,SORT,0,MAX
+ESORT,ETAB,ESY
+*GET,SY_MIN,SORT,0,MIN
+*GET,SY_MAX,SORT,0,MAX
+EUSORT
+*GET,N_NODE,NODE,0,COUNT
+*GET,N_ELEM,ELEM,0,COUNT
+*CFOPEN,vkm_results,txt
+*VWRITE,UZT_MIN
+('uz_top_min = ',E24.16)
+*VWRITE,UZT_MAX
+('uz_top_max = ',E24.16)
+*VWRITE,SZ_MIN
+('sz_min = ',E24.16)
+*VWRITE,SZ_MAX
+('sz_max = ',E24.16)
+*VWRITE,SX_MIN
+('sx_min = ',E24.16)
+*VWRITE,SX_MAX
+('sx_max = ',E24.16)
+*VWRITE,SY_MIN
+('sy_min = ',E24.16)
+*VWRITE,SY_MAX
+('sy_max = ',E24.16)
+*VWRITE,N_NODE
+('n_node = ',E24.16)
+*VWRITE,N_ELEM
+('n_elem = ',E24.16)
+*CFCLOSE
+! node tables for S08 (result extraction): coordinates and displacements from *VGET
+*GET,NMAXD,NODE,0,NUM,MAXD
+*DIM,VK_ID,ARRAY,NMAXD
+*DIM,VK_X,ARRAY,NMAXD
+*DIM,VK_Y,ARRAY,NMAXD
+*DIM,VK_Z,ARRAY,NMAXD
+*DIM,VK_UX,ARRAY,NMAXD
+*DIM,VK_UY,ARRAY,NMAXD
+*DIM,VK_UZ,ARRAY,NMAXD
+*VFILL,VK_ID(1),RAMP,1,1
+*VGET,VK_X(1),NODE,1,LOC,X
+*VGET,VK_Y(1),NODE,1,LOC,Y
+*VGET,VK_Z(1),NODE,1,LOC,Z
+*VGET,VK_UX(1),NODE,1,U,X
+*VGET,VK_UY(1),NODE,1,U,Y
+*VGET,VK_UZ(1),NODE,1,U,Z
+*CFOPEN,vkm_nodes_xyz,txt
+*VWRITE,VK_ID(1),VK_X(1),VK_Y(1),VK_Z(1)
+(F10.0,3E24.16)
+*CFCLOSE
+*CFOPEN,vkm_nodes_u,txt
+*VWRITE,VK_ID(1),VK_UX(1),VK_UY(1),VK_UZ(1)
+(F10.0,3E24.16)
+*CFCLOSE
+! PRNSOL listing of UZ (printed precision) for S08
+/OUTPUT,vkm_prnsol_u,txt
+PRNSOL,U,COMP
+/OUTPUT
+FINISH

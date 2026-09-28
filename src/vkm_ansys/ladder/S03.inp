@@ -1,0 +1,104 @@
+! S03 material zones: a column with two layers - MAT 1 (E1) for 0 < z < L1, MAT 2 (E2) for L1 < z < L1+L2, zones
+! assigned by element centroid. Pressure P_TOP on the top, UZ = 0 at the bottom, rollers on all four lateral faces
+! (uniaxial strain: no lateral mismatch at the interface for any Poisson ratio). Closed form with the constrained
+! moduli Mi = Ei(1-nu)/((1+nu)(1-2nu)): uz(interface) = -P_TOP*L1/M1, uz(top) = -P_TOP*(L1/M1 + L2/M2),
+! SZ = -P_TOP and SX = SY = nu/(1-nu)*SZ in both layers (for nu = 0: uz(top) = -P_TOP*(L1/E1 + L2/E2)).
+/TITLE,VKM ladder S03 - material zones (two-layer column)
+H_TOT = L1+L2
+/PREP7
+ET,1,SOLID185
+MP,EX,1,E1
+MP,PRXY,1,NU
+MP,EX,2,E2
+MP,PRXY,2,NU
+BLOCK,0,A_SIDE,0,A_SIDE,0,H_TOT
+LSEL,S,LOC,Z,H_TOT/2
+LESIZE,ALL,,,N_Z1+N_Z2
+LSEL,INVE
+LESIZE,ALL,,,N_XY
+LSEL,ALL
+MSHAPE,0,3D
+MSHKEY,1
+MAT,1
+VMESH,ALL
+ESEL,S,CENT,Z,L1,H_TOT
+EMODIF,ALL,MAT,2
+*GET,N_MAT2,ELEM,0,COUNT
+ALLSEL,ALL
+FINISH
+/SOLU
+ANTYPE,STATIC
+NSEL,S,LOC,Z,0
+D,ALL,UZ,0
+NSEL,S,LOC,X,0
+NSEL,A,LOC,X,A_SIDE
+D,ALL,UX,0
+NSEL,S,LOC,Y,0
+NSEL,A,LOC,Y,A_SIDE
+D,ALL,UY,0
+NSEL,S,LOC,Z,H_TOT
+SF,ALL,PRES,P_TOP
+ALLSEL,ALL
+OUTRES,ALL,ALL
+SOLVE
+FINISH
+/POST1
+SET,LAST
+NSEL,S,LOC,Z,H_TOT
+NSORT,U,Z
+*GET,UZT_MIN,SORT,0,MIN
+*GET,UZT_MAX,SORT,0,MAX
+NUSORT
+NSEL,S,LOC,Z,L1
+NSORT,U,Z
+*GET,UZI_MIN,SORT,0,MIN
+*GET,UZI_MAX,SORT,0,MAX
+NUSORT
+ALLSEL,ALL
+ETABLE,ESZ,S,Z
+ETABLE,ESX,S,X
+ESEL,S,MAT,,1
+ESORT,ETAB,ESZ
+*GET,SZ1_MIN,SORT,0,MIN
+*GET,SZ1_MAX,SORT,0,MAX
+ESORT,ETAB,ESX
+*GET,SX1_MIN,SORT,0,MIN
+*GET,SX1_MAX,SORT,0,MAX
+ESEL,S,MAT,,2
+ESORT,ETAB,ESZ
+*GET,SZ2_MIN,SORT,0,MIN
+*GET,SZ2_MAX,SORT,0,MAX
+ESORT,ETAB,ESX
+*GET,SX2_MIN,SORT,0,MIN
+*GET,SX2_MAX,SORT,0,MAX
+EUSORT
+ALLSEL,ALL
+*CFOPEN,vkm_results,txt
+*VWRITE,UZT_MIN
+('uz_top_min = ',E24.16)
+*VWRITE,UZT_MAX
+('uz_top_max = ',E24.16)
+*VWRITE,UZI_MIN
+('uz_interface_min = ',E24.16)
+*VWRITE,UZI_MAX
+('uz_interface_max = ',E24.16)
+*VWRITE,SZ1_MIN
+('sz1_min = ',E24.16)
+*VWRITE,SZ1_MAX
+('sz1_max = ',E24.16)
+*VWRITE,SZ2_MIN
+('sz2_min = ',E24.16)
+*VWRITE,SZ2_MAX
+('sz2_max = ',E24.16)
+*VWRITE,SX1_MIN
+('sx1_min = ',E24.16)
+*VWRITE,SX1_MAX
+('sx1_max = ',E24.16)
+*VWRITE,SX2_MIN
+('sx2_min = ',E24.16)
+*VWRITE,SX2_MAX
+('sx2_max = ',E24.16)
+*VWRITE,N_MAT2
+('n_elem_mat2 = ',E24.16)
+*CFCLOSE
+FINISH

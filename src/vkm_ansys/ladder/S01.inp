@@ -1,0 +1,11 @@
+! S01 installation and version: the solver answers and reports its revision (no model, no solve)
+/TITLE,VKM ladder S01 - installation and version
+*GET,VKM_REV,ACTIVE,0,REV
+*GET,VKM_NPROC,ACTIVE,0,NPROC
+*CFOPEN,vkm_results,txt
+*VWRITE,VKM_REV
+('rev = ',E24.16)
+*VWRITE,VKM_NPROC
+('nproc = ',E24.16)
+*CFCLOSE
+FINISH

@@ -1,0 +1,76 @@
+! S05 boundary and initial conditions: the S04 column with the S04 stress field prescribed as an initial state
+! (INISTATE, element-wise at the centroid: SZ = -RHO*G*(H_COL - zc), SX = SY = K0*SZ, K0 = nu/(1-nu)) and gravity
+! applied. The initial state equilibrates gravity exactly (consistent loads of linear elements), so the solve must
+! give zero displacement: max |u| within tolerance, stresses unchanged.
+/TITLE,VKM ladder S05 - initial state (INISTATE) plus gravity
+K0 = NU/(1-NU)
+/PREP7
+ET,1,SOLID185
+MP,EX,1,E_MOD
+MP,PRXY,1,NU
+MP,DENS,1,RHO
+BLOCK,0,A_SIDE,0,A_SIDE,0,H_COL
+LSEL,S,LOC,Z,H_COL/2
+LESIZE,ALL,,,N_Z
+LSEL,INVE
+LESIZE,ALL,,,N_XY
+LSEL,ALL
+MSHAPE,0,3D
+MSHKEY,1
+VMESH,ALL
+*GET,EMAXD,ELEM,0,NUM,MAXD
+/NOPR
+*DO,IE,1,EMAXD
+*GET,ZC,ELEM,IE,CENT,Z
+SZ0 = -RHO*G*(H_COL-ZC)
+INISTATE,DEFINE,IE,,,,K0*SZ0,K0*SZ0,SZ0
+*ENDDO
+/GOPR
+FINISH
+/SOLU
+ANTYPE,STATIC
+NSEL,S,LOC,Z,0
+D,ALL,UZ,0
+NSEL,S,LOC,X,0
+NSEL,A,LOC,X,A_SIDE
+D,ALL,UX,0
+NSEL,S,LOC,Y,0
+NSEL,A,LOC,Y,A_SIDE
+D,ALL,UY,0
+ALLSEL,ALL
+ACEL,0,0,G
+OUTRES,ALL,ALL
+SOLVE
+FINISH
+/POST1
+SET,LAST
+NSORT,U,SUM
+*GET,USUM_MAX,SORT,0,MAX
+NUSORT
+NSORT,U,Z
+*GET,UZ_MIN,SORT,0,MIN
+*GET,UZ_MAX,SORT,0,MAX
+NUSORT
+*CFOPEN,vkm_results,txt
+*VWRITE,USUM_MAX
+('usum_max = ',E24.16)
+*VWRITE,UZ_MIN
+('uz_min = ',E24.16)
+*VWRITE,UZ_MAX
+('uz_max = ',E24.16)
+*CFCLOSE
+ETABLE,ESX,S,X
+ETABLE,ESZ,S,Z
+*DIM,VE_ID,ARRAY,EMAXD
+*DIM,VE_Z,ARRAY,EMAXD
+*DIM,VE_SX,ARRAY,EMAXD
+*DIM,VE_SZ,ARRAY,EMAXD
+*VFILL,VE_ID(1),RAMP,1,1
+*VGET,VE_Z(1),ELEM,1,CENT,Z
+*VGET,VE_SX(1),ELEM,1,ETAB,ESX
+*VGET,VE_SZ(1),ELEM,1,ETAB,ESZ
+*CFOPEN,vkm_elems_zs,txt
+*VWRITE,VE_ID(1),VE_Z(1),VE_SX(1),VE_SZ(1)
+(F10.0,3E24.16)
+*CFCLOSE
+FINISH

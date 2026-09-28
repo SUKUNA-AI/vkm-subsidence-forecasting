@@ -1,0 +1,147 @@
+! S09 integrated toy case (TOY world, not SKRU-1): a layered block x, y in [-W_HALF, W_HALF], z in [0, H_TOT] meshed
+! with SOLID185 of size H_EL; MAT 1 base (z < Z_SALT_BOT), MAT 2 creeping layer (Norton, TBOPT = 10, C3 = 0),
+! MAT 3 cover (z > Z_SALT_TOP). Rollers on the lateral faces, UZ = 0 at the bottom.
+! LS1 (TIME T_GEO): lithostatic initial state (INISTATE at element centroids, K0 = 1 - MODEL_CHOICE) plus gravity:
+!     equilibrium, displacements ~ 0.
+! LS2 (TIME T_EXC): the chamber |x|, |y| < CH_HALF, CH_Z1 < z < CH_Z2 is removed with EKILL (elastic response).
+! LS3 (TIME T_END): creep of MAT 2 (RATE,ON) in NSUB equal substeps.
+! Checks (post-processing): zero errors, all steps converged without bisection, equilibrium after LS1, symmetric
+! surface trough (x, y and diagonal), maximum at the centre, monotonic growth of the maximum in time.
+/TITLE,VKM ladder S09 - integrated toy case (layers, excavation, creep, surface trough)
+/PREP7
+ET,1,SOLID185
+MP,EX,1,E_BASE
+MP,PRXY,1,NU_BASE
+MP,DENS,1,RHO_BASE
+MP,EX,2,E_SALT
+MP,PRXY,2,NU_SALT
+MP,DENS,2,RHO_SALT
+TB,CREEP,2,,,10
+TBDATA,1,C1,C2,0
+MP,EX,3,E_COVER
+MP,PRXY,3,NU_COVER
+MP,DENS,3,RHO_COVER
+TOFFST,273.15
+TREF,20
+BLOCK,-W_HALF,W_HALF,-W_HALF,W_HALF,0,H_TOT
+ESIZE,H_EL
+MSHAPE,0,3D
+MSHKEY,1
+MAT,1
+VMESH,ALL
+ESEL,S,CENT,Z,Z_SALT_BOT,Z_SALT_TOP
+EMODIF,ALL,MAT,2
+ESEL,S,CENT,Z,Z_SALT_TOP,H_TOT
+EMODIF,ALL,MAT,3
+ESEL,S,CENT,X,-CH_HALF,CH_HALF
+ESEL,R,CENT,Y,-CH_HALF,CH_HALF
+ESEL,R,CENT,Z,CH_Z1,CH_Z2
+CM,CHAMBER,ELEM
+*GET,N_CHAMBER,ELEM,0,COUNT
+ALLSEL,ALL
+! lithostatic initial stress (K0 = 1) at element centroids
+S_TOP_SALT = -G*RHO_COVER*(H_TOT-Z_SALT_TOP)
+S_BOT_SALT = S_TOP_SALT-G*RHO_SALT*(Z_SALT_TOP-Z_SALT_BOT)
+*GET,EMAXD,ELEM,0,NUM,MAXD
+/NOPR
+*DO,IE,1,EMAXD
+*GET,ZC,ELEM,IE,CENT,Z
+*IF,ZC,GT,Z_SALT_TOP,THEN
+S0 = -G*RHO_COVER*(H_TOT-ZC)
+*ELSEIF,ZC,GT,Z_SALT_BOT,THEN
+S0 = S_TOP_SALT-G*RHO_SALT*(Z_SALT_TOP-ZC)
+*ELSE
+S0 = S_BOT_SALT-G*RHO_BASE*(Z_SALT_BOT-ZC)
+*ENDIF
+INISTATE,DEFINE,IE,,,,S0,S0,S0
+*ENDDO
+/GOPR
+FINISH
+/SOLU
+ANTYPE,STATIC
+BFUNIF,TEMP,20
+NSEL,S,LOC,Z,0
+D,ALL,UZ,0
+NSEL,S,LOC,X,-W_HALF
+NSEL,A,LOC,X,W_HALF
+D,ALL,UX,0
+NSEL,S,LOC,Y,-W_HALF
+NSEL,A,LOC,Y,W_HALF
+D,ALL,UY,0
+ALLSEL,ALL
+ACEL,0,0,G
+OUTRES,ALL,ALL
+AUTOTS,OFF
+! LS1 geostatic equilibrium
+RATE,OFF
+TIME,T_GEO
+NSUBST,1,1,1
+SOLVE
+! LS2 excavation
+CMSEL,S,CHAMBER
+EKILL,ALL
+ALLSEL,ALL
+RATE,OFF
+TIME,T_EXC
+NSUBST,1,1,1
+SOLVE
+! LS3 creep
+RATE,ON
+TIME,T_END
+NSUBST,NSUB,NSUB,NSUB
+SOLVE
+FINISH
+/POST1
+*GET,N_SET,ACTIVE,0,SET,NSET
+N_CENTRE = NODE(0,0,H_TOT)
+*CFOPEN,vkm_results,txt
+*VWRITE,N_SET
+('n_set = ',E24.16)
+*VWRITE,N_CHAMBER
+('n_chamber = ',E24.16)
+*VWRITE,N_CENTRE
+('node_centre = ',E24.16)
+*CFCLOSE
+*CFOPEN,vkm_history,txt
+*DO,IS,1,N_SET
+SET,,,,,,,IS
+*GET,T_S,ACTIVE,0,SET,TIME
+*GET,LS_S,ACTIVE,0,SET,LSTP
+*GET,UZC,NODE,N_CENTRE,U,Z
+NSORT,U,SUM
+*GET,USUM_MAX,SORT,0,MAX
+NUSORT
+NSEL,S,LOC,Z,H_TOT
+NSORT,U,Z
+*GET,UZS_MIN,SORT,0,MIN
+*GET,UZS_MAX,SORT,0,MAX
+NUSORT
+ALLSEL,ALL
+*VWRITE,IS,1,LS_S,T_S,UZC
+(F8.0,F4.0,3E24.16)
+*VWRITE,IS,2,USUM_MAX,UZS_MIN,UZS_MAX
+(F8.0,F4.0,3E24.16)
+*ENDDO
+*CFCLOSE
+! surface table of the last set: node, x, y, z and uz of every node (the top surface is filtered afterwards)
+SET,LAST
+*GET,NMAXD,NODE,0,NUM,MAXD
+*DIM,VK_ID,ARRAY,NMAXD
+*DIM,VK_X,ARRAY,NMAXD
+*DIM,VK_Y,ARRAY,NMAXD
+*DIM,VK_Z,ARRAY,NMAXD
+*DIM,VK_UZ,ARRAY,NMAXD
+*VFILL,VK_ID(1),RAMP,1,1
+*VGET,VK_X(1),NODE,1,LOC,X
+*VGET,VK_Y(1),NODE,1,LOC,Y
+*VGET,VK_Z(1),NODE,1,LOC,Z
+*VGET,VK_UZ(1),NODE,1,U,Z
+*CFOPEN,vkm_nodes_xyz,txt
+*VWRITE,VK_ID(1),VK_X(1),VK_Y(1),VK_Z(1)
+(F10.0,3E24.16)
+*CFCLOSE
+*CFOPEN,vkm_nodes_uz_last,txt
+*VWRITE,VK_ID(1),VK_UZ(1)
+(F10.0,E24.16)
+*CFCLOSE
+FINISH
