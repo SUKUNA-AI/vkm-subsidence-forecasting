@@ -391,9 +391,20 @@ def test_topics_are_used_when_the_build_has_them(env):
     service.deps.nav = nav_store.NavStore(root, canonical_db=canon.duckdb_path, functions={
         "explore_concept": fake_explore(canon.ids["block"]),
         "find_topics": lambda con, query, limit=5: [{"topic_id": "TOP-1", "label": "Сдвижение и оседание",
-                                                     "n_sections": 4, "terms": ["оседание", "мульда"]}]})
+                                                     "n_sections": 4, "terms": ["оседание", "мульда"]}],
+        "get_topic": lambda con, topic_id: {"topic_id": topic_id, "sections": [{"section_id": S1}, S2],
+                                            "sources": ["VKM-SRC-001"], "terms": [{"lemma": "оседание"}]}})
     record, _w, _e = _dossier(service)
-    assert record["topics"][0]["topic_id"] == "TOP-1" and "`TOP-1`" in record["markdown"]
+    topic_ = record["topics"][0]
+    assert topic_["topic_id"] == "TOP-1" and "`TOP-1`" in record["markdown"]
+    assert topic_["detail"] == {"section_ids": [S1, S2], "source_ids": ["VKM-SRC-001"], "terms": ["оседание"]}
+
+    def broken_detail(con, topic_id):
+        raise LookupError(topic_id)
+
+    service.deps.nav._functions["get_topic"] = broken_detail
+    record, warnings, _e = _dossier(service)
+    assert record["topics"][0]["topic_id"] == "TOP-1" and "TOPICS_UNAVAILABLE" in warnings
 
 
 def test_arguments_are_checked(env):

@@ -845,6 +845,21 @@ class DossierBuilder:
             if isinstance(t, dict):
                 st.topics.append({k: t.get(k) for k in ("topic_id", "id", "label", "title", "name", "terms",
                                                         "n_sections", "n_sources", "size", "score") if t.get(k)})
+        has_detail = "get_topic" in nav_store.QUERY_FUNCTIONS or "get_topic" in functions
+        for t in st.topics[:2] if has_detail else []:           # the two best topics in detail (ids, not text)
+            tid = t.get("topic_id") or t.get("id")
+            try:
+                detail = self.nav.run("get_topic", tid) if tid else None
+            except Exception as exc:  # noqa: BLE001
+                st.warn("TOPICS_UNAVAILABLE", f"get_topic: {type(exc).__name__}: {str(exc)[:120]}")
+                break
+            if isinstance(detail, dict):
+                sections = [s.get("section_id") if isinstance(s, dict) else s for s in detail.get("sections") or []]
+                t["detail"] = {"section_ids": [s for s in sections if isinstance(s, str)][:8],
+                               "source_ids": [s.get("source_id") if isinstance(s, dict) else s
+                                              for s in detail.get("sources") or []][:8],
+                               "terms": [x.get("lemma") if isinstance(x, dict) else x
+                                         for x in detail.get("terms") or []][:10]}
 
     # ---------------------------------------------------------------------------------------------------- (c)
     def _formulas(self, st: _State) -> None:
@@ -1342,9 +1357,11 @@ class DossierBuilder:
             terms = t.get("terms")
             terms_s = ", ".join(str(x) for x in terms[:6]) if isinstance(terms, list) else ""
             size = t.get("n_sections") or t.get("size")
+            secs = ((t.get("detail") or {}).get("section_ids") or [])[:3]
             out.append(Entry("topics", str(tid), _prio("topics", i), [
                 f"- `{tid}` {short(label, 80)}" + (f" · разделов {size}" if size else "")
-                + (f" · {terms_s}" if terms_s else "")], t))
+                + (f" · {terms_s}" if terms_s else "")
+                + (f" · разделы: {', '.join('`' + s + '`' for s in secs)}" if secs else "")], t))
         for s in st.sources:
             who = s["authors"].split(";")[0].strip() if s.get("authors") else "авторы ?"
             if s.get("authors") and ";" in s["authors"]:
