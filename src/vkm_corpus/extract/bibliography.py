@@ -16,7 +16,9 @@ REFERENCE_LIST, and a heading («Список литературы», «Лите
 **Segmentation** (rules v3; the frozen v2 rules stay available as :data:`SEG_V2`, see *Stable ids*).
 - Numbered lists («12.», «[12]», «53568.»): an entry starts at each plausible next number (last + 1 … last + 5, or a
   restart at 1). Every other line continues the current entry, across blocks and pages. v3: the next expected number
-  inside a line opens an entry too when the text before it ends like an entry («… С. 5–9. 4. Иванов И.И. …»).
+  inside a line opens an entry too when the text before it ends like an entry («… С. 5–9. 4. Иванов И.И. …»); an
+  unexpected number at a block start restarts the sequence when the next numbers continue from it (index numbers
+  after a rubric «2. …» or after an OCR-misread number).
 - Unnumbered lists (author–year, alphabetical): an entry starts at any of:
   - a blank line (OCR);
   - a block that starts at the left edge of its column with an author-like token (hanging indent);
@@ -25,7 +27,7 @@ REFERENCE_LIST, and a heading («Список литературы», «Лите
   entry (layouts whose blocks hold the tail of one entry and the start of the next). In an author-led list a line that
   does not open with a name continues the entry; v3: a corporate author with a year («US Geological Survey. 2008.»,
   «IFG 2020a.») or a normative title («ГОСТ …», «Указания …») after a finished entry opens one.
-- v3 names: extended Latin letters, particles and multi-word surnames («Başağaoğlu», «Campos de Orellana AC»).
+- v3 names: extended Latin letters, particles and multi-word surnames («Kılınçoğlu», «Santos de Almeida AC»).
 - Dropped fragments: no year and no bibliographic marker; imprint or copyright text; bare headings.
 
 **Stable ids.** The ``raw_config_hash`` of an entry is part of its object id together with the first block's region.
@@ -35,6 +37,7 @@ hash and new ids (so validator B07 never meets one id with two texts, and B04 st
 """
 from __future__ import annotations
 
+import bisect
 import hashlib
 import json
 import re
@@ -103,7 +106,8 @@ def _latin_letters(category: str) -> str:
 _UP = "A-Z" + _latin_letters("Lu")
 _LO = "a-z" + _latin_letters("Ll")
 _ANY = _UP + _LO + "'’\\-¨´`" + chr(0x300) + "-" + chr(0x36F)       # + combining accents
-_PART_EN = r"(?:[Vv]an|[Vv]on|[Dd]e|[Dd]el|[Dd]ella|[Dd]er|[Dd]en|[Dd]es|[Dd]u|[Dd]a|[Dd]as|[Dd]os|[Dd]i|[Ll]a|[Ll]e|[Tt]en|[Tt]er)"
+_PART_EN = (r"(?:[Vv]an|[Vv]on|[Dd]e|[Dd]el|[Dd]ella|[Dd]er|[Dd]en|[Dd]es|[Dd]u|[Dd]a|[Dd]as|[Dd]os|[Dd]i|[Ll]a|[Ll]e"
+            r"|[Tt]en|[Tt]er)")
 _PART_IN = r"(?:de|da|del|do|dos|das|y|e|van|von|der|den|la|le|di)"
 _EN_SURNAME = rf"(?:{_PART_EN}\s?){{0,2}}[{_UP}][{_ANY}]+(?:\s{_PART_IN}\s[{_UP}][{_ANY}]+)?"
 # with a lower-case letter: «Allen RJ», not «PROCEEDINGS OF»
@@ -135,7 +139,7 @@ AUTHOR_PATTERNS: dict[str, str] = {
     "ru_si_nd": rf"{_RU_SURNAME}\s[А-ЯЁ]{{2}}(?=[.,;](?:\s|$))",
     # SURNAME, I. J. | VAN SURNAME I.J.
     "en_caps": rf"{_EN_CAPS}(?:,\s?|\s)(?:{_EN_INIT}|[A-Z](?=[,;]\s)){_SUFFIX}",
-    # Surname, I. J. | Campos de Orellana, A. J. | Lussky Jr., R. F.
+    # Surname, I. J. | Santos de Almeida, A. J. | Lund Jr., R. F.
     "en_si": rf"{_EN_SURNAME}(?:\s{_SECOND}[{_UP}][{_LO}'’\-]+)?(?:,?\s(?:Jr|Sr)\.?)?,\s?{_EN_INIT}{_SUFFIX}",
     # Surname I.J.
     "en_si2": rf"{_EN_SURNAME}\s{_EN_INIT}{_SUFFIX}",
@@ -171,7 +175,7 @@ _CONNECT = r"(?:of|and|for|the|on|in|&|für|und|de|du|des|la|et)"
 # for Economic Co-operation and Development»)
 _ORG_NAME = (rf"(?:[{_UP}][\w&’'.\-]*\s(?:{_CONNECT}\s){{0,2}}){{0,8}}{_ORG_WORDS}"
              rf"(?:,?\s(?:{_CONNECT}\s){{0,2}}[{_UP}][\w&’'\-]*){{0,6}}")
-# upper-case names and acronyms («IFG», «TNO & EBN», «BUNDESMINISTERIUM FÜR WIRTSCHAFT (BMWI)»), not «PROCEEDINGS OF …»
+# upper-case names and acronyms («IFG», «ABC & XYZ», «LANDESAMT FÜR BERGBAU (LAB)»), not «PROCEEDINGS OF …»
 _ACRONYM = rf"[{_UP}][{_UP}0-9&/\-]{{1,24}}"
 _ACRONYMS = (r"(?!(?:PROCEEDINGS|PROC|JOURNAL|TRANSACTIONS|BULLETIN|REPORT|ANNALS|SYMPOSIUM|CONFERENCE|CONGRESS"
              r"|WORKSHOP|HANDBOOK|VOLUME|VOL|PART|THE|IN)\b)"
@@ -187,7 +191,7 @@ ENTITY_START = re.compile(rf"^(?:{_ORG_NAME}\.?,?\s{_YEAR_SLOT}|{_ACRONYMS},?\s{
 _INLINE_START = re.compile(
     r"(?:(?<=[\d)\]]\.)|(?<=[^\W\d_]{2}\.))\s+(?=(?:" + AUTHOR_PATTERNS["en_si"] + "|" + AUTHOR_PATTERNS["en_caps"]
     + "|" + AUTHOR_PATTERNS["ru_si"] + r")[\s,])"
-    # Springer author–year: «… 43:4553–4576. https://doi.org/… Murguía DI, Campos de Orellana AC (2016) …»
+    # Springer author–year: «… 43:1–9. https://doi.org/… Ortíz DI, Santos de Almeida AC (2016) …»
     r"|(?<=\S)\s+(?=" + _SPR_NAME + r"(?:,\s" + _SPR_NAME + r"){0,8}\s\((?:1[89]|20)\d\d[a-z]?\))"
     # a corporate author after a finished entry: «… 12–17. US Geological Survey. 2008. …»
     r"|(?<=[\d)\]]\.)\s+(?=" + _ORG_NAME + r"\.?,?\s\(?(?:1[89]|20)\d\d[a-z]?\)?[.,:])")
@@ -286,7 +290,7 @@ _CYR = re.compile(r"[А-ЯЁа-яё]")
 _LAT = re.compile(r"[A-Za-z]")
 _GREEK = re.compile(r"[ΑΒΓΕΗΙΚΜΝΟΡΤΥΧΖο]")
 _TOKEN = re.compile(r"[^\W\d_]+")
-# spacing accents of TeX text layers: after the letter they mark («Se´ guret»), or before it («Vavryˇcuk», «Lule˚a»)
+# spacing accents of TeX text layers: after the letter they mark («Le´ garde»), or before it («Havraˇcek»)
 _SPACING = {"´": chr(0x301), "`": chr(0x300), "¨": chr(0x308), "¸": chr(0x327), "˝": chr(0x30B), "ˆ": chr(0x302),
             "˜": chr(0x303), "ˇ": chr(0x30C), "˚": chr(0x30A), "˘": chr(0x306), "˙": chr(0x307)}
 _LIGATURES = str.maketrans({"ﬁ": "fi", "ﬂ": "fl", "ﬀ": "ff", "ﬃ": "ffi", "ﬄ": "ffl", "ﬅ": "st", "ﬆ": "st"})
@@ -294,7 +298,7 @@ _LIGATURES = str.maketrans({"ﬁ": "fi", "ﬂ": "fl", "ﬀ": "ff", "ﬃ": "ffi",
 _ACCENT = re.compile(r"([A-Za-z]?)([´`¨¸˝ˆ˜ˇ˚˘˙])(\s?)([A-Za-z]?)")
 _VOWELS = frozenset("aeiouy")
 _OCR_EL = re.compile(r"(?<![A-Za-z\d])(?:J1|JI|Jl)(?=\s?\.)")
-_OCR_ZE = re.compile(r"(?<=,\s)3(?=\s?\.\s?[А-ЯЁ]\s?\.)")         # «Гайворонская, 3. И.» → «З. И.»
+_OCR_ZE = re.compile(r"(?<=,\s)3(?=\s?\.\s?[А-ЯЁ]\s?\.)")         # «Гайдамак, 3. И.» → «З. И.»
 
 
 def _fold_v2(text: str) -> str:
@@ -319,9 +323,9 @@ def _composes(letter: str, mark: str) -> bool:
 
 
 def _repair_accents(text: str) -> str:
-    """Spacing accents of TeX text layers joined to their letters («Se´ guret» → «Séguret», «Sj¨oberg» → «Sjöberg»,
-    «Vavryˇcuk» → «Vavryčuk»). Caron, ring, breve and dot mark the letter after them; the others mark the letter
-    before them (always before a gap) unless a consonant precedes and a vowel follows («Doblar´e»)."""
+    """Spacing accents of TeX text layers joined to their letters («Le´ garde» → «Légarde», «Sj¨ostrand» →
+    «Sjöstrand», «Havraˇcek» → «Havraček»). Caron, ring, breve and dot mark the letter after them; the others mark the
+    letter before them (always before a gap) unless a consonant precedes and a vowel follows («Mollar´e»)."""
     if not any(ch in _SPACING for ch in text):
         return text
 
@@ -329,13 +333,13 @@ def _repair_accents(text: str) -> str:
         before, accent, gap, after = m.groups()
         mark = _SPACING[accent]
         if after.isupper() and not gap and accent not in "ˇ˚˘˙":
-            return m.group(0)                   # «O´Neil»: an apostrophe
+            return m.group(0)                   # «O´Dell»: an apostrophe
         if accent in "ˇ˚˘˙" and not gap and _composes(after, mark):
-            return before + after + mark        # caron, ring, breve, dot precede their letter («Pšenˇcík»)
+            return before + after + mark        # caron, ring, breve, dot precede their letter («Havraˇcek»)
         if not gap and before.lower() not in _VOWELS and after.lower() in _VOWELS and _composes(after, mark):
-            return before + after + mark        # «Doblar´e», «Sj¨oberg»: a consonant before, a vowel after
+            return before + after + mark        # «Mollar´e», «Sj¨ostrand»: a consonant before, a vowel after
         if _composes(before, mark):
-            # «Se´ guret», «Chile` s»: the gap inside a word goes; «Poincare´ H.», «a` partir»: it stays
+            # «Le´ garde», «Mile` z»: the gap inside a word goes; «Poincare´ H.», «a` partir»: it stays
             in_word = m.start() > 0 and m.string[m.start() - 1].isalpha()
             return before + mark + ("" if gap and in_word and after.islower() else gap) + after
         if after and not gap and _composes(after, mark):
@@ -383,9 +387,9 @@ def _fold(text: str) -> str:
     - TeX spacing accents are joined to their letters;
     - Latin homoglyphs inside Cyrillic words («Габдraxимов») and one- or two-letter Latin tokens among Cyrillic ones
       («Аплонов B.C.») become Cyrillic (as in v2);
-    - Cyrillic homoglyphs inside Latin words («Sрkuratnik») and short Cyrillic tokens among Latin words («Gurtin М.
-      E.») become Latin; Greek capitals take the script of their neighbours («Звонов Ε. Н.», «Onaran Κ.»);
-    - OCR «J1.», «JI.» for «Л.» and «, 3.» for «, З.» in Cyrillic text; typographic ligatures («Delﬁner») spelled
+    - Cyrillic homoglyphs inside Latin words («Sрerling») and short Cyrillic tokens among Latin words («Gorbin М.
+      E.») become Latin; Greek capitals take the script of their neighbours («Зубов Ε. Н.», «Olsen Κ.»);
+    - OCR «J1.», «JI.» for «Л.» and «, 3.» for «, З.» in Cyrillic text; typographic ligatures («Delﬁno») spelled
       out."""
     text = _repair_accents(text.translate(_LIGATURES))
     has_cyr = bool(_CYR.search(text))
@@ -413,7 +417,7 @@ def _fold(text: str) -> str:
             if "cyr" in sides or (not sides and dominant == "cyr"):
                 new = w.translate(_LAT2CYR)
         elif _CYR.search(w) and len(w) <= 2 and all(ch in _CYR_HOMOGLYPHS for ch in w):
-            # Cyrillic look-alikes become Latin only among Latin names («Gurtin М. E.», «Baryakh А.А., Smirnov»)
+            # Cyrillic look-alikes become Latin only among Latin names («Gorbin М. E.», «Borisov А.А., Smirnov»)
             sides = _sides(text, spans, i)
             if sides == {"lat"} or (not sides and dominant == "lat"):
                 new = w.translate(_CYR2LAT)
@@ -495,6 +499,19 @@ SEGMENTATIONS: tuple[SegRules, ...] = (SEG_V2, SEG_V3)      # oldest first; the 
 _INLINE_LABEL = re.compile(r"\s(\d{1,5})\s?\.\s+(?=[А-ЯЁA-Z«\"“\[])")
 _ENDS_ENTRY = re.compile(r"(?:\d{4}[a-zа-я]?|\d+\s?[-–—]\s?\d+|(?:[СсCcPpSs]|pp|стр)\.\s?\d+(?:\s?[-–—]\s?\d+)?"
                          r"|\d+\s?[сcp]|[)\]»])\s?\.\s*(?:[-–—]\s*)?$")
+
+
+def _continues(numbers: list[tuple[tuple[int, int], int]], pos: tuple[int, int], n: int, last: int | None) -> bool:
+    """The next printed numbers after ``pos`` (up to three) continue from ``n`` before they continue from ``last``:
+    the list goes on from a number the sequence did not expect (an index after an OCR-misread number)."""
+    step = CONFIG["label_step_max"]
+    i = bisect.bisect_right([p for p, _m in numbers], pos)
+    for _p, m in numbers[i:i + 3]:
+        if n < m <= n + step:
+            return True
+        if last is not None and last < m <= last + step:
+            return False
+    return False
 
 
 def _split_label(line: str, expected: int, skip: int = 0) -> tuple[str, str] | None:
@@ -663,7 +680,7 @@ def _open_list(entry: RawEntry | None) -> bool:
 
 
 def _year_head(line: str, seg: SegRules) -> bool:
-    """A name list followed by a year: the head of an author–year entry («Carcione, J.M., 1997a.», «Allen RJ (2001)»)."""
+    """A name list followed by a year: the head of an author–year entry («Abel, A.B., 1997a.», «Allen RJ (2001)»)."""
     f = seg.fold(line)
     end = max((m.end() for m in (rx.match(f) for rx in AUTHOR_LIST.values()) if m), default=0)
     return end > 0 and bool(_YEAR_AFTER_NAMES.match(f, end))
@@ -726,6 +743,9 @@ def segment_zone(zone: _Zone, zone_index: int,
     leading: list[tuple[str, Any]] = []
     step = CONFIG["label_step_max"]
     xs_by_page = _xs_by_page(zone)
+    # printed numbers at line starts, in order: (fragment, line) -> number
+    numbers = [((fi, li), lab[0]) for fi, f in enumerate(zone.frags) for li, ln in enumerate(f.lines)
+               if (lab := _label(ln))] if numbered and seg.numbered_inline else []
     for fi, frag in enumerate(zone.frags):
         pending_blank = False
         edge = None if numbered else _column_edge(frag, zone, xs_by_page)
@@ -744,15 +764,23 @@ def segment_zone(zone: _Zone, zone_index: int,
             if numbered:
                 lab = _label(line)
                 fresh = first_line or pending_blank
-                if lab and (last is None or last < lab[0] <= last + step or (lab[0] == 1 and fresh and _complete(cur))):
+                # v3: a five-digit index number at a block start after a small rubric number («2. Партийное
+                # строительство» → «53576. Абилов, А. …») restarts the sequence instead of being glued to the rubric
+                index_jump = seg.numbered_inline and lab is not None and fresh and last is not None and \
+                    last < 1000 and lab[0] >= 10000
+                if lab and (last is None or last < lab[0] <= last + step or (lab[0] == 1 and fresh and _complete(cur))
+                            or index_jump):
                     cur = RawEntry(lab[1], lab[0], zone_index=zone_index, numbered=True)
                     entries.append(cur)
                     last = lab[0]
                 elif lab and fresh and _complete(cur):
                     # an unexpected number at a block start after a complete entry: an entry with a misread number
-                    # (kept, the sequence is not advanced) or a rubric heading of an index (dropped below)
+                    # (kept, the sequence is not advanced) or a rubric heading of an index (dropped below); v3: the
+                    # sequence restarts from it when the next numbered lines continue from it, not from the old one
                     cur = RawEntry(lab[1], lab[0], zone_index=zone_index, numbered=True)
                     entries.append(cur)
+                    if seg.numbered_inline and _continues(numbers, (fi, li), lab[0], last):
+                        last = lab[0]
                 if seg.numbered_inline and last is not None:
                     cut = _split_label(line, last + 1, lab[2] if lab else 0)
                     if cut is not None:
@@ -871,7 +899,7 @@ def _language(text: str) -> str | None:
 # «Для цитирования:», «См.», «See also» before the names
 _PREFIX = re.compile(r"^(?:Для\s+цитирования|For\s+citation|Cite\s+this\s+article(?:\s+as)?|См\.(?:\s+также)?|"
                      r"See(?:\s+also)?\b|Cf\.)\s*:?\s*", re.IGNORECASE)
-# a letter-spaced or broken surname at the start of an entry («М о с и е н к о , Н . А .», «Ра ботн ов Ю. Н.»)
+# a letter-spaced or broken surname at the start of an entry («М о р о з о в , Н . А .», «Ра дуг ин Ю. Н.»)
 _SPACED_HEAD = re.compile(r"^([А-ЯЁ](?:\s?[а-яё]){2,30}|[A-Z](?:\s?[a-z]){2,30})\s?(,?)\s?(?=(?:Дж|[А-ЯЁA-Z])\s?\.)")
 # a letter-spaced name before its initials anywhere in the entry («…, Ми л е й к о С. Т., …»)
 _SPACED_NAME = re.compile(r"(?<![^\s,;(])([А-ЯЁA-Z][а-яёa-z]?(?:\s[а-яёa-z]){2,30})\s?(,?)\s?(?=(?:Дж|[А-ЯЁA-Z])\s?\.)")
@@ -902,12 +930,12 @@ _TITLE_WORDS = frozenset(
     "Fracture Damage Strength Test Tests Testing Laboratory Field Case History Review Management Control System "
     "Systems Process Processes Standard Guide Guidelines Manual Series Volume Edition Chapter Part Annual Federal "
     "State Department Agency Office Service Company Group Center Centre Academy Global Regional Basin Deposit".split())
-# «Фамилия, Имя.» of bibliographic indexes («Мухин, Владимир. Title»), not «Город, Издательство.»
+# «Фамилия, Имя.» of bibliographic indexes («Иванов, Владимир. Title»), not «Город, Издательство.»
 _RU_SURNAME_GIVEN = re.compile(r"^([А-ЯЁ][а-яё]{2,}(?:-[А-ЯЁ][а-яё]+)?),\s([А-ЯЁ][а-яё]{2,})\.\s(?=[А-ЯЁ«\[])")
 _NOT_PERSON = frozenset("Москва Ленинград Пермь Свердловск Екатеринбург Киев Минск Новосибирск Томск Казань Уфа "
                         "Недра Наука Мир Энергия Химия Стройиздат Госгортехиздат Металлургия Техника Изд".split())
 # «— Авт.: И. О. Фамилия, …», «(авт. Фамилия И.О., …)», «— авторы И.О. Фамилия» — authors listed after the description
-_AVT = re.compile(r"(?:\bАвт\.|\(авт\.|\bавторы\b)\s?:?\s?([^\[\]()—–]{3,300}?)"
+_AVT = re.compile(r"(?:\bА\s?вт\.|\(авт\.|\bавторы\b)\s?:?\s?([^\[\]()—–]{3,300}?)"
                   r"(?=\s?[\[(]\s?и\s+др|\s?и\s+др\.|\s[-–—]\s|\.\s?[-–—]|\s—|\)|\.\s*$|$)")
 _PROJECT = re.compile(r"^[A-Z][A-Z0-9\-]{2,20}(?:\s[IVX]{1,4})?\.\s+(?=[A-Z])")
 # Springer lists of text layers without spaces («CheruvierE,SuauJ(1986)», «AndersonB,…,Davydycheva S (1999)»)
@@ -915,10 +943,10 @@ _NOSPACE = re.compile(r"^((?:[A-Z][a-z]+\s?[A-Z]{1,3},\s?){0,11}[A-Z][a-z]+\s?[A
 
 
 def _repair_head(text: str) -> str:
-    """Parse view: a letter-spaced or broken surname at the start joined before its initials («М о с и е н к о ,
-    Н . А .», «Ш клярова, Е. Л.», «Ра ботн ов Ю. Н.»). Letter-spaced names (most pieces one letter) always; other
+    """Parse view: a letter-spaced or broken surname at the start joined before its initials («М о р о з о в ,
+    Н . А .», «Ш ибаева, Е. Л.», «Ра дуг ин Ю. Н.»). Letter-spaced names (most pieces one letter) always; other
     breaks only in Cyrillic, without short words among the pieces («Mori and L. W.», «К вопросу об А.» stay), and
-    after a one-letter word («С ахаров», «О роли») only before a comma (index style)."""
+    after a one-letter word («С аблин», «О роли») only before a comma (index style)."""
     m = _SPACED_HEAD.match(text)
     if not m or " " not in m.group(1):
         return text
@@ -976,7 +1004,7 @@ def _authors(text: str) -> tuple[list[str], str, str | None]:
         names = [re.sub(r"(?<=[a-z])\s?(?=[A-Z]{1,3}$)", " ", n.strip()) for n in s.group(1).split(",")]
         return names, text[s.end():], "en_spr"
     p = _PROJECT.match(text)
-    if p:           # «REPOPERM II. KRÖHN, K.-P., …»: a project acronym before the names
+    if p:           # «SALTPROJ II. KRAUSE, K.-P., …»: a project acronym before the names
         names, rest, key = _authors(text[p.end():])
         if names and key in AUTHOR_LIST:
             return names, rest, key
@@ -990,7 +1018,7 @@ def _responsibility(clean: str) -> list[str]:
     if not m or re.match(r"\s*(?:под\s|сост|ред\.|пер\.|отв\.|науч\.|eds?\.|edited|by\s)", m.group(1), re.IGNORECASE):
         return []
     # one form per list («И.О. Фамилия» first, as GOST prints it): a mixed alternation would pair a surname with the
-    # next person's initials when one name does not match («Ş. Yılmaz, M. Softa» → «Yılmaz, M»)
+    # next person's initials when one name does not match («Ş. Yıldız, M. Sofu» → «Yıldız, M»)
     best: list[str] = []
     for key in ("ru_is", "en_is", "ru_si", "en_si", "en_si2"):
         names = [n for n in (_clean(a.group(0)) for a in re.finditer(AUTHOR_PATTERNS[key], m.group(1))) if n]
