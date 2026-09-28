@@ -27,6 +27,7 @@ Dockerfile text eol=lf
 .gitattributes text eol=lf
 .gitignore text eol=lf
 *.patch text eol=lf
+*.dockerignore text eol=lf
 *.png binary
 
 # Guard: scientific binaries belong to the private resources repository (Git LFS there).
