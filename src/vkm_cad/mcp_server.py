@@ -235,10 +235,12 @@ def register_v1(server: MCPServer, svc: CadService) -> None:
                        code: Annotated[str, Field(min_length=1, max_length=2_000_000)], save: bool = True,
                        timeout_s: Timeout = 300.0) -> CallToolResult:
         """Run code on the job drawing (a copy; promoted only when the run completes). scr: AutoCAD command lines
-        (global names: _.LINE …); lisp: AutoLISP, the last value is returned; csharp: C# statements with ctx.Doc,
-        ctx.Db, ctx.Ed, ctx.Tr (open transaction) and civil (CivilDocument in C3D jobs), `return` gives the result;
-        python_com: Python with app/doc/civil() in a hidden full AutoCAD (needs VKM_CAD_ALLOW_HIDDEN_INSTANCE=1).
-        One AutoCAD process at a time; crashes, dialogs and timeouts kill the job's processes."""
+        (global names: _.LINE …; an empty line repeats the last command); lisp: AutoLISP, the last value is
+        returned; scr and lisp may call (vkm:result value) and (vkm:fail "reason"); csharp: C# statements with
+        ctx.Doc, ctx.Db, ctx.Ed, ctx.Tr (open transaction) and civil (CivilDocument in C3D jobs), `return` gives the
+        result; python_com: Python with app/doc/civil() in a hidden full AutoCAD (needs
+        VKM_CAD_ALLOW_HIDDEN_INSTANCE=1). One AutoCAD process at a time; crashes, dialogs and timeouts kill the
+        job's processes."""
         return await _call("cad_exec", lambda: jobs.exec(job_id, kind, code, save, timeout_s))
 
     @server.tool(name="cad_query", annotations=CODE)

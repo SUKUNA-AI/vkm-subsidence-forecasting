@@ -57,7 +57,9 @@ def prelude(run_id: str, run_dir: Path, netload: list[Path] | None = None) -> st
 
 def epilogue(save_to: Path | None) -> str:
     """No empty lines: an empty line at the command prompt REPEATS the last command (verified: a .NET command ran
-    three times). A command the body left waiting for input consumes the epilogue → no END marker → run FAILED."""
+    three times). A command the body left waiting for input usually gets cancelled by ``vkm:finish`` (LISP is
+    evaluated at the prompt; verified with an open ``_.LINE``); a prompt that takes the line as text leaves no END
+    marker → run FAILED, nothing promoted."""
     target = lisp_path(save_to) if save_to is not None else "nil"
     return f"(vkm:finish {target})\n_.QUIT _Y\n"
 
