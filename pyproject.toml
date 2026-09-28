@@ -52,6 +52,14 @@ retrieval-rx580 = [
     "pyarrow>=25.0.1,<26",
     "numpy>=2.5",
 ]
+# retrieval benchmark harness (agent J; reproducing V0 needs corpus + retrieval-rx580 + this extra)
+retrieval-lab = [
+    "snowballstemmer>=3.1,<4",
+    "sentence-transformers>=6.1,<7",
+    "scikit-learn>=1.9",
+    "scipy>=1.18",
+    "einops>=0.8",
+]
 # scripts/fetch_models.py (pinned snapshots from infra/models/model_pins.json)
 models = [
     "huggingface_hub>=1.33,<2",
