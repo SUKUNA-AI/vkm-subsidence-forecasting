@@ -21,3 +21,4 @@
 | `bibliography_final.json` | списки литературы (CP-38, CP-41): записи, разбор полей, связи с работами, CITES, ручная проверка |
 | `late_interaction_encode_final.json` | late interaction (агент L): кодирование mLateOn всех единиц, проверки §64 |
 | `late_interaction_deploy.json` | развёртывание late: pack, горячая замена, smoke, латентность, включение по умолчанию |
+| `topic_benchmark_v1.json` | тематический бенчмарк «от А до Я» (агент Q, [benchmarks/topic_v1](../../../benchmarks/topic_v1/RESULTS_V1.md)): предрегистрация, 117 тем / 351 запрос / 886 страниц-свидетельств, метрики систем, приёмка, причины промахов |
