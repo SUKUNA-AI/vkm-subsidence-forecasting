@@ -39,6 +39,9 @@ ALLOWLIST: set[str] = set()
 PATH_CHECK_EXEMPT_PREFIXES: tuple[str, ...] = ("docs/reset_2026_09/run_kit/",)
 PATH_CHECK_NEVER_EXEMPT_SUFFIXES = {".py"}
 PATH_CHECK_SUFFIXES = {".py", ".yaml", ".yml", ".json", ".jsonl", ".csv", ".toml", ".md"}
+# solver and MATLAB sources of the engineering tools (MATLAB .m, APDL .inp/.mac, Workbench journals .wbjn) are code
+ENGINEERING_SOURCE_SUFFIXES = {".m", ".inp", ".mac", ".wbjn"}
+PATH_CHECK_SUFFIXES |= ENGINEERING_SOURCE_SUFFIXES
 
 
 # catalogue cells may not name the PRIVATE OCR work dir even relatively (prose may: RELATIVE_FRAGMENTS_ALLOWED_IN_PROSE)
@@ -147,7 +150,8 @@ def scan(root: str | Path, files: list[Path] | None = None, check_paths: bool = 
                     problems.append(f"{rel}: verbatim/OCR text fields {sorted(bad)} not allowed in PUBLIC")
             except (UnicodeDecodeError, json.JSONDecodeError):
                 pass
-        if p.suffix.lower() in {".md", ".csv", ".json", ".jsonl", ".py", ".yaml", ".yml", ".txt"}:
+        if p.suffix.lower() in {".md", ".csv", ".json", ".jsonl", ".py", ".yaml", ".yml", ".txt"} | \
+                ENGINEERING_SOURCE_SUFFIXES:
             if p.stat().st_size > MAX_TEXT_BYTES:
                 problems.append(f"{rel}: text file larger than {MAX_TEXT_BYTES} bytes")
             exempt = (rel.startswith(PATH_CHECK_EXEMPT_PREFIXES)

@@ -101,6 +101,7 @@ include = ["vkm_world*", "vkm_corpus*", "vkm_cad*", "vkm_drawio*", "vkm_jobs*", 
 # non-Python files read at run time (a non-editable install, e.g. the CORE image, has only what is listed here)
 vkm_corpus = ["duckdb/sql/*.sql", "ops/schema.sql"]
 vkm_ansys = ["ladder/*.inp", "ladder/*.json"]
+vkm_matlab = ["entry/*.m"]
 
 [tool.pytest.ini_options]
 addopts = "-ra -p no:cacheprovider"
@@ -110,6 +111,6 @@ markers = [
     "services: needs live Neo4j/OpenSearch/PostgreSQL/rerankers (skipped -> NOT_RUN when absent)",
     "gpu: needs a CUDA GPU or a running GLM-OCR/reranker model service",
     "desktop: needs Windows desktop tools (AutoCAD, draw.io)",
-    "matlab: needs MATLAB and takes a MATLAB licence (run only with -m matlab and a task that allows it)",
+    "matlab: starts MATLAB and takes a licence (live smoke; opt-in: VKM_MATLAB_LIVE=1 and -m matlab)",
     "ansys: needs Ansys 2026 R1 and takes an Ansys licence (run only with -m ansys and VKM_ANSYS_LIVE=1)",
 ]
