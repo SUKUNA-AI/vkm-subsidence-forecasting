@@ -485,6 +485,22 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                   limit: Annotated[int, Query(ge=1, le=500)] = 200) -> JSONResponse:
         return respond(request, service.citations(work_id, direction, include_unlinked, limit))
 
+    # ---------------------------------------------------------------- NAV graph in Neo4j (agent G)
+    @app.get("/v1/nav/graph/paths", tags=["navigation"], **JSON_RESPONSES)
+    def nav_graph_paths(request: Request, _auth: Read, term_a: Annotated[str, Query(min_length=1, max_length=200)],
+                        term_b: Annotated[str, Query(min_length=1, max_length=200)],
+                        max_len: Annotated[int, Query(ge=1, le=6)] = 4, limit: Annotated[int, Query(ge=1, le=20)] = 5,
+                        via: Annotated[list[Literal["concepts", "formulas", "sections", "topics"]] | None,
+                                       Query(max_length=4)] = None) -> JSONResponse:
+        return respond(request, service.nav_graph_paths(term_a, term_b, max_len, limit, via))
+
+    @app.get("/v1/nav/graph/neighbourhood/{node_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_graph_neighbourhood(request: Request, node_id: str, _auth: Read,
+                                depth: Annotated[int, Query(ge=1, le=2)] = 1,
+                                limit: Annotated[int, Query(ge=1, le=200)] = 50) -> JSONResponse:
+        return respond(request, service.nav_graph_neighbourhood(node_id, depth, limit))
+    # ---------------------------------------------------------------- end NAV graph (agent G)
+
     # ---------------------------------------------------------------- navigation layer (derived, not evidence)
     @app.get("/v1/nav/outline/{source_id}", tags=["navigation"], **JSON_RESPONSES)
     def nav_outline(request: Request, source_id: str, _auth: Read) -> JSONResponse:
