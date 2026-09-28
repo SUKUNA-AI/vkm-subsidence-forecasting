@@ -230,6 +230,14 @@ def test_draw_convert_and_pdf_import(tmp_path):
     assert back["path"] == "out/back.dxf" and back["derivation"]["method"].startswith("DWG")
     with pytest.raises(ToolFailure):
         jobs.convert(drawn["job_id"], "../secret.dwg", "dxf")
+    with pytest.raises(ToolFailure):
+        jobs.convert(drawn["job_id"], "drawing", "dwg", as_job_drawing=True)
+    # a DXF of any origin (here a fallback-style output) → the job drawing → a sheet
+    plain = jobs.draw(spec, name="fallback_like")
+    conv = jobs.convert(plain["job_id"], "out/fallback_like.dxf", "dwg", as_job_drawing=True)
+    assert conv["job_drawing"]["path"] == "work/drawing.dwg"
+    assert jobs.layout_sheet(job_id=plain["job_id"], scale_denominator=100)["model_window_source"] == \
+        "drawing extents"
     pdf = tmp_path / "in.pdf"
     pdf.write_bytes(b"%PDF-1.4 toy")
     imp = jobs.pdf_import(pdf=str(pdf), pages=[1, 2])

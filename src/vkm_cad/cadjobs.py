@@ -394,10 +394,14 @@ class CadJobs:
         return out
 
     def convert(self, job_id: str, source: str = "drawing", to: str = "dxf", name: str | None = None,
-                dxf_version: str = "2018", source_file: Path | None = None) -> dict[str, Any]:
+                dxf_version: str = "2018", source_file: Path | None = None,
+                as_job_drawing: bool = False) -> dict[str, Any]:
         """``source``: ``drawing`` (the job drawing) or a job file ``out/…``/``in/…``; ``source_file``: a local DXF/DWG
-        (e.g. a scratch document of ``cad_import_pdf_vector``) copied into ``in/`` first; ``to``: dwg or dxf."""
+        (e.g. a scratch document of ``cad_import_pdf_vector``) copied into ``in/`` first; ``to``: dwg or dxf;
+        ``as_job_drawing``: a DWG result becomes the job drawing (e.g. fallback DXF → sheet → PDF)."""
         job = self.store.get(job_id)
+        if as_job_drawing and (to != "dwg" or source == "drawing" and source_file is None):
+            raise ToolFailure("INVALID_ARGUMENT", "as_job_drawing needs to='dwg' and a source other than the drawing")
         if to not in ("dwg", "dxf"):
             raise ToolFailure("INVALID_ARGUMENT", "to is dwg or dxf")
         if dxf_version not in ("2000", "2004", "2007", "2010", "2013", "2018"):
@@ -420,9 +424,12 @@ class CadJobs:
         base = _file(name or (Path(source).stem if source != "drawing" else "drawing"))
         if to == "dwg":
             if src.suffix.lower() == ".dwg":
-                deriv = derivation("DERIVATION", "copy of the job drawing", "FILE_COPY", crs=self._crs(job))
-                return self._copy_out(job, src, f"{base}.dwg", "CAD_DWG", deriv, None)
-            return self._to_dwg(job, src, base, as_job_drawing=False)
+                deriv = derivation("DERIVATION", "copy of a drawing", "FILE_COPY", crs=self._crs(job))
+                out = self._copy_out(job, src, f"{base}.dwg", "CAD_DWG", deriv, None)
+                if as_job_drawing:
+                    out["job_drawing"] = job.promote_drawing(src, "copy")
+                return out
+            return self._to_dwg(job, src, base, as_job_drawing=as_job_drawing)
         run_id, run_dir, _res = self._run(job, "convert:dxf", lambda rd: lisp.dxfout(rd / "export.dxf", dxf_version),
                                           save=False, input_from=src, code=f"dxfout {dxf_version}")
         deriv = derivation("DERIVATION", f"DWG → DXF {dxf_version} (Core Console DXFOUT)", CONSOLE_ENGINE,

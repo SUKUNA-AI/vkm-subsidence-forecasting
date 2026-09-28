@@ -264,10 +264,11 @@ def register_v1(server: MCPServer, svc: CadService) -> None:
     @server.tool(name="cad_convert", annotations=JOB)
     async def cad_convert(job_id: JobId, source: Annotated[str, Field(max_length=200)] = "drawing",
                           to: Literal["dwg", "dxf"] = "dxf", name: ObjName | None = None,
-                          dxf_version: Literal["2000", "2004", "2007", "2010", "2013", "2018"] = "2018"
-                          ) -> CallToolResult:
+                          dxf_version: Literal["2000", "2004", "2007", "2010", "2013", "2018"] = "2018",
+                          as_job_drawing: bool = False) -> CallToolResult:
         """DXF ↔ DWG with AutoCAD (SAVEAS / DXFOUT). source: 'drawing' (the job drawing), a job file out/… in/…, or a
-        scratch document 'scratch:CADS-…/doc.dxf' (e.g. PDF vector paths from cad_import_pdf_vector) → DWG."""
+        scratch document 'scratch:CADS-…/doc.dxf' (e.g. PDF vector paths from cad_import_pdf_vector) → DWG.
+        as_job_drawing: the DWG becomes the job drawing (e.g. fallback DXF → cad_layout_sheet → PDF)."""
         def run() -> Any:
             if source.startswith("scratch:"):
                 doc_id, _, rel = source[len("scratch:"):].partition("/")
@@ -276,8 +277,9 @@ def register_v1(server: MCPServer, svc: CadService) -> None:
                 path = svc.scratch.doc_dir(doc_id) / rel
                 if not path.is_file():
                     raise ToolFailure("INPUT_NOT_FOUND", f"{source} does not exist")
-                return jobs.convert(job_id, "drawing", to, name or doc_id, dxf_version, source_file=path)
-            return jobs.convert(job_id, source, to, name, dxf_version)
+                return jobs.convert(job_id, "drawing", to, name or doc_id, dxf_version, source_file=path,
+                                    as_job_drawing=as_job_drawing)
+            return jobs.convert(job_id, source, to, name, dxf_version, as_job_drawing=as_job_drawing)
 
         return await _call("cad_convert", run)
 
