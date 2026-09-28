@@ -245,11 +245,11 @@ CATEGORIES: tuple[tuple[str, str, str, str], ...] = (
 HEADINGS = {k: h for k, h, _s, _t in CATEGORIES}
 SHORT_NAMES = {k: s for k, _h, s, _t in CATEGORIES}
 HOW_TO = {k: t for k, _h, _s, t in CATEGORIES}
-BASE_PRIORITY = {"sections": 100, "processes": 92, "gaps": 90, "concept": 88, "formulas": 80, "sources": 76,
-                 "conflicts": 72, "models": 66, "topics": 66, "evidence": 56, "citations": 54, "operators": 48,
-                 "causal": 46}
-STEP = {"sections": 4, "processes": 6, "gaps": 1.5, "concept": 12, "formulas": 4, "sources": 3, "conflicts": 5,
-        "models": 5, "topics": 5, "evidence": 4, "citations": 4, "operators": 5, "causal": 3}
+# budget priorities (higher stays longer): priority = base − step · rank; the gaps of a process follow the process
+BASE_PRIORITY = {"sections": 100, "processes": 92, "concept": 88, "formulas": 82, "conflicts": 80, "sources": 78,
+                 "models": 74, "topics": 70, "evidence": 58, "citations": 56, "operators": 50, "causal": 48}
+STEP = {"sections": 5, "processes": 6, "concept": 12, "formulas": 5, "conflicts": 6, "sources": 4, "models": 6,
+        "topics": 6, "evidence": 5, "citations": 4, "operators": 6, "causal": 4}
 
 
 def _prio(category: str, rank: int) -> float:
@@ -333,12 +333,13 @@ PARAM_LEXICON: dict[str, tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]
     "strength": (("прочност", "ucs", "strength"), ("σсж", "σр"),
                  ("ucs", "tensile_strength", "strength", "triaxial_strength", "residual_strength", "ucs_cube_strength",
                   "standard_strength_normative", "triaxial", "long_term_strength"), ()),
-    "long_term": (("длительн",), (), ("long_term_strength", "long_term_strength_at_size"), ()),
+    "long_term": (("длительн",), ("Kдл", "Кдл", "σ∞", "σдл"), ("long_term_strength", "long_term_strength_at_size"),
+                  ()),
     "coulomb": (("сцеплен", "трени", "кулон"), ("φ",), ("cohesion", "friction_angle"), ()),
-    "stress": (("напряж", "распор", "литостат", "давлен"), ("σ", "σv", "σh", "λ", "K0"),
+    "stress": (("напряж", "распор", "литостат", "давлен", "нагружен"), ("σ", "σv", "σh", "λ", "K0"),
                ("vertical_stress", "lateral_stress_ratio", "in_situ_stress_measurement", "in_situ_stress", "stress",
                 "kaiser_effect_pressure", "kaiser_effect_stress_lab", "pillar_stress"), ("stress_measurement",)),
-    "creep": (("ползуч", "реолог", "вязк", "релаксац"), ("η",),
+    "creep": (("ползуч", "реолог", "вязк", "релаксац", "энерги активац", "абел", "нортон"), ("η", "ε̇"),
               ("creep_coefficient", "creep_stress_exponent", "creep_threshold_stress", "steady_creep_rate",
                "creep_time_scale", "viscosity", "rheology_param", "hereditary_kernel_exponent_alpha"),
               ("rheology_law",)),
@@ -352,7 +353,7 @@ PARAM_LEXICON: dict[str, tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]
                 ()),
     "moisture": (("влажн", "увлажн"), (), ("moisture_content", "ucs_vs_moisture", "moisture_effect"), ()),
     "scale": (("масштаб",), (), ("strength_at_size", "scale_shape_effect"), ()),
-    "temperature": (("температур", "тепл", "термич", "геотерм"), (), (), ("thermal",)),
+    "temperature": (("температур", "тепл", "термич", "геотерм"), ("T",), (), ("thermal",)),
     "hydro": (("вод", "напор", "фильтрац", "проницаем", "порист", "рассол", "гидрогеолог"), (), (), ("hydro",)),
     "backfill": (("заклад", "заполнен", "усадк", "консолидац"), (), ("density_backfill_or_fluid",), ("backfill",)),
     "geometry": (("отметк", "рельеф", "цмр", "dem", "мощност", "глубин", "ширин", "высот", "пролет", "геометр",
@@ -507,10 +508,15 @@ class DossierBuilder:
             return False
         try:
             st.inputs["nav_snapshot_id"] = self.nav.snapshot_id()
-            return True
         except Exception as exc:  # noqa: BLE001 - NavUnavailable or an unreadable build
             st.warn("NAV_UNAVAILABLE", f"the navigation layer is not available: {str(exc)[:160]}")
             return False
+        canon_snapshot = self.canon.snapshot_id()
+        st.inputs["canonical_snapshot_id"] = canon_snapshot
+        if st.inputs["nav_snapshot_id"] != canon_snapshot:
+            st.warn("NAV_SNAPSHOT_BEHIND", "the navigation layer was built from another canonical snapshot; ids are "
+                                           "stable, counts may differ")
+        return True
 
     def _catalogues_ready(self, st: _State) -> bool:
         if self.catalogues is None:
@@ -1087,9 +1093,14 @@ class DossierBuilder:
         self._evidence_rows(st, cat, {x.get("vn_id") for p in st.processes for x in links_by.get(p["process_id"], [])})
 
     def _gaps(self, st: _State, p: dict[str, Any], links: list[dict[str, Any]], vn_vars: dict[str, set[str]]) -> None:
-        """Required parameters of a process without a SKRU-1 evidence record linked to it (lexical match of the
-        parameter phrase to the variables of the linked records) and the curated data gaps — all UNKNOWN; the names
-        are shown without the values printed in the catalogue cell."""
+        """Gaps of one process, all UNKNOWN and shown by name (never with the values printed in the catalogue cell):
+
+        * ``LINKED_OTHER_SCOPE`` — the parameter's evidence records linked to the process are all of other sites
+          (a transfer to SKRU-1 needs an explicit Transfer);
+        * ``NO_LINKED_RECORD`` — a recognised parameter (lexicon) with no linked record of its kind;
+        * ``CURATED_GAP`` — the catalogue's own ``data_gaps``;
+        * ``NOT_MATCHED`` — one line with the parameters the lexicon does not recognise: their coverage was not
+          checked (reported as such, not as missing)."""
         pid = p["process_id"]
         param_links = [x for x in links if (x.get("kind") or "") in PARAM_LINK_KINDS]
         has_skru1 = any((x.get("scope") or "") in SKRU1_SCOPES for x in param_links)
@@ -1099,28 +1110,34 @@ class DossierBuilder:
             for var in vn_vars.get(x.get("vn_id") or "", set()):
                 keys |= {k for k, (_st, _sy, vars_, _k) in PARAM_LEXICON.items() if var in vars_}
             link_keys.append((x, keys))
+        base = {"process_id": pid, "status": "UNKNOWN", "readiness": p.get("readiness"),
+                "process_has_skru1_parameter_records": has_skru1}
+        unmatched: list[str] = []
         for item in _split_parameters(p.get("required_parameters")):
             words = words_of(item)
+            tokens = set(_WORD.findall(item)) | set(item.split())
             keys = {k for k, (stems_, symbols, _v, _k) in PARAM_LEXICON.items()
                     if any(all(any(w.startswith(s) for w in words) for s in phrase.split()) for phrase in stems_)
-                    or any(sym in _WORD.findall(item) or sym in item.split() for sym in symbols)}
+                    or any(sym in tokens for sym in symbols)}
+            if not keys:
+                unmatched.append(_param_name(item))
+                continue
             linked = [x for x, k in link_keys if keys & k]
-            skru1 = [x for x in linked if (x.get("scope") or "") in SKRU1_SCOPES]
-            if linked and skru1:
+            if any((x.get("scope") or "") in SKRU1_SCOPES for x in linked):
                 continue                                           # a SKRU-1 record is linked: not a gap here
-            coverage = "LINKED_OTHER_SCOPE" if linked else ("NO_LINKED_RECORD" if keys else "UNCLASSIFIED")
-            look = sorted({PARAM_CATALOGUES[k] for k in keys if k in PARAM_CATALOGUES})
-            st.gaps.append({"process_id": pid, "parameter": _param_name(item),
-                            "parameter_as_catalogued": short(item, 140), "status": "UNKNOWN",
-                            "coverage": coverage, "scopes": sorted({x.get("scope") or "?" for x in linked}),
-                            "evidence_vn_ids": [x.get("vn_id") for x in linked][:4], "readiness": p.get("readiness"),
-                            "process_has_skru1_parameter_records": has_skru1, "where_to_look": look})
-        if p.get("data_gaps"):
-            st.gaps.append({"process_id": pid, "parameter": short(p.get("data_gaps"), 160),
-                            "parameter_as_catalogued": short(p.get("data_gaps"), 160), "status": "UNKNOWN",
-                            "coverage": "CURATED_GAP", "scopes": [], "evidence_vn_ids": [],
-                            "readiness": p.get("readiness"), "process_has_skru1_parameter_records": has_skru1,
-                            "where_to_look": []})
+            st.gaps.append({**base, "parameter": _param_name(item), "parameter_as_catalogued": short(item, 140),
+                            "coverage": "LINKED_OTHER_SCOPE" if linked else "NO_LINKED_RECORD",
+                            "scopes": sorted({x.get("scope") or "?" for x in linked}),
+                            "evidence_vn_ids": [x.get("vn_id") for x in linked][:4],
+                            "where_to_look": sorted({PARAM_CATALOGUES[k] for k in keys if k in PARAM_CATALOGUES})})
+        gaps_text = str(p.get("data_gaps") or "").strip()
+        if _WORD.search(gaps_text) and norm(gaps_text) not in ("нет", "none", "n/a", "na"):
+            st.gaps.append({**base, "parameter": short(gaps_text, 160), "parameter_as_catalogued": short(gaps_text, 160),
+                            "coverage": "CURATED_GAP", "scopes": [], "evidence_vn_ids": [], "where_to_look": []})
+        if unmatched:
+            st.gaps.append({**base, "status": "NOT_CHECKED", "parameter": "; ".join(unmatched)[:200],
+                            "parameter_as_catalogued": short(p.get("required_parameters"), 200),
+                            "coverage": "NOT_MATCHED", "scopes": [], "evidence_vn_ids": [], "where_to_look": []})
 
     def _models(self, st: _State, cat: Any, top_ids: set[str]) -> None:
         M = cat.rows("mathematical_model_registry")
@@ -1281,8 +1298,10 @@ class DossierBuilder:
         mode = (st.inputs.get("retrieval") or {}).get("mode", "NAV_ONLY")
         cats = (st.inputs.get("catalogues") or {}).get("pack_id") or "нет"
         src = f" · источники: {', '.join(req.source_ids)}" if req.source_ids else ""
+        codes = sorted({w["code"] for w in st.warnings})
         return [f"# Досье темы «{short(req.query, 120)}»", f"_{NOTE}_",
-                f"поиск: {mode} · NAV: {st.inputs.get('nav_snapshot_id') or 'нет'} · каталоги: {cats}{src}", ""]
+                f"поиск: {mode} · NAV: {st.inputs.get('nav_snapshot_id') or 'нет'} · каталоги: {cats}{src}"
+                + (f" · предупреждения: {', '.join(codes)}" if codes else ""), ""]
 
     def _entries(self, st: _State) -> list[Entry]:
         out: list[Entry] = []
@@ -1362,22 +1381,29 @@ class DossierBuilder:
             if ev:
                 lines.append(f"  evidence ({p['n_evidence']}): {ev}{more}")
             out.append(Entry("processes", p["process_id"], _prio("processes", p["rank"] - 1), lines, p))
+        prank = {p["process_id"]: p["rank"] for p in st.processes}
+        within: dict[str, int] = {}
         for i, g in enumerate(st.gaps):
+            j = within[g["process_id"]] = within.get(g["process_id"], -1) + 1
+            prio = _prio("processes", prank.get(g["process_id"], 99) - 1) - 0.5 - 0.2 * j
             if g["coverage"] == "CURATED_GAP":
                 text = f"- {g['process_id']} · кураторский пробел: {g['parameter']}"
             elif g["coverage"] == "LINKED_OTHER_SCOPE":
                 text = (f"- {g['process_id']} · «{g['parameter']}» — UNKNOWN для СКРУ-1: связаны только записи "
                         f"{', '.join(g['scopes'])} ({', '.join('`' + v + '`' for v in g['evidence_vn_ids'][:2])}); "
                         f"перенос только через Transfer")
+            elif g["coverage"] == "NOT_MATCHED":
+                text = (f"- {g['process_id']} · не сверено с записями evidence (параметр не распознан): "
+                        f"{short(g['parameter'], 150)}")
+                prio -= 3
             else:
-                why = "связанной с процессом записи evidence не найдено" + (
-                    "" if g["coverage"] == "NO_LINKED_RECORD" else " (параметр не распознан)")
+                why = "связанной с процессом записи evidence не найдено"
                 if g.get("process_has_skru1_parameter_records"):
                     why += "; у процесса есть записи СКРУ-1 — сверить"
                 text = f"- {g['process_id']} · «{g['parameter']}» — UNKNOWN: {why}"
                 if g.get("where_to_look"):
                     text += f" (искать: {' · '.join(g['where_to_look'])})"
-            out.append(Entry("gaps", f"{g['process_id']}#{i + 1}", _prio("gaps", i), [text], g))
+            out.append(Entry("gaps", f"{g['process_id']}#{i + 1}", prio, [text], g))
         for m in st.models:
             out.append(Entry("models", m["model_id"], _prio("models", m["rank"] - 1), [
                 f"- `{m['model_id']}` {m['name']} · {m['math_class']} · {m['status']}/{m['confidence']} · "

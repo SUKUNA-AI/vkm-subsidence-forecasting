@@ -120,7 +120,7 @@ CATALOGUES = {
         {"process_id": "PC-01", "process": "Оседание земной поверхности над выработками", "domain": "surface",
          "group": "SURF", "causal_role": "итог", "causal_path_to_subsidence": "выемка → оседание",
          "required_variables": "u_z",
-         "required_parameters": "плотность пород (ρ); модуль деформации; отметки реперов; g",
+         "required_parameters": "плотность пород (ρ); модуль деформации; отметки реперов; схема ходов; g",
          "governing_equations": "η = f(t) (синтетическое)", "readiness": "PARAMETERS_MISSING",
          "data_gaps": "GAP-900: синтетический пробел", "status": "FACT", "scope": "SKRU1", "confidence": "HIGH",
          "source_ids": "VKM-SRC-001", "locator": "VKM-SRC-001 p.1", "vn_ids": "EV-VN-S001-0001",
@@ -286,7 +286,9 @@ def test_nav_only_dossier_covers_all_parts(env):
     assert missing["модуль деформации"]["where_to_look"] == ["mechanics_evidence_catalog"]
     assert "mining_geometry_catalog" in missing["отметки реперов"]["where_to_look"][0]
     assert gaps[("PC-01", "CURATED_GAP")]["parameter"].startswith("GAP-900")
-    assert all(g["status"] == "UNKNOWN" for g in record["gaps"])
+    assert gaps[("PC-01", "NOT_MATCHED")]["parameter"] == "схема ходов"      # not recognised: not checked, not
+    assert gaps[("PC-01", "NOT_MATCHED")]["status"] == "NOT_CHECKED"         # claimed missing
+    assert all(g["status"] == "UNKNOWN" for g in record["gaps"] if g["coverage"] != "NOT_MATCHED")
     assert not any("g" == g["parameter"] for g in record["gaps"])            # 1-letter items are not parameters
     assert "2,1" not in json.dumps(record["gaps"], ensure_ascii=False)      # no value is filled into a gap
     # markdown: ids and pages, within the budget
@@ -458,8 +460,9 @@ def test_mcp_tool_returns_markdown_and_structured_json(env):
 
     tool, ok, bad = asyncio.run(go())
     assert tool.annotations.read_only_hint and "UNKNOWN" in tool.description
-    assert ok.is_error is False and ok.content[0].text.startswith("# Досье темы")
-    assert "предупреждения API: " in ok.content[0].text and "RETRIEVAL_UNAVAILABLE" in ok.content[0].text
+    assert ok.is_error is False and ok.content[0].text.startswith("# Досье темы") and len(ok.content) == 1
+    assert "предупреждения: " in ok.content[0].text and "RETRIEVAL_UNAVAILABLE" in ok.content[0].text
+    assert len(ok.content[0].text) <= 3000                                   # the MCP text keeps the budget
     assert ok.structured_content["ok"] and ok.structured_content["item"]["envelope"]["object_kind"] == "TOPIC_DOSSIER"
     assert len(ok.structured_content["item"]["record"]["markdown"]) <= 3000
     assert bad.is_error

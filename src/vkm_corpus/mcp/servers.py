@@ -90,19 +90,17 @@ def _result(tool: str, body: dict[str, Any], images: list[ImageContent] | None =
 
 
 def _markdown_result(tool: str, body: dict[str, Any], started: float) -> CallToolResult:
-    """A dossier answer: its markdown rendering as the text (compact for the model; API warnings appended) and the
-    full ``ApiResponse`` as ``structured_content``; errors are the usual JSON text."""
+    """A dossier answer: its markdown rendering as the text (compact for the model, within the dossier's character
+    budget, warning codes in its header) and the full ``ApiResponse`` as ``structured_content``; errors are the usual
+    JSON text."""
     record = ((body.get("item") or {}).get("record") or {}) if body.get("ok") else {}
     if not record.get("markdown"):
         return _result(tool, body, started=started)
     LOG.info("tool call", extra={"vkm": {"stage": tool, "status": "ok", "error_code": None,
                                          "duration_ms": round((time.perf_counter() - started) * 1000, 1),
                                          "request_id": (body.get("meta") or {}).get("request_id")}})
-    text = record["markdown"].rstrip() + "\n"
-    codes = sorted({w.get("code") for w in (body.get("meta") or {}).get("warnings") or [] if w.get("code")})
-    if codes:
-        text += f"\nпредупреждения API: {', '.join(codes)}\n"
-    return CallToolResult(content=[TextContent(type="text", text=text)], structured_content=body, is_error=False)
+    return CallToolResult(content=[TextContent(type="text", text=record["markdown"])], structured_content=body,
+                          is_error=False)
 
 
 def _image(data: bytes, media_type: str | None) -> ImageContent:

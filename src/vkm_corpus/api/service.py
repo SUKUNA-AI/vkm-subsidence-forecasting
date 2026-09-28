@@ -860,10 +860,6 @@ class ApiService:
                                   matches_canonical_snapshot=None if built_from is None else
                                   built_from == canon_snapshot))
         warnings = [ApiWarning(code=w["code"], message=w["message"], count=w.get("count")) for w in dossier.warnings]
-        nav_snapshot = (dossier.record.get("inputs") or {}).get("nav_snapshot_id")
-        if nav_snapshot and nav_snapshot != canon_snapshot:
-            warnings.append(ApiWarning(code="NAV_SNAPSHOT_BEHIND", message="the navigation layer was built from "
-                                       "another canonical snapshot; ids are stable, counts may differ"))
         return Result(item=Item(envelope=envelope, record=jsonable(dossier.record)), warnings=warnings)
 
     def citations(self, work_id: str, direction: str, include_unlinked: bool, limit: int) -> Result:
