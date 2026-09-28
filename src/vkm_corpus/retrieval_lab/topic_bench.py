@@ -34,7 +34,14 @@ NAV_WEIGHTS = {"sections": 1.0, "term": 1.0, "neighbour": 0.5}
 NAV_NEIGHBOURS = 5
 TRACKS = ("PROCESS", "MODEL_FAMILY")
 VARIANTS = ("NAME", "PARA1", "PARA2")
-SYSTEMS = ("bm25", "hybrid_late", "hybrid_nolate", "nav", "dossier")
+SYSTEMS = ("bm25", "hybrid_late", "hybrid_nolate", "nav", "dossier", "hybrid_late_pool", "hybrid_late_kinds",
+           "hybrid_late_drill")
+# post-hoc diagnostic systems (not pre-registered): hybrid_late restricted to the sources of the evidence sweep;
+# with figures, tables and formulas as hits (mapped to their pages); with a drill-down into its first 5 sources
+POST_HOC_SYSTEMS = ("hybrid_late_pool", "hybrid_late_kinds", "hybrid_late_drill")
+DRILL_HEAD = 10
+DRILL_BUDGET = 40
+SWEEP_SOURCES = tuple(f"VKM-SRC-{n:03d}" for n in range(1, 42) if n not in (13, 22))
 PAGE_ID = re.compile(r"^(VKM-SRC-\d{3}):([a-z])(\d{4})$")
 PAGE_ID_IN_TEXT = re.compile(r"VKM-SRC-\d{3}:[a-z]\d{4}")
 SECTION_ID = re.compile(r"^SEC-[0-9a-f]{16}$")
@@ -240,6 +247,26 @@ def ranking_from_hits(hits: Sequence[Mapping[str, Any]], index: SectionIndex, *,
     for h in hits:
         if h.get("page_id"):
             r.add_page(h["page_id"], h.get("duplicates") or ())
+    _nodes_from_pages(r, index)
+    return r
+
+
+def ranking_from_drill(line: Mapping[str, Any], index: SectionIndex, *, head: int = DRILL_HEAD,
+                       budget: int = DRILL_BUDGET) -> Ranking:
+    """Post-hoc drill-down: the first ``head`` pages of the base answer, then the per-source answers (the base's
+    first sources, each searched alone) round-robin up to ``budget`` pages, then the rest of the base answer."""
+    base = line.get("hits") or []
+    r = Ranking(error=line.get("error"))
+    for h in base[:head]:
+        r.add_page(h["page_id"], h.get("duplicates") or ())
+    lists = [d.get("hits") or [] for d in line.get("drill") or []]
+    depth = max((len(x) for x in lists), default=0)
+    for i in range(depth):
+        for x in lists:
+            if i < len(x) and len(r.pages) < budget:
+                r.add_page(x[i]["page_id"], x[i].get("duplicates") or ())
+    for h in base[head:]:
+        r.add_page(h["page_id"], h.get("duplicates") or ())
     _nodes_from_pages(r, index)
     return r
 

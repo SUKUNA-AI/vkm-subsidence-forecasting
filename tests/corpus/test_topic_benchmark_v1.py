@@ -61,6 +61,20 @@ def test_real_set_is_valid_and_frozen():
         assert _sha_lf(BENCH / name.lstrip("*")) == digest, name
 
 
+def test_published_outputs_carry_ids_and_numbers_only():
+    for name in ("results_v1.json", "failure_analysis_v1.json", "page_mapping_v1.json"):
+        path = BENCH / name
+        if not path.exists():
+            continue
+        data = json.loads(path.read_text(encoding="utf-8"))
+        assert not (TB._keys(data) & TB.FORBIDDEN_KEYS), name
+    receipt = ROOT / "docs" / "corpus_platform" / "receipts" / "topic_benchmark_v1.json"
+    if receipt.exists():
+        data = json.loads(receipt.read_text(encoding="utf-8"))
+        assert data["preregistration"]["set_sha256"] == _sha_lf(BENCH / "topic_set_v1.jsonl")
+        assert not (TB._keys(data) & TB.FORBIDDEN_KEYS)
+
+
 def test_validation_catches_problems():
     good = {"topic_id": "PC-99", "track": "PROCESS", "group": "RHEO", "title": "t",
             "queries": [{"query_id": f"TQ-PC-99-{i}", "variant": v, "text": f"q{i}"}
@@ -149,6 +163,17 @@ def test_nav_ranking_fuses_lists_and_reads_entry_pages_first():
     topic = _topic([_t(1, "VKM-SRC-001:p0004")])
     m = TB.query_metrics(topic, r)
     assert m["mrr@50"] == pytest.approx(1 / 4) and m["section_hit@10"] == 1.0
+
+
+def test_drill_down_ranking_interleaves_sources_after_the_head():
+    idx = TB.SectionIndex.from_outlines({})
+    base = [{"page_id": f"VKM-SRC-001:p{i:04d}"} for i in range(1, 13)]
+    line = {"hits": base, "drill": [{"hits": [{"page_id": "VKM-SRC-001:p0020"}, {"page_id": "VKM-SRC-001:p0021"}]},
+                                    {"hits": [{"page_id": "VKM-SRC-002:p0005"}, {"page_id": "VKM-SRC-001:p0003"}]}]}
+    r = TB.ranking_from_drill(line, idx, head=10, budget=13)
+    assert r.pages[:10] == [h["page_id"] for h in base[:10]]
+    assert r.pages[10:13] == ["VKM-SRC-001:p0020", "VKM-SRC-002:p0005", "VKM-SRC-001:p0021"]
+    assert r.pages[13:] == ["VKM-SRC-001:p0011", "VKM-SRC-001:p0012"]
 
 
 def _load_harness():

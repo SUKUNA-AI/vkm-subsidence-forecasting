@@ -51,6 +51,8 @@ def ranking_of(line: dict, index: TB.SectionIndex) -> TB.Ranking:
         return TB.ranking_from_nav({**(line.get("nav") or {}), "error": line.get("error")}, index)
     if system == "dossier":
         return TB.ranking_from_dossier(line, index)
+    if system == "hybrid_late_drill":
+        return TB.ranking_from_drill(line, index)
     return TB.ranking_from_hits(line.get("hits") or [], index, error=line.get("error"))
 
 
@@ -107,6 +109,24 @@ def main() -> None:
         ids = [t.topic_id for t in topics if t.track == track]
         by_track_tests[track] = TB.compare_systems(
             rows, [c for c in TB.PRIMARY_COMPARISONS if c[0] in systems and c[1] in systems], topics=ids)
+    post_hoc = {}
+    extra = [(s, "hybrid_late") for s in TB.POST_HOC_SYSTEMS if s in systems and "hybrid_late" in systems]
+    if extra:
+        post_hoc = TB.compare_systems(rows, extra)
+    dossier = {}
+    if "dossier" in systems and "hybrid_late" in systems:     # secondary: the dossier against the deployed search
+        dossier = TB.compare_systems(rows, [("dossier", "hybrid_late"), ("dossier", "nav")])
+    sweep = set(TB.SWEEP_SOURCES)
+    outside = {}
+    for s in systems:
+        shares = []
+        for (qid, sys_), line in runs.items():
+            if sys_ != s:
+                continue
+            top = ranking_of(line, index).pages[:10]
+            if top:
+                shares.append(sum(1 for p in top if TB.split_page_id(p)[0] not in sweep) / len(top))
+        outside[s] = round(sum(shares) / len(shares), 4) if shares else None
     cols = ["query_id", "system", "page_recall@10", "page_recall@20", "page_recall@50", "mrr@50", "source_recall@10",
             "section_hit@10", "section_recall@10", "section_pages@10", "success@10", "error"]
     out = {
@@ -126,13 +146,25 @@ def main() -> None:
         "by_variant": TB.aggregate(rows, ["system", "variant"]),
         "comparisons_primary": comparisons,
         "comparisons_by_track": by_track_tests,
+        "post_hoc": {"systems": [s for s in systems if s in TB.POST_HOC_SYSTEMS],
+                     "note": "not pre-registered, diagnostic: hybrid_late_pool = hybrid_late restricted to the 39 "
+                             "sources of the evidence sweep (where the targets live; separates corpus breadth from "
+                             "ranking inside the judged sources); hybrid_late_kinds = pages, figures, tables and "
+                             "formulas as hits mapped to their pages; hybrid_late_drill = first 10 pages, then the "
+                             "first 5 sources searched alone (10 pages each, round-robin) up to 40, then the rest",
+                     "comparisons": post_hoc,
+                     "top10_share_outside_sweep_sources": outside},
+        "comparisons_dossier": dossier,
         "acceptance": {s: TB.acceptance(summary.get(s, {}), levels) for s in systems},
         "latency": latency,
         "flags": flags,
-        "per_query": {"columns": cols,
-                      "rows": [[(round(r[c], 4) if isinstance(r[c], float) else r[c]) for c in cols] for r in rows]},
     }
-    Path(args.out).write_bytes((json.dumps(out, ensure_ascii=False, indent=1) + "\n").encode("utf-8"))
+    per_query = [[(round(r[c], 4) if isinstance(r[c], float) else r[c]) for c in cols] for r in rows]
+    head = json.dumps(out, ensure_ascii=False, indent=1)
+    text = (head[:-2] + ',\n "per_query": {\n  "columns": ' + json.dumps(cols) + ',\n  "rows": [\n'
+            + ",\n".join("   " + json.dumps(r, ensure_ascii=False) for r in per_query) + "\n  ]\n }\n}\n")
+    json.loads(text)
+    Path(args.out).write_bytes(text.encode("utf-8"))
     for s in systems:
         m = summary[s]
         print(f"{s:14s} R@10 {m['page_recall@10']:.3f} R@20 {m['page_recall@20']:.3f} R@50 {m['page_recall@50']:.3f} "

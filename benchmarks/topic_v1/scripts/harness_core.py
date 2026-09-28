@@ -81,7 +81,8 @@ def page_hits(payload: dict) -> list[dict]:
         pid = env.get("page_id") or env.get("object_id")
         if not pid or not PAGE_RE.fullmatch(str(pid)):
             continue
-        dups = [p for p in PAGE_RE.findall(json.dumps(rec.get("duplicates") or [])) if p != pid]
+        is_page = env.get("object_kind") in (None, "PAGE") and env.get("object_id") in (None, pid)
+        dups = [p for p in PAGE_RE.findall(json.dumps(rec.get("duplicates") or [])) if p != pid] if is_page else []
         out.append({"page_id": pid, "source_id": env.get("source_id"), "duplicates": dups})
     return out
 
@@ -172,6 +173,7 @@ def main(argv: list[str]) -> None:
     ap.add_argument("--dossier-method", default="GET", choices=["GET", "POST"])
     ap.add_argument("--dossier-param", default="q", help="query parameter (GET) or body field (POST) for the topic")
     ap.add_argument("--dossier-extra", default="{}", help="extra JSON params/body fields for the dossier call")
+    ap.add_argument("--pool-sources", default="", help="source ids of the post-hoc system hybrid_late_pool (<= 50)")
     ap.add_argument("--limit-queries", type=int, default=0)
     ap.add_argument("--only-topics", default="")
     ap.add_argument("--outlines", default="all", choices=["all", "seen", "none"])
@@ -179,6 +181,8 @@ def main(argv: list[str]) -> None:
     systems = [s for s in args.systems.split(",") if s]
     if "dossier" in systems and not args.dossier_route:
         raise SystemExit("dossier needs --dossier-route")
+    if "hybrid_late_pool" in systems and not args.pool_sources:
+        raise SystemExit("hybrid_late_pool needs --pool-sources")
     set_jsonl = globals().get("SET_JSONL")
     if not set_jsonl:
         raise SystemExit("SET_JSONL is not embedded (use run_core.sh)")
@@ -207,15 +211,39 @@ def main(argv: list[str]) -> None:
             if system == "bm25":
                 code, body, ms = api.call("POST", "/v1/search", {"query": text, "kinds": ["PAGE"], "limit": 50})
                 line.update(hits=page_hits(body), error=err_code(code, body), api_ms=ms)
-            elif system in ("hybrid_late", "hybrid_nolate"):
+            elif system in ("hybrid_late", "hybrid_nolate", "hybrid_late_pool"):
                 req = {"query": text, "kinds": ["PAGE"], "limit": 50, "candidates": 100}
                 if system == "hybrid_nolate":
                     req["late"] = False
+                if system == "hybrid_late_pool":        # post-hoc: restricted to the evidence sweep sources
+                    req["filters"] = {"source_ids": [s for s in args.pool_sources.split(",") if s]}
                 code, body, ms = api.call("POST", "/v1/search/hybrid", req)
                 rec = (body.get("item") or {}).get("record") or {}
                 line.update(hits=page_hits(body), error=err_code(code, body), api_ms=ms,
                             late=rec.get("late"), late_candidates=rec.get("late_candidates"),
                             candidates=rec.get("candidates"), server_ms=(rec.get("timings_ms") or {}).get("total"))
+            elif system == "hybrid_late_kinds":        # post-hoc: pages + figures + tables + formulas → their pages
+                req = {"query": text, "kinds": ["PAGE", "FIGURE", "TABLE", "FORMULA"], "limit": 50, "candidates": 100}
+                code, body, ms = api.call("POST", "/v1/search/hybrid", req)
+                rec = (body.get("item") or {}).get("record") or {}
+                line.update(hits=page_hits(body), error=err_code(code, body), api_ms=ms, late=rec.get("late"),
+                            kinds_of_hits=[(it.get("envelope") or {}).get("object_kind") for it in body.get("items") or []])
+            elif system == "hybrid_late_drill":        # post-hoc: base top 50 + drill-down into its first 5 sources
+                req = {"query": text, "kinds": ["PAGE"], "limit": 50, "candidates": 100}
+                code, body, ms = api.call("POST", "/v1/search/hybrid", req)
+                base = page_hits(body)
+                sources: list = []
+                for h in base:
+                    s = h["page_id"].split(":")[0]
+                    if s not in sources:
+                        sources.append(s)
+                drill = []
+                for s in sources[:5]:
+                    c2, b2, ms2 = api.call("POST", "/v1/search/hybrid", {**req, "limit": 10,
+                                                                         "filters": {"source_ids": [s]}})
+                    ms += ms2
+                    drill.append({"source_id": s, "hits": page_hits(b2), "error": err_code(c2, b2)})
+                line.update(hits=base, drill=drill, error=err_code(code, body), api_ms=ms)
             elif system == "nav":
                 raw, error, ms = run_nav(api, text)
                 line.update(nav=raw, error=error, api_ms=ms)

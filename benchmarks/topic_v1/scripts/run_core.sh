@@ -3,9 +3,10 @@
 # the container). The frozen set is embedded into the piped program; raw answers (IDs only) go to a host-local file.
 #
 # usage: run_core.sh <out.jsonl> [harness args...]
-#   run_core.sh ~/vkm/work/topic_v1/runs.jsonl                                   # bm25, hybrid_late, hybrid_nolate, nav
-#   run_core.sh ~/vkm/work/topic_v1/dossier.jsonl --systems dossier --outlines all \
+#   run_core.sh "$VKM_WORK/topic_v1/runs_v1.jsonl" --outlines all              # bm25, hybrid_late, hybrid_nolate, nav
+#   run_core.sh "$VKM_WORK/topic_v1/dossier_v1.jsonl" --systems dossier --outlines none \
 #       --dossier-route /v1/nav/topic --dossier-method GET --dossier-param q      # after reconstruct_topic is deployed
+# post-hoc diagnostics: --systems hybrid_late_pool --pool-sources <ids>; --systems hybrid_late_kinds,hybrid_late_drill
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 BENCH=$(dirname "$HERE")
