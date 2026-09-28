@@ -340,6 +340,35 @@ def _encode_context_windows(enc, m: dict, ids, texts, sources, out: Path):
 
 
 # ------------------------------------------------------------------------------------------------------------ visual
+def _single_image_encoder(model, m: dict):
+    """jina-v5-omni: the model's own ``encode_document(image)`` computation (``_encode_single_image`` with the
+    document prompt, one image per forward pass), with the CPU image processing of the next pages prefetched in threads.
+    Same inputs, same forward, same pooling — only the CPU work overlaps the GPU work."""
+    import torch
+    from concurrent.futures import ThreadPoolExecutor
+
+    tr = model[0]
+    mod = sys.modules[type(tr).__module__]
+    prompt = mod._build_eval_image_prompt(tr.processor, prefix=model.prompts[m["doc_prompt_name"]])
+
+    def prep(img):
+        out = tr.processor(images=img, text=prompt, return_tensors="pt", truncation=False)
+        return {k: v for k, v in out.items() if torch.is_tensor(v)}
+
+    def run(images):
+        vecs = []
+        with ThreadPoolExecutor(6) as ex:
+            for inputs in ex.map(prep, images):
+                inputs = {k: v.to("cuda") for k, v in inputs.items()}
+                inputs["position_ids"] = mod._get_1d_position_ids(inputs["attention_mask"])
+                with torch.no_grad():
+                    hidden = tr.model(**inputs).last_hidden_state
+                vecs.append(tr._last_token_pool(hidden, inputs["attention_mask"]).squeeze(0).float().cpu().numpy())
+        return np.stack(vecs)
+
+    return run
+
+
 def load_images(paths: list[Path]):
     from concurrent.futures import ThreadPoolExecutor
 
@@ -379,7 +408,11 @@ def encode_visual(key: str, limit: int | None = None) -> None:
     torch.cuda.reset_peak_memory_stats()
     log(key, "loaded in", round(load_s, 1), "s; pages", len(pages))
 
+    single = _single_image_encoder(model, m) if m.get("modality") else None
+
     def enc_docs(images):
+        if single is not None:
+            return single(images)
         if m.get("doc_prompt_name"):
             return model.encode(images, prompt_name=m["doc_prompt_name"], batch_size=m["batch"], convert_to_numpy=True,
                                 show_progress_bar=False)

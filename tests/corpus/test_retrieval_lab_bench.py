@@ -125,6 +125,32 @@ def test_real_v1_pooled_labels_are_valid():
     assert {r["label_source"] for r in rows} == {"LLM_AGENT_V1"}
 
 
+def test_pooled_rounds_label_only_new_pages():
+    qs = [_q("T-FORM-001", "formula_method")]
+    bench = B.Benchmark(qs, [], [])
+    v1 = [_pooled_row()]
+    v2_new = [_pooled_row(doc_id="VKM-SRC-014:p0188", label_source="LLM_AGENT_V2", pooled_from="E_qwen3_0_6b@4")]
+    v2_dup = [_pooled_row(label_source="LLM_AGENT_V2", pooled_from="B_bge_m3@1")]
+    assert B.validate_pooled_qrels(v2_new, bench) == []                  # V2 is a known label source
+    assert B.pooled_round_overlaps(v1, v2_new) == []
+    assert "already labelled by LLM_AGENT_V1" in B.pooled_round_overlaps(v1, v2_dup)[0]
+    merged = B.merge_judgments({}, B.pooled_judgments(v1 + v2_new))
+    assert merged == {"T-FORM-001": {"VKM-SRC-014:p0187": 2, "VKM-SRC-014:p0188": 2}}
+
+
+def test_real_v2_pooled_labels_are_valid_and_new():
+    path2 = ROOT / "benchmarks" / "retrieval_v2" / "qrels_v2_pooled.tsv"
+    if not path2.is_file():
+        pytest.skip("V2 pooled labels not present")
+    bench = B.load_benchmark(BENCH)
+    rows = B.load_pooled_qrels(path2)
+    assert rows, "empty pooled labels"
+    problems = B.validate_pooled_qrels(rows, bench)
+    assert problems == [], "\n".join(problems[:30])
+    assert {r["label_source"] for r in rows} == {"LLM_AGENT_V2"}
+    assert B.pooled_round_overlaps(B.load_pooled_qrels(V1 / "qrels_v1_pooled.tsv"), rows) == []
+
+
 def test_real_v1_h_review_sample_matches_pooled_labels():
     sample, path = V1 / "H_REVIEW_SAMPLE.md", V1 / "qrels_v1_pooled.tsv"
     if not (sample.is_file() and path.is_file()):

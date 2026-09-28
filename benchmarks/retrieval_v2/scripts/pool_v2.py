@@ -265,9 +265,7 @@ def ingest() -> None:
     if "--partial" not in sys.argv and (missing or bad or extra):
         raise SystemExit("not all pooled candidates are judged (use --partial for an interim file)")
     problems = B.validate_pooled_qrels(rows, bench)
-    v1 = {(r["query_id"], r["doc_id"]) for r in B.load_pooled_qrels(V1_DIR / "qrels_v1_pooled.tsv")}
-    problems += [f"pooled {r['query_id']} {r['doc_id']}: already labelled by LLM_AGENT_V1" for r in rows
-                 if (r["query_id"], r["doc_id"]) in v1]
+    problems += B.pooled_round_overlaps(B.load_pooled_qrels(V1_DIR / "qrels_v1_pooled.tsv"), rows)
     if problems:
         raise SystemExit("\n".join(problems[:30]))
     rows.sort(key=lambda r: (r["query_id"], -int(r["grade"]), r["doc_id"]))

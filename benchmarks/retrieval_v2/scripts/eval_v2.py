@@ -49,9 +49,7 @@ def load_pooled(bench) -> tuple[dict, dict, int, int]:
     if (V2_DIR / "qrels_v2_pooled.tsv").is_file():
         v2 = B.load_pooled_qrels(V2_DIR / "qrels_v2_pooled.tsv")
         probs += B.validate_pooled_qrels(v2, bench)
-        seen = {(r["query_id"], r["doc_id"]) for r in v1}
-        probs += [f"{r['query_id']} {r['doc_id']}: V2 label duplicates V1" for r in v2
-                  if (r["query_id"], r["doc_id"]) in seen]
+        probs += B.pooled_round_overlaps(v1, v2)
         rows += v2
         n2 = len(v2)
     if probs:
