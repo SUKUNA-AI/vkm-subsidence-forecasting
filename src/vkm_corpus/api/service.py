@@ -1035,6 +1035,9 @@ class ApiService:
         if self.deps.hybrid is not None and hasattr(self.deps.hybrid, "status"):
             h = await run_sync(self.deps.hybrid.status)
             out["dependencies"]["query_encoder"] = h.get("query_encoder")
+            if "late_default" in h:
+                out["dependencies"]["late_interaction"] = {
+                    "default": h["late_default"], "store": (h.get("query_encoder") or {}).get("late_store")}
         if self.deps.graph is not None:
             try:
                 g = await run_sync(self.deps.graph.state)

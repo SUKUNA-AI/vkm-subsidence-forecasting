@@ -97,6 +97,22 @@ def test_real_adapter_late_store_missing_is_dependency_unavailable(env):
     assert paths == ["/embed/query", "/search/late"]
     ok = client.post("/v1/search/hybrid", headers=H, json={"query": "оседание", "late": False})
     assert ok.status_code == 200 and paths[-1] == "/embed/query"
+    # the operator default (VKM_HYBRID_LATE_DEFAULT) applies to requests that do not say
+    service.deps.hybrid = HybridBackend(settings, search, embed=embed, late_default=True)
+    resp = client.post("/v1/search/hybrid", headers=H, json={"query": "оседание"})
+    assert resp.status_code == 503 and resp.json()["error"]["stage"] == "hybrid_late"
+    deps = client.get("/v1/status", headers=H).json()["status"]["dependencies"]
+    assert deps["late_interaction"]["default"] is True
+
+
+def test_late_default_from_the_environment(monkeypatch):
+    from vkm_corpus.api.backends import HybridBackend
+    from vkm_corpus.config import load_settings
+
+    settings = load_settings({"VKM_OPENSEARCH_URL": "http://opensearch:9200"})
+    for raw, want in (("1", True), ("off", False), ("", None), ("maybe", None)):
+        monkeypatch.setenv("VKM_HYBRID_LATE_DEFAULT", raw)
+        assert HybridBackend(settings, embed=object()).late_default is want
 
 
 def test_mcp_tools_pass_the_late_fields(env):

@@ -106,18 +106,27 @@ class OpenSearchBackend:
 
 
 class HybridBackend:
-    """Hybrid search (``vkm_corpus.search.hybrid``): E's BM25 + the vectors alias + the RX580 query encoder. The
-    vectors build ``_meta`` is cached for 30 s; every failure maps to an :class:`ApiFailure` without addresses."""
+    """Hybrid search (``vkm_corpus.search.hybrid``): E's BM25 + the vectors alias + the RX580 query encoder (+ late
+    interaction on request). The vectors build ``_meta`` is cached for 30 s; every failure maps to an
+    :class:`ApiFailure` without addresses. ``VKM_HYBRID_LATE_DEFAULT`` (1/0) overrides the code default of the late
+    stage for requests that do not say (operators switch it without a rebuild)."""
 
     META_TTL_S = 30.0
 
-    def __init__(self, settings: Any, search: OpenSearchBackend | None = None, *, embed: Any = None) -> None:
+    def __init__(self, settings: Any, search: OpenSearchBackend | None = None, *, embed: Any = None,
+                 late_default: bool | None = None) -> None:
+        import os
+
         from vkm_corpus.search.hybrid import EmbedClient
 
         self.settings = settings
         self._search = search or OpenSearchBackend(settings)
         self._embed = embed if embed is not None else EmbedClient(settings.embed_url, settings.embed_token)
         self._meta: tuple[float, dict[str, Any]] | None = None
+        if late_default is None:
+            raw = os.environ.get("VKM_HYBRID_LATE_DEFAULT", "").strip().lower()
+            late_default = {"1": True, "true": True, "on": True, "0": False, "false": False, "off": False}.get(raw)
+        self.late_default = late_default
 
     def _vectors_meta(self, client: Any) -> dict[str, Any]:
         import time
@@ -130,13 +139,19 @@ class HybridBackend:
         return self._meta[1]
 
     def status(self) -> dict[str, Any]:
-        """Query encoder health (RX580 retrieval service); the vectors build is part of the OpenSearch status."""
-        return {"query_encoder": self._embed.health()}
+        """Query encoder health (RX580 retrieval service, with its late-interaction token store) and the late default;
+        the vectors build is part of the OpenSearch status."""
+        from vkm_corpus.search.hybrid import LATE_DEFAULT
+
+        return {"query_encoder": self._embed.health(),
+                "late_default": LATE_DEFAULT if self.late_default is None else self.late_default}
 
     def search(self, request: dict[str, Any]) -> dict[str, Any]:
         from vkm_corpus.search.hybrid import HybridError, HybridRequest, hybrid_search
         from vkm_corpus.search.query import SearchRequestError
 
+        if request.get("late") is None and self.late_default is not None:
+            request = {**request, "late": self.late_default}
         try:
             client = self._search._connect()
             meta = self._vectors_meta(client)
