@@ -114,7 +114,9 @@ def _cmd_smoke(args: argparse.Namespace) -> int:
 
     settings = load_settings()
     try:
-        results = run_smoke(_client(settings), _prefix(settings, args), t0=args.t0, min_total=args.min_total)
+        only = tuple(x.strip().upper() for x in args.only.split(",") if x.strip()) if args.only else None
+        results = run_smoke(_client(settings), _prefix(settings, args), t0=args.t0, min_total=args.min_total,
+                            only=only)
     except ProjectionError as exc:
         return _fail(exc.code, exc.message)
     _print([r.as_dict() for r in results])
@@ -301,6 +303,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     sm.add_argument("--t0", default="2009-12-31", help="availability date for the filter check")
     sm.add_argument("--min-total", type=int, default=10, help="minimum hits for «оседание земной поверхности»")
     sm.add_argument("--prefix")
+    sm.add_argument("--only", help="comma-separated check ids to run (e.g. Q5); default: all")
     sm.set_defaults(func=_cmd_smoke)
 
     eu = sub.add_parser("export-units", help="embedding units (vkm-units-v1) of the CURRENT snapshot → "

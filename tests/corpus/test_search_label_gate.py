@@ -81,3 +81,14 @@ def test_smoke_q5_holds_and_catches_an_ungated_boost(monkeypatch):
     monkeypatch.setattr(Q, "promote_labels", ungated)
     [bad] = run_smoke(_Figures(FIGS), "vkm", only=("Q5",))
     assert bad.status == "FAIL"
+
+
+def test_search_smoke_cli_runs_only_the_named_checks(monkeypatch, capsys):
+    import json
+
+    from vkm_corpus.search import cli
+
+    monkeypatch.setattr(cli, "_client", lambda settings: _Figures(FIGS))
+    rc = cli._cmd_smoke(cli.argparse.Namespace(t0="2009-12-31", min_total=1, prefix=None, only="q5"))
+    out = json.loads(capsys.readouterr().out)
+    assert rc == 0 and [r["check_id"] for r in out] == ["Q5"] and out[0]["status"] == "PASS"
