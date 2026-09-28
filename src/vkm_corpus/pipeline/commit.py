@@ -118,6 +118,8 @@ def commit_signature(cfg: PipelineConfig, cache: Any, src: SourceInput, prep: di
     """Signature of everything a commit is built from (configs, prep/visual summaries, cached model results)."""
     if prep is None:
         return None
+    from vkm_corpus.extract.bibliography import CONFIG_HASH as BIBLIOGRAPHY_RULES
+
     calls = sorted(r["raw_artifact_id"] for entries in cache.calls.values() for r in entries
                    if r.get("source_id") == src.source_id and r.get("status") == "OK" and r.get("kind") == "OCR")
     decision = load_decision(cfg, cache, prep)
@@ -126,7 +128,7 @@ def commit_signature(cfg: PipelineConfig, cache: Any, src: SourceInput, prep: di
                       "visual_complete": (visual or {}).get("complete"),
                       "configs": {k: cfg.stage_config(k) for k in ("REGIONS", "OCR", "NORMALIZE", "SCENARIO_B")},
                       "ocr_results": _cfg_hash({"ids": calls}), "decision": (decision or {}).get("decision"),
-                      "to_canon": "to_canon_v3"})
+                      "to_canon": "to_canon_v3", "bibliography": BIBLIOGRAPHY_RULES})
 
 
 # ---------------------------------------------------------------------------------------------------- commit
