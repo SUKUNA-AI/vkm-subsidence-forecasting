@@ -446,7 +446,8 @@ class ApiService:
 
     def search_hybrid(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
                       candidates: int = 100, include_duplicates: bool = False, exact: bool = False, *,
-                      late: bool | None = None, late_candidates: int = 100) -> Result:
+                      late: bool | None = None, late_candidates: int = 100,
+                      bib_route: bool | None = None) -> Result:
         """BM25 + dense k-NN fused by RRF, optionally re-scored by late interaction (``vkm_corpus.search.hybrid``);
         hits are hydrated from the canon exactly as in :meth:`search` and carry the per-stage trace. Without the query
         encoder, the vectors build or (with late) the token store the answer is DEPENDENCY_UNAVAILABLE — never BM25
@@ -455,13 +456,13 @@ class ApiService:
         offset = int(cursor) if cursor and cursor.isdigit() else 0
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
                    "candidates": candidates, "include_duplicates": include_duplicates, "exact": exact,
-                   "late": late, "late_candidates": late_candidates}
+                   "late": late, "late_candidates": late_candidates, "bib_route": bib_route}
         response = backend.search(request)
         dense = (response.get("stages") or {}).get("dense") or {}
         items, warnings = self._search_items(response, extra_built={
             dense.get("build_id"): dense.get("built_from_snapshot_id")}, hybrid=True)
         record = {k: response.get(k) for k in ("fusion", "rrf_k", "candidates", "fused_total", "totals", "stages",
-                                               "timings_ms", "late", "late_candidates")}
+                                               "timings_ms", "late", "late_candidates", "route")}
         record.update({"kinds": list(kinds), "query_sha256": sha256_text(query),
                        "scores_are": "rank-fusion signals of a projection, not evidence"})
         envelope = Envelope(object_id=f"hybrid-{sha256_text(query)[:16]}", object_kind="SEARCH_RESULT",
@@ -488,6 +489,8 @@ class ApiService:
             warnings.append(ApiWarning(code="STALE_PROJECTION", message="index hits missing from the canonical "
                                                                         "snapshot were dropped", count=len(stale)))
         mismatched = 0
+        nav_numbers = self._nav_equation_numbers(
+            oid for oid, (k, row) in hydrated.items() if k == "FORMULA" and not row.get("equation_label"))
         works = self.works_of_sources(row.get("source_id") for _k, row in hydrated.values())
         copy_counts = self.canon.work_copy_counts(works.values())
         items: list[Item] = []
@@ -517,6 +520,7 @@ class ApiService:
                       "foreign_content": self.foreign_content_of_page(row.get("page_id")),
                       "work_copy_count": copy_counts.get(work_id) if work_id else None,
                       "title_or_caption": _title(kind, row),
+                      **(object_label(kind, row, nav_numbers.get(hit["id"])) or {}),
                       "rerank_candidate": {"candidate_id": hit.get("page_id") or hit["id"],
                                            "object_ids": [b.get("id") for b in ordered_blocks] or [hit["id"]],
                                            "rule": "rerank_text_v1"}}
@@ -543,6 +547,21 @@ class ApiService:
             warnings.append(ApiWarning(code="SEARCH_WARNING", message=str(code)[:200]))
         return items, warnings
 
+    def _nav_equation_numbers(self, formula_ids: Any) -> dict[str, str]:
+        """formula id → equation number of the navigation layer, for formulas the canon gives no label (best effort:
+        an unavailable NAV layer only means no fallback label)."""
+        ids = sorted(set(formula_ids))
+        nav = self.deps.nav
+        if not ids or nav is None or not hasattr(nav, "query"):
+            return {}
+        try:
+            ph = ", ".join("?" for _ in ids)
+            rows = nav.query(f"SELECT formula_id, equation_number FROM formula_context WHERE formula_id IN ({ph}) "
+                             "AND equation_number IS NOT NULL", ids)
+        except Exception:  # noqa: BLE001 - NavUnavailable, missing table: the label stays unknown
+            return {}
+        return {r["formula_id"]: str(r["equation_number"]) for r in rows if r.get("equation_number")}
+
     def query_objects(self, kinds: list[str], limit: int, cursor: str | None, **filters: Any) -> Result:
         offset = int(cursor) if cursor and cursor.isdigit() else 0
         if not kinds or any(k not in QUERYABLE_KINDS for k in kinds):
@@ -553,6 +572,7 @@ class ApiService:
             for row in rows[:limit]:
                 record = {k: v for k, v in self.record(row).items()
                           if k not in ("text", "normalized_text", "raw_output", "normalized_html", "cells")}
+                record.update(object_label(kind, row) or {})
                 items.append(Item(envelope=self.envelope(kind, row, payload_form="REFERENCE"), record=record))
         items.sort(key=lambda it: it.envelope.object_id)
         more = len(items) > limit
@@ -1152,6 +1172,33 @@ class ApiService:
             except ApiFailure as exc:
                 out["dependencies"]["control_plane"] = {"available": False, "error": exc.code}
         return jsonable(out)
+
+
+_LABEL_NUMBER = re.compile(r"(\d+(?:[.\-–]\d+)*[a-zа-я]?)", re.IGNORECASE)
+_LATIN_LABEL = re.compile(r"^\s*(?:fig|table|tab|eq)", re.IGNORECASE)
+
+
+def object_label(kind: str, row: dict[str, Any], nav_number: str | None = None) -> dict[str, Any] | None:
+    """Printed label of a figure / table / formula for search results (agent L): «рис. 3.1», «табл. 2», «(3.2)».
+
+    From the canonical label (``figure_label`` / ``table_label`` / ``equation_label``); for a formula without one,
+    the equation number of the navigation layer (``formula_context``, rules: AUTO_EXTRACTED_UNREVIEWED). None when the
+    object has no number."""
+    raw = {"FIGURE": row.get("figure_label"), "TABLE": row.get("table_label"),
+           "FORMULA": row.get("equation_label")}.get(kind)
+    origin = "CANON"
+    if kind not in ("FIGURE", "TABLE", "FORMULA"):
+        return None
+    m = _LABEL_NUMBER.search(raw or "")
+    if not m and kind == "FORMULA" and nav_number:
+        raw, origin, m = nav_number, "NAV", _LABEL_NUMBER.search(nav_number)
+    if not m:
+        return None
+    number = m.group(1).replace("–", "-").lower()
+    latin = bool(_LATIN_LABEL.match(raw or ""))
+    label = {"FIGURE": ("fig. " if latin else "рис. ") + number, "TABLE": ("table " if latin else "табл. ") + number,
+             "FORMULA": f"({number})"}[kind]
+    return {"object_label": label, "object_number": number, "object_label_raw": raw, "object_label_origin": origin}
 
 
 def _title(kind: str, row: dict[str, Any]) -> str | None:

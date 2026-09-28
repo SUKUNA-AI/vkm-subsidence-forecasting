@@ -135,6 +135,9 @@ class HybridSearchBody(_Body):
     late: bool | None = Field(None, description="late interaction (mLateOn MaxSim on the RX580) over the RRF top "
                                                 "late_candidates; null = server default")
     late_candidates: int = Field(100, ge=1, le=200, description="RRF candidates re-scored by the late stage")
+    bib_route: bool | None = Field(None, description="bibliographic route (BIB_ENTRY channel, pages scored with their "
+                                                     "reference-list entries); null = the query's bibliographic cues "
+                                                     "decide")
 
 
 class ObjectsQueryBody(_Body):
@@ -353,7 +356,7 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
         return respond(request, service.search_hybrid(body.query, list(body.kinds), body.filters.to_search(),
                                                       body.limit, body.cursor, body.candidates,
                                                       body.include_duplicates, body.exact, late=body.late,
-                                                      late_candidates=body.late_candidates))
+                                                      late_candidates=body.late_candidates, bib_route=body.bib_route))
 
     @app.get("/v1/search/hybrid", tags=["search"], **JSON_RESPONSES)
     def search_hybrid_get(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],
@@ -362,10 +365,12 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                           cursor: Annotated[str | None, Query(max_length=10)] = None,
                           candidates: Annotated[int, Query(ge=10, le=200)] = 100,
                           late: Annotated[bool | None, Query()] = None,
-                          late_candidates: Annotated[int, Query(ge=1, le=200)] = 100) -> JSONResponse:
+                          late_candidates: Annotated[int, Query(ge=1, le=200)] = 100,
+                          bib_route: Annotated[bool | None, Query()] = None) -> JSONResponse:
         request.state.query_sha256 = hashlib.sha256(q.encode("utf-8")).hexdigest()
         return respond(request, service.search_hybrid(q, list(kinds or ["PAGE"]), {}, limit, cursor, candidates,
-                                                      late=late, late_candidates=late_candidates))
+                                                      late=late, late_candidates=late_candidates,
+                                                      bib_route=bib_route))
 
     @app.post("/v1/objects/query", tags=["search"], **JSON_RESPONSES)
     def objects_query(request: Request, body: ObjectsQueryBody, _auth: Read) -> JSONResponse:

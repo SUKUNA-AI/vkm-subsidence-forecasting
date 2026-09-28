@@ -48,12 +48,16 @@ LABEL_RE = re.compile(r"(?:рис(?:унок)?|fig(?:ure)?)\.?\s*(\d+(?:\.\d+)*)
 
 
 def items(resp: dict) -> list[dict]:
-    """IDs, type, page and the figure number parsed from the caption (the caption itself is not kept)."""
+    """IDs, type, page and the figure number: the record's ``object_number`` (API with object labels, agent L), else
+    parsed from the caption (the caption itself is not kept)."""
     out = []
     for it in resp.get("items") or []:
         env, rec = it.get("envelope") or {}, it.get("record") or {}
-        m = LABEL_RE.search(rec.get("title_or_caption") or "")
-        out.append({"id": env.get("object_id"), "type": rec.get("object_type"), "label": m.group(1) if m else None,
+        label = rec.get("object_number")
+        if label is None:
+            m = LABEL_RE.search(rec.get("title_or_caption") or "")
+            label = m.group(1) if m else None
+        out.append({"id": env.get("object_id"), "type": rec.get("object_type"), "label": label,
                     "page": env.get("page_id") or page_of(env.get("object_id"))})
     return out
 
