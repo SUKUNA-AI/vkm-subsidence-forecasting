@@ -284,6 +284,15 @@ def select_current(directory: Path, config: EmbeddingConfig, expected: Mapping[s
     return rep, selection, parts
 
 
+def _close_memmap(mm: Any) -> None:
+    m = getattr(mm, "_mmap", None)
+    if m is not None:
+        try:
+            m.close()
+        except (BufferError, ValueError):
+            pass
+
+
 def _list_values(table: Any, column: str) -> tuple[np.ndarray, np.ndarray]:
     """(absolute offsets, flat values) of a list column (one chunk after combine)."""
     col = table.column(column).combine_chunks()
@@ -424,40 +433,44 @@ def build_pack(artifact_dir: Path, units_dir: Path, *, publish_current: bool = F
         pos = {u: i for i, u in enumerate(order)}
         tmp = Path(tempfile.mkdtemp(prefix=f".tmp-{pid}-", dir=packs))
         try:
-            mm = np.memmap(tmp / TOKENS_FILE, dtype=DTYPE, mode="w+", shape=(max(1, total), dim))
             by_part: dict[str, list[tuple[int, str]]] = {}
             for uid, s in selection.items():
                 by_part.setdefault(s.part, []).append((s.row, uid))
             bad: list[str] = []
             t1 = time.monotonic()
-            for n, (fname, rows) in enumerate(sorted(by_part.items())):
-                t = pq.read_table(artifact_dir / fname, columns=["vectors"])
-                offs, vals = _list_values(t, "vectors")
-                for row, uid in sorted(rows):
-                    k = selection[uid].n_tokens
-                    a, b = int(offs[row]), int(offs[row + 1])
-                    if b - a != k * dim:
-                        bad.append(uid)
-                        continue
-                    m = np.asarray(vals[a:b], dtype=np.float32).reshape(k, dim)
-                    norms = np.linalg.norm(m, axis=1)
-                    if not np.all(np.isfinite(m)) or (config.normalization == "l2" and
-                                                      np.any(np.abs(norms - 1.0) > tol)):
-                        bad.append(uid)
-                        continue
-                    o = int(offsets[pos[uid]])
-                    mm[o:o + k] = m
-                del t, offs, vals
-                if n % 50 == 49:
-                    say(f"vectors: {n + 1}/{len(by_part)} parts")
+            mm = np.memmap(tmp / TOKENS_FILE, dtype=DTYPE, mode="w+", shape=(max(1, total), dim))
+            try:
+                for n, (fname, rows) in enumerate(sorted(by_part.items())):
+                    t = pq.read_table(artifact_dir / fname, columns=["vectors"])
+                    offs, vals = _list_values(t, "vectors")
+                    for row, uid in sorted(rows):
+                        k = selection[uid].n_tokens
+                        a, b = int(offs[row]), int(offs[row + 1])
+                        if b - a != k * dim:
+                            bad.append(uid)
+                            continue
+                        m = np.asarray(vals[a:b], dtype=np.float32).reshape(k, dim)
+                        norms = np.linalg.norm(m, axis=1)
+                        if not np.all(np.isfinite(m)) or (config.normalization == "l2" and
+                                                          np.any(np.abs(norms - 1.0) > tol)):
+                            bad.append(uid)
+                            continue
+                        o = int(offsets[pos[uid]])
+                        mm[o:o + k] = m
+                    del t, offs, vals
+                    if n % 50 == 49:
+                        say(f"vectors: {n + 1}/{len(by_part)} parts")
+                if not bad:
+                    mm.flush()
+            finally:                                  # an open mapping keeps the file (Windows: undeletable)
+                _close_memmap(mm)
+                del mm
             if bad:
                 check.bad_vectors = sorted(set(bad))
                 check.ok = False
                 receipt["checks_64"] = check.as_dict()
                 raise PackError("E_CHECK_FAILED", f"{len(bad)} units with bad token vectors; nothing was packed",
                                 details=check.as_dict())
-            mm.flush()
-            del mm
             with open(tmp / TOKENS_FILE, "rb+") as fh:
                 os.fsync(fh.fileno())
             timings["vector_pass"] = round(time.monotonic() - t1, 2)
