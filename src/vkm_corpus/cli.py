@@ -28,6 +28,8 @@ GROUPS: dict[str, str] = {
     "ops": "vkm_corpus.ops.cli",                # coordinator: PostgreSQL control plane, jobs, worker
     "core": "vkm_corpus.publish.cli",           # coordinator: publish, admit, reconcile, backup
     "retrieval-lab": "vkm_corpus.retrieval_lab.cli",  # J: retrieval benchmark (derived, experimental)
+    "embed": "vkm_corpus.embeddings.cli",                # K: embeddings as versioned derived artifacts
+    "retrieval-service": "vkm_corpus.retrieval_service.cli",  # K: RX580 dense + late-interaction service
 }
 
 

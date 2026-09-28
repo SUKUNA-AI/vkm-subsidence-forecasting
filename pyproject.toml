@@ -46,6 +46,12 @@ corpus-layout = [
     "accelerate>=1.15",
     "safetensors>=0.8",
 ]
+# RX580 retrieval service and embedding jobs on CORE (agent K): the service image adds these to corpus-services
+retrieval-rx580 = [
+    "tokenizers>=0.22,<1",
+    "pyarrow>=25.0.1,<26",
+    "numpy>=2.5",
+]
 # scripts/fetch_models.py (pinned snapshots from infra/models/model_pins.json)
 models = [
     "huggingface_hub>=1.33,<2",

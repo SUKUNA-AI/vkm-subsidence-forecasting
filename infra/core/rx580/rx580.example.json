@@ -1,0 +1,60 @@
+{
+  "_comment": "Example deployment of the RX580 retrieval service (paths are container paths). The model pair is an EXAMPLE, not a selection: production encoders are chosen by the Retrieval Lab benchmark (agent J, coordinator). sha256 values are filled by `vkm-corpus embed signature` at deployment. expected_vram_mib = VRAM of the model after warm-up measured on the RX580 (MODEL_MATRIX); /health reports a model as resident at >= 80 % of it.",
+  "service": {
+    "spawn": true,
+    "llama_server": "/opt/llama/bin/llama-server",
+    "keepalive_s": 2.0,
+    "monitor_s": 5.0,
+    "restart_on_exit": true,
+    "log_dir": "/cache/logs",
+    "parity_receipt": "/config/parity.json"
+  },
+  "models": [
+    {
+      "role": "dense",
+      "key": "granite-311m-r2",
+      "gguf": "/models/granite-311m-r2/granite-311m-r2-Q8_0.gguf",
+      "gguf_sha256": "<sha256 of the GGUF>",
+      "quant": "Q8_0",
+      "tokenizer_dir": "/models/granite-311m-r2/hf",
+      "tokenizer_sha256": "<sha256 of tokenizer.json>",
+      "port": 18301,
+      "ctx": 2048,
+      "ubatch": 2048,
+      "parallel": 4,
+      "threads": 2,
+      "query_max_len": 512,
+      "doc_max_len": 512,
+      "dimension": null,
+      "expected_vram_mib": 168
+    },
+    {
+      "role": "late",
+      "key": "mlateon",
+      "gguf": "/models/mlateon/mlateon-Q8_0.gguf",
+      "gguf_sha256": "<sha256 of the GGUF>",
+      "quant": "Q8_0",
+      "tokenizer_dir": "/models/mlateon/hf",
+      "tokenizer_sha256": "<sha256 of tokenizer.json>",
+      "heads": "/models/mlateon/heads.npz",
+      "heads_sha256": "<sha256 of heads.npz>",
+      "port": 18302,
+      "ctx": 2048,
+      "ubatch": 2048,
+      "parallel": 4,
+      "threads": 2,
+      "query_max_len": 64,
+      "doc_max_len": 512,
+      "expected_vram_mib": 184
+    }
+  ],
+  "search": {
+    "text_index": "vkm-blocks",
+    "text_fields": ["text^1.0", "text.exact^0.5"],
+    "dense_index": "vkm-exp-dense-granite-311m-r2",
+    "dense_field": "vector",
+    "id_field": "id",
+    "multivector_dir": null,
+    "rrf_k": 60
+  }
+}

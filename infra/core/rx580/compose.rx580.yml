@@ -1,0 +1,73 @@
+# Compose fragment for the coordinator (project vkm-core): the RX580 retrieval service and the on-demand embedding
+# worker. Merge into infra/core/compose.yml (or run with -f compose.yml -f rx580/compose.rx580.yml).
+#
+# The GPU is reached through /dev/dri only (Vulkan/RADV); the container user needs the host's render/video groups
+# (numeric GIDs from the host-local .env). Models, tokenizers and heads are mounted read-only; the Mesa shader cache
+# is a writable host directory so pipelines are not recompiled on every restart. Host paths come only from the
+# host-local .env (VKM_RX580_ROOT, VKM_DATA_ROOT, VKM_SECRETS_DIR); nothing machine-specific is committed.
+services:
+  rx580-retrieval:
+    image: ${VKM_RX580_IMAGE:-vkm-rx580-retrieval:0.1.0}
+    restart: unless-stopped
+    user: "${VKM_RX580_UID}:${VKM_RX580_GID}"   # owner of ${VKM_RX580_ROOT}/cache (shader cache, logs)
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "${VKM_RENDER_GID}"
+      - "${VKM_VIDEO_GID}"
+    environment:
+      VKM_RX580_CONFIG: /config/rx580.json
+      VKM_RX580_KEEPALIVE_S: "${VKM_RX580_KEEPALIVE_S:-2}"
+      VKM_OPENSEARCH_URL: http://opensearch:9200
+      VKM_RX580_TOKEN_FILE: /run/secrets/rx580_token
+      VKM_DATA_ROOT: /data
+      VKM_DATA_ROLE: canonical
+    secrets:
+      - rx580_token
+    volumes:
+      - ${VKM_RX580_ROOT}/models:/models:ro
+      - ${VKM_RX580_ROOT}/config:/config:ro
+      - ${VKM_RX580_ROOT}/cache:/cache
+      - ${VKM_DATA_ROOT}/derived/embeddings:/data/derived/embeddings:ro
+    ports:
+      - "127.0.0.1:8790:8790"
+    mem_limit: 4g
+    networks: [vkm_internal]
+    logging:
+      driver: json-file
+      options: {max-size: "50m", max-file: "5"}
+
+  # Bulk document encoding on the RX580 (claims jobs from the PostgreSQL queue of vkm_corpus.ops); started on demand:
+  #   docker compose --profile jobs run --rm rx580-embed-worker
+  rx580-embed-worker:
+    image: ${VKM_RX580_IMAGE:-vkm-rx580-retrieval:0.1.0}
+    profiles: ["jobs"]
+    user: "${VKM_RX580_UID}:${VKM_RX580_GID}"
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "${VKM_RENDER_GID}"
+      - "${VKM_VIDEO_GID}"
+    environment:
+      VKM_RX580_CONFIG: /config/rx580-worker.json
+      VKM_DATA_ROOT: /data
+      VKM_DATA_ROLE: canonical
+      VKM_PG_DSN_FILE: /run/secrets/pg_dsn
+    secrets:
+      - pg_dsn
+    volumes:
+      - ${VKM_RX580_ROOT}/models:/models:ro
+      - ${VKM_RX580_ROOT}/config:/config:ro
+      - ${VKM_RX580_ROOT}/cache:/cache
+      - ${VKM_DATA_ROOT}:/data
+    # placeholder until the ops queue (coordinator) provides `embed worker`; needs the `embed` group in vkm_corpus.cli
+    entrypoint: ["vkm-corpus"]
+    command: ["embed", "specs"]
+    mem_limit: 4g
+    networks: [vkm_internal]
+
+secrets:
+  rx580_token:
+    file: ${VKM_SECRETS_DIR}/rx580_token
+  pg_dsn:
+    file: ${VKM_SECRETS_DIR}/pg_dsn

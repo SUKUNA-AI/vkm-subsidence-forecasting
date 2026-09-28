@@ -1,0 +1,4 @@
+c52860952248dc2e1fff1326b0190b4c50c70483bae651892597b3288930be65  0001-convert-pplx-jina-colbert-mmbert.patch
+aeac49eca15d89e5c7fa72c950a9a23c56211c5e4689861e8be825a31987b072  0002-qwen3-embeddings-no-kv-no-lm-head.patch
+d13c489b75002bf65537ff8cdcf7e59a056f1999c5f549b0fdfa926af45e7049  0003-server-embedding-base64.patch
+1f6931839689f80e34c1c6b9db8e7682c72dedcbc9d3fa56899785e0cf18137a  0004-embeddings-context-no-logits-buffer.patch

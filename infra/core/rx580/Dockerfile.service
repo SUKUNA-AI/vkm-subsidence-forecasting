@@ -1,0 +1,49 @@
+# VKM RX580 retrieval service image (CORE): FastAPI service + the pinned llama.cpp Vulkan binaries it spawns.
+#
+# One container keeps the production encoders resident on the RX580 (one llama-server child per model, no global
+# lock) and serves /health /model-info /embed/query /search/dense /search/hybrid /search/late /metrics.
+# Build (repository root as context; the llama image first):
+#   docker build -f infra/core/rx580/Dockerfile --target runtime -t vkm-rx580-llama:4da6337767f9-vk infra/core/rx580
+#   docker build -f infra/core/rx580/Dockerfile.service -t vkm-rx580-retrieval:0.1.0 .
+# Base images are pinned by digest; Mesa RADV comes from Debian trixie (same release as the host).
+ARG LLAMA_IMAGE=vkm-rx580-llama:4da6337767f9-vk
+ARG PYTHON_IMAGE=python:3.13-slim@sha256:7c61056e61ac89e852de05f3dc6fa51a6dd2181797bceed46aa725dd7cb2cd3b
+
+FROM ${LLAMA_IMAGE} AS llama
+
+FROM ${PYTHON_IMAGE} AS build
+ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1 PYTHONDONTWRITEBYTECODE=1
+WORKDIR /src
+COPY pyproject.toml ./
+COPY requirements/ requirements/
+COPY src/ src/
+RUN python -m venv /opt/vkm \
+ && /opt/vkm/bin/pip install --upgrade pip \
+ && CONSTRAINTS="-c requirements/worldspec.lock.txt" \
+ && if [ -f requirements/corpus-services.lock.txt ]; then CONSTRAINTS="$CONSTRAINTS -c requirements/corpus-services.lock.txt"; fi \
+ && /opt/vkm/bin/pip install $CONSTRAINTS ".[corpus-services]" "tokenizers>=0.22,<1" "pyarrow>=25.0.1,<26" \
+ && /opt/vkm/bin/pip check
+
+FROM ${PYTHON_IMAGE}
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends mesa-vulkan-drivers libvulkan1 libgomp1 curl \
+ && rm -rf /var/lib/apt/lists/* \
+ && groupadd --system --gid 10001 vkm \
+ && useradd --system --uid 10001 --gid vkm --home-dir /nonexistent --no-create-home --shell /usr/sbin/nologin vkm
+COPY --from=build /opt/vkm /opt/vkm
+COPY --from=llama /opt/llama /opt/llama
+ENV PATH=/opt/vkm/bin:/opt/llama/bin:$PATH \
+    PYTHONUNBUFFERED=1 PYTHONUTF8=1 PYTHONDONTWRITEBYTECODE=1 \
+    VKM_LLAMA_SERVER=/opt/llama/bin/llama-server \
+    VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.json \
+    GGML_VK_DISABLE_HOST_VISIBLE_VIDMEM=1 \
+    MESA_SHADER_CACHE_DIR=/cache/mesa
+USER vkm:vkm
+WORKDIR /tmp
+EXPOSE 8790
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+  CMD curl -fsS http://127.0.0.1:8790/health >/dev/null || exit 1
+# `vkm-corpus retrieval serve` once the coordinator registers the CLI group; the module entry point works regardless
+ENTRYPOINT ["python", "-m", "vkm_corpus.retrieval_service"]
+CMD ["serve", "--host", "0.0.0.0", "--port", "8790"]

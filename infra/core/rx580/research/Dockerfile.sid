@@ -1,0 +1,11 @@
+# Research toolchain (NOT the production image): Debian sid as of 2026-09 — Mesa 26.2 RADV and the Debian ROCm 6.4
+# stack, whose rocBLAS 6.4.4 still ships gfx803 (Polaris) kernels. Used to compare RADV 25.0 vs 26.2 and to build the
+# llama.cpp HIP backend for gfx803 (§25 steps 1 and 5). Run with --device /dev/kfd --device /dev/dri.
+FROM debian:sid-slim
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      build-essential cmake ninja-build git ca-certificates pkg-config python3 python3-numpy \
+      glslc libvulkan-dev spirv-headers mesa-vulkan-drivers libvulkan1 vulkan-tools \
+      hipcc libamdhip64-dev libhipblas-dev librocblas-dev rocminfo rocm-smi \
+ && rm -rf /var/lib/apt/lists/*
