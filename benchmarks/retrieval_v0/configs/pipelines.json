@@ -1,0 +1,119 @@
+{
+ "version": 1,
+ "first_depth": 100,
+ "late_depth": 100,
+ "rerank_depth": 24,
+ "rrf_k": 60,
+ "pipelines": {
+  "A": {
+   "first": [
+    "bm25"
+   ]
+  },
+  "B": {
+   "first": [
+    "dense"
+   ]
+  },
+  "B-late": {
+   "first": [
+    "late"
+   ]
+  },
+  "C": {
+   "first": [
+    "bm25",
+    "dense"
+   ],
+   "fusion": "rrf"
+  },
+  "D": {
+   "first": [
+    "bm25",
+    "dense",
+    "sparse"
+   ],
+   "fusion": "rrf"
+  },
+  "E": {
+   "first": [
+    "bm25",
+    "dense"
+   ],
+   "fusion": "rrf",
+   "late": true
+  },
+  "F": {
+   "first": [
+    "bm25",
+    "dense",
+    "sparse"
+   ],
+   "fusion": "rrf",
+   "late": true
+  },
+  "G": {
+   "first": [
+    "bm25",
+    "dense"
+   ],
+   "fusion": "rrf",
+   "rerank": true
+  },
+  "H": {
+   "first": [
+    "bm25",
+    "dense"
+   ],
+   "fusion": "rrf",
+   "late": true,
+   "rerank": true
+  },
+  "I": {
+   "first": [
+    "bm25",
+    "dense",
+    "sparse"
+   ],
+   "fusion": "rrf",
+   "late": true,
+   "rerank": true
+  },
+  "M3-unified": {
+   "first": [
+    "m3"
+   ]
+  }
+ },
+ "tuning": {
+  "split": "train",
+  "select_on": "dev",
+  "rrf_k_grid": [
+   10,
+   30,
+   60,
+   100
+  ],
+  "weight_grid_step": 0.1,
+  "normalizations": [
+   "minmax",
+   "zscore"
+  ],
+  "late_modes": [
+   "replace",
+   "rrf"
+  ]
+ },
+ "context_variants": [
+  "A",
+  "B",
+  "C",
+  "D"
+ ],
+ "precisions": [
+  "fp32",
+  "fp16",
+  "int8",
+  "binary"
+ ]
+}
