@@ -37,6 +37,19 @@ corpus-services = [
     "opensearch-py>=3.2.0,<4",
     "httpx>=0.28",
 ]
+# PP-DocLayoutV3 on the workstation GPU (in-process, transformers). torch/torchvision come from the CUDA 13.0 wheel
+# index (https://download.pytorch.org/whl/cu130); the pipeline venv pins torch 2.13.0+cu130.
+corpus-layout = [
+    "torch>=2.13,<2.14",
+    "torchvision>=0.28,<0.29",
+    "transformers>=5.17,<6",
+    "accelerate>=1.15",
+    "safetensors>=0.8",
+]
+# scripts/fetch_models.py (pinned snapshots from infra/models/model_pins.json)
+models = [
+    "huggingface_hub>=1.33,<2",
+]
 desktop = [
     "mcp==2.2.0",
     "ezdxf>=1.4",
