@@ -1,0 +1,340 @@
+{
+ "canonical_snapshot_id": "snap-20260928T160616Z-5d669f09",
+ "identity_share_of_scoreable": 0.9252,
+ "per_source": {
+  "VKM-SRC-001": {
+   "MATCH0": 12,
+   "WEAK": 1,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-002": {
+   "MATCH0": 2,
+   "NO_SCORE": 2,
+   "WEAK": 2,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 17
+  },
+  "VKM-SRC-003": {
+   "ANCHORED": 1,
+   "MATCH0": 45,
+   "NO_SCORE": 9,
+   "WEAK": 1,
+   "anchored_offsets": {
+    "-1": 1
+   },
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-004": {
+   "MATCH0": 5,
+   "NO_SCORE": 1,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-005": {
+   "MATCH0": 3,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-006": {
+   "ANCHORED": 1,
+   "MATCH0": 15,
+   "NO_SCORE": 1,
+   "anchored_offsets": {
+    "1": 1
+   },
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-007": {
+   "MATCH0": 2,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-008": {
+   "MATCH0": 1,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-009": {
+   "MATCH0": 7,
+   "NO_SCORE": 1,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-010": {
+   "MATCH0": 3,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-011": {
+   "MATCH0": 76,
+   "NO_SCORE": 3,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 185
+  },
+  "VKM-SRC-012": {
+   "ANCHORED": 1,
+   "MATCH0": 81,
+   "NO_SCORE": 2,
+   "anchored_offsets": {
+    "1": 1
+   },
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-014": {
+   "ANCHORED": 1,
+   "MATCH0": 91,
+   "NO_SCORE": 3,
+   "WEAK": 5,
+   "anchored_offsets": {
+    "-1": 1
+   },
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-015": {
+   "MATCH0": 8,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-016": {
+   "MATCH0": 8,
+   "NO_SCORE": 2,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-017": {
+   "MATCH0": 8,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-018": {
+   "MATCH0": 4,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-019": {
+   "ANCHORED": 1,
+   "MATCH0": 6,
+   "NO_SCORE": 1,
+   "anchored_offsets": {
+    "1": 1
+   },
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-020": {
+   "MATCH0": 21,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-021": {
+   "MATCH0": 9,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-023": {
+   "ANCHORED": 13,
+   "MATCH0": 16,
+   "NO_SCORE": 33,
+   "WEAK": 2,
+   "anchored_offsets": {
+    "-1": 1,
+    "1": 4,
+    "2": 8
+   },
+   "format": "DOCX",
+   "spread_pages": 0
+  },
+  "VKM-SRC-024": {
+   "MATCH0": 20,
+   "WEAK": 1,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-025": {
+   "ANCHORED": 6,
+   "MATCH0": 130,
+   "NO_SCORE": 23,
+   "WEAK": 7,
+   "anchored_offsets": {
+    "-1": 2,
+    "-2": 1,
+    "1": 2,
+    "2": 1
+   },
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-026": {
+   "MATCH0": 18,
+   "WEAK": 1,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-027": {
+   "ANCHORED": 1,
+   "MATCH0": 4,
+   "anchored_offsets": {
+    "-2": 1
+   },
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-028": {
+   "MATCH0": 3,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-029": {
+   "MATCH0": 27,
+   "NO_SCORE": 3,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-030": {
+   "MATCH0": 8,
+   "NO_SCORE": 3,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-031": {
+   "MATCH0": 9,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-032": {
+   "MATCH0": 7,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-033": {
+   "MATCH0": 6,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-034": {
+   "ANCHORED": 1,
+   "MATCH0": 9,
+   "anchored_offsets": {
+    "-2": 1
+   },
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-035": {
+   "MATCH0": 7,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-036": {
+   "ANCHORED": 4,
+   "MATCH0": 9,
+   "NO_SCORE": 57,
+   "anchored_offsets": {
+    "-2": 1,
+    "-3": 1,
+    "1": 1,
+    "2": 1
+   },
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-037": {
+   "ANCHORED": 5,
+   "MATCH0": 177,
+   "NO_SCORE": 33,
+   "WEAK": 17,
+   "anchored_offsets": {
+    "-1": 1,
+    "1": 4
+   },
+   "format": "DJVU",
+   "spread_pages": 236
+  },
+  "VKM-SRC-038": {
+   "MATCH0": 15,
+   "NO_SCORE": 1,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-039": {
+   "MATCH0": 4,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-040": {
+   "MATCH0": 11,
+   "NO_SCORE": 1,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  },
+  "VKM-SRC-041": {
+   "MATCH0": 4,
+   "anchored_offsets": {},
+   "format": "PDF",
+   "spread_pages": 0
+  }
+ },
+ "receipt": "vkm.topic_benchmark_page_mapping/1",
+ "records_checked": 1142,
+ "rule": "pdf_page = canonical page_index (identity) for PDF and DJVU sources, 2-up spreads included; quote anchoring on pages pdf_page-3..+3 (token containment >= 0.6, margin >= 0.2 over the identity page) adds the anchored page as an alternate; DOCX (render-dependent pagination): anchored page, else the drift of the nearest confidently located record; duplicate-group pages are alternates",
+ "set": {
+  "dropped": [],
+  "excluded_families": {
+   "DER": "derived by this project, not a corpus topic",
+   "PDE": "textbook equations, no corpus locator"
+  },
+  "queries": 351,
+  "sources": 39,
+  "targets": 886,
+  "targets_by_mapping": {
+   "DOCX_ANCHOR": 9,
+   "DOCX_DRIFT": 9,
+   "IDENTITY": 831,
+   "IDENTITY+ANCHOR_ALT": 37
+  },
+  "targets_with_alternates": 52,
+  "topics": 117,
+  "topics_by_track": {
+   "MODEL_FAMILY": 45,
+   "PROCESS": 72
+  }
+ },
+ "status_totals": {
+  "ANCHORED": 35,
+  "MATCH0": 891,
+  "NO_SCORE": 179,
+  "WEAK": 37
+ }
+}
