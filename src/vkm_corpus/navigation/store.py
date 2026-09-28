@@ -88,7 +88,8 @@ def pack(nav_dir: str | Path) -> dict[str, Any]:
                 raise ValueError(f"bad dataset name {name!r}")
             con.execute(f'CREATE TABLE "{name}" AS SELECT * FROM read_parquet(?)', [str(p)])
             counts[name] = int(con.execute(f'SELECT count(*) FROM "{name}"').fetchone()[0])
-        meta = {"snapshot_id": manifest.get("snapshot_id"), "rule_versions": manifest.get("rule_versions"),
+        snapshot_id = manifest.get("snapshot_id") or (manifest.get("snapshot") or {}).get("snapshot_id")
+        meta = {"snapshot_id": snapshot_id, "rule_versions": manifest.get("rule_versions"),
                 "built_at": manifest.get("built_at"), "packed_at": datetime.now(timezone.utc).isoformat(),
                 "counts": counts}
         con.execute("CREATE TABLE nav_meta AS SELECT ?::VARCHAR AS meta_json", [json.dumps(meta, ensure_ascii=False)])
