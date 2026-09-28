@@ -1,6 +1,7 @@
 """The two MCP servers over the VKM API (mcp==2.2.0 ``MCPServer``).
 
-``vkm-corpus`` (read): ``search_text``, ``search_objects``, ``get_source``, ``get_work``, ``get_page``,
+``vkm-corpus`` (read): ``search_text``, ``search_hybrid``, ``retrieval_trace``, ``search_objects``, ``get_source``,
+``get_work``, ``get_page``,
 ``get_page_image``, ``get_figure``, ``get_table``, ``get_formula``, ``get_object``, ``get_document_neighbors``,
 ``get_citations``, ``rerank_text``, ``rerank_visual``, ``get_processing_status``, ``trace_document_provenance``,
 ``get_artifact``, ``list_source_pages``, ``get_corpus_status``.
@@ -37,7 +38,8 @@ CANCEL = ToolAnnotations(read_only_hint=False, destructive_hint=True, idempotent
 READ_INSTRUCTIONS = (
     "VKM document corpus (Verkhnekamskoye potash deposit, SKRU-1 thesis): read-only access through the VKM API. "
     "Search results are candidates from rebuildable projections (index snippets are not the objects' text); read "
-    "content with get_* tools; order candidates with rerank_text (≤ 24 IDs, text from the canonical layer) and "
+    "content with get_* tools; search_hybrid adds dense embeddings (per-stage trace; retrieval_trace explains a "
+    "ranking); order candidates with rerank_text (≤ 24 IDs, text from the canonical layer) and "
     "rerank_visual (≤ 8 IDs with images). Every object carries a vkm.envelope/1: stable IDs, source/page, "
     "review_status, origin (NATIVE / EMBEDDED_OCR / OCR), canonical vs raw vs projection, provenance. Automatic "
     "content is AUTO_EXTRACTED_UNREVIEWED — never a fact, a reviewed measurement or an accepted formula; a "
@@ -60,6 +62,7 @@ ObjectId = Annotated[str, Field(min_length=1, max_length=120, description="any V
 IdList = Annotated[list[Annotated[str, Field(min_length=1, max_length=120)]], Field(min_length=1)]
 StrList = Annotated[list[Annotated[str, Field(max_length=60)]] | None, Field(max_length=20)]
 SearchKind = Literal["PAGE", "BLOCK", "FIGURE", "TABLE", "FORMULA"]
+HybridKind = Literal["PAGE", "FIGURE", "TABLE", "FORMULA"]
 ObjectKind = Literal["BLOCK", "FIGURE", "TABLE", "FORMULA", "BIBLIOGRAPHY_ENTRY"]
 Reason = Annotated[str, Field(min_length=10, max_length=500, description="why (kept in the job)")]
 PlanHash = Annotated[str | None, Field(pattern=r"^[0-9a-f]{64}$",
@@ -138,6 +141,69 @@ def build_read_server(api: ApiClient) -> MCPServer:
         return await call("search_text", "POST", "/v1/search", body={"query": query, "kinds": kinds,
                                                                      "filters": filters, "limit": limit,
                                                                      "cursor": cursor})
+
+    def hybrid_body(query: str, kinds: list[str], source_ids: list[str] | None, work_ids: list[str] | None,
+                    source_scope: list[str] | None, year_from: int | None, year_to: int | None,
+                    available_until: str | None, unknown_policy: str | None, limit: int, candidates: int,
+                    cursor: str | None = None) -> dict[str, Any]:
+        filters = {k: v for k, v in {
+            "source_ids": source_ids, "work_ids": work_ids, "source_scope": source_scope, "year_from": year_from,
+            "year_to": year_to, "available_until": available_until, "unknown_policy": unknown_policy}.items()
+            if v is not None}
+        return {"query": query, "kinds": kinds, "filters": filters, "limit": limit, "candidates": candidates,
+                "cursor": cursor}
+
+    @server.tool(name="search_hybrid", annotations=READ_ONLY)
+    async def search_hybrid(
+            query: Annotated[str, Field(min_length=1, max_length=512, description="Russian or English")],
+            kinds: Annotated[list[HybridKind], Field(min_length=1, max_length=4)] = ["PAGE"],  # noqa: B006
+            source_ids: Annotated[list[Annotated[str, Field(pattern=SOURCE_ID)]] | None, Field(max_length=50)] = None,
+            work_ids: Annotated[list[Annotated[str, Field(pattern=WORK_ID)]] | None, Field(max_length=50)] = None,
+            source_scope: Annotated[StrList, Field(description="area of the SOURCE (inherited by its objects)")] = None,
+            year_from: Annotated[int | None, Field(ge=1500, le=2100)] = None,
+            year_to: Annotated[int | None, Field(ge=1500, le=2100)] = None,
+            available_until: Annotated[str | None, Field(pattern=r"^\d{4}-\d{2}-\d{2}$",
+                                                         description="known at t0 (needs unknown_policy)")] = None,
+            unknown_policy: Literal["EXCLUDE", "INCLUDE"] | None = None,
+            limit: Annotated[int, Field(ge=1, le=50)] = 20,
+            candidates: Annotated[int, Field(ge=10, le=200, description="candidates per stage")] = 100,
+            cursor: Annotated[str | None, Field(max_length=10)] = None) -> CallToolResult:
+        """Hybrid search: BM25 + dense embeddings (RX580 query encoder, OpenSearch k-NN over embedding units),
+        fused by reciprocal rank. Pages (every unit of a page counts for it) or figures/tables/formulas. Each hit has
+        a trace (bm25_rank, dense_rank, fused_rank, the dense unit) and a rerank_candidate for rerank_text. Fails
+        with DEPENDENCY_UNAVAILABLE when the encoder or the vector index is missing (use search_text then)."""
+        return await call("search_hybrid", "POST", "/v1/search/hybrid", body=hybrid_body(
+            query, kinds, source_ids, work_ids, source_scope, year_from, year_to, available_until, unknown_policy,
+            limit, candidates, cursor))
+
+    @server.tool(name="retrieval_trace", annotations=READ_ONLY)
+    async def retrieval_trace(
+            query: Annotated[str, Field(min_length=1, max_length=512)],
+            object_ids: Annotated[list[Annotated[str, Field(min_length=1, max_length=120)]] | None,
+                                  Field(max_length=50, description="only these hit ids (default: all)")] = None,
+            kinds: Annotated[list[HybridKind], Field(min_length=1, max_length=4)] = ["PAGE"],  # noqa: B006
+            limit: Annotated[int, Field(ge=1, le=50)] = 50,
+            candidates: Annotated[int, Field(ge=10, le=200)] = 100) -> CallToolResult:
+        """Explain a hybrid ranking: per hit the rank and score of every stage (BM25, dense, RRF fusion; late
+        interaction and reranking are later stages), the dense unit that matched, plus the stage configuration
+        (vector build, query encoder, timings). Compact: no envelopes."""
+        started = time.perf_counter()
+        body = await api.call("POST", "/v1/search/hybrid", body=hybrid_body(
+            query, kinds, None, None, None, None, None, None, None, limit, candidates))
+        if body.get("ok"):
+            wanted = set(object_ids or [])
+            rows = []
+            for it in body.get("items") or []:
+                oid = (it.get("envelope") or {}).get("object_id")
+                if wanted and oid not in wanted:
+                    continue
+                rec = it.get("record") or {}
+                rows.append({"object_id": oid, "object_type": rec.get("object_type"),
+                             "page_id": (it.get("envelope") or {}).get("page_id"), **(rec.get("trace") or {})})
+            item = body.get("item") or {}
+            body = {"ok": True, "meta": body.get("meta"), "item": {"record": item.get("record")}, "trace": rows,
+                    "missing": sorted(wanted - {r["object_id"] for r in rows})}
+        return _result("retrieval_trace", body, started=started)
 
     @server.tool(name="search_objects", annotations=READ_ONLY)
     async def search_objects(

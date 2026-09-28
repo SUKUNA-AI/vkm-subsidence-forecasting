@@ -103,8 +103,11 @@ services:
       VKM_PG_DSN_FILE: /run/secrets/pg_dsn
       VKM_API_TOKEN_FILE: /run/secrets/api_read_token
       VKM_API_WRITE_TOKEN_FILE: /run/secrets/api_write_token
+      # query embeddings for /v1/search/hybrid (RX580 retrieval service on the internal network)
+      VKM_EMBED_URL: http://rx580-retrieval:8790
+      VKM_EMBED_TOKEN_FILE: /run/secrets/embed_token
       VKM_LOG_LEVEL: INFO
-    secrets: [api_read_token, api_write_token, neo4j_password, rerank_token, pg_dsn]
+    secrets: [api_read_token, api_write_token, neo4j_password, rerank_token, pg_dsn, embed_token]
     # Directories (not files), so an atomic replace (CURRENT, the DuckDB file) is seen by the container. Long syntax
     # with create_host_path: false — a missing path (duckdb/ exists only after the first reconcile) fails `up`
     # instead of being created by the daemon as root, which would lock vkm-job out of it.
@@ -188,6 +191,102 @@ services:
       retries: 3
       start_period: 15s
 
+  # RX580 retrieval service (agent K; постановка лаборатории §56): resident dense + late-interaction encoders on the
+  # AMD RX 580 through /dev/dri (Vulkan/RADV), one llama-server child per model, keepalive against runtime-PM suspend.
+  # The container user needs the host's render/video groups (numeric GIDs in the host-local .env). Models, tokenizers
+  # and the deployment JSON are read-only; the Mesa shader cache and logs live in a writable host directory.
+  # derived/embeddings of the canonical root is mounted read-write: bulk document encoding runs inside this container
+  # (`docker compose exec rx580-retrieval python -m vkm_corpus.embeddings.cli encode ...`, infra/core/lab_stage2.sh)
+  # because the llama-servers listen on the container's loopback; the service itself only reads token vectors there.
+  # Published on loopback only (admins, SSH tunnel); the API reaches it by service name.
+  rx580-retrieval:
+    image: ${VKM_RX580_IMAGE:-vkm-rx580-retrieval:0.1.0}
+    restart: unless-stopped
+    user: "${VKM_RX580_UID:?}:${VKM_RX580_GID:?}"   # owner of ${VKM_RX580_ROOT}/cache and of derived/embeddings
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "${VKM_RENDER_GID:?}"
+      - "${VKM_VIDEO_GID:?}"
+    environment:
+      VKM_RX580_CONFIG: /config/rx580.json
+      VKM_RX580_KEEPALIVE_S: "${VKM_RX580_KEEPALIVE_S:-2}"
+      VKM_OPENSEARCH_URL: http://opensearch:9200
+      VKM_RX580_TOKEN_FILE: /run/secrets/rx580_token
+      VKM_DATA_ROOT: /data
+      VKM_DATA_ROLE: canonical
+    secrets: [rx580_token]
+    volumes:
+      - type: bind
+        source: ${VKM_RX580_ROOT:?}/models
+        target: /models
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${VKM_RX580_ROOT:?}/config
+        target: /config
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${VKM_RX580_ROOT:?}/cache
+        target: /cache
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${VKM_DATA_ROOT_HOST:?}/derived/embeddings
+        target: /data/derived/embeddings
+        bind: {create_host_path: false}
+    ports:
+      - "127.0.0.1:8790:8790"
+    mem_limit: 4g
+    networks: [vkm_internal]
+    logging:
+      driver: json-file
+      options: {max-size: "50m", max-file: "5"}
+
+  # Queue-driven bulk encoding on the RX580 (claims jobs of the PostgreSQL queue of vkm_corpus.ops once the
+  # coordinator provides `embed worker`); on demand only: docker compose --profile jobs run --rm rx580-embed-worker
+  rx580-embed-worker:
+    image: ${VKM_RX580_IMAGE:-vkm-rx580-retrieval:0.1.0}
+    profiles: ["jobs"]
+    user: "${VKM_RX580_UID:?}:${VKM_RX580_GID:?}"
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "${VKM_RENDER_GID:?}"
+      - "${VKM_VIDEO_GID:?}"
+    environment:
+      VKM_RX580_CONFIG: /config/rx580-worker.json
+      VKM_DATA_ROOT: /data
+      VKM_DATA_ROLE: canonical
+      VKM_PG_DSN_FILE: /run/secrets/pg_dsn
+    secrets: [pg_dsn]
+    volumes:
+      - type: bind
+        source: ${VKM_RX580_ROOT:?}/models
+        target: /models
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${VKM_RX580_ROOT:?}/config
+        target: /config
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${VKM_RX580_ROOT:?}/cache
+        target: /cache
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${VKM_DATA_ROOT_HOST:?}/derived/embeddings
+        target: /data/derived/embeddings
+        bind: {create_host_path: false}
+    entrypoint: ["python", "-m", "vkm_corpus.embeddings.cli"]
+    command: ["specs"]
+    mem_limit: 4g
+    networks: [vkm_internal]
+    logging:
+      driver: json-file
+      options: {max-size: "50m", max-file: "5"}
+
   # One-shot jobs on the CANONICAL root (the only writer on CORE), e.g.
   #   docker compose --profile jobs run --rm vkm-job canon init --kind CANONICAL
   #   docker compose --profile jobs run --rm vkm-job core reconcile --run-id <RUN>
@@ -232,3 +331,9 @@ secrets:
     file: ${VKM_SECRETS_DIR}/rerank_token
   pg_dsn:
     file: ${VKM_SECRETS_DIR}/${VKM_APP_PG_DSN_FILE:-pg_dsn}   # a copy owned by VKM_DATA_UID if pg_dsn is not
+  # bearer token of the RX580 retrieval service: its own copy (owned by VKM_RX580_UID) and the api's copy (owned by
+  # VKM_DATA_UID; the same file when both uids are equal)
+  rx580_token:
+    file: ${VKM_SECRETS_DIR}/rx580_token
+  embed_token:
+    file: ${VKM_SECRETS_DIR}/${VKM_APP_RX580_TOKEN_FILE:-rx580_token}

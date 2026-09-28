@@ -24,7 +24,7 @@ from typing import Any, Literal, Protocol, Sequence
 import numpy as np
 
 from vkm_corpus.embeddings import postprocess as pp
-from vkm_corpus.embeddings.artifacts import ArtifactWriter, EmbeddingRow, Kind, existing_hashes, read_table
+from vkm_corpus.embeddings.artifacts import ArtifactWriter, EmbeddingRow, Kind, existing_hashes_in
 from vkm_corpus.embeddings.reembed import CanonObject
 from vkm_corpus.embeddings.specs import EncoderSpec
 from vkm_corpus.embeddings.tokenize import SpecTokenizer
@@ -174,12 +174,12 @@ class EmbeddingWorker:
                  device: Device, name: str) -> None:
         self.queue, self.source, self.encoder, self.writer = queue, source, encoder, writer
         self.device, self.name = device, name
+        self._known: dict[str, set[str]] = {}
+        self._seen_parts: set[str] = set()
 
     def _already(self) -> dict[str, set[str]]:
-        try:
-            return existing_hashes(read_table(Path(self.writer.dir), verify=False))
-        except FileNotFoundError:
-            return {}
+        # incremental and key columns only: re-reading every part (with vectors) per job is quadratic at corpus scale
+        return existing_hashes_in(Path(self.writer.dir), known=self._known, seen_parts=self._seen_parts)
 
     def run_once(self) -> dict[str, Any] | None:
         sig = self.writer.config.signature()

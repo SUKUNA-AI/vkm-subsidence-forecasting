@@ -18,7 +18,8 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from vkm_corpus.api import images
-from vkm_corpus.api.backends import ArtifactBlobs, ControlPlane, GraphBackend, RerankBackend, SearchBackend
+from vkm_corpus.api.backends import (ArtifactBlobs, ControlPlane, GraphBackend, HybridBackend, RerankBackend,
+                                     SearchBackend)
 from vkm_corpus.api.canon import QUERYABLE_KINDS, CanonStore, jsonable, kind_of
 from vkm_corpus.api.envelope import (API_VERSION, ApiWarning, Envelope, Geometry, Item, ModelInfo, Projection,
                                      Provenance, SourceScope)
@@ -76,6 +77,7 @@ class ApiDeps:
     graph: GraphBackend | None = None
     rerank: RerankBackend | None = None
     control: ControlPlane | None = None
+    hybrid: HybridBackend | None = None
 
 
 def _require(dep: Any, name: str, stage: str) -> Any:
@@ -434,12 +436,46 @@ class ApiService:
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
                    "include_duplicates": include_duplicates, "exact": exact}
         response = backend.search(request)
+        items, warnings = self._search_items(response)
+        hits = response.get("hits", [])
+        more = len(hits) == limit and offset + limit < 1000
+        return Result(items=items, warnings=warnings, next_cursor=str(offset + limit) if more else None)
+
+    def search_hybrid(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
+                      candidates: int = 100, include_duplicates: bool = False, exact: bool = False) -> Result:
+        """BM25 + dense k-NN fused by RRF (``vkm_corpus.search.hybrid``); hits are hydrated from the canon exactly as
+        in :meth:`search` and carry the per-stage trace. Without the query encoder or the vectors build the answer is
+        DEPENDENCY_UNAVAILABLE — never BM25 results in disguise."""
+        backend = _require(self.deps.hybrid, "hybrid search", "hybrid")
+        offset = int(cursor) if cursor and cursor.isdigit() else 0
+        request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
+                   "candidates": candidates, "include_duplicates": include_duplicates, "exact": exact}
+        response = backend.search(request)
+        dense = (response.get("stages") or {}).get("dense") or {}
+        items, warnings = self._search_items(response, extra_built={
+            dense.get("build_id"): dense.get("built_from_snapshot_id")}, hybrid=True)
+        record = {k: response.get(k) for k in ("fusion", "rrf_k", "candidates", "fused_total", "totals", "stages",
+                                               "timings_ms")}
+        record.update({"kinds": list(kinds), "query_sha256": sha256_text(query),
+                       "scores_are": "rank-fusion signals of a projection, not evidence"})
+        envelope = Envelope(object_id=f"hybrid-{sha256_text(query)[:16]}", object_kind="SEARCH_RESULT",
+                            review_status="NOT_APPLICABLE", layer="SERVICE", payload_form="NORMALIZED",
+                            provenance=Provenance(model_id=dense.get("model_key"), model_revision=None),
+                            canonical_snapshot_id=self.canon.snapshot_id())
+        more = offset + limit < min(int(response.get("fused_total") or 0), candidates * len(kinds))
+        return Result(item=Item(envelope=envelope, record=jsonable(record)), items=items, warnings=warnings,
+                      next_cursor=str(offset + limit) if more else None)
+
+    def _search_items(self, response: dict[str, Any], *, extra_built: dict[Any, Any] | None = None,
+                      hybrid: bool = False) -> tuple[list[Item], list[ApiWarning]]:
+        """Hydrate search hits (IDs only) from the canonical snapshot; projection text never becomes content."""
         hits = response.get("hits", [])
         hydrated = self.canon.hydrate([h["id"] for h in hits])
         snapshot = self.canon.snapshot_id()
         aliases = (self._projection_status().get("aliases") or {})
         built = {entry.get("build_id"): entry.get("built_from_snapshot_id") for entry in aliases.values()
                  if isinstance(entry, dict)}
+        built.update({k: v for k, v in (extra_built or {}).items() if k})
         warnings: list[ApiWarning] = []
         stale = [h["id"] for h in hits if h["id"] not in hydrated]
         if stale:
@@ -478,6 +514,13 @@ class ApiService:
                       "rerank_candidate": {"candidate_id": hit.get("page_id") or hit["id"],
                                            "object_ids": [b.get("id") for b in ordered_blocks] or [hit["id"]],
                                            "rule": "rerank_text_v1"}}
+            if hybrid:
+                trace = dict(hit.get("trace") or {})
+                record.update({"bm25_score": trace.get("bm25_score"), "rrf_score": trace.get("rrf_score"),
+                               "dense_score": trace.get("dense_score"), "rank_in_kind": None, "trace": trace})
+                unit = trace.get("dense_unit") or {}
+                if not ordered_blocks and hit.get("object_type") == "PAGE" and unit.get("object_ids"):
+                    record["rerank_candidate"]["object_ids"] = list(unit["object_ids"])[:20]
             items.append(Item(envelope=self.envelope(kind, row, payload_form="REFERENCE", projection=projection,
                                                      work_id=work_id), record=jsonable(record)))
         if mismatched:
@@ -491,8 +534,7 @@ class ApiService:
                                                "independent evidence", count=len(repeated)))
         for code in response.get("warnings") or []:
             warnings.append(ApiWarning(code="SEARCH_WARNING", message=str(code)[:200]))
-        more = len(hits) == limit and offset + limit < 1000
-        return Result(items=items, warnings=warnings, next_cursor=str(offset + limit) if more else None)
+        return items, warnings
 
     def query_objects(self, kinds: list[str], limit: int, cursor: str | None, **filters: Any) -> Result:
         offset = int(cursor) if cursor and cursor.isdigit() else 0
@@ -978,8 +1020,17 @@ class ApiService:
                 out["dependencies"]["opensearch"] = {"available": True, "aliases": aliases,
                                                      "consistent_snapshot": s.get("consistent_snapshot"),
                                                      "server_version": (s.get("server") or {}).get("version")}
+                vec = s.get("vectors") or {}
+                if vec.get("indices"):
+                    out["dependencies"]["opensearch"]["vectors"] = {
+                        **{k: vec.get(k) for k in ("alias", "build_id", "built_from_snapshot_id", "count",
+                                                   "model_key", "dimension", "space_type", "config_signature")},
+                        "matches_canonical_snapshot": vec.get("built_from_snapshot_id") == snapshot}
             except ApiFailure as exc:
                 out["dependencies"]["opensearch"] = {"available": False, "error": exc.code}
+        if self.deps.hybrid is not None and hasattr(self.deps.hybrid, "status"):
+            h = await run_sync(self.deps.hybrid.status)
+            out["dependencies"]["query_encoder"] = h.get("query_encoder")
         if self.deps.graph is not None:
             try:
                 g = await run_sync(self.deps.graph.state)

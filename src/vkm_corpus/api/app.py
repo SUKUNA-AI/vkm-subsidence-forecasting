@@ -118,6 +118,22 @@ class SearchBody(_Body):
     exact: bool = Field(False, description="unstemmed word forms instead of morphology")
 
 
+HybridKind = Literal["PAGE", "FIGURE", "TABLE", "FORMULA"]
+
+
+class HybridSearchBody(_Body):
+    query: str = Field(min_length=1, max_length=512)
+    kinds: list[HybridKind] = Field(default_factory=lambda: ["PAGE"], min_length=1, max_length=4,
+                                    description="PAGE fuses every unit of a page (blocks included) at page level")
+    filters: SearchFilters = Field(default_factory=SearchFilters,
+                                   description="page-level filters only (figure_type / text_layer are refused)")
+    limit: int = Field(20, ge=1, le=50)
+    cursor: str | None = Field(None, max_length=10)
+    candidates: int = Field(100, ge=10, le=200, description="candidates per stage (BM25, dense) and kind")
+    include_duplicates: bool = False
+    exact: bool = Field(False, description="unstemmed word forms in the BM25 stage")
+
+
 class ObjectsQueryBody(_Body):
     kinds: list[ObjectQueryKind] = Field(default_factory=lambda: ["FIGURE"], min_length=1, max_length=5)
     source_ids: list[Annotated[str, Field(pattern=SOURCE_ID)]] = Field(default_factory=list,
@@ -328,6 +344,22 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                    cursor: Annotated[str | None, Query(max_length=10)] = None) -> JSONResponse:
         return respond(request, service.search(q, list(kinds or ["PAGE"]), {}, limit, cursor))
 
+    @app.post("/v1/search/hybrid", tags=["search"], **JSON_RESPONSES)
+    def search_hybrid_post(request: Request, body: HybridSearchBody, _auth: Read) -> JSONResponse:
+        request.state.query_sha256 = hashlib.sha256(body.query.encode("utf-8")).hexdigest()
+        return respond(request, service.search_hybrid(body.query, list(body.kinds), body.filters.to_search(),
+                                                      body.limit, body.cursor, body.candidates,
+                                                      body.include_duplicates, body.exact))
+
+    @app.get("/v1/search/hybrid", tags=["search"], **JSON_RESPONSES)
+    def search_hybrid_get(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],
+                          kinds: Annotated[list[HybridKind] | None, Query()] = None,
+                          limit: Annotated[int, Query(ge=1, le=50)] = 20,
+                          cursor: Annotated[str | None, Query(max_length=10)] = None,
+                          candidates: Annotated[int, Query(ge=10, le=200)] = 100) -> JSONResponse:
+        request.state.query_sha256 = hashlib.sha256(q.encode("utf-8")).hexdigest()
+        return respond(request, service.search_hybrid(q, list(kinds or ["PAGE"]), {}, limit, cursor, candidates))
+
     @app.post("/v1/objects/query", tags=["search"], **JSON_RESPONSES)
     def objects_query(request: Request, body: ObjectsQueryBody, _auth: Read) -> JSONResponse:
         filters = body.model_dump(exclude={"kinds", "limit", "cursor"})
@@ -483,16 +515,17 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
 
 def build_from_settings(settings: Any = None) -> FastAPI:
     """Production wiring: canon of the CANONICAL root + configured projections, rerank gateway and control plane."""
-    from vkm_corpus.api.backends import (ArtifactBlobs, GatewayRerankBackend, Neo4jBackend, OpenSearchBackend,
-                                         PgControlPlane)
+    from vkm_corpus.api.backends import (ArtifactBlobs, GatewayRerankBackend, HybridBackend, Neo4jBackend,
+                                         OpenSearchBackend, PgControlPlane)
     from vkm_corpus.api.canon import CanonStore
     from vkm_corpus.api.service import ApiDeps
     from vkm_corpus.config import load_settings
 
     settings = settings or load_settings()
     root = settings.require_data_root()
+    search = OpenSearchBackend(settings) if settings.opensearch_url else None
     deps = ApiDeps(canon=CanonStore.from_data_root(root), blobs=ArtifactBlobs(root / "artifacts"),
-                   search=OpenSearchBackend(settings) if settings.opensearch_url else None,
+                   search=search, hybrid=HybridBackend(settings, search) if search is not None else None,
                    graph=Neo4jBackend(settings) if settings.neo4j_uri else None,
                    rerank=GatewayRerankBackend(settings) if settings.rerank_url else None,
                    control=PgControlPlane(settings) if settings.pg_dsn else None)

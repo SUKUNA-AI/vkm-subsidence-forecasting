@@ -177,6 +177,9 @@ def status(client: Any, prefix: str) -> dict[str, Any]:
     out["group_alias"] = {"alias": group_alias(prefix), "indices": alias_targets(client, group_alias(prefix))}
     snapshots = {e.get("built_from_snapshot_id") for e in out["aliases"].values() if e.get("indices")}
     out["consistent_snapshot"] = len(snapshots) == 1
+    from vkm_corpus.search.vectors import vectors_status   # dense projection (retrieval lab stage 2)
+
+    out["vectors"] = vectors_status(client, prefix)
     return out
 
 

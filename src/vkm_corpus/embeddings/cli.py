@@ -99,7 +99,7 @@ def _encode(args: argparse.Namespace) -> int:
 
     import numpy as np
 
-    from vkm_corpus.embeddings.artifacts import ArtifactWriter, existing_hashes, read_table, validate
+    from vkm_corpus.embeddings.artifacts import ArtifactWriter, existing_hashes_in, validate
     from vkm_corpus.embeddings.llama import LlamaServerClient
     from vkm_corpus.embeddings.reembed import CanonObject, plan
     from vkm_corpus.embeddings.signature import document_config, text_hash
@@ -139,10 +139,7 @@ def _encode(args: argparse.Namespace) -> int:
             max_len=slot.doc_max_len, heads_sha256=slot.heads_sha256 or (file_sha256(slot.heads) if slot.heads else ""),
             text_rule=args.text_rule)
         writer = ArtifactWriter(Path(args.data_root), mode, config, writer_id=args.writer)
-        try:
-            existing = existing_hashes(read_table(writer.dir, verify=False))
-        except FileNotFoundError:
-            existing = {}
+        existing = existing_hashes_in(writer.dir)          # key columns only (corpus scale)
         p = plan(config.signature(), canon.values(), existing)
         queue = InMemoryJobQueue()
         queue.add(config.signature(), mode, [o.object_id for o in p.to_embed], args.job_size)
@@ -156,12 +153,15 @@ def _encode(args: argparse.Namespace) -> int:
         results = worker.run()
         seconds = time.perf_counter() - t0
         embedded = sum(r["embedded"] for r in results)
-        rep = validate(writer.dir, config, {o.object_id: o.text_hash for o in canon.values()})
+        if args.skip_validate:     # §64 runs at import (search build-vectors streams the parts; this one loads all rows)
+            validation = {"ok": queue.counts().get("FAILED", 0) == 0, "skipped": True}
+        else:
+            validation = validate(writer.dir, config, {o.object_id: o.text_hash for o in canon.values()}).as_dict()
         report.append({"role": slot.role, "key": slot.key, "kind": mode, "config_signature": config.signature(),
                        "dir": str(writer.dir), "objects": len(canon), "plan": p.summary(), "jobs": len(results),
                        "embedded": embedded, "seconds": round(seconds, 2),
                        "objects_per_s": round(embedded / seconds, 1) if embedded and seconds else None,
-                       "queue": queue.counts(), "validation": rep.as_dict()})
+                       "queue": queue.counts(), "validation": validation})
     print(json.dumps(report, indent=1, ensure_ascii=False))
     return 0 if report and all(r["validation"]["ok"] for r in report) else 1
 
@@ -203,6 +203,8 @@ def register(subparsers) -> None:
     s.add_argument("--backend", default="llama.cpp-vulkan")
     s.add_argument("--job-size", type=int, default=64)
     s.add_argument("--batch", type=int, default=8)
+    s.add_argument("--skip-validate", action="store_true",
+                   help="skip the in-memory §64 check (large corpora: `search build-vectors` validates by streaming)")
     s.set_defaults(func=_encode)
 
 

@@ -247,6 +247,55 @@ class FakeSearch:
                 "consistent_snapshot": True, "server": {"version": "3.8.0"}}
 
 
+class FakeHybrid:
+    """Stand-in for the hybrid backend: fused hits with a stage trace (ids only), or a configured failure."""
+
+    def __init__(self, hits: list[dict[str, Any]], *, fail: Any = None,
+                 built_from_snapshot_id: str = SNAPSHOT_ID) -> None:
+        self.hits, self.fail, self.built_from = hits, fail, built_from_snapshot_id
+        self.requests: list[dict[str, Any]] = []
+
+    def search(self, request: dict[str, Any]) -> dict[str, Any]:
+        self.requests.append(request)
+        if self.fail is not None:
+            raise self.fail
+        size, offset = request.get("size", 20), request.get("offset", 0)
+        hits = [{**h, "rank": i} for i, h in enumerate(self.hits[offset:offset + size], offset + 1)]
+        return {"query": request["query"], "kinds": list(request["kinds"]), "hits": hits, "fusion": "RRF",
+                "rrf_k": 60, "candidates": request.get("candidates", 100), "fused_total": len(self.hits),
+                "totals": {k: {"bm25": len(self.hits)} for k in request["kinds"]}, "warnings": [],
+                "stages": {"dense": {"alias": "vkm-vectors", "index": "vkm-vectors-m1-v-test", "build_id": "v-test",
+                                     "built_from_snapshot_id": self.built_from, "model_key": "granite-311m-r2",
+                                     "query_model": "granite-311m-r2", "dimension": 4}},
+                "timings_ms": {"total": 1.0}}
+
+
+def hybrid_hits(canon: SyntheticCanon) -> list[dict[str, Any]]:
+    """Fused hits of a synthetic hybrid query: a page found by both stages, a page found only by the dense stage
+    (with its unit's blocks), a figure and one stale id."""
+    return [
+        {"id": "VKM-SRC-001:p0001", "object_type": "PAGE", "index": "vkm-pages-m1-b-test", "build_id": "b-test",
+         "score": 0.0328, "source_id": "VKM-SRC-001", "page_id": "VKM-SRC-001:p0001", "page_index": 1,
+         "highlights": ["<em>Оседание</em> земной поверхности"], "best_blocks": [],
+         "trace": {"bm25_rank": 1, "bm25_score": 7.5, "dense_rank": 1, "dense_score": 0.91, "fused_rank": 1,
+                   "rrf_score": 0.0328, "rrf_k": 60,
+                   "dense_unit": {"unit_id": "u1-0000000000000001", "unit_kind": "BLOCK_GROUP",
+                                  "object_ids": [canon.ids["block"], canon.ids["block2"]]}}},
+        {"id": "VKM-SRC-002:p0001", "object_type": "PAGE", "index": "vkm-vectors-m1-v-test", "build_id": "v-test",
+         "score": 0.0161, "source_id": "VKM-SRC-002", "page_id": "VKM-SRC-002:p0001", "page_index": 1,
+         "trace": {"bm25_rank": None, "dense_rank": 2, "dense_score": 0.83, "fused_rank": 2, "rrf_score": 0.0161,
+                   "rrf_k": 60, "dense_unit": {"unit_id": "u1-0000000000000002", "unit_kind": "BLOCK_GROUP",
+                                               "object_ids": ["VKM-SRC-002:p0001:b000000000001"]}}},
+        {"id": canon.ids["figure"], "object_type": "FIGURE", "index": "vkm-figures-m1-b-test", "build_id": "b-test",
+         "score": 0.0159, "source_id": "VKM-SRC-001", "page_id": "VKM-SRC-001:p0002", "page_index": 2,
+         "trace": {"bm25_rank": 3, "bm25_score": 2.0, "dense_rank": None, "fused_rank": 3, "rrf_score": 0.0159,
+                   "rrf_k": 60}},
+        {"id": "VKM-SRC-001:p0009", "object_type": "PAGE", "index": "vkm-vectors-m1-v-test", "build_id": "v-test",
+         "score": 0.01, "source_id": "VKM-SRC-001", "page_id": "VKM-SRC-001:p0009",
+         "trace": {"dense_rank": 4, "fused_rank": 4, "rrf_score": 0.01}},
+    ]
+
+
 def search_hits(canon: SyntheticCanon) -> list[dict[str, Any]]:
     """Hits of a synthetic query: a collapsed page (best blocks), a page, a figure and one stale id."""
     return [

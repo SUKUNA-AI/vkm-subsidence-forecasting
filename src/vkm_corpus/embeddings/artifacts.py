@@ -307,6 +307,31 @@ def existing_hashes(table) -> dict[str, set[str]]:
     return out
 
 
+def manifest_parts(directory: Path) -> list[dict[str, Any]]:
+    """Part entries (file, rows, sha256) of every writer's manifest, in manifest then part order."""
+    manifests = sorted(Path(directory).glob(f"{MANIFEST_PREFIX}*.json"))
+    return [part for m in manifests for part in json.loads(m.read_text(encoding="utf-8"))["parts"]]
+
+
+def existing_hashes_in(directory: Path, *, known: dict[str, set[str]] | None = None,
+                       seen_parts: set[str] | None = None) -> dict[str, set[str]]:
+    """:func:`existing_hashes` at corpus scale: reads only the ``object_id``/``text_hash`` columns of each part (never
+    the vectors). With ``seen_parts`` (updated in place) only parts that appeared since the previous call are read
+    and merged into ``known`` — parts are immutable, so the incremental view is exact."""
+    import pyarrow.parquet as pq
+
+    out = known if known is not None else {}
+    seen = seen_parts if seen_parts is not None else set()
+    for part in manifest_parts(directory):
+        if part["file"] in seen:
+            continue
+        t = pq.read_table(Path(directory) / part["file"], columns=["object_id", "text_hash"])
+        for oid, th in zip(t.column("object_id").to_pylist(), t.column("text_hash").to_pylist()):
+            out.setdefault(oid, set()).add(th)
+        seen.add(part["file"])
+    return out
+
+
 # ---------------------------------------------------------------------------------------------------------- validate
 @dataclass
 class ValidationReport:

@@ -1,6 +1,7 @@
 """Dependencies of the API behind small interfaces (real adapters here; deterministic fakes in the tests).
 
 * :class:`SearchBackend` — OpenSearch through agent E (``vkm_corpus.search.query.search``): candidate IDs only;
+* :class:`HybridBackend` — BM25 + dense k-NN (vectors alias) + RX580 query encoder, RRF with a stage trace;
 * :class:`GraphBackend` — Neo4j through agent E (``graph_state``, read templates): IDs and structure only;
 * :class:`RerankBackend` — ``vkm-rerank-gateway`` on EDGE through agent F's ``RerankClient``;
 * :class:`ControlPlane` — PostgreSQL jobs through ``vkm_corpus.ops.jobs`` (plan-first, H-12);
@@ -102,6 +103,60 @@ class OpenSearchBackend:
         except Exception as exc:  # noqa: BLE001
             raise ApiFailure("DEPENDENCY_UNAVAILABLE", f"search status failed ({type(exc).__name__})",
                              stage="opensearch", tool="opensearch") from exc
+
+
+class HybridBackend:
+    """Hybrid search (``vkm_corpus.search.hybrid``): E's BM25 + the vectors alias + the RX580 query encoder. The
+    vectors build ``_meta`` is cached for 30 s; every failure maps to an :class:`ApiFailure` without addresses."""
+
+    META_TTL_S = 30.0
+
+    def __init__(self, settings: Any, search: OpenSearchBackend | None = None, *, embed: Any = None) -> None:
+        from vkm_corpus.search.hybrid import EmbedClient
+
+        self.settings = settings
+        self._search = search or OpenSearchBackend(settings)
+        self._embed = embed if embed is not None else EmbedClient(settings.embed_url, settings.embed_token)
+        self._meta: tuple[float, dict[str, Any]] | None = None
+
+    def _vectors_meta(self, client: Any) -> dict[str, Any]:
+        import time
+
+        from vkm_corpus.search.hybrid import vectors_meta
+
+        now = time.monotonic()
+        if self._meta is None or now - self._meta[0] > self.META_TTL_S:
+            self._meta = (now, vectors_meta(client, self.settings.opensearch_index_prefix))
+        return self._meta[1]
+
+    def status(self) -> dict[str, Any]:
+        """Query encoder health (RX580 retrieval service); the vectors build is part of the OpenSearch status."""
+        return {"query_encoder": self._embed.health()}
+
+    def search(self, request: dict[str, Any]) -> dict[str, Any]:
+        from vkm_corpus.search.hybrid import HybridError, HybridRequest, hybrid_search
+        from vkm_corpus.search.query import SearchRequestError
+
+        try:
+            client = self._search._connect()
+            meta = self._vectors_meta(client)
+            return hybrid_search(client, self._embed, HybridRequest(**request),
+                                 self.settings.opensearch_index_prefix, meta=meta)
+        except HybridError as exc:
+            if exc.stage == "vectors":
+                self._meta = None
+            raise ApiFailure(exc.code, exc.message, stage=f"hybrid_{exc.stage}", tool=exc.tool,
+                             details=exc.details) from exc
+        except SearchRequestError as exc:
+            status = "DEPENDENCY_ERROR" if exc.code == "E_SEARCH_FAILED" else "INVALID_ARGUMENT"
+            raise ApiFailure(status, exc.message, stage="hybrid", tool="opensearch",
+                             details={"search_code": exc.code}) from exc
+        except ApiFailure:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            self._meta = None
+            raise ApiFailure("DEPENDENCY_UNAVAILABLE", f"hybrid search failed ({type(exc).__name__})",
+                             stage="hybrid", tool="opensearch") from exc
 
 
 # ---------------------------------------------------------------------------------------------------- Neo4j

@@ -19,7 +19,8 @@ from pathlib import Path
 from typing import Mapping
 
 DATA_ROLES = ("producer", "canonical")
-SECRET_FIELDS = frozenset({"pg_dsn", "neo4j_password", "api_token", "api_write_token", "rerank_token"})
+SECRET_FIELDS = frozenset({"pg_dsn", "neo4j_password", "api_token", "api_write_token", "rerank_token",
+                           "embed_token"})
 
 
 class ConfigError(RuntimeError):
@@ -71,6 +72,8 @@ class Settings:
     api_write_token: str | None
     log_level: str
     models_dir: Path | None = None  # local model snapshots (GLM-OCR, layout); read-only
+    embed_url: str | None = None    # RX580 retrieval service (query embeddings, POST /embed/query)
+    embed_token: str | None = None  # its optional bearer token (VKM_EMBED_TOKEN_FILE)
 
     # ---------------------------------------------------------------- accessors with checks
     def require_data_root(self) -> Path:
@@ -135,4 +138,6 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         api_write_token=_secret(env, "VKM_API_WRITE_TOKEN"),
         log_level=env.get("VKM_LOG_LEVEL", "INFO").strip().upper() or "INFO",
         models_dir=_path(env, "VKM_MODELS_DIR"),
+        embed_url=env.get("VKM_EMBED_URL", "").strip() or None,
+        embed_token=_secret(env, "VKM_EMBED_TOKEN"),
     )

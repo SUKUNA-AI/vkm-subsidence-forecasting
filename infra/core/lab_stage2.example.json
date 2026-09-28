@@ -1,0 +1,14 @@
+{
+  "_comment": "Retrieval lab stage 2 on CORE (infra/core/lab_stage2.sh). Copy to lab_stage2.json next to compose.yml to change it. The dense model is the dense slot of the RX580 service config (container path); expect_dense_key is an assertion: the run stops if the service serves another dense encoder. To switch to J's winner, change the service's rx580.json (and restart rx580-retrieval), then this key.",
+  "schema": "vkm.lab_stage2/1",
+  "service_config": "/config/rx580.json",
+  "expect_dense_key": "granite-311m-r2",
+  "expect_dense_quant": "Q8_0",
+  "context_variant": "A",
+  "text_rule": "vkm-units-v1/A",
+  "job_size": 512,
+  "batch": 8,
+  "wait_projections_s": 21600,
+  "wait_snapshot_s": 86400,
+  "smoke_queries": ["оседание земной поверхности", "ползучесть каменной соли", "мульда сдвижения"]
+}

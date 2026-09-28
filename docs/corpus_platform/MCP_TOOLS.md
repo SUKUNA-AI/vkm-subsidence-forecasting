@@ -62,6 +62,8 @@ PostgreSQL (тест), поэтому «сырой SQL/Cypher» через MCP �
 | Tool | Главные аргументы | Что возвращает | Эндпоинт API |
 |---|---|---|---|
 | `search_text` | `query`, `kinds` (PAGE, BLOCK, FIGURE, TABLE, FORMULA), фильтры (`source_ids`, `work_ids`, `source_scope`, `source_scope_raw`, `review_status`, `origin`, `language`, `year_from/to`, `available_until` + `unknown_policy`, `quality_flags_none`), `limit`, `cursor` | кандидаты с каноническими конвертами, сниппеты индекса (`highlight_origin = SEARCH_INDEX`), `rerank_candidate` | `POST /v1/search` |
+| `search_hybrid` | `query`, `kinds` (PAGE, FIGURE, TABLE, FORMULA), фильтры уровня страницы (`source_ids`, `work_ids`, `source_scope`, `year_from/to`, `available_until` + `unknown_policy`), `limit`, `candidates` (кандидатов на стадию, 10–200), `cursor` | кандидаты BM25 + dense (эмбеддинги единиц `vkm-units-v1`, кодировщик запроса на RX580), слияние RRF (k = 60); у каждого `record.trace`: `bm25_rank`, `dense_rank`, `fused_rank`, `rrf_score`, совпавшая единица; `item` — сведения о прогоне (сборка векторов, модель, тайминги); без кодировщика или векторного индекса — `DEPENDENCY_UNAVAILABLE`, подмены на BM25 нет | `POST /v1/search/hybrid` |
+| `retrieval_trace` | `query`, `object_ids` (необязательно), `kinds`, `limit`, `candidates` | компактная трасса гибридного ранжирования: ранги и скоры каждой стадии по кандидатам, конфигурация стадий; late interaction и реранк — следующие стадии (`null`) | `POST /v1/search/hybrid` |
 | `search_objects` | `kinds`, `source_ids`, `work_ids`, `page_from/to`, `figure_types`, `review_status`, `origin`, `quality_flags_any/none`, `has_image`, `source_scope*`, `caption_query` | объекты без текстовых тел | `POST /v1/objects/query` |
 | `get_source` | `source_id` | строка реестра, `lifecycle_status` (013/022 — 200), связи с Work, сводка обработки | `GET /v1/source/{id}` |
 | `get_work` | `work_id` | Work, авторы (`name_as_listed`, NAME_KEY_ONLY), экземпляры-Source, `work_copy_count`, `resolved_work_id` | `GET /v1/work/{id}` |
@@ -80,6 +82,13 @@ PostgreSQL (тест), поэтому «сырой SQL/Cypher» через MCP �
 | `get_artifact` | `artifact_id` | метаданные артефакта | `GET /v1/artifact/{id}` |
 | `list_source_pages` | `source_id`, `from_page`, `to_page`, `limit`, `cursor` | страницы источника | `GET /v1/source/{id}/pages` |
 | `get_corpus_status` | — | снимок и счётчики, сборки проекций, модели реранка и лицензии, задания; только роли хостов | `GET /v1/status` |
+
+Гибридный поиск (этап 2 лаборатории retrieval, §52–55 постановки): ключи слияния — стабильные ID канона: для `PAGE`
+все единицы страницы засчитываются странице (первое вхождение; дубли страниц сворачиваются по `dup_group_id`, как в
+BM25), для рисунков, таблиц и формул — ID объекта. Фильтры по полям типа объекта (`figure_type`, `text_layer`) в
+гибридном поиске не поддерживаются (400). Ранги BM25 и dense считаются отдельно по каждому виду, сырые скоры видов не
+сравниваются. Последняя стадия — по-прежнему `rerank_text` по `rerank_candidate` (для страницы, найденной только dense,
+пассаж — блоки совпавшей единицы). Late interaction (MaxSim на RX580) — следующий этап, в трассе `late_rank = null`.
 
 Лимиты (H-13, H-45): текстовый реранк — не больше 24 кандидатов за вызов (больше — 413, пачки не склеиваются);
 визуальный — не больше 8 изображений, таймаут клиента 330 с (реранкер обрабатывает изображение секунды);

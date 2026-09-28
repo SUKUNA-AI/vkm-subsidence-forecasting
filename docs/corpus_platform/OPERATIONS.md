@@ -102,8 +102,42 @@ reconcile на CORE с подстановкой `{run_id}`, например
 | OpenSearch | `search build --smoke --prune` |
 | откат поиска на предыдущую сборку | `search rollback` |
 | все три по порядку | `core reconcile --run-id <RUN>` |
+| векторы (dense) | `search export-units`, затем `search build-vectors --embeddings <каталог или отчёт encode>` (§4a) |
 
 `graph rebuild --plan-only` и `search build --plan-only` печатают ожидаемые числа без записи.
+
+### 4a. Векторы и гибридный поиск (лаборатория retrieval, этап 2)
+
+Канон эмбеддингов — derived-артефакты `derived/embeddings/dense/<модель>/<ревизия>/<подпись>/` (агент K); индекс
+`<prefix>-vectors-m1-<build>` за алиасом `<prefix>-vectors` — пересобираемая проекция без GPU.
+
+| Шаг | Где | Команда |
+|---|---|---|
+| единицы `vkm-units-v1` снимка CURRENT → `derived/embeddings/units/<снимок>/vkm-units-v1-A/` | `vkm-job` | `search export-units` |
+| эмбеддинги всех единиц (уже встроенные с той же подписью пропускаются, §46) | `rx580-retrieval` (`exec`) | `python -m vkm_corpus.embeddings.cli encode --config /config/rx580.json --docs <units>/docs.jsonl --data-root /data --roles dense --skip-validate` |
+| проверки §64 (потоково) + индекс + смена алиаса | `vkm-job` | `search build-vectors --embeddings <отчёт encode или каталог> [--snapshot <CURRENT>] [--skip-if-current]` |
+| состояние | `vkm-job` | `search status` (раздел `vectors`: сборка, снимок, подпись, модель, число векторов) |
+| запрос с трассой | API / MCP | `POST /v1/search/hybrid`, tool `search_hybrid` / `retrieval_trace`; CLI `search hybrid "<запрос>"` |
+
+`build-vectors` отказывает (алиас не трогается), если единицы не от снимка CURRENT, эмбеддинги неполны (пропуски,
+дубли, чужая подпись, NaN, норма, контрольные суммы частей) или подпись не dense. Строки единиц, ушедших из канона, —
+история (`orphaned` в квитанции), в проекцию не попадают. Старые сборки удаляются только по точному имени; остаются
+текущая и предыдущая (откат — переставить алиас `_aliases` на предыдущий индекс). API берёт вектор запроса у сервиса
+RX580 (`VKM_EMBED_URL`) и сверяет модель и размерность со сборкой; без сервиса или сборки — `DEPENDENCY_UNAVAILABLE`.
+
+Весь этап без участия человека выполняет `infra/core/lab_stage2.sh` (идемпотентен, один запуск за раз):
+
+```bash
+# на CORE, в каталоге compose (там же .env); модель — lab_stage2.json (по умолчанию пример: granite-311m-r2 Q8_0)
+systemd-run --user --unit vkm-lab-stage2 --collect bash <каталог compose>/lab_stage2.sh [--after-snapshot <старый CURRENT>]
+cat <корень данных>/receipts/lab_stage2/STATUS          # одна строка: RUNNING step=… | DONE … | FAILED step=…
+journalctl --user -u vkm-lab-stage2 -f                  # журнал; полный — receipts/lab_stage2/<run>/run.log
+```
+
+Квитанция прогона — `receipts/lab_stage2/<run>/receipt.json` (и `latest.json`): снимок, единицы, план и скорость
+кодирования, проверки §64, сборка индекса, результат smoke (3 русских запроса через API, у каждого ≥ 1 попадание с
+трассой). Повторный запуск ничего не пересчитывает: экспорт — `EXISTS`, кодирование — 0 новых единиц, индекс —
+`SKIPPED_CURRENT`.
 
 ## 5. Резервные копии
 
