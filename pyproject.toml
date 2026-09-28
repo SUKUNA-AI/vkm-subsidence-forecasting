@@ -83,11 +83,12 @@ vkm-corpus = "vkm_corpus.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["vkm_world*", "vkm_corpus*", "vkm_cad*", "vkm_drawio*"]
+include = ["vkm_world*", "vkm_corpus*", "vkm_cad*", "vkm_drawio*", "vkm_jobs*", "vkm_matlab*", "vkm_ansys*"]
 
 [tool.setuptools.package-data]
 # non-Python files read at run time (a non-editable install, e.g. the CORE image, has only what is listed here)
 vkm_corpus = ["duckdb/sql/*.sql", "ops/schema.sql"]
+vkm_matlab = ["entry/*.m"]
 
 [tool.pytest.ini_options]
 addopts = "-ra -p no:cacheprovider"
@@ -97,4 +98,6 @@ markers = [
     "services: needs live Neo4j/OpenSearch/PostgreSQL/rerankers (skipped -> NOT_RUN when absent)",
     "gpu: needs a CUDA GPU or a running GLM-OCR/reranker model service",
     "desktop: needs Windows desktop tools (AutoCAD, draw.io)",
+    "matlab: starts MATLAB and takes a licence (live smoke; opt-in: VKM_MATLAB_LIVE=1 and -m matlab)",
+    "ansys: starts an Ansys product and takes a licence (opt-in: -m ansys, by explicit task only)",
 ]
