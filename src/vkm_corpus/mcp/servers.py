@@ -145,13 +145,14 @@ def build_read_server(api: ApiClient) -> MCPServer:
     def hybrid_body(query: str, kinds: list[str], source_ids: list[str] | None, work_ids: list[str] | None,
                     source_scope: list[str] | None, year_from: int | None, year_to: int | None,
                     available_until: str | None, unknown_policy: str | None, limit: int, candidates: int,
-                    cursor: str | None = None) -> dict[str, Any]:
+                    cursor: str | None = None, late: bool | None = None,
+                    late_candidates: int = 100) -> dict[str, Any]:
         filters = {k: v for k, v in {
             "source_ids": source_ids, "work_ids": work_ids, "source_scope": source_scope, "year_from": year_from,
             "year_to": year_to, "available_until": available_until, "unknown_policy": unknown_policy}.items()
             if v is not None}
         return {"query": query, "kinds": kinds, "filters": filters, "limit": limit, "candidates": candidates,
-                "cursor": cursor}
+                "cursor": cursor, "late": late, "late_candidates": late_candidates}
 
     @server.tool(name="search_hybrid", annotations=READ_ONLY)
     async def search_hybrid(
@@ -167,14 +168,19 @@ def build_read_server(api: ApiClient) -> MCPServer:
             unknown_policy: Literal["EXCLUDE", "INCLUDE"] | None = None,
             limit: Annotated[int, Field(ge=1, le=50)] = 20,
             candidates: Annotated[int, Field(ge=10, le=200, description="candidates per stage")] = 100,
-            cursor: Annotated[str | None, Field(max_length=10)] = None) -> CallToolResult:
+            cursor: Annotated[str | None, Field(max_length=10)] = None,
+            late: Annotated[bool | None, Field(description="late interaction (mLateOn MaxSim) over the RRF top "
+                                                           "late_candidates; null = server default")] = None,
+            late_candidates: Annotated[int, Field(ge=1, le=200)] = 100) -> CallToolResult:
         """Hybrid search: BM25 + dense embeddings (RX580 query encoder, OpenSearch k-NN over embedding units),
-        fused by reciprocal rank. Pages (every unit of a page counts for it) or figures/tables/formulas. Each hit has
-        a trace (bm25_rank, dense_rank, fused_rank, the dense unit) and a rerank_candidate for rerank_text. Fails
-        with DEPENDENCY_UNAVAILABLE when the encoder or the vector index is missing (use search_text then)."""
+        fused by reciprocal rank, then (late) re-scored by late interaction (mLateOn MaxSim over token vectors; a page
+        scores its best unit). Pages (every unit of a page counts for it) or figures/tables/formulas. Each hit has a
+        trace (bm25_rank, dense_rank, fused_rank, late_rank/late_score, the dense and late units) and a
+        rerank_candidate for rerank_text. Fails with DEPENDENCY_UNAVAILABLE when the encoder, the vector index or
+        (late) the token store is missing (use search_text, or late=false, then)."""
         return await call("search_hybrid", "POST", "/v1/search/hybrid", body=hybrid_body(
             query, kinds, source_ids, work_ids, source_scope, year_from, year_to, available_until, unknown_policy,
-            limit, candidates, cursor))
+            limit, candidates, cursor, late, late_candidates))
 
     @server.tool(name="retrieval_trace", annotations=READ_ONLY)
     async def retrieval_trace(
@@ -183,13 +189,16 @@ def build_read_server(api: ApiClient) -> MCPServer:
                                   Field(max_length=50, description="only these hit ids (default: all)")] = None,
             kinds: Annotated[list[HybridKind], Field(min_length=1, max_length=4)] = ["PAGE"],  # noqa: B006
             limit: Annotated[int, Field(ge=1, le=50)] = 50,
-            candidates: Annotated[int, Field(ge=10, le=200)] = 100) -> CallToolResult:
-        """Explain a hybrid ranking: per hit the rank and score of every stage (BM25, dense, RRF fusion; late
-        interaction and reranking are later stages), the dense unit that matched, plus the stage configuration
-        (vector build, query encoder, timings). Compact: no envelopes."""
+            candidates: Annotated[int, Field(ge=10, le=200)] = 100,
+            late: Annotated[bool | None, Field(description="include the late interaction stage; null = server "
+                                                           "default")] = None,
+            late_candidates: Annotated[int, Field(ge=1, le=200)] = 100) -> CallToolResult:
+        """Explain a hybrid ranking: per hit the rank and score of every stage (BM25, dense, RRF fusion, late
+        interaction MaxSim when run; reranking is a later stage), the dense and late units that matched, plus the
+        stage configuration (vector build, query encoders, token pack, timings). Compact: no envelopes."""
         started = time.perf_counter()
         body = await api.call("POST", "/v1/search/hybrid", body=hybrid_body(
-            query, kinds, None, None, None, None, None, None, None, limit, candidates))
+            query, kinds, None, None, None, None, None, None, None, limit, candidates, None, late, late_candidates))
         if body.get("ok"):
             wanted = set(object_ids or [])
             rows = []

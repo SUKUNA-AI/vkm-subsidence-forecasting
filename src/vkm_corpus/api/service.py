@@ -442,20 +442,23 @@ class ApiService:
         return Result(items=items, warnings=warnings, next_cursor=str(offset + limit) if more else None)
 
     def search_hybrid(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
-                      candidates: int = 100, include_duplicates: bool = False, exact: bool = False) -> Result:
-        """BM25 + dense k-NN fused by RRF (``vkm_corpus.search.hybrid``); hits are hydrated from the canon exactly as
-        in :meth:`search` and carry the per-stage trace. Without the query encoder or the vectors build the answer is
-        DEPENDENCY_UNAVAILABLE — never BM25 results in disguise."""
+                      candidates: int = 100, include_duplicates: bool = False, exact: bool = False, *,
+                      late: bool | None = None, late_candidates: int = 100) -> Result:
+        """BM25 + dense k-NN fused by RRF, optionally re-scored by late interaction (``vkm_corpus.search.hybrid``);
+        hits are hydrated from the canon exactly as in :meth:`search` and carry the per-stage trace. Without the query
+        encoder, the vectors build or (with late) the token store the answer is DEPENDENCY_UNAVAILABLE — never BM25
+        or RRF results in disguise."""
         backend = _require(self.deps.hybrid, "hybrid search", "hybrid")
         offset = int(cursor) if cursor and cursor.isdigit() else 0
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
-                   "candidates": candidates, "include_duplicates": include_duplicates, "exact": exact}
+                   "candidates": candidates, "include_duplicates": include_duplicates, "exact": exact,
+                   "late": late, "late_candidates": late_candidates}
         response = backend.search(request)
         dense = (response.get("stages") or {}).get("dense") or {}
         items, warnings = self._search_items(response, extra_built={
             dense.get("build_id"): dense.get("built_from_snapshot_id")}, hybrid=True)
         record = {k: response.get(k) for k in ("fusion", "rrf_k", "candidates", "fused_total", "totals", "stages",
-                                               "timings_ms")}
+                                               "timings_ms", "late", "late_candidates")}
         record.update({"kinds": list(kinds), "query_sha256": sha256_text(query),
                        "scores_are": "rank-fusion signals of a projection, not evidence"})
         envelope = Envelope(object_id=f"hybrid-{sha256_text(query)[:16]}", object_kind="SEARCH_RESULT",
@@ -517,7 +520,8 @@ class ApiService:
             if hybrid:
                 trace = dict(hit.get("trace") or {})
                 record.update({"bm25_score": trace.get("bm25_score"), "rrf_score": trace.get("rrf_score"),
-                               "dense_score": trace.get("dense_score"), "rank_in_kind": None, "trace": trace})
+                               "dense_score": trace.get("dense_score"), "late_score": trace.get("late_score"),
+                               "rank_in_kind": None, "trace": trace})
                 unit = trace.get("dense_unit") or {}
                 if not ordered_blocks and hit.get("object_type") == "PAGE" and unit.get("object_ids"):
                     record["rerank_candidate"]["object_ids"] = list(unit["object_ids"])[:20]

@@ -1,5 +1,5 @@
-"""Hybrid retrieval: BM25 (E's indices) + dense k-NN (the vectors alias), fused by RRF, with a per-stage trace
-(постановка лаборатории §52, §54; J's design §16).
+"""Hybrid retrieval: BM25 (E's indices) + dense k-NN (the vectors alias), fused by RRF, then optionally the late
+interaction stage (mLateOn MaxSim), with a per-stage trace (постановка лаборатории §52, §54; J's design §16).
 
 * The query vector comes from the RX580 retrieval service (``POST /embed/query``, role ``dense``; ``VKM_EMBED_URL``).
   Its model key and dimension must match the ``_meta`` of the vectors build (the document encoder) — otherwise the
@@ -14,8 +14,16 @@
 * Filters: E's whitelist (``vkm_corpus.search.query.FILTERS``) on page-level fields, applied to both legs (vector
   documents carry the same fields); object-type filters (block_type, figure_type, layout_class, text_layer) have no
   page-level meaning and are refused.
-* Late interaction (MaxSim over token vectors, RX580 ``/search/late``) is the next stage and is not run here; the
-  EDGE text reranker stays the last stage (``rerank_text`` over the returned ``rerank_candidate``).
+* Late interaction (``late``; agent L): the RRF top-``late_candidates`` (default 100, J's scheme "RRF(BM25, dense) →
+  mLateOn") are re-scored by the RX580 service (``POST /search/late`` with targets: the late query encoding + MaxSim
+  against the memory-mapped token-vector pack). A PAGE scores the max MaxSim over the units of the page; a FIGURE /
+  TABLE / FORMULA its unit (one unit = one object). Kinds never compare raw scores (H-44): with several kinds, each
+  kind keeps the positions RRF gave it and is re-ordered by MaxSim inside them; with one kind the order is simply the
+  late score. Candidates without token vectors keep their RRF order after the scored ones of their kind and are
+  reported (``late_status`` NO_TOKENS, ``stages.late.unscored_ids``); hits beyond the candidates keep the RRF order.
+  A missing late encoder or token store fails loudly (DEPENDENCY_UNAVAILABLE) — never a silent RRF-only answer.
+  The default (:data:`LATE_DEFAULT`) follows the measured latency on CORE (agent L's report).
+* The EDGE text reranker stays the last stage (``rerank_text`` over the returned ``rerank_candidate``).
 """
 from __future__ import annotations
 
@@ -37,6 +45,10 @@ MAX_CANDIDATES = MAX_SIZE                 # per leg and kind (E's single-kind si
 PAGE_OVERSAMPLE = 3                       # units fetched per wanted page (several units of one page)
 MAX_KNN = 1000
 EMBED_TIMEOUT_S = 15.0
+LATE_TIMEOUT_S = 30.0
+MAX_LATE_CANDIDATES = 200
+LATE_CANDIDATES = 100                     # J's service scheme: RRF top-100 → mLateOn
+LATE_DEFAULT = False                      # late stage when the request does not say (agent L: from CORE latency)
 
 
 class HybridError(RuntimeError):
@@ -104,6 +116,51 @@ class EmbedClient:
                               tool="rx580-retrieval") from exc
         return QueryVector(vector, dense.get("model"), dense.get("signature"), len(vector), dense.get("encode_ms"))
 
+    def late_scores(self, query: str, targets: list[dict[str, str]]) -> "LateResult":
+        """``POST /search/late`` with targets: the late query encoding + MaxSim on the service's token store."""
+        import httpx
+
+        tool = "rx580-retrieval"
+        if self._http is None:
+            raise HybridError("DEPENDENCY_UNAVAILABLE", "VKM_EMBED_URL is not configured (RX580 retrieval service)",
+                              stage="late", tool=tool)
+        try:
+            r = self._http.post("/search/late", json={"query": query, "targets": targets, "k": 1},
+                                timeout=LATE_TIMEOUT_S)
+        except httpx.TimeoutException as exc:
+            raise HybridError("DEPENDENCY_TIMEOUT", "late interaction did not answer in time", stage="late",
+                              tool=tool) from exc
+        except httpx.HTTPError as exc:
+            raise HybridError("DEPENDENCY_UNAVAILABLE", f"late interaction not reachable ({type(exc).__name__})",
+                              stage="late", tool=tool) from exc
+        detail = None
+        if r.status_code != 200:
+            try:
+                detail = str(r.json().get("detail"))[:300]
+            except (ValueError, AttributeError):
+                detail = None
+        if r.status_code in (401, 403):
+            raise HybridError("DEPENDENCY_ERROR", "late interaction refused the token (VKM_EMBED_TOKEN_FILE)",
+                              stage="late", tool=tool, details={"status": r.status_code})
+        if r.status_code in (404, 502, 503):
+            raise HybridError("DEPENDENCY_UNAVAILABLE", "late interaction unavailable (no late encoder or no token "
+                              "store)" + (f": {detail}" if detail else ""), stage="late", tool=tool,
+                              details={"status": r.status_code})
+        if r.status_code != 200:
+            raise HybridError("DEPENDENCY_ERROR", f"late interaction answered HTTP {r.status_code}", stage="late",
+                              tool=tool, details={"status": r.status_code})
+        try:
+            body = r.json()
+            results = {str(x["id"]): x for x in body["results"]}
+        except (ValueError, KeyError, TypeError) as exc:
+            raise HybridError("DEPENDENCY_ERROR", "late interaction answer has no per-target results (service image "
+                              "without the targets contract?)", stage="late", tool=tool) from exc
+        if set(results) != {t["id"] for t in targets}:
+            raise HybridError("DEPENDENCY_ERROR", "late interaction answered for other targets", stage="late",
+                              tool=tool)
+        return LateResult(results, body.get("model"), body.get("query_signature"), body.get("store") or {},
+                          body.get("timings_ms") or {}, body.get("n_query_tokens"))
+
     def health(self) -> dict[str, Any]:
         """``GET /health`` of the service (no token): status and the resident models (role, key, quant)."""
         import httpx
@@ -114,13 +171,26 @@ class EmbedClient:
             body = self._http.get("/health", timeout=3.0).json()
         except (httpx.HTTPError, ValueError) as exc:
             return {"available": False, "error": type(exc).__name__}
+        store = body.get("late_store") or {}
         return {"available": True, "status": body.get("status"),
                 "models": [{k: m.get(k) for k in ("role", "key", "quant", "loaded", "resident")}
-                           for m in body.get("models") or []]}
+                           for m in body.get("models") or []],
+                "late_store": {k: store.get(k) for k in ("status", "pack_id", "snapshot_id", "config_signature",
+                                                         "count", "total_tokens", "reason") if k in store} or None}
 
     def close(self) -> None:
         if self._http is not None:
             self._http.close()
+
+
+@dataclass
+class LateResult:
+    results: dict[str, dict[str, Any]]            # target id → {status, late_score, best_unit_id, units, tokens}
+    model: str | None
+    query_signature: str | None
+    store: dict[str, Any]
+    timings_ms: dict[str, Any]
+    n_query_tokens: int | None = None
 
 
 # ---------------------------------------------------------------- request
@@ -135,6 +205,8 @@ class HybridRequest:
     rrf_k: int = RRF_K
     include_duplicates: bool = False
     exact: bool = False
+    late: bool | None = None               # None → LATE_DEFAULT
+    late_candidates: int = LATE_CANDIDATES
 
     def validate(self) -> None:
         if not self.query or not self.query.strip() or len(self.query) > 512:
@@ -147,6 +219,10 @@ class HybridRequest:
             raise SearchRequestError("E_BAD_SIZE", f"candidates 1..{MAX_CANDIDATES}, rrf_k 1..1000")
         if not 1 <= self.size <= 50 or self.offset < 0 or self.offset + self.size > MAX_WINDOW:
             raise SearchRequestError("E_BAD_SIZE", f"size 1..50 and offset + size ≤ {MAX_WINDOW}")
+        if self.late is None:
+            self.late = LATE_DEFAULT
+        if not 1 <= int(self.late_candidates) <= MAX_LATE_CANDIDATES:
+            raise SearchRequestError("E_BAD_SIZE", f"late_candidates 1..{MAX_LATE_CANDIDATES}")
         bad = sorted(set(self.filters) & UNSUPPORTED_FILTERS)
         if bad:
             raise SearchRequestError("E_BAD_FILTER", f"filters {bad} are object-type fields; hybrid search "
@@ -230,10 +306,38 @@ def dense_ranking(resp: dict[str, Any], kind: str, limit: int, *, collapse_dupli
     return out
 
 
+# ---------------------------------------------------------------- late stage
+def late_order(fused: list[tuple[str, float]], kind_of: dict[str, str], results: dict[str, dict[str, Any]],
+               n: int) -> tuple[list[tuple[str, float]], dict[str, int]]:
+    """Final order after the late stage and the late rank (within its kind) of every scored candidate.
+
+    The first ``n`` fused keys are the candidates. Per kind, the positions RRF gave that kind are refilled with its
+    candidates ordered by late score (ties: RRF order), the unscored ones after them in RRF order; keys beyond ``n``
+    keep the RRF order. With one kind this is the plain late-score order."""
+    head, tail = fused[:n], fused[n:]
+    fused_rank = {key: i for i, (key, _s) in enumerate(fused)}
+    positions: dict[str, list[int]] = {}
+    for pos, (key, _s) in enumerate(head):
+        positions.setdefault(kind_of[key], []).append(pos)
+    new_head: list[tuple[str, float] | None] = [None] * len(head)
+    late_rank: dict[str, int] = {}
+    for _kind, slots in positions.items():
+        items = [head[p] for p in slots]
+        scored = [it for it in items if (results.get(it[0]) or {}).get("status") == "SCORED"]
+        unscored = [it for it in items if (results.get(it[0]) or {}).get("status") != "SCORED"]
+        scored.sort(key=lambda it: (-float(results[it[0]]["late_score"]), fused_rank[it[0]]))
+        for r, (key, _s) in enumerate(scored, 1):
+            late_rank[key] = r
+        for p, it in zip(slots, scored + unscored):
+            new_head[p] = it
+    return [it for it in new_head if it is not None] + tail, late_rank
+
+
 # ---------------------------------------------------------------- search
 def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str, *,
                   meta: dict[str, Any] | None = None) -> dict[str, Any]:
-    """BM25 + dense → RRF; hits carry ids, the per-stage trace and E's highlights/best blocks when BM25 found them."""
+    """BM25 + dense → RRF (→ late MaxSim when ``req.late``); hits carry ids, the per-stage trace and E's
+    highlights/best blocks when BM25 found them."""
     req.validate()
     timings: dict[str, float] = {}
     t0 = time.perf_counter()
@@ -273,10 +377,30 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
         totals[kind] = {"bm25": int(bm.totals.get(kind, len(bm.hits))), "bm25_returned": len(bm.hits),
                         "dense_returned": len(dense)}
     fused = rrf(rankings, k=req.rrf_k)
+    fused_rank = {key: i for i, (key, _s) in enumerate(fused, 1)}
+    late_stage: dict[str, Any] | str = "NOT_RUN (late=false; MaxSim over token vectors on the RX580 with late=true)"
+    order, late_rank, late_results = fused, {}, {}
+    if req.late and fused:
+        t1 = time.perf_counter()
+        head = fused[:req.late_candidates]
+        lr = embed.late_scores(req.query, [{"id": key, "kind": kind_of[key]} for key, _s in head])
+        timings["late"] = round((time.perf_counter() - t1) * 1e3, 2)
+        late_results = lr.results
+        order, late_rank = late_order(fused, kind_of, late_results, len(head))
+        unscored = [key for key, _s in head if late_results[key].get("status") != "SCORED"]
+        store_snapshot = lr.store.get("snapshot_id")
+        if store_snapshot and meta.get("built_from_snapshot_id") and store_snapshot != meta["built_from_snapshot_id"]:
+            warnings.append(f"LATE_STORE_SNAPSHOT_MISMATCH: token pack of {store_snapshot}, vectors of "
+                            f"{meta['built_from_snapshot_id']}")
+        late_stage = {"engine": "rx580-retrieval", "model_key": lr.model, "query_signature": lr.query_signature,
+                      "query_tokens": lr.n_query_tokens, "store": lr.store, "candidates": len(head),
+                      "scored": len(head) - len(unscored), "unscored": len(unscored), "unscored_ids": unscored[:20],
+                      "ordering": "per kind by MaxSim inside the kind's RRF positions (H-44); unscored after scored",
+                      "page_score": "max MaxSim over the units of the page", "timings_ms": lr.timings_ms}
     ranks = {name: {key: i for i, (key, _s) in enumerate(lst, 1)} for name, lst in rankings.items()}
     scores = {name: dict(lst) for name, lst in rankings.items()}
     hits = []
-    for rank, (key, score) in enumerate(fused, 1):
+    for rank, (key, score) in enumerate(order, 1):
         if rank <= req.offset:
             continue
         if len(hits) >= req.size:
@@ -285,8 +409,17 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
         bmh, dh = bm25_hits.get(key), dense_hits.get(key)
         trace = {"bm25_rank": ranks[f"bm25:{kind}"].get(key), "bm25_score": scores[f"bm25:{kind}"].get(key),
                  "dense_rank": ranks[f"dense:{kind}"].get(key), "dense_score": scores[f"dense:{kind}"].get(key),
-                 "fused_rank": rank, "rrf_score": round(score, 8), "rrf_k": req.rrf_k,
+                 "fused_rank": fused_rank[key], "rrf_score": round(score, 8), "rrf_k": req.rrf_k,
                  "late_rank": None, "rerank_rank": None}
+        if req.late:
+            res = late_results.get(key)
+            trace.update({"late_rank": late_rank.get(key),
+                          "late_score": None if res is None else res.get("late_score"),
+                          "late_status": "NOT_CANDIDATE" if res is None else res.get("status"),
+                          "final_rank": rank})
+            if res is not None and res.get("best_unit_id"):
+                trace["late_unit"] = {"unit_id": res.get("best_unit_id"), "units": res.get("units"),
+                                      "tokens": res.get("tokens")}
         if dh is not None:
             trace["dense_unit"] = {"unit_id": dh.unit_id, "unit_kind": dh.unit_kind, "object_ids": dh.object_ids}
         src = dh.source if dh is not None else {}
@@ -304,6 +437,7 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
     timings["total"] = round((time.perf_counter() - t0) * 1e3, 2)
     return {"query": req.query, "kinds": list(req.kinds), "hits": hits, "fusion": "RRF", "rrf_k": req.rrf_k,
             "candidates": req.candidates, "fused_total": len(fused), "totals": totals, "warnings": warnings,
+            "late": bool(req.late), "late_candidates": req.late_candidates if req.late else None,
             "stages": {"bm25": {"engine": "opensearch", "indices": "per-kind aliases of E"},
                        "dense": {"engine": "opensearch-knn", "alias": meta["alias"], "index": meta["index"],
                                  "build_id": meta["build_id"], "built_from_snapshot_id":
@@ -311,6 +445,6 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                                  "model_key": meta.get("model_key"), "query_model": q.model,
                                  "query_signature": q.signature, "dimension": q.dimension,
                                  "space_type": meta.get("space_type"), "encode_ms": q.encode_ms},
-                       "late": "NOT_RUN (next stage: MaxSim over token vectors on the RX580)",
+                       "late": late_stage,
                        "rerank": "NOT_RUN here (EDGE text reranker: rerank_text over rerank_candidate)"},
             "timings_ms": timings}
