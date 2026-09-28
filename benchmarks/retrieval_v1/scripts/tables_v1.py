@@ -51,7 +51,7 @@ def main_table(sets: dict, label: str, track: str, names: list[str] | None = Non
     rows.sort(key=lambda x: -x[1]["overall"]["ndcg@10"])
     if names:
         rows = [x for x in rows if x[0] in names]
-    out = [f"**{label} / {track}** — {tr['n_queries']} запросов ({tr['n_test']} test)", "",
+    out = [f"**{label} / {track}** — запросов: {tr['n_queries']} (test: {tr['n_test']})", "",
            "| система | nDCG@10 | R@10 | R@50 | MRR@10 | judged@10 | nDCG@10 test | Δ к BM25 | Δ к прод. |",
            "|---|---|---|---|---|---|---|---|---|"]
     for n, r in rows:
