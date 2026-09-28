@@ -369,8 +369,9 @@ def build_read_server(api: ApiClient) -> MCPServer:
     async def search_sections(query: Annotated[str, Field(min_length=1, max_length=512)],
                               source_id: SourceId | None = None,
                               limit: Annotated[int, Field(ge=1, le=100)] = 20) -> CallToolResult:
-        """Sections whose headings (and key terms) match the query — the entry point for overview questions («что в
-        корпусе о ползучести соли»): pick sections, then read their pages."""
+        """Sections whose titles (and key terms, when built) carry the lemmas of the query — deeper sections before
+        whole chapters; an empty list when nothing matches. For an overview of a topic prefer reconstruct_topic; use
+        this to find headings, then read their pages."""
         return await call("search_sections", "GET", "/v1/nav/sections",
                           params={"q": query, "source_id": source_id, "limit": limit})
 
@@ -406,18 +407,25 @@ def build_read_server(api: ApiClient) -> MCPServer:
                 "hard cap of the outline in characters; the lowest-ranked items are trimmed first and listed with "
                 "how to get them"))] = 12_000,
             source_ids: Annotated[list[Annotated[str, Field(pattern=SOURCE_ID)]] | None,
-                                  Field(max_length=20, description="only these sources")] = None) -> CallToolResult:
+                                  Field(max_length=20, description="only these sources")] = None,
+            paraphrases: Annotated[list[Annotated[str, Field(min_length=1, max_length=512)]] | None, Field(
+                max_length=4, description="1–2 other wordings of the topic (other terms, an English phrasing): "
+                                          "searched too and fused with the query by RRF; the topic benchmark "
+                                          "found more evidence pages with them")] = None) -> CallToolResult:
         """Everything on a topic in one call («от А до Я»): a budgeted, cited map of what the corpus and the PUBLIC
-        evidence catalogues contain about it — ranked sections (hybrid search + titles + concepts) with pages, best
-        units and short snippets; formulas with numbers, «где…» symbols and parameter candidates; the concept and
-        its neighbours; sources with provenance (register scope, work, authors, year) and who cites whom; physics
-        processes PC-xx with their evidence records (status, scope, scale), formula-registry models, conflicts,
-        causal neighbours; and the gaps: required parameters without evidence records, explicitly UNKNOWN — never
-        fill them. Text = markdown outline with ids and pages; structured content = the full JSON. Navigation, not
-        evidence: open what you need with get_section, get_formula_context, get_page, get_object."""
+        evidence catalogues contain about it — ranked sections in two tiers (the VKM core: evidence-catalogue and
+        VKM/SKRU sources; the rest of the corpus) from hybrid search over several formulations (the query, your
+        paraphrases, concept synonyms and neighbours; RRF) and titles, with pages, best units and short snippets;
+        formulas with numbers, «где…» symbols and parameter candidates; figures and tables near the hits; the concept;
+        sources with provenance (register scope, work, authors, year) and who cites whom; physics processes PC-xx with
+        their evidence records (status, scope, scale), formula-registry models, conflicts, causal neighbours; and the
+        gaps: required parameters without evidence records, explicitly UNKNOWN — never fill them. Pass 1–2
+        paraphrases. Text = markdown outline with ids and pages; structured content = the full JSON (ranked page
+        list per tier included). Navigation, not evidence: open what you need with get_section, get_formula_context,
+        get_page, get_object."""
         started = time.perf_counter()
         body = await api.call("GET", "/v1/topic", params={"q": query, "budget": budget_chars,
-                                                          "source_id": source_ids})
+                                                          "source_id": source_ids, "paraphrase": paraphrases})
         return _markdown_result("reconstruct_topic", body, started)
 
     @server.tool(name="rerank_text", annotations=READ_ONLY)

@@ -4,18 +4,27 @@ the corpus and the PUBLIC evidence catalogues contain about a question.
 Parts (each optional part degrades to a warning when its dependency is missing):
 
 a. retrieval — the injected :class:`TopicRetrieval` (default :class:`HybridTopicRetrieval`: BM25 + dense + late
-   interaction over pages); its units are grouped by source and by NAV section (``section_of_page``);
-b. NAV sections whose titles match the query (stems, idf-weighted; plus ``NavStore.search_sections``) and the sections
-   where the query concept is most salient (``explore_concept`` top units) are merged in; one section per family
-   (ancestor/descendant) and a few per source are kept; each carries its page range, best units and a ≤ 200-character
+   interaction over pages) runs up to 5 formulations of the topic (the query, the caller's paraphrases, the concept's
+   synonyms — SAME_AS and narrower terms — and the query widened by its strongest concept neighbours) over two tiers of
+   sources — the VKM core (sources of the evidence catalogues and sources whose register scope is VKM/SKRU/regional)
+   and the whole corpus — and fuses them by RRF into a ranked page list per tier (TOPIC_BENCHMARK_V1: several
+   formulations and the core tier are the measured gains); pages are grouped by source and NAV section
+   (``section_of_page``);
+b. NAV sections whose titles match the formulations (stems, idf-weighted; plus the lemma-based
+   ``NavStore.search_sections``), checked on their pages (the query words meeting on one page); the concept's own
+   mentions only strengthen sections found otherwise (neighbours widen the query, they are not sections); one section
+   per branch and a few per source, shown in the two tiers, each with its pages, best units and a ≤ 200-character
    snippet of canonical text (runtime only);
-c. formulas on the pages of the chosen sections and by the meaning of their symbols (``find_formulas(concept=…)``):
-   number, section, «где…» symbol definitions, parameter candidates (AUTO_EXTRACTED_UNREVIEWED);
-d. the concept graph (``explore_concept``) and topics (``find_topics``, when the build has them);
-e. provenance of the sources found (register scope, primary work: title, authors, year, type) and CITES among them;
-f. the PUBLIC catalogues (:class:`vkm_corpus.catalogues.store.CatalogueStore`): physics processes PC-xx (query words and
-   the sources found) with their evidence records, formula-registry models, conflicts, causal neighbours, observation
-   operators and matching rows of the evidence catalogues;
+c. formulas on the chosen pages, by the meaning of their symbols (``find_formulas(concept=…)``) and with matching
+   «где…» definitions near the hit pages: number, section, symbols, parameter candidates (AUTO_EXTRACTED_UNREVIEWED);
+   figures and tables near the hit pages whose captions or headers carry the query words (visual evidence);
+d. the concept graph (``explore_concept``) and topics (``find_topics`` / ``topic``, when the build has them);
+e. provenance of the sources found, in the two tiers (register scope, primary work: title, authors, year, type) and
+   CITES among them;
+f. the PUBLIC catalogues (:class:`vkm_corpus.catalogues.store.CatalogueStore`): physics processes PC-xx (the words of
+   the query, the paraphrases and the synonyms; the sources found; their evidence pages among the pages found) with
+   their evidence records, formula-registry models, conflicts, causal neighbours, observation operators and matching
+   rows of the evidence catalogues;
 g. gaps: required parameters of the matched processes without a linked evidence record (or only with records of other
    sites) and the curated data gaps — an explicit UNKNOWN list; nothing is filled.
 
@@ -29,6 +38,7 @@ import hashlib
 import logging
 import math
 import re
+import threading
 import time
 from dataclasses import dataclass, field
 from functools import lru_cache
@@ -36,13 +46,27 @@ from typing import Any, Iterable, Protocol
 
 LOG = logging.getLogger("vkm.api.topic")
 
-RULE_VERSION = "topic_dossier_v1"
+RULE_VERSION = "topic_dossier_v2"
 DEFAULT_BUDGET, MIN_BUDGET, MAX_BUDGET = 12_000, 1_000, 60_000
 SNIPPET_CHARS = 200
-RETRIEVAL_UNITS = 50
+RETRIEVAL_UNITS = 50               # pages asked per formulation and tier (the hybrid search's maximum)
+CORE_PAGES, REST_PAGES = 50, 25    # fused pages kept per tier (the same budget as one query for the core)
+MAX_FORMULATIONS = 5
+MAX_PARAPHRASES = 4
+RRF_K = 60
+RETRIEVAL_WORKERS = 4
 PER_SOURCE_SECTIONS = 3
 MAX_SCAN_PAGES = 24
+FORMULA_FOCUS_PAGES = 4            # a section longer than this lends its rank only to formulas near its hit pages
+CITES_WAIT_S = 8.0                 # the call that starts the CITES read waits this long (then: CITES_PENDING)
 SKRU1_SCOPES = frozenset({"SKRU1", "SKRU1_SKRU2_PILLAR"})
+# register scopes (normalised) of the VKM core tier: VKM_REGIONAL, OTHER_VKM_SITE, SKRU1…, BKPRU…, SOLIKAMSK…, USOLSK…
+CORE_SCOPE_PREFIXES = ("VKM", "OTHER_VKM", "SKRU", "BKPRU", "SOLIKAMSK", "USOLSK")
+# catalogue tables whose source ids make a source «catalogued» (the evidence catalogues were built from it)
+CORE_SOURCE_TABLES = (("source_coverage_master", "source_id"), ("process_evidence_links", "source_id"),
+                      ("mathematical_model_registry", "source_ids"),
+                      ("physics_coverage_and_execution_matrix", "source_ids"))
+TIER_LABEL = {"CORE": "ядро ВКМ", "REST": "остальной корпус"}
 NAV_STATUS = "AUTO_EXTRACTED_UNREVIEWED"
 NOTE = ("Карта навигации, не evidence: разделы, формулы и понятия — AUTO_EXTRACTED_UNREVIEWED; записи каталогов — со "
         "своим статусом (FACT … UNKNOWN), scope и scale; сниппеты — текст корпуса только в ответе. Значения не "
@@ -204,6 +228,7 @@ class TopicRequest:
     max_sections: int = 12
     max_formulas: int = 10
     max_processes: int = 6
+    paraphrases: tuple[str, ...] = ()        # other wordings of the topic from the caller (fused with the query)
 
 
 @dataclass
@@ -227,12 +252,17 @@ class Dossier:
 
 CATEGORIES: tuple[tuple[str, str, str, str], ...] = (
     # key, heading, short name, how to get more / open
-    ("sections", "Разделы корпуса", "разделы",
+    ("sections_core", "Разделы — ядро ВКМ (источники каталогов и области ВКМ/СКРУ)", "разделы ядра",
      "search_sections(query) · get_outline(source_id) · get_section(section_id)"),
+    ("sections_rest", "Разделы — остальной корпус", "разделы корпуса",
+     "search_sections(query) · reconstruct_topic(source_ids=[…])"),
     ("formulas", "Формулы", "формулы", "find_formulas(concept=…) · get_formula_context(formula_id)"),
+    ("visual", "Рисунки и таблицы у найденных страниц", "рисунки/таблицы", "get_figure · get_table · get_page"),
     ("concept", "Понятия", "понятия", "explore_concept(term)"),
-    ("topics", "Темы", "темы", "find_topics / get_topic"),
-    ("sources", "Источники и провенанс", "источники", "get_source · get_work · reconstruct_topic(source_ids=[…])"),
+    ("topics", "Темы", "темы", "find_topics / topic"),
+    ("sources_core", "Источники — ядро ВКМ", "источники ядра",
+     "get_source · get_work · reconstruct_topic(source_ids=[…])"),
+    ("sources_rest", "Источники — остальной корпус", "источники корпуса", "get_source · get_work"),
     ("citations", "Цитирования", "цитирования", "get_citations(work_id)"),
     ("processes", "Процессы (каталог физики)", "процессы", "catalogues physics_coverage_and_execution_matrix"),
     ("gaps", "Пробелы — UNKNOWN (не заполнять)", "пробелы", "catalogues process_evidence_links · data_gaps"),
@@ -246,10 +276,12 @@ HEADINGS = {k: h for k, h, _s, _t in CATEGORIES}
 SHORT_NAMES = {k: s for k, _h, s, _t in CATEGORIES}
 HOW_TO = {k: t for k, _h, _s, t in CATEGORIES}
 # budget priorities (higher stays longer): priority = base − step · rank; the gaps of a process follow the process
-BASE_PRIORITY = {"sections": 100, "processes": 92, "concept": 88, "formulas": 82, "conflicts": 80, "sources": 78,
-                 "models": 74, "topics": 70, "evidence": 58, "citations": 56, "operators": 50, "causal": 48}
-STEP = {"sections": 5, "processes": 6, "concept": 12, "formulas": 5, "conflicts": 6, "sources": 4, "models": 6,
-        "topics": 6, "evidence": 5, "citations": 4, "operators": 6, "causal": 4}
+BASE_PRIORITY = {"sections_core": 100, "processes": 92, "concept": 88, "sections_rest": 84, "formulas": 82,
+                 "conflicts": 80, "sources_core": 78, "models": 74, "visual": 72, "topics": 70, "sources_rest": 64,
+                 "evidence": 58, "citations": 56, "operators": 50, "causal": 48}
+STEP = {"sections_core": 5, "processes": 6, "concept": 12, "sections_rest": 6, "formulas": 5, "conflicts": 6,
+        "sources_core": 4, "models": 6, "visual": 5, "topics": 6, "sources_rest": 5, "evidence": 5, "citations": 4,
+        "operators": 6, "causal": 4}
 
 
 def _prio(category: str, rank: int) -> float:
@@ -432,8 +464,12 @@ class _State:
     timings: dict[str, float] = field(default_factory=dict)
     inputs: dict[str, Any] = field(default_factory=dict)
     units: list[dict[str, Any]] = field(default_factory=list)
+    formulations: list[dict[str, Any]] = field(default_factory=list)
+    core: set[str] = field(default_factory=set)
     sections: list[dict[str, Any]] = field(default_factory=list)
     formulas: list[dict[str, Any]] = field(default_factory=list)
+    visual: list[dict[str, Any]] = field(default_factory=list)
+    near: dict[str, float] | None = None      # hit pages and their ±1 neighbours → order key (computed once)
     concept: dict[str, Any] | None = None
     topics: list[dict[str, Any]] = field(default_factory=list)
     source_score: dict[str, float] = field(default_factory=dict)
@@ -455,6 +491,9 @@ class _State:
         if source_id and (not self.req.source_ids or source_id in self.req.source_ids):
             self.source_score[source_id] = self.source_score.get(source_id, 0.0) + score
 
+    def tier(self, source_id: str | None) -> str:
+        return "CORE" if source_id in self.core else "REST"
+
 
 class DossierBuilder:
     """Assembles a dossier from the canon (``CanonStore``), the navigation layer (``NavStore``), the catalogue pack
@@ -475,10 +514,14 @@ class DossierBuilder:
                                                    "matching are off")
         nav_ok = self._nav_ready(st)
         cat_ok = self._catalogues_ready(st)
-        for name, fn, needs in (("retrieval", self._retrieve, True), ("concept", self._concept, nav_ok),
+        try:
+            st.core = self._core_sources(st, cat_ok)
+        except Exception as exc:  # noqa: BLE001 - without tiers everything is shown as the rest of the corpus
+            st.warn("CORE_TIER_UNAVAILABLE", f"core tier: {type(exc).__name__}: {str(exc)[:120]}")
+        for name, fn, needs in (("concept", self._concept, nav_ok), ("retrieval", self._retrieve, True),
                                 ("sections", self._sections, nav_ok), ("formulas", self._formulas, nav_ok),
-                                ("topics", self._topics, nav_ok), ("sources", self._sources, True),
-                                ("catalogues", self._catalogue_part, cat_ok)):
+                                ("visual", self._visual, True), ("topics", self._topics, nav_ok),
+                                ("sources", self._sources, True), ("catalogues", self._catalogue_part, cat_ok)):
             if not needs:
                 continue
             t1 = time.perf_counter()
@@ -534,41 +577,140 @@ class DossierBuilder:
         return True
 
     # ---------------------------------------------------------------------------------------------------- (a)
+    def _core_sources(self, st: _State, cat_ok: bool) -> set[str]:
+        """The VKM core tier: sources the evidence catalogues were built from and sources whose register scope is
+        VKM/SKRU/regional — the mapped scope or the verbatim register value, since an unmapped value (a list of mines)
+        maps to no scope (cached per canonical snapshot and catalogue pack)."""
+        pack = (st.inputs.get("catalogues") or {}).get("pack_id") if cat_ok else None
+        key = ("core", self.canon.snapshot_id(), pack)
+        cached = self.cache.get("core")
+        if cached and cached[0] == key:
+            info = self.cache.get("core_info")
+            st.inputs["core_tier"] = info[1] if info and info[0] == key else {"sources": len(cached[1])}
+            return cached[1]
+        core: set[str] = set()
+        if cat_ok:
+            for table, column in CORE_SOURCE_TABLES:
+                for r in self.catalogues.rows(table, [column]):
+                    core.update(re.findall(r"VKM-SRC-\d{3}", str(r.get(column) or "")))
+        n_catalogued = len(core)
+        for r in self._canon_rows("SELECT source_id, site_scope, site_scope_raw FROM sources", []):
+            scopes = [*(r.get("site_scope") or []), r.get("site_scope_raw") or ""]
+            if any(str(v).upper().startswith(CORE_SCOPE_PREFIXES) for v in scopes):
+                core.add(r["source_id"])
+        st.inputs["core_tier"] = {"sources": len(core), "catalogued": n_catalogued,
+                                  "rule": "evidence-catalogue sources + register scope VKM/SKRU/regional (mapped or "
+                                          "verbatim)"}
+        self.cache["core"] = (key, core)
+        self.cache["core_info"] = (key, st.inputs["core_tier"])
+        return core
+
+    def _formulations(self, st: _State) -> list[dict[str, Any]]:
+        """≤ 5 formulations of the topic: the query, the caller's paraphrases (≤ 4; they come before the automatic
+        ones), the concept's synonyms (its lemma, SAME_AS, a narrower term) and the query widened by its two strongest
+        concept neighbours."""
+        out: list[dict[str, Any]] = []
+        seen: set[str] = set()
+
+        def add(kind: str, text: str) -> None:
+            key = " ".join(norm(text).split())
+            if key and key not in seen and len(out) < MAX_FORMULATIONS:
+                seen.add(key)
+                out.append({"kind": kind, "text": " ".join(text.split())[:512]})
+
+        add("query", st.req.query)
+        for p in st.req.paraphrases[:MAX_PARAPHRASES]:
+            add("paraphrase", p)
+        c = st.concept or {}
+        if c.get("match"):
+            qwords = words_of(st.req.query)
+            syn = [x.get("lemma") for x in [c["match"], *(c.get("same_as") or [])[:2], *(c.get("narrower") or [])[:1]]]
+            syn = [s for s in dict.fromkeys(s for s in syn if s) if not words_of(s) <= qwords]
+            if syn:
+                add("synonyms", ", ".join(syn))
+            near = [n.get("lemma") for n in (c.get("neighbours") or []) if n.get("lemma")
+                    and not words_of(n["lemma"]) <= qwords][:2]
+            if near:
+                add("neighbours", f"{st.req.query} {' '.join(near)}")
+        return out
+
     def _retrieve(self, st: _State) -> None:
+        """Every formulation over the core tier and over the corpus (or over the caller's sources), fused by RRF per
+        tier: the ranked page lists ``CORE`` (≤ CORE_PAGES) and ``REST`` (≤ REST_PAGES)."""
+        st.formulations = self._formulations(st)
         if self.retrieval is None:
             st.inputs["retrieval"] = {"mode": "NAV_ONLY", "reason": "no retrieval configured"}
-            st.warn("RETRIEVAL_UNAVAILABLE", "hybrid search is not configured: sections come from titles and "
-                                             "concepts only (NAV_ONLY)")
+            st.warn("RETRIEVAL_UNAVAILABLE", "hybrid search is not configured: sections come from titles only "
+                                             "(NAV_ONLY)")
             return
-        try:
-            result = self.retrieval.search(st.req.query, source_ids=list(st.req.source_ids) or None,
-                                           limit=RETRIEVAL_UNITS)
-        except Exception as exc:  # noqa: BLE001 - ApiFailure (DEPENDENCY_UNAVAILABLE …) or a client error
-            code = getattr(exc, "code", type(exc).__name__)
-            st.inputs["retrieval"] = {"mode": "NAV_ONLY", "reason": str(code)}
-            st.warn("RETRIEVAL_UNAVAILABLE", f"hybrid search failed ({code}): NAV_ONLY dossier")
+        if st.req.source_ids:
+            passes = [("FILTER", sorted(st.req.source_ids))]
+        else:
+            passes = ([("CORE", sorted(st.core))] if st.core else []) + [("ALL", None)]
+        calls = [(p, ids, i, f) for i, f in enumerate(st.formulations) for p, ids in passes]
+        results: dict[tuple[str, int], dict[str, Any]] = {}
+        failures: list[str] = []
+        from concurrent.futures import ThreadPoolExecutor
+
+        with ThreadPoolExecutor(max_workers=max(1, min(RETRIEVAL_WORKERS, len(calls)))) as pool:
+            futures = {(p, i): pool.submit(self.retrieval.search, f["text"], source_ids=ids, limit=RETRIEVAL_UNITS)
+                       for p, ids, i, f in calls}
+            for key, fut in futures.items():
+                try:
+                    results[key] = fut.result() or {}
+                except Exception as exc:  # noqa: BLE001 - ApiFailure (DEPENDENCY_UNAVAILABLE …) or a client error
+                    failures.append(str(getattr(exc, "code", type(exc).__name__)))
+        if not results:
+            st.inputs["retrieval"] = {"mode": "NAV_ONLY", "reason": failures[0] if failures else "no answer"}
+            st.warn("RETRIEVAL_UNAVAILABLE", f"hybrid search failed ({', '.join(sorted(set(failures)))}): NAV_ONLY "
+                                             "dossier")
             return
-        units = [u for u in result.get("units") or [] if u.get("page_id")]
+        if failures:
+            st.warn("RETRIEVAL_PARTIAL", f"{len(failures)} of {len(calls)} searches failed "
+                                         f"({', '.join(sorted(set(failures)))}); the others are fused", len(failures))
+        fused: dict[str, dict[str, Any]] = {}
+        for (p, i), res in sorted(results.items()):
+            ranked, seen_pages = [], set()
+            for u in sorted((u for u in res.get("units") or [] if u.get("page_id")),
+                            key=lambda u: (u.get("rank") or 10**6, u["page_id"])):
+                if u["page_id"] not in seen_pages:        # a page counts once per ranked list (its best unit)
+                    seen_pages.add(u["page_id"])
+                    ranked.append(u)
+            for rank, u in enumerate(ranked, 1):
+                e = fused.setdefault(u["page_id"], {"rrf": 0.0, "best": None, "best_rank": 10**9, "hits": set()})
+                e["rrf"] += 1.0 / (RRF_K + rank)
+                e["hits"].add(st.formulations[i]["kind"])
+                if rank < e["best_rank"]:
+                    e["best"], e["best_rank"] = u, rank
         pages = {r["page_id"]: r for r in self._canon_rows(
             "SELECT page_id, source_id, page_index FROM pages WHERE page_id IN (SELECT unnest(?::VARCHAR[]))",
-            [sorted({u["page_id"] for u in units})])} if units else {}
-        stale = [u for u in units if u["page_id"] not in pages]
+            [sorted(fused)])} if fused else {}
+        stale = [p for p in fused if p not in pages]
         if stale:
-            st.warn("STALE_PROJECTION", "retrieval units whose pages are not in the canonical snapshot were dropped",
-                    len(stale))
+            st.warn("STALE_PROJECTION", "retrieval pages not in the canonical snapshot were dropped", len(stale))
+        by_tier: dict[str, list[tuple[str, dict[str, Any]]]] = {"CORE": [], "REST": []}
+        for pid, e in fused.items():
+            if pid in pages and (not st.req.source_ids or pages[pid]["source_id"] in st.req.source_ids):
+                by_tier[st.tier(pages[pid]["source_id"])].append((pid, e))
         kept = []
-        for i, u in enumerate(sorted((u for u in units if u["page_id"] in pages),
-                                     key=lambda u: (u.get("rank") or 10**6, u["page_id"])), 1):
-            page = pages[u["page_id"]]
-            if st.req.source_ids and page["source_id"] not in st.req.source_ids:
-                continue
-            kept.append({**u, "rank": i, "source_id": page["source_id"], "page_index": page["page_index"],
-                         "weight": 1.0 / (10 + i)})
+        for tier, cap in (("CORE", CORE_PAGES), ("REST", REST_PAGES)):
+            ordered = sorted(by_tier[tier], key=lambda x: (-x[1]["rrf"], x[0]))[:cap]
+            for rank, (pid, e) in enumerate(ordered, 1):
+                u = e["best"]
+                kept.append({"page_id": pid, "source_id": pages[pid]["source_id"],
+                             "page_index": pages[pid]["page_index"], "tier": tier, "rank": rank,
+                             "unit_id": u.get("unit_id"), "object_ids": list(u.get("object_ids") or [])[:20],
+                             "weight": round(e["rrf"], 6), "formulations": sorted(e["hits"])})
         st.units = kept
-        st.inputs["retrieval"] = {"mode": "FULL", **{k: result.get(k) for k in (
-            "engine", "build_id", "built_from_snapshot_id", "late", "model_key")}, "units": len(kept)}
-        for w in result.get("warnings") or []:
-            st.warn("SEARCH_WARNING", str(w))
+        first = next(iter(results.values()))
+        st.inputs["retrieval"] = {
+            "mode": "FULL", **{k: first.get(k) for k in ("engine", "build_id", "built_from_snapshot_id", "late",
+                                                         "model_key")},
+            "fusion": f"RRF k={RRF_K} over formulations × tiers", "searches": len(calls), "failed": len(failures),
+            "passes": [p for p, _ids in passes], "pages": {t: sum(1 for u in kept if u["tier"] == t)
+                                                           for t in ("CORE", "REST")}}
+        for w in sorted({str(w) for res in results.values() for w in res.get("warnings") or []}):
+            st.warn("SEARCH_WARNING", w)
         for u in kept:
             st.add_source(u["source_id"], u["weight"])
 
@@ -624,44 +766,49 @@ class DossierBuilder:
                 c = slot(secs[0]["section_id"])
                 c["retrieval"] += u["weight"]
                 c["units"].append(u)
-        # b: titles (stems, idf over all titles; a partial match counts less: share ** 1.5) and search_sections
+        # b: titles — each formulation but the neighbour-widened one (stems, idf over all titles; a partial match
+        #    counts less: share ** 1.5), and the lemma-based NavStore.search_sections
         idf = idf_weights(st.stems, list(index["title_words"].values())) if st.stems else {}
-        if st.stems:
-            total = sum(idf.values())
+        for stems, weight in self._phrasings(st):
+            if not stems:
+                continue
+            f_idf = idf if stems == st.stems else idf_weights(stems, list(index["title_words"].values()))
+            total = sum(f_idf.values())
             for sid, words in index["title_words"].items():
-                found = hits(st.stems, words)
+                found = hits(stems, words)
                 if not found:
                     continue
                 row = rows[sid]
                 if st.req.source_ids and row["source_id"] not in st.req.source_ids:
                     continue
-                path_only = hits(st.stems, index["path_words"][sid]) - found
-                share = (sum(idf[s] for s in found) + 0.4 * sum(idf[s] for s in path_only)) / total
-                score = min(1.0, share) ** 1.5 + 0.05 * len(found) / max(1, len(words))
+                path_only = hits(stems, index["path_words"][sid]) - found
+                share = (sum(f_idf[s] for s in found) + 0.4 * sum(f_idf[s] for s in path_only)) / total
+                score = weight * (min(1.0, share) ** 1.5 + 0.05 * len(found) / max(1, len(words)))
                 slot(sid)["title"] = max(slot(sid)["title"], min(1.0, score))
-        try:                                   # NavStore.search_sections: its extra hits (title path, key terms) count
+        try:                                   # lemma matches of NavStore.search_sections (key terms included)
             nav_hits = self.nav.search_sections(st.req.query, source_id=(st.req.source_ids[0] if len(
-                st.req.source_ids) == 1 else None), limit=30)       # like a path-only match (children of a chapter)
-            n_words = max(1, len([w for w in _WORD.findall(norm(st.req.query)) if len(w) > 2]))
+                st.req.source_ids) == 1 else None), limit=30)
             for r in nav_hits:
                 sid = r.get("section_id")
-                if sid in rows and (not st.req.source_ids or r.get("source_id") in st.req.source_ids) and \
-                        not (sid in cand and cand[sid]["title"] > 0):
-                    slot(sid)["title"] = 0.4 * min(1.0, float(r.get("score") or 0) / n_words)
+                if sid in rows and (not st.req.source_ids or r.get("source_id") in st.req.source_ids):
+                    raw = r.get("score") or 0
+                    score = raw / max(1, len(st.stems)) if isinstance(raw, int) else float(raw)  # int: word count
+                    slot(sid)["title"] = max(slot(sid)["title"], 0.9 * min(1.0, score) ** 1.5)
         except Exception as exc:  # noqa: BLE001
             st.warn("SEARCH_SECTIONS_FAILED", f"search_sections: {type(exc).__name__}")
-        # c: sections where the query concept is salient (N3 term_mentions of the matched term; else top units)
-        for sid, weight in self._concept_sections(st).items():
-            if sid in rows and (not st.req.source_ids or rows[sid]["source_id"] in st.req.source_ids):
-                slot(sid)["concept"] = max(slot(sid)["concept"], weight)
         if not cand:
             return
+        # c: the query concept's own mentions (N3 term_mentions) strengthen sections found above — never add new
+        #    ones (TOPIC_BENCHMARK_V1: concept-derived sections are noise; neighbours widen the query instead)
+        for sid, weight in self._concept_sections(st).items():
+            if sid in cand:
+                cand[sid]["concept"] = max(cand[sid]["concept"], weight)
         reviewed = self._reviewed_sources()
         r_max = max(c["retrieval"] for c in cand.values()) or 1.0
         for sid, c in cand.items():
             signals = [k for k in ("retrieval", "title", "concept") if c[k] > 0]
             c["signals"] = signals
-            c["score"] = (1.0 * c["retrieval"] / r_max + 0.9 * c["title"] + 0.5 * c["concept"]
+            c["score"] = (1.0 * c["retrieval"] / r_max + 0.9 * c["title"] + 0.3 * c["concept"]
                           + (0.1 if len(signals) > 1 else 0.0) + 0.01 * min(int(rows[sid].get("level") or 1), 4)
                           + (0.05 if rows[sid]["source_id"] in reviewed else 0.0))
         # d: the text itself — do the query words meet on one page of the section? (the best candidates without
@@ -673,9 +820,11 @@ class DossierBuilder:
             cand[sid]["content"] = share
             cand[sid]["score"] = round(cand[sid]["score"] + 0.4 * share, 6)
         order = sorted(cand, key=lambda s: (-cand[s]["score"], s))
+        caps = {"CORE": st.req.max_sections, "REST": max(3, st.req.max_sections // 2)}
         chosen: list[str] = []
+        per_tier: dict[str, int] = {"CORE": 0, "REST": 0}
         per_source: dict[str, int] = {}
-        skipped = 0
+        skipped: dict[str, int] = {"CORE": 0, "REST": 0}
         for sid in order:
             fam = {sid, *self._ancestors(index, sid)}
             owner = next((c for c in chosen if c in fam or sid in self._ancestors(index, c)), None)
@@ -683,29 +832,35 @@ class DossierBuilder:
                 cand[owner].setdefault("related", []).append(sid)
                 continue
             src = rows[sid]["source_id"]
-            if per_source.get(src, 0) >= PER_SOURCE_SECTIONS or len(chosen) >= st.req.max_sections:
-                skipped += 1
+            tier = st.tier(src)
+            if per_source.get(src, 0) >= PER_SOURCE_SECTIONS or per_tier[tier] >= caps[tier]:
+                skipped[tier] += 1
                 continue
             per_source[src] = per_source.get(src, 0) + 1
+            per_tier[tier] += 1
             chosen.append(sid)
-        st.extra["sections"] = skipped
+        st.extra["sections_core"], st.extra["sections_rest"] = skipped["CORE"], skipped["REST"]
         rest = [rows[s] for s in chosen if not cand[s]["units"] and s not in texts]
         if rest:
             texts.update(self._section_texts(st, rest, idf))
         unit_texts = self._unit_texts([u for s in chosen for u in cand[s]["units"][:2]])
-        for rank, sid in enumerate(chosen):
+        rank_in = {"CORE": 0, "REST": 0}
+        for sid in chosen:
             row, c = rows[sid], cand[sid]
+            tier = st.tier(row["source_id"])
+            rank_in[tier] += 1
             units_out = []
-            for u in sorted(c["units"], key=lambda u: u["rank"])[:2]:
+            for u in sorted(c["units"], key=lambda u: (u["tier"] != tier, u["rank"]))[:2]:
                 units_out.append({"page_id": u["page_id"], "page_index": u.get("page_index"),
                                   "unit_id": u.get("unit_id"), "object_ids": list(u.get("object_ids") or [])[:5],
-                                  "retrieval_rank": u["rank"], "snippet": self._best_snippet(u, unit_texts, st.stems)})
+                                  "retrieval_rank": u["rank"], "formulations": u.get("formulations"),
+                                  "snippet": self._best_snippet(u, unit_texts, st.stems, self._all_stems(st))})
             if not units_out and texts.get(sid, {}).get("page_id"):
                 units_out.append({k: v for k, v in texts[sid].items() if k != "share"})
             st.sections.append({
-                "rank": rank + 1, "section_id": sid, "source_id": row["source_id"], "work_id": row.get("work_id"),
-                "level": row.get("level"), "numbering": row.get("numbering"), "title": row.get("title"),
-                "title_path": row.get("title_path"), "method": row.get("method"),
+                "rank": rank_in[tier], "tier": tier, "section_id": sid, "source_id": row["source_id"],
+                "work_id": row.get("work_id"), "level": row.get("level"), "numbering": row.get("numbering"),
+                "title": row.get("title"), "title_path": row.get("title_path"), "method": row.get("method"),
                 "pages": {"first_id": row.get("page_start_id"), "last_id": row.get("page_end_id"),
                           "first_index": row.get("page_start_index"), "last_index": row.get("page_end_index")},
                 "score": c["score"], "signals": c["signals"], "content_share": round(c.get("content", 0.0), 3),
@@ -734,6 +889,76 @@ class DossierBuilder:
                 out[r["section_id"]] = max(out.get(r["section_id"], 0.0), float(r.get("tfidf") or 0) / best)
         return out
 
+    @staticmethod
+    def _phrasings(st: _State) -> list[tuple[list[str], float]]:
+        """(stems, weight) of the query (1.0), each paraphrase (0.9) and the synonyms (0.8) — the formulations whose
+        words may match titles and catalogue rows on their own (the neighbour-widened one only feeds retrieval)."""
+        weights = {"query": 1.0, "paraphrase": 0.9, "synonyms": 0.8}
+        out = [(query_stems(f["text"]), weights[f["kind"]]) for f in st.formulations if f["kind"] in weights]
+        return [(stems, w) for stems, w in out if stems] or [(st.stems, 1.0)]
+
+    @staticmethod
+    def _all_stems(st: _State) -> list[str]:
+        """Stems of the query, the paraphrases and the synonyms (not the neighbour-widened formulation)."""
+        out = list(st.stems)
+        for f in st.formulations:
+            if f["kind"] in ("paraphrase", "synonyms"):
+                out += [s for s in query_stems(f["text"]) if s not in out]
+        return out
+
+    def _near_pages(self, st: _State) -> dict[str, float]:
+        """Hit pages (the best fused pages of each tier and the pages shown with the sections) and their ±1
+        neighbours → an order key (lower = nearer the top)."""
+        if st.near is not None:
+            return st.near
+        order: dict[str, float] = {}
+        hits_ = [u["page_id"] for u in st.units if u["tier"] == "CORE"][:20] + \
+            [u["page_id"] for u in st.units if u["tier"] == "REST"][:10] + \
+            [u["page_id"] for s in st.sections for u in s["units"]]
+        for i, pid in enumerate(hits_):
+            order[pid] = min(order.get(pid, 1e9), float(i))
+            m = re.match(r"^(.*:[prs])(\d{4})$", pid)
+            if m:
+                for d in (-1, 1):
+                    n = int(m.group(2)) + d
+                    if n >= 0:
+                        near = f"{m.group(1)}{n:04d}"
+                        order[near] = min(order.get(near, 1e9), i + 0.5)
+        st.near = order
+        return order
+
+    def _visual(self, st: _State) -> None:
+        """Figures and tables on or next to the hit pages whose label, caption or table header carries the query
+        words (TOPIC_BENCHMARK_V1: 27 % of the missed evidence pages hold it in a figure, a table or a formula)."""
+        near = self._near_pages(st)
+        stems = self._all_stems(st)
+        if not near or not stems:
+            return
+        ids = [sorted(near)]
+        rows = [("FIGURE", r) for r in self._canon_rows(
+            "SELECT object_id, page_id, source_id, figure_label AS label, caption_normalized AS caption, NULL AS head "
+            "FROM figures WHERE page_id IN (SELECT unnest(?::VARCHAR[]))", ids)]
+        rows += [("TABLE", r) for r in self._canon_rows(
+            "SELECT object_id, page_id, source_id, table_label AS label, caption_normalized AS caption, "
+            "left(normalized_text, 300) AS head FROM tables WHERE page_id IN (SELECT unnest(?::VARCHAR[]))", ids)]
+        scored = []
+        for kind, r in rows:
+            if st.req.source_ids and r["source_id"] not in st.req.source_ids:
+                continue
+            found = hits(stems, words_of(" ".join(str(x) for x in (r["label"], r["caption"], r["head"]) if x)))
+            if not found:
+                continue
+            tier = st.tier(r["source_id"])
+            score = len(found) / len(stems) + (0.1 if tier == "CORE" else 0.0) - 0.002 * near[r["page_id"]]
+            scored.append((round(score, 6), {
+                "object_id": r["object_id"], "kind": kind, "page_id": r["page_id"], "source_id": r["source_id"],
+                "tier": tier, "label": short(r["label"], 30) or None,
+                "caption": short(r["caption"] or r["head"], 110) or None, "matched": len(found),
+                "review_status": NAV_STATUS}))
+        scored.sort(key=lambda x: (-x[0], x[1]["object_id"]))
+        st.extra["visual"] = max(0, len(scored) - 8)
+        st.visual = [{"rank": i, **v} for i, (_s, v) in enumerate(scored[:8], 1)]
+
     def _reviewed_sources(self) -> set[str]:
         """Sources the evidence catalogues were built from (SOURCE_COVERAGE_MASTER): a mild ranking prior."""
         if self.catalogues is None:
@@ -758,11 +983,15 @@ class DossierBuilder:
         return out
 
     @staticmethod
-    def _best_snippet(unit: dict[str, Any], texts: dict[str, str], stems: list[str]) -> str | None:
-        for oid in list(unit.get("object_ids") or [])[:5] + [unit["page_id"]]:
-            s = snippet(texts.get(oid), stems)
-            if s:
-                return s
+    def _best_snippet(unit: dict[str, Any], texts: dict[str, str], stems: list[str],
+                      more: list[str] | None = None) -> str | None:
+        """A snippet around the query words in the unit's blocks, then its page; the paraphrase and synonym words
+        when the query's own words are not there (a unit found by another formulation)."""
+        for words in (stems, more or []):
+            for oid in list(unit.get("object_ids") or [])[:5] + [unit["page_id"]]:
+                s = snippet(texts.get(oid), words) if words else None
+                if s:
+                    return s
         return None
 
     def _section_texts(self, st: _State, secs: list[dict[str, Any]],
@@ -829,10 +1058,13 @@ class DossierBuilder:
                 st.add_source(s.get("source_id"), 0.3 / (1 + i))
 
     def _topics(self, st: _State) -> None:
+        """Topics of agent T's layer (``find_topics``; the detail through ``topic`` / ``get_topic``) when the build
+        has them: ids, label terms, sizes, central and member sections, sources — no text."""
         from vkm_corpus.navigation import store as nav_store
 
         functions = getattr(self.nav, "_functions", {}) or {}
-        if "find_topics" not in nav_store.QUERY_FUNCTIONS and "find_topics" not in functions:
+        known = set(nav_store.QUERY_FUNCTIONS) | set(functions)
+        if "find_topics" not in known:
             st.inputs["topics"] = "not in this build"
             return
         try:
@@ -843,23 +1075,26 @@ class DossierBuilder:
         items = data.get("topics") if isinstance(data, dict) else data
         for t in list(items or [])[:5]:
             if isinstance(t, dict):
-                st.topics.append({k: t.get(k) for k in ("topic_id", "id", "label", "title", "name", "terms",
-                                                        "n_sections", "n_sources", "size", "score") if t.get(k)})
-        has_detail = "get_topic" in nav_store.QUERY_FUNCTIONS or "get_topic" in functions
-        for t in st.topics[:2] if has_detail else []:           # the two best topics in detail (ids, not text)
+                st.topics.append({k: t.get(k) for k in ("topic_id", "id", "level", "label", "label_terms", "terms",
+                                                        "n_sections", "n_sources", "central_section_ids", "score",
+                                                        "coherence") if t.get(k) is not None})
+        detail_fn = next((n for n in ("topic", "get_topic") if n in known), None)
+        for t in st.topics[:2] if detail_fn else []:            # the two best topics in detail (ids, not text)
             tid = t.get("topic_id") or t.get("id")
             try:
-                detail = self.nav.run("get_topic", tid) if tid else None
+                detail = self.nav.run(detail_fn, tid) if tid else None
             except Exception as exc:  # noqa: BLE001
-                st.warn("TOPICS_UNAVAILABLE", f"get_topic: {type(exc).__name__}: {str(exc)[:120]}")
+                st.warn("TOPICS_UNAVAILABLE", f"{detail_fn}: {type(exc).__name__}: {str(exc)[:120]}")
                 break
             if isinstance(detail, dict):
-                sections = [s.get("section_id") if isinstance(s, dict) else s for s in detail.get("sections") or []]
-                t["detail"] = {"section_ids": [s for s in sections if isinstance(s, str)][:8],
+                sections = [s.get("section_id") if isinstance(s, dict) else s
+                            for s in [*(detail.get("central_sections") or []), *(detail.get("members") or []),
+                                      *(detail.get("sections") or [])]]
+                terms = detail.get("label_terms") or detail.get("terms") or []
+                t["detail"] = {"section_ids": list(dict.fromkeys(s for s in sections if isinstance(s, str)))[:8],
                                "source_ids": [s.get("source_id") if isinstance(s, dict) else s
                                               for s in detail.get("sources") or []][:8],
-                               "terms": [x.get("lemma") if isinstance(x, dict) else x
-                                         for x in detail.get("terms") or []][:10]}
+                               "terms": [x.get("lemma") if isinstance(x, dict) else x for x in terms][:10]}
 
     # ---------------------------------------------------------------------------------------------------- (c)
     def _formulas(self, st: _State) -> None:
@@ -869,24 +1104,31 @@ class DossierBuilder:
         score: dict[str, float] = {}
         why: dict[str, list[str]] = {}
         defs: dict[str, list[dict[str, Any]]] = {}
-        ranges = [(s["source_id"], s["pages"]["first_index"], s["pages"]["last_index"], s["rank"])
+        n_core = sum(1 for s in st.sections if s["tier"] == "CORE")      # the core tier's sections come first
+        ranges = [(s["source_id"], s["pages"]["first_index"], s["pages"]["last_index"],
+                   s["rank"] + (n_core if s["tier"] == "REST" else 0))
                   for s in st.sections if s["pages"]["first_index"] is not None]
         ctx: dict[str, dict[str, Any]] = {}
         cols = ("formula_id, source_id, page_id, page_index, kind, equation_number, section_id, n_defined_symbols, "
                 "n_refs_in, n_parameters")
+        near = self._near_pages(st)
         if ranges:
             clause = " OR ".join("(source_id = ? AND page_index BETWEEN ? AND ?)" for _ in ranges)
             params = [x for s, a, b, _r in ranges for x in (s, a, b if b is not None else a)]
             for r in self.nav.query(f"SELECT {cols} FROM formula_context WHERE kind = 'DISPLAY' AND "
                                     f"(equation_number IS NOT NULL OR n_defined_symbols > 0 OR n_parameters > 0) AND "
                                     f"({clause})", params):
-                rank = min(rk for s, a, b, rk in ranges if s == r["source_id"] and a <= r["page_index"] <= (b or a))
+                rank, span = min((rk, (b if b is not None else a) - a + 1) for s, a, b, rk in ranges
+                                 if s == r["source_id"] and a <= r["page_index"] <= (b if b is not None else a))
+                # a long section (a whole chapter) lends its rank only to the formulas near its hit pages
+                local = r["page_id"] in near
+                focus = 1.0 if local or span <= FORMULA_FOCUS_PAGES else FORMULA_FOCUS_PAGES / span
                 ctx[r["formula_id"]] = r
-                score[r["formula_id"]] = (0.8 / rank + 0.3 * min(int(r["n_defined_symbols"] or 0), 3) / 3
-                                          + 0.2 * (r["equation_number"] is not None)
-                                          + 0.1 * min(int(r["n_refs_in"] or 0), 3) / 3
-                                          + 0.1 * (int(r["n_parameters"] or 0) > 0))
-                why.setdefault(r["formula_id"], []).append(f"section#{rank}")
+                score[r["formula_id"]] = focus * (0.8 / rank + 0.3 * min(int(r["n_defined_symbols"] or 0), 3) / 3
+                                                  + 0.2 * (r["equation_number"] is not None)
+                                                  + 0.1 * min(int(r["n_refs_in"] or 0), 3) / 3
+                                                  + 0.1 * (int(r["n_parameters"] or 0) > 0)) + 0.2 * local
+                why.setdefault(r["formula_id"], []).append(f"section#{rank}" + (":near" if local else ""))
         phrases = [(req.query, 1.2)]
         if len(st.stems) > 1:                   # single words only help when the whole phrase is rare
             phrases += [(w, 0.4) for w in _WORD.findall(norm(req.query)) if len(w) >= 6 and w not in STOP]
@@ -912,6 +1154,28 @@ class DossierBuilder:
                     why.setdefault(fid, []).append(f"def:{phrase}")
                     by_phrase += n == 0
                 defs.setdefault(fid, []).append(r)
+        # «где…» definitions carrying the query words on or next to the hit pages (visual evidence)
+        if near and st.stems:
+            for r in self.nav.query(
+                    "SELECT c.formula_id, c.source_id, c.page_id, c.page_index, c.kind, c.equation_number, "
+                    "c.section_id, c.n_defined_symbols, c.n_refs_in, c.n_parameters, s.symbol, s.definition, s.unit "
+                    "FROM formula_context c JOIN formula_symbols s ON s.formula_id = c.formula_id "
+                    "WHERE c.page_id IN (SELECT unnest(?::VARCHAR[])) AND s.definition IS NOT NULL "
+                    "ORDER BY c.formula_id, s.symbol", [sorted(near)]):
+                if req.source_ids and r["source_id"] not in req.source_ids:
+                    continue
+                found = hits(st.stems, words_of(r["definition"]))
+                if not found:
+                    continue
+                fid = r["formula_id"]
+                ctx.setdefault(fid, {k: r[k] for k in ("formula_id", "source_id", "page_id", "page_index", "kind",
+                                                       "equation_number", "section_id", "n_defined_symbols",
+                                                       "n_refs_in", "n_parameters")})
+                if "near-hit" not in why.get(fid, []):
+                    score[fid] = score.get(fid, 0.0) + 0.6 * len(found) / len(st.stems)
+                    why.setdefault(fid, []).append("near-hit")
+                defs.setdefault(fid, []).append({"symbol": r["symbol"], "definition": r["definition"],
+                                                 "unit": r["unit"]})
         if not score:
             return
         order = sorted(score, key=lambda f: (-score[f], f))
@@ -964,8 +1228,12 @@ class DossierBuilder:
         if not st.source_score:
             return
         order = sorted(st.source_score, key=lambda s: (-st.source_score[s], s))
-        st.extra["sources"] = max(0, len(order) - req.max_sources)
-        chosen = order[: req.max_sources]
+        caps = {"CORE": req.max_sources, "REST": max(3, req.max_sources // 2)}
+        chosen: list[str] = []
+        for tier in ("CORE", "REST"):
+            mine = [s for s in order if st.tier(s) == tier]
+            st.extra[f"sources_{tier.lower()}"] = max(0, len(mine) - caps[tier])
+            chosen += mine[: caps[tier]]
         rows = self._canon_rows(
             "SELECT s.source_id, s.source_class_raw, s.site_scope_raw, s.site_scope, s.lifecycle_status, ws.work_id, "
             "w.title, w.authors_display, w.publication_year, w.work_type FROM sources s LEFT JOIN work_sources ws ON "
@@ -982,8 +1250,11 @@ class DossierBuilder:
             except Exception:  # noqa: BLE001 - the pack is optional here
                 coverage = {}
         cites = self._cites()
+        if cites is None:
+            st.warn("CITES_PENDING", f"CITES is still being read (older DuckDB file without materialised "
+                                     f"bibliography links: over {CITES_WAIT_S:g} s); repeat the call for citations")
         cited_by: dict[str, set[str]] = {}
-        for r in cites:
+        for r in cites or []:
             cited_by.setdefault(r["cited_work_id"], set()).add(r["citing_work_id"])
         n_sec: dict[str, int] = {}
         n_for: dict[str, int] = {}
@@ -991,14 +1262,18 @@ class DossierBuilder:
             n_sec[s["source_id"]] = n_sec.get(s["source_id"], 0) + 1
         for f in st.formulas:
             n_for[f["source_id"]] = n_for.get(f["source_id"], 0) + 1
-        for rank, sid in enumerate(chosen, 1):
+        rank_in = {"CORE": 0, "REST": 0}
+        for sid in chosen:
             r = by_source.get(sid)
             if r is None:
                 st.warn("SOURCE_NOT_IN_CANON", f"{sid} is not a registered source of the snapshot")
                 continue
             cov = coverage.get(sid) or {}
+            tier = st.tier(sid)
+            rank_in[tier] += 1
             st.sources.append({
-                "rank": rank, "source_id": sid, "work_id": r.get("work_id"), "title": short(r.get("title"), 140),
+                "rank": rank_in[tier], "tier": tier, "source_id": sid, "work_id": r.get("work_id"),
+                "title": short(r.get("title"), 140),
                 "authors": short(r.get("authors_display"), 120), "year": r.get("publication_year"),
                 "work_type": r.get("work_type"), "source_class": r.get("source_class_raw"),
                 "site_scope_raw": r.get("site_scope_raw"), "site_scope": list(r.get("site_scope") or []),
@@ -1007,21 +1282,43 @@ class DossierBuilder:
                 "evidence_catalogue": {k: cov.get(k) for k in ("document_type", "geographic_scope", "mine_attribution")
                                        if cov.get(k)} or None,
                 "n_sections": n_sec.get(sid, 0), "n_formulas": n_for.get(sid, 0),
-                "cited_by_works": len(cited_by.get(r.get("work_id"), ())) if r.get("work_id") else None,
-                "score": round(st.source_score[sid], 4)})
-        self._citations(st, [s["work_id"] for s in st.sources if s.get("work_id")], cites)
+                "cited_by_works": len(cited_by.get(r.get("work_id"), ())) if r.get("work_id") and cites is not None
+                else None, "score": round(st.source_score[sid], 4)})
+        if cites is not None:
+            self._citations(st, [s["work_id"] for s in st.sources if s.get("work_id")], cites)
 
-    def _cites(self) -> list[dict[str, Any]]:
-        """All CITES rows of the snapshot (a few hundred), read once per canonical snapshot: the view aggregates the
-        bibliography links (on snapshots built before the links were materialised it is computed per query)."""
+    def _cites(self) -> list[dict[str, Any]] | None:
+        """All CITES rows of the snapshot (a few hundred), read once per canonical snapshot in a background thread:
+        the view aggregates the bibliography links, and a DuckDB file built before the links were materialised
+        computes them per query (tens of seconds). The call that starts the read waits ``CITES_WAIT_S`` at most, the
+        calls during the read do not wait; None = still reading (a later call has them)."""
         key = ("cites", self.canon.snapshot_id())
         cached = self.cache.get("cites")
         if cached and cached[0] == key:
             return cached[1]
-        rows = self._canon_rows("SELECT citing_work_id, cited_work_id, n_citing_entries FROM cites "
-                                "ORDER BY citing_work_id, cited_work_id", [])
-        self.cache["cites"] = (key, rows)
-        return rows
+        pending = self.cache.get("cites_pending")
+        started = False
+        if pending is None or pending[0] != key or pending[1].is_set():     # none, another snapshot, or failed
+            started = True
+            done = threading.Event()
+
+            def read() -> None:
+                try:
+                    rows = self._canon_rows("SELECT citing_work_id, cited_work_id, n_citing_entries FROM cites "
+                                            "ORDER BY citing_work_id, cited_work_id", [])
+                    self.cache["cites"] = (key, rows)
+                except Exception as exc:  # noqa: BLE001 - reported by the next call's CITES_PENDING
+                    LOG.warning("CITES read failed", extra={"vkm": {"stage": "topic_cites",
+                                                                     "error": type(exc).__name__}})
+                finally:
+                    done.set()
+
+            pending = (key, done)
+            self.cache["cites_pending"] = pending
+            threading.Thread(target=read, name="vkm-topic-cites", daemon=True).start()
+        pending[1].wait(CITES_WAIT_S if started else 0)
+        cached = self.cache.get("cites")
+        return cached[1] if cached and cached[0] == key else None
 
     def _citations(self, st: _State, works: list[str], cites: list[dict[str, Any]]) -> None:
         if not works:
@@ -1057,16 +1354,27 @@ class DossierBuilder:
         for link in L:
             links_by.setdefault(link.get("process_id") or "", []).append(link)
         docs = [_catalogue_words(p, PROCESS_FIELDS) for p in P]
-        idf = idf_weights(st.stems, [frozenset().union(*(w for w, _x in d)) for d in docs]) if st.stems else {}
+        # every phrasing (query, paraphrases, synonyms) scores a process on its own words; the best weighted score
+        # counts, and the name bonus stays with the query's own words
+        phrasings = [(stems, w) for stems, w in self._phrasings(st) if stems]
+        all_stems = sorted({s for stems, _w in phrasings for s in stems})
+        idf = idf_weights(all_stems, [frozenset().union(*(w for w, _x in d)) for d in docs]) if all_stems else {}
+        hit_pages = set(self._near_pages(st))          # the pages the dossier found (and their ±1 neighbours)
         scored = []
         for p, fields in zip(P, docs):
             ws, name = _word_score(st.stems, idf, fields, 3.0) if st.stems else (0.0, set())
-            linked_sources = set(split_ids(p.get("source_ids"))) | {x.get("source_id") for x in
-                                                                    links_by.get(p["process_id"], [])}
+            for stems, weight in phrasings:
+                if stems != st.stems:
+                    ws = max(ws, weight * _word_score(stems, idf, fields, 3.0)[0])
+            plinks = links_by.get(p["process_id"], [])
+            linked_sources = set(split_ids(p.get("source_ids"))) | {x.get("source_id") for x in plinks}
             overlap = len(linked_sources & found_sources)
-            if not (ws >= 0.25 or name or (overlap >= 3 and ws > 0)):
+            # the process's evidence pages among the pages found: the search and the catalogue point at one place
+            page_hits = len({_evidence_page(x) for x in plinks} & hit_pages)
+            if not (ws >= 0.25 or name or ((overlap >= 3 or page_hits >= 2) and ws > 0)):
                 continue
-            scored.append((round(ws + 0.08 * min(overlap, 5), 6), p, overlap, sorted(name)))
+            scored.append((round(ws + 0.08 * min(overlap, 5) + 0.12 * min(page_hits, 5), 6), p, overlap,
+                           sorted(name), page_hits))
         scored.sort(key=lambda x: (-x[0], x[1]["process_id"]))
         st.extra["processes"] = max(0, len(scored) - st.req.max_processes)
         mech = cat.rows("mechanics_evidence_catalog", ["vn_ids", "variable", "category"])
@@ -1078,7 +1386,7 @@ class DossierBuilder:
         for m in rheo:
             for vn in split_ids(m.get("vn_ids")):
                 vn_vars.setdefault(vn, set()).add("rheology_param")
-        for rank, (score, p, overlap, name) in enumerate(scored[: st.req.max_processes], 1):
+        for rank, (score, p, overlap, name, page_hits) in enumerate(scored[: st.req.max_processes], 1):
             links = sorted(links_by.get(p["process_id"], []), key=lambda x: (
                 (x.get("role") or "") != "KEY", (x.get("scope") or "") not in SKRU1_SCOPES,
                 CONFIDENCE_ORDER.get(x.get("confidence") or "", 3), x.get("vn_id") or ""))
@@ -1098,7 +1406,7 @@ class DossierBuilder:
                                                     "scope", "scale", "confidence", "role")} for x in links[:8]],
                 "n_evidence": len(links), "evidence_by_status": _count(links, "status"),
                 "evidence_by_scope": _count(links, "scope"), "matched_words": name, "linked_sources_found": overlap,
-                "score": score})
+                "evidence_pages_found": page_hits, "score": score})
             self._gaps(st, p, links, vn_vars)
         top_ids = {p["process_id"] for p in st.processes}
         self._models(st, cat, top_ids)
@@ -1147,8 +1455,9 @@ class DossierBuilder:
                             "where_to_look": sorted({PARAM_CATALOGUES[k] for k in keys if k in PARAM_CATALOGUES})})
         gaps_text = str(p.get("data_gaps") or "").strip()
         if _WORD.search(gaps_text) and norm(gaps_text) not in ("нет", "none", "n/a", "na"):
-            st.gaps.append({**base, "parameter": short(gaps_text, 160), "parameter_as_catalogued": short(gaps_text, 160),
-                            "coverage": "CURATED_GAP", "scopes": [], "evidence_vn_ids": [], "where_to_look": []})
+            st.gaps.append({**base, "parameter": short(gaps_text, 160),
+                            "parameter_as_catalogued": short(gaps_text, 160), "coverage": "CURATED_GAP", "scopes": [],
+                            "evidence_vn_ids": [], "where_to_look": []})
         if unmatched:
             st.gaps.append({**base, "status": "NOT_CHECKED", "parameter": "; ".join(unmatched)[:200],
                             "parameter_as_catalogued": short(p.get("required_parameters"), 200),
@@ -1291,6 +1600,44 @@ class DossierBuilder:
     def _canon_rows(self, sql: str, params: list[Any]) -> list[dict[str, Any]]:
         return self.canon.query(sql, params)
 
+    def _page_list(self, st: _State) -> dict[str, list[dict[str, Any]]]:
+        """The ranked pages of the dossier per tier (JSON only, ids): the fused retrieval pages, or without retrieval
+        the best pages of the chosen sections followed by their other pages (≤ CORE_PAGES / REST_PAGES)."""
+        out: dict[str, list[dict[str, Any]]] = {"core": [], "rest": []}
+        if st.units:
+            for u in st.units:
+                out[u["tier"].lower()].append({"page_id": u["page_id"], "source_id": u["source_id"],
+                                               "page_index": u["page_index"], "rank": u["rank"],
+                                               "rrf": u["weight"], "formulations": u["formulations"]})
+            return out
+        spans = [(s["source_id"], s["pages"]["first_index"], min(int(s["pages"]["last_index"] or 0),
+                                                                 int(s["pages"]["first_index"] or 0) + 49))
+                 for s in st.sections if s["pages"]["first_index"] is not None]
+        by_source: dict[str, list[tuple[int, str]]] = {}
+        if spans:
+            clause = " OR ".join("(source_id = ? AND page_index BETWEEN ? AND ?)" for _ in spans)
+            for r in self._canon_rows(f"SELECT page_id, source_id, page_index FROM pages WHERE {clause} "
+                                      f"ORDER BY source_id, page_index", [x for sp in spans for x in sp]):
+                by_source.setdefault(r["source_id"], []).append((r["page_index"], r["page_id"]))
+        for tier, cap in (("CORE", CORE_PAGES), ("REST", REST_PAGES)):
+            secs = [s for s in st.sections if s["tier"] == tier]
+            lst, seen = out[tier.lower()], set()
+
+            def add(pid: str, sid: str, index: Any, lst=lst, seen=seen, cap=cap) -> None:
+                if pid not in seen and len(lst) < cap:
+                    seen.add(pid)
+                    lst.append({"page_id": pid, "source_id": sid, "page_index": index, "rank": len(lst) + 1})
+
+            for s in secs:
+                for u in s["units"]:
+                    add(u["page_id"], s["source_id"], u.get("page_index"))
+            for s in secs:
+                a, b = s["pages"]["first_index"], s["pages"]["last_index"]
+                for index, pid in by_source.get(s["source_id"], []):
+                    if a is not None and a <= index <= (b if b is not None else a):
+                        add(pid, s["source_id"], index)
+        return out
+
     def _projection(self, st: _State) -> dict[str, Any] | None:
         nav_snap = st.inputs.get("nav_snapshot_id")
         if nav_snap:
@@ -1314,14 +1661,17 @@ class DossierBuilder:
         cats = (st.inputs.get("catalogues") or {}).get("pack_id") or "нет"
         src = f" · источники: {', '.join(req.source_ids)}" if req.source_ids else ""
         codes = sorted({w["code"] for w in st.warnings})
+        kinds = ", ".join(f["kind"] for f in st.formulations) or "query"
+        core = (st.inputs.get("core_tier") or {}).get("sources")
         return [f"# Досье темы «{short(req.query, 120)}»", f"_{NOTE}_",
-                f"поиск: {mode} · NAV: {st.inputs.get('nav_snapshot_id') or 'нет'} · каталоги: {cats}{src}"
+                f"поиск: {mode} ({kinds}; RRF) · ядро ВКМ: {core if core is not None else '?'} источников · NAV: "
+                f"{st.inputs.get('nav_snapshot_id') or 'нет'} · каталоги: {cats}{src}"
                 + (f" · предупреждения: {', '.join(codes)}" if codes else ""), ""]
 
     def _entries(self, st: _State) -> list[Entry]:
         out: list[Entry] = []
         for s in st.sections:
-            r = s["rank"] - 1
+            cat = "sections_core" if s["tier"] == "CORE" else "sections_rest"
             via = ", ".join({"retrieval": "поиск", "title": "заголовок", "concept": "понятие"}[x] for x in s["signals"])
             lines = [f"{s['rank']}. `{s['section_id']}` {s['source_id']} · "
                      f"{_pages(s['pages']['first_index'], s['pages']['last_index'])} · "
@@ -1332,7 +1682,12 @@ class DossierBuilder:
                 lines.append(f"   ↳ {label}`{u['page_id']}`{snip}")
             if s["related_sections"]:
                 lines.append(f"   ещё в этой ветке: {', '.join('`' + x + '`' for x in s['related_sections'][:3])}")
-            out.append(Entry("sections", s["section_id"], _prio("sections", r), lines, s))
+            out.append(Entry(cat, s["section_id"], _prio(cat, s["rank"] - 1), lines, s))
+        for v in st.visual:
+            what = {"FIGURE": "рисунок", "TABLE": "таблица"}[v["kind"]]
+            text = f"- `{v['object_id']}` [{what}] " + (f"{v['label']} " if v.get("label") else "") + \
+                (f"«{v['caption']}» " if v.get("caption") else "") + f"· `{v['page_id']}`"
+            out.append(Entry("visual", v["object_id"], _prio("visual", v["rank"] - 1), [text], v))
         for f in st.formulas:
             parts = [f"- `{f['formula_id']}`" + (f" ({f['equation_number']})" if f["equation_number"] else ""),
                      f"{f['source_id']} {_pages(f['page_index'], None)}"]
@@ -1353,16 +1708,17 @@ class DossierBuilder:
         out += self._concept_entries(st)
         for i, t in enumerate(st.topics):
             tid = t.get("topic_id") or t.get("id") or f"topic-{i + 1}"
-            label = t.get("label") or t.get("title") or t.get("name") or ""
+            label = t.get("label") or ", ".join(str(x) for x in (t.get("label_terms") or [])[:4])
             terms = t.get("terms")
             terms_s = ", ".join(str(x) for x in terms[:6]) if isinstance(terms, list) else ""
             size = t.get("n_sections") or t.get("size")
-            secs = ((t.get("detail") or {}).get("section_ids") or [])[:3]
+            secs = ((t.get("detail") or {}).get("section_ids") or t.get("central_section_ids") or [])[:3]
             out.append(Entry("topics", str(tid), _prio("topics", i), [
                 f"- `{tid}` {short(label, 80)}" + (f" · разделов {size}" if size else "")
                 + (f" · {terms_s}" if terms_s else "")
                 + (f" · разделы: {', '.join('`' + s + '`' for s in secs)}" if secs else "")], t))
         for s in st.sources:
+            cat = "sources_core" if s["tier"] == "CORE" else "sources_rest"
             who = s["authors"].split(";")[0].strip() if s.get("authors") else "авторы ?"
             if s.get("authors") and ";" in s["authors"]:
                 who += " и др."
@@ -1372,7 +1728,7 @@ class DossierBuilder:
             counts = ", ".join(x for x in (f"разделов {s['n_sections']}" if s["n_sections"] else "",
                                            f"формул {s['n_formulas']}" if s["n_formulas"] else "",
                                            f"цитируют {s['cited_by_works']}" if s.get("cited_by_works") else "") if x)
-            out.append(Entry("sources", s["source_id"], _prio("sources", s["rank"] - 1), [
+            out.append(Entry(cat, s["source_id"], _prio(cat, s["rank"] - 1), [
                 f"- {s['source_id']} → `{s['work_id'] or '?'}` · {who} ({s.get('year') or '?'}) · "
                 f"{s.get('work_type') or s.get('source_class') or '?'} · «{short(s.get('title'), 90)}» · "
                 f"область (реестр): {scope}{extra}" + (f" · {counts}" if counts else "")], s))
@@ -1501,10 +1857,14 @@ class DossierBuilder:
             "mode": (st.inputs.get("retrieval") or {}).get("mode", "NAV_ONLY"), "note": NOTE,
             "source_filter": list(req.source_ids),
             "inputs": st.inputs,
-            "sections": [e.data for e in by.get("sections", [])],
+            "formulations": st.formulations,
+            "pages": self._page_list(st),
+            "sections": [e.data for e in by.get("sections_core", []) + by.get("sections_rest", [])],
             "formulas": [e.data for e in by.get("formulas", [])],
+            "visual": [e.data for e in by.get("visual", [])],
             "concept": concept, "topics": [e.data for e in by.get("topics", [])],
-            "sources": [e.data for e in by.get("sources", [])], "citations": citations or None,
+            "sources": [e.data for e in by.get("sources_core", []) + by.get("sources_rest", [])],
+            "citations": citations or None,
             "catalogue": {"processes": [e.data for e in by.get("processes", [])],
                           "models": [e.data for e in by.get("models", [])],
                           "conflicts": [e.data for e in by.get("conflicts", [])],
@@ -1514,6 +1874,13 @@ class DossierBuilder:
             "gaps": [e.data for e in by.get("gaps", [])],
             "budget": {"budget_chars": req.budget_chars, "markdown_chars": len(text), "trimmed": trimmed},
             "markdown": text}
+
+
+def _evidence_page(link: dict[str, Any]) -> str | None:
+    """The canonical page of a catalogue evidence link (``pdf_page`` is the 1-based PDF page, as the page ids);
+    None without a page number."""
+    m = re.match(r"\s*(\d+)", str(link.get("pdf_page") or ""))
+    return f"{link.get('source_id')}:p{int(m.group(1)):04d}" if m and link.get("source_id") else None
 
 
 def _param_name(item: str) -> str:

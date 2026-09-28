@@ -162,6 +162,9 @@ class TopicBody(_Body):
     budget_chars: int = Field(12_000, ge=1_000, le=60_000, description="hard cap of the markdown rendering; the "
                                                                        "lowest-ranked items are trimmed first")
     source_ids: list[Annotated[str, Field(pattern=SOURCE_ID)]] = Field(default_factory=list, max_length=20)
+    paraphrases: list[Annotated[str, Field(min_length=1, max_length=512)]] = Field(
+        default_factory=list, max_length=4, description="other wordings of the topic (other terms, English); fused "
+                                                        "with the query by RRF")
     max_sources: int = Field(10, ge=1, le=50)
     max_sections: int = Field(12, ge=1, le=50)
     max_formulas: int = Field(10, ge=0, le=50)
@@ -530,13 +533,16 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                   budget: Annotated[int, Query(ge=1_000, le=60_000)] = 12_000,
                   source_id: Annotated[list[Annotated[str, Field(pattern=SOURCE_ID)]] | None,
                                        Query(max_length=20)] = None,
+                  paraphrase: Annotated[list[Annotated[str, Field(min_length=1, max_length=512)]] | None,
+                                        Query(max_length=4)] = None,
                   max_sources: Annotated[int, Query(ge=1, le=50)] = 10,
                   max_sections: Annotated[int, Query(ge=1, le=50)] = 12,
                   max_formulas: Annotated[int, Query(ge=0, le=50)] = 10) -> JSONResponse:
         request.state.query_sha256 = hashlib.sha256(q.encode("utf-8")).hexdigest()
         return respond(request, service.reconstruct_topic(q, budget_chars=budget, source_ids=list(source_id or []),
                                                           max_sources=max_sources, max_sections=max_sections,
-                                                          max_formulas=max_formulas))
+                                                          max_formulas=max_formulas,
+                                                          paraphrases=list(paraphrase or [])))
 
     @app.post("/v1/topic", tags=["navigation"], **JSON_RESPONSES)
     def topic_post(request: Request, body: TopicBody, _auth: Read) -> JSONResponse:
@@ -545,7 +551,8 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                                                           source_ids=list(body.source_ids),
                                                           max_sources=body.max_sources,
                                                           max_sections=body.max_sections,
-                                                          max_formulas=body.max_formulas))
+                                                          max_formulas=body.max_formulas,
+                                                          paraphrases=list(body.paraphrases)))
 
     @app.get("/v1/provenance/{object_id}", tags=["provenance"], **JSON_RESPONSES)
     def provenance(request: Request, object_id: str, _auth: Read) -> JSONResponse:

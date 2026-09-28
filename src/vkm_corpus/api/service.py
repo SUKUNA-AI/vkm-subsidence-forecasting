@@ -758,8 +758,12 @@ class ApiService:
                              tool="nav") from exc
 
     def _nav_result(self, kind: str, object_id: str, data: Any, nav_snapshot: str | None, *,
-                    source_id: str | None = None, page_id: str | None = None) -> Result:
-        if data is None or data == [] or data == {}:
+                    source_id: str | None = None, page_id: str | None = None, search: bool = False) -> Result:
+        """A NAV answer; a lookup of one object that is not there is NOT_FOUND, a search without hits is an empty
+        list (200)."""
+        if search and not data:
+            data = []
+        elif data is None or data == [] or data == {}:
             raise ApiFailure("NOT_FOUND", f"{object_id} is not in the navigation layer", stage="navigation",
                              tool="nav")
         record = data if isinstance(data, dict) else {"items": data}
@@ -793,7 +797,7 @@ class ApiService:
         if source_id:
             self._check("source", source_id)
         data, snap = self._nav_run(lambda nav: nav.search_sections(text, source_id=source_id, limit=limit))
-        return self._nav_result("NAV_SECTIONS", f"search:{text[:60]}", data or [], snap)
+        return self._nav_result("NAV_SECTIONS", f"search:{text[:60]}", data or [], snap, search=True)
 
     def nav_formula(self, formula_id: str) -> Result:
         self._check("object", formula_id)
@@ -812,7 +816,8 @@ class ApiService:
         data, snap = self._nav_run(lambda nav: nav.run("find_formulas", concept=concept, symbol=symbol,
                                                        source_id=source_id))
         items = list(data or [])[:limit] if not isinstance(data, dict) else data
-        return self._nav_result("NAV_FORMULAS", f"formulas:{concept or symbol}", items, snap, source_id=source_id)
+        return self._nav_result("NAV_FORMULAS", f"formulas:{concept or symbol}", items, snap, source_id=source_id,
+                                search=True)
 
     def nav_concept(self, term: str, limit: int) -> Result:
         if not term or not term.strip() or len(term) > 200:
@@ -822,16 +827,21 @@ class ApiService:
 
     # ------------------------------------------------------------------ topic dossier (navigation + catalogues)
     def reconstruct_topic(self, query: str, *, budget_chars: int = 12_000, source_ids: list[str] | None = None,
-                          max_sources: int = 10, max_sections: int = 12, max_formulas: int = 10) -> Result:
-        """«От А до Я» on a topic in one call: ranked NAV sections (hybrid search + titles + concepts), formulas, the
-        concept, sources with provenance and CITES, the PUBLIC catalogues (processes with evidence records, models,
-        conflicts, causal neighbours) and the UNKNOWN gaps — a budgeted, cited map (``api.topic``); navigation, not
-        evidence. Parts whose dependency is missing are left out with a warning."""
+                          max_sources: int = 10, max_sections: int = 12, max_formulas: int = 10,
+                          paraphrases: list[str] | None = None) -> Result:
+        """«От А до Я» on a topic in one call: ranked NAV sections in two tiers (the VKM core and the rest of the
+        corpus; hybrid search over ≤ 5 formulations fused by RRF + titles), formulas, figures and tables near the
+        hits, the concept, sources with provenance and CITES, the PUBLIC catalogues (processes with evidence records,
+        models, conflicts, causal neighbours) and the UNKNOWN gaps — a budgeted, cited map (``api.topic``);
+        navigation, not evidence. Parts whose dependency is missing are left out with a warning."""
         from vkm_corpus.api import topic
 
         query = (query or "").strip()
         if not query or len(query) > 512:
             raise ApiFailure("INVALID_ARGUMENT", "query is 1..512 characters")
+        paraphrases = [p.strip() for p in (paraphrases or []) if p and p.strip()]
+        if len(paraphrases) > topic.MAX_PARAPHRASES or any(len(p) > 512 for p in paraphrases):
+            raise ApiFailure("INVALID_ARGUMENT", f"at most {topic.MAX_PARAPHRASES} paraphrases of ≤ 512 characters")
         if not topic.MIN_BUDGET <= int(budget_chars) <= topic.MAX_BUDGET:
             raise ApiFailure("INVALID_ARGUMENT", f"budget_chars must be {topic.MIN_BUDGET}…{topic.MAX_BUDGET}")
         if not (1 <= max_sources <= 50 and 1 <= max_sections <= 50 and 0 <= max_formulas <= 50):
@@ -847,7 +857,8 @@ class ApiService:
                                        cache=self._topic_cache)
         dossier = builder.build(topic.TopicRequest(query=query, budget_chars=int(budget_chars),
                                                    source_ids=tuple(sources), max_sources=max_sources,
-                                                   max_sections=max_sections, max_formulas=max_formulas))
+                                                   max_sections=max_sections, max_formulas=max_formulas,
+                                                   paraphrases=tuple(paraphrases)))
         proj = dossier.projection or {}
         built_from = proj.get("built_from_snapshot_id")
         envelope = Envelope(

@@ -239,15 +239,20 @@ def test_text_helpers():
 
 def test_nav_only_dossier_covers_all_parts(env):
     service, canon, _root = env
-    record, warnings, envelope = _dossier(service)
+    record, warnings, envelope = _dossier(service, paraphrases=["мульда сдвижения"])
     assert envelope.object_kind == "TOPIC_DOSSIER" and envelope.layer == "PROJECTION"
     assert envelope.review_status == "AUTO_EXTRACTED_UNREVIEWED" and envelope.origin == "DERIVED"
     assert envelope.projection.engine == "navigation" and envelope.projection.build_id == NAV_SNAP
     assert record["mode"] == "NAV_ONLY" and "RETRIEVAL_UNAVAILABLE" in warnings
     assert record["inputs"]["catalogues"]["pack_id"] == "ab" * 6
-    # (b) one section per branch: S1 (title «Оседание земной поверхности») keeps its child S2 as related
+    assert [f["kind"] for f in record["formulations"]] == ["query", "paraphrase", "neighbours"]
+    assert record["formulations"][2]["text"] == f"{QUERY} мульда сдвижения"   # widened by the concept neighbour
+    # (b) one section per branch: S1 (title «Оседание земной поверхности») keeps its child S2 (the paraphrase's
+    #     title) as related; the concept alone adds no section
     secs = {s["section_id"]: s for s in record["sections"]}
     assert S1 in secs and S2 not in secs and S2 in secs[S1]["related_sections"] and S3 in secs
+    assert {s["tier"] for s in record["sections"]} == {"CORE"}               # synthetic sources: VKM_REGIONAL
+    assert record["pages"]["core"][0]["page_id"] == "VKM-SRC-001:p0001" and record["pages"]["rest"] == []
     assert secs[S1]["pages"] == {"first_id": "VKM-SRC-001:p0001", "last_id": "VKM-SRC-001:p0002",
                                  "first_index": 1, "last_index": 2}
     unit = secs[S1]["units"][0]
@@ -297,36 +302,150 @@ def test_nav_only_dossier_covers_all_parts(env):
     assert len(md) <= 12_000 and record["budget"]["markdown_chars"] == len(md)
 
 
-def test_retrieval_units_group_by_section_with_snippets(env):
+class Stub:
+    """Retrieval stand-in: the same ranked pages for every formulation (a formulation may add its own)."""
+
+    def __init__(self, units, extra=None):
+        self.units, self.extra, self.calls = units, extra or {}, []
+
+    def search(self, query, *, source_ids=None, limit=50):
+        self.calls.append((query, tuple(source_ids) if source_ids else None, limit))
+        units = [u for u in self.units + self.extra.get(query, [])
+                 if not source_ids or u["page_id"].split(":")[0] in source_ids]
+        return {"engine": "stub", "build_id": "v-stub", "built_from_snapshot_id": "snap-x", "units": units}
+
+
+def _units(canon):
+    return [{"page_id": "VKM-SRC-001:p0002", "rank": 1, "unit_id": "u-1", "object_ids": [canon.ids["block"]]},
+            {"page_id": "VKM-SRC-001:p0009", "rank": 2, "unit_id": "u-stale", "object_ids": []},
+            {"page_id": "VKM-SRC-002:p0001", "rank": 3, "unit_id": "u-3", "object_ids": []}]
+
+
+def test_retrieval_formulations_tiers_and_rrf(env):
     service, canon, _root = env
-
-    class Stub:
-        def __init__(self):
-            self.calls = []
-
-        def search(self, query, *, source_ids=None, limit=50):
-            self.calls.append((query, source_ids, limit))
-            return {"engine": "stub", "build_id": "v-stub", "built_from_snapshot_id": "snap-x", "units": [
-                {"page_id": "VKM-SRC-001:p0002", "rank": 1, "unit_id": "u-1", "object_ids": [canon.ids["block"]]},
-                {"page_id": "VKM-SRC-001:p0009", "rank": 2, "unit_id": "u-stale", "object_ids": []},
-                {"page_id": "VKM-SRC-002:p0001", "rank": 3, "unit_id": "u-3", "object_ids": []}]}
-
-    stub = Stub()
+    stub = Stub(_units(canon), extra={"связанный пересказ": [
+        {"page_id": "VKM-SRC-002:p0001", "rank": 1, "unit_id": "u-para", "object_ids": []}]})
     service.deps.topic_retrieval = stub
-    record, warnings, _env = _dossier(service)
-    assert stub.calls == [(QUERY, None, topic.RETRIEVAL_UNITS)]
-    assert record["mode"] == "FULL" and record["inputs"]["retrieval"]["units"] == 2 and "STALE_PROJECTION" in warnings
+    record, warnings, _env = _dossier(service, paraphrases=["связанный пересказ"])
+    core = ("VKM-SRC-001", "VKM-SRC-002", "VKM-SRC-013")        # VKM_REGIONAL in the register (022: retired)
+    texts = [QUERY, "связанный пересказ", f"{QUERY} мульда сдвижения"]
+    assert sorted(stub.calls, key=repr) == sorted(((t, s, topic.RETRIEVAL_UNITS) for t in texts
+                                                   for s in (core, None)), key=repr)
+    retrieval = record["inputs"]["retrieval"]
+    assert record["mode"] == "FULL" and retrieval["searches"] == 6 and retrieval["pages"] == {"CORE": 2, "REST": 0}
+    assert "STALE_PROJECTION" in warnings and record["inputs"]["core_tier"]["sources"] == 3
+    pages = record["pages"]["core"]                                          # RRF over formulations × tiers
+    assert [p["page_id"] for p in pages] == ["VKM-SRC-001:p0002", "VKM-SRC-002:p0001"]
+    assert pages[0]["rrf"] == pytest.approx(6 / 61, abs=1e-6)               # first in all six lists
+    assert pages[1]["rrf"] == pytest.approx(4 / 63 + 2 / 62, abs=1e-6)       # third (after a stale page) or second
+    assert set(pages[1]["formulations"]) == {"query", "paraphrase", "neighbours"}
     top = record["sections"][0]
-    assert top["section_id"] in (S1, S2) and "retrieval" in top["signals"]
+    assert top["section_id"] in (S1, S2) and "retrieval" in top["signals"] and top["tier"] == "CORE"
     unit = top["units"][0]
     assert unit["unit_id"] == "u-1" and unit["page_id"] == "VKM-SRC-001:p0002" and unit["retrieval_rank"] == 1
     assert unit["snippet"] and "земной поверхности" in unit["snippet"]         # from the unit's block (canon)
     assert S4 in {s["section_id"] for s in record["sections"]}               # a retrieval-only section of 002
-    # a source filter reaches the retrieval and every part
+    # a source filter replaces the tiers and reaches every part
     record, _w, envelope = _dossier(service, source_ids=["VKM-SRC-002"])
-    assert stub.calls[-1][1] == ["VKM-SRC-002"] and envelope.source_id == "VKM-SRC-002"
+    assert {c[1] for c in stub.calls[-2:]} == {("VKM-SRC-002",)} and envelope.source_id == "VKM-SRC-002"
     assert {s["source_id"] for s in record["sections"]} == {"VKM-SRC-002"}
     assert [s["source_id"] for s in record["sources"]] == ["VKM-SRC-002"] and record["formulas"] == []
+
+
+def test_two_tiers_are_shown_apart(env):
+    service, canon, _root = env
+    service._topic_cache["core"] = (("core", canon.snapshot_id, "ab" * 6), {"VKM-SRC-001"})   # 002 = the rest
+    service.deps.topic_retrieval = Stub(_units(canon))
+    record, _w, _e = _dossier(service)
+    assert [p["page_id"] for p in record["pages"]["core"]] == ["VKM-SRC-001:p0002"]
+    assert [p["page_id"] for p in record["pages"]["rest"]] == ["VKM-SRC-002:p0001"]
+    tiers = {s["section_id"]: s["tier"] for s in record["sections"]}
+    assert tiers[S4] == "REST" and all(t == "CORE" for s, t in tiers.items() if s != S4)
+    assert {s["source_id"]: s["tier"] for s in record["sources"]} == {"VKM-SRC-001": "CORE", "VKM-SRC-002": "REST"}
+    md = record["markdown"]
+    assert md.index("## Разделы — ядро ВКМ") < md.index("## Разделы — остальной корпус")
+    assert "## Источники — ядро ВКМ" in md and "## Источники — остальной корпус" in md
+
+
+def test_paraphrases_also_match_catalogue_processes(env):
+    service, _canon, _root = env
+    plain, _w, _e = _dossier(service)
+    assert [p["process_id"] for p in plain["catalogue"]["processes"]] == ["PC-01"]
+    record, _w, _e = _dossier(service, paraphrases=["ползучесть соли"])
+    procs = {p["process_id"]: p for p in record["catalogue"]["processes"]}
+    assert list(procs) == ["PC-01", "PC-02"] and procs["PC-02"]["matched_words"] == []   # the query's words: none
+    assert procs["PC-02"]["score"] < procs["PC-01"]["score"]
+    assert procs["PC-01"]["evidence_pages_found"] == 2          # its evidence pages 1 and 2 are the pages of S1
+    assert topic._evidence_page({"source_id": "VKM-SRC-001", "pdf_page": "12-13"}) == "VKM-SRC-001:p0012"
+    assert topic._evidence_page({"source_id": "VKM-SRC-001", "pdf_page": ""}) is None
+
+
+def test_core_tier_rule():
+    """Core = sources named by the evidence catalogues + register scope VKM/SKRU/regional, mapped or verbatim (an
+    unmapped list of mines maps to no scope); analogue, general-method and retired sources are the rest."""
+    register = [("VKM-SRC-100", ["VKM_REGIONAL"], "VKM_regional"), ("VKM-SRC-101", [], "SKRU1_SKRU2_SKRU3"),
+                ("VKM-SRC-102", ["NON_VKM"], "NON_VKM_ANALOG"), ("VKM-SRC-103", [], "LEGACY_RETIRED"),
+                ("VKM-SRC-104", ["GENERAL_METHOD"], "GENERAL_METHOD"), ("VKM-SRC-106", ["OTHER_VKM_SITE"], "VKM_x")]
+
+    class Canon:
+        def snapshot_id(self):
+            return "snap-synthetic"
+
+        def query(self, sql, params):
+            return [{"source_id": s, "site_scope": sc, "site_scope_raw": raw} for s, sc, raw in register]
+
+    class Catalogues:
+        def rows(self, table, columns=None):
+            return [{"source_ids": "VKM-SRC-104; VKM-SRC-105"}] if table == "mathematical_model_registry" else []
+
+    st = topic._State(req=topic.TopicRequest(query="закладка"), stems=["закладк"])
+    st.inputs["catalogues"] = {"pack_id": "abababababab"}
+    builder = topic.DossierBuilder(Canon(), catalogues=Catalogues())
+    core = builder._core_sources(st, True)
+    assert core == {"VKM-SRC-100", "VKM-SRC-101", "VKM-SRC-104", "VKM-SRC-105", "VKM-SRC-106"}
+    assert st.inputs["core_tier"]["catalogued"] == 2 and st.inputs["core_tier"]["sources"] == 5
+    again = topic._State(req=st.req, stems=st.stems, inputs={"catalogues": {"pack_id": "abababababab"}})
+    assert builder._core_sources(again, True) is core and again.inputs["core_tier"] == st.inputs["core_tier"]
+    no_pack = topic.DossierBuilder(Canon())._core_sources(topic._State(req=st.req, stems=st.stems), False)
+    assert no_pack == {"VKM-SRC-100", "VKM-SRC-101", "VKM-SRC-106"}
+
+
+def test_a_long_section_lends_its_rank_to_formulas_near_its_hits_only():
+    def ctx(fid, page, number, n_symbols, n_refs, n_params):
+        return {"formula_id": fid, "source_id": "VKM-SRC-001", "page_id": f"VKM-SRC-001:p{page:04d}",
+                "page_index": page, "kind": "DISPLAY", "equation_number": number, "section_id": "SEC-long",
+                "n_defined_symbols": n_symbols, "n_refs_in": n_refs, "n_parameters": n_params}
+
+    class Nav:
+        def query(self, sql, params):
+            if "WHERE kind = 'DISPLAY'" in sql:     # a chapter of 40 pages: a rich formula far from the hit page
+                return [ctx("F-far", 35, "3.1", 3, 3, 1), ctx("F-near", 21, None, 1, 0, 0)]
+            return []
+
+        def run(self, name, **kwargs):
+            return []
+
+    class Canon:
+        def query(self, sql, params):
+            return []
+
+    st = topic._State(req=topic.TopicRequest(query="ползучесть соли"), stems=["ползуч", "сол"])
+    st.sections = [{"source_id": "VKM-SRC-001", "rank": 1, "tier": "CORE", "units": [{"page_id": "VKM-SRC-001:p0020"}],
+                    "pages": {"first_index": 1, "last_index": 40}}]
+    topic.DossierBuilder(Canon(), nav=Nav())._formulas(st)
+    assert [(f["formula_id"], f["match"]) for f in st.formulas] == [("F-near", ["section#1:near"]),
+                                                                     ("F-far", ["section#1"])]
+    assert st.formulas[0]["score"] > 5 * st.formulas[1]["score"]
+
+
+def test_figures_and_tables_near_the_hits(env):
+    service, canon, _root = env
+    service.deps.topic_retrieval = Stub(_units(canon))
+    record, _w, _e = _dossier(service, query="синтетическая схема")
+    visual = record["visual"]
+    assert visual and visual[0]["object_id"] == canon.ids["figure"] and visual[0]["kind"] == "FIGURE"
+    assert visual[0]["page_id"] == "VKM-SRC-001:p0002" and visual[0]["matched"] == 2
+    assert f"`{canon.ids['figure']}` [рисунок]" in record["markdown"]
 
 
 def test_hybrid_adapter_maps_hits_to_units(env):
@@ -388,21 +507,23 @@ def test_degradation_without_concepts_catalogues_nav(env, tmp_path):
 
 def test_topics_are_used_when_the_build_has_them(env):
     service, canon, root = env
-    service.deps.nav = nav_store.NavStore(root, canonical_db=canon.duckdb_path, functions={
+    service.deps.nav = nav_store.NavStore(root, canonical_db=canon.duckdb_path, functions={  # agent T's shapes
         "explore_concept": fake_explore(canon.ids["block"]),
-        "find_topics": lambda con, query, limit=5: [{"topic_id": "TOP-1", "label": "Сдвижение и оседание",
-                                                     "n_sections": 4, "terms": ["оседание", "мульда"]}],
-        "get_topic": lambda con, topic_id: {"topic_id": topic_id, "sections": [{"section_id": S1}, S2],
-                                            "sources": ["VKM-SRC-001"], "terms": [{"lemma": "оседание"}]}})
+        "find_topics": lambda con, terms, limit=10: [{
+            "topic_id": "TOP-1", "level": 1, "n_sections": 4, "n_sources": 2, "label_terms": ["оседание", "мульда"],
+            "central_section_ids": [S1], "score": 1.2, "matched": [terms]}],
+        "topic": lambda con, topic_id: {
+            "topic_id": topic_id, "label_terms": ["оседание", "мульда"], "central_sections": [{"section_id": S1}],
+            "members": [{"section_id": S2, "source_id": "VKM-SRC-001"}], "sources": [{"source_id": "VKM-SRC-001"}]}})
     record, _w, _e = _dossier(service)
     topic_ = record["topics"][0]
-    assert topic_["topic_id"] == "TOP-1" and "`TOP-1`" in record["markdown"]
-    assert topic_["detail"] == {"section_ids": [S1, S2], "source_ids": ["VKM-SRC-001"], "terms": ["оседание"]}
+    assert topic_["topic_id"] == "TOP-1" and "`TOP-1` оседание, мульда" in record["markdown"]
+    assert topic_["detail"] == {"section_ids": [S1, S2], "source_ids": ["VKM-SRC-001"], "terms": ["оседание", "мульда"]}
 
     def broken_detail(con, topic_id):
         raise LookupError(topic_id)
 
-    service.deps.nav._functions["get_topic"] = broken_detail
+    service.deps.nav._functions["topic"] = broken_detail
     record, warnings, _e = _dossier(service)
     assert record["topics"][0]["topic_id"] == "TOP-1" and "TOPICS_UNAVAILABLE" in warnings
 
@@ -438,8 +559,17 @@ def test_http_routes(env):
     assert body["item"]["envelope"]["object_kind"] == "TOPIC_DOSSIER"
     assert len(body["item"]["record"]["markdown"]) <= 4000
     assert "RETRIEVAL_UNAVAILABLE" in {w["code"] for w in body["meta"]["warnings"]}
-    post = client.post("/v1/topic", json={"query": QUERY, "budget_chars": 2000, "max_formulas": 0}, headers=HR)
+    post = client.post("/v1/topic", json={"query": QUERY, "budget_chars": 2000, "max_formulas": 0,
+                                          "paraphrases": ["мульда сдвижения"]}, headers=HR)
     assert post.status_code == 200 and post.json()["item"]["record"]["formulas"] == []
+    assert post.json()["item"]["record"]["formulations"][1] == {"kind": "paraphrase", "text": "мульда сдвижения"}
+    got = client.get("/v1/topic", params={"q": QUERY, "paraphrase": ["мульда сдвижения", "subsidence trough"]},
+                     headers=HR).json()["item"]["record"]["formulations"]
+    assert [f["text"] for f in got if f["kind"] == "paraphrase"] == ["мульда сдвижения", "subsidence trough"]
+    four = ["мульда сдвижения", "subsidence trough", "оседание поверхности", "прогиб толщи"]
+    got = client.get("/v1/topic", params={"q": QUERY, "paraphrase": four}, headers=HR).json()["item"]["record"]
+    assert [f["text"] for f in got["formulations"]] == [QUERY, *four]    # the caller's come first; 5 at most
+    assert client.get("/v1/topic", params={"q": QUERY, "paraphrase": ["a"] * 5}, headers=HR).status_code == 400
     assert client.get("/v1/topic", params={"q": QUERY, "budget": 10}, headers=HR).status_code == 400
     assert client.get("/v1/topic", params={"q": QUERY, "source_id": "SRC-1"}, headers=HR).status_code == 400
     assert client.post("/v1/topic", json={"query": QUERY, "extra": 1}, headers=HR).status_code == 400
@@ -465,7 +595,8 @@ def test_mcp_tool_returns_markdown_and_structured_json(env):
         async with Client(server) as client:
             tools = {t.name: t for t in (await client.list_tools()).tools}
             ok = await client.call_tool("reconstruct_topic", {"query": QUERY, "budget_chars": 3000,
-                                                              "source_ids": ["VKM-SRC-001"]})
+                                                              "source_ids": ["VKM-SRC-001"],
+                                                              "paraphrases": ["мульда сдвижения"]})
             bad = await client.call_tool("reconstruct_topic", {"query": QUERY, "budget_chars": 5})
             return tools["reconstruct_topic"], ok, bad
 
@@ -475,5 +606,6 @@ def test_mcp_tool_returns_markdown_and_structured_json(env):
     assert "предупреждения: " in ok.content[0].text and "RETRIEVAL_UNAVAILABLE" in ok.content[0].text
     assert len(ok.content[0].text) <= 3000                                   # the MCP text keeps the budget
     assert ok.structured_content["ok"] and ok.structured_content["item"]["envelope"]["object_kind"] == "TOPIC_DOSSIER"
+    assert ok.structured_content["item"]["record"]["formulations"][1]["kind"] == "paraphrase"
     assert len(ok.structured_content["item"]["record"]["markdown"]) <= 3000
     assert bad.is_error
