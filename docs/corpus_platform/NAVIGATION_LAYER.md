@@ -22,6 +22,57 @@
 - Поиск — индекс разделов в OpenSearch (BM25 по пути заголовков, терминам и центральным фразам) и векторы разделов.
 - MCP — инструменты чтения слоя (раздел 5).
 
+### Граф NAV в Neo4j (`nav-graph/1.0`)
+
+Код — `vkm_corpus.graph.nav_schema` (реестр), `nav_rows` (строки из Parquet), `nav` (загрузка и проверки),
+`nav_query` (пути и окрестности). Слой — `NAVIGATION` с меткой `NavigationLayer` и префиксом DDL `nav_`; зависит только
+от DOCUMENT. Каждый узел и каждое ребро несут `layer = 'NAV'`, `snapshot_id`, `rule_version` и `projection_run_id`
+(загрузка, которая их записала). Один узел `NavMeta` хранит manifest сборки, статус (`LOADING` / `COMPLETE` /
+`FAILED`), счётчики и итоги проверок.
+
+| Узел | ID | Из чего |
+|---|---|---|
+| `NavSection` | `section_id` | `sections` (+ поля `section_aggregates`, если есть) |
+| `FormulaSymbol` | `symbol_id` | строки `formula_symbols` с определением (символ живёт в пространстве источника) |
+| `ParameterCandidate` | `parameter_id` | `formula_parameters` |
+| `Term` | `term_id` | `terms`; ребра SAME_AS к невошедшему термину — свойство `same_as_refs` |
+| `NavTopic` | `topic_id` | `topics` агента T, подпись — первые `label_terms` (часть пропускается, если файлов нет или колонки не опознаны) |
+
+| Ребро | Откуда → куда | Правило |
+|---|---|---|
+| `NAV_CHILD_OF` | `NavSection` → родитель; `NavTopic` → родитель | деревья |
+| `HAS_NAV_SECTION` | `Source` → `NavSection` верхнего уровня | |
+| `COVERS_PAGE` | `NavSection` → `Page` | `covers_page_v1`: все страницы диапазона раздела; `deepest` — самый глубокий раздел страницы |
+| `IN_SECTION` | `Formula` → `NavSection` | номер формулы, вид, число символов и ссылок — на ребре |
+| `DEFINED_FOR` | `FormulaSymbol` → `Formula` | определение и единица из «где …», блок-источник |
+| `NAV_REFERS_TO` / `NAV_BLOCK_REFERS_TO` | `Formula` / `Block` → `Formula` | текстовая ссылка «по формуле (3.2)», тип MENTION / SUBSTITUTION / DERIVATION_HINT |
+| `NEAR_FORMULA` | `ParameterCandidate` → `Formula` | кандидат значения рядом с формулой |
+| `CO_OCCURS` | `Term` — `Term` (одно ребро на пару) | NPMI, `n_units`, `n_sources`, примеры страниц |
+| `CONTAINS_TERM`, `SAME_TERM_AS` | `Term` → `Term` | лексическое вложение; перевод или аббревиатура в скобках |
+| `DEFINED_AS` | `Term` → `Block` | «X называется …», «под X понимается …» |
+| `MENTIONED_IN` | `Term` → `NavSection` | `mentions_top_v1`: окна раздела суммируются; пара остаётся, если раздел в топ-5 термина или термин в топ-20 раздела по tf-idf |
+| `SYMBOL_OF` | `Term` → `FormulaSymbol` | `symbol_of_v1`: ключ термина (морфология сборки) — всё определение, его начало или (≥ 2 слов) начинается в первых трёх словах; не больше двух на определение; одно общее слово — только целиком или затравка проекта |
+| `IN_TOPIC`, `RELATED_TOPIC` | `NavSection` → `NavTopic`; `NavTopic` — `NavTopic` | близость и косинус агента T |
+
+Рёбра NAV принадлежат NAV при любом направлении: их создаёт и удаляет только загрузчик. Пока они есть, пересборка
+DOCUMENT отказывает (`E_CROSS_LAYER_LOSS`): `graph rebuild --cascade` (или `nav graph-drop --yes`) сначала удаляет слой
+NAV, после пересборки — снова `nav graph-load`. Проверки C6/C7 слоя DOCUMENT считают узлы и типы NAV зарегистрированным
+слоем.
+
+Команды (на CORE — в `vkm-job`):
+
+- `vkm-corpus nav graph-ddl` — ограничения и индексы (`--print` — показать);
+- `vkm-corpus nav graph-load --nav-dir $VKM_DATA_ROOT/derived/navigation/<snapshot_id>` — загрузка; `--dry-run` считает
+  строки без базы (`--canon-duckdb <файл>` — ещё и сверяет ID DOCUMENT с каноном), `--out` пишет полную квитанцию;
+- `vkm-corpus nav graph-verify --nav-dir …` — проверки без записи; `vkm-corpus nav graph-drop --yes` — удалить слой.
+
+Загрузка: сверка manifest (sha256, строки) → preflight P1–P7 → DDL → DOCUMENT должен быть READY и собран из того же
+снимка (иначе отказ; `--allow-snapshot-mismatch`) → `NavMeta = LOADING` → пачки UNWIND/MERGE по ID (узлы, затем
+рёбра) → удаление узлов и рёбер NAV, которые эта загрузка не записала (другой снимок или прежние правила) → проверки
+N1–N7 → `NavMeta = COMPLETE | FAILED` → квитанция `receipts/projections/neo4j-nav/<run>.json`. API и MCP отвечают по
+графу NAV только при `COMPLETE`, иначе 503. Сухой прогон по полной сборке снимка `snap-20260928T160616Z-5d669f09`:
+112 811 узлов и 2 207 135 рёбер (без тем), все ID DOCUMENT найдены в каноне (`receipts/nav_graph.json`).
+
 ## 2. Разделы (дерево документа)
 
 **Датасет `sections`:**
@@ -102,6 +153,8 @@
 | `get_formula_context(formula_id)` | номер, раздел, вводная, «где…» с символами, ссылки на неё и из неё, параметры-кандидаты |
 | `find_formulas(concept \| symbol, source?)` | формулы по понятию (через определения) или символу внутри источника |
 | `explore_concept(term)` | соседние понятия (со счётчиками и примерами страниц), определения, разделы и формулы |
+| `concept_paths(term_a, term_b, max_len, limit, via)` | кратчайшие пути в графе NAV через термины, символы, формулы, разделы и темы; у каждого шага — ID страниц |
+| `graph_neighbourhood(node_id, depth, limit)` | соседи любого узла NAV или DOCUMENT по типам рёбер со счётчиками; `depth = 2` — соседи соседей |
 
 ## 6. Проверки
 
@@ -112,4 +165,14 @@
   - согласие методов (закладки против заголовков) в квитанции.
 - Формулы: доля найденных номеров и «где…»; ссылки указывают на существующие формулы своего источника.
 - Понятия: пороги NPMI; ручная выборка связей.
-- Граф: все ребра к узлам DOCUMENT указывают на существующие узлы; слой DOCUMENT не изменён (счётчики до и после).
+- Граф (preflight по Parquet — P1–P7, после загрузки — N1–N7):
+  - P1 уникальные ID; P2 родители есть, диапазоны страниц верны; P3 деревья без циклов; P4 у раздела ≥ 1 страницы;
+    P5 каждая строка датасета загружена, свёрнута или пропущена по названному правилу; P6 ссылки между датасетами
+    (WARN); P7 колонки тем опознаны (WARN);
+  - N1 все ребра к узлам DOCUMENT указывают на существующие узлы (строки без конца — FAIL с примерами);
+  - N2 слой DOCUMENT не изменён: счётчики меток и типов до и после равны и совпадают со счётчиками его сборки;
+  - N3 деревья разделов и тем без циклов, один родитель; N4 у каждого `NavSection` есть `COVERS_PAGE`;
+  - N5 число узлов и рёбер в графе равно числу строк по правилам проекции;
+  - N6 метки и типы NAV не пересекаются с DOCUMENT (реестр и живой граф);
+  - N7 у каждого узла и ребра NAV есть `layer = 'NAV'`, загруженный `snapshot_id`, `rule_version` и
+    `projection_run_id` последней загрузки (остатков прежних загрузок нет).

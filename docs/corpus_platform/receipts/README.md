@@ -21,3 +21,4 @@
 | `bibliography_final.json` | списки литературы (CP-38, CP-41): записи, разбор полей, связи с работами, CITES, ручная проверка |
 | `late_interaction_encode_final.json` | late interaction (агент L): кодирование mLateOn всех единиц, проверки §64 |
 | `late_interaction_deploy.json` | развёртывание late: pack, горячая замена, smoke, латентность, включение по умолчанию |
+| `nav_graph.json` | граф NAV в Neo4j (агент G), сухой прогон по полной сборке NAV снимка: число узлов и рёбер по правилам проекции, учёт каждой строки датасетов, preflight P1–P6, ID DOCUMENT сверены с каноном; загрузку и проверки N1–N7 выполняет координатор на CORE |
