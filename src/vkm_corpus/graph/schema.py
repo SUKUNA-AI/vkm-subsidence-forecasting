@@ -221,8 +221,8 @@ RULE_OF_REL: dict[str, str] = {
     "PRECEDES": vocab.DerivedRule.PAGE_SEQUENCE_V1.value,
     "REFERENCE_OF": vocab.DerivedRule.CITING_WORK_V1.value,
     "CARRIES_FOREIGN_CONTENT_OF": vocab.DerivedRule.CITING_WORK_V1.value,
-    "RESOLVES_TO": vocab.DerivedRule.BIBLIOGRAPHY_MATCH_V1.value,
-    "CITES": vocab.DerivedRule.CITES_V1.value,
+    "RESOLVES_TO": vocab.DerivedRule.BIBLIOGRAPHY_MATCH_V2.value,
+    "CITES": vocab.DerivedRule.CITES_V2.value,
     "DUPLICATE_CANDIDATE_OF": vocab.DerivedRule.DUPLICATE_PAGES_V1.value,
 }
 

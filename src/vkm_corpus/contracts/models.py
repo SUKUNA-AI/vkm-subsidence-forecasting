@@ -901,9 +901,10 @@ class WorkAuthorRow(LinkEnvelope):
 
 
 class BibliographyLinkRow(RowModel):
-    """Row shape of the SQL view ``bibliography_links`` (DERIVED_VIEW, rule ``bibliography_match_v1``): never stored.
+    """Row shape of the SQL view ``bibliography_links`` (DERIVED_VIEW, rule ``bibliography_match_v2``): never stored.
 
-    ``match_status`` is CANDIDATE or AUTO_EXACT_ID_MATCH (H-29); CITES edges come only from AUTO_EXACT_ID_MATCH."""
+    ``match_status`` is CANDIDATE, AUTO_EXACT_ID_MATCH or AUTO_STRONG_MATCH (H-29, CP-41); CITES edges come only
+    from the accepted ones."""
 
     OBJECT_KIND: ClassVar[str] = ObjectKind.BIBLIOGRAPHY_LINK
 
@@ -922,7 +923,7 @@ class BibliographyLinkRow(RowModel):
     matched_fields: list[str] = Field(default_factory=list)
     origin: Origin = Origin.DERIVED
     review_status: ReviewStatus = ReviewStatus.AUTO_EXTRACTED_UNREVIEWED
-    rule_version: DerivedRule = DerivedRule.BIBLIOGRAPHY_MATCH_V1
+    rule_version: DerivedRule = DerivedRule.BIBLIOGRAPHY_MATCH_V2
 
 
 # ================================================================= LOG datasets

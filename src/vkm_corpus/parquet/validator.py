@@ -532,11 +532,11 @@ class Validator:
             HAVING count(DISTINCT source_id) > 1 AND count(*) FILTER (WHERE curation_status <> 'CURATED') > 0
             LIMIT 20""")
         self.count_sql("E09", "science", "entries on pages with foreign content never cite on behalf of the host; "
-                       "CITES only from exact-id matches", """
+                       "CITES only from accepted (exact-id or strong) matches", """
             SELECT b.object_id FROM bibliography b JOIN foreign_content_pages f ON f.page_id = b.page_id
              WHERE b.citing_work_id IS NOT NULL
             UNION ALL SELECT entry_id FROM bibliography_links
-             WHERE match_status NOT IN ('CANDIDATE', 'AUTO_EXACT_ID_MATCH', 'REJECTED')
+             WHERE match_status NOT IN ('CANDIDATE', 'AUTO_EXACT_ID_MATCH', 'AUTO_STRONG_MATCH', 'REJECTED')
             LIMIT 20""")
         bad = []
         for sid, raw, scope, mapping in self.sql(

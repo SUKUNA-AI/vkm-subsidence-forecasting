@@ -73,51 +73,92 @@ CREATE OR REPLACE VIEW bibliography AS
   LEFT JOIN pick p ON p.entry_id = e.object_id
   LEFT JOIN canonical.works w ON w.work_id = p.citing_work_id;
 
--- rule bibliography_match_v1 (row shape = contracts.models.BibliographyLinkRow): exact DOI/ISBN -> AUTO_EXACT_ID_MATCH;
--- equal normalised title + year -> CANDIDATE only. No curated matches in v0 (H-29).
+-- rule bibliography_match_v2 (row shape = contracts.models.BibliographyLinkRow; H-29, CP-41). One row per
+-- (entry, work), the strongest method wins:
+--   * equal DOI or ISBN-13                                                   -> AUTO_EXACT_ID_MATCH (1.0);
+--   * equal normalised title of >= 20 characters and the same year           -> AUTO_STRONG_MATCH (0.95);
+--   * title similarity >= 0.90 (1 - Levenshtein / longer length), a shared
+--     author surname and the same year                                       -> AUTO_STRONG_MATCH (similarity);
+--   * shorter equal titles, similarity 0.85-0.90, or a year off by one        -> CANDIDATE.
+-- An entry resolves to at most one work: if its best level holds several works, they all stay CANDIDATE (ambiguous
+-- titles of different works are never merged). No curated matches in v0.
 CREATE OR REPLACE VIEW bibliography_links AS
-  WITH m AS (
+  WITH e AS (
+    SELECT object_id, parsed_doi, parsed_isbn, parsed_year,
+           trim(regexp_replace(replace(lower(coalesce(parsed_title, '')), 'ё', 'е'), '[^\pL\pN]+', ' ', 'g')) AS nt,
+           list_distinct(list_filter(list_transform(parsed_authors,
+               a -> replace(lower(regexp_extract(a, '(\pL[\pL''’-]+)', 1)), 'ё', 'е')), s -> length(s) > 1)) AS sur
+    FROM canonical.bibliography_entries
+  ), was AS (
+    SELECT work_id,
+           list_distinct(list(replace(lower(regexp_extract(name_as_listed, '(\pL[\pL''’-]+)', 1)), 'ё', 'е'))) AS sur
+    FROM canonical.work_authors GROUP BY work_id
+  ), w AS (
+    SELECT w.work_id, w.doi, w.isbn, w.publication_year,
+           trim(regexp_replace(replace(lower(coalesce(w.title, '')), 'ё', 'е'), '[^\pL\pN]+', ' ', 'g')) AS nt,
+           coalesce(a.sur, []) AS sur
+    FROM canonical.works w LEFT JOIN was a ON a.work_id = w.work_id
+    WHERE w.status = 'ACTIVE'
+  ), pairs AS (
+    SELECT e.object_id AS entry_id, w.work_id AS cited_work_id, e.parsed_year = w.publication_year AS same_year,
+           1.0 - levenshtein(e.nt, w.nt) / greatest(length(e.nt), length(w.nt)) AS sim
+    FROM e JOIN w ON abs(e.parsed_year - w.publication_year) <= 1 AND length(e.nt) >= 10 AND length(w.nt) >= 10
+     AND len(list_intersect(e.sur, w.sur)) > 0
+  ), m AS (
     SELECT e.object_id AS entry_id, w.work_id AS cited_work_id, 'DOI_EXACT' AS match_method, 1.0 AS match_score,
            'AUTO_EXACT_ID_MATCH' AS match_status, ['doi'] AS matched_fields
-    FROM canonical.bibliography_entries e
-    JOIN canonical.works w ON w.status = 'ACTIVE' AND e.parsed_doi IS NOT NULL AND w.doi = e.parsed_doi
+    FROM e JOIN w ON e.parsed_doi IS NOT NULL AND w.doi = e.parsed_doi
     UNION ALL
     SELECT e.object_id, w.work_id, 'ISBN_EXACT', 1.0, 'AUTO_EXACT_ID_MATCH', ['isbn']
-    FROM canonical.bibliography_entries e
-    JOIN canonical.works w ON w.status = 'ACTIVE' AND len(e.parsed_isbn) > 0 AND len(w.isbn) > 0
-     AND len(list_intersect(e.parsed_isbn, w.isbn)) > 0
+    FROM e JOIN w ON len(e.parsed_isbn) > 0 AND len(w.isbn) > 0 AND len(list_intersect(e.parsed_isbn, w.isbn)) > 0
     UNION ALL
-    SELECT e.object_id, w.work_id, 'TITLE_YEAR', 0.6, 'CANDIDATE', ['title', 'year']
-    FROM canonical.bibliography_entries e
-    JOIN canonical.works w ON w.status = 'ACTIVE' AND e.parsed_year IS NOT NULL AND e.parsed_year = w.publication_year
-     AND e.parsed_title IS NOT NULL AND w.title IS NOT NULL
-     AND length(trim(regexp_replace(lower(w.title), '[^\pL\pN]+', ' ', 'g'))) > 0
-     AND trim(regexp_replace(lower(e.parsed_title), '[^\pL\pN]+', ' ', 'g'))
-       = trim(regexp_replace(lower(w.title), '[^\pL\pN]+', ' ', 'g'))
+    SELECT e.object_id, w.work_id, 'TITLE_YEAR', CASE WHEN length(e.nt) >= 20 THEN 0.95 ELSE 0.6 END,
+           CASE WHEN length(e.nt) >= 20 THEN 'AUTO_STRONG_MATCH' ELSE 'CANDIDATE' END, ['title', 'year']
+    FROM e JOIN w ON e.parsed_year IS NOT NULL AND e.parsed_year = w.publication_year AND length(e.nt) > 0
+     AND e.nt = w.nt
+    UNION ALL
+    SELECT entry_id, cited_work_id, 'TITLE_AUTHOR_YEAR', round(sim, 3),
+           CASE WHEN sim >= 0.9 AND same_year THEN 'AUTO_STRONG_MATCH' ELSE 'CANDIDATE' END,
+           ['title', 'authors', 'year']
+    FROM pairs WHERE sim >= 0.85
+  ), best AS (
+    SELECT *, CASE match_status WHEN 'AUTO_EXACT_ID_MATCH' THEN 2 WHEN 'AUTO_STRONG_MATCH' THEN 1 ELSE 0 END AS lvl
+    FROM m
+    QUALIFY row_number() OVER (PARTITION BY entry_id, cited_work_id ORDER BY lvl DESC, match_score DESC,
+                                                                        match_method) = 1
+  ), top AS (
+    SELECT *, max(lvl) OVER (PARTITION BY entry_id) AS top_lvl FROM best
+  ), res AS (
+    SELECT *, sum(CASE WHEN lvl = top_lvl THEN 1 ELSE 0 END) OVER (PARTITION BY entry_id) AS n_top FROM top
   )
   SELECT '0.1.0' AS schema_version,
-         'BML-' || left(sha256('BML-v1|' || m.entry_id || '|' || m.cited_work_id || '|' || m.match_method), 16)
+         'BML-' || left(sha256('BML-v1|' || r.entry_id || '|' || r.cited_work_id || '|' || r.match_method), 16)
            AS object_id,
-         'BIBLIOGRAPHY_LINK' AS object_kind, m.entry_id, b.source_id AS citing_source_id, b.page_id AS citing_page_id,
-         b.citing_work_id, b.citing_work_resolution, b.citing_work_is_container, m.cited_work_id, m.match_method,
-         m.match_score, m.match_status, m.matched_fields, 'DERIVED' AS origin,
-         'AUTO_EXTRACTED_UNREVIEWED' AS review_status, 'bibliography_match_v1' AS rule_version
-  FROM m JOIN bibliography b ON b.object_id = m.entry_id
-  QUALIFY row_number() OVER (PARTITION BY m.entry_id, m.cited_work_id, m.match_method ORDER BY m.match_score DESC) = 1;
+         'BIBLIOGRAPHY_LINK' AS object_kind, r.entry_id, b.source_id AS citing_source_id, b.page_id AS citing_page_id,
+         b.citing_work_id, b.citing_work_resolution, b.citing_work_is_container, r.cited_work_id, r.match_method,
+         r.match_score,
+         CASE WHEN r.lvl > 0 AND (r.lvl < r.top_lvl OR r.n_top > 1) THEN 'CANDIDATE' ELSE r.match_status END
+           AS match_status,
+         r.matched_fields, 'DERIVED' AS origin,
+         'AUTO_EXTRACTED_UNREVIEWED' AS review_status, 'bibliography_match_v2' AS rule_version
+  FROM res r JOIN bibliography b ON b.object_id = r.entry_id;
 
--- rule cites_v1: Work CITES Work only from exact identifier matches with a known citing work; citation != agreement.
+-- rule cites_v2: Work CITES Work from accepted matches (exact identifiers and strong title matches, CP-41) with a
+-- known citing work; a bibliographic index lists works, it does not cite them. Citation != agreement.
 -- n_citing_entries counts entries, n_citing_sources counts files (copies of one work are not independent, H-49).
 CREATE OR REPLACE VIEW cites AS
-  SELECT citing_work_id, cited_work_id,
-         count(*) AS n_citing_entries,
-         count(DISTINCT citing_source_id) AS n_citing_sources,
-         bool_or(citing_work_is_container) AS citing_work_is_container,
-         list(DISTINCT match_method ORDER BY match_method) AS match_methods,
-         list(entry_id ORDER BY entry_id) AS entry_ids,
-         'cites_v1' AS rule_version
-  FROM bibliography_links
-  WHERE match_status = 'AUTO_EXACT_ID_MATCH' AND citing_work_id IS NOT NULL AND citing_work_id <> cited_work_id
-  GROUP BY citing_work_id, cited_work_id;
+  SELECT l.citing_work_id, l.cited_work_id,
+         count(DISTINCT l.entry_id) AS n_citing_entries,
+         count(DISTINCT l.citing_source_id) AS n_citing_sources,
+         bool_or(l.citing_work_is_container) AS citing_work_is_container,
+         list(DISTINCT l.match_method ORDER BY l.match_method) AS match_methods,
+         list(DISTINCT l.entry_id ORDER BY l.entry_id) AS entry_ids,
+         'cites_v2' AS rule_version
+  FROM bibliography_links l
+  JOIN canonical.works cw ON cw.work_id = l.citing_work_id
+  WHERE l.match_status IN ('AUTO_EXACT_ID_MATCH', 'AUTO_STRONG_MATCH') AND l.citing_work_id <> l.cited_work_id
+    AND cw.work_type IS DISTINCT FROM 'BIBLIOGRAPHIC_INDEX'
+  GROUP BY l.citing_work_id, l.cited_work_id;
 
 -- rule page_sequence_v1: Page PRECEDES Page inside a source (physical/render/spine order)
 CREATE OR REPLACE VIEW page_sequence AS

@@ -24,6 +24,7 @@ from vkm_corpus.api.canon import QUERYABLE_KINDS, CanonStore, jsonable, kind_of
 from vkm_corpus.api.envelope import (API_VERSION, ApiWarning, Envelope, Geometry, Item, ModelInfo, Projection,
                                      Provenance, SourceScope)
 from vkm_corpus.api.errors import ApiFailure
+from vkm_corpus.contracts import vocab
 from vkm_corpus.ids import grammar
 from vkm_corpus.ops.worker import ALLOWED_OPTIONS as REPROCESS_OPTIONS
 
@@ -746,7 +747,7 @@ class ApiService:
                 record = jsonable({**{k: entry[k] for k in ("entry_label", "ordinal_in_list", "parsed_title",
                                                             "parsed_year", "parsed_doi", "citing_work_resolution")},
                                    "direction": "cites", "links": entry_links,
-                                   "status": "LINKED" if any(li["match_status"] == "AUTO_EXACT_ID_MATCH"
+                                   "status": "LINKED" if any(li["match_status"] in vocab.ACCEPTED_MATCH_STATUSES
                                                              for li in entry_links) else
                                    "CANDIDATE" if entry_links else "UNLINKED",
                                    "note": "a citation is not agreement"})

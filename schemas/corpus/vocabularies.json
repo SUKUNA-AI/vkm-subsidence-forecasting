@@ -113,7 +113,9 @@
  "DerivedRule": [
   "citing_work_v1",
   "bibliography_match_v1",
+  "bibliography_match_v2",
   "cites_v1",
+  "cites_v2",
   "page_sequence_v1",
   "duplicate_pages_v1",
   "source_scope_v1"
@@ -352,6 +354,7 @@
  "MatchStatus": [
   "CANDIDATE",
   "AUTO_EXACT_ID_MATCH",
+  "AUTO_STRONG_MATCH",
   "REJECTED"
  ],
  "Materialization": [

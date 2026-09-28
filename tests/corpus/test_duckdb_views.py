@@ -75,14 +75,19 @@ def test_foreign_content_never_cites_for_the_host(con, canon):
     assert host["citing_work_id"] == "VKM-WRK-005" and host["citing_work_resolution"] == "UNIQUE_LINK"
 
 
-def test_cites_only_from_exact_ids(con, canon):
+def test_cites_only_from_accepted_matches(con, canon):
     cites = {(r["citing_work_id"], r["cited_work_id"]): r for r in q(con, "SELECT * FROM cites")}
-    assert set(cites) == {("VKM-WRK-001", "VKM-WRK-005"), ("VKM-WRK-005", "VKM-WRK-001")}
+    # exact identifiers, plus an equal long title in the same year (AUTO_STRONG_MATCH, CP-41)
+    assert set(cites) == {("VKM-WRK-001", "VKM-WRK-005"), ("VKM-WRK-005", "VKM-WRK-001"),
+                          ("VKM-WRK-001", "VKM-WRK-249")}
     edge = cites[("VKM-WRK-005", "VKM-WRK-001")]
-    assert edge["n_citing_entries"] == 1 and edge["n_citing_sources"] == 1 and edge["rule_version"] == "cites_v1"
+    assert edge["n_citing_entries"] == 1 and edge["n_citing_sources"] == 1 and edge["rule_version"] == "cites_v2"
+    assert cites[("VKM-WRK-001", "VKM-WRK-249")]["match_methods"] == ["TITLE_YEAR"]
     links = q(con, "SELECT * FROM bibliography_links ORDER BY object_id")
-    cand = [r for r in links if r["entry_id"] == canon.ids["candidate_entry"]]
-    assert cand and cand[0]["match_status"] == "CANDIDATE" and cand[0]["cited_work_id"] == "VKM-WRK-249"
+    strong = [r for r in links if r["entry_id"] == canon.ids["candidate_entry"]]
+    assert strong and strong[0]["match_status"] == "AUTO_STRONG_MATCH" and strong[0]["cited_work_id"] == "VKM-WRK-249"
+    assert len({r["cited_work_id"] for r in links if r["match_status"] != "CANDIDATE" and
+                r["entry_id"] == canon.ids["candidate_entry"]}) == 1
     for r in links:
         assert r["object_id"] == ids.bml_id(r["entry_id"], r["cited_work_id"], r["match_method"])
         assert r["review_status"] == "AUTO_EXTRACTED_UNREVIEWED" and r["origin"] == "DERIVED"
