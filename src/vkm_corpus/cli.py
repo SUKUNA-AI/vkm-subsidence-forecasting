@@ -27,6 +27,7 @@ GROUPS: dict[str, str] = {
     "mcp": "vkm_corpus.mcp.cli",                # G: VKM Corpus MCP (read / admin)
     "ops": "vkm_corpus.ops.cli",                # coordinator: PostgreSQL control plane, jobs, worker
     "core": "vkm_corpus.publish.cli",           # coordinator: publish, admit, reconcile, backup
+    "retrieval-lab": "vkm_corpus.retrieval_lab.cli",  # J: retrieval benchmark (derived, experimental)
 }
 
 
