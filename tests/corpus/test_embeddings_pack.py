@@ -143,6 +143,42 @@ def test_page_targets_can_exclude_bibliography_units_cp42(tmp_path):
     assert ref.status == "SCORED" and ref.best_unit_id == bib[0]            # explicit bibliography targets still work
 
 
+BIB = [("u1-00000000000000e1", "BIB_ENTRY", P1, ["VKM-SRC-001:p0001:r01"], 4),
+       ("u1-00000000000000e2", "BIB_ENTRY", P3, ["VKM-SRC-002:p0001:r01"], 3),
+       ("u1-00000000000000e3", "BIB_ENTRY", P3, ["VKM-SRC-002:p0001:r02"], 5)]
+
+
+def test_bibliography_units_trail_and_scan_ranks_pages_by_their_best_entry(tmp_path):
+    units = [*UNITS, *BIB]
+    art = _artifacts(tmp_path, units=units)
+    rep = build_pack(art, _units_dir(tmp_path, units=units), packs_dir=tmp_path / "elsewhere")
+    assert rep["layout"] == {"order": "page_id, unit_id", "trailing_kinds": ["BIB_ENTRY"]}
+    assert (tmp_path / "elsewhere" / rep["pack_id"] / "pack.json").is_file() and not (art / PACKS_DIR).exists()
+    store = PackStore(tmp_path / "elsewhere" / rep["pack_id"])
+    assert store.kinds[-3:] == ["BIB_ENTRY"] * 3 and "BIB_ENTRY" not in store.kinds[:-3]
+    assert list(store.kind_rows("BIB_ENTRY")) == [5, 6, 7] and store.info()["trailing_kinds"] == ["BIB_ENTRY"]
+    assert store.rows_for(P1, "PAGE") == [0, 1, 5]                        # two ranges: the page and its entries
+    assert store.rows_for(P1, "PAGE", page_exclude_kinds=("BIB_ENTRY",)) == [0, 1]
+    Q = _tokens("u1-00000000000000e3", 5)[:2]                            # matches the second entry of P3 best
+    scan = store.scan(Q, "BIB_ENTRY", top_pages=10)
+    want = {u: maxsim(Q, _tokens(u, n)) for u, _k, _p, _o, n in BIB}
+    assert [s["page_id"] for s in scan] == [P3, P1]
+    assert scan[0]["best_unit_id"] == "u1-00000000000000e3" and scan[0]["units"] == 2 and scan[1]["units"] == 1
+    assert abs(scan[0]["late_score"] - want["u1-00000000000000e3"]) < 1e-2
+    assert abs(scan[1]["late_score"] - want["u1-00000000000000e1"]) < 1e-2
+    assert store.scan(Q, "BIB_ENTRY", top_pages=1) == scan[:1] and store.scan(Q, "TABLE", top_pages=5)[0]["page_id"] == P3
+    assert store.scan(Q, "NO_SUCH_KIND") == []
+    # an older pack without the trailing region scans the same (runs of rows instead of one region)
+    old = build_pack(art, _units_dir(tmp_path, units=units, snapshot="S0"), packs_dir=tmp_path / "old",
+                     trailing_kinds=())
+    legacy = PackStore(tmp_path / "old" / old["pack_id"])
+    assert list(legacy.kind_rows("BIB_ENTRY")) == [2, 6, 7] and legacy.rows_for(P1, "PAGE") == [0, 1, 2]
+    again = legacy.scan(Q, "BIB_ENTRY", top_pages=10)
+    assert [(s["page_id"], s["best_unit_id"], s["units"]) for s in again] == \
+        [(s["page_id"], s["best_unit_id"], s["units"]) for s in scan]
+    assert all(abs(a["late_score"] - b["late_score"]) < 1e-4 for a, b in zip(again, scan))
+
+
 @pytest.mark.parametrize("case", ["missing", "nan", "duplicate", "stale_text", "rule"])
 def test_failed_checks_write_no_pack_and_keep_current(tmp_path, case):
     art, units = _artifacts(tmp_path), _units_dir(tmp_path)
