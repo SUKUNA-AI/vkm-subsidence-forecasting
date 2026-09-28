@@ -69,17 +69,20 @@ DEFAULTS: dict[str, Any] = {
     "check_text_hash": True,         # a vector must embed the current unit text (context variant A)
     "n_central_units": 5,
     "n_key_terms": 10,
+    "language_centering": True,      # topic space: section vectors minus the mean vector of their language
+    "min_language_sections": 20,     # a language with fewer sections is centred by the mean of all sections
     "knn_k": (16, 10, 8),            # exact cosine kNN per level (level 1: sections, 2–3: topic centroids)
     "knn_same_source": None,         # None: plain kNN; m: level-1 neighbours = k − m of other sources + m of the same
     "weight_power": 1.0,             # edge weight = cosine ** power (cosine <= 0 dropped)
-    "resolution": (70.0, 20.0, 6.0),  # Leiden / Louvain modularity resolution per level (tuned on the 28.09 canon)
+    "resolution": (90.0, 20.0, 6.0),  # Leiden / Louvain modularity resolution per level (tuned on the 28.09 canon)
     "upper_graph": "centroid_knn",   # levels 2–3: kNN of the topic centroids | "aggregate": summed section links
     "min_topic_size": (3, 2, 2),     # members (level 1) or children (levels 2–3) below this are merged
     "n_labels": 8,
     "n_central_sections": 5,
     "max_central_per_source": 2,
-    "edge_top_k": 8,                 # topic_edges: neighbours kept per topic
-    "edge_min_cosine": 0.6,
+    "edge_top_k": 8,                 # topic_edges: up to this many centroid neighbours per topic ...
+    "edge_min_cosine": 0.6,          # ... with at least this cosine (in the topic space) ...
+    "edge_min_k": 3,                 # ... but the nearest edge_min_k (cosine > 0) are always kept
     "seed": 42,
     "backend": "auto",               # "auto" | "gpu" | "cpu"
 }
@@ -96,6 +99,10 @@ MODEL_CHOICES: dict[str, str] = {
     "shared_pages": "a page of several sections is split at the headings of the sections starting on it: text units by "
                     "the majority of their characters, formulas/figures/tables/bibliography entries by the block "
                     "just above them; without an anchor the unit counts for every section of the page",
+    "topic_space": "the tree is built on the section vectors minus the mean vector of their language (ru / en by "
+                   "Cyrillic vs Latin letters of the units, >= 2:1; else und), renormalised: RU→EN neighbours ×4, "
+                   "mixed-language level-1 topics ×2.3 and higher same-language term coherence at every level at equal "
+                   "granularity (28.09 canon); section_vectors stay the plain means",
     "graph": "exact cosine kNN, knn_k per level, plain (no quota of other sources: quotas lowered the term "
              "coherence of the topics, also across sources, on the 28.09 canon)",
     "communities": "GPU: cuGraph Leiden (float64 dyadic weights, random_state=seed — repeatable); CPU: deterministic "
@@ -107,7 +114,8 @@ MODEL_CHOICES: dict[str, str] = {
               "in >= 2 member sections; nested terms skipped; fallback: word unigrams/bigrams of the text units",
     "central": "central units: closest to the section centroid; central sections: closest to the topic centroid, at "
                "most max_central_per_source per source",
-    "topic_edges": "edge_top_k centroid neighbours of a topic with cosine >= edge_min_cosine; n_links = level-1 kNN "
+    "topic_edges": "a topic's edge_min_k nearest centroids, plus up to edge_top_k with cosine >= edge_min_cosine "
+                   "(topic space); n_links = level-1 kNN "
                    "links between their sections",
     "numerics": "unit/section vectors on a 2^-24 grid, kNN weights on a 2^-20 grid: float64 sums exact in any order",
 }
@@ -131,6 +139,8 @@ very what when where which while who whom why would your yours also fig figure t
 et al see shown given used using use based following however thus hence may might must shall
 """.split())
 _WORD = re.compile(r"[^\W\d_]{3,}", re.UNICODE)
+_CYR = re.compile(r"[а-яёА-ЯЁ]+")
+_LAT = re.compile(r"[a-zA-Z]+")
 
 
 # ============================================================================================ helpers
@@ -192,6 +202,35 @@ def _normalise_rows(x: np.ndarray) -> np.ndarray:
     n = np.linalg.norm(x, axis=1, keepdims=True)
     n[n == 0] = 1.0
     return dyadic((x / n).astype(np.float32), VEC_BITS)
+
+
+def letters(text: str) -> tuple[int, int]:
+    """(Cyrillic, Latin) letter counts of a text."""
+    t = text or ""
+    return len(t) - len(_CYR.sub("", t)), len(t) - len(_LAT.sub("", t))
+
+
+def language_of(cyr: int, lat: int) -> str:
+    """ru / en by a 2:1 majority of Cyrillic or Latin letters, else und."""
+    if cyr >= 2 * lat and cyr > 0:
+        return "ru"
+    if lat >= 2 * cyr and lat > 0:
+        return "en"
+    return "und"
+
+
+def center_by_language(x: np.ndarray, langs: np.ndarray, min_sections: int) -> tuple[np.ndarray, dict[str, int]]:
+    """Rows minus the mean row of their language (languages with < ``min_sections`` rows, and «und», use the mean
+    of all rows), renormalised onto the dyadic grid. Means are float64 on the CPU (deterministic)."""
+    x64 = np.asarray(x, dtype=np.float64)
+    out = x64 - x64.mean(axis=0) if len(x64) else x64.copy()
+    used: dict[str, int] = {}
+    for lg in sorted(set(langs.tolist())):
+        m = langs == lg
+        if lg != "und" and int(m.sum()) >= min_sections:
+            out[m] = x64[m] - x64[m].mean(axis=0)
+            used[lg] = int(m.sum())
+    return _normalise_rows(out), used
 
 
 def _nested(a: str, b: str) -> bool:
@@ -920,7 +959,8 @@ def build_tree(backend: Backend, x: np.ndarray, sources: np.ndarray, p: Mapping[
 
 # ============================================================================================ tables
 SECTION_AGGREGATES_SCHEMA = pa.schema([
-    ("section_id", pa.string()), ("source_id", pa.string()), ("n_pages", pa.int32()), ("n_units", pa.int32()),
+    ("section_id", pa.string()), ("source_id", pa.string()), ("language", pa.string()), ("n_pages", pa.int32()),
+    ("n_units", pa.int32()),
     ("n_text_units", pa.int32()), ("central_unit_ids", pa.list_(pa.string())),
     ("central_page_ids", pa.list_(pa.string())), ("central_object_ids", pa.list_(pa.list_(pa.string()))),
     ("key_terms", pa.list_(pa.string())), ("key_term_ids", pa.list_(pa.string())),
@@ -1101,11 +1141,28 @@ def build(con: Any, *, sections: Any = None, section_pages: Any = None, terms: A
     kt = key_terms(st, n_sec, int(p["n_key_terms"]))
     timings["key_terms"] = _now() - t0
 
+    # language of each section: Cyrillic vs Latin letters of its text units (all units when it has none)
+    cyr = np.zeros(n_sec, np.int64)
+    lat = np.zeros(n_sec, np.int64)
+    cyr_any = np.zeros(n_sec, np.int64)
+    lat_any = np.zeros(n_sec, np.int64)
+    ul = [letters(u.text) for u in keep_units]
+    for ui, si in zip(a_unit.tolist(), a_sec.tolist()):
+        c_, l_ = ul[ui]
+        cyr_any[si] += c_
+        lat_any[si] += l_
+        if keep_units[ui].kind == "BLOCK_GROUP":
+            cyr[si] += c_
+            lat[si] += l_
+    sec_lang = [language_of(int(cyr[i]), int(lat[i])) if cyr[i] + lat[i] else
+                language_of(int(cyr_any[i]), int(lat_any[i])) for i in range(n_sec)]
+
     agg = {f.name: [] for f in SECTION_AGGREGATES_SCHEMA}
     for si, sid in enumerate(sp_sections):
         cu = [keep_units[a_unit[j]] for j in central.get(si, [])]
         agg["section_id"].append(sid)
         agg["source_id"].append(sec_source[si])
+        agg["language"].append(sec_lang[si])
         agg["n_pages"].append(int(n_pages[si]))
         agg["n_units"].append(int(n_units[si]))
         agg["n_text_units"].append(int(n_text[si]))
@@ -1133,7 +1190,14 @@ def build(con: Any, *, sections: Any = None, section_pages: Any = None, terms: A
         "vector": pa.ListArray.from_arrays(offsets, pa.array(np.ascontiguousarray(x, dtype=np.float32).ravel())),
         "rule_version": pa.array([RULE_VERSION] * len(vsec), pa.string())}, schema=SECTION_VECTORS_SCHEMA)
     t0 = _now()
-    levels = build_tree(backend, x, src_codes, p, timings) if len(vsec) else []
+    x_lang = np.asarray([sec_lang[i] for i in vsec], dtype=object)
+    if p["language_centering"] and len(vsec):
+        xt, centred = center_by_language(x, x_lang, int(p["min_language_sections"]))
+    else:
+        xt, centred = x, {}
+    stats["topic_space"] = {"language_centering": bool(p["language_centering"]), "centred_languages": centred,
+                            "section_languages": dict(sorted(Counter(x_lang.tolist()).items()))}
+    levels = build_tree(backend, xt, src_codes, p, timings) if len(vsec) else []
     timings["tree"] = _now() - t0
 
     # ---- topics, members, edges
@@ -1154,13 +1218,13 @@ def build(con: Any, *, sections: Any = None, section_pages: Any = None, terms: A
     for li, lv in enumerate(levels):
         cent = lv["centroids"]
         sec_topic = lv["sec_topic"]
-        sim = backend.row_dots(x, np.arange(len(vsec)), cent, sec_topic)
+        sim = backend.row_dots(xt, np.arange(len(vsec)), cent, sec_topic)
         labels = topic_labels(st, vsec, sec_topic, lv["n_topics"], int(p["n_labels"]))
         order = np.lexsort((np.arange(len(vsec)), -sim, sec_topic))   # ids are sorted: index = id order
         by_topic: dict[int, list[int]] = defaultdict(list)
         for i in order:
             by_topic[int(sec_topic[i])].append(int(i))
-        sums_t = backend.segment_sum(x, np.arange(len(vsec)), sec_topic, np.ones(len(vsec), np.float32),
+        sums_t = backend.segment_sum(xt, np.arange(len(vsec)), sec_topic, np.ones(len(vsec), np.float32),
                                      lv["n_topics"])
         n_child = np.bincount(lv["topic"], minlength=lv["n_topics"]) if li > 0 else None
         sizes, n_srcs = [], []
@@ -1209,10 +1273,12 @@ def build(con: Any, *, sections: Any = None, section_pages: Any = None, terms: A
         lk = Counter(zip(np.minimum(ta[cross], tb[cross]).tolist(), np.maximum(ta[cross], tb[cross]).tolist()))
         if lv["n_topics"] > 1:
             es, ed, ec = backend.knn(cent, np.arange(lv["n_topics"]), int(p["edge_top_k"]), 0)
-            ea, eb, ecos = _undirected(lv["n_topics"], es, ed, ec)
+            rank = np.zeros(len(es), dtype=np.int64)       # neighbours come per topic in descending cosine
+            for j in range(1, len(es)):
+                rank[j] = rank[j - 1] + 1 if es[j] == es[j - 1] else 0
+            keep = (ec > 0) & ((rank < int(p["edge_min_k"])) | (ec >= float(p["edge_min_cosine"])))
+            ea, eb, ecos = _undirected(lv["n_topics"], es[keep], ed[keep], ec[keep])
             for i, j, c in sorted(zip(ea.tolist(), eb.tolist(), ecos.tolist())):
-                if c < float(p["edge_min_cosine"]):
-                    continue
                 edges_rows["topic_id_a"].append(topic_ids[li][i])
                 edges_rows["topic_id_b"].append(topic_ids[li][j])
                 edges_rows["level"].append(lv["level"])

@@ -64,7 +64,7 @@ BASE = {"creep": np.eye(DIM)[0], "backfill": 0.7 * np.eye(DIM)[0] + 0.714 * np.e
         "subsidence": np.eye(DIM)[2]}
 SOURCES = ("SYN-A", "SYN-B", "SYN-C")
 TEST_OPTS = {"resolution": (1.0, 1.5, 1.0), "knn_k": (3, 2, 2), "min_topic_size": (2, 1, 1), "backend": "cpu",
-             "n_central_units": 3, "edge_min_cosine": 0.3}
+             "n_central_units": 3, "edge_min_cosine": 0.3, "language_centering": False}
 
 
 def _text(theme: str, n: int) -> str:
@@ -376,6 +376,7 @@ def test_counts_central_units_and_key_terms(world):
     assert len(r["central_unit_ids"]) == len(r["central_page_ids"]) == len(r["central_object_ids"])
     assert all(p.startswith("SYN-A:p000") for p in r["central_page_ids"])
     assert r["key_terms"][:2] == ["ползучесть", "каменная соль"]
+    assert r["language"] == "ru"
     assert r["key_term_ids"][0].startswith("TRM-")
 
 
@@ -420,7 +421,7 @@ def test_topics_group_themes_across_sources_in_nested_levels(world):
     assert topics[creep_topic]["parent_topic_id"] == topics[back_topic]["parent_topic_id"]
     assert topics[sub_topic]["parent_topic_id"] != topics[creep_topic]["parent_topic_id"]
     edges = res["topic_edges"].to_pylist()
-    assert edges and all(e["cosine"] >= TEST_OPTS["edge_min_cosine"] for e in edges)
+    assert edges and all(e["cosine"] > 0 for e in edges)
     assert any({e["topic_id_a"], e["topic_id_b"]} == {creep_topic, back_topic} for e in edges)
 
 
@@ -474,6 +475,39 @@ def test_louvain_and_merge_small():
     s2, d2, w2 = np.r_[s, 9], np.r_[d, 0], np.r_[w, 0.5]
     merged = T.merge_small(lab, s2, d2, w2, 3)
     assert merged[9] == merged[0] and merged[8] == merged[0]
+
+
+def test_language_of_letters():
+    assert T.language_of(*T.letters("Ползучесть каменной соли")) == "ru"
+    assert T.language_of(*T.letters("Creep of rock salt")) == "en"
+    assert T.language_of(*T.letters("Creep salt ползучесть")) == "und"          # 9 Latin vs 10 Cyrillic
+    assert T.language_of(*T.letters("12 345")) == "und"
+
+
+def test_language_centering_joins_the_same_theme_across_languages():
+    """Three themes in two languages; the language offset dominates the plain vectors: without centering the
+    level-1 topics are the languages, with centering by the language means they are the themes."""
+    rng = np.random.default_rng(1)
+    dim, rows, themes, langs = 12, [], [], []
+    for th in range(3):
+        for lg in range(2):
+            for _ in range(4):
+                v = np.eye(dim)[th] + 1.5 * np.eye(dim)[6 + lg] + 0.05 * rng.standard_normal(dim)
+                rows.append(v / np.linalg.norm(v))
+                themes.append(th)
+                langs.append(("ru", "en")[lg])
+    x = T._normalise_rows(np.asarray(rows))
+    langs = np.asarray(langs, dtype=object)
+    p = {**T.DEFAULTS, "resolution": (1.0, 1.0, 1.0), "knn_k": (5, 2, 2), "min_topic_size": (2, 1, 1)}
+    b = T.Backend("cpu")
+    plain = T.build_tree(b, x, np.arange(len(x)), p, {})[0]["sec_topic"]
+    xc, used = T.center_by_language(x, langs, 5)
+    assert used == {"en": 12, "ru": 12}
+    centred = T.build_tree(b, xc, np.arange(len(x)), p, {})[0]["sec_topic"]
+    th = np.asarray(themes)
+    assert all(len(set(langs[plain == c])) == 1 for c in set(plain.tolist()))       # split by language
+    assert sorted(sorted(set(th[centred == c].tolist())) for c in set(centred.tolist())) == [[0], [1], [2]]
+    assert all(len(set(langs[centred == c])) == 2 for c in set(centred.tolist()))   # every theme in both
 
 
 def test_dyadic_sums_are_order_free():

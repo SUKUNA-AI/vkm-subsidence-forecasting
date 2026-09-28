@@ -158,8 +158,22 @@ def _stems(phrase: str) -> list[str]:
     return out
 
 
-def _term_ids(con: Any, phrase: str) -> tuple[list[str], list[str]]:
-    """N3 term ids of a phrase: (exact / SAME_AS matches, weaker containment matches); ([], []) without N3."""
+_MORPH: Any = None
+
+
+def _morph() -> Any:
+    """One analyser per process (the dictionary load is slow); the same morphology as the N3 builder."""
+    global _MORPH  # noqa: PLW0603
+    if _MORPH is None:
+        from vkm_corpus.navigation.concepts import Morphology  # noqa: PLC0415
+
+        _MORPH = Morphology()
+    return _MORPH
+
+
+def _term_ids(con: Any, phrase: str) -> tuple[list[str], list[str], list[str]]:
+    """N3 term ids of a phrase: (the whole phrase and its SAME_AS equivalents, longer terms containing the whole
+    phrase, terms of a part of the phrase); ([], [], []) without N3 tables."""
     names = None
     for cand in ({"terms": "nav_terms", "term_edges": "nav_term_edges", "term_mentions": "nav_term_mentions"},
                  {"terms": "terms", "term_edges": "term_edges", "term_mentions": "term_mentions"}):
@@ -167,29 +181,41 @@ def _term_ids(con: Any, phrase: str) -> tuple[list[str], list[str]]:
             names = cand
             break
     if names is None:
-        return [], []
+        return [], [], []
     try:
+        from vkm_corpus.navigation.concepts import phrase_keys  # noqa: PLC0415
         from vkm_corpus.navigation.concepts_query import find_terms  # noqa: PLC0415
 
-        found = find_terms(con, phrase, limit=8, tables=names)
+        keys = phrase_keys(phrase, _morph())
+        found = find_terms(con, phrase, limit=12, tables=names, morph=_morph())
     except Exception:  # noqa: BLE001 — morphology or tables unusable: text match only
-        return [], []
-    strong = [r["term_id"] for r in found if r.get("match") in ("lemma_key", "same_as", "term_id")]
-    weak = [r["term_id"] for r in found if r["term_id"] not in strong]
+        return [], [], []
+    full = keys[0] if keys else None
+    strong, contain, part = [], [], []
+    for r in found:
+        m = r.get("match")
+        if m in ("term_id", "same_as") or (m == "lemma_key" and r.get("lemma_key") == full):
+            strong.append(r["term_id"])
+        elif m == "contains":
+            contain.append(r["term_id"])
+        else:
+            part.append(r["term_id"])
     if strong:
         same = con.execute(f"""
             SELECT CASE WHEN list_contains($ids, src_term_id) THEN dst_term_id ELSE src_term_id END
             FROM {names['term_edges']} WHERE kind = 'SAME_AS' AND dst_term_id IS NOT NULL
               AND (list_contains($ids, src_term_id) OR list_contains($ids, dst_term_id))""",
                            {"ids": strong}).fetchall()
-        strong += [s for (s,) in same if s and s not in strong]
-    return strong, weak
+        strong += [x for (x,) in same if x and x not in strong]
+    return strong, [c for c in contain if c not in strong], [x for x in part if x not in strong]
 
 
 def find_topics(con: Any, terms: str | Iterable[str], *, limit: int = 10, level: int | None = None) -> list[dict]:
-    """Topics for one phrase or several (all must match): by their labels (N3 term ids of the phrase, its SAME_AS
-    equivalents, then word prefixes) and by the key terms of their member sections. Score per phrase =
-    label match (1 − 0.05·position) + share of member sections with the phrase among their key terms."""
+    """Topics for one phrase or several (all must match), by their labels and by the key terms of their member
+    sections. A phrase is matched through N3: its lemma and SAME_AS equivalents (label weight 1.0), longer terms
+    containing it (0.8), word prefixes of the phrase inside one label (0.8), a term of a part of the phrase (0.3);
+    minus 0.05 per label position. Score per phrase = label weight + share of member sections whose key terms carry
+    the phrase (its lemma, a containing term or all its word prefixes)."""
     phrases = [terms] if isinstance(terms, str) else [t for t in terms if t and str(t).strip()]
     phrases = [str(p).strip() for p in phrases if str(p).strip()]
     if not phrases:
@@ -204,44 +230,41 @@ def find_topics(con: Any, terms: str | Iterable[str], *, limit: int = 10, level:
     matched: dict[str, list[str]] = {t["topic_id"]: [] for t in topics}
     ok_all = {t["topic_id"]: True for t in topics}
     for phrase in phrases:
-        strong, weak = _term_ids(con, phrase)
+        strong, contain, part = _term_ids(con, phrase)
         stems = _stems(phrase)
         member_share: dict[str, float] = {}
         if agg:
             conds, params = [], {}
-            if strong:
+            if strong or contain:
                 conds.append("list_has_any(a.key_term_ids, $ids)")
-                params["ids"] = strong
+                params["ids"] = strong + contain
             if stems:
                 conds.append("(" + " AND ".join(
                     f"strpos(lower(replace(array_to_string(a.key_terms, ' | '), 'ё', 'е')), $s{i}) > 0"
                     for i in range(len(stems))) + ")")
-                params.update({f"s{i}": s for i, s in enumerate(stems)})
+                params.update({f"s{i}": x for i, x in enumerate(stems)})
             if conds:
                 for tid, share in con.execute(f"""
                         SELECT m.topic_id, avg(CASE WHEN {' OR '.join(conds)} THEN 1.0 ELSE 0.0 END)
                         FROM nav_topic_members m JOIN nav_section_aggregates a USING (section_id)
                         GROUP BY 1""", params).fetchall():
                     member_share[tid] = float(share or 0.0)
+        weight = {**{x: 0.3 for x in part}, **{x: 0.8 for x in contain}, **{x: 1.0 for x in strong}}
         for t in topics:
             tid = t["topic_id"]
-            ids = list(t.get("label_term_ids") or [])
-            labels = [_norm(x) for x in (t.get("label_terms") or [])]
             label = 0.0
-            for pos, lid in enumerate(ids):
-                if lid in strong:
-                    label = max(label, 1.0 - 0.05 * pos)
-                elif lid in weak:
-                    label = max(label, 0.6 - 0.05 * pos)
-            if label == 0.0 and stems:
-                for pos, lab in enumerate(labels):
-                    if all(s in lab for s in stems):
+            for pos, lid in enumerate(t.get("label_term_ids") or []):
+                if lid in weight:
+                    label = max(label, weight[lid] - 0.05 * pos)
+            if stems:
+                for pos, lab in enumerate(_norm(x) for x in (t.get("label_terms") or [])):
+                    if all(st in lab for st in stems):
                         label = max(label, 0.8 - 0.05 * pos)
             share = member_share.get(tid, 0.0)
             if label <= 0 and share <= 0:
                 ok_all[tid] = False
                 continue
-            scores[tid] += label + share
+            scores[tid] += max(0.0, label) + share
             matched[tid].append(phrase)
     out = []
     for t in topics:
