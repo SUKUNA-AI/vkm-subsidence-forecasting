@@ -22,7 +22,7 @@ TEXT_EXT = {".py", ".md", ".json", ".jsonl", ".yml", ".yaml", ".toml", ".txt", "
 TEXT_NAMES = {"Dockerfile", "compose.yml", "compose.yaml"}
 PRIVATE_IPV4 = re.compile(r"(?<![\d.])(?:10(?:\.\d{1,3}){3}|192\.168(?:\.\d{1,3}){2}|172\.(?:1[6-9]|2\d|3[01])(?:\.\d{1,3}){2})"
                           r"(?![\d.])")
-HOST_PATH = re.compile(r"(?<![\w$])(?:[A-Za-z]:[\\/](?:Users|Диплом|VKM|Program)|/home/[a-z_][\w.-]*/|/mnt/[a-z]/"
+HOST_PATH = re.compile(r"(?<![\w$])(?:[A-Za-z]:[\\/](?:Users|Диплом|VKM|Program)|/home/[A-Za-z_][\w.-]*/|/mnt/[a-z]/"
                        r"|/Users/[\w.-]+/)")
 SECRET = re.compile(r"(?:-----BEGIN [A-Z ]*PRIVATE KEY-----|\bghp_[A-Za-z0-9]{20,}|\bhf_[A-Za-z0-9]{20,}"
                     r"|\bsk-[A-Za-z0-9]{20,}|(?i:password)\s*[:=]\s*['\"][^'\"<>{}$]{6,}['\"])")
