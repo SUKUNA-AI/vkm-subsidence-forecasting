@@ -1,0 +1,1745 @@
+{
+ "schema": "vkm.receipt.bibliography_dryrun/1",
+ "date": "2026-09-28",
+ "agent": "B3",
+ "input_snapshot": "snap-20260928T160616Z-5d669f09",
+ "input": "canonical.blocks and canonical.bibliography_entries of the DuckDB copy of the snapshot, read only; no commits, no writes to STAGING or CORE",
+ "extractor": {
+  "v2": "bib-segmenter 0.2.0, rules bib_rules_v2",
+  "v3": "bib-segmenter 0.3.0, rules bib_rules_v3"
+ },
+ "config_hash": {
+  "v2": "3dbcafd43813bbb392cfa3e1bde9e35b5ae1cfe06c59d6a57a86697efc449a0c",
+  "v3": "5ee1097ef521a52c87406663a45dc7077af2f89482c1d58d02c13f8b7984d06e"
+ },
+ "method": "the extractor of each version run per source on the blocks of the copy (26 processes); the v2 code reproduces the 23350 canonical rows exactly (text, blocks, label, authors, title, year, method); the frozen rules SEG_V2 inside the v3 module reproduce the v2 entry texts exactly",
+ "model_calls": 0,
+ "timing_s": {
+  "v2_run": 2.9,
+  "v3_run": 3.2,
+  "v3_cpu": 44.3,
+  "workers": 26,
+  "v3_with_raw_config_hashes_wall": 8.6,
+  "slowest_source_v3": 2.3
+ },
+ "entries": {
+  "v2": 23350,
+  "v3": 23372,
+  "sources_with_entries_v2": 234,
+  "sources_with_entries_v3": 234
+ },
+ "rates": {
+  "authors": {
+   "v2": 20943,
+   "v3": 22082,
+   "v2_pct": 89.7,
+   "v3_pct": 94.5
+  },
+  "year": {
+   "v2": 22793,
+   "v3": 22999,
+   "v2_pct": 97.6,
+   "v3_pct": 98.4
+  },
+  "title": {
+   "v2": 23229,
+   "v3": 23336,
+   "v2_pct": 99.5,
+   "v3_pct": 99.8
+  },
+  "venue": {
+   "v2": 12637,
+   "v3": 13678,
+   "v2_pct": 54.1,
+   "v3_pct": 58.5
+  },
+  "pages": {
+   "v2": 12146,
+   "v3": 12402,
+   "v2_pct": 52.0,
+   "v3_pct": 53.1
+  },
+  "doi": {
+   "v2": 1172,
+   "v3": 1183
+  },
+  "isbn": {
+   "v2": 67,
+   "v3": 68
+  },
+  "url": {
+   "v2": 603,
+   "v3": 612
+  },
+  "conf_ge_0_8": {
+   "v2": 20637,
+   "v3": 21847,
+   "v2_pct": 88.4,
+   "v3_pct": 93.5
+  },
+  "cross_page": {
+   "v2": 401,
+   "v3": 495
+  },
+  "author_names": {
+   "v2": 43943,
+   "v3": 46984
+  }
+ },
+ "authors_by_language_pct": {
+  "en": {
+   "v2": 92.4,
+   "v3": 97.7
+  },
+  "ru": {
+   "v2": 85.1,
+   "v3": 88.9
+  },
+  "de": {
+   "v2": 86.9,
+   "v3": 95.1
+  }
+ },
+ "without_authors_v2": {
+  "entries": 2407,
+  "note": "heuristic regex classes (not a model), read on samples of 14 per class; indicative: glued tails often land in TITLE_FIRST/OTHER, index titles in CORPORATE",
+  "groups": {
+   "segmentation": {
+    "total": 354,
+    "classes": {
+     "TAIL_THEN_ENTRY": 205,
+     "TAIL_ONLY": 108,
+     "NOT_AN_ENTRY": 41
+    }
+   },
+   "no_personal_author_by_nature": {
+    "total": 948,
+    "classes": {
+     "NORMATIVE": 335,
+     "TITLE_FIRST": 358,
+     "REPORT": 132,
+     "EDITED": 123
+    }
+   },
+   "corporate_author": {
+    "total": 224,
+    "classes": {
+     "CORPORATE": 224
+    }
+   },
+   "names_printed_but_missed": {
+    "total": 636,
+    "classes": {
+     "MISS_LETTER_SPACED": 182,
+     "MISS_SURNAME_FULL_GIVEN": 66,
+     "MISS_MIXED_SCRIPT_HOMOGLYPH": 61,
+     "MISS_ALLCAPS": 59,
+     "MISS_AUTHORS_LISTED_AFTER": 52,
+     "MISS_PARTICLE": 51,
+     "MISS_TRANSLIT_INITIAL": 37,
+     "MISS_OCR_BROKEN": 37,
+     "MISS_FULL_NAMES": 14,
+     "MISS_HYPHEN": 13,
+     "MISS_DIACRITICS": 11,
+     "MISS_NO_SPACES": 10,
+     "PREFIX": 10,
+     "MISS_INITIALS_NO_DOTS": 5,
+     "MISS_AFTER_TITLE_FULLNAMES": 5,
+     "MISS_INITIALS_SPACED": 1,
+     "MISS_OTHER": 22
+    }
+   },
+   "other": {
+    "total": 245,
+    "classes": {
+     "OTHER": 245
+    }
+   }
+  }
+ },
+ "without_authors_v2_outcome_in_v3": {
+  "STILL_NONE": 1284,
+  "PARSED": 550,
+  "RESEGMENTED_PARSED": 573,
+  "by_class": {
+   "TITLE_FIRST": {
+    "STILL_NONE": 247,
+    "PARSED": 16,
+    "RESEGMENTED_PARSED": 95,
+    "total": 358
+   },
+   "NORMATIVE": {
+    "STILL_NONE": 323,
+    "PARSED": 7,
+    "RESEGMENTED_PARSED": 5,
+    "total": 335
+   },
+   "OTHER": {
+    "STILL_NONE": 165,
+    "PARSED": 17,
+    "RESEGMENTED_PARSED": 63,
+    "total": 245
+   },
+   "CORPORATE": {
+    "STILL_NONE": 130,
+    "PARSED": 61,
+    "RESEGMENTED_PARSED": 33,
+    "total": 224
+   },
+   "TAIL_THEN_ENTRY": {
+    "STILL_NONE": 21,
+    "RESEGMENTED_PARSED": 184,
+    "total": 205
+   },
+   "MISS_LETTER_SPACED": {
+    "PARSED": 146,
+    "STILL_NONE": 34,
+    "RESEGMENTED_PARSED": 2,
+    "total": 182
+   },
+   "REPORT": {
+    "STILL_NONE": 86,
+    "RESEGMENTED_PARSED": 27,
+    "PARSED": 19,
+    "total": 132
+   },
+   "EDITED": {
+    "STILL_NONE": 85,
+    "RESEGMENTED_PARSED": 33,
+    "PARSED": 5,
+    "total": 123
+   },
+   "TAIL_ONLY": {
+    "STILL_NONE": 16,
+    "PARSED": 2,
+    "RESEGMENTED_PARSED": 90,
+    "total": 108
+   },
+   "MISS_SURNAME_FULL_GIVEN": {
+    "STILL_NONE": 12,
+    "RESEGMENTED_PARSED": 14,
+    "PARSED": 40,
+    "total": 66
+   },
+   "MISS_MIXED_SCRIPT_HOMOGLYPH": {
+    "PARSED": 26,
+    "STILL_NONE": 35,
+    "total": 61
+   },
+   "MISS_ALLCAPS": {
+    "STILL_NONE": 36,
+    "RESEGMENTED_PARSED": 8,
+    "PARSED": 15,
+    "total": 59
+   },
+   "MISS_AUTHORS_LISTED_AFTER": {
+    "PARSED": 46,
+    "STILL_NONE": 6,
+    "total": 52
+   },
+   "MISS_PARTICLE": {
+    "PARSED": 18,
+    "STILL_NONE": 22,
+    "RESEGMENTED_PARSED": 11,
+    "total": 51
+   },
+   "NOT_AN_ENTRY": {
+    "STILL_NONE": 38,
+    "PARSED": 1,
+    "RESEGMENTED_PARSED": 2,
+    "total": 41
+   },
+   "MISS_TRANSLIT_INITIAL": {
+    "PARSED": 35,
+    "STILL_NONE": 1,
+    "RESEGMENTED_PARSED": 1,
+    "total": 37
+   },
+   "MISS_OCR_BROKEN": {
+    "STILL_NONE": 3,
+    "PARSED": 34,
+    "total": 37
+   },
+   "MISS_OTHER": {
+    "STILL_NONE": 12,
+    "PARSED": 6,
+    "RESEGMENTED_PARSED": 4,
+    "total": 22
+   },
+   "MISS_FULL_NAMES": {
+    "PARSED": 13,
+    "STILL_NONE": 1,
+    "total": 14
+   },
+   "MISS_HYPHEN": {
+    "STILL_NONE": 3,
+    "PARSED": 10,
+    "total": 13
+   },
+   "MISS_DIACRITICS": {
+    "PARSED": 10,
+    "RESEGMENTED_PARSED": 1,
+    "total": 11
+   },
+   "MISS_NO_SPACES": {
+    "STILL_NONE": 3,
+    "PARSED": 7,
+    "total": 10
+   },
+   "PREFIX": {
+    "PARSED": 8,
+    "STILL_NONE": 2,
+    "total": 10
+   },
+   "MISS_INITIALS_NO_DOTS": {
+    "STILL_NONE": 1,
+    "PARSED": 4,
+    "total": 5
+   },
+   "MISS_AFTER_TITLE_FULLNAMES": {
+    "PARSED": 4,
+    "STILL_NONE": 1,
+    "total": 5
+   },
+   "MISS_INITIALS_SPACED": {
+    "STILL_NONE": 1,
+    "total": 1
+   }
+  }
+ },
+ "without_authors_v3": {
+  "entries": 1290,
+  "groups": {
+   "segmentation": {
+    "total": 72,
+    "classes": {
+     "TAIL_THEN_ENTRY": 18,
+     "TAIL_ONLY": 16,
+     "NOT_AN_ENTRY": 38
+    }
+   },
+   "no_personal_author_by_nature": {
+    "total": 746,
+    "classes": {
+     "NORMATIVE": 326,
+     "TITLE_FIRST": 245,
+     "REPORT": 87,
+     "EDITED": 88
+    }
+   },
+   "corporate_author": {
+    "total": 133,
+    "classes": {
+     "CORPORATE": 133
+    }
+   },
+   "names_printed_but_missed": {
+    "total": 178,
+    "classes": {
+     "MISS_LETTER_SPACED": 34,
+     "MISS_SURNAME_FULL_GIVEN": 12,
+     "MISS_MIXED_SCRIPT_HOMOGLYPH": 35,
+     "MISS_ALLCAPS": 41,
+     "MISS_AUTHORS_LISTED_AFTER": 6,
+     "MISS_PARTICLE": 22,
+     "MISS_TRANSLIT_INITIAL": 1,
+     "MISS_OCR_BROKEN": 3,
+     "MISS_FULL_NAMES": 1,
+     "MISS_HYPHEN": 3,
+     "MISS_NO_SPACES": 3,
+     "PREFIX": 2,
+     "MISS_INITIALS_NO_DOTS": 1,
+     "MISS_AFTER_TITLE_FULLNAMES": 1,
+     "MISS_INITIALS_SPACED": 1,
+     "MISS_OTHER": 12
+    }
+   },
+   "other": {
+    "total": 161,
+    "classes": {
+     "OTHER": 161
+    }
+   }
+  }
+ },
+ "segmentation_changes": {
+  "v2_texts_gone": 1478,
+  "v3_texts_new": 1500,
+  "tails_attached_to_their_entry": 226,
+  "glued_entries_split": 198,
+  "boundaries_moved_tail_to_previous_entry": 508,
+  "suspect_merges_of_two_full_entries": 2
+ },
+ "author_changes_same_text": {
+  "same": 20790,
+  "found_where_v2_had_none": 550,
+  "list_extended": 220,
+  "list_changed": 481,
+  "lost": 10,
+  "lost_note": "v2 names that were not authors: standards («BS EN», «GOST R»), project names, editors and compilers after «/ отв. ред.», «Ed.»"
+ },
+ "ids": {
+  "entries_v3": 23372,
+  "entries_v2": 23350,
+  "v3_ids_equal_to_a_v2_id": 21192,
+  "share_of_v3_entries_keeping_v2_id": 0.9067,
+  "raw_config_hash_used": {
+   "v2": 21192,
+   "v3": 2180
+  },
+  "b07_same_id_other_text": 0,
+  "b04_not_recomputable": 0,
+  "duplicate_ids": 0,
+  "wall_s_with_raw_config_hashes": 8.6,
+  "rule": "raw_config_hash of an id group = hash of the oldest rules segmenting it the same way (bib.raw_config_hashes); config_hash = v3"
+ },
+ "labelled_sample": {
+  "draw": "100 random entries of the v3 dry run, stratified by language (en 50, ru 40, de 10), seed 2812; entry texts kept only in the git-ignored work/ directory",
+  "guideline": "authors = persons (or a corporate body in the author-year slot) in the heading or the statement of responsibility / «Авт.:» list; editors, compilers, supervisors, translators introduced by a role word are not authors; heading editors («…, eds.») count; «et al.» is not a name; a name is correct if it identifies the right person",
+  "still_entries_of_final_run": 99,
+  "expected_names": 196,
+  "v3": {
+   "parsed": 193,
+   "correct": 193,
+   "precision": 1.0,
+   "recall": 0.9847,
+   "exact_lists": 97
+  },
+  "v2_parser_same_texts": {
+   "parsed": 185,
+   "correct": 182,
+   "precision": 0.9838,
+   "recall": 0.9286,
+   "exact_lists": 89
+  },
+  "by_language": {
+   "en": {
+    "entries": 50,
+    "expected_names": 109,
+    "v3_precision": 1.0,
+    "v3_recall": 1.0,
+    "v2_precision": 0.9725,
+    "v2_recall": 0.9725
+   },
+   "ru": {
+    "entries": 40,
+    "expected_names": 62,
+    "v3_precision": 1.0,
+    "v3_recall": 0.9839,
+    "v2_precision": 1.0,
+    "v2_recall": 0.871
+   },
+   "de": {
+    "entries": 10,
+    "expected_names": 25,
+    "v3_precision": 1.0,
+    "v3_recall": 0.92,
+    "v2_precision": 1.0,
+    "v2_recall": 0.88
+   }
+  },
+  "entries": [
+   {
+    "n": 1,
+    "source_id": "VKM-SRC-234",
+    "object_id_v3": "VKM-SRC-234:p0727:c47e1db88cae1",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 2,
+    "source_id": "VKM-SRC-124",
+    "object_id_v3": "VKM-SRC-124:p0024:ca59b510badf6",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 3,
+    "source_id": "VKM-SRC-236",
+    "object_id_v3": "VKM-SRC-236:p0158:c5260a72e4210",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": "et al."
+   },
+   {
+    "n": 4,
+    "source_id": "VKM-SRC-117",
+    "object_id_v3": "VKM-SRC-117:p0020:cb5ba47348e7b",
+    "id_kept_from_v2": false,
+    "language": "en",
+    "expected_authors": 4,
+    "v3_parsed": 4,
+    "v3_correct": 4,
+    "v2_parsed": 4,
+    "v2_correct": 4,
+    "note": null
+   },
+   {
+    "n": 5,
+    "source_id": "VKM-SRC-227",
+    "object_id_v3": "VKM-SRC-227:p0565:cff4cfe6ea44f",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 6,
+    "source_id": "VKM-SRC-231",
+    "object_id_v3": "VKM-SRC-231:p0623:c23a26323d86a",
+    "id_kept_from_v2": false,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 7,
+    "source_id": "VKM-SRC-225",
+    "object_id_v3": "VKM-SRC-225:p0139:ccdc13223e90b",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 3,
+    "v3_parsed": 3,
+    "v3_correct": 3,
+    "v2_parsed": 3,
+    "v2_correct": 3,
+    "note": null
+   },
+   {
+    "n": 8,
+    "source_id": "VKM-SRC-066",
+    "object_id_v3": "VKM-SRC-066:p0184:c5023dd9ea1d2",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 0,
+    "v3_parsed": 0,
+    "v3_correct": 0,
+    "v2_parsed": 0,
+    "v2_correct": 0,
+    "note": "title-first"
+   },
+   {
+    "n": 9,
+    "source_id": "VKM-SRC-235",
+    "object_id_v3": "VKM-SRC-235:p0768:c0b9715fd5752",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 4,
+    "v3_parsed": 4,
+    "v3_correct": 4,
+    "v2_parsed": 4,
+    "v2_correct": 4,
+    "note": null
+   },
+   {
+    "n": 10,
+    "source_id": "VKM-SRC-231",
+    "object_id_v3": "VKM-SRC-231:p0618:ca47e77be8315",
+    "id_kept_from_v2": false,
+    "language": "en",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 11,
+    "source_id": "VKM-SRC-225",
+    "object_id_v3": "VKM-SRC-225:p0101:cbd2b8c786522",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 12,
+    "source_id": "VKM-SRC-085",
+    "object_id_v3": "VKM-SRC-085:p0018:c014bd47defd9",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 5,
+    "v3_parsed": 5,
+    "v3_correct": 5,
+    "v2_parsed": 5,
+    "v2_correct": 5,
+    "note": "semicolons"
+   },
+   {
+    "n": 13,
+    "source_id": "VKM-SRC-222",
+    "object_id_v3": "VKM-SRC-222:p0689:c564c8d486d21",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 1,
+    "note": "TeX accents"
+   },
+   {
+    "n": 14,
+    "source_id": "VKM-SRC-249",
+    "object_id_v3": "VKM-SRC-249:s0389:c012ed9b6aba1",
+    "id_kept_from_v2": false,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 15,
+    "source_id": "VKM-SRC-150",
+    "object_id_v3": "VKM-SRC-150:p0287:cd1e06eed0003",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 16,
+    "source_id": "VKM-SRC-233",
+    "object_id_v3": "VKM-SRC-233:p0526:ca0fa3cc0dc97",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 17,
+    "source_id": "VKM-SRC-237",
+    "object_id_v3": "VKM-SRC-237:p0611:ca145d592475a",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 18,
+    "source_id": "VKM-SRC-086",
+    "object_id_v3": "VKM-SRC-086:p0023:c6b0592dc9350",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 3,
+    "v3_parsed": 3,
+    "v3_correct": 3,
+    "v2_parsed": 3,
+    "v2_correct": 3,
+    "note": null
+   },
+   {
+    "n": 19,
+    "source_id": "VKM-SRC-193",
+    "object_id_v3": "VKM-SRC-193:p0060:c1769dce0b19c",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 3,
+    "v3_parsed": 3,
+    "v3_correct": 3,
+    "v2_parsed": 3,
+    "v2_correct": 3,
+    "note": "all caps"
+   },
+   {
+    "n": 20,
+    "source_id": "VKM-SRC-235",
+    "object_id_v3": "VKM-SRC-235:p0762:c3691f8ec9dab",
+    "id_kept_from_v2": false,
+    "language": "en",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 21,
+    "source_id": "VKM-SRC-222",
+    "object_id_v3": "VKM-SRC-222:p0709:c9d3ec49e2f8b",
+    "id_kept_from_v2": false,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": "heading editors"
+   },
+   {
+    "n": 22,
+    "source_id": "VKM-SRC-193",
+    "object_id_v3": "VKM-SRC-193:p0203:cd5dd8740ef0f",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": "all caps + diacritics"
+   },
+   {
+    "n": 23,
+    "source_id": "VKM-SRC-180",
+    "object_id_v3": "VKM-SRC-180:p0020:c4296616d6cfd",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 4,
+    "v3_parsed": 4,
+    "v3_correct": 4,
+    "v2_parsed": 4,
+    "v2_correct": 4,
+    "note": null
+   },
+   {
+    "n": 24,
+    "source_id": "VKM-SRC-222",
+    "object_id_v3": "VKM-SRC-222:p0698:c9d2723ee52fd",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 25,
+    "source_id": "VKM-SRC-251",
+    "object_id_v3": "VKM-SRC-251:p0016:c3f53718244c8",
+    "id_kept_from_v2": false,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 26,
+    "source_id": "VKM-SRC-235",
+    "object_id_v3": "VKM-SRC-235:p0785:ccd40428f658f",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 3,
+    "v3_parsed": 3,
+    "v3_correct": 3,
+    "v2_parsed": 3,
+    "v2_correct": 3,
+    "note": null
+   },
+   {
+    "n": 27,
+    "source_id": "VKM-SRC-246",
+    "object_id_v3": "VKM-SRC-246:p0528:cf0128adf0201",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": "segmentation: next entry glued"
+   },
+   {
+    "n": 28,
+    "source_id": "VKM-SRC-233",
+    "object_id_v3": "VKM-SRC-233:p0192:c686394b81158",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 29,
+    "source_id": "VKM-SRC-236",
+    "object_id_v3": "VKM-SRC-236:p0421:ca1aa92094826",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 30,
+    "source_id": "VKM-SRC-029",
+    "object_id_v3": "VKM-SRC-029:p0152:cc8af3c6d4d39",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": "responsibility"
+   },
+   {
+    "n": 31,
+    "source_id": "VKM-SRC-231",
+    "object_id_v3": "VKM-SRC-231:p0608:ce540bb107b5d",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 32,
+    "source_id": "VKM-SRC-193",
+    "object_id_v3": "VKM-SRC-193:p0060:cf83ab26c0935",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": "OCR duplicate"
+   },
+   {
+    "n": 33,
+    "source_id": "VKM-SRC-157",
+    "object_id_v3": "VKM-SRC-157:p0015:ceb5213b545b4",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 3,
+    "v3_parsed": 3,
+    "v3_correct": 3,
+    "v2_parsed": 3,
+    "v2_correct": 3,
+    "note": null
+   },
+   {
+    "n": 34,
+    "source_id": "VKM-SRC-233",
+    "object_id_v3": "VKM-SRC-233:p0457:ca7ca9fb664d7",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 5,
+    "v3_parsed": 5,
+    "v3_correct": 5,
+    "v2_parsed": 5,
+    "v2_correct": 5,
+    "note": null
+   },
+   {
+    "n": 35,
+    "source_id": "VKM-SRC-182",
+    "object_id_v3": "VKM-SRC-182:p0013:c9f01a7859a52",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 4,
+    "v3_parsed": 4,
+    "v3_correct": 4,
+    "v2_parsed": 4,
+    "v2_correct": 4,
+    "note": "segmentation: interleaved entries"
+   },
+   {
+    "n": 36,
+    "source_id": "VKM-SRC-244",
+    "object_id_v3": "VKM-SRC-244:p0404:c9c12f24e94b6",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 37,
+    "source_id": "VKM-SRC-222",
+    "object_id_v3": null,
+    "id_kept_from_v2": null,
+    "language": "en",
+    "expected_authors": 0,
+    "v3_parsed": 0,
+    "v3_correct": 0,
+    "v2_parsed": 1,
+    "v2_correct": 0,
+    "note": "segmentation: tail fragment"
+   },
+   {
+    "n": 38,
+    "source_id": "VKM-SRC-190",
+    "object_id_v3": "VKM-SRC-190:p0164:c738866741e5e",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 39,
+    "source_id": "VKM-SRC-029",
+    "object_id_v3": "VKM-SRC-029:p0153:c50b9e14d469e",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": "responsibility + particle"
+   },
+   {
+    "n": 40,
+    "source_id": "VKM-SRC-235",
+    "object_id_v3": "VKM-SRC-235:p0762:cef53694a6901",
+    "id_kept_from_v2": false,
+    "language": "en",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 41,
+    "source_id": "VKM-SRC-237",
+    "object_id_v3": "VKM-SRC-237:p0611:cd7c90b587e17",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 42,
+    "source_id": "VKM-SRC-237",
+    "object_id_v3": "VKM-SRC-237:p0609:cd6a35654ff41",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 4,
+    "v3_parsed": 4,
+    "v3_correct": 4,
+    "v2_parsed": 4,
+    "v2_correct": 3,
+    "note": "particle"
+   },
+   {
+    "n": 43,
+    "source_id": "VKM-SRC-233",
+    "object_id_v3": "VKM-SRC-233:p0194:c3770a7635d15",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 5,
+    "v3_parsed": 5,
+    "v3_correct": 5,
+    "v2_parsed": 5,
+    "v2_correct": 5,
+    "note": null
+   },
+   {
+    "n": 44,
+    "source_id": "VKM-SRC-235",
+    "object_id_v3": "VKM-SRC-235:p0770:cf0c0b01d8583",
+    "id_kept_from_v2": false,
+    "language": "en",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 45,
+    "source_id": "VKM-SRC-233",
+    "object_id_v3": "VKM-SRC-233:p0115:cc02fa365b88f",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 6,
+    "v3_parsed": 6,
+    "v3_correct": 6,
+    "v2_parsed": 5,
+    "v2_correct": 5,
+    "note": "hyphenated initial"
+   },
+   {
+    "n": 46,
+    "source_id": "VKM-SRC-186",
+    "object_id_v3": "VKM-SRC-186:p0019:cb069d9fe79bb",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 47,
+    "source_id": "VKM-SRC-246",
+    "object_id_v3": "VKM-SRC-246:p0531:cc35f0150e29d",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 48,
+    "source_id": "VKM-SRC-246",
+    "object_id_v3": "VKM-SRC-246:p0551:cff6cd0ebbc42",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 49,
+    "source_id": "VKM-SRC-224",
+    "object_id_v3": "VKM-SRC-224:p0336:ce7c3d90c78e0",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 50,
+    "source_id": "VKM-SRC-008",
+    "object_id_v3": "VKM-SRC-008:p0010:c9596b3bf3537",
+    "id_kept_from_v2": true,
+    "language": "en",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 51,
+    "source_id": "VKM-SRC-049",
+    "object_id_v3": "VKM-SRC-049:p0261:cb803b1803871",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": "responsibility"
+   },
+   {
+    "n": 52,
+    "source_id": "VKM-SRC-016",
+    "object_id_v3": "VKM-SRC-016:p0011:ca56cbde8fe1f",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": "Latin look-alikes"
+   },
+   {
+    "n": 53,
+    "source_id": "VKM-SRC-216",
+    "object_id_v3": "VKM-SRC-216:p0015:cbbd6b2207fae",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 54,
+    "source_id": "VKM-SRC-053",
+    "object_id_v3": "VKM-SRC-053:p0374:cd458eb8af8bf",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 55,
+    "source_id": "VKM-SRC-048",
+    "object_id_v3": "VKM-SRC-048:p0365:ce45d14d39c02",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": "undotted last initial"
+   },
+   {
+    "n": 56,
+    "source_id": "VKM-SRC-103",
+    "object_id_v3": "VKM-SRC-103:p0125:c18e8f0e60a03",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 0,
+    "v3_parsed": 0,
+    "v3_correct": 0,
+    "v2_parsed": 0,
+    "v2_correct": 0,
+    "note": "report"
+   },
+   {
+    "n": 57,
+    "source_id": "VKM-SRC-203",
+    "object_id_v3": "VKM-SRC-203:p0186:c35ff93971560",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 58,
+    "source_id": "VKM-SRC-051",
+    "object_id_v3": "VKM-SRC-051:p0137:cc7b543780a6f",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 59,
+    "source_id": "VKM-SRC-203",
+    "object_id_v3": "VKM-SRC-203:p0126:c4f1d9942df7d",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 60,
+    "source_id": "VKM-SRC-216",
+    "object_id_v3": "VKM-SRC-216:p0069:cf74b44a9002c",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 61,
+    "source_id": "VKM-SRC-216",
+    "object_id_v3": "VKM-SRC-216:p0181:c8f11d8f6081b",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 0,
+    "v2_correct": 0,
+    "note": "index full given name"
+   },
+   {
+    "n": 62,
+    "source_id": "VKM-SRC-140",
+    "object_id_v3": "VKM-SRC-140:p0004:ca36a80982ca2",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 63,
+    "source_id": "VKM-SRC-204",
+    "object_id_v3": "VKM-SRC-204:p0210:c87a83bdae4d1",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 0,
+    "v3_parsed": 0,
+    "v3_correct": 0,
+    "v2_parsed": 0,
+    "v2_correct": 0,
+    "note": "normative"
+   },
+   {
+    "n": 64,
+    "source_id": "VKM-SRC-011",
+    "object_id_v3": "VKM-SRC-011:p0157:c8c9b9c5932b2",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": "segmentation: interleaved entries"
+   },
+   {
+    "n": 65,
+    "source_id": "VKM-SRC-011",
+    "object_id_v3": "VKM-SRC-011:p0162:c534fcc57cfc6",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 66,
+    "source_id": "VKM-SRC-216",
+    "object_id_v3": "VKM-SRC-216:p0135:cfd387ee0708e",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 67,
+    "source_id": "VKM-SRC-230",
+    "object_id_v3": "VKM-SRC-230:p0558:c5458110b1997",
+    "id_kept_from_v2": false,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 68,
+    "source_id": "VKM-SRC-173",
+    "object_id_v3": "VKM-SRC-173:p0238:c6cf9e23a62f3",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 0,
+    "v3_parsed": 0,
+    "v3_correct": 0,
+    "v2_parsed": 0,
+    "v2_correct": 0,
+    "note": "edited"
+   },
+   {
+    "n": 69,
+    "source_id": "VKM-SRC-203",
+    "object_id_v3": "VKM-SRC-203:p0204:c8e1a2dbb3e50",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 3,
+    "v3_parsed": 3,
+    "v3_correct": 3,
+    "v2_parsed": 3,
+    "v2_correct": 3,
+    "note": null
+   },
+   {
+    "n": 70,
+    "source_id": "VKM-SRC-067",
+    "object_id_v3": "VKM-SRC-067:p0178:ce72b7d1cef09",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": "и др."
+   },
+   {
+    "n": 71,
+    "source_id": "VKM-SRC-011",
+    "object_id_v3": "VKM-SRC-011:p0159:cd8b0b98756b8",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 72,
+    "source_id": "VKM-SRC-011",
+    "object_id_v3": "VKM-SRC-011:p0156:c5bf85d1df09c",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 73,
+    "source_id": "VKM-SRC-058",
+    "object_id_v3": "VKM-SRC-058:p0008:c19b58290efb3",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 74,
+    "source_id": "VKM-SRC-006",
+    "object_id_v3": "VKM-SRC-006:p0090:cde082e3a975b",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": "responsibility"
+   },
+   {
+    "n": 75,
+    "source_id": "VKM-SRC-196",
+    "object_id_v3": "VKM-SRC-196:p0137:c3daf7c4367f8",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 0,
+    "v3_parsed": 0,
+    "v3_correct": 0,
+    "v2_parsed": 0,
+    "v2_correct": 0,
+    "note": "report, supervisor"
+   },
+   {
+    "n": 76,
+    "source_id": "VKM-SRC-216",
+    "object_id_v3": "VKM-SRC-216:p0023:c55e9a9cd2d18",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 77,
+    "source_id": "VKM-SRC-044",
+    "object_id_v3": "VKM-SRC-044:p0194:c22eb3be9a496",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 3,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": "OCR-garbled third surname"
+   },
+   {
+    "n": 78,
+    "source_id": "VKM-SRC-045",
+    "object_id_v3": "VKM-SRC-045:p0131:c989d9d242920",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 79,
+    "source_id": "VKM-SRC-216",
+    "object_id_v3": "VKM-SRC-216:p0136:c8fcb5e64a091",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 3,
+    "v3_parsed": 3,
+    "v3_correct": 3,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": "OCR J1"
+   },
+   {
+    "n": 80,
+    "source_id": "VKM-SRC-067",
+    "object_id_v3": "VKM-SRC-067:p0178:cb8bb86d343ae",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 0,
+    "v3_parsed": 0,
+    "v3_correct": 0,
+    "v2_parsed": 0,
+    "v2_correct": 0,
+    "note": "compilers"
+   },
+   {
+    "n": 81,
+    "source_id": "VKM-SRC-044",
+    "object_id_v3": "VKM-SRC-044:p0197:c33e5777dc9d9",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 82,
+    "source_id": "VKM-SRC-216",
+    "object_id_v3": "VKM-SRC-216:p0167:c6715ae4748a6",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 4,
+    "v3_parsed": 4,
+    "v3_correct": 4,
+    "v2_parsed": 0,
+    "v2_correct": 0,
+    "note": "Авт.: list"
+   },
+   {
+    "n": 83,
+    "source_id": "VKM-SRC-106",
+    "object_id_v3": "VKM-SRC-106:p0007:c917eb857b536",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": null
+   },
+   {
+    "n": 84,
+    "source_id": "VKM-SRC-044",
+    "object_id_v3": "VKM-SRC-044:p0197:cd88c282a8f73",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 3,
+    "v3_parsed": 3,
+    "v3_correct": 3,
+    "v2_parsed": 3,
+    "v2_correct": 3,
+    "note": null
+   },
+   {
+    "n": 85,
+    "source_id": "VKM-SRC-011",
+    "object_id_v3": "VKM-SRC-011:p0155:cb3be4f22097a",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 86,
+    "source_id": "VKM-SRC-172",
+    "object_id_v3": "VKM-SRC-172:p0006:c6091efa51823",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 3,
+    "v3_parsed": 3,
+    "v3_correct": 3,
+    "v2_parsed": 3,
+    "v2_correct": 3,
+    "note": null
+   },
+   {
+    "n": 87,
+    "source_id": "VKM-SRC-030",
+    "object_id_v3": "VKM-SRC-030:p0001:c50989efe945d",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 4,
+    "v3_parsed": 4,
+    "v3_correct": 4,
+    "v2_parsed": 4,
+    "v2_correct": 4,
+    "note": null
+   },
+   {
+    "n": 88,
+    "source_id": "VKM-SRC-011",
+    "object_id_v3": "VKM-SRC-011:p0170:c7051c2f2d5d5",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 89,
+    "source_id": "VKM-SRC-029",
+    "object_id_v3": "VKM-SRC-029:p0152:c70636be4d301",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": "responsibility"
+   },
+   {
+    "n": 90,
+    "source_id": "VKM-SRC-011",
+    "object_id_v3": "VKM-SRC-011:p0136:c6d7e2ee1b7fa",
+    "id_kept_from_v2": true,
+    "language": "ru",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 91,
+    "source_id": "VKM-SRC-193",
+    "object_id_v3": "VKM-SRC-193:p0489:c2df9e727719a",
+    "id_kept_from_v2": true,
+    "language": "de",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": "all caps"
+   },
+   {
+    "n": 92,
+    "source_id": "VKM-SRC-193",
+    "object_id_v3": "VKM-SRC-193:p0328:cb791e2ed6c3d",
+    "id_kept_from_v2": false,
+    "language": "de",
+    "expected_authors": 2,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 0,
+    "v2_correct": 0,
+    "note": "project prefix"
+   },
+   {
+    "n": 93,
+    "source_id": "VKM-SRC-193",
+    "object_id_v3": "VKM-SRC-193:p0276:cbab6da12ff29",
+    "id_kept_from_v2": true,
+    "language": "de",
+    "expected_authors": 3,
+    "v3_parsed": 3,
+    "v3_correct": 3,
+    "v2_parsed": 3,
+    "v2_correct": 3,
+    "note": "all caps"
+   },
+   {
+    "n": 94,
+    "source_id": "VKM-SRC-089",
+    "object_id_v3": "VKM-SRC-089:p0109:cbe4aecfc3b5d",
+    "id_kept_from_v2": true,
+    "language": "de",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 95,
+    "source_id": "VKM-SRC-103",
+    "object_id_v3": "VKM-SRC-103:p0126:c034a5112a65c",
+    "id_kept_from_v2": true,
+    "language": "de",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 96,
+    "source_id": "VKM-SRC-244",
+    "object_id_v3": "VKM-SRC-244:p0404:cd272a36ce335",
+    "id_kept_from_v2": true,
+    "language": "de",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 97,
+    "source_id": "VKM-SRC-044",
+    "object_id_v3": "VKM-SRC-044:p0201:c943468188e2e",
+    "id_kept_from_v2": true,
+    "language": "de",
+    "expected_authors": 1,
+    "v3_parsed": 1,
+    "v3_correct": 1,
+    "v2_parsed": 1,
+    "v2_correct": 1,
+    "note": null
+   },
+   {
+    "n": 98,
+    "source_id": "VKM-SRC-071",
+    "object_id_v3": "VKM-SRC-071:p0089:c28d3c241af53",
+    "id_kept_from_v2": true,
+    "language": "de",
+    "expected_authors": 12,
+    "v3_parsed": 12,
+    "v3_correct": 12,
+    "v2_parsed": 12,
+    "v2_correct": 12,
+    "note": null
+   },
+   {
+    "n": 99,
+    "source_id": "VKM-SRC-244",
+    "object_id_v3": "VKM-SRC-244:p0407:c2992f309693d",
+    "id_kept_from_v2": false,
+    "language": "de",
+    "expected_authors": 2,
+    "v3_parsed": 2,
+    "v3_correct": 2,
+    "v2_parsed": 2,
+    "v2_correct": 2,
+    "note": "heading editors"
+   },
+   {
+    "n": 100,
+    "source_id": "VKM-SRC-053",
+    "object_id_v3": "VKM-SRC-053:p0380:c130ea5ba3b15",
+    "id_kept_from_v2": true,
+    "language": "de",
+    "expected_authors": 1,
+    "v3_parsed": 0,
+    "v3_correct": 0,
+    "v2_parsed": 0,
+    "v2_correct": 0,
+    "note": "broken surname"
+   }
+  ]
+ },
+ "not_done_here": "STAGING rebuild and CORE reconcile (coordinator)"
+}
