@@ -248,6 +248,51 @@ class CanonMapper:
                 image_artifact_id=f.image_artifact_id, image_dpi=None))
         return rows
 
+    def bibliography(self, block_rows: list[Any]) -> list[Any]:
+        """Reference-list entries assembled from the primary-layer blocks (``extract.bibliography``, CP-38): the
+        envelope, region and text layer of an entry are those of its first fragment; the id anchor is that
+        fragment's box (several entries of one block get dup:n in reading order)."""
+        from vkm_corpus.extract import bibliography as bib
+
+        entries, _ = bib.extract_entries(block_rows)
+        rows = []
+        for e in entries:
+            first = e.blocks[0]
+            prod = ProducerContext(pipeline_version=PIPELINE_VERSION, processing_run_id=self.run_id,
+                                   extractor_id=bib.EXTRACTOR_ID, extractor_version=bib.EXTRACTOR_VERSION,
+                                   config_hash=bib.CONFIG_HASH, raw_config_hash=bib.CONFIG_HASH,
+                                   extraction_generation=1, models=_models(first.models))
+            if first.region_origin == "DOCX_ELEMENT":
+                scope, anchor = ids.document_id(self.src.source_id), ids.xml_anchor(first.docx_paragraph_path)
+            elif first.bbox_space == "PAGE_PT_TL":
+                scope = first.page_id
+                anchor = ids.bbox_anchor(first.bbox_x0, first.bbox_y0, first.bbox_x1, first.bbox_y1)
+            else:
+                scope, anchor = first.page_id, ids.ordinal_anchor(e.ordinal, e.text)
+            oid, dup = self.alloc.allocate(scope, "BIBLIOGRAPHY_ENTRY", first.origin, first.region_origin, anchor,
+                                           prod.producer_key())
+            flags = [f for b in e.blocks for f in (b.quality_flags or [])]
+            flags += (["CROSS_PAGE_CONTINUATION"] if e.continues_on_page_id else []) + \
+                (["DUPLICATE_DETECTION_DISAMBIGUATED"] if dup else [])
+            raw_refs = [{"role": r.role, "artifact_id": r.artifact_id} for r in (first.raw_artifacts or [])]
+            env = doc_envelope(self.ctx, prod, object_kind="BIBLIOGRAPHY_ENTRY", object_id=oid, origin=first.origin,
+                               created_at=self.now, page_id=first.page_id, raw_artifact_id=first.raw_artifact_id,
+                               raw_artifacts=raw_refs, raw_content_sha256=_sha(e.text),
+                               quality_flags=_flags(flags, "bibliography_entries"))
+            p = e.parsed
+            rows.append(build_row(
+                "bibliography_entries", env, region_origin=first.region_origin, text_layer=first.text_layer,
+                bbox_x0=first.bbox_x0, bbox_y0=first.bbox_y0, bbox_x1=first.bbox_x1, bbox_y1=first.bbox_y1,
+                bbox_space=first.bbox_space,
+                docx_paragraph_path=first.docx_paragraph_path if first.region_origin == "DOCX_ELEMENT" else None,
+                entry_label=e.label, ordinal_in_list=e.ordinal, list_block_ids=[b.object_id for b in e.blocks],
+                continues_on_page_id=e.continues_on_page_id, text=e.text, normalized_text=e.normalized_text,
+                parsed_authors=list(p.authors), parsed_title=p.title, parsed_year_raw=p.year_raw,
+                parsed_year=p.year, parsed_venue=p.venue, parsed_volume=p.volume, parsed_issue=p.issue,
+                parsed_pages=p.pages, parsed_url=p.url, parsed_doi=p.doi, parsed_isbn=list(p.isbn),
+                parse_method=p.method, parse_confidence=p.confidence, language=p.language))
+        return rows
+
     # ------------------------------------------------------------------ pages, document
     def pages(self, block_rows: list[Any]) -> list[Any]:
         by_page: dict[str, list[Any]] = {}
@@ -390,7 +435,7 @@ class CanonMapper:
         t["figures"] = self.figures()
         t["tables"] = self.tables()
         t["formulas"] = self.formulas()
-        t["bibliography_entries"] = []
+        t["bibliography_entries"] = self.bibliography(t["blocks"])
         t["pages"] = self.pages(t["blocks"])
         t["documents"] = self.document()
         missing = [n for n in DOCUMENT_DATASETS if n not in t]
