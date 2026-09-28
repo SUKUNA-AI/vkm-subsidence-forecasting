@@ -142,6 +142,25 @@ class InMemoryMultiVectorStore:
         return sorted(u for u, m in self.units.items() if m.get("kind") == kind and
                       list(m.get("object_ids") or []) == [target_id] and u in self.data)
 
+    def kind_rows(self, kind: str) -> list[str]:
+        return sorted(u for u, m in self.units.items() if m.get("kind") == kind and u in self.data)
+
+    def scan(self, Q: np.ndarray, kind: str, *, top_pages: int = 100) -> list[dict[str, Any]]:
+        """Pages ranked by their best unit of ``kind`` (MaxSim over every such unit), like ``PackStore.scan``."""
+        best: dict[str, tuple[float, str]] = {}
+        count: dict[str, int] = {}
+        for u in self.kind_rows(kind):
+            page = self.units[u].get("page_id")
+            if not page:
+                continue
+            s = maxsim(Q, np.asarray(self.data[u], dtype=np.float32))
+            count[page] = count.get(page, 0) + 1
+            if page not in best or s > best[page][0]:          # unit ids ascending: a tie keeps the lower id
+                best[page] = (s, u)
+        ranked = sorted(best.items(), key=lambda kv: (-kv[1][0], kv[1][1]))[:top_pages]
+        return [{"page_id": p, "late_score": round(float(s), 6), "best_unit_id": u, "units": count[p]}
+                for p, (s, u) in ranked]
+
     def score_targets(self, Q: np.ndarray, targets: Sequence[tuple[str, str]], *,
                       page_exclude_kinds: Iterable[str] = ()) -> list[Any]:
         from vkm_corpus.embeddings.pack import TargetScore

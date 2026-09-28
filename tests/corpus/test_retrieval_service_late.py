@@ -115,6 +115,36 @@ def test_pages_exclude_bibliography_units_by_default_cp42(tmp_path):
     assert d["VKM-SRC-001:p0001:r1"]["status"] == "SCORED" and bad.status_code == 422
 
 
+def test_scan_of_bibliography_entries_ranks_pages(tmp_path):
+    units = [*UNITS, ("u1-0000000000000009", "BIB_ENTRY", P1, ["VKM-SRC-001:p0001:r1"], 6),
+             ("u1-000000000000000a", "BIB_ENTRY", P2, ["VKM-SRC-001:p0002:r1"], 4),
+             ("u1-000000000000000b", "BIB_ENTRY", P2, ["VKM-SRC-001:p0002:r2"], 5)]
+    art, _rep = _pack(tmp_path, units=units)
+    with TestClient(_app(PackHandle(art))) as c:
+        scan = c.post("/search/late", json={"query": "Барях ползучесть", "scan_kind": "BIB_ENTRY", "scan_top": 5})
+        both = c.post("/search/late", json={"query": "x", "scan_kind": "BIB_ENTRY", "scan_top": 1,
+                                            "targets": [{"id": P2, "kind": "PAGE"}], "page_exclude_kinds": []})
+        bad = c.post("/search/late", json={"query": "x", "scan_kind": "PAGE"})
+    body = scan.json()
+    assert scan.status_code == 200 and body["mode"] == "late-scan" and body["scan_units"] == 3
+    assert {s["page_id"] for s in body["scan"]} == {P1, P2} and [s["scan_rank"] for s in body["scan"]] == [1, 2]
+    q = _late_encoder().encode("Барях ползучесть").vectors
+    best = {P1: maxsim(q, _tokens("u1-0000000000000009", 6)),
+            P2: max(maxsim(q, _tokens("u1-000000000000000a", 4)), maxsim(q, _tokens("u1-000000000000000b", 5)))}
+    for s in body["scan"]:
+        assert abs(s["late_score"] - best[s["page_id"]]) < 2e-2
+    assert body["scan"][0]["late_score"] >= body["scan"][1]["late_score"] and "scan" in body["timings_ms"]
+    b2 = both.json()
+    assert len(b2["scan"]) == 1 and b2["results"][0]["units"] == 3 and b2["page_exclude_kinds"] == []
+    assert bad.status_code == 422
+    from vkm_corpus.retrieval_service.search import InMemoryMultiVectorStore
+
+    mem = InMemoryMultiVectorStore({u: _tokens(u, n) for u, _k, _p, _o, n in units},
+                                   units={u: {"kind": k, "page_id": p, "object_ids": o} for u, k, p, o, _n in units})
+    got = mem.scan(q, "BIB_ENTRY", top_pages=5)
+    assert [g["page_id"] for g in got] == [s["page_id"] for s in body["scan"]]
+
+
 def test_missing_store_or_model_is_an_error_not_a_fallback(tmp_path):
     empty = tmp_path / "multivector" / "m" / "r" / "sig"
     empty.mkdir(parents=True)
