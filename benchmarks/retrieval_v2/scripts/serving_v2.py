@@ -145,13 +145,15 @@ def q8(key: str) -> dict:
 
 def qvl(gguf_path: str) -> dict:
     """Qwen3-VL-Embedding-2B text tower as a llama.cpp GGUF (``qwen3vl`` arch, converted with the pinned llama.cpp):
-    query ids = the model's chat template (system = the V2 query instruction, user = the query, generation prompt), as
-    in the model's own embedder; last-token pooling; cos to the GPU bf16 query vectors of ``vis/qwen3-vl-2b``."""
+    query ids = the model's chat template (system = the V2 query instruction, user = the query, generation prompt) +
+    ``<|endoftext|>``, exactly the ids sentence-transformers fed the GPU run (checked by decoding them); last-token
+    pooling; cos to the GPU bf16 query vectors of ``vis/qwen3-vl-2b``."""
     from transformers import AutoTokenizer
 
     m = model_cfg("qwen3-vl-2b")
     hf = Path(os.environ["VKM_MODELS_DIR"]) / "Qwen__Qwen3-VL-Embedding-2B" / "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda"
     tok = AutoTokenizer.from_pretrained(str(hf), local_files_only=True)
+    eot = tok.convert_tokens_to_ids("<|endoftext|>")
     bench = B.load_benchmark(REPO / "benchmarks/retrieval_v0")
     qs = [(q.query_id, q.text) for q in bench.queries]
     gguf = Path(gguf_path)
@@ -178,8 +180,12 @@ def qvl(gguf_path: str) -> dict:
             conv = [{"role": "system", "content": [{"type": "text", "text": m["query_prompt"]}]},
                     {"role": "user", "content": [{"type": "text", "text": text}]}]
             ids = tok.apply_chat_template(conv, add_generation_prompt=True, tokenize=True)
-            if isinstance(ids, dict):
+            if not isinstance(ids, list):     # transformers 5: a BatchEncoding (mapping), not a dict
                 ids = ids["input_ids"]
+            if ids and isinstance(ids[0], list):
+                ids = ids[0]
+            # sentence-transformers (the GPU run) ends the sequence with <|endoftext|> and pools that last token
+            ids = list(ids) + [eot]
             t1 = time.perf_counter()
             res = client.embed_ids([list(ids)])
             lat.append((time.perf_counter() - t1) * 1000)
