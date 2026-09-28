@@ -14,7 +14,12 @@
 - Код — пакет `src/vkm_corpus/navigation/`. Каждая часть — чистая функция над строками канона (DuckDB текущего
   снимка), результат — таблицы Arrow.
 - Данные — производный каталог `$VKM_DATA_ROOT/derived/navigation/<snapshot_id>/<dataset>.parquet` + `manifest.json`
-  (правило, версия, счётчики, sha256). Пересобирается командой `vkm-corpus nav build` на CORE из DuckDB, без моделей.
+  (правило, версия, счётчики, sha256). Собирается командой `vkm-corpus nav build --part all` из копии DuckDB снимка,
+  без моделей. Сейчас сборка идёт на WORKSTATION: там стоят морфология (extra `navigation`) и GPU для сообществ
+  понятий. Затем `store.pack` упаковывает датасеты в `nav.duckdb`, каталог копируется на CORE, и файл `CURRENT`
+  указывает снимок.
+- Выдача (с 28.09): API монтирует `derived/navigation` только для чтения; `NavStore` подключает `nav.duckdb` и
+  каноническую DuckDB. Квитанция — [nav_deploy.json](receipts/nav_deploy.json).
 - Оглавления из файлов источников (закладки PDF, навигация EPUB, outline DjVu) снимаются на WORKSTATION (там лежат
   файлы PRIVATE). Результат — один JSON на снимок, публикуется в тот же каталог на CORE.
 - Граф — отдельная проекция `NAV` в Neo4j со своими метками и проверками. Слой DOCUMENT она не трогает, а к его
@@ -36,7 +41,7 @@
 | `numbering` | string, null | «3.2.1», «Глава 3» как напечатано |
 | `title` | string | заглавие как напечатано; `title_path` — путь «Глава 3 › 3.2 …» |
 | `page_start_id`, `page_end_id` | string | первая и последняя страница (включительно) |
-| `method` | string | `PDF_OUTLINE` / `EPUB_NAV` / `DJVU_OUTLINE` / `PRINTED_TOC` / `HEADING_NUMBERING` / `HEADING_LAYOUT` |
+| `method` | string | `PDF_OUTLINE` / `EPUB_NAV` / `DJVU_OUTLINE` / `PRINTED_TOC` / `HEADING_NUMBERING` / `HEADING_LAYOUT` / `WHOLE_SOURCE` (источник без структуры — один раздел) |
 | `confidence` | float64 | уверенность метода (согласие источников) |
 | `heading_block_id` | string, null | блок заголовка, если найден на странице |
 | `rule_version` | string | `sections_v1` |
@@ -81,16 +86,31 @@
 
 ## 4. Понятия (граф терминов)
 
+Единица счёта — раздел нижнего уровня из N1 (`section_pages`). Без разделов берутся группы страниц по заголовкам.
+Поэтому поля называются `df_units` / `n_units`.
+
 - **`terms`**:
-  - `term_id` (`TRM-<hex>` от леммы словосочетания), `lemma`, `surface_forms`;
-  - `df_sections`, `df_sources`, `language`;
+  - `term_id` (`TRM-<hex>` от ключа лемм), `lemma`, `lemma_key`, `surface_forms`, `kind`;
+  - `df_units`, `df_sources`, `language`, `cvalue`, `idf`;
+  - `community` — сообщество Leiden по графу NPMI (сборка на GPU; на CPU поле пустое);
+  - `morphology` — чем лемматизировано (`pymorphy3`, иначе `snowball`/`crude`: другие ID, поэтому в образе API
+    стоит extra `navigation`);
   - `seed` — термин из словаря проекта (docs/science, WorldSpec).
-- **`term_mentions`** — термин ↔ раздел (tf, лучшие блоки).
-- **`term_edges`**:
-  - `CO_OCCURS` (NPMI по разделам, с порогами) с `n_sections`, `n_sources` и примерами страниц;
-  - `DEFINED_AS` из «X называется…», «под X понимается…», с блоком-источником;
-  - `SYMBOL_OF` — термин из определения символа формулы.
-- Термины извлекаются без LLM: лемматизация, статистика словосочетаний (C-value, TF-IDF) и словарь проекта как опора.
+- **`term_mentions`** — термин ↔ единица (tf, лучшие блоки).
+- **`term_edges`** (`edge_id`, `rule`, `example_block_ids`):
+  - `CO_OCCURS` — NPMI ≥ 0,2, ≥ 3 общих единиц, ≥ 2 источников, до 30 лучших соседей на термин, с `n_units`,
+    `n_sources`;
+  - `CONTAINS` — лексическое вложение («закладка» ⊃ «гидравлическая закладка»); такие пары не попадают в
+    `CO_OCCURS`;
+  - `SAME_AS` — аббревиатура и перевод в скобках («водозащитная толща (ВЗТ)»);
+  - `DEFINED_AS` — из «X называется…», «под X понимается…», с блоком-источником;
+  - `SYMBOL_OF` (термин из определения символа формулы) пока не строится: связь формул с понятиями идёт через
+    `find_formulas(concept)` по определениям «где…».
+- Термины извлекаются без LLM: лемматизация (pymorphy3), статистика словосочетаний (C-value, TF-IDF) и словарь
+  проекта как опора. Запрос `explore_concept` лемматизируется так же. Для редкой фразы (меньше 10 единиц) соседи
+  берутся от главного термина — это видно в поле `focus`.
+- Снимок 28.09: 96 205 терминов, 1,58 млн упоминаний, 1,56 млн рёбер, 26 сообществ. Ручная проверка соседей по
+  10 темам — 0,97 осмысленных ([nav_concepts.json](receipts/nav_concepts.json)).
 
 ## 5. MCP (для Claude) и API
 
