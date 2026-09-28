@@ -90,7 +90,9 @@ class NodeType:
         return NODE_REQUIRED_COMMON + tuple(p for p in self.required if p not in NODE_REQUIRED_COMMON)
 
 
-_DOC_OBJECT_REQUIRED = ("source_id", "page_id", "origin", "processing_run_id")
+# page_id is optional: the contract allows document-scoped objects (DOCX elements the pinned render could not place
+# on a page, scope "<source>:doc"); they have no HAS_* parent (C3 skips them) and trace by source_id.
+_DOC_OBJECT_REQUIRED = ("source_id", "origin", "processing_run_id")
 
 NODE_TYPES: tuple[NodeType, ...] = (
     NodeType("Work", "e_works", "work_id",
