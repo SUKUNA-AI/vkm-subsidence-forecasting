@@ -134,6 +134,12 @@ services:
         target: /data/duckdb
         read_only: true
         bind: {create_host_path: false}
+      # navigation layer (NAV): derived/navigation/<snapshot>/nav.duckdb + CURRENT (NAVIGATION_LAYER.md)
+      - type: bind
+        source: ${VKM_DATA_ROOT_HOST:?}/derived/navigation
+        target: /data/derived/navigation
+        read_only: true
+        bind: {create_host_path: false}
     ports:
       - "${VKM_CORE_LAN_ADDR:?}:${VKM_API_PORT:-8000}:8000"
     mem_limit: 2g
