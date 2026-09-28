@@ -162,7 +162,7 @@ def build_tin(points: Sequence[Sequence[float]], *, name: str, boundary: Sequenc
     if len(pts) < 3:
         raise ToolFailure("INVALID_ARGUMENT", "a TIN needs at least three points with elevations")
     try:
-        tri = Delaunay(pts[:, :2])
+        tri = Delaunay(pts[:, :2] - pts[:, :2].mean(axis=0))      # centred: survey coordinates are large
     except Exception as exc:  # noqa: BLE001 - Qhull errors (collinear input)
         raise ToolFailure("INVALID_ARGUMENT", f"triangulation failed: {type(exc).__name__}") from exc
     simplices = np.asarray(tri.simplices, dtype=int)

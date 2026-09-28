@@ -68,6 +68,7 @@ desktop = [
     "mcp==2.2.0",
     "ezdxf>=1.4",
     "pywin32>=312; sys_platform == 'win32'",
+    "scipy>=1.18",  # vkm-cad v1 pure-Python fallback (Delaunay TIN); tested 1.18.1
 ]
 
 [project.scripts]
