@@ -7,17 +7,20 @@ IDs are content-derived and stable across rebuilds of the same snapshot with the
 * ``FSY-<16 hex>`` — a symbol of a formula inside its source: (source_id, normalised symbol) — symbols are never
   global (σ in two books may be two different quantities);
 * ``FRF-<16 hex>`` — a textual reference to a formula: (citing block, formula);
-* ``FPR-<16 hex>`` — a parameter-value candidate near a formula: (formula, symbol, value text).
+* ``FPR-<16 hex>`` — a parameter-value candidate near a formula: (formula, symbol, value text);
+* ``DCL-<16 hex>`` — a cluster of near-duplicate passages across sources: its sorted member unit ids.
 """
 from __future__ import annotations
 
 import hashlib
 import re
 import unicodedata
+from typing import Iterable
 
 RULE_VERSIONS: dict[str, str] = {
     "sections": "sections_v1",
     "formulas": "formula_context_v1",
+    "duplicates": "duplicates_v1",
     "concepts": "concepts_v1",
 }
 
@@ -25,6 +28,7 @@ RULE_VERSIONS: dict[str, str] = {
 DATASETS: tuple[str, ...] = (
     "sections", "section_pages",
     "formula_context", "formula_symbols", "formula_refs", "formula_parameters",
+    "dup_clusters", "dup_members", "source_overlap",
     "terms", "term_mentions", "term_edges",
 )
 
@@ -56,3 +60,7 @@ def formula_ref_id(block_id: str, formula_id: str) -> str:
 
 def parameter_id(formula_id: str, symbol: str, value_text: str) -> str:
     return "FPR-" + _h("vkm-nav-fparam-v1", formula_id, symbol, value_text)
+
+
+def dup_cluster_id(unit_ids: Iterable[str]) -> str:
+    return "DCL-" + _h("vkm-nav-dup-cluster-v1", *sorted(set(unit_ids)))

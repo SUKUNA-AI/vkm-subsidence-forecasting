@@ -35,6 +35,8 @@ QUERY_FUNCTIONS: dict[str, str] = {
     "formula_context": "vkm_corpus.navigation.formulas_query:get_formula_context",
     "find_formulas": "vkm_corpus.navigation.formulas_query:find_formulas",
     "explore_concept": "vkm_corpus.navigation.concepts_query:explore_concept",
+    "copies_of": "vkm_corpus.navigation.duplicates_query:copies_of",
+    "source_overlap": "vkm_corpus.navigation.duplicates_query:source_overlap",
 }
 
 
