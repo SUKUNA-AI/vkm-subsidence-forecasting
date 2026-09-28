@@ -1,0 +1,885 @@
+{
+ "checks": [
+  {
+   "check_id": "C1",
+   "count": 0,
+   "status": "PASS",
+   "title": "node counts per label equal the canon"
+  },
+  {
+   "check_id": "C2",
+   "count": 0,
+   "status": "PASS",
+   "title": "relationship counts per type equal the expected rows"
+  },
+  {
+   "check_id": "C3",
+   "count": 0,
+   "status": "PASS",
+   "title": "every page and page object has exactly one parent"
+  },
+  {
+   "check_id": "C3w",
+   "count": 0,
+   "status": "PASS",
+   "title": "authors/venues without works; ACTIVE sources without INSTANCE_OF (WORK_UNKNOWN)"
+  },
+  {
+   "check_id": "C4",
+   "count": 0,
+   "status": "PASS",
+   "title": "pages per source in the graph equal the canon (no silent page loss)"
+  },
+  {
+   "check_id": "C4w",
+   "count": 0,
+   "status": "PASS",
+   "title": "sources whose canon has fewer pages than page_count (D's roll-up explains)"
+  },
+  {
+   "check_id": "C5",
+   "count": 0,
+   "status": "PASS",
+   "title": "PRECEDES links consecutive pages of one source, at most one in/out"
+  },
+  {
+   "check_id": "C6",
+   "count": 0,
+   "status": "PASS",
+   "title": "each layer node has one registry type label; no unregistered nodes (R7)"
+  },
+  {
+   "check_id": "C7",
+   "count": 0,
+   "status": "PASS",
+   "title": "relationship types come from the registry and join the declared labels"
+  },
+  {
+   "check_id": "C8",
+   "count": 0,
+   "status": "PASS",
+   "title": "required properties present, no property outside the whitelist"
+  },
+  {
+   "check_id": "C9",
+   "count": 0,
+   "status": "PASS",
+   "title": "no promoted statuses; objects AUTO_EXTRACTED_UNREVIEWED; registry entities NOT_APPLICABLE"
+  },
+  {
+   "check_id": "C10",
+   "count": 0,
+   "status": "PASS",
+   "title": "sampled nodes equal their canonical rows (traceability)"
+  },
+  {
+   "check_id": "C11",
+   "count": 0,
+   "details": {
+    "content_digest": "cd691c5727ea9a26cce9049414933fb342d74deb224e0a3b62a65e03b8c9cecc",
+    "expected_digest": "cd691c5727ea9a26cce9049414933fb342d74deb224e0a3b62a65e03b8c9cecc"
+   },
+   "status": "PASS",
+   "title": "content_digest (graph export) equals expected_digest (canon)"
+  },
+  {
+   "check_id": "C12",
+   "count": 0,
+   "details": {
+    "reason": "no previous COMPLETE run of this snapshot"
+   },
+   "status": "SKIP",
+   "title": "same snapshot rebuilt → same content_digest"
+  },
+  {
+   "check_id": "C13",
+   "count": 0,
+   "status": "PASS",
+   "title": "no NOT_SAME loop (two 'not same' works merged)"
+  },
+  {
+   "check_id": "C14",
+   "count": 0,
+   "status": "PASS",
+   "title": "bibliography attribution (REFERENCE_OF only from citing_work_id, CITES only from REFERENCE_OF+RESOLVES_TO) and INSTANCE_OF only from the primary non-foreign link"
+  },
+  {
+   "check_id": "C15",
+   "count": 0,
+   "status": "PASS",
+   "title": "symmetric relations stored once; duplicate pages across sources, one group"
+  },
+  {
+   "check_id": "C16",
+   "count": 0,
+   "details": {
+    "by_rollup": {
+     "COMPLETE": 221,
+     "PARTIAL": 28,
+     "SKIPPED_BY_REGISTER": 2
+    },
+    "total": 251
+   },
+   "status": "PASS",
+   "title": "sources = sum of D's roll-up classes; skipped sources have no pages"
+  }
+ ],
+ "checks_summary": {
+  "FAIL": 0,
+  "PASS": 17,
+  "SKIP": 1,
+  "WARN": 0
+ },
+ "command": "graph rebuild --mode wipe --batch-size 2000",
+ "content_digest": {
+  "digest": "cd691c5727ea9a26cce9049414933fb342d74deb224e0a3b62a65e03b8c9cecc",
+  "parts": [
+   {
+    "count": 247,
+    "name": "Work",
+    "sha256": "b0c2ba75541d10edf83de82b727d648411f1ff0084c4a1d6b478422147767b68"
+   },
+   {
+    "count": 397,
+    "name": "Author",
+    "sha256": "c30c7625a21d357f278b4a24643d78e50d165729130500d191ad59389ae9d965"
+   },
+   {
+    "count": 73,
+    "name": "Venue",
+    "sha256": "df22cf8f25328d3f9d34bbfa6a07c432f9630f413eb5d1e3b464fb2c011e6303"
+   },
+   {
+    "count": 251,
+    "name": "Source",
+    "sha256": "77e726fef83cbc0f4ca0c20b5028a0e8806185965318614dc821dfdfe87cfdf2"
+   },
+   {
+    "count": 26483,
+    "name": "Page",
+    "sha256": "0322daf1442c8511431721383e4dc73ecd4841dc0372f7f4a321199357e48cf9"
+   },
+   {
+    "count": 621497,
+    "name": "Block",
+    "sha256": "b98ed419dba3873c3b0fe6090fa5ad3dcbc8088bd05aff97c544e180a16257e6"
+   },
+   {
+    "count": 17784,
+    "name": "Figure",
+    "sha256": "5b376af76db8c07e929f6f8c01a43f9297dd1f1fc35255696bc0b0ba6f104f37"
+   },
+   {
+    "count": 3391,
+    "name": "Table",
+    "sha256": "21554ee634ea2b8c3e449f8b12e2c8f8c5feead88edfb1a0ec1f1d695fa9dbd2"
+   },
+   {
+    "count": 108904,
+    "name": "Formula",
+    "sha256": "648c28b0f7bcde85cde7fb4cb697a6cc2b40223cb19feebf9f09f8c0a82b5e67"
+   },
+   {
+    "count": 0,
+    "name": "BibliographyEntry",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "count": 251,
+    "name": "INSTANCE_OF",
+    "sha256": "81b0a7e4d1e9150f3680d43d0f5ae17921077f27573ce13821ba9c8a930dd45a"
+   },
+   {
+    "count": 598,
+    "name": "AUTHORED_BY",
+    "sha256": "40ebc8cda5ff07b9327524421aac78191f1d339982ed488f160c5c73382120d5"
+   },
+   {
+    "count": 139,
+    "name": "PUBLISHED_IN",
+    "sha256": "b7821202a3c9203e52ae5d12e777510f4916521eec4fe639e5bd31b67bd34923"
+   },
+   {
+    "count": 26483,
+    "name": "HAS_PAGE",
+    "sha256": "9d996d1a270cc45346a9b0a3d8e4e39f1485562f2d6cf2424d322e1f628f4b9b"
+   },
+   {
+    "count": 26234,
+    "name": "PRECEDES",
+    "sha256": "fa793a7beb7e8e65e1553c7f1dbd287bc3c92850c29ff248ba3796dc396b3ff7"
+   },
+   {
+    "count": 621486,
+    "name": "HAS_BLOCK",
+    "sha256": "18f479e4e8793bb5ad19ffdadf65dd31b9e844ffcde62b14b8b29f9b95e4f18d"
+   },
+   {
+    "count": 17720,
+    "name": "HAS_FIGURE",
+    "sha256": "6a06c18578cb4f32ed411d53755d5fec02bfec3e89a05b4c30b535c93c590f00"
+   },
+   {
+    "count": 3390,
+    "name": "HAS_TABLE",
+    "sha256": "c551b49e8bff7c7d766a275c6cd85f1cf20db8bc1bc02d52de3623330b5a1042"
+   },
+   {
+    "count": 108852,
+    "name": "HAS_FORMULA",
+    "sha256": "43fd0ccdb7059227a3671864ac183c015b638907d5a401cac50aa1e37362ad41"
+   },
+   {
+    "count": 0,
+    "name": "HAS_BIBLIOGRAPHY_ENTRY",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "count": 0,
+    "name": "REFERENCE_OF",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "count": 0,
+    "name": "RESOLVES_TO",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "count": 0,
+    "name": "CITES",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "count": 3,
+    "name": "CARRIES_FOREIGN_CONTENT_OF",
+    "sha256": "99539a18e28dfe79a9ee14f7d50591fd748a420a01d5b430e3299267a98cdb63"
+   },
+   {
+    "count": 1,
+    "name": "ABSTRACT_OF",
+    "sha256": "453ab9bf4f2e1218856e999328d3860d1c499d79a13b8612153d99378247a123"
+   },
+   {
+    "count": 0,
+    "name": "EDITION_OF",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "count": 0,
+    "name": "TRANSLATION_OF",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "count": 1,
+    "name": "VOLUME_SET_SIBLING",
+    "sha256": "0f9211d11fea64e83e50fbca57ee2d6727e4880f4e9332fcfa60fa6e8ed0747e"
+   },
+   {
+    "count": 1,
+    "name": "SERIES_SIBLING",
+    "sha256": "934fa679c07952b3e307ad5a271a94eeb119804c79bad3aef087c555a0ceb9d4"
+   },
+   {
+    "count": 1,
+    "name": "COMPANION_OF",
+    "sha256": "ed4b4670445582a2b72c2d36a48da2089cc407ffac5f928f3a48db672651fbe4"
+   },
+   {
+    "count": 1,
+    "name": "NOT_SAME",
+    "sha256": "11b1d01edd9e41a57068edc16ea4de53075c03faf0b24e59ce2a427ae004a6ab"
+   },
+   {
+    "count": 1,
+    "name": "DERIVED_FROM",
+    "sha256": "c7d6bff220546bb34e75e5efc9199a15ef0e2be7fd5c6195d9f68ca11966a8ad"
+   },
+   {
+    "count": 1,
+    "name": "CONTAINS_COPY_OF",
+    "sha256": "26ae5683a9c4a83f71b78a9d366fb4d6d1e48a072b3ff0a7e9edb69f9b83906f"
+   },
+   {
+    "count": 3,
+    "name": "SHARES_PAGES_WITH",
+    "sha256": "cb2c824889fe0106cce660258c2c5fcd4fad47381b5486f490cafea33b190e87"
+   },
+   {
+    "count": 27,
+    "name": "DUPLICATE_CANDIDATE_OF",
+    "sha256": "cd8144e6de7e98a93fda7ba8370d607f0a8c618e12e1935a393bd934da14d17f"
+   }
+  ]
+ },
+ "ddl": {
+  "ddl_sha256": "ad9bca60cdb0b107f74148e146acb3a33536fd89fdd63257f0990a5c4106f57f",
+  "items": 35
+ },
+ "engine": "neo4j",
+ "expected_counts": {
+  "nodes": {
+   "Author": 397,
+   "BibliographyEntry": 0,
+   "Block": 621497,
+   "Figure": 17784,
+   "Formula": 108904,
+   "Page": 26483,
+   "Source": 251,
+   "Table": 3391,
+   "Venue": 73,
+   "Work": 247
+  },
+  "rels": {
+   "ABSTRACT_OF": 1,
+   "AUTHORED_BY": 598,
+   "CARRIES_FOREIGN_CONTENT_OF": 3,
+   "CITES": 0,
+   "COMPANION_OF": 1,
+   "CONTAINS_COPY_OF": 1,
+   "DERIVED_FROM": 1,
+   "DUPLICATE_CANDIDATE_OF": 27,
+   "EDITION_OF": 0,
+   "HAS_BIBLIOGRAPHY_ENTRY": 0,
+   "HAS_BLOCK": 621486,
+   "HAS_FIGURE": 17720,
+   "HAS_FORMULA": 108852,
+   "HAS_PAGE": 26483,
+   "HAS_TABLE": 3390,
+   "INSTANCE_OF": 251,
+   "NOT_SAME": 1,
+   "PRECEDES": 26234,
+   "PUBLISHED_IN": 139,
+   "REFERENCE_OF": 0,
+   "RESOLVES_TO": 0,
+   "SERIES_SIBLING": 1,
+   "SHARES_PAGES_WITH": 3,
+   "TRANSLATION_OF": 0,
+   "VOLUME_SET_SIBLING": 1
+  }
+ },
+ "expected_digest": {
+  "digest": "cd691c5727ea9a26cce9049414933fb342d74deb224e0a3b62a65e03b8c9cecc",
+  "parts": [
+   {
+    "count": 247,
+    "name": "Work",
+    "sha256": "b0c2ba75541d10edf83de82b727d648411f1ff0084c4a1d6b478422147767b68"
+   },
+   {
+    "count": 397,
+    "name": "Author",
+    "sha256": "c30c7625a21d357f278b4a24643d78e50d165729130500d191ad59389ae9d965"
+   },
+   {
+    "count": 73,
+    "name": "Venue",
+    "sha256": "df22cf8f25328d3f9d34bbfa6a07c432f9630f413eb5d1e3b464fb2c011e6303"
+   },
+   {
+    "count": 251,
+    "name": "Source",
+    "sha256": "77e726fef83cbc0f4ca0c20b5028a0e8806185965318614dc821dfdfe87cfdf2"
+   },
+   {
+    "count": 26483,
+    "name": "Page",
+    "sha256": "0322daf1442c8511431721383e4dc73ecd4841dc0372f7f4a321199357e48cf9"
+   },
+   {
+    "count": 621497,
+    "name": "Block",
+    "sha256": "b98ed419dba3873c3b0fe6090fa5ad3dcbc8088bd05aff97c544e180a16257e6"
+   },
+   {
+    "count": 17784,
+    "name": "Figure",
+    "sha256": "5b376af76db8c07e929f6f8c01a43f9297dd1f1fc35255696bc0b0ba6f104f37"
+   },
+   {
+    "count": 3391,
+    "name": "Table",
+    "sha256": "21554ee634ea2b8c3e449f8b12e2c8f8c5feead88edfb1a0ec1f1d695fa9dbd2"
+   },
+   {
+    "count": 108904,
+    "name": "Formula",
+    "sha256": "648c28b0f7bcde85cde7fb4cb697a6cc2b40223cb19feebf9f09f8c0a82b5e67"
+   },
+   {
+    "count": 0,
+    "name": "BibliographyEntry",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "count": 251,
+    "name": "INSTANCE_OF",
+    "sha256": "81b0a7e4d1e9150f3680d43d0f5ae17921077f27573ce13821ba9c8a930dd45a"
+   },
+   {
+    "count": 598,
+    "name": "AUTHORED_BY",
+    "sha256": "40ebc8cda5ff07b9327524421aac78191f1d339982ed488f160c5c73382120d5"
+   },
+   {
+    "count": 139,
+    "name": "PUBLISHED_IN",
+    "sha256": "b7821202a3c9203e52ae5d12e777510f4916521eec4fe639e5bd31b67bd34923"
+   },
+   {
+    "count": 26483,
+    "name": "HAS_PAGE",
+    "sha256": "9d996d1a270cc45346a9b0a3d8e4e39f1485562f2d6cf2424d322e1f628f4b9b"
+   },
+   {
+    "count": 26234,
+    "name": "PRECEDES",
+    "sha256": "fa793a7beb7e8e65e1553c7f1dbd287bc3c92850c29ff248ba3796dc396b3ff7"
+   },
+   {
+    "count": 621486,
+    "name": "HAS_BLOCK",
+    "sha256": "18f479e4e8793bb5ad19ffdadf65dd31b9e844ffcde62b14b8b29f9b95e4f18d"
+   },
+   {
+    "count": 17720,
+    "name": "HAS_FIGURE",
+    "sha256": "6a06c18578cb4f32ed411d53755d5fec02bfec3e89a05b4c30b535c93c590f00"
+   },
+   {
+    "count": 3390,
+    "name": "HAS_TABLE",
+    "sha256": "c551b49e8bff7c7d766a275c6cd85f1cf20db8bc1bc02d52de3623330b5a1042"
+   },
+   {
+    "count": 108852,
+    "name": "HAS_FORMULA",
+    "sha256": "43fd0ccdb7059227a3671864ac183c015b638907d5a401cac50aa1e37362ad41"
+   },
+   {
+    "count": 0,
+    "name": "HAS_BIBLIOGRAPHY_ENTRY",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "count": 0,
+    "name": "REFERENCE_OF",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "count": 0,
+    "name": "RESOLVES_TO",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "count": 0,
+    "name": "CITES",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "count": 3,
+    "name": "CARRIES_FOREIGN_CONTENT_OF",
+    "sha256": "99539a18e28dfe79a9ee14f7d50591fd748a420a01d5b430e3299267a98cdb63"
+   },
+   {
+    "count": 1,
+    "name": "ABSTRACT_OF",
+    "sha256": "453ab9bf4f2e1218856e999328d3860d1c499d79a13b8612153d99378247a123"
+   },
+   {
+    "count": 0,
+    "name": "EDITION_OF",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "count": 0,
+    "name": "TRANSLATION_OF",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+   },
+   {
+    "count": 1,
+    "name": "VOLUME_SET_SIBLING",
+    "sha256": "0f9211d11fea64e83e50fbca57ee2d6727e4880f4e9332fcfa60fa6e8ed0747e"
+   },
+   {
+    "count": 1,
+    "name": "SERIES_SIBLING",
+    "sha256": "934fa679c07952b3e307ad5a271a94eeb119804c79bad3aef087c555a0ceb9d4"
+   },
+   {
+    "count": 1,
+    "name": "COMPANION_OF",
+    "sha256": "ed4b4670445582a2b72c2d36a48da2089cc407ffac5f928f3a48db672651fbe4"
+   },
+   {
+    "count": 1,
+    "name": "NOT_SAME",
+    "sha256": "11b1d01edd9e41a57068edc16ea4de53075c03faf0b24e59ce2a427ae004a6ab"
+   },
+   {
+    "count": 1,
+    "name": "DERIVED_FROM",
+    "sha256": "c7d6bff220546bb34e75e5efc9199a15ef0e2be7fd5c6195d9f68ca11966a8ad"
+   },
+   {
+    "count": 1,
+    "name": "CONTAINS_COPY_OF",
+    "sha256": "26ae5683a9c4a83f71b78a9d366fb4d6d1e48a072b3ff0a7e9edb69f9b83906f"
+   },
+   {
+    "count": 3,
+    "name": "SHARES_PAGES_WITH",
+    "sha256": "cb2c824889fe0106cce660258c2c5fcd4fad47381b5486f490cafea33b190e87"
+   },
+   {
+    "count": 27,
+    "name": "DUPLICATE_CANDIDATE_OF",
+    "sha256": "cd8144e6de7e98a93fda7ba8370d607f0a8c618e12e1935a393bd934da14d17f"
+   }
+  ]
+ },
+ "finished_at": "2026-09-28T11:55:12.181382+00:00",
+ "graph_schema_version": "doc-graph/1.0",
+ "input": {
+  "derived_sql": {
+   "00_core_views.sql": "642b7e847c46580d8bb40822551ce92706a4552574a6078b0bda9b5e730812af",
+   "10_derived_rules.sql": "16acc38b74119f9f9a6b77317d8c5368f4f6db231b85008a492df4ebe5c4788a",
+   "20_status.sql": "d5848db684f618536d9e5aacf52f101ca7534bdac0a5c4b6cc673600d630d384",
+   "30_access.sql": "01bde58f4367154066e642f079e548195d66624956b607e832f454987d6519b0"
+  },
+  "manifest_counts": {
+   "bibliography_entries": 0,
+   "blocks": 621497,
+   "figures": 17784,
+   "formulas": 108904,
+   "pages_embedded_text": 3505,
+   "pages_failed": 0,
+   "pages_native": 16455,
+   "pages_ocr": 6387,
+   "pages_total": 26483,
+   "rollup_closed": true,
+   "sources_complete": 221,
+   "sources_failed": 0,
+   "sources_needs_review": 0,
+   "sources_not_processed": 0,
+   "sources_partial": 28,
+   "sources_skipped_by_register": 2,
+   "sources_total": 251,
+   "sources_unsupported": 0,
+   "tables": 3391
+  },
+  "manifest_sha256": "a64578c3ee8eda9550f84e741154009db09c05c6fec8409de4dff6c2d01567c1",
+  "mapping": {
+   "defaulted": {
+    "e_bibliography_links": [
+     "curation_status"
+    ],
+    "e_figures": [
+     "is_primary_layer"
+    ],
+    "e_formulas": [
+     "is_primary_layer"
+    ],
+    "e_tables": [
+     "is_primary_layer"
+    ]
+   },
+   "relations": {
+    "e_authors": {
+     "a": "main.authors"
+    },
+    "e_bibliography": {
+     "e": "main.bibliography"
+    },
+    "e_bibliography_links": {
+     "l": "main.bibliography_links"
+    },
+    "e_blocks": {
+     "b": "main.blocks"
+    },
+    "e_cites": {
+     "c": "main.cites"
+    },
+    "e_figures": {
+     "f": "main.figures"
+    },
+    "e_foreign_pages": {
+     "f": "main.foreign_content_pages"
+    },
+    "e_formulas": {
+     "m": "main.formulas"
+    },
+    "e_instance_links": {
+     "i": "main.work_sources"
+    },
+    "e_page_duplicates": {
+     "u": "main.duplicate_page_candidates"
+    },
+    "e_page_sequence": {
+     "q": "main.page_sequence"
+    },
+    "e_pages": {
+     "p": "main.pages"
+    },
+    "e_source_relations": {
+     "r": "canonical.source_relations"
+    },
+    "e_source_work_links": {
+     "l": "canonical.source_work_links"
+    },
+    "e_sources": {
+     "d": "main.documents",
+     "r": "main.source_status_summary",
+     "s": "main.sources"
+    },
+    "e_tables": {
+     "t": "main.\"tables\""
+    },
+    "e_venues": {
+     "v": "main.venues"
+    },
+    "e_work_authors": {
+     "wa": "main.work_authors"
+    },
+    "e_work_copies": {
+     "k": "main.work_copy_counts"
+    },
+    "e_work_relations": {
+     "r": "canonical.work_relations"
+    },
+    "e_works": {
+     "a": "main.works_availability",
+     "w": "main.works"
+    }
+   }
+  },
+  "rule_versions": {
+   "CARRIES_FOREIGN_CONTENT_OF": "citing_work_v1",
+   "CITES": "cites_v1",
+   "DUPLICATE_CANDIDATE_OF": "duplicate_pages_v1",
+   "PRECEDES": "page_sequence_v1",
+   "REFERENCE_OF": "citing_work_v1",
+   "RESOLVES_TO": "bibliography_match_v1"
+  },
+  "schema_versions": [
+   "artifacts=0.1.0",
+   "authors=0.1.0",
+   "bibliography_entries=0.1.0",
+   "blocks=0.1.0",
+   "documents=0.1.0",
+   "errors=0.1.0",
+   "figures=0.1.0",
+   "formulas=0.1.0",
+   "pages=0.1.0",
+   "processing_runs=0.1.0",
+   "processing_steps=0.1.0",
+   "source_relations=0.1.0",
+   "source_work_links=0.1.0",
+   "sources=0.1.0",
+   "tables=0.1.0",
+   "venues=0.1.0",
+   "work_authors=0.1.0",
+   "work_relations=0.1.0",
+   "works=0.1.0"
+  ],
+  "snapshot_id": "snap-20260928T113713Z-fa0aa127"
+ },
+ "layer": "DOCUMENT",
+ "mode": "wipe",
+ "namespace": null,
+ "not_projected": {
+  "bibliography_citing_work_unknown": {},
+  "bibliography_links_not_accepted": {},
+  "source_relations": {},
+  "source_work_links": {
+   "FOREIGN_CONTENT_PAGE_EDGES": {
+    "examples": [
+     "SWL-0d1278f4fc4b17cd",
+     "SWL-2db5fa10aadc3033",
+     "SWL-9135c4156ec979fb"
+    ],
+    "n": 3
+   },
+   "FOREIGN_CONTENT_UNIDENTIFIED": {
+    "examples": [
+     "SWL-a97a47a72195be52",
+     "SWL-c7b917359b097c7f",
+     "SWL-e62117eea32b8cf9"
+    ],
+    "n": 3
+   }
+  },
+  "work_relations": {}
+ },
+ "pipeline_version": "0.1.0",
+ "preflight": [
+  {
+   "check_id": "P01",
+   "count": 0,
+   "status": "PASS",
+   "title": "keys unique and non-null in every relation"
+  },
+  {
+   "check_id": "P02",
+   "count": 0,
+   "status": "PASS",
+   "title": "node ids unique across labels"
+  },
+  {
+   "check_id": "P03",
+   "count": 0,
+   "status": "PASS",
+   "title": "references resolve (FK integrity of the projection input)"
+  },
+  {
+   "check_id": "P04",
+   "count": 0,
+   "status": "PASS",
+   "title": "page indices 1..n per source, n = page_count; skipped sources have no pages"
+  },
+  {
+   "check_id": "P05",
+   "count": 0,
+   "status": "PASS",
+   "title": "no FACT/REVIEWED_*/ACCEPTED_*/epistemic status in the document layer"
+  },
+  {
+   "check_id": "P06",
+   "count": 0,
+   "status": "PASS",
+   "title": "closed vocabularies"
+  },
+  {
+   "check_id": "P07",
+   "count": 0,
+   "status": "PASS",
+   "title": "no conflicting links (one primary link, NOT_SAME, symmetric pairs)"
+  },
+  {
+   "check_id": "P08",
+   "count": 0,
+   "details": {
+    "by_reason": {
+     "FOREIGN_CONTENT_PAGE_EDGES": 3,
+     "FOREIGN_CONTENT_UNIDENTIFIED": 3
+    }
+   },
+   "status": "PASS",
+   "title": "source→work links that give no INSTANCE_OF (reasons in details)"
+  },
+  {
+   "check_id": "P09",
+   "code": "W_OBJECT_WITHOUT_PAGE",
+   "count": 52,
+   "examples": [
+    "e_blocks:VKM-SRC-023:doc:b94a810e911f3",
+    "e_blocks:VKM-SRC-023:doc:b9f369bbe5f69",
+    "e_blocks:VKM-SRC-023:doc:bea54f193f9d1",
+    "e_blocks:VKM-SRC-023:doc:bae03c6e2d76a",
+    "e_blocks:VKM-SRC-023:doc:b538c650db24e",
+    "e_blocks:VKM-SRC-023:doc:b06629adc7169",
+    "e_blocks:VKM-SRC-023:doc:b03c28378ea67",
+    "e_blocks:VKM-SRC-023:doc:b2ffce70ca743",
+    "e_blocks:VKM-SRC-023:doc:bf2e6b03a1bd0",
+    "e_blocks:VKM-SRC-023:doc:b9416bb9ff568",
+    "e_blocks:VKM-SRC-023:doc:b5ef512ef66ad",
+    "e_figures:VKM-SRC-023:doc:f050f6c5a8e24",
+    "e_figures:VKM-SRC-023:doc:f0553d7724bda",
+    "e_figures:VKM-SRC-023:doc:f088c91b64fbf",
+    "e_figures:VKM-SRC-023:doc:f098bf0585964",
+    "e_figures:VKM-SRC-023:doc:f1026bb896306",
+    "e_figures:VKM-SRC-023:doc:f12744b36c1ce",
+    "e_figures:VKM-SRC-023:doc:f129c349f9c44",
+    "e_figures:VKM-SRC-023:doc:f1d67eaa45810",
+    "e_figures:VKM-SRC-023:doc:f243c049bae8c"
+   ],
+   "status": "WARN",
+   "title": "objects without a page (projected as nodes without HAS_* edge)"
+  },
+  {
+   "check_id": "P10",
+   "count": 0,
+   "details": {
+    "work_copy_count_source": "D.work_copy_counts"
+   },
+   "status": "PASS",
+   "title": "work_copy_count: D's n_sources_active equals ACTIVE sources among INSTANCE_OF"
+  },
+  {
+   "check_id": "P11",
+   "count": 0,
+   "status": "PASS",
+   "title": "derived rule versions of D's rows match the graph registry"
+  }
+ ],
+ "projector_version": "vkm-projections/0.1.0",
+ "run_id": "VKM-PRJ-DOC-20260928T115006Z-656fd511",
+ "server": {
+  "edition": "community",
+  "name": "Neo4j Kernel",
+  "version": "5.26.31"
+ },
+ "snapshot_files": {
+  "bytes": 356431482,
+  "files": 2586,
+  "hashed": true
+ },
+ "stale_runs_failed": [],
+ "started_at": "2026-09-28T11:49:58.678504+00:00",
+ "status": "COMPLETE",
+ "timings_s": {
+  "load": 158.198,
+  "preflight": 0.966,
+  "server": 0.083,
+  "snapshot": 6.469,
+  "total": 313.503,
+  "verify": 125.886,
+  "wipe": 21.602
+ },
+ "wipe": {
+  "nodes_created": 0,
+  "nodes_deleted": 663311,
+  "relationships_deleted": 716692,
+  "transactions": 333
+ },
+ "written": {
+  "nodes": {
+   "Author": 397,
+   "BibliographyEntry": 0,
+   "Block": 621497,
+   "Figure": 17784,
+   "Formula": 108904,
+   "Page": 26483,
+   "Source": 251,
+   "Table": 3391,
+   "Venue": 73,
+   "Work": 247
+  },
+  "rels": {
+   "ABSTRACT_OF": 1,
+   "AUTHORED_BY": 598,
+   "CARRIES_FOREIGN_CONTENT_OF": 3,
+   "CITES": 0,
+   "COMPANION_OF": 1,
+   "CONTAINS_COPY_OF": 1,
+   "DERIVED_FROM": 1,
+   "DUPLICATE_CANDIDATE_OF": 27,
+   "EDITION_OF": 0,
+   "HAS_BIBLIOGRAPHY_ENTRY": 0,
+   "HAS_BLOCK": 621486,
+   "HAS_FIGURE": 17720,
+   "HAS_FORMULA": 108852,
+   "HAS_PAGE": 26483,
+   "HAS_TABLE": 3390,
+   "INSTANCE_OF": 251,
+   "NOT_SAME": 1,
+   "PRECEDES": 26234,
+   "PUBLISHED_IN": 139,
+   "REFERENCE_OF": 0,
+   "RESOLVES_TO": 0,
+   "SERIES_SIBLING": 1,
+   "SHARES_PAGES_WITH": 3,
+   "TRANSLATION_OF": 0,
+   "VOLUME_SET_SIBLING": 1
+  }
+ }
+}

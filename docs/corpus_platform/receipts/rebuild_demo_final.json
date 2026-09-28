@@ -1,0 +1,12 @@
+{
+ "receipt": "vkm.rebuild_demo/1",
+ "snapshot_id": "snap-20260928T113713Z-fa0aa127",
+ "section": "§46",
+ "exits": "duckdb_exit=0\ngraph_exit=1\nsearch_exit=0\nsmoke_exit=1\nrebuild_seconds=340",
+ "neo4j_nodes_before": "nodes\n663311",
+ "opensearch_indices_deleted": "vkm-blocks-m1-20260928t073136z-699721fc   39334\nvkm-blocks-m1-20260928t114451z-a64578c3       0\nvkm-figures-m1-20260928t073136z-699721fc   2173\nvkm-figures-m1-20260928t114451z-a64578c3      0\nvkm-formulas-m1-20260928t073136z-699721fc  6526\nvkm-formulas-m1-20260928t114451z-a64578c3     0\nvkm-pages-m1-20260928t073136z-699721fc     2251\nvkm-pages-m1-20260928t114451z-a64578c3        0\nvkm-tables-m1-20260928t073136z-699721fc     612\nvkm-tables-m1-20260928t114451z-a64578c3       0",
+ "opensearch_after_delete": "vkm-blocks-m1-20260928t114451z-a64578c3 0",
+ "opensearch_indices_after_rebuild": "vkm-blocks-m1-20260928t114733z-a64578c3   621497\nvkm-figures-m1-20260928t114733z-a64578c3   17784\nvkm-formulas-m1-20260928t114733z-a64578c3 108904\nvkm-pages-m1-20260928t114733z-a64578c3     26483\nvkm-tables-m1-20260928t114733z-a64578c3     3391",
+ "duckdb_after": "{\n \"built_at\": \"2026-09-28 11:45:45.275033+00\",\n \"current\": \"snap-20260928T113713Z-fa0aa127\",\n \"duckdb_file\": true,\n \"duckdb_version\": \"v1.5.5\",\n \"manifest_sha256\": \"a64578c3ee8eda9550f84e741154009db09c05c6fec8409de4dff6c2d01567c1\",\n \"snapshot_id\": \"snap-20260928T113713Z-fa0aa127\",\n \"up_to_date\": true\n}",
+ "note": "DuckDB file deleted and rebuilt from CURRENT; the E projection indices deleted by exact name and rebuilt (counts equal to the canon); the graph step of this script hit the old wipe memory limit — the graph was then wiped and rebuilt by the fixed loader (graph_projection_final.json, all checks PASS)."
+}

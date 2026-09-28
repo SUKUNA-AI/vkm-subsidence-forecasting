@@ -1,0 +1,35 @@
+{
+  "binding": "RENDER_DEPENDENT (coordinator decision 4, accepted for v0)",
+  "commit_id": "CMT-c7b51c014eebcc5a",
+  "dockerfile": "infra/workstation/libreoffice/Dockerfile",
+  "page_count": 117,
+  "page_count_check": 117,
+  "pagination_artifact_id": "sha256:0648c5a975a42e567a92d43a7972b831cc53ff19b5b394af36a4af7169c24a55",
+  "pagination_basis": "DOCX_PINNED_RENDER",
+  "phase1_comparison": {
+    "compared": 115,
+    "equal": 43,
+    "first_diff": 44,
+    "manifest_pages": 115,
+    "page_rows": 117
+  },
+  "receipt": "vkm.docx_render/1",
+  "render_profile": "libreoffice-24.2.7.2;image=sha256:d64278f32cb7;fonts=190bd13b",
+  "rendered_pdf_artifacts": [
+    {
+      "artifact_id": "sha256:0648c5a975a42e567a92d43a7972b831cc53ff19b5b394af36a4af7169c24a55",
+      "materialization": "STORED",
+      "recipe": {
+        "page_id": null,
+        "params_json": "{\"image_id\":\"sha256:d64278f32cb749b82dc44cd5a371c51cc80be586632e99a6a06202fbc0630221\"}",
+        "profile": "libreoffice-24.2.7.2;image=sha256:d64278f32cb7;fonts=190bd13b",
+        "source_sha256": "45978d5fc446fa35d0b3e271c44a5790bc5b4101321b20f8078ff83dc8ae2931",
+        "tool": "libreoffice",
+        "tool_version": "24.2.7.2"
+      },
+      "retention_class": "KEEP_RAW",
+      "size_bytes": 9018725
+    }
+  ],
+  "source_id": "VKM-SRC-023"
+}

@@ -1,0 +1,377 @@
+{
+ "alias_actions": [
+  {
+   "add": {
+    "alias": "vkm-blocks",
+    "index": "vkm-blocks-m1-20260928t114733z-a64578c3"
+   }
+  },
+  {
+   "add": {
+    "alias": "vkm-figures",
+    "index": "vkm-figures-m1-20260928t114733z-a64578c3"
+   }
+  },
+  {
+   "add": {
+    "alias": "vkm-formulas",
+    "index": "vkm-formulas-m1-20260928t114733z-a64578c3"
+   }
+  },
+  {
+   "add": {
+    "alias": "vkm-pages",
+    "index": "vkm-pages-m1-20260928t114733z-a64578c3"
+   }
+  },
+  {
+   "add": {
+    "alias": "vkm-tables",
+    "index": "vkm-tables-m1-20260928t114733z-a64578c3"
+   }
+  },
+  {
+   "add": {
+    "alias": "vkm-objects",
+    "index": "vkm-figures-m1-20260928t114733z-a64578c3"
+   }
+  },
+  {
+   "add": {
+    "alias": "vkm-objects",
+    "index": "vkm-formulas-m1-20260928t114733z-a64578c3"
+   }
+  },
+  {
+   "add": {
+    "alias": "vkm-objects",
+    "index": "vkm-tables-m1-20260928t114733z-a64578c3"
+   }
+  }
+ ],
+ "analysis_sha256": "c55bb6b8ae7b9d645ffb53d662be66d3ed9728aa70270fb47bea203a88772aac",
+ "analysis_version": "vkm-analysis/1",
+ "body_sha256": {
+  "blocks": "490f200a0060489c2fce137f1fa999420de6293709e584638b5318d4bfc4631c",
+  "figures": "3bb14cf65334f8c840790da035c2692dc787fa6795b1082c548e11a013f5080a",
+  "formulas": "ee5342da5816bdc958d5f8dfa8c1dcfcf0244afe0bedc36acf768c9978b18370",
+  "pages": "4073279866618d9d41d3657e42cd669785d45a15c6096df07dcc4e902fbf1b9c",
+  "tables": "865f281f1069045a09bb57758bc230d589023b880d4cdbbf6b15465f58823448"
+ },
+ "build_id": "20260928t114733z-a64578c3",
+ "checks": [
+  {
+   "check_id": "S1",
+   "count": 0,
+   "status": "PASS",
+   "title": "document count of every index equals the canon"
+  },
+  {
+   "check_id": "S3",
+   "count": 0,
+   "status": "PASS",
+   "title": "sampled documents in the index equal the generated documents"
+  },
+  {
+   "check_id": "S4",
+   "count": 0,
+   "status": "PASS",
+   "title": "analyzer expectations (morphology, ё=е, protected terms, LaTeX)"
+  }
+ ],
+ "cluster_health": "yellow",
+ "command": "search build",
+ "counts": {
+  "blocks": 621497,
+  "figures": 17784,
+  "formulas": 108904,
+  "pages": 26483,
+  "tables": 3391
+ },
+ "doc_stream_sha256": {
+  "blocks": "b038b2496bbc35d3d62c78d539d866cd3427879a41852a6b92b122baa3737a07",
+  "figures": "81e3a9591dece5c5446236efad23503ccb7c33284f0c6cbbf14763ceb026adf5",
+  "formulas": "cef6c98d117b37df335ea4b6edb7a5fbca3574ba77d64fc0402af8bb3af0a6b3",
+  "pages": "dbfd8315be21951945b2a333d4672fc9f9dfa082fe669d7b96f14dd7ca610004",
+  "tables": "5d448c5bdfbf3088f6680c466fb8335520cd1b45f0969169e01d4009be589cfd"
+ },
+ "engine": "opensearch",
+ "expected_counts": {
+  "blocks": 621497,
+  "figures": 17784,
+  "formulas": 108904,
+  "pages": 26483,
+  "tables": 3391
+ },
+ "finished_at": "2026-09-28T11:51:11.372717+00:00",
+ "indices": {
+  "blocks": "vkm-blocks-m1-20260928t114733z-a64578c3",
+  "figures": "vkm-figures-m1-20260928t114733z-a64578c3",
+  "formulas": "vkm-formulas-m1-20260928t114733z-a64578c3",
+  "pages": "vkm-pages-m1-20260928t114733z-a64578c3",
+  "tables": "vkm-tables-m1-20260928t114733z-a64578c3"
+ },
+ "input": {
+  "derived_sql": {
+   "00_core_views.sql": "642b7e847c46580d8bb40822551ce92706a4552574a6078b0bda9b5e730812af",
+   "10_derived_rules.sql": "16acc38b74119f9f9a6b77317d8c5368f4f6db231b85008a492df4ebe5c4788a",
+   "20_status.sql": "d5848db684f618536d9e5aacf52f101ca7534bdac0a5c4b6cc673600d630d384",
+   "30_access.sql": "01bde58f4367154066e642f079e548195d66624956b607e832f454987d6519b0"
+  },
+  "manifest_counts": {
+   "bibliography_entries": 0,
+   "blocks": 621497,
+   "figures": 17784,
+   "formulas": 108904,
+   "pages_embedded_text": 3505,
+   "pages_failed": 0,
+   "pages_native": 16455,
+   "pages_ocr": 6387,
+   "pages_total": 26483,
+   "rollup_closed": true,
+   "sources_complete": 221,
+   "sources_failed": 0,
+   "sources_needs_review": 0,
+   "sources_not_processed": 0,
+   "sources_partial": 28,
+   "sources_skipped_by_register": 2,
+   "sources_total": 251,
+   "sources_unsupported": 0,
+   "tables": 3391
+  },
+  "manifest_sha256": "a64578c3ee8eda9550f84e741154009db09c05c6fec8409de4dff6c2d01567c1",
+  "mapping": {
+   "defaulted": {
+    "e_bibliography_links": [
+     "curation_status"
+    ],
+    "e_figures": [
+     "is_primary_layer"
+    ],
+    "e_formulas": [
+     "is_primary_layer"
+    ],
+    "e_tables": [
+     "is_primary_layer"
+    ]
+   },
+   "relations": {
+    "e_authors": {
+     "a": "main.authors"
+    },
+    "e_bibliography": {
+     "e": "main.bibliography"
+    },
+    "e_bibliography_links": {
+     "l": "main.bibliography_links"
+    },
+    "e_blocks": {
+     "b": "main.blocks"
+    },
+    "e_cites": {
+     "c": "main.cites"
+    },
+    "e_figures": {
+     "f": "main.figures"
+    },
+    "e_foreign_pages": {
+     "f": "main.foreign_content_pages"
+    },
+    "e_formulas": {
+     "m": "main.formulas"
+    },
+    "e_instance_links": {
+     "i": "main.work_sources"
+    },
+    "e_page_duplicates": {
+     "u": "main.duplicate_page_candidates"
+    },
+    "e_page_sequence": {
+     "q": "main.page_sequence"
+    },
+    "e_pages": {
+     "p": "main.pages"
+    },
+    "e_source_relations": {
+     "r": "canonical.source_relations"
+    },
+    "e_source_work_links": {
+     "l": "canonical.source_work_links"
+    },
+    "e_sources": {
+     "d": "main.documents",
+     "r": "main.source_status_summary",
+     "s": "main.sources"
+    },
+    "e_tables": {
+     "t": "main.\"tables\""
+    },
+    "e_venues": {
+     "v": "main.venues"
+    },
+    "e_work_authors": {
+     "wa": "main.work_authors"
+    },
+    "e_work_copies": {
+     "k": "main.work_copy_counts"
+    },
+    "e_work_relations": {
+     "r": "canonical.work_relations"
+    },
+    "e_works": {
+     "a": "main.works_availability",
+     "w": "main.works"
+    }
+   }
+  },
+  "schema_versions": [
+   "artifacts=0.1.0",
+   "authors=0.1.0",
+   "bibliography_entries=0.1.0",
+   "blocks=0.1.0",
+   "documents=0.1.0",
+   "errors=0.1.0",
+   "figures=0.1.0",
+   "formulas=0.1.0",
+   "pages=0.1.0",
+   "processing_runs=0.1.0",
+   "processing_steps=0.1.0",
+   "source_relations=0.1.0",
+   "source_work_links=0.1.0",
+   "sources=0.1.0",
+   "tables=0.1.0",
+   "venues=0.1.0",
+   "work_authors=0.1.0",
+   "work_relations=0.1.0",
+   "works=0.1.0"
+  ],
+  "snapshot_id": "snap-20260928T113713Z-fa0aa127"
+ },
+ "mapping_version": "1",
+ "pipeline_version": "0.1.0",
+ "prefix": "vkm",
+ "preflight": [
+  {
+   "check_id": "P01",
+   "count": 0,
+   "status": "PASS",
+   "title": "keys unique and non-null in every relation"
+  },
+  {
+   "check_id": "P02",
+   "count": 0,
+   "status": "PASS",
+   "title": "node ids unique across labels"
+  },
+  {
+   "check_id": "P03",
+   "count": 0,
+   "status": "PASS",
+   "title": "references resolve (FK integrity of the projection input)"
+  },
+  {
+   "check_id": "P04",
+   "count": 0,
+   "status": "PASS",
+   "title": "page indices 1..n per source, n = page_count; skipped sources have no pages"
+  },
+  {
+   "check_id": "P05",
+   "count": 0,
+   "status": "PASS",
+   "title": "no FACT/REVIEWED_*/ACCEPTED_*/epistemic status in the document layer"
+  },
+  {
+   "check_id": "P06",
+   "count": 0,
+   "status": "PASS",
+   "title": "closed vocabularies"
+  },
+  {
+   "check_id": "P07",
+   "count": 0,
+   "status": "PASS",
+   "title": "no conflicting links (one primary link, NOT_SAME, symmetric pairs)"
+  },
+  {
+   "check_id": "P08",
+   "count": 0,
+   "details": {
+    "by_reason": {
+     "FOREIGN_CONTENT_PAGE_EDGES": 3,
+     "FOREIGN_CONTENT_UNIDENTIFIED": 3
+    }
+   },
+   "status": "PASS",
+   "title": "source→work links that give no INSTANCE_OF (reasons in details)"
+  },
+  {
+   "check_id": "P09",
+   "code": "W_OBJECT_WITHOUT_PAGE",
+   "count": 52,
+   "examples": [
+    "e_blocks:VKM-SRC-023:doc:b94a810e911f3",
+    "e_blocks:VKM-SRC-023:doc:b9f369bbe5f69",
+    "e_blocks:VKM-SRC-023:doc:bea54f193f9d1",
+    "e_blocks:VKM-SRC-023:doc:bae03c6e2d76a",
+    "e_blocks:VKM-SRC-023:doc:b538c650db24e",
+    "e_blocks:VKM-SRC-023:doc:b06629adc7169",
+    "e_blocks:VKM-SRC-023:doc:b03c28378ea67",
+    "e_blocks:VKM-SRC-023:doc:b2ffce70ca743",
+    "e_blocks:VKM-SRC-023:doc:bf2e6b03a1bd0",
+    "e_blocks:VKM-SRC-023:doc:b9416bb9ff568",
+    "e_blocks:VKM-SRC-023:doc:b5ef512ef66ad",
+    "e_figures:VKM-SRC-023:doc:f050f6c5a8e24",
+    "e_figures:VKM-SRC-023:doc:f0553d7724bda",
+    "e_figures:VKM-SRC-023:doc:f088c91b64fbf",
+    "e_figures:VKM-SRC-023:doc:f098bf0585964",
+    "e_figures:VKM-SRC-023:doc:f1026bb896306",
+    "e_figures:VKM-SRC-023:doc:f12744b36c1ce",
+    "e_figures:VKM-SRC-023:doc:f129c349f9c44",
+    "e_figures:VKM-SRC-023:doc:f1d67eaa45810",
+    "e_figures:VKM-SRC-023:doc:f243c049bae8c"
+   ],
+   "status": "WARN",
+   "title": "objects without a page (projected as nodes without HAS_* edge)"
+  },
+  {
+   "check_id": "P10",
+   "count": 0,
+   "details": {
+    "work_copy_count_source": "D.work_copy_counts"
+   },
+   "status": "PASS",
+   "title": "work_copy_count: D's n_sources_active equals ACTIVE sources among INSTANCE_OF"
+  },
+  {
+   "check_id": "P11",
+   "count": 0,
+   "status": "PASS",
+   "title": "derived rule versions of D's rows match the graph registry"
+  }
+ ],
+ "projector_version": "vkm-projections/0.1.0",
+ "pruned": [
+  "vkm-blocks-m1-20260928t114451z-a64578c3"
+ ],
+ "server": {
+  "build_hash": "e5a3c5691be87af6c12dbe3e158c59c04ee72973",
+  "distribution": "opensearch",
+  "lucene_version": "10.5.0",
+  "version": "3.8.0"
+ },
+ "snapshot_files": {
+  "bytes": 356431482,
+  "files": 2586,
+  "hashed": true
+ },
+ "started_at": "2026-09-28T11:47:26.754799+00:00",
+ "status": "COMPLETE",
+ "timings_s": {
+  "finalize": 11.527,
+  "index": 205.516,
+  "input": 6.99,
+  "total": 224.618,
+  "verify": 0.17
+ }
+}
