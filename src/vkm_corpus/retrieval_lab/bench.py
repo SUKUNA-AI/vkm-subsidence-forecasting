@@ -381,7 +381,8 @@ def validate_benchmark(bench: Benchmark, *, min_text: int = 0, min_visual: int =
 # ------------------------------------------------------------------ pooled labels (V1: separate label source, §12)
 POOLED_COLUMNS: tuple[str, ...] = ("query_id", "level", "doc_id", "grade", "status", "basis", "label_source",
                                    "pooled_from", "rationale")
-POOLED_LABEL_SOURCES: tuple[str, ...] = ("LLM_AGENT_V1",)
+# one source per labelling round; a later round labels only pages without any earlier label (V2: blind packets)
+POOLED_LABEL_SOURCES: tuple[str, ...] = ("LLM_AGENT_V1", "LLM_AGENT_V2")
 MAX_RATIONALE_CHARS = 160            # a one-line reason in own words; never a quote
 _POOLED_FROM = re.compile(r"^[A-Za-z0-9_]+@[0-9]{1,3}(,[A-Za-z0-9_]+@[0-9]{1,3})*$")
 
@@ -413,6 +414,13 @@ def merge_judgments(verified: dict[str, dict[str, int]],
         for d, g in j.items():
             tgt.setdefault(d, g)
     return out
+
+
+def pooled_round_overlaps(earlier: list[dict[str, str]], later: list[dict[str, str]]) -> list[str]:
+    """Pairs of a later labelling round that an earlier round already labelled (a round labels only new pages)."""
+    source = {(r["query_id"], r["level"], r["doc_id"]): r["label_source"] for r in earlier}
+    return [f"pooled {r['query_id']} {r['doc_id']}: already labelled by {source[key]}" for r in later
+            for key in [(r["query_id"], r["level"], r["doc_id"])] if key in source]
 
 
 def validate_pooled_qrels(rows: list[dict[str, str]], bench: Benchmark) -> list[str]:

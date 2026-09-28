@@ -1,0 +1,3046 @@
+{
+ "schema": "vkm.retrieval_benchmark.v2.receipt/1",
+ "agent": "V2",
+ "date": "2026-09-28",
+ "finished": "2026-09-29",
+ "branch": "claude/agent-v2-embeddings-gpu-2026-09-28",
+ "code_commit_at_receipt": "2bce183d01213d90fb1ba08bd36ee1bf02799c56",
+ "preregistration": {
+  "file": "benchmarks/retrieval_v2/PREREGISTRATION.md",
+  "sha256": "9826b564a3b65bf2ac792d1320dedfff35d71a90cd4efae9ee50121ac371e421",
+  "commit": "e36fe19"
+ },
+ "snapshot": {
+  "snapshot_id": "snap-20260928T160616Z-5d669f09",
+  "manifest_sha256": "f5a2fc899d618e1eba6d1471b1eb0b2a1102990584d8ba68214d354290d7f6b8",
+  "duckdb_version": "v1.5.5",
+  "pipeline_version": "0.1.0"
+ },
+ "dense_units_snapshot": "snap-20260928T113713Z-fa0aa127",
+ "check0_reproduces_v1": {
+  "ok": true,
+  "systems": {
+   "verified/text/E:nano-rx580": {
+    "ok": true,
+    "queries": 144
+   },
+   "verified/text/B:nano-rx580": {
+    "ok": true,
+    "queries": 144
+   },
+   "verified/text/A|bm25-os": {
+    "ok": true,
+    "queries": 144
+   },
+   "verified/visual/E:nano-rx580": {
+    "ok": true,
+    "queries": 42
+   },
+   "verified/visual/B:nano-rx580": {
+    "ok": true,
+    "queries": 42
+   },
+   "verified/visual/A|bm25-os": {
+    "ok": true,
+    "queries": 42
+   },
+   "verified+pooled/text/E:nano-rx580": {
+    "ok": true,
+    "queries": 144
+   },
+   "verified+pooled/text/B:nano-rx580": {
+    "ok": true,
+    "queries": 144
+   },
+   "verified+pooled/text/A|bm25-os": {
+    "ok": true,
+    "queries": 144
+   },
+   "verified+pooled/visual/E:nano-rx580": {
+    "ok": true,
+    "queries": 42
+   },
+   "verified+pooled/visual/B:nano-rx580": {
+    "ok": true,
+    "queries": 42
+   },
+   "verified+pooled/visual/A|bm25-os": {
+    "ok": true,
+    "queries": 42
+   }
+  }
+ },
+ "coverage": {
+  "text": {
+   "covered": 144,
+   "not_covered": 1
+  },
+  "visual": {
+   "covered": 42,
+   "not_covered": 2
+  }
+ },
+ "labels": {
+  "pooled": {
+   "LLM_AGENT_V1": 4275,
+   "LLM_AGENT_V2": 3850
+  },
+  "pool": {
+   "p1_systems": [
+    "E+VIS:omni-small",
+    "E+VIS:qwen3-vl-2b",
+    "E:bge-m3",
+    "E:giga-480m",
+    "E:granite-311m",
+    "E:granite-97m",
+    "E:harrier-270m",
+    "E:jina-small",
+    "E:mdenseon",
+    "E:nano-gpu",
+    "E:pplx-0.6b",
+    "E:pplx-ctx-0.6b",
+    "E:qwen3-0.6b",
+    "VIS:omni-small",
+    "VIS:qwen3-vl-2b"
+   ],
+   "p2_systems": [
+    "B:bge-m3",
+    "B:giga-480m",
+    "B:granite-311m",
+    "B:granite-97m",
+    "B:harrier-270m",
+    "B:jina-small",
+    "B:mdenseon",
+    "B:nano-gpu",
+    "B:pplx-0.6b",
+    "B:pplx-ctx-0.6b",
+    "B:qwen3-0.6b",
+    "E3:omni-small",
+    "E3:qwen3-vl-2b",
+    "VIS:omni-small",
+    "VIS:qwen3-vl-2b"
+   ],
+   "p1_new_pages": 1616,
+   "p1_p2_new_pages_at_10": 7114,
+   "p2_depth_rule": 5,
+   "p2_depth": 5,
+   "only_p1": false,
+   "pool_pages": 3850,
+   "queries": 186
+  },
+  "qrels_v2_pooled_sha256": "3cfcbee8d84e5420f7094a006dc1232aa84be2fbdd0097e6c075fa3d54e619a4"
+ },
+ "hardware": {
+  "encode": "WORKSTATION RTX 5070 Ti 16 GB (shared), bf16, SDPA",
+  "serving_target": "CORE RX580 8 GiB (llama.cpp Vulkan); EDGE GTX 1650 is full"
+ },
+ "models": {
+  "bge-m3": {
+   "model_id": "BAAI/bge-m3",
+   "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+   "license": "MIT",
+   "precision": "bf16",
+   "attention": "sdpa",
+   "n_units": 186116,
+   "ids_sha256": "f7586c43c962dc71aa32521700da07e541f08bc420bb75e855f3c3b159530dfc",
+   "dim": 1024,
+   "doc_prefix": "",
+   "query_prefix": "",
+   "doc_max_tokens": 512,
+   "query_max_tokens": 512,
+   "load_s": 8.0,
+   "encode_s": 283.5,
+   "units_per_s": 656.4,
+   "tokens": 24613574,
+   "tokens_per_s": 86814,
+   "queries_s": 0.15,
+   "peak_vram_mib": 1835,
+   "finished_at": "2026-09-28T19:01:41Z",
+   "weights": {
+    "receipt": "MODELS_RECEIPT_RETRIEVAL.json",
+    "complete_and_verified": true,
+    "files_sha256": {
+     "colbert_linear.pt": "19bfbae397c2b7524158c919d0e9b19393c5639d098f0a66932c91ed8f5f9abb",
+     "pytorch_model.bin": "b5e0ce3470abf5ef3831aa1bd5553b486803e83251590ab7ff35a117cf6aad38",
+     "sparse_linear.pt": "45c93804d2142b8f6d7ec6914ae23a1eee9c6a1d27d83d908a20d2afb3595ad9",
+     "tokenizer.json": "21106b6d7dab2952c1d496fb21d5dc9db75c28ed361a05f5020bbba27810dd08"
+    }
+   },
+   "env": {
+    "python": "3.13.15",
+    "torch": "2.13.0+cu130",
+    "transformers": "5.17.0",
+    "sentence-transformers": "6.1.0",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "tokenizers": "0.23.2",
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti"
+   },
+   "serving_q8": {
+    "key": "bge-m3",
+    "rx580_key": "bge-m3",
+    "gguf": "bge-m3-Q8_0.gguf",
+    "gguf_sha256": "bdd445cdc7df21929cf77d5ec7ce09d1849e303bfe99953a63a6388ec96f066f",
+    "pooling": "cls",
+    "query_prefix": "",
+    "tokenizer_sha256": "21106b6d7dab2952c1d496fb21d5dc9db75c28ed361a05f5020bbba27810dd08",
+    "queries": 189,
+    "cos_q8_vs_gpu_bf16": {
+     "mean": 0.9992241263389587,
+     "min": 0.9985976219177246,
+     "p01": 0.9987992644309998
+    },
+    "tokens_per_query": {
+     "mean": 20.44973544973545,
+     "max": 69
+    },
+    "cpu_latency_ms": {
+     "p50": 28.593864997674245,
+     "p95": 69.16465820177105,
+     "note": "llama.cpp CPU (16 threads), stand-in only; RX580 latency is K's matrix"
+    },
+    "llama_cpp": "local CPU build of the RX580 source tree (commit 4da6337767f9)",
+    "llama_build": "RX580 tree, CPU, no patches"
+   }
+  },
+  "giga-480m": {
+   "model_id": "ai-sage/Giga-Embeddings-instruct-480M-0826",
+   "revision": "1763d603adac8057bd6482a708001b0ed2e0a903",
+   "license": "MIT",
+   "precision": "bf16",
+   "attention": "sdpa",
+   "n_units": 186116,
+   "ids_sha256": "f7586c43c962dc71aa32521700da07e541f08bc420bb75e855f3c3b159530dfc",
+   "dim": 1024,
+   "doc_prefix": "",
+   "query_prefix": "Instruct: Given a query, retrieve relevant passages\nQuery: ",
+   "doc_max_tokens": 512,
+   "query_max_tokens": 512,
+   "load_s": 9.4,
+   "encode_s": 480.8,
+   "units_per_s": 387.1,
+   "tokens": 23191065,
+   "tokens_per_s": 48236,
+   "queries_s": 1.29,
+   "peak_vram_mib": 2091,
+   "finished_at": "2026-09-28T19:22:36Z",
+   "weights": {
+    "receipt": "MODELS_RECEIPT_RETRIEVAL.json",
+    "complete_and_verified": true,
+    "files_sha256": {
+     "model.safetensors": "9ce03c6c5ae02baebb42ce3015b6f3e628c5fec7b7745bc2490f6ff961a654a5",
+     "tokenizer.json": "0870f9c0f06a677f7e939e7765ae3a5d9582f2a6d7e7258176ecd1a3eab96cef"
+    }
+   },
+   "env": {
+    "python": "3.13.15",
+    "torch": "2.13.0+cu130",
+    "transformers": "5.17.0",
+    "sentence-transformers": "6.1.0",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "tokenizers": "0.23.2",
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti"
+   },
+   "serving_q8": {
+    "key": "giga-480m",
+    "rx580_key": "giga-emb-480m",
+    "gguf": "giga-emb-480m-Q8_0.gguf",
+    "gguf_sha256": "0cacdf77ffdea315ab4954b30a7c795321084a9000a86b553996af070b9ab5c8",
+    "pooling": "mean",
+    "query_prefix": "Instruct: Given a query, retrieve relevant passages\nQuery: ",
+    "tokenizer_sha256": "0870f9c0f06a677f7e939e7765ae3a5d9582f2a6d7e7258176ecd1a3eab96cef",
+    "queries": 189,
+    "cos_q8_vs_gpu_bf16": {
+     "mean": 0.9987176060676575,
+     "min": 0.9965744018554688,
+     "p01": 0.9978078603744507
+    },
+    "tokens_per_query": {
+     "mean": 30.375661375661377,
+     "max": 68
+    },
+    "cpu_latency_ms": {
+     "p50": 44.87639599756221,
+     "p95": 61.28156300037516,
+     "note": "llama.cpp CPU (16 threads), stand-in only; RX580 latency is K's matrix"
+    },
+    "llama_cpp": "local CPU build of the RX580 source tree (commit 4da6337767f9)",
+    "llama_build": "RX580 tree, CPU, patches 0002-0004"
+   }
+  },
+  "granite-311m": {
+   "model_id": "ibm-granite/granite-embedding-311m-multilingual-r2",
+   "revision": "44399559930365213510b1ee2eb15ded83374f0e",
+   "license": "Apache-2.0",
+   "precision": "bf16",
+   "attention": "sdpa",
+   "n_units": 186116,
+   "ids_sha256": "f7586c43c962dc71aa32521700da07e541f08bc420bb75e855f3c3b159530dfc",
+   "dim": 768,
+   "doc_prefix": "",
+   "query_prefix": "",
+   "doc_max_tokens": 512,
+   "query_max_tokens": 512,
+   "load_s": 3.8,
+   "encode_s": 224.6,
+   "units_per_s": 828.7,
+   "tokens": 23749777,
+   "tokens_per_s": 105747,
+   "queries_s": 0.16,
+   "peak_vram_mib": 4689,
+   "finished_at": "2026-09-28T20:52:45Z",
+   "weights": {
+    "receipt": "MODELS_RECEIPT_RETRIEVAL.json",
+    "complete_and_verified": true,
+    "files_sha256": {
+     "model.safetensors": "dcb6431bfa6e817fe100a2b0521360cec3383963b03fa966b685de18ca310d31",
+     "tokenizer.json": "0087c868b33bad550a78a08d19798cfd7f713cde4f020803b8f51f405503e15f"
+    }
+   },
+   "env": {
+    "python": "3.13.15",
+    "torch": "2.13.0+cu130",
+    "transformers": "5.17.0",
+    "sentence-transformers": "6.1.0",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "tokenizers": "0.23.2",
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti"
+   },
+   "serving_q8": {
+    "key": "granite-311m",
+    "rx580_key": "granite-311m-r2",
+    "gguf": "granite-311m-r2-Q8_0.gguf",
+    "gguf_sha256": "fb1164bb167eeb8cec1ffe82e99829045872bf0ab4e87aab8deae3aaa030f801",
+    "pooling": "cls",
+    "query_prefix": "",
+    "tokenizer_sha256": "0087c868b33bad550a78a08d19798cfd7f713cde4f020803b8f51f405503e15f",
+    "queries": 189,
+    "cos_q8_vs_gpu_bf16": {
+     "mean": 0.9998966455459595,
+     "min": 0.9985427260398865,
+     "p01": 0.9996755719184875
+    },
+    "tokens_per_query": {
+     "mean": 19.582010582010582,
+     "max": 64
+    },
+    "cpu_latency_ms": {
+     "p50": 11.122444000193354,
+     "p95": 15.543609999895125,
+     "note": "llama.cpp CPU (16 threads), stand-in only; RX580 latency is K's matrix"
+    },
+    "llama_cpp": "local CPU build of the RX580 source tree (commit 4da6337767f9)",
+    "llama_build": "RX580 tree, CPU, patches 0002-0004"
+   }
+  },
+  "granite-97m": {
+   "model_id": "ibm-granite/granite-embedding-97m-multilingual-r2",
+   "revision": "835ad14087e140460703cf0fae09f97d469d65c2",
+   "license": "Apache-2.0",
+   "precision": "bf16",
+   "attention": "sdpa",
+   "n_units": 186116,
+   "ids_sha256": "f7586c43c962dc71aa32521700da07e541f08bc420bb75e855f3c3b159530dfc",
+   "dim": 384,
+   "doc_prefix": "",
+   "query_prefix": "",
+   "doc_max_tokens": 512,
+   "query_max_tokens": 512,
+   "load_s": 2.0,
+   "encode_s": 143.9,
+   "units_per_s": 1293.6,
+   "tokens": 23749112,
+   "tokens_per_s": 165062,
+   "queries_s": 0.15,
+   "peak_vram_mib": 2366,
+   "finished_at": "2026-09-28T20:59:38Z",
+   "weights": {
+    "receipt": "MODELS_RECEIPT_RETRIEVAL.json",
+    "complete_and_verified": true,
+    "files_sha256": {
+     "model.safetensors": "f3ea88b230492811046145513710e76b4cc8c2ad49e8708da0e7247e548903be",
+     "tokenizer.json": "4f2842d568e2724370aec203652a42ac783c7937f8347a1a2cc7506d71f1582f"
+    }
+   },
+   "env": {
+    "python": "3.13.15",
+    "torch": "2.13.0+cu130",
+    "transformers": "5.17.0",
+    "sentence-transformers": "6.1.0",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "tokenizers": "0.23.2",
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti"
+   },
+   "serving_q8": {
+    "key": "granite-97m",
+    "rx580_key": "granite-97m-r2",
+    "gguf": "granite-97m-r2-Q8_0.gguf",
+    "gguf_sha256": "5c4479aed6662ff7e535c7a1eefe948adc00e0327ef8a80d73e36f15cab880ee",
+    "pooling": "cls",
+    "query_prefix": "",
+    "tokenizer_sha256": "4f2842d568e2724370aec203652a42ac783c7937f8347a1a2cc7506d71f1582f",
+    "queries": 189,
+    "cos_q8_vs_gpu_bf16": {
+     "mean": 0.9997109770774841,
+     "min": 0.9991462230682373,
+     "p01": 0.9994040727615356
+    },
+    "tokens_per_query": {
+     "mean": 21.56084656084656,
+     "max": 70
+    },
+    "cpu_latency_ms": {
+     "p50": 3.877358999943681,
+     "p95": 5.539663799936533,
+     "note": "llama.cpp CPU (16 threads), stand-in only; RX580 latency is K's matrix"
+    },
+    "llama_cpp": "local CPU build of the RX580 source tree (commit 4da6337767f9)",
+    "llama_build": "RX580 tree, CPU, patches 0002-0004"
+   }
+  },
+  "harrier-270m": {
+   "model_id": "microsoft/harrier-oss-v1-270m",
+   "revision": "31de22b673913c7d658c0f03f792d77c2dcf8ebd",
+   "license": "MIT",
+   "precision": "bf16",
+   "attention": "sdpa",
+   "n_units": 186116,
+   "ids_sha256": "f7586c43c962dc71aa32521700da07e541f08bc420bb75e855f3c3b159530dfc",
+   "dim": 640,
+   "doc_prefix": "",
+   "query_prefix": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: ",
+   "doc_max_tokens": 512,
+   "query_max_tokens": 512,
+   "load_s": 3.5,
+   "encode_s": 274.7,
+   "units_per_s": 677.6,
+   "tokens": 23932336,
+   "tokens_per_s": 87135,
+   "queries_s": 0.31,
+   "peak_vram_mib": 1696,
+   "finished_at": "2026-09-28T21:04:18Z",
+   "weights": {
+    "receipt": "MODELS_RECEIPT_RETRIEVAL.json",
+    "complete_and_verified": true,
+    "files_sha256": {
+     "model.safetensors": "90933b6826b61afd9331e0ebe3c0598b421a32eda5fb301a114fe36f306cb51a",
+     "tokenizer.json": "6852f8d561078cc0cebe70ca03c5bfdd0d60a45f9d2e0e1e4cc05b68e9ec329e"
+    }
+   },
+   "env": {
+    "python": "3.13.15",
+    "torch": "2.13.0+cu130",
+    "transformers": "5.17.0",
+    "sentence-transformers": "6.1.0",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "tokenizers": "0.23.2",
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti"
+   }
+  },
+  "jina-small": {
+   "model_id": "jinaai/jina-embeddings-v5-text-small-retrieval",
+   "revision": "6856e76bb72982e58de0620458a4e8b3614da340",
+   "license": "CC-BY-NC-4.0",
+   "precision": "bf16",
+   "attention": "sdpa",
+   "n_units": 186116,
+   "ids_sha256": "f7586c43c962dc71aa32521700da07e541f08bc420bb75e855f3c3b159530dfc",
+   "dim": 1024,
+   "doc_prefix": "Document: ",
+   "query_prefix": "Query: ",
+   "doc_max_tokens": 512,
+   "query_max_tokens": 512,
+   "load_s": 6.2,
+   "encode_s": 752.3,
+   "units_per_s": 247.4,
+   "tokens": 26242140,
+   "tokens_per_s": 34880,
+   "queries_s": 0.59,
+   "peak_vram_mib": 5601,
+   "finished_at": "2026-09-28T19:14:22Z",
+   "weights": {
+    "receipt": "MODELS_RECEIPT_RETRIEVAL.json",
+    "complete_and_verified": true,
+    "files_sha256": {
+     "model.safetensors": "0362107c2b13e18284c5152c4d4f667a4dec4665abdfe4f5e43a9bb799ba2276",
+     "tokenizer.json": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4"
+    }
+   },
+   "env": {
+    "python": "3.13.15",
+    "torch": "2.13.0+cu130",
+    "transformers": "5.17.0",
+    "sentence-transformers": "6.1.0",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "tokenizers": "0.23.2",
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti"
+   },
+   "serving_q8": {
+    "key": "jina-small",
+    "rx580_key": "jina-v5-small-retrieval",
+    "gguf": "jina-v5-small-retrieval-Q8_0.gguf",
+    "gguf_sha256": "b759677362414e664160ffb017fbc74c300feaa4ad4085f69f2cc1bfa12ccb71",
+    "pooling": "last",
+    "query_prefix": "Query: ",
+    "tokenizer_sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+    "queries": 189,
+    "cos_q8_vs_gpu_bf16": {
+     "mean": 0.9996246695518494,
+     "min": 0.9992068409919739,
+     "p01": 0.9993581175804138
+    },
+    "tokens_per_query": {
+     "mean": 26.798941798941797,
+     "max": 90
+    },
+    "cpu_latency_ms": {
+     "p50": 66.94938900182024,
+     "p95": 118.0844506016001,
+     "note": "llama.cpp CPU (16 threads), stand-in only; RX580 latency is K's matrix"
+    },
+    "llama_cpp": "local CPU build of the RX580 source tree (commit 4da6337767f9)",
+    "llama_build": "RX580 tree, CPU, no patches"
+   }
+  },
+  "mdenseon": {
+   "model_id": "lightonai/mDenseOn",
+   "revision": "a5fdb000f7a21da96c3bddde3a782ef777316df3",
+   "license": "Apache-2.0",
+   "precision": "bf16",
+   "attention": "sdpa",
+   "n_units": 186116,
+   "ids_sha256": "f7586c43c962dc71aa32521700da07e541f08bc420bb75e855f3c3b159530dfc",
+   "dim": 768,
+   "doc_prefix": "document: ",
+   "query_prefix": "query: ",
+   "doc_max_tokens": 512,
+   "query_max_tokens": 512,
+   "load_s": 6.0,
+   "encode_s": 257.9,
+   "units_per_s": 721.8,
+   "tokens": 24418619,
+   "tokens_per_s": 94701,
+   "queries_s": 0.16,
+   "peak_vram_mib": 2132,
+   "finished_at": "2026-09-28T20:57:11Z",
+   "weights": {
+    "receipt": "MODELS_RECEIPT_RETRIEVAL.json",
+    "complete_and_verified": true,
+    "files_sha256": {
+     "model.safetensors": "a336c49fc679aeb23969114b12fb7317804da3cc7d8bc214818009dea39d545c",
+     "tokenizer.json": "a086e6a7efb90bbab8e379a63f3463fb13e6256ebec3343c1f1612cab693935b"
+    }
+   },
+   "env": {
+    "python": "3.13.15",
+    "torch": "2.13.0+cu130",
+    "transformers": "5.17.0",
+    "sentence-transformers": "6.1.0",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "tokenizers": "0.23.2",
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti"
+   },
+   "serving_q8": {
+    "key": "mdenseon",
+    "rx580_key": "mdenseon",
+    "gguf": "mdenseon-Q8_0.gguf",
+    "gguf_sha256": "d600cea3f2d5ecea4d946f53d49ce4ff6e1e3e77088a949aae4eed0aee53267e",
+    "pooling": "cls",
+    "query_prefix": "query: ",
+    "tokenizer_sha256": "a086e6a7efb90bbab8e379a63f3463fb13e6256ebec3343c1f1612cab693935b",
+    "queries": 189,
+    "cos_q8_vs_gpu_bf16": {
+     "mean": 0.9983643889427185,
+     "min": 0.9974128007888794,
+     "p01": 0.9975506663322449
+    },
+    "tokens_per_query": {
+     "mean": 22.486772486772487,
+     "max": 71
+    },
+    "cpu_latency_ms": {
+     "p50": 12.095186000351532,
+     "p95": 17.030533399793054,
+     "note": "llama.cpp CPU (16 threads), stand-in only; RX580 latency is K's matrix"
+    },
+    "llama_cpp": "local CPU build of the RX580 source tree (commit 4da6337767f9)",
+    "llama_build": "RX580 tree, CPU, patches 0002-0004"
+   }
+  },
+  "nano-gpu": {
+   "model_id": "jinaai/jina-embeddings-v5-text-nano-retrieval",
+   "revision": "ac5d898c8d382b17167c33e5c8af644a3519b47d",
+   "license": "CC-BY-NC-4.0",
+   "precision": "bf16",
+   "attention": "sdpa",
+   "n_units": 186116,
+   "ids_sha256": "f7586c43c962dc71aa32521700da07e541f08bc420bb75e855f3c3b159530dfc",
+   "dim": 768,
+   "doc_prefix": "Document: ",
+   "query_prefix": "Query: ",
+   "doc_max_tokens": 512,
+   "query_max_tokens": 512,
+   "load_s": 6.3,
+   "encode_s": 166.9,
+   "units_per_s": 1115.2,
+   "tokens": 24974047,
+   "tokens_per_s": 149650,
+   "queries_s": 0.19,
+   "peak_vram_mib": 2045,
+   "finished_at": "2026-09-28T18:44:05Z",
+   "weights": {
+    "receipt": "MODELS_RECEIPT_RETRIEVAL.json",
+    "complete_and_verified": true,
+    "files_sha256": {
+     "model.safetensors": "e38cb1ff168a60c24d88f9664997ceaf49afcfd93275af1b7f850b23070bbe7d",
+     "tokenizer.json": "98d4a1d32152d6cedf85b5e88f3b205106dca1fe72aaab34e0ac13c238421069"
+    }
+   },
+   "env": {
+    "python": "3.13.15",
+    "torch": "2.13.0+cu130",
+    "transformers": "5.17.0",
+    "sentence-transformers": "6.1.0",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "tokenizers": "0.23.2",
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti"
+   },
+   "serving_q8": {
+    "key": "nano-gpu",
+    "rx580_key": "jina-v5-nano-retrieval",
+    "gguf": "jina-v5-nano-retrieval-Q8_0.gguf",
+    "gguf_sha256": "86b6e6279e9b9e71389f02a082764a2ac2b15a50e37482c26f98d69092f12442",
+    "pooling": "last",
+    "query_prefix": "Query: ",
+    "tokenizer_sha256": "98d4a1d32152d6cedf85b5e88f3b205106dca1fe72aaab34e0ac13c238421069",
+    "queries": 189,
+    "cos_q8_vs_gpu_bf16": {
+     "mean": 0.9996700286865234,
+     "min": 0.9990577697753906,
+     "p01": 0.9993972778320312
+    },
+    "tokens_per_query": {
+     "mean": 24.915343915343914,
+     "max": 86
+    },
+    "cpu_latency_ms": {
+     "p50": 25.66916799696628,
+     "p95": 136.59526399860613,
+     "note": "llama.cpp CPU (16 threads), stand-in only; RX580 latency is K's matrix"
+    },
+    "llama_cpp": "local CPU build of the RX580 source tree (commit 4da6337767f9)",
+    "llama_build": "RX580 tree, CPU, no patches"
+   },
+   "rx580_calibration": {
+    "rx_vs_cpu": [
+     0.999849,
+     0.99971
+    ],
+    "rx_vs_gpu_bf16": [
+     0.999818,
+     0.999629
+    ],
+    "cpu_vs_gpu_bf16": [
+     0.99967,
+     0.999058
+    ]
+   }
+  },
+  "pplx-0.6b": {
+   "model_id": "perplexity-ai/pplx-embed-v1-0.6b",
+   "revision": "2c4d510dd4a732063c31a0f70193e35067b51fd8",
+   "license": "MIT",
+   "precision": "bf16",
+   "attention": "sdpa",
+   "n_units": 186116,
+   "ids_sha256": "f7586c43c962dc71aa32521700da07e541f08bc420bb75e855f3c3b159530dfc",
+   "dim": 1024,
+   "doc_prefix": "",
+   "query_prefix": "",
+   "doc_max_tokens": 512,
+   "query_max_tokens": 512,
+   "load_s": 13.8,
+   "encode_s": 755.9,
+   "units_per_s": 246.2,
+   "tokens": 25869907,
+   "tokens_per_s": 34223,
+   "queries_s": 0.66,
+   "peak_vram_mib": 2091,
+   "finished_at": "2026-09-28T19:35:29Z",
+   "weights": {
+    "receipt": "MODELS_RECEIPT_RETRIEVAL.json",
+    "complete_and_verified": true,
+    "files_sha256": {
+     "model.safetensors": "2c8d2f64f8268ccd5383b7f9bea8e660349aa6a151bd68a5a47f4c129f2a4974",
+     "tokenizer.json": "c6fb5c5bbba5fa5f8332edfb6d8aa67bd7fb3d75365b1765f108201698eaebf5"
+    }
+   },
+   "env": {
+    "python": "3.13.15",
+    "torch": "2.13.0+cu130",
+    "transformers": "5.17.0",
+    "sentence-transformers": "6.1.0",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "tokenizers": "0.23.2",
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti"
+   },
+   "serving_q8": {
+    "key": "pplx-0.6b",
+    "rx580_key": "pplx-embed-0.6b",
+    "gguf": "pplx-embed-0.6b-Q8_0.gguf",
+    "gguf_sha256": "c471dfae306ff04371f2ea34fd16d4b24ecf3378275e05527b06bfa49acda0dd",
+    "pooling": "mean",
+    "query_prefix": "",
+    "tokenizer_sha256": "c6fb5c5bbba5fa5f8332edfb6d8aa67bd7fb3d75365b1765f108201698eaebf5",
+    "queries": 189,
+    "cos_q8_vs_gpu_bf16": {
+     "mean": 0.9988579154014587,
+     "min": 0.9815611839294434,
+     "p01": 0.9956713914871216
+    },
+    "tokens_per_query": {
+     "mean": 24.96825396825397,
+     "max": 89
+    },
+    "cpu_latency_ms": {
+     "p50": 46.9849549990613,
+     "p95": 85.17646319960475,
+     "note": "llama.cpp CPU (16 threads), stand-in only; RX580 latency is K's matrix"
+    },
+    "llama_cpp": "local CPU build of the RX580 source tree (commit 4da6337767f9)",
+    "llama_build": "RX580 tree, CPU, patches 0002-0004"
+   }
+  },
+  "pplx-ctx-0.6b": {
+   "model_id": "perplexity-ai/pplx-embed-context-v1-0.6b",
+   "revision": "b42df969d4d78d1840769e45c68c4e4ce763768b",
+   "license": "MIT",
+   "precision": "bf16",
+   "attention": "sdpa",
+   "n_units": 186116,
+   "ids_sha256": "f7586c43c962dc71aa32521700da07e541f08bc420bb75e855f3c3b159530dfc",
+   "dim": 1024,
+   "doc_prefix": "",
+   "query_prefix": "",
+   "doc_max_tokens": 512,
+   "query_max_tokens": 512,
+   "load_s": 3.9,
+   "encode_s": 1540.9,
+   "units_per_s": 120.8,
+   "queries_s": 1.42,
+   "peak_vram_mib": 3893,
+   "finished_at": "2026-09-28T21:30:06Z",
+   "weights": {
+    "receipt": "MODELS_RECEIPT_RETRIEVAL.json",
+    "complete_and_verified": true,
+    "files_sha256": {
+     "model.safetensors": "dba2f2e1818c61012c053468480a54d52bfae47641e8dfcbcf02715e763a4486",
+     "tokenizer.json": "c6fb5c5bbba5fa5f8332edfb6d8aa67bd7fb3d75365b1765f108201698eaebf5"
+    }
+   },
+   "env": {
+    "python": "3.13.15",
+    "torch": "2.13.0+cu130",
+    "transformers": "5.17.0",
+    "sentence-transformers": "6.1.0",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "tokenizers": "0.23.2",
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti"
+   }
+  },
+  "qwen3-0.6b": {
+   "model_id": "Qwen/Qwen3-Embedding-0.6B",
+   "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+   "license": "Apache-2.0",
+   "precision": "bf16",
+   "attention": "sdpa",
+   "n_units": 186116,
+   "ids_sha256": "f7586c43c962dc71aa32521700da07e541f08bc420bb75e855f3c3b159530dfc",
+   "dim": 1024,
+   "doc_prefix": "",
+   "query_prefix": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+   "doc_max_tokens": 512,
+   "query_max_tokens": 512,
+   "load_s": 5.9,
+   "encode_s": 753.0,
+   "units_per_s": 247.2,
+   "tokens": 26050980,
+   "tokens_per_s": 34596,
+   "queries_s": 0.68,
+   "peak_vram_mib": 5601,
+   "finished_at": "2026-09-28T18:56:46Z",
+   "weights": {
+    "receipt": "MODELS_RECEIPT_RETRIEVAL.json",
+    "complete_and_verified": true,
+    "files_sha256": {
+     "model.safetensors": "0437e45c94563b09e13cb7a64478fc406947a93cb34a7e05870fc8dcd48e23fd",
+     "tokenizer.json": "def76fb086971c7867b829c23a26261e38d9d74e02139253b38aeb9df8b4b50a"
+    }
+   },
+   "env": {
+    "python": "3.13.15",
+    "torch": "2.13.0+cu130",
+    "transformers": "5.17.0",
+    "sentence-transformers": "6.1.0",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "tokenizers": "0.23.2",
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti"
+   },
+   "serving_q8": {
+    "key": "qwen3-0.6b",
+    "rx580_key": "qwen3-emb-0.6b",
+    "gguf": "qwen3-emb-0.6b-Q8_0.gguf",
+    "gguf_sha256": "6a7e953edde861dce22720336081baf48b09bf682a1e172290200490117b0058",
+    "pooling": "last",
+    "query_prefix": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+    "tokenizer_sha256": "def76fb086971c7867b829c23a26261e38d9d74e02139253b38aeb9df8b4b50a",
+    "queries": 189,
+    "cos_q8_vs_gpu_bf16": {
+     "mean": 0.9988806843757629,
+     "min": 0.9970977306365967,
+     "p01": 0.997822642326355
+    },
+    "tokens_per_query": {
+     "mean": 44.96296296296296,
+     "max": 109
+    },
+    "cpu_latency_ms": {
+     "p50": 81.4297090000764,
+     "p95": 224.08363220019953,
+     "note": "llama.cpp CPU (16 threads), stand-in only; RX580 latency is K's matrix"
+    },
+    "llama_cpp": "local CPU build of the RX580 source tree (commit 4da6337767f9)",
+    "llama_build": "RX580 tree, CPU, no patches"
+   }
+  },
+  "omni-small": {
+   "model_id": "jinaai/jina-embeddings-v5-omni-small-retrieval",
+   "revision": "e3ae4b6e4af4ec0799cd931aefaff03235b5f9d4",
+   "license": "CC-BY-NC-4.0",
+   "precision": "bf16",
+   "n_pages": 26092,
+   "ids_sha256": "6b7516ed68994de24535a6b472de2ca8fd01d04ca4eaf09c6fcb5da55a5cef07",
+   "dim": 1024,
+   "doc_prompt": "document",
+   "query_prompt": "query",
+   "load_s": 30.6,
+   "encode_s": 1745.2,
+   "pages_per_s": 13.19,
+   "queries_s": 0.45,
+   "peak_vram_mib": 3223,
+   "finished_at": "2026-09-28T21:59:42Z",
+   "weights": {
+    "receipt": "MODELS_RECEIPT_RETRIEVAL.json",
+    "complete_and_verified": true,
+    "files_sha256": {
+     "model.safetensors": "47ffe9650cabd3e94876b794c39ac00aab3ba2f43d2ed8bdbc78fed4de7e3a62",
+     "tokenizer.json": "7bbf567d9e053a72f0bd8ea475e672d10d537578f6adb521ab42da2badfa8bef"
+    }
+   },
+   "env": {
+    "python": "3.13.15",
+    "torch": "2.13.0+cu130",
+    "transformers": "5.17.0",
+    "sentence-transformers": "6.1.0",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "tokenizers": "0.23.2",
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti"
+   }
+  },
+  "qwen3-vl-2b": {
+   "model_id": "Qwen/Qwen3-VL-Embedding-2B",
+   "revision": "9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+   "license": "Apache-2.0",
+   "precision": "bf16",
+   "n_pages": 26092,
+   "ids_sha256": "6b7516ed68994de24535a6b472de2ca8fd01d04ca4eaf09c6fcb5da55a5cef07",
+   "dim": 2048,
+   "doc_prompt": "Represent the user's input.",
+   "query_prompt": "Find a document image that matches the given query.",
+   "load_s": 18.1,
+   "encode_s": 1926.7,
+   "pages_per_s": 9.82,
+   "queries_s": 0.66,
+   "peak_vram_mib": 4901,
+   "finished_at": "2026-09-28T20:48:55Z",
+   "weights": {
+    "receipt": "MODELS_RECEIPT_RETRIEVAL.json",
+    "complete_and_verified": true,
+    "files_sha256": {
+     "model.safetensors": "c73fa9caeddeb3ff831d46c085a7a5708343248ca777e90f2d486964464509c1",
+     "tokenizer.json": "def76fb086971c7867b829c23a26261e38d9d74e02139253b38aeb9df8b4b50a"
+    }
+   },
+   "env": {
+    "python": "3.13.15",
+    "torch": "2.13.0+cu130",
+    "transformers": "5.17.0",
+    "sentence-transformers": "6.1.0",
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "tokenizers": "0.23.2",
+    "cuda": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti"
+   },
+   "serving_q8": {
+    "key": "qwen3-vl-2b",
+    "gguf": "qwen3-vl-emb-2b-Q8_0.gguf",
+    "gguf_sha256": "376100bb1ecfb22cc8c5fb25870ede7fe8defe0c6734533e41c7f09e9b6a5f99",
+    "queries": 189,
+    "cos_q8_vs_gpu_bf16": {
+     "mean": 0.9979121088981628,
+     "min": 0.9960899353027344
+    },
+    "tokens_per_query": {
+     "mean": 48.96825396825397,
+     "max": 113
+    },
+    "cpu_latency_ms": {
+     "p50": 177.23370500016244,
+     "p95": 265.62657059985196
+    },
+    "conversion": "convert_hf_to_gguf.py (llama.cpp 4da6337767f9, text model, arch qwen3vl) → llama-quantize Q8_0",
+    "llama_build": "RX580 tree, CPU, no patches"
+   }
+  }
+ },
+ "summary_metrics": {
+  "verified/text": {
+   "A|bm25-os": {
+    "status": "OK",
+    "ndcg@10": 0.2517,
+    "recall@50": 0.403,
+    "mrr@10": 0.3681,
+    "judged@10": 0.2054
+   },
+   "B:nano-rx580": {
+    "status": "OK",
+    "ndcg@10": 0.2492,
+    "recall@50": 0.5206,
+    "mrr@10": 0.3694,
+    "judged@10": 0.1458
+   },
+   "E:nano-rx580": {
+    "status": "OK",
+    "ndcg@10": 0.3335,
+    "recall@50": 0.5717,
+    "mrr@10": 0.4742,
+    "judged@10": 0.1792
+   },
+   "B:bge-m3": {
+    "status": "OK",
+    "ndcg@10": 0.246,
+    "recall@50": 0.503,
+    "mrr@10": 0.3587,
+    "judged@10": 0.1437
+   },
+   "E:bge-m3": {
+    "status": "OK",
+    "ndcg@10": 0.3249,
+    "recall@50": 0.5377,
+    "mrr@10": 0.4642,
+    "judged@10": 0.1764
+   },
+   "B:bge-m3~q8": {
+    "status": "OK",
+    "ndcg@10": 0.2475,
+    "recall@50": 0.5039,
+    "mrr@10": 0.3579,
+    "judged@10": 0.1465
+   },
+   "E:bge-m3~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3242,
+    "recall@50": 0.5375,
+    "mrr@10": 0.4632,
+    "judged@10": 0.1757
+   },
+   "B:giga-480m": {
+    "status": "OK",
+    "ndcg@10": 0.2747,
+    "recall@50": 0.5337,
+    "mrr@10": 0.3879,
+    "judged@10": 0.1611
+   },
+   "E:giga-480m": {
+    "status": "OK",
+    "ndcg@10": 0.3263,
+    "recall@50": 0.569,
+    "mrr@10": 0.4606,
+    "judged@10": 0.1757
+   },
+   "B:giga-480m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.2737,
+    "recall@50": 0.5401,
+    "mrr@10": 0.3911,
+    "judged@10": 0.1604
+   },
+   "E:giga-480m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3259,
+    "recall@50": 0.5714,
+    "mrr@10": 0.4604,
+    "judged@10": 0.1757
+   },
+   "B:granite-311m": {
+    "status": "OK",
+    "ndcg@10": 0.192,
+    "recall@50": 0.4285,
+    "mrr@10": 0.3004,
+    "judged@10": 0.1132
+   },
+   "E:granite-311m": {
+    "status": "OK",
+    "ndcg@10": 0.3214,
+    "recall@50": 0.5151,
+    "mrr@10": 0.4618,
+    "judged@10": 0.1715
+   },
+   "B:granite-311m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.1948,
+    "recall@50": 0.4268,
+    "mrr@10": 0.3012,
+    "judged@10": 0.116
+   },
+   "E:granite-311m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.322,
+    "recall@50": 0.5153,
+    "mrr@10": 0.4618,
+    "judged@10": 0.1722
+   },
+   "B:granite-97m": {
+    "status": "OK",
+    "ndcg@10": 0.1539,
+    "recall@50": 0.325,
+    "mrr@10": 0.2291,
+    "judged@10": 0.0972
+   },
+   "E:granite-97m": {
+    "status": "OK",
+    "ndcg@10": 0.302,
+    "recall@50": 0.4669,
+    "mrr@10": 0.4302,
+    "judged@10": 0.1625
+   },
+   "B:granite-97m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.155,
+    "recall@50": 0.3209,
+    "mrr@10": 0.2309,
+    "judged@10": 0.0979
+   },
+   "E:granite-97m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.302,
+    "recall@50": 0.4683,
+    "mrr@10": 0.4302,
+    "judged@10": 0.1625
+   },
+   "B:harrier-270m": {
+    "status": "OK",
+    "ndcg@10": 0.1919,
+    "recall@50": 0.3737,
+    "mrr@10": 0.297,
+    "judged@10": 0.109
+   },
+   "E:harrier-270m": {
+    "status": "OK",
+    "ndcg@10": 0.3125,
+    "recall@50": 0.5033,
+    "mrr@10": 0.4432,
+    "judged@10": 0.1688
+   },
+   "B:jina-small": {
+    "status": "OK",
+    "ndcg@10": 0.2654,
+    "recall@50": 0.5218,
+    "mrr@10": 0.4026,
+    "judged@10": 0.1556
+   },
+   "E:jina-small": {
+    "status": "OK",
+    "ndcg@10": 0.3295,
+    "recall@50": 0.5681,
+    "mrr@10": 0.4664,
+    "judged@10": 0.1764
+   },
+   "B:jina-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.2674,
+    "recall@50": 0.5215,
+    "mrr@10": 0.4108,
+    "judged@10": 0.1556
+   },
+   "E:jina-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3295,
+    "recall@50": 0.5691,
+    "mrr@10": 0.4664,
+    "judged@10": 0.1764
+   },
+   "B:mdenseon": {
+    "status": "OK",
+    "ndcg@10": 0.2442,
+    "recall@50": 0.4565,
+    "mrr@10": 0.3548,
+    "judged@10": 0.1361
+   },
+   "E:mdenseon": {
+    "status": "OK",
+    "ndcg@10": 0.3122,
+    "recall@50": 0.5241,
+    "mrr@10": 0.4382,
+    "judged@10": 0.1701
+   },
+   "B:mdenseon~q8": {
+    "status": "OK",
+    "ndcg@10": 0.2426,
+    "recall@50": 0.4568,
+    "mrr@10": 0.3494,
+    "judged@10": 0.1361
+   },
+   "E:mdenseon~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3146,
+    "recall@50": 0.5268,
+    "mrr@10": 0.4413,
+    "judged@10": 0.1708
+   },
+   "B:nano-gpu": {
+    "status": "OK",
+    "ndcg@10": 0.2511,
+    "recall@50": 0.5117,
+    "mrr@10": 0.3703,
+    "judged@10": 0.1479
+   },
+   "E:nano-gpu": {
+    "status": "OK",
+    "ndcg@10": 0.3334,
+    "recall@50": 0.573,
+    "mrr@10": 0.4743,
+    "judged@10": 0.1792
+   },
+   "B:nano-gpu~q8": {
+    "status": "OK",
+    "ndcg@10": 0.2489,
+    "recall@50": 0.5174,
+    "mrr@10": 0.3693,
+    "judged@10": 0.1458
+   },
+   "E:nano-gpu~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3335,
+    "recall@50": 0.5731,
+    "mrr@10": 0.4742,
+    "judged@10": 0.1792
+   },
+   "B:pplx-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.2667,
+    "recall@50": 0.5498,
+    "mrr@10": 0.3804,
+    "judged@10": 0.1556
+   },
+   "E:pplx-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.3298,
+    "recall@50": 0.5735,
+    "mrr@10": 0.4688,
+    "judged@10": 0.1764
+   },
+   "B:pplx-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.2663,
+    "recall@50": 0.5491,
+    "mrr@10": 0.3788,
+    "judged@10": 0.1556
+   },
+   "E:pplx-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3298,
+    "recall@50": 0.5692,
+    "mrr@10": 0.4688,
+    "judged@10": 0.1764
+   },
+   "B:pplx-ctx-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.2643,
+    "recall@50": 0.5209,
+    "mrr@10": 0.4033,
+    "judged@10": 0.1507
+   },
+   "E:pplx-ctx-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.3305,
+    "recall@50": 0.5678,
+    "mrr@10": 0.4721,
+    "judged@10": 0.1771
+   },
+   "B:qwen3-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.2455,
+    "recall@50": 0.4961,
+    "mrr@10": 0.3643,
+    "judged@10": 0.1424
+   },
+   "E:qwen3-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.3267,
+    "recall@50": 0.5523,
+    "mrr@10": 0.4671,
+    "judged@10": 0.1757
+   },
+   "B:qwen3-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.245,
+    "recall@50": 0.4941,
+    "mrr@10": 0.3604,
+    "judged@10": 0.1437
+   },
+   "E:qwen3-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3257,
+    "recall@50": 0.5494,
+    "mrr@10": 0.4673,
+    "judged@10": 0.175
+   },
+   "VIS:omni-small": {
+    "status": "OK",
+    "ndcg@10": 0.1414,
+    "recall@50": 0.3009,
+    "mrr@10": 0.2586,
+    "judged@10": 0.0771
+   },
+   "E+VIS:omni-small": {
+    "status": "OK",
+    "ndcg@10": 0.2318,
+    "recall@50": 0.5453,
+    "mrr@10": 0.3705,
+    "judged@10": 0.134
+   },
+   "E3:omni-small": {
+    "status": "OK",
+    "ndcg@10": 0.3334,
+    "recall@50": 0.56,
+    "mrr@10": 0.4686,
+    "judged@10": 0.1819
+   },
+   "VIS:omni-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.1419,
+    "recall@50": 0.303,
+    "mrr@10": 0.2596,
+    "judged@10": 0.0771
+   },
+   "E+VIS:omni-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.2295,
+    "recall@50": 0.5453,
+    "mrr@10": 0.3703,
+    "judged@10": 0.1326
+   },
+   "E3:omni-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3334,
+    "recall@50": 0.5602,
+    "mrr@10": 0.4686,
+    "judged@10": 0.1819
+   },
+   "VIS:qwen3-vl-2b": {
+    "status": "OK",
+    "ndcg@10": 0.2035,
+    "recall@50": 0.4238,
+    "mrr@10": 0.2985,
+    "judged@10": 0.1215
+   },
+   "E+VIS:qwen3-vl-2b": {
+    "status": "OK",
+    "ndcg@10": 0.2903,
+    "recall@50": 0.5862,
+    "mrr@10": 0.4203,
+    "judged@10": 0.1639
+   },
+   "E3:qwen3-vl-2b": {
+    "status": "OK",
+    "ndcg@10": 0.3337,
+    "recall@50": 0.5749,
+    "mrr@10": 0.4708,
+    "judged@10": 0.1806
+   },
+   "VIS:qwen3-vl-2b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.2044,
+    "recall@50": 0.4267,
+    "mrr@10": 0.2974,
+    "judged@10": 0.1229
+   },
+   "E+VIS:qwen3-vl-2b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.2831,
+    "recall@50": 0.5812,
+    "mrr@10": 0.4043,
+    "judged@10": 0.1632
+   },
+   "E3:qwen3-vl-2b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3337,
+    "recall@50": 0.5728,
+    "mrr@10": 0.4708,
+    "judged@10": 0.1806
+   },
+   "VIS:qwen3-vl-2b~f16": {
+    "status": "OK",
+    "ndcg@10": 0.203,
+    "recall@50": 0.4278,
+    "mrr@10": 0.2934,
+    "judged@10": 0.1222
+   },
+   "E+VIS:qwen3-vl-2b~f16": {
+    "status": "OK",
+    "ndcg@10": 0.2886,
+    "recall@50": 0.5855,
+    "mrr@10": 0.4168,
+    "judged@10": 0.1646
+   },
+   "E3:qwen3-vl-2b~f16": {
+    "status": "OK",
+    "ndcg@10": 0.3331,
+    "recall@50": 0.5721,
+    "mrr@10": 0.4708,
+    "judged@10": 0.1799
+   }
+  },
+  "verified/visual": {
+   "A|bm25-os": {
+    "status": "OK",
+    "ndcg@10": 0.352,
+    "recall@50": 0.6794,
+    "mrr@10": 0.346,
+    "judged@10": 0.0935
+   },
+   "B:nano-rx580": {
+    "status": "OK",
+    "ndcg@10": 0.3185,
+    "recall@50": 0.6452,
+    "mrr@10": 0.3568,
+    "judged@10": 0.0714
+   },
+   "E:nano-rx580": {
+    "status": "OK",
+    "ndcg@10": 0.3489,
+    "recall@50": 0.7218,
+    "mrr@10": 0.3549,
+    "judged@10": 0.0976
+   },
+   "B:bge-m3": {
+    "status": "OK",
+    "ndcg@10": 0.428,
+    "recall@50": 0.679,
+    "mrr@10": 0.4939,
+    "judged@10": 0.0952
+   },
+   "E:bge-m3": {
+    "status": "OK",
+    "ndcg@10": 0.3488,
+    "recall@50": 0.7313,
+    "mrr@10": 0.3546,
+    "judged@10": 0.0976
+   },
+   "B:bge-m3~q8": {
+    "status": "OK",
+    "ndcg@10": 0.4165,
+    "recall@50": 0.673,
+    "mrr@10": 0.4808,
+    "judged@10": 0.0929
+   },
+   "E:bge-m3~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3523,
+    "recall@50": 0.7313,
+    "mrr@10": 0.357,
+    "judged@10": 0.1
+   },
+   "B:giga-480m": {
+    "status": "OK",
+    "ndcg@10": 0.3941,
+    "recall@50": 0.7623,
+    "mrr@10": 0.4083,
+    "judged@10": 0.0952
+   },
+   "E:giga-480m": {
+    "status": "OK",
+    "ndcg@10": 0.3451,
+    "recall@50": 0.7468,
+    "mrr@10": 0.3546,
+    "judged@10": 0.0952
+   },
+   "B:giga-480m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.4009,
+    "recall@50": 0.7742,
+    "mrr@10": 0.4246,
+    "judged@10": 0.0952
+   },
+   "E:giga-480m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3451,
+    "recall@50": 0.7468,
+    "mrr@10": 0.3546,
+    "judged@10": 0.0952
+   },
+   "B:granite-311m": {
+    "status": "OK",
+    "ndcg@10": 0.2492,
+    "recall@50": 0.569,
+    "mrr@10": 0.2538,
+    "judged@10": 0.0643
+   },
+   "E:granite-311m": {
+    "status": "OK",
+    "ndcg@10": 0.3425,
+    "recall@50": 0.7052,
+    "mrr@10": 0.3447,
+    "judged@10": 0.0952
+   },
+   "B:granite-311m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.2498,
+    "recall@50": 0.581,
+    "mrr@10": 0.255,
+    "judged@10": 0.0643
+   },
+   "E:granite-311m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3425,
+    "recall@50": 0.7052,
+    "mrr@10": 0.3447,
+    "judged@10": 0.0952
+   },
+   "B:granite-97m": {
+    "status": "OK",
+    "ndcg@10": 0.2298,
+    "recall@50": 0.577,
+    "mrr@10": 0.2654,
+    "judged@10": 0.0571
+   },
+   "E:granite-97m": {
+    "status": "OK",
+    "ndcg@10": 0.3427,
+    "recall@50": 0.704,
+    "mrr@10": 0.356,
+    "judged@10": 0.0976
+   },
+   "B:granite-97m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.2291,
+    "recall@50": 0.577,
+    "mrr@10": 0.2643,
+    "judged@10": 0.0571
+   },
+   "E:granite-97m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3427,
+    "recall@50": 0.704,
+    "mrr@10": 0.356,
+    "judged@10": 0.0976
+   },
+   "B:harrier-270m": {
+    "status": "OK",
+    "ndcg@10": 0.3592,
+    "recall@50": 0.7123,
+    "mrr@10": 0.3963,
+    "judged@10": 0.0905
+   },
+   "E:harrier-270m": {
+    "status": "OK",
+    "ndcg@10": 0.3531,
+    "recall@50": 0.7603,
+    "mrr@10": 0.3546,
+    "judged@10": 0.1
+   },
+   "B:jina-small": {
+    "status": "OK",
+    "ndcg@10": 0.3546,
+    "recall@50": 0.6817,
+    "mrr@10": 0.3729,
+    "judged@10": 0.0857
+   },
+   "E:jina-small": {
+    "status": "OK",
+    "ndcg@10": 0.3486,
+    "recall@50": 0.7397,
+    "mrr@10": 0.3546,
+    "judged@10": 0.0976
+   },
+   "B:jina-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3628,
+    "recall@50": 0.6817,
+    "mrr@10": 0.3856,
+    "judged@10": 0.0857
+   },
+   "E:jina-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3486,
+    "recall@50": 0.7337,
+    "mrr@10": 0.3546,
+    "judged@10": 0.0976
+   },
+   "B:mdenseon": {
+    "status": "OK",
+    "ndcg@10": 0.3179,
+    "recall@50": 0.6706,
+    "mrr@10": 0.3343,
+    "judged@10": 0.0857
+   },
+   "E:mdenseon": {
+    "status": "OK",
+    "ndcg@10": 0.3486,
+    "recall@50": 0.7266,
+    "mrr@10": 0.3546,
+    "judged@10": 0.0976
+   },
+   "B:mdenseon~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3169,
+    "recall@50": 0.6627,
+    "mrr@10": 0.3337,
+    "judged@10": 0.0857
+   },
+   "E:mdenseon~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3486,
+    "recall@50": 0.7266,
+    "mrr@10": 0.3546,
+    "judged@10": 0.0976
+   },
+   "B:nano-gpu": {
+    "status": "OK",
+    "ndcg@10": 0.3201,
+    "recall@50": 0.6452,
+    "mrr@10": 0.3476,
+    "judged@10": 0.0738
+   },
+   "E:nano-gpu": {
+    "status": "OK",
+    "ndcg@10": 0.3486,
+    "recall@50": 0.7218,
+    "mrr@10": 0.3546,
+    "judged@10": 0.0976
+   },
+   "B:nano-gpu~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3203,
+    "recall@50": 0.6452,
+    "mrr@10": 0.3477,
+    "judged@10": 0.0738
+   },
+   "E:nano-gpu~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3486,
+    "recall@50": 0.7218,
+    "mrr@10": 0.3546,
+    "judged@10": 0.0976
+   },
+   "B:pplx-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.3714,
+    "recall@50": 0.6937,
+    "mrr@10": 0.3884,
+    "judged@10": 0.0976
+   },
+   "E:pplx-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.3417,
+    "recall@50": 0.7528,
+    "mrr@10": 0.3522,
+    "judged@10": 0.0952
+   },
+   "B:pplx-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3697,
+    "recall@50": 0.6937,
+    "mrr@10": 0.3904,
+    "judged@10": 0.0952
+   },
+   "E:pplx-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3417,
+    "recall@50": 0.7528,
+    "mrr@10": 0.3522,
+    "judged@10": 0.0952
+   },
+   "B:pplx-ctx-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.3763,
+    "recall@50": 0.7321,
+    "mrr@10": 0.4215,
+    "judged@10": 0.0905
+   },
+   "E:pplx-ctx-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.3525,
+    "recall@50": 0.7591,
+    "mrr@10": 0.3491,
+    "judged@10": 0.1
+   },
+   "B:qwen3-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.3898,
+    "recall@50": 0.7893,
+    "mrr@10": 0.4234,
+    "judged@10": 0.0952
+   },
+   "E:qwen3-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.3451,
+    "recall@50": 0.7746,
+    "mrr@10": 0.3546,
+    "judged@10": 0.0952
+   },
+   "B:qwen3-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.4011,
+    "recall@50": 0.7893,
+    "mrr@10": 0.4401,
+    "judged@10": 0.0952
+   },
+   "E:qwen3-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3451,
+    "recall@50": 0.7687,
+    "mrr@10": 0.3546,
+    "judged@10": 0.0952
+   },
+   "VIS:omni-small": {
+    "status": "OK",
+    "ndcg@10": 0.2318,
+    "recall@50": 0.6425,
+    "mrr@10": 0.214,
+    "judged@10": 0.0714
+   },
+   "E+VIS:omni-small": {
+    "status": "OK",
+    "ndcg@10": 0.3562,
+    "recall@50": 0.7952,
+    "mrr@10": 0.3452,
+    "judged@10": 0.1024
+   },
+   "E3:omni-small": {
+    "status": "OK",
+    "ndcg@10": 0.3491,
+    "recall@50": 0.7599,
+    "mrr@10": 0.3553,
+    "judged@10": 0.0976
+   },
+   "VIS:omni-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.2366,
+    "recall@50": 0.6544,
+    "mrr@10": 0.216,
+    "judged@10": 0.0714
+   },
+   "E+VIS:omni-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3598,
+    "recall@50": 0.8032,
+    "mrr@10": 0.345,
+    "judged@10": 0.1048
+   },
+   "E3:omni-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3491,
+    "recall@50": 0.7599,
+    "mrr@10": 0.3553,
+    "judged@10": 0.0976
+   },
+   "VIS:qwen3-vl-2b": {
+    "status": "OK",
+    "ndcg@10": 0.3921,
+    "recall@50": 0.7742,
+    "mrr@10": 0.4005,
+    "judged@10": 0.1119
+   },
+   "E+VIS:qwen3-vl-2b": {
+    "status": "OK",
+    "ndcg@10": 0.4575,
+    "recall@50": 0.7718,
+    "mrr@10": 0.48,
+    "judged@10": 0.1167
+   },
+   "E3:qwen3-vl-2b": {
+    "status": "OK",
+    "ndcg@10": 0.3526,
+    "recall@50": 0.7706,
+    "mrr@10": 0.3577,
+    "judged@10": 0.1
+   },
+   "VIS:qwen3-vl-2b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3915,
+    "recall@50": 0.7821,
+    "mrr@10": 0.399,
+    "judged@10": 0.1119
+   },
+   "E+VIS:qwen3-vl-2b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.4696,
+    "recall@50": 0.7718,
+    "mrr@10": 0.4955,
+    "judged@10": 0.119
+   },
+   "E3:qwen3-vl-2b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3526,
+    "recall@50": 0.7659,
+    "mrr@10": 0.3577,
+    "judged@10": 0.1
+   },
+   "VIS:qwen3-vl-2b~f16": {
+    "status": "OK",
+    "ndcg@10": 0.3915,
+    "recall@50": 0.7742,
+    "mrr@10": 0.3998,
+    "judged@10": 0.1119
+   },
+   "E+VIS:qwen3-vl-2b~f16": {
+    "status": "OK",
+    "ndcg@10": 0.4561,
+    "recall@50": 0.7718,
+    "mrr@10": 0.476,
+    "judged@10": 0.1167
+   },
+   "E3:qwen3-vl-2b~f16": {
+    "status": "OK",
+    "ndcg@10": 0.3526,
+    "recall@50": 0.7706,
+    "mrr@10": 0.3577,
+    "judged@10": 0.1
+   }
+  },
+  "verified+pooled/text": {
+   "A|bm25-os": {
+    "status": "OK",
+    "ndcg@10": 0.539,
+    "recall@50": 0.463,
+    "mrr@10": 0.725,
+    "judged@10": 1.0
+   },
+   "B:nano-rx580": {
+    "status": "OK",
+    "ndcg@10": 0.5939,
+    "recall@50": 0.6425,
+    "mrr@10": 0.7722,
+    "judged@10": 1.0
+   },
+   "E:nano-rx580": {
+    "status": "OK",
+    "ndcg@10": 0.7081,
+    "recall@50": 0.7365,
+    "mrr@10": 0.8811,
+    "judged@10": 1.0
+   },
+   "B:bge-m3": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.57,
+    "recall@50": 0.6072,
+    "mrr@10": 0.7478,
+    "judged@10": 0.8556
+   },
+   "E:bge-m3": {
+    "status": "OK",
+    "ndcg@10": 0.7005,
+    "recall@50": 0.7003,
+    "mrr@10": 0.8612,
+    "judged@10": 1.0
+   },
+   "B:bge-m3~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5714,
+    "recall@50": 0.6027,
+    "mrr@10": 0.7524,
+    "judged@10": 0.8549
+   },
+   "E:bge-m3~q8": {
+    "status": "OK",
+    "ndcg@10": 0.6979,
+    "recall@50": 0.6994,
+    "mrr@10": 0.8612,
+    "judged@10": 0.9951
+   },
+   "B:giga-480m": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.6297,
+    "recall@50": 0.6631,
+    "mrr@10": 0.8276,
+    "judged@10": 0.8903
+   },
+   "E:giga-480m": {
+    "status": "OK",
+    "ndcg@10": 0.709,
+    "recall@50": 0.7286,
+    "mrr@10": 0.873,
+    "judged@10": 1.0
+   },
+   "B:giga-480m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.6274,
+    "recall@50": 0.6672,
+    "mrr@10": 0.8292,
+    "judged@10": 0.8868
+   },
+   "E:giga-480m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.7087,
+    "recall@50": 0.7287,
+    "mrr@10": 0.8731,
+    "judged@10": 0.9979
+   },
+   "B:granite-311m": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.4654,
+    "recall@50": 0.5104,
+    "mrr@10": 0.6672,
+    "judged@10": 0.8056
+   },
+   "E:granite-311m": {
+    "status": "OK",
+    "ndcg@10": 0.6889,
+    "recall@50": 0.6623,
+    "mrr@10": 0.8718,
+    "judged@10": 1.0
+   },
+   "B:granite-311m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.4661,
+    "recall@50": 0.5101,
+    "mrr@10": 0.6674,
+    "judged@10": 0.8076
+   },
+   "E:granite-311m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.6896,
+    "recall@50": 0.6616,
+    "mrr@10": 0.8716,
+    "judged@10": 0.9993
+   },
+   "B:granite-97m": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.3796,
+    "recall@50": 0.3866,
+    "mrr@10": 0.5689,
+    "judged@10": 0.7424
+   },
+   "E:granite-97m": {
+    "status": "OK",
+    "ndcg@10": 0.6618,
+    "recall@50": 0.6031,
+    "mrr@10": 0.8396,
+    "judged@10": 1.0
+   },
+   "B:granite-97m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3757,
+    "recall@50": 0.3866,
+    "mrr@10": 0.5671,
+    "judged@10": 0.7312
+   },
+   "E:granite-97m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.662,
+    "recall@50": 0.6033,
+    "mrr@10": 0.8395,
+    "judged@10": 0.9979
+   },
+   "B:harrier-270m": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.4609,
+    "recall@50": 0.4938,
+    "mrr@10": 0.6632,
+    "judged@10": 0.7854
+   },
+   "E:harrier-270m": {
+    "status": "OK",
+    "ndcg@10": 0.6835,
+    "recall@50": 0.6434,
+    "mrr@10": 0.8665,
+    "judged@10": 1.0
+   },
+   "B:jina-small": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.6035,
+    "recall@50": 0.6466,
+    "mrr@10": 0.7996,
+    "judged@10": 0.9056
+   },
+   "E:jina-small": {
+    "status": "OK",
+    "ndcg@10": 0.7081,
+    "recall@50": 0.7313,
+    "mrr@10": 0.8759,
+    "judged@10": 1.0
+   },
+   "B:jina-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.6036,
+    "recall@50": 0.6478,
+    "mrr@10": 0.8007,
+    "judged@10": 0.9035
+   },
+   "E:jina-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.7078,
+    "recall@50": 0.7312,
+    "mrr@10": 0.8759,
+    "judged@10": 0.9993
+   },
+   "B:mdenseon": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.5348,
+    "recall@50": 0.5585,
+    "mrr@10": 0.7385,
+    "judged@10": 0.8479
+   },
+   "E:mdenseon": {
+    "status": "OK",
+    "ndcg@10": 0.6866,
+    "recall@50": 0.6738,
+    "mrr@10": 0.8578,
+    "judged@10": 1.0
+   },
+   "B:mdenseon~q8": {
+    "status": "OK",
+    "ndcg@10": 0.536,
+    "recall@50": 0.5575,
+    "mrr@10": 0.7389,
+    "judged@10": 0.8472
+   },
+   "E:mdenseon~q8": {
+    "status": "OK",
+    "ndcg@10": 0.6865,
+    "recall@50": 0.6737,
+    "mrr@10": 0.8578,
+    "judged@10": 0.9993
+   },
+   "B:nano-gpu": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.5946,
+    "recall@50": 0.6402,
+    "mrr@10": 0.7746,
+    "judged@10": 0.9972
+   },
+   "E:nano-gpu": {
+    "status": "OK",
+    "ndcg@10": 0.7078,
+    "recall@50": 0.7367,
+    "mrr@10": 0.8811,
+    "judged@10": 1.0
+   },
+   "B:nano-gpu~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5921,
+    "recall@50": 0.6416,
+    "mrr@10": 0.7684,
+    "judged@10": 0.9937
+   },
+   "E:nano-gpu~q8": {
+    "status": "OK",
+    "ndcg@10": 0.7081,
+    "recall@50": 0.7373,
+    "mrr@10": 0.8811,
+    "judged@10": 1.0
+   },
+   "B:pplx-0.6b": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.6207,
+    "recall@50": 0.6643,
+    "mrr@10": 0.8106,
+    "judged@10": 0.9097
+   },
+   "E:pplx-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.7073,
+    "recall@50": 0.7265,
+    "mrr@10": 0.8742,
+    "judged@10": 1.0
+   },
+   "B:pplx-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.6228,
+    "recall@50": 0.6633,
+    "mrr@10": 0.8132,
+    "judged@10": 0.909
+   },
+   "E:pplx-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.7069,
+    "recall@50": 0.7236,
+    "mrr@10": 0.8742,
+    "judged@10": 0.9993
+   },
+   "B:pplx-ctx-0.6b": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.5683,
+    "recall@50": 0.5996,
+    "mrr@10": 0.7821,
+    "judged@10": 0.8285
+   },
+   "E:pplx-ctx-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.7037,
+    "recall@50": 0.7005,
+    "mrr@10": 0.8758,
+    "judged@10": 1.0
+   },
+   "B:qwen3-0.6b": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.5655,
+    "recall@50": 0.6041,
+    "mrr@10": 0.7669,
+    "judged@10": 0.8694
+   },
+   "E:qwen3-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.7046,
+    "recall@50": 0.7087,
+    "mrr@10": 0.8765,
+    "judged@10": 1.0
+   },
+   "B:qwen3-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5637,
+    "recall@50": 0.6016,
+    "mrr@10": 0.7604,
+    "judged@10": 0.8722
+   },
+   "E:qwen3-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.703,
+    "recall@50": 0.7064,
+    "mrr@10": 0.8765,
+    "judged@10": 0.9979
+   },
+   "VIS:omni-small": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.333,
+    "recall@50": 0.3422,
+    "mrr@10": 0.5574,
+    "judged@10": 0.709
+   },
+   "E+VIS:omni-small": {
+    "status": "OK",
+    "ndcg@10": 0.5682,
+    "recall@50": 0.6892,
+    "mrr@10": 0.7986,
+    "judged@10": 1.0
+   },
+   "E3:omni-small": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.7059,
+    "recall@50": 0.7287,
+    "mrr@10": 0.8804,
+    "judged@10": 0.9979
+   },
+   "VIS:omni-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.3337,
+    "recall@50": 0.3443,
+    "mrr@10": 0.5602,
+    "judged@10": 0.7097
+   },
+   "E+VIS:omni-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5676,
+    "recall@50": 0.69,
+    "mrr@10": 0.8015,
+    "judged@10": 0.9944
+   },
+   "E3:omni-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.7057,
+    "recall@50": 0.7297,
+    "mrr@10": 0.8804,
+    "judged@10": 0.9979
+   },
+   "VIS:qwen3-vl-2b": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.4608,
+    "recall@50": 0.445,
+    "mrr@10": 0.7116,
+    "judged@10": 0.7625
+   },
+   "E+VIS:qwen3-vl-2b": {
+    "status": "OK",
+    "ndcg@10": 0.6146,
+    "recall@50": 0.7225,
+    "mrr@10": 0.7975,
+    "judged@10": 1.0
+   },
+   "E3:qwen3-vl-2b": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.7089,
+    "recall@50": 0.7409,
+    "mrr@10": 0.8812,
+    "judged@10": 0.9979
+   },
+   "VIS:qwen3-vl-2b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.4619,
+    "recall@50": 0.4432,
+    "mrr@10": 0.707,
+    "judged@10": 0.7618
+   },
+   "E+VIS:qwen3-vl-2b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.6124,
+    "recall@50": 0.7238,
+    "mrr@10": 0.7959,
+    "judged@10": 0.9951
+   },
+   "E3:qwen3-vl-2b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.7089,
+    "recall@50": 0.7402,
+    "mrr@10": 0.8812,
+    "judged@10": 0.9972
+   },
+   "VIS:qwen3-vl-2b~f16": {
+    "status": "OK",
+    "ndcg@10": 0.4626,
+    "recall@50": 0.4456,
+    "mrr@10": 0.7119,
+    "judged@10": 0.7611
+   },
+   "E+VIS:qwen3-vl-2b~f16": {
+    "status": "OK",
+    "ndcg@10": 0.6128,
+    "recall@50": 0.7233,
+    "mrr@10": 0.7943,
+    "judged@10": 0.9965
+   },
+   "E3:qwen3-vl-2b~f16": {
+    "status": "OK",
+    "ndcg@10": 0.7088,
+    "recall@50": 0.7417,
+    "mrr@10": 0.8812,
+    "judged@10": 0.9979
+   }
+  },
+  "verified+pooled/visual": {
+   "A|bm25-os": {
+    "status": "OK",
+    "ndcg@10": 0.5438,
+    "recall@50": 0.5932,
+    "mrr@10": 0.65,
+    "judged@10": 1.0
+   },
+   "B:nano-rx580": {
+    "status": "OK",
+    "ndcg@10": 0.5188,
+    "recall@50": 0.609,
+    "mrr@10": 0.6999,
+    "judged@10": 1.0
+   },
+   "E:nano-rx580": {
+    "status": "OK",
+    "ndcg@10": 0.5799,
+    "recall@50": 0.7158,
+    "mrr@10": 0.6691,
+    "judged@10": 1.0
+   },
+   "B:bge-m3": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.5819,
+    "recall@50": 0.6545,
+    "mrr@10": 0.7864,
+    "judged@10": 0.8238
+   },
+   "E:bge-m3": {
+    "status": "OK",
+    "ndcg@10": 0.5951,
+    "recall@50": 0.7403,
+    "mrr@10": 0.6736,
+    "judged@10": 1.0
+   },
+   "B:bge-m3~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5769,
+    "recall@50": 0.6575,
+    "mrr@10": 0.7713,
+    "judged@10": 0.8238
+   },
+   "E:bge-m3~q8": {
+    "status": "OK",
+    "ndcg@10": 0.597,
+    "recall@50": 0.7403,
+    "mrr@10": 0.6736,
+    "judged@10": 1.0
+   },
+   "B:giga-480m": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.5999,
+    "recall@50": 0.74,
+    "mrr@10": 0.7161,
+    "judged@10": 0.8929
+   },
+   "E:giga-480m": {
+    "status": "OK",
+    "ndcg@10": 0.592,
+    "recall@50": 0.7402,
+    "mrr@10": 0.6756,
+    "judged@10": 1.0
+   },
+   "B:giga-480m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5965,
+    "recall@50": 0.7373,
+    "mrr@10": 0.7086,
+    "judged@10": 0.8905
+   },
+   "E:giga-480m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.592,
+    "recall@50": 0.7369,
+    "mrr@10": 0.6756,
+    "judged@10": 1.0
+   },
+   "B:granite-311m": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.4787,
+    "recall@50": 0.561,
+    "mrr@10": 0.6508,
+    "judged@10": 0.8262
+   },
+   "E:granite-311m": {
+    "status": "OK",
+    "ndcg@10": 0.5812,
+    "recall@50": 0.7131,
+    "mrr@10": 0.6696,
+    "judged@10": 1.0
+   },
+   "B:granite-311m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.4802,
+    "recall@50": 0.5676,
+    "mrr@10": 0.65,
+    "judged@10": 0.8286
+   },
+   "E:granite-311m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5812,
+    "recall@50": 0.7155,
+    "mrr@10": 0.6696,
+    "judged@10": 1.0
+   },
+   "B:granite-97m": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.4039,
+    "recall@50": 0.5008,
+    "mrr@10": 0.5579,
+    "judged@10": 0.7667
+   },
+   "E:granite-97m": {
+    "status": "OK",
+    "ndcg@10": 0.5798,
+    "recall@50": 0.6921,
+    "mrr@10": 0.675,
+    "judged@10": 1.0
+   },
+   "B:granite-97m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.4042,
+    "recall@50": 0.4931,
+    "mrr@10": 0.5469,
+    "judged@10": 0.7738
+   },
+   "E:granite-97m~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5798,
+    "recall@50": 0.6863,
+    "mrr@10": 0.675,
+    "judged@10": 1.0
+   },
+   "B:harrier-270m": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.5095,
+    "recall@50": 0.6213,
+    "mrr@10": 0.7179,
+    "judged@10": 0.7857
+   },
+   "E:harrier-270m": {
+    "status": "OK",
+    "ndcg@10": 0.592,
+    "recall@50": 0.7457,
+    "mrr@10": 0.6719,
+    "judged@10": 1.0
+   },
+   "B:jina-small": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.5557,
+    "recall@50": 0.6346,
+    "mrr@10": 0.673,
+    "judged@10": 0.8643
+   },
+   "E:jina-small": {
+    "status": "OK",
+    "ndcg@10": 0.5901,
+    "recall@50": 0.7335,
+    "mrr@10": 0.6736,
+    "judged@10": 1.0
+   },
+   "B:jina-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5583,
+    "recall@50": 0.6306,
+    "mrr@10": 0.6889,
+    "judged@10": 0.8595
+   },
+   "E:jina-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5875,
+    "recall@50": 0.7361,
+    "mrr@10": 0.6736,
+    "judged@10": 1.0
+   },
+   "B:mdenseon": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.515,
+    "recall@50": 0.6357,
+    "mrr@10": 0.6959,
+    "judged@10": 0.8381
+   },
+   "E:mdenseon": {
+    "status": "OK",
+    "ndcg@10": 0.587,
+    "recall@50": 0.716,
+    "mrr@10": 0.6691,
+    "judged@10": 1.0
+   },
+   "B:mdenseon~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5123,
+    "recall@50": 0.6311,
+    "mrr@10": 0.696,
+    "judged@10": 0.8381
+   },
+   "E:mdenseon~q8": {
+    "status": "OK",
+    "ndcg@10": 0.587,
+    "recall@50": 0.7173,
+    "mrr@10": 0.6691,
+    "judged@10": 1.0
+   },
+   "B:nano-gpu": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.5149,
+    "recall@50": 0.6083,
+    "mrr@10": 0.7007,
+    "judged@10": 0.9905
+   },
+   "E:nano-gpu": {
+    "status": "OK",
+    "ndcg@10": 0.5817,
+    "recall@50": 0.7199,
+    "mrr@10": 0.6691,
+    "judged@10": 1.0
+   },
+   "B:nano-gpu~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5166,
+    "recall@50": 0.6104,
+    "mrr@10": 0.6999,
+    "judged@10": 0.9881
+   },
+   "E:nano-gpu~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5817,
+    "recall@50": 0.7199,
+    "mrr@10": 0.6691,
+    "judged@10": 1.0
+   },
+   "B:pplx-0.6b": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.6025,
+    "recall@50": 0.6912,
+    "mrr@10": 0.7221,
+    "judged@10": 0.9238
+   },
+   "E:pplx-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.5815,
+    "recall@50": 0.7462,
+    "mrr@10": 0.6681,
+    "judged@10": 1.0
+   },
+   "B:pplx-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.6066,
+    "recall@50": 0.6898,
+    "mrr@10": 0.7236,
+    "judged@10": 0.9238
+   },
+   "E:pplx-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5813,
+    "recall@50": 0.7462,
+    "mrr@10": 0.6681,
+    "judged@10": 1.0
+   },
+   "B:pplx-ctx-0.6b": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.5515,
+    "recall@50": 0.6912,
+    "mrr@10": 0.7101,
+    "judged@10": 0.8214
+   },
+   "E:pplx-ctx-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.5983,
+    "recall@50": 0.7567,
+    "mrr@10": 0.6736,
+    "judged@10": 1.0
+   },
+   "B:qwen3-0.6b": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.5828,
+    "recall@50": 0.7177,
+    "mrr@10": 0.7607,
+    "judged@10": 0.8976
+   },
+   "E:qwen3-0.6b": {
+    "status": "OK",
+    "ndcg@10": 0.5854,
+    "recall@50": 0.75,
+    "mrr@10": 0.6724,
+    "judged@10": 1.0
+   },
+   "B:qwen3-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5857,
+    "recall@50": 0.7167,
+    "mrr@10": 0.7647,
+    "judged@10": 0.9024
+   },
+   "E:qwen3-0.6b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5846,
+    "recall@50": 0.7472,
+    "mrr@10": 0.6724,
+    "judged@10": 0.9976
+   },
+   "VIS:omni-small": {
+    "status": "OK",
+    "ndcg@10": 0.4041,
+    "recall@50": 0.5799,
+    "mrr@10": 0.535,
+    "judged@10": 1.0
+   },
+   "E+VIS:omni-small": {
+    "status": "OK",
+    "ndcg@10": 0.5946,
+    "recall@50": 0.7815,
+    "mrr@10": 0.7427,
+    "judged@10": 1.0
+   },
+   "E3:omni-small": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.5819,
+    "recall@50": 0.7646,
+    "mrr@10": 0.6699,
+    "judged@10": 1.0
+   },
+   "VIS:omni-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.4046,
+    "recall@50": 0.5861,
+    "mrr@10": 0.5226,
+    "judged@10": 0.9857
+   },
+   "E+VIS:omni-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5924,
+    "recall@50": 0.7835,
+    "mrr@10": 0.7308,
+    "judged@10": 0.9952
+   },
+   "E3:omni-small~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5821,
+    "recall@50": 0.7646,
+    "mrr@10": 0.6699,
+    "judged@10": 1.0
+   },
+   "VIS:qwen3-vl-2b": {
+    "status": "OK",
+    "ndcg@10": 0.5466,
+    "recall@50": 0.7129,
+    "mrr@10": 0.6796,
+    "judged@10": 1.0
+   },
+   "E+VIS:qwen3-vl-2b": {
+    "status": "OK",
+    "ndcg@10": 0.6395,
+    "recall@50": 0.7996,
+    "mrr@10": 0.7689,
+    "judged@10": 1.0
+   },
+   "E3:qwen3-vl-2b": {
+    "status": "PARTIAL_POOL",
+    "ndcg@10": 0.5807,
+    "recall@50": 0.7692,
+    "mrr@10": 0.6691,
+    "judged@10": 1.0
+   },
+   "VIS:qwen3-vl-2b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5454,
+    "recall@50": 0.7155,
+    "mrr@10": 0.692,
+    "judged@10": 0.9881
+   },
+   "E+VIS:qwen3-vl-2b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.6423,
+    "recall@50": 0.7983,
+    "mrr@10": 0.7772,
+    "judged@10": 0.9929
+   },
+   "E3:qwen3-vl-2b~q8": {
+    "status": "OK",
+    "ndcg@10": 0.5807,
+    "recall@50": 0.7667,
+    "mrr@10": 0.6691,
+    "judged@10": 1.0
+   },
+   "VIS:qwen3-vl-2b~f16": {
+    "status": "OK",
+    "ndcg@10": 0.5461,
+    "recall@50": 0.7065,
+    "mrr@10": 0.6797,
+    "judged@10": 0.9929
+   },
+   "E+VIS:qwen3-vl-2b~f16": {
+    "status": "OK",
+    "ndcg@10": 0.6381,
+    "recall@50": 0.7996,
+    "mrr@10": 0.7629,
+    "judged@10": 0.9976
+   },
+   "E3:qwen3-vl-2b~f16": {
+    "status": "OK",
+    "ndcg@10": 0.5807,
+    "recall@50": 0.7692,
+    "mrr@10": 0.6691,
+    "judged@10": 1.0
+   }
+  }
+ },
+ "decision": {
+  "rule": "PREREGISTRATION.md §6 (recommendation; the switch is the user's decision)",
+  "dense_choice": null,
+  "visual_choice": null,
+  "dense": {
+   "qwen3-0.6b": {
+    "license": "Apache-2.0",
+    "delta_V_text": -0.0067680761087919135,
+    "p_V_text": 0.013498650134986502,
+    "holm_p": 0.09449055094490552,
+    "delta_P_text": -0.0034976678156612936,
+    "p_P_text": 0.36336366363363665,
+    "delta_V_visual": -0.0037887414233138276,
+    "delta_P_visual": 0.005445018199450495,
+    "criteria": {
+     "a_sig_V_text": false,
+     "b_P_text_not_negative": false,
+     "c_visual_guard": true,
+     "d_serving": false
+    },
+    "recommended_candidate": false
+   },
+   "bge-m3": {
+    "license": "MIT",
+    "delta_V_text": -0.008579928732536036,
+    "p_V_text": 0.0912908709129087,
+    "holm_p": 0.43645635436456354,
+    "delta_P_text": -0.007508861666183537,
+    "p_P_text": 0.039896010398960104,
+    "delta_V_visual": -0.00013985095801648844,
+    "delta_P_visual": 0.0151838545159372,
+    "criteria": {
+     "a_sig_V_text": false,
+     "b_P_text_not_negative": false,
+     "c_visual_guard": true,
+     "d_serving": true
+    },
+    "recommended_candidate": false
+   },
+   "jina-small": {
+    "license": "CC-BY-NC-4.0",
+    "delta_V_text": -0.004032197119612842,
+    "p_V_text": 0.1351864813518648,
+    "holm_p": 0.43645635436456354,
+    "delta_P_text": 2.3591416343322748e-05,
+    "p_P_text": 0.9935006499350065,
+    "delta_V_visual": -0.0002848849844307946,
+    "delta_P_visual": 0.010161686603237978,
+    "criteria": {
+     "a_sig_V_text": false,
+     "b_P_text_not_negative": true,
+     "c_visual_guard": true,
+     "d_serving": true
+    },
+    "recommended_candidate": false
+   },
+   "giga-480m": {
+    "license": "MIT",
+    "delta_V_text": -0.007203131778664018,
+    "p_V_text": 0.028897110288971104,
+    "holm_p": 0.17338266173382663,
+    "delta_P_text": 0.0009379049801242819,
+    "p_P_text": 0.816018398160184,
+    "delta_V_visual": -0.0037887414233138276,
+    "delta_P_visual": 0.012082224555610834,
+    "criteria": {
+     "a_sig_V_text": false,
+     "b_P_text_not_negative": true,
+     "c_visual_guard": true,
+     "d_serving": false
+    },
+    "recommended_candidate": false
+   },
+   "pplx-0.6b": {
+    "license": "MIT",
+    "delta_V_text": -0.00368485375331164,
+    "p_V_text": 0.10548945105489452,
+    "holm_p": 0.43645635436456354,
+    "delta_P_text": -0.0007157284377493861,
+    "p_P_text": 0.8646135386461354,
+    "delta_V_visual": -0.007167380849142409,
+    "delta_P_visual": 0.0015390627872857879,
+    "criteria": {
+     "a_sig_V_text": false,
+     "b_P_text_not_negative": false,
+     "c_visual_guard": true,
+     "d_serving": false
+    },
+    "recommended_candidate": false
+   },
+   "granite-311m": {
+    "license": "Apache-2.0",
+    "delta_V_text": -0.01212083320431182,
+    "p_V_text": 0.0872912708729127,
+    "holm_p": 0.43645635436456354,
+    "delta_P_text": -0.019126779367682784,
+    "p_P_text": 0.0007999200079992001,
+    "delta_V_visual": -0.0064424126826992095,
+    "delta_P_visual": 0.0013139496307847406,
+    "criteria": {
+     "a_sig_V_text": false,
+     "b_P_text_not_negative": false,
+     "c_visual_guard": true,
+     "d_serving": true
+    },
+    "recommended_candidate": false
+   },
+   "mdenseon": {
+    "license": "Apache-2.0",
+    "delta_V_text": -0.021266075452665373,
+    "p_V_text": 0.0084991500849915,
+    "holm_p": 0.07109289071092892,
+    "delta_P_text": -0.021498711165544658,
+    "p_P_text": 0.0010998900109989002,
+    "delta_V_visual": -0.0002848849844307946,
+    "delta_P_visual": 0.0071139567966590255,
+    "criteria": {
+     "a_sig_V_text": false,
+     "b_P_text_not_negative": false,
+     "c_visual_guard": true,
+     "d_serving": false
+    },
+    "recommended_candidate": false
+   },
+   "granite-97m": {
+    "license": "Apache-2.0",
+    "delta_V_text": -0.031537108705594966,
+    "p_V_text": 0.0020997900209979003,
+    "holm_p": 0.020997900209979003,
+    "delta_P_text": -0.04623135053752326,
+    "p_P_text": 9.999000099990002e-05,
+    "delta_V_visual": -0.006173954842121975,
+    "delta_P_visual": -0.00016450659687546252,
+    "criteria": {
+     "a_sig_V_text": false,
+     "b_P_text_not_negative": false,
+     "c_visual_guard": true,
+     "d_serving": true
+    },
+    "recommended_candidate": false
+   },
+   "harrier-270m": {
+    "license": "MIT",
+    "delta_V_text": -0.021027445267480016,
+    "p_V_text": 0.007899210078992101,
+    "holm_p": 0.07109289071092892,
+    "delta_P_text": -0.024532584566952356,
+    "p_P_text": 0.000999900009999,
+    "delta_V_visual": 0.004241417361201402,
+    "delta_P_visual": 0.01210668544194317,
+    "criteria": {
+     "a_sig_V_text": false,
+     "b_P_text_not_negative": false,
+     "c_visual_guard": true,
+     "d_serving": false
+    },
+    "recommended_candidate": false
+   },
+   "pplx-ctx-0.6b": {
+    "license": "MIT",
+    "delta_V_text": -0.0030421838109438845,
+    "p_V_text": 0.5229477052294771,
+    "holm_p": 0.5229477052294771,
+    "delta_P_text": -0.004357802996826558,
+    "p_P_text": 0.2843715628437156,
+    "delta_V_visual": 0.0035626182823175565,
+    "delta_P_visual": 0.0183989026438944,
+    "criteria": {
+     "a_sig_V_text": false,
+     "b_P_text_not_negative": false,
+     "c_visual_guard": true,
+     "d_serving": false
+    },
+    "recommended_candidate": false
+   }
+  },
+  "visual": {
+   "qwen3-vl-2b": {
+    "run": true,
+    "license": "Apache-2.0",
+    "holm_p": 0.031596840315968405,
+    "delta_V_visual": 0.10860188756634226,
+    "p_V_visual": 0.015798420157984203,
+    "delta_P_visual": 0.05958758908468603,
+    "p_P_visual": 0.0178982101789821,
+    "delta_V_text": -0.04323232839403376,
+    "p_V_text": 0.023297670232976703,
+    "delta_P_text": -0.09345998862548752,
+    "p_P_text": 9.999000099990002e-05,
+    "passes_quality": true,
+    "scope": "visual route only",
+    "serving": null,
+    "recommended": false
+   },
+   "omni-small": {
+    "run": true,
+    "license": "CC-BY-NC-4.0",
+    "holm_p": 0.8678132186781322,
+    "delta_V_visual": 0.007318445148885626,
+    "p_V_visual": 0.8678132186781322,
+    "delta_P_visual": 0.014700479163583993,
+    "p_P_visual": 0.6073392660733926,
+    "delta_V_text": -0.10173932958741712,
+    "p_V_text": 9.999000099990002e-05,
+    "delta_P_text": -0.1398907992401046,
+    "p_P_text": 9.999000099990002e-05,
+    "passes_quality": false,
+    "scope": null,
+    "serving": true,
+    "recommended": false
+   }
+  }
+ },
+ "serving": {
+  "rx580_budget_mib": 7168,
+  "rx580_resident_now_mib": 403.1,
+  "edge": "GTX 1650: 186 MiB free after the rerankers (MODEL_SERVICES.md §3) — not a target",
+  "feasibility": {
+   "nano-gpu": {
+    "license": "CC-BY-NC-4.0",
+    "gguf_q8": true,
+    "gate": "PASS",
+    "rx580_vram_mib": 211.1,
+    "rx580_query_ms_p50": 9.7,
+    "rx580_query_ms_p95": 11.7,
+    "rx580_resident_mib_after_switch": 403.1,
+    "fits_rx580": true,
+    "reencode_current_snapshot_min_5070ti": 3.1,
+    "units_per_s_5070ti": 1115.2,
+    "q8_cos_mean": 0.9996700286865234,
+    "q8_cos_min": 0.9990577697753906,
+    "q8_delta_ndcg10": {
+     "verified": 0.00015539785428053386,
+     "verified+pooled": 0.0002808249215226912
+    },
+    "q8_parity_ok": true,
+    "feasible": true
+   },
+   "qwen3-0.6b": {
+    "license": "Apache-2.0",
+    "gguf_q8": true,
+    "gate": "PASS",
+    "rx580_vram_mib": 1186.3,
+    "rx580_query_ms_p50": 28.0,
+    "rx580_query_ms_p95": 32.9,
+    "rx580_resident_mib_after_switch": 1378.3,
+    "fits_rx580": true,
+    "reencode_current_snapshot_min_5070ti": 13.9,
+    "units_per_s_5070ti": 247.2,
+    "q8_cos_mean": 0.9988806843757629,
+    "q8_cos_min": 0.9970977306365967,
+    "q8_delta_ndcg10": {
+     "verified": -0.0009903429016302448,
+     "verified+pooled": -0.0016006525928716421
+    },
+    "q8_parity_ok": false,
+    "feasible": false
+   },
+   "bge-m3": {
+    "license": "MIT",
+    "gguf_q8": true,
+    "gate": "PASS (dense)",
+    "rx580_vram_mib": 388.6,
+    "rx580_query_ms_p50": 32.0,
+    "rx580_query_ms_p95": 36.2,
+    "rx580_resident_mib_after_switch": 580.6,
+    "fits_rx580": true,
+    "reencode_current_snapshot_min_5070ti": 5.2,
+    "units_per_s_5070ti": 656.4,
+    "q8_cos_mean": 0.9992241263389587,
+    "q8_cos_min": 0.9985976219177246,
+    "q8_delta_ndcg10": {
+     "verified": -0.00069787338084353,
+     "verified+pooled": -0.002666087425513028
+    },
+    "q8_parity_ok": true,
+    "feasible": true
+   },
+   "jina-small": {
+    "license": "CC-BY-NC-4.0",
+    "gguf_q8": true,
+    "gate": "PASS",
+    "rx580_vram_mib": 1199.9,
+    "rx580_query_ms_p50": 28.0,
+    "rx580_query_ms_p95": 33.7,
+    "rx580_resident_mib_after_switch": 1391.9,
+    "fits_rx580": true,
+    "reencode_current_snapshot_min_5070ti": 13.8,
+    "units_per_s_5070ti": 247.4,
+    "q8_cos_mean": 0.9996246695518494,
+    "q8_cos_min": 0.9992068409919739,
+    "q8_delta_ndcg10": {
+     "verified": 0.0,
+     "verified+pooled": -0.0003199263137924262
+    },
+    "q8_parity_ok": true,
+    "feasible": true
+   },
+   "giga-480m": {
+    "license": "MIT",
+    "gguf_q8": true,
+    "gate": "PASS",
+    "rx580_vram_mib": 610.6,
+    "rx580_query_ms_p50": 25.3,
+    "rx580_query_ms_p95": 29.7,
+    "rx580_resident_mib_after_switch": 802.6,
+    "fits_rx580": true,
+    "reencode_current_snapshot_min_5070ti": 8.8,
+    "units_per_s_5070ti": 387.1,
+    "q8_cos_mean": 0.9987176060676575,
+    "q8_cos_min": 0.9965744018554688,
+    "q8_delta_ndcg10": {
+     "verified": -0.00035289422690057567,
+     "verified+pooled": -0.00024922940313702795
+    },
+    "q8_parity_ok": false,
+    "feasible": false
+   },
+   "pplx-0.6b": {
+    "license": "MIT",
+    "gguf_q8": true,
+    "gate": "PASS",
+    "rx580_vram_mib": 735.9,
+    "rx580_query_ms_p50": 27.0,
+    "rx580_query_ms_p95": 32.1,
+    "rx580_resident_mib_after_switch": 927.9,
+    "fits_rx580": true,
+    "reencode_current_snapshot_min_5070ti": 13.9,
+    "units_per_s_5070ti": 246.2,
+    "q8_cos_mean": 0.9988579154014587,
+    "q8_cos_min": 0.9815611839294434,
+    "q8_delta_ndcg10": {
+     "verified": 0.0,
+     "verified+pooled": -0.0004757112019394642
+    },
+    "q8_parity_ok": false,
+    "feasible": false
+   },
+   "granite-311m": {
+    "license": "Apache-2.0",
+    "gguf_q8": true,
+    "gate": "PASS",
+    "rx580_vram_mib": 172.5,
+    "rx580_query_ms_p50": 11.6,
+    "rx580_query_ms_p95": 14.0,
+    "rx580_resident_mib_after_switch": 364.5,
+    "fits_rx580": true,
+    "reencode_current_snapshot_min_5070ti": 4.1,
+    "units_per_s_5070ti": 828.7,
+    "q8_cos_mean": 0.9998966455459595,
+    "q8_cos_min": 0.9985427260398865,
+    "q8_delta_ndcg10": {
+     "verified": 0.0005821809811422529,
+     "verified+pooled": 0.0007145757776447319
+    },
+    "q8_parity_ok": true,
+    "feasible": true
+   },
+   "mdenseon": {
+    "license": "Apache-2.0",
+    "gguf_q8": true,
+    "gate": "PASS",
+    "rx580_vram_mib": 172.0,
+    "rx580_query_ms_p50": 11.6,
+    "rx580_query_ms_p95": 14.6,
+    "rx580_resident_mib_after_switch": 364.0,
+    "fits_rx580": true,
+    "reencode_current_snapshot_min_5070ti": 4.7,
+    "units_per_s_5070ti": 721.8,
+    "q8_cos_mean": 0.9983643889427185,
+    "q8_cos_min": 0.9974128007888794,
+    "q8_delta_ndcg10": {
+     "verified": 0.0023469118409555085,
+     "verified+pooled": -9.954786530289337e-05
+    },
+    "q8_parity_ok": false,
+    "feasible": false
+   },
+   "granite-97m": {
+    "license": "Apache-2.0",
+    "gguf_q8": true,
+    "gate": "PASS",
+    "rx580_vram_mib": 100.9,
+    "rx580_query_ms_p50": 6.4,
+    "rx580_query_ms_p95": 6.8,
+    "rx580_resident_mib_after_switch": 292.9,
+    "fits_rx580": true,
+    "reencode_current_snapshot_min_5070ti": 2.6,
+    "units_per_s_5070ti": 1293.6,
+    "q8_cos_mean": 0.9997109770774841,
+    "q8_cos_min": 0.9991462230682373,
+    "q8_delta_ndcg10": {
+     "verified": 0.0,
+     "verified+pooled": 0.0002177202225739409
+    },
+    "q8_parity_ok": true,
+    "feasible": true
+   },
+   "harrier-270m": {
+    "license": "MIT",
+    "gguf_q8": false,
+    "gate": "no GGUF on the pin",
+    "rx580_vram_mib": null,
+    "rx580_query_ms_p50": null,
+    "rx580_query_ms_p95": null,
+    "reencode_current_snapshot_min_5070ti": 5.1,
+    "units_per_s_5070ti": 677.6,
+    "q8_delta_ndcg10": null,
+    "q8_parity_ok": null,
+    "feasible": false
+   },
+   "pplx-ctx-0.6b": {
+    "license": "MIT",
+    "gguf_q8": true,
+    "gate": "PASS",
+    "rx580_vram_mib": 739.0,
+    "rx580_query_ms_p50": 27.2,
+    "rx580_query_ms_p95": 32.5,
+    "rx580_resident_mib_after_switch": 931.0,
+    "fits_rx580": true,
+    "reencode_current_snapshot_min_5070ti": 28.3,
+    "units_per_s_5070ti": 120.8,
+    "q8_delta_ndcg10": null,
+    "q8_parity_ok": null,
+    "feasible": false
+   },
+   "qwen3-vl-2b": {
+    "license": "Apache-2.0",
+    "text_tower": "own GGUF: convert_hf_to_gguf.py (llama.cpp 4da6337767f9, text model, arch qwen3vl) → llama-quantize Q8_0",
+    "q8_cos_mean": 0.9979121088981628,
+    "q8_cos_min": 0.9960899353027344,
+    "q8_delta_ndcg10": {
+     "verified/visual": 0.012063588150019242,
+     "verified/text": -0.007137823160948557,
+     "verified+pooled/visual": 0.002752650921230188,
+     "verified+pooled/text": -0.00216380393482867
+    },
+    "q8_parity_ok": false,
+    "q8_cpu_latency_ms": {
+     "p50": 177.23370500016244,
+     "p95": 265.62657059985196
+    },
+    "f16_diag": {
+     "cos_mean": 0.9997506737709045,
+     "cos_min": 0.9994598627090454,
+     "cpu_latency_ms": {
+      "p50": 156.93430300007094,
+      "p95": 240.34075500012472
+     },
+     "delta_ndcg10": {
+      "verified/visual": -0.0013656889533735393,
+      "verified/text": -0.001694251548904394,
+      "verified+pooled/visual": -0.0013808418521252437,
+      "verified+pooled/text": -0.0017952794869874422
+     },
+     "parity_ok": true
+    },
+    "gguf_file_mib": {
+     "qwen3-vl-emb-2b-F16.gguf": 3287.7,
+     "qwen3-vl-emb-2b-Q8_0.gguf": 1749.4
+    },
+    "rx580_gate": "NOT_RUN: agent K's Vulkan parity gate on the RX580 is required before deployment",
+    "feasible": null,
+    "pages_per_s_5070ti": 9.82,
+    "reencode_pages_min_5070ti": 44.3
+   },
+   "omni-small": {
+    "license": "CC-BY-NC-4.0",
+    "text_tower": "jina-v5-small (Q8_0 GGUF, K gate PASS)",
+    "text_tower_cos_min": 0.9999998807907104,
+    "rx580_vram_mib": 1199.9,
+    "rx580_query_ms_p50": 28.0,
+    "rx580_query_ms_p95": 33.7,
+    "feasible": true,
+    "pages_per_s_5070ti": 13.19,
+    "reencode_pages_min_5070ti": 33.0
+   }
+  },
+  "k_matrix_source": "docs/implementation_work/AGENT_K_RX580_MODEL_MATRIX.md (Q8_0, vk-mesa25)"
+ },
+ "results_file_sha256": "7ab8a52071899a304fa3be420bd02b9a9f945b55d2147564fba2ca215556aecd",
+ "not_deployed": "nothing was deployed to CORE or EDGE; no service was changed"
+}
