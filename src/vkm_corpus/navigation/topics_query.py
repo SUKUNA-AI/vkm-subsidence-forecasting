@@ -149,12 +149,14 @@ def _norm(text: str) -> str:
 
 
 def _stems(phrase: str) -> list[str]:
-    """Prefixes (≈ 3/4 of each word, at least 4 letters) of the words of a phrase — crude, inflection-tolerant."""
+    """Inflection-tolerant prefixes of the words of a phrase (crude, no lemmatiser): a word of up to 6 letters loses
+    its last two (at least 3 kept: «соли» → «сол»), a longer one keeps about 3/4 («напряжения» → «напряжен»)."""
     out = []
     for w in _WORD.findall(_norm(phrase)):
-        if len(w) < 3:
+        n = len(w)
+        if n < 3:
             continue
-        out.append(w if len(w) <= 4 else w[: max(4, round(len(w) * 0.75))])
+        out.append(w if n <= 3 else w[: max(3, n - 2)] if n <= 6 else w[: max(4, round(n * 0.75))])
     return out
 
 
@@ -213,9 +215,9 @@ def _term_ids(con: Any, phrase: str) -> tuple[list[str], list[str], list[str]]:
 def find_topics(con: Any, terms: str | Iterable[str], *, limit: int = 10, level: int | None = None) -> list[dict]:
     """Topics for one phrase or several (all must match), by their labels and by the key terms of their member
     sections. A phrase is matched through N3: its lemma and SAME_AS equivalents (label weight 1.0), longer terms
-    containing it (0.8), word prefixes of the phrase inside one label (0.8), a term of a part of the phrase (0.3);
-    minus 0.05 per label position. Score per phrase = label weight + share of member sections whose key terms carry
-    the phrase (its lemma, a containing term or all its word prefixes)."""
+    containing it (0.8), word prefixes of the phrase inside one label (0.8) or spread over the top five (0.6), a term
+    of a part of the phrase (0.3); minus 0.05 per label position. Score per phrase = label weight + share of member
+    sections whose key terms carry the phrase (its lemma, a containing term or all its word prefixes)."""
     phrases = [terms] if isinstance(terms, str) else [t for t in terms if t and str(t).strip()]
     phrases = [str(p).strip() for p in phrases if str(p).strip()]
     if not phrases:
@@ -257,9 +259,12 @@ def find_topics(con: Any, terms: str | Iterable[str], *, limit: int = 10, level:
                 if lid in weight:
                     label = max(label, weight[lid] - 0.05 * pos)
             if stems:
-                for pos, lab in enumerate(_norm(x) for x in (t.get("label_terms") or [])):
+                labs = [_norm(x) for x in (t.get("label_terms") or [])]
+                for pos, lab in enumerate(labs):
                     if all(st in lab for st in stems):
                         label = max(label, 0.8 - 0.05 * pos)
+                if len(stems) > 1 and label < 0.6 and all(st in " | ".join(labs[:5]) for st in stems):
+                    label = 0.6                          # the words of the phrase spread over the top labels
             share = member_share.get(tid, 0.0)
             if label <= 0 and share <= 0:
                 ok_all[tid] = False
