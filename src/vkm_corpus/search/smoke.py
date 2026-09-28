@@ -4,7 +4,9 @@ Q1 «оседание земной поверхности» (pages): hits, stabl
 Q2 «ползучесть / ползучести каменной соли» (blocks, collapsed by page): identical rankings, one hit per page.
 Q3 «закладка выработанного пространства» (pages): year / origin filters hold, a non-existent value gives 0 hits.
 Q4 «маркшейдерские наблюдения» (blocks): source and source-scope filters hold; availability needs unknown_policy.
-Q5 «рис. 3.1 мульда сдвижения» (figures): only figures; a figure labelled 3.1 in the top 5; visual candidates.
+Q5 «рис. 3.1 мульда сдвижения» (figures): only figures; the number is a gated boost — figures labelled 3.1 among the
+   topic's top hits («мульда сдвижения») come first, the others keep the topic order, no off-topic «рис. 3.1» is
+   pulled up; visual candidates.
 Q6 «расчётная схема» = «расчетная схема»; Q7 «сильвинит» = «сильвинита» ≠ «сильвин»; Q8 «creep» → «creeping».
 Q9 figures+tables+formulas fused by rank (RRF); Q10 text rerank candidates are ID + passage references (≤ 24).
 """
@@ -14,8 +16,8 @@ import re
 from typing import Any, Callable
 
 from vkm_corpus.graph.common import SKIP, CheckResult, check
-from vkm_corpus.search.query import (MAX_TEXT_CANDIDATES, RERANK_TEXT_RULE, SearchRequest, SearchRequestError,
-                                     rerank_candidates, search)
+from vkm_corpus.search.query import (LABEL_TOPIC_K, MAX_TEXT_CANDIDATES, RERANK_TEXT_RULE, SearchRequest,
+                                     SearchRequestError, rerank_candidates, search)
 
 _ID_RE = re.compile(r"^VKM-SRC-\d{3}:[prs]\d{4}(:[bftmc][0-9a-f]{12})?$")
 _EM_RE = re.compile(r"<em>(.*?)</em>")
@@ -41,7 +43,8 @@ def _guard(results: list[CheckResult], check_id: str, title: str, fn: Callable[[
 
 
 def run_smoke(client: Any, prefix: str, *, indices: dict[str, str] | None = None, t0: str = "2009-12-31",
-              min_total: int = 1) -> list[CheckResult]:
+              min_total: int = 1, only: tuple[str, ...] | None = None) -> list[CheckResult]:
+    """All checks, or those named in ``only`` (e.g. ``("Q5",)``)."""
     run = _Runner(client, prefix, indices)
     results: list[CheckResult] = []
 
@@ -121,12 +124,20 @@ def run_smoke(client: Any, prefix: str, *, indices: dict[str, str] | None = None
 
     def q5() -> list[str]:
         resp = run("рис. 3.1 мульда сдвижения", kinds=("FIGURE",), size=20)
+        topic = run("мульда сдвижения", kinds=("FIGURE",), size=LABEL_TOPIC_K)
         bad = [f"non-figure {h.id}" for h in resp.hits if h.object_type != "FIGURE"]
-        # every book has its own «рис. 3.1»: on a multi-source corpus a strongly matching figure with another label
-        # may rank first; the check is that the label boost brings a figure labelled 3.1 into the top 5
-        labelled = [h for h in resp.hits if h.fields.get("object_label") == "3.1"]
-        if labelled and not any(h.fields.get("object_label") == "3.1" for h in resp.hits[:5]):
-            bad.append("no figure labelled 3.1 in the top 5")
+        # every book has its own «рис. 3.1»: the number is a gated boost (agent L) — figures ranked by the topic, and
+        # among the topic's top LABEL_TOPIC_K the ones labelled 3.1 come first; an off-topic «рис. 3.1» never rises
+        topical = [h.id for h in topic.hits]
+        want = [i for i in topical if next(h for h in topic.hits if h.id == i).fields.get("object_label") == "3.1"]
+        got = [h.id for h in resp.hits]
+        if got[:len(want)] != want:
+            bad.append("figures labelled 3.1 among the topic's top hits are not first")
+        if [i for i in got if i not in want][:len(topical) - len(want)] != [i for i in topical if i not in want]:
+            bad.append("the other figures do not keep the topic order")
+        stray = [h.id for h in resp.hits if h.fields.get("object_label") == "3.1" and h.id not in topical]
+        if stray:
+            bad.append(f"off-topic figures labelled 3.1 pulled up: {stray[:3]}")
         visual = rerank_candidates(resp, mode="visual")
         bad += [f"visual candidate without image {c['candidate_id']}" for c in visual["candidates"]
                 if not c.get("image_artifact_id")]
@@ -175,13 +186,15 @@ def run_smoke(client: Any, prefix: str, *, indices: dict[str, str] | None = None
                            ("Q2", "«ползучесть/ползучести каменной соли»: same ranking; one hit per page", q2),
                            ("Q3", "«закладка выработанного пространства»: filters hold", q3),
                            ("Q4", "«маркшейдерские наблюдения»: source, scope, availability filters", q4),
-                           ("Q5", "«рис. 3.1 мульда сдвижения»: figures, label boost, visual candidates", q5),
+                           ("Q5", "«рис. 3.1 мульда сдвижения»: figures, topic-gated label boost, visual "
+                                  "candidates", q5),
                            ("Q6", "«расчётная» = «расчетная»", q6),
                            ("Q7", "«сильвинит» = «сильвинита» ≠ «сильвин»", q7),
                            ("Q8", "«creep» finds and highlights English forms", q8),
                            ("Q9", "figures+tables+formulas fused by rank (RRF), deterministic", q9),
                            ("Q10", "text rerank candidates: ≤ 24 ID + passage references, no text", q10)):
-        _guard(results, cid, title, fn)
+        if only is None or cid in only:
+            _guard(results, cid, title, fn)
     return results
 
 
