@@ -334,7 +334,7 @@ for r in late:                      # the first attempt of each shard carries th
 plan = {}
 for r in first.values():
     for k, v in (r.get("plan") or {}).items():
-        if isinstance(v, int):
+        if isinstance(v, int) and k != "orphaned":    # a shard's "orphaned" counts the other shards' units
             plan[k] = plan.get(k, 0) + v
 print(json.dumps({"key": late[0].get("key") if late else None, "kind": "multivector", "clients": clients,
                   "config_signature": late[0].get("config_signature") if late else None,
