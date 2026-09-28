@@ -34,7 +34,7 @@ class RebuildOptions:
     mode: str = "wipe"
     snapshot_id: str | None = None
     batch_size: int = 5000
-    wipe_batch: int = 10_000
+    wipe_batch: int = 2_000
     plan_only: bool = False
     hash_files: bool = True
     sample_per_label: int = 200
@@ -89,7 +89,20 @@ def purge_test_namespace(driver: Any, database: str, ns: S.Namespace) -> dict[st
 
 
 def wipe(driver: Any, database: str, ns: S.Namespace, batch: int) -> dict[str, Any]:
-    counters = client.run_autocommit(driver, database, C.wipe_layer(ns, batch))
+    """Delete the layer in separate bounded write transactions (LIMIT loop). One auto-commit
+    ``CALL {…} IN TRANSACTIONS`` over the full-corpus graph exceeded the 1 GiB transaction memory pool
+    (MemoryPoolOutOfMemoryError on 663 k nodes); a loop of small transactions keeps memory bounded."""
+    batch = max(100, min(int(batch), 100_000))
+    counters = {"nodes_deleted": 0, "relationships_deleted": 0, "nodes_created": 0, "transactions": 0}
+    query = (f"MATCH (n:{S.q(ns.layer_label)}) WITH n LIMIT {batch} "
+             f"OPTIONAL MATCH (n)-[r]-() WITH n, count(r) AS rels DETACH DELETE n RETURN count(n) AS n, sum(rels) AS r")
+    while True:
+        row = client.write(driver, database, query, timeout=600.0)[0]
+        counters["transactions"] += 1
+        counters["nodes_deleted"] += int(row["n"] or 0)
+        counters["relationships_deleted"] += int(row["r"] or 0)
+        if not row["n"]:
+            break
     left = int(client.read(driver, database, C.count_layer(ns))[0]["n"])
     if left:
         raise ProjectionError("E_WIPE_INCOMPLETE", f"{left} layer node(s) left after the wipe", stage="wipe")
