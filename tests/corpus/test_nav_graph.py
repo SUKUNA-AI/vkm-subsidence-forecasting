@@ -81,8 +81,9 @@ def test_rows_counts_accounting_and_rules(nav):
         exp = expected_counts(inp)
         acct = accounting(inp, exp)
         assert exp["skipped"] == {}
-        assert exp["nodes"] == {"NavSection": 5, "FormulaSymbol": 3, "ParameterCandidate": 1, "Term": 8,
-                                "NavTopic": 3}
+        assert exp["nodes"] == {"NavSection": 5, "FormulaSymbol": 3, "ParameterCandidate": 1, "Term": 10 + 4,
+                                "NavTopic": 3, "NavTable": 2, "ParameterValue": 5, "ObjectDupGroup": 3}
+        assert exp["subsets"] == {"Term.dictionary_only": 4}                # terms of the dictionary only
         r = exp["rels"]
         assert r["NAV_CHILD_OF:NavSection"] == 2 and r["HAS_NAV_SECTION"] == 3
         assert r["COVERS_PAGE"] == 4 + 2 + 2 + 2 + 3                        # full ranges: chapter 1 covers 1-4
@@ -137,6 +138,136 @@ def test_rows_counts_accounting_and_rules(nav):
         assert [(x.from_id, x.to_id, x.props["cosine"], x.props["n_links"]) for x in related] == [
             (SY.TOPIC_IDS[1], SY.TOPIC_IDS[2], 0.42, 3)]
         assert acct["section_aggregates"]["folded"] == {"NavSection properties": 1}
+
+
+def test_new_parts_rows_and_rules(nav):
+    """Tables, parameter values, the term dictionary and object duplicates: nodes, edges, orientation, locators and
+    the property terms (surface rule of the tests: property labels against term lemmas and surface forms)."""
+    nav_dir, ids = nav
+    t = ids["terms"]
+    with NavInput.open(nav_dir, ProjectionOptions(symbol_morphology="surface")) as inp:
+        exp = expected_counts(inp)
+        acct = accounting(inp, exp)
+        r = exp["rels"]
+        assert (r["GRID_OF"], r["TABLE_IN_SECTION"], r["TABULATES"]) == (2, 2, 2)      # T2's property has no term
+        assert (r["VALUE_IN_SECTION"], r["IN_TABLE"], r["IN_BLOCK"], r["NEAR_FORMULA:ParameterValue"],
+                r["VALUE_OF"]) == (4, 2, 3, 1, 4)
+        assert (r["TRANSLATES_TO"], r["SYNONYM_OF"], r["ABBREVIATION_OF"]) == (2, 1, 1)
+        assert all(r[f"DUP_MEMBER_OF:{x}"] == 2 for x in ("Figure", "Table", "Formula"))
+        # every dataset row is accounted for, the ones the graph does not project included
+        assert set(acct) >= set(inp.datasets)
+        assert all(a["closed"] for ds, a in acct.items() if isinstance(a, dict) and a.get("closed") is not None)
+        assert acct["table_cells"]["skipped"] == {
+            "not projected: cells stay in the NAV DuckDB (get_table_structured)": 9}
+        assert acct["term_translations"]["skipped"]["one term id on both sides (one lemma key in two languages)"] == 1
+        assert acct["term_translations"]["nodes"] == {"Term (dictionary_only)": 4}
+        assert acct["parameter_candidates"]["edge_notes"] == {
+            "VALUE_IN_SECTION: no section or an unknown one": 1,
+            "IN_TABLE: values of a table without a structured grid": 0,
+            "VALUE_OF: values whose property has no term": 1}
+        assert acct["table_columns"]["folded"] == {"TABULATES.n_columns": 2}
+        assert acct["property_terms"]["properties_without_term"] == ["ucs"]
+        assert acct["property_terms"]["rule_version"] == N.RULE_PROPERTY_TERM_SURFACE
+
+        tables = {n.id: n.props for n in iter_nodes(inp, N.NODE_BY_LABEL["NavTable"])}
+        t1, t2 = tables[ids["tables"][SY.T1]], tables[ids["tables"][SY.T2]]
+        assert t1["table_id"] == SY.T1 and t1["property_keys"] == ["deformation_modulus", "density"]
+        assert "caption_truncated" not in t1 and t2["caption_truncated"] is True
+        assert len(t2["caption"]) == N.CAPTION_CHARS and t2["caption"].endswith("…")
+        assert t1["rule_version"] == "tables_v1" and t1["review_status"] == "AUTO_EXTRACTED_UNREVIEWED"
+        tab = {(x.from_id, x.to_id): x.props for x in iter_rels(inp, N.REL_BY_NAME["TABULATES"])}
+        density = tab[(ids["tables"][SY.T1], t["плотность"])]
+        assert density["property_keys"] == ["density"] and density["n_columns"] == 1 and density["n_rows"] == 1
+        assert density["in_caption"] is False and density["rule_version"] == N.RULE_PROPERTY_TERM_SURFACE
+        assert tab[(ids["tables"][SY.T1], t["модуль деформация"])]["n_rows"] == 0
+        values = {n.id: n.props for n in iter_nodes(inp, N.NODE_BY_LABEL["ParameterValue"])}
+        v = values[ids["values"]["table_e"]]
+        assert v["value_text"] == "12,5" and v["method"] == "TABLE" and "material_raw" not in v
+        in_table = {x.from_id: x for x in iter_rels(inp, N.REL_BY_NAME["IN_TABLE"])}
+        assert in_table[ids["values"]["table_e"]].to_id == ids["tables"][SY.T1]
+        assert (in_table[ids["values"]["table_e"]].props["table_row"], in_table[ids["values"]["table_e"]].props[
+            "table_col"]) == (1, 1)
+        near = list(iter_rels(inp, N.REL_BY_NAME["NEAR_FORMULA:ParameterValue"]))
+        assert [(x.from_id, x.to_id) for x in near] == [(ids["values"]["formula_ucs"], SY.F2)]
+        value_of = {x.from_id: x.to_id for x in iter_rels(inp, N.REL_BY_NAME["VALUE_OF"])}
+        assert value_of[ids["values"]["text_rho"]] == t["плотность"] and ids["values"]["formula_ucs"] not in value_of
+
+        # the dictionary: TRANSLATES_TO ru → en, ABBREVIATION_OF abbreviation → full form, SYNONYM_OF smaller → larger
+        only = ids["dictionary_only"]
+        tr = {(x.from_id, x.to_id): x for x in iter_rels(inp, N.REL_BY_NAME["TRANSLATES_TO"])}
+        seed = tr[(t["ползучесть"], t["creep"])]
+        assert seed.key.startswith("TTR-") and seed.props["pair_id"] == seed.key
+        assert seed.props["status"] == "REVIEWED_BY_AGENT" and seed.props["score"] == 1.0
+        assert seed.props["from_language"] == "ru" and seed.props["to_language"] == "en"
+        assert seed.props["example_page_ids"] == [SY.pid(SY.S1, 1), SY.pid(SY.S2, 3)]
+        assert (t["оседание"], only["subsidence"]) in tr and len(tr) == 2                   # the self pair is out
+        [abbr] = list(iter_rels(inp, N.REL_BY_NAME["ABBREVIATION_OF"]))
+        assert (abbr.from_id, abbr.to_id) == (only["взт"], only["водозащитный толща"])
+        [syn] = list(iter_rels(inp, N.REL_BY_NAME["SYNONYM_OF"]))
+        assert syn.from_id < syn.to_id and {syn.from_id, syn.to_id} == {t["выработка"], only["горный выработка"]}
+        terms = {n.id: n.props for n in iter_nodes(inp, N.NODE_BY_LABEL["Term"])}
+        vzt = terms[only["взт"]]
+        assert vzt["dictionary_only"] is True and vzt["lemma"] == "ВЗТ" and vzt["languages"] == ["ru"]
+        assert vzt["name_keys"] == ["взт"] and vzt["rule_version"] == "term_translations_v1"
+        assert "df_units" not in vzt and "dictionary_only" not in terms[t["ползучесть"]]
+
+        # object duplicates: one group node per group, one member edge per member, is_primary on the edge
+        groups = {n.id: n.props for n in iter_nodes(inp, N.NODE_BY_LABEL["ObjectDupGroup"])}
+        fig = groups[ids["groups"]["figure"]]
+        assert fig["object_type"] == "FIGURE" and fig["primary_object_id"] == SY.FIG1 and fig["n_members"] == 2
+        assert "primary_object_id" not in groups[ids["groups"]["formula"]]                 # UNKNOWN_YEAR: no primary
+        members = {x.from_id: x.props for x in iter_rels(inp, N.REL_BY_NAME["DUP_MEMBER_OF:Figure"])}
+        assert members[SY.FIG1]["is_primary"] is True and members[SY.FIG2]["is_primary"] is False
+        assert members[SY.FIG2]["page_id"] == SY.pid(SY.S2, 1) and members[SY.FIG2]["similarity"] == 0.93
+
+
+def test_new_parts_are_optional(tmp_path):
+    """A build without the new parts skips their types with the reason (checks N8–N11 SKIP); a build without the
+    concept terms loads tables and values but no property or dictionary edges."""
+    nav_dir = tmp_path / "nav"
+    SY.write_synthetic_nav(nav_dir, extras=False)
+    fake = SY.FakeNavNeo4j()
+    SY.add_document_graph(fake, nav_dir)
+    receipt = L.load(None, _options(nav_dir), driver=fake)
+    assert receipt["status"] == "COMPLETE"
+    statuses = {c["check_id"]: c["status"] for c in receipt["checks"]}
+    assert statuses == {**{f"N{i}": "PASS" for i in range(1, 8)}, **{f"N{i}": "SKIP" for i in range(8, 12)}}
+    skipped = receipt["expected_counts"]["skipped"]
+    assert skipped["NavTable"] == "dataset(s) absent: table_structure" and "TRANSLATES_TO" in skipped
+    assert receipt["expected_counts"]["nodes"]["Term"] == 10 and "subsets" not in receipt["expected_counts"]
+
+    import pyarrow.parquet as pq
+
+    nav2 = tmp_path / "nav2"
+    SY.write_synthetic_nav(nav2)
+    manifest = json.loads((nav2 / "manifest.json").read_text(encoding="utf-8"))
+    for ds in ("terms", "term_edges", "term_mentions"):
+        del manifest["datasets"][ds]
+        (nav2 / f"{ds}.parquet").unlink()
+    (nav2 / "manifest.json").write_bytes(json.dumps(manifest).encode("utf-8"))
+    assert pq.read_table(nav2 / "table_structure.parquet").num_rows == 2
+    with NavInput.open(nav2, ProjectionOptions(symbol_morphology="surface")) as inp:
+        exp = expected_counts(inp)
+        acct = accounting(inp, exp)
+        assert exp["nodes"]["NavTable"] == 2 and exp["nodes"]["ParameterValue"] == 5
+        for name in ("TABULATES", "VALUE_OF", "TRANSLATES_TO", "SYNONYM_OF", "ABBREVIATION_OF"):
+            assert "terms" in exp["skipped"][name]
+        assert acct["term_translations"]["skipped"] == {"TRANSLATES_TO skipped: dataset(s) absent: terms": 5}
+        assert acct["table_columns"]["closed"] and "TABULATES skipped: dataset(s) absent: terms" in acct[
+            "table_columns"]["skipped"]
+        assert "property_terms" not in acct
+
+
+def test_property_labels_and_value_rows():
+    from vkm_corpus.graph.nav_rows import TABLE_VALUE_ROWS, property_labels
+    from vkm_corpus.navigation.tables import VALUE_ROWS
+
+    assert set(TABLE_VALUE_ROWS) == set(VALUE_ROWS)
+    labels = property_labels("thickness_unspecified", "мощность (объект не указан)")
+    assert labels[0] == ("label_ru", "мощность") and ("label_ru", "мощность (объект не указан)") in labels
+    assert [b for b, _t in labels].index("label_en") > [b for b, _t in labels].index("label_ru")
+    assert property_labels("no_such_key", "длина (пролёт)") == [("dataset_label", "длина"),
+                                                                ("dataset_label", "длина (пролёт)")]
 
 
 def test_mentions_top_k_rule(nav):
@@ -225,6 +356,20 @@ def test_cypher_templates_are_tagged_parameterised_and_namespaced():
         Q.cy_paths(S.Namespace(), ["CO_OCCURS"], 9)
     assert "MATCH (n:`DocumentLayer` {id: $id})" in Q.cy_neighbourhood(S.Namespace(), "DOCUMENT")
     assert "MATCH (n:`NavigationLayer` {id: $id})" in Q.cy_neighbourhood(S.Namespace(), "NAVIGATION")
+    # the checks of the new parts are tagged and namespaced like the others
+    for fn, tag in ((L.cy_dictionary_check, "dictionary-check"), (L.cy_tables_check, "tables-check"),
+                    (L.cy_dup_groups_check, "dup-groups-check"), (L.cy_values_check, "values-check")):
+        text = fn(ns)
+        assert text.startswith(f"// vkm-nav:{tag}\n") and "VkmTest0000abcd" in text
+    assert "`VKMTEST0000ABCD_TRANSLATES_TO`|`VKMTEST0000ABCD_SYNONYM_OF`" in L.cy_dictionary_check(ns)
+    assert "(o:`VkmTest0000abcdFigure` AND g.object_type = 'FIGURE')" in L.cy_dup_groups_check(ns)
+    ddl = N.ddl_script()
+    for name in ("nav_nav_table_id_unique", "nav_parameter_value_id_unique", "nav_object_dup_group_id_unique",
+                 "nav_translates_to_pair_id_unique", "nav_synonym_of_pair_id_unique",
+                 "nav_abbreviation_of_pair_id_unique", "nav_parameter_value_property_key"):
+        assert name in ddl
+    assert "WHEN 'TRANSLATES_TO' THEN coalesce(r.score, 0.8)" in Q.cy_paths(S.Namespace(), ["TRANSLATES_TO"], 1,
+                                                                           ordered=True)
 
 
 # ------------------------------------------------------------------------------------------------ loader + checks
@@ -235,15 +380,18 @@ def test_load_passes_all_checks_and_leaves_document_untouched(nav):
     doc_before = {k: dict(v) for k, v in fake.rels.items()}
     receipt = L.load(None, _options(nav_dir), driver=fake)
     assert receipt["status"] == "COMPLETE", receipt.get("checks")
-    assert {c["check_id"]: c["status"] for c in receipt["checks"]} == {f"N{i}": "PASS" for i in range(1, 8)}
+    assert {c["check_id"]: c["status"] for c in receipt["checks"]} == {f"N{i}": "PASS" for i in range(1, 12)}
     assert receipt["document"]["counts_unchanged"] and receipt["sweep"]["nodes_deleted"] == 0
-    for t in ("HAS_PAGE", "HAS_FORMULA", "HAS_BLOCK"):
+    for t in ("HAS_PAGE", "HAS_FORMULA", "HAS_BLOCK", "HAS_TABLE", "HAS_FIGURE"):
         assert fake.rels[t] == doc_before[t]
     assert L.document_counts(fake, "neo4j", S.Namespace()) == doc_counts
     assert set(fake.schema_names) >= {i.name for i in N.ddl_items()}
     meta = fake.nodes[N.META_ID]["props"]
     assert meta["status"] == "COMPLETE" and meta["snapshot_id"] == SY.SNAPSHOT
-    assert json.loads(meta["checks_json"]) == {f"N{i}": "PASS" for i in range(1, 8)}
+    assert json.loads(meta["checks_json"]) == {f"N{i}": "PASS" for i in range(1, 12)}
+    assert f"property_term={N.RULE_PROPERTY_TERM_SURFACE}" in meta["rule_versions"]
+    table = fake.nodes[SY.T1]                                                # nothing written on DOCUMENT nodes
+    assert table["labels"] == {"Table", "DocumentLayer"} and set(table["props"]) == {"id", "source_id", "page_id"}
     assert json.loads(meta["manifest_json"])["snapshot"]["snapshot_id"] == SY.SNAPSHOT
     assert L.nav_state(fake)["state"] == "READY"
     # nothing is written on DOCUMENT nodes (R3)
@@ -334,6 +482,59 @@ def test_checks_detect_document_changes_cycles_orphans_counts_and_collisions(nav
     assert set(statuses().values()) == {"PASS"}
 
 
+def test_checks_n8_to_n11_detect_violations_of_the_new_parts(nav):
+    nav_dir, ids = nav
+    fake, receipt = _loaded(nav_dir)
+    exp = receipt["expected_counts"]
+
+    def status(check_id):
+        results, _ = L.run_checks(fake, "neo4j", S.Namespace(), expected=exp, snapshot_id=SY.SNAPSHOT)
+        return {r.check_id: r for r in results}[check_id]
+
+    common = {"layer": "NAV", "snapshot_id": SY.SNAPSHOT, "rule_version": "x"}
+    t, only = ids["terms"], ids["dictionary_only"]
+    # N8: a pair from a term to itself; a dictionary-only term that lost its pair
+    fake.add_rel("SYNONYM_OF", t["оседание"], t["оседание"], "TTR-0000000000000000", **common)
+    assert status("N8").status == "FAIL" and "to itself" in status("N8").examples[0]
+    del fake.rels["SYNONYM_OF"][(t["оседание"], t["оседание"], "TTR-0000000000000000")]
+    key = next(k for k in fake.rels["ABBREVIATION_OF"])
+    saved = fake.rels["ABBREVIATION_OF"].pop(key)
+    assert status("N8").examples == ["dictionary-only terms without a dictionary edge: 2"]   # ВЗТ and its full form
+    fake.rels["ABBREVIATION_OF"][key] = saved
+    exp_wrong = {**exp, "subsets": {"Term.dictionary_only": 5}}
+    results, _ = L.run_checks(fake, "neo4j", S.Namespace(), expected=exp_wrong, snapshot_id=SY.SNAPSHOT)
+    assert {r.check_id: r.status for r in results}["N8"] == "FAIL"
+    assert status("N8").status == "PASS"
+    # N9: a structured table whose GRID_OF points elsewhere; a table in two sections
+    t1 = ids["tables"][SY.T1]
+    grid = fake.rels["GRID_OF"].pop((t1, SY.T1, None))
+    fake.rels["GRID_OF"][(t1, SY.T2, None)] = grid
+    assert status("N9").status == "FAIL"
+    fake.rels["GRID_OF"][(t1, SY.T1, None)] = fake.rels["GRID_OF"].pop((t1, SY.T2, None))
+    fake.add_rel("TABLE_IN_SECTION", t1, ids["sections"]["ch1"], **common)
+    assert status("N9").status == "FAIL" and "several sections" in status("N9").examples[0]
+    del fake.rels["TABLE_IN_SECTION"][(t1, ids["sections"]["ch1"], None)]
+    assert status("N9").status == "PASS"
+    # N10: the primary is not flagged; a member of another object type
+    g = ids["groups"]["figure"]
+    fake.rels["DUP_MEMBER_OF"][(SY.FIG1, g, None)]["is_primary"] = False
+    assert status("N10").status == "FAIL"
+    fake.rels["DUP_MEMBER_OF"][(SY.FIG1, g, None)]["is_primary"] = True
+    fake.add_rel("DUP_MEMBER_OF", SY.F3, g, **common)
+    assert {"members of another object type: 1", "groups whose member edges differ from n_members: 1"} <= set(
+        status("N10").examples)
+    del fake.rels["DUP_MEMBER_OF"][(SY.F3, g, None)]
+    assert status("N10").status == "PASS"
+    # N11: a text value with a table edge, a value with two property edges
+    v = ids["values"]["text_rho"]
+    fake.add_rel("IN_TABLE", v, t1, **common)
+    fake.add_rel("VALUE_OF", v, t["оседание"], **common)
+    assert status("N11").status == "FAIL" and status("N11").count == 2
+    del fake.rels["IN_TABLE"][(v, t1, None)]
+    del fake.rels["VALUE_OF"][(v, t["оседание"], None)]
+    assert status("N11").status == "PASS"
+
+
 def test_gate_refuses_without_a_ready_document_graph_or_on_snapshot_mismatch(nav):
     nav_dir, _ids = nav
     fake = SY.FakeNavNeo4j()
@@ -368,7 +569,7 @@ def test_dry_run_needs_no_database_and_writes_a_receipt(nav, tmp_path, capsys):
                  "--out", str(out)])
     assert code == 0
     printed = json.loads(capsys.readouterr().out)
-    assert printed["status"] == "DRY_RUN" and printed["totals"]["nodes"] == 20
+    assert printed["status"] == "DRY_RUN" and printed["totals"]["nodes"] == 36
     full = json.loads(out.read_text(encoding="utf-8"))
     assert full["preflight_summary"]["FAIL"] == 0 and full["accounting"]["terms"]["closed"]
     assert main(["nav", "graph-ddl", "--print"]) == 0
@@ -418,6 +619,61 @@ def test_concept_paths_and_neighbourhood_over_the_fake(nav):
     shaped2 = Q.shape_neighbourhood(rows[0]["node"], rows[0]["groups"], {r["mid"]: r["groups"] for r in second}, 4)
     assert shaped2["depth2"] and all(d["via"] != sec for d in shaped2["depth2"])
     assert all(n["id"] != sec for d in shaped2["depth2"] for n in d["neighbours"])
+
+
+def test_dictionary_paths_and_neighbourhoods_of_the_new_kinds(nav):
+    nav_dir, ids = nav
+    fake, _receipt = _loaded(nav_dir)
+    t, only = ids["terms"], ids["dictionary_only"]
+    assert "TRANSLATES_TO" in Q.path_rel_types(None) and Q.path_rel_types(["dictionary"]) == list(N.DICTIONARY_TYPES)
+    fam = Q.path_rel_types(["dictionary"])
+    raw = L.read(fake, "neo4j", Q.cy_paths(S.Namespace(), fam, 2), a=only["взт"], b=only["водозащитный толща"],
+                 cap=10, rel_types=fam, labels=list(N.PATH_LABELS))
+    [path] = Q.shape_paths(raw, 3)
+    assert path["length"] == 1 and path["hops"][0]["rel"] == "ABBREVIATION_OF"
+    assert path["hops"][0]["direction"] == "forward" and path["hops"][0]["score"] == 0.9
+    assert path["hops"][0]["pages"] == [SY.pid(SY.S1, 1), SY.pid(SY.S2, 3)]
+    assert path["nodes"][0] == {"id": only["взт"], "kind": "TERM", "name": "ВЗТ", "pages": [], "language": "ru",
+                                "dictionary_only": True}
+    assert Q.hop_strength({"type": "TRANSLATES_TO", "score": 0.92}) == 0.92
+    assert Q.hop_strength({"type": "SYNONYM_OF"}) == Q.DICTIONARY_DEFAULT_STRENGTH
+    # a term found by its name: the dictionary-only term ranks after the terms of the concept graph
+    rows, _s, _k = fake.execute_query(Q.cy_find_terms(S.Namespace()), parameters_={
+        "text": "x", "keys": ["взт", "оседание"], "limit": 5})
+    assert "coalesce(t.df_units, 0) DESC" in Q.cy_find_terms(S.Namespace())      # a null would sort first
+    ranked = Q.rank_terms(rows, "x", ["взт", "оседание"])
+    assert ranked[0]["term_id"] == only["взт"] and ranked[0]["dictionary_only"] is True
+    assert "dictionary_only" not in ranked[1]
+    # neighbourhoods: a structured table, a parameter value, a group of repeated figures, a DOCUMENT table
+    t1 = ids["tables"][SY.T1]
+    rows = L.read(fake, "neo4j", Q.cy_neighbourhood(S.Namespace(), "NAVIGATION"), id=t1, per_type=10)
+    shaped = Q.shape_neighbourhood(rows[0]["node"], rows[0]["groups"], {}, 50)
+    assert shaped["node"]["kind"] == "STRUCTURED_TABLE" and shaped["node"]["pages"] == [SY.pid(SY.S1, 3)]
+    assert shaped["node"]["name"] == "Таблица 1.1 Свойства пород"
+    edges = {(e["rel"], e["direction"]): e for e in shaped["edges"]}
+    assert {("GRID_OF", "out"), ("TABLE_IN_SECTION", "out"), ("TABULATES", "out"), ("IN_TABLE", "in")} <= set(edges)
+    assert edges[("GRID_OF", "out")]["neighbours"][0]["kind"] == "TABLE"
+    assert {n["kind"] for n in edges[("IN_TABLE", "in")]["neighbours"]} == {"PARAMETER_VALUE"}
+    assert {n["name"] for n in edges[("TABULATES", "out")]["neighbours"]} == {"плотность", "модуль деформации"}
+    v = ids["values"]["table_e"]
+    rows = L.read(fake, "neo4j", Q.cy_neighbourhood(S.Namespace(), "NAVIGATION"), id=v, per_type=10)
+    node = Q.node_summary(rows[0]["node"])
+    assert node == {"id": v, "kind": "PARAMETER_VALUE", "name": "12,5 ГПа · модуль деформации · каменная соль",
+                    "pages": [SY.pid(SY.S1, 3)], "source_id": SY.S1}
+    g = ids["groups"]["figure"]
+    rows = L.read(fake, "neo4j", Q.cy_neighbourhood(S.Namespace(), "NAVIGATION"), id=g, per_type=10)
+    shaped = Q.shape_neighbourhood(rows[0]["node"], rows[0]["groups"], {}, 50)
+    assert shaped["node"]["kind"] == "DUPLICATE_GROUP" and shaped["node"]["name"] == "FIGURE REPRINT ×2 1"
+    [members] = shaped["edges"]
+    assert members["rel"] == "DUP_MEMBER_OF" and members["direction"] == "in" and members["total"] == 2
+    assert [n["is_primary"] for n in members["neighbours"]] == [True, False]         # the reference first (similarity)
+    assert members["neighbours"][1]["pages"] == [SY.pid(SY.S2, 1)]
+    rows = L.read(fake, "neo4j", Q.cy_neighbourhood(S.Namespace(), "DOCUMENT"), id=SY.T1, per_type=10)
+    shaped = Q.shape_neighbourhood(rows[0]["node"], rows[0]["groups"], {}, 50)
+    rels = {(e["rel"], e["direction"], e["layer"]) for e in shaped["edges"]}
+    assert {("GRID_OF", "in", "NAV"), ("DUP_MEMBER_OF", "out", "NAV"), ("HAS_TABLE", "in", "DOCUMENT")} == rels
+    assert N.label_of_nav_id(t1) == "NavTable" and N.label_of_nav_id(g) == "ObjectDupGroup"
+    assert N.label_of_nav_id(v) == "ParameterValue" and Q.layer_of(t1) == "NAVIGATION"
 
 
 def test_term_resolution_ranking():
