@@ -141,6 +141,28 @@ def test_plot_box_keeps_the_legend_and_chart_border_out():
     assert sorted(s["label_raw"] for s in series) == ["A", "B"] and missing == []
 
 
+def test_marker_series_and_monochrome_legend():
+    texts, paths, _ = _chart()
+    # a scatter of 5 filled dots and a dashed curve drawn as closed dash outlines (not data points)
+    dots = [(0.5, 2.0), (1.5, 1.6), (2.5, 1.0), (3.2, 0.8), (3.8, 0.5)]
+    for cx, cy in dots:
+        ang = np.linspace(0, 2 * np.pi, 13)
+        paths.append(Path(np.stack([cx + 0.03 * np.cos(ang), cy + 0.03 * np.sin(ang)], 1), 0x00AA00, 0.0, "FILL",
+                          True))
+    for k in range(6):
+        x = 0.2 + 0.5 * k
+        paths.append(Path(np.array([[x, 2.7], [x + 0.2, 2.7], [x + 0.2, 2.72], [x, 2.72], [x, 2.7]]), 0x7F7F7F, 0.01,
+                          "POLY", True))
+    hs, vs = structure_lines(paths)
+    xa, ya, _ = detect_axes(texts, hs, vs)
+    box = plot_box(xa, ya, paths, (-0.8, -1.2, 4.3, 3.3), texts)
+    series, _, _ = extract_series(paths, texts, box)
+    marker = [s for s in series if s.get("sampling") == "MARKER_CENTRES"]
+    assert len(marker) == 1 and len(marker[0]["pts"]) == 5
+    assert np.allclose(marker[0]["pts"], sorted(dots), atol=1e-6)
+    assert not any(s["color"] == "#7f7f7f" for s in series)
+
+
 def test_split_title():
     assert core.split_title("Оседание, мм") == ("Оседание", "мм")
     assert core.split_title("Время, сутки") == ("Время", "сутки")

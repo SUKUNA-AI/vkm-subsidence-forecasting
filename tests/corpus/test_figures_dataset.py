@@ -35,7 +35,7 @@ def test_rows_are_derivation_with_errors_and_availability():
     assert r["status"] == "DERIVATION" and r["review_status"] == "AUTO_EXTRACTED_UNREVIEWED"
     assert r["series_nature"] == "UNCLASSIFIED" and "MODEL_HINT_IN_CAPTION" in r["flags"]
     assert r["y_quantity_raw"] == "Оседание" and r["y_unit_raw"] == "мм"
-    assert r["x_unit_raw"] == "сутки"
+    assert r["x_unit_raw"] == "сутки" and r["x_is_time"]
     assert r["available_from"] == "2023-12-31"
     assert all(p["y_err"] is not None for p in r["points"])
     assert [round(p["y"]) for p in r["points"]] == [0, 50, 120, 180]
@@ -53,6 +53,12 @@ def test_validation_rejects_fact_and_missing_errors():
         validate_row(bad)
     with pytest.raises(SeriesValidationError):
         validate_row({**r, "available_from": None, "publication_year": None})
+
+
+def test_unknown_availability_stays_unknown():
+    rows = build_rows(_ctx(available_from=None, publication_year=None, available_basis="UNKNOWN"), _result(),
+                      "A_NATIVE_VECTOR", {}, {})
+    assert rows[0]["available_from"] is None and "AVAILABILITY_UNKNOWN" in rows[0]["flags"]
 
 
 def test_jsonl_is_deterministic(tmp_path):

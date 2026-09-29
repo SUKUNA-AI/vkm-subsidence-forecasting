@@ -11,27 +11,35 @@ from vkm_corpus.figures.primitives import Path, Text, color_name, is_black, is_g
 
 
 def _legend_pairs(paths: list[Path], texts: list[Text], max_len: float):
-    out = []
+    """(sample stroke, label words) pairs: a short horizontal stroke and the words right of it on its line — the
+    words continue while the gap stays under 1.2 cap heights and no other sample starts."""
+    samples = []
     for p in paths:
         if p.kind == "FILL" or is_axis_aligned_segment(p) != "H":
             continue
-        length = float(p.pts[:, 0].max() - p.pts[:, 0].min())
-        if length > max_len:
-            continue
+        if float(p.pts[:, 0].max() - p.pts[:, 0].min()) <= max_len:
+            samples.append(p)
+    starts = [(float(q.pts[:, 0].min()), float(q.pts[:, 1].mean())) for q in samples]
+    out = []
+    for p in samples:
         sx1, sy = float(p.pts[:, 0].max()), float(p.pts[:, 1].mean())
-        best = None
-        for t in texts:
-            d = t.x0 - sx1
-            if abs(t.yc - sy) <= 0.7 * t.h and -0.3 * t.h <= d <= 3.0 * t.h and (best is None or d < best[0]):
-                best = (d, t)
-        if best:
-            out.append((p, best[1]))
+        line = sorted((t for t in texts if abs(t.yc - sy) <= 0.7 * t.h and t.x0 - sx1 >= -0.3 * t.h),
+                      key=lambda t: t.x0)
+        if not line or line[0].x0 - sx1 > 3.0 * line[0].h:
+            continue
+        words = [line[0]]
+        for t in line[1:]:
+            nxt = min((x for x, y in starts if abs(y - sy) <= 0.7 * t.h and x > words[-1].x1), default=None)
+            if t.x0 - words[-1].x1 > 1.2 * t.h or (nxt is not None and t.x0 > nxt):
+                break
+            words.append(t)
+        out.append((p, words))
     return out
 
 
 def legend_text_ids(paths: list[Path], texts: list[Text], region) -> set:
     """ids of texts that label a legend sample (a short horizontal stroke with the label right of it)."""
-    return {id(t) for _, t in _legend_pairs(paths, texts, 0.2 * (region[2] - region[0]))}
+    return {id(t) for _, ws in _legend_pairs(paths, texts, 0.2 * (region[2] - region[0])) for t in ws}
 
 
 def style_key(p: Path):
@@ -100,18 +108,29 @@ def extract_series(paths: list[Path], texts: list[Text], box, min_chain_frac: fl
     diag = math.hypot(w, h)
     legend: dict = {}
     legend_ids = set()
-    for p, t in _legend_pairs(paths, texts, 0.2 * w):
-        legend.setdefault(style_key(p), []).append(t.text.strip())
+    for p, ws in _legend_pairs(paths, texts, 0.2 * w):
+        legend.setdefault(style_key(p), []).append(" ".join(t.text.strip() for t in ws))
         legend_ids.add(id(p))
     groups: dict = {}
+    marks: dict = {}
     for p in paths:
-        if p.kind == "FILL" or is_rect(p) or is_greyish(p.color) or id(p) in legend_ids:
+        if id(p) in legend_ids or is_rect(p):
             continue
         o = is_axis_aligned_segment(p)
         pin = ((p.pts[:, 0] >= x0 - margin) & (p.pts[:, 0] <= x1 + margin) & (p.pts[:, 1] >= y0 - margin)
                & (p.pts[:, 1] <= y1 + margin))
         if not (bool(pin.all()) or (bool(pin.any()) and o is None)):
             continue
+        bx0_, by0_, bx1_, by1_ = p.bbox
+        size = math.hypot(bx1_ - bx0_, by1_ - by0_)
+        closed = len(p.pts) >= 3 and math.hypot(*(p.pts[0] - p.pts[-1])) <= tol * 10
+        if p.kind in ("FILL", "MARK") or closed:
+            # small filled or closed shapes are data markers (dots, squares, triangles), grouped by colour
+            if size <= 0.04 * diag and not (is_greyish(p.color) and (p.color >> 16) >= 190):
+                marks.setdefault(p.color if p.color is not None else -1, []).append(p)
+            continue
+        if is_greyish(p.color) and (o is not None or is_manhattan(p) or (p.color >> 16) & 255 >= 190):
+            continue                     # grey grid lines, axes with ticks, frames (mid-grey curves are data)
         if is_black(p.color):
             if o is not None:
                 length = abs(p.pts[1, 0] - p.pts[0, 0]) + abs(p.pts[1, 1] - p.pts[0, 1])
@@ -125,16 +144,41 @@ def extract_series(paths: list[Path], texts: list[Text], box, min_chain_frac: fl
         groups.setdefault(style_key(p), []).append(p)
     series = []
     for key, ps in groups.items():
-        chains = [c for c in chain([p.pts for p in ps], tol) if math.hypot(*(c.max(0) - c.min(0))) >= min_chain_frac * diag]
+        chains = [c for c in chain([p.pts for p in ps], tol)
+                  if math.hypot(*(c.max(0) - c.min(0))) >= min_chain_frac * diag
+                  and not (len(c) >= 3 and math.hypot(*(c[0] - c[-1])) <= tol * 10
+                           and math.hypot(*(c.max(0) - c.min(0))) < 0.1 * diag)]   # dash outlines, symbols
         labels = legend.get(key, [])
         if not labels:   # legend sample drawn with another stroke width: same colour and dash
             labels = [lab for k2, labs in legend.items() if k2[0] == key[0] and k2[2] == key[2] for lab in labs]
-        label = labels[0] if len(set(labels)) == 1 else None
+        # one legend entry names one curve: several chains of one style (a monochrome drawing) stay unlabelled
+        label = labels[0] if len(set(labels)) == 1 and len(chains) == 1 else None
         for ci, c in enumerate(sorted(chains, key=lambda c: -len(c))):
             series.append({"style": key, "color": color_name(key[0] if key[0] != -1 else None), "lw": key[1],
                            "dashed": key[2], "label_raw": label, "legend_labels_same_style": sorted(set(labels)),
                            "chain_index": ci, "n_chains_in_style": len(chains),
                            "pts": dedupe_consecutive(c, tol * 0.1), "kinds": sorted({p.kind for p in ps})})
+    # marker series: ≥ 3 same-colour small shapes of similar size; the point is the shape's centre
+    for colour, ms in marks.items():
+        sizes = np.array([math.hypot(p.bbox[2] - p.bbox[0], p.bbox[3] - p.bbox[1]) for p in ms])
+        med = float(np.median(sizes)) if len(sizes) else 0.0
+        keep = [p for p, s in zip(ms, sizes) if 0.6 * med <= s <= 1.6 * med]
+        if len(keep) >= 3:
+            # letters drawn as filled outlines sit shoulder to shoulder; data markers are spaced out
+            c = np.array([((p.bbox[0] + p.bbox[2]) / 2, (p.bbox[1] + p.bbox[3]) / 2) for p in keep])
+            d = np.sqrt(((c[:, None, :] - c[None, :, :]) ** 2).sum(-1))
+            np.fill_diagonal(d, np.inf)
+            keep = [p for p, nn in zip(keep, d.min(1)) if nn >= 1.2 * med]
+        if len(keep) < 3:
+            continue
+        cents = np.array(sorted(((p.bbox[0] + p.bbox[2]) / 2, (p.bbox[1] + p.bbox[3]) / 2) for p in keep))
+        cents = dedupe_consecutive(cents, 0.2 * med)
+        labels = [lab for k2, labs in legend.items() if k2[0] == colour for lab in labs]
+        series.append({"style": (colour, 0.0, False), "color": color_name(colour if colour != -1 else None),
+                       "lw": 0.0, "dashed": False, "label_raw": labels[0] if len(set(labels)) == 1 else None,
+                       "legend_labels_same_style": sorted(set(labels)), "chain_index": 0, "n_chains_in_style": 1,
+                       "pts": cents, "kinds": ["MARKERS"], "sampling": "MARKER_CENTRES",
+                       "marker_size": med})
     used_labels = {s["label_raw"] for s in series if s["label_raw"]}
     legend_without_curve = sorted({lab for labs in legend.values() for lab in labs} - used_labels)
     return series, legend, legend_without_curve

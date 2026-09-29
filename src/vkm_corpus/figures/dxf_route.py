@@ -118,6 +118,11 @@ def load_dxf(dxf_path) -> tuple[list[Text], list[Path]]:
                 dense = None if e.dxf.radius > 50 else _dense(e)
                 paths.append(Path(np.array([[s0.x, s0.y], [s1.x, s1.y]]), col, lw, "ARC", dense=dense,
                                   origin=f"ARC#{handle}"))
+            elif t == "CIRCLE":           # data markers (dots) of a scatter or a line with markers
+                c0, r = e.dxf.center, float(e.dxf.radius)
+                ang = np.linspace(0, 2 * np.pi, 17)
+                ring = np.stack([c0.x + r * np.cos(ang), c0.y + r * np.sin(ang)], 1)
+                paths.append(Path(ring, col, lw, "MARK", True, origin=f"CIRCLE#{handle}"))
             elif t == "SOLID":
                 v = [e.dxf.vtx0, e.dxf.vtx1, e.dxf.vtx3, e.dxf.vtx2]
                 paths.append(Path(np.array([(q.x, q.y) for q in v]), col, lw, "FILL", True, origin=f"SOLID#{handle}"))

@@ -36,7 +36,8 @@ def context(c: dict) -> FigureContext:
                          caption_text_for_hints="прогноз" if c.get("model_hint_caption") else None,
                          source_sha256=c.get("source_sha256"), publication_year=c.get("publication_year"),
                          available_from=c.get("available_latest_day"),
-                         available_basis=c.get("available_basis") or "ASSUMED_FROM_PUBLICATION",
+                         available_basis=(c.get("available_basis") or "ASSUMED_FROM_PUBLICATION")
+                         if (c.get("available_latest_day") or c.get("publication_year")) else "UNKNOWN",
                          site_scope_raw=c.get("site_scope_raw"))
 
 

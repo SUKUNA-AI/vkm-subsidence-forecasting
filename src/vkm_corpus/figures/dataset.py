@@ -58,6 +58,20 @@ def _axis_json(ax) -> dict | None:
     return None if ax is None else ax.to_json()
 
 
+TIME_TITLE = re.compile(r"год|лет|врем|сут|дата|мес|year|time|date|day", re.I)
+
+
+def is_time_axis(ax, title: str | None) -> bool:
+    """A date axis, or a linear axis whose labels are calendar years (1800…2100), or one titled as time."""
+    if ax is None:
+        return False
+    if ax.kind == "DATE":
+        return True
+    vals = [lab[1] for lab in getattr(ax, "labels", [])]
+    years = len(vals) >= 3 and all(float(v).is_integer() and 1800 <= v <= 2100 for v in vals)
+    return bool(ax.kind == "LINEAR" and (years or (title and TIME_TITLE.search(title))))
+
+
 def build_rows(ctx: FigureContext, result: dict, route: str, provenance: dict, config: dict) -> list[dict]:
     """Rows of one digitized figure (``result`` from :func:`core.digitize` or the raster driver)."""
     if route not in ROUTES:
@@ -73,8 +87,10 @@ def build_rows(ctx: FigureContext, result: dict, route: str, provenance: dict, c
         yerr = [p["y_err"] for p in pts if p.get("y_err") is not None]
         xerr = [p["x_err"] for p in pts if p.get("x_err") is not None]
         label = s.get("label_raw")
+        unknown_avail = not ctx.available_from and ctx.publication_year is None
         flags = sorted(set(s.get("flags", [])) | ({"MODEL_HINT_IN_CAPTION"} if hint else set())
-                       | ({"SCOPE_INHERITED_FROM_SOURCE"} if ctx.site_scope_raw else set()))
+                       | ({"SCOPE_INHERITED_FROM_SOURCE"} if ctx.site_scope_raw else set())
+                       | ({"AVAILABILITY_UNKNOWN"} if unknown_avail else set()))
         row = {
             "schema": SCHEMA,
             "series_id": series_id(key, route, i, label, s.get("color")),
@@ -83,7 +99,7 @@ def build_rows(ctx: FigureContext, result: dict, route: str, provenance: dict, c
             "series_index": i, "series_label_raw": label, "series_color": s.get("color"),
             "series_nature": "UNCLASSIFIED",
             "x_quantity_raw": xq, "x_unit_raw": xu, "x_title_raw": result.get("x_title_raw"),
-            "x_axis_kind": None if xa is None else xa.kind, "x_is_time": bool(xa is not None and xa.kind == "DATE"),
+            "x_axis_kind": None if xa is None else xa.kind, "x_is_time": is_time_axis(xa, result.get("x_title_raw")),
             "y_quantity_raw": yq, "y_unit_raw": yu, "y_title_raw": result.get("y_title_raw"),
             "y_axis_kind": None if ya is None else ya.kind,
             "n_points": len(pts),
@@ -122,8 +138,9 @@ def validate_row(row: dict) -> None:
                 raise SeriesValidationError("non-finite value")
         if p.get("y") is not None and p.get("y_err") is None:
             raise SeriesValidationError("a calibrated value needs its error estimate")
-    if not row.get("available_from") and row.get("publication_year") is None:
-        raise SeriesValidationError("availability: publication date or year required")
+    if not row.get("available_from") and row.get("publication_year") is None \
+            and row.get("available_basis") != "UNKNOWN":
+        raise SeriesValidationError("availability: publication date or year, or an explicit UNKNOWN basis")
 
 
 def write_jsonl(rows: list[dict], path) -> str:
