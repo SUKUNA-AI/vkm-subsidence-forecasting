@@ -206,7 +206,8 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 |---|---|---|---|
 | разделы | `sections`, `section_pages` | закладки PDF, EPUB nav, outline DjVu, печатное оглавление, нумерация и разметка заголовков | 9 105 разделов, 98,3 % страниц покрыто |
 | формулы | `formula_context`, `formula_symbols`, `formula_refs`, `formula_parameters` | номер «(3.2)», раздел, вводная, блок «где …» с определениями символов и единицами, ссылки «по формуле (3.2)» | 108 904 формулы, 338 625 символов, 16 112 ссылок |
-| параметры-кандидаты | `parameter_candidates`, `parameter_summary` | значения из таблиц и текста: свойство, материал, масштаб (LAB / MASSIF / NORMATIVE / MODEL), участок, единица как напечатано и в СИ, локатор | 10 538 кандидатов; значение верно в 100 %, единица в 98 %, свойство в 92 % выборки |
+| таблицы | `table_structure`, `table_cells`, `table_columns` | полосы OCR перечитаны и сверены с каноном, блоки, многоуровневые шапки, роли строк и статистики, единица и её источник, флаги вместо исправлений | 3 391 таблица, 389 527 ячеек, 3 360 сеток годны для чтения (сборка 29.09, на CORE ещё не выложена) |
+| параметры-кандидаты | `parameter_candidates`, `parameter_summary` | значения из таблиц и текста: свойство, материал, масштаб (LAB / MASSIF / NORMATIVE / MODEL), участок, единица как напечатано и в СИ, локатор | 10 538 кандидатов; значение верно в 100 %, единица в 98 %, свойство в 92 % выборки; по сетке таблиц (`parameters_v2`) — 10 792, свойство 95 % на тех же ID |
 | дубликаты | `dup_clusters`, `dup_members`, `source_overlap` | MinHash-LSH + kNN на GPU, проверка пересечения шинглов, первоисточник как подсказка | 697 групп |
 | понятия | `terms`, `term_mentions`, `term_edges` | леммы pymorphy3, C-value / TF-IDF, NPMI по разделам, SAME_AS (аббревиатуры, переводы), DEFINED_AS, сообщества Leiden; копии текста не учитываются | 94 597 терминов, 1,54 млн рёбер |
 | темы | `topics`, `topic_members`, `topic_edges`, `section_vectors`, `section_aggregates` | векторы разделов → kNN → Leiden на трёх уровнях (cuGraph), центрирование по языку, метки c-TF-IDF | 720 тем (610 / 91 / 19) |
@@ -340,7 +341,7 @@ src/
   vkm_world/      WorldSpec: типы, провенанс, валидация, страж утечки (governance.leakage)
   vkm_corpus/     платформа корпуса: pipeline, extract (+ bibliography), ocr, layout, parquet (каноника, валидатор),
                   duckdb, graph (DOCUMENT + NAV), search, embeddings, retrieval_service, retrieval_lab,
-                  navigation (sections, formulas, parameters, duplicates, concepts, topics, store),
+                  navigation (sections, formulas, tables, parameters, duplicates, concepts, topics, store),
                   catalogues, api (FastAPI /v1), mcp (read / admin), publish, ops, cli
   vkm_cad/        мост Autodesk: чтение открытых чертежей, scratch DXF, задания в консоли, Civil 3D, плагин VkmCadHost
   vkm_drawio/     схемы draw.io
