@@ -1,0 +1,126 @@
+{
+ "receipt": "graph_search_v1",
+ "agent": "GS",
+ "date": "2026-09-29",
+ "branch": "claude/agent-gs-graph-search-2026-09-29",
+ "base": "claude/corpus-platform-v0-2026-09-28 @ b35a6cd",
+ "commits": {
+  "code": "5cd3405 (graph stages, expand_query, graph flag in API and MCP; all off at that commit)",
+  "preregistration": "3e74ee8 (2026-09-29 14:11 +0300, before any metric of a new system)",
+  "results_and_defaults": "the commits after 3e74ee8 on this branch"
+ },
+ "status": "MEASURED on the local copy of E; code default set by the preregistered rule; NOTHING DEPLOYED",
+ "task": "use the NAV structure (duplicates, section tree, concept graph and term dictionary, CITES, topic tree) around the deployed hybrid search E without any model change: stages G1-G5 as separate switches, preregistered measurement, default-on only under the rule",
+ "code": {
+  "search": ["src/vkm_corpus/search/graph_stages.py", "src/vkm_corpus/search/hybrid.py (request graph, hooks, stages.graph, trace.graph, hit.copies)"],
+  "navigation": ["src/vkm_corpus/navigation/expansion_query.py (expand_query, registered in store.QUERY_FUNCTIONS)"],
+  "api_mcp": ["src/vkm_corpus/api/backends.py (graph signals, VKM_HYBRID_GRAPH)", "src/vkm_corpus/api/app.py (NavGraphSignals, warm-up)", "src/vkm_corpus/api/service.py", "src/vkm_corpus/mcp/servers.py (search_hybrid graph)", "src/vkm_corpus/api/topic.py (dossier retrieval pinned to graph = [])"],
+  "lab": ["src/vkm_corpus/retrieval_lab/bench.py (label source LLM_AGENT_GS)"],
+  "tests": ["tests/corpus/test_search_graph_stages.py", "tests/corpus/test_nav_expansion_query.py"],
+  "benchmark": "benchmarks/graph_search_v1 (PREREGISTRATION.md, splits.json, RESULTS.md, results_v1.json, results_v1_posthoc.json, qrels_gs_pooled.tsv, scripts/)"
+ },
+ "stages": {
+  "G1 collapse": "a page whose text is >= 0.5 shared (dup_members shared_chars / page characters; SAME_WORK_COPY, REPRINT, SHARED_ABSTRACT) with a better-ranked page leaves and is listed on it (copies); objects by object_dup_members (BOILERPLATE never); last step",
+  "G2 cohesion": ">= 2 of the first 10 pages (after late) in one deep NAV section (level >= 2, <= 16 pages): its other pages (nearest to the hits, <= 4 per section, <= 12) fused after late",
+  "G3 concepts": "synonyms and abbreviations of the term dictionary (score >= 0.8; OCR spelling variants skipped) replace the query's phrases, optionally a narrower term of the main concept: <= 2 wordings, BM25 only",
+  "G4 cites": "sources cited by / citing the works of the RRF top-10 sources (canon CITES): BM25 over their pages",
+  "G5 topics": "level-1 NAV topics holding >= 2 of the first 10 pages: E's later pages in those topics' sections are lifted (no new page)",
+  "fusion": "never inside E's RRF; post = first 10 positions kept, the rest fused by weighted RRF (k 60, E wins ties); window = the leg widens the late window and MaxSim decides",
+  "gates": "late stage required (SKIPPED_LATE_OFF); without NAV: E's answer, status UNAVAILABLE, a warning only when the request named the stages"
+ },
+ "inputs": {
+  "snapshot": {"snapshot_id": "snap-20260928T193550Z-738eebee", "manifest_sha256": "b6afea998a45768a988ddf9ce60b565c3beae628e4bd645d3cf4ddbefd9d7eb7"},
+  "nav_datasets_sha256": {
+   "sections": "ec949fbd5cb5c8affc50e37d7df16d808477cea4c50b0cdecd816fb2885ed223",
+   "section_pages": "02667f39b7bdf63e0a3fbc1ae3c7dc86db9c303191f2e4ab440c952d09456b32",
+   "topic_members": "29f42de4811143ccbe015fa9076bf595f6c4a74a26a56da33b571316306d3e63",
+   "dup_members": "a9f7a7ed5b872d3be8b2e20c720e58232d7a4d81ed304fc7ed8724d875482f52",
+   "terms": "77f81f665657d3cf517d9ec250ff7f74bbe0235a3b476bcfe7133eea04cf14bd",
+   "term_edges": "f45083a448c6ce7cac0aed5e6dc54d61ef29608c60dac219c54c7a7387ac9b9e",
+   "term_translations": "658699487058e841cec2dfe42a6d0a3240ee5427a21417a2c907a9b84eabd0b4"
+  },
+  "canon_views": ["pages.char_count", "cites", "source_work_links", "duplicate_page_candidates"],
+  "lab_sha256": {
+   "units_final.jsonl (V1)": "4b73fe2c1746b861aed084ab2d63881292363e989893af3f693bcb75d2591947",
+   "nano-gpu docs.f32.npy (V2)": "37757b8577d32f59ebe0b69800c3cdc927d87f10e739f358dfe7acfa1fb1e8cb",
+   "late_offsets.npy (V1)": "7efefd54c52c52e1a2df1a63c6ad591b3bbc295474f344b58b0f75f40540b664",
+   "units_ids.json (V1)": "491177392c274a0ad7307b53b6ed6c63a47478479d8ae1e21c5a249d94cf640c"
+  },
+  "query_vectors": "537 query texts encoded once on the CPU (jina-v5-nano D2, mLateOn L2), cached per text; nothing of the corpus encoded; no GPU",
+  "sets": {"retrieval_v1": "144 text + 42 visual (dev 56 + 5, test 88 + 37)", "topic_v1": "117 topics / 351 queries (dev 39, test 78)"},
+  "splits_sha256": "65ff500b95e45a7a71c01946fa83752ecd00bef9f1ecb8a125518f1df4fd1abe"
+ },
+ "engine_control": {
+  "dense_query_cos_vs_rx580_min": 0.99972,
+  "dense_query_cos_vs_v2_gpu_min": 0.99991,
+  "late_tokens_same_count": "183 of 186, mean cos 0.99995",
+  "E_text_ndcg10_V_P": [0.3276, 0.7066],
+  "E_visual_ndcg10_V_P": [0.3441, 0.5756],
+  "E_topic_page_recall50_mrr50_success10": [0.3087, 0.2542, 0.5271],
+  "reference": "deployed E text 0.333 / 0.708, visual 0.349 / 0.580 (V2 labels); topic on CORE 0.303 / 0.255 / 0.518"
+ },
+ "preregistration": {"file": "benchmarks/graph_search_v1/PREREGISTRATION.md", "sha256": "56b5df2448c4f24189265e6eb1a7dfcc09277b3aaf0287b7e3c03873cdd46436"},
+ "dev_choice": {
+  "rule": "dev topics (39): highest mean page_recall@50; a difference < 0.002 keeps the earlier variant",
+  "E_dev": 0.2919,
+  "delta_vs_E": {"G1": 0.0078, "G2@w0.5": 0.0048, "G2@w1.0": 0.0048, "G3@post-plain": 0.0002, "G3@post-narrower": -0.0089, "G3@window-plain": -0.0004, "G3@window-narrower": 0.001, "G4@post": 0.0008, "G4@window": 0.0035, "G5@w0.5": 0.0216, "G5@w1.0": 0.0204},
+  "chosen": {"G1": "G1", "G2": "weight 0.5", "G3": "post, no narrower term", "G4": "window", "G5": "weight 0.5"},
+  "GC": "all five (every chosen variant > 0 on dev)"
+ },
+ "decision_test": {
+  "primary": "topic_v1 page_recall@50, 78 test topics, E 0.3172; paired randomization 10,000 (seed 20260929), bootstrap 95 % CI, Holm over 6",
+  "G1": {"delta": 0.0104, "ci": [0.0039, 0.0188], "p": 0.0018, "p_holm": 0.0108, "harm": false, "default_on": false, "why": "delta < 0.02"},
+  "G2": {"delta": 0.0015, "ci": [-0.0002, 0.0042], "p": 0.5034, "p_holm": 1.0, "harm": false, "default_on": false},
+  "G3": {"delta": -0.0015, "ci": [-0.0165, 0.0139], "p": 0.8467, "p_holm": 1.0, "harm": true, "harm_detail": "retrieval_v1 text R@50 (P) -0.0222, p 0.0148", "default_on": false},
+  "G4": {"delta": -0.0017, "ci": [-0.0084, 0.0042], "p": 0.6344, "p_holm": 1.0, "harm": false, "default_on": false},
+  "G5": {"delta": 0.0104, "ci": [-0.0017, 0.0241], "p": 0.1142, "p_holm": 0.4568, "harm": false, "default_on": false},
+  "GC": {"delta": 0.0209, "ci": [0.006, 0.0369], "p": 0.0093, "p_holm": 0.0465, "harm": false, "harm_form": "copy groups (preregistered for systems with G1)", "default_on": true},
+  "GC_standard_form_on_retrieval_v1_test": "text nDCG@10 (P) -0.0093 (p 0.013), text R@50 (P) -0.0435 (p 0.0024): the copies G1 removes count twice in the standard form",
+  "code_default": "graph_stages.DEFAULTS = all five stages; GraphParams defaults = the dev-chosen variants"
+ },
+ "labels": {
+  "source": "LLM_AGENT_GS (agent labels, status CANDIDATE, basis POOL_JUDGMENT; never verified)",
+  "protocol": "V2: blind packets (no system names or ranks), best late and BM25 units, captions for visual queries; 0-3 + own-words rationale",
+  "pool": "unlabelled pages among the first 10 of E, G1-G5 (chosen), GC on 186 retrieval_v1 queries: 30 pages / 21 queries (GC 25)",
+  "grades": {"0": 2, "1": 16, "2": 11, "3": 1},
+  "file_sha256": "e43f2806adb92893f907f1eb24f197feb0c181fd05a5ba31e4e5737b3fd9c952",
+  "judged_at_10_P": "1.00 for every system; V 0.15-0.19"
+ },
+ "latency": {
+  "measured_served_code_ms": {"GC_stage_functions_p50": 0.49, "GC_stage_functions_p90": 0.64, "per_stage_max_p50": 0.334, "expand_query_plain_p50": 2.76, "expand_query_narrower_p50": 20.41, "lookup_build_once_per_nav_build": 444.2},
+  "window_extra_late_targets": {"p50": 12, "p90": 18, "max": 20},
+  "lab_only": "the lab BM25 with a source mask (G4) costs 70 ms p50 — numpy over 182k units, not OpenSearch",
+  "core_estimate_ms": "GC adds about 35-50 ms p50: one OpenSearch BM25 with a source filter before late (V1: 27-40 ms p50) and ~12 more MaxSim targets (late 65 ms p50 per 100); G3's leg runs in parallel from the start; the rest < 1 ms. Estimate, not measured on CORE"
+ },
+ "exploratory": {
+  "status": "after the preregistered results were read; no part of the decision (results_v1_posthoc.json)",
+  "G1_copy_credit_without_removal": {"delta_page_recall50": 0.0135, "p": 0.0006, "G1_vs_it": -0.0031, "p_vs": 0.2667},
+  "G1_plus_G5": {"delta_page_recall50": 0.0203, "ci": [0.0069, 0.0356], "p_unadjusted": 0.0045, "retrieval_v1_groups": {"text_ndcg10": 0.0251, "text_R50": 0.0123, "visual_ndcg10": 0.0108}},
+  "GC_per_track_test": {"PROCESS_48": 0.0231, "MODEL_FAMILY_30": 0.0172},
+  "G3_retrieval_v1_text_top50_relevant": {"left": 90, "entered": 41, "queries_changed": 48}
+ },
+ "deploy_for_coordinator": {
+  "image": "api / mcp with this branch's code",
+  "nav": "no new dataset; the served build must have sections, section_pages, topic_members, dup_members, terms, term_edges, term_translations (+ object_dup_members for object collapse); canon: pages.char_count, cites, source_work_links",
+  "env": "VKM_HYBRID_GRAPH unset = GC (code default); none = off; e.g. collapse,topics = G1 + G5 only; late stage on (VKM_HYBRID_LATE_DEFAULT=1)",
+  "dossier": "reconstruct_topic calls the hybrid search with graph = [] (not measured inside the dossier)"
+ },
+ "outputs_sha256": {
+  "results_v1.json": "79ff78ed577d83de8648f8c845445a05d8f94aa9b41ac5921f25853da535c22c",
+  "results_v1_posthoc.json": "dbd1b5d9ff37b0875e5a0825a92190cfe91d3b4309c0068edff8dfd749abfa13",
+  "qrels_gs_pooled.tsv": "e43f2806adb92893f907f1eb24f197feb0c181fd05a5ba31e4e5737b3fd9c952"
+ },
+ "tests": {
+  "passed": ["tests/corpus/test_search_graph_stages.py", "tests/corpus/test_nav_expansion_query.py (pymorphy3 venv)", "test_search_hybrid*.py", "test_api_hybrid*.py", "test_mcp_hybrid.py", "test_api_topic.py", "test_nav_store.py", "test_nav_term_dictionary.py (pymorphy3)", "test_contracts_vocab.py", "test_retrieval_lab_bench.py", "tests/corpus after the last change: 1245 passed, 48 skipped (WSL venv; CAD and hygiene deselected)", "tests/world (207 passed, 2 skipped, WSL)", "test_public_hygiene.py + leakage (Windows: 8 passed)", "scripts/verify_canonical_repository.py with VKM_RESOURCES_ROOT: PASS_WITH_NONBLOCKING, 0 blocking (markdown links 0 broken, leakage 0, host paths 0, catalogue_sync 0 hits)"],
+  "environment_only": ["test_public_hygiene.py under WSL: git cannot read a Windows worktree (exit 128)", "test_cad_mcp.py::test_results_and_errors in the WSL venv without ezdxf (unrelated to GS)", "3 tests of tests/world on Windows (symlink privilege, line endings in synthetic repos); they pass under WSL"]
+ },
+ "not_done": [
+  "no deployment, no push, no merge; nothing written on CORE or EDGE",
+  "no model changed or encoded; no GPU",
+  "the dossier with graph stages is not measured (pinned to none)",
+  "visual route and translate flag together with the stages are not measured",
+  "object collapse (figures, tables, formulas) implemented and tested, not measured (page-level sets; local NAV build without object_dup_members)",
+  "rescoring on LB's pooled topic_v1 labels: pending (labels not ready)",
+  "CORE latency not measured (estimate only)"
+ ]
+}
