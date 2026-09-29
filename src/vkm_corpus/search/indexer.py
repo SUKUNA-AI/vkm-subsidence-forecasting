@@ -180,6 +180,9 @@ def status(client: Any, prefix: str) -> dict[str, Any]:
     from vkm_corpus.search.vectors import vectors_status   # dense projection (retrieval lab stage 2)
 
     out["vectors"] = vectors_status(client, prefix)
+    from vkm_corpus.search.page_vectors import pagevis_status   # page-image projection (visual route, agent VIS)
+
+    out["page_vectors"] = pagevis_status(client, prefix)
     return out
 
 
