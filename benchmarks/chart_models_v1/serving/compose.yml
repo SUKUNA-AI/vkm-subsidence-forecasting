@@ -1,5 +1,6 @@
 # CHART_MODELS_V1 — model servers on WORKSTATION (Docker Desktop, WSL2 backend, RTX 5070 Ti 16 GB).
-# One server at a time (profiles): `docker compose -f compose.yml --profile qwen up -d` / `--profile granite`.
+# One server at a time (profiles): `docker compose -f compose.yml --profile qwen up -d` / `--profile granite` /
+# `--profile glm`.
 # The desktop already holds ~3.7 GB of the card: every server must stay within ~12 GB.
 # Weights are mounted read-only from ${VKM_MODELS_DIR}; images are pinned by digest; loopback port only; no telemetry.
 name: vkm-chart-bench
@@ -81,3 +82,51 @@ services:
       - --port=8000
     ports:
       - "127.0.0.1:${CH_GRANITE_PORT:-8092}:8000"
+
+  # GLM-OCR arm (PREREGISTRATION_ADDENDUM_GLM.md): the corpus pipeline's OCR server exactly as
+  # infra/workstation/glm-ocr/compose.yml serves it — same image digest, same pinned revision, same vLLM arguments,
+  # internal network without egress and a socat proxy on loopback — under this project's name (the pipeline's own
+  # containers are not touched) and on its own loopback port.
+  glm-ocr:
+    profiles: ["glm"]
+    image: vllm/vllm-openai@sha256:8a69ffad015f138d7170c4ddc429e230a3bc1c1719f67e14324749df200a4b90
+    restart: "no"
+    ipc: host
+    gpus: all
+    networks: [glm_internal]
+    environment:
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      VLLM_NO_USAGE_STATS: "1"
+      DO_NOT_TRACK: "1"
+    volumes:
+      - ${VKM_MODELS_DIR}:/models:ro
+    command:
+      - /models/zai-org__GLM-OCR/2e85a62840ccac27daa451df36c736c4636b8628
+      - --served-model-name=glm-ocr
+      - --dtype=bfloat16
+      - --max-model-len=16384
+      - --max-num-seqs=64
+      - --max-num-batched-tokens=32768
+      - --gpu-memory-utilization=0.66
+      - --limit-mm-per-prompt={"image":1}
+      - --speculative-config={"method":"mtp","num_speculative_tokens":3}
+      - --enable-prefix-caching
+      - --seed=0
+      - --host=0.0.0.0
+      - --port=8000
+
+  glm-ocr-proxy:
+    profiles: ["glm"]
+    image: alpine/socat@sha256:5ffbd6ae916cbad86a58fabe0d6d5a6fd5c2b47ddf031e82996baac9300e732f
+    restart: "no"
+    command: ["tcp-listen:8000,fork,reuseaddr", "tcp-connect:glm-ocr:8000"]
+    networks: [glm_internal, glm_publish]
+    ports:
+      - "127.0.0.1:${CH_GLM_PORT:-8093}:8000"
+    depends_on: [glm-ocr]
+
+networks:
+  glm_internal:
+    internal: true
+  glm_publish: {}

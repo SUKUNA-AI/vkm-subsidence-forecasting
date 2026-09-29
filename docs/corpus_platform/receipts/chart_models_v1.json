@@ -138,7 +138,7 @@
  "decision": {
   "rule_1_tick_labels_model_instead_of_tesseract": "PASS for both models (qwen +0.274 [0.168, 0.391], precision 1.000; granite +0.280 [0.180, 0.392], precision 0.993); recommended: Qwen3.5-9B (titles, units and legends read far better)",
   "rule_2_replace_geometry_values": "FAIL (qwen - G hit@2% +0.171 [-0.049, 0.404]; granite - G -0.046 [-0.262, 0.161])",
-  "rule_3_hybrid": "FAIL (H - G -0.015 [-0.053, 0.007], tolerance -0.01; H calibrates one figure more (R5, no numeric truth); the whole loss comes from colour-matched series labels, X1b)",
+  "rule_3_hybrid": "FAIL (H - G -0.015 [-0.053, 0.007], tolerance -0.01; H calibrates one figure more (R5, no numeric truth); the whole loss comes from colour-matched series labels, X1b); correction 2026-09-29 (GLM-OCR addendum): the extra R5 calibration of H came from Tesseract's sparse-OCR words once H dropped the garbled strip readings; the model's labels did not align to any R5 strip blob",
   "rule_4": "KEEP route R geometry for values",
   "practical": "model reads axis labels and legend text instead of Tesseract; legend-to-curve by route R pixels, not by colour names; values stay geometric; model values only as a flagged fallback where route R gives nothing (exploratory F: hit@2% 0.67 vs 0.39 / 0.56, to be preregistered on new figures)"
  },
@@ -623,5 +623,277 @@
    },
    "X4_tesseract_recall_all_words": 0.7276119402985075
   }
+ },
+ "glm_ocr_addendum": {
+  "date": "2026-09-29",
+  "branch": "claude/agent-ch-glm-ocr-2026-09-29",
+  "preregistration": {
+   "file": "benchmarks/chart_models_v1/PREREGISTRATION_ADDENDUM_GLM.md",
+   "sha256": "28b988238c2586575e2ae8882d35f7f393f3e7b2e712a5bc06bdf92a37a088d7",
+   "commit": "53c479b",
+   "committed_before_any_benchmark_request": true
+  },
+  "arm": {
+   "model": "zai-org/GLM-OCR",
+   "revision": "2e85a62840ccac27daa451df36c736c4636b8628",
+   "weights_sha256": "a16eb0de98d199293371c560f95f83130d2a2c9612449df16839f08ff9498815",
+   "params": "0.9B",
+   "license": "mit",
+   "downloaded": false,
+   "serving": "as infra/workstation/glm-ocr/compose.yml: vllm/vllm-openai@sha256:8a69ffad015f138d7170c4ddc429e230a3bc1c1719f67e14324749df200a4b90 (v0.30.0), bf16, max-model-len 16384, max-num-seqs 64, max-num-batched-tokens 32768, gpu-memory-utilization 0.66, MTP speculative 3, prefix caching, seed 0, internal network + socat proxy on loopback; project vkm-chart-bench profile glm (pipeline containers untouched)",
+   "request": "vkm_corpus.ocr.client.request_body with DEFAULT_SAMPLING (temperature 0, top_p 1e-5, top_k 1, repetition_penalty 1.1, seed 0), max_tokens 4096, lossless 8-bit grey PNG"
+  },
+  "variants": {
+   "C": "the 152 label crops route R gives Tesseract (14 of 19 figures), captured byte for byte; check 0 passed on 19/19; hashes benchmarks/chart_models_v1/hashes_glm_v1.json; prompt 'Text Recognition:'",
+   "W": "whole figure, grey, 'Text Recognition:'",
+   "IE": "whole figure, grey, documented information-extraction prompt with the T1 JSON schema"
+  },
+  "task2": "not applicable (no chart-to-series mode; the pipeline does not recognise chart regions)",
+  "results_T1": {
+   "glm_W": {
+    "micro_recall": 0.8171641791044776,
+    "micro_precision": 0.7398648648648649,
+    "mean_recall": 0.8260448916408669,
+    "n_labels": 268,
+    "n_pred": 296,
+    "x_title_found": [
+     0.8571428571428571,
+     14
+    ],
+    "y_title_found": [
+     0.6470588235294118,
+     17
+    ],
+    "legend_found_mean": [
+     0.9658008658008659,
+     11
+    ]
+   },
+   "glm_W_all_tokens": {
+    "micro_recall": 0.8992537313432836,
+    "micro_precision": 0.5343680709534369,
+    "n_pred": 451
+   },
+   "glm_IE": {
+    "micro_recall": 0.31716417910447764,
+    "micro_precision": 1.0,
+    "micro_axis_recall": 0.31716417910447764,
+    "x_title_ok": [
+     0.42105263157894735,
+     19
+    ],
+    "y_title_ok": [
+     0.35294117647058826,
+     17
+    ],
+    "x_unit_ok": [
+     0.05263157894736842,
+     19
+    ],
+    "y_unit_ok": [
+     0.26666666666666666,
+     15
+    ],
+    "legend_recall_mean": [
+     0.0,
+     11
+    ],
+    "legend_recall_mean_G1": [
+     0.8227272727272726,
+     11
+    ],
+    "parsed": 16
+   },
+   "glm_C": {
+    "micro_recall": 0.25268817204301075,
+    "micro_precision": 0.6811594202898551,
+    "mean_recall": 0.22371031746031744,
+    "n_labels": 186,
+    "n_pred": 69
+   },
+   "tesseract_C": {
+    "micro_recall": 0.25268817204301075,
+    "micro_precision": 0.41964285714285715,
+    "mean_recall": 0.24031127602556174,
+    "n_labels": 186,
+    "n_pred": 112
+   },
+   "C_agreement_mean": 0.347985347985348,
+   "references": {
+    "qwen": {
+     "micro_recall": 0.9925373134328358,
+     "micro_precision": 1.0
+    },
+    "granite": {
+     "micro_recall": 0.996268656716418,
+     "micro_precision": 0.9925650557620818
+    },
+    "tesseract_pooled": {
+     "micro_recall": 0.6940298507462687,
+     "micro_precision": 0.657243816254417
+    }
+   }
+  },
+  "differences": {
+   "A1_glmW_vs_tesseract_pooled": {
+    "mean_diff": 0.10920810446230031,
+    "ci95": [
+     -0.004152164202371959,
+     0.22507167246148013
+    ],
+    "n": 19
+   },
+   "A2_glmC_vs_tesseractC": {
+    "mean_diff": -0.016600958565244277,
+    "ci95": [
+     -0.05235534554730984,
+     0.02719155844155845
+    ],
+    "n": 14
+   },
+   "glmIE_vs_tesseract_pooled": {
+    "mean_diff": -0.4433740528025195,
+    "ci95": [
+     -0.6479775322682585,
+     -0.21769135317184038
+    ],
+    "n": 19
+   },
+   "B1_glmIE_vs_qwen": {
+    "mean_diff": -0.7169678876335223,
+    "ci95": [
+     -0.8578531891225389,
+     -0.5588632342889309
+    ],
+    "n": 19
+   },
+   "B2_glmW_all_vs_qwen": {
+    "mean_diff": -0.09414579228820714,
+    "ci95": [
+     -0.1765281980016887,
+     -0.024767801857585137
+    ],
+    "n": 19
+   },
+   "B3_glmIE_vs_granite": {
+    "mean_diff": -0.7232477919397424,
+    "ci95": [
+     -0.8678819374639807,
+     -0.5643762020358383
+    ],
+    "n": 19
+   }
+  },
+  "route_r_secondary": {
+   "G": {
+    "both_axes_calibrated": 11,
+    "of": 19,
+    "mean_hit@2%": 0.39267996982720965
+   },
+   "H": {
+    "both_axes_calibrated": 12,
+    "of": 19,
+    "mean_hit@2%": 0.37792381608890124
+   },
+   "RC": {
+    "both_axes_calibrated": 11,
+    "of": 19,
+    "mean_hit@2%": 0.39267996982720965
+   },
+   "RIE": {
+    "both_axes_calibrated": 12,
+    "of": 19,
+    "mean_hit@2%": 0.3587469791552127
+   },
+   "RQ": {
+    "both_axes_calibrated": 12,
+    "of": 19,
+    "mean_hit@2%": 0.39267996982720965
+   },
+   "RC_vs_G_hit@2%": {
+    "mean_diff": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "n": 17
+   },
+   "RIE_vs_G_hit@2%": {
+    "mean_diff": -0.033932990671996954,
+    "ci95": [
+     -0.10179897201599086,
+     0.0
+    ],
+    "n": 17
+   },
+   "RQ_vs_G_hit@2%": {
+    "mean_diff": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "n": 17
+   }
+  },
+  "speed_vram": {
+   "W": {
+    "median_s": 0.262,
+    "max_s": 1.25,
+    "sum_s": 7.04,
+    "peak_card_mib": 12256
+   },
+   "IE": {
+    "median_s": 0.373,
+    "max_s": 1.574,
+    "sum_s": 8.39,
+    "peak_card_mib": 12232
+   },
+   "C": {
+    "median_s": 0.109,
+    "max_s": 2.338,
+    "sum_s": 8.9,
+    "peak_card_mib": 12239
+   },
+   "baseline_desktop_mib": 3735,
+   "note": "one request at a time; server up to ~8.5 GB; card peak 12256 MiB"
+  },
+  "decision": {
+   "A_better_than_tesseract": "no variant passes (W: +0.109 [-0.004, 0.225]; C: -0.017; IE: -0.443)",
+   "B_vs_qwen": "IE worse (-0.717 [-0.858, -0.559])",
+   "recommendation": "route R label reader: Qwen3.5-9B (unchanged); GLM-OCR only as a candidate cheap replacement of Tesseract for reading route R's crops (better per crop, already deployed), to be tested on more figures before adoption; it did not change route R's calibration or values on this set"
+  },
+  "deviations": [
+   "G1 IE legend objects {\"label\": v}: the value is taken (preregistered rule took keys): legend recall 0.0 -> 0.82; secondary metric"
+  ],
+  "exploratory": {
+   "G2_ie_lenient_parse": {
+    "micro_recall": 0.373134328358209,
+    "micro_precision": 1.0,
+    "mean_recall": 0.322804839639205,
+    "n_labels": 268,
+    "n_pred": 100
+   },
+   "G3_per_crop_manual_reading": {
+    "label_crops": 45,
+    "read_exactly": {
+     "glm": 1.0,
+     "tesseract": 0.8666666666666667
+    },
+    "only_glm_right": 6,
+    "only_tesseract_right": 0,
+    "both_wrong": 0,
+    "non_label_crops": 107,
+    "spurious_label_like_reading": {
+     "glm": 0.22429906542056074,
+     "tesseract": 0.6635514018691588
+    }
+   },
+   "G3_manual_file_sha256": "7b299ea014c67df9188c159082016b99820a9863a9814d05e8b5bb709ace6bcc"
+  },
+  "results_file": "benchmarks/chart_models_v1/results_glm_v1.json",
+  "not_done": [
+   "the pipeline layout model (PP-DocLayoutV3) was not run on the figures",
+   "GLM-OCR crop reader not built into route R (shown only by the check arm RC)"
+  ]
  }
 }
