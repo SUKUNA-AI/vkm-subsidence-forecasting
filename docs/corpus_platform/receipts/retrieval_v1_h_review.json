@@ -1,0 +1,79 @@
+{
+ "schema": "vkm-retrieval-h-review-receipt-v1",
+ "date": "2026-09-28",
+ "benchmark": "retrieval_v1",
+ "sample": "benchmarks/retrieval_v1/H_REVIEW_SAMPLE.md (60 pool labels LLM_AGENT_V1, stratified by grade and track)",
+ "reviewer": "H (user)",
+ "review_mode": "table only (query, page id, J grade, J rationale, system); page snippets were NOT shown",
+ "agreement": {
+  "n": 60,
+  "agree": 53,
+  "exact_agreement": 0.8833,
+  "within_one_grade": 1.0,
+  "cohen_kappa_unweighted": 0.8444,
+  "weighted_kappa_linear": 0.9067,
+  "weighted_kappa_quadratic": 0.9533,
+  "krippendorff_alpha_ordinal": 0.9546,
+  "h_higher": 3,
+  "h_lower": 4
+ },
+ "disagreements": [
+  {
+   "n": 6,
+   "query_id": "T-INSAR-003",
+   "page_id": "VKM-SRC-003:p0020",
+   "grade_j": 3,
+   "grade_h": 2
+  },
+  {
+   "n": 20,
+   "query_id": "T-RSEM-006",
+   "page_id": "VKM-SRC-025:p0084",
+   "grade_j": 1,
+   "grade_h": 2
+  },
+  {
+   "n": 22,
+   "query_id": "V-SGRAPH-004",
+   "page_id": "VKM-SRC-046:p0005",
+   "grade_j": 2,
+   "grade_h": 1
+  },
+  {
+   "n": 29,
+   "query_id": "T-VKM-005",
+   "page_id": "VKM-SRC-027:p0002",
+   "grade_j": 2,
+   "grade_h": 3
+  },
+  {
+   "n": 42,
+   "query_id": "T-ENT-007",
+   "page_id": "VKM-SRC-195:p0004",
+   "grade_j": 2,
+   "grade_h": 3
+  },
+  {
+   "n": 47,
+   "query_id": "T-INSAR-005",
+   "page_id": "VKM-SRC-196:p0101",
+   "grade_j": 3,
+   "grade_h": 2
+  },
+  {
+   "n": 57,
+   "query_id": "T-INSAR-002",
+   "page_id": "VKM-SRC-232:p0088",
+   "grade_j": 2,
+   "grade_h": 1
+  }
+ ],
+ "status": "H grades are recorded as a separate label source H_REVIEW_V1; the 7 disagreements need adjudication against the page snippets before any label becomes VERIFIED; qrels_v1_pooled.tsv is unchanged",
+ "effect_on_v1_metrics": "not rerun: at most 7 of 4,275 pooled labels change, all by one grade",
+ "protocol_changes_for_next_rounds": [
+  "blind first pass: no J grade, no rationale, no 'brought by' system",
+  "visual track reviewed on the page crop or figure, not on a text description",
+  "aspect-coverage rule for multi-aspect queries: 3 = main intent or several key aspects, 2 = one substantial aspect, 1 = neighbouring context or mention",
+  "agreement (weighted kappa, Krippendorff alpha) computed before adjudication; both grades and the adjudicated grade stored separately"
+ ]
+}

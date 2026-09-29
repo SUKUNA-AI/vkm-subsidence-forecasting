@@ -1,0 +1,985 @@
+{
+ "schema": "vkm-nav-duplicates-receipt-v1",
+ "agent": "U",
+ "date": "2026-09-28",
+ "branch": "claude/agent-u-nav-duplicates-2026-09-28",
+ "code_commit": "9fbee24",
+ "status": "DERIVED, AUTO_EXTRACTED_UNREVIEWED (navigation hints: 'primary' orders copies, it is not a claim of authorship or priority)",
+ "snapshot": {
+  "snapshot_id": "snap-20260928T160616Z-5d669f09",
+  "manifest_sha256": "f5a2fc899d618e1eba6d1471b1eb0b2a1102990584d8ba68214d354290d7f6b8"
+ },
+ "rule_version": "duplicates_v1",
+ "unit_rule": "vkm-units-v1/BLOCK_GROUP",
+ "build_command": "vkm-corpus nav build --duckdb <snapshot DuckDB copy> --out <dir> --part duplicates --vectors <dense unit vectors dir>  (CPU run: --option duplicates.backend=cpu)",
+ "vectors": {
+  "config_signature": "24705922826ba53cc4c9782b00410f67eb27222420199597a1c17b0a7e3d69e6",
+  "dimension": 768,
+  "matched": 50193,
+  "model_id": "jinaai/jina-embeddings-v5-text-nano-retrieval",
+  "model_revision": "ac5d898c8d382b17167c33e5c8af644a3519b47d",
+  "parts": 364,
+  "stale": 0,
+  "text_rule": "vkm-units-v1/A",
+  "used": true
+ },
+ "params": {
+  "abstract_cluster_share": 0.5,
+  "backend": "auto",
+  "boilerplate_min_works": 3,
+  "channels": [
+   "knn",
+   "lsh"
+  ],
+  "gpu_mem_limit_gb": 6.0,
+  "knn_k": 16,
+  "knn_min_cosine": 0.7,
+  "lsh_max_bucket": 200,
+  "lsh_rows": 3,
+  "lsh_seed": 20260928,
+  "max_reference_share": 0.5,
+  "min_containment": 0.5,
+  "min_norm_chars": 150,
+  "min_shared_grams": 100,
+  "minhash_perms": 96,
+  "reprint_min_shared": 3,
+  "shared_sentence_min": 0.5,
+  "shingle_k": 8,
+  "template_cluster_share": 0.5
+ },
+ "model_choices": {
+  "abstract_cluster_share": "MODEL_CHOICE",
+  "abstract_markers": "«аннотация», «ключевые слова», «реферат», «резюме», «abstract», «keywords»",
+  "boilerplate_min_works": "MODEL_CHOICE",
+  "channels": "MODEL_CHOICE",
+  "clusters": "connected components of verified pairs",
+  "knn": "inner product of L2-normalised dense unit vectors, knn_k neighbours, cosine >= knn_min_cosine",
+  "knn_k": "MODEL_CHOICE",
+  "knn_min_cosine": "MODEL_CHOICE",
+  "lsh_max_bucket": "MODEL_CHOICE",
+  "lsh_rows": "MODEL_CHOICE",
+  "lsh_seed": "MODEL_CHOICE",
+  "max_reference_share": "MODEL_CHOICE",
+  "min_containment": "MODEL_CHOICE",
+  "min_norm_chars": "MODEL_CHOICE",
+  "min_shared_grams": "MODEL_CHOICE",
+  "minhash_lsh": "minhash_perms splitmix64 permutations (seeded by lsh_seed), bands of lsh_rows rows",
+  "minhash_perms": "MODEL_CHOICE",
+  "normalisation": "NFKC, casefold, ё→е, letters+digits only, Latin/Ukrainian look-alikes folded to Cyrillic",
+  "primary": "earliest publication_year of the member works; ties: SECONDARY_WORK_TYPES after original works, then the work whose passage is nearer the start of its source, then work_id; UNKNOWN when a member year is missing; the copy of a work: FULL_COPY link, anchor source, source_id",
+  "reprint_min_shared": "MODEL_CHOICE",
+  "shared_sentence_min": "MODEL_CHOICE",
+  "shared_text": "sentences of a member with >= shared_sentence_min of their shingles in members of other sources",
+  "shingle_k": "MODEL_CHOICE",
+  "shingles": "character shingle_k-grams of the normalised stream, polynomial hash (base 0x100000001B3) + splitmix64, top 40 bits",
+  "template_cluster_share": "MODEL_CHOICE",
+  "template_markers": "title pages (ministry, institution, «на правах рукописи», «диссертация на соискание»), funding and acknowledgements, licences and copyright, publication counts, e-mail/phone lines, OCR placeholder sentences",
+  "unit": "vkm-units-v1 BLOCK_GROUP units (consecutive primary blocks of one page, 900/1600 characters)",
+  "unit_filter": "min_norm_chars; reference lists (REFERENCE_LIST blocks or numbered bibliographic lines) skipped",
+  "verification": "containment |A∩B|/min(|A|,|B|) >= min_containment and |A∩B| >= min_shared_grams"
+ },
+ "secondary_work_types": [
+  "BIBLIOGRAPHIC_INDEX",
+  "DISSERTATION_ABSTRACT",
+  "JOURNAL_ISSUE",
+  "PRESENTATION",
+  "PROCEEDINGS_VOLUME"
+ ],
+ "counts": {
+  "candidates": 63063,
+  "candidates_knn": 59627,
+  "candidates_lsh": 4666,
+  "clusters": 697,
+  "clusters_by_kind": {
+   "BOILERPLATE": 14,
+   "PARTIAL_OVERLAP": 69,
+   "REPRINT": 396,
+   "SAME_WORK_COPY": 212,
+   "SHARED_ABSTRACT": 6
+  },
+  "members": 1718,
+  "members_by_kind": {
+   "BOILERPLATE": 101,
+   "PARTIAL_OVERLAP": 151,
+   "REPRINT": 1013,
+   "SAME_WORK_COPY": 441,
+   "SHARED_ABSTRACT": 12
+  },
+  "primary_rules": {
+   "EARLIEST_YEAR": 324,
+   "NOT_APPLICABLE": 14,
+   "SAME_WORK_ANCHOR": 1,
+   "SAME_WORK_FULL_COPY": 20,
+   "SAME_WORK_SOURCE_ID": 191,
+   "TIE_POSITION": 90,
+   "TIE_WORK_TYPE": 49,
+   "UNKNOWN_YEAR": 8
+  },
+  "shingles": 31532153,
+  "source_pairs": 459,
+  "source_pairs_by_relation": {
+   "BOILERPLATE": 291,
+   "PARTIAL_OVERLAP": 59,
+   "REPRINT": 101,
+   "SAME_WORK_COPY": 3,
+   "SHARED_ABSTRACT": 5
+  },
+  "sources_with_units": 249,
+  "units": 54791,
+  "units_kept": 50658,
+  "units_reference_list": 258,
+  "units_short": 3875,
+  "verified_both": 873,
+  "verified_knn_only": 256,
+  "verified_lsh_only": 92,
+  "verified_pairs": 1221,
+  "sources_with_members": 134,
+  "pages_with_members": 1185,
+  "clusters_by_n_sources": {
+   "2": 586,
+   "3": 94,
+   "4": 8,
+   "5": 4,
+   "6": 1,
+   "7": 2,
+   "9": 1,
+   "23": 1
+  },
+  "members_with_cosine": 1687,
+  "copy_blocks_for_concepts_hook": 1200
+ },
+ "datasets": {
+  "dup_clusters": {
+   "rows": 697,
+   "sha256": "ab22efbba72c82d8ddaff9c110facc58217afb3a4af103b19597edd1840511b6",
+   "columns": [
+    "cluster_id",
+    "kind",
+    "n_members",
+    "n_sources",
+    "n_works",
+    "source_ids",
+    "work_ids",
+    "primary_source_id",
+    "primary_work_id",
+    "primary_year",
+    "primary_rule",
+    "reference_source_id",
+    "n_edges",
+    "n_edges_lsh",
+    "n_edges_knn",
+    "min_edge_containment",
+    "max_edge_jaccard",
+    "template_share",
+    "abstract_share",
+    "rule_version"
+   ]
+  },
+  "dup_members": {
+   "rows": 1718,
+   "sha256": "a9f7a7ed5b872d3be8b2e20c720e58232d7a4d81ed304fc7ed8724d875482f52",
+   "columns": [
+    "cluster_id",
+    "unit_id",
+    "unit_kind",
+    "kind",
+    "source_id",
+    "work_id",
+    "year",
+    "page_id",
+    "page_index",
+    "block_ids",
+    "n_shingles",
+    "shared_chars",
+    "similarity",
+    "containment",
+    "cosine",
+    "is_primary",
+    "is_reference",
+    "rule_version"
+   ]
+  },
+  "source_overlap": {
+   "rows": 459,
+   "sha256": "45d83c7609bf7a6bff4d91a5e814a8be70a25cbecf5cb02c3604511e3d108467",
+   "columns": [
+    "source_a",
+    "source_b",
+    "work_a",
+    "work_b",
+    "same_work",
+    "n_shared_units",
+    "n_shared_content",
+    "n_units_a",
+    "n_units_b",
+    "units_total_a",
+    "units_total_b",
+    "share_of_a",
+    "share_of_b",
+    "year_a",
+    "year_b",
+    "relation",
+    "rule_version"
+   ]
+  }
+ },
+ "backends": {
+  "gpu": {
+   "seconds": 15.58,
+   "timings_s": {
+    "clusters": 1.156,
+    "components": 2.398,
+    "knn": 2.238,
+    "load_units": 4.537,
+    "load_vectors": 0.916,
+    "lsh": 0.125,
+    "minhash": 0.026,
+    "normalise": 2.561,
+    "shingles": 1.188,
+    "source_overlap": 0.005,
+    "total": 15.534,
+    "verify": 0.196
+   },
+   "cupy_pool_peak_mb": 3062.4,
+   "gpu_mem_limit_gb": 6.0,
+   "device": "RTX 5070 Ti 16 GB (shared)",
+   "stack": "CuPy RawKernel MinHash, cuVS brute-force kNN, cuGraph connected components"
+  },
+  "cpu": {
+   "seconds": 83.65,
+   "timings_s": {
+    "clusters": 1.253,
+    "components": 0.003,
+    "knn": 17.429,
+    "load_units": 4.42,
+    "load_vectors": 0.949,
+    "lsh": 0.132,
+    "minhash": 23.739,
+    "normalise": 2.498,
+    "shingles": 30.64,
+    "source_overlap": 0.004,
+    "total": 83.587,
+    "verify": 2.516
+   },
+   "stack": "numpy (reduceat MinHash, blocked matmul kNN), union-find"
+  },
+  "equality": "dup_clusters, dup_members, source_overlap: byte-identical Parquet (equal sha256) on GPU and CPU",
+  "cpu_equal_sha256": true
+ },
+ "sensitivity": {
+  "note": "members found by each variant against the defaults (GPU runs)",
+  "runs": {
+   "default": {
+    "options": {},
+    "candidates": 63063,
+    "verified_pairs": 1221,
+    "clusters": 697,
+    "members": 1718,
+    "clusters_by_kind": {
+     "SAME_WORK_COPY": 212,
+     "REPRINT": 396,
+     "SHARED_ABSTRACT": 6,
+     "PARTIAL_OVERLAP": 69,
+     "BOILERPLATE": 14
+    },
+    "members_added_vs_default": 0,
+    "members_lost_vs_default": 0
+   },
+   "lsh_only": {
+    "options": {
+     "channels": [
+      "lsh"
+     ]
+    },
+    "candidates": 4666,
+    "verified_pairs": 965,
+    "clusters": 619,
+    "members": 1443,
+    "clusters_by_kind": {
+     "SAME_WORK_COPY": 216,
+     "REPRINT": 323,
+     "SHARED_ABSTRACT": 6,
+     "PARTIAL_OVERLAP": 60,
+     "BOILERPLATE": 14
+    },
+    "members_added_vs_default": 0,
+    "members_lost_vs_default": 275
+   },
+   "knn_only": {
+    "options": {
+     "channels": [
+      "knn"
+     ]
+    },
+    "candidates": 59627,
+    "verified_pairs": 1129,
+    "clusters": 679,
+    "members": 1638,
+    "clusters_by_kind": {
+     "SAME_WORK_COPY": 214,
+     "REPRINT": 384,
+     "SHARED_ABSTRACT": 5,
+     "PARTIAL_OVERLAP": 68,
+     "BOILERPLATE": 8
+    },
+    "members_added_vs_default": 0,
+    "members_lost_vs_default": 80
+   },
+   "knn_min_cosine_0.80": {
+    "options": {
+     "knn_min_cosine": 0.8
+    },
+    "candidates": 9858,
+    "verified_pairs": 1120,
+    "clusters": 678,
+    "members": 1623,
+    "clusters_by_kind": {
+     "SAME_WORK_COPY": 215,
+     "REPRINT": 379,
+     "SHARED_ABSTRACT": 6,
+     "PARTIAL_OVERLAP": 64,
+     "BOILERPLATE": 14
+    },
+    "members_added_vs_default": 0,
+    "members_lost_vs_default": 95
+   },
+   "knn_k_32": {
+    "options": {
+     "knn_k": 32
+    },
+    "candidates": 89580,
+    "verified_pairs": 1224,
+    "clusters": 698,
+    "members": 1721,
+    "clusters_by_kind": {
+     "SAME_WORK_COPY": 212,
+     "REPRINT": 396,
+     "SHARED_ABSTRACT": 6,
+     "PARTIAL_OVERLAP": 70,
+     "BOILERPLATE": 14
+    },
+    "members_added_vs_default": 3,
+    "members_lost_vs_default": 0
+   },
+   "min_containment_0.6": {
+    "options": {
+     "min_containment": 0.6
+    },
+    "candidates": 63063,
+    "verified_pairs": 954,
+    "clusters": 620,
+    "members": 1452,
+    "clusters_by_kind": {
+     "SAME_WORK_COPY": 226,
+     "REPRINT": 319,
+     "SHARED_ABSTRACT": 6,
+     "PARTIAL_OVERLAP": 57,
+     "BOILERPLATE": 12
+    },
+    "members_added_vs_default": 0,
+    "members_lost_vs_default": 266
+   },
+   "min_containment_0.8": {
+    "options": {
+     "min_containment": 0.8
+    },
+    "candidates": 63063,
+    "verified_pairs": 491,
+    "clusters": 387,
+    "members": 848,
+    "clusters_by_kind": {
+     "SAME_WORK_COPY": 187,
+     "REPRINT": 148,
+     "SHARED_ABSTRACT": 6,
+     "PARTIAL_OVERLAP": 34,
+     "BOILERPLATE": 12
+    },
+    "members_added_vs_default": 0,
+    "members_lost_vs_default": 870
+   }
+  }
+ },
+ "qa": {
+  "random_30": {
+   "method": "random.seed(2026); random.sample(sorted cluster ids, 30); agent U read every member text of each cluster and judged: is the text really shared (not a coincidence), is the primary the plausible original under the rules (a same-year tie counts as plausible when labelled as a tie), is the kind right",
+   "n": 30,
+   "kinds_in_sample": {
+    "REPRINT": 17,
+    "PARTIAL_OVERLAP": 4,
+    "SHARED_ABSTRACT": 1,
+    "SAME_WORK_COPY": 8
+   },
+   "precision_real_duplicate": 1.0,
+   "primary_plausible": 1.0,
+   "kind_plausible": 0.933,
+   "undecidable_same_year_ties": 3,
+   "clusters": [
+    {
+     "cluster_id": "DCL-29bd4feaf1dd51c7",
+     "kind": "REPRINT",
+     "n_sources": 3,
+     "n_works": 2,
+     "primary_rule": "EARLIEST_YEAR",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "teaching manual (two copies) and a later article of the same authors"
+    },
+    {
+     "cluster_id": "DCL-7f5c33f189ef647d",
+     "kind": "PARTIAL_OVERLAP",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "EARLIEST_YEAR",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": false,
+     "note": "author affiliation header of two papers in one journal: template-like, not flagged"
+    },
+    {
+     "cluster_id": "DCL-be2a35fced08e3ae",
+     "kind": "REPRINT",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "EARLIEST_YEAR",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "equipment description, 1992 guidance reused in a 2008 textbook"
+    },
+    {
+     "cluster_id": "DCL-c348166cafb511fd",
+     "kind": "REPRINT",
+     "n_sources": 3,
+     "n_works": 3,
+     "primary_rule": "TIE_POSITION",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "page shared by two articles and their issue; primary = article that starts on it"
+    },
+    {
+     "cluster_id": "DCL-f49c1635b93a4ad5",
+     "kind": "REPRINT",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "EARLIEST_YEAR",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "1992 description reused in a 2013 manual"
+    },
+    {
+     "cluster_id": "DCL-2486dcc9f4621d44",
+     "kind": "REPRINT",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "TIE_WORK_TYPE",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "dissertation and its author abstract, same year; dissertation first"
+    },
+    {
+     "cluster_id": "DCL-57bbaf3c6ce39151",
+     "kind": "SHARED_ABSTRACT",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "TIE_POSITION",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "page shared by consecutive articles; primary = article whose first page it is"
+    },
+    {
+     "cluster_id": "DCL-e1aa7ef830c51a24",
+     "kind": "PARTIAL_OVERLAP",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "EARLIEST_YEAR",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "1973 source quoted in a 2025 dissertation"
+    },
+    {
+     "cluster_id": "DCL-e99a005faa854273",
+     "kind": "REPRINT",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "EARLIEST_YEAR",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "2013 monograph text reused in a 2017 monograph"
+    },
+    {
+     "cluster_id": "DCL-d16e81b2f76ad871",
+     "kind": "REPRINT",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "EARLIEST_YEAR",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "1992 guidance reused in a 1998 manual"
+    },
+    {
+     "cluster_id": "DCL-a1ed61cc49df77ea",
+     "kind": "REPRINT",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "EARLIEST_YEAR",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "2013 monograph text reused in a 2017 monograph"
+    },
+    {
+     "cluster_id": "DCL-d80fcdf95b6ece64",
+     "kind": "REPRINT",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "EARLIEST_YEAR",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "2013 monograph table and text reused in 2017"
+    },
+    {
+     "cluster_id": "DCL-ceaebeb64e01c7fa",
+     "kind": "REPRINT",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "TIE_POSITION",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "article and dissertation of one year: tie, no decidable original (TIE_POSITION)"
+    },
+    {
+     "cluster_id": "DCL-b959c4d2636cd4f5",
+     "kind": "SAME_WORK_COPY",
+     "n_sources": 2,
+     "n_works": 1,
+     "primary_rule": "SAME_WORK_SOURCE_ID",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "two copies of one work"
+    },
+    {
+     "cluster_id": "DCL-dccd7b860a3ced99",
+     "kind": "SAME_WORK_COPY",
+     "n_sources": 2,
+     "n_works": 1,
+     "primary_rule": "SAME_WORK_SOURCE_ID",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "two copies of one work"
+    },
+    {
+     "cluster_id": "DCL-a8cab456fb5c1296",
+     "kind": "SAME_WORK_COPY",
+     "n_sources": 2,
+     "n_works": 1,
+     "primary_rule": "SAME_WORK_SOURCE_ID",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "two copies of one work"
+    },
+    {
+     "cluster_id": "DCL-5f711b279910b1bb",
+     "kind": "REPRINT",
+     "n_sources": 4,
+     "n_works": 3,
+     "primary_rule": "EARLIEST_YEAR",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "1996 monograph reused in a 2008 manual (two copies) and a 2013 monograph"
+    },
+    {
+     "cluster_id": "DCL-00c5c5f4aeea3ca0",
+     "kind": "SAME_WORK_COPY",
+     "n_sources": 2,
+     "n_works": 1,
+     "primary_rule": "SAME_WORK_SOURCE_ID",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "two copies of one work"
+    },
+    {
+     "cluster_id": "DCL-e73a9f1ee7a5a9d9",
+     "kind": "SAME_WORK_COPY",
+     "n_sources": 2,
+     "n_works": 1,
+     "primary_rule": "SAME_WORK_FULL_COPY",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "front-matter copy and full copy of one work; full copy first"
+    },
+    {
+     "cluster_id": "DCL-1d090e3792efc05c",
+     "kind": "REPRINT",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "TIE_POSITION",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "article and dissertation of one year: tie (TIE_POSITION)"
+    },
+    {
+     "cluster_id": "DCL-264719351fcfddd7",
+     "kind": "PARTIAL_OVERLAP",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "EARLIEST_YEAR",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "method paragraph of a 2022 article reused in a 2025 dissertation"
+    },
+    {
+     "cluster_id": "DCL-734de92bbe1510a7",
+     "kind": "SAME_WORK_COPY",
+     "n_sources": 2,
+     "n_works": 1,
+     "primary_rule": "SAME_WORK_FULL_COPY",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "front-matter copy and full copy of one work"
+    },
+    {
+     "cluster_id": "DCL-222a878c66bb35b6",
+     "kind": "REPRINT",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "TIE_WORK_TYPE",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "article and its journal issue; article first by work type"
+    },
+    {
+     "cluster_id": "DCL-ab28cf4a0e0065e4",
+     "kind": "PARTIAL_OVERLAP",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "EARLIEST_YEAR",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": false,
+     "note": "author list and contacts slide of a presentation and a manual: template-like"
+    },
+    {
+     "cluster_id": "DCL-0497abfb9e822b7f",
+     "kind": "REPRINT",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "TIE_WORK_TYPE",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "dissertation and its author abstract; dissertation first"
+    },
+    {
+     "cluster_id": "DCL-ff6fdbe4c67f5200",
+     "kind": "REPRINT",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "EARLIEST_YEAR",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "2016 article text reused in a 2017 article"
+    },
+    {
+     "cluster_id": "DCL-7dfb6e11bfd00b88",
+     "kind": "SAME_WORK_COPY",
+     "n_sources": 2,
+     "n_works": 1,
+     "primary_rule": "SAME_WORK_SOURCE_ID",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "two copies of one work"
+    },
+    {
+     "cluster_id": "DCL-4f84ce4bf5eb2fc7",
+     "kind": "REPRINT",
+     "n_sources": 2,
+     "n_works": 2,
+     "primary_rule": "TIE_POSITION",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "two institutional reports of one year: tie (TIE_POSITION)"
+    },
+    {
+     "cluster_id": "DCL-95dbde4fface0a8f",
+     "kind": "SAME_WORK_COPY",
+     "n_sources": 2,
+     "n_works": 1,
+     "primary_rule": "SAME_WORK_FULL_COPY",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "preface in the front-matter copy and the full copy"
+    },
+    {
+     "cluster_id": "DCL-67c3f26060c4ad62",
+     "kind": "REPRINT",
+     "n_sources": 3,
+     "n_works": 2,
+     "primary_rule": "EARLIEST_YEAR",
+     "real_duplicate": true,
+     "primary_plausible": true,
+     "kind_plausible": true,
+     "note": "1996 monograph text reused in a 2008 manual (two copies)"
+    }
+   ]
+  },
+  "per_kind": {
+   "SHARED_ABSTRACT": {
+    "n": 6,
+    "of_kind_total": 6,
+    "real": 6,
+    "primary_plausible": 6,
+    "kind_plausible": 6,
+    "note": "all of this kind: five pages shared by consecutive articles of one issue (primary = the article that starts on the page), one pair of overlapping abstracts of one author (earliest first)",
+    "cluster_ids": [
+     "DCL-bc1ab6dc295272fa",
+     "DCL-7551dfbe1f98b43b",
+     "DCL-e70a0207dd2106f7",
+     "DCL-9b82a20cc0da4d11",
+     "DCL-57bbaf3c6ce39151",
+     "DCL-73ab56787c3b4864"
+    ]
+   },
+   "BOILERPLATE": {
+    "n": 14,
+    "of_kind_total": 14,
+    "real": 14,
+    "template_text": 14,
+    "note": "all of this kind: title pages (23 sources), dissertation title and structure/approbation statements, funding notes, acknowledgements, open-access licences, publisher copyright, journal translation notes, OCR placeholder sentences of blank pages",
+    "cluster_ids": [
+     "DCL-c8aebed1d689398d",
+     "DCL-597875a061ba0025",
+     "DCL-cfa8928359685a36",
+     "DCL-8a8d0ae853c4f97c",
+     "DCL-c51952b6ccb8c040",
+     "DCL-1f556d3fe0a9bab8",
+     "DCL-b17ff5140ce51e6c",
+     "DCL-9be2372788a89bf0",
+     "DCL-2fe2b6396b475c27",
+     "DCL-f6ed1cf263969660",
+     "DCL-c971c9605f23d047",
+     "DCL-d7e4f437cc95465e",
+     "DCL-4c5f6718559abb06",
+     "DCL-398d0134bed0c13c"
+    ]
+   },
+   "PARTIAL_OVERLAP": {
+    "n": 12,
+    "of_kind_total": 69,
+    "real": 12,
+    "primary_plausible": 12,
+    "kind_plausible": 12,
+    "note": "random.seed(5) sample of 12: reused paragraphs of one author, a normative instruction (1988) quoted in a 2017 textbook, a 2000 monograph definition quoted in a 2023 article, a figure legend reused",
+    "cluster_ids": [
+     "DCL-77da4850cc56a795",
+     "DCL-99f84ba23c904687",
+     "DCL-0614ebf24e0f2b48",
+     "DCL-d70b0fc9c71ec84c",
+     "DCL-74dcd2baead4aee4",
+     "DCL-182d3ea69b38304d",
+     "DCL-cf11b342b0c75841",
+     "DCL-264719351fcfddd7",
+     "DCL-20717dfa0e4ac947",
+     "DCL-4bc74e37e5e06d43",
+     "DCL-734142371e2eec64",
+     "DCL-bed205569eda0f36"
+    ]
+   }
+  },
+  "recall_proxies": {
+   "duplicate_page_candidates": {
+    "view_rule": "duplicate_pages_v1 (identical page text_sha256, >= 200 chars)",
+    "groups": 22,
+    "pages": 47,
+    "cross_source_page_pairs": 27,
+    "pairs_sharing_a_cluster": 27,
+    "recall": 1.0,
+    "pages_in_clusters": 47
+   },
+   "work_copies": [
+    {
+     "work_id": "VKM-WRK-013",
+     "source_a": "VKM-SRC-013",
+     "source_b": "VKM-SRC-025",
+     "both_have_pages": false,
+     "n_shared_units": 0,
+     "share_of_a": null,
+     "share_of_b": null,
+     "relation": null
+    },
+    {
+     "work_id": "VKM-WRK-013",
+     "source_a": "VKM-SRC-013",
+     "source_b": "VKM-SRC-202",
+     "both_have_pages": false,
+     "n_shared_units": 0,
+     "share_of_a": null,
+     "share_of_b": null,
+     "relation": null
+    },
+    {
+     "work_id": "VKM-WRK-013",
+     "source_a": "VKM-SRC-025",
+     "source_b": "VKM-SRC-202",
+     "both_have_pages": true,
+     "n_shared_units": 254,
+     "share_of_a": 0.981884,
+     "share_of_b": 0.935154,
+     "relation": "SAME_WORK_COPY"
+    },
+    {
+     "work_id": "VKM-WRK-147",
+     "source_a": "VKM-SRC-147",
+     "source_b": "VKM-SRC-232",
+     "both_have_pages": true,
+     "n_shared_units": 20,
+     "share_of_a": 0.875,
+     "share_of_b": 0.028169,
+     "relation": "SAME_WORK_COPY"
+    },
+    {
+     "work_id": "VKM-WRK-208",
+     "source_a": "VKM-SRC-208",
+     "source_b": "VKM-SRC-209",
+     "both_have_pages": true,
+     "n_shared_units": 1,
+     "share_of_a": 0.005618,
+     "share_of_b": 0.005714,
+     "relation": "SAME_WORK_COPY"
+    }
+   ],
+   "curated_source_relations": [
+    {
+     "from": "VKM-SRC-022",
+     "relation": "CONTAINS_COPY_OF",
+     "to": "VKM-SRC-023",
+     "both_have_pages": false,
+     "found": false,
+     "n_shared_units": 0,
+     "kind": null
+    },
+    {
+     "from": "VKM-SRC-025",
+     "relation": "DERIVED_FROM",
+     "to": "VKM-SRC-013",
+     "both_have_pages": false,
+     "found": false,
+     "n_shared_units": 0,
+     "kind": null
+    },
+    {
+     "from": "VKM-SRC-031",
+     "relation": "SHARES_PAGES_WITH",
+     "to": "VKM-SRC-005",
+     "both_have_pages": true,
+     "found": true,
+     "n_shared_units": 2,
+     "kind": "SHARED_ABSTRACT"
+    },
+    {
+     "from": "VKM-SRC-032",
+     "relation": "SHARES_PAGES_WITH",
+     "to": "VKM-SRC-005",
+     "both_have_pages": true,
+     "found": true,
+     "n_shared_units": 2,
+     "kind": "REPRINT"
+    },
+    {
+     "from": "VKM-SRC-034",
+     "relation": "SHARES_PAGES_WITH",
+     "to": "VKM-SRC-199",
+     "both_have_pages": true,
+     "found": true,
+     "n_shared_units": 2,
+     "kind": "SHARED_ABSTRACT"
+    }
+   ]
+  }
+ },
+ "concepts_hook": {
+  "option": "--option concepts.drop_duplicate_blocks=true (with --part all, duplicates before concepts); default off",
+  "rule": "blocks of members outside the reference source with containment >= 0.8 are left out",
+  "full_canon_effect": {
+   "plain": {
+    "blocks": 424281,
+    "blocks_dropped_as_copies": 0,
+    "terms": 96205,
+    "mentions": 1579906,
+    "edges": {
+     "CONTAINS": 149505,
+     "CO_OCCURS": 1412065,
+     "DEFINED_AS": 991,
+     "SAME_AS": 1056
+    },
+    "seconds": 45.2
+   },
+   "hook": {
+    "blocks": 423093,
+    "blocks_dropped_as_copies": 1188,
+    "terms": 94597,
+    "mentions": 1567275,
+    "edges": {
+     "CONTAINS": 144674,
+     "CO_OCCURS": 1391082,
+     "DEFINED_AS": 985,
+     "SAME_AS": 1050
+    },
+    "seconds": 47.9
+   }
+  },
+  "probe": {
+   "method": "explore_concept(limit=10) with and without the hook, CPU pair counting, no communities",
+   "реология": {
+    "neighbours_replaced_of_10": 9,
+    "before": "the 9 replaced neighbours all had n_units 3-4 and NPMI 0.76-0.78: their support came from copied passages",
+    "after": "rheology terms (creep function, viscoelasticity, relaxation, Abel kernel)"
+   },
+   "stable_topics": [
+    "ползучесть соли",
+    "водозащитная толща",
+    "закладка",
+    "радарная интерферометрия"
+   ],
+   "stable_note": "same neighbours or 1-2 replaced; counts of supporting units drop by the copies"
+  }
+ },
+ "tests": {
+  "file": "tests/corpus/test_nav_duplicates.py",
+  "synthetic": true,
+  "wsl_venv_corpus_tests_corpus": "741 passed, 39 skipped, 5 failed (the 5 are test_public_hygiene: git in WSL cannot read the Windows worktree; expected)",
+  "windows_hygiene": "tests/corpus/test_public_hygiene.py 6 passed (Windows Python; in WSL git cannot read the Windows worktree, so these 5 fail there by design)",
+  "rapids_env": "test_nav_duplicates + test_nav_concepts: 33 passed (GPU parity included)"
+ },
+ "open_issues": [
+  "template-like author headers and contact slides shared by two works can stay PARTIAL_OVERLAP (2 of 30 in the random sample); the template phrase list is a MODEL_CHOICE",
+  "same-year pairs of different works (article vs dissertation, two reports) get a primary by the tie rules (TIE_POSITION, TIE_WORK_ID): no decidable original; the dossier should show the rule",
+  "copies of one work (SAME_WORK_COPY) pick the copy by FULL_COPY/anchor/source_id, not by text quality: the OCR copy 025 is ranked before the text-layer copy 202 of WRK-013",
+  "OCR placeholder sentences ('image is too blurry') sit in TEXT blocks of blank pages of several sources: a canon quality issue, detected here only as BOILERPLATE",
+  "dense vectors come from the retrieval store (rx580 run, text_hash checked): 50,193 of 50,658 kept units have a vector; the rest use LSH only",
+  "units cover BLOCK_GROUP text only; FIGURE/TABLE/FORMULA units and bibliography entries are not compared"
+ ]
+}

@@ -21,11 +21,12 @@ COPY src/ src/
 # pydantic/pydantic-core stay at the WorldSpec pins (CP-02); a services lock is used when the coordinator adds it.
 # From the `corpus` extra the API and the CORE jobs need only DuckDB, pyarrow, Pillow, psycopg and pytz (DuckDB
 # returns TIMESTAMPTZ values through pytz) — not the extractors — so those are installed with the extra's bounds.
+# The `navigation` extra (pymorphy3 + dictionaries) lemmatizes concept queries the same way the NAV build does.
 RUN python -m venv /opt/vkm \
  && /opt/vkm/bin/pip install --upgrade pip \
  && CONSTRAINTS="-c requirements/worldspec.lock.txt" \
  && if [ -f requirements/corpus-services.lock.txt ]; then CONSTRAINTS="$CONSTRAINTS -c requirements/corpus-services.lock.txt"; fi \
- && /opt/vkm/bin/pip install $CONSTRAINTS ".[corpus-services]" \
+ && /opt/vkm/bin/pip install $CONSTRAINTS ".[corpus-services,navigation]" \
       "duckdb>=1.5.5,<2" "pyarrow>=25.0.1,<26" "pillow>=12.3" "psycopg[binary]>=3.3" "pytz>=2025.2" \
  && /opt/vkm/bin/pip check \
  && /opt/vkm/bin/python -c "import pathlib, vkm_corpus; r = pathlib.Path(vkm_corpus.__file__).parent; \

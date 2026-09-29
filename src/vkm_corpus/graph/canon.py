@@ -313,13 +313,13 @@ MAPPINGS: tuple[RelationMap, ...] = (
         col("match_status", "l.match_status"), opt("matched_fields", "l.matched_fields", default=_EMPTY_L),
         opt("curation_status", "l.curation_status"),
         col("accepted", f"l.match_status IN {_sql_list(ACCEPTED_MATCH_STATUSES)}"),
-        opt("rule_version", "l.rule_version", default=f"'{vocab.DerivedRule.BIBLIOGRAPHY_MATCH_V1.value}'"))),
+        opt("rule_version", "l.rule_version", default=f"'{vocab.DerivedRule.BIBLIOGRAPHY_MATCH_V2.value}'"))),
     RelationMap("e_cites", (Source("c", ("main.cites",)),), (
         col("citing_work_id", "c.citing_work_id"), col("cited_work_id", "c.cited_work_id"),
         col("n_citing_entries", "c.n_citing_entries"), col("n_citing_sources", "c.n_citing_sources"),
         opt("citing_work_is_container", "c.citing_work_is_container", default="false"),
         opt("match_methods", "c.match_methods", default=_EMPTY_L), col("entry_ids", "c.entry_ids"),
-        opt("rule_version", "c.rule_version", default=f"'{vocab.DerivedRule.CITES_V1.value}'"))),
+        opt("rule_version", "c.rule_version", default=f"'{vocab.DerivedRule.CITES_V2.value}'"))),
     RelationMap("e_page_sequence", (Source("q", ("main.page_sequence",)),), (
         opt("source_id", "q.source_id"), col("from_page_id", "q.from_page_id"), col("to_page_id", "q.to_page_id"),
         opt("rule_version", "q.rule_version", default=f"'{vocab.DerivedRule.PAGE_SEQUENCE_V1.value}'"))),

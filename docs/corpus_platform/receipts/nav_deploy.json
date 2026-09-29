@@ -1,0 +1,149 @@
+{
+ "schema": "vkm-nav-deploy-receipt-v1",
+ "date": "2026-09-28",
+ "status": "DERIVED, AUTO_EXTRACTED_UNREVIEWED (navigation, not evidence)",
+ "snapshot": {
+  "manifest_sha256": "f5a2fc899d618e1eba6d1471b1eb0b2a1102990584d8ba68214d354290d7f6b8",
+  "pipeline_version": "0.1.0",
+  "snapshot_id": "snap-20260928T160616Z-5d669f09"
+ },
+ "outlines": {
+  "sha256": "6c9b475b2d20c358478f189f81cd231c56c45168617d29079f22a73580d405d9",
+  "n_sources": 50
+ },
+ "parts": {
+  "concepts": {
+   "status": "BUILT",
+   "rule_version": "concepts_v1",
+   "seconds": 35.15,
+   "stats": {
+    "units": "lowest-level N1 sections (section_pages)",
+    "morphology": "pymorphy3",
+    "communities": {
+     "method": "cuGraph Leiden (GPU build), weights = NPMI",
+     "n_communities": 26,
+     "terms_with_community": 68646
+    }
+   }
+  },
+  "formulas": {
+   "status": "BUILT",
+   "rule_version": "formula_context_v1",
+   "seconds": 12.99,
+   "stats": {
+    "formulas_with_section_id": 108706,
+    "formulas_total": 108904,
+    "note": "section ids come from N1 section_pages (dispatcher passes earlier datasets by name, e61a8b1)"
+   }
+  },
+  "sections": {
+   "status": "BUILT",
+   "rule_version": "sections_v1",
+   "seconds": 9.62,
+   "stats": {
+    "heading_block_found": 8352,
+    "page_coverage": 0.983,
+    "pages_covered": 26034,
+    "pages_total": 26483,
+    "rule_version": "sections_v1",
+    "section_pages": 27270,
+    "sections": 9105,
+    "sources": 249,
+    "sources_with_conflicts": 33
+   }
+  }
+ },
+ "datasets": {
+  "formula_context": {
+   "rows": 108904,
+   "sha256": "b2d72bf2f1ff6e18a81655f6ef09721682f82c02aeea17ee64793492243beb53",
+   "part": "formulas"
+  },
+  "formula_parameters": {
+   "rows": 2106,
+   "sha256": "d64c92bc58fea45867fb26bb91e6d2196064ccb7612b1644642d0da1126b17f0",
+   "part": "formulas"
+  },
+  "formula_refs": {
+   "rows": 16112,
+   "sha256": "2c4f1fba3d968d5e562cc7253623aa5f201f4484d15d56b74eedaa4bd1209445",
+   "part": "formulas"
+  },
+  "formula_symbols": {
+   "rows": 338625,
+   "sha256": "02e61aa17c9b8a8026e8d4a063d07152362531a8e4e27f6a96b060a06437a2bf",
+   "part": "formulas"
+  },
+  "section_pages": {
+   "rows": 27270,
+   "sha256": "02667f39b7bdf63e0a3fbc1ae3c7dc86db9c303191f2e4ab440c952d09456b32",
+   "part": "sections"
+  },
+  "sections": {
+   "rows": 9105,
+   "sha256": "ec949fbd5cb5c8affc50e37d7df16d808477cea4c50b0cdecd816fb2885ed223",
+   "part": "sections"
+  },
+  "term_edges": {
+   "rows": 1563617,
+   "sha256": "0bac6e4de2609146b026493295fe7b20ecdfb102be9da05440d99c76b391f36d",
+   "part": "concepts"
+  },
+  "term_mentions": {
+   "rows": 1579906,
+   "sha256": "2b1911d59335cd76e9d5f8fa2ce8774dbafc7e830012945d2108b5961c7df3c2",
+   "part": "concepts"
+  },
+  "terms": {
+   "rows": 96205,
+   "sha256": "3a60509dd427b7152b354a3c0fa8a5d1fee60a57e061c3ce8841529e5020b92c",
+   "part": "concepts"
+  }
+ },
+ "nav_duckdb": {
+  "sha256": "d91f8c8f71091d8acadc2021f96d75420092db2b4109672e63e27307b1dc4745",
+  "bytes": 176173056
+ },
+ "build": {
+  "where": "WORKSTATION (WSL), read-only DuckDB copy of the snapshot",
+  "command": "vkm-corpus nav build --part all --outlines <outlines.json>",
+  "code_commit": "82a9493 (merge of N3) + e61a8b1 (dispatcher)",
+  "wall_seconds": 59,
+  "pack": "vkm_corpus.navigation.store.pack → nav.duckdb (one table per dataset + nav_meta), 3.7 s"
+ },
+ "deploy": {
+  "core_path": "$VKM_DATA_ROOT/derived/navigation/<snapshot_id>/ + CURRENT",
+  "publish": "rsync from WORKSTATION (3 s); sha256 of nav.duckdb equal on both sides",
+  "api_image": "vkm-corpus-api:0.1.0-b1f5a54a178a (commit b1f5a54: navigation extra with pymorphy3 in the image)",
+  "compose": "api mounts derived/navigation read-only (commit 963c1b8); api, mcp, mcp-admin healthy after recreate",
+  "job_wrapper": "vkm-job image switched to the same tag (backup kept on the host)"
+ },
+ "smoke": {
+  "api_routes_seconds": {
+   "/v1/nav/outline/{source}": 0.047,
+   "/v1/nav/sections?q=": 0.025,
+   "/v1/nav/concept?term= (закладка)": 0.214,
+   "/v1/nav/concept?term= (ползучесть соли)": 0.121,
+   "/v1/nav/formulas?concept=": 0.019,
+   "/v1/nav/section/{id}": 0.016,
+   "/v1/nav/formula/{id}": 0.248
+  },
+  "mcp": {
+   "tools_listed": 27,
+   "nav_tools": [
+    "get_outline",
+    "get_section",
+    "search_sections",
+    "get_formula_context",
+    "find_formulas",
+    "explore_concept"
+   ],
+   "calls_seconds": {
+    "explore_concept": 0.108,
+    "search_sections": 0.02,
+    "find_formulas": 0.01
+   },
+   "errors": 0
+  }
+ }
+}

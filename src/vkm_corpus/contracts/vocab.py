@@ -319,11 +319,20 @@ class CurationStatus(StrEnum):
 
 
 class MatchStatus(StrEnum):
-    """Bibliography entry → Work match (H-29): no curated matches in v0."""
+    """Bibliography entry → Work match (H-29, CP-41): no curated matches in v0.
+
+    AUTO_EXACT_ID_MATCH: equal DOI or ISBN-13. AUTO_STRONG_MATCH: the normalised title of the entry equals the work's
+    (≥ 20 characters) in the same year, or is ≥ 0.90 similar with a shared author surname in the same year — and the
+    entry points to no other work at that level. Everything weaker (or ambiguous) stays CANDIDATE."""
 
     CANDIDATE = "CANDIDATE"
     AUTO_EXACT_ID_MATCH = "AUTO_EXACT_ID_MATCH"
+    AUTO_STRONG_MATCH = "AUTO_STRONG_MATCH"
     REJECTED = "REJECTED"
+
+
+# statuses that resolve an entry to a work (graph RESOLVES_TO, view ``cites``); CANDIDATE is only a suggestion
+ACCEPTED_MATCH_STATUSES: frozenset[str] = frozenset({MatchStatus.AUTO_EXACT_ID_MATCH, MatchStatus.AUTO_STRONG_MATCH})
 
 
 class MatchMethod(StrEnum):
@@ -347,7 +356,9 @@ class DerivedRule(StrEnum):
 
     CITING_WORK_V1 = "citing_work_v1"
     BIBLIOGRAPHY_MATCH_V1 = "bibliography_match_v1"
+    BIBLIOGRAPHY_MATCH_V2 = "bibliography_match_v2"
     CITES_V1 = "cites_v1"
+    CITES_V2 = "cites_v2"
     PAGE_SEQUENCE_V1 = "page_sequence_v1"
     DUPLICATE_PAGES_V1 = "duplicate_pages_v1"
     SOURCE_SCOPE_V1 = "source_scope_v1"

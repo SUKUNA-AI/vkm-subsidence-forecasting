@@ -73,8 +73,9 @@ def reconcile(settings: Settings, *, run_id: str, graph: bool = True, search: bo
         if graph:
             from vkm_corpus.graph.loader import RebuildOptions, rebuild
 
-            projection("graph", rebuild, settings, RebuildOptions(mode="wipe", snapshot_id=sid),
-                       keys=("status", "counts", "content_digest", "expected_digest", "checks"))
+            # cascade (R6): the NAV graph of the previous snapshot is dropped; reload it after the new NAV build
+            projection("graph", rebuild, settings, RebuildOptions(mode="wipe", snapshot_id=sid, cascade=True),
+                       keys=("status", "counts", "content_digest", "expected_digest", "checks", "cascade"))
         if search:
             from vkm_corpus.search.indexer import BuildOptions, build
 

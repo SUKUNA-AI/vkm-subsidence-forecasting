@@ -103,8 +103,12 @@ reconcile на CORE с подстановкой `{run_id}`, например
 | откат поиска на предыдущую сборку | `search rollback` |
 | все три по порядку | `core reconcile --run-id <RUN>` |
 | векторы (dense) | `search export-units`, затем `search build-vectors --embeddings <каталог или отчёт encode>` (§4a) |
+| граф NAV (навигация) | `nav graph-ddl`, затем `nav graph-load --nav-dir /data/derived/navigation/<снимок>`; проверка — `nav graph-verify` |
 
-`graph rebuild --plan-only` и `search build --plan-only` печатают ожидаемые числа без записи.
+`graph rebuild --plan-only` и `search build --plan-only` печатают ожидаемые числа без записи; `nav graph-load --dry-run`
+— то же для графа NAV. Пока граф NAV загружен, `graph rebuild` без `--cascade` отказывает (`E_CROSS_LAYER_LOSS`):
+`graph rebuild --mode wipe --cascade` сначала удаляет производный слой NAV (или `nav graph-drop --yes` отдельно);
+`core reconcile` делает это сам. После сборки NAV нового снимка — снова `nav graph-load` (NAVIGATION_LAYER.md, §1).
 
 ### 4a. Векторы и гибридный поиск (лаборатория retrieval, этап 2)
 
@@ -138,6 +142,16 @@ journalctl --user -u vkm-lab-stage2 -f                  # журнал; полн
 кодирования, проверки §64, сборка индекса, результат smoke (3 русских запроса через API, у каждого ≥ 1 попадание с
 трассой). Повторный запуск ничего не пересчитывает: экспорт — `EXISTS`, кодирование — 0 новых единиц, индекс —
 `SKIPPED_CURRENT`.
+
+Обновление dense и late до нового снимка одним заданием — `infra/core/lab_refresh.sh` (агент L). Задание ждёт, пока
+CURRENT станет `<ID>`, проверяет, что `rx580-retrieval` работает на образе воркера pack'а (`VKM_RX580_IMAGE`), и
+последовательно запускает `lab_stage2.sh` и `lab_stage3.sh`. Итог DONE, только если обе стадии DONE на `<ID>` и
+совпадают число единиц снимка, векторов dense-индекса и единиц pack'а. Квитанция —
+`receipts/lab_refresh/<run>/receipt.json`, строка статуса — `receipts/lab_refresh/STATUS`:
+
+```bash
+systemd-run --user --unit vkm-lab-refresh --collect bash <каталог compose>/lab_refresh.sh --snapshot <ID> [--wait-s N]
+```
 
 ## 5. Резервные копии
 

@@ -276,6 +276,7 @@ def detect(env: DetectEnv | None = None) -> dict[str, Any]:
     else:
         read_cap = "AVAILABLE" if running["acad"] else "AVAILABLE_WHEN_USER_STARTS_AUTOCAD"
     scratch_cap = "AVAILABLE" if ezdxf_version else "UNAVAILABLE:EZDXF_MISSING"
+    core_console = any(p.get("executables", {}).get("accoreconsole.exe", {}).get("present") for p in autocad)
     if not products:
         overall = "NOT_INSTALLED"
     elif broken:
@@ -297,13 +298,85 @@ def detect(env: DetectEnv | None = None) -> dict[str, Any]:
             "read_open_documents": read_cap,
             "scratch_ezdxf": scratch_cap,
             "pdf_vector_native_to_dxf": scratch_cap,
-            "accoreconsole": "NOT_IN_V0",
-            "dotnet_plugin": "NOT_IN_V0",
+            "accoreconsole": "AVAILABLE" if core_console else "UNAVAILABLE:NOT_INSTALLED",
+            "dotnet_plugin": "SEE_CAD_CAPABILITIES",
+            "jobs_v1": "SEE_CAD_CAPABILITIES",
             "civil3d_api": "AVAILABLE_WHEN_CIVIL3D_RUNNING" if civil and com_ok else "UNAVAILABLE",
         },
         "warnings": warnings,
         "stub_product_keys": stubs,
     }
+
+
+@dataclass
+class Installation:
+    """Real locations of the newest AutoCAD-family install (internal only: never returned by a tool)."""
+
+    install_dir: Path
+    release_key: str
+    year: int | None
+    locale: str | None
+    lang: str | None
+    products: dict[str, str]                     # {"ACAD": product key, "C3D": product key}
+    versions: dict[str, str | None]              # {"ACAD": Release, "C3D": Release}
+
+    @property
+    def accoreconsole(self) -> Path:
+        return self.install_dir / "accoreconsole.exe"
+
+    @property
+    def acad_exe(self) -> Path:
+        return self.install_dir / "acad.exe"
+
+
+def locate(env: DetectEnv | None = None, override: str | None = None) -> Installation | None:
+    """Newest release that has an ``accoreconsole.exe``; ``override`` (``VKM_ACAD_INSTALL_DIR``) wins."""
+    env = env or DetectEnv.system()
+    reg = SafeRegistry(env.registry)
+    candidates: list[Installation] = []
+    for release in sorted(reg.subkeys(HKLM, AUTOCAD_KEY), reverse=True):
+        if not re.match(r"^R\d+\.\d+$", release):
+            continue
+        products: dict[str, str] = {}
+        versions: dict[str, str | None] = {}
+        install: Path | None = None
+        year = locale = lang = None
+        for key in sorted(reg.subkeys(HKLM, rf"{AUTOCAD_KEY}\{release}")):
+            if not re.match(r"^ACAD-[0-9A-F]{4}:[0-9A-F]+$", key, re.IGNORECASE):
+                continue
+            path = rf"{AUTOCAD_KEY}\{release}\{key}"
+            location = reg.value(HKLM, path, "AcadLocation")
+            if not location:
+                continue
+            civil = bool(reg.value(HKLM, path, "AeccXVersion")) or "C3D" in (reg.value(HKLM, path, "ProductNameShort")
+                                                                           or "")
+            kind = "C3D" if civil else "ACAD"
+            products.setdefault(kind, key)
+            versions.setdefault(kind, reg.value(HKLM, path, "Release"))
+            install = install or Path(location)
+            upi = reg.value(HKLM, path, "UPIRELEASE") or ""
+            year = year or (int(upi) if upi.isdigit() else None)
+            locale_id = (reg.value(HKLM, path, "LocaleID") or (key.split(":")[1] if ":" in key else "")).upper()
+            locale = locale or LOCALES.get(locale_id)
+            lang = lang or reg.value(HKLM, path, "LangAbbrev")
+        if install is not None:
+            candidates.append(Installation(install, release, year, locale, lang, products, versions))
+    if override:
+        base = candidates[0] if candidates else Installation(Path(override), "", None, None, None, {"ACAD": ""}, {})
+        base.install_dir = Path(override)
+        candidates = [base]
+    for inst in candidates:
+        if env.exists(inst.accoreconsole):
+            return inst
+    return None
+
+
+def acad_clsid(inst: Installation | None, env: DetectEnv | None = None) -> str | None:
+    """CLSID of ``AutoCAD.Application.<release>`` (to recognise the bridge's own hidden instance in the ROT)."""
+    if inst is None or not inst.release_key.startswith("R"):
+        return None
+    env = env or DetectEnv.system()
+    return SafeRegistry(env.registry).value(HKCR, rf"AutoCAD.Application.{inst.release_key[1:]}\CLSID", "")
 
 
 def progids(report: dict[str, Any]) -> list[str]:

@@ -10,6 +10,7 @@ from vkm_corpus.retrieval_lab import bench as B
 
 ROOT = Path(__file__).resolve().parents[2]
 BENCH = ROOT / "benchmarks" / "retrieval_v0"
+V1 = ROOT / "benchmarks" / "retrieval_v1"
 
 
 def _q(qid: str, cat: str, track: str = "text", lang: str = "ru", target: str = "ru", **kw) -> B.Query:
@@ -85,3 +86,96 @@ def test_roundtrip_files(tmp_path):
     assert bench.judgments(level="OBJECT", statuses=("VERIFIED", "CANDIDATE")) == {
         "T-FORM-001": {"VKM-SRC-014:p0186:m0123456789ab": 3}}
     assert B.validate_benchmark(bench) == []
+
+
+# ------------------------------------------------------------------------------------ V1: pooled labels (§12)
+def _pooled_row(**kw) -> dict[str, str]:
+    row = {"query_id": "T-FORM-001", "level": "PAGE", "doc_id": "VKM-SRC-014:p0187", "grade": "2",
+           "status": "CANDIDATE", "basis": "POOL_JUDGMENT", "label_source": "LLM_AGENT_V1",
+           "pooled_from": "bm25@3,E@1", "rationale": "формула времени устойчивости"}
+    row.update(kw)
+    return row
+
+
+def test_pooled_labels_validation_and_merge():
+    qs = [_q("T-FORM-001", "formula_method")]
+    bench = B.Benchmark(qs, [B.Qrel("T-FORM-001", "PAGE", "VKM-SRC-014:p0186", 3, "VERIFIED", "EVIDENCE_VNEXT")], [])
+    good = _pooled_row()
+    assert B.validate_pooled_qrels([good], bench) == []
+    bad = [_pooled_row(query_id="T-XXX-001"), _pooled_row(doc_id="VKM-SRC-14:p187"), _pooled_row(grade="5"),
+           _pooled_row(status="VERIFIED"), _pooled_row(label_source="GUESS"), _pooled_row(pooled_from="bm25"),
+           _pooled_row(rationale="x" * 200), _pooled_row(doc_id="VKM-SRC-014:p0186"), good, good]
+    joined = "\n".join(B.validate_pooled_qrels(bad, bench))
+    for needle in ("unknown query", "bad level/doc_id", "grade", "status/basis", "label_source", "pooled_from",
+                   "rationale", "already has a VERIFIED label", "duplicate pair"):
+        assert needle in joined, needle
+    merged = B.merge_judgments(bench.judgments(), {"T-FORM-001": {"VKM-SRC-014:p0186": 0, "VKM-SRC-014:p0187": 2}})
+    assert merged == {"T-FORM-001": {"VKM-SRC-014:p0186": 3, "VKM-SRC-014:p0187": 2}}     # VERIFIED wins
+
+
+def test_real_v1_pooled_labels_are_valid():
+    path = V1 / "qrels_v1_pooled.tsv"
+    if not path.is_file():
+        pytest.skip("V1 pooled labels not present")
+    bench = B.load_benchmark(BENCH)
+    rows = B.load_pooled_qrels(path)
+    assert rows, "empty pooled labels"
+    problems = B.validate_pooled_qrels(rows, bench)
+    assert problems == [], "\n".join(problems[:30])
+    assert {r["label_source"] for r in rows} == {"LLM_AGENT_V1"}
+
+
+def test_pooled_rounds_label_only_new_pages():
+    qs = [_q("T-FORM-001", "formula_method")]
+    bench = B.Benchmark(qs, [], [])
+    v1 = [_pooled_row()]
+    v2_new = [_pooled_row(doc_id="VKM-SRC-014:p0188", label_source="LLM_AGENT_V2", pooled_from="E_qwen3_0_6b@4")]
+    v2_dup = [_pooled_row(label_source="LLM_AGENT_V2", pooled_from="B_bge_m3@1")]
+    assert B.validate_pooled_qrels(v2_new, bench) == []                  # V2 is a known label source
+    assert B.pooled_round_overlaps(v1, v2_new) == []
+    assert "already labelled by LLM_AGENT_V1" in B.pooled_round_overlaps(v1, v2_dup)[0]
+    merged = B.merge_judgments({}, B.pooled_judgments(v1 + v2_new))
+    assert merged == {"T-FORM-001": {"VKM-SRC-014:p0187": 2, "VKM-SRC-014:p0188": 2}}
+
+
+def test_real_v2_pooled_labels_are_valid_and_new():
+    path2 = ROOT / "benchmarks" / "retrieval_v2" / "qrels_v2_pooled.tsv"
+    if not path2.is_file():
+        pytest.skip("V2 pooled labels not present")
+    bench = B.load_benchmark(BENCH)
+    rows = B.load_pooled_qrels(path2)
+    assert rows, "empty pooled labels"
+    problems = B.validate_pooled_qrels(rows, bench)
+    assert problems == [], "\n".join(problems[:30])
+    assert {r["label_source"] for r in rows} == {"LLM_AGENT_V2"}
+    assert B.pooled_round_overlaps(B.load_pooled_qrels(V1 / "qrels_v1_pooled.tsv"), rows) == []
+
+
+def test_real_v1_h_review_sample_matches_pooled_labels():
+    sample, path = V1 / "H_REVIEW_SAMPLE.md", V1 / "qrels_v1_pooled.tsv"
+    if not (sample.is_file() and path.is_file()):
+        pytest.skip("V1 files not present")
+    grade = {(r["query_id"], r["doc_id"]): r["grade"] for r in B.load_pooled_qrels(path)}
+    # the sample table only (the H review appended a table of disagreements with numeric first cells too)
+    rows = [line.split("|")[1:-1] for line in sample.read_text(encoding="utf-8").splitlines()
+            if line.startswith("| ") and line.split("|")[1].strip().isdigit()
+            and line.split("|")[2].strip()[:2] in ("T-", "V-")]
+    assert len(rows) == 60
+    for cells in rows:
+        qid, page, g = cells[1].strip(), cells[3].strip(), cells[4].strip()
+        assert grade.get((qid, page)) == g, (qid, page)
+
+
+def test_real_v1_results_are_ids_and_numbers_only():
+    path = V1 / "results_v1.json"
+    if not path.is_file():
+        pytest.skip("V1 results not present")
+    res = json.loads(path.read_text(encoding="utf-8"))
+    assert res["benchmark"] == "RETRIEVAL_BENCHMARK_V1" and res["snapshot"]["snapshot_id"].startswith("snap-")
+    assert set(res["sets"]) == {"verified", "verified+pooled"}
+    assert not (B._json_keys(res) & B.FORBIDDEN_KEYS)
+    for tracks in res["sets"].values():
+        for tr in tracks.values():
+            for name, sysr in tr["systems"].items():
+                for qid, vals in (sysr.get("per_query") or {}).items():
+                    assert qid[:2] in ("T-", "V-") and len(vals) == 3

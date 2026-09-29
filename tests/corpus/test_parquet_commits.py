@@ -166,7 +166,7 @@ def test_admission_conflict_does_not_block_others(tmp_path):
     # a stale writer: parent = the old head (a fork) → CONFLICT on CORE, the good commit is admitted
     st_markers = [m for m in list_markers(canon.staging) if m["commit_id"] == good.commit_id]
     assert st_markers
-    stale = _forge_fork(canon, head)
+    stale = _forge_fork(canon, head, after=st_markers[0]["committed_at"])
     res = admit_mod.admit(canon.layout)
     admitted = {r["commit_id"] for r in res["admitted"]}
     rejected = {r["commit_id"]: r["problems"] for r in res["rejected"]}
@@ -174,15 +174,19 @@ def test_admission_conflict_does_not_block_others(tmp_path):
     assert stale in rejected and "COMMIT_CONFLICT" in rejected[stale][0][0]
 
 
-def _forge_fork(canon, parent):
-    """Write a second child of ``parent`` directly on the canonical root (as a stale rsync would)."""
+def _forge_fork(canon, parent, *, after: str):
+    """Write a second child of ``parent`` directly on the canonical root (as a stale rsync would), committed one
+    second after ``after`` (a fixed timestamp made the test depend on the time of day it ran)."""
+    from datetime import datetime, timedelta
+
     from vkm_corpus import ids
     from vkm_corpus.parquet.atomic import write_json
 
     base = next(m for m in list_markers(canon.layout) if m["commit_id"] == parent)
     body = {k: v for k, v in base.items() if not k.startswith("_")}
     body["parent_commit_id"] = parent
-    body["committed_at"] = "2026-09-28T13:00:00.000000Z"
+    later = datetime.strptime(after, "%Y-%m-%dT%H:%M:%S.%fZ") + timedelta(seconds=1)
+    body["committed_at"] = later.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     body.pop("commit_id")
     cid = ids.commit_id(body)
     body["commit_id"] = cid

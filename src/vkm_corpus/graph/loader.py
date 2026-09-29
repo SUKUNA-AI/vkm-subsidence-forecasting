@@ -41,6 +41,7 @@ class RebuildOptions:
     namespace: S.Namespace = field(default_factory=S.Namespace)
     database: str | None = None
     command: str = "graph rebuild"
+    cascade: bool = False            # R6: drop the dependent NAV layer first (reload it with `nav graph-load`)
 
 
 def _batches(items: Iterable[T], size: int) -> Iterator[list[T]]:
@@ -113,8 +114,8 @@ def cross_layer_guard(driver: Any, database: str, ns: S.Namespace) -> None:
     rows = client.read(driver, database, C.cross_layer_edges(ns))
     if rows:
         raise ProjectionError("E_CROSS_LAYER_LOSS", "edges from other layers touch DOCUMENT nodes; a wipe would lose "
-                              "them (rebuild with --cascade once a second layer exists)", stage="wipe",
-                              details={"edges": rows[:20]})
+                              "them: rebuild with --cascade (drops the derived NAV layer) or run `nav graph-drop --yes` "
+                              "first, then reload NAV with `nav graph-load`", stage="wipe", details={"edges": rows[:20]})
 
 
 def _load_nodes(driver: Any, database: str, ns: S.Namespace, inp: ProjectionInput, run_id: str, batch_size: int,
@@ -264,6 +265,10 @@ def _execute(run: _Run, inp: ProjectionInput, driver: Any) -> dict[str, Any]:
         for stale_id in stale:
             runs.set_status(driver, database, ns, stale_id, runs.FAILED, error_code="E_STALE_RUN")
         receipt["stale_runs_failed"] = stale
+        if options.cascade:                       # R6 --cascade: the derived NAV layer depends on DOCUMENT
+            from vkm_corpus.graph.nav import drop_layer
+
+            receipt["cascade"] = {"NAVIGATION": drop_layer(driver, database, ns)}
         cross_layer_guard(driver, database, ns)
         previous = _previous_digest(driver, database, ns, inp.info.manifest_sha256)
         run.lap("server", started)

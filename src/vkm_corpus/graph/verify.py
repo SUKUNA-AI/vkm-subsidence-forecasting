@@ -17,6 +17,7 @@ from typing import Any, Callable, Iterable
 from vkm_corpus.contracts import vocab
 from vkm_corpus.graph import client
 from vkm_corpus.graph import cypher as C
+from vkm_corpus.graph import nav_schema
 from vkm_corpus.graph import schema as S
 from vkm_corpus.graph.canon import ProjectionInput
 from vkm_corpus.graph.common import (PASS, SKIP, WARN, CheckResult, StreamDigest, canonical_json, check,
@@ -189,22 +190,25 @@ def run_checks(driver: Any, database: str, ns: Namespace, inp: ProjectionInput, 
                                      "RETURN count(n)", types=types)
     foreign: list[str] = []
     if not ns.is_test:
+        # nodes of the other registered layers (the NAV projection, vkm_corpus.graph.nav_schema) are not foreign
+        other_layers = [ns.label(v) for k, v in S.LAYER_LABELS.items() if k != S.LAYER]
         rows = client.read(driver, database,
                            f"MATCH (n) WHERE NOT n:{layer} AND NOT n:{q(ns.run_label)} AND NOT any(l IN labels(n) "
-                           f"WHERE l STARTS WITH '{S.TEST_LABEL_PREFIX}') RETURN labels(n) AS labels, count(*) AS n "
-                           "LIMIT 20")
+                           f"WHERE l STARTS WITH '{S.TEST_LABEL_PREFIX}' OR l IN $other_layers) "
+                           "RETURN labels(n) AS labels, count(*) AS n LIMIT 20", other_layers=other_layers)
         foreign = [f"{r['labels']}: {r['n']}" for r in rows]
     results.append(check("C6", "each layer node has one registry type label; no unregistered nodes (R7)",
                          ([f"bad type labels: {viol}"] if viol else []) + foreign, code="E_INVARIANT_VIOLATION"))
 
     # C7 relationship types and endpoints
     registry_types = set(ns.rel_types())
+    other_layer_types = {ns.rel(t) for t in nav_schema.REL_TYPE_NAMES}      # owned by the NAV projection
     rows = client.read(driver, database, "MATCH ()-[r]->() RETURN type(r) AS t, count(*) AS n")
     unknown = []
     for r in rows:
         t = r["t"]
         mine = t.startswith(ns.prefix.upper() + "_") if ns.is_test else not t.startswith(S.TEST_LABEL_PREFIX.upper())
-        if mine and t not in registry_types:
+        if mine and t not in registry_types and t not in other_layer_types:
             unknown.append(f"{t}: {r['n']}")
     for rel in S.REL_TYPES:
         n = _count(driver, database, f"MATCH (a)-[r:{q(R(rel.type))}]->(b) WHERE NOT (a:{q(L(rel.start))} AND "

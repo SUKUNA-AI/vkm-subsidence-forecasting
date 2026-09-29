@@ -132,6 +132,12 @@ class HybridSearchBody(_Body):
     candidates: int = Field(100, ge=10, le=200, description="candidates per stage (BM25, dense) and kind")
     include_duplicates: bool = False
     exact: bool = Field(False, description="unstemmed word forms in the BM25 stage")
+    late: bool | None = Field(None, description="late interaction (mLateOn MaxSim on the RX580) over the RRF top "
+                                                "late_candidates; null = server default")
+    late_candidates: int = Field(100, ge=1, le=200, description="RRF candidates re-scored by the late stage")
+    bib_route: bool | None = Field(None, description="bibliographic route (BIB_ENTRY channel, pages scored with their "
+                                                     "reference-list entries); null = the query's bibliographic cues "
+                                                     "decide")
 
 
 class ObjectsQueryBody(_Body):
@@ -152,6 +158,19 @@ class ObjectsQueryBody(_Body):
     caption_query: str | None = Field(None, min_length=1, max_length=200)
     limit: int = Field(50, ge=1, le=200)
     cursor: str | None = Field(None, max_length=10)
+
+
+class TopicBody(_Body):
+    query: str = Field(min_length=1, max_length=512, description="a topic or question, Russian or English")
+    budget_chars: int = Field(12_000, ge=1_000, le=60_000, description="hard cap of the markdown rendering; the "
+                                                                       "lowest-ranked items are trimmed first")
+    source_ids: list[Annotated[str, Field(pattern=SOURCE_ID)]] = Field(default_factory=list, max_length=20)
+    paraphrases: list[Annotated[str, Field(min_length=1, max_length=512)]] = Field(
+        default_factory=list, max_length=4, description="other wordings of the topic (other terms, English); fused "
+                                                        "with the query by RRF")
+    max_sources: int = Field(10, ge=1, le=50)
+    max_sections: int = Field(12, ge=1, le=50)
+    max_formulas: int = Field(10, ge=0, le=50)
 
 
 class Passage(_Body):
@@ -349,16 +368,22 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
         request.state.query_sha256 = hashlib.sha256(body.query.encode("utf-8")).hexdigest()
         return respond(request, service.search_hybrid(body.query, list(body.kinds), body.filters.to_search(),
                                                       body.limit, body.cursor, body.candidates,
-                                                      body.include_duplicates, body.exact))
+                                                      body.include_duplicates, body.exact, late=body.late,
+                                                      late_candidates=body.late_candidates, bib_route=body.bib_route))
 
     @app.get("/v1/search/hybrid", tags=["search"], **JSON_RESPONSES)
     def search_hybrid_get(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],
                           kinds: Annotated[list[HybridKind] | None, Query()] = None,
                           limit: Annotated[int, Query(ge=1, le=50)] = 20,
                           cursor: Annotated[str | None, Query(max_length=10)] = None,
-                          candidates: Annotated[int, Query(ge=10, le=200)] = 100) -> JSONResponse:
+                          candidates: Annotated[int, Query(ge=10, le=200)] = 100,
+                          late: Annotated[bool | None, Query()] = None,
+                          late_candidates: Annotated[int, Query(ge=1, le=200)] = 100,
+                          bib_route: Annotated[bool | None, Query()] = None) -> JSONResponse:
         request.state.query_sha256 = hashlib.sha256(q.encode("utf-8")).hexdigest()
-        return respond(request, service.search_hybrid(q, list(kinds or ["PAGE"]), {}, limit, cursor, candidates))
+        return respond(request, service.search_hybrid(q, list(kinds or ["PAGE"]), {}, limit, cursor, candidates,
+                                                      late=late, late_candidates=late_candidates,
+                                                      bib_route=bib_route))
 
     @app.post("/v1/objects/query", tags=["search"], **JSON_RESPONSES)
     def objects_query(request: Request, body: ObjectsQueryBody, _auth: Read) -> JSONResponse:
@@ -478,6 +503,125 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                   limit: Annotated[int, Query(ge=1, le=500)] = 200) -> JSONResponse:
         return respond(request, service.citations(work_id, direction, include_unlinked, limit))
 
+    # ---------------------------------------------------------------- NAV graph in Neo4j (agent G)
+    @app.get("/v1/nav/graph/paths", tags=["navigation"], **JSON_RESPONSES)
+    def nav_graph_paths(request: Request, _auth: Read, term_a: Annotated[str, Query(min_length=1, max_length=200)],
+                        term_b: Annotated[str, Query(min_length=1, max_length=200)],
+                        max_len: Annotated[int, Query(ge=1, le=6)] = 4, limit: Annotated[int, Query(ge=1, le=20)] = 5,
+                        via: Annotated[list[Literal["concepts", "formulas", "sections", "topics"]] | None,
+                                       Query(max_length=4)] = None) -> JSONResponse:
+        return respond(request, service.nav_graph_paths(term_a, term_b, max_len, limit, via))
+
+    @app.get("/v1/nav/graph/neighbourhood/{node_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_graph_neighbourhood(request: Request, node_id: str, _auth: Read,
+                                depth: Annotated[int, Query(ge=1, le=2)] = 1,
+                                limit: Annotated[int, Query(ge=1, le=200)] = 50) -> JSONResponse:
+        return respond(request, service.nav_graph_neighbourhood(node_id, depth, limit))
+    # ---------------------------------------------------------------- end NAV graph (agent G)
+
+    # ---------------------------------------------------------------- navigation layer (derived, not evidence)
+    @app.get("/v1/nav/outline/{source_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_outline(request: Request, source_id: str, _auth: Read) -> JSONResponse:
+        return respond(request, service.nav_outline(source_id))
+
+    @app.get("/v1/nav/section/{section_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_section(request: Request, section_id: str, _auth: Read) -> JSONResponse:
+        return respond(request, service.nav_section(section_id))
+
+    @app.get("/v1/nav/sections", tags=["navigation"], **JSON_RESPONSES)
+    def nav_sections(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],
+                     source_id: str | None = None, limit: Annotated[int, Query(ge=1, le=100)] = 20) -> JSONResponse:
+        return respond(request, service.nav_sections(q, source_id, limit))
+
+    @app.get("/v1/nav/formula/{formula_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_formula(request: Request, formula_id: str, _auth: Read) -> JSONResponse:
+        return respond(request, service.nav_formula(formula_id))
+
+    @app.get("/v1/nav/formulas", tags=["navigation"], **JSON_RESPONSES)
+    def nav_formulas(request: Request, _auth: Read, concept: Annotated[str | None, Query(max_length=200)] = None,
+                     symbol: Annotated[str | None, Query(max_length=64)] = None, source_id: str | None = None,
+                     limit: Annotated[int, Query(ge=1, le=200)] = 50) -> JSONResponse:
+        return respond(request, service.nav_formulas(concept, symbol, source_id, limit))
+
+    @app.get("/v1/nav/concept", tags=["navigation"], **JSON_RESPONSES)
+    def nav_concept(request: Request, _auth: Read, term: Annotated[str, Query(min_length=1, max_length=200)],
+                    limit: Annotated[int, Query(ge=1, le=100)] = 20) -> JSONResponse:
+        return respond(request, service.nav_concept(term, limit))
+
+    # topics (RAPTOR tree, agent T) and duplicates / reprints (agent U)
+    @app.get("/v1/nav/topic/{topic_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_topic(request: Request, _auth: Read, topic_id: str) -> JSONResponse:
+        return respond(request, service.nav_topic(topic_id))
+
+    @app.get("/v1/nav/topics", tags=["navigation"], **JSON_RESPONSES)
+    def nav_topics(request: Request, _auth: Read, term: Annotated[list[str], Query(min_length=1, max_length=5)],
+                   limit: Annotated[int, Query(ge=1, le=50)] = 10,
+                   level: Annotated[int | None, Query(ge=1, le=3)] = None) -> JSONResponse:
+        return respond(request, service.nav_topics(term, limit, level))
+
+    @app.get("/v1/nav/similar/{section_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_similar(request: Request, _auth: Read, section_id: str, k: Annotated[int, Query(ge=1, le=50)] = 10,
+                    other_sources_only: bool = True) -> JSONResponse:
+        return respond(request, service.nav_similar_sections(section_id, k, other_sources_only))
+
+    @app.get("/v1/nav/section_topics/{section_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_section_topics(request: Request, _auth: Read, section_id: str) -> JSONResponse:
+        return respond(request, service.nav_section_topics(section_id))
+
+    @app.get("/v1/nav/copies", tags=["navigation"], **JSON_RESPONSES)
+    def nav_copies(request: Request, _auth: Read, ref: Annotated[str, Query(min_length=1, max_length=200)],
+                   limit: Annotated[int, Query(ge=1, le=200)] = 50) -> JSONResponse:
+        return respond(request, service.nav_copies(ref, limit))
+
+    @app.get("/v1/nav/overlap/{source_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_overlap(request: Request, _auth: Read, source_id: str,
+                    limit: Annotated[int, Query(ge=1, le=200)] = 50) -> JSONResponse:
+        return respond(request, service.nav_source_overlap(source_id, limit))
+
+    # parameter-value candidates (agent P): navigation, never recommended values
+    @app.get("/v1/nav/parameters", tags=["navigation"], **JSON_RESPONSES)
+    def nav_parameters(request: Request, _auth: Read,
+                       property: Annotated[str | None, Query(max_length=200)] = None,  # noqa: A002
+                       material: Annotated[str | None, Query(max_length=200)] = None,
+                       site: Annotated[str | None, Query(max_length=100)] = None,
+                       scale: Annotated[str | None, Query(max_length=20)] = None,
+                       source_id: Annotated[str | None, Query(max_length=20)] = None,
+                       limit: Annotated[int, Query(ge=1, le=200)] = 50) -> JSONResponse:
+        return respond(request, service.nav_parameters(property, material, site, scale, source_id, limit))
+
+    @app.get("/v1/nav/parameter_summary", tags=["navigation"], **JSON_RESPONSES)
+    def nav_parameter_summary(request: Request, _auth: Read,
+                              property: Annotated[str, Query(min_length=1, max_length=200)],  # noqa: A002
+                              material: Annotated[str | None, Query(max_length=200)] = None) -> JSONResponse:
+        return respond(request, service.nav_parameter_summary(property, material))
+
+    # ---------------------------------------------------------------- topic dossier (navigation + catalogues)
+    @app.get("/v1/topic", tags=["navigation"], **JSON_RESPONSES)
+    def topic_get(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],
+                  budget: Annotated[int, Query(ge=1_000, le=60_000)] = 12_000,
+                  source_id: Annotated[list[Annotated[str, Field(pattern=SOURCE_ID)]] | None,
+                                       Query(max_length=20)] = None,
+                  paraphrase: Annotated[list[Annotated[str, Field(min_length=1, max_length=512)]] | None,
+                                        Query(max_length=4)] = None,
+                  max_sources: Annotated[int, Query(ge=1, le=50)] = 10,
+                  max_sections: Annotated[int, Query(ge=1, le=50)] = 12,
+                  max_formulas: Annotated[int, Query(ge=0, le=50)] = 10) -> JSONResponse:
+        request.state.query_sha256 = hashlib.sha256(q.encode("utf-8")).hexdigest()
+        return respond(request, service.reconstruct_topic(q, budget_chars=budget, source_ids=list(source_id or []),
+                                                          max_sources=max_sources, max_sections=max_sections,
+                                                          max_formulas=max_formulas,
+                                                          paraphrases=list(paraphrase or [])))
+
+    @app.post("/v1/topic", tags=["navigation"], **JSON_RESPONSES)
+    def topic_post(request: Request, body: TopicBody, _auth: Read) -> JSONResponse:
+        request.state.query_sha256 = hashlib.sha256(body.query.encode("utf-8")).hexdigest()
+        return respond(request, service.reconstruct_topic(body.query, budget_chars=body.budget_chars,
+                                                          source_ids=list(body.source_ids),
+                                                          max_sources=body.max_sources,
+                                                          max_sections=body.max_sections,
+                                                          max_formulas=body.max_formulas,
+                                                          paraphrases=list(body.paraphrases)))
+
     @app.get("/v1/provenance/{object_id}", tags=["provenance"], **JSON_RESPONSES)
     def provenance(request: Request, object_id: str, _auth: Read) -> JSONResponse:
         return respond(request, service.provenance(object_id))
@@ -529,4 +673,9 @@ def build_from_settings(settings: Any = None) -> FastAPI:
                    graph=Neo4jBackend(settings) if settings.neo4j_uri else None,
                    rerank=GatewayRerankBackend(settings) if settings.rerank_url else None,
                    control=PgControlPlane(settings) if settings.pg_dsn else None)
+    from vkm_corpus.catalogues.store import CatalogueStore
+    from vkm_corpus.navigation.store import NavStore
+
+    deps.nav = NavStore(root)                  # served only once derived/navigation/CURRENT is published
+    deps.catalogues = CatalogueStore(root)     # served only once derived/catalogues/CURRENT is published
     return create_app(ApiService(deps), ApiConfig.from_settings(settings))

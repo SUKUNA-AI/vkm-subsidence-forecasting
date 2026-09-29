@@ -60,7 +60,7 @@ def test_cp16_vocabularies_are_exact():
                                        "OCR_MODEL"]
     assert _values(v.ModelRole) == ["LAYOUT", "RECOGNITION"]
     assert _values(v.BboxSpace) == ["PAGE_PT_TL", "IMAGE_PIXEL", "DRAWING_UNITS", "GEO", "NONE"]
-    assert _values(v.MatchStatus) == ["CANDIDATE", "AUTO_EXACT_ID_MATCH", "REJECTED"]
+    assert _values(v.MatchStatus) == ["CANDIDATE", "AUTO_EXACT_ID_MATCH", "AUTO_STRONG_MATCH", "REJECTED"]
     assert _values(v.LifecycleStatus) == ["ACTIVE", "ABSENT_BY_REGISTER", "RETIRED"]
     assert _values(v.SkipReason) == ["ARCHIVE_DELETED_AFTER_ASSEMBLY", "RETIRED_NOT_EVIDENCE"]
     assert _values(v.Materialization) == ["STORED", "NOT_STORED_REPRODUCIBLE"]

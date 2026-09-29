@@ -370,7 +370,8 @@ class CanonStore:
             return {}
         rows = self.query("SELECT entry_id, cited_work_id, match_method, match_score, match_status, matched_fields "
                           "FROM bibliography_links WHERE entry_id IN (SELECT unnest(?::VARCHAR[])) "
-                          "ORDER BY entry_id, match_score DESC, cited_work_id", [ids])
+                          "ORDER BY entry_id, match_status IN ('AUTO_EXACT_ID_MATCH', 'AUTO_STRONG_MATCH') DESC, "
+                          "match_score DESC, cited_work_id", [ids])
         out: dict[str, list[dict[str, Any]]] = {}
         for r in rows:
             out.setdefault(r["entry_id"], []).append(r)

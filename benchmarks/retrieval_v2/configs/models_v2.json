@@ -1,0 +1,33 @@
+{
+ "version": 1,
+ "note": "V2 encoders on the WORKSTATION GPU (RTX 5070 Ti). Specs (repo, revision, prefixes, pooling) come from benchmarks/retrieval_v0/configs/models.json by `spec`; this file adds only the V2 run settings. Licenses are the `license:` field of each pinned model card (FACT). `rx580_key` = the encoder key of vkm_corpus.embeddings.specs (Q8_0 GGUF gate of agent K) or null when no GGUF exists on the pin.",
+ "precision": "bf16",
+ "attention": "sdpa",
+ "doc_max_tokens": 512,
+ "query_max_tokens": 512,
+ "vram_cap_fraction": 0.5,
+ "text": [
+  {"key": "nano-gpu", "spec": "D2", "role": "control", "license": "CC-BY-NC-4.0", "rx580_key": "jina-v5-nano-retrieval", "token_budget": 65536,
+   "why": "the deployed model re-encoded in the V2 harness: separates the harness/precision effect (GPU bf16 vs RX580 Q8_0) from the model effect"},
+  {"key": "qwen3-0.6b", "spec": "D8", "role": "candidate", "license": "Apache-2.0", "rx580_key": "qwen3-emb-0.6b", "token_budget": 32768},
+  {"key": "bge-m3", "spec": "D9", "role": "candidate", "license": "MIT", "rx580_key": "bge-m3", "token_budget": 32768,
+   "family_override": "st_dense", "why": "dense output only (CLS + L2 through the model's own sentence-transformers modules)"},
+  {"key": "jina-small", "spec": "D1", "role": "candidate", "license": "CC-BY-NC-4.0", "rx580_key": "jina-v5-small-retrieval", "token_budget": 32768},
+  {"key": "giga-480m", "spec": "X1", "role": "candidate", "license": "MIT", "rx580_key": "giga-emb-480m", "token_budget": 32768},
+  {"key": "pplx-0.6b", "spec": "D5", "role": "candidate", "license": "MIT", "rx580_key": "pplx-embed-0.6b", "token_budget": 32768},
+  {"key": "granite-311m", "spec": "D3", "role": "candidate", "license": "Apache-2.0", "rx580_key": "granite-311m-r2", "token_budget": 65536},
+  {"key": "mdenseon", "spec": "D7", "role": "candidate", "license": "Apache-2.0", "rx580_key": "mdenseon", "token_budget": 65536},
+  {"key": "granite-97m", "spec": "D4", "role": "candidate", "license": "Apache-2.0", "rx580_key": "granite-97m-r2", "token_budget": 131072},
+  {"key": "harrier-270m", "spec": "X2", "role": "candidate", "license": "MIT", "rx580_key": null, "token_budget": 65536},
+  {"key": "pplx-ctx-0.6b", "spec": "D6", "role": "candidate", "license": "MIT", "rx580_key": "pplx-embed-context-0.6b", "window_units": 8, "window_chars": 12000, "window_batch": 4,
+   "why": "contextual late chunking: windows of consecutive dense-index units of one source in export order; queries as one-chunk windows (as in V0)"}
+ ],
+ "visual": [
+  {"key": "qwen3-vl-2b", "spec": "V1", "license": "Apache-2.0", "batch": 4,
+   "doc_prompt": "Represent the user's input.", "query_prompt": "Find a document image that matches the given query.",
+   "why": "document side: the model's default instruction on the page image alone; query side: a visual-document instruction in English (model card: task instructions in English), fixed before any evaluation"},
+  {"key": "omni-small", "spec": "V2", "license": "CC-BY-NC-4.0", "batch": 1,
+   "doc_prompt_name": "document", "query_prompt_name": "query", "modality": "vision",
+   "why": "the model's own encode_document(image) / encode_query(text) (prefixes 'Document: ' / 'Query: ')"}
+ ]
+}

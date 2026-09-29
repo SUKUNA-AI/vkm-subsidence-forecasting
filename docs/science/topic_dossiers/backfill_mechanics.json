@@ -1,0 +1,3595 @@
+{
+ "schema": "vkm.topic_dossier.v0",
+ "topic": "механика закладки выработанного пространства",
+ "dossier_md": "BACKFILL_MECHANICS_RU.md",
+ "created": "2026-09-28",
+ "agent": "DB",
+ "status_vocabulary": [
+  "FACT",
+  "DERIVATION",
+  "INTERPOLATION",
+  "MODEL_CHOICE",
+  "ENGINEERING_ASSUMPTION",
+  "ANALOGUE",
+  "UNKNOWN",
+  "SCENARIO"
+ ],
+ "status_note": "SCENARIO marks explicitly labelled scenario ranges (not evidence); model results reported by a source are DERIVATION with evidence_type MODEL",
+ "locator_convention": "с.N = PDF page index (CORE page_id pNNNN); печ. N = printed page when different",
+ "physics_processes": [
+  "PC-23",
+  "PC-29",
+  "PC-32",
+  "PC-37",
+  "PC-38",
+  "PC-39",
+  "PC-40",
+  "PC-68"
+ ],
+ "counts": {
+  "corpus_source": 29,
+  "formula": 24,
+  "parameter": 71,
+  "hypothesis": 9,
+  "external_analogue": 19,
+  "gap_unknown": 10,
+  "scenario_range": 9,
+  "conflict": 13,
+  "acquisition_lead": 11,
+  "corpus_source_ids_cited": 46,
+  "external_dois": 25
+ },
+ "corpus_source_ids": [
+  "VKM-SRC-012",
+  "VKM-SRC-014",
+  "VKM-SRC-016",
+  "VKM-SRC-019",
+  "VKM-SRC-020",
+  "VKM-SRC-021",
+  "VKM-SRC-023",
+  "VKM-SRC-024",
+  "VKM-SRC-025",
+  "VKM-SRC-031",
+  "VKM-SRC-033",
+  "VKM-SRC-034",
+  "VKM-SRC-037",
+  "VKM-SRC-038",
+  "VKM-SRC-040",
+  "VKM-SRC-042",
+  "VKM-SRC-044",
+  "VKM-SRC-045",
+  "VKM-SRC-046",
+  "VKM-SRC-047",
+  "VKM-SRC-050",
+  "VKM-SRC-057",
+  "VKM-SRC-058",
+  "VKM-SRC-065",
+  "VKM-SRC-066",
+  "VKM-SRC-069",
+  "VKM-SRC-074",
+  "VKM-SRC-080",
+  "VKM-SRC-087",
+  "VKM-SRC-089",
+  "VKM-SRC-090",
+  "VKM-SRC-091",
+  "VKM-SRC-093",
+  "VKM-SRC-096",
+  "VKM-SRC-104",
+  "VKM-SRC-192",
+  "VKM-SRC-193",
+  "VKM-SRC-197",
+  "VKM-SRC-198",
+  "VKM-SRC-202",
+  "VKM-SRC-203",
+  "VKM-SRC-204",
+  "VKM-SRC-209",
+  "VKM-SRC-210",
+  "VKM-SRC-212",
+  "VKM-SRC-231"
+ ],
+ "search_log": {
+  "api": "CORE API, read-only, concurrency <= 2, calls from inside the API container",
+  "hybrid_queries": {
+   "formulations": 32,
+   "tiers": [
+    "ALL",
+    "VKM (source_scope filter)"
+   ],
+   "calls": 64,
+   "fusion": "RRF across formulations per source"
+  },
+  "nav_calls": {
+   "concept": 23,
+   "formulas_by_concept": 16,
+   "sections": 10,
+   "outline": 36
+  },
+  "bm25_drilldown_calls": 8,
+  "pages_read": 290,
+  "page_images_checked": 12,
+  "external": "Scientific Papers MCP search_all / fetch_content / resolve_doi; web search; Firecrawl not used",
+  "concept_facts": {
+   "закладка": {
+    "df_units": 331,
+    "sources": 72
+   },
+   "neighbours": [
+    "закладочный массив",
+    "выработанное пространство",
+    "закладочный материал",
+    "солеотходы",
+    "закладочные работы"
+   ],
+   "false_friends": [
+    "закладка реперов",
+    "закладка ствола"
+   ]
+  },
+  "worked": [
+   "VKM tier + multi-formulation RRF surfaced sources absent from Phase-1 catalogues",
+   "formula search by concept found (8.136), (7), (7.13)",
+   "outlines gave section page ranges",
+   "page images confirmed tables and formulas"
+  ],
+  "weak": [
+   "NAV layer alone (many non-goaf 'закладка' hits)",
+   "formulas without where-definitions",
+   "missing printed page labels in part of the hits"
+  ],
+  "tooling_wishes": [
+   "reconstruct_topic route (multi-query RRF, VKM tier, concept-neighbour expansion, false-friend filter)",
+   "batch page + formula read",
+   "server-side KWIC by regex",
+   "printed page labels in hits",
+   "bibliography-to-DOI resolver",
+   "where-definition coverage for formulas"
+  ],
+  "timeline_local": {
+   "branch_and_rules": "21:52-21:53",
+   "catalogues": "21:53-21:55",
+   "search_and_nav": "21:56-22:00",
+   "page_reading_and_image_checks": "22:01-22:16",
+   "external_literature": "22:16-22:21",
+   "locator_checks_writing_and_tests": "22:22-22:50"
+  }
+ },
+ "items": [
+  {
+   "id": "DB-SRC:012",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-012"
+   ],
+   "new_vs_phase1": true,
+   "work": "Лебедева, диссертация",
+   "scope": "SKRU2",
+   "sections_pages": "с.34, 54–57",
+   "gives": "отставание ~10–20 лет; p по панелям (табл. 2.1)"
+  },
+  {
+   "id": "DB-SRC:014",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-014"
+   ],
+   "new_vs_phase1": false,
+   "work": "учебное пособие",
+   "scope": "VKM_REGIONAL",
+   "sections_pages": "§5–6, с.138–171",
+   "gives": "k_зап и h_з (формулы (6.18)–(6.23))"
+  },
+  {
+   "id": "DB-SRC:016+019+020+023+024+025+031+033+038+040+202",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-016",
+    "VKM-SRC-019",
+    "VKM-SRC-020",
+    "VKM-SRC-023",
+    "VKM-SRC-024",
+    "VKM-SRC-025",
+    "VKM-SRC-031",
+    "VKM-SRC-033",
+    "VKM-SRC-038",
+    "VKM-SRC-040",
+    "VKM-SRC-202"
+   ],
+   "new_vs_phase1": false,
+   "work": "каталоги Phase 1",
+   "scope": "разные",
+   "sections_pages": "см. [каталог закладки](../../../evidence/backfill/backfill_event_catalog.csv)",
+   "gives": "ГИС СКРУ-1 (рис. 17), прочие сведения Phase 1"
+  },
+  {
+   "id": "DB-SRC:021+057+197",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-021",
+    "VKM-SRC-057",
+    "VKM-SRC-197"
+   ],
+   "new_vs_phase1": true,
+   "work": "Мараков 2004; Евсеев, Жукова 2024; Маневич 2026",
+   "scope": "VKM_REGIONAL, SKRU1",
+   "sections_pages": "057 с.1–5; 021 с.2; 197 с.5–7",
+   "gives": "закладка в геодинамических оценках не учитывалась; закладка как фактор опасности; тип и полнота закладки — признак нейросетевой модели"
+  },
+  {
+   "id": "DB-SRC:034",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-034"
+   ],
+   "new_vs_phase1": true,
+   "work": "Евсеев, Васильева, 2023, статья",
+   "scope": "BKPRU4",
+   "sections_pages": "с.1–3",
+   "gives": "измерения до и после гидрозакладки; конвергенция камер"
+  },
+  {
+   "id": "DB-SRC:037",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-037"
+   ],
+   "new_vs_phase1": false,
+   "work": "монография/пособие (1990/92)",
+   "scope": "VKM_REGIONAL, SKRU2",
+   "sections_pages": "с.12, 66, 71–78, 169–189",
+   "gives": "B по глубине, требования к заполнению, K_з механической закладки"
+  },
+  {
+   "id": "DB-SRC:042",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-042"
+   ],
+   "new_vs_phase1": true,
+   "work": "Барях, Телегина, Самоделкина, Девятков, 2005, статья (J. Mining Science 41(4))",
+   "scope": "SKRU1, SKRU2, VKM_REGIONAL",
+   "sections_pages": "с.1–7 (печ. 312–318)",
+   "gives": "сигмоидная функция ползучести; учёт закладки (10)–(13); СКРУ-1 блок 77, профильная линия 14"
+  },
+  {
+   "id": "DB-SRC:044",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-044"
+   ],
+   "new_vs_phase1": true,
+   "work": "Барях, Константинова, Асанов, 1996, монография",
+   "scope": "SKRU1, SKRU3, GENERAL_METHOD",
+   "sections_pages": "§7.2–7.3, с.165–186 (печ. 164–185)",
+   "gives": "уравнение состояния закладки (7.13); модели системы целик–закладка (7.19)–(7.23); СКРУ-3 блоки 1–2"
+  },
+  {
+   "id": "DB-SRC:045",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-045"
+   ],
+   "new_vs_phase1": true,
+   "work": "Ермашов, 2015, диссертация",
+   "scope": "SKRU2",
+   "sections_pages": "с.25–28, 84–88, 105–108",
+   "gives": "закладка как эквивалентный материал в ANSYS; периоды закладки СКРУ-2"
+  },
+  {
+   "id": "DB-SRC:046",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-046"
+   ],
+   "new_vs_phase1": true,
+   "work": "Константинова, Ваулина, 2012, статья (Изв. ТулГУ)",
+   "scope": "SKRU1",
+   "sections_pages": "с.1–6",
+   "gives": "повторная отработка пласта Вк; свойства закладки по возрасту; расчёт с/без закладки"
+  },
+  {
+   "id": "DB-SRC:047",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-047"
+   ],
+   "new_vs_phase1": true,
+   "work": "Константинова, Аптуков, 2013, монография",
+   "scope": "VKM_REGIONAL, SKRU1",
+   "sections_pages": "с.57–64, 146, 171",
+   "gives": "неполная сухая закладка карналлитовых камер не влияет на устойчивость (по [87], [34])"
+  },
+  {
+   "id": "DB-SRC:050",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "new_vs_phase1": true,
+   "work": "Степанов, Папулов, Березин, Богодухов, 1994, монография",
+   "scope": "BKPRU1, VKM_REGIONAL",
+   "sections_pages": "гл. 1.2–2.4, с.8–53",
+   "gives": "технология и степень заполнения по способам; усадка; влажность и температура закладки; опыт прорезки целиков под закладкой через 14 лет; требования к закладке"
+  },
+  {
+   "id": "DB-SRC:058",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-058"
+   ],
+   "new_vs_phase1": true,
+   "work": "Кутовой и др., 2017, статья (Вестник ПНИПУ)",
+   "scope": "VKM_REGIONAL, SKRU1",
+   "sections_pages": "с.2–6 (печ. 175–179)",
+   "gives": "требования новых нормативов к A; программный модуль учёта закладки; объём базы СКРУ-1"
+  },
+  {
+   "id": "DB-SRC:065",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-065"
+   ],
+   "new_vs_phase1": true,
+   "work": "Щеголков, 2026, диссертация",
+   "scope": "VKM_REGIONAL",
+   "sections_pages": "с.16–17, 28–30, 109–112, 174",
+   "gives": "Указания 2022: η = m₀ωpk, B по способам; история нормативов по A"
+  },
+  {
+   "id": "DB-SRC:066",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-066"
+   ],
+   "new_vs_phase1": true,
+   "work": "Цаюков, 2025, диссертация",
+   "scope": "BKPRU4",
+   "sections_pages": "с.159–163",
+   "gives": "сроки закладки по критерию 30 мм/м в год"
+  },
+  {
+   "id": "DB-SRC:069",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-069"
+   ],
+   "new_vs_phase1": true,
+   "work": "Злобина, 2023, статья",
+   "scope": "SKRU1",
+   "sections_pages": "с.3",
+   "gives": "гидрозакладка — более быстрое затухание сейсмичности"
+  },
+  {
+   "id": "DB-SRC:074",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-074"
+   ],
+   "new_vs_phase1": true,
+   "work": "Злобина, 2022, статья (Горное эхо)",
+   "scope": "SKRU1",
+   "sections_pages": "с.4–6 (печ. 104–106)",
+   "gives": "площади закладки СКРУ-1 по пластам и типам; сейсмичность и закладка"
+  },
+  {
+   "id": "DB-SRC:080",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-080"
+   ],
+   "new_vs_phase1": true,
+   "work": "Барях и др., 2020, ФТПРПИ",
+   "scope": "BKPRU2",
+   "sections_pages": "с.1–4",
+   "gives": "природно-техногенный пласт КрII* из разрушенных целиков и пород (самозакладка)"
+  },
+  {
+   "id": "DB-SRC:087",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-087"
+   ],
+   "new_vs_phase1": true,
+   "work": "Барях, Губанова, 2019, статья (Записки ГИ 240)",
+   "scope": "VKM_REGIONAL",
+   "sections_pages": "с.1–8",
+   "gives": "η = 0,9m₀ωp; влияние закладки КрII на краевую часть мульды"
+  },
+  {
+   "id": "DB-SRC:089+090+093",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-089",
+    "VKM-SRC-090",
+    "VKM-SRC-093"
+   ],
+   "new_vs_phase1": true,
+   "work": "Барях и др., 2016–2018",
+   "scope": "VKM_REGIONAL, SKRU2",
+   "sections_pages": "089 с.88–90; 090 с.3–8; 093 с.4–6",
+   "gives": "закладка КрII перед КрIII; переменный модуль с закладкой; самозаполнение полостей"
+  },
+  {
+   "id": "DB-SRC:091+204",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-091",
+    "VKM-SRC-204"
+   ],
+   "new_vs_phase1": true,
+   "work": "ГИ УрО РАН / Барях и др., 2014–2017",
+   "scope": "BKPRU4, BKPRU2",
+   "sections_pages": "091 с.10–11; 204 с.84–86, 93–96, 124–126",
+   "gives": "закладка как мера охраны у скв. 492; моделирование сухой закладки КрII"
+  },
+  {
+   "id": "DB-SRC:096",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-096"
+   ],
+   "new_vs_phase1": true,
+   "work": "Борзаковский, Мараков, Гилев, Воронцов, Русаков, 2012, статья",
+   "scope": "SKRU1",
+   "sections_pages": "с.1–8",
+   "gives": "гидрозакладка карналлитового пласта на СКРУ-1; отставание; C с учётом закладки; программа измерений давления"
+  },
+  {
+   "id": "DB-SRC:104",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-104"
+   ],
+   "new_vs_phase1": true,
+   "work": "Бельтюков, Черноусов, 2024, статья (Горное эхо)",
+   "scope": "VKM_REGIONAL",
+   "sections_pages": "с.1–8 (печ. 51–58)",
+   "gives": "средняя степень заполнения 0,7; прочность выдержанной закладки; составной целик"
+  },
+  {
+   "id": "DB-SRC:192",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-192"
+   ],
+   "new_vs_phase1": true,
+   "work": "Callahan, 1999, SAND98-2680",
+   "scope": "EXTERNAL (WIPP)",
+   "sections_pages": "с.18, 29, 52–53, 84 (печ. 5, 16, 39–40, 71)",
+   "gives": "модель консолидации дроблёной соли; параметры; время уплотнения"
+  },
+  {
+   "id": "DB-SRC:193",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-193"
+   ],
+   "new_vs_phase1": true,
+   "work": "SaltMech X, 2022, сборник",
+   "scope": "EXTERNAL",
+   "sections_pages": "с.83–100; KOMPASS с.298–342 (печ. 283–327)",
+   "gives": "уплотнение дроблёной соли: факторы, модели, опыты"
+  },
+  {
+   "id": "DB-SRC:198",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-198"
+   ],
+   "new_vs_phase1": true,
+   "work": "Евсеев, Васильева, Тенисон, Имайкина, 2025, статья",
+   "scope": "BKPRU4, OTHER_POTASH_SITE",
+   "sections_pages": "с.1–7",
+   "gives": "гидрозакладка после критической деформации целиков ускорила оседания; регламент сроков; влажность и прочность"
+  },
+  {
+   "id": "DB-SRC:203",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-203"
+   ],
+   "new_vs_phase1": true,
+   "work": "ГИ УрО РАН, 2004, сборник сессии (Телегина)",
+   "scope": "VKM_REGIONAL",
+   "sections_pages": "с.193–197",
+   "gives": "ранний вариант той же схемы с иным знаком в функции"
+  },
+  {
+   "id": "DB-SRC:209+210+212",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-209",
+    "VKM-SRC-210",
+    "VKM-SRC-212"
+   ],
+   "new_vs_phase1": true,
+   "work": "Анушенков и др.; Орлов 2010; Михайлова, Рогова",
+   "scope": "GENERAL_METHOD",
+   "sections_pages": "212 с.44–52, 75–86, 199; 209 с.17–18; 210 с.50–52",
+   "gives": "компрессия закладки; B для угольных методик; эффективная мощность"
+  },
+  {
+   "id": "DB-SRC:231",
+   "kind": "corpus_source",
+   "source_ids": [
+    "VKM-SRC-231"
+   ],
+   "new_vs_phase1": true,
+   "work": "Brady, Brown, 3-е изд., учебник",
+   "scope": "GENERAL_METHOD",
+   "sections_pages": "§14, с.429–446 (печ. 410–427)",
+   "gives": "механика закладки в рудниках твёрдых руд (Blight 1984), свойства гидрозакладки"
+  },
+  {
+   "id": "DB-F-01",
+   "kind": "formula",
+   "name": "Степень заполнения камеры",
+   "description": "VKM-SRC-014 (6.18)–(6.21), с.161; VKM-SRC-044 с.171; VKM-SRC-046 с.3. k_зап = h_з.м / h_к = 1 − h_з / h_к; A = h_з.м / h_к. Где h_з.м — высота закладочного массива, м; h_к — высота камеры, м; h_з — незаполненная высота (зазор), м. Статус FACT (определение), NORMATIVE/DESIGN, VKM_REGIONAL. Реестр: MM-BACKFILL-003.",
+   "source_ids": [
+    "VKM-SRC-014",
+    "VKM-SRC-044",
+    "VKM-SRC-046"
+   ],
+   "related_ids": [
+    "MM-BACKFILL-003"
+   ],
+   "status": [
+    "FACT"
+   ]
+  },
+  {
+   "id": "DB-F-02",
+   "kind": "formula",
+   "name": "Незаполненная высота при гидрозакладке",
+   "description": "VKM-SRC-014 (6.22)–(6.23), с.162. Зависит от длины камеры, угла растекания и уклона. FACT, DESIGN. Реестр: MM-BACKFILL-004.",
+   "source_ids": [
+    "VKM-SRC-014"
+   ],
+   "related_ids": [
+    "MM-BACKFILL-004"
+   ],
+   "status": [
+    "FACT"
+   ]
+  },
+  {
+   "id": "DB-F-03",
+   "kind": "formula",
+   "name": "Коэффициент заполнения при механической закладке вагонами",
+   "description": "VKM-SRC-037 (8.196), с.182 (печ. 362). K_з = 1 − (Δh_з + Δh_к + Δh_г)/h_ср. Где Δh_з — зазор между вершинами куч и кровлей, Δh_к — потери между кучами, Δh_г — потери у горловины, h_ср — средняя высота камеры; все в м. FACT, DESIGN. Реестр: MM-BACKFILL-006.",
+   "source_ids": [
+    "VKM-SRC-037"
+   ],
+   "related_ids": [
+    "MM-BACKFILL-006"
+   ],
+   "status": [
+    "FACT"
+   ]
+  },
+  {
+   "id": "DB-F-04",
+   "kind": "formula",
+   "name": "Коэффициент самозаполнения полости обрушенными солями",
+   "description": "VKM-SRC-093 с.5–6. k_з = k_р·k_s·V_р/(V₀ + V_р). Где k_р — коэффициент разрыхления (принят 1,1), k_s — поправка на выщелачивание MgCl₂ и выпадение NaCl, KCl (0,85), V_р — объём разрушенных пород, V₀ — объём полости. При k_з ≥ 1 провал не образуется. MODEL_CHOICE (оценочная формула источника), VKM_REGIONAL. Связь: `method = self_fill`.",
+   "source_ids": [
+    "VKM-SRC-093"
+   ],
+   "related_ids": [],
+   "status": [
+    "MODEL_CHOICE"
+   ]
+  },
+  {
+   "id": "DB-F-05",
+   "kind": "formula",
+   "name": "Множитель влияния закладки",
+   "description": "VKM-SRC-037 (8.136), с.170 (печ. 338); VKM-SRC-087 (7); VKM-SRC-042 (10); VKM-SRC-065 с.29. p = 1 − A(1 − B); p = 1 без закладки. Где A — степень заполнения (доля высоты), B — коэффициент усадки (доля), оба безразмерны. FACT, NORMATIVE, VKM_REGIONAL. Физический смысл: закладка уменьшает конечное оседание на заполненную и не усевшую долю выработанного объёма, без времени.",
+   "source_ids": [
+    "VKM-SRC-037",
+    "VKM-SRC-042",
+    "VKM-SRC-065",
+    "VKM-SRC-087"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ]
+  },
+  {
+   "id": "DB-F-06",
+   "kind": "formula",
+   "name": "Конечное оседание с закладкой",
+   "description": "VKM-SRC-037 (8.135)–(8.136), с.169–170; VKM-SRC-012 (2.1)–(2.2), с.54; VKM-SRC-087 (5)–(6). η₀* = 0,9·S/(a + b)·[1 − A(1 − B)]; η_ok = 0,9·m₀·ω·p при C ≥ 0,32 и 0,9·m₀·ω·p·(C/0,32)² при C < 0,32; η_max = 0,9·m₀·ω·p, ω = S₀/(m₀·l). Где S — площадь поперечного сечения очистной выработки на ширину a + b, м² (S/(a + b) = m·ω); a, b — ширина камеры и целика, м; m₀ — вынимаемая мощность, м; ω — коэффициент извлечения; C — степень нагружения целиков; η — оседание, м. FACT, NORMATIVE. Реестр: MM-SUBS-011, MM-SUBS-015; конфликт формы — FC-005.",
+   "source_ids": [
+    "VKM-SRC-012",
+    "VKM-SRC-037",
+    "VKM-SRC-087"
+   ],
+   "related_ids": [
+    "FC-005",
+    "MM-SUBS-011",
+    "MM-SUBS-015"
+   ],
+   "status": [
+    "FACT"
+   ]
+  },
+  {
+   "id": "DB-F-07",
+   "kind": "formula",
+   "name": "Указания 2022 (вторично)",
+   "description": "VKM-SRC-065 (1.1), с.29. η_i = m₀·ω·p·k; k = 1,0 для карналлита, 0,9 при C ≥ 0,32, 0,9·(C/0,32)² при C < 0,32. Во времени: η_i(t) = 0,002·t·η_i при C < 0,32; η_i(t) = β_z·(0,01t)^α_z·η_i при C ≥ 0,32 (t — годы по смыслу коэффициента 0,002 = 1/500; в выдержке единица не повторена). FACT (вторичная передача норматива), NORMATIVE. Первоисточник (Указания 2022) в корпусе отсутствует.",
+   "source_ids": [
+    "VKM-SRC-065"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ]
+  },
+  {
+   "id": "DB-F-08",
+   "kind": "formula",
+   "name": "Нормативы ВЗТ с закладкой",
+   "description": "VKM-SRC-037 (8.144)–(8.145), с.171–172. Предельная мощность слоя соли и высота зоны трещин содержат множитель (1 − A + A·B) = p. FACT, NORMATIVE. Реестр: MM-WPS-004, MM-WPS-005.",
+   "source_ids": [
+    "VKM-SRC-037"
+   ],
+   "related_ids": [
+    "MM-WPS-004",
+    "MM-WPS-005"
+   ],
+   "status": [
+    "FACT"
+   ]
+  },
+  {
+   "id": "DB-F-09",
+   "kind": "formula",
+   "name": "Уравнение состояния гидрозакладки (Генки–Вялов)",
+   "description": "VKM-SRC-044 (7.13), с.171 (печ. 170), плоская деформация: ε_x = (σ_x − σ_m)/G* + (ε_k/3)·[1 − exp(−σ_m/σ_k)]; ε_y — аналогично; ε_xy = τ_xy/G*. Где σ_m — среднее нормальное напряжение, МПа; G* — модуль сдвига, в источнике «0–82,5 МПа» (напечатано так; диапазон или зависимость — не раскрыто); ε_k, σ_k — параметры сжатия из компрессионных испытаний (значения не приведены). Статус формы — MODEL_CHOICE источника; параметры — UNKNOWN. Первичная работа [93] (Константинова, Папулов, Триполко, Хронусов, 1993) в корпусе отсутствует. Связь: PC-38; единственная найденная в корпусе форма закона уплотнения закладки ВКМ.",
+   "source_ids": [
+    "VKM-SRC-044"
+   ],
+   "related_ids": [
+    "PC-38"
+   ],
+   "status": [
+    "MODEL_CHOICE",
+    "UNKNOWN"
+   ]
+  },
+  {
+   "id": "DB-F-10",
+   "kind": "formula",
+   "name": "Переменный модуль (вязкоупругость)",
+   "description": "VKM-SRC-044 (7.18), с.175–176: E_t(t) = E/(1 + Φ(t)); параметры ядра подобраны по графикам нарастания оседаний (калибровка). MODEL_CHOICE. Связь: DB-F-15, DB-C-07.",
+   "source_ids": [
+    "VKM-SRC-044"
+   ],
+   "related_ids": [
+    "DB-C-07",
+    "DB-F-15"
+   ],
+   "status": [
+    "MODEL_CHOICE"
+   ]
+  },
+  {
+   "id": "DB-F-11",
+   "kind": "formula",
+   "name": "Реакция целика (максвелловская модель)",
+   "description": "VKM-SRC-044 (7.19)–(7.20), с.176 (печ. 175). На интервале k скорость деформации ε'_k = Δu/(Δt_k·m); нагрузка q(t) = C_k·exp(−t/τ) + ηε'_k до исчерпания несущей способности, затем q(t) = D_k·exp(t/T) + ηε'_k, после t_* — остаточная q_*. Где Δu — сближение оснований целика, м; m — высота целика, м; η — вязкость, Па·с (порядок 10¹⁴–10¹⁵, с.177); τ = η/E; T = η/M; q_c, q_* — предел несущей способности и остаточная прочность; t_c, t_* — моменты их достижения; C_k, D_k — рекуррентные коэффициенты (7.20). MODEL_CHOICE; параметры — из испытаний с переходом к ленточным целикам (LAB → MASSIF через формулы перехода источника).",
+   "source_ids": [
+    "VKM-SRC-044"
+   ],
+   "related_ids": [],
+   "status": [
+    "MODEL_CHOICE"
+   ]
+  },
+  {
+   "id": "DB-F-12",
+   "kind": "formula",
+   "name": "Момент включения закладки (критерий по деформации целика)",
+   "description": "VKM-SRC-044 (7.21), с.181 (печ. 180). ε_y = 1 − k_з; t_y = t_з + (1 − k_з)/ε'. Где ε_y — относительная деформация целика, при которой закладка вступает в работу; k_з — коэффициент заполнения; t_з — время от образования камеры до внесения закладки; ε' — постоянная скорость деформации системы целик–закладка, 1/год. MODEL_CHOICE. Неявное допущение: усадка закладки и щели у целиков не учитываются (включаются через k_з). Связь: PC-39, DB-C-09.",
+   "source_ids": [
+    "VKM-SRC-044"
+   ],
+   "related_ids": [
+    "DB-C-09",
+    "PC-39"
+   ],
+   "status": [
+    "MODEL_CHOICE"
+   ]
+  },
+  {
+   "id": "DB-F-13",
+   "kind": "formula",
+   "name": "Отпор системы целик–закладка после включения",
+   "description": "VKM-SRC-044 (7.22)–(7.23), с.181–182 (печ. 180–181). До включения при ε' < q_c/η: q(t) = (q₀ − ε'η)·exp(−t/τ) + ε'η. После включения (t_y < t_c): q(t) = (q₀ − ε'η)·exp{−[t − t_y(1 − τ'_y/τ)]/τ'_y} + ε'η, τ'_y = η/E'_y. Если t_y > t_c (целик уже в запредельной стадии) — (7.23) с модулем E''_y и множителем exp[(t_y − t_c)/T]. Где q₀ — среднее вертикальное напряжение на целик в момент его образования, МПа; E'_y, E''_y — модули участков упрочнения системы целик–закладка (рис. 107). MODEL_CHOICE; значения E'_y, E''_y для ВКМ не приведены (UNKNOWN).",
+   "source_ids": [
+    "VKM-SRC-044"
+   ],
+   "related_ids": [],
+   "status": [
+    "MODEL_CHOICE",
+    "UNKNOWN"
+   ]
+  },
+  {
+   "id": "DB-F-14",
+   "kind": "formula",
+   "name": "Сигмоидная функция ползучести с закладкой",
+   "description": "VKM-SRC-042 (1)–(12), с.2–4 (печ. 313–315). v(t) = v₀[1 + Φ(t)] (1); ядро (4); Φ(t) = δ·t^(1−α)/(1 + e^(ρ−βt)) (3); η_T(t) — сумма вкладов пластов (6), δ_i из условия η_T(t_k) = η_k + v₀ (7)–(8); η_kz = 0,9mωp (10); η_z = 0,9mω(1 − A) определяет t_z (11); при t ≥ t_z η_T(t) = η_z + A·B·(t − t_z)^(1−α)/(t_k − t_z)^(1−α) (12, как напечатано). Где v₀ — упругое смещение поверхности, м; t_k — время завершения процесса (500 лет для сильвинита, 200 лет для карналлита); α, ρ, β — реологические параметры пласта (табл. 1). Статус: форма — MODEL_CHOICE; параметры — DERIVATION калибровкой по оседаниям 12 профильных линий (риск утечки, см. DB-H-05). Проверка размерности (DERIVATION): чтобы при t = t_k получить η_kz из (10), второй член (12) должен содержать множитель 0,9mω; в напечатанной формуле его нет — источник не исправляем, фиксируем.",
+   "source_ids": [
+    "VKM-SRC-042"
+   ],
+   "related_ids": [
+    "DB-H-05"
+   ],
+   "status": [
+    "DERIVATION",
+    "MODEL_CHOICE"
+   ]
+  },
+  {
+   "id": "DB-F-15",
+   "kind": "formula",
+   "name": "Переменный модуль с закладкой",
+   "description": "VKM-SRC-042 (13), с.6 (печ. 317): E_t^p(t) = (1 − ω)E/(1 + ωΦ(t)), Φ(t) = η_T(t)/v₀; VKM-SRC-090 (4), с.4: E_t*(t) = E*/(1 + (1 − ω)Φ(t)), E* = (1 − ω)E. MODEL_CHOICE. Конфликт весов ω и (1 − ω) — DB-C-07.",
+   "source_ids": [
+    "VKM-SRC-042",
+    "VKM-SRC-090"
+   ],
+   "related_ids": [
+    "DB-C-07"
+   ],
+   "status": [
+    "MODEL_CHOICE"
+   ]
+  },
+  {
+   "id": "DB-F-16",
+   "kind": "formula",
+   "name": "Вариант 2004 г.",
+   "description": "VKM-SRC-203 с.194: Φ(t) = δ·t^(1−α)/(1 − e^(c−βt)) (знак «минус», параметр c). При c = 16 и малых t знаменатель отрицателен — вероятная опечатка или иная параметризация. MODEL_CHOICE. Конфликт DB-C-06.",
+   "source_ids": [
+    "VKM-SRC-203"
+   ],
+   "related_ids": [
+    "DB-C-06"
+   ],
+   "status": [
+    "MODEL_CHOICE"
+   ]
+  },
+  {
+   "id": "DB-F-17",
+   "kind": "formula",
+   "name": "Несущая способность закладочного массива и требуемая прочность",
+   "description": "VKM-SRC-050 (2.2)–(2.3), с.36–37. K_ф = h/a (пример 7,5/16 = 0,47); (2.2) — удельная несущая способность закладочного массива (распознавание неполное, вид не приводится); σ_з = σ_ц·(b/a)^½ (2.3), при b = 10 м, a = 16 м σ_з = 0,79σ_ц. Где h — высота закладочного массива, м; a — ширина камеры, м; b — ширина целика, м; σ_з, σ_ц — прочность закладки и целика на сжатие, Па. FACT, DESIGN, BKPRU1. Перед использованием (2.2) сверить со страницей.",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ]
+  },
+  {
+   "id": "DB-F-18",
+   "kind": "formula",
+   "name": "Составной целик",
+   "description": "VKM-SRC-104 с.4: σ·(b₁ + b₂) = σ₁b₁ + σ₂b₂ (123 испытания образцов с разным соотношением материалов). FACT, LAB (модельные образцы). Связь: DB-H-03.",
+   "source_ids": [
+    "VKM-SRC-104"
+   ],
+   "related_ids": [
+    "DB-H-03"
+   ],
+   "status": [
+    "FACT"
+   ]
+  },
+  {
+   "id": "DB-F-19",
+   "kind": "formula",
+   "name": "Степень нагружения с коэффициентами",
+   "description": "VKM-SRC-104 (3), с.5: C = γH₀(a + b)/(k_ф·k_m·k_c·k_l·σ₀·b); γ = 2,15·10⁻² МПа/м, k_m = 1,12, k_c = 0,75, k_l = 1,25, H₀ = 350 м. FACT, DESIGN, VKM_REGIONAL.",
+   "source_ids": [
+    "VKM-SRC-104"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ]
+  },
+  {
+   "id": "DB-F-20",
+   "kind": "formula",
+   "name": "Оседание по конвергенции целиков",
+   "description": "VKM-SRC-198 с.4–5: η_расч = Σ ε_гор,i·m_i/1,6, где ε_гор — относительная поперечная деформация целика, m_i — мощность пласта, 1,6 — отношение поперечной и продольной деформации (по [5]); пример 0,244 м против измеренного с расхождением в пределах 15 мм. Критические деформации: ε_кр^прод = 3,8·b/m, ε_кр^попер = 6,0·b/m (как напечатано; единицы — проценты по контексту). DERIVATION (эмпирическая связь по натурным данным FIELD), BKPRU4.",
+   "source_ids": [
+    "VKM-SRC-198"
+   ],
+   "related_ids": [],
+   "status": [
+    "DERIVATION"
+   ]
+  },
+  {
+   "id": "DB-F-21",
+   "kind": "formula",
+   "name": "Эффективная мощность при закладке (угольные методики)",
+   "description": "VKM-SRC-209 (1.73), с.18 (печ. 118): B = (m_э − h_k − h_n)/(m − h_k − h_n), h_k по умолчанию 0,15 м; VKM-SRC-210 (3.11)–(3.12), с.50–51. Определение B отличается от нормативного B ВКМ. GENERAL_METHOD; для ВКМ — только ANALOGUE.",
+   "source_ids": [
+    "VKM-SRC-209",
+    "VKM-SRC-210"
+   ],
+   "related_ids": [],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-F-22",
+   "kind": "formula",
+   "name": "Компрессия закладочных материалов",
+   "description": "VKM-SRC-212 (3.17)–(3.18), (3.11), (3.15)–(3.16), с.44–52: ε = (h₀ − h₁)/h₀·100 %; K_сж = (1 − ρ₀/ρ₁)·100 %; E_ст = 10³(2,31·lgσ + 0,8); E_ст = 0,15·E_дин^1,4. GENERAL_METHOD (твердеющая закладка рудников цветной металлургии); для ВКМ — ANALOGUE.",
+   "source_ids": [
+    "VKM-SRC-212"
+   ],
+   "related_ids": [],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-F-23",
+   "kind": "formula",
+   "name": "Гидрозакладка твёрдых руд",
+   "description": "VKM-SRC-231 (14.1), (14.3), (14.4), с.430–434 (печ. 411–415): P_corr = P_meas·(e_insitu/e_meas)²; σ_c = A + B·C²·log t; σ_c = α·C_v^2,36. GENERAL_METHOD, EXTERNAL; ANALOGUE.",
+   "source_ids": [
+    "VKM-SRC-231"
+   ],
+   "related_ids": [],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-F-24",
+   "kind": "formula",
+   "name": "Консолидация дроблёной соли (WIPP)",
+   "description": "VKM-SRC-192 (2.34)–(2.39), с.52–53 (печ. 39–40): дислокационная ползучесть + растворение под давлением; r₁* = r₁·w^a/d^p; ε_v = ln(ρ₀/ρ). ANALOGUE (раздел 6).",
+   "source_ids": [
+    "VKM-SRC-192"
+   ],
+   "related_ids": [],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-P-01",
+   "kind": "parameter",
+   "value": "≥ 0,75 (минимум для карналлитовых камер)",
+   "material": "все",
+   "type_scale": "NORMATIVE",
+   "scope": "VKM_REGIONAL, SKRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-096 с.2; VKM-SRC-090 с.8",
+   "source_ids": [
+    "VKM-SRC-090",
+    "VKM-SRC-096"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "NORMATIVE"
+   ],
+   "scale": [
+    "NORMATIVE"
+   ]
+  },
+  {
+   "id": "DB-P-02",
+   "kind": "parameter",
+   "value": "A ≥ 0,7 (закладка как элемент системы разработки); 0,5 ≤ A ≤ 0,7 (как мера охраны ВЗТ)",
+   "material": "все",
+   "type_scale": "NORMATIVE (вторично)",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-058 с.3 (печ. 176)",
+   "source_ids": [
+    "VKM-SRC-058"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "NORMATIVE"
+   ],
+   "scale": [
+    "NORMATIVE"
+   ]
+  },
+  {
+   "id": "DB-P-03",
+   "kind": "parameter",
+   "value": "требуемая 0,8–0,9",
+   "material": "все",
+   "type_scale": "NORMATIVE",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-037 с.72 (MC-BF-05)",
+   "source_ids": [
+    "VKM-SRC-037"
+   ],
+   "related_ids": [
+    "MC-BF-05"
+   ],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "NORMATIVE"
+   ],
+   "scale": [
+    "NORMATIVE"
+   ]
+  },
+  {
+   "id": "DB-P-04",
+   "kind": "parameter",
+   "value": "рекомендуемая 0,9–0,95; фактически средняя 0,8, 0,95 — единично",
+   "material": "ПО «Уралкалий»",
+   "type_scale": "FIELD / MASSIF",
+   "scope": "VKM_REGIONAL (Березники)",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.18, 29",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": [
+    "MASSIF"
+   ]
+  },
+  {
+   "id": "DB-P-05",
+   "kind": "parameter",
+   "value": "около 0,7 в среднем",
+   "material": "гидравлическая",
+   "type_scale": "FIELD (обобщение)",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-104 с.5 (печ. 55)",
+   "source_ids": [
+    "VKM-SRC-104"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-06",
+   "kind": "parameter",
+   "value": "0,75 (скреперная), 0,91–1 (ЗК-300), 0,75 (вагоны 5ВС-15); гидро 0,5–0,9, до 0,95",
+   "material": "по способам",
+   "type_scale": "FIELD/DESIGN",
+   "scope": "BKPRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.11–14",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "DESIGN",
+    "FIELD"
+   ],
+   "scale": [
+    "DESIGN"
+   ]
+  },
+  {
+   "id": "DB-P-07",
+   "kind": "parameter",
+   "value": "0,6 (Вк, заложен в 1973 г., блок 77); 0,6 (Вк, профильная линия 14)",
+   "material": "сухая (по контексту)",
+   "type_scale": "FIELD (вход модели)",
+   "scope": "SKRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-042 с.5 (печ. 316)",
+   "source_ids": [
+    "VKM-SRC-042"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-08",
+   "kind": "parameter",
+   "value": "0,6 (АБ), 0,9 (КрII), 3 ЮЗП гор. −220",
+   "material": "не указан",
+   "type_scale": "FIELD (вход модели)",
+   "scope": "SKRU2",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-042 с.6 (печ. 317)",
+   "source_ids": [
+    "VKM-SRC-042"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-09",
+   "kind": "parameter",
+   "value": "блок 2: 0,63 (АБ), 0,85 (КрII); блок 1: 0,70 (АБ), 0,75 (КрII)",
+   "material": "гидравлическая / сухая (каменная соль)",
+   "type_scale": "FIELD",
+   "scope": "SKRU3",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-044 с.180 (печ. 179)",
+   "source_ids": [
+    "VKM-SRC-044"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-10",
+   "kind": "parameter",
+   "value": "0,6 (Кр2), 0,3 (АБ), достигнуто в 2015 г.",
+   "material": "не указан (VKM-SRC-204 моделирует сухую закладку КрII 4–5 вост. блоков; связь с этим случаем не доказана)",
+   "type_scale": "FIELD",
+   "scope": "BKPRU4",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-091 с.11",
+   "source_ids": [
+    "VKM-SRC-091",
+    "VKM-SRC-204"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-11",
+   "kind": "parameter",
+   "value": "0,8 после перевода на гидрозакладку (плотность +3–4 %); не менее 0,8 при зазоре около 1,5 м; цель опыта 0,9; возможно 0,90–0,95",
+   "material": "гидравлическая",
+   "type_scale": "FIELD / DESIGN",
+   "scope": "SKRU1 (карналлит)",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-096 с.2, 4–6",
+   "source_ids": [
+    "VKM-SRC-096"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "DESIGN",
+    "FIELD"
+   ],
+   "scale": [
+    "DESIGN"
+   ]
+  },
+  {
+   "id": "DB-P-12",
+   "kind": "parameter",
+   "value": "0,75 (принято в расчёте)",
+   "material": "сухая",
+   "type_scale": "MODEL (вход)",
+   "scope": "SKRU1 (Вк)",
+   "status_as_written": "MODEL_CHOICE",
+   "locators": "VKM-SRC-046 с.3",
+   "source_ids": [
+    "VKM-SRC-046"
+   ],
+   "related_ids": [],
+   "status": [
+    "MODEL_CHOICE"
+   ],
+   "evidence_type": [
+    "MODEL"
+   ],
+   "scale": [
+    "MODEL"
+   ]
+  },
+  {
+   "id": "DB-P-13",
+   "kind": "parameter",
+   "value": "при 0,8 коэффициент формы целика можно снизить до 2",
+   "material": "гидравлическая",
+   "type_scale": "LAB (УФ ВНИИГ)",
+   "scope": "BKPRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.51",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "LAB"
+   ],
+   "scale": [
+    "LAB"
+   ]
+  },
+  {
+   "id": "DB-P-14",
+   "kind": "parameter",
+   "value": "история: 1984 — A ≥ 0,75 как классификатор (сильвинит); 1994–2008 — карналлит A ≥ 0,75; с 2008 — сильвинит C ≤ 0,4, карналлит A > 0,75",
+   "material": "—",
+   "type_scale": "NORMATIVE (вторично)",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-065 с.110–111",
+   "source_ids": [
+    "VKM-SRC-065"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "NORMATIVE"
+   ],
+   "scale": [
+    "NORMATIVE"
+   ]
+  },
+  {
+   "id": "DB-P-15",
+   "kind": "parameter",
+   "value": "B: гидравлическая 0,16 (H ≤ 200 м), 0,18 (H > 200 м); механическая 0,21 / 0,24",
+   "material": "солеотходы",
+   "type_scale": "NORMATIVE (1990/92)",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-037 с.170 (печ. 338), (8.136)",
+   "source_ids": [
+    "VKM-SRC-037"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "NORMATIVE"
+   ],
+   "scale": [
+    "NORMATIVE"
+   ]
+  },
+  {
+   "id": "DB-P-16",
+   "kind": "parameter",
+   "value": "B: гидравлическая 0,18; механическая солеотходами 0,25; механическая породой 0,30",
+   "material": "по способам",
+   "type_scale": "NORMATIVE (Указания 2022, вторично)",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-065 с.29",
+   "source_ids": [
+    "VKM-SRC-065"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "NORMATIVE"
+   ],
+   "scale": [
+    "NORMATIVE"
+   ]
+  },
+  {
+   "id": "DB-P-17",
+   "kind": "parameter",
+   "value": "B: твердеющая 0,01–0,05; гидравлическая песчаная 0,05–0,15; пневматическая 0,15–0,30; самотёчная 0,25–0,40; дроблёная порода 0,25–0,45; рядовая порода 0,35–0,50",
+   "material": "угольные методики",
+   "type_scale": "NORMATIVE (иное определение B)",
+   "scope": "GENERAL_METHOD",
+   "status_as_written": "ANALOGUE",
+   "locators": "VKM-SRC-209 табл. 1.5, с.18 (печ. 118)",
+   "source_ids": [
+    "VKM-SRC-209"
+   ],
+   "related_ids": [],
+   "status": [
+    "ANALOGUE"
+   ],
+   "evidence_type": [
+    "NORMATIVE"
+   ],
+   "scale": [
+    "NORMATIVE"
+   ]
+  },
+  {
+   "id": "DB-P-18",
+   "kind": "parameter",
+   "value": "усадка снижает коэффициент заполнения на 2–5 %",
+   "material": "механическая (вагоны)",
+   "type_scale": "FIELD",
+   "scope": "BKPRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.13",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-19",
+   "kind": "parameter",
+   "value": "щели закладка–целик 30–50 мм через 3–4 мес.",
+   "material": "гидравлическая",
+   "type_scale": "FIELD",
+   "scope": "BKPRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.34",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-20",
+   "kind": "parameter",
+   "value": "усадочный зазор под кровлей 10–13 см после закладки; 0–7 см через 14 лет; в камерах с доливкой до 40 % контакта без зазора",
+   "material": "гидравлическая",
+   "type_scale": "FIELD / MASSIF",
+   "scope": "BKPRU1 (3-я вост. панель)",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.48–51",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": [
+    "MASSIF"
+   ]
+  },
+  {
+   "id": "DB-P-21",
+   "kind": "parameter",
+   "value": "зазор под кровлей 0,2–1,0 м (гидро, после второго слоя); 0,8–1,0 м (механическая)",
+   "material": "по способам",
+   "type_scale": "DESIGN",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-037 с.72 (печ. 143), с.174 (печ. 347); VKM-SRC-014 с.162 (BF-0055, BF-0064, BF-0019)",
+   "source_ids": [
+    "VKM-SRC-014",
+    "VKM-SRC-037"
+   ],
+   "related_ids": [
+    "BF-0019",
+    "BF-0055",
+    "BF-0064"
+   ],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "DESIGN"
+   ],
+   "scale": [
+    "DESIGN"
+   ]
+  },
+  {
+   "id": "DB-P-22",
+   "kind": "parameter",
+   "value": "после первого слоя вагонами остаётся 2,5–3 м до кровли (промежуточно)",
+   "material": "механическая",
+   "type_scale": "FIELD",
+   "scope": "BKPRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.13",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-23",
+   "kind": "parameter",
+   "value": "зазор около 1,5 м (неполная высота камер у замерных станций)",
+   "material": "гидравлическая",
+   "type_scale": "FIELD",
+   "scope": "SKRU1 (карналлит)",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-096 с.2, 6",
+   "source_ids": [
+    "VKM-SRC-096"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-24",
+   "kind": "parameter",
+   "value": "по зонам ГИС: от совпадающих периодов (57П, 1989–1991) до ~80 лет (19П: выемка 1934–1935, закладка 2016–2017); типично 20–50 лет для 1950–1960-х гг.",
+   "type_scale": "FIELD (карта ГИС)",
+   "scope": "SKRU1",
+   "status_as_written": "DERIVATION (разность границ интервалов BF-0076…BF-0089)",
+   "locators": "VKM-SRC-023 рис. 17, с.43",
+   "source_ids": [
+    "VKM-SRC-023"
+   ],
+   "related_ids": [
+    "BF-0076",
+    "BF-0089"
+   ],
+   "status": [
+    "DERIVATION"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-25",
+   "kind": "parameter",
+   "value": "не более 1,5 года (карналлит, 2012); цель — 6 месяцев",
+   "type_scale": "FIELD / DESIGN",
+   "scope": "SKRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-096 с.2",
+   "source_ids": [
+    "VKM-SRC-096"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "DESIGN",
+    "FIELD"
+   ],
+   "scale": [
+    "DESIGN"
+   ]
+  },
+  {
+   "id": "DB-P-26",
+   "kind": "parameter",
+   "value": "в среднем 1,5 года (сухая, первичная отработка Вк)",
+   "type_scale": "FIELD",
+   "scope": "SKRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-046 с.1",
+   "source_ids": [
+    "VKM-SRC-046"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-27",
+   "kind": "parameter",
+   "value": "около 4 лет (Вк: выемка 1969, закладка 1973); включение закладки по модели через 12,8 года",
+   "type_scale": "FIELD; MODEL",
+   "scope": "SKRU1",
+   "status_as_written": "DERIVATION (разность лет; модельный t_z)",
+   "locators": "VKM-SRC-042 с.5",
+   "source_ids": [
+    "VKM-SRC-042"
+   ],
+   "related_ids": [],
+   "status": [
+    "DERIVATION"
+   ],
+   "evidence_type": [
+    "FIELD",
+    "MODEL"
+   ],
+   "scale": [
+    "MODEL"
+   ]
+  },
+  {
+   "id": "DB-P-28",
+   "kind": "parameter",
+   "value": "традиционно 10–20 лет; новая технология — до 2 лет",
+   "type_scale": "DESIGN / FIELD",
+   "scope": "SKRU2",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-037 с.66 (печ. 130) (BF-0053)",
+   "source_ids": [
+    "VKM-SRC-037"
+   ],
+   "related_ids": [
+    "BF-0053"
+   ],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "DESIGN",
+    "FIELD"
+   ],
+   "scale": [
+    "DESIGN"
+   ]
+  },
+  {
+   "id": "DB-P-29",
+   "kind": "parameter",
+   "value": "в среднем около 10 лет, на юго-восточных панелях (гор. −143 м) — 20 лет и более",
+   "type_scale": "FIELD",
+   "scope": "SKRU2",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-012 с.34",
+   "source_ids": [
+    "VKM-SRC-012"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-30",
+   "kind": "parameter",
+   "quantity": "площади отработки СКРУ-1 по пластам и типам закладки, январь 2022 (км², % площади пласта)",
+   "value": [
+    {
+     "seam_area_km2": "КрII (12,4)",
+     "no_backfill": "3,47 км² (27,98 %)",
+     "dry": "3,11 (25,08 %)",
+     "hydraulic": "4,45 (35,89 %)",
+     "dry_plus_hydraulic": "1,20 (9,68 %)",
+     "brine": "0,17 (1,37 %)"
+    },
+    {
+     "seam_area_km2": "АБ (7,65)",
+     "no_backfill": "3,98 (52,03 %)",
+     "dry": "1,88 (24,58 %)",
+     "hydraulic": "1,44 (18,82 %)",
+     "dry_plus_hydraulic": "0,28 (3,66 %)",
+     "brine": "0,07 (0,91 %)"
+    },
+    {
+     "seam_area_km2": "Вс (0,72)",
+     "no_backfill": "0,25 (34,72 %)",
+     "dry": "0,23 (31,95 %)",
+     "hydraulic": "0,16 (22,22 %)",
+     "dry_plus_hydraulic": "0,08 (11,11 %)",
+     "brine": "—"
+    },
+    {
+     "seam_area_km2": "Вк (2,5)",
+     "no_backfill": "0,08 (3,2 %)",
+     "dry": "1,60 (64 %)",
+     "hydraulic": "0,77 (30,8 %)",
+     "dry_plus_hydraulic": "0,05 (2 %)",
+     "brine": "—"
+    }
+   ],
+   "unit": "km2; percent",
+   "scope": "SKRU1",
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": [
+    "MASSIF"
+   ],
+   "locators": "VKM-SRC-074 табл. 3, с.6 (печ. 106); проверено по изображению страницы",
+   "source_ids": [
+    "VKM-SRC-074"
+   ],
+   "related_ids": [
+    "PC-37"
+   ]
+  },
+  {
+   "id": "DB-P-31",
+   "kind": "parameter",
+   "value": "около 3–5 лет (блок 2: выемка 1986–1988, гидрозакладка 1991–1993); блок 1 — закладка 1987–1990 при выемке 1985–1988",
+   "type_scale": "FIELD",
+   "scope": "SKRU3",
+   "status_as_written": "DERIVATION (из интервалов)",
+   "locators": "VKM-SRC-044 с.179–180",
+   "source_ids": [
+    "VKM-SRC-044"
+   ],
+   "related_ids": [],
+   "status": [
+    "DERIVATION"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-32",
+   "kind": "parameter",
+   "value": "регламент: при скорости поперечной деформации целиков 30 мм/м в год — закладка в течение 2 лет",
+   "type_scale": "NORMATIVE (регламент, вторично)",
+   "scope": "BKPRU4",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-198 с.4; VKM-SRC-066 с.159",
+   "source_ids": [
+    "VKM-SRC-066",
+    "VKM-SRC-198"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "NORMATIVE"
+   ],
+   "scale": [
+    "NORMATIVE"
+   ]
+  },
+  {
+   "id": "DB-P-33",
+   "kind": "parameter",
+   "value": "по критерию 30 мм/м в год: участки станций 2 и 4 — ещё около 10 лет (≈ 20 лет после отработки); участок 6 — иначе",
+   "type_scale": "MODEL",
+   "scope": "BKPRU4",
+   "status_as_written": "DERIVATION (модельный результат источника)",
+   "locators": "VKM-SRC-066 с.162",
+   "source_ids": [
+    "VKM-SRC-066"
+   ],
+   "related_ids": [],
+   "status": [
+    "DERIVATION"
+   ],
+   "evidence_type": [
+    "MODEL"
+   ],
+   "scale": [
+    "MODEL"
+   ]
+  },
+  {
+   "id": "DB-P-34",
+   "kind": "parameter",
+   "value": "5 лет (камера 22 заложена, камера 12 — нет; блок 13)",
+   "type_scale": "FIELD",
+   "scope": "SKRU1 (по контексту [34], [90])",
+   "status_as_written": "FACT (вторично, [90])",
+   "locators": "VKM-SRC-047 с.61",
+   "source_ids": [
+    "VKM-SRC-047"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-35",
+   "kind": "parameter",
+   "quantity": "прочность на сжатие, модуль (1 год)",
+   "value": "0,903 МПа; 0,028 ГПа",
+   "material": "сухая закладка (карналлитовые камеры)",
+   "type_scale": "LAB (вторично, [1] 2010)",
+   "scope": "SKRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-046 с.1",
+   "source_ids": [
+    "VKM-SRC-046"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "LAB"
+   ],
+   "scale": [
+    "LAB"
+   ]
+  },
+  {
+   "id": "DB-P-36",
+   "kind": "parameter",
+   "quantity": "прочность, модуль (18 лет)",
+   "value": "8,5–9,0 МПа (= карналлит); 0,6 ГПа (карналлит 1,0 ГПа)",
+   "material": "сухая закладка",
+   "type_scale": "LAB (вторично, отчёты «Галургии» 1995–1996)",
+   "scope": "SKRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-046 с.2",
+   "source_ids": [
+    "VKM-SRC-046"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "LAB"
+   ],
+   "scale": [
+    "LAB"
+   ]
+  },
+  {
+   "id": "DB-P-37",
+   "kind": "parameter",
+   "quantity": "прочность (10 лет)",
+   "value": "3,5–4,0 МПа",
+   "material": "гидрозакладка",
+   "type_scale": "LAB (масштабный эффект, рис. 1.11)",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-037 с.12 (печ. 22) (BF-0047)",
+   "source_ids": [
+    "VKM-SRC-037"
+   ],
+   "related_ids": [
+    "BF-0047"
+   ],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "LAB"
+   ],
+   "scale": [
+    "LAB"
+   ]
+  },
+  {
+   "id": "DB-P-38",
+   "kind": "parameter",
+   "quantity": "прочность выдержанной закладки",
+   "value": "3,5 МПа",
+   "material": "гидрозакладка",
+   "type_scale": "LITERATURE_CITED (Борзаковский, Папулов)",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-104 с.5 (печ. 55)",
+   "source_ids": [
+    "VKM-SRC-104"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "LITERATURE_CITED"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-39",
+   "kind": "parameter",
+   "quantity": "прочность быстротвердеющей закладки",
+   "value": "до 10 МПа",
+   "material": "с вяжущим",
+   "type_scale": "FIELD/DESIGN",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.33",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "DESIGN",
+    "FIELD"
+   ],
+   "scale": [
+    "DESIGN"
+   ]
+  },
+  {
+   "id": "DB-P-40",
+   "kind": "parameter",
+   "quantity": "прирост прочности при пропуске горячих растворов",
+   "value": "в 1,5 раза",
+   "material": "гидрозакладка",
+   "type_scale": "FIELD (опыт)",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.33",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-41",
+   "kind": "parameter",
+   "quantity": "влажность отходов при укладке",
+   "value": "6–8 %",
+   "material": "галитовые отходы (сухая)",
+   "type_scale": "FIELD",
+   "scope": "BKPRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.11",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-42",
+   "kind": "parameter",
+   "quantity": "влажность гидрозакладки",
+   "value": "10–12 % через 3–4 мес.; 0,16–0,9 % через 14 лет (верх/середина/низ)",
+   "material": "гидрозакладка",
+   "type_scale": "FIELD",
+   "scope": "BKPRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.34, 48–51",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-43",
+   "kind": "parameter",
+   "quantity": "температура закладки",
+   "value": "7–9 °C (= температура пород); доливка пульпой 25–30 °C",
+   "material": "гидрозакладка",
+   "type_scale": "FIELD",
+   "scope": "BKPRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.34",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-44",
+   "kind": "parameter",
+   "quantity": "угол растекания пульпы",
+   "value": "~1,7–3° (мелкие отходы); более 10° (5–7 мм)",
+   "material": "гидрозакладка",
+   "type_scale": "FIELD",
+   "scope": "BKPRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.14, 32",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-45",
+   "kind": "parameter",
+   "quantity": "кажущаяся плотность в камере",
+   "value": "1,08–1,36 т/м³ (= истинная плотность × степень заполнения; не пористость закладки)",
+   "material": "закладка",
+   "type_scale": "DESIGN",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-037 с.72 (строка PC-38)",
+   "source_ids": [
+    "VKM-SRC-037"
+   ],
+   "related_ids": [
+    "PC-38"
+   ],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "DESIGN"
+   ],
+   "scale": [
+    "DESIGN"
+   ]
+  },
+  {
+   "id": "DB-P-46",
+   "kind": "parameter",
+   "quantity": "плотность пульпы",
+   "value": "1300–1450 кг/м³ (шлам), до 1,59–1,65 т/м³; рассол 1,23 т/м³",
+   "material": "пульпа",
+   "type_scale": "DESIGN",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-037 с.76, 78, 180 (BF-0057, BF-0059, BF-0066)",
+   "source_ids": [
+    "VKM-SRC-037"
+   ],
+   "related_ids": [
+    "BF-0057",
+    "BF-0059",
+    "BF-0066"
+   ],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "DESIGN"
+   ],
+   "scale": [
+    "DESIGN"
+   ]
+  },
+  {
+   "id": "DB-P-47",
+   "kind": "parameter",
+   "quantity": "модуль сдвига в (7.13)",
+   "value": "«0–82,5 МПа» (как напечатано)",
+   "material": "гидрозакладка",
+   "type_scale": "MODEL (вход)",
+   "scope": "GENERAL_METHOD",
+   "status_as_written": "MODEL_CHOICE",
+   "locators": "VKM-SRC-044 с.171 (печ. 170)",
+   "source_ids": [
+    "VKM-SRC-044"
+   ],
+   "related_ids": [],
+   "status": [
+    "MODEL_CHOICE"
+   ],
+   "evidence_type": [
+    "MODEL"
+   ],
+   "scale": [
+    "MODEL"
+   ]
+  },
+  {
+   "id": "DB-P-48",
+   "kind": "parameter",
+   "quantity": "параметры сжатия ε_k, σ_k",
+   "value": "не приведены",
+   "material": "гидрозакладка",
+   "type_scale": "—",
+   "scope": "—",
+   "status_as_written": "UNKNOWN",
+   "locators": "VKM-SRC-044 с.171",
+   "source_ids": [
+    "VKM-SRC-044"
+   ],
+   "related_ids": [],
+   "status": [
+    "UNKNOWN"
+   ],
+   "evidence_type": [],
+   "scale": []
+  },
+  {
+   "id": "DB-P-49",
+   "kind": "parameter",
+   "quantity": "шламы в пульпе",
+   "value": "не более 4 %",
+   "material": "гидрозакладка",
+   "type_scale": "NORMATIVE (вторично)",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-058 с.3",
+   "source_ids": [
+    "VKM-SRC-058"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "NORMATIVE"
+   ],
+   "scale": [
+    "NORMATIVE"
+   ]
+  },
+  {
+   "id": "DB-P-50",
+   "kind": "parameter",
+   "quantity": "прирост несущей способности целиков",
+   "value": "+30–50 % (эквивалентные материалы, ПермНИУИ 1961–1965)",
+   "type_scale": "LAB (модели из эквивалентных материалов)",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT (вторично)",
+   "locators": "VKM-SRC-096 с.1",
+   "source_ids": [
+    "VKM-SRC-096"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "LAB"
+   ],
+   "scale": [
+    "LAB"
+   ]
+  },
+  {
+   "id": "DB-P-51",
+   "kind": "parameter",
+   "quantity": "упрочнение стенок целиков частичным подпором",
+   "value": "+40–90 % (гидрозакладка)",
+   "type_scale": "DESIGN (обобщение)",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.31",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "DESIGN"
+   ],
+   "scale": [
+    "DESIGN"
+   ]
+  },
+  {
+   "id": "DB-P-52",
+   "kind": "parameter",
+   "quantity": "влияние неполной сухой закладки на устойчивость карналлитовых целиков",
+   "value": "нет (замеры: поперечное расширение 25–270 мкм/сут у целиков с закладкой и без, определяется возрастом и положением)",
+   "type_scale": "FIELD",
+   "scope": "SKRU1 (Первый Соликамский рудник)",
+   "status_as_written": "FACT (вторично, [87], [34])",
+   "locators": "VKM-SRC-047 с.59–61",
+   "source_ids": [
+    "VKM-SRC-047"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-53",
+   "kind": "parameter",
+   "quantity": "C с учётом закладки",
+   "value": "0,35 → 0,3 (A = 0,75); 0,36 (b = 14 м, A = 0,9); 0,31 у фронта; 0,42 (b = 12 м)",
+   "type_scale": "DESIGN",
+   "scope": "SKRU1",
+   "status_as_written": "FACT (расчёт источника)",
+   "locators": "VKM-SRC-096 с.4–5",
+   "source_ids": [
+    "VKM-SRC-096"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "DESIGN"
+   ],
+   "scale": [
+    "DESIGN"
+   ]
+  },
+  {
+   "id": "DB-P-54",
+   "kind": "parameter",
+   "quantity": "влияние закладки на зоны разрушения",
+   "value": "без закладки — устойчивость около 4 лет; с закладкой с t = 5 лет рост зон прекращается",
+   "type_scale": "MODEL",
+   "scope": "SKRU1 (Вк)",
+   "status_as_written": "DERIVATION (модельный результат источника)",
+   "locators": "VKM-SRC-046 с.3–4",
+   "source_ids": [
+    "VKM-SRC-046"
+   ],
+   "related_ids": [],
+   "status": [
+    "DERIVATION"
+   ],
+   "evidence_type": [
+    "MODEL"
+   ],
+   "scale": [
+    "MODEL"
+   ]
+  },
+  {
+   "id": "DB-P-55",
+   "kind": "parameter",
+   "quantity": "скорость оседаний после гидрозакладки",
+   "value": "до 280 мм/год через ~2 года после начала закладки, затем снижение; до закладки рост в 1,5 раза",
+   "type_scale": "FIELD",
+   "scope": "BKPRU4",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-198 с.5",
+   "source_ids": [
+    "VKM-SRC-198"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-56",
+   "kind": "parameter",
+   "quantity": "скорость оседаний после гидрозакладки",
+   "value": "во время закладки — влияние на скорость; после окончания — возврат к прежнему уровню; оседание 300 мм к 2018 г., 950 мм (репер 98)",
+   "type_scale": "FIELD",
+   "scope": "BKPRU4 (участок 2; рудник для участка 2 явно не назван)",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-034 с.2",
+   "source_ids": [
+    "VKM-SRC-034"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-57",
+   "kind": "parameter",
+   "quantity": "скорость оседаний после закладки 2015 г.",
+   "value": "заметное снижение с мая 2015 г.",
+   "type_scale": "FIELD",
+   "scope": "BKPRU4 (3 ЮВП, скв. 492)",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-091 с.11",
+   "source_ids": [
+    "VKM-SRC-091"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-58",
+   "kind": "parameter",
+   "quantity": "конвергенция камер (2019)",
+   "value": "АБ 15–25 см (2,5–4,5 %); КрII 40–45 см (6,5–8,0 %)",
+   "type_scale": "FIELD",
+   "scope": "BKPRU4",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-034 с.2",
+   "source_ids": [
+    "VKM-SRC-034"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-59",
+   "kind": "parameter",
+   "quantity": "влияние закладки КрII (A = 0,8) на краевую часть мульды",
+   "value": "L/H 1,22 → 1,35 (без КрII в отработке — 1,40)",
+   "type_scale": "MODEL",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "DERIVATION (модельный результат источника)",
+   "locators": "VKM-SRC-087 с.5–7",
+   "source_ids": [
+    "VKM-SRC-087"
+   ],
+   "related_ids": [],
+   "status": [
+    "DERIVATION"
+   ],
+   "evidence_type": [
+    "MODEL"
+   ],
+   "scale": [
+    "MODEL"
+   ]
+  },
+  {
+   "id": "DB-P-60",
+   "kind": "parameter",
+   "quantity": "p по панелям",
+   "value": "Вс 0,590; АБ 0,524; КрII 0,549 (II СПВ, −143); КрII 1,000 (I СПВ)",
+   "type_scale": "DESIGN (расчёт)",
+   "scope": "SKRU2",
+   "status_as_written": "FACT (расчёт источника)",
+   "locators": "VKM-SRC-012 табл. 2.1, с.56",
+   "source_ids": [
+    "VKM-SRC-012"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "DESIGN"
+   ],
+   "scale": [
+    "DESIGN"
+   ]
+  },
+  {
+   "id": "DB-P-61",
+   "kind": "parameter",
+   "quantity": "затухание сейсмичности после закладки",
+   "value": "~25 лет (КрII), по новым данным ~28 лет; АБ и Вс — вдвое через 35–40 лет; Вк — без зависимости первые 15 лет",
+   "type_scale": "FIELD (сейсмомониторинг)",
+   "scope": "SKRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-074 с.6; VKM-SRC-069 с.3",
+   "source_ids": [
+    "VKM-SRC-069",
+    "VKM-SRC-074"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-62",
+   "kind": "parameter",
+   "quantity": "прочность податливых целиков (разрушенных), КрII",
+   "value": "12,0 МПа; 23,0 МПа",
+   "type_scale": "DESIGN (вход)",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-104 с.5 (печ. 55)",
+   "source_ids": [
+    "VKM-SRC-104"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "DESIGN"
+   ],
+   "scale": [
+    "DESIGN"
+   ]
+  },
+  {
+   "id": "DB-P-63",
+   "kind": "parameter",
+   "quantity": "коэффициент вязкости солей",
+   "value": "10¹⁴–10¹⁵ Па·с (порядок)",
+   "type_scale": "LAB → MODEL",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "MODEL_CHOICE",
+   "locators": "VKM-SRC-044 с.177 (печ. 176)",
+   "source_ids": [
+    "VKM-SRC-044"
+   ],
+   "related_ids": [],
+   "status": [
+    "MODEL_CHOICE"
+   ],
+   "evidence_type": [
+    "LAB",
+    "MODEL"
+   ],
+   "scale": [
+    "LAB",
+    "MODEL"
+   ]
+  },
+  {
+   "id": "DB-P-64",
+   "kind": "parameter",
+   "quantity": "реологические параметры с закладкой",
+   "value": "АБ α 0,9, β 0,9, ρ = 2,7C + 0,3C⁻⁴·⁴; КрII 0,85/0,9/1,8C + 0,3C⁻⁴; В 0,9/0,9/2,7C + 0,3C⁻⁴·⁴; Вк 0,9/0,3/4; t_k 500 лет (сильвинит), 200 лет (карналлит)",
+   "type_scale": "MODEL (калибровка по оседаниям)",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "DERIVATION (модельный результат источника)",
+   "locators": "VKM-SRC-042 табл. 1, с.5",
+   "source_ids": [
+    "VKM-SRC-042"
+   ],
+   "related_ids": [],
+   "status": [
+    "DERIVATION"
+   ],
+   "evidence_type": [
+    "MODEL"
+   ],
+   "scale": [
+    "MODEL"
+   ]
+  },
+  {
+   "id": "DB-P-65",
+   "kind": "parameter",
+   "quantity": "то же, вариант 2004 г.",
+   "value": "АБ α 0,89, c 16, β 0,9; КрII 0,85/10/0,9; В (сильв.) 0,85/12/0,9; В (карн.) 0,9/4/0,3",
+   "type_scale": "MODEL",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "DERIVATION (модельный результат источника)",
+   "locators": "VKM-SRC-203 с.194–196",
+   "source_ids": [
+    "VKM-SRC-203"
+   ],
+   "related_ids": [],
+   "status": [
+    "DERIVATION"
+   ],
+   "evidence_type": [
+    "MODEL"
+   ],
+   "scale": [
+    "MODEL"
+   ]
+  },
+  {
+   "id": "DB-P-66",
+   "kind": "parameter",
+   "quantity": "глубина увлажнения целика за 2 года",
+   "value": "1,7–2 м (сильвинит), 3–3,5 м (глинистые прослойки)",
+   "type_scale": "FIELD",
+   "scope": "BKPRU1",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.35",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-67",
+   "kind": "parameter",
+   "quantity": "прочность сильвинита ВКМ от влажности",
+   "value": "35 → 20 МПа при росте влажности 0,2 → 1,2 % (линейно)",
+   "type_scale": "LAB",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-050 с.35",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "LAB"
+   ],
+   "scale": [
+    "LAB"
+   ]
+  },
+  {
+   "id": "DB-P-68",
+   "kind": "parameter",
+   "quantity": "влажность у контура (Стебник)",
+   "value": "11 % → 0,3 % на глубине 3–3,5 м",
+   "type_scale": "FIELD",
+   "scope": "OTHER_POTASH_SITE",
+   "status_as_written": "ANALOGUE",
+   "locators": "VKM-SRC-050 с.35",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "ANALOGUE"
+   ],
+   "evidence_type": [
+    "FIELD"
+   ],
+   "scale": []
+  },
+  {
+   "id": "DB-P-69",
+   "kind": "parameter",
+   "quantity": "прочность дефектных образцов",
+   "value": "падает вдвое при росте влажности 0,62 → 1,16 % (60 сут); однородные — без изменений",
+   "type_scale": "LAB",
+   "scope": "BKPRU4 (материал)",
+   "status_as_written": "FACT",
+   "locators": "VKM-SRC-198 с.2",
+   "source_ids": [
+    "VKM-SRC-198"
+   ],
+   "related_ids": [],
+   "status": [
+    "FACT"
+   ],
+   "evidence_type": [
+    "LAB"
+   ],
+   "scale": [
+    "LAB"
+   ]
+  },
+  {
+   "id": "DB-P-70",
+   "kind": "parameter",
+   "quantity": "Калуш (Сивоконь)",
+   "value": "увлажнение до 3,5 м; 33 → 13 МПа при 0,55 → 3,5 %",
+   "type_scale": "FIELD/LAB",
+   "scope": "OTHER_POTASH_SITE",
+   "status_as_written": "ANALOGUE",
+   "locators": "VKM-SRC-198 с.2 (вторично)",
+   "source_ids": [
+    "VKM-SRC-198"
+   ],
+   "related_ids": [],
+   "status": [
+    "ANALOGUE"
+   ],
+   "evidence_type": [
+    "FIELD",
+    "LAB"
+   ],
+   "scale": [
+    "LAB"
+   ]
+  },
+  {
+   "id": "DB-P-71",
+   "kind": "parameter",
+   "quantity": "нормативная потеря ширины целика Δb при отсутствии данных",
+   "value": "5,0 м",
+   "type_scale": "NORMATIVE",
+   "scope": "VKM_REGIONAL",
+   "status_as_written": "ENGINEERING_ASSUMPTION",
+   "locators": "VKM-SRC-037 (строка PC-40)",
+   "source_ids": [
+    "VKM-SRC-037"
+   ],
+   "related_ids": [
+    "PC-40"
+   ],
+   "status": [
+    "ENGINEERING_ASSUMPTION"
+   ],
+   "evidence_type": [
+    "NORMATIVE"
+   ],
+   "scale": [
+    "NORMATIVE"
+   ]
+  },
+  {
+   "id": "DB-H-01",
+   "kind": "hypothesis",
+   "statement": "Жёсткий нормативный множитель: закладка уменьшает конечное оседание на долю A(1 − B), без времени",
+   "proposed_by": "Указания ВНИИГ / ГИ УрО РАН (1984…2022); VKM-SRC-037, 087, 065, 012",
+   "support": "нормативная практика; согласие с прогнозами по оседаниям (на калибровочных данных)",
+   "against": "не описывает время включения, зазоры, уплотнение; B — норматив, не измерение",
+   "standing": "MODEL_CHOICE (нормативный)",
+   "source_ids": [
+    "VKM-SRC-012",
+    "VKM-SRC-037",
+    "VKM-SRC-065",
+    "VKM-SRC-087"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-H-02",
+   "kind": "hypothesis",
+   "statement": "Запаздывающее включение сжимаемой закладки: свободная конвергенция до контакта, затем отпор",
+   "proposed_by": "Барях, Константинова, Асанов 1996 (VKM-SRC-044); Барях, Телегина и др. 2004–2005 (VKM-SRC-042, 203); [93] 1993",
+   "support": "зазоры 0,1–1,5 м (DB-P-19…DB-P-23); медленное закрытие зазоров (DB-P-20)",
+   "against": "параметры уплотнения не опубликованы; критерии включения разные (DB-C-09)",
+   "standing": "MODEL_CHOICE",
+   "source_ids": [
+    "VKM-SRC-042",
+    "VKM-SRC-044",
+    "VKM-SRC-203"
+   ],
+   "related_ids": [
+    "DB-C-09",
+    "DB-P-19",
+    "DB-P-20",
+    "DB-P-23"
+   ]
+  },
+  {
+   "id": "DB-H-03",
+   "kind": "hypothesis",
+   "statement": "Боковой подпор повышает несущую способность целиков",
+   "proposed_by": "ПермНИУИ 1961–1965; Степанов и др. 1994 (VKM-SRC-050); Борзаковский и др. 2012 (VKM-SRC-096); Бельтюков, Черноусов 2024 (VKM-SRC-104); Blight 1984 (VKM-SRC-231, ANALOGUE)",
+   "support": "+30–90 % (DB-P-50, DB-P-51); лаб. данные УФ ВНИИГ (DB-P-13); расчёт VKM-SRC-044 рис. 105",
+   "against": "неполная сухая закладка карналлитовых камер не влияет (DB-P-52); при зазоре целики разрушаются до включения (VKM-SRC-104); при заполнении ~80 % закладка не держит кровлю (VKM-SRC-050 с.49–51); VKM-SRC-020 с.25 — эффект проблематичен",
+   "standing": "спор (DB-C-04)",
+   "source_ids": [
+    "VKM-SRC-020",
+    "VKM-SRC-044",
+    "VKM-SRC-050",
+    "VKM-SRC-096",
+    "VKM-SRC-104",
+    "VKM-SRC-231"
+   ],
+   "related_ids": [
+    "DB-C-04",
+    "DB-P-13",
+    "DB-P-50",
+    "DB-P-51",
+    "DB-P-52"
+   ]
+  },
+  {
+   "id": "DB-H-04",
+   "kind": "hypothesis",
+   "statement": "Гидрозакладка дестабилизирует повреждённые целики (рассол + дефектность) и временно ускоряет оседания",
+   "proposed_by": "Евсеев и др. 2025 (VKM-SRC-198); Сивоконь 1966 (вторично)",
+   "support": "DB-P-55, DB-P-69, DB-P-70, DB-P-66",
+   "against": "стабилизация (DB-P-56), снижение скоростей (DB-P-57), быстрее затухание сейсмичности при гидрозакладке (DB-P-61); Борзаковский и Рысин — без изменения прочности",
+   "standing": "спор (DB-C-05); вывод самого VKM-SRC-198 (с.5): эффект гидрозакладки зависит от нарушенности целиков, то есть от достигнутой ими деформации",
+   "source_ids": [
+    "VKM-SRC-198"
+   ],
+   "related_ids": [
+    "DB-C-05",
+    "DB-P-55",
+    "DB-P-56",
+    "DB-P-57",
+    "DB-P-61",
+    "DB-P-66",
+    "DB-P-69",
+    "DB-P-70"
+   ]
+  },
+  {
+   "id": "DB-H-05",
+   "kind": "hypothesis",
+   "statement": "Эквивалентный материал / переменный модуль: закладка как среда с калиброванным модулем",
+   "proposed_by": "Ермашов 2015 (VKM-SRC-045, ANSYS, СКРУ-2); VKM-SRC-042 (13); VKM-SRC-090 (4); MM-CREEP-012",
+   "support": "удобно для крупномасштабных моделей",
+   "against": "калибровка по тем же оседаниям, которые прогнозируются, — риск утечки; веса ω/(1 − ω) расходятся (DB-C-07)",
+   "standing": "MODEL_CHOICE",
+   "source_ids": [
+    "VKM-SRC-042",
+    "VKM-SRC-045",
+    "VKM-SRC-090"
+   ],
+   "related_ids": [
+    "DB-C-07",
+    "MM-CREEP-012"
+   ]
+  },
+  {
+   "id": "DB-H-06",
+   "kind": "hypothesis",
+   "statement": "Старение: прочность и жёсткость закладки растут за годы (обезвоживание, перекристаллизация)",
+   "proposed_by": "VKM-SRC-046 (вторично «Галургия»), VKM-SRC-037, VKM-SRC-050",
+   "support": "0,9 → 8,5–9 МПа, 0,028 → 0,6 ГПа за 1 → 18 лет (DB-P-35, DB-P-36)",
+   "against": "закон роста между точками не опубликован; условия испытаний (образцы/масштаб) неизвестны",
+   "standing": "FACT (точки) + UNKNOWN (закон)",
+   "source_ids": [
+    "VKM-SRC-037",
+    "VKM-SRC-046",
+    "VKM-SRC-050"
+   ],
+   "related_ids": [
+    "DB-P-35",
+    "DB-P-36"
+   ]
+  },
+  {
+   "id": "DB-H-07",
+   "kind": "hypothesis",
+   "statement": "Механизмы уплотнения соляной закладки: дислокационная ползучесть + растворение под давлением; влага ускоряет",
+   "proposed_by": "Spiers 1990; Callahan 1999 (VKM-SRC-192); Olivella, Gens 2002; KOMPASS (VKM-SRC-193); van Oosterhout и др. 2026",
+   "support": "лаб. опыты с дроблёной солью (раздел 6)",
+   "against": "другой материал и режим (глубина, температура, влажность, крупность)",
+   "standing": "ANALOGUE",
+   "source_ids": [
+    "VKM-SRC-192",
+    "VKM-SRC-193"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-H-08",
+   "kind": "hypothesis",
+   "statement": "Консервативное пренебрежение закладкой в оценках",
+   "proposed_by": "Мараков 2004 (VKM-SRC-057)",
+   "support": "осторожная оценка при неизвестной закладке",
+   "against": "даёт завышенные оседания там, где закладка работает",
+   "standing": "MODEL_CHOICE",
+   "source_ids": [
+    "VKM-SRC-057"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-H-09",
+   "kind": "hypothesis",
+   "statement": "Закладка ускоряет релаксацию напряжений (индикатор — затухание сейсмичности)",
+   "proposed_by": "Злобина 2022–2023 (VKM-SRC-074, 069)",
+   "support": "DB-P-61",
+   "against": "корреляционный анализ; механизм не выделен",
+   "standing": "корреляция — FACT; механизм — UNKNOWN",
+   "source_ids": [
+    "VKM-SRC-069",
+    "VKM-SRC-074"
+   ],
+   "related_ids": [
+    "DB-P-61"
+   ]
+  },
+  {
+   "id": "DB-A-01",
+   "kind": "external_analogue",
+   "work": "Selikhov, Karasev, Petrushin и др., 2026, Eng 7(7):330, doi:10.3390/eng7070330",
+   "material_conditions": "дроблёная соляная порода ВКМ, средняя крупность 0,88 мм; естественная влажность 1,57 %, испытана высушенной; 1400 кг/м³ (≈ 35 % пористости при плотности твёрдой фазы 2160); 20 °C; гидростатика до 35 МПа",
+   "gives": "кривая уплотнения p = H₁ε² + H₂ε + H₃ (H₁ 197,18, H₂ 13,05, H₃ 0,41 МПа, R² 0,98), ε_vol^pl до 0,36; угол β = A·ln p + B (A −1,47, B 76,45°; 0,75–15 МПа); E 6,61 ГПа, ν 0,13; параметры модели SRP (cap)",
+   "transfer_conditions": "материал ВКМ, но LAB, сухой, кратковременный; без ползучести и рассола; перенос в массив требует учёта влажности (1,57 % и рассол гидрозакладки), времени, масштаба укладки",
+   "source_ids": [],
+   "related_ids": [],
+   "dois": [
+    "10.3390/eng7070330"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-02",
+   "kind": "external_analogue",
+   "work": "Kovalski, Gromtsev, Petrov, 2020, ГИАБ №9:87–101, doi:10.25018/0236-1493-2020-9-0-87-101",
+   "material_conditions": "солеотвальная закладка (по вторичной ссылке в DB-A-01)",
+   "gives": "компрессионный модуль 14,42 МПа",
+   "transfer_conditions": "вторичная ссылка; первоисточник не прочитан; проверить материал, режим и область",
+   "source_ids": [],
+   "related_ids": [
+    "DB-A-01"
+   ],
+   "dois": [
+    "10.25018/0236-1493-2020-9-0-87-101"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-03",
+   "kind": "external_analogue",
+   "work": "Callahan, 1999, SAND98-2680, doi:10.2172/4127 (в корпусе VKM-SRC-192)",
+   "material_conditions": "дроблёная соль WIPP; 40 гидростатических и 18 сдвиговых опытов; начальная относительная плотность 0,64 (допущение)",
+   "gives": "модель дислокационной ползучести + растворения под давлением; параметры (η₀ 0,1029/0,0140; n_f 3,51/3,97; Q_s/R 1077/2897 K); время: 92 % — 16–17 лет, 96 % — 49–65 лет, 100 % лишь в одной модели за 100 лет (табл. 6-2)",
+   "transfer_conditions": "глубина ~550 м, WIPP-соль, влажность 0–1 %, крупность ≤ 9,5 мм; разброс параметров a, r₁, r₃ более чем в 10 раз; расхождение r₁ в таблице и тексте (распознавание)",
+   "source_ids": [
+    "VKM-SRC-192"
+   ],
+   "related_ids": [],
+   "dois": [
+    "10.2172/4127"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-04",
+   "kind": "external_analogue",
+   "work": "SaltMech X, 2022, проект KOMPASS (в корпусе VKM-SRC-193)",
+   "material_conditions": "дроблёная соль (эталон Зондерсхаузен, крупность до 8 мм); начальная пористость 30–40 %",
+   "gives": "факторы уплотнения: крупность, минералогия, влажность, температура, скорость, путь нагружения; один набор параметров не описывает разные сценарии нагружения; опыты: TK-031 (конечная пористость 6,8 %), GRS (30 % → 1–3 % за 1600 сут), TUC-V2 (16,7 % → 3 %, w = 0,5 %, 30–70 °C, 750 сут)",
+   "transfer_conditions": "материал и цель (герметизация хранилищ) другие; пористость ниже 10 % для ВКМ-закладки не показана",
+   "source_ids": [
+    "VKM-SRC-193"
+   ],
+   "related_ids": [],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-05",
+   "kind": "external_analogue",
+   "work": "Olivella, Gens, 2002, IJNAMG 26:719–746, doi:10.1002/nag.220",
+   "material_conditions": "дроблёная соль",
+   "gives": "модель CODE_BRIGHT: FADT (растворение под давлением) + DC (дислокационная ползучесть) + VP",
+   "transfer_conditions": "модельная форма (MODEL_CHOICE-кандидат), параметры — не для ВКМ",
+   "source_ids": [],
+   "related_ids": [],
+   "dois": [
+    "10.1002/nag.220"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-06",
+   "kind": "external_analogue",
+   "work": "Spiers и др., 1990, Geol. Soc. Spec. Publ. 54:215–227, doi:10.1144/gsl.sp.1990.054.01.21",
+   "material_conditions": "насыщенная рассолом NaCl, 100–275 мкм, 20–90 °C, 0,5–2,2 МПа",
+   "gives": "параметры растворения под давлением (Z₀ ≈ 2,79·10⁻¹⁵ м³/с, ΔH ≈ 24,5 кДж/моль)",
+   "transfer_conditions": "для гидрозакладки ВКМ — ближе всего по механизму (рассол); крупность и напряжения иные",
+   "source_ids": [],
+   "related_ids": [],
+   "dois": [
+    "10.1144/gsl.sp.1990.054.01.21"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-07",
+   "kind": "external_analogue",
+   "work": "Hansen, Popp, Wieczorek, Stührenberg, 2014, SAND2014-16141R, doi:10.2172/1164616",
+   "material_conditions": "гранулированная соль",
+   "gives": "обзор принципов реконсолидации",
+   "transfer_conditions": "обзор, без параметров ВКМ",
+   "source_ids": [],
+   "related_ids": [],
+   "dois": [
+    "10.2172/1164616"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-08",
+   "kind": "external_analogue",
+   "work": "Mellegard, Callahan, Loken, 1998, doi:10.2172/568994; Callahan, Hansen, 2020, doi:10.1201/9781003078791-19",
+   "material_conditions": "дроблёная соль WIPP",
+   "gives": "обновления модели Callahan",
+   "transfer_conditions": "как DB-A-03",
+   "source_ids": [],
+   "related_ids": [
+    "DB-A-03"
+   ],
+   "dois": [
+    "10.2172/568994",
+    "10.1201/9781003078791-19"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-09",
+   "kind": "external_analogue",
+   "work": "Frayne, Mraz, Rothenburg, 1990/1992, doi:10.1201/9781003078944-137; doi:10.1016/0148-9062(92)91171-z",
+   "material_conditions": "гранулированная галитовая закладка (Саскачеван)",
+   "gives": "нормированный изотермический закон компакционной ползучести",
+   "transfer_conditions": "калийный рудник, но иная геология и технология; параметры — из текста первоисточника (не прочитан полностью)",
+   "source_ids": [],
+   "related_ids": [],
+   "dois": [
+    "10.1201/9781003078944-137",
+    "10.1016/0148-9062(92)91171-z"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-10",
+   "kind": "external_analogue",
+   "work": "Herget, Munroe, doi:10.1201/9781003211488-41",
+   "material_conditions": "солеотвальная закладка, Denison-Potacan (Нью-Брансуик)",
+   "gives": "опыт применения солеотходов как закладки на калийном руднике",
+   "transfer_conditions": "качественный аналог технологии",
+   "source_ids": [],
+   "related_ids": [],
+   "dois": [
+    "10.1201/9781003211488-41"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-11",
+   "kind": "external_analogue",
+   "work": "Kang, Fan, Jiang, Li, 2020, Natural Resources Research, doi:10.1007/s11053-020-09732-1",
+   "material_conditions": "мелкая гранулированная соль",
+   "gives": "влияние геологических факторов и среды на реконсолидацию",
+   "transfer_conditions": "лаб., иной материал",
+   "source_ids": [],
+   "related_ids": [],
+   "dois": [
+    "10.1007/s11053-020-09732-1"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-12",
+   "kind": "external_analogue",
+   "work": "Mills, Stormont, Bauer, 2018, Eng. Geol., doi:10.1016/j.enggeo.2018.03.024",
+   "material_conditions": "консолидированная гранулированная соль",
+   "gives": "микромеханика (растворение под давлением, пластичность)",
+   "transfer_conditions": "качественный механизм",
+   "source_ids": [],
+   "related_ids": [],
+   "dois": [
+    "10.1016/j.enggeo.2018.03.024"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-13",
+   "kind": "external_analogue",
+   "work": "van den Ende, Marketos, Niemeijer, Spiers, 2018, JGR Solid Earth, doi:10.1002/2017JB014440",
+   "material_conditions": "DEM с растворением под давлением",
+   "gives": "как ввести растворение под давлением в контакты DEM",
+   "transfer_conditions": "метод (для DEM-лаборатории, раздел 7.3)",
+   "source_ids": [],
+   "related_ids": [],
+   "dois": [
+    "10.1002/2017JB014440"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-14",
+   "kind": "external_analogue",
+   "work": "Friedenberg и др., 2023, ARMA, doi:10.56952/arma-2023-0340; Friedenberg, Olivella, 2025, doi:10.3389/fbuil.2025.1536760; MEASURES team, 2026, doi:10.5194/sand-5-1-2026; Tounsi и др., 2023, doi:10.1016/j.enggeo.2023.107217",
+   "material_conditions": "дроблёная соль (KOMPASS, THM)",
+   "gives": "сравнение и калибровка моделей уплотнения",
+   "transfer_conditions": "модели и стратегии, не параметры ВКМ",
+   "source_ids": [],
+   "related_ids": [],
+   "dois": [
+    "10.56952/arma-2023-0340",
+    "10.3389/fbuil.2025.1536760",
+    "10.5194/sand-5-1-2026",
+    "10.1016/j.enggeo.2023.107217"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-15",
+   "kind": "external_analogue",
+   "work": "van Oosterhout, Hangx, Spiers, 2026, EGU, doi:10.5194/egusphere-egu26-11800",
+   "material_conditions": "гранулированная соль во влажном воздухе",
+   "gives": "малая влажность резко ускоряет компакционную ползучесть",
+   "transfer_conditions": "тезисы; качественно важно для сухой закладки ВКМ (влажность 6–8 % при укладке)",
+   "source_ids": [],
+   "related_ids": [],
+   "dois": [
+    "10.5194/egusphere-egu26-11800"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-16",
+   "kind": "external_analogue",
+   "work": "Wagner, Callahan, Butcher, 1990, doi:10.1557/proc-207-169; Miao, Wang, Schreyer, 1995, doi:10.1061/(asce)0733-9399(1995)121:10(1122); Salzer, Popp, Böhnel, 2017, doi:10.1201/9781315106502-28",
+   "material_conditions": "камеры WIPP с дроблёной солью; модели залечивания; прессованные блоки",
+   "gives": "расчёт камер с закладкой; модели залечивания",
+   "transfer_conditions": "методические аналоги",
+   "source_ids": [],
+   "related_ids": [],
+   "dois": [
+    "10.1557/proc-207-169",
+    "10.1061/(asce)0733-9399(1995)121:10(1122",
+    "10.1201/9781315106502-28"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-17",
+   "kind": "external_analogue",
+   "work": "Yavuz, 2004, IJRMMS, doi:10.1016/S1365-1609(03)00082-0",
+   "material_conditions": "выработанное пространство длинных лав (уголь)",
+   "gives": "восстановление давления в обрушенном пространстве (модель Салямона)",
+   "transfer_conditions": "иная система разработки; форма «давление–деформация» обрушенных пород",
+   "source_ids": [],
+   "related_ids": [],
+   "dois": [
+    "10.1016/S1365-1609(03)00082-0"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-18",
+   "kind": "external_analogue",
+   "work": "Rybak и др., 2022, Записки ГИ 253:61–70, doi:10.31897/PMI.2022.2",
+   "material_conditions": "соляные месторождения с закладкой",
+   "gives": "прогноз геомеханического состояния при закладке",
+   "transfer_conditions": "обзорно-методический; область уточнить",
+   "source_ids": [],
+   "related_ids": [],
+   "dois": [
+    "10.31897/PMI.2022.2"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-A-19",
+   "kind": "external_analogue",
+   "work": "Brady, Brown (в корпусе VKM-SRC-231), со ссылкой на Blight 1984",
+   "material_conditions": "гидравлическая песчаная закладка рудников твёрдых руд",
+   "gives": "мягкая закладка удерживает около 85 % пиковой прочности целика после пика; жёсткая — до трёхкратной; условие — плотная укладка до неупругого расширения целика; коэффициент пористости ~0,70, сухая плотность ~1,6 т/м³, φ ≈ 37°; E 280–285 МПа (Mount Isa)",
+   "transfer_conditions": "твёрдые руды, цементированная/песчаная закладка; качественный ориентир для DB-H-03",
+   "source_ids": [
+    "VKM-SRC-231"
+   ],
+   "related_ids": [
+    "DB-H-03"
+   ],
+   "status": [
+    "ANALOGUE"
+   ]
+  },
+  {
+   "id": "DB-G-01",
+   "kind": "gap_unknown",
+   "unknown": "закон уплотнения закладки ВКМ ε_bf(σ, t, w, T) in situ; параметры ε_k, σ_k формы (7.13)",
+   "why": "определяет отпор и время стабилизации (PC-38, PC-39)",
+   "closing_data": "компрессионные и ползучестные испытания солеотходов ВКМ (сухих и из гидрозакладки) с влажностью; первоисточник [93] 1993; отчёты «Галургии» 1995–1996; Константинова, Асанов 2010",
+   "source_ids": [],
+   "related_ids": [
+    "PC-38",
+    "PC-39"
+   ],
+   "status": [
+    "UNKNOWN"
+   ]
+  },
+  {
+   "id": "DB-G-02",
+   "kind": "gap_unknown",
+   "unknown": "фактические A, B, зазор, способ по зонам/блокам СКРУ-1",
+   "why": "вход WorldSpec для каждой зоны",
+   "closing_data": "ГИС СКРУ-1 (Апр/Аф есть в схеме, значения не читаются — VKM-SRC-023 рис. 17); база «Закладка-2» на 10 607 камер (VKM-SRC-058 с.6); данные предприятия недоступны (D-19) — остаются опубликованные карты и таблицы",
+   "source_ids": [
+    "VKM-SRC-023",
+    "VKM-SRC-058"
+   ],
+   "related_ids": [],
+   "status": [
+    "UNKNOWN"
+   ]
+  },
+  {
+   "id": "DB-G-03",
+   "kind": "gap_unknown",
+   "unknown": "давление в закладке и отпор во времени",
+   "why": "прямая проверка DB-H-02 и DB-H-03",
+   "closing_data": "результаты программы с разделителями сред ВА-5320 на СКРУ-1 (VKM-SRC-096 с.6) — в корпусе не найдены",
+   "source_ids": [
+    "VKM-SRC-096"
+   ],
+   "related_ids": [
+    "DB-H-02",
+    "DB-H-03"
+   ],
+   "status": [
+    "UNKNOWN"
+   ]
+  },
+  {
+   "id": "DB-G-04",
+   "kind": "gap_unknown",
+   "unknown": "момент контакта кровли с закладкой на СКРУ-1",
+   "why": "время включения",
+   "closing_data": "конвергенция камер после закладки; сейчас есть только модельные t_z (12,8; 9,4; 18 лет — VKM-SRC-042) и полевые зазоры БКПРУ-1",
+   "source_ids": [
+    "VKM-SRC-042"
+   ],
+   "related_ids": [],
+   "status": [
+    "UNKNOWN"
+   ]
+  },
+  {
+   "id": "DB-G-05",
+   "kind": "gap_unknown",
+   "unknown": "влияние рассола закладки на целики СКРУ-1 (глубина увлажнения, потеря прочности, насыщенность рассола)",
+   "why": "PC-40, рост C",
+   "closing_data": "натурные влажностные профили целиков у заложенных камер СКРУ-1; сейчас — БКПРУ-1, Калуш, Стебник и лаб. данные",
+   "source_ids": [],
+   "related_ids": [
+    "PC-40"
+   ],
+   "status": [
+    "UNKNOWN"
+   ]
+  },
+  {
+   "id": "DB-G-06",
+   "kind": "gap_unknown",
+   "unknown": "гранулометрия, плотность, пористость закладки in situ",
+   "why": "начальное состояние для уплотнения",
+   "closing_data": "отбор проб из закладочного массива (как в VKM-SRC-050 рис. 2.8)",
+   "source_ids": [
+    "VKM-SRC-050"
+   ],
+   "related_ids": [],
+   "status": [
+    "UNKNOWN"
+   ]
+  },
+  {
+   "id": "DB-G-07",
+   "kind": "gap_unknown",
+   "unknown": "закон роста прочности и модуля между 1 и 18 годами; условия испытаний",
+   "why": "интерполяция между точками запрещена без основания",
+   "closing_data": "первичные отчёты «Галургии»; повторные испытания",
+   "source_ids": [],
+   "related_ids": [],
+   "status": [
+    "UNKNOWN"
+   ]
+  },
+  {
+   "id": "DB-G-08",
+   "kind": "gap_unknown",
+   "unknown": "свойства природно-техногенного пласта КрII* (самозакладка)",
+   "why": "модель выработанного слоя после разрушения целиков",
+   "closing_data": "VKM-SRC-080 содержит результаты испытаний крупномасштабных образцов — не извлечены этим досье",
+   "source_ids": [
+    "VKM-SRC-080"
+   ],
+   "related_ids": [],
+   "status": [
+    "UNKNOWN"
+   ]
+  },
+  {
+   "id": "DB-G-09",
+   "kind": "gap_unknown",
+   "unknown": "тексты Указаний 1984/1994/2008/2014/2018/2022",
+   "why": "нормативные значения известны только вторично",
+   "closing_data": "получение первоисточников",
+   "source_ids": [],
+   "related_ids": [],
+   "status": [
+    "UNKNOWN"
+   ]
+  },
+  {
+   "id": "DB-G-10",
+   "kind": "gap_unknown",
+   "unknown": "температурный и влажностный режим закладки СКРУ-1 за десятилетия",
+   "why": "ползучесть и растворение под давлением зависят от w и T",
+   "closing_data": "только БКПРУ-1 (DB-P-42, DB-P-43)",
+   "source_ids": [],
+   "related_ids": [
+    "DB-P-42",
+    "DB-P-43"
+   ],
+   "status": [
+    "UNKNOWN"
+   ]
+  },
+  {
+   "id": "DB-S-01",
+   "kind": "scenario_range",
+   "parameter": "A для заложенных зон",
+   "range": "0,5–0,95; для незаложенных зон A = 0 (доли площадей — DB-P-30)",
+   "basis": "DB-P-02…DB-P-11; фактические 0,3 (АБ, БКПРУ-4) вынесены отдельно как нижний выброс",
+   "source_ids": [],
+   "related_ids": [
+    "DB-P-02",
+    "DB-P-11",
+    "DB-P-30"
+   ],
+   "status": [
+    "SCENARIO"
+   ]
+  },
+  {
+   "id": "DB-S-02",
+   "kind": "scenario_range",
+   "parameter": "B",
+   "range": "0,16–0,30 по способу закладки",
+   "basis": "только нормативы (DB-P-15, DB-P-16); не измерения",
+   "source_ids": [],
+   "related_ids": [
+    "DB-P-15",
+    "DB-P-16"
+   ],
+   "status": [
+    "SCENARIO"
+   ]
+  },
+  {
+   "id": "DB-S-03",
+   "kind": "scenario_range",
+   "parameter": "зазор под кровлей",
+   "range": "0,1–1,5 м (гидро и механическая); промежуточно до 3 м; щели у целиков 0–5 см",
+   "basis": "DB-P-19…DB-P-23",
+   "source_ids": [],
+   "related_ids": [
+    "DB-P-19",
+    "DB-P-23"
+   ],
+   "status": [
+    "SCENARIO"
+   ]
+  },
+  {
+   "id": "DB-S-04",
+   "kind": "scenario_range",
+   "parameter": "отставание закладки",
+   "range": "от 0 до ~80 лет по зонам СКРУ-1; для нормативной практики 0,5–2 года",
+   "basis": "DB-P-24…DB-P-34",
+   "source_ids": [],
+   "related_ids": [
+    "DB-P-24",
+    "DB-P-34"
+   ],
+   "status": [
+    "SCENARIO"
+   ]
+  },
+  {
+   "id": "DB-S-05",
+   "kind": "scenario_range",
+   "parameter": "модуль деформации закладки",
+   "range": "от ~0,01–0,03 ГПа (молодая) до ~0,6 ГПа (18 лет), с ростом во времени",
+   "basis": "DB-P-35, DB-P-36; компрессионный 14,42 МПа — ANALOGUE (DB-A-02)",
+   "source_ids": [],
+   "related_ids": [
+    "DB-A-02",
+    "DB-P-35",
+    "DB-P-36"
+   ],
+   "status": [
+    "SCENARIO"
+   ]
+  },
+  {
+   "id": "DB-S-06",
+   "kind": "scenario_range",
+   "parameter": "прочность закладки на сжатие",
+   "range": "0,9 МПа (1 год) — 9 МПа (18 лет, сухая); 3,5–4 МПа (гидро, 10 лет)",
+   "basis": "DB-P-35…DB-P-38",
+   "source_ids": [],
+   "related_ids": [
+    "DB-P-35",
+    "DB-P-38"
+   ],
+   "status": [
+    "SCENARIO"
+   ]
+  },
+  {
+   "id": "DB-S-07",
+   "kind": "scenario_range",
+   "parameter": "начальная пористость соляной закладки",
+   "range": "30–40 %",
+   "basis": "ANALOGUE (DB-A-01, DB-A-04); не факт ВКМ in situ",
+   "source_ids": [],
+   "related_ids": [
+    "DB-A-01",
+    "DB-A-04"
+   ],
+   "status": [
+    "SCENARIO"
+   ]
+  },
+  {
+   "id": "DB-S-08",
+   "kind": "scenario_range",
+   "parameter": "семейство закона уплотнения",
+   "range": "(а) Генки–Вялов (7.13) с ε_k, σ_k как сценарий; (б) SRP/cap по DB-A-01 для кратковременной части; (в) Callahan / CODE_BRIGHT для длительной ползучести; (г) эквивалентный материал с переменным модулем",
+   "basis": "MODEL_CHOICE-кандидаты; выбор фиксируется в WorldSpec как MODEL_CHOICE",
+   "source_ids": [],
+   "related_ids": [
+    "DB-A-01"
+   ],
+   "status": [
+    "SCENARIO"
+   ]
+  },
+  {
+   "id": "DB-S-09",
+   "kind": "scenario_range",
+   "parameter": "глубина увлажнения краёв целиков у гидрозакладки",
+   "range": "1,7–3,5 м; нормативный дефолт Δb = 5 м — отдельный вариант",
+   "basis": "DB-P-66, DB-P-70, DB-P-71",
+   "source_ids": [],
+   "related_ids": [
+    "DB-P-66",
+    "DB-P-70",
+    "DB-P-71"
+   ],
+   "status": [
+    "SCENARIO"
+   ]
+  },
+  {
+   "id": "DB-C-01",
+   "kind": "conflict",
+   "subject": "коэффициент усадки B",
+   "side_a": "1990/92: гидро 0,16/0,18, мех. 0,21/0,24 в зависимости от глубины 200 м (VKM-SRC-037 с.170)",
+   "side_b": "2022: гидро 0,18; мех. солеотходами 0,25; мех. породой 0,30, без разделения по глубине (VKM-SRC-065 с.29); угольные методики — иное определение (VKM-SRC-209)",
+   "handling": "по редакциям; `available_from` по году норматива",
+   "source_ids": [
+    "VKM-SRC-037",
+    "VKM-SRC-065",
+    "VKM-SRC-209"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-C-02",
+   "kind": "conflict",
+   "subject": "степень заполнения: норматив и факт",
+   "side_a": "норматив 0,75; новые документы A ≥ 0,7 / 0,5–0,7; требуемая 0,8–0,9; рекомендуемая 0,9–0,95",
+   "side_b": "факт: средняя 0,8 (1994), около 0,7 (2024), 0,6 (СКРУ-1 Вк, 1973), 0,63/0,85 и 0,70/0,75 (СКРУ-3), 0,6/0,3 (БКПРУ-4, 2015), не менее 0,8 (СКРУ-1 карналлит, 2012); «большой недозаклад» на БКПРУ-4 (MC-BF-05)",
+   "handling": "каждое значение со своей областью и датой",
+   "source_ids": [],
+   "related_ids": [
+    "MC-BF-05"
+   ]
+  },
+  {
+   "id": "DB-C-03",
+   "kind": "conflict",
+   "subject": "отставание закладки",
+   "side_a": "нормативно — в пределах устойчивости кровли; 6 мес. — 2 года (VKM-SRC-096, 037)",
+   "side_b": "фактически 1,5 года (СКРУ-1 карналлит); 3–5 лет (СКРУ-3); ~10–20+ лет (СКРУ-2); до ~80 лет по зонам ГИС СКРУ-1",
+   "handling": "по зонам; MC-BF-02 дополняется",
+   "source_ids": [
+    "VKM-SRC-037",
+    "VKM-SRC-096"
+   ],
+   "related_ids": [
+    "MC-BF-02"
+   ]
+  },
+  {
+   "id": "DB-C-04",
+   "kind": "conflict",
+   "subject": "упрочнение целиков закладкой",
+   "side_a": "+30–50 % (эквивалентные материалы), +40–90 % (гидро), снижение коэффициента формы до 2 (лаб.); модель: целики сохраняют несущую способность при A = 0,85",
+   "side_b": "неполная сухая закладка не влияет на устойчивость карналлитовых целиков (натурные замеры на Первом Соликамском руднике, VKM-SRC-047); при зазоре целики разрушаются до включения (VKM-SRC-104); при заполнении ~80 % кровля не поддерживается (VKM-SRC-050); эффект проблематичен (VKM-SRC-020 с.25)",
+   "handling": "конкурирующие гипотезы DB-H-03; условие — полнота и плотность контакта",
+   "source_ids": [
+    "VKM-SRC-020",
+    "VKM-SRC-047",
+    "VKM-SRC-050",
+    "VKM-SRC-104"
+   ],
+   "related_ids": [
+    "DB-H-03"
+   ]
+  },
+  {
+   "id": "DB-C-05",
+   "kind": "conflict",
+   "subject": "влияние гидрозакладки на скорость оседаний",
+   "side_a": "ускорение до 280 мм/год после начала закладки при критически деформированных целиках (VKM-SRC-198, БКПРУ-4)",
+   "side_b": "стабилизация на прежнем уровне после окончания (VKM-SRC-034); заметное снижение с мая 2015 г. (VKM-SRC-091; тип закладки не указан); быстрее затухание сейсмичности (VKM-SRC-069, 074)",
+   "handling": "DB-H-04; не обобщать на СКРУ-1 без данных о состоянии целиков",
+   "source_ids": [
+    "VKM-SRC-034",
+    "VKM-SRC-069",
+    "VKM-SRC-074",
+    "VKM-SRC-091",
+    "VKM-SRC-198"
+   ],
+   "related_ids": [
+    "DB-H-04"
+   ]
+  },
+  {
+   "id": "DB-C-06",
+   "kind": "conflict",
+   "subject": "знак и параметры сигмоидной функции",
+   "side_a": "2005: знаменатель 1 + e^(ρ−βt), ρ зависит от C (VKM-SRC-042 (3), табл. 1)",
+   "side_b": "2004: 1 − e^(c−βt), c — константа 4–16; α АБ 0,89 против 0,9 (VKM-SRC-203 с.194)",
+   "handling": "хранить обе; 2004 — вероятная опечатка (при c = 16 знаменатель отрицателен)",
+   "source_ids": [
+    "VKM-SRC-042",
+    "VKM-SRC-203"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-C-07",
+   "kind": "conflict",
+   "subject": "переменный модуль с закладкой",
+   "side_a": "E_t^p = (1 − ω)E/(1 + ωΦ) (VKM-SRC-042 (13))",
+   "side_b": "E_t* = (1 − ω)E/(1 + (1 − ω)Φ) (VKM-SRC-090 (4)); E_t = E/(1 + Φ) (VKM-SRC-044 (7.18)); E^p = E⁰/(1 + Ψ) (MM-CREEP-012)",
+   "handling": "FC-кандидат; не выбирать без проверки",
+   "source_ids": [
+    "VKM-SRC-042",
+    "VKM-SRC-044",
+    "VKM-SRC-090"
+   ],
+   "related_ids": [
+    "MM-CREEP-012"
+   ]
+  },
+  {
+   "id": "DB-C-08",
+   "kind": "conflict",
+   "subject": "год издания справочника Борзаковского и Папулова «Закладочные работы…»",
+   "side_a": "1994 (ссылки в VKM-SRC-104, 198)",
+   "side_b": "1996 (VKM-SRC-020)",
+   "handling": "до получения первоисточника — оба",
+   "source_ids": [
+    "VKM-SRC-020",
+    "VKM-SRC-104",
+    "VKM-SRC-198"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-C-09",
+   "kind": "conflict",
+   "subject": "критерий включения закладки",
+   "side_a": "по деформации целика: ε_y = 1 − k_з (VKM-SRC-044 (7.21))",
+   "side_b": "по оседанию поверхности: η_z = 0,9mω(1 − A) (VKM-SRC-042 (11))",
+   "handling": "оба MODEL_CHOICE; различие — где измеряется закрытие зазора",
+   "source_ids": [
+    "VKM-SRC-042",
+    "VKM-SRC-044"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-C-10",
+   "kind": "conflict",
+   "subject": "множитель для карналлита",
+   "side_a": "k = 1,0 (Указания 2022, VKM-SRC-065 с.29)",
+   "side_b": "0,9·m₀ωp при любом C для карналлита с механизированной закладкой (VKM-SRC-012 (2.2))",
+   "handling": "по редакциям (FC-005)",
+   "source_ids": [
+    "VKM-SRC-012",
+    "VKM-SRC-065"
+   ],
+   "related_ids": [
+    "FC-005"
+   ]
+  },
+  {
+   "id": "DB-C-11",
+   "kind": "conflict",
+   "subject": "гидрозакладка на СКРУ-1",
+   "side_a": "только на БКПРУ-1 (VKM-SRC-020 с.25, 1998)",
+   "side_b": "гидрозакладка на СКРУ-1: карналлит (VKM-SRC-096, 2012), 4,45 км² КрII (VKM-SRC-074, 2022), зоны 46П и др. в 1990–2010-х (VKM-SRC-023 рис. 17)",
+   "handling": "дополнение к MC-BF-01: расхождение, вероятно, связано с датой (1998 против 2000–2010-х; толкование, не факт)",
+   "source_ids": [
+    "VKM-SRC-020",
+    "VKM-SRC-023",
+    "VKM-SRC-074",
+    "VKM-SRC-096"
+   ],
+   "related_ids": [
+    "MC-BF-01"
+   ]
+  },
+  {
+   "id": "DB-C-12",
+   "kind": "conflict",
+   "subject": "влияние увлажнения на прочность целиков",
+   "side_a": "снижение: 35 → 20 МПа (VKM-SRC-050); вдвое у дефектных образцов (VKM-SRC-198); 33 → 13 МПа (Калуш, ANALOGUE)",
+   "side_b": "без изменения (Борзаковский, Рысин — по VKM-SRC-198 с.2); через 14 лет влажность закладки — доли процента (VKM-SRC-050)",
+   "handling": "хранить; нормативный Δb = 5 м — отдельно как ENGINEERING_ASSUMPTION",
+   "source_ids": [
+    "VKM-SRC-050",
+    "VKM-SRC-198"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-C-13",
+   "kind": "conflict",
+   "subject": "прочность «выдержанной» закладки",
+   "side_a": "3,5 МПа (VKM-SRC-104), 3,5–4,0 МПа в 10 лет (VKM-SRC-037) — гидрозакладка",
+   "side_b": "8,5–9,0 МПа в 18 лет — сухая (VKM-SRC-046)",
+   "handling": "разные материалы и возраст; не усреднять",
+   "source_ids": [
+    "VKM-SRC-037",
+    "VKM-SRC-046",
+    "VKM-SRC-104"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-L-01",
+   "kind": "acquisition_lead",
+   "work": "Борзаковский Б. А., Папулов Л. М. «Закладочные работы на Верхнекамских калийных рудниках», Недра (1994 или 1996)",
+   "cited_by": "VKM-SRC-104, 198, 020",
+   "purpose": "первичные данные о зазорах, прочности, отпоре",
+   "source_ids": [
+    "VKM-SRC-020",
+    "VKM-SRC-104",
+    "VKM-SRC-198"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-L-02",
+   "kind": "acquisition_lead",
+   "work": "Константинова С. А., Папулов Л. М., Триполко, Хронусов, 1993, Комплексное использование минерального сырья №3:14–19",
+   "cited_by": "VKM-SRC-044 [93]",
+   "purpose": "параметры уравнения (7.13)",
+   "source_ids": [
+    "VKM-SRC-044"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-L-03",
+   "kind": "acquisition_lead",
+   "work": "Константинова С. А., Асанов В. А., 2010, Маркшейдерия и недропользование №5",
+   "cited_by": "VKM-SRC-046 [1]",
+   "purpose": "прочность и модуль закладки 1 года",
+   "source_ids": [
+    "VKM-SRC-046"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-L-04",
+   "kind": "acquisition_lead",
+   "work": "отчёты ОАО «Галургия» 1995 и 1996 (рук. Аникин)",
+   "cited_by": "VKM-SRC-046 [2, 3]",
+   "purpose": "свойства закладки 18 лет, СКРУ-1",
+   "source_ids": [
+    "VKM-SRC-046"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-L-05",
+   "kind": "acquisition_lead",
+   "work": "Сивоконь Е. П., 1966, Записки ГИ т.51 вып.1:85–89 (увлажнение целиков при гидрозакладке)",
+   "cited_by": "VKM-SRC-198",
+   "purpose": "влияние рассола на целики",
+   "source_ids": [
+    "VKM-SRC-198"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-L-06",
+   "kind": "acquisition_lead",
+   "work": "Водопьянов (диссертация, 1964); ПермНИУИ, отчёт 1962; Водопьянов, Габдрахимов; Водопьянов, Патокин",
+   "cited_by": "VKM-SRC-047",
+   "purpose": "натурные замеры с закладкой и без",
+   "source_ids": [
+    "VKM-SRC-047"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-L-07",
+   "kind": "acquisition_lead",
+   "work": "Гилев, Константинова, Мараков, Чернопазов, 2007, Маркшейдерский вестник №1:33–40",
+   "cited_by": "поиск по теме",
+   "purpose": "закладка на СКРУ-1",
+   "source_ids": [],
+   "related_ids": []
+  },
+  {
+   "id": "DB-L-08",
+   "kind": "acquisition_lead",
+   "work": "Константинова, Соловьев, Ваулина, 2011; Шкуратский, Русаков, 2015",
+   "cited_by": "VKM-SRC-087",
+   "purpose": "эффективность закладки",
+   "source_ids": [
+    "VKM-SRC-087"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-L-09",
+   "kind": "acquisition_lead",
+   "work": "Указания (мероприятия) по защите рудников от затопления: редакции 1984, 1994, 2008, 2014, 2018, 2022",
+   "cited_by": "VKM-SRC-065, 058, 087",
+   "purpose": "нормативные A, B, k",
+   "source_ids": [
+    "VKM-SRC-058",
+    "VKM-SRC-065",
+    "VKM-SRC-087"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-L-10",
+   "kind": "acquisition_lead",
+   "work": "Методические указания по расчёту податливых междукамерных целиков, 1982",
+   "cited_by": "VKM-SRC-096 [10]",
+   "purpose": "расчёт C с боковым подпором",
+   "source_ids": [
+    "VKM-SRC-096"
+   ],
+   "related_ids": []
+  },
+  {
+   "id": "DB-L-11",
+   "kind": "acquisition_lead",
+   "work": "Rysin и др., 2025, Горный журнал №11, doi:10.17580/gzh.2025.11.01 (влияние закладочного материала на параметры очистных работ)",
+   "cited_by": "внешний поиск",
+   "purpose": "возможные новые данные ВКМ",
+   "source_ids": [],
+   "related_ids": [],
+   "dois": [
+    "10.17580/gzh.2025.11.01"
+   ]
+  }
+ ]
+}

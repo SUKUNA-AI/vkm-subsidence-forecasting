@@ -1,0 +1,1668 @@
+{
+ "receipt": "nav_parameters",
+ "agent": "P",
+ "date": "2026-09-28",
+ "snapshot_id": "snap-20260928T160616Z-5d669f09",
+ "rule_version": "parameters_v1",
+ "review_status": "AUTO_EXTRACTED_UNREVIEWED",
+ "layer_status": "DERIVED",
+ "status_note": "navigation candidates, not evidence: a printed value with its locator, never a recommended or adopted value; parameter_summary is a navigation aid (ranges of what is printed), not a value",
+ "code": {
+  "branch": "claude/agent-p-nav-parameters-2026-09-28",
+  "commits": [
+   "f536fa1",
+   "5dd6ede",
+   "98bee04",
+   "e787fcb",
+   "9b8ed56"
+  ],
+  "module": "src/vkm_corpus/navigation/parameters.py",
+  "vocabulary": "src/vkm_corpus/navigation/parameters_vocab.py",
+  "query": "src/vkm_corpus/navigation/parameters_query.py",
+  "tests": "tests/corpus/test_nav_parameters.py (14 passed, WSL venv-corpus)"
+ },
+ "input": "read-only local DuckDB copy of the final canon (canonical.pages, blocks primary layer, tables, figures, sources) + the earlier full NAV build (--inputs); no services touched",
+ "inputs_from_nav": {
+  "formula_parameters": {
+   "file": "formula_parameters.parquet",
+   "rows": 2106,
+   "sha256": "d64c92bc58fea45867fb26bb91e6d2196064ccb7612b1644642d0da1126b17f0"
+  },
+  "formula_symbols": {
+   "file": "formula_symbols.parquet",
+   "rows": 338625,
+   "sha256": "02e61aa17c9b8a8026e8d4a063d07152362531a8e4e27f6a96b060a06437a2bf"
+  },
+  "section_pages": {
+   "file": "section_pages.parquet",
+   "rows": 27270,
+   "sha256": "02667f39b7bdf63e0a3fbc1ae3c7dc86db9c303191f2e4ab440c952d09456b32"
+  },
+  "sections": {
+   "file": "sections.parquet",
+   "rows": 9105,
+   "sha256": "ec949fbd5cb5c8affc50e37d7df16d808477cea4c50b0cdecd816fb2885ed223"
+  }
+ },
+ "output": "workstation-local nav/out/parameters/<dataset>.parquet + manifest.json (not committed)",
+ "build_command": "PYTHONPATH=src python -m vkm_corpus.cli nav build --duckdb <canonical DuckDB copy> --out <nav out>/parameters --part parameters --inputs <earlier NAV build directory>",
+ "build_seconds": 50.61,
+ "determinism": "two builds of the same code and inputs gave identical sha256 of both datasets",
+ "datasets": {
+  "parameter_candidates": {
+   "rows": 10538,
+   "sha256": "aaf79b47cad7d1342476af7e83c86413d3cb5a793eccd7abd4add4787f7443fd"
+  },
+  "parameter_summary": {
+   "rows": 628,
+   "sha256": "e9946293581384cafeb87b6702b88cd522675c4aa1e0c95b9e2e6aea8e77a455"
+  }
+ },
+ "counts": {
+  "candidates": 10538,
+  "dedup_cross_method": 114,
+  "formula_candidates": 4,
+  "source_symbols": 823,
+  "table_candidates": 5305,
+  "tables_scanned": 3391,
+  "tables_with_candidates": 362,
+  "text_blocks_scanned": 332458,
+  "text_candidates": 5343,
+  "text_runs": 221430,
+  "text_runs_joined": 50891,
+  "sources": 181,
+  "pages": 2291,
+  "by_method": {
+   "TABLE": 5305,
+   "TEXT": 5231,
+   "NEAR_FORMULA": 2
+  },
+  "by_scale_hint": {
+   "UNKNOWN": 8240,
+   "LAB": 1162,
+   "MODEL": 887,
+   "NORMATIVE": 175,
+   "MASSIF": 74
+  },
+  "by_scale_basis": {
+   "NONE": 6981,
+   "TABLE": 1684,
+   "NONE_BLOCK_CUES": 877,
+   "LOCAL": 490,
+   "NONE_SENTENCE_CUES": 382,
+   "SOURCE_CLASS": 96,
+   "LOCAL_NEAREST": 28
+  },
+  "by_site_hint": {
+   "UNKNOWN": 9496,
+   "ВКМ": 413,
+   "ANALOGUE:Старобинское": 176,
+   "БКПРУ-2": 65,
+   "БКПРУ-4": 53,
+   "СКРУ-2": 50,
+   "СКРУ-1": 48,
+   "ANALOGUE:Германия (соль, калий)": 45,
+   "ANALOGUE:WIPP": 25,
+   "ANALOGUE:Калуш-Стебник": 24,
+   "БКПРУ-1": 23,
+   "ANALOGUE:Гремячинское": 18,
+   "СКРУ-3": 17,
+   "Половодовский": 13,
+   "ANALOGUE:Норильск": 11,
+   "ANALOGUE:Соль-Илецк": 10,
+   "БКПРУ": 7,
+   "ANALOGUE:Саскачеван": 6,
+   "БКПРУ-3": 6,
+   "ANALOGUE:Жезказган": 5
+  },
+  "by_language": {
+   "ru": 7960,
+   "en": 2578
+  },
+  "by_property_group": {
+   "geometry": 4986,
+   "mechanics": 2912,
+   "physical": 823,
+   "rheology": 659,
+   "hydro": 529,
+   "subsidence": 495,
+   "stress": 85,
+   "backfill": 49
+  },
+  "material_known": 2722,
+  "with_si_value": 10341,
+  "with_section": 10487,
+  "flags": {
+   "UNIT_FROM_HEADER": 4583,
+   "JOINED_LINES": 1395,
+   "SYMBOL_DEFINED_IN_SOURCE": 590,
+   "CROSS_BLOCK": 548,
+   "SYMBOL_ONLY_HEADER": 482,
+   "MATERIAL_FROM_CAPTION": 407,
+   "UNIT_FROM_PHRASE": 173,
+   "MATERIAL_FROM_GROUP_ROW": 149,
+   "SCALE_CONFLICT": 123,
+   "SERIES": 111,
+   "FROM_TO": 100,
+   "ALSO_TEXT": 93,
+   "UNIT_FROM_LIST": 92,
+   "HEADER_MULTIPLIER": 92,
+   "MATERIAL_AMBIGUOUS": 55,
+   "PROPERTY_FROM_CAPTION": 33,
+   "SITE_CONFLICT": 29,
+   "DYNAMIC": 18,
+   "MATERIAL_LAST_OF_LABEL": 8,
+   "ALTERNATIVE_IN_PARENS": 3,
+   "SHARED_POWER": 3,
+   "ALSO_NEAR_FORMULA": 2,
+   "UNIT_NOT_PARSED": 1
+  },
+  "summary_rows": 628
+ },
+ "property_material_counts": {
+  "activation_energy": {
+   "UNKNOWN": 5
+  },
+  "backfill_ratio": {
+   "UNKNOWN": 47
+  },
+  "backfill_shrinkage": {
+   "UNKNOWN": 2
+  },
+  "boundary_angle": {
+   "UNKNOWN": 37
+  },
+  "break_angle": {
+   "UNKNOWN": 1
+  },
+  "bulk_modulus": {
+   "UNKNOWN": 77,
+   "глина": 4,
+   "соляные породы": 3,
+   "ангидрит": 3,
+   "доломит": 3,
+   "каменная соль": 2,
+   "песчаник": 2,
+   "гипс": 1
+  },
+  "cohesion": {
+   "UNKNOWN": 108,
+   "закладочный материал": 8,
+   "соляные породы": 7,
+   "сильвинит": 7,
+   "каменная соль": 6,
+   "карналлит": 2,
+   "налегающая толща": 2,
+   "аргиллит": 2,
+   "ангидрит": 1
+  },
+  "creep_coefficient": {
+   "UNKNOWN": 3
+  },
+  "creep_exponent": {
+   "UNKNOWN": 26,
+   "соляные породы": 5,
+   "карналлит": 4,
+   "каменная соль": 1
+  },
+  "creep_rate": {
+   "UNKNOWN": 2
+  },
+  "curvature": {
+   "UNKNOWN": 8
+  },
+  "deformation_modulus": {
+   "каменная соль": 83,
+   "сильвинит": 78,
+   "UNKNOWN": 76,
+   "карналлит": 21,
+   "соляные породы": 7,
+   "покровная каменная соль": 6,
+   "закладочный материал": 1,
+   "терригенно-карбонатная толща": 1,
+   "соляно-мергельная толща": 1,
+   "пестроцветная толща": 1,
+   "глина": 1
+  },
+  "density": {
+   "UNKNOWN": 417,
+   "соляные породы": 25,
+   "каменная соль": 13,
+   "ангидрит": 12,
+   "глина": 8,
+   "закладочный материал": 7,
+   "доломит": 7,
+   "песчаник": 7,
+   "гипс": 6,
+   "известняк": 5,
+   "карналлит": 3,
+   "надсолевая толща": 3,
+   "подстилающая каменная соль": 2,
+   "рассол": 2,
+   "аргиллит": 2,
+   "руда (вид не указан)": 2,
+   "сильвинит": 1,
+   "калийные соли (руда)": 1,
+   "пестроцветная толща": 1,
+   "покровная каменная соль": 1,
+   "соляно-мергельная толща": 1
+  },
+  "depth": {
+   "UNKNOWN": 485,
+   "карналлит": 33,
+   "соляно-мергельная толща": 31,
+   "покровная каменная соль": 26,
+   "сильвинит": 24,
+   "подстилающая каменная соль": 22,
+   "переходная пачка": 17,
+   "пестроцветная толща": 10,
+   "соляные породы": 9,
+   "каменная соль": 7,
+   "водозащитная толща": 6,
+   "мергель": 3,
+   "уголь": 3,
+   "терригенно-карбонатная толща": 1,
+   "руда (вид не указан)": 1
+  },
+  "depth_unspecified": {
+   "UNKNOWN": 1077,
+   "каменная соль": 111,
+   "карналлит": 42,
+   "сильвинит": 27,
+   "глина": 22,
+   "мергель": 18,
+   "ангидрит": 14,
+   "соляные породы": 8,
+   "аргиллит": 7,
+   "закладочный материал": 7,
+   "руда (вид не указан)": 6,
+   "подстилающая каменная соль": 5,
+   "песчаник": 5,
+   "гипс": 4,
+   "алевролит": 4,
+   "соляно-мергельная толща": 3,
+   "уголь": 2,
+   "калийные соли (руда)": 1,
+   "водозащитная толща": 1,
+   "известняк": 1
+  },
+  "displacement_angle": {
+   "UNKNOWN": 6
+  },
+  "excavation_height": {
+   "UNKNOWN": 91
+  },
+  "extraction_ratio": {
+   "UNKNOWN": 36
+  },
+  "flexural_strength": {
+   "карналлит": 7,
+   "сильвинит": 2,
+   "каменная соль": 1
+  },
+  "friction_angle": {
+   "UNKNOWN": 69,
+   "закладочный материал": 5,
+   "терригенно-карбонатная толща": 2,
+   "пестроцветная толща": 2,
+   "соляно-мергельная толща": 2,
+   "покровная каменная соль": 2,
+   "каменная соль": 2,
+   "сильвинит": 2,
+   "ангидрит": 1,
+   "рассол": 1,
+   "налегающая толща": 1,
+   "аргиллит": 1
+  },
+  "friction_coefficient": {
+   "UNKNOWN": 16,
+   "глина": 3,
+   "соляные породы": 1,
+   "налегающая толща": 1
+  },
+  "full_subsidence_angle": {
+   "UNKNOWN": 11
+  },
+  "horizontal_displacement": {
+   "UNKNOWN": 21
+  },
+  "horizontal_strain": {
+   "UNKNOWN": 9
+  },
+  "horizontal_stress": {
+   "UNKNOWN": 20
+  },
+  "hydraulic_conductivity": {
+   "UNKNOWN": 73,
+   "уголь": 5,
+   "глина": 3,
+   "известняк": 1
+  },
+  "lateral_pressure_coefficient": {
+   "UNKNOWN": 20,
+   "соляные породы": 2,
+   "налегающая толща": 2,
+   "каменная соль": 1
+  },
+  "layer_thickness": {
+   "UNKNOWN": 102,
+   "каменная соль": 25,
+   "водозащитная толща": 18,
+   "покровная каменная соль": 7,
+   "сильвинит": 4,
+   "соляно-мергельная толща": 3,
+   "терригенно-карбонатная толща": 3,
+   "глина": 3,
+   "песчаник": 2,
+   "подстилающая каменная соль": 1,
+   "пестроцветная толща": 1,
+   "соляные породы": 1,
+   "карналлит": 1,
+   "мергель": 1,
+   "четвертичные отложения": 1,
+   "ангидрит": 1,
+   "налегающая толща": 1
+  },
+  "limit_strain": {
+   "UNKNOWN": 166,
+   "сильвинит": 27,
+   "каменная соль": 10,
+   "карналлит": 3,
+   "калийные соли (руда)": 1,
+   "соляно-мергельная толща": 1,
+   "терригенно-карбонатная толща": 1,
+   "пестроцветная толща": 1,
+   "покровная каменная соль": 1,
+   "соляные породы": 1
+  },
+  "loading_degree": {
+   "UNKNOWN": 220
+  },
+  "long_term_strength": {
+   "UNKNOWN": 139,
+   "сильвинит": 14,
+   "каменная соль": 5,
+   "карналлит": 5,
+   "покровная каменная соль": 5
+  },
+  "long_term_strength_ratio": {
+   "карналлит": 8,
+   "сильвинит": 7,
+   "каменная соль": 6,
+   "UNKNOWN": 4
+  },
+  "max_subsidence": {
+   "UNKNOWN": 45
+  },
+  "max_subsidence_angle": {
+   "UNKNOWN": 5
+  },
+  "moisture_content": {
+   "UNKNOWN": 131,
+   "закладочный материал": 22,
+   "каменная соль": 9,
+   "сильвинит": 6,
+   "глина": 6,
+   "рассол": 5,
+   "известняк": 2,
+   "соляные породы": 1,
+   "подстилающая каменная соль": 1
+  },
+  "permeability": {
+   "UNKNOWN": 56,
+   "соляные породы": 2,
+   "песчаник": 2,
+   "каменная соль": 1,
+   "рассол": 1,
+   "аргиллит": 1,
+   "глина": 1
+  },
+  "pillar_width": {
+   "UNKNOWN": 283
+  },
+  "poisson_ratio": {
+   "UNKNOWN": 339,
+   "соляные породы": 31,
+   "сильвинит": 22,
+   "каменная соль": 20,
+   "карналлит": 12,
+   "ангидрит": 9,
+   "налегающая толща": 8,
+   "доломит": 4,
+   "аргиллит": 3,
+   "мергель": 2,
+   "глина": 2,
+   "подстилающая каменная соль": 1,
+   "соляно-мергельная толща": 1,
+   "пестроцветная толща": 1,
+   "покровная каменная соль": 1,
+   "терригенно-карбонатная толща": 1,
+   "гипс": 1,
+   "алевролит": 1,
+   "песчаник": 1
+  },
+  "porosity": {
+   "UNKNOWN": 334,
+   "песчаник": 13,
+   "соляные породы": 10,
+   "каменная соль": 7,
+   "известняк": 7,
+   "глина": 6,
+   "рассол": 2,
+   "доломит": 2,
+   "аргиллит": 1,
+   "алевролит": 1
+  },
+  "residual_strength": {
+   "каменная соль": 15,
+   "UNKNOWN": 5
+  },
+  "rheological_constant": {
+   "UNKNOWN": 118,
+   "каменная соль": 15,
+   "сильвинит": 7,
+   "соляные породы": 4,
+   "глина": 2,
+   "карналлит": 2
+  },
+  "room_width": {
+   "UNKNOWN": 207
+  },
+  "seam_thickness": {
+   "UNKNOWN": 182,
+   "сильвинит": 26,
+   "карналлит": 7,
+   "гипс": 6,
+   "ангидрит": 4,
+   "уголь": 3,
+   "каменная соль": 2,
+   "мергель": 1,
+   "водозащитная толща": 1,
+   "покровная каменная соль": 1,
+   "терригенно-карбонатная толща": 1,
+   "соляно-мергельная толща": 1,
+   "пестроцветная толща": 1
+  },
+  "shear_modulus": {
+   "UNKNOWN": 76,
+   "глина": 8,
+   "ангидрит": 3,
+   "доломит": 3,
+   "каменная соль": 2,
+   "гипс": 1,
+   "соляные породы": 1
+  },
+  "shear_strength": {
+   "UNKNOWN": 16,
+   "закладочный материал": 2
+  },
+  "softening_modulus": {
+   "каменная соль": 7,
+   "карналлит": 6,
+   "сильвинит": 5,
+   "UNKNOWN": 4
+  },
+  "standard_strength": {
+   "UNKNOWN": 1
+  },
+  "strength_unspecified": {
+   "UNKNOWN": 276,
+   "сильвинит": 91,
+   "закладочный материал": 65,
+   "каменная соль": 41,
+   "карналлит": 18,
+   "подстилающая каменная соль": 8,
+   "аргиллит": 5,
+   "глина": 4,
+   "уголь": 4,
+   "ангидрит": 3,
+   "налегающая толща": 3,
+   "мергель": 3,
+   "гипс": 3,
+   "песчаник": 2,
+   "руда (вид не указан)": 1,
+   "соляные породы": 1
+  },
+  "subsidence": {
+   "UNKNOWN": 192
+  },
+  "subsidence_rate": {
+   "UNKNOWN": 142
+  },
+  "tensile_strength": {
+   "UNKNOWN": 152,
+   "каменная соль": 28,
+   "карналлит": 19,
+   "сильвинит": 16,
+   "соляные породы": 15,
+   "ангидрит": 10,
+   "доломит": 8,
+   "покровная каменная соль": 2,
+   "налегающая толща": 2,
+   "алевролит": 2,
+   "песчаник": 2,
+   "терригенно-карбонатная толща": 1,
+   "пестроцветная толща": 1,
+   "мергель": 1,
+   "рассол": 1,
+   "аргиллит": 1,
+   "закладочный материал": 1
+  },
+  "thickness_unspecified": {
+   "UNKNOWN": 1146,
+   "каменная соль": 134,
+   "сильвинит": 110,
+   "карналлит": 68,
+   "глина": 65,
+   "ангидрит": 31,
+   "подстилающая каменная соль": 25,
+   "мергель": 23,
+   "соляные породы": 23,
+   "соляно-мергельная толща": 14,
+   "гипс": 9,
+   "водозащитная толща": 8,
+   "известняк": 6,
+   "покровная каменная соль": 6,
+   "песчаник": 6,
+   "терригенно-карбонатная толща": 4,
+   "руда (вид не указан)": 3,
+   "междупластовая каменная соль": 3,
+   "доломит": 3,
+   "пестроцветная толща": 2,
+   "уголь": 2,
+   "четвертичные отложения": 1,
+   "глинисто-мергелистая толща": 1,
+   "алевролит": 1,
+   "калийные соли (руда)": 1
+  },
+  "tilt": {
+   "UNKNOWN": 18
+  },
+  "ucs": {
+   "UNKNOWN": 187,
+   "каменная соль": 59,
+   "карналлит": 24,
+   "сильвинит": 24,
+   "соляные породы": 20,
+   "доломит": 6,
+   "ангидрит": 6,
+   "песчаник": 6,
+   "покровная каменная соль": 5,
+   "подстилающая каменная соль": 4,
+   "закладочный материал": 4,
+   "глина": 2,
+   "алевролит": 2,
+   "руда (вид не указан)": 2,
+   "калийные соли (руда)": 1,
+   "пестроцветная толща": 1,
+   "терригенно-карбонатная толща": 1,
+   "мергель": 1,
+   "междупластовая каменная соль": 1,
+   "известняк": 1
+  },
+  "unit_weight": {
+   "UNKNOWN": 59,
+   "закладочный материал": 10,
+   "налегающая толща": 9,
+   "каменная соль": 8,
+   "руда (вид не указан)": 8,
+   "карналлит": 3,
+   "сильвинит": 3,
+   "мергель": 2,
+   "песчаник": 2,
+   "пестроцветная толща": 2,
+   "алевролит": 2,
+   "терригенно-карбонатная толща": 2,
+   "рассол": 1,
+   "четвертичные отложения": 1,
+   "соляно-мергельная толща": 1,
+   "покровная каменная соль": 1
+  },
+  "vertical_stress": {
+   "UNKNOWN": 33,
+   "налегающая толща": 4,
+   "соляные породы": 2,
+   "сильвинит": 1
+  },
+  "viscosity": {
+   "UNKNOWN": 210,
+   "ангидрит": 18,
+   "сильвинит": 14,
+   "покровная каменная соль": 10,
+   "карналлит": 8,
+   "каменная соль": 8,
+   "соляные породы": 4
+  },
+  "youngs_modulus": {
+   "UNKNOWN": 225,
+   "соляные породы": 24,
+   "каменная соль": 21,
+   "сильвинит": 17,
+   "карналлит": 6,
+   "налегающая толща": 2,
+   "аргиллит": 2,
+   "глина": 1,
+   "подстилающая каменная соль": 1,
+   "покровная каменная соль": 1,
+   "пестроцветная толща": 1,
+   "соляно-мергельная толща": 1,
+   "терригенно-карбонатная толща": 1
+  }
+ },
+ "qa": {
+  "final": {
+   "sample": "60 random candidates of the delivered build (fixed seed), each checked against its page (text block or table cell); labelled texts stay in the git-ignored work directory",
+   "seed": 20261002,
+   "population": 10538,
+   "n_sampled": 60,
+   "criteria": {
+    "value": "the candidate reproduces a complete printed value expression (number, range, ±, power); not a label, index, exponent or a bound of a longer range",
+    "unit": "unit_raw / unit_si reproduce the unit of that value (or dimensionless when the quantity has none)",
+    "property": "the printed value is a value of property_key (the coarse *_unspecified keys count as correct when the phrase is generic or garbled)",
+    "material": "only where a material is assigned (not UNKNOWN); 'missed' = a vocabulary material clearly named for the value but not assigned",
+    "scale": "only where a scale is assigned (not UNKNOWN); 'missed' = a clear LAB/MASSIF/NORMATIVE/MODEL context not taken"
+   },
+   "precision": {
+    "value": {
+     "correct": 60,
+     "assessed": 60,
+     "precision": 1.0
+    },
+    "unit": {
+     "correct": 59,
+     "assessed": 60,
+     "precision": 0.983
+    },
+    "property": {
+     "correct": 55,
+     "assessed": 60,
+     "precision": 0.917
+    },
+    "material": {
+     "correct": 10,
+     "assessed": 10,
+     "precision": 1.0
+    },
+    "scale": {
+     "correct": 10,
+     "assessed": 14,
+     "precision": 0.714
+    }
+   },
+   "missed": {
+    "material": 2,
+    "scale": 3
+   },
+   "coarse_property": {
+    "count": 9,
+    "note": "strength_unspecified / depth_unspecified / thickness_unspecified where the print is garbled or more specific; counted as correct"
+   },
+   "error_kinds": {
+    "NORMATIVE_FROM_SOURCE_CLASS_ON_WORKED_EXAMPLE": 1,
+    "FLATTENED_TABLE_COLUMN_SHIFT": 1,
+    "RULE_CONDITION_READ_AS_MODEL": 1,
+    "MODEL_CUE_OVER_IN_PHRASE_NORMATIVE": 1,
+    "TABLE_LAB_CUE_ON_SAMPLING_DEPTH": 1,
+    "AXIS_EXTENT_AS_DEPTH": 1,
+    "MODEL_EXTENT_AS_DEPTH": 1,
+    "CHANGE_OF_DEPTH_AS_DEPTH": 1,
+    "STANDARD_DEVIATION_ROW": 1
+   },
+   "verdicts": [
+    {
+     "candidate_id": "PRM-3fab847c03b9749b",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-38064731c1b811fb",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "missed"
+    },
+    {
+     "candidate_id": "PRM-d89d4876ed68f564",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-93cda3ad6f7be655",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "ok"
+    },
+    {
+     "candidate_id": "PRM-a2711b3ff0837748",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "wrong",
+     "error": [
+      "NORMATIVE_FROM_SOURCE_CLASS_ON_WORKED_EXAMPLE"
+     ]
+    },
+    {
+     "candidate_id": "PRM-8d24b46ed3546921",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-2582b50804d39c26",
+     "value": "ok",
+     "unit": "wrong",
+     "property": "wrong",
+     "material": "-",
+     "scale": "-",
+     "error": [
+      "FLATTENED_TABLE_COLUMN_SHIFT"
+     ]
+    },
+    {
+     "candidate_id": "PRM-c6f0c6373f505373",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "ok"
+    },
+    {
+     "candidate_id": "PRM-7f48f5ad75a79b27",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "wrong",
+     "error": [
+      "RULE_CONDITION_READ_AS_MODEL"
+     ]
+    },
+    {
+     "candidate_id": "PRM-6dd01f766fbba89d",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "ok",
+     "scale": "ok"
+    },
+    {
+     "candidate_id": "PRM-be9402051b5ddacc",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-f2259c253eb22953",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "ok",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-f337f0035d797f98",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-6b8ef079423c4af7",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "wrong",
+     "error": [
+      "MODEL_CUE_OVER_IN_PHRASE_NORMATIVE"
+     ]
+    },
+    {
+     "candidate_id": "PRM-04e59189ac2923ae",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "ok",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-b3aecb9a78671087",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "ok",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-52a554f70e6a018e",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "ok"
+    },
+    {
+     "candidate_id": "PRM-73bb92ae8f145805",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-96c68762035154fa",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-ce798a5bd14515f3",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "ok",
+     "scale": "wrong",
+     "error": [
+      "TABLE_LAB_CUE_ON_SAMPLING_DEPTH"
+     ]
+    },
+    {
+     "candidate_id": "PRM-2179ebd1dd66414d",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-ccd97f362225fdb7",
+     "value": "ok",
+     "unit": "ok",
+     "property": "wrong",
+     "material": "-",
+     "scale": "-",
+     "error": [
+      "AXIS_EXTENT_AS_DEPTH"
+     ]
+    },
+    {
+     "candidate_id": "PRM-fcbe793700602cc1",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-2db5efd03cf9a4e1",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "ok"
+    },
+    {
+     "candidate_id": "PRM-05ff02417a1c1688",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-55590907fba4fc48",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-ffb49f607c2d8ae7",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-2c03d189a6f4aea7",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-33171c5071478647",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-8741365d9a355f80",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "ok",
+     "scale": "ok"
+    },
+    {
+     "candidate_id": "PRM-1e36e887c1f3b00f",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "ok",
+     "scale": "missed"
+    },
+    {
+     "candidate_id": "PRM-14795d41c2069a5c",
+     "value": "ok",
+     "unit": "ok",
+     "property": "wrong",
+     "material": "-",
+     "scale": "-",
+     "error": [
+      "MODEL_EXTENT_AS_DEPTH"
+     ]
+    },
+    {
+     "candidate_id": "PRM-38fd52d1c6285b91",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-f7fa26a17abf2c3e",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-b54c0d7b94884af7",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-a9d868b59b320f25",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-68957524267dd355",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-82946b9ef9708076",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-c127437d48a8c403",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "ok"
+    },
+    {
+     "candidate_id": "PRM-ebb6b0218ba6a06e",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "missed",
+     "scale": "ok"
+    },
+    {
+     "candidate_id": "PRM-6054cd63692a6e05",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-c3f44cfcb5725924",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-9c36a828a084a2d0",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "missed"
+    },
+    {
+     "candidate_id": "PRM-9e8ff774d13852b1",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-4a521ab26af429d4",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-98baf175a52a9522",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "ok",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-4d5e3eb6301fc87f",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "ok",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-14b9cc394fdbe730",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-e9daeb4a6d07eb3f",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "ok",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-5b42bb80cf71f1d4",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-bd7ac4eebd4fd55d",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-8b4c46d03f84e64a",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "missed",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-03549443f588d91d",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "ok"
+    },
+    {
+     "candidate_id": "PRM-66891eded2e22954",
+     "value": "ok",
+     "unit": "ok",
+     "property": "wrong",
+     "material": "-",
+     "scale": "-",
+     "error": [
+      "CHANGE_OF_DEPTH_AS_DEPTH"
+     ]
+    },
+    {
+     "candidate_id": "PRM-3a5ef7c3a568e97a",
+     "value": "ok",
+     "unit": "ok",
+     "property": "wrong",
+     "material": "-",
+     "scale": "ok",
+     "error": [
+      "STANDARD_DEVIATION_ROW"
+     ]
+    },
+    {
+     "candidate_id": "PRM-a082b4e0e690499f",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-12782adb0935247c",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-8ae91329bfbd26d9",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-e46fe0f9cc85eb5a",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    },
+    {
+     "candidate_id": "PRM-d8de52ac8491fea9",
+     "value": "ok",
+     "unit": "ok",
+     "property": "ok",
+     "material": "-",
+     "scale": "-"
+    }
+   ]
+  },
+  "development_samples": [
+   {
+    "seed": 20260929,
+    "build": "before the last three rule rounds",
+    "value": "58/60",
+    "unit": "57/60",
+    "property": "55/60",
+    "material": "13/13 assigned, 5 missed",
+    "scale": "14/17 assigned, 5 missed"
+   },
+   {
+    "seed": 20260930,
+    "build": "after local scale cues and rheological units",
+    "value": "58/60",
+    "unit": "58/60",
+    "property": "55/60",
+    "material": "14/17 assigned, 2 missed",
+    "scale": "15/16 assigned, 7 missed",
+    "fixed_after": "curve numbers, English ranges with units, density contrasts, dispersion columns, lone symbol columns, caption material of another body, inclusions, OCR «і», ligatures, source-class NORMATIVE for depths"
+   },
+   {
+    "seed": 20261001,
+    "build": "after the fixes above",
+    "value": "55/60",
+    "unit": "58/60",
+    "property": "54/60",
+    "material": "16/19 assigned, 2 missed",
+    "scale": "8/12 assigned, 5 missed",
+    "fixed_after": "ranges «с глубины X до Y», «126~960»; scale cue of a neighbouring property; references do not block cues; symbol continuity; far symbols of another dimension; negated materials"
+   }
+  ]
+ },
+ "recall_proxy": {
+  "definition": "a record counts as found when >= 1 candidate lies on the same page (source_id + pdf_page -> canonical page) with one of the record's properties (variable mapped to the vocabulary)",
+  "catalogue": {
+   "source": "catalogues/physics/process_evidence_links.csv, kind=parameter (variables read from the PRIVATE evidence records, fields only)",
+   "catalogue_rows": 37,
+   "unique_records": 28,
+   "records_with_mapped_property": 20,
+   "found_same_page": 14,
+   "recall_same_page": 0.7,
+   "recall_of_all_unique_records": 0.5,
+   "found_by_method": {
+    "TABLE": 5,
+    "TEXT": 12
+   },
+   "by_property": {
+    "deformation_modulus": [
+     0,
+     1
+    ],
+    "density": [
+     2,
+     4
+    ],
+    "depth": [
+     0,
+     1
+    ],
+    "depth_unspecified": [
+     0,
+     1
+    ],
+    "horizontal_stress": [
+     1,
+     1
+    ],
+    "limit_strain": [
+     1,
+     1
+    ],
+    "long_term_strength": [
+     0,
+     2
+    ],
+    "long_term_strength_ratio": [
+     3,
+     3
+    ],
+    "max_subsidence": [
+     0,
+     1
+    ],
+    "poisson_ratio": [
+     1,
+     1
+    ],
+    "rheological_constant": [
+     0,
+     1
+    ],
+    "subsidence": [
+     2,
+     2
+    ],
+    "subsidence_rate": [
+     2,
+     3
+    ],
+    "ucs": [
+     0,
+     3
+    ],
+    "unit_weight": [
+     2,
+     4
+    ],
+    "vertical_stress": [
+     1,
+     1
+    ],
+    "youngs_modulus": [
+     2,
+     3
+    ]
+   },
+   "records": [
+    {
+     "vn_id": "EV-VN-S012-0065",
+     "properties": [
+      "density",
+      "poisson_ratio",
+      "unit_weight",
+      "youngs_modulus"
+     ],
+     "verdict": "FOUND"
+    },
+    {
+     "vn_id": "EV-VN-S014-0848",
+     "properties": [
+      "density",
+      "unit_weight"
+     ],
+     "verdict": "FOUND"
+    },
+    {
+     "vn_id": "EV-VN-S029-0161",
+     "properties": [
+      "density",
+      "unit_weight"
+     ],
+     "verdict": "FOUND"
+    },
+    {
+     "vn_id": "EV-VN-S029-0242",
+     "properties": [
+      "horizontal_stress",
+      "vertical_stress"
+     ],
+     "verdict": "FOUND"
+    },
+    {
+     "vn_id": "EV-VN-S012-0063",
+     "properties": [
+      "youngs_modulus"
+     ],
+     "verdict": "FOUND"
+    },
+    {
+     "vn_id": "EV-VN-S025-0597",
+     "properties": [
+      "deformation_modulus",
+      "ucs",
+      "youngs_modulus"
+     ],
+     "verdict": "MISSED"
+    },
+    {
+     "vn_id": "EV-VN-S037-0707",
+     "properties": [
+      "depth",
+      "depth_unspecified"
+     ],
+     "verdict": "MISSED"
+    },
+    {
+     "vn_id": "EV-VN-S025-0874",
+     "properties": [
+      "long_term_strength_ratio"
+     ],
+     "verdict": "FOUND"
+    },
+    {
+     "vn_id": "EV-VN-S025-0875",
+     "properties": [
+      "long_term_strength_ratio"
+     ],
+     "verdict": "FOUND"
+    },
+    {
+     "vn_id": "EV-VN-S025-0882",
+     "properties": [
+      "long_term_strength",
+      "ucs"
+     ],
+     "verdict": "MISSED"
+    },
+    {
+     "vn_id": "EV-VN-S025-0873",
+     "properties": [
+      "long_term_strength_ratio"
+     ],
+     "verdict": "FOUND"
+    },
+    {
+     "vn_id": "EV-VN-S034-0039",
+     "properties": [
+      "limit_strain"
+     ],
+     "verdict": "FOUND"
+    },
+    {
+     "vn_id": "EV-VN-S025-0887",
+     "properties": [
+      "long_term_strength",
+      "ucs"
+     ],
+     "verdict": "MISSED"
+    },
+    {
+     "vn_id": "EV-VN-S025-0872",
+     "properties": [
+      "rheological_constant"
+     ],
+     "verdict": "MISSED"
+    },
+    {
+     "vn_id": "EV-VN-S021-0035",
+     "properties": [
+      "max_subsidence",
+      "subsidence"
+     ],
+     "verdict": "FOUND"
+    },
+    {
+     "vn_id": "EV-VN-S037-0475",
+     "properties": [
+      "density",
+      "unit_weight"
+     ],
+     "verdict": "FOUND"
+    },
+    {
+     "vn_id": "EV-VN-S009-0003",
+     "properties": [
+      "subsidence_rate"
+     ],
+     "verdict": "MISSED"
+    },
+    {
+     "vn_id": "EV-VN-S003-0239",
+     "properties": [
+      "subsidence_rate"
+     ],
+     "verdict": "FOUND"
+    },
+    {
+     "vn_id": "EV-VN-S012-0589",
+     "properties": [
+      "subsidence_rate"
+     ],
+     "verdict": "FOUND"
+    },
+    {
+     "vn_id": "EV-VN-S021-0037",
+     "properties": [
+      "subsidence"
+     ],
+     "verdict": "FOUND"
+    }
+   ]
+  },
+  "vnext_all": {
+   "source": "all PRIVATE evidence vNext records of kind=parameter whose variable maps to the vocabulary",
+   "records_with_mapped_property": 519,
+   "found_same_page": 309,
+   "recall_same_page": 0.5954,
+   "found_same_or_adjacent_page": 352,
+   "recall_same_or_adjacent_page": 0.6782,
+   "found_by_method": {
+    "TEXT": 265,
+    "TABLE": 177,
+    "NEAR_FORMULA": 1
+   },
+   "by_property": {
+    "backfill_ratio": [
+     5,
+     10
+    ],
+    "boundary_angle": [
+     4,
+     4
+    ],
+    "deformation_modulus": [
+     66,
+     75
+    ],
+    "density": [
+     6,
+     19
+    ],
+    "depth": [
+     18,
+     33
+    ],
+    "depth_unspecified": [
+     11,
+     33
+    ],
+    "extraction_ratio": [
+     1,
+     4
+    ],
+    "flexural_strength": [
+     0,
+     10
+    ],
+    "friction_angle": [
+     0,
+     7
+    ],
+    "full_subsidence_angle": [
+     1,
+     1
+    ],
+    "horizontal_displacement": [
+     1,
+     1
+    ],
+    "horizontal_strain": [
+     0,
+     1
+    ],
+    "horizontal_stress": [
+     1,
+     7
+    ],
+    "hydraulic_conductivity": [
+     2,
+     3
+    ],
+    "lateral_pressure_coefficient": [
+     3,
+     4
+    ],
+    "layer_thickness": [
+     35,
+     120
+    ],
+    "limit_strain": [
+     5,
+     76
+    ],
+    "loading_degree": [
+     13,
+     19
+    ],
+    "long_term_strength": [
+     4,
+     34
+    ],
+    "long_term_strength_ratio": [
+     3,
+     5
+    ],
+    "max_subsidence": [
+     2,
+     18
+    ],
+    "permeability": [
+     8,
+     12
+    ],
+    "pillar_width": [
+     8,
+     10
+    ],
+    "poisson_ratio": [
+     7,
+     7
+    ],
+    "porosity": [
+     12,
+     12
+    ],
+    "rheological_constant": [
+     0,
+     1
+    ],
+    "room_width": [
+     5,
+     5
+    ],
+    "seam_thickness": [
+     23,
+     135
+    ],
+    "shear_strength": [
+     0,
+     18
+    ],
+    "softening_modulus": [
+     3,
+     74
+    ],
+    "subsidence": [
+     15,
+     26
+    ],
+    "subsidence_rate": [
+     14,
+     21
+    ],
+    "tensile_strength": [
+     2,
+     19
+    ],
+    "thickness_unspecified": [
+     95,
+     135
+    ],
+    "ucs": [
+     25,
+     153
+    ],
+    "unit_weight": [
+     4,
+     19
+    ],
+    "vertical_stress": [
+     1,
+     7
+    ],
+    "youngs_modulus": [
+     3,
+     31
+    ]
+   }
+  }
+ },
+ "open_issues": [
+  "scale is the weakest field (final 10/14 assigned): worked examples in normative documents get source-class NORMATIVE; «принимается» in a rule reads as MODEL; an in-phrase NORMATIVE adjective does not win over a nearer MODEL cue; table-wide LAB cues reach sampling depths",
+  "property: flattened tables (one text line per row) take the unit of a phrase for every number; x-axis, model extents and changes of depth read as depths; standard deviation rows spelled «Стандарт»",
+  "OCR: a misrecognised type word (of «сжатие») gives strength_unspecified; headers glued without spaces hide LAB cues; decimal points lost in tables are parsed as printed",
+  "recall gaps: softening modulus, limit strain, flexural and shear strength, long-term strength (mostly in figures and garbled tables); 8 of 28 catalogue records have variables outside the vocabulary",
+  "symbols the source defines are used for its table headers only when one meaning is found (>= 2 definitions for one-letter symbols); a source that redefines a symbol per chapter keeps no symbol"
+ ]
+}

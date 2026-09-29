@@ -13,6 +13,7 @@ Flow rules (task §32, CP-19, H-13):
 from __future__ import annotations
 
 import hashlib
+import re
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable
@@ -24,6 +25,7 @@ from vkm_corpus.api.canon import QUERYABLE_KINDS, CanonStore, jsonable, kind_of
 from vkm_corpus.api.envelope import (API_VERSION, ApiWarning, Envelope, Geometry, Item, ModelInfo, Projection,
                                      Provenance, SourceScope)
 from vkm_corpus.api.errors import ApiFailure
+from vkm_corpus.contracts import vocab
 from vkm_corpus.ids import grammar
 from vkm_corpus.ops.worker import ALLOWED_OPTIONS as REPROCESS_OPTIONS
 
@@ -78,6 +80,9 @@ class ApiDeps:
     rerank: RerankBackend | None = None
     control: ControlPlane | None = None
     hybrid: HybridBackend | None = None
+    nav: Any = None                     # vkm_corpus.navigation.store.NavStore (navigation layer, optional)
+    catalogues: Any = None              # vkm_corpus.catalogues.store.CatalogueStore (PUBLIC catalogues, optional)
+    topic_retrieval: Any = None         # retrieval of the topic dossier (api.topic.TopicRetrieval); None → hybrid
 
 
 def _require(dep: Any, name: str, stage: str) -> Any:
@@ -97,6 +102,7 @@ def _window(text: str | None, offset: int, max_chars: int) -> tuple[str | None, 
 class ApiService:
     def __init__(self, deps: ApiDeps) -> None:
         self.deps = deps
+        self._topic_cache: dict[str, Any] = {}           # section index of the served NAV build (topic dossier)
         self._search_status: tuple[float, dict[str, Any]] | None = None
         self._snapshot_cache: tuple[str | None, dict[str, str | None], dict[str, dict[str, Any]] | None] = (
             None, {}, None)
@@ -442,20 +448,24 @@ class ApiService:
         return Result(items=items, warnings=warnings, next_cursor=str(offset + limit) if more else None)
 
     def search_hybrid(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
-                      candidates: int = 100, include_duplicates: bool = False, exact: bool = False) -> Result:
-        """BM25 + dense k-NN fused by RRF (``vkm_corpus.search.hybrid``); hits are hydrated from the canon exactly as
-        in :meth:`search` and carry the per-stage trace. Without the query encoder or the vectors build the answer is
-        DEPENDENCY_UNAVAILABLE — never BM25 results in disguise."""
+                      candidates: int = 100, include_duplicates: bool = False, exact: bool = False, *,
+                      late: bool | None = None, late_candidates: int = 100,
+                      bib_route: bool | None = None) -> Result:
+        """BM25 + dense k-NN fused by RRF, optionally re-scored by late interaction (``vkm_corpus.search.hybrid``);
+        hits are hydrated from the canon exactly as in :meth:`search` and carry the per-stage trace. Without the query
+        encoder, the vectors build or (with late) the token store the answer is DEPENDENCY_UNAVAILABLE — never BM25
+        or RRF results in disguise."""
         backend = _require(self.deps.hybrid, "hybrid search", "hybrid")
         offset = int(cursor) if cursor and cursor.isdigit() else 0
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
-                   "candidates": candidates, "include_duplicates": include_duplicates, "exact": exact}
+                   "candidates": candidates, "include_duplicates": include_duplicates, "exact": exact,
+                   "late": late, "late_candidates": late_candidates, "bib_route": bib_route}
         response = backend.search(request)
         dense = (response.get("stages") or {}).get("dense") or {}
         items, warnings = self._search_items(response, extra_built={
             dense.get("build_id"): dense.get("built_from_snapshot_id")}, hybrid=True)
         record = {k: response.get(k) for k in ("fusion", "rrf_k", "candidates", "fused_total", "totals", "stages",
-                                               "timings_ms")}
+                                               "timings_ms", "late", "late_candidates", "route")}
         record.update({"kinds": list(kinds), "query_sha256": sha256_text(query),
                        "scores_are": "rank-fusion signals of a projection, not evidence"})
         envelope = Envelope(object_id=f"hybrid-{sha256_text(query)[:16]}", object_kind="SEARCH_RESULT",
@@ -482,6 +492,8 @@ class ApiService:
             warnings.append(ApiWarning(code="STALE_PROJECTION", message="index hits missing from the canonical "
                                                                         "snapshot were dropped", count=len(stale)))
         mismatched = 0
+        nav_numbers = self._nav_equation_numbers(
+            oid for oid, (k, row) in hydrated.items() if k == "FORMULA" and not row.get("equation_label"))
         works = self.works_of_sources(row.get("source_id") for _k, row in hydrated.values())
         copy_counts = self.canon.work_copy_counts(works.values())
         items: list[Item] = []
@@ -511,13 +523,15 @@ class ApiService:
                       "foreign_content": self.foreign_content_of_page(row.get("page_id")),
                       "work_copy_count": copy_counts.get(work_id) if work_id else None,
                       "title_or_caption": _title(kind, row),
+                      **(object_label(kind, row, nav_numbers.get(hit["id"])) or {}),
                       "rerank_candidate": {"candidate_id": hit.get("page_id") or hit["id"],
                                            "object_ids": [b.get("id") for b in ordered_blocks] or [hit["id"]],
                                            "rule": "rerank_text_v1"}}
             if hybrid:
                 trace = dict(hit.get("trace") or {})
                 record.update({"bm25_score": trace.get("bm25_score"), "rrf_score": trace.get("rrf_score"),
-                               "dense_score": trace.get("dense_score"), "rank_in_kind": None, "trace": trace})
+                               "dense_score": trace.get("dense_score"), "late_score": trace.get("late_score"),
+                               "rank_in_kind": None, "trace": trace})
                 unit = trace.get("dense_unit") or {}
                 if not ordered_blocks and hit.get("object_type") == "PAGE" and unit.get("object_ids"):
                     record["rerank_candidate"]["object_ids"] = list(unit["object_ids"])[:20]
@@ -536,6 +550,21 @@ class ApiService:
             warnings.append(ApiWarning(code="SEARCH_WARNING", message=str(code)[:200]))
         return items, warnings
 
+    def _nav_equation_numbers(self, formula_ids: Any) -> dict[str, str]:
+        """formula id → equation number of the navigation layer, for formulas the canon gives no label (best effort:
+        an unavailable NAV layer only means no fallback label)."""
+        ids = sorted(set(formula_ids))
+        nav = self.deps.nav
+        if not ids or nav is None or not hasattr(nav, "query"):
+            return {}
+        try:
+            ph = ", ".join("?" for _ in ids)
+            rows = nav.query(f"SELECT formula_id, equation_number FROM formula_context WHERE formula_id IN ({ph}) "
+                             "AND equation_number IS NOT NULL", ids)
+        except Exception:  # noqa: BLE001 - NavUnavailable, missing table: the label stays unknown
+            return {}
+        return {r["formula_id"]: str(r["equation_number"]) for r in rows if r.get("equation_number")}
+
     def query_objects(self, kinds: list[str], limit: int, cursor: str | None, **filters: Any) -> Result:
         offset = int(cursor) if cursor and cursor.isdigit() else 0
         if not kinds or any(k not in QUERYABLE_KINDS for k in kinds):
@@ -546,6 +575,7 @@ class ApiService:
             for row in rows[:limit]:
                 record = {k: v for k, v in self.record(row).items()
                           if k not in ("text", "normalized_text", "raw_output", "normalized_html", "cells")}
+                record.update(object_label(kind, row) or {})
                 items.append(Item(envelope=self.envelope(kind, row, payload_form="REFERENCE"), record=record))
         items.sort(key=lambda it: it.envelope.object_id)
         more = len(items) > limit
@@ -728,6 +758,306 @@ class ApiService:
                                count=stale)] if stale else []
         return Result(items=items, warnings=warnings)
 
+    # ------------------------------------------------------------------ NAV graph (agent G): paths and neighbourhoods
+    # in the Neo4j projection of the navigation layer (vkm_corpus.graph.nav_query); DERIVED, never evidence.
+    NAV_GRAPH_FAMILIES = ("concepts", "formulas", "sections", "topics")
+
+    def _nav_graph(self) -> tuple[Any, dict[str, Any]]:
+        graph = _require(self.deps.graph, "neo4j", "neo4j")
+        if not hasattr(graph, "nav_state"):
+            raise ApiFailure("DEPENDENCY_UNAVAILABLE", "the NAV graph is not available on this API instance",
+                             stage="nav_graph", tool="neo4j")
+        state = graph.nav_state()
+        if state.get("state") != "READY":
+            raise ApiFailure("DEPENDENCY_UNAVAILABLE", f"the NAV graph is {str(state.get('state', 'unknown')).lower()}",
+                             stage="nav_graph", tool="neo4j",
+                             hint="vkm-corpus nav graph-load --nav-dir derived/navigation/<snapshot_id>")
+        return graph, state
+
+    def _nav_graph_result(self, kind: str, object_id: str, record: dict[str, Any], state: dict[str, Any], *,
+                          source_id: str | None = None, page_id: str | None = None) -> Result:
+        from vkm_corpus.graph.nav_query import NOTE
+
+        canon_snapshot = self.canon.snapshot_id()
+        nav_snapshot = state.get("snapshot_id")
+        env = Envelope(object_id=object_id, object_kind=kind, source_id=source_id, page_id=page_id,
+                       review_status="AUTO_EXTRACTED_UNREVIEWED", layer="PROJECTION", payload_form="NORMALIZED",
+                       origin="DERIVED",
+                       projection=Projection(engine="neo4j", index_or_graph="NavigationLayer",
+                                             build_id=state.get("run_id"), built_from_snapshot_id=nav_snapshot,
+                                             matches_canonical_snapshot=nav_snapshot == canon_snapshot))
+        warnings = []
+        if nav_snapshot and nav_snapshot != canon_snapshot:
+            warnings.append(ApiWarning(code="NAV_SNAPSHOT_BEHIND", message="the NAV graph was built from another "
+                                       "canonical snapshot; ids are stable, counts may differ"))
+        body = jsonable({**record, "nav_snapshot_id": nav_snapshot, "note": NOTE})
+        return Result(item=Item(envelope=env, record=body), warnings=warnings)
+
+    def _nav_resolve_term(self, graph: Any, text: str) -> tuple[list[dict[str, Any]], str]:
+        from vkm_corpus.graph.nav_query import rank_terms, term_keys
+        from vkm_corpus.navigation.ids import norm_text
+
+        if not text or not text.strip() or len(text) > 200:
+            raise ApiFailure("INVALID_ARGUMENT", "a term is 1..200 characters (a phrase in any form or a TRM- id)")
+        keys, method = term_keys(text.strip())
+        found = rank_terms(graph.nav_find_terms(text.strip(), keys, norm_text(text), 5), text.strip(), keys)
+        if not found:
+            raise ApiFailure("NOT_FOUND", f"no term of the NAV graph matches {text[:60]!r}", stage="nav_graph",
+                             tool="neo4j", hint="try explore_concept or search_sections, or a shorter phrase")
+        return found, method
+
+    def nav_graph_paths(self, term_a: str, term_b: str, max_len: int = 4, limit: int = 5,
+                        via: list[str] | None = None) -> Result:
+        from vkm_corpus.graph.nav_query import MAX_PATH_LEN, PATH_CAP, path_rel_types, shape_paths
+
+        if not 1 <= int(max_len) <= MAX_PATH_LEN:
+            raise ApiFailure("INVALID_ARGUMENT", f"max_len is 1..{MAX_PATH_LEN}")
+        if not 1 <= int(limit) <= 20:
+            raise ApiFailure("INVALID_ARGUMENT", "limit is 1..20")
+        bad = sorted(set(via or []) - set(self.NAV_GRAPH_FAMILIES))
+        if bad:
+            raise ApiFailure("INVALID_ARGUMENT", f"via is a subset of {list(self.NAV_GRAPH_FAMILIES)}",
+                             details={"unknown": bad})
+        graph, state = self._nav_graph()
+        a_found, method = self._nav_resolve_term(graph, term_a)
+        b_found = self._nav_resolve_term(graph, term_b)[0]
+        a, b = a_found[0], b_found[0]
+        rel_types = path_rel_types(list(via) if via else None)
+        raw = [] if a["term_id"] == b["term_id"] else graph.nav_paths(a["term_id"], b["term_id"], rel_types,
+                                                                        int(max_len), PATH_CAP)
+        paths = shape_paths(raw, int(limit)) if raw else []
+        record = {"from": a, "to": b, "alternatives": {"from": a_found[1:4], "to": b_found[1:4]},
+                  "via": list(via) if via else list(self.NAV_GRAPH_FAMILIES), "relationship_types": rel_types,
+                  "max_len": int(max_len), "n_shortest_paths_found": len(raw), "paths": paths,
+                  "term_resolution": method}
+        if not paths:
+            record["hint"] = ("the same term" if a["term_id"] == b["term_id"] else
+                              f"no path within {max_len} hops: raise max_len, widen via, or check the alternatives")
+        return self._nav_graph_result("NAV_GRAPH_PATHS", f"paths:{a['term_id']}:{b['term_id']}", record, state)
+
+    def nav_graph_neighbourhood(self, node_id: str, depth: int = 1, limit: int = 50) -> Result:
+        from vkm_corpus.graph.nav_query import depth2_ids, layer_of, shape_neighbourhood
+
+        if not node_id or len(node_id) > 120 or not re.fullmatch(r"[A-Za-z0-9_:\-]+", node_id):
+            raise ApiFailure("INVALID_ARGUMENT", "node_id is a NAV id (SEC-, TRM-, FSY-, FPR-, topic) or a VKM id")
+        if int(depth) not in (1, 2):
+            raise ApiFailure("INVALID_ARGUMENT", "depth is 1 or 2")
+        if not 1 <= int(limit) <= 200:
+            raise ApiFailure("INVALID_ARGUMENT", "limit is 1..200")
+        graph, state = self._nav_graph()
+        raw = graph.nav_neighbourhood(node_id, layer_of(node_id), int(limit))
+        if not raw:
+            raise ApiFailure("NOT_FOUND", f"{node_id} is not a node of the NAV or DOCUMENT graph", stage="nav_graph",
+                             tool="neo4j", object_id=node_id)
+        shaped = shape_neighbourhood(raw["node"], raw.get("groups") or [], {}, int(limit))
+        if int(depth) == 2:
+            mids = depth2_ids(shaped, per_node=min(10, int(limit)))
+            second = graph.nav_neighbourhood_2(mids, node_id, 3) if mids else {}
+            shaped = shape_neighbourhood(raw["node"], raw.get("groups") or [], second, int(limit))
+        node = shaped["node"]
+        source_id = raw["node"].get("source_id") if layer_of(node_id) == "DOCUMENT" else None
+        page_id = node_id if node.get("kind") == "PAGE" and source_id else None
+        return self._nav_graph_result("NAV_GRAPH_NEIGHBOURHOOD", node_id, {"depth": int(depth), **shaped}, state,
+                                      source_id=source_id, page_id=page_id)
+    # ------------------------------------------------------------------ end NAV graph (agent G)
+
+    # ------------------------------------------------------------------ navigation layer (NAV, derived, not evidence)
+    _NAV_NOTE = "navigation layer: derived from the canon without models, AUTO_EXTRACTED_UNREVIEWED, not evidence"
+
+    def _nav_run(self, fn: Callable[[Any], Any]) -> tuple[Any, str | None]:
+        from vkm_corpus.navigation.store import NavUnavailable
+
+        nav = self.deps.nav
+        if nav is None:
+            raise ApiFailure("DEPENDENCY_UNAVAILABLE", "the navigation layer is not configured on this API instance",
+                             stage="navigation", tool="nav")
+        try:
+            return fn(nav), nav.snapshot_id()
+        except NavUnavailable as exc:
+            raise ApiFailure("DEPENDENCY_UNAVAILABLE", str(exc), stage="navigation", tool="nav",
+                             hint="vkm-corpus nav build → nav pack → nav publish") from exc
+        except LookupError as exc:
+            raise ApiFailure("NOT_FOUND", f"not in the navigation layer: {exc}", stage="navigation",
+                             tool="nav") from exc
+
+    def _nav_result(self, kind: str, object_id: str, data: Any, nav_snapshot: str | None, *,
+                    source_id: str | None = None, page_id: str | None = None, search: bool = False) -> Result:
+        """A NAV answer; a lookup of one object that is not there is NOT_FOUND, a search without hits is an empty
+        list (200)."""
+        if search and not data:
+            data = []
+        elif data is None or data == [] or data == {}:
+            raise ApiFailure("NOT_FOUND", f"{object_id} is not in the navigation layer", stage="navigation",
+                             tool="nav")
+        record = data if isinstance(data, dict) else {"items": data}
+        record = jsonable({**record, "nav_snapshot_id": nav_snapshot, "note": self._NAV_NOTE})
+        canon_snapshot = self.canon.snapshot_id()
+        env = Envelope(object_id=object_id, object_kind=kind, source_id=source_id, page_id=page_id,
+                       review_status="AUTO_EXTRACTED_UNREVIEWED", layer="PROJECTION", payload_form="NORMALIZED",
+                       origin="DERIVED",
+                       projection=Projection(engine="navigation", index_or_graph="nav.duckdb", build_id=nav_snapshot,
+                                             built_from_snapshot_id=nav_snapshot,
+                                             matches_canonical_snapshot=nav_snapshot == canon_snapshot))
+        warnings = []
+        if nav_snapshot and nav_snapshot != canon_snapshot:
+            warnings.append(ApiWarning(code="NAV_SNAPSHOT_BEHIND", message="the navigation layer was built from "
+                                       "another canonical snapshot; ids are stable, counts may differ"))
+        return Result(item=Item(envelope=env, record=record), warnings=warnings)
+
+    def nav_outline(self, source_id: str) -> Result:
+        self._check("source", source_id)
+        data, snap = self._nav_run(lambda nav: nav.run("outline", source_id))
+        return self._nav_result("NAV_OUTLINE", source_id, data, snap, source_id=source_id)
+
+    def nav_section(self, section_id: str) -> Result:
+        if not re.fullmatch(r"SEC-[0-9a-f]{16}", section_id or ""):
+            raise ApiFailure("INVALID_ARGUMENT", "section_id is SEC-<16 hex>")
+        data, snap = self._nav_run(lambda nav: nav.run("section", section_id))
+        src = data.get("source_id") if isinstance(data, dict) else None
+        return self._nav_result("NAV_SECTION", section_id, data, snap, source_id=src)
+
+    def nav_sections(self, text: str, source_id: str | None, limit: int) -> Result:
+        if source_id:
+            self._check("source", source_id)
+        data, snap = self._nav_run(lambda nav: nav.search_sections(text, source_id=source_id, limit=limit))
+        return self._nav_result("NAV_SECTIONS", f"search:{text[:60]}", data or [], snap, search=True)
+
+    def nav_formula(self, formula_id: str) -> Result:
+        self._check("object", formula_id)
+        data, snap = self._nav_run(lambda nav: nav.run("formula_context", formula_id))
+        src = data.get("source_id") if isinstance(data, dict) else None
+        page = data.get("page_id") if isinstance(data, dict) else None
+        return self._nav_result("NAV_FORMULA", formula_id, data, snap, source_id=src, page_id=page)
+
+    def nav_formulas(self, concept: str | None, symbol: str | None, source_id: str | None, limit: int) -> Result:
+        if not (concept or symbol):
+            raise ApiFailure("INVALID_ARGUMENT", "give a concept (words of symbol definitions) or a symbol")
+        if symbol and not source_id:
+            raise ApiFailure("INVALID_ARGUMENT", "a symbol is looked up inside one source (symbols are not global)")
+        if source_id:
+            self._check("source", source_id)
+        data, snap = self._nav_run(lambda nav: nav.run("find_formulas", concept=concept, symbol=symbol,
+                                                       source_id=source_id))
+        items = list(data or [])[:limit] if not isinstance(data, dict) else data
+        return self._nav_result("NAV_FORMULAS", f"formulas:{concept or symbol}", items, snap, source_id=source_id,
+                                search=True)
+
+    def nav_concept(self, term: str, limit: int) -> Result:
+        if not term or not term.strip() or len(term) > 200:
+            raise ApiFailure("INVALID_ARGUMENT", "term is 1..200 characters")
+        data, snap = self._nav_run(lambda nav: nav.run("explore_concept", term, limit=limit))
+        return self._nav_result("NAV_CONCEPT", f"concept:{term[:60]}", data, snap)
+
+    # ------------------------------------------------------------------ topics (agent T) and duplicates (agent U)
+    def nav_topic(self, topic_id: str) -> Result:
+        if not re.fullmatch(r"TOP-[0-9a-f]{16}", topic_id or ""):
+            raise ApiFailure("INVALID_ARGUMENT", "topic_id has the form TOP-<16 hex>")
+        data, snap = self._nav_run(lambda nav: nav.run("topic", topic_id))
+        return self._nav_result("NAV_TOPIC", topic_id, data, snap)
+
+    def nav_topics(self, terms: list[str], limit: int, level: int | None = None) -> Result:
+        terms = [t.strip() for t in terms or [] if t and t.strip()]
+        if not terms or len(terms) > 5 or any(len(t) > 200 for t in terms):
+            raise ApiFailure("INVALID_ARGUMENT", "1..5 terms of 1..200 characters")
+        data, snap = self._nav_run(lambda nav: nav.run("find_topics", terms, limit=limit, level=level))
+        return self._nav_result("NAV_TOPICS", "topics:" + "|".join(terms)[:60], data, snap, search=True)
+
+    def nav_similar_sections(self, section_id: str, k: int, other_sources_only: bool) -> Result:
+        if not re.fullmatch(r"SEC-[0-9a-f]{16}", section_id or ""):
+            raise ApiFailure("INVALID_ARGUMENT", "section_id has the form SEC-<16 hex>")
+        data, snap = self._nav_run(lambda nav: nav.run("similar_sections", section_id, k=k,
+                                                       other_sources_only=other_sources_only))
+        return self._nav_result("NAV_SIMILAR_SECTIONS", section_id, data, snap)
+
+    def nav_section_topics(self, section_id: str) -> Result:
+        if not re.fullmatch(r"SEC-[0-9a-f]{16}", section_id or ""):
+            raise ApiFailure("INVALID_ARGUMENT", "section_id has the form SEC-<16 hex>")
+        data, snap = self._nav_run(lambda nav: nav.run("section_topics", section_id))
+        return self._nav_result("NAV_SECTION_TOPICS", section_id, data, snap, search=True)
+
+    def nav_copies(self, ref: str, limit: int) -> Result:
+        if not ref or len(ref) > 200:
+            raise ApiFailure("INVALID_ARGUMENT", "ref is a unit (u1-…), page or block id")
+        data, snap = self._nav_run(lambda nav: nav.run("copies_of", ref, limit=limit))
+        return self._nav_result("NAV_COPIES", ref, data, snap)
+
+    def nav_source_overlap(self, source_id: str, limit: int) -> Result:
+        if not re.fullmatch(r"VKM-SRC-\d{3,}", source_id or ""):
+            raise ApiFailure("INVALID_ARGUMENT", "source_id has the form VKM-SRC-NNN")
+        data, snap = self._nav_run(lambda nav: nav.run("source_overlap", source_id, limit=limit))
+        return self._nav_result("NAV_SOURCE_OVERLAP", source_id, data, snap, source_id=source_id)
+
+    # ------------------------------------------------------------------ parameter candidates (agent P)
+    _SCALES = frozenset({"LAB", "MASSIF", "NORMATIVE", "MODEL", "UNKNOWN"})
+
+    def nav_parameters(self, property: str | None, material: str | None, site: str | None,  # noqa: A002
+                       scale: str | None, source_id: str | None, limit: int) -> Result:
+        if not any((property, material, site, source_id)):
+            raise ApiFailure("INVALID_ARGUMENT", "give at least one of property, material, site, source_id")
+        if scale is not None and scale.upper() not in self._SCALES:
+            raise ApiFailure("INVALID_ARGUMENT", f"scale is one of {sorted(self._SCALES)}")
+        if source_id is not None and not re.fullmatch(r"VKM-SRC-\d{3,}", source_id):
+            raise ApiFailure("INVALID_ARGUMENT", "source_id has the form VKM-SRC-NNN")
+        data, snap = self._nav_run(lambda nav: nav.run("find_parameters", property=property, material=material,
+                                                       site=site, scale=scale.upper() if scale else None,
+                                                       source_id=source_id, limit=limit))
+        key = "|".join(str(x) for x in (property, material, site, scale, source_id) if x)[:60]
+        return self._nav_result("NAV_PARAMETERS", f"parameters:{key}", data, snap, source_id=source_id)
+
+    def nav_parameter_summary(self, property: str, material: str | None) -> Result:  # noqa: A002
+        if not property or len(property) > 200:
+            raise ApiFailure("INVALID_ARGUMENT", "property is 1..200 characters")
+        data, snap = self._nav_run(lambda nav: nav.run("parameter_summary", property, material=material))
+        return self._nav_result("NAV_PARAMETER_SUMMARY", f"parameter_summary:{property[:40]}", data, snap)
+
+    # ------------------------------------------------------------------ topic dossier (navigation + catalogues)
+    def reconstruct_topic(self, query: str, *, budget_chars: int = 12_000, source_ids: list[str] | None = None,
+                          max_sources: int = 10, max_sections: int = 12, max_formulas: int = 10,
+                          paraphrases: list[str] | None = None) -> Result:
+        """«От А до Я» on a topic in one call: ranked NAV sections in two tiers (the VKM core and the rest of the
+        corpus; hybrid search over ≤ 5 formulations fused by RRF + titles), formulas, figures and tables near the
+        hits, the concept, sources with provenance and CITES, the PUBLIC catalogues (processes with evidence records,
+        models, conflicts, causal neighbours) and the UNKNOWN gaps — a budgeted, cited map (``api.topic``);
+        navigation, not evidence. Parts whose dependency is missing are left out with a warning."""
+        from vkm_corpus.api import topic
+
+        query = (query or "").strip()
+        if not query or len(query) > 512:
+            raise ApiFailure("INVALID_ARGUMENT", "query is 1..512 characters")
+        paraphrases = [p.strip() for p in (paraphrases or []) if p and p.strip()]
+        if len(paraphrases) > topic.MAX_PARAPHRASES or any(len(p) > 512 for p in paraphrases):
+            raise ApiFailure("INVALID_ARGUMENT", f"at most {topic.MAX_PARAPHRASES} paraphrases of ≤ 512 characters")
+        if not topic.MIN_BUDGET <= int(budget_chars) <= topic.MAX_BUDGET:
+            raise ApiFailure("INVALID_ARGUMENT", f"budget_chars must be {topic.MIN_BUDGET}…{topic.MAX_BUDGET}")
+        if not (1 <= max_sources <= 50 and 1 <= max_sections <= 50 and 0 <= max_formulas <= 50):
+            raise ApiFailure("INVALID_ARGUMENT", "max_sources and max_sections 1…50, max_formulas 0…50")
+        sources = sorted(set(source_ids or []))
+        if len(sources) > 20:
+            raise ApiFailure("INVALID_ARGUMENT", "at most 20 source ids")
+        for sid in sources:
+            self._check("source", sid)
+        canon_snapshot = self.canon.snapshot_id()          # SNAPSHOT_UNAVAILABLE without a canon: no dossier
+        builder = topic.DossierBuilder(self.canon, self.deps.nav, self.deps.catalogues,
+                                       topic.make_retrieval(self.deps.topic_retrieval, self.deps.hybrid),
+                                       cache=self._topic_cache)
+        dossier = builder.build(topic.TopicRequest(query=query, budget_chars=int(budget_chars),
+                                                   source_ids=tuple(sources), max_sources=max_sources,
+                                                   max_sections=max_sections, max_formulas=max_formulas,
+                                                   paraphrases=tuple(paraphrases)))
+        proj = dossier.projection or {}
+        built_from = proj.get("built_from_snapshot_id")
+        envelope = Envelope(
+            object_id=topic.dossier_id(query, sources), object_kind="TOPIC_DOSSIER",
+            review_status="AUTO_EXTRACTED_UNREVIEWED", layer="PROJECTION", payload_form="NORMALIZED",
+            origin="DERIVED", canonical_snapshot_id=canon_snapshot,
+            source_id=sources[0] if len(sources) == 1 else None,
+            projection=Projection(engine=proj.get("engine", "navigation"), index_or_graph=proj.get("index_or_graph"),
+                                  build_id=proj.get("build_id"), built_from_snapshot_id=built_from,
+                                  matches_canonical_snapshot=None if built_from is None else
+                                  built_from == canon_snapshot))
+        warnings = [ApiWarning(code=w["code"], message=w["message"], count=w.get("count")) for w in dossier.warnings]
+        return Result(item=Item(envelope=envelope, record=jsonable(dossier.record)), warnings=warnings)
+
     def citations(self, work_id: str, direction: str, include_unlinked: bool, limit: int) -> Result:
         self._check("work", work_id)
         self._get("WORK", work_id)
@@ -746,7 +1076,7 @@ class ApiService:
                 record = jsonable({**{k: entry[k] for k in ("entry_label", "ordinal_in_list", "parsed_title",
                                                             "parsed_year", "parsed_doi", "citing_work_resolution")},
                                    "direction": "cites", "links": entry_links,
-                                   "status": "LINKED" if any(li["match_status"] == "AUTO_EXACT_ID_MATCH"
+                                   "status": "LINKED" if any(li["match_status"] in vocab.ACCEPTED_MATCH_STATUSES
                                                              for li in entry_links) else
                                    "CANDIDATE" if entry_links else "UNLINKED",
                                    "note": "a citation is not agreement"})
@@ -1031,6 +1361,9 @@ class ApiService:
         if self.deps.hybrid is not None and hasattr(self.deps.hybrid, "status"):
             h = await run_sync(self.deps.hybrid.status)
             out["dependencies"]["query_encoder"] = h.get("query_encoder")
+            if "late_default" in h:
+                out["dependencies"]["late_interaction"] = {
+                    "default": h["late_default"], "store": (h.get("query_encoder") or {}).get("late_store")}
         if self.deps.graph is not None:
             try:
                 g = await run_sync(self.deps.graph.state)
@@ -1060,6 +1393,33 @@ class ApiService:
             except ApiFailure as exc:
                 out["dependencies"]["control_plane"] = {"available": False, "error": exc.code}
         return jsonable(out)
+
+
+_LABEL_NUMBER = re.compile(r"(\d+(?:[.\-–]\d+)*[a-zа-я]?)", re.IGNORECASE)
+_LATIN_LABEL = re.compile(r"^\s*(?:fig|table|tab|eq)", re.IGNORECASE)
+
+
+def object_label(kind: str, row: dict[str, Any], nav_number: str | None = None) -> dict[str, Any] | None:
+    """Printed label of a figure / table / formula for search results (agent L): «рис. 3.1», «табл. 2», «(3.2)».
+
+    From the canonical label (``figure_label`` / ``table_label`` / ``equation_label``); for a formula without one,
+    the equation number of the navigation layer (``formula_context``, rules: AUTO_EXTRACTED_UNREVIEWED). None when the
+    object has no number."""
+    raw = {"FIGURE": row.get("figure_label"), "TABLE": row.get("table_label"),
+           "FORMULA": row.get("equation_label")}.get(kind)
+    origin = "CANON"
+    if kind not in ("FIGURE", "TABLE", "FORMULA"):
+        return None
+    m = _LABEL_NUMBER.search(raw or "")
+    if not m and kind == "FORMULA" and nav_number:
+        raw, origin, m = nav_number, "NAV", _LABEL_NUMBER.search(nav_number)
+    if not m:
+        return None
+    number = m.group(1).replace("–", "-").lower()
+    latin = bool(_LATIN_LABEL.match(raw or ""))
+    label = {"FIGURE": ("fig. " if latin else "рис. ") + number, "TABLE": ("table " if latin else "табл. ") + number,
+             "FORMULA": f"({number})"}[kind]
+    return {"object_label": label, "object_number": number, "object_label_raw": raw, "object_label_origin": origin}
 
 
 def _title(kind: str, row: dict[str, Any]) -> str | None:

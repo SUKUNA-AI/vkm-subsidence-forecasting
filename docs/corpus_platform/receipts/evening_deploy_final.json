@@ -1,0 +1,44 @@
+{
+ "schema": "vkm-evening-deploy-receipt-v1",
+ "date": "2026-09-28",
+ "status": "DEPLOYED on CORE; navigation layer and dossiers are DERIVED / AUTO_EXTRACTED_UNREVIEWED (navigation, not evidence)",
+ "canonical": {
+  "reconcile_run": "reconcile-bib3-20260928T193337Z",
+  "result": "RECONCILED",
+  "snapshot_id": "snap-20260928T193550Z-738eebee",
+  "graph_checks": "C1-C16 PASS",
+  "search_counts": {"pages": 26483, "blocks": 621497, "figures": 17784, "tables": 3391, "formulas": 108904},
+  "bibliography": {"rules": "bib_rules_v3 (bib-segmenter 0.3.0)", "entries": 23682, "authors_parsed_share_dry_run": 0.946,
+                   "links_accepted": {"AUTO_STRONG_MATCH": 160, "AUTO_EXACT_ID_MATCH": 72}, "links_candidate": 3,
+                   "cites_edges": 193},
+  "staging_rebuild": {"seconds": 1198, "commits": 247, "model_calls": 0, "layout_calls": 0}
+ },
+ "navigation": {
+  "build": "WORKSTATION (WSL, GPU for duplicates, concepts communities and topics), vkm-corpus nav build --part all --vectors <dense set> --option concepts.drop_duplicate_blocks=true",
+  "parts_seconds": {"sections": 10.05, "formulas": 12.95, "parameters": 16.91, "duplicates": 14.98, "concepts": 43.14, "topics": 22.93},
+  "rows": {"sections": 9105, "section_pages": 27270, "formula_context": 108904, "formula_symbols": 338625,
+           "formula_refs": 16112, "formula_parameters": 2106, "parameter_candidates": 10538, "parameter_summary": 628,
+           "dup_clusters": 697, "dup_members": 1718, "source_overlap": 459, "terms": 94597, "term_mentions": 1567275,
+           "term_edges": 1537791, "section_aggregates": 8158, "section_vectors": 7869, "topics": 720,
+           "topic_members": 23607, "topic_edges": 2377},
+  "nav_duckdb_sha256": "b567979e7fc5a15ab0877c2ac9ed7111003fc7b0e943e93488fbaf60fcbf1731",
+  "published": "derived/navigation/snap-20260928T193550Z-738eebee + CURRENT (sha256 equal on both sides)"
+ },
+ "neo4j_nav_graph": {"nodes": 111922, "rels": 2203152, "load_seconds": 255, "checks": "N1-N7 PASS, status COMPLETE"},
+ "vectors_refresh": {"job": "infra/core/lab_refresh.sh (agent L)", "result": "DONE", "units": 205784,
+                     "dense_embedded_new_or_changed": 24821, "late_embedded_new_or_changed": 2823,
+                     "dense_index": 205784, "late_pack": 205784, "equal": true, "smokes": "stage 2 PASS, stage 3 PASS"},
+ "catalogues": {"pack_id": "99f0ee6c6e05", "files": 79, "rows": 53943, "published": "derived/catalogues/<pack> + CURRENT"},
+ "images": {"api_mcp_job": "vkm-corpus-api:0.1.0-59728d1c2370", "rx580_retrieval": "vkm-rx580-retrieval:0.1.3-03d847ec800e"},
+ "compose": "api mounts derived/navigation and derived/catalogues read-only",
+ "mcp_smoke_from_workstation": {
+  "tools_listed": 38,
+  "calls_seconds": {"reconstruct_topic (механика закладки, 2 paraphrases, 6000 chars)": 3.85,
+                    "reconstruct_topic (начальные напряжения, 6000 chars)": 2.71, "find_parameters": 0.04,
+                    "parameter_summary": 0.09, "find_topics": 0.08, "concept_paths": 0.57, "explore_concept": 0.15,
+                    "search_hybrid (bibliographic query)": 1.21, "source_overlap": 0.02},
+  "errors": 0
+ },
+ "local_mcp_servers": {"vkm-cad": "1.0.0, 27 tools (AutoCAD 2026 25.1, Civil 3D 13.8, core console ru-RU, Roslyn C#)",
+                       "vkm-drawio": "8 tools"}
+}

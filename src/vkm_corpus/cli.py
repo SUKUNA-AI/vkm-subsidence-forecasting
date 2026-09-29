@@ -30,6 +30,8 @@ GROUPS: dict[str, str] = {
     "retrieval-lab": "vkm_corpus.retrieval_lab.cli",  # J: retrieval benchmark (derived, experimental)
     "embed": "vkm_corpus.embeddings.cli",                # K: embeddings as versioned derived artifacts
     "retrieval-service": "vkm_corpus.retrieval_service.cli",  # K: RX580 dense + late-interaction service
+    "nav": "vkm_corpus.navigation.cli",                  # N: navigation layer (outlines, sections, formulas, concepts)
+    "catalogues": "vkm_corpus.catalogues.cli",           # topic dossier: PUBLIC evidence catalogues as a DuckDB pack
 }
 
 

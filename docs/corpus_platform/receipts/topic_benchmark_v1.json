@@ -1,0 +1,544 @@
+{
+ "receipt": "vkm.topic_benchmark/1",
+ "benchmark": "TOPIC_BENCHMARK_V1",
+ "agent": "Q",
+ "date": "2026-09-28",
+ "branch": "claude/agent-q-topic-benchmark-2026-09-28",
+ "status": "RUN: 4 pre-registered systems + 3 post-hoc diagnostics; dossier adapter NOT_RUN (reconstruct_topic not deployed yet)",
+ "preregistration": {
+  "commits_before_first_run": [
+   "c80eae1",
+   "a7dc73f",
+   "3582350"
+  ],
+  "first_run_started": "2026-09-28T18:04:50Z",
+  "set_sha256": "4dbc595723cbb9ed3e59d1a71cbe84301c9554ecedc41b7f3abf654258bac2b1",
+  "queries_sha256": "7619e469f86959503cd8e2fa306377750228c08db1489a9fabf9220bc47ad1e5",
+  "page_mapping_sha256": "d76fc8568e63264f1038d285eb1b975cf227aeb721722cd8e5867f1defb8a814",
+  "spec_sha256": "8d43e0e4a36474b1b3a32f35a2a6b517571cdae64353da3cadbafffffe6cb898"
+ },
+ "snapshots": {
+  "canonical": "snap-20260928T160616Z-5d669f09",
+  "nav": "snap-20260928T160616Z-5d669f09"
+ },
+ "set": {
+  "topics": 117,
+  "queries": 351,
+  "targets": 886,
+  "sources": 39,
+  "tracks": {
+   "MODEL_FAMILY": 45,
+   "PROCESS": 72
+  },
+  "targets_by_mapping": {
+   "DOCX_ANCHOR": 9,
+   "DOCX_DRIFT": 9,
+   "IDENTITY": 831,
+   "IDENTITY+ANCHOR_ALT": 37
+  }
+ },
+ "page_mapping": {
+  "rule": "pdf_page = canonical page_index (identity) for PDF and DJVU sources, 2-up spreads included; quote anchoring on pages pdf_page-3..+3 (token containment >= 0.6, margin >= 0.2 over the identity page) adds the anchored page as an alternate; DOCX (render-dependent pagination): anchored page, else the drift of the nearest confidently located record; duplicate-group pages are alternates",
+  "records_checked": 1142,
+  "same_page": 891,
+  "anchored_adjacent": 35,
+  "weak": 37,
+  "not_text_verifiable": 179,
+  "identity_share_of_verifiable": 0.9252
+ },
+ "run": {
+  "where": "CORE, inside the API container (docker exec), read-only API calls, token never printed",
+  "concurrency": 1,
+  "raw_runs": [
+   {
+    "sha256": "2afc7ee9547fd7b3da944d67d0d570b97264d15be8d819c05b76b8e330706bc6",
+    "lines": 1655
+   },
+   {
+    "sha256": "05f67b65ea55f8091529d37ba745dc29811f369f80e5c72a67650a9ac48c04e1",
+    "lines": 353
+   },
+   {
+    "sha256": "7cf18f6f2bb8a5357456f54b8c5e880eef432b8bb22a03f32605b7aba97b339b",
+    "lines": 704
+   }
+  ],
+  "raw_runs_location": "host-local work directory of WORKSTATION ($VKM_WORK/topic_v1), IDs only",
+  "calls_and_errors": [
+   {
+    "calls": 3728,
+    "errors": 5,
+    "retries": 0
+   },
+   {
+    "calls": 352,
+    "errors": 0,
+    "retries": 0
+   },
+   {
+    "calls": 2458,
+    "errors": 0,
+    "retries": 0
+   }
+  ],
+  "errors_note": "5 errors = /v1/nav/sections answers 404 NOT_FOUND when nothing matches",
+  "latency_ms": {
+   "bm25": {
+    "p50_ms": 48.1,
+    "p95_ms": 60.9
+   },
+   "hybrid_late": {
+    "p50_ms": 168.5,
+    "p95_ms": 227.1
+   },
+   "hybrid_nolate": {
+    "p50_ms": 94.8,
+    "p95_ms": 117.7
+   },
+   "nav": {
+    "p50_ms": 625.5,
+    "p95_ms": 701.9
+   },
+   "hybrid_late_pool": {
+    "p50_ms": 149.0,
+    "p95_ms": 217.8
+   },
+   "hybrid_late_kinds": {
+    "p50_ms": 260.6,
+    "p95_ms": 308.1
+   },
+   "hybrid_late_drill": {
+    "p50_ms": 711.6,
+    "p95_ms": 882.2
+   }
+  }
+ },
+ "metrics_mean_over_351_queries": {
+  "bm25": {
+   "page_recall@10": 0.1114,
+   "page_recall@20": 0.1534,
+   "page_recall@50": 0.2046,
+   "mrr@50": 0.2077,
+   "source_recall@10": 0.3476,
+   "section_hit@10": 0.51,
+   "section_pages@10": 76.641,
+   "success@10": 0.3989
+  },
+  "hybrid_late": {
+   "page_recall@10": 0.156,
+   "page_recall@20": 0.2166,
+   "page_recall@50": 0.3031,
+   "mrr@50": 0.2554,
+   "source_recall@10": 0.4279,
+   "section_hit@10": 0.6467,
+   "section_pages@10": 88.7094,
+   "success@10": 0.5185
+  },
+  "hybrid_nolate": {
+   "page_recall@10": 0.1354,
+   "page_recall@20": 0.1851,
+   "page_recall@50": 0.2879,
+   "mrr@50": 0.2417,
+   "source_recall@10": 0.3907,
+   "section_hit@10": 0.5869,
+   "section_pages@10": 90.5185,
+   "success@10": 0.4501
+  },
+  "nav": {
+   "page_recall@10": 0.0524,
+   "page_recall@20": 0.0839,
+   "page_recall@50": 0.126,
+   "mrr@50": 0.0762,
+   "source_recall@10": 0.1632,
+   "section_hit@10": 0.4387,
+   "section_pages@10": 123.7151,
+   "success@10": 0.1966
+  },
+  "hybrid_late_pool": {
+   "page_recall@10": 0.3068,
+   "page_recall@20": 0.4035,
+   "page_recall@50": 0.5589,
+   "mrr@50": 0.5017,
+   "source_recall@10": 0.685,
+   "section_hit@10": 0.9202,
+   "section_pages@10": 107.1083,
+   "success@10": 0.792
+  },
+  "hybrid_late_kinds": {
+   "page_recall@10": 0.1438,
+   "page_recall@20": 0.201,
+   "page_recall@50": 0.2659,
+   "mrr@50": 0.2287,
+   "source_recall@10": 0.4062,
+   "section_hit@10": 0.5983,
+   "section_pages@10": 87.9145,
+   "success@10": 0.4786
+  },
+  "hybrid_late_drill": {
+   "page_recall@10": 0.156,
+   "page_recall@20": 0.2074,
+   "page_recall@50": 0.2992,
+   "mrr@50": 0.2519,
+   "source_recall@10": 0.4279,
+   "section_hit@10": 0.6467,
+   "section_pages@10": 88.7094,
+   "success@10": 0.5185
+  }
+ },
+ "acceptance": {
+  "bm25": {
+   "pass": false,
+   "success@10": false,
+   "source_recall@10": false,
+   "page_recall@50": false
+  },
+  "hybrid_late": {
+   "pass": false,
+   "success@10": false,
+   "source_recall@10": false,
+   "page_recall@50": false
+  },
+  "hybrid_nolate": {
+   "pass": false,
+   "success@10": false,
+   "source_recall@10": false,
+   "page_recall@50": false
+  },
+  "nav": {
+   "pass": false,
+   "success@10": false,
+   "source_recall@10": false,
+   "page_recall@50": false
+  },
+  "hybrid_late_pool": {
+   "pass": false,
+   "success@10": false,
+   "source_recall@10": true,
+   "page_recall@50": true
+  },
+  "hybrid_late_kinds": {
+   "pass": false,
+   "success@10": false,
+   "source_recall@10": false,
+   "page_recall@50": false
+  },
+  "hybrid_late_drill": {
+   "pass": false,
+   "success@10": false,
+   "source_recall@10": false,
+   "page_recall@50": false
+  }
+ },
+ "comparisons_primary": {
+  "hybrid_late - hybrid_nolate | page_recall@20": {
+   "n_topics": 117,
+   "delta": 0.0315,
+   "ci_lo": 0.0167,
+   "ci_hi": 0.0465,
+   "p_value": 0.0001,
+   "p_holm": 0.0006
+  },
+  "hybrid_late - hybrid_nolate | mrr@50": {
+   "n_topics": 117,
+   "delta": 0.0136,
+   "ci_lo": -0.0138,
+   "ci_hi": 0.041,
+   "p_value": 0.34047,
+   "p_holm": 0.34047
+  },
+  "hybrid_late - nav | page_recall@20": {
+   "n_topics": 117,
+   "delta": 0.1327,
+   "ci_lo": 0.1046,
+   "ci_hi": 0.1635,
+   "p_value": 0.0001,
+   "p_holm": 0.0006
+  },
+  "hybrid_late - nav | mrr@50": {
+   "n_topics": 117,
+   "delta": 0.1792,
+   "ci_lo": 0.1392,
+   "ci_hi": 0.2192,
+   "p_value": 0.0001,
+   "p_holm": 0.0006
+  },
+  "hybrid_late - bm25 | page_recall@20": {
+   "n_topics": 117,
+   "delta": 0.0632,
+   "ci_lo": 0.0431,
+   "ci_hi": 0.0843,
+   "p_value": 0.0001,
+   "p_holm": 0.0006
+  },
+  "hybrid_late - bm25 | mrr@50": {
+   "n_topics": 117,
+   "delta": 0.0477,
+   "ci_lo": 0.0196,
+   "ci_hi": 0.0762,
+   "p_value": 0.0017,
+   "p_holm": 0.0034
+  }
+ },
+ "post_hoc": {
+  "note": "not pre-registered, diagnostic: hybrid_late_pool = hybrid_late restricted to the 39 sources of the evidence sweep (where the targets live; separates corpus breadth from ranking inside the judged sources); hybrid_late_kinds = pages, figures, tables and formulas as hits mapped to their pages; hybrid_late_drill = first 10 pages, then the first 5 sources searched alone (10 pages each, round-robin) up to 40, then the rest",
+  "comparisons": {
+   "hybrid_late_pool - hybrid_late | page_recall@20": {
+    "n_topics": 117,
+    "delta": 0.1869,
+    "ci_lo": 0.1615,
+    "ci_hi": 0.213,
+    "p_value": 0.0001,
+    "p_holm": 0.0006
+   },
+   "hybrid_late_pool - hybrid_late | mrr@50": {
+    "n_topics": 117,
+    "delta": 0.2463,
+    "ci_lo": 0.2097,
+    "ci_hi": 0.283,
+    "p_value": 0.0001,
+    "p_holm": 0.0006
+   },
+   "hybrid_late_kinds - hybrid_late | page_recall@20": {
+    "n_topics": 117,
+    "delta": -0.0157,
+    "ci_lo": -0.0263,
+    "ci_hi": -0.0061,
+    "p_value": 0.002,
+    "p_holm": 0.006
+   },
+   "hybrid_late_kinds - hybrid_late | mrr@50": {
+    "n_topics": 117,
+    "delta": -0.0267,
+    "ci_lo": -0.0452,
+    "ci_hi": -0.0095,
+    "p_value": 0.0032,
+    "p_holm": 0.0064
+   },
+   "hybrid_late_drill - hybrid_late | page_recall@20": {
+    "n_topics": 117,
+    "delta": -0.0092,
+    "ci_lo": -0.0253,
+    "ci_hi": 0.0081,
+    "p_value": 0.28837,
+    "p_holm": 0.28837
+   },
+   "hybrid_late_drill - hybrid_late | mrr@50": {
+    "n_topics": 117,
+    "delta": -0.0035,
+    "ci_lo": -0.0054,
+    "ci_hi": -0.0015,
+    "p_value": 0.0005,
+    "p_holm": 0.002
+   }
+  },
+  "top10_share_outside_sweep_sources": {
+   "bm25": 0.706,
+   "hybrid_late": 0.7037,
+   "hybrid_nolate": 0.6934,
+   "nav": 0.6889,
+   "hybrid_late_pool": 0.0,
+   "hybrid_late_kinds": 0.714,
+   "hybrid_late_drill": 0.7037
+  },
+  "exploratory_gains": {
+   "note": "post-hoc, exploratory (not pre-registered): simple remedies measured on the same runs, same 50-page budget",
+   "hybrid_late_page_recall@50": 0.3031,
+   "three_formulations_rrf_page_recall@20": 0.2884,
+   "three_formulations_rrf_page_recall@50": 0.4455,
+   "three_formulations_topics_better_worse_than_single_mean": [
+    91,
+    8
+   ],
+   "rrf_hybrid_late_nav_page_recall@20": 0.1864,
+   "rrf_hybrid_late_nav_page_recall@50": 0.2822,
+   "neighbour_pages_top17_pm1_page_recall@50": 0.2844
+  }
+ },
+ "failure_analysis": {
+  "definition": "target missed = not within the first 50 pages for any of the 3 queries",
+  "deviation": "NO_TEXT counted by the actual page text; the pre-registered flag rule (VECTOR_NO_TEXT / IMAGE_NO_TEXT = file text layer missing, page OCR-ed) is kept in by_cause_preregistered_rule",
+  "registry_methods": "page-level",
+  "hybrid_late": {
+   "n_missed_all_variants": 475,
+   "missed_share": 0.5361,
+   "by_cause": {
+    "DILUTION": 212,
+    "VISUAL_EVIDENCE": 127,
+    "TERMINOLOGY": 70,
+    "OTHER": 52,
+    "NO_TEXT": 8,
+    "LANGUAGE": 3,
+    "OCR_QUALITY": 3
+   },
+   "by_cause_preregistered_rule": {
+    "DILUTION": 173,
+    "VISUAL_EVIDENCE": 106,
+    "NO_TEXT": 77,
+    "TERMINOLOGY": 61,
+    "OTHER": 52,
+    "LANGUAGE": 3,
+    "OCR_QUALITY": 3
+   },
+   "queries_with_zero_page_recall@50": 85,
+   "topics_with_no_target_found": [
+    "PC-16",
+    "PC-17",
+    "PC-35",
+    "PC-50",
+    "PC-53",
+    "PC-72",
+    "MM-NUM"
+   ],
+   "worst_queries": [
+    "TQ-MM-CREEP-0",
+    "TQ-MM-CREEP-2",
+    "TQ-MM-DAMAGE-0",
+    "TQ-MM-DEF-2",
+    "TQ-MM-DEM-1",
+    "TQ-MM-FRAC-0",
+    "TQ-MM-GEOCHEM-0",
+    "TQ-MM-GEODYN-2",
+    "TQ-MM-GPR-0",
+    "TQ-MM-INV-1"
+   ]
+  },
+  "hybrid_late_pool": {
+   "n_missed_all_variants": 234,
+   "missed_share": 0.2641,
+   "by_cause": {
+    "DILUTION": 93,
+    "VISUAL_EVIDENCE": 66,
+    "TERMINOLOGY": 56,
+    "OTHER": 9,
+    "NO_TEXT": 6,
+    "LANGUAGE": 3,
+    "OCR_QUALITY": 1
+   },
+   "by_cause_preregistered_rule": {
+    "DILUTION": 80,
+    "VISUAL_EVIDENCE": 58,
+    "TERMINOLOGY": 47,
+    "NO_TEXT": 36,
+    "OTHER": 9,
+    "LANGUAGE": 3,
+    "OCR_QUALITY": 1
+   },
+   "queries_with_zero_page_recall@50": 15,
+   "topics_with_no_target_found": [],
+   "worst_queries": [
+    "TQ-MM-GEOCHEM-0",
+    "TQ-MM-GEODYN-2",
+    "TQ-MM-INV-1",
+    "TQ-MM-OBS-0",
+    "TQ-MM-OBS-2",
+    "TQ-MM-SCALE-1",
+    "TQ-MM-SCALE-2",
+    "TQ-PC-05-2",
+    "TQ-PC-16-0",
+    "TQ-PC-16-1"
+   ]
+  },
+  "nav": {
+   "n_missed_all_variants": 662,
+   "missed_share": 0.7472,
+   "by_cause": {
+    "DILUTION": 282,
+    "VISUAL_EVIDENCE": 161,
+    "OTHER": 132,
+    "TERMINOLOGY": 69,
+    "NO_TEXT": 7,
+    "LANGUAGE": 5,
+    "SECTION_MISSING": 3,
+    "OCR_QUALITY": 3
+   },
+   "by_cause_preregistered_rule": {
+    "DILUTION": 240,
+    "VISUAL_EVIDENCE": 133,
+    "OTHER": 121,
+    "NO_TEXT": 97,
+    "TERMINOLOGY": 60,
+    "LANGUAGE": 5,
+    "SECTION_MISSING": 3,
+    "OCR_QUALITY": 3
+   },
+   "queries_with_zero_page_recall@50": 205,
+   "topics_with_no_target_found": [
+    "PC-05",
+    "PC-07",
+    "PC-08",
+    "PC-09",
+    "PC-12",
+    "PC-13",
+    "PC-14",
+    "PC-16",
+    "PC-17",
+    "PC-23",
+    "PC-28",
+    "PC-30",
+    "PC-32",
+    "PC-35",
+    "PC-42",
+    "PC-48",
+    "PC-50",
+    "PC-51",
+    "PC-52",
+    "PC-53",
+    "PC-56",
+    "PC-57",
+    "PC-58",
+    "PC-60",
+    "PC-62",
+    "PC-63",
+    "PC-70",
+    "PC-72",
+    "MM-CONTACT",
+    "MM-DEM",
+    "MM-DISS",
+    "MM-INV",
+    "MM-MINE",
+    "MM-NUM",
+    "MM-OBS",
+    "MM-RS",
+    "MM-STAT"
+   ],
+   "worst_queries": [
+    "TQ-MM-BLAST-0",
+    "TQ-MM-BLAST-2",
+    "TQ-MM-CONTACT-0",
+    "TQ-MM-CONTACT-1",
+    "TQ-MM-CONTACT-2",
+    "TQ-MM-CREEP-0",
+    "TQ-MM-DAMAGE-0",
+    "TQ-MM-DAMAGE-2",
+    "TQ-MM-DEF-0",
+    "TQ-MM-DEM-0"
+   ]
+  },
+  "diagnostics": {
+   "hybrid_late_source_recall@50": 0.6497,
+   "hybrid_late_max_pages_of_one_source_in_top50_mean": 12.0028,
+   "hybrid_late_query_misses_with_same_source_retrieved_by_distance": {
+    ">20": 358,
+    "<=2": 399,
+    "3-5": 160,
+    "6-20": 290
+   },
+   "nav_queries_with_empty_section_search_404": 5,
+   "nav_queries_without_concept_match": 0,
+   "nav_levels_of_top5_section_search_results": {
+    "1": 1051,
+    "2": 528,
+    "3": 132,
+    "4": 10
+   },
+   "nav_pages_in_top10_nodes_mean": 123.7151
+  }
+ },
+ "files": {
+  "topic_set_v1.jsonl": "4dbc595723cbb9ed3e59d1a71cbe84301c9554ecedc41b7f3abf654258bac2b1",
+  "metrics_spec_v1.json": "8d43e0e4a36474b1b3a32f35a2a6b517571cdae64353da3cadbafffffe6cb898",
+  "results_v1.json": "d4d81979915c7baddc36341acb74521593bf1a5b333ac928d6b27a8867f3f686",
+  "failure_analysis_v1.json": "648290abf657bc3387e6b2c63b0592f98a0f98b06a5e842f1c4360ae1238868c",
+  "RESULTS_V1.md": "763c76e9711deffa6fd6404f26a312176167e73f8cbb371cd4cb31457eebbf81"
+ }
+}

@@ -193,7 +193,8 @@ def test_failed_page_and_crashed_run_are_visible(dcanon):
 def test_citations_count_entries_and_skip_foreign_pages(dcanon):
     items = _get(dcanon, "/v1/citations/VKM-WRK-001")["items"]
     entries = [i["record"] for i in items if i["envelope"]["object_kind"] == "BIBLIOGRAPHY_ENTRY"]
-    assert sorted(e["status"] for e in entries) == ["CANDIDATE", "LINKED"]
+    # CP-41: the second entry repeats a work's title (>= 20 characters) and year — a strong match, so LINKED too
+    assert sorted(e["status"] for e in entries) == ["LINKED", "LINKED"]
     cited_by = [i for i in items if i["envelope"]["object_kind"] == "WORK"]
     # 005 cites 001 twice (host page and foreign page); only the host entry cites on behalf of 005
     assert [(i["envelope"]["object_id"], i["record"]["n_citing_entries"]) for i in cited_by] == [("VKM-WRK-005", 1)]

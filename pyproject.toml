@@ -60,6 +60,14 @@ retrieval-lab = [
     "scipy>=1.18",
     "einops>=0.8",
 ]
+# navigation layer, concept graph (agent N3): Russian POS patterns and lemmas; without it the builder degrades to
+# Snowball stems (then crude suffix stripping) and records `morphology` in every term row. GPU pair counting uses
+# cuDF/cuGraph when importable (a RAPIDS conda env); they are deliberately not listed here (CORE has no GPU).
+navigation = [
+    "pymorphy3>=2.0.6,<3",
+    "pymorphy3-dicts-ru>=2.4.417150",
+    "snowballstemmer>=3.1,<4",
+]
 # scripts/fetch_models.py (pinned snapshots from infra/models/model_pins.json)
 models = [
     "huggingface_hub>=1.33,<2",
@@ -68,6 +76,7 @@ desktop = [
     "mcp==2.2.0",
     "ezdxf>=1.4",
     "pywin32>=312; sys_platform == 'win32'",
+    "scipy>=1.18",  # vkm-cad v1 pure-Python fallback (Delaunay TIN); tested 1.18.1
 ]
 
 [project.scripts]
@@ -80,6 +89,7 @@ include = ["vkm_world*", "vkm_corpus*", "vkm_cad*", "vkm_drawio*"]
 [tool.setuptools.package-data]
 # non-Python files read at run time (a non-editable install, e.g. the CORE image, has only what is listed here)
 vkm_corpus = ["duckdb/sql/*.sql", "ops/schema.sql"]
+vkm_cad = ["plugin/*.cs"]
 
 [tool.pytest.ini_options]
 addopts = "-ra -p no:cacheprovider"

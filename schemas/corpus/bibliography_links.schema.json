@@ -16,7 +16,9 @@
    "enum": [
     "citing_work_v1",
     "bibliography_match_v1",
+    "bibliography_match_v2",
     "cites_v1",
+    "cites_v2",
     "page_sequence_v1",
     "duplicate_pages_v1",
     "source_scope_v1"
@@ -36,10 +38,11 @@
    "type": "string"
   },
   "MatchStatus": {
-   "description": "Bibliography entry → Work match (H-29): no curated matches in v0.",
+   "description": "Bibliography entry → Work match (H-29, CP-41): no curated matches in v0.\n\nAUTO_EXACT_ID_MATCH: equal DOI or ISBN-13. AUTO_STRONG_MATCH: the normalised title of the entry equals the work's\n(≥ 20 characters) in the same year, or is ≥ 0.90 similar with a shared author surname in the same year — and the\nentry points to no other work at that level. Everything weaker (or ambiguous) stays CANDIDATE.",
    "enum": [
     "CANDIDATE",
     "AUTO_EXACT_ID_MATCH",
+    "AUTO_STRONG_MATCH",
     "REJECTED"
    ],
    "title": "MatchStatus",
@@ -95,7 +98,7 @@
  },
  "$id": "https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/schemas/corpus/bibliography_links.schema.json",
  "additionalProperties": false,
- "description": "Row shape of the SQL view ``bibliography_links`` (DERIVED_VIEW, rule ``bibliography_match_v1``): never stored.\n\n``match_status`` is CANDIDATE or AUTO_EXACT_ID_MATCH (H-29); CITES edges come only from AUTO_EXACT_ID_MATCH.",
+ "description": "Row shape of the SQL view ``bibliography_links`` (DERIVED_VIEW, rule ``bibliography_match_v2``): never stored.\n\n``match_status`` is CANDIDATE, AUTO_EXACT_ID_MATCH or AUTO_STRONG_MATCH (H-29, CP-41); CITES edges come only\nfrom the accepted ones.",
  "properties": {
   "cited_work_id": {
    "pattern": "^VKM-WRK-[0-9]{3}$",
@@ -181,7 +184,7 @@
   },
   "rule_version": {
    "$ref": "#/$defs/DerivedRule",
-   "default": "bibliography_match_v1"
+   "default": "bibliography_match_v2"
   },
   "schema_version": {
    "description": "semver of the dataset schema at write time",

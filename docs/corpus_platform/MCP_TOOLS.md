@@ -9,7 +9,7 @@ H-12, H-13, H-18, H-20, H-38…H-40, H-45, H-47), проект — [проект
 |---|---|---|---|---|
 | `vkm-corpus` | CORE (compose `vkm-core`, сервис `mcp`) | streamable HTTP (stateless, JSON) + bearer | чтение корпуса через VKM API | да |
 | `vkm-corpus-admin` | CORE (сервис `mcp-admin`, профиль `admin`) | streamable HTTP + отдельный bearer | переобработка plan-first | **нет** — только осознанно |
-| `vkm-cad` | WORKSTATION (Windows) | stdio | AutoCAD/Civil 3D: детектор, чтение открытых чертежей, scratch-DXF | да (локально) |
+| `vkm-cad` | WORKSTATION (Windows) | stdio | AutoCAD/Civil 3D: детектор, чтение открытых чертежей, scratch-DXF; v1 — задания без GUI: рисование, команды, LISP, C#, объекты Civil 3D, листы, PDF | да (локально) |
 | `vkm-drawio` | WORKSTATION (Windows) | stdio | детерминированные схемы draw.io | да (локально) |
 
 MCP-серверы корпуса — тонкие адаптеры поверх VKM API (`/v1`): у них нет драйверов DuckDB, Neo4j, OpenSearch и
@@ -82,6 +82,17 @@ PostgreSQL (тест), поэтому «сырой SQL/Cypher» через MCP �
 | `get_artifact` | `artifact_id` | метаданные артефакта | `GET /v1/artifact/{id}` |
 | `list_source_pages` | `source_id`, `from_page`, `to_page`, `limit`, `cursor` | страницы источника | `GET /v1/source/{id}/pages` |
 | `get_corpus_status` | — | снимок и счётчики, сборки проекций, модели реранка и лицензии, задания; только роли хостов | `GET /v1/status` |
+| `concept_paths` | `term_a`, `term_b` (фраза в любой форме или `TRM-…`), `max_len` (1–6, по умолчанию 4), `limit` (≤ 20), `via` (`concepts`, `formulas`, `sections`, `topics`) | кратчайшие пути в графе NAV (Neo4j) через термины, символы формул, формулы, разделы и темы, ранжированные по силе совместной встречаемости; у каждого шага — до трёх ID страниц и счётчики источников; навигация, не причинная цепочка | `GET /v1/nav/graph/paths` |
+| `graph_neighbourhood` | `node_id` (ID NAV: `SEC-`, `TRM-`, `FSY-`, `FPR-`, темы; или любой ID VKM), `depth` (1–2), `limit` (≤ 200) | соседи узла NAV или DOCUMENT, сгруппированные по типу ребра и направлению, с общим числом и сильнейшими соседями (имена, ID страниц); `depth = 2` — соседи соседей | `GET /v1/nav/graph/neighbourhood/{id}` |
+| `reconstruct_topic` | `query`, `budget_chars` (1000–60 000, по умолчанию 12 000), `source_ids` (≤ 20), `paraphrases` (≤ 4) | досье темы «от А до Я» одним вызовом: поиск по формулировкам темы (≤ 5: запрос, перефразы, синонимы и соседи понятия) со слиянием RRF; разделы NAV двумя ярусами — ядро ВКМ (источники каталогов evidence и области ВКМ/СКРУ) и остальное — со страницами, лучшими единицами и сниппетами ≤ 200 знаков; список страниц по ярусам; формулы (номер, «где…», параметры-кандидаты); рисунки и таблицы у найденных страниц; понятие и темы; источники с провенансом и CITES; процессы PC-xx каталогов с записями evidence, модели, конфликты, причинные связи; пробелы UNKNOWN. Текст ответа — markdown-оглавление в пределах бюджета (не JSON), `structured_content` — полный `ApiResponse` (`TOPIC_DOSSIER`). Навигация, не evidence ([NAVIGATION_LAYER.md](NAVIGATION_LAYER.md) §5) | `GET/POST /v1/topic` |
+| `find_topics` | `terms` (1–5 фраз), `limit` (≤ 50), `level` (1–3) | темы поперёк книг (дерево тем без LLM), совпадающие со всеми фразами по леммам и SAME_AS |
+| `get_topic` | `topic_id` (`TOP-…`) | путь к корню, дети, разделы-члены с источниками и страницами, центральные разделы, соседние темы |
+| `similar_sections` | `section_id`, `k` (≤ 50), `other_sources_only` | разделы других книг, ближайшие по смыслу (косинус векторов разделов) |
+| `section_topics` | `section_id` | темы раздела на всех уровнях |
+| `copies_of` | `ref` (единица `u1-…`, страница или блок), `limit` | где тот же текст есть в других источниках: перепечатки, копии, общие аннотации; первичный — подсказка, не авторство |
+| `source_overlap` | `source_id`, `limit` | источники, повторяющие текст данного: общие фрагменты, доли, кто раньше |
+| `find_parameters` | `property`, `material`, `site`, `scale` (LAB/MASSIF/NORMATIVE/MODEL/UNKNOWN), `source_id`, `limit` | кандидаты значений параметров из таблиц и текста с источником, страницей, единицей (как напечатано и СИ), материалом, масштабом; не evidence и не рекомендуемое значение |
+| `parameter_summary` | `property`, `material` | по материалу и масштабу: число кандидатов, источников, страниц и диапазон в СИ — карта, не значение |
 
 Гибридный поиск (этап 2 лаборатории retrieval, §52–55 постановки): ключи слияния — стабильные ID канона: для `PAGE`
 все единицы страницы засчитываются странице (первое вхождение; дубли страниц сворачиваются по `dup_group_id`, как в
@@ -128,12 +139,58 @@ v0 нет. Повтор запроса по той же цели с теми ж�
 | `cad_export_dxf` | scratch | DXF нужной версии (R2000…R2018) с фиксированными датами | `WOULD_OVERWRITE` |
 | `cad_save_copy` | scratch | байтовая копия **сохранённого** файла открытого документа в scratch (sha до и после; несохранённые правки отмечаются) | `CAD_*` |
 
-Правила (H-20): DXF моста — `$INSUNITS = 0` и XDATA `VKM_UNITS=PAGE_PT`, фиксированные даты и GUID заголовка,
+Правила v0 (H-20): DXF моста — `$INSUNITS = 0` и XDATA `VKM_UNITS=PAGE_PT`, фиксированные даты и GUID заголовка,
 `coordinate_space = DRAWING_UNITS`, `crs_status = UNKNOWN_CRS` (`SCHEMATIC` — только с обоснованием, записывается как
-MODEL_CHOICE), `epsg = null`, `review_status = AUTO_EXTRACTED_UNREVIEWED`; CAD-выходы никогда не вход извлечения. Мост
-не запускает AutoCAD, не вызывает команды и не сохраняет документы пользователя; `accoreconsole` и .NET-плагин в v0 не
-используются. Scratch-корень — `VKM_CAD_SCRATCH` или `$VKM_WORK/cad_scratch` (не в PRIVATE, не в каноне, в PUBLIC — только
-в git-ignored `work/`). Векторный артефакт ищется в `$VKM_DATA_ROOT/artifacts`, в `inbox/` scratch-корня и через VKM API.
+MODEL_CHOICE), `epsg = null`, `review_status = AUTO_EXTRACTED_UNREVIEWED`; CAD-выходы никогда не вход извлечения.
+Read-инструменты не вызывают команды и не сохраняют документы пользователя. Scratch-корень — `VKM_CAD_SCRATCH` или
+`$VKM_WORK/cad_scratch` (не в PRIVATE, не в каноне, в PUBLIC — только в git-ignored `work/`). Векторный артефакт ищется в
+`$VKM_DATA_ROOT/artifacts`, в `inbox/` scratch-корня и через VKM API.
+
+### 4.1 v1: задания AutoCAD / Civil 3D без GUI (решения — [AGENT_CAD_V1.md](../implementation_work/AGENT_CAD_V1.md))
+
+| Tool | Класс | Что делает | Канал |
+|---|---|---|---|
+| `cad_capabilities` | read | продукты, каналы (Core Console, .NET, скрытый экземпляр, резерв), виды `cad_exec`, охват API Civil 3D, проверенные команды | — |
+| `cad_job_create` / `cad_job_status` / `cad_job_list` | job / read / read | каталог задания `$VKM_WORK/cad_jobs/<job_id>`, квитанция, прогоны, выходы | — |
+| `cad_exec` | **code** | `scr` (командные строки), `lisp` (значение последнего выражения; в `scr`/`lisp` доступны `(vkm:result v)` и `(vkm:fail "причина")`), `csharp` (операторы C# с `ctx.Doc/Db/Ed/Tr` и `civil`, `return` — результат), `python_com` (скрытый полный AutoCAD: `app`, `doc`, `civil()`) | Core Console; `python_com` — скрытый экземпляр |
+| `cad_query` | **code** | выражение LISP или C# на чертеже задания без сохранения | Core Console |
+| `cad_draw` | job | чертёж из JSON-спецификации (слои, точки, полилинии 2D/3D, окружности, дуги, тексты, штриховки, блоки с атрибутами, размеры) → DXF, по желанию DWG и чертёж задания | ezdxf (+ Core Console) |
+| `cad_convert` | job | DXF ↔ DWG (SAVEAS 2018 / DXFOUT 2000…2018); источник — чертёж задания, файл задания или scratch-документ `scratch:CADS-…/doc.dxf` (векторы PDF корпуса из `cad_import_pdf_vector` → DWG) | Core Console |
+| `c3d_points_from_table` | job | таблица (CSV/TSV, `;` и десятичная запятая, JSON, Parquet или строки) → COGO-точки + группа; копии DXF/JSON; `name_policy` | .NET (Civil 3D) / резерв |
+| `c3d_tin_surface` | job | TIN из группы или точек, структурные линии, внешняя граница, макс. ребро; статистика, DXF треугольников | .NET / резерв |
+| `c3d_contours` | job | горизонтали кратно интервалу, основные — на отдельном слое | .NET / резерв |
+| `c3d_difference_surface` | job | мульда как разность: поверхность объёмов (выемка/насыпь) + dz-TIN и изолинии dz | .NET / резерв |
+| `c3d_alignment_profile` | job | трасса по полилинии (линия наблюдений), профили поверхностей с шагом, CSV + DXF, вид профиля | .NET / резерв |
+| `cad_layout_sheet` | job | лист A4…A0: `DWG To PDF.pc3`, рамка 20/5/5/5 мм, видовой экран 1:N (или вписать), основная надпись по ГОСТ 2.104 (упрощённая) | .NET |
+| `cad_plot_pdf` | job | печать листов (их параметры) или `Model` (границы, вписать) в PDF | Core Console `-PLOT` |
+| `cad_pdf_import` | job | страницы PDF → новые чертежи `-PDFIMPORT` (DWG + DXF + сводка геометрии) | Core Console |
+
+Правила v1:
+
+- только новые документы в каталоге задания; документы пользователя не открываются. Чертёж задания открывается из
+  копии в `runs/Rxxx/` и заменяется только при маркере `END … OK`; входы копируются с SHA-256 до и после;
+- один процесс AutoCAD на все задания (`_engine.lock`); сеть мостом не используется; `/isolate` — профиль моста
+  отдельно от профиля пользователя; каждый прогон пишет аудит побочных эффектов (реестр AutoCAD, файлы профилей);
+- авария (ненулевой код выхода, процесс-репортёр), окно (диалог) или таймаут → дерево процессов задания убивается,
+  ошибка `CAD_ENGINE_CRASHED | CAD_DIALOG_BLOCKED | CAD_RUN_TIMEOUT`; отчёты об авариях не отправляются;
+- в `scr` пустая строка в приглашении повторяет последнюю команду; команду, оставленную в ожидании ввода, эпилог
+  (LISP) обычно отменяет (проверено на `_.LINE`); если команда приняла эпилог как текст, маркера `END` нет →
+  `CAD_SCRIPT_FAILED`, чертёж не меняется;
+- `cad_exec` и `cad_query` исполняют произвольный код с правами пользователя (`destructive_hint = true`) — это
+  ограничители, а не песочница; `python_com` включается только `VKM_CAD_ALLOW_HIDDEN_INSTANCE=1` (полный `acad.exe`
+  меняет профиль пользователя) и отклоняется, пока запущен AutoCAD пользователя. Решение CP-43 (29.09): работаем через
+  консоль, скрытый экземпляр выключен до отдельного решения пользователя;
+- выходы — DERIVED: TIN — INTERPOLATION, остальное — DERIVATION, со списком MODEL_CHOICE; `crs_status = UNKNOWN_CRS`,
+  кроме явного преобразования (`offset | helmert2d | affine2d` с основанием ≥ 10 символов → `EXPLICIT_TRANSFORM`),
+  `epsg = null`, `review_status = AUTO_EXTRACTED_UNREVIEWED`, никогда не вход извлечения; неизвестная отметка точки не
+  заменяется числом;
+- `engine = auto` выбирает Civil 3D (задание C3D, Civil 3D и компилятор C# на месте), иначе резервный путь на Python
+  (`PURE_PYTHON_FALLBACK`, scipy); поверхность обрабатывается тем движком, которым построена.
+
+Ошибки v1: `JOBS_UNAVAILABLE`, `CAD_JOB_NOT_FOUND`, `CAD_ENGINE_UNAVAILABLE`, `CAD_ENGINE_BUSY` (повторить позже),
+`CAD_RUN_TIMEOUT`, `CAD_ENGINE_CRASHED`, `CAD_DIALOG_BLOCKED`, `CAD_SCRIPT_NOT_READ`, `CAD_SCRIPT_FAILED`,
+`HOST_OP_FAILED`, `CIVIL3D_UNAVAILABLE`, `DOTNET_UNAVAILABLE`, `DOTNET_COMPILE_FAILED`, `HIDDEN_INSTANCE_NOT_ALLOWED`,
+`USER_SESSION_RUNNING`, `FALLBACK_UNAVAILABLE`, `INPUT_NOT_FOUND`, `TABLE_FORMAT_ERROR`, `SURFACE_NOT_FOUND`.
 
 ## 5. `vkm-drawio` — схемы draw.io (WORKSTATION)
 
@@ -174,6 +231,8 @@ docs/diagrams/specs/<имя>.spec.json --overwrite` (тест сверяет б�
       "command": "${VKM_PYTHON:-python}",
       "args": ["-m", "vkm_cad.mcp_server"],
       "env": {"PYTHONUTF8": "1", "VKM_WORK": "${VKM_WORK}", "VKM_CAD_SCRATCH": "${VKM_CAD_SCRATCH:-}",
+              "VKM_CAD_JOBS": "${VKM_CAD_JOBS:-}",
+              "VKM_CAD_ALLOW_HIDDEN_INSTANCE": "${VKM_CAD_ALLOW_HIDDEN_INSTANCE:-}",
               "VKM_API_URL": "${VKM_API_URL:-}", "VKM_API_TOKEN": "${VKM_API_TOKEN:-}"}
     },
     "vkm-drawio": {
@@ -197,6 +256,11 @@ docs/diagrams/specs/<имя>.spec.json --overwrite` (тест сверяет б�
 `VKM_PYTHON` — интерпретатор окружения, где пакет установлен (`pip install -e ".[desktop]"` для мостов,
 `".[corpus-services]"` для скриптового клиента). Stdio-серверы пишут логи в stderr и в `$VKM_WORK/logs/*.jsonl`; stdout —
 только протокол (тест).
+
+Переменные `vkm-cad` v1 (все необязательны): `VKM_CAD_JOBS` — корень заданий (по умолчанию `$VKM_WORK/cad_jobs`);
+`VKM_CAD_ALLOW_HIDDEN_INSTANCE=1` — разрешить `python_com` (решение пользователя, §4.1); `VKM_ACAD_INSTALL_DIR` —
+каталог AutoCAD, если реестр не подходит; `VKM_CSC` — путь к `csc.exe`/`csc.dll`; `VKM_CAD_AUDIT=0` — отключить аудит
+побочных эффектов. Резервному пути нужен scipy (`pip install scipy`; проверено 1.18.1).
 
 ## 7. Развёртывание на CORE
 

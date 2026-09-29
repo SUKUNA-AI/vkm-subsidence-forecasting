@@ -25,6 +25,26 @@ ERROR_CODES = frozenset({
     "PAYLOAD_TOO_LARGE",
     "DXF_READ_ERROR",
     "INTERNAL",
+    # v1: jobs, the headless engine (accoreconsole), the .NET host, the hidden instance and the pure-Python fallback
+    "JOBS_UNAVAILABLE",         # jobs root not configured or not allowed
+    "CAD_JOB_NOT_FOUND",
+    "CAD_ENGINE_UNAVAILABLE",   # accoreconsole (headless engine) not found, or not Windows
+    "CAD_ENGINE_BUSY",          # another bridge job holds the engine (one licensed AutoCAD process at a time)
+    "CAD_RUN_TIMEOUT",          # the AutoCAD process did not finish in time and was killed (process tree)
+    "CAD_ENGINE_CRASHED",       # abnormal exit / crash report (CER): the job's processes are killed, nothing promoted
+    "CAD_DIALOG_BLOCKED",       # a window (dialog) of the job's processes appeared: killed, headless runs have no UI
+    "CAD_SCRIPT_NOT_READ",      # the engine never echoed the job script: nothing ran (path, encoding)
+    "CAD_SCRIPT_FAILED",        # the run did not reach its end marker or a step failed: the drawing is not promoted
+    "CIVIL3D_UNAVAILABLE",      # Civil 3D objects need a C3D job and a Civil 3D install (or engine=fallback)
+    "DOTNET_UNAVAILABLE",       # no Roslyn compiler, no .NET runtime reference set or no AutoCAD managed API
+    "DOTNET_COMPILE_FAILED",
+    "HOST_OP_FAILED",           # an operation of the .NET host reported an error
+    "HIDDEN_INSTANCE_NOT_ALLOWED",  # python_com needs VKM_CAD_ALLOW_HIDDEN_INSTANCE=1 (it changes the user profile)
+    "USER_SESSION_RUNNING",     # a user AutoCAD is running: the hidden instance is refused
+    "FALLBACK_UNAVAILABLE",     # scipy missing for the pure-Python fallback
+    "INPUT_NOT_FOUND",
+    "TABLE_FORMAT_ERROR",
+    "SURFACE_NOT_FOUND",
 })
 
 

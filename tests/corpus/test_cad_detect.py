@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from vkm_cad.detect import AUTOCAD_KEY, HKCR, HKCU, HKLM, DetectEnv, SafeRegistry, detect, progids
+from vkm_cad.detect import AUTOCAD_KEY, HKCR, HKCU, HKLM, DetectEnv, SafeRegistry, detect, locate, progids
 
 INSTALL = Path("Z:/Fake/AutoCAD 2026")
 
@@ -125,7 +125,20 @@ def test_dotnet_sdks_and_stub_keys():
     report = detect(_env(reg, sdks="6.0.201 [a]\n8.0.100 [b]\n"))
     assert report["toolchain"]["dotnet_sdks"] == ["6.0.201", "8.0.100"] and report["toolchain"]["net8_sdk"] is True
     assert report["stub_product_keys"] == ["R25.1/ACAD-9104:419"] and len(report["products"]) == 1
-    assert report["capabilities"]["dotnet_plugin"] == "NOT_IN_V0"
+    assert report["capabilities"]["dotnet_plugin"] == "SEE_CAD_CAPABILITIES"
+    assert report["capabilities"]["accoreconsole"] == "AVAILABLE"
+
+
+def test_locate_returns_real_paths_for_internal_use_only():
+    reg = _registry({r"R25.1\ACAD-9101:419": ACAD, r"R25.1\ACAD-9100:419": CIVIL}, civil=True)
+    inst = locate(_env(reg))
+    assert inst is not None and inst.install_dir == INSTALL and inst.accoreconsole == INSTALL / "accoreconsole.exe"
+    assert inst.products == {"ACAD": "ACAD-9101:419", "C3D": "ACAD-9100:419"} and inst.locale == "ru-RU"
+    assert inst.year == 2026 and inst.versions["C3D"] == "13.8.280.0"
+    assert locate(_env(_registry({}))) is None
+    missing = locate(_env(reg, files={INSTALL}))                   # no accoreconsole.exe
+    assert missing is None
+    assert "SerialNumber" not in reg.asked and "NetSupport" not in reg.asked
 
 
 @pytest.mark.parametrize("name", ["SerialNumber", "NetSupport", "StandaloneNetworkType", "ADLMInfoPath",

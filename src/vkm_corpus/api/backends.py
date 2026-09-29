@@ -106,18 +106,27 @@ class OpenSearchBackend:
 
 
 class HybridBackend:
-    """Hybrid search (``vkm_corpus.search.hybrid``): E's BM25 + the vectors alias + the RX580 query encoder. The
-    vectors build ``_meta`` is cached for 30 s; every failure maps to an :class:`ApiFailure` without addresses."""
+    """Hybrid search (``vkm_corpus.search.hybrid``): E's BM25 + the vectors alias + the RX580 query encoder (+ late
+    interaction on request). The vectors build ``_meta`` is cached for 30 s; every failure maps to an
+    :class:`ApiFailure` without addresses. ``VKM_HYBRID_LATE_DEFAULT`` (1/0) overrides the code default of the late
+    stage for requests that do not say (operators switch it without a rebuild)."""
 
     META_TTL_S = 30.0
 
-    def __init__(self, settings: Any, search: OpenSearchBackend | None = None, *, embed: Any = None) -> None:
+    def __init__(self, settings: Any, search: OpenSearchBackend | None = None, *, embed: Any = None,
+                 late_default: bool | None = None) -> None:
+        import os
+
         from vkm_corpus.search.hybrid import EmbedClient
 
         self.settings = settings
         self._search = search or OpenSearchBackend(settings)
         self._embed = embed if embed is not None else EmbedClient(settings.embed_url, settings.embed_token)
         self._meta: tuple[float, dict[str, Any]] | None = None
+        if late_default is None:
+            raw = os.environ.get("VKM_HYBRID_LATE_DEFAULT", "").strip().lower()
+            late_default = {"1": True, "true": True, "on": True, "0": False, "false": False, "off": False}.get(raw)
+        self.late_default = late_default
 
     def _vectors_meta(self, client: Any) -> dict[str, Any]:
         import time
@@ -130,13 +139,19 @@ class HybridBackend:
         return self._meta[1]
 
     def status(self) -> dict[str, Any]:
-        """Query encoder health (RX580 retrieval service); the vectors build is part of the OpenSearch status."""
-        return {"query_encoder": self._embed.health()}
+        """Query encoder health (RX580 retrieval service, with its late-interaction token store) and the late default;
+        the vectors build is part of the OpenSearch status."""
+        from vkm_corpus.search.hybrid import LATE_DEFAULT
+
+        return {"query_encoder": self._embed.health(),
+                "late_default": LATE_DEFAULT if self.late_default is None else self.late_default}
 
     def search(self, request: dict[str, Any]) -> dict[str, Any]:
         from vkm_corpus.search.hybrid import HybridError, HybridRequest, hybrid_search
         from vkm_corpus.search.query import SearchRequestError
 
+        if request.get("late") is None and self.late_default is not None:
+            request = {**request, "late": self.late_default}
         try:
             client = self._search._connect()
             meta = self._vectors_meta(client)
@@ -210,6 +225,82 @@ class Neo4jBackend:
         from vkm_corpus.graph.schema import Namespace
 
         return self._read(read_citations(Namespace(), "out" if direction == "cites" else "in"), work_id=work_id)
+
+    # ---------------------------------------------------------------- NAV graph (agent G): the navigation layer in Neo4j
+    # READ transactions with a timeout (vkm_corpus.graph.nav_query); IDs, short names and page IDs only.
+    def _nav_read(self, query: str, **params: Any) -> list[dict[str, Any]]:
+        from vkm_corpus.graph.nav_query import READ_TIMEOUT_S, timed
+
+        try:
+            records, _, _ = self._connect().execute_query(timed(query, READ_TIMEOUT_S), parameters_=params,
+                                                          database_=self.settings.neo4j_database, routing_="r")
+        except ApiFailure:
+            raise
+        except Exception as exc:  # noqa: BLE001 — no address or credentials in the message
+            name = type(exc).__name__
+            timed_out = "Timeout" in name or "TimedOut" in str(getattr(exc, "code", ""))
+            raise ApiFailure("DEPENDENCY_TIMEOUT" if timed_out else "DEPENDENCY_UNAVAILABLE",
+                             f"NAV graph query failed ({name})", stage="nav_graph", tool="neo4j") from exc
+        return [dict(r) for r in records]
+
+    def nav_state(self) -> dict[str, Any]:
+        from vkm_corpus.graph import nav_schema
+        from vkm_corpus.graph.nav_query import cy_meta
+        from vkm_corpus.graph.schema import Namespace
+
+        rows = self._nav_read(cy_meta(Namespace()), id=nav_schema.META_ID)
+        props = dict(rows[0].get("props") or {}) if rows else {}
+        if not props:
+            return {"state": "EMPTY"}
+        status = props.get("status")
+        return {"state": "READY" if status == "COMPLETE" else ("LOADING" if status == "LOADING" else "FAILED"),
+                "snapshot_id": props.get("snapshot_id"), "run_id": props.get("run_id"),
+                "finished_at": str(props.get("finished_at") or "") or None,
+                "graph_schema_version": props.get("graph_schema_version")}
+
+    def nav_find_terms(self, text: str, keys: list[str], norm: str, limit: int = 5) -> list[dict[str, Any]]:
+        from vkm_corpus.graph.nav_query import cy_find_terms, cy_find_terms_by_name
+        from vkm_corpus.graph.schema import Namespace
+
+        rows = self._nav_read(cy_find_terms(Namespace()), text=text, keys=keys, limit=int(limit))
+        if not rows and norm:
+            rows = self._nav_read(cy_find_terms_by_name(Namespace()), norm=norm, limit=int(limit))
+        return rows
+
+    def nav_paths(self, a: str, b: str, rel_types: list[str], max_len: int, cap: int) -> list[dict[str, Any]]:
+        """All shortest paths: the length first, then the paths (ranked in the database when they are short)."""
+        from vkm_corpus.graph import nav_schema
+        from vkm_corpus.graph.nav_query import cy_paths, cy_shortest_length
+        from vkm_corpus.graph.schema import Namespace
+
+        labels = list(nav_schema.PATH_LABELS)
+        params = {"a": a, "b": b, "rel_types": rel_types, "labels": labels}
+        found = self._nav_read(cy_shortest_length(Namespace(), rel_types, max_len, tuple(labels)), **params)
+        if not found:
+            return []
+        length = int(found[0]["n"])
+        return self._nav_read(cy_paths(Namespace(), rel_types, length, tuple(labels), ordered=length <= 2),
+                              cap=int(cap), **params)
+
+    def nav_neighbourhood(self, node_id: str, layer: str, per_type: int) -> dict[str, Any] | None:
+        from vkm_corpus.graph.nav_query import cy_neighbourhood
+        from vkm_corpus.graph.schema import Namespace
+
+        rows = self._nav_read(cy_neighbourhood(Namespace(), layer), id=node_id, per_type=int(per_type))
+        return rows[0] if rows else None
+
+    def nav_neighbourhood_2(self, ids: list[tuple[str, str]], root: str, per_type: int) -> dict[str, Any]:
+        from vkm_corpus.graph.nav_query import cy_neighbourhood_2
+        from vkm_corpus.graph.schema import Namespace
+
+        out: dict[str, Any] = {}
+        for layer in sorted({layer for _i, layer in ids}):
+            wanted = [i for i, lay in ids if lay == layer]
+            for row in self._nav_read(cy_neighbourhood_2(Namespace(), layer), ids=wanted, root=root,
+                                      per_type=int(per_type)):
+                out[row["mid"]] = row.get("groups") or []
+        return out
+    # ---------------------------------------------------------------- end NAV graph (agent G)
 
 
 # ---------------------------------------------------------------------------------------------------- rerank
