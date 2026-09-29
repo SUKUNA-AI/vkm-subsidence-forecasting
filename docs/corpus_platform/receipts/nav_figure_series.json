@@ -20,11 +20,21 @@
    "src/vkm_corpus/navigation/cli.py, ids.py, store.py (part, rule, datasets, QUERY_FUNCTIONS)",
    "src/vkm_corpus/api/app.py, service.py, envelope.py (GET /v1/nav/figure_series, /v1/nav/figure_series/{ref})",
    "src/vkm_corpus/mcp/servers.py (find_figure_series, get_figure_series)",
-   "infra/core/nightly/mcp_smoke.py, nightly_summary.py, nightly_checks.sh (41 read tools, nightly-mcp-smoke-3)",
+   "infra/core/nightly/mcp_smoke.py, nightly_summary.py, nightly_checks.sh (41 read tools and nightly-mcp-smoke-3 on the branch; 45 and nightly-mcp-smoke-4 after the merge with the platform tip)",
    "src/vkm_corpus/figures/pdf_route.py, calibrate.py, __init__.py (fd-0.1.3 rotated pages, fd-0.1.4 log rule)",
    "src/vkm_corpus/figures/gallery.py (local review gallery)"
   ],
-  "not_touched": "src/vkm_corpus/graph/nav*.py (agent G2); the FIGURE_SERIES graph projection is described in FIGURE_SERIES.md §9"
+  "not_touched": "src/vkm_corpus/graph/nav*.py (agent G2); the FIGURE_SERIES graph projection is described in FIGURE_SERIES.md §9",
+  "merge_with_platform": {
+   "platform_tip": "03031b3",
+   "merge_commit": "e5d0eec",
+   "brings": "agent G2's four NAV tools, agent GS's graph stages (expand_query), agent CH's chart-model bench, agent LB's topic pool labels, the CADFIX fixes",
+   "conflicts": 15,
+   "resolution": "additive: both sides kept in the API routes, service methods, envelope kinds, MCP tools, store query functions, smoke tool list and plan, tests and docs; totals 45 read tools, smoke VERSION nightly-mcp-smoke-4; NAVIGATION_LAYER: graph stages keep §11, figure_series is §12",
+   "line_endings": "every staged blob LF, as the HEAD and platform blobs (112 paths checked by bytes)",
+   "figures_code_changed_by_the_platform": false,
+   "merged_tree_rebuild": "the merged tree rebuilt the part: identical sha256 of all six datasets — the staged bundle stays valid"
+  }
  },
  "environment": {
   "where": "WORKSTATION, WSL archlinux (the source PDFs are in the PRIVATE clone there)",
@@ -678,22 +688,29 @@
   "corpus_suite_wsl": "tests/corpus: 1378 passed, 35 skipped, 2 failed — test_cad_mcp.py (the WSL venv has no ezdxf; vkm-cad not touched), 6 hygiene tests deselected (run with Windows Python)",
   "hygiene_and_leakage_windows": "tests/corpus/test_public_hygiene.py + tests/world/test_foundation.py -k leakage: 8 passed (Windows Python)",
   "world_wsl": "tests/world: 207 passed, 2 skipped (legacy refs not in this clone)",
-  "verify_canonical_repository": "catalogue_sync and the other blocking groups PASS except host_paths, whose only hit is the untracked, git-ignored .claude/settings.local.json of the agent worktree (the harness permission list; not committed, not edited by the agent); frozen and retired references SKIPPED_REF_UNAVAILABLE"
+  "verify_canonical_repository": "catalogue_sync and the other blocking groups PASS except host_paths, whose only hit is the untracked, git-ignored .claude/settings.local.json of the agent worktree (the harness permission list; not committed, not edited by the agent); frozen and retired references SKIPPED_REF_UNAVAILABLE",
+  "merged_tree": {
+   "corpus_suite_wsl": "tests/corpus: 1421 passed, 36 skipped, 2 failed — test_cad_mcp.py only (no ezdxf in the WSL venv; with Windows Python test_cad_mcp.py: 3 passed); 6 hygiene tests deselected",
+   "figure_series_mcp_nightly": "test_nav_figure_series, test_api_figure_series, test_mcp_contract, test_nightly_mcp_smoke: 37 passed",
+   "hygiene_and_leakage_windows": "tests/corpus/test_public_hygiene.py: 6 passed; tests/world/test_foundation.py -k leakage: 2 passed",
+   "world_wsl": "tests/world: 207 passed, 2 skipped",
+   "verify_canonical_repository": "only host_paths FAIL on the untracked, git-ignored .claude/settings.local.json of the agent worktree"
+  }
  },
  "core_deploy_for_coordinator": {
-  "note": "not executed by agent FD2 (nothing written on CORE or EDGE); merge the branch first: the lists edited in parallel by agent G2 conflict additively (see not_done)",
+  "note": "not executed by agent FD2 (nothing written on CORE or EDGE); the branch already contains the platform tip 03031b3 (merge e5d0eec): merge it into the platform branch, then import the bundle",
   "steps": [
    "rsync -a <WORKSTATION bundle>/ core:$VKM_DATA_ROOT/tmp/figure_series_v1/<snapshot_id>/",
    "cp -a $VKM_DATA_ROOT/derived/navigation/<snapshot_id> $VKM_DATA_ROOT/derived/navigation/<snapshot_id>.fs",
    "cd /srv/vkm/infra/core && docker compose --env-file .env --profile jobs run --rm -T --entrypoint python vkm-job -m vkm_corpus.navigation.figure_series import --bundle /data/tmp/figure_series_v1/<snapshot_id> --nav-dir /data/derived/navigation/<snapshot_id>.fs --canon-duckdb /data/duckdb/vkm_corpus.duckdb --dry-run",
    "the same without --dry-run and with --pack (copies byte for byte, merges the manifest, packs nav.duckdb)",
    "swap the directories: <snapshot_id> -> <snapshot_id>.prev, <snapshot_id>.fs -> <snapshot_id>",
-   "deploy the api/mcp image with the merged code; the nightly MCP smoke then expects the merged tool count"
+   "deploy the api/mcp image with the merged code (data first, then the image); the nightly MCP smoke (nightly-mcp-smoke-4) then expects 45 read tools"
   ]
  },
  "not_done": [
   "no push, no merge, nothing written on CORE or EDGE",
-  "merge with the platform branch: 11 files conflict additively with agent G2's four tools (EXPECTED_TOOLS, READ_TOOLS, QUERY_FUNCTIONS, ApiObjectKind, API routes, MCP tools, service methods, counts); both sides use nightly-mcp-smoke-3 — after the union: 45 read tools, a new smoke VERSION",
+  "merge into the platform branch, the CORE import and the deploy: by the coordinator (the branch already contains the platform tip 03031b3)",
   "FIGURE_SERIES graph projection: only described (FIGURE_SERIES.md §9), graph/nav*.py not touched",
   "values are never corrected: thousands separators, power-of-ten labels, second axes are flagged only",
   "colour bars taken for an axis, series drawn with some marker styles, strokes drawn as outlines: not handled",

@@ -640,9 +640,10 @@ def build_read_server(api: ApiClient) -> MCPServer:
             calibrated_only: Annotated[bool, Field(description="only series with both axes calibrated")] = True,
             include_raster: Annotated[bool, Field(description="also the flagged raster dataset (route R, scanned "
                                                               "charts, lower accuracy)")] = False,
-            clean_only: Annotated[bool, Field(description="drop series with a suspect calibration (axis labels "
-                                                          "inside the plot, a second axis, power-of-ten "
-                                                          "labels)")] = False,
+            clean_only: Annotated[bool, Field(description="drop series with a suspect calibration (a second axis, "
+                                                          "axis labels inside the plot or of another panel, "
+                                                          "powers of ten or thousands read as small numbers, an "
+                                                          "axis on three chance labels)")] = False,
             limit: Annotated[int, Field(ge=1, le=50, description="figures")] = 10) -> CallToolResult:
         """Numeric series digitized from the chart-like vector figures of the corpus (subsidence and convergence in
         time, trough profiles, creep curves …): figures with page, caption, axis titles and units as printed,
