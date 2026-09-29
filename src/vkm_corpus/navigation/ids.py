@@ -38,6 +38,8 @@ RULE_VERSIONS: dict[str, str] = {
     "parameters": "parameters_v2",
     # bilingual term dictionary (agent TR)
     "translations": "term_translations_v1",
+    # digitized chart series (agent FD2)
+    "figure_series": "figure_series_v1",
 }
 
 # derived datasets under $VKM_DATA_ROOT/derived/navigation/<snapshot_id>/<name>.parquet
@@ -51,6 +53,8 @@ DATASETS: tuple[str, ...] = (
     "table_structure", "table_cells", "table_columns",
     "parameter_candidates", "parameter_summary",
     "term_translations",
+    "figure_series_figures", "figure_series", "figure_series_points",
+    "figure_series_raster_figures", "figure_series_raster", "figure_series_raster_points",
 )
 
 

@@ -4,7 +4,7 @@
   files (PDF bookmarks, EPUB navigation, DjVu outline) → one JSON per snapshot (:mod:`vkm_corpus.navigation.outline`);
 * ``nav build --duckdb PATH --out DIR [--outlines FILE] [--vectors DIR] [--artifacts DIR] [--inputs DIR]
   [--option PART.KEY=VALUE …] [--part PART[,PART…]|all]`` (parts: sections, formulas, tables, parameters,
-  duplicates, object_duplicates, concepts, translations, topics; a list runs in that order, e.g.
+  duplicates, object_duplicates, concepts, translations, figure_series, topics; a list runs in that order, e.g.
   ``--part tables,parameters``) — derived datasets from a DuckDB copy of the canon (opened read only) →
   ``<DIR>/<dataset>.parquet`` + ``manifest.json`` (rule versions, row counts, sha256, snapshot id, the options
   given to each part);
@@ -48,6 +48,10 @@ PARTS: dict[str, str] = {
     # bilingual term dictionary (agent TR): needs the concepts datasets and, for the embedding methods,
     # --option translations.term_vectors=<file of `nav term-vectors`> (without it: rule-based methods only)
     "translations": "vkm_corpus.navigation.term_dictionary:build",
+    # digitized chart series (agent FD2): route A over the source PDFs — WORKSTATION only (the PRIVATE clone,
+    # $VKM_RESOURCES_ROOT or --option figure_series.resources=…); without it SKIPPED_NO_INPUT. CORE imports the
+    # built datasets: python -m vkm_corpus.navigation.figure_series import. Reads no other part (topics stays last).
+    "figure_series": "vkm_corpus.navigation.figure_series:build",
     "topics": "vkm_corpus.navigation.topics:build",
 }
 MANIFEST_FORMAT = "vkm-nav-manifest-v1"
@@ -102,6 +106,8 @@ def datasets_of(part: str) -> tuple[str, ...]:
             "concepts": ("terms", "term_mentions", "term_edges"),
             "topics": ("section_aggregates", "section_vectors", "topics", "topic_members", "topic_edges"),
             "translations": ("term_translations",),
+            "figure_series": ("figure_series_figures", "figure_series", "figure_series_points",
+                              "figure_series_raster_figures", "figure_series_raster", "figure_series_raster_points"),
             }.get(part, ())
 
 
