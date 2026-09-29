@@ -18,8 +18,13 @@ Rules (CLAUDE.md, SCIENTIFIC_RULES_RU.md): every digitized value is ``DERIVATION
 ``review_status = AUTO_EXTRACTED_UNREVIEWED``, never ``FACT``; a plotted model result is not an observation (the
 series keeps the caption/legend text as printed, classification is a later review step); availability in time is the
 publication date of the source work; nothing here is promoted to evidence.
+
+As a pipeline stage, route A runs as the NAV part ``figure_series`` (:mod:`vkm_corpus.navigation.figure_series`).
+
+Versions: fd-0.1.2 — FD sweep (29.09); fd-0.1.3 — route A reads rotated pages in the displayed frame (agent FD2);
+fd-0.1.4 — a log10 axis only when its labels span ≥ 3× (years and narrow ranges stay linear; agent FD2).
 """
-DIGITIZER_VERSION = "fd-0.1.2"
+DIGITIZER_VERSION = "fd-0.1.4"
 STATUS = "DERIVATION"
 REVIEW_STATUS = "AUTO_EXTRACTED_UNREVIEWED"
 FORBIDDEN_STATUSES = frozenset({"FACT", "REVIEWED_MEASUREMENT", "ACCEPTED_PARAMETER", "ACCEPTED_FORMULA"})

@@ -136,13 +136,20 @@ def _fit(values, pos, kind):
     return a, b, p - (v - a) / b
 
 
+# A log10 scale is tried only when the positive labels span at least this ratio (fd-0.1.4): over a narrow range far
+# from zero (years 1998…2003, 77 900…78 020) log and linear fits are indistinguishable and the log fit won by chance.
+LOG_MIN_RATIO = 3.0
+
+
 def fit_axis(orient: str, labels: list, kind0: str, hmed: float, min_labels: int = 3, max_drop: int = 2,
              method_hint: str | None = None, label_source: str = "NATIVE") -> Axis | None:
-    """``labels``: [text, value, pos, snapped, source]. Linear first, then log10 (positive values); up to
-    ``max_drop`` outliers are dropped (a label of another element that happens to sit in the row)."""
+    """``labels``: [text, value, pos, snapped, source]. Linear first, then log10 (positive values spanning at least
+    ``LOG_MIN_RATIO``); up to ``max_drop`` outliers are dropped (a label of another element that happens to sit in the
+    row)."""
     labels = list(labels)
     dropped = []
-    trials = ["LINEAR"] if kind0 == "DATE" or min(lab[1] for lab in labels) <= 0 else ["LINEAR", "LOG10"]
+    lo, hi = min(lab[1] for lab in labels), max(lab[1] for lab in labels)
+    trials = ["LINEAR"] if kind0 == "DATE" or lo <= 0 or hi / lo < LOG_MIN_RATIO else ["LINEAR", "LOG10"]
     while len(labels) >= min_labels and len({lab[1] for lab in labels}) >= min_labels:
         best = None
         for kind in trials:
