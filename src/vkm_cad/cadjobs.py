@@ -181,6 +181,10 @@ class CadJobs:
         except ToolFailure as exc:
             status = {"CAD_ENGINE_CRASHED": "CRASHED", "CAD_RUN_TIMEOUT": "TIMEOUT",
                       "CAD_DIALOG_BLOCKED": "DIALOG"}.get(exc.code, "FAILED")
+            trace = host_trace_tail(run_dir)
+            if trace:                            # where the .NET host was when the run ended (a crash writes no result)
+                record["host_trace_tail"] = trace
+                exc.details.setdefault("host_trace_tail", trace)
             job.finish_run(run_id, {**record, "status": status, "error_code": exc.code})
             exc.details.setdefault("job_id", job.job_id)
             exc.details.setdefault("run_id", run_id)
@@ -832,6 +836,17 @@ def _file(name: str) -> str:
 
 def _json_bytes(obj: Any) -> bytes:
     return (json.dumps(obj, ensure_ascii=False, indent=1, sort_keys=True, default=str) + "\n").encode("utf-8")
+
+
+def host_trace_tail(run_dir: Path, keep: int = 8) -> list[str]:
+    """The last breadcrumbs of the .NET host (``host_trace.txt``: ``op <name>`` and ``<op>: <stage>`` lines, names
+    only). The host closes the file after every line, so after a crash of the engine the last line is the stage the
+    host had reached."""
+    path = run_dir / "host_trace.txt"
+    if not path.is_file():
+        return []
+    lines = [line.strip() for line in path.read_text(encoding="utf-8-sig", errors="replace").splitlines()]
+    return [line[:200] for line in lines if line][-keep:]
 
 
 def _read_json(path: Path) -> dict[str, Any] | None:

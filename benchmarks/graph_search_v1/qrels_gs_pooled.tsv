@@ -1,0 +1,31 @@
+query_id	level	doc_id	grade	status	basis	label_source	pooled_from	rationale
+T-BIB-004	PAGE	VKM-SRC-239:p0083	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	упомянут ГОСТ на отбор образцов грунтов, не список литературы
+T-BIB-004	PAGE	VKM-SRC-025:p0056	0	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	G1@10	результаты испытаний механических свойств, ссылки на ГОСТ нет
+T-CREEP-003	PAGE	VKM-SRC-067:p0052	2	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@9	обзор ускоренных методов определения предела длительной прочности
+T-CREEP-003	PAGE	VKM-SRC-047:p0160	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	G1@10	определение предела длительной прочности в модели, не ускоренная методика
+T-CREEP-003	PAGE	VKM-SRC-067:p0055	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	ускоренный вибрационный метод, не по релаксации напряжений
+T-CREEP-004	PAGE	VKM-SRC-044:p0095	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	сравнение прочности глинистого и смешанного контактов, без ползучести и ядра Абеля
+T-CREEP-007	PAGE	VKM-SRC-119:p0001	2	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	G1@9,GC@10	закон Нортона: степенная связь скорости установившейся ползучести с напряжением
+T-DMG-001	PAGE	VKM-SRC-054:p0108	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	критерий хрупкости по прочности на сжатие и растяжение, не K_Ic
+T-DMG-001	PAGE	VKM-SRC-054:p0109	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@9	коэффициент хрупкости по Барону, не трещиностойкость
+T-DMG-001	PAGE	VKM-SRC-202:p0171	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@8	формулы коэффициентов хрупкости соляных пород, не K_Ic
+T-DMG-002	PAGE	VKM-SRC-025:p0100	2	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	оценка начальной дефектности образцов соли, тот же раздел пособия
+T-DMG-002	PAGE	VKM-SRC-054:p0068	0	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	G1@7	таблица прочности при разных скоростях нагружения, не о дефектности
+T-ENT-005	PAGE	VKM-SRC-132:p0001	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	статья о затоплении калийных рудников; Саскачеванский бассейн во фрагменте не виден
+T-ENT-008	PAGE	VKM-SRC-014:p0077	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	G1@8,GC@8,E@9,G2@9,G3@9,G4@9,G5@9	упомянут горизонт −143 м шахтного поля, скважины 2081 нет
+T-FORM-003	PAGE	VKM-SRC-014:p0176	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	коэффициент влияния очистных работ на выработку, не соседних параллельных
+T-FORM-006	PAGE	VKM-SRC-067:p0082	2	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@9	удельная энергоёмкость разрушения образцов и её зависимость от длины
+T-FORM-006	PAGE	VKM-SRC-202:p0071	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@7	подпись рисунка с удельной энергоёмкостью разрушения, без формулы
+T-FORM-006	PAGE	VKM-SRC-204:p0078	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	диаграмма деформирования образца без расчёта энергии разрушения
+T-LEX-001	PAGE	VKM-SRC-054:p0016	2	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@9	описаны структуры прослоев галопелитов в соляной толще
+T-LONG-003	PAGE	VKM-SRC-049:p0009	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	E@8,G2@8,G3@8,G4@8,G5@8	общее сравнение прочности на растяжение и сжатие, без характеристик по породам
+T-MATH-003	PAGE	VKM-SRC-089:p0087	2	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	критерий Кулона–Мора в форме касательных и нормальных напряжений
+T-RTECH-001	PAGE	VKM-SRC-104:p0006	2	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	расчёт степени нагружения целиков при двухстадийной отработке, параметры МКЦ
+T-SALT-001	PAGE	VKM-SRC-047:p0078	2	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	таблица модуля Юнга сильвинита, карналлита и каменной соли по испытаниям образцов
+T-SALT-002	PAGE	VKM-SRC-049:p0017	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	ссылка на сравнение прочности соленосных пород с породами ВКМ без значений
+T-SALT-002	PAGE	VKM-SRC-054:p0036	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	G1@8	общие факторы прочности кристаллов соли при растяжении, без значений для ВКМ
+T-SALT-005	PAGE	VKM-SRC-025:p0079	2	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	вывод о связи размеров образцов с зернистостью для достоверных испытаний
+T-SALT-006	PAGE	VKM-SRC-044:p0021	3	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	раздел о зависимости механических свойств соляных пород от влажности
+T-VKM-007	PAGE	VKM-SRC-023:r0025	2	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	общая характеристика района ВКМС и шахтного поля СКРУ-1
+V-GSECT-002	PAGE	VKM-SRC-103:p0058	1	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@10	геологический разрез участка по одной скважине, не Соликамской впадины
+V-PROPT-002	PAGE	VKM-SRC-044:p0038	2	CANDIDATE	POOL_JUDGMENT	LLM_AGENT_GS	GC@9	значения трещиностойкости K_IIc каменной соли и карналлита в тексте, не таблица

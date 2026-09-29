@@ -51,15 +51,26 @@ interaction stage (mLateOn MaxSim), with a per-stage trace (постановка
   a server switch (``VisualRouteSettings.enabled``, ``VKM_HYBRID_VISUAL_ROUTE``: off in code, on after the RX580 gate);
   when on, a missing tower or page index fails loudly. It needs the late stage (``SKIPPED_LATE_OFF`` otherwise: the
   measured E is the late order).
+* Graph stages (agent GS; ``graph``, ``vkm_corpus.search.graph_stages``; GRAPH_SEARCH_V1 ``benchmarks/graph_search_v1``):
+  the NAV structure around E without any model change — G1 ``collapse`` (copies leave the ranking and are listed on
+  the hit), G2 ``cohesion`` (the other pages of a deep section that holds ≥ 2 of the first 10 pages), G3 ``concepts``
+  (synonyms, abbreviations and a narrower term of the query: BM25 legs), G4 ``cites`` (BM25 over the works cited by /
+  citing the top sources), G5 ``topics`` (E's later candidates in the NAV topics of the first pages). A leg never enters
+  E's RRF: after late the first 10 positions stay and the rest is fused with the legs by weighted RRF, or (``window``)
+  the leg widens the late window and the late score decides; G1 runs last. Every stage needs the late stage (the
+  measured configuration) and the navigation layer (without it: a warning and E's answer). Server default
+  :data:`graph_stages.DEFAULTS`; ``VKM_HYBRID_GRAPH`` overrides it (``HybridBackend``).
 * The EDGE text reranker stays the last stage (``rerank_text`` over the returned ``rerank_candidate``).
 """
 from __future__ import annotations
 
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Iterable
 
 from vkm_corpus.retrieval_lab.fusion import rrf
+from vkm_corpus.search import graph_stages as GS
 from vkm_corpus.search.intent import bibliographic_intent, visual_intent
 from vkm_corpus.search.mappings import alias_name
 from vkm_corpus.search.query import (MAX_SIZE, MAX_WINDOW, RRF_K, SearchRequest, SearchRequestError,
@@ -313,10 +324,15 @@ class HybridRequest:
     bib_route: bool | None = None          # None → the bibliographic intent detector decides
     visual_route: bool | None = None       # None → the visual intent detector decides (when the server enables it)
     expansions: tuple[str, ...] = ()       # other wordings (the query in the other language): extra RRF legs
+    graph: tuple[str, ...] | None = None   # graph stages (graph_stages.STAGES); None → the server default
 
     def validate(self) -> None:
         if not self.query or not self.query.strip() or len(self.query) > 512:
             raise SearchRequestError("E_BAD_QUERY", "query must be 1..512 characters")
+        try:
+            self.graph = GS.parse_stages(self.graph)
+        except ValueError as exc:
+            raise SearchRequestError("E_BAD_MODE", str(exc)) from exc       # an unknown graph stage
         self.expansions = tuple(" ".join(str(x).split()) for x in self.expansions or ())
         if len(self.expansions) > MAX_EXPANSIONS or any(not x or len(x) > 512 for x in self.expansions):
             raise SearchRequestError("E_BAD_QUERY", f"at most {MAX_EXPANSIONS} expansions of 1..512 characters")
@@ -553,19 +569,65 @@ def late_order(fused: list[tuple[str, float]], kind_of: dict[str, str], results:
 
 
 # ---------------------------------------------------------------- search
+def _graph_bm25(client: Any, req: HybridRequest, prefix: str):
+    """BM25 page search for the graph legs (G3 wordings, G4 sources): the request's filters (a source list meets the
+    request's own ``source_id`` filter), duplicates collapsed as in E's leg; → page ids in rank order."""
+    def run(text: str, source_ids: list[str] | None, depth: int) -> list[str]:
+        filters = dict(req.filters)
+        if source_ids is not None:
+            own = filters.get("source_id")
+            allowed = None if not own else set(own if isinstance(own, (list, tuple)) else [own])
+            ids = [s for s in source_ids if allowed is None or s in allowed]
+            if not ids:
+                return []
+            filters["source_id"] = ids
+        bm = search(client, SearchRequest(query=text, kinds=("PAGE",), filters=filters, size=min(int(depth), MAX_SIZE),
+                                          include_duplicates=req.include_duplicates, exact=req.exact), prefix)
+        return [h.id for h in bm.hits]
+    return run
+
+
 def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str, *,
                   meta: dict[str, Any] | None = None, visual: VisualRouteSettings | None = None,
-                  vmeta: Any = None) -> dict[str, Any]:
-    """BM25 + dense → RRF (→ late MaxSim when ``req.late``) (→ the visual route's RRF with the page-image channel);
-    hits carry ids, the per-stage trace and E's highlights/best blocks when BM25 found them."""
+                  vmeta: Any = None, graph: Any = None, graph_defaults: Iterable[str] | None = None,
+                  graph_params: GS.GraphParams | None = None) -> dict[str, Any]:
+    """BM25 + dense → RRF (→ late MaxSim when ``req.late``) (→ the graph stages' legs) (→ the visual route's RRF with
+    the page-image channel) (→ G1 collapse); hits carry ids, the per-stage trace and E's highlights/best blocks when
+    BM25 found them. ``graph`` is a :class:`graph_stages.GraphSignals` (the navigation layer)."""
     req.validate()
     timings: dict[str, float] = {}
     t0 = time.perf_counter()
+    grun = GS.GraphRun(GS.resolve(req.graph, graph_defaults), graph_params or GS.GraphParams(), graph,
+                       bm25=_graph_bm25(client, req, prefix), explicit=req.graph is not None)
+    grun.gate(page_kind="PAGE" in req.kinds, late=bool(req.late))
+    pool = ThreadPoolExecutor(max_workers=3) if grun.on("concepts") or grun.on("cites") else None
+    try:
+        return _hybrid_search(client, embed, req, prefix, meta=meta, visual=visual, vmeta=vmeta, grun=grun,
+                              pool=pool, timings=timings, t0=t0)
+    finally:
+        if pool is not None:
+            pool.shutdown(wait=False, cancel_futures=True)
+
+
+def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str, *, meta: dict[str, Any] | None,
+                   visual: VisualRouteSettings | None, vmeta: Any, grun: GS.GraphRun, pool: ThreadPoolExecutor | None,
+                   timings: dict[str, float], t0: float) -> dict[str, Any]:
+    gp = grun.params
+
+    def concepts_task() -> tuple[list[str], list[list[str]]]:
+        texts = grun.wordings(req.query)
+        return texts, [grun.bm25(x, None, gp.concepts_depth) for x in texts]
+
+    # G3: the other wordings (NAV) and their BM25 legs start at once, off the critical path (they need neither the
+    # encoder nor E's legs)
+    word_future = pool.submit(concepts_task) if pool is not None and grun.on("concepts") else None
+    t1 = time.perf_counter()
     meta = meta or vectors_meta(client, prefix)
-    timings["vectors_meta"] = round((time.perf_counter() - t0) * 1e3, 2)
+    timings["vectors_meta"] = round((time.perf_counter() - t1) * 1e3, 2)
+    t1 = time.perf_counter()
     q = embed.embed_dense(req.query)
     check_encoder(meta, q)
-    timings["embed"] = round((time.perf_counter() - t0) * 1e3 - timings["vectors_meta"], 2)
+    timings["embed"] = round((time.perf_counter() - t1) * 1e3, 2)
     # query expansions (the query in the other language, agent TR): their own BM25 and dense legs in the same RRF;
     # the late stage keeps scoring the original query
     xq: list[tuple[str, QueryVector]] = []
@@ -659,11 +721,45 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                           "late_page_score": "max MaxSim over all units of the page, BIB_ENTRY included"})
     fused = rrf(rankings, k=req.rrf_k)
     fused_rank = {key: i for i, (key, _s) in enumerate(fused, 1)}
+    # G4: the sources cited by / citing the RRF top sources → a BM25 leg over their pages (runs during late)
+    cite_sources = grun.seed([key for key, _s in fused if kind_of.get(key) == "PAGE"])
+    cite_future = pool.submit(grun.bm25, req.query, cite_sources, gp.cites_depth) if pool and cite_sources else None
+
+    def collect(post: bool) -> None:
+        """Wait for the graph legs of one fusion point (``post`` = after late; else the window legs)."""
+        t1 = time.perf_counter()
+        if word_future is not None and (gp.concepts_mode == "post") == post and "concepts" not in grun.legs:
+            try:
+                texts, lists = word_future.result()
+                grun.concepts_leg(texts, lists)
+            except Exception as exc:  # noqa: BLE001 - a failed extra leg never sinks E's answer
+                grun.status["concepts"] = "FAILED"
+                warnings.append(f"GRAPH_CONCEPTS_LEG_FAILED: {type(exc).__name__}")
+        if cite_future is not None and (gp.cites_mode == "post") == post and "cites" not in grun.legs:
+            try:
+                grun.cites_leg(cite_future.result())
+            except Exception as exc:  # noqa: BLE001
+                grun.status["cites"] = "FAILED"
+                warnings.append(f"GRAPH_CITES_LEG_FAILED: {type(exc).__name__}")
+        timings["graph_legs_" + ("post" if post else "window")] = round((time.perf_counter() - t1) * 1e3, 2)
+
     late_stage: dict[str, Any] | str = "NOT_RUN (late=false; MaxSim over token vectors on the RX580 with late=true)"
     order, late_rank, late_results = fused, {}, {}
+    window_added: dict[str, str] = {}
     if req.late and fused:
-        t1 = time.perf_counter()
         head = fused[:req.late_candidates]
+        if word_future is not None or cite_future is not None:
+            collect(post=False)
+            wpages = grun.window([key for key, _s in head if kind_of.get(key) == "PAGE"])
+            window_added = {p: grun.window_added[p] for p in wpages if p in grun.window_added}
+            if window_added:
+                for p in window_added:
+                    kind_of.setdefault(p, "PAGE")
+                taken = set(window_added)
+                rrf_of = dict(fused)
+                head = head + [(p, rrf_of.get(p, 0.0)) for p in window_added]
+                fused = head + [(key, s) for key, s in fused[req.late_candidates:] if key not in taken]
+        t1 = time.perf_counter()
         page_excl = () if bib_status == "APPLIED" else PAGE_EXCLUDED_UNIT_KINDS
         lr = embed.late_scores(req.query, [{"id": key, "kind": kind_of[key]} for key, _s in head],
                                page_exclude_kinds=page_excl)
@@ -683,6 +779,21 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                                      "route)" if bib_status == "APPLIED" else "max MaxSim over the units of the page "
                                      f"except {', '.join(PAGE_EXCLUDED_UNIT_KINDS)} (CP-42)"),
                       "page_exclude_kinds": list(page_excl), "timings_ms": lr.timings_ms}
+        if window_added:
+            late_stage["graph_window_added"] = len(window_added)
+        # graph legs after late: the first positions stay, the rest is fused with the legs (graph_stages.fuse_post)
+        if any(grun.on(s) for s in GS.PAGE_STAGES):
+            collect(post=True)
+            t1 = time.perf_counter()
+            pages = [key for key, _s in order if kind_of.get(key) == "PAGE"]
+            new_pages = grun.after_late(pages)
+            if new_pages != pages:
+                for p in new_pages:
+                    kind_of.setdefault(p, "PAGE")
+                score_of = dict(order)
+                order = [(key, score_of.get(key, 0.0)) for key in
+                         GS.on_pages([key for key, _s in order], kind_of, new_pages)]
+            timings["graph_post"] = round((time.perf_counter() - t1) * 1e3, 2)
     vis_status, vintent = visual_route_status(req, visual)
     vis_stage: dict[str, Any] = {"status": vis_status, "cues": list(vintent.cues)}
     vis_rank: dict[str, int] = {}
@@ -735,6 +846,21 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                           "new_pages": sum(1 for p, _s in vis_list if p not in before), "depth": req.candidates,
                           "fusion": f"RRF(k={req.rrf_k}) of E's top-{req.candidates} pages (served order) and the "
                                     f"page-image leg's top-{req.candidates}"})
+    # G1: copies leave the ranking (last step, every kind) and are listed on the hit that stays
+    if grun.on("collapse"):
+        t1 = time.perf_counter()
+        kept = set(grun.finish([key for key, _s in order], kind_of))
+        order = [(key, s) for key, s in order if key in kept]
+        timings["graph_collapse"] = round((time.perf_counter() - t1) * 1e3, 2)
+    for fut in (word_future, cite_future):          # a leg that no fusion point waited for (no RRF result at all)
+        if fut is not None and not fut.done():
+            try:
+                fut.result()
+            except Exception:  # noqa: BLE001 - its answer is not used
+                pass
+    for key, value in list(grun.timings.items()):
+        timings[f"graph_{key}" if not key.startswith("graph_") else key] = value
+    warnings += grun.warnings
     fused_score = dict(fused)
     ranks = {name: {key: i for i, (key, _s) in enumerate(lst, 1)} for name, lst in rankings.items()}
     scores = {name: dict(lst) for name, lst in rankings.items()}
@@ -773,6 +899,9 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                           "vis_score": None if key not in vis_scores else round(vis_scores[key], 6),
                           "visual_rrf_score": None if key not in vis_rrf else round(vis_rrf[key], 8),
                           "final_rank": rank})
+        gtrace = grun.trace(key)
+        if gtrace:
+            trace["graph"] = gtrace
         if dh is not None:
             trace["dense_unit"] = {"unit_id": dh.unit_id, "unit_kind": dh.unit_kind, "object_ids": dh.object_ids}
         src = dh.source if dh is not None else vis_src.get(key, {})
@@ -790,6 +919,8 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
             "vectors_index": meta["index"], "vectors_build_id": meta["build_id"],
             "highlights": list(bmh.highlights) if bmh else [], "best_blocks": list(bmh.best_blocks) if bmh else [],
             "duplicates": list(bmh.duplicates) if bmh else [], "trace": trace}
+        if grun.on("collapse") or grun.status.get("collapse") == "NOT_TRIGGERED":
+            hit["copies"] = list(grun.copies.get(key, []))
         hits.append(hit)
     timings["total"] = round((time.perf_counter() - t0) * 1e3, 2)
     routes = [name for name, st in (("bibliographic", bib_status), ("visual", vis_status)) if st == "APPLIED"]
@@ -810,5 +941,6 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                                                                           for leg in ("bm25", "dense")],
                                      "fusion": "extra RRF legs of the expansions; the late stage scores the original "
                                                "query"} if xq else "NOT_RUN",
+                       "graph": grun.record(),
                        "rerank": "NOT_RUN here (EDGE text reranker: rerank_text over rerank_candidate)"},
             "timings_ms": timings}

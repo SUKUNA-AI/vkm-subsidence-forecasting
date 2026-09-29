@@ -37,6 +37,8 @@ ApiObjectKind = Literal["ARTIFACT", "PROCESSING_RUN", "JOB", "RERANK_RESULT", "S
                         "NAV_PARAMETERS", "NAV_PARAMETER_SUMMARY",
                         # term dictionary (agent TR): RU/EN/DE equivalents, synonyms, abbreviations — navigation
                         "NAV_TRANSLATION",
+                        # structured tables (agent TB) and repeated figures/tables/formulas (agent U2), served by G2
+                        "NAV_TABLE", "NAV_TABLES", "NAV_OBJECT_COPIES", "NAV_SHARED_FORMULAS",
                         # digitized chart series (agent FD2): DERIVATION values with errors — navigation
                         "NAV_FIGURE_SERIES", "NAV_FIGURE_SERIES_LIST",
                         # topic dossier (reconstruct_topic): NAV + search + PUBLIC catalogues, navigation not evidence

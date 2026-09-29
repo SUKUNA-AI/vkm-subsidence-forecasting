@@ -3,8 +3,9 @@
 
 * ``concept_paths(term_a, term_b, max_len, limit, via)`` — all shortest paths between two terms through ``Term``,
   ``FormulaSymbol``, ``Formula``, ``NavSection`` and ``NavTopic`` (relationship families ``concepts``, ``formulas``,
-  ``sections``, ``topics``), ranked among equals by the product of hop strengths (NPMI × support for co-occurrence,
-  rank for mentions, match quality for symbol links); every hop carries up to three page IDs;
+  ``sections``, ``topics``, ``dictionary``), ranked among equals by the product of hop strengths (NPMI × support for
+  co-occurrence, rank for mentions, match quality for symbol links, the estimated precision of a dictionary pair);
+  every hop carries up to three page IDs;
 * ``graph_neighbourhood(node_id, depth, limit)`` — edges of any NAV or DOCUMENT node grouped by type and direction
   (total count + the strongest neighbours), and at depth 2 the neighbours of those neighbours.
 
@@ -26,22 +27,31 @@ MAX_PATH_LEN = 6
 PATH_CAP = 200
 NAME_CHARS = 90
 NOTE = ("NAV graph (DERIVED, AUTO_EXTRACTED_UNREVIEWED): a path or a neighbour is a navigation hint — terms discussed "
-        "in the same sections, a symbol defined in a formula's where-clause, a textual reference — never a physical "
-        "or causal claim. Read the pages to answer.")
+        "in the same sections, a symbol defined in a formula's where-clause, a textual reference, a dictionary pair "
+        "(translation, synonym, abbreviation), a table or a printed value naming a property, a repeated figure — "
+        "never a physical or causal claim. Read the pages to answer.")
 
 NODE_KEYS: tuple[str, ...] = (
     "id", "lemma", "title", "numbering", "symbol", "definition", "unit", "label", "source_id", "page_id",
     "page_index", "page_start_id", "page_end_id", "level", "df_units", "df_sources", "value_text", "block_type",
-    "formula_kind", "language")
+    "formula_kind", "language",
+    # structured tables, parameter values, object duplicate groups, dictionary-only terms
+    "table_label", "table_number", "caption", "property_key", "property_label", "material", "unit_raw", "method",
+    "object_type", "kind", "n_members", "dictionary_only")
 REL_KEYS: tuple[str, ...] = (
     "npmi", "n_units", "n_sources", "examples", "page_ids", "tf", "tfidf", "rank_in_term", "rank_in_section", "kind",
     "match", "n_formulas", "definition_block_id", "definition", "unit", "similarity", "cosine", "weight",
-    "number_text", "block_id", "deepest", "equation_number", "page_id", "page_index", "rule_version")
+    "number_text", "block_id", "deepest", "equation_number", "page_id", "page_index", "rule_version",
+    # term dictionary, tables and parameter values, object duplicates
+    "score", "methods", "status", "from_language", "to_language", "example_page_ids", "property_key",
+    "property_keys", "n_columns", "n_rows", "in_caption", "table_row", "table_col", "is_primary")
 KIND_OF_LABEL: dict[str, str] = {
     "Term": "TERM", "NavSection": "SECTION", "FormulaSymbol": "SYMBOL", "ParameterCandidate": "PARAMETER",
-    "NavTopic": "TOPIC", "NavMeta": "NAV_META", "Formula": "FORMULA", "Page": "PAGE", "Block": "BLOCK",
+    "NavTopic": "TOPIC", "NavMeta": "NAV_META", "NavTable": "STRUCTURED_TABLE", "ParameterValue": "PARAMETER_VALUE",
+    "ObjectDupGroup": "DUPLICATE_GROUP", "Formula": "FORMULA", "Page": "PAGE", "Block": "BLOCK",
     "Source": "SOURCE", "Work": "WORK", "Figure": "FIGURE", "Table": "TABLE", "BibliographyEntry": "BIBLIOGRAPHY_ENTRY",
     "Author": "AUTHOR", "Venue": "VENUE"}
+DICTIONARY_DEFAULT_STRENGTH = 0.8
 
 
 def timed(text: str, timeout: float | None) -> Any:
@@ -75,20 +85,25 @@ def cy_meta(ns: Namespace) -> str:
             f"MATCH (m:{q(ns.label(N.META_LABEL))} {{id: $id}}) RETURN properties(m) AS props, NULL AS age")
 
 
+_TERM_FIELDS = ("t.id AS id, t.lemma AS lemma, t.lemma_key AS lemma_key, t.df_units AS df_units, "
+                "t.df_sources AS df_sources, t.language AS language, t.kind AS kind, "
+                "t.dictionary_only AS dictionary_only")
+
+
 def cy_find_terms(ns: Namespace) -> str:
+    # dictionary-only terms have no df_units: they rank after every term of the concept graph (a null sorts first in
+    # a descending order)
     return (f"// vkm-nav:find-terms\n"
             f"MATCH (t:{q(ns.label('Term'))}) WHERE t.id = $text OR t.lemma_key IN $keys\n"
-            f"RETURN t.id AS id, t.lemma AS lemma, t.lemma_key AS lemma_key, t.df_units AS df_units, "
-            f"t.df_sources AS df_sources, t.language AS language, t.kind AS kind\n"
-            f"ORDER BY t.df_units DESC, t.id LIMIT $limit")
+            f"RETURN {_TERM_FIELDS}\n"
+            f"ORDER BY coalesce(t.df_units, 0) DESC, t.id LIMIT $limit")
 
 
 def cy_find_terms_by_name(ns: Namespace) -> str:
     return (f"// vkm-nav:find-terms-names\n"
             f"MATCH (t:{q(ns.label('Term'))}) WHERE $norm IN t.name_keys\n"
-            f"RETURN t.id AS id, t.lemma AS lemma, t.lemma_key AS lemma_key, t.df_units AS df_units, "
-            f"t.df_sources AS df_sources, t.language AS language, t.kind AS kind\n"
-            f"ORDER BY t.df_units DESC, t.id LIMIT $limit")
+            f"RETURN {_TERM_FIELDS}\n"
+            f"ORDER BY coalesce(t.df_units, 0) DESC, t.id LIMIT $limit")
 
 
 def path_rel_types(via: list[str] | None) -> list[str]:
@@ -106,13 +121,15 @@ def _strength(ns: Namespace, var: str) -> str:
     t = f"type({var})"
     rank = (f"toFloat(CASE WHEN coalesce({var}.rank_in_term, 99) < coalesce({var}.rank_in_section, 99) "
             f"THEN coalesce({var}.rank_in_term, 99) ELSE coalesce({var}.rank_in_section, 99) END)")
+    dictionary = " ".join(f"WHEN '{ns.rel(x)}' THEN coalesce({var}.score, {DICTIONARY_DEFAULT_STRENGTH})"
+                          for x in N.DICTIONARY_TYPES)
     return (f"coalesce(CASE {t} WHEN '{ns.rel('CO_OCCURS')}' THEN {var}.npmi * {var}.n_units / ({var}.n_units + 2.0) "
             f"WHEN '{ns.rel('SAME_TERM_AS')}' THEN 0.9 WHEN '{ns.rel('CONTAINS_TERM')}' THEN 0.6 "
             f"WHEN '{ns.rel('MENTIONED_IN')}' THEN 1.0 / (1.0 + log({rank})) "
             f"WHEN '{ns.rel('SYMBOL_OF')}' THEN CASE {var}.match WHEN 'FULL' THEN 0.9 WHEN 'PREFIX' THEN 0.7 "
             f"ELSE 0.5 END "
             f"WHEN '{ns.rel('IN_TOPIC')}' THEN coalesce({var}.similarity, 0.5) "
-            f"WHEN '{ns.rel('RELATED_TOPIC')}' THEN coalesce({var}.cosine, 0.5) ELSE 0.8 END, 0.01)")
+            f"WHEN '{ns.rel('RELATED_TOPIC')}' THEN coalesce({var}.cosine, 0.5) {dictionary} ELSE 0.8 END, 0.01)")
 
 
 def _path_pattern(ns: Namespace, rel_types: list[str], max_len: int, labels: tuple[str, ...], fn: str) -> str:
@@ -159,8 +176,10 @@ def _layer_label(ns: Namespace, layer: str) -> str:
     return q(ns.label(S.LAYER_LABELS[layer]))
 
 
-# neighbours: co-occurrence by support-weighted NPMI (as explore_concept), then similarity, cosine, tf-idf, weight
-_ORDER_R = ("coalesce(r.npmi * r.n_units / (r.n_units + 2.0), r.similarity, r.cosine, r.tfidf, r.weight, 0.0)")
+# neighbours: co-occurrence by support-weighted NPMI (as explore_concept), then similarity, the score of a dictionary
+# pair, cosine, tf-idf, weight
+_ORDER_R = ("coalesce(r.npmi * r.n_units / (r.n_units + 2.0), r.similarity, r.score, r.cosine, r.tfidf, r.weight, "
+            "0.0)")
 
 
 def cy_neighbourhood(ns: Namespace, layer: str) -> str:
@@ -228,8 +247,11 @@ def rank_terms(rows: list[dict[str, Any]], text: str, keys: list[str]) -> list[d
     out = []
     for r in sorted(rows, key=score):
         match = "term_id" if r.get("id") == text else ("lemma_key" if r.get("lemma_key") in pos else "name")
-        out.append({"term_id": r["id"], "lemma": r.get("lemma"), "df_units": r.get("df_units"),
-                    "df_sources": r.get("df_sources"), "language": r.get("language"), "match": match})
+        item = {"term_id": r["id"], "lemma": r.get("lemma"), "df_units": r.get("df_units"),
+                "df_sources": r.get("df_sources"), "language": r.get("language"), "match": match}
+        if r.get("dictionary_only"):
+            item["dictionary_only"] = True        # a term of the term dictionary only (no concept-graph edges)
+        out.append(item)
     return out
 
 
@@ -276,6 +298,21 @@ def node_summary(node: dict[str, Any], ns: Namespace = Namespace()) -> dict[str,
         pages = [page] if page else []
     elif kind == "PARAMETER":
         name = _short(" ".join(x for x in (node.get("symbol"), "=", node.get("value_text"), node.get("unit")) if x))
+    elif kind == "PARAMETER_VALUE":
+        value = " ".join(str(x) for x in (node.get("symbol"), "=" if node.get("symbol") else None,
+                                          node.get("value_text"), node.get("unit_raw")) if x)
+        about = [x for x in (node.get("property_label") or node.get("property_key"),
+                             node.get("material") if node.get("material") not in (None, "UNKNOWN") else None) if x]
+        name = _short(" · ".join([value] + about) if value else " · ".join(about))
+        pages = [node["page_id"]] if node.get("page_id") else []
+    elif kind == "STRUCTURED_TABLE":
+        head = node.get("table_label") or (f"table {node['table_number']}" if node.get("table_number") else "table")
+        name = _short(" ".join(x for x in (head, node.get("caption")) if x))
+        pages = [node["page_id"]] if node.get("page_id") else []
+    elif kind == "DUPLICATE_GROUP":
+        name = _short(" ".join(str(x) for x in (node.get("object_type"), node.get("kind"),
+                                                f"×{node['n_members']}" if node.get("n_members") else None,
+                                                node.get("label")) if x))
     elif kind == "TOPIC":
         name = _short(node.get("label") or node.get("title"))
     elif kind == "PAGE":
@@ -290,18 +327,21 @@ def node_summary(node: dict[str, Any], ns: Namespace = Namespace()) -> dict[str,
     for k in ("source_id", "level", "df_units", "df_sources", "language"):
         if node.get(k) is not None and not (k == "source_id" and kind in ("SOURCE",)):
             out[k] = node[k]
+    if kind == "TERM" and node.get("dictionary_only"):
+        out["dictionary_only"] = True
     return out
 
 
 _REL_METRICS = ("npmi", "n_units", "n_sources", "tf", "tfidf", "rank_in_term", "rank_in_section", "kind", "match",
                 "n_formulas", "similarity", "cosine", "weight", "number_text", "equation_number", "definition",
-                "unit", "deepest")
+                "unit", "deepest", "score", "methods", "status", "from_language", "to_language", "property_key",
+                "property_keys", "n_columns", "n_rows", "in_caption", "table_row", "table_col", "is_primary")
 
 
 def hop_pages(rel: dict[str, Any], a: dict[str, Any] | None = None, b: dict[str, Any] | None = None) -> list[str]:
     """Up to three page IDs locating a hop: the edge's own examples, else its blocks, else its endpoints."""
     pages: list[str] = []
-    for key in ("examples", "page_ids"):
+    for key in ("examples", "page_ids", "example_page_ids"):
         pages += [p for p in (rel.get(key) or []) if p]
     for key in ("page_id",):
         if rel.get(key):
@@ -335,6 +375,9 @@ def hop_strength(rel: dict[str, Any]) -> float:
     if base in ("IN_TOPIC", "RELATED_TOPIC"):
         v = rel.get("similarity") if base == "IN_TOPIC" else rel.get("cosine")
         return float(v) if isinstance(v, (int, float)) and v > 0 else 0.5
+    if base in N.DICTIONARY_TYPES:
+        v = rel.get("score")
+        return max(0.01, float(v)) if isinstance(v, (int, float)) else DICTIONARY_DEFAULT_STRENGTH
     return 0.8
 
 

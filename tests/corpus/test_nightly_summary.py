@@ -48,8 +48,8 @@ def green_outputs() -> dict[str, object]:
         "vectors": {"units": {"count": 205784, "snapshot_id": CUR},
                     "packs": [{"dir": "derived/embeddings/multivector/m/r/s/packs", "pack_id": f"{CUR}-2b0a341cb07a",
                                "count": 205784, "snapshot_id": CUR}]},
-        "mcp": {"verdict": "PASS", "expected": 39, "tools_listed": 39, "missing_tools": [],
-                "summary": {"PASS": 39, "WARN": 0, "FAIL": 0, "SKIP": 0}, "calls": []},
+        "mcp": {"verdict": "PASS", "expected": 45, "tools_listed": 45, "missing_tools": [],
+                "summary": {"PASS": 45, "WARN": 0, "FAIL": 0, "SKIP": 0}, "calls": []},
         "dossiers": {"stored": True},
         "topic_v1": {"n_queries": 351, "errors": 0, "canonical_snapshot_id": CUR,
                      "summary": {"page_recall@10": 0.156, "page_recall@20": 0.2166, "page_recall@50": 0.3031,
@@ -184,8 +184,8 @@ def test_missing_edge_receipt_and_disk_thresholds(tmp_path):
 
 def test_mcp_and_dossier_and_topic_thresholds(tmp_path):
     out = green_outputs()
-    out["mcp"] = {"verdict": "FAIL", "expected": 39, "tools_listed": 38, "missing_tools": ["rerank_visual"],
-                  "summary": {"PASS": 37, "FAIL": 1}, "calls": [{"tool": "rerank_visual", "status": "FAIL"}]}
+    out["mcp"] = {"verdict": "FAIL", "expected": 45, "tools_listed": 44, "missing_tools": ["rerank_visual"],
+                  "summary": {"PASS": 43, "FAIL": 1}, "calls": [{"tool": "rerank_visual", "status": "FAIL"}]}
     out["topic_v1"]["errors"] = 40
     s = S.build_summary(make_run(tmp_path, outputs=out, dossiers=dossier_index(ok=100)), now=NOW)
     c = by_id(s)

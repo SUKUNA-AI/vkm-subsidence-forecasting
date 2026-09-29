@@ -208,7 +208,8 @@ RASTER_IMAGE). Датасеты `figure_series_raster_figures`, `figure_series_r
 - Единица сравнивается после нормализации: регистр, точки, `mm` ↔ `мм`, `сутки` → `сут`.
 - Если в сборке нет части — `DEPENDENCY_UNAVAILABLE`, если нет объекта — `NOT_FOUND`.
 - Конверт — `NAV_FIGURE_SERIES_LIST` или `NAV_FIGURE_SERIES`, `layer = PROJECTION`, `origin = DERIVED`.
-- Ночной smoke (`nightly-mcp-smoke-3`) вызывает оба инструмента: поиск «оседание», затем первый найденный ряд.
+- Ночной smoke (`nightly-mcp-smoke-4`, 45 инструментов чтения) вызывает оба инструмента: поиск «оседание», затем
+  первый найденный ряд.
 
 ## 8. Галерея для просмотра
 

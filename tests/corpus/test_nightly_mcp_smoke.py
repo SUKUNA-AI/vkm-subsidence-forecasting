@@ -19,7 +19,8 @@ SPEC.loader.exec_module(SMOKE)
 PAGE, FIG, TAB, FORM, BLOCK = ("VKM-SRC-014:p0118", "VKM-SRC-014:p0118:f0123456789ab", "VKM-SRC-014:p0120:t0123456789ab",
                                "VKM-SRC-014:p0121:m0123456789ab", "VKM-SRC-014:p0118:b0123456789ab")
 SEC, TOP, WORK, ART = "SEC-" + "1" * 16, "TOP-" + "2" * 16, "VKM-WRK-014", "sha256:" + "3" * 64
-FS = "FS-" + "4" * 16
+TBL, TAB2 = "TBL-" + "4" * 16, "VKM-SRC-015:p0007:t0123456789ac"             # a structured table of find_tables
+FS = "FS-" + "4" * 16                                                           # a series of find_figure_series
 
 
 def env(oid, **extra):
@@ -65,6 +66,8 @@ class FakeClient:
             body["items"] = [env(TOP)]
         elif name == "get_page":
             body["item"] = {"record": {"render_artifact_id": ART}}
+        elif name == "find_tables":
+            body["item"] = {"record": {"tables": [{"table_id": TAB2, "nav_table_id": TBL}]}}
         elif name == "find_figure_series":
             body["item"] = {"record": {"figures": [{"figure_id": FIG, "series": [{"series_id": FS}]}]}}
         content = [SimpleNamespace(type="image")] if name in ("get_page_image", "get_figure") else []
@@ -76,10 +79,11 @@ def run(client, **kw):
 
 
 def test_all_read_tools_are_called_with_harvested_ids():
-    client = FakeClient(page_size=10)                       # four pages of tools: pagination is followed
+    client = FakeClient(page_size=10)                       # five pages of tools: pagination is followed
     rep = run(client)
-    assert rep["verdict"] == "PASS" and rep["tools_listed"] == 41 and rep["missing_tools"] == []
-    assert rep["summary"] == {"PASS": 41, "WARN": 0, "FAIL": 0, "SKIP": 0} and rep["not_called"] == []
+    assert rep["verdict"] == "PASS" and rep["tools_listed"] == 45 and rep["missing_tools"] == []
+    assert rep["summary"] == {"PASS": 45, "WARN": 0, "FAIL": 0, "SKIP": 0} and rep["not_called"] == []
+    assert rep["version"] == "nightly-mcp-smoke-4"
     args = {}
     for name, a in client.calls:
         args.setdefault(name, a)
@@ -89,6 +93,11 @@ def test_all_read_tools_are_called_with_harvested_ids():
     assert args["get_topic"]["topic_id"] == TOP and args["get_artifact"]["artifact_id"] == ART
     assert args["get_object"]["object_id"] == BLOCK and args["rerank_visual"]["candidate_ids"] == [FIG]
     assert args["reconstruct_topic"]["budget_chars"] == 2000
+    # the tools of the structured tables and the repeated objects: ids of earlier answers, fixed query words
+    assert args["find_tables"] == {"property": "модуль деформации", "limit": 3}
+    assert args["get_table_structured"]["table_id"] == TBL and args["get_table_structured"]["max_rows"] == 20
+    assert args["copies_of_object"]["object_id"] == FIG and args["shared_formulas"]["ref"] == FORM
+    # the digitized chart series: the series id comes from the answer of find_figure_series
     assert args["get_figure_series"]["ref"] == FS and args["find_figure_series"]["limit"] == 3
     calls = {c["tool"]: c for c in rep["calls"]}
     assert calls["get_figure"]["n_images"] == 1 and len(calls["search_text"]["sha256"]) == 64
@@ -137,7 +146,7 @@ def test_dry_run_plans_every_expected_tool():
     with redirect_stdout(buf):
         assert SMOKE.main(["--dry-run"]) == 0
     out = json.loads(buf.getvalue())
-    assert out["planned_tools"] == sorted(SMOKE.EXPECTED_TOOLS) and out["expected"] == 41
+    assert out["planned_tools"] == sorted(SMOKE.EXPECTED_TOOLS) and out["expected"] == 45
 
 
 def test_expected_tools_match_the_read_server():

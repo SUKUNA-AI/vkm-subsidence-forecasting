@@ -50,6 +50,8 @@ READ_TOOLS = {"search_text", "search_hybrid", "retrieval_trace", "search_objects
               "find_parameters", "parameter_summary",
               # term dictionary (agent TR)
               "translate_term",
+              # structured tables (agent TB) and repeated figures/tables/formulas (agent U2), served by agent G2
+              "get_table_structured", "find_tables", "copies_of_object", "shared_formulas",
               # digitized chart series (agent FD2)
               "find_figure_series", "get_figure_series"}
 ADMIN_TOOLS = {"reprocess_source", "reprocess_page", "get_job", "cancel_job"}

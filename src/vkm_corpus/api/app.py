@@ -119,6 +119,7 @@ class SearchBody(_Body):
 
 
 HybridKind = Literal["PAGE", "FIGURE", "TABLE", "FORMULA"]
+GraphStage = Literal["collapse", "cohesion", "concepts", "cites", "topics"]
 
 
 class HybridSearchBody(_Body):
@@ -144,6 +145,11 @@ class HybridSearchBody(_Body):
     translate: bool | None = Field(None, description="also search the query in the other language (RU ↔ EN, NAV "
                                                       "term dictionary) as extra RRF legs; null = server default "
                                                       "(on when the late stage runs; benchmarks/term_dictionary_v1)")
+    graph: list[GraphStage] | None = Field(None, max_length=5, description=(
+        "graph stages over the navigation layer (need the late stage): collapse (copies listed on the hit), cohesion "
+        "(other pages of a deep section holding >= 2 of the first 10), concepts (synonyms / abbreviations / a narrower "
+        "term: BM25 legs), cites (works cited by / citing the top sources), topics (E's later pages in the NAV topics "
+        "of the first 10); [] = none; null = server default (benchmarks/graph_search_v1)"))
 
 
 class ObjectsQueryBody(_Body):
@@ -379,7 +385,8 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                                                       body.limit, body.cursor, body.candidates,
                                                       body.include_duplicates, body.exact, late=body.late,
                                                       late_candidates=body.late_candidates, bib_route=body.bib_route,
-                                                      visual_route=body.visual_route, translate=body.translate))
+                                                      visual_route=body.visual_route, translate=body.translate,
+                                                      graph=body.graph))
 
     @app.get("/v1/search/hybrid", tags=["search"], **JSON_RESPONSES)
     def search_hybrid_get(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],
@@ -391,12 +398,15 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                           late_candidates: Annotated[int, Query(ge=1, le=200)] = 100,
                           bib_route: Annotated[bool | None, Query()] = None,
                           visual_route: Annotated[bool | None, Query()] = None,
-                          translate: Annotated[bool | None, Query()] = None) -> JSONResponse:
+                          translate: Annotated[bool | None, Query()] = None,
+                          graph: Annotated[str | None, Query(max_length=80, description="comma list of graph stages "
+                                                                                        "or 'none'")] = None
+                          ) -> JSONResponse:
         request.state.query_sha256 = hashlib.sha256(q.encode("utf-8")).hexdigest()
         return respond(request, service.search_hybrid(q, list(kinds or ["PAGE"]), {}, limit, cursor, candidates,
                                                       late=late, late_candidates=late_candidates,
                                                       bib_route=bib_route, visual_route=visual_route,
-                                                      translate=translate))
+                                                      translate=translate, graph=graph))
 
     @app.post("/v1/objects/query", tags=["search"], **JSON_RESPONSES)
     def objects_query(request: Request, body: ObjectsQueryBody, _auth: Read) -> JSONResponse:
@@ -521,8 +531,8 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
     def nav_graph_paths(request: Request, _auth: Read, term_a: Annotated[str, Query(min_length=1, max_length=200)],
                         term_b: Annotated[str, Query(min_length=1, max_length=200)],
                         max_len: Annotated[int, Query(ge=1, le=6)] = 4, limit: Annotated[int, Query(ge=1, le=20)] = 5,
-                        via: Annotated[list[Literal["concepts", "formulas", "sections", "topics"]] | None,
-                                       Query(max_length=4)] = None) -> JSONResponse:
+                        via: Annotated[list[Literal["concepts", "formulas", "sections", "topics", "dictionary"]] | None,
+                                       Query(max_length=5)] = None) -> JSONResponse:
         return respond(request, service.nav_graph_paths(term_a, term_b, max_len, limit, via))
 
     @app.get("/v1/nav/graph/neighbourhood/{node_id}", tags=["navigation"], **JSON_RESPONSES)
@@ -615,6 +625,34 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                       limit: Annotated[int, Query(ge=1, le=50)] = 10) -> JSONResponse:
         return respond(request, service.nav_translate(term, target, limit))
     # end term dictionary (agent TR)
+
+    # structured tables (agent TB) and repeated figures/tables/formulas (agent U2) — navigation, not evidence
+    @app.get("/v1/nav/table/{table_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_table(request: Request, table_id: str, _auth: Read,
+                  max_rows: Annotated[int, Query(ge=1, le=500)] = 200,
+                  max_chars: Annotated[int, Query(ge=200, le=60_000)] = 8000) -> JSONResponse:
+        return respond(request, service.nav_table(table_id, max_rows, max_chars))
+
+    @app.get("/v1/nav/tables", tags=["navigation"], **JSON_RESPONSES)
+    def nav_tables(request: Request, _auth: Read,
+                   property: Annotated[str | None, Query(max_length=200)] = None,  # noqa: A002
+                   material: Annotated[str | None, Query(max_length=200)] = None,
+                   source_id: Annotated[str | None, Query(max_length=20)] = None,
+                   text: Annotated[str | None, Query(max_length=200)] = None,
+                   limit: Annotated[int, Query(ge=1, le=100)] = 20) -> JSONResponse:
+        return respond(request, service.nav_tables(property, material, source_id, text, limit))
+
+    @app.get("/v1/nav/object_copies/{object_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_object_copies(request: Request, object_id: str, _auth: Read,
+                          limit: Annotated[int, Query(ge=1, le=200)] = 50) -> JSONResponse:
+        return respond(request, service.nav_object_copies(object_id, limit))
+
+    @app.get("/v1/nav/shared_formulas", tags=["navigation"], **JSON_RESPONSES)
+    def nav_shared_formulas(request: Request, _auth: Read, ref: Annotated[str, Query(min_length=1, max_length=2000)],
+                            renamed: bool = True, limit: Annotated[int, Query(ge=1, le=200)] = 50) -> JSONResponse:
+        request.state.query_sha256 = hashlib.sha256(ref.encode("utf-8")).hexdigest()
+        return respond(request, service.nav_shared_formulas(ref, renamed, limit))
+    # end structured tables and object duplicates
 
     # digitized chart series (agent FD2): DERIVATION values with a half-width error each — navigation, not evidence
     @app.get("/v1/nav/figure_series", tags=["navigation"], **JSON_RESPONSES)
@@ -718,5 +756,19 @@ def build_from_settings(settings: Any = None) -> FastAPI:
     from vkm_corpus.navigation.store import NavStore
 
     deps.nav = NavStore(root)                  # served only once derived/navigation/CURRENT is published
+    if deps.hybrid is not None:                # graph stages of the hybrid search read the same NAV build (agent GS)
+        import threading
+
+        from vkm_corpus.search.graph_stages import NavGraphSignals
+
+        deps.hybrid.graph = NavGraphSignals(deps.nav, deps.canon)
+
+        def warm() -> None:                    # the lookup (~0.5 s) is built before the first query needs it
+            try:
+                deps.hybrid.graph.view()
+            except Exception:  # noqa: BLE001 - no NAV published yet: the first query builds it (or runs as E)
+                pass
+
+        threading.Thread(target=warm, name="vkm-graph-warm", daemon=True).start()
     deps.catalogues = CatalogueStore(root)     # served only once derived/catalogues/CURRENT is published
     return create_app(ApiService(deps), ApiConfig.from_settings(settings))

@@ -8,7 +8,7 @@
 #   canon          snapshot validator on CURRENT (canon validate; --deep on VKM_NIGHTLY_DEEP_WEEKDAY)
 #   duckdb         the DuckDB file against CURRENT (duckdb status)
 #   graph          DOCUMENT graph checks C1–C16 (graph verify)
-#   nav            NAV graph checks N1–N7 (nav graph-verify on derived/navigation/CURRENT)
+#   nav            NAV graph checks N1–N11 (nav graph-verify on derived/navigation/CURRENT)
 #   search_status  aliases, builds and the dense vector count (search status)
 #   search         Russian BM25 smoke (search smoke)
 #   rx580          health of the RX580 retrieval service (served late pack)
@@ -137,8 +137,8 @@ if [ "$DRY" = 1 ]; then
   [ "$n" = 117 ] || rc=2
   m="$(python3 "$HERE/mcp_smoke.py" --dry-run 2>/dev/null \
        | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["planned_tools"]))' 2>/dev/null || echo 0)"
-  log "  MCP smoke plans $m of 41 read tools"
-  [ "$m" = 41 ] || rc=2
+  log "  MCP smoke plans $m of 45 read tools"
+  [ "$m" = 45 ] || rc=2
   rm -rf "$tmp"
   for s in "${STEPS[@]}"; do
     want_step "$s" && log "  step $s (timeout ${TIMEOUT[$s]} s)" || log "  step $s: skipped by options"
