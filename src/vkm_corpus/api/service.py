@@ -844,7 +844,7 @@ class ApiService:
 
     # ------------------------------------------------------------------ NAV graph (agent G): paths and neighbourhoods
     # in the Neo4j projection of the navigation layer (vkm_corpus.graph.nav_query); DERIVED, never evidence.
-    NAV_GRAPH_FAMILIES = ("concepts", "formulas", "sections", "topics")
+    NAV_GRAPH_FAMILIES = ("concepts", "formulas", "sections", "topics", "dictionary")
 
     def _nav_graph(self) -> tuple[Any, dict[str, Any]]:
         graph = _require(self.deps.graph, "neo4j", "neo4j")
@@ -923,7 +923,8 @@ class ApiService:
         from vkm_corpus.graph.nav_query import depth2_ids, layer_of, shape_neighbourhood
 
         if not node_id or len(node_id) > 120 or not re.fullmatch(r"[A-Za-z0-9_:\-]+", node_id):
-            raise ApiFailure("INVALID_ARGUMENT", "node_id is a NAV id (SEC-, TRM-, FSY-, FPR-, topic) or a VKM id")
+            raise ApiFailure("INVALID_ARGUMENT", "node_id is a NAV id (SEC-, TRM-, FSY-, FPR-, TOP-, TBL-, PRM-, "
+                                                 "OCL-) or a VKM id")
         if int(depth) not in (1, 2):
             raise ApiFailure("INVALID_ARGUMENT", "depth is 1 or 2")
         if not 1 <= int(limit) <= 200:
@@ -1147,6 +1148,105 @@ class ApiService:
                 "note": "derived navigation (AUTO_EXTRACTED_UNREVIEWED): query expansion, not evidence"}
         return ([text] if text else []), info
     # ------------------------------------------------------------------ end term dictionary (agent TR)
+
+    # ------------------------------------------------------------------ structured tables (agent TB) and repeated
+    # figures, tables and formulas (agent U2): NAV §10 and §9, DERIVED navigation — never evidence
+    _TABLE_DATASETS = ("table_structure", "table_cells", "table_columns")
+    _OBJECT_DUP_DATASETS = ("object_dup_clusters", "object_dup_members")
+    _TBL_ID = re.compile(r"TBL-[0-9a-f]{16}")
+
+    def _nav_run_parts(self, datasets: tuple[str, ...], fn: Callable[[Any], Any]) -> tuple[Any, str | None]:
+        """``_nav_run`` for a part that may be missing from the served build: DEPENDENCY_UNAVAILABLE naming it."""
+        def run(nav: Any) -> Any:
+            nav.require(*datasets)
+            return fn(nav)
+        return self._nav_run(run)
+
+    def _object_kind(self, object_id: str, allowed: tuple[str, ...], what: str) -> str:
+        from vkm_corpus.api.canon import kind_of
+
+        kind = kind_of(object_id)                          # INVALID_ID when it is no VKM id
+        if kind not in allowed:
+            raise ApiFailure("INVALID_ID", f"{object_id} is not a {what} id", object_id=object_id)
+        return kind
+
+    def nav_table(self, table_id: str, max_rows: int = 200, max_chars: int = 8000) -> Result:
+        """A structured table (grid with row roles, header paths, units and parsed values) by its canonical id or its
+        NAV id (``TBL-…``)."""
+        tid = (table_id or "").strip()
+        if not self._TBL_ID.fullmatch(tid):
+            self._object_kind(tid, ("TABLE",), "table (canonical …:t… or TBL-)")
+        if not (1 <= int(max_rows) <= 500 and 200 <= int(max_chars) <= 60_000):
+            raise ApiFailure("INVALID_ARGUMENT", "max_rows is 1..500, max_chars 200..60000")
+        data, snap = self._nav_run_parts(self._TABLE_DATASETS, lambda nav: nav.run(
+            "table_structured", tid, max_rows=int(max_rows), max_chars=int(max_chars)))
+        if not isinstance(data, dict) or not data.get("found"):
+            raise ApiFailure("NOT_FOUND", f"{tid} has no structured grid in the navigation layer", stage="navigation",
+                             tool="nav", object_id=tid, hint="get_table shows the canonical table; find_tables "
+                                                            "searches the structured ones")
+        table = data.get("table") or {}
+        return self._nav_result("NAV_TABLE", table.get("table_id") or tid, data, snap,
+                                source_id=table.get("source_id"), page_id=table.get("page_id"))
+
+    def nav_tables(self, property: str | None, material: str | None, source_id: str | None,  # noqa: A002
+                   text: str | None, limit: int = 20) -> Result:
+        """Structured tables whose columns, rows or caption name a property, a material or the words of ``text``."""
+        property, material, text = ((x or "").strip() or None for x in (property, material, text))
+        if not any((property, material, source_id, text)):
+            raise ApiFailure("INVALID_ARGUMENT", "give at least one of property, material, source_id, text")
+        if any(x and len(x) > 200 for x in (property, material, text)):
+            raise ApiFailure("INVALID_ARGUMENT", "property, material and text are ≤ 200 characters")
+        if source_id is not None and not re.fullmatch(r"VKM-SRC-\d{3,}", source_id):
+            raise ApiFailure("INVALID_ARGUMENT", "source_id has the form VKM-SRC-NNN")
+        if not 1 <= int(limit) <= 100:
+            raise ApiFailure("INVALID_ARGUMENT", "limit is 1..100")
+        data, snap = self._nav_run_parts(self._TABLE_DATASETS, lambda nav: nav.run(
+            "find_tables", property=property, material=material, source_id=source_id, text=text, limit=int(limit)))
+        key = "|".join(str(x) for x in (property, material, source_id, text) if x)[:60]
+        return self._nav_result("NAV_TABLES", f"tables:{key}", data, snap, source_id=source_id, search=True)
+
+    def nav_object_copies(self, object_id: str, limit: int = 50) -> Result:
+        """Where else a figure, table or formula appears (groups of the part object_duplicates, primary first)."""
+        oid = (object_id or "").strip()
+        kind = self._object_kind(oid, ("FIGURE", "TABLE", "FORMULA"), "figure, table or formula")
+        if not 1 <= int(limit) <= 200:
+            raise ApiFailure("INVALID_ARGUMENT", "limit is 1..200")
+        self._get(kind, oid)                                  # NOT_FOUND for an object the canon does not hold
+        data, snap = self._nav_run_parts(self._OBJECT_DUP_DATASETS, lambda nav: nav.run(
+            "copies_of_object", oid, limit=int(limit)))
+        data = dict(data or {})
+        if not data.get("clusters"):
+            data["hint"] = "no repeat of this object was found in other sources (object_duplicates_v1)"
+        page = oid.rsplit(":", 1)[0]
+        return self._nav_result("NAV_OBJECT_COPIES", oid, data, snap, source_id=oid.split(":", 1)[0],
+                                page_id=None if page.endswith(":doc") else page)
+
+    def nav_shared_formulas(self, ref: str, renamed: bool = True, limit: int = 50) -> Result:
+        """Where the same formula is written: by a formula id or a LaTeX string (canonical key, then the same
+        structure in other notation); groups by work, earliest first."""
+        ref = (ref or "").strip()
+        if not ref or len(ref) > 2000:
+            raise ApiFailure("INVALID_ARGUMENT", "ref is a formula id or a LaTeX string of 1..2000 characters")
+        if not 1 <= int(limit) <= 200:
+            raise ApiFailure("INVALID_ARGUMENT", "limit is 1..200")
+        by_id = ref.startswith("VKM-")
+        if by_id:
+            self._object_kind(ref, ("FORMULA",), "formula")
+            self._get("FORMULA", ref)
+        data, snap = self._nav_run_parts(("formula_keys",), lambda nav: nav.run(
+            "shared_formulas", ref, renamed=bool(renamed), limit=int(limit)))
+        data = dict(data or {})
+        if by_id and data.get("match") != "formula_id":      # no canonical key: never compare the id as LaTeX
+            data = {"query": ref, "match": None, "latex_key": None, "trivial": None, "distinctive": None,
+                    "exact": [], "renamed": [], "clusters": [], "n_exact": 0, "n_renamed": 0, "n_works": 0,
+                    "reason": "NO_FORMULA_KEY: the formula has no canonical LaTeX key in formula_keys",
+                    "note": data.get("note")}
+        object_id = ref if by_id else "latex:" + sha256_text(ref)[:16]
+        return self._nav_result("NAV_SHARED_FORMULAS", object_id, data, snap,
+                                source_id=ref.split(":", 1)[0] if by_id else None,
+                                page_id=ref.rsplit(":", 1)[0] if by_id and not ref.rsplit(":", 1)[0].endswith(":doc")
+                                else None)
+    # ------------------------------------------------------------------ end structured tables and object duplicates
 
     # ------------------------------------------------------------------ topic dossier (navigation + catalogues)
     def reconstruct_topic(self, query: str, *, budget_chars: int = 12_000, source_ids: list[str] | None = None,

@@ -49,7 +49,9 @@ READ_TOOLS = {"search_text", "search_hybrid", "retrieval_trace", "search_objects
               # parameter candidates (agent P)
               "find_parameters", "parameter_summary",
               # term dictionary (agent TR)
-              "translate_term"}
+              "translate_term",
+              # structured tables (agent TB) and repeated figures/tables/formulas (agent U2), served by agent G2
+              "get_table_structured", "find_tables", "copies_of_object", "shared_formulas"}
 ADMIN_TOOLS = {"reprocess_source", "reprocess_page", "get_job", "cancel_job"}
 
 

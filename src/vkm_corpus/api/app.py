@@ -521,8 +521,8 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
     def nav_graph_paths(request: Request, _auth: Read, term_a: Annotated[str, Query(min_length=1, max_length=200)],
                         term_b: Annotated[str, Query(min_length=1, max_length=200)],
                         max_len: Annotated[int, Query(ge=1, le=6)] = 4, limit: Annotated[int, Query(ge=1, le=20)] = 5,
-                        via: Annotated[list[Literal["concepts", "formulas", "sections", "topics"]] | None,
-                                       Query(max_length=4)] = None) -> JSONResponse:
+                        via: Annotated[list[Literal["concepts", "formulas", "sections", "topics", "dictionary"]] | None,
+                                       Query(max_length=5)] = None) -> JSONResponse:
         return respond(request, service.nav_graph_paths(term_a, term_b, max_len, limit, via))
 
     @app.get("/v1/nav/graph/neighbourhood/{node_id}", tags=["navigation"], **JSON_RESPONSES)
@@ -615,6 +615,34 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                       limit: Annotated[int, Query(ge=1, le=50)] = 10) -> JSONResponse:
         return respond(request, service.nav_translate(term, target, limit))
     # end term dictionary (agent TR)
+
+    # structured tables (agent TB) and repeated figures/tables/formulas (agent U2) — navigation, not evidence
+    @app.get("/v1/nav/table/{table_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_table(request: Request, table_id: str, _auth: Read,
+                  max_rows: Annotated[int, Query(ge=1, le=500)] = 200,
+                  max_chars: Annotated[int, Query(ge=200, le=60_000)] = 8000) -> JSONResponse:
+        return respond(request, service.nav_table(table_id, max_rows, max_chars))
+
+    @app.get("/v1/nav/tables", tags=["navigation"], **JSON_RESPONSES)
+    def nav_tables(request: Request, _auth: Read,
+                   property: Annotated[str | None, Query(max_length=200)] = None,  # noqa: A002
+                   material: Annotated[str | None, Query(max_length=200)] = None,
+                   source_id: Annotated[str | None, Query(max_length=20)] = None,
+                   text: Annotated[str | None, Query(max_length=200)] = None,
+                   limit: Annotated[int, Query(ge=1, le=100)] = 20) -> JSONResponse:
+        return respond(request, service.nav_tables(property, material, source_id, text, limit))
+
+    @app.get("/v1/nav/object_copies/{object_id}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_object_copies(request: Request, object_id: str, _auth: Read,
+                          limit: Annotated[int, Query(ge=1, le=200)] = 50) -> JSONResponse:
+        return respond(request, service.nav_object_copies(object_id, limit))
+
+    @app.get("/v1/nav/shared_formulas", tags=["navigation"], **JSON_RESPONSES)
+    def nav_shared_formulas(request: Request, _auth: Read, ref: Annotated[str, Query(min_length=1, max_length=2000)],
+                            renamed: bool = True, limit: Annotated[int, Query(ge=1, le=200)] = 50) -> JSONResponse:
+        request.state.query_sha256 = hashlib.sha256(ref.encode("utf-8")).hexdigest()
+        return respond(request, service.nav_shared_formulas(ref, renamed, limit))
+    # end structured tables and object duplicates
 
     # ---------------------------------------------------------------- topic dossier (navigation + catalogues)
     @app.get("/v1/topic", tags=["navigation"], **JSON_RESPONSES)

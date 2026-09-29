@@ -7,7 +7,9 @@
 ``get_artifact``, ``list_source_pages``, ``get_corpus_status``; navigation: ``get_outline``, ``get_section``,
 ``search_sections``, ``get_formula_context``, ``find_formulas``, ``explore_concept``, ``reconstruct_topic``;
 topics and duplicates: ``find_topics``, ``get_topic``, ``similar_sections``, ``section_topics``, ``copies_of``,
-``source_overlap``; parameters: ``find_parameters``, ``parameter_summary``; term dictionary: ``translate_term``.
+``source_overlap``; parameters: ``find_parameters``, ``parameter_summary``; term dictionary: ``translate_term``;
+structured tables: ``get_table_structured``, ``find_tables``; repeated figures, tables and formulas:
+``copies_of_object``, ``shared_formulas``.
 
 ``vkm-corpus-admin`` (write, plan-first H-12): ``reprocess_source``, ``reprocess_page``, ``get_job``.
 
@@ -67,6 +69,10 @@ PageId = Annotated[str, Field(pattern=PAGE_ID, description="VKM-SRC-NNN:pNNNN (r
 ObjectId = Annotated[str, Field(min_length=1, max_length=120, description="any VKM id (source, work, page, object, "
                                                                           "artifact)")]
 IdList = Annotated[list[Annotated[str, Field(min_length=1, max_length=120)]], Field(min_length=1)]
+# a table as get_table_structured takes it: canonical (…:t<12 hex>) or the NAV id of its grid (TBL-<16 hex>)
+TABLE_ID_PATTERN = r"^(?:TBL-[0-9a-f]{16}|VKM-SRC-[0-9]{3}:(?:[prs][0-9]{4}|doc):t[0-9a-f]{12})$"
+# objects the part object_duplicates groups: figures, tables, formulas
+REPEATABLE_ID_PATTERN = r"^VKM-SRC-[0-9]{3}:(?:[prs][0-9]{4}|doc):[ftm][0-9a-f]{12}$"
 StrList = Annotated[list[Annotated[str, Field(max_length=60)]] | None, Field(max_length=20)]
 SearchKind = Literal["PAGE", "BLOCK", "FIGURE", "TABLE", "FORMULA"]
 HybridKind = Literal["PAGE", "FIGURE", "TABLE", "FORMULA"]
@@ -382,14 +388,17 @@ def build_read_server(api: ApiClient) -> MCPServer:
             term_b: Annotated[str, Field(min_length=1, max_length=200)],
             max_len: Annotated[int, Field(ge=1, le=6, description="hops")] = 4,
             limit: Annotated[int, Field(ge=1, le=20)] = 5,
-            via: Annotated[list[Literal["concepts", "formulas", "sections", "topics"]] | None, Field(
-                max_length=4, description="relationship families (default all): concepts = co-occurrence, "
-                                          "containment, translations; formulas = symbol definitions and formula "
-                                          "references; sections = mentions and the section tree; topics")] = None
+            via: Annotated[list[Literal["concepts", "formulas", "sections", "topics", "dictionary"]] | None, Field(
+                max_length=5, description="relationship families (default all): concepts = co-occurrence, "
+                                          "containment, bracketed translations; formulas = symbol definitions and "
+                                          "formula references; sections = mentions and the section tree; topics; "
+                                          "dictionary = pairs of the RU-EN term dictionary (translations, synonyms, "
+                                          "abbreviations)")] = None
     ) -> CallToolResult:
         """How two concepts connect in the corpus navigation graph: the shortest paths through terms, formula symbols,
         formulas, sections and topics (e.g. ползучесть соли → скорость ползучести → конвергенция → оседание), ranked
-        by co-occurrence strength, with page IDs for every hop and the number of sources behind a co-occurrence.
+        by co-occurrence strength, with page IDs for every hop and the number of sources behind a co-occurrence; a
+        dictionary hop (ВЗТ → водозащитная толща, оседание → subsidence) carries its score and example pages.
         Navigation, not a causal chain: read the pages of the hops to answer."""
         return await call("concept_paths", "GET", "/v1/nav/graph/paths",
                           params={"term_a": term_a, "term_b": term_b, "max_len": max_len, "limit": limit, "via": via})
@@ -397,14 +406,17 @@ def build_read_server(api: ApiClient) -> MCPServer:
     @server.tool(name="graph_neighbourhood", annotations=READ_ONLY)
     async def graph_neighbourhood(
             node_id: Annotated[str, Field(min_length=1, max_length=120, pattern=r"^[A-Za-z0-9_:\-]+$",
-                                          description="a NAV id (SEC-, TRM-, FSY-, FPR-, topic) or any VKM id "
-                                                      "(source, page, formula, block)")],
+                                          description="a NAV id (SEC-, TRM-, FSY-, FPR-, TOP-, TBL-, PRM-, OCL-) or "
+                                                      "any VKM id (source, page, formula, table, figure, block)")],
             depth: Annotated[int, Field(ge=1, le=2)] = 1,
             limit: Annotated[int, Field(ge=1, le=200)] = 50) -> CallToolResult:
         """Neighbours of a node of the navigation graph or the document graph, grouped by relationship with totals:
         a formula's section, symbols with definitions, formulas it refers to and that refer to it, parameter
-        candidates; a term's co-occurring terms, sections and symbols; a section's parent, pages, key terms and topic;
-        a page's sections. depth=2 adds the neighbours of the strongest neighbours. IDs, short names, page IDs."""
+        candidates; a term's co-occurring terms, sections, symbols, dictionary equivalents (TRANSLATES_TO,
+        SYNONYM_OF, ABBREVIATION_OF), the structured tables that tabulate it and the printed values of it (VALUE_OF);
+        a section's parent, pages, key terms, topic, tables and values; a structured table's canonical table, section
+        and values; a figure, table or formula's group of repeats (DUP_MEMBER_OF); a page's sections. depth=2 adds
+        the neighbours of the strongest neighbours. IDs, short names, page IDs."""
         return await call("graph_neighbourhood", "GET", f"/v1/nav/graph/neighbourhood/{node_id}",
                           params={"depth": depth, "limit": limit})
 
@@ -539,6 +551,69 @@ def build_read_server(api: ApiClient) -> MCPServer:
         pair of its own is translated part by part (composed). Use the equivalents to search the other language."""
         return await call("translate_term", "GET", "/v1/nav/translate",
                           params={"term": term, "target": target, "limit": limit})
+
+    # structured tables (agent TB) and repeated figures/tables/formulas (agent U2) — derived navigation, not evidence
+    @server.tool(name="get_table_structured", annotations=READ_ONLY)
+    async def get_table_structured(
+            table_id: Annotated[str, Field(min_length=1, max_length=120, pattern=TABLE_ID_PATTERN,
+                                           description="a canonical table id (VKM-SRC-NNN:pNNNN:t…) or a TBL- id")],
+            max_rows: Annotated[int, Field(ge=1, le=500)] = 200,
+            max_chars: Annotated[int, Field(ge=200, le=60_000, description="cap of the Markdown rendering")] = 8000
+    ) -> CallToolResult:
+        """A table as a structured grid: number and caption, size, header rows and how they were found, bands and
+        blocks, orientation, confidence and quality flags; its columns (header path, symbol, unit and where the unit
+        came from, role, property of the parameters vocabulary); its rows (role: header, data, statistics, group,
+        note…) with cells (the text as printed, the parsed value — decimal comma, range, ±, bounds, powers — unit and
+        flags such as DECIMAL_POINT_SUSPECT) and a Markdown rendering. Values as printed, never corrected: check the
+        page image before use (get_table with include_image). Navigation, not evidence."""
+        return await call("get_table_structured", "GET", f"/v1/nav/table/{table_id}",
+                          params={"max_rows": max_rows, "max_chars": max_chars})
+
+    @server.tool(name="find_tables", annotations=READ_ONLY)
+    async def find_tables(
+            property: Annotated[str | None, Field(max_length=200,  # noqa: A002
+                                                  description="«модуль деформации», «σсж», «ucs» …")] = None,
+            material: Annotated[str | None, Field(max_length=200, description="«каменная соль», «соляные породы» …")]
+            = None,
+            source_id: Annotated[str | None, Field(pattern=r"^VKM-SRC-\d{3,}$")] = None,
+            text: Annotated[str | None, Field(max_length=200, description="words of the caption, headers or row "
+                                                                          "labels")] = None,
+            limit: Annotated[int, Field(ge=1, le=100)] = 20) -> CallToolResult:
+        """Structured tables whose value columns, value rows or caption name a property (key, label or symbol of the
+        parameters vocabulary), whose headers, row labels or caption name a material, of a source, or with the given
+        words; every given filter must match; tables naming the property in columns first. Each hit: table ids
+        (canonical and TBL-), source, page, section, number, caption, size, orientation, confidence, flags and the
+        matching columns with their units. Open one with get_table_structured. Navigation, not evidence."""
+        return await call("find_tables", "GET", "/v1/nav/tables",
+                          params={"property": property, "material": material, "source_id": source_id, "text": text,
+                                  "limit": limit})
+
+    @server.tool(name="copies_of_object", annotations=READ_ONLY)
+    async def copies_of_object(
+            object_id: Annotated[str, Field(min_length=1, max_length=120, pattern=REPEATABLE_ID_PATTERN,
+                                            description="a figure (…:f…), table (…:t…) or formula (…:m…) id")],
+            limit: Annotated[int, Field(ge=1, le=200)] = 50) -> CallToolResult:
+        """Where else a figure, a table or a formula appears in the corpus: its groups of repeats (kind: copy of the
+        same work, reprint, reused figure or table, shared formula, redrawn figure, boilerplate), the primary copy
+        with the rule that chose it (the earliest year — a hint for ordering copies, not authorship) and the other
+        copies with their evidence (image distance, caption similarity, cell containment, formula match), sources and
+        pages. An object without repeats answers with an empty list. Navigation, not evidence."""
+        return await call("copies_of_object", "GET", f"/v1/nav/object_copies/{object_id}", params={"limit": limit})
+
+    @server.tool(name="shared_formulas", annotations=READ_ONLY)
+    async def shared_formulas(
+            ref: Annotated[str, Field(min_length=1, max_length=2000,
+                                      description="a formula id (VKM-SRC-NNN:pNNNN:m…) or a LaTeX string")],
+            renamed: Annotated[bool, Field(description="also the same structure in another notation (distinctive "
+                                                       "formulas only)")] = True,
+            limit: Annotated[int, Field(ge=1, le=200)] = 50) -> CallToolResult:
+        """Where the same formula is written: works (earliest first) with sources, pages, printed equation numbers
+        and sections whose formula has the same canonical form (LaTeX normalised: Greek variants, fonts, spacing,
+        decimal comma) and, with renamed, the same structure in other symbols; trivial forms (no relation, a lone
+        symbol, «i = 1, …, n») are never grouped. The groups of repeats of these formulas are listed too. The same
+        written form, not a checked law. Navigation, not evidence."""
+        return await call("shared_formulas", "GET", "/v1/nav/shared_formulas",
+                          params={"ref": ref, "renamed": renamed, "limit": limit})
 
     @server.tool(name="reconstruct_topic", annotations=READ_ONLY)
     async def reconstruct_topic(
