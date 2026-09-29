@@ -66,3 +66,21 @@ def test_jsonl_is_deterministic(tmp_path):
     a = write_jsonl(rows, tmp_path / "a.jsonl")
     b = write_jsonl(list(reversed(rows)), tmp_path / "b.jsonl")
     assert a == b
+
+
+def test_publish_writes_a_manifest_with_hashes(tmp_path, capsys):
+    import hashlib
+    import json
+
+    from vkm_corpus.figures import sweep
+
+    rows = build_rows(_ctx(), _result(), "A_NATIVE_VECTOR", {}, {})
+    src = tmp_path / "src"
+    src.mkdir()
+    sha = write_jsonl(rows, src / "figure_series_v0.jsonl")
+    sweep.main(["publish", "--src", str(src), "--dst", str(tmp_path / "nav"), "--snapshot", "snap-x"])
+    man = json.loads((tmp_path / "nav" / "manifest.json").read_text(encoding="utf-8"))
+    assert man["files"]["figure_series_v0.jsonl"]["sha256"] == sha
+    assert hashlib.sha256((tmp_path / "nav" / "figure_series_v0.jsonl").read_bytes()).hexdigest() == sha
+    assert man["status"] == "DERIVATION" and man["review_status"] == "AUTO_EXTRACTED_UNREVIEWED"
+    assert json.loads(capsys.readouterr().out)["figure_series_v0.jsonl"]["sha256"] == sha
