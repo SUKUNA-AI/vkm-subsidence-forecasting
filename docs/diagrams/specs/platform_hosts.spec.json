@@ -4,294 +4,498 @@
    "id": "hosts",
    "name": "Топология хостов",
    "layout": "none",
-   "page_width": 1760,
-   "page_height": 860,
+   "page_width": 1800,
+   "page_height": 1090,
    "background": "#ffffff",
+   "grid": false,
    "nodes": [
     {
      "id": "title",
-     "label": "VKM Corpus Platform v0 — топология хостов (только роли; без адресов, портов и секретов)",
+     "label": "Платформа корпуса: хосты и сервисы (состояние 29.09.2026)",
      "x": 20,
-     "y": 10,
-     "w": 1500,
+     "y": 12,
+     "w": 1760,
      "h": 30,
      "preset": "text",
-     "style": "fontSize=16;fontStyle=1;"
+     "style": "fontSize=20;align=left;fontStyle=1;"
     },
     {
-     "id": "lane_ws",
-     "label": "WORKSTATION (Windows 11 + WSL archlinux)",
+     "id": "subtitle",
+     "label": "Только роли хостов: адреса, порты, логины и секреты живут в host-local .env и *_FILE и в схему не попадают. Снимок канона snap-20260928T193550Z-738eebee.",
      "x": 20,
-     "y": 60,
-     "w": 620,
-     "h": 700,
+     "y": 44,
+     "w": 1760,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontColor=#444444;"
+    },
+    {
+     "id": "ws",
+     "label": "WORKSTATION — Windows 11 + WSL archlinux · RTX 5070 Ti 16 GB · единственный producer",
+     "x": 20,
+     "y": 80,
+     "w": 660,
+     "h": 760,
      "preset": "swimlane",
-     "style": "swimlane;whiteSpace=wrap;html=1;startSize=26;container=1;collapsible=0;fontStyle=1;swimlaneFillColor=#ffffff;fillColor=#dae8fc;strokeColor=#6c8ebf;"
+     "style": "swimlane;startSize=28;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;swimlaneFillColor=#ffffff;rounded=0;"
     },
     {
-     "id": "ws_wsl",
-     "label": "WSL archlinux",
-     "x": 20,
-     "y": 40,
-     "w": 280,
-     "h": 560,
-     "style": "rounded=0;whiteSpace=wrap;html=1;container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;dashed=1;fillColor=none;",
-     "parent": "lane_ws"
-    },
-    {
-     "id": "pipeline",
-     "label": "Pipeline (venv, Python 3.13):\nизвлечение, рендер, layout",
-     "x": 30,
-     "y": 40,
-     "w": 220,
-     "h": 60,
-     "parent": "ws_wsl"
-    },
-    {
-     "id": "glmocr",
-     "label": "GLM-OCR: vLLM в Docker\n(GPU; порт только loopback)",
-     "x": 30,
-     "y": 130,
-     "w": 220,
-     "h": 60,
-     "parent": "ws_wsl"
-    },
-    {
-     "id": "staging",
-     "label": "STAGING-корень\n(маркер корня STAGING)",
-     "x": 30,
-     "y": 220,
-     "w": 220,
-     "h": 80,
-     "preset": "cylinder",
-     "parent": "ws_wsl"
-    },
-    {
-     "id": "worker",
-     "label": "Воркер заданий\n(единственный планировщик)",
-     "x": 30,
-     "y": 330,
-     "w": 220,
-     "h": 60,
-     "parent": "ws_wsl"
-    },
-    {
-     "id": "backup",
-     "label": "Обратная копия канона\nи KEEP_RAW (H-10)",
-     "x": 30,
-     "y": 420,
-     "w": 220,
-     "h": 80,
-     "preset": "cylinder",
-     "parent": "ws_wsl"
-    },
-    {
-     "id": "ws_win",
+     "id": "win",
      "label": "Windows",
-     "x": 320,
-     "y": 40,
-     "w": 280,
-     "h": 560,
-     "style": "rounded=0;whiteSpace=wrap;html=1;container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;dashed=1;fillColor=none;",
-     "parent": "lane_ws"
+     "x": 15,
+     "y": 50,
+     "w": 300,
+     "h": 695,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=1;rounded=0;",
+     "parent": "ws"
     },
     {
      "id": "claude",
-     "label": "Claude Code\n(агент, MCP-клиент)",
-     "x": 30,
-     "y": 40,
-     "w": 220,
-     "h": 60,
-     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;rounded=1;",
-     "parent": "ws_win"
+     "label": "Claude Code (агент, MCP-клиент)",
+     "x": 15,
+     "y": 35,
+     "w": 270,
+     "h": 55,
+     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;",
+     "parent": "win"
     },
     {
      "id": "drawio_mcp",
-     "label": "vkm-drawio (stdio MCP)",
-     "x": 30,
-     "y": 140,
-     "w": 220,
-     "h": 50,
-     "parent": "ws_win"
+     "label": "vkm-drawio: stdio MCP, 8 инструментов",
+     "x": 15,
+     "y": 125,
+     "w": 270,
+     "h": 45,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "win"
     },
     {
      "id": "drawio_app",
-     "label": "draw.io Desktop\n(CLI: экспорт, раскладка)",
-     "x": 30,
-     "y": 220,
-     "w": 220,
-     "h": 60,
-     "parent": "ws_win"
+     "label": "draw.io Desktop (CLI: экспорт, раскладка)",
+     "x": 15,
+     "y": 195,
+     "w": 270,
+     "h": 50,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "win"
     },
     {
      "id": "cad_mcp",
-     "label": "vkm-cad (stdio MCP)",
-     "x": 30,
-     "y": 320,
-     "w": 220,
-     "h": 50,
-     "parent": "ws_win"
+     "label": "vkm-cad 1.0: stdio MCP, 27 инструментов",
+     "x": 15,
+     "y": 280,
+     "w": 270,
+     "h": 45,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "win"
     },
     {
      "id": "acad",
-     "label": "AutoCAD 2026 / Civil 3D 2026\n(COM: attach, только чтение)",
-     "x": 30,
-     "y": 400,
-     "w": 220,
-     "h": 60,
-     "parent": "ws_win"
+     "label": "AutoCAD 2026 + Civil 3D 2026: только консоль accoreconsole, изолированный профиль, новые документы в папках заданий (CP-43)",
+     "x": 15,
+     "y": 350,
+     "w": 270,
+     "h": 95,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "win"
     },
     {
-     "id": "scratch",
-     "label": "CAD scratch-каталог\n(ezdxf: DXF, $INSUNITS=0)",
-     "x": 30,
+     "id": "solvers",
+     "label": "Решатели: Ansys 2026 R1, MATLAB R2025b, OGS 6.5.9 + MFront (сборка в WSL) — приостановлены пользователем",
+     "x": 15,
      "y": 480,
-     "w": 220,
-     "h": 70,
-     "preset": "cylinder",
-     "parent": "ws_win"
+     "w": 270,
+     "h": 95,
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;fontSize=13;",
+     "parent": "win"
     },
     {
-     "id": "lane_core",
-     "label": "CORE (Linux · Docker Compose «vkm-core»)",
-     "x": 700,
-     "y": 60,
-     "w": 600,
-     "h": 700,
+     "id": "wsl",
+     "label": "WSL archlinux",
+     "x": 330,
+     "y": 50,
+     "w": 315,
+     "h": 695,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=1;rounded=0;",
+     "parent": "ws"
+    },
+    {
+     "id": "pipeline",
+     "label": "Конвейер корпуса (vkm-corpus run): извлечение, рендер, разметка PP-DocLayoutV3",
+     "x": 15,
+     "y": 35,
+     "w": 285,
+     "h": 60,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "wsl"
+    },
+    {
+     "id": "glm",
+     "label": "GLM-OCR: vLLM в Docker Desktop (GPU, только loopback)",
+     "x": 15,
+     "y": 110,
+     "w": 250,
+     "h": 55,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "wsl"
+    },
+    {
+     "id": "staging",
+     "label": "STAGING-корень: Parquet-партиции, LAYOUT_RAW, OCR_RAW, маркеры коммитов",
+     "x": 15,
+     "y": 185,
+     "w": 285,
+     "h": 90,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "preset": "cylinder",
+     "parent": "wsl"
+    },
+    {
+     "id": "worker",
+     "label": "Воркер заданий (единственный планировщик plan-first)",
+     "x": 15,
+     "y": 295,
+     "w": 285,
+     "h": 50,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "wsl"
+    },
+    {
+     "id": "navbuild",
+     "label": "Сборка NAV на GPU из копии DuckDB снимка: vkm-corpus nav build (RAPIDS: cuDF, cuML, cuGraph, cuVS; pymorphy3)",
+     "x": 15,
+     "y": 365,
+     "w": 285,
+     "h": 90,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "wsl"
+    },
+    {
+     "id": "rtx",
+     "label": "Кодирование на RTX для бенчмарков (V2)",
+     "x": 15,
+     "y": 475,
+     "w": 285,
+     "h": 45,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "wsl"
+    },
+    {
+     "id": "backup",
+     "label": "Обратная копия канона и KEEP_RAW",
+     "x": 15,
+     "y": 545,
+     "w": 285,
+     "h": 80,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "preset": "cylinder",
+     "parent": "wsl"
+    },
+    {
+     "id": "core",
+     "label": "CORE — Debian 13 · RX 580 8 GB · compose «vkm-core» · единственный CANONICAL-корень",
+     "x": 740,
+     "y": 80,
+     "w": 640,
+     "h": 760,
      "preset": "swimlane",
-     "style": "swimlane;whiteSpace=wrap;html=1;startSize=26;container=1;collapsible=0;fontStyle=1;swimlaneFillColor=#ffffff;fillColor=#d5e8d4;strokeColor=#82b366;"
+     "style": "swimlane;startSize=28;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;swimlaneFillColor=#ffffff;rounded=0;"
     },
     {
      "id": "net",
      "label": "внутренняя сеть vkm-core",
-     "x": 20,
-     "y": 40,
-     "w": 560,
-     "h": 330,
-     "style": "rounded=0;whiteSpace=wrap;html=1;container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=4;dashed=1;fillColor=none;",
-     "parent": "lane_core"
+     "x": 15,
+     "y": 50,
+     "w": 610,
+     "h": 385,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=1;rounded=0;",
+     "parent": "core"
     },
     {
      "id": "mcp",
-     "label": "mcp — vkm-corpus\n(read; LAN)",
-     "x": 20,
-     "y": 40,
-     "w": 230,
+     "label": "mcp — vkm-corpus: 38 инструментов чтения",
+     "x": 15,
+     "y": 35,
+     "w": 180,
      "h": 60,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
      "parent": "net"
     },
     {
      "id": "mcpadmin",
-     "label": "mcp-admin — vkm-corpus-admin\n(write, plan-first)",
-     "x": 20,
-     "y": 130,
-     "w": 230,
-     "h": 70,
+     "label": "mcp-admin — vkm-corpus-admin (plan-first; подключать только осознанно)",
+     "x": 15,
+     "y": 110,
+     "w": 180,
+     "h": 75,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
      "parent": "net"
     },
     {
      "id": "api",
-     "label": "api — VKM API /v1\n(LAN-адрес CORE;\nмонтирование :ro)",
-     "x": 290,
-     "y": 40,
-     "w": 250,
-     "h": 160,
-     "style": "fillColor=#fff2cc;strokeColor=#d6b656;rounded=1;",
+     "label": "api — VKM API /v1\nконверт vkm.envelope/1; NavStore; канон, derived/navigation и derived/catalogues смонтированы только для чтения",
+     "x": 215,
+     "y": 35,
+     "w": 200,
+     "h": 150,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
      "parent": "net"
     },
     {
      "id": "neo4j",
-     "label": "neo4j 5.26\n(только loopback)",
-     "x": 20,
-     "y": 240,
-     "w": 160,
-     "h": 70,
+     "label": "neo4j 5.26: DOCUMENT + NAV (только loopback)",
+     "x": 15,
+     "y": 215,
+     "w": 180,
+     "h": 65,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
      "parent": "net"
     },
     {
      "id": "opensearch",
-     "label": "opensearch 3.8\n(только loopback)",
-     "x": 200,
-     "y": 240,
-     "w": 160,
-     "h": 70,
+     "label": "opensearch 3.8: BM25, векторы dense (только loopback)",
+     "x": 215,
+     "y": 215,
+     "w": 200,
+     "h": 65,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
      "parent": "net"
     },
     {
-     "id": "duckdb",
-     "label": "DuckDB-файл\n(read-only)",
-     "x": 380,
-     "y": 240,
-     "w": 160,
+     "id": "rx580",
+     "label": "rx580-retrieval: llama.cpp / Vulkan; jina-v5-nano + mLateOn резидентно; late pack float16",
+     "x": 430,
+     "y": 215,
+     "w": 165,
+     "h": 110,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "net"
+    },
+    {
+     "id": "vkmjob",
+     "label": "vkm-job (разовые задания): reconcile, проекции, векторы (lab_refresh)",
+     "x": 15,
+     "y": 300,
+     "w": 180,
      "h": 70,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
      "parent": "net"
     },
     {
      "id": "data",
-     "label": "Корень данных CANONICAL:\ncanonical/ · artifacts/ · duckdb/",
-     "x": 20,
-     "y": 400,
-     "w": 560,
-     "h": 110,
-     "preset": "cylinder",
-     "parent": "lane_core"
+     "label": "корень данных CANONICAL",
+     "x": 15,
+     "y": 450,
+     "w": 610,
+     "h": 295,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=1;rounded=0;",
+     "parent": "core"
     },
     {
-     "id": "lane_edge",
-     "label": "EDGE (Linux · Docker · GPU GTX 1650)",
-     "x": 1360,
-     "y": 60,
-     "w": 380,
-     "h": 700,
+     "id": "canon",
+     "label": "canonical/ — Parquet-снимок, manifest, CURRENT (сдвигается только при PASS валидатора); artifacts/; duckdb/",
+     "x": 15,
+     "y": 35,
+     "w": 300,
+     "h": 110,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "preset": "cylinder",
+     "parent": "data"
+    },
+    {
+     "id": "derived",
+     "label": "derived/ — navigation/<снимок> (nav.duckdb) · catalogues/<коммит> (пакет каталогов) · embeddings/ (dense, late pack)",
+     "x": 15,
+     "y": 165,
+     "w": 300,
+     "h": 110,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "preset": "cylinder",
+     "parent": "data"
+    },
+    {
+     "id": "receipts",
+     "label": "receipts/ — квитанции reconcile, проекций, NAV, lab_refresh",
+     "x": 335,
+     "y": 35,
+     "w": 260,
+     "h": 110,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;",
+     "preset": "document",
+     "parent": "data"
+    },
+    {
+     "id": "edge",
+     "label": "EDGE — Debian 13 · GTX 1650 4 GB",
+     "x": 1420,
+     "y": 80,
+     "w": 360,
+     "h": 760,
      "preset": "swimlane",
-     "style": "swimlane;whiteSpace=wrap;html=1;startSize=26;container=1;collapsible=0;fontStyle=1;swimlaneFillColor=#ffffff;fillColor=#ffe6cc;strokeColor=#d79b00;"
+     "style": "swimlane;startSize=28;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;swimlaneFillColor=#ffffff;rounded=0;"
     },
     {
      "id": "gateway",
-     "label": "vkm-rerank-gateway\n(LAN, токен из *_FILE)",
-     "x": 30,
-     "y": 50,
+     "label": "vkm-rerank-gateway (LAN, токен из *_FILE)",
+     "x": 20,
+     "y": 75,
      "w": 320,
-     "h": 60,
-     "parent": "lane_edge"
+     "h": 55,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "edge"
     },
     {
-     "id": "text",
-     "label": "Jina v3.5 — текст\n(существующий сервис,\nне трогаем)",
-     "x": 30,
-     "y": 160,
+     "id": "v35",
+     "label": "jina-reranker-v3.5 — текст (существующий сервис, не перезапускается)",
+     "x": 20,
+     "y": 175,
      "w": 150,
-     "h": 80,
-     "parent": "lane_edge"
+     "h": 105,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "edge"
     },
     {
-     "id": "visual",
-     "label": "Jina m0 Q6_K\n(llama-server,\nloopback)",
-     "x": 200,
-     "y": 160,
+     "id": "m0",
+     "label": "jina-reranker-m0 Q6_K — изображения (llama-server, loopback)",
+     "x": 190,
+     "y": 175,
      "w": 150,
-     "h": 80,
-     "parent": "lane_edge"
+     "h": 105,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "edge"
     },
     {
      "id": "pg",
-     "label": "PostgreSQL: БД VKM\ncontrol plane (задания, не канон)",
-     "x": 30,
-     "y": 300,
+     "label": "PostgreSQL vkm_ops: control plane (задания, воркеры; не канон)",
+     "x": 20,
+     "y": 345,
      "w": 320,
      "h": 100,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
      "preset": "cylinder",
-     "parent": "lane_edge"
+     "parent": "edge"
+    },
+    {
+     "id": "rules",
+     "label": "Neo4j и OpenSearch слушают только loopback; в LAN публикуются только API, MCP и шлюз реранка. Проекции (DuckDB, Neo4j, OpenSearch, векторы) пересобираются из снимка CURRENT. PostgreSQL — операционное состояние: его потеря не теряет корпус.",
+     "x": 20,
+     "y": 900,
+     "w": 980,
+     "h": 70,
+     "preset": "note",
+     "style": "fontSize=12;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;fillColor=#ffffff;strokeColor=#666666;"
     },
     {
      "id": "legend",
-     "label": "Роли хостов без адресов: IP, порты, логины и секреты — только в host-local .env и *_FILE. Neo4j и OpenSearch слушают только loopback; в LAN публикуются только API, MCP и rerank-gateway.",
+     "label": "Легенда",
+     "x": 1040,
+     "y": 895,
+     "w": 740,
+     "h": 152,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#666666;dashed=0;rounded=0;"
+    },
+    {
+     "id": "lg_sw_derived",
+     "label": "",
+     "x": 10,
+     "y": 30,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;"
+    },
+    {
+     "id": "lg_tx_derived",
+     "label": "данные: канон, STAGING, проекции, производные каталоги",
+     "x": 52,
+     "y": 28,
+     "w": 680,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_service",
+     "label": "",
+     "x": 10,
+     "y": 59,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;"
+    },
+    {
+     "id": "lg_tx_service",
+     "label": "сервис, инструмент, шаг процесса",
+     "x": 52,
+     "y": 57,
+     "w": 680,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_agent",
+     "label": "",
+     "x": 10,
+     "y": 88,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;"
+    },
+    {
+     "id": "lg_tx_agent",
+     "label": "агент Claude",
+     "x": 52,
+     "y": 86,
+     "w": 680,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_paused",
+     "label": "",
+     "x": 10,
+     "y": 117,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;"
+    },
+    {
+     "id": "lg_tx_paused",
+     "label": "приостановлено, в работе или будущее (пунктир)",
+     "x": 52,
+     "y": 115,
+     "w": 680,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "sources",
+     "label": "Источники: README.md §3; docs/corpus_platform/CORPUS_PLATFORM_ARCHITECTURE.md §1–§2; DEPLOYMENT.md; OPERATIONS.md §1–§4a; MODEL_SERVICES.md §1; NAVIGATION_LAYER.md §1; infra/core/compose.yml; receipts/evening_deploy_final.json; implementation_work/COORDINATOR_DECISIONS.md (CP-39, CP-43).",
      "x": 20,
-     "y": 790,
-     "w": 1720,
-     "h": 50,
-     "preset": "note",
-     "style": "align=left;verticalAlign=middle;spacingLeft=6;"
+     "y": 1040,
+     "w": 1760,
+     "h": 40,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;"
     }
    ],
    "edges": [
@@ -300,163 +504,180 @@
      "source": "claude",
      "target": "drawio_mcp",
      "label": "stdio",
-     "style": "exitX=0.5;exitY=1;entryX=0.5;entryY=0;"
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "t_drawcli",
+     "source": "drawio_mcp",
+     "target": "drawio_app",
+     "label": "CLI",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
     },
     {
      "id": "t_cad",
      "source": "claude",
      "target": "cad_mcp",
      "label": "stdio",
-     "style": "exitX=0;exitY=0.5;entryX=0;entryY=0.5;",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
      "waypoints": [
       [
-       355,
-       170
+       42,
+       192
       ],
       [
-       355,
-       445
+       42,
+       432
       ]
      ]
     },
     {
-     "id": "t_drawio_cli",
-     "source": "drawio_mcp",
-     "target": "drawio_app",
-     "label": "CLI",
-     "style": "exitX=0.5;exitY=1;entryX=0.5;entryY=0;"
-    },
-    {
-     "id": "t_com",
+     "id": "t_acad",
      "source": "cad_mcp",
      "target": "acad",
-     "label": "COM (attach)",
-     "style": "exitX=0.5;exitY=1;entryX=0.5;entryY=0;"
-    },
-    {
-     "id": "t_dxf",
-     "source": "cad_mcp",
-     "target": "scratch",
-     "label": "ezdxf",
-     "style": "exitX=1;exitY=0.5;entryX=1;entryY=0.5;",
-     "waypoints": [
-      [
-       605,
-       445
-      ],
-      [
-       605,
-       615
-      ]
-     ]
+     "label": "задания",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
     },
     {
      "id": "t_mcp",
      "source": "claude",
      "target": "mcp",
-     "label": "MCP: HTTP + bearer",
-     "style": "exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
-    },
-    {
-     "id": "t_mcp_admin",
-     "source": "claude",
-     "target": "mcpadmin",
-     "label": "только осознанно",
-     "style": "exitX=1;exitY=0.85;entryX=0;entryY=0.5;",
+     "label": "MCP: streamable HTTP + токен",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
      "waypoints": [
       [
-       670,
-       191
+       185,
+       116
       ],
       [
-       670,
-       265
+       860,
+       116
       ]
-     ],
-     "preset": "dashed"
+     ]
+    },
+    {
+     "id": "t_mcpadmin",
+     "source": "claude",
+     "target": "mcpadmin",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.8;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       266,
+       124
+      ],
+      [
+       762,
+       124
+      ],
+      [
+       762,
+       277
+      ]
+     ]
     },
     {
      "id": "t_api1",
      "source": "mcp",
      "target": "api",
      "label": "",
-     "style": "exitX=1;exitY=0.5;entryX=0;entryY=0.19;"
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.2;entryDx=0;entryDy=0;"
     },
     {
      "id": "t_api2",
      "source": "mcpadmin",
      "target": "api",
      "label": "",
-     "style": "exitX=1;exitY=0.5;entryX=0;entryY=0.78;"
-    },
-    {
-     "id": "t_duck",
-     "source": "api",
-     "target": "duckdb",
-     "label": "",
-     "style": "exitX=0.68;exitY=1;entryX=0.5;entryY=0;"
-    },
-    {
-     "id": "t_os",
-     "source": "api",
-     "target": "opensearch",
-     "label": "только ID",
-     "style": "exitX=0.14;exitY=1;entryX=0.78;entryY=0;"
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;"
     },
     {
      "id": "t_neo",
      "source": "api",
      "target": "neo4j",
      "label": "",
-     "style": "exitX=0.04;exitY=1;entryX=0.5;entryY=0;",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.2;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "t_os",
+     "source": "api",
+     "target": "opensearch",
+     "label": "только ID",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.6;exitY=1;exitDx=0;exitDy=0;entryX=0.6;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "t_rx",
+     "source": "api",
+     "target": "rx580",
+     "label": "вектор запроса, MaxSim",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.9;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "t_rr",
+     "source": "api",
+     "target": "gateway",
+     "label": "реранк: HTTP + токен",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
      "waypoints": [
       [
-       1020,
-       320
+       1394,
+       195
       ],
       [
-       820,
-       320
+       1394,
+       182
       ]
      ]
     },
     {
-     "id": "t_ro",
+     "id": "t_plan",
      "source": "api",
-     "target": "data",
-     "label": ":ro",
-     "style": "exitX=1;exitY=0.69;entryX=1;entryY=0.5;",
+     "target": "pg",
+     "label": "PLAN_REQUEST",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
      "waypoints": [
       [
-       1290,
-       250
+       1406,
+       240
       ],
       [
-       1290,
-       515
+       1406,
+       475
       ]
      ]
+    },
+    {
+     "id": "t_gw1",
+     "source": "gateway",
+     "target": "v35",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "t_gw2",
+     "source": "gateway",
+     "target": "m0",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
     },
     {
      "id": "t_ocr",
      "source": "pipeline",
-     "target": "glmocr",
+     "target": "glm",
      "label": "HTTP (loopback)",
-     "style": "exitX=0.5;exitY=1;entryX=0.5;entryY=0;"
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
     },
     {
      "id": "t_stage",
      "source": "pipeline",
      "target": "staging",
-     "label": "Parquet + raw",
-     "style": "exitX=1;exitY=0.5;entryX=1;entryY=0.5;",
+     "label": "Parquet\n+ сырьё",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;",
      "waypoints": [
       [
-       305,
-       170
+       658,
+       195
       ],
       [
-       305,
+       658,
        360
       ]
      ]
@@ -464,102 +685,72 @@
     {
      "id": "t_pub",
      "source": "staging",
-     "target": "data",
-     "label": "публикация: rsync (SSH) → core admit",
-     "style": "exitX=0;exitY=0.5;entryX=0;entryY=0.5;",
+     "target": "canon",
+     "label": "core publish\n(rsync по SSH)\n→ core reconcile",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.6;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;",
      "waypoints": [
       [
-       55,
-       360
+       705,
+       369
       ],
       [
-       55,
-       690
+       705,
+       603
+      ]
+     ]
+    },
+    {
+     "id": "t_nav",
+     "source": "navbuild",
+     "target": "derived",
+     "label": "nav.duckdb\n+ CURRENT",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       722,
+       540
       ],
       [
-       690,
-       690
-      ],
-      [
-       690,
-       515
+       722,
+       750
       ]
      ]
     },
     {
      "id": "t_back",
-     "source": "data",
+     "source": "canon",
      "target": "backup",
      "label": "обратная копия",
-     "style": "exitX=0.1;exitY=1;entryX=0.5;entryY=1;",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0;exitY=0.8;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;",
      "waypoints": [
       [
-       776,
-       715
+       690,
+       653
       ],
       [
-       180,
+       690,
        715
-      ]
-     ],
-     "preset": "dashed"
-    },
-    {
-     "id": "t_rr",
-     "source": "api",
-     "target": "gateway",
-     "label": "реранк: HTTP + токен",
-     "style": "exitX=1;exitY=0.125;entryX=0;entryY=0.83;"
-    },
-    {
-     "id": "t_plan",
-     "source": "api",
-     "target": "pg",
-     "label": "PLAN_REQUEST",
-     "style": "exitX=1;exitY=0.75;entryX=0;entryY=0.5;",
-     "waypoints": [
-      [
-       1340,
-       260
-      ],
-      [
-       1340,
-       410
       ]
      ]
-    },
-    {
-     "id": "t_text",
-     "source": "gateway",
-     "target": "text",
-     "label": "",
-     "style": "exitX=0.234;exitY=1;entryX=0.5;entryY=0;"
-    },
-    {
-     "id": "t_visual",
-     "source": "gateway",
-     "target": "visual",
-     "label": "",
-     "style": "exitX=0.766;exitY=1;entryX=0.5;entryY=0;"
     },
     {
      "id": "t_jobs",
      "source": "worker",
      "target": "pg",
-     "label": "задания: план → plan_sha256 → запуск",
-     "style": "exitX=1;exitY=0.5;entryX=0.5;entryY=1;",
+     "label": "задания: план → plan_sha256 → подтверждение → запуск",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;",
      "waypoints": [
       [
-       330,
-       460
+       358,
+       450
       ],
       [
-       330,
-       740
+       358,
+       865
       ],
       [
-       1550,
-       740
+       1600,
+       865
       ]
      ]
     }
