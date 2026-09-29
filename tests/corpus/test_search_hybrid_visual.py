@@ -104,7 +104,7 @@ def test_detected_query_fuses_the_page_image_leg_with_the_served_order():
     assert len(_visual_calls(svc)) == 1
     body = next(b for i, b in client.searches if i == "vkm-pagevis")
     assert body["query"]["script_score"]["script"]["params"]["space_type"] == "innerproduct"   # exact, V2's scheme
-    assert body["size"] == 20                                          # candidates × oversample (duplicates collapse)
+    assert body["size"] == 40                                          # candidates × oversample (duplicates collapse)
     ids = [h["id"] for h in out["hits"]]
     # E (after late): P1, P3, P2; image leg: V1, V2 (V3 collapsed into V2's group), P1, P2, P3 → RRF: pages of both
     # legs first, then the image-only pages

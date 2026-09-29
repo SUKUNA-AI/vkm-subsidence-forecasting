@@ -78,7 +78,7 @@ LATE_CANDIDATES = 100                     # J's service scheme: RRF top-100 → 
 LATE_DEFAULT = False                      # late stage when the request does not say (agent L: from CORE latency)
 BIB_KIND = "BIB_ENTRY"                    # the kind the bibliographic route scans (CP-42 keeps it out of PAGE ranking)
 VISUAL_ROUTE_DEFAULT = False              # server switch of the visual route (VKM_HYBRID_VISUAL_ROUTE after the gate)
-VISUAL_OVERSAMPLE = 2                     # page vectors fetched per wanted page (duplicate groups collapse)
+VISUAL_OVERSAMPLE = 4                     # page vectors fetched per wanted page (duplicate groups collapse; V2: 400)
 
 
 class HybridError(RuntimeError):
