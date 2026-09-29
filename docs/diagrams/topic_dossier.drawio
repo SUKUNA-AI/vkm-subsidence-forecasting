@@ -1,0 +1,151 @@
+<mxfile host="vkm-drawio" agent="vkm-drawio writer/1" compressed="false" pages="1">
+  <diagram id="dossier" name="Досье темы">
+    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1760" pageHeight="1080" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Досье темы «от А до Я»: reconstruct_topic (API GET/POST /v1/topic, MCP-инструмент)" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="12" width="1720" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Один вызов (≈ 3–4 с) — бюджетированная карта темы с ID и страницами; дальше Claude открывает только нужное (get_section, get_formula_context, get_page, get_object). Навигация, не evidence." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="44" width="1720" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="in" value="Вход&lt;br&gt;query; paraphrases ≤ 4; source_ids ≤ 20; budget_chars 1 000–60 000 (по умолчанию 12 000)" style="fillColor=#e1d5e7;fontSize=13;html=1;rounded=1;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="110" width="230" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="form" value="Формулировки темы (≤ 5)&lt;br&gt;1 сам запрос&lt;br&gt;2 перефразы вызывающего — идут первыми&lt;br&gt;3 синонимы понятия: лемма, SAME_AS, одно более узкое понятие&lt;br&gt;4 запрос + два ближайших соседа понятия" style="align=left;fillColor=#fff2cc;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="290" y="110" width="270" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="tiers" value="Два яруса источников — каждая формулировка ищется дважды&lt;br&gt;• ядро ВКМ: источники каталогов evidence (source_coverage_master, process_evidence_links, реестр моделей, матрица покрытия) и области ВКМ, СКРУ, БКПРУ, Соликамск, Усолье по реестру&lt;br&gt;• остальной корпус" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="290" y="330" width="270" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="search" value="Гибридный поиск (BM25 + dense + late) → единицы-страницы; слияние RRF (k = 60) в прежнем бюджете страниц" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="600" y="110" width="250" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="secsel" value="Разделы: страница → самый глубокий раздел; + заголовки по основам слов и search_sections; одна ветка дерева — один раздел, из источника ≤ 3" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="600" y="265" width="250" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="budget" value="Бюджет: markdown ≤ budget_chars; первыми уходят связи, операторы, строки evidence, дальние разделы; в конце — что не вошло и как получить (budget.trimmed)" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="600" y="445" width="250" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="out" value="Ответ: markdown-оглавление + structured_content (ApiResponse TOPIC_DOSSIER)" style="align=left;collapsible=0;container=1;dashed=1;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="900" y="95" width="840" height="610" as="geometry" />
+        </mxCell>
+        <mxCell id="o1" value="Разделы в два яруса (ядро ВКМ отдельно): путь заголовков, диапазон страниц, лучшие единицы, сниппет канонического текста ≤ 200 знаков; списки страниц pages.core и pages.rest" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="out">
+          <mxGeometry x="15" y="35" width="400" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="o2" value="Рисунки и таблицы: подписи на найденных страницах и соседних (± 1), если в них есть слова запроса" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="out">
+          <mxGeometry x="425" y="35" width="400" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="o3" value="Формулы: номер, раздел, «где…» (символ, смысл, единица), число ссылок, параметры-кандидаты (AUTO_EXTRACTED_UNREVIEWED); формулы ядра — раньше" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="out">
+          <mxGeometry x="15" y="215" width="400" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="o4" value="Понятие и темы: explore_concept (определения, соседи, шире / уже), find_topics" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="out">
+          <mxGeometry x="425" y="215" width="400" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="o5" value="Источники: область из реестра, основная работа (авторы, год, тип), покрытие SOURCE_COVERAGE_MASTER, CITES внутри набора" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="out">
+          <mxGeometry x="15" y="395" width="400" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="o6" value="Каталоги: процессы PC-xx с уравнениями, параметрами, готовностью и записями evidence (vn_id, страница, status, scope, scale); модели, конфликты, причинные связи, операторы наблюдения" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="out">
+          <mxGeometry x="425" y="395" width="400" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="o7" value="Пробелы — только UNKNOWN, без чисел: LINKED_OTHER_SCOPE (перенос только через Transfer), NO_LINKED_RECORD, CURATED_GAP, NOT_CHECKED («не сверено»)" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="out">
+          <mxGeometry x="15" y="505" width="810" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="d_search" value="Поиск: OpenSearch (BM25, kNN dense), rx580-retrieval (late)" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="290" y="760" width="270" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="d_nav" value="NavStore: nav.duckdb — разделы, формулы, параметры, понятия, темы" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="600" y="760" width="250" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="d_canon" value="Канон (DuckDB): страницы, объекты, источники, работы, CITES (читаются раз на снимок)" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="900" y="760" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="d_cat" value="Пакет каталогов evidence: derived/catalogues/&amp;lt;коммит&amp;gt; (79 файлов PUBLIC)" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="760" width="290" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="env" value="Конверт: TOPIC_DOSSIER, layer = PROJECTION, origin = DERIVED, AUTO_EXTRACTED_UNREVIEWED. Без поиска, понятий, тем или каталогов досье строится из оставшегося и предупреждает (RETRIEVAL_UNAVAILABLE, RETRIEVAL_PARTIAL, CONCEPTS_UNAVAILABLE, CATALOGUES_UNAVAILABLE, CITES_PENDING …); без NAV, поиска и каталогов сразу — DEPENDENCY_UNAVAILABLE." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="870" width="830" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="meas" value="Измерено 28.09: «механика закладки» (2 перефразы, 6 000 знаков) — 3,85 с; «начальные напряжения» (6 000 знаков) — 2,71 с. Рецепт из topic_v1: три формулировки в RRF дают page_recall@50 0,446 против 0,303 у одной. Досье-примеры: docs/science/topic_dossiers/." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="880" y="870" width="860" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Легенда" style="align=left;collapsible=0;container=1;dashed=0;fillColor=#ffffff;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="580" width="250" height="226" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_evidence" value="" style="fillColor=#d5e8d4;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="30" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_evidence" value="каталоги evidence и провенанс источников" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="28" width="190" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_derived" value="" style="fillColor=#dae8fc;html=1;rounded=0;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="74" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_derived" value="производное: поиск, NAV, канон" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="72" width="190" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_service" value="" style="fillColor=#fff2cc;html=1;rounded=0;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="118" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_service" value="сервис, инструмент, шаг процесса" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="116" width="190" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_unknown" value="" style="fillColor=#f8cecc;html=1;rounded=0;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="162" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_unknown" value="пробелы UNKNOWN" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="160" width="190" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_agent" value="" style="fillColor=#e1d5e7;html=1;rounded=0;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="191" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_agent" value="агент Claude" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="189" width="190" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="sources" value="Источники: docs/corpus_platform/NAVIGATION_LAYER.md §5 (досье темы, пакет каталогов); MCP_TOOLS.md §2 (reconstruct_topic); README.md §7; receipts/evening_deploy_final.json (mcp_smoke); benchmarks/topic_v1/RESULTS_V1.md §0; src/vkm_corpus/api/topic.py." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1040" width="1720" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.3;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="in" target="form">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="form" target="tiers">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.3;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="form" target="search">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.85;exitDx=0;exitDy=0;exitX=1;exitY=0.2;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="tiers" target="search">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="search" target="secsel">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="secsel" target="budget">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.83;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="budget" target="out">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s1" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.2;entryY=1;exitDx=0;exitDy=0;exitX=0.8;exitY=0;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="d_search" target="search">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="506" y="740" />
+              <mxPoint x="506" y="250" />
+              <mxPoint x="650" y="250" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s2" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=1;exitDx=0;exitDy=0;exitX=0.5;exitY=0;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="d_nav" target="budget">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s3" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.3;entryY=1;exitDx=0;exitDy=0;exitX=0.5;exitY=0;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="d_canon" target="out">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s4" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.7;entryY=1;exitDx=0;exitDy=0;exitX=0.5;exitY=0;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="d_cat" target="out">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

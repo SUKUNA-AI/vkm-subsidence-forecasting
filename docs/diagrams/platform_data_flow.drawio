@@ -1,190 +1,339 @@
 <mxfile host="vkm-drawio" agent="vkm-drawio writer/1" compressed="false" pages="1">
   <diagram id="data_flow" name="Поток данных">
-    <mxGraphModel grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1960" pageHeight="900" math="0" shadow="0" background="#ffffff">
+    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1960" pageHeight="1190" math="0" shadow="0" background="#ffffff">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="VKM Corpus Platform v0 — поток данных (роли хостов; адреса, порты и секреты — только в host-local конфигурации)" style="text;align=left;fontSize=16;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="20" y="10" width="1500" height="30" as="geometry" />
+        <mxCell id="title" value="Платформа корпуса: поток данных от источников до инструментов MCP (состояние 29.09.2026)" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="12" width="1920" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="lane_private" value="PRIVATE-репозиторий (Git + LFS)" style="swimlane;collapsible=0;container=1;fillColor=#f5f5f5;fontStyle=1;html=1;startSize=26;strokeColor=#666666;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="20" y="60" width="260" height="420" as="geometry" />
+        <mxCell id="subtitle" value="Канон — только Parquet-снимок на CORE (CURRENT); всё правее — пересобираемые проекции и производные каталоги. Снимок snap-20260928T193550Z-738eebee, reconcile — RECONCILED." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="44" width="1920" height="25" as="geometry" />
         </mxCell>
-        <mxCell id="reg" value="SOURCE_REGISTER.csv&lt;br&gt;251 запись реестра" style="boundedLbl=1;html=1;shape=document;whiteSpace=wrap;" vertex="1" parent="lane_private">
-          <mxGeometry x="30" y="50" width="200" height="70" as="geometry" />
+        <mxCell id="priv" value="PRIVATE-репозиторий (Git + LFS)" style="swimlane;collapsible=0;container=1;fillColor=#d5e8d4;fontSize=14;fontStyle=1;html=1;rounded=0;startSize=28;strokeColor=#82b366;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="30" y="90" width="250" height="450" as="geometry" />
         </mxCell>
-        <mxCell id="raw" value="Сырые источники&lt;br&gt;PDF · DjVu · EPUB · DOCX" style="backgroundOutline=1;boundedLbl=1;html=1;shape=cylinder3;size=12;whiteSpace=wrap;" vertex="1" parent="lane_private">
-          <mxGeometry x="30" y="160" width="200" height="90" as="geometry" />
+        <mxCell id="reg" value="SOURCE_REGISTER.csv — 251 источник" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="priv">
+          <mxGeometry x="15" y="45" width="220" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="wreg" value="Курируемые Work и связи&lt;br&gt;(00_registry)" style="boundedLbl=1;html=1;shape=document;whiteSpace=wrap;" vertex="1" parent="lane_private">
-          <mxGeometry x="30" y="290" width="200" height="70" as="geometry" />
+        <mxCell id="raw" value="Файлы источников: PDF · DjVu · EPUB · DOCX" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="priv">
+          <mxGeometry x="15" y="115" width="220" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="legend" value="Канон — только Parquet-снимок на CORE (CURRENT). DuckDB, Neo4j и OpenSearch пересобираются из снимка. PostgreSQL — операционное состояние. Автоматически извлечённые объекты — AUTO_EXTRACTED_UNREVIEWED: это не FACT." style="align=left;backgroundOutline=1;html=1;shape=note;size=14;spacingLeft=6;spacingTop=6;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="20" y="520" width="260" height="200" as="geometry" />
+        <mxCell id="wreg" value="Курируемые Work и связи (00_registry)" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="priv">
+          <mxGeometry x="15" y="195" width="220" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="lane_ws" value="WORKSTATION · WSL (единственный producer)" style="swimlane;collapsible=0;container=1;fillColor=#dae8fc;fontStyle=1;html=1;startSize=26;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="320" y="60" width="300" height="700" as="geometry" />
+        <mxCell id="evp" value="evidence vNext (11_evidence_vnext/): полные записи с цитатами" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="priv">
+          <mxGeometry x="15" y="275" width="220" height="75" as="geometry" />
         </mxCell>
-        <mxCell id="inspect" value="Инспекция и пагинация&lt;br&gt;(sha256 против реестра)" style="html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="lane_ws">
-          <mxGeometry x="40" y="50" width="220" height="60" as="geometry" />
+        <mxCell id="priv_note" value="в PUBLIC не попадают" style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="priv">
+          <mxGeometry x="15" y="365" width="220" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="native" value="Нативное извлечение&lt;br&gt;PyMuPDF · DjVuLibre" style="html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="lane_ws">
-          <mxGeometry x="40" y="150" width="220" height="60" as="geometry" />
+        <mxCell id="pub" value="PUBLIC-репозиторий" style="swimlane;collapsible=0;container=1;fillColor=#d5e8d4;fontSize=14;fontStyle=1;html=1;rounded=0;startSize=28;strokeColor=#82b366;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="30" y="580" width="250" height="410" as="geometry" />
         </mxCell>
-        <mxCell id="layout" value="Рендер и разметка&lt;br&gt;PP-DocLayoutV3 → LAYOUT_RAW" style="html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="lane_ws">
-          <mxGeometry x="40" y="250" width="220" height="60" as="geometry" />
+        <mxCell id="pubcat" value="catalogues/ и evidence/ — 79 CSV без цитат (статус, scope, scale)" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="pub">
+          <mxGeometry x="15" y="45" width="220" height="75" as="geometry" />
         </mxCell>
-        <mxCell id="ocr" value="GLM-OCR (vLLM, GPU):&lt;br&gt;страницы без пригодного текста,&lt;br&gt;формулы и таблицы" style="html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="lane_ws">
-          <mxGeometry x="40" y="350" width="220" height="80" as="geometry" />
+        <mxCell id="catpack" value="vkm-corpus catalogues pack → catalogues.duckdb + manifest.json (коммит PUBLIC, sha256 и строки файлов)" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="pub">
+          <mxGeometry x="15" y="160" width="220" height="105" as="geometry" />
         </mxCell>
-        <mxCell id="staging" value="STAGING-корень:&lt;br&gt;Parquet-партиции, OCR_RAW,&lt;br&gt;маркеры коммитов" style="backgroundOutline=1;boundedLbl=1;html=1;shape=cylinder3;size=12;whiteSpace=wrap;" vertex="1" parent="lane_ws">
-          <mxGeometry x="40" y="470" width="220" height="100" as="geometry" />
+        <mxCell id="ws" value="WORKSTATION · WSL — producer" style="swimlane;collapsible=0;container=1;fillColor=#dae8fc;fontSize=14;fontStyle=1;html=1;rounded=0;startSize=28;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="320" y="90" width="320" height="900" as="geometry" />
         </mxCell>
-        <mxCell id="worker" value="Воркер заданий&lt;br&gt;(единственный планировщик)" style="html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="lane_ws">
-          <mxGeometry x="40" y="610" width="220" height="60" as="geometry" />
+        <mxCell id="regimport" value="registry verify / import: sha256 против реестра" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="ws">
+          <mxGeometry x="15" y="45" width="290" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="lane_core" value="CORE · CANONICAL (compose-проект vkm-core)" style="swimlane;collapsible=0;container=1;fillColor=#d5e8d4;fontStyle=1;html=1;startSize=26;strokeColor=#82b366;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="660" y="60" width="1060" height="460" as="geometry" />
+        <mxCell id="extract" value="run extract по фазам:&lt;br&gt;1 prepare — формат, страницы двумя методами, нативный текст&lt;br&gt;2 visual — рендер 200 dpi, PP-DocLayoutV3&lt;br&gt;3 ocr — GLM-OCR, где нужно&lt;br&gt;4 commit — источник целиком" style="align=left;fillColor=#fff2cc;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="ws">
+          <mxGeometry x="15" y="120" width="290" height="135" as="geometry" />
         </mxCell>
-        <mxCell id="admit" value="core admit + reconcile&lt;br&gt;(sha, схема, родитель коммита)" style="html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="lane_core">
-          <mxGeometry x="30" y="50" width="220" height="60" as="geometry" />
+        <mxCell id="staging" value="STAGING: Parquet-партиции, LAYOUT_RAW, OCR_RAW, маркеры коммитов" style="backgroundOutline=1;boundedLbl=1;fillColor=#dae8fc;fontSize=13;html=1;shape=cylinder3;size=12;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="ws">
+          <mxGeometry x="15" y="275" width="290" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="canon" value="Канон: Parquet-снимок&lt;br&gt;manifest + CURRENT" style="backgroundOutline=1;boundedLbl=1;html=1;shape=cylinder3;size=12;whiteSpace=wrap;" vertex="1" parent="lane_core">
-          <mxGeometry x="30" y="150" width="220" height="100" as="geometry" />
+        <mxCell id="worker" value="Воркер заданий: план → подтверждение → запуск → публикация" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="ws">
+          <mxGeometry x="15" y="380" width="290" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="artifacts" value="Артефакты&lt;br&gt;(content-addressed, sha256:…)" style="backgroundOutline=1;boundedLbl=1;html=1;shape=cylinder3;size=12;whiteSpace=wrap;" vertex="1" parent="lane_core">
-          <mxGeometry x="30" y="310" width="220" height="90" as="geometry" />
+        <mxCell id="outlines" value="Оглавления файлов: закладки PDF, навигация EPUB, outline DjVu → JSON на снимок" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="ws">
+          <mxGeometry x="15" y="470" width="290" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="duckdb" value="DuckDB (read-only)&lt;br&gt;сверка fingerprint с manifest" style="html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="lane_core">
-          <mxGeometry x="290" y="50" width="220" height="60" as="geometry" />
+        <mxCell id="navbuild" value="nav build --part all (GPU, RAPIDS; ≈ 2 мин): sections · formulas · parameters · duplicates · concepts · topics → store.pack → nav.duckdb" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="ws">
+          <mxGeometry x="15" y="570" width="290" height="115" as="geometry" />
         </mxCell>
-        <mxCell id="neo4j" value="Neo4j: DOCUMENT graph&lt;br&gt;(в графе только ID и статусы)" style="html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="lane_core">
-          <mxGeometry x="290" y="160" width="220" height="60" as="geometry" />
+        <mxCell id="ws_note" value="входы nav build: копия DuckDB снимка, векторы единиц, оглавления" style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="ws">
+          <mxGeometry x="15" y="700" width="290" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="opensearch" value="OpenSearch: BM25&lt;br&gt;(кандидаты — только ID)" style="html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="lane_core">
-          <mxGeometry x="290" y="270" width="220" height="60" as="geometry" />
+        <mxCell id="core" value="CORE · CANONICAL-корень (compose «vkm-core»)" style="swimlane;collapsible=0;container=1;fillColor=#dae8fc;fontSize=14;fontStyle=1;html=1;rounded=0;startSize=28;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="680" y="90" width="1000" height="900" as="geometry" />
         </mxCell>
-        <mxCell id="api" value="VKM API /v1&lt;br&gt;конверт vkm.envelope/1" style="fillColor=#fff2cc;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="lane_core">
-          <mxGeometry x="550" y="150" width="220" height="100" as="geometry" />
+        <mxCell id="rec" value="core reconcile — по порядку" style="align=left;collapsible=0;container=1;dashed=1;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="core">
+          <mxGeometry x="15" y="60" width="280" height="500" as="geometry" />
         </mxCell>
-        <mxCell id="mcp" value="MCP vkm-corpus&lt;br&gt;(read-tools)" style="html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="lane_core">
-          <mxGeometry x="810" y="110" width="220" height="60" as="geometry" />
+        <mxCell id="admit" value="1 допуск коммитов: sha, схема, цепочка родителей" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="rec">
+          <mxGeometry x="15" y="35" width="250" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="mcpadmin" value="MCP vkm-corpus-admin&lt;br&gt;(plan-first; по умолчанию&lt;br&gt;не подключён)" style="html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="lane_core">
-          <mxGeometry x="810" y="230" width="220" height="80" as="geometry" />
+        <mxCell id="snap" value="2 снимок + валидатор: CURRENT сдвигается только при PASS" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="rec">
+          <mxGeometry x="15" y="105" width="250" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="lane_edge" value="EDGE (GPU GTX 1650)" style="swimlane;collapsible=0;container=1;fillColor=#ffe6cc;fontStyle=1;html=1;startSize=26;strokeColor=#d79b00;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="1180" y="580" width="540" height="200" as="geometry" />
+        <mxCell id="duck" value="3 DuckDB" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="rec">
+          <mxGeometry x="15" y="195" width="250" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="gateway" value="vkm-rerank-gateway" style="html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="lane_edge">
-          <mxGeometry x="30" y="40" width="320" height="50" as="geometry" />
+        <mxCell id="neo" value="4 Neo4j DOCUMENT (wipe, проверки C1–C16)" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="rec">
+          <mxGeometry x="15" y="265" width="250" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="v35" value="Jina v3.5 — текст&lt;br&gt;(≤ 24 кандидата)" style="html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="lane_edge">
-          <mxGeometry x="30" y="120" width="150" height="60" as="geometry" />
+        <mxCell id="os" value="5 OpenSearch BM25" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="rec">
+          <mxGeometry x="15" y="345" width="250" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="m0" value="Jina m0 — изображения&lt;br&gt;(≤ 8 за вызов)" style="html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="lane_edge">
-          <mxGeometry x="200" y="120" width="150" height="60" as="geometry" />
+        <mxCell id="rrec" value="квитанция reconcile: RECONCILED / WITH_FAILURES / SNAPSHOT_NOT_PASSED / FAILED" style="boundedLbl=1;fillColor=#ffffff;fontSize=13;html=1;shape=document;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="rec">
+          <mxGeometry x="15" y="410" width="250" height="75" as="geometry" />
         </mxCell>
-        <mxCell id="pg" value="PostgreSQL:&lt;br&gt;control plane&lt;br&gt;(не канон)" style="backgroundOutline=1;boundedLbl=1;html=1;shape=cylinder3;size=12;whiteSpace=wrap;" vertex="1" parent="lane_edge">
-          <mxGeometry x="390" y="40" width="130" height="120" as="geometry" />
+        <mxCell id="lab" value="lab_refresh.sh --snapshot &amp;lt;ID&amp;gt;" style="align=left;collapsible=0;container=1;dashed=1;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="core">
+          <mxGeometry x="15" y="600" width="280" height="260" as="geometry" />
         </mxCell>
-        <mxCell id="agent" value="Агент (Claude Code)&lt;br&gt;только через MCP" style="fillColor=#e1d5e7;html=1;rounded=1;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="1760" y="220" width="160" height="80" as="geometry" />
+        <mxCell id="units" value="единицы vkm-units-v1 снимка: 205 784" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="lab">
+          <mxGeometry x="15" y="35" width="250" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="e_reg" value="реестр" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.25;exitX=1;exitY=0.5;html=1;rounded=0;" edge="1" parent="1" source="reg" target="inspect">
+        <mxCell id="dense" value="dense: jina-v5-nano на RX 580 (новых и изменённых — 24 821)" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="lab">
+          <mxGeometry x="15" y="100" width="250" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="late" value="late: mLateOn → pack float16 (новых и изменённых — 2 823)" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="lab">
+          <mxGeometry x="15" y="175" width="250" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="s_nav" value="derived/ navigation/ &amp;lt;снимок&amp;gt;: nav.duckdb + CURRENT (с WORKSTATION); граф NAV: 111 922 узла, 2 203 152 связи" style="fillColor=#dae8fc;fontSize=12;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
+          <mxGeometry x="330" y="60" width="135" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="s_cat" value="derived/ catalogues/ &amp;lt;коммит12&amp;gt; + CURRENT: 79 файлов, 53 943 строки" style="fillColor=#dae8fc;fontSize=12;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
+          <mxGeometry x="475" y="60" width="125" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="s_duck" value="DuckDB канона (только чтение)" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
+          <mxGeometry x="330" y="255" width="270" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="s_neo" value="Neo4j: DOCUMENT + слой NAV" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
+          <mxGeometry x="330" y="325" width="270" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="s_os" value="OpenSearch: BM25 + индекс kNN dense (205 784)" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
+          <mxGeometry x="330" y="405" width="270" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s_rx" value="rx580-retrieval: кодирует запрос, MaxSim по late pack (memmap)" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="core">
+          <mxGeometry x="330" y="775" width="270" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="api" value="VKM API /v1&lt;br&gt;&lt;br&gt;объекты — по ID из DuckDB канона; кандидаты поиска — ID из OpenSearch; соседи — из Neo4j; NavStore (nav.duckdb + канон); досье — пакет каталогов; вектор запроса и MaxSim — rx580-retrieval&lt;br&gt;&lt;br&gt;конверт vkm.envelope/1; подмены канона текстом проекции нет" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;spacingTop=4;strokeColor=#d6b656;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="core">
+          <mxGeometry x="640" y="60" width="210" height="800" as="geometry" />
+        </mxCell>
+        <mxCell id="mcp" value="MCP vkm-corpus: 38 инструментов чтения" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="core">
+          <mxGeometry x="870" y="620" width="115" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="mcpadmin" value="MCP vkm-corpus-admin: задания plan-first" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="core">
+          <mxGeometry x="870" y="740" width="115" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="edge" value="EDGE" style="swimlane;collapsible=0;container=1;fillColor=#dae8fc;fontSize=14;fontStyle=1;html=1;rounded=0;startSize=28;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1720" y="90" width="220" height="520" as="geometry" />
+        </mxCell>
+        <mxCell id="pg" value="PostgreSQL vkm_ops: задания, воркеры (не канон)" style="backgroundOutline=1;boundedLbl=1;fillColor=#dae8fc;fontSize=13;html=1;shape=cylinder3;size=12;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="edge">
+          <mxGeometry x="15" y="55" width="190" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="gw" value="шлюз реранка" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="edge">
+          <mxGeometry x="15" y="215" width="190" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="v35" value="jina-reranker-v3.5: текст, ≤ 24 кандидата" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="edge">
+          <mxGeometry x="15" y="300" width="190" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="m0" value="jina-reranker-m0: изображения, ≤ 8" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="edge">
+          <mxGeometry x="15" y="400" width="190" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="claude" value="Claude Code — MCP-клиент на WORKSTATION: streamable HTTP + токен; admin — только осознанно" style="fillColor=#e1d5e7;fontSize=13;html=1;rounded=1;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1720" y="700" width="220" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="n1" value="Проекции и производные удаляются и собираются заново из снимка: DuckDB — duckdb build; Neo4j — graph ddl + graph rebuild; OpenSearch — search build; векторы — lab_refresh; NAV — nav build + nav graph-load; каталоги — catalogues pack + publish." style="align=left;backgroundOutline=1;fillColor=#ffffff;fontSize=12;html=1;shape=note;size=14;spacingLeft=6;spacingTop=4;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="30" y="1030" width="1260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Легенда" style="align=left;collapsible=0;container=1;dashed=0;fillColor=#ffffff;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="1025" width="620" height="152" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_evidence" value="" style="fillColor=#d5e8d4;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="30" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_evidence" value="источник, evidence, реальные наблюдения" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="28" width="560" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_derived" value="" style="fillColor=#dae8fc;html=1;rounded=0;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="59" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_derived" value="данные: канон, STAGING, проекции, производные каталоги (пересобираются)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="57" width="560" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_service" value="" style="fillColor=#fff2cc;html=1;rounded=0;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="88" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_service" value="сервис, инструмент, шаг процесса" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="86" width="560" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_agent" value="" style="fillColor=#e1d5e7;html=1;rounded=0;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="117" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_agent" value="агент Claude" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="115" width="560" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="sources" value="Источники: docs/corpus_platform/CORPUS_PLATFORM_ARCHITECTURE.md §1–§5; PIPELINE.md §1; OPERATIONS.md §1–§4a; NAVIGATION_LAYER.md §1, §5; MCP_TOOLS.md §1–§3; receipts/evening_deploy_final.json; infra/core/compose.yml." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1150" width="1920" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="e_reg" value="реестр" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.3;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="reg" target="regimport">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_raw" value="только чтение" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.5;exitX=1;exitY=0.5;html=1;rounded=0;" edge="1" parent="1" source="raw" target="inspect">
+        <mxCell id="e_wreg" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.7;exitDx=0;exitDy=0;exitX=1;exitY=0.3;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="wreg" target="regimport">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_wreg" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.75;exitX=1;exitY=0.5;html=1;rounded=0;" edge="1" parent="1" source="wreg" target="inspect">
+        <mxCell id="e_raw" value="только чтение" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="raw" target="extract">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_1" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0.5;entryY=0;exitX=0.5;exitY=1;html=1;rounded=0;" edge="1" parent="1" source="inspect" target="native">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_2" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0.5;entryY=0;exitX=0.5;exitY=1;html=1;rounded=0;" edge="1" parent="1" source="native" target="layout">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_3" value="регионы без текста" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0.5;entryY=0;exitX=0.5;exitY=1;html=1;rounded=0;" edge="1" parent="1" source="layout" target="ocr">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_4" value="OCR_RAW + строки" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0.5;entryY=0;exitX=0.5;exitY=1;html=1;rounded=0;" edge="1" parent="1" source="ocr" target="staging">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_pub" value="публикация: rsync,&lt;br&gt;маркеры последними" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.5;exitX=1;exitY=0.5;html=1;rounded=0;" edge="1" parent="1" source="staging" target="admit">
+        <mxCell id="e_rawtoc" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.8;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="raw" target="outlines">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="640" y="580" />
-              <mxPoint x="640" y="140" />
+              <mxPoint x="300" y="253" />
+              <mxPoint x="300" y="595" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e_rec" value="допуск → CURRENT" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0.5;entryY=0;exitX=0.5;exitY=1;html=1;rounded=0;" edge="1" parent="1" source="admit" target="canon">
+        <mxCell id="e_ri" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="regimport" target="extract">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_art" value="ссылки sha256:" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0.5;entryY=0;exitX=0.5;exitY=1;html=1;rounded=0;" edge="1" parent="1" source="canon" target="artifacts">
+        <mxCell id="e_ex" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="extract" target="staging">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_dd" value="сборка" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.5;exitX=1;exitY=0.3;html=1;rounded=0;" edge="1" parent="1" source="canon" target="duckdb">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_neo" value="проекция" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.5;exitX=1;exitY=0.5;html=1;rounded=0;" edge="1" parent="1" source="canon" target="neo4j">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_os" value="индекс" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.5;exitX=1;exitY=0.7;html=1;rounded=0;" edge="1" parent="1" source="canon" target="opensearch">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_api1" value="объекты по ID" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.2;exitX=1;exitY=0.5;html=1;rounded=0;" edge="1" parent="1" source="duckdb" target="api">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_api2" value="ID соседей" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.5;exitX=1;exitY=0.5;html=1;rounded=0;" edge="1" parent="1" source="neo4j" target="api">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_api3" value="ID кандидатов" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.8;exitX=1;exitY=0.5;html=1;rounded=0;" edge="1" parent="1" source="opensearch" target="api">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_api4" value="байты изображений" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0.2;entryY=1;exitX=1;exitY=0.5;html=1;rounded=0;" edge="1" parent="1" source="artifacts" target="api">
+        <mxCell id="e_pub" value="core publish:&lt;br&gt;rsync, маркеры&lt;br&gt;последними" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="staging" target="admit">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1250" y="415" />
+              <mxPoint x="662" y="405" />
+              <mxPoint x="662" y="212" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e_mcp" value="HTTP, read-токен" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=1;entryY=0.3;exitX=0;exitY=0.5;html=1;rounded=0;" edge="1" parent="1" source="mcp" target="api">
+        <mxCell id="e_a1" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="admit" target="snap">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_mcpa" value="write-токен" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=1;entryY=0.8;exitX=0;exitY=0.5;html=1;rounded=0;" edge="1" parent="1" source="mcpadmin" target="api">
+        <mxCell id="e_a2" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="snap" target="duck">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_agent" value="streamable HTTP&lt;br&gt;+ bearer" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=1;entryY=0.5;exitX=0;exitY=0.3;html=1;rounded=0;" edge="1" parent="1" source="agent" target="mcp">
+        <mxCell id="e_a3" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="duck" target="neo">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_agent_admin" value="только осознанно" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=1;entryY=0.5;exitX=0;exitY=0.8;html=1;rounded=0;" edge="1" parent="1" source="agent" target="mcpadmin">
+        <mxCell id="e_a4" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="neo" target="os">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_rr" value="реранк по ID" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0.344;entryY=0;exitX=0.5;exitY=1;html=1;rounded=0;" edge="1" parent="1" source="api" target="gateway">
+        <mxCell id="e_a5" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="os" target="rrec">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_v35" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0.5;entryY=0;exitX=0.234;exitY=1;html=1;rounded=0;" edge="1" parent="1" source="gateway" target="v35">
+        <mxCell id="e_sd" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="duck" target="s_duck">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_m0" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0.5;entryY=0;exitX=0.766;exitY=1;html=1;rounded=0;" edge="1" parent="1" source="gateway" target="m0">
+        <mxCell id="e_sn" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="neo" target="s_neo">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_plan" value="PLAN_REQUEST" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0.5;entryY=0;exitX=0.86;exitY=1;html=1;rounded=0;" edge="1" parent="1" source="api" target="pg">
+        <mxCell id="e_so" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="os" target="s_os">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_units" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=0;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="snap" target="units">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1400" y="555" />
-              <mxPoint x="1635" y="555" />
+              <mxPoint x="702" y="290" />
+              <mxPoint x="702" y="750" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e_worker" value="план (plan_sha256) → подтверждение → запуск" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0.5;entryY=1;exitX=0.5;exitY=1;html=1;rounded=0;" edge="1" parent="1" source="worker" target="pg">
+        <mxCell id="e_l1" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="units" target="dense">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_l2" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="dense" target="late">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_dos" value="build-vectors" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=1;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="dense" target="s_os">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_lrx" value="pack" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="late" target="s_rx">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ducknav" value="копия DuckDB&lt;br&gt;снимка" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=1;entryY=0.3;exitDx=0;exitDy=0;exitX=0;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="duck" target="navbuild">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="470" y="820" />
-              <mxPoint x="1635" y="820" />
+              <mxPoint x="668" y="372" />
+              <mxPoint x="668" y="695" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_toc" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="outlines" target="navbuild">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_nav" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=1;exitY=0.75;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="navbuild" target="s_nav">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="652" y="746" />
+              <mxPoint x="652" y="132" />
+              <mxPoint x="1077" y="132" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_evp" value="build_public_catalogues.py:&lt;br&gt;цитаты удаляются" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="evp" target="pubcat">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_pk" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="pubcat" target="catpack">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_cat" value="catalogues publish" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="catpack" target="s_cat">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="14" y="792" />
+              <mxPoint x="14" y="78" />
+              <mxPoint x="1217" y="78" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_api_s_nav" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.234;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="s_nav" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_api_s_cat" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.109;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="s_cat" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_api_s_duck" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.278;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="s_duck" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_api_s_neo" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.372;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="s_neo" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_api_s_os" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.463;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="s_os" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_api_s_rx" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.931;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="s_rx" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_mcp" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=1;entryY=0.759;exitDx=0;exitDy=0;exitX=0;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="mcp" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_mcpa" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=1;entryY=0.912;exitDx=0;exitDy=0;exitX=0;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="mcpadmin" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_rr" value="реранк по ID" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.225;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="api" target="gw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_plan" value="PLAN_REQUEST" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.05;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="api" target="pg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_gw1" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="gw" target="v35">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_gw2" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.93;entryY=0;exitDx=0;exitDy=0;exitX=0.93;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="gw" target="m0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_cl" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=1;entryY=0.5;exitDx=0;exitDy=0;exitX=0;exitY=0.3;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="claude" target="mcp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_cla" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=1;entryY=0.5;exitDx=0;exitDy=0;exitX=0;exitY=0.8;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="claude" target="mcpadmin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_job" value="план → plan_sha256 → запуск" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=1;entryY=0.5;exitDx=0;exitDy=0;exitX=0;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="worker" target="pg">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="328" y="500" />
+              <mxPoint x="328" y="1005" />
+              <mxPoint x="1950" y="1005" />
+              <mxPoint x="1950" y="190" />
             </Array>
           </mxGeometry>
         </mxCell>

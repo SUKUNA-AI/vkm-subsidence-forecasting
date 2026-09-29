@@ -1,0 +1,259 @@
+<mxfile host="vkm-drawio" agent="vkm-drawio writer/1" compressed="false" pages="1">
+  <diagram id="stress" name="Начальные напряжения">
+    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1130" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Гипотезы начального напряжённого состояния: ВКМ и СКРУ-1" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="12" width="1760" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Досье TD-INITIAL-STRESS v1.0 (28.09.2026, снимок snap-20260928T160616Z-5d669f09). λ = σгор/σверт. Для СКРУ-1 λ и полный тензор — UNKNOWN; значения по методам не усредняются (IS-CF-01)." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="44" width="1760" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="h_head" value="Гипотезы (IS-H) и их статус для СКРУ-1" style="text;align=left;fontSize=14;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="95" width="540" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="h1" value="IS-H-01 гидростатическая (Гейм): σx = σy = σz = γH, λ = 1 — MODEL_CHOICE; кандидат IS-SC-A" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="125" width="540" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="h2" value="IS-H-02 релаксация девиатора в соли: σгор → σверт при t → ∞ — механизм правдоподобен, время UNKNOWN" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="187" width="540" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="h3" value="IS-H-03 упругое боковое ограничение (Динник): λ = ν/(1 − ν) — в соли противоречит данным; для надсолевой толщи — сценарий IS-SC-C" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="249" width="540" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="h4" value="IS-H-04 гравитационно-тектоническое поле: [σ0] = [σг] + [σт] — UNKNOWN; одна станция СКРУ-1 даёт 1,26–1,29" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="311" width="540" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="h5" value="IS-H-05 топографическая поправка (долина Камы) — σv через ЦМР: DERIVATION; горизонтальная часть — UNKNOWN" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="373" width="540" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="h6" value="IS-H-06 локальные поля у неоднородностей: 0,65–3γH, зоны разгрузки — UNKNOWN" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="435" width="540" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="h7" value="IS-H-07 нормативный λ: 0,45 (расчёт кровли) и 1 (сопряжения) — норматив, не гипотеза о природе" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="497" width="540" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="h8" value="IS-H-08 боковой распор уплотняющихся пород (Паньков) — параметры для СКРУ-1 UNKNOWN" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="559" width="540" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="h9" value="IS-H-09 огибающие скальных массивов (Brown &amp;amp; Hoek; Windsor): 0,3 ≤ k ≤ 0,3 + 1500/z — ANALOGUE, на соль не переносится" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="621" width="540" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="h10" value="IS-H-10 блочно-иерархическая модель начальных напряжений Верхнекамья — содержание не прочитано" style="align=left;dashed=1;fillColor=#f5f5f5;fontColor=#333333;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="683" width="540" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="c_head" value="λ по методам и школам (IS-CF-01): горизонталь / вертикаль" style="text;align=left;fontSize=14;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="95" width="650" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="rl0" value="норматив, расчёт кровли (IS-P-29)" style="text;align=right;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="133" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rb0" value="" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=0;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="917.75" y="140" width="8" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="rl1" value="гидродомкрат + АЭ, БКПРУ-2, 350 м (IS-P-22)" style="text;align=right;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="169" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rb1" value="" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="935" y="176" width="8" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="rl2" value="модель скважины по [69] (IS-P-23)" style="text;align=right;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="205" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rb2" value="" style="fillColor=#ffe6cc;fontSize=13;html=1;rounded=0;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="935" y="212" width="8" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="rl3" value="керн, эффект Кайзера, при σверт = γH (IS-P-21, LAB)" style="text;align=right;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="241" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rb3" value="" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="947.65" y="248" width="8" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="rl4" value="щелевая разгрузка, СКРУ-3 (IS-P-16)" style="text;align=right;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="277" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rb4" value="" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="935.55" y="284" width="44.85" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="rl5" value="модель, только гравитация, БКПРУ-2 (IS-P-31)" style="text;align=right;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="313" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rb5" value="" style="fillColor=#ffe6cc;fontSize=13;html=1;rounded=0;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="958" y="320" width="8" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="rl6" value="Динник ν/(1 − ν) при ν 0,30–0,45 (IS-SC-C)" style="text;align=right;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="349" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rb6" value="" style="fillColor=#ffe6cc;fontSize=13;html=1;rounded=0;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="919.45" y="356" width="44.85" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="rl7" value="большая база, СКРУ-3 (IS-P-18)" style="text;align=right;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="385" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rb7" value="" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="951.65" y="392" width="74.75" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="rl8" value="полная разгрузка ВНИМИ, СКРУ-1, 1989, пласт Вк, 284 м (IS-P-14)" style="text;align=right;fontSize=11;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="421" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rb8" value="" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="964.3" y="428" width="54.05" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="rl9" value="полная разгрузка, БКРУ-2 и БКРУ-3 (IS-P-11…13)" style="text;align=right;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="457" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rb9" value="" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="970.05" y="464" width="49.45" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="rl10" value="гидроразрыв 1990-х, СКРУ-3 (IS-P-17)" style="text;align=right;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="493" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rb10" value="" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="968.9" y="500" width="31.05" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="rl11" value="КБР, образцы подстилающей соли: λ → 1 (IS-P-20, LAB)" style="text;align=right;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="529" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rb11" value="" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="981" y="536" width="8" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="rl12" value="гидроразрыв 2016, СКРУ-2, ≈ 200 м (IS-P-26)" style="text;align=right;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="565" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rb12" value="" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1022.95" y="572" width="173.65" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="rl13" value="модель Филатова: σx в 5–10 раз больше σz (IS-P-39)" style="text;align=right;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="601" width="280" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="rb13" value="5–10 →" style="fillColor=#ffe6cc;fontSize=11;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1213" y="607" width="58" height="18" as="geometry" />
+        </mxCell>
+        <mxCell id="axis" value="" style="fillColor=#333333;fontSize=13;html=1;rounded=0;strokeColor=#333333;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="870" y="645" width="345" height="2" as="geometry" />
+        </mxCell>
+        <mxCell id="tick0" value="" style="fillColor=#333333;fontSize=13;html=1;rounded=0;strokeColor=#333333;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="869.5" y="641" width="1" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="tl0" value="0,0" style="text;align=center;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="850" y="653" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="tick1" value="" style="fillColor=#333333;fontSize=13;html=1;rounded=0;strokeColor=#333333;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="927" y="641" width="1" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="tl1" value="0,5" style="text;align=center;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="907.5" y="653" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="tick2" value="" style="fillColor=#333333;fontSize=13;html=1;rounded=0;strokeColor=#333333;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="984.5" y="641" width="1" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="tl2" value="1,0" style="text;align=center;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="965" y="653" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="tick3" value="" style="fillColor=#333333;fontSize=13;html=1;rounded=0;strokeColor=#333333;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1042" y="641" width="1" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="tl3" value="1,5" style="text;align=center;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1022.5" y="653" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="tick4" value="" style="fillColor=#333333;fontSize=13;html=1;rounded=0;strokeColor=#333333;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1099.5" y="641" width="1" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="tl4" value="2,0" style="text;align=center;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="653" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="tick5" value="" style="fillColor=#333333;fontSize=13;html=1;rounded=0;strokeColor=#333333;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1157" y="641" width="1" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="tl5" value="2,5" style="text;align=center;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1137.5" y="653" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="tick6" value="" style="fillColor=#333333;fontSize=13;html=1;rounded=0;strokeColor=#333333;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1214.5" y="641" width="1" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="tl6" value="3,0" style="text;align=center;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1195" y="653" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="one" value="" style="fillColor=#b85450;fontSize=13;html=1;opacity=60;rounded=0;strokeColor=none;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="984" y="125" width="2" height="520" as="geometry" />
+        </mxCell>
+        <mxCell id="one_l" value="λ = 1 (гидростатика)" style="text;align=left;fontColor=#b85450;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="991" y="109" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="axis_l" value="λ = σгор / σверт" style="text;align=center;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="980" y="673" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="cf" value="Также расходятся: σверт относительно γH — ≈ 1,1γH (гидродомкрат), 1,4–2,0γH (полная разгрузка), ≈ 1,5γH (гидроразрыв СКРУ-2; IS-CF-02); плотности толщ 1,79–2,5 т/м³ (IS-CF-04, GAP-001); ориентация σmax — субширотно на ВКМ (200–400 м), 225–300° в подсолевых скважинах (IS-CF-09)." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="580" y="705" width="650" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="s_head" value="Измерение ансамбля «начальное поле»: сценарии IS-SC-A…E" style="text;align=left;fontSize=14;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="95" width="500" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="sc0" value="IS-SC-A HYDROSTATIC_SALT&lt;br&gt;соль λ = 1; надсолевая толща λ = 1 или 0,7 (подсценарии)&lt;br&gt;основание: IS-P-17…20, IS-H-02, аналоги IS-P-43, -47, -49" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="125" width="500" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="sc1" value="IS-SC-B SUBHYDROSTATIC&lt;br&gt;соль и надсолевая толща λ = 0,6–0,8&lt;br&gt;основание: IS-P-16, -21…23, -31 (школа ГИ УрО РАН)" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="215" width="500" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="sc2" value="IS-SC-C ELASTIC_DINNIK_OVERBURDEN&lt;br&gt;соль λ = 1; надсолевая толща λ = ν/(1 − ν) = 0,43–0,82&lt;br&gt;основание: IS-H-03 — только для несоляной толщи" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="305" width="500" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="sc3" value="IS-SC-D TECTONIC_ANISOTROPIC&lt;br&gt;соль λx = 1,3 (широтно), λy = 0,8–1,0; надсолевая — как в соли или по IS-SC-C&lt;br&gt;основание: IS-P-11…14 (СКРУ-1, 1989)" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="395" width="500" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="sc4" value="IS-SC-E HIGH_HORIZONTAL_HF2016&lt;br&gt;соль σmin/σv = 1,3–1,9, σmax/σv = 2,3–2,8; надсолевая — UNKNOWN&lt;br&gt;основание: IS-P-25, -26; влияние выработок не исключено" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="485" width="500" height="82" as="geometry" />
+        </mxCell>
+        <mxCell id="sc_rule" value="MODEL_CHOICE, маркированные сценарии: не усредняются, веса без отдельного решения не назначаются; норматив 0,45 в сценарии не входит. Сценарий, противоречащий реальным наблюдениям (конвергенция камер и выработок СКРУ-1, оседания), отбрасывается по правилам NROY." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="575" width="500" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="gap" value="UNKNOWN для СКРУ-1 (IS-GAP-01, IS-GAP-02)&lt;br&gt;λ и полный тензор на горизонтах отработки (АБ, КрII, 250–400 м): есть одна станция 1989 г. (пласт Вк, 284 м, во вторичном изложении) и 4 станции гидроразрыва 2016 г. без опубликованных значений. Постратонные плотности → σv(z) — UNKNOWN; σv на уровне отработки ≈ 5,3–9,2 МПа при H = 250–400 м (DERIVATION, IS-P-53).&lt;br&gt;Закроют: отчёт ИГД СО РАН 2016 (станции 9–12), первоисточник [154], плотностной каротаж, новый гидроразрыв; обратная задача по конвергенции — Phase 2, результат DERIVATION." style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1280" y="690" width="500" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="role" value="Роль в оседаниях: σv = γH → нагрузка на целик Q = γH(a + b)/b → степень нагружения C = Q/P (нормативная методика, IS-F-14); начальная деформация слоя εyy0 = −γH/Cyy0 (IS-F-16). λ входит через кровлю (σx = λγH, IS-F-15), ВЗТ и девиатор в целике численной модели (IS-P-30…32).&lt;br&gt;Вывод досье (INTERPRETATION): в соли λ ≈ 1 — естественная базовая гипотеза (релаксация девиатора); отличие от 1 требует объяснения — активное сжатие, влияние выработки или смещение метода. Для несоляной толщи такого аргумента нет." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="780" width="1230" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Легенда" style="align=left;collapsible=0;container=1;dashed=0;fillColor=#ffffff;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="900" width="700" height="181" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_evidence" value="" style="fillColor=#d5e8d4;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="30" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_evidence" value="натурные или лабораторные измерения (в т. ч. во вторичном изложении)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="28" width="640" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_model" value="" style="fillColor=#ffe6cc;html=1;rounded=0;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="59" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_model" value="модель, сценарий, аналог, диагностика" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="57" width="640" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_service" value="" style="fillColor=#fff2cc;html=1;rounded=0;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="88" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_service" value="норматив (не измерение)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="86" width="640" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_unknown" value="" style="fillColor=#f8cecc;html=1;rounded=0;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="117" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_unknown" value="UNKNOWN" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="115" width="640" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_paused" value="" style="dashed=1;fillColor=#f5f5f5;fontColor=#333333;html=1;rounded=0;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="146" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_paused" value="не прочитано или не получено" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="144" width="640" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="totals" value="Итог досье: 10 гипотез, 16 формул, 53 параметра, 11 конфликтов, 6 пробелов, 31 источник корпуса, 20 внешних работ. Досье — обзор темы с локаторами, а не evidence-каталог." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="750" y="910" width="500" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="sources" value="Источники: docs/science/topic_dossiers/INITIAL_STRESS_RU.md §0–§2, §5, §7, §9 (идентификаторы IS-*), initial_stress.json; catalogues/physics (PC-01…PC-05, PCF-01)." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1095" width="1760" height="25" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

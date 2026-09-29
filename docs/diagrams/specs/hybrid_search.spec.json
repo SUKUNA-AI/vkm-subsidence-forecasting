@@ -1,0 +1,411 @@
+{
+ "pages": [
+  {
+   "id": "search",
+   "name": "Гибридный поиск",
+   "layout": "none",
+   "page_width": 1720,
+   "page_height": 1010,
+   "background": "#ffffff",
+   "grid": false,
+   "nodes": [
+    {
+     "id": "title",
+     "label": "Поиск по корпусу: BM25 + dense + RRF + late interaction, маршруты и реранкеры",
+     "x": 20,
+     "y": 12,
+     "w": 1680,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=20;align=left;fontStyle=1;"
+    },
+    {
+     "id": "subtitle",
+     "label": "/v1/search/hybrid и MCP search_hybrid (развёрнутая схема E). Единицы vkm-units-v1 снимка snap-20260928T193550Z-738eebee: 205 784. Оценки ранжирования — сигнал поиска, не evidence.",
+     "x": 20,
+     "y": 44,
+     "w": 1680,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontColor=#444444;"
+    },
+    {
+     "id": "q",
+     "label": "запрос\nMCP search_hybrid → VKM API /v1/search/hybrid",
+     "x": 20,
+     "y": 260,
+     "w": 210,
+     "h": 90,
+     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;"
+    },
+    {
+     "id": "det",
+     "label": "детектор библиографического запроса: фамилии с инициалами и годом, «et al.», «и др.», DOI/ISBN, «список литературы»",
+     "x": 20,
+     "y": 400,
+     "w": 210,
+     "h": 125,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+    },
+    {
+     "id": "bm25",
+     "label": "BM25 — OpenSearch (анализатор vkm_text), top-100 страниц",
+     "x": 290,
+     "y": 140,
+     "w": 250,
+     "h": 70,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;"
+    },
+    {
+     "id": "dense",
+     "label": "dense — jina-v5-nano Q8_0: запрос кодирует RX 580, поиск kNN в OpenSearch, top-100",
+     "x": 290,
+     "y": 260,
+     "w": 250,
+     "h": 85,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;"
+    },
+    {
+     "id": "bib",
+     "label": "маршрут библиографии: скан записей литературы (BIB_ENTRY) — третья ветка RRF",
+     "x": 290,
+     "y": 410,
+     "w": 250,
+     "h": 85,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;"
+    },
+    {
+     "id": "rrf",
+     "label": "RRF (k = 60) по стабильным ID: страница — max по её единицам; дубли страниц сворачиваются → top-100",
+     "x": 600,
+     "y": 240,
+     "w": 230,
+     "h": 125,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;"
+    },
+    {
+     "id": "late",
+     "label": "late interaction: mLateOn MaxSim по top-100 (rx580-retrieval)\npack: 205 784 единицы, 24,3 млн токенов, float16 memmap ≈ 6,2 ГБ, горячая замена; включён по умолчанию",
+     "x": 890,
+     "y": 215,
+     "w": 260,
+     "h": 170,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;"
+    },
+    {
+     "id": "fig",
+     "label": "номер рисунка («рис. 3.1») усиливается только среди кандидатов своей темы; подписи объектов (object_label)",
+     "x": 890,
+     "y": 410,
+     "w": 260,
+     "h": 95,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+    },
+    {
+     "id": "ans",
+     "label": "ответ: кандидаты с трассой — bm25_rank, dense_rank, fused_rank, late-стадия; конверт vkm.envelope/1; retrieval_trace объясняет ранжирование",
+     "x": 1210,
+     "y": 240,
+     "w": 240,
+     "h": 125,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;"
+    },
+    {
+     "id": "edge",
+     "label": "EDGE — только по запросу",
+     "x": 1210,
+     "y": 400,
+     "w": 480,
+     "h": 150,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=1;rounded=0;"
+    },
+    {
+     "id": "rt",
+     "label": "rerank_text: jina-reranker-v3.5, ≤ 24 кандидата; текст — из канона",
+     "x": 15,
+     "y": 35,
+     "w": 215,
+     "h": 95,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;",
+     "parent": "edge"
+    },
+    {
+     "id": "rv",
+     "label": "rerank_visual: jina-reranker-m0, ≤ 8 изображений",
+     "x": 250,
+     "y": 35,
+     "w": 215,
+     "h": 95,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;",
+     "parent": "edge"
+    },
+    {
+     "id": "vis",
+     "label": "визуальный маршрут — в работе: эмбеддинги изображений страниц Qwen3-VL-Embedding-2B (26 092 страницы). В V2: +0,109 nDCG@10 на визуальных запросах; на текстовых слияние вредит. Обслуживание не установлено: Q8_0 не проходит паритет, F16 проходит; индекса и слияния в сервисе нет",
+     "x": 290,
+     "y": 570,
+     "w": 540,
+     "h": 125,
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;fontSize=13;"
+    },
+    {
+     "id": "nums",
+     "label": "Измерено\n• задержка на прогретом индексе: гибрид p50 76 мс; с late p50 148 мс\n• V1 (186 запросов, полный корпус): схема E — 0,725 nDCG@10 на тексте против 0,551 у BM25\n• без dense-канала E теряет 0,115 nDCG@10 (пул)\n• маршрут библиографии: +0,195 nDCG@10 на библиографических запросах, остальные без изменений\n• реранкер v3.5 по тексту значимо не помогает; по визуальным запросам глубина 12 даёт +0,043 (пул)\n• CP-42: записи BIB_ENTRY не ранжируют страницы",
+     "x": 880,
+     "y": 570,
+     "w": 810,
+     "h": 175,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "legend",
+     "label": "Легенда",
+     "x": 20,
+     "y": 770,
+     "w": 560,
+     "h": 181,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#666666;dashed=0;rounded=0;"
+    },
+    {
+     "id": "lg_sw_derived",
+     "label": "",
+     "x": 10,
+     "y": 30,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;"
+    },
+    {
+     "id": "lg_tx_derived",
+     "label": "индексы и ответы (проекции; оценки — не evidence)",
+     "x": 52,
+     "y": 28,
+     "w": 500,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_service",
+     "label": "",
+     "x": 10,
+     "y": 59,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;"
+    },
+    {
+     "id": "lg_tx_service",
+     "label": "сервис, инструмент, шаг процесса",
+     "x": 52,
+     "y": 57,
+     "w": 500,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_agent",
+     "label": "",
+     "x": 10,
+     "y": 88,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;"
+    },
+    {
+     "id": "lg_tx_agent",
+     "label": "вызов агента через MCP",
+     "x": 52,
+     "y": 86,
+     "w": 500,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_paused",
+     "label": "",
+     "x": 10,
+     "y": 117,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;"
+    },
+    {
+     "id": "lg_tx_paused",
+     "label": "приостановлено, в работе или будущее (пунктир)",
+     "x": 52,
+     "y": 115,
+     "w": 500,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_a_dash",
+     "label": "",
+     "x": 8,
+     "y": 153,
+     "w": 2,
+     "h": 2,
+     "parent": "legend",
+     "preset": "text",
+     "style": "strokeColor=none;fillColor=none;"
+    },
+    {
+     "id": "lg_b_dash",
+     "label": "",
+     "x": 44,
+     "y": 153,
+     "w": 2,
+     "h": 2,
+     "parent": "legend",
+     "preset": "text",
+     "style": "strokeColor=none;fillColor=none;"
+    },
+    {
+     "id": "lg_ext_dash",
+     "label": "по запросу или по условию маршрута",
+     "x": 52,
+     "y": 144,
+     "w": 500,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "sources",
+     "label": "Источники: README.md §5; docs/corpus_platform/MCP_TOOLS.md §2; MODEL_SERVICES.md §2–§4; OPERATIONS.md §4a; implementation_work/AGENT_L_LATE_INTERACTION.md; receipts/late_interaction_deploy.json; benchmarks/retrieval_v1/RESULTS_V1.md §0; benchmarks/retrieval_v2/RESULTS_V2.md; implementation_work/COORDINATOR_DECISIONS.md (CP-39).",
+     "x": 20,
+     "y": 965,
+     "w": 1680,
+     "h": 40,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;"
+    }
+   ],
+   "edges": [
+    {
+     "id": "e_q1",
+     "source": "q",
+     "target": "bm25",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_q2",
+     "source": "q",
+     "target": "dense",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_q3",
+     "source": "q",
+     "target": "det",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_d",
+     "source": "det",
+     "target": "bib",
+     "label": "да",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_b",
+     "source": "bm25",
+     "target": "rrf",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.2;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_de",
+     "source": "dense",
+     "target": "rrf",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_bi",
+     "source": "bib",
+     "target": "rrf",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_rl",
+     "source": "rrf",
+     "target": "late",
+     "label": "top-100",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_la",
+     "source": "late",
+     "target": "ans",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_fig",
+     "source": "late",
+     "target": "fig",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_rt",
+     "source": "ans",
+     "target": "rt",
+     "label": "кандидаты по ID",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_rv",
+     "source": "ans",
+     "target": "rv",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.8;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_vis",
+     "source": "q",
+     "target": "vis",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.2;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       62,
+       632
+      ]
+     ]
+    },
+    {
+     "id": "lg_e_dash",
+     "source": "lg_a_dash",
+     "target": "lg_b_dash",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;dashed=1;endArrow=classic;"
+    }
+   ]
+  }
+ ]
+}

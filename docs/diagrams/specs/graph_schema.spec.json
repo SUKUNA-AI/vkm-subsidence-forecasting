@@ -1,0 +1,667 @@
+{
+ "pages": [
+  {
+   "id": "graph",
+   "name": "Схема графа Neo4j",
+   "layout": "none",
+   "page_width": 1800,
+   "page_height": 1200,
+   "background": "#ffffff",
+   "grid": false,
+   "nodes": [
+    {
+     "id": "title",
+     "label": "Схема графа Neo4j: слои DOCUMENT (doc-graph/1.0) и NAV (nav-graph/1.0)",
+     "x": 20,
+     "y": 12,
+     "w": 1760,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=20;align=left;fontStyle=1;"
+    },
+    {
+     "id": "subtitle",
+     "label": "Метки и типы рёбер — из реестров src/vkm_corpus/graph/schema.py и nav_schema.py. Числа — снимок snap-20260928T193550Z-738eebee. Обобщённые типы вроде RELATED запрещены (контракт §61).",
+     "x": 20,
+     "y": 44,
+     "w": 1760,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontColor=#444444;"
+    },
+    {
+     "id": "doc",
+     "label": "DOCUMENT — метка слоя DocumentLayer; проверки C1–C16",
+     "x": 20,
+     "y": 90,
+     "w": 930,
+     "h": 900,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=14;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=0;rounded=0;"
+    },
+    {
+     "id": "nav",
+     "label": "NAV — метка слоя NavigationLayer; проверки N1–N7; 111 922 узла, 2 203 152 связи",
+     "x": 990,
+     "y": 90,
+     "w": 790,
+     "h": 900,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=14;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=0;rounded=0;"
+    },
+    {
+     "id": "author",
+     "label": "Author",
+     "x": 40,
+     "y": 60,
+     "w": 150,
+     "h": 50,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "doc"
+    },
+    {
+     "id": "work",
+     "label": "Work",
+     "x": 330,
+     "y": 60,
+     "w": 200,
+     "h": 50,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "doc"
+    },
+    {
+     "id": "venue",
+     "label": "Venue",
+     "x": 700,
+     "y": 60,
+     "w": 150,
+     "h": 50,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "doc"
+    },
+    {
+     "id": "source",
+     "label": "Source (251)",
+     "x": 330,
+     "y": 250,
+     "w": 200,
+     "h": 50,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "doc"
+    },
+    {
+     "id": "page",
+     "label": "Page (26 483)",
+     "x": 330,
+     "y": 450,
+     "w": 200,
+     "h": 50,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "doc"
+    },
+    {
+     "id": "block",
+     "label": "Block\n621 497",
+     "x": 30,
+     "y": 680,
+     "w": 160,
+     "h": 60,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "doc"
+    },
+    {
+     "id": "figure",
+     "label": "Figure\n17 784",
+     "x": 200,
+     "y": 680,
+     "w": 160,
+     "h": 60,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "doc"
+    },
+    {
+     "id": "table",
+     "label": "Table\n3 391",
+     "x": 370,
+     "y": 680,
+     "w": 160,
+     "h": 60,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "doc"
+    },
+    {
+     "id": "bib",
+     "label": "BibliographyEntry\n23 682",
+     "x": 540,
+     "y": 680,
+     "w": 160,
+     "h": 60,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "doc"
+    },
+    {
+     "id": "formula",
+     "label": "Formula\n108 904",
+     "x": 740,
+     "y": 680,
+     "w": 170,
+     "h": 60,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "doc"
+    },
+    {
+     "id": "t_work",
+     "label": "Work → Work: CITES (правило cites_v2; 193 ребра); ABSTRACT_OF, EDITION_OF, TRANSLATION_OF, VOLUME_SET_SIBLING, SERIES_SIBLING, COMPANION_OF, NOT_SAME",
+     "x": 545,
+     "y": 120,
+     "w": 370,
+     "h": 50,
+     "preset": "text",
+     "style": "fontSize=11;align=left;",
+     "parent": "doc"
+    },
+    {
+     "id": "t_source",
+     "label": "Source → Source: DERIVED_FROM, CONTAINS_COPY_OF, SHARES_PAGES_WITH",
+     "x": 545,
+     "y": 305,
+     "w": 370,
+     "h": 35,
+     "preset": "text",
+     "style": "fontSize=11;align=left;",
+     "parent": "doc"
+    },
+    {
+     "id": "t_page",
+     "label": "Page → Page: PRECEDES (page_sequence_v1); DUPLICATE_CANDIDATE_OF (duplicate_pages_v1)",
+     "x": 545,
+     "y": 505,
+     "w": 370,
+     "h": 35,
+     "preset": "text",
+     "style": "fontSize=11;align=left;",
+     "parent": "doc"
+    },
+    {
+     "id": "t_has",
+     "label": "Page → объект: HAS_BLOCK, HAS_FIGURE, HAS_TABLE, HAS_BIBLIOGRAPHY_ENTRY, HAS_FORMULA",
+     "x": 545,
+     "y": 595,
+     "w": 370,
+     "h": 35,
+     "preset": "text",
+     "style": "fontSize=11;align=left;",
+     "parent": "doc"
+    },
+    {
+     "id": "t_ref",
+     "label": "BibliographyEntry → Work: REFERENCE_OF (цитирующая работа); RESOLVES_TO (232 принятые связи)",
+     "x": 40,
+     "y": 380,
+     "w": 250,
+     "h": 50,
+     "preset": "text",
+     "style": "fontSize=11;align=left;",
+     "parent": "doc"
+    },
+    {
+     "id": "t_foreign",
+     "label": "Page → Work: CARRIES_FOREIGN_CONTENT_OF (чужое содержимое на странице)",
+     "x": 40,
+     "y": 470,
+     "w": 250,
+     "h": 35,
+     "preset": "text",
+     "style": "fontSize=11;align=left;",
+     "parent": "doc"
+    },
+    {
+     "id": "t_formula",
+     "label": "Formula → Formula: NAV_REFERS_TO (слой NAV)",
+     "x": 700,
+     "y": 760,
+     "w": 230,
+     "h": 35,
+     "preset": "text",
+     "style": "fontSize=11;align=left;",
+     "parent": "doc"
+    },
+    {
+     "id": "topic",
+     "label": "NavTopic (720)",
+     "x": 60,
+     "y": 90,
+     "w": 200,
+     "h": 50,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "nav"
+    },
+    {
+     "id": "section",
+     "label": "NavSection (9 105)",
+     "x": 60,
+     "y": 360,
+     "w": 200,
+     "h": 50,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "nav"
+    },
+    {
+     "id": "term",
+     "label": "Term (94 597)",
+     "x": 500,
+     "y": 360,
+     "w": 200,
+     "h": 50,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "nav"
+    },
+    {
+     "id": "symbol",
+     "label": "FormulaSymbol",
+     "x": 120,
+     "y": 680,
+     "w": 200,
+     "h": 50,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "nav"
+    },
+    {
+     "id": "param",
+     "label": "ParameterCandidate",
+     "x": 120,
+     "y": 780,
+     "w": 200,
+     "h": 50,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "nav"
+    },
+    {
+     "id": "meta",
+     "label": "NavMeta: manifest сборки, статус LOADING / COMPLETE / FAILED, счётчики, итоги проверок",
+     "x": 470,
+     "y": 70,
+     "w": 290,
+     "h": 90,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;",
+     "parent": "nav"
+    },
+    {
+     "id": "t_topic",
+     "label": "NavTopic → NavTopic: NAV_CHILD_OF, RELATED_TOPIC",
+     "x": 275,
+     "y": 100,
+     "w": 180,
+     "h": 35,
+     "preset": "text",
+     "style": "fontSize=11;align=left;",
+     "parent": "nav"
+    },
+    {
+     "id": "t_section",
+     "label": "NavSection → NavSection: NAV_CHILD_OF",
+     "x": 60,
+     "y": 420,
+     "w": 200,
+     "h": 35,
+     "preset": "text",
+     "style": "fontSize=11;align=left;",
+     "parent": "nav"
+    },
+    {
+     "id": "t_term",
+     "label": "Term → Term: CO_OCCURS (NPMI), CONTAINS_TERM, SAME_TERM_AS",
+     "x": 480,
+     "y": 420,
+     "w": 290,
+     "h": 35,
+     "preset": "text",
+     "style": "fontSize=11;align=left;",
+     "parent": "nav"
+    },
+    {
+     "id": "rules",
+     "label": "Правила проекций\n• узлы несут только ID, статусы и структуру — без текстов (CP-17); review_status объектов — AUTO_EXTRACTED_UNREVIEWED\n• рёбра ROW несут canonical_row_id, RULE — rule_version, ROW_RULE — оба\n• каждый узел и каждое ребро NAV несут layer = 'NAV', snapshot_id, rule_version, projection_run_id\n• рёбра между слоями принадлежат NAV; пока они есть, пересборка DOCUMENT без --cascade отказывает (E_CROSS_LAYER_LOSS)\n• навигация, не причинная цепочка: «встречаются рядом» — не физическое утверждение",
+     "x": 20,
+     "y": 1005,
+     "w": 1150,
+     "h": 110,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "legend",
+     "label": "Легенда",
+     "x": 1200,
+     "y": 1005,
+     "w": 580,
+     "h": 94,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#666666;dashed=0;rounded=0;"
+    },
+    {
+     "id": "lg_sw_derived",
+     "label": "",
+     "x": 10,
+     "y": 30,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;"
+    },
+    {
+     "id": "lg_tx_derived",
+     "label": "узел графа (проекция канона или NAV; пересобирается)",
+     "x": 52,
+     "y": 28,
+     "w": 520,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_a_dash",
+     "label": "",
+     "x": 8,
+     "y": 66,
+     "w": 2,
+     "h": 2,
+     "parent": "legend",
+     "preset": "text",
+     "style": "strokeColor=none;fillColor=none;"
+    },
+    {
+     "id": "lg_b_dash",
+     "label": "",
+     "x": 44,
+     "y": 66,
+     "w": 2,
+     "h": 2,
+     "parent": "legend",
+     "preset": "text",
+     "style": "strokeColor=none;fillColor=none;"
+    },
+    {
+     "id": "lg_ext_dash",
+     "label": "ребро по правилу-подсказке (не проверенный факт)",
+     "x": 52,
+     "y": 57,
+     "w": 520,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "sources",
+     "label": "Источники: src/vkm_corpus/graph/schema.py (NODE_TYPES, REL_TYPES); src/vkm_corpus/graph/nav_schema.py; src/vkm_corpus/contracts/vocab.py (WorkRelationType, SourceRelationType); docs/corpus_platform/NAVIGATION_LAYER.md §1; receipts/evening_deploy_final.json.",
+     "x": 20,
+     "y": 1165,
+     "w": 1760,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;"
+    }
+   ],
+   "edges": [
+    {
+     "id": "d1",
+     "source": "work",
+     "target": "author",
+     "label": "AUTHORED_BY",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "d2",
+     "source": "work",
+     "target": "venue",
+     "label": "PUBLISHED_IN",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "d3",
+     "source": "source",
+     "target": "work",
+     "label": "INSTANCE_OF",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "d4",
+     "source": "source",
+     "target": "page",
+     "label": "HAS_PAGE",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "h_block",
+     "source": "page",
+     "target": "block",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "h_figure",
+     "source": "page",
+     "target": "figure",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "h_table",
+     "source": "page",
+     "target": "table",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "h_bib",
+     "source": "page",
+     "target": "bib",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "h_formula",
+     "source": "page",
+     "target": "formula",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "d5",
+     "source": "bib",
+     "target": "work",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       548,
+       800
+      ],
+      [
+       548,
+       725
+      ],
+      [
+       35,
+       725
+      ],
+      [
+       35,
+       185
+      ],
+      [
+       330,
+       185
+      ]
+     ]
+    },
+    {
+     "id": "d6",
+     "source": "page",
+     "target": "work",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.1;entryY=1;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       330,
+       565
+      ],
+      [
+       330,
+       225
+      ],
+      [
+       370,
+       225
+      ]
+     ]
+    },
+    {
+     "id": "n1",
+     "source": "section",
+     "target": "topic",
+     "label": "IN_TOPIC",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "n2",
+     "source": "source",
+     "target": "section",
+     "label": "HAS_NAV_SECTION",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       1020,
+       365
+      ],
+      [
+       1020,
+       465
+      ]
+     ]
+    },
+    {
+     "id": "n3",
+     "source": "section",
+     "target": "page",
+     "label": "COVERS_PAGE",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       1000,
+       485
+      ],
+      [
+       1000,
+       565
+      ]
+     ]
+    },
+    {
+     "id": "n4",
+     "source": "formula",
+     "target": "section",
+     "label": "IN_SECTION",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.7;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       879,
+       600
+      ],
+      [
+       1150,
+       600
+      ]
+     ]
+    },
+    {
+     "id": "n5",
+     "source": "symbol",
+     "target": "formula",
+     "label": "DEFINED_FOR («где…»)",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "n6",
+     "source": "param",
+     "target": "formula",
+     "label": "NEAR_FORMULA",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.85;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       960,
+       895
+      ],
+      [
+       960,
+       821
+      ]
+     ]
+    },
+    {
+     "id": "n7",
+     "source": "term",
+     "target": "section",
+     "label": "MENTIONED_IN",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "n8",
+     "source": "term",
+     "target": "symbol",
+     "label": "SYMBOL_OF",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       1550,
+       795
+      ]
+     ]
+    },
+    {
+     "id": "n9",
+     "source": "block",
+     "target": "formula",
+     "label": "NAV_BLOCK_REFERS_TO («по формуле (3.2)»)",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       130,
+       950
+      ],
+      [
+       845,
+       950
+      ]
+     ]
+    },
+    {
+     "id": "n10",
+     "source": "term",
+     "target": "block",
+     "label": "DEFINED_AS («X называется…»)",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.8;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=1;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       1650,
+       970
+      ],
+      [
+       98,
+       970
+      ]
+     ]
+    },
+    {
+     "id": "lg_e_dash",
+     "source": "lg_a_dash",
+     "target": "lg_b_dash",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;dashed=1;endArrow=classic;"
+    }
+   ]
+  }
+ ]
+}

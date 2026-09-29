@@ -1,0 +1,200 @@
+<mxfile host="vkm-drawio" agent="vkm-drawio writer/1" compressed="false" pages="1">
+  <diagram id="causal" name="Причинный граф оседаний">
+    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1330" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Причинная цепь оседаний СКРУ-1: группы процессов PC-01…PC-72 и ключевые связи причинного графа" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="12" width="1760" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Каталоги Phase 1: матрица физики (72 процесса, 492 ссылки на evidence) и причинный граф (12 слоёв, 110 узлов, 241 ребро). Концептуальный граф: что на что влияет и через какое наблюдение видно; не модель решателя, чисел состояния нет." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="44" width="1760" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="init" value="INIT — начальное состояние&lt;br&gt;PC-01 вес толщи ▲&lt;br&gt;PC-02 σv(z) ▲&lt;br&gt;PC-03 λ, боковой распор&lt;br&gt;PC-04 тектоническое сжатие ?&lt;br&gt;PC-05 рельеф, долина Камы" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#82b366;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="105" width="200" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="props" value="Свойства массива&lt;br&gt;PC-06 упругость толщи △&lt;br&gt;PC-07 нелинейная упругость&lt;br&gt;PC-08 неоднородность&lt;br&gt;PC-09 анизотропия&lt;br&gt;PC-10 LAB → MASSIF △&lt;br&gt;PC-11 пластичность&lt;br&gt;PC-12 разупрочнение&lt;br&gt;PC-26 сдвиг по глинистым контактам&lt;br&gt;PC-27 контакты и целик" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#82b366;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="275" y="105" width="215" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="mining" value="Выемка&lt;br&gt;PC-28 выемка и хронология ▲&lt;br&gt;PC-30 опорное давление △&lt;br&gt;PC-31 многопластовая отработка ▲" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#82b366;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="545" y="105" width="195" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="pillars" value="Нагрузка и ползучесть целиков&lt;br&gt;PC-23 нагрузка и деградация МКЦ ▲&lt;br&gt;PC-14 ползучесть сильвинита ▲&lt;br&gt;PC-15 ползучесть карналлита ▲&lt;br&gt;PC-13 ползучесть каменной соли △&lt;br&gt;PC-16 несоляные породы ?&lt;br&gt;PC-17 третичная ползучесть △&lt;br&gt;PC-18 длительная прочность&lt;br&gt;PC-19 релаксация&lt;br&gt;PC-21 повреждённость&lt;br&gt;PC-24 кровля камер&lt;br&gt;PC-25 междупластье ▲" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#82b366;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="795" y="105" width="235" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="conv" value="Конвергенция&lt;br&gt;PC-29 конвергенция камер ▲&lt;br&gt;PC-32 эффективное сжатие выработанного слоя ▲" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#82b366;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1085" y="105" width="180" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="over" value="Подработанная толща&lt;br&gt;PC-33 изгиб толщи, ВЗТ как плита ▲&lt;br&gt;PC-34 целостность ВЗТ&lt;br&gt;PC-35 разломные зоны&lt;br&gt;PC-36 межрудничный целик △" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#82b366;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="105" width="205" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="surf" value="Поверхность&lt;br&gt;PC-67 мульда сдвижения ▲&lt;br&gt;PC-68 оседания во времени ▲&lt;br&gt;PC-69 наклоны, кривизна&lt;br&gt;PC-70 трещины у краёв&lt;br&gt;PC-71 региональный фон ?" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#82b366;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1580" y="105" width="200" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="hydro" value="Гидро&lt;br&gt;PC-41 водоносные горизонты&lt;br&gt;PC-42 эффективные напряжения ?&lt;br&gt;PC-46 природный карст&lt;br&gt;PC-47 влажность и свойства" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#d79b00;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="560" width="200" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="thermal" value="Термо&lt;br&gt;PC-48 геотермическое поле&lt;br&gt;PC-49 температура → ползучесть&lt;br&gt;PC-50 термическое расширение&lt;br&gt;PC-51 микроклимат" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#d79b00;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="275" y="560" width="215" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="backfill" value="Закладка&lt;br&gt;PC-37 недозаклад, зазор до кровли △&lt;br&gt;PC-38 уплотнение закладки △&lt;br&gt;PC-39 смыкание кровли, отпор △&lt;br&gt;PC-40 рассолы и целики" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#d79b00;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="545" y="560" width="250" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="outside" value="Вне нормального сценария&lt;br&gt;PC-20 геологическая ползучесть; PC-22 хрупкое разрушение; PC-43 водопроводящие трещины; PC-44 затопление; PC-45 растворение соли, карст; PC-53 техногенная сейсмичность; PC-54 массовое обрушение целиков; PC-55 газодинамические явления; PC-56 буровзрывное воздействие" style="align=left;dashed=1;fillColor=#f5f5f5;fontColor=#333333;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="850" y="600" width="420" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="obs" value="Наблюдения (операторы OO-xx)&lt;br&gt;PC-60 нивелирование · PC-61 горизонтальные деформации · PC-62 ГНСС · PC-63 InSAR · PC-64 гидростатика · PC-65 подземные станции · PC-72 лаборатория · PC-57 сейсмика · PC-58 GPR · PC-59 АЭ&lt;br&gt;мешают: PC-52 сезонные эффекты, PC-66 немайнинговые сигналы" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#d6b656;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="560" width="460" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="links" value="Ключевые связи (механизм — из causal_graph_edges.csv)&lt;br&gt;CE-067 вес толщи γH → нагрузка на МКЦ · CE-060 Q = γH(a+b)/b: ширины камер и целиков задают нагрузку · CE-073 C = Q/P: несущая способность в знаменателе · CE-110 деформация МКЦ → уменьшение высоты и ширины камер · CE-131 опускание кровли пласта передаётся в толщу (DERIVATION) · CE-133 смещения толщи выходят на поверхность; CE-134 изгиб формирует форму и ширину мульды · CE-188 / CE-191 / CE-192 поверхность → нивелирование, ГНСС, InSAR (LOS относительно опорной точки) · CE-196 конвергенция → смещения контура камер · CE-056 закладка после выемки, окно ограничено устойчивостью кровли · CE-097 / CE-098 / CE-099 включение закладки разгружает целики, ограничивает конвергенцию и конечное оседание (обратная связь) · CE-100 / CE-030 рассол → влажность приконтурной зоны → снижение модулей и несущей способности · CE-069 λ → зоны в ВЗТ (MODEL_CHOICE, гипотеза) · CE-087 упругая передача смещений (MODEL_CHOICE) · CE-071 температура → скорость ползучести (UNKNOWN) · CE-152 / CE-153 напоры → эффективные напряжения → консолидационная осадка (UNKNOWN)" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="775" width="1760" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="chain" value="Центральный путь нормального сценария: GEO_STRAT → GM_SEAMS → MD_LAYOUT → AE_GEOMETRY → PE_PILLAR_LOAD → PE_PILLAR_CREEP → PE_CONVERGENCE → DD_SEAM_LEVEL → DD_OVERBURDEN_FIELD → OR_BENDING → surface_displacement → OBS_LEVELLING / OBS_INSAR. «Узкие горла» (посредническая центральность): DD_OVERBURDEN_FIELD, surface_displacement, PE_PILLAR_LOAD, DD_SEAM_LEVEL, OR_VZT_DAMAGE." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="925" width="1760" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="stats" value="Рёбра графа: физические 153, наблюдательные 64, инженерные 18, информационные 6. Статус механизма: FACT 196, DERIVATION 17, UNKNOWN 13, MODEL_CHOICE 9, ANALOGUE 5, ENGINEERING_ASSUMPTION 1. Сила: STRONG 126, MODERATE 86, WEAK 21, HYPOTHESIS 8. У OBS_INSAR 9 входящих рёбер: смещение поверхности и 8 мешающих узлов (солеотвалы, здания, промерзание, земляные работы, опорная точка, атмосфера, снег, фон).&lt;br&gt;▲ — первопричина (FIRST_ORDER_DRIVER), △ — модулятор первого порядка, ? — роль UNKNOWN" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1010" width="1150" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Легенда" style="align=left;collapsible=0;container=1;dashed=0;fillColor=#ffffff;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="1010" width="580" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_evidence" value="" style="fillColor=#d5e8d4;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="30" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_evidence" value="группы процессов основной цепи нормального сценария" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="28" width="520" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_model" value="" style="fillColor=#ffe6cc;html=1;rounded=0;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="59" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_model" value="ветви: закладка, гидро, термо" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="57" width="520" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_service" value="" style="fillColor=#fff2cc;html=1;rounded=0;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="88" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_service" value="наблюдения — операторы OO-xx" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="86" width="520" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_unknown" value="" style="fillColor=#f8cecc;html=1;rounded=0;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="117" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_unknown" value="связь-гипотеза или UNKNOWN (красный пунктир)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="115" width="520" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_paused" value="" style="dashed=1;fillColor=#f5f5f5;fontColor=#333333;html=1;rounded=0;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="146" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_paused" value="вне нормального сценария: аварии, динамика, геологическое время" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="144" width="520" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_a_mc" value="" style="text;align=left;fillColor=none;html=1;strokeColor=none;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="8" y="182" width="2" height="2" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_b_mc" value="" style="text;align=left;fillColor=none;html=1;strokeColor=none;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="44" y="182" width="2" height="2" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_ext_mc" value="связь со статусом MODEL_CHOICE" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="173" width="520" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="sources" value="Источники: catalogues/physics/physics_coverage_and_execution_matrix.csv (group, normal_scenario_role); catalogues/causal/causal_graph_nodes.csv, causal_graph_edges.csv (CE-xxx); docs/science/CAUSAL_GRAPH_RU.md §1–§3; docs/science/PHYSICS_COVERAGE_RU.md." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1295" width="1760" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="c1" value="CE-067" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.1;exitDx=0;exitDy=0;exitX=1;exitY=0.2;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="init" target="pillars">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="245" y="143" />
+              <mxPoint x="245" y="95" />
+              <mxPoint x="770" y="95" />
+              <mxPoint x="770" y="134" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c2" value="CE-073" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.8;exitDx=0;exitDy=0;exitX=1;exitY=0.8;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="props" target="pillars">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c3" value="CE-060" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.3;exitDx=0;exitDy=0;exitX=1;exitY=0.3;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="mining" target="pillars">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c4" value="CE-110" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.4;exitDx=0;exitDy=0;exitX=1;exitY=0.2;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="pillars" target="conv">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c5" value="CE-131" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.35;exitDx=0;exitDy=0;exitX=1;exitY=0.4;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="conv" target="over">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c6" value="CE-133,&lt;br&gt;CE-134" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.35;exitDx=0;exitDy=0;exitX=1;exitY=0.35;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="over" target="surf">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c7" value="CE-188, CE-191, CE-192" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.75;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="surf" target="obs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c8" value="CE-196" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.15;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="conv" target="obs">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1175" y="520" />
+              <mxPoint x="1389" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c9" value="CE-069 (MODEL_CHOICE, гипотеза)" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=0;fontColor=#b85450;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;strokeColor=#b85450;" edge="1" parent="1" source="init" target="over">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="120" y="80" />
+              <mxPoint x="1422" y="80" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c10" value="CE-087 (MODEL_CHOICE)" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.3;entryY=1;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="props" target="over">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="382" y="425" />
+              <mxPoint x="1381" y="425" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="b1" value="CE-056" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.3;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="mining" target="backfill">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="b2" value="CE-097" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.3;entryY=1;exitDx=0;exitDy=0;exitX=0.85;exitY=0;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="backfill" target="pillars">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="b3" value="CE-098, CE-099" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.3;entryY=1;exitDx=0;exitDy=0;exitX=1;exitY=0.2;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="backfill" target="conv">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1139" y="588" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="b4" value="CE-100, CE-030" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.8;entryY=1;exitDx=0;exitDy=0;exitX=0;exitY=0.3;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="backfill" target="props">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="447" y="602" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="h1" value="CE-152, CE-153 (UNKNOWN, гипотеза)" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.3;entryY=1;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontColor=#b85450;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;strokeColor=#b85450;" edge="1" parent="1" source="hydro" target="surf">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="120" y="745" />
+              <mxPoint x="1295" y="745" />
+              <mxPoint x="1295" y="470" />
+              <mxPoint x="1640" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="t1" value="CE-071 (UNKNOWN)" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.15;entryY=1;exitDx=0;exitDy=0;exitX=1;exitY=0.2;fontColor=#b85450;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;strokeColor=#b85450;" edge="1" parent="1" source="thermal" target="pillars">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="512" y="588" />
+              <mxPoint x="512" y="520" />
+              <mxPoint x="830" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lg_e_mc" value="" style="dashed=1;edgeStyle=none;endArrow=classic;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="lg_a_mc" target="lg_b_mc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

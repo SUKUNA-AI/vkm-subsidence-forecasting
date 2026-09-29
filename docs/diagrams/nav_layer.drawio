@@ -1,0 +1,214 @@
+<mxfile host="vkm-drawio" agent="vkm-drawio writer/1" compressed="false" pages="1">
+  <diagram id="nav" name="Навигационный слой">
+    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1820" pageHeight="980" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Навигационный слой NAV: части, их входы и зависимости, сборка и выдача" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="12" width="1780" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Дерево и граф корпуса без генерации текста (идея RAPTOR без LLM). Статус слоя — DERIVED, AUTO_EXTRACTED_UNREVIEWED: навигация, не evidence. Числа — снимок snap-20260928T193550Z-738eebee (сборка 28.09, вечер)." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="44" width="1780" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="inputs" value="Входы (WORKSTATION, WSL)" style="swimlane;collapsible=0;container=1;fillColor=#ffffff;fontSize=14;fontStyle=1;html=1;rounded=0;startSize=28;strokeColor=#666666;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="100" width="250" height="700" as="geometry" />
+        </mxCell>
+        <mxCell id="duck" value="копия DuckDB снимка: страницы, блоки, заголовки, формулы, таблицы — читают все части" style="backgroundOutline=1;boundedLbl=1;fillColor=#dae8fc;fontSize=13;html=1;shape=cylinder3;size=12;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="inputs">
+          <mxGeometry x="15" y="45" width="220" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="toc" value="оглавления файлов: закладки PDF, навигация EPUB, outline DjVu (JSON на снимок)" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="inputs">
+          <mxGeometry x="15" y="165" width="220" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="vec" value="векторы единиц: dense jina-v5-nano (набор снимка; чужой text_hash отбрасывается)" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="inputs">
+          <mxGeometry x="15" y="275" width="220" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="seeds" value="словарь проекта: seed-термины из docs/science и WorldSpec" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="inputs">
+          <mxGeometry x="15" y="385" width="220" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="morph" value="морфология pymorphy3 (extra navigation)" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="inputs">
+          <mxGeometry x="15" y="480" width="220" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="gpu" value="GPU RAPIDS: CuPy, cuML, cuGraph, cuVS; без GPU — numpy и Louvain" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="inputs">
+          <mxGeometry x="15" y="560" width="220" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="parts" value="vkm-corpus nav build --part all (≈ 2 мин; время частей в секундах)" style="align=left;collapsible=0;container=1;dashed=1;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="300" y="100" width="870" height="700" as="geometry" />
+        </mxCell>
+        <mxCell id="sections" value="sections (10 с)&lt;br&gt;входы: DuckDB, оглавления&lt;br&gt;sections 9 105, section_pages 27 270; покрыто 98,3 % страниц&lt;br&gt;методы: закладки PDF, EPUB nav, outline DjVu, печатное оглавление, нумерация и разметка заголовков" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+          <mxGeometry x="15" y="45" width="255" height="215" as="geometry" />
+        </mxCell>
+        <mxCell id="formulas" value="formulas (13 с)&lt;br&gt;входы: DuckDB, sections&lt;br&gt;formula_context 108 904, formula_symbols 338 625, formula_refs 16 112, formula_parameters 2 106&lt;br&gt;номер «(3.2)», вводная, «где…», ссылки на формулы" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+          <mxGeometry x="307" y="45" width="255" height="215" as="geometry" />
+        </mxCell>
+        <mxCell id="parameters" value="parameters (17 с)&lt;br&gt;входы: DuckDB, sections, formula_parameters, formula_symbols&lt;br&gt;parameter_candidates 10 538, parameter_summary 628&lt;br&gt;59 свойств в 8 группах, 30 материалов; масштаб LAB / MASSIF / NORMATIVE / MODEL / UNKNOWN" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+          <mxGeometry x="599" y="45" width="255" height="215" as="geometry" />
+        </mxCell>
+        <mxCell id="duplicates" value="duplicates (15 с)&lt;br&gt;входы: DuckDB, векторы единиц&lt;br&gt;dup_clusters 697, dup_members 1 718, source_overlap 459&lt;br&gt;MinHash-LSH + kNN, проверка шинглов; первоисточник — подсказка, не авторство" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+          <mxGeometry x="15" y="330" width="255" height="215" as="geometry" />
+        </mxCell>
+        <mxCell id="concepts" value="concepts (43 с)&lt;br&gt;входы: DuckDB, section_pages, словарь, pymorphy3; блоки копий убраны (duplicates)&lt;br&gt;terms 94 597, term_mentions 1 567 275, term_edges 1 537 791&lt;br&gt;NPMI, SAME_AS, DEFINED_AS, Leiden" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+          <mxGeometry x="307" y="330" width="255" height="215" as="geometry" />
+        </mxCell>
+        <mxCell id="topics" value="topics (23 с)&lt;br&gt;входы: sections, section_pages, terms, term_mentions, векторы&lt;br&gt;section_aggregates 8 158, section_vectors 7 869, topics 720 (610 / 91 / 19), topic_members 23 607, topic_edges 2 377&lt;br&gt;kNN → Leiden на трёх уровнях, метки c-TF-IDF" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+          <mxGeometry x="599" y="330" width="255" height="215" as="geometry" />
+        </mxCell>
+        <mxCell id="rule" value="Каждая часть — чистая функция над строками канона; все пороги — MODEL_CHOICE в manifest.json; сборка повторяется бит в бит. Узел любой части указывает на реальные страницы." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="parts">
+          <mxGeometry x="15" y="625" width="840" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="pack" value="store.pack → nav.duckdb (sha256 b567979e…) + manifest.json" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="110" width="280" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="pub" value="CORE: derived/navigation/&amp;lt;снимок&amp;gt; + CURRENT (sha256 сверены на обеих сторонах)" style="backgroundOutline=1;boundedLbl=1;fillColor=#dae8fc;fontSize=13;html=1;shape=cylinder3;size=12;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="215" width="280" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="navstore" value="NavStore в VKM API: nav.duckdb + каноническая DuckDB, только чтение" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="335" width="280" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="graph" value="nav graph-load → Neo4j, слой NavigationLayer: 111 922 узла, 2 203 152 связи, 255 с; проверки N1–N7 PASS, NavMeta = COMPLETE" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1530" y="215" width="270" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="tools" value="MCP / API навигации: get_outline, get_section, search_sections, get_formula_context, find_formulas, explore_concept, find_topics, get_topic, similar_sections, section_topics, copies_of, source_overlap, find_parameters, parameter_summary; досье reconstruct_topic" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="445" width="280" height="185" as="geometry" />
+        </mxCell>
+        <mxCell id="gtools" value="concept_paths, graph_neighbourhood (ответ только при COMPLETE, иначе 503)" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1530" y="370" width="270" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="claude" value="Claude: сводка ветки в момент вопроса, со ссылками на страницы" style="fillColor=#e1d5e7;fontSize=13;html=1;rounded=1;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1530" y="505" width="270" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="checks" value="Проверки: разделы — вложенность, покрытие страниц, нет пересечений; параметры — выборка 60 кандидатов (значение 60/60, единица 59/60, свойство 55/60); дубликаты — 30 из 30 случайных кластеров настоящие; понятия — соседи по 10 темам осмысленны на 0,97; граф — preflight P1–P7 и N1–N7 после загрузки." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="825" width="1150" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Легенда" style="align=left;collapsible=0;container=1;dashed=0;fillColor=#ffffff;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="660" width="590" height="181" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_evidence" value="" style="fillColor=#d5e8d4;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="30" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_evidence" value="файлы источников и словарь проекта" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="28" width="530" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_derived" value="" style="fillColor=#dae8fc;html=1;rounded=0;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="59" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_derived" value="производное: канон, векторы, датасеты NAV, граф (AUTO_EXTRACTED_UNREVIEWED)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="57" width="530" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_service" value="" style="fillColor=#fff2cc;html=1;rounded=0;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="88" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_service" value="сервис, инструмент, шаг процесса" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="86" width="530" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_agent" value="" style="fillColor=#e1d5e7;html=1;rounded=0;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="117" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_agent" value="агент Claude" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="115" width="530" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_a_dash" value="" style="text;align=left;fillColor=none;html=1;strokeColor=none;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="8" y="153" width="2" height="2" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_b_dash" value="" style="text;align=left;fillColor=none;html=1;strokeColor=none;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="44" y="153" width="2" height="2" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_ext_dash" value="по опции concepts.drop_duplicate_blocks=true (включена в сборке)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="144" width="530" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="sources" value="Источники: docs/corpus_platform/NAVIGATION_LAYER.md §1–§9; README.md §6; receipts/evening_deploy_final.json (navigation, neo4j_nav_graph); receipts/nav_parameters.json, nav_duplicates.json, nav_concepts.json; src/vkm_corpus/navigation/cli.py (PARTS) и build() частей." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="935" width="1780" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="e_toc" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.3;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="toc" target="sections">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_sf" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.3;exitDx=0;exitDy=0;exitX=1;exitY=0.3;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="sections" target="formulas">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_fp" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.3;exitDx=0;exitDy=0;exitX=1;exitY=0.3;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="formulas" target="parameters">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_sp" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=0;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="sections" target="parameters">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="442" y="133" />
+              <mxPoint x="1026" y="133" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_sc" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.2;entryY=0;exitDx=0;exitDy=0;exitX=0.8;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="sections" target="concepts">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_st" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.3;entryY=0;exitDx=0;exitDy=0;exitX=1;exitY=0.9;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="sections" target="topics">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="975" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_dc" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="duplicates" target="concepts">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ct" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="concepts" target="topics">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_vd" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.1;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="vec" target="duplicates">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_seed" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.3;entryY=1;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="seeds" target="concepts">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="282" y="520" />
+              <mxPoint x="282" y="657" />
+              <mxPoint x="683" y="657" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_morph" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=1;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="morph" target="concepts">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="607" />
+              <mxPoint x="290" y="667" />
+              <mxPoint x="734" y="667" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_vt" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=1;exitDx=0;exitDy=0;exitX=1;exitY=0.8;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="vec" target="topics">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="276" y="443" />
+              <mxPoint x="276" y="677" />
+              <mxPoint x="1026" y="677" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_pack" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.02;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="parts" target="pack">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_pub" value="копия на CORE" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="pack" target="pub">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ns" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="pub" target="navstore">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_gr" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="pub" target="graph">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_t" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="navstore" target="tools">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_gt" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="graph" target="gtools">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_cl1" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.4;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="tools" target="claude">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_cl2" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="gtools" target="claude">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_e_dash" value="" style="dashed=1;edgeStyle=none;endArrow=classic;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="lg_a_dash" target="lg_b_dash">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

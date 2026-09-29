@@ -1,0 +1,186 @@
+<mxfile host="vkm-drawio" agent="vkm-drawio writer/1" compressed="false" pages="1">
+  <diagram id="backfill" name="Механика закладки">
+    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1120" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Механика закладки выработанного пространства: PC-37…PC-40 в цепи «выемка → конвергенция → оседание»" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="12" width="1760" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Досье DB (28.09.2026): известно, оспаривается и неизвестно; числа — с источником и статусом в досье. Сценарные диапазоны — SCENARIO (не evidence) для ансамбля миров D-19." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="44" width="1760" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="s1" value="выемка камеры (t0)" style="fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="105" width="150" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="s2" value="свободная конвергенция: ползучесть целиков, прогиб кровли&lt;br&gt;PC-23, PC-29" style="fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="192" y="105" width="190" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="s3" value="закладка через t_з = t_закл − t0 (отставание)&lt;br&gt;PC-37" style="fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="404" y="105" width="180" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="s4" value="зазор h_з = (1 − A)·h + усадка B + щели у целиков&lt;br&gt;PC-37, PC-38" style="fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="606" y="105" width="200" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="s5" value="конвергенция «выбирает» зазор; контакт кровля–закладка&lt;br&gt;PC-39" style="fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="828" y="105" width="200" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="s6" value="уплотнение ε_bf(σ, t) → отпор q_bf(t): подпор и разгрузка целиков&lt;br&gt;PC-38, PC-39" style="fillColor=#f8cecc;fontSize=12;html=1;rounded=1;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="105" width="215" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="s7" value="эффективная жёсткость выработанного слоя (камеры + целики + закладка)&lt;br&gt;PC-32" style="fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1287" y="105" width="200" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="s8" value="оседание η(t): скорость, конечная величина η_k·p, стадии&lt;br&gt;PC-68" style="fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1509" y="105" width="185" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="brine" value="параллельная ветвь (гидрозакладка, шламы): рассол → увлажнение и выщелачивание краёв целиков (Δb, w) → падение длительной прочности → рост C → рост скорости оседаний — PC-40" style="fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="470" y="235" width="900" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="known_h" value="Известно (FACT, с локаторами в досье)" style="text;align=left;fontSize=14;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="320" width="575" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="known_0" value="Нормативный учёт — множитель p = 1 − A(1 − B) к конечному оседанию (DB-F-05…07); коэффициенты усадки B — нормативы по способу закладки, не измерения" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="352" width="575" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="known_1" value="Фактическая степень заполнения ниже рекомендуемой: рекомендуют 0,8–0,95, фактически около 0,7–0,8, отдельные участки 0,3–0,6 (DB-P-04…11)" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="403" width="575" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="known_2" value="СКРУ-1, январь 2022: без закладки около 28 % площади КрII, 52 % АБ, 35 % Вс, 3 % Вк (DB-P-30)" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="454" width="575" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="known_3" value="Отставание закладки на СКРУ-1 — от совпадающих периодов до десятилетий (DB-P-24, DERIVATION)" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="505" width="575" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="known_4" value="Включение закладки описано двумя критериями: по деформации целика (7.21) и по оседанию 0,9mω(1 − A) (11)" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="556" width="575" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="known_5" value="Уравнение состояния гидрозакладки — форма Генки в обобщении Вялова (7.13); параметры в корпусе не приведены" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="607" width="575" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="known_6" value="Прочность и жёсткость растут: сухая закладка 1 год ≈ 0,9 МПа и 0,028 ГПа, 18 лет — 8,5–9,0 МПа и 0,6 ГПа (вторично); гидрозакладка 10 лет — 3,5–4,0 МПа (LAB)" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="658" width="575" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="contested_h" value="Оспаривается (конфликты записаны, не усреднены)" style="text;align=left;fontSize=14;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="612" y="320" width="575" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="contested_0" value="DB-C-04 упрочняет ли закладка целики: +30…90 % несущей способности против «неполная сухая закладка не влияет» и разрушения целиков до включения закладки при зазоре" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="612" y="352" width="575" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="contested_1" value="DB-C-05 гидрозакладка и скорость оседаний: ускорение до 280 мм/год при критически деформированных целиках (БКПРУ-4) против стабилизации и снижения скоростей" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="612" y="403" width="575" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="contested_2" value="DB-C-06, DB-C-07 формы функции ползучести и переменного модуля с закладкой расходятся внутри одной школы" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="612" y="454" width="575" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="contested_3" value="DB-C-01, DB-C-10 коэффициенты B и множитель k менялись по редакциям Указаний" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="612" y="505" width="575" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="contested_4" value="DB-C-09 критерий включения: по деформации целика или по оседанию поверхности — оба MODEL_CHOICE" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="612" y="547" width="575" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="contested_5" value="DB-C-11 гидрозакладка на СКРУ-1: «только БКПРУ-1» (1998) против применения на СКРУ-1 в 1990–2010-х" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="612" y="598" width="575" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="unknown_h" value="Неизвестно (UNKNOWN; значения не подставляются)" style="text;align=left;fontSize=14;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1204" y="320" width="575" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="unknown_0" value="DB-G-01 закон уплотнения закладки ВКМ ε_bf(σ, t, w, T) in situ — PC-38 UNKNOWN по параметрам" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1204" y="352" width="575" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="unknown_1" value="DB-G-02 фактические A, B, зазор и способ по зонам и блокам СКРУ-1" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1204" y="403" width="575" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="unknown_2" value="DB-G-03 давление в закладке и отпор во времени (результаты программы датчиков не опубликованы)" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1204" y="445" width="575" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="unknown_3" value="DB-G-04 момент контакта кровли с закладкой на СКРУ-1 (есть только модельные t_z)" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1204" y="496" width="575" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="unknown_4" value="DB-G-05 влияние рассола закладки на целики СКРУ-1" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1204" y="538" width="575" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="unknown_5" value="DB-G-06…10 гранулометрия и пористость in situ; закон роста прочности между 1 и 18 годами; свойства пласта КрII*; тексты Указаний; температурно-влажностный режим" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1204" y="580" width="575" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="hyp" value="Конкурирующие гипотезы DB-H&lt;br&gt;H-01 нормативный множитель без времени — MODEL_CHOICE · H-02 запаздывающее включение сжимаемой закладки — MODEL_CHOICE · H-03 боковой подпор целиков — спор · H-04 гидрозакладка дестабилизирует повреждённые целики — спор · H-05 эквивалентный материал, переменный модуль — MODEL_CHOICE (риск калибровки по прогнозируемым оседаниям) · H-06 старение закладки — точки FACT, закон UNKNOWN · H-07 механизмы уплотнения соляной закладки — ANALOGUE · H-08 пренебрежение закладкой — MODEL_CHOICE · H-09 ускорение релаксации — корреляция FACT, механизм UNKNOWN" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="735" width="870" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="scen" value="Сценарные диапазоны DB-S (SCENARIO, не evidence)&lt;br&gt;A 0,5–0,95 для заложенных зон, A = 0 для незаложенных · B 0,16–0,30 (только нормативы) · зазор 0,1–1,5 м · отставание 0 – ≈ 80 лет по зонам СКРУ-1 · модуль закладки ≈ 0,01–0,03 → ≈ 0,6 ГПа за 18 лет · прочность 0,9–9 МПа (сухая), 3,5–4 МПа (гидро, 10 лет) · начальная пористость 30–40 % (ANALOGUE) · увлажнение краёв целиков 1,7–3,5 м · семейства закона уплотнения: Генки–Вялов, SRP/cap, Callahan / CODE_BRIGHT, переменный модуль" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="910" y="735" width="870" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="dem" value="DEM (Ansys Rocky) как виртуальная лаборатория — MODEL_CHOICE: геометрия укладки, начальная пористость, кратковременное уплотнение; не даёт растворения под давлением и ползучести за десятилетия. Запуск — только по явной задаче Phase 2 по лестнице решателя" style="align=left;dashed=1;fillColor=#f5f5f5;fontColor=#333333;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="910" y="900" width="870" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="ext" value="19 внешних аналогов DB-A-01…19 (дроблёная соль ВКМ и WIPP, KOMPASS, модели CODE_BRIGHT и др.) — только ANALOGUE, перенос на СКРУ-1 через явный Transfer с условиями (материал, влажность, время, масштаб)" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="900" width="870" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Легенда" style="align=left;collapsible=0;container=1;dashed=0;fillColor=#ffffff;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="980" width="870" height="152" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_evidence" value="" style="fillColor=#d5e8d4;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="30" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_evidence" value="известное звено или факт с локатором" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="28" width="810" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_model" value="" style="fillColor=#ffe6cc;html=1;rounded=0;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="59" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_model" value="спор, гипотеза, сценарий, аналог" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="57" width="810" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_unknown" value="" style="fillColor=#f8cecc;html=1;rounded=0;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="88" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_unknown" value="UNKNOWN" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="86" width="810" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_paused" value="" style="dashed=1;fillColor=#f5f5f5;fontColor=#333333;html=1;rounded=0;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="117" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_paused" value="не запущено: только по явной задаче" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="115" width="810" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="sources" value="Источники: docs/science/topic_dossiers/BACKFILL_MECHANICS_RU.md §0–§1, §5–§8 (идентификаторы DB-*), backfill_mechanics.json; catalogues/physics (PC-23, PC-29, PC-32, PC-37…PC-40, PC-68); src/vkm_world/mining/backfill.py (BackfillRecord)." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="910" y="1000" width="870" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="se0" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="s1" target="s2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se1" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="s2" target="s3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se2" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="s3" target="s4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se3" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="s4" target="s5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se4" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="s5" target="s6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se5" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="s6" target="s7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se6" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="s7" target="s8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sb1" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="s3" target="brine">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="494" y="260" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sb2" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=1;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="brine" target="s8">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1601" y="260" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

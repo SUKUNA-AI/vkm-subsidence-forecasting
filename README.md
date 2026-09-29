@@ -102,7 +102,9 @@ flowchart LR
   TOOLS --> CLAUDE
 ```
 
-Слои научной системы данных (контракт теории v0.2):
+Слои научной системы данных (контракт теории v0.2); все схемы проекта — [docs/diagrams/](docs/diagrams/README.md):
+
+![Слои научной системы данных](docs/diagrams/data_layers.svg)
 
 | Слой | Что это | Где | Статус объектов |
 |---|---|---|---|
@@ -202,6 +204,8 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 Дерево и граф корпуса без генерации текста — идея RAPTOR без LLM. Каждый узел указывает на реальные страницы. Сводку
 по ветке делает Claude в момент вопроса. Дизайн и поля датасетов — [NAVIGATION_LAYER.md](docs/corpus_platform/NAVIGATION_LAYER.md).
 
+![Навигационный слой](docs/diagrams/nav_layer.svg)
+
 | Часть | Датасеты | Как строится | Снимок 738eebee |
 |---|---|---|---|
 | разделы | `sections`, `section_pages` | закладки PDF, EPUB nav, outline DjVu, печатное оглавление, нумерация и разметка заголовков | 9 105 разделов, 98,3 % страниц покрыто |
@@ -214,7 +218,8 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 - **Сборка:** `vkm-corpus nav build --part all --vectors <набор векторов>` на WORKSTATION (GPU), около 2 минут.
 - **Упаковка и выдача:** `store.pack` → `nav.duckdb`. `NavStore` в API подключает его вместе с канонической DuckDB,
   только на чтение.
-- **Граф NAV в Neo4j** — отдельный слой `NAVIGATION` поверх DOCUMENT: 111 922 узла, 2,2 млн связей, проверки N1–N7.
+- **Граф NAV в Neo4j** ([схема графа](docs/diagrams/graph_schema.svg)) — отдельный слой `NAVIGATION` поверх DOCUMENT:
+  111 922 узла, 2,2 млн связей, проверки N1–N7.
   Узлы: разделы, символы формул, параметры, термины, темы. Рёбра: NAV_CHILD_OF, COVERS_PAGE, IN_SECTION, DEFINED_FOR,
   NAV_REFERS_TO, CO_OCCURS, MENTIONED_IN, SYMBOL_OF, IN_TOPIC, RELATED_TOPIC… Инструменты: пути между понятиями и
   окрестность любого узла.

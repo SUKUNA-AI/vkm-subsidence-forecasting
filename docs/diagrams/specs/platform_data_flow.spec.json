@@ -5,503 +5,966 @@
    "name": "Поток данных",
    "layout": "none",
    "page_width": 1960,
-   "page_height": 900,
+   "page_height": 1190,
    "background": "#ffffff",
+   "grid": false,
    "nodes": [
     {
      "id": "title",
-     "label": "VKM Corpus Platform v0 — поток данных (роли хостов; адреса, порты и секреты — только в host-local конфигурации)",
+     "label": "Платформа корпуса: поток данных от источников до инструментов MCP (состояние 29.09.2026)",
      "x": 20,
-     "y": 10,
-     "w": 1500,
+     "y": 12,
+     "w": 1920,
      "h": 30,
      "preset": "text",
-     "style": "fontSize=16;fontStyle=1;"
+     "style": "fontSize=20;align=left;fontStyle=1;"
     },
     {
-     "id": "lane_private",
-     "label": "PRIVATE-репозиторий (Git + LFS)",
+     "id": "subtitle",
+     "label": "Канон — только Parquet-снимок на CORE (CURRENT); всё правее — пересобираемые проекции и производные каталоги. Снимок snap-20260928T193550Z-738eebee, reconcile — RECONCILED.",
      "x": 20,
-     "y": 60,
-     "w": 260,
-     "h": 420,
+     "y": 44,
+     "w": 1920,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontColor=#444444;"
+    },
+    {
+     "id": "priv",
+     "label": "PRIVATE-репозиторий (Git + LFS)",
+     "x": 30,
+     "y": 90,
+     "w": 250,
+     "h": 450,
      "preset": "swimlane",
-     "style": "swimlane;whiteSpace=wrap;html=1;startSize=26;container=1;collapsible=0;fontStyle=1;swimlaneFillColor=#ffffff;fillColor=#f5f5f5;strokeColor=#666666;"
+     "style": "swimlane;startSize=28;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=14;swimlaneFillColor=#ffffff;rounded=0;"
     },
     {
      "id": "reg",
-     "label": "SOURCE_REGISTER.csv\n251 запись реестра",
-     "x": 30,
-     "y": 50,
-     "w": 200,
-     "h": 70,
-     "preset": "document",
-     "parent": "lane_private"
+     "label": "SOURCE_REGISTER.csv — 251 источник",
+     "x": 15,
+     "y": 45,
+     "w": 220,
+     "h": 50,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;",
+     "parent": "priv"
     },
     {
      "id": "raw",
-     "label": "Сырые источники\nPDF · DjVu · EPUB · DOCX",
-     "x": 30,
-     "y": 160,
-     "w": 200,
-     "h": 90,
-     "preset": "cylinder",
-     "parent": "lane_private"
+     "label": "Файлы источников: PDF · DjVu · EPUB · DOCX",
+     "x": 15,
+     "y": 115,
+     "w": 220,
+     "h": 60,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;",
+     "parent": "priv"
     },
     {
      "id": "wreg",
-     "label": "Курируемые Work и связи\n(00_registry)",
+     "label": "Курируемые Work и связи (00_registry)",
+     "x": 15,
+     "y": 195,
+     "w": 220,
+     "h": 55,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;",
+     "parent": "priv"
+    },
+    {
+     "id": "evp",
+     "label": "evidence vNext (11_evidence_vnext/): полные записи с цитатами",
+     "x": 15,
+     "y": 275,
+     "w": 220,
+     "h": 75,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;",
+     "parent": "priv"
+    },
+    {
+     "id": "priv_note",
+     "label": "в PUBLIC не попадают",
+     "x": 15,
+     "y": 365,
+     "w": 220,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;",
+     "parent": "priv"
+    },
+    {
+     "id": "pub",
+     "label": "PUBLIC-репозиторий",
      "x": 30,
-     "y": 290,
-     "w": 200,
-     "h": 70,
-     "preset": "document",
-     "parent": "lane_private"
-    },
-    {
-     "id": "legend",
-     "label": "Канон — только Parquet-снимок на CORE (CURRENT). DuckDB, Neo4j и OpenSearch пересобираются из снимка. PostgreSQL — операционное состояние. Автоматически извлечённые объекты — AUTO_EXTRACTED_UNREVIEWED: это не FACT.",
-     "x": 20,
-     "y": 520,
-     "w": 260,
-     "h": 200,
-     "preset": "note",
-     "style": "align=left;verticalAlign=top;spacingLeft=6;spacingTop=6;"
-    },
-    {
-     "id": "lane_ws",
-     "label": "WORKSTATION · WSL (единственный producer)",
-     "x": 320,
-     "y": 60,
-     "w": 300,
-     "h": 700,
+     "y": 580,
+     "w": 250,
+     "h": 410,
      "preset": "swimlane",
-     "style": "swimlane;whiteSpace=wrap;html=1;startSize=26;container=1;collapsible=0;fontStyle=1;swimlaneFillColor=#ffffff;fillColor=#dae8fc;strokeColor=#6c8ebf;"
+     "style": "swimlane;startSize=28;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=14;swimlaneFillColor=#ffffff;rounded=0;"
     },
     {
-     "id": "inspect",
-     "label": "Инспекция и пагинация\n(sha256 против реестра)",
-     "x": 40,
-     "y": 50,
+     "id": "pubcat",
+     "label": "catalogues/ и evidence/ — 79 CSV без цитат (статус, scope, scale)",
+     "x": 15,
+     "y": 45,
      "w": 220,
-     "h": 60,
-     "parent": "lane_ws"
+     "h": 75,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;",
+     "parent": "pub"
     },
     {
-     "id": "native",
-     "label": "Нативное извлечение\nPyMuPDF · DjVuLibre",
-     "x": 40,
-     "y": 150,
+     "id": "catpack",
+     "label": "vkm-corpus catalogues pack → catalogues.duckdb + manifest.json (коммит PUBLIC, sha256 и строки файлов)",
+     "x": 15,
+     "y": 160,
      "w": 220,
-     "h": 60,
-     "parent": "lane_ws"
+     "h": 105,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "pub"
     },
     {
-     "id": "layout",
-     "label": "Рендер и разметка\nPP-DocLayoutV3 → LAYOUT_RAW",
-     "x": 40,
-     "y": 250,
-     "w": 220,
-     "h": 60,
-     "parent": "lane_ws"
+     "id": "ws",
+     "label": "WORKSTATION · WSL — producer",
+     "x": 320,
+     "y": 90,
+     "w": 320,
+     "h": 900,
+     "preset": "swimlane",
+     "style": "swimlane;startSize=28;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;swimlaneFillColor=#ffffff;rounded=0;"
     },
     {
-     "id": "ocr",
-     "label": "GLM-OCR (vLLM, GPU):\nстраницы без пригодного текста,\nформулы и таблицы",
-     "x": 40,
-     "y": 350,
-     "w": 220,
-     "h": 80,
-     "parent": "lane_ws"
+     "id": "regimport",
+     "label": "registry verify / import: sha256 против реестра",
+     "x": 15,
+     "y": 45,
+     "w": 290,
+     "h": 55,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "ws"
+    },
+    {
+     "id": "extract",
+     "label": "run extract по фазам:\n1 prepare — формат, страницы двумя методами, нативный текст\n2 visual — рендер 200 dpi, PP-DocLayoutV3\n3 ocr — GLM-OCR, где нужно\n4 commit — источник целиком",
+     "x": 15,
+     "y": 120,
+     "w": 290,
+     "h": 135,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "ws"
     },
     {
      "id": "staging",
-     "label": "STAGING-корень:\nParquet-партиции, OCR_RAW,\nмаркеры коммитов",
-     "x": 40,
-     "y": 470,
-     "w": 220,
-     "h": 100,
+     "label": "STAGING: Parquet-партиции, LAYOUT_RAW, OCR_RAW, маркеры коммитов",
+     "x": 15,
+     "y": 275,
+     "w": 290,
+     "h": 80,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
      "preset": "cylinder",
-     "parent": "lane_ws"
+     "parent": "ws"
     },
     {
      "id": "worker",
-     "label": "Воркер заданий\n(единственный планировщик)",
-     "x": 40,
-     "y": 610,
-     "w": 220,
+     "label": "Воркер заданий: план → подтверждение → запуск → публикация",
+     "x": 15,
+     "y": 380,
+     "w": 290,
      "h": 60,
-     "parent": "lane_ws"
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "ws"
     },
     {
-     "id": "lane_core",
-     "label": "CORE · CANONICAL (compose-проект vkm-core)",
-     "x": 660,
-     "y": 60,
-     "w": 1060,
-     "h": 460,
+     "id": "outlines",
+     "label": "Оглавления файлов: закладки PDF, навигация EPUB, outline DjVu → JSON на снимок",
+     "x": 15,
+     "y": 470,
+     "w": 290,
+     "h": 70,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "ws"
+    },
+    {
+     "id": "navbuild",
+     "label": "nav build --part all (GPU, RAPIDS; ≈ 2 мин): sections · formulas · parameters · duplicates · concepts · topics → store.pack → nav.duckdb",
+     "x": 15,
+     "y": 570,
+     "w": 290,
+     "h": 115,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "ws"
+    },
+    {
+     "id": "ws_note",
+     "label": "входы nav build: копия DuckDB снимка, векторы единиц, оглавления",
+     "x": 15,
+     "y": 700,
+     "w": 290,
+     "h": 40,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;",
+     "parent": "ws"
+    },
+    {
+     "id": "core",
+     "label": "CORE · CANONICAL-корень (compose «vkm-core»)",
+     "x": 680,
+     "y": 90,
+     "w": 1000,
+     "h": 900,
      "preset": "swimlane",
-     "style": "swimlane;whiteSpace=wrap;html=1;startSize=26;container=1;collapsible=0;fontStyle=1;swimlaneFillColor=#ffffff;fillColor=#d5e8d4;strokeColor=#82b366;"
+     "style": "swimlane;startSize=28;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;swimlaneFillColor=#ffffff;rounded=0;"
+    },
+    {
+     "id": "rec",
+     "label": "core reconcile — по порядку",
+     "x": 15,
+     "y": 60,
+     "w": 280,
+     "h": 500,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=1;rounded=0;",
+     "parent": "core"
     },
     {
      "id": "admit",
-     "label": "core admit + reconcile\n(sha, схема, родитель коммита)",
-     "x": 30,
-     "y": 50,
-     "w": 220,
+     "label": "1 допуск коммитов: sha, схема, цепочка родителей",
+     "x": 15,
+     "y": 35,
+     "w": 250,
+     "h": 55,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "rec"
+    },
+    {
+     "id": "snap",
+     "label": "2 снимок + валидатор: CURRENT сдвигается только при PASS",
+     "x": 15,
+     "y": 105,
+     "w": 250,
+     "h": 70,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "parent": "rec"
+    },
+    {
+     "id": "duck",
+     "label": "3 DuckDB",
+     "x": 15,
+     "y": 195,
+     "w": 250,
+     "h": 55,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "rec"
+    },
+    {
+     "id": "neo",
+     "label": "4 Neo4j DOCUMENT (wipe, проверки C1–C16)",
+     "x": 15,
+     "y": 265,
+     "w": 250,
+     "h": 65,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "rec"
+    },
+    {
+     "id": "os",
+     "label": "5 OpenSearch BM25",
+     "x": 15,
+     "y": 345,
+     "w": 250,
+     "h": 50,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "rec"
+    },
+    {
+     "id": "rrec",
+     "label": "квитанция reconcile: RECONCILED / WITH_FAILURES / SNAPSHOT_NOT_PASSED / FAILED",
+     "x": 15,
+     "y": 410,
+     "w": 250,
+     "h": 75,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;",
+     "preset": "document",
+     "parent": "rec"
+    },
+    {
+     "id": "lab",
+     "label": "lab_refresh.sh --snapshot <ID>",
+     "x": 15,
+     "y": 600,
+     "w": 280,
+     "h": 260,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=1;rounded=0;",
+     "parent": "core"
+    },
+    {
+     "id": "units",
+     "label": "единицы vkm-units-v1 снимка: 205 784",
+     "x": 15,
+     "y": 35,
+     "w": 250,
+     "h": 50,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "parent": "lab"
+    },
+    {
+     "id": "dense",
+     "label": "dense: jina-v5-nano на RX 580 (новых и изменённых — 24 821)",
+     "x": 15,
+     "y": 100,
+     "w": 250,
      "h": 60,
-     "parent": "lane_core"
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "lab"
     },
     {
-     "id": "canon",
-     "label": "Канон: Parquet-снимок\nmanifest + CURRENT",
-     "x": 30,
-     "y": 150,
-     "w": 220,
-     "h": 100,
-     "preset": "cylinder",
-     "parent": "lane_core"
-    },
-    {
-     "id": "artifacts",
-     "label": "Артефакты\n(content-addressed, sha256:…)",
-     "x": 30,
-     "y": 310,
-     "w": 220,
-     "h": 90,
-     "preset": "cylinder",
-     "parent": "lane_core"
-    },
-    {
-     "id": "duckdb",
-     "label": "DuckDB (read-only)\nсверка fingerprint с manifest",
-     "x": 290,
-     "y": 50,
-     "w": 220,
+     "id": "late",
+     "label": "late: mLateOn → pack float16 (новых и изменённых — 2 823)",
+     "x": 15,
+     "y": 175,
+     "w": 250,
      "h": 60,
-     "parent": "lane_core"
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "lab"
     },
     {
-     "id": "neo4j",
-     "label": "Neo4j: DOCUMENT graph\n(в графе только ID и статусы)",
-     "x": 290,
-     "y": 160,
-     "w": 220,
-     "h": 60,
-     "parent": "lane_core"
+     "id": "s_nav",
+     "label": "derived/ navigation/ <снимок>: nav.duckdb + CURRENT (с WORKSTATION); граф NAV: 111 922 узла, 2 203 152 связи",
+     "x": 330,
+     "y": 60,
+     "w": 135,
+     "h": 175,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;",
+     "parent": "core"
     },
     {
-     "id": "opensearch",
-     "label": "OpenSearch: BM25\n(кандидаты — только ID)",
-     "x": 290,
-     "y": 270,
-     "w": 220,
+     "id": "s_cat",
+     "label": "derived/ catalogues/ <коммит12> + CURRENT: 79 файлов, 53 943 строки",
+     "x": 475,
+     "y": 60,
+     "w": 125,
+     "h": 175,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;",
+     "parent": "core"
+    },
+    {
+     "id": "s_duck",
+     "label": "DuckDB канона (только чтение)",
+     "x": 330,
+     "y": 255,
+     "w": 270,
+     "h": 55,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "parent": "core"
+    },
+    {
+     "id": "s_neo",
+     "label": "Neo4j: DOCUMENT + слой NAV",
+     "x": 330,
+     "y": 325,
+     "w": 270,
+     "h": 65,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "parent": "core"
+    },
+    {
+     "id": "s_os",
+     "label": "OpenSearch: BM25 + индекс kNN dense (205 784)",
+     "x": 330,
+     "y": 405,
+     "w": 270,
+     "h": 50,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "parent": "core"
+    },
+    {
+     "id": "s_rx",
+     "label": "rx580-retrieval: кодирует запрос, MaxSim по late pack (memmap)",
+     "x": 330,
+     "y": 775,
+     "w": 270,
      "h": 60,
-     "parent": "lane_core"
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "core"
     },
     {
      "id": "api",
-     "label": "VKM API /v1\nконверт vkm.envelope/1",
-     "x": 550,
-     "y": 150,
-     "w": 220,
-     "h": 100,
-     "style": "fillColor=#fff2cc;strokeColor=#d6b656;rounded=1;",
-     "parent": "lane_core"
+     "label": "VKM API /v1\n\nобъекты — по ID из DuckDB канона; кандидаты поиска — ID из OpenSearch; соседи — из Neo4j; NavStore (nav.duckdb + канон); досье — пакет каталогов; вектор запроса и MaxSim — rx580-retrieval\n\nконверт vkm.envelope/1; подмены канона текстом проекции нет",
+     "x": 640,
+     "y": 60,
+     "w": 210,
+     "h": 800,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;verticalAlign=top;spacingTop=4;",
+     "parent": "core"
     },
     {
      "id": "mcp",
-     "label": "MCP vkm-corpus\n(read-tools)",
-     "x": 810,
-     "y": 110,
-     "w": 220,
-     "h": 60,
-     "parent": "lane_core"
+     "label": "MCP vkm-corpus: 38 инструментов чтения",
+     "x": 870,
+     "y": 620,
+     "w": 115,
+     "h": 95,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "core"
     },
     {
      "id": "mcpadmin",
-     "label": "MCP vkm-corpus-admin\n(plan-first; по умолчанию\nне подключён)",
-     "x": 810,
-     "y": 230,
+     "label": "MCP vkm-corpus-admin: задания plan-first",
+     "x": 870,
+     "y": 740,
+     "w": 115,
+     "h": 100,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "core"
+    },
+    {
+     "id": "edge",
+     "label": "EDGE",
+     "x": 1720,
+     "y": 90,
      "w": 220,
-     "h": 80,
-     "parent": "lane_core"
-    },
-    {
-     "id": "lane_edge",
-     "label": "EDGE (GPU GTX 1650)",
-     "x": 1180,
-     "y": 580,
-     "w": 540,
-     "h": 200,
+     "h": 520,
      "preset": "swimlane",
-     "style": "swimlane;whiteSpace=wrap;html=1;startSize=26;container=1;collapsible=0;fontStyle=1;swimlaneFillColor=#ffffff;fillColor=#ffe6cc;strokeColor=#d79b00;"
-    },
-    {
-     "id": "gateway",
-     "label": "vkm-rerank-gateway",
-     "x": 30,
-     "y": 40,
-     "w": 320,
-     "h": 50,
-     "parent": "lane_edge"
-    },
-    {
-     "id": "v35",
-     "label": "Jina v3.5 — текст\n(≤ 24 кандидата)",
-     "x": 30,
-     "y": 120,
-     "w": 150,
-     "h": 60,
-     "parent": "lane_edge"
-    },
-    {
-     "id": "m0",
-     "label": "Jina m0 — изображения\n(≤ 8 за вызов)",
-     "x": 200,
-     "y": 120,
-     "w": 150,
-     "h": 60,
-     "parent": "lane_edge"
+     "style": "swimlane;startSize=28;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=14;swimlaneFillColor=#ffffff;rounded=0;"
     },
     {
      "id": "pg",
-     "label": "PostgreSQL:\ncontrol plane\n(не канон)",
-     "x": 390,
-     "y": 40,
-     "w": 130,
-     "h": 120,
+     "label": "PostgreSQL vkm_ops: задания, воркеры (не канон)",
+     "x": 15,
+     "y": 55,
+     "w": 190,
+     "h": 90,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
      "preset": "cylinder",
-     "parent": "lane_edge"
+     "parent": "edge"
     },
     {
-     "id": "agent",
-     "label": "Агент (Claude Code)\nтолько через MCP",
-     "x": 1760,
-     "y": 220,
-     "w": 160,
-     "h": 80,
-     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;rounded=1;"
+     "id": "gw",
+     "label": "шлюз реранка",
+     "x": 15,
+     "y": 215,
+     "w": 190,
+     "h": 50,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "edge"
+    },
+    {
+     "id": "v35",
+     "label": "jina-reranker-v3.5: текст, ≤ 24 кандидата",
+     "x": 15,
+     "y": 300,
+     "w": 190,
+     "h": 70,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "edge"
+    },
+    {
+     "id": "m0",
+     "label": "jina-reranker-m0: изображения, ≤ 8",
+     "x": 15,
+     "y": 400,
+     "w": 190,
+     "h": 70,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "edge"
+    },
+    {
+     "id": "claude",
+     "label": "Claude Code — MCP-клиент на WORKSTATION: streamable HTTP + токен; admin — только осознанно",
+     "x": 1720,
+     "y": 700,
+     "w": 220,
+     "h": 110,
+     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;"
+    },
+    {
+     "id": "n1",
+     "label": "Проекции и производные удаляются и собираются заново из снимка: DuckDB — duckdb build; Neo4j — graph ddl + graph rebuild; OpenSearch — search build; векторы — lab_refresh; NAV — nav build + nav graph-load; каталоги — catalogues pack + publish.",
+     "x": 30,
+     "y": 1030,
+     "w": 1260,
+     "h": 60,
+     "preset": "note",
+     "style": "fontSize=12;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;fillColor=#ffffff;strokeColor=#666666;"
+    },
+    {
+     "id": "legend",
+     "label": "Легенда",
+     "x": 1320,
+     "y": 1025,
+     "w": 620,
+     "h": 152,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#666666;dashed=0;rounded=0;"
+    },
+    {
+     "id": "lg_sw_evidence",
+     "label": "",
+     "x": 10,
+     "y": 30,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;"
+    },
+    {
+     "id": "lg_tx_evidence",
+     "label": "источник, evidence, реальные наблюдения",
+     "x": 52,
+     "y": 28,
+     "w": 560,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_derived",
+     "label": "",
+     "x": 10,
+     "y": 59,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;"
+    },
+    {
+     "id": "lg_tx_derived",
+     "label": "данные: канон, STAGING, проекции, производные каталоги (пересобираются)",
+     "x": 52,
+     "y": 57,
+     "w": 560,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_service",
+     "label": "",
+     "x": 10,
+     "y": 88,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;"
+    },
+    {
+     "id": "lg_tx_service",
+     "label": "сервис, инструмент, шаг процесса",
+     "x": 52,
+     "y": 86,
+     "w": 560,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_agent",
+     "label": "",
+     "x": 10,
+     "y": 117,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;"
+    },
+    {
+     "id": "lg_tx_agent",
+     "label": "агент Claude",
+     "x": 52,
+     "y": 115,
+     "w": 560,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "sources",
+     "label": "Источники: docs/corpus_platform/CORPUS_PLATFORM_ARCHITECTURE.md §1–§5; PIPELINE.md §1; OPERATIONS.md §1–§4a; NAVIGATION_LAYER.md §1, §5; MCP_TOOLS.md §1–§3; receipts/evening_deploy_final.json; infra/core/compose.yml.",
+     "x": 20,
+     "y": 1150,
+     "w": 1920,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;"
     }
    ],
    "edges": [
     {
      "id": "e_reg",
      "source": "reg",
-     "target": "inspect",
+     "target": "regimport",
      "label": "реестр",
-     "style": "exitX=1;exitY=0.5;entryX=0;entryY=0.25;"
-    },
-    {
-     "id": "e_raw",
-     "source": "raw",
-     "target": "inspect",
-     "label": "только чтение",
-     "style": "exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;"
     },
     {
      "id": "e_wreg",
      "source": "wreg",
-     "target": "inspect",
+     "target": "regimport",
      "label": "",
-     "style": "exitX=1;exitY=0.5;entryX=0;entryY=0.75;"
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_1",
-     "source": "inspect",
-     "target": "native",
+     "id": "e_raw",
+     "source": "raw",
+     "target": "extract",
+     "label": "только чтение",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_rawtoc",
+     "source": "raw",
+     "target": "outlines",
      "label": "",
-     "style": "exitX=0.5;exitY=1;entryX=0.5;entryY=0;"
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       300,
+       253
+      ],
+      [
+       300,
+       595
+      ]
+     ]
     },
     {
-     "id": "e_2",
-     "source": "native",
-     "target": "layout",
+     "id": "e_ri",
+     "source": "regimport",
+     "target": "extract",
      "label": "",
-     "style": "exitX=0.5;exitY=1;entryX=0.5;entryY=0;"
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_3",
-     "source": "layout",
-     "target": "ocr",
-     "label": "регионы без текста",
-     "style": "exitX=0.5;exitY=1;entryX=0.5;entryY=0;"
-    },
-    {
-     "id": "e_4",
-     "source": "ocr",
+     "id": "e_ex",
+     "source": "extract",
      "target": "staging",
-     "label": "OCR_RAW + строки",
-     "style": "exitX=0.5;exitY=1;entryX=0.5;entryY=0;"
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
     },
     {
      "id": "e_pub",
      "source": "staging",
      "target": "admit",
-     "label": "публикация: rsync,\nмаркеры последними",
-     "style": "exitX=1;exitY=0.5;entryX=0;entryY=0.5;",
+     "label": "core publish:\nrsync, маркеры\nпоследними",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
      "waypoints": [
       [
-       640,
-       580
+       662,
+       405
       ],
       [
-       640,
-       140
+       662,
+       212
       ]
      ]
     },
     {
-     "id": "e_rec",
+     "id": "e_a1",
      "source": "admit",
-     "target": "canon",
-     "label": "допуск → CURRENT",
-     "style": "exitX=0.5;exitY=1;entryX=0.5;entryY=0;"
+     "target": "snap",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_art",
-     "source": "canon",
-     "target": "artifacts",
-     "label": "ссылки sha256:",
-     "style": "exitX=0.5;exitY=1;entryX=0.5;entryY=0;",
-     "preset": "dashed"
+     "id": "e_a2",
+     "source": "snap",
+     "target": "duck",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_dd",
-     "source": "canon",
-     "target": "duckdb",
-     "label": "сборка",
-     "style": "exitX=1;exitY=0.3;entryX=0;entryY=0.5;"
+     "id": "e_a3",
+     "source": "duck",
+     "target": "neo",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_neo",
-     "source": "canon",
-     "target": "neo4j",
-     "label": "проекция",
-     "style": "exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+     "id": "e_a4",
+     "source": "neo",
+     "target": "os",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_os",
-     "source": "canon",
-     "target": "opensearch",
-     "label": "индекс",
-     "style": "exitX=1;exitY=0.7;entryX=0;entryY=0.5;"
+     "id": "e_a5",
+     "source": "os",
+     "target": "rrec",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_api1",
-     "source": "duckdb",
-     "target": "api",
-     "label": "объекты по ID",
-     "style": "exitX=1;exitY=0.5;entryX=0;entryY=0.2;"
+     "id": "e_sd",
+     "source": "duck",
+     "target": "s_duck",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_api2",
-     "source": "neo4j",
-     "target": "api",
-     "label": "ID соседей",
-     "style": "exitX=1;exitY=0.5;entryX=0;entryY=0.5;"
+     "id": "e_sn",
+     "source": "neo",
+     "target": "s_neo",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_api3",
-     "source": "opensearch",
-     "target": "api",
-     "label": "ID кандидатов",
-     "style": "exitX=1;exitY=0.5;entryX=0;entryY=0.8;"
+     "id": "e_so",
+     "source": "os",
+     "target": "s_os",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_api4",
-     "source": "artifacts",
-     "target": "api",
-     "label": "байты изображений",
-     "style": "exitX=1;exitY=0.5;entryX=0.2;entryY=1;",
+     "id": "e_units",
+     "source": "snap",
+     "target": "units",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
      "waypoints": [
       [
-       1250,
-       415
+       702,
+       290
+      ],
+      [
+       702,
+       750
       ]
      ]
+    },
+    {
+     "id": "e_l1",
+     "source": "units",
+     "target": "dense",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_l2",
+     "source": "dense",
+     "target": "late",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_dos",
+     "source": "dense",
+     "target": "s_os",
+     "label": "build-vectors",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_lrx",
+     "source": "late",
+     "target": "s_rx",
+     "label": "pack",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_ducknav",
+     "source": "duck",
+     "target": "navbuild",
+     "label": "копия DuckDB\nснимка",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.3;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       668,
+       372
+      ],
+      [
+       668,
+       695
+      ]
+     ]
+    },
+    {
+     "id": "e_toc",
+     "source": "outlines",
+     "target": "navbuild",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_nav",
+     "source": "navbuild",
+     "target": "s_nav",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       652,
+       746
+      ],
+      [
+       652,
+       132
+      ],
+      [
+       1077,
+       132
+      ]
+     ]
+    },
+    {
+     "id": "e_evp",
+     "source": "evp",
+     "target": "pubcat",
+     "label": "build_public_catalogues.py:\nцитаты удаляются",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_pk",
+     "source": "pubcat",
+     "target": "catpack",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_cat",
+     "source": "catpack",
+     "target": "s_cat",
+     "label": "catalogues publish",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       14,
+       792
+      ],
+      [
+       14,
+       78
+      ],
+      [
+       1217,
+       78
+      ]
+     ]
+    },
+    {
+     "id": "e_api_s_nav",
+     "source": "s_nav",
+     "target": "api",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.234;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_api_s_cat",
+     "source": "s_cat",
+     "target": "api",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.109;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_api_s_duck",
+     "source": "s_duck",
+     "target": "api",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.278;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_api_s_neo",
+     "source": "s_neo",
+     "target": "api",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.372;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_api_s_os",
+     "source": "s_os",
+     "target": "api",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.463;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_api_s_rx",
+     "source": "s_rx",
+     "target": "api",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.931;entryDx=0;entryDy=0;"
     },
     {
      "id": "e_mcp",
      "source": "mcp",
      "target": "api",
-     "label": "HTTP, read-токен",
-     "style": "exitX=0;exitY=0.5;entryX=1;entryY=0.3;"
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.759;entryDx=0;entryDy=0;"
     },
     {
      "id": "e_mcpa",
      "source": "mcpadmin",
      "target": "api",
-     "label": "write-токен",
-     "style": "exitX=0;exitY=0.5;entryX=1;entryY=0.8;"
-    },
-    {
-     "id": "e_agent",
-     "source": "agent",
-     "target": "mcp",
-     "label": "streamable HTTP\n+ bearer",
-     "style": "exitX=0;exitY=0.3;entryX=1;entryY=0.5;"
-    },
-    {
-     "id": "e_agent_admin",
-     "source": "agent",
-     "target": "mcpadmin",
-     "label": "только осознанно",
-     "style": "exitX=0;exitY=0.8;entryX=1;entryY=0.5;",
-     "preset": "dashed"
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.912;entryDx=0;entryDy=0;"
     },
     {
      "id": "e_rr",
      "source": "api",
-     "target": "gateway",
+     "target": "gw",
      "label": "реранк по ID",
-     "style": "exitX=0.5;exitY=1;entryX=0.344;entryY=0;"
-    },
-    {
-     "id": "e_v35",
-     "source": "gateway",
-     "target": "v35",
-     "label": "",
-     "style": "exitX=0.234;exitY=1;entryX=0.5;entryY=0;"
-    },
-    {
-     "id": "e_m0",
-     "source": "gateway",
-     "target": "m0",
-     "label": "",
-     "style": "exitX=0.766;exitY=1;entryX=0.5;entryY=0;"
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.225;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
     },
     {
      "id": "e_plan",
      "source": "api",
      "target": "pg",
      "label": "PLAN_REQUEST",
-     "style": "exitX=0.86;exitY=1;entryX=0.5;entryY=0;",
-     "waypoints": [
-      [
-       1400,
-       555
-      ],
-      [
-       1635,
-       555
-      ]
-     ]
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.05;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_worker",
+     "id": "e_gw1",
+     "source": "gw",
+     "target": "v35",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_gw2",
+     "source": "gw",
+     "target": "m0",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.93;exitY=1;exitDx=0;exitDy=0;entryX=0.93;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_cl",
+     "source": "claude",
+     "target": "mcp",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_cla",
+     "source": "claude",
+     "target": "mcpadmin",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0;exitY=0.8;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_job",
      "source": "worker",
      "target": "pg",
-     "label": "план (plan_sha256) → подтверждение → запуск",
-     "style": "exitX=0.5;exitY=1;entryX=0.5;entryY=1;",
+     "label": "план → plan_sha256 → запуск",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;",
      "waypoints": [
       [
-       470,
-       820
+       328,
+       500
       ],
       [
-       1635,
-       820
+       328,
+       1005
+      ],
+      [
+       1950,
+       1005
+      ],
+      [
+       1950,
+       190
       ]
      ]
     }

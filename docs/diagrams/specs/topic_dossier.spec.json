@@ -1,0 +1,446 @@
+{
+ "pages": [
+  {
+   "id": "dossier",
+   "name": "Досье темы",
+   "layout": "none",
+   "page_width": 1760,
+   "page_height": 1080,
+   "background": "#ffffff",
+   "grid": false,
+   "nodes": [
+    {
+     "id": "title",
+     "label": "Досье темы «от А до Я»: reconstruct_topic (API GET/POST /v1/topic, MCP-инструмент)",
+     "x": 20,
+     "y": 12,
+     "w": 1720,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=20;align=left;fontStyle=1;"
+    },
+    {
+     "id": "subtitle",
+     "label": "Один вызов (≈ 3–4 с) — бюджетированная карта темы с ID и страницами; дальше Claude открывает только нужное (get_section, get_formula_context, get_page, get_object). Навигация, не evidence.",
+     "x": 20,
+     "y": 44,
+     "w": 1720,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontColor=#444444;"
+    },
+    {
+     "id": "in",
+     "label": "Вход\nquery; paraphrases ≤ 4; source_ids ≤ 20; budget_chars 1 000–60 000 (по умолчанию 12 000)",
+     "x": 20,
+     "y": 110,
+     "w": 230,
+     "h": 125,
+     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;"
+    },
+    {
+     "id": "form",
+     "label": "Формулировки темы (≤ 5)\n1 сам запрос\n2 перефразы вызывающего — идут первыми\n3 синонимы понятия: лемма, SAME_AS, одно более узкое понятие\n4 запрос + два ближайших соседа понятия",
+     "x": 290,
+     "y": 110,
+     "w": 270,
+     "h": 190,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "tiers",
+     "label": "Два яруса источников — каждая формулировка ищется дважды\n• ядро ВКМ: источники каталогов evidence (source_coverage_master, process_evidence_links, реестр моделей, матрица покрытия) и области ВКМ, СКРУ, БКПРУ, Соликамск, Усолье по реестру\n• остальной корпус",
+     "x": 290,
+     "y": 330,
+     "w": 270,
+     "h": 210,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "search",
+     "label": "Гибридный поиск (BM25 + dense + late) → единицы-страницы; слияние RRF (k = 60) в прежнем бюджете страниц",
+     "x": 600,
+     "y": 110,
+     "w": 250,
+     "h": 125,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;"
+    },
+    {
+     "id": "secsel",
+     "label": "Разделы: страница → самый глубокий раздел; + заголовки по основам слов и search_sections; одна ветка дерева — один раздел, из источника ≤ 3",
+     "x": 600,
+     "y": 265,
+     "w": 250,
+     "h": 150,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+    },
+    {
+     "id": "budget",
+     "label": "Бюджет: markdown ≤ budget_chars; первыми уходят связи, операторы, строки evidence, дальние разделы; в конце — что не вошло и как получить (budget.trimmed)",
+     "x": 600,
+     "y": 445,
+     "w": 250,
+     "h": 150,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+    },
+    {
+     "id": "out",
+     "label": "Ответ: markdown-оглавление + structured_content (ApiResponse TOPIC_DOSSIER)",
+     "x": 900,
+     "y": 95,
+     "w": 840,
+     "h": 610,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=1;rounded=0;"
+    },
+    {
+     "id": "o1",
+     "label": "Разделы в два яруса (ядро ВКМ отдельно): путь заголовков, диапазон страниц, лучшие единицы, сниппет канонического текста ≤ 200 знаков; списки страниц pages.core и pages.rest",
+     "x": 15,
+     "y": 35,
+     "w": 400,
+     "h": 160,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "out"
+    },
+    {
+     "id": "o2",
+     "label": "Рисунки и таблицы: подписи на найденных страницах и соседних (± 1), если в них есть слова запроса",
+     "x": 425,
+     "y": 35,
+     "w": 400,
+     "h": 160,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "out"
+    },
+    {
+     "id": "o3",
+     "label": "Формулы: номер, раздел, «где…» (символ, смысл, единица), число ссылок, параметры-кандидаты (AUTO_EXTRACTED_UNREVIEWED); формулы ядра — раньше",
+     "x": 15,
+     "y": 215,
+     "w": 400,
+     "h": 160,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "out"
+    },
+    {
+     "id": "o4",
+     "label": "Понятие и темы: explore_concept (определения, соседи, шире / уже), find_topics",
+     "x": 425,
+     "y": 215,
+     "w": 400,
+     "h": 160,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "out"
+    },
+    {
+     "id": "o5",
+     "label": "Источники: область из реестра, основная работа (авторы, год, тип), покрытие SOURCE_COVERAGE_MASTER, CITES внутри набора",
+     "x": 15,
+     "y": 395,
+     "w": 400,
+     "h": 95,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "out"
+    },
+    {
+     "id": "o6",
+     "label": "Каталоги: процессы PC-xx с уравнениями, параметрами, готовностью и записями evidence (vn_id, страница, status, scope, scale); модели, конфликты, причинные связи, операторы наблюдения",
+     "x": 425,
+     "y": 395,
+     "w": 400,
+     "h": 95,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "out"
+    },
+    {
+     "id": "o7",
+     "label": "Пробелы — только UNKNOWN, без чисел: LINKED_OTHER_SCOPE (перенос только через Transfer), NO_LINKED_RECORD, CURATED_GAP, NOT_CHECKED («не сверено»)",
+     "x": 15,
+     "y": 505,
+     "w": 810,
+     "h": 95,
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "out"
+    },
+    {
+     "id": "d_search",
+     "label": "Поиск: OpenSearch (BM25, kNN dense), rx580-retrieval (late)",
+     "x": 290,
+     "y": 760,
+     "w": 270,
+     "h": 70,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;"
+    },
+    {
+     "id": "d_nav",
+     "label": "NavStore: nav.duckdb — разделы, формулы, параметры, понятия, темы",
+     "x": 600,
+     "y": 760,
+     "w": 250,
+     "h": 70,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;"
+    },
+    {
+     "id": "d_canon",
+     "label": "Канон (DuckDB): страницы, объекты, источники, работы, CITES (читаются раз на снимок)",
+     "x": 900,
+     "y": 760,
+     "w": 300,
+     "h": 70,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;"
+    },
+    {
+     "id": "d_cat",
+     "label": "Пакет каталогов evidence: derived/catalogues/<коммит> (79 файлов PUBLIC)",
+     "x": 1240,
+     "y": 760,
+     "w": 290,
+     "h": 70,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;"
+    },
+    {
+     "id": "env",
+     "label": "Конверт: TOPIC_DOSSIER, layer = PROJECTION, origin = DERIVED, AUTO_EXTRACTED_UNREVIEWED. Без поиска, понятий, тем или каталогов досье строится из оставшегося и предупреждает (RETRIEVAL_UNAVAILABLE, RETRIEVAL_PARTIAL, CONCEPTS_UNAVAILABLE, CATALOGUES_UNAVAILABLE, CITES_PENDING …); без NAV, поиска и каталогов сразу — DEPENDENCY_UNAVAILABLE.",
+     "x": 20,
+     "y": 870,
+     "w": 830,
+     "h": 65,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "meas",
+     "label": "Измерено 28.09: «механика закладки» (2 перефразы, 6 000 знаков) — 3,85 с; «начальные напряжения» (6 000 знаков) — 2,71 с. Рецепт из topic_v1: три формулировки в RRF дают page_recall@50 0,446 против 0,303 у одной. Досье-примеры: docs/science/topic_dossiers/.",
+     "x": 880,
+     "y": 870,
+     "w": 860,
+     "h": 65,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "legend",
+     "label": "Легенда",
+     "x": 20,
+     "y": 580,
+     "w": 250,
+     "h": 226,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#666666;dashed=0;rounded=0;"
+    },
+    {
+     "id": "lg_sw_evidence",
+     "label": "",
+     "x": 10,
+     "y": 30,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;"
+    },
+    {
+     "id": "lg_tx_evidence",
+     "label": "каталоги evidence и провенанс источников",
+     "x": 52,
+     "y": 28,
+     "w": 190,
+     "h": 40,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_derived",
+     "label": "",
+     "x": 10,
+     "y": 74,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;"
+    },
+    {
+     "id": "lg_tx_derived",
+     "label": "производное: поиск, NAV, канон",
+     "x": 52,
+     "y": 72,
+     "w": 190,
+     "h": 40,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_service",
+     "label": "",
+     "x": 10,
+     "y": 118,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;"
+    },
+    {
+     "id": "lg_tx_service",
+     "label": "сервис, инструмент, шаг процесса",
+     "x": 52,
+     "y": 116,
+     "w": 190,
+     "h": 40,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_unknown",
+     "label": "",
+     "x": 10,
+     "y": 162,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;"
+    },
+    {
+     "id": "lg_tx_unknown",
+     "label": "пробелы UNKNOWN",
+     "x": 52,
+     "y": 160,
+     "w": 190,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_agent",
+     "label": "",
+     "x": 10,
+     "y": 191,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;"
+    },
+    {
+     "id": "lg_tx_agent",
+     "label": "агент Claude",
+     "x": 52,
+     "y": 189,
+     "w": 190,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "sources",
+     "label": "Источники: docs/corpus_platform/NAVIGATION_LAYER.md §5 (досье темы, пакет каталогов); MCP_TOOLS.md §2 (reconstruct_topic); README.md §7; receipts/evening_deploy_final.json (mcp_smoke); benchmarks/topic_v1/RESULTS_V1.md §0; src/vkm_corpus/api/topic.py.",
+     "x": 20,
+     "y": 1040,
+     "w": 1720,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;"
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "source": "in",
+     "target": "form",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e2",
+     "source": "form",
+     "target": "tiers",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e3",
+     "source": "form",
+     "target": "search",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e4",
+     "source": "tiers",
+     "target": "search",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.85;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e5",
+     "source": "search",
+     "target": "secsel",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e6",
+     "source": "secsel",
+     "target": "budget",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e7",
+     "source": "budget",
+     "target": "out",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.83;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "s1",
+     "source": "d_search",
+     "target": "search",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.8;exitY=0;exitDx=0;exitDy=0;entryX=0.2;entryY=1;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       506,
+       740
+      ],
+      [
+       506,
+       250
+      ],
+      [
+       650,
+       250
+      ]
+     ]
+    },
+    {
+     "id": "s2",
+     "source": "d_nav",
+     "target": "budget",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "s3",
+     "source": "d_canon",
+     "target": "out",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.3;entryY=1;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "s4",
+     "source": "d_cat",
+     "target": "out",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.7;entryY=1;entryDx=0;entryDy=0;"
+    }
+   ]
+  }
+ ]
+}

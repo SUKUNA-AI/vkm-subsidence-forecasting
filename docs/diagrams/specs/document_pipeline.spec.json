@@ -1,0 +1,783 @@
+{
+ "pages": [
+  {
+   "id": "pipeline",
+   "name": "Путь документа",
+   "layout": "none",
+   "page_width": 1800,
+   "page_height": 1030,
+   "background": "#ffffff",
+   "grid": false,
+   "nodes": [
+    {
+     "id": "title",
+     "label": "Путь документа в конвейере корпуса: от реестра до снимка и проекций",
+     "x": 20,
+     "y": 12,
+     "w": 1760,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=20;align=left;fontStyle=1;"
+    },
+    {
+     "id": "subtitle",
+     "label": "vkm-corpus run extract — четыре фазы на WORKSTATION (STAGING), затем публикация и reconcile на CORE. Native first: OCR — только где нужно; сырьё моделей хранится (KEEP_RAW), повторный прогон моделей не вызывает.",
+     "x": 20,
+     "y": 44,
+     "w": 1760,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontColor=#444444;"
+    },
+    {
+     "id": "ph1",
+     "label": "1 prepare — subprocess на источник, CPU",
+     "x": 20,
+     "y": 90,
+     "w": 340,
+     "h": 700,
+     "preset": "swimlane",
+     "style": "swimlane;startSize=28;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=13;swimlaneFillColor=#ffffff;rounded=0;"
+    },
+    {
+     "id": "ph2",
+     "label": "2 visual — один subprocess с GPU",
+     "x": 380,
+     "y": 90,
+     "w": 300,
+     "h": 700,
+     "preset": "swimlane",
+     "style": "swimlane;startSize=28;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=13;swimlaneFillColor=#ffffff;rounded=0;"
+    },
+    {
+     "id": "ph3",
+     "label": "3 ocr — оркестратор, asyncio",
+     "x": 700,
+     "y": 90,
+     "w": 300,
+     "h": 700,
+     "preset": "swimlane",
+     "style": "swimlane;startSize=28;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=13;swimlaneFillColor=#ffffff;rounded=0;"
+    },
+    {
+     "id": "ph4",
+     "label": "4 commit — subprocess на источник, CPU",
+     "x": 1020,
+     "y": 90,
+     "w": 300,
+     "h": 700,
+     "preset": "swimlane",
+     "style": "swimlane;startSize=28;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=13;swimlaneFillColor=#ffffff;rounded=0;"
+    },
+    {
+     "id": "core",
+     "label": "CORE: публикация и reconcile",
+     "x": 1340,
+     "y": 90,
+     "w": 440,
+     "h": 700,
+     "preset": "swimlane",
+     "style": "swimlane;startSize=28;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;swimlaneFillColor=#ffffff;rounded=0;"
+    },
+    {
+     "id": "reg",
+     "label": "реестр → файл, sha256 против SOURCE_REGISTER",
+     "x": 15,
+     "y": 45,
+     "w": 310,
+     "h": 50,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;",
+     "parent": "ph1"
+    },
+    {
+     "id": "fmt",
+     "label": "формат по сигнатуре (PDF, DjVu, EPUB, DOCX)",
+     "x": 15,
+     "y": 115,
+     "w": 310,
+     "h": 45,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "ph1"
+    },
+    {
+     "id": "pages",
+     "label": "страницы двумя методами:\nPDF — PyMuPDF / pypdfium2\nDjVu — djvused / обход IFF\nEPUB — spine lxml / stdlib\nDOCX — закреплённый рендер LibreOffice\nрасхождение → NEEDS_REVIEW, PAGECOUNT_MISMATCH",
+     "x": 15,
+     "y": 180,
+     "w": 310,
+     "h": 145,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "ph1"
+    },
+    {
+     "id": "native",
+     "label": "нативное извлечение: PyMuPDF, DjVuLibre, EPUB XHTML, DOCX XML → NATIVE_RAW; векторная графика PDF → VECTOR_PATHS_JSON / VECTOR_SVG",
+     "x": 15,
+     "y": 345,
+     "w": 310,
+     "h": 95,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "ph1"
+    },
+    {
+     "id": "classify",
+     "label": "класс страницы и маршрут (правило c1)",
+     "x": 15,
+     "y": 460,
+     "w": 310,
+     "h": 45,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "ph1"
+    },
+    {
+     "id": "routes",
+     "label": "маршруты",
+     "x": 15,
+     "y": 515,
+     "w": 310,
+     "h": 175,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=1;rounded=0;",
+     "parent": "ph1"
+    },
+    {
+     "id": "r1",
+     "label": "NATIVE — нативный слой; OCR только формул и таблиц",
+     "x": 8,
+     "y": 24,
+     "w": 294,
+     "h": 27,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=10;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "routes"
+    },
+    {
+     "id": "r2",
+     "label": "NATIVE_REPAIR — ремонт CP1251, флаг ENCODING_REPAIRED",
+     "x": 8,
+     "y": 53,
+     "w": 294,
+     "h": 27,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=10;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "routes"
+    },
+    {
+     "id": "r3",
+     "label": "OCR_OPTIONAL — скан с чужим слоем: EMBEDDED_OCR",
+     "x": 8,
+     "y": 82,
+     "w": 294,
+     "h": 27,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=10;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "routes"
+    },
+    {
+     "id": "r4",
+     "label": "OCR_REQUIRED — GLM-OCR по регионам разметки",
+     "x": 8,
+     "y": 111,
+     "w": 294,
+     "h": 27,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=10;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "routes"
+    },
+    {
+     "id": "r5",
+     "label": "EMPTY — пусто; с «чернилами» → OCR",
+     "x": 8,
+     "y": 140,
+     "w": 294,
+     "h": 27,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=10;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "routes"
+    },
+    {
+     "id": "render",
+     "label": "рендер 200 dpi (не хранится — воспроизводится по рецепту), превью JPEG 1024 px, доля «чернил»",
+     "x": 15,
+     "y": 45,
+     "w": 270,
+     "h": 75,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "ph2"
+    },
+    {
+     "id": "layout",
+     "label": "PP-DocLayoutV3 (transformers, GPU, fp32, офлайн): ≈ 70 мс на страницу",
+     "x": 15,
+     "y": 145,
+     "w": 270,
+     "h": 65,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "ph2"
+    },
+    {
+     "id": "layraw",
+     "label": "LAYOUT_RAW (KEEP_RAW): пары «запрос × класс» top-300, score ≥ 0.05, рамки и порядок чтения",
+     "x": 15,
+     "y": 235,
+     "w": 270,
+     "h": 85,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "preset": "document",
+     "parent": "ph2"
+    },
+    {
+     "id": "regions",
+     "label": "регионы и ID объектов — правило regions_v1 из сохранённого LAYOUT_RAW, без GPU",
+     "x": 15,
+     "y": 345,
+     "w": 270,
+     "h": 70,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "ph2"
+    },
+    {
+     "id": "crops",
+     "label": "кропы регионов без пригодного текста, формул и таблиц: формулы 300 dpi, текст и таблицы 200 dpi; высокие регионы — полосы",
+     "x": 15,
+     "y": 45,
+     "w": 270,
+     "h": 85,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "ph3"
+    },
+    {
+     "id": "glm",
+     "label": "GLM-OCR через vLLM: Text / Formula / Table Recognition; temperature 0",
+     "x": 15,
+     "y": 145,
+     "w": 270,
+     "h": 65,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "ph3"
+    },
+    {
+     "id": "ocrraw",
+     "label": "OCR_RAW на каждую попытку; call_signature = модель, ревизия, веса, промпт, семплинг, пиксели",
+     "x": 15,
+     "y": 235,
+     "w": 270,
+     "h": 85,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "preset": "document",
+     "parent": "ph3"
+    },
+    {
+     "id": "stop",
+     "label": "аварийный стоп CP-22 (окно 200 вызовов): обрезка > 2 %, пусто на «чернилах» > 1 %, повторы > 1 %",
+     "x": 15,
+     "y": 345,
+     "w": 270,
+     "h": 85,
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;",
+     "parent": "ph3"
+    },
+    {
+     "id": "scenb",
+     "label": "сценарий B: ≈ 5 % страниц со встроенным слоем, CER против GLM; переOCR источника при CER > 10 %",
+     "x": 15,
+     "y": 455,
+     "w": 270,
+     "h": 85,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "ph3"
+    },
+    {
+     "id": "norm",
+     "label": "нормализация сырья: ocr_normalize_v2 (текст, LaTeX, сетка таблицы); флаги ocr_quality_v2 пересчитываются при коммите",
+     "x": 15,
+     "y": 45,
+     "w": 270,
+     "h": 95,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "ph4"
+    },
+    {
+     "id": "objects",
+     "label": "документные объекты с устойчивыми ID: страницы, блоки, рисунки, таблицы, формулы; списки литературы — bib-segmenter 0.3.0 (bib_rules_v3)",
+     "x": 15,
+     "y": 160,
+     "w": 270,
+     "h": 110,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "parent": "ph4"
+    },
+    {
+     "id": "commit",
+     "label": "коммит источника (Parquet) под lease; тот же контент — no-op",
+     "x": 15,
+     "y": 290,
+     "w": 270,
+     "h": 60,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "ph4"
+    },
+    {
+     "id": "staging",
+     "label": "STAGING-корень",
+     "x": 15,
+     "y": 370,
+     "w": 270,
+     "h": 70,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "preset": "cylinder",
+     "parent": "ph4"
+    },
+    {
+     "id": "publish",
+     "label": "core publish: только новые файлы, маркеры коммитов последними",
+     "x": 20,
+     "y": 45,
+     "w": 400,
+     "h": 50,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "core"
+    },
+    {
+     "id": "admit",
+     "label": "допуск коммитов: sha, схема, цепочка родителей",
+     "x": 20,
+     "y": 115,
+     "w": 400,
+     "h": 45,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "core"
+    },
+    {
+     "id": "snap",
+     "label": "снимок + валидатор: CURRENT сдвигается только при PASS",
+     "x": 20,
+     "y": 180,
+     "w": 400,
+     "h": 50,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "parent": "core"
+    },
+    {
+     "id": "duck",
+     "label": "DuckDB",
+     "x": 20,
+     "y": 250,
+     "w": 120,
+     "h": 45,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "parent": "core"
+    },
+    {
+     "id": "neo",
+     "label": "Neo4j DOCUMENT (C1–C16)",
+     "x": 150,
+     "y": 250,
+     "w": 130,
+     "h": 45,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;",
+     "parent": "core"
+    },
+    {
+     "id": "os",
+     "label": "OpenSearch BM25",
+     "x": 290,
+     "y": 250,
+     "w": 130,
+     "h": 45,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "parent": "core"
+    },
+    {
+     "id": "vec",
+     "label": "векторы: lab_refresh (dense + late)",
+     "x": 20,
+     "y": 330,
+     "w": 195,
+     "h": 60,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "parent": "core"
+    },
+    {
+     "id": "nav",
+     "label": "NAV: nav build на WORKSTATION → nav.duckdb, граф NAV",
+     "x": 225,
+     "y": 330,
+     "w": 195,
+     "h": 60,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "parent": "core"
+    },
+    {
+     "id": "snapnum",
+     "label": "Снимок snap-20260928T193550Z-738eebee:\n• источников 251: обработано 249 (COMPLETE 221, PARTIAL 28), 2 пропущены по реестру (013, 022)\n• страниц 26 483, блоков 621 497\n• рисунков 17 784, таблиц 3 391, формул 108 904\n• записей литературы 23 682\n• поисковых единиц 205 784",
+     "x": 20,
+     "y": 415,
+     "w": 400,
+     "h": 150,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "core"
+    },
+    {
+     "id": "statuses",
+     "label": "Нет тихих потерь: каждая страница получает строку со статусом — NATIVE_OK, EMBEDDED_TEXT_OK, OCR_OK, OCR_REQUIRED, PARTIAL, UNSUPPORTED, FAILED, NEEDS_REVIEW, SKIPPED_BY_REGISTER, NOT_PROCESSED. Упавший subprocess даёт ошибку WORKER_CRASHED или TIMEOUT; страницы получат строки при следующем коммите из кешей.",
+     "x": 20,
+     "y": 810,
+     "w": 560,
+     "h": 80,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "idem",
+     "label": "Идемпотентность (H-05): stage_signature решает, пересчитывать ли строки; call_signature — вызывать ли модель. --force пересчитывает строки с кешем моделей; повторный вызов модели — только --recall-model через подтверждённый план (plan_sha256).",
+     "x": 600,
+     "y": 810,
+     "w": 560,
+     "h": 65,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "legend",
+     "label": "Легенда",
+     "x": 1180,
+     "y": 810,
+     "w": 600,
+     "h": 152,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#666666;dashed=0;rounded=0;"
+    },
+    {
+     "id": "lg_sw_evidence",
+     "label": "",
+     "x": 10,
+     "y": 30,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;"
+    },
+    {
+     "id": "lg_tx_evidence",
+     "label": "источник, evidence, реальные наблюдения",
+     "x": 52,
+     "y": 28,
+     "w": 540,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_derived",
+     "label": "",
+     "x": 10,
+     "y": 59,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;"
+    },
+    {
+     "id": "lg_tx_derived",
+     "label": "сырьё моделей, объекты канона, проекции (AUTO_EXTRACTED_UNREVIEWED)",
+     "x": 52,
+     "y": 57,
+     "w": 540,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_service",
+     "label": "",
+     "x": 10,
+     "y": 88,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;"
+    },
+    {
+     "id": "lg_tx_service",
+     "label": "сервис, инструмент, шаг процесса",
+     "x": 52,
+     "y": 86,
+     "w": 540,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_unknown",
+     "label": "",
+     "x": 10,
+     "y": 117,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;"
+    },
+    {
+     "id": "lg_tx_unknown",
+     "label": "аварийная остановка прогона",
+     "x": 52,
+     "y": 115,
+     "w": 540,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "sources",
+     "label": "Источники: docs/corpus_platform/PIPELINE.md §1–§6; CORPUS_PLATFORM_ARCHITECTURE.md §2–§3; OPERATIONS.md §1, §4; BIBLIOGRAPHY.md; README.md §4; receipts/evening_deploy_final.json; implementation_work/COORDINATOR_DECISIONS.md (CP-22, CP-38).",
+     "x": 20,
+     "y": 985,
+     "w": 1760,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;"
+    }
+   ],
+   "edges": [
+    {
+     "id": "c0",
+     "source": "reg",
+     "target": "fmt",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "c1",
+     "source": "fmt",
+     "target": "pages",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "c2",
+     "source": "pages",
+     "target": "native",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "c3",
+     "source": "native",
+     "target": "classify",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "c4",
+     "source": "classify",
+     "target": "routes",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "c5",
+     "source": "render",
+     "target": "layout",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "c6",
+     "source": "layout",
+     "target": "layraw",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "c7",
+     "source": "layraw",
+     "target": "regions",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "c8",
+     "source": "crops",
+     "target": "glm",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "c9",
+     "source": "glm",
+     "target": "ocrraw",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "c10",
+     "source": "ocrraw",
+     "target": "stop",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "c11",
+     "source": "norm",
+     "target": "objects",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "c12",
+     "source": "objects",
+     "target": "commit",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "c13",
+     "source": "commit",
+     "target": "staging",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "c14",
+     "source": "publish",
+     "target": "admit",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "c15",
+     "source": "admit",
+     "target": "snap",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "x1",
+     "source": "classify",
+     "target": "render",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       355,
+       572
+      ],
+      [
+       355,
+       172
+      ]
+     ]
+    },
+    {
+     "id": "x2",
+     "source": "regions",
+     "target": "crops",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       680,
+       470
+      ],
+      [
+       680,
+       172
+      ]
+     ]
+    },
+    {
+     "id": "x3",
+     "source": "ocrraw",
+     "target": "norm",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       1000,
+       350
+      ],
+      [
+       1000,
+       182
+      ]
+     ]
+    },
+    {
+     "id": "x3b",
+     "source": "native",
+     "target": "norm",
+     "label": "нативный текст",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       362,
+       454
+      ],
+      [
+       362,
+       126
+      ],
+      [
+       1170,
+       126
+      ]
+     ]
+    },
+    {
+     "id": "x4",
+     "source": "staging",
+     "target": "publish",
+     "label": "rsync по SSH",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       1335,
+       495
+      ],
+      [
+       1335,
+       160
+      ]
+     ]
+    },
+    {
+     "id": "s0",
+     "source": "snap",
+     "target": "duck",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "s1",
+     "source": "snap",
+     "target": "neo",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "s2",
+     "source": "snap",
+     "target": "os",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "s3",
+     "source": "duck",
+     "target": "vec",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "s4",
+     "source": "duck",
+     "target": "nav",
+     "label": "копия",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;"
+    }
+   ]
+  }
+ ]
+}

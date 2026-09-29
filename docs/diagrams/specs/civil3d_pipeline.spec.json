@@ -1,0 +1,346 @@
+{
+ "pages": [
+  {
+   "id": "civil3d",
+   "name": "Конвейер Civil 3D",
+   "layout": "none",
+   "page_width": 1800,
+   "page_height": 920,
+   "background": "#ffffff",
+   "grid": false,
+   "nodes": [
+    {
+     "id": "title",
+     "label": "Конвейер Civil 3D в vkm-cad 1.0: от таблицы точек до листа PDF",
+     "x": 20,
+     "y": 12,
+     "w": 1760,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=20;align=left;fontStyle=1;"
+    },
+    {
+     "id": "subtitle",
+     "label": "Задания только в новых документах, без GUI (решение CP-43, 29.09): AutoCAD 2026 + Civil 3D 2026 в консоли accoreconsole. Выходы — производные объекты, никогда не наблюдения.",
+     "x": 20,
+     "y": 44,
+     "w": 1760,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontColor=#444444;"
+    },
+    {
+     "id": "t_in",
+     "label": "Таблица точек\nCSV / TSV («;» и десятичная запятая), JSON, Parquet или строки; неизвестная отметка остаётся неизвестной",
+     "x": 20,
+     "y": 150,
+     "w": 190,
+     "h": 170,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;"
+    },
+    {
+     "id": "t_pts",
+     "label": "c3d_points_from_table\nCOGO-точки + группа; копии DXF / JSON; name_policy (group_prefix для эпох)",
+     "x": 236,
+     "y": 150,
+     "w": 190,
+     "h": 170,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+    },
+    {
+     "id": "t_tin",
+     "label": "c3d_tin_surface\nTIN из группы или точек; структурные линии, внешняя граница, макс. ребро; DXF треугольников\nINTERPOLATION",
+     "x": 452,
+     "y": 150,
+     "w": 190,
+     "h": 170,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;"
+    },
+    {
+     "id": "t_cont",
+     "label": "c3d_contours\nгоризонтали кратно интервалу; основные — на отдельном слое",
+     "x": 668,
+     "y": 150,
+     "w": 190,
+     "h": 170,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;"
+    },
+    {
+     "id": "t_diff",
+     "label": "c3d_difference_surface\nмульда как разность: поверхность объёмов (выемка / насыпь) + dz-TIN и изолинии dz; допущение «не наблюдение»",
+     "x": 884,
+     "y": 150,
+     "w": 190,
+     "h": 170,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;"
+    },
+    {
+     "id": "t_prof",
+     "label": "c3d_alignment_profile\nтрасса по полилинии (линия наблюдений), профили поверхностей с шагом, CSV + DXF, вид профиля",
+     "x": 1100,
+     "y": 150,
+     "w": 190,
+     "h": 170,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;"
+    },
+    {
+     "id": "t_sheet",
+     "label": "cad_layout_sheet\nлист A4…A0: DWG To PDF.pc3, рамка 20/5/5/5 мм, видовой экран 1:N, основная надпись по ГОСТ 2.104 (упрощённая)",
+     "x": 1316,
+     "y": 150,
+     "w": 190,
+     "h": 170,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+    },
+    {
+     "id": "t_pdf",
+     "label": "cad_plot_pdf\nпечать листов в PDF (-PLOT)",
+     "x": 1532,
+     "y": 150,
+     "w": 190,
+     "h": 170,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;"
+    },
+    {
+     "id": "job",
+     "label": "cad_job_create → каталог задания $VKM_WORK/cad_jobs/<job_id>\nin/ — копии входов с SHA-256 до и после; runs/R001/ — скрипт, консоль, маркеры BEGIN / END; out/ — выходы с SHA-256 и происхождением; work/drawing.dwg — продвигается только при END … OK; receipt.json",
+     "x": 20,
+     "y": 380,
+     "w": 560,
+     "h": 80,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "engine",
+     "label": "Движок: accoreconsole /product C3D + плагин VkmCadHost (.NET через Roslyn), изолированный профиль (/isolate); один процесс AutoCAD на все задания (_engine.lock); ≈ 3,5 с на прогон после первого запуска\nАвария, диалог или таймаут → дерево процессов задания убивается: CAD_ENGINE_CRASHED | CAD_DIALOG_BLOCKED | CAD_RUN_TIMEOUT; отчёты об авариях не отправляются",
+     "x": 610,
+     "y": 380,
+     "w": 560,
+     "h": 95,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "fallback",
+     "label": "engine = auto: Civil 3D, если есть задание C3D, Civil 3D и компилятор C#; иначе PURE_PYTHON_FALLBACK (scipy): Delaunay, горизонтали marching triangles, dz-TIN с точными объёмами, профили. Сверка на игрушечных данных: 162 треугольника, объём 3567,4 против 3566,2 м³ (0,03 %). Резервный TIN не соблюдает структурные линии — MODEL_CHOICE",
+     "x": 1200,
+     "y": 380,
+     "w": 580,
+     "h": 80,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "prov",
+     "label": "Провенанс и статусы выходов\n• TIN — INTERPOLATION; горизонтали, разности, профили, листы, импорт PDF — DERIVATION; у каждого файла — метод, движок, список MODEL_CHOICE, derived_from с SHA-256\n• crs_status = UNKNOWN_CRS, epsg = null; EXPLICIT_TRANSFORM — только явное преобразование offset | helmert2d | affine2d с основанием (MODEL_CHOICE)\n• review_status = AUTO_EXTRACTED_UNREVIEWED; CAD-выходы никогда не вход извлечения; неизвестная отметка → точка 2D, в TIN не входит",
+     "x": 20,
+     "y": 500,
+     "w": 860,
+     "h": 125,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "cp43",
+     "label": "Решение CP-43 (29.09): работаем только через консоль; скрытый полный экземпляр (python_com, невидимый acad.exe через COM) выключен — VKM_CAD_ALLOW_HIDDEN_INSTANCE не задан: он загружает и меняет профиль пользователя. Включается только по решению пользователя.",
+     "x": 910,
+     "y": 500,
+     "w": 870,
+     "h": 65,
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "other",
+     "label": "Другие инструменты того же моста: cad_exec (scr, AutoLISP, C# с полным .NET API AutoCAD / Civil 3D) и cad_query; cad_draw (JSON → DXF, по желанию DWG); cad_convert (DXF ↔ DWG); cad_pdf_import (-PDFIMPORT); cad_import_pdf_vector (векторы PDF корпуса → DXF, v0).",
+     "x": 910,
+     "y": 600,
+     "w": 870,
+     "h": 65,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "use",
+     "label": "Назначение (план Phase 2): мульды как разность поверхностей разных эпох, профили по линиям наблюдений, графическая часть диплома (17.11–30.11). Проверено вживую на сетке 10 × 10 с синтетической мульдой.",
+     "x": 20,
+     "y": 660,
+     "w": 860,
+     "h": 45,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "legend",
+     "label": "Легенда",
+     "x": 20,
+     "y": 740,
+     "w": 860,
+     "h": 152,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#666666;dashed=0;rounded=0;"
+    },
+    {
+     "id": "lg_sw_evidence",
+     "label": "",
+     "x": 10,
+     "y": 30,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;"
+    },
+    {
+     "id": "lg_tx_evidence",
+     "label": "вход: таблица точек (например, наблюдения, оцифрованные с провенансом)",
+     "x": 52,
+     "y": 28,
+     "w": 800,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_service",
+     "label": "",
+     "x": 10,
+     "y": 59,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;"
+    },
+    {
+     "id": "lg_tx_service",
+     "label": "сервис, инструмент, шаг процесса",
+     "x": 52,
+     "y": 57,
+     "w": 800,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_derived",
+     "label": "",
+     "x": 10,
+     "y": 88,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;"
+    },
+    {
+     "id": "lg_tx_derived",
+     "label": "производные объекты (INTERPOLATION / DERIVATION)",
+     "x": 52,
+     "y": 86,
+     "w": 800,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_paused",
+     "label": "",
+     "x": 10,
+     "y": 117,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;"
+    },
+    {
+     "id": "lg_tx_paused",
+     "label": "выключено решением пользователя",
+     "x": 52,
+     "y": 115,
+     "w": 800,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "sources",
+     "label": "Источники: docs/corpus_platform/MCP_TOOLS.md §4.1; implementation_work/AGENT_CAD_V1.md §1–§4, §7; receipts/cad_v1_smoke.json; implementation_work/COORDINATOR_DECISIONS.md (CP-43); README.md §10; docs/planning/PHASE2_PLAN_OCT_NOV_2026_RU.md §1, §3.",
+     "x": 910,
+     "y": 750,
+     "w": 870,
+     "h": 40,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;"
+    }
+   ],
+   "edges": [
+    {
+     "id": "e0",
+     "source": "t_in",
+     "target": "t_pts",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e1",
+     "source": "t_pts",
+     "target": "t_tin",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e2",
+     "source": "t_tin",
+     "target": "t_cont",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e3",
+     "source": "t_cont",
+     "target": "t_diff",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e4",
+     "source": "t_diff",
+     "target": "t_prof",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e5",
+     "source": "t_prof",
+     "target": "t_sheet",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e6",
+     "source": "t_sheet",
+     "target": "t_pdf",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_tc",
+     "source": "t_tin",
+     "target": "t_diff",
+     "label": "две поверхности\n(эпохи)",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       547,
+       125
+      ],
+      [
+       979,
+       125
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,345 @@
+{
+ "pages": [
+  {
+   "id": "solvers",
+   "name": "Лестница решателя",
+   "layout": "none",
+   "page_width": 1800,
+   "page_height": 930,
+   "background": "#ffffff",
+   "grid": false,
+   "nodes": [
+    {
+     "id": "title",
+     "label": "Лестница решателя и роли инженерных программ (D-19; состояние 29.09.2026)",
+     "x": 20,
+     "y": 12,
+     "w": 1760,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=20;align=left;fontStyle=1;"
+    },
+    {
+     "id": "subtitle",
+     "label": "Любой решатель запускается только по явной задаче Phase 2 и по лестнице из CLAUDE.md. Результат решателя — модельный: не наблюдение и не полевая валидация.",
+     "x": 20,
+     "y": 44,
+     "w": 1760,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontColor=#444444;"
+    },
+    {
+     "id": "l_head",
+     "label": "Лестница (CLAUDE.md)",
+     "x": 20,
+     "y": 95,
+     "w": 380,
+     "h": 26,
+     "preset": "text",
+     "style": "fontSize=14;align=left;fontStyle=1;"
+    },
+    {
+     "id": "st1",
+     "label": "1. установка и версия",
+     "x": 20,
+     "y": 128,
+     "w": 380,
+     "h": 46,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "st2",
+     "label": "2. минимальная механика",
+     "x": 20,
+     "y": 186,
+     "w": 380,
+     "h": 46,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "st3",
+     "label": "3. зоны материалов",
+     "x": 20,
+     "y": 244,
+     "w": 380,
+     "h": 46,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "st4",
+     "label": "4. гравитация и нагрузки",
+     "x": 20,
+     "y": 302,
+     "w": 380,
+     "h": 46,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "st5",
+     "label": "5. граничные и начальные условия",
+     "x": 20,
+     "y": 360,
+     "w": 380,
+     "h": 46,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "st6",
+     "label": "6. шаги по времени",
+     "x": 20,
+     "y": 418,
+     "w": 380,
+     "h": 46,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "st7",
+     "label": "7. реология",
+     "x": 20,
+     "y": 476,
+     "w": 380,
+     "h": 46,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "st8",
+     "label": "8. извлечение результатов",
+     "x": 20,
+     "y": 534,
+     "w": 380,
+     "h": 46,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "st9",
+     "label": "9. интегрированный toy-кейс",
+     "x": 20,
+     "y": 592,
+     "w": 380,
+     "h": 46,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "st10",
+     "label": "10. адаптер к срезу WorldSpec",
+     "x": 20,
+     "y": 650,
+     "w": 380,
+     "h": 46,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "receipt",
+     "label": "На каждом шаге сохраняются вход, команда, лог, код выхода, проверка ожидаемого результата и квитанция (receipt).",
+     "x": 20,
+     "y": 713,
+     "w": 380,
+     "h": 65,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "levels",
+     "label": "Многоуровневая точность ансамбля (план Phase 2): тысячи миров — World-0, сотни — Ansys, 2–3 сценария — OGS.",
+     "x": 20,
+     "y": 798,
+     "w": 380,
+     "h": 45,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "ansys",
+     "label": "Ansys 2026 R1 — основной решатель геомеханики (D-19)\nMAPDL, Mechanical, Workbench, optiSLang, LS-OPT; роль по плану: поэтапная выемка (рождение и смерть элементов), закладка, ползучесть соли; управление из Python (PyMAPDL); чувствительность — optiSLang\nСтатус: приостановлено. MAPDL: ступени S01–S09 пройдены в пробных прогонах, от упругости до ползучести Нортона с аналитической проверкой; модули Mechanical, Workbench, optiSLang написаны (ветки агентов)",
+     "x": 440,
+     "y": 128,
+     "w": 660,
+     "h": 115,
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "ogs",
+     "label": "OpenGeoSys 6.5.9 + MFront — проверка Ansys на 2–3 согласованных сценариях (D-19; другой решатель — защита от inverse crime)\nСтатус: приостановлено пользователем. На сборке из исходников пройдены S1–S6: эталоны OGS, Гук, столб под гравитацией, λ-состояние, Кирш, ползучесть соли; игрушечный разрез S7 посчитан; матрица гипотез — 11 из 76 прогонов. Дальше — расчёты на GPU (нужна сборка с PETSc/CUDA)",
+     "x": 1120,
+     "y": 128,
+     "w": 660,
+     "h": 115,
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "matlab",
+     "label": "MATLAB R2025b — быстрая теория сдвижения, функции времени, анализ ансамблей, альтернативная реализация нейросети\nСтатус: приостановлено. Слой заданий vkm_jobs (квитанции, лицензионная блокировка, асинхронные задания) и официальный MATLAB MCP Server — в ветке агента",
+     "x": 440,
+     "y": 265,
+     "w": 660,
+     "h": 70,
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "cad",
+     "label": "AutoCAD 2026 + Civil 3D 2026 — мульды (разностные поверхности), профили, графическая часть диплома\nСтатус: работает — vkm-cad 1.0, 27 инструментов; только консоль accoreconsole, скрытый полный экземпляр выключен (CP-43); выходы DERIVED, UNKNOWN_CRS",
+     "x": 1120,
+     "y": 265,
+     "w": 660,
+     "h": 70,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "torch",
+     "label": "PyTorch + RAPIDS (WSL, RTX 5070 Ti) — обучение нейросети прогноза, обработка ансамблей\nСтатус: этап 03.11–16.11 по плану; RAPIDS уже работает в сборке NAV",
+     "x": 440,
+     "y": 357,
+     "w": 660,
+     "h": 35,
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "gpr",
+     "label": "gprMax — отдельный оператор наблюдения GPR, не модель оседаний; только при запасе времени\nAnsys Rocky (DEM) — виртуальная лаборатория закладки: MODEL_CHOICE, только по явной задаче",
+     "x": 1120,
+     "y": 357,
+     "w": 660,
+     "h": 35,
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "rule",
+     "label": "Правила ролей: Ansys — основной решатель, OGS + MFront — проверка на согласованных сценариях (D-19 поверх D-18); World-0 (граф микроядер) — быстрое редуцированное представление, матрица влияния K из Ansys; решатели — адаптеры к срезам WorldSpec, 2D-сечения — только производные представления.",
+     "x": 440,
+     "y": 424,
+     "w": 1340,
+     "h": 45,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "legend",
+     "label": "Легенда",
+     "x": 440,
+     "y": 504,
+     "w": 1340,
+     "h": 94,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#666666;dashed=0;rounded=0;"
+    },
+    {
+     "id": "lg_sw_service",
+     "label": "",
+     "x": 10,
+     "y": 30,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;"
+    },
+    {
+     "id": "lg_tx_service",
+     "label": "работает сейчас / шаг лестницы",
+     "x": 52,
+     "y": 28,
+     "w": 1280,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_paused",
+     "label": "",
+     "x": 10,
+     "y": 59,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;"
+    },
+    {
+     "id": "lg_tx_paused",
+     "label": "приостановлено пользователем (28.09) или запланировано на Phase 2",
+     "x": 52,
+     "y": 57,
+     "w": 1280,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "sources",
+     "label": "Источники: CLAUDE.md (лестница решателя); README.md §10; docs/planning/PHASE2_PLAN_OCT_NOV_2026_RU.md §1–§2; docs/planning/ENGINEERING_TOOLS_MCP_PLAN_RU.md §0–§1; docs/worldspec/WORLD_KERNELS_DESIGN_RU.md §3; docs/governance/PHASE1_DESIGN_DECISIONS_RU.md (D-18, D-19); COORDINATOR_DECISIONS.md (CP-43).",
+     "x": 20,
+     "y": 885,
+     "w": 1760,
+     "h": 40,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;"
+    }
+   ],
+   "edges": [
+    {
+     "id": "se1",
+     "source": "st1",
+     "target": "st2",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "se2",
+     "source": "st2",
+     "target": "st3",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "se3",
+     "source": "st3",
+     "target": "st4",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "se4",
+     "source": "st4",
+     "target": "st5",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "se5",
+     "source": "st5",
+     "target": "st6",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "se6",
+     "source": "st6",
+     "target": "st7",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "se7",
+     "source": "st7",
+     "target": "st8",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "se8",
+     "source": "st8",
+     "target": "st9",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "se9",
+     "source": "st9",
+     "target": "st10",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    }
+   ]
+  }
+ ]
+}
