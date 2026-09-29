@@ -103,6 +103,11 @@ DOCUMENT без `--cascade` отказывает (`E_CROSS_LAYER_LOSS`): `graph 
   строки без базы (`--canon-duckdb <файл>` — ещё и сверяет ID DOCUMENT с каноном), `--out` пишет полную квитанцию;
 - `vkm-corpus nav graph-verify --nav-dir …` — проверки без записи; `vkm-corpus nav graph-drop --yes` — удалить слой.
 
+Переход на `nav-graph/1.1` и откат. Новый образ API и `vkm-job` проверяет граф по реестру 1.1: пока граф не
+перезагружен, `nav graph-verify` (ночные проверки) даёт FAIL по N5. Поэтому `nav graph-load` запускается сразу после
+смены образа. Прежний загрузчик (1.0) не знает новых типов рёбер и не удалит их. Для отката сначала
+`nav graph-drop --yes` образом 1.1, затем `nav graph-load` прежним образом.
+
 Загрузка: сверка manifest (sha256, строки) → preflight P1–P7 → DDL → DOCUMENT должен быть READY и собран из того же
 снимка (иначе отказ; `--allow-snapshot-mismatch`) → `NavMeta = LOADING` → пачки UNWIND/MERGE по ID (узлы, затем
 рёбра) → удаление узлов и рёбер NAV, которые эта загрузка не записала (другой снимок или прежние правила) → проверки
