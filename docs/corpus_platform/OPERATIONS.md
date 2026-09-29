@@ -366,13 +366,13 @@ scp infra/core/compose.yml core:$CORE_COMPOSE/compose.yml
 ssh core "cd $CORE_COMPOSE && docker compose --profile nightly config --services | grep -x vkm-nightly"
 
 # 2. CORE: скрипты, общий инструмент манифестов, замороженные файлы topic_v1
-rsync -a --mkpath infra/core/nightly/ infra/edge/backup/vkm_manifest.py core:$CORE_COMPOSE/nightly/
+rsync -a --mkpath --exclude=__pycache__ infra/core/nightly/ infra/edge/backup/vkm_manifest.py core:$CORE_COMPOSE/nightly/
 rsync -a --mkpath benchmarks/topic_v1/{SHA256SUMS,topic_set_v1.jsonl,topic_queries_v1.tsv,metrics_spec_v1.json,page_mapping_v1.json,results_v1.json} \
   benchmarks/topic_v1/scripts/harness_core.py core:$CORE_COMPOSE/nightly/topic_v1/
 ssh core "bash $CORE_COMPOSE/nightly/install.sh --dry-run" && ssh core "bash $CORE_COMPOSE/nightly/install.sh"
 
 # 3. EDGE: скрипты, ключ, ssh-алиас vkm-core-backup, таймер
-rsync -a --mkpath infra/edge/backup/ edge:$EDGE_ROOT/backup/bin/
+rsync -a --mkpath --exclude=__pycache__ infra/edge/backup/ edge:$EDGE_ROOT/backup/bin/
 ssh edge "bash $EDGE_ROOT/backup/bin/install.sh --dry-run"
 ssh edge "bash $EDGE_ROOT/backup/bin/install.sh --core-host $CORE_ADDR --core-user $CORE_USER"
 
