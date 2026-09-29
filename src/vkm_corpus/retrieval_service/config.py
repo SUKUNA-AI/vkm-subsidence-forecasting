@@ -43,6 +43,9 @@ class ModelSlot:
     query_instruction: str | None = None      # override of the spec query prefix (MODEL_CHOICE)
     max_inflight: int = 0                     # per-model admission (0 = unlimited; never shared between models)
     expected_vram_mib: float | None = None    # measured VRAM of this model+quant (MODEL_MATRIX); residency check
+    # gpu: every layer on the RX580 (default); cpu: the slot's llama-server runs on the host CPU (--device none), for a
+    # model the GPU cannot host within budget/latency (agent VIS fallback); /health then checks liveness, not VRAM
+    placement: Literal["gpu", "cpu"] = "gpu"
     extra_args: tuple[str, ...] = ()
 
     @property
@@ -92,6 +95,8 @@ def _slot(d: Mapping[str, Any]) -> ModelSlot:
     slot = ModelSlot(**d)
     if slot.role not in ("dense", "late", "visual"):
         raise ServiceConfigError(f"role must be dense|late|visual, got {slot.role!r}")
+    if slot.placement not in ("gpu", "cpu"):
+        raise ServiceConfigError(f"placement must be gpu|cpu, got {slot.placement!r}")
     return slot
 
 
