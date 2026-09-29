@@ -59,7 +59,8 @@ def _t(tables: Mapping[str, str] | None) -> dict[str, str]:
 
 
 def _keys_of(con: Any, text: str, t: dict[str, str], morph: Morphology) -> list[tuple[str, str]]:
-    """(lang, key) candidates of a phrase: the printed form of an N3 term, then the lemma keys (whole phrase first)."""
+    """(lang, key) candidates of the whole phrase: the printed form of an N3 term, then its lemma key (its parts are
+    translated by :func:`_composed`, never matched in its place)."""
     q = " ".join((text or "").strip().split())
     if not q:
         return []
@@ -73,7 +74,7 @@ def _keys_of(con: Any, text: str, t: dict[str, str], morph: Morphology) -> list[
             out.append((r["language"], r["lemma_key"]))
     except Exception:  # noqa: BLE001 - a build without the concept tables
         pass
-    for k in phrase_keys(q, morph):
+    for k in phrase_keys(q, morph)[:1]:
         if (lang, k) not in out:
             out.append((lang, k))
     return out
