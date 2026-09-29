@@ -108,6 +108,9 @@ services:
       VKM_EMBED_TOKEN_FILE: /run/secrets/embed_token
       # late interaction (mLateOn MaxSim over the RRF top-100) on by default: warm p50 148 ms vs 76 ms without (28.09)
       VKM_HYBRID_LATE_DEFAULT: "1"
+      # visual route (agent VIS): page-image channel for queries with picture words; RX580 gate 29.09: F16 query
+      # tower p50 108 ms / p95 144 ms, device VRAM 3.4 GiB with dense and late; "0" switches it off without a rebuild
+      VKM_HYBRID_VISUAL_ROUTE: "${VKM_HYBRID_VISUAL_ROUTE:-1}"
       VKM_LOG_LEVEL: INFO
     secrets: [api_read_token, api_write_token, neo4j_password, rerank_token, pg_dsn, embed_token]
     # Directories (not files), so an atomic replace (CURRENT, the DuckDB file) is seen by the container. Long syntax
@@ -251,7 +254,7 @@ services:
         bind: {create_host_path: false}
     ports:
       - "127.0.0.1:8790:8790"
-    mem_limit: 4g
+    mem_limit: 6g            # dense + late + the visual query tower (29.09: 2.4 GiB before the visual slot)
     networks: [vkm_internal]
     logging:
       driver: json-file
