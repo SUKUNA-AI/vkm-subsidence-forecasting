@@ -162,6 +162,9 @@ def test_backup_gate_dispatch(tmp_path):
     for bad in ("bash", "", "cat /etc/passwd", "sh -c 'rsync --server --sender . /'"):
         r = gate(bad)
         assert r.returncode == 1 and "only rsync" in r.stderr and not r.stdout
+    r = _run(["sh", str(nightly / "vkm_backup_gate.sh"), "--dry-run"],
+             {"SSH_ORIGINAL_COMMAND": "rsync --server -logDtpre.iLsfxCIvu . /", "VKM_RRSYNC": str(fake)})
+    assert r.returncode == 0 and r.stdout.strip() == f"would exec: {fake} -wo -no-del {data}/receipts/backup/edge"
     (compose / ".env").write_text("", encoding="utf-8")
     assert gate("rsync --server --sender . /").returncode == 1
 

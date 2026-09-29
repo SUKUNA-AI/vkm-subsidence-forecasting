@@ -107,9 +107,9 @@ def test_scripts_parse(script):
 
 def test_backup_gate_is_rsync_only_read_only_pull_and_write_only_status_push():
     text = (CORE / "vkm_backup_gate.sh").read_text(encoding="utf-8")
-    assert '"rsync --server --sender "*)' in text and 'exec "$RRSYNC" -ro "$DATA"' in text
-    assert 'exec "$RRSYNC" -wo -no-del "$DATA/receipts/backup/edge"' in text
-    assert "only rsync is allowed" in text and text.count("exec ") == 2
+    assert '"rsync --server --sender "*)' in text and 'exec $RUN "$RRSYNC" -ro "$DATA"' in text
+    assert 'exec $RUN "$RRSYNC" -wo -no-del "$DATA/receipts/backup/edge"' in text
+    assert "only rsync is allowed" in text and text.count("exec ") == 2 and '--dry-run" ] && RUN="echo' in text
 
 
 def test_python_parts_use_only_the_standard_library_on_the_hosts():

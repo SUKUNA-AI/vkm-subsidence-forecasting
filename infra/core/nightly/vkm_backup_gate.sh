@@ -9,8 +9,12 @@
 #   * push  (rsync --server …):          write-only, no deletions, rooted at <data root>/receipts/backup/edge — the
 #                                        backup status and receipts EDGE hands back to the 04:00 checks.
 # A shell, a command, port forwarding or any other rsync root are refused ("restrict" also disables pty/forwarding).
+# Dry run by hand (sshd never passes arguments to a forced command):
+#   SSH_ORIGINAL_COMMAND='rsync --server --sender -logDtpre.iLsfxCIvu . /' sh vkm_backup_gate.sh --dry-run
 set -eu
 
+RUN=""
+[ "${1:-}" = "--dry-run" ] && RUN="echo would exec:"
 HERE=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 COMPOSE_DIR=${VKM_COMPOSE_DIR:-$(dirname -- "$HERE")}
 RRSYNC=${VKM_RRSYNC:-rrsync}
@@ -25,10 +29,10 @@ fi
 
 case "${SSH_ORIGINAL_COMMAND:-}" in
   "rsync --server --sender "*)
-    exec "$RRSYNC" -ro "$DATA" ;;
+    exec $RUN "$RRSYNC" -ro "$DATA" ;;
   "rsync --server "*)
-    mkdir -p "$DATA/receipts/backup/edge"
-    exec "$RRSYNC" -wo -no-del "$DATA/receipts/backup/edge" ;;
+    [ -n "$RUN" ] || mkdir -p "$DATA/receipts/backup/edge"
+    exec $RUN "$RRSYNC" -wo -no-del "$DATA/receipts/backup/edge" ;;
   *)
     echo "vkm-backup-gate: only rsync is allowed (pull of the data root, push of the backup status)" >&2
     exit 1 ;;
