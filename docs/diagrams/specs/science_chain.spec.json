@@ -1,0 +1,488 @@
+{
+ "pages": [
+  {
+   "id": "science_chain",
+   "name": "Научная цепочка",
+   "layout": "none",
+   "page_width": 1680,
+   "page_height": 1190,
+   "background": "#ffffff",
+   "grid": false,
+   "nodes": [
+    {
+     "id": "title",
+     "label": "Научная цепочка проекта: от корпуса к предрегистрированной проверке прогноза оседаний",
+     "x": 20,
+     "y": 12,
+     "w": 1640,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=20;align=left;fontStyle=1;"
+    },
+    {
+     "id": "subtitle",
+     "label": "После научного reset 26.09.2026 и решений пользователя D-18 (26.09) и D-19 (28.09). Миры и микроядра — проект v2, реализация отложена до отдельного проектирования; прогноз — только после гейтов D-19.",
+     "x": 20,
+     "y": 44,
+     "w": 1640,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontColor=#444444;"
+    },
+    {
+     "id": "corpus",
+     "label": "Корпус (PRIVATE)\n251 зарегистрированный источник: PDF, DjVu, DOCX, EPUB; реестр SOURCE_REGISTER\nданных предприятия нет (D-19)",
+     "x": 20,
+     "y": 110,
+     "w": 250,
+     "h": 160,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;"
+    },
+    {
+     "id": "doc",
+     "label": "Платформа корпуса: L1 DOCUMENT + NAV\nстраницы, блоки, рисунки, таблицы, формулы, списки литературы; разделы, понятия, параметры-кандидаты\nAUTO_EXTRACTED_UNREVIEWED — навигация, не evidence",
+     "x": 370,
+     "y": 110,
+     "w": 250,
+     "h": 160,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;"
+    },
+    {
+     "id": "evidence",
+     "label": "evidence vNext (L2)\nзаписи FACT … UNKNOWN со scope, scale и локатором; полные — в PRIVATE, в PUBLIC — каталоги без цитат",
+     "x": 720,
+     "y": 110,
+     "w": 250,
+     "h": 160,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;"
+    },
+    {
+     "id": "worldspec",
+     "label": "WorldSpec — 3D + время (D-18)\nгеология, выработки, закладка, история разработки, свойства, реология, начальное состояние, ГУ; провенанс; UNKNOWN остаётся UNKNOWN",
+     "x": 1070,
+     "y": 110,
+     "w": 250,
+     "h": 160,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;"
+    },
+    {
+     "id": "pworld",
+     "label": "PhysicalWorld w — достраивание\nC1 геология · C2 материалы и законы · C3 начальное состояние и ГУ · C4 история выемки и закладки · C5 связи полей\nпараметры — evidence или маркированный сценарный диапазон",
+     "x": 1070,
+     "y": 370,
+     "w": 250,
+     "h": 200,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;"
+    },
+    {
+     "id": "reps",
+     "label": "Представления ρ(w): новый мир не создают",
+     "x": 610,
+     "y": 350,
+     "w": 370,
+     "h": 240,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=1;rounded=0;"
+    },
+    {
+     "id": "ansys",
+     "label": "Ansys MAPDL 3D — основное (D-19): поэтапная выемка, ползучесть, закладка",
+     "x": 15,
+     "y": 32,
+     "w": 340,
+     "h": 55,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;",
+     "parent": "reps"
+    },
+    {
+     "id": "ogs",
+     "label": "OGS + MFront — проверка на 2–3 согласованных сценариях (другой решатель)",
+     "x": 15,
+     "y": 97,
+     "w": 340,
+     "h": 55,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;",
+     "parent": "reps"
+    },
+    {
+     "id": "world0",
+     "label": "World-0 — граф микроядер «пласт → толща → поверхность»; матрица влияния K из Ansys; тысячи миров",
+     "x": 15,
+     "y": 162,
+     "w": 340,
+     "h": 65,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;",
+     "parent": "reps"
+    },
+    {
+     "id": "traj",
+     "label": "Траектория X_w(t)\n(SolverRun)\nмодельный результат ≠ наблюдение",
+     "x": 370,
+     "y": 415,
+     "w": 180,
+     "h": 110,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;"
+    },
+    {
+     "id": "ow",
+     "label": "ObservationWorld o\nOW-LVL нивелирование · OW-UG конвергенция · OW-GNSS · OW-INSAR (LOS)\ny = H_o[X_w] + ε",
+     "x": 20,
+     "y": 370,
+     "w": 250,
+     "h": 200,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;"
+    },
+    {
+     "id": "synth",
+     "label": "Синтетические измерения\nродословная: world_id, representation_id, observation_world_id, solver_run_id, noise_model, seed\nникогда не называются наблюдениями",
+     "x": 20,
+     "y": 670,
+     "w": 250,
+     "h": 180,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;"
+    },
+    {
+     "id": "nroy",
+     "label": "До обучения: покрытие ансамбля и NROY\nвоспроизводят ли допустимые миры реальные наблюдения; противоречащие — RULED_OUT; данные отсева и проверки разделены",
+     "x": 370,
+     "y": 670,
+     "w": 250,
+     "h": 180,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;"
+    },
+    {
+     "id": "nn",
+     "label": "Прогноз оседаний — нейросеть (FORECAST_METHOD)\nнаблюдения до t0 + история горных работ → оседания на t0 + H; рядом: нормативная функция времени, методы типа Кнотхе, переменный модуль, регрессия",
+     "x": 720,
+     "y": 670,
+     "w": 250,
+     "h": 180,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;"
+    },
+    {
+     "id": "bench",
+     "label": "Предрегистрированный бенчмарк (до обучения)\nt0, горизонты H, метрики; разбиение по мирам и по времени (available_from ≤ t0); отложенные семейства, другой решатель и разрешение",
+     "x": 1070,
+     "y": 670,
+     "w": 250,
+     "h": 180,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;"
+    },
+    {
+     "id": "envelope",
+     "label": "Выход — огибающая по совместимым мирам 𝒮_H(x), а не одно число; отчёт по мирам, по семействам и между семействами",
+     "x": 1400,
+     "y": 695,
+     "w": 260,
+     "h": 130,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;"
+    },
+    {
+     "id": "realobs",
+     "label": "Реальные наблюдения корпуса\nInSAR Березников и Соликамска; опубликованные ряды нивелирования; оцифровка — DERIVATION",
+     "x": 370,
+     "y": 950,
+     "w": 250,
+     "h": 130,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;"
+    },
+    {
+     "id": "fieldcheck",
+     "label": "Отдельная проверка на реальных наблюдениях корпуса — перенос в пределах применимости, не полевая валидация сверх неё",
+     "x": 1070,
+     "y": 950,
+     "w": 250,
+     "h": 130,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;"
+    },
+    {
+     "id": "classes",
+     "label": "Четыре класса выбора не смешиваются (FW §5)\n• PHYSICAL_HYPOTHESIS — отличает миры: законы ползучести, закладка, λ, гидросвязь\n• REPRESENTATION_CHOICE — Ansys, OGS, микроядра, сетка\n• FORECAST_METHOD — нейросеть и другие методы\n• EPISTEMIC_RULE — LAB → MASSIF, ANALOGUE → SKRU1",
+     "x": 1400,
+     "y": 100,
+     "w": 260,
+     "h": 200,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "rules",
+     "label": "Правила\n• мир — гипотеза, а не СКРУ-1\n• синтетика и модельный результат ≠ наблюдение\n• UNKNOWN не заменяется числом\n• неопределённость мира ≠ ошибка представления\n• гейт ML открыт D-19 при предрегистрации",
+     "x": 1400,
+     "y": 360,
+     "w": 260,
+     "h": 165,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "retracted",
+     "label": "Отозвано reset 26.09: «скв. 75 → Physical World v1 (2D) → OGS reference case» — только в ветке legacy; 2D-сечения — лишь производные представления",
+     "x": 1400,
+     "y": 540,
+     "w": 260,
+     "h": 100,
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;fontSize=13;"
+    },
+    {
+     "id": "legend",
+     "label": "Легенда",
+     "x": 1400,
+     "y": 850,
+     "w": 260,
+     "h": 286,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#666666;dashed=0;rounded=0;"
+    },
+    {
+     "id": "lg_sw_evidence",
+     "label": "",
+     "x": 10,
+     "y": 30,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;"
+    },
+    {
+     "id": "lg_tx_evidence",
+     "label": "источник, evidence, реальные наблюдения",
+     "x": 52,
+     "y": 28,
+     "w": 200,
+     "h": 40,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_derived",
+     "label": "",
+     "x": 10,
+     "y": 74,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;"
+    },
+    {
+     "id": "lg_tx_derived",
+     "label": "производное: канон, проекции, NAV, индексы (AUTO_EXTRACTED_UNREVIEWED / DERIVATION)",
+     "x": 52,
+     "y": 72,
+     "w": 200,
+     "h": 70,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_model",
+     "label": "",
+     "x": 10,
+     "y": 148,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;"
+    },
+    {
+     "id": "lg_tx_model",
+     "label": "модель, мир, сценарий, синтетика (MODEL_CHOICE)",
+     "x": 52,
+     "y": 146,
+     "w": 200,
+     "h": 40,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_service",
+     "label": "",
+     "x": 10,
+     "y": 192,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;"
+    },
+    {
+     "id": "lg_tx_service",
+     "label": "сервис, инструмент, шаг процесса",
+     "x": 52,
+     "y": 190,
+     "w": 200,
+     "h": 40,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_paused",
+     "label": "",
+     "x": 10,
+     "y": 236,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;"
+    },
+    {
+     "id": "lg_tx_paused",
+     "label": "приостановлено, в работе или будущее (пунктир)",
+     "x": 52,
+     "y": 234,
+     "w": 200,
+     "h": 40,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "sources",
+     "label": "Источники: CLAUDE.md; docs/governance/PHASE1_DESIGN_DECISIONS_RU.md (D-18, D-19); docs/worldspec/WORLD_KERNELS_DESIGN_RU.md §0–§7; docs/planning/PHASE2_PLAN_OCT_NOV_2026_RU.md §2; docs/theory/THEORY_TO_SCIENTIFIC_DATA_SYSTEM_CONTRACT_V0_2_RU.md §63; README.md §1.",
+     "x": 20,
+     "y": 1155,
+     "w": 1640,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;"
+    }
+   ],
+   "edges": [
+    {
+     "id": "e1",
+     "source": "corpus",
+     "target": "doc",
+     "label": "конвейер",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e2",
+     "source": "doc",
+     "target": "evidence",
+     "label": "навигация,\nлокаторы",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e3",
+     "source": "corpus",
+     "target": "evidence",
+     "label": "чтение источника, цитата, статус",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       145,
+       88
+      ],
+      [
+       845,
+       88
+      ]
+     ]
+    },
+    {
+     "id": "e4",
+     "source": "evidence",
+     "target": "worldspec",
+     "label": "провенанс",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e5",
+     "source": "worldspec",
+     "target": "pworld",
+     "label": "достраивание (completion)",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e6",
+     "source": "pworld",
+     "target": "reps",
+     "label": "выбор\nпредставления",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e7",
+     "source": "reps",
+     "target": "traj",
+     "label": "решение",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e8",
+     "source": "traj",
+     "target": "ow",
+     "label": "оператор\nнаблюдения",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e9",
+     "source": "ow",
+     "target": "synth",
+     "label": "шум, эпохи, пропуски",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e10",
+     "source": "synth",
+     "target": "nroy",
+     "label": "сравнение",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e11",
+     "source": "realobs",
+     "target": "nroy",
+     "label": "сравнение",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e12",
+     "source": "nroy",
+     "target": "nn",
+     "label": "ансамбль\nNROY",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e13",
+     "source": "nn",
+     "target": "bench",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e14",
+     "source": "bench",
+     "target": "envelope",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e15",
+     "source": "nn",
+     "target": "fieldcheck",
+     "label": "прогноз",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       845,
+       989
+      ]
+     ]
+    },
+    {
+     "id": "e16",
+     "source": "realobs",
+     "target": "fieldcheck",
+     "label": "данные проверки",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;"
+    }
+   ]
+  }
+ ]
+}
