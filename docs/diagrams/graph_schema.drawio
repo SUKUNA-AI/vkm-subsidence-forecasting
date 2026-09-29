@@ -1,0 +1,238 @@
+<mxfile host="vkm-drawio" agent="vkm-drawio writer/1" compressed="false" pages="1">
+  <diagram id="graph" name="Схема графа Neo4j">
+    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1200" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Схема графа Neo4j: слои DOCUMENT (doc-graph/1.0) и NAV (nav-graph/1.0)" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="12" width="1760" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Метки и типы рёбер — из реестров src/vkm_corpus/graph/schema.py и nav_schema.py. Числа — снимок snap-20260928T193550Z-738eebee. Обобщённые типы вроде RELATED запрещены (контракт §61)." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="44" width="1760" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="doc" value="DOCUMENT — метка слоя DocumentLayer; проверки C1–C16" style="align=left;collapsible=0;container=1;dashed=0;fillColor=none;fontSize=14;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="90" width="930" height="900" as="geometry" />
+        </mxCell>
+        <mxCell id="nav" value="NAV — метка слоя NavigationLayer; проверки N1–N7; 111 922 узла, 2 203 152 связи" style="align=left;collapsible=0;container=1;dashed=0;fillColor=none;fontSize=14;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="990" y="90" width="790" height="900" as="geometry" />
+        </mxCell>
+        <mxCell id="author" value="Author" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="40" y="60" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="work" value="Work" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="330" y="60" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="venue" value="Venue" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="700" y="60" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="source" value="Source (251)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="330" y="250" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="page" value="Page (26 483)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="330" y="450" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="block" value="Block&lt;br&gt;621 497" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="30" y="680" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="figure" value="Figure&lt;br&gt;17 784" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="200" y="680" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="table" value="Table&lt;br&gt;3 391" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="370" y="680" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="bib" value="BibliographyEntry&lt;br&gt;23 682" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="540" y="680" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="formula" value="Formula&lt;br&gt;108 904" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="740" y="680" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="t_work" value="Work → Work: CITES (правило cites_v2; 193 ребра); ABSTRACT_OF, EDITION_OF, TRANSLATION_OF, VOLUME_SET_SIBLING, SERIES_SIBLING, COMPANION_OF, NOT_SAME" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="545" y="120" width="370" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="t_source" value="Source → Source: DERIVED_FROM, CONTAINS_COPY_OF, SHARES_PAGES_WITH" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="545" y="305" width="370" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="t_page" value="Page → Page: PRECEDES (page_sequence_v1); DUPLICATE_CANDIDATE_OF (duplicate_pages_v1)" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="545" y="505" width="370" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="t_has" value="Page → объект: HAS_BLOCK, HAS_FIGURE, HAS_TABLE, HAS_BIBLIOGRAPHY_ENTRY, HAS_FORMULA" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="545" y="595" width="370" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="t_ref" value="BibliographyEntry → Work: REFERENCE_OF (цитирующая работа); RESOLVES_TO (232 принятые связи)" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="40" y="380" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="t_foreign" value="Page → Work: CARRIES_FOREIGN_CONTENT_OF (чужое содержимое на странице)" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="40" y="470" width="250" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="t_formula" value="Formula → Formula: NAV_REFERS_TO (слой NAV)" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="doc">
+          <mxGeometry x="700" y="760" width="230" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="topic" value="NavTopic (720)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
+          <mxGeometry x="60" y="90" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="section" value="NavSection (9 105)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
+          <mxGeometry x="60" y="360" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="term" value="Term (94 597)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
+          <mxGeometry x="500" y="360" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="symbol" value="FormulaSymbol" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
+          <mxGeometry x="120" y="680" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="param" value="ParameterCandidate" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
+          <mxGeometry x="120" y="780" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="meta" value="NavMeta: manifest сборки, статус LOADING / COMPLETE / FAILED, счётчики, итоги проверок" style="fillColor=#ffffff;fontSize=12;html=1;rounded=1;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="nav">
+          <mxGeometry x="470" y="70" width="290" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="t_topic" value="NavTopic → NavTopic: NAV_CHILD_OF, RELATED_TOPIC" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="nav">
+          <mxGeometry x="275" y="100" width="180" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="t_section" value="NavSection → NavSection: NAV_CHILD_OF" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="nav">
+          <mxGeometry x="60" y="420" width="200" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="t_term" value="Term → Term: CO_OCCURS (NPMI), CONTAINS_TERM, SAME_TERM_AS" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="nav">
+          <mxGeometry x="480" y="420" width="290" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="rules" value="Правила проекций&lt;br&gt;• узлы несут только ID, статусы и структуру — без текстов (CP-17); review_status объектов — AUTO_EXTRACTED_UNREVIEWED&lt;br&gt;• рёбра ROW несут canonical_row_id, RULE — rule_version, ROW_RULE — оба&lt;br&gt;• каждый узел и каждое ребро NAV несут layer = 'NAV', snapshot_id, rule_version, projection_run_id&lt;br&gt;• рёбра между слоями принадлежат NAV; пока они есть, пересборка DOCUMENT без --cascade отказывает (E_CROSS_LAYER_LOSS)&lt;br&gt;• навигация, не причинная цепочка: «встречаются рядом» — не физическое утверждение" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1005" width="1150" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Легенда" style="align=left;collapsible=0;container=1;dashed=0;fillColor=#ffffff;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="1005" width="580" height="94" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_derived" value="" style="fillColor=#dae8fc;html=1;rounded=0;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="30" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_derived" value="узел графа (проекция канона или NAV; пересобирается)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="28" width="520" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_a_dash" value="" style="text;align=left;fillColor=none;html=1;strokeColor=none;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="8" y="66" width="2" height="2" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_b_dash" value="" style="text;align=left;fillColor=none;html=1;strokeColor=none;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="44" y="66" width="2" height="2" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_ext_dash" value="ребро по правилу-подсказке (не проверенный факт)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="57" width="520" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="sources" value="Источники: src/vkm_corpus/graph/schema.py (NODE_TYPES, REL_TYPES); src/vkm_corpus/graph/nav_schema.py; src/vkm_corpus/contracts/vocab.py (WorkRelationType, SourceRelationType); docs/corpus_platform/NAVIGATION_LAYER.md §1; receipts/evening_deploy_final.json." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1165" width="1760" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="d1" value="AUTHORED_BY" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=1;entryY=0.5;exitDx=0;exitDy=0;exitX=0;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="work" target="author">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d2" value="PUBLISHED_IN" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.3;exitDx=0;exitDy=0;exitX=1;exitY=0.3;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="work" target="venue">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d3" value="INSTANCE_OF" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=1;exitDx=0;exitDy=0;exitX=0.5;exitY=0;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="source" target="work">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d4" value="HAS_PAGE" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="source" target="page">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="h_block" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="page" target="block">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="h_figure" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="page" target="figure">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="h_table" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="page" target="table">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="h_bib" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="page" target="bib">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="h_formula" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="page" target="formula">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d5" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.7;exitDx=0;exitDy=0;exitX=0;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="bib" target="work">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="548" y="800" />
+              <mxPoint x="548" y="725" />
+              <mxPoint x="35" y="725" />
+              <mxPoint x="35" y="185" />
+              <mxPoint x="330" y="185" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d6" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.1;entryY=1;exitDx=0;exitDy=0;exitX=0;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="page" target="work">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="330" y="565" />
+              <mxPoint x="330" y="225" />
+              <mxPoint x="370" y="225" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n1" value="IN_TOPIC" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=1;exitDx=0;exitDy=0;exitX=0.5;exitY=0;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="section" target="topic">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n2" value="HAS_NAV_SECTION" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.3;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="source" target="section">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1020" y="365" />
+              <mxPoint x="1020" y="465" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n3" value="COVERS_PAGE" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=1;entryY=0.5;exitDx=0;exitDy=0;exitX=0;exitY=0.7;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="section" target="page">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1000" y="485" />
+              <mxPoint x="1000" y="565" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n4" value="IN_SECTION" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=1;exitDx=0;exitDy=0;exitX=0.7;exitY=0;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="formula" target="section">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="879" y="600" />
+              <mxPoint x="1150" y="600" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n5" value="DEFINED_FOR («где…»)" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=1;entryY=0.5;exitDx=0;exitDy=0;exitX=0;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="symbol" target="formula">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" value="NEAR_FORMULA" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=1;entryY=0.85;exitDx=0;exitDy=0;exitX=0;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="param" target="formula">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="960" y="895" />
+              <mxPoint x="960" y="821" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n7" value="MENTIONED_IN" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=1;entryY=0.5;exitDx=0;exitDy=0;exitX=0;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="term" target="section">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n8" value="SYMBOL_OF" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=1;entryY=0.5;exitDx=0;exitDy=0;exitX=0.3;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="term" target="symbol">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1550" y="795" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n9" value="NAV_BLOCK_REFERS_TO («по формуле (3.2)»)" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=1;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="block" target="formula">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="130" y="950" />
+              <mxPoint x="845" y="950" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n10" value="DEFINED_AS («X называется…»)" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.3;entryY=1;exitDx=0;exitDy=0;exitX=0.8;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="term" target="block">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1650" y="970" />
+              <mxPoint x="98" y="970" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lg_e_dash" value="" style="dashed=1;edgeStyle=none;endArrow=classic;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="lg_a_dash" target="lg_b_dash">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

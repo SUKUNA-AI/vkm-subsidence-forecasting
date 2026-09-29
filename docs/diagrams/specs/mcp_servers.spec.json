@@ -1,0 +1,485 @@
+{
+ "pages": [
+  {
+   "id": "mcp",
+   "name": "MCP-серверы",
+   "layout": "none",
+   "page_width": 1780,
+   "page_height": 1110,
+   "background": "#ffffff",
+   "grid": false,
+   "nodes": [
+    {
+     "id": "title",
+     "label": "MCP-серверы проекта и группы инструментов (состояние 29.09.2026)",
+     "x": 20,
+     "y": 12,
+     "w": 1740,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=20;align=left;fontStyle=1;"
+    },
+    {
+     "id": "subtitle",
+     "label": "Подключение — локальный неотслеживаемый .mcp.json; адреса и токены — только переменные окружения. Ответы корпуса — в конверте vkm.envelope/1 (ID, источник и страница, review_status, origin, провенанс).",
+     "x": 20,
+     "y": 44,
+     "w": 1740,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontColor=#444444;"
+    },
+    {
+     "id": "claude",
+     "label": "Claude Code\n(MCP-клиент на WORKSTATION)",
+     "x": 20,
+     "y": 470,
+     "w": 200,
+     "h": 90,
+     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;"
+    },
+    {
+     "id": "corpus",
+     "label": "vkm-corpus — CORE, streamable HTTP + токен; 38 инструментов чтения (read_only_hint)",
+     "x": 270,
+     "y": 90,
+     "w": 1000,
+     "h": 560,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=0;rounded=0;"
+    },
+    {
+     "id": "g_search",
+     "label": "Поиск (6)\nsearch_text, search_hybrid, search_objects, retrieval_trace, rerank_text, rerank_visual",
+     "x": 15,
+     "y": 35,
+     "w": 480,
+     "h": 95,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "corpus"
+    },
+    {
+     "id": "g_obj",
+     "label": "Объекты и провенанс (15)\nget_source, get_work, get_page, get_page_image, get_figure, get_table, get_formula, get_object, get_document_neighbors, get_citations, list_source_pages, get_artifact, trace_document_provenance, get_processing_status, get_corpus_status",
+     "x": 15,
+     "y": 145,
+     "w": 480,
+     "h": 150,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "corpus"
+    },
+    {
+     "id": "g_nav",
+     "label": "Навигация (14)\nget_outline, get_section, search_sections, get_formula_context, find_formulas, explore_concept, find_topics, get_topic, similar_sections, section_topics, copies_of, source_overlap, find_parameters, parameter_summary",
+     "x": 505,
+     "y": 35,
+     "w": 480,
+     "h": 150,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "corpus"
+    },
+    {
+     "id": "g_graph",
+     "label": "Граф NAV (2)\nconcept_paths, graph_neighbourhood",
+     "x": 505,
+     "y": 200,
+     "w": 235,
+     "h": 95,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "corpus"
+    },
+    {
+     "id": "g_dossier",
+     "label": "Досье (1)\nreconstruct_topic — карта темы «от А до Я»",
+     "x": 750,
+     "y": 200,
+     "w": 235,
+     "h": 95,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "corpus"
+    },
+    {
+     "id": "api",
+     "label": "VKM API /v1 (канон DuckDB, OpenSearch, Neo4j, NavStore, пакет каталогов, rx580-retrieval; реранк — шлюз EDGE)",
+     "x": 15,
+     "y": 320,
+     "w": 970,
+     "h": 55,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;",
+     "parent": "corpus"
+    },
+    {
+     "id": "rule_c",
+     "label": "Правила: канон API и MCP не пишут никогда; результаты поиска — кандидаты из проекций (сниппет индекса — не текст объекта); автоматическое содержимое — AUTO_EXTRACTED_UNREVIEWED, не факт; область источника наследуется объектами, но не устанавливается для них.",
+     "x": 15,
+     "y": 395,
+     "w": 970,
+     "h": 70,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "corpus"
+    },
+    {
+     "id": "limits",
+     "label": "Лимиты: rerank_text ≤ 24 кандидата, rerank_visual ≤ 8 изображений; изображения — длинная сторона 1024 px по умолчанию; досье — budget_chars ≤ 60 000.",
+     "x": 15,
+     "y": 480,
+     "w": 970,
+     "h": 55,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "corpus"
+    },
+    {
+     "id": "admin",
+     "label": "vkm-corpus-admin — CORE, HTTP + отдельный токен",
+     "x": 1310,
+     "y": 90,
+     "w": 450,
+     "h": 300,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=0;rounded=0;"
+    },
+    {
+     "id": "adm_tools",
+     "label": "reprocess_source, reprocess_page (write, идемпотентные); get_job (read); cancel_job (destructive, только до запуска)",
+     "x": 15,
+     "y": 35,
+     "w": 420,
+     "h": 80,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;",
+     "parent": "admin"
+    },
+    {
+     "id": "adm_flow",
+     "label": "plan-first: PLAN_REQUESTED → PLANNED (воркер публикует план и plan_sha256) → CONFIRMED (человек подтверждает этот хеш) → RUNNING → PUBLISHED → ADMITTED | REJECTED",
+     "x": 15,
+     "y": 130,
+     "w": 420,
+     "h": 100,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;",
+     "parent": "admin"
+    },
+    {
+     "id": "adm_rule",
+     "label": "подключается только осознанно; ≤ 20 заданий на страницы и ≤ 3 на источники",
+     "x": 15,
+     "y": 245,
+     "w": 420,
+     "h": 45,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;",
+     "parent": "admin"
+    },
+    {
+     "id": "cad",
+     "label": "vkm-cad 1.0 — WORKSTATION, stdio; 27 инструментов",
+     "x": 270,
+     "y": 690,
+     "w": 1000,
+     "h": 290,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=0;rounded=0;"
+    },
+    {
+     "id": "c_read",
+     "label": "v0 чтение (6)\ncad_status, cad_list_open_documents, cad_get_layers, cad_get_extents, cad_list_entities, cad_get_coordinate_system — только attach к AutoCAD пользователя",
+     "x": 15,
+     "y": 35,
+     "w": 320,
+     "h": 125,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "cad"
+    },
+    {
+     "id": "c_scr",
+     "label": "v0 scratch (5)\ncad_create_scratch_document, cad_import_pdf_vector, cad_extract_geometry, cad_export_dxf, cad_save_copy",
+     "x": 345,
+     "y": 35,
+     "w": 310,
+     "h": 125,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "cad"
+    },
+    {
+     "id": "c_jobs",
+     "label": "v1 задания и код (6)\ncad_capabilities, cad_job_create, cad_job_status, cad_job_list, cad_exec (scr, lisp, csharp), cad_query",
+     "x": 665,
+     "y": 35,
+     "w": 320,
+     "h": 125,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "cad"
+    },
+    {
+     "id": "c_draw",
+     "label": "v1 чертёж и листы (5)\ncad_draw, cad_convert, cad_layout_sheet, cad_plot_pdf, cad_pdf_import",
+     "x": 15,
+     "y": 175,
+     "w": 470,
+     "h": 70,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "cad"
+    },
+    {
+     "id": "c_c3d",
+     "label": "Civil 3D (5)\nc3d_points_from_table, c3d_tin_surface, c3d_contours, c3d_difference_surface, c3d_alignment_profile",
+     "x": 500,
+     "y": 175,
+     "w": 485,
+     "h": 70,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "cad"
+    },
+    {
+     "id": "cad_rule",
+     "label": "только консоль accoreconsole в новых документах заданий (CP-43); выходы — DERIVED, UNKNOWN_CRS, никогда не наблюдения",
+     "x": 15,
+     "y": 255,
+     "w": 970,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#444444;",
+     "parent": "cad"
+    },
+    {
+     "id": "drawio",
+     "label": "vkm-drawio — WORKSTATION, stdio; 8 инструментов",
+     "x": 1310,
+     "y": 420,
+     "w": 450,
+     "h": 230,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=0;rounded=0;"
+    },
+    {
+     "id": "d_tools",
+     "label": "drawio_status, drawio_create_diagram, drawio_read_diagram, drawio_update_diagram, drawio_export, drawio_render_preview, drawio_open, drawio_list_diagrams",
+     "x": 15,
+     "y": 35,
+     "w": 420,
+     "h": 95,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "drawio"
+    },
+    {
+     "id": "d_roots",
+     "label": "корни: public = docs/diagrams (коммитится; без машинных путей, адресов, секретов и растров), work = $VKM_WORK/diagrams (черновики, PDF)",
+     "x": 15,
+     "y": 140,
+     "w": 420,
+     "h": 75,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;",
+     "parent": "drawio"
+    },
+    {
+     "id": "paused",
+     "label": "Приостановлено (28.09), в main не влито:\n• MATLAB — официальный MATLAB MCP Server + слой заданий vkm_jobs (ветка агента)\n• vkm-ansys — план на PyMAPDL / PyMechanical (ENGINEERING_TOOLS_MCP_PLAN_RU.md)",
+     "x": 1310,
+     "y": 800,
+     "w": 450,
+     "h": 130,
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "backends",
+     "label": "за мостами: AutoCAD 2026 + Civil 3D 2026 (консоль); draw.io Desktop (CLI)",
+     "x": 1310,
+     "y": 690,
+     "w": 450,
+     "h": 60,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;"
+    },
+    {
+     "id": "legend",
+     "label": "Легенда",
+     "x": 20,
+     "y": 1000,
+     "w": 700,
+     "h": 152,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#666666;dashed=0;rounded=0;"
+    },
+    {
+     "id": "lg_sw_service",
+     "label": "",
+     "x": 10,
+     "y": 30,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;"
+    },
+    {
+     "id": "lg_tx_service",
+     "label": "инструменты MCP",
+     "x": 52,
+     "y": 28,
+     "w": 640,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_derived",
+     "label": "",
+     "x": 10,
+     "y": 59,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;"
+    },
+    {
+     "id": "lg_tx_derived",
+     "label": "сервисы и программы за серверами",
+     "x": 52,
+     "y": 57,
+     "w": 640,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_agent",
+     "label": "",
+     "x": 10,
+     "y": 88,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;"
+    },
+    {
+     "id": "lg_tx_agent",
+     "label": "агент Claude",
+     "x": 52,
+     "y": 86,
+     "w": 640,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_paused",
+     "label": "",
+     "x": 10,
+     "y": 117,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;"
+    },
+    {
+     "id": "lg_tx_paused",
+     "label": "приостановлено, в работе или будущее (пунктир)",
+     "x": 52,
+     "y": 115,
+     "w": 640,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "sources",
+     "label": "Источники: README.md §8; docs/corpus_platform/MCP_TOOLS.md §1–§6; implementation_work/AGENT_CAD_V1.md; docs/planning/ENGINEERING_TOOLS_MCP_PLAN_RU.md §0; receipts/evening_deploy_final.json (tools_listed 38, local_mcp_servers); implementation_work/COORDINATOR_DECISIONS.md (CP-43).",
+     "x": 740,
+     "y": 1010,
+     "w": 1020,
+     "h": 40,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;"
+    }
+   ],
+   "edges": [
+    {
+     "id": "e_corpus",
+     "source": "claude",
+     "target": "corpus",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       120,
+       258
+      ]
+     ]
+    },
+    {
+     "id": "e_admin",
+     "source": "claude",
+     "target": "admin",
+     "label": "только осознанно",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.8;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       180,
+       75
+      ],
+      [
+       1290,
+       75
+      ],
+      [
+       1290,
+       180
+      ]
+     ]
+    },
+    {
+     "id": "e_cad",
+     "source": "claude",
+     "target": "cad",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       120,
+       835
+      ]
+     ]
+    },
+    {
+     "id": "e_draw",
+     "source": "claude",
+     "target": "drawio",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.8;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       180,
+       670
+      ],
+      [
+       1290,
+       670
+      ],
+      [
+       1290,
+       535
+      ]
+     ]
+    },
+    {
+     "id": "e_back1",
+     "source": "cad",
+     "target": "backends",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_back2",
+     "source": "drawio",
+     "target": "backends",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    }
+   ]
+  }
+ ]
+}
