@@ -90,7 +90,7 @@ flowchart LR
     MCP["VKM Corpus MCP"]
   end
   subgraph EDGE["EDGE"]
-    RR["реранкеры: jina v3.5 (текст), m0 (визуальный)"]
+    RR["реранкер m0 (визуальный); текстовый v3.5 выключен 29.09"]
   end
   SRC --> PIPE --> CAN
   CAN --> DDB & NEO & OS & RX
@@ -124,7 +124,7 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 |---|---|---|
 | **WORKSTATION** (Windows 11 + WSL `archlinux`, RTX 5070 Ti 16 GB, 28 потоков) | единственный producer | конвейер корпуса (STAGING), сборка NAV на GPU (RAPIDS: cuDF, cuML, cuGraph, cuVS), кодирование на GPU для бенчмарков, локальные MCP `vkm-cad` / `vkm-drawio`; AutoCAD 2026 + Civil 3D 2026, Ansys 2026 R1, MATLAB R2025b, OGS 6.5.9 + MFront (сборка из исходников в WSL) |
 | **CORE** (Debian 13, RX 580 8 GB) | единственный CANONICAL-корень | compose `vkm-core`: Neo4j 5.26, OpenSearch 3.8, VKM API, VKM Corpus MCP (read, admin), сервис `rx580-retrieval` (llama.cpp / Vulkan: jina-v5-nano + mLateOn резидентно), разовые задания `vkm-job` (reconcile, projections, обновление векторов) |
-| **EDGE** (Debian 13, GTX 1650 4 GB) | модели реранка, operational state | шлюз реранка (jina-reranker-v3.5 текст, jina-reranker-m0 визуальный), PostgreSQL `vkm_ops` |
+| **EDGE** (Debian 13, GTX 1650 4 GB) | модели реранка, operational state | шлюз реранка (jina-reranker-m0 визуальный; текстовый v3.5 выключен 29.09, `rerank_text` считает mLateOn на CORE), PostgreSQL `vkm_ops` |
 
 Публикация: producer пишет неизменяемые партиции в STAGING. `vkm-corpus core publish` переносит на CORE только новые
 файлы. `vkm-corpus core reconcile` выполняет по порядку:
@@ -193,7 +193,7 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 запрос ─┬─ BM25 (OpenSearch) ─────────────┐
         └─ dense: jina-v5-nano, Q8_0, RX580 ┴─ RRF → top-100 ─ late interaction: mLateOn MaxSim ─ ответ
              (+ маршрут библиографических запросов: скан записей литературы как третья ветка RRF)
-             (+ реранкеры EDGE — по запросу: текстовый v3.5, визуальный m0)
+             (+ по запросу: rerank_text — пересчёт mLateOn на RX580, rerank_visual — m0 на EDGE)
 ```
 
 - **Late interaction** хранит 205 784 единицы: 24,3 млн токенов в пакете float16 через memmap, ≈ 6,2 ГБ, с горячей

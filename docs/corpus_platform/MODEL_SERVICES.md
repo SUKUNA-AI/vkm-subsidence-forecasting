@@ -4,6 +4,13 @@ VKM Corpus Platform v0, агент F. Решения: CP-18 (с REVISED), H-13, 
 ([журнал координатора](../implementation_work/COORDINATOR_DECISIONS.md)). Проект: [отчёт F, ред. 2](../implementation_work/AGENT_F_RERANKER_DEPLOYMENT.md).
 Состояние на 28.09.2026: развёрнуто на EDGE; parity PASS, acceptance PASS 9/9 — см. §7.
 
+**29.09.2026: текстовый реранкер v3.5 выведен из работы решением пользователя.** В RETRIEVAL_BENCHMARK_V1 он давал
++0,006 nDCG@10 поверх late-стадии (незначимо) при ~11 с на вызов. Контейнер `careerops-reranker` остановлен,
+автозапуск выключен; образ и веса сохранены, возврат — `docker update --restart=unless-stopped` и `docker start`.
+`rerank_text` в API считает MaxSim mLateOn на RX580 (`VKM_RERANK_TEXT_BACKEND=late`, по умолчанию; `gateway` —
+прежний путь для экспериментов). Шлюз отвечает `degraded` (text: unavailable, visual: ready) — это ожидаемо.
+Визуальный реранкер m0 работает как прежде; решение по нему — после замера поверх визуального маршрута.
+
 Оценки реранкеров — сигнал поиска, а не evidence: слой `SERVICE`, `review_status = NOT_APPLICABLE`, в канон не
 пишутся. Оценки сравнимы только внутри одного ответа и одной конфигурации (`model_config_sha256`, `placement`).
 
@@ -11,7 +18,7 @@ VKM Corpus Platform v0, агент F. Решения: CP-18 (с REVISED), H-13, 
 
 | Роль | Контейнер | Адрес | Кто управляет |
 |---|---|---|---|
-| text-rerank | `careerops-reranker` (существующий, KEEP) | `127.0.0.1:18082` (сервис слушает и все интерфейсы — техдолг D-F7) | не VKM: не останавливать, не пересоздавать, не менять конфиг/образ/кэш |
+| text-rerank (**остановлен 29.09**) | `careerops-reranker` (существующий, KEEP) | `127.0.0.1:18082` (сервис слушает и все интерфейсы — техдолг D-F7) | не VKM: не останавливать, не пересоздавать, не менять конфиг/образ/кэш |
 | visual-rerank | `vkm-rerank-m0` (llama-server) | только `127.0.0.1:18083` | compose-проект `vkm-rerank` |
 | gateway | `vkm-rerank-gateway` (FastAPI) | LAN-адрес EDGE `:18084` и `127.0.0.1:18084` | compose-проект `vkm-rerank` |
 

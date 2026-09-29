@@ -1,0 +1,71 @@
+{
+  "schema": "vkm-deploy-receipt-v1",
+  "date": "2026-09-29",
+  "status": "DERIVED, AUTO_EXTRACTED_UNREVIEWED (navigation and search services, not evidence)",
+  "change": "NAV parts tables, parameters_v2, object_duplicates and translations built on CORE for snapshot 738eebee; API, MCP and MCP-admin on the image of commit b39370f; rerank_text re-scores by mLateOn late interaction; the EDGE text reranker v3.5 stopped by the user's decision",
+  "code": {
+    "merged_agents": ["OPS (nightly checks, EDGE backup)", "U2 (object_duplicates)", "TR (term dictionary, translate_term)", "TB (tables, parameters_v2)"],
+    "coordinator_commits": {
+      "03fab671467e": "rerank_text late backend (VKM_RERANK_TEXT_BACKEND, default late when hybrid search is configured)",
+      "b39370fbdcc4": "late_rerank moved onto HybridBackend (the first image put it on the BM25 backend; the live MCP smoke caught it: rerank_text INTERNAL)"
+    }
+  },
+  "nav_build": {
+    "snapshot_id": "snap-20260928T193550Z-738eebee",
+    "method": "copy of the published NAV directory, then vkm-job nav build into the copy, pack, swap; CURRENT unchanged",
+    "parts": {
+      "tables,parameters,object_duplicates": {"seconds": 134, "options": "object_duplicates.workers=8, --artifacts /data/artifacts"},
+      "translations": {"seconds": 48, "input": "term vectors of agent TR (jina-v5-nano phrases, sha256 80a9e053ad8096ac…), copied from the workstation and verified"}
+    },
+    "rows": {
+      "table_structure": 3391, "table_cells": 389527, "table_columns": 24523,
+      "parameter_candidates": 10792,
+      "object_dup_clusters": 831, "object_dup_members": 1795, "formula_keys": 108783, "figure_hashes": 17784,
+      "term_translations": 6541
+    },
+    "sha256_prefix": {
+      "table_structure": "354b326ea4bf590f", "table_cells": "ad93f9d50e1b9562", "table_columns": "776792b687f7943c",
+      "parameter_candidates": "8dec93bc8efc66fa",
+      "object_dup_clusters": "44d4f0e7cb0aca06", "object_dup_members": "25fda142a1410449",
+      "formula_keys": "737494e102fe04f0", "figure_hashes": "234d7ea7e74ec5a0",
+      "term_translations": "12c6a85cafb8e777"
+    },
+    "nav_duckdb_bytes": 249311232,
+    "agreement_with_agent_builds": {
+      "tables_parameters_object_duplicates": "row counts equal the agents' reports",
+      "term_translations": "same 6,541 pairs, relations and statuses as agent TR's workstation build (sha256 658699487058e841…); the evidence lists differ in 23 rows: 11 in order only, 12 in a tie between identical abstracts of two copies of one work or in the 6th decimal of a cosine score (CPU numerics of CORE vs the workstation). The part is deterministic on one machine, not bit-identical across machines."
+    },
+    "rollback": "the previous NAV directory is kept as <snapshot>.old-20260929T140449"
+  },
+  "graph": {
+    "command": "nav graph-load (MERGE by ids, sweep of nodes and edges this run did not write, checks N1–N7)",
+    "verdict": "COMPLETE",
+    "nodes": 111922,
+    "rels": 2203152,
+    "seconds": 191,
+    "note": "the NAV graph projection does not yet include tables, the term dictionary or object duplicates"
+  },
+  "images": {
+    "api_mcp_job": "vkm-corpus-api:0.1.0-b39370fbdcc4",
+    "previous": "vkm-corpus-api:0.1.0-4a5282da691d",
+    "vkm_job_wrapper_default": "vkm-corpus-api:0.1.0-b39370fbdcc4",
+    "env_backups": "the CORE compose .env and the vkm-job wrapper keep .bak-<timestamp> copies"
+  },
+  "rerank": {
+    "rerank_text_backend": "late (mLateOn MaxSim on the RX580 token store, rule rerank_text_late_v1)",
+    "reason": "RETRIEVAL_BENCHMARK_V1: the text reranker v3.5 added +0.006 nDCG@10 on top of the late stage (n.s.) at ~11 s a call",
+    "edge_text_reranker": "container careerops-reranker stopped, restart policy no; image and weights kept",
+    "edge_gateway_health": "degraded (text unavailable, visual ready) — expected",
+    "edge_gpu_after": "1890 of 4096 MiB (m0 only)"
+  },
+  "checks_after": {
+    "mcp_smoke": {"script": "nightly-mcp-smoke-2 inside the mcp container", "verdict": "PASS", "tools": 39, "calls": 41, "pass": 41,
+                  "ms": {"rerank_text": 38.4, "rerank_visual": 81.0, "translate_term": 43.1, "search_hybrid": 391.0}},
+    "visual_route": "still off (dependencies.visual_route.enabled = false)"
+  },
+  "open": [
+    "load tables, term_translations and object duplicates into the NAV graph projection",
+    "visual route (Qwen3-VL) on the RX580: gate, page-vector index, switch",
+    "the measurement of the visual route alone vs + m0, after GS and LB"
+  ]
+}

@@ -76,7 +76,7 @@ PostgreSQL (тест), поэтому «сырой SQL/Cypher» через MCP �
 | `get_object` | `object_id` (любой ID) | объект с конвертом | `GET /v1/object/{id}` |
 | `get_document_neighbors` | `object_id`, `rel_types`, `direction`, `limit` | соседи из графа (проекция), гидратированные из канона | `GET /v1/neighbors/{id}` |
 | `get_citations` | `work_id`, `direction` (cites, cited_by, both), `include_unlinked` | записи библиографии (LINKED / CANDIDATE / UNLINKED), цитирующие работы | `GET /v1/citations/{id}` |
-| `rerank_text` | `query`, `candidate_ids` (≤ 24), `top_n`, `passages[]` | ранжирование; текст кандидатов — из view `rerank_text` канона; блок SERVICE с моделью | `POST /v1/rerank/text` |
+| `rerank_text` | `query`, `candidate_ids` (≤ 24), `top_n`, `passages[]` | пересчёт late interaction: MaxSim mLateOn по сохранённым векторам слов единиц кандидата (страница — по своим единицам, блок — через страницу; правило `rerank_text_late_v1`); `passages` действуют только при `VKM_RERANK_TEXT_BACKEND=gateway` (текстовый реранкер EDGE v3.5 выключен 29.09, правило `rerank_text_v1`); блок SERVICE с моделью | `POST /v1/rerank/text` |
 | `rerank_visual` | `query`, `candidate_ids` (≤ 8: страницы, рисунки, таблицы, артефакты-изображения), `top_n`, `max_side` | ранжирование по изображениям; кандидаты без изображения — в `rejected` | `POST /v1/rerank/visual` |
 | `get_processing_status` | один из `source_id`, `page_id`, `run_id`, `job_id` | статусы, последние попытки стадий, ошибки, задания | `GET /v1/processing/status` |
 | `trace_document_provenance` | `object_id` | цепочка провенанса + ответы §50 (`interpretability`) | `GET /v1/provenance/{id}` |
