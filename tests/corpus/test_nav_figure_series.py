@@ -513,6 +513,11 @@ def test_axis_plausibility_flags():
     assert not FS.labels_detached(xs, left, t_xs + t_left, box, lines, [xs, left])
     everything = t_xs_low + t_left + t_xs
     assert FS.labels_detached(xs_low, left, everything, box, lines, [xs_low, left, xs])
+    # the frame reaches the chart's own axis lines when they meet (the x axis below the lowest labelled y tick)
+    xs_axis, t_xs_axis = row(352, (0, 10, 20, 30), (100, 200, 300, 400))
+    chart = FS.merged_lines(([(100.0, 400.0, 340.0)], [(100.0, 340.0, 100.0)]))
+    assert FS.axes_frame(box, xs_axis, left, t_xs_axis + t_left, chart) == [100.0, 100.0, 400.0, 340.0]
+    assert FS.axes_frame(box, xs_axis, left, t_xs_axis + t_left, ([], [])) == list(box)
     # stacked panels sharing the lower x axis (the upper panel prints none) are sound; without lines: not judged
     assert not FS.labels_detached(xs_low, left, t_xs_low + t_left, box, lines, [xs_low, left])
     assert not FS.labels_detached(xs_low, left, everything, box, ([], []), [xs_low, left, xs])

@@ -93,10 +93,11 @@ QUANTUM_PT = 0.05                # coordinate precision assumed for native PDF v
 # quality flags (MODEL_CHOICE): a vertex more than 1 % of the plot size outside the chart frame is outside the plot
 # area (a chart's clip hides it: it cannot be checked against the printed figure); the frame is the plot box, moved
 # out to the nearest long neutral line (≥ 60 % of the box side) within half the box size where the box edge carries
-# none; a series with more than 25 % of its values beyond the printed tick values by more than 25 % of their span is
+# none, and widened to the chart's own axis lines when they meet; a series with more than 25 % of its values beyond
+# the printed tick values by more than 25 % of their span is
 # extrapolated; ≥ 20 coloured elongated filled polygons that outnumber the coloured strokes 2:1 are curves drawn as
 # filled outlines (route A does not trace them)
-OUTSIDE_TOL, FRAME_MIN_COVER, FRAME_MAX_GAP = 0.01, 0.6, 0.5
+OUTSIDE_TOL, FRAME_MIN_COVER, FRAME_MAX_GAP, FRAME_AXIS_MAX = 0.01, 0.6, 0.5, 1.0
 BEYOND_TICKS_TOL, BEYOND_TICKS_SHARE = 0.25, 0.25
 OUTLINE_MIN, OUTLINE_MAX_WIDTH_PT, OUTLINE_MIN_ASPECT = 20, 3.0, 3.0
 # axis plausibility (route A): tick labels more than 3 % of the box inside it are not an axis of this plot; the lines
@@ -121,6 +122,7 @@ CONFIG: dict[str, Any] = {
     "region_margin_pt": REGION_MARGIN_PT, "quantum_pt": QUANTUM_PT, "ocr_psm": 7, "ocr_dpi": 600,
     "ocr_whitelist": "0123456789.,-/", "glyph_max_size_pt": 18.0, "glyph_default_h_pt": 6.0,
     "outside_tol": OUTSIDE_TOL, "frame_min_cover": FRAME_MIN_COVER, "frame_max_gap": FRAME_MAX_GAP,
+    "frame_axis_max": FRAME_AXIS_MAX,
     "beyond_ticks_tol": BEYOND_TICKS_TOL, "beyond_ticks_share": BEYOND_TICKS_SHARE, "outline_min": OUTLINE_MIN,
     "outline_max_width_pt": OUTLINE_MAX_WIDTH_PT, "outline_min_aspect": OUTLINE_MIN_ASPECT,
     "labels_inside_margin": LABELS_INSIDE_MARGIN, "axis_label_max_gap_h": AXIS_LABEL_MAX_GAP_H,
@@ -581,12 +583,35 @@ def _own_labels(c: Any, texts: list, line, orient: str, size: float) -> bool:
     return min(max(ps), line[2] + size) - max(min(ps), line[2] - size) >= 0.5 * span
 
 
+def lines_meet(lx, ly, frame) -> bool:
+    """The x axis line (from, to, y) and the y axis line (from, to, x) form the corner of one chart: each stands
+    within the other's extent, 4 pt or 3 % of the frame allowed."""
+    x0, y0, x1, y1 = (float(v) for v in frame)
+    tx, ty = max(4.0, 0.03 * abs(x1 - x0)), max(4.0, 0.03 * abs(y1 - y0))
+    return lx[0] - tx <= ly[2] <= lx[1] + tx and ly[0] - ty <= lx[2] <= ly[1] + ty
+
+
+def axes_frame(frame, xa: Any, ya: Any, texts: list, lines) -> list[float]:
+    """The chart frame widened to the chart's own axis lines: when the line beside the x labels and the line beside
+    the y labels meet, the frame covers both lines (at most ``FRAME_AXIS_MAX`` frame sizes beyond it) — the axes of a
+    chart often run past its last labelled ticks (U, mm labelled 40 … −20 with the x axis at −50)."""
+    out = [float(v) for v in frame]
+    if xa is None or ya is None or xa.label_source != "NATIVE" or ya.label_source != "NATIVE":
+        return out
+    lx, ly = axis_line(xa, texts, lines), axis_line(ya, texts, lines)
+    if lx is None or ly is None or not lines_meet(lx, ly, out):
+        return out
+    x0, y0, x1, y1 = out
+    w, h = FRAME_AXIS_MAX * (x1 - x0), FRAME_AXIS_MAX * (y1 - y0)
+    return [max(min(x0, lx[0], ly[2]), x0 - w), max(min(y0, ly[0], lx[2]), y0 - h),
+            min(max(x1, lx[1], ly[2]), x1 + w), min(max(y1, ly[1], lx[2]), y1 + h)]
+
+
 def labels_detached(xa: Any, ya: Any, texts: list, frame, lines, cands: list = ()) -> bool:
     """The x and y axes come from two panels of a figure: the line beside the x labels and the line beside the y
-    labels do not meet (the axes of one chart form its corner: 4 pt or 3 % of the frame allowed), and the panel of
-    one of them prints labels of its own for the other direction (``cands``: the axis candidates of the region).
-    Stacked panels that share one axis print it once — they are not flagged. Unknown (False) when either axis has no
-    line."""
+    labels do not meet (:func:`lines_meet`), and the panel of one of them prints labels of its own for the other
+    direction (``cands``: the axis candidates of the region). Stacked panels that share one axis print it once —
+    they are not flagged. Unknown (False) when either axis has no line."""
     if xa is None or ya is None:
         return False
     lx, ly = axis_line(xa, texts, lines), axis_line(ya, texts, lines)
@@ -594,8 +619,7 @@ def labels_detached(xa: Any, ya: Any, texts: list, frame, lines, cands: list = (
         return False
     x0, y0, x1, y1 = (float(v) for v in frame)
     w, h = abs(x1 - x0), abs(y1 - y0)
-    tx, ty = max(4.0, 0.03 * w), max(4.0, 0.03 * h)
-    if lx[0] - tx <= ly[2] <= lx[1] + tx and ly[0] - ty <= lx[2] <= ly[1] + ty:
+    if lines_meet(lx, ly, frame):
         return False
     def key(ax):
         return {(lab[0], round(float(lab[2]), 1)) for lab in ax.labels}
@@ -765,15 +789,27 @@ def thousands_ambiguous(ax: Any, texts: list) -> bool:
     return n >= 2
 
 
-def axis_flags(res: dict[str, Any], texts: list, paths: list, region, frame=None) -> set[str]:
-    """Plausibility flags of the calibration of one figure (route A): labels inside the plot or far outside its
-    frame, two axes of one orientation, power-of-ten labels read as numbers, thousands groups read as small numbers,
-    an axis kept on three chance labels. ``frame``: the chart frame (default :func:`frame_box` of the plot box)."""
-    from vkm_corpus.figures.calibrate import detect_axes, structure_lines, structure_segments
+def chart_frame(res: dict[str, Any], texts: list, paths: list) -> tuple[list[float], tuple[list, list]]:
+    """(chart frame, merged neutral lines) of a route-A result: :func:`frame_box` of the plot box widened to the
+    chart's own axis lines (:func:`axes_frame`)."""
+    from vkm_corpus.figures.calibrate import structure_segments
+
+    lines = merged_lines(structure_segments(paths, neutral_only=True))
+    frame = axes_frame(frame_box(paths, res["plot_box"]), res["x_axis"], res["y_axis"], texts, lines)
+    return frame, lines
+
+
+def axis_flags(res: dict[str, Any], texts: list, paths: list, region, frame=None, lines=None) -> set[str]:
+    """Plausibility flags of the calibration of one figure (route A): labels inside the plot, axes of two panels,
+    two axes of one orientation, power-of-ten labels read as numbers, thousands groups read as small numbers, an axis
+    kept on three chance labels. ``frame`` and ``lines``: the chart frame and merged neutral lines (default
+    :func:`chart_frame`)."""
+    from vkm_corpus.figures.calibrate import detect_axes, structure_lines
     from vkm_corpus.figures.series import legend_text_ids
 
     xa, ya, box = res["x_axis"], res["y_axis"], res["plot_box"]
-    frame = frame if frame is not None else frame_box(paths, box)
+    if frame is None or lines is None:
+        frame, lines = chart_frame(res, texts, paths)
     flags = set()
     for ax in (xa, ya):
         if ax is None:
@@ -790,7 +826,7 @@ def axis_flags(res: dict[str, Any], texts: list, paths: list, region, frame=None
             flags.add("WEAK_AXIS_CALIBRATION")
     if (xa is not None and xa.label_source == "NATIVE") or (ya is not None and ya.label_source == "NATIVE"):
         snap_h, snap_v = structure_lines(paths)
-        segments = merged_lines(structure_segments(paths, neutral_only=True))
+        segments = lines
         # every label counts for a second y axis, also those FD's legend rule sets aside: the labels of a right-hand
         # axis stand right of its tick marks exactly like legend labels right of their samples
         _, _, all_cands = detect_axes(texts, snap_h, snap_v)
@@ -840,8 +876,8 @@ def digitize_figure(page: Any, c: dict[str, Any], engine: Any, source_sha256: st
     n_outline, n_stroke = outlined_strokes(paths)
     if n_outline >= OUTLINE_MIN and n_outline > 2 * n_stroke:
         flags.add("STROKES_DRAWN_AS_OUTLINES")       # curves drawn as filled outlines: not traced, series missing
-    frame = frame_box(paths, res["plot_box"])
-    suspect = axis_flags(res, texts, paths, region, frame)  # a suspect calibration makes every series suspect
+    frame, lines = chart_frame(res, texts, paths)
+    suspect = axis_flags(res, texts, paths, region, frame, lines)  # a suspect calibration makes every series suspect
     return assemble(c, res, ROUTE, prov, CONFIG, extra_flags=flags | suspect, series_flags=suspect,
                     n_lc=c.get("_n_lc"), area=frame)
 
