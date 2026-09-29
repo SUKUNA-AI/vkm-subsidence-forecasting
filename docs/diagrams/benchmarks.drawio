@@ -1,0 +1,106 @@
+<mxfile host="vkm-drawio" agent="vkm-drawio writer/1" compressed="false" pages="1">
+  <diagram id="bench" name="Бенчмарки">
+    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="700" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Бенчмарки поиска и досье: V0 → V1 → V2 → topic_v1 (28–29.09.2026)" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="12" width="1760" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Все бенчмарки предрегистрируются до первого прогона: набор, метрики и правило решения фиксируются с sha256. Метрика — nDCG@10 на уровне страниц, если не сказано иначе. Числа разных бенчмарков несравнимы между собой." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="44" width="1760" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="v0_h" value="retrieval_v0 — выбор моделей на canary" style="fillColor=#fff2cc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="105" width="420" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="v0_s" value="снимок canary snap-20260928T073057Z-a2696925; 107 текстовых + 26 визуальных запросов; VERIFIED qrels" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="155" width="420" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="v0_r" value="• BM25 0,419; полный MaxSim mLateOn 0,510 (+0,091, p = 0,002) — главный прирост даёт late interaction&lt;br&gt;• dense в RRF с BM25: Qwen3-0.6B 0,455, jina-v5-nano 0,457 — неразличимы; granite-311m-r2 сама по себе слабее BM25 (0,359)&lt;br&gt;• mLateOn против jina-colbert-v2: лучше по тексту, Apache-2.0, в 1,5 раза быстрее кодирование" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="210" width="420" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="v0_d" value="Решение CP-39 (пользователь): dense — jina-v5-nano Q8_0 (кодирование ≈ в 5 раз быстрее Qwen3), late — mLateOn" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="340" width="420" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="v1_h" value="retrieval_v1 — полный корпус" style="fillColor=#fff2cc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="466" y="105" width="420" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="v1_s" value="снимок snap-20260928T160616Z-5d669f09; 189 запросов (145 текстовых + 44 визуальных), покрыто 186; 4 275 пул-меток LLM_AGENT_V1; ревью пользователя — 60 меток, κ взвешенная 0,91 / 0,95" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="466" y="155" width="420" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="v1_r" value="• схема E = RRF(BM25, dense) top-100 → mLateOn: 0,725 на тексте (VERIFIED + пул) против 0,551 у BM25; +0,075 к схеме без late&lt;br&gt;• без dense-канала E теряет 0,115; полный MaxSim не нужен — E дешевле ≈ в 18 раз; глубина late 100&lt;br&gt;• реранкер v3.5 по тексту значимо не помогает; по визуальным запросам глубина 12 даёт +0,043&lt;br&gt;• записи BIB_ENTRY в ранжировании страниц: библиографические запросы +0,201, остальные −0,005" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="466" y="240" width="420" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="v1_d" value="Итог: развёрнутый /v1/search/hybrid с late по умолчанию воспроизводит лабораторную E; CP-42 подтверждён; маршрут библиографии — отдельно (в сервисе +0,195)" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="466" y="405" width="420" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="v2_h" value="retrieval_v2 — 10 dense-моделей и изображения страниц" style="fillColor=#fff2cc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="912" y="105" width="420" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="v2_s" value="предрегистрация — коммит e36fe19; кодирование корпуса на RTX 5070 Ti; 144 текстовых и 42 визуальных запроса; 3 850 новых пул-меток; в сервисы ничего не развёрнуто" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="912" y="155" width="420" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="v2_r" value="• ни один из 10 кандидатов не лучше nano внутри E: все Δ на тексте ≤ 0 (от −0,003 до −0,032)&lt;br&gt;• Qwen3-VL-Embedding-2B, слияние E+VIS: +0,109 на визуальных запросах (0,349 → 0,457; p Холма 0,032); на текстовых вредит (−0,043)&lt;br&gt;• обслуживание не установлено: Q8_0 не проходит паритет, F16 проходит; гейта на RX 580 и индекса в сервисе нет" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="912" y="225" width="420" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="v2_d" value="Итог: nano остаётся; визуальный маршрут — условный кандидат, решение за пользователем" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="912" y="355" width="420" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="tv1_h" value="topic_v1 — досье «от А до Я» против каталогов evidence" style="fillColor=#fff2cc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1358" y="105" width="420" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="tv1_s" value="предрегистрация — коммит c80eae1; 117 тем (72 процесса PC + 45 семейств моделей MM), 351 запрос, 886 страниц-целей в 39 источниках" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1358" y="155" width="420" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="tv1_r" value="• hybrid_late (умолчание MCP): page_recall@50 0,303, MRR@50 0,255, success@10 0,518; late: page_recall@20 +0,032 (p Холма 0,0006)&lt;br&gt;• NAV сам по себе ищет тему хуже: page_recall@50 0,126&lt;br&gt;• апостериорно: в 39 источниках каталогов гибрид даёт 0,559; три формулировки в RRF — 0,446 против 0,303 у одной" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1358" y="225" width="420" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="tv1_d" value="Итог: ориентиры приёмки (success@10 ≥ 0,80, source_recall@10 ≥ 0,60, page_recall@50 ≥ 0,40) не пройдены; главная причина — неполная истина; рецепт формулировок вошёл в reconstruct_topic" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1358" y="340" width="420" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="next" value="Следующий бенчмарк — прогноз оседаний (D-19): предрегистрация до обучения (t0, горизонты H, метрики, разбиение по мирам и по времени, available_from ≤ t0); проверка на отложенных семействах, другом решателе и разрешении; отдельно — на реальных наблюдениях корпуса в пределах применимости." style="align=left;dashed=1;fillColor=#f5f5f5;fontColor=#333333;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="520" width="1100" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Легенда" style="align=left;collapsible=0;container=1;dashed=0;fillColor=#ffffff;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="500" width="630" height="152" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_service" value="" style="fillColor=#fff2cc;html=1;rounded=0;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="30" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_service" value="бенчмарк" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="28" width="570" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_derived" value="" style="fillColor=#dae8fc;html=1;rounded=0;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="59" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_derived" value="измеренные результаты (сигнал поиска, не evidence)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="57" width="570" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_evidence" value="" style="fillColor=#d5e8d4;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="88" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_evidence" value="решение или итог" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="86" width="570" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_paused" value="" style="dashed=1;fillColor=#f5f5f5;fontColor=#333333;html=1;rounded=0;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="117" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_paused" value="следующий, ещё не предрегистрирован" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="115" width="570" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="sources" value="Источники: README.md §11; benchmarks/retrieval_v0/MODEL_SELECTION_V0.md; benchmarks/retrieval_v1/RESULTS_V1.md §0–§1; benchmarks/retrieval_v2/RESULTS_V2.md; benchmarks/topic_v1/RESULTS_V1.md §0–§2; receipts/retrieval_v1_h_review.json; COORDINATOR_DECISIONS.md (CP-39)." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="620" width="1100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="e01" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="v0_h" target="v1_h">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="v1_h" target="v2_h">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2t" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="v2_h" target="tv1_h">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
