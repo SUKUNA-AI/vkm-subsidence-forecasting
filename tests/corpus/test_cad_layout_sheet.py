@@ -176,6 +176,11 @@ def test_a_crash_of_the_host_names_its_last_stage(tmp_path):
     assert "viewport on" in receipt and str(tmp_path) not in receipt and str(tmp_path).replace("\\", "/") not in receipt
 
 
+def test_capabilities_name_the_viewport_pitfall(tmp_path):
+    caps = _jobs(tmp_path, CrashingConsole([])).capabilities()
+    assert any("AcDbViewport::setIsOn" in p and "erased" in p for p in caps["headless_pitfalls"])
+
+
 def test_host_trace_tail(tmp_path):
     assert host_trace_tail(tmp_path) == []
     (tmp_path / "host_trace.txt").write_text("\n".join(f"s{i}" for i in range(20)) + "\n\n" + "x" * 300 + "\n",
