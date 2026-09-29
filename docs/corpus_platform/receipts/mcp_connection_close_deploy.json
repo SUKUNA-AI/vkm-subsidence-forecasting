@@ -1,0 +1,42 @@
+{
+  "schema": "vkm-deploy-receipt-v1",
+  "date": "2026-09-29",
+  "change": "MCP HTTP answers carry Connection: close; api, mcp and mcp-admin switched to the image of commit 4a5282d",
+  "problem": {
+    "symptom": "about every second vkm-corpus MCP call from the workstation timed out; the server logged no tool call for them, the API answered in 5-50 ms",
+    "reproduction_from_workstation": {
+      "one_keep_alive_connection_7s_pauses": "3 of 6 calls timed out after 20 s: every call after an idle connection",
+      "one_keep_alive_connection_1s_pauses": "6 of 6 ok",
+      "fresh_connection_per_call_7s_pauses": "4 of 4 ok"
+    },
+    "loopback_in_mcp_container_7s_pauses": "5 of 5 ok",
+    "diagnosis": "uvicorn closes an idle keep-alive connection after 5 s. The FIN reaches a client in the mcp container, on the CORE host (published port and container bridge), on EDGE and in WSL on the workstation 5 s after the answer, but never reaches a native Windows process on the workstation: its socket shows the state Bound in the Windows TCP table, so a local connection proxy sits in between. The next request on the pooled connection hangs until the client times out."
+  },
+  "fix": {
+    "commit": "4a5282da691d",
+    "code": "src/vkm_corpus/mcp/http.py: BearerMiddleware wraps send; every http.response.start carries connection: close (an upstream Connection header is replaced)",
+    "test": "tests/corpus/test_mcp_contract.py MCP-10: the healthz, 401, 421 and ping answers carry connection: close; 10 of 10 MCP contract tests pass in the API image"
+  },
+  "deploy": {
+    "image": "vkm-corpus-api:0.1.0-4a5282da691d",
+    "image_id": "sha256:5cf860b45a6d8398638b3ddb3dbde36446371d6b6508ecfd95fb5337e70343fa",
+    "previous_image": "vkm-corpus-api:0.1.0-59728d1c2370",
+    "services": ["api", "mcp", "mcp-admin"],
+    "healthy_after_s": 33,
+    "rollback": "restore .env.bak-20260929T123848 in the CORE compose directory and run up -d api mcp mcp-admin",
+    "also_in_image": "agent VIS code (visual route), switched off: /v1/status dependencies.visual_route.enabled = false"
+  },
+  "checks_after": {
+    "workstation_one_keep_alive_connection_7s_pauses": "6 of 6 ok, 77-482 ms, every answer with connection: close",
+    "mcp_smoke": {
+      "script": "nightly-mcp-smoke-1 (agent OPS, infra/core/nightly/mcp_smoke.py), inside the mcp container",
+      "verdict": "PASS",
+      "calls": 40,
+      "pass": 40
+    }
+  },
+  "not_changed": {
+    "api_keep_alive": "the API keeps uvicorn's 5 s keep-alive; its httpx clients drop idle connections after 5 s themselves",
+    "docker_daemon": "host settings are unchanged"
+  }
+}
