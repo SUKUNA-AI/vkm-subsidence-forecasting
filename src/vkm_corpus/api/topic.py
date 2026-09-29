@@ -4,8 +4,9 @@ the corpus and the PUBLIC evidence catalogues contain about a question.
 Parts (each optional part degrades to a warning when its dependency is missing):
 
 a. retrieval — the injected :class:`TopicRetrieval` (default :class:`HybridTopicRetrieval`: BM25 + dense + late
-   interaction over pages) runs up to 5 formulations of the topic (the query, the caller's paraphrases, the concept's
-   synonyms — SAME_AS and narrower terms — and the query widened by its strongest concept neighbours) over two tiers of
+   interaction over pages) runs up to 5 formulations of the topic (the query, the caller's paraphrases, the query in the
+   other language from the NAV term dictionary, the concept's synonyms — SAME_AS and narrower terms — and the query
+   widened by its strongest concept neighbours) over two tiers of
    sources — the VKM core (sources of the evidence catalogues and sources whose register scope is VKM/SKRU/regional)
    and the whole corpus — and fuses them by RRF into a ranked page list per tier (TOPIC_BENCHMARK_V1: several
    formulations and the core tier are the measured gains); pages are grouped by source and NAV section
@@ -54,6 +55,7 @@ CORE_PAGES, REST_PAGES = 50, 25    # fused pages kept per tier (the same budget 
 MAX_FORMULATIONS = 5
 MAX_PARAPHRASES = 4
 RRF_K = 60
+TRANSLATE_DEFAULT = True           # translation formulation by default (benchmarks/term_dictionary_v1)
 RETRIEVAL_WORKERS = 4
 PER_SOURCE_SECTIONS = 3
 MAX_SCAN_PAGES = 24
@@ -232,6 +234,7 @@ class TopicRequest:
     max_formulas: int = 10
     max_processes: int = 6
     paraphrases: tuple[str, ...] = ()        # other wordings of the topic from the caller (fused with the query)
+    translate: bool = TRANSLATE_DEFAULT      # + the query in the other language (NAV term dictionary, agent TR)
 
 
 @dataclass
@@ -610,8 +613,8 @@ class DossierBuilder:
 
     def _formulations(self, st: _State) -> list[dict[str, Any]]:
         """≤ 5 formulations of the topic: the query, the caller's paraphrases (≤ 4; they come before the automatic
-        ones), the concept's synonyms (its lemma, SAME_AS, a narrower term) and the query widened by its two strongest
-        concept neighbours."""
+        ones), the query in the other language (term dictionary), the concept's synonyms (its lemma, SAME_AS, a
+        narrower term) and the query widened by its two strongest concept neighbours."""
         out: list[dict[str, Any]] = []
         seen: set[str] = set()
 
@@ -624,6 +627,9 @@ class DossierBuilder:
         add("query", st.req.query)
         for p in st.req.paraphrases[:MAX_PARAPHRASES]:
             add("paraphrase", p)
+        translation = self._translation(st)
+        if translation:
+            add("translation", translation)
         c = st.concept or {}
         if c.get("match"):
             qwords = words_of(st.req.query)
@@ -636,6 +642,34 @@ class DossierBuilder:
             if near:
                 add("neighbours", f"{st.req.query} {' '.join(near)}")
         return out
+
+    # ---------------------------------------------------------------- term dictionary (agent TR)
+    def _translation(self, st: _State) -> str | None:
+        """The query in the other language (RU ↔ EN) from the NAV term dictionary (``translate_query``: its terms by
+        their trusted translations), when the request asks for it and the build has the dictionary; what happened is
+        in ``inputs.translation`` (a build without it: ``not in this build``, no warning)."""
+        if not st.req.translate or self.nav is None or not st.req.query.strip():
+            return None
+        from vkm_corpus.navigation import store as nav_store
+
+        functions = getattr(self.nav, "_functions", {}) or {}
+        if "translate_query" not in set(nav_store.QUERY_FUNCTIONS) | set(functions):
+            st.inputs["translation"] = "not in this build"
+            return None
+        try:
+            data = self.nav.run("translate_query", st.req.query)
+        except Exception as exc:  # noqa: BLE001 - a NAV build without term_translations, no morphology …
+            st.inputs["translation"] = {"status": "UNAVAILABLE", "reason": type(exc).__name__}
+            return None
+        data = data if isinstance(data, dict) else {}
+        text = data.get("translation")
+        st.inputs["translation"] = {
+            "status": "APPLIED" if text else "NOT_COVERED", "source_language": data.get("source_language"),
+            "target_language": data.get("target_language"), "coverage": data.get("coverage"),
+            "terms": [{k: t.get(k) for k in ("span", "translation", "score", "pair_id")}
+                      for t in (data.get("terms") or [])[:8]]}
+        return text
+    # ---------------------------------------------------------------- end term dictionary (agent TR)
 
     def _retrieve(self, st: _State) -> None:
         """Every formulation over the core tier and over the corpus (or over the caller's sources), fused by RRF per
@@ -894,18 +928,20 @@ class DossierBuilder:
 
     @staticmethod
     def _phrasings(st: _State) -> list[tuple[list[str], float]]:
-        """(stems, weight) of the query (1.0), each paraphrase (0.9) and the synonyms (0.8) — the formulations whose
-        words may match titles and catalogue rows on their own (the neighbour-widened one only feeds retrieval)."""
-        weights = {"query": 1.0, "paraphrase": 0.9, "synonyms": 0.8}
+        """(stems, weight) of the query (1.0), each paraphrase and the translation (0.9) and the synonyms (0.8) — the
+        formulations whose words may match titles and catalogue rows on their own (the neighbour-widened one only
+        feeds retrieval)."""
+        weights = {"query": 1.0, "paraphrase": 0.9, "translation": 0.9, "synonyms": 0.8}
         out = [(query_stems(f["text"]), weights[f["kind"]]) for f in st.formulations if f["kind"] in weights]
         return [(stems, w) for stems, w in out if stems] or [(st.stems, 1.0)]
 
     @staticmethod
     def _all_stems(st: _State) -> list[str]:
-        """Stems of the query, the paraphrases and the synonyms (not the neighbour-widened formulation)."""
+        """Stems of the query, the paraphrases, the translation and the synonyms (not the neighbour-widened
+        formulation)."""
         out = list(st.stems)
         for f in st.formulations:
-            if f["kind"] in ("paraphrase", "synonyms"):
+            if f["kind"] in ("paraphrase", "translation", "synonyms"):
                 out += [s for s in query_stems(f["text"]) if s not in out]
         return out
 

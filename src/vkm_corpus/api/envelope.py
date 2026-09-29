@@ -35,6 +35,8 @@ ApiObjectKind = Literal["ARTIFACT", "PROCESSING_RUN", "JOB", "RERANK_RESULT", "S
                         "NAV_SOURCE_OVERLAP",
                         # parameter-value candidates (agent P): navigation, never recommended values
                         "NAV_PARAMETERS", "NAV_PARAMETER_SUMMARY",
+                        # term dictionary (agent TR): RU/EN/DE equivalents, synonyms, abbreviations — navigation
+                        "NAV_TRANSLATION",
                         # topic dossier (reconstruct_topic): NAV + search + PUBLIC catalogues, navigation not evidence
                         "TOPIC_DOSSIER"]
 # interpretation flags added by the API (the canonical quality_flags stay as stored)

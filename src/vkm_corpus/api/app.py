@@ -141,6 +141,9 @@ class HybridSearchBody(_Body):
     visual_route: bool | None = Field(None, description="visual route (page-image channel, Qwen3-VL page vectors, "
                                                         "RRF with the served page order); null = the query's picture "
                                                         "words decide (when the server enables the route)")
+    translate: bool | None = Field(None, description="also search the query in the other language (RU ↔ EN, NAV "
+                                                      "term dictionary) as extra RRF legs; null = server default "
+                                                      "(on when the late stage runs; benchmarks/term_dictionary_v1)")
 
 
 class ObjectsQueryBody(_Body):
@@ -174,6 +177,9 @@ class TopicBody(_Body):
     max_sources: int = Field(10, ge=1, le=50)
     max_sections: int = Field(12, ge=1, le=50)
     max_formulas: int = Field(10, ge=0, le=50)
+    translate: bool | None = Field(None, description="also search the query in the other language (NAV term "
+                                                     "dictionary) as one more formulation; null = the server default "
+                                                     "(on; benchmarks/term_dictionary_v1)")
 
 
 class Passage(_Body):
@@ -373,7 +379,7 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                                                       body.limit, body.cursor, body.candidates,
                                                       body.include_duplicates, body.exact, late=body.late,
                                                       late_candidates=body.late_candidates, bib_route=body.bib_route,
-                                                      visual_route=body.visual_route))
+                                                      visual_route=body.visual_route, translate=body.translate))
 
     @app.get("/v1/search/hybrid", tags=["search"], **JSON_RESPONSES)
     def search_hybrid_get(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],
@@ -384,11 +390,13 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                           late: Annotated[bool | None, Query()] = None,
                           late_candidates: Annotated[int, Query(ge=1, le=200)] = 100,
                           bib_route: Annotated[bool | None, Query()] = None,
-                          visual_route: Annotated[bool | None, Query()] = None) -> JSONResponse:
+                          visual_route: Annotated[bool | None, Query()] = None,
+                          translate: Annotated[bool | None, Query()] = None) -> JSONResponse:
         request.state.query_sha256 = hashlib.sha256(q.encode("utf-8")).hexdigest()
         return respond(request, service.search_hybrid(q, list(kinds or ["PAGE"]), {}, limit, cursor, candidates,
                                                       late=late, late_candidates=late_candidates,
-                                                      bib_route=bib_route, visual_route=visual_route))
+                                                      bib_route=bib_route, visual_route=visual_route,
+                                                      translate=translate))
 
     @app.post("/v1/objects/query", tags=["search"], **JSON_RESPONSES)
     def objects_query(request: Request, body: ObjectsQueryBody, _auth: Read) -> JSONResponse:
@@ -600,6 +608,14 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                               material: Annotated[str | None, Query(max_length=200)] = None) -> JSONResponse:
         return respond(request, service.nav_parameter_summary(property, material))
 
+    # term dictionary (agent TR): RU ↔ EN (DE) equivalents, synonyms, abbreviations — navigation, not evidence
+    @app.get("/v1/nav/translate", tags=["navigation"], **JSON_RESPONSES)
+    def nav_translate(request: Request, _auth: Read, term: Annotated[str, Query(min_length=1, max_length=200)],
+                      target: Annotated[Literal["ru", "en", "de"] | None, Query()] = None,
+                      limit: Annotated[int, Query(ge=1, le=50)] = 10) -> JSONResponse:
+        return respond(request, service.nav_translate(term, target, limit))
+    # end term dictionary (agent TR)
+
     # ---------------------------------------------------------------- topic dossier (navigation + catalogues)
     @app.get("/v1/topic", tags=["navigation"], **JSON_RESPONSES)
     def topic_get(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],
@@ -610,12 +626,13 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                                         Query(max_length=4)] = None,
                   max_sources: Annotated[int, Query(ge=1, le=50)] = 10,
                   max_sections: Annotated[int, Query(ge=1, le=50)] = 12,
-                  max_formulas: Annotated[int, Query(ge=0, le=50)] = 10) -> JSONResponse:
+                  max_formulas: Annotated[int, Query(ge=0, le=50)] = 10,
+                  translate: Annotated[bool | None, Query()] = None) -> JSONResponse:
         request.state.query_sha256 = hashlib.sha256(q.encode("utf-8")).hexdigest()
         return respond(request, service.reconstruct_topic(q, budget_chars=budget, source_ids=list(source_id or []),
                                                           max_sources=max_sources, max_sections=max_sections,
                                                           max_formulas=max_formulas,
-                                                          paraphrases=list(paraphrase or [])))
+                                                          paraphrases=list(paraphrase or []), translate=translate))
 
     @app.post("/v1/topic", tags=["navigation"], **JSON_RESPONSES)
     def topic_post(request: Request, body: TopicBody, _auth: Read) -> JSONResponse:
@@ -625,7 +642,8 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                                                           max_sources=body.max_sources,
                                                           max_sections=body.max_sections,
                                                           max_formulas=body.max_formulas,
-                                                          paraphrases=list(body.paraphrases)))
+                                                          paraphrases=list(body.paraphrases),
+                                                          translate=body.translate))
 
     @app.get("/v1/provenance/{object_id}", tags=["provenance"], **JSON_RESPONSES)
     def provenance(request: Request, object_id: str, _auth: Read) -> JSONResponse:

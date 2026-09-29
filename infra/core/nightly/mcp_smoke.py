@@ -25,7 +25,7 @@ import sys
 import time
 from datetime import datetime, timezone
 
-VERSION = "nightly-mcp-smoke-1"
+VERSION = "nightly-mcp-smoke-2"
 EXPECTED_TOOLS = (
     "search_text", "search_hybrid", "retrieval_trace", "search_objects", "get_source", "get_work", "get_page",
     "get_page_image", "get_figure", "get_table", "get_formula", "get_object", "get_document_neighbors",
@@ -33,7 +33,7 @@ EXPECTED_TOOLS = (
     "get_formula_context", "find_formulas", "explore_concept", "find_topics", "get_topic", "similar_sections",
     "section_topics", "copies_of", "source_overlap", "find_parameters", "parameter_summary", "reconstruct_topic",
     "rerank_text", "rerank_visual", "get_processing_status", "trace_document_provenance", "get_artifact",
-    "list_source_pages", "get_corpus_status",
+    "list_source_pages", "get_corpus_status", "translate_term",
 )
 # service failures (the tool layer or a dependency is broken); other error codes are data errors of the input
 FAIL_CODES = {"DEPENDENCY_UNAVAILABLE", "DEPENDENCY_TIMEOUT", "DEPENDENCY_ERROR", "INTERNAL", "INTERNAL_ERROR",
@@ -121,6 +121,7 @@ def plan():
         ("concept_paths", {"term_a": "ползучесть", "term_b": "оседание", "max_len": 3, "limit": 2}),
         ("find_parameters", {"property": "модуль деформации", "limit": 5}),
         ("parameter_summary", {"property": "модуль деформации"}),
+        ("translate_term", {"term": "ползучесть", "limit": 5}),
         ("reconstruct_topic", {"query": "механика закладки", "budget_chars": 2000}),
         ("rerank_text", lambda hv: hv.ids["page"][:2] and {"query": QUERY, "candidate_ids": hv.ids["page"][:5]}),
         ("rerank_visual", lambda hv: (hv.image_figures or hv.ids["figure"])[:1] and

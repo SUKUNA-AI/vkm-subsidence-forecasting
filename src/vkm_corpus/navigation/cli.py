@@ -3,9 +3,12 @@
 * ``nav outlines --out FILE [--resources ROOT] [--source SID …]`` — WORKSTATION: native outlines of the PRIVATE
   files (PDF bookmarks, EPUB navigation, DjVu outline) → one JSON per snapshot (:mod:`vkm_corpus.navigation.outline`);
 * ``nav build --duckdb PATH --out DIR [--outlines FILE] [--vectors DIR] [--artifacts DIR] [--inputs DIR]
-  [--option PART.KEY=VALUE …] [--part sections|formulas|parameters|duplicates|object_duplicates|concepts|topics|all]``
-  — derived datasets from a DuckDB copy of the canon (opened read only) → ``<DIR>/<dataset>.parquet`` +
-  ``manifest.json`` (rule versions, row counts, sha256, snapshot id, the options given to each part).
+  [--option PART.KEY=VALUE …] [--part sections|formulas|parameters|duplicates|object_duplicates|concepts|
+  translations|topics|all]`` — derived datasets from a DuckDB copy of the canon (opened read only) →
+  ``<DIR>/<dataset>.parquet`` + ``manifest.json`` (rule versions, row counts, sha256, snapshot id, the options
+  given to each part);
+* ``nav term-phrases`` / ``nav term-vectors`` — the phrases of the term dictionary (part ``translations``) and their
+  dense vectors (jina-v5-nano), the input of ``--option translations.term_vectors=<file>``.
 
 Parts are dispatched through :data:`PARTS` (``module:function``), imported lazily; a part whose module is absent is
 skipped and recorded as such. A builder has the signature ``build(con, **kwargs) -> dict[str, pyarrow.Table]`` and
@@ -40,6 +43,9 @@ PARTS: dict[str, str] = {
     "duplicates": "vkm_corpus.navigation.duplicates:build",
     "object_duplicates": "vkm_corpus.navigation.object_duplicates:build",
     "concepts": "vkm_corpus.navigation.concepts:build",
+    # bilingual term dictionary (agent TR): needs the concepts datasets and, for the embedding methods,
+    # --option translations.term_vectors=<file of `nav term-vectors`> (without it: rule-based methods only)
+    "translations": "vkm_corpus.navigation.term_dictionary:build",
     "topics": "vkm_corpus.navigation.topics:build",
 }
 MANIFEST_FORMAT = "vkm-nav-manifest-v1"
@@ -92,6 +98,7 @@ def datasets_of(part: str) -> tuple[str, ...]:
             "object_duplicates": ("object_dup_clusters", "object_dup_members", "formula_keys"),
             "concepts": ("terms", "term_mentions", "term_edges"),
             "topics": ("section_aggregates", "section_vectors", "topics", "topic_members", "topic_edges"),
+            "translations": ("term_translations",),
             }.get(part, ())
 
 
@@ -426,11 +433,83 @@ def _register_graph(sub) -> None:
 # ---------------------------------------------------------------- end NAV graph (agent G)
 
 
+# ---------------------------------------------------------------- term dictionary (agent TR): phrases and vectors
+_SPEC_FILE = Path(__file__).resolve().parents[3] / "benchmarks" / "retrieval_v0" / "configs" / "models.json"
+
+
+def _write_parquet_atomic(table, out: Path) -> None:
+    import pyarrow.parquet as pq
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_suffix(out.suffix + ".tmp")
+    pq.write_table(table, tmp, compression="zstd")
+    tmp.replace(out)
+
+
+def cmd_term_phrases(args: argparse.Namespace) -> int:
+    import duckdb
+
+    from vkm_corpus.navigation.term_vectors import info, phrases
+
+    con = duckdb.connect(str(args.duckdb), read_only=True)
+    try:
+        tables, _ref = load_inputs(Path(args.inputs), snapshot_of(con)["snapshot_id"])
+        if "terms" not in tables:
+            raise SystemExit("--inputs has no terms.parquet (build the concepts part first)")
+        table = phrases(con, terms=tables["terms"], term_edges=tables.get("term_edges"),
+                        term_mentions=tables.get("term_mentions"), formula_symbols=tables.get("formula_symbols"))
+    finally:
+        con.close()
+    _write_parquet_atomic(table, Path(args.out))
+    print(json.dumps({"out": Path(args.out).name, **info(table)}, ensure_ascii=False, indent=1))
+    return 0
+
+
+def cmd_term_vectors(args: argparse.Namespace) -> int:
+    import os
+
+    import pyarrow.parquet as pq
+
+    from vkm_corpus.navigation.term_vectors import encode, info
+
+    table = pq.read_table(args.phrases)
+    out = encode(table, models_dir=args.models_dir or os.environ.get("VKM_MODELS_DIR"), spec_path=args.spec_file,
+                 spec_key=args.spec, device=args.device, batch_size=args.batch_size,
+                 max_vram_fraction=args.max_vram_fraction)
+    _write_parquet_atomic(out, Path(args.out))
+    print(json.dumps({"out": Path(args.out).name, **info(out)}, ensure_ascii=False, indent=1))
+    return 0
+
+
+def _register_term_dictionary(sub) -> None:
+    tp = sub.add_parser("term-phrases", help="term dictionary: the phrases to encode (N3 terms, keyword items, "
+                                             "glosses, seeds) → Parquet (needs the extra `navigation`)")
+    tp.add_argument("--duckdb", required=True, help="DuckDB file of the snapshot (opened read only)")
+    tp.add_argument("--inputs", required=True, help="NAV build of the same snapshot (terms, term_edges, …)")
+    tp.add_argument("--out", required=True, help="output Parquet (lang, key, text)")
+    tp.set_defaults(func=cmd_term_phrases)
+    tv = sub.add_parser("term-vectors", help="term dictionary: encode the phrases with the dense model (jina-v5-nano) "
+                                             "→ Parquet (lang, key, text, vector) for --option "
+                                             "translations.term_vectors=…")
+    tv.add_argument("--phrases", required=True, help="output of `nav term-phrases`")
+    tv.add_argument("--out", required=True, help="output Parquet")
+    tv.add_argument("--models-dir", default=None, help="local model snapshots (default $VKM_MODELS_DIR)")
+    tv.add_argument("--spec-file", default=str(_SPEC_FILE), help="model specs (benchmarks/retrieval_v0/configs)")
+    tv.add_argument("--spec", default="D2", help="model key in the spec file (D2 = jina-v5-nano)")
+    tv.add_argument("--device", default="cpu", help="cpu | cuda | cuda:0")
+    tv.add_argument("--batch-size", type=int, default=256)
+    tv.add_argument("--max-vram-fraction", type=float, default=0.25,
+                    help="cap of this process on the (shared) GPU memory, 0…1")
+    tv.set_defaults(func=cmd_term_vectors)
+# ---------------------------------------------------------------- end term dictionary (agent TR)
+
+
 def register(subparsers) -> None:
     p = subparsers.add_parser("nav", help="navigation layer: outlines, sections, formulas, parameters, duplicates, "
                                           "object duplicates, concepts, topics (derived)")
     sub = p.add_subparsers(dest="nav_cmd", metavar="<command>")
     _register_graph(sub)
+    _register_term_dictionary(sub)
     o = sub.add_parser("outlines", help="native outlines of the PRIVATE files (workstation) → JSON")
     o.add_argument("--out", required=True, help="output JSON file")
     o.add_argument("--resources", default=None, help="PRIVATE clone (default: $VKM_RESOURCES_ROOT)")

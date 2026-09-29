@@ -22,6 +22,11 @@ interaction stage (mLateOn MaxSim), with a per-stage trace (постановка
   BIB_ENTRY included. V1 harness (``benchmarks/retrieval_v1/bib_route_v1.json``): +0.195 nDCG@10 on the 7
   bibliographic queries (VERIFIED + pooled, 7/0, p = 0.016), nDCG@10 of the 137 other text queries unchanged. CP-42
   stays for every other query. The route needs the late stage (``SKIPPED_LATE_OFF`` otherwise).
+* Query expansions (agent TR; ``expansions``, set by the API flag ``translate``): every expansion — the query in the
+  other language from the NAV term dictionary — adds its own BM25 and dense legs to the same RRF; the late stage keeps
+  scoring the original query; hits carry ``expansion_ranks`` in the trace. TERM_DICTIONARY_V1
+  (``benchmarks/term_dictionary_v1``): with the late stage nDCG@10 and R@50 are not worse (R@100 loses), without it
+  the legs dilute same-language queries — the API default follows (on only with the late stage).
 * Filters: E's whitelist (``vkm_corpus.search.query.FILTERS``) on page-level fields, applied to both legs (vector
   documents carry the same fields); object-type filters (block_type, figure_type, layout_class, text_layer) have no
   page-level meaning and are refused.
@@ -79,6 +84,7 @@ LATE_DEFAULT = False                      # late stage when the request does not
 BIB_KIND = "BIB_ENTRY"                    # the kind the bibliographic route scans (CP-42 keeps it out of PAGE ranking)
 VISUAL_ROUTE_DEFAULT = False              # server switch of the visual route (VKM_HYBRID_VISUAL_ROUTE after the gate)
 VISUAL_OVERSAMPLE = 4                     # page vectors fetched per wanted page (duplicate groups collapse; V2: 400)
+MAX_EXPANSIONS = 2                        # query expansions (term dictionary, agent TR): extra BM25 + dense legs each
 
 
 class HybridError(RuntimeError):
@@ -306,10 +312,14 @@ class HybridRequest:
     late_candidates: int = LATE_CANDIDATES
     bib_route: bool | None = None          # None → the bibliographic intent detector decides
     visual_route: bool | None = None       # None → the visual intent detector decides (when the server enables it)
+    expansions: tuple[str, ...] = ()       # other wordings (the query in the other language): extra RRF legs
 
     def validate(self) -> None:
         if not self.query or not self.query.strip() or len(self.query) > 512:
             raise SearchRequestError("E_BAD_QUERY", "query must be 1..512 characters")
+        self.expansions = tuple(" ".join(str(x).split()) for x in self.expansions or ())
+        if len(self.expansions) > MAX_EXPANSIONS or any(not x or len(x) > 512 for x in self.expansions):
+            raise SearchRequestError("E_BAD_QUERY", f"at most {MAX_EXPANSIONS} expansions of 1..512 characters")
         self.kinds = tuple(k.upper() for k in self.kinds)
         if not self.kinds or any(k not in HYBRID_KINDS for k in self.kinds) or len(set(self.kinds)) != len(self.kinds):
             raise SearchRequestError("E_BAD_KIND", f"hybrid kinds must be distinct values of {HYBRID_KINDS} (blocks "
@@ -556,6 +566,17 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
     q = embed.embed_dense(req.query)
     check_encoder(meta, q)
     timings["embed"] = round((time.perf_counter() - t0) * 1e3 - timings["vectors_meta"], 2)
+    # query expansions (the query in the other language, agent TR): their own BM25 and dense legs in the same RRF;
+    # the late stage keeps scoring the original query
+    xq: list[tuple[str, QueryVector]] = []
+    for x in req.expansions:
+        if x.strip().lower() == req.query.strip().lower():
+            continue
+        t1 = time.perf_counter()
+        xv = embed.embed_dense(x)
+        check_encoder(meta, xv)
+        xq.append((x, xv))
+        timings[f"embed_x{len(xq)}"] = round((time.perf_counter() - t1) * 1e3, 2)
     rankings: dict[str, list[tuple[str, float]]] = {}
     bm25_hits: dict[str, Any] = {}
     dense_hits: dict[str, _Dense] = {}
@@ -587,6 +608,26 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
         rankings[f"dense:{kind}"] = [(d.key, d.score) for d in dense]
         totals[kind] = {"bm25": int(bm.totals.get(kind, len(bm.hits))), "bm25_returned": len(bm.hits),
                         "dense_returned": len(dense)}
+        for n, (x, xv) in enumerate(xq, 1):                     # expansion legs
+            t1 = time.perf_counter()
+            bmx = search(client, SearchRequest(query=x, kinds=(kind,), filters=dict(req.filters), size=req.candidates,
+                                               include_duplicates=req.include_duplicates, exact=req.exact), prefix)
+            warnings += bmx.warnings
+            lst = []
+            for h in bmx.hits:
+                bm25_hits.setdefault(h.id, h)
+                kind_of.setdefault(h.id, kind)
+                lst.append((h.id, h.score))
+            rankings[f"bm25:{kind}~x{n}"] = lst
+            resp = client.search(index=meta["alias"], body=knn_body(xv.vector, k, req.filters, UNIT_KINDS[kind],
+                                                                    EXCLUDED_UNIT_KINDS.get(kind, ())))
+            dx = dense_ranking(resp, kind, req.candidates, collapse_duplicates=not req.include_duplicates)
+            for d in dx:
+                dense_hits.setdefault(d.key, d)
+                kind_of.setdefault(d.key, kind)
+            rankings[f"dense:{kind}~x{n}"] = [(d.key, d.score) for d in dx]
+            timings[f"expansion_{kind.lower()}_x{n}"] = round((time.perf_counter() - t1) * 1e3, 2)
+            totals[kind][f"x{n}_returned"] = len(lst) + len(dx)
     bib_status, intent = bib_route_status(req)
     bib_stage: dict[str, Any] = {"status": bib_status, "cues": list(intent.cues), "weak_cues": list(intent.weak)}
     bib_info: dict[str, dict[str, Any]] = {}
@@ -709,6 +750,9 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                  "dense_rank": ranks[f"dense:{kind}"].get(key), "dense_score": scores[f"dense:{kind}"].get(key),
                  "fused_rank": fused_rank.get(key), "rrf_score": round(fused_score.get(key, 0.0), 8),
                  "rrf_k": req.rrf_k, "late_rank": None, "rerank_rank": None}
+        if xq:
+            trace["expansion_ranks"] = {f"{leg}~x{n}": ranks[f"{leg}:{kind}~x{n}"].get(key)
+                                        for n in range(1, len(xq) + 1) for leg in ("bm25", "dense")}
         if bib_status == "APPLIED" and kind == "PAGE":
             info = bib_info.get(key)
             trace["bib_rank"] = ranks["bib:PAGE"].get(key)
@@ -761,5 +805,10 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                                  "query_signature": q.signature, "dimension": q.dimension,
                                  "space_type": meta.get("space_type"), "encode_ms": q.encode_ms},
                        "late": late_stage, "bib_route": bib_stage, "visual_route": vis_stage,
+                       "expansion": {"texts": [x for x, _ in xq], "legs": [f"{leg}:{kind}~x{n}" for kind in req.kinds
+                                                                          for n in range(1, len(xq) + 1)
+                                                                          for leg in ("bm25", "dense")],
+                                     "fusion": "extra RRF legs of the expansions; the late stage scores the original "
+                                               "query"} if xq else "NOT_RUN",
                        "rerank": "NOT_RUN here (EDGE text reranker: rerank_text over rerank_candidate)"},
             "timings_ms": timings}

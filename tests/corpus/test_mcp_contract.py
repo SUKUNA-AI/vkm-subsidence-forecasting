@@ -47,7 +47,9 @@ READ_TOOLS = {"search_text", "search_hybrid", "retrieval_trace", "search_objects
               # topics (agent T) and duplicates (agent U)
               "find_topics", "get_topic", "similar_sections", "section_topics", "copies_of", "source_overlap",
               # parameter candidates (agent P)
-              "find_parameters", "parameter_summary"}
+              "find_parameters", "parameter_summary",
+              # term dictionary (agent TR)
+              "translate_term"}
 ADMIN_TOOLS = {"reprocess_source", "reprocess_page", "get_job", "cancel_job"}
 
 

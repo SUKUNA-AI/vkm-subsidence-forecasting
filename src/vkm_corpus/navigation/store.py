@@ -48,6 +48,10 @@ QUERY_FUNCTIONS: dict[str, str] = {
     "shared_formulas": "vkm_corpus.navigation.object_duplicates_query:shared_formulas",
     "find_parameters": "vkm_corpus.navigation.parameters_query:find_parameters",
     "parameter_summary": "vkm_corpus.navigation.parameters_query:parameter_summary",
+    # term dictionary (agent TR): RU ↔ EN (DE) equivalents, synonyms, the other-language wording of a query
+    "translate_term": "vkm_corpus.navigation.term_dictionary_query:translate_term",
+    "synonyms": "vkm_corpus.navigation.term_dictionary_query:synonyms",
+    "translate_query": "vkm_corpus.navigation.term_dictionary_query:translate_query",
 }
 
 

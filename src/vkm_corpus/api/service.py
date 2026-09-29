@@ -450,17 +450,24 @@ class ApiService:
     def search_hybrid(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
                       candidates: int = 100, include_duplicates: bool = False, exact: bool = False, *,
                       late: bool | None = None, late_candidates: int = 100,
-                      bib_route: bool | None = None, visual_route: bool | None = None) -> Result:
+                      bib_route: bool | None = None, visual_route: bool | None = None,
+                      translate: bool | None = None) -> Result:
         """BM25 + dense k-NN fused by RRF, optionally re-scored by late interaction (``vkm_corpus.search.hybrid``);
         hits are hydrated from the canon exactly as in :meth:`search` and carry the per-stage trace. Without the query
         encoder, the vectors build or (with late) the token store the answer is DEPENDENCY_UNAVAILABLE — never BM25
-        or RRF results in disguise."""
+        or RRF results in disguise. ``translate`` adds the query in the other language (NAV term dictionary) as
+        extra RRF legs (None → :meth:`_hybrid_translate_default`); without the dictionary the search runs without them
+        and says so (a warning when the flag was asked for)."""
         backend = _require(self.deps.hybrid, "hybrid search", "hybrid")
         offset = int(cursor) if cursor and cursor.isdigit() else 0
+        use_translation = self._hybrid_translate_default(late) if translate is None else bool(translate)
+        expansions, translation = self._query_translation(query) if use_translation else ([], None)
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
                    "candidates": candidates, "include_duplicates": include_duplicates, "exact": exact,
                    "late": late, "late_candidates": late_candidates, "bib_route": bib_route,
                    "visual_route": visual_route}
+        if expansions:
+            request["expansions"] = tuple(expansions)
         response = backend.search(request)
         stages = response.get("stages") or {}
         dense = stages.get("dense") or {}
@@ -472,6 +479,11 @@ class ApiService:
                                                "timings_ms", "late", "late_candidates", "route")}
         record.update({"kinds": list(kinds), "query_sha256": sha256_text(query),
                        "scores_are": "rank-fusion signals of a projection, not evidence"})
+        if use_translation:
+            record["translation"] = translation
+            if translate and translation.get("status") == "UNAVAILABLE":
+                warnings.append(ApiWarning(code="TRANSLATION_UNAVAILABLE",
+                                           message=str(translation.get("reason"))[:200]))
         envelope = Envelope(object_id=f"hybrid-{sha256_text(query)[:16]}", object_kind="SEARCH_RESULT",
                             review_status="NOT_APPLICABLE", layer="SERVICE", payload_form="NORMALIZED",
                             provenance=Provenance(model_id=dense.get("model_key"), model_revision=None),
@@ -1014,10 +1026,64 @@ class ApiService:
         data, snap = self._nav_run(lambda nav: nav.run("parameter_summary", property, material=material))
         return self._nav_result("NAV_PARAMETER_SUMMARY", f"parameter_summary:{property[:40]}", data, snap)
 
+    # ------------------------------------------------------------------ term dictionary (agent TR)
+    _TRANSLATE_LANGS = frozenset({"ru", "en", "de"})
+    # hybrid ``translate`` when the request does not say (TERM_DICTIONARY_V1, benchmarks/term_dictionary_v1): on with
+    # the late stage — the measured configuration (nDCG@10 and R@50 not worse on V and P); off when the late stage does
+    # not run (exploratory: the extra legs then dilute same-language queries). VKM_HYBRID_TRANSLATE_DEFAULT (1/0)
+    # overrides the constant without a rebuild.
+    HYBRID_TRANSLATE_DEFAULT = True
+
+    def _hybrid_translate_default(self, late: bool | None) -> bool:
+        import os
+
+        raw = os.environ.get("VKM_HYBRID_TRANSLATE_DEFAULT", "").strip().lower()
+        on = {"1": True, "true": True, "on": True, "0": False, "false": False, "off": False}.get(
+            raw, self.HYBRID_TRANSLATE_DEFAULT)
+        if not on:
+            return False
+        if late is None:                                      # the backend's late default (VKM_HYBRID_LATE_DEFAULT)
+            late = getattr(self.deps.hybrid, "late_default", None)
+        if late is None:
+            from vkm_corpus.search.hybrid import LATE_DEFAULT
+
+            late = LATE_DEFAULT
+        return bool(late)
+
+    def nav_translate(self, term: str, target: str | None = None, limit: int = 10) -> Result:
+        """Equivalents of a term in the other languages, its synonyms and abbreviations (NAV ``term_translations``:
+        corpus evidence per pair, seed rows REVIEWED_BY_AGENT); a phrase without a pair is translated part by part."""
+        if not term or not term.strip() or len(term) > 200:
+            raise ApiFailure("INVALID_ARGUMENT", "term is 1..200 characters")
+        if target is not None and target not in self._TRANSLATE_LANGS:
+            raise ApiFailure("INVALID_ARGUMENT", f"target is one of {sorted(self._TRANSLATE_LANGS)}")
+        data, snap = self._nav_run(lambda nav: nav.run("translate_term", term, target=target, limit=limit))
+        return self._nav_result("NAV_TRANSLATION", f"translate:{term[:60]}", data, snap)
+
+    def _query_translation(self, query: str) -> tuple[list[str], dict[str, Any]]:
+        """The query in the other language for the hybrid ``translate`` flag: (expansions, what happened)."""
+        nav = self.deps.nav
+        if nav is None:
+            return [], {"status": "UNAVAILABLE", "reason": "the navigation layer is not configured"}
+        try:
+            data = nav.run("translate_query", query)
+        except Exception as exc:  # noqa: BLE001 - NavUnavailable, a build without term_translations …
+            return [], {"status": "UNAVAILABLE", "reason": f"term dictionary: {type(exc).__name__}"}
+        data = data if isinstance(data, dict) else {}
+        text = data.get("translation")
+        info = {"status": "APPLIED" if text else "NOT_COVERED", "text": text,
+                "source_language": data.get("source_language"), "target_language": data.get("target_language"),
+                "coverage": data.get("coverage"),
+                "terms": [{k: x.get(k) for k in ("span", "translation", "score", "pair_id")}
+                          for x in (data.get("terms") or [])[:8]],
+                "note": "derived navigation (AUTO_EXTRACTED_UNREVIEWED): query expansion, not evidence"}
+        return ([text] if text else []), info
+    # ------------------------------------------------------------------ end term dictionary (agent TR)
+
     # ------------------------------------------------------------------ topic dossier (navigation + catalogues)
     def reconstruct_topic(self, query: str, *, budget_chars: int = 12_000, source_ids: list[str] | None = None,
                           max_sources: int = 10, max_sections: int = 12, max_formulas: int = 10,
-                          paraphrases: list[str] | None = None) -> Result:
+                          paraphrases: list[str] | None = None, translate: bool | None = None) -> Result:
         """«От А до Я» on a topic in one call: ranked NAV sections in two tiers (the VKM core and the rest of the
         corpus; hybrid search over ≤ 5 formulations fused by RRF + titles), formulas, figures and tables near the
         hits, the concept, sources with provenance and CITES, the PUBLIC catalogues (processes with evidence records,
@@ -1047,7 +1113,9 @@ class ApiService:
         dossier = builder.build(topic.TopicRequest(query=query, budget_chars=int(budget_chars),
                                                    source_ids=tuple(sources), max_sources=max_sources,
                                                    max_sections=max_sections, max_formulas=max_formulas,
-                                                   paraphrases=tuple(paraphrases)))
+                                                   paraphrases=tuple(paraphrases),
+                                                   translate=topic.TRANSLATE_DEFAULT if translate is None
+                                                   else bool(translate)))
         proj = dossier.projection or {}
         built_from = proj.get("built_from_snapshot_id")
         envelope = Envelope(

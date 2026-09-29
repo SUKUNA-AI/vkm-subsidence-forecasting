@@ -75,8 +75,8 @@ def run(client, **kw):
 def test_all_read_tools_are_called_with_harvested_ids():
     client = FakeClient(page_size=10)                       # four pages of tools: pagination is followed
     rep = run(client)
-    assert rep["verdict"] == "PASS" and rep["tools_listed"] == 38 and rep["missing_tools"] == []
-    assert rep["summary"] == {"PASS": 38, "WARN": 0, "FAIL": 0, "SKIP": 0} and rep["not_called"] == []
+    assert rep["verdict"] == "PASS" and rep["tools_listed"] == 39 and rep["missing_tools"] == []
+    assert rep["summary"] == {"PASS": 39, "WARN": 0, "FAIL": 0, "SKIP": 0} and rep["not_called"] == []
     args = {}
     for name, a in client.calls:
         args.setdefault(name, a)
@@ -133,7 +133,7 @@ def test_dry_run_plans_every_expected_tool():
     with redirect_stdout(buf):
         assert SMOKE.main(["--dry-run"]) == 0
     out = json.loads(buf.getvalue())
-    assert out["planned_tools"] == sorted(SMOKE.EXPECTED_TOOLS) and out["expected"] == 38
+    assert out["planned_tools"] == sorted(SMOKE.EXPECTED_TOOLS) and out["expected"] == 39
 
 
 def test_expected_tools_match_the_read_server():
