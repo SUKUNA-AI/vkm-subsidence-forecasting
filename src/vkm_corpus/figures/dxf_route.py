@@ -57,28 +57,35 @@ def _dense(e, tol=0.002):
         return None
 
 
-def _spline_vertices(e, cp: np.ndarray) -> np.ndarray:
-    """Data-bearing points of a SPLINE: a cubic spline in Bezier form (interior knots of multiplicity 3, as
-    PDFIMPORT writes a chain of PDF curve segments) passes through every third control point — the segment joints;
-    one segment gives its two end points; any other spline is flattened (its points are then samples of the drawn
-    curve, not plotted data)."""
+def _spline_vertices(e, cp: np.ndarray) -> tuple[np.ndarray, bool]:
+    """Data-bearing points of a SPLINE and whether the spline is a refit.
+
+    PDFIMPORT writes one PDF curve segment as a 4-control-point spline; its end points are vertices of the PDF path
+    (sweep of 320 figures: 99.96 % within 0.15 pt of a PDF vertex). A cubic in Bezier form (interior knots of
+    multiplicity 3) passes through every third control point, the segment joints (not seen in the sweep). Any other
+    spline refits a chain of PDF segments: a cubic with double knots whose knot points fall on a PDF vertex in only
+    49 % of the cases (3,139 knots in 49 figures; the others subdivide one segment). Only its end points are kept
+    (95.9 % on a PDF vertex): the interior vertices cannot be told apart in the DXF, and the path is marked as a
+    refit so that its series says so. Samples of the drawn curve are never returned as vertices."""
     deg = int(e.dxf.get("degree", 3) or 3)
     n = len(cp)
-    if deg == 3 and n >= 4 and (n - 1) % 3 == 0:
-        if n == 4:
-            return np.array([cp[0], cp[-1]])
+    if deg == 3 and n == 4:
+        return np.array([cp[0], cp[-1]]), False
+    if deg == 3 and n > 4 and (n - 1) % 3 == 0:
         knots = list(e.knots)
         interior = knots[4:-4] if len(knots) == n + 4 else []
         if interior and all(interior[i] == interior[i + 1] == interior[i + 2] for i in range(0, len(interior), 3)):
-            return cp[::3].copy()
+            return cp[::3].copy(), False
     dense = _dense(e)
-    return dense if dense is not None and len(dense) >= 2 else np.array([cp[0], cp[-1]])
+    if dense is not None and len(dense) >= 2:
+        return np.array([dense[0], dense[-1]]), True
+    return np.array([cp[0], cp[-1]]), True
 
 
 def load_dxf(dxf_path) -> tuple[list[Text], list[Path]]:
     """MTEXT/TEXT → :class:`Text` (centre from the attachment point and an estimated width); LWPOLYLINE, LINE,
-    SPLINE (Bezier piece: its end control points), ARC (end points; PDFIMPORT writes nearly straight Bezier pieces as
-    arcs of huge radius), SOLID/HATCH (fills) → :class:`Path`."""
+    SPLINE (see :func:`_spline_vertices`), ARC (end points; PDFIMPORT writes nearly straight Bezier pieces as arcs of
+    huge radius), CIRCLE (markers), SOLID/HATCH (fills) → :class:`Path`."""
     import ezdxf
     from ezdxf import path as ezpath
 
@@ -129,8 +136,9 @@ def load_dxf(dxf_path) -> tuple[list[Text], list[Path]]:
             elif t == "SPLINE":
                 cp = np.array([p[:2] for p in e.control_points], dtype=float)
                 if len(cp) >= 2:
-                    paths.append(Path(_spline_vertices(e, cp), col, lw, "BEZ", dense=_dense(e),
-                                      origin=f"SPLINE#{handle}"))
+                    pts, refit = _spline_vertices(e, cp)
+                    paths.append(Path(pts, col, lw, "BEZ", dense=_dense(e), origin=f"SPLINE#{handle}",
+                                      extra={"spline_refit": True} if refit else {}))
             elif t == "ARC":
                 s0, s1 = e.start_point, e.end_point
                 dense = None if e.dxf.radius > 50 else _dense(e)

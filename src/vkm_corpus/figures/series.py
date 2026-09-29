@@ -153,11 +153,16 @@ def extract_series(paths: list[Path], texts: list[Text], box, min_chain_frac: fl
             labels = [lab for k2, labs in legend.items() if k2[0] == key[0] and k2[2] == key[2] for lab in labs]
         # one legend entry names one curve: several chains of one style (a monochrome drawing) stay unlabelled
         label = labels[0] if len(set(labels)) == 1 and len(chains) == 1 else None
+        refits = [p.pts[[0, -1]] for p in ps if p.extra.get("spline_refit")]
         for ci, c in enumerate(sorted(chains, key=lambda c: -len(c))):
+            # pieces whose interior vertices the source did not keep (route B refit splines) that end on this chain
+            n_refit = sum(1 for ends in refits
+                          if min(np.hypot(*(c - ends[0]).T).min(), np.hypot(*(c - ends[1]).T).min()) <= tol)
             series.append({"style": key, "color": color_name(key[0] if key[0] != -1 else None), "lw": key[1],
                            "dashed": key[2], "label_raw": label, "legend_labels_same_style": sorted(set(labels)),
                            "chain_index": ci, "n_chains_in_style": len(chains),
-                           "pts": dedupe_consecutive(c, tol * 0.1), "kinds": sorted({p.kind for p in ps})})
+                           "pts": dedupe_consecutive(c, tol * 0.1), "kinds": sorted({p.kind for p in ps}),
+                           "spline_refit_pieces": n_refit})
     # marker series: ≥ 3 same-colour small shapes of similar size; the point is the shape's centre
     for colour, ms in marks.items():
         sizes = np.array([math.hypot(p.bbox[2] - p.bbox[0], p.bbox[3] - p.bbox[1]) for p in ms])

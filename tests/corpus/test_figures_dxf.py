@@ -78,6 +78,30 @@ def test_multi_segment_spline_keeps_its_joints(tmp_path):
     assert np.allclose(paths[0].pts, joints)
 
 
+def test_refit_spline_keeps_only_its_ends_and_marks_the_series(tmp_path):
+    """A cubic with a double interior knot (PDFIMPORT's refit of a chain): its knot point need not be a vertex of
+    the PDF path, and samples of the curve are not plotted data — only the ends are kept, the series is flagged."""
+    doc = ezdxf.new("R2018")
+    msp = doc.modelspace()
+    cps = [(1.0, 1.0), (1.5, 2.0), (2.0, 2.5), (3.0, 2.5), (3.5, 2.0), (4.0, 1.2)]
+    s = msp.add_open_spline(cps, degree=3, knots=[0, 0, 0, 0, 1, 1, 2, 2, 2, 2])
+    s.dxf.true_color = RED
+    _bez(msp, (4.0, 1.2), (4.5, 1.6), true_color=RED)       # a one-piece spline continues the curve
+    path = tmp_path / "refit.dxf"
+    doc.saveas(path)
+    _, paths = dxf_route.load_dxf(path)
+    refit = [p for p in paths if p.extra.get("spline_refit")]
+    assert len(refit) == 1 and np.allclose(refit[0].pts, [(1.0, 1.0), (4.0, 1.2)])
+    assert refit[0].dense is not None and len(refit[0].dense) > 2      # the drawn shape stays for rendering
+    from vkm_corpus.figures.series import extract_series
+
+    series, *_ = extract_series(paths, [], (0.5, 0.5, 5.0, 3.0))
+    assert len(series) == 1 and series[0]["spline_refit_pieces"] == 1
+    assert np.allclose(series[0]["pts"], [(1.0, 1.0), (4.0, 1.2), (4.5, 1.6)])
+    res = core.digitize([], paths, (0.5, 0.5, 5.0, 3.0), quantum=0.05 / 72)
+    assert "SPLINE_INTERIOR_NOT_RECOVERED" in res["series"][0]["flags"]
+
+
 def test_bylayer_colour_is_resolved(drawing):
     path, *_ = drawing
     texts, paths = dxf_route.load_dxf(path)

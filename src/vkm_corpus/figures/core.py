@@ -106,6 +106,8 @@ def digitize(texts: list[Text], paths: list[Path], region, quantum: float,
             flags.append("LEGEND_UNMATCHED")
         if s["n_chains_in_style"] > 1:
             flags.append("MULTI_CHAIN_STYLE")
+        if s.get("spline_refit_pieces"):
+            flags.append("SPLINE_INTERIOR_NOT_RECOVERED")
         for ax in (xa, ya):
             if ax is not None and ax.label_source == "LOCAL_OCR":
                 flags.append("LOCAL_OCR_CALIBRATION")
