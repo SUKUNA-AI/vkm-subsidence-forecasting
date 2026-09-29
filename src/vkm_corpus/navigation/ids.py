@@ -11,6 +11,8 @@ IDs are content-derived and stable across rebuilds of the same snapshot with the
 * ``TOP-<16 hex>`` — a topic of the topic tree: (rule version, level, sorted member section ids) — a rebuild with the
   same members gives the same id, any change of the membership a new one.
 * ``DCL-<16 hex>`` — a cluster of near-duplicate passages across sources: its sorted member unit ids.
+* ``OCL-<16 hex>`` — a cluster of repeated figures, tables or formulas across sources: the object type and its sorted
+  member object ids.
 * ``PRM-<16 hex>`` — a parameter-value candidate of the part ``parameters``: (anchor block/table/formula, locator
   — character offset or table cell, property key, value text).
 """
@@ -25,6 +27,7 @@ RULE_VERSIONS: dict[str, str] = {
     "sections": "sections_v1",
     "formulas": "formula_context_v1",
     "duplicates": "duplicates_v1",
+    "object_duplicates": "object_duplicates_v1",
     "concepts": "concepts_v1",
     "topics": "topics_v1",
     "parameters": "parameters_v1",
@@ -35,6 +38,7 @@ DATASETS: tuple[str, ...] = (
     "sections", "section_pages",
     "formula_context", "formula_symbols", "formula_refs", "formula_parameters",
     "dup_clusters", "dup_members", "source_overlap",
+    "object_dup_clusters", "object_dup_members", "formula_keys", "figure_hashes",
     "terms", "term_mentions", "term_edges",
     "section_aggregates", "section_vectors", "topics", "topic_members", "topic_edges",
     "parameter_candidates", "parameter_summary",
@@ -76,6 +80,10 @@ def topic_id(level: int, rule_version: str, section_ids: "list[str] | tuple[str,
 
 def dup_cluster_id(unit_ids: Iterable[str]) -> str:
     return "DCL-" + _h("vkm-nav-dup-cluster-v1", *sorted(set(unit_ids)))
+
+
+def object_dup_cluster_id(object_type: str, object_ids: Iterable[str]) -> str:
+    return "OCL-" + _h("vkm-nav-object-dup-cluster-v1", object_type, *sorted(set(object_ids)))
 
 
 def parameter_candidate_id(anchor_id: str, locator: str, property_key: str, value_text: str) -> str:

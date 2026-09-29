@@ -44,6 +44,8 @@ QUERY_FUNCTIONS: dict[str, str] = {
     "section_topics": "vkm_corpus.navigation.topics_query:section_topics",
     "copies_of": "vkm_corpus.navigation.duplicates_query:copies_of",
     "source_overlap": "vkm_corpus.navigation.duplicates_query:source_overlap",
+    "copies_of_object": "vkm_corpus.navigation.object_duplicates_query:copies_of_object",
+    "shared_formulas": "vkm_corpus.navigation.object_duplicates_query:shared_formulas",
     "find_parameters": "vkm_corpus.navigation.parameters_query:find_parameters",
     "parameter_summary": "vkm_corpus.navigation.parameters_query:parameter_summary",
 }
