@@ -25,17 +25,19 @@
 - Оглавления из файлов источников (закладки PDF, навигация EPUB, outline DjVu) снимаются на WORKSTATION (там лежат
   файлы PRIVATE). Результат — один JSON на снимок, публикуется в тот же каталог на CORE.
 - Граф — отдельная проекция `NAV` в Neo4j со своими метками и проверками. Слой DOCUMENT она не трогает, а к его
-  узлам (`Page`, `Block`, `Formula`, `BibliographyEntry`, `Source`, `Work`) цепляется по стабильным ID.
+  узлам (`Page`, `Block`, `Formula`, `Table`, `Figure`, `BibliographyEntry`, `Source`, `Work`) цепляется по стабильным
+  ID.
 - Поиск — индекс разделов в OpenSearch (BM25 по пути заголовков, терминам и центральным фразам) и векторы разделов.
 - MCP — инструменты чтения слоя (раздел 5).
 
-### Граф NAV в Neo4j (`nav-graph/1.0`)
+### Граф NAV в Neo4j (`nav-graph/1.1`)
 
 Код — `vkm_corpus.graph.nav_schema` (реестр), `nav_rows` (строки из Parquet), `nav` (загрузка и проверки),
 `nav_query` (пути и окрестности). Слой — `NAVIGATION` с меткой `NavigationLayer` и префиксом DDL `nav_`; зависит только
 от DOCUMENT. Каждый узел и каждое ребро несут `layer = 'NAV'`, `snapshot_id`, `rule_version` и `projection_run_id`
 (загрузка, которая их записала). Один узел `NavMeta` хранит manifest сборки, статус (`LOADING` / `COMPLETE` /
-`FAILED`), счётчики и итоги проверок.
+`FAILED`), счётчики и итоги проверок. Версия 1.1 (29.09, агент G2) добавила таблицы, значения параметров, словарь
+терминов и повторы рисунков, таблиц и формул.
 
 ![Схема графа: слои DOCUMENT и NAV](../diagrams/graph_schema.svg)
 
@@ -43,9 +45,12 @@
 |---|---|---|
 | `NavSection` | `section_id` | `sections` (+ поля `section_aggregates`, если есть) |
 | `FormulaSymbol` | `symbol_id` | строки `formula_symbols` с определением (символ живёт в пространстве источника) |
-| `ParameterCandidate` | `parameter_id` | `formula_parameters` |
-| `Term` | `term_id` | `terms`; ребра SAME_AS к невошедшему термину — свойство `same_as_refs` |
+| `ParameterCandidate` | `parameter_id` (`FPR-`) | `formula_parameters` |
+| `Term` | `term_id` | `terms`; ребра SAME_AS к невошедшему термину — свойство `same_as_refs`. Термин словаря §4, которого нет в `terms`, — тоже `Term`, с пометкой `dictionary_only = true` (лемма, ключ, языки, число пар; без `df_units`) |
 | `NavTopic` | `topic_id` | `topics` агента T, подпись — первые `label_terms` (часть пропускается, если файлов нет или колонки не опознаны) |
+| `NavTable` | `nav_table_id` (`TBL-`) | `table_structure` §10: номер, подпись (первые 240 знаков), размер, шапка, ориентация, уверенность, флаги, свойства и материалы. Ячейки и колонки в граф не идут — они в NAV DuckDB (`get_table_structured`) |
+| `ParameterValue` | `candidate_id` (`PRM-`) | `parameter_candidates` §8 (`parameters_v2`): свойство, материал, значение как напечатано и в СИ, масштаб, площадка, метод и локатор. Фрагмент текста `material_raw` в граф не идёт |
+| `ObjectDupGroup` | `cluster_id` (`OCL-`) | `object_dup_clusters` §9: тип объекта, вид группы, первичный объект и правило его выбора, источники и работы |
 
 | Ребро | Откуда → куда | Правило |
 |---|---|---|
@@ -55,13 +60,36 @@
 | `IN_SECTION` | `Formula` → `NavSection` | номер формулы, вид, число символов и ссылок — на ребре |
 | `DEFINED_FOR` | `FormulaSymbol` → `Formula` | определение и единица из «где …», блок-источник |
 | `NAV_REFERS_TO` / `NAV_BLOCK_REFERS_TO` | `Formula` / `Block` → `Formula` | текстовая ссылка «по формуле (3.2)», тип MENTION / SUBSTITUTION / DERIVATION_HINT |
-| `NEAR_FORMULA` | `ParameterCandidate` → `Formula` | кандидат значения рядом с формулой |
+| `NEAR_FORMULA` | `ParameterCandidate` → `Formula`; `ParameterValue` → `Formula` | кандидат значения рядом с формулой |
 | `CO_OCCURS` | `Term` — `Term` (одно ребро на пару) | NPMI, `n_units`, `n_sources`, примеры страниц |
 | `CONTAINS_TERM`, `SAME_TERM_AS` | `Term` → `Term` | лексическое вложение; перевод или аббревиатура в скобках |
 | `DEFINED_AS` | `Term` → `Block` | «X называется …», «под X понимается …» |
 | `MENTIONED_IN` | `Term` → `NavSection` | `mentions_top_v1`: окна раздела суммируются; пара остаётся, если раздел в топ-5 термина или термин в топ-20 раздела по tf-idf |
 | `SYMBOL_OF` | `Term` → `FormulaSymbol` | `symbol_of_v1`: ключ термина (морфология сборки) — всё определение, его начало или (≥ 2 слов) начинается в первых трёх словах; не больше двух на определение; одно общее слово — только целиком или затравка проекта |
 | `IN_TOPIC`, `RELATED_TOPIC` | `NavSection` → `NavTopic`; `NavTopic` — `NavTopic` | близость и косинус агента T |
+| `GRID_OF` | `NavTable` → `Table` | сетка таблицы канона (`parse_method`, `structure_ok`, `covers_region`) |
+| `TABLE_IN_SECTION` | `NavTable` → `NavSection` | раздел таблицы |
+| `TABULATES` | `NavTable` → `Term` | `property_term_v1`: таблица называет свойство колонкой значений, строкой значений или подписью, и у свойства есть термин. Одно ребро на пару (таблица, термин): `property_keys`, `n_columns`, `n_rows`, `in_caption` |
+| `IN_TABLE` | `ParameterValue` → `NavTable` | значение прочитано из сетки: `table_row`, `table_col` |
+| `IN_BLOCK` | `ParameterValue` → `Block` | значение в текстовом блоке: `char_start`, `char_end` |
+| `VALUE_IN_SECTION` | `ParameterValue` → `NavSection` | раздел значения |
+| `VALUE_OF` | `ParameterValue` → `Term` | `property_term_v1`: термин свойства значения |
+| `TRANSLATES_TO` | `Term` → `Term` | пара словаря TRANSLATION, от a к b в порядке языков ru, en, de |
+| `SYNONYM_OF` | `Term` — `Term` (от меньшего ID к большему) | пара SYNONYM |
+| `ABBREVIATION_OF` | `Term` (аббревиатура) → `Term` (полная форма) | пара ABBREVIATION |
+| `DUP_MEMBER_OF` | `Figure` / `Table` / `Formula` → `ObjectDupGroup` | член группы повторов: доказательство совпадения (`match`, `similarity`, расстояния изображений, вхождение ячеек), `is_primary`, `is_reference`, страница |
+
+Рёбра словаря — по одному на пару, ключ — `pair_id` (`TTR-`). На ребре: `methods`, `score` (ожидаемая точность),
+`status` (`AUTO_EXTRACTED_UNREVIEWED`; строки сидов — `REVIEWED_BY_AGENT`), `n_sources`, языки концов и до трёх
+страниц-примеров. Пара, у которой оба ключа дают один ID термина (один ключ в двух языках, на снимке — одна), не
+загружается. Пара словаря — навигация, а не факт.
+
+**Термин свойства** (`property_term_v1`). Свойство словаря параметров (§8) связывается с термином понятий (§4), если
+полный ключ лемм одной из его подписей совпадает с `lemma_key` термина. Подписи берутся по порядку: `label_ru`,
+`label_en`, синонимы (каждая сначала без пояснения в скобках), затем подпись из датасета. Частичных и вложенных
+совпадений нет. Без морфологии сборки сравниваются нормализованные формы (`property_term_surface_v1`). На снимке
+738eebee термин есть у 55 свойств из 58 (54 термина); без термина — `flexural_strength`, `loading_degree`,
+`standard_strength`.
 
 Рёбра NAV принадлежат NAV при любом направлении: их создаёт и удаляет только загрузчик. Пока они есть, пересборка
 DOCUMENT без `--cascade` отказывает (`E_CROSS_LAYER_LOSS`): `graph rebuild --cascade` (или `nav graph-drop --yes`)
@@ -75,12 +103,38 @@ DOCUMENT без `--cascade` отказывает (`E_CROSS_LAYER_LOSS`): `graph 
   строки без базы (`--canon-duckdb <файл>` — ещё и сверяет ID DOCUMENT с каноном), `--out` пишет полную квитанцию;
 - `vkm-corpus nav graph-verify --nav-dir …` — проверки без записи; `vkm-corpus nav graph-drop --yes` — удалить слой.
 
+Переход на `nav-graph/1.1` и откат. Новый образ API и `vkm-job` проверяет граф по реестру 1.1: пока граф не
+перезагружен, `nav graph-verify` (ночные проверки) даёт FAIL по N5. Поэтому `nav graph-load` запускается сразу после
+смены образа. Прежний загрузчик (1.0) не знает новых типов рёбер и не удалит их. Для отката сначала
+`nav graph-drop --yes` образом 1.1, затем `nav graph-load` прежним образом.
+
 Загрузка: сверка manifest (sha256, строки) → preflight P1–P7 → DDL → DOCUMENT должен быть READY и собран из того же
 снимка (иначе отказ; `--allow-snapshot-mismatch`) → `NavMeta = LOADING` → пачки UNWIND/MERGE по ID (узлы, затем
 рёбра) → удаление узлов и рёбер NAV, которые эта загрузка не записала (другой снимок или прежние правила) → проверки
-N1–N7 → `NavMeta = COMPLETE | FAILED` → квитанция `receipts/projections/neo4j-nav/<run>.json`. API и MCP отвечают по
+N1–N11 → `NavMeta = COMPLETE | FAILED` → квитанция `receipts/projections/neo4j-nav/<run>.json`. API и MCP отвечают по
 графу NAV только при `COMPLETE`, иначе 503. Сухой прогон по полной сборке снимка `snap-20260928T160616Z-5d669f09`:
 112 811 узлов и 2 207 135 рёбер (без тем), все ID DOCUMENT найдены в каноне (`receipts/nav_graph.json`).
+
+Сухой прогон `nav-graph/1.1` по выложенной сборке снимка `snap-20260928T193550Z-738eebee`
+([nav_graph_tables_dictionary.json](receipts/nav_graph_tables_dictionary.json)): 127 543 узла и 2 251 414 рёбер.
+Прежние типы совпадают с графом, загруженным 29.09 (111 922 и 2 203 152). Добавляется 15 621 узел:
+
+- `NavTable` — 3 391;
+- `ParameterValue` — 10 792;
+- `ObjectDupGroup` — 831;
+- `Term` только из словаря — 607.
+
+Добавляется 48 262 ребра:
+
+- `GRID_OF` — 3 391, `TABLE_IN_SECTION` — 3 377, `TABULATES` — 1 060;
+- `VALUE_IN_SECTION` — 10 741, `IN_TABLE` — 5 813, `IN_BLOCK` — 4 979, `NEAR_FORMULA` значений — 2, `VALUE_OF` — 10 564;
+- `TRANSLATES_TO` — 4 451, `SYNONYM_OF` — 1 357, `ABBREVIATION_OF` — 732;
+- `DUP_MEMBER_OF` — 1 795 (рисунков 782, таблиц 229, формул 784).
+
+Все ID DOCUMENT (таблицы, рисунки, блоки, формулы) найдены в каноне. Учёт закрыт по каждому датасету сборки.
+Датасеты, которые граф не проецирует (ячейки и колонки таблиц, ключи формул, хэши рисунков, дубликаты текста,
+векторы разделов, сводка параметров), учтены как пропущенные с названной причиной. Загрузка 29.09 шла 191 с на
+2,31 млн строк; новые части добавляют около 64 тыс. строк — оценка всей загрузки около 200 с.
 
 ## 2. Разделы (дерево документа)
 
@@ -201,6 +255,10 @@ N1–N7 → `NavMeta = COMPLETE | FAILED` → квитанция `receipts/proje
   - `synonyms(term)`;
   - `translate_query(text)` — запрос на другом языке: пары с оценкой ≥ 0,8, покрыто ≥ половины слов.
 - **Выдача:** API `GET /v1/nav/translate`, MCP `translate_term`.
+- **Граф NAV** (с `nav-graph/1.1`): рёбра `TRANSLATES_TO`, `SYNONYM_OF`, `ABBREVIATION_OF` между терминами.
+  Термины без строки в `terms` становятся узлами `Term` с пометкой `dictionary_only`. `concept_paths` ходит по ним в
+  семействе `dictionary` (по умолчанию включено вместе с остальными): «ВЗТ → водозащитная толща», «оседание →
+  subsidence».
 - **Поиск** (значения по умолчанию — по предрегистрированному измерению
   [TERM_DICTIONARY_V1](../../benchmarks/term_dictionary_v1/RESULTS.md)):
   - формулировка `translation` в `reconstruct_topic` — включена (`topic.TRANSLATE_DEFAULT`): полнота страниц @50 без
@@ -226,15 +284,19 @@ N1–N7 → `NavMeta = COMPLETE | FAILED` → квитанция `receipts/proje
 | `get_formula_context(formula_id)` | номер, раздел, вводная, «где…» с символами, ссылки на неё и из неё, параметры-кандидаты |
 | `find_formulas(concept \| symbol, source?)` | формулы по понятию (через определения) или символу внутри источника |
 | `explore_concept(term)` | соседние понятия (со счётчиками и примерами страниц), определения, разделы и формулы |
-| `concept_paths(term_a, term_b, max_len, limit, via)` | кратчайшие пути в графе NAV через термины, символы, формулы, разделы и темы; у каждого шага — ID страниц |
-| `graph_neighbourhood(node_id, depth, limit)` | соседи любого узла NAV или DOCUMENT по типам рёбер со счётчиками; `depth = 2` — соседи соседей |
+| `concept_paths(term_a, term_b, max_len, limit, via)` | кратчайшие пути в графе NAV через термины, символы, формулы, разделы, темы и пары словаря (`via`: `concepts`, `formulas`, `sections`, `topics`, `dictionary`); у каждого шага — ID страниц |
+| `graph_neighbourhood(node_id, depth, limit)` | соседи любого узла NAV или DOCUMENT по типам рёбер со счётчиками (с 1.1 — и таблиц `TBL-`, значений `PRM-`, групп повторов `OCL-`); `depth = 2` — соседи соседей |
 | `reconstruct_topic(query, budget_chars?, source_ids?, paraphrases?)` | досье темы «от А до Я» одним вызовом (ниже) |
 | `find_topics(terms, limit?, level?)` / `get_topic(topic_id)` | темы §7: поиск по фразам и карточка темы |
 | `similar_sections(section_id, k?, other_sources_only?)` / `section_topics(section_id)` | похожие разделы других книг; темы раздела |
 | `copies_of(ref)` / `source_overlap(source_id)` | дубликаты и перепечатки §9 |
 | `find_parameters(property?, material?, site?, scale?, source_id?)` / `parameter_summary(property, material?)` | параметры-кандидаты §8 |
 | `translate_term(term, target?, limit?)` | эквиваленты термина на других языках, синонимы и аббревиатуры словаря §4 с методами, оценкой и страницами-примерами |
-| `get_table_structured(table_id)` / `find_tables(property?, material?, source_id?, text?)` | структурированные таблицы §10 (функции `store`; инструменты MCP и API подключаются отдельно) |
+| `get_table_structured(table_id, max_rows?, max_chars?)` / `find_tables(property?, material?, source_id?, text?, limit?)` | структурированные таблицы §10: сетка таблицы по ID канона или `TBL-`; таблицы, которые называют свойство, материал или слова (API `GET /v1/nav/table/{id}`, `GET /v1/nav/tables`) |
+| `copies_of_object(object_id, limit?)` / `shared_formulas(ref, renamed?, limit?)` | повторы рисунков, таблиц и формул §9: группы объекта с первичной копией и доказательствами; где та же формула записана (по ID формулы или LaTeX) (API `GET /v1/nav/object_copies/{id}`, `GET /v1/nav/shared_formulas`) |
+
+Сборка без нужной части (например, без `table_structure` или `formula_keys`) отвечает на эти вызовы
+`DEPENDENCY_UNAVAILABLE` с названием датасета, а не внутренней ошибкой.
 
 ### Досье темы (`reconstruct_topic`, `GET/POST /v1/topic`)
 
@@ -273,6 +335,14 @@ Claude открывает только нужное (`get_section`, `get_formula
     канонического текста ≤ 200 знаков (только в ответе).
 - **Рисунки и таблицы** — подписи рисунков и заголовки таблиц на найденных страницах и соседних с ними (± 1 страница),
   если в них есть слова запроса. «Где…» формул рядом с найденными страницами попадает в раздел формул.
+- **Структурированные таблицы свойств** (с `topic_dossier_v3`, 29.09) — если тема называет свойство словаря параметров
+  («модуль деформации каменной соли», «плотность пород», «оседание земной поверхности»). Берётся первая формулировка,
+  которая его называет: запрос, перефраза, перевод. Таблицы ищутся через `find_tables` по свойству и, если тема
+  называет материал, по материалу; если таблиц с обоими нет — по одному свойству (`inputs.tables.material_dropped`).
+  Сначала идут таблицы на найденных страницах и рядом, затем таблицы ядра ВКМ. Показывается до шести, остальные
+  считаются в `budget.trimmed`. Приоритет в бюджете — между темами и источниками остального корпуса. Тема без свойства
+  этой части не получает (`механика закладки`). Сборка NAV без таблиц — предупреждение `TABLES_UNAVAILABLE`. Список
+  страниц досье от этой части не меняется.
 - **Формулы** — на страницах выбранных разделов, рядом с найденными страницами (слова запроса в «где…») и по смыслу
   символов (`find_formulas(concept=…)`; фраза целиком ценнее разрозненных слов): номер, раздел, «где…» (символ, смысл,
   единица), число ссылок, параметры-кандидаты (`AUTO_EXTRACTED_UNREVIEWED`). Длинный раздел (глава) поднимает только
@@ -299,7 +369,8 @@ Claude открывает только нужное (`get_section`, `get_formula
 - **Конверт** — `TOPIC_DOSSIER`, `layer = PROJECTION`, `origin = DERIVED`, `AUTO_EXTRACTED_UNREVIEWED`; проекция
   `navigation` (без NAV — `opensearch` или `catalogues`). Без поиска, понятий, тем или каталогов досье строится из
   оставшегося и предупреждает (`RETRIEVAL_UNAVAILABLE`, `RETRIEVAL_PARTIAL`, `CONCEPTS_UNAVAILABLE`,
-  `CATALOGUES_UNAVAILABLE`, `CITES_PENDING` …); без NAV, поиска и каталогов сразу — `DEPENDENCY_UNAVAILABLE`.
+  `CATALOGUES_UNAVAILABLE`, `TABLES_UNAVAILABLE`, `CITES_PENDING` …); без NAV, поиска и каталогов сразу —
+  `DEPENDENCY_UNAVAILABLE`.
 
 **Пакет каталогов.** `vkm-corpus catalogues pack --repo <PUBLIC> --out <каталог>` собирает все CSV из `catalogues/` и
 `evidence/` в один `catalogues.duckdb` (таблица на файл, ячейки как в CSV, без вывода типов) и `manifest.json` (коммит
@@ -317,17 +388,29 @@ PUBLIC, sha256 и строки каждого файла). `vkm-corpus catalogue
   - согласие методов (закладки против заголовков) в квитанции.
 - Формулы: доля найденных номеров и «где…»; ссылки указывают на существующие формулы своего источника.
 - Понятия: пороги NPMI; ручная выборка связей.
-- Граф (preflight по Parquet — P1–P7, после загрузки — N1–N7):
+- Граф (preflight по Parquet — P1–P7, после загрузки — N1–N11):
   - P1 уникальные ID; P2 родители есть, диапазоны страниц верны; P3 деревья без циклов; P4 у раздела ≥ 1 страницы;
-    P5 каждая строка датасета загружена, свёрнута или пропущена по названному правилу; P6 ссылки между датасетами
-    (WARN); P7 колонки тем опознаны (WARN);
+    P5 каждая строка каждого датасета сборки загружена, свёрнута или пропущена по названному правилу (датасеты, которые
+    граф не проецирует, — с причиной); P6 ссылки между датасетами: разделы, термины, разделы таблиц и значений,
+    таблицы значений без сетки, члены неизвестной группы повторов (WARN); P7 колонки тем опознаны (WARN);
   - N1 все ребра к узлам DOCUMENT указывают на существующие узлы (строки без конца — FAIL с примерами);
   - N2 слой DOCUMENT не изменён: счётчики меток и типов до и после равны и совпадают со счётчиками его сборки;
   - N3 деревья разделов и тем без циклов, один родитель; N4 у каждого `NavSection` есть `COVERS_PAGE`;
   - N5 число узлов и рёбер в графе равно числу строк по правилам проекции;
   - N6 метки и типы NAV не пересекаются с DOCUMENT (реестр и живой граф);
   - N7 у каждого узла и ребра NAV есть `layer = 'NAV'`, загруженный `snapshot_id`, `rule_version` и
-    `projection_run_id` последней загрузки (остатков прежних загрузок нет).
+    `projection_run_id` последней загрузки (остатков прежних загрузок нет);
+  - N8 словарь: терминов только из словаря столько, сколько по правилам; у каждого есть ребро словаря и нет рёбер
+    графа понятий; нет пары термина с самим собой;
+  - N9 таблицы: у каждой `NavTable` одно `GRID_OF` к той таблице канона, которую она называет, и не больше одного
+    раздела;
+  - N10 группы повторов: членов столько, сколько `n_members`, все — объекты типа группы; первичный объект — член с
+    `is_primary`; без первичного нет членов с `is_primary` (у группы с первичным их может быть несколько: копии в
+    первичном источнике);
+  - N11 значения параметров: не больше одного ребра таблицы, формулы, раздела и свойства; `IN_TABLE` — только у
+    значений из таблиц и к их таблице, `NEAR_FORMULA` — только у значений рядом с формулой.
+
+  N8–N11 получают SKIP, если в сборке нет их части.
 - Темы: каждый раздел с вектором входит ровно в одну тему каждого уровня; члены родителя — объединение детей;
   повторная сборка даёт те же таблицы и ID; ручная проверка тем по выборке и по пяти предметам.
 
@@ -450,6 +533,10 @@ min/max напечатанного в СИ, площадки, методы и с
 
 Свойство и материал задаются ключом, названием, символом или синонимом; словоформы приводятся к лемме, как в части
 понятий.
+
+**Граф NAV** (с `nav-graph/1.1`): каждый кандидат — узел `ParameterValue` (`PRM-`) с локатором (`IN_TABLE` к сетке
+таблицы, `IN_BLOCK` к текстовому блоку, `NEAR_FORMULA` к формуле), разделом (`VALUE_IN_SECTION`) и термином свойства
+(`VALUE_OF`, правило `property_term_v1`, §1). Из соседей термина видно, где напечатаны значения свойства.
 
 **Сборка:** `vkm-corpus nav build --part tables,parameters --inputs <каталог прежней сборки NAV>`. Модели не нужны;
 весь канон собирается примерно за минуту (таблицы ~30 с, параметры ~25 с).
@@ -588,6 +675,12 @@ cuGraph, без GPU — numpy. Файлы CPU и GPU совпадают поба
 - `shared_formulas(con, ref, renamed=True, limit=50)` — по ID формулы или LaTeX: где та же формула записана точно и в
   другой нотации, по работам от ранней к поздней.
 
+**Выдача** (агент G2, 29.09): API `GET /v1/nav/object_copies/{object_id}` и `GET /v1/nav/shared_formulas?ref=…`, MCP
+`copies_of_object` и `shared_formulas` (§5). ID проверяется по грамматике и по канону. Объект без повторов — пустой
+список (200). Формула без канонического ключа в `formula_keys` не сравнивается как LaTeX (`reason: NO_FORMULA_KEY`).
+В графе NAV группа — узел `ObjectDupGroup`, её члены — рёбра `DUP_MEMBER_OF` от рисунков, таблиц и формул DOCUMENT
+(§1).
+
 Снимок 738eebee ([nav_object_duplicates.json](receipts/nav_object_duplicates.json)):
 - 831 группа, 1 795 объектов;
 - рисунки — 382 группы: `SAME_WORK_COPY` 166, `REPRINT` 149, `REUSED_FIGURE` 46, `REDRAWN` 19, `BOILERPLATE` 2;
@@ -639,12 +732,17 @@ cuGraph, без GPU — numpy. Файлы CPU и GPU совпадают поба
 - Ничего не исправляется: потерянная запятая («218» среди «2,18») — `DECIMAL_POINT_SUSPECT`; несколько чисел в ячейке
   — `MULTI_VALUE`; потерянный верхний индекс степени — `POWER_SUPERSCRIPT_LOST`.
 
-**Запросы** (`tables_query.py`, зарегистрированы в `store.QUERY_FUNCTIONS`; инструменты MCP и API подключаются
-отдельно):
+**Запросы** (`tables_query.py`, зарегистрированы в `store.QUERY_FUNCTIONS`):
 - `get_table_structured(con, table_id, *, max_rows=200, max_chars=8000)` — таблица по ID канона или `TBL-…`: паспорт,
   колонки, строки с ролями и ячейками, markdown;
 - `find_tables(con, property=None, material=None, source_id=None, text=None, limit=20)` — таблицы, где колонка или
   строка называет свойство (ключ, название или символ), материал или слова запроса.
+
+**Выдача** (агент G2, 29.09): API `GET /v1/nav/table/{table_id}` (ID канона `…:t…` или `TBL-…`; `max_rows` 1–500,
+`max_chars` 200–60 000) и `GET /v1/nav/tables` (хотя бы один фильтр), MCP `get_table_structured` и `find_tables` (§5).
+Таблица без сетки в сборке — NOT_FOUND с подсказкой (`get_table` показывает таблицу канона). Досье темы показывает
+таблицы свойства, которое тема называет (§5). В графе NAV — узел `NavTable` с рёбрами `GRID_OF`, `TABLE_IN_SECTION`,
+`TABULATES`, а значения параметров, прочитанные из сетки, — `IN_TABLE` (§1).
 
 **Сборка:** `vkm-corpus nav build --part tables,parameters --inputs <каталог прежней сборки NAV>`. Только CPU: таблицы
 ~30 с, параметры ~25 с. Для склеенных слов нужен extra `navigation` (pymorphy3). Две сборки дают побайтно одинаковые

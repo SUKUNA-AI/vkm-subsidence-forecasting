@@ -140,7 +140,7 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 Ночные задания ([OPERATIONS.md §8](docs/corpus_platform/OPERATIONS.md)):
 - 02:00 CORE — манифест SHA-256 набора копии;
 - 02:30 EDGE — копия корня данных снимками с жёсткими ссылками и сверкой SHA-256;
-- 04:00 CORE — проверки (валидатор, C1–C16, N1–N7, поиск, MCP, векторы), досье 117 тем, topic_v1; утренняя сводка —
+- 04:00 CORE — проверки (валидатор, C1–C16, N1–N11, поиск, MCP, векторы), досье 117 тем, topic_v1; утренняя сводка —
   `receipts/nightly/<дата>/summary.md`.
 
 Секреты — только через `*_FILE`. Машинные пути, адреса и логины в отслеживаемые файлы не пишутся. Подробно:
@@ -258,7 +258,7 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 
 | Сервер | Где | Транспорт | Инструменты |
 |---|---|---|---|
-| `vkm-corpus` | CORE | streamable HTTP, токен | 39 инструментов чтения (группы ниже; `translate_term` — после развёртывания ветки агента TR) |
+| `vkm-corpus` | CORE | streamable HTTP, токен | 43 инструмента чтения (группы ниже; таблицы и повторы объектов — после развёртывания ветки агента G2) |
 | `vkm-corpus-admin` | CORE | HTTP, отдельный токен | переобработка plan-first: `reprocess_source`, `reprocess_page`, `get_job`, `cancel_job` |
 | `vkm-cad` 1.0 | WORKSTATION | stdio | 27 инструментов: AutoCAD / Civil 3D (§10) |
 | `vkm-drawio` | WORKSTATION | stdio | 8 инструментов: детерминированные схемы draw.io |
@@ -279,7 +279,9 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
   - `find_topics`, `get_topic`, `similar_sections`, `section_topics`;
   - `copies_of`, `source_overlap`;
   - `find_parameters`, `parameter_summary`;
-  - `translate_term` (словарь терминов RU ↔ EN, синонимы, аббревиатуры).
+  - `translate_term` (словарь терминов RU ↔ EN, синонимы, аббревиатуры);
+  - `get_table_structured`, `find_tables` (структурированные таблицы);
+  - `copies_of_object`, `shared_formulas` (повторы рисунков, таблиц и формул).
 - **Граф:** `concept_paths`, `graph_neighbourhood`.
 - **Досье:** `reconstruct_topic`.
 

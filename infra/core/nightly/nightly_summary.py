@@ -33,7 +33,7 @@ MARK = {PASS: "[ОК]", WARN: "[ВНИМ]", FAIL: "[СБОЙ]", SKIP: "[ПРОП
 COLOR = {PASS: "green", WARN: "yellow", FAIL: "red", SKIP: "grey"}
 OVERALL_RU = {"GREEN": "ЗЕЛЁНЫЙ", "YELLOW": "ЖЁЛТЫЙ", "RED": "КРАСНЫЙ"}
 REQUIRED_SERVICES = ("neo4j", "opensearch", "api", "mcp", "rx580-retrieval")
-EXPECTED_MCP_TOOLS = 39
+EXPECTED_MCP_TOOLS = 43
 DISK_FAIL_PCT, DISK_FAIL_BYTES = 10.0, 30 * 10**9
 DISK_WARN_PCT, DISK_WARN_BYTES = 20.0, 60 * 10**9
 BACKUP_WARN_H, BACKUP_FAIL_H = 26.0, 36.0
@@ -192,7 +192,7 @@ def skipped(run: Run, name: str, why: str) -> dict[str, Any]:
 
 TITLES = {
     "containers": "Контейнеры vkm-core", "disk": "Диск CORE", "canon": "Снимок: валидатор",
-    "duckdb": "DuckDB", "graph": "Граф DOCUMENT C1–C16", "nav": "Граф NAV N1–N7", "search": "Поиск BM25 (smoke)",
+    "duckdb": "DuckDB", "graph": "Граф DOCUMENT C1–C16", "nav": "Граф NAV N1–N11", "search": "Поиск BM25 (smoke)",
     "hybrid": "Гибрид + late (smoke)", "vectors": "Векторы: единицы = dense = late", "mcp": "MCP: инструменты чтения",
     "dossiers": "Досье 117 тем", "topic_v1": "topic_v1 (hybrid_late)", "backup": "Копия на EDGE",
 }

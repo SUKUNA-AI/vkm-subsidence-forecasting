@@ -20,23 +20,56 @@ parquet rows» is checked per rule, never assumed. Projection rules:
   (``symbol_of_surface_v1``). Links between books go through terms, never through bare symbols;
 * formula symbols — only rows with a definition («где σ — …») become ``DEFINED_FOR`` edges and ``FormulaSymbol`` nodes
   (a symbol lives in the space of its source); bare occurrences stay in the NAV DuckDB (``find_formulas``);
-* ``SAME_AS`` term edges to a term that was not kept are folded into ``Term.same_as_refs``.
+* ``SAME_AS`` term edges to a term that was not kept are folded into ``Term.same_as_refs``;
+* structured tables (``table_structure``) — one ``NavTable`` per table: ``GRID_OF`` its canonical ``Table``,
+  ``TABLE_IN_SECTION`` its section, ``TABULATES`` the term of every property its columns, rows or caption name (one
+  edge per term: ``property_keys``, value columns, value rows, caption); cells and columns stay in the NAV DuckDB
+  (``get_table_structured``); the caption is cut to ``CAPTION_CHARS``;
+* parameter candidates (``parameter_candidates``, ``parameters_v2``) — one ``ParameterValue`` per candidate with its
+  locator: ``IN_TABLE`` (a value read from a structured grid: row, column), ``IN_BLOCK`` (the text block, character
+  span), ``NEAR_FORMULA`` (a value next to a formula), ``VALUE_IN_SECTION``, and ``VALUE_OF`` the term of its property;
+* property terms (``property_term_v1``) — a property of the parameters vocabulary is linked to the term whose lemma key
+  (the builder's morphology) is the whole key of its label (label_ru, label_en, synonyms, parentheses dropped first;
+  then the dataset's label): a clean key or nothing; without that morphology normalised surface forms are compared
+  (``property_term_surface_v1``);
+* term dictionary (``term_translations``) — one edge per pair, keyed by ``pair_id``: ``TRANSLATES_TO`` (a → b in the
+  language order ru, en, de), ``SYNONYM_OF`` (smaller → larger id), ``ABBREVIATION_OF`` (abbreviation → full form),
+  with methods, score, status and up to three example pages; a pair whose two lemma keys give one term id is skipped;
+  a term id that ``terms`` does not hold becomes a ``Term`` node with ``dictionary_only = true``;
+* object duplicates (``object_dup_clusters``, ``object_dup_members``) — one ``ObjectDupGroup`` per group and one
+  ``DUP_MEMBER_OF`` edge per member (Figure, Table or Formula → group) with the match evidence and ``is_primary``;
+* every other dataset of the build is accounted for as not projected, with the reason (``NOT_PROJECTED``).
 """
 from __future__ import annotations
 
 import hashlib
 import json
 import math
+import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Iterator
+from typing import Any, Callable, Iterable, Iterator
 
 from vkm_corpus.graph import nav_schema as N
 from vkm_corpus.graph.common import ProjectionError, normalize_value, sha256_file
 
 MANIFEST_FORMAT = "vkm-nav-manifest-v1"
 TOPIC_DATASETS = ("topics", "topic_members", "topic_edges", "section_aggregates")
+# datasets the graph does not project: every row is accounted for as skipped with this reason (P5)
+NOT_PROJECTED: dict[str, str] = {
+    "table_cells": "cells stay in the NAV DuckDB (get_table_structured)",
+    "parameter_summary": "per-property counts stay in the NAV DuckDB (parameter_summary)",
+    "formula_keys": "canonical formula keys stay in the NAV DuckDB (shared_formulas)",
+    "figure_hashes": "image hashes: a cache of the object_duplicates build",
+    "dup_clusters": "text duplicates stay in the NAV DuckDB (copies_of)",
+    "dup_members": "text duplicates stay in the NAV DuckDB (copies_of)",
+    "source_overlap": "source overlaps stay in the NAV DuckDB (source_overlap)",
+    "section_vectors": "section vectors stay in the NAV DuckDB (similar_sections)",
+}
+# row roles of a structured table that carry values (vkm_corpus.navigation.tables.VALUE_ROWS; a test keeps them equal)
+TABLE_VALUE_ROWS: tuple[str, ...] = ("DATA", "STAT_MAX", "STAT_MEAN", "STAT_MEDIAN", "STAT_MIN")
+_LANG_RANK = "CASE {c} WHEN 'ru' THEN 0 WHEN 'en' THEN 1 WHEN 'de' THEN 2 ELSE 9 END"
 
 # column roles of agent T's datasets (vkm_corpus.navigation.topics: topics, topic_members, topic_edges,
 # section_aggregates); alternative names are tolerated, unknown layouts are skipped with the reason
@@ -88,7 +121,21 @@ class ProjectionOptions:
                 "symbol_of": {"rule": N.RULE_SYMBOL_OF, "fallback": N.RULE_SYMBOL_OF_SURFACE,
                               "morphology": self.symbol_morphology},
                 "formula_symbols": "rows with a definition only",
-                "same_as_unkept": "folded into Term.same_as_refs"}
+                "same_as_unkept": "folded into Term.same_as_refs",
+                "property_term": {"rule": N.RULE_PROPERTY_TERM, "fallback": N.RULE_PROPERTY_TERM_SURFACE,
+                                  "morphology": self.symbol_morphology,
+                                  "labels": "label_ru, label_en, synonyms of the parameters vocabulary (parentheses "
+                                            "dropped first), then the dataset's property_label: the first whole "
+                                            "lemma key that is a term"},
+                "tables": {"caption_chars": N.CAPTION_CHARS, "cells_and_columns": "not projected (NAV DuckDB)",
+                           "tabulates": "one edge per (table, term): property keys of value columns, value rows "
+                                        "and the caption"},
+                "dictionary": {"TRANSLATION": "TRANSLATES_TO a → b (language order ru, en, de)",
+                               "SYNONYM": "SYNONYM_OF smaller → larger term id",
+                               "ABBREVIATION": "ABBREVIATION_OF abbreviation → full form",
+                               "key": "pair_id", "self_pair": "skipped (one term id on both sides)",
+                               "missing_terms": "Term nodes with dictionary_only = true"},
+                "object_duplicates": "one DUP_MEMBER_OF edge per member row (Figure, Table, Formula → group)"}
 
 
 def _clean(value: Any) -> Any:
@@ -139,7 +186,9 @@ class NavInput:
             self.columns[name] = {r[0] for r in self.con.execute(f'DESCRIBE "{name}"').fetchall()}
         self.topic_map, self.topic_problems = self._topic_mapping()
         self.symbol_of_info: dict[str, Any] = {}
+        self.property_term_info: dict[str, Any] = {}
         self._derived: set[str] = set()
+        self._term_index: dict[str, Any] | None = None
 
     # ------------------------------------------------------------------ opening
     @classmethod
@@ -273,25 +322,46 @@ class NavInput:
             mapping[ds] = found
         return mapping, problems
 
-    # ------------------------------------------------------------------ derived tables
-    def ensure_derived(self) -> None:
-        if "x_symbol_of" in self._derived or not self.has("formula_symbols", "terms"):
-            return
-        import pyarrow as pa
+    def column_list(self, dataset: str, columns: Iterable[str], alias: str = "") -> str:
+        """SELECT list of ``columns`` of a dataset; a column the dataset lacks is NULL (older or partial builds)."""
+        have = self.columns.get(dataset, set())
+        prefix = f"{alias}." if alias else ""
+        return ", ".join(f'{prefix}"{c}" AS "{c}"' if c in have else f'NULL AS "{c}"' for c in columns)
 
-        rows, info = derive_symbol_of(self)
-        table = pa.table({
-            "term_id": pa.array([r["term_id"] for r in rows], pa.string()),
-            "symbol_id": pa.array([r["symbol_id"] for r in rows], pa.string()),
-            "n_formulas": pa.array([r["n_formulas"] for r in rows], pa.int32()),
-            "match": pa.array([r["match"] for r in rows], pa.string()),
-            "morphology": pa.array([r["morphology"] for r in rows], pa.string()),
-            "rule_version": pa.array([r["rule_version"] for r in rows], pa.string())})
-        self.con.register("x_symbol_of_in", table)
-        self.con.execute("CREATE OR REPLACE TABLE x_symbol_of AS SELECT * FROM x_symbol_of_in")
-        self.con.unregister("x_symbol_of_in")
-        self._derived.add("x_symbol_of")
-        self.symbol_of_info = info
+    # ------------------------------------------------------------------ derived tables
+    def _register(self, name: str, table: Any) -> None:
+        self.con.register(f"{name}_in", table)
+        self.con.execute(f"CREATE OR REPLACE TABLE {name} AS SELECT * FROM {name}_in")
+        self.con.unregister(f"{name}_in")
+        self._derived.add(name)
+
+    def ensure_derived(self) -> None:
+        if "x_symbol_of" not in self._derived and self.has("formula_symbols", "terms"):
+            import pyarrow as pa
+
+            rows, info = derive_symbol_of(self)
+            self._register("x_symbol_of", pa.table({
+                "term_id": pa.array([r["term_id"] for r in rows], pa.string()),
+                "symbol_id": pa.array([r["symbol_id"] for r in rows], pa.string()),
+                "n_formulas": pa.array([r["n_formulas"] for r in rows], pa.int32()),
+                "match": pa.array([r["match"] for r in rows], pa.string()),
+                "morphology": pa.array([r["morphology"] for r in rows], pa.string()),
+                "rule_version": pa.array([r["rule_version"] for r in rows], pa.string())}))
+            self.symbol_of_info = info
+        if "x_property_terms" not in self._derived and self.has("terms") and (
+                self.has("parameter_candidates") or self.has("table_structure")):
+            import pyarrow as pa
+
+            rows, info = derive_property_terms(self)
+            self._register("x_property_terms", pa.table({
+                "property_key": pa.array([r["property_key"] for r in rows], pa.string()),
+                "term_id": pa.array([r["term_id"] for r in rows], pa.string()),
+                "label": pa.array([r["label"] for r in rows], pa.string()),
+                "basis": pa.array([r["basis"] for r in rows], pa.string()),
+                "match": pa.array([r["match"] for r in rows], pa.string()),
+                "morphology": pa.array([r["morphology"] for r in rows], pa.string()),
+                "rule_version": pa.array([r["rule_version"] for r in rows], pa.string())}))
+            self.property_term_info = info
 
 
 # ---------------------------------------------------------------- node SQL
@@ -358,6 +428,74 @@ _TERM_SQL = f"""
 _TERM_SQL_NO_EDGES = f"SELECT {_TERM_COLS} FROM terms t ORDER BY id"
 
 
+def _dictionary_pairs_sql() -> str:
+    """Pairs of the term dictionary that become edges (a known relation, two term ids, not one id on both sides)."""
+    relations = ", ".join(f"'{r}'" for r in N.DICTIONARY_RELATIONS)
+    return (f"SELECT * FROM term_translations WHERE pair_id IS NOT NULL AND term_id_a IS NOT NULL "
+            f"AND term_id_b IS NOT NULL AND term_id_a <> term_id_b AND relation IN ({relations})")
+
+
+def dictionary_terms_sql() -> str:
+    """Term nodes of the term dictionary that ``terms`` does not hold (``dictionary_only``): lemma, key and language
+    of the side seen first in the language order ru, en, de; all languages it appears in; its number of pairs."""
+    rank = _LANG_RANK.format(c="language")
+    return f"""
+        WITH p AS ({_dictionary_pairs_sql()}),
+             s AS (SELECT term_id_a AS term_id, lemma_a AS lemma, key_a AS lemma_key, lang_a AS language, pair_id,
+                          rule_version FROM p
+                   UNION ALL
+                   SELECT term_id_b, lemma_b, key_b, lang_b, pair_id, rule_version FROM p),
+             r AS (SELECT *, {rank} AS lang_rank FROM s WHERE term_id NOT IN (SELECT term_id FROM terms))
+        SELECT term_id AS id, term_id, first(lemma ORDER BY lang_rank, lemma_key, lemma) AS lemma,
+               first(lemma_key ORDER BY lang_rank, lemma_key, lemma) AS lemma_key,
+               first(language ORDER BY lang_rank, lemma_key, lemma) AS language,
+               list(DISTINCT language ORDER BY language) AS languages,
+               count(DISTINCT pair_id)::INTEGER AS n_dictionary_pairs, true AS dictionary_only,
+               min(rule_version) AS rule_version
+        FROM r GROUP BY term_id"""
+
+
+def _term_sql(inp: NavInput) -> str:
+    base = _TERM_SQL if "term_edges" in inp.datasets else _TERM_SQL_NO_EDGES
+    if "term_translations" not in inp.datasets:
+        return base
+    return (f"SELECT * FROM (SELECT * FROM ({base}) UNION ALL BY NAME SELECT * FROM ({dictionary_terms_sql()})) "
+            f"ORDER BY id")
+
+
+_TABLE_NODE_COLS = ("table_id", "source_id", "page_id", "page_index", "section_id", "table_label", "table_number",
+                    "n_rows", "n_cols", "n_cells", "n_filled_cells", "n_numeric_cells", "n_header_rows",
+                    "header_method", "n_bands", "n_blocks", "orientation", "recognition_method", "parse_method",
+                    "confidence", "structure_ok", "covers_region", "quality_flags", "property_keys", "materials",
+                    "caption_property_key", "rule_version")
+_VALUE_NODE_COLS = tuple(p for p in N.NODE_BY_LABEL["ParameterValue"].properties if p != "candidate_id") + (
+    "rule_version",)
+_GROUP_NODE_COLS = tuple(p for p in N.NODE_BY_LABEL["ObjectDupGroup"].properties if p != "cluster_id") + (
+    "rule_version",)
+
+
+def _table_sql(inp: NavInput) -> str:
+    cap = int(N.CAPTION_CHARS)
+    if "caption" in inp.columns.get("table_structure", set()):
+        caption = (f"CASE WHEN length(caption) > {cap} THEN left(caption, {cap - 1}) || '…' ELSE caption END "
+                   f"AS caption, CASE WHEN length(caption) > {cap} THEN true END AS caption_truncated")
+    else:
+        caption = "NULL AS caption, NULL AS caption_truncated"
+    cols = inp.column_list("table_structure", _TABLE_NODE_COLS)
+    return (f"SELECT nav_table_id AS id, nav_table_id, {caption}, {cols} "
+            f"FROM table_structure WHERE nav_table_id IS NOT NULL ORDER BY id")
+
+
+def _value_sql(inp: NavInput) -> str:
+    return (f"SELECT candidate_id AS id, candidate_id, {inp.column_list('parameter_candidates', _VALUE_NODE_COLS)} "
+            f"FROM parameter_candidates WHERE candidate_id IS NOT NULL ORDER BY id")
+
+
+def _group_sql(inp: NavInput) -> str:
+    return (f"SELECT cluster_id AS id, cluster_id, {inp.column_list('object_dup_clusters', _GROUP_NODE_COLS)} "
+            f"FROM object_dup_clusters WHERE cluster_id IS NOT NULL ORDER BY id")
+
+
 def node_sql(inp: NavInput, node: N.NavNodeType) -> str:
     if node.label == "NavSection":
         return _section_sql(inp)
@@ -366,9 +504,15 @@ def node_sql(inp: NavInput, node: N.NavNodeType) -> str:
     if node.label == "ParameterCandidate":
         return _PARAMETER_SQL
     if node.label == "Term":
-        return _TERM_SQL if "term_edges" in inp.datasets else _TERM_SQL_NO_EDGES
+        return _term_sql(inp)
     if node.label == "NavTopic":
         return _topic_sql(inp)
+    if node.label == "NavTable":
+        return _table_sql(inp)
+    if node.label == "ParameterValue":
+        return _value_sql(inp)
+    if node.label == "ObjectDupGroup":
+        return _group_sql(inp)
     raise KeyError(node.label)
 
 
@@ -454,6 +598,69 @@ def _rv(inp: NavInput, dataset: str, agg: bool = False) -> str:
     return "'topics'"
 
 
+def _tabulates_sql(inp: NavInput) -> str:
+    """One edge per (structured table, term of a property it names): the property keys behind it, the value columns
+    and value rows naming them, whether the caption names one."""
+    col = ("SELECT table_id, property_key, count(*)::INTEGER AS n FROM table_columns "
+           "WHERE property_key IS NOT NULL AND role = 'VALUE' GROUP BY 1, 2") if inp.has("table_columns") else \
+        "SELECT NULL::VARCHAR AS table_id, NULL::VARCHAR AS property_key, 0 AS n WHERE false"
+    roles = ", ".join(f"'{r}'" for r in TABLE_VALUE_ROWS)
+    rows = (f'SELECT table_id, row_property_key AS property_key, count(DISTINCT "row")::INTEGER AS n FROM table_cells '
+            f"WHERE row_property_key IS NOT NULL AND row_role IN ({roles}) GROUP BY 1, 2") if inp.has("table_cells") \
+        else "SELECT NULL::VARCHAR AS table_id, NULL::VARCHAR AS property_key, 0 AS n WHERE false"
+    return f"""
+        WITH tp AS (SELECT DISTINCT * FROM (
+                        SELECT nav_table_id, table_id, unnest(property_keys) AS property_key, caption_property_key
+                        FROM table_structure WHERE nav_table_id IS NOT NULL) WHERE property_key IS NOT NULL),
+             col AS ({col}),
+             rw AS ({rows})
+        SELECT tp.nav_table_id AS from_id, pt.term_id AS to_id, NULL AS key,
+               list(DISTINCT tp.property_key ORDER BY tp.property_key) AS property_keys,
+               sum(coalesce(col.n, 0))::INTEGER AS n_columns, sum(coalesce(rw.n, 0))::INTEGER AS n_rows,
+               coalesce(bool_or(tp.caption_property_key = tp.property_key), false) AS in_caption,
+               min(pt.match) AS match, min(pt.rule_version) AS rule_version
+        FROM tp JOIN x_property_terms pt ON pt.property_key = tp.property_key
+        LEFT JOIN col ON col.table_id = tp.table_id AND col.property_key = tp.property_key
+        LEFT JOIN rw ON rw.table_id = tp.table_id AND rw.property_key = tp.property_key
+        GROUP BY 1, 2 ORDER BY from_id, to_id"""
+
+
+def _dictionary_sql(inp: NavInput, relation: str) -> str:
+    """Edges of one relation of the term dictionary (see ``ProjectionOptions.rules()['dictionary']``)."""
+    if relation == "ABBREVIATION":                      # the builder puts the full form first (a)
+        f, t, fl, tl = "term_id_b", "term_id_a", "lang_b", "lang_a"
+    elif relation == "SYNONYM":                         # symmetric: stored once, from the smaller id
+        f, t = "least(term_id_a, term_id_b)", "greatest(term_id_a, term_id_b)"
+        fl, tl = ("CASE WHEN term_id_a <= term_id_b THEN lang_a ELSE lang_b END",
+                  "CASE WHEN term_id_a <= term_id_b THEN lang_b ELSE lang_a END")
+    else:                                               # TRANSLATION: a → b in the language order ru, en, de
+        f, t, fl, tl = "term_id_a", "term_id_b", "lang_a", "lang_b"
+    have = inp.columns.get("term_translations", set())
+    pages = ("list_sort(list_distinct([e.page_id FOR e IN evidence IF e.page_id IS NOT NULL]))[1:3]"
+             if "evidence" in have else "NULL")
+    extra = inp.column_list("term_translations", ("methods", "n_sources", "n_occurrences", "cosine", "score",
+                                                  "status", "rule_version"))
+    return f"""
+        SELECT {f} AS from_id, {t} AS to_id, pair_id AS key, pair_id, relation, {fl} AS from_language,
+               {tl} AS to_language, {pages} AS example_page_ids, {extra}
+        FROM ({_dictionary_pairs_sql()}) WHERE relation = '{relation}'
+        ORDER BY from_id, to_id, key"""
+
+
+def _dup_member_sql(inp: NavInput, object_type: str) -> str:
+    cols = inp.column_list("object_dup_members", N.REL_BY_NAME["DUP_MEMBER_OF:Figure"].properties + ("rule_version",),
+                           alias="m")
+    return f"""
+        SELECT m.object_id AS from_id, m.cluster_id AS to_id, NULL AS key, {cols}
+        FROM object_dup_members m
+        WHERE m.object_type = '{object_type}' AND m.object_id IS NOT NULL
+          AND m.cluster_id IN (SELECT cluster_id FROM object_dup_clusters)
+        ORDER BY from_id, to_id"""
+
+
+_DUP_OBJECT_TYPE = {f"DUP_MEMBER_OF:{label}": object_type for object_type, label in N.DUP_MEMBER_LABELS.items()}
+
+
 def rel_sql(inp: NavInput, rel: N.NavRelType) -> str:
     name = rel.name
     if name == "NAV_CHILD_OF:NavSection":
@@ -520,6 +727,46 @@ def rel_sql(inp: NavInput, rel: N.NavRelType) -> str:
                 "rule_version FROM x_symbol_of ORDER BY from_id, to_id")
     if name in ("NAV_CHILD_OF:NavTopic", "IN_TOPIC", "RELATED_TOPIC"):
         return _topic_rel_sql(inp, name)
+    # structured tables
+    if name == "GRID_OF":
+        cols = inp.column_list("table_structure", ("parse_method", "structure_ok", "covers_region", "rule_version"))
+        return (f"SELECT nav_table_id AS from_id, table_id AS to_id, NULL AS key, {cols} "
+                f"FROM table_structure WHERE nav_table_id IS NOT NULL AND table_id IS NOT NULL ORDER BY from_id, to_id")
+    if name == "TABLE_IN_SECTION":
+        return (f"SELECT nav_table_id AS from_id, section_id AS to_id, NULL AS key, "
+                f"{inp.column_list('table_structure', ('table_number', 'rule_version'))} FROM table_structure "
+                f"WHERE nav_table_id IS NOT NULL AND section_id IN (SELECT section_id FROM sections) "
+                f"ORDER BY from_id, to_id")
+    if name == "TABULATES":
+        return _tabulates_sql(inp)
+    # parameter candidates
+    if name == "VALUE_IN_SECTION":
+        return ("SELECT candidate_id AS from_id, section_id AS to_id, NULL AS key, method, rule_version "
+                "FROM parameter_candidates WHERE candidate_id IS NOT NULL "
+                "AND section_id IN (SELECT section_id FROM sections) ORDER BY from_id, to_id")
+    if name == "IN_TABLE":
+        return ("SELECT p.candidate_id AS from_id, s.nav_table_id AS to_id, NULL AS key, p.table_row, p.table_col, "
+                "p.rule_version FROM parameter_candidates p JOIN table_structure s ON s.table_id = p.table_id "
+                "WHERE p.candidate_id IS NOT NULL AND s.nav_table_id IS NOT NULL ORDER BY from_id, to_id")
+    if name == "IN_BLOCK":
+        return ("SELECT candidate_id AS from_id, block_id AS to_id, NULL AS key, method, char_start, char_end, "
+                "rule_version FROM parameter_candidates WHERE candidate_id IS NOT NULL AND block_id IS NOT NULL "
+                "ORDER BY from_id, to_id")
+    if name == "NEAR_FORMULA:ParameterValue":
+        return ("SELECT candidate_id AS from_id, formula_id AS to_id, NULL AS key, method, rule_version "
+                "FROM parameter_candidates WHERE candidate_id IS NOT NULL AND formula_id IS NOT NULL "
+                "ORDER BY from_id, to_id")
+    if name == "VALUE_OF":
+        return ("SELECT p.candidate_id AS from_id, pt.term_id AS to_id, NULL AS key, p.property_key, pt.match, "
+                "pt.rule_version FROM parameter_candidates p JOIN x_property_terms pt ON pt.property_key = "
+                "p.property_key WHERE p.candidate_id IS NOT NULL ORDER BY from_id, to_id")
+    # term dictionary
+    for relation, entry in N.DICTIONARY_RELATIONS.items():
+        if name == entry:
+            return _dictionary_sql(inp, relation)
+    # object duplicates
+    if name in _DUP_OBJECT_TYPE:
+        return _dup_member_sql(inp, _DUP_OBJECT_TYPE[name])
     raise KeyError(name)
 
 
@@ -565,7 +812,10 @@ def expected_counts(inp: NavInput) -> dict[str, Any]:
     skipped = inp.skipped_types()
     nodes = {n.label: (0 if n.label in skipped else count_node_rows(inp, n)) for n in N.NODE_TYPES}
     rels = {r.name: (0 if r.name in skipped else count_rel_rows(inp, r)) for r in N.REL_TYPES}
-    return {"nodes": nodes, "rels": rels, "skipped": skipped}
+    out: dict[str, Any] = {"nodes": nodes, "rels": rels, "skipped": skipped}
+    if "Term" not in skipped and inp.has("term_translations"):        # included in nodes["Term"] (check N8)
+        out["subsets"] = {"Term.dictionary_only": int(inp.scalar(f"SELECT count(*) FROM ({dictionary_terms_sql()})"))}
+    return out
 
 
 # ---------------------------------------------------------------- accounting: parquet rows → loaded / folded / skipped
@@ -616,7 +866,8 @@ def accounting(inp: NavInput, expected: dict[str, Any]) -> dict[str, Any]:
             {"no id": inp.scalar("SELECT count(*) FROM formula_parameters WHERE parameter_id IS NULL")})
         out["formula_parameters"]["edges"] = {"NEAR_FORMULA": r["NEAR_FORMULA"]}
     if has("terms"):
-        put("terms", {"Term": n["Term"]}, {})
+        # every row of `terms` is a Term node; dictionary-only Term nodes are counted under term_translations
+        put("terms", {"Term": int(inp.scalar("SELECT count(*) FROM terms"))}, {})
     if has("term_edges", "terms"):
         folded = int(inp.scalar("SELECT count(*) FROM term_edges WHERE kind = 'SAME_AS' AND dst_term_id IS NULL "
                                 "AND dst_ref IS NOT NULL"))
@@ -655,8 +906,94 @@ def accounting(inp: NavInput, expected: dict[str, Any]) -> dict[str, Any]:
                        {"NavSection properties": total}, "skipped": {
                            "not projected (see problems)": total - sum(loaded.values())} if ds != "section_aggregates"
                        else {}, "closed": None, "problem": inp.topic_problems.get(ds)}
+    skipped = expected["skipped"]
+
+    def ids(ds: str, col: str) -> dict[str, int]:
+        row = inp.fetch(f'SELECT count(*) FILTER (WHERE "{col}" IS NULL) AS no_id, '
+                        f'count("{col}") - count(DISTINCT "{col}") AS dup FROM "{ds}"')[0]
+        return {"no id": int(row["no_id"]), "duplicate id": int(row["dup"])}
+
+    def edge_rows(names: Iterable[str]) -> dict[str, int]:
+        return {k: r[k] for k in names}
+
+    def why(name: str) -> str:
+        return f"{name} skipped: {skipped[name]}"
+
+    if has("table_structure"):
+        put("table_structure", {"NavTable": n["NavTable"]}, ids("table_structure", "nav_table_id"))
+        out["table_structure"]["edges"] = edge_rows(("GRID_OF", "TABLE_IN_SECTION", "TABULATES"))
+        notes: dict[str, int] = {}
+        if "TABLE_IN_SECTION" not in skipped:
+            notes["TABLE_IN_SECTION: no section or an unknown one"] = n["NavTable"] - r["TABLE_IN_SECTION"]
+        if "TABULATES" not in skipped:
+            pairs = inp.fetch("""
+                WITH tp AS (SELECT DISTINCT * FROM (SELECT nav_table_id, unnest(property_keys) AS property_key
+                            FROM table_structure WHERE nav_table_id IS NOT NULL) WHERE property_key IS NOT NULL)
+                SELECT count(*) AS pairs, count(*) FILTER (WHERE property_key IN
+                       (SELECT property_key FROM x_property_terms)) AS mapped FROM tp""")[0]
+            notes["TABULATES: (table, property) pairs"] = int(pairs["pairs"])
+            notes["TABULATES: pairs whose property has no term (not linked)"] = int(pairs["pairs"]) - int(
+                pairs["mapped"])
+        out["table_structure"]["edge_notes"] = notes
+    if has("table_columns"):
+        total = int(inp.scalar("SELECT count(*) FROM table_columns"))
+        named = int(inp.scalar("SELECT count(*) FROM table_columns WHERE property_key IS NOT NULL AND role = 'VALUE'"))
+        rest = {"other columns: the grid stays in the NAV DuckDB (get_table_structured)": total - named}
+        if "TABULATES" in skipped:
+            put("table_columns", {}, {why("TABULATES"): named, **rest}, rows=total)
+        else:
+            linked = int(inp.scalar("SELECT count(*) FROM table_columns WHERE property_key IS NOT NULL AND role = "
+                                    "'VALUE' AND property_key IN (SELECT property_key FROM x_property_terms)"))
+            put("table_columns", {}, {"value columns naming a property without a term": named - linked, **rest},
+                rows=total, folded={"TABULATES.n_columns": linked})
+    if has("parameter_candidates"):
+        put("parameter_candidates", {"ParameterValue": n["ParameterValue"]}, ids("parameter_candidates",
+                                                                                "candidate_id"))
+        out["parameter_candidates"]["edges"] = edge_rows(("VALUE_IN_SECTION", "IN_TABLE", "IN_BLOCK",
+                                                          "NEAR_FORMULA:ParameterValue", "VALUE_OF"))
+        notes = {}
+        if "VALUE_IN_SECTION" not in skipped:
+            notes["VALUE_IN_SECTION: no section or an unknown one"] = n["ParameterValue"] - r["VALUE_IN_SECTION"]
+        tables = int(inp.scalar("SELECT count(*) FROM parameter_candidates WHERE candidate_id IS NOT NULL "
+                                "AND table_id IS NOT NULL"))
+        notes["IN_TABLE: values of a table without a structured grid" if "IN_TABLE" not in skipped
+              else why("IN_TABLE")] = tables - r["IN_TABLE"]
+        if "VALUE_OF" not in skipped:
+            notes["VALUE_OF: values whose property has no term"] = n["ParameterValue"] - r["VALUE_OF"]
+        out["parameter_candidates"]["edge_notes"] = notes
+    if has("term_translations"):
+        total = int(inp.scalar("SELECT count(*) FROM term_translations"))
+        names = tuple(N.DICTIONARY_RELATIONS.values())
+        if any(x in skipped for x in names):
+            put("term_translations", {}, {why(names[0]): total}, rows=total)
+        else:
+            same = int(inp.scalar("SELECT count(*) FROM term_translations WHERE term_id_a = term_id_b"))
+            loaded = edge_rows(names)
+            put("term_translations", loaded, {
+                "one term id on both sides (one lemma key in two languages)": same,
+                "unknown relation or no term id": total - sum(loaded.values()) - same}, rows=total)
+            out["term_translations"]["nodes"] = {"Term (dictionary_only)": int(inp.scalar(
+                f"SELECT count(*) FROM ({dictionary_terms_sql()})"))}
+    if has("object_dup_clusters"):
+        put("object_dup_clusters", {"ObjectDupGroup": n["ObjectDupGroup"]}, ids("object_dup_clusters", "cluster_id"))
+    if has("object_dup_members"):
+        total = int(inp.scalar("SELECT count(*) FROM object_dup_members"))
+        names = tuple(_DUP_OBJECT_TYPE)
+        if any(x in skipped for x in names):
+            put("object_dup_members", {}, {why(names[0]): total}, rows=total)
+        else:
+            loaded = edge_rows(names)
+            put("object_dup_members", loaded, {"unknown object type or group, or no object id": total - sum(
+                loaded.values())}, rows=total)
+    for ds in sorted(inp.datasets):                  # every other dataset of the build: not projected, with the reason
+        if ds not in out:
+            total = int(inp.scalar(f'SELECT count(*) FROM "{ds}"'))
+            reason = NOT_PROJECTED.get(ds, "the dataset stays in the NAV DuckDB")
+            put(ds, {}, {f"not projected: {reason}": total}, rows=total)
     if inp.symbol_of_info:
         out["links"] = {"SYMBOL_OF": r["SYMBOL_OF"], **inp.symbol_of_info}
+    if inp.property_term_info:
+        out["property_terms"] = {"TABULATES": r["TABULATES"], "VALUE_OF": r["VALUE_OF"], **inp.property_term_info}
     return out
 
 
@@ -720,8 +1057,12 @@ def _surface_keys(definition: str, max_words: int = 6) -> tuple[str, list[str]]:
     return full, keys
 
 
-def derive_symbol_of(inp: NavInput) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """``SYMBOL_OF`` rows (term_id, symbol_id, n_formulas, match, morphology, rule_version) and build info."""
+def term_index(inp: NavInput) -> dict[str, Any]:
+    """Phrase → term matching shared by ``SYMBOL_OF`` and the property terms: the lemma keys of the builder's morphology
+    (``terms.morphology``) when it can be loaded here, else normalised surface forms (``morphology = 'surface'``).
+    ``keys_of(text)`` → (the key of the whole phrase, candidate keys); ``key_to_term`` → term id."""
+    if inp._term_index is not None:
+        return inp._term_index
     terms = inp.fetch("SELECT term_id, lemma, lemma_key, surface_forms, seed, morphology FROM terms")
     morph_name = Counter(t["morphology"] for t in terms if t.get("morphology")).most_common(1)
     morph_name = morph_name[0][0] if morph_name else None
@@ -738,7 +1079,7 @@ def derive_symbol_of(inp: NavInput) -> tuple[list[dict[str, Any]], dict[str, Any
     if morph is not None:
         from vkm_corpus.navigation.concepts import phrase_keys
 
-        rule, used = N.RULE_SYMBOL_OF, morph_name
+        used = morph_name
         key_to_term = {t["lemma_key"]: t["term_id"] for t in sorted(terms, key=lambda t: t["term_id"])
                        if t.get("lemma_key")}
 
@@ -748,7 +1089,7 @@ def derive_symbol_of(inp: NavInput) -> tuple[list[dict[str, Any]], dict[str, Any
     else:
         from vkm_corpus.navigation.ids import norm_text
 
-        rule, used = N.RULE_SYMBOL_OF_SURFACE, "surface"
+        used = "surface"
         key_to_term = {}
         for t in sorted(terms, key=lambda t: (-(1 if t.get("seed") else 0), t["term_id"])):
             for s in [t.get("lemma")] + list(t.get("surface_forms") or []):
@@ -756,6 +1097,17 @@ def derive_symbol_of(inp: NavInput) -> tuple[list[dict[str, Any]], dict[str, Any
                 if k:
                     key_to_term.setdefault(k, t["term_id"])
         keys_of = _surface_keys
+    inp._term_index = {"morphology": used, "terms_morphology": morph_name, "seeds": seeds,
+                       "key_to_term": key_to_term, "keys_of": keys_of}
+    return inp._term_index
+
+
+def derive_symbol_of(inp: NavInput) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """``SYMBOL_OF`` rows (term_id, symbol_id, n_formulas, match, morphology, rule_version) and build info."""
+    index = term_index(inp)
+    used, morph_name, seeds = index["morphology"], index["terms_morphology"], index["seeds"]
+    key_to_term, keys_of = index["key_to_term"], index["keys_of"]
+    rule = N.RULE_SYMBOL_OF_SURFACE if used == "surface" else N.RULE_SYMBOL_OF
     defs = inp.fetch("SELECT symbol_id, formula_id, definition FROM formula_symbols "
                      "WHERE definition IS NOT NULL AND symbol_id IS NOT NULL ORDER BY symbol_id, formula_id")
     cache: dict[str, list[tuple[str, str, str]]] = {}
@@ -780,6 +1132,73 @@ def derive_symbol_of(inp: NavInput) -> tuple[list[dict[str, Any]], dict[str, Any
     info = {"rule_version": rule, "morphology": used, "terms_morphology": morph_name,
             "definitions": len(defs), "distinct_definitions": len(cache), "definitions_matched": matched_rows,
             "symbols_linked": len({r["symbol_id"] for r in rows}), "edges_by_match": dict(sorted(by_match.items()))}
+    return rows, info
+
+
+_PARENS = re.compile(r"\s*\([^)]*\)")
+
+
+def property_labels(key: str, dataset_label: str | None = None) -> list[tuple[str, str]]:
+    """(basis, label) candidates of a property, in the order they are tried: the vocabulary's label_ru, label_en and
+    synonyms (each first without its parenthetical remark), then the label printed in the dataset."""
+    from vkm_corpus.navigation import parameters_vocab as V
+
+    out: list[tuple[str, str]] = []
+
+    def add(basis: str, text: str | None) -> None:
+        text = " ".join((text or "").split())
+        if text and text not in {t for _b, t in out}:
+            out.append((basis, text))
+
+    p = V.PROPERTY_BY_KEY.get(key)
+    if p is not None:
+        for basis, text in (("label_ru", p.label_ru), ("label_en", p.label_en),
+                            *(("synonym", s) for s in p.synonyms)):
+            add(basis, _PARENS.sub("", text))
+            add(basis, text)
+    add("dataset_label", _PARENS.sub("", dataset_label or ""))
+    add("dataset_label", dataset_label)
+    return out
+
+
+def derive_property_terms(inp: NavInput) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Property key → term (``property_term_v1``): the first label (``property_labels``) whose whole lemma key is a
+    term of the concept graph. A property without such a label gets no term (no partial or nested match)."""
+    index = term_index(inp)
+    used, key_to_term, keys_of = index["morphology"], index["key_to_term"], index["keys_of"]
+    rule = N.RULE_PROPERTY_TERM_SURFACE if used == "surface" else N.RULE_PROPERTY_TERM
+    labels: dict[str, str | None] = {}
+    if inp.has("parameter_candidates"):
+        for r in inp.fetch("SELECT property_key, min(property_label) AS label FROM parameter_candidates "
+                           "WHERE property_key IS NOT NULL GROUP BY 1"):
+            labels[r["property_key"]] = r["label"]
+    if inp.has("table_structure"):
+        for r in inp.fetch("SELECT DISTINCT unnest(property_keys) AS property_key FROM table_structure"):
+            if r["property_key"]:
+                labels.setdefault(r["property_key"], None)
+    if inp.has("table_columns") and "property_label" in inp.columns.get("table_columns", set()):
+        for r in inp.fetch("SELECT property_key, min(property_label) AS label FROM table_columns "
+                           "WHERE property_key IS NOT NULL GROUP BY 1"):
+            if not labels.get(r["property_key"]):
+                labels[r["property_key"]] = r["label"]
+    rows, unmapped, by_basis = [], [], Counter()
+    for key in sorted(labels):
+        hit = None
+        for basis, text in property_labels(key, labels[key]):
+            full, _keys = keys_of(text)
+            tid = key_to_term.get(full) if full else None
+            if tid:
+                hit = (tid, basis, text)
+                break
+        if hit is None:
+            unmapped.append(key)
+            continue
+        by_basis[hit[1]] += 1
+        rows.append({"property_key": key, "term_id": hit[0], "label": hit[2], "basis": hit[1], "match": "FULL",
+                     "morphology": used, "rule_version": rule})
+    info = {"rule_version": rule, "morphology": used, "properties": len(labels), "properties_with_term": len(rows),
+            "terms": len({r["term_id"] for r in rows}), "by_basis": dict(sorted(by_basis.items())),
+            "properties_without_term": unmapped}
     return rows, info
 
 
@@ -880,6 +1299,22 @@ def preflight(inp: NavInput, expected: dict[str, Any], acct: dict[str, Any]) -> 
                            "(SELECT section_id FROM sections)"))
         if n:
             ref_skips.append(f"term_mentions rows with an unknown section: {n}")
+    for ds in ("table_structure", "parameter_candidates"):
+        if inp.has(ds, "sections"):
+            n = int(inp.scalar(f"SELECT count(*) FROM {ds} WHERE section_id IS NOT NULL AND section_id NOT IN "
+                               "(SELECT section_id FROM sections)"))
+            if n:
+                ref_skips.append(f"{ds} rows with an unknown section: {n}")
+    if inp.has("parameter_candidates", "table_structure"):
+        n = int(inp.scalar("SELECT count(*) FROM parameter_candidates WHERE table_id IS NOT NULL AND table_id NOT IN "
+                           "(SELECT table_id FROM table_structure)"))
+        if n:
+            ref_skips.append(f"parameter_candidates rows of a table without a structured grid: {n}")
+    if inp.has("object_dup_members", "object_dup_clusters"):
+        n = int(inp.scalar("SELECT count(*) FROM object_dup_members WHERE cluster_id IS NULL OR cluster_id NOT IN "
+                           "(SELECT cluster_id FROM object_dup_clusters)"))
+        if n:
+            ref_skips.append(f"object_dup_members rows of an unknown group: {n}")
     res.append(check("P6", "references between NAV datasets resolve (rows that do not are skipped)", ref_skips,
                      code="E_DANGLING_REFERENCE", warn_only=True))
     for ds, problem in sorted(inp.topic_problems.items()):
@@ -890,7 +1325,8 @@ def preflight(inp: NavInput, expected: dict[str, Any], acct: dict[str, Any]) -> 
 
 # ---------------------------------------------------------------- offline resolution against the canonical DuckDB
 DOC_TABLES: dict[str, tuple[str, str]] = {"Page": ("pages", "page_id"), "Block": ("blocks", "object_id"),
-                                          "Formula": ("formulas", "object_id"), "Source": ("sources", "source_id")}
+                                          "Formula": ("formulas", "object_id"), "Source": ("sources", "source_id"),
+                                          "Table": ("tables", "object_id"), "Figure": ("figures", "object_id")}
 
 
 def document_references(inp: NavInput, canon_duckdb: str | Path) -> dict[str, Any]:

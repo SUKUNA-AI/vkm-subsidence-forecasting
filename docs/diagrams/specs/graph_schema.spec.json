@@ -11,7 +11,7 @@
    "nodes": [
     {
      "id": "title",
-     "label": "Схема графа Neo4j: слои DOCUMENT (doc-graph/1.0) и NAV (nav-graph/1.0)",
+     "label": "Схема графа Neo4j: слои DOCUMENT (doc-graph/1.0) и NAV (nav-graph/1.1)",
      "x": 20,
      "y": 12,
      "w": 1760,
@@ -41,7 +41,7 @@
     },
     {
      "id": "nav",
-     "label": "NAV — метка слоя NavigationLayer; проверки N1–N7; 111 922 узла, 2 203 152 связи",
+     "label": "NAV — метка слоя NavigationLayer; проверки N1–N11; 127 543 узла, 2 251 414 связей (сухой прогон 1.1)",
      "x": 990,
      "y": 90,
      "w": 790,
@@ -248,7 +248,7 @@
     },
     {
      "id": "term",
-     "label": "Term (94 597)",
+     "label": "Term (94 597 + 607 из словаря)",
      "x": 500,
      "y": 360,
      "w": 200,
@@ -310,11 +310,52 @@
     },
     {
      "id": "t_term",
-     "label": "Term → Term: CO_OCCURS (NPMI), CONTAINS_TERM, SAME_TERM_AS",
+     "label": "Term → Term: CO_OCCURS (NPMI), CONTAINS_TERM, SAME_TERM_AS; словарь RU↔EN: TRANSLATES_TO, SYNONYM_OF, ABBREVIATION_OF",
      "x": 480,
      "y": 420,
      "w": 290,
-     "h": 35,
+     "h": 50,
+     "preset": "text",
+     "style": "fontSize=11;align=left;",
+     "parent": "nav"
+    },
+    {
+     "id": "nav_table",
+     "label": "NavTable\n3 391",
+     "x": 20,
+     "y": 525,
+     "w": 150,
+     "h": 42,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "nav"
+    },
+    {
+     "id": "param_value",
+     "label": "ParameterValue\n10 792",
+     "x": 185,
+     "y": 525,
+     "w": 160,
+     "h": 42,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "nav"
+    },
+    {
+     "id": "dup_group",
+     "label": "ObjectDupGroup\n831",
+     "x": 360,
+     "y": 525,
+     "w": 160,
+     "h": 42,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;",
+     "parent": "nav"
+    },
+    {
+     "id": "t_parts",
+     "label": "NavTable → Table: GRID_OF; → NavSection: TABLE_IN_SECTION; → Term: TABULATES\nParameterValue → NavTable: IN_TABLE; → Block: IN_BLOCK; → Formula: NEAR_FORMULA; → NavSection: VALUE_IN_SECTION; → Term: VALUE_OF\nFigure / Table / Formula → ObjectDupGroup: DUP_MEMBER_OF",
+     "x": 20,
+     "y": 575,
+     "w": 520,
+     "h": 80,
      "preset": "text",
      "style": "fontSize=11;align=left;",
      "parent": "nav"
@@ -395,7 +436,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: src/vkm_corpus/graph/schema.py (NODE_TYPES, REL_TYPES); src/vkm_corpus/graph/nav_schema.py; src/vkm_corpus/contracts/vocab.py (WorkRelationType, SourceRelationType); docs/corpus_platform/NAVIGATION_LAYER.md §1; receipts/evening_deploy_final.json.",
+     "label": "Источники: src/vkm_corpus/graph/schema.py (NODE_TYPES, REL_TYPES); src/vkm_corpus/graph/nav_schema.py; src/vkm_corpus/contracts/vocab.py (WorkRelationType, SourceRelationType); docs/corpus_platform/NAVIGATION_LAYER.md §1; receipts/evening_deploy_final.json; receipts/nav_graph_tables_dictionary.json.",
      "x": 20,
      "y": 1165,
      "w": 1760,

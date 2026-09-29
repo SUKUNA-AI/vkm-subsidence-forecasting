@@ -51,6 +51,11 @@ def test_pack_publish_and_serve(tmp_path):
     assert hits and hits[0]["section_id"] == "SEC-0000000000000001" and 1.0 <= hits[0]["score"] <= 1.15
     assert nav.search_sections("прочность", source_id="VKM-SRC-901")[0]["level"] == 2
     assert nav.search_sections("гидрогеология") == [] and nav.search_sections("и в на") == []
+    # the datasets of the served build: a part not built is a missing dependency, not a crash of its query
+    assert nav.datasets() == frozenset({"sections"})
+    nav.require("sections")
+    with pytest.raises(store.NavUnavailable, match="has no table_structure, table_cells"):
+        nav.require("sections", "table_structure", "table_cells")
 
 
 def test_search_sections_lemmas_key_terms_and_depth(tmp_path):
