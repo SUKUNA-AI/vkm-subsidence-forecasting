@@ -1,0 +1,311 @@
+{
+ "benchmark": "TOPIC_BENCHMARK_V1",
+ "label_source": "LLM_AGENT_T1",
+ "qrels": "qrels_topic_v1_pooled.tsv",
+ "qrels_sha256": "90b23a11a28a60b93ad8c3f26a97f6399c3ba2f52b369ad747acef476dfee2ee",
+ "rule": "label units of the pool with more than one page (duplicates among a topic's candidates share one grade) or with duplicate aliases (API duplicates of the page, canonical duplicate_page_candidates); truth P makes one target per unit: its first page, the other pages and the aliases as alternates",
+ "groups": [
+  {
+   "topic_id": "PC-01",
+   "pages": [
+    "VKM-SRC-032:p0001"
+   ],
+   "aliases": [
+    "VKM-SRC-005:p0006"
+   ]
+  },
+  {
+   "topic_id": "PC-06",
+   "pages": [
+    "VKM-SRC-205:p0041"
+   ],
+   "aliases": [
+    "VKM-SRC-168:p0001"
+   ]
+  },
+  {
+   "topic_id": "PC-14",
+   "pages": [
+    "VKM-SRC-079:p0001"
+   ],
+   "aliases": [
+    "VKM-SRC-170:p0005",
+    "VKM-SRC-205:p0050"
+   ]
+  },
+  {
+   "topic_id": "PC-17",
+   "pages": [
+    "VKM-SRC-168:p0001",
+    "VKM-SRC-205:p0041"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "PC-17",
+   "pages": [
+    "VKM-SRC-168:p0002"
+   ],
+   "aliases": [
+    "VKM-SRC-205:p0042"
+   ]
+  },
+  {
+   "topic_id": "PC-17",
+   "pages": [
+    "VKM-SRC-168:p0003",
+    "VKM-SRC-205:p0043"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "PC-19",
+   "pages": [
+    "VKM-SRC-079:p0002"
+   ],
+   "aliases": [
+    "VKM-SRC-205:p0051"
+   ]
+  },
+  {
+   "topic_id": "PC-20",
+   "pages": [
+    "VKM-SRC-079:p0001"
+   ],
+   "aliases": [
+    "VKM-SRC-170:p0005",
+    "VKM-SRC-205:p0050"
+   ]
+  },
+  {
+   "topic_id": "PC-23",
+   "pages": [
+    "VKM-SRC-168:p0004",
+    "VKM-SRC-205:p0044"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "PC-29",
+   "pages": [
+    "VKM-SRC-079:p0003",
+    "VKM-SRC-205:p0052"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "PC-29",
+   "pages": [
+    "VKM-SRC-205:p0053"
+   ],
+   "aliases": [
+    "VKM-SRC-079:p0004"
+   ]
+  },
+  {
+   "topic_id": "PC-31",
+   "pages": [
+    "VKM-SRC-005:p0006",
+    "VKM-SRC-032:p0001"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "PC-31",
+   "pages": [
+    "VKM-SRC-168:p0001"
+   ],
+   "aliases": [
+    "VKM-SRC-205:p0041"
+   ]
+  },
+  {
+   "topic_id": "PC-32",
+   "pages": [
+    "VKM-SRC-021:p0001",
+    "VKM-SRC-104:p0008"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "PC-33",
+   "pages": [
+    "VKM-SRC-005:p0001",
+    "VKM-SRC-031:p0005"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "PC-33",
+   "pages": [
+    "VKM-SRC-021:p0001"
+   ],
+   "aliases": [
+    "VKM-SRC-104:p0008"
+   ]
+  },
+  {
+   "topic_id": "PC-36",
+   "pages": [
+    "VKM-SRC-168:p0001",
+    "VKM-SRC-205:p0041"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "PC-43",
+   "pages": [
+    "VKM-SRC-168:p0001"
+   ],
+   "aliases": [
+    "VKM-SRC-205:p0041"
+   ]
+  },
+  {
+   "topic_id": "PC-45",
+   "pages": [
+    "VKM-SRC-084:p0001",
+    "VKM-SRC-121:p0006"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "PC-54",
+   "pages": [
+    "VKM-SRC-168:p0004",
+    "VKM-SRC-205:p0044"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "PC-57",
+   "pages": [
+    "VKM-SRC-121:p0006"
+   ],
+   "aliases": [
+    "VKM-SRC-084:p0001"
+   ]
+  },
+  {
+   "topic_id": "PC-69",
+   "pages": [
+    "VKM-SRC-079:p0001",
+    "VKM-SRC-205:p0050"
+   ],
+   "aliases": [
+    "VKM-SRC-170:p0005"
+   ]
+  },
+  {
+   "topic_id": "PC-69",
+   "pages": [
+    "VKM-SRC-079:p0003",
+    "VKM-SRC-205:p0052"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "PC-70",
+   "pages": [
+    "VKM-SRC-171:p0005"
+   ],
+   "aliases": [
+    "VKM-SRC-126:p0001"
+   ]
+  },
+  {
+   "topic_id": "MM-DISS",
+   "pages": [
+    "VKM-SRC-168:p0001"
+   ],
+   "aliases": [
+    "VKM-SRC-205:p0041"
+   ]
+  },
+  {
+   "topic_id": "MM-DISS",
+   "pages": [
+    "VKM-SRC-168:p0003",
+    "VKM-SRC-205:p0043"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "MM-DISS",
+   "pages": [
+    "VKM-SRC-168:p0004",
+    "VKM-SRC-205:p0044"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "MM-GEOMECH",
+   "pages": [
+    "VKM-SRC-005:p0001",
+    "VKM-SRC-031:p0005"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "MM-GEOMECH",
+   "pages": [
+    "VKM-SRC-032:p0001"
+   ],
+   "aliases": [
+    "VKM-SRC-005:p0006"
+   ]
+  },
+  {
+   "topic_id": "MM-GEOMECH",
+   "pages": [
+    "VKM-SRC-168:p0002",
+    "VKM-SRC-205:p0042"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "MM-INSAR",
+   "pages": [
+    "VKM-SRC-005:p0001",
+    "VKM-SRC-031:p0005"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "MM-INV",
+   "pages": [
+    "VKM-SRC-005:p0001",
+    "VKM-SRC-031:p0005"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "MM-LAB",
+   "pages": [
+    "VKM-SRC-170:p0001"
+   ],
+   "aliases": [
+    "VKM-SRC-168:p0006",
+    "VKM-SRC-205:p0046"
+   ]
+  },
+  {
+   "topic_id": "MM-RISK",
+   "pages": [
+    "VKM-SRC-031:p0005"
+   ],
+   "aliases": [
+    "VKM-SRC-005:p0001"
+   ]
+  },
+  {
+   "topic_id": "MM-ROOF",
+   "pages": [
+    "VKM-SRC-032:p0001"
+   ],
+   "aliases": [
+    "VKM-SRC-005:p0006"
+   ]
+  }
+ ]
+}
