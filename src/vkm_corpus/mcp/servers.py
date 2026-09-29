@@ -632,7 +632,8 @@ def build_read_server(api: ApiClient) -> MCPServer:
         evidence catalogues contain about it — ranked sections in two tiers (the VKM core: evidence-catalogue and
         VKM/SKRU sources; the rest of the corpus) from hybrid search over several formulations (the query, your
         paraphrases, concept synonyms and neighbours; RRF) and titles, with pages, best units and short snippets;
-        formulas with numbers, «где…» symbols and parameter candidates; figures and tables near the hits; the concept;
+        formulas with numbers, «где…» symbols and parameter candidates; figures and tables near the hits; the
+        structured tables of a property the topic names (модуль деформации, плотность …); the concept;
         sources with provenance (register scope, work, authors, year) and who cites whom; physics processes PC-xx with
         their evidence records (status, scope, scale), formula-registry models, conflicts, causal neighbours; and the
         gaps: required parameters without evidence records, explicitly UNKNOWN — never fill them. Pass 1–2
