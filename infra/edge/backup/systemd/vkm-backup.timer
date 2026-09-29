@@ -1,0 +1,13 @@
+# 02:30 Moscow time, every day (user decision A2 of 29.09.2026): after the CORE manifest (02:00), before the CORE
+# checks (04:00) that report this backup; a missed run (laptop off) starts at the next boot.
+[Unit]
+Description=VKM backup of CORE at 02:30 MSK
+
+[Timer]
+OnCalendar=*-*-* 02:30:00 Europe/Moscow
+Persistent=true
+AccuracySec=1min
+Unit=vkm-backup.service
+
+[Install]
+WantedBy=timers.target
