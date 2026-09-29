@@ -49,7 +49,9 @@ READ_TOOLS = {"search_text", "search_hybrid", "retrieval_trace", "search_objects
               # parameter candidates (agent P)
               "find_parameters", "parameter_summary",
               # term dictionary (agent TR)
-              "translate_term"}
+              "translate_term",
+              # digitized chart series (agent FD2)
+              "find_figure_series", "get_figure_series"}
 ADMIN_TOOLS = {"reprocess_source", "reprocess_page", "get_job", "cancel_job"}
 
 
