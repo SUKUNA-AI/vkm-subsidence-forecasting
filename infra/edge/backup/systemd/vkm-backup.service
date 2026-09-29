@@ -1,0 +1,17 @@
+# VKM nightly backup of the CORE data root to EDGE (agent OPS, 29.09.2026): user unit on EDGE (lingering is on).
+# Installed by infra/edge/backup/install.sh into ~/.config/systemd/user/; settings in ~/.config/vkm/backup.env.
+# EDGE is a laptop that also serves the rerankers: at most 4 cores, low CPU and I/O priority.
+[Unit]
+Description=VKM backup: pull, verify and rotate hard-link snapshots of the CORE data root
+Documentation=https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/main/docs/corpus_platform/OPERATIONS.md
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/vkm/backup.env
+ExecStart=/bin/bash ${VKM_BACKUP_BIN}/vkm_backup.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+CPUQuota=400%
+MemoryMax=3G
+TimeoutStartSec=4h

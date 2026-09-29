@@ -140,6 +140,7 @@ Compose-проект `vkm-core`: [infra/core/compose.yml](../../infra/core/compo
 | `opensearch` | retrieval-индексы (3.8.0, security plugin выключен, loopback) | только `127.0.0.1` |
 | `api`, `mcp`, `mcp-admin` | VKM API и VKM Corpus MCP (образ `vkm-corpus-api`) | LAN-адрес CORE, токены |
 | `vkm-job` (profile `jobs`) | разовые задания над CANONICAL-корнем: `canon init`, `core reconcile`, `graph ddl` | нет |
+| `vkm-nightly` (profile `nightly`) | ночные проверки в 04:00: образ `vkm-job`, корень только на чтение, `cpus: 12`, `cpu_shares: 256`, `mem_limit: 6g` ([OPERATIONS.md §8](OPERATIONS.md)) | нет |
 
 Приложения работают под uid владельца данных (`VKM_DATA_UID`/`VKM_DATA_GID` в `.env`); API и MCP монтируют корень
 только для чтения, запись — только у `vkm-job`.

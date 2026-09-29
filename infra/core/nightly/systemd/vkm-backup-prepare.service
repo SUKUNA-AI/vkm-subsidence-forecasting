@@ -1,0 +1,16 @@
+# VKM backup to EDGE, CORE side (agent OPS, 29.09.2026): sha256 manifest of the backup set before EDGE copies it.
+# Installed by infra/core/nightly/install.sh; paths come from ~/.config/vkm/nightly.env.
+[Unit]
+Description=VKM backup: source manifest of the CORE data root (for the EDGE copy at 02:30)
+Documentation=https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/main/docs/corpus_platform/OPERATIONS.md
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/vkm/nightly.env
+ExecStart=/bin/bash ${VKM_NIGHTLY_DIR}/backup_prepare.sh
+Nice=15
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+CPUQuota=200%
+MemoryMax=2G
+TimeoutStartSec=2h

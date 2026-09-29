@@ -137,6 +137,12 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 Векторы обновляет `infra/core/lab_refresh.sh --snapshot <ID>`: dense, затем late interaction; счётчики обязаны
 сойтись.
 
+Ночные задания ([OPERATIONS.md §8](docs/corpus_platform/OPERATIONS.md)):
+- 02:00 CORE — манифест SHA-256 набора копии;
+- 02:30 EDGE — копия корня данных снимками с жёсткими ссылками и сверкой SHA-256;
+- 04:00 CORE — проверки (валидатор, C1–C16, N1–N7, поиск, MCP, векторы), досье 117 тем, topic_v1; утренняя сводка —
+  `receipts/nightly/<дата>/summary.md`.
+
 Секреты — только через `*_FILE`. Машинные пути, адреса и логины в отслеживаемые файлы не пишутся. Подробно:
 [DEPLOYMENT.md](docs/corpus_platform/DEPLOYMENT.md), [OPERATIONS.md](docs/corpus_platform/OPERATIONS.md),
 [MODEL_SERVICES.md](docs/corpus_platform/MODEL_SERVICES.md).

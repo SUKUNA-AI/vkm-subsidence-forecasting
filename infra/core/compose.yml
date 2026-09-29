@@ -324,6 +324,34 @@ services:
         target: /data
         bind: {create_host_path: false}
 
+  # Nightly checks (agent OPS; OPERATIONS.md «Ночные задания и резервная копия»): the image and settings of vkm-job,
+  # but the canonical root is mounted READ-ONLY and the container is capped so that the API and MCP stay responsive
+  # (at most 12 CPUs, a quarter of the default CPU weight, bounded memory). Used only by
+  # infra/core/nightly/nightly_checks.sh, e.g.  docker compose --profile nightly run --rm -T vkm-nightly canon validate
+  vkm-nightly:
+    <<: *vkm-app
+    profiles: ["nightly"]
+    restart: "no"
+    entrypoint: ["vkm-corpus"]
+    command: ["canon", "status"]
+    environment:
+      VKM_DATA_ROOT: /data
+      VKM_DATA_ROLE: canonical
+      VKM_NEO4J_URI: bolt://neo4j:7687
+      VKM_NEO4J_PASSWORD_FILE: /run/secrets/neo4j_password
+      VKM_OPENSEARCH_URL: http://opensearch:9200
+      VKM_LOG_LEVEL: INFO
+    secrets: [neo4j_password]
+    cpus: 12
+    cpu_shares: 256
+    mem_limit: 6g
+    volumes:   # read-only: the checks never write the canonical root (their receipts are written by the host script)
+      - type: bind
+        source: ${VKM_DATA_ROOT_HOST:?}
+        target: /data
+        read_only: true
+        bind: {create_host_path: false}
+
 networks:
   vkm_internal: {}
 
