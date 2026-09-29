@@ -119,6 +119,16 @@ namespace Vkm.Cad
             var flag = Environment.GetEnvironmentVariable("VKM_CAD_FAILED_FLAG");
             if (!string.IsNullOrEmpty(flag)) File.AppendAllText(flag, reason + "\n", new UTF8Encoding(false));
         }
+
+        // Breadcrumbs in <run>/host_trace.txt: the file is closed after every line, so the last stage survives a crash of
+        // the process (a crash writes no result JSON). Stage texts carry names only, never paths.
+        public static void Trace(string text)
+        {
+            var dir = Environment.GetEnvironmentVariable("VKM_CAD_RUN_DIR");
+            if (string.IsNullOrEmpty(dir)) return;
+            try { File.AppendAllText(Path.Combine(dir, "host_trace.txt"), text + "\n", new UTF8Encoding(false)); }
+            catch (IOException) { }
+        }
     }
 
     public static class Cad
@@ -246,16 +256,19 @@ namespace Vkm.Cad
                     var args = op["args"] as JsonObject ?? new JsonObject();
                     var entry = new JsonObject { ["op"] = name };
                     var sw = Stopwatch.StartNew();
+                    J.Trace("op " + name);
                     try
                     {
                         entry["result"] = Dispatch(name, args, doc);
                         entry["ok"] = true;
+                        J.Trace("op " + name + " ok");
                     }
                     catch (System.Exception ex)
                     {
                         ok = false;
                         entry["ok"] = false;
                         entry["error"] = ex.GetType().Name + ": " + ex.Message;
+                        J.Trace("op " + name + " failed");
                     }
                     entry["ms"] = sw.ElapsedMilliseconds;
                     opsOut.Add(entry);
@@ -325,6 +338,16 @@ namespace Vkm.Cad
 
         // A paper-space sheet: page setup (DWG To PDF.pc3, canonical media, 1:1), a frame, one viewport at 1:N and
         // a simplified title block after GOST 2.104 form 1 (185 x 55 mm).
+        //
+        // Order of the steps (CADFIX, 29.09.2026). In the plain AutoCAD Core Console (/product ACAD) Viewport.On = true
+        // (AcDbViewport::setIsOn) inside a transaction that also erased a viewport of the same layout ends the process
+        // with an AccessViolationException; the Civil 3D console survives the same order, so the v1 smoke (a Civil 3D
+        // job) never hit it. Hence: (1) the page setup goes into the new layout before its first activation — the
+        // layout never binds to the Windows default printer, which AutoCAD gives a new layout; (2) the activation lets
+        // AutoCAD create its own viewport (LAYOUTCREATEVIEWPORT = 1), which is already on and becomes the sheet viewport;
+        // (3) other viewports are erased in a transaction of their own; (4) a viewport the host has to create itself (no
+        // default one) is turned on in a separate transaction after everything else is committed — never in a
+        // transaction that erased a viewport.
         public static JsonNode LayoutSheet(Document doc, JsonObject a)
         {
             var stage = new string[] { "start" };
@@ -332,19 +355,49 @@ namespace Vkm.Cad
             catch (System.Exception ex) { throw new InvalidOperationException("layout sheet failed at '" + stage[0] + "': " + ex.Message, ex); }
         }
 
-        static JsonNode LayoutSheetSteps(Document doc, JsonObject a, string[] stage)
+        static void Stage(string[] stage, string text)
         {
-            var db = doc.Database;
-            string name = J.S(a, "name", "VKM_SHEET");
+            stage[0] = text;
+            J.Trace("acad.layout_sheet: " + text);
+        }
+
+        static void PageSetup(Layout lay, JsonObject a, string[] stage, JsonObject outp)
+        {
             string device = J.S(a, "device", "DWG To PDF.pc3");
             string media = J.S(a, "media", "ISO_full_bleed_A3_(420.00_x_297.00_MM)");
             string styleTable = J.S(a, "style_table", "monochrome.ctb");
             int rotation = (int)J.D(a, "rotation", 0);
+            var psv = PlotSettingsValidator.Current;
+            Stage(stage, "plot device " + device + " / media " + media);
+            psv.SetPlotConfigurationName(lay, device, media);
+            psv.RefreshLists(lay);
+            Stage(stage, "paper units");
+            psv.SetPlotPaperUnits(lay, PlotPaperUnit.Millimeters);
+            Stage(stage, "rotation");
+            psv.SetPlotRotation(lay, rotation == 90 ? PlotRotation.Degrees090 : PlotRotation.Degrees000);
+            Stage(stage, "plot type");
+            psv.SetPlotType(lay, Autodesk.AutoCAD.DatabaseServices.PlotType.Layout);
+            Stage(stage, "scale 1:1");
+            psv.SetUseStandardScale(lay, true);
+            psv.SetStdScaleType(lay, StdScaleType.StdScale1To1);
+            Stage(stage, "origin");
+            psv.SetPlotOrigin(lay, new Point2d(0, 0));
+            Stage(stage, "style sheet");
+            try { psv.SetCurrentStyleSheet(lay, styleTable); } catch (System.Exception) { outp["style_table_warning"] = styleTable + " not set"; }
+            lay.PrintLineweights = true;
+        }
+
+        static JsonNode LayoutSheetSteps(Document doc, JsonObject a, string[] stage)
+        {
+            var db = doc.Database;
+            string name = J.S(a, "name", "VKM_SHEET");
+            int rotation = (int)J.D(a, "rotation", 0);
             double unitMm = J.D(a, "paper_mm_per_model_unit", 1000.0);
             double? denominator = J.DN(a, "scale_denominator");
+            bool reuseDefault = J.B(a, "reuse_default_viewport", true);
             var lm = LayoutManager.Current;
             bool overwrite = J.B(a, "overwrite", false);
-            stage[0] = "layout";
+            Stage(stage, "layout");
             ObjectId existing = lm.GetLayoutId(name);
             if (!existing.IsNull)
             {
@@ -352,42 +405,50 @@ namespace Vkm.Cad
                 lm.DeleteLayout(name);
             }
             ObjectId layoutId = lm.CreateLayout(name);
-            stage[0] = "activate layout";
-            lm.CurrentLayout = name;
             var outp = new JsonObject { ["layout"] = name };
+            // (1) page setup of the new layout while it is not current
             using (var tr = db.TransactionManager.StartTransaction())
             {
-                var lay = (Layout)tr.GetObject(layoutId, OpenMode.ForWrite);
-                var psv = PlotSettingsValidator.Current;
-                stage[0] = "plot device " + device + " / media " + media;
-                psv.SetPlotConfigurationName(lay, device, media);
-                psv.RefreshLists(lay);
-                stage[0] = "paper units";
-                psv.SetPlotPaperUnits(lay, PlotPaperUnit.Millimeters);
-                stage[0] = "rotation";
-                psv.SetPlotRotation(lay, rotation == 90 ? PlotRotation.Degrees090 : PlotRotation.Degrees000);
-                stage[0] = "plot type";
-                psv.SetPlotType(lay, Autodesk.AutoCAD.DatabaseServices.PlotType.Layout);
-                stage[0] = "scale 1:1";
-                psv.SetUseStandardScale(lay, true);
-                psv.SetStdScaleType(lay, StdScaleType.StdScale1To1);
-                stage[0] = "origin";
-                psv.SetPlotOrigin(lay, new Point2d(0, 0));
-                stage[0] = "style sheet";
-                try { psv.SetCurrentStyleSheet(lay, styleTable); } catch (System.Exception) { outp["style_table_warning"] = styleTable + " not set"; }
-                lay.PrintLineweights = true;
-                stage[0] = "geometry";
+                PageSetup((Layout)tr.GetObject(layoutId, OpenMode.ForWrite), a, stage, outp);
+                Stage(stage, "commit page setup");
+                tr.Commit();
+            }
+            Stage(stage, "activate layout");
+            lm.CurrentLayout = name;
+            // (2)(3) viewports made by the activation: the overall one (number 1) stays, the first other one that is on
+            // is kept for the sheet, the rest is erased — committed before any viewport is turned on
+            ObjectId sheetVp = ObjectId.Null;
+            int erased = 0;
+            Stage(stage, "viewports of the activation");
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                var lay = (Layout)tr.GetObject(layoutId, OpenMode.ForRead);
+                var ps = (BlockTableRecord)tr.GetObject(lay.BlockTableRecordId, OpenMode.ForRead);
+                foreach (ObjectId id in ps)
+                {
+                    var vp0 = tr.GetObject(id, OpenMode.ForRead) as Viewport;
+                    if (vp0 == null || vp0.Number == 1) continue;
+                    if (reuseDefault && sheetVp.IsNull && vp0.On) { sheetVp = id; continue; }
+                    vp0.UpgradeOpen();
+                    vp0.Erase();
+                    erased++;
+                }
+                tr.Commit();
+            }
+            bool created = sheetVp.IsNull;
+            outp["viewport"] = created ? "created by the host" : "default viewport of the layout (created by AutoCAD on activation)";
+            outp["viewports_erased"] = erased;
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                var lay = (Layout)tr.GetObject(layoutId, OpenMode.ForRead);
+                Stage(stage, "geometry");
                 double w = lay.PlotPaperSize.X, h = lay.PlotPaperSize.Y;
                 if (rotation == 90 || (lay.PlotRotation == PlotRotation.Degrees090)) { var t = w; w = h; h = t; }
                 if (J.B(a, "landscape", true) && h > w) { var t = w; w = h; h = t; }
                 outp["media"] = lay.CanonicalMediaName;
+                outp["device"] = lay.PlotConfigurationName;
                 outp["paper_mm"] = new JsonArray(J.R(w), J.R(h));
                 var ps = (BlockTableRecord)tr.GetObject(lay.BlockTableRecordId, OpenMode.ForWrite);
-                foreach (ObjectId id in ps)
-                {
-                    var vp0 = tr.GetObject(id, OpenMode.ForRead) as Viewport;
-                    if (vp0 != null && vp0.Number != 1) { vp0.UpgradeOpen(); vp0.Erase(); }
-                }
                 var m = J.A(a, "margins_mm");
                 double ml = m.Count == 4 ? m[0].GetValue<double>() : 20, mr = m.Count == 4 ? m[1].GetValue<double>() : 5;
                 double mt = m.Count == 4 ? m[2].GetValue<double>() : 5, mb = m.Count == 4 ? m[3].GetValue<double>() : 5;
@@ -423,29 +484,51 @@ namespace Vkm.Cad
                 double scale;            // paper mm per model unit
                 if (denominator.HasValue && denominator.Value > 0) scale = unitMm / denominator.Value;
                 else scale = Math.Min(vw / mw, vh / mh) * 0.95;
-                stage[0] = "viewport";
-                var vp = new Viewport();
-                vp.CenterPoint = new Point3d((x0 + x1) / 2, (y0 + y1) / 2, 0);
-                vp.Width = vw;
-                vp.Height = vh;
-                Cad.Add(ps, tr, vp, frameLayer);
+                Stage(stage, created ? "viewport (new)" : "viewport (default of the layout)");
+                Viewport vp;
+                if (created)
+                {
+                    vp = new Viewport();
+                    vp.CenterPoint = new Point3d((x0 + x1) / 2, (y0 + y1) / 2, 0);
+                    vp.Width = vw;
+                    vp.Height = vh;
+                    sheetVp = Cad.Add(ps, tr, vp, frameLayer);
+                }
+                else
+                {
+                    vp = (Viewport)tr.GetObject(sheetVp, OpenMode.ForWrite);
+                    vp.Layer = frameLayer;
+                    vp.CenterPoint = new Point3d((x0 + x1) / 2, (y0 + y1) / 2, 0);
+                    vp.Width = vw;
+                    vp.Height = vh;
+                }
                 vp.ViewDirection = Vector3d.ZAxis;
                 vp.ViewTarget = new Point3d(cx, cy, 0);
                 vp.ViewCenter = new Point2d(0, 0);
                 vp.CustomScale = scale;
-                vp.On = true;
                 vp.Locked = true;
                 outp["viewport_rect_mm"] = new JsonArray(J.R(x0), J.R(y0), J.R(x1), J.R(y1));
                 outp["model_center"] = new JsonArray(J.R(cx), J.R(cy));
                 outp["paper_mm_per_model_unit"] = J.R(scale);
                 outp["scale_denominator"] = J.R(unitMm / scale);
                 outp["scale_is_fit"] = !(denominator.HasValue && denominator.Value > 0);
-                stage[0] = "title block";
+                Stage(stage, "title block");
                 if (stamp) TitleBlock(db, tr, ps, (JsonObject)a["title_block"], w - mr, mb, outp);
-                stage[0] = "commit";
+                Stage(stage, "commit sheet");
                 tr.Commit();
             }
-            stage[0] = "back to model";
+            // (4) a viewport created by the host is turned on in a transaction of its own (nothing erased in it)
+            if (created)
+            {
+                Stage(stage, "viewport on");
+                using (var tr = db.TransactionManager.StartTransaction())
+                {
+                    var vp = (Viewport)tr.GetObject(sheetVp, OpenMode.ForWrite);
+                    vp.On = true;
+                    tr.Commit();
+                }
+            }
+            Stage(stage, "back to model");
             lm.CurrentLayout = "Model";
             return outp;
         }
@@ -464,12 +547,24 @@ namespace Vkm.Cad
                 ln.LineWeight = thick ? LineWeight.LineWeight050 : LineWeight.LineWeight018;
                 Cad.Add(ps, tr, ln, layer);
             }
-            void T(double x, double y, string text, double height)
+            var fitted = new JsonObject();
+            // a text longer than its cell (right edge `right`, 1 mm clear) is condensed down to width factor 0.6,
+            // then made lower; it never runs into the next column (the width is measured from the insertion point, the
+            // origin of both scalings)
+            void T(double x, double y, string text, double height, double right, string key = null)
             {
                 if (string.IsNullOrEmpty(text)) return;
                 var t = new DBText { TextString = text, Height = height, TextStyleId = style };
                 t.Position = new Point3d(X(x), Y(y), 0);
                 Cad.Add(ps, tr, t, layer);
+                double room = right - x - 1.0, width;
+                try { width = t.GeometricExtents.MaxPoint.X - t.Position.X; }
+                catch (System.Exception) { return; }
+                if (width <= room || width <= 0) return;
+                double k = room / width;
+                t.WidthFactor = Math.Max(0.6, k);
+                if (k < 0.6) t.Height = height * k / 0.6;
+                fitted[key ?? text] = new JsonObject { ["width_factor"] = J.R(t.WidthFactor), ["height_mm"] = J.R(t.Height) };
             }
             string F(string key) { var n = f[key]; return n == null ? "" : n.ToString(); }
             // outline and main divisions
@@ -481,18 +576,22 @@ namespace Vkm.Cad
             for (int i = 1; i < 11; i++) L(0, 5 * i, 65, 5 * i, i == 8 || i == 7);
             foreach (var x in new double[] { 7, 17, 40, 55 }) L(x, 30, x, 55, true);
             L(17, 0, 17, 30, true); L(40, 0, 40, 30, true); L(55, 0, 55, 30, true);
-            T(0.8, 36.3, "Изм.", 2.2); T(7.8, 36.3, "Лист", 2.2); T(18.5, 36.3, "№ докум.", 2.2); T(41, 36.3, "Подп.", 2.2); T(56, 36.3, "Дата", 2.2);
-            T(0.8, 26.3, "Разраб.", 2.2); T(0.8, 21.3, "Пров.", 2.2); T(0.8, 16.3, "Т.контр.", 2.2); T(0.8, 6.3, "Н.контр.", 2.2); T(0.8, 1.3, "Утв.", 2.2);
-            T(18.5, 26.3, F("developer"), 2.5); T(18.5, 21.3, F("checker"), 2.5); T(18.5, 1.3, F("approver"), 2.5);
-            T(56, 26.3, F("date"), 2.2);
-            T(137, 36.3, "Лит.", 2.2); T(151, 36.3, "Масса", 2.2); T(168, 36.3, "Масштаб", 2.2);
-            T(169, 25, F("scale"), 3.5);
-            T(136, 16.3, "Лист " + F("sheet"), 2.2); T(156, 16.3, "Листов " + F("sheets"), 2.2);
-            T(68, 45, F("designation"), 5);
-            T(67, 30, F("title"), 3.5); T(67, 22, F("subtitle"), 2.5);
-            T(137, 6, F("organization"), 2.5);
-            T(67, 6, F("material"), 2.5);
+            T(0.8, 36.3, "Изм.", 2.2, 7); T(7.8, 36.3, "Лист", 2.2, 17); T(18.5, 36.3, "№ докум.", 2.2, 40);
+            T(41, 36.3, "Подп.", 2.2, 55); T(56, 36.3, "Дата", 2.2, 65);
+            T(0.8, 26.3, "Разраб.", 2.2, 17); T(0.8, 21.3, "Пров.", 2.2, 17); T(0.8, 16.3, "Т.контр.", 2.2, 17);
+            T(0.8, 6.3, "Н.контр.", 2.2, 17); T(0.8, 1.3, "Утв.", 2.2, 17);
+            T(18.5, 26.3, F("developer"), 2.5, 40, "developer"); T(18.5, 21.3, F("checker"), 2.5, 40, "checker");
+            T(18.5, 1.3, F("approver"), 2.5, 40, "approver");
+            T(56, 26.3, F("date"), 2.2, 65, "date");
+            T(137, 36.3, "Лит.", 2.2, 150); T(151, 36.3, "Масса", 2.2, 167); T(168, 36.3, "Масштаб", 2.2, 185);
+            T(169, 25, F("scale"), 3.5, 185, "scale");
+            T(136, 16.3, "Лист " + F("sheet"), 2.2, 155, "sheet"); T(156, 16.3, "Листов " + F("sheets"), 2.2, 185, "sheets");
+            T(68, 45, F("designation"), 5, 185, "designation");
+            T(67, 30, F("title"), 3.5, 135, "title"); T(67, 22, F("subtitle"), 2.5, 135, "subtitle");
+            T(137, 6, F("organization"), 2.5, 185, "organization");
+            T(67, 6, F("material"), 2.5, 135, "material");
             outp["title_block"] = "GOST 2.104 form 1 (simplified), 185x55 mm";
+            if (fitted.Count > 0) outp["title_block_fitted"] = fitted;
         }
     }
 

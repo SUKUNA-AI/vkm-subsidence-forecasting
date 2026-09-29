@@ -1,6 +1,7 @@
 """The headless runner (accoreconsole) on fake processes: success, script not read, failed steps, crash (abnormal
-exit, crash-reporter child), dialog windows and timeouts kill the job's process tree; the hidden instance is gated,
-refuses a running user session and reports the child runner's result."""
+exit, crash-reporter child), dialog windows and timeouts kill the job's process tree — and only the job's: a process
+whose parent PID merely equals the console's reused PID is left alone; the hidden instance is gated, refuses a running
+user session and reports the child runner's result."""
 from __future__ import annotations
 
 import json
@@ -14,6 +15,7 @@ from vkm_cad.errors import ToolFailure
 from vkm_cad.winproc import Proc, tree
 
 PID = 4242
+T0 = 1_000_000                                   # creation time of the console (FILETIME units)
 
 
 class FakeProcs:
@@ -21,24 +23,30 @@ class FakeProcs:
                  others: list[Proc] | None = None):
         self.extra = extra or []                  # children of the job (appear after the start)
         self.windows = windows or []
-        self.others = others or []                # unrelated processes (a user's AutoCAD)
+        self.others = others or []                # unrelated processes (a user's AutoCAD, a user's Discord)
         self.killed: list[int] = []
         self.alive = True
 
     def snapshot(self):
-        procs = list(self.others)
+        procs = [p for p in self.others if p.pid not in self.killed]
         if self.alive:
-            procs.append(Proc(PID, 1, "accoreconsole.exe"))
+            procs.append(Proc(PID, 1, "accoreconsole.exe", T0))
         procs += [p for p in self.extra if p.pid not in self.killed]
         return procs
 
-    def tree(self, root, procs):
-        return tree(root, procs)
+    def tree(self, root, procs, *, not_before):
+        return tree(root, procs, not_before=not_before)
+
+    def creation_time(self, pid):
+        return T0 if pid == PID else None
+
+    def filetime_now(self):
+        return T0 - 10
 
     def visible_windows(self, pids):
         return [w for w in self.windows if w[0] in pids]
 
-    def kill(self, pids):
+    def kill(self, pids, created=None):
         pids = list(pids)
         self.killed += pids
         if PID in pids:
@@ -146,7 +154,7 @@ def test_script_not_read_and_failed_steps(tmp_path):
 
 
 def test_abnormal_exit_is_a_crash_and_orphans_are_killed(tmp_path):
-    procs = FakeProcs(extra=[Proc(777, PID, "senddmp.exe")])
+    procs = FakeProcs(extra=[Proc(777, PID, "senddmp.exe", T0 + 100)])
     result, _popen, procs, _rd = _run(tmp_path, "crash", code=-1073741819, procs=procs)
     assert result.crashed and not result.ok and 777 in procs.killed and "senddmp.exe" in result.killed
     with pytest.raises(ToolFailure) as exc:
@@ -155,7 +163,7 @@ def test_abnormal_exit_is_a_crash_and_orphans_are_killed(tmp_path):
 
 
 def test_crash_reporter_child_during_the_run_kills_the_tree(tmp_path):
-    procs = FakeProcs(extra=[Proc(778, PID, "senddmp.exe")])
+    procs = FakeProcs(extra=[Proc(778, PID, "senddmp.exe", T0 + 100)])
     result, _popen, procs, _rd = _run(tmp_path, "hang", procs=procs)
     assert result.crashed and PID in procs.killed and 778 in procs.killed
 
@@ -174,6 +182,32 @@ def test_dialog_window_and_timeout_kill_the_tree(tmp_path):
     with pytest.raises(ToolFailure) as exc:
         result.raise_for_status()
     assert exc.value.code == "CAD_RUN_TIMEOUT" and exc.value.retryable
+
+
+def test_a_reused_parent_pid_does_not_make_foreign_processes_the_jobs(tmp_path):
+    """29.09.2026: a user's Discord — children of a long-gone process whose PID the new console received — was taken
+    for the job's tree, its window for a dialog of the job, and killed. Older processes never belong to the job."""
+    discord = [Proc(900, PID, "discord.exe", T0 - 5_000_000), Proc(901, 900, "discord.exe", T0 - 4_000_000)]
+    procs = FakeProcs(others=discord, windows=[(900, "Discord")], extra=[Proc(777, PID, "werfault.exe", T0 + 100)])
+    result, _popen, procs, _rd = _run(tmp_path / "c", "crash", code=1, procs=procs)
+    assert result.crashed and not result.dialog and result.windows == []
+    assert 777 in procs.killed and 900 not in procs.killed and 901 not in procs.killed
+    procs = FakeProcs(others=discord, windows=[(900, "Discord")])
+    result, _popen, procs, _rd = _run(tmp_path / "h", "hang", procs=procs, timeout=5.0)
+    assert result.timed_out and not result.dialog and PID in procs.killed
+    assert 900 not in procs.killed and 901 not in procs.killed
+
+
+def test_tree_needs_creation_times_not_earlier_than_root_and_parent():
+    procs = [Proc(10, 1, "accoreconsole.exe", 100), Proc(11, 10, "adpclientservice.exe", 150),
+             Proc(12, 11, "conhost.exe", 160), Proc(20, 10, "discord.exe", 50), Proc(21, 20, "discord.exe", 60),
+             Proc(40, 10, "unknown.exe", None)]
+    assert tree(10, procs, not_before=100) == {10, 11, 12}            # 20/21 are older than the root: foreign
+    assert tree(10, procs, not_before=None) == {10}                   # the root's time unknown: nothing else
+    reused = [Proc(10, 1, "accoreconsole.exe", 100), Proc(11, 10, "new.exe", 200), Proc(13, 11, "old.exe", 155)]
+    assert tree(10, reused, not_before=100) == {10, 11}               # 13's parent PID now names a newer process
+    dead_root = [Proc(11, 10, "werfault.exe", 150), Proc(20, 10, "discord.exe", 50)]
+    assert tree(10, dead_root, not_before=100) == {10, 11}            # after the console exited: orphans only
 
 
 def test_console_decoding():
