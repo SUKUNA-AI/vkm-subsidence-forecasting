@@ -1603,7 +1603,55 @@
   "page_encode": "19:42:30-19:44:05"
  },
  "core": {
-  "status": "NOT_EXECUTED: waiting for the coordinator's go",
+  "status": "PUBLISHED, NOT RECONCILED: step 1 done; step 2 not executed (blocked by the session's permission system as a production deploy; it needs the user's approval)",
+  "go": "coordinator, 2026-09-29 ~20:00 local (sequential order; stop on any gate failure)",
+  "step0_preconditions": {
+   "time": "2026-09-29T20:02:52+03:00",
+   "canonical_current": "snap-20260928T193550Z-738eebee",
+   "canonical_lock": "none",
+   "nav_current": "snap-20260928T193550Z-738eebee",
+   "running_jobs": 0,
+   "vkm_job_and_api_image": "vkm-corpus-api:0.1.0-9d049dc0fec9",
+   "api_mcp_mcp_admin": "healthy",
+   "last_lab_refresh": "DONE for 738eebee, 205 784 units = dense = late",
+   "result": "PASS"
+  },
+  "step1_publish": {
+   "started_at": "2026-09-29T17:04:07+00:00",
+   "finished_at": "2026-09-29T17:04:44+00:00",
+   "files": 5190,
+   "bytes": 592246189,
+   "by_step": {
+    "artifact-blobs": {
+     "files": 4921,
+     "bytes": 580570783,
+     "returncode": 0
+    },
+    "canonical-files": {
+     "files": 233,
+     "bytes": 10393785,
+     "returncode": 0
+    },
+    "run-markers": {
+     "files": 14,
+     "bytes": 38107,
+     "returncode": 0
+    },
+    "commit-markers": {
+     "files": 22,
+     "bytes": 1243514,
+     "returncode": 0
+    }
+   },
+   "dry_run_before": "same counts",
+   "commit_markers": "22 = 20 sources (run RUN-20260929T162010Z-7b22c961) + 2 REGISTRY commits (the second one carries the literature-hunt ids of the new works)",
+   "effect": "immutable files only (rsync --ignore-existing, markers last); nothing is admitted until core reconcile, so CURRENT, projections and serving stay on 738eebee"
+  },
+  "step2_reconcile": "NOT EXECUTED: the command was denied by the session's permission system (auto mode, category production deploy); per the rules a coordinator's go is not the user's approval, so the step waits for the user",
+  "steps3_to_7": "NOT EXECUTED (they need the snapshot id minted by step 2)",
+  "gpu_lock": "not taken for CORE steps (step 3 did not start)",
+  "nightly": "no effect expected: the backup copies the new immutable files like any other; the nightly checks read CURRENT (still 738eebee) and do not look at unadmitted commits",
+  "rollback_needed": false,
   "plan": [
    "0 preconditions (read only): canonical CURRENT = 738eebee, no canonical lock, no running job; vkm-job and .env on image vkm-corpus-api:0.1.0-9d049dc0fec9 (= the pipeline's pinned commit)",
    "1 core publish from STAGING (dry run, then real): immutable files first, commit markers last",
