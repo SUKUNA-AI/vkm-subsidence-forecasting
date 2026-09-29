@@ -230,6 +230,16 @@ class Engine:
             s = np.where(fmask, s, -np.inf)
         return self._pages(s, self.f_page, depth)
 
+    def bm25_pages(self, text: str, sources: list[str] | None, depth: int) -> list[str]:
+        """BM25 page search of a graph leg: G3 wordings (``sources`` None) and G4 (only the pages of ``sources``, as
+        the served leg filters ``source_id``)."""
+        fmask = None
+        if sources is not None:
+            if not sources:
+                return []
+            fmask = np.isin(self.f_src, np.asarray(sorted(set(sources)), dtype=object))
+        return [p for p, _s in self.bm25_leg(text, fmask, depth)]
+
     def dense_leg(self, text: str, dmask: np.ndarray | None = None, depth: int = DEPTH) -> list[tuple[str, float]]:
         s = self.D @ self._qd[text]
         if dmask is not None:
