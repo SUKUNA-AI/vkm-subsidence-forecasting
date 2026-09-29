@@ -1,0 +1,1160 @@
+{
+ "schema": "vkm-nav-object-duplicates-receipt-v1",
+ "agent": "U2",
+ "date": "2026-09-29",
+ "branch": "claude/agent-u2-object-duplicates-2026-09-29",
+ "base": "2cd1d0a (tip of claude/corpus-platform-v0-2026-09-28)",
+ "code_commits": {
+  "part": "e2b7ebe",
+  "queries": "00821d1",
+  "tests": "7afcd0d"
+ },
+ "status": "DERIVED, AUTO_EXTRACTED_UNREVIEWED (navigation, never evidence: 'primary' orders copies, it is not a claim of authorship or priority; a formula group shows where the same written form occurs, not a checked law)",
+ "user_decision": "29.09: duplicates of figures, tables and formulas are to be done",
+ "design": {
+  "part": "object_duplicates: a sibling of the part duplicates, not an extension",
+  "why_sibling": [
+   "its own rule version object_duplicates_v1: duplicates_v1 and its datasets stay byte-stable",
+   "other inputs: figure images from the artifact root (--artifacts) instead of text units and dense vectors",
+   "its own compute profile: CPU processes decode the images, no GPU",
+   "it reads the text results of duplicates (source_overlap, dup_members) as context: publication groups and text-aligned pages"
+  ],
+  "objects": {
+   "FIGURE": 17784,
+   "TABLE": 3391,
+   "FORMULA": 108904
+  },
+  "figure_image": "per figure its FIGURE_CROP artifact (page-render crop, found through canonical.artifacts), else its native embedded image; decoded read-only with Pillow",
+  "canonical_tables": [
+   "figures",
+   "tables",
+   "formulas",
+   "artifacts",
+   "pages",
+   "works",
+   "source_work_links",
+   "work_relations",
+   "source_relations"
+  ],
+  "kinds": [
+   "SAME_WORK_COPY",
+   "BOILERPLATE",
+   "REDRAWN",
+   "REPRINT",
+   "REUSED_FIGURE",
+   "REUSED_TABLE",
+   "SHARED_FORMULA"
+  ],
+  "kind_rule": "the first rule that applies: all member sources copies of one work -> SAME_WORK_COPY; template objects -> BOILERPLATE; only caption evidence between different works -> REDRAWN; all member works in one publication group -> REPRINT; otherwise REUSED_FIGURE / REUSED_TABLE / SHARED_FORMULA",
+  "primary_rule": "as duplicates_v1: earliest publication_year; ties: original works before containers and derivatives, then the object nearer the start of its source, then work_id; UNKNOWN_YEAR when a member year is missing; NOT_APPLICABLE for BOILERPLATE; copies of one work: FULL_COPY link, anchor source, source_id",
+  "queries": {
+   "copies_of_object": "copies_of_object(con, object_id, *, limit=50) -> {query, object_type, clusters: [cluster fields + this, copies, copies_truncated, this_is_primary], note}",
+   "shared_formulas": "shared_formulas(con, ref, *, renamed=True, limit=50); ref = formula id or LaTeX -> {query, match, latex_key, trivial, distinctive, exact, renamed (by work, earliest year first), n_exact, n_renamed, clusters, n_works, note}",
+   "registered": "store.QUERY_FUNCTIONS; api/ and mcp/ not touched"
+  }
+ },
+ "snapshot": {
+  "manifest_sha256": "b6afea998a45768a988ddf9ce60b565c3beae628e4bd645d3cf4ddbefd9d7eb7",
+  "pipeline_version": "0.1.0",
+  "snapshot_id": "snap-20260928T193550Z-738eebee"
+ },
+ "rule_version": "object_duplicates_v1",
+ "hash_rule": "vkm-figure-hash-v1",
+ "build": {
+  "where": "WORKSTATION (WSL, CPU only): read-only DuckDB copy of the snapshot, NAV build of the snapshot as --inputs, STAGING artifact root read only",
+  "command": "vkm-corpus nav build --duckdb <snapshot DuckDB copy> --out <dir> --part object_duplicates --inputs <NAV build of the snapshot> --artifacts <artifact root>",
+  "inputs_dir": "snap-20260928T193550Z-738eebee",
+  "inputs_used": {
+   "source_overlap": {
+    "rows": 459,
+    "sha256": "89ce93fc6d381cb30371b320579c82ea1000989f518c473e188f0e7741d319a7"
+   },
+   "dup_members": {
+    "rows": 1718,
+    "sha256": "a9f7a7ed5b872d3be8b2e20c720e58232d7a4d81ed304fc7ed8724d875482f52"
+   },
+   "formula_context": {
+    "rows": 108904,
+    "sha256": "b2d72bf2f1ff6e18a81655f6ef09721682f82c02aeea17ee64793492243beb53"
+   },
+   "formula_symbols": {
+    "rows": 338625,
+    "sha256": "02e61aa17c9b8a8026e8d4a063d07152362531a8e4e27f6a96b060a06437a2bf"
+   }
+  },
+  "artifacts": {
+   "dir": "artifacts"
+  },
+  "environment": "Python 3.13.15, numpy 2.5.3, Pillow 12.3.0, duckdb 1.5.5, pyarrow 25.0.1 (the versions of requirements/corpus-services.lock.txt used by the job image)",
+  "reproducibility": "the rebuild from the committed code (7afcd0d, no hash cache) and a run through a console-script entry point with 8 workers gave byte-identical Parquet for all four datasets (equal sha256)"
+ },
+ "full_build_on_core": {
+  "image": "rebuild the api / vkm-job image from this branch (docker build -f infra/core/api/Dockerfile ...); Pillow and numpy are already in it; api and mcp need the same image to serve the two new query functions",
+  "build": "docker compose --env-file .env --profile jobs run --rm -T vkm-job nav build --duckdb /data/duckdb/vkm_corpus.duckdb --out /data/derived/navigation/<SNAP> --inputs /data/derived/navigation/<SNAP> --part object_duplicates --artifacts /data/artifacts --option object_duplicates.workers=8",
+  "writes": "four Parquet files beside the NAV datasets of <SNAP> and the entries parts.object_duplicates and datasets.* of its manifest.json (build_parts merges into a manifest of the same snapshot); the canon, the DuckDB and the artifacts are only read; nav.duckdb is untouched until pack",
+  "pack": "docker compose --env-file .env --profile jobs run --rm -T --entrypoint python vkm-job -c \"from vkm_corpus.navigation.store import pack; print(pack('/data/derived/navigation/<SNAP>'))\"",
+  "serve": "NavStore reopens nav.duckdb on the next query (mtime, size, inode); CURRENT stays",
+  "expected": "about 45 s wall; 17,733 images hashed by 8 processes in about 23 s; peak RSS about 3.2 GB (main process, mostly the --inputs datasets) plus the workers; sha256 equal to this receipt for the same snapshot and artifacts (same library versions)",
+  "rerun": "figure_hashes of the directory is offered back through --inputs as a hash cache (by artifact id and hash rule): about 24 s",
+  "fallback": "--option object_duplicates.workers=1 hashes in the calling process (no process pool)",
+  "workstation_alternative": "vkm-corpus nav build --part all ... --artifacts <STAGING artifact root>: the part runs after duplicates in the same build; without --artifacts and without VKM_DATA_ROOT the figures get status NO_ARTIFACT_ROOT (tables and formulas are still built)"
+ },
+ "params": {
+  "aligned_slack_pages": 1,
+  "fig_boilerplate_max_side": 400,
+  "fig_boilerplate_min_works": 3,
+  "fig_boilerplate_small": 200,
+  "fig_candidate_max": 12,
+  "fig_caption_context": true,
+  "fig_caption_k": 5,
+  "fig_caption_max_df": 200,
+  "fig_caption_max_distance": 24,
+  "fig_caption_min_shingles": 12,
+  "fig_caption_strong": 0.8,
+  "fig_caption_support": 0.5,
+  "fig_ink_delta": 32,
+  "fig_max_aspect_ratio": 1.3,
+  "fig_medium_dhash_max": 20,
+  "fig_medium_max": 8,
+  "fig_min_ink": 0.005,
+  "fig_min_side": 150,
+  "fig_min_std": 6.0,
+  "fig_strong_dhash_max": 14,
+  "fig_strong_max": 4,
+  "fig_transform_min_side": 300,
+  "fig_weak_max": 12,
+  "formula_min_tokens": 6,
+  "formula_near": true,
+  "formula_near_min_ratio": 0.6,
+  "formula_renamed": true,
+  "formula_shape_min_ids": 3,
+  "formula_shape_min_tokens": 12,
+  "hash_cache": null,
+  "max_image_pixels": 16000000,
+  "object_types": [
+   "FIGURE",
+   "FORMULA",
+   "TABLE"
+  ],
+  "reprint_min_shared_text": 3,
+  "table_body_min_shingles": 40,
+  "table_header_k": 5,
+  "table_header_only_containment": 0.9,
+  "table_max_df": 50,
+  "table_min_body_containment": 0.5,
+  "table_min_containment": 0.5,
+  "table_min_number_containment": 0.6,
+  "table_min_number_shared": 5,
+  "table_min_numbers": 6,
+  "table_min_numbers_agree": 0.5,
+  "table_min_shared": 40,
+  "table_number_k": 3,
+  "table_shingle_k": 8,
+  "workers": 0
+ },
+ "model_choices": {
+  "assignment": "figures and tables: per object and other source the best verified partner (evidence tier, distance, caption), kept only when mutual; clusters = connected components",
+  "figure_boilerplate": "every member caption-less and template-like (max side < fig_boilerplate_small px, or <= fig_boilerplate_max_side px on the first or last page of its source), or caption-less in >= fig_boilerplate_min_works works with >= half template-like",
+  "figure_caption": "caption body without the printed number, NFKC, case fold, letters and digits, look-alike letters folded; shingles of fig_caption_k characters; similarity = |A∩B| / min(|A|, |B|)",
+  "figure_caption_context": "CAPTION: caption similarity >= fig_caption_strong while the images do not match closely, accepted only with context — two copies of one work with the same printed number (unique in each source), or pages within aligned_slack_pages of pages sharing a text passage (part duplicates) — and only while the images stay loosely alike (best distance <= fig_caption_max_distance); between different works the cluster is REDRAWN",
+  "figure_distance": "min(pHash of the whole crop, pHash of the content box); a rotation or mirror only for two images of >= fig_transform_min_side px when it gives a strong match (<= fig_strong_max) with agreeing aspect ratios and its own dHash",
+  "figure_hashes": "exact bin-average reduction (numpy); pHash = 8×8 low-frequency DCT of a 32×32 thumbnail against the median of its AC terms; dHash = horizontal gradients of a 9×9 thumbnail; content box = rows/columns with >= 0.2 % ink (|grey - border median| > fig_ink_delta); the content-box hashes are also taken under the 8 rotations/mirrors (D4) of the square thumbnail",
+  "figure_image": "page-render crop (FIGURE_CROP), else the native embedded image; decoded with Pillow to grey levels (alpha composited on white)",
+  "figure_verification": "the content-box aspect ratios agree within fig_max_aspect_ratio; IMAGE: d <= fig_strong_max and dHash <= fig_strong_dhash_max; IMAGE_CAPTION: d <= fig_medium_max, dHash <= fig_medium_dhash_max and (caption similarity >= fig_caption_support or the same printed number); CAPTION_IMAGE: d <= fig_weak_max and caption similarity >= fig_caption_strong; low-information images (grey-level std < fig_min_std, ink < fig_min_ink, or max side < fig_min_side px) only when identical",
+  "formula_canonical": "parser of the part formulas; Greek variants unified; fonts, spacing, \\left/\\right, \\tag and alignment dropped; \\cdot, \\times, * dropped (implicit product); relation commands to signs; decimal comma to point; braces kept after \\frac, \\sqrt, \\binom and for scripts; trailing punctuation removed",
+  "formula_context": "LATEX_RENAMED links are dropped when the «где …» definitions (formula_symbols) of the two forms share no word stem while both have >= 2 definitions, or when the forms keep no symbol (coordinates and indices x, y, z, t, r, i, j, k, n, m, ξ, η, ζ, τ do not count) in the same place and no definitions agree (a generic form: a polynomial, an additive split, a total differential, a gradient); a structure that one source uses for two different canonical forms is generic and never merged by renaming",
+  "formula_distinctive": ">= formula_shape_min_tokens tokens, >= formula_shape_min_ids identifiers and a structural operation (fraction, power, root, function, sum, integral, derivative)",
+  "formula_near": "LATEX_NEAR: formulas of two sources with the same printed number on pages that share a text passage (part duplicates), both non-trivial, token ratio >= formula_near_min_ratio (OCR variants of one formula in copies and reprints)",
+  "formula_shape": "identifiers (letter + accents + primes + subscript) renamed v1, v2 … in order of first occurrence; numbers, functions and operators kept",
+  "formula_trivial": "no relation sign, fewer than two identifiers or formula_min_tokens tokens, or no operation (notation, ranges, equalities of two symbols)",
+  "primary": "as in duplicates_v1: earliest publication_year; ties: SECONDARY_WORK_TYPES after original works, then the object nearer the start of its source, then work_id; UNKNOWN when a member year is missing; the copy of a work: FULL_COPY link, anchor source, source_id",
+  "publication_groups": "works joined by text reprints (source_overlap REPRINT / SHARED_ABSTRACT or >= reprint_min_shared_text shared passages) and curated relations (ABSTRACT_OF, COMPANION_OF; CONTAINS_COPY_OF, DERIVED_FROM, SHARES_PAGES_WITH)",
+  "table_text": "cells row by row (math spans as plain text), NFKC, case fold, letters and digits only, look-alike letters folded; header = the first row (or header_rows rows)",
+  "table_verification": "CELLS: containment >= table_min_containment and >= table_min_shared shared shingles, the rows below the header contained >= table_min_body_containment (a header-only table: containment >= table_header_only_containment), and when both tables carry numbers their number windows and their sets of informative numbers agree >= table_min_numbers_agree (the same row labels with other values are another table); NUMBERS: the numbers of the cells in reading order (digits only, so 16,42 = 16.42 = 1642 after a lost comma), windows of table_number_k numbers with >= 2 informative numbers (a fraction or three significant digits) that are not an arithmetic progression, containment >= table_min_number_containment and >= table_min_number_shared shared windows (tables with >= table_min_numbers informative numbers)"
+ },
+ "params_model_choice": [
+  "aligned_slack_pages",
+  "fig_boilerplate_max_side",
+  "fig_boilerplate_min_works",
+  "fig_boilerplate_small",
+  "fig_candidate_max",
+  "fig_caption_context",
+  "fig_caption_k",
+  "fig_caption_max_df",
+  "fig_caption_max_distance",
+  "fig_caption_min_shingles",
+  "fig_caption_strong",
+  "fig_caption_support",
+  "fig_ink_delta",
+  "fig_max_aspect_ratio",
+  "fig_medium_dhash_max",
+  "fig_medium_max",
+  "fig_min_ink",
+  "fig_min_side",
+  "fig_min_std",
+  "fig_strong_dhash_max",
+  "fig_strong_max",
+  "fig_transform_min_side",
+  "fig_weak_max",
+  "formula_min_tokens",
+  "formula_near_min_ratio",
+  "formula_renamed",
+  "formula_shape_min_ids",
+  "formula_shape_min_tokens",
+  "reprint_min_shared_text",
+  "table_body_min_shingles",
+  "table_header_k",
+  "table_header_only_containment",
+  "table_max_df",
+  "table_min_body_containment",
+  "table_min_containment",
+  "table_min_number_containment",
+  "table_min_number_shared",
+  "table_min_numbers",
+  "table_min_numbers_agree",
+  "table_min_shared",
+  "table_number_k",
+  "table_shingle_k"
+ ],
+ "secondary_work_types": [
+  "BIBLIOGRAPHIC_INDEX",
+  "DISSERTATION_ABSTRACT",
+  "JOURNAL_ISSUE",
+  "PRESENTATION",
+  "PROCEEDINGS_VOLUME"
+ ],
+ "counts": {
+  "clusters": 831,
+  "members": 1795,
+  "clusters_by_type_kind": {
+   "FIGURE/BOILERPLATE": 2,
+   "FIGURE/REDRAWN": 19,
+   "FIGURE/REPRINT": 149,
+   "FIGURE/REUSED_FIGURE": 46,
+   "FIGURE/SAME_WORK_COPY": 166,
+   "FORMULA/REPRINT": 106,
+   "FORMULA/SAME_WORK_COPY": 76,
+   "FORMULA/SHARED_FORMULA": 162,
+   "TABLE/REPRINT": 62,
+   "TABLE/REUSED_TABLE": 14,
+   "TABLE/SAME_WORK_COPY": 29
+  },
+  "members_by_type_kind": {
+   "FIGURE/BOILERPLATE": 5,
+   "FIGURE/REDRAWN": 42,
+   "FIGURE/REPRINT": 308,
+   "FIGURE/REUSED_FIGURE": 95,
+   "FIGURE/SAME_WORK_COPY": 332,
+   "FORMULA/REPRINT": 259,
+   "FORMULA/SAME_WORK_COPY": 154,
+   "FORMULA/SHARED_FORMULA": 371,
+   "TABLE/REPRINT": 142,
+   "TABLE/REUSED_TABLE": 29,
+   "TABLE/SAME_WORK_COPY": 58
+  },
+  "members_by_type_match": {
+   "FIGURE/CAPTION": 23,
+   "FIGURE/CAPTION_IMAGE": 19,
+   "FIGURE/IDENTICAL": 125,
+   "FIGURE/IMAGE": 204,
+   "FIGURE/IMAGE_CAPTION": 29,
+   "FIGURE/REFERENCE": 382,
+   "FORMULA/LATEX": 340,
+   "FORMULA/LATEX_NEAR": 8,
+   "FORMULA/LATEX_RENAMED": 92,
+   "FORMULA/REFERENCE": 344,
+   "TABLE/CELLS": 104,
+   "TABLE/NUMBERS": 20,
+   "TABLE/REFERENCE": 105
+  },
+  "objects_in_clusters": {
+   "FIGURE": 782,
+   "TABLE": 229,
+   "FORMULA": 784
+  },
+  "sources_with_members": 129,
+  "clusters_by_n_sources": {
+   "2": 742,
+   "3": 84,
+   "4": 2,
+   "5": 3
+  },
+  "figure_transforms_other_than_identity": {
+   "ROT270": 4,
+   "ROT90": 6
+  },
+  "primary_rules": {
+   "EARLIEST_YEAR": 407,
+   "NOT_APPLICABLE": 2,
+   "SAME_WORK_SOURCE_ID": 271,
+   "TIE_POSITION": 70,
+   "TIE_WORK_TYPE": 37,
+   "UNKNOWN_YEAR": 44
+  },
+  "primary_rules_by_type": {
+   "FIGURE": {
+    "EARLIEST_YEAR": 120,
+    "NOT_APPLICABLE": 2,
+    "SAME_WORK_SOURCE_ID": 166,
+    "TIE_POSITION": 55,
+    "TIE_WORK_TYPE": 21,
+    "UNKNOWN_YEAR": 18
+   },
+   "FORMULA": {
+    "EARLIEST_YEAR": 218,
+    "SAME_WORK_SOURCE_ID": 76,
+    "TIE_POSITION": 10,
+    "TIE_WORK_TYPE": 14,
+    "UNKNOWN_YEAR": 26
+   },
+   "TABLE": {
+    "EARLIEST_YEAR": 69,
+    "SAME_WORK_SOURCE_ID": 29,
+    "TIE_POSITION": 5,
+    "TIE_WORK_TYPE": 2
+   }
+  },
+  "formula_keys": 108783,
+  "figure_hashes": 17784,
+  "publication_groups": {
+   "aligned_page_pairs": 1609,
+   "curated_source_relations": 5,
+   "curated_work_relations": 2,
+   "groups_with_several_works": 14,
+   "text_pairs": 106,
+   "text_relations": "USED"
+  },
+  "FIGURE": {
+   "aligned_text": true,
+   "candidates": 20741,
+   "caption_context_pairs": 87,
+   "clusters": 382,
+   "clusters_by_kind": {
+    "BOILERPLATE": 2,
+    "REDRAWN": 19,
+    "REPRINT": 149,
+    "REUSED_FIGURE": 46,
+    "SAME_WORK_COPY": 166
+   },
+   "figures": 17784,
+   "hashed": 17780,
+   "members": 782,
+   "mutual_best_pairs": 410,
+   "verified_by_tier": {
+    "CAPTION/ALIGNED_TEXT": 86,
+    "CAPTION/SAME_LABEL": 1,
+    "CAPTION_IMAGE": 27,
+    "CAPTION_REJECTED_IMAGE_UNLIKE": 86,
+    "IDENTICAL": 127,
+    "IMAGE": 230,
+    "IMAGE_CAPTION": 42
+   },
+   "verified_pairs": 513
+  },
+  "FIGURE_hashing": {
+   "cached": 0,
+   "hash_seconds": 18.673,
+   "hash_workers": 16,
+   "hashed": 17733,
+   "low_information": 76,
+   "status": {
+    "DECODE_ERROR": 4,
+    "OK": 17780
+   }
+  },
+  "FIGURE_hashing_note": "hashed = distinct images decoded; status counts figure rows (a few images serve several figure rows); DECODE_ERROR = WMF images",
+  "TABLE": {
+   "candidates": 437,
+   "clusters": 105,
+   "clusters_by_kind": {
+    "REPRINT": 62,
+    "REUSED_TABLE": 14,
+    "SAME_WORK_COPY": 29
+   },
+   "compared": 3387,
+   "members": 229,
+   "mutual_best_pairs": 138,
+   "tables": 3391,
+   "verified_by_channel": {
+    "BOTH": 93,
+    "CELLS": 42,
+    "NUMBERS": 28
+   },
+   "verified_pairs": 163,
+   "with_numbers": 2682
+  },
+  "FORMULA": {
+   "aligned_text": true,
+   "canonical": 108783,
+   "clusters": 344,
+   "clusters_by_kind": {
+    "REPRINT": 106,
+    "SAME_WORK_COPY": 76,
+    "SHARED_FORMULA": 162
+   },
+   "compared": 39427,
+   "distinctive": 25586,
+   "formulas": 108904,
+   "generic_shapes_not_merged": 779,
+   "near_pairs": 15,
+   "no_latex": 121,
+   "not_grouped_trivial": {
+    "EMPTY": 2,
+    "FEW_IDENTIFIERS": 6212,
+    "NOTATION": 3263,
+    "NO_RELATION": 54612,
+    "SHORT": 5267
+   },
+   "renamed_links_dropped_by_definitions": 1,
+   "renamed_links_dropped_unanchored": 52,
+   "renamed_links_kept": 83
+  }
+ },
+ "datasets": {
+  "figure_hashes": {
+   "rows": 17784,
+   "sha256": "234d7ea7e74ec5a0a2b2b6515fa538787b7b5ddc7fd3a8ceeac51f26432dac33",
+   "columns": [
+    "object_id",
+    "source_id",
+    "artifact_id",
+    "artifact_kind",
+    "status",
+    "error",
+    "width",
+    "height",
+    "trim_width",
+    "trim_height",
+    "ink_share",
+    "thumb_std",
+    "phash",
+    "phash_trim",
+    "dhash_trim",
+    "low_information",
+    "hash_rule",
+    "rule_version"
+   ]
+  },
+  "formula_keys": {
+   "rows": 108783,
+   "sha256": "737494e102fe04f0d116bec0c27f8210c30af7d8a714a59a853c56407e6fa14b",
+   "columns": [
+    "formula_id",
+    "source_id",
+    "work_id",
+    "year",
+    "page_id",
+    "page_index",
+    "formula_kind",
+    "equation_number",
+    "section_id",
+    "latex_key",
+    "shape_key",
+    "key_hash",
+    "shape_hash",
+    "n_tokens",
+    "n_ids",
+    "n_struct",
+    "trivial",
+    "trivial_reason",
+    "distinctive",
+    "rule_version"
+   ]
+  },
+  "object_dup_clusters": {
+   "rows": 831,
+   "sha256": "44d4f0e7cb0aca06bc2f16b61e2f47273423f057c0c77391fc08112fc4573738",
+   "columns": [
+    "cluster_id",
+    "object_type",
+    "kind",
+    "match_basis",
+    "n_members",
+    "n_sources",
+    "n_works",
+    "n_groups",
+    "source_ids",
+    "work_ids",
+    "primary_source_id",
+    "primary_object_id",
+    "primary_work_id",
+    "primary_year",
+    "primary_rule",
+    "reference_source_id",
+    "reference_object_id",
+    "label",
+    "key_hash",
+    "n_edges",
+    "min_similarity",
+    "template_share",
+    "rule_version"
+   ]
+  },
+  "object_dup_members": {
+   "rows": 1795,
+   "sha256": "25fda142a141044930d70f389d71a4f64cdd8eb2e171ed5b824c0025155388a1",
+   "columns": [
+    "cluster_id",
+    "object_id",
+    "object_type",
+    "kind",
+    "source_id",
+    "work_id",
+    "year",
+    "page_id",
+    "page_index",
+    "label",
+    "match",
+    "similarity",
+    "image_distance",
+    "dhash_distance",
+    "transform",
+    "caption_similarity",
+    "cell_containment",
+    "number_containment",
+    "header_similarity",
+    "equation_number",
+    "section_id",
+    "context",
+    "is_primary",
+    "is_reference",
+    "rule_version"
+   ]
+  }
+ },
+ "timings": {
+  "final_build_wall_s": 44.2,
+  "final_build_user_cpu_s": 304,
+  "part_seconds": 43.05,
+  "hash_seconds_16_workers": 18.673,
+  "by_type_s": {
+   "FIGURE": {
+    "candidates": 5.956,
+    "clusters": 0.015,
+    "hash": 21.052,
+    "verify": 7.468
+   },
+   "TABLE": {
+    "clusters": 0.004,
+    "index": 3.432,
+    "verify": 0.035
+   },
+   "FORMULA": {
+    "canonical": 4.746,
+    "groups": 0.065
+   }
+  },
+  "rebuild_from_commit_wall_s": 42.4,
+  "console_entry_8_workers_wall_s": 45.7,
+  "console_entry_16_workers_wall_s": 40.7,
+  "cached_hashes_rerun_s": 24.0,
+  "peak_rss_gb": {
+   "8_workers_main_process": 3.15,
+   "16_workers_process_tree": 3.84
+  },
+  "note": "WORKSTATION CPU under WSL, memory capped at 12 GB without swap (systemd-run scope)"
+ },
+ "qa": {
+  "method": "random.Random(2026).sample(clusters of one (object_type, kind) sorted by cluster_id, min(30, n)); agent U2 judged every sampled cluster. Figures: composites of the member images with distances, transform, caption similarity and context - all viewed for REUSED_FIGURE, REDRAWN and BOILERPLATE; REPRINT viewed unless the pair was identical or near-identical with caption support; SAME_WORK_COPY 4 of 30 viewed, the other 26 accepted as page-aligned pages of the two copies of one work with image distance <= 2. Tables: header and first rows of every member (SAME_WORK_COPY: page-aligned copies, cell containment >= 0.70, number containment >= 0.87). Formulas: raw and canonical LaTeX of every member. correct = every member is the same object as the reference (a panel or a fragment of the same table counts; REDRAWN: the same figure drawn again) and the kind fits",
+  "tuning_note": "thresholds were set over six earlier rounds on the same snapshot with the same seed, so the final sample overlaps the earlier ones; REDRAWN is its whole population and fig_caption_max_distance = 24 was chosen on it: its precision is optimistic",
+  "by_kind": {
+   "FIGURE/BOILERPLATE": {
+    "population": 2,
+    "n": 2,
+    "correct": 2,
+    "precision": 1.0,
+    "clusters": [
+     "OCL-64f16b787f6ddcbd",
+     "OCL-fa9fcfe0a8e9bf82"
+    ],
+    "wrong": []
+   },
+   "FIGURE/REDRAWN": {
+    "population": 19,
+    "n": 19,
+    "correct": 17,
+    "precision": 0.895,
+    "clusters": [
+     "OCL-49ef4e3fb4ddf70c",
+     "OCL-7cdf8d7a42ae1ada",
+     "OCL-f46da770d3910e36",
+     "OCL-fa33d5b228949c69",
+     "OCL-d330094086efb14a",
+     "OCL-dbef0e882373237b",
+     "OCL-75c70fa87d35d11d",
+     "OCL-8736c6aecd0a6e80",
+     "OCL-725aa8e1c8690c45",
+     "OCL-7125c3508d055497",
+     "OCL-f7e66cc9a54cb116",
+     "OCL-7160d2ac55b36f27",
+     "OCL-7e81a74cc6ba88c4",
+     "OCL-5711d794a3db5d1f",
+     "OCL-c341f2d13b12a8cb",
+     "OCL-15c7ec5478f14864",
+     "OCL-0df3c30c0f6224c5",
+     "OCL-4952d638ff820f29",
+     "OCL-6ce17ee5d49b21bc"
+    ],
+    "wrong": [
+     "OCL-dbef0e882373237b",
+     "OCL-8736c6aecd0a6e80"
+    ]
+   },
+   "FIGURE/REPRINT": {
+    "population": 149,
+    "n": 30,
+    "correct": 30,
+    "precision": 1.0,
+    "clusters": [
+     "OCL-2520ec571f506c81",
+     "OCL-83d1279df59010d7",
+     "OCL-d21d073cb48af42c",
+     "OCL-d99ee5dd0caf745f",
+     "OCL-22b68233daaceba5",
+     "OCL-62254360fd0d273d",
+     "OCL-ef72af25410638de",
+     "OCL-a32ff43a6bd44894",
+     "OCL-ed2781a1eb09bd69",
+     "OCL-cbfe03d4084b47b4",
+     "OCL-acffd820b9051028",
+     "OCL-67801233e739e42a",
+     "OCL-008bf62c085ab8e6",
+     "OCL-1c58e1b55a3830d0",
+     "OCL-239af969d55b4f0a",
+     "OCL-76f4d872f21e2795",
+     "OCL-215dda3ecb7b097c",
+     "OCL-b25126957f4cdca1",
+     "OCL-01496ae168a0912e",
+     "OCL-eb7b8f4769d807b9",
+     "OCL-82c5e4a316410c08",
+     "OCL-56e8b1d5f9cb725c",
+     "OCL-51076a5c3bdae03a",
+     "OCL-30ac40b091211cf0",
+     "OCL-45055bc4e4506c6d",
+     "OCL-b40e5a9ff97a711f",
+     "OCL-46178d5fb0043112",
+     "OCL-9ce6f800669eb66d",
+     "OCL-49cfdead7080a89b",
+     "OCL-928b84260759fb51"
+    ],
+    "wrong": []
+   },
+   "FIGURE/REUSED_FIGURE": {
+    "population": 46,
+    "n": 30,
+    "correct": 29,
+    "precision": 0.967,
+    "clusters": [
+     "OCL-2a23bfeab62bf281",
+     "OCL-8056ad9e1a3ad9e2",
+     "OCL-972e00091b4c41f5",
+     "OCL-d44ff67690228690",
+     "OCL-c0286b1aceb9c843",
+     "OCL-2a0a47cfdc2bab7d",
+     "OCL-52710fe922608ab5",
+     "OCL-a1860c9a50c735ce",
+     "OCL-99b26fb74fcac42b",
+     "OCL-8ee9e8c088212ea4",
+     "OCL-a0739cad00767b60",
+     "OCL-9662d1abd8b44094",
+     "OCL-93b8b57b5e412bea",
+     "OCL-543eaec6acb11e2a",
+     "OCL-0719b86c5285ee3e",
+     "OCL-7cf9381d82cecd65",
+     "OCL-0af7659821a9e2e3",
+     "OCL-19fa0979ea155083",
+     "OCL-3953317a36e29ea0",
+     "OCL-9f8a04ba4b563476",
+     "OCL-97381a27efab7238",
+     "OCL-a94b8f169f530c8b",
+     "OCL-98f4a4082588b4fc",
+     "OCL-81dafcb6c1736db5",
+     "OCL-c54b1ececacbc19b",
+     "OCL-3ee9512ec4d99e62",
+     "OCL-a992667fbe4e4e54",
+     "OCL-470db746ab72ae43",
+     "OCL-34f9a2b254db7acc",
+     "OCL-45212df4a0e4c451"
+    ],
+    "wrong": [
+     "OCL-93b8b57b5e412bea"
+    ]
+   },
+   "FIGURE/SAME_WORK_COPY": {
+    "population": 166,
+    "n": 30,
+    "correct": 30,
+    "precision": 1.0,
+    "clusters": [
+     "OCL-2a82e62e4ba41754",
+     "OCL-7811ddde3cd9a3b2",
+     "OCL-c107b46d2cb7a3b7",
+     "OCL-c625fc4e454b0331",
+     "OCL-25490b7b44fc3b33",
+     "OCL-56e954cc22fc16af",
+     "OCL-e710205853438421",
+     "OCL-d368e60aa3f61a1a",
+     "OCL-a52c7987cce12b89",
+     "OCL-d8ae14272a6df100",
+     "OCL-d1df28e21bb1936a",
+     "OCL-bc9c21486b606fdd",
+     "OCL-e1dd60db3faba04c",
+     "OCL-a975f7812b10aa21",
+     "OCL-5ba51720b36a6793",
+     "OCL-0137aa7af6415418",
+     "OCL-1f8ea65284c5e5f9",
+     "OCL-26c068c08bc043e9",
+     "OCL-68200cf342492248",
+     "OCL-24cbb8922483fc7d",
+     "OCL-aaccd0f1394303f2",
+     "OCL-0267a7e9d59ada69",
+     "OCL-e7b3ca21dd4c603e",
+     "OCL-73cc582ffa8f3e9b",
+     "OCL-4d252045b0602bd1",
+     "OCL-94cb847a26a55d91",
+     "OCL-5e43e1334daab5fb",
+     "OCL-833cd4e760975f59",
+     "OCL-852108a1e09acc07",
+     "OCL-8b4f5da3748ab530"
+    ],
+    "wrong": []
+   },
+   "FORMULA/REPRINT": {
+    "population": 106,
+    "n": 30,
+    "correct": 30,
+    "precision": 1.0,
+    "clusters": [
+     "OCL-2e0a2d59b15a1156",
+     "OCL-5e407e847d28295f",
+     "OCL-926d2f6baefa47bb",
+     "OCL-94c38b2f1150ce21",
+     "OCL-c8347e180f849417",
+     "OCL-2a689fb84da256c0",
+     "OCL-462ef41138c8fb30",
+     "OCL-c3f096eeb59d7008",
+     "OCL-c51a3453fdb5fff3",
+     "OCL-b6dae458dceaca5a",
+     "OCL-7e75d8611f5f9cda",
+     "OCL-b9a6ef9a86f43668",
+     "OCL-b3b6c02f333e05d9",
+     "OCL-8ebef97e0b39da30",
+     "OCL-bd2d5545e4186e32",
+     "OCL-80699854c0cb269e",
+     "OCL-4a5d13bb7db802f1",
+     "OCL-0808e92ddb138c27",
+     "OCL-c5096d158a97d915",
+     "OCL-266bac228848064e",
+     "OCL-2c53bcd48795c981",
+     "OCL-53bdf437208aa24d",
+     "OCL-2a516c35b6745e79",
+     "OCL-814f2731da7ecbac",
+     "OCL-096ec4d203bc3d1b",
+     "OCL-dbeff0424ce586ec",
+     "OCL-fbbe71d58f509bd0",
+     "OCL-41f7d04a273ffa44",
+     "OCL-78302a1534208978",
+     "OCL-4d437a432143813b"
+    ],
+    "wrong": []
+   },
+   "FORMULA/SAME_WORK_COPY": {
+    "population": 76,
+    "n": 30,
+    "correct": 30,
+    "precision": 1.0,
+    "clusters": [
+     "OCL-2f64dfc2f7dcffd2",
+     "OCL-74289a3fe1058fb2",
+     "OCL-cce2f5e982f34495",
+     "OCL-d5f867960007f2d1",
+     "OCL-2a6bd59af976cb72",
+     "OCL-51bc27448414f6d1",
+     "OCL-9d4763451c55dc91",
+     "OCL-c5ceab5dbcb6a2b4",
+     "OCL-ac65dd92337c8f95",
+     "OCL-5806a9975f1f501f",
+     "OCL-045706f485118e41",
+     "OCL-2020f306a4713444",
+     "OCL-2bcf20fff5c45f80",
+     "OCL-354635d0fe2cca62",
+     "OCL-9c446a692be71ba5",
+     "OCL-17637299e1b71fd8",
+     "OCL-dda1aaa31b51753a",
+     "OCL-ee384778891e6574",
+     "OCL-c133260809d8e2c5",
+     "OCL-7ba4ff6094db3d4e",
+     "OCL-60a25dd6adead65e",
+     "OCL-d9637e116e8288f8",
+     "OCL-3d35eca5d79cd098",
+     "OCL-ddc68e70211585a5",
+     "OCL-4d183efbedab4289",
+     "OCL-33b53ec17a2a8c66",
+     "OCL-401477d8ef720bfe",
+     "OCL-8c9d8b2797ab39fd",
+     "OCL-45df1e87a91ca96c",
+     "OCL-62498d93ffb1ee84"
+    ],
+    "wrong": []
+   },
+   "FORMULA/SHARED_FORMULA": {
+    "population": 162,
+    "n": 30,
+    "correct": 30,
+    "precision": 1.0,
+    "clusters": [
+     "OCL-2f971827eb86402f",
+     "OCL-7f2372d07b035c84",
+     "OCL-c1680072f469af12",
+     "OCL-c7c990852338d699",
+     "OCL-254a4d347663293e",
+     "OCL-5965fca8f8b47db9",
+     "OCL-e8b7c2ecd5e34fdc",
+     "OCL-dbb04237c4e3496f",
+     "OCL-a2d2a54ba6f91357",
+     "OCL-df5604f42360abbb",
+     "OCL-d8a452ccaee30663",
+     "OCL-bfde5a0ae38e28df",
+     "OCL-a76a3bea2f1440d9",
+     "OCL-64119935691e6ff2",
+     "OCL-0039fc8ff23d1dcd",
+     "OCL-1cb65ea6cdf3aa65",
+     "OCL-2be5a18d3306ef42",
+     "OCL-7110eda15f2580f1",
+     "OCL-20feb629d683f218",
+     "OCL-ab2d4917ce3142bc",
+     "OCL-01370532e734df03",
+     "OCL-e736f37cc9b247ed",
+     "OCL-7ded1625ab67b90e",
+     "OCL-5713a22e42769653",
+     "OCL-9ab8b5c895fbfcba",
+     "OCL-6618f0d67e1831e7",
+     "OCL-8b82e199290bbfcd",
+     "OCL-8d09151c26691c42",
+     "OCL-93f81a295fbeb4bb",
+     "OCL-f5085306d411274b"
+    ],
+    "wrong": []
+   },
+   "TABLE/REPRINT": {
+    "population": 62,
+    "n": 30,
+    "correct": 29,
+    "precision": 0.967,
+    "clusters": [
+     "OCL-1ab516ef6ecf1756",
+     "OCL-6ee88aa7c0d03e5c",
+     "OCL-aa55a8896c2027bb",
+     "OCL-f7f43abf852a3c75",
+     "OCL-c7bc87a99952906c",
+     "OCL-e98b80025b09b1ca",
+     "OCL-18bf6fd73605f380",
+     "OCL-4a3abeff11c3fa7b",
+     "OCL-bd013c36caa06fe5",
+     "OCL-c22c6de385cd13c2",
+     "OCL-b3946bf39cf79381",
+     "OCL-8774908eb41a0b23",
+     "OCL-b5a9a469da39f48e",
+     "OCL-e196fda2c67f2e42",
+     "OCL-d0eb17c9ae5f1302",
+     "OCL-a88d179fc3ba4334",
+     "OCL-b9f59ee09be08269",
+     "OCL-89d1511f29ab6270",
+     "OCL-507c9e14a7688273",
+     "OCL-0067fa9fde4f640b",
+     "OCL-e6ad2fca33980caa",
+     "OCL-17a410eb295b03af",
+     "OCL-ff89f619c8c6483e",
+     "OCL-5e2d032efe2709c5",
+     "OCL-e9cd6c88fa368df6",
+     "OCL-cd8abb856fb5b794",
+     "OCL-c9d5cadf88ea7a6c",
+     "OCL-d79b74912c0e4b18",
+     "OCL-fcf2efcfd18d6552",
+     "OCL-47bbec0a3bedeb2f"
+    ],
+    "wrong": [
+     "OCL-aa55a8896c2027bb"
+    ]
+   },
+   "TABLE/REUSED_TABLE": {
+    "population": 14,
+    "n": 14,
+    "correct": 14,
+    "precision": 1.0,
+    "clusters": [
+     "OCL-2febda8ece24b707",
+     "OCL-756ef0bbd2b902db",
+     "OCL-b2dbb056fca8cb62",
+     "OCL-dd6b3f03d7b869ef",
+     "OCL-fcd241300b95335e",
+     "OCL-53921cc147e92d47",
+     "OCL-7c2f6214d99dd91e",
+     "OCL-7e894baa1e1b6c93",
+     "OCL-583775f7d38caa0b",
+     "OCL-ec5d4f4151c38728",
+     "OCL-c4e1a41662c365cf",
+     "OCL-51d5e8bf7f1e4876",
+     "OCL-c2d4e207566cbf9d",
+     "OCL-2ea8a23a50b11eab"
+    ],
+    "wrong": []
+   },
+   "TABLE/SAME_WORK_COPY": {
+    "population": 29,
+    "n": 29,
+    "correct": 29,
+    "precision": 1.0,
+    "clusters": [
+     "OCL-0a108cfd47ea514d",
+     "OCL-28f4f6d5d5f13293",
+     "OCL-7764fcfa15d88988",
+     "OCL-ded7022b5c9406dd",
+     "OCL-9f26ec54ea9c624a",
+     "OCL-fdbb49da0fed28f5",
+     "OCL-152da5a735ec5c7d",
+     "OCL-9ddff28ac13aa305",
+     "OCL-aae3fe63c35d826c",
+     "OCL-8ef17eb6c247489b",
+     "OCL-5d7bf18bfe686f33",
+     "OCL-caba1790589ef1a9",
+     "OCL-70d6897a7db4cf75",
+     "OCL-707d13dfb5d8e6f8",
+     "OCL-c7f066648ff64671",
+     "OCL-05422bbd7b9f8a09",
+     "OCL-243732432ac22ed7",
+     "OCL-05843af16e3f5b31",
+     "OCL-4d68c7b32bd4d304",
+     "OCL-0e0abcf3730b21da",
+     "OCL-f909937a12d6c18f",
+     "OCL-b3728ca0fef0fd74",
+     "OCL-97c3e46da659ff64",
+     "OCL-0f2793b29624c64a",
+     "OCL-dcb424ba71cf18ef",
+     "OCL-06503025b742ffc0",
+     "OCL-1310e11a8899f901",
+     "OCL-1c0ad45d3f57da29",
+     "OCL-5a5f28fb3fe070c9"
+    ],
+    "wrong": []
+   }
+  },
+  "total": {
+   "n": 274,
+   "correct": 270
+  },
+  "wrong": [
+   {
+    "cluster_id": "OCL-dbef0e882373237b",
+    "kind": "FIGURE/REDRAWN",
+    "note": "two different charts (rate curves vs cumulative curves) under one caption pattern"
+   },
+   {
+    "cluster_id": "OCL-8736c6aecd0a6e80",
+    "kind": "FIGURE/REDRAWN",
+    "note": "residual plots of different data under one caption pattern"
+   },
+   {
+    "cluster_id": "OCL-93b8b57b5e412bea",
+    "kind": "FIGURE/REUSED_FIGURE",
+    "note": "one member is a near-identical sibling figure of the same source (the same axes with other model lines), not the reused figure"
+   },
+   {
+    "cluster_id": "OCL-aa55a8896c2027bb",
+    "kind": "TABLE/REPRINT",
+    "note": "specification tables of two different machines: the same generic row labels, other values"
+   }
+  ],
+  "earlier_rounds": [
+   "rotated legend swatches matched as quarter turns -> rotations/mirrors only for images >= fig_transform_min_side px, images < fig_min_side px only when identical",
+   "smooth images of other proportions matched -> content-box aspect ratios must agree (fig_max_aspect_ratio)",
+   "logos on edge pages of short articles -> template-like = small, or on the first/last page and <= fig_boilerplate_max_side px",
+   "caption-only links between different drawings -> CAPTION needs context and loose image likeness (identity distance <= fig_caption_max_distance)",
+   "table chains through shared number windows -> informative windows only, >= table_min_number_shared, agreeing number sets, containment of the rows below the header always checked",
+   "renamed-formula merges of generic structures (polynomials, additive splits, total differentials) -> generic-shape rule, symbol anchor with weak anchors excluded, d and Delta before a symbol read as operators; SHARED_FORMULA went from 26-29/30 in earlier rounds to 30/30"
+  ]
+ },
+ "recall_proxies": {
+  "figures_same_work_label_caption": {
+   "definition": "two copies of one work: figures with the same printed number, unique in each source, caption containment >= 0.8 (>= 20 letters); found = both in one cluster",
+   "expected": 14,
+   "found": 14,
+   "recall": 1.0
+  },
+  "figures_text_reprint_caption": {
+   "definition": "source pairs of different works with relation REPRINT in source_overlap: figures with captions unique in their sources and caption containment >= 0.9 (>= 30 letters)",
+   "expected": 43,
+   "found": 32,
+   "recall": 0.7442,
+   "missed_checked": {
+    "different_figures": 6,
+    "same_figure_missed": 5,
+    "recall_among_same_figures": 0.865
+   },
+   "missed": [
+    {
+     "pair": [
+      "VKM-SRC-014:p0108:f99e6643b1f00",
+      "VKM-SRC-020:p0070:f0f36c6642ab4"
+     ],
+     "caption_containment": 1.0,
+     "verdict": "SAME_FIGURE_MISSED: one panel of a two-panel figure, redrawn"
+    },
+    {
+     "pair": [
+      "VKM-SRC-014:p0109:f470363d6fea8",
+      "VKM-SRC-037:p0040:fc09a16967eef"
+     ],
+     "caption_containment": 1.0,
+     "verdict": "SAME_FIGURE_MISSED: redrawn and turned by 90 degrees, dimensions changed"
+    },
+    {
+     "pair": [
+      "VKM-SRC-014:p0174:f0c5a3a232305",
+      "VKM-SRC-049:p0086:f3d167091a8c6"
+     ],
+     "caption_containment": 0.91,
+     "verdict": "DIFFERENT_FIGURES: same caption"
+    },
+    {
+     "pair": [
+      "VKM-SRC-025:p0099:fbaa45b2a8071",
+      "VKM-SRC-044:p0019:f1e35dc83ba46"
+     ],
+     "caption_containment": 0.91,
+     "verdict": "SAME_FIGURE_MISSED: redrawn chart"
+    },
+    {
+     "pair": [
+      "VKM-SRC-037:p0231:f701766d5ea0b",
+      "VKM-SRC-064:p0164:ff685229739f9"
+     ],
+     "caption_containment": 0.98,
+     "verdict": "SAME_FIGURE_MISSED: two scans of one printed chart, distance 24-26"
+    },
+    {
+     "pair": [
+      "VKM-SRC-039:p0002:f95c19fa7c70e",
+      "VKM-SRC-089:p0102:f8af0a8b10762"
+     ],
+     "caption_containment": 0.96,
+     "verdict": "DIFFERENT_FIGURES: two different maps, generic caption"
+    },
+    {
+     "pair": [
+      "VKM-SRC-047:p0072:f059f29aa2fa3",
+      "VKM-SRC-049:p0028:f33fdd5c599a9"
+     ],
+     "caption_containment": 0.91,
+     "verdict": "DIFFERENT_FIGURES: the same axes, other data sets"
+    },
+    {
+     "pair": [
+      "VKM-SRC-047:p0040:f65904d023447",
+      "VKM-SRC-202:p0155:f93676dc761b2"
+     ],
+     "caption_containment": 0.91,
+     "verdict": "SAME_FIGURE_MISSED: redrawn chart, curves relabelled"
+    },
+    {
+     "pair": [
+      "VKM-SRC-067:p0049:f2fc88e0c4daa",
+      "VKM-SRC-202:p0024:f648a572fb55f"
+     ],
+     "caption_containment": 1.0,
+     "verdict": "DIFFERENT_FIGURES: relaxation vs creep curves, same caption"
+    },
+    {
+     "pair": [
+      "VKM-SRC-217:p0057:f9066680468fd",
+      "VKM-SRC-218:p0086:fdfeb70df08eb"
+     ],
+     "caption_containment": 1.0,
+     "verdict": "DIFFERENT_FIGURES: two different geodetic sketches, same caption"
+    },
+    {
+     "pair": [
+      "VKM-SRC-217:p0170:f24e1d67ce0b2",
+      "VKM-SRC-218:p0147:fa09e4e292cc9"
+     ],
+     "caption_containment": 1.0,
+     "verdict": "DIFFERENT_FIGURES: the same concept drawn differently"
+    }
+   ]
+  },
+  "tables_same_work_label_caption": {
+   "expected": 1,
+   "found": 1,
+   "recall": 1.0
+  },
+  "tables_text_reprint_caption": {
+   "expected": 9,
+   "found": 7,
+   "recall": 0.7778,
+   "missed": [
+    {
+     "pair": [
+      "VKM-SRC-014:p0062:t06d828387dca",
+      "VKM-SRC-020:p0179:t7f89a08d7e10"
+     ],
+     "caption_containment": 1.0,
+     "verdict": "DIFFERENT_TABLES: near-equal caption, other columns and values"
+    },
+    {
+     "pair": [
+      "VKM-SRC-025:p0143:t0c25f9d3bc13",
+      "VKM-SRC-044:p0096:ta3b1b4c913dd"
+     ],
+     "caption_containment": 0.95,
+     "verdict": "DIFFERENT_TABLES: near-equal caption, other columns and values"
+    }
+   ],
+   "recall_among_same_tables": 1.0
+  },
+  "formulas_same_work_same_number": {
+   "definition": "copies of one work: formulas with the same printed number, unique per source, both non-trivial",
+   "expected": 59,
+   "trivial_skipped": 5,
+   "equal_key_or_shape": 53,
+   "found": 58,
+   "recall": 0.9831,
+   "missed": [
+    {
+     "pair": [
+      "VKM-SRC-025:p0103:mcddb6392bea7",
+      "VKM-SRC-202:p0103:me74667ff3003"
+     ],
+     "reason": "OCR variants of one short formula that differ in the case of three subscripts: token ratio 0.5 < formula_near_min_ratio; too short for the renamed form"
+    }
+   ]
+  },
+  "formulas_aligned_text_pages_same_number": {
+   "definition": "pages that share one text passage (dup_members): formulas of two sources with the same printed number, both non-trivial",
+   "expected": 81,
+   "trivial_skipped": 13,
+   "equal_key_or_shape": 70,
+   "found": 80,
+   "recall": 0.9877,
+   "note": "not independent of LATEX_NEAR, which joins such pairs when the token ratio >= 0.6; the independent part is the key match 70/81; the one miss is the pair above"
+  }
+ },
+ "tests": {
+  "file": "tests/corpus/test_nav_object_duplicates.py",
+  "synthetic": true,
+  "count": 30,
+  "venv_corpus": "30 passed (Pillow present); with test_nav_duplicates, test_nav_store and test_api_nav: 50 passed, 2 skipped (no CuPy device, no fastapi)",
+  "wsl_tests_corpus": "1056 passed, 67 skipped, 8 failed: 5 test_public_hygiene (git in WSL cannot read the Windows worktree; expected) + 3 environmental in that venv (test_extract_djvu: no PIL; test_ocr_normalize x2: no lxml)",
+  "windows_hygiene": "tests/corpus/test_public_hygiene.py + tests/world/test_foundation.py::test_public_tree_has_no_private_leakage: 7 passed (Windows Python)"
+ },
+ "open_issues": [
+  "REDRAWN (19 clusters) needs review before use: the distance bound was chosen on its own population and 2 of 19 link different charts under one caption pattern",
+  "redrawn figures without text-aligned context stay unlinked (4 of the 5 real misses of the reprint proxy); a single panel of a multi-panel figure cannot match: the canon has no panel crops",
+  "old scans with distortions or other crops beyond fig_weak_max and without context stay separate (1 miss)",
+  "4 WMF images are not decoded by Pillow on Linux (DECODE_ERROR); 76 low-information images match only when identical",
+  "tables: specification tables of different machines with the same generic row labels can pass CELLS when one side carries no numbers (1 of 30 REPRINT); the number agreement applies only when both carry numbers",
+  "formulas: expressions without a relation sign (54,612) and other trivial forms are never grouped by design; short OCR variants that differ in several subscripts are not joined (1 of 59)",
+  "formula REPRINT and SAME_WORK_COPY groups include notation fragments (parts of «где …» parsed as formulas): correct copies of little value",
+  "primary is a hint: same-year ties (TIE_POSITION 70, TIE_WORK_TYPE 37) and UNKNOWN_YEAR 44",
+  "not yet in the NAV graph projection or in MCP tools (api/ and mcp/ untouched by this task); the queries work through NavStore once nav.duckdb is packed with the new datasets"
+ ]
+}
