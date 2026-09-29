@@ -15,7 +15,7 @@
 | команды AutoCAD, AutoLISP (`cad_exec scr/lisp`, `cad_query`) | headless: `accoreconsole` | да |
 | полный .NET API AutoCAD и **Civil 3D** (`cad_exec csharp`, все `c3d_*`, листы) | headless: `accoreconsole /product C3D` + плагин `VkmCadHost` | да |
 | COGO-точки и группы, TIN (точки, структурные линии, граница), горизонтали, поверхность объёмов и dz-TIN (мульда), трасса + профили | headless .NET | да (сетка 10 × 10 с синтетической мульдой) |
-| лист A4…A0 с рамкой, видовым экраном 1:N и основной надписью; печать в PDF | headless (.NET + `-PLOT`) | да |
+| лист A4…A0 с рамкой, видовым экраном 1:N и основной надписью; печать в PDF | headless (.NET + `-PLOT`) | да (C3D — 28.09; ACAD — после исправления 29.09, §9) |
 | PDF → чертёж (`-PDFIMPORT`), DXF ↔ DWG, векторы PDF корпуса (scratch DXF v0) → DWG | headless | да |
 | ActiveX (`vla-*`) и COM Civil 3D (`AeccXUiLand`) — `cad_exec python_com` | скрытый полный `acad.exe` | только разведка (§5.2): по умолчанию выключено |
 | TIN, горизонтали, разность поверхностей, профили без Autodesk | чистый Python (scipy) | да, сверка с Civil 3D |
@@ -145,3 +145,24 @@ MODEL_CHOICE), `epsg = null`, `review_status = AUTO_EXTRACTED_UNREVIEWED`, `neve
    обычного AutoCAD автозагрузчик ANSYS снова допишет меню.
 3. `HKCU\Software\Autodesk\AutoCAD\R25.1\LastLaunchedProduct` меняется прогонами (сейчас — значение последнего
    продукта моста); при необходимости его обновит обычный запуск Civil 3D.
+
+## 9. Дополнение 29.09.2026 (агент CADFIX): авария листа в заданиях ACAD
+
+`cad_layout_sheet` ронял Core Console в каждом задании без Civil 3D (чертёж из `cad_draw`, свежий чертёж `acadiso`):
+в журнале .NET — `AccessViolationException` в `AcDbViewport.setIsOn` ← `Viewport.set_On` ← `CoreOps.LayoutSheetSteps`.
+Минимальные пробы (отдельный диагностический плагин с метками этапов) показали условие: `Viewport.On = true` в той же
+транзакции, где удалён видовой экран, который AutoCAD создал при первой активации листа; в `/product ACAD` процесс
+падает, в `/product C3D` тот же порядок проходит — smoke v1 шёл только в задании C3D. Происхождение чертежа (DXF),
+принтер Windows по умолчанию, шрифты TrueType и сама активация листа ни при чём. Исправление: параметры листа — до
+первой активации, видовой экран листа — тот, что создал AutoCAD, прочие удаляются отдельной транзакцией, собственный
+видовой экран моста включается отдельной транзакцией; `host_trace.txt` хоста называет этап аварии; тексты основной
+надписи ужимаются по ширине ячеек. Пробы, проверки и выдача листа линии 12 — в квитанции
+[`cad_layout_fix.json`](../corpus_platform/receipts/cad_layout_fix.json); тесты — `tests/corpus/test_cad_layout_sheet.py`
+и живой `test_cad_layout_sheet_live.py`.
+
+Попутно найден дефект движка (§2.8): дерево процессов задания строилось только по родительскому PID. Windows
+повторно выдаёт PID и хранит PID умершего родителя у детей, поэтому при живом прогоне новая консоль получила PID давно
+завершившегося процесса, чьи дети (Discord пользователя) ещё работали: они попали в «дерево задания», их окно — в
+«диалог», шесть процессов `discord.exe` были завершены (Discord перезапустился сам). Теперь в дерево входят только
+процессы, созданные не раньше консоли (и не раньше живого родителя), а перед завершением время создания сверяется
+ещё раз; тест — `test_cad_v1_engine.py::test_a_reused_parent_pid_does_not_make_foreign_processes_the_jobs`.
