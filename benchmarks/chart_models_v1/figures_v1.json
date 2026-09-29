@@ -1,0 +1,413 @@
+{
+ "benchmark": "CHART_MODELS_V1",
+ "note": "Figure registry (IDs only). Images, truth values and raw outputs stay in the git-ignored work directory; their sha256 are in PREREGISTRATION.md. X figures: selection rule of scripts/build_inputs.py (select), seed 20260929, 20 selected + 13 replacements in seeded order; every X truth was checked on an overlay before any model output existed (rules qc_rules); only QC PASS figures are evaluated.",
+ "figures": [
+  {
+   "key": "S1",
+   "family": "S",
+   "figure_id": "VKM-SRC-034:p0004:fd01f920beac9",
+   "showcase_tag": "S1_034_p4_fig3_trough_profiles",
+   "crop_pdf": "S1_034_p4_fig3.pdf",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "what": "trough profiles, 15 epochs x 110 benchmarks"
+  },
+  {
+   "key": "S2",
+   "family": "S",
+   "figure_id": "VKM-SRC-034:p0004:f9f8f383696d0",
+   "showcase_tag": "S2_034_p4_fig4_benchmark98_vs_time",
+   "crop_pdf": "S2_034_p4_fig4.pdf",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "what": "one benchmark vs time, date labels drawn as glyph outlines"
+  },
+  {
+   "key": "S3",
+   "family": "S",
+   "figure_id": "VKM-SRC-034:p0003:f7e35ee505c30",
+   "showcase_tag": "S3_034_p3_fig2a_benchmarks_epochs",
+   "crop_pdf": "S3_034_p3_fig2a.pdf",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "what": "benchmarks x epochs, inverted y axis, 12 legend entries / 10 drawn series"
+  },
+  {
+   "key": "S4",
+   "family": "S",
+   "figure_id": "VKM-SRC-034:p0003:fcd3717e9d49a",
+   "showcase_tag": "S4_034_p3_fig2v_convergence_vs_time",
+   "crop_pdf": "S4_034_p3_fig2v.pdf",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "what": "convergence vs time, 3 series"
+  },
+  {
+   "key": "S5",
+   "family": "S",
+   "figure_id": "VKM-SRC-017:p0003:f8b971a665e91",
+   "showcase_tag": "S5_017_p3_fig2_diff_settlement_vs_time",
+   "crop_pdf": "S5_017_p3_fig2.pdf",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "what": "differential settlement vs time, 6 gauges x 412 points"
+  },
+  {
+   "key": "R1",
+   "family": "R",
+   "source_id": "VKM-SRC-011",
+   "page": 131,
+   "showcase_tag": "R1_011_p131_fig4_7b_skru1_line12",
+   "truth_kind": "TICKS_AND_LABELS_ONLY",
+   "what": "raster, SKRU-1 profile line 12, 5 epochs with inline labels"
+  },
+  {
+   "key": "R2",
+   "family": "R",
+   "source_id": "VKM-SRC-024",
+   "page": 83,
+   "showcase_tag": "R2_024_p83_fig26_profile_2_2",
+   "truth_kind": "PRINTED_DATA_TABLE",
+   "mask_px": [
+    316,
+    637,
+    1928,
+    696
+   ],
+   "what": "raster Excel chart, 12 categories; value row of the data table masked"
+  },
+  {
+   "key": "R3",
+   "family": "R",
+   "source_id": "VKM-SRC-024",
+   "page": 83,
+   "showcase_tag": "R3_024_p83_fig27_profile_2_3",
+   "truth_kind": "PRINTED_DATA_TABLE",
+   "mask_px": [
+    311,
+    779,
+    1925,
+    840
+   ],
+   "what": "raster Excel chart, 11 categories; value row of the data table masked"
+  },
+  {
+   "key": "R4",
+   "family": "R",
+   "source_id": "VKM-SRC-002",
+   "page": 15,
+   "line": "6",
+   "showcase_tag": "R4_002_p15_line6",
+   "truth_kind": "PUBLIC_EVIDENCE_MANUAL_DIGITIZATION",
+   "what": "raster, levelling and InSAR along line 6, 31 positions, large markers"
+  },
+  {
+   "key": "R5",
+   "family": "R",
+   "source_id": "VKM-SRC-012",
+   "page": 51,
+   "showcase_tag": "R5_012_p51_fig2_8_line1",
+   "truth_kind": "TICKS_AND_LABELS_ONLY",
+   "what": "raster, 30 legend entries of similar colours (FD failure case)"
+  },
+  {
+   "key": "X01",
+   "family": "X",
+   "figure_id": "VKM-SRC-089:p0130:fdef7f3a4c9c0",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 1,
+   "qc": "PASS"
+  },
+  {
+   "key": "X02",
+   "family": "X",
+   "figure_id": "VKM-SRC-204:p0094:fb9e9ec1c48be",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 2,
+   "qc": "FAIL Q3: the two dashed forecast curves are one truth series"
+  },
+  {
+   "key": "X03",
+   "family": "X",
+   "figure_id": "VKM-SRC-137:p0003:f8014e468cf6c",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 3,
+   "qc": "FAIL Q1/Q3: dashed series 2 missing; solid series 1 split into two"
+  },
+  {
+   "key": "X04",
+   "family": "X",
+   "figure_id": "VKM-SRC-135:p0005:f4a2a6757351f",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 4,
+   "qc": "PASS (fitted line + 3 markers = 2 series)"
+  },
+  {
+   "key": "X05",
+   "family": "X",
+   "figure_id": "VKM-SRC-034:p0003:f0961bba35ee3",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 5,
+   "qc": "PASS"
+  },
+  {
+   "key": "X06",
+   "family": "X",
+   "figure_id": "VKM-SRC-045:p0070:f756c962fddbe",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 6,
+   "qc": "FAIL Q1: the FEM curve is missing (markers only)"
+  },
+  {
+   "key": "X07",
+   "family": "X",
+   "figure_id": "VKM-SRC-202:p0154:fe926a4fee517",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 7,
+   "qc": "FAIL Q3: two branches of a stress-strain diagram in one path; segmentation ambiguous"
+  },
+  {
+   "key": "X08",
+   "family": "X",
+   "figure_id": "VKM-SRC-089:p0117:ffa939a548c60",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 8,
+   "qc": "FAIL Q1: dashed series 2 and 3 missing"
+  },
+  {
+   "key": "X09",
+   "family": "X",
+   "figure_id": "VKM-SRC-014:p0144:fb5fcc6692e2d",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 9,
+   "qc": "FAIL Q3: triangles of curve 3 and dots of curve 4 form one marker series"
+  },
+  {
+   "key": "X10",
+   "family": "X",
+   "figure_id": "VKM-SRC-193:p0646:f637776e12238",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 10,
+   "qc": "PASS"
+  },
+  {
+   "key": "X11",
+   "family": "X",
+   "figure_id": "VKM-SRC-045:p0113:f26c1e5935cc7",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 11,
+   "qc": "FAIL Q1: the FEM curve is missing (markers only)"
+  },
+  {
+   "key": "X12",
+   "family": "X",
+   "figure_id": "VKM-SRC-204:p0078:fd383dc352219",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 12,
+   "qc": "PASS"
+  },
+  {
+   "key": "X13",
+   "family": "X",
+   "figure_id": "VKM-SRC-097:p0002:f1b6c418b6a37",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 13,
+   "qc": "FAIL Q1: curve 1 missing"
+  },
+  {
+   "key": "X14",
+   "family": "X",
+   "figure_id": "VKM-SRC-203:p0192:f8ecd4b18d0dc",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 14,
+   "qc": "FAIL Q4: two plot panels with different value axes"
+  },
+  {
+   "key": "X15",
+   "family": "X",
+   "figure_id": "VKM-SRC-017:p0005:f86ea994cea39",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 15,
+   "qc": "FAIL Q1: series 1 (flat at 0) missing"
+  },
+  {
+   "key": "X16",
+   "family": "X",
+   "figure_id": "VKM-SRC-226:p0502:fb24b2f823cce",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 16,
+   "qc": "FAIL Q2/Q3: an inset grid line is a truth series; the Levy and linear solutions are one series"
+  },
+  {
+   "key": "X17",
+   "family": "X",
+   "figure_id": "VKM-SRC-173:p0069:f61041540b614",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 17,
+   "qc": "FAIL Q1: three of five lines missing"
+  },
+  {
+   "key": "X18",
+   "family": "X",
+   "figure_id": "VKM-SRC-202:p0155:f93676dc761b2",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 18,
+   "qc": "FAIL Q3: crowded curves near the origin, coverage of curves 4-5 not verifiable"
+  },
+  {
+   "key": "X19",
+   "family": "X",
+   "figure_id": "VKM-SRC-035:p0003:f4560efecd545",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 19,
+   "qc": "FAIL Q1: the dashed total curve is missing"
+  },
+  {
+   "key": "X20",
+   "family": "X",
+   "figure_id": "VKM-SRC-017:p0005:f7b28b9004ebb",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 20,
+   "qc": "PASS"
+  },
+  {
+   "key": "X21",
+   "family": "X",
+   "figure_id": "VKM-SRC-035:p0004:f0dcde6533c5f",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 21,
+   "role": "REPLACEMENT",
+   "qc": "FAIL Q1: scatter of four marker kinds and three dashed lines reduced to one series"
+  },
+  {
+   "key": "X22",
+   "family": "X",
+   "figure_id": "VKM-SRC-202:p0068:fe4ab3681a293",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 22,
+   "role": "REPLACEMENT",
+   "qc": "FAIL Q3: curves 1 and 2 are one truth series"
+  },
+  {
+   "key": "X23",
+   "family": "X",
+   "figure_id": "VKM-SRC-202:p0094:f5fbe20e5cf76",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 23,
+   "role": "REPLACEMENT",
+   "qc": "FAIL Q1: marker series (3 dots) missing"
+  },
+  {
+   "key": "X24",
+   "family": "X",
+   "figure_id": "VKM-SRC-202:p0081:ffe8fde69a553",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 24,
+   "role": "REPLACEMENT",
+   "qc": "FAIL Q1: curves 3 and 7 (dashed) missing"
+  },
+  {
+   "key": "X25",
+   "family": "X",
+   "figure_id": "VKM-SRC-017:p0006:fb29992e39c24",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 25,
+   "role": "REPLACEMENT",
+   "qc": "PASS"
+  },
+  {
+   "key": "X26",
+   "family": "X",
+   "figure_id": "VKM-SRC-017:p0007:f1e4cee7fc6b6",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 26,
+   "role": "REPLACEMENT",
+   "qc": "FAIL Q1: grey series 8 missing"
+  },
+  {
+   "key": "X27",
+   "family": "X",
+   "figure_id": "VKM-SRC-202:p0116:f95393e4ef690",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 27,
+   "role": "REPLACEMENT",
+   "qc": "FAIL Q1: dashed curves 5 and 7 missing"
+  },
+  {
+   "key": "X28",
+   "family": "X",
+   "figure_id": "VKM-SRC-017:p0006:f0d16ab659ee1",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 28,
+   "role": "REPLACEMENT",
+   "qc": "FAIL Q1: series 1 (flat at 0) and grey series 8 missing"
+  },
+  {
+   "key": "X29",
+   "family": "X",
+   "figure_id": "VKM-SRC-202:p0134:fa6c564507071",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 29,
+   "role": "REPLACEMENT",
+   "qc": "FAIL Q3: curves 1 and 3 appear as one truth series"
+  },
+  {
+   "key": "X30",
+   "family": "X",
+   "figure_id": "VKM-SRC-202:p0154:fbd2cf4d22db1",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 30,
+   "role": "REPLACEMENT",
+   "qc": "FAIL Q3: two branches of a stress-strain diagram in one path; segmentation ambiguous"
+  },
+  {
+   "key": "X31",
+   "family": "X",
+   "figure_id": "VKM-SRC-089:p0117:fe41b2e02b191",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 31,
+   "role": "REPLACEMENT",
+   "qc": "FAIL Q1: dashed and dash-dot curves missing"
+  },
+  {
+   "key": "X32",
+   "family": "X",
+   "figure_id": "VKM-SRC-202:p0155:f5b38124ebc6d",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 32,
+   "role": "REPLACEMENT",
+   "qc": "PASS (cut tick labels of the neighbouring panel at the right edge)"
+  },
+  {
+   "key": "X33",
+   "family": "X",
+   "figure_id": "VKM-SRC-202:p0155:f5b0eea7f4100",
+   "truth_kind": "ROUTE_A_VECTOR_VERTICES",
+   "rank": 33,
+   "role": "REPLACEMENT",
+   "qc": "PASS"
+  }
+ ],
+ "qc_rules": {
+  "Q1": "the truth series cover every drawn data series of the plot (curves, polylines, marker sets); legend samples are not series",
+  "Q2": "no truth series is a non-data element (axis, grid, frame, inset, leader, glyph outline)",
+  "Q3": "each truth series is one drawn element: not merged with another, not split, vertices on the drawn element",
+  "Q4": "one plot area with one pair of value axes per image"
+ },
+ "evaluation_set": [
+  "S1",
+  "S2",
+  "S3",
+  "S4",
+  "S5",
+  "R1",
+  "R2",
+  "R3",
+  "R4",
+  "R5",
+  "X01",
+  "X04",
+  "X05",
+  "X10",
+  "X12",
+  "X20",
+  "X25",
+  "X32",
+  "X33"
+ ]
+}

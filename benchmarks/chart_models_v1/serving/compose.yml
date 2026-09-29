@@ -1,0 +1,76 @@
+# CHART_MODELS_V1 — model servers on WORKSTATION (Docker Desktop, WSL2 backend, RTX 5070 Ti 16 GB).
+# One server at a time (profiles): `docker compose -f compose.yml --profile qwen up -d` / `--profile granite`.
+# The desktop already holds ~3.7 GB of the card: every server must stay within ~12 GB.
+# Weights are mounted read-only from ${VKM_MODELS_DIR}; images are pinned by digest; loopback port only; no telemetry.
+name: vkm-chart-bench
+
+services:
+  qwen35-9b:
+    profiles: ["qwen"]
+    # llama.cpp llama-server, CUDA 12 build (build 11243, commit fc07d781e)
+    image: ghcr.io/ggml-org/llama.cpp@sha256:1c568d229561bbd4577698f1f38d3ed9bf3f5ab343e04f7a508e11ef63f4ced1
+    restart: "no"
+    gpus: all
+    environment:
+      HF_HUB_OFFLINE: "1"
+    volumes:
+      - ${VKM_MODELS_DIR}:/models:ro
+    command:
+      - -m
+      - /models/unsloth__Qwen3.5-9B-GGUF/3885219b6810b007914f3a7950a8d1b469d598a5/Qwen3.5-9B-Q8_0.gguf
+      - --mmproj
+      - /models/unsloth__Qwen3.5-9B-GGUF/3885219b6810b007914f3a7950a8d1b469d598a5/mmproj-F16.gguf
+      - --alias
+      - qwen35-9b-q8
+      - --n-gpu-layers
+      - "99"
+      - --fit
+      - "off"
+      - --ctx-size
+      - "32768"
+      - --parallel
+      - "1"
+      - --flash-attn
+      - "on"
+      - --image-min-tokens
+      - "1024"
+      - --image-max-tokens
+      - "4096"
+      - --cache-ram
+      - "0"
+      - --seed
+      - "0"
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+    ports:
+      - "127.0.0.1:${CH_QWEN_PORT:-8091}:8080"
+
+  granite-vision-41-4b:
+    profiles: ["granite"]
+    # vLLM v0.30.0 (CUDA 13.0.3, torch 2.13.0, sm_120) — the image of the GLM-OCR server
+    image: vllm/vllm-openai@sha256:8a69ffad015f138d7170c4ddc429e230a3bc1c1719f67e14324749df200a4b90
+    restart: "no"
+    ipc: host
+    gpus: all
+    environment:
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      VLLM_NO_USAGE_STATS: "1"
+      DO_NOT_TRACK: "1"
+    volumes:
+      - ${VKM_MODELS_DIR}:/models:ro
+    command:
+      - /models/ibm-granite__granite-vision-4.1-4b/37d591f06319e8f1638b5adcf58bdf50e0f84f7a
+      - --served-model-name=granite-vision-4.1-4b
+      - --dtype=bfloat16
+      - --max-model-len=16384
+      - --max-num-seqs=4
+      - --gpu-memory-utilization=0.70
+      - --limit-mm-per-prompt={"image":1}
+      - --seed=0
+      - --host=0.0.0.0
+      - --port=8000
+    ports:
+      - "127.0.0.1:${CH_GRANITE_PORT:-8092}:8000"
