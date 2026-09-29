@@ -34,6 +34,18 @@ interaction stage (mLateOn MaxSim), with a per-stage trace (постановка
   reported (``late_status`` NO_TOKENS, ``stages.late.unscored_ids``); hits beyond the candidates keep the RRF order.
   A missing late encoder or token store fails loudly (DEPENDENCY_UNAVAILABLE) — never a silent RRF-only answer.
   The default (:data:`LATE_DEFAULT`) follows the measured latency on CORE (agent L's report).
+* Visual route (agent VIS; V2 ``benchmarks/retrieval_v2``): a query that
+  ``vkm_corpus.search.intent.visual_intent`` marks as visual (a picture word: рисунок, схема, карта, план, разрез,
+  график, профиль, радарограмма, фото, таблица …; or ``visual_route=True``) adds the page-image channel — the query
+  through the text tower of Qwen3-VL-Embedding-2B on the RX580 (``/embed/query`` role ``visual``), exact inner
+  product against the page vectors (``<prefix>-pagevis``, ``vkm_corpus.search.page_vectors``; page filters and
+  duplicate collapsing as in the dense leg) — and fuses it with the served page order: RRF(k) of E's top-N pages
+  (after late) and the channel's top-N pages. V2: +0.109 nDCG@10 on the 42 visual queries (VERIFIED, Holm p 0.032),
+  while fusing it into every query costs text queries −0.043 — hence a route; every other query is unchanged. Other
+  kinds keep their positions (H-44); pages the channel adds beyond the page slots follow at the end. The route is
+  a server switch (``VisualRouteSettings.enabled``, ``VKM_HYBRID_VISUAL_ROUTE``: off in code, on after the RX580 gate);
+  when on, a missing tower or page index fails loudly. It needs the late stage (``SKIPPED_LATE_OFF`` otherwise: the
+  measured E is the late order).
 * The EDGE text reranker stays the last stage (``rerank_text`` over the returned ``rerank_candidate``).
 """
 from __future__ import annotations
@@ -43,7 +55,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from vkm_corpus.retrieval_lab.fusion import rrf
-from vkm_corpus.search.intent import bibliographic_intent
+from vkm_corpus.search.intent import bibliographic_intent, visual_intent
 from vkm_corpus.search.mappings import alias_name
 from vkm_corpus.search.query import (MAX_SIZE, MAX_WINDOW, RRF_K, SearchRequest, SearchRequestError,
                                      compile_filters, search)
@@ -65,6 +77,8 @@ MAX_LATE_CANDIDATES = 200
 LATE_CANDIDATES = 100                     # J's service scheme: RRF top-100 → mLateOn
 LATE_DEFAULT = False                      # late stage when the request does not say (agent L: from CORE latency)
 BIB_KIND = "BIB_ENTRY"                    # the kind the bibliographic route scans (CP-42 keeps it out of PAGE ranking)
+VISUAL_ROUTE_DEFAULT = False              # server switch of the visual route (VKM_HYBRID_VISUAL_ROUTE after the gate)
+VISUAL_OVERSAMPLE = 2                     # page vectors fetched per wanted page (duplicate groups collapse)
 
 
 class HybridError(RuntimeError):
@@ -131,6 +145,40 @@ class EmbedClient:
             raise HybridError("DEPENDENCY_ERROR", "query encoder answer has no dense vector", stage="embed",
                               tool="rx580-retrieval") from exc
         return QueryVector(vector, dense.get("model"), dense.get("signature"), len(vector), dense.get("encode_ms"))
+
+    def embed_visual(self, text: str) -> QueryVector:
+        """``POST /embed/query`` role ``visual``: the text tower of the page-image model (visual route)."""
+        import httpx
+
+        tool, stage = "rx580-retrieval", "visual_embed"
+        if self._http is None:
+            raise HybridError("DEPENDENCY_UNAVAILABLE", "VKM_EMBED_URL is not configured (RX580 retrieval service)",
+                              stage=stage, tool=tool)
+        try:
+            r = self._http.post("/embed/query", json={"text": text, "role": "visual", "include_vectors": True})
+        except httpx.TimeoutException as exc:
+            raise HybridError("DEPENDENCY_TIMEOUT", "visual query encoder did not answer in time", stage=stage,
+                              tool=tool) from exc
+        except httpx.HTTPError as exc:
+            raise HybridError("DEPENDENCY_UNAVAILABLE", f"visual query encoder not reachable ({type(exc).__name__})",
+                              stage=stage, tool=tool) from exc
+        if r.status_code in (401, 403):
+            raise HybridError("DEPENDENCY_ERROR", "query encoder refused the token (VKM_EMBED_TOKEN_FILE)",
+                              stage=stage, tool=tool, details={"status": r.status_code})
+        if r.status_code in (404, 422, 502, 503):     # 404/422: a service without the visual slot / an older contract
+            raise HybridError("DEPENDENCY_UNAVAILABLE", f"visual query encoder unavailable (HTTP {r.status_code}; no "
+                              "visual slot on the RX580 service?)", stage=stage, tool=tool,
+                              details={"status": r.status_code})
+        if r.status_code != 200:
+            raise HybridError("DEPENDENCY_ERROR", f"visual query encoder answered HTTP {r.status_code}", stage=stage,
+                              tool=tool, details={"status": r.status_code})
+        try:
+            vis = r.json()["visual"]
+            vector = [float(x) for x in vis["vector"]]
+        except (ValueError, KeyError, TypeError) as exc:
+            raise HybridError("DEPENDENCY_ERROR", "query encoder answer has no visual vector", stage=stage,
+                              tool=tool) from exc
+        return QueryVector(vector, vis.get("model"), vis.get("signature"), len(vector), vis.get("encode_ms"))
 
     def _late_post(self, body: dict[str, Any], stage: str) -> dict[str, Any]:
         """``POST /search/late`` with the error mapping of the late stage (no silent fallback)."""
@@ -257,6 +305,7 @@ class HybridRequest:
     late: bool | None = None               # None → LATE_DEFAULT
     late_candidates: int = LATE_CANDIDATES
     bib_route: bool | None = None          # None → the bibliographic intent detector decides
+    visual_route: bool | None = None       # None → the visual intent detector decides (when the server enables it)
 
     def validate(self) -> None:
         if not self.query or not self.query.strip() or len(self.query) > 512:
@@ -374,6 +423,81 @@ def bib_route_status(req: HybridRequest) -> tuple[str, Any]:
     return "APPLIED", intent
 
 
+# ---------------------------------------------------------------- visual route
+@dataclass
+class VisualRouteSettings:
+    """Server side of the visual route: the switch (off until the RX580 gate passed) and the page-vector search mode
+    (``exact`` = V2's exact inner product over the filtered pages; ``hnsw`` = the graph)."""
+    enabled: bool = VISUAL_ROUTE_DEFAULT
+    mode: str = "exact"
+    ef_search: int | None = None
+
+
+def visual_route_status(req: HybridRequest, settings: VisualRouteSettings | None) -> tuple[str, Any]:
+    """(status, intent): APPLIED | NOT_DETECTED | OFF | DISABLED | SKIPPED_NO_PAGE_KIND | SKIPPED_LATE_OFF."""
+    intent = visual_intent(req.query)
+    if req.visual_route is False:
+        return "OFF", intent
+    if "PAGE" not in req.kinds:
+        return "SKIPPED_NO_PAGE_KIND", intent
+    if not (req.visual_route or intent.visual):
+        return "NOT_DETECTED", intent
+    if settings is None or not settings.enabled:
+        return "DISABLED", intent
+    if not req.late:
+        return "SKIPPED_LATE_OFF", intent
+    return "APPLIED", intent
+
+
+def check_visual_encoder(meta: dict[str, Any], q: QueryVector) -> None:
+    if int(meta["dimension"]) != q.dimension:
+        raise HybridError("DEPENDENCY_ERROR", f"visual query vector has {q.dimension} dimensions, the page vectors "
+                          f"{meta['dimension']}", stage="visual_embed", tool="rx580-retrieval",
+                          details={"query_model": q.model, "index_model": meta.get("model_key")})
+    if meta.get("model_key") and q.model and meta["model_key"] != q.model:
+        raise HybridError("DEPENDENCY_ERROR", f"visual query encoder {q.model} differs from the page encoder "
+                          f"{meta['model_key']}", stage="visual_embed", tool="rx580-retrieval",
+                          details={"query_model": q.model, "index_model": meta.get("model_key")})
+
+
+def visual_meta(client: Any, prefix: str) -> dict[str, Any]:
+    from vkm_corpus.search.page_vectors import pagevis_meta
+
+    try:
+        return pagevis_meta(client, prefix)
+    except LookupError as exc:
+        raise HybridError("DEPENDENCY_UNAVAILABLE", str(exc), stage="visual", tool="opensearch") from exc
+    except Exception as exc:  # noqa: BLE001 - reported without the address
+        raise HybridError("DEPENDENCY_UNAVAILABLE", f"page-vector index not reachable ({type(exc).__name__})",
+                          stage="visual", tool="opensearch") from exc
+
+
+def fuse_visual(order: list[tuple[str, float]], kind_of: dict[str, str], vis: list[tuple[str, float]], *,
+                depth: int, rrf_k: int) -> tuple[list[tuple[str, float]], dict[str, int], dict[str, float]]:
+    """The visual route's fusion: RRF(k) of the top-``depth`` PAGE keys of ``order`` (E's served order) and the
+    top-``depth`` pages of the image channel; the fused pages refill the PAGE positions of ``order`` (other kinds
+    keep theirs, H-44), the rest of E's pages follow in their order, pages beyond the PAGE slots go to the end.
+    Returns (new order, e_rank of each page, visual RRF score of each fused page)."""
+    e_pages = [key for key, _s in order if kind_of.get(key) == "PAGE"]
+    e_rank = {key: i for i, key in enumerate(e_pages, 1)}
+    fused = rrf({"e": [(p, 0.0) for p in e_pages[:depth]], "vis": vis[:depth]}, k=rrf_k)
+    vis_score = dict(fused)
+    head = [p for p, _s in fused]
+    in_head = set(head)
+    pages = head + [p for p in e_pages if p not in in_head]
+    it = iter(pages)
+    out: list[tuple[str, float]] = []
+    score_of = dict(order)
+    for key, s in order:
+        if kind_of.get(key) == "PAGE":
+            p = next(it)
+            out.append((p, vis_score.get(p, score_of.get(p, 0.0))))
+        else:
+            out.append((key, s))
+    out += [(p, vis_score.get(p, 0.0)) for p in it]
+    return out, e_rank, vis_score
+
+
 def page_filter(client: Any, prefix: str, page_ids: list[str], filters: dict[str, Any]) -> dict[str, str]:
     """page id → duplicate group of the pages that are in the page index and pass the page-level filters (one query
     on E's pages alias; the BIB channel of the service knows no filter fields)."""
@@ -420,9 +544,10 @@ def late_order(fused: list[tuple[str, float]], kind_of: dict[str, str], results:
 
 # ---------------------------------------------------------------- search
 def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str, *,
-                  meta: dict[str, Any] | None = None) -> dict[str, Any]:
-    """BM25 + dense → RRF (→ late MaxSim when ``req.late``); hits carry ids, the per-stage trace and E's
-    highlights/best blocks when BM25 found them."""
+                  meta: dict[str, Any] | None = None, visual: VisualRouteSettings | None = None,
+                  vmeta: Any = None) -> dict[str, Any]:
+    """BM25 + dense → RRF (→ late MaxSim when ``req.late``) (→ the visual route's RRF with the page-image channel);
+    hits carry ids, the per-stage trace and E's highlights/best blocks when BM25 found them."""
     req.validate()
     timings: dict[str, float] = {}
     t0 = time.perf_counter()
@@ -517,6 +642,59 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                                      "route)" if bib_status == "APPLIED" else "max MaxSim over the units of the page "
                                      f"except {', '.join(PAGE_EXCLUDED_UNIT_KINDS)} (CP-42)"),
                       "page_exclude_kinds": list(page_excl), "timings_ms": lr.timings_ms}
+    vis_status, vintent = visual_route_status(req, visual)
+    vis_stage: dict[str, Any] = {"status": vis_status, "cues": list(vintent.cues)}
+    vis_rank: dict[str, int] = {}
+    vis_scores: dict[str, float] = {}
+    e_rank: dict[str, int] = {}
+    vis_rrf: dict[str, float] = {}
+    vis_src: dict[str, dict[str, Any]] = {}
+    if vis_status == "DISABLED" and req.visual_route:
+        raise HybridError("DEPENDENCY_UNAVAILABLE", "the visual route is not enabled on this server "
+                          "(VKM_HYBRID_VISUAL_ROUTE)", stage="visual", tool="api")
+    if vis_status == "APPLIED":
+        from vkm_corpus.search.page_vectors import MAX_PAGE_K, page_vector_body, page_vector_hits
+
+        assert visual is not None
+        t1 = time.perf_counter()
+        vmeta = vmeta(client) if callable(vmeta) else (vmeta or visual_meta(client, prefix))
+        qv = embed.embed_visual(req.query)
+        check_visual_encoder(vmeta, qv)
+        timings["visual_embed"] = round((time.perf_counter() - t1) * 1e3, 2)
+        t1 = time.perf_counter()
+        space = vmeta.get("space_type") or "innerproduct"
+        k = min(MAX_PAGE_K, req.candidates * VISUAL_OVERSAMPLE)
+        try:
+            resp = client.search(index=vmeta["alias"], body=page_vector_body(
+                qv.vector, k, req.filters, mode=visual.mode, space_type=space, ef_search=visual.ef_search))
+        except Exception as exc:  # noqa: BLE001 - reported without the address
+            raise HybridError("DEPENDENCY_UNAVAILABLE", f"page-vector search failed ({type(exc).__name__})",
+                              stage="visual", tool="opensearch") from exc
+        timings["visual_knn"] = round((time.perf_counter() - t1) * 1e3, 2)
+        vhits = page_vector_hits(resp, req.candidates, collapse_duplicates=not req.include_duplicates,
+                                 space_type=space)
+        vis_list = [(h.page_id, h.score) for h in vhits]
+        vis_rank = {p: i for i, (p, _s) in enumerate(vis_list, 1)}
+        vis_scores = dict(vis_list)
+        vis_src = {h.page_id: h.source for h in vhits}
+        before = {key for key, _s in order}
+        for p, _s in vis_list:
+            kind_of.setdefault(p, "PAGE")
+        order, e_rank, vis_rrf = fuse_visual(order, kind_of, vis_list, depth=req.candidates, rrf_k=req.rrf_k)
+        if vmeta.get("built_from_snapshot_id") and meta.get("built_from_snapshot_id") and \
+                vmeta["built_from_snapshot_id"] != meta["built_from_snapshot_id"]:
+            warnings.append(f"VISUAL_STORE_SNAPSHOT_MISMATCH: page vectors of {vmeta['built_from_snapshot_id']}, "
+                            f"vectors of {meta['built_from_snapshot_id']}")
+        vis_stage.update({"engine": "opensearch-knn", "mode": visual.mode, "alias": vmeta.get("alias"),
+                          "index": vmeta.get("index"), "build_id": vmeta.get("build_id"),
+                          "built_from_snapshot_id": vmeta.get("built_from_snapshot_id"),
+                          "config_signature": vmeta.get("config_signature"), "model_key": vmeta.get("model_key"),
+                          "query_model": qv.model, "query_signature": qv.signature, "dimension": qv.dimension,
+                          "encode_ms": qv.encode_ms, "pages_returned": len(vis_list),
+                          "new_pages": sum(1 for p, _s in vis_list if p not in before), "depth": req.candidates,
+                          "fusion": f"RRF(k={req.rrf_k}) of E's top-{req.candidates} pages (served order) and the "
+                                    f"page-image leg's top-{req.candidates}"})
+    fused_score = dict(fused)
     ranks = {name: {key: i for i, (key, _s) in enumerate(lst, 1)} for name, lst in rankings.items()}
     scores = {name: dict(lst) for name, lst in rankings.items()}
     hits = []
@@ -529,8 +707,8 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
         bmh, dh = bm25_hits.get(key), dense_hits.get(key)
         trace = {"bm25_rank": ranks[f"bm25:{kind}"].get(key), "bm25_score": scores[f"bm25:{kind}"].get(key),
                  "dense_rank": ranks[f"dense:{kind}"].get(key), "dense_score": scores[f"dense:{kind}"].get(key),
-                 "fused_rank": fused_rank[key], "rrf_score": round(score, 8), "rrf_k": req.rrf_k,
-                 "late_rank": None, "rerank_rank": None}
+                 "fused_rank": fused_rank.get(key), "rrf_score": round(fused_score.get(key, 0.0), 8),
+                 "rrf_k": req.rrf_k, "late_rank": None, "rerank_rank": None}
         if bib_status == "APPLIED" and kind == "PAGE":
             info = bib_info.get(key)
             trace["bib_rank"] = ranks["bib:PAGE"].get(key)
@@ -546,9 +724,14 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
             if res is not None and res.get("best_unit_id"):
                 trace["late_unit"] = {"unit_id": res.get("best_unit_id"), "units": res.get("units"),
                                       "tokens": res.get("tokens")}
+        if vis_status == "APPLIED" and kind == "PAGE":
+            trace.update({"e_rank": e_rank.get(key), "vis_rank": vis_rank.get(key),
+                          "vis_score": None if key not in vis_scores else round(vis_scores[key], 6),
+                          "visual_rrf_score": None if key not in vis_rrf else round(vis_rrf[key], 8),
+                          "final_rank": rank})
         if dh is not None:
             trace["dense_unit"] = {"unit_id": dh.unit_id, "unit_kind": dh.unit_kind, "object_ids": dh.object_ids}
-        src = dh.source if dh is not None else {}
+        src = dh.source if dh is not None else vis_src.get(key, {})
         hit: dict[str, Any] = {
             "id": key, "object_type": kind, "rank": rank, "score": round(score, 8),
             "page_id": (bmh.page_id if bmh else None) or (key if kind == "PAGE" else src.get("page_id")),
@@ -556,16 +739,20 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
             (key.split(":")[0] if kind == "PAGE" and ":" in key else None),
             "work_id": (bmh.work_id if bmh else None) or src.get("work_id"),
             "page_index": (bmh.page_index if bmh else None) or src.get("page_index"),
-            "index": bmh.index if bmh else meta["index"], "build_id": bmh.build_id if bmh else meta["build_id"],
+            "index": bmh.index if bmh else (meta["index"] if dh is not None or vmeta is None or key not in vis_src
+                                            else vmeta["index"]),
+            "build_id": bmh.build_id if bmh else (meta["build_id"] if dh is not None or vmeta is None or
+                                                  key not in vis_src else vmeta["build_id"]),
             "vectors_index": meta["index"], "vectors_build_id": meta["build_id"],
             "highlights": list(bmh.highlights) if bmh else [], "best_blocks": list(bmh.best_blocks) if bmh else [],
             "duplicates": list(bmh.duplicates) if bmh else [], "trace": trace}
         hits.append(hit)
     timings["total"] = round((time.perf_counter() - t0) * 1e3, 2)
+    routes = [name for name, st in (("bibliographic", bib_status), ("visual", vis_status)) if st == "APPLIED"]
     return {"query": req.query, "kinds": list(req.kinds), "hits": hits, "fusion": "RRF", "rrf_k": req.rrf_k,
-            "candidates": req.candidates, "fused_total": len(fused), "totals": totals, "warnings": warnings,
+            "candidates": req.candidates, "fused_total": len(order), "totals": totals, "warnings": warnings,
             "late": bool(req.late), "late_candidates": req.late_candidates if req.late else None,
-            "route": "bibliographic" if bib_status == "APPLIED" else "default",
+            "route": "+".join(routes) or "default",
             "stages": {"bm25": {"engine": "opensearch", "indices": "per-kind aliases of E"},
                        "dense": {"engine": "opensearch-knn", "alias": meta["alias"], "index": meta["index"],
                                  "build_id": meta["build_id"], "built_from_snapshot_id":
@@ -573,6 +760,6 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                                  "model_key": meta.get("model_key"), "query_model": q.model,
                                  "query_signature": q.signature, "dimension": q.dimension,
                                  "space_type": meta.get("space_type"), "encode_ms": q.encode_ms},
-                       "late": late_stage, "bib_route": bib_stage,
+                       "late": late_stage, "bib_route": bib_stage, "visual_route": vis_stage,
                        "rerank": "NOT_RUN here (EDGE text reranker: rerank_text over rerank_candidate)"},
             "timings_ms": timings}

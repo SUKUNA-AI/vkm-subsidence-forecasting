@@ -199,7 +199,10 @@ class HybridTopicRetrieval:
                limit: int = RETRIEVAL_UNITS) -> dict[str, Any]:
         request = {"query": query, "kinds": ("PAGE",), "filters": {"source_id": list(source_ids)} if source_ids else {},
                    "size": max(1, min(50, limit)), "offset": 0, "candidates": self.candidates,
-                   "include_duplicates": False, "exact": False, "late": None, "late_candidates": 100}
+                   "include_duplicates": False, "exact": False, "late": None, "late_candidates": 100,
+                   # a dossier is built from text units (sections, formulas, blocks): pages the page-image leg adds
+                   # have no unit to cite, so the visual route stays off here (agent VIS, MODEL_CHOICE)
+                   "visual_route": False}
         response = self.backend.search(request)
         units = []
         for hit in response.get("hits") or []:
