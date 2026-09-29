@@ -22,9 +22,11 @@ interaction stage (mLateOn MaxSim), with a per-stage trace (постановка
   BIB_ENTRY included. V1 harness (``benchmarks/retrieval_v1/bib_route_v1.json``): +0.195 nDCG@10 on the 7
   bibliographic queries (VERIFIED + pooled, 7/0, p = 0.016), nDCG@10 of the 137 other text queries unchanged. CP-42
   stays for every other query. The route needs the late stage (``SKIPPED_LATE_OFF`` otherwise).
-* Query expansions (agent TR; ``expansions``, set by the API flag ``translate``, off by default): every expansion — the
-  query in the other language from the NAV term dictionary — adds its own BM25 and dense legs to the same RRF; the
-  late stage keeps scoring the original query; hits carry ``expansion_ranks`` in the trace.
+* Query expansions (agent TR; ``expansions``, set by the API flag ``translate``): every expansion — the query in the
+  other language from the NAV term dictionary — adds its own BM25 and dense legs to the same RRF; the late stage keeps
+  scoring the original query; hits carry ``expansion_ranks`` in the trace. TERM_DICTIONARY_V1
+  (``benchmarks/term_dictionary_v1``): with the late stage nDCG@10 and R@50 are not worse (R@100 loses), without it
+  the legs dilute same-language queries — the API default follows (on only with the late stage).
 * Filters: E's whitelist (``vkm_corpus.search.query.FILTERS``) on page-level fields, applied to both legs (vector
   documents carry the same fields); object-type filters (block_type, figure_type, layout_class, text_layer) have no
   page-level meaning and are refused.

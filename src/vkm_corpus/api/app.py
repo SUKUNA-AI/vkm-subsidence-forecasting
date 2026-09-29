@@ -138,9 +138,9 @@ class HybridSearchBody(_Body):
     bib_route: bool | None = Field(None, description="bibliographic route (BIB_ENTRY channel, pages scored with their "
                                                      "reference-list entries); null = the query's bibliographic cues "
                                                      "decide")
-    translate: bool = Field(False, description="also search the query in the other language (RU ↔ EN, NAV term "
-                                               "dictionary) as extra RRF legs; off by default (measured: receipt "
-                                               "nav_term_dictionary.json)")
+    translate: bool | None = Field(None, description="also search the query in the other language (RU ↔ EN, NAV "
+                                                      "term dictionary) as extra RRF legs; null = server default "
+                                                      "(on when the late stage runs; benchmarks/term_dictionary_v1)")
 
 
 class ObjectsQueryBody(_Body):
@@ -175,7 +175,8 @@ class TopicBody(_Body):
     max_sections: int = Field(12, ge=1, le=50)
     max_formulas: int = Field(10, ge=0, le=50)
     translate: bool | None = Field(None, description="also search the query in the other language (NAV term "
-                                                     "dictionary); null = the server default")
+                                                     "dictionary) as one more formulation; null = the server default "
+                                                     "(on; benchmarks/term_dictionary_v1)")
 
 
 class Passage(_Body):
@@ -386,7 +387,7 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                           late: Annotated[bool | None, Query()] = None,
                           late_candidates: Annotated[int, Query(ge=1, le=200)] = 100,
                           bib_route: Annotated[bool | None, Query()] = None,
-                          translate: Annotated[bool, Query()] = False) -> JSONResponse:
+                          translate: Annotated[bool | None, Query()] = None) -> JSONResponse:
         request.state.query_sha256 = hashlib.sha256(q.encode("utf-8")).hexdigest()
         return respond(request, service.search_hybrid(q, list(kinds or ["PAGE"]), {}, limit, cursor, candidates,
                                                       late=late, late_candidates=late_candidates,

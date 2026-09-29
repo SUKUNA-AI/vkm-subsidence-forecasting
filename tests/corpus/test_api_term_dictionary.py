@@ -104,19 +104,38 @@ def test_translate_route(env):
 
 
 # ------------------------------------------------------------------------------------------------ hybrid flag
-def test_hybrid_translate_flag(env, tmp_path):
+def test_hybrid_translate_flag(env, tmp_path, monkeypatch):
     client, service, canon = env
     hybrid = service.deps.hybrid
+    monkeypatch.delenv("VKM_HYBRID_TRANSLATE_DEFAULT", raising=False)
     body = _ok(client.post("/v1/search/hybrid", json={"query": "ползучесть соли", "translate": True}, headers=H))
     assert hybrid.requests[-1]["expansions"] == ("salt creep",)
     tr = body["item"]["record"]["translation"]
     assert tr["status"] == "APPLIED" and tr["text"] == "salt creep" and tr["target_language"] == "en"
+    # the server default (TERM_DICTIONARY_V1): on when the late stage runs, off without it
+    assert service.HYBRID_TRANSLATE_DEFAULT is True
+    hybrid.late_default = True                                               # CORE: VKM_HYBRID_LATE_DEFAULT=1
+    _ok(client.get("/v1/search/hybrid", params={"q": "ползучесть соли"}, headers=H))
+    assert hybrid.requests[-1]["expansions"] == ("salt creep",)
+    _ok(client.post("/v1/search/hybrid", json={"query": "ползучесть соли", "late": False}, headers=H))
+    assert "expansions" not in hybrid.requests[-1]
+    _ok(client.post("/v1/search/hybrid", json={"query": "ползучесть соли", "translate": False}, headers=H))
+    assert "expansions" not in hybrid.requests[-1]
+    monkeypatch.setenv("VKM_HYBRID_TRANSLATE_DEFAULT", "0")                  # operators: off without a rebuild
     plain = _ok(client.post("/v1/search/hybrid", json={"query": "ползучесть соли"}, headers=H))
-    assert "expansions" not in hybrid.requests[-1] and "translation" not in plain["item"]["record"]   # off by default
+    assert "expansions" not in hybrid.requests[-1] and "translation" not in plain["item"]["record"]
+    monkeypatch.delenv("VKM_HYBRID_TRANSLATE_DEFAULT")
+    hybrid.late_default = False                                              # the late stage off by default
+    _ok(client.post("/v1/search/hybrid", json={"query": "ползучесть соли"}, headers=H))
+    assert "expansions" not in hybrid.requests[-1]
     _ok(client.get("/v1/search/hybrid", params={"q": "ползучесть соли", "translate": "true"}, headers=H))
     assert hybrid.requests[-1]["expansions"] == ("salt creep",)
-    # a NAV build without the dictionary: the search runs as asked and says so
+    # a NAV build without the dictionary: the search runs without the legs and says so (a warning when asked for)
     service.deps.nav = _nav(tmp_path / "other", canon, {})
+    hybrid.late_default = True
+    quiet = _ok(client.post("/v1/search/hybrid", json={"query": "ползучесть соли"}, headers=H))
+    assert quiet["item"]["record"]["translation"]["status"] == "UNAVAILABLE"
+    assert "TRANSLATION_UNAVAILABLE" not in {w["code"] for w in quiet["meta"]["warnings"]}
     warned = _ok(client.post("/v1/search/hybrid", json={"query": "ползучесть соли", "translate": True}, headers=H))
     assert "expansions" not in hybrid.requests[-1]
     assert warned["item"]["record"]["translation"]["status"] == "UNAVAILABLE"

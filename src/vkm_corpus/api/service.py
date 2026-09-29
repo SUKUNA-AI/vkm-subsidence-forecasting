@@ -450,15 +450,17 @@ class ApiService:
     def search_hybrid(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
                       candidates: int = 100, include_duplicates: bool = False, exact: bool = False, *,
                       late: bool | None = None, late_candidates: int = 100,
-                      bib_route: bool | None = None, translate: bool = False) -> Result:
+                      bib_route: bool | None = None, translate: bool | None = None) -> Result:
         """BM25 + dense k-NN fused by RRF, optionally re-scored by late interaction (``vkm_corpus.search.hybrid``);
         hits are hydrated from the canon exactly as in :meth:`search` and carry the per-stage trace. Without the query
         encoder, the vectors build or (with late) the token store the answer is DEPENDENCY_UNAVAILABLE — never BM25
-        or RRF results in disguise. ``translate`` (off by default) adds the query in the other language (NAV term
-        dictionary) as extra RRF legs; without the dictionary the search runs as asked and says so."""
+        or RRF results in disguise. ``translate`` adds the query in the other language (NAV term dictionary) as
+        extra RRF legs (None → :meth:`_hybrid_translate_default`); without the dictionary the search runs without them
+        and says so (a warning when the flag was asked for)."""
         backend = _require(self.deps.hybrid, "hybrid search", "hybrid")
         offset = int(cursor) if cursor and cursor.isdigit() else 0
-        expansions, translation = self._query_translation(query) if translate else ([], None)
+        use_translation = self._hybrid_translate_default(late) if translate is None else bool(translate)
+        expansions, translation = self._query_translation(query) if use_translation else ([], None)
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
                    "candidates": candidates, "include_duplicates": include_duplicates, "exact": exact,
                    "late": late, "late_candidates": late_candidates, "bib_route": bib_route}
@@ -472,9 +474,9 @@ class ApiService:
                                                "timings_ms", "late", "late_candidates", "route")}
         record.update({"kinds": list(kinds), "query_sha256": sha256_text(query),
                        "scores_are": "rank-fusion signals of a projection, not evidence"})
-        if translate:
+        if use_translation:
             record["translation"] = translation
-            if translation.get("status") == "UNAVAILABLE":
+            if translate and translation.get("status") == "UNAVAILABLE":
                 warnings.append(ApiWarning(code="TRANSLATION_UNAVAILABLE",
                                            message=str(translation.get("reason"))[:200]))
         envelope = Envelope(object_id=f"hybrid-{sha256_text(query)[:16]}", object_kind="SEARCH_RESULT",
@@ -1021,6 +1023,27 @@ class ApiService:
 
     # ------------------------------------------------------------------ term dictionary (agent TR)
     _TRANSLATE_LANGS = frozenset({"ru", "en", "de"})
+    # hybrid ``translate`` when the request does not say (TERM_DICTIONARY_V1, benchmarks/term_dictionary_v1): on with
+    # the late stage — the measured configuration (nDCG@10 and R@50 not worse on V and P); off when the late stage does
+    # not run (exploratory: the extra legs then dilute same-language queries). VKM_HYBRID_TRANSLATE_DEFAULT (1/0)
+    # overrides the constant without a rebuild.
+    HYBRID_TRANSLATE_DEFAULT = True
+
+    def _hybrid_translate_default(self, late: bool | None) -> bool:
+        import os
+
+        raw = os.environ.get("VKM_HYBRID_TRANSLATE_DEFAULT", "").strip().lower()
+        on = {"1": True, "true": True, "on": True, "0": False, "false": False, "off": False}.get(
+            raw, self.HYBRID_TRANSLATE_DEFAULT)
+        if not on:
+            return False
+        if late is None:                                      # the backend's late default (VKM_HYBRID_LATE_DEFAULT)
+            late = getattr(self.deps.hybrid, "late_default", None)
+        if late is None:
+            from vkm_corpus.search.hybrid import LATE_DEFAULT
+
+            late = LATE_DEFAULT
+        return bool(late)
 
     def nav_translate(self, term: str, target: str | None = None, limit: int = 10) -> Result:
         """Equivalents of a term in the other languages, its synonyms and abbreviations (NAV ``term_translations``:

@@ -203,7 +203,8 @@ def build_read_server(api: ApiClient) -> MCPServer:
         trace (bm25_rank, dense_rank, fused_rank, late_rank/late_score, the dense and late units) and a
         rerank_candidate for rerank_text. A bibliographic question («список литературы», «работы Баряха», DOI,
         «et al.») also searches the reference-list entries (route in the result record; trace bib_rank/bib_unit).
-        Fails with DEPENDENCY_UNAVAILABLE when the encoder, the vector index or (late) the token store is missing
+        With the late stage the query is also searched in the other language (RU ↔ EN, NAV term dictionary: record
+        translation, trace expansion_ranks). Fails with DEPENDENCY_UNAVAILABLE when the encoder, the vector index or (late) the token store is missing
         (use search_text, or late=false, then)."""
         return await call("search_hybrid", "POST", "/v1/search/hybrid", body=hybrid_body(
             query, kinds, source_ids, work_ids, source_scope, year_from, year_to, available_until, unknown_policy,
