@@ -547,12 +547,24 @@ namespace Vkm.Cad
                 ln.LineWeight = thick ? LineWeight.LineWeight050 : LineWeight.LineWeight018;
                 Cad.Add(ps, tr, ln, layer);
             }
-            void T(double x, double y, string text, double height)
+            var fitted = new JsonObject();
+            // a text longer than its cell (right edge `right`, 1 mm clear) is condensed down to width factor 0.6,
+            // then made lower; it never runs into the next column (the width is measured from the insertion point, the
+            // origin of both scalings)
+            void T(double x, double y, string text, double height, double right, string key = null)
             {
                 if (string.IsNullOrEmpty(text)) return;
                 var t = new DBText { TextString = text, Height = height, TextStyleId = style };
                 t.Position = new Point3d(X(x), Y(y), 0);
                 Cad.Add(ps, tr, t, layer);
+                double room = right - x - 1.0, width;
+                try { width = t.GeometricExtents.MaxPoint.X - t.Position.X; }
+                catch (System.Exception) { return; }
+                if (width <= room || width <= 0) return;
+                double k = room / width;
+                t.WidthFactor = Math.Max(0.6, k);
+                if (k < 0.6) t.Height = height * k / 0.6;
+                fitted[key ?? text] = new JsonObject { ["width_factor"] = J.R(t.WidthFactor), ["height_mm"] = J.R(t.Height) };
             }
             string F(string key) { var n = f[key]; return n == null ? "" : n.ToString(); }
             // outline and main divisions
@@ -564,18 +576,22 @@ namespace Vkm.Cad
             for (int i = 1; i < 11; i++) L(0, 5 * i, 65, 5 * i, i == 8 || i == 7);
             foreach (var x in new double[] { 7, 17, 40, 55 }) L(x, 30, x, 55, true);
             L(17, 0, 17, 30, true); L(40, 0, 40, 30, true); L(55, 0, 55, 30, true);
-            T(0.8, 36.3, "Изм.", 2.2); T(7.8, 36.3, "Лист", 2.2); T(18.5, 36.3, "№ докум.", 2.2); T(41, 36.3, "Подп.", 2.2); T(56, 36.3, "Дата", 2.2);
-            T(0.8, 26.3, "Разраб.", 2.2); T(0.8, 21.3, "Пров.", 2.2); T(0.8, 16.3, "Т.контр.", 2.2); T(0.8, 6.3, "Н.контр.", 2.2); T(0.8, 1.3, "Утв.", 2.2);
-            T(18.5, 26.3, F("developer"), 2.5); T(18.5, 21.3, F("checker"), 2.5); T(18.5, 1.3, F("approver"), 2.5);
-            T(56, 26.3, F("date"), 2.2);
-            T(137, 36.3, "Лит.", 2.2); T(151, 36.3, "Масса", 2.2); T(168, 36.3, "Масштаб", 2.2);
-            T(169, 25, F("scale"), 3.5);
-            T(136, 16.3, "Лист " + F("sheet"), 2.2); T(156, 16.3, "Листов " + F("sheets"), 2.2);
-            T(68, 45, F("designation"), 5);
-            T(67, 30, F("title"), 3.5); T(67, 22, F("subtitle"), 2.5);
-            T(137, 6, F("organization"), 2.5);
-            T(67, 6, F("material"), 2.5);
+            T(0.8, 36.3, "Изм.", 2.2, 7); T(7.8, 36.3, "Лист", 2.2, 17); T(18.5, 36.3, "№ докум.", 2.2, 40);
+            T(41, 36.3, "Подп.", 2.2, 55); T(56, 36.3, "Дата", 2.2, 65);
+            T(0.8, 26.3, "Разраб.", 2.2, 17); T(0.8, 21.3, "Пров.", 2.2, 17); T(0.8, 16.3, "Т.контр.", 2.2, 17);
+            T(0.8, 6.3, "Н.контр.", 2.2, 17); T(0.8, 1.3, "Утв.", 2.2, 17);
+            T(18.5, 26.3, F("developer"), 2.5, 40, "developer"); T(18.5, 21.3, F("checker"), 2.5, 40, "checker");
+            T(18.5, 1.3, F("approver"), 2.5, 40, "approver");
+            T(56, 26.3, F("date"), 2.2, 65, "date");
+            T(137, 36.3, "Лит.", 2.2, 150); T(151, 36.3, "Масса", 2.2, 167); T(168, 36.3, "Масштаб", 2.2, 185);
+            T(169, 25, F("scale"), 3.5, 185, "scale");
+            T(136, 16.3, "Лист " + F("sheet"), 2.2, 155, "sheet"); T(156, 16.3, "Листов " + F("sheets"), 2.2, 185, "sheets");
+            T(68, 45, F("designation"), 5, 185, "designation");
+            T(67, 30, F("title"), 3.5, 135, "title"); T(67, 22, F("subtitle"), 2.5, 135, "subtitle");
+            T(137, 6, F("organization"), 2.5, 185, "organization");
+            T(67, 6, F("material"), 2.5, 135, "material");
             outp["title_block"] = "GOST 2.104 form 1 (simplified), 185x55 mm";
+            if (fitted.Count > 0) outp["title_block_fitted"] = fitted;
         }
     }
 
