@@ -123,7 +123,7 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 | Хост | Роль | Что работает |
 |---|---|---|
 | **WORKSTATION** (Windows 11 + WSL `archlinux`, RTX 5070 Ti 16 GB, 28 потоков) | единственный producer | конвейер корпуса (STAGING), сборка NAV на GPU (RAPIDS: cuDF, cuML, cuGraph, cuVS), кодирование на GPU для бенчмарков, локальные MCP `vkm-cad` / `vkm-drawio`; AutoCAD 2026 + Civil 3D 2026, Ansys 2026 R1, MATLAB R2025b, OGS 6.5.9 + MFront (сборка из исходников в WSL) |
-| **CORE** (Debian 13, RX 580 8 GB) | единственный CANONICAL-корень | compose `vkm-core`: Neo4j 5.26, OpenSearch 3.8, VKM API, VKM Corpus MCP (read, admin), сервис `rx580-retrieval` (llama.cpp / Vulkan: jina-v5-nano + mLateOn резидентно), разовые задания `vkm-job` (reconcile, projections, обновление векторов) |
+| **CORE** (Debian 13, RX 580 8 GB) | единственный CANONICAL-корень | compose `vkm-core`: Neo4j 5.26, OpenSearch 3.8, VKM API, VKM Corpus MCP (read, admin), сервис `rx580-retrieval` (llama.cpp / Vulkan: jina-v5-nano + mLateOn + башня запроса Qwen3-VL-Embedding-2B F16 резидентно), разовые задания `vkm-job` (reconcile, projections, обновление векторов) |
 | **EDGE** (Debian 13, GTX 1650 4 GB) | модели реранка, operational state | шлюз реранка (jina-reranker-m0 визуальный; текстовый v3.5 выключен 29.09, `rerank_text` считает mLateOn на CORE), PostgreSQL `vkm_ops` |
 
 Публикация: producer пишет неизменяемые партиции в STAGING. `vkm-corpus core publish` переносит на CORE только новые
@@ -202,8 +202,14 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
   «список литературы»): +0,195 nDCG@10 на библиографических запросах, остальные без изменений.
 - **Номер рисунка** («рис. 3.1») усиливается только среди кандидатов своей темы. В ответах есть подписи объектов
   (`object_label`).
-- **Визуальный маршрут** Qwen3-VL-Embedding-2B (эмбеддинги изображений страниц) в работе. В V2 он дал +0,109 nDCG@10 на
-  визуальных запросах.
+- **Визуальный маршрут** Qwen3-VL-Embedding-2B включён 29.09: запрос со словом-картинкой (рисунок, схема, карта, разрез,
+  график, профиль…) ищется и по векторам изображений 26 092 страниц, списки сливаются RRF. Башня запроса на RX580:
+  p50 108 мс, p95 144 мс; весь запрос 0,26–0,63 с. Оценка VIS: +0,085 nDCG@10 на визуальных запросах (V), текстовые не
+  затронуты ([квитанция](docs/corpus_platform/receipts/visual_route_deploy.json)).
+- **Графовые стадии** G1–G5 (схлопывание копий, связность раздела, синонимы понятий, окно CITES, приоритет темы;
+  `VKM_HYBRID_GRAPH`) реализованы, но по умолчанию выключены: по отдельности ни одна не прошла предрегистрированное
+  правило, вместе — на грани и с потерями на отдельных вопросах. Пара G1 + G5 ждёт подтверждающего прогона на
+  расширенной разметке тем ([GRAPH_SEARCH_V1](benchmarks/graph_search_v1/RESULTS.md)).
 - **Словарь терминов:** с поздней стадией запрос ищется и на другом языке — ветви RRF для перевода из NAV
   `term_translations` (флаг `translate`). TERM_DICTIONARY_V1: nDCG@10 и R@50 не хуже, у межъязыковых запросов R@50
   +0,09.
@@ -230,11 +236,15 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 - **Сборка:** `vkm-corpus nav build --part all --vectors <набор векторов>` на WORKSTATION (GPU), около 2 минут.
 - **Упаковка и выдача:** `store.pack` → `nav.duckdb`. `NavStore` в API подключает его вместе с канонической DuckDB,
   только на чтение.
-- **Граф NAV в Neo4j** ([схема графа](docs/diagrams/graph_schema.svg)) — отдельный слой `NAVIGATION` поверх DOCUMENT:
-  111 922 узла, 2,2 млн связей, проверки N1–N7.
-  Узлы: разделы, символы формул, параметры, термины, темы. Рёбра: NAV_CHILD_OF, COVERS_PAGE, IN_SECTION, DEFINED_FOR,
-  NAV_REFERS_TO, CO_OCCURS, MENTIONED_IN, SYMBOL_OF, IN_TOPIC, RELATED_TOPIC… Инструменты: пути между понятиями и
-  окрестность любого узла.
+- **Граф NAV в Neo4j** ([схема графа](docs/diagrams/graph_schema.svg)) — отдельный слой `NAVIGATION` поверх DOCUMENT
+  (nav-graph/1.1 с 29.09): 127 543 узла, 2,25 млн связей, проверки N1–N11.
+  Узлы: разделы, символы формул, термины, темы, структурированные таблицы, значения параметров, группы повторов
+  объектов. Рёбра: NAV_CHILD_OF, COVERS_PAGE, IN_SECTION, DEFINED_FOR, NAV_REFERS_TO, CO_OCCURS, MENTIONED_IN,
+  SYMBOL_OF, IN_TOPIC, RELATED_TOPIC, TABLE_IN_SECTION, VALUE_OF, TRANSLATES_TO, SYNONYM_OF, ABBREVIATION_OF,
+  DUP_MEMBER_OF… Инструменты: пути между понятиями (в том числе через словарь) и окрестность любого узла.
+- **Оцифровка графиков** (прототип v0, [отчёт FD](docs/implementation_work/AGENT_FD_FIGURE_DIGITIZATION.md)): ряды
+  точек с векторных графиков PDF (маршрут A, основной) и со сканов (маршрут R, с проверкой); AutoCAD PDFIMPORT —
+  перекрёстная проверка. Прогон: 853 ряда в 175 рисунках, 70 тыс. точек; статус DERIVATION, не наблюдения.
 
 ## 7. Досье темы «от А до Я»
 
@@ -353,6 +363,7 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 | [retrieval_v1](benchmarks/retrieval_v1/) | поиск на полном корпусе, 186 запросов, пул-метки + ревью пользователя (60 меток, κ взв. 0,91 / 0,95) | развёрнутая схема E: 0,725 nDCG@10 на тексте против 0,551 у BM25; реранкер по запросу; маршрут для библиографических запросов |
 | [retrieval_v2](benchmarks/retrieval_v2/) | 10 dense-моделей и эмбеддинги изображений страниц, кодирование на RTX | ни одна модель не обходит nano в схеме E; Qwen3-VL для визуальных запросов: +0,109 nDCG@10 (Holm p = 0,032) |
 | [topic_v1](benchmarks/topic_v1/) | досье «от А до Я» против каталогов evidence: 117 тем, 351 запрос, 886 страниц | гибрид R@50 0,303 по всему корпусу и 0,559 в ядре ВКМ; слияние формулировок 0,446; приёмка пока не пройдена, причины разобраны |
+| [graph_search_v1](benchmarks/graph_search_v1/) | графовые стадии G1–G5 в гибридном поиске: topic_v1 (78 тестовых тем) и retrieval_v1 | по отдельности ни одна стадия не проходит; все вместе R@50 +0,021 на грани (p Холма 0,046) и с потерями на отдельных вопросах — по умолчанию выключены |
 | [term_dictionary_v1](benchmarks/term_dictionary_v1/) | словарь терминов в поиске, предрегистрация: формулировка-перевод в досье (117 тем) и ветви перевода в гибриде (144 запроса) | досье: полнота @50 без изменений, MRR@50 +0,016 — включено; гибрид с поздней стадией не хуже, межъязыковые запросы R@50 +0,09 — включено; без неё ветви вредят |
 
 ## 12. Структура репозитория
