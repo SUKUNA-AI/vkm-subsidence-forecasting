@@ -13,6 +13,8 @@ IDs are content-derived and stable across rebuilds of the same snapshot with the
 * ``DCL-<16 hex>`` — a cluster of near-duplicate passages across sources: its sorted member unit ids.
 * ``PRM-<16 hex>`` — a parameter-value candidate of the part ``parameters``: (anchor block/table/formula, locator
   — character offset or table cell, property key, value text).
+* ``TTR-<16 hex>`` — a pair of the term dictionary (part ``translations``): (relation, language and lemma key of
+  both terms).
 """
 from __future__ import annotations
 
@@ -28,6 +30,8 @@ RULE_VERSIONS: dict[str, str] = {
     "concepts": "concepts_v1",
     "topics": "topics_v1",
     "parameters": "parameters_v1",
+    # bilingual term dictionary (agent TR)
+    "translations": "term_translations_v1",
 }
 
 # derived datasets under $VKM_DATA_ROOT/derived/navigation/<snapshot_id>/<name>.parquet
@@ -38,6 +42,7 @@ DATASETS: tuple[str, ...] = (
     "terms", "term_mentions", "term_edges",
     "section_aggregates", "section_vectors", "topics", "topic_members", "topic_edges",
     "parameter_candidates", "parameter_summary",
+    "term_translations",
 )
 
 
