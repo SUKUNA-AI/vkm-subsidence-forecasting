@@ -1,0 +1,18 @@
+# VKM nightly checks on CORE (agent OPS, 29.09.2026): user unit of the data-root owner (lingering is on).
+# Installed by infra/core/nightly/install.sh into ~/.config/systemd/user/; paths come from ~/.config/vkm/nightly.env.
+# The caps below bound the host-side processes; container steps are capped by the vkm-nightly compose service
+# (cpus 12, mem_limit, low cpu_shares) and by running one API/MCP request at a time.
+[Unit]
+Description=VKM nightly checks (validator, graphs, search, MCP, vectors, dossiers, topic_v1, backup status)
+Documentation=https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/blob/main/docs/corpus_platform/OPERATIONS.md
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/vkm/nightly.env
+ExecStart=/bin/bash ${VKM_NIGHTLY_DIR}/nightly_checks.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+CPUQuota=1200%
+MemoryMax=4G
+TimeoutStartSec=4h
