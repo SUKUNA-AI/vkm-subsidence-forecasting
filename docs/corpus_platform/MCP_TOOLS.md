@@ -178,7 +178,8 @@ Read-инструменты не вызывают команды и не сох�
   `CAD_SCRIPT_FAILED`, чертёж не меняется;
 - `cad_exec` и `cad_query` исполняют произвольный код с правами пользователя (`destructive_hint = true`) — это
   ограничители, а не песочница; `python_com` включается только `VKM_CAD_ALLOW_HIDDEN_INSTANCE=1` (полный `acad.exe`
-  меняет профиль пользователя) и отклоняется, пока запущен AutoCAD пользователя;
+  меняет профиль пользователя) и отклоняется, пока запущен AutoCAD пользователя. Решение CP-43 (29.09): работаем через
+  консоль, скрытый экземпляр выключен до отдельного решения пользователя;
 - выходы — DERIVED: TIN — INTERPOLATION, остальное — DERIVATION, со списком MODEL_CHOICE; `crs_status = UNKNOWN_CRS`,
   кроме явного преобразования (`offset | helmert2d | affine2d` с основанием ≥ 10 символов → `EXPLICIT_TRANSFORM`),
   `epsg = null`, `review_status = AUTO_EXTRACTED_UNREVIEWED`, никогда не вход извлечения; неизвестная отметка точки не
