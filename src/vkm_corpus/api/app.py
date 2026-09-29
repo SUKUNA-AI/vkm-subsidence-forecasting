@@ -711,8 +711,18 @@ def build_from_settings(settings: Any = None) -> FastAPI:
 
     deps.nav = NavStore(root)                  # served only once derived/navigation/CURRENT is published
     if deps.hybrid is not None:                # graph stages of the hybrid search read the same NAV build (agent GS)
+        import threading
+
         from vkm_corpus.search.graph_stages import NavGraphSignals
 
         deps.hybrid.graph = NavGraphSignals(deps.nav, deps.canon)
+
+        def warm() -> None:                    # the lookup (~0.5 s) is built before the first query needs it
+            try:
+                deps.hybrid.graph.view()
+            except Exception:  # noqa: BLE001 - no NAV published yet: the first query builds it (or runs as E)
+                pass
+
+        threading.Thread(target=warm, name="vkm-graph-warm", daemon=True).start()
     deps.catalogues = CatalogueStore(root)     # served only once derived/catalogues/CURRENT is published
     return create_app(ApiService(deps), ApiConfig.from_settings(settings))

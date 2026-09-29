@@ -332,7 +332,7 @@ class HybridRequest:
         try:
             self.graph = GS.parse_stages(self.graph)
         except ValueError as exc:
-            raise SearchRequestError("E_BAD_GRAPH", str(exc)) from exc
+            raise SearchRequestError("E_BAD_MODE", str(exc)) from exc       # an unknown graph stage
         self.expansions = tuple(" ".join(str(x).split()) for x in self.expansions or ())
         if len(self.expansions) > MAX_EXPANSIONS or any(not x or len(x) > 512 for x in self.expansions):
             raise SearchRequestError("E_BAD_QUERY", f"at most {MAX_EXPANSIONS} expansions of 1..512 characters")
@@ -598,7 +598,7 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
     timings: dict[str, float] = {}
     t0 = time.perf_counter()
     grun = GS.GraphRun(GS.resolve(req.graph, graph_defaults), graph_params or GS.GraphParams(), graph,
-                       bm25=_graph_bm25(client, req, prefix))
+                       bm25=_graph_bm25(client, req, prefix), explicit=req.graph is not None)
     grun.gate(page_kind="PAGE" in req.kinds, late=bool(req.late))
     pool = ThreadPoolExecutor(max_workers=3) if grun.on("concepts") or grun.on("cites") else None
     try:

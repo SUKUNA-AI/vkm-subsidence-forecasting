@@ -44,8 +44,11 @@ from typing import Any, Callable, Iterable, Mapping, Protocol, Sequence
 STAGES: tuple[str, ...] = ("collapse", "cohesion", "concepts", "cites", "topics")
 CODES: dict[str, str] = {"collapse": "G1", "cohesion": "G2", "concepts": "G3", "cites": "G4", "topics": "G5"}
 PAGE_STAGES: tuple[str, ...] = ("cohesion", "concepts", "cites", "topics")
-# server default until GRAPH_SEARCH_V1 decides (benchmarks/graph_search_v1/RESULTS.md); VKM_HYBRID_GRAPH overrides
-DEFAULTS: frozenset[str] = frozenset()
+# server default by the preregistered rule of GRAPH_SEARCH_V1 (benchmarks/graph_search_v1/RESULTS.md): the combination
+# GC — all five stages with the dev-chosen parameters below — passes on the test split (topic_v1 page_recall@50
+# +0.021 [+0.006; +0.037], Holm p 0.047; no significant harm on retrieval_v1 in the copy-group form); no single stage
+# passes alone. VKM_HYBRID_GRAPH overrides it without a rebuild ("none", or a comma list of stages).
+DEFAULTS: frozenset[str] = frozenset(STAGES)
 MODES: tuple[str, ...] = ("post", "window")
 REVIEW_STATUS = "AUTO_EXTRACTED_UNREVIEWED"
 NOTE = ("graph stages: DERIVED navigation (AUTO_EXTRACTED_UNREVIEWED) reorders or adds candidates of the hybrid "
@@ -89,19 +92,19 @@ class GraphParams:
     cohesion_max_pages: int = 16
     cohesion_per_section: int = 4
     cohesion_leg: int = 12
-    cohesion_weight: float = 1.0                # dev: {0.5, 1.0}
+    cohesion_weight: float = 0.5                # dev grid {0.5, 1.0}: 0.5
     # G3 concepts
     concepts_min_score: float = 0.8
-    concepts_narrower: bool = True              # dev: {False, True}
+    concepts_narrower: bool = False             # dev grid {False, True} × {post, window}: False, post
     concepts_narrower_min_df: int = 5
     concepts_depth: int = 50
-    concepts_mode: str = "post"                 # dev: {post, window}
+    concepts_mode: str = "post"
     concepts_weight: float = 1.0
     concepts_window: int = 50
     # G4 cites
     cites_seed: int = 10
     cites_depth: int = 20
-    cites_mode: str = "post"                    # dev: {post, window}
+    cites_mode: str = "window"                  # dev grid {post (weight 0.5), window (+20)}: window
     cites_weight: float = 0.5
     cites_window: int = 20
     # G5 topics
@@ -109,7 +112,7 @@ class GraphParams:
     topics_min_hits: int = 2
     topics_level: int = 1
     topics_leg: int = 20
-    topics_weight: float = 1.0                  # dev: {0.5, 1.0}
+    topics_weight: float = 0.5                  # dev grid {0.5, 1.0}: 0.5
 
     def validate(self) -> "GraphParams":
         if self.concepts_mode not in MODES or self.cites_mode not in MODES:
@@ -553,6 +556,7 @@ class GraphRun:
     copies: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     maps: GraphMaps | None = None
     warnings: list[str] = field(default_factory=list)
+    explicit: bool = True                   # the request named its stages (else: the server default, no warning)
 
     def __post_init__(self) -> None:
         self.params.validate()
@@ -562,7 +566,8 @@ class GraphRun:
     # ---- gates
     def gate(self, *, page_kind: bool, late: bool) -> None:
         """Stages that cannot run: no navigation layer, no PAGE kind (G2–G5), late off (every stage: the measured
-        configuration is E with the late stage)."""
+        configuration is E with the late stage). A missing navigation layer is a warning only when the request named
+        the stages; under the server default the search simply runs as E (the status says so)."""
         if not self.stages:
             return
         if not late:
@@ -572,7 +577,8 @@ class GraphRun:
         if self.signals is None:
             for s in self.stages:
                 self.status[s] = "UNAVAILABLE"
-            self.warnings.append("GRAPH_UNAVAILABLE: the navigation layer is not configured; graph stages skipped")
+            if self.explicit:
+                self.warnings.append("GRAPH_UNAVAILABLE: the navigation layer is not configured; graph stages skipped")
             return
         t0 = time.perf_counter()
         try:
@@ -580,7 +586,9 @@ class GraphRun:
         except Exception as exc:  # noqa: BLE001 - NavUnavailable, a broken build: search without the stages
             for s in self.stages:
                 self.status[s] = "UNAVAILABLE"
-            self.warnings.append(f"GRAPH_UNAVAILABLE: navigation layer ({type(exc).__name__}); graph stages skipped")
+            if self.explicit:
+                self.warnings.append(f"GRAPH_UNAVAILABLE: navigation layer ({type(exc).__name__}); graph stages "
+                                     "skipped")
             return
         self.timings["graph_view"] = round((time.perf_counter() - t0) * 1000, 2)
         if not page_kind:

@@ -32,7 +32,11 @@ def test_parse_and_resolve_stages():
         G.parse_stages("collapse,reranker")
     assert G.resolve(None) == tuple(s for s in G.STAGES if s in G.DEFAULTS)
     assert G.resolve(None, ["topics"]) == ("topics",) and G.resolve((), ["topics"]) == ()
-    assert G.DEFAULTS == frozenset()                   # off until GRAPH_SEARCH_V1 decides (RESULTS.md)
+    # GRAPH_SEARCH_V1 (preregistered rule): the combination of all five stages, with the dev-chosen parameters
+    assert G.DEFAULTS == frozenset(G.STAGES)
+    P = G.GraphParams()
+    assert (P.cohesion_weight, P.concepts_narrower, P.concepts_mode, P.cites_mode, P.topics_weight) == \
+        (0.5, False, "post", "window", 0.5)
     with pytest.raises(ValueError):
         G.GraphParams(concepts_mode="late").validate()
 
@@ -248,10 +252,11 @@ def _signals():
     return G.StaticSignals(m, {Q: {"query": Q, "expansions": [{"kind": "equivalents", "text": X, "terms": []}]}})
 
 
-def _run(graph, params=None, late=True, defaults=None):
+def _run(graph, params=None, late=True, defaults=(), signals="synthetic"):
     rx = _rx(LATE)
     out = hybrid_search(_client(), rx, HybridRequest(query=Q, candidates=10, late=late, graph=graph), "vkm",
-                        graph=_signals(), graph_params=params or G.GraphParams(head=1), graph_defaults=defaults)
+                        graph=_signals() if signals == "synthetic" else signals,
+                        graph_params=params or G.GraphParams(head=1, cites_mode="post"), graph_defaults=defaults)
     return out, rx
 
 
@@ -274,7 +279,7 @@ def test_collapse_lists_the_copy_on_the_hit():
 
 
 def test_cohesion_brings_the_other_page_of_the_section_after_the_head():
-    out, _ = _run(("cohesion",), G.GraphParams(head=2, cohesion_top=2))
+    out, _ = _run(("cohesion",), G.GraphParams(head=2, cohesion_top=2, cohesion_weight=1.0))
     ids = [h["id"] for h in out["hits"]]
     # p1, p2 (the head) share SEC-x with p7, which no leg found: it enters right after the head (ties: E first)
     assert ids[:2] == [p(1), p(2)] and ids[2:4] == [p(3), p(7)]
@@ -300,7 +305,7 @@ def test_concepts_post_and_window_modes():
 
 
 def test_cites_leg_searches_the_neighbour_sources():
-    out, _ = _run(("cites",), G.GraphParams(head=6, cites_weight=1.0))
+    out, _ = _run(("cites",), G.GraphParams(head=6, cites_weight=1.0, cites_mode="post"))
     assert out["hits"][6]["id"] == p(8, "VKM-SRC-004")
     g = out["stages"]["graph"]["cites"]
     assert g["seed_sources"] == ["VKM-SRC-001"] and g["neighbour_sources"] == 1 and g["leg"] == 1
@@ -319,3 +324,19 @@ def test_server_default_applies_when_the_request_does_not_say():
     assert out["stages"]["graph"]["requested"] == ["collapse"] and p(3) not in [h["id"] for h in out["hits"]]
     out2, _ = _run((), defaults=("collapse",))                                  # [] = none, whatever the default
     assert out2["stages"]["graph"].startswith("NOT_RUN")
+    # the code default (all five) without a navigation layer: E's answer, the status says so, no warning
+    out3, _ = _run(None, defaults=None, signals=None)
+    assert [h["id"] for h in out3["hits"]] == [p(i) for i in range(1, 7)] and not out3["warnings"]
+    assert set(out3["stages"]["graph"]["status"].values()) == {"UNAVAILABLE"}
+    # a request that names a stage the server cannot run is told
+    out4, _ = _run(("collapse",), signals=None)
+    assert out4["warnings"] == ["GRAPH_UNAVAILABLE: the navigation layer is not configured; graph stages skipped"]
+
+
+def test_decided_default_runs_every_stage():
+    out, _ = _run(None, params=G.GraphParams(head=2, cohesion_top=2), defaults=None)
+    g = out["stages"]["graph"]
+    assert g["requested"] == list(G.STAGES) and g["status"]["cohesion"] == "APPLIED"
+    assert g["status"]["collapse"] == "APPLIED" and g["status"]["cites"] == "APPLIED"
+    ids = [h["id"] for h in out["hits"]]
+    assert p(3) not in ids and p(7) in ids                                       # G1 and G2 acted together
