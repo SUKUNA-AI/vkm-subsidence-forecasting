@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal, Mapping
 
-Role = Literal["dense", "late"]
+Role = Literal["dense", "late", "visual"]   # visual: the text tower of a page-image model (agent VIS)
 
 
 class ServiceConfigError(ValueError):
@@ -90,8 +90,8 @@ def _slot(d: Mapping[str, Any]) -> ModelSlot:
     if "extra_args" in d:
         d["extra_args"] = tuple(d["extra_args"])
     slot = ModelSlot(**d)
-    if slot.role not in ("dense", "late"):
-        raise ServiceConfigError(f"role must be dense|late, got {slot.role!r}")
+    if slot.role not in ("dense", "late", "visual"):
+        raise ServiceConfigError(f"role must be dense|late|visual, got {slot.role!r}")
     return slot
 
 
@@ -104,7 +104,7 @@ def load_config(env: Mapping[str, str] | None = None, *, path: str | Path | None
     models = tuple(_slot(m) for m in raw.get("models", []))
     roles = [m.role for m in models]
     if len(set(roles)) != len(roles):
-        raise ServiceConfigError("one model per role (dense, late)")
+        raise ServiceConfigError("one model per role (dense, late, visual)")
     s = raw.get("search", {})
     search = SearchTargets(
         opensearch_url=env.get("VKM_OPENSEARCH_URL", "").strip() or s.get("opensearch_url"),

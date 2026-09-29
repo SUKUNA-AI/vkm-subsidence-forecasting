@@ -34,6 +34,7 @@ ALTERED = {
     "output_transform": "tanh_int8", "document_instruction": "Document: ", "text_rule": "embed_text_v2",
     "max_len": 1024, "tokenizer_sha256": "d" * 64, "heads_sha256": "e" * 64, "storage_precision": "float16",
     "late": {"token_dim": 128}, "pipeline_version": "emb-0.2.0", "backend": "flagembedding-cpu-fp32",
+    "image": {"input": "PAGE_PREVIEW", "preprocessor_config_sha256": "f" * 64},
 }
 
 
@@ -70,7 +71,12 @@ Q_ALTERED = {"model_id": "x/y", "model_revision": "s" * 40, "weights_sha256": "c
              "query_instruction": "Instruct: salt\nQuery:", "dimension": 256, "pooling": "last",
              "normalization": "none", "tokenizer_sha256": "d" * 64, "max_len": 32, "output_transform": "tanh_int8",
              "late": {"query_maxlen": 32}, "heads_sha256": "e" * 64, "pipeline_version": "emb-9",
-             "backend": "flagembedding-cpu-fp32"}
+             "backend": "flagembedding-cpu-fp32", "template": "<|im_start|>system {instruction}<|im_end|> {text}"}
+
+
+def test_new_optional_fields_leave_existing_signatures_unchanged():
+    """``image`` (visual documents) and ``template`` (chat-style queries) are omitted when empty (agent VIS)."""
+    assert "image" not in _doc_cfg().as_dict() and "template" not in _q_cfg().as_dict()
 
 
 @pytest.mark.parametrize("field_name", sorted(Q_ALTERED))

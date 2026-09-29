@@ -17,7 +17,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
-Family = Literal["dense", "late", "multi"]
+Family = Literal["dense", "late", "multi", "visual"]
 Pooling = Literal["cls", "mean", "last", "none"]
 Attention = Literal["causal", "bidirectional"]
 OutputTransform = Literal["none", "tanh_int8"]
@@ -73,6 +73,9 @@ class EncoderSpec:
     gguf_source: Literal["convert", "official"] = "convert"
     llama_patches: tuple[str, ...] = ()
     notes: tuple[str, ...] = field(default_factory=tuple)
+    # chat-style query rendering (visual models): ``{instruction}`` = the query instruction, ``{text}`` = the query; the
+    # rendered string is tokenized with the post-processor (which appends the pooled end token). "" = plain prefix.
+    query_template: str = ""
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -240,6 +243,30 @@ _add(EncoderSpec(
            "it from the jina-colbert-v2 GGUF with this repo's own 64×1024 head (not a prefix of the 128 head)",
            "shared backbone §28: one resident model, 128- and 64-dim token vectors from one forward pass")))
 
+# --------------------------------------------------------------------------------------------------------------- visual
+# Qwen3-VL chat template (chat_template.jinja of the pinned revision) for a system + user text turn with the generation
+# prompt: exactly the string sentence-transformers renders for ``encode(query, prompt=instruction)``; the tokenizer
+# post-processor then appends <|endoftext|>, the token last-token pooling reads (V2 §8 item 8).
+QWEN3VL_QUERY_TEMPLATE = ("<|im_start|>system\n{instruction}<|im_end|>\n<|im_start|>user\n{text}<|im_end|>\n"
+                          "<|im_start|>assistant\n")
+
+_add(EncoderSpec(
+    key="qwen3-vl-emb-2b", model_id="Qwen/Qwen3-VL-Embedding-2B",
+    model_revision="9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda", license="apache-2.0", family="visual", arch="qwen3vl",
+    params_m=2127, hidden_size=2048, n_layers=28, vocab_size=151936, pooling="last", normalize=True, output_dim=2048,
+    matryoshka_dims=(2048,), attention="causal", max_len=32768,
+    query_prefix="Find a document image that matches the given query.",
+    doc_prefix="Represent the user's input.", query_template=QWEN3VL_QUERY_TEMPLATE,
+    llama_patches=("0005-qwen3vl-embeddings-no-lm-head",),
+    notes=("page-image route (agent VIS): documents are PAGE_PREVIEW images encoded on the WORKSTATION GPU "
+           "(sentence-transformers, bf16); the RX580 serves only the text tower (GGUF of the language model, arch "
+           "qwen3vl, tied embeddings) for queries",
+           "query instruction: V2's visual-document instruction (MODEL_CHOICE fixed before V2's evaluation); document "
+           "instruction: the model default",
+           "query ids = chat template (system = instruction, user = query, generation prompt) + <|endoftext|> from the "
+           "tokenizer post-processor; last-token pooling, L2 normalisation")))
+
+
 def get(key: str) -> EncoderSpec:
     try:
         return SPECS[key]
@@ -253,3 +280,7 @@ def dense_keys() -> list[str]:
 
 def late_keys() -> list[str]:
     return [k for k, s in SPECS.items() if s.colbert is not None]
+
+
+def visual_keys() -> list[str]:
+    return [k for k, s in SPECS.items() if s.family == "visual"]

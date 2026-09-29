@@ -9,6 +9,9 @@ Rules:
 
 * dense (and BGE-M3): ``prefix + text`` encoded with the tokenizer post-processor (model specials), truncated to
   ``max_len`` including specials (``tokenizers`` truncation keeps post-processor tokens);
+* visual text towers (``spec.query_template``, Qwen3-VL-Embedding): queries are the chat template rendered with the
+  instruction (the query prefix) and the text, encoded with the post-processor (it appends the pooled end token) and
+  truncated the same way — the string sentence-transformers renders, so the ids are the official ones;
 * ColBERT ``pylate``: encode to ``maxlen - 1`` (specials included); queries with expansion are padded with the pad token
   to ``maxlen - 1``; then the marker id is inserted at position 1, after the first token whatever it is
   (``ColBERT.insert_prefix_token``); expansion positions are attended;
@@ -138,6 +141,10 @@ class SpecTokenizer:
     def encode(self, text: str, role: Role, *, max_len: int | None = None, prefix: str | None = None) -> Encoded:
         """``prefix`` overrides the spec instruction of dense models (a MODEL_CHOICE recorded in the signature)."""
         spec, cb = self.spec, self.spec.colbert
+        if spec.query_template and role == "query":
+            instruction = spec.query_prefix if prefix is None else prefix
+            rendered = spec.query_template.replace("{instruction}", instruction).replace("{text}", text)
+            return Encoded(tuple(self._encode(rendered, min(max_len or spec.max_len, spec.max_len))))
         if cb is None or spec.family == "multi":
             pre = spec.prefix(role) if prefix is None else prefix
             ids = self._encode(pre + text, min(max_len or spec.max_len, spec.max_len))

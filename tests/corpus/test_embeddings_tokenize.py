@@ -112,5 +112,7 @@ def test_specs_registry_is_consistent():
         if s.family == "late":
             assert s.colbert is not None and s.pooling == "none"
         assert s.license
-    assert {"dense", "late", "multi"} >= {s.family for s in SPECS.values()}
+    assert {"dense", "late", "multi", "visual"} >= {s.family for s in SPECS.values()}
+    for s in SPECS.values():
+        assert bool(s.query_template) == (s.family == "visual")
     assert isinstance(get("jina-colbert-v2").colbert, ColbertSpec)

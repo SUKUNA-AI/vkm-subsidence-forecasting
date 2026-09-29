@@ -1,5 +1,5 @@
 {
-  "_comment": "Example deployment of the RX580 retrieval service (paths are container paths). The model pair is an EXAMPLE, not a selection: production encoders are chosen by the Retrieval Lab benchmark (agent J, coordinator). sha256 values are filled by `vkm-corpus embed signature` at deployment. expected_vram_mib = VRAM of the model after warm-up measured on the RX580 (MODEL_MATRIX); /health reports a model as resident at >= 80 % of it. search.multivector_dir = the late slot's multivector artifact directory (container path derived/embeddings/multivector/<model>/<revision>/<signature>): the service serves its packs/CURRENT token-vector pack by mmap (embed pack --publish; re-read every multivector_check_s, no restart) and drops touched pages from its RSS after multivector_rss_budget_mib; null = no late stage (POST /search/late answers 503).",
+  "_comment": "Example deployment of the RX580 retrieval service (paths are container paths). The model pair is an EXAMPLE, not a selection: production encoders are chosen by the Retrieval Lab benchmark (agent J, coordinator). sha256 values are filled by `vkm-corpus embed signature` at deployment. expected_vram_mib = VRAM of the model after warm-up measured on the RX580 (MODEL_MATRIX); /health reports a model as resident at >= 80 % of it. search.multivector_dir = the late slot's multivector artifact directory (container path derived/embeddings/multivector/<model>/<revision>/<signature>): the service serves its packs/CURRENT token-vector pack by mmap (embed pack --publish; re-read every multivector_check_s, no restart) and drops touched pages from its RSS after multivector_rss_budget_mib; null = no late stage (POST /search/late answers 503). Optional third slot role \"visual\" (agent VIS): the text tower of the page-image model Qwen3-VL-Embedding-2B as an F16 GGUF (Q8_0 fails parity), query ids from the chat template of the pinned tokenizer; extra_args keep the tied output copy off the GPU (-ot token_embd.weight=CPU, with llama.cpp patch 0005 the lm_head is never computed); expected_vram_mib comes from the RX580 gate (python -m vkm_corpus.embeddings.visual_gate). The route itself is switched in the API (VKM_HYBRID_VISUAL_ROUTE=1) after the gate and `search build-page-vectors`.",
   "service": {
     "spawn": true,
     "llama_server": "/opt/llama/bin/llama-server",
@@ -46,11 +46,35 @@
       "query_max_len": 64,
       "doc_max_len": 512,
       "expected_vram_mib": 184
+    },
+    {
+      "role": "visual",
+      "key": "qwen3-vl-emb-2b",
+      "gguf": "/models/qwen3-vl-emb-2b/qwen3-vl-emb-2b-F16.gguf",
+      "gguf_sha256": "<sha256 of the GGUF>",
+      "quant": "F16",
+      "tokenizer_dir": "/models/qwen3-vl-emb-2b/hf",
+      "tokenizer_sha256": "<sha256 of tokenizer.json>",
+      "port": 18303,
+      "ctx": 2048,
+      "ubatch": 512,
+      "parallel": 2,
+      "threads": 2,
+      "query_max_len": 512,
+      "doc_max_len": 512,
+      "extra_args": [
+        "-ot",
+        "token_embd\\.weight=CPU"
+      ],
+      "expected_vram_mib": null
     }
   ],
   "search": {
     "text_index": "vkm-blocks",
-    "text_fields": ["text^1.0", "text.exact^0.5"],
+    "text_fields": [
+      "text^1.0",
+      "text.exact^0.5"
+    ],
     "dense_index": "vkm-exp-dense-granite-311m-r2",
     "dense_field": "vector",
     "id_field": "id",
