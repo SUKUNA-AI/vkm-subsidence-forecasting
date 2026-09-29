@@ -54,6 +54,33 @@ def ticks_pooled(truth: dict, pred: list[str]) -> dict:
     return E.eval_ticks(truth, [], [], pooled_pred=pred)
 
 
+def legend_fixed(obj: dict | None) -> list[str]:
+    """Deviation G1 (RESULTS.md): legend objects of the form {"label": v} carry the text in the value; the
+    preregistered rule took the keys (the smoke answer had {text: marker})."""
+    out = []
+    for item in (obj or {}).get("legend") or []:
+        if isinstance(item, str):
+            out.append(item)
+        elif isinstance(item, dict):
+            v = item.get("label", item.get("name"))
+            out += [str(v)] if isinstance(v, (str, int, float)) else [str(k) for k in item.keys()]
+    return out
+
+
+def ie_lenient(txt: str | None) -> tuple[list[str], list[str]]:
+    """Exploratory G2 (not preregistered): when the IE answer is not valid JSON, the "tick_labels" arrays of the
+    x_axis and y_axis blocks are read with a regular expression (the answer is kept, only the parse is forgiving)."""
+    out = {"x": [], "y": []}
+    for ax in ("x", "y"):
+        m = re.search(r'"%s_axis"\s*:\s*\{(.*?)\}' % ax, txt or "", flags=re.S)
+        if not m:
+            continue
+        t = re.search(r'"tick_labels"\s*:\s*\[(.*?)\]', m.group(1), flags=re.S)
+        if t:
+            out[ax] = [v.strip().strip('"').strip() for v in t.group(1).split(",") if v.strip().strip('"').strip()]
+    return out["x"], out["y"]
+
+
 def summarize(rows: list[dict], key: str = "hits") -> dict:
     nt = sum(r["n_truth"] for r in rows)
     npred = sum(r["n_pred"] for r in rows)
@@ -69,6 +96,7 @@ def main() -> None:
     ap.add_argument("--work", required=True)
     ap.add_argument("--results-v1", required=True, help="results_v1.json of the main benchmark (Qwen, Granite, G)")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--crop-truth", default="", help="exploratory G3: manual reading of every crop (JSON)")
     args = ap.parse_args()
     reg = json.loads(Path(args.registry).read_text(encoding="utf-8"))
     work = Path(args.work)
@@ -111,6 +139,11 @@ def main() -> None:
         rec["IE"] = {**E.eval_ticks(truth, px, py), **E.eval_titles(truth, norm_ans), "parsed": obj is not None,
                      "wall_s": ie.get("wall_s"), "peak_card_mib": ie.get("peak_card_mib"),
                      "finish": ie.get("finish_reason")}
+        if leg:
+            lf = legend_fixed(obj)
+            rec["IE"]["legend_recall_fixed"] = E.multiset_hits(leg, lf) / len(leg)
+        lx, ly = (px, py) if obj is not None else ie_lenient(ie.get("content"))
+        rec["IE_lenient"] = E.eval_ticks(truth, lx, ly)
         # ---- C (same crops as Tesseract)
         c = json.loads((work / "raw" / "glm" / "C" / f"{key}.json").read_text(encoding="utf-8"))
         glm_reads = [re.sub(r"\s+", "", cr.get("content") or "") for cr in c["crops"]]
@@ -149,6 +182,10 @@ def main() -> None:
         agg["T1"]["glm_IE"][fld] = (sum(v) / len(v), len(v)) if v else None
     v = [per[k]["IE"]["legend_recall"] for k in keys if "legend_recall" in per[k]["IE"]]
     agg["T1"]["glm_IE"]["legend_recall_mean"] = (float(np.mean(v)), len(v)) if v else None
+    v = [per[k]["IE"]["legend_recall_fixed"] for k in keys if "legend_recall_fixed" in per[k]["IE"]]
+    agg["T1"]["glm_IE"]["legend_recall_mean_G1"] = (float(np.mean(v)), len(v)) if v else None
+    agg["T1"]["glm_IE"]["parsed"] = sum(bool(per[k]["IE"]["parsed"]) for k in keys)
+    agg["T1"]["glm_IE_lenient_G2"] = summarize([per[k]["IE_lenient"] for k in keys])
     for fld in ("x_title_found", "y_title_found"):
         v = [per[k]["W"][fld] for k in keys if per[k]["W"].get(fld) is not None]
         agg["T1"]["glm_W"][fld] = (sum(v) / len(v), len(v)) if v else None
@@ -186,6 +223,38 @@ def main() -> None:
         if arm in agg["route_r"]:
             agg["route_r"][f"{arm}_vs_G_hit@2%"] = E.boot_diff([per[k][f"route_{arm}"].get("hit@2%", 0.0) for k in vk],
                                                                [per[k]["route_G"].get("hit@2%", 0.0) for k in vk])
+    if args.crop_truth:        # exploratory G3 (not preregistered): per-crop accuracy against a manual reading
+        ct = json.loads(Path(args.crop_truth).read_text(encoding="utf-8"))["labels"]
+        lab = {"glm": [0, 0], "tesseract": [0, 0]}          # [read exactly, label crops]
+        spurious = {"glm": [0, 0], "tesseract": [0, 0]}     # [label-like reading, non-label crops]
+        both_wrong = glm_only = tes_only = 0
+        for k in keys:
+            c = json.loads((work / "raw" / "glm" / "C" / f"{k}.json").read_text(encoding="utf-8"))
+            truth_k = ct.get(k, {})
+            for cr in c["crops"]:
+                g = re.sub(r"\s+", "", cr.get("content") or "")
+                t = re.sub(r"\s+", "", cr.get("tesseract_text") or "")
+                tv = truth_k.get(str(cr["i"]))
+                if tv is not None:
+                    og, ot = E.norm(g) == E.norm(tv), E.norm(t) == E.norm(tv)
+                    lab["glm"][0] += og
+                    lab["tesseract"][0] += ot
+                    lab["glm"][1] += 1
+                    lab["tesseract"][1] += 1
+                    both_wrong += (not og and not ot)
+                    glm_only += og and not ot
+                    tes_only += ot and not og
+                else:
+                    for name, r in (("glm", g), ("tesseract", t)):
+                        spurious[name][0] += bool(r) and E.is_labelish(r)
+                        spurious[name][1] += 1
+        agg["T1"]["G3_crops_manual"] = {
+            "label_crops": lab["glm"][1],
+            "read_exactly": {n: lab[n][0] / lab[n][1] for n in lab},
+            "only_glm_right": glm_only, "only_tesseract_right": tes_only, "both_wrong": both_wrong,
+            "non_label_crops": spurious["glm"][1],
+            "spurious_label_like_reading": {n: spurious[n][0] / spurious[n][1] for n in spurious},
+        }
     for v in ("W", "IE", "C"):
         ws = [per[k][v]["wall_s"] for k in keys if per[k][v].get("wall_s") is not None]
         pk = [per[k][v]["peak_card_mib"] for k in keys if per[k][v].get("peak_card_mib")]
