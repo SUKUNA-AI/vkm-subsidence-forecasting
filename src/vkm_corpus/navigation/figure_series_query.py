@@ -195,7 +195,8 @@ def find_figure_series(con: Any, text: str | None = None, unit: str | None = Non
     label, then the number of calibrated points); without words in source and page order. Each figure lists at most
     ``max_series`` matching series (ranges, median errors, flags); the points are in :func:`get_figure_series`.
     ``include_raster`` adds the flagged raster dataset (route R) when the build has it; ``clean_only`` drops series
-    with a suspect calibration (``SUSPECT_FLAGS``: axis labels inside the plot, a second axis, power-of-ten labels)."""
+    with a suspect calibration (``SUSPECT_FLAGS``: axis labels inside the plot or far outside it, a second axis,
+    power-of-ten labels, thousands read as small numbers, an axis on three chance labels)."""
     _require(con)
     idx = _index(con, include_raster)
     q_terms = terms(text) if text else set()
@@ -298,7 +299,8 @@ def _get_in(con: Any, ref: str, route: str, max_points: int) -> dict[str, Any] |
         f["caption"] = cap[0] if cap else None
     figure = _figure_view(f, 600)
     figure.update({k: f.get(k) for k in ("layout_class", "page_rotation", "bbox_x0", "bbox_y0", "bbox_x1", "bbox_y1",
-                                         "plot_box", "legend_without_curve", "notes", "error", "keywords_caption",
+                                         "plot_box", "frame_box", "legend_without_curve", "notes", "error",
+                                         "keywords_caption",
                                          "keywords_page", "core_keyword", "model_hint_in_caption",
                                          "digitizer_version", "config_hash", "rule_version")})
     ids = [s["series_id"] for s in srows]

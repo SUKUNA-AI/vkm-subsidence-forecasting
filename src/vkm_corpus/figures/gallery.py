@@ -468,7 +468,8 @@ def build_gallery(nav_dir: str | Path, duckdb_path: str | Path, out_dir: str | P
         overlay = None
         if crop and ser:
             (out / "overlay" / f"{stem}.svg").write_text(overlay_svg(crop["clip"], crop["px"], ser,
-                                                                     f.get("plot_box")), encoding="utf-8")
+                                                                     f.get("frame_box") or f.get("plot_box")),
+                                                         encoding="utf-8")
             overlay = f"overlay/{stem}.svg"
         cap = caps.get(fid)
         items.append({
