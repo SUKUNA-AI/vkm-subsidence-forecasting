@@ -78,7 +78,8 @@ class ModelProcess:
     def argv(self, pooling: str) -> list[str]:
         s = self.slot
         # --cache-ram 0: no host prompt cache (default 8 GiB; causal Qwen3 encoders filled it with idle-slot KV state)
-        return [self.llama_server, "-m", s.gguf, "--embeddings", "--pooling", pooling, "-ngl", "999",
+        offload = ["-ngl", "0", "--device", "none"] if s.placement == "cpu" else ["-ngl", "999"]
+        return [self.llama_server, "-m", s.gguf, "--embeddings", "--pooling", pooling, *offload,
                 "-c", str(s.ctx), "-b", str(s.ubatch), "-ub", str(s.ubatch), "-np", str(s.parallel),
                 "-t", str(s.threads), "-fa", s.flash_attn, "--cache-ram", "0", "--host", "127.0.0.1",
                 "--port", str(s.port), "--no-webui", *s.extra_args]
@@ -223,9 +224,13 @@ class ResidencyManager:
             exp = expected_vram(role) if expected_vram else None
             if exp is None and p.slot.expected_vram_mib:
                 exp = int(p.slot.expected_vram_mib * 2 ** 20)
-            resident = resident_in_vram(loaded, vram, gtt, expected=exp, baseline=p.state.vram_baseline)
+            if p.slot.placement == "cpu":             # host CPU slot: no VRAM to check, liveness only
+                resident = loaded
+            else:
+                resident = resident_in_vram(loaded, vram, gtt, expected=exp, baseline=p.state.vram_baseline)
             models.append({
-                "role": role, "key": p.slot.key, "quant": p.slot.quant, "loaded": loaded, "resident": resident,
+                "role": role, "key": p.slot.key, "quant": p.slot.quant, "placement": p.slot.placement,
+                "loaded": loaded, "resident": resident,
                 "vram_mib": None if vram is None else round(vram / 2 ** 20, 1),
                 "gtt_mib": None if usage is None else round(usage.gtt_bytes / 2 ** 20, 1),
                 "pid": p.pid, "starts": p.state.starts, "restarts": p.state.restarts, "load_s": p.state.load_s,

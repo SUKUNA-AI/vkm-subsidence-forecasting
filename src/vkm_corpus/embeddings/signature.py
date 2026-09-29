@@ -68,11 +68,15 @@ class EmbeddingConfig:
     # A reference implementation with its own numerics (e.g. "flagembedding-cpu-fp32") is part of the signature; the
     # default "" (llama.cpp GGUF on any GPU backend, DN-K2) is omitted, so existing signatures are unchanged.
     backend: str = ""
+    # image input of a visual document encoder (agent VIS: which stored image, processor file sha256, pixel bounds);
+    # omitted when empty, so every text signature is unchanged
+    image: dict[str, Any] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         d = asdict(self)
-        if not d.get("backend"):
-            d.pop("backend", None)
+        for k in ("backend", "image"):
+            if not d.get(k):
+                d.pop(k, None)
         return d
 
     def signature(self) -> str:
@@ -105,11 +109,13 @@ class QueryConfig:
     heads_sha256: str = ""
     pipeline_version: str = EMBEDDINGS_PIPELINE_VERSION
     backend: str = ""                                  # as in EmbeddingConfig: in the signature only when set
+    template: str = ""                                 # chat-style query rendering (visual towers); only when set
 
     def as_dict(self) -> dict[str, Any]:
         d = asdict(self)
-        if not d.get("backend"):
-            d.pop("backend", None)
+        for k in ("backend", "template"):
+            if not d.get(k):
+                d.pop(k, None)
         return d
 
     def signature(self) -> str:
@@ -158,4 +164,5 @@ def query_config(spec: EncoderSpec, *, weights_sha256: str, quantization: str, t
         normalization="l2" if (spec.normalize or (late and spec.colbert and spec.colbert.normalize_tokens))
         else "none",
         tokenizer_sha256=tokenizer_sha256, max_len=int(max_len), output_transform=spec.output_transform,
-        late=_late_settings(spec, "query") if late else {}, heads_sha256=heads_sha256)
+        late=_late_settings(spec, "query") if late else {}, heads_sha256=heads_sha256,
+        template=spec.query_template)

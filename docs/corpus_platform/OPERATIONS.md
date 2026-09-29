@@ -103,6 +103,7 @@ reconcile на CORE с подстановкой `{run_id}`, например
 | откат поиска на предыдущую сборку | `search rollback` |
 | все три по порядку | `core reconcile --run-id <RUN>` |
 | векторы (dense) | `search export-units`, затем `search build-vectors --embeddings <каталог или отчёт encode>` (§4a) |
+| векторы страниц (визуальный маршрут) | `search build-page-vectors --embeddings <каталог visual-артефакта>`; откат — `search rollback-page-vectors` (§4b) |
 | граф NAV (навигация) | `nav graph-ddl`, затем `nav graph-load --nav-dir /data/derived/navigation/<снимок>`; проверка — `nav graph-verify` |
 
 `graph rebuild --plan-only` и `search build --plan-only` печатают ожидаемые числа без записи; `nav graph-load --dry-run`
@@ -152,6 +153,26 @@ CURRENT станет `<ID>`, проверяет, что `rx580-retrieval` раб
 ```bash
 systemd-run --user --unit vkm-lab-refresh --collect bash <каталог compose>/lab_refresh.sh --snapshot <ID> [--wait-s N]
 ```
+
+### 4b. Визуальный маршрут: векторы страниц (агент VIS)
+
+Запрос со словом-картинкой (рисунок, схема, карта, план, разрез, график, профиль, радарограмма, фото, таблица…) или
+с `visual_route = true` дополнительно ищет по изображениям страниц: RRF выдачи E и top-100 страниц по векторам
+Qwen3-VL-Embedding-2B. Остальные запросы не меняются. Отчёт —
+[AGENT_VIS_QWEN3VL_ROUTE.md](../implementation_work/AGENT_VIS_QWEN3VL_ROUTE.md).
+
+| Шаг | Где | Команда |
+|---|---|---|
+| векторы страниц нового снимка (только новые и изменённые превью, §46) | WORKSTATION, RTX | `infra/workstation/visual_route/encode_pages.py --todo <todo.json> --out-root <корень>` |
+| проверки §64 без индекса + список страниц к кодированию | `vkm-job` | `search build-page-vectors --embeddings <visual-каталог> --plan-only --missing-out <todo.json>` |
+| индекс `<prefix>-pagevis` + смена алиаса | `vkm-job` | `search build-page-vectors --embeddings <visual-каталог> [--skip-if-current]` |
+| состояние | `vkm-job`, API | `search status` (раздел `page_vectors`), `/v1/status` (`page_vectors`, `visual_route`) |
+| включить / выключить маршрут | `api` | `VKM_HYBRID_VISUAL_ROUTE=1` / `0` (по умолчанию выключен); поиск страниц `VKM_HYBRID_VISUAL_SEARCH=exact` (по умолчанию) или `hnsw` |
+| smoke | `api` | `vkm-corpus search hybrid-smoke --expect-route visual --query "…"` |
+
+Визуальный артефакт — `derived/embeddings/visual/<модель>/<ревизия>/<подпись>/`: строка на страницу с превью,
+`text_hash` = sha256 превью. Страница без превью (EPUB) в канал не входит. Сменилось превью — страница кодируется
+заново. `build-page-vectors` отказывает, если строки не совпадают со страницами CURRENT; алиас при этом не трогается.
 
 ## 5. Резервные копии
 

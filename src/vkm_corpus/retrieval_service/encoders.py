@@ -23,7 +23,7 @@ from vkm_corpus.retrieval_service.config import ModelSlot
 class QueryVectors:
     role: str
     key: str
-    vector: np.ndarray | None          # dense
+    vector: np.ndarray | None          # dense / visual (the text tower of a page-image model)
     vectors: np.ndarray | None         # late: [tokens, dim]
     n_tokens: int
     signature: str
@@ -74,5 +74,5 @@ class QueryEncoder:
         vec = d.vector
         if not self.spec.normalize:          # cosine space in OpenSearch: normalise unnormalised models (mDenseOn, pplx)
             vec = pp.l2_normalize(vec)
-        return QueryVectors("dense", self.spec.key, vec, None, len(enc.ids), self.signature,
+        return QueryVectors(self.slot.role, self.spec.key, vec, None, len(enc.ids), self.signature,
                             round((time.perf_counter() - t0) * 1e3, 2))

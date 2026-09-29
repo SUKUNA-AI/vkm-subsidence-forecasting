@@ -450,7 +450,7 @@ class ApiService:
     def search_hybrid(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
                       candidates: int = 100, include_duplicates: bool = False, exact: bool = False, *,
                       late: bool | None = None, late_candidates: int = 100,
-                      bib_route: bool | None = None) -> Result:
+                      bib_route: bool | None = None, visual_route: bool | None = None) -> Result:
         """BM25 + dense k-NN fused by RRF, optionally re-scored by late interaction (``vkm_corpus.search.hybrid``);
         hits are hydrated from the canon exactly as in :meth:`search` and carry the per-stage trace. Without the query
         encoder, the vectors build or (with late) the token store the answer is DEPENDENCY_UNAVAILABLE — never BM25
@@ -459,11 +459,15 @@ class ApiService:
         offset = int(cursor) if cursor and cursor.isdigit() else 0
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
                    "candidates": candidates, "include_duplicates": include_duplicates, "exact": exact,
-                   "late": late, "late_candidates": late_candidates, "bib_route": bib_route}
+                   "late": late, "late_candidates": late_candidates, "bib_route": bib_route,
+                   "visual_route": visual_route}
         response = backend.search(request)
-        dense = (response.get("stages") or {}).get("dense") or {}
+        stages = response.get("stages") or {}
+        dense = stages.get("dense") or {}
+        vis = stages.get("visual_route") if isinstance(stages.get("visual_route"), dict) else {}
         items, warnings = self._search_items(response, extra_built={
-            dense.get("build_id"): dense.get("built_from_snapshot_id")}, hybrid=True)
+            dense.get("build_id"): dense.get("built_from_snapshot_id"),
+            vis.get("build_id"): vis.get("built_from_snapshot_id")}, hybrid=True)
         record = {k: response.get(k) for k in ("fusion", "rrf_k", "candidates", "fused_total", "totals", "stages",
                                                "timings_ms", "late", "late_candidates", "route")}
         record.update({"kinds": list(kinds), "query_sha256": sha256_text(query),
@@ -1356,6 +1360,12 @@ class ApiService:
                         **{k: vec.get(k) for k in ("alias", "build_id", "built_from_snapshot_id", "count",
                                                    "model_key", "dimension", "space_type", "config_signature")},
                         "matches_canonical_snapshot": vec.get("built_from_snapshot_id") == snapshot}
+                pv = s.get("page_vectors") or {}
+                if pv.get("indices"):
+                    out["dependencies"]["opensearch"]["page_vectors"] = {
+                        **{k: pv.get(k) for k in ("alias", "build_id", "built_from_snapshot_id", "count",
+                                                  "model_key", "dimension", "space_type", "config_signature")},
+                        "matches_canonical_snapshot": pv.get("built_from_snapshot_id") == snapshot}
             except ApiFailure as exc:
                 out["dependencies"]["opensearch"] = {"available": False, "error": exc.code}
         if self.deps.hybrid is not None and hasattr(self.deps.hybrid, "status"):
@@ -1364,6 +1374,8 @@ class ApiService:
             if "late_default" in h:
                 out["dependencies"]["late_interaction"] = {
                     "default": h["late_default"], "store": (h.get("query_encoder") or {}).get("late_store")}
+            if "visual_route" in h:
+                out["dependencies"]["visual_route"] = h["visual_route"]
         if self.deps.graph is not None:
             try:
                 g = await run_sync(self.deps.graph.state)

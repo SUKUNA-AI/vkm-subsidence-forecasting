@@ -1,4 +1,4 @@
-"""Query intent cues for retrieval routing (agent L): bibliographic queries.
+"""Query intent cues for retrieval routing: bibliographic queries (agent L) and visual queries (agent VIS).
 
 **Bibliographic intent** routes a hybrid query additionally to the BIB_ENTRY units (the reference-list entries),
 because under CP-42 those units never rank pages; V1 (``benchmarks/retrieval_v1``) showed that without them the served
@@ -15,6 +15,16 @@ deterministic and explainable (every decision lists its cues); it never looks at
 
 Eponyms are not authors: «закон Бингама», «ядро Абеля», «критерий Кулона–Мора» carry no cue; «горные работы» is not
 «работы <автора>»; place and organisation adjectives («Верхнекамского», «Соликамской») never count as surnames.
+
+**Visual intent** (agent VIS) routes a hybrid query additionally to the page-image channel (Qwen3-VL-Embedding-2B page
+vectors): V2 (``benchmarks/retrieval_v2``) measured +0.109 nDCG@10 on the 42 visual queries for RRF(E, VIS), but −0.043
+on text queries — so the channel is a route, not a default. One cue is enough; a cue is a word that names a kind of
+picture («рисунок», «рис.», «схема», «карта», «план», «разрез», «график», «профиль», «радарограмма», «фото», «снимок»,
+«таблица», «диаграмма», «изолинии», «эпюра», «чертёж», «выкопировка», «планшет», «интерферограмма», геологическая
+«колонка»; EN figure, map, plan, cross-section, graph, chart, plot, diagram, scheme, profile, radargram, photo, image,
+table, layout, drawing, contour, interferogram). False friends carry no cue: «технологическая карта», «план
+мероприятий / действий / развития», «фотограмметрия», «картина», «картирование», «профилактика», «планирование»,
+«площадь сечения». The word list was fixed before the detector was evaluated on the V1 queries (MODEL_CHOICE).
 """
 from __future__ import annotations
 
@@ -101,3 +111,65 @@ def bibliographic_intent(query: str) -> Intent:
         if matches:
             weak.append(name)
     return Intent(bool(strong) or len(weak) >= 2, tuple(sorted(strong)), tuple(weak))
+
+
+# ------------------------------------------------------------------------------------------------ visual intent
+_RU_END = r"(?![а-яё])"
+_W = r"(?<![а-яёА-ЯЁ\w])"
+VISUAL_PATTERNS: dict[str, re.Pattern[str]] = {
+    "figure": re.compile(_W + r"(?:рисун(?:ок|ка|ку|ке|ком|ки|ков|кам|ками|ках)" + _RU_END + r"|рис\.|иллюстрац\w*"
+                         r"|изображени\w*)"
+                         r"|\bfig(?:ure)?s?\b\.?|\billustrations?\b|\bimages?\b|\bimagery\b", re.I),
+    "scheme": re.compile(_W + r"(?:схем\w*|картосхем\w*|чертеж\w*|чертёж\w*|эскиз\w*)"
+                         r"|\bschem(?:e|es|atic|atics)\b|\bdiagrams?\b|\bdrawings?\b|\bsketch(?:es)?\b|\blayouts?\b",
+                         re.I),
+    "map": re.compile(_W + r"(?:карт(?:а|ы|е|у|ой|ою|ам|ами|ах)?" + _RU_END + r"|картограм\w*|планшет\w*"
+                      r"|выкопировк\w*)|\bmaps?\b|\bcontour\s+(?:lines?|plots?)\b", re.I),
+    "plan": re.compile(_W + r"план(?:а|у|е|ом|ы|ов|ам|ами|ах)?" + _RU_END + r"|\bplans?\b|\bplan\s+view\b", re.I),
+    "section": re.compile(_W + r"разрез(?:а|у|е|ом|ы|ов|ам|ами|ах)?" + _RU_END
+                          + r"|\bcross[- ]?sections?\b|\bgeolog(?:ic|ical)\s+sections?\b", re.I),
+    "graph": re.compile(_W + r"(?:график\w*|диаграмм\w*|гистограмм\w*|номограмм\w*|эпюр\w*)"
+                        r"|\bgraphs?\b|\bcharts?\b|\bplots?\b|\bhistograms?\b", re.I),
+    "profile": re.compile(_W + r"(?:профил(?:ь|я|ю|ем|е|и|ей|ям|ями|ях)" + _RU_END + r"|профильн\w*)"
+                          r"|\bprofiles?\b", re.I),
+    "radargram": re.compile(_W + r"радарограм\w*|\bradargrams?\b|\bgpr\s+(?:profiles?|sections?|images?)\b", re.I),
+    "photo": re.compile(_W + r"(?:фото(?:графи\w*|снимк\w*|снимок|план\w*|схем\w*)?" + _RU_END
+                        + r"|(?:аэро|космо)?сним(?:ок|ка|ку|ке|ком|ки|ков|кам|ками|ках)" + _RU_END + r")"
+                        r"|\bphotos?\b|\bphotographs?\b|\bsnapshots?\b", re.I),
+    "table": re.compile(_W + r"(?:таблиц\w*|табл\.)|\btables?\b", re.I),
+    "isolines": re.compile(_W + r"(?:изолини\w*|изогипс\w*|изобар\w*)|\bisolines?\b|\bisopachs?\b", re.I),
+    "interferogram": re.compile(_W + r"интерферограм\w*|\binterferograms?\b", re.I),
+    "column": re.compile(_W + r"(?:(?:стратиграфическ|литологическ|геологическ)\w*\s+колонк\w*"
+                         r"|колонк\w*\s+скважин\w*)|\b(?:stratigraphic|lithologic|borehole)\s+columns?\b", re.I),
+}
+# false friends: a match inside one of these phrases is not a picture («технологическая карта» is a document)
+VISUAL_EXCLUDE: tuple[re.Pattern[str], ...] = (
+    re.compile(r"технологическ\w*\s+карт\w*", re.I),
+    re.compile(_W + r"план\w*\s+(?:мероприяти|действи|развити|финансировани|исследовани|эксперимент|работы\b)\w*",
+               re.I),
+    re.compile(r"площад\w*\s+(?:поперечного\s+)?(?:сечени|разрез)\w*", re.I),
+    re.compile(r"\bbusiness\s+plans?\b|\bplans?\s+to\b|\btables?\s+of\s+contents\b", re.I),
+)
+
+
+@dataclass(frozen=True)
+class VisualIntent:
+    visual: bool
+    cues: tuple[str, ...] = field(default_factory=tuple)
+
+    def as_dict(self) -> dict[str, object]:
+        return {"visual": self.visual, "cues": list(self.cues)}
+
+
+def visual_intent(query: str) -> VisualIntent:
+    """Rule-based visual intent of a query: one picture word is enough (the cue names are reported)."""
+    text = query or ""
+    excluded = [m.span() for rx in VISUAL_EXCLUDE for m in rx.finditer(text)]
+    cues = set()
+    for name, rx in VISUAL_PATTERNS.items():
+        for m in rx.finditer(text):
+            if any(a <= m.start() < b for a, b in excluded):
+                continue
+            cues.add(name)
+            break
+    return VisualIntent(bool(cues), tuple(sorted(cues)))

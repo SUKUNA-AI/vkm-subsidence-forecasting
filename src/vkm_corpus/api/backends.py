@@ -109,24 +109,38 @@ class HybridBackend:
     """Hybrid search (``vkm_corpus.search.hybrid``): E's BM25 + the vectors alias + the RX580 query encoder (+ late
     interaction on request). The vectors build ``_meta`` is cached for 30 s; every failure maps to an
     :class:`ApiFailure` without addresses. ``VKM_HYBRID_LATE_DEFAULT`` (1/0) overrides the code default of the late
-    stage for requests that do not say (operators switch it without a rebuild)."""
+    stage for requests that do not say (operators switch it without a rebuild). ``VKM_HYBRID_VISUAL_ROUTE`` (1/0)
+    switches the visual route (agent VIS: page-image channel for queries with picture words; off in code, on after the
+    RX580 gate and the page-vector build), ``VKM_HYBRID_VISUAL_SEARCH`` = ``exact`` (default) | ``hnsw`` and
+    ``VKM_HYBRID_VISUAL_EF_SEARCH`` tune its page-vector search; the page-vector ``_meta`` is cached like the vectors
+    one."""
 
     META_TTL_S = 30.0
 
     def __init__(self, settings: Any, search: OpenSearchBackend | None = None, *, embed: Any = None,
-                 late_default: bool | None = None) -> None:
+                 late_default: bool | None = None, visual: Any = None) -> None:
         import os
 
-        from vkm_corpus.search.hybrid import EmbedClient
+        from vkm_corpus.search.hybrid import VISUAL_ROUTE_DEFAULT, EmbedClient, VisualRouteSettings
 
         self.settings = settings
         self._search = search or OpenSearchBackend(settings)
         self._embed = embed if embed is not None else EmbedClient(settings.embed_url, settings.embed_token)
         self._meta: tuple[float, dict[str, Any]] | None = None
+        self._vmeta: tuple[float, dict[str, Any]] | None = None
+        flags = {"1": True, "true": True, "on": True, "0": False, "false": False, "off": False}
         if late_default is None:
             raw = os.environ.get("VKM_HYBRID_LATE_DEFAULT", "").strip().lower()
-            late_default = {"1": True, "true": True, "on": True, "0": False, "false": False, "off": False}.get(raw)
+            late_default = flags.get(raw)
         self.late_default = late_default
+        if visual is None:
+            enabled = flags.get(os.environ.get("VKM_HYBRID_VISUAL_ROUTE", "").strip().lower())
+            mode = os.environ.get("VKM_HYBRID_VISUAL_SEARCH", "").strip().lower() or "exact"
+            ef = os.environ.get("VKM_HYBRID_VISUAL_EF_SEARCH", "").strip()
+            visual = VisualRouteSettings(enabled=VISUAL_ROUTE_DEFAULT if enabled is None else enabled,
+                                         mode=mode if mode in ("exact", "hnsw") else "exact",
+                                         ef_search=int(ef) if ef.isdigit() else None)
+        self.visual = visual
 
     def _vectors_meta(self, client: Any) -> dict[str, Any]:
         import time
@@ -138,13 +152,25 @@ class HybridBackend:
             self._meta = (now, vectors_meta(client, self.settings.opensearch_index_prefix))
         return self._meta[1]
 
+    def _visual_meta(self, client: Any) -> dict[str, Any]:
+        import time
+
+        from vkm_corpus.search.hybrid import visual_meta
+
+        now = time.monotonic()
+        if self._vmeta is None or now - self._vmeta[0] > self.META_TTL_S:
+            self._vmeta = (now, visual_meta(client, self.settings.opensearch_index_prefix))
+        return self._vmeta[1]
+
     def status(self) -> dict[str, Any]:
-        """Query encoder health (RX580 retrieval service, with its late-interaction token store) and the late default;
-        the vectors build is part of the OpenSearch status."""
+        """Query encoder health (RX580 retrieval service, with its late-interaction token store), the late default and
+        the visual route switch; the vectors and page-vector builds are part of the OpenSearch status."""
         from vkm_corpus.search.hybrid import LATE_DEFAULT
 
         return {"query_encoder": self._embed.health(),
-                "late_default": LATE_DEFAULT if self.late_default is None else self.late_default}
+                "late_default": LATE_DEFAULT if self.late_default is None else self.late_default,
+                "visual_route": {"enabled": bool(self.visual.enabled), "search": self.visual.mode,
+                                 "ef_search": self.visual.ef_search}}
 
     def search(self, request: dict[str, Any]) -> dict[str, Any]:
         from vkm_corpus.search.hybrid import HybridError, HybridRequest, hybrid_search
@@ -156,10 +182,13 @@ class HybridBackend:
             client = self._search._connect()
             meta = self._vectors_meta(client)
             return hybrid_search(client, self._embed, HybridRequest(**request),
-                                 self.settings.opensearch_index_prefix, meta=meta)
+                                 self.settings.opensearch_index_prefix, meta=meta, visual=self.visual,
+                                 vmeta=self._visual_meta)
         except HybridError as exc:
             if exc.stage == "vectors":
                 self._meta = None
+            if exc.stage in ("visual", "visual_embed"):
+                self._vmeta = None
             raise ApiFailure(exc.code, exc.message, stage=f"hybrid_{exc.stage}", tool=exc.tool,
                              details=exc.details) from exc
         except SearchRequestError as exc:
