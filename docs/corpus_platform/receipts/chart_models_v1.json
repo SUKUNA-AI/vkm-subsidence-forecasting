@@ -1,0 +1,627 @@
+{
+ "receipt": "chart_models_v1",
+ "agent": "CH",
+ "date": "2026-09-29",
+ "benchmark": "CHART_MODELS_V1",
+ "question": "does a 2025-2026 chart-understanding model beat the figure-digitization helpers of agent FD (Tesseract tick labels, raster route R geometry) on the same images",
+ "status": "DERIVATION",
+ "review_status": "AUTO_EXTRACTED_UNREVIEWED",
+ "status_note": "digitized numbers are derived test outputs, never observations; nothing written to evidence, the canon, CORE or EDGE; images, truth values and raw answers stay in the git-ignored work dir",
+ "code": {
+  "branch": "claude/agent-ch-chart-models-2026-09-29",
+  "base": "79128d8",
+  "preregistration_commit": "ec06430",
+  "package": "benchmarks/chart_models_v1/ (scripts: build_inputs, hash_inputs, run_models, run_route_r, evaluate, selftest_metrics, overlays, exploratory, report_tables, make_receipt)",
+  "route_r_code": "src/vkm_corpus/figures/ at 79128d8, unchanged (digitize_raster, OcrEngine, raster helpers imported read-only)"
+ },
+ "preregistration": {
+  "file": "benchmarks/chart_models_v1/PREREGISTRATION.md",
+  "sha256": "8196a153bb31c7bd8478fb99b458b76676a41fd59d024af8e771c7cf4216041e",
+  "committed_before_any_benchmark_request": true,
+  "inputs_hashes": "benchmarks/chart_models_v1/hashes_v1.json",
+  "manual_truth_sha256": "130038a2a433ee535d993adade067e9abacd06013e4c7a82415b2e80fc6f7350"
+ },
+ "model_selection": {
+  "chosen": {
+   "repo": "Qwen/Qwen3.5-9B",
+   "released": "2026-02",
+   "params": "9.6B",
+   "license": "apache-2.0",
+   "card": {
+    "CharXiv_RQ": 73.0,
+    "OCRBench": 89.2,
+    "OmniDocBench1.5": 87.7,
+    "CC-OCR": 79.3,
+    "AI2D": 90.2,
+    "MMMU": 78.4
+   },
+   "ChartNet_Chart2CSV_IBM_blog": 63.4
+  },
+  "second_arm": {
+   "repo": "ibm-granite/granite-vision-4.1-4b",
+   "released": "2026-04",
+   "params": "4B",
+   "license": "apache-2.0",
+   "card_ChartNet_Chart2CSV_GPT4o_judge": {
+    "granite-vision-4.1-4b": 71.9,
+    "Qwen3.5-4B": 59.9,
+    "InternVL3.5-4B": 57.0,
+    "Ministral-3-8B": 47.7,
+    "Gemma4-E4B": 45.0,
+    "Gemini-3.1-Pro": 73.8,
+    "GPT-5.4": 69.2,
+    "Claude-Opus-4.6": 65.9
+   }
+  },
+  "third": {
+   "repo": "baidu/Qianfan-OCR",
+   "released": "2026-03",
+   "params": "4B",
+   "license": "apache-2.0",
+   "card": {
+    "CharXiv_DQ": 94.0,
+    "CharXiv_RQ": 85.2,
+    "ChartQA": 88.1,
+    "ChartQAPro": 42.9,
+    "ChartBench": 85.9,
+    "OCRBench": 880,
+    "OmniDocBench1.5": 93.12
+   }
+  },
+  "excluded_by_vram": [
+   "Qwen/Qwen3.8-27B (2026-08)",
+   "Qwen/Qwen3.6-27B (CharXiv_RQ 78.4)",
+   "Qwen/Qwen3.5-27B (CharXiv_RQ 79.5)",
+   "Gemma 4 26B-A4B / 31B",
+   "Qwen3.5/3.6-35B-A3B"
+  ],
+  "note": "card numbers are what the model authors report (different harnesses); ChartNet is IBM's own data set and Granite was trained on it"
+ },
+ "serving": {
+  "vram_budget": "RTX 5070 Ti 16303 MiB; desktop ~3.7 GB; card total kept <= 15 GB; one server at a time",
+  "qwen": {
+   "runner": "llama.cpp llama-server in Docker (Docker Desktop, WSL2 backend)",
+   "image": "ghcr.io/ggml-org/llama.cpp@sha256:1c568d229561bbd4577698f1f38d3ed9bf3f5ab343e04f7a508e11ef63f4ced1",
+   "build": "b11243-fc07d781e (CUDA 12)",
+   "weights_repo": "unsloth/Qwen3.5-9B-GGUF",
+   "revision": "3885219b6810b007914f3a7950a8d1b469d598a5",
+   "files": {
+    "Qwen3.5-9B-Q8_0.gguf": "809626574d0cb43d4becfa56169980da2bb448f2299270f7be443cb89d0a6ae4",
+    "mmproj-F16.gguf": "f70dc3509053962b0d0d3ee8a7eacebf5d60aa560cad78254ae8698516ae029f"
+   },
+   "settings": "n-gpu-layers 99, ctx 32768, 1 slot, flash attention, image tokens 1024-4096, no prompt cache, seed 0, non-thinking, temperature 0",
+   "load_seconds": 29
+  },
+  "granite": {
+   "runner": "vLLM nightly 0.28.1rc1.dev580+g385dce36b (transformers 5.16.1) in Docker, image already on the machine",
+   "image": "vllm-openai-b12x@sha256:646c79b2ddc9a25737a5f55d3cf55d8d3c5458ba483e70908c404c4ea2b381e3",
+   "image_not_used": "vllm/vllm-openai@sha256:8a69ffad015f138d7170c4ddc429e230a3bc1c1719f67e14324749df200a4b90 (v0.30.0: granite4_vision import fails, PixtralRotaryEmbedding missing in transformers 5.17.0)",
+   "weights_repo": "ibm-granite/granite-vision-4.1-4b",
+   "revision": "37d591f06319e8f1638b5adcf58bdf50e0f84f7a",
+   "files": {
+    "model-00001-of-00002.safetensors": "7a95dbcc82b1fbd146edb9c08011d7ca0a1862f689621197b80bc837c1ca3e34",
+    "model-00002-of-00002.safetensors": "71d866cf0f20a5d487e17d7c6b839939d6ce126d8a0d175abb34c55131ccd156"
+   },
+   "settings": "bf16, max-model-len 8192, max-num-seqs 2, gpu-memory-utilization 0.62, VLLM_USE_V2_MODEL_RUNNER=0 (no UVA under WSL2), seed 0, temperature 0, max_tokens 4096 (chart2csv) / 2048 (T1)"
+  },
+  "downloads": "the two model weight sets and the llama.cpp image only (all sha256 equal to the LFS / registry digests)",
+  "stopped_after_runs": true
+ },
+ "figures": {
+  "evaluation_set": [
+   "S1",
+   "S2",
+   "S3",
+   "S4",
+   "S5",
+   "R1",
+   "R2",
+   "R3",
+   "R4",
+   "R5",
+   "X01",
+   "X04",
+   "X05",
+   "X10",
+   "X12",
+   "X20",
+   "X25",
+   "X32",
+   "X33"
+  ],
+  "numeric_truth": 17,
+  "S": "vector showcase figures of agent FD, 200 dpi renders; truth = route-A vertices inside the visible plot",
+  "R": "raster showcase regions; R2/R3 printed data table (value row masked), R4 PUBLIC evidence manual digitization, R1/R5 labels only",
+  "X": "33 figures by the preregistered rule (routes A and B agree <= 1e-3) -> 9 pass the overlay QC; 24 rejected (dashed curves missed by route A, merged or split curves, missing flat series, two panels)",
+  "check_0": "route R of this harness on unmasked R2/R3 repeats the FD showcase points exactly (max |d| = 0.0)"
+ },
+ "decision": {
+  "rule_1_tick_labels_model_instead_of_tesseract": "PASS for both models (qwen +0.274 [0.168, 0.391], precision 1.000; granite +0.280 [0.180, 0.392], precision 0.993); recommended: Qwen3.5-9B (titles, units and legends read far better)",
+  "rule_2_replace_geometry_values": "FAIL (qwen - G hit@2% +0.171 [-0.049, 0.404]; granite - G -0.046 [-0.262, 0.161])",
+  "rule_3_hybrid": "FAIL (H - G -0.015 [-0.053, 0.007], tolerance -0.01; H calibrates one figure more (R5, no numeric truth); the whole loss comes from colour-matched series labels, X1b)",
+  "rule_4": "KEEP route R geometry for values",
+  "practical": "model reads axis labels and legend text instead of Tesseract; legend-to-curve by route R pixels, not by colour names; values stay geometric; model values only as a flagged fallback where route R gives nothing (exploratory F: hit@2% 0.67 vs 0.39 / 0.56, to be preregistered on new figures)"
+ },
+ "deviations": [
+  "1 evaluate: predicted series without a single point in the truth frame are not matched (H on X20 had an infinite median distance); hit metrics unchanged",
+  "2 evaluate: a truth series label is scored only if printed in the figure legend (R4 method names are not printed)",
+  "3 evaluate: R1/R5 qualitative block stores counts, not label strings (no figure text in PUBLIC)",
+  "4 serving: Granite gpu-memory-utilization 0.62, max-model-len 8192, max-num-seqs 2 instead of 0.70 / 16384 / 4, to keep the card within 15 GB",
+  "5 serving: Granite on the local vLLM nightly image (v0.30.0 cannot import granite4_vision), with VLLM_USE_V2_MODEL_RUNNER=0"
+ ],
+ "not_done": [
+  "no DjVu scans and no rasters below 100 dpi; numeric truth for 17 figures only; X figures are clean vector renders",
+  "Qianfan-OCR and the 27-28B Qwen models not run (one model + one fallback; 27B does not fit ~12 GB)",
+  "grounding boxes of Qwen in llama.cpp missed by up to ~0.3 image width on the smoke image; cause not investigated; H uses texts only",
+  "pixel-level legend binding and black-curve tracing for route R described, not implemented; src/vkm_corpus/figures and NAV/MCP untouched"
+ ],
+ "results": {
+  "T1_tick_labels": {
+   "qwen": {
+    "micro_recall": 0.9925373134328358,
+    "micro_axis_recall": 0.9925373134328358,
+    "micro_precision": 1.0,
+    "mean_recall": 0.9904306220095694,
+    "n_labels": 268,
+    "x_title_ok": [
+     0.7857142857142857,
+     14
+    ],
+    "y_title_ok": [
+     0.6470588235294118,
+     17
+    ],
+    "x_unit_ok": [
+     1.0,
+     7
+    ],
+    "y_unit_ok": [
+     0.8571428571428571,
+     14
+    ],
+    "legend_recall_mean": [
+     1.0,
+     11
+    ]
+   },
+   "granite": {
+    "micro_recall": 0.996268656716418,
+    "micro_axis_recall": 0.996268656716418,
+    "micro_precision": 0.9925650557620818,
+    "mean_recall": 0.9967105263157895,
+    "n_labels": 268,
+    "x_title_ok": [
+     0.42857142857142855,
+     14
+    ],
+    "y_title_ok": [
+     0.4117647058823529,
+     17
+    ],
+    "x_unit_ok": [
+     0.125,
+     8
+    ],
+    "y_unit_ok": [
+     0.14285714285714285,
+     14
+    ],
+    "legend_recall_mean": [
+     0.9090909090909091,
+     11
+    ]
+   },
+   "tesseract": {
+    "micro_recall": 0.6940298507462687,
+    "micro_axis_recall": 0.6380597014925373,
+    "micro_precision": 0.657243816254417,
+    "mean_recall": 0.7168367871785666,
+    "n_labels": 268
+   }
+  },
+  "T1_differences": {
+   "qwen_vs_tesseract_recall": {
+    "mean_diff": 0.27359383483100286,
+    "ci95": [
+     0.16806469298245613,
+     0.3907518251046746
+    ],
+    "n": 19
+   },
+   "granite_vs_tesseract_recall": {
+    "mean_diff": 0.27987373913722297,
+    "ci95": [
+     0.17969515095553873,
+     0.39230255236905476
+    ],
+    "n": 19
+   }
+  },
+  "T2_values": {
+   "qwen": {
+    "n_figures": 17,
+    "mean_hit@1%": 0.40785501010068137,
+    "mean_hit@2%": 0.5637906771085255,
+    "mean_hit@5%": 0.8173393112779751,
+    "mean_missing_share": 0.18266068872202482,
+    "mean_hallucinated_share": 0.1912702855263409,
+    "median_of_figure_median_rel_dist": 0.018115027584126916,
+    "figures_with_matched_series": 17,
+    "series_count_ok": 17,
+    "label_acc_micro": 1.0,
+    "median_abs_err_mm_figs": 3.444568283841667
+   },
+   "granite": {
+    "n_figures": 17,
+    "mean_hit@1%": 0.22002092484152125,
+    "mean_hit@2%": 0.3462994311771785,
+    "mean_hit@5%": 0.6133575137434503,
+    "mean_missing_share": 0.3866424862565497,
+    "mean_hallucinated_share": 0.33742398015295116,
+    "median_of_figure_median_rel_dist": 0.03129252978188013,
+    "figures_with_matched_series": 16,
+    "series_count_ok": 15,
+    "label_acc_micro": 0.3584905660377358,
+    "median_abs_err_mm_figs": 7.05
+   },
+   "G": {
+    "n_figures": 17,
+    "mean_hit@1%": 0.3724176762347888,
+    "mean_hit@2%": 0.39267996982720965,
+    "mean_hit@5%": 0.42880782725698047,
+    "mean_missing_share": 0.5711921727430195,
+    "mean_hallucinated_share": 0.14776854731634564,
+    "median_of_figure_median_rel_dist": 0.002869530309912402,
+    "figures_with_matched_series": 10,
+    "series_count_ok": 6,
+    "label_acc_micro": 0.0,
+    "median_abs_err_mm_figs": 0.4941477232549971
+   },
+   "H": {
+    "n_figures": 17,
+    "mean_hit@1%": 0.35816043094647937,
+    "mean_hit@2%": 0.37792381608890124,
+    "mean_hit@5%": 0.41351931757322946,
+    "mean_missing_share": 0.5864806824267705,
+    "mean_hallucinated_share": 0.06519689206417936,
+    "median_of_figure_median_rel_dist": 0.002869530309912402,
+    "figures_with_matched_series": 10,
+    "series_count_ok": 6,
+    "label_acc_micro": 0.4528301886792453,
+    "median_abs_err_mm_figs": 0.5973888271845169
+   }
+  },
+  "T2_differences": {
+   "qwen_vs_G_hit@2%": {
+    "mean_diff": 0.17111070728131575,
+    "ci95": [
+     -0.04902511994137391,
+     0.4042542678913111
+    ],
+    "n": 17
+   },
+   "granite_vs_G_hit@2%": {
+    "mean_diff": -0.04638053865003119,
+    "ci95": [
+     -0.26161416053449965,
+     0.1608830899657348
+    ],
+    "n": 17
+   },
+   "H_vs_G_hit@2%": {
+    "mean_diff": -0.014756153738308395,
+    "ci95": [
+     -0.05294117647058822,
+     0.006601774519818143
+    ],
+    "n": 17
+   },
+   "qwen_vs_granite_hit@2%": {
+    "mean_diff": 0.21749124593134694,
+    "ci95": [
+     0.10281545820019854,
+     0.3466529187118546
+    ],
+    "n": 17
+   }
+  },
+  "T2_per_figure_hit@2%": {
+   "S1": {
+    "qwen": 0.01575757575757576,
+    "granite": 0.29393939393939394,
+    "G": 0.23757575757575758,
+    "H": 0.2515151515151515
+   },
+   "S2": {
+    "qwen": 0.23076923076923078,
+    "granite": 0.15384615384615385,
+    "G": 0.0,
+    "H": 0.0
+   },
+   "S3": {
+    "qwen": 0.4,
+    "granite": 0.0,
+    "G": 0.94,
+    "H": 0.64
+   },
+   "S4": {
+    "qwen": 0.6666666666666666,
+    "granite": 0.18181818181818182,
+    "G": 0.9090909090909091,
+    "H": 0.9090909090909091
+   },
+   "S5": {
+    "qwen": 0.5048543689320388,
+    "granite": 0.4110032362459547,
+    "G": 0.6998381877022654,
+    "H": 0.6998381877022654
+   },
+   "R2": {
+    "qwen": 1.0,
+    "granite": 0.75,
+    "G": 0.6666666666666666,
+    "H": 0.6666666666666666
+   },
+   "R3": {
+    "qwen": 1.0,
+    "granite": 0.8181818181818182,
+    "G": 1.0,
+    "H": 1.0
+   },
+   "R4": {
+    "qwen": 0.43548387096774194,
+    "granite": 0.24193548387096775,
+    "G": 0.6290322580645161,
+    "H": 0.6290322580645161
+   },
+   "X01": {
+    "qwen": 1.0,
+    "granite": 0.7727272727272727,
+    "G": 0.0,
+    "H": 0.0
+   },
+   "X04": {
+    "qwen": 1.0,
+    "granite": 0.025423728813559324,
+    "G": 0.0,
+    "H": 0.0
+   },
+   "X05": {
+    "qwen": 0.5757575757575758,
+    "granite": 0.3939393939393939,
+    "G": 0.8181818181818182,
+    "H": 0.8181818181818182
+   },
+   "X10": {
+    "qwen": 0.19047619047619047,
+    "granite": 0.16666666666666666,
+    "G": 0.5714285714285714,
+    "H": 0.5714285714285714
+   },
+   "X12": {
+    "qwen": 0.5625,
+    "granite": 0.5,
+    "G": 0.0,
+    "H": 0.0
+   },
+   "X20": {
+    "qwen": 0.9040178571428571,
+    "granite": 0.6339285714285714,
+    "G": 0.0,
+    "H": 0.0
+   },
+   "X25": {
+    "qwen": 0.33857677902621724,
+    "granite": 0.3044943820224719,
+    "G": 0.20374531835205992,
+    "H": 0.2389513108614232
+   },
+   "X32": {
+    "qwen": 0.184,
+    "granite": 0.12,
+    "G": 0.0,
+    "H": 0.0
+   },
+   "X33": {
+    "qwen": 0.5755813953488372,
+    "granite": 0.11918604651162791,
+    "G": 0.0,
+    "H": 0.0
+   }
+  },
+  "T2_qualitative": {
+   "R1": {
+    "qwen": {
+     "n_series": 5,
+     "labels_in_printed_legend": 5,
+     "parsed": true
+    },
+    "granite": {
+     "n_series": 5,
+     "labels_in_printed_legend": 5,
+     "parsed": true
+    },
+    "G": {
+     "n_series": 5,
+     "axis_status": "OK",
+     "labels_in_printed_legend": 5
+    },
+    "H": {
+     "n_series": 5,
+     "axis_status": "OK",
+     "labels_in_printed_legend": 5
+    },
+    "truth_series_count": 5,
+    "truth_legend_entries": 5
+   },
+   "R5": {
+    "qwen": {
+     "n_series": 30,
+     "labels_in_printed_legend": 30,
+     "parsed": true
+    },
+    "granite": {
+     "n_series": 17,
+     "labels_in_printed_legend": 17,
+     "parsed": true
+    },
+    "G": {
+     "n_series": 24,
+     "axis_status": "Y_UNCALIBRATED",
+     "labels_in_printed_legend": 1
+    },
+    "H": {
+     "n_series": 24,
+     "axis_status": "OK",
+     "labels_in_printed_legend": 19
+    },
+    "truth_series_count": 30,
+    "truth_legend_entries": 30
+   }
+  },
+  "E1_thinking": {
+   "S1": {
+    "hit@2%": 0.0,
+    "completion_tokens": 16384,
+    "wall_s": 213.875,
+    "parsed": false
+   },
+   "S2": {
+    "hit@2%": 0.3076923076923077,
+    "completion_tokens": 2655,
+    "wall_s": 34.673,
+    "parsed": true
+   },
+   "S3": {
+    "hit@2%": 0.0,
+    "completion_tokens": 16384,
+    "wall_s": 210.257,
+    "parsed": false
+   },
+   "S4": {
+    "hit@2%": 0.5454545454545454,
+    "completion_tokens": 2460,
+    "wall_s": 30.949,
+    "parsed": true
+   },
+   "S5": {
+    "hit@2%": 0.5606796116504854,
+    "completion_tokens": 3358,
+    "wall_s": 42.372,
+    "parsed": true
+   },
+   "R2": {
+    "hit@2%": 0.8333333333333334,
+    "completion_tokens": 1801,
+    "wall_s": 23.88,
+    "parsed": true
+   },
+   "R3": {
+    "hit@2%": 1.0,
+    "completion_tokens": 1463,
+    "wall_s": 21.878,
+    "parsed": true
+   },
+   "R4": {
+    "hit@2%": 0.0,
+    "completion_tokens": 16384,
+    "wall_s": 214.136,
+    "parsed": false
+   }
+  },
+  "exploratory_not_preregistered": {
+   "G": 0.39267996982720965,
+   "H": 0.37792381608890124,
+   "H_no_legend_only_rule": 0.37792381608890124,
+   "H_labels_ignored": 0.39267996982720965,
+   "qwen": 0.5637906771085255,
+   "granite": 0.3462994311771785,
+   "F_G_else_qwen": 0.6744565472739308,
+   "F_H_else_qwen": 0.6597003935356223,
+   "X1_H_vs_G": {
+    "mean_diff": -0.014756153738308395,
+    "ci95": [
+     -0.05294117647058822,
+     0.006601774519818143
+    ],
+    "n": 17
+   },
+   "X1b_H_labels_ignored_vs_G": {
+    "mean_diff": 0.0,
+    "ci95": [
+     0.0,
+     0.0
+    ],
+    "n": 17
+   },
+   "X2_F_vs_G": {
+    "mean_diff": 0.281776577446721,
+    "ci95": [
+     0.11707944859518048,
+     0.4638163716940264
+    ],
+    "n": 17
+   },
+   "X2_F_vs_qwen": {
+    "mean_diff": 0.11066587016540537,
+    "ci95": [
+     0.03460046661745338,
+     0.19599399592994954
+    ],
+    "n": 17
+   },
+   "F_sources": {
+    "G": 8,
+    "qwen": 9
+   },
+   "X3_paired_where_G_works": {
+    "figures": [
+     "S1",
+     "S3",
+     "S4",
+     "S5",
+     "R2",
+     "R3",
+     "R4",
+     "X05",
+     "X10",
+     "X25"
+    ],
+    "median_rel_dist": {
+     "G": 0.002869530309912402,
+     "qwen": 0.022058342921396336
+    },
+    "median_abs_err_mm": {
+     "G": 0.3522937352318536,
+     "qwen": 1.7614384513057075
+    },
+    "mm_figures": [
+     "S1",
+     "S3",
+     "S4",
+     "S5",
+     "R2",
+     "R3",
+     "R4",
+     "X05",
+     "X25"
+    ],
+    "mean_hit@2%": {
+     "G": 0.6675559487062563,
+     "qwen": 0.5127573027584007
+    },
+    "qwen_mean_hit@2%_where_G_gives_nothing": 0.6366954976087037,
+    "figures_where_G_gives_nothing": [
+     "S2",
+     "X01",
+     "X04",
+     "X12",
+     "X20",
+     "X32",
+     "X33"
+    ]
+   },
+   "X4_tesseract_recall_all_words": 0.7276119402985075
+  }
+ }
+}
