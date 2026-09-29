@@ -1435,6 +1435,10 @@
  },
  "checks": {
   "tests_world": "207 passed, 2 skipped (legacy branch not available in the checkout)",
-  "leakage_scan": "no problems (tests/world test_public_tree_has_no_private_leakage)"
+  "leakage_scan": "no problems (tests/world test_public_tree_has_no_private_leakage)",
+  "verify_canonical_repository": "PASS_WITH_NONBLOCKING: markdown_links, leakage, host_paths, worldspec_schema, registry PASS; 7 tags not fetched in this checkout, PRIVATE source register not configured (SKIPPED)",
+  "verify_catalogue_sync_with_private": "PASS: 76 catalogues in sync; verbatim: 0 PUBLIC texts with >= 25 consecutive words of a PRIVATE quote",
+  "reproduction": "the committed scripts reproduce results_pool_t1.json and H_REVIEW_SAMPLE_T1.md byte for byte; aa11d32 reproduces the 81 labelled packets byte for byte",
+  "review_tool_selftest": "hscore parses all 60 rows (agent grades as H: exact 1.0; one shifted: 0.9833)"
  }
 }
