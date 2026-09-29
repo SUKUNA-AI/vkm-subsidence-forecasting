@@ -54,6 +54,9 @@ QUERY_FUNCTIONS: dict[str, str] = {
     "translate_query": "vkm_corpus.navigation.term_dictionary_query:translate_query",
     "table_structured": "vkm_corpus.navigation.tables_query:get_table_structured",
     "find_tables": "vkm_corpus.navigation.tables_query:find_tables",
+    # digitized chart series (agent FD2): DERIVATION values with errors, navigation — not evidence
+    "find_figure_series": "vkm_corpus.navigation.figure_series_query:find_figure_series",
+    "figure_series": "vkm_corpus.navigation.figure_series_query:get_figure_series",
 }
 
 

@@ -616,6 +616,24 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
         return respond(request, service.nav_translate(term, target, limit))
     # end term dictionary (agent TR)
 
+    # digitized chart series (agent FD2): DERIVATION values with a half-width error each — navigation, not evidence
+    @app.get("/v1/nav/figure_series", tags=["navigation"], **JSON_RESPONSES)
+    def nav_figure_series_find(request: Request, _auth: Read,
+                               q: Annotated[str | None, Query(max_length=200)] = None,
+                               unit: Annotated[str | None, Query(max_length=40)] = None,
+                               source_id: Annotated[str | None, Query(max_length=20)] = None,
+                               time_series: Annotated[bool | None, Query()] = None,
+                               calibrated_only: bool = True, include_raster: bool = False, clean_only: bool = False,
+                               limit: Annotated[int, Query(ge=1, le=50)] = 10) -> JSONResponse:
+        return respond(request, service.nav_figure_series_find(q, unit, source_id, time_series, calibrated_only,
+                                                               limit, include_raster, clean_only))
+
+    @app.get("/v1/nav/figure_series/{ref}", tags=["navigation"], **JSON_RESPONSES)
+    def nav_figure_series_get(request: Request, ref: str, _auth: Read,
+                              max_points: Annotated[int, Query(ge=1, le=5000)] = 1000) -> JSONResponse:
+        return respond(request, service.nav_figure_series_get(ref, max_points))
+    # end digitized chart series (agent FD2)
+
     # ---------------------------------------------------------------- topic dossier (navigation + catalogues)
     @app.get("/v1/topic", tags=["navigation"], **JSON_RESPONSES)
     def topic_get(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],
