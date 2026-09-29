@@ -95,3 +95,17 @@ def test_visual_and_bibliographic_are_independent():
     q = "рисунок из работы Баряха А.А."
     assert visual_intent(q).visual and bibliographic_intent(q).bibliographic
     assert not visual_intent("работы Баряха А.А.").visual
+
+
+def test_measured_precision_recall_on_the_benchmark_queries_is_pinned():
+    """The detector was fixed (commit 00e1b84) before its evaluation; its decisions on the 189 V0/V1 queries are the
+    ones recorded in the V2 follow-up (precision 0.76, recall 0.864 against the track labels)."""
+    rec = json.loads((ROOT / "benchmarks/retrieval_v2/visual_route_v2.json").read_text(encoding="utf-8"))
+    rows = [json.loads(line) for line in (ROOT / "benchmarks/retrieval_v0/queries.jsonl").read_text("utf-8")
+            .splitlines() if line.strip()]
+    fired = {r["query_id"] for r in rows if visual_intent(r["text"]).visual}
+    assert fired == set(rec["detector"]["cues"])
+    visual = {r["query_id"] for r in rows if r["track"] == "visual"}
+    assert sorted(fired - visual) == rec["detector"]["false_positives"]
+    assert sorted(visual - fired) == rec["detector"]["false_negatives"]
+    assert rec["detector"]["all_189"]["precision"] == 0.76 and rec["detector"]["all_189"]["recall"] == 0.8636

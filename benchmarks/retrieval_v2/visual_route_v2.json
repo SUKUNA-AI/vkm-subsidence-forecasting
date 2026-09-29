@@ -1,0 +1,1492 @@
+{
+ "schema": "vkm.visual_route_eval/1",
+ "benchmark": "RETRIEVAL_BENCHMARK_V2 (visual route follow-up, agent VIS)",
+ "inputs": {
+  "results_v2.json": "7ab8a52071899a304fa3be420bd02b9a9f945b55d2147564fba2ca215556aecd",
+  "queries.jsonl": "65a5c25c1954087477ae6ed913cd68cfb4ad179bdd8d9a72c3a2dd179e69b5c9",
+  "intent.py": "b2699e0f9d22aa91de020db43d88d35aa728e4455f931e7a07bf85e712a66a6e"
+ },
+ "route": "per query: E+VIS if visual_intent(query) else E; E = E:nano-rx580 (served scheme, late); E+VIS = RRF(k=60) of E's top-100 pages and the Qwen3-VL page-image leg's top-100 (duplicates collapsed)",
+ "variants": {
+  "bf16": "query vectors of the GPU bf16 run (V2's measured E+VIS)",
+  "f16": "query vectors of the F16 GGUF text tower (llama.cpp CPU; the service path reproduces them, cos 1.0; the RX580 slot serves this GGUF)",
+  "q8": "Q8_0 GGUF text tower (failed V2's parity; reference only)"
+ },
+ "check0": {
+  "verified/text": {
+   "published": -0.0432,
+   "recomputed": -0.0432,
+   "ok": true
+  },
+  "verified/visual": {
+   "published": 0.1086,
+   "recomputed": 0.1086,
+   "ok": true
+  },
+  "verified+pooled/text": {
+   "published": -0.0935,
+   "recomputed": -0.0935,
+   "ok": true
+  },
+  "verified+pooled/visual": {
+   "published": 0.0596,
+   "recomputed": 0.0596,
+   "ok": true
+  }
+ },
+ "check0_ok": true,
+ "detector": {
+  "all_189": {
+   "n": 189,
+   "tp": 38,
+   "fp": 12,
+   "fn": 6,
+   "tn": 133,
+   "precision": 0.76,
+   "recall": 0.8636,
+   "f1": 0.8085
+  },
+  "covered_186": {
+   "n": 186,
+   "tp": 36,
+   "fp": 12,
+   "fn": 6,
+   "tn": 132,
+   "precision": 0.75,
+   "recall": 0.8571,
+   "f1": 0.8
+  },
+  "false_positives": [
+   "T-ENRU-007",
+   "T-FORM-006",
+   "T-GEOD-003",
+   "T-INSAR-005",
+   "T-LONG-002",
+   "T-LONG-004",
+   "T-MATH-001",
+   "T-MSURV-003",
+   "T-MSURV-004",
+   "T-RSEM-005",
+   "T-RTECH-002",
+   "T-SALT-003"
+  ],
+  "false_negatives": [
+   "V-HSECT-001",
+   "V-INSAR-003",
+   "V-OTHER-002",
+   "V-OTHER-005",
+   "V-PILLAR-002",
+   "V-PILLAR-004"
+  ],
+  "cues": {
+   "T-ENRU-007": [
+    "section"
+   ],
+   "T-FORM-006": [
+    "graph"
+   ],
+   "T-GEOD-003": [
+    "plan"
+   ],
+   "T-INSAR-005": [
+    "interferogram"
+   ],
+   "T-LONG-002": [
+    "profile"
+   ],
+   "T-LONG-004": [
+    "photo"
+   ],
+   "T-MATH-001": [
+    "table"
+   ],
+   "T-MSURV-003": [
+    "profile"
+   ],
+   "T-MSURV-004": [
+    "profile"
+   ],
+   "T-RSEM-005": [
+    "photo"
+   ],
+   "T-RTECH-002": [
+    "scheme"
+   ],
+   "T-SALT-003": [
+    "graph"
+   ],
+   "V-BHOLE-001": [
+    "scheme",
+    "section"
+   ],
+   "V-BLOCK-001": [
+    "plan"
+   ],
+   "V-BLOCK-002": [
+    "plan",
+    "profile"
+   ],
+   "V-BLOCK-003": [
+    "scheme"
+   ],
+   "V-BLOCK-004": [
+    "plan"
+   ],
+   "V-FIELD-001": [
+    "map"
+   ],
+   "V-FIELD-002": [
+    "scheme"
+   ],
+   "V-FIELD-003": [
+    "scheme"
+   ],
+   "V-GPR-001": [
+    "profile",
+    "radargram"
+   ],
+   "V-GPR-002": [
+    "profile",
+    "radargram"
+   ],
+   "V-GSECT-001": [
+    "section"
+   ],
+   "V-GSECT-002": [
+    "section"
+   ],
+   "V-GSECT-003": [
+    "scheme",
+    "section"
+   ],
+   "V-HSECT-002": [
+    "scheme"
+   ],
+   "V-INSAR-001": [
+    "map"
+   ],
+   "V-INSAR-002": [
+    "map"
+   ],
+   "V-LEVEL-001": [
+    "plan",
+    "profile",
+    "scheme"
+   ],
+   "V-LEVEL-002": [
+    "graph",
+    "profile"
+   ],
+   "V-MSEIS-001": [
+    "map"
+   ],
+   "V-OTHER-001": [
+    "graph"
+   ],
+   "V-OTHER-003": [
+    "figure"
+   ],
+   "V-OTHER-004": [
+    "scheme"
+   ],
+   "V-PILLAR-001": [
+    "scheme"
+   ],
+   "V-PILLAR-003": [
+    "scheme"
+   ],
+   "V-PROPT-001": [
+    "table"
+   ],
+   "V-PROPT-002": [
+    "table"
+   ],
+   "V-PROPT-003": [
+    "table"
+   ],
+   "V-SEAM-001": [
+    "scheme"
+   ],
+   "V-SEAM-002": [
+    "scheme"
+   ],
+   "V-SEAM-003": [
+    "scheme"
+   ],
+   "V-SGRAPH-001": [
+    "graph",
+    "profile"
+   ],
+   "V-SGRAPH-002": [
+    "profile"
+   ],
+   "V-SGRAPH-003": [
+    "graph"
+   ],
+   "V-SGRAPH-004": [
+    "graph"
+   ],
+   "V-SMAP-001": [
+    "isolines",
+    "map"
+   ],
+   "V-SMAP-002": [
+    "map"
+   ],
+   "V-TECT-001": [
+    "scheme"
+   ],
+   "V-TECT-002": [
+    "map"
+   ]
+  },
+  "by_category": {
+   "text/bibliography": {
+    "n": 7,
+    "routed": 0
+   },
+   "text/creep_rheology": {
+    "n": 8,
+    "routed": 0
+   },
+   "text/damage": {
+    "n": 6,
+    "routed": 0
+   },
+   "text/en_to_ru": {
+    "n": 8,
+    "routed": 1
+   },
+   "text/exact_entity": {
+    "n": 8,
+    "routed": 0
+   },
+   "text/formula_method": {
+    "n": 8,
+    "routed": 1
+   },
+   "text/geodesy": {
+    "n": 5,
+    "routed": 1
+   },
+   "text/hydrogeology": {
+    "n": 5,
+    "routed": 0
+   },
+   "text/insar": {
+    "n": 7,
+    "routed": 1
+   },
+   "text/inverse_problems": {
+    "n": 6,
+    "routed": 0
+   },
+   "text/lexical": {
+    "n": 8,
+    "routed": 0
+   },
+   "text/long_context": {
+    "n": 7,
+    "routed": 2
+   },
+   "text/mathematics": {
+    "n": 6,
+    "routed": 1
+   },
+   "text/mine_surveying": {
+    "n": 6,
+    "routed": 2
+   },
+   "text/ru_semantic": {
+    "n": 7,
+    "routed": 1
+   },
+   "text/ru_technical": {
+    "n": 7,
+    "routed": 1
+   },
+   "text/ru_to_en": {
+    "n": 8,
+    "routed": 0
+   },
+   "text/salt_mechanics": {
+    "n": 7,
+    "routed": 1
+   },
+   "text/skru1_specific": {
+    "n": 7,
+    "routed": 0
+   },
+   "text/terminology_mismatch": {
+    "n": 7,
+    "routed": 0
+   },
+   "text/vkm_specific": {
+    "n": 7,
+    "routed": 0
+   },
+   "visual/block_panel_layout": {
+    "n": 4,
+    "routed": 4
+   },
+   "visual/borehole_column": {
+    "n": 1,
+    "routed": 1
+   },
+   "visual/chamber_pillar_scheme": {
+    "n": 4,
+    "routed": 2
+   },
+   "visual/geological_section": {
+    "n": 3,
+    "routed": 3
+   },
+   "visual/hydrogeological_section": {
+    "n": 2,
+    "routed": 1
+   },
+   "visual/insar_map": {
+    "n": 3,
+    "routed": 2
+   },
+   "visual/leveling_line": {
+    "n": 2,
+    "routed": 2
+   },
+   "visual/microseismic_map": {
+    "n": 1,
+    "routed": 1
+   },
+   "visual/mine_field_map": {
+    "n": 3,
+    "routed": 3
+   },
+   "visual/other_visual": {
+    "n": 5,
+    "routed": 3
+   },
+   "visual/properties_table": {
+    "n": 3,
+    "routed": 3
+   },
+   "visual/radargram": {
+    "n": 2,
+    "routed": 2
+   },
+   "visual/seam_workings_plan": {
+    "n": 3,
+    "routed": 3
+   },
+   "visual/subsidence_graph": {
+    "n": 4,
+    "routed": 4
+   },
+   "visual/subsidence_map": {
+    "n": 2,
+    "routed": 2
+   },
+   "visual/tectonic_map": {
+    "n": 2,
+    "routed": 2
+   }
+  }
+ },
+ "sets": {
+  "verified": {
+   "text": {
+    "n_queries": 144,
+    "n_routed": 12,
+    "routed_ids": [
+     "T-ENRU-007",
+     "T-FORM-006",
+     "T-GEOD-003",
+     "T-INSAR-005",
+     "T-LONG-002",
+     "T-LONG-004",
+     "T-MATH-001",
+     "T-MSURV-003",
+     "T-MSURV-004",
+     "T-RSEM-005",
+     "T-RTECH-002",
+     "T-SALT-003"
+    ],
+    "systems": {
+     "E": {
+      "ndcg@10": 0.3335,
+      "recall@50": 0.5717,
+      "mrr@10": 0.4742
+     },
+     "E+VIS~bf16": {
+      "ndcg@10": 0.2903,
+      "recall@50": 0.5862,
+      "mrr@10": 0.4203
+     },
+     "ROUTE~bf16": {
+      "ndcg@10": 0.3345,
+      "recall@50": 0.5701,
+      "mrr@10": 0.4858
+     },
+     "ORACLE~bf16": {
+      "ndcg@10": 0.3335,
+      "recall@50": 0.5717,
+      "mrr@10": 0.4742
+     },
+     "E+VIS~f16": {
+      "ndcg@10": 0.2886,
+      "recall@50": 0.5855,
+      "mrr@10": 0.4168
+     },
+     "ROUTE~f16": {
+      "ndcg@10": 0.3345,
+      "recall@50": 0.5701,
+      "mrr@10": 0.4858
+     },
+     "ORACLE~f16": {
+      "ndcg@10": 0.3335,
+      "recall@50": 0.5717,
+      "mrr@10": 0.4742
+     },
+     "E+VIS~q8": {
+      "ndcg@10": 0.2831,
+      "recall@50": 0.5812,
+      "mrr@10": 0.4043
+     },
+     "ROUTE~q8": {
+      "ndcg@10": 0.3345,
+      "recall@50": 0.5696,
+      "mrr@10": 0.4861
+     },
+     "ORACLE~q8": {
+      "ndcg@10": 0.3335,
+      "recall@50": 0.5717,
+      "mrr@10": 0.4742
+     }
+    },
+    "pairs": {
+     "ROUTE~bf16 vs E|ndcg@10": {
+      "n": 144,
+      "delta": 0.001,
+      "p_value": 0.8795,
+      "ci_lo": -0.0112,
+      "ci_hi": 0.0135,
+      "wins": 6,
+      "losses": 6
+     },
+     "ROUTE~bf16 vs E|recall@50": {
+      "n": 144,
+      "delta": -0.0015,
+      "p_value": 0.8782,
+      "ci_lo": -0.0088,
+      "ci_hi": 0.005,
+      "wins": 2,
+      "losses": 2
+     },
+     "ROUTE~bf16 vs E|mrr@10": {
+      "n": 144,
+      "delta": 0.0116,
+      "p_value": 0.3094,
+      "ci_lo": -0.0076,
+      "ci_hi": 0.0345,
+      "wins": 6,
+      "losses": 6
+     },
+     "ROUTE~bf16 vs E|ndcg@10|routed only": {
+      "n": 12,
+      "delta": 0.0123,
+      "p_value": 0.8752,
+      "ci_lo": -0.1356,
+      "ci_hi": 0.1587,
+      "wins": 6,
+      "losses": 6
+     },
+     "ROUTE~bf16 vs E|ndcg@10|not routed": {
+      "n": 132,
+      "delta": 0.0,
+      "p_value": 1.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "wins": 0,
+      "losses": 0
+     },
+     "E+VIS~bf16 vs E|ndcg@10": {
+      "n": 144,
+      "delta": -0.0432,
+      "p_value": 0.0233,
+      "ci_lo": -0.0805,
+      "ci_hi": -0.006,
+      "wins": 53,
+      "losses": 67
+     },
+     "ROUTE~bf16 vs ORACLE~bf16|ndcg@10": {
+      "n": 144,
+      "delta": 0.001,
+      "p_value": 0.8795,
+      "ci_lo": -0.0112,
+      "ci_hi": 0.0135,
+      "wins": 6,
+      "losses": 6
+     },
+     "ROUTE~f16 vs E|ndcg@10": {
+      "n": 144,
+      "delta": 0.001,
+      "p_value": 0.8795,
+      "ci_lo": -0.0112,
+      "ci_hi": 0.0135,
+      "wins": 6,
+      "losses": 6
+     },
+     "ROUTE~f16 vs E|recall@50": {
+      "n": 144,
+      "delta": -0.0015,
+      "p_value": 0.8782,
+      "ci_lo": -0.0088,
+      "ci_hi": 0.005,
+      "wins": 2,
+      "losses": 2
+     },
+     "ROUTE~f16 vs E|mrr@10": {
+      "n": 144,
+      "delta": 0.0116,
+      "p_value": 0.3094,
+      "ci_lo": -0.0076,
+      "ci_hi": 0.0345,
+      "wins": 6,
+      "losses": 6
+     },
+     "ROUTE~f16 vs E|ndcg@10|routed only": {
+      "n": 12,
+      "delta": 0.0123,
+      "p_value": 0.8752,
+      "ci_lo": -0.1356,
+      "ci_hi": 0.1587,
+      "wins": 6,
+      "losses": 6
+     },
+     "ROUTE~f16 vs E|ndcg@10|not routed": {
+      "n": 132,
+      "delta": 0.0,
+      "p_value": 1.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "wins": 0,
+      "losses": 0
+     },
+     "E+VIS~f16 vs E|ndcg@10": {
+      "n": 144,
+      "delta": -0.0449,
+      "p_value": 0.0194,
+      "ci_lo": -0.0827,
+      "ci_hi": -0.0073,
+      "wins": 54,
+      "losses": 66
+     },
+     "ROUTE~f16 vs ORACLE~f16|ndcg@10": {
+      "n": 144,
+      "delta": 0.001,
+      "p_value": 0.8795,
+      "ci_lo": -0.0112,
+      "ci_hi": 0.0135,
+      "wins": 6,
+      "losses": 6
+     },
+     "ROUTE~q8 vs E|ndcg@10": {
+      "n": 144,
+      "delta": 0.001,
+      "p_value": 0.8821,
+      "ci_lo": -0.0111,
+      "ci_hi": 0.0133,
+      "wins": 6,
+      "losses": 6
+     },
+     "ROUTE~q8 vs E|recall@50": {
+      "n": 144,
+      "delta": -0.0021,
+      "p_value": 0.7552,
+      "ci_lo": -0.0093,
+      "ci_hi": 0.0042,
+      "wins": 1,
+      "losses": 2
+     },
+     "ROUTE~q8 vs E|mrr@10": {
+      "n": 144,
+      "delta": 0.012,
+      "p_value": 0.2864,
+      "ci_lo": -0.0073,
+      "ci_hi": 0.0348,
+      "wins": 6,
+      "losses": 5
+     },
+     "ROUTE~q8 vs E|ndcg@10|routed only": {
+      "n": 12,
+      "delta": 0.0121,
+      "p_value": 0.8766,
+      "ci_lo": -0.1351,
+      "ci_hi": 0.1569,
+      "wins": 6,
+      "losses": 6
+     },
+     "ROUTE~q8 vs E|ndcg@10|not routed": {
+      "n": 132,
+      "delta": 0.0,
+      "p_value": 1.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "wins": 0,
+      "losses": 0
+     },
+     "E+VIS~q8 vs E|ndcg@10": {
+      "n": 144,
+      "delta": -0.0504,
+      "p_value": 0.0093,
+      "ci_lo": -0.088,
+      "ci_hi": -0.0132,
+      "wins": 54,
+      "losses": 67
+     },
+     "ROUTE~q8 vs ORACLE~q8|ndcg@10": {
+      "n": 144,
+      "delta": 0.001,
+      "p_value": 0.8821,
+      "ci_lo": -0.0111,
+      "ci_hi": 0.0133,
+      "wins": 6,
+      "losses": 6
+     }
+    }
+   },
+   "visual": {
+    "n_queries": 42,
+    "n_routed": 36,
+    "routed_ids": [
+     "V-BHOLE-001",
+     "V-BLOCK-001",
+     "V-BLOCK-002",
+     "V-BLOCK-003",
+     "V-BLOCK-004",
+     "V-FIELD-001",
+     "V-FIELD-002",
+     "V-FIELD-003",
+     "V-GPR-001",
+     "V-GPR-002",
+     "V-GSECT-001",
+     "V-GSECT-002",
+     "V-GSECT-003",
+     "V-HSECT-002",
+     "V-INSAR-001",
+     "V-INSAR-002",
+     "V-LEVEL-001",
+     "V-LEVEL-002",
+     "V-OTHER-001",
+     "V-OTHER-003",
+     "V-OTHER-004",
+     "V-PILLAR-001",
+     "V-PILLAR-003",
+     "V-PROPT-001",
+     "V-PROPT-002",
+     "V-PROPT-003",
+     "V-SEAM-001",
+     "V-SEAM-002",
+     "V-SEAM-003",
+     "V-SGRAPH-001",
+     "V-SGRAPH-002",
+     "V-SGRAPH-003",
+     "V-SGRAPH-004",
+     "V-SMAP-002",
+     "V-TECT-001",
+     "V-TECT-002"
+    ],
+    "systems": {
+     "E": {
+      "ndcg@10": 0.3489,
+      "recall@50": 0.7218,
+      "mrr@10": 0.3549
+     },
+     "E+VIS~bf16": {
+      "ndcg@10": 0.4575,
+      "recall@50": 0.7718,
+      "mrr@10": 0.48
+     },
+     "ROUTE~bf16": {
+      "ndcg@10": 0.4354,
+      "recall@50": 0.7718,
+      "mrr@10": 0.4499
+     },
+     "ORACLE~bf16": {
+      "ndcg@10": 0.4575,
+      "recall@50": 0.7718,
+      "mrr@10": 0.48
+     },
+     "E+VIS~f16": {
+      "ndcg@10": 0.4561,
+      "recall@50": 0.7718,
+      "mrr@10": 0.476
+     },
+     "ROUTE~f16": {
+      "ndcg@10": 0.434,
+      "recall@50": 0.7718,
+      "mrr@10": 0.4459
+     },
+     "ORACLE~f16": {
+      "ndcg@10": 0.4561,
+      "recall@50": 0.7718,
+      "mrr@10": 0.476
+     },
+     "E+VIS~q8": {
+      "ndcg@10": 0.4696,
+      "recall@50": 0.7718,
+      "mrr@10": 0.4955
+     },
+     "ROUTE~q8": {
+      "ndcg@10": 0.4475,
+      "recall@50": 0.7718,
+      "mrr@10": 0.4654
+     },
+     "ORACLE~q8": {
+      "ndcg@10": 0.4696,
+      "recall@50": 0.7718,
+      "mrr@10": 0.4955
+     }
+    },
+    "pairs": {
+     "ROUTE~bf16 vs E|ndcg@10": {
+      "n": 42,
+      "delta": 0.0865,
+      "p_value": 0.0359,
+      "ci_lo": 0.008,
+      "ci_hi": 0.1623,
+      "wins": 19,
+      "losses": 10
+     },
+     "ROUTE~bf16 vs E|recall@50": {
+      "n": 42,
+      "delta": 0.05,
+      "p_value": 0.0592,
+      "ci_lo": 0.0119,
+      "ci_hi": 0.0976,
+      "wins": 5,
+      "losses": 0
+     },
+     "ROUTE~bf16 vs E|mrr@10": {
+      "n": 42,
+      "delta": 0.095,
+      "p_value": 0.0866,
+      "ci_lo": -0.0099,
+      "ci_hi": 0.199,
+      "wins": 18,
+      "losses": 8
+     },
+     "ROUTE~bf16 vs E|ndcg@10|routed only": {
+      "n": 36,
+      "delta": 0.1009,
+      "p_value": 0.0378,
+      "ci_lo": 0.0088,
+      "ci_hi": 0.1892,
+      "wins": 19,
+      "losses": 10
+     },
+     "ROUTE~bf16 vs E|ndcg@10|not routed": {
+      "n": 6,
+      "delta": 0.0,
+      "p_value": 1.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "wins": 0,
+      "losses": 0
+     },
+     "E+VIS~bf16 vs E|ndcg@10": {
+      "n": 42,
+      "delta": 0.1086,
+      "p_value": 0.0158,
+      "ci_lo": 0.0246,
+      "ci_hi": 0.1903,
+      "wins": 23,
+      "losses": 11
+     },
+     "ROUTE~bf16 vs ORACLE~bf16|ndcg@10": {
+      "n": 42,
+      "delta": -0.0221,
+      "p_value": 0.3156,
+      "ci_lo": -0.0618,
+      "ci_hi": 0.0113,
+      "wins": 1,
+      "losses": 4
+     },
+     "ROUTE~f16 vs E|ndcg@10": {
+      "n": 42,
+      "delta": 0.0851,
+      "p_value": 0.0385,
+      "ci_lo": 0.0063,
+      "ci_hi": 0.1608,
+      "wins": 19,
+      "losses": 10
+     },
+     "ROUTE~f16 vs E|recall@50": {
+      "n": 42,
+      "delta": 0.05,
+      "p_value": 0.0592,
+      "ci_lo": 0.0119,
+      "ci_hi": 0.0976,
+      "wins": 5,
+      "losses": 0
+     },
+     "ROUTE~f16 vs E|mrr@10": {
+      "n": 42,
+      "delta": 0.091,
+      "p_value": 0.0966,
+      "ci_lo": -0.0133,
+      "ci_hi": 0.194,
+      "wins": 18,
+      "losses": 8
+     },
+     "ROUTE~f16 vs E|ndcg@10|routed only": {
+      "n": 36,
+      "delta": 0.0993,
+      "p_value": 0.0401,
+      "ci_lo": 0.0071,
+      "ci_hi": 0.1876,
+      "wins": 19,
+      "losses": 10
+     },
+     "ROUTE~f16 vs E|ndcg@10|not routed": {
+      "n": 6,
+      "delta": 0.0,
+      "p_value": 1.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "wins": 0,
+      "losses": 0
+     },
+     "E+VIS~f16 vs E|ndcg@10": {
+      "n": 42,
+      "delta": 0.1072,
+      "p_value": 0.0168,
+      "ci_lo": 0.0232,
+      "ci_hi": 0.1883,
+      "wins": 23,
+      "losses": 11
+     },
+     "ROUTE~f16 vs ORACLE~f16|ndcg@10": {
+      "n": 42,
+      "delta": -0.0221,
+      "p_value": 0.3156,
+      "ci_lo": -0.0618,
+      "ci_hi": 0.0113,
+      "wins": 1,
+      "losses": 4
+     },
+     "ROUTE~q8 vs E|ndcg@10": {
+      "n": 42,
+      "delta": 0.0986,
+      "p_value": 0.0224,
+      "ci_lo": 0.0179,
+      "ci_hi": 0.1778,
+      "wins": 20,
+      "losses": 9
+     },
+     "ROUTE~q8 vs E|recall@50": {
+      "n": 42,
+      "delta": 0.05,
+      "p_value": 0.0592,
+      "ci_lo": 0.0119,
+      "ci_hi": 0.0976,
+      "wins": 5,
+      "losses": 0
+     },
+     "ROUTE~q8 vs E|mrr@10": {
+      "n": 42,
+      "delta": 0.1105,
+      "p_value": 0.053,
+      "ci_lo": 0.003,
+      "ci_hi": 0.2171,
+      "wins": 19,
+      "losses": 7
+     },
+     "ROUTE~q8 vs E|ndcg@10|routed only": {
+      "n": 36,
+      "delta": 0.115,
+      "p_value": 0.0234,
+      "ci_lo": 0.0204,
+      "ci_hi": 0.2063,
+      "wins": 20,
+      "losses": 9
+     },
+     "ROUTE~q8 vs E|ndcg@10|not routed": {
+      "n": 6,
+      "delta": 0.0,
+      "p_value": 1.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "wins": 0,
+      "losses": 0
+     },
+     "E+VIS~q8 vs E|ndcg@10": {
+      "n": 42,
+      "delta": 0.1207,
+      "p_value": 0.0096,
+      "ci_lo": 0.0338,
+      "ci_hi": 0.2049,
+      "wins": 24,
+      "losses": 10
+     },
+     "ROUTE~q8 vs ORACLE~q8|ndcg@10": {
+      "n": 42,
+      "delta": -0.0221,
+      "p_value": 0.3156,
+      "ci_lo": -0.0618,
+      "ci_hi": 0.0113,
+      "wins": 1,
+      "losses": 4
+     }
+    }
+   }
+  },
+  "verified+pooled": {
+   "text": {
+    "n_queries": 144,
+    "n_routed": 12,
+    "routed_ids": [
+     "T-ENRU-007",
+     "T-FORM-006",
+     "T-GEOD-003",
+     "T-INSAR-005",
+     "T-LONG-002",
+     "T-LONG-004",
+     "T-MATH-001",
+     "T-MSURV-003",
+     "T-MSURV-004",
+     "T-RSEM-005",
+     "T-RTECH-002",
+     "T-SALT-003"
+    ],
+    "systems": {
+     "E": {
+      "ndcg@10": 0.7081,
+      "recall@50": 0.7365,
+      "mrr@10": 0.8811
+     },
+     "E+VIS~bf16": {
+      "ndcg@10": 0.6146,
+      "recall@50": 0.7225,
+      "mrr@10": 0.7975
+     },
+     "ROUTE~bf16": {
+      "ndcg@10": 0.7047,
+      "recall@50": 0.7325,
+      "mrr@10": 0.875
+     },
+     "ORACLE~bf16": {
+      "ndcg@10": 0.7081,
+      "recall@50": 0.7365,
+      "mrr@10": 0.8811
+     },
+     "E+VIS~f16": {
+      "ndcg@10": 0.6128,
+      "recall@50": 0.7233,
+      "mrr@10": 0.7943
+     },
+     "ROUTE~f16": {
+      "ndcg@10": 0.7054,
+      "recall@50": 0.7333,
+      "mrr@10": 0.8784
+     },
+     "ORACLE~f16": {
+      "ndcg@10": 0.7081,
+      "recall@50": 0.7365,
+      "mrr@10": 0.8811
+     },
+     "E+VIS~q8": {
+      "ndcg@10": 0.6124,
+      "recall@50": 0.7238,
+      "mrr@10": 0.7959
+     },
+     "ROUTE~q8": {
+      "ndcg@10": 0.7054,
+      "recall@50": 0.7328,
+      "mrr@10": 0.8784
+     },
+     "ORACLE~q8": {
+      "ndcg@10": 0.7081,
+      "recall@50": 0.7365,
+      "mrr@10": 0.8811
+     }
+    },
+    "pairs": {
+     "ROUTE~bf16 vs E|ndcg@10": {
+      "n": 144,
+      "delta": -0.0034,
+      "p_value": 0.2489,
+      "ci_lo": -0.0095,
+      "ci_hi": 0.0012,
+      "wins": 5,
+      "losses": 7
+     },
+     "ROUTE~bf16 vs E|recall@50": {
+      "n": 144,
+      "delta": -0.0039,
+      "p_value": 0.241,
+      "ci_lo": -0.0101,
+      "ci_hi": 0.0028,
+      "wins": 2,
+      "losses": 8
+     },
+     "ROUTE~bf16 vs E|mrr@10": {
+      "n": 144,
+      "delta": -0.0061,
+      "p_value": 0.3713,
+      "ci_lo": -0.0174,
+      "ci_hi": 0.002,
+      "wins": 1,
+      "losses": 3
+     },
+     "ROUTE~bf16 vs E|ndcg@10|routed only": {
+      "n": 12,
+      "delta": -0.0404,
+      "p_value": 0.2472,
+      "ci_lo": -0.1047,
+      "ci_hi": 0.0133,
+      "wins": 5,
+      "losses": 7
+     },
+     "ROUTE~bf16 vs E|ndcg@10|not routed": {
+      "n": 132,
+      "delta": 0.0,
+      "p_value": 1.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "wins": 0,
+      "losses": 0
+     },
+     "E+VIS~bf16 vs E|ndcg@10": {
+      "n": 144,
+      "delta": -0.0935,
+      "p_value": 0.0001,
+      "ci_lo": -0.1215,
+      "ci_hi": -0.0672,
+      "wins": 49,
+      "losses": 95
+     },
+     "ROUTE~bf16 vs ORACLE~bf16|ndcg@10": {
+      "n": 144,
+      "delta": -0.0034,
+      "p_value": 0.2489,
+      "ci_lo": -0.0095,
+      "ci_hi": 0.0012,
+      "wins": 5,
+      "losses": 7
+     },
+     "ROUTE~f16 vs E|ndcg@10": {
+      "n": 144,
+      "delta": -0.0027,
+      "p_value": 0.3885,
+      "ci_lo": -0.0087,
+      "ci_hi": 0.0017,
+      "wins": 5,
+      "losses": 7
+     },
+     "ROUTE~f16 vs E|recall@50": {
+      "n": 144,
+      "delta": -0.0032,
+      "p_value": 0.3296,
+      "ci_lo": -0.0088,
+      "ci_hi": 0.0033,
+      "wins": 2,
+      "losses": 8
+     },
+     "ROUTE~f16 vs E|mrr@10": {
+      "n": 144,
+      "delta": -0.0027,
+      "p_value": 0.8742,
+      "ci_lo": -0.0162,
+      "ci_hi": 0.0102,
+      "wins": 1,
+      "losses": 3
+     },
+     "ROUTE~f16 vs E|ndcg@10|routed only": {
+      "n": 12,
+      "delta": -0.0323,
+      "p_value": 0.3882,
+      "ci_lo": -0.0965,
+      "ci_hi": 0.0202,
+      "wins": 5,
+      "losses": 7
+     },
+     "ROUTE~f16 vs E|ndcg@10|not routed": {
+      "n": 132,
+      "delta": 0.0,
+      "p_value": 1.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "wins": 0,
+      "losses": 0
+     },
+     "E+VIS~f16 vs E|ndcg@10": {
+      "n": 144,
+      "delta": -0.0953,
+      "p_value": 0.0001,
+      "ci_lo": -0.1235,
+      "ci_hi": -0.0688,
+      "wins": 46,
+      "losses": 98
+     },
+     "ROUTE~f16 vs ORACLE~f16|ndcg@10": {
+      "n": 144,
+      "delta": -0.0027,
+      "p_value": 0.3885,
+      "ci_lo": -0.0087,
+      "ci_hi": 0.0017,
+      "wins": 5,
+      "losses": 7
+     },
+     "ROUTE~q8 vs E|ndcg@10": {
+      "n": 144,
+      "delta": -0.0027,
+      "p_value": 0.3951,
+      "ci_lo": -0.0088,
+      "ci_hi": 0.0018,
+      "wins": 5,
+      "losses": 7
+     },
+     "ROUTE~q8 vs E|recall@50": {
+      "n": 144,
+      "delta": -0.0037,
+      "p_value": 0.2648,
+      "ci_lo": -0.0096,
+      "ci_hi": 0.0028,
+      "wins": 1,
+      "losses": 8
+     },
+     "ROUTE~q8 vs E|mrr@10": {
+      "n": 144,
+      "delta": -0.0027,
+      "p_value": 0.7489,
+      "ci_lo": -0.0108,
+      "ci_hi": 0.0028,
+      "wins": 1,
+      "losses": 2
+     },
+     "ROUTE~q8 vs E|ndcg@10|routed only": {
+      "n": 12,
+      "delta": -0.0324,
+      "p_value": 0.3919,
+      "ci_lo": -0.0976,
+      "ci_hi": 0.0212,
+      "wins": 5,
+      "losses": 7
+     },
+     "ROUTE~q8 vs E|ndcg@10|not routed": {
+      "n": 132,
+      "delta": 0.0,
+      "p_value": 1.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "wins": 0,
+      "losses": 0
+     },
+     "E+VIS~q8 vs E|ndcg@10": {
+      "n": 144,
+      "delta": -0.0956,
+      "p_value": 0.0001,
+      "ci_lo": -0.1232,
+      "ci_hi": -0.0695,
+      "wins": 46,
+      "losses": 98
+     },
+     "ROUTE~q8 vs ORACLE~q8|ndcg@10": {
+      "n": 144,
+      "delta": -0.0027,
+      "p_value": 0.3951,
+      "ci_lo": -0.0088,
+      "ci_hi": 0.0018,
+      "wins": 5,
+      "losses": 7
+     }
+    }
+   },
+   "visual": {
+    "n_queries": 42,
+    "n_routed": 36,
+    "routed_ids": [
+     "V-BHOLE-001",
+     "V-BLOCK-001",
+     "V-BLOCK-002",
+     "V-BLOCK-003",
+     "V-BLOCK-004",
+     "V-FIELD-001",
+     "V-FIELD-002",
+     "V-FIELD-003",
+     "V-GPR-001",
+     "V-GPR-002",
+     "V-GSECT-001",
+     "V-GSECT-002",
+     "V-GSECT-003",
+     "V-HSECT-002",
+     "V-INSAR-001",
+     "V-INSAR-002",
+     "V-LEVEL-001",
+     "V-LEVEL-002",
+     "V-OTHER-001",
+     "V-OTHER-003",
+     "V-OTHER-004",
+     "V-PILLAR-001",
+     "V-PILLAR-003",
+     "V-PROPT-001",
+     "V-PROPT-002",
+     "V-PROPT-003",
+     "V-SEAM-001",
+     "V-SEAM-002",
+     "V-SEAM-003",
+     "V-SGRAPH-001",
+     "V-SGRAPH-002",
+     "V-SGRAPH-003",
+     "V-SGRAPH-004",
+     "V-SMAP-002",
+     "V-TECT-001",
+     "V-TECT-002"
+    ],
+    "systems": {
+     "E": {
+      "ndcg@10": 0.5799,
+      "recall@50": 0.7158,
+      "mrr@10": 0.6691
+     },
+     "E+VIS~bf16": {
+      "ndcg@10": 0.6395,
+      "recall@50": 0.7996,
+      "mrr@10": 0.7689
+     },
+     "ROUTE~bf16": {
+      "ndcg@10": 0.6229,
+      "recall@50": 0.7891,
+      "mrr@10": 0.7371
+     },
+     "ORACLE~bf16": {
+      "ndcg@10": 0.6395,
+      "recall@50": 0.7996,
+      "mrr@10": 0.7689
+     },
+     "E+VIS~f16": {
+      "ndcg@10": 0.6381,
+      "recall@50": 0.7996,
+      "mrr@10": 0.7629
+     },
+     "ROUTE~f16": {
+      "ndcg@10": 0.6227,
+      "recall@50": 0.7891,
+      "mrr@10": 0.7312
+     },
+     "ORACLE~f16": {
+      "ndcg@10": 0.6381,
+      "recall@50": 0.7996,
+      "mrr@10": 0.7629
+     },
+     "E+VIS~q8": {
+      "ndcg@10": 0.6423,
+      "recall@50": 0.7983,
+      "mrr@10": 0.7772
+     },
+     "ROUTE~q8": {
+      "ndcg@10": 0.6275,
+      "recall@50": 0.7877,
+      "mrr@10": 0.7455
+     },
+     "ORACLE~q8": {
+      "ndcg@10": 0.6423,
+      "recall@50": 0.7983,
+      "mrr@10": 0.7772
+     }
+    },
+    "pairs": {
+     "ROUTE~bf16 vs E|ndcg@10": {
+      "n": 42,
+      "delta": 0.043,
+      "p_value": 0.0753,
+      "ci_lo": -0.0012,
+      "ci_hi": 0.0898,
+      "wins": 24,
+      "losses": 12
+     },
+     "ROUTE~bf16 vs E|recall@50": {
+      "n": 42,
+      "delta": 0.0733,
+      "p_value": 0.0001,
+      "ci_lo": 0.0424,
+      "ci_hi": 0.107,
+      "wins": 20,
+      "losses": 2
+     },
+     "ROUTE~bf16 vs E|mrr@10": {
+      "n": 42,
+      "delta": 0.0681,
+      "p_value": 0.1673,
+      "ci_lo": -0.0224,
+      "ci_hi": 0.1595,
+      "wins": 11,
+      "losses": 4
+     },
+     "ROUTE~bf16 vs E|ndcg@10|routed only": {
+      "n": 36,
+      "delta": 0.0501,
+      "p_value": 0.0729,
+      "ci_lo": -0.0029,
+      "ci_hi": 0.104,
+      "wins": 24,
+      "losses": 12
+     },
+     "ROUTE~bf16 vs E|ndcg@10|not routed": {
+      "n": 6,
+      "delta": 0.0,
+      "p_value": 1.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "wins": 0,
+      "losses": 0
+     },
+     "E+VIS~bf16 vs E|ndcg@10": {
+      "n": 42,
+      "delta": 0.0596,
+      "p_value": 0.0179,
+      "ci_lo": 0.0128,
+      "ci_hi": 0.108,
+      "wins": 29,
+      "losses": 13
+     },
+     "ROUTE~bf16 vs ORACLE~bf16|ndcg@10": {
+      "n": 42,
+      "delta": -0.0166,
+      "p_value": 0.0945,
+      "ci_lo": -0.0358,
+      "ci_hi": -0.0012,
+      "wins": 1,
+      "losses": 5
+     },
+     "ROUTE~f16 vs E|ndcg@10": {
+      "n": 42,
+      "delta": 0.0428,
+      "p_value": 0.0724,
+      "ci_lo": -0.0008,
+      "ci_hi": 0.0882,
+      "wins": 24,
+      "losses": 12
+     },
+     "ROUTE~f16 vs E|recall@50": {
+      "n": 42,
+      "delta": 0.0733,
+      "p_value": 0.0001,
+      "ci_lo": 0.0424,
+      "ci_hi": 0.107,
+      "wins": 20,
+      "losses": 2
+     },
+     "ROUTE~f16 vs E|mrr@10": {
+      "n": 42,
+      "delta": 0.0621,
+      "p_value": 0.2052,
+      "ci_lo": -0.028,
+      "ci_hi": 0.1538,
+      "wins": 11,
+      "losses": 5
+     },
+     "ROUTE~f16 vs E|ndcg@10|routed only": {
+      "n": 36,
+      "delta": 0.0499,
+      "p_value": 0.0693,
+      "ci_lo": -0.0028,
+      "ci_hi": 0.1027,
+      "wins": 24,
+      "losses": 12
+     },
+     "ROUTE~f16 vs E|ndcg@10|not routed": {
+      "n": 6,
+      "delta": 0.0,
+      "p_value": 1.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "wins": 0,
+      "losses": 0
+     },
+     "E+VIS~f16 vs E|ndcg@10": {
+      "n": 42,
+      "delta": 0.0582,
+      "p_value": 0.0204,
+      "ci_lo": 0.0121,
+      "ci_hi": 0.106,
+      "wins": 29,
+      "losses": 13
+     },
+     "ROUTE~f16 vs ORACLE~f16|ndcg@10": {
+      "n": 42,
+      "delta": -0.0154,
+      "p_value": 0.0945,
+      "ci_lo": -0.0341,
+      "ci_hi": -0.0008,
+      "wins": 1,
+      "losses": 5
+     },
+     "ROUTE~q8 vs E|ndcg@10": {
+      "n": 42,
+      "delta": 0.0475,
+      "p_value": 0.0535,
+      "ci_lo": 0.0023,
+      "ci_hi": 0.0952,
+      "wins": 23,
+      "losses": 13
+     },
+     "ROUTE~q8 vs E|recall@50": {
+      "n": 42,
+      "delta": 0.0719,
+      "p_value": 0.0001,
+      "ci_lo": 0.0409,
+      "ci_hi": 0.1058,
+      "wins": 20,
+      "losses": 2
+     },
+     "ROUTE~q8 vs E|mrr@10": {
+      "n": 42,
+      "delta": 0.0764,
+      "p_value": 0.1019,
+      "ci_lo": -0.0113,
+      "ci_hi": 0.1651,
+      "wins": 12,
+      "losses": 4
+     },
+     "ROUTE~q8 vs E|ndcg@10|routed only": {
+      "n": 36,
+      "delta": 0.0554,
+      "p_value": 0.0524,
+      "ci_lo": 0.0007,
+      "ci_hi": 0.1106,
+      "wins": 23,
+      "losses": 13
+     },
+     "ROUTE~q8 vs E|ndcg@10|not routed": {
+      "n": 6,
+      "delta": 0.0,
+      "p_value": 1.0,
+      "ci_lo": 0.0,
+      "ci_hi": 0.0,
+      "wins": 0,
+      "losses": 0
+     },
+     "E+VIS~q8 vs E|ndcg@10": {
+      "n": 42,
+      "delta": 0.0623,
+      "p_value": 0.0155,
+      "ci_lo": 0.0156,
+      "ci_hi": 0.1112,
+      "wins": 28,
+      "losses": 14
+     },
+     "ROUTE~q8 vs ORACLE~q8|ndcg@10": {
+      "n": 42,
+      "delta": -0.0148,
+      "p_value": 0.0945,
+      "ci_lo": -0.0327,
+      "ci_hi": -0.0007,
+      "wins": 1,
+      "losses": 5
+     }
+    }
+   }
+  }
+ }
+}
