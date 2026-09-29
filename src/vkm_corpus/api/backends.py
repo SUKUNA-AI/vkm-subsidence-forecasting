@@ -113,14 +113,18 @@ class HybridBackend:
     switches the visual route (agent VIS: page-image channel for queries with picture words; off in code, on after the
     RX580 gate and the page-vector build), ``VKM_HYBRID_VISUAL_SEARCH`` = ``exact`` (default) | ``hnsw`` and
     ``VKM_HYBRID_VISUAL_EF_SEARCH`` tune its page-vector search; the page-vector ``_meta`` is cached like the vectors
-    one."""
+    one. ``graph`` (a ``search.graph_stages.GraphSignals`` over the navigation layer; the app sets it) serves the
+    graph stages (agent GS); ``VKM_HYBRID_GRAPH`` (``none`` or a comma list of ``collapse, cohesion, concepts, cites,
+    topics``) overrides the code default ``graph_stages.DEFAULTS`` for requests that do not say."""
 
     META_TTL_S = 30.0
 
     def __init__(self, settings: Any, search: OpenSearchBackend | None = None, *, embed: Any = None,
-                 late_default: bool | None = None, visual: Any = None) -> None:
+                 late_default: bool | None = None, visual: Any = None, graph: Any = None,
+                 graph_defaults: Any = None) -> None:
         import os
 
+        from vkm_corpus.search import graph_stages
         from vkm_corpus.search.hybrid import VISUAL_ROUTE_DEFAULT, EmbedClient, VisualRouteSettings
 
         self.settings = settings
@@ -141,6 +145,14 @@ class HybridBackend:
                                          mode=mode if mode in ("exact", "hnsw") else "exact",
                                          ef_search=int(ef) if ef.isdigit() else None)
         self.visual = visual
+        self.graph = graph
+        self.graph_error: str | None = None
+        if graph_defaults is None and os.environ.get("VKM_HYBRID_GRAPH") is not None:
+            try:
+                graph_defaults = graph_stages.parse_stages(os.environ["VKM_HYBRID_GRAPH"])
+            except ValueError as exc:                # a typo never stops the API: the code default stays
+                self.graph_error = f"VKM_HYBRID_GRAPH ignored: {exc}"
+        self.graph_defaults = graph_defaults
 
     def _vectors_meta(self, client: Any) -> dict[str, Any]:
         import time
@@ -167,10 +179,15 @@ class HybridBackend:
         the visual route switch; the vectors and page-vector builds are part of the OpenSearch status."""
         from vkm_corpus.search.hybrid import LATE_DEFAULT
 
+        from vkm_corpus.search.graph_stages import DEFAULTS
+
+        defaults = sorted(DEFAULTS) if self.graph_defaults is None else list(self.graph_defaults)
         return {"query_encoder": self._embed.health(),
                 "late_default": LATE_DEFAULT if self.late_default is None else self.late_default,
                 "visual_route": {"enabled": bool(self.visual.enabled), "search": self.visual.mode,
-                                 "ef_search": self.visual.ef_search}}
+                                 "ef_search": self.visual.ef_search},
+                "graph": {"defaults": defaults, "navigation": self.graph is not None,
+                          **({"error": self.graph_error} if self.graph_error else {})}}
 
     def search(self, request: dict[str, Any]) -> dict[str, Any]:
         from vkm_corpus.search.hybrid import HybridError, HybridRequest, hybrid_search
@@ -183,7 +200,7 @@ class HybridBackend:
             meta = self._vectors_meta(client)
             return hybrid_search(client, self._embed, HybridRequest(**request),
                                  self.settings.opensearch_index_prefix, meta=meta, visual=self.visual,
-                                 vmeta=self._visual_meta)
+                                 vmeta=self._visual_meta, graph=self.graph, graph_defaults=self.graph_defaults)
         except HybridError as exc:
             if exc.stage == "vectors":
                 self._meta = None

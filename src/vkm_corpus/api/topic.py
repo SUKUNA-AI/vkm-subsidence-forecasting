@@ -204,7 +204,10 @@ class HybridTopicRetrieval:
                    "include_duplicates": False, "exact": False, "late": None, "late_candidates": 100,
                    # a dossier is built from text units (sections, formulas, blocks): pages the page-image leg adds
                    # have no unit to cite, so the visual route stays off here (agent VIS, MODEL_CHOICE)
-                   "visual_route": False}
+                   "visual_route": False,
+                   # the graph stages of the hybrid search were measured on single searches (GRAPH_SEARCH_V1), not
+                   # inside the dossier's fusion of formulations × tiers (TERM_DICTIONARY_V1): none here until measured
+                   "graph": ()}
         response = self.backend.search(request)
         units = []
         for hit in response.get("hits") or []:

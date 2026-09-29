@@ -453,13 +453,14 @@ class ApiService:
                       candidates: int = 100, include_duplicates: bool = False, exact: bool = False, *,
                       late: bool | None = None, late_candidates: int = 100,
                       bib_route: bool | None = None, visual_route: bool | None = None,
-                      translate: bool | None = None) -> Result:
+                      translate: bool | None = None, graph: Any = None) -> Result:
         """BM25 + dense k-NN fused by RRF, optionally re-scored by late interaction (``vkm_corpus.search.hybrid``);
         hits are hydrated from the canon exactly as in :meth:`search` and carry the per-stage trace. Without the query
         encoder, the vectors build or (with late) the token store the answer is DEPENDENCY_UNAVAILABLE — never BM25
         or RRF results in disguise. ``translate`` adds the query in the other language (NAV term dictionary) as
         extra RRF legs (None → :meth:`_hybrid_translate_default`); without the dictionary the search runs without them
-        and says so (a warning when the flag was asked for)."""
+        and says so (a warning when the flag was asked for). ``graph`` names the graph stages (a list or a comma
+        string; None → the server default; ``search.graph_stages``); what they did is in ``stages.graph``."""
         backend = _require(self.deps.hybrid, "hybrid search", "hybrid")
         offset = int(cursor) if cursor and cursor.isdigit() else 0
         use_translation = self._hybrid_translate_default(late) if translate is None else bool(translate)
@@ -470,6 +471,13 @@ class ApiService:
                    "visual_route": visual_route}
         if expansions:
             request["expansions"] = tuple(expansions)
+        if graph is not None:
+            from vkm_corpus.search.graph_stages import parse_stages
+
+            try:
+                request["graph"] = parse_stages(graph)
+            except ValueError as exc:
+                raise ApiFailure("INVALID_ARGUMENT", str(exc)[:300]) from exc
         response = backend.search(request)
         stages = response.get("stages") or {}
         dense = stages.get("dense") or {}

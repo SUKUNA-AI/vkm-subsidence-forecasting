@@ -168,14 +168,14 @@ def build_read_server(api: ApiClient) -> MCPServer:
                     available_until: str | None, unknown_policy: str | None, limit: int, candidates: int,
                     cursor: str | None = None, late: bool | None = None,
                     late_candidates: int = 100, bib_route: bool | None = None,
-                    visual_route: bool | None = None) -> dict[str, Any]:
+                    visual_route: bool | None = None, graph: list[str] | None = None) -> dict[str, Any]:
         filters = {k: v for k, v in {
             "source_ids": source_ids, "work_ids": work_ids, "source_scope": source_scope, "year_from": year_from,
             "year_to": year_to, "available_until": available_until, "unknown_policy": unknown_policy}.items()
             if v is not None}
         return {"query": query, "kinds": kinds, "filters": filters, "limit": limit, "candidates": candidates,
                 "cursor": cursor, "late": late, "late_candidates": late_candidates, "bib_route": bib_route,
-                "visual_route": visual_route}
+                "visual_route": visual_route, **({"graph": list(graph)} if graph is not None else {})}
 
     @server.tool(name="search_hybrid", annotations=READ_ONLY)
     async def search_hybrid(
@@ -204,7 +204,16 @@ def build_read_server(api: ApiClient) -> MCPServer:
                                                                   "order; null = automatic from picture words in the "
                                                                   "query (рисунок, схема, карта, план, разрез, "
                                                                   "график, профиль, таблица …) when the server "
-                                                                  "enables the route")] = None) -> CallToolResult:
+                                                                  "enables the route")] = None,
+            graph: Annotated[list[Literal["collapse", "cohesion", "concepts", "cites", "topics"]] | None,
+                             Field(max_length=5, description="graph stages over the navigation layer (with the late "
+                                                             "stage): collapse (copies listed on the hit), cohesion "
+                                                             "(other pages of a deep section that holds >= 2 of the "
+                                                             "first 10), concepts (synonyms, abbreviations, a narrower "
+                                                             "term), cites (works cited by / citing the top sources), "
+                                                             "topics (later pages in the NAV topics of the first 10); "
+                                                             "[] = none; null = server default")] = None
+            ) -> CallToolResult:
         """Hybrid search: BM25 + dense embeddings (RX580 query encoder, OpenSearch k-NN over embedding units),
         fused by reciprocal rank, then (late) re-scored by late interaction (mLateOn MaxSim over token vectors; a page
         scores its best unit). Pages (every unit of a page counts for it) or figures/tables/formulas. Each hit has a
@@ -214,12 +223,14 @@ def build_read_server(api: ApiClient) -> MCPServer:
         A question about a picture (рисунок, схема, карта, план, разрез, график, профиль, радарограмма, фото,
         таблица …) also searches page images (Qwen3-VL page vectors) and fuses them with the page order (route
         "visual"; trace e_rank/vis_rank/vis_score). With the late stage the query is also searched in the other
-        language (RU ↔ EN, NAV term dictionary: record translation, trace expansion_ranks). Fails with
+        language (RU ↔ EN, NAV term dictionary: record translation, trace expansion_ranks). Graph stages (graph=
+        [...]): copies collapse onto one hit (copies), a section or topic the first results share lends its other
+        pages, synonyms / abbreviations and citations add BM25 legs (record stages.graph, trace graph). Fails with
         DEPENDENCY_UNAVAILABLE when the encoder, the vector index or (late) the token store is missing (use
         search_text, or late=false, then)."""
         return await call("search_hybrid", "POST", "/v1/search/hybrid", body=hybrid_body(
             query, kinds, source_ids, work_ids, source_scope, year_from, year_to, available_until, unknown_policy,
-            limit, candidates, cursor, late, late_candidates, bib_route, visual_route))
+            limit, candidates, cursor, late, late_candidates, bib_route, visual_route, graph))
 
     @server.tool(name="retrieval_trace", annotations=READ_ONLY)
     async def retrieval_trace(

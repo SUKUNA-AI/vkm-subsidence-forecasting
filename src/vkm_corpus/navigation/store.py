@@ -54,6 +54,8 @@ QUERY_FUNCTIONS: dict[str, str] = {
     "translate_query": "vkm_corpus.navigation.term_dictionary_query:translate_query",
     "table_structured": "vkm_corpus.navigation.tables_query:get_table_structured",
     "find_tables": "vkm_corpus.navigation.tables_query:find_tables",
+    # graph stages of the hybrid search (agent GS): G3 — synonyms, abbreviations and a narrower term of the query
+    "expand_query": "vkm_corpus.navigation.expansion_query:expand_query",
 }
 
 

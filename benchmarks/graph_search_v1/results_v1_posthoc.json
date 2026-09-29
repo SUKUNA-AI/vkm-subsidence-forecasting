@@ -1,0 +1,158 @@
+{
+ "status": "EXPLORATORY: added after the preregistered results were read; not part of the decision",
+ "g1_decomposition_topic_test": {
+  "E+copies": {
+   "page_recall@50": {
+    "n": 78,
+    "delta": 0.013507,
+    "p_value": 0.0006,
+    "ci_lo": 0.005881,
+    "ci_hi": 0.023001
+   },
+   "mrr@50": {
+    "n": 78,
+    "delta": 0.014433,
+    "p_value": 0.0033,
+    "ci_lo": 0.004046,
+    "ci_hi": 0.027406
+   }
+  },
+  "G1": {
+   "page_recall@50": {
+    "n": 78,
+    "delta": 0.010382,
+    "p_value": 0.0018,
+    "ci_lo": 0.003867,
+    "ci_hi": 0.018848
+   },
+   "mrr@50": {
+    "n": 78,
+    "delta": 0.015375,
+    "p_value": 0.0001,
+    "ci_lo": 0.0048,
+    "ci_hi": 0.028585
+   }
+  },
+  "G1_vs_E+copies": {
+   "page_recall@50": {
+    "n": 78,
+    "delta": -0.003125,
+    "p_value": 0.266673,
+    "ci_lo": -0.008452,
+    "ci_hi": 0.001119
+   },
+   "mrr@50": {
+    "n": 78,
+    "delta": 0.000943,
+    "p_value": 0.054795,
+    "ci_lo": 4.1e-05,
+    "ci_hi": 0.002011
+   }
+  }
+ },
+ "g1_g5_test": {
+  "primary_page_recall@50": {
+   "n": 78,
+   "delta": 0.020261,
+   "p_value": 0.0045,
+   "ci_lo": 0.006894,
+   "ci_hi": 0.03555
+  },
+  "harm_checks": {
+   "groups|P|text|ndcg@10": {
+    "n": 88,
+    "delta": 0.025116,
+    "p_value": 0.0001,
+    "ci_lo": 0.014775,
+    "ci_hi": 0.037007,
+    "harm": false
+   },
+   "groups|P|text|recall@50": {
+    "n": 88,
+    "delta": 0.012272,
+    "p_value": 0.034897,
+    "ci_lo": 0.001087,
+    "ci_hi": 0.024082,
+    "harm": false
+   },
+   "groups|P|visual|ndcg@10": {
+    "n": 37,
+    "delta": 0.010769,
+    "p_value": 0.030097,
+    "ci_lo": 0.002246,
+    "ci_hi": 0.02255,
+    "harm": false
+   }
+  },
+  "unlabelled_in_top10": 2,
+  "means": {
+   "page_recall@50": {
+    "E": 0.317159,
+    "G1+G5": 0.337419
+   },
+   "page_recall@20": {
+    "E": 0.225429,
+    "G1+G5": 0.222324
+   },
+   "mrr@50": {
+    "E": 0.253061,
+    "G1+G5": 0.267955
+   }
+  }
+ },
+ "gc_per_track_test": {
+  "PROCESS": {
+   "n_topics": 48,
+   "GC": {
+    "n": 48,
+    "delta": 0.023134,
+    "p_value": 0.016698,
+    "ci_lo": 0.005274,
+    "ci_hi": 0.041369
+   },
+   "G1": {
+    "n": 48,
+    "delta": 0.013839,
+    "p_value": 0.017098,
+    "ci_lo": 0.003935,
+    "ci_hi": 0.026736
+   },
+   "G5": {
+    "n": 48,
+    "delta": 0.002852,
+    "p_value": 0.637536,
+    "ci_lo": -0.008548,
+    "ci_hi": 0.014244
+   }
+  },
+  "MODEL_FAMILY": {
+   "n_topics": 30,
+   "GC": {
+    "n": 30,
+    "delta": 0.017241,
+    "p_value": 0.279672,
+    "ci_lo": -0.008576,
+    "ci_hi": 0.048876
+   },
+   "G1": {
+    "n": 30,
+    "delta": 0.00485,
+    "p_value": 0.246475,
+    "ci_lo": 0.0,
+    "ci_hi": 0.012698
+   },
+   "G5": {
+    "n": 30,
+    "delta": 0.022576,
+    "p_value": 0.121288,
+    "ci_lo": -0.002209,
+    "ci_hi": 0.052232
+   }
+  }
+ },
+ "g3_retrieval_v1_text_top50_relevant_moves": {
+  "left_top50": 90,
+  "entered_top50": 41,
+  "queries_changed": 48
+ }
+}
