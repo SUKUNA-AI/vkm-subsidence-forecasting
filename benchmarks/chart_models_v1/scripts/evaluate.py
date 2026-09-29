@@ -232,11 +232,15 @@ def ranges(truth: dict) -> tuple[float, float]:
 
 
 def truth_series(truth: dict) -> list[dict]:
-    """Truth vertices in drawing order (route A path order; category/position order for R figures)."""
+    """Truth vertices in drawing order (route A path order; category/position order for R figures).
+    Deviation 2 (RESULTS.md): a series label is truth only when it is printed in the figure (in its legend list);
+    R4 carries method names ('levelling', 'insar') that the image does not print."""
+    printed = {norm(v) for v in truth.get("legend") or []}
     out = []
     for s in truth.get("series") or []:
         pts = [(p["x"], p["y"]) for p in s["points"] if p.get("x") is not None and p.get("y") is not None]
-        out.append({"label": s.get("label"), "x": [a for a, _ in pts], "y": [b for _, b in pts]})
+        lab = s.get("label") if norm(s.get("label")) in printed else None
+        out.append({"label": lab, "x": [a for a, _ in pts], "y": [b for _, b in pts]})
     return out
 
 
@@ -296,6 +300,10 @@ def eval_values(truth: dict, pred: list[dict]) -> dict:
     ts = truth_series(truth)
     legend_only = {norm(v) for v in truth.get("legend_only") or []}
     pred = [p for p in pred if norm(p.get("label")) not in legend_only]   # legend entries without a drawn curve
+    # deviation 1 (RESULTS.md): a predicted series without a single point in the truth frame (e.g. route R with an
+    # uncalibrated axis) carries no values; it is not a series for matching (it was matched by label and gave an
+    # infinite median distance)
+    pred = [p for p in pred if len(p["x"]) > 0]
     n_t, n_p = len(ts), len(pred)
     res = {"n_truth_series": n_t, "n_pred_series": n_p, "series_count_ok": n_t == n_p,
            "n_truth_points": int(sum(len(t["x"]) for t in ts)), "n_pred_points": int(sum(len(p["x"]) for p in pred))}
@@ -347,8 +355,8 @@ def eval_values(truth: dict, pred: list[dict]) -> dict:
         "n_matched": len(matched), "y_range": yr, "x_range": xr,
         **{f"hit@{int(lv * 100)}%": hits[lv] / ntp for lv in HIT_LEVELS},
         **{f"vhit@{int(lv * 100)}%": vhits[lv] / ntp for lv in HIT_LEVELS},
-        "median_rel_dist": float(np.median(d_all)) if d_all else None,
-        "p90_rel_dist": float(np.percentile(d_all, 90)) if d_all else None,
+        "median_rel_dist": float(np.median(d_all)) if d_all and np.isfinite(d_all).all() else None,
+        "p90_rel_dist": float(np.percentile(d_all, 90)) if d_all and np.isfinite(d_all).all() else None,
         "median_abs_err": float(np.median(absd)) if absd else None,
         "p90_abs_err": float(np.percentile(absd, 90)) if absd else None,
         "missing_share": 1.0 - hits[HALLU_Y] / ntp,
@@ -472,20 +480,26 @@ def main() -> None:
                            "elapsed_s": r.get("elapsed_s")}
             rec["T2"] = t2
         else:          # R1, R5: series count and legend only (qualitative)
+            # deviation 3 (RESULTS.md): counts only, no label strings, so that the public JSON carries no figure text
+            leg = truth.get("legend") or []
             q = {}
             content, _ = answer_text(work / "raw" / "qwen" / "T2" / f"{key}.json")
             ser, info = model_series(content, truth)
-            q["qwen"] = {"n_series": len(ser), "labels": [s["label"] for s in ser], "parsed": info["parsed"]}
+            q["qwen"] = {"n_series": len(ser), "labels_in_printed_legend": multiset_hits(leg, [s["label"] for s in ser]),
+                         "parsed": info["parsed"]}
             content, _ = answer_text(work / "raw" / "granite" / "T2_granite" / f"{key}.json")
             ser, info = granite_series(content, truth)
-            q["granite"] = {"n_series": len(ser), "labels": [s["label"] for s in ser], "parsed": info["parsed"]}
+            q["granite"] = {"n_series": len(ser),
+                            "labels_in_printed_legend": multiset_hits(leg, [s["label"] for s in ser]),
+                            "parsed": info["parsed"]}
             for arm in ("G", "H"):
                 p = work / "routeR" / arm / f"{key}.json"
                 r = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+                labs = [s.get("label_model") or s.get("label_raw") for s in r.get("series") or []]
                 q[arm] = {"n_series": len(r.get("series") or []), "axis_status": r.get("axis_status"),
-                          "labels": [s.get("label_model") or s.get("label_raw") for s in r.get("series") or []]}
+                          "labels_in_printed_legend": multiset_hits(leg, [x for x in labs if x])}
             q["truth_series_count"] = truth.get("series_count")
-            q["truth_legend"] = truth.get("legend")
+            q["truth_legend_entries"] = len(leg)
             rec["T2_qualitative"] = q
         per[key] = rec
 

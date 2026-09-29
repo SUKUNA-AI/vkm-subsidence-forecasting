@@ -49,8 +49,11 @@ services:
 
   granite-vision-41-4b:
     profiles: ["granite"]
-    # vLLM v0.30.0 (CUDA 13.0.3, torch 2.13.0, sm_120) — the image of the GLM-OCR server
-    image: vllm/vllm-openai@sha256:8a69ffad015f138d7170c4ddc429e230a3bc1c1719f67e14324749df200a4b90
+    # deviation 5 (RESULTS.md): the vLLM v0.30.0 image (sha256:8a69ffad…, GLM-OCR server) fails to load
+    # granite4_vision — its transformers 5.17.0 renamed PixtralRotaryEmbedding, which vllm/models/pixtral.py imports
+    # through llava. The local nightly image (vLLM 0.28.1rc1.dev580+g385dce36b, transformers 5.16.1, already on the
+    # machine, nothing downloaded) is used instead.
+    image: vllm-openai-b12x@sha256:646c79b2ddc9a25737a5f55d3cf55d8d3c5458ba483e70908c404c4ea2b381e3
     restart: "no"
     ipc: host
     gpus: all
@@ -59,15 +62,19 @@ services:
       TRANSFORMERS_OFFLINE: "1"
       VLLM_NO_USAGE_STATS: "1"
       DO_NOT_TRACK: "1"
+      # the nightly defaults to the V2 GPU model runner, which needs UVA (not available under WSL2)
+      VLLM_USE_V2_MODEL_RUNNER: "0"
     volumes:
       - ${VKM_MODELS_DIR}:/models:ro
     command:
       - /models/ibm-granite__granite-vision-4.1-4b/37d591f06319e8f1638b5adcf58bdf50e0f84f7a
       - --served-model-name=granite-vision-4.1-4b
       - --dtype=bfloat16
-      - --max-model-len=16384
-      - --max-num-seqs=4
-      - --gpu-memory-utilization=0.70
+      # deviation 4 (RESULTS.md): 0.70 × 16.3 GB + the desktop's ~4.0 GB would exceed the 15 GB card budget;
+      # 0.62 (~10.1 GB) with a shorter context (image ≤ ~3k tokens + answer ≤ 4096) and two sequences
+      - --max-model-len=8192
+      - --max-num-seqs=2
+      - --gpu-memory-utilization=0.62
       - --limit-mm-per-prompt={"image":1}
       - --seed=0
       - --host=0.0.0.0
