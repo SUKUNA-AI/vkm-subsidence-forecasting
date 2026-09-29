@@ -319,7 +319,7 @@ CORE — единственная каноническая копия. EDGE **с
 | `search_status`, `search` | `search status`, `search smoke` | smoke FAIL (жёлтый: индексы не на CURRENT) |
 | `rx580`, `hybrid` | `/health` сервиса RX 580; `search hybrid-smoke --late` в контейнере `api` | smoke FAIL |
 | `vectors` | единицы CURRENT (`units.json`) = векторы dense-индекса = пакет late, который обслуживается | счётчики различаются или не на CURRENT |
-| `mcp` | [mcp_smoke.py](../../infra/core/nightly/mcp_smoke.py) в контейнере `mcp`: список инструментов и вызов каждого из 39 инструментов чтения (id берутся из прошлых ответов, rerank_visual — одно изображение) | инструмент пропал, ошибка сервиса (DEPENDENCY_*, тайм-аут); ошибка данных (NOT_FOUND) — жёлтый |
+| `mcp` | [mcp_smoke.py](../../infra/core/nightly/mcp_smoke.py) в контейнере `mcp`: список инструментов и вызов каждого из 41 инструмента чтения (id берутся из прошлых ответов, rerank_visual — одно изображение) | инструмент пропал, ошибка сервиса (DEPENDENCY_*, тайм-аут); ошибка данных (NOT_FOUND) — жёлтый |
 | `dossiers` | [dossiers.py](../../infra/core/nightly/dossiers.py) в контейнере `api`: `reconstruct_topic` по 117 темам topic_v1 (название + 2 пересказа), по одной | < 90 % тем (жёлтый: не все, много больших изменений, падение «своего процесса») |
 | `topic_v1` | замороженный `harness_core.py --systems hybrid_late` в `api`, оценка [topic_score.py](../../infra/core/nightly/topic_score.py) в `vkm-nightly` | ошибок > 10 % (жёлтый: R@50 или MRR упали больше чем на 0,02) |
 | `backup` | квитанция EDGE `receipts/backup/edge/latest.json` | нет квитанции, FAIL или старше 36 ч (жёлтый: WARN, старше 26 ч, EDGE < 60 ГБ, сверх бюджета) |
