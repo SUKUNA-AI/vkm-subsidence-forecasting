@@ -9,6 +9,8 @@
 или «формула ссылается на (3.2)» — не физическое утверждение (правила `SCIENTIFIC_RULES_RU.md`). Утверждения, законы
 и параметры — будущий слой L2 (Claim / Law / Parameter) по правилам evidence.
 
+![Навигационный слой: части, входы, сборка и выдача](../diagrams/nav_layer.svg)
+
 ## 1. Где живёт
 
 - Код — пакет `src/vkm_corpus/navigation/`. Каждая часть — чистая функция над строками канона (DuckDB текущего
@@ -34,6 +36,8 @@
 от DOCUMENT. Каждый узел и каждое ребро несут `layer = 'NAV'`, `snapshot_id`, `rule_version` и `projection_run_id`
 (загрузка, которая их записала). Один узел `NavMeta` хранит manifest сборки, статус (`LOADING` / `COMPLETE` /
 `FAILED`), счётчики и итоги проверок.
+
+![Схема графа: слои DOCUMENT и NAV](../diagrams/graph_schema.svg)
 
 | Узел | ID | Из чего |
 |---|---|---|
@@ -187,6 +191,8 @@ N1–N7 → `NavMeta = COMPLETE | FAILED` → квитанция `receipts/proje
 напряжений», «механика закладки», «ползучесть каменной соли»). Это навигация: у каждого пункта есть ID и страницы, дальше
 Claude открывает только нужное (`get_section`, `get_formula_context`, `get_page`, `get_object`). Код —
 `src/vkm_corpus/api/topic.py`.
+
+![Досье темы reconstruct_topic](../diagrams/topic_dossier.svg)
 
 - **Формулировки.** Поиск идёт по формулировкам темы (не больше пяти):
   - сам запрос;
