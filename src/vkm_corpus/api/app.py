@@ -119,6 +119,7 @@ class SearchBody(_Body):
 
 
 HybridKind = Literal["PAGE", "FIGURE", "TABLE", "FORMULA"]
+GraphStage = Literal["collapse", "cohesion", "concepts", "cites", "topics"]
 
 
 class HybridSearchBody(_Body):
@@ -144,6 +145,11 @@ class HybridSearchBody(_Body):
     translate: bool | None = Field(None, description="also search the query in the other language (RU ↔ EN, NAV "
                                                       "term dictionary) as extra RRF legs; null = server default "
                                                       "(on when the late stage runs; benchmarks/term_dictionary_v1)")
+    graph: list[GraphStage] | None = Field(None, max_length=5, description=(
+        "graph stages over the navigation layer (need the late stage): collapse (copies listed on the hit), cohesion "
+        "(other pages of a deep section holding >= 2 of the first 10), concepts (synonyms / abbreviations / a narrower "
+        "term: BM25 legs), cites (works cited by / citing the top sources), topics (E's later pages in the NAV topics "
+        "of the first 10); [] = none; null = server default (benchmarks/graph_search_v1)"))
 
 
 class ObjectsQueryBody(_Body):
@@ -379,7 +385,8 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                                                       body.limit, body.cursor, body.candidates,
                                                       body.include_duplicates, body.exact, late=body.late,
                                                       late_candidates=body.late_candidates, bib_route=body.bib_route,
-                                                      visual_route=body.visual_route, translate=body.translate))
+                                                      visual_route=body.visual_route, translate=body.translate,
+                                                      graph=body.graph))
 
     @app.get("/v1/search/hybrid", tags=["search"], **JSON_RESPONSES)
     def search_hybrid_get(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],
@@ -391,12 +398,15 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                           late_candidates: Annotated[int, Query(ge=1, le=200)] = 100,
                           bib_route: Annotated[bool | None, Query()] = None,
                           visual_route: Annotated[bool | None, Query()] = None,
-                          translate: Annotated[bool | None, Query()] = None) -> JSONResponse:
+                          translate: Annotated[bool | None, Query()] = None,
+                          graph: Annotated[str | None, Query(max_length=80, description="comma list of graph stages "
+                                                                                        "or 'none'")] = None
+                          ) -> JSONResponse:
         request.state.query_sha256 = hashlib.sha256(q.encode("utf-8")).hexdigest()
         return respond(request, service.search_hybrid(q, list(kinds or ["PAGE"]), {}, limit, cursor, candidates,
                                                       late=late, late_candidates=late_candidates,
                                                       bib_route=bib_route, visual_route=visual_route,
-                                                      translate=translate))
+                                                      translate=translate, graph=graph))
 
     @app.post("/v1/objects/query", tags=["search"], **JSON_RESPONSES)
     def objects_query(request: Request, body: ObjectsQueryBody, _auth: Read) -> JSONResponse:
@@ -700,5 +710,9 @@ def build_from_settings(settings: Any = None) -> FastAPI:
     from vkm_corpus.navigation.store import NavStore
 
     deps.nav = NavStore(root)                  # served only once derived/navigation/CURRENT is published
+    if deps.hybrid is not None:                # graph stages of the hybrid search read the same NAV build (agent GS)
+        from vkm_corpus.search.graph_stages import NavGraphSignals
+
+        deps.hybrid.graph = NavGraphSignals(deps.nav, deps.canon)
     deps.catalogues = CatalogueStore(root)     # served only once derived/catalogues/CURRENT is published
     return create_app(ApiService(deps), ApiConfig.from_settings(settings))
