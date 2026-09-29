@@ -57,14 +57,17 @@ def run(*, acad_exe: Path, product: str, language: str | None, clsid: str, civil
     windows: list[str] = []
     killed: list[str] = []
     with open(run_dir / "hidden_runner.log", "wb") as log:
+        before = procs.filetime_now()
         proc = popen([sys.executable, "-m", "vkm_cad.hidden_runner", str(request_file)], stdout=log,
                      stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, cwd=str(run_dir), creationflags=flags)
+        # only processes created after the runner belong to it (PID reuse: see vkm_cad.winproc)
+        root_created = procs.creation_time(proc.pid) or (before - 20_000_000 if before else None)
         while proc.poll() is None:
             if clock() - started > timeout_s:
                 timed_out = True
                 break
             snap = procs.snapshot()
-            members = procs.tree(proc.pid, snap)
+            members = procs.tree(proc.pid, snap, not_before=root_created)
             acad = {p.pid for p in snap if p.pid in members and p.image == "acad.exe"}
             seen = [(pid, title) for pid, title in procs.visible_windows(acad) if title]
             if seen:
@@ -74,9 +77,10 @@ def run(*, acad_exe: Path, product: str, language: str | None, clsid: str, civil
             sleep(1.0)
         if timed_out or dialog:
             snap = procs.snapshot()
-            members = procs.tree(proc.pid, snap)
+            members = procs.tree(proc.pid, snap, not_before=root_created)
             names = {p.pid: p.image for p in snap}
-            killed = [names.get(p, "?") for p in procs.kill(sorted(members, key=lambda p: p == proc.pid))]
+            killed = [names.get(p, "?") for p in procs.kill(sorted(members, key=lambda p: p == proc.pid),
+                                                              {p.pid: p.created for p in snap})]
         try:
             code_rc = proc.wait(timeout=60)
         except subprocess.TimeoutExpired:
