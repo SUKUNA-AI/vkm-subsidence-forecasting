@@ -61,6 +61,23 @@ def drawing(tmp_path):
     return path, words, blue, red
 
 
+def test_multi_segment_spline_keeps_its_joints(tmp_path):
+    doc = ezdxf.new("R2018")
+    msp = doc.modelspace()
+    joints = [(0, 0), (1, 2), (2, 1), (3, 3)]
+    cps = [joints[0]]
+    for a, b in zip(joints[:-1], joints[1:]):
+        cps += [(a[0] + (b[0] - a[0]) / 3, a[1] + (b[1] - a[1]) / 3),
+                (a[0] + 2 * (b[0] - a[0]) / 3, a[1] + 2 * (b[1] - a[1]) / 3), b]
+    knots = [0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3]
+    s = msp.add_open_spline(cps, degree=3, knots=knots)
+    s.dxf.true_color = RED
+    path = tmp_path / "s.dxf"
+    doc.saveas(path)
+    _, paths = dxf_route.load_dxf(path)
+    assert np.allclose(paths[0].pts, joints)
+
+
 def test_bylayer_colour_is_resolved(drawing):
     path, *_ = drawing
     texts, paths = dxf_route.load_dxf(path)
