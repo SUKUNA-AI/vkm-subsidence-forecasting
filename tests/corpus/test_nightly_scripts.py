@@ -262,7 +262,7 @@ def test_nightly_dry_run_checks_the_configuration(tmp_path):
     h = nightly_host(tmp_path)
     r = _run(["bash", str(CORE / "nightly_checks.sh"), "--dry-run"], h["env"])
     assert r.returncode == 0, r.stdout + r.stderr
-    assert "dossiers planned: 117 topics" in r.stdout and "MCP smoke plans 39 of 39" in r.stdout
+    assert "dossiers planned: 117 topics" in r.stdout and "MCP smoke plans 43 of 43" in r.stdout
     assert not (h["data"] / "receipts" / "nightly").exists()
 
 
