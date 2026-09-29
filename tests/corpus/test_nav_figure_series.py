@@ -287,6 +287,10 @@ def test_registration():
     assert set(FS.DATASETS) <= set(nav_ids.DATASETS)
     assert store.resolve("find_figure_series") is Q.find_figure_series
     assert store.resolve("figure_series") is Q.get_figure_series
+    # the raster pages of FD's sweep are part of the code: a build needs no file for them
+    pages = FS._raster_pages("fd_monitoring")
+    assert len(pages) == 9 and sum(len(v) for v in pages.values()) == 38 and pages["VKM-SRC-034"] == [2]
+    assert FS._raster_pages({"VKM-SRC-002": [15, 12, 12]}) == {"VKM-SRC-002": [12, 15]}
 
 
 # ------------------------------------------------------------------------------------------------ import
@@ -318,6 +322,9 @@ def test_import_copies_byte_for_byte_and_merges_the_manifest(world, tmp_path):
     m = json.loads((nav / "manifest.json").read_text(encoding="utf-8"))
     assert "sections" in m["datasets"] and m["parts"]["sections"]["status"] == "BUILT"
     assert m["parts"]["figure_series"]["imported"]["bundle_manifest_sha256"] == out["bundle_manifest_sha256"]
+    # CORE records no workstation path: an option holding a path keeps its last name only
+    assert str(world["root"]) not in json.dumps(m["parts"]["figure_series"])
+    assert m["parts"]["figure_series"]["options"]["resources"] == "<file>/" + world["root"].name
     # served: pack, publish, query through the NAV store
     root = tmp_path / "data"
     served = root / "derived" / "navigation" / SNAP
@@ -431,6 +438,18 @@ def test_quality_flag_helpers():
     box = (100.0, 100.0, 400.0, 300.0)
     assert FS.in_plot_area(box, 250, 200) and FS.in_plot_area(box, 402, 200)          # 1 % tolerance
     assert FS.in_plot_area(box, 80, 200) is False and FS.in_plot_area(box, None, 1) is None
+    # the chart frame runs below the lowest labelled tick: the frame, not the tick span, bounds the plot area
+    line = lambda a, b: Path(np.array([a, b], float), None, 0.8, "LINE")  # noqa: E731
+    frame = [line((100, 80), (400, 80)), line((100, 340), (400, 340)), line((100, 80), (100, 340)),
+             line((400, 80), (400, 340)), line((430, 100), (600, 100)),        # a neighbour panel's line: too short
+             line((150, 300), (150, 304))]                                      # a tick mark
+    assert FS.frame_box(frame, box) == [100.0, 80.0, 400.0, 340.0]
+    assert FS.frame_box([], box) == list(box)
+    # a line on the box edge frames that side; a line one box away (a neighbour panel, the figure border) is not
+    # the frame, nor is anything beyond half the box size
+    framed = [line((100, 300), (400, 300)), line((100, 500), (400, 500)), line((100, 100), (400, 100)),
+              line((100, 20), (400, 20)), line((-60, 100), (-60, 300))]
+    assert FS.frame_box(framed, box) == [100.0, 100.0, 400.0, 300.0]
     ax = Axis("y", "LINEAR", 0.0, 1.0, labels=[["0", 0.0, 0, True, "NATIVE"], ["10", 10.0, 10, True, "NATIVE"]])
     assert FS.beyond_ticks_share(ax, [0, 5, 10, 12.4]) == 0.0                           # a quarter span allowed
     assert FS.beyond_ticks_share(ax, [0, 5, 13, 30]) == 0.5 and FS.beyond_ticks_share(None, [1]) == 0.0
@@ -465,11 +484,73 @@ def test_axis_plausibility_flags():
     mirror, t_mirror = column(420, (0, -20, -40, -60), (300, 233.3, 166.7, 100), -90.0, 0.3)
     assert FS.other_axis(left, [left, right], t_left + t_right, box)
     assert not FS.other_axis(left, [left, mirror], t_left + t_mirror, box)
-    # 10³ read as «103»: consecutive «10x» labels
-    pw = Axis("y", "LINEAR", 0, 1, labels=[[t, float(t), 50.0 * i, True, "NATIVE"]
-                                           for i, t in enumerate(("100", "101", "102", "103"))])
-    assert FS.power_of_ten_labels(pw) and not FS.power_of_ten_labels(left)
-    assert {"AXIS_LABELS_INSIDE_PLOT", "SECOND_Y_AXIS", "POWER_OF_TEN_LABELS"} <= FS.SUSPECT_FLAGS
+    # a compact column of numbered legend samples is not a second axis (it spans < 30 % of the plot), nor is a scale
+    # standing far from the frame (a colour bar); a short right axis at the frame is one
+    legend, t_legend = column(420, (1, 2, 3), (120, 135, 150), -7.0, 1.0 / 15)
+    assert not FS.other_axis(left, [left, legend], t_left + t_legend, box)
+    bar, t_bar = column(470, (0, 1, 2, 3), (300, 233.3, 166.7, 100), 4.5, -0.015)
+    assert not FS.other_axis(left, [left, bar], t_left + t_bar, box)
+    short, t_short = column(412, (2, 0, -2), (140, 180, 220), 9.0, -0.05)
+    assert FS.other_axis(left, [left, short], t_left + t_short, box)
+    narrow = (100.0, 100.0, 380.0, 300.0)            # a frame found too narrow: the axis line beside the labels counts
+    assert not FS.other_axis(left, [left, short], t_left + t_short, box, frame=narrow)
+    axis_line = ([], [(100.0, 300.0, 401.0)])        # (horizontal, vertical) neutral segments: x = 401 over y 100…300
+    assert FS.other_axis(left, [left, short], t_left + t_short, box, frame=narrow, segments=axis_line)
+    # numbers of a legend inside the frame are no axis, even beside a grid line
+    legend_in, t_legend_in = column(360, (2, 0, -2), (140, 180, 220), 9.0, -0.05)
+    grid = ([], [(100.0, 300.0, 350.0)])
+    assert not FS.other_axis(left, [left, legend_in], t_left + t_legend_in, box, segments=grid)
+    # the x and y axis lines of one chart meet at its corner; x labels under another panel do not belong to this plot
+    def row(y, values, positions):
+        labels = [[str(v), float(v), float(p), True, "NATIVE"] for v, p in zip(values, positions)]
+        return Axis("x", "LINEAR", 0.0, 0.1, labels=labels), [Text(str(v), p - 6, p + 6, y, 6.0)
+                                                             for v, p in zip(values, positions)]
+    xs, t_xs = row(312, (0, 20, 40, 60), (100, 200, 300, 400))           # the upper panel's own x labels
+    xs_low, t_xs_low = row(512, (0, 10, 20, 30), (100, 200, 300, 400))    # the lower panel's
+    pieces = ([(100.0, 250.0, 300.0), (250.5, 400.0, 300.2), (100.0, 400.0, 500.0)], [(100.0, 300.0, 100.0)])
+    lines = FS.merged_lines(pieces)                   # an x axis drawn in two pieces is one line
+    assert [(a, b) for a, b, _ in lines[0]] == [(100.0, 400.0), (100.0, 400.0)] and len(lines[1]) == 1
+    assert not FS.labels_detached(xs, left, t_xs + t_left, box, lines, [xs, left])
+    everything = t_xs_low + t_left + t_xs
+    assert FS.labels_detached(xs_low, left, everything, box, lines, [xs_low, left, xs])
+    # stacked panels sharing the lower x axis (the upper panel prints none) are sound; without lines: not judged
+    assert not FS.labels_detached(xs_low, left, t_xs_low + t_left, box, lines, [xs_low, left])
+    assert not FS.labels_detached(xs_low, left, everything, box, ([], []), [xs_low, left, xs])
+    # 10³ read as «103»: «10x» labels with an exponent step of 1 to 3
+    def tens(*ts):
+        return Axis("y", "LINEAR", 0, 1, labels=[[t, float(t), 50.0 * i, True, "NATIVE"] for i, t in enumerate(ts)])
+    assert FS.power_of_ten_labels(tens("100", "101", "102", "103"))
+    assert FS.power_of_ten_labels(tens("100", "102", "104"))
+    assert not FS.power_of_ten_labels(left) and not FS.power_of_ten_labels(tens("100", "105", "110"))
+    # an axis kept on three labels is weak on irregular values or after dropping a label off their step inside their
+    # range; «0, 20, 30» without a misplaced «10» is a sound axis
+    three = Axis("y", "LINEAR", 0, 1, labels=[["0", 0.0, 0, True, "NATIVE"], ["20", 20.0, 20, True, "NATIVE"],
+                                              ["30", 30.0, 30, True, "NATIVE"]])
+    assert not FS.weak_axis(three) and not FS.weak_axis(left)
+    three.dropped = ["10"]
+    assert not FS.weak_axis(three)
+    three.dropped = ["10", "25"]
+    assert FS.weak_axis(three)
+    odd = Axis("y", "LOG10", 0, 1, labels=[["0.32", 0.32, 0, True, "NATIVE"], ["0.062", 0.062, 5, True, "NATIVE"],
+                                           ["0.171", 0.171, 9, True, "NATIVE"]])
+    assert FS.weak_axis(odd) and not FS.regular_ticks(odd)
+    fine = Axis("x", "LOG10", 0, 1, labels=[[t, float(t), i, True, "NATIVE"] for i, t in enumerate(("10", "15", "20",
+                                                                                                    "30"))])
+    assert FS.regular_ticks(fine) and not FS.weak_axis(fine)
+    # «1,000 2,000 3,000»: a thousands comma or a decimal comma — ambiguous; «0,5 1,0 1,5» is a decimal comma
+    commas = Axis("x", "LINEAR", 0, 1, labels=[[t, float(t.replace(",", ".")), i, True, "NATIVE"]
+                                               for i, t in enumerate(("1,000", "2,000", "3,000"))])
+    decimals = Axis("x", "LINEAR", 0, 1, labels=[[t, float(t.replace(",", ".")), i, True, "NATIVE"]
+                                                 for i, t in enumerate(("0,5", "1,0", "1,5"))])
+    assert FS.thousands_ambiguous(commas, []) and not FS.thousands_ambiguous(decimals, [])
+    # «80 000» split by the text layer into «80» + «000» (the gap of a space) — but not two close labels «100» «110»
+    split, t_split = column(80, (10, 20, 30), (280, 250, 220), 310.0 / 3, -1.0 / 3)
+    groups = [Text("000", t.x1 + 1.5, t.x1 + 12.0, t.yc, 6.0) for t in t_split]
+    assert FS.thousands_ambiguous(split, t_split + groups)
+    far = [Text("110", t.x1 + 2.6, t.x1 + 14.0, t.yc, 6.0) for t in t_split]
+    assert not FS.thousands_ambiguous(split, t_split + far) and not FS.thousands_ambiguous(split, t_split)
+    assert {"AXIS_LABELS_INSIDE_PLOT", "AXIS_LABELS_DETACHED", "SECOND_Y_AXIS", "POWER_OF_TEN_LABELS",
+            "THOUSANDS_SEPARATOR_AMBIGUOUS", "WEAK_AXIS_CALIBRATION"} <= FS.SUSPECT_FLAGS
 
 
 def test_gallery_opens_without_a_server(world, tmp_path):

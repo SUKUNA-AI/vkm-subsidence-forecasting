@@ -47,10 +47,13 @@ that wrote ``VECTOR_PATHS_JSON``). No keyword filter: the caption and page keywo
 
 Quality flags added by the part (besides FD's ``X_UNCALIBRATED``, ``LEGEND_UNMATCHED``, ``MULTI_CHAIN_STYLE``,
 ``LOCAL_OCR_CALIBRATION``, ``MODEL_HINT_IN_CAPTION``, ``AVAILABILITY_UNKNOWN``, ``SCOPE_INHERITED_FROM_SOURCE``):
-``POINTS_OUTSIDE_PLOT_AREA``, ``EXTRAPOLATED_BEYOND_TICKS`` (> 25 % of a series' values beyond the printed ticks by
-> 10 % of their span — a suspicious calibration), ``STROKES_DRAWN_AS_OUTLINES`` (curves drawn as filled outlines:
-not traced), ``ROTATED_PAGE``, ``EMBEDDED_RASTER_IN_FIGURE``, ``OCR_HELPER_UNAVAILABLE``,
-``CANDIDATE_RULE_NOT_EVALUATED``, ``WORK_ATTRIBUTION_AMBIGUOUS``.
+``POINTS_OUTSIDE_PLOT_AREA`` (vertices outside the chart frame), ``EXTRAPOLATED_BEYOND_TICKS`` (> 25 % of a series'
+values beyond the printed ticks by > 25 % of their span), ``STROKES_DRAWN_AS_OUTLINES`` (curves drawn as filled
+outlines: not traced), ``ROTATED_PAGE``, ``EMBEDDED_RASTER_IN_FIGURE``, ``OCR_HELPER_UNAVAILABLE``,
+``CANDIDATE_RULE_NOT_EVALUATED``, ``WORK_ATTRIBUTION_AMBIGUOUS``; and the calibration plausibility flags that make
+every series of the figure suspect (``SUSPECT_FLAGS``; the query filter ``clean_only`` drops them):
+``AXIS_LABELS_INSIDE_PLOT``, ``AXIS_LABELS_DETACHED``, ``SECOND_Y_AXIS`` / ``SECOND_X_AXIS``,
+``POWER_OF_TEN_LABELS``, ``THOUSANDS_SEPARATOR_AMBIGUOUS``, ``WEAK_AXIS_CALIBRATION``.
 
 IDs: ``series_id = FS-<16 hex>`` of (figure id, route, series index, label, colour) — the id of FD's sweep for the
 same series; a point is ``(series_id, i)``.
@@ -87,28 +90,43 @@ MIN_NUMERIC_TOKENS = 6
 MIN_LINE_CURVE_ITEMS = 20
 REGION_MARGIN_PT = 12.0          # route A reads the figure box ± 12 pt (tick labels and titles sit outside the box)
 QUANTUM_PT = 0.05                # coordinate precision assumed for native PDF vectors (error floor)
-# quality flags (MODEL_CHOICE): a vertex more than 1 % of the plot size outside the plot box is outside the plot area
-# (a chart's clip hides it: it cannot be checked against the printed figure); a series with more than 25 % of its
-# values beyond the printed tick values by more than 10 % of their span is extrapolated (a suspicious calibration);
-# ≥ 20 coloured elongated filled polygons that outnumber the coloured strokes 2:1 are curves drawn as filled outlines
-# (route A does not trace them)
-OUTSIDE_TOL = 0.01
+# quality flags (MODEL_CHOICE): a vertex more than 1 % of the plot size outside the chart frame is outside the plot
+# area (a chart's clip hides it: it cannot be checked against the printed figure); the frame is the plot box, moved
+# out to the nearest long neutral line (≥ 60 % of the box side) within half the box size where the box edge carries
+# none; a series with more than 25 % of its values beyond the printed tick values by more than 25 % of their span is
+# extrapolated; ≥ 20 coloured elongated filled polygons that outnumber the coloured strokes 2:1 are curves drawn as
+# filled outlines (route A does not trace them)
+OUTSIDE_TOL, FRAME_MIN_COVER, FRAME_MAX_GAP = 0.01, 0.6, 0.5
 BEYOND_TICKS_TOL, BEYOND_TICKS_SHARE = 0.25, 0.25
 OUTLINE_MIN, OUTLINE_MAX_WIDTH_PT, OUTLINE_MIN_ASPECT = 20, 3.0, 3.0
-# axis plausibility (route A): tick labels more than 3 % of the box inside it are not an axis of this plot
-LABELS_INSIDE_MARGIN = 0.03
+# axis plausibility (route A): tick labels more than 3 % of the box inside it are not an axis of this plot; the lines
+# beside the x and the y labels (long neutral lines within 4 label heights) must meet, as the axes of one chart do;
+# another axis is a column (row) of labels snapped to ticks over at least 30 % of the plot, outside the frame and
+# within 4 label heights of it (or beside a long neutral line); a 3-digit group closer than 0.36 of the label height
+# after a label is the rest of a thousands-grouped number («80» «000»); an axis kept on its last three labels is
+# regular when its values step by multiples of the smallest step (log10: mantissas LOG_MANTISSAS)
+LABELS_INSIDE_MARGIN, AXIS_LABEL_MAX_GAP_H = 0.03, 4.0
+SECOND_AXIS_MIN_SPAN, SECOND_AXIS_GAP_H = 0.3, 4.0
+THOUSANDS_GAP_H = 0.36
+LOG_MANTISSAS = (1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
 # flags that make the values of a series suspect (the query filter clean_only drops such series); a visual check of
-# seeded samples kept these four and left EXTRAPOLATED_BEYOND_TICKS informational (it fired on sound charts whose
-# frame runs past the last labelled tick)
-SUSPECT_FLAGS = frozenset({"AXIS_LABELS_INSIDE_PLOT", "POWER_OF_TEN_LABELS", "SECOND_Y_AXIS", "SECOND_X_AXIS"})
+# seeded samples kept the first four and left EXTRAPOLATED_BEYOND_TICKS informational (it fired on sound charts whose
+# frame runs past the last labelled tick); the check of the full build added the last three (a chart read 1000× too
+# small, curve labels taken for an axis, the x axis of another panel)
+SUSPECT_FLAGS = frozenset({"AXIS_LABELS_INSIDE_PLOT", "POWER_OF_TEN_LABELS", "SECOND_Y_AXIS", "SECOND_X_AXIS",
+                           "THOUSANDS_SEPARATOR_AMBIGUOUS", "WEAK_AXIS_CALIBRATION", "AXIS_LABELS_DETACHED"})
 CONFIG: dict[str, Any] = {
     "rule": RULE_VERSION, "candidate_rule": "chartlike_v1", "num_margin_pt": NUM_MARGIN_PT,
     "min_numeric_tokens": MIN_NUMERIC_TOKENS, "min_line_curve_items": MIN_LINE_CURVE_ITEMS,
     "region_margin_pt": REGION_MARGIN_PT, "quantum_pt": QUANTUM_PT, "ocr_psm": 7, "ocr_dpi": 600,
     "ocr_whitelist": "0123456789.,-/", "glyph_max_size_pt": 18.0, "glyph_default_h_pt": 6.0,
-    "outside_tol": OUTSIDE_TOL, "beyond_ticks_tol": BEYOND_TICKS_TOL, "beyond_ticks_share": BEYOND_TICKS_SHARE,
-    "outline_min": OUTLINE_MIN, "outline_max_width_pt": OUTLINE_MAX_WIDTH_PT, "outline_min_aspect": OUTLINE_MIN_ASPECT,
-    "labels_inside_margin": LABELS_INSIDE_MARGIN, "suspect_flags": sorted(SUSPECT_FLAGS),
+    "outside_tol": OUTSIDE_TOL, "frame_min_cover": FRAME_MIN_COVER, "frame_max_gap": FRAME_MAX_GAP,
+    "beyond_ticks_tol": BEYOND_TICKS_TOL, "beyond_ticks_share": BEYOND_TICKS_SHARE, "outline_min": OUTLINE_MIN,
+    "outline_max_width_pt": OUTLINE_MAX_WIDTH_PT, "outline_min_aspect": OUTLINE_MIN_ASPECT,
+    "labels_inside_margin": LABELS_INSIDE_MARGIN, "axis_label_max_gap_h": AXIS_LABEL_MAX_GAP_H,
+    "second_axis_min_span": SECOND_AXIS_MIN_SPAN,
+    "second_axis_gap_h": SECOND_AXIS_GAP_H, "thousands_gap_h": THOUSANDS_GAP_H, "log_mantissas": list(LOG_MANTISSAS),
+    "suspect_flags": sorted(SUSPECT_FLAGS),
 }
 FIGURE_STATUSES = ("DIGITIZED", "AXES_OK_NO_SERIES", "X_UNCALIBRATED", "Y_UNCALIBRATED", "NO_AXES",
                    "SOURCE_UNAVAILABLE", "SOURCE_HASH_MISMATCH", "ERROR")
@@ -119,6 +137,14 @@ ERROR_MODEL = ("half-width in value units: axis label-fit rms ⊕ coordinate qua
 # {"VKM-SRC-…": [page, …]}, FD's monitoring-catalogue pages); same schema, route R_RASTER, flag RASTER on every row
 RASTER_ROUTE = "R_RASTER"
 RASTER_DATASETS = ("figure_series_raster_figures", "figure_series_raster", "figure_series_raster_points")
+# the pages of FD's raster sweep (receipt figure_digitization_v0): the pages that the monitoring catalogue marks
+# FIGURE_VALUES_DIGITIZED_APPROX / FIGURE_READ — option value ``raster_pages=fd_monitoring``
+FD_MONITORING_RASTER_PAGES: dict[str, list[int]] = {
+    "VKM-SRC-001": [10, 11, 13, 16, 18], "VKM-SRC-002": [12, 14, 15], "VKM-SRC-003": [42, 43, 47, 66, 70, 72, 73],
+    "VKM-SRC-004": [6, 8, 9, 10, 13], "VKM-SRC-007": [8], "VKM-SRC-011": [131],
+    "VKM-SRC-012": [46, 47, 49, 50, 51, 52, 56, 103, 104, 105, 107], "VKM-SRC-024": [82, 83, 84, 85],
+    "VKM-SRC-034": [2],
+}
 RASTER_DPI = 300
 RASTER_CONFIG: dict[str, Any] = {
     "rule": RULE_VERSION, "route": "R", "render_dpi": RASTER_DPI, "region_margin_pt": 6.0,
@@ -358,7 +384,7 @@ def _figure_base(c: dict[str, Any], n_lc: int | None) -> dict[str, Any]:
         "core_keyword": c["core_keyword"], "keywords_caption": list(c["keywords_caption"]),
         "keywords_page": list(c["keywords_page"]), "model_hint_in_caption": bool(c["model_hint_in_caption"]),
         "has_embedded_raster": bool(c["has_embedded_raster"]),
-        "figure_status": None, "axis_status": None, "plot_box": None,
+        "figure_status": None, "axis_status": None, "plot_box": None, "frame_box": None,
         "x_axis_kind": None, "x_cal_method": None, "x_cal_label_source": None, "x_cal_n_labels": None,
         "x_cal_rms_pt": None, "x_title_raw": None, "x_quantity_raw": None, "x_unit_raw": None, "x_is_time": None,
         "y_axis_kind": None, "y_cal_method": None, "y_cal_label_source": None, "y_cal_n_labels": None,
@@ -380,6 +406,31 @@ def in_plot_area(box: list[float] | tuple, x: float | None, y: float | None) -> 
     x0, y0, x1, y1 = box
     tx, ty = OUTSIDE_TOL * abs(x1 - x0), OUTSIDE_TOL * abs(y1 - y0)
     return bool(x0 - tx <= x <= x1 + tx and y0 - ty <= y <= y1 + ty)
+
+
+def frame_box(paths: list, box) -> list[float]:
+    """The chart frame around the plot box. The plot box may stop at the last labelled ticks while the frame of the
+    chart runs further (data below the lowest label are still inside the chart). On each side: the box edge when a
+    long neutral straight line lies on it (an axis, a grid line, the frame — a horizontal line over ≥ 60 % of the box
+    width, a vertical one over ≥ 60 % of its height); otherwise the nearest such line beyond the edge within half the
+    box size (never a neighbour panel or the figure border one box away); otherwise the edge."""
+    from vkm_corpus.figures.calibrate import structure_segments
+
+    x0, y0, x1, y1 = (float(v) for v in box)
+    w, h = (x1 - x0) or 1.0, (y1 - y0) or 1.0
+    hs, vs = structure_segments(paths, neutral_only=True)
+
+    def cover(a: float, b: float, lo: float, hi: float) -> float:
+        return max(0.0, min(b, hi) - max(a, lo))
+    hl = [y for a, b, y in hs if cover(a, b, x0, x1) >= FRAME_MIN_COVER * w]
+    vl = [x for a, b, x in vs if cover(a, b, y0, y1) >= FRAME_MIN_COVER * h]
+
+    def side(lines: list[float], edge: float, size: float, sign: int) -> float:
+        if any(abs(v - edge) <= OUTSIDE_TOL * size for v in lines):
+            return edge
+        beyond = [v for v in lines if 0 < sign * (v - edge) <= FRAME_MAX_GAP * size]
+        return min(beyond, key=lambda v: sign * (v - edge)) if beyond else edge
+    return [side(vl, x0, w, -1), side(hl, y0, h, -1), side(vl, x1, w, 1), side(hl, y1, h, 1)]
 
 
 def beyond_ticks_share(ax: Any, values: list[float]) -> float:
@@ -427,17 +478,134 @@ def outlined_strokes(paths: list) -> tuple[int, int]:
 _POWER_OF_TEN = re.compile(r"^10\d{1,2}$")
 
 
-def label_centres(ax: Any, texts: list) -> list[tuple[float, float]]:
-    """Page centres (x, y) of the text-layer words that gave the axis its tick labels (same text, nearest along the
-    axis); none for labels read by OCR."""
-    out = []
+def label_words(ax: Any, texts: list) -> list:
+    """The text-layer words that gave the axis its tick labels: same text, nearest along the axis; of equally near
+    words (a «0» of the left and of the right axis on one line) the one nearest across to the axis' other labels.
+    None for labels read by OCR."""
+    def along(t):
+        return t.yc if ax.orient == "y" else t.xc
+
+    def across(t):
+        return t.xc if ax.orient == "y" else t.yc
+    per = []
     for text, _value, pos, _snapped, _src in getattr(ax, "labels", []) or []:
         cands = [t for t in texts if t.text.strip() == text]
-        if not cands:
+        if cands:
+            d = min(abs(along(t) - pos) for t in cands)
+            per.append([t for t in cands if abs(along(t) - pos) <= d + 1.0])
+    sure = [cs[0] for cs in per if len(cs) == 1]
+    ref = statistics.median(across(t) for t in sure) if sure else None
+    return [cs[0] if len(cs) == 1 or ref is None else min(cs, key=lambda t: abs(across(t) - ref)) for cs in per]
+
+
+def label_centres(ax: Any, texts: list) -> list[tuple[float, float]]:
+    """Page centres (x, y) of the words of the axis' tick labels."""
+    return [(float(t.xc), float(t.yc)) for t in label_words(ax, texts)]
+
+
+def merged_lines(segments) -> tuple[list, list]:
+    """Neutral horizontal (x0, x1, y) and vertical (y0, y1, x) segments with collinear pieces joined (an axis drawn
+    between its tick marks comes as many short pieces): same coordinate within 0.5 pt, gaps up to 1.5 pt."""
+    def merge(segs):
+        out = []
+        for key, grp in _groupby_coord(segs):
+            cur = None
+            for a, b, _c in sorted(grp):
+                if cur is not None and a <= cur[1] + 1.5:
+                    cur[1] = max(cur[1], b)
+                else:
+                    if cur is not None:
+                        out.append((cur[0], cur[1], key))
+                    cur = [a, b]
+            if cur is not None:
+                out.append((cur[0], cur[1], key))
+        return out
+    hs, vs = segments
+    return merge(hs), merge(vs)
+
+
+def _groupby_coord(segs):
+    """Segments grouped by their constant coordinate (clusters 0.5 pt wide, keyed by the cluster mean)."""
+    groups: list[list] = []
+    for s in sorted(segs, key=lambda s: s[2]):
+        if groups and s[2] - groups[-1][-1][2] <= 0.5:
+            groups[-1].append(s)
+        else:
+            groups.append([s])
+    return [(sum(s[2] for s in g) / len(g), g) for g in groups]
+
+
+def _word_span(ws: list, orient: str) -> tuple[float, float]:
+    """(near, far) edges of label words across their axis: top and bottom of a row, left and right of a column."""
+    if orient == "x":
+        return min(t.yc - 0.71 * t.h for t in ws), max(t.yc + 0.71 * t.h for t in ws)
+    return min(t.x0 for t in ws), max(t.x1 for t in ws)
+
+
+def axis_line(ax: Any, texts: list, lines) -> tuple[float, float, float] | None:
+    """The line an axis' labels stand beside: the nearest long neutral line along the row (column) of its labels,
+    on either side, within ``AXIS_LABEL_MAX_GAP_H`` label heights and over ≥ 60 % of the labels' span — (from, to,
+    at). None for OCR labels or an axis drawn without a line."""
+    ws = label_words(ax, texts)
+    if len(ws) < 3:
+        return None
+    hm = statistics.median(t.h for t in ws)
+    ps = [float(lab[2]) for lab in ax.labels]
+    lo, hi = min(ps), max(ps)
+    a0, a1 = _word_span(ws, ax.orient)
+    best = None
+    for a, b, at in (lines[0] if ax.orient == "x" else lines[1]):
+        d = a0 - at if at <= a0 else (at - a1 if at >= a1 else None)
+        if d is None or d > AXIS_LABEL_MAX_GAP_H * hm or min(b, hi) - max(a, lo) < 0.6 * (hi - lo):
             continue
-        t = min(cands, key=lambda t: abs((t.yc if ax.orient == "y" else t.xc) - pos))
-        out.append((float(t.xc), float(t.yc)))
-    return out
+        if best is None or d < best[0]:
+            best = (d, (a, b, at))
+    return best[1] if best else None
+
+
+def _own_labels(c: Any, texts: list, line, orient: str, size: float) -> bool:
+    """Axis candidate ``c`` (a row for ``orient`` x, a column for y) stands at an end of ``line`` — the other axis'
+    line (from, to, at) — within ``AXIS_LABEL_MAX_GAP_H`` label heights, across ``size`` from it: the labels that
+    panel prints for itself."""
+    ws = label_words(c, texts)
+    if c.orient != orient or len(ws) < 3:
+        return False
+    hm = statistics.median(t.h for t in ws)
+    a0, a1 = _word_span(ws, orient)
+    ends = [line[1], line[0]]
+    if not any(-0.5 * hm <= a0 - e <= AXIS_LABEL_MAX_GAP_H * hm or -0.5 * hm <= e - a1 <= AXIS_LABEL_MAX_GAP_H * hm
+               for e in ends):
+        return False
+    ps = [float(lab[2]) for lab in c.labels]
+    span = (max(ps) - min(ps)) or 1.0
+    return min(max(ps), line[2] + size) - max(min(ps), line[2] - size) >= 0.5 * span
+
+
+def labels_detached(xa: Any, ya: Any, texts: list, frame, lines, cands: list = ()) -> bool:
+    """The x and y axes come from two panels of a figure: the line beside the x labels and the line beside the y
+    labels do not meet (the axes of one chart form its corner: 4 pt or 3 % of the frame allowed), and the panel of
+    one of them prints labels of its own for the other direction (``cands``: the axis candidates of the region).
+    Stacked panels that share one axis print it once — they are not flagged. Unknown (False) when either axis has no
+    line."""
+    if xa is None or ya is None:
+        return False
+    lx, ly = axis_line(xa, texts, lines), axis_line(ya, texts, lines)
+    if lx is None or ly is None:
+        return False
+    x0, y0, x1, y1 = (float(v) for v in frame)
+    w, h = abs(x1 - x0), abs(y1 - y0)
+    tx, ty = max(4.0, 0.03 * w), max(4.0, 0.03 * h)
+    if lx[0] - tx <= ly[2] <= lx[1] + tx and ly[0] - ty <= lx[2] <= ly[1] + ty:
+        return False
+    def key(ax):
+        return {(lab[0], round(float(lab[2]), 1)) for lab in ax.labels}
+    kx, ky = key(xa), key(ya)
+
+    def chosen(c) -> bool:              # the chosen axes as the candidate list has them
+        kc = key(c)
+        return any(len(kc & k) >= 0.5 * min(len(kc), len(k)) for k in (kx, ky))
+    return any(not chosen(c) and (_own_labels(c, texts, ly, "x", w) or _own_labels(c, texts, lx, "y", h))
+               for c in cands if len(c.labels) >= 3)
 
 
 def labels_inside_plot(ax: Any, texts: list, box) -> bool:
@@ -454,9 +622,30 @@ def labels_inside_plot(ax: Any, texts: list, box) -> bool:
     return y0 + LABELS_INSIDE_MARGIN * h < ym < y1 - LABELS_INSIDE_MARGIN * h
 
 
-def other_axis(chosen: Any, cands: list, texts: list, box) -> bool:
-    """Another axis candidate of the same orientation with other labels, on the opposite side of the plot box and
-    with another scale: a chart with two y (or x) axes — which series belongs to which axis is not known."""
+def _line_beside(ws: list, c: Any, k: int, side: bool, hm: float, segments) -> bool:
+    """A long neutral straight line on the plot side of a label column (row) within ``SECOND_AXIS_GAP_H`` label
+    heights, over ≥ 90 % of the labels' span: the line of that axis."""
+    if not segments:
+        return False
+    hs, vs = segments
+    ps = [float(lab[2]) for lab in c.labels]
+    lo, hi = min(ps), max(ps)
+    if k == 0:
+        edge = min(t.x0 for t in ws) if side else max(t.x1 for t in ws)
+        lines = [(a, b, (edge - x) if side else (x - edge)) for a, b, x in vs]
+    else:
+        edge = min(t.yc - 0.71 * t.h for t in ws) if side else max(t.yc + 0.71 * t.h for t in ws)
+        lines = [(a, b, (edge - y) if side else (y - edge)) for a, b, y in hs]
+    return any(-0.5 * hm <= d <= SECOND_AXIS_GAP_H * hm and min(b, hi) - max(a, lo) >= 0.9 * (hi - lo)
+               for a, b, d in lines)
+
+
+def other_axis(chosen: Any, cands: list, texts: list, box, frame=None, segments=None) -> bool:
+    """Another axis candidate of the same orientation with other labels on the opposite side: its labels stand at
+    the chart — within ``SECOND_AXIS_GAP_H`` label heights outside the frame edge (``frame``, default the plot box)
+    or beside a long neutral line (``segments`` = neutral horizontal and vertical segments) —, cover at least
+    ``SECOND_AXIS_MIN_SPAN`` of the plot and give another scale: a chart with two y (or x) axes, which series belongs
+    to which axis is not known."""
     if chosen is None or not texts:
         return False
     mine = {(lab[0], round(float(lab[2]), 1)) for lab in chosen.labels}
@@ -465,20 +654,34 @@ def other_axis(chosen: Any, cands: list, texts: list, box) -> bool:
         return False
     k = 0 if chosen.orient == "y" else 1
     x0, y0, x1, y1 = box
+    fx0, fy0, fx1, fy1 = frame if frame is not None else box
     mid = (x0 + x1) / 2 if k == 0 else (y0 + y1) / 2
     side = statistics.median(c[k] for c in cs) < mid
     lo, hi = (y0, y1) if k == 0 else (x0, x1)
     span = abs(float(chosen.value(hi)) - float(chosen.value(lo))) or 1.0
     for c in cands:
         # an axis is snapped to its tick marks at least in part; a free column of numbers (curve labels such as
-        # «σ = −170 MPa» at the curve ends) is not a second axis
+        # «σ = −170 MPa» at the curve ends) is not a second axis, nor is a legend (its labels stand a sample stroke
+        # away from the frame) or a colour bar
         if c is chosen or c.orient != chosen.orient or len(c.labels) < 3 or c.method == "TEXT_CENTRE":
+            continue
+        ps = [float(lab[2]) for lab in c.labels]
+        if max(ps) - min(ps) < SECOND_AXIS_MIN_SPAN * abs(hi - lo):
             continue
         theirs = {(lab[0], round(float(lab[2]), 1)) for lab in c.labels}
         if len(theirs & mine) >= 0.5 * min(len(theirs), len(mine)):
             continue                      # the same labels clustered another way (a shared «0» is allowed)
-        oc = label_centres(c, texts)
-        if len(oc) < 3 or (statistics.median(p[k] for p in oc) < mid) == side:
+        ws = label_words(c, texts)
+        if len(ws) < 3 or (statistics.median((t.xc, t.yc)[k] for t in ws) < mid) == side:
+            continue
+        hm = statistics.median(t.h for t in ws)
+        if k == 0:
+            gap = min(t.x0 for t in ws) - fx1 if side else fx0 - max(t.x1 for t in ws)
+        else:
+            gap = min(t.yc - 0.71 * t.h for t in ws) - fy1 if side else fy0 - max(t.yc + 0.71 * t.h for t in ws)
+        if gap < -0.5 * hm:
+            continue                      # inside the frame: a legend or curve labels, not an axis
+        if not (gap <= SECOND_AXIS_GAP_H * hm or _line_beside(ws, c, k, side, hm, segments)):
             continue
         if max(abs(float(c.value(p)) - float(chosen.value(p))) for p in (lo, hi)) > 0.01 * span:
             return True
@@ -486,22 +689,91 @@ def other_axis(chosen: Any, cands: list, texts: list, box) -> bool:
 
 
 def power_of_ten_labels(ax: Any) -> bool:
-    """Tick labels such as «100, 101, 102, 103»: powers of ten whose superscript exponent merged into the number
-    (10³ read as 103) — a log axis calibrated as a linear one."""
+    """Tick labels such as «100, 101, 102, 103» or «100, 102, 104»: powers of ten whose superscript exponent merged
+    into the number (10³ read as 103; the exponent steps by 1 to 3) — a log axis calibrated as a linear one."""
     labs = getattr(ax, "labels", None) or []
     if len(labs) < 3 or not all(_POWER_OF_TEN.match(str(lab[0]).strip()) for lab in labs):
         return False
     vals = sorted(float(lab[1]) for lab in labs)
-    return all(abs(b - a - 1.0) < 1e-9 for a, b in zip(vals, vals[1:]))
+    steps = {round(b - a, 6) for a, b in zip(vals, vals[1:])}
+    return len(steps) == 1 and steps.pop() in (1.0, 2.0, 3.0)
 
 
-def axis_flags(res: dict[str, Any], texts: list, paths: list, region) -> set[str]:
-    """Plausibility flags of the calibration of one figure (route A): labels inside the plot, two axes of one
-    orientation, power-of-ten labels read as numbers."""
-    from vkm_corpus.figures.calibrate import detect_axes, structure_lines
+def regular_ticks(ax: Any) -> bool:
+    """Tick values as an axis prints them: a linear axis steps by multiples of its smallest step (missing labels
+    allowed), a log10 axis carries mantissas of ``LOG_MANTISSAS``; dates are not judged."""
+    vals = sorted({float(lab[1]) for lab in getattr(ax, "labels", None) or []})
+    if ax.kind == "DATE" or len(vals) < 2:
+        return True
+    if ax.kind == "LOG10":
+        def mantissa_ok(v: float) -> bool:
+            if v <= 0:
+                return False
+            m = v / 10 ** math.floor(math.log10(v) + 1e-9)
+            return any(abs(m - q) <= 0.02 * q for q in LOG_MANTISSAS) or abs(m - 10.0) <= 0.2
+        return all(mantissa_ok(v) for v in vals)
+    steps = [b - a for a, b in zip(vals, vals[1:])]
+    s0 = min(steps)
+    return s0 > 0 and all(abs(s / s0 - round(s / s0)) <= 0.02 * s / s0 for s in steps)
+
+
+def weak_axis(ax: Any) -> bool:
+    """An axis kept on its minimum of three labels whose values are irregular, or that dropped a label inside their
+    range off their step: three numbers of a legend or of curve labels lined up by chance. A real axis prints evenly
+    stepped values; a dropped label on the step («0, 20, 30» without «10») is a misplaced label of a sound axis."""
+    from vkm_corpus.figures.primitives import label_value
+
+    labs = getattr(ax, "labels", None) or []
+    if len(labs) != 3:
+        return False
+    if not regular_ticks(ax):
+        return True
+    if ax.kind != "LINEAR":
+        return False
+    vals = sorted(float(lab[1]) for lab in labs)
+    s0 = min(b - a for a, b in zip(vals, vals[1:]))
+    for text in getattr(ax, "dropped", None) or []:
+        v, _ = label_value(str(text))
+        if v is None or not vals[0] < v < vals[-1]:
+            continue
+        k = (v - vals[0]) / s0
+        if abs(k - round(k)) > 0.02 * max(1.0, k):
+            return True
+    return False
+
+
+_COMMA_THOUSANDS = re.compile(r"^[-−–]?[1-9]\d{0,2},\d{3}$")
+_GROUP3 = re.compile(r"^\d{3}$")
+
+
+def thousands_ambiguous(ax: Any, texts: list) -> bool:
+    """Tick labels that may be thousands-grouped numbers read as small ones (values 1000× too small): every label
+    with a comma is «d,ddd» («1,000», «2,500» — an English thousands comma or a decimal comma with three decimals?),
+    or at least two labels are followed on their line by a bare 3-digit group closer than ``THOUSANDS_GAP_H`` label
+    heights («80» «000»: the text layer split «80 000» into two words)."""
+    labs = getattr(ax, "labels", None) or []
+    commas = [str(lab[0]).strip() for lab in labs if "," in str(lab[0])]
+    if len(commas) >= 2 and all(_COMMA_THOUSANDS.match(t) for t in commas):
+        return True
+    # the next label of a crowded row is not a thousands group
+    own = {str(lab[0]).strip() for lab in labs} | {str(t).strip() for t in getattr(ax, "dropped", None) or []}
+    groups = [t for t in texts if _GROUP3.match(t.text.strip()) and abs(t.rot) < 1 and t.text.strip() not in own]
+    if not groups:
+        return False
+    n = sum(1 for w in label_words(ax, texts) if any(
+        -0.1 * w.h <= g.x0 - w.x1 <= THOUSANDS_GAP_H * w.h and abs(g.yc - w.yc) <= 0.3 * w.h for g in groups))
+    return n >= 2
+
+
+def axis_flags(res: dict[str, Any], texts: list, paths: list, region, frame=None) -> set[str]:
+    """Plausibility flags of the calibration of one figure (route A): labels inside the plot or far outside its
+    frame, two axes of one orientation, power-of-ten labels read as numbers, thousands groups read as small numbers,
+    an axis kept on three chance labels. ``frame``: the chart frame (default :func:`frame_box` of the plot box)."""
+    from vkm_corpus.figures.calibrate import detect_axes, structure_lines, structure_segments
     from vkm_corpus.figures.series import legend_text_ids
 
     xa, ya, box = res["x_axis"], res["y_axis"], res["plot_box"]
+    frame = frame if frame is not None else frame_box(paths, box)
     flags = set()
     for ax in (xa, ya):
         if ax is None:
@@ -512,13 +784,28 @@ def axis_flags(res: dict[str, Any], texts: list, paths: list, region) -> set[str
             flags.add("AXIS_LABELS_INSIDE_PLOT")
         if power_of_ten_labels(ax):
             flags.add("POWER_OF_TEN_LABELS")
+        if thousands_ambiguous(ax, texts if ax.label_source == "NATIVE" else []):
+            flags.add("THOUSANDS_SEPARATOR_AMBIGUOUS")
+        if weak_axis(ax):
+            flags.add("WEAK_AXIS_CALIBRATION")
     if (xa is not None and xa.label_source == "NATIVE") or (ya is not None and ya.label_source == "NATIVE"):
         snap_h, snap_v = structure_lines(paths)
-        _, _, cands = detect_axes(texts, snap_h, snap_v, exclude=legend_text_ids(paths, texts, region))
-        if ya is not None and ya.label_source == "NATIVE" and other_axis(ya, cands, texts, box):
-            flags.add("SECOND_Y_AXIS")
-        if xa is not None and xa.label_source == "NATIVE" and other_axis(xa, cands, texts, box):
-            flags.add("SECOND_X_AXIS")
+        segments = merged_lines(structure_segments(paths, neutral_only=True))
+        # every label counts for a second y axis, also those FD's legend rule sets aside: the labels of a right-hand
+        # axis stand right of its tick marks exactly like legend labels right of their samples
+        _, _, all_cands = detect_axes(texts, snap_h, snap_v)
+        if xa is not None and ya is not None and xa.label_source == ya.label_source == "NATIVE" \
+                and labels_detached(xa, ya, texts, frame, segments, all_cands):
+            flags.add("AXIS_LABELS_DETACHED")
+        if ya is not None and ya.label_source == "NATIVE":
+            if other_axis(ya, all_cands, texts, box, frame, segments):
+                flags.add("SECOND_Y_AXIS")
+        if xa is not None and xa.label_source == "NATIVE":
+            # x tick marks are vertical: the legend rule never hides an x axis, but it keeps legend rows (dates of
+            # the curves under a chart) from passing for one
+            _, _, cands = detect_axes(texts, snap_h, snap_v, exclude=legend_text_ids(paths, texts, region))
+            if other_axis(xa, cands, texts, box, frame, segments):
+                flags.add("SECOND_X_AXIS")
     return flags
 
 
@@ -553,18 +840,20 @@ def digitize_figure(page: Any, c: dict[str, Any], engine: Any, source_sha256: st
     n_outline, n_stroke = outlined_strokes(paths)
     if n_outline >= OUTLINE_MIN and n_outline > 2 * n_stroke:
         flags.add("STROKES_DRAWN_AS_OUTLINES")       # curves drawn as filled outlines: not traced, series missing
-    suspect = axis_flags(res, texts, paths, region)  # a suspect calibration makes every series of the figure suspect
+    frame = frame_box(paths, res["plot_box"])
+    suspect = axis_flags(res, texts, paths, region, frame)  # a suspect calibration makes every series suspect
     return assemble(c, res, ROUTE, prov, CONFIG, extra_flags=flags | suspect, series_flags=suspect,
-                    n_lc=c.get("_n_lc"))
+                    n_lc=c.get("_n_lc"), area=frame)
 
 
 def assemble(c: dict[str, Any], res: dict[str, Any], route: str, prov: dict[str, Any], config: dict[str, Any], *,
              extra_flags: set[str] | frozenset = frozenset(), series_flags: set[str] | frozenset = frozenset(),
-             n_lc: int | None = None, pt_per_unit: float = 1.0, error_model: str = ERROR_MODEL) -> dict[str, Any]:
+             n_lc: int | None = None, pt_per_unit: float = 1.0, error_model: str = ERROR_MODEL,
+             area: list[float] | None = None) -> dict[str, Any]:
     """A digitization result (page coordinates in PAGE_PT_TL) → figure, series and point rows (FD's ``build_rows``
     validates every series: DERIVATION, an error for every calibrated value, availability). ``pt_per_unit``
     converts the axes' residuals from drawing units (route R: analysed pixels) to points; ``series_flags`` go to
-    every series of the figure."""
+    every series of the figure; ``area`` is the chart frame deciding ``in_plot_area`` (default: the plot box)."""
     from vkm_corpus.figures import DIGITIZER_VERSION
     from vkm_corpus.figures.core import split_title
     from vkm_corpus.figures.dataset import build_rows, config_hash, is_time_axis
@@ -577,7 +866,7 @@ def assemble(c: dict[str, Any], res: dict[str, Any], route: str, prov: dict[str,
     xq, xu = split_title(res.get("x_title_raw"))
     yq, yu = split_title(res.get("y_title_raw"))
     axis_status = res["axis_status"]
-    box = res["plot_box"]
+    box = [float(v) for v in (area or res["plot_box"])]
     series_rows, point_rows = [], []
     for r in fd_rows:
         pts = r.pop("points")
@@ -630,6 +919,7 @@ def assemble(c: dict[str, Any], res: dict[str, Any], route: str, prov: dict[str,
         fstatus = axis_status
     fig.update({
         "figure_status": fstatus, "axis_status": axis_status, "plot_box": [float(v) for v in res["plot_box"]],
+        "frame_box": box,
         "x_axis_kind": xs["kind"], "x_cal_method": xs["method"], "x_cal_label_source": xs["label_source"],
         "x_cal_n_labels": xs["n_labels"], "x_cal_rms_pt": xs["rms_pt"], "x_title_raw": res.get("x_title_raw"),
         "x_quantity_raw": xq, "x_unit_raw": xu, "x_is_time": bool(is_time_axis(xa, res.get("x_title_raw"))),
@@ -684,8 +974,8 @@ def source_worker(task: dict[str, Any]) -> dict[str, Any]:
     sha = hashlib.sha256(data).hexdigest()
     if task.get("expected_sha256") and sha != task["expected_sha256"]:
         out["status"] = "SOURCE_HASH_MISMATCH"
-        out["results"] = [_failed(c, "SOURCE_HASH_MISMATCH", None, "PDF sha256 differs from the canonical source_sha256")
-                          for c in figures]
+        why = "PDF sha256 differs from the canonical source_sha256"
+        out["results"] = [_failed(c, "SOURCE_HASH_MISMATCH", None, why) for c in figures]
         return out
     engine = _ocr_engine() if task.get("ocr", True) else None
     doc = pymupdf.open(stream=data, filetype="pdf")
@@ -793,7 +1083,7 @@ def _arrow_schemas():
         ("bbox_x0", f64), ("bbox_y0", f64), ("bbox_x1", f64), ("bbox_y1", f64), ("page_rotation", pa.int16()),
         ("numeric_tokens_near", i32), ("vector_line_curve_items", i32), ("core_keyword", b),
         ("keywords_caption", ls), ("keywords_page", ls), ("model_hint_in_caption", b), ("has_embedded_raster", b),
-        ("figure_status", s), ("axis_status", s), ("plot_box", pa.list_(f64)),
+        ("figure_status", s), ("axis_status", s), ("plot_box", pa.list_(f64)), ("frame_box", pa.list_(f64)),
         ("x_axis_kind", s), ("x_cal_method", s), ("x_cal_label_source", s), ("x_cal_n_labels", i32),
         ("x_cal_rms_pt", f64), ("x_title_raw", s), ("x_quantity_raw", s), ("x_unit_raw", s), ("x_is_time", b),
         ("y_axis_kind", s), ("y_cal_method", s), ("y_cal_label_source", s), ("y_cal_n_labels", i32),
@@ -916,9 +1206,12 @@ def _summary(tables: dict[str, Any], names: tuple[str, str, str], outs: list[dic
 
 
 def _raster_pages(value: Any) -> dict[str, list[int]]:
-    """``raster_pages``: a JSON file (or an inline mapping) {"VKM-SRC-…": [page, …]}."""
+    """``raster_pages``: ``fd_monitoring`` (:data:`FD_MONITORING_RASTER_PAGES`), a JSON file or an inline mapping
+    {"VKM-SRC-…": [page, …]}."""
     data = value
-    if isinstance(value, str):
+    if value == "fd_monitoring":
+        data = FD_MONITORING_RASTER_PAGES
+    elif isinstance(value, str):
         data = json.loads(Path(value).expanduser().read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise ValueError("figure_series.raster_pages: a JSON object {source_id: [page, …]}")
@@ -933,16 +1226,17 @@ def build(con: Any, *, resources: str | None = None, workers: int | None = None,
     Options (``--option figure_series.KEY=VALUE``): ``resources`` (PRIVATE clone; default ``$VKM_RESOURCES_ROOT``),
     ``workers`` (processes, one source each; default min(8, CPUs)), ``ocr`` (``auto``: Tesseract when installed;
     ``off``), ``sources`` (restrict route A to these source ids — a partial build, recorded and refused by the
-    import), ``raster_pages`` (JSON file {source_id: [page, …]}: route R on the raster figures of these pages)."""
+    import), ``raster_pages`` (``fd_monitoring`` — the pages of FD's raster sweep — or a JSON file {source_id:
+    [page, …]}: route R on the raster figures of these pages)."""
     from vkm_corpus.figures import DIGITIZER_VERSION
     from vkm_corpus.figures.dataset import config_hash
 
     st = stats if stats is not None else {}
     root = _resources_root(resources)
     if root is None:
-        st["reason"] = "no resources root (option figure_series.resources or $VKM_RESOURCES_ROOT): the source PDFs " \
-                       "are on the WORKSTATION; CORE imports the datasets (python -m vkm_corpus.navigation.figure_series " \
-                       "import)"
+        st["reason"] = ("no resources root (option figure_series.resources or $VKM_RESOURCES_ROOT): the source PDFs "
+                        "are on the WORKSTATION; CORE imports the datasets "
+                        "(python -m vkm_corpus.navigation.figure_series import)")
         return None
     only = _parse_sources(sources)
     t_all = time.perf_counter()
@@ -991,6 +1285,14 @@ def _sha256_file(path: Path) -> str:
         for chunk in iter(lambda: fh.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def _recorded_options(options: Any) -> Any:
+    """The build options as CORE records them: a file path keeps only its file name (no workstation paths)."""
+    if not isinstance(options, dict):
+        return options
+    return {k: ("<file>/" + re.split(r"[\\/]", v)[-1] if isinstance(v, str) and re.search(r"[\\/]", v) else v)
+            for k, v in options.items()}
 
 
 def import_bundle(bundle_dir: str | Path, nav_dir: str | Path, *, canon_duckdb: str | Path | None = None,
@@ -1078,7 +1380,7 @@ def import_bundle(bundle_dir: str | Path, nav_dir: str | Path, *, canon_duckdb: 
     nm.setdefault("parts", {})
     for ds, e in entries.items():
         nm["datasets"][ds] = {**e, "path": f"{ds}.parquet"}
-    nm["parts"][PART] = {**part, "imported": {
+    nm["parts"][PART] = {**part, "options": _recorded_options(part.get("options")), "imported": {
         "at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "bundle_built_at": bm.get("built_at"),
         "bundle_manifest_sha256": plan["bundle_manifest_sha256"]}}
     tmp = nm_path.with_suffix(".json.tmp")
