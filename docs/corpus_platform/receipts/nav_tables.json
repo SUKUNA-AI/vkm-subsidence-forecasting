@@ -1,0 +1,565 @@
+{
+ "receipt": "nav_tables",
+ "agent": "TB",
+ "date": "2026-09-29",
+ "task": "user decision 29.09: structure the canonical tables so that parameters and dossiers read them reliably; fix the failure classes of the parameter part (rows flattened into one text line, units taken from the wrong header, «Стандарт»/σ rows, lost decimal points, glued header words); feed the parameter part from the grid; measure before vs after",
+ "snapshot_id": "snap-20260928T193550Z-738eebee",
+ "snapshot_manifest_sha256": "b6afea998a45768a988ddf9ce60b565c3beae628e4bd645d3cf4ddbefd9d7eb7",
+ "rule_versions": {
+  "tables": "tables_v1",
+  "parameters": "parameters_v2"
+ },
+ "review_status": "AUTO_EXTRACTED_UNREVIEWED",
+ "layer_status": "DERIVED",
+ "status_note": "navigation, not evidence: grids parsed by rules from the canonical OCR and native tables; values as printed, never corrected (flags mark suspects, unparseable cells stay text); a caption or header unit is a reading aid, not a verified unit",
+ "code": {
+  "branch": "claude/agent-tb-tables-2026-09-29",
+  "base": "e377c18",
+  "commits": [
+   "94c2f0b"
+  ],
+  "modules": [
+   "src/vkm_corpus/navigation/tables.py",
+   "src/vkm_corpus/navigation/tables_query.py",
+   "src/vkm_corpus/navigation/parameters.py (parameters_v2: reads the grid)",
+   "src/vkm_corpus/navigation/ids.py (TBL ids, rule versions)",
+   "src/vkm_corpus/navigation/cli.py (part tables before parameters, --part list)",
+   "src/vkm_corpus/navigation/store.py (QUERY_FUNCTIONS table_structured, find_tables)"
+  ],
+  "not_touched": "api/ and mcp/ (query functions are registered in store only; MCP/API tools are a separate step)",
+  "tests": {
+   "nav_tables_and_parameters": "tests/corpus/test_nav_tables.py + test_nav_parameters.py: 34 passed (WSL venv; synthetic tables only)",
+   "corpus_suite_wsl": "tests/corpus: 885 passed, 62 skipped, 8 failed = 5 test_public_hygiene (expected inside a WSL worktree) + 3 missing optional modules of that venv (PIL for DjVu, OCR normalize import)",
+   "hygiene_windows": "tests/corpus/test_public_hygiene.py: 6 passed (Windows Python)",
+   "leakage_windows": "tests/world/test_foundation.py -k leakage: 2 passed (Windows Python)"
+  }
+ },
+ "input": "read-only local DuckDB copy of snapshot 738eebee (canonical.tables, pages, blocks primary layer, figures, sources) + the delivered NAV build of the same snapshot (--inputs); CPU only; no services touched, no writes on CORE or EDGE",
+ "inputs_from_nav": {
+  "sections": {
+   "rows": 9105,
+   "sha256": "ec949fbd5cb5c8affc50e37d7df16d808477cea4c50b0cdecd816fb2885ed223"
+  },
+  "section_pages": {
+   "rows": 27270,
+   "sha256": "02667f39b7bdf63e0a3fbc1ae3c7dc86db9c303191f2e4ab440c952d09456b32"
+  },
+  "formula_symbols": {
+   "rows": 338625,
+   "sha256": "02e61aa17c9b8a8026e8d4a063d07152362531a8e4e27f6a96b060a06437a2bf"
+  },
+  "formula_parameters": {
+   "rows": 2106,
+   "sha256": "d64c92bc58fea45867fb26bb91e6d2196064ccb7612b1644642d0da1126b17f0"
+  }
+ },
+ "build": {
+  "command": "vkm-corpus nav build --duckdb <canonical DuckDB copy> --out <out dir> --part tables,parameters --inputs <NAV build directory of the snapshot>",
+  "seconds": {
+   "tables": 29.81,
+   "parameters": 25.28,
+   "wall_including_input_load": 57
+  },
+  "memory_cap": "systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0 (WSL)",
+  "respace": "pymorphy3 (extra navigation); without it glued header words stay as printed",
+  "determinism": "two builds of the same code and inputs gave identical sha256 of all five datasets"
+ },
+ "core_deploy_for_coordinator": {
+  "note": "not executed by agent TB (no writes on CORE); the vkm-job image must first be rebuilt from the merged branch",
+  "steps": [
+   "copy $VKM_DATA_ROOT/derived/navigation/<snapshot_id> to <snapshot_id>.tables",
+   "ssh core 'cd /srv/vkm/infra/core && docker compose --env-file .env --profile jobs run --rm -T vkm-job nav build --duckdb /data/duckdb/vkm_corpus.duckdb --out /data/derived/navigation/<snapshot_id>.tables --part tables,parameters --inputs /data/derived/navigation/<snapshot_id>'",
+   "vkm_corpus.navigation.store.pack(<snapshot_id>.tables) → nav.duckdb (as in nav_deploy.json); the merged manifest keeps every earlier dataset",
+   "swap the directories (<snapshot_id> → <snapshot_id>.prev, <snapshot_id>.tables → <snapshot_id>); NavStore reopens on the new nav.duckdb",
+   "nav graph-load again: parameter candidates changed (+633 / −379 ids)"
+  ]
+ },
+ "datasets": {
+  "table_structure": {
+   "rows": 3391,
+   "sha256": "354b326ea4bf590f969f10dede1bdc409b23032ba78d0cd1eb5048b7d7b9db32"
+  },
+  "table_cells": {
+   "rows": 389527,
+   "sha256": "ad93f9d50e1b9562b3438bdf2a5c606f5959a96c03c82324cbb507dbf6c02d05"
+  },
+  "table_columns": {
+   "rows": 24523,
+   "sha256": "776792b687f7943c02678a5c55637a23abfcb96a81c634b1270d09df313a4242"
+  },
+  "parameter_candidates": {
+   "rows": 10792,
+   "sha256": "8dec93bc8efc66fa2ff42d7700d52550ea809034198c8f862353b126d43fcebe",
+   "before": {
+    "rows": 10538,
+    "sha256": "bfdb89aea7e38f1d6cbe036758439ed72c93b068d02f521c3cf09b1fb886c3c1"
+   }
+  },
+  "parameter_summary": {
+   "rows": 629,
+   "sha256": "b09fc3695eb9ffeae4ad80f9e30d4e23dacef0fba97da4b5686413740322acef",
+   "before": {
+    "rows": 628,
+    "sha256": "2386686a33b778f3fcfc894d588b8d074799265f141261ec4b3c9b24356ff8f4"
+   }
+  }
+ },
+ "counts_tables": {
+  "tables": 3391,
+  "cells": 389527,
+  "columns": 24523,
+  "rows": 62622,
+  "spanning_cells": 8643,
+  "structure_ok": 3360,
+  "covers_region": 2799,
+  "tables_with_property": 644,
+  "columns_with_property": 803,
+  "by_recognition_method": {
+   "OCR_GLM": 2390,
+   "BOTH_DISAGREE": 640,
+   "BOTH_AGREE": 301,
+   "EPUB_XHTML": 38,
+   "DOCX_XML": 22
+  },
+  "by_n_bands": {
+   "0": 1,
+   "1": 1915,
+   "2": 684,
+   "3": 756,
+   "4": 33,
+   "5": 2
+  },
+  "by_n_blocks": {
+   "0": 1,
+   "1": 3015,
+   "2": 296,
+   "3": 75,
+   "4": 4
+  },
+  "by_n_header_rows": {
+   "0": 374,
+   "1": 2109,
+   "2": 762,
+   "3": 112,
+   "4": 22,
+   "5": 12
+  },
+  "by_header_method": {
+   "DETECTED": 2976,
+   "TEXT_TABLE": 270,
+   "NONE": 78,
+   "TH": 57,
+   "CAPPED": 6,
+   "HEADER_BAND": 4
+  },
+  "by_orientation": {
+   "NORMAL": 2229,
+   "TEXT_ONLY": 361,
+   "MATRIX": 297,
+   "UNKNOWN": 228,
+   "KEY_VALUE": 170,
+   "TRANSPOSED": 105,
+   "EMPTY": 1
+  },
+  "rows_by_role": {
+   "DATA": 50021,
+   "TEXT": 4931,
+   "HEADER": 3740,
+   "GROUP": 2418,
+   "AXIS": 297,
+   "STAT_DISPERSION": 268,
+   "STAT_MEAN": 182,
+   "STAT_MAX": 179,
+   "EMPTY": 173,
+   "NUMBERING_HEAD": 127,
+   "STAT_MIN": 88,
+   "TITLE": 64,
+   "AXIS_TITLE": 51,
+   "STAT_COUNT": 43,
+   "NUMBERING": 16,
+   "REPEATED_HEADER": 10,
+   "STAT_MEDIAN": 6,
+   "UNITS": 5,
+   "NOTE": 3
+  },
+  "columns_by_role": {
+   "VALUE": 16541,
+   "TEXT": 2976,
+   "LABEL": 2827,
+   "EMPTY": 1632,
+   "INDEX": 233,
+   "COUNT": 108,
+   "SYMBOL": 105,
+   "UNITS": 56,
+   "DISPERSION": 45
+  },
+  "cells_by_value_type": {
+   "NUMBER": 298200,
+   "TEXT": 54311,
+   "EMPTY": 22233,
+   "MULTI": 4925,
+   "SYMBOL": 4902,
+   "RANGE": 2975,
+   "UNIT": 1028,
+   "PM": 531,
+   "BOUND": 422
+  },
+  "numeric_value_cells": {
+   "total": 299538,
+   "under_a_header_path": 221209,
+   "by_unit_source": {
+    "NONE": 257864,
+    "HEADER": 27411,
+    "CELL": 6020,
+    "CAPTION": 3789,
+    "ROW_LABEL": 3142,
+    "UNITS_COLUMN": 478,
+    "GROUP_LABEL": 371,
+    "CONFLICT": 321,
+    "UNITS_ROW": 142
+   }
+  },
+  "table_flags": {
+   "RAGGED_ROWS": 700,
+   "MULTI_VALUE_CELLS": 706,
+   "NATIVE_OCR_DISAGREE": 640,
+   "HEADER_SHORT": 337,
+   "NO_HEADER": 299,
+   "BAND_COLUMNS_MISMATCH": 281,
+   "TWO_BLOCK": 138,
+   "BAND_OWN_HEADER": 119,
+   "FIGURE_SUSPECT": 118,
+   "HEADER_RESPACED": 108,
+   "TRUNCATED": 79,
+   "DECIMAL_POINT_SUSPECT": 25,
+   "UNIT_CONFLICT": 25,
+   "SPARSE": 21,
+   "TABLE_STRUCTURE_UNCERTAIN": 16,
+   "OVERLAPPING_CELLS": 12,
+   "BANDS_UNRESOLVED": 10,
+   "REPEATED_HEADER_ROWS": 10,
+   "REPETITION": 9,
+   "HEADER_CAPPED": 6,
+   "NO_CELLS": 1
+  },
+  "cell_flags": {
+   "NO_HEADER": 33761,
+   "BAND_COLUMNS_MISMATCH": 19855,
+   "MATH_RENDERED": 8869,
+   "MULTI_VALUE": 4925,
+   "POWER_SUPERSCRIPT_LOST": 2602,
+   "UNBALANCED_MATH_CLOSED": 786,
+   "ALTERNATIVE_IN_PARENS": 778,
+   "SPACED_DIGITS_SUSPECT": 337,
+   "UNIT_CONFLICT": 321,
+   "HEADER_RESPACED": 158,
+   "DEHYPHENATED": 147,
+   "ANGLE_MARK": 121,
+   "DECIMAL_POINT_SUSPECT": 32,
+   "SHARED_POWER": 3
+  }
+ },
+ "counts_parameters": {
+  "table_input": "table_cells",
+  "tables_structured": 3360,
+  "text_blocks_in_tables_skipped": 14922,
+  "cell_text_candidates": 19,
+  "tables_with_candidates": {
+   "before": 362,
+   "after": 378
+  },
+  "by_method": {
+   "before": {
+    "TABLE": 5305,
+    "TEXT": 5231,
+    "NEAR_FORMULA": 2
+   },
+   "after": {
+    "TABLE": 5813,
+    "TEXT": 4977,
+    "NEAR_FORMULA": 2
+   }
+  },
+  "removed": {
+   "TABLE": 125,
+   "TEXT": 254
+  },
+  "added": {
+   "TABLE": 633
+  },
+  "removed_text_candidates": {
+   "same_property_and_value_found_on_the_page": 39,
+   "same_value_under_another_property": 77,
+   "not_found_on_the_page": 138,
+   "note": "the text lines of a covered table region are no longer read: most were table rows flattened into one line"
+  },
+  "removed_table_candidates_without_a_replacement_in_the_same_cell": {
+   "total": 63,
+   "dispersion_rows": 12,
+   "numbering_rows": 4,
+   "axis_rows": 3,
+   "rows_of_bands_whose_columns_do_not_match_the_header": 26,
+   "other_data_rows": 18,
+   "note": "the other data rows come from four tables: one with garbled OCR columns (10), one flagged FIGURE_SUSPECT (5), two with a band of their own header (3)"
+  }
+ },
+ "qa_structure": {
+  "criteria": {
+   "OK": "header rows, row roles, blocks, header paths and units as a reader of the page would give them",
+   "MINOR": "no value under a wrong header and no wrong unit, but something is missed or mislabelled: a unit not found, a row role wrong (statistic read as data, continuation as group), a header level missed, a correct but conservative unaligned band, OCR text left unparsed",
+   "WRONG": "a value ends up under a wrong header (column shift, lost or extra header row), a data row is absorbed into the header, or a wrong unit or number is attached"
+  },
+  "final": {
+   "sample": "40 random tables of the final build (fixed seed), drawn after the last code change; judged against the grid, the raw OCR bands and the caption; no code changed afterwards",
+   "seed": 20261005,
+   "population": 3391,
+   "verdicts_count": {
+    "OK": 18,
+    "MINOR": 15,
+    "WRONG": 7
+   },
+   "wrong_by_origin": {
+    "RULES": 3,
+    "OCR_GRID": 2,
+    "OCR_CELL_CONTENT": 2
+   },
+   "verdicts": [
+    {"table_id": "VKM-SRC-054:p0048:t337bbcbdbcaa", "verdict": "OK"},
+    {"table_id": "VKM-SRC-212:p0106:t015122c466bc", "verdict": "OK"},
+    {"table_id": "VKM-SRC-064:p0116:t60c5464be899", "verdict": "WRONG", "reason": "TEXT_ROWS_READ_AS_BAND_HEADER", "origin": "RULES"},
+    {"table_id": "VKM-SRC-150:p0084:t0265ae87047b", "verdict": "WRONG", "reason": "UNIT_FROM_FLATTENED_SYMBOL", "origin": "OCR_CELL_CONTENT"},
+    {"table_id": "VKM-SRC-040:p0012:t2913c802e9b5", "verdict": "WRONG", "reason": "FIGURE_GRID_VALUES_MISPLACED (flagged FIGURE_SUSPECT, confidence 0.25)", "origin": "OCR_GRID"},
+    {"table_id": "VKM-SRC-028:p0343:t5991eebcf3b0", "verdict": "OK"},
+    {"table_id": "VKM-SRC-214:p0077:ta4fe5be2c1d5", "verdict": "OK"},
+    {"table_id": "VKM-SRC-204:p0031:tba3c232d0deb", "verdict": "MINOR", "reason": "SPELLED_MIN_MAX_NOT_STATISTICS"},
+    {"table_id": "VKM-SRC-011:p0089:tb35b01cf07b9", "verdict": "OK"},
+    {"table_id": "VKM-SRC-028:p0270:t267795cb9a6c", "verdict": "OK"},
+    {"table_id": "VKM-SRC-037:p0015:t5b727a35b41c", "verdict": "MINOR", "reason": "TWO_VALUES_PER_CELL_COLUMN"},
+    {"table_id": "VKM-SRC-231:p0339:te06262d91e7a", "verdict": "MINOR", "reason": "AXIS_UNIT_ON_VALUES_ROW_UNITS_IN_CONFLICT"},
+    {"table_id": "VKM-SRC-054:p0228:t49257b179419", "verdict": "OK"},
+    {"table_id": "VKM-SRC-207:p0018:t5a3850c27c63", "verdict": "MINOR", "reason": "FIGURE_TEXT_ROLES (flagged FIGURE_SUSPECT)"},
+    {"table_id": "VKM-SRC-054:p0206:t321e3c1c6483", "verdict": "WRONG", "reason": "INDEX_HEADER_ROW_READ_AS_DATA", "origin": "RULES"},
+    {"table_id": "VKM-SRC-234:p0346:t8c597f8b97d6", "verdict": "OK"},
+    {"table_id": "VKM-SRC-163:p0086:tecdfdbb6ff38", "verdict": "OK"},
+    {"table_id": "VKM-SRC-221:p0236:tf13a721155d4", "verdict": "OK"},
+    {"table_id": "VKM-SRC-150:p0155:t730f8c41017a", "verdict": "WRONG", "reason": "OCR_ROWSPAN_COLUMN_SHIFT", "origin": "OCR_GRID"},
+    {"table_id": "VKM-SRC-221:p0016:ta5d4ee7dfe68", "verdict": "MINOR", "reason": "OCR_MERGED_ROWS_LEFT_UNPARSED"},
+    {"table_id": "VKM-SRC-227:p0084:t7e2af1b2bf2c", "verdict": "MINOR", "reason": "WORD_READ_AS_UNIT_ON_A_TEXT_COLUMN"},
+    {"table_id": "VKM-SRC-148:p0097:t334d4ae0f884", "verdict": "MINOR", "reason": "SUBHEADER_ROW_AS_TEXT"},
+    {"table_id": "VKM-SRC-052:p0076:t0c7d8a7d7c2f", "verdict": "MINOR", "reason": "SECOND_HALF_WITHOUT_HEADER"},
+    {"table_id": "VKM-SRC-011:p0038:td5de8a83d9bf", "verdict": "OK"},
+    {"table_id": "VKM-SRC-037:p0222:te4c5f2ae4c37", "verdict": "WRONG", "reason": "OCR_MERGED_DIGITS_READ_AS_ONE_NUMBER", "origin": "OCR_CELL_CONTENT"},
+    {"table_id": "VKM-SRC-107:p0004:t6e9599400195", "verdict": "OK"},
+    {"table_id": "VKM-SRC-150:p0109:t732f521f3005", "verdict": "WRONG", "reason": "FIRST_DATA_ROW_AS_HEADER", "origin": "RULES"},
+    {"table_id": "VKM-SRC-108:p0005:te29cd128e121", "verdict": "MINOR", "reason": "UNIT_MISSED"},
+    {"table_id": "VKM-SRC-064:p0100:t7af965c41e1b", "verdict": "MINOR", "reason": "CONTINUATION_AS_GROUP"},
+    {"table_id": "VKM-SRC-142:p0033:t26e3d9f7d8db", "verdict": "MINOR", "reason": "UNIT_MISSED"},
+    {"table_id": "VKM-SRC-053:p0366:te41ca84a0948", "verdict": "OK"},
+    {"table_id": "VKM-SRC-037:p0225:t211e1cc8a44b", "verdict": "OK"},
+    {"table_id": "VKM-SRC-020:p0174:t654467ede9cb", "verdict": "MINOR", "reason": "GROUP_UNIT_NOT_APPLIED_TO_CAPITALISED_ITEMS"},
+    {"table_id": "VKM-SRC-237:p0210:ta840039216ff", "verdict": "MINOR", "reason": "UNKNOWN_UNITS_LEFT_AS_TEXT"},
+    {"table_id": "VKM-SRC-052:p0042:t4def5363cd9d", "verdict": "OK"},
+    {"table_id": "VKM-SRC-235:p0752:ta1e36885bdde", "verdict": "OK"},
+    {"table_id": "VKM-SRC-044:p0016:t2b2fea14ea51", "verdict": "MINOR", "reason": "OCR_TRUNCATED_STATISTIC_LABELS"},
+    {"table_id": "VKM-SRC-053:p0314:t4a91deb3253f", "verdict": "OK"},
+    {"table_id": "VKM-SRC-066:p0064:tf07c3362387c", "verdict": "MINOR", "reason": "CONTINUATION_AS_GROUP"},
+    {"table_id": "VKM-SRC-221:p0137:t51a1389f468d", "verdict": "OK"}
+   ]
+  },
+  "pre_fix_sample": {
+   "sample": "40 random tables (fixed seed) graded on the build before the last unit fixes; the fixes (caption units, temperature and bracketed units, group-row units, minutes vs min, OCR «Minimal…») were motivated partly by this sample, so its after-fix grade is optimistic",
+   "seed": 20261004,
+   "verdicts_count_before_fixes": {
+    "OK": 12,
+    "MINOR": 21,
+    "WRONG": 7
+   },
+   "verdicts_count_after_fixes": {
+    "OK": 17,
+    "MINOR": 17,
+    "WRONG": 6
+   },
+   "verdicts": [
+    {"table_id": "VKM-SRC-047:p0078:t7d22ee2699c9", "before": "OK", "after": "OK"},
+    {"table_id": "VKM-SRC-020:p0177:t9f89ab2920fc", "before": "MINOR", "after": "OK", "reason": "GROUP_UNIT_MISSED"},
+    {"table_id": "VKM-SRC-234:p0672:tc8c0588516da", "before": "OK", "after": "OK"},
+    {"table_id": "VKM-SRC-064:p0147:t97f03e4acd6b", "before": "MINOR", "after": "MINOR", "reason": "TRAILING_NOTE_AS_GROUP"},
+    {"table_id": "VKM-SRC-150:p0059:te92fe25c2494", "before": "WRONG", "after": "OK", "reason": "CAPTION_UNIT_ON_ARGUMENT_COLUMN"},
+    {"table_id": "VKM-SRC-053:p0369:t05535708a330", "before": "OK", "after": "OK"},
+    {"table_id": "VKM-SRC-204:p0064:t9fc50524c23b", "before": "MINOR", "after": "MINOR", "reason": "CAPTION_UNIT_MISSED"},
+    {"table_id": "VKM-SRC-048:p0306:tcd10c5219a33", "before": "WRONG", "after": "WRONG", "reason": "OCR_MERGED_HEADER_CELLS_COLUMN_SHIFT", "origin": "OCR_GRID"},
+    {"table_id": "VKM-SRC-251:p0162:ta5351c386540", "before": "MINOR", "after": "MINOR", "reason": "UNIT_MISSED"},
+    {"table_id": "VKM-SRC-234:p0551:t71f37f6b6a4b", "before": "MINOR", "after": "MINOR", "reason": "UNIT_MISSED"},
+    {"table_id": "VKM-SRC-227:p0077:t876f77bb92b9", "before": "WRONG", "after": "WRONG", "reason": "INDEX_HEADER_ROW_READ_AS_DATA", "origin": "RULES"},
+    {"table_id": "VKM-SRC-223:p0180:t0f5a0e7b0179", "before": "MINOR", "after": "MINOR", "reason": "THOUSANDS_SEPARATOR_LEFT_UNPARSED"},
+    {"table_id": "VKM-SRC-037:p0114:t29d3a1ea0488", "before": "MINOR", "after": "MINOR", "reason": "TEXT_BAND_FALSELY_UNALIGNED"},
+    {"table_id": "VKM-SRC-192:p0039:t04ae18c927aa", "before": "MINOR", "after": "OK", "reason": "UNIT_MISSED"},
+    {"table_id": "VKM-SRC-037:p0212:t87d7fc79c9b8", "before": "MINOR", "after": "MINOR", "reason": "SPEC_ROW_AS_STAT_MAX; TRAILING_NOTE_AS_GROUP"},
+    {"table_id": "VKM-SRC-150:p0061:t1ef822384f18", "before": "MINOR", "after": "MINOR", "reason": "UNIT_MISSED"},
+    {"table_id": "VKM-SRC-221:p0058:t921695307d29", "before": "WRONG", "after": "WRONG", "reason": "AXIS_ROW_OF_MULTI_CELLS_READ_AS_TEXT", "origin": "RULES"},
+    {"table_id": "VKM-SRC-098:p0216:tbde8dd903fe5", "before": "MINOR", "after": "MINOR", "reason": "FORM_TAIL_UNDER_MAIN_HEADER; BAND_OVERLAP_DUPLICATE_ROW"},
+    {"table_id": "VKM-SRC-050:p0107:t43c8cefa627d", "before": "WRONG", "after": "WRONG", "reason": "SYMBOL_DATA_ROW_ABSORBED_INTO_HEADER", "origin": "RULES"},
+    {"table_id": "VKM-SRC-051:p0078:t3afd68fa75ae", "before": "MINOR", "after": "MINOR", "reason": "UNIT_ONLY_SUBLEVEL_MISSED; ERROR_COLUMN_AS_DISPERSION"},
+    {"table_id": "VKM-SRC-028:p0342:tbdb69532da7a", "before": "OK", "after": "OK"},
+    {"table_id": "VKM-SRC-052:p0156:t131b97d18707", "before": "OK", "after": "OK"},
+    {"table_id": "VKM-SRC-047:p0181:t214fea60173d", "before": "MINOR", "after": "MINOR", "reason": "OCR_MIXED_SCRIPT_MIN_NOT_STAT (fixed); OCR_ROW_ORDER_OF_GROUPS"},
+    {"table_id": "VKM-SRC-053:p0339:t1ac4b5f87fbf", "before": "OK", "after": "OK"},
+    {"table_id": "VKM-SRC-150:p0072:t4bb845809208", "before": "OK", "after": "OK"},
+    {"table_id": "VKM-SRC-053:p0314:t4a91deb3253f", "before": "OK", "after": "OK"},
+    {"table_id": "VKM-SRC-048:p0268:t552c398f5a29", "before": "OK", "after": "OK"},
+    {"table_id": "VKM-SRC-040:p0128:t68377a1f73ed", "before": "MINOR", "after": "OK", "reason": "UNIT_MISSED"},
+    {"table_id": "VKM-SRC-221:p0238:t217af38958e0", "before": "OK", "after": "OK"},
+    {"table_id": "VKM-SRC-052:p0151:t35a272e4e71f", "before": "OK", "after": "OK"},
+    {"table_id": "VKM-SRC-025:p0057:teace1e97c99d", "before": "MINOR", "after": "MINOR", "reason": "OCR_CROPPED_LABELS_STATISTICS_AS_DATA"},
+    {"table_id": "VKM-SRC-037:p0219:t75ba8d6aeac2", "before": "MINOR", "after": "MINOR", "reason": "GROUP_LABEL_AS_HEADER"},
+    {"table_id": "VKM-SRC-150:p0196:t1f0c35a1af8f", "before": "WRONG", "after": "WRONG", "reason": "OCR_ROWSPAN_COLUMN_SHIFT (the caption symbol read as a unit: fixed)", "origin": "OCR_GRID"},
+    {"table_id": "VKM-SRC-150:p0255:t5b041dd4f20e", "before": "OK", "after": "OK"},
+    {"table_id": "VKM-SRC-052:p0051:t75694faa86f9", "before": "MINOR", "after": "MINOR", "reason": "SECOND_HALF_WITHOUT_HEADER"},
+    {"table_id": "VKM-SRC-115:p0006:tbe9c150bd01d", "before": "MINOR", "after": "OK", "reason": "UNIT_MISSED"},
+    {"table_id": "VKM-SRC-020:p0213:ta227f02427f9", "before": "MINOR", "after": "MINOR", "reason": "MINUTES_READ_AS_MIN (fixed); HOUR_SUBLEVEL_AS_NUMBERING"},
+    {"table_id": "VKM-SRC-052:p0082:t373756a32b46", "before": "MINOR", "after": "MINOR", "reason": "SECOND_HALF_WITHOUT_HEADER"},
+    {"table_id": "VKM-SRC-054:p0090:t40584b05a142", "before": "WRONG", "after": "WRONG", "reason": "OCR_ROWSPAN_COLUMN_SHIFT", "origin": "OCR_GRID"},
+    {"table_id": "VKM-SRC-233:p0438:t47a2215b2cd4", "before": "MINOR", "after": "MINOR", "reason": "OPEN_RANGE_LEFT_UNPARSED"}
+   ]
+  },
+  "development_samples": [
+   {
+    "seed": 20260929,
+    "n": 40,
+    "use": "development; graded on an early rule version before the fixes it motivated, lenient on missing units",
+    "verdicts_count": {
+     "OK": 21,
+     "MINOR": 12,
+     "WRONG": 7
+    }
+   },
+   {
+    "seed": 20261003,
+    "n": 40,
+    "use": "development; graded before the fixes it motivated, lenient on missing units",
+    "verdicts_count": {
+     "OK": 27,
+     "MINOR": 9,
+     "WRONG": 4
+    }
+   }
+  ]
+ },
+ "qa_parameters": {
+  "agent_p_sample": {
+   "source": "nav_parameters.json qa.final (seed 20261002, 60 candidates of parameters_v1, verdicts by agent P)",
+   "kept": 58,
+   "kept_unchanged_fields": "value_text, value_min, value_max, unit_raw, unit_si, property_key, material, scale_hint, qualifier, method: none changed",
+   "removed": [
+    {"candidate_id": "PRM-2582b50804d39c26", "p_verdict": "unit wrong, property wrong", "p_error": "FLATTENED_TABLE_COLUMN_SHIFT"},
+    {"candidate_id": "PRM-3a5ef7c3a568e97a", "p_verdict": "property wrong", "p_error": "STANDARD_DEVIATION_ROW"}
+   ],
+   "precision_before": {
+    "value": "60/60",
+    "unit": "59/60",
+    "property": "55/60",
+    "material": "10/10",
+    "scale": "10/14"
+   },
+   "precision_after_same_ids": {
+    "value": "58/58",
+    "unit": "58/58",
+    "property": "55/58",
+    "material": "10/10",
+    "scale": "9/13"
+   }
+  },
+  "added_candidates_sample": {
+   "sample": "40 random candidates of the 633 added by the grid (fixed seed), each checked against its table cell with header path, row label and caption",
+   "seed": 20261006,
+   "precision": {
+    "value": "40/40",
+    "unit": "40/40",
+    "property": "39/40",
+    "material": "14/16 assigned"
+   },
+   "errors": [
+    {"candidate_id": "PRM-cf1237eca0e95220", "field": "property", "reason": "CELL_TEXT: a distance to a benchmark read as a depth (text rule on a cell's text)"},
+    {"candidate_id": "PRM-623dc74ad1736750", "field": "material", "reason": "clay named in the caption for salt specimens with a clay interlayer"},
+    {"candidate_id": "PRM-47aa77c5db45bc6b", "field": "material", "reason": "carnallite for a sylvinite-carnallite layer"}
+   ],
+   "ids": [
+    "PRM-c820973989f18c59", "PRM-1cf6abd3f08933d3", "PRM-749dd23e65c67211", "PRM-7511f43cc28925e2",
+    "PRM-cf1237eca0e95220", "PRM-52877abf4cfd80ff", "PRM-e4c87abf9437db21", "PRM-623dc74ad1736750",
+    "PRM-d5b825a65a808dd2", "PRM-d6044d4100de2bd5", "PRM-dd37fccc5f1073cc", "PRM-0c41166baa1317f3",
+    "PRM-249fabb3522eb5ab", "PRM-04d933ba5a1d91f6", "PRM-62fcf69ac8164efb", "PRM-2959081fc1e3f375",
+    "PRM-1cebd21ceb024b61", "PRM-6c061229845720cc", "PRM-b795d9fee4815f4f", "PRM-ebd55689f263720e",
+    "PRM-a94dbd3eae930bdd", "PRM-9443e8dfebabf5d7", "PRM-5aca80e4cd81cf03", "PRM-031526e2d93dc46e",
+    "PRM-1db81b5871328215", "PRM-414cf295fc73f70c", "PRM-cb51991d91510708", "PRM-3311a803da098b30",
+    "PRM-59ebf3efafd2d05d", "PRM-2ec8d7c97f865eac", "PRM-41c9806ffa08aac3", "PRM-b533c0b2b09148bc",
+    "PRM-15e98929db1ac874", "PRM-0ae273ea873dc4e6", "PRM-218cbef4c0f9fb3d", "PRM-adfeb3fa0d801b22",
+    "PRM-16c444bc3d1ed798", "PRM-47aa77c5db45bc6b", "PRM-71cc29432976acab", "PRM-2b93ec747aa572f6"
+   ]
+  },
+  "recall_proxy": {
+   "definition": "as in nav_parameters.json: an evidence record counts as found when a candidate of the same mapped property sits on the same page (or an adjacent one)",
+   "catalogue_records": {
+    "records": 20,
+    "same_page": {
+     "before": 14,
+     "after": 16
+    },
+    "found_by_method": {
+     "before": {
+      "TABLE": 5,
+      "TEXT": 12
+     },
+     "after": {
+      "TABLE": 7,
+      "TEXT": 12
+     }
+    }
+   },
+   "vnext_parameter_records": {
+    "records": 519,
+    "same_page": {
+     "before": 309,
+     "after": 324,
+     "recall_before": 0.5954,
+     "recall_after": 0.6243
+    },
+    "same_or_adjacent_page": {
+     "before": 352,
+     "after": 367,
+     "recall_before": 0.6782,
+     "recall_after": 0.7071
+    },
+    "changed_properties": {
+     "long_term_strength": "4 → 16 of 34",
+     "thickness_unspecified": "95 → 98 of 135"
+    },
+    "records_lost": 0
+   },
+   "per_record_changes": {
+    "catalogue": "MISSED → FOUND: 2; FOUND → MISSED: 0",
+    "vnext": "MISSED → FOUND: 15; FOUND → MISSED: 0"
+   }
+  }
+ },
+ "failure_classes_of_the_parameter_part": {
+  "rows_flattened_into_one_text_line": "text lines inside a covered table region are skipped; the grid is read instead (14 922 text blocks skipped)",
+  "units_from_the_wrong_header": "units per block and band; bands of other columns never take the header of another band; column and row units in conflict give no unit; conditions («при 20 °C», «at 293 K») are no column unit",
+  "standard_row_sigma": "dispersion rows («Стандарт», «СКО», σ or S next to a mean, coefficient of variation) and count rows are left out of the parameter input",
+  "lost_decimal_points": "flagged DECIMAL_POINT_SUSPECT (32 cells in 25 tables); the printed value stays; the parameter part lowers the confidence",
+  "glued_header_words": "re-spaced by the pymorphy3 dictionary (HEADER_RESPACED: 158 cells in 108 tables); mixed-script OCR words folded to Cyrillic"
+ },
+ "query_functions": {
+  "get_table_structured": "get_table_structured(con, table_id, *, max_rows=200, max_chars=8000, tables=None) — canonical or TBL id → table passport, columns, rows with roles and cells, markdown (store name table_structured)",
+  "find_tables": "find_tables(con, property=None, material=None, source_id=None, text=None, limit=20, *, tables=None) — tables whose column or row names the property, material or words (store name find_tables)"
+ },
+ "open_issues": [
+  "an OCR column shift inside one band caused by row spans (values under the neighbouring header) is not detected",
+  "a row of column numbers with a label («i/j | 0 | 1 | 2 …») is read as data, not as a header",
+  "the unit of a top axis («p, MPa | 10 | 4 | 2») goes to the values under the axis; a different row unit then gives a conflict (no unit)",
+  "digits run together by the OCR («79651600186012») are read as one number, unflagged (15 cells with 10+ digits)",
+  "«Минимум» / «Максимум» spelled out are not read as statistics (2 rows in the snapshot)",
+  "group-row units apply only to lower-case items without a unit of their own («длина», «ширина»), not to capitalised ones",
+  "a symbol flattened by the OCR («c_m» → «cm») is read as a unit",
+  "English thousands separators («1,987.0») are parsed only when the source language is known to be English"
+ ]
+}

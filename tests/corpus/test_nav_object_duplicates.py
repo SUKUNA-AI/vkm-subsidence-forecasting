@@ -569,7 +569,8 @@ def test_ids_parts_and_datasets_registration():
     assert {"object_dup_clusters", "object_dup_members", "formula_keys", "figure_hashes"} <= set(nav_ids.DATASETS)
     order = list(nav_cli.PARTS)
     assert order.index("duplicates") < order.index("object_duplicates") < order.index("concepts")
-    assert order[-1] == "topics" and order.index("parameters") == order.index("formulas") + 1
+    assert order[-1] == "topics" and order.index("tables") == order.index("formulas") + 1      # parameters read
+    assert order.index("parameters") == order.index("tables") + 1                             # the table grids
     assert "figure_hashes" not in nav_cli.datasets_of("object_duplicates")          # an earlier build's cache
     assert nav_cli.parse_part_options(["object_duplicates.workers=4"]) == {"object_duplicates": {"workers": 4}}
 

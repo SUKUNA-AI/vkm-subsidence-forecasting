@@ -17,6 +17,8 @@ IDs are content-derived and stable across rebuilds of the same snapshot with the
   — character offset or table cell, property key, value text).
 * ``TTR-<16 hex>`` — a pair of the term dictionary (part ``translations``): (relation, language and lemma key of
   both terms).
+* ``TBL-<16 hex>`` — a structured table of the part ``tables``: the canonical table object id; a cell of it is
+  ``TBL-<16 hex>:r<row>c<col>`` (the position of the cell's top-left corner in the canonical grid).
 """
 from __future__ import annotations
 
@@ -32,7 +34,8 @@ RULE_VERSIONS: dict[str, str] = {
     "object_duplicates": "object_duplicates_v1",
     "concepts": "concepts_v1",
     "topics": "topics_v1",
-    "parameters": "parameters_v1",
+    "tables": "tables_v1",
+    "parameters": "parameters_v2",
     # bilingual term dictionary (agent TR)
     "translations": "term_translations_v1",
 }
@@ -45,6 +48,7 @@ DATASETS: tuple[str, ...] = (
     "object_dup_clusters", "object_dup_members", "formula_keys", "figure_hashes",
     "terms", "term_mentions", "term_edges",
     "section_aggregates", "section_vectors", "topics", "topic_members", "topic_edges",
+    "table_structure", "table_cells", "table_columns",
     "parameter_candidates", "parameter_summary",
     "term_translations",
 )
@@ -93,3 +97,11 @@ def object_dup_cluster_id(object_type: str, object_ids: Iterable[str]) -> str:
 
 def parameter_candidate_id(anchor_id: str, locator: str, property_key: str, value_text: str) -> str:
     return "PRM-" + _h("vkm-nav-param-v1", anchor_id, locator, property_key, value_text)
+
+
+def table_id(table_object_id: str) -> str:
+    return "TBL-" + _h("vkm-nav-table-v1", table_object_id)
+
+
+def table_cell_id(nav_table_id: str, row: int, col: int) -> str:
+    return f"{nav_table_id}:r{int(row)}c{int(col)}"

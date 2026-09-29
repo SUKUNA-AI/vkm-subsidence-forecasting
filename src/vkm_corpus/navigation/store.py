@@ -52,6 +52,8 @@ QUERY_FUNCTIONS: dict[str, str] = {
     "translate_term": "vkm_corpus.navigation.term_dictionary_query:translate_term",
     "synonyms": "vkm_corpus.navigation.term_dictionary_query:synonyms",
     "translate_query": "vkm_corpus.navigation.term_dictionary_query:translate_query",
+    "table_structured": "vkm_corpus.navigation.tables_query:get_table_structured",
+    "find_tables": "vkm_corpus.navigation.tables_query:find_tables",
 }
 
 
