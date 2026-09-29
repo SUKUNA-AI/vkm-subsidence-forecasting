@@ -5,9 +5,9 @@ platform image talks to the server of this very container over streamable HTTP (
 the ``Host`` header the server accepts (first entry of ``VKM_MCP_ALLOWED_HOSTS`` — its DNS-rebinding guard) and the
 client token of the mounted file ``VKM_MCP_TOKEN_FILE`` (never printed). It lists the tools, calls every read tool
 once with small arguments — ids are harvested from earlier answers (a page, a figure with an image, a table, a
-formula, a block, a section, a topic, a work, an artifact, a structured table) or fixed query words — and prints one
-JSON report: per tool the status, the error code, the duration, the number of items/images and the sha256 of the
-structured answer. No document text.
+formula, a block, a section, a topic, a work, an artifact, a structured table, a digitized series) or fixed query
+words — and prints one JSON report: per tool the status, the error code, the duration, the number of items/images and
+the sha256 of the structured answer. No document text.
 
 Status of a call: PASS (``ok``), WARN (the tool answered with a data error such as NOT_FOUND — the service works,
 the smoke's input did not fit), FAIL (transport error, timeout, DEPENDENCY_*/INTERNAL errors, an exception), SKIP (no
@@ -26,7 +26,7 @@ import sys
 import time
 from datetime import datetime, timezone
 
-VERSION = "nightly-mcp-smoke-3"
+VERSION = "nightly-mcp-smoke-4"
 EXPECTED_TOOLS = (
     "search_text", "search_hybrid", "retrieval_trace", "search_objects", "get_source", "get_work", "get_page",
     "get_page_image", "get_figure", "get_table", "get_formula", "get_object", "get_document_neighbors",
@@ -37,6 +37,8 @@ EXPECTED_TOOLS = (
     "list_source_pages", "get_corpus_status", "translate_term",
     # structured tables and repeated figures/tables/formulas (agent G2, 29.09)
     "get_table_structured", "find_tables", "copies_of_object", "shared_formulas",
+    # digitized chart series (agent FD2, 29.09)
+    "find_figure_series", "get_figure_series",
 )
 # service failures (the tool layer or a dependency is broken); other error codes are data errors of the input
 FAIL_CODES = {"DEPENDENCY_UNAVAILABLE", "DEPENDENCY_TIMEOUT", "DEPENDENCY_ERROR", "INTERNAL", "INTERNAL_ERROR",
@@ -54,6 +56,7 @@ RE = {
     "topic": re.compile(r"\bTOP-[0-9a-f]{16}\b"),
     "nav_table": re.compile(r"\bTBL-[0-9a-f]{16}\b"),
     "artifact": re.compile(r"\bsha256:[0-9a-f]{64}\b"),
+    "figure_series": re.compile(r"\bFS-[0-9a-f]{16}\b"),
 }
 
 
@@ -132,6 +135,9 @@ def plan():
         ("copies_of_object", lambda hv: (hv.image_figures or hv.ids["figure"])[:1] and
          {"object_id": (hv.image_figures or hv.ids["figure"])[0], "limit": 5}),
         ("shared_formulas", lambda hv: hv.first("formula") and {"ref": hv.first("formula"), "limit": 5}),
+        ("find_figure_series", {"text": "оседание", "limit": 3}),
+        ("get_figure_series", lambda hv: hv.first("figure_series") and {"ref": hv.first("figure_series"),
+                                                                         "max_points": 20}),
         ("reconstruct_topic", {"query": "механика закладки", "budget_chars": 2000}),
         ("rerank_text", lambda hv: hv.ids["page"][:2] and {"query": QUERY, "candidate_ids": hv.ids["page"][:5]}),
         ("rerank_visual", lambda hv: (hv.image_figures or hv.ids["figure"])[:1] and

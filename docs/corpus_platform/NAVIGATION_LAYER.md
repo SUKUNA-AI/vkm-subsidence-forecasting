@@ -24,6 +24,9 @@
   каноническую DuckDB. Квитанция — [nav_deploy.json](receipts/nav_deploy.json).
 - Оглавления из файлов источников (закладки PDF, навигация EPUB, outline DjVu) снимаются на WORKSTATION (там лежат
   файлы PRIVATE). Результат — один JSON на снимок, публикуется в тот же каталог на CORE.
+- Оцифрованные графики (часть `figure_series`, §12) тоже собираются только на WORKSTATION: маршрут A читает векторы и
+  текстовый слой исходных PDF. На CORE датасеты не пересобираются, а переносятся байт в байт
+  (`python -m vkm_corpus.navigation.figure_series import`).
 - Граф — отдельная проекция `NAV` в Neo4j со своими метками и проверками. Слой DOCUMENT она не трогает, а к его
   узлам (`Page`, `Block`, `Formula`, `Table`, `Figure`, `BibliographyEntry`, `Source`, `Work`) цепляется по стабильным
   ID.
@@ -294,6 +297,7 @@ N1–N11 → `NavMeta = COMPLETE | FAILED` → квитанция `receipts/proj
 | `translate_term(term, target?, limit?)` | эквиваленты термина на других языках, синонимы и аббревиатуры словаря §4 с методами, оценкой и страницами-примерами |
 | `get_table_structured(table_id, max_rows?, max_chars?)` / `find_tables(property?, material?, source_id?, text?, limit?)` | структурированные таблицы §10: сетка таблицы по ID канона или `TBL-`; таблицы, которые называют свойство, материал или слова (API `GET /v1/nav/table/{id}`, `GET /v1/nav/tables`) |
 | `copies_of_object(object_id, limit?)` / `shared_formulas(ref, renamed?, limit?)` | повторы рисунков, таблиц и формул §9: группы объекта с первичной копией и доказательствами; где та же формула записана (по ID формулы или LaTeX) (API `GET /v1/nav/object_copies/{id}`, `GET /v1/nav/shared_formulas`) |
+| `find_figure_series(text?, unit?, source_id?, time_series?, calibrated_only?, clean_only?, include_raster?)` / `get_figure_series(ref, max_points?)` | оцифрованные ряды графиков §12: поиск по словам подписи, осей и подписей рядов, единице, источнику, рядам во времени, без подозрительной калибровки; точки с погрешностями, калибровка и провенанс ряда или рисунка |
 
 Сборка без нужной части (например, без `table_structure` или `formula_keys`) отвечает на эти вызовы
 `DEPENDENCY_UNAVAILABLE` с названием датасета, а не внутренней ошибкой.
@@ -794,3 +798,25 @@ cuGraph, без GPU — numpy. Файлы CPU и GPU совпадают поба
 
 Всё, что стадии берут из NAV, — навигация `AUTO_EXTRACTED_UNREVIEWED`: они переставляют и добавляют кандидатов
 поиска и никогда не становятся evidence.
+
+## 12. Оцифрованные графики (`figure_series`)
+
+Часть `figure_series` (правило `figure_series_v1`, агент FD2) — числовые ряды графиков корпуса, снятые маршрутом A
+прототипа FD: нативные векторы PDF и текстовый слой; помощник OCR — только для подписей делений, нарисованных
+контурами глифов. Статус каждого значения — `DERIVATION` из публикации, `AUTO_EXTRACTED_UNREVIEWED`, с полушириной
+погрешности; это не наблюдения и не evidence. Полное описание — [FIGURE_SERIES.md](FIGURE_SERIES.md).
+
+- **Кандидаты** — все графикоподобные векторные рисунки (правило `chartlike_v1`, 1 230 на снимке 738eebee). Каждый —
+  строка `figure_series_figures` со статусом (`DIGITIZED`, `X_UNCALIBRATED`, `NO_AXES`, …) и флагами качества.
+- **Датасеты:** `figure_series_figures`, `figure_series` (ряды), `figure_series_points` (точки с единицами,
+  погрешностями, калибровкой и `in_plot_area`). Необязательный второй набор `figure_series_raster_*` — растровый
+  маршрут R на страницах каталога мониторинга, флаг `RASTER`.
+- **Сборка** — только на WORKSTATION: маршруту A нужны исходные PDF клона PRIVATE. На CORE датасеты переносятся байт в
+  байт: `python -m vkm_corpus.navigation.figure_series import --bundle <сборка> --nav-dir <каталог NAV> --canon-duckdb
+  <канон> --pack`.
+- **Подозрительная калибровка** (`SUSPECT_FLAGS`: две оси, ось другой панели, подписи кривых вместо оси, степени
+  десяти и разряды, прочитанные как числа) — флаги на рисунке и всех его рядах; значения не исправляются, поиск с
+  `clean_only` такие ряды убирает. На снимке 738eebee: 607 оцифрованных рисунков, из них 84 с таким флагом.
+- **Запросы** (`figure_series_query.py`, в `store.QUERY_FUNCTIONS`): `find_figure_series` и `figure_series`; API
+  `GET /v1/nav/figure_series`, `GET /v1/nav/figure_series/{ref}`; MCP `find_figure_series`, `get_figure_series`.
+- **Галерея** для просмотра — `python -m vkm_corpus.figures.gallery` → git-игнорируемый `work/figure_gallery/`.

@@ -1256,6 +1256,40 @@ class ApiService:
                                 else None)
     # ------------------------------------------------------------------ end structured tables and object duplicates
 
+    # ------------------------------------------------------------------ digitized chart series (agent FD2)
+    _FIGURE_SERIES_REF = re.compile(r"FS-[0-9a-f]{16}|VKM-SRC-[0-9]{3}:(?:[prs][0-9]{4}|doc):f[0-9a-f]{12}")
+
+    def nav_figure_series_find(self, text: str | None, unit: str | None, source_id: str | None,
+                               time_series: bool | None, calibrated_only: bool = True, limit: int = 10,
+                               include_raster: bool = False, clean_only: bool = False) -> Result:
+        """Digitized chart series (NAV ``figure_series``: DERIVATION values with a half-width error each,
+        AUTO_EXTRACTED_UNREVIEWED) by words of captions, axis titles and series labels, unit, source, time only;
+        ``include_raster`` adds the flagged raster dataset (route R), ``clean_only`` drops suspect calibrations."""
+        if not (text or unit or source_id or time_series):
+            raise ApiFailure("INVALID_ARGUMENT", "give at least one of q (words), unit, source_id, time_series=true")
+        if text is not None and (not text.strip() or len(text) > 200):
+            raise ApiFailure("INVALID_ARGUMENT", "q is 1..200 characters")
+        if unit is not None and (not unit.strip() or len(unit) > 40):
+            raise ApiFailure("INVALID_ARGUMENT", "unit is 1..40 characters")
+        if source_id is not None and not re.fullmatch(r"VKM-SRC-\d{3,}", source_id):
+            raise ApiFailure("INVALID_ARGUMENT", "source_id has the form VKM-SRC-NNN")
+        data, snap = self._nav_run(lambda nav: nav.run("find_figure_series", text=text, unit=unit, source_id=source_id,
+                                                       time_series=time_series, calibrated_only=calibrated_only,
+                                                       limit=limit, include_raster=include_raster,
+                                                       clean_only=clean_only))
+        key = "|".join(str(x) for x in (text, unit, source_id, "time" if time_series else None) if x)[:60]
+        return self._nav_result("NAV_FIGURE_SERIES_LIST", f"figure_series:{key}", data, snap, source_id=source_id)
+
+    def nav_figure_series_get(self, ref: str, max_points: int = 1000) -> Result:
+        """One digitized series (FS-…) or all series of a figure: points with errors, calibration, provenance."""
+        if not self._FIGURE_SERIES_REF.fullmatch(ref or ""):
+            raise ApiFailure("INVALID_ARGUMENT", "ref is a series id FS-<16 hex> or a figure id")
+        data, snap = self._nav_run(lambda nav: nav.run("figure_series", ref, max_points=max_points))
+        fig = (data or {}).get("figure") or {}
+        return self._nav_result("NAV_FIGURE_SERIES", ref, data, snap, source_id=fig.get("source_id"),
+                                page_id=fig.get("page_id"))
+    # ------------------------------------------------------------------ end digitized chart series (agent FD2)
+
     # ------------------------------------------------------------------ topic dossier (navigation + catalogues)
     def reconstruct_topic(self, query: str, *, budget_chars: int = 12_000, source_ids: list[str] | None = None,
                           max_sources: int = 10, max_sections: int = 12, max_formulas: int = 10,

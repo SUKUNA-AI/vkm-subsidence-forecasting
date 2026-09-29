@@ -9,7 +9,7 @@
 topics and duplicates: ``find_topics``, ``get_topic``, ``similar_sections``, ``section_topics``, ``copies_of``,
 ``source_overlap``; parameters: ``find_parameters``, ``parameter_summary``; term dictionary: ``translate_term``;
 structured tables: ``get_table_structured``, ``find_tables``; repeated figures, tables and formulas:
-``copies_of_object``, ``shared_formulas``.
+``copies_of_object``, ``shared_formulas``; digitized chart series: ``find_figure_series``, ``get_figure_series``.
 
 ``vkm-corpus-admin`` (write, plan-first H-12): ``reprocess_source``, ``reprocess_page``, ``get_job``.
 
@@ -625,6 +625,51 @@ def build_read_server(api: ApiClient) -> MCPServer:
         written form, not a checked law. Navigation, not evidence."""
         return await call("shared_formulas", "GET", "/v1/nav/shared_formulas",
                           params={"ref": ref, "renamed": renamed, "limit": limit})
+
+    # digitized chart series (agent FD2) — DERIVATION values from published charts, each with an error; not evidence
+    @server.tool(name="find_figure_series", annotations=READ_ONLY)
+    async def find_figure_series(
+            text: Annotated[str | None, Field(max_length=200, description="words of the caption, the axis titles or "
+                                                                          "the series labels, any inflection: "
+                                                                          "«оседание», «конвергенция», «репер»")] = None,
+            unit: Annotated[str | None, Field(max_length=40, description="a unit printed on either axis: мм, сут, "
+                                                                         "МПа, %")] = None,
+            source_id: Annotated[str | None, Field(pattern=r"^VKM-SRC-\d{3,}$")] = None,
+            time_series: Annotated[bool | None, Field(description="only series whose x axis is time (dates, years, "
+                                                                  "days)")] = None,
+            calibrated_only: Annotated[bool, Field(description="only series with both axes calibrated")] = True,
+            include_raster: Annotated[bool, Field(description="also the flagged raster dataset (route R, scanned "
+                                                              "charts, lower accuracy)")] = False,
+            clean_only: Annotated[bool, Field(description="drop series with a suspect calibration (a second axis, "
+                                                          "axis labels inside the plot or of another panel, "
+                                                          "powers of ten or thousands read as small numbers, an "
+                                                          "axis on three chance labels)")] = False,
+            limit: Annotated[int, Field(ge=1, le=50, description="figures")] = 10) -> CallToolResult:
+        """Numeric series digitized from the chart-like vector figures of the corpus (subsidence and convergence in
+        time, trough profiles, creep curves …): figures with page, caption, axis titles and units as printed,
+        calibration method and rms of each axis, and per series the label, point count, value ranges and median
+        errors. Give words, a unit, a source or time_series. Values are DERIVATION from the publication
+        (AUTO_EXTRACTED_UNREVIEWED, half-width error per point, available from the publication date), never an
+        observation or evidence; plotted model results are not told apart from measurements; the site is the
+        source's. Get the points with get_figure_series."""
+        return await call("find_figure_series", "GET", "/v1/nav/figure_series",
+                          params={"q": text, "unit": unit, "source_id": source_id, "time_series": time_series,
+                                  "calibrated_only": calibrated_only, "include_raster": include_raster,
+                                  "clean_only": clean_only, "limit": limit})
+
+    @server.tool(name="get_figure_series", annotations=READ_ONLY)
+    async def get_figure_series(
+            ref: Annotated[str, Field(pattern=r"^(FS-[0-9a-f]{16}|VKM-SRC-\d{3}:(?:[prs]\d{4}|doc):f[0-9a-f]{12})$",
+                                      description="a series id FS-… or a figure id (all its series)")],
+            max_points: Annotated[int, Field(ge=1, le=5000, description="points in all")] = 1000) -> CallToolResult:
+        """The digitized points of one series (FS-…) or of every series of a figure: x and y in data units with
+        per-point half-width errors and their position on the page; the figure's status and axes; the calibration
+        of each axis (fitted tick labels, residuals, dropped labels, the OCR engine when tick labels were glyph
+        outlines) and the provenance (PDF sha256, digitizer version). A figure without calibrated axes comes with its
+        status and no invented values. DERIVATION, AUTO_EXTRACTED_UNREVIEWED — check the figure (get_figure) before
+        use."""
+        return await call("get_figure_series", "GET", f"/v1/nav/figure_series/{ref}",
+                          params={"max_points": max_points})
 
     @server.tool(name="reconstruct_topic", annotations=READ_ONLY)
     async def reconstruct_topic(

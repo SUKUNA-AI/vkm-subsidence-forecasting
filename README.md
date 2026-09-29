@@ -268,7 +268,7 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 
 | Сервер | Где | Транспорт | Инструменты |
 |---|---|---|---|
-| `vkm-corpus` | CORE | streamable HTTP, токен | 43 инструмента чтения (группы ниже; таблицы и повторы объектов — после развёртывания ветки агента G2) |
+| `vkm-corpus` | CORE | streamable HTTP, токен | 45 инструментов чтения (группы ниже; оцифрованные графики — после развёртывания ветки агента FD2) |
 | `vkm-corpus-admin` | CORE | HTTP, отдельный токен | переобработка plan-first: `reprocess_source`, `reprocess_page`, `get_job`, `cancel_job` |
 | `vkm-cad` 1.0 | WORKSTATION | stdio | 27 инструментов: AutoCAD / Civil 3D (§10) |
 | `vkm-drawio` | WORKSTATION | stdio | 8 инструментов: детерминированные схемы draw.io |
@@ -291,7 +291,8 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
   - `find_parameters`, `parameter_summary`;
   - `translate_term` (словарь терминов RU ↔ EN, синонимы, аббревиатуры);
   - `get_table_structured`, `find_tables` (структурированные таблицы);
-  - `copies_of_object`, `shared_formulas` (повторы рисунков, таблиц и формул).
+  - `copies_of_object`, `shared_formulas` (повторы рисунков, таблиц и формул);
+  - `find_figure_series`, `get_figure_series` (оцифрованные графики: ряды и точки с погрешностями, DERIVATION).
 - **Граф:** `concept_paths`, `graph_neighbourhood`.
 - **Досье:** `reconstruct_topic`.
 

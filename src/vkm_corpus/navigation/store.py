@@ -56,6 +56,9 @@ QUERY_FUNCTIONS: dict[str, str] = {
     "find_tables": "vkm_corpus.navigation.tables_query:find_tables",
     # graph stages of the hybrid search (agent GS): G3 — synonyms, abbreviations and a narrower term of the query
     "expand_query": "vkm_corpus.navigation.expansion_query:expand_query",
+    # digitized chart series (agent FD2): DERIVATION values with errors, navigation — not evidence
+    "find_figure_series": "vkm_corpus.navigation.figure_series_query:find_figure_series",
+    "figure_series": "vkm_corpus.navigation.figure_series_query:get_figure_series",
 }
 
 

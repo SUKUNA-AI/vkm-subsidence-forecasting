@@ -3,6 +3,11 @@ and the PDF text layer → primitives in PAGE_PT_TL (points, y down).
 
 Clipping: a chart clips its plot area; a path the viewer never shows (outside every active clip) is dropped, as
 AutoCAD ``-PDFIMPORT`` does — PyMuPDF itself lists clipped-out paths.
+
+Rotated pages (``/Rotate`` ≠ 0, fd-0.1.3): PyMuPDF reports text, drawings and clips in the *unrotated* page space.
+The clip region is taken back into that space for filtering, and every output coordinate (path vertices, word boxes,
+line directions) is mapped with ``page.rotation_matrix`` into PAGE_PT_TL of the displayed page — the frame of the
+canonical figure boxes and of ``page.get_pixmap(clip=…)``. On an unrotated page nothing is transformed.
 """
 from __future__ import annotations
 
@@ -15,6 +20,12 @@ from vkm_corpus.figures.primitives import Path, Text, rgb_int
 
 def _pt(p) -> tuple[float, float]:
     return float(p.x), float(p.y)
+
+
+def _map_points(m, pts: np.ndarray) -> np.ndarray:
+    """Affine map of PyMuPDF ``Point * Matrix``: (x·a + y·c + e, x·b + y·d + f)."""
+    x, y = pts[:, 0], pts[:, 1]
+    return np.stack([m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f], 1)
 
 
 def _subpaths(items) -> list[list[tuple[float, float]]]:
@@ -50,10 +61,15 @@ def _subpaths(items) -> list[list[tuple[float, float]]]:
 
 def load_page(page, clip_rect=None) -> tuple[list[Text], list[Path]]:
     """Texts (words; rotation from the line direction) and paths of one page, optionally within ``clip_rect``
-    (PAGE_PT_TL of the displayed page)."""
+    (PAGE_PT_TL of the displayed page); every output coordinate is PAGE_PT_TL of the displayed page."""
     import pymupdf
 
+    rotated = int(page.rotation or 0) % 360 != 0
+    m = page.rotation_matrix if rotated else None
     clip = pymupdf.Rect(clip_rect) if clip_rect is not None else None
+    if clip is not None and rotated:
+        clip = clip * page.derotation_matrix          # PyMuPDF filters in the unrotated page space
+        clip.normalize()
     texts: list[Text] = []
     d = page.get_text("dict", clip=clip)
     line_dir = {}
@@ -62,6 +78,11 @@ def load_page(page, clip_rect=None) -> tuple[list[Text], list[Path]]:
             line_dir[(b["number"], li)] = ln.get("dir", (1, 0))
     for x0, y0, x1, y1, word, bno, lno, _ in page.get_text("words", clip=clip):
         dx, dy = line_dir.get((bno, lno), (1, 0))
+        if rotated:
+            r = pymupdf.Rect(x0, y0, x1, y1) * m
+            r.normalize()
+            x0, y0, x1, y1 = r.x0, r.y0, r.x1, r.y1
+            dx, dy = m.a * dx + m.c * dy, m.b * dx + m.d * dy
         rot = -math.degrees(math.atan2(dy, dx))       # y down → counter-clockwise positive as on the page
         h = (y1 - y0) if abs(rot) < 1 else (x1 - x0)
         texts.append(Text(word, float(x0), float(x1), float((y0 + y1) / 2), float(h) * 0.7, rot,
@@ -100,6 +121,8 @@ def load_page(page, clip_rect=None) -> tuple[list[Text], list[Path]]:
             colour = None
         for sp in _subpaths(dr.get("items", [])):
             pts = np.array(sp, float)
+            if rotated:
+                pts = _map_points(m, pts)
             if is_fill:
                 line = _thin_rect_as_line(pts)
                 if line is not None:       # a line drawn as a thin filled rectangle (axes, ticks, legend keys)
