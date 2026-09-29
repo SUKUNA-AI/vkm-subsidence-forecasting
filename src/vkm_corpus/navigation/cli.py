@@ -2,15 +2,17 @@
 
 * ``nav outlines --out FILE [--resources ROOT] [--source SID …]`` — WORKSTATION: native outlines of the PRIVATE
   files (PDF bookmarks, EPUB navigation, DjVu outline) → one JSON per snapshot (:mod:`vkm_corpus.navigation.outline`);
-* ``nav build --duckdb PATH --out DIR [--outlines FILE] [--vectors DIR] [--inputs DIR] [--option PART.KEY=VALUE …]
-  [--part sections|formulas|parameters|duplicates|concepts|topics|all]`` — derived datasets from a DuckDB copy of the canon
-  (opened read only) → ``<DIR>/<dataset>.parquet`` + ``manifest.json`` (rule versions, row counts, sha256, snapshot
-  id, the options given to each part).
+* ``nav build --duckdb PATH --out DIR [--outlines FILE] [--vectors DIR] [--artifacts DIR] [--inputs DIR]
+  [--option PART.KEY=VALUE …] [--part sections|formulas|parameters|duplicates|object_duplicates|concepts|topics|all]``
+  — derived datasets from a DuckDB copy of the canon (opened read only) → ``<DIR>/<dataset>.parquet`` +
+  ``manifest.json`` (rule versions, row counts, sha256, snapshot id, the options given to each part).
 
 Parts are dispatched through :data:`PARTS` (``module:function``), imported lazily; a part whose module is absent is
 skipped and recorded as such. A builder has the signature ``build(con, **kwargs) -> dict[str, pyarrow.Table]`` and
 receives only the keyword arguments it declares among ``outlines`` (native outlines), ``vectors`` (``--vectors``: a
 directory of unit vectors ``part-*.parquet`` of one embedding config — ``duplicates`` and ``topics`` use it),
+``artifacts`` (``--artifacts``: the content-addressed artifact root ``$VKM_DATA_ROOT/artifacts`` of the snapshot, read
+only — ``object_duplicates`` hashes the figure images there),
 ``datasets`` (tables built by earlier parts of the same run), each earlier table by its dataset name (e.g.
 ``section_pages``), the options of its part (``--option PART.KEY=VALUE``) and ``stats`` (a dict it may fill with
 counters for the manifest). ``--inputs DIR`` offers the datasets of an earlier build of the same snapshot
@@ -36,6 +38,7 @@ PARTS: dict[str, str] = {
     "formulas": "vkm_corpus.navigation.formulas:build",
     "parameters": "vkm_corpus.navigation.parameters:build",
     "duplicates": "vkm_corpus.navigation.duplicates:build",
+    "object_duplicates": "vkm_corpus.navigation.object_duplicates:build",
     "concepts": "vkm_corpus.navigation.concepts:build",
     "topics": "vkm_corpus.navigation.topics:build",
 }
@@ -80,11 +83,13 @@ def snapshot_of(con) -> dict[str, Any]:
 
 
 def datasets_of(part: str) -> tuple[str, ...]:
-    """Datasets a part writes (so ``--inputs`` never shadows what the run rebuilds)."""
+    """Datasets a part writes (so ``--inputs`` never shadows what the run rebuilds). ``figure_hashes`` of
+    ``object_duplicates`` is left out on purpose: an earlier build's hashes are read back as a cache (by artifact id)."""
     return {"sections": ("sections", "section_pages"),
             "formulas": ("formula_context", "formula_symbols", "formula_refs", "formula_parameters"),
             "parameters": ("parameter_candidates", "parameter_summary"),
             "duplicates": ("dup_clusters", "dup_members", "source_overlap"),
+            "object_duplicates": ("object_dup_clusters", "object_dup_members", "formula_keys"),
             "concepts": ("terms", "term_mentions", "term_edges"),
             "topics": ("section_aggregates", "section_vectors", "topics", "topic_members", "topic_edges"),
             }.get(part, ())
@@ -136,10 +141,12 @@ def build_parts(con, out_dir: Path, parts: list[str], *, outlines: dict | None =
                 outlines_ref: dict[str, Any] | None = None, vectors: str | None = None,
                 vectors_ref: dict[str, Any] | None = None, inputs: dict[str, Any] | None = None,
                 inputs_ref: dict[str, Any] | None = None,
-                part_options: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
+                part_options: dict[str, dict[str, Any]] | None = None, artifacts: str | None = None,
+                artifacts_ref: dict[str, Any] | None = None) -> dict[str, Any]:
     """Build the requested parts over an open DuckDB connection and write Parquet files + ``manifest.json``.
     ``inputs`` — earlier datasets offered to the builders (``--inputs``); datasets built in this run win.
-    ``part_options`` go only to the named part (``{"concepts": {"drop_duplicate_blocks": True}}``)."""
+    ``part_options`` go only to the named part (``{"concepts": {"drop_duplicate_blocks": True}}``).
+    ``artifacts`` — the artifact root offered to builders that declare it (figure images)."""
     import pyarrow.parquet as pq
 
     from vkm_corpus.navigation.ids import RULE_VERSIONS
@@ -162,6 +169,8 @@ def build_parts(con, out_dir: Path, parts: list[str], *, outlines: dict | None =
         manifest["vectors"] = vectors_ref
     if inputs_ref is not None:
         manifest["inputs"] = inputs_ref
+    if artifacts_ref is not None:
+        manifest["artifacts"] = artifacts_ref
     built: dict[str, Any] = {}
     for name, table in (inputs or {}).items():
         con.register(f"nav_{name}", table)
@@ -176,7 +185,7 @@ def build_parts(con, out_dir: Path, parts: list[str], *, outlines: dict | None =
         offered = {**(inputs or {}), **built}
         extra = (part_options or {}).get(part, {})
         tables = call_builder(builder, con, {**offered, **extra, "outlines": outlines, "vectors": vectors,
-                                             "datasets": dict(offered), "stats": stats})
+                                             "artifacts": artifacts, "datasets": dict(offered), "stats": stats})
         if tables is None:
             manifest["parts"][part] = {"status": "SKIPPED_NO_INPUT", "rule_version": RULE_VERSIONS.get(part),
                                        "seconds": round(time.monotonic() - t0, 2), "stats": stats}
@@ -226,6 +235,11 @@ def cmd_build(args: argparse.Namespace) -> int:
         vectors_ref = {"dir": vdir.name, "n_parts": n_parts,
                        "config_sha256": _sha256_file(cfg) if cfg.is_file() else None}
     part_options = parse_part_options(getattr(args, "option", None))
+    artifacts, artifacts_ref = getattr(args, "artifacts", None), None
+    if artifacts:
+        if not Path(artifacts).is_dir():
+            raise SystemExit(f"--artifacts {Path(artifacts).name}: not a directory")
+        artifacts_ref = {"dir": Path(artifacts).name}
     con = duckdb.connect(str(args.duckdb), read_only=True)
     try:
         inputs, inputs_ref = None, None
@@ -234,7 +248,7 @@ def cmd_build(args: argparse.Namespace) -> int:
             inputs, inputs_ref = load_inputs(Path(args.inputs), snapshot_of(con)["snapshot_id"], skip=rebuilt)
         manifest = build_parts(con, Path(args.out), parts, outlines=outlines, outlines_ref=ref,
                                vectors=args.vectors, vectors_ref=vectors_ref, inputs=inputs, inputs_ref=inputs_ref,
-                               part_options=part_options)
+                               part_options=part_options, artifacts=artifacts, artifacts_ref=artifacts_ref)
     finally:
         con.close()
     summary = {"snapshot": manifest["snapshot"],
@@ -413,8 +427,8 @@ def _register_graph(sub) -> None:
 
 
 def register(subparsers) -> None:
-    p = subparsers.add_parser("nav", help="navigation layer: outlines, sections, formulas, parameters, duplicates, concepts, topics "
-                                          "(derived)")
+    p = subparsers.add_parser("nav", help="navigation layer: outlines, sections, formulas, parameters, duplicates, "
+                                          "object duplicates, concepts, topics (derived)")
     sub = p.add_subparsers(dest="nav_cmd", metavar="<command>")
     _register_graph(sub)
     o = sub.add_parser("outlines", help="native outlines of the PRIVATE files (workstation) → JSON")
@@ -430,6 +444,9 @@ def register(subparsers) -> None:
     b.add_argument("--vectors", default=None,
                    help="unit vectors of one embedding config (<dir>/part-*.parquet + config.json): duplicates, "
                         "topics")
+    b.add_argument("--artifacts", default=None,
+                   help="artifact root of the snapshot ($VKM_DATA_ROOT/artifacts, read only): figure images for "
+                        "object_duplicates (default: $VKM_DATA_ROOT/artifacts when set)")
     b.add_argument("--inputs", default=None,
                    help="directory of an earlier NAV build of the same snapshot: its datasets are offered to the "
                         "builders (read only, not copied)")
