@@ -196,6 +196,9 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
   (`object_label`).
 - **Визуальный маршрут** Qwen3-VL-Embedding-2B (эмбеддинги изображений страниц) в работе. В V2 он дал +0,109 nDCG@10 на
   визуальных запросах.
+- **Словарь терминов:** с поздней стадией запрос ищется и на другом языке — ветви RRF для перевода из NAV
+  `term_translations` (флаг `translate`). TERM_DICTIONARY_V1: nDCG@10 и R@50 не хуже, у межъязыковых запросов R@50
+  +0,09.
 
 ## 6. Навигационный слой (NAV) и граф
 
@@ -210,6 +213,7 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 | дубликаты | `dup_clusters`, `dup_members`, `source_overlap` | MinHash-LSH + kNN на GPU, проверка пересечения шинглов, первоисточник как подсказка | 697 групп |
 | понятия | `terms`, `term_mentions`, `term_edges` | леммы pymorphy3, C-value / TF-IDF, NPMI по разделам, SAME_AS (аббревиатуры, переводы), DEFINED_AS, сообщества Leiden; копии текста не учитываются | 94 597 терминов, 1,54 млн рёбер |
 | темы | `topics`, `topic_members`, `topic_edges`, `section_vectors`, `section_aggregates` | векторы разделов → kNN → Leiden на трёх уровнях (cuGraph), центрирование по языку, метки c-TF-IDF | 720 тем (610 / 91 / 19) |
+| словарь терминов | `term_translations` | пары RU ↔ EN (DE), синонимы и аббревиатуры со свидетельствами корпуса: переводы в скобках, ключевые слова и аннотации одной статьи, двуязычные подписи, определения символов, взаимные соседи векторов jina-v5-nano, варианты написания, замены слов, 305 курированных сидов (`REVIEWED_BY_AGENT`) | 6 541 пара (переводов 4 452, синонимов 1 357, аббревиатур 732); точность выборки 459 пар 0,86 / 0,99 (строго / мягко) |
 
 - **Сборка:** `vkm-corpus nav build --part all --vectors <набор векторов>` на WORKSTATION (GPU), около 2 минут.
 - **Упаковка и выдача:** `store.pack` → `nav.duckdb`. `NavStore` в API подключает его вместе с канонической DuckDB,
@@ -224,7 +228,8 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 `reconstruct_topic` (API `GET/POST /v1/topic`, MCP-инструмент) за один вызов (~3–4 с) возвращает бюджетированную карту
 темы с ID и страницами. Состав:
 
-- **Поиск:** до 5 формулировок (запрос, перефразы, синонимы и соседи понятия), слитых через RRF.
+- **Поиск:** до 5 формулировок (запрос, перефразы, запрос на другом языке из словаря терминов, синонимы и соседи
+  понятия), слитых через RRF.
 - **Разделы в два яруса:** ядро ВКМ (источники каталогов evidence и области ВКМ/СКРУ) отдельно от остального корпуса.
 - **Формулы и параметры:** формулы с расшифровками «где…», параметры-кандидаты, подписи рисунков и таблиц рядом с
   найденными страницами.
@@ -240,7 +245,7 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 
 | Сервер | Где | Транспорт | Инструменты |
 |---|---|---|---|
-| `vkm-corpus` | CORE | streamable HTTP, токен | 38 инструментов чтения (группы ниже) |
+| `vkm-corpus` | CORE | streamable HTTP, токен | 39 инструментов чтения (группы ниже; `translate_term` — после развёртывания ветки агента TR) |
 | `vkm-corpus-admin` | CORE | HTTP, отдельный токен | переобработка plan-first: `reprocess_source`, `reprocess_page`, `get_job`, `cancel_job` |
 | `vkm-cad` 1.0 | WORKSTATION | stdio | 27 инструментов: AutoCAD / Civil 3D (§10) |
 | `vkm-drawio` | WORKSTATION | stdio | 8 инструментов: детерминированные схемы draw.io |
@@ -260,7 +265,8 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
   - `get_formula_context`, `find_formulas`, `explore_concept`;
   - `find_topics`, `get_topic`, `similar_sections`, `section_topics`;
   - `copies_of`, `source_overlap`;
-  - `find_parameters`, `parameter_summary`.
+  - `find_parameters`, `parameter_summary`;
+  - `translate_term` (словарь терминов RU ↔ EN, синонимы, аббревиатуры).
 - **Граф:** `concept_paths`, `graph_neighbourhood`.
 - **Досье:** `reconstruct_topic`.
 
@@ -332,6 +338,7 @@ REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER или ACCEPTED_FORMULA в автома
 | [retrieval_v1](benchmarks/retrieval_v1/) | поиск на полном корпусе, 186 запросов, пул-метки + ревью пользователя (60 меток, κ взв. 0,91 / 0,95) | развёрнутая схема E: 0,725 nDCG@10 на тексте против 0,551 у BM25; реранкер по запросу; маршрут для библиографических запросов |
 | [retrieval_v2](benchmarks/retrieval_v2/) | 10 dense-моделей и эмбеддинги изображений страниц, кодирование на RTX | ни одна модель не обходит nano в схеме E; Qwen3-VL для визуальных запросов: +0,109 nDCG@10 (Holm p = 0,032) |
 | [topic_v1](benchmarks/topic_v1/) | досье «от А до Я» против каталогов evidence: 117 тем, 351 запрос, 886 страниц | гибрид R@50 0,303 по всему корпусу и 0,559 в ядре ВКМ; слияние формулировок 0,446; приёмка пока не пройдена, причины разобраны |
+| [term_dictionary_v1](benchmarks/term_dictionary_v1/) | словарь терминов в поиске, предрегистрация: формулировка-перевод в досье (117 тем) и ветви перевода в гибриде (144 запроса) | досье: полнота @50 без изменений, MRR@50 +0,016 — включено; гибрид с поздней стадией не хуже, межъязыковые запросы R@50 +0,09 — включено; без неё ветви вредят |
 
 ## 12. Структура репозитория
 
@@ -340,14 +347,14 @@ src/
   vkm_world/      WorldSpec: типы, провенанс, валидация, страж утечки (governance.leakage)
   vkm_corpus/     платформа корпуса: pipeline, extract (+ bibliography), ocr, layout, parquet (каноника, валидатор),
                   duckdb, graph (DOCUMENT + NAV), search, embeddings, retrieval_service, retrieval_lab,
-                  navigation (sections, formulas, parameters, duplicates, concepts, topics, store),
+                  navigation (sections, formulas, parameters, duplicates, concepts, topics, term_dictionary, store),
                   catalogues, api (FastAPI /v1), mcp (read / admin), publish, ops, cli
   vkm_cad/        мост Autodesk: чтение открытых чертежей, scratch DXF, задания в консоли, Civil 3D, плагин VkmCadHost
   vkm_drawio/     схемы draw.io
 schemas/          JSON Schema: WorldSpec, контракты корпуса
 evidence/         public-safe каталоги evidence
 catalogues/       физика (PC-xx), математика, причинность, наблюдения
-benchmarks/       retrieval_v0/v1/v2, topic_v1: наборы, скрипты, результаты
+benchmarks/       retrieval_v0/v1/v2, topic_v1, term_dictionary_v1: наборы, скрипты, результаты
 infra/            core (compose, API, RX 580, lab_stage2/3, lab_refresh), edge (реранк), models (пины), workstation
 docs/             corpus_platform, science (+ topic_dossiers), worldspec, theory, governance, planning,
                   implementation_work (отчёты агентов, журнал решений), diagrams, reset_2026_09, legacy
