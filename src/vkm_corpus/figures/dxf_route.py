@@ -57,8 +57,8 @@ def _dense(e, tol=0.002):
         return None
 
 
-def _spline_vertices(e, cp: np.ndarray) -> tuple[np.ndarray, bool]:
-    """Data-bearing points of a SPLINE and whether the spline is a refit.
+def _spline_vertices(e, cp: np.ndarray) -> tuple[np.ndarray, bool, bool]:
+    """Data-bearing points of a SPLINE, whether the spline is a refit, whether it is closed.
 
     PDFIMPORT writes one PDF curve segment as a 4-control-point spline; its end points are vertices of the PDF path
     (sweep of 320 figures: 99.96 % within 0.15 pt of a PDF vertex). A cubic in Bezier form (interior knots of
@@ -66,20 +66,24 @@ def _spline_vertices(e, cp: np.ndarray) -> tuple[np.ndarray, bool]:
     spline refits a chain of PDF segments: a cubic with double knots whose knot points fall on a PDF vertex in only
     49 % of the cases (3,139 knots in 49 figures; the others subdivide one segment). Only its end points are kept
     (95.9 % on a PDF vertex): the interior vertices cannot be told apart in the DXF, and the path is marked as a
-    refit so that its series says so. Samples of the drawn curve are never returned as vertices."""
+    refit so that its series says so. Samples of the drawn curve are never returned as vertices of an open curve.
+    A closed spline is a symbol outline (a marker drawn as a stroke): its flattened outline is returned, the marker
+    centre is taken from it later."""
     deg = int(e.dxf.get("degree", 3) or 3)
     n = len(cp)
     if deg == 3 and n == 4:
-        return np.array([cp[0], cp[-1]]), False
+        return np.array([cp[0], cp[-1]]), False, False
+    dense = _dense(e)
+    ends = (dense[0], dense[-1]) if dense is not None and len(dense) >= 2 else (cp[0], cp[-1])
+    size = float(np.hypot(*(cp.max(0) - cp.min(0))))
+    if dense is not None and len(dense) >= 4 and size > 0 and float(np.hypot(*(ends[1] - ends[0]))) <= 1e-3 * size:
+        return dense, False, True
     if deg == 3 and n > 4 and (n - 1) % 3 == 0:
         knots = list(e.knots)
         interior = knots[4:-4] if len(knots) == n + 4 else []
         if interior and all(interior[i] == interior[i + 1] == interior[i + 2] for i in range(0, len(interior), 3)):
-            return cp[::3].copy(), False
-    dense = _dense(e)
-    if dense is not None and len(dense) >= 2:
-        return np.array([dense[0], dense[-1]]), True
-    return np.array([cp[0], cp[-1]]), True
+            return cp[::3].copy(), False, False
+    return np.array([ends[0], ends[1]]), True, False
 
 
 def load_dxf(dxf_path) -> tuple[list[Text], list[Path]]:
@@ -136,8 +140,8 @@ def load_dxf(dxf_path) -> tuple[list[Text], list[Path]]:
             elif t == "SPLINE":
                 cp = np.array([p[:2] for p in e.control_points], dtype=float)
                 if len(cp) >= 2:
-                    pts, refit = _spline_vertices(e, cp)
-                    paths.append(Path(pts, col, lw, "BEZ", dense=_dense(e), origin=f"SPLINE#{handle}",
+                    pts, refit, closed = _spline_vertices(e, cp)
+                    paths.append(Path(pts, col, lw, "BEZ", closed, dense=_dense(e), origin=f"SPLINE#{handle}",
                                       extra={"spline_refit": True} if refit else {}))
             elif t == "ARC":
                 s0, s1 = e.start_point, e.end_point

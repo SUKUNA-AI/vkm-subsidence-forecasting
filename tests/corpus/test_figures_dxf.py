@@ -102,6 +102,29 @@ def test_refit_spline_keeps_only_its_ends_and_marks_the_series(tmp_path):
     assert "SPLINE_INTERIOR_NOT_RECOVERED" in res["series"][0]["flags"]
 
 
+def test_closed_spline_is_a_marker_outline(tmp_path):
+    """A closed spline (a marker drawn as a stroke) keeps its outline, so the marker series finds its centre."""
+    doc = ezdxf.new("R2018")
+    msp = doc.modelspace()
+    centres = [(1.5, 1.2), (2.5, 2.0), (3.5, 1.6)]
+    r = 0.03
+    for cx, cy in centres:
+        loop = [(cx - r, cy - r), (cx + r, cy - r), (cx + r, cy + r), (cx - r, cy + r), (cx - r, cy - r)]
+        s = msp.add_open_spline(loop, degree=3, knots=[0, 0, 0, 0, 1, 2, 2, 2, 2])
+        s.dxf.true_color = BLUE
+    path = tmp_path / "markers.dxf"
+    doc.saveas(path)
+    _, paths = dxf_route.load_dxf(path)
+    assert len(paths) == 3 and all(p.closed and len(p.pts) > 4 and not p.extra for p in paths)
+    from vkm_corpus.figures.series import extract_series
+
+    series, *_ = extract_series(paths, [], (0.5, 0.5, 5.0, 3.0))
+    marks = [s for s in series if s.get("sampling") == "MARKER_CENTRES"]
+    assert len(marks) == 1 and len(marks[0]["pts"]) == 3
+    for (x, y), (cx, cy) in zip(marks[0]["pts"], centres):
+        assert abs(x - cx) <= r and abs(y - cy) <= r
+
+
 def test_bylayer_colour_is_resolved(drawing):
     path, *_ = drawing
     texts, paths = dxf_route.load_dxf(path)
