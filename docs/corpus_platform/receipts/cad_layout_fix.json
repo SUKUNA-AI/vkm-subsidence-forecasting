@@ -1,0 +1,677 @@
+{
+ "receipt": "vkm-cad.layout_sheet_fix/1",
+ "created_utc": "2026-09-29T13:32:52+00:00",
+ "agent": "CADFIX",
+ "host_role": "WORKSTATION",
+ "bridge_version": "1.0.0",
+ "branch": "claude/agent-cadfix-layout-2026-09-29",
+ "base": "239afbc",
+ "products": {
+  "ACAD": "25.1.60.0",
+  "C3D": "13.8.280.0",
+  "core_console": "25.1.164.0",
+  "dotnet_runtime": "Microsoft.NETCore.App 8.0.22"
+ },
+ "rules": [
+  "headless Core Console only; hidden instance off (CP-43)",
+  "crash reports never sent",
+  "user drawings never opened; experiments on copies in new jobs"
+ ],
+ "incident": {
+  "job_id": "CADJ-20260929T114518Z-3a965286",
+  "product": "ACAD",
+  "drawing": {
+   "origin": "cad_draw (ezdxf, DXF R2018) -> DWG 2018 (Core Console SAVEAS), run R001",
+   "sha256": "dd6b8fcbec2b49af7c1cbc07c906567822ac36eee2437f2463ea5894f82d928f"
+  },
+  "crashed_runs": [
+   {
+    "run_id": "R002",
+    "kind": "host:acad.layout_sheet",
+    "status": "CRASHED",
+    "exit_code": 1,
+    "duration_s": 3.06
+   },
+   {
+    "run_id": "R003",
+    "kind": "host:acad.layout_sheet",
+    "status": "CRASHED",
+    "exit_code": 1,
+    "duration_s": 2.06
+   }
+  ],
+  "model_plot_ok": {
+   "run_id": "R004",
+   "kind": "plot_pdf",
+   "status": "OK"
+  }
+ },
+ "root_cause": {
+  "evidence": "Windows Application log, .NET Runtime event 1026 and Application Error event 1000 of each crashed run (the two runs of the incident and the reproductions E5, E6)",
+  "exception": "System.AccessViolationException (0xc0000005, faulting module coreclr.dll 8.0.2225.52707)",
+  "stack": [
+   "AcDbViewport.setIsOn(AcDbViewport*, Boolean)",
+   "Autodesk.AutoCAD.DatabaseServices.Viewport.set_On(Boolean)",
+   "Vkm.Cad.CoreOps.LayoutSheetSteps(Document, JsonObject, String[])",
+   "Vkm.Cad.CoreOps.LayoutSheet",
+   "Vkm.Cad.HostCommands.Dispatch",
+   "Vkm.Cad.HostCommands.Run"
+  ],
+  "condition": "accoreconsole /product ACAD: Viewport.On = true inside a transaction that also erased a viewport of the same (current) layout - the default viewport AutoCAD creates on the first activation of a new layout (LAYOUTCREATEVIEWPORT = 1)",
+  "why_the_v1_smoke_passed": "it ran the sheet in a C3D job; accoreconsole /product C3D survives the same order (E7)",
+  "ruled_out": {
+   "dxf_origin": "a fresh acadiso drawing crashes identically (E6)",
+   "layout_activation": "activating Layout1 or a new layout works (E1, E4, E4b)",
+   "windows_default_printer": "a new layout is bound to it and the activation queries its driver without a crash (E3, E4b); the fix sets the page setup first anyway",
+   "same_transaction_as_append": "On in the transaction of AppendEntity works when nothing was erased (F4b, V2)",
+   "page_setup_order": "V1 (page setup before activation, erase kept) still crashes"
+  }
+ },
+ "experiments": [
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R001",
+   "experiment": "probe",
+   "what": "read-only probe of the job drawing (layouts, plot devices, scale list)",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "OK",
+   "exit_code": 0,
+   "last_stage": "done",
+   "killed": [
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R002",
+   "experiment": "E1_switch_layout1",
+   "what": "activate the drawing's own Layout1 (no page setup device, no overall viewport)",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "OK",
+   "exit_code": 0,
+   "last_stage": "done",
+   "killed": [
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R003",
+   "experiment": "E3_create_probe",
+   "what": "CreateLayout without activation: the new layout gets the Windows default printer, no media",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "OK",
+   "exit_code": 0,
+   "last_stage": "done",
+   "killed": [
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R004",
+   "experiment": "E4_create_switch",
+   "what": "CreateLayout + activation",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "OK",
+   "exit_code": 0,
+   "last_stage": "done",
+   "killed": [
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R005",
+   "experiment": "E4b_create_switch_probe",
+   "what": "CreateLayout + activation + probe: AutoCAD creates the overall and a default viewport",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "OK",
+   "exit_code": 0,
+   "last_stage": "done",
+   "killed": [
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R006",
+   "experiment": "E5_sheet_orig",
+   "what": "the 1.0.0 LayoutSheet steps with a marker after every call (repro drawing, ACAD)",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "CRASHED",
+   "exit_code": 1,
+   "last_stage": "after CustomScale 0.7669090909090909",
+   "killed": [
+    "accoreconsole.exe",
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe",
+    "werfault.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R007",
+   "experiment": "E6_sheet_orig_template_acad",
+   "what": "the same steps on a fresh acadiso drawing (no DXF involved), ACAD",
+   "product": "ACAD",
+   "drawing": "fresh acadiso",
+   "status": "CRASHED",
+   "exit_code": 1,
+   "last_stage": "after CustomScale 0.7669090909090909",
+   "killed": [
+    "accoreconsole.exe",
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe",
+    "werfault.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R008",
+   "experiment": "E7_sheet_orig_repro_c3d",
+   "what": "the same steps on the repro drawing under /product C3D",
+   "product": "C3D",
+   "drawing": "copy of the repro DWG",
+   "status": "OK",
+   "exit_code": 0,
+   "last_stage": "done",
+   "killed": [
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R009",
+   "experiment": "F1_on_in_noncurrent_new",
+   "what": "Viewport.On in a layout that is not current",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "FAILED",
+   "exit_code": 0,
+   "last_stage": "EXC Exception: eNotInPaperspace",
+   "killed": [
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R010",
+   "experiment": "F3_reuse_default",
+   "what": "reuse AutoCAD's default viewport (no Viewport.On at all)",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "OK",
+   "exit_code": 0,
+   "last_stage": "done",
+   "killed": [
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R011",
+   "experiment": "F4_on_after_commit",
+   "what": "append a viewport, commit, Viewport.On in a new transaction (default viewport kept)",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "OK",
+   "exit_code": 0,
+   "last_stage": "done",
+   "killed": [
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R012",
+   "experiment": "F4b_on_same_tx",
+   "what": "append a viewport and Viewport.On in the same transaction (default viewport kept)",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "OK",
+   "exit_code": 0,
+   "last_stage": "done",
+   "killed": [
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R013",
+   "experiment": "V0_base",
+   "what": "1.0.0 order: erase the default viewport, append, On in one transaction",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "CRASHED",
+   "exit_code": 1,
+   "last_stage": "before On (same transaction)",
+   "killed": [
+    "accoreconsole.exe",
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe",
+    "werfault.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R014",
+   "experiment": "V1_psfirst",
+   "what": "as V0 with the page setup before activation",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "CRASHED",
+   "exit_code": 1,
+   "last_stage": "before On (same transaction)",
+   "killed": [
+    "accoreconsole.exe",
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe",
+    "werfault.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R015",
+   "experiment": "V2_noerase",
+   "what": "as V0 without erasing the default viewport",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "OK",
+   "exit_code": 0,
+   "last_stage": "done",
+   "killed": [
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R016",
+   "experiment": "V3_erase_commit_first",
+   "what": "erase committed first; append + On in the next transaction",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "OK",
+   "exit_code": 0,
+   "last_stage": "done",
+   "killed": [
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T125046Z-e326410c",
+   "run_id": "R017",
+   "experiment": "V4_on_separate_tx",
+   "what": "erase + append in one transaction; On in a separate one",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "OK",
+   "exit_code": 0,
+   "last_stage": "done",
+   "killed": [
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe"
+   ]
+  },
+  {
+   "job_id": "CADJ-20260929T132729Z-649e4688",
+   "run_id": "R001",
+   "experiment": "E5b_orig_crash_new_engine",
+   "what": "the 1.0.0 order again with the fixed engine (crash detection, own processes only)",
+   "product": "ACAD",
+   "drawing": "copy of the repro DWG",
+   "status": "CRASHED",
+   "exit_code": 1,
+   "last_stage": "after CustomScale 0.7669090909090909",
+   "killed": [
+    "accoreconsole.exe",
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe",
+    "werfault.exe"
+   ]
+  }
+ ],
+ "fix": {
+  "plugin": [
+   "page setup of the new layout before its first activation",
+   "AutoCAD's default viewport of the layout is reused (no Viewport.On)",
+   "other viewports erased in a transaction of their own",
+   "a host-created viewport (reuse_default_viewport = false, or no default one) is turned on in a separate transaction",
+   "breadcrumbs <run>/host_trace.txt; host_trace_tail in the run record and error details",
+   "title block texts fitted into their cells (width factor >= 0.6, then height)"
+  ],
+  "engine": [
+   "process tree by creation time (Windows PID reuse), creation time re-checked before kill"
+  ],
+  "capabilities": [
+   "headless_pitfalls",
+   "core_console.process_tree"
+  ]
+ },
+ "verification": {
+  "repro_copy_job": "CADJ-20260929T125046Z-e326410c",
+  "runs": [
+   {
+    "run_id": "R018",
+    "kind": "host:acad.layout_sheet",
+    "status": "OK",
+    "exit_code": 0
+   },
+   {
+    "run_id": "R019",
+    "kind": "plot_pdf",
+    "status": "OK",
+    "exit_code": 0
+   },
+   {
+    "run_id": "R020",
+    "kind": "host:acad.layout_sheet",
+    "status": "OK",
+    "exit_code": 0
+   },
+   {
+    "run_id": "R021",
+    "kind": "plot_pdf",
+    "status": "OK",
+    "exit_code": 0
+   },
+   {
+    "run_id": "R022",
+    "kind": "host:acad.layout_sheet",
+    "status": "OK",
+    "exit_code": 0
+   },
+   {
+    "run_id": "R023",
+    "kind": "plot_pdf",
+    "status": "OK",
+    "exit_code": 0
+   },
+   {
+    "run_id": "R024",
+    "kind": "host:acad.layout_sheet",
+    "status": "OK",
+    "exit_code": 0
+   },
+   {
+    "run_id": "R025",
+    "kind": "plot_pdf",
+    "status": "OK",
+    "exit_code": 0
+   }
+  ],
+  "default_viewport_path": {
+   "viewport": "default viewport of the layout (created by AutoCAD on activation)",
+   "viewports_erased": 0,
+   "device": "DWG To PDF.pc3",
+   "media": "ISO_full_bleed_A3_(420.00_x_297.00_MM)",
+   "paper_mm": [
+    420,
+    297
+   ],
+   "viewport_rect_mm": [
+    25,
+    65,
+    410,
+    287
+   ],
+   "scale_denominator": 1.303936,
+   "scale_is_fit": true,
+   "title_block": "GOST 2.104 form 1 (simplified), 185x55 mm",
+   "title_block_fitted": {
+    "developer": {
+     "width_factor": 0.7039,
+     "height_mm": 2.5
+    },
+    "date": {
+     "width_factor": 0.6,
+     "height_mm": 1.906992
+    },
+    "title": {
+     "width_factor": 0.6539,
+     "height_mm": 3.5
+    }
+   },
+   "title_block_fitted_labels": 1
+  },
+  "host_created_viewport_path": {
+   "viewport": "created by the host",
+   "viewports_erased": 1,
+   "device": "DWG To PDF.pc3",
+   "media": "ISO_full_bleed_A3_(420.00_x_297.00_MM)",
+   "paper_mm": [
+    420,
+    297
+   ],
+   "viewport_rect_mm": [
+    25,
+    65,
+    410,
+    287
+   ],
+   "scale_denominator": 1.303936,
+   "scale_is_fit": true,
+   "title_block": "GOST 2.104 form 1 (simplified), 185x55 mm",
+   "title_block_fitted": {
+    "developer": {
+     "width_factor": 0.7039,
+     "height_mm": 2.5
+    },
+    "date": {
+     "width_factor": 0.6,
+     "height_mm": 1.906992
+    },
+    "title": {
+     "width_factor": 0.6539,
+     "height_mm": 3.5
+    }
+   },
+   "title_block_fitted_labels": 1
+  },
+  "pdfs": [
+   {
+    "path": "out/fix_sheet_color2.pdf",
+    "sha256": "6d457972d25d76014e886e607482b513645560e39a2857670298b320e65ef5d6",
+    "bytes": 123087,
+    "run_id": "R023"
+   },
+   {
+    "path": "out/fix_sheet_created.pdf",
+    "sha256": "e9a71a2f483f0a2a8e5b94a24d9a641a593f5b04135f9343c51f0625c24ca8fc",
+    "bytes": 123088,
+    "run_id": "R025"
+   }
+  ],
+  "rendered_and_checked": "A3 landscape (MediaBox 1191 x 842 pt), frame, viewport content, title block with Cyrillic text inside its cells (page images reviewed)"
+ },
+ "live_tests": {
+  "final_run": {
+   "tests": [
+    "tests/corpus/test_cad_live.py::test_live_chain (C3D, v1 smoke path)",
+    "tests/corpus/test_cad_layout_sheet_live.py::test_live_sheet_in_plain_autocad_jobs (ACAD: cad_draw drawing, host-created viewport, fresh acadiso)"
+   ],
+   "result": "2 passed",
+   "seconds": 105.4,
+   "runs": 28,
+   "runs_ok": 28,
+   "killed_images": [
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe"
+   ],
+   "windows_seen": 0
+  },
+  "c3d_sheet": {
+   "media": "ISO_full_bleed_A3_(420.00_x_297.00_MM)",
+   "scale_denominator": 500,
+   "model_window_source": "union of the job's surfaces (+5%)"
+  },
+  "c3d_pdf": {
+   "bytes": 204615,
+   "sha256": "58d8e96854f3072d4c0e8da7a8dda383305cd4d7db1df6d728ba5516734c4db3"
+  }
+ },
+ "process_tree_incident": {
+  "when": "29.09.2026 16:21 local, second live run, before the engine fix",
+  "what": "a new accoreconsole received the PID of a long-gone process whose children (the user's Discord) were running; the tree by parent PID took them for the job's, their window for a dialog of the job (CAD_DIALOG_BLOCKED after 0.01 s) and terminated them",
+  "terminated": {
+   "discord.exe": 6
+  },
+  "consequence": "Discord restarted itself about 7 s later (run 13:21:34-13:21:35 UTC, new processes from 13:21:42 UTC)",
+  "fix": "commit 3b4115c; regression test test_cad_v1_engine.py::test_a_reused_parent_pid_does_not_make_foreign_processes_the_jobs",
+  "check_after_fix": {
+   "job_id": "CADJ-20260929T132729Z-649e4688",
+   "run_id": "R001",
+   "status": "CRASHED",
+   "killed": [
+    "accoreconsole.exe",
+    "adpclientservice.exe",
+    "adskaccessservice.exe",
+    "conhost.exe",
+    "werfault.exe"
+   ]
+  }
+ },
+ "delivery": {
+  "job_id": "CADJ-20260929T114518Z-3a965286",
+  "layout": "LINE12_PROFILE",
+  "style_table": "acad.ctb (the epochs differ by colour only)",
+  "request": "the fields of the failing request R002 (title, subtitle, designation, organization, developer, date, sheet, sheets, scale, material), model window [-25,-255]-[385,20], fit",
+  "runs": [
+   {
+    "run_id": "R005",
+    "kind": "host:acad.layout_sheet",
+    "status": "OK",
+    "exit_code": 0,
+    "duration_s": 2.53
+   },
+   {
+    "run_id": "R006",
+    "kind": "plot_pdf",
+    "status": "OK",
+    "exit_code": 0,
+    "duration_s": 2.02
+   }
+  ],
+  "sheet": {
+   "viewport": "default viewport of the layout (created by AutoCAD on activation)",
+   "viewports_erased": 0,
+   "device": "DWG To PDF.pc3",
+   "media": "ISO_full_bleed_A3_(420.00_x_297.00_MM)",
+   "paper_mm": [
+    420,
+    297
+   ],
+   "viewport_rect_mm": [
+    25,
+    65,
+    410,
+    287
+   ],
+   "scale_denominator": 1.303936,
+   "scale_is_fit": true,
+   "title_block": "GOST 2.104 form 1 (simplified), 185x55 mm",
+   "title_block_fitted": {
+    "developer": {
+     "width_factor": 0.7039,
+     "height_mm": 2.5
+    },
+    "date": {
+     "width_factor": 0.6,
+     "height_mm": 1.906992
+    },
+    "title": {
+     "width_factor": 0.6539,
+     "height_mm": 3.5
+    }
+   },
+   "title_block_fitted_labels": 1
+  },
+  "drawing_after": {
+   "sha256": "2ae63c8d5b30ae0af359bf0a13edc1e5c3f95e28c94b916f81bfba019936fc38",
+   "from_run": "R005"
+  },
+  "pdf": {
+   "path": "out/skru1_line12_profile_sheet.pdf",
+   "sha256": "18105851e6ed5da23021bd729d2a2c4d630451ee55ec53733037936758eadd34",
+   "bytes": 123087,
+   "run_id": "R006"
+  },
+  "pdf_checks": "A3 landscape (MediaBox 1191 x 842 pt); pdftotext finds all ten title-block values"
+ },
+ "tests_offline": {
+  "files": [
+   "tests/corpus/test_cad_layout_sheet.py",
+   "tests/corpus/test_cad_v1_engine.py"
+  ],
+  "cad_suite": "tests/corpus/test_cad_*.py: 69 passed, 2 live skipped without VKM_TEST_CAD_LIVE",
+  "negative_check": "both source-order tests fail on the 1.0.0 host source"
+ },
+ "commits": [
+  {
+   "commit": "7ca2b71",
+   "subject": "cad_capabilities: headless pitfalls (viewport on after an erase, page setup before activation) and the process-tree rule"
+  },
+  {
+   "commit": "3b4115c",
+   "subject": "cad: the job's process tree holds only processes created after the console (PID reuse killed a user's Discord)"
+  },
+  {
+   "commit": "1c571b8",
+   "subject": "cad: live regression test of sheets in plain-AutoCAD jobs (markers services + desktop, VKM_TEST_CAD_LIVE=1)"
+  },
+  {
+   "commit": "6213831",
+   "subject": "cad: title block texts are fitted into their cells (condensed down to width factor 0.6, then lower)"
+  },
+  {
+   "commit": "4e13176",
+   "subject": "cad: a failed or crashed run records where the .NET host was (host_trace_tail); offline regression tests of the sheet order"
+  },
+  {
+   "commit": "be9690b",
+   "subject": "cad: layout sheet no longer crashes the plain AutoCAD Core Console (Viewport.On after an erase in the same transaction)"
+  }
+ ],
+ "left_open": [
+  "the running vkm-cad MCP server imports the main checkout: until this branch is merged and the server restarted, cad_layout_sheet still crashes in ACAD jobs and the process tree still trusts parent PIDs",
+  "cad_draw (ezdxf) layouts still carry no plot device, so AutoCAD binds them to the Windows default printer on load; harmless for the bridge now (sheets set their own page setup, Model plots name the device), not changed",
+  "the experiment jobs CADJ-20260929T125046Z-e326410c and CADJ-20260929T132729Z-649e4688 stay in $VKM_WORK/cad_jobs (work data only)"
+ ]
+}
