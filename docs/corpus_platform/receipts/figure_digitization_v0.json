@@ -1,0 +1,557 @@
+{
+ "receipt": "figure_digitization_v0",
+ "agent": "FD",
+ "date": "2026-09-29",
+ "snapshot_id": "snap-20260928T193550Z-738eebee",
+ "schema": "vkm.figure_series/0",
+ "digitizer_version": "fd-0.1.2",
+ "status": "DERIVATION",
+ "review_status": "AUTO_EXTRACTED_UNREVIEWED",
+ "status_note": "digitized plot values are derived navigation data with a per-point half-width error, never FACT and never evidence; availability = publication date of the work (year only: last day of the year; no year: UNKNOWN kept); plotted model results and observations are not told apart (series_nature UNCLASSIFIED)",
+ "code": {
+  "branch": "claude/agent-fd-figure-digitization-2026-09-29",
+  "base": "e377c18",
+  "commits": [
+   "08ca833",
+   "b2da4ed",
+   "5b8e5de",
+   "d6feef5",
+   "68f2f9a",
+   "5c35f88",
+   "52d1e2b",
+   "1f7a871"
+  ],
+  "versions": {
+   "fd-0.1.0": "first sweep (multi-piece splines flattened into curve samples in route B)",
+   "fd-0.1.1": "route B keeps only the ends of refit splines and flags the series",
+   "fd-0.1.2": "route A axis titles take the whole PDF text line (quantity, unit, time axes); the dataset of this receipt"
+  },
+  "package": "src/vkm_corpus/figures/ (primitives, calibrate, series, core, crop, dxf_route, pdf_route, labels_ocr, raster, raster_digitize, dataset, discover, runner, sweep)",
+  "driver": "python -m vkm_corpus.figures.sweep discover | prepare | digitize | raster | publish (machine paths as arguments)",
+  "tests": "tests/corpus/test_figures_{core,dxf,pdf,raster,dataset}.py: 44 passed in WSL (with Tesseract and OpenCV); 38 passed + 2 skipped with Windows Python (no OpenCV, no Tesseract); tests/world: 207 passed + 2 skipped in WSL; tests/corpus/test_public_hygiene.py: 6 passed with Windows Python",
+  "environments": "WSL archlinux venv (numpy, scipy, ezdxf 1.4.4, pymupdf 1.28.2, opencv-python-headless 5.0.0, pyarrow, duckdb); AutoCAD 2026 through vkm-cad on the Windows side; Tesseract 5.5.3 in WSL"
+ },
+ "inputs": "read-only copy of the canonical DuckDB of the snapshot; VECTOR_PATHS_JSON artifacts (read only); source PDFs of PRIVATE (read only); nothing written to the canon, CORE or EDGE",
+ "candidates": {
+  "figures_in_snapshot": 17784,
+  "with_native_vectors": 4353,
+  "chartlike": 1230,
+  "chartlike_with_core_keyword": 351,
+  "skipped_rotated_pages": 31,
+  "selected": 320,
+  "selected_sources": 34,
+  "selected_pages": 206,
+  "selected_with_model_hint_in_caption": 5,
+  "criteria": {
+   "chartlike": ">= 6 numeric tokens within 15 pt of the figure box and >= 20 'l'/'c' items in VECTOR_PATHS_JSON",
+   "core_keyword": "caption or page matches one of: subsidence, trough, profile_line, benchmark, convergence, levelling, displacement (keyword names only; regexes in figures/discover.py)",
+   "rotation": "pages with /Rotate != 0 skipped in v0"
+  }
+ },
+ "route_b_import": {
+  "cad_job": "CADJ-20260929T094022Z-92219db2",
+  "tool": "vkm-cad cad_pdf_import (-PDFIMPORT, accoreconsole, isolated profile)",
+  "bridge_version": "1.0.0",
+  "engine": {
+   "release": "R25.1",
+   "versions": {
+    "ACAD": "25.1.60.0",
+    "C3D": "13.8.280.0"
+   },
+   "year": 2026
+  },
+  "batch_pdfs": 16,
+  "pages": 320,
+  "completed": 320,
+  "crashed": 0,
+  "exit_code_0": 320,
+  "dialog_blocked": 0,
+  "dxf_outputs": 320,
+  "console_seconds_per_page_median": 2.27,
+  "wall_seconds": 1277.0,
+  "wall_seconds_per_page": 3.99
+ },
+ "route_b_vertex_fidelity": {
+  "definition": "share of DXF vertices inside the figure crop that lie within 0.15 pt of a vertex of the PDF page's paths (PyMuPDF get_drawings, 'l'/'c'/'re'/'qu' items); 320 DXF of the sweep",
+  "LWPOLYLINE_vertices": {
+   "n": 152336,
+   "share": 0.9993
+  },
+  "ARC_ends": {
+   "n": 1054,
+   "share": 0.9991
+  },
+  "SPLINE_one_piece_ends": {
+   "n": 123551,
+   "share": 0.9996
+  },
+  "SPLINE_multi_piece_ends": {
+   "n": 4842,
+   "share": 0.9591
+  },
+  "SPLINE_multi_piece_interior_knots": {
+   "n": 3139,
+   "share": 0.4893
+  },
+  "figures_with_multi_piece_splines": 49,
+  "multi_piece_spline_knots": "all interior knots of multiplicity 2 (C1 joins); none in Bezier form (multiplicity 3)",
+  "same_cubic_test": "a C1/C2/C3 same-cubic test at the joints (tolerance 1e-4 relative) marks 16 of 3139 joints and does not separate PDF vertices from subdivision points: the pieces approximate the PDF curve to about 0.01 pt",
+  "policy": "route B keeps only the end points of multi-piece splines and flags the series SPLINE_INTERIOR_NOT_RECOVERED (fd-0.1.1); fd-0.1.0 had flattened them into curve samples"
+ },
+ "vector_sweep": {
+  "figures": 320,
+  "elapsed_s_both_routes": 228.8,
+  "axis_status_A_B": {
+   "OK|OK": 193,
+   "NO_AXES|NO_AXES": 62,
+   "X_UNCALIBRATED|X_UNCALIBRATED": 29,
+   "Y_UNCALIBRATED|Y_UNCALIBRATED": 20,
+   "NO_AXES|X_UNCALIBRATED": 4,
+   "Y_UNCALIBRATED|NO_AXES": 3,
+   "OK|X_UNCALIBRATED": 3,
+   "OK|Y_UNCALIBRATED": 3,
+   "Y_UNCALIBRATED|OK": 2,
+   "NO_AXES|Y_UNCALIBRATED": 1
+  },
+  "figures_both_axes": {
+   "A": 199,
+   "B": 195,
+   "both_routes": 193
+  },
+  "same_axis_status_A_B": 304,
+  "routes": {
+   "A_NATIVE_VECTOR": {
+    "series_all": 1907,
+    "points_all": 88129,
+    "figures_with_any_series": 284,
+    "series_both_axes": 853,
+    "figures_with_series_both_axes": 175,
+    "points_both_axes": 70329,
+    "sources_both_axes": 23,
+    "time_series_both_axes": 178,
+    "marker_series_both_axes": 108,
+    "labelled_series_both_axes": 122,
+    "local_ocr_series_both_axes": 19,
+    "spline_interior_not_recovered_both_axes": 0,
+    "axis_kinds_both_axes": {
+     "LINEAR/LINEAR": 787,
+     "LOG10/LINEAR": 52,
+     "LINEAR/LOG10": 11,
+     "LOG10/LOG10": 2,
+     "DATE/LINEAR": 1
+    },
+    "median_rel_y_error_both_axes": 0.00687,
+    "flags_all": {
+     "AVAILABILITY_UNKNOWN": 99,
+     "LEGEND_UNMATCHED": 1767,
+     "LOCAL_OCR_CALIBRATION": 28,
+     "MODEL_HINT_IN_CAPTION": 27,
+     "MULTI_CHAIN_STYLE": 1435,
+     "SCOPE_INHERITED_FROM_SOURCE": 1907,
+     "X_UNCALIBRATED": 912,
+     "Y_UNCALIBRATED": 826
+    },
+    "status_pairs": {
+     "DERIVATION/AUTO_EXTRACTED_UNREVIEWED": 1907
+    }
+   },
+   "B_AUTOCAD_PDFIMPORT": {
+    "series_all": 2061,
+    "points_all": 84494,
+    "figures_with_any_series": 295,
+    "series_both_axes": 950,
+    "figures_with_series_both_axes": 180,
+    "points_both_axes": 67653,
+    "sources_both_axes": 24,
+    "time_series_both_axes": 191,
+    "marker_series_both_axes": 99,
+    "labelled_series_both_axes": 120,
+    "local_ocr_series_both_axes": 6,
+    "spline_interior_not_recovered_both_axes": 19,
+    "axis_kinds_both_axes": {
+     "LINEAR/LINEAR": 878,
+     "LOG10/LINEAR": 59,
+     "LINEAR/LOG10": 10,
+     "LOG10/LOG10": 2,
+     "DATE/LINEAR": 1
+    },
+    "median_rel_y_error_both_axes": 0.0067,
+    "flags_all": {
+     "AVAILABILITY_UNKNOWN": 103,
+     "LEGEND_UNMATCHED": 1926,
+     "LOCAL_OCR_CALIBRATION": 17,
+     "MODEL_HINT_IN_CAPTION": 25,
+     "MULTI_CHAIN_STYLE": 1647,
+     "SCOPE_INHERITED_FROM_SOURCE": 2061,
+     "SPLINE_INTERIOR_NOT_RECOVERED": 19,
+     "X_UNCALIBRATED": 982,
+     "Y_UNCALIBRATED": 740
+    },
+    "status_pairs": {
+     "DERIVATION/AUTO_EXTRACTED_UNREVIEWED": 2061
+    }
+   }
+  },
+  "route_agreement_matched_series": {
+   "definition": "series matched by label or colour; max over points of the distance to the nearest point of the other route, normalised by the figure-wide x and y spans",
+   "n": 696,
+   "share_le_1e-3": 0.523,
+   "share_le_1e-2": 0.681,
+   "median": 0.0006605953344835025
+  },
+  "parse_seconds_per_figure": {
+   "A_median": 0.1225,
+   "A_max": 5.337,
+   "B_median": 0.184,
+   "B_max": 15.495,
+   "note": "B excludes the AutoCAD import (see route_b_import)"
+  },
+  "errors": {
+   "A": 0,
+   "B": 0
+  },
+  "ocr_helper": {
+   "engine": "tesseract",
+   "version": "tesseract 5.5.3",
+   "lang": "eng",
+   "psm": 7,
+   "whitelist": "0123456789.,-/",
+   "render_dpi": 600,
+   "calls": 909,
+   "use": "calibration of a derived object only; not corpus text, not canon"
+  }
+ },
+ "raster_sweep": {
+  "selection": "raster figures (layout RASTER_IMAGE, or no native vectors) of the pages that the monitoring catalogue marks FIGURE_VALUES_DIGITIZED_APPROX / FIGURE_READ; canonical figure boxes",
+  "figures": 55,
+  "sources": 7,
+  "axis_status": {
+   "Y_UNCALIBRATED": 12,
+   "NO_AXES": 11,
+   "OK": 20,
+   "X_UNCALIBRATED": 12
+  },
+  "figures_with_any_series": 36,
+  "series_all": 215,
+  "points_all": 13064,
+  "series_both_axes": 48,
+  "figures_with_series_both_axes": 12,
+  "points_both_axes": 4163,
+  "sampling": {
+   "POLYLINE_VERTICES": 109,
+   "CENTRELINE": 101,
+   "AT_SERIES_MARKERS": 5
+  },
+  "seconds_total": 287.6,
+  "ocr_calls": 823,
+  "errors": 0
+ },
+ "showcase": [
+  {
+   "tag": "S1_034_p4_fig3_trough_profiles",
+   "figure_id": "VKM-SRC-034:p0004:fd01f920beac9",
+   "kind": "trough profiles, 15 epochs x 110 benchmarks",
+   "route_A": {
+    "axis_status": "OK",
+    "series": 15,
+    "x_method": "SNAPPED_TO_TICKS",
+    "y_method": "SNAPPED_TO_TICKS"
+   },
+   "route_B": {
+    "axis_status": "OK",
+    "series": 15
+   },
+   "max_rel_diff_A_B": 3.6e-09,
+   "points_per_matched_series_A_B": [
+    [
+     110,
+     110
+    ]
+   ]
+  },
+  {
+   "tag": "S2_034_p4_fig4_benchmark98_vs_time",
+   "figure_id": "VKM-SRC-034:p0004:f9f8f383696d0",
+   "kind": "one benchmark vs time, date labels drawn as glyph outlines",
+   "route_A": {
+    "axis_status": "OK",
+    "series": 1,
+    "x_method": "OCR_GLYPH_LABELS",
+    "y_method": "SNAPPED_TO_TICKS"
+   },
+   "route_B": {
+    "axis_status": "OK",
+    "series": 1
+   },
+   "max_rel_diff_A_B": 0.024,
+   "points_per_matched_series_A_B": [
+    [
+     18,
+     14
+    ]
+   ]
+  },
+  {
+   "tag": "S3_034_p3_fig2a_benchmarks_epochs",
+   "figure_id": "VKM-SRC-034:p0003:f7e35ee505c30",
+   "kind": "benchmarks x epochs, inverted y axis",
+   "route_A": {
+    "axis_status": "OK",
+    "series": 10,
+    "x_method": "SNAPPED_TO_TICKS",
+    "y_method": "SNAPPED_TO_TICKS"
+   },
+   "route_B": {
+    "axis_status": "OK",
+    "series": 10
+   },
+   "max_rel_diff_A_B": 0.00013,
+   "points_per_matched_series_A_B": [
+    [
+     10,
+     10
+    ]
+   ]
+  },
+  {
+   "tag": "S4_034_p3_fig2v_convergence_vs_time",
+   "figure_id": "VKM-SRC-034:p0003:fcd3717e9d49a",
+   "kind": "convergence vs time",
+   "route_A": {
+    "axis_status": "OK",
+    "series": 3,
+    "x_method": "SNAPPED_TO_TICKS",
+    "y_method": "SNAPPED_TO_TICKS"
+   },
+   "route_B": {
+    "axis_status": "OK",
+    "series": 3
+   },
+   "max_rel_diff_A_B": 0.00011,
+   "points_per_matched_series_A_B": [
+    [
+     11,
+     11
+    ]
+   ]
+  },
+  {
+   "tag": "S5_017_p3_fig2_diff_settlement_vs_time",
+   "figure_id": "VKM-SRC-017:p0003:f8b971a665e91",
+   "kind": "differential settlement vs time, 6 gauges x 412 points",
+   "route_A": {
+    "axis_status": "OK",
+    "series": 6,
+    "x_method": "SNAPPED_TO_TICKS",
+    "y_method": "SNAPPED_TO_TICKS"
+   },
+   "route_B": {
+    "axis_status": "OK",
+    "series": 6
+   },
+   "max_rel_diff_A_B": 8.8e-07,
+   "points_per_matched_series_A_B": [
+    [
+     412,
+     412
+    ]
+   ]
+  },
+  {
+   "tag": "R1_011_p131_fig4_7b_skru1_line12",
+   "source_id": "VKM-SRC-011",
+   "page": 131,
+   "figure_id": null,
+   "kind": "raster, SKRU-1 profile line 12, 5 epochs"
+  },
+  {
+   "tag": "R2_024_p83_fig26_profile_2_2",
+   "source_id": "VKM-SRC-024",
+   "page": 83,
+   "figure_id": null,
+   "kind": "raster Excel chart with a data table (analogue, not VKM)"
+  },
+  {
+   "tag": "R3_024_p83_fig27_profile_2_3",
+   "source_id": "VKM-SRC-024",
+   "page": 83,
+   "figure_id": null,
+   "kind": "raster Excel chart with a data table (analogue, not VKM)"
+  },
+  {
+   "tag": "R4_002_p15_line6",
+   "source_id": "VKM-SRC-002",
+   "page": 15,
+   "figure_id": null,
+   "kind": "raster, levelling and InSAR along a line"
+  },
+  {
+   "tag": "R5_012_p51_fig2_8_line1",
+   "source_id": "VKM-SRC-012",
+   "page": 51,
+   "figure_id": null,
+   "kind": "raster, 26 epochs with a legend (failure example)"
+  }
+ ],
+ "showcase_note": "S*: vector figures, crops of the canonical page (CAD job CADJ-20260929T085856Z-4c8b4f0f); R*: raster regions set by hand; images, point tables and calibration files stay in the git-ignored work/fd_showcase/ of the main checkout",
+ "validations": [
+  {
+   "what": "glyph-outline date labels read by the local OCR helper",
+   "figure_id": "VKM-SRC-034:p0004:f9f8f383696d0",
+   "result": "14 of 14 dates read correctly (checked against the rendered page); date-axis fit rms 0.034 pt"
+  },
+  {
+   "what": "cross-check of two figures of one work",
+   "figure_ids": [
+    "VKM-SRC-034:p0004:f9f8f383696d0",
+    "VKM-SRC-034:p0004:fd01f920beac9"
+   ],
+   "result": "the 9 vertices of 2010-2022 fall on the 9 survey dates of the legend of the other figure; values agree at category position 99 within 0.5 mm; at position 98 up to 7 mm (benchmark indexing ambiguous by one; recorded, not resolved)"
+  },
+  {
+   "what": "raster route vs printed data tables under the charts (showcase regions)",
+   "source_id": "VKM-SRC-024",
+   "page": 83,
+   "result": "12 and 11 vertices; y within 0.5 mm and 0.8 mm of the printed values; x categorical, uncalibrated"
+  },
+  {
+   "what": "raster route vs the manual digitization already in PUBLIC evidence",
+   "source_id": "VKM-SRC-002",
+   "page": 15,
+   "result": "levelling rms 2.4 mm (n = 24), InSAR rms 1.1 mm (n = 12); large markers fragment the curves, points from the centreline"
+  },
+  {
+   "what": "raster route on the SKRU-1 plot (manual region; no separate canonical figure object)",
+   "source_id": "VKM-SRC-011",
+   "page": 131,
+   "result": "5 epochs x 28-29 benchmarks; x by 38 counted markers with 10 agreeing labels; y linear, 6 labels; about 6-7 mm per point; ink recall 0.96, redraw precision 0.874; gaps under inline labels and a faint trough bottom not filled"
+  },
+  {
+   "what": "raster failure example",
+   "source_id": "VKM-SRC-012",
+   "page": 51,
+   "result": "y labels not read; 26 similar colours fragment; legend not matched"
+  },
+  {
+   "what": "hidden page text",
+   "source_id": "VKM-SRC-017",
+   "page": 3,
+   "result": "page text 4605 chars, 752 outside the visible page (442 of 1202 spans); full-page import 221 MTEXT, 155 without a visible counterpart; figure crop 25 MTEXT, 3 dropped as unconfirmed, 1 merged row split"
+  },
+  {
+   "what": "visual spot checks of the sweep (route B, axes OK; seed 20260929; two rounds of 8)",
+   "figure_ids_round_1": [
+    "VKM-SRC-202:p0156:ff3a2a5545b0a",
+    "VKM-SRC-204:p0095:f300fa3624def",
+    "VKM-SRC-193:p0646:f637776e12238",
+    "VKM-SRC-236:p0350:f043fe5a997de",
+    "VKM-SRC-202:p0064:f4bf5dc31ff7b",
+    "VKM-SRC-045:p0067:fd0e764af0f2e",
+    "VKM-SRC-204:p0107:fa106470e6a7e",
+    "VKM-SRC-135:p0005:f4a2a6757351f"
+   ],
+   "figure_ids_round_2": [
+    "VKM-SRC-202:p0150:f73f3269d0be0",
+    "VKM-SRC-202:p0156:f35dd12067e4a",
+    "VKM-SRC-193:p0646:f34ffd85bc649",
+    "VKM-SRC-226:p0606:fc0485ff97ee6",
+    "VKM-SRC-202:p0047:f92e102aa7dba",
+    "VKM-SRC-045:p0045:f831934942dc7",
+    "VKM-SRC-203:p0216:f33928ef08f30",
+    "VKM-SRC-116:p0004:f56962fa66631"
+   ],
+   "result": "fixed after the checks: dash outlines taken as series, a benchmark number taken as a legend label, grey data curves and markers lost, multi-piece spline vertices; unsolved: dashed curves drawn as separate dashes"
+  }
+ ],
+ "raster_pages": {
+  "VKM-SRC-001": [
+   10,
+   11,
+   13,
+   16,
+   18
+  ],
+  "VKM-SRC-002": [
+   12,
+   14,
+   15
+  ],
+  "VKM-SRC-003": [
+   42,
+   43,
+   47,
+   66,
+   70,
+   72,
+   73
+  ],
+  "VKM-SRC-004": [
+   6,
+   8,
+   9,
+   10,
+   13
+  ],
+  "VKM-SRC-007": [
+   8
+  ],
+  "VKM-SRC-011": [
+   131
+  ],
+  "VKM-SRC-012": [
+   46,
+   47,
+   49,
+   50,
+   51,
+   52,
+   56,
+   103,
+   104,
+   105,
+   107
+  ],
+  "VKM-SRC-024": [
+   82,
+   83,
+   84,
+   85
+  ],
+  "VKM-SRC-034": [
+   2
+  ]
+ },
+ "determinism": "final code (1f7a871, fd-0.1.2): two runs of python -m vkm_corpus.figures.sweep digitize gave identical sha256 of figure_series_v0.jsonl and .parquet; at fd-0.1.1 the work script (two runs) and the driver gave the same jsonl byte for byte",
+ "datasets": {
+  "figure_series_v0.parquet": {
+   "bytes": 3899245,
+   "sha256": "4201c7a8ad6ee597a96bdfd9edf9314fd44dd138f6cd1505b37205ccc9d61807",
+   "rows": 3968
+  },
+  "figure_series_v0.jsonl": {
+   "bytes": 46095388,
+   "sha256": "25a6f22da37fa87ba504d385fc5e90d17dfe3f67df8a30a2db5600b8ad0a1ed8",
+   "rows": 3968
+  },
+  "figure_series_raster_v0.parquet": {
+   "bytes": 181076,
+   "sha256": "d679c88b950d95cbccc07f911101f18ca9540ca483ed5228b9c73f03b8ed9ceb",
+   "rows": 215
+  },
+  "figure_series_raster_v0.jsonl": {
+   "bytes": 2632549,
+   "sha256": "70fec2ef8d9c763d8e754fa6394a4bb6bc53bce3ab40cf96c76c00435af9356b",
+   "rows": 215
+  }
+ },
+ "placement": "WORKSTATION: NAV-like part nav/out/figure_series/<snapshot>/ (parquet, jsonl, manifest.json); not loaded to CORE; not committed; no values in PUBLIC",
+ "not_done": [
+  "pages with /Rotate != 0 (31 candidate figures) skipped",
+  "dashed and dash-dot curves drawn as separate dashes: fragments",
+  "monochrome drawings with several curves: labels not matched to curves (MULTI_CHAIN_STYLE)",
+  "categorical axes with text labels: x left uncalibrated",
+  "raster: low resolution, many similar colours, large markers, axes without lines",
+  "observation vs model result and mine attribution: at review only",
+  "no review queue, no NAV stage, nothing loaded to CORE"
+ ]
+}
