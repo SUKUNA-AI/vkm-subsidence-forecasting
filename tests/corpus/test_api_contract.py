@@ -275,6 +275,37 @@ def test_rerank_text_late_backend_scores_through_the_token_store(tmp_path, monke
     assert fakes["rerank"].text_calls                                               # the old path on request
 
 
+def test_hybrid_backend_late_rerank_calls_the_token_store_and_maps_errors():
+    """The real HybridBackend carries late_rerank (29.09: the method first landed on the BM25 backend and the fake
+    hid it) and maps a late-stage failure to the API error of that stage."""
+    from types import SimpleNamespace
+
+    from vkm_corpus.api.backends import HybridBackend
+    from vkm_corpus.api.errors import ApiFailure
+    from vkm_corpus.search.hybrid import HybridError
+
+    class Embed:
+        def __init__(self, fail=None):
+            self.fail, self.calls = fail, []
+
+        def late_scores(self, query, targets):
+            self.calls.append((query, targets))
+            if self.fail is not None:
+                raise self.fail
+            return SimpleNamespace(results={t["id"]: {"status": "SCORED", "late_score": 1.0} for t in targets})
+
+    settings = SimpleNamespace(opensearch_index_prefix="vkm")
+    visual = SimpleNamespace(enabled=False, mode="exact", ef_search=None)
+    target = [{"id": "VKM-SRC-001:p0001", "kind": "PAGE"}]
+    ok = HybridBackend(settings, search=object(), embed=Embed(), late_default=True, visual=visual)
+    assert ok.late_rerank("q", target).results["VKM-SRC-001:p0001"]["status"] == "SCORED"
+    down = HybridError("DEPENDENCY_UNAVAILABLE", "token store down", stage="late", tool="rx580-retrieval")
+    bad = HybridBackend(settings, search=object(), embed=Embed(fail=down), late_default=True, visual=visual)
+    with pytest.raises(ApiFailure) as err:
+        bad.late_rerank("q", target)
+    assert err.value.code == "DEPENDENCY_UNAVAILABLE"
+
+
 def service_texts(env, ids):
     service = env[3]
     return {k: v["text"] for k, v in service.canon.rerank_texts(ids).items()}
