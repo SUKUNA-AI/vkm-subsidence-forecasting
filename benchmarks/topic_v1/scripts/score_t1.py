@@ -6,6 +6,7 @@ usage: PYTHONPATH=src python benchmarks/topic_v1/scripts/score_t1.py [--out benc
 Environment: ``TOPIC_RUNS`` and ``TD_WORK`` as for pool_t1.py (the rankings are rebuilt from the frozen raw answers).
 The metric code is the frozen ``vkm_corpus.retrieval_lab.topic_bench``; ``metrics_spec_v1.json`` and ``results_v1.json``
 are not touched. The output holds IDs and numbers only. ``p_topics`` builds truth P for any other scorer (agent GS).
+``post_hoc`` adds diagnostics that were not pre-registered (block ``post_hoc`` of the output, descriptive).
 """
 from __future__ import annotations
 
@@ -16,6 +17,7 @@ import math
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
+from statistics import mean, median
 
 REPO = Path(__file__).resolve().parents[3]
 BENCH = REPO / "benchmarks" / "topic_v1"
@@ -34,6 +36,8 @@ JUDGED_K = (10, 20, 50)
 SECONDARY = (("D1", "hybrid_late"),)
 MAIN_METRICS = ("page_recall@10", "page_recall@20", "page_recall@50", "mrr@50", "source_recall@10", "success@10",
                 "section_hit@10", "section_pages@10")
+POST_HOC_METRICS = ("page_recall@10", "page_recall@20", "page_recall@50", "capped_recall@10", "mrr@50", "success@10",
+                    "source_recall@10")
 
 
 def p_topics(topics: list[TB.Topic], rows: list[dict[str, str]], groups: list[dict], min_grade: int = 2
@@ -131,14 +135,27 @@ def order(summary: dict, systems: tuple[str, ...], metric: str) -> list[str]:
     return sorted(systems, key=lambda s: (-(summary[s][metric] or 0.0), s))
 
 
+def unit_rows(rows: list[dict[str, str]], groups: list[dict]) -> list[dict]:
+    """One row per label unit (the row of its first page) with ``systems``: {system: best rank} over all pages of the
+    unit (``pooled_from`` of a row covers its own page only)."""
+    first_of = {(g["topic_id"], p): g["pages"][0] for g in groups for p in g["pages"]}
+    systems: dict[tuple[str, str], dict[str, int]] = defaultdict(dict)
+    for r in rows:
+        d = systems[(r["query_id"], first_of.get((r["query_id"], r["doc_id"]), r["doc_id"]))]
+        for x in r["pooled_from"].split(","):
+            s, k = x.split("@")
+            d[s] = min(d.get(s, int(k)), int(k))
+    return [{**r, "systems": systems[(r["query_id"], r["doc_id"])]} for r in rows
+            if first_of.get((r["query_id"], r["doc_id"]), r["doc_id"]) == r["doc_id"]]
+
+
 def label_stats(rows: list[dict[str, str]], groups: list[dict], topics: list[TB.Topic]) -> dict:
     track = {t.topic_id: t.track for t in topics}
-    later = {(g["topic_id"], p) for g in groups for p in g["pages"][1:]}
-    units = [r for r in rows if (r["query_id"], r["doc_id"]) not in later]
+    units = unit_rows(rows, groups)
     sweep = PT.SWEEP_SOURCES
 
-    def origin(r: dict[str, str]) -> str:
-        return PT.origin({x.split("@")[0]: int(x.split("@")[1]) for x in r["pooled_from"].split(",")})
+    def origin(r: dict) -> str:
+        return PT.origin(r["systems"])
 
     out = {"rows": len(rows), "units": len(units),
            "by_grade": dict(sorted(Counter(int(r["grade"]) for r in units).items())),
@@ -153,11 +170,84 @@ def label_stats(rows: list[dict[str, str]], groups: list[dict], topics: list[TB.
            "evidence_units_by_system": {}, "evidence_share_by_system": {}}
     by_sys = defaultdict(list)
     for r in units:
-        for x in r["pooled_from"].split(","):
-            by_sys[x.split("@")[0]].append(int(r["grade"]))
+        for s in r["systems"]:
+            by_sys[s].append(int(r["grade"]))
     for s, gs in sorted(by_sys.items()):
         out["evidence_units_by_system"][s] = sum(1 for g in gs if g >= 2)
         out["evidence_share_by_system"][s] = round(sum(1 for g in gs if g >= 2) / len(gs), 4)
+    return out
+
+
+def core_sources() -> frozenset[str]:
+    """Sources of the dossier core tier recorded in TERM_DICTIONARY_V1 stage A (evidence-catalogue sources + register
+    scope VKM/SKRU/regional): the tier D0 and D1 put first."""
+    a = json.load(open(PT.env_path("TD_WORK") / "stage_a.json", encoding="utf-8"))
+    return frozenset(a["dossier"]["core_sources"])
+
+
+def restrict(topics: list[TB.Topic], keep) -> list[TB.Topic]:
+    """The topics with only the targets whose source passes ``keep``; topics left without targets are dropped."""
+    out = []
+    for t in topics:
+        tg = tuple(x for x in t.targets if keep(x.source_id))
+        if tg:
+            out.append(TB.Topic(t.topic_id, t.track, t.group, t.title, t.queries, tg))
+    return out
+
+
+def post_hoc(truths: dict[str, list[TB.Topic]], rankings: dict[str, dict[str, TB.Ranking]],
+             judged: dict[str, dict[str, frozenset[str]]], qrels: list[dict[str, str]], groups: list[dict],
+             rows_by_truth: dict[str, list[dict]]) -> dict:
+    """Diagnostics computed after the pre-registered metrics (not pre-registered, descriptive): truth P split by the
+    dossier core tier, the first evidence page at rank 1, the source_recall@10 ceiling, the evidence share by the
+    number of pooled systems that brought a unit, and the catalogued-source share of every system's pooled units."""
+    core = core_sources()
+    out: dict = {"note": "post hoc, not pre-registered; descriptive (the p-values of the D1 - hybrid_late checks too)",
+                 "core_tier_sources": len(core), "core_tier_sources_in_catalogued_39": len(core & PT.SWEEP_SOURCES)}
+    for name, keep in (("P_core_tier", lambda s: s in core), ("P_outside_core_tier", lambda s: s not in core)):
+        ts = restrict(truths["P"], keep)
+        rows = [r for r in score_rows(ts, rankings, judged["P"]) if r["system"] in POOLED]
+        summ = TB.aggregate(rows, ["system"])
+        out[name] = {"topics": len(ts), "targets": sum(len(t.targets) for t in ts),
+                     "summary": {s: {m: summ[s][m] for m in POST_HOC_METRICS} for s in POOLED},
+                     "comparisons": TB.compare_systems(rows, SECONDARY)}
+    out["first_evidence_at_rank1_share"] = {
+        name: {s: round(mean(1.0 if r["mrr@50"] == 1.0 else 0.0 for r in rows if r["system"] == s), 4)
+               for s in POOLED} for name, rows in rows_by_truth.items()}
+    out["source_recall10_ceiling"] = {"rule": "mean over topics of min(1, 10 / target sources): 10 pages cover at most "
+                                              "10 sources (duplicate aliases aside)"}
+    for name, ts in truths.items():
+        n_src = [len({x.source_id for x in t.targets}) for t in ts]
+        out["source_recall10_ceiling"][name] = {
+            "target_sources_per_topic_mean": round(mean(n_src), 2), "target_sources_per_topic_median": median(n_src),
+            "ceiling_mean": round(mean(min(1.0, 10 / n) for n in n_src), 4),
+            "topics_with_more_than_10_target_sources": sum(1 for n in n_src if n > 10)}
+    n_sys: Counter = Counter()
+    n_ev: Counter = Counter()
+    only: Counter = Counter()
+    split: dict[str, Counter] = defaultdict(Counter)
+    for r in unit_rows(qrels, groups):
+        systems = set(r["systems"])
+        ev = int(r["grade"]) >= 2
+        inside = r["doc_id"].split(":")[0] in PT.SWEEP_SOURCES
+        n_sys[len(systems)] += 1
+        n_ev[len(systems)] += ev
+        if ev and len(systems) == 1:
+            only[next(iter(systems))] += 1
+        for s in systems:
+            c = split[s]
+            c["units"] += 1
+            c["in39"] += inside
+            c["ev_in39"] += ev and inside
+            c["ev_out"] += ev and not inside
+    out["evidence_by_number_of_systems"] = {str(k): {"units": n_sys[k], "evidence_share": round(n_ev[k] / n_sys[k], 4)}
+                                            for k in sorted(n_sys)}
+    out["evidence_units_brought_by_one_system_only"] = dict(sorted(only.items()))
+    out["catalogued_39_split"] = {
+        s: {"units": c["units"], "share_in_39": round(c["in39"] / c["units"], 4),
+            "evidence_share_in_39": round(c["ev_in39"] / max(c["in39"], 1), 4),
+            "evidence_share_outside_39": round(c["ev_out"] / max(c["units"] - c["in39"], 1), 4)}
+        for s, c in sorted(split.items())}
     return out
 
 
@@ -219,6 +309,7 @@ def main() -> None:
             out["order"][name] = {m: order(summ, POOLED, m) for m in ("page_recall@20", "mrr@50", "page_recall@50")}
     out["order"]["kendall_tau_V_P"] = {m: kendall_tau(out["order"]["V"][m], out["order"]["P"][m])
                                        for m in ("page_recall@20", "mrr@50", "page_recall@50")}
+    out["post_hoc"] = post_hoc(truths, rankings, judged, qrels, groups, rows_by_truth)
     cols = ["query_id", "system", "page_recall@10", "page_recall@20", "page_recall@50", "mrr@50", "success@10",
             "source_recall@10", "judged@10"]
     per_query = [[(round(r[c], 4) if isinstance(r[c], float) else r[c]) for c in cols] for r in rows_by_truth["P"]]
@@ -278,6 +369,8 @@ def tables(out: dict) -> None:
                      out["acceptance"][name].items()})
     print(json.dumps(out["labels"], ensure_ascii=False))
     print(json.dumps(out["truths"], ensure_ascii=False))
+    print("\n### Апостериорно\n")
+    print(json.dumps(out["post_hoc"], ensure_ascii=False, indent=1))
 
 
 if __name__ == "__main__":

@@ -17,8 +17,9 @@ matches a catalogue target of its topic (primary page, alternate or duplicate al
     ingest   ``$LB_WORK/judgments/*.txt`` (lines ``<topic_id>|<cid>|<grade>|<CODE>``) → checks →
              ``qrels_topic_v1_pooled.tsv`` (IDs, grades, provenance, reason codes; no corpus text) and
              ``qrels_topic_v1_pooled_groups.json`` (units with several pages or duplicate aliases)
-    hsample  seeded review sample stratified by grade: ``--draw`` → ``$LB_WORK/h_review/`` (sample, key, text windows for
-             the reviewer and a description sheet to fill); ``--write`` → ``H_REVIEW_SAMPLE_T1.md`` (blind)
+    hsample  seeded review sample stratified by grade: ``--draw`` → ``$LB_WORK/h_review/`` (sample, key, the whole text of
+             the sampled pages for the reviewer and a description sheet to fill); ``--write`` → ``H_REVIEW_SAMPLE_T1.md``
+             (blind)
     hscore   agreement of a filled review file with the agent grades: ``hscore <filled H_REVIEW_SAMPLE_T1.md>``
 
 Environment (all outside git): ``LB_WORK`` (work dir), ``TOPIC_RUNS`` (dir with runs_v1.jsonl, runs_v1_pool.jsonl,
@@ -67,7 +68,7 @@ CODES = {
 # packets (POOL_LABELING_V1.md §5)
 WINDOW_CHARS, PAGE_BUDGET, FULL_PAGE_CHARS, HEAD_CHARS, CHUNK_CHARS = 400, 1000, 1100, 100, 200
 CAPTION_CHARS, MAX_CAPTIONS, PAGES_PER_PACKET, UNITS_PER_PACKET = 110, 2, 60, 130
-FORMULA_PREVIEWS, FORMULA_CHARS, SNIPPET_REVIEW_CHARS = 3, 90, 2500
+FORMULA_PREVIEWS, FORMULA_CHARS = 3, 90
 # review sample (POOL_LABELING_V1.md §8)
 HSAMPLE_PER_GRADE, HSAMPLE_SEED = 15, 20260929
 SWEEP_SOURCES = frozenset(TB.SWEEP_SOURCES)
@@ -846,7 +847,7 @@ def hsample() -> None:
             d = defs[k["topic_id"]]
             text = re.sub(r"\s+", " ", pages.get(k["page_id"], {}).get("text", "")).strip()
             snip += [f"## {k['n']}. {k['topic_id']} → {k['page_id']}", f"Тема: {d['title']}",
-                     short(text, SNIPPET_REVIEW_CHARS), ""]
+                     text, ""]                  # the whole page: the reviewer is not steered by the labeller's windows
             sheet.append(f"{k['n']}|")
         (hdir / "H_REVIEW_SNIPPETS_T1.md").write_text("\n".join(snip) + "\n", encoding="utf-8")
         if not (hdir / "descriptions.txt").is_file():
@@ -879,9 +880,9 @@ def hsample() -> None:
         "моделей — модель изложена или применена); 2 — существенно, но частично (содержательный абзац, рисунок или "
         "таблица, один аспект); 1 — упоминание, перечень или соседняя тема; 0 — не о теме.",
         "- **Место** (ВКМ, другое месторождение, лаборатория, учебник) на оценку не влияет.",
-        "- **Где читать страницу:** инструмент MCP `get_page` по `page_id` или окна текста выборки на WORKSTATION "
-        "(`$VKM_WORK/lb_t1/h_review/H_REVIEW_SNIPPETS_T1.md`, вне git). Описание в таблице — нейтральный пересказ "
-        "агента, не цитата.",
+        "- **Где читать страницу:** инструмент MCP `get_page` по `page_id` или полный текст страниц выборки на "
+        "WORKSTATION (`$VKM_WORK/lb_t1/h_review/H_REVIEW_SNIPPETS_T1.md`, вне git). Описание в таблице — нейтральный "
+        "пересказ агента, не цитата.",
         "- **Как отвечать:** в колонке «H» поставить свою оценку 0–3. Согласие считает "
         "`python benchmarks/topic_v1/scripts/pool_t1.py hscore <этот файл>`.", "",
         "| # | тема | название темы | page_id | что на странице | H |", "|---|---|---|---|---|---|"]
