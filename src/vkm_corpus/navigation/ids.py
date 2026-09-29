@@ -13,6 +13,8 @@ IDs are content-derived and stable across rebuilds of the same snapshot with the
 * ``DCL-<16 hex>`` — a cluster of near-duplicate passages across sources: its sorted member unit ids.
 * ``PRM-<16 hex>`` — a parameter-value candidate of the part ``parameters``: (anchor block/table/formula, locator
   — character offset or table cell, property key, value text).
+* ``TBL-<16 hex>`` — a structured table of the part ``tables``: the canonical table object id; a cell of it is
+  ``TBL-<16 hex>:r<row>c<col>`` (the position of the cell's top-left corner in the canonical grid).
 """
 from __future__ import annotations
 
@@ -27,7 +29,8 @@ RULE_VERSIONS: dict[str, str] = {
     "duplicates": "duplicates_v1",
     "concepts": "concepts_v1",
     "topics": "topics_v1",
-    "parameters": "parameters_v1",
+    "tables": "tables_v1",
+    "parameters": "parameters_v2",
 }
 
 # derived datasets under $VKM_DATA_ROOT/derived/navigation/<snapshot_id>/<name>.parquet
@@ -37,6 +40,7 @@ DATASETS: tuple[str, ...] = (
     "dup_clusters", "dup_members", "source_overlap",
     "terms", "term_mentions", "term_edges",
     "section_aggregates", "section_vectors", "topics", "topic_members", "topic_edges",
+    "table_structure", "table_cells", "table_columns",
     "parameter_candidates", "parameter_summary",
 )
 
@@ -80,3 +84,11 @@ def dup_cluster_id(unit_ids: Iterable[str]) -> str:
 
 def parameter_candidate_id(anchor_id: str, locator: str, property_key: str, value_text: str) -> str:
     return "PRM-" + _h("vkm-nav-param-v1", anchor_id, locator, property_key, value_text)
+
+
+def table_id(table_object_id: str) -> str:
+    return "TBL-" + _h("vkm-nav-table-v1", table_object_id)
+
+
+def table_cell_id(nav_table_id: str, row: int, col: int) -> str:
+    return f"{nav_table_id}:r{int(row)}c{int(col)}"

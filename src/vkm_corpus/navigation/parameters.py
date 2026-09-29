@@ -7,8 +7,10 @@ returns two Arrow tables:
   (:mod:`vkm_corpus.navigation.parameters_vocab`): property, symbol, material, the value as printed and parsed
   (ranges «10–15», «от … до …», «±», powers «2·10⁻⁵», decimal comma), the unit as printed and in SI, a qualifier,
   a scale hint (LAB / MASSIF / NORMATIVE / MODEL / UNKNOWN from context words), a site hint (ВКМ, СКРУ-1…, БКПРУ-…,
-  other deposits as ``ANALOGUE:…``, UNKNOWN), the method (``TABLE`` — a cell of ``canonical.tables``; ``TEXT`` — a
-  text block; ``NEAR_FORMULA`` — N2's value next to a formula whose where-clause defines the symbol) and the locator
+  other deposits as ``ANALOGUE:…``, UNKNOWN), the method (``TABLE`` — a cell of ``canonical.tables``, read through
+  the structured grid of the part ``tables`` when the build has it (rule ``parameters_v2``); ``TEXT`` — a text block
+  outside such a grid; ``NEAR_FORMULA`` — N2's value next to a formula whose where-clause defines the symbol) and
+  the locator
   (source, page, N1 section, block or table cell, character span of the value in
   ``canonical.blocks.normalized_text``);
 * ``parameter_summary`` — per (property, material, scale hint, SI unit): counts of candidates, sources and pages and
@@ -438,6 +440,8 @@ _EXCLUDE_BEFORE: dict[str, re.Pattern] = {
     # «deceleration of subsidence by 3–5 cm»: a change of the movement, not a subsidence
     "subsidence": re.compile(r"(?:decelerat|accelerat|замедлени|ускорени)\w*\s+(?:of\s+)?$", re.I),
 }
+# «модуль деформации (секущий) на пределе прочности (Dпр, ГПа)»: a point of the curve, not the strength itself
+_AT_STRENGTH_LIMIT = re.compile(r"(?<![\w-])(?:на|при|до)\s+$")
 # «… на контуре до 0,2 % на глубине 1 м», «в кровле на глубине 2 м»: a distance into the rock, not a depth of mining
 _INTO_ROCK_BEFORE = re.compile(r"(?:контур|стенк|обнажени|кровл|почв|целик|забо)\w*", re.I)
 _EXCLUDE_AFTER: dict[str, re.Pattern] = {
@@ -490,6 +494,9 @@ def find_mentions(plain: str, low: str) -> list[Mention]:
                 continue
             if p.key == "depth" and low.startswith("на глубин", m.start()) and _INTO_ROCK_BEFORE.search(
                     low[max(0, m.start() - 30):m.start()]):
+                continue
+            if p.key == "strength_unspecified" and low.startswith("предел", m.start()) and \
+                    _AT_STRENGTH_LIMIT.search(low[max(0, m.start() - 6):m.start()]):
                 continue
             ea = _EXCLUDE_AFTER.get(p.key)
             if ea is not None and ea.search(low[m.end():m.end() + 30]):
@@ -1161,7 +1168,7 @@ def _respectively(cands: list[Cand], low: str, mats: list[Tagged]) -> None:
 
 _PENALTY_FLAGS = frozenset({"MATERIAL_AMBIGUOUS", "SERIES", "HEADER_MULTIPLIER", "SYMBOL_ONLY_HEADER",
                             "SCALE_CONFLICT", "SITE_CONFLICT", "ALTERNATIVE_IN_PARENS", "SYMBOL_DEFINED_IN_SOURCE",
-                            "CROSS_BLOCK", "PROPERTY_FROM_CAPTION"})
+                            "CROSS_BLOCK", "PROPERTY_FROM_CAPTION", "DECIMAL_POINT_SUSPECT"})
 
 
 def _confidence(c: Cand, method: str) -> float:
@@ -1183,11 +1190,15 @@ def _confidence(c: Cand, method: str) -> float:
 
 
 # ================================================================================================= tables
-_STAT = (("min", re.compile(r"(?<![\w-])(?:min|мин\.?|минимальн\w*|наименьш\w*)(?![\w-])", re.I)),
-         ("max", re.compile(r"(?<![\w-])(?:max|макс\.?|максимальн\w*|наибольш\w*)(?![\w-])", re.I)),
-         ("mean", re.compile(r"(?<![\w-])(?:mean|average|avg|ср\.|средн\w*|сред\.)(?![\w-])", re.I)))
+# «м/мин», «об/мин»: minutes of a unit, not a minimum («/» in the look-behind)
+_STAT = (("min", re.compile(r"(?<![\w/-])(?:min|мин\.?|минимальн\w*|наименьш\w*)(?![\w-])", re.I)),
+         ("max", re.compile(r"(?<![\w/-])(?:max|макс\.?|максимальн\w*|наибольш\w*)(?![\w-])", re.I)),
+         ("mean", re.compile(r"(?<![\w/-])(?:mean|average|avg|ср\.|средн\w*|сред\.)(?![\w-])", re.I)))
 _UNITS_HEADER = re.compile(r"(?:ед(?:\.|иниц\w*)\s*(?:изм(?:\.|ерени\w*)?)?|размерност\w*|\bunits?\b)", re.I)
-_GENERIC_VALUE_HEADER = re.compile(r"^\s*(?:значени\w*|величин\w*|показател\w*|value|values|параметр\w*)?\s*$", re.I)
+# a column of values of the row's quantity («Значение», «Range», «Default»): not a symbol of another quantity
+_GENERIC_VALUE_HEADER = re.compile(r"^\s*(?:значени\w*|величин\w*|показател\w*|value|values|параметр\w*|range|"
+                                   r"default|typical|reference|base\s+case|диапазон\w*|пределы\s+изменени\w*)?\s*$",
+                                   re.I)
 _METHOD_HEADER = re.compile(r"(?<![\w-])(?:метод\w*|method\w*|способ\w*|средн\w*|mean|average|min|max|мин\.?|"
                             r"макс\.?|минимальн\w*|максимальн\w*)(?![\w-])", re.I)
 _LITHO_HEADER = re.compile(r"тип\w* пород|(?<![\w-])пород\w*|литолог\w*|состав\w*|lithology|rock type|\brock\b", re.I)
@@ -1251,11 +1262,17 @@ def cell_plain(text: str | None) -> str:
 
 _HEADER_SEP = re.compile(r"(?P<sep>,|\(|(?<![\w-])в\s|;|:)?\s*")
 _STAT_WORD = re.compile(r"^\s*(?:min|мин\.?|max|макс\.?)\s*$", re.I)
+# «при 20 °C», «At 293 K», «σ3 = 5 МПа»: a unit right after a standalone number is a condition, not the unit of the
+# column (an index «σ1 МПа», a power «10^3 МПа», «10-3 1/сут» is no standalone number)
+_AFTER_NUMBER = re.compile(r"(?:^|[\s=(≈~<>≤≥])[-−–]?\d+(?:[.,]\d+)?\s*$")
+_CONDITION_TAIL = re.compile(r"\s*[,;(/]?\s*(?:при|at|for|t\s*=|т\s*=)\s*[-−–]?\d[\d.,]*\s*[^\s\d]{0,6}\s*\)?\s*$",
+                             re.I)
 
 
 def header_unit(text: str) -> Unit | None:
     """The unit of a header: the first one after an explicit separator («Модуль деформации, ГПа», «σ (МПа) min»),
-    else one that closes the text («Плотность г/см³»); statistics («min», «мин») are not units."""
+    else one that closes the text («Плотность г/см³») or is followed only by a condition («…, GPa at 293 K»);
+    statistics («min», «мин») and conditions («при 20 °C») are not units."""
     tail_end = len(text.rstrip(" )*.:;"))
     fallback, skip_to = None, 0
     for um in _HEADER_SEP.finditer(text):
@@ -1266,9 +1283,12 @@ def header_unit(text: str) -> Unit | None:
         if u is None or _STAT_WORD.match(u.raw):
             continue
         skip_to = u.end
+        if um.group("sep") is None and _AFTER_NUMBER.search(text[:p]) and \
+                not re.search(r"[(,]\s*10[1-9]\d?\s*$", text[:p]):      # «(1021 Pa s)»: 10²¹ with the superscript lost
+            continue
         if um.group("sep"):
             return u
-        if u.end >= tail_end or re.match(r"\s*[),;*]", text[u.end:u.end + 2]):
+        if u.end >= tail_end or re.match(r"\s*[),;*]", text[u.end:u.end + 2]) or _CONDITION_TAIL.match(text, u.end):
             fallback = u
     return fallback
 
@@ -1424,8 +1444,8 @@ def table_candidates(cells: list[dict[str, Any]], n_rows: int | None, n_cols: in
         nums = [c for c in ne if parsed[r][c] is not None]
         return bool(nums) and len(nums) >= 0.5 * max(1, len(ne) - 1) and not numbering_row(r)
 
-    if header_rows is not None and 0 < int(header_rows) < n_rows:
-        n_head = int(header_rows)
+    if header_rows is not None and 0 <= int(header_rows) < n_rows:    # 0: a block of a structured table without
+        n_head = int(header_rows)                                     # a header of its own (canon gives None or ≥ 1)
     else:
         n_head = 0
         while n_head < min(4, n_rows) and not data_row(n_head):
@@ -1982,6 +2002,84 @@ def source_symbol_table(defs: dict[str, dict[str, Counter]]) -> dict[str, dict[s
     return out
 
 
+_STRUCTURE_COLS = ("table_id", "page_id", "n_cols", "blocks", "structure_ok", "covers_region", "bbox_x0", "bbox_y0",
+                   "bbox_x1", "bbox_y1", "bbox_space")
+_CELL_COLS = ("table_id", "row", "col", "row_span", "col_span", "block", "row_role", "text_clean", "flags",
+              "value_type", "is_header")
+_CELL_TEXT_SKIP_ROLES = frozenset({"STAT_DISPERSION", "STAT_COUNT", "REPEATED_HEADER", "NUMBERING"})
+# flags of a structured cell carried to its candidate
+_CELL_FLAGS_KEPT = frozenset({"DECIMAL_POINT_SUSPECT", "POWER_SUPERSCRIPT_LOST"})
+
+
+def _select(obj: Any, con: Any, name: str, cols: tuple[str, ...]) -> list[dict[str, Any]] | None:
+    """Columns of a dataset passed to the builder (Arrow table, rows) or registered in the connection."""
+    if obj is None:
+        return _from_con(con, name, ", ".join(cols))
+    if hasattr(obj, "select") and hasattr(obj, "schema"):
+        return obj.select([c for c in cols if c in obj.schema.names]).to_pylist()
+    return [{c: r.get(c) for c in cols} for r in _rows(obj)]
+
+
+def structured_tables(con: Any, table_structure: Any = None, table_cells: Any = None
+                      ) -> tuple[dict[str, dict[str, Any]], dict[str, list[dict[str, Any]]]] | None:
+    """The part ``tables`` of the same build (passed or registered as ``nav_table_structure`` /
+    ``nav_table_cells``): structure rows by table id and their cells; None when it is absent."""
+    st = _select(table_structure, con, "table_structure", _STRUCTURE_COLS)
+    if not st:
+        return None
+    cells = _select(table_cells, con, "table_cells", _CELL_COLS) or []
+    by_table: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for c in cells:
+        by_table[c["table_id"]].append(c)
+    return {r["table_id"]: r for r in st}, by_table
+
+
+def _covered_regions(structure: dict[str, dict[str, Any]]) -> dict[str, list[tuple[float, float, float, float]]]:
+    """Page → boxes of the tables whose grid stands for their region (``covers_region``)."""
+    out: dict[str, list[tuple[float, float, float, float]]] = defaultdict(list)
+    for r in structure.values():
+        if r.get("covers_region") and r.get("bbox_space") == "PAGE_PT_TL" and None not in (
+                r.get("bbox_x0"), r.get("bbox_y0"), r.get("bbox_x1"), r.get("bbox_y1")):
+            out[r["page_id"]].append((r["bbox_x0"], r["bbox_y0"], r["bbox_x1"], r["bbox_y1"]))
+    return out
+
+
+def structured_table_candidates(cells: list[dict[str, Any]], structure: dict[str, Any], caption: str | None,
+                                label: str | None, lang: str | None, source_symbols: dict[str, str] | None
+                                ) -> list[tuple[Cand, int, int]]:
+    """Candidates of one structured table: :func:`table_candidates` over each block of its grid (cleaned texts,
+    detected header rows; dispersion and count rows, repeated headers and notes left out), located in the canonical
+    grid; a cell's suspect flags (lost decimal point, lost superscript) go to its candidate."""
+    from vkm_corpus.navigation.tables import param_blocks  # noqa: PLC0415 - the tables part imports this module
+
+    out: list[tuple[Cand, int, int]] = []
+    for sub, n_rows, n_cols, head, row_map, flags in param_blocks(cells, structure):
+        for c, r, col in table_candidates(sub, n_rows, n_cols, caption, label, lang, head, source_symbols):
+            row = row_map[r]
+            kept = [f for f in flags.get((row, col), ()) if f in _CELL_FLAGS_KEPT]
+            if kept:
+                c.flags.extend(kept)
+                c.confidence = _confidence(c, "TABLE")
+            out.append((c, row, col))
+    return out
+
+
+def cell_text_candidates(cells: list[dict[str, Any]], lang: str | None, max_gap: int = 150
+                         ) -> list[tuple[Cand, dict[str, Any], list[int]]]:
+    """Values written inside the text of a body cell of a structured table («… на глубине более 300 м»): the text
+    rules over the cell alone, since the text lines of the region are not read — the cell is the whole context, so
+    no neighbouring column leaks in. Returns (candidate, cell, map of the plain cell text to ``text_clean``)."""
+    out: list[tuple[Cand, dict[str, Any], list[int]]] = []
+    for c in cells:
+        t = c.get("text_clean") or ""
+        if c.get("value_type") != "TEXT" or c.get("is_header") or c.get("row_role") in _CELL_TEXT_SKIP_ROLES \
+                or len(t) < 8 or not re.search(r"\d", t) or not re.search(r"[^\W\d_]{3}", t):
+            continue
+        cands, _plain, pmap = text_candidates(t, lang, max_gap=max_gap)
+        out.extend((cand, c, pmap) for cand in cands)
+    return out
+
+
 def _norm_value_text(t: str | None) -> str:
     return re.sub(r"\s+", "", t or "").replace(",", ".").replace("−", "-").replace("–", "-")
 
@@ -2009,9 +2107,13 @@ def _dedupe(recs: list[dict[str, Any]], counters: Counter) -> list[dict[str, Any
 
 # ================================================================================================= build
 def build(con: Any, *, section_pages: Any = None, sections: Any = None, formula_parameters: Any = None,
-          formula_symbols: Any = None, stats: dict[str, Any] | None = None,
-          source_ids: Iterable[str] | None = None, **options: Any) -> dict[str, Any]:
-    """Parameter datasets of the snapshot behind ``con`` (DuckDB with the ``canonical`` schema)."""
+          formula_symbols: Any = None, table_structure: Any = None, table_cells: Any = None,
+          stats: dict[str, Any] | None = None, source_ids: Iterable[str] | None = None,
+          **options: Any) -> dict[str, Any]:
+    """Parameter datasets of the snapshot behind ``con`` (DuckDB with the ``canonical`` schema). With the part
+    ``tables`` of the same build (``table_structure`` + ``table_cells``) a table is read from its structured grid,
+    and the text lines inside a table whose grid stands for its region are not read as text (a table flattened into
+    one line per row takes the unit of a header phrase for every number)."""
     import pyarrow as pa
 
     opts = {**DEFAULTS, **{k: v for k, v in options.items() if k in DEFAULTS}}
@@ -2019,8 +2121,15 @@ def build(con: Any, *, section_pages: Any = None, sections: Any = None, formula_
     counters: Counter = Counter()
     meta = _source_meta(con)
     langs = _source_langs(con)
+    structured = structured_tables(con, table_structure, table_cells)
     # ---- text blocks (parallel): runs of line-blocks, candidates and symbol definitions
     blocks = _load_blocks(con, only)
+    if structured is not None:
+        regions = _covered_regions(structured[0])
+        kept = [b for b in blocks if b[8] not in ("TEXT", "LIST_ITEM")
+                or not _inside_figure(b, regions.get(b[2], ()), share=0.5)]
+        counters["text_blocks_in_tables_skipped"] = len(blocks) - len(kept)
+        blocks = kept
     counters["text_blocks_scanned"] = len(blocks)
     binfo = {b[0]: b for b in blocks}
     runs = [[(b[0], b[7], b[6] or langs.get(b[1])) for b in run] for run in make_runs(blocks)]
@@ -2074,9 +2183,15 @@ def build(con: Any, *, section_pages: Any = None, sections: Any = None, formula_
         if only and sid not in only:
             continue
         counters["tables_scanned"] += 1
+        st = structured[0].get(tid) if structured is not None else None
         try:
-            got = table_candidates(list(cells or []), nr, nc, caption, label, langs.get(sid), hr,
-                                   source_symbols.get(sid))
+            if st is not None and st.get("structure_ok"):
+                got = structured_table_candidates(structured[1].get(tid, []), st, caption, label, langs.get(sid),
+                                                  source_symbols.get(sid))
+                counters["tables_structured"] += 1
+            else:
+                got = table_candidates(list(cells or []), nr, nc, caption, label, langs.get(sid), hr,
+                                       source_symbols.get(sid))
         except Exception:  # noqa: BLE001 - one malformed table must not stop the build
             counters["tables_failed"] += 1
             continue
@@ -2086,6 +2201,15 @@ def build(con: Any, *, section_pages: Any = None, sections: Any = None, formula_
             rec.update({"source_id": sid, "page_id": pid, "page_index": int(pidx), "_ro": None, "_y0": y0,
                         "language": langs.get(sid)})
             recs.append(rec)
+        if st is not None and st.get("structure_ok") and st.get("covers_region"):
+            # the text lines of this region are not read: values inside the text of its cells, cell by cell
+            for c, cell, pmap in cell_text_candidates(structured[1].get(tid, []), langs.get(sid), int(opts["max_gap"])):
+                c.flags.append("CELL_TEXT")
+                rec = _cand_record(c, "TABLE", table_id=tid, row=int(cell["row"]), col=int(cell["col"]), pmap=pmap)
+                rec.update({"source_id": sid, "page_id": pid, "page_index": int(pidx), "_ro": None, "_y0": y0,
+                            "language": langs.get(sid)})
+                recs.append(rec)
+                counters["cell_text_candidates"] += 1
     counters["table_candidates"] = sum(1 for r in recs if r["method"] == "TABLE")
     # ---- values next to formulas (N2's formula_parameters + formula_symbols)
     if fparams and fsyms:
@@ -2137,6 +2261,8 @@ def build(con: Any, *, section_pages: Any = None, sections: Any = None, formula_
             r["scale_hint"], r["scale_basis"] = V.NORMATIVE, "SOURCE_CLASS"
         anchor = r["block_id"] or r["table_id"] or r["formula_id"] or ""
         loc = f"{r['table_row']}:{r['table_col']}" if r["table_id"] else str(r["char_start"])
+        if r["table_id"] and r["char_start"] is not None:          # a value inside the text of a cell
+            loc += f":{r['char_start']}"
         r["candidate_id"] = nav_ids.parameter_candidate_id(anchor, loc, r["property_key"], r["value_text"])
         r["review_status"], r["rule_version"] = REVIEW_STATUS, RULE_VERSION
     uniq: dict[str, dict[str, Any]] = {}
@@ -2145,7 +2271,8 @@ def build(con: Any, *, section_pages: Any = None, sections: Any = None, formula_
     recs = sorted(uniq.values(), key=lambda r: (r["source_id"] or "", r["page_index"], r["candidate_id"]))
     counters["candidates"] = len(recs)
     if stats is not None:
-        stats.update({"counters": dict(sorted(counters.items())), "rule_version": RULE_VERSION})
+        stats.update({"counters": dict(sorted(counters.items())), "rule_version": RULE_VERSION,
+                      "table_input": "table_cells" if structured is not None else "canonical.tables"})
     return {
         "parameter_candidates": pa.Table.from_pylist([{k: r.get(k) for k in CANDIDATE_COLUMNS} for r in recs],
                                                      schema=PARAMETER_CANDIDATES_SCHEMA()),
