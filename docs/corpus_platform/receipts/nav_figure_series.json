@@ -94,15 +94,15 @@
   "points_outside_frame": 121740,
   "series_with_points_outside_frame": 1020,
   "axis_kinds_both_axes": {
+   "DATE/LINEAR": 1,
    "LINEAR/LINEAR": 3434,
-   "LOG10/LOG10": 82,
    "LINEAR/LOG10": 156,
    "LOG10/LINEAR": 106,
-   "DATE/LINEAR": 1
+   "LOG10/LOG10": 82
   },
   "sampling_both_axes": {
-   "VECTOR_VERTICES": 3372,
-   "MARKER_CENTRES": 407
+   "MARKER_CENTRES": 407,
+   "VECTOR_VERTICES": 3372
   },
   "median_relative_half_width": {
    "y": 0.00466,
@@ -675,7 +675,10 @@
  },
  "tests": {
   "figure_series": "tests/corpus/test_nav_figure_series.py + test_api_figure_series.py: 20 passed (WSL venv; synthetic PDFs and canon)",
-  "corpus_suite_wsl": "tests/corpus: 1378 passed, 35 skipped, 2 failed — test_cad_mcp.py (the WSL venv has no ezdxf; vkm-cad not touched), 6 hygiene tests deselected (run with Windows Python)"
+  "corpus_suite_wsl": "tests/corpus: 1378 passed, 35 skipped, 2 failed — test_cad_mcp.py (the WSL venv has no ezdxf; vkm-cad not touched), 6 hygiene tests deselected (run with Windows Python)",
+  "hygiene_and_leakage_windows": "tests/corpus/test_public_hygiene.py + tests/world/test_foundation.py -k leakage: 8 passed (Windows Python)",
+  "world_wsl": "tests/world: 207 passed, 2 skipped (legacy refs not in this clone)",
+  "verify_canonical_repository": "catalogue_sync and the other blocking groups PASS except host_paths, whose only hit is the untracked, git-ignored .claude/settings.local.json of the agent worktree (the harness permission list; not committed, not edited by the agent); frozen and retired references SKIPPED_REF_UNAVAILABLE"
  },
  "core_deploy_for_coordinator": {
   "note": "not executed by agent FD2 (nothing written on CORE or EDGE); merge the branch first: the lists edited in parallel by agent G2 conflict additively (see not_done)",
