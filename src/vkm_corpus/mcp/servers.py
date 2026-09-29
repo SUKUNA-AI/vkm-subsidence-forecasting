@@ -7,7 +7,7 @@
 ``get_artifact``, ``list_source_pages``, ``get_corpus_status``; navigation: ``get_outline``, ``get_section``,
 ``search_sections``, ``get_formula_context``, ``find_formulas``, ``explore_concept``, ``reconstruct_topic``;
 topics and duplicates: ``find_topics``, ``get_topic``, ``similar_sections``, ``section_topics``, ``copies_of``,
-``source_overlap``; parameters: ``find_parameters``, ``parameter_summary``.
+``source_overlap``; parameters: ``find_parameters``, ``parameter_summary``; term dictionary: ``translate_term``.
 
 ``vkm-corpus-admin`` (write, plan-first H-12): ``reprocess_source``, ``reprocess_page``, ``get_job``.
 
@@ -506,6 +506,23 @@ def build_read_server(api: ApiClient) -> MCPServer:
         map of what the corpus reports, never a value to use."""
         return await call("parameter_summary", "GET", "/v1/nav/parameter_summary",
                           params={"property": property, "material": material})
+
+    # term dictionary (agent TR) — derived navigation, not evidence
+    @server.tool(name="translate_term", annotations=READ_ONLY)
+    async def translate_term(
+            term: Annotated[str, Field(min_length=1, max_length=200, description="a term in any inflected form, an "
+                                                                                 "abbreviation (ВЗТ, InSAR) or a "
+                                                                                 "TRM- id")],
+            target: Annotated[Literal["ru", "en", "de"] | None, Field(description="only this language")] = None,
+            limit: Annotated[int, Field(ge=1, le=50)] = 10) -> CallToolResult:
+        """Equivalents of a term in the other languages of the corpus (RU ↔ EN, some DE): «ползучесть» → creep,
+        «мульда сдвижения» → subsidence trough; its same-language synonyms and abbreviations (ВЗТ ↔ водозащитная
+        толща). Each pair names its methods (bracketed gloss, keyword lists of one article, abstracts, captions,
+        symbol definitions, cross-lingual embedding neighbours, curated seed list …), a score (estimated precision),
+        example pages and the status (AUTO_EXTRACTED_UNREVIEWED; seed rows REVIEWED_BY_AGENT). A phrase without a
+        pair of its own is translated part by part (composed). Use the equivalents to search the other language."""
+        return await call("translate_term", "GET", "/v1/nav/translate",
+                          params={"term": term, "target": target, "limit": limit})
 
     @server.tool(name="reconstruct_topic", annotations=READ_ONLY)
     async def reconstruct_topic(
