@@ -89,6 +89,20 @@ def test_digitize_recovers_series_exactly(y_up):
         assert all(p["y_err"] is not None and p["y_err"] >= 0 for p in got[name]["points"])
 
 
+def test_axis_titles_take_the_whole_pdf_text_line():
+    """Route A gives words: a title word brings the rest of its PDF text line, in reading order (rotated y title
+    read bottom-to-top in a y-down frame)."""
+    texts, paths, _ = _chart(y_up=False)
+    texts += [Text("Время,", 1.5, 1.9, 0.35, 0.08, 0.0, "PDF_WORD:5.0"),
+              Text("сут", 1.95, 2.15, 0.35, 0.08, 0.0, "PDF_WORD:5.0"),
+              Text("Оседание,", -0.75, -0.65, -1.0, 0.08, 90.0, "PDF_WORD:6.0"),
+              Text("мм", -0.75, -0.65, -1.8, 0.08, 90.0, "PDF_WORD:6.0")]
+    res = core.digitize(texts, paths, (-0.8, -3.3, 4.3, 1.2), quantum=1e-4)
+    assert res["axis_status"] == "OK"
+    assert res["x_title_raw"] == "Время, сут" and res["y_title_raw"] == "Оседание, мм"
+    assert core.split_title(res["y_title_raw"]) == ("Оседание", "мм")
+
+
 def test_chain_joins_reversed_and_shuffled_pieces():
     pts = np.array([[0, 0], [1, 1], [2, 0.5], [3, 2]], float)
     pieces = [pts[2:4][::-1], pts[0:2], pts[1:3]]

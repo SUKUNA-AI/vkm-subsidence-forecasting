@@ -28,14 +28,29 @@ def split_title(title: str | None) -> tuple[str | None, str | None]:
     return t, None
 
 
+def _line_of(t: Text, texts: list[Text]) -> list[Text]:
+    """The words of the PDF text line of ``t`` in reading order (route A gives words; an MTEXT is already whole)."""
+    if not t.origin.startswith("PDF_WORD:"):
+        return [t]
+    same = [u for u in texts if u.origin == t.origin]
+    if abs(t.rot) >= 45:           # rotated line: reading order along y (y down: bottom-to-top when rot > 0)
+        same.sort(key=lambda u: u.yc if t.rot < 0 else -u.yc)
+    else:
+        same.sort(key=lambda u: u.x0)
+    return same
+
+
 def axis_titles(texts: list[Text], xa: Axis | None, ya: Axis | None, box) -> tuple[str | None, str | None]:
-    """Non-numeric texts closest to the x tick row and to the y tick column (outside the plot area)."""
+    """Non-numeric texts closest to the x tick row and to the y tick column (outside the plot area); a word of a PDF
+    text line brings the whole line."""
     def is_title(t):
         s = t.text.strip()
         return label_value(s)[0] is None and len(s) > 1 and any(ch.isalpha() for ch in s)
     cands = [t for t in texts if is_title(t)]
     x0, y0, x1, y1 = box
     xt = yt = None
+    y_pick: Text | None = None
+    y_line: list[Text] = []
     xrow = [t.yc for t in texts if xa and t.text.strip() in {lab[0] for lab in xa.labels}]
     ycol = [t.xc for t in texts if ya and t.text.strip() in {lab[0] for lab in ya.labels}]
     outside = [t for t in cands if not (x0 < t.xc < x1 and y0 < t.yc < y1)]
@@ -43,12 +58,16 @@ def axis_titles(texts: list[Text], xa: Axis | None, ya: Axis | None, box) -> tup
         col_x, mid = float(np.mean(ycol)), (y0 + y1) / 2
         side = [t for t in outside if abs(t.xc - col_x) < abs(t.xc - (x0 + x1) / 2)]
         if side:
-            yt = min(side, key=lambda t: abs(t.xc - col_x) + abs(t.yc - mid)).text
+            y_pick = min(side, key=lambda t: abs(t.xc - col_x) + abs(t.yc - mid))
+            y_line = _line_of(y_pick, texts)
+            yt = " ".join(t.text for t in y_line)
     if xrow and outside:       # labels read by OCR have no text row: no x title then
         row_y, mid = float(np.mean(xrow)), (x0 + x1) / 2
-        pool = [t for t in outside if t.text != yt]
+        taken = {id(t) for t in y_line}
+        pool = [t for t in outside if id(t) not in taken and (y_pick is None or t.text != y_pick.text)]
         if pool:
-            xt = min(pool, key=lambda t: 3 * abs(t.yc - row_y) + 0.5 * abs(t.xc - mid)).text
+            xt = " ".join(t.text for t in _line_of(
+                min(pool, key=lambda t: 3 * abs(t.yc - row_y) + 0.5 * abs(t.xc - mid)), texts))
     return xt, yt
 
 

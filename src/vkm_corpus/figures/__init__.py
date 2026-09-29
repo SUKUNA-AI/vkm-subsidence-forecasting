@@ -19,7 +19,7 @@ Rules (CLAUDE.md, SCIENTIFIC_RULES_RU.md): every digitized value is ``DERIVATION
 series keeps the caption/legend text as printed, classification is a later review step); availability in time is the
 publication date of the source work; nothing here is promoted to evidence.
 """
-DIGITIZER_VERSION = "fd-0.1.1"
+DIGITIZER_VERSION = "fd-0.1.2"
 STATUS = "DERIVATION"
 REVIEW_STATUS = "AUTO_EXTRACTED_UNREVIEWED"
 FORBIDDEN_STATUSES = frozenset({"FACT", "REVIEWED_MEASUREMENT", "ACCEPTED_PARAMETER", "ACCEPTED_FORMULA"})
