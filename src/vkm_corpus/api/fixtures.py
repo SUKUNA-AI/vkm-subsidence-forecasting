@@ -251,9 +251,31 @@ class FakeHybrid:
     """Stand-in for the hybrid backend: fused hits with a stage trace (ids only), or a configured failure."""
 
     def __init__(self, hits: list[dict[str, Any]], *, fail: Any = None,
-                 built_from_snapshot_id: str = SNAPSHOT_ID) -> None:
+                 built_from_snapshot_id: str = SNAPSHOT_ID, late_scores: dict[str, float] | None = None) -> None:
         self.hits, self.fail, self.built_from = hits, fail, built_from_snapshot_id
+        self.late_scores = dict(late_scores or {})
         self.requests: list[dict[str, Any]] = []
+        self.late_calls: list[tuple[str, list[dict[str, str]]]] = []
+
+    def late_rerank(self, query: str, targets: list[dict[str, str]]) -> Any:
+        """Late scores of the targets: ``late_scores`` (id → score), else 10 + the target's position (later targets
+        score higher); an id ending in ``9`` without a configured score has no tokens."""
+        from types import SimpleNamespace
+
+        self.late_calls.append((query, [dict(t) for t in targets]))
+        if self.fail is not None:
+            raise self.fail
+        results: dict[str, dict[str, Any]] = {}
+        for i, t in enumerate(targets):
+            if t["id"].endswith("9") and t["id"] not in self.late_scores:
+                results[t["id"]] = {"id": t["id"], "kind": t["kind"], "status": "NO_TOKENS", "late_score": None,
+                                    "best_unit_id": None, "units": 0, "tokens": 0}
+            else:
+                results[t["id"]] = {"id": t["id"], "kind": t["kind"], "status": "SCORED",
+                                    "late_score": self.late_scores.get(t["id"], 10.0 + i),
+                                    "best_unit_id": f"u1-{i:016d}", "units": 1, "tokens": 8}
+        return SimpleNamespace(results=results, model="mlateon-test", query_signature="q-test",
+                               store={"snapshot_id": self.built_from}, timings_ms={"total": 1.0}, n_query_tokens=5)
 
     def search(self, request: dict[str, Any]) -> dict[str, Any]:
         self.requests.append(request)

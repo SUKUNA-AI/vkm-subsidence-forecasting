@@ -13,6 +13,7 @@ Flow rules (task §32, CP-19, H-13):
 from __future__ import annotations
 
 import hashlib
+import os
 import re
 import time
 from dataclasses import dataclass, field
@@ -33,6 +34,7 @@ MAX_TEXT_CANDIDATES = 24          # H-13 (listwise text reranker: one call, no s
 MAX_VISUAL_CANDIDATES = 8         # H-13
 TEXT_TOKEN_BUDGET = 4096          # whole listwise prompt of the text reranker (agent F)
 MAX_CANDIDATE_CHARS = 32_768
+LATE_RERANK_KINDS = ("PAGE", "FIGURE", "TABLE", "FORMULA")   # kinds the token store scores itself; a block → its page
 DEFAULT_PAGE_CHARS, MAX_PAGE_CHARS = 12_000, 60_000
 MAX_ARTIFACT_BYTES = 64 * 1024 * 1024
 MAX_IMAGE_SOURCE_BYTES = 30 * 1024 * 1024
@@ -598,15 +600,26 @@ class ApiService:
         return Result(items=items[:limit], next_cursor=str(offset + limit) if more else None)
 
     # ================================================================================================ rerank
+    def text_rerank_backend(self) -> str:
+        """``VKM_RERANK_TEXT_BACKEND``: ``late`` — mLateOn MaxSim on the RX580 token store — or ``gateway`` — the EDGE
+        text reranker jina-reranker-v3.5, retired by the user on 29.09 (+0.006 nDCG@10, n.s., at ~11 s a call on top
+        of the late stage, RETRIEVAL_BENCHMARK_V1). Unset: ``late`` when hybrid search is configured, else ``gateway``."""
+        raw = os.environ.get("VKM_RERANK_TEXT_BACKEND", "").strip().lower()
+        if raw in ("late", "gateway"):
+            return raw
+        return "late" if self.deps.hybrid is not None else "gateway"
+
     async def rerank_text(self, query: str, candidate_ids: list[str], top_n: int | None,
                           passages: dict[str, list[str]], request_id: str,
                           run_sync: Callable[..., Any]) -> Result:
-        backend = _require(self.deps.rerank, "text reranker", "rerank_text")
         if len(candidate_ids) > MAX_TEXT_CANDIDATES:
             raise ApiFailure("PAYLOAD_TOO_LARGE", f"at most {MAX_TEXT_CANDIDATES} text candidates per call (H-13); "
                                                   "batches are not spliced", details={"given": len(candidate_ids)})
         if len(set(candidate_ids)) != len(candidate_ids):
             raise ApiFailure("INVALID_ARGUMENT", "candidate ids must be unique")
+        if self.text_rerank_backend() == "late":
+            return await self._rerank_text_late(query, candidate_ids, top_n, request_id, run_sync)
+        backend = _require(self.deps.rerank, "text reranker", "rerank_text")
         wanted = set(candidate_ids) | {o for ids in passages.values() for o in ids}
         texts = await run_sync(self.canon.rerank_texts, wanted)
         hydrated = await run_sync(self.canon.hydrate, candidate_ids)
@@ -641,6 +654,61 @@ class ApiService:
                       "rule": "rerank_text_v1"}
             items.append(Item(envelope=self.envelope(kind, row, payload_form="REFERENCE"), record=jsonable(record)))
         return Result(item=self._service_item("text", response, request_id, rejected), items=items)
+
+    async def _rerank_text_late(self, query: str, candidate_ids: list[str], top_n: int | None, request_id: str,
+                                run_sync: Callable[..., Any]) -> Result:
+        """``rerank_text`` on the late interaction model (rule ``rerank_text_late_v1``): a candidate scores mLateOn
+        MaxSim over the stored token vectors of its units — a page over its units except BIB_ENTRY (CP-42), a figure,
+        table or formula over its own unit, a block through its page. ``passages`` do not apply; candidates the store
+        cannot score keep their input order after the scored ones."""
+        backend = _require(self.deps.hybrid, "late interaction (text rerank)", "rerank_text")
+        hydrated = await run_sync(self.canon.hydrate, candidate_ids)
+        target_of: dict[str, tuple[str, str]] = {}
+        rejected: list[dict[str, str]] = []
+        for cid in candidate_ids:
+            if cid not in hydrated:
+                rejected.append({"id": cid, "code": "NOT_FOUND"})
+                continue
+            kind, row = hydrated[cid]
+            if kind in LATE_RERANK_KINDS:
+                target_of[cid] = (cid, kind)
+            elif kind == "BLOCK":
+                target_of[cid] = (str(row.get("page_id") or cid.rsplit(":", 1)[0]), "PAGE")
+            else:
+                rejected.append({"id": cid, "code": "NOT_RERANKABLE"})
+        if not target_of:
+            raise ApiFailure("NO_RERANK_TEXT", "no candidate can be scored by the late interaction model",
+                             details={"rejected": rejected})
+        targets = [{"id": tid, "kind": tkind} for tid, tkind in dict.fromkeys(target_of.values())]
+        started = time.perf_counter()
+        late = await run_sync(backend.late_rerank, query, targets)
+        latency_ms = round((time.perf_counter() - started) * 1e3, 1)
+        position = {cid: i for i, cid in enumerate(candidate_ids)}
+
+        def order_key(cid: str) -> tuple[int, float, int]:
+            res = late.results.get(target_of[cid][0]) or {}
+            if res.get("status") == "SCORED" and res.get("late_score") is not None:
+                return 0, -float(res["late_score"]), position[cid]
+            return 1, 0.0, position[cid]
+
+        ranked = sorted(target_of, key=order_key)[:top_n] if top_n else sorted(target_of, key=order_key)
+        items = []
+        for rank, cid in enumerate(ranked, 1):
+            kind, row = hydrated[cid]
+            tid, tkind = target_of[cid]
+            res = late.results.get(tid) or {}
+            record = {"rank": rank, "score": res.get("late_score"), "status": res.get("status"),
+                      "scored_as": {"id": tid, "kind": tkind}, "best_unit_id": res.get("best_unit_id"),
+                      "units": res.get("units"), "tokens": res.get("tokens"), "passage_object_ids": [],
+                      "rule": "rerank_text_late_v1"}
+            items.append(Item(envelope=self.envelope(kind, row, payload_form="REFERENCE"), record=jsonable(record)))
+        response = {"model_id": late.model, "backend": "late interaction (rx580-retrieval /search/late)",
+                    "score_semantics": "mLateOn MaxSim of the query over the stored token vectors of the candidate's "
+                                       "units; higher is better; passages do not apply",
+                    "n_candidates": len(candidate_ids), "top_n": top_n, "query_sha256": sha256_text(query),
+                    "latency_ms": latency_ms, "candidate_ids": candidate_ids}
+        return Result(item=self._service_item("text", response, request_id, rejected, rule="rerank_text_late_v1"),
+                      items=items)
 
     async def rerank_visual(self, query: str, candidate_ids: list[str], top_n: int | None, request_id: str,
                             run_sync: Callable[..., Any], max_side: int = images.DEFAULT_MAX_SIDE) -> Result:
@@ -697,7 +765,7 @@ class ApiService:
         return prepared, {**meta, "row": self._get(kind, cid), "kind": kind}
 
     def _service_item(self, kind: str, response: dict[str, Any], request_id: str,
-                      rejected: list[dict[str, str]]) -> Item:
+                      rejected: list[dict[str, str]], rule: str | None = None) -> Item:
         record = {k: response.get(k) for k in ("model_id", "model_revision", "quant", "placement", "backend",
                                                "backend_version", "weights_sha256", "model_config_sha256",
                                                "score_semantics", "license", "n_candidates", "top_n",
@@ -705,7 +773,7 @@ class ApiService:
                                                "gateway_version", "created_at", "warnings")}
         record.update({"kind": kind, "candidate_ids": response.get("candidate_ids"), "rejected": rejected,
                        "scores_are": "a retrieval signal of one model/revision/quant, not evidence",
-                       "rule": "rerank_text_v1" if kind == "text" else None})
+                       "rule": rule or ("rerank_text_v1" if kind == "text" else None)})
         envelope = Envelope(object_id=f"rerank-{kind}-{request_id}", object_kind="RERANK_RESULT",
                             review_status="NOT_APPLICABLE", layer="SERVICE", payload_form="NORMALIZED",
                             provenance=Provenance(model_id=response.get("model_id"),
@@ -1463,6 +1531,7 @@ class ApiService:
                                                      for name, b in (r.get("backends") or {}).items()}}
             except ApiFailure as exc:
                 out["dependencies"]["rerank"] = {"available": False, "error": exc.code}
+        out["dependencies"]["rerank_text_backend"] = self.text_rerank_backend()
         if self.deps.control is not None:
             try:
                 c = await run_sync(self.deps.control.status)

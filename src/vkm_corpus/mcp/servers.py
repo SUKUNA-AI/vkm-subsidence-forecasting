@@ -44,7 +44,7 @@ READ_INSTRUCTIONS = (
     "VKM document corpus (Verkhnekamskoye potash deposit, SKRU-1 thesis): read-only access through the VKM API. "
     "Search results are candidates from rebuildable projections (index snippets are not the objects' text); read "
     "content with get_* tools; search_hybrid adds dense embeddings (per-stage trace; retrieval_trace explains a "
-    "ranking); order candidates with rerank_text (≤ 24 IDs, text from the canonical layer) and "
+    "ranking); order candidates with rerank_text (≤ 24 IDs, late interaction over their stored units) and "
     "rerank_visual (≤ 8 IDs with images). Every object carries a vkm.envelope/1: stable IDs, source/page, "
     "review_status, origin (NATIVE / EMBEDDED_OCR / OCR), canonical vs raw vs projection, provenance. Automatic "
     "content is AUTO_EXTRACTED_UNREVIEWED — never a fact, a reviewed measurement or an accepted formula; a "
@@ -576,8 +576,11 @@ def build_read_server(api: ApiClient) -> MCPServer:
                           passages: Annotated[list[dict[str, Any]] | None, Field(
                               max_length=24, description="optional [{candidate_id, object_ids}] as returned in "
                                                          "search_text rerank_candidate")] = None) -> CallToolResult:
-        """Rerank up to 24 candidate IDs with the text reranker. The text of each candidate is read from the
-        canonical layer (rule rerank_text_v1), never from the index. Scores are a retrieval signal, not evidence."""
+        """Re-score up to 24 candidate IDs by late interaction: mLateOn MaxSim of the query over the stored token
+        vectors of each candidate's units (a page over its units, a block through its page; rule
+        rerank_text_late_v1). ``passages`` apply only when the server runs the EDGE text reranker instead
+        (VKM_RERANK_TEXT_BACKEND=gateway, rule rerank_text_v1, text from the canonical layer). Scores are a
+        retrieval signal, not evidence."""
         body = {"query": query, "candidate_ids": candidate_ids, "top_n": top_n, "passages": passages or []}
         return await call("rerank_text", "POST", "/v1/rerank/text", body=body)
 

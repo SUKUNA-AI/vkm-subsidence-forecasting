@@ -93,6 +93,17 @@ class OpenSearchBackend:
                              tool="opensearch") from exc
         return response.as_dict()
 
+    def late_rerank(self, query: str, targets: list[dict[str, str]]) -> Any:
+        """mLateOn MaxSim of given targets on the RX580 token store (``rerank_text`` since the EDGE text reranker was
+        retired, 29.09): a page over its units except BIB_ENTRY, an object over its own unit."""
+        from vkm_corpus.search.hybrid import HybridError
+
+        try:
+            return self._embed.late_scores(query, targets)
+        except HybridError as exc:
+            raise ApiFailure(exc.code, exc.message, stage=f"rerank_{exc.stage}", tool=exc.tool,
+                             details=exc.details) from exc
+
     def status(self) -> dict[str, Any]:
         from vkm_corpus.search.indexer import status
 
