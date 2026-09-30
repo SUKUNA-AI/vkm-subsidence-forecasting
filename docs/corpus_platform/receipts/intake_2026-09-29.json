@@ -1603,7 +1603,7 @@
   "page_encode": "19:42:30-19:44:05"
  },
  "core": {
-  "status": "PUBLISHED, NOT RECONCILED: step 1 done; step 2 not executed (blocked by the session's permission system as a production deploy; it needs the user's approval)",
+  "status": "DEPLOYED: steps 0-7 done; canonical, NAV, NAV graph, dense, late, page vectors and api/mcp/mcp-admin serve snap-20260929T175107Z-574daaac; MCP smoke 45/45 PASS (2026-09-30 10:04 local)",
   "go": "coordinator, 2026-09-29 ~20:00 local (sequential order; stop on any gate failure)",
   "step0_preconditions": {
    "time": "2026-09-29T20:02:52+03:00",
@@ -1647,10 +1647,37 @@
    "commit_markers": "22 = 20 sources (run RUN-20260929T162010Z-7b22c961) + 2 REGISTRY commits (the second one carries the literature-hunt ids of the new works)",
    "effect": "immutable files only (rsync --ignore-existing, markers last); nothing is admitted until core reconcile, so CURRENT, projections and serving stay on 738eebee"
   },
-  "step2_reconcile": "NOT EXECUTED: the command was denied by the session's permission system (auto mode, category production deploy); per the rules a coordinator's go is not the user's approval, so the step waits for the user",
-  "steps3_to_7": "NOT EXECUTED (they need the snapshot id minted by step 2)",
-  "gpu_lock": "not taken for CORE steps (step 3 did not start)",
-  "nightly": "no effect expected: the backup copies the new immutable files like any other; the nightly checks read CURRENT (still 738eebee) and do not look at unadmitted commits",
+  "step2_reconcile": {
+   "run_id": "reconcile-intake-20260929T175102Z",
+   "started_at": "2026-09-29T17:51:03+00:00",
+   "finished_at": "2026-09-29T18:05:04+00:00",
+   "admission": {
+    "admitted": 22,
+    "rejected": 0,
+    "pending": 0
+   },
+   "snapshot": {
+    "snapshot_id": "snap-20260929T175107Z-574daaac",
+    "status": "PASS",
+    "current_moved": true,
+    "blocking_failures": 0,
+    "manifest_sha256": "71967f1f06645c069c08dc6f35b591c9174bf9b045a2827f409667995778fc05"
+   },
+   "steps_s": {
+    "admit": 4.34,
+    "snapshot": 64.55,
+    "duckdb": 148.15,
+    "graph": 392.95,
+    "search": 231.17
+   },
+   "graph_checks": "C1-C16 PASS (DOCUMENT wipe with cascade: the NAV graph of 738eebee dropped here)",
+   "search": "BM25 build 20260929t180123z-71967f1f (pages, blocks, figures, tables, formulas) + smoke PASS",
+   "result": "RECONCILED",
+   "receipt": "CORE receipts/reconcile/reconcile-intake-20260929T175102Z.json"
+  },
+  "steps3_to_7": "DONE (see step3 ... step7)",
+  "gpu_lock": "taken for step 3 only (NAV RAPIDS parts), released",
+  "nightly": "no overlap: step 2 ran 20:51-21:05 and steps 3-4 22:30-22:40 on 29.09, steps 4b-7 09:36-10:05 on 30.09 (timers 02:00 / 02:30 / 04:00)",
   "rollback_needed": false,
   "plan": [
    "0 preconditions (read only): canonical CURRENT = 738eebee, no canonical lock, no running job; vkm-job and .env on image vkm-corpus-api:0.1.0-9d049dc0fec9 (= the pipeline's pinned commit)",
@@ -1669,6 +1696,103 @@
    "vectors: dense alias back to the previous build, late pack CURRENT back, search rollback-page-vectors",
    "api/mcp/mcp-admin recreated on the same image; MCP smoke"
   ],
-  "deadline": "finish before 01:30 local (nightly timers from 02:00)"
+  "deadline": "finish before 01:30 local (nightly timers from 02:00)",
+  "approval": "steps 2-4 ran on 29.09 evening after the permission block was lifted; steps 4b-7 on 30.09 on the user's go in chat (pre-authorised deploy)",
+  "step3_nav_build": {
+   "where": "WORKSTATION (WSL, GPU lock)",
+   "time_local": "2026-09-29 22:30:49-22:39:18",
+   "result": "10 parts built on CORE's DuckDB of S; 32 of 33 datasets byte-equal to the rehearsal, terms differs only in file layout (rows, keys and all 16 columns equal); graph-load dry run 133 096 nodes / 2 348 208 rels, preflight PASS 6 FAIL 0"
+  },
+  "step4_nav_publish": {
+   "time_local": "2026-09-29 22:40:07-22:40:11",
+   "target": "derived/navigation/snap-20260929T175107Z-574daaac",
+   "nav_duckdb_sha256_both_sides": "0e23c6c0e696d7e7d3b55afb72ec8fd28d44c913b2fe1864b2bd2cdd6d155194"
+  },
+  "step0_recheck": {
+   "time": "2026-09-30T09:36:56+03:00",
+   "canonical_current": "snap-20260929T175107Z-574daaac",
+   "canonical_lock": "none",
+   "nav_current": "snap-20260928T193550Z-738eebee",
+   "running_jobs": 0,
+   "image": "vkm-corpus-api:0.1.0-9d049dc0fec9",
+   "result": "PASS"
+  },
+  "step4b_nav_switch_graph": {
+   "time_local": "2026-09-30 09:37:11-09:41:29",
+   "nav_current": "snap-20260929T175107Z-574daaac",
+   "run_id": "VKM-PRJ-NAV-20260930T063717Z-4346bf11",
+   "status": "COMPLETE",
+   "graph_load_s": 255.8,
+   "totals": {
+    "nodes": 133096,
+    "rels": 2348208
+   },
+   "sweep": {
+    "nodes_deleted": 0,
+    "rels_deleted": 0
+   },
+   "checks": "N1-N11 PASS",
+   "receipt": "CORE receipts/projections/neo4j-nav/VKM-PRJ-NAV-20260930T063717Z-4346bf11.json"
+  },
+  "step5_vectors": {
+   "run_id": "refresh-20260930T064149Z",
+   "time_local": "2026-09-30 09:41:49-09:58:10",
+   "dense": {
+    "run": "lab2-20260930T064149Z",
+    "units": 209259,
+    "new": 3475,
+    "changed": 0,
+    "unchanged": 205784,
+    "orphaned": 5153,
+    "index_build": "20260930t064348z-71967f1f-24705922",
+    "smoke": "PASS"
+   },
+   "late": {
+    "run": "lab3-20260930T065248Z",
+    "pack": "snap-20260929T175107Z-574daaac-f25e4ec41da0",
+    "smoke": "PASS"
+   },
+   "status_line": "DONE snapshot=snap-20260929T175107Z-574daaac units_stage2=209259 units_stage3=209259 dense_index=209259 late_pack=209259 equal=True"
+  },
+  "step6_page_vectors": {
+   "time_local": "2026-09-30 09:59:10-10:02:49",
+   "plan_before": "n_missing 652 (plan exits 1 while pages are missing)",
+   "todo_compare": "CORE todo 652 = rehearsal todo 652 (page ids + preview ids), signature equal",
+   "collision_check": "no collision (CORE 54 files = IN base)",
+   "push": "13 files (12 parts/receipt + manifest), sha256 equal on both sides",
+   "plan_after": "n_missing 0, n_duplicates 0, n_bad_vectors 0",
+   "build": {
+    "index": "vkm-pagevis-m1-20260930t070011z-71967f1f-ef2f297d",
+    "status": "COMPLETE",
+    "count": 26744,
+    "snapshot_pages": 27135,
+    "without_preview": 391,
+    "seconds": 168.4
+   }
+  },
+  "step7_restart_smoke": {
+   "time_local": "2026-09-30 10:02:54-10:04:21",
+   "recreated": [
+    "api",
+    "mcp",
+    "mcp-admin"
+   ],
+   "image": "vkm-corpus-api:0.1.0-9d049dc0fec9",
+   "health": "healthy x3",
+   "mcp_smoke": {
+    "version": "nightly-mcp-smoke-4",
+    "verdict": "PASS",
+    "tools": 45,
+    "PASS": 45,
+    "FAIL": 0,
+    "seconds": 13.0
+   },
+   "client_checks": {
+    "get_corpus_status": "271 sources, 27 135 pages; BM25, dense, page vectors, late pack, DOCUMENT graph all built from S (matches_canonical_snapshot true)",
+    "get_source": "VKM-SRC-252, 266, 271 answer on S",
+    "search_hybrid": "late stage SCORED on pack f25e4ec41da0, 0.46 s",
+    "find_figure_series": "NAV figure_series served from S"
+   }
+  }
  }
 }
