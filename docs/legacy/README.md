@@ -6,4 +6,4 @@
 
 Текущее состояние — [PROJECT_STATE_RU.md](../../PROJECT_STATE_RU.md), решения — [D-18/D-19](../governance/PHASE1_DESIGN_DECISIONS_RU.md). Старую архитектуру нельзя использовать как current design без прямого решения владельца. Первичные источники, корректная evidence, frozen references и retirement receipts сохраняются; возраст файла сам по себе не является основанием для удаления.
 
-Аудит активного дерева 30.09.2026: [manifest](LEGACY_REMOVAL_MANIFEST_2026-09-30.md), [полные зависимости и SHA](LEGACY_REMOVAL_MANIFEST_2026-09-30.json). Этот аудит фиксирует кандидатов; факт удаления подтверждается отдельным cleanup commit.
+Аудит активного дерева 30.09.2026: [manifest](LEGACY_REMOVAL_MANIFEST_2026-09-30.md), [зависимости и SHA](LEGACY_REMOVAL_MANIFEST_2026-09-30.json). Единственный подтверждённый документ удалён отдельным cleanup commit `e20ca82`; прежние байты доступны в Git.

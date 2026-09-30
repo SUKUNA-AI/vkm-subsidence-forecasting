@@ -1,6 +1,6 @@
 # Аудит удаления legacy — 30.09.2026
 
-Проверен PUBLIC HEAD `2babfbd3ebd0c7728a070b2b51944027e7de5427`. Удаление не выполнялось.
+Проверен PUBLIC HEAD `2babfbd3ebd0c7728a070b2b51944027e7de5427`. Подтверждённое удаление выполнено отдельным commit `e20ca82` на рабочей ветке; история не переписывалась.
 
 Reset уже удалил старые runtime `src/skru1`, Gate A/B/C, synthetic lab v2/v2.1 и retired v3.x из активного дерева. Нового удаления этих реализаций не требуется.
 
@@ -8,7 +8,7 @@ Reset уже удалил старые runtime `src/skru1`, Gate A/B/C, syntheti
 
 | Путь | Решение | Причина |
 |---|---|---|
-| `docs/legacy/CANONICAL_RESEARCH_STATE_PRE_RESET_RU.md` | yes / REMOVE_AFTER_COORDINATOR_REVIEW | D-18/D-19 отменили это направление; подробная старая инструкция дублирует историю и повышает шум поиска. |
+| `docs/legacy/CANONICAL_RESEARCH_STATE_PRE_RESET_RU.md` | yes / REMOVED_IN_CLEANUP_COMMIT | D-18/D-19 отменили это направление; зависимости отсутствуют, прежние байты сохранены в Git. |
 | `src/skru1` | no / ALREADY_ABSENT_NO_DELETION | В tracked active tree уже отсутствует после reset/externalization; повторный import запрещён. |
 | `configs` | no / ALREADY_ABSENT_NO_DELETION | В tracked active tree уже отсутствует после reset/externalization; повторный import запрещён. |
 | `data/scenario_simulation_v2` | no / ALREADY_ABSENT_NO_DELETION | В tracked active tree уже отсутствует после reset/externalization; повторный import запрещён. |
@@ -37,7 +37,7 @@ Reset уже удалил старые runtime `src/skru1`, Gate A/B/C, syntheti
 
 ## Доказательства и ограничения
 
-Полные зависимости по code, AST imports, tests, docs, scripts, schemas, infra/CI, benchmarks и entrypoints записаны в JSON рядом. Содержимое корпуса не воспроизводится.
+Зависимости по code, AST imports, tests, docs, scripts, schemas, infra/CI, benchmarks и entrypoints записаны в JSON рядом. Длинные списки представлены точными счётчиками и примерами; полный исходный manifest сохранён в git-ignored `work/cleanup_2026-09-30/full_dependency_manifest.json`, его SHA-256 указан в JSON. Содержимое корпуса не воспроизводится.
 
 Просканировано 925 tracked text files, 5481 AST import nodes. Старых imports `skru1` нет. Package discovery содержит только current namespaces. Tracked CI отсутствует. Весь `benchmarks/topic_v1/` и T1 label/reason материалы исключены до H freeze.
 
@@ -51,4 +51,4 @@ Corpus benchmark helpers сохраняются: active `search.hybrid`, `search
 
 ## Интеграция координатором
 
-Добавлен короткий `docs/legacy/README.md`. Минимальные link fixes для предложенного удаления не нужны. Удалять после review только точный pathspec из JSON; отдельный cleanup commit без изменений history/PRIVATE/frozen bytes. После удаления — world tests, verifier, hygiene/leakage, links/imports/entrypoints/schema checks и повторный поиск.
+Добавлен короткий `docs/legacy/README.md`. Удалён только проверенный pathspec, link fixes не требовались. World и public-hygiene tests: 215 PASS. Verifier: 26 PASS, 7 SKIPPED_REF_UNAVAILABLE, exit 0; links: 609 проверено, 0 broken; leakage: 0. History, PRIVATE и frozen bytes сохранены. Остальные кандидаты оставлены по фактическим зависимостям.
