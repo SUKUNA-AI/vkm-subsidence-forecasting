@@ -27,6 +27,11 @@ Dockerfile text eol=lf
 .gitattributes text eol=lf
 .gitignore text eol=lf
 *.patch text eol=lf
+# engineering-tool sources (MATLAB, APDL, Workbench journals)
+*.m text eol=lf
+*.inp text eol=lf
+*.mac text eol=lf
+*.wbjn text eol=lf
 *.dockerignore text eol=lf
 *.png binary
 

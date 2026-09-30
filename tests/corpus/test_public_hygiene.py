@@ -15,10 +15,14 @@ from vkm_world.governance.leakage import FORBIDDEN_COLUMNS, scan
 
 ROOT = Path(__file__).resolve().parents[2]
 PLATFORM_AREAS = ("src/vkm_corpus/", "src/vkm_cad/", "src/vkm_drawio/", "infra/", "tests/corpus/",
-                  "docs/corpus_platform/", "docs/implementation_work/", "docs/diagrams/", "schemas/corpus/")
+                  "docs/corpus_platform/", "docs/implementation_work/", "docs/diagrams/", "schemas/corpus/",
+                  # engineering tools (MATLAB / Ansys MCP servers, shared job layer, MATLAB package, receipts)
+                  "src/vkm_jobs/", "src/vkm_matlab/", "src/vkm_ansys/", "tests/engineering/", "matlab/",
+                  "docs/engineering_tools/")
 RUNTIME_EXT = {".epub", ".djv", ".djvu", ".parquet", ".duckdb", ".arrow", ".feather", ".gguf", ".safetensors"}
 TEXT_EXT = {".py", ".md", ".json", ".jsonl", ".yml", ".yaml", ".toml", ".txt", ".csv", ".sh", ".ps1", ".service",
-            ".timer", ".conf", ".ini", ".cfg", ".sql", ".cypher", ".example", ".drawio", ".svg", ".xml", ".env"}
+            ".timer", ".conf", ".ini", ".cfg", ".sql", ".cypher", ".example", ".drawio", ".svg", ".xml", ".env",
+            ".m", ".inp", ".mac", ".wbjn"}
 TEXT_NAMES = {"Dockerfile", "compose.yml", "compose.yaml"}
 PRIVATE_IPV4 = re.compile(r"(?<![\d.])(?:10(?:\.\d{1,3}){3}|192\.168(?:\.\d{1,3}){2}|172\.(?:1[6-9]|2\d|3[01])(?:\.\d{1,3}){2})"
                           r"(?![\d.])")
