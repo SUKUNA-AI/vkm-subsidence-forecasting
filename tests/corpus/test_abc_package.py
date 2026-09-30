@@ -50,9 +50,21 @@ def test_explicit_unknown_remains_in_unresolved_partition():
 
 
 def test_public_receipt_drops_source_literals_and_internal_record_ids():
-    completion={'datasets':{'A':{'record_count':1,'counts':{'ACCEPTED':1},
-                'partitions':{'ACCEPTED':['private-record-id']},'records':[{'value':'private-value'}]}},
-                **{name:{} for name in ('original_queue','glm_retry_closure','coverage','astra_review','frozen_integrity')},
+    completion={'datasets':{name:{'record_count':1,'counts':{'ACCEPTED':1,'CONDITIONAL':0,'UNRESOLVED':0},
+                'partitions':{'ACCEPTED':['private-record-id']},'records':[{'value':'private-value'}]}
+                for name in 'ABC'},
+                'original_queue':{'cases':0,'processed':0,'by_dataset':{}},
+                'glm_retry_closure':{'truncation_cases_closed':0,'reader_attempt_count':0,'resolution_counts':{}},
+                'coverage':{'sources':0,'pages_screened':0,'source_sha_counts':{},'status_counts':{},
+                    'exhaustive_figure_recall_proven':False,'candidate_dispositions':0,
+                    'visually_role_checked_candidates':0,'new_explicit_candidates_after_dedup':0,
+                    'disposition_counts':{}},
+                'astra_review':{'case_count':0,'priorities':{}},
+                'topology':{'original_invalid':0,'status_counts':{'REPAIRED_GRAPHIC_CANDIDATE':0,
+                    'UNRESOLVED_GRAPHIC_TOPOLOGY':0},'repaired_layers':0,'strict_qgis_passed':0,
+                    'semantic_geometry_accepted_by_topology':False,'new_coordinates_or_nonzero_edges':0},
+                'frozen_integrity':{'status':'PASS','checked_file_count':1},
+                'raw_frozen_unchanged':True,'admitted_to_evidence':False,
                 'inputs':{'private-source-path':'hash'}}
     result=aggregates(completion)
     assert 'private-value' not in str(result) and 'private-record-id' not in str(result)
