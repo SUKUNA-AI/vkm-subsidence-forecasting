@@ -7,67 +7,67 @@
         <mxCell id="title" value="Научная цепочка проекта: от корпуса к предрегистрированной проверке прогноза оседаний" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="12" width="1640" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="subtitle" value="После научного reset 26.09.2026 и решений пользователя D-18 (26.09) и D-19 (28.09). Миры и микроядра — проект v2, реализация отложена до отдельного проектирования; прогноз — только после гейтов D-19." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="subtitle" value="Текущая работа: источники → проверенная оцифровка A/B/C → evidence → интерпретация → WorldSpec. PhysicalWorld, решатели и ML приостановлены до отдельной команды." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="44" width="1640" height="25" as="geometry" />
         </mxCell>
-        <mxCell id="corpus" value="Корпус (PRIVATE)&lt;br&gt;251 зарегистрированный источник: PDF, DjVu, DOCX, EPUB; реестр SOURCE_REGISTER&lt;br&gt;данных предприятия нет (D-19)" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="corpus" value="Корпус PRIVATE: 271 источник, 27 135 страниц&lt;br&gt;source files + register; данных предприятия для калибровки не будет" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="110" width="250" height="160" as="geometry" />
         </mxCell>
         <mxCell id="doc" value="Платформа корпуса: L1 DOCUMENT + NAV&lt;br&gt;страницы, блоки, рисунки, таблицы, формулы, списки литературы; разделы, понятия, параметры-кандидаты&lt;br&gt;AUTO_EXTRACTED_UNREVIEWED — навигация, не evidence" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="370" y="110" width="250" height="160" as="geometry" />
         </mxCell>
-        <mxCell id="evidence" value="evidence vNext (L2)&lt;br&gt;записи FACT … UNKNOWN со scope, scale и локатором; полные — в PRIVATE, в PUBLIC — каталоги без цитат" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="evidence" value="evidence vNext (L2): FACT … UNKNOWN, scope/scale/locator. Проверенная оцифровка подтверждает чтение изображения; принятие evidence — отдельная проверка." style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="720" y="110" width="250" height="160" as="geometry" />
         </mxCell>
-        <mxCell id="worldspec" value="WorldSpec — 3D + время (D-18)&lt;br&gt;геология, выработки, закладка, история разработки, свойства, реология, начальное состояние, ГУ; провенанс; UNKNOWN остаётся UNKNOWN" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="worldspec" value="WorldSpec: evidence → интерпретация → 3D + время&lt;br&gt;геология, выработки, закладка, история, свойства, реология, начальное состояние, ГУ; provenance; UNKNOWN" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1070" y="110" width="250" height="160" as="geometry" />
         </mxCell>
-        <mxCell id="pworld" value="PhysicalWorld w — достраивание&lt;br&gt;C1 геология · C2 материалы и законы · C3 начальное состояние и ГУ · C4 история выемки и закладки · C5 связи полей&lt;br&gt;параметры — evidence или маркированный сценарный диапазон" style="fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="pworld" value="PhysicalWorld w — достраивание&lt;br&gt;C1 геология · C2 материалы и законы · C3 начальное состояние и ГУ · C4 история выемки и закладки · C5 связи полей&lt;br&gt;параметры — evidence или маркированный сценарный диапазон" style="dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1070" y="370" width="250" height="200" as="geometry" />
         </mxCell>
         <mxCell id="reps" value="Представления ρ(w): новый мир не создают" style="align=left;collapsible=0;container=1;dashed=1;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="610" y="350" width="370" height="240" as="geometry" />
         </mxCell>
-        <mxCell id="ansys" value="Ansys MAPDL 3D — основное (D-19): поэтапная выемка, ползучесть, закладка" style="fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="reps">
+        <mxCell id="ansys" value="Ansys MAPDL 3D — основное (D-19): поэтапная выемка, ползучесть, закладка" style="dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="reps">
           <mxGeometry x="15" y="32" width="340" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="ogs" value="OGS + MFront — проверка на 2–3 согласованных сценариях (другой решатель)" style="fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="reps">
+        <mxCell id="ogs" value="OGS + MFront — проверка на 2–3 согласованных сценариях (другой решатель)" style="dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="reps">
           <mxGeometry x="15" y="97" width="340" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="world0" value="World-0 — граф микроядер «пласт → толща → поверхность»; матрица влияния K из Ansys; тысячи миров" style="fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="reps">
+        <mxCell id="world0" value="World-0 — граф микроядер «пласт → толща → поверхность»; матрица влияния K из Ansys; тысячи миров" style="dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="reps">
           <mxGeometry x="15" y="162" width="340" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="traj" value="Траектория X_w(t)&lt;br&gt;(SolverRun)&lt;br&gt;модельный результат ≠ наблюдение" style="fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="traj" value="Траектория X_w(t)&lt;br&gt;(SolverRun)&lt;br&gt;модельный результат ≠ наблюдение" style="dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="370" y="415" width="180" height="110" as="geometry" />
         </mxCell>
-        <mxCell id="ow" value="ObservationWorld o&lt;br&gt;OW-LVL нивелирование · OW-UG конвергенция · OW-GNSS · OW-INSAR (LOS)&lt;br&gt;y = H_o[X_w] + ε" style="fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="ow" value="ObservationWorld o&lt;br&gt;OW-LVL нивелирование · OW-UG конвергенция · OW-GNSS · OW-INSAR (LOS)&lt;br&gt;y = H_o[X_w] + ε" style="dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="370" width="250" height="200" as="geometry" />
         </mxCell>
-        <mxCell id="synth" value="Синтетические измерения&lt;br&gt;родословная: world_id, representation_id, observation_world_id, solver_run_id, noise_model, seed&lt;br&gt;никогда не называются наблюдениями" style="fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="synth" value="Синтетические измерения&lt;br&gt;родословная: world_id, representation_id, observation_world_id, solver_run_id, noise_model, seed&lt;br&gt;никогда не называются наблюдениями" style="dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="670" width="250" height="180" as="geometry" />
         </mxCell>
-        <mxCell id="nroy" value="До обучения: покрытие ансамбля и NROY&lt;br&gt;воспроизводят ли допустимые миры реальные наблюдения; противоречащие — RULED_OUT; данные отсева и проверки разделены" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="nroy" value="До обучения: покрытие ансамбля и NROY&lt;br&gt;воспроизводят ли допустимые миры реальные наблюдения; противоречащие — RULED_OUT; данные отсева и проверки разделены" style="dashed=1;fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="370" y="670" width="250" height="180" as="geometry" />
         </mxCell>
-        <mxCell id="nn" value="Прогноз оседаний — нейросеть (FORECAST_METHOD)&lt;br&gt;наблюдения до t0 + история горных работ → оседания на t0 + H; рядом: нормативная функция времени, методы типа Кнотхе, переменный модуль, регрессия" style="fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="nn" value="Прогноз оседаний — нейросеть (FORECAST_METHOD)&lt;br&gt;наблюдения до t0 + история горных работ → оседания на t0 + H; рядом: нормативная функция времени, методы типа Кнотхе, переменный модуль, регрессия" style="dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="720" y="670" width="250" height="180" as="geometry" />
         </mxCell>
-        <mxCell id="bench" value="Предрегистрированный бенчмарк (до обучения)&lt;br&gt;t0, горизонты H, метрики; разбиение по мирам и по времени (available_from ≤ t0); отложенные семейства, другой решатель и разрешение" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="bench" value="Предрегистрированный бенчмарк (до обучения)&lt;br&gt;t0, горизонты H, метрики; разбиение по мирам и по времени (available_from ≤ t0); отложенные семейства, другой решатель и разрешение" style="dashed=1;fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1070" y="670" width="250" height="180" as="geometry" />
         </mxCell>
-        <mxCell id="envelope" value="Выход — огибающая по совместимым мирам 𝒮_H(x), а не одно число; отчёт по мирам, по семействам и между семействами" style="fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="envelope" value="Выход — огибающая по совместимым мирам 𝒮_H(x), а не одно число; отчёт по мирам, по семействам и между семействами" style="dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1400" y="695" width="260" height="130" as="geometry" />
         </mxCell>
         <mxCell id="realobs" value="Реальные наблюдения корпуса&lt;br&gt;InSAR Березников и Соликамска; опубликованные ряды нивелирования; оцифровка — DERIVATION" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="370" y="950" width="250" height="130" as="geometry" />
         </mxCell>
-        <mxCell id="fieldcheck" value="Отдельная проверка на реальных наблюдениях корпуса — перенос в пределах применимости, не полевая валидация сверх неё" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="fieldcheck" value="Отдельная проверка на реальных наблюдениях корпуса — перенос в пределах применимости, не полевая валидация сверх неё" style="dashed=1;fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1070" y="950" width="250" height="130" as="geometry" />
         </mxCell>
         <mxCell id="classes" value="Четыре класса выбора не смешиваются (FW §5)&lt;br&gt;• PHYSICAL_HYPOTHESIS — отличает миры: законы ползучести, закладка, λ, гидросвязь&lt;br&gt;• REPRESENTATION_CHOICE — Ansys, OGS, микроядра, сетка&lt;br&gt;• FORECAST_METHOD — нейросеть и другие методы&lt;br&gt;• EPISTEMIC_RULE — LAB → MASSIF, ANALOGUE → SKRU1" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1400" y="100" width="260" height="200" as="geometry" />
         </mxCell>
-        <mxCell id="rules" value="Правила&lt;br&gt;• мир — гипотеза, а не СКРУ-1&lt;br&gt;• синтетика и модельный результат ≠ наблюдение&lt;br&gt;• UNKNOWN не заменяется числом&lt;br&gt;• неопределённость мира ≠ ошибка представления&lt;br&gt;• гейт ML открыт D-19 при предрегистрации" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="rules" value="UNKNOWN сохраняется; синтетика ≠ наблюдение; LAB ≠ MASSIF; ANALOGUE ≠ SKRU1; обучение требует отдельной команды и предрегистрации" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1400" y="360" width="260" height="165" as="geometry" />
         </mxCell>
         <mxCell id="retracted" value="Отозвано reset 26.09: «скв. 75 → Physical World v1 (2D) → OGS reference case» — только в ветке legacy; 2D-сечения — лишь производные представления" style="dashed=1;fillColor=#f5f5f5;fontColor=#333333;fontSize=13;html=1;rounded=1;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
@@ -106,7 +106,7 @@
         <mxCell id="lg_tx_paused" value="приостановлено, в работе или будущее (пунктир)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
           <mxGeometry x="52" y="234" width="200" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="sources" value="Источники: CLAUDE.md; docs/governance/PHASE1_DESIGN_DECISIONS_RU.md (D-18, D-19); docs/worldspec/WORLD_KERNELS_DESIGN_RU.md §0–§7; docs/planning/PHASE2_PLAN_OCT_NOV_2026_RU.md §2; docs/theory/THEORY_TO_SCIENTIFIC_DATA_SYSTEM_CONTRACT_V0_2_RU.md §63; README.md §1." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="sources" value="Источники: AGENTS.md; D-18/D-19; PROJECT_STATE_RU.md; WORLD_KERNELS_DESIGN_RU.md; WORK_SESSION_FIGURES_GEOMETRY_2026-09-30_RU.md." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="1155" width="1640" height="25" as="geometry" />
         </mxCell>
         <mxCell id="e1" value="конвейер" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="corpus" target="doc">

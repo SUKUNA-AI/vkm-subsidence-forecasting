@@ -7,7 +7,7 @@
         <mxCell id="title" value="Слои научной системы данных: что где живёт и с каким статусом" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="12" width="1670" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="subtitle" value="Контракт теории v0.2 (L0…L4) и навигационный слой NAV. Состояние на 29.09.2026, снимок корпуса snap-20260928T193550Z-738eebee. Правило для всех слоёв: AUTO EXTRACTION ≠ REVIEWED EVIDENCE." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="subtitle" value="Контракт теории v0.2 (L0…L4) + NAV. Снимок snap-20260929T175107Z-574daaac, 30.09.2026. AUTO EXTRACTION ≠ REVIEWED EVIDENCE." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="44" width="1670" height="25" as="geometry" />
         </mxCell>
         <mxCell id="h0" value="Что это" style="fillColor=#eeeeee;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
@@ -31,7 +31,7 @@
         <mxCell id="l0_where" value="PRIVATE-репозиторий (Git + LFS); реестр SOURCE_REGISTER.csv" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="590" y="142" width="330" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="l0_st" value="сырьё — источник истины; 251 источник, 2 пропущены по реестру (013, 022)" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="l0_st" value="Бинарные источники + реестр: 271 источник; 013, 022 пропущены по реестру" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="935" y="142" width="320" height="70" as="geometry" />
         </mxCell>
         <mxCell id="l1" value="L1 DOCUMENT" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
@@ -43,7 +43,7 @@
         <mxCell id="l1_where" value="канон — Parquet-снимок на CORE (CURRENT) + артефакты; проекции DuckDB, Neo4j (DocumentLayer), OpenSearch" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="590" y="250" width="330" height="85" as="geometry" />
         </mxCell>
-        <mxCell id="l1_st" value="AUTO_EXTRACTED_UNREVIEWED; origin NATIVE / EMBEDDED_OCR / OCR; 26 483 страницы, 621 497 блоков, 108 904 формулы, 23 682 записи литературы" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="l1_st" value="AUTO_EXTRACTED_UNREVIEWED: 27 135 страниц, 632 420 блоков, 109 243 формулы, 24 105 записей литературы" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="935" y="250" width="320" height="85" as="geometry" />
         </mxCell>
         <mxCell id="nav" value="NAV (навигация)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
@@ -55,7 +55,7 @@
         <mxCell id="nav_where" value="derived/navigation/&amp;lt;снимок&amp;gt;/nav.duckdb (NavStore в API); граф NavigationLayer в Neo4j" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="590" y="373" width="330" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="nav_st" value="DERIVED, AUTO_EXTRACTED_UNREVIEWED — навигация, не evidence; 9 105 разделов, 720 тем, граф 111 922 узла" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="nav_st" value="DERIVED / AUTO_EXTRACTED_UNREVIEWED: 9 378 разделов; Neo4j NAV 133 096 узлов, 2 348 208 связей; навигация, не evidence" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="935" y="373" width="320" height="70" as="geometry" />
         </mxCell>
         <mxCell id="l2" value="L2 EVIDENCE" style="fillColor=#d5e8d4;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">

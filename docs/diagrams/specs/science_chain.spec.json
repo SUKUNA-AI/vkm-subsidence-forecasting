@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "После научного reset 26.09.2026 и решений пользователя D-18 (26.09) и D-19 (28.09). Миры и микроядра — проект v2, реализация отложена до отдельного проектирования; прогноз — только после гейтов D-19.",
+     "label": "Текущая работа: источники → проверенная оцифровка A/B/C → evidence → интерпретация → WorldSpec. PhysicalWorld, решатели и ML приостановлены до отдельной команды.",
      "x": 20,
      "y": 44,
      "w": 1640,
@@ -31,7 +31,7 @@
     },
     {
      "id": "corpus",
-     "label": "Корпус (PRIVATE)\n251 зарегистрированный источник: PDF, DjVu, DOCX, EPUB; реестр SOURCE_REGISTER\nданных предприятия нет (D-19)",
+     "label": "Корпус PRIVATE: 271 источник, 27 135 страниц\nsource files + register; данных предприятия для калибровки не будет",
      "x": 20,
      "y": 110,
      "w": 250,
@@ -49,7 +49,7 @@
     },
     {
      "id": "evidence",
-     "label": "evidence vNext (L2)\nзаписи FACT … UNKNOWN со scope, scale и локатором; полные — в PRIVATE, в PUBLIC — каталоги без цитат",
+     "label": "evidence vNext (L2): FACT … UNKNOWN, scope/scale/locator. Проверенная оцифровка подтверждает чтение изображения; принятие evidence — отдельная проверка.",
      "x": 720,
      "y": 110,
      "w": 250,
@@ -58,7 +58,7 @@
     },
     {
      "id": "worldspec",
-     "label": "WorldSpec — 3D + время (D-18)\nгеология, выработки, закладка, история разработки, свойства, реология, начальное состояние, ГУ; провенанс; UNKNOWN остаётся UNKNOWN",
+     "label": "WorldSpec: evidence → интерпретация → 3D + время\nгеология, выработки, закладка, история, свойства, реология, начальное состояние, ГУ; provenance; UNKNOWN",
      "x": 1070,
      "y": 110,
      "w": 250,
@@ -72,7 +72,7 @@
      "y": 370,
      "w": 250,
      "h": 200,
-     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;"
+     "style": "dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;"
     },
     {
      "id": "reps",
@@ -91,7 +91,7 @@
      "y": 32,
      "w": 340,
      "h": 55,
-     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;",
+     "style": "dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;",
      "parent": "reps"
     },
     {
@@ -101,7 +101,7 @@
      "y": 97,
      "w": 340,
      "h": 55,
-     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;",
+     "style": "dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;",
      "parent": "reps"
     },
     {
@@ -111,7 +111,7 @@
      "y": 162,
      "w": 340,
      "h": 65,
-     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;",
+     "style": "dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;",
      "parent": "reps"
     },
     {
@@ -121,7 +121,7 @@
      "y": 415,
      "w": 180,
      "h": 110,
-     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;"
+     "style": "dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;"
     },
     {
      "id": "ow",
@@ -130,7 +130,7 @@
      "y": 370,
      "w": 250,
      "h": 200,
-     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;"
+     "style": "dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;"
     },
     {
      "id": "synth",
@@ -139,7 +139,7 @@
      "y": 670,
      "w": 250,
      "h": 180,
-     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;"
+     "style": "dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;"
     },
     {
      "id": "nroy",
@@ -148,7 +148,7 @@
      "y": 670,
      "w": 250,
      "h": 180,
-     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;"
+     "style": "dashed=1;fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;"
     },
     {
      "id": "nn",
@@ -157,7 +157,7 @@
      "y": 670,
      "w": 250,
      "h": 180,
-     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;"
+     "style": "dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;"
     },
     {
      "id": "bench",
@@ -166,7 +166,7 @@
      "y": 670,
      "w": 250,
      "h": 180,
-     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;"
+     "style": "dashed=1;fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;"
     },
     {
      "id": "envelope",
@@ -175,7 +175,7 @@
      "y": 695,
      "w": 260,
      "h": 130,
-     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;"
+     "style": "dashed=1;fillColor=#ffe6cc;fontSize=13;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;"
     },
     {
      "id": "realobs",
@@ -193,7 +193,7 @@
      "y": 950,
      "w": 250,
      "h": 130,
-     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;"
+     "style": "dashed=1;fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;"
     },
     {
      "id": "classes",
@@ -206,7 +206,7 @@
     },
     {
      "id": "rules",
-     "label": "Правила\n• мир — гипотеза, а не СКРУ-1\n• синтетика и модельный результат ≠ наблюдение\n• UNKNOWN не заменяется числом\n• неопределённость мира ≠ ошибка представления\n• гейт ML открыт D-19 при предрегистрации",
+     "label": "UNKNOWN сохраняется; синтетика ≠ наблюдение; LAB ≠ MASSIF; ANALOGUE ≠ SKRU1; обучение требует отдельной команды и предрегистрации",
      "x": 1400,
      "y": 360,
      "w": 260,
@@ -344,7 +344,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: CLAUDE.md; docs/governance/PHASE1_DESIGN_DECISIONS_RU.md (D-18, D-19); docs/worldspec/WORLD_KERNELS_DESIGN_RU.md §0–§7; docs/planning/PHASE2_PLAN_OCT_NOV_2026_RU.md §2; docs/theory/THEORY_TO_SCIENTIFIC_DATA_SYSTEM_CONTRACT_V0_2_RU.md §63; README.md §1.",
+     "label": "Источники: AGENTS.md; D-18/D-19; PROJECT_STATE_RU.md; WORLD_KERNELS_DESIGN_RU.md; WORK_SESSION_FIGURES_GEOMETRY_2026-09-30_RU.md.",
      "x": 20,
      "y": 1155,
      "w": 1640,

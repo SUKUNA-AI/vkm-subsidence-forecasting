@@ -1,0 +1,1273 @@
+{
+  "schema": "vkm.platform_integrity/1",
+  "date": "2026-09-30",
+  "timezone": "Europe/Moscow",
+  "run_started_at_utc": "2026-09-30T08:35:18.136Z",
+  "run_finished_at_utc": "2026-09-30T08:43:46.247Z",
+  "snapshot_id": "snap-20260929T175107Z-574daaac",
+  "canonical_manifest_sha256": "71967f1f06645c069c08dc6f35b591c9174bf9b045a2827f409667995778fc05",
+  "check_scope": "read-only sampled MCP/API/projection integrity; no server operations",
+  "overall": "PASS_SAMPLED_WITH_METADATA_DEFECT",
+  "server_mutations": 0,
+  "local_gpu_jobs": 0,
+  "checks": [
+    {
+      "id": "API_RESPONSE_CONTRACT",
+      "status": "PASS",
+      "evidence": {
+        "calls": 61,
+        "distinct_tools": 22
+      }
+    },
+    {
+      "id": "EXPECTED_SNAPSHOT",
+      "status": "PASS",
+      "evidence": {
+        "snapshot_id": "snap-20260929T175107Z-574daaac",
+        "manifest_sha256": "71967f1f06645c069c08dc6f35b591c9174bf9b045a2827f409667995778fc05"
+      }
+    },
+    {
+      "id": "SOURCE_PAGE_METADATA",
+      "status": "PASS",
+      "evidence": {
+        "sources_total": 271,
+        "pages_total": 27135,
+        "complete": 240,
+        "partial": 29,
+        "skipped_by_register": 2
+      }
+    },
+    {
+      "id": "OPENSEARCH_ALIAS_ALIGNMENT",
+      "status": "PASS",
+      "evidence": {
+        "aliases": {
+          "pages": {
+            "build_id": "20260929t180123z-71967f1f",
+            "built_from_snapshot_id": "snap-20260929T175107Z-574daaac",
+            "count": 27135,
+            "matches_canonical_snapshot": true
+          },
+          "blocks": {
+            "build_id": "20260929t180123z-71967f1f",
+            "built_from_snapshot_id": "snap-20260929T175107Z-574daaac",
+            "count": 632420,
+            "matches_canonical_snapshot": true
+          },
+          "figures": {
+            "build_id": "20260929t180123z-71967f1f",
+            "built_from_snapshot_id": "snap-20260929T175107Z-574daaac",
+            "count": 18297,
+            "matches_canonical_snapshot": true
+          },
+          "tables": {
+            "build_id": "20260929t180123z-71967f1f",
+            "built_from_snapshot_id": "snap-20260929T175107Z-574daaac",
+            "count": 3689,
+            "matches_canonical_snapshot": true
+          },
+          "formulas": {
+            "build_id": "20260929t180123z-71967f1f",
+            "built_from_snapshot_id": "snap-20260929T175107Z-574daaac",
+            "count": 109243,
+            "matches_canonical_snapshot": true
+          }
+        }
+      }
+    },
+    {
+      "id": "DENSE_LATE_VISUAL_ALIGNMENT",
+      "status": "PASS",
+      "evidence": {
+        "dense_count": 209259,
+        "late_count": 209259,
+        "visual_pages": 26744,
+        "late_pack_id": "snap-20260929T175107Z-574daaac-f25e4ec41da0",
+        "dense_model": "jina-v5-nano-retrieval",
+        "visual_model": "qwen3-vl-emb-2b"
+      }
+    },
+    {
+      "id": "SNAPSHOT_STABLE_DURING_SMOKE",
+      "status": "PASS",
+      "evidence": {
+        "first_request": "8b95550f08984f85",
+        "last_request": "3d22322443034ad4"
+      }
+    },
+    {
+      "id": "HYBRID_BM25_DENSE_LATE",
+      "status": "PASS",
+      "evidence": {
+        "query_keys": [
+          "geology",
+          "mining",
+          "mechanics",
+          "monitoring"
+        ],
+        "candidates_per_query": 24,
+        "fully_scored_queries": 4
+      }
+    },
+    {
+      "id": "SEARCH_TO_CANONICAL_HYDRATION",
+      "status": "PASS",
+      "evidence": {
+        "sampled_pages": [
+          "VKM-SRC-051:p0132",
+          "VKM-SRC-271:r0016",
+          "VKM-SRC-023:r0014",
+          "VKM-SRC-045:p0057",
+          "VKM-SRC-012:p0050"
+        ],
+        "same_object_version": true
+      }
+    },
+    {
+      "id": "RECONSTRUCT_TOPIC_FOUR_DOMAINS",
+      "status": "PASS",
+      "evidence": {
+        "queries": [
+          "геологическое строение и водозащитная толща Верхнекамского месторождения",
+          "камерно столбовая разработка калийных руд и закладка",
+          "ползучесть и реология каменной соли",
+          "маркшейдерский мониторинг оседаний земной поверхности СКРУ-1"
+        ],
+        "section_counts": [
+          6,
+          5,
+          5,
+          6
+        ],
+        "gap_counts": [
+          4,
+          3,
+          6,
+          6
+        ],
+        "gap_status_counts": {
+          "UNKNOWN": 13,
+          "NOT_CHECKED": 6
+        }
+      }
+    },
+    {
+      "id": "DOSSIER_SOURCE_PROVENANCE_CITATIONS",
+      "status": "PASS",
+      "evidence": {
+        "budget_chars": 26000,
+        "source_count": 12,
+        "citation_edges": 7,
+        "catalogue_pack_id": "99f0ee6c6e05",
+        "catalogue_content_sha256": "ac9fd7eca10ac77687d29b58da761f003fed8b49b62df58a6ebabb653e2134a3"
+      }
+    },
+    {
+      "id": "WORK_SOURCE_PAGE_TRAVERSAL",
+      "status": "PASS",
+      "evidence": {
+        "page_id": "VKM-SRC-012:p0050",
+        "source_id": "VKM-SRC-012",
+        "work_id": "VKM-WRK-012",
+        "second_work": "VKM-WRK-014"
+      }
+    },
+    {
+      "id": "NAV_TOPIC_SECTION_PAGE_TRAVERSAL",
+      "status": "PASS",
+      "evidence": {
+        "topic_id": "TOP-5afb24bfea730738",
+        "section_id": "SEC-bb43d259958e5adb",
+        "page_id": "VKM-SRC-045:p0041"
+      }
+    },
+    {
+      "id": "NAV_TERMS_PARAMETERS_FORMULA_SYMBOLS",
+      "status": "PASS",
+      "evidence": {
+        "sample_ids": [
+          "TRM-eef53a7edf6cbd88",
+          "PRM-0130cf280a1315ec",
+          "FSY-087d47d131b185fd",
+          "FPR-a2ac6a6a488270b5"
+        ],
+        "parameter_candidates_returned": 3,
+        "formula_id": "VKM-SRC-037:p0168:m32b141dec4c9"
+      }
+    },
+    {
+      "id": "FORMULA_REFERENCE_ENDPOINTS",
+      "status": "PASS",
+      "evidence": {
+        "formula_id": "VKM-SRC-070:p0002:m2767c7521e0d",
+        "resolved_block_ids": [
+          "VKM-SRC-070:p0002:b55419b4eb18b",
+          "VKM-SRC-070:p0006:b3fafe20d3e69"
+        ],
+        "scope": "two sampled textual references, not an exhaustive graph check"
+      }
+    },
+    {
+      "id": "PROCESSING_PROVENANCE_CHAIN",
+      "status": "PASS",
+      "evidence": {
+        "object_id": "VKM-SRC-045:p0057",
+        "chain_steps": [
+          "RAW_SOURCE",
+          "PROCESSING_RUN",
+          "PRODUCER",
+          "RAW_OUTPUT",
+          "CANONICAL_COMMIT"
+        ],
+        "source_sha256": "14236f6375926022d48c03f4dc13bfe8cd06848d518da9e80d014515c5834333",
+        "canonical_commit": "CMT-2eebbd859542cd52"
+      }
+    },
+    {
+      "id": "PAGE_IMAGE_BYTES_IDENTITY_TRANSFORM",
+      "status": "PASS",
+      "evidence": {
+        "images": [
+          {
+            "page_id": "VKM-SRC-023:r0014",
+            "served_sha256": "c34ba9f5810bfef2da44cf0214494a0de5481c05f097174d5992c4cac5130cdc",
+            "matches_served_hash": true,
+            "pixel_to_page_consistent": true
+          },
+          {
+            "page_id": "VKM-SRC-014:p0077",
+            "served_sha256": "a92e173abd0b3353a4b2ac4e30357aec6fe210ac3d9becce52872360f618f5e0",
+            "matches_served_hash": true,
+            "pixel_to_page_consistent": true
+          },
+          {
+            "page_id": "VKM-SRC-034:p0003",
+            "served_sha256": "b34f5ae36f666e0a9743cbe2de4a236904b318edba440d3821b07427a14e9594",
+            "matches_served_hash": true,
+            "pixel_to_page_consistent": true
+          }
+        ],
+        "visual_identity_review": "PASS on 023 render page 14, 014 printed page 77 and 034 printed page 41; content identity only"
+      }
+    },
+    {
+      "id": "VISUAL_RETRIEVAL_ROUTE",
+      "status": "PASS",
+      "evidence": {
+        "query": "план шахтного поля СКРУ-1 геологический разрез",
+        "model_key": "qwen3-vl-emb-2b",
+        "pages_returned": 24,
+        "hit_ids": [
+          "VKM-SRC-014:p0077",
+          "VKM-SRC-012:p0028",
+          "VKM-SRC-270:r0005",
+          "VKM-SRC-014:p0092"
+        ]
+      }
+    },
+    {
+      "id": "VISUAL_RERANK",
+      "status": "PASS",
+      "evidence": {
+        "model_id": "jinaai/jina-reranker-m0-GGUF",
+        "model_revision": "61490ce6a4799192781ab7beab4ee4661675488c",
+        "n_candidates": 2,
+        "latency_total_ms": 15999.59
+      }
+    },
+    {
+      "id": "TEXT_RERANK_LATE",
+      "status": "PASS",
+      "evidence": {
+        "candidate_ids": [
+          "VKM-SRC-012:p0050",
+          "VKM-SRC-012:p0052",
+          "VKM-SRC-012:p0058"
+        ],
+        "backend": "mLateOn on CORE"
+      }
+    },
+    {
+      "id": "OPT_IN_GRAPH_STAGES",
+      "status": "PASS",
+      "evidence": {
+        "requested": [
+          "collapse",
+          "cohesion",
+          "concepts",
+          "cites",
+          "topics"
+        ],
+        "status": {
+          "collapse": "NOT_TRIGGERED",
+          "cohesion": "NOT_TRIGGERED",
+          "concepts": "NOT_TRIGGERED",
+          "cites": "APPLIED",
+          "topics": "APPLIED"
+        },
+        "default_left_unchanged": true
+      }
+    },
+    {
+      "id": "FIGURE_SERIES_VALUES_GEOMETRY_PROVENANCE",
+      "status": "PASS",
+      "evidence": {
+        "series": [
+          {
+            "series_id": "FS-a12031056abfe134",
+            "figure_id": "VKM-SRC-034:p0003:f7e35ee505c30",
+            "page_id": "VKM-SRC-034:p0003",
+            "source_id": "VKM-SRC-034",
+            "point_count": 10,
+            "has_calibration": true,
+            "has_provenance": true,
+            "status": "DERIVATION",
+            "review_status": "AUTO_EXTRACTED_UNREVIEWED"
+          },
+          {
+            "series_id": "FS-ca9c15ac334200c1",
+            "figure_id": "VKM-SRC-097:p0002:f1b6c418b6a37",
+            "page_id": "VKM-SRC-097:p0002",
+            "source_id": "VKM-SRC-097",
+            "point_count": 77,
+            "has_calibration": true,
+            "has_provenance": true,
+            "status": "DERIVATION",
+            "review_status": "AUTO_EXTRACTED_UNREVIEWED"
+          },
+          {
+            "series_id": "FS-8164c43128ca740f",
+            "figure_id": "VKM-SRC-014:p0144:fb5fcc6692e2d",
+            "page_id": "VKM-SRC-014:p0144",
+            "source_id": "VKM-SRC-014",
+            "point_count": 24,
+            "has_calibration": true,
+            "has_provenance": true,
+            "status": "DERIVATION",
+            "review_status": "AUTO_EXTRACTED_UNREVIEWED"
+          }
+        ],
+        "numeric_accuracy_validation": "NOT_RUN; API/identity/finite-value smoke only"
+      }
+    },
+    {
+      "id": "BIBLIOGRAPHY_LATE_EXCLUSION_EXPLAINED",
+      "status": "PASS",
+      "evidence": {
+        "page_id": "VKM-SRC-254:p0011",
+        "expected_status": "NO_TOKENS",
+        "reason": "bibliography-only candidate, BIB_ENTRY excluded from PAGE late scoring (CP-42)"
+      }
+    },
+    {
+      "id": "TRACE_TEXT_BACKEND_DESCRIPTION",
+      "status": "FAIL",
+      "evidence": {
+        "query_key": "geology",
+        "trace_field": "search_hybrid.item.record.stages.rerank",
+        "trace_names_backend": "EDGE text reranker",
+        "status_backend": "late",
+        "actual_rerank_model": "mlateon",
+        "root_cause": "stale literal in src/vkm_corpus/search/hybrid.py:945; corresponding docstring at line 63"
+      }
+    },
+    {
+      "id": "EXHAUSTIVE_C1_C16_N1_N11_LIVE",
+      "status": "NOT_RUN",
+      "evidence": {
+        "reason": "No read-only MCP integrity endpoint. CLI sweep requires direct service access; no operations on CORE/EDGE were performed.",
+        "existing_same_snapshot_receipt": "docs/corpus_platform/receipts/intake_2026-09-29.json",
+        "receipt_document_checks": "C1-C16 PASS at deployment 2026-09-29",
+        "receipt_nav_checks": "N1-N11 PASS at deployment 2026-09-30; not rerun here"
+      }
+    },
+    {
+      "id": "RETRIEVAL_QUALITY_OR_DIGITIZATION_ACCURACY",
+      "status": "NOT_RUN",
+      "evidence": {
+        "reason": "This is smoke/integrity, not retrieval research, relevance labelling, scientific evidence acceptance or digitization accuracy validation."
+      }
+    }
+  ],
+  "limitations": [
+    "No full live C1-C16/N1-N11 sweep; deployment receipt and sampled traversal are separate evidence.",
+    "Small dossier budgets trim sources/citations with explicit dropped IDs; 26000-char probe retained both.",
+    "Visual retrieval may return text pages describing plans; candidate content must be checked.",
+    "Figure-series clean_only is a heuristic; AUTO_EXTRACTED_UNREVIEWED remains and scientific accuracy is not accepted.",
+    "Unavailable EDGE text backend is expected; rerank_text uses the live CORE late backend."
+  ],
+  "observed_defects": [
+    {
+      "schema": "vkm.minimal_case/1",
+      "defect_id": "TRACE_TEXT_BACKEND_DESCRIPTION",
+      "severity": "LOW_NONBLOCKING_METADATA",
+      "steps": [
+        {
+          "tool": "search_hybrid",
+          "args": {
+            "query": "водозащитная толща Верхнекамского месторождения",
+            "kinds": [
+              "PAGE"
+            ],
+            "limit": 4,
+            "candidates": 24,
+            "late_candidates": 24,
+            "late": true,
+            "visual_route": false,
+            "graph": []
+          },
+          "observed_field": "item.record.stages.rerank",
+          "contains": "EDGE text reranker"
+        },
+        {
+          "tool": "get_corpus_status",
+          "args": {},
+          "observed_field": "status.dependencies.rerank_text_backend",
+          "equals": "late"
+        },
+        {
+          "tool": "rerank_text",
+          "args": {
+            "query": "маркшейдерские наблюдения оседаний поверхности СКРУ-1",
+            "candidate_ids": [
+              "VKM-SRC-012:p0050",
+              "VKM-SRC-012:p0052",
+              "VKM-SRC-012:p0058"
+            ],
+            "top_n": 3
+          },
+          "observed_field": "item.record.model_id",
+          "equals": "mlateon"
+        }
+      ],
+      "root_cause": {
+        "file": "src/vkm_corpus/search/hybrid.py",
+        "line": 945,
+        "kind": "stale descriptive literal"
+      },
+      "repair": "coordinator decision; no code or service changes made by SYS"
+    }
+  ],
+  "artifacts": {
+    "raw_capture": {
+      "path": "work/sys_check_2026-09-30/mcp_calls_final.json",
+      "sha256": "8222627c26dc2ca75d58bd5c6cdec0bbc44112a325a20e4359149528c36b1147",
+      "visibility": "PRIVATE"
+    },
+    "offline_checker": {
+      "path": "work/sys_check_2026-09-30/verify_captured.py",
+      "sha256": "34ea7477c20c801664eb5a8beccfef84705c7070f7695312d0f33d3ff412706b",
+      "visibility": "PRIVATE"
+    },
+    "minimal_case": {
+      "path": "work/sys_check_2026-09-30/minimal_case_trace_backend.json",
+      "sha256": "0b2ad2c5cacf7aa7be265aedc0432779e761de14d295e4c64e750aa9759aa542",
+      "visibility": "PRIVATE"
+    },
+    "reference_receipt": {
+      "path": "docs/corpus_platform/receipts/intake_2026-09-29.json",
+      "sha256": "7e4f310338988201cc7fe6aff4edf6ba2f143b62826644fdc67da5f49eb2a502"
+    }
+  },
+  "calls": [
+    {
+      "key": "status",
+      "tool": "get_corpus_status",
+      "args": {},
+      "at_utc": "2026-09-30T08:35:18.136Z",
+      "request_id": "8b95550f08984f85",
+      "ok": true
+    },
+    {
+      "key": "lexical",
+      "tool": "search_text",
+      "args": {
+        "query": "водозащитная толща Верхнекамского месторождения",
+        "kinds": [
+          "PAGE"
+        ],
+        "limit": 4
+      },
+      "at_utc": "2026-09-30T08:35:40.917Z",
+      "request_id": "41a9d5ee17034a11",
+      "ok": true
+    },
+    {
+      "key": "mechanics",
+      "tool": "search_hybrid",
+      "args": {
+        "query": "ползучесть каменной соли реологические параметры",
+        "kinds": [
+          "PAGE"
+        ],
+        "limit": 4,
+        "candidates": 24,
+        "late_candidates": 24,
+        "late": true,
+        "visual_route": false,
+        "graph": []
+      },
+      "at_utc": "2026-09-30T08:35:40.917Z",
+      "request_id": "fd52e63f41364fba",
+      "ok": true
+    },
+    {
+      "key": "mining",
+      "tool": "search_hybrid",
+      "args": {
+        "query": "камерно столбовая система разработки калийных руд закладка",
+        "kinds": [
+          "PAGE"
+        ],
+        "limit": 4,
+        "candidates": 24,
+        "late_candidates": 24,
+        "late": true,
+        "visual_route": false,
+        "graph": []
+      },
+      "at_utc": "2026-09-30T08:35:40.917Z",
+      "request_id": "87be1fc3809d42db",
+      "ok": true
+    },
+    {
+      "key": "monitoring",
+      "tool": "search_hybrid",
+      "args": {
+        "query": "маркшейдерские наблюдения оседаний поверхности СКРУ-1",
+        "kinds": [
+          "PAGE"
+        ],
+        "limit": 4,
+        "candidates": 24,
+        "late_candidates": 24,
+        "late": true,
+        "visual_route": false,
+        "graph": []
+      },
+      "at_utc": "2026-09-30T08:35:40.917Z",
+      "request_id": "30a6018259d047a6",
+      "ok": true
+    },
+    {
+      "key": "geology",
+      "tool": "search_hybrid",
+      "args": {
+        "query": "водозащитная толща Верхнекамского месторождения",
+        "kinds": [
+          "PAGE"
+        ],
+        "limit": 4,
+        "candidates": 24,
+        "late_candidates": 24,
+        "late": true,
+        "visual_route": false,
+        "graph": []
+      },
+      "at_utc": "2026-09-30T08:35:40.917Z",
+      "request_id": "0071d575e64e4fb3",
+      "ok": true
+    },
+    {
+      "key": "topic_monitoring",
+      "tool": "reconstruct_topic",
+      "args": {
+        "query": "маркшейдерский мониторинг оседаний земной поверхности СКРУ-1",
+        "paraphrases": [
+          "surface subsidence monitoring"
+        ],
+        "budget_chars": 7000
+      },
+      "at_utc": "2026-09-30T08:36:10.496Z",
+      "request_id": "8c7193264bd749b8",
+      "ok": true
+    },
+    {
+      "key": "topic_geology",
+      "tool": "reconstruct_topic",
+      "args": {
+        "query": "геологическое строение и водозащитная толща Верхнекамского месторождения",
+        "paraphrases": [
+          "стратиграфия соляной толщи ВКМ"
+        ],
+        "budget_chars": 7000
+      },
+      "at_utc": "2026-09-30T08:36:10.496Z",
+      "request_id": "daf4a98d44d54346",
+      "ok": true
+    },
+    {
+      "key": "topic_mechanics",
+      "tool": "reconstruct_topic",
+      "args": {
+        "query": "ползучесть и реология каменной соли",
+        "paraphrases": [
+          "rock salt creep rheological models"
+        ],
+        "budget_chars": 7000
+      },
+      "at_utc": "2026-09-30T08:36:10.496Z",
+      "request_id": "5a6763183e5b499f",
+      "ok": true
+    },
+    {
+      "key": "topic_mining",
+      "tool": "reconstruct_topic",
+      "args": {
+        "query": "камерно столбовая разработка калийных руд и закладка",
+        "paraphrases": [
+          "mining layouts and backfill"
+        ],
+        "budget_chars": 7000
+      },
+      "at_utc": "2026-09-30T08:36:10.496Z",
+      "request_id": "f6909812ea6c4262",
+      "ok": true
+    },
+    {
+      "key": "page_VKM-SRC-012:p0050",
+      "tool": "get_page",
+      "args": {
+        "page_id": "VKM-SRC-012:p0050",
+        "max_chars": 1800,
+        "include": [
+          "text",
+          "objects"
+        ]
+      },
+      "at_utc": "2026-09-30T08:36:42.651Z",
+      "request_id": "68567ca47ba34d84",
+      "ok": true
+    },
+    {
+      "key": "page_VKM-SRC-051:p0132",
+      "tool": "get_page",
+      "args": {
+        "page_id": "VKM-SRC-051:p0132",
+        "max_chars": 1800,
+        "include": [
+          "text",
+          "objects"
+        ]
+      },
+      "at_utc": "2026-09-30T08:36:42.651Z",
+      "request_id": "0513ce3c7dc14f9f",
+      "ok": true
+    },
+    {
+      "key": "page_VKM-SRC-023:r0014",
+      "tool": "get_page",
+      "args": {
+        "page_id": "VKM-SRC-023:r0014",
+        "max_chars": 1800,
+        "include": [
+          "text",
+          "objects"
+        ]
+      },
+      "at_utc": "2026-09-30T08:36:42.651Z",
+      "request_id": "3a4d435de4b14d99",
+      "ok": true
+    },
+    {
+      "key": "page_VKM-SRC-045:p0057",
+      "tool": "get_page",
+      "args": {
+        "page_id": "VKM-SRC-045:p0057",
+        "max_chars": 1800,
+        "include": [
+          "text",
+          "objects"
+        ]
+      },
+      "at_utc": "2026-09-30T08:36:42.651Z",
+      "request_id": "472cdf6c03d64db9",
+      "ok": true
+    },
+    {
+      "key": "page_VKM-SRC-271:r0016",
+      "tool": "get_page",
+      "args": {
+        "page_id": "VKM-SRC-271:r0016",
+        "max_chars": 1800,
+        "include": [
+          "text",
+          "objects"
+        ]
+      },
+      "at_utc": "2026-09-30T08:36:42.651Z",
+      "request_id": "0f6052ac6eff4457",
+      "ok": true
+    },
+    {
+      "key": "image_023",
+      "tool": "get_page_image",
+      "args": {
+        "page_id": "VKM-SRC-023:r0014",
+        "max_side": 1200
+      },
+      "at_utc": "2026-09-30T08:36:42.832Z",
+      "request_id": "901ce39a42a24ac5",
+      "ok": true
+    },
+    {
+      "key": "series_subsidence",
+      "tool": "find_figure_series",
+      "args": {
+        "text": "оседание",
+        "calibrated_only": true,
+        "clean_only": true,
+        "limit": 3
+      },
+      "at_utc": "2026-09-30T08:37:44.243Z",
+      "request_id": "d0a5962b1295490b",
+      "ok": true
+    },
+    {
+      "key": "series_creep",
+      "tool": "find_figure_series",
+      "args": {
+        "text": "ползучесть",
+        "calibrated_only": true,
+        "clean_only": true,
+        "limit": 3
+      },
+      "at_utc": "2026-09-30T08:37:44.243Z",
+      "request_id": "30dab07bb83b4c6c",
+      "ok": true
+    },
+    {
+      "key": "series_profile",
+      "tool": "find_figure_series",
+      "args": {
+        "source_id": "VKM-SRC-014",
+        "calibrated_only": true,
+        "clean_only": true,
+        "limit": 2
+      },
+      "at_utc": "2026-09-30T08:37:44.243Z",
+      "request_id": "a6686b2a50c7457a",
+      "ok": true
+    },
+    {
+      "key": "work_graph",
+      "tool": "get_document_neighbors",
+      "args": {
+        "object_id": "VKM-WRK-014",
+        "limit": 10
+      },
+      "at_utc": "2026-09-30T08:37:44.243Z",
+      "request_id": "1a87850c88114fdf",
+      "ok": true
+    },
+    {
+      "key": "doc_neighbors",
+      "tool": "get_document_neighbors",
+      "args": {
+        "object_id": "VKM-SRC-012:p0050",
+        "limit": 18
+      },
+      "at_utc": "2026-09-30T08:37:44.243Z",
+      "request_id": "925123c3ef964792",
+      "ok": true
+    },
+    {
+      "key": "page_provenance",
+      "tool": "trace_document_provenance",
+      "args": {
+        "object_id": "VKM-SRC-045:p0057"
+      },
+      "at_utc": "2026-09-30T08:37:44.243Z",
+      "request_id": "74b1096b797b4b92",
+      "ok": true
+    },
+    {
+      "key": "nav_page",
+      "tool": "graph_neighbourhood",
+      "args": {
+        "node_id": "VKM-SRC-045:p0057",
+        "depth": 2,
+        "limit": 16
+      },
+      "at_utc": "2026-09-30T08:37:44.243Z",
+      "request_id": "fd9206ffeeea42cc",
+      "ok": true
+    },
+    {
+      "key": "visual",
+      "tool": "search_hybrid",
+      "args": {
+        "query": "план шахтного поля СКРУ-1 геологический разрез",
+        "kinds": [
+          "PAGE"
+        ],
+        "limit": 4,
+        "candidates": 24,
+        "late_candidates": 24,
+        "late": true,
+        "visual_route": true,
+        "graph": []
+      },
+      "at_utc": "2026-09-30T08:37:44.243Z",
+      "request_id": "be66825b8bf842fd",
+      "ok": true
+    },
+    {
+      "key": "source_graph",
+      "tool": "get_document_neighbors",
+      "args": {
+        "object_id": "VKM-SRC-014",
+        "direction": "both",
+        "rel_types": [
+          "HAS_SOURCE",
+          "HAS_PAGE",
+          "REPRESENTS_WORK"
+        ],
+        "limit": 5
+      },
+      "at_utc": "2026-09-30T08:39:22.889Z",
+      "request_id": "92f8e7537c6847f1",
+      "ok": true
+    },
+    {
+      "key": "formulas",
+      "tool": "find_formulas",
+      "args": {
+        "source_id": "VKM-SRC-045",
+        "symbol": "σ",
+        "limit": 3
+      },
+      "at_utc": "2026-09-30T08:39:22.889Z",
+      "request_id": "10abfe292a764de2",
+      "ok": true
+    },
+    {
+      "key": "section_node",
+      "tool": "graph_neighbourhood",
+      "args": {
+        "node_id": "SEC-bb43d259958e5adb",
+        "depth": 1,
+        "limit": 10
+      },
+      "at_utc": "2026-09-30T08:39:22.889Z",
+      "request_id": "4dc92e456fb14f3b",
+      "ok": true
+    },
+    {
+      "key": "topic_node",
+      "tool": "graph_neighbourhood",
+      "args": {
+        "node_id": "TOP-5afb24bfea730738",
+        "depth": 2,
+        "limit": 8
+      },
+      "at_utc": "2026-09-30T08:39:22.889Z",
+      "request_id": "14fec2d22eb24b15",
+      "ok": true
+    },
+    {
+      "key": "parameters",
+      "tool": "find_parameters",
+      "args": {
+        "property": "модуль деформации",
+        "material": "каменная соль",
+        "limit": 3
+      },
+      "at_utc": "2026-09-30T08:39:22.889Z",
+      "request_id": "65b7ce1cacc542b5",
+      "ok": true
+    },
+    {
+      "key": "series_three",
+      "tool": "get_figure_series",
+      "args": {
+        "ref": "FS-8164c43128ca740f",
+        "max_points": 40
+      },
+      "at_utc": "2026-09-30T08:39:22.889Z",
+      "request_id": "4b4970cd985a4b93",
+      "ok": true
+    },
+    {
+      "key": "series_one",
+      "tool": "get_figure_series",
+      "args": {
+        "ref": "FS-a12031056abfe134",
+        "max_points": 20
+      },
+      "at_utc": "2026-09-30T08:39:22.889Z",
+      "request_id": "7c2163f138cd4158",
+      "ok": true
+    },
+    {
+      "key": "rerank_late",
+      "tool": "rerank_text",
+      "args": {
+        "query": "маркшейдерские наблюдения оседаний поверхности СКРУ-1",
+        "candidate_ids": [
+          "VKM-SRC-012:p0050",
+          "VKM-SRC-012:p0052",
+          "VKM-SRC-012:p0058"
+        ],
+        "top_n": 3
+      },
+      "at_utc": "2026-09-30T08:39:22.889Z",
+      "request_id": "f3a4cf45a4414aa9",
+      "ok": true
+    },
+    {
+      "key": "series_two",
+      "tool": "get_figure_series",
+      "args": {
+        "ref": "FS-ca9c15ac334200c1",
+        "max_points": 100
+      },
+      "at_utc": "2026-09-30T08:39:22.889Z",
+      "request_id": "8ed5221f47584274",
+      "ok": true
+    },
+    {
+      "key": "term",
+      "tool": "explore_concept",
+      "args": {
+        "term": "ползучесть",
+        "limit": 5
+      },
+      "at_utc": "2026-09-30T08:39:22.889Z",
+      "request_id": "be24b36a11f94182",
+      "ok": true
+    },
+    {
+      "key": "citations",
+      "tool": "get_citations",
+      "args": {
+        "work_id": "VKM-WRK-014",
+        "direction": "both",
+        "limit": 5,
+        "include_unlinked": false
+      },
+      "at_utc": "2026-09-30T08:39:22.889Z",
+      "request_id": "8c15b39ee1cc4e3f",
+      "ok": true
+    },
+    {
+      "key": "topic_full",
+      "tool": "reconstruct_topic",
+      "args": {
+        "query": "ползучесть каменной соли",
+        "paraphrases": [
+          "rock salt creep"
+        ],
+        "budget_chars": 26000
+      },
+      "at_utc": "2026-09-30T08:39:22.889Z",
+      "request_id": "c8e1da83d9fc438b",
+      "ok": true
+    },
+    {
+      "key": "source_graph_valid",
+      "tool": "get_document_neighbors",
+      "args": {
+        "object_id": "VKM-SRC-014",
+        "direction": "both",
+        "rel_types": [
+          "INSTANCE_OF",
+          "HAS_PAGE"
+        ],
+        "limit": 4
+      },
+      "at_utc": "2026-09-30T08:40:40.880Z",
+      "request_id": "709e55de0dcf4476",
+      "ok": true
+    },
+    {
+      "key": "source_metadata",
+      "tool": "get_source",
+      "args": {
+        "source_id": "VKM-SRC-014"
+      },
+      "at_utc": "2026-09-30T08:40:40.880Z",
+      "request_id": "695ee5b2cd9f4a3d",
+      "ok": true
+    },
+    {
+      "key": "work_metadata",
+      "tool": "get_work",
+      "args": {
+        "work_id": "VKM-WRK-014"
+      },
+      "at_utc": "2026-09-30T08:40:40.880Z",
+      "request_id": "77bd9f30c8ce4e76",
+      "ok": true
+    },
+    {
+      "key": "late_unscored_page",
+      "tool": "get_page",
+      "args": {
+        "page_id": "VKM-SRC-254:p0011",
+        "max_chars": 700,
+        "include": [
+          "text",
+          "objects"
+        ]
+      },
+      "at_utc": "2026-09-30T08:40:40.880Z",
+      "request_id": "51f409041c4e4334",
+      "ok": true
+    },
+    {
+      "key": "late_unscored_rerank",
+      "tool": "rerank_text",
+      "args": {
+        "query": "план шахтного поля СКРУ-1 геологический разрез",
+        "candidate_ids": [
+          "VKM-SRC-254:p0011"
+        ],
+        "top_n": 1
+      },
+      "at_utc": "2026-09-30T08:40:40.880Z",
+      "request_id": "78a0597db6fd459e",
+      "ok": true
+    },
+    {
+      "key": "figure_object",
+      "tool": "get_figure",
+      "args": {
+        "figure_id": "VKM-SRC-034:p0003:f7e35ee505c30",
+        "max_chars": 700
+      },
+      "at_utc": "2026-09-30T08:40:40.880Z",
+      "request_id": "b5f5662e1154465d",
+      "ok": true
+    },
+    {
+      "key": "formula_context",
+      "tool": "get_formula_context",
+      "args": {
+        "formula_id": "VKM-SRC-037:p0168:m32b141dec4c9"
+      },
+      "at_utc": "2026-09-30T08:40:40.880Z",
+      "request_id": "9bcca08279c94e02",
+      "ok": true
+    },
+    {
+      "key": "formula_graph",
+      "tool": "graph_neighbourhood",
+      "args": {
+        "node_id": "VKM-SRC-037:p0168:m32b141dec4c9",
+        "depth": 2,
+        "limit": 12
+      },
+      "at_utc": "2026-09-30T08:40:40.880Z",
+      "request_id": "03b32b4347234064",
+      "ok": true
+    },
+    {
+      "key": "image_plan",
+      "tool": "get_page_image",
+      "args": {
+        "page_id": "VKM-SRC-014:p0077",
+        "max_side": 1200
+      },
+      "at_utc": "2026-09-30T08:41:42.705Z",
+      "request_id": "bc50e90da05c418c",
+      "ok": true
+    },
+    {
+      "key": "image_series",
+      "tool": "get_page_image",
+      "args": {
+        "page_id": "VKM-SRC-034:p0003",
+        "max_side": 1400
+      },
+      "at_utc": "2026-09-30T08:41:42.775Z",
+      "request_id": "20906fe992c9413f",
+      "ok": true
+    },
+    {
+      "key": "visual_rerank",
+      "tool": "rerank_visual",
+      "args": {
+        "query": "план шахтного поля СКРУ-1 геологический разрез",
+        "candidate_ids": [
+          "VKM-SRC-014:p0077",
+          "VKM-SRC-012:p0028"
+        ],
+        "max_side": 1000,
+        "top_n": 2
+      },
+      "at_utc": "2026-09-30T08:41:42.871Z",
+      "request_id": "ab26151fda3a41e9",
+      "ok": true
+    },
+    {
+      "key": "graph_stage",
+      "tool": "search_hybrid",
+      "args": {
+        "query": "ползучесть каменной соли",
+        "kinds": [
+          "PAGE"
+        ],
+        "limit": 3,
+        "candidates": 16,
+        "late_candidates": 16,
+        "late": true,
+        "visual_route": false,
+        "graph": [
+          "collapse",
+          "cohesion",
+          "concepts",
+          "cites",
+          "topics"
+        ]
+      },
+      "at_utc": "2026-09-30T08:41:58.989Z",
+      "request_id": "86ca7ba28a76423e",
+      "ok": true
+    },
+    {
+      "key": "formula_parameter_node",
+      "tool": "graph_neighbourhood",
+      "args": {
+        "node_id": "FPR-a2ac6a6a488270b5",
+        "depth": 1,
+        "limit": 4
+      },
+      "at_utc": "2026-09-30T08:43:02.701Z",
+      "request_id": "7ad6757ea6ea4993",
+      "ok": true
+    },
+    {
+      "key": "parameter_node",
+      "tool": "graph_neighbourhood",
+      "args": {
+        "node_id": "PRM-0130cf280a1315ec",
+        "depth": 1,
+        "limit": 4
+      },
+      "at_utc": "2026-09-30T08:43:02.701Z",
+      "request_id": "ce311e9a4acf411b",
+      "ok": true
+    },
+    {
+      "key": "object_formula",
+      "tool": "get_object",
+      "args": {
+        "object_id": "VKM-SRC-037:p0168:m32b141dec4c9",
+        "max_chars": 500
+      },
+      "at_utc": "2026-09-30T08:43:02.702Z",
+      "request_id": "02b8a6f9f5f549fc",
+      "ok": true
+    },
+    {
+      "key": "page_visual_endpoint",
+      "tool": "get_page",
+      "args": {
+        "page_id": "VKM-SRC-014:p0077",
+        "max_chars": 700
+      },
+      "at_utc": "2026-09-30T08:43:02.701Z",
+      "request_id": "343b050103274208",
+      "ok": true
+    },
+    {
+      "key": "symbol_node",
+      "tool": "graph_neighbourhood",
+      "args": {
+        "node_id": "FSY-087d47d131b185fd",
+        "depth": 1,
+        "limit": 4
+      },
+      "at_utc": "2026-09-30T08:43:02.701Z",
+      "request_id": "1589e8aed95d421c",
+      "ok": true
+    },
+    {
+      "key": "page_series_endpoint_three",
+      "tool": "get_page",
+      "args": {
+        "page_id": "VKM-SRC-014:p0144",
+        "max_chars": 300
+      },
+      "at_utc": "2026-09-30T08:43:02.702Z",
+      "request_id": "6183b2f4a0a04abb",
+      "ok": true
+    },
+    {
+      "key": "page_nav_endpoint",
+      "tool": "get_page",
+      "args": {
+        "page_id": "VKM-SRC-045:p0041",
+        "max_chars": 350
+      },
+      "at_utc": "2026-09-30T08:43:02.701Z",
+      "request_id": "b990e1e85ed640f8",
+      "ok": true
+    },
+    {
+      "key": "page_series_endpoint_two",
+      "tool": "get_page",
+      "args": {
+        "page_id": "VKM-SRC-097:p0002",
+        "max_chars": 300
+      },
+      "at_utc": "2026-09-30T08:43:02.701Z",
+      "request_id": "2610dc39c0704e35",
+      "ok": true
+    },
+    {
+      "key": "references_formula",
+      "tool": "get_formula_context",
+      "args": {
+        "formula_id": "VKM-SRC-070:p0002:m2767c7521e0d"
+      },
+      "at_utc": "2026-09-30T08:43:02.701Z",
+      "request_id": "a545d5eb5bbf44f7",
+      "ok": true
+    },
+    {
+      "key": "term_node",
+      "tool": "graph_neighbourhood",
+      "args": {
+        "node_id": "TRM-eef53a7edf6cbd88",
+        "depth": 1,
+        "limit": 4
+      },
+      "at_utc": "2026-09-30T08:43:02.701Z",
+      "request_id": "c4bf37c96f314396",
+      "ok": true
+    },
+    {
+      "key": "status_final",
+      "tool": "get_corpus_status",
+      "args": {},
+      "at_utc": "2026-09-30T08:43:03.050Z",
+      "request_id": "3d22322443034ad4",
+      "ok": true
+    },
+    {
+      "key": "formula_ref_block_two",
+      "tool": "get_object",
+      "args": {
+        "object_id": "VKM-SRC-070:p0006:b3fafe20d3e69",
+        "max_chars": 250
+      },
+      "at_utc": "2026-09-30T08:43:46.247Z",
+      "request_id": "890bc6acdc3845b6",
+      "ok": true
+    },
+    {
+      "key": "formula_ref_block_one",
+      "tool": "get_object",
+      "args": {
+        "object_id": "VKM-SRC-070:p0002:b55419b4eb18b",
+        "max_chars": 250
+      },
+      "at_utc": "2026-09-30T08:43:46.247Z",
+      "request_id": "35f63ee8322a4bd1",
+      "ok": true
+    }
+  ]
+}

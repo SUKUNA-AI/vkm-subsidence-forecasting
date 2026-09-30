@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "Дерево и граф корпуса без генерации текста (идея RAPTOR без LLM). Статус слоя — DERIVED, AUTO_EXTRACTED_UNREVIEWED: навигация, не evidence. Числа — снимок snap-20260928T193550Z-738eebee (сборка 28.09, вечер).",
+     "label": "NAV текущего снимка snap-20260929T175107Z-574daaac. DERIVED / AUTO_EXTRACTED_UNREVIEWED; навигация, не evidence. Исторические длительности отдельных частей — сборка 28.09.",
      "x": 20,
      "y": 44,
      "w": 1780,
@@ -102,7 +102,7 @@
     },
     {
      "id": "parts",
-     "label": "vkm-corpus nav build --part all (≈ 2 мин; время частей в секундах)",
+     "label": "vkm-corpus nav build — части снимка 29.09 (main parts 235 с; figure_series 234 с)",
      "x": 300,
      "y": 100,
      "w": 870,
@@ -112,7 +112,7 @@
     },
     {
      "id": "sections",
-     "label": "sections (10 с)\nвходы: DuckDB, оглавления\nsections 9 105, section_pages 27 270; покрыто 98,3 % страниц\nметоды: закладки PDF, EPUB nav, outline DjVu, печатное оглавление, нумерация и разметка заголовков",
+     "label": "sections (9,41 с)\nDuckDB + оглавления\nsections 9 378; section_pages 27 955\nЗакладки PDF, EPUB nav, outline DjVu, печатное оглавление и заголовки; покрытие отдельно от числа section-page связей.",
      "x": 15,
      "y": 45,
      "w": 255,
@@ -122,7 +122,7 @@
     },
     {
      "id": "formulas",
-     "label": "formulas (13 с)\nвходы: DuckDB, sections\nformula_context 108 904, formula_symbols 338 625, formula_refs 16 112, formula_parameters 2 106\nномер «(3.2)», вводная, «где…», ссылки на формулы",
+     "label": "formulas (12,52 с)\nDuckDB + sections\nformula_context 109 243; symbols 339 491; refs 16 113; parameters 2 116\nНомера, вводная, «где…», ссылки.",
      "x": 307,
      "y": 45,
      "w": 255,
@@ -132,7 +132,7 @@
     },
     {
      "id": "parameters",
-     "label": "parameters (17 с)\nвходы: DuckDB, sections, formula_parameters, formula_symbols\nparameter_candidates 10 538, parameter_summary 628\n59 свойств в 8 группах, 30 материалов; масштаб LAB / MASSIF / NORMATIVE / MODEL / UNKNOWN",
+     "label": "parameters v2 (18,79 с)\nDuckDB + sections + формулы\ncandidates 11 470; summary 637\nLAB / MASSIF / NORMATIVE / MODEL / UNKNOWN; автоматическое извлечение.",
      "x": 599,
      "y": 45,
      "w": 255,
@@ -142,7 +142,7 @@
     },
     {
      "id": "duplicates",
-     "label": "duplicates (15 с)\nвходы: DuckDB, векторы единиц\ndup_clusters 697, dup_members 1 718, source_overlap 459\nMinHash-LSH + kNN, проверка шинглов; первоисточник — подсказка, не авторство",
+     "label": "duplicates (12,90 с)\nDuckDB + vectors\nclusters 773; members 1 897; source_overlap 511\nMinHash-LSH + kNN + шинглы; происхождение проверяется отдельно.",
      "x": 15,
      "y": 330,
      "w": 255,
@@ -152,7 +152,7 @@
     },
     {
      "id": "concepts",
-     "label": "concepts (43 с)\nвходы: DuckDB, section_pages, словарь, pymorphy3; блоки копий убраны (duplicates)\nterms 94 597, term_mentions 1 567 275, term_edges 1 537 791\nNPMI, SAME_AS, DEFINED_AS, Leiden",
+     "label": "concepts (52,94 с)\nDuckDB + sections + словарь + pymorphy3; duplicates исключены\nterms 98 821; mentions 1 629 621; edges 1 612 768\nNPMI, SAME_AS, DEFINED_AS, Leiden.",
      "x": 307,
      "y": 330,
      "w": 255,
@@ -162,7 +162,7 @@
     },
     {
      "id": "topics",
-     "label": "topics (23 с)\nвходы: sections, section_pages, terms, term_mentions, векторы\nsection_aggregates 8 158, section_vectors 7 869, topics 720 (610 / 91 / 19), topic_members 23 607, topic_edges 2 377\nkNN → Leiden на трёх уровнях, метки c-TF-IDF",
+     "label": "topics (18,97 с)\nsections + terms + vectors\naggregates 8 398; vectors 7 869; topics 720; members 23 607; edges 2 377\nНовые разделы без dense vectors не вошли в topics этого intake.",
      "x": 599,
      "y": 330,
      "w": 255,
@@ -182,7 +182,7 @@
     },
     {
      "id": "pack",
-     "label": "store.pack → nav.duckdb (sha256 b567979e…) + manifest.json",
+     "label": "store.pack → nav.duckdb (sha256 0e23c6c0…) + manifest.json",
      "x": 1210,
      "y": 110,
      "w": 280,
@@ -210,7 +210,7 @@
     },
     {
      "id": "graph",
-     "label": "nav graph-load → Neo4j, слой NavigationLayer: 111 922 узла, 2 203 152 связи, 255 с; проверки N1–N7 PASS, NavMeta = COMPLETE",
+     "label": "Neo4j NavigationLayer: 133 096 узлов, 2 348 208 связей; N1–N11 PASS в intake deployment receipt; 30.09 live sampled traversal PASS",
      "x": 1530,
      "y": 215,
      "w": 270,
@@ -246,7 +246,7 @@
     },
     {
      "id": "checks",
-     "label": "Проверки: разделы — вложенность, покрытие страниц, нет пересечений; параметры — выборка 60 кандидатов (значение 60/60, единица 59/60, свойство 55/60); дубликаты — 30 из 30 случайных кластеров настоящие; понятия — соседи по 10 темам осмысленны на 0,97; граф — preflight P1–P7 и N1–N7 после загрузки.",
+     "label": "Текущий deployment: N1–N11 PASS в intake receipt; 30.09 — выборочный read-only smoke. Прежние quality samples NAV относятся к сборке 28.09; текущая H-оценка — отдельный frozen artifact с ограничением слепоты.",
      "x": 20,
      "y": 825,
      "w": 1150,
@@ -386,7 +386,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: docs/corpus_platform/NAVIGATION_LAYER.md §1–§9; README.md §6; receipts/evening_deploy_final.json (navigation, neo4j_nav_graph); receipts/nav_parameters.json, nav_duplicates.json, nav_concepts.json; src/vkm_corpus/navigation/cli.py (PARTS) и build() частей.",
+     "label": "Источники: docs/corpus_platform/receipts/intake_2026-09-29.json (nav_rehearsal, core); PLATFORM_INTEGRITY_2026-09-30_RU.md; NAVIGATION_LAYER.md; src/vkm_corpus/navigation/.",
      "x": 20,
      "y": 935,
      "w": 1780,

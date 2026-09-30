@@ -11,7 +11,7 @@
    "nodes": [
     {
      "id": "title",
-     "label": "Платформа корпуса: хосты и сервисы (состояние 29.09.2026)",
+     "label": "Платформа корпуса: хосты и сервисы (30.09.2026)",
      "x": 20,
      "y": 12,
      "w": 1760,
@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "Только роли хостов: адреса, порты, логины и секреты живут в host-local .env и *_FILE и в схему не попадают. Снимок канона snap-20260928T193550Z-738eebee.",
+     "label": "Снимок snap-20260929T175107Z-574daaac: 271 источник, 27 135 страниц. CORE/EDGE в этой сессии только читались.",
      "x": 20,
      "y": 44,
      "w": 1760,
@@ -52,7 +52,7 @@
     },
     {
      "id": "claude",
-     "label": "Claude Code (агент, MCP-клиент)",
+     "label": "Codex / Claude Code — агенты, MCP-клиенты",
      "x": 15,
      "y": 35,
      "w": 270,
@@ -174,7 +174,7 @@
     },
     {
      "id": "rtx",
-     "label": "Кодирование на RTX для бенчмарков (V2)",
+     "label": "Локальные Qwen3.5-9B / GLM-OCR: одна GPU-задача, gpu.lock",
      "x": 15,
      "y": 475,
      "w": 285,
@@ -216,7 +216,7 @@
     },
     {
      "id": "mcp",
-     "label": "mcp — vkm-corpus: 38 инструментов чтения",
+     "label": "vkm-corpus: 45 read-only инструментов",
      "x": 15,
      "y": 35,
      "w": 180,
@@ -256,7 +256,7 @@
     },
     {
      "id": "opensearch",
-     "label": "opensearch 3.8: BM25, векторы dense (только loopback)",
+     "label": "OpenSearch 3.8: BM25, dense, page-visual",
      "x": 215,
      "y": 215,
      "w": 200,
@@ -266,7 +266,7 @@
     },
     {
      "id": "rx580",
-     "label": "rx580-retrieval: llama.cpp / Vulkan; jina-v5-nano + mLateOn резидентно; late pack float16",
+     "label": "CORE: jina-v5-nano Q8 + mLateOn Q8 + Qwen3-VL F16; late pack float16",
      "x": 430,
      "y": 215,
      "w": 165,
@@ -350,7 +350,7 @@
     },
     {
      "id": "v35",
-     "label": "jina-reranker-v3.5 — текст (существующий сервис, не перезапускается)",
+     "label": "Текст v3.5: UNAVAILABLE; rerank_text обслуживает CORE mLateOn",
      "x": 20,
      "y": 175,
      "w": 150,
@@ -489,7 +489,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: README.md §3; docs/corpus_platform/CORPUS_PLATFORM_ARCHITECTURE.md §1–§2; DEPLOYMENT.md; OPERATIONS.md §1–§4a; MODEL_SERVICES.md §1; NAVIGATION_LAYER.md §1; infra/core/compose.yml; receipts/evening_deploy_final.json; implementation_work/COORDINATOR_DECISIONS.md (CP-39, CP-43).",
+     "label": "Источники: PROJECT_STATE_RU.md; docs/corpus_platform/PLATFORM_INTEGRITY_2026-09-30_RU.md; docs/corpus_platform/receipts/intake_2026-09-29.json; MODEL_SERVICES.md.",
      "x": 20,
      "y": 1040,
      "w": 1760,
