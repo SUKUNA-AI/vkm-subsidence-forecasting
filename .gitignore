@@ -83,3 +83,6 @@ Thumbs.db
 .mcp.json
 .claude/worktrees/
 .claude/settings.local.json
+
+# local Codex config (tokens, machine paths) - never commit
+.codex/

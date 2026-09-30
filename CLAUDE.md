@@ -60,7 +60,7 @@
 ## Прочитать перед изменениями
 
 1. `README.md`, затем [PROJECT_STATE_RU.md](PROJECT_STATE_RU.md) — каноническое состояние.
-2. `AGENTS.md`.
+2. `AGENTS.md` — копия этого файла для агентов Codex / GPT и др. плюс общие правила репозитория (разделы «Граница current / legacy», «Обязательные ограничения»). Меняя один файл, обнови другой.
 3. Правила: `docs/governance/SCIENTIFIC_RULES_RU.md`, `docs/governance/DATA_AND_PATH_POLICY_RU.md`,
    `docs/governance/VALIDATION_POLICY_RU.md`, `docs/governance/PHASE1_DESIGN_DECISIONS_RU.md`.
 4. Архитектура: `docs/worldspec/WORLD_SPEC_VNEXT_RU.md`, `docs/architecture/REPOSITORY_ARCHITECTURE_RU.md`.
