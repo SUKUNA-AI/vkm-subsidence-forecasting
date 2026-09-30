@@ -20,6 +20,14 @@ VERIFIED_HEADLESS_COMMANDS = [
     "_.-PDFIMPORT (_File, page, insert, scale, rotation → objects in mm)", "_.NETLOAD", "_.QUIT",
     "AutoLISP core (entmake, ssget, getvar/setvar, command, command-s, vl-catch-all-apply, open … \"utf8\")",
 ]
+HEADLESS_PITFALLS = [  # verified on the workstation, 29.09.2026 (CADFIX)
+    "Core Console /product ACAD: Viewport.On = true in a transaction that also erased a viewport of the same layout "
+    "terminates the process (AccessViolationException in AcDbViewport::setIsOn; the C3D console survives it) — "
+    "commit the erase first, or reuse the viewport AutoCAD creates on the first activation of a new layout "
+    "(LAYOUTCREATEVIEWPORT = 1); in a layout that is not current, Viewport.On raises eNotInPaperspace",
+    "a new layout gets the Windows default printer as its plot device: set its page setup (DWG To PDF.pc3, a canonical "
+    "media name) before the first activation, so no system printer driver is queried headless",
+]
 NOT_HEADLESS = [
     "ActiveX in LISP (vlax-get-acad-object returns nil in Core Console): vla-*/vlax-* object model → csharp or "
     "python_com",
@@ -65,7 +73,9 @@ def build(jobs: "CadJobs") -> dict[str, Any]:
             "isolated_profile": True, "stdin": "DEVNULL (a missing script cannot hang the run)",
             "script": "UTF-8 with BOM, CRLF, global command names (_ / _.)",
             "crash_policy": "non-zero exit, a crash-reporter child or a visible window → the job's process tree is "
-                            "killed; nothing is promoted; crash reports are never sent"},
+                            "killed; nothing is promoted; crash reports are never sent",
+            "process_tree": "processes created after the console only (by creation time: Windows reuses PIDs), "
+                            "re-checked right before each kill"},
         "dotnet": {
             "available": chain is not None, "compiler": chain.compiler_kind if chain else None,
             "runtime": f"Microsoft.NETCore.App {chain.runtime_version}" if chain else None, "target": "net8.0",
@@ -112,6 +122,7 @@ def build(jobs: "CadJobs") -> dict[str, Any]:
             "civil3d_api_reach": [dict(zip(("area", "csharp_headless", "python_com_hidden", "lisp_scr_headless",
                                             "fallback"), row)) for row in CIVIL_API_REACH],
             "headless_commands_verified": VERIFIED_HEADLESS_COMMANDS, "not_headless": NOT_HEADLESS,
+            "headless_pitfalls": HEADLESS_PITFALLS,
             "rules": ["new documents and job directories only; user documents are never opened",
                       "one AutoCAD process at a time (engine lock)", "local only: no network calls by the bridge",
                       "outputs are DERIVED, UNKNOWN_CRS unless an explicit transform is passed, "

@@ -1,0 +1,1798 @@
+{
+ "schema": "vkm-intake-receipt-v1",
+ "date": "2026-09-29",
+ "status": "REGISTERED / UNSEEN; pipeline commits in STAGING; rehearsal snapshot PASS on a local CANONICAL copy; CORE publication: see core",
+ "agent": "IN",
+ "scope_note": "document layer and navigation are AUTO_EXTRACTED_UNREVIEWED; nothing here is evidence",
+ "register": {
+  "ids": "VKM-SRC-252…271",
+  "rows_after": 271,
+  "private_branch": "claude/intake-2026-09-29",
+  "private_base": "d9a5b3f (origin/main)",
+  "private_commits": [
+   {
+    "commit": "da7020b",
+    "subject": "registry: Git LFS rule for *.doc (originals kept next to converted DOCX sources)"
+   },
+   {
+    "commit": "780e472",
+    "subject": "intake 2026-09-29: 20 sources VKM-SRC-252…271 from the user's Downloads (register rows and files)"
+   },
+   {
+    "commit": "d92c4f8",
+    "subject": "intake 2026-09-29: manifest, SHA256SUMS, receipt, DOC conversion and page-extraction records, README, tools"
+   },
+   {
+    "commit": "69b3981",
+    "subject": "work registry revision 3: 20 works of the 2026-09-29 intake and the page relations found at intake"
+   },
+   {
+    "commit": "ef7777e",
+    "subject": "literature hunt: stream S14 for the 2026-09-29 intake; PWL-0178 and PWL-0206 closed; state recomputed"
+   },
+   {
+    "commit": "590812c",
+    "subject": "README: current-state header dated 29.09.2026; register 271 ids; fourth intake folder"
+   },
+   {
+    "commit": "bb9040e",
+    "subject": "work registry revision 3: literature-hunt ids (PWL-0766…0783) on the 18 new works of stream S14"
+   },
+   {
+    "commit": "952ff70",
+    "subject": "intake 2026-09-29: README counts corrected - 20 files from Downloads (not 19), 22 input files, 15 registered as they are"
+   }
+  ],
+  "intake_folder": "PRIVATE 00_registry/intake/2026-09-29_user_downloads_intake",
+  "provenance": "20 files provided by the user from the Downloads folder on 29.09.2026 (read only; copied, never moved): 17 imported, 2 byte duplicates, 1 not relevant; 257 and 258 downloaded from CyberLeninka (CC BY) on 29.09.2026 at the user's request; 22 input files, 19 of them registered (one journal issue as two extracted articles, 264 and 265) -> 20 sources",
+  "not_imported": {
+   "BYTE_DUPLICATE": [
+    "Kudr_13.pdf = VKM-SRC-011",
+    "98.pdf = VKM-SRC-018"
+   ],
+   "NOT_RELEVANT": 1,
+   "NOT_REGISTERED_PARENT": "journal issue (two articles extracted)"
+  },
+  "enterprise_internal": "VKM-SRC-252: PRIVATE only; this receipt names it by id and a neutral descriptor; the public-catalogue build reads evidence catalogues, not the register, and the source has no evidence records, so it is in no PUBLIC catalogue"
+ },
+ "sources": [
+  {
+   "source_id": "VKM-SRC-252",
+   "descriptor": "enterprise-internal planning document (SKRU-1, 2013); PRIVATE only",
+   "source_class": "technical_report",
+   "evidence_scope": "SKRU1",
+   "priority": "A",
+   "format": "DOCX",
+   "acquisition": "ADDED_BY_USER_CONVERTED_DOCX",
+   "pipeline": {
+    "pages": 78,
+    "page_status": {
+     "NATIVE_OK": 78
+    },
+    "page_route": {
+     "NATIVE": 78
+    },
+    "primary_origin": {
+     "NATIVE": 78
+    },
+    "blocks": 428,
+    "blocks_secondary_layer": 0,
+    "figures": 1,
+    "tables": 52,
+    "formulas": 0,
+    "bibliography_entries": 0,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   },
+   "note": "file sha256 and size are kept in PRIVATE only (enterprise-internal document)"
+  },
+  {
+   "source_id": "VKM-SRC-253",
+   "descriptor": "Kutovoy et al. 2021, Nedropolzovanie 21(3):131-136, DOI 10.15593/2712-8008/2021.3.5",
+   "source_class": "journal_article",
+   "evidence_scope": "VKM_REGIONAL",
+   "priority": "B",
+   "format": "PDF",
+   "acquisition": "ADDED_BY_USER_EXACT",
+   "sha256": "e281f91b3eba6de6af73806724be6491d2c882fa9beeecb96ac6ac2bb6d8a718",
+   "size_bytes": 501624,
+   "pipeline": {
+    "pages": 6,
+    "page_status": {
+     "NATIVE_OK": 6
+    },
+    "page_route": {
+     "NATIVE": 6
+    },
+    "primary_origin": {
+     "NATIVE": 6
+    },
+    "blocks": 111,
+    "blocks_secondary_layer": 0,
+    "figures": 2,
+    "tables": 1,
+    "formulas": 0,
+    "bibliography_entries": 46,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-254",
+   "descriptor": "Kataev et al. 2019, Vestnik PNRPU 19(4):344-355, DOI 10.15593/2224-9923/2019.4.4",
+   "source_class": "journal_article",
+   "evidence_scope": "SKRU1_SKRU2_SKRU3",
+   "priority": "B",
+   "format": "PDF",
+   "acquisition": "ADDED_BY_USER_EXACT",
+   "sha256": "3279b3488ba0984971ad4764959555d154d26f5b5e10e9f541205769098d8fe9",
+   "size_bytes": 775461,
+   "pipeline": {
+    "pages": 12,
+    "page_status": {
+     "NATIVE_OK": 12
+    },
+    "page_route": {
+     "NATIVE": 12
+    },
+    "primary_origin": {
+     "NATIVE": 12
+    },
+    "blocks": 179,
+    "blocks_secondary_layer": 0,
+    "figures": 5,
+    "tables": 1,
+    "formulas": 0,
+    "bibliography_entries": 82,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-255",
+   "descriptor": "Kashnikov, Ermashov, Efimov 2019, Zapiski Gornogo instituta 237:259-267, DOI 10.31897/PMI.2019.3.259",
+   "source_class": "journal_article",
+   "evidence_scope": "OTHER_VKM_SITE",
+   "priority": "B",
+   "format": "PDF",
+   "acquisition": "ADDED_BY_USER_EXACT",
+   "sha256": "459086df9394bd95446e391becbaded873c318a63535efddd9bb236e337173ce",
+   "size_bytes": 1342790,
+   "pipeline": {
+    "pages": 9,
+    "page_status": {
+     "NATIVE_OK": 9
+    },
+    "page_route": {
+     "NATIVE": 9
+    },
+    "primary_origin": {
+     "NATIVE": 9
+    },
+    "blocks": 229,
+    "blocks_secondary_layer": 0,
+    "figures": 8,
+    "tables": 1,
+    "formulas": 12,
+    "bibliography_entries": 13,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-256",
+   "descriptor": "Uralkali annual report 2023 (Russian)",
+   "source_class": "institutional_report",
+   "evidence_scope": "VKM_REGIONAL",
+   "priority": "B",
+   "format": "PDF",
+   "acquisition": "ADDED_BY_USER_EXACT",
+   "sha256": "d8f4389af66b4631d593e2f11efb8c9d696bc731c341e9e55a62110c7bde581b",
+   "size_bytes": 26598031,
+   "pipeline": {
+    "pages": 113,
+    "page_status": {
+     "NATIVE_OK": 112,
+     "OCR_OK": 1
+    },
+    "page_route": {
+     "OCR_OPTIONAL": 1,
+     "NATIVE": 112
+    },
+    "primary_origin": {
+     "OCR": 1,
+     "NATIVE": 112
+    },
+    "blocks": 3347,
+    "blocks_secondary_layer": 4,
+    "figures": 150,
+    "tables": 149,
+    "formulas": 2,
+    "bibliography_entries": 0,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-257",
+   "descriptor": "Rubtsova, Skulkin 2018, Problemy nedropolzovaniya no. 1:52-58, DOI 10.25635/2313-1586.2018.01.052",
+   "source_class": "journal_article",
+   "evidence_scope": "SKRU1_SKRU2_SKRU3",
+   "priority": "B",
+   "format": "PDF",
+   "acquisition": "ADDED_OA_DOWNLOAD_EXACT",
+   "sha256": "c977e438a6a630780ad4795ae4a534aa7251874d7ef4291f469fc0f3d8139dac",
+   "size_bytes": 1698098,
+   "pipeline": {
+    "pages": 7,
+    "page_status": {
+     "NATIVE_OK": 7
+    },
+    "page_route": {
+     "NATIVE": 7
+    },
+    "primary_origin": {
+     "NATIVE": 7
+    },
+    "blocks": 119,
+    "blocks_secondary_layer": 0,
+    "figures": 4,
+    "tables": 1,
+    "formulas": 21,
+    "bibliography_entries": 11,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-258",
+   "descriptor": "Leontiev 2016, Interexpo GEO-Siberia, pp. 185-190",
+   "source_class": "conference_paper",
+   "evidence_scope": "OTHER_VKM_SITE",
+   "priority": "A",
+   "format": "PDF",
+   "acquisition": "ADDED_OA_DOWNLOAD_EXACT",
+   "sha256": "909a71e362711e27e5308961d0b1bafe86fdc1009ce251a8a58b394dda80c08b",
+   "size_bytes": 333810,
+   "pipeline": {
+    "pages": 6,
+    "page_status": {
+     "NATIVE_OK": 6
+    },
+    "page_route": {
+     "NATIVE": 6
+    },
+    "primary_origin": {
+     "NATIVE": 6
+    },
+    "blocks": 78,
+    "blocks_secondary_layer": 0,
+    "figures": 1,
+    "tables": 2,
+    "formulas": 10,
+    "bibliography_entries": 6,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-259",
+   "descriptor": "Belkin, Konoplev, Kovin, Naumova 2014, Sovremennye problemy nauki i obrazovaniya no. 5",
+   "source_class": "journal_article",
+   "evidence_scope": "VKM_REGIONAL",
+   "priority": "B",
+   "format": "PDF",
+   "acquisition": "ADDED_BY_USER_EXACT",
+   "sha256": "b2078a825fb49ca400c80298d97ff56702731a171f7b16b44ace4a2cdc043310",
+   "size_bytes": 322273,
+   "pipeline": {
+    "pages": 8,
+    "page_status": {
+     "NATIVE_OK": 8
+    },
+    "page_route": {
+     "NATIVE": 8
+    },
+    "primary_origin": {
+     "NATIVE": 8
+    },
+    "blocks": 233,
+    "blocks_secondary_layer": 0,
+    "figures": 1,
+    "tables": 0,
+    "formulas": 0,
+    "bibliography_entries": 8,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-260",
+   "descriptor": "Filatov, Bolotnova 2023, Izv. vuzov. Gornyi zhurnal no. 2:96-106, DOI 10.21440/0536-1028-2023-2-96-106",
+   "source_class": "journal_article",
+   "evidence_scope": "VKM_REGIONAL",
+   "priority": "C",
+   "format": "PDF",
+   "acquisition": "ADDED_BY_USER_EXACT",
+   "sha256": "6a7e0ff123aa22adbb6ccf3ddd1d7b7b6c347ec2c1e2321d424a21ebc0c1df90",
+   "size_bytes": 874636,
+   "pipeline": {
+    "pages": 11,
+    "page_status": {
+     "NATIVE_OK": 11
+    },
+    "page_route": {
+     "NATIVE": 11
+    },
+    "primary_origin": {
+     "NATIVE": 11
+    },
+    "blocks": 163,
+    "blocks_secondary_layer": 0,
+    "figures": 9,
+    "tables": 1,
+    "formulas": 17,
+    "bibliography_entries": 32,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-261",
+   "descriptor": "Filatov, Bolotnova 2020, Izv. vuzov. Gornyi zhurnal no. 5:38-46, DOI 10.21440/0536-1028-2020-5-38-46",
+   "source_class": "journal_article",
+   "evidence_scope": "VKM_REGIONAL",
+   "priority": "C",
+   "format": "PDF",
+   "acquisition": "ADDED_BY_USER_EXACT",
+   "sha256": "0c64eed138ef8e4a34831fc158ed55df48934ac665d285062d4e70c93f0b5424",
+   "size_bytes": 5528823,
+   "pipeline": {
+    "pages": 9,
+    "page_status": {
+     "NATIVE_OK": 9
+    },
+    "page_route": {
+     "NATIVE": 9
+    },
+    "primary_origin": {
+     "NATIVE": 9
+    },
+    "blocks": 133,
+    "blocks_secondary_layer": 0,
+    "figures": 8,
+    "tables": 0,
+    "formulas": 1,
+    "bibliography_entries": 25,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-262",
+   "descriptor": "Bychkov 2024, Gornoe ekho no. 2 (95):32-37, DOI 10.7242/echo.2024.2.6",
+   "source_class": "journal_article",
+   "evidence_scope": "VKM_REGIONAL",
+   "priority": "C",
+   "format": "PDF",
+   "acquisition": "ADDED_BY_USER_EXACT",
+   "sha256": "68d869608e7d523065a059cd0467df539fd984549dfc3063ab0ff8b2f5fbd001",
+   "size_bytes": 1828638,
+   "pipeline": {
+    "pages": 6,
+    "page_status": {
+     "NATIVE_OK": 6
+    },
+    "page_route": {
+     "NATIVE": 6
+    },
+    "primary_origin": {
+     "NATIVE": 6
+    },
+    "blocks": 47,
+    "blocks_secondary_layer": 0,
+    "figures": 3,
+    "tables": 0,
+    "formulas": 2,
+    "bibliography_entries": 11,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-263",
+   "descriptor": "Bychkov 2023, Gornoe ekho no. 2 (91):43-48, DOI 10.7242/echo.2023.2.8",
+   "source_class": "journal_article",
+   "evidence_scope": "GENERAL_METHOD",
+   "priority": "D",
+   "format": "PDF",
+   "acquisition": "ADDED_BY_USER_EXACT",
+   "sha256": "98dd636309ded0e05c380a8538d9596ca803f5df886db9a0c73487447173fae1",
+   "size_bytes": 1596781,
+   "pipeline": {
+    "pages": 6,
+    "page_status": {
+     "NATIVE_OK": 6
+    },
+    "page_route": {
+     "NATIVE": 6
+    },
+    "primary_origin": {
+     "NATIVE": 6
+    },
+    "blocks": 62,
+    "blocks_secondary_layer": 0,
+    "figures": 5,
+    "tables": 0,
+    "formulas": 5,
+    "bibliography_entries": 3,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-264",
+   "descriptor": "Rysin, Lebedeva, Karasev, Nurtdinov 2025, Zapiski Gornogo instituta 274(4):142-153, EDN NYZMSJ",
+   "source_class": "journal_article",
+   "evidence_scope": "OTHER_VKM_SITE",
+   "priority": "B",
+   "format": "PDF",
+   "acquisition": "ADDED_BY_USER_EXTRACTED_PAGES",
+   "sha256": "ca28e43627f08b1a8a211bdf450aa5aa3fae8a3bcbbdf4b258618ee95557f167",
+   "size_bytes": 1052578,
+   "pipeline": {
+    "pages": 12,
+    "page_status": {
+     "NATIVE_OK": 12
+    },
+    "page_route": {
+     "NATIVE": 12
+    },
+    "primary_origin": {
+     "NATIVE": 12
+    },
+    "blocks": 305,
+    "blocks_secondary_layer": 0,
+    "figures": 21,
+    "tables": 1,
+    "formulas": 6,
+    "bibliography_entries": 34,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-265",
+   "descriptor": "Vasileva, Golik, Zelentsova 2025, Zapiski Gornogo instituta 274(4):104-116, EDN TJNVLR",
+   "source_class": "journal_article",
+   "evidence_scope": "GENERAL_METHOD",
+   "priority": "C",
+   "format": "PDF",
+   "acquisition": "ADDED_BY_USER_EXTRACTED_PAGES",
+   "sha256": "ea595f5ed77b24c97af3209abc6a394fe7762c75d9cded8320baa0bc7e8d6440",
+   "size_bytes": 849969,
+   "pipeline": {
+    "pages": 13,
+    "page_status": {
+     "NATIVE_OK": 13
+    },
+    "page_route": {
+     "NATIVE": 13
+    },
+    "primary_origin": {
+     "NATIVE": 13
+    },
+    "blocks": 327,
+    "blocks_secondary_layer": 0,
+    "figures": 7,
+    "tables": 0,
+    "formulas": 31,
+    "bibliography_entries": 46,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-266",
+   "descriptor": "Soloviev, Aptukov, Chernopazov et al. 2019, monograph, Novosibirsk: Nauka, ISBN 978-5-02-038773-7",
+   "source_class": "monograph",
+   "evidence_scope": "VKM_REGIONAL",
+   "priority": "A",
+   "format": "PDF",
+   "acquisition": "ADDED_BY_USER_EXACT",
+   "sha256": "c8a4892147a5a95c6c5b352fae1249640cbcbda053f19f011223a33388377bf7",
+   "size_bytes": 5822384,
+   "pipeline": {
+    "pages": 182,
+    "page_status": {
+     "OCR_OK": 5,
+     "PARTIAL": 1,
+     "NATIVE_OK": 176
+    },
+    "page_route": {
+     "NATIVE_REPAIR": 177,
+     "OCR_REQUIRED": 5
+    },
+    "primary_origin": {
+     "OCR": 5,
+     "NATIVE": 177
+    },
+    "blocks": 2099,
+    "blocks_secondary_layer": 33,
+    "figures": 122,
+    "tables": 32,
+    "formulas": 205,
+    "bibliography_entries": 87,
+    "document_processing_status": "PARTIAL",
+    "errors": {
+     "OCR_TRUNCATED": 2,
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-267",
+   "descriptor": "Vestnik gosudarstvennoi ekspertizy, special issue on mining, 2019 (whole issue)",
+   "source_class": "journal_issue",
+   "evidence_scope": "GENERAL_METHOD",
+   "priority": "C",
+   "format": "PDF",
+   "acquisition": "ADDED_BY_USER_EXACT",
+   "sha256": "588e531bbcca93dd444152ffbde32869ae23567488d01f02d5561ce2fd7101ae",
+   "size_bytes": 5398357,
+   "pipeline": {
+    "pages": 54,
+    "page_status": {
+     "OCR_OK": 1,
+     "NATIVE_OK": 53
+    },
+    "page_route": {
+     "NATIVE": 53,
+     "OCR_REQUIRED": 1
+    },
+    "primary_origin": {
+     "NATIVE": 53,
+     "OCR": 1
+    },
+    "blocks": 1581,
+    "blocks_secondary_layer": 0,
+    "figures": 140,
+    "tables": 9,
+    "formulas": 8,
+    "bibliography_entries": 12,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-268",
+   "descriptor": "SRK Consulting (UK) 2016, resource and reserve statement, Talitsky site (report UK6597, Russian version)",
+   "source_class": "technical_report",
+   "evidence_scope": "OTHER_VKM_SITE",
+   "priority": "B",
+   "format": "PDF",
+   "acquisition": "ADDED_BY_USER_EXACT",
+   "sha256": "28b4e3e5d67447cfa3e9fe873aa6f3877f3409759378c3fa06db7bd8c6527134",
+   "size_bytes": 2313904,
+   "pipeline": {
+    "pages": 57,
+    "page_status": {
+     "NATIVE_OK": 57
+    },
+    "page_route": {
+     "NATIVE": 57
+    },
+    "primary_origin": {
+     "NATIVE": 57
+    },
+    "blocks": 1024,
+    "blocks_secondary_layer": 0,
+    "figures": 22,
+    "tables": 22,
+    "formulas": 2,
+    "bibliography_entries": 0,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-269",
+   "descriptor": "student work, geology chapter (SKRU-3 mine field); author and year unknown",
+   "source_class": "thesis",
+   "evidence_scope": "OTHER_VKM_SITE",
+   "priority": "D",
+   "format": "DOCX",
+   "acquisition": "ADDED_BY_USER_CONVERTED_DOCX",
+   "sha256": "6ca1711c5710a7c7135aad1f6293ceafb60aad8eef72c0c47d780715cd30c5c4",
+   "size_bytes": 22165,
+   "pipeline": {
+    "pages": 11,
+    "page_status": {
+     "NATIVE_OK": 11
+    },
+    "page_route": {
+     "NATIVE": 11
+    },
+    "primary_origin": {
+     "NATIVE": 11
+    },
+    "blocks": 92,
+    "blocks_secondary_layer": 0,
+    "figures": 0,
+    "tables": 2,
+    "formulas": 0,
+    "bibliography_entries": 0,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-270",
+   "descriptor": "student course project, PNRPU 2015 (SKRU-2 mine field)",
+   "source_class": "thesis",
+   "evidence_scope": "OTHER_VKM_SITE",
+   "priority": "C",
+   "format": "DOCX",
+   "acquisition": "ADDED_BY_USER_EXACT",
+   "sha256": "8d6bcefb6c1761e23014fdabad7e7dec28bd08962cda2ae25484941bfe34b3ee",
+   "size_bytes": 2001821,
+   "pipeline": {
+    "pages": 31,
+    "page_status": {
+     "NATIVE_OK": 31
+    },
+    "page_route": {
+     "NATIVE": 31
+    },
+    "primary_origin": {
+     "NATIVE": 31
+    },
+    "blocks": 154,
+    "blocks_secondary_layer": 0,
+    "figures": 4,
+    "tables": 17,
+    "formulas": 14,
+    "bibliography_entries": 0,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  },
+  {
+   "source_id": "VKM-SRC-271",
+   "descriptor": "student course work, PSU 2012 (VKM mine field not named)",
+   "source_class": "thesis",
+   "evidence_scope": "VKM_REGIONAL",
+   "priority": "D",
+   "format": "DOCX",
+   "acquisition": "ADDED_BY_USER_CONVERTED_DOCX",
+   "sha256": "4958b5b961f3be9ed4a19b37618bbd6e9b092895eca7f579ada01dd0557d142c",
+   "size_bytes": 39066,
+   "pipeline": {
+    "pages": 21,
+    "page_status": {
+     "NATIVE_OK": 21
+    },
+    "page_route": {
+     "NATIVE": 21
+    },
+    "primary_origin": {
+     "NATIVE": 21
+    },
+    "blocks": 212,
+    "blocks_secondary_layer": 0,
+    "figures": 0,
+    "tables": 7,
+    "formulas": 3,
+    "bibliography_entries": 7,
+    "document_processing_status": "COMPLETE",
+    "errors": {
+     "WORKER_CRASHED": 1
+    }
+   }
+  }
+ ],
+ "doc_conversions": [
+  {
+   "source_id": "VKM-SRC-252",
+   "converter": "LibreOffice 24.2.7.2, pinned container vkm-libreoffice:24.2",
+   "image_id": "sha256:d64278f32cb749b82dc44cd5a371c51cc80be586632e99a6a06202fbc0630221",
+   "command": "docker run --rm --network none -v <dir>:/work vkm-libreoffice:24.2 --convert-to docx --outdir /work/out /work/in/<name>.doc",
+   "re_run": "2026-09-29 ~15:31Z, same command: every ZIP part identical except ZIP entry times; word/document.xml differs only in the random ObjectID of one embedded OLE object"
+  },
+  {
+   "source_id": "VKM-SRC-269",
+   "converter": "LibreOffice 24.2.7.2, pinned container vkm-libreoffice:24.2",
+   "image_id": "sha256:d64278f32cb749b82dc44cd5a371c51cc80be586632e99a6a06202fbc0630221",
+   "command": "docker run --rm --network none -v <dir>:/work vkm-libreoffice:24.2 --convert-to docx --outdir /work/out /work/in/<name>.doc",
+   "re_run": "2026-09-29 ~15:31Z, same command: every ZIP part identical except ZIP entry times",
+   "original_sha256": "788743895191a7d9f126cfdd3f737fee6360d3a3aae8a3f51b1934a0f4152142",
+   "docx_sha256": "6ca1711c5710a7c7135aad1f6293ceafb60aad8eef72c0c47d780715cd30c5c4"
+  },
+  {
+   "source_id": "VKM-SRC-271",
+   "converter": "LibreOffice 24.2.7.2, pinned container vkm-libreoffice:24.2",
+   "image_id": "sha256:d64278f32cb749b82dc44cd5a371c51cc80be586632e99a6a06202fbc0630221",
+   "command": "docker run --rm --network none -v <dir>:/work vkm-libreoffice:24.2 --convert-to docx --outdir /work/out /work/in/<name>.doc",
+   "re_run": "2026-09-29 ~15:31Z, same command: every ZIP part identical except ZIP entry times",
+   "original_sha256": "545cbfae8c6417154f92b1aa2803ce5b046349dbb4445a1d24abb9a2d5998284",
+   "docx_sha256": "4958b5b961f3be9ed4a19b37618bbd6e9b092895eca7f579ada01dd0557d142c"
+  }
+ ],
+ "page_extractions": [
+  {
+   "source_id": "VKM-SRC-264",
+   "parent_sha256": "0f6f02285ca014b54977c833dec6a3ef2dfcce42d1427979018a11fa2e2a5600",
+   "parent_pages": 196,
+   "pdf_pages": "144-155",
+   "printed_pages": "142-153",
+   "tool": "PyMuPDF 1.28.2 (MuPDF 1.28.2)",
+   "call": "Document.insert_pdf(parent, from_page=first-1, to_page=last-1); save(garbage=3, deflate=False, clean=False)",
+   "check": {
+    "pages": 12,
+    "text_equal": 12,
+    "content_equal": 12,
+    "images_equal": 123,
+    "images": 123,
+    "geometry_equal": 12,
+    "lossless": true,
+    "byte_identical_on_rerun": false
+   },
+   "output_sha256": "ca28e43627f08b1a8a211bdf450aa5aa3fae8a3bcbbdf4b258618ee95557f167"
+  },
+  {
+   "source_id": "VKM-SRC-265",
+   "parent_sha256": "0f6f02285ca014b54977c833dec6a3ef2dfcce42d1427979018a11fa2e2a5600",
+   "parent_pages": 196,
+   "pdf_pages": "106-118",
+   "printed_pages": "104-116",
+   "tool": "PyMuPDF 1.28.2 (MuPDF 1.28.2)",
+   "call": "Document.insert_pdf(parent, from_page=first-1, to_page=last-1); save(garbage=3, deflate=False, clean=False)",
+   "check": {
+    "pages": 13,
+    "text_equal": 13,
+    "content_equal": 13,
+    "images_equal": 99,
+    "images": 99,
+    "geometry_equal": 13,
+    "lossless": true,
+    "byte_identical_on_rerun": false
+   },
+   "output_sha256": "ea595f5ed77b24c97af3209abc6a394fe7762c75d9cded8320baa0bc7e8d6440"
+  }
+ ],
+ "curation": {
+  "work_registry_revision": 3,
+  "works_added": 20,
+  "page_relations": [
+   "VKM-SRC-262 p1 FOREIGN_CONTENT -> VKM-WRK-200; SHARES_PAGES_WITH VKM-SRC-200 p10",
+   "VKM-SRC-263 p6 SHARES_PAGES_WITH VKM-SRC-106 p1",
+   "VKM-SRC-106 p1 FOREIGN_CONTENT -> VKM-WRK-263 (change to an existing source)"
+  ],
+  "existing_source_change_VKM-SRC-106": {
+   "decided_by": "coordinator, 29.09",
+   "before_738eebee": {
+    "p1_bibliography_entries": 3,
+    "attributed_to": "VKM-WRK-106",
+    "cites_from_106": 3
+   },
+   "after_rehearsal": {
+    "p1_bibliography_entries": 3,
+    "attributed": 0,
+    "cites_from_106": 3
+   },
+   "why": "the references on that page are those of VKM-WRK-263 (Bychkov 2023), the preceding article",
+   "side_effect_nav": "sections_v1 gives the first section of 106 (pp. 1-7) the work of its start page (VKM-WRK-263), as it already does for 005 and 032; separate fix proposed"
+  },
+  "literature_hunt": {
+   "rows": 783,
+   "new_rows": "PWL-0766…0783 (stream S14)",
+   "closed_rows": [
+    "PWL-0178 -> VKM-SRC-255",
+    "PWL-0206 -> VKM-SRC-257"
+   ],
+   "local": 258,
+   "tier2": 366,
+   "tools": "counts by the hunt's own tools (finalize, merge, make_acq, state_counts, check_stale, package); no count edited by hand"
+  }
+ },
+ "pipeline": {
+  "code_commit": "9d049dc0fec9d12023dd8204130c17c9d386076a (pinned copy via PYTHONPATH)",
+  "producer": "WORKSTATION WSL archlinux, STAGING root",
+  "registry_import": "REGISTRY commit with 271 sources, 267 works, 279 source-work links (a first attempt without --coverage crashed before any commit: run without END, visible per H-11)",
+  "docx_render": "pinned LibreOffice container, profile libreoffice-24.2.7.2;image=sha256:d64278f32cb7;fonts=190bd13b; the container ran on the Windows Docker host with render_docx's command (no WSL interop); cached through the pipeline's render-docx code",
+  "selection": "the 20 new sources only; old sources untouched (229 UP_TO_DATE; 20 old PARTIAL sources with pending OCR deliberately not selected)",
+  "memory": "one heavy job at a time in WSL; systemd scope MemoryMax/MemorySwapMax=0: 12 GiB for the first run, 24 GiB for the resume (allowed by the coordinator with exactly one heavy job)",
+  "runs": [
+   {
+    "run_id": "RUN-20260929T161501Z-6ad376ed",
+    "wall_s": 231,
+    "result": "killed by the 12 GiB memory cap at the OCR -> commit transition (kernel OOM in the scope, exit 143); every model call was already cached; no commit"
+   },
+   {
+    "run_id": "RUN-20260929T162010Z-7b22c961",
+    "flags": "--resume LATEST, memory cap 24 GiB",
+    "wall_s": 90.8,
+    "counters": {
+     "layout_calls": 0,
+     "model_calls": 0,
+     "worker_crashes": 0
+    },
+    "ocr_main": {
+     "tasks": 858,
+     "cached": 858,
+     "called": 0,
+     "pages_done": 197,
+     "failed": 0
+    },
+    "scenario_b": {
+     "VKM-SRC-256": "REOCR_SOURCE"
+    },
+    "commits": {
+     "VKM-SRC-252": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-458fa48bee6da767",
+      "page_count": 78,
+      "n_errors": 0
+     },
+     "VKM-SRC-253": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-2da1f4cdfd64e351",
+      "page_count": 6,
+      "n_errors": 0
+     },
+     "VKM-SRC-254": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-9f80cc1738a6d8b6",
+      "page_count": 12,
+      "n_errors": 0
+     },
+     "VKM-SRC-255": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-ccad61097b0511ad",
+      "page_count": 9,
+      "n_errors": 0
+     },
+     "VKM-SRC-256": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-993d97fdd29c5305",
+      "page_count": 113,
+      "n_errors": 0
+     },
+     "VKM-SRC-257": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-b9990480d5b3d4bc",
+      "page_count": 7,
+      "n_errors": 0
+     },
+     "VKM-SRC-258": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-b8edd305007188ac",
+      "page_count": 6,
+      "n_errors": 0
+     },
+     "VKM-SRC-259": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-acd2bdac4a0892cf",
+      "page_count": 8,
+      "n_errors": 0
+     },
+     "VKM-SRC-260": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-4f8cc9bc1224e596",
+      "page_count": 11,
+      "n_errors": 0
+     },
+     "VKM-SRC-261": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-ce39c786a65ddc6a",
+      "page_count": 9,
+      "n_errors": 0
+     },
+     "VKM-SRC-262": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-5184db9e8a1451c7",
+      "page_count": 6,
+      "n_errors": 0
+     },
+     "VKM-SRC-263": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-760c9671b19f05e1",
+      "page_count": 6,
+      "n_errors": 0
+     },
+     "VKM-SRC-264": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-967d8d38415616f6",
+      "page_count": 12,
+      "n_errors": 0
+     },
+     "VKM-SRC-265": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-6f4f147fc8147241",
+      "page_count": 13,
+      "n_errors": 0
+     },
+     "VKM-SRC-266": {
+      "status": "PARTIAL",
+      "commit_id": "CMT-506c00802636db51",
+      "page_count": 182,
+      "n_errors": 2
+     },
+     "VKM-SRC-267": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-864ee3c4c002fbaa",
+      "page_count": 54,
+      "n_errors": 0
+     },
+     "VKM-SRC-268": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-09f3886acc219c99",
+      "page_count": 57,
+      "n_errors": 0
+     },
+     "VKM-SRC-269": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-e249b9aa85fd8d4d",
+      "page_count": 11,
+      "n_errors": 0
+     },
+     "VKM-SRC-270": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-4f6e8877c4c2111d",
+      "page_count": 31,
+      "n_errors": 0
+     },
+     "VKM-SRC-271": {
+      "status": "COMPLETE",
+      "commit_id": "CMT-d5fffa2770e737a4",
+      "page_count": 21,
+      "n_errors": 0
+     }
+    }
+   }
+  ],
+  "model_calls_first_run": {
+   "layout_pages": 652,
+   "ocr_calls": 858,
+   "note": "both runs together: every OCR task of the 20 sources called once; the resume run called nothing"
+  },
+  "errors_recorded": {
+   "WORKER_CRASHED": "1 per new source (20), written by the resume run: the killed run ended without END and without a commit of the source (H-11: the crash stays visible); retryable; no effect on the page statuses",
+   "OCR_TRUNCATED": {
+    "source_id": "VKM-SRC-266",
+    "pages": {
+     "VKM-SRC-266:p0008": 2
+    },
+    "what": "table on p. 8: the GLM-OCR answer hit the token ceiling in bands 1 and 3 of 3 (finish_reason=length)",
+    "consequence": "page PARTIAL, source PARTIAL; accepted by the coordinator on 29.09 as under CP-40 (PARTIAL with recorded errors, no silent loss)"
+   }
+  }
+ },
+ "item15_VKM-SRC-266": {
+  "decision": "NATIVE_REPAIR by the pipeline's own rule c1 (no forced OCR): latin-1 share > 0.30 -> deterministic CP1251 remap, accepted only with Cyrillic share >= 0.5 and function-word rate >= 0.05; failing pages -> BROKEN_TEXT_LAYER -> OCR_REQUIRED (GLM-OCR primary). Forcing OCR would have stored the raw layer as a secondary layer on all 182 pages; with NATIVE_REPAIR the raw layer is kept only in NATIVE_RAW artifacts and, for the 5 OCR pages, as a secondary layer (is_primary_layer = false, flag BROKEN_TEXT_LAYER) that search excludes by default",
+  "agreed": "coordinator, 29.09: NATIVE_REPAIR as for VKM-SRC-049, proven per page; OCR only for failing pages",
+  "precedent": "VKM-SRC-049 (same publisher, same defect) in 738eebee: 246 NATIVE_REPAIR / 17 OCR pages",
+  "simulation_before_run": {
+   "routes": {
+    "NATIVE_REPAIR": 177,
+    "OCR_REQUIRED": 5
+   }
+  },
+  "committed": {
+   "pages": 182,
+   "routes": {
+    "NATIVE_REPAIR": 177,
+    "OCR_REQUIRED": 5
+   },
+   "min_cyr_share": 0.574,
+   "pages_cyr_share_below_0_8": [
+    175
+   ],
+   "encoding_repaired_blocks": 2045,
+   "secondary_blocks_broken_layer": 33
+  },
+  "per_page_proof": {
+   "code_points_U+00C0_U+00FF": {
+    "count": 4,
+    "pages": [
+     175,
+     182
+    ],
+    "all_on_OCR_pages": true,
+    "letters_category_L": {
+     "OCR_REQUIRED": {
+      "U+00FC": 2,
+      "U+00E4": 1
+     }
+    },
+    "reading": "3 genuine German letters in one bibliography entry (p. 175) and 1 genuine multiplication sign (imprint, p. 182); none on NATIVE_REPAIR pages"
+   },
+   "code_points_U+0080_U+00BF": 917,
+   "residual_by_route": {
+    "NATIVE_REPAIR": {
+     "total": 911,
+     "by_code_point": [
+      {
+       "code_point": "U+00B7",
+       "count": 279,
+       "reading": "list bullet (Symbol-font glyph)"
+      },
+      {
+       "code_point": "U+00AB",
+       "count": 235,
+       "reading": "left guillemet (same code point in CP1251)"
+      },
+      {
+       "code_point": "U+00BB",
+       "count": 233,
+       "reading": "right guillemet (same code point in CP1251)"
+      },
+      {
+       "code_point": "U+00B9",
+       "count": 60,
+       "reading": "No. sign (CP1251 0xB9; outside rule c1's letter range)"
+      },
+      {
+       "code_point": "U+00B4",
+       "count": 50,
+       "reading": "multiplication sign (Symbol-font glyph)"
+      },
+      {
+       "code_point": "U+00A3",
+       "count": 18,
+       "reading": "less-than-or-equal sign (Symbol-font glyph)"
+      },
+      {
+       "code_point": "U+00B3",
+       "count": 11,
+       "reading": "greater-than-or-equal sign (Symbol-font glyph)"
+      },
+      {
+       "code_point": "U+00B0",
+       "count": 9,
+       "reading": "degree sign (genuine)"
+      },
+      {
+       "code_point": "U+00A5",
+       "count": 6,
+       "reading": "infinity subscript (Symbol-font glyph)"
+      },
+      {
+       "code_point": "U+00BC",
+       "count": 4,
+       "reading": "ellipsis in ranges (Symbol-font glyph)"
+      },
+      {
+       "code_point": "U+00A9",
+       "count": 3,
+       "reading": "copyright sign (genuine, imprint page)"
+      },
+      {
+       "code_point": "U+00A2",
+       "count": 3,
+       "reading": "prime (Symbol-font glyph)"
+      }
+     ]
+    },
+    "OCR_REQUIRED": {
+     "total": 10,
+     "by_code_point": [
+      {
+       "code_point": "U+00AB",
+       "count": 3,
+       "reading": "left guillemet (same code point in CP1251)"
+      },
+      {
+       "code_point": "U+00BB",
+       "count": 3,
+       "reading": "right guillemet (same code point in CP1251)"
+      },
+      {
+       "code_point": "U+00FC",
+       "count": 2,
+       "reading": "u with diaeresis in a German bibliography entry (genuine)"
+      },
+      {
+       "code_point": "U+00E4",
+       "count": 1,
+       "reading": "a with diaeresis in a German bibliography entry (genuine)"
+      },
+      {
+       "code_point": "U+00D7",
+       "count": 1,
+       "reading": "multiplication sign in the imprint (genuine)"
+      }
+     ]
+    }
+   },
+   "readings_note": "the 'reading' of each code point is agent IN's reading of sampled contexts against rendered pages, not a pipeline output",
+   "cyrillic_share": {
+    "min": 0.574,
+    "pages_below_0_8": [
+     175
+    ],
+    "note": "p. 175 is an OCR page (bibliography with Latin-script entries); p. 112 (OCR) carries 7 characters only and is not scored"
+   },
+   "visual_check": "3 sampled pages rendered: the first lines equal the repaired layer. Residual code points are not garbage letters: guillemets and degree signs are genuine; the No. sign stays a superscript one (CP1251 0xB9 is outside rule c1's letter range); Symbol-font glyphs in formulas keep their Latin-1 code points (multiplication, <=, >=, infinity, ellipsis, prime, bullet). Known limit of the native layer; not repaired here"
+  }
+ },
+ "rehearsal": {
+  "where": "local CANONICAL copy of STAGING (hard links; STAGING and CORE untouched); the real snapshot id is minted on CORE by core reconcile",
+  "snapshot_id": "snap-20260929T162543Z-1be66a02",
+  "manifest_sha256": "f2df6e9b52af52086b75061e09c07d7a3f65b9adafac91aaf6c49e47d4cf3b7b",
+  "validator": "PASS",
+  "totals": {
+   "sources_total": 271,
+   "sources_complete": 240,
+   "sources_partial": 29,
+   "sources_needs_review": 0,
+   "sources_failed": 0,
+   "sources_unsupported": 0,
+   "sources_not_processed": 0,
+   "sources_skipped_by_register": 2,
+   "pages_total": 27135,
+   "pages_native": 17099,
+   "pages_embedded_text": 3505,
+   "pages_ocr": 6394,
+   "pages_failed": 0,
+   "blocks": 632420,
+   "figures": 18297,
+   "tables": 3689,
+   "formulas": 109243,
+   "bibliography_entries": 24105,
+   "rollup_closed": true
+  },
+  "totals_738eebee": {
+   "sources_total": 251,
+   "sources_complete": 221,
+   "sources_partial": 28,
+   "sources_needs_review": 0,
+   "sources_failed": 0,
+   "sources_unsupported": 0,
+   "sources_not_processed": 0,
+   "sources_skipped_by_register": 2,
+   "pages_total": 26483,
+   "pages_native": 16455,
+   "pages_embedded_text": 3505,
+   "pages_ocr": 6387,
+   "pages_failed": 0,
+   "blocks": 621497,
+   "figures": 17784,
+   "tables": 3391,
+   "formulas": 108904,
+   "bibliography_entries": 23682,
+   "rollup_closed": true
+  },
+  "bibliography": {
+   "entries_new_sources": 423,
+   "cites_total": 212,
+   "cites_total_738eebee": 193,
+   "cites_to_new_works": 10,
+   "cites_from_new_works": 10
+  }
+ },
+ "nav_rehearsal": {
+  "command": "vkm-corpus nav build (RAPIDS venv on the RTX): sections, formulas, tables, parameters (v2), duplicates, object_duplicates (8 workers), concepts (drop_duplicate_blocks), translations (term vectors of agent TR), topics (dense vectors of agent J's copy, as for 738eebee); figure_series (fd2 venv, FD2's documented settings: workers=6, raster set fd_monitoring); outlines of all 271 sources; pack",
+  "memory": {
+   "main_parts": "first attempt under a 14 GiB cap killed by the kernel OOM during concepts (exit 137, nothing packed); re-run under 24 GiB: BUILT (235 s)",
+   "figure_series": "12 GiB cap, workers=6: BUILT (234 s)",
+   "rule": "exactly one heavy job in WSL at a time (coordinator, 29.09)"
+  },
+  "parts": {
+   "concepts": {
+    "status": "BUILT",
+    "rule_version": "concepts_v1",
+    "seconds": 52.94
+   },
+   "duplicates": {
+    "status": "BUILT",
+    "rule_version": "duplicates_v1",
+    "seconds": 12.9
+   },
+   "figure_series": {
+    "status": "BUILT",
+    "rule_version": "figure_series_v1",
+    "seconds": 234.46
+   },
+   "formulas": {
+    "status": "BUILT",
+    "rule_version": "formula_context_v1",
+    "seconds": 12.52
+   },
+   "object_duplicates": {
+    "status": "BUILT",
+    "rule_version": "object_duplicates_v1",
+    "seconds": 45.05
+   },
+   "parameters": {
+    "status": "BUILT",
+    "rule_version": "parameters_v2",
+    "seconds": 18.79
+   },
+   "sections": {
+    "status": "BUILT",
+    "rule_version": "sections_v1",
+    "seconds": 9.41
+   },
+   "tables": {
+    "status": "BUILT",
+    "rule_version": "tables_v1",
+    "seconds": 24.8
+   },
+   "topics": {
+    "status": "BUILT",
+    "rule_version": "topics_v1",
+    "seconds": 18.97
+   },
+   "translations": {
+    "status": "BUILT",
+    "rule_version": "term_translations_v1",
+    "seconds": 38.14
+   }
+  },
+  "rows": {
+   "dup_clusters": {
+    "new": 773,
+    "738eebee": 697
+   },
+   "dup_members": {
+    "new": 1897,
+    "738eebee": 1718
+   },
+   "figure_hashes": {
+    "new": 18297,
+    "738eebee": 17784
+   },
+   "figure_series": {
+    "new": 8074,
+    "738eebee": 7992
+   },
+   "figure_series_figures": {
+    "new": 1257,
+    "738eebee": 1230
+   },
+   "figure_series_points": {
+    "new": 933941,
+    "738eebee": 933525
+   },
+   "figure_series_raster": {
+    "new": 215,
+    "738eebee": 215
+   },
+   "figure_series_raster_figures": {
+    "new": 55,
+    "738eebee": 55
+   },
+   "figure_series_raster_points": {
+    "new": 13064,
+    "738eebee": 13064
+   },
+   "formula_context": {
+    "new": 109243,
+    "738eebee": 108904
+   },
+   "formula_keys": {
+    "new": 109105,
+    "738eebee": 108783
+   },
+   "formula_parameters": {
+    "new": 2116,
+    "738eebee": 2106
+   },
+   "formula_refs": {
+    "new": 16113,
+    "738eebee": 16112
+   },
+   "formula_symbols": {
+    "new": 339491,
+    "738eebee": 338625
+   },
+   "object_dup_clusters": {
+    "new": 842,
+    "738eebee": 831
+   },
+   "object_dup_members": {
+    "new": 1819,
+    "738eebee": 1795
+   },
+   "parameter_candidates": {
+    "new": 11470,
+    "738eebee": 10792
+   },
+   "parameter_summary": {
+    "new": 637,
+    "738eebee": 629
+   },
+   "section_aggregates": {
+    "new": 8398,
+    "738eebee": 8158
+   },
+   "section_pages": {
+    "new": 27955,
+    "738eebee": 27270
+   },
+   "section_vectors": {
+    "new": 7869,
+    "738eebee": 7869
+   },
+   "sections": {
+    "new": 9378,
+    "738eebee": 9105
+   },
+   "source_overlap": {
+    "new": 511,
+    "738eebee": 459
+   },
+   "table_cells": {
+    "new": 405642,
+    "738eebee": 389527
+   },
+   "table_columns": {
+    "new": 26079,
+    "738eebee": 24523
+   },
+   "table_structure": {
+    "new": 3689,
+    "738eebee": 3391
+   },
+   "term_edges": {
+    "new": 1612768,
+    "738eebee": 1537791
+   },
+   "term_mentions": {
+    "new": 1629621,
+    "738eebee": 1567275
+   },
+   "term_translations": {
+    "new": 6646,
+    "738eebee": 6541
+   },
+   "terms": {
+    "new": 98821,
+    "738eebee": 94597
+   },
+   "topic_edges": {
+    "new": 2377,
+    "738eebee": 2377
+   },
+   "topic_members": {
+    "new": 23607,
+    "738eebee": 23607
+   },
+   "topics": {
+    "new": 720,
+    "738eebee": 720
+   }
+  },
+  "sha256_prefix": {
+   "dup_clusters": "8b3ed94b3b561931",
+   "dup_members": "cd1cedc3168f7823",
+   "figure_hashes": "769cf0b575e27158",
+   "figure_series": "a7880f23466bfa09",
+   "figure_series_figures": "5b317bfa90de297a",
+   "figure_series_points": "1dd099f8e8313ca5",
+   "figure_series_raster": "f4a13cd59e7529cb",
+   "figure_series_raster_figures": "4d49a409133e0af7",
+   "figure_series_raster_points": "1c1157e7e7e372d6",
+   "formula_context": "ea78bae616648098",
+   "formula_keys": "b1054aa828d9bdd9",
+   "formula_parameters": "5370b1efa44ca949",
+   "formula_refs": "c4bf5df358e49a1d",
+   "formula_symbols": "3feb9bb7d3113a04",
+   "object_dup_clusters": "b70ee47e84eda29f",
+   "object_dup_members": "339c8139ad94f94a",
+   "parameter_candidates": "18c81bc27ae6139a",
+   "parameter_summary": "8c0c41a0c2c372ee",
+   "section_aggregates": "43d11ac2d65e6b4f",
+   "section_pages": "917eaecd1c413256",
+   "section_vectors": "822689944b16b3a3",
+   "sections": "bf92150fafa2b280",
+   "source_overlap": "b6446c003ae270c8",
+   "table_cells": "5fd4de1428aa1064",
+   "table_columns": "e02497dd95c7f428",
+   "table_structure": "e1d1617035624d2e",
+   "term_edges": "055c6b8c38fb635c",
+   "term_mentions": "56f47b20a495c6ba",
+   "term_translations": "c1a90bef97de5d1e",
+   "terms": "331a042f025fa6df",
+   "topic_edges": "8992a05e77e58d7c",
+   "topic_members": "29f42de4811143cc",
+   "topics": "db20425d238fdd40"
+  },
+  "graph_dry_run": {
+   "status": "DRY_RUN",
+   "totals": {
+    "nodes": 133096,
+    "rels": 2348208
+   },
+   "document_references": {
+    "all_resolved": true,
+    "canonical_snapshot_id": "snap-20260929T162543Z-1be66a02",
+    "matches_nav_snapshot": true,
+    "missing": {
+     "COVERS_PAGE.Page": {
+      "examples": [],
+      "n": 0
+     },
+     "DEFINED_AS.Block": {
+      "examples": [],
+      "n": 0
+     },
+     "DEFINED_FOR.Formula": {
+      "examples": [],
+      "n": 0
+     },
+     "DUP_MEMBER_OF:Figure.Figure": {
+      "examples": [],
+      "n": 0
+     },
+     "DUP_MEMBER_OF:Formula.Formula": {
+      "examples": [],
+      "n": 0
+     },
+     "DUP_MEMBER_OF:Table.Table": {
+      "examples": [],
+      "n": 0
+     },
+     "GRID_OF.Table": {
+      "examples": [],
+      "n": 0
+     },
+     "HAS_NAV_SECTION.Source": {
+      "examples": [],
+      "n": 0
+     },
+     "IN_BLOCK.Block": {
+      "examples": [],
+      "n": 0
+     },
+     "IN_SECTION.Formula": {
+      "examples": [],
+      "n": 0
+     },
+     "NAV_BLOCK_REFERS_TO.Block": {
+      "examples": [],
+      "n": 0
+     },
+     "NAV_BLOCK_REFERS_TO.Formula": {
+      "examples": [],
+      "n": 0
+     },
+     "NAV_REFERS_TO.Formula": {
+      "examples": [],
+      "n": 0
+     },
+     "NEAR_FORMULA.Formula": {
+      "examples": [],
+      "n": 0
+     },
+     "NEAR_FORMULA:ParameterValue.Formula": {
+      "examples": [],
+      "n": 0
+     }
+    }
+   },
+   "preflight": [
+    {
+     "check_id": "P1",
+     "count": 0,
+     "status": "PASS",
+     "title": "NAV node ids are unique and not null"
+    },
+    {
+     "check_id": "P2",
+     "count": 0,
+     "status": "PASS",
+     "title": "tree parents exist; section page ranges are valid"
+    },
+    {
+     "check_id": "P3",
+     "count": 0,
+     "status": "PASS",
+     "title": "NAV trees (sections, topics) are acyclic with one parent per node"
+    },
+    {
+     "check_id": "P4",
+     "count": 0,
+     "status": "PASS",
+     "title": "every section covers at least one page of section_pages"
+    },
+    {
+     "check_id": "P5",
+     "count": 0,
+     "status": "PASS",
+     "title": "every dataset row is loaded, folded or skipped by a named rule"
+    },
+    {
+     "check_id": "P6",
+     "count": 0,
+     "status": "PASS",
+     "title": "references between NAV datasets resolve (rows that do not are skipped)"
+    }
+   ]
+  },
+  "figure_series_canon_check": "manifest snapshot = DuckDB snapshot; every figure id of figure_series_figures (1 257), figure_series (1 109 ids) and the raster set (55) is in canonical.figures (0 missing) — the check FD2's import makes on CORE",
+  "known_limits": [
+   "new units have no dense vectors until lab_refresh on CORE: the 273 new sections are absent from topics/similar_sections and from the dense candidates of duplicates (MinHash still works); a NAV rebuild after lab_refresh with CORE's updated dense set would include them (not in this intake)",
+   "new phrases have no term vectors (translations: rule-based methods only for them)"
+  ]
+ },
+ "page_vectors": {
+  "todo_pages": 652,
+  "encode": {
+   "encoder": "infra/workstation/visual_route/encode_pages.py of the pinned commit (sentence-transformers, bf16, SDPA, batch 4, the model's document instruction on the image alone)",
+   "model": "Qwen/Qwen3-VL-Embedding-2B@9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+   "config_signature": "ef2f297d721747a7598140193ea906403089b6a3f0bc1d6a62ca9a34d891c69f",
+   "gpu": "NVIDIA GeForce RTX 5070 Ti",
+   "writer": "rtx5070ti-enc",
+   "todo_pages": 652,
+   "encoded": 652,
+   "parts": 11,
+   "rows_in_manifest": 652,
+   "seconds": 62.7,
+   "pages_per_s": 10.4,
+   "peak_vram_mib": 4811,
+   "memory_cap": "systemd scope MemoryMax=16G, MemorySwapMax=0 (only heavy job at the time)",
+   "output_root": "IN's own directory: hard-linked copy of VIS's WORKSTATION visual directory (51 parts of writer rtx5070ti-v2, 26 092 rows) plus the new writer's files; every write is tmp + rename, so VIS's files are never modified",
+   "plan_after_encode": {
+    "n_missing": 0,
+    "ok": true,
+    "parts": 62,
+    "rows": 26744,
+    "stale_rows": 0,
+    "orphaned": 0,
+    "signature_mismatch": 0,
+    "snapshot_pages": 27135,
+    "with_preview": 26744,
+    "without_preview": 391,
+    "status": "PLAN_ONLY"
+   },
+   "gpu_lock": {
+    "owner": "IN",
+    "taken": "2026-09-29T19:12:29+03:00",
+    "released": "2026-09-29T19:45:59+03:00",
+    "used_for": "layout (PP-DocLayoutV3) and GLM-OCR of the pipeline run, NAV RAPIDS parts, page encoder"
+   }
+  }
+ },
+ "timings_local_utc+3": {
+  "registry_and_docx_render": "18:44-18:46",
+  "plan": "19:01",
+  "run1_killed": "19:15:01-19:18:52",
+  "run2_resume": "19:20:10-19:21:42",
+  "rehearsal_snapshot": "19:26-19:28",
+  "nav_first_attempt_and_figure_series": "19:28-19:34",
+  "nav_main_parts_24g": "19:34:56-19:38:51",
+  "graph_dry_run": "19:38:58-19:39:02",
+  "page_encode": "19:42:30-19:44:05"
+ },
+ "core": {
+  "status": "DEPLOYED: steps 0-7 done; canonical, NAV, NAV graph, dense, late, page vectors and api/mcp/mcp-admin serve snap-20260929T175107Z-574daaac; MCP smoke 45/45 PASS (2026-09-30 10:04 local)",
+  "go": "coordinator, 2026-09-29 ~20:00 local (sequential order; stop on any gate failure)",
+  "step0_preconditions": {
+   "time": "2026-09-29T20:02:52+03:00",
+   "canonical_current": "snap-20260928T193550Z-738eebee",
+   "canonical_lock": "none",
+   "nav_current": "snap-20260928T193550Z-738eebee",
+   "running_jobs": 0,
+   "vkm_job_and_api_image": "vkm-corpus-api:0.1.0-9d049dc0fec9",
+   "api_mcp_mcp_admin": "healthy",
+   "last_lab_refresh": "DONE for 738eebee, 205 784 units = dense = late",
+   "result": "PASS"
+  },
+  "step1_publish": {
+   "started_at": "2026-09-29T17:04:07+00:00",
+   "finished_at": "2026-09-29T17:04:44+00:00",
+   "files": 5190,
+   "bytes": 592246189,
+   "by_step": {
+    "artifact-blobs": {
+     "files": 4921,
+     "bytes": 580570783,
+     "returncode": 0
+    },
+    "canonical-files": {
+     "files": 233,
+     "bytes": 10393785,
+     "returncode": 0
+    },
+    "run-markers": {
+     "files": 14,
+     "bytes": 38107,
+     "returncode": 0
+    },
+    "commit-markers": {
+     "files": 22,
+     "bytes": 1243514,
+     "returncode": 0
+    }
+   },
+   "dry_run_before": "same counts",
+   "commit_markers": "22 = 20 sources (run RUN-20260929T162010Z-7b22c961) + 2 REGISTRY commits (the second one carries the literature-hunt ids of the new works)",
+   "effect": "immutable files only (rsync --ignore-existing, markers last); nothing is admitted until core reconcile, so CURRENT, projections and serving stay on 738eebee"
+  },
+  "step2_reconcile": {
+   "run_id": "reconcile-intake-20260929T175102Z",
+   "started_at": "2026-09-29T17:51:03+00:00",
+   "finished_at": "2026-09-29T18:05:04+00:00",
+   "admission": {
+    "admitted": 22,
+    "rejected": 0,
+    "pending": 0
+   },
+   "snapshot": {
+    "snapshot_id": "snap-20260929T175107Z-574daaac",
+    "status": "PASS",
+    "current_moved": true,
+    "blocking_failures": 0,
+    "manifest_sha256": "71967f1f06645c069c08dc6f35b591c9174bf9b045a2827f409667995778fc05"
+   },
+   "steps_s": {
+    "admit": 4.34,
+    "snapshot": 64.55,
+    "duckdb": 148.15,
+    "graph": 392.95,
+    "search": 231.17
+   },
+   "graph_checks": "C1-C16 PASS (DOCUMENT wipe with cascade: the NAV graph of 738eebee dropped here)",
+   "search": "BM25 build 20260929t180123z-71967f1f (pages, blocks, figures, tables, formulas) + smoke PASS",
+   "result": "RECONCILED",
+   "receipt": "CORE receipts/reconcile/reconcile-intake-20260929T175102Z.json"
+  },
+  "steps3_to_7": "DONE (see step3 ... step7)",
+  "gpu_lock": "taken for step 3 only (NAV RAPIDS parts), released",
+  "nightly": "no overlap: step 2 ran 20:51-21:05 and steps 3-4 22:30-22:40 on 29.09, steps 4b-7 09:36-10:05 on 30.09 (timers 02:00 / 02:30 / 04:00)",
+  "rollback_needed": false,
+  "plan": [
+   "0 preconditions (read only): canonical CURRENT = 738eebee, no canonical lock, no running job; vkm-job and .env on image vkm-corpus-api:0.1.0-9d049dc0fec9 (= the pipeline's pinned commit)",
+   "1 core publish from STAGING (dry run, then real): immutable files first, commit markers last",
+   "2 core reconcile on CORE (detached vkm-job): admit -> snapshot + validator (CURRENT moves only on PASS) -> DuckDB -> Neo4j DOCUMENT wipe with cascade -> OpenSearch BM25 + smoke; mints the snapshot id S",
+   "3 NAV on the WORKSTATION from CORE's DuckDB of S (GPU lock; one heavy job; same commands as the rehearsal): 10 parts incl. figure_series, pack, dataset sha256 against the rehearsal, graph dry run, figure-id canon check",
+   "4 NAV to CORE in a new directory derived/navigation/S (sha256 of nav.duckdb both sides) -> NAV CURRENT := S (store.publish, atomic) -> nav graph-ddl -> nav graph-load (N1-N11); figure_series is part of this NAV build, so no separate import",
+   "5 lab_refresh --snapshot S (dense jina-v5-nano + late mLateOn for new units; DONE only if units = dense = late)",
+   "6 page vectors: plan-only on CORE (todo of S = the rehearsal todo, compared), name-collision check of the visual directory, copy of the new writer's files (--ignore-existing; manifest last; sha256 both sides), plan-only again (missing 0), build-page-vectors -> new vkm-pagevis build + alias",
+   "7 recreate api, mcp, mcp-admin on the same image; MCP smoke (45 read tools); spot calls on new ids"
+  ],
+  "rollback": [
+   "nothing is deleted: snapshot 738eebee, its NAV directory, search builds and the late pack stay",
+   "canon: canonical CURRENT := 738eebee (atomic), vkm-job duckdb build, graph rebuild --mode wipe --cascade, search rollback",
+   "NAV: derived/navigation/CURRENT := 738eebee, nav graph-drop --yes, nav graph-load of the 738eebee directory",
+   "vectors: dense alias back to the previous build, late pack CURRENT back, search rollback-page-vectors",
+   "api/mcp/mcp-admin recreated on the same image; MCP smoke"
+  ],
+  "deadline": "finish before 01:30 local (nightly timers from 02:00)",
+  "approval": "steps 2-4 ran on 29.09 evening after the permission block was lifted; steps 4b-7 on 30.09 on the user's go in chat (pre-authorised deploy)",
+  "step3_nav_build": {
+   "where": "WORKSTATION (WSL, GPU lock)",
+   "time_local": "2026-09-29 22:30:49-22:39:18",
+   "result": "10 parts built on CORE's DuckDB of S; 32 of 33 datasets byte-equal to the rehearsal, terms differs only in file layout (rows, keys and all 16 columns equal); graph-load dry run 133 096 nodes / 2 348 208 rels, preflight PASS 6 FAIL 0"
+  },
+  "step4_nav_publish": {
+   "time_local": "2026-09-29 22:40:07-22:40:11",
+   "target": "derived/navigation/snap-20260929T175107Z-574daaac",
+   "nav_duckdb_sha256_both_sides": "0e23c6c0e696d7e7d3b55afb72ec8fd28d44c913b2fe1864b2bd2cdd6d155194"
+  },
+  "step0_recheck": {
+   "time": "2026-09-30T09:36:56+03:00",
+   "canonical_current": "snap-20260929T175107Z-574daaac",
+   "canonical_lock": "none",
+   "nav_current": "snap-20260928T193550Z-738eebee",
+   "running_jobs": 0,
+   "image": "vkm-corpus-api:0.1.0-9d049dc0fec9",
+   "result": "PASS"
+  },
+  "step4b_nav_switch_graph": {
+   "time_local": "2026-09-30 09:37:11-09:41:29",
+   "nav_current": "snap-20260929T175107Z-574daaac",
+   "run_id": "VKM-PRJ-NAV-20260930T063717Z-4346bf11",
+   "status": "COMPLETE",
+   "graph_load_s": 255.8,
+   "totals": {
+    "nodes": 133096,
+    "rels": 2348208
+   },
+   "sweep": {
+    "nodes_deleted": 0,
+    "rels_deleted": 0
+   },
+   "checks": "N1-N11 PASS",
+   "receipt": "CORE receipts/projections/neo4j-nav/VKM-PRJ-NAV-20260930T063717Z-4346bf11.json"
+  },
+  "step5_vectors": {
+   "run_id": "refresh-20260930T064149Z",
+   "time_local": "2026-09-30 09:41:49-09:58:10",
+   "dense": {
+    "run": "lab2-20260930T064149Z",
+    "units": 209259,
+    "new": 3475,
+    "changed": 0,
+    "unchanged": 205784,
+    "orphaned": 5153,
+    "index_build": "20260930t064348z-71967f1f-24705922",
+    "smoke": "PASS"
+   },
+   "late": {
+    "run": "lab3-20260930T065248Z",
+    "pack": "snap-20260929T175107Z-574daaac-f25e4ec41da0",
+    "smoke": "PASS"
+   },
+   "status_line": "DONE snapshot=snap-20260929T175107Z-574daaac units_stage2=209259 units_stage3=209259 dense_index=209259 late_pack=209259 equal=True"
+  },
+  "step6_page_vectors": {
+   "time_local": "2026-09-30 09:59:10-10:02:49",
+   "plan_before": "n_missing 652 (plan exits 1 while pages are missing)",
+   "todo_compare": "CORE todo 652 = rehearsal todo 652 (page ids + preview ids), signature equal",
+   "collision_check": "no collision (CORE 54 files = IN base)",
+   "push": "13 files (12 parts/receipt + manifest), sha256 equal on both sides",
+   "plan_after": "n_missing 0, n_duplicates 0, n_bad_vectors 0",
+   "build": {
+    "index": "vkm-pagevis-m1-20260930t070011z-71967f1f-ef2f297d",
+    "status": "COMPLETE",
+    "count": 26744,
+    "snapshot_pages": 27135,
+    "without_preview": 391,
+    "seconds": 168.4
+   }
+  },
+  "step7_restart_smoke": {
+   "time_local": "2026-09-30 10:02:54-10:04:21",
+   "recreated": [
+    "api",
+    "mcp",
+    "mcp-admin"
+   ],
+   "image": "vkm-corpus-api:0.1.0-9d049dc0fec9",
+   "health": "healthy x3",
+   "mcp_smoke": {
+    "version": "nightly-mcp-smoke-4",
+    "verdict": "PASS",
+    "tools": 45,
+    "PASS": 45,
+    "FAIL": 0,
+    "seconds": 13.0
+   },
+   "client_checks": {
+    "get_corpus_status": "271 sources, 27 135 pages; BM25, dense, page vectors, late pack, DOCUMENT graph all built from S (matches_canonical_snapshot true)",
+    "get_source": "VKM-SRC-252, 266, 271 answer on S",
+    "search_hybrid": "late stage SCORED on pack f25e4ec41da0, 0.46 s",
+    "find_figure_series": "NAV figure_series served from S"
+   }
+  }
+ }
+}

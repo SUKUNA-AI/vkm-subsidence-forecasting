@@ -1,0 +1,607 @@
+{
+ "pages": [
+  {
+   "id": "nav",
+   "name": "Навигационный слой",
+   "layout": "none",
+   "page_width": 1820,
+   "page_height": 980,
+   "background": "#ffffff",
+   "grid": false,
+   "nodes": [
+    {
+     "id": "title",
+     "label": "Навигационный слой NAV: части, их входы и зависимости, сборка и выдача",
+     "x": 20,
+     "y": 12,
+     "w": 1780,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=20;align=left;fontStyle=1;"
+    },
+    {
+     "id": "subtitle",
+     "label": "Дерево и граф корпуса без генерации текста (идея RAPTOR без LLM). Статус слоя — DERIVED, AUTO_EXTRACTED_UNREVIEWED: навигация, не evidence. Числа — снимок snap-20260928T193550Z-738eebee (сборка 28.09, вечер).",
+     "x": 20,
+     "y": 44,
+     "w": 1780,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontColor=#444444;"
+    },
+    {
+     "id": "inputs",
+     "label": "Входы (WORKSTATION, WSL)",
+     "x": 20,
+     "y": 100,
+     "w": 250,
+     "h": 700,
+     "preset": "swimlane",
+     "style": "swimlane;startSize=28;fillColor=#ffffff;strokeColor=#666666;fontStyle=1;fontSize=14;swimlaneFillColor=#ffffff;rounded=0;"
+    },
+    {
+     "id": "duck",
+     "label": "копия DuckDB снимка: страницы, блоки, заголовки, формулы, таблицы — читают все части",
+     "x": 15,
+     "y": 45,
+     "w": 220,
+     "h": 95,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "preset": "cylinder",
+     "parent": "inputs"
+    },
+    {
+     "id": "toc",
+     "label": "оглавления файлов: закладки PDF, навигация EPUB, outline DjVu (JSON на снимок)",
+     "x": 15,
+     "y": 165,
+     "w": 220,
+     "h": 85,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;",
+     "parent": "inputs"
+    },
+    {
+     "id": "vec",
+     "label": "векторы единиц: dense jina-v5-nano (набор снимка; чужой text_hash отбрасывается)",
+     "x": 15,
+     "y": 275,
+     "w": 220,
+     "h": 85,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "parent": "inputs"
+    },
+    {
+     "id": "seeds",
+     "label": "словарь проекта: seed-термины из docs/science и WorldSpec",
+     "x": 15,
+     "y": 385,
+     "w": 220,
+     "h": 70,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;",
+     "parent": "inputs"
+    },
+    {
+     "id": "morph",
+     "label": "морфология pymorphy3 (extra navigation)",
+     "x": 15,
+     "y": 480,
+     "w": 220,
+     "h": 55,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "inputs"
+    },
+    {
+     "id": "gpu",
+     "label": "GPU RAPIDS: CuPy, cuML, cuGraph, cuVS; без GPU — numpy и Louvain",
+     "x": 15,
+     "y": 560,
+     "w": 220,
+     "h": 70,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
+     "parent": "inputs"
+    },
+    {
+     "id": "parts",
+     "label": "vkm-corpus nav build --part all (≈ 2 мин; время частей в секундах)",
+     "x": 300,
+     "y": 100,
+     "w": 870,
+     "h": 700,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=1;rounded=0;"
+    },
+    {
+     "id": "sections",
+     "label": "sections (10 с)\nвходы: DuckDB, оглавления\nsections 9 105, section_pages 27 270; покрыто 98,3 % страниц\nметоды: закладки PDF, EPUB nav, outline DjVu, печатное оглавление, нумерация и разметка заголовков",
+     "x": 15,
+     "y": 45,
+     "w": 255,
+     "h": 215,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "parts"
+    },
+    {
+     "id": "formulas",
+     "label": "formulas (13 с)\nвходы: DuckDB, sections\nformula_context 108 904, formula_symbols 338 625, formula_refs 16 112, formula_parameters 2 106\nномер «(3.2)», вводная, «где…», ссылки на формулы",
+     "x": 307,
+     "y": 45,
+     "w": 255,
+     "h": 215,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "parts"
+    },
+    {
+     "id": "parameters",
+     "label": "parameters (17 с)\nвходы: DuckDB, sections, formula_parameters, formula_symbols\nparameter_candidates 10 538, parameter_summary 628\n59 свойств в 8 группах, 30 материалов; масштаб LAB / MASSIF / NORMATIVE / MODEL / UNKNOWN",
+     "x": 599,
+     "y": 45,
+     "w": 255,
+     "h": 215,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "parts"
+    },
+    {
+     "id": "duplicates",
+     "label": "duplicates (15 с)\nвходы: DuckDB, векторы единиц\ndup_clusters 697, dup_members 1 718, source_overlap 459\nMinHash-LSH + kNN, проверка шинглов; первоисточник — подсказка, не авторство",
+     "x": 15,
+     "y": 330,
+     "w": 255,
+     "h": 215,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "parts"
+    },
+    {
+     "id": "concepts",
+     "label": "concepts (43 с)\nвходы: DuckDB, section_pages, словарь, pymorphy3; блоки копий убраны (duplicates)\nterms 94 597, term_mentions 1 567 275, term_edges 1 537 791\nNPMI, SAME_AS, DEFINED_AS, Leiden",
+     "x": 307,
+     "y": 330,
+     "w": 255,
+     "h": 215,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "parts"
+    },
+    {
+     "id": "topics",
+     "label": "topics (23 с)\nвходы: sections, section_pages, terms, term_mentions, векторы\nsection_aggregates 8 158, section_vectors 7 869, topics 720 (610 / 91 / 19), topic_members 23 607, topic_edges 2 377\nkNN → Leiden на трёх уровнях, метки c-TF-IDF",
+     "x": 599,
+     "y": 330,
+     "w": 255,
+     "h": 215,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "parts"
+    },
+    {
+     "id": "rule",
+     "label": "Каждая часть — чистая функция над строками канона; все пороги — MODEL_CHOICE в manifest.json; сборка повторяется бит в бит. Узел любой части указывает на реальные страницы.",
+     "x": 15,
+     "y": 625,
+     "w": 840,
+     "h": 55,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "parts"
+    },
+    {
+     "id": "pack",
+     "label": "store.pack → nav.duckdb (sha256 b567979e…) + manifest.json",
+     "x": 1210,
+     "y": 110,
+     "w": 280,
+     "h": 70,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;"
+    },
+    {
+     "id": "pub",
+     "label": "CORE: derived/navigation/<снимок> + CURRENT (sha256 сверены на обеих сторонах)",
+     "x": 1210,
+     "y": 215,
+     "w": 280,
+     "h": 80,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;",
+     "preset": "cylinder"
+    },
+    {
+     "id": "navstore",
+     "label": "NavStore в VKM API: nav.duckdb + каноническая DuckDB, только чтение",
+     "x": 1210,
+     "y": 335,
+     "w": 280,
+     "h": 70,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;"
+    },
+    {
+     "id": "graph",
+     "label": "nav graph-load → Neo4j, слой NavigationLayer: 111 922 узла, 2 203 152 связи, 255 с; проверки N1–N7 PASS, NavMeta = COMPLETE",
+     "x": 1530,
+     "y": 215,
+     "w": 270,
+     "h": 115,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;"
+    },
+    {
+     "id": "tools",
+     "label": "MCP / API навигации: get_outline, get_section, search_sections, get_formula_context, find_formulas, explore_concept, find_topics, get_topic, similar_sections, section_topics, copies_of, source_overlap, find_parameters, parameter_summary; досье reconstruct_topic",
+     "x": 1210,
+     "y": 445,
+     "w": 280,
+     "h": 185,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+    },
+    {
+     "id": "gtools",
+     "label": "concept_paths, graph_neighbourhood (ответ только при COMPLETE, иначе 503)",
+     "x": 1530,
+     "y": 370,
+     "w": 270,
+     "h": 75,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+    },
+    {
+     "id": "claude",
+     "label": "Claude: сводка ветки в момент вопроса, со ссылками на страницы",
+     "x": 1530,
+     "y": 505,
+     "w": 270,
+     "h": 70,
+     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;"
+    },
+    {
+     "id": "checks",
+     "label": "Проверки: разделы — вложенность, покрытие страниц, нет пересечений; параметры — выборка 60 кандидатов (значение 60/60, единица 59/60, свойство 55/60); дубликаты — 30 из 30 случайных кластеров настоящие; понятия — соседи по 10 темам осмысленны на 0,97; граф — preflight P1–P7 и N1–N7 после загрузки.",
+     "x": 20,
+     "y": 825,
+     "w": 1150,
+     "h": 45,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "legend",
+     "label": "Легенда",
+     "x": 1210,
+     "y": 660,
+     "w": 590,
+     "h": 181,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#666666;dashed=0;rounded=0;"
+    },
+    {
+     "id": "lg_sw_evidence",
+     "label": "",
+     "x": 10,
+     "y": 30,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;"
+    },
+    {
+     "id": "lg_tx_evidence",
+     "label": "файлы источников и словарь проекта",
+     "x": 52,
+     "y": 28,
+     "w": 530,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_derived",
+     "label": "",
+     "x": 10,
+     "y": 59,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;"
+    },
+    {
+     "id": "lg_tx_derived",
+     "label": "производное: канон, векторы, датасеты NAV, граф (AUTO_EXTRACTED_UNREVIEWED)",
+     "x": 52,
+     "y": 57,
+     "w": 530,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_service",
+     "label": "",
+     "x": 10,
+     "y": 88,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;"
+    },
+    {
+     "id": "lg_tx_service",
+     "label": "сервис, инструмент, шаг процесса",
+     "x": 52,
+     "y": 86,
+     "w": 530,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_agent",
+     "label": "",
+     "x": 10,
+     "y": 117,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;"
+    },
+    {
+     "id": "lg_tx_agent",
+     "label": "агент Claude",
+     "x": 52,
+     "y": 115,
+     "w": 530,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_a_dash",
+     "label": "",
+     "x": 8,
+     "y": 153,
+     "w": 2,
+     "h": 2,
+     "parent": "legend",
+     "preset": "text",
+     "style": "strokeColor=none;fillColor=none;"
+    },
+    {
+     "id": "lg_b_dash",
+     "label": "",
+     "x": 44,
+     "y": 153,
+     "w": 2,
+     "h": 2,
+     "parent": "legend",
+     "preset": "text",
+     "style": "strokeColor=none;fillColor=none;"
+    },
+    {
+     "id": "lg_ext_dash",
+     "label": "по опции concepts.drop_duplicate_blocks=true (включена в сборке)",
+     "x": 52,
+     "y": 144,
+     "w": 530,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "sources",
+     "label": "Источники: docs/corpus_platform/NAVIGATION_LAYER.md §1–§9; README.md §6; receipts/evening_deploy_final.json (navigation, neo4j_nav_graph); receipts/nav_parameters.json, nav_duplicates.json, nav_concepts.json; src/vkm_corpus/navigation/cli.py (PARTS) и build() частей.",
+     "x": 20,
+     "y": 935,
+     "w": 1780,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;"
+    }
+   ],
+   "edges": [
+    {
+     "id": "e_toc",
+     "source": "toc",
+     "target": "sections",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_sf",
+     "source": "sections",
+     "target": "formulas",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_fp",
+     "source": "formulas",
+     "target": "parameters",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_sp",
+     "source": "sections",
+     "target": "parameters",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       442,
+       133
+      ],
+      [
+       1026,
+       133
+      ]
+     ]
+    },
+    {
+     "id": "e_sc",
+     "source": "sections",
+     "target": "concepts",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.8;exitY=1;exitDx=0;exitDy=0;entryX=0.2;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_st",
+     "source": "sections",
+     "target": "topics",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.9;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       975,
+       340
+      ]
+     ]
+    },
+    {
+     "id": "e_dc",
+     "source": "duplicates",
+     "target": "concepts",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_ct",
+     "source": "concepts",
+     "target": "topics",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_vd",
+     "source": "vec",
+     "target": "duplicates",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.1;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_seed",
+     "source": "seeds",
+     "target": "concepts",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.3;entryY=1;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       282,
+       520
+      ],
+      [
+       282,
+       657
+      ],
+      [
+       683,
+       657
+      ]
+     ]
+    },
+    {
+     "id": "e_morph",
+     "source": "morph",
+     "target": "concepts",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       290,
+       607
+      ],
+      [
+       290,
+       667
+      ],
+      [
+       734,
+       667
+      ]
+     ]
+    },
+    {
+     "id": "e_vt",
+     "source": "vec",
+     "target": "topics",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       276,
+       443
+      ],
+      [
+       276,
+       677
+      ],
+      [
+       1026,
+       677
+      ]
+     ]
+    },
+    {
+     "id": "e_pack",
+     "source": "parts",
+     "target": "pack",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.02;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_pub",
+     "source": "pack",
+     "target": "pub",
+     "label": "копия на CORE",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_ns",
+     "source": "pub",
+     "target": "navstore",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_gr",
+     "source": "pub",
+     "target": "graph",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_t",
+     "source": "navstore",
+     "target": "tools",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_gt",
+     "source": "graph",
+     "target": "gtools",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_cl1",
+     "source": "tools",
+     "target": "claude",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_cl2",
+     "source": "gtools",
+     "target": "claude",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "lg_e_dash",
+     "source": "lg_a_dash",
+     "target": "lg_b_dash",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;edgeStyle=none;dashed=1;endArrow=classic;"
+    }
+   ]
+  }
+ ]
+}

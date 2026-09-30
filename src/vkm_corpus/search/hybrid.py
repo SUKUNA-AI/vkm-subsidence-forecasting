@@ -22,6 +22,11 @@ interaction stage (mLateOn MaxSim), with a per-stage trace (постановка
   BIB_ENTRY included. V1 harness (``benchmarks/retrieval_v1/bib_route_v1.json``): +0.195 nDCG@10 on the 7
   bibliographic queries (VERIFIED + pooled, 7/0, p = 0.016), nDCG@10 of the 137 other text queries unchanged. CP-42
   stays for every other query. The route needs the late stage (``SKIPPED_LATE_OFF`` otherwise).
+* Query expansions (agent TR; ``expansions``, set by the API flag ``translate``): every expansion — the query in the
+  other language from the NAV term dictionary — adds its own BM25 and dense legs to the same RRF; the late stage keeps
+  scoring the original query; hits carry ``expansion_ranks`` in the trace. TERM_DICTIONARY_V1
+  (``benchmarks/term_dictionary_v1``): with the late stage nDCG@10 and R@50 are not worse (R@100 loses), without it
+  the legs dilute same-language queries — the API default follows (on only with the late stage).
 * Filters: E's whitelist (``vkm_corpus.search.query.FILTERS``) on page-level fields, applied to both legs (vector
   documents carry the same fields); object-type filters (block_type, figure_type, layout_class, text_layer) have no
   page-level meaning and are refused.
@@ -34,16 +39,39 @@ interaction stage (mLateOn MaxSim), with a per-stage trace (постановка
   reported (``late_status`` NO_TOKENS, ``stages.late.unscored_ids``); hits beyond the candidates keep the RRF order.
   A missing late encoder or token store fails loudly (DEPENDENCY_UNAVAILABLE) — never a silent RRF-only answer.
   The default (:data:`LATE_DEFAULT`) follows the measured latency on CORE (agent L's report).
+* Visual route (agent VIS; V2 ``benchmarks/retrieval_v2``): a query that
+  ``vkm_corpus.search.intent.visual_intent`` marks as visual (a picture word: рисунок, схема, карта, план, разрез,
+  график, профиль, радарограмма, фото, таблица …; or ``visual_route=True``) adds the page-image channel — the query
+  through the text tower of Qwen3-VL-Embedding-2B on the RX580 (``/embed/query`` role ``visual``), exact inner
+  product against the page vectors (``<prefix>-pagevis``, ``vkm_corpus.search.page_vectors``; page filters and
+  duplicate collapsing as in the dense leg) — and fuses it with the served page order: RRF(k) of E's top-N pages
+  (after late) and the channel's top-N pages. V2: +0.109 nDCG@10 on the 42 visual queries (VERIFIED, Holm p 0.032),
+  while fusing it into every query costs text queries −0.043 — hence a route; every other query is unchanged. Other
+  kinds keep their positions (H-44); pages the channel adds beyond the page slots follow at the end. The route is
+  a server switch (``VisualRouteSettings.enabled``, ``VKM_HYBRID_VISUAL_ROUTE``: off in code, on after the RX580 gate);
+  when on, a missing tower or page index fails loudly. It needs the late stage (``SKIPPED_LATE_OFF`` otherwise: the
+  measured E is the late order).
+* Graph stages (agent GS; ``graph``, ``vkm_corpus.search.graph_stages``; GRAPH_SEARCH_V1 ``benchmarks/graph_search_v1``):
+  the NAV structure around E without any model change — G1 ``collapse`` (copies leave the ranking and are listed on
+  the hit), G2 ``cohesion`` (the other pages of a deep section that holds ≥ 2 of the first 10 pages), G3 ``concepts``
+  (synonyms, abbreviations and a narrower term of the query: BM25 legs), G4 ``cites`` (BM25 over the works cited by /
+  citing the top sources), G5 ``topics`` (E's later candidates in the NAV topics of the first pages). A leg never enters
+  E's RRF: after late the first 10 positions stay and the rest is fused with the legs by weighted RRF, or (``window``)
+  the leg widens the late window and the late score decides; G1 runs last. Every stage needs the late stage (the
+  measured configuration) and the navigation layer (without it: a warning and E's answer). Server default
+  :data:`graph_stages.DEFAULTS`; ``VKM_HYBRID_GRAPH`` overrides it (``HybridBackend``).
 * The EDGE text reranker stays the last stage (``rerank_text`` over the returned ``rerank_candidate``).
 """
 from __future__ import annotations
 
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Iterable
 
 from vkm_corpus.retrieval_lab.fusion import rrf
-from vkm_corpus.search.intent import bibliographic_intent
+from vkm_corpus.search import graph_stages as GS
+from vkm_corpus.search.intent import bibliographic_intent, visual_intent
 from vkm_corpus.search.mappings import alias_name
 from vkm_corpus.search.query import (MAX_SIZE, MAX_WINDOW, RRF_K, SearchRequest, SearchRequestError,
                                      compile_filters, search)
@@ -65,6 +93,9 @@ MAX_LATE_CANDIDATES = 200
 LATE_CANDIDATES = 100                     # J's service scheme: RRF top-100 → mLateOn
 LATE_DEFAULT = False                      # late stage when the request does not say (agent L: from CORE latency)
 BIB_KIND = "BIB_ENTRY"                    # the kind the bibliographic route scans (CP-42 keeps it out of PAGE ranking)
+VISUAL_ROUTE_DEFAULT = False              # server switch of the visual route (VKM_HYBRID_VISUAL_ROUTE after the gate)
+VISUAL_OVERSAMPLE = 4                     # page vectors fetched per wanted page (duplicate groups collapse; V2: 400)
+MAX_EXPANSIONS = 2                        # query expansions (term dictionary, agent TR): extra BM25 + dense legs each
 
 
 class HybridError(RuntimeError):
@@ -131,6 +162,40 @@ class EmbedClient:
             raise HybridError("DEPENDENCY_ERROR", "query encoder answer has no dense vector", stage="embed",
                               tool="rx580-retrieval") from exc
         return QueryVector(vector, dense.get("model"), dense.get("signature"), len(vector), dense.get("encode_ms"))
+
+    def embed_visual(self, text: str) -> QueryVector:
+        """``POST /embed/query`` role ``visual``: the text tower of the page-image model (visual route)."""
+        import httpx
+
+        tool, stage = "rx580-retrieval", "visual_embed"
+        if self._http is None:
+            raise HybridError("DEPENDENCY_UNAVAILABLE", "VKM_EMBED_URL is not configured (RX580 retrieval service)",
+                              stage=stage, tool=tool)
+        try:
+            r = self._http.post("/embed/query", json={"text": text, "role": "visual", "include_vectors": True})
+        except httpx.TimeoutException as exc:
+            raise HybridError("DEPENDENCY_TIMEOUT", "visual query encoder did not answer in time", stage=stage,
+                              tool=tool) from exc
+        except httpx.HTTPError as exc:
+            raise HybridError("DEPENDENCY_UNAVAILABLE", f"visual query encoder not reachable ({type(exc).__name__})",
+                              stage=stage, tool=tool) from exc
+        if r.status_code in (401, 403):
+            raise HybridError("DEPENDENCY_ERROR", "query encoder refused the token (VKM_EMBED_TOKEN_FILE)",
+                              stage=stage, tool=tool, details={"status": r.status_code})
+        if r.status_code in (404, 422, 502, 503):     # 404/422: a service without the visual slot / an older contract
+            raise HybridError("DEPENDENCY_UNAVAILABLE", f"visual query encoder unavailable (HTTP {r.status_code}; no "
+                              "visual slot on the RX580 service?)", stage=stage, tool=tool,
+                              details={"status": r.status_code})
+        if r.status_code != 200:
+            raise HybridError("DEPENDENCY_ERROR", f"visual query encoder answered HTTP {r.status_code}", stage=stage,
+                              tool=tool, details={"status": r.status_code})
+        try:
+            vis = r.json()["visual"]
+            vector = [float(x) for x in vis["vector"]]
+        except (ValueError, KeyError, TypeError) as exc:
+            raise HybridError("DEPENDENCY_ERROR", "query encoder answer has no visual vector", stage=stage,
+                              tool=tool) from exc
+        return QueryVector(vector, vis.get("model"), vis.get("signature"), len(vector), vis.get("encode_ms"))
 
     def _late_post(self, body: dict[str, Any], stage: str) -> dict[str, Any]:
         """``POST /search/late`` with the error mapping of the late stage (no silent fallback)."""
@@ -257,10 +322,20 @@ class HybridRequest:
     late: bool | None = None               # None → LATE_DEFAULT
     late_candidates: int = LATE_CANDIDATES
     bib_route: bool | None = None          # None → the bibliographic intent detector decides
+    visual_route: bool | None = None       # None → the visual intent detector decides (when the server enables it)
+    expansions: tuple[str, ...] = ()       # other wordings (the query in the other language): extra RRF legs
+    graph: tuple[str, ...] | None = None   # graph stages (graph_stages.STAGES); None → the server default
 
     def validate(self) -> None:
         if not self.query or not self.query.strip() or len(self.query) > 512:
             raise SearchRequestError("E_BAD_QUERY", "query must be 1..512 characters")
+        try:
+            self.graph = GS.parse_stages(self.graph)
+        except ValueError as exc:
+            raise SearchRequestError("E_BAD_MODE", str(exc)) from exc       # an unknown graph stage
+        self.expansions = tuple(" ".join(str(x).split()) for x in self.expansions or ())
+        if len(self.expansions) > MAX_EXPANSIONS or any(not x or len(x) > 512 for x in self.expansions):
+            raise SearchRequestError("E_BAD_QUERY", f"at most {MAX_EXPANSIONS} expansions of 1..512 characters")
         self.kinds = tuple(k.upper() for k in self.kinds)
         if not self.kinds or any(k not in HYBRID_KINDS for k in self.kinds) or len(set(self.kinds)) != len(self.kinds):
             raise SearchRequestError("E_BAD_KIND", f"hybrid kinds must be distinct values of {HYBRID_KINDS} (blocks "
@@ -374,6 +449,81 @@ def bib_route_status(req: HybridRequest) -> tuple[str, Any]:
     return "APPLIED", intent
 
 
+# ---------------------------------------------------------------- visual route
+@dataclass
+class VisualRouteSettings:
+    """Server side of the visual route: the switch (off until the RX580 gate passed) and the page-vector search mode
+    (``exact`` = V2's exact inner product over the filtered pages; ``hnsw`` = the graph)."""
+    enabled: bool = VISUAL_ROUTE_DEFAULT
+    mode: str = "exact"
+    ef_search: int | None = None
+
+
+def visual_route_status(req: HybridRequest, settings: VisualRouteSettings | None) -> tuple[str, Any]:
+    """(status, intent): APPLIED | NOT_DETECTED | OFF | DISABLED | SKIPPED_NO_PAGE_KIND | SKIPPED_LATE_OFF."""
+    intent = visual_intent(req.query)
+    if req.visual_route is False:
+        return "OFF", intent
+    if "PAGE" not in req.kinds:
+        return "SKIPPED_NO_PAGE_KIND", intent
+    if not (req.visual_route or intent.visual):
+        return "NOT_DETECTED", intent
+    if settings is None or not settings.enabled:
+        return "DISABLED", intent
+    if not req.late:
+        return "SKIPPED_LATE_OFF", intent
+    return "APPLIED", intent
+
+
+def check_visual_encoder(meta: dict[str, Any], q: QueryVector) -> None:
+    if int(meta["dimension"]) != q.dimension:
+        raise HybridError("DEPENDENCY_ERROR", f"visual query vector has {q.dimension} dimensions, the page vectors "
+                          f"{meta['dimension']}", stage="visual_embed", tool="rx580-retrieval",
+                          details={"query_model": q.model, "index_model": meta.get("model_key")})
+    if meta.get("model_key") and q.model and meta["model_key"] != q.model:
+        raise HybridError("DEPENDENCY_ERROR", f"visual query encoder {q.model} differs from the page encoder "
+                          f"{meta['model_key']}", stage="visual_embed", tool="rx580-retrieval",
+                          details={"query_model": q.model, "index_model": meta.get("model_key")})
+
+
+def visual_meta(client: Any, prefix: str) -> dict[str, Any]:
+    from vkm_corpus.search.page_vectors import pagevis_meta
+
+    try:
+        return pagevis_meta(client, prefix)
+    except LookupError as exc:
+        raise HybridError("DEPENDENCY_UNAVAILABLE", str(exc), stage="visual", tool="opensearch") from exc
+    except Exception as exc:  # noqa: BLE001 - reported without the address
+        raise HybridError("DEPENDENCY_UNAVAILABLE", f"page-vector index not reachable ({type(exc).__name__})",
+                          stage="visual", tool="opensearch") from exc
+
+
+def fuse_visual(order: list[tuple[str, float]], kind_of: dict[str, str], vis: list[tuple[str, float]], *,
+                depth: int, rrf_k: int) -> tuple[list[tuple[str, float]], dict[str, int], dict[str, float]]:
+    """The visual route's fusion: RRF(k) of the top-``depth`` PAGE keys of ``order`` (E's served order) and the
+    top-``depth`` pages of the image channel; the fused pages refill the PAGE positions of ``order`` (other kinds
+    keep theirs, H-44), the rest of E's pages follow in their order, pages beyond the PAGE slots go to the end.
+    Returns (new order, e_rank of each page, visual RRF score of each fused page)."""
+    e_pages = [key for key, _s in order if kind_of.get(key) == "PAGE"]
+    e_rank = {key: i for i, key in enumerate(e_pages, 1)}
+    fused = rrf({"e": [(p, 0.0) for p in e_pages[:depth]], "vis": vis[:depth]}, k=rrf_k)
+    vis_score = dict(fused)
+    head = [p for p, _s in fused]
+    in_head = set(head)
+    pages = head + [p for p in e_pages if p not in in_head]
+    it = iter(pages)
+    out: list[tuple[str, float]] = []
+    score_of = dict(order)
+    for key, s in order:
+        if kind_of.get(key) == "PAGE":
+            p = next(it)
+            out.append((p, vis_score.get(p, score_of.get(p, 0.0))))
+        else:
+            out.append((key, s))
+    out += [(p, vis_score.get(p, 0.0)) for p in it]
+    return out, e_rank, vis_score
+
+
 def page_filter(client: Any, prefix: str, page_ids: list[str], filters: dict[str, Any]) -> dict[str, str]:
     """page id → duplicate group of the pages that are in the page index and pass the page-level filters (one query
     on E's pages alias; the BIB channel of the service knows no filter fields)."""
@@ -419,18 +569,76 @@ def late_order(fused: list[tuple[str, float]], kind_of: dict[str, str], results:
 
 
 # ---------------------------------------------------------------- search
+def _graph_bm25(client: Any, req: HybridRequest, prefix: str):
+    """BM25 page search for the graph legs (G3 wordings, G4 sources): the request's filters (a source list meets the
+    request's own ``source_id`` filter), duplicates collapsed as in E's leg; → page ids in rank order."""
+    def run(text: str, source_ids: list[str] | None, depth: int) -> list[str]:
+        filters = dict(req.filters)
+        if source_ids is not None:
+            own = filters.get("source_id")
+            allowed = None if not own else set(own if isinstance(own, (list, tuple)) else [own])
+            ids = [s for s in source_ids if allowed is None or s in allowed]
+            if not ids:
+                return []
+            filters["source_id"] = ids
+        bm = search(client, SearchRequest(query=text, kinds=("PAGE",), filters=filters, size=min(int(depth), MAX_SIZE),
+                                          include_duplicates=req.include_duplicates, exact=req.exact), prefix)
+        return [h.id for h in bm.hits]
+    return run
+
+
 def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str, *,
-                  meta: dict[str, Any] | None = None) -> dict[str, Any]:
-    """BM25 + dense → RRF (→ late MaxSim when ``req.late``); hits carry ids, the per-stage trace and E's
-    highlights/best blocks when BM25 found them."""
+                  meta: dict[str, Any] | None = None, visual: VisualRouteSettings | None = None,
+                  vmeta: Any = None, graph: Any = None, graph_defaults: Iterable[str] | None = None,
+                  graph_params: GS.GraphParams | None = None) -> dict[str, Any]:
+    """BM25 + dense → RRF (→ late MaxSim when ``req.late``) (→ the graph stages' legs) (→ the visual route's RRF with
+    the page-image channel) (→ G1 collapse); hits carry ids, the per-stage trace and E's highlights/best blocks when
+    BM25 found them. ``graph`` is a :class:`graph_stages.GraphSignals` (the navigation layer)."""
     req.validate()
     timings: dict[str, float] = {}
     t0 = time.perf_counter()
+    grun = GS.GraphRun(GS.resolve(req.graph, graph_defaults), graph_params or GS.GraphParams(), graph,
+                       bm25=_graph_bm25(client, req, prefix), explicit=req.graph is not None)
+    grun.gate(page_kind="PAGE" in req.kinds, late=bool(req.late))
+    pool = ThreadPoolExecutor(max_workers=3) if grun.on("concepts") or grun.on("cites") else None
+    try:
+        return _hybrid_search(client, embed, req, prefix, meta=meta, visual=visual, vmeta=vmeta, grun=grun,
+                              pool=pool, timings=timings, t0=t0)
+    finally:
+        if pool is not None:
+            pool.shutdown(wait=False, cancel_futures=True)
+
+
+def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str, *, meta: dict[str, Any] | None,
+                   visual: VisualRouteSettings | None, vmeta: Any, grun: GS.GraphRun, pool: ThreadPoolExecutor | None,
+                   timings: dict[str, float], t0: float) -> dict[str, Any]:
+    gp = grun.params
+
+    def concepts_task() -> tuple[list[str], list[list[str]]]:
+        texts = grun.wordings(req.query)
+        return texts, [grun.bm25(x, None, gp.concepts_depth) for x in texts]
+
+    # G3: the other wordings (NAV) and their BM25 legs start at once, off the critical path (they need neither the
+    # encoder nor E's legs)
+    word_future = pool.submit(concepts_task) if pool is not None and grun.on("concepts") else None
+    t1 = time.perf_counter()
     meta = meta or vectors_meta(client, prefix)
-    timings["vectors_meta"] = round((time.perf_counter() - t0) * 1e3, 2)
+    timings["vectors_meta"] = round((time.perf_counter() - t1) * 1e3, 2)
+    t1 = time.perf_counter()
     q = embed.embed_dense(req.query)
     check_encoder(meta, q)
-    timings["embed"] = round((time.perf_counter() - t0) * 1e3 - timings["vectors_meta"], 2)
+    timings["embed"] = round((time.perf_counter() - t1) * 1e3, 2)
+    # query expansions (the query in the other language, agent TR): their own BM25 and dense legs in the same RRF;
+    # the late stage keeps scoring the original query
+    xq: list[tuple[str, QueryVector]] = []
+    for x in req.expansions:
+        if x.strip().lower() == req.query.strip().lower():
+            continue
+        t1 = time.perf_counter()
+        xv = embed.embed_dense(x)
+        check_encoder(meta, xv)
+        xq.append((x, xv))
+        timings[f"embed_x{len(xq)}"] = round((time.perf_counter() - t1) * 1e3, 2)
     rankings: dict[str, list[tuple[str, float]]] = {}
     bm25_hits: dict[str, Any] = {}
     dense_hits: dict[str, _Dense] = {}
@@ -462,6 +670,26 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
         rankings[f"dense:{kind}"] = [(d.key, d.score) for d in dense]
         totals[kind] = {"bm25": int(bm.totals.get(kind, len(bm.hits))), "bm25_returned": len(bm.hits),
                         "dense_returned": len(dense)}
+        for n, (x, xv) in enumerate(xq, 1):                     # expansion legs
+            t1 = time.perf_counter()
+            bmx = search(client, SearchRequest(query=x, kinds=(kind,), filters=dict(req.filters), size=req.candidates,
+                                               include_duplicates=req.include_duplicates, exact=req.exact), prefix)
+            warnings += bmx.warnings
+            lst = []
+            for h in bmx.hits:
+                bm25_hits.setdefault(h.id, h)
+                kind_of.setdefault(h.id, kind)
+                lst.append((h.id, h.score))
+            rankings[f"bm25:{kind}~x{n}"] = lst
+            resp = client.search(index=meta["alias"], body=knn_body(xv.vector, k, req.filters, UNIT_KINDS[kind],
+                                                                    EXCLUDED_UNIT_KINDS.get(kind, ())))
+            dx = dense_ranking(resp, kind, req.candidates, collapse_duplicates=not req.include_duplicates)
+            for d in dx:
+                dense_hits.setdefault(d.key, d)
+                kind_of.setdefault(d.key, kind)
+            rankings[f"dense:{kind}~x{n}"] = [(d.key, d.score) for d in dx]
+            timings[f"expansion_{kind.lower()}_x{n}"] = round((time.perf_counter() - t1) * 1e3, 2)
+            totals[kind][f"x{n}_returned"] = len(lst) + len(dx)
     bib_status, intent = bib_route_status(req)
     bib_stage: dict[str, Any] = {"status": bib_status, "cues": list(intent.cues), "weak_cues": list(intent.weak)}
     bib_info: dict[str, dict[str, Any]] = {}
@@ -493,11 +721,45 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                           "late_page_score": "max MaxSim over all units of the page, BIB_ENTRY included"})
     fused = rrf(rankings, k=req.rrf_k)
     fused_rank = {key: i for i, (key, _s) in enumerate(fused, 1)}
+    # G4: the sources cited by / citing the RRF top sources → a BM25 leg over their pages (runs during late)
+    cite_sources = grun.seed([key for key, _s in fused if kind_of.get(key) == "PAGE"])
+    cite_future = pool.submit(grun.bm25, req.query, cite_sources, gp.cites_depth) if pool and cite_sources else None
+
+    def collect(post: bool) -> None:
+        """Wait for the graph legs of one fusion point (``post`` = after late; else the window legs)."""
+        t1 = time.perf_counter()
+        if word_future is not None and (gp.concepts_mode == "post") == post and "concepts" not in grun.legs:
+            try:
+                texts, lists = word_future.result()
+                grun.concepts_leg(texts, lists)
+            except Exception as exc:  # noqa: BLE001 - a failed extra leg never sinks E's answer
+                grun.status["concepts"] = "FAILED"
+                warnings.append(f"GRAPH_CONCEPTS_LEG_FAILED: {type(exc).__name__}")
+        if cite_future is not None and (gp.cites_mode == "post") == post and "cites" not in grun.legs:
+            try:
+                grun.cites_leg(cite_future.result())
+            except Exception as exc:  # noqa: BLE001
+                grun.status["cites"] = "FAILED"
+                warnings.append(f"GRAPH_CITES_LEG_FAILED: {type(exc).__name__}")
+        timings["graph_legs_" + ("post" if post else "window")] = round((time.perf_counter() - t1) * 1e3, 2)
+
     late_stage: dict[str, Any] | str = "NOT_RUN (late=false; MaxSim over token vectors on the RX580 with late=true)"
     order, late_rank, late_results = fused, {}, {}
+    window_added: dict[str, str] = {}
     if req.late and fused:
-        t1 = time.perf_counter()
         head = fused[:req.late_candidates]
+        if word_future is not None or cite_future is not None:
+            collect(post=False)
+            wpages = grun.window([key for key, _s in head if kind_of.get(key) == "PAGE"])
+            window_added = {p: grun.window_added[p] for p in wpages if p in grun.window_added}
+            if window_added:
+                for p in window_added:
+                    kind_of.setdefault(p, "PAGE")
+                taken = set(window_added)
+                rrf_of = dict(fused)
+                head = head + [(p, rrf_of.get(p, 0.0)) for p in window_added]
+                fused = head + [(key, s) for key, s in fused[req.late_candidates:] if key not in taken]
+        t1 = time.perf_counter()
         page_excl = () if bib_status == "APPLIED" else PAGE_EXCLUDED_UNIT_KINDS
         lr = embed.late_scores(req.query, [{"id": key, "kind": kind_of[key]} for key, _s in head],
                                page_exclude_kinds=page_excl)
@@ -517,6 +779,89 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                                      "route)" if bib_status == "APPLIED" else "max MaxSim over the units of the page "
                                      f"except {', '.join(PAGE_EXCLUDED_UNIT_KINDS)} (CP-42)"),
                       "page_exclude_kinds": list(page_excl), "timings_ms": lr.timings_ms}
+        if window_added:
+            late_stage["graph_window_added"] = len(window_added)
+        # graph legs after late: the first positions stay, the rest is fused with the legs (graph_stages.fuse_post)
+        if any(grun.on(s) for s in GS.PAGE_STAGES):
+            collect(post=True)
+            t1 = time.perf_counter()
+            pages = [key for key, _s in order if kind_of.get(key) == "PAGE"]
+            new_pages = grun.after_late(pages)
+            if new_pages != pages:
+                for p in new_pages:
+                    kind_of.setdefault(p, "PAGE")
+                score_of = dict(order)
+                order = [(key, score_of.get(key, 0.0)) for key in
+                         GS.on_pages([key for key, _s in order], kind_of, new_pages)]
+            timings["graph_post"] = round((time.perf_counter() - t1) * 1e3, 2)
+    vis_status, vintent = visual_route_status(req, visual)
+    vis_stage: dict[str, Any] = {"status": vis_status, "cues": list(vintent.cues)}
+    vis_rank: dict[str, int] = {}
+    vis_scores: dict[str, float] = {}
+    e_rank: dict[str, int] = {}
+    vis_rrf: dict[str, float] = {}
+    vis_src: dict[str, dict[str, Any]] = {}
+    if vis_status == "DISABLED" and req.visual_route:
+        raise HybridError("DEPENDENCY_UNAVAILABLE", "the visual route is not enabled on this server "
+                          "(VKM_HYBRID_VISUAL_ROUTE)", stage="visual", tool="api")
+    if vis_status == "APPLIED":
+        from vkm_corpus.search.page_vectors import MAX_PAGE_K, page_vector_body, page_vector_hits
+
+        assert visual is not None
+        t1 = time.perf_counter()
+        vmeta = vmeta(client) if callable(vmeta) else (vmeta or visual_meta(client, prefix))
+        qv = embed.embed_visual(req.query)
+        check_visual_encoder(vmeta, qv)
+        timings["visual_embed"] = round((time.perf_counter() - t1) * 1e3, 2)
+        t1 = time.perf_counter()
+        space = vmeta.get("space_type") or "innerproduct"
+        k = min(MAX_PAGE_K, req.candidates * VISUAL_OVERSAMPLE)
+        try:
+            resp = client.search(index=vmeta["alias"], body=page_vector_body(
+                qv.vector, k, req.filters, mode=visual.mode, space_type=space, ef_search=visual.ef_search))
+        except Exception as exc:  # noqa: BLE001 - reported without the address
+            raise HybridError("DEPENDENCY_UNAVAILABLE", f"page-vector search failed ({type(exc).__name__})",
+                              stage="visual", tool="opensearch") from exc
+        timings["visual_knn"] = round((time.perf_counter() - t1) * 1e3, 2)
+        vhits = page_vector_hits(resp, req.candidates, collapse_duplicates=not req.include_duplicates,
+                                 space_type=space)
+        vis_list = [(h.page_id, h.score) for h in vhits]
+        vis_rank = {p: i for i, (p, _s) in enumerate(vis_list, 1)}
+        vis_scores = dict(vis_list)
+        vis_src = {h.page_id: h.source for h in vhits}
+        before = {key for key, _s in order}
+        for p, _s in vis_list:
+            kind_of.setdefault(p, "PAGE")
+        order, e_rank, vis_rrf = fuse_visual(order, kind_of, vis_list, depth=req.candidates, rrf_k=req.rrf_k)
+        if vmeta.get("built_from_snapshot_id") and meta.get("built_from_snapshot_id") and \
+                vmeta["built_from_snapshot_id"] != meta["built_from_snapshot_id"]:
+            warnings.append(f"VISUAL_STORE_SNAPSHOT_MISMATCH: page vectors of {vmeta['built_from_snapshot_id']}, "
+                            f"vectors of {meta['built_from_snapshot_id']}")
+        vis_stage.update({"engine": "opensearch-knn", "mode": visual.mode, "alias": vmeta.get("alias"),
+                          "index": vmeta.get("index"), "build_id": vmeta.get("build_id"),
+                          "built_from_snapshot_id": vmeta.get("built_from_snapshot_id"),
+                          "config_signature": vmeta.get("config_signature"), "model_key": vmeta.get("model_key"),
+                          "query_model": qv.model, "query_signature": qv.signature, "dimension": qv.dimension,
+                          "encode_ms": qv.encode_ms, "pages_returned": len(vis_list),
+                          "new_pages": sum(1 for p, _s in vis_list if p not in before), "depth": req.candidates,
+                          "fusion": f"RRF(k={req.rrf_k}) of E's top-{req.candidates} pages (served order) and the "
+                                    f"page-image leg's top-{req.candidates}"})
+    # G1: copies leave the ranking (last step, every kind) and are listed on the hit that stays
+    if grun.on("collapse"):
+        t1 = time.perf_counter()
+        kept = set(grun.finish([key for key, _s in order], kind_of))
+        order = [(key, s) for key, s in order if key in kept]
+        timings["graph_collapse"] = round((time.perf_counter() - t1) * 1e3, 2)
+    for fut in (word_future, cite_future):          # a leg that no fusion point waited for (no RRF result at all)
+        if fut is not None and not fut.done():
+            try:
+                fut.result()
+            except Exception:  # noqa: BLE001 - its answer is not used
+                pass
+    for key, value in list(grun.timings.items()):
+        timings[f"graph_{key}" if not key.startswith("graph_") else key] = value
+    warnings += grun.warnings
+    fused_score = dict(fused)
     ranks = {name: {key: i for i, (key, _s) in enumerate(lst, 1)} for name, lst in rankings.items()}
     scores = {name: dict(lst) for name, lst in rankings.items()}
     hits = []
@@ -529,8 +874,11 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
         bmh, dh = bm25_hits.get(key), dense_hits.get(key)
         trace = {"bm25_rank": ranks[f"bm25:{kind}"].get(key), "bm25_score": scores[f"bm25:{kind}"].get(key),
                  "dense_rank": ranks[f"dense:{kind}"].get(key), "dense_score": scores[f"dense:{kind}"].get(key),
-                 "fused_rank": fused_rank[key], "rrf_score": round(score, 8), "rrf_k": req.rrf_k,
-                 "late_rank": None, "rerank_rank": None}
+                 "fused_rank": fused_rank.get(key), "rrf_score": round(fused_score.get(key, 0.0), 8),
+                 "rrf_k": req.rrf_k, "late_rank": None, "rerank_rank": None}
+        if xq:
+            trace["expansion_ranks"] = {f"{leg}~x{n}": ranks[f"{leg}:{kind}~x{n}"].get(key)
+                                        for n in range(1, len(xq) + 1) for leg in ("bm25", "dense")}
         if bib_status == "APPLIED" and kind == "PAGE":
             info = bib_info.get(key)
             trace["bib_rank"] = ranks["bib:PAGE"].get(key)
@@ -546,9 +894,17 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
             if res is not None and res.get("best_unit_id"):
                 trace["late_unit"] = {"unit_id": res.get("best_unit_id"), "units": res.get("units"),
                                       "tokens": res.get("tokens")}
+        if vis_status == "APPLIED" and kind == "PAGE":
+            trace.update({"e_rank": e_rank.get(key), "vis_rank": vis_rank.get(key),
+                          "vis_score": None if key not in vis_scores else round(vis_scores[key], 6),
+                          "visual_rrf_score": None if key not in vis_rrf else round(vis_rrf[key], 8),
+                          "final_rank": rank})
+        gtrace = grun.trace(key)
+        if gtrace:
+            trace["graph"] = gtrace
         if dh is not None:
             trace["dense_unit"] = {"unit_id": dh.unit_id, "unit_kind": dh.unit_kind, "object_ids": dh.object_ids}
-        src = dh.source if dh is not None else {}
+        src = dh.source if dh is not None else vis_src.get(key, {})
         hit: dict[str, Any] = {
             "id": key, "object_type": kind, "rank": rank, "score": round(score, 8),
             "page_id": (bmh.page_id if bmh else None) or (key if kind == "PAGE" else src.get("page_id")),
@@ -556,16 +912,22 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
             (key.split(":")[0] if kind == "PAGE" and ":" in key else None),
             "work_id": (bmh.work_id if bmh else None) or src.get("work_id"),
             "page_index": (bmh.page_index if bmh else None) or src.get("page_index"),
-            "index": bmh.index if bmh else meta["index"], "build_id": bmh.build_id if bmh else meta["build_id"],
+            "index": bmh.index if bmh else (meta["index"] if dh is not None or vmeta is None or key not in vis_src
+                                            else vmeta["index"]),
+            "build_id": bmh.build_id if bmh else (meta["build_id"] if dh is not None or vmeta is None or
+                                                  key not in vis_src else vmeta["build_id"]),
             "vectors_index": meta["index"], "vectors_build_id": meta["build_id"],
             "highlights": list(bmh.highlights) if bmh else [], "best_blocks": list(bmh.best_blocks) if bmh else [],
             "duplicates": list(bmh.duplicates) if bmh else [], "trace": trace}
+        if grun.on("collapse") or grun.status.get("collapse") == "NOT_TRIGGERED":
+            hit["copies"] = list(grun.copies.get(key, []))
         hits.append(hit)
     timings["total"] = round((time.perf_counter() - t0) * 1e3, 2)
+    routes = [name for name, st in (("bibliographic", bib_status), ("visual", vis_status)) if st == "APPLIED"]
     return {"query": req.query, "kinds": list(req.kinds), "hits": hits, "fusion": "RRF", "rrf_k": req.rrf_k,
-            "candidates": req.candidates, "fused_total": len(fused), "totals": totals, "warnings": warnings,
+            "candidates": req.candidates, "fused_total": len(order), "totals": totals, "warnings": warnings,
             "late": bool(req.late), "late_candidates": req.late_candidates if req.late else None,
-            "route": "bibliographic" if bib_status == "APPLIED" else "default",
+            "route": "+".join(routes) or "default",
             "stages": {"bm25": {"engine": "opensearch", "indices": "per-kind aliases of E"},
                        "dense": {"engine": "opensearch-knn", "alias": meta["alias"], "index": meta["index"],
                                  "build_id": meta["build_id"], "built_from_snapshot_id":
@@ -573,6 +935,12 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                                  "model_key": meta.get("model_key"), "query_model": q.model,
                                  "query_signature": q.signature, "dimension": q.dimension,
                                  "space_type": meta.get("space_type"), "encode_ms": q.encode_ms},
-                       "late": late_stage, "bib_route": bib_stage,
+                       "late": late_stage, "bib_route": bib_stage, "visual_route": vis_stage,
+                       "expansion": {"texts": [x for x, _ in xq], "legs": [f"{leg}:{kind}~x{n}" for kind in req.kinds
+                                                                          for n in range(1, len(xq) + 1)
+                                                                          for leg in ("bm25", "dense")],
+                                     "fusion": "extra RRF legs of the expansions; the late stage scores the original "
+                                               "query"} if xq else "NOT_RUN",
+                       "graph": grun.record(),
                        "rerank": "NOT_RUN here (EDGE text reranker: rerank_text over rerank_candidate)"},
             "timings_ms": timings}

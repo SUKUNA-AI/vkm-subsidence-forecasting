@@ -10,6 +10,10 @@ Verified on the workstation (28.09.2026; AutoCAD 2026 25.1.164, Civil 3D 2026 13
   code, the timeout and the run's own markers: a non-zero exit, a crash-reporter child process or a visible window of
   the job's process tree → every process of the tree is killed (orphans included), the run is CRASHED / DIALOG and
   nothing is promoted. Crash reports are never sent and CER settings are never changed.
+* the job's process tree holds only processes created after the console itself (its creation time is read through
+  the handle ``Popen`` keeps, so the PID cannot be reused meanwhile): Windows reuses PIDs and keeps a dead parent's
+  PID in its children, and on 29.09.2026 a user's Discord — children of a long-gone process with the console's PID —
+  was taken for the job's tree and killed (:mod:`vkm_cad.winproc`).
 
 One process per run; the caller holds the engine lock (:class:`vkm_cad.jobs.EngineLock`).
 """
@@ -30,6 +34,7 @@ CRASH_REPORTERS = ("senddmp.exe", "cer_dialog.exe", "werfault.exe", "werfaultsec
 CAD_IMAGES = ("acad.exe", "accoreconsole.exe")
 POLL_S = 0.25
 WATCH_EVERY_S = 1.0
+CLOCK_MARGIN_FT = 20_000_000             # 2 s in FILETIME units: fallback lower bound when the console's time is unread
 ISOLATE_ID = "vkm-bridge"
 SWITCHES = frozenset({"/i", "/s", "/product", "/l", "/isolate"})
 
@@ -154,20 +159,23 @@ class CoreConsole:
         killed: list[str] = []
         members: set[int] = set()
         with open(console_path, "wb") as console:
+            before = self._procs.filetime_now()
             proc = self._popen(cmd, stdout=console, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                                cwd=str(spec.run_dir), env=env, creationflags=flags)
+            # descendants are created after the console; its own time is exact, the clock before Popen a fallback
+            root_created = self._procs.creation_time(proc.pid) or (before - CLOCK_MARGIN_FT if before else None)
             members = {proc.pid}
             last_watch = started - WATCH_EVERY_S
             while proc.poll() is None:
                 now = self._clock()
                 if now - started > spec.timeout_s:
                     timed_out = True
-                    killed += self._kill(proc.pid, members)
+                    killed += self._kill(proc, members, root_created)
                     break
                 if now - last_watch >= WATCH_EVERY_S:
                     last_watch = now
                     snap = self._procs.snapshot()
-                    members |= self._procs.tree(proc.pid, snap)
+                    members |= self._procs.tree(proc.pid, snap, not_before=root_created)
                     names = {p.pid: p.image for p in snap}
                     for image in CAD_IMAGES:
                         count = sum(1 for p in snap if p.image == image and p.pid not in members)
@@ -175,27 +183,28 @@ class CoreConsole:
                             foreign[image] = max(foreign.get(image, 0), count)
                     if any(names.get(pid) in CRASH_REPORTERS for pid in members if pid != proc.pid):
                         reporter = True
-                        killed += self._kill(proc.pid, members, snap)
+                        killed += self._kill(proc, members, root_created, snap)
                         break
                     seen = self._procs.visible_windows(members)
                     if seen:
                         dialog = True
                         windows += [f"{names.get(pid, '?')}: {title}" for pid, title in seen]
-                        killed += self._kill(proc.pid, members, snap)
+                        killed += self._kill(proc, members, root_created, snap)
                         break
                 self._sleep(POLL_S)
             try:
                 code = proc.wait(timeout=30)
             except subprocess.TimeoutExpired:
-                killed += self._kill(proc.pid, members)
+                killed += self._kill(proc, members, root_created)
                 code = proc.wait(timeout=30)
         duration = self._clock() - started
         # orphans of the job (a child that outlived the console, e.g. a crash reporter)
         snap = self._procs.snapshot()
-        leftovers = [p for p in snap if p.pid != proc.pid and p.pid in self._procs.tree(proc.pid, snap)]
+        family = self._procs.tree(proc.pid, snap, not_before=root_created)
+        leftovers = [p for p in snap if p.pid != proc.pid and p.pid in family]
         if leftovers:
             reporter = reporter or any(p.image in CRASH_REPORTERS for p in leftovers)
-            done = set(self._procs.kill([p.pid for p in leftovers]))
+            done = set(self._procs.kill([p.pid for p in leftovers], {p.pid: p.created for p in leftovers}))
             killed += [p.image for p in leftovers if p.pid in done]
         crashed = reporter or (code not in (0, None) and not timed_out and not dialog)
         text = decode_console(console_path.read_bytes())
@@ -247,11 +256,19 @@ class CoreConsole:
                 out.append(arg)
         return out
 
-    def _kill(self, pid: int, members: set[int], snap: list[Any] | None = None) -> list[str]:
+    def _kill(self, proc: Any, members: set[int], not_before: int | None,
+              snap: list[Any] | None = None) -> list[str]:
         snap = snap if snap is not None else self._procs.snapshot()
-        members = members | self._procs.tree(pid, snap)
+        members = members | self._procs.tree(proc.pid, snap, not_before=not_before)
         names = {p.pid: p.image for p in snap}
-        done = self._procs.kill(sorted(members, key=lambda p: p == pid))      # children first, the console last
+        created = {p.pid: p.created for p in snap}
+        done = list(self._procs.kill(sorted(members, key=lambda p: p == proc.pid), created))  # children first
+        if proc.pid not in done and proc.poll() is None:              # the console through its own handle
+            try:
+                proc.kill()
+                done.append(proc.pid)
+            except OSError:
+                pass
         return [names.get(p, "?") for p in done]
 
 

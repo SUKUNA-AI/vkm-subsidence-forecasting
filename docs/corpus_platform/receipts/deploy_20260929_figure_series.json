@@ -1,0 +1,71 @@
+{
+ "schema": "vkm.deploy_receipt/1",
+ "id": "deploy_20260929_figure_series",
+ "date_utc": "2026-09-29T15:39:03Z",
+ "operator": "coordinator (Claude Code session)",
+ "change": "NAV part figure_series (agent FD2, rule figure_series_v1) imported into the NAV of snapshot 738eebee on CORE; api/mcp/mcp-admin and the vkm-job wrapper switched to the image of commit 9d049dc (45 read tools: + find_figure_series, get_figure_series); nightly scripts updated (EXPECTED_MCP_TOOLS 45, nightly-mcp-smoke-4)",
+ "commit": "9d049dc0fec9",
+ "image": "vkm-corpus-api:0.1.0-9d049dc0fec9 (built on CORE from git archive of the commit: pyproject.toml, requirements, src, infra/core/api)",
+ "snapshot_id": "snap-20260928T193550Z-738eebee",
+ "bundle": {
+  "built_on": "WORKSTATION WSL (FD2, workers=6, raster_pages=fd_monitoring); CORE never rebuilds",
+  "manifest_sha256": "bd237a1b4c58bf9d7657b021ff39acb9408fe0016078356bc56bff68be635bdd",
+  "transfer": "rsync WSL -> CORE $VKM_DATA_ROOT/tmp/figure_series_v1/<snap>/ (15.5 MB, 7 files)",
+  "datasets": {
+   "figure_series_points": {
+    "rows": 933525,
+    "sha256": "5417f83a9af2b9d9e549fcdcc8299ae91eafd9e5c39b665d12720c6ae2885f8f"
+   },
+   "figure_series_raster_figures": {
+    "rows": 55,
+    "sha256": "4d49a409133e0af72df2d43fab3ee21c81fe73e9249aefd8f1732a6ae4af0c8d"
+   },
+   "figure_series_raster": {
+    "rows": 215,
+    "sha256": "f4a13cd59e7529cb0ec3735593a666f374e3e5130c1de863ffe86c9e45b1642a"
+   },
+   "figure_series_raster_points": {
+    "rows": 13064,
+    "sha256": "1c1157e7e7e372d6200426470880e5a5afbc8d47f7bba7ea80ad8cb8ec5b6a87"
+   },
+   "figure_series_figures": {
+    "sha256": "babdc465d36a2cc5adec22459fb3c50a88a62161994be733f7a10df2e237834a"
+   },
+   "figure_series": {
+    "sha256": "ee52b8dc808ea859d8ccc78f2ddc5cea577a3e6140b89d82fb481656680d63c2"
+   }
+  }
+ },
+ "steps": [
+  "cp -a derived/navigation/<snap> -> <snap>.fs (365 MB)",
+  "vkm-job (new image) python -m vkm_corpus.navigation.figure_series import --bundle ... --nav-dir <snap>.fs --canon-duckdb duckdb/vkm_corpus.duckdb --dry-run: exit 0, sha256 of all 6 datasets equal to the bundle, canon_check missing_figure_ids 0",
+  "same with --pack: exit 0, imported true, nav.duckdb repacked (pack summary prints snapshot_id null: cosmetic, store.pack returns only the top-level manifest key; the packed meta carries the nested snapshot id)",
+  "mv <snap> -> <snap>.old-20260929T153903; mv <snap>.fs -> <snap> (CURRENT unchanged: it names the snapshot)",
+  ".env VKM_API_IMAGE and bin/vkm-job default image -> 9d049dc0fec9 (backups .bak-20260929T153903)",
+  "nightly/*.py, nightly/*.sh from the commit (backup nightly/.bak-20260929T153903; systemd units unchanged)",
+  "docker compose up -d api mcp mcp-admin: api healthy"
+ ],
+ "checks": {
+  "mcp_smoke": {
+   "version": "nightly-mcp-smoke-4",
+   "tools_listed": 45,
+   "PASS": 45,
+   "FAIL": 0,
+   "WARN": 0,
+   "SKIP": 0,
+   "seconds": 5.6,
+   "transport": "streamable-http",
+   "route": "loopback"
+  },
+  "tests_on_merged_tree": "FD2: tests/corpus 1,421 passed / 36 skipped / 2 failed (test_cad_mcp.py, no ezdxf in the WSL venv; 3 passed with Windows Python); figure_series + MCP contract + nightly 37 passed; hygiene 6, leakage 2, tests/world 207 passed / 2 skipped; merged tree identical to the FD2 tip"
+ },
+ "rollback": [
+  "mv <snap> -> <snap>.fs-rolled-back; mv <snap>.old-20260929T153903 -> <snap>",
+  "restore .env and bin/vkm-job from .bak-20260929T153903; restore nightly/ from nightly/.bak-20260929T153903",
+  "docker compose up -d api mcp mcp-admin (image 1537d214888a is kept)"
+ ],
+ "not_done": [
+  "the NAV graph has no projection for the figure_series datasets (reported as not projected, P5 closes); FIGURE_SERIES.md section 9 describes a future projection",
+  "route R still reads axis labels with Tesseract"
+ ]
+}

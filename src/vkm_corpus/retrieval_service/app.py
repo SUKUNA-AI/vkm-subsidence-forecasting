@@ -1,5 +1,8 @@
 """FastAPI application of the RX580 retrieval service (постановка лаборатории §56).
 
+``POST /embed/query`` with ``role = visual`` encodes a query with the text tower of the page-image model (Qwen3-VL-
+Embedding-2B, the visual route of the API's hybrid search, agent VIS); 404 when no visual slot is configured.
+
 Endpoints: ``GET /health`` (no auth), ``GET /model-info``, ``POST /embed/query``, ``POST /search/dense``,
 ``POST /search/hybrid``, ``POST /search/late``, ``GET /metrics`` (no auth). With a configured token every other
 endpoint needs ``Authorization: Bearer <token>`` (compared in constant time).
@@ -34,7 +37,8 @@ MAX_QUERY_CHARS = 4096
 
 class EmbedQueryRequest(BaseModel):
     text: str = Field(min_length=1, max_length=MAX_QUERY_CHARS)
-    role: Literal["dense", "late", "both"] = "dense"
+    # visual: the text tower of the page-image model (agent VIS); "both" stays dense + late
+    role: Literal["dense", "late", "visual", "both"] = "dense"
     include_vectors: bool = True
 
 

@@ -104,6 +104,37 @@ def test_graph_neighbourhood(env):
     assert covers["direction"] == "in" and covers["total"] == 2                  # chapter 1 and section 1.2
 
 
+def test_dictionary_family_and_the_new_node_kinds(env):
+    """Paths through the term dictionary (via=dictionary; a dictionary-only term is found by its name) and the
+    neighbourhoods of a structured table, a parameter value and a group of repeated figures."""
+    client, _service, _fake, ids, _app = env
+    _body, rec = _ok(client.get("/v1/nav/graph/paths", params={"term_a": "ВЗТ", "term_b": "водозащитная толща",
+                                                               "via": ["dictionary"]}, headers=HR), "NAV_GRAPH_PATHS")
+    assert rec["from"]["term_id"] == ids["dictionary_only"]["взт"] and rec["from"]["dictionary_only"] is True
+    assert rec["via"] == ["dictionary"] and rec["relationship_types"] == list(N.DICTIONARY_TYPES)
+    hop = rec["paths"][0]["hops"][0]
+    assert hop["rel"] == "ABBREVIATION_OF" and hop["score"] == 0.9 and hop["pages"]
+    _body, rec = _ok(client.get("/v1/nav/graph/paths", params={"term_a": "ползучесть", "term_b": "creep",
+                                                               "via": ["dictionary"]}, headers=HR), "NAV_GRAPH_PATHS")
+    assert rec["paths"][0]["hops"][0]["rel"] == "TRANSLATES_TO" and rec["paths"][0]["hops"][0]["status"] == \
+        "REVIEWED_BY_AGENT"
+    body, rec = _ok(client.get(f"/v1/nav/graph/neighbourhood/{ids['tables'][SY.T1]}", headers=HR),
+                    "NAV_GRAPH_NEIGHBOURHOOD")
+    assert body["item"]["envelope"]["object_id"] == ids["tables"][SY.T1]
+    assert rec["node"]["kind"] == "STRUCTURED_TABLE" and rec["node"]["pages"] == [SY.pid(SY.S1, 3)]
+    rels = {(e["rel"], e["direction"]) for e in rec["edges"]}
+    assert {("GRID_OF", "out"), ("TABLE_IN_SECTION", "out"), ("TABULATES", "out"), ("IN_TABLE", "in")} <= rels
+    _body, rec = _ok(client.get(f"/v1/nav/graph/neighbourhood/{ids['values']['formula_ucs']}", headers=HR),
+                     "NAV_GRAPH_NEIGHBOURHOOD")
+    assert rec["node"]["kind"] == "PARAMETER_VALUE"
+    assert {(e["rel"], e["direction"]) for e in rec["edges"]} == {("NEAR_FORMULA", "out"), ("IN_BLOCK", "out"),
+                                                                  ("VALUE_IN_SECTION", "out")}
+    body, rec = _ok(client.get(f"/v1/nav/graph/neighbourhood/{SY.FIG2}", headers=HR), "NAV_GRAPH_NEIGHBOURHOOD")
+    assert body["item"]["envelope"]["source_id"] == SY.S2
+    [member] = [e for e in rec["edges"] if e["layer"] == "NAV"]
+    assert member["rel"] == "DUP_MEMBER_OF" and member["neighbours"][0]["kind"] == "DUPLICATE_GROUP"
+
+
 def test_errors_and_availability(env):
     client, service, fake, _ids, _app = env
     r = client.get("/v1/nav/graph/paths", params={"term_a": "несуществующее понятие", "term_b": "оседание"},

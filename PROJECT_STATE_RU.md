@@ -15,6 +15,9 @@
   (26 483 страницы, OCR GLM-OCR там, где нужно), проекции DuckDB, Neo4j и OpenSearch, реранкеры, API и MCP, лаборатория
   retrieval (RX 580). Итоговый отчёт — [docs/corpus_platform/V0_FINAL_REPORT.md](docs/corpus_platform/V0_FINAL_REPORT.md),
   независимая проверка — READY. Всё извлечённое автоматически — `AUTO_EXTRACTED_UNREVIEWED`, это не evidence.
+- 29–30.09.2026 — приёмка 20 источников (VKM-SRC-252…271) и выкладка на CORE: канонический снимок
+  `snap-20260929T175107Z-574daaac` (271 источник, 27 135 страниц), NAV и граф NAV, векторы dense + late, векторы
+  страниц; MCP smoke 45/45 PASS. Заметка — [docs/corpus_platform/INTAKE_2026-09-29.md](docs/corpus_platform/INTAKE_2026-09-29.md).
 
 Названия фиксированы и не меняются:
 

@@ -158,17 +158,55 @@ def _cmd_build_vectors(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_build_page_vectors(args: argparse.Namespace) -> int:
+    from vkm_corpus.logs import configure
+    from vkm_corpus.search.page_vectors import PageVectorBuildOptions, build_page_vectors
+
+    settings = load_settings()
+    configure("vkm-search-pagevis", level=settings.log_level)
+    options = PageVectorBuildOptions(embeddings=args.embeddings, snapshot_id=args.snapshot, prefix=args.prefix,
+                                     plan_only=args.plan_only, missing_out=args.missing_out,
+                                     keep_failed=args.keep_failed, verify_checksums=not args.skip_checksums,
+                                     skip_if_current=args.skip_if_current)
+    try:
+        receipt = build_page_vectors(settings, options)
+    except ProjectionError as exc:
+        return _fail(exc.code, exc.message, exc.details)
+    keys = ("status", "build_id", "index", "current_snapshot_id", "embeddings", "pages", "checks_64", "checks",
+            "missing_out", "alias_actions", "pruned", "receipt_ref", "timings_s", "page_vectors")
+    _print({k: receipt.get(k) for k in keys if k in receipt})
+    return 0
+
+
+def _cmd_rollback_page_vectors(args: argparse.Namespace) -> int:
+    from vkm_corpus.search.page_vectors import rollback_page_vectors
+
+    settings = load_settings()
+    try:
+        _print(rollback_page_vectors(_client(settings), _prefix(settings, args)))
+    except ProjectionError as exc:
+        return _fail(exc.code, exc.message)
+    return 0
+
+
 def _cmd_hybrid(args: argparse.Namespace) -> int:
-    from vkm_corpus.search.hybrid import EmbedClient, HybridError, HybridRequest, hybrid_search
+    import os
+
+    from vkm_corpus.search.hybrid import (EmbedClient, HybridError, HybridRequest, VisualRouteSettings,
+                                          hybrid_search)
     from vkm_corpus.search.query import SearchRequestError
 
     settings = load_settings()
     embed = EmbedClient(args.embed_url or settings.embed_url, settings.embed_token)
+    enabled = os.environ.get("VKM_HYBRID_VISUAL_ROUTE", "").strip().lower() in ("1", "true", "on") or \
+        args.visual_route is True
+    visual = VisualRouteSettings(enabled=enabled, mode=args.visual_search)
     try:
         out = hybrid_search(_client(settings), embed, HybridRequest(
             query=args.text, kinds=tuple(args.kind or ["PAGE"]), filters=_parse_filters(args.filter or []),
             size=args.size, candidates=args.candidates, include_duplicates=args.duplicates, late=args.late,
-            late_candidates=args.late_candidates, bib_route=args.bib_route), _prefix(settings, args))
+            late_candidates=args.late_candidates, bib_route=args.bib_route, visual_route=args.visual_route),
+            _prefix(settings, args), visual=visual)
     except (SearchRequestError, HybridError, ProjectionError) as exc:
         return _fail(exc.code, exc.message)
     finally:
@@ -179,10 +217,11 @@ def _cmd_hybrid(args: argparse.Namespace) -> int:
 
 def _cmd_hybrid_smoke(args: argparse.Namespace) -> int:
     """Hybrid search through the VKM API (read token from VKM_API_TOKEN_FILE): each query needs ≥ 1 hit whose
-    trace has a fused rank and at least one stage rank (BM25, dense or the bibliographic channel); with ``--late``
-    also the late stage (a stage record, every hit with a late status, ≥ 1 hit with a late rank); with
-    ``--expect-route`` the route the server chose (``bibliographic`` / ``default``). Latency per query (client and
-    server timings) and p50/p95 are reported; the exit code is the verdict."""
+    trace has a fused rank (RRF or the visual route's) and at least one stage rank (BM25, dense, the bibliographic
+    channel or the page-image channel); with ``--late`` also the late stage (a stage record, every hit with a late
+    status, ≥ 1 hit with a late rank); with ``--expect-route`` the route the server chose (``bibliographic`` /
+    ``visual`` / ``default``); the visual route must also report its stage and ≥ 1 hit with a page-image rank.
+    Latency per query (client and server timings) and p50/p95 are reported; the exit code is the verdict."""
     import time
 
     import httpx
@@ -208,28 +247,38 @@ def _cmd_hybrid_smoke(args: argparse.Namespace) -> int:
             entry["elapsed_ms"] = round((time.perf_counter() - t0) * 1e3, 1)
             items = body.get("items") or []
             traces = [(it.get("record") or {}).get("trace") or {} for it in items]
-            good = [t for t in traces if t.get("fused_rank") and
-                    (t.get("bm25_rank") or t.get("dense_rank") or t.get("bib_rank"))]
+            good = [t for t in traces if (t.get("fused_rank") or t.get("vis_rank")) and
+                    (t.get("bm25_rank") or t.get("dense_rank") or t.get("bib_rank") or t.get("vis_rank"))]
             entry.update({"http_status": r.status_code if r is not None else None, "ok": bool(body.get("ok")),
                           "hits": len(items), "hits_with_trace": len(good),
                           "both_stages": sum(1 for t in good if t.get("bm25_rank") and t.get("dense_rank")),
                           "top": [{"id": (it.get("envelope") or {}).get("object_id"),
                                    "trace": {k: t.get(k) for k in ("fused_rank", "bm25_rank", "dense_rank",
-                                                                   "bib_rank", "late_rank") if k in t}}
+                                                                   "bib_rank", "late_rank", "e_rank", "vis_rank",
+                                                                   "vis_score") if k in t}}
                                   for it, t in list(zip(items, traces))[:3]],
                           "error": (body.get("error") or {}).get("code")})
             record = (body.get("item") or {}).get("record") or {}
             entry["server_ms"] = {k: v for k, v in (record.get("timings_ms") or {}).items()
                                   if k in ("total", "embed", "late", "bm25_page", "dense_page", "bib_scan",
-                                           "bib_page_filter")}
+                                           "bib_page_filter", "visual_embed", "visual_knn")}
             bib = (record.get("stages") or {}).get("bib_route")
             entry["route"] = record.get("route")
             if isinstance(bib, dict):
                 entry["bib_route"] = {k: bib.get(k) for k in ("status", "cues", "weak_cues", "units_scanned",
                                                               "pages_kept") if k in bib}
+            vis = (record.get("stages") or {}).get("visual_route")
+            if isinstance(vis, dict):
+                entry["visual_route"] = {k: vis.get(k) for k in ("status", "cues", "mode", "pages_returned",
+                                                                 "new_pages", "model_key", "build_id",
+                                                                 "encode_ms") if k in vis}
             entry["pass"] = entry["ok"] and entry["hits"] >= 1 and entry["hits_with_trace"] == entry["hits"]
             if args.expect_route:
                 entry["pass"] = entry["pass"] and entry["route"] == args.expect_route
+            if "visual" in (entry.get("route") or "").split("+"):
+                entry["hits_with_vis_rank"] = sum(1 for t in traces if t.get("vis_rank"))
+                entry["pass"] = entry["pass"] and isinstance(vis, dict) and vis.get("status") == "APPLIED" and \
+                    entry["hits_with_vis_rank"] >= 1
             if args.late:
                 late = (record.get("stages") or {}).get("late")
                 entry.update({"late_stage": isinstance(late, dict),
@@ -344,6 +393,12 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     hy.add_argument("--bib-route", dest="bib_route", action="store_true", default=None,
                     help="force the bibliographic route (BIB_ENTRY channel); default: the query's cues decide")
     hy.add_argument("--no-bib-route", dest="bib_route", action="store_false")
+    hy.add_argument("--visual-route", dest="visual_route", action="store_true", default=None,
+                    help="force the visual route (page-image channel); default: picture words decide when "
+                         "VKM_HYBRID_VISUAL_ROUTE=1")
+    hy.add_argument("--no-visual-route", dest="visual_route", action="store_false")
+    hy.add_argument("--visual-search", choices=("exact", "hnsw"), default="exact",
+                    help="page-vector search of the visual route (exact inner product or the HNSW graph)")
     hy.set_defaults(func=_cmd_hybrid)
 
     hs = sub.add_parser("hybrid-smoke", help="3 Russian hybrid queries through the VKM API; exit code = verdict")
@@ -354,9 +409,28 @@ def register(subparsers: argparse._SubParsersAction) -> None:
                     help="request the late stage and check its trace (default: the server's default)")
     hs.add_argument("--no-late", dest="late", action="store_false")
     hs.add_argument("--late-candidates", type=int, default=100)
-    hs.add_argument("--expect-route", choices=("bibliographic", "default"),
-                    help="every query must take this route (bibliographic: the BIB_ENTRY channel was applied)")
+    hs.add_argument("--expect-route", choices=("bibliographic", "visual", "bibliographic+visual", "default"),
+                    help="every query must take this route (bibliographic: the BIB_ENTRY channel was applied; "
+                         "visual: the page-image channel was fused)")
     hs.set_defaults(func=_cmd_hybrid_smoke)
+
+    bp = sub.add_parser("build-page-vectors", help="§64 checks + versioned k-NN index of the page-image vectors "
+                                                   "(visual route) + alias swap")
+    bp.add_argument("--embeddings", required=True,
+                    help="visual artifact config dir (derived/embeddings/visual/…), or JSON {\"artifact_dir\": …}")
+    bp.add_argument("--snapshot", help="assert this is the CURRENT snapshot (refuse otherwise)")
+    bp.add_argument("--prefix")
+    bp.add_argument("--plan-only", action="store_true", help="checks only, no index")
+    bp.add_argument("--missing-out", help="write the pages still to encode (ids and preview hashes) to this JSON")
+    bp.add_argument("--keep-failed", action="store_true", help="keep the index of a failed build for diagnosis")
+    bp.add_argument("--skip-checksums", action="store_true", help="do not re-hash the Parquet parts")
+    bp.add_argument("--skip-if-current", action="store_true",
+                    help="no-op when the alias already serves a COMPLETE build of this snapshot, signature and pages")
+    bp.set_defaults(func=_cmd_build_page_vectors)
+
+    rp = sub.add_parser("rollback-page-vectors", help="move the page-vector alias back to the previous COMPLETE build")
+    rp.add_argument("--prefix")
+    rp.set_defaults(func=_cmd_rollback_page_vectors)
 
     r = sub.add_parser("rollback", help="move aliases back to the previous COMPLETE build")
     r.add_argument("--types", nargs="+", default=list(INDEX_TYPES), choices=INDEX_TYPES)

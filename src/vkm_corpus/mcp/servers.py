@@ -7,7 +7,9 @@
 ``get_artifact``, ``list_source_pages``, ``get_corpus_status``; navigation: ``get_outline``, ``get_section``,
 ``search_sections``, ``get_formula_context``, ``find_formulas``, ``explore_concept``, ``reconstruct_topic``;
 topics and duplicates: ``find_topics``, ``get_topic``, ``similar_sections``, ``section_topics``, ``copies_of``,
-``source_overlap``; parameters: ``find_parameters``, ``parameter_summary``.
+``source_overlap``; parameters: ``find_parameters``, ``parameter_summary``; term dictionary: ``translate_term``;
+structured tables: ``get_table_structured``, ``find_tables``; repeated figures, tables and formulas:
+``copies_of_object``, ``shared_formulas``; digitized chart series: ``find_figure_series``, ``get_figure_series``.
 
 ``vkm-corpus-admin`` (write, plan-first H-12): ``reprocess_source``, ``reprocess_page``, ``get_job``.
 
@@ -44,7 +46,7 @@ READ_INSTRUCTIONS = (
     "VKM document corpus (Verkhnekamskoye potash deposit, SKRU-1 thesis): read-only access through the VKM API. "
     "Search results are candidates from rebuildable projections (index snippets are not the objects' text); read "
     "content with get_* tools; search_hybrid adds dense embeddings (per-stage trace; retrieval_trace explains a "
-    "ranking); order candidates with rerank_text (≤ 24 IDs, text from the canonical layer) and "
+    "ranking); order candidates with rerank_text (≤ 24 IDs, late interaction over their stored units) and "
     "rerank_visual (≤ 8 IDs with images). Every object carries a vkm.envelope/1: stable IDs, source/page, "
     "review_status, origin (NATIVE / EMBEDDED_OCR / OCR), canonical vs raw vs projection, provenance. Automatic "
     "content is AUTO_EXTRACTED_UNREVIEWED — never a fact, a reviewed measurement or an accepted formula; a "
@@ -67,6 +69,10 @@ PageId = Annotated[str, Field(pattern=PAGE_ID, description="VKM-SRC-NNN:pNNNN (r
 ObjectId = Annotated[str, Field(min_length=1, max_length=120, description="any VKM id (source, work, page, object, "
                                                                           "artifact)")]
 IdList = Annotated[list[Annotated[str, Field(min_length=1, max_length=120)]], Field(min_length=1)]
+# a table as get_table_structured takes it: canonical (…:t<12 hex>) or the NAV id of its grid (TBL-<16 hex>)
+TABLE_ID_PATTERN = r"^(?:TBL-[0-9a-f]{16}|VKM-SRC-[0-9]{3}:(?:[prs][0-9]{4}|doc):t[0-9a-f]{12})$"
+# objects the part object_duplicates groups: figures, tables, formulas
+REPEATABLE_ID_PATTERN = r"^VKM-SRC-[0-9]{3}:(?:[prs][0-9]{4}|doc):[ftm][0-9a-f]{12}$"
 StrList = Annotated[list[Annotated[str, Field(max_length=60)]] | None, Field(max_length=20)]
 SearchKind = Literal["PAGE", "BLOCK", "FIGURE", "TABLE", "FORMULA"]
 HybridKind = Literal["PAGE", "FIGURE", "TABLE", "FORMULA"]
@@ -167,13 +173,15 @@ def build_read_server(api: ApiClient) -> MCPServer:
                     source_scope: list[str] | None, year_from: int | None, year_to: int | None,
                     available_until: str | None, unknown_policy: str | None, limit: int, candidates: int,
                     cursor: str | None = None, late: bool | None = None,
-                    late_candidates: int = 100, bib_route: bool | None = None) -> dict[str, Any]:
+                    late_candidates: int = 100, bib_route: bool | None = None,
+                    visual_route: bool | None = None, graph: list[str] | None = None) -> dict[str, Any]:
         filters = {k: v for k, v in {
             "source_ids": source_ids, "work_ids": work_ids, "source_scope": source_scope, "year_from": year_from,
             "year_to": year_to, "available_until": available_until, "unknown_policy": unknown_policy}.items()
             if v is not None}
         return {"query": query, "kinds": kinds, "filters": filters, "limit": limit, "candidates": candidates,
-                "cursor": cursor, "late": late, "late_candidates": late_candidates, "bib_route": bib_route}
+                "cursor": cursor, "late": late, "late_candidates": late_candidates, "bib_route": bib_route,
+                "visual_route": visual_route, **({"graph": list(graph)} if graph is not None else {})}
 
     @server.tool(name="search_hybrid", annotations=READ_ONLY)
     async def search_hybrid(
@@ -196,18 +204,39 @@ def build_read_server(api: ApiClient) -> MCPServer:
             bib_route: Annotated[bool | None, Field(description="bibliographic route: also search the reference-list "
                                                                "entries (BIB_ENTRY) and score pages with them; null "
                                                                "= automatic from the query's bibliographic cues")]
-            = None) -> CallToolResult:
+            = None,
+            visual_route: Annotated[bool | None, Field(description="visual route: also search page images "
+                                                                  "(Qwen3-VL page vectors) and fuse them with the page "
+                                                                  "order; null = automatic from picture words in the "
+                                                                  "query (рисунок, схема, карта, план, разрез, "
+                                                                  "график, профиль, таблица …) when the server "
+                                                                  "enables the route")] = None,
+            graph: Annotated[list[Literal["collapse", "cohesion", "concepts", "cites", "topics"]] | None,
+                             Field(max_length=5, description="graph stages over the navigation layer (with the late "
+                                                             "stage): collapse (copies listed on the hit), cohesion "
+                                                             "(other pages of a deep section that holds >= 2 of the "
+                                                             "first 10), concepts (synonyms, abbreviations, a narrower "
+                                                             "term), cites (works cited by / citing the top sources), "
+                                                             "topics (later pages in the NAV topics of the first 10); "
+                                                             "[] = none; null = server default")] = None
+            ) -> CallToolResult:
         """Hybrid search: BM25 + dense embeddings (RX580 query encoder, OpenSearch k-NN over embedding units),
         fused by reciprocal rank, then (late) re-scored by late interaction (mLateOn MaxSim over token vectors; a page
         scores its best unit). Pages (every unit of a page counts for it) or figures/tables/formulas. Each hit has a
         trace (bm25_rank, dense_rank, fused_rank, late_rank/late_score, the dense and late units) and a
         rerank_candidate for rerank_text. A bibliographic question («список литературы», «работы Баряха», DOI,
         «et al.») also searches the reference-list entries (route in the result record; trace bib_rank/bib_unit).
-        Fails with DEPENDENCY_UNAVAILABLE when the encoder, the vector index or (late) the token store is missing
-        (use search_text, or late=false, then)."""
+        A question about a picture (рисунок, схема, карта, план, разрез, график, профиль, радарограмма, фото,
+        таблица …) also searches page images (Qwen3-VL page vectors) and fuses them with the page order (route
+        "visual"; trace e_rank/vis_rank/vis_score). With the late stage the query is also searched in the other
+        language (RU ↔ EN, NAV term dictionary: record translation, trace expansion_ranks). Graph stages (graph=
+        [...]): copies collapse onto one hit (copies), a section or topic the first results share lends its other
+        pages, synonyms / abbreviations and citations add BM25 legs (record stages.graph, trace graph). Fails with
+        DEPENDENCY_UNAVAILABLE when the encoder, the vector index or (late) the token store is missing (use
+        search_text, or late=false, then)."""
         return await call("search_hybrid", "POST", "/v1/search/hybrid", body=hybrid_body(
             query, kinds, source_ids, work_ids, source_scope, year_from, year_to, available_until, unknown_policy,
-            limit, candidates, cursor, late, late_candidates, bib_route))
+            limit, candidates, cursor, late, late_candidates, bib_route, visual_route, graph))
 
     @server.tool(name="retrieval_trace", annotations=READ_ONLY)
     async def retrieval_trace(
@@ -219,13 +248,17 @@ def build_read_server(api: ApiClient) -> MCPServer:
             candidates: Annotated[int, Field(ge=10, le=200)] = 100,
             late: Annotated[bool | None, Field(description="include the late interaction stage; null = server "
                                                            "default")] = None,
-            late_candidates: Annotated[int, Field(ge=1, le=200)] = 100) -> CallToolResult:
+            late_candidates: Annotated[int, Field(ge=1, le=200)] = 100,
+            visual_route: Annotated[bool | None, Field(description="visual route (page images); null = automatic "
+                                                                  "from picture words")] = None) -> CallToolResult:
         """Explain a hybrid ranking: per hit the rank and score of every stage (BM25, dense, RRF fusion, late
-        interaction MaxSim when run; reranking is a later stage), the dense and late units that matched, plus the
-        stage configuration (vector build, query encoders, token pack, timings). Compact: no envelopes."""
+        interaction MaxSim when run, the visual route's page-image rank and fusion when applied; reranking is a later
+        stage), the dense and late units that matched, plus the stage configuration (vector build, query encoders,
+        token pack, page vectors, timings). Compact: no envelopes."""
         started = time.perf_counter()
         body = await api.call("POST", "/v1/search/hybrid", body=hybrid_body(
-            query, kinds, None, None, None, None, None, None, None, limit, candidates, None, late, late_candidates))
+            query, kinds, None, None, None, None, None, None, None, limit, candidates, None, late, late_candidates,
+            None, visual_route))
         if body.get("ok"):
             wanted = set(object_ids or [])
             rows = []
@@ -366,14 +399,17 @@ def build_read_server(api: ApiClient) -> MCPServer:
             term_b: Annotated[str, Field(min_length=1, max_length=200)],
             max_len: Annotated[int, Field(ge=1, le=6, description="hops")] = 4,
             limit: Annotated[int, Field(ge=1, le=20)] = 5,
-            via: Annotated[list[Literal["concepts", "formulas", "sections", "topics"]] | None, Field(
-                max_length=4, description="relationship families (default all): concepts = co-occurrence, "
-                                          "containment, translations; formulas = symbol definitions and formula "
-                                          "references; sections = mentions and the section tree; topics")] = None
+            via: Annotated[list[Literal["concepts", "formulas", "sections", "topics", "dictionary"]] | None, Field(
+                max_length=5, description="relationship families (default all): concepts = co-occurrence, "
+                                          "containment, bracketed translations; formulas = symbol definitions and "
+                                          "formula references; sections = mentions and the section tree; topics; "
+                                          "dictionary = pairs of the RU-EN term dictionary (translations, synonyms, "
+                                          "abbreviations)")] = None
     ) -> CallToolResult:
         """How two concepts connect in the corpus navigation graph: the shortest paths through terms, formula symbols,
         formulas, sections and topics (e.g. ползучесть соли → скорость ползучести → конвергенция → оседание), ranked
-        by co-occurrence strength, with page IDs for every hop and the number of sources behind a co-occurrence.
+        by co-occurrence strength, with page IDs for every hop and the number of sources behind a co-occurrence; a
+        dictionary hop (ВЗТ → водозащитная толща, оседание → subsidence) carries its score and example pages.
         Navigation, not a causal chain: read the pages of the hops to answer."""
         return await call("concept_paths", "GET", "/v1/nav/graph/paths",
                           params={"term_a": term_a, "term_b": term_b, "max_len": max_len, "limit": limit, "via": via})
@@ -381,14 +417,17 @@ def build_read_server(api: ApiClient) -> MCPServer:
     @server.tool(name="graph_neighbourhood", annotations=READ_ONLY)
     async def graph_neighbourhood(
             node_id: Annotated[str, Field(min_length=1, max_length=120, pattern=r"^[A-Za-z0-9_:\-]+$",
-                                          description="a NAV id (SEC-, TRM-, FSY-, FPR-, topic) or any VKM id "
-                                                      "(source, page, formula, block)")],
+                                          description="a NAV id (SEC-, TRM-, FSY-, FPR-, TOP-, TBL-, PRM-, OCL-) or "
+                                                      "any VKM id (source, page, formula, table, figure, block)")],
             depth: Annotated[int, Field(ge=1, le=2)] = 1,
             limit: Annotated[int, Field(ge=1, le=200)] = 50) -> CallToolResult:
         """Neighbours of a node of the navigation graph or the document graph, grouped by relationship with totals:
         a formula's section, symbols with definitions, formulas it refers to and that refer to it, parameter
-        candidates; a term's co-occurring terms, sections and symbols; a section's parent, pages, key terms and topic;
-        a page's sections. depth=2 adds the neighbours of the strongest neighbours. IDs, short names, page IDs."""
+        candidates; a term's co-occurring terms, sections, symbols, dictionary equivalents (TRANSLATES_TO,
+        SYNONYM_OF, ABBREVIATION_OF), the structured tables that tabulate it and the printed values of it (VALUE_OF);
+        a section's parent, pages, key terms, topic, tables and values; a structured table's canonical table, section
+        and values; a figure, table or formula's group of repeats (DUP_MEMBER_OF); a page's sections. depth=2 adds
+        the neighbours of the strongest neighbours. IDs, short names, page IDs."""
         return await call("graph_neighbourhood", "GET", f"/v1/nav/graph/neighbourhood/{node_id}",
                           params={"depth": depth, "limit": limit})
 
@@ -507,6 +546,131 @@ def build_read_server(api: ApiClient) -> MCPServer:
         return await call("parameter_summary", "GET", "/v1/nav/parameter_summary",
                           params={"property": property, "material": material})
 
+    # term dictionary (agent TR) — derived navigation, not evidence
+    @server.tool(name="translate_term", annotations=READ_ONLY)
+    async def translate_term(
+            term: Annotated[str, Field(min_length=1, max_length=200, description="a term in any inflected form, an "
+                                                                                 "abbreviation (ВЗТ, InSAR) or a "
+                                                                                 "TRM- id")],
+            target: Annotated[Literal["ru", "en", "de"] | None, Field(description="only this language")] = None,
+            limit: Annotated[int, Field(ge=1, le=50)] = 10) -> CallToolResult:
+        """Equivalents of a term in the other languages of the corpus (RU ↔ EN, some DE): «ползучесть» → creep,
+        «мульда сдвижения» → subsidence trough; its same-language synonyms and abbreviations (ВЗТ ↔ водозащитная
+        толща). Each pair names its methods (bracketed gloss, keyword lists of one article, abstracts, captions,
+        symbol definitions, cross-lingual embedding neighbours, curated seed list …), a score (estimated precision),
+        example pages and the status (AUTO_EXTRACTED_UNREVIEWED; seed rows REVIEWED_BY_AGENT). A phrase without a
+        pair of its own is translated part by part (composed). Use the equivalents to search the other language."""
+        return await call("translate_term", "GET", "/v1/nav/translate",
+                          params={"term": term, "target": target, "limit": limit})
+
+    # structured tables (agent TB) and repeated figures/tables/formulas (agent U2) — derived navigation, not evidence
+    @server.tool(name="get_table_structured", annotations=READ_ONLY)
+    async def get_table_structured(
+            table_id: Annotated[str, Field(min_length=1, max_length=120, pattern=TABLE_ID_PATTERN,
+                                           description="a canonical table id (VKM-SRC-NNN:pNNNN:t…) or a TBL- id")],
+            max_rows: Annotated[int, Field(ge=1, le=500)] = 200,
+            max_chars: Annotated[int, Field(ge=200, le=60_000, description="cap of the Markdown rendering")] = 8000
+    ) -> CallToolResult:
+        """A table as a structured grid: number and caption, size, header rows and how they were found, bands and
+        blocks, orientation, confidence and quality flags; its columns (header path, symbol, unit and where the unit
+        came from, role, property of the parameters vocabulary); its rows (role: header, data, statistics, group,
+        note…) with cells (the text as printed, the parsed value — decimal comma, range, ±, bounds, powers — unit and
+        flags such as DECIMAL_POINT_SUSPECT) and a Markdown rendering. Values as printed, never corrected: check the
+        page image before use (get_table with include_image). Navigation, not evidence."""
+        return await call("get_table_structured", "GET", f"/v1/nav/table/{table_id}",
+                          params={"max_rows": max_rows, "max_chars": max_chars})
+
+    @server.tool(name="find_tables", annotations=READ_ONLY)
+    async def find_tables(
+            property: Annotated[str | None, Field(max_length=200,  # noqa: A002
+                                                  description="«модуль деформации», «σсж», «ucs» …")] = None,
+            material: Annotated[str | None, Field(max_length=200, description="«каменная соль», «соляные породы» …")]
+            = None,
+            source_id: Annotated[str | None, Field(pattern=r"^VKM-SRC-\d{3,}$")] = None,
+            text: Annotated[str | None, Field(max_length=200, description="words of the caption, headers or row "
+                                                                          "labels")] = None,
+            limit: Annotated[int, Field(ge=1, le=100)] = 20) -> CallToolResult:
+        """Structured tables whose value columns, value rows or caption name a property (key, label or symbol of the
+        parameters vocabulary), whose headers, row labels or caption name a material, of a source, or with the given
+        words; every given filter must match; tables naming the property in columns first. Each hit: table ids
+        (canonical and TBL-), source, page, section, number, caption, size, orientation, confidence, flags and the
+        matching columns with their units. Open one with get_table_structured. Navigation, not evidence."""
+        return await call("find_tables", "GET", "/v1/nav/tables",
+                          params={"property": property, "material": material, "source_id": source_id, "text": text,
+                                  "limit": limit})
+
+    @server.tool(name="copies_of_object", annotations=READ_ONLY)
+    async def copies_of_object(
+            object_id: Annotated[str, Field(min_length=1, max_length=120, pattern=REPEATABLE_ID_PATTERN,
+                                            description="a figure (…:f…), table (…:t…) or formula (…:m…) id")],
+            limit: Annotated[int, Field(ge=1, le=200)] = 50) -> CallToolResult:
+        """Where else a figure, a table or a formula appears in the corpus: its groups of repeats (kind: copy of the
+        same work, reprint, reused figure or table, shared formula, redrawn figure, boilerplate), the primary copy
+        with the rule that chose it (the earliest year — a hint for ordering copies, not authorship) and the other
+        copies with their evidence (image distance, caption similarity, cell containment, formula match), sources and
+        pages. An object without repeats answers with an empty list. Navigation, not evidence."""
+        return await call("copies_of_object", "GET", f"/v1/nav/object_copies/{object_id}", params={"limit": limit})
+
+    @server.tool(name="shared_formulas", annotations=READ_ONLY)
+    async def shared_formulas(
+            ref: Annotated[str, Field(min_length=1, max_length=2000,
+                                      description="a formula id (VKM-SRC-NNN:pNNNN:m…) or a LaTeX string")],
+            renamed: Annotated[bool, Field(description="also the same structure in another notation (distinctive "
+                                                       "formulas only)")] = True,
+            limit: Annotated[int, Field(ge=1, le=200)] = 50) -> CallToolResult:
+        """Where the same formula is written: works (earliest first) with sources, pages, printed equation numbers
+        and sections whose formula has the same canonical form (LaTeX normalised: Greek variants, fonts, spacing,
+        decimal comma) and, with renamed, the same structure in other symbols; trivial forms (no relation, a lone
+        symbol, «i = 1, …, n») are never grouped. The groups of repeats of these formulas are listed too. The same
+        written form, not a checked law. Navigation, not evidence."""
+        return await call("shared_formulas", "GET", "/v1/nav/shared_formulas",
+                          params={"ref": ref, "renamed": renamed, "limit": limit})
+
+    # digitized chart series (agent FD2) — DERIVATION values from published charts, each with an error; not evidence
+    @server.tool(name="find_figure_series", annotations=READ_ONLY)
+    async def find_figure_series(
+            text: Annotated[str | None, Field(max_length=200, description="words of the caption, the axis titles or "
+                                                                          "the series labels, any inflection: "
+                                                                          "«оседание», «конвергенция», «репер»")] = None,
+            unit: Annotated[str | None, Field(max_length=40, description="a unit printed on either axis: мм, сут, "
+                                                                         "МПа, %")] = None,
+            source_id: Annotated[str | None, Field(pattern=r"^VKM-SRC-\d{3,}$")] = None,
+            time_series: Annotated[bool | None, Field(description="only series whose x axis is time (dates, years, "
+                                                                  "days)")] = None,
+            calibrated_only: Annotated[bool, Field(description="only series with both axes calibrated")] = True,
+            include_raster: Annotated[bool, Field(description="also the flagged raster dataset (route R, scanned "
+                                                              "charts, lower accuracy)")] = False,
+            clean_only: Annotated[bool, Field(description="drop series with a suspect calibration (a second axis, "
+                                                          "axis labels inside the plot or of another panel, "
+                                                          "powers of ten or thousands read as small numbers, an "
+                                                          "axis on three chance labels)")] = False,
+            limit: Annotated[int, Field(ge=1, le=50, description="figures")] = 10) -> CallToolResult:
+        """Numeric series digitized from the chart-like vector figures of the corpus (subsidence and convergence in
+        time, trough profiles, creep curves …): figures with page, caption, axis titles and units as printed,
+        calibration method and rms of each axis, and per series the label, point count, value ranges and median
+        errors. Give words, a unit, a source or time_series. Values are DERIVATION from the publication
+        (AUTO_EXTRACTED_UNREVIEWED, half-width error per point, available from the publication date), never an
+        observation or evidence; plotted model results are not told apart from measurements; the site is the
+        source's. Get the points with get_figure_series."""
+        return await call("find_figure_series", "GET", "/v1/nav/figure_series",
+                          params={"q": text, "unit": unit, "source_id": source_id, "time_series": time_series,
+                                  "calibrated_only": calibrated_only, "include_raster": include_raster,
+                                  "clean_only": clean_only, "limit": limit})
+
+    @server.tool(name="get_figure_series", annotations=READ_ONLY)
+    async def get_figure_series(
+            ref: Annotated[str, Field(pattern=r"^(FS-[0-9a-f]{16}|VKM-SRC-\d{3}:(?:[prs]\d{4}|doc):f[0-9a-f]{12})$",
+                                      description="a series id FS-… or a figure id (all its series)")],
+            max_points: Annotated[int, Field(ge=1, le=5000, description="points in all")] = 1000) -> CallToolResult:
+        """The digitized points of one series (FS-…) or of every series of a figure: x and y in data units with
+        per-point half-width errors and their position on the page; the figure's status and axes; the calibration
+        of each axis (fitted tick labels, residuals, dropped labels, the OCR engine when tick labels were glyph
+        outlines) and the provenance (PDF sha256, digitizer version). A figure without calibrated axes comes with its
+        status and no invented values. DERIVATION, AUTO_EXTRACTED_UNREVIEWED — check the figure (get_figure) before
+        use."""
+        return await call("get_figure_series", "GET", f"/v1/nav/figure_series/{ref}",
+                          params={"max_points": max_points})
+
     @server.tool(name="reconstruct_topic", annotations=READ_ONLY)
     async def reconstruct_topic(
             query: Annotated[str, Field(min_length=1, max_length=512, description="a topic or question, Russian or "
@@ -524,7 +688,8 @@ def build_read_server(api: ApiClient) -> MCPServer:
         evidence catalogues contain about it — ranked sections in two tiers (the VKM core: evidence-catalogue and
         VKM/SKRU sources; the rest of the corpus) from hybrid search over several formulations (the query, your
         paraphrases, concept synonyms and neighbours; RRF) and titles, with pages, best units and short snippets;
-        formulas with numbers, «где…» symbols and parameter candidates; figures and tables near the hits; the concept;
+        formulas with numbers, «где…» symbols and parameter candidates; figures and tables near the hits; the
+        structured tables of a property the topic names (модуль деформации, плотность …); the concept;
         sources with provenance (register scope, work, authors, year) and who cites whom; physics processes PC-xx with
         their evidence records (status, scope, scale), formula-registry models, conflicts, causal neighbours; and the
         gaps: required parameters without evidence records, explicitly UNKNOWN — never fill them. Pass 1–2
@@ -543,8 +708,11 @@ def build_read_server(api: ApiClient) -> MCPServer:
                           passages: Annotated[list[dict[str, Any]] | None, Field(
                               max_length=24, description="optional [{candidate_id, object_ids}] as returned in "
                                                          "search_text rerank_candidate")] = None) -> CallToolResult:
-        """Rerank up to 24 candidate IDs with the text reranker. The text of each candidate is read from the
-        canonical layer (rule rerank_text_v1), never from the index. Scores are a retrieval signal, not evidence."""
+        """Re-score up to 24 candidate IDs by late interaction: mLateOn MaxSim of the query over the stored token
+        vectors of each candidate's units (a page over its units, a block through its page; rule
+        rerank_text_late_v1). ``passages`` apply only when the server runs the EDGE text reranker instead
+        (VKM_RERANK_TEXT_BACKEND=gateway, rule rerank_text_v1, text from the canonical layer). Scores are a
+        retrieval signal, not evidence."""
         body = {"query": query, "candidate_ids": candidate_ids, "top_n": top_n, "passages": passages or []}
         return await call("rerank_text", "POST", "/v1/rerank/text", body=body)
 

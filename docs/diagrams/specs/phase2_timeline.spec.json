@@ -1,0 +1,619 @@
+{
+ "pages": [
+  {
+   "id": "phase2",
+   "name": "План Phase 2",
+   "layout": "none",
+   "page_width": 1800,
+   "page_height": 1010,
+   "background": "#ffffff",
+   "grid": false,
+   "nodes": [
+    {
+     "id": "title",
+     "label": "Phase 2: октябрь–ноябрь 2026 (29.09–30.11) — работы, гейты, решения и риски",
+     "x": 20,
+     "y": 12,
+     "w": 1760,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=20;align=left;fontStyle=1;"
+    },
+    {
+     "id": "subtitle",
+     "label": "Решение D-19: данных предприятия нет; прогноз — нейросеть на ансамбле физических миров; Ansys — основной решатель, OGS + MFront — проверка. Оценки — время работы Claude с агентами; календарно добавляются решения и ревью пользователя на гейтах.",
+     "x": 20,
+     "y": 44,
+     "w": 1760,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontColor=#444444;"
+    },
+    {
+     "id": "axis",
+     "label": "",
+     "x": 150,
+     "y": 150,
+     "w": 1606.5,
+     "h": 2,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;fillColor=#333333;strokeColor=#333333;rounded=0;"
+    },
+    {
+     "id": "tk0",
+     "label": "",
+     "x": 149.5,
+     "y": 144,
+     "w": 1,
+     "h": 14,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;fillColor=#333333;strokeColor=#333333;rounded=0;"
+    },
+    {
+     "id": "tl0",
+     "label": "29.09",
+     "x": 125.0,
+     "y": 122,
+     "w": 50,
+     "h": 20,
+     "preset": "text",
+     "style": "fontSize=11;align=center;"
+    },
+    {
+     "id": "tk7",
+     "label": "",
+     "x": 328.0,
+     "y": 144,
+     "w": 1,
+     "h": 14,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;fillColor=#333333;strokeColor=#333333;rounded=0;"
+    },
+    {
+     "id": "tl7",
+     "label": "06.10",
+     "x": 303.5,
+     "y": 122,
+     "w": 50,
+     "h": 20,
+     "preset": "text",
+     "style": "fontSize=11;align=center;"
+    },
+    {
+     "id": "tk21",
+     "label": "",
+     "x": 685.0,
+     "y": 144,
+     "w": 1,
+     "h": 14,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;fillColor=#333333;strokeColor=#333333;rounded=0;"
+    },
+    {
+     "id": "tl21",
+     "label": "20.10",
+     "x": 660.5,
+     "y": 122,
+     "w": 50,
+     "h": 20,
+     "preset": "text",
+     "style": "fontSize=11;align=center;"
+    },
+    {
+     "id": "tk35",
+     "label": "",
+     "x": 1042.0,
+     "y": 144,
+     "w": 1,
+     "h": 14,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;fillColor=#333333;strokeColor=#333333;rounded=0;"
+    },
+    {
+     "id": "tl35",
+     "label": "03.11",
+     "x": 1017.5,
+     "y": 122,
+     "w": 50,
+     "h": 20,
+     "preset": "text",
+     "style": "fontSize=11;align=center;"
+    },
+    {
+     "id": "tk49",
+     "label": "",
+     "x": 1399.0,
+     "y": 144,
+     "w": 1,
+     "h": 14,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;fillColor=#333333;strokeColor=#333333;rounded=0;"
+    },
+    {
+     "id": "tl49",
+     "label": "17.11",
+     "x": 1374.5,
+     "y": 122,
+     "w": 50,
+     "h": 20,
+     "preset": "text",
+     "style": "fontSize=11;align=center;"
+    },
+    {
+     "id": "tk63",
+     "label": "",
+     "x": 1756.0,
+     "y": 144,
+     "w": 1,
+     "h": 14,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;fillColor=#333333;strokeColor=#333333;rounded=0;"
+    },
+    {
+     "id": "tl63",
+     "label": "01.12",
+     "x": 1731.5,
+     "y": 122,
+     "w": 50,
+     "h": 20,
+     "preset": "text",
+     "style": "fontSize=11;align=center;"
+    },
+    {
+     "id": "row0",
+     "label": "Период",
+     "x": 20,
+     "y": 164,
+     "w": 120,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontStyle=1;"
+    },
+    {
+     "id": "row1",
+     "label": "Работы",
+     "x": 20,
+     "y": 230,
+     "w": 120,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontStyle=1;"
+    },
+    {
+     "id": "row2",
+     "label": "Гейт",
+     "x": 20,
+     "y": 435,
+     "w": 120,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontStyle=1;"
+    },
+    {
+     "id": "p1_d",
+     "label": "29.09–05.10",
+     "x": 153.0,
+     "y": 164,
+     "w": 172.5,
+     "h": 32,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;"
+    },
+    {
+     "id": "p1_w",
+     "label": "Закрыть платформу (навигационный слой, V1). Модель данных L4: миры, представления, наблюдения, прогоны. Таблицы законов и наборов параметров с основаниями из корпуса (NAV, MCP). Семейства миров",
+     "x": 153.0,
+     "y": 206,
+     "w": 172.5,
+     "h": 200,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=6;spacingRight=4;verticalAlign=top;spacingTop=4;"
+    },
+    {
+     "id": "p1_g",
+     "label": "утверждённые проект ядер, семейства и оси; таблицы параметров (факт или сценарий)",
+     "x": 153.0,
+     "y": 416,
+     "w": 172.5,
+     "h": 80,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "p2_d",
+     "label": "06.10–19.10",
+     "x": 331.5,
+     "y": 164,
+     "w": 351.0,
+     "h": 32,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;"
+    },
+    {
+     "id": "p2_w",
+     "label": "Достраивание C1…C5; ObservationWorld; Ansys (PyMAPDL): лестница решателя и эталонные задачи; World-0 v0 — порты, K из Ansys, законы; первые миры",
+     "x": 331.5,
+     "y": 206,
+     "w": 351.0,
+     "h": 200,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=6;spacingRight=4;verticalAlign=top;spacingTop=4;"
+    },
+    {
+     "id": "p2_g",
+     "label": "миры проходят проверки; Ansys на эталонной задаче",
+     "x": 331.5,
+     "y": 416,
+     "w": 351.0,
+     "h": 80,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "p3_d",
+     "label": "20.10–02.11",
+     "x": 688.5,
+     "y": 164,
+     "w": 351.0,
+     "h": 32,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;"
+    },
+    {
+     "id": "p3_w",
+     "label": "Ансамбль: World-0 — тысячи миров, Ansys — сотни, OGS — 2–3 сценария; внешняя эквивалентность и модель ошибки представления; покрытие ансамбля и NROY по реальным наблюдениям корпуса",
+     "x": 688.5,
+     "y": 206,
+     "w": 351.0,
+     "h": 200,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=6;spacingRight=4;verticalAlign=top;spacingTop=4;"
+    },
+    {
+     "id": "p3_g",
+     "label": "ансамбль с квитанциями; сверка решателей; отчёт покрытия; NROY",
+     "x": 688.5,
+     "y": 416,
+     "w": 351.0,
+     "h": 80,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "p4_d",
+     "label": "03.11–16.11",
+     "x": 1045.5,
+     "y": 164,
+     "w": 351.0,
+     "h": 32,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;"
+    },
+    {
+     "id": "p4_w",
+     "label": "Методы прогноза, включая нейросеть; предрегистрированный бенчмарк; отложенные семейства и решатель; различимость; оценка на отложенных мирах и отдельно на реальных наблюдениях корпуса",
+     "x": 1045.5,
+     "y": 206,
+     "w": 351.0,
+     "h": 200,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=6;spacingRight=4;verticalAlign=top;spacingTop=4;"
+    },
+    {
+     "id": "p4_g",
+     "label": "отчёт бенчмарка; ограничения применимости",
+     "x": 1045.5,
+     "y": 416,
+     "w": 351.0,
+     "h": 80,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "p5_d",
+     "label": "17.11–30.11",
+     "x": 1402.5,
+     "y": 164,
+     "w": 351.0,
+     "h": 32,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;"
+    },
+    {
+     "id": "p5_w",
+     "label": "Текст диплома, графическая часть (Civil 3D), проверка, презентация",
+     "x": 1402.5,
+     "y": 206,
+     "w": 351.0,
+     "h": 200,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;verticalAlign=top;spacingTop=4;"
+    },
+    {
+     "id": "p5_g",
+     "label": "диплом",
+     "x": 1402.5,
+     "y": 416,
+     "w": 351.0,
+     "h": 80,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "dec",
+     "label": "Решения пользователя\nприняты (D-19): роли решателей; работа без данных предприятия; нейросеть на ансамбле миров\nнужны: 2–3 сценария геомеханики и горизонты прогноза бенчмарка; состав графической части (листы); состав семейств миров (предложение — ползучесть 2–3 закона, механика закладки, гипотеза λ); домен Ansys; горизонты H и фреймворк нейросети (предложение — PyTorch на RTX 5070 Ti)",
+     "x": 20,
+     "y": 530,
+     "w": 560,
+     "h": 125,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "status",
+     "label": "Состояние на 29.09: Phase 1 завершена, платформа корпуса развёрнута; решатели (Ansys, MATLAB, OGS) приостановлены пользователем 28.09; проект миров v2 сохранён, реализация отложена до отдельного проектирования; AutoCAD / Civil 3D работают через консоль.",
+     "x": 20,
+     "y": 700,
+     "w": 560,
+     "h": 80,
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "r_head",
+     "label": "Риски и что делаем (PHASE2_PLAN §5)",
+     "x": 610,
+     "y": 530,
+     "w": 1170,
+     "h": 24,
+     "preset": "text",
+     "style": "fontSize=14;align=left;fontStyle=1;"
+    },
+    {
+     "id": "r0",
+     "label": "нейросеть выучит физику наших моделей, а не реальность",
+     "x": 610,
+     "y": 560,
+     "w": 380,
+     "h": 40,
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "m0",
+     "label": "диапазоны строго из evidence; несколько семейств моделей; отдельная проверка на реальных наблюдениях и честный отчёт о переносе",
+     "x": 1000,
+     "y": 560,
+     "w": 780,
+     "h": 40,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "r1",
+     "label": "мало реальных рядов для проверки",
+     "x": 610,
+     "y": 606,
+     "w": 380,
+     "h": 34,
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "m1",
+     "label": "InSAR (Мусихин и др.) и опубликованные ряды нивелирования, оцифровка с провенансом",
+     "x": 1000,
+     "y": 606,
+     "w": 780,
+     "h": 34,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "r2",
+     "label": "СК рудника неизвестна (CRS UNKNOWN)",
+     "x": 610,
+     "y": 646,
+     "w": 380,
+     "h": 34,
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "m2",
+     "label": "геопривязка по общим объектам — DERIVATION с оценкой ошибки; миры в локальной системе",
+     "x": 1000,
+     "y": 646,
+     "w": 780,
+     "h": 34,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "r3",
+     "label": "реология соли и начальные напряжения — UNKNOWN",
+     "x": 610,
+     "y": 686,
+     "w": 380,
+     "h": 34,
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "m3",
+     "label": "сценарные диапазоны с метками, без подбора под ответ",
+     "x": 1000,
+     "y": 686,
+     "w": 780,
+     "h": 34,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "r4",
+     "label": "отладка решателей съедает время",
+     "x": 610,
+     "y": 726,
+     "w": 380,
+     "h": 34,
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "m4",
+     "label": "лестница решателя с малых шагов; быстрая теория закрывает объём ансамбля",
+     "x": 1000,
+     "y": 726,
+     "w": 780,
+     "h": 34,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "r5",
+     "label": "объём работ",
+     "x": 610,
+     "y": 766,
+     "w": 380,
+     "h": 34,
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "m5",
+     "label": "спецчасть — приоритет; gprMax и расширения — только при запасе времени",
+     "x": 1000,
+     "y": 766,
+     "w": 780,
+     "h": 34,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "legend",
+     "label": "Легенда",
+     "x": 20,
+     "y": 810,
+     "w": 560,
+     "h": 181,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#666666;dashed=0;rounded=0;"
+    },
+    {
+     "id": "lg_sw_service",
+     "label": "",
+     "x": 10,
+     "y": 30,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;"
+    },
+    {
+     "id": "lg_tx_service",
+     "label": "период",
+     "x": 52,
+     "y": 28,
+     "w": 500,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_model",
+     "label": "",
+     "x": 10,
+     "y": 59,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;"
+    },
+    {
+     "id": "lg_tx_model",
+     "label": "работы по миру, решателям и прогнозу (MODEL_CHOICE-артефакты)",
+     "x": 52,
+     "y": 57,
+     "w": 500,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_evidence",
+     "label": "",
+     "x": 10,
+     "y": 88,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;"
+    },
+    {
+     "id": "lg_tx_evidence",
+     "label": "гейт: проверка или отчёт",
+     "x": 52,
+     "y": 86,
+     "w": 500,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_unknown",
+     "label": "",
+     "x": 10,
+     "y": 117,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;"
+    },
+    {
+     "id": "lg_tx_unknown",
+     "label": "риск",
+     "x": 52,
+     "y": 115,
+     "w": 500,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_paused",
+     "label": "",
+     "x": 10,
+     "y": 146,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;"
+    },
+    {
+     "id": "lg_tx_paused",
+     "label": "текущее состояние: приостановлено или отложено",
+     "x": 52,
+     "y": 144,
+     "w": 500,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "sources",
+     "label": "Источники: docs/planning/PHASE2_PLAN_OCT_NOV_2026_RU.md §1–§5; docs/worldspec/WORLD_KERNELS_DESIGN_RU.md §9–§10; docs/governance/PHASE1_DESIGN_DECISIONS_RU.md (D-19); README.md (состояние, §10, §15).",
+     "x": 610,
+     "y": 860,
+     "w": 1170,
+     "h": 40,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;"
+    }
+   ],
+   "edges": [
+    {
+     "id": "g_p1",
+     "source": "p1_g",
+     "target": "p2_g",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "g_p2",
+     "source": "p2_g",
+     "target": "p3_g",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "g_p3",
+     "source": "p3_g",
+     "target": "p4_g",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "g_p4",
+     "source": "p4_g",
+     "target": "p5_g",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    }
+   ]
+  }
+ ]
+}

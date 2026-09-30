@@ -3,8 +3,9 @@
 Environment as in ``test_graph_live.py``: ``VKM_TEST_NEO4J_URI`` and ``VKM_TEST_NEO4J_AUTH_CMD`` (a command printing
 ``<user>/<password>`` or the password; read into memory only). Everything runs in a namespace ``VkmTest<8 hex>``:
 minimal DOCUMENT nodes for the synthetic NAV datasets, a COMPLETE DOCUMENT ProjectionRun, the NAV DDL, the load with
-checks N1–N7, the path and neighbourhood Cypher, a second (idempotent) load; the namespace is purged afterwards, so
-production nodes are never seen or touched. This validates the NAV Cypher on the server before a production load.
+checks N1–N11 (tables, parameter values, the term dictionary and object duplicates included), the path and
+neighbourhood Cypher, a second (idempotent) load; the namespace is purged afterwards, so production nodes are never
+seen or touched. This validates the NAV Cypher on the server before a production load.
 """
 from __future__ import annotations
 
@@ -80,7 +81,8 @@ def _document(driver, ns, nav_dir) -> None:
     for label, rows in by_label.items():
         client.write(driver, DB, f"UNWIND $rows AS row MERGE (n:{q(ns.label(label))} {{id: row.id}}) "
                                  f"SET n = row.props, n:{q(ns.layer_label)}", rows=rows)
-    ends = {"HAS_PAGE": ("Source", "Page"), "HAS_FORMULA": ("Page", "Formula"), "HAS_BLOCK": ("Page", "Block")}
+    ends = {"HAS_PAGE": ("Source", "Page"), "HAS_FORMULA": ("Page", "Formula"), "HAS_BLOCK": ("Page", "Block"),
+            "HAS_TABLE": ("Page", "Table"), "HAS_FIGURE": ("Page", "Figure")}
     for rel_type, rels in fake.rels.items():
         start, end = ends[rel_type]
         client.write(driver, DB, f"UNWIND $rows AS row MATCH (a:{q(ns.label(start))} {{id: row.a}}) "
@@ -101,7 +103,7 @@ def test_nav_load_checks_and_queries_on_a_live_server(driver, ns, tmp_path):
                                projection=ProjectionOptions(symbol_morphology="surface"))
     first = L.load(None, options, driver=driver)
     assert first["status"] == "COMPLETE", first.get("checks")
-    assert {c["check_id"]: c["status"] for c in first["checks"]} == {f"N{i}": "PASS" for i in range(1, 8)}
+    assert {c["check_id"]: c["status"] for c in first["checks"]} == {f"N{i}": "PASS" for i in range(1, 12)}
     names = {r["name"] for r in client.read(driver, DB, "SHOW CONSTRAINTS YIELD name RETURN name")}
     assert {i.name for i in N.ddl_items(ns) if i.kind == "CONSTRAINT"} <= names
 
@@ -124,6 +126,16 @@ def test_nav_load_checks_and_queries_on_a_live_server(driver, ns, tmp_path):
     second = L.read(driver, DB, Q.cy_neighbourhood_2(ns, "NAVIGATION"),
                     ids=[m for m, layer in mids if layer == "NAVIGATION"], root=SY.F2, per_type=3)
     assert second and all("groups" in r for r in second)
+    # the new parts: a dictionary hop, the neighbourhood of a structured table
+    only, fam = ids["dictionary_only"], Q.path_rel_types(["dictionary"])
+    raw = L.read(driver, DB, Q.cy_paths(ns, fam, 1, ordered=True), cap=5, a=only["взт"],
+                 b=only["водозащитный толща"], rel_types=fam, labels=list(N.PATH_LABELS))
+    assert [h["rel"] for h in Q.shape_paths(raw, 1, ns)[0]["hops"]] == ["ABBREVIATION_OF"]
+    rows = L.read(driver, DB, Q.cy_neighbourhood(ns, "NAVIGATION"), id=ids["tables"][SY.T1], per_type=10)
+    shaped = Q.shape_neighbourhood(rows[0]["node"], rows[0]["groups"], {}, 50, ns)
+    assert shaped["node"]["kind"] == "STRUCTURED_TABLE"
+    assert {("GRID_OF", "out"), ("TABULATES", "out"), ("IN_TABLE", "in")} <= {
+        (e["rel"], e["direction"]) for e in shaped["edges"]}
 
     again = L.load(None, options, driver=driver)
     assert again["status"] == "COMPLETE" and again["graph_counts"] == first["graph_counts"]

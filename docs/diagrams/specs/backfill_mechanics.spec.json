@@ -1,0 +1,538 @@
+{
+ "pages": [
+  {
+   "id": "backfill",
+   "name": "Механика закладки",
+   "layout": "none",
+   "page_width": 1800,
+   "page_height": 1120,
+   "background": "#ffffff",
+   "grid": false,
+   "nodes": [
+    {
+     "id": "title",
+     "label": "Механика закладки выработанного пространства: PC-37…PC-40 в цепи «выемка → конвергенция → оседание»",
+     "x": 20,
+     "y": 12,
+     "w": 1760,
+     "h": 30,
+     "preset": "text",
+     "style": "fontSize=20;align=left;fontStyle=1;"
+    },
+    {
+     "id": "subtitle",
+     "label": "Досье DB (28.09.2026): известно, оспаривается и неизвестно; числа — с источником и статусом в досье. Сценарные диапазоны — SCENARIO (не evidence) для ансамбля миров D-19.",
+     "x": 20,
+     "y": 44,
+     "w": 1760,
+     "h": 25,
+     "preset": "text",
+     "style": "fontSize=12;align=left;fontColor=#444444;"
+    },
+    {
+     "id": "s1",
+     "label": "выемка камеры (t0)",
+     "x": 20,
+     "y": 105,
+     "w": 150,
+     "h": 105,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;"
+    },
+    {
+     "id": "s2",
+     "label": "свободная конвергенция: ползучесть целиков, прогиб кровли\nPC-23, PC-29",
+     "x": 192,
+     "y": 105,
+     "w": 190,
+     "h": 105,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;"
+    },
+    {
+     "id": "s3",
+     "label": "закладка через t_з = t_закл − t0 (отставание)\nPC-37",
+     "x": 404,
+     "y": 105,
+     "w": 180,
+     "h": 105,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;"
+    },
+    {
+     "id": "s4",
+     "label": "зазор h_з = (1 − A)·h + усадка B + щели у целиков\nPC-37, PC-38",
+     "x": 606,
+     "y": 105,
+     "w": 200,
+     "h": 105,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;"
+    },
+    {
+     "id": "s5",
+     "label": "конвергенция «выбирает» зазор; контакт кровля–закладка\nPC-39",
+     "x": 828,
+     "y": 105,
+     "w": 200,
+     "h": 105,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;"
+    },
+    {
+     "id": "s6",
+     "label": "уплотнение ε_bf(σ, t) → отпор q_bf(t): подпор и разгрузка целиков\nPC-38, PC-39",
+     "x": 1050,
+     "y": 105,
+     "w": 215,
+     "h": 105,
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;"
+    },
+    {
+     "id": "s7",
+     "label": "эффективная жёсткость выработанного слоя (камеры + целики + закладка)\nPC-32",
+     "x": 1287,
+     "y": 105,
+     "w": 200,
+     "h": 105,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;"
+    },
+    {
+     "id": "s8",
+     "label": "оседание η(t): скорость, конечная величина η_k·p, стадии\nPC-68",
+     "x": 1509,
+     "y": 105,
+     "w": 185,
+     "h": 105,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;"
+    },
+    {
+     "id": "brine",
+     "label": "параллельная ветвь (гидрозакладка, шламы): рассол → увлажнение и выщелачивание краёв целиков (Δb, w) → падение длительной прочности → рост C → рост скорости оседаний — PC-40",
+     "x": 470,
+     "y": 235,
+     "w": 900,
+     "h": 50,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;"
+    },
+    {
+     "id": "known_h",
+     "label": "Известно (FACT, с локаторами в досье)",
+     "x": 20,
+     "y": 320,
+     "w": 575,
+     "h": 26,
+     "preset": "text",
+     "style": "fontSize=14;align=left;fontStyle=1;"
+    },
+    {
+     "id": "known_0",
+     "label": "Нормативный учёт — множитель p = 1 − A(1 − B) к конечному оседанию (DB-F-05…07); коэффициенты усадки B — нормативы по способу закладки, не измерения",
+     "x": 20,
+     "y": 352,
+     "w": 575,
+     "h": 45,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "known_1",
+     "label": "Фактическая степень заполнения ниже рекомендуемой: рекомендуют 0,8–0,95, фактически около 0,7–0,8, отдельные участки 0,3–0,6 (DB-P-04…11)",
+     "x": 20,
+     "y": 403,
+     "w": 575,
+     "h": 45,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "known_2",
+     "label": "СКРУ-1, январь 2022: без закладки около 28 % площади КрII, 52 % АБ, 35 % Вс, 3 % Вк (DB-P-30)",
+     "x": 20,
+     "y": 454,
+     "w": 575,
+     "h": 45,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "known_3",
+     "label": "Отставание закладки на СКРУ-1 — от совпадающих периодов до десятилетий (DB-P-24, DERIVATION)",
+     "x": 20,
+     "y": 505,
+     "w": 575,
+     "h": 45,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "known_4",
+     "label": "Включение закладки описано двумя критериями: по деформации целика (7.21) и по оседанию 0,9mω(1 − A) (11)",
+     "x": 20,
+     "y": 556,
+     "w": 575,
+     "h": 45,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "known_5",
+     "label": "Уравнение состояния гидрозакладки — форма Генки в обобщении Вялова (7.13); параметры в корпусе не приведены",
+     "x": 20,
+     "y": 607,
+     "w": 575,
+     "h": 45,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "known_6",
+     "label": "Прочность и жёсткость растут: сухая закладка 1 год ≈ 0,9 МПа и 0,028 ГПа, 18 лет — 8,5–9,0 МПа и 0,6 ГПа (вторично); гидрозакладка 10 лет — 3,5–4,0 МПа (LAB)",
+     "x": 20,
+     "y": 658,
+     "w": 575,
+     "h": 45,
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "contested_h",
+     "label": "Оспаривается (конфликты записаны, не усреднены)",
+     "x": 612,
+     "y": 320,
+     "w": 575,
+     "h": 26,
+     "preset": "text",
+     "style": "fontSize=14;align=left;fontStyle=1;"
+    },
+    {
+     "id": "contested_0",
+     "label": "DB-C-04 упрочняет ли закладка целики: +30…90 % несущей способности против «неполная сухая закладка не влияет» и разрушения целиков до включения закладки при зазоре",
+     "x": 612,
+     "y": 352,
+     "w": 575,
+     "h": 45,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "contested_1",
+     "label": "DB-C-05 гидрозакладка и скорость оседаний: ускорение до 280 мм/год при критически деформированных целиках (БКПРУ-4) против стабилизации и снижения скоростей",
+     "x": 612,
+     "y": 403,
+     "w": 575,
+     "h": 45,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "contested_2",
+     "label": "DB-C-06, DB-C-07 формы функции ползучести и переменного модуля с закладкой расходятся внутри одной школы",
+     "x": 612,
+     "y": 454,
+     "w": 575,
+     "h": 45,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "contested_3",
+     "label": "DB-C-01, DB-C-10 коэффициенты B и множитель k менялись по редакциям Указаний",
+     "x": 612,
+     "y": 505,
+     "w": 575,
+     "h": 36,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "contested_4",
+     "label": "DB-C-09 критерий включения: по деформации целика или по оседанию поверхности — оба MODEL_CHOICE",
+     "x": 612,
+     "y": 547,
+     "w": 575,
+     "h": 45,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "contested_5",
+     "label": "DB-C-11 гидрозакладка на СКРУ-1: «только БКПРУ-1» (1998) против применения на СКРУ-1 в 1990–2010-х",
+     "x": 612,
+     "y": 598,
+     "w": 575,
+     "h": 45,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "unknown_h",
+     "label": "Неизвестно (UNKNOWN; значения не подставляются)",
+     "x": 1204,
+     "y": 320,
+     "w": 575,
+     "h": 26,
+     "preset": "text",
+     "style": "fontSize=14;align=left;fontStyle=1;"
+    },
+    {
+     "id": "unknown_0",
+     "label": "DB-G-01 закон уплотнения закладки ВКМ ε_bf(σ, t, w, T) in situ — PC-38 UNKNOWN по параметрам",
+     "x": 1204,
+     "y": 352,
+     "w": 575,
+     "h": 45,
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "unknown_1",
+     "label": "DB-G-02 фактические A, B, зазор и способ по зонам и блокам СКРУ-1",
+     "x": 1204,
+     "y": 403,
+     "w": 575,
+     "h": 36,
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "unknown_2",
+     "label": "DB-G-03 давление в закладке и отпор во времени (результаты программы датчиков не опубликованы)",
+     "x": 1204,
+     "y": 445,
+     "w": 575,
+     "h": 45,
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "unknown_3",
+     "label": "DB-G-04 момент контакта кровли с закладкой на СКРУ-1 (есть только модельные t_z)",
+     "x": 1204,
+     "y": 496,
+     "w": 575,
+     "h": 36,
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "unknown_4",
+     "label": "DB-G-05 влияние рассола закладки на целики СКРУ-1",
+     "x": 1204,
+     "y": 538,
+     "w": 575,
+     "h": 36,
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "unknown_5",
+     "label": "DB-G-06…10 гранулометрия и пористость in situ; закон роста прочности между 1 и 18 годами; свойства пласта КрII*; тексты Указаний; температурно-влажностный режим",
+     "x": 1204,
+     "y": 580,
+     "w": 575,
+     "h": 45,
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "hyp",
+     "label": "Конкурирующие гипотезы DB-H\nH-01 нормативный множитель без времени — MODEL_CHOICE · H-02 запаздывающее включение сжимаемой закладки — MODEL_CHOICE · H-03 боковой подпор целиков — спор · H-04 гидрозакладка дестабилизирует повреждённые целики — спор · H-05 эквивалентный материал, переменный модуль — MODEL_CHOICE (риск калибровки по прогнозируемым оседаниям) · H-06 старение закладки — точки FACT, закон UNKNOWN · H-07 механизмы уплотнения соляной закладки — ANALOGUE · H-08 пренебрежение закладкой — MODEL_CHOICE · H-09 ускорение релаксации — корреляция FACT, механизм UNKNOWN",
+     "x": 20,
+     "y": 735,
+     "w": 870,
+     "h": 110,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "scen",
+     "label": "Сценарные диапазоны DB-S (SCENARIO, не evidence)\nA 0,5–0,95 для заложенных зон, A = 0 для незаложенных · B 0,16–0,30 (только нормативы) · зазор 0,1–1,5 м · отставание 0 – ≈ 80 лет по зонам СКРУ-1 · модуль закладки ≈ 0,01–0,03 → ≈ 0,6 ГПа за 18 лет · прочность 0,9–9 МПа (сухая), 3,5–4 МПа (гидро, 10 лет) · начальная пористость 30–40 % (ANALOGUE) · увлажнение краёв целиков 1,7–3,5 м · семейства закона уплотнения: Генки–Вялов, SRP/cap, Callahan / CODE_BRIGHT, переменный модуль",
+     "x": 910,
+     "y": 735,
+     "w": 870,
+     "h": 95,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "dem",
+     "label": "DEM (Ansys Rocky) как виртуальная лаборатория — MODEL_CHOICE: геометрия укладки, начальная пористость, кратковременное уплотнение; не даёт растворения под давлением и ползучести за десятилетия. Запуск — только по явной задаче Phase 2 по лестнице решателя",
+     "x": 910,
+     "y": 900,
+     "w": 870,
+     "h": 45,
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "ext",
+     "label": "19 внешних аналогов DB-A-01…19 (дроблёная соль ВКМ и WIPP, KOMPASS, модели CODE_BRIGHT и др.) — только ANALOGUE, перенос на СКРУ-1 через явный Transfer с условиями (материал, влажность, время, масштаб)",
+     "x": 20,
+     "y": 900,
+     "w": 870,
+     "h": 45,
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "legend",
+     "label": "Легенда",
+     "x": 20,
+     "y": 980,
+     "w": 870,
+     "h": 152,
+     "preset": "container",
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#666666;dashed=0;rounded=0;"
+    },
+    {
+     "id": "lg_sw_evidence",
+     "label": "",
+     "x": 10,
+     "y": 30,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#d5e8d4;strokeColor=#82b366;"
+    },
+    {
+     "id": "lg_tx_evidence",
+     "label": "известное звено или факт с локатором",
+     "x": 52,
+     "y": 28,
+     "w": 810,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_model",
+     "label": "",
+     "x": 10,
+     "y": 59,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#ffe6cc;strokeColor=#d79b00;"
+    },
+    {
+     "id": "lg_tx_model",
+     "label": "спор, гипотеза, сценарий, аналог",
+     "x": 52,
+     "y": 57,
+     "w": 810,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_unknown",
+     "label": "",
+     "x": 10,
+     "y": 88,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#f8cecc;strokeColor=#b85450;"
+    },
+    {
+     "id": "lg_tx_unknown",
+     "label": "UNKNOWN",
+     "x": 52,
+     "y": 86,
+     "w": 810,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "lg_sw_paused",
+     "label": "",
+     "x": 10,
+     "y": 117,
+     "w": 34,
+     "h": 16,
+     "parent": "legend",
+     "preset": "box",
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;"
+    },
+    {
+     "id": "lg_tx_paused",
+     "label": "не запущено: только по явной задаче",
+     "x": 52,
+     "y": 115,
+     "w": 810,
+     "h": 25,
+     "parent": "legend",
+     "preset": "text",
+     "style": "fontSize=12;verticalAlign=top;"
+    },
+    {
+     "id": "sources",
+     "label": "Источники: docs/science/topic_dossiers/BACKFILL_MECHANICS_RU.md §0–§1, §5–§8 (идентификаторы DB-*), backfill_mechanics.json; catalogues/physics (PC-23, PC-29, PC-32, PC-37…PC-40, PC-68); src/vkm_world/mining/backfill.py (BackfillRecord).",
+     "x": 910,
+     "y": 1000,
+     "w": 870,
+     "h": 40,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;"
+    }
+   ],
+   "edges": [
+    {
+     "id": "se0",
+     "source": "s1",
+     "target": "s2",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "se1",
+     "source": "s2",
+     "target": "s3",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "se2",
+     "source": "s3",
+     "target": "s4",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "se3",
+     "source": "s4",
+     "target": "s5",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "se4",
+     "source": "s5",
+     "target": "s6",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "se5",
+     "source": "s6",
+     "target": "s7",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "se6",
+     "source": "s7",
+     "target": "s8",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "sb1",
+     "source": "s3",
+     "target": "brine",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       494,
+       260
+      ]
+     ]
+    },
+    {
+     "id": "sb2",
+     "source": "brine",
+     "target": "s8",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       1601,
+       260
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

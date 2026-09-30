@@ -1,0 +1,19 @@
+{
+  "schema": "vkm-deploy-receipt-v1",
+  "date": "2026-09-29",
+  "status": "PROJECTION + SERVICE, AUTO_EXTRACTED_UNREVIEWED (navigation, not evidence)",
+  "change": "NAV graph nav-graph/1.1 loaded into Neo4j (tables, parameter values, dictionary pairs, object duplicate groups); api/mcp/mcp-admin on the image of commit 1537d21 with 43 read tools; graph stages of hybrid search (agent GS) shipped off by default",
+  "image": {"api_mcp_job": "vkm-corpus-api:0.1.0-1537d214888a", "previous": "vkm-corpus-api:0.1.0-b39370fbdcc4"},
+  "live_neo4j_tests": {"tests": "test_nav_graph_live.py + test_graph_live.py in a VkmTest namespace (purged afterwards)", "passed": 7},
+  "graph": {
+    "dry_run": {"nodes": 127543, "rels": 2251414, "document_references_all_resolved": true},
+    "load": {"status": "COMPLETE", "nodes": 127543, "rels": 2251414, "seconds": 196, "checks": "PASS (N1-N11)"},
+    "previous": {"nodes": 111922, "rels": 2203152},
+    "new_nodes": {"NavTable": 3391, "ParameterValue": 10792, "ObjectDupGroup": 831, "Term (dictionary only)": 607}
+  },
+  "mcp_smoke": {"script": "nightly-mcp-smoke-3 inside the mcp container", "verdict": "PASS", "tools": 43, "calls": 45, "pass": 45,
+                "ms": {"find_tables": 78.9, "get_table_structured": 16.5, "copies_of_object": 12.6, "shared_formulas": 20.3}},
+  "nightly": "infra/core/nightly updated on CORE; nightly_checks.sh --dry-run plans 43 of 43 tools",
+  "graph_stages": "VKM_HYBRID_GRAPH unset → stages off (coordinator decision in benchmarks/graph_search_v1/RESULTS.md)",
+  "rollback": "nav graph-drop --yes with the new image first (the old loader does not sweep the new edge types), then graph-load with the old image; restore .env and the vkm-job wrapper from their .bak-<timestamp> copies"
+}

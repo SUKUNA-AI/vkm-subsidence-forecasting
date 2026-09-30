@@ -47,7 +47,13 @@ READ_TOOLS = {"search_text", "search_hybrid", "retrieval_trace", "search_objects
               # topics (agent T) and duplicates (agent U)
               "find_topics", "get_topic", "similar_sections", "section_topics", "copies_of", "source_overlap",
               # parameter candidates (agent P)
-              "find_parameters", "parameter_summary"}
+              "find_parameters", "parameter_summary",
+              # term dictionary (agent TR)
+              "translate_term",
+              # structured tables (agent TB) and repeated figures/tables/formulas (agent U2), served by agent G2
+              "get_table_structured", "find_tables", "copies_of_object", "shared_formulas",
+              # digitized chart series (agent FD2)
+              "find_figure_series", "get_figure_series"}
 ADMIN_TOOLS = {"reprocess_source", "reprocess_page", "get_job", "cancel_job"}
 
 
@@ -209,12 +215,17 @@ def test_streamable_http_wrapper_auth_hosts_and_session(stack):
                 break
             time.sleep(0.05)
         url = f"http://127.0.0.1:{port}/mcp"
-        assert httpx.get(f"http://127.0.0.1:{port}/healthz").status_code == 200
-        assert httpx.post(url, json={}).status_code == 401
+        health = httpx.get(f"http://127.0.0.1:{port}/healthz")
+        unauthorized = httpx.post(url, json={})
         foreign = httpx.post(url, json={"jsonrpc": "2.0", "id": 1, "method": "ping"},
                              headers={"Authorization": "Bearer client-token", "Host": "evil.example",
                                       "Accept": "application/json, text/event-stream"})
-        assert foreign.status_code == 421
+        ping = httpx.post(url, json={"jsonrpc": "2.0", "id": 2, "method": "ping"},
+                          headers={"Authorization": "Bearer client-token", "Host": f"127.0.0.1:{port}",
+                                   "Accept": "application/json, text/event-stream"})
+        assert [r.status_code for r in (health, unauthorized, foreign, ping)] == [200, 401, 421, 200]
+        # no pooled connection outlives a response: a client behind a local proxy never sees the idle close
+        assert all(r.headers.get("connection") == "close" for r in (health, unauthorized, foreign, ping))
 
         async def session():
             async with httpx2.AsyncClient(headers={"Authorization": "Bearer client-token"}) as http:

@@ -1,0 +1,109 @@
+{
+ "schema": "vkm.receipt/visual_route_v1",
+ "agent": "VIS",
+ "date": "2026-09-29",
+ "branch": "claude/agent-vis-qwen3vl-route-2026-09-29",
+ "base": "649253e",
+ "decision": "user: build the visual route recommended conditionally by RETRIEVAL_BENCHMARK_V2 (RESULTS_V2.md §6, §10)",
+ "report": "docs/implementation_work/AGENT_VIS_QWEN3VL_ROUTE.md",
+ "deployed": false,
+ "writes_on_core_or_edge": "none (read-only probes of CORE: CURRENT snapshot, OpenSearch version and aliases, RX580 /health, CPU model)",
+ "commits": ["00e1b84", "a66eef6", "c5de49c", "2cda1cf", "df23743", "ab4b68c", "fdcd614"],
+ "page_vectors": {
+  "artifact": {
+   "kind": "visual",
+   "layout": "derived/embeddings/visual/<model>/<revision>/<config-hash>/{config.json, part-<writer>-NNNNN.parquet, _manifest-<writer>.json}",
+   "model": "Qwen/Qwen3-VL-Embedding-2B@9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+   "license": "Apache-2.0",
+   "config_signature": "ef2f297d721747a7598140193ea906403089b6a3f0bc1d6a62ca9a34d891c69f",
+   "text_rule": "vkm-page-preview-v1",
+   "text_hash": "sha256 of the stored PAGE_PREVIEW (= preview_artifact_id)",
+   "dimension": 2048,
+   "storage_precision": "float32",
+   "pages": 26092,
+   "parts": 51,
+   "bytes": 207382710,
+   "expected_sha256": "c1db455f389dad3c597ba6b6d6c6cb61be9c424d0f04297f361f42bcf745e4f0",
+   "validate_64": "OK (0 missing, 0 duplicates, 0 bad vectors)",
+   "source": "page vectors of V2 (encode_v2.py visual qwen3-vl-2b, snapshot snap-20260928T160616Z-5d669f09, RTX 5070 Ti bf16, 9.82 pages/s, 26 092 pages ≈ 44 min)"
+  },
+  "current_snapshot_encode": {
+   "snapshot": "snap-20260928T193550Z-738eebee",
+   "status": "NOT_RUN",
+   "reason": "the permission classifier refused reading the corpus data needed for the page list (copy of the CORE DuckDB: PII Data Handling; producer STAGING: Production Reads); the path was stopped as required",
+   "check_on_core": "search build-page-vectors --plan-only compares every row with the CURRENT page → preview map; --missing-out lists pages to encode (ids and preview hashes only)",
+   "pages_in_current_index": {"pages": 26483, "with_preview_expected": 26092, "epub_without_preview": 391}
+  },
+  "index": {
+   "engine": "OpenSearch 3.8.0 (Lucene 10.5) k-NN, as the dense index",
+   "alias": "<prefix>-pagevis",
+   "index": "<prefix>-pagevis-m1-<build>",
+   "field": "knn_vector 2048, innerproduct, HNSW lucene m 16 / ef_construction 128",
+   "query_default": "exact: script_score + knn_score over the filtered pages (V2's exact cosine)",
+   "query_alternative": "hnsw (VKM_HYBRID_VISUAL_SEARCH=hnsw, VKM_HYBRID_VISUAL_EF_SEARCH)",
+   "why_not_memmap": "one vector per page = the dense index's shape (filters inside the search, dup_group_id, alias swap, rollback, status); the late pack exists only because MaxSim over token matrices has no OpenSearch equivalent",
+   "size_estimate_mb": 214,
+   "built": false
+  }
+ },
+ "query_tower": {
+  "slot": "role visual of rx580-retrieval",
+  "gguf": {"file": "qwen3-vl-emb-2b-F16.gguf", "sha256": "b1074096f2103ada5ed9ea7f1164384ded4198c645bd6d813e53270ccb1f48e1", "mib": 3288, "conversion": "convert_hf_to_gguf.py llama.cpp 4da6337767f9, arch qwen3vl"},
+  "tokenizer_sha256": "def76fb086971c7867b829c23a26261e38d9d74e02139253b38aeb9df8b4b50a",
+  "query_template_sha256": "0805c02e607bca10ca81401bc5503590619defcfe75ccf260c8f5d8377d6629d",
+  "ids_equal_official": "189/189",
+  "llama_patch_0005": {"file": "0005-qwen3vl-embeddings-no-lm-head.patch", "sha256": "2ce748e8840826fb61f5b63a653515c1f55b18acdc5220c5393e6ab70378f244", "vectors_equal_without_patch": "bitwise", "cpu_p50_ms": {"without": 138.65, "with": 117.45}, "applies_to_pin": true},
+  "cpu_stand_in": {
+   "build": "llama.cpp 4da6337767f9 + patches 0001-0005, CPU (i7-14700KF)",
+   "vs_fp32_reference": {"cos_mean": 0.9999988, "cos_min": 0.999997, "top10_overlap": 0.9995, "top50_overlap": 0.9992, "spearman_top100": 0.99992},
+   "latency_ms": {"threads16": {"p50": 118.46, "p95": 165.91}, "threads8": {"p50": 130.61, "p95": 195.17}},
+   "tokens_per_query": {"mean": 49.0, "max": 113},
+   "rss_mb": {"file": 3298.6, "anon": 317.7}
+  },
+  "reference": {"path": "sentence-transformers fp32 on CPU (official path)", "cos_fp32_vs_v2_bf16": {"mean": 0.99975, "min": 0.99945}},
+  "rx580_gate": {
+   "status": "NOT_RUN",
+   "reason": "needs the GGUF and the reference on CORE (writes); command in the report §7 step 3",
+   "thresholds": {"query_cos_mean_min": 0.999, "query_cos_min_min": 0.995, "top10_overlap_min": 0.9, "top50_overlap_min": 0.9, "spearman_min": 0.95, "device_vram_max_mib": 7168, "query_p95_max_ms": 1000},
+   "estimates": {"slot_vram_gib": "3.0-3.2", "device_vram_gib_with_dense_and_late": "≈3.5 of 8", "f16_p50_s": "0.4-0.9 (from K's F16 matrix on Polaris; not measured)"},
+   "rx580_now": {"vram_used_mib": 417, "dense": "jina-v5-nano-retrieval Q8_0 224 MiB", "late": "mlateon Q8_0 188 MiB"}
+  },
+  "alternatives": {
+   "cpu_core": "same GGUF, slot placement cpu (--device none), Ryzen 7 5800X 16 threads idle; needs mem_limit >= 8g for rx580-retrieval",
+   "q8_0_rx580": "gate the Q8_0 GGUF on Vulkan (CPU parity 0.9979 is pessimistic)",
+   "edge_gtx1650": "no: 186 MiB free after the rerankers"
+  }
+ },
+ "route": {
+  "detector": "vkm_corpus.search.intent.visual_intent (rules, one picture word; fixed in 00e1b84 before the evaluation)",
+  "switch": "VKM_HYBRID_VISUAL_ROUTE (off in code); explicit visual_route=true|false per request (API, MCP search_hybrid / retrieval_trace, CLI)",
+  "fusion": "RRF(k=60) of E's top-100 pages (after late) and the page-image leg's top-100 (duplicates collapsed); other kinds keep their positions",
+  "statuses": ["APPLIED", "NOT_DETECTED", "OFF", "DISABLED", "SKIPPED_NO_PAGE_KIND", "SKIPPED_LATE_OFF"],
+  "trace": ["e_rank", "vis_rank", "vis_score", "visual_rrf_score", "final_rank"],
+  "timings": ["visual_embed", "visual_knn"],
+  "topic_dossier": "visual_route=false"
+ },
+ "evaluation": {
+  "file": "benchmarks/retrieval_v2/visual_route_v2.json",
+  "method": "per query E+VIS if the detector fires else E, from V2's published per-query metrics; check 0 reproduces V2's E+VIS deltas",
+  "detector": {"all_189": {"tp": 38, "fp": 12, "fn": 6, "precision": 0.76, "recall": 0.8636}, "covered_186": {"precision": 0.75, "recall": 0.8571}},
+  "ndcg10_route_f16": {
+   "visual_V": {"E": 0.3489, "route": 0.434, "delta": 0.0851, "p": 0.0385, "ci": [0.0063, 0.1608], "oracle": 0.4561},
+   "visual_P": {"E": 0.5799, "route": 0.6227, "delta": 0.0428, "p": 0.0724, "ci": [-0.0008, 0.0882], "oracle": 0.6381},
+   "text_V": {"E": 0.3335, "route": 0.3345, "delta": 0.001, "p": 0.8795, "routed": 12, "not_routed_delta": 0.0},
+   "text_P": {"E": 0.7081, "route": 0.7054, "delta": -0.0027, "p": 0.3885, "routed": 12, "not_routed_delta": 0.0}
+  },
+  "recall50_visual_P": {"delta": 0.0733, "p": 0.0001}
+ },
+ "deploy_package": {
+  "bundle": "WORKSTATION work dir of VIS: data/<visual artifact> and deploy/models/qwen3-vl-emb-2b/{GGUF, hf/, gate_ref/} with deploy/SHA256SUMS",
+  "steps": ["copy artifact and model files", "build llama image with patch 0005, rx580 service image, API image", "RX580 gate", "visual slot in rx580.json", "restart rx580-retrieval", "API image", "search build-page-vectors --plan-only then build", "VKM_HYBRID_VISUAL_ROUTE=1", "hybrid-smoke --expect-route visual and default"],
+  "rollback": "VKM_HYBRID_VISUAL_ROUTE=0; images from .env backups; rx580.json backup; search rollback-page-vectors"
+ },
+ "tests": {
+  "wsl_venv_corpus_tests_corpus": {"passed": 1038, "skipped": 55, "failed": 5, "failed_are": "test_public_hygiene (git in WSL cannot read the worktree .git file)"},
+  "windows_test_public_hygiene": {"passed": 6},
+  "wsl_test_venv_with_corpus_services_lock": {"passed": 1150, "skipped": 46, "failed": 7, "failed_are": "5 test_public_hygiene (WSL) + 2 test_cad_mcp (vkm-cad bridge, untouched by this branch; skipped in venv-corpus)"},
+  "new_tests": {"intent_visual": 60, "hybrid_visual": 18, "page_vectors": 7, "service_visual_and_gate": 7, "api_mcp_visual": 3, "residency_cpu_slot": 1, "signature": 3}
+ }
+}

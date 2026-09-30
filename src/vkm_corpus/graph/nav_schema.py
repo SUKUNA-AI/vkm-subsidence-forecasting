@@ -8,12 +8,18 @@ node). Every NAV node and relationship carries ``layer = 'NAV'``, ``snapshot_id`
 navigation datasets were built from) and ``rule_version`` (the rule that produced it: the dataset's own rule, or the
 projection rule for derived edges — ``covers_page_v1``, ``mentions_top_v1``, ``symbol_of_v1``).
 
-Node labels: ``NavSection``, ``FormulaSymbol``, ``ParameterCandidate``, ``Term``, ``NavTopic`` and one ``NavMeta``
-(the loaded manifest, status and checks). Relationship types are registry entries (``NavRelType``) with fixed
-endpoints; ``NAV_CHILD_OF`` is used by two trees (sections, topics) and so has two entries. Cross-layer edges are
-owned by NAV whatever their direction (``(:Source)-[:HAS_NAV_SECTION]->``, ``(:Formula)-[:IN_SECTION]->`` and the
-formula references between DOCUMENT nodes are created and deleted only by the NAV loader); a DOCUMENT wipe is refused
-while they exist (``E_CROSS_LAYER_LOSS``): drop the NAV layer first (``vkm-corpus nav graph-drop``).
+Node labels: ``NavSection``, ``FormulaSymbol``, ``ParameterCandidate``, ``Term``, ``NavTopic``, ``NavTable``
+(structured tables, part ``tables``), ``ParameterValue`` (parameter candidates, part ``parameters``),
+``ObjectDupGroup`` (repeated figures, tables, formulas, part ``object_duplicates``) and one ``NavMeta`` (the loaded
+manifest, status and checks). Terms of the term dictionary (part ``translations``) that the concept graph did not keep
+become ``Term`` nodes marked ``dictionary_only``. Relationship types are registry entries (``NavRelType``) with fixed
+endpoints; a type used between several label pairs (``NAV_CHILD_OF`` of sections and topics, ``NEAR_FORMULA`` of both
+kinds of parameter candidates, ``DUP_MEMBER_OF`` of figures, tables and formulas) has one entry per pair. Cross-layer
+edges are owned by NAV whatever their direction (``(:Source)-[:HAS_NAV_SECTION]->``, ``(:Formula)-[:IN_SECTION]->``,
+``(:Figure)-[:DUP_MEMBER_OF]->`` and the formula references between DOCUMENT nodes are created and deleted only by the
+NAV loader); a DOCUMENT wipe is refused while they exist (``E_CROSS_LAYER_LOSS``): drop the NAV layer first
+(``vkm-corpus nav graph-drop``). A dictionary pair, a table naming a property, a repeated figure are navigation hints —
+never facts.
 """
 from __future__ import annotations
 
@@ -23,8 +29,8 @@ from dataclasses import dataclass
 from vkm_corpus.graph import schema as S
 from vkm_corpus.graph.schema import Namespace, q
 
-NAV_GRAPH_SCHEMA_VERSION = "nav-graph/1.0"
-NAV_LOADER_RULE = "nav_graph_v1"
+NAV_GRAPH_SCHEMA_VERSION = "nav-graph/1.1"      # 1.1: tables, parameter values, term dictionary, object duplicates
+NAV_LOADER_RULE = "nav_graph_v2"
 LAYER_KEY = "NAVIGATION"                          # key of the layer in vkm_corpus.graph.schema.LAYER_LABELS
 LAYER_VALUE = "NAV"                               # value of the `layer` property of every NAV node and edge
 LAYER_LABEL = S.LAYER_LABELS[LAYER_KEY]           # NavigationLayer
@@ -38,13 +44,25 @@ RULE_COVERS_PAGE = "covers_page_v1"          # a section covers every page of it
 RULE_MENTIONS = "mentions_top_v1"            # term ↔ section pairs kept: top-k per term or per section by tf-idf
 RULE_SYMBOL_OF = "symbol_of_v1"              # term keys (builder morphology) of a symbol definition's leading phrase
 RULE_SYMBOL_OF_SURFACE = "symbol_of_surface_v1"   # same, with normalised surface forms (morphology unavailable)
+# a property of the parameters vocabulary → the term whose lemma key is the whole key of one of its labels (label_ru,
+# label_en, synonyms, in that order; the builder's morphology), for TABULATES and VALUE_OF
+RULE_PROPERTY_TERM = "property_term_v1"
+RULE_PROPERTY_TERM_SURFACE = "property_term_surface_v1"
 MENTIONS_TOP_PER_TERM = 5
 MENTIONS_TOP_PER_SECTION = 20
+CAPTION_CHARS = 240                          # NavTable.caption: the first characters of the printed caption
 
 NODE_COMMON: tuple[str, ...] = ("id", "layer", "snapshot_id", "rule_version", "review_status", "projection_run_id")
 REL_COMMON: tuple[str, ...] = ("layer", "snapshot_id", "rule_version", "projection_run_id")
 
-PARTS: tuple[str, ...] = ("sections", "formulas", "concepts", "links", "topics")
+PARTS: tuple[str, ...] = ("sections", "formulas", "concepts", "links", "topics", "tables", "parameters", "translations",
+                          "object_duplicates")
+DICTIONARY_TYPES: tuple[str, ...] = ("TRANSLATES_TO", "SYNONYM_OF", "ABBREVIATION_OF")
+# the relation of a term_translations row → the registry entry of its edge
+DICTIONARY_RELATIONS: dict[str, str] = {"TRANSLATION": "TRANSLATES_TO", "SYNONYM": "SYNONYM_OF",
+                                        "ABBREVIATION": "ABBREVIATION_OF"}
+# object type of an object_dup_members row → the DOCUMENT label of the member
+DUP_MEMBER_LABELS: dict[str, str] = {"FIGURE": "Figure", "TABLE": "Table", "FORMULA": "Formula"}
 
 
 @dataclass(frozen=True)
@@ -104,12 +122,38 @@ NODE_TYPES: tuple[NavNodeType, ...] = (
                 ("formula_parameters",)),
     NavNodeType("Term", "term_id", "concepts",
                 ("term_id", "lemma", "lemma_key", "name_keys", "surface_forms", "language", "kind", "n_words",
-                 "df_units", "df_sources", "tf", "cvalue", "idf", "seed", "community", "morphology", "same_as_refs"),
+                 "df_units", "df_sources", "tf", "cvalue", "idf", "seed", "community", "morphology", "same_as_refs",
+                 # terms of the term dictionary missing from `terms` (part translations): dictionary_only = true
+                 "dictionary_only", "languages", "n_dictionary_pairs"),
                 ("terms",)),
     NavNodeType("NavTopic", "topic_id", "topics",
                 ("topic_id", "parent_topic_id", "level", "label", "label_terms", "label_term_ids", "n_children",
                  "n_sections", "n_sources", "central_section_ids", "coherence"),
                 ("topics",)),
+    # structured tables (agent TB, table_structure): the grid of a canonical table; cells stay in the NAV DuckDB
+    NavNodeType("NavTable", "nav_table_id", "tables",
+                ("nav_table_id", "table_id", "source_id", "page_id", "page_index", "section_id", "table_label",
+                 "table_number", "caption", "caption_truncated", "n_rows", "n_cols", "n_cells", "n_filled_cells",
+                 "n_numeric_cells", "n_header_rows", "header_method", "n_bands", "n_blocks", "orientation",
+                 "recognition_method", "parse_method", "confidence", "structure_ok", "covers_region", "quality_flags",
+                 "property_keys", "materials", "caption_property_key"),
+                ("table_structure",)),
+    # parameter candidates of parameters_v2 (PRM-…): printed values with locators — never recommended values
+    NavNodeType("ParameterValue", "candidate_id", "parameters",
+                ("candidate_id", "property_key", "property_label", "property_group", "symbol", "material",
+                 "material_group", "value_text", "value_min", "value_max", "value_pm", "qualifier", "unit_raw",
+                 "unit_canonical", "unit_si", "value_si_min", "value_si_max", "value_si_pm", "scale_hint",
+                 "scale_basis", "site_hint", "site_basis", "method", "source_id", "page_id", "page_index", "section_id",
+                 "block_id", "table_id", "table_row", "table_col", "formula_id", "char_start", "char_end", "language",
+                 "confidence", "flags"),
+                ("parameter_candidates",)),
+    # groups of repeated figures, tables and formulas (agent U2, object_dup_clusters)
+    NavNodeType("ObjectDupGroup", "cluster_id", "object_duplicates",
+                ("cluster_id", "object_type", "kind", "match_basis", "n_members", "n_sources", "n_works", "n_groups",
+                 "source_ids", "work_ids", "primary_source_id", "primary_object_id", "primary_work_id",
+                 "primary_year", "primary_rule", "reference_source_id", "reference_object_id", "label", "n_edges",
+                 "min_similarity", "template_share"),
+                ("object_dup_clusters",)),
 )
 META_PROPERTIES: tuple[str, ...] = (
     "id", "layer", "snapshot_id", "rule_version", "review_status", "status", "run_id", "graph_schema_version",
@@ -119,6 +163,12 @@ META_PROPERTIES: tuple[str, ...] = (
 NODE_BY_LABEL: dict[str, NavNodeType] = {n.label: n for n in NODE_TYPES}
 
 _FORMULA_REF_PROPS = ("ref_id", "kind", "resolution", "number_text", "block_id", "n_mentions")
+_DICTIONARY_PROPS = ("pair_id", "relation", "from_language", "to_language", "methods", "n_sources", "n_occurrences",
+                     "cosine", "score", "status", "example_page_ids")
+_DUP_MEMBER_PROPS = ("object_type", "match", "similarity", "image_distance", "dhash_distance", "transform",
+                     "caption_similarity", "cell_containment", "number_containment", "header_similarity",
+                     "equation_number", "context", "is_primary", "is_reference", "source_id", "work_id", "year",
+                     "page_id", "page_index")
 REL_TYPES: tuple[NavRelType, ...] = (
     # sections: the document tree, attached to sources and pages
     NavRelType("NAV_CHILD_OF:NavSection", "NAV_CHILD_OF", "NavSection", "NavSection", "sections",
@@ -164,6 +214,36 @@ REL_TYPES: tuple[NavRelType, ...] = (
                datasets=("topic_members", "topics", "sections")),
     NavRelType("RELATED_TOPIC", "RELATED_TOPIC", "NavTopic", "NavTopic", "topics", ("cosine", "n_links", "level"),
                datasets=("topic_edges", "topics"), symmetric=True),
+    # structured tables (agent TB): the grid → its canonical table, its section, the terms of the properties it names
+    NavRelType("GRID_OF", "GRID_OF", "NavTable", "Table", "tables", ("parse_method", "structure_ok", "covers_region"),
+               datasets=("table_structure",)),
+    NavRelType("TABLE_IN_SECTION", "TABLE_IN_SECTION", "NavTable", "NavSection", "tables", ("table_number",),
+               datasets=("table_structure", "sections")),
+    NavRelType("TABULATES", "TABULATES", "NavTable", "Term", "tables",
+               ("property_keys", "n_columns", "n_rows", "in_caption", "match"), datasets=("table_structure", "terms")),
+    # parameter candidates (parameters_v2): section, the cell of a structured table, the text block, the formula,
+    # the term of the property
+    NavRelType("VALUE_IN_SECTION", "VALUE_IN_SECTION", "ParameterValue", "NavSection", "parameters", ("method",),
+               datasets=("parameter_candidates", "sections")),
+    NavRelType("IN_TABLE", "IN_TABLE", "ParameterValue", "NavTable", "parameters", ("table_row", "table_col"),
+               datasets=("parameter_candidates", "table_structure")),
+    NavRelType("IN_BLOCK", "IN_BLOCK", "ParameterValue", "Block", "parameters", ("method", "char_start", "char_end"),
+               datasets=("parameter_candidates",)),
+    NavRelType("NEAR_FORMULA:ParameterValue", "NEAR_FORMULA", "ParameterValue", "Formula", "parameters", ("method",),
+               datasets=("parameter_candidates",)),
+    NavRelType("VALUE_OF", "VALUE_OF", "ParameterValue", "Term", "parameters", ("property_key", "match"),
+               datasets=("parameter_candidates", "terms")),
+    # term dictionary (agent TR): one edge per pair (TTR-…), keyed by pair_id; a pair is not a fact
+    NavRelType("TRANSLATES_TO", "TRANSLATES_TO", "Term", "Term", "translations", _DICTIONARY_PROPS, key="pair_id",
+               datasets=("term_translations", "terms")),
+    NavRelType("SYNONYM_OF", "SYNONYM_OF", "Term", "Term", "translations", _DICTIONARY_PROPS, key="pair_id",
+               datasets=("term_translations", "terms"), symmetric=True),
+    NavRelType("ABBREVIATION_OF", "ABBREVIATION_OF", "Term", "Term", "translations", _DICTIONARY_PROPS,
+               key="pair_id", datasets=("term_translations", "terms")),
+    # object duplicates (agent U2): members of a group of repeated figures, tables or formulas
+    *(NavRelType(f"DUP_MEMBER_OF:{label}", "DUP_MEMBER_OF", label, "ObjectDupGroup", "object_duplicates",
+                 _DUP_MEMBER_PROPS, datasets=("object_dup_members", "object_dup_clusters"))
+      for label in DUP_MEMBER_LABELS.values()),
 )
 REL_BY_NAME: dict[str, NavRelType] = {r.name: r for r in REL_TYPES}
 REL_TYPE_NAMES: tuple[str, ...] = tuple(sorted({r.type for r in REL_TYPES}))
@@ -175,11 +255,13 @@ FAMILIES: dict[str, tuple[str, ...]] = {
     "formulas": ("SYMBOL_OF", "DEFINED_FOR", "NAV_REFERS_TO", "IN_SECTION"),
     "sections": ("MENTIONED_IN", "IN_SECTION", "NAV_CHILD_OF"),
     "topics": ("IN_TOPIC", "RELATED_TOPIC", "NAV_CHILD_OF"),
+    "dictionary": DICTIONARY_TYPES,
 }
 PATH_LABELS: tuple[str, ...] = ("Term", "FormulaSymbol", "Formula", "NavSection", "NavTopic")
 
 _ID_PREFIX_LABEL: dict[str, str] = {"SEC-": "NavSection", "TRM-": "Term", "FSY-": "FormulaSymbol",
-                                    "FPR-": "ParameterCandidate", "TOP-": "NavTopic"}
+                                    "FPR-": "ParameterCandidate", "TOP-": "NavTopic", "TBL-": "NavTable",
+                                    "PRM-": "ParameterValue", "OCL-": "ObjectDupGroup"}
 
 
 def label_of_nav_id(node_id: str) -> str | None:
@@ -197,6 +279,11 @@ _RANGE_INDEXES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("NavSection", ("source_id", "ordinal")),
     ("FormulaSymbol", ("source_id",)),
     ("ParameterCandidate", ("formula_id",)),
+    ("NavTable", ("table_id",)),
+    ("NavTable", ("source_id", "page_index")),
+    ("ParameterValue", ("property_key",)),
+    ("ParameterValue", ("source_id", "page_index")),
+    ("ObjectDupGroup", ("object_type", "kind")),
 )
 
 

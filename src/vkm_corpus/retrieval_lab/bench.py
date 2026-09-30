@@ -382,7 +382,7 @@ def validate_benchmark(bench: Benchmark, *, min_text: int = 0, min_visual: int =
 POOLED_COLUMNS: tuple[str, ...] = ("query_id", "level", "doc_id", "grade", "status", "basis", "label_source",
                                    "pooled_from", "rationale")
 # one source per labelling round; a later round labels only pages without any earlier label (V2: blind packets)
-POOLED_LABEL_SOURCES: tuple[str, ...] = ("LLM_AGENT_V1", "LLM_AGENT_V2")
+POOLED_LABEL_SOURCES: tuple[str, ...] = ("LLM_AGENT_V1", "LLM_AGENT_V2", "LLM_AGENT_GS")   # GS: GRAPH_SEARCH_V1 top-up
 MAX_RATIONALE_CHARS = 160            # a one-line reason in own words; never a quote
 _POOLED_FROM = re.compile(r"^[A-Za-z0-9_]+@[0-9]{1,3}(,[A-Za-z0-9_]+@[0-9]{1,3})*$")
 

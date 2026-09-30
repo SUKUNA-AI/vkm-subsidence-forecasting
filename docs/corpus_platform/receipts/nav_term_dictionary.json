@@ -1,0 +1,3828 @@
+{
+ "receipt": "nav_term_dictionary",
+ "agent": "TR",
+ "date": "2026-09-29",
+ "branch": "claude/agent-tr-term-dictionary-2026-09-29",
+ "commits": {
+  "builder, seeds, term vectors, cli": "b2df278",
+  "query functions": "8196edb",
+  "hybrid expansion legs": "a56e17f",
+  "api and mcp": "a17ee3b",
+  "preregistration": "03fe05d",
+  "translate_term whole phrase": "04a847d",
+  "benchmark results": "c26faf8",
+  "api defaults from the measurement": "d1828bc"
+ },
+ "status": "DERIVED navigation (AUTO_EXTRACTED_UNREVIEWED); curated seed rows REVIEWED_BY_AGENT (checked by the agent, not by the user); a pair is a navigation hint for search, never evidence",
+ "user_decision": "29.09: RU-EN term dictionary so that search finds a concept under either name; concepts may be named differently",
+ "code": {
+  "builder": "src/vkm_corpus/navigation/term_dictionary.py (part translations, rule term_translations_v1)",
+  "seeds": "src/vkm_corpus/navigation/term_dictionary_seeds.py",
+  "vectors": "src/vkm_corpus/navigation/term_vectors.py (nav term-phrases, nav term-vectors)",
+  "queries": "src/vkm_corpus/navigation/term_dictionary_query.py (translate_term, synonyms, translate_query in store.QUERY_FUNCTIONS)",
+  "api": "GET /v1/nav/translate (NAV_TRANSLATION); POST/GET /v1/search/hybrid translate (null = server default: on only when the late stage runs; VKM_HYBRID_TRANSLATE_DEFAULT 1/0 overrides); GET/POST /v1/topic translate (null = topic.TRANSLATE_DEFAULT = True)",
+  "mcp": "read tool translate_term",
+  "search": "search.hybrid HybridRequest.expansions: extra BM25 + dense RRF legs, late scores the original",
+  "tests": [
+   "tests/corpus/test_nav_term_dictionary.py",
+   "tests/corpus/test_api_term_dictionary.py",
+   "tests/corpus/test_mcp_contract.py (READ_TOOLS)"
+  ]
+ },
+ "build": {
+  "snapshot_id": "snap-20260928T193550Z-738eebee",
+  "command": "vkm-corpus nav term-phrases → nav term-vectors (RTX 5070 Ti, 25 % memory cap) → nav build --part translations --inputs <NAV build of the snapshot> --option translations.term_vectors=<file>",
+  "dataset": {
+   "file": "term_translations.parquet",
+   "rows": 6541,
+   "sha256": "658699487058e841cec2dfe42a6d0a3240ee5427a21417a2c907a9b84eabd0b4"
+  },
+  "phrases": {
+   "rows": 95704,
+   "sha256": "38bf368ab566c7be9be39eca8df88ce2c45d00a403b338441ad239ad4e54adfb",
+   "phrases_sha256": "131b7a0934c0ce36864bcd03b201c9d9668d0b3ee916b61b7af052ec0e2d264a"
+  },
+  "term_vectors": {
+   "model_id": "jinaai/jina-embeddings-v5-text-nano-retrieval",
+   "revision": "ac5d898c8d382b17167c33e5c8af644a3519b47d",
+   "spec": "D2",
+   "prompt": "query",
+   "dimension": 768,
+   "device": "cuda",
+   "rows": 95704,
+   "seconds": 61.6,
+   "sha256": "80a9e053ad8096ac8e3b5948ecb9b872d11424db9a7f0969af4b847a2029d5c6"
+  },
+  "seconds": 34.43,
+  "stats": {
+   "same_as_rejected": {
+    "translation_cosine": 51,
+    "abbr_cross_single_source": 126,
+    "abbr_shape": 98,
+    "abbr_letters": 13,
+    "translation_language": 14
+   },
+   "paren_rejected": {
+    "low_cosine": 74,
+    "no_vector": 28,
+    "gloss_language": 53
+   },
+   "keyword_lists": {
+    "lists": 233,
+    "ru": 145,
+    "en": 88,
+    "paired": 44
+   },
+   "abstract_pairs": 37,
+   "caption_pairs": 41,
+   "symbol_pairs": 109,
+   "xling": {
+    "ru-en": {
+     "candidates_a": 31469,
+     "candidates_b": 32891,
+     "pairs": 3632
+    },
+    "ru-de": {
+     "candidates_a": 31469,
+     "candidates_b": 113,
+     "pairs": 24
+    },
+    "en-de": {
+     "candidates_a": 32891,
+     "candidates_b": 113,
+     "pairs": 33
+    }
+   },
+   "orthographic_pairs": 526,
+   "pattern_occurrences": 5,
+   "substitution": {
+    "word_pairs_candidates": 164,
+    "word_pairs_kept": 84,
+    "occurrences": 778
+   },
+   "occurrences": {
+    "CURATED_SEED": 477,
+    "SAME_AS": 739,
+    "PAREN_GLOSS": 38,
+    "KEYWORD_LISTS": 232,
+    "ABSTRACT_PAIRS": 583,
+    "BILINGUAL_CAPTIONS": 146,
+    "SYMBOL_DEFINITIONS": 109,
+    "XLING_NEIGHBOURS": 3689,
+    "ORTHOGRAPHIC": 526,
+    "SYNONYM_PATTERN": 5,
+    "SUBSTITUTION": 778
+   },
+   "pivot_occurrences": 26,
+   "rule_version": "term_translations_v1",
+   "morphology": "pymorphy3",
+   "vectors": 95704,
+   "pairs": 6541,
+   "by_relation": {
+    "ABBREVIATION": 732,
+    "SYNONYM": 1357,
+    "TRANSLATION": 4452
+   },
+   "by_method": {
+    "SAME_AS_ABBREVIATION": 721,
+    "PAREN_GLOSS": 42,
+    "CURATED_SEED": 477,
+    "ORTHOGRAPHIC": 526,
+    "SYNONYM_PATTERN": 4,
+    "SUBSTITUTION": 778,
+    "PIVOT": 26,
+    "XLING_NEIGHBOURS": 3689,
+    "KEYWORD_LISTS": 198,
+    "ABSTRACT_PAIRS": 372,
+    "BILINGUAL_CAPTIONS": 77,
+    "SYMBOL_DEFINITIONS": 69
+   },
+   "by_status": {
+    "AUTO_EXTRACTED_UNREVIEWED": 6064,
+    "REVIEWED_BY_AGENT": 477
+   }
+  },
+  "params_model_choice": {
+   "term_vectors": "term_vectors.parquet",
+   "paren_min_cos": 0.5,
+   "kw_min_cos": 0.55,
+   "kw_pos_min_cos": 0.4,
+   "kw_list_min_quality": 0.34,
+   "kw_max_page_gap": 40,
+   "abs_min_cos": 0.72,
+   "abs_max_page_gap": 40,
+   "sym_min_cos": 0.72,
+   "nn_min_df": 3,
+   "nn_min_sources": 2,
+   "nn_min_cos": 0.84,
+   "nn_min_ccos": 0.55,
+   "nn_topk": 10,
+   "pattern_min_cos": 0.8,
+   "sub_min_df": 2,
+   "sub_pair_min_cos": 0.88,
+   "sub_min_frames": 4,
+   "sub_mean_min_cos": 0.92,
+   "sub_max_coordinated": 1,
+   "sub_word_min_cos": 0.85,
+   "pivot_min_score": 0.9,
+   "pivot_min_cos": 0.8,
+   "max_examples": 5,
+   "min_score": 0.0
+  }
+ },
+ "counts": {
+  "pairs": 6541,
+  "by_relation": {
+   "ABBREVIATION": 732,
+   "SYNONYM": 1357,
+   "TRANSLATION": 4452
+  },
+  "by_relation_and_languages": {
+   "TRANSLATION ru-en": 4285,
+   "SYNONYM en-en": 683,
+   "SYNONYM ru-ru": 674,
+   "ABBREVIATION en-en": 413,
+   "ABBREVIATION ru-ru": 308,
+   "TRANSLATION en-de": 88,
+   "TRANSLATION ru-de": 79,
+   "ABBREVIATION ru-en": 11
+  },
+  "by_method": {
+   "SAME_AS_ABBREVIATION": 721,
+   "PAREN_GLOSS": 42,
+   "CURATED_SEED": 477,
+   "ORTHOGRAPHIC": 526,
+   "SYNONYM_PATTERN": 4,
+   "SUBSTITUTION": 778,
+   "PIVOT": 26,
+   "XLING_NEIGHBOURS": 3689,
+   "KEYWORD_LISTS": 198,
+   "ABSTRACT_PAIRS": 372,
+   "BILINGUAL_CAPTIONS": 77,
+   "SYMBOL_DEFINITIONS": 69
+  },
+  "by_method_and_relation": {
+   "ABSTRACT_PAIRS TRANSLATION": 372,
+   "BILINGUAL_CAPTIONS TRANSLATION": 77,
+   "CURATED_SEED ABBREVIATION": 27,
+   "CURATED_SEED SYNONYM": 35,
+   "CURATED_SEED TRANSLATION": 415,
+   "KEYWORD_LISTS TRANSLATION": 198,
+   "ORTHOGRAPHIC SYNONYM": 526,
+   "PAREN_GLOSS ABBREVIATION": 3,
+   "PAREN_GLOSS TRANSLATION": 39,
+   "PIVOT SYNONYM": 26,
+   "SAME_AS_ABBREVIATION ABBREVIATION": 721,
+   "SUBSTITUTION SYNONYM": 778,
+   "SYMBOL_DEFINITIONS TRANSLATION": 69,
+   "SYNONYM_PATTERN SYNONYM": 4,
+   "XLING_NEIGHBOURS TRANSLATION": 3689
+  },
+  "single_method_pairs": {
+   "XLING_NEIGHBOURS": 3432,
+   "SUBSTITUTION": 766,
+   "SAME_AS_ABBREVIATION": 702,
+   "ORTHOGRAPHIC": 518,
+   "CURATED_SEED": 384,
+   "ABSTRACT_PAIRS": 160,
+   "ABSTRACT_PAIRS+XLING_NEIGHBOURS": 124,
+   "KEYWORD_LISTS": 122,
+   "PAREN_GLOSS": 38,
+   "CURATED_SEED+KEYWORD_LISTS": 30,
+   "ABSTRACT_PAIRS+BILINGUAL_CAPTIONS+XLING_NEIGHBOURS": 27,
+   "SYMBOL_DEFINITIONS": 27
+  },
+  "by_status": {
+   "AUTO_EXTRACTED_UNREVIEWED": 6064,
+   "REVIEWED_BY_AGENT": 477
+  },
+  "both_terms_in_n3_terms": 5917,
+  "score_bands": {
+   "0.5": 4,
+   "0.6": 652,
+   "0.7": 1160,
+   "0.8": 2111,
+   "0.9": 2614
+  }
+ },
+ "seeds": {
+  "translation_rows": 305,
+  "distinct_russian_terms": 297,
+  "rows_with_german": 55,
+  "abbreviations": 27,
+  "synonym_groups": 27,
+  "status": "REVIEWED_BY_AGENT (not user-reviewed)",
+  "seed_pairs_confirmed_by_corpus_methods": 93
+ },
+ "hand_check": {
+  "protocol": "agent TR read every sampled pair: Y = equivalent, P = partial (morphological or part-of-speech variant, broader/narrower, part of the phrase), N = wrong; strict precision = Y, lenient = Y+P. Stratified random sample per method (seed 20260929; XLING 15 per cosine band); round 2 on the final build: a fresh ABSTRACT_PAIRS sample and every PIVOT pair (seed 20260930)",
+  "checked_pairs": 459,
+  "sample_overall": {
+   "Y": 403,
+   "P": 46,
+   "N": 10
+  },
+  "by_method": {
+   "ABSTRACT_PAIRS": {
+    "population": 372,
+    "checked": 77,
+    "Y": 68,
+    "P": 8,
+    "N": 1,
+    "precision_strict": 0.883,
+    "precision_lenient": 0.987,
+    "strict_wilson95": [
+     0.793,
+     0.937
+    ]
+   },
+   "BILINGUAL_CAPTIONS": {
+    "population": 77,
+    "checked": 30,
+    "Y": 30,
+    "P": 0,
+    "N": 0,
+    "precision_strict": 1.0,
+    "precision_lenient": 1.0,
+    "strict_wilson95": [
+     0.886,
+     1.0
+    ]
+   },
+   "CURATED_SEED": {
+    "population": 477,
+    "checked": 40,
+    "Y": 40,
+    "P": 0,
+    "N": 0,
+    "precision_strict": 1.0,
+    "precision_lenient": 1.0,
+    "strict_wilson95": [
+     0.912,
+     1.0
+    ]
+   },
+   "KEYWORD_LISTS": {
+    "population": 198,
+    "checked": 40,
+    "Y": 39,
+    "P": 1,
+    "N": 0,
+    "precision_strict": 0.975,
+    "precision_lenient": 1.0,
+    "strict_wilson95": [
+     0.871,
+     0.996
+    ]
+   },
+   "ORTHOGRAPHIC": {
+    "population": 526,
+    "checked": 30,
+    "Y": 30,
+    "P": 0,
+    "N": 0,
+    "precision_strict": 1.0,
+    "precision_lenient": 1.0,
+    "strict_wilson95": [
+     0.886,
+     1.0
+    ]
+   },
+   "PAREN_GLOSS": {
+    "population": 42,
+    "checked": 42,
+    "Y": 33,
+    "P": 8,
+    "N": 1,
+    "precision_strict": 0.786,
+    "precision_lenient": 0.976,
+    "strict_wilson95": [
+     0.641,
+     0.883
+    ]
+   },
+   "PIVOT": {
+    "population": 26,
+    "checked": 26,
+    "Y": 19,
+    "P": 3,
+    "N": 4,
+    "precision_strict": 0.731,
+    "precision_lenient": 0.846,
+    "strict_wilson95": [
+     0.539,
+     0.863
+    ]
+   },
+   "SAME_AS_ABBREVIATION": {
+    "population": 721,
+    "checked": 40,
+    "Y": 37,
+    "P": 3,
+    "N": 0,
+    "precision_strict": 0.925,
+    "precision_lenient": 1.0,
+    "strict_wilson95": [
+     0.801,
+     0.974
+    ]
+   },
+   "SUBSTITUTION": {
+    "population": 778,
+    "checked": 40,
+    "Y": 27,
+    "P": 12,
+    "N": 1,
+    "precision_strict": 0.675,
+    "precision_lenient": 0.975,
+    "strict_wilson95": [
+     0.52,
+     0.799
+    ]
+   },
+   "SYMBOL_DEFINITIONS": {
+    "population": 69,
+    "checked": 30,
+    "Y": 28,
+    "P": 1,
+    "N": 1,
+    "precision_strict": 0.933,
+    "precision_lenient": 0.967,
+    "strict_wilson95": [
+     0.787,
+     0.982
+    ]
+   },
+   "SYNONYM_PATTERN": {
+    "population": 4,
+    "checked": 4,
+    "Y": 2,
+    "P": 1,
+    "N": 1,
+    "precision_strict": 0.5,
+    "precision_lenient": 0.75,
+    "strict_wilson95": [
+     0.15,
+     0.85
+    ]
+   },
+   "XLING_NEIGHBOURS": {
+    "population": 3689,
+    "checked": 60,
+    "Y": 50,
+    "P": 9,
+    "N": 1,
+    "precision_strict": 0.833,
+    "precision_lenient": 0.983,
+    "strict_wilson95": [
+     0.72,
+     0.907
+    ]
+   }
+  },
+  "xling_bands": {
+   "[0.84,0.87)": {
+    "checked": 14,
+    "Y": 10,
+    "P": 4,
+    "N": 0,
+    "population": 749
+   },
+   "[0.87,0.9)": {
+    "checked": 16,
+    "Y": 12,
+    "P": 3,
+    "N": 1,
+    "population": 901
+   },
+   "[0.9,0.93)": {
+    "checked": 15,
+    "Y": 13,
+    "P": 2,
+    "N": 0,
+    "population": 1028
+   },
+   "[0.93,1.01)": {
+    "checked": 15,
+    "Y": 15,
+    "P": 0,
+    "N": 0,
+    "population": 1011
+   }
+  },
+  "weighted_precision_all_pairs": {
+   "strict": 0.857,
+   "lenient": 0.987
+  },
+  "weighted_precision_auto_pairs_strict": 0.846,
+  "weighting": "each pair counted once, with the strict (lenient) precision of its best-measured method",
+  "sample": [
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-849934b722a48075",
+    "verdict": "P"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-b3693373ad3e6fbb",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-646c99ba8b70f3a6",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-e65b90b260d71ad2",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-9ff4b76c016b240c",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-346abd7fa6901a0c",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-97a49605acb2394a",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-5308c69eed3a9f54",
+    "verdict": "P"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-d0181a3539c0666b",
+    "verdict": "P"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-805171336e27c873",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-a79ca7adc3803011",
+    "verdict": "P"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-180708b9e4f7ec20",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-b0eda9075f7d6ed6",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-0487f44b0120859a",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-6a2c92e11ed1e4cf",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-879324740f473d1e",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-a2409d4a675efe18",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-a517a35e8346e3b7",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-7249dd02dc40ca58",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-7c8b508ac233e6c2",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-770db5d99daffac6",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-87835defae21d539",
+    "verdict": "P"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-77bc5c648f945206",
+    "verdict": "P"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-c3659464c1443e28",
+    "verdict": "P"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-265263373585be4a",
+    "verdict": "N"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-e9e4df743be490c7",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-caf1d0d4c3fc9e44",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-e2c0d29edb19f586",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-102d2e1fcde8ca36",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-34667b02be941e91",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-f505bcefc391b810",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-d91f9b14ad7b60e7",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-3c6c23800b338c42",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-5f0e2ad9a597b1de",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-807e143081dc0fac",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-9d77e660c62a5510",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-f97991b774997e3a",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-47db84384776b432",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-035a288ebf57f728",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-3f185b9c7d354c08",
+    "verdict": "P"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-de5bd143db3fe91a",
+    "verdict": "P"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-e59b8161c0d24f3d",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-b96614188bdd5a11",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-93ebbde7db82a06a",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-65af5aa6974296d5",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-730cdf5c15de796c",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-74f65eb8b6808acd",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-32927a657a78fd9d",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-b2696b792ff99006",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-09b2058f3522da0b",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-99d51c8b80bf0e54",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-62c8b907387d683f",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-04440b426355762e",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-6f12f125e8b2b9c0",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-45da93e8d077773b",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-c9a00a880890c019",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-8abe8c2c2d8600f0",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-e936c03714eebd3f",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-d2f244deecbdb95a",
+    "verdict": "Y"
+   },
+   {
+    "method": "XLING_NEIGHBOURS",
+    "pair_id": "TTR-98a7cbf8ee56570b",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-50c7798d69f30e6a",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-6fe0aaee026d9516",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-9360af714c4e0770",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-ef39e4e04a780656",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-cb22c0d3c6cf54cb",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-9ffe36d514562c76",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-e214103929b1fdac",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-9e793fc77f2fb138",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-4302bbf9b54c2198",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-057b80c0e526f58d",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-3ef9a0d3ce7c967b",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-35a9c4899230fee2",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-32520cecea851539",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-e649ccc222e7e9df",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-bbf8032db52ecf98",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-3ca28f5debfef438",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-23d7485add627ce8",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-29dc1e85921ec387",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-c9c1b7b765b73075",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-946bd5eb18e5fec2",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-1e780038400b5144",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-1b7276974763de75",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-35e09ab3c57566fb",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-53edd5743cc5c04f",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-7010f15e11c60343",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-4b9bb73680f3c637",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-ce5bf6cd5fc82079",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-4052b60f4b41bf88",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-ec3e1e43e8ffbda5",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-2d2af0710cbb7131",
+    "verdict": "P"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-61a8f705fd8724c5",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-cdabdc189dc9900b",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-85e2a4d261e192ea",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-a96d81a4e37fafbc",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-ae5ea85e7af0ff8d",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-d86d7ac3998301f2",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-c871d35aa333d4fd",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-e485b7fd2121af7f",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-34b46433ae4cf33f",
+    "verdict": "Y"
+   },
+   {
+    "method": "KEYWORD_LISTS",
+    "pair_id": "TTR-c8ce47a99977d27a",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-05db008578709c34",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-2af8731c43318d21",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-ba8a9e70b8abd63e",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-4275743e998ed82d",
+    "verdict": "P"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-8a31a91be083c566",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-e100c7b60dcc67f5",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-f12dcdf1cd0d31a5",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-31461b3d0f952e3a",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-1f20a10e26944d17",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-4403b9b13f4a1270",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-f44579415dfe4162",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-7eda28e68d398107",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-6b27028c9dccb25a",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-3aa0d5e1127e7fb4",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-db2794fe00c9f545",
+    "verdict": "P"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-7e099204f96f1e9c",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-76228f991320cf9b",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-b7f4d31411b0eec7",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-72099bff2448bd56",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-3fc18d0043a0e290",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-4aecd471fb2b243e",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-b209a935473f023a",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-12c5b8b9eeb16628",
+    "verdict": "P"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-a44d5aaeb719d938",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-ccf572e9338b6a07",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-61a8f705fd8724c5",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-ac15b7a35c56acfd",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-157c7182e832c3bc",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-1587cefe007fcf35",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-0fdc5855acb7ca4d",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-04845f1f9c2d257e",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-db59010846f4318d",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-7ef0983542e8a8e2",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-e6b3cabe481bafe5",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-e1f67fa8ccf4ca6c",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-b592e32b09973093",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-bdc51aaed29bba82",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-d91f9b14ad7b60e7",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-a9a391363c1566cc",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-1a6ba174405532a2",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-84214d337063cd1a",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-681c5b6cbe5f9b23",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-bdc51aaed29bba82",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-4109e44835f4708f",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-f4298ddd14bc4fe4",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-dc30cf583065f062",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-d59062658de61183",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-5fafbfbcd8f3324f",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-52bd6c0f4ca5c694",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-6d4851df612b5ec6",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-45da93e8d077773b",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-4aaf5d81a7f4dba2",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-273d15430158268e",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-b2791bc8b5a4b8cd",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-d35cb66ca5a113a0",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-01ab748bded99644",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-0136eb49c0a7577d",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-d010a550acf28dc6",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-9dd81acd5b72566d",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-5145cc6cadc11c26",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-db59010846f4318d",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-2ef033f1559c7eeb",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-63071db46231c00b",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-6d0c532a8efe536f",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-736cddee75f08cf7",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-297b278fee3d7aef",
+    "verdict": "Y"
+   },
+   {
+    "method": "BILINGUAL_CAPTIONS",
+    "pair_id": "TTR-f8d5054ac05761fb",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-64bc93a20b03c36a",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-4756289576a09fb6",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-943b12bb514f896b",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-8366e94f90b00f67",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-3682aed90292cc59",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-1616a739c59ac094",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-1636b214cd1dbb6f",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-26d6c620b12fa319",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-dfe807008b9eb9ce",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-287831636cccfec6",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-1a3fc27bb2a347d9",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-b4467427ae713789",
+    "verdict": "P"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-0b78100ce8ef0af3",
+    "verdict": "N"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-99567cf6c9cb0310",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-119caf855a61eb4d",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-235316f14c0454c9",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-b1f1dbabee17d2ee",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-116f637900e3fb56",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-5f68dada350c3906",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-bc1c80cae872a424",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-c883ebebb376f634",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-8fa4f3c2ea0ef134",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-60a11a6be1b07622",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-ca82fc950c699aa1",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-140e6741bb3305b0",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-1587cefe007fcf35",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-c5beae94e3e0cd3e",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-6b27028c9dccb25a",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-1f74b014c0cc80d8",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYMBOL_DEFINITIONS",
+    "pair_id": "TTR-b447bc905b2d1aa1",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-36f6d81c800f8334",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-c1ffadf63b1ed758",
+    "verdict": "P"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-75c3df885ef52090",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-5fa1391ebfa7a017",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-796d8e279f71082a",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-8eb8731d24f4a406",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-94cc15dfbd59135b",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-c27e5a4044ffc82b",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-0493ac9f6bf3bd4b",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-09b2058f3522da0b",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-fb9e78d35631d18c",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-98be074e7ec49703",
+    "verdict": "P"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-efed02e52668f4c9",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-5ae134515f777f96",
+    "verdict": "P"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-0025bd73faadfb1c",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-cdaad4999923587b",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-43eafe08a70f8747",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-32f5eab6dab77853",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-fa57625e42691a0e",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-64ac4819e39fd417",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-e5815100915aed55",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-6ecb4c629601f5c9",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-a3553a172eba64e2",
+    "verdict": "P"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-868c068f7da43f7c",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-3f6879ecf2645ddd",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-6f68e394e055ffbf",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-1d726d3d1c656acb",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-f1bfc6c43e4da10d",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-0f9f46ee139f2e27",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-f00acd131915b6e3",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-981f38fb912f89f6",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-4fedc302e4e27254",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-51a612169b9b60d9",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-597515959b424b4f",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-5884edad0ab07c5d",
+    "verdict": "P"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-e8fff4f4bbc3a7da",
+    "verdict": "P"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-6362274989d788c6",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-958ea548f70ef358",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-f2f853a19bc64fe3",
+    "verdict": "P"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-a27c642ffa51615d",
+    "verdict": "P"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-ec3bfa0341c55233",
+    "verdict": "Y"
+   },
+   {
+    "method": "PAREN_GLOSS",
+    "pair_id": "TTR-aaa08739d79a1afc",
+    "verdict": "N"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-7629ecc0d248321f",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-375ae9628385e9fe",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-98eb8ef61d4aa602",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-3973243504dbb415",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-f185d44bab0e5ccc",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-2facd17c505e6431",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-78586a24d144b6c5",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-ebbfd424ad3091e7",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-2f3117b7daac2a02",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-1d0f4194ed5c9e70",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-14138c25c72e3f1a",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-673510eb4fb88267",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-ce614e218fead9a8",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-f9a57ea09fc6a3d3",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-38055e20427cf263",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-5dc1739f076e083a",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-9f3444ea082a66e0",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-5e5f70fabc40e5e9",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-7eb68af061abf473",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-dfbc5525dee76254",
+    "verdict": "P"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-cf62ac35f6123181",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-959f3f3e2affcc5a",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-04f3def78aa2c0e6",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-5351f9af76cc45f3",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-990d86d5be05edc7",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-051d1cd4900d360e",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-8e7ba25f529a02d1",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-23361b7336ada8ee",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-8cfec6f1707ddafa",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-dfdc453764feb563",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-d37944b071b2040f",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-76a9283e6181fdeb",
+    "verdict": "P"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-7ce31b81657078ca",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-66f6b1af25ad135d",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-58bdafea89778e7d",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-8d5ba95965e75c12",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-f42bd7456430415b",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-647a22be072fc407",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-06609508f369bbdc",
+    "verdict": "Y"
+   },
+   {
+    "method": "SAME_AS_ABBREVIATION",
+    "pair_id": "TTR-64cb685a5110449f",
+    "verdict": "P"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-724ff396120c86e1",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-11a9ebc86c2e2ffc",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-cfefd87e72f09f56",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-ac2c364225a4e8a8",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-bdcfd8acb6ebe9eb",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-22d3eeae28ff521f",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-d2d41fc3a3b83ca9",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-0067f0ee57783619",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-f770c0b7b200a05a",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-6441fa8b3c9eb295",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-9ee4d36d7f6e5333",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-97cbe50f51cebc2e",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-e80db5d908b53bb4",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-3e446d853d3967f3",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-062b09dab90c06bd",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-7ee1f80e5dc84e10",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-f32385a67af27916",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-5f239c8b0f7604a9",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-a549e54d00428827",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-5a441ee34f6e4642",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-efe426abc41c7f3c",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-e78069f9858c1bc0",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-f9b9a28bde1237fd",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-c03eccb6a3e47d60",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-eb1537629dd4da72",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-1cee0f5f78c9d5ed",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-c928272f510da467",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-cacc95ae33ecaec7",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-5aefc8a27ced22f5",
+    "verdict": "Y"
+   },
+   {
+    "method": "ORTHOGRAPHIC",
+    "pair_id": "TTR-0c37dfdb7544a71e",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-c0c8dd336c2e2440",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-55c63f81e406823d",
+    "verdict": "P"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-ec76fd4861bd4ae2",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-a470af2c79dc88c1",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-2a6c001d6d7bde05",
+    "verdict": "P"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-00d49f4be97e2bc9",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-693f53a90fab5c6d",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-bef395df21e74304",
+    "verdict": "P"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-7c42d45b18fee416",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-71085daa73923ce4",
+    "verdict": "P"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-64cac8f66597ee28",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-afb3d61f2c461109",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-09fadfd42cd15a64",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-eb563a85a556be5d",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-1894ac7e1707dc9d",
+    "verdict": "P"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-08c22045b7bf9131",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-11259d82ecfc5897",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-883c4a8e7eed8af4",
+    "verdict": "P"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-c270f58278141d33",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-4661a36f2eb00027",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-e154b9b27152b0cd",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-c5cb150da8d7a78a",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-c521abb791eea0b2",
+    "verdict": "P"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-c6c207e98c94cb3d",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-70c019c6160efb16",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-2ceca10d57e89cb3",
+    "verdict": "P"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-773e399e374fd439",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-f9738bd2a4943f9b",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-14d601922f1f3f08",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-2939a97e8b19f3fc",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-16b6f0b43a1115d0",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-ca434f4825422da6",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-3854fd2b16ccea72",
+    "verdict": "P"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-6936e2c8eb1f764f",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-61621d6b9db8ad1e",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-0950f88f5f1b24c1",
+    "verdict": "P"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-f0b062ef95865dd3",
+    "verdict": "P"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-3a0af8348b178fff",
+    "verdict": "Y"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-3d94a1aa1bfa10f3",
+    "verdict": "N"
+   },
+   {
+    "method": "SUBSTITUTION",
+    "pair_id": "TTR-30ef9daa1d084c69",
+    "verdict": "P"
+   },
+   {
+    "method": "SYNONYM_PATTERN",
+    "pair_id": "TTR-97e9ae12721963d4",
+    "verdict": "P"
+   },
+   {
+    "method": "SYNONYM_PATTERN",
+    "pair_id": "TTR-1ece45a7d399b0b8",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYNONYM_PATTERN",
+    "pair_id": "TTR-6ffdd313f03d90dd",
+    "verdict": "Y"
+   },
+   {
+    "method": "SYNONYM_PATTERN",
+    "pair_id": "TTR-19586387e132f017",
+    "verdict": "N"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-6579c068d0ba1d8e",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-3232117d69ef673c",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-aee9bc73a14e5cb2",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-a09e1c18f4a6cf65",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-df0c511e8e5c4d49",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-e3388c9eb7c1d50f",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-75de2f946a5993a0",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-ec958ed246e318ae",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-24ea0d9cf30a2de1",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-7f2f24298536879a",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-4bfcdafa4e065fd1",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-19922c2f237feb78",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-e6c539d68b6f057c",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-4a719898a853edd3",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-232f9db3d3a037e5",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-3b7444b6f7f1c275",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-ff471031820df84c",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-c963cfd1e34b08e9",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-5472d95138aad701",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-dde9b0e31c052d18",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-7ada45022d0e67ae",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-0806688b0102ca94",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-d8f568f5e64ec55e",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-8462baa3177a0e2c",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-032ed228b78defda",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-c131d51d1674ab18",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-a5b539c8934fac1f",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-7844dd5d50f6c47d",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-72cd09b08aebec17",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-6cc5cd94e4760daf",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-d3e112c5060fb2de",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-706ea85d9d93dcc6",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-905797224a8a1582",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-282aa03587634066",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-ce69e68864192438",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-7700728120cc83bb",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-e65d82e84cf7e69c",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-ce5bf6cd5fc82079",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-161246b2426c640a",
+    "verdict": "Y"
+   },
+   {
+    "method": "CURATED_SEED",
+    "pair_id": "TTR-9b467de85e6f3424",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-c219c4ef4b585e23",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-a8eefb724e4fe6bb",
+    "verdict": "P"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-59fb74adcf4e408c",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-820ebe6985cf9e18",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-d1d487d59ec16f40",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-acbd6cd8c2dd6cce",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-06bc8ae0c322ea08",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-16a9b0feab6eddce",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-f08facedf91d7739",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-6e9bc96f8a905beb",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-c2be106647561b32",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-f89c81d0fb1f36e9",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-b054eada4c906661",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-086b6a1cbffb04ac",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-1256420452493291",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-cf08c066199d9e7e",
+    "verdict": "P"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-2565e1c3f71fafe7",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-4c32bed6faec5de2",
+    "verdict": "P"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-ded055f34da723d2",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-97e92fc52d56533b",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-24053dc1dc80bdb3",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-9ec6f641efeaac00",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-8a60440e24504a28",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-1e37266177a03bbd",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-a829b864ba165598",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-1599d4310ba933e4",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-63d9ff1bd13220b8",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-0231515d463cd94b",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-d364f69c0756c8f8",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-6fcbf864284a9d8a",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-b70ecf149e42e161",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-d4eac8d95e0c93da",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-e7f1d38481a13a1c",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-2a2e81aae7897ba0",
+    "verdict": "P"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-54172ea7a93e3992",
+    "verdict": "P"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-463a0dcdee745e54",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-6c2f954544f227bf",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-ecf1adfb51a79cb2",
+    "verdict": "Y"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-acbd55b3554743b3",
+    "verdict": "N"
+   },
+   {
+    "method": "ABSTRACT_PAIRS",
+    "pair_id": "TTR-dc1738155276a13d",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-003681daf841d75d",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-003d6788dc3ba086",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-0c4ecc04e95faa94",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-25b059397843196a",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-49c3dcfe845aa194",
+    "verdict": "N"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-4a384a25d69b317a",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-4e597120dea342a3",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-52b1e8e1961752ef",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-61cf92b108aa67ca",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-67e66817edad3aca",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-6bc4920cd1829477",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-73350d26a2dcbd9e",
+    "verdict": "P"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-80f213b81cacfb96",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-99dec49446d58de0",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-9d92a4943805bc6d",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-b1a548a3e55ecb52",
+    "verdict": "N"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-b61b6ab226a921f9",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-ba62836f429e0c37",
+    "verdict": "P"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-c07ce0b133f50935",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-c223a53550826eb1",
+    "verdict": "N"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-d4fd17cbd656d371",
+    "verdict": "N"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-e221d39a249623ab",
+    "verdict": "P"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-e2a4ef24ff989739",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-ee3c86a1b77d06d3",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-f7ac331fc53d0ca0",
+    "verdict": "Y"
+   },
+   {
+    "method": "PIVOT",
+    "pair_id": "TTR-f971f33eb3c4d1c4",
+    "verdict": "Y"
+   }
+  ]
+ },
+ "examples": {
+  "PAREN_GLOSS": [
+   {
+    "pair_id": "TTR-09b2058f3522da0b",
+    "a": "ресурсы",
+    "lang_a": "ru",
+    "b": "resources",
+    "lang_b": "en",
+    "score": 0.995
+   },
+   {
+    "pair_id": "TTR-fa57625e42691a0e",
+    "a": "европейское космическое агентство",
+    "lang_a": "ru",
+    "b": "european space agency",
+    "lang_b": "en",
+    "score": 0.995
+   },
+   {
+    "pair_id": "TTR-0025bd73faadfb1c",
+    "a": "плановый кривизна",
+    "lang_a": "ru",
+    "b": "plan curvature",
+    "lang_b": "en",
+    "score": 0.9
+   },
+   {
+    "pair_id": "TTR-36f6d81c800f8334",
+    "a": "индекс конвергенции",
+    "lang_a": "ru",
+    "b": "convergence index",
+    "lang_b": "en",
+    "score": 0.9
+   }
+  ],
+  "SAME_AS_ABBREVIATION": [
+   {
+    "pair_id": "TTR-000d5af0a8a60b7d",
+    "a": "панель переходного периода",
+    "lang_a": "ru",
+    "b": "ППП",
+    "lang_b": "ru",
+    "score": 0.88
+   },
+   {
+    "pair_id": "TTR-006ce6d15a8b448d",
+    "a": "fourier transform algorithm",
+    "lang_a": "en",
+    "b": "FFT",
+    "lang_b": "en",
+    "score": 0.88
+   },
+   {
+    "pair_id": "TTR-00aaf4f80d969db9",
+    "a": "маркшейдерская опорная сеть",
+    "lang_a": "ru",
+    "b": "мос",
+    "lang_b": "ru",
+    "score": 0.88
+   },
+   {
+    "pair_id": "TTR-0141a926d7c49c3a",
+    "a": "поверхностно-активные вещества",
+    "lang_a": "ru",
+    "b": "ПАВ",
+    "lang_b": "ru",
+    "score": 0.88
+   }
+  ],
+  "KEYWORD_LISTS": [
+   {
+    "pair_id": "TTR-4fa29f850dbaffdf",
+    "a": "геофизики",
+    "lang_a": "ru",
+    "b": "geophysics",
+    "lang_b": "en",
+    "score": 1.0
+   },
+   {
+    "pair_id": "TTR-e649ccc222e7e9df",
+    "a": "стратификация",
+    "lang_a": "ru",
+    "b": "stratification",
+    "lang_b": "en",
+    "score": 1.0
+   },
+   {
+    "pair_id": "TTR-63071db46231c00b",
+    "a": "соль",
+    "lang_a": "ru",
+    "b": "salt",
+    "lang_b": "en",
+    "score": 1.0
+   },
+   {
+    "pair_id": "TTR-75e629da4d58c98f",
+    "a": "контроль",
+    "lang_a": "ru",
+    "b": "control",
+    "lang_b": "en",
+    "score": 1.0
+   }
+  ],
+  "ABSTRACT_PAIRS": [
+   {
+    "pair_id": "TTR-4fa29f850dbaffdf",
+    "a": "геофизики",
+    "lang_a": "ru",
+    "b": "geophysics",
+    "lang_b": "en",
+    "score": 1.0
+   },
+   {
+    "pair_id": "TTR-a9a391363c1566cc",
+    "a": "плотность",
+    "lang_a": "ru",
+    "b": "density",
+    "lang_b": "en",
+    "score": 1.0
+   },
+   {
+    "pair_id": "TTR-e649ccc222e7e9df",
+    "a": "стратификация",
+    "lang_a": "ru",
+    "b": "stratification",
+    "lang_b": "en",
+    "score": 1.0
+   },
+   {
+    "pair_id": "TTR-16a9b0feab6eddce",
+    "a": "уровень",
+    "lang_a": "ru",
+    "b": "level",
+    "lang_b": "en",
+    "score": 1.0
+   }
+  ],
+  "BILINGUAL_CAPTIONS": [
+   {
+    "pair_id": "TTR-a9a391363c1566cc",
+    "a": "плотность",
+    "lang_a": "ru",
+    "b": "density",
+    "lang_b": "en",
+    "score": 1.0
+   },
+   {
+    "pair_id": "TTR-e649ccc222e7e9df",
+    "a": "стратификация",
+    "lang_a": "ru",
+    "b": "stratification",
+    "lang_b": "en",
+    "score": 1.0
+   },
+   {
+    "pair_id": "TTR-16a9b0feab6eddce",
+    "a": "уровень",
+    "lang_a": "ru",
+    "b": "level",
+    "lang_b": "en",
+    "score": 1.0
+   },
+   {
+    "pair_id": "TTR-63071db46231c00b",
+    "a": "соль",
+    "lang_a": "ru",
+    "b": "salt",
+    "lang_b": "en",
+    "score": 1.0
+   }
+  ],
+  "SYMBOL_DEFINITIONS": [
+   {
+    "pair_id": "TTR-a9a391363c1566cc",
+    "a": "плотность",
+    "lang_a": "ru",
+    "b": "density",
+    "lang_b": "en",
+    "score": 1.0
+   },
+   {
+    "pair_id": "TTR-8a31a91be083c566",
+    "a": "коэффициент",
+    "lang_a": "ru",
+    "b": "coefficient",
+    "lang_b": "en",
+    "score": 1.0
+   },
+   {
+    "pair_id": "TTR-8fa4f3c2ea0ef134",
+    "a": "компоненты",
+    "lang_a": "ru",
+    "b": "components",
+    "lang_b": "en",
+    "score": 1.0
+   },
+   {
+    "pair_id": "TTR-55d591bc449d40da",
+    "a": "радиус",
+    "lang_a": "ru",
+    "b": "radius",
+    "lang_b": "en",
+    "score": 1.0
+   }
+  ],
+  "XLING_NEIGHBOURS": [
+   {
+    "pair_id": "TTR-a9a391363c1566cc",
+    "a": "плотность",
+    "lang_a": "ru",
+    "b": "density",
+    "lang_b": "en",
+    "score": 1.0
+   },
+   {
+    "pair_id": "TTR-e649ccc222e7e9df",
+    "a": "стратификация",
+    "lang_a": "ru",
+    "b": "stratification",
+    "lang_b": "en",
+    "score": 1.0
+   },
+   {
+    "pair_id": "TTR-16a9b0feab6eddce",
+    "a": "уровень",
+    "lang_a": "ru",
+    "b": "level",
+    "lang_b": "en",
+    "score": 1.0
+   },
+   {
+    "pair_id": "TTR-0136eb49c0a7577d",
+    "a": "система",
+    "lang_a": "ru",
+    "b": "system",
+    "lang_b": "en",
+    "score": 1.0
+   }
+  ],
+  "ORTHOGRAPHIC": [
+   {
+    "pair_id": "TTR-2097f73cbb46a05d",
+    "a": "plastic behavior",
+    "lang_a": "en",
+    "b": "plastic behaviour",
+    "lang_b": "en",
+    "score": 0.985
+   },
+   {
+    "pair_id": "TTR-359a24efb544cb8f",
+    "a": "rock mass behavior",
+    "lang_a": "en",
+    "b": "rock mass behaviour",
+    "lang_b": "en",
+    "score": 0.985
+   },
+   {
+    "pair_id": "TTR-5f239c8b0f7604a9",
+    "a": "geomechanical behavior",
+    "lang_a": "en",
+    "b": "geomechanical behaviour",
+    "lang_b": "en",
+    "score": 0.985
+   },
+   {
+    "pair_id": "TTR-8a0a7658f399523c",
+    "a": "relaxation behavior",
+    "lang_a": "en",
+    "b": "relaxation behaviour",
+    "lang_b": "en",
+    "score": 0.985
+   }
+  ],
+  "SYNONYM_PATTERN": [
+   {
+    "pair_id": "TTR-19586387e132f017",
+    "a": "plane strain",
+    "lang_a": "en",
+    "b": "plane stress",
+    "lang_b": "en",
+    "score": 0.5
+   },
+   {
+    "pair_id": "TTR-1ece45a7d399b0b8",
+    "a": "prior information",
+    "lang_a": "en",
+    "b": "priori information",
+    "lang_b": "en",
+    "score": 0.5
+   },
+   {
+    "pair_id": "TTR-6ffdd313f03d90dd",
+    "a": "snell",
+    "lang_a": "en",
+    "b": "snellius",
+    "lang_b": "en",
+    "score": 0.5
+   },
+   {
+    "pair_id": "TTR-97e9ae12721963d4",
+    "a": "absolute permittivity",
+    "lang_a": "en",
+    "b": "permittivity",
+    "lang_b": "en",
+    "score": 0.5
+   }
+  ],
+  "SUBSTITUTION": [
+   {
+    "pair_id": "TTR-2097f73cbb46a05d",
+    "a": "plastic behavior",
+    "lang_a": "en",
+    "b": "plastic behaviour",
+    "lang_b": "en",
+    "score": 0.985
+   },
+   {
+    "pair_id": "TTR-359a24efb544cb8f",
+    "a": "rock mass behavior",
+    "lang_a": "en",
+    "b": "rock mass behaviour",
+    "lang_b": "en",
+    "score": 0.985
+   },
+   {
+    "pair_id": "TTR-5f239c8b0f7604a9",
+    "a": "geomechanical behavior",
+    "lang_a": "en",
+    "b": "geomechanical behaviour",
+    "lang_b": "en",
+    "score": 0.985
+   },
+   {
+    "pair_id": "TTR-8a0a7658f399523c",
+    "a": "relaxation behavior",
+    "lang_a": "en",
+    "b": "relaxation behaviour",
+    "lang_b": "en",
+    "score": 0.985
+   }
+  ],
+  "PIVOT": [
+   {
+    "pair_id": "TTR-c07ce0b133f50935",
+    "a": "график",
+    "lang_a": "ru",
+    "b": "графика",
+    "lang_b": "ru",
+    "score": 0.907
+   },
+   {
+    "pair_id": "TTR-99dec49446d58de0",
+    "a": "potash mine",
+    "lang_a": "en",
+    "b": "potassium mine",
+    "lang_b": "en",
+    "score": 0.903
+   },
+   {
+    "pair_id": "TTR-25b059397843196a",
+    "a": "строение",
+    "lang_a": "ru",
+    "b": "структура",
+    "lang_b": "ru",
+    "score": 0.898
+   },
+   {
+    "pair_id": "TTR-f7ac331fc53d0ca0",
+    "a": "деформации",
+    "lang_a": "ru",
+    "b": "деформирование",
+    "lang_b": "ru",
+    "score": 0.897
+   }
+  ]
+ },
+ "measurement": {
+  "benchmark": "benchmarks/term_dictionary_v1 (PREREGISTRATION.md, RESULTS.md, results_v1.json)",
+  "preregistration_sha256": "c9b4254d6a9f6b986d4b4242d8a6d3c49f6226e16794f42f03609079fd6c5a00",
+  "engine": "local copy of scheme E on the WORKSTATION (lab BM25 + jina-v5-nano nano-gpu + RRF + mLateOn late) for both arms: the CORE API was not reachable from the agent (permission refused)",
+  "control_dense_query_vs_v2": {
+   "n": 145,
+   "min_cos": 0.999875,
+   "mean_cos": 0.999967
+  },
+  "q1_dossier": {
+   "n_topics": 117,
+   "n_queries": 351,
+   "translation_applied_queries": 239,
+   "mixed_topics": 5,
+   "overall": {
+    "page_recall@50": {
+     "D0": 0.334059,
+     "D1": 0.333129,
+     "n": 117,
+     "delta": -0.000929,
+     "p_value": 0.727827,
+     "ci_lo": -0.006194,
+     "ci_hi": 0.004234
+    },
+    "page_recall@20": {
+     "D0": 0.229964,
+     "D1": 0.22784,
+     "n": 117,
+     "delta": -0.002124,
+     "p_value": 0.633337,
+     "ci_lo": -0.010244,
+     "ci_hi": 0.00436
+    },
+    "mrr@50": {
+     "D0": 0.256434,
+     "D1": 0.272039,
+     "n": 117,
+     "delta": 0.015605,
+     "p_value": 0.055394,
+     "ci_lo": 2.6e-05,
+     "ci_hi": 0.032585
+    },
+    "success@10": {
+     "D0": 0.524217,
+     "D1": 0.521368,
+     "n": 117,
+     "delta": -0.002849,
+     "p_value": 1.0,
+     "ci_lo": -0.022792,
+     "ci_hi": 0.019943
+    }
+   },
+   "mixed": {
+    "page_recall@50": {
+     "D0": 0.076895,
+     "D1": 0.081773,
+     "n": 5,
+     "delta": 0.004878,
+     "p_value": 1.0,
+     "ci_lo": 0.0,
+     "ci_hi": 0.014634
+    },
+    "page_recall@20": {
+     "D0": 0.055344,
+     "D1": 0.05278,
+     "n": 5,
+     "delta": -0.002564,
+     "p_value": 1.0,
+     "ci_lo": -0.007692,
+     "ci_hi": 0.0
+    },
+    "mrr@50": {
+     "D0": 0.085962,
+     "D1": 0.09866,
+     "n": 5,
+     "delta": 0.012698,
+     "p_value": 0.49975,
+     "ci_lo": 0.0,
+     "ci_hi": 0.034921
+    },
+    "success@10": {
+     "D0": 0.266667,
+     "D1": 0.266667,
+     "n": 5,
+     "delta": 0.0,
+     "p_value": 1.0,
+     "ci_lo": 0.0,
+     "ci_hi": 0.0
+    }
+   },
+   "applied_queries": {
+    "page_recall@50": {
+     "D0": 0.302012,
+     "D1": 0.300647,
+     "n": 239,
+     "delta": -0.001365,
+     "p_value": 0.715228,
+     "ci_lo": -0.008964,
+     "ci_hi": 0.006094
+    },
+    "page_recall@20": {
+     "D0": 0.207883,
+     "D1": 0.204764,
+     "n": 239,
+     "delta": -0.003119,
+     "p_value": 0.633437,
+     "ci_lo": -0.014634,
+     "ci_hi": 0.006523
+    },
+    "mrr@50": {
+     "D0": 0.240507,
+     "D1": 0.263424,
+     "n": 239,
+     "delta": 0.022917,
+     "p_value": 0.049895,
+     "ci_lo": -0.000239,
+     "ci_hi": 0.046337
+    },
+    "success@10": {
+     "D0": 0.51046,
+     "D1": 0.506276,
+     "n": 239,
+     "delta": -0.004184,
+     "p_value": 1.0,
+     "ci_lo": -0.033473,
+     "ci_hi": 0.025105
+    }
+   },
+   "decision": {
+    "rule": "D1 kept if Δ page_recall@50 and Δ mrr@50 are both >= -0.005 and not significantly negative (PREREGISTRATION §6)",
+    "translate_default": true
+   }
+  },
+  "q2_hybrid": {
+   "n_queries": 144,
+   "translation_applied": 87,
+   "cross_lingual": 16,
+   "sets": {
+    "V": {
+     "H0": {
+      "hn_above_first_rel@10": 0.037037,
+      "judged@10": 0.177778,
+      "mrr@10": 0.465821,
+      "ndcg@10": 0.329551,
+      "ndcg@20": 0.368809,
+      "p@10": 0.165972,
+      "p@5": 0.231944,
+      "recall@10": 0.355797,
+      "recall@100": 0.66357,
+      "recall@20": 0.456132,
+      "recall@50": 0.556404,
+      "n_queries": 144.0
+     },
+     "H1": {
+      "hn_above_first_rel@10": 0.037037,
+      "judged@10": 0.177778,
+      "mrr@10": 0.46851,
+      "ndcg@10": 0.330244,
+      "ndcg@20": 0.37182,
+      "p@10": 0.165972,
+      "p@5": 0.233333,
+      "recall@10": 0.353535,
+      "recall@100": 0.637435,
+      "recall@20": 0.459657,
+      "recall@50": 0.568213,
+      "n_queries": 144.0
+     },
+     "compare": {
+      "ndcg@10": {
+       "metric": "ndcg@10",
+       "n": 144,
+       "delta": 0.000693,
+       "p_value": 0.80342,
+       "ci_lo": -0.004436,
+       "ci_hi": 0.005961
+      },
+      "recall@50": {
+       "metric": "recall@50",
+       "n": 144,
+       "delta": 0.011809,
+       "p_value": 0.19678,
+       "ci_lo": -0.005234,
+       "ci_hi": 0.030309
+      },
+      "mrr@10": {
+       "metric": "mrr@10",
+       "n": 144,
+       "delta": 0.00269,
+       "p_value": 0.626237,
+       "ci_lo": -0.004572,
+       "ci_hi": 0.012167
+      }
+     },
+     "applied": {
+      "ndcg@10": {
+       "metric": "ndcg@10",
+       "n": 87,
+       "delta": 0.001147,
+       "p_value": 0.80042,
+       "ci_lo": -0.007483,
+       "ci_hi": 0.00978
+      },
+      "recall@50": {
+       "metric": "recall@50",
+       "n": 87,
+       "delta": 0.019547,
+       "p_value": 0.206879,
+       "ci_lo": -0.008991,
+       "ci_hi": 0.04987
+      },
+      "mrr@10": {
+       "metric": "mrr@10",
+       "n": 87,
+       "delta": 0.004452,
+       "p_value": 0.631837,
+       "ci_lo": -0.007594,
+       "ci_hi": 0.019714
+      }
+     },
+     "cross_lingual": {
+      "ndcg@10": {
+       "metric": "ndcg@10",
+       "n": 16,
+       "delta": 0.006169,
+       "p_value": 0.512149,
+       "ci_lo": 0.0,
+       "ci_hi": 0.018312
+      },
+      "recall@50": {
+       "metric": "recall@50",
+       "n": 16,
+       "delta": 0.089583,
+       "p_value": 0.241076,
+       "ci_lo": 0.0,
+       "ci_hi": 0.19375
+      },
+      "mrr@10": {
+       "metric": "mrr@10",
+       "n": 16,
+       "delta": 0.00625,
+       "p_value": 1.0,
+       "ci_lo": 0.0,
+       "ci_hi": 0.01875
+      }
+     },
+     "exploratory": {
+      "note": "added after the preregistered results were read; not part of the decision",
+      "recall@100": {
+       "all": {
+        "metric": "recall@100",
+        "n": 144,
+        "delta": -0.026135,
+        "p_value": 0.023298,
+        "ci_lo": -0.049824,
+        "ci_hi": -0.004475
+       },
+       "applied": {
+        "metric": "recall@100",
+        "n": 87,
+        "delta": -0.043258,
+        "p_value": 0.020598,
+        "ci_lo": -0.082246,
+        "ci_hi": -0.00678
+       }
+      },
+      "recall@20": {
+       "all": {
+        "metric": "recall@20",
+        "n": 144,
+        "delta": 0.003525,
+        "p_value": 0.620538,
+        "ci_lo": -0.008912,
+        "ci_hi": 0.016488
+       },
+       "applied": {
+        "metric": "recall@20",
+        "n": 87,
+        "delta": 0.005834,
+        "p_value": 0.617438,
+        "ci_lo": -0.014751,
+        "ci_hi": 0.027865
+       }
+      },
+      "recall@10": {
+       "all": {
+        "metric": "recall@10",
+        "n": 144,
+        "delta": -0.002262,
+        "p_value": 0.652335,
+        "ci_lo": -0.010764,
+        "ci_hi": 0.005303
+       },
+       "applied": {
+        "metric": "recall@10",
+        "n": 87,
+        "delta": -0.003744,
+        "p_value": 0.646735,
+        "ci_lo": -0.017816,
+        "ci_hi": 0.008795
+       }
+      },
+      "top100_relevant_pages_of_applied_queries": {
+       "left_top100_rank_in_H0": {
+        "1-50": 19,
+        "51-100": 21
+       },
+       "entered_top100_rank_in_H1": {
+        "1-50": 12,
+        "51-100": 1
+       }
+      }
+     }
+    },
+    "P": {
+     "H0": {
+      "hn_above_first_rel@10": 0.0,
+      "judged@10": 0.998611,
+      "mrr@10": 0.870379,
+      "ndcg@10": 0.70702,
+      "ndcg@20": 0.680781,
+      "p@10": 0.589583,
+      "p@5": 0.709722,
+      "recall@10": 0.396139,
+      "recall@100": 0.804452,
+      "recall@20": 0.560401,
+      "recall@50": 0.724278,
+      "n_queries": 144.0
+     },
+     "H1": {
+      "hn_above_first_rel@10": 0.0,
+      "judged@10": 0.998611,
+      "mrr@10": 0.874669,
+      "ndcg@10": 0.708432,
+      "ndcg@20": 0.68442,
+      "p@10": 0.589583,
+      "p@5": 0.709722,
+      "recall@10": 0.397168,
+      "recall@100": 0.778635,
+      "recall@20": 0.564387,
+      "recall@50": 0.725588,
+      "n_queries": 144.0
+     },
+     "compare": {
+      "ndcg@10": {
+       "metric": "ndcg@10",
+       "n": 144,
+       "delta": 0.001412,
+       "p_value": 0.321868,
+       "ci_lo": -0.00128,
+       "ci_hi": 0.004199
+      },
+      "recall@50": {
+       "metric": "recall@50",
+       "n": 144,
+       "delta": 0.001309,
+       "p_value": 0.837016,
+       "ci_lo": -0.010574,
+       "ci_hi": 0.014654
+      },
+      "mrr@10": {
+       "metric": "mrr@10",
+       "n": 144,
+       "delta": 0.004291,
+       "p_value": 0.255774,
+       "ci_lo": 0.0,
+       "ci_hi": 0.01193
+      }
+     },
+     "applied": {
+      "ndcg@10": {
+       "metric": "ndcg@10",
+       "n": 87,
+       "delta": 0.002338,
+       "p_value": 0.329367,
+       "ci_lo": -0.002085,
+       "ci_hi": 0.006929
+      },
+      "recall@50": {
+       "metric": "recall@50",
+       "n": 87,
+       "delta": 0.002167,
+       "p_value": 0.847515,
+       "ci_lo": -0.017766,
+       "ci_hi": 0.023938
+      },
+      "mrr@10": {
+       "metric": "mrr@10",
+       "n": 87,
+       "delta": 0.007102,
+       "p_value": 0.248975,
+       "ci_lo": 0.0,
+       "ci_hi": 0.019951
+      }
+     },
+     "cross_lingual": {
+      "ndcg@10": {
+       "metric": "ndcg@10",
+       "n": 16,
+       "delta": 0.002031,
+       "p_value": 0.247175,
+       "ci_lo": 0.0,
+       "ci_hi": 0.005136
+      },
+      "recall@50": {
+       "metric": "recall@50",
+       "n": 16,
+       "delta": 0.04912,
+       "p_value": 0.310369,
+       "ci_lo": -0.024838,
+       "ci_hi": 0.139309
+      },
+      "mrr@10": {
+       "metric": "mrr@10",
+       "n": 16,
+       "delta": 0.0,
+       "p_value": 1.0,
+       "ci_lo": 0.0,
+       "ci_hi": 0.0
+      }
+     },
+     "exploratory": {
+      "note": "added after the preregistered results were read; not part of the decision",
+      "recall@100": {
+       "all": {
+        "metric": "recall@100",
+        "n": 144,
+        "delta": -0.025817,
+        "p_value": 0.0004,
+        "ci_lo": -0.040222,
+        "ci_hi": -0.011372
+       },
+       "applied": {
+        "metric": "recall@100",
+        "n": 87,
+        "delta": -0.042732,
+        "p_value": 0.0006,
+        "ci_lo": -0.064843,
+        "ci_hi": -0.019125
+       }
+      },
+      "recall@20": {
+       "all": {
+        "metric": "recall@20",
+        "n": 144,
+        "delta": 0.003986,
+        "p_value": 0.362664,
+        "ci_lo": -0.004353,
+        "ci_hi": 0.012806
+       },
+       "applied": {
+        "metric": "recall@20",
+        "n": 87,
+        "delta": 0.006597,
+        "p_value": 0.374263,
+        "ci_lo": -0.006929,
+        "ci_hi": 0.0212
+       }
+      },
+      "recall@10": {
+       "all": {
+        "metric": "recall@10",
+        "n": 144,
+        "delta": 0.001029,
+        "p_value": 0.521548,
+        "ci_lo": -0.001646,
+        "ci_hi": 0.004225
+       },
+       "applied": {
+        "metric": "recall@10",
+        "n": 87,
+        "delta": 0.001703,
+        "p_value": 0.519248,
+        "ci_lo": -0.002804,
+        "ci_hi": 0.006998
+       }
+      },
+      "top100_relevant_pages_of_applied_queries": {
+       "left_top100_rank_in_H0": {
+        "1-50": 78,
+        "51-100": 38
+       },
+       "entered_top100_rank_in_H1": {
+        "1-50": 27,
+        "51-100": 5
+       }
+      }
+     }
+    }
+   },
+   "control_v1_E_rrf_lab_late100": {
+    "V_ndcg@10": 0.328,
+    "P_ndcg@10": 0.722,
+    "note": "V1 results_v1.json, reference for the proxy only"
+   },
+   "decision": {
+    "rule": "translate flag on by default only if Δ nDCG@10 and Δ R@50 on V and P are all >= -0.005 and not significantly negative (PREREGISTRATION §6)",
+    "translate_default_on": true
+   }
+  },
+  "exploratory_without_late": {
+   "status": "EXPLORATORY: nolate (after the preregistered results; its 'decision' fields are not the decision)",
+   "q1_dossier_overall": {
+    "page_recall@50": {
+     "D0": 0.318696,
+     "D1": 0.315962,
+     "n": 117,
+     "delta": -0.002734,
+     "p_value": 0.186381,
+     "ci_lo": -0.006831,
+     "ci_hi": 0.001261
+    },
+    "page_recall@20": {
+     "D0": 0.212127,
+     "D1": 0.214545,
+     "n": 117,
+     "delta": 0.002418,
+     "p_value": 0.39776,
+     "ci_lo": -0.002717,
+     "ci_hi": 0.007958
+    },
+    "mrr@50": {
+     "D0": 0.241623,
+     "D1": 0.250592,
+     "n": 117,
+     "delta": 0.00897,
+     "p_value": 0.248275,
+     "ci_lo": -0.005948,
+     "ci_hi": 0.023735
+    },
+    "success@10": {
+     "D0": 0.475783,
+     "D1": 0.48433,
+     "n": 117,
+     "delta": 0.008547,
+     "p_value": 0.580242,
+     "ci_lo": -0.011396,
+     "ci_hi": 0.02849
+    }
+   },
+   "q2_hybrid": {
+    "V": {
+     "H0": {
+      "ndcg@10": 0.257383,
+      "recall@50": 0.566629,
+      "recall@100": 0.66357,
+      "judged@10": 0.148611
+     },
+     "H1": {
+      "ndcg@10": 0.232233,
+      "recall@50": 0.531427,
+      "recall@100": 0.637435,
+      "judged@10": 0.1375
+     },
+     "compare": {
+      "ndcg@10": {
+       "metric": "ndcg@10",
+       "n": 144,
+       "delta": -0.02515,
+       "p_value": 0.048195,
+       "ci_lo": -0.049158,
+       "ci_hi": -0.000388
+      },
+      "recall@50": {
+       "metric": "recall@50",
+       "n": 144,
+       "delta": -0.035202,
+       "p_value": 0.033897,
+       "ci_lo": -0.067765,
+       "ci_hi": -0.003349
+      },
+      "mrr@10": {
+       "metric": "mrr@10",
+       "n": 144,
+       "delta": -0.038569,
+       "p_value": 0.067293,
+       "ci_lo": -0.078974,
+       "ci_hi": 0.001659
+      }
+     },
+     "cross_lingual": {
+      "ndcg@10": {
+       "metric": "ndcg@10",
+       "n": 16,
+       "delta": 0.122817,
+       "p_value": 0.060994,
+       "ci_lo": 0.03517,
+       "ci_hi": 0.234503
+      },
+      "recall@50": {
+       "metric": "recall@50",
+       "n": 16,
+       "delta": 0.173437,
+       "p_value": 0.029397,
+       "ci_lo": 0.044271,
+       "ci_hi": 0.325521
+      },
+      "mrr@10": {
+       "metric": "mrr@10",
+       "n": 16,
+       "delta": 0.130208,
+       "p_value": 0.060994,
+       "ci_lo": 0.026042,
+       "ci_hi": 0.276042
+      }
+     }
+    },
+    "P": {
+     "H0": {
+      "ndcg@10": 0.592697,
+      "recall@50": 0.709759,
+      "recall@100": 0.804452,
+      "judged@10": 0.920833
+     },
+     "H1": {
+      "ndcg@10": 0.545555,
+      "recall@50": 0.646448,
+      "recall@100": 0.778635,
+      "judged@10": 0.803472
+     },
+     "compare": {
+      "ndcg@10": {
+       "metric": "ndcg@10",
+       "n": 144,
+       "delta": -0.047142,
+       "p_value": 0.0013,
+       "ci_lo": -0.075988,
+       "ci_hi": -0.019025
+      },
+      "recall@50": {
+       "metric": "recall@50",
+       "n": 144,
+       "delta": -0.063311,
+       "p_value": 0.0001,
+       "ci_lo": -0.087809,
+       "ci_hi": -0.039395
+      },
+      "mrr@10": {
+       "metric": "mrr@10",
+       "n": 144,
+       "delta": -0.023302,
+       "p_value": 0.349565,
+       "ci_lo": -0.071624,
+       "ci_hi": 0.024093
+      }
+     },
+     "cross_lingual": {
+      "ndcg@10": {
+       "metric": "ndcg@10",
+       "n": 16,
+       "delta": 0.165875,
+       "p_value": 0.019898,
+       "ci_lo": 0.055652,
+       "ci_hi": 0.283567
+      },
+      "recall@50": {
+       "metric": "recall@50",
+       "n": 16,
+       "delta": 0.061464,
+       "p_value": 0.330167,
+       "ci_lo": -0.032051,
+       "ci_hi": 0.176047
+      },
+      "mrr@10": {
+       "metric": "mrr@10",
+       "n": 16,
+       "delta": 0.239236,
+       "p_value": 0.029697,
+       "ci_lo": 0.072049,
+       "ci_hi": 0.43125
+      }
+     }
+    }
+   }
+  },
+  "decisions": {
+   "topic.TRANSLATE_DEFAULT": {
+    "value": true,
+    "rule_q1": true
+   },
+   "hybrid translate default": {
+    "value": "on only when the late stage runs (CORE: VKM_HYBRID_LATE_DEFAULT=1); off with late = false",
+    "rule_q2": true,
+    "why_restricted": "the preregistered engine has the late stage; without it the extra legs hurt same-language queries (exploratory)",
+    "override": "VKM_HYBRID_TRANSLATE_DEFAULT=0 at the api service (no rebuild)"
+   },
+   "enabling_on_core": "coordinator's decision after deployment (PREREGISTRATION section 6)"
+  }
+ },
+ "open_questions": [
+  "the NAV graph (Neo4j) does not project term_translations yet (the graph loader ignores unknown datasets)",
+  "the measurement ran on a local copy of the engine; a live check on CORE after deployment is advised (latency of the extra legs: timings_ms expansion_page_x1)",
+  "hybrid legs cost depth: R@100 -0.026 on V and P (exploratory); a weight for the legs or a wider late window needs its own preregistered measurement",
+  "the V1/V2 label pools hold no pages found only through the translation: unjudged pages count as non-relevant (pool bias against the translated arm)",
+  "person names and OCR variants of one word remain among XLING and SUBSTITUTION pairs (flagged by the score)"
+ ]
+}

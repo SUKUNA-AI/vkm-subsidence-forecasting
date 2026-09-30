@@ -1,0 +1,594 @@
+{
+ "receipt": "figure_readings_v1",
+ "agent": "QV",
+ "date": "2026-09-29",
+ "task": "structured, reviewable VLM readings of complex figures: the thesis of Filatova (VKM-SRC-023, 64 image occurrences), the figures of the corpus pages flagged by the data hunt, and the images of two user intake documents",
+ "status": "AUTO_EXTRACTED_UNREVIEWED",
+ "origin": "VLM_EXTRACTED",
+ "status_note": "model readings are never VERIFIED and never observations; mine attribution only as printed in the image or caption; UNKNOWN/UNREADABLE kept; images, raw answers, parsed JSON, CSV and the review page stay in the git-ignored work directory; nothing written to evidence, the canon, PRIVATE, CORE or EDGE",
+ "code": {
+  "package": "benchmarks/figure_readings_v1/ (prompts_v1.json; scripts: extract_docx_images, render_vector, render_pdf_regions, read_figures, parse_readings, make_review, make_receipt, gpu_lock)",
+  "client": "Qwen requests through benchmarks/chart_models_v1/scripts/run_models.py (request, VramSampler); GLM-OCR requests through vkm_corpus.ocr.client.request_body with the pipeline's DEFAULT_SAMPLING and table prompt, grey PNG as run_glm.grey_png"
+ },
+ "inputs": {
+  "thesis": {
+   "source_id": "VKM-SRC-023",
+   "register_sha256_checked": true,
+   "media_parts": 65,
+   "image_occurrences_in_body": 64,
+   "not_referenced_from_body": 1,
+   "formats": {
+    "png": 41,
+    "jpeg": 19,
+    "emf": 4,
+    "gif": 1
+   },
+   "emf_rendering": "vkm-libreoffice:24.2 (--network none) EMF -> PDF, pypdfium2 render of the drawing box (long side 3200 px)",
+   "caption_mapping": "DrawingML/VML relationship -> media part; caption = the nearer of the first figure-caption paragraph below and the last table-caption paragraph above (each searched up to 6 paragraphs; a tie goes to the figure caption)"
+  },
+  "corpus": {
+   "regions": 36,
+   "sources": [
+    "VKM-SRC-002",
+    "VKM-SRC-011",
+    "VKM-SRC-012",
+    "VKM-SRC-014",
+    "VKM-SRC-021",
+    "VKM-SRC-042",
+    "VKM-SRC-043",
+    "VKM-SRC-045",
+    "VKM-SRC-064",
+    "VKM-SRC-069",
+    "VKM-SRC-074",
+    "VKM-SRC-096",
+    "VKM-SRC-196"
+   ],
+   "render": "pypdfium2 at 200 dpi from the PRIVATE PDFs (sha256 checked against the register), boxes = corpus FIGURE/TABLE bboxes + 6 pt; two slides as whole pages"
+  },
+  "intake": {
+   "INTAKE-A": "confidential enterprise document (2 images; readings local only)",
+   "INTAKE-B": "course project DOCX (8 images)"
+  },
+  "derived_images_read_in_addition": [
+   "F023_014a",
+   "F023_014b",
+   "F023_024T",
+   "INTAKE-A:002R"
+  ]
+ },
+ "models": {
+  "qwen": {
+   "model_id": "Qwen/Qwen3.5-9B",
+   "weights_repo": "unsloth/Qwen3.5-9B-GGUF",
+   "revision": "3885219b6810b007914f3a7950a8d1b469d598a5",
+   "files_sha256": {
+    "Qwen3.5-9B-Q8_0.gguf": "809626574d0cb43d4becfa56169980da2bb448f2299270f7be443cb89d0a6ae4",
+    "mmproj-F16.gguf": "f70dc3509053962b0d0d3ee8a7eacebf5d60aa560cad78254ae8698516ae029f"
+   },
+   "server": "llama.cpp b11243-fc07d781e, ghcr.io/ggml-org/llama.cpp@sha256:1c568d229561bbd4577698f1f38d3ed9bf3f5ab343e04f7a508e11ef63f4ced1",
+   "serving": "benchmarks/chart_models_v1/serving/compose.yml profile qwen, own compose project, loopback port",
+   "sampling": "temperature 0, top_p 1, seed 0, non-thinking, cache_prompt false; one retry of an answer that hit the cap: a loop with presence_penalty 1.0, a long answer with max_tokens 12288",
+   "prompt_rule": "extraction prompt = class prompt + newline + COMMON_SUFFIX (prompts_v1.json); the hashes below equal the hashes recorded with every request",
+   "max_tokens": {
+    "CLASSIFY": 256,
+    "TABLE_SCREENSHOT": 12288,
+    "MAP": 3072,
+    "GEOLOGICAL_SECTION": 3072,
+    "CHART": 3072,
+    "SCHEME_DRAWING": 3072,
+    "PHOTO": 1024,
+    "OTHER": 2048
+   }
+  },
+  "glm_ocr": {
+   "model_id": "zai-org/GLM-OCR",
+   "revision": "2e85a62840ccac27daa451df36c736c4636b8628",
+   "weights_sha256": "a16eb0de98d199293371c560f95f83130d2a2c9612449df16839f08ff9498815",
+   "server": "vLLM v0.30.0, vllm/vllm-openai@sha256:8a69ffad015f138d7170c4ddc429e230a3bc1c1719f67e14324749df200a4b90",
+   "serving": "compose profile glm (internal network, socat proxy on loopback), own compose project",
+   "sampling": "pipeline DEFAULT_SAMPLING (temperature 0, top_p 1e-5, top_k 1, repetition_penalty 1.1, seed 0), max_tokens 6144 (pipeline table cap)"
+  }
+ },
+ "prompts_file_sha256": "ab8a5d25cb78aaededb1b62430889c81608b6466c3ff5389c19d83615eb74162",
+ "prompt_sha256": {
+  "CLASSIFY": "cc0a6d4f7373c5cc501d07bd9f29c2dc41874d09f085be9952924632d5af06de",
+  "TABLE_SCREENSHOT": "1bb01335404c9da5c00fe62fa8a894b0540d38da5a85207d1acb8905d7d600b2",
+  "MAP": "a7d639d9c07ef58d324588dbf72d9df39c209328b208d2a93336a913acc625ae",
+  "GEOLOGICAL_SECTION": "49a75a416e2a63740aad2cf3983c33f4b316ca5c3f5de0c9eaa4dbf00d8504a8",
+  "CHART": "8d4065ce562d49d0875c1d4f22a00c248b809c241b4a984dfc667d509efb0a2e",
+  "SCHEME_DRAWING": "a4d68ec325d00230258e095c5c968d4c30d7625761526fb16dc302e460feb863",
+  "PHOTO": "df9415e8ee7991d9f2b20c0fb8a0689158d46be013e1d7de79950919efd7b90f",
+  "OTHER": "b57f025efeef2e721fa816bf9e18e65222392d63e35c6e254077b652f7473bf4",
+  "GLM_TABLE": "9e485ad53e473bd38f054ecfab4feb5a571bfbb4cc1e6f9c4e8597b2bfdb8f07"
+ },
+ "counts": {
+  "thesis_VKM-SRC-023": {
+   "images": 67,
+   "types": {
+    "MAP": 34,
+    "SCHEME_DRAWING": 10,
+    "GEOLOGICAL_SECTION": 1,
+    "TABLE_SCREENSHOT": 10,
+    "PHOTO": 1,
+    "OTHER": 2,
+    "CHART": 9
+   },
+   "qwen_reading_status": {
+    "PARSED": 65,
+    "FAILED_REPETITION_LOOP": 2
+   },
+   "qwen_retries_used": 5,
+   "by_source": {
+    "VKM-SRC-023": 67
+   }
+  },
+  "corpus": {
+   "images": 36,
+   "types": {
+    "MAP": 11,
+    "GEOLOGICAL_SECTION": 3,
+    "CHART": 20,
+    "TABLE_SCREENSHOT": 1,
+    "SCHEME_DRAWING": 1
+   },
+   "qwen_reading_status": {
+    "PARSED": 34,
+    "TRUNCATED_AT_CAP": 2
+   },
+   "qwen_retries_used": 5,
+   "by_source": {
+    "VKM-SRC-011": 2,
+    "VKM-SRC-042": 2,
+    "VKM-SRC-043": 1,
+    "VKM-SRC-021": 1,
+    "VKM-SRC-012": 13,
+    "VKM-SRC-196": 3,
+    "VKM-SRC-002": 2,
+    "VKM-SRC-014": 3,
+    "VKM-SRC-064": 1,
+    "VKM-SRC-045": 3,
+    "VKM-SRC-069": 2,
+    "VKM-SRC-074": 2,
+    "VKM-SRC-096": 1
+   }
+  },
+  "intake": {
+   "images": 11,
+   "types": {
+    "OTHER": 5,
+    "TABLE_SCREENSHOT": 2,
+    "MAP": 4
+   },
+   "qwen_reading_status": {
+    "PARSED": 11
+   },
+   "qwen_retries_used": 5,
+   "by_source": {
+    "INTAKE-A": 3,
+    "INTAKE-B": 8
+   }
+  }
+ },
+ "sent_image_hash_check": {
+  "PASS": 114
+ },
+ "answers_at_cap": {
+  "first_pass_answers_at_cap": 15,
+  "retries": 15,
+  "retry_outcomes": {
+   "loop_presence_penalty:ok": 9,
+   "long_answer_larger_cap:ok": 2,
+   "loop_presence_penalty:capped_again": 3,
+   "long_answer_larger_cap:capped_again": 1
+  },
+  "procedure": "an answer that reaches max_tokens is asked once more: a greedy loop (a few lines repeating, or a runaway count 1, 2, 3 …) with presence_penalty, a long answer with a larger cap; a retry capped again is FAILED_REPETITION_LOOP or TRUNCATED_AT_CAP and is not parsed"
+ },
+ "tables": {
+  "compared": 13,
+  "cells_compared": 1386,
+  "cells_agree": 617,
+  "agreement_all": 0.4452,
+  "agreement_all_tolerant": 0.7489,
+  "thesis_cells_compared": 1199,
+  "thesis_cells_agree": 532,
+  "agreement_thesis": 0.4437,
+  "agreement_thesis_tolerant": 0.7915,
+  "rule": "strict: cells equal after NFC and whitespace collapsing only; tolerant: also equal when they differ only by look-alike Latin/Cyrillic letters, spacing or the decimal separator; rows aligned by dynamic programming on tolerant row similarity (gap 0.3), a column offset -2…2 per row pair; one-reader cells count as disagreements",
+  "per_table": {
+   "F023_007": {
+    "source": "VKM-SRC-023",
+    "qwen_rows": 8,
+    "qwen_columns": 5,
+    "qwen_header_rows": 1,
+    "qwen_unreadable_cells": 0,
+    "glm_rows_incl_header": 7,
+    "glm_columns": 6,
+    "cells_compared": 34,
+    "cells_agree": 4,
+    "agreement": 0.1176,
+    "agreement_tolerant": 0.1176,
+    "disagreement_kinds": {
+     "different": 13,
+     "missing_in_one_reader": 17
+    },
+    "rows_paired": 7,
+    "column_offsets_used": {
+     "0": 3,
+     "1": 4
+    },
+    "disagreements": 30
+   },
+   "F023_015": {
+    "source": "VKM-SRC-023",
+    "qwen_rows": 9,
+    "qwen_columns": 9,
+    "qwen_header_rows": 1,
+    "qwen_unreadable_cells": 0,
+    "glm_rows_incl_header": 10,
+    "glm_columns": 9,
+    "cells_compared": 73,
+    "cells_agree": 42,
+    "agreement": 0.5753,
+    "agreement_tolerant": 0.8082,
+    "disagreement_kinds": {
+     "different": 14,
+     "lookalike_letters_only": 17
+    },
+    "rows_paired": 10,
+    "column_offsets_used": {
+     "0": 10
+    },
+    "disagreements": 31
+   },
+   "F023_016": {
+    "source": "VKM-SRC-023",
+    "qwen_rows": 3,
+    "qwen_columns": 8,
+    "qwen_header_rows": 1,
+    "qwen_unreadable_cells": 0,
+    "glm_rows_incl_header": 4,
+    "glm_columns": 8,
+    "cells_compared": 32,
+    "cells_agree": 24,
+    "agreement": 0.75,
+    "agreement_tolerant": 0.7812,
+    "disagreement_kinds": {
+     "different": 7,
+     "lookalike_letters_only": 1
+    },
+    "rows_paired": 4,
+    "column_offsets_used": {
+     "0": 4
+    },
+    "disagreements": 8
+   },
+   "F023_017": {
+    "source": "VKM-SRC-023",
+    "qwen_rows": 12,
+    "qwen_columns": 9,
+    "qwen_header_rows": 2,
+    "qwen_unreadable_cells": 0,
+    "glm_rows_incl_header": 15,
+    "glm_columns": 9,
+    "cells_compared": 135,
+    "cells_agree": 92,
+    "agreement": 0.6815,
+    "agreement_tolerant": 0.6963,
+    "disagreement_kinds": {
+     "missing_in_one_reader": 10,
+     "different": 31,
+     "lookalike_letters_only": 2
+    },
+    "rows_paired": 14,
+    "column_offsets_used": {
+     "0": 14
+    },
+    "disagreements": 43
+   },
+   "F023_018": {
+    "source": "VKM-SRC-023",
+    "qwen_rows": 15,
+    "qwen_columns": 12,
+    "qwen_header_rows": 2,
+    "qwen_unreadable_cells": 0,
+    "glm_rows_incl_header": 17,
+    "glm_columns": 12,
+    "cells_compared": 204,
+    "cells_agree": 166,
+    "agreement": 0.8137,
+    "agreement_tolerant": 0.8676,
+    "disagreement_kinds": {
+     "missing_in_one_reader": 17,
+     "different": 10,
+     "spacing_only": 1,
+     "lookalike_letters_only": 10
+    },
+    "rows_paired": 17,
+    "column_offsets_used": {
+     "0": 16,
+     "2": 1
+    },
+    "disagreements": 38
+   },
+   "F023_019": {
+    "source": "VKM-SRC-023",
+    "qwen_rows": 9,
+    "qwen_columns": 6,
+    "qwen_header_rows": 2,
+    "qwen_unreadable_cells": 0,
+    "glm_rows_incl_header": 11,
+    "glm_columns": 6,
+    "cells_compared": 66,
+    "cells_agree": 57,
+    "agreement": 0.8636,
+    "agreement_tolerant": 0.8636,
+    "disagreement_kinds": {
+     "missing_in_one_reader": 6,
+     "different": 3
+    },
+    "rows_paired": 11,
+    "column_offsets_used": {
+     "0": 10,
+     "2": 1
+    },
+    "disagreements": 9
+   },
+   "F023_020": {
+    "source": "VKM-SRC-023",
+    "qwen_rows": 1,
+    "qwen_columns": 4,
+    "qwen_header_rows": 2,
+    "qwen_unreadable_cells": 0,
+    "glm_rows_incl_header": 4,
+    "glm_columns": 4,
+    "cells_compared": 14,
+    "cells_agree": 10,
+    "agreement": 0.7143,
+    "agreement_tolerant": 0.7143,
+    "disagreement_kinds": {
+     "missing_in_one_reader": 4
+    },
+    "rows_paired": 3,
+    "column_offsets_used": {
+     "0": 3
+    },
+    "disagreements": 4
+   },
+   "F023_031": {
+    "source": "VKM-SRC-023",
+    "qwen_rows": 22,
+    "qwen_columns": 23,
+    "qwen_header_rows": 2,
+    "qwen_unreadable_cells": 0,
+    "glm_rows_incl_header": 23,
+    "glm_columns": 24,
+    "cells_compared": 551,
+    "cells_agree": 64,
+    "agreement": 0.1162,
+    "agreement_tolerant": 0.8149,
+    "disagreement_kinds": {
+     "missing_in_one_reader": 23,
+     "decimal_separator_only": 385,
+     "different": 79
+    },
+    "rows_paired": 23,
+    "column_offsets_used": {
+     "1": 2,
+     "0": 21
+    },
+    "disagreements": 487
+   },
+   "F023_060": {
+    "source": "VKM-SRC-023",
+    "qwen_rows": 4,
+    "qwen_columns": 5,
+    "qwen_header_rows": 1,
+    "qwen_unreadable_cells": 0,
+    "glm_rows_incl_header": 5,
+    "glm_columns": 5,
+    "cells_compared": 25,
+    "cells_agree": 13,
+    "agreement": 0.52,
+    "agreement_tolerant": 0.56,
+    "disagreement_kinds": {
+     "different": 11,
+     "spacing_only": 1
+    },
+    "rows_paired": 5,
+    "column_offsets_used": {
+     "0": 5
+    },
+    "disagreements": 12
+   },
+   "F023_024T": {
+    "source": "VKM-SRC-023",
+    "qwen_rows": 5,
+    "qwen_columns": 10,
+    "qwen_header_rows": 1,
+    "qwen_unreadable_cells": 0,
+    "glm_rows_incl_header": 6,
+    "glm_columns": 11,
+    "cells_compared": 65,
+    "cells_agree": 60,
+    "agreement": 0.9231,
+    "agreement_tolerant": 0.9231,
+    "disagreement_kinds": {
+     "missing_in_one_reader": 5
+    },
+    "rows_paired": 6,
+    "column_offsets_used": {
+     "0": 6
+    },
+    "disagreements": 5
+   },
+   "C045_p0062_t": {
+    "source": "VKM-SRC-045",
+    "qwen_rows": 6,
+    "qwen_columns": 7,
+    "qwen_header_rows": 1,
+    "qwen_unreadable_cells": 0,
+    "glm_rows_incl_header": 7,
+    "glm_columns": 7,
+    "cells_compared": 49,
+    "cells_agree": 41,
+    "agreement": 0.8367,
+    "agreement_tolerant": 0.9184,
+    "disagreement_kinds": {
+     "different": 4,
+     "lookalike_letters_only": 4
+    },
+    "rows_paired": 7,
+    "column_offsets_used": {
+     "0": 7
+    },
+    "disagreements": 8
+   },
+   "INTAKE-A:002": {
+    "source": "INTAKE-A",
+    "qwen_rows": 13,
+    "qwen_columns": 15,
+    "qwen_header_rows": 2,
+    "qwen_unreadable_cells": 0,
+    "glm_rows_incl_header": 15,
+    "glm_columns": 15,
+    "cells_compared": 55,
+    "cells_agree": 30,
+    "agreement": 0.5455,
+    "agreement_tolerant": 0.5455,
+    "disagreement_kinds": {
+     "missing_in_one_reader": 3,
+     "different": 22
+    },
+    "rows_paired": 15,
+    "column_offsets_used": {
+     "-2": 1,
+     "-1": 1,
+     "0": 13
+    },
+    "disagreements": 25
+   },
+   "INTAKE-A:002R": {
+    "source": "INTAKE-A",
+    "qwen_rows": 20,
+    "qwen_columns": 19,
+    "qwen_header_rows": 2,
+    "qwen_unreadable_cells": 0,
+    "glm_rows_incl_header": 15,
+    "glm_columns": 15,
+    "cells_compared": 83,
+    "cells_agree": 14,
+    "agreement": 0.1687,
+    "agreement_tolerant": 0.1687,
+    "disagreement_kinds": {
+     "different": 20,
+     "missing_in_one_reader": 49
+    },
+    "rows_paired": 15,
+    "column_offsets_used": {
+     "0": 15
+    },
+    "disagreements": 69
+   }
+  }
+ },
+ "timing": {
+  "qwen_classify_s": {
+   "n": 114,
+   "sum": 161.0,
+   "median": 1.09
+  },
+  "per_reader_task_s": {
+   "qwen:MAP": {
+    "n": 49,
+    "sum": 878.1,
+    "median": 8.28
+   },
+   "qwen:SCHEME_DRAWING": {
+    "n": 11,
+    "sum": 79.7,
+    "median": 5.58
+   },
+   "qwen:GEOLOGICAL_SECTION": {
+    "n": 4,
+    "sum": 36.7,
+    "median": 5.65
+   },
+   "qwen:TABLE_SCREENSHOT": {
+    "n": 13,
+    "sum": 271.2,
+    "median": 18.22
+   },
+   "glm-ocr:TABLE": {
+    "n": 13,
+    "sum": 37.7,
+    "median": 1.59
+   },
+   "qwen:PHOTO": {
+    "n": 1,
+    "sum": 1.4,
+    "median": 1.39
+   },
+   "qwen:OTHER": {
+    "n": 7,
+    "sum": 39.9,
+    "median": 4.41
+   },
+   "qwen:CHART": {
+    "n": 29,
+    "sum": 292.9,
+    "median": 8.15
+   }
+  },
+  "qwen_retries_s": {
+   "n": 15,
+   "sum": 602.7
+  },
+  "wall_clock_local_2026_09_29": {
+   "gpu_lock_acquired": "18:17:25",
+   "qwen_server_start_to_healthy": "18:17:30 -> 18:18:06 (36 s)",
+   "qwen_thesis_classify_64": "18:18:06 -> 18:19:37",
+   "qwen_thesis_extract_first_attempt_discarded_10": "18:19:50 -> 18:23:30",
+   "qwen_thesis_extract_64": "18:24:00 -> 18:36:18",
+   "qwen_thesis_retries_4": "18:36:18 -> 18:37:36",
+   "qwen_corpus_intake_classify_46": "18:37:36 -> 18:38:45",
+   "qwen_corpus_intake_extract_46": "18:38:45 -> 18:54:41",
+   "qwen_corpus_intake_retries_9": "18:54:41 -> 19:02:06",
+   "qwen_derived_images_4_with_retries": "19:02:06 -> 19:07:48",
+   "qwen_server_stopped": "19:07:50",
+   "glm_server_start_to_healthy": "19:07:57 -> 19:11:15 (3 min 18 s, torch.compile and CUDA graphs)",
+   "glm_tables_13": "19:11:15 -> 19:11:54",
+   "glm_server_stopped": "19:11:55",
+   "gpu_lock_released": "19:12:06"
+  },
+  "gpu_occupied_minutes": 55
+ },
+ "gpu": {
+  "card": "RTX 5070 Ti 16303 MiB",
+  "desktop_baseline_mib": {
+   "before_qwen": 4028,
+   "before_glm": 3676
+  },
+  "peak_card_mib": {
+   "qwen": 15403,
+   "glm-ocr": 12579
+  },
+  "lock": "work/gpu.lock (owner QV) created before the first server, deleted after the last server stopped",
+  "note": "peak_card_mib is the whole card (desktop included), sampled with nvidia-smi every 0.25 s during each request; the lock file was created atomically before the first server and deleted after the last one; main was told 'GPU released' at 19:12"
+ },
+ "deviations": [
+  "1 prompts: the first extraction pass (10 thesis images) was discarded after two greedy repetition loops; a common sentence (each entry once) was added to every extraction prompt and the caps of the non-table classes lowered to 3072; all 64 thesis images were re-read with the final prompts (the discarded answers stay in the local work dir)",
+  "2 retry of answers that reach the cap (not part of CH's decoding): a loop (<= 6 distinct lines among the last 40, or a constant-step count) is asked again with presence_penalty 1.0, a long answer with max_tokens 12288; the long-answer branch was added during the corpus run after dense mine plans produced complete but long lists; the four thesis retries were presence-penalty retries and all four are loops under the final detector",
+  "3 derived images read in addition to the originals (the original records stay): F023_024T (attribute-table strip of a GIS screenshot, cropped without scaling), F023_014a/b (the two panels of a figure whose whole reading looped twice), INTAKE-A:002R (a scan lying on its side, turned 90 degrees)",
+  "4 EMF/WMF: LibreOffice (container, no network) to PDF, then pypdfium2 render of the drawing box, instead of LibreOffice's PNG export (which renders the whole page at low resolution)",
+  "5 caption mapping: after the first run the rule became 'nearest of a figure caption below and a table caption above' (one table image had been given the figure caption three paragraphs below instead of its own table caption right above); images and model inputs unchanged (sent PNG hashes checked)",
+  "6 table comparison: rows first aligned by difflib on the first four cells; one misread key cell shifted whole blocks, so rows are now aligned by dynamic programming on tolerant row similarity with a column offset per row pair; the strict cell rule is unchanged and a tolerant rate is reported beside it",
+  "7 the model's own classification is kept for every image (no overrides): the stratigraphic column and the 22 x 22 correlation matrix of the thesis are TABLE_SCREENSHOT; the second reader (GLM-OCR) reads only TABLE_SCREENSHOT images"
+ ],
+ "not_done": [
+  "no manual verification of values; the agent's spot checks are written as remarks in the local review page",
+  "colours are not converted to values and curves are not digitised (legend and colour-bar labels only)",
+  "VKM-SRC-037 (DjVu) not rendered; the flagged pages VKM-SRC-047 p57 and VKM-SRC-058 p6 carry no figure",
+  "four readings failed: F023_014 and its panel F023_014a (repetition loops), C014_p0079_a and C014_p0080_a (answers still at the cap after the retry)",
+  "nothing written to evidence, the canon, PRIVATE, CORE or EDGE"
+ ]
+}

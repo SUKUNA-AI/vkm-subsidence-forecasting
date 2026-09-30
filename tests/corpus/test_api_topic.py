@@ -528,6 +528,63 @@ def test_topics_are_used_when_the_build_has_them(env):
     assert record["topics"][0]["topic_id"] == "TOP-1" and "TOPICS_UNAVAILABLE" in warnings
 
 
+def _write_tables(nav_dir, table_ids: list[str]) -> None:
+    """The part `tables` (agent TB's schemas): each table names the deformation modulus in a value column; the
+    first also names rock salt; nothing else."""
+    from vkm_corpus.navigation import ids as nav_ids
+    from vkm_corpus.navigation import tables as TB
+
+    rv = {"rule_version": "tables_v1", "review_status": "AUTO_EXTRACTED_UNREVIEWED"}
+    structure, columns = [], []
+    for i, tid in enumerate(table_ids):
+        nav = nav_ids.table_id(tid)
+        structure.append({"table_id": tid, "nav_table_id": nav, "source_id": tid.split(":")[0],
+                          "page_id": tid.rsplit(":", 1)[0], "page_index": int(tid.split(":")[1][1:]),
+                          "table_number": f"{i + 1}", "caption": f"Свойства {i + 1}", "n_rows": 3, "n_cols": 2,
+                          "confidence": 0.8, "structure_ok": True, "quality_flags": [],
+                          "property_keys": ["deformation_modulus"], "materials": ["каменная соль"] if i == 0 else [],
+                          **rv})
+        columns.append({"table_id": tid, "nav_table_id": nav, "block": 0, "col": 1, "role": "VALUE",
+                        "unit_raw": "ГПа", "property_key": "deformation_modulus", **rv})
+    pq.write_table(pa.Table.from_pylist(structure, schema=TB.TABLE_STRUCTURE_SCHEMA()),
+                   nav_dir / "table_structure.parquet")
+    pq.write_table(pa.Table.from_pylist(columns, schema=TB.TABLE_COLUMNS_SCHEMA()), nav_dir / "table_columns.parquet")
+    pq.write_table(pa.Table.from_pylist([], schema=TB.TABLE_CELLS_SCHEMA()), nav_dir / "table_cells.parquet")
+
+
+def test_structured_tables_of_the_property_the_topic_names(env):
+    service, canon, root = env
+    query = "модуль деформации каменной соли"
+    record, warnings, _e = _dossier(service, query=query)
+    assert record["tables"] == [] and "TABLES_UNAVAILABLE" in warnings            # the build has no part tables
+    assert record["inputs"]["tables"]["property_keys"] == ["deformation_modulus"]
+    other = "VKM-SRC-002:p0001:t0000000000c1"                                      # not in the canon: ids only
+    nav_dir = root / "derived" / "navigation" / NAV_SNAP
+    _write_tables(nav_dir, [canon.ids["table"], other])
+    nav_store.pack(nav_dir)
+    service.deps.nav = nav_store.NavStore(root, canonical_db=canon.duckdb_path,
+                                          functions={"explore_concept": fake_explore(canon.ids["block"])})
+    record, warnings, _e = _dossier(service, query=query)
+    assert "TABLES_UNAVAILABLE" not in warnings and record["rule_version"] == "topic_dossier_v3"
+    [table] = record["tables"]                                  # the material narrows to the table of rock salt
+    assert table["table_id"] == canon.ids["table"] and table["property_keys"] == ["deformation_modulus"]
+    assert table["units"] == ["ГПа"] and table["review_status"] == "AUTO_EXTRACTED_UNREVIEWED"
+    tables_in = record["inputs"]["tables"]
+    assert tables_in["from"] == "query" and tables_in["property_keys"] == ["deformation_modulus"]
+    assert tables_in["materials"][0] == "каменная соль" and tables_in["total"] == 1   # + its kinds (покровная …)
+    md = record["markdown"]
+    assert "## Структурированные таблицы свойств темы" in md and f"`{table['nav_table_id']}` табл. 1" in md
+    # the property alone when no table names both; a topic without a property gets no table part
+    record, _w, _e = _dossier(service, query="модуль деформации сильвинита")
+    assert {t["table_id"] for t in record["tables"]} == {canon.ids["table"], other}
+    assert record["inputs"]["tables"]["material_dropped"] is True
+    record, warnings, _e = _dossier(service, query="механика закладки")
+    assert record["tables"] == [] and record["inputs"]["tables"] == {"property_keys": []}
+    assert "TABLES_UNAVAILABLE" not in warnings
+    # budget: the tables go before the sources of the rest of the corpus and after the topics
+    assert topic.BASE_PRIORITY["topics"] > topic.BASE_PRIORITY["tables"] > topic.BASE_PRIORITY["sources_rest"]
+
+
 def test_arguments_are_checked(env):
     service, *_ = env
     for kw in ({"budget_chars": 999}, {"budget_chars": 60_001}, {"source_ids": ["SRC-1"]}, {"max_sections": 0}):

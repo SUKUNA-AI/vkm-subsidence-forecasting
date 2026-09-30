@@ -6,6 +6,9 @@
   ``host:*``) are served; others get 421.
 * The read server talks to the API with the API *read* token only (``VKM_API_TOKEN``); it never falls back to the
   write token. The admin server uses ``VKM_API_WRITE_TOKEN``.
+* Every response carries ``Connection: close``. uvicorn drops an idle keep-alive connection after 5 s, and a client
+  behind a local connection proxy (the Windows workstation, 29.09) never sees that close: its next request on the pooled
+  connection hangs until the client times out. A new connection per request costs about a millisecond on the LAN.
 """
 from __future__ import annotations
 
@@ -65,7 +68,8 @@ class McpHttpConfig:
 
 
 class BearerMiddleware:
-    """Pure ASGI middleware (keeps streaming intact): 401 without a known bearer token; ``/healthz`` is open."""
+    """Pure ASGI middleware (keeps streaming intact): 401 without a known bearer token; ``/healthz`` is open; every
+    response gets ``Connection: close`` (module docstring)."""
 
     def __init__(self, app: Any, tokens: dict[str, str]) -> None:
         self.app = app
@@ -85,6 +89,7 @@ class BearerMiddleware:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
+        send = _closing(send)
         if scope.get("path") == HEALTH_PATH and scope.get("method") == "GET":
             body = json.dumps({"status": "ok"}).encode()
             await send({"type": "http.response.start", "status": 200,
@@ -99,6 +104,18 @@ class BearerMiddleware:
             await send({"type": "http.response.body", "body": body.encode()})
             return
         await self.app(scope, receive, send)
+
+
+def _closing(send: Any) -> Any:
+    """``send`` that marks every response ``Connection: close``, replacing a ``Connection`` header set upstream."""
+
+    async def wrapped(message: dict[str, Any]) -> None:
+        if message["type"] == "http.response.start":
+            headers = [(k, v) for k, v in message.get("headers") or [] if k.lower() != b"connection"]
+            message = {**message, "headers": [*headers, (b"connection", b"close")]}
+        await send(message)
+
+    return wrapped
 
 
 def build_http_app(server: Any, config: McpHttpConfig) -> Any:

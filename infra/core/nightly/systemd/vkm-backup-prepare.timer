@@ -1,0 +1,12 @@
+# 02:00 Moscow time, every day: the source manifest is ready before EDGE starts copying at 02:30.
+[Unit]
+Description=VKM backup source manifest at 02:00 MSK
+
+[Timer]
+OnCalendar=*-*-* 02:00:00 Europe/Moscow
+Persistent=true
+AccuracySec=1min
+Unit=vkm-backup-prepare.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,833 @@
+{
+ "schema": "vkm-nav-graph-receipt-v1",
+ "agent": "G2",
+ "date": "2026-09-29",
+ "branch": "claude/agent-g2-graph-tables-2026-09-29",
+ "status": "DRY_RUN: row counts, accounting, preflight and DOCUMENT id resolution without a database; the DDL, the load and checks N1-N11 run on CORE (coordinator)",
+ "layer": "NAVIGATION (label NavigationLayer, DDL prefix nav_): DERIVED, AUTO_EXTRACTED_UNREVIEWED; navigation, never evidence - a dictionary pair, a table naming a property, a repeated figure are hints, not facts",
+ "graph_schema_version": "nav-graph/1.1",
+ "loader_version": "nav_graph_v2",
+ "command": "vkm-corpus nav graph-load --nav-dir <NAV build of the snapshot> --dry-run --canon-duckdb <canonical DuckDB of the same snapshot> --out <receipt>",
+ "input": {
+  "snapshot_id": "snap-20260928T193550Z-738eebee",
+  "nav_manifest_sha256": "24ffe0c76f25ad00061797e99a231a0daccd3a3ca94e416977b0483e1da0e12c",
+  "nav_build": "the deployed NAV build of the snapshot on CORE, copied read-only (parquet files and manifest; nothing written on CORE)",
+  "canonical_duckdb": "the canonical DuckDB of the same snapshot (workstation copy; meta.snapshot matches)",
+  "parts": {
+   "concepts": {
+    "rule_version": "concepts_v1",
+    "status": "BUILT"
+   },
+   "duplicates": {
+    "rule_version": "duplicates_v1",
+    "status": "BUILT"
+   },
+   "formulas": {
+    "rule_version": "formula_context_v1",
+    "status": "BUILT"
+   },
+   "object_duplicates": {
+    "rule_version": "object_duplicates_v1",
+    "status": "BUILT"
+   },
+   "parameters": {
+    "rule_version": "parameters_v2",
+    "status": "BUILT"
+   },
+   "sections": {
+    "rule_version": "sections_v1",
+    "status": "BUILT"
+   },
+   "tables": {
+    "rule_version": "tables_v1",
+    "status": "BUILT"
+   },
+   "topics": {
+    "rule_version": "topics_v1",
+    "status": "BUILT"
+   },
+   "translations": {
+    "rule_version": "term_translations_v1",
+    "status": "BUILT"
+   }
+  },
+  "datasets_new_parts": {
+   "table_structure": {
+    "rows": 3391,
+    "sha256": "354b326ea4bf590f969f10dede1bdc409b23032ba78d0cd1eb5048b7d7b9db32"
+   },
+   "table_columns": {
+    "rows": 24523,
+    "sha256": "776792b687f7943c02678a5c55637a23abfcb96a81c634b1270d09df313a4242"
+   },
+   "table_cells": {
+    "rows": 389527,
+    "sha256": "ad93f9d50e1b9562b3438bdf2a5c606f5959a96c03c82324cbb507dbf6c02d05"
+   },
+   "parameter_candidates": {
+    "rows": 10792,
+    "sha256": "8dec93bc8efc66fa2ff42d7700d52550ea809034198c8f862353b126d43fcebe"
+   },
+   "parameter_summary": {
+    "rows": 629,
+    "sha256": "b09fc3695eb9ffeae4ad80f9e30d4e23dacef0fba97da4b5686413740322acef"
+   },
+   "term_translations": {
+    "rows": 6541,
+    "sha256": "12c6a85cafb8e7775433abd88c9eca4f97884d476fc867f3d15763d56a080a9b"
+   },
+   "object_dup_clusters": {
+    "rows": 831,
+    "sha256": "44d4f0e7cb0aca06bc2f16b61e2f47273423f057c0c77391fc08112fc4573738"
+   },
+   "object_dup_members": {
+    "rows": 1795,
+    "sha256": "25fda142a141044930d70f389d71a4f64cdd8eb2e171ed5b824c0025155388a1"
+   },
+   "formula_keys": {
+    "rows": 108783,
+    "sha256": "737494e102fe04f0d116bec0c27f8210c30af7d8a714a59a853c56407e6fa14b"
+   },
+   "figure_hashes": {
+    "rows": 17784,
+    "sha256": "234d7ea7e74ec5a0a2b2b6515fa538787b7b5ddc7fd3a8ceeac51f26432dac33"
+   }
+  },
+  "morphology": "pymorphy3 (terms.morphology = pymorphy3; the CORE job image has the navigation extra)"
+ },
+ "new_node_types": {
+  "NavTable": {
+   "id": "TBL-<16 hex>",
+   "rows": 3391,
+   "dataset": "table_structure"
+  },
+  "ParameterValue": {
+   "id": "PRM-<16 hex>",
+   "rows": 10792,
+   "dataset": "parameter_candidates (parameters_v2)"
+  },
+  "ObjectDupGroup": {
+   "id": "OCL-<16 hex>",
+   "rows": 831,
+   "dataset": "object_dup_clusters"
+  },
+  "Term (dictionary_only)": {
+   "id": "TRM-<16 hex>",
+   "rows": 607,
+   "dataset": "term_translations: term ids that terms does not hold",
+   "by_language_distinct": {
+    "de": 47,
+    "en": 365,
+    "ru": 195
+   }
+  }
+ },
+ "new_edge_types": {
+  "GRID_OF": 3391,
+  "TABLE_IN_SECTION": 3377,
+  "TABULATES": 1060,
+  "VALUE_IN_SECTION": 10741,
+  "IN_TABLE": 5813,
+  "IN_BLOCK": 4979,
+  "NEAR_FORMULA:ParameterValue": 2,
+  "VALUE_OF": 10564,
+  "TRANSLATES_TO": 4451,
+  "SYNONYM_OF": 1357,
+  "ABBREVIATION_OF": 732,
+  "DUP_MEMBER_OF:Figure": 782,
+  "DUP_MEMBER_OF:Table": 229,
+  "DUP_MEMBER_OF:Formula": 784
+ },
+ "totals": {
+  "before": {
+   "nodes": 111922,
+   "rels": 2203152,
+   "source": "deploy_20260929_nav_tables_dictionary.json (graph after the 29.09 reload)"
+  },
+  "after": {
+   "nodes": 127543,
+   "rels": 2251414
+  },
+  "added": {
+   "nodes": 15621,
+   "rels": 48262
+  },
+  "unchanged_types_equal_the_deployed_graph": true
+ },
+ "expected_counts": {
+  "nodes": {
+   "FormulaSymbol": 5394,
+   "NavSection": 9105,
+   "NavTable": 3391,
+   "NavTopic": 720,
+   "ObjectDupGroup": 831,
+   "ParameterCandidate": 2106,
+   "ParameterValue": 10792,
+   "Term": 95204
+  },
+  "rels": {
+   "ABBREVIATION_OF": 732,
+   "CONTAINS_TERM": 144674,
+   "COVERS_PAGE": 51662,
+   "CO_OCCURS": 1391082,
+   "DEFINED_AS": 985,
+   "DEFINED_FOR": 8835,
+   "DUP_MEMBER_OF:Figure": 782,
+   "DUP_MEMBER_OF:Formula": 784,
+   "DUP_MEMBER_OF:Table": 229,
+   "GRID_OF": 3391,
+   "HAS_NAV_SECTION": 2050,
+   "IN_BLOCK": 4979,
+   "IN_SECTION": 108706,
+   "IN_TABLE": 5813,
+   "IN_TOPIC": 23607,
+   "MENTIONED_IN": 437872,
+   "NAV_BLOCK_REFERS_TO": 8960,
+   "NAV_CHILD_OF:NavSection": 7055,
+   "NAV_CHILD_OF:NavTopic": 701,
+   "NAV_REFERS_TO": 7152,
+   "NEAR_FORMULA": 2106,
+   "NEAR_FORMULA:ParameterValue": 2,
+   "RELATED_TOPIC": 2377,
+   "SAME_TERM_AS": 532,
+   "SYMBOL_OF": 4796,
+   "SYNONYM_OF": 1357,
+   "TABLE_IN_SECTION": 3377,
+   "TABULATES": 1060,
+   "TRANSLATES_TO": 4451,
+   "VALUE_IN_SECTION": 10741,
+   "VALUE_OF": 10564
+  },
+  "skipped": {},
+  "subsets": {
+   "Term.dictionary_only": 607
+  }
+ },
+ "accounting": {
+  "dup_clusters": {
+   "closed": true,
+   "folded": {},
+   "loaded": {},
+   "rows": 697,
+   "skipped": {
+    "not projected: text duplicates stay in the NAV DuckDB (copies_of)": 697
+   }
+  },
+  "dup_members": {
+   "closed": true,
+   "folded": {},
+   "loaded": {},
+   "rows": 1718,
+   "skipped": {
+    "not projected: text duplicates stay in the NAV DuckDB (copies_of)": 1718
+   }
+  },
+  "figure_hashes": {
+   "closed": true,
+   "folded": {},
+   "loaded": {},
+   "rows": 17784,
+   "skipped": {
+    "not projected: image hashes: a cache of the object_duplicates build": 17784
+   }
+  },
+  "formula_keys": {
+   "closed": true,
+   "folded": {},
+   "loaded": {},
+   "rows": 108783,
+   "skipped": {
+    "not projected: canonical formula keys stay in the NAV DuckDB (shared_formulas)": 108783
+   }
+  },
+  "object_dup_clusters": {
+   "closed": true,
+   "folded": {},
+   "loaded": {
+    "ObjectDupGroup": 831
+   },
+   "rows": 831,
+   "skipped": {
+    "duplicate id": 0,
+    "no id": 0
+   }
+  },
+  "object_dup_members": {
+   "closed": true,
+   "folded": {},
+   "loaded": {
+    "DUP_MEMBER_OF:Figure": 782,
+    "DUP_MEMBER_OF:Formula": 784,
+    "DUP_MEMBER_OF:Table": 229
+   },
+   "rows": 1795,
+   "skipped": {
+    "unknown object type or group, or no object id": 0
+   }
+  },
+  "parameter_candidates": {
+   "closed": true,
+   "edge_notes": {
+    "IN_TABLE: values of a table without a structured grid": 0,
+    "VALUE_IN_SECTION: no section or an unknown one": 51,
+    "VALUE_OF: values whose property has no term": 228
+   },
+   "edges": {
+    "IN_BLOCK": 4979,
+    "IN_TABLE": 5813,
+    "NEAR_FORMULA:ParameterValue": 2,
+    "VALUE_IN_SECTION": 10741,
+    "VALUE_OF": 10564
+   },
+   "folded": {},
+   "loaded": {
+    "ParameterValue": 10792
+   },
+   "rows": 10792,
+   "skipped": {
+    "duplicate id": 0,
+    "no id": 0
+   }
+  },
+  "parameter_summary": {
+   "closed": true,
+   "folded": {},
+   "loaded": {},
+   "rows": 629,
+   "skipped": {
+    "not projected: per-property counts stay in the NAV DuckDB (parameter_summary)": 629
+   }
+  },
+  "section_vectors": {
+   "closed": true,
+   "folded": {},
+   "loaded": {},
+   "rows": 7869,
+   "skipped": {
+    "not projected: section vectors stay in the NAV DuckDB (similar_sections)": 7869
+   }
+  },
+  "source_overlap": {
+   "closed": true,
+   "folded": {},
+   "loaded": {},
+   "rows": 459,
+   "skipped": {
+    "not projected: source overlaps stay in the NAV DuckDB (source_overlap)": 459
+   }
+  },
+  "table_cells": {
+   "closed": true,
+   "folded": {},
+   "loaded": {},
+   "rows": 389527,
+   "skipped": {
+    "not projected: cells stay in the NAV DuckDB (get_table_structured)": 389527
+   }
+  },
+  "table_columns": {
+   "closed": true,
+   "folded": {
+    "TABULATES.n_columns": 789
+   },
+   "loaded": {},
+   "rows": 24523,
+   "skipped": {
+    "other columns: the grid stays in the NAV DuckDB (get_table_structured)": 23720,
+    "value columns naming a property without a term": 14
+   }
+  },
+  "table_structure": {
+   "closed": true,
+   "edge_notes": {
+    "TABLE_IN_SECTION: no section or an unknown one": 14,
+    "TABULATES: (table, property) pairs": 1079,
+    "TABULATES: pairs whose property has no term (not linked)": 17
+   },
+   "edges": {
+    "GRID_OF": 3391,
+    "TABLE_IN_SECTION": 3377,
+    "TABULATES": 1060
+   },
+   "folded": {},
+   "loaded": {
+    "NavTable": 3391
+   },
+   "rows": 3391,
+   "skipped": {
+    "duplicate id": 0,
+    "no id": 0
+   }
+  },
+  "term_translations": {
+   "closed": true,
+   "folded": {},
+   "loaded": {
+    "ABBREVIATION_OF": 732,
+    "SYNONYM_OF": 1357,
+    "TRANSLATES_TO": 4451
+   },
+   "nodes": {
+    "Term (dictionary_only)": 607
+   },
+   "rows": 6541,
+   "skipped": {
+    "one term id on both sides (one lemma key in two languages)": 1,
+    "unknown relation or no term id": 0
+   }
+  },
+  "terms": {
+   "closed": true,
+   "folded": {},
+   "loaded": {
+    "Term": 94597
+   },
+   "rows": 94597,
+   "skipped": {}
+  }
+ },
+ "accounting_closed_for_every_dataset": true,
+ "property_terms": {
+  "rule_version": "property_term_v1",
+  "morphology": "pymorphy3",
+  "properties": 58,
+  "properties_with_term": 55,
+  "terms": 54,
+  "by_basis": {
+   "label_en": 4,
+   "label_ru": 51
+  },
+  "properties_without_term": [
+   "flexural_strength",
+   "loading_degree",
+   "standard_strength"
+  ],
+  "mapping": {
+   "activation_energy": {
+    "term_id": "TRM-065db7d6c6af9f0d",
+    "basis": "label_en"
+   },
+   "backfill_ratio": {
+    "term_id": "TRM-9d0d8a4cd78bc4d1",
+    "basis": "label_ru"
+   },
+   "backfill_shrinkage": {
+    "term_id": "TRM-4db664367ead677d",
+    "basis": "label_ru"
+   },
+   "boundary_angle": {
+    "term_id": "TRM-6a282e599d63eb4c",
+    "basis": "label_ru"
+   },
+   "break_angle": {
+    "term_id": "TRM-a7a7c09234dfb11c",
+    "basis": "label_ru"
+   },
+   "bulk_modulus": {
+    "term_id": "TRM-b0fca93e0516b0d5",
+    "basis": "label_ru"
+   },
+   "cohesion": {
+    "term_id": "TRM-32418dbb9ec3b587",
+    "basis": "label_ru"
+   },
+   "creep_coefficient": {
+    "term_id": "TRM-2c063b63dcd7b1cc",
+    "basis": "label_ru"
+   },
+   "creep_exponent": {
+    "term_id": "TRM-ea8714b4db15dc53",
+    "basis": "label_ru"
+   },
+   "creep_rate": {
+    "term_id": "TRM-a629b53b94cd1591",
+    "basis": "label_ru"
+   },
+   "curvature": {
+    "term_id": "TRM-4301e09bde3cc10d",
+    "basis": "label_ru"
+   },
+   "deformation_modulus": {
+    "term_id": "TRM-d45c89ce26347857",
+    "basis": "label_ru"
+   },
+   "density": {
+    "term_id": "TRM-3327fa44d59bd760",
+    "basis": "label_ru"
+   },
+   "depth": {
+    "term_id": "TRM-5353a41bf6e9a34d",
+    "basis": "label_ru"
+   },
+   "depth_unspecified": {
+    "term_id": "TRM-5353a41bf6e9a34d",
+    "basis": "label_ru"
+   },
+   "displacement_angle": {
+    "term_id": "TRM-32562db0f52bf8c4",
+    "basis": "label_ru"
+   },
+   "excavation_height": {
+    "term_id": "TRM-35947429683937d6",
+    "basis": "label_ru"
+   },
+   "extraction_ratio": {
+    "term_id": "TRM-7397fa63690bad50",
+    "basis": "label_ru"
+   },
+   "friction_angle": {
+    "term_id": "TRM-0f8ac32261d340cb",
+    "basis": "label_ru"
+   },
+   "friction_coefficient": {
+    "term_id": "TRM-4204849d026c3760",
+    "basis": "label_ru"
+   },
+   "full_subsidence_angle": {
+    "term_id": "TRM-401af5b14e633b46",
+    "basis": "label_ru"
+   },
+   "horizontal_displacement": {
+    "term_id": "TRM-73478d441df815cf",
+    "basis": "label_ru"
+   },
+   "horizontal_strain": {
+    "term_id": "TRM-42f62b37b554de02",
+    "basis": "label_ru"
+   },
+   "horizontal_stress": {
+    "term_id": "TRM-a9d90b10f3eb25a4",
+    "basis": "label_ru"
+   },
+   "hydraulic_conductivity": {
+    "term_id": "TRM-efa279dc56e61e57",
+    "basis": "label_ru"
+   },
+   "lateral_pressure_coefficient": {
+    "term_id": "TRM-84c381453b0e1e55",
+    "basis": "label_ru"
+   },
+   "layer_thickness": {
+    "term_id": "TRM-683c05ec14650527",
+    "basis": "label_ru"
+   },
+   "limit_strain": {
+    "term_id": "TRM-5210bc128651e390",
+    "basis": "label_ru"
+   },
+   "long_term_strength": {
+    "term_id": "TRM-61a95b7ad6951079",
+    "basis": "label_ru"
+   },
+   "long_term_strength_ratio": {
+    "term_id": "TRM-261746bbf7a6f70d",
+    "basis": "label_ru"
+   },
+   "max_subsidence": {
+    "term_id": "TRM-063fb4c9503c4623",
+    "basis": "label_ru"
+   },
+   "max_subsidence_angle": {
+    "term_id": "TRM-39ff718b9c08253b",
+    "basis": "label_ru"
+   },
+   "moisture_content": {
+    "term_id": "TRM-8514a850739d05fb",
+    "basis": "label_ru"
+   },
+   "permeability": {
+    "term_id": "TRM-d7e205d449170b20",
+    "basis": "label_ru"
+   },
+   "pillar_width": {
+    "term_id": "TRM-5344226a5814698d",
+    "basis": "label_ru"
+   },
+   "poisson_ratio": {
+    "term_id": "TRM-a2435a122e72e223",
+    "basis": "label_ru"
+   },
+   "porosity": {
+    "term_id": "TRM-40a499ca0e41076b",
+    "basis": "label_ru"
+   },
+   "residual_strength": {
+    "term_id": "TRM-fc4f27d7256a3142",
+    "basis": "label_ru"
+   },
+   "rheological_constant": {
+    "term_id": "TRM-e596149e95b51c46",
+    "basis": "label_ru"
+   },
+   "room_width": {
+    "term_id": "TRM-4261ac2e2378c680",
+    "basis": "label_ru"
+   },
+   "seam_thickness": {
+    "term_id": "TRM-cda0602e465e868d",
+    "basis": "label_ru"
+   },
+   "shear_modulus": {
+    "term_id": "TRM-5c760f219a47a516",
+    "basis": "label_ru"
+   },
+   "shear_strength": {
+    "term_id": "TRM-292b618ed3775fcf",
+    "basis": "label_en"
+   },
+   "softening_modulus": {
+    "term_id": "TRM-e06022327ab3aba6",
+    "basis": "label_ru"
+   },
+   "strength_unspecified": {
+    "term_id": "TRM-a3e4d0f056bf888b",
+    "basis": "label_ru"
+   },
+   "subsidence": {
+    "term_id": "TRM-937d1ca8cd61cb6f",
+    "basis": "label_ru"
+   },
+   "subsidence_rate": {
+    "term_id": "TRM-bc9f54ee89d1e493",
+    "basis": "label_ru"
+   },
+   "tensile_strength": {
+    "term_id": "TRM-c5446bf0628d6c73",
+    "basis": "label_en"
+   },
+   "thickness_unspecified": {
+    "term_id": "TRM-7e3322db9ef3a232",
+    "basis": "label_ru"
+   },
+   "tilt": {
+    "term_id": "TRM-5329540d7f7de227",
+    "basis": "label_ru"
+   },
+   "ucs": {
+    "term_id": "TRM-b68f0dd441bfcc97",
+    "basis": "label_en"
+   },
+   "unit_weight": {
+    "term_id": "TRM-5e85beed25b19b6e",
+    "basis": "label_ru"
+   },
+   "vertical_stress": {
+    "term_id": "TRM-ad0a306334b60b26",
+    "basis": "label_ru"
+   },
+   "viscosity": {
+    "term_id": "TRM-86c54c0756fa37b2",
+    "basis": "label_ru"
+   },
+   "youngs_modulus": {
+    "term_id": "TRM-8a4e411cb440179c",
+    "basis": "label_ru"
+   }
+  }
+ },
+ "symbol_of": {
+  "SYMBOL_OF": 4796,
+  "definitions": 8835,
+  "definitions_matched": 5200,
+  "distinct_definitions": 5987,
+  "edges_by_match": {
+   "FULL": 1197,
+   "NEAR_START": 1403,
+   "PREFIX": 2196
+  },
+  "morphology": "pymorphy3",
+  "rule_version": "symbol_of_v1",
+  "symbols_linked": 3496,
+  "terms_morphology": "pymorphy3"
+ },
+ "preflight": [
+  {
+   "check_id": "P1",
+   "count": 0,
+   "status": "PASS",
+   "title": "NAV node ids are unique and not null"
+  },
+  {
+   "check_id": "P2",
+   "count": 0,
+   "status": "PASS",
+   "title": "tree parents exist; section page ranges are valid"
+  },
+  {
+   "check_id": "P3",
+   "count": 0,
+   "status": "PASS",
+   "title": "NAV trees (sections, topics) are acyclic with one parent per node"
+  },
+  {
+   "check_id": "P4",
+   "count": 0,
+   "status": "PASS",
+   "title": "every section covers at least one page of section_pages"
+  },
+  {
+   "check_id": "P5",
+   "count": 0,
+   "status": "PASS",
+   "title": "every dataset row is loaded, folded or skipped by a named rule"
+  },
+  {
+   "check_id": "P6",
+   "count": 0,
+   "status": "PASS",
+   "title": "references between NAV datasets resolve (rows that do not are skipped)"
+  }
+ ],
+ "preflight_summary": {
+  "FAIL": 0,
+  "PASS": 6,
+  "SKIP": 0,
+  "WARN": 0
+ },
+ "document_references": {
+  "all_resolved": true,
+  "canonical_snapshot_id": "snap-20260928T193550Z-738eebee",
+  "matches_nav_snapshot": true,
+  "missing": {
+   "COVERS_PAGE.Page": {
+    "examples": [],
+    "n": 0
+   },
+   "DEFINED_AS.Block": {
+    "examples": [],
+    "n": 0
+   },
+   "DEFINED_FOR.Formula": {
+    "examples": [],
+    "n": 0
+   },
+   "DUP_MEMBER_OF:Figure.Figure": {
+    "examples": [],
+    "n": 0
+   },
+   "DUP_MEMBER_OF:Formula.Formula": {
+    "examples": [],
+    "n": 0
+   },
+   "DUP_MEMBER_OF:Table.Table": {
+    "examples": [],
+    "n": 0
+   },
+   "GRID_OF.Table": {
+    "examples": [],
+    "n": 0
+   },
+   "HAS_NAV_SECTION.Source": {
+    "examples": [],
+    "n": 0
+   },
+   "IN_BLOCK.Block": {
+    "examples": [],
+    "n": 0
+   },
+   "IN_SECTION.Formula": {
+    "examples": [],
+    "n": 0
+   },
+   "NAV_BLOCK_REFERS_TO.Block": {
+    "examples": [],
+    "n": 0
+   },
+   "NAV_BLOCK_REFERS_TO.Formula": {
+    "examples": [],
+    "n": 0
+   },
+   "NAV_REFERS_TO.Formula": {
+    "examples": [],
+    "n": 0
+   },
+   "NEAR_FORMULA.Formula": {
+    "examples": [],
+    "n": 0
+   },
+   "NEAR_FORMULA:ParameterValue.Formula": {
+    "examples": [],
+    "n": 0
+   }
+  }
+ },
+ "data_invariants_n8_n11": {
+  "N8": {
+   "self_pairs_projected": 0,
+   "self_pairs_skipped": 1,
+   "pairs_between_concept_terms": {
+    "ABBREVIATION": 405,
+    "SYNONYM": 1345,
+    "TRANSLATION": 4174
+   },
+   "pairs_with_a_dictionary_only_side": {
+    "ABBREVIATION": 327,
+    "SYNONYM": 12,
+    "TRANSLATION": 277
+   }
+  },
+  "N9": {
+   "tables_without_table_id": 0,
+   "duplicate_table_ids": 0,
+   "tables_without_section": 14
+  },
+  "N10": {
+   "groups_under_two_members": 0,
+   "members_of_another_type": 0,
+   "n_members_mismatch": 0,
+   "primary_not_flagged": 0,
+   "primary_flag_without_primary": 0,
+   "groups_without_primary": 46,
+   "groups_with_several_primary_members": 9
+  },
+  "N11": {
+   "table_values_without_table": 0,
+   "other_values_with_table": 0,
+   "formula_edges_of_other_methods": 0
+  }
+ },
+ "timings_s": {
+  "dry_run_plan": 2.95,
+  "dry_run_total": 3.14
+ },
+ "load_estimate": {
+  "deployed_load_s": 191,
+  "deployed_rows": 2315074,
+  "added_rows": 63883,
+  "estimate_s": 200,
+  "basis": "the 29.09 load wrote 2.31 M rows in 191 s (about 12 k rows/s); the new parts add about 64 k rows (+5-6 s) and four read-only check queries (N8-N11, seconds)"
+ },
+ "api_mcp": {
+  "routes": [
+   "GET /v1/nav/table/{table_id}",
+   "GET /v1/nav/tables",
+   "GET /v1/nav/object_copies/{object_id}",
+   "GET /v1/nav/shared_formulas"
+  ],
+  "mcp_read_tools": [
+   "get_table_structured",
+   "find_tables",
+   "copies_of_object",
+   "shared_formulas"
+  ],
+  "mcp_read_tools_total": 43,
+  "envelope_kinds": [
+   "NAV_TABLE",
+   "NAV_TABLES",
+   "NAV_OBJECT_COPIES",
+   "NAV_SHARED_FORMULAS"
+  ],
+  "missing_part": "DEPENDENCY_UNAVAILABLE naming the dataset (NavStore.require)",
+  "concept_paths": "family via=dictionary (TRANSLATES_TO, SYNONYM_OF, ABBREVIATION_OF), default all families",
+  "reconstruct_topic": "topic_dossier_v3: structured tables of a property the topic names (<= 6; find_tables)",
+  "nightly_mcp_smoke": "nightly-mcp-smoke-3: 43 tools, EXPECTED_MCP_TOOLS 43"
+ },
+ "checks_added": {
+  "N8": "term dictionary: dictionary-only terms as planned, each with a dictionary edge, none with a concept-graph edge; no pair from a term to itself",
+  "N9": "structured tables: one GRID_OF to the canonical table each names, at most one section",
+  "N10": "object duplicate groups: n_members members of the group's type, the primary among them flagged is_primary, no is_primary member without a primary",
+  "N11": "parameter values: at most one table, formula, section and property edge; table and formula edges agree with the method and the table of the value",
+  "P6": "+ table_structure / parameter_candidates sections, parameter tables without a grid, members of an unknown group (WARN)",
+  "P5": "every dataset row of the build accounted for; datasets the graph does not project are skipped with the reason"
+ }
+}

@@ -303,7 +303,8 @@ def test_build_candidates_locators_sections_and_ids(built):
     assert (norm["scale_hint"], norm["scale_basis"]) == ("NORMATIVE", "SOURCE_CLASS")
     assert not [r for r in rows if r["block_id"] == f"{P1}:b4"]          # numbers inside a figure are skipped
     assert all(r["candidate_id"].startswith("PRM-") and r["review_status"] == P.REVIEW_STATUS for r in rows)
-    assert stats["counters"]["candidates"] == len(rows) and stats["rule_version"] == "parameters_v1"
+    assert stats["counters"]["candidates"] == len(rows) and stats["rule_version"] == "parameters_v2"
+    assert stats["table_input"] == "canonical.tables"                     # no part `tables` in this build
     again = P.build(_canon(), section_pages=[], sections=[], workers=1)["parameter_candidates"].to_pylist()
     assert sorted(r["candidate_id"] for r in again) == sorted(r["candidate_id"] for r in rows)
     summ = tables["parameter_summary"].to_pylist()
@@ -314,8 +315,9 @@ def test_build_candidates_locators_sections_and_ids(built):
 
 
 def test_cli_part_and_inputs(tmp_path, built):
-    assert list(nav_cli.PARTS).index("parameters") == list(nav_cli.PARTS).index("formulas") + 1
-    assert nav_ids.RULE_VERSIONS["parameters"] == "parameters_v1"
+    assert list(nav_cli.PARTS).index("parameters") == list(nav_cli.PARTS).index("tables") + 1
+    assert list(nav_cli.PARTS).index("tables") == list(nav_cli.PARTS).index("formulas") + 1
+    assert nav_ids.RULE_VERSIONS["parameters"] == "parameters_v2"
     assert {"parameter_candidates", "parameter_summary"} <= set(nav_ids.DATASETS)
     assert nav_ids.parameter_candidate_id("b", "3", "ucs", "25") == nav_ids.parameter_candidate_id("b", "3", "ucs",
                                                                                                     "25")

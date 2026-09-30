@@ -21,7 +21,8 @@ from vkm_corpus.api.app import ApiConfig, create_app  # noqa: E402
 from vkm_corpus.api.canon import CanonStore  # noqa: E402
 from vkm_corpus.api.envelope import Envelope, Geometry, Provenance  # noqa: E402
 from vkm_corpus.api.errors import ApiFailure  # noqa: E402
-from vkm_corpus.api.fixtures import SNAPSHOT_ID, FakeGraph, FakeSearch, search_hits, synthetic_service  # noqa: E402
+from vkm_corpus.api.fixtures import (SNAPSHOT_ID, FakeGraph, FakeHybrid, FakeSearch, search_hits,  # noqa: E402
+                                     synthetic_service)
 from vkm_world.governance.leakage import FORBIDDEN_COLUMNS, _json_keys  # noqa: E402
 
 READ, WRITE = "read-token-for-tests-0000000000000000", "write-token-for-tests-000000000000000"
@@ -247,6 +248,62 @@ def test_rerank_text_uses_canonical_text_and_limits(env):
     assert ranked[0]["record"]["sent_text_sha256"] == hashlib.sha256(sent["VKM-SRC-001:p0002"].encode()).hexdigest()
     _err(client.post("/v1/rerank/text", json={"query": "q", "candidate_ids": ["VKM-SRC-001:p0003"]}, headers=HR),
          422, "NO_RERANK_TEXT")
+
+
+def test_rerank_text_late_backend_scores_through_the_token_store(tmp_path, monkeypatch):
+    """With hybrid search configured rerank_text re-scores by mLateOn MaxSim (the EDGE text reranker was retired
+    29.09); a block is scored through its page, absent ids are rejected, ``gateway`` still selects the old path."""
+    monkeypatch.delenv("VKM_RERANK_TEXT_BACKEND", raising=False)
+    service, canon, fakes = synthetic_service(tmp_path, hybrid=FakeHybrid([]))
+    client = TestClient(create_app(service, ApiConfig(read_tokens={READ: "read"}, write_tokens={WRITE: "write"})))
+    ids = ["VKM-SRC-001:p0001", "VKM-SRC-001:p0002", canon.ids["figure"], canon.ids["block"], "VKM-SRC-002:p0009"]
+    body = _ok(client.post("/v1/rerank/text", json={"query": "мульда сдвижения", "candidate_ids": ids}, headers=HR))
+    ranked = [it["envelope"]["object_id"] for it in body["items"]]
+    assert ranked[0] == canon.ids["figure"] and set(ranked) == set(ids[:4])       # figure: the last target, top
+    assert all(it["record"]["rule"] == "rerank_text_late_v1" for it in body["items"])
+    block = next(it["record"] for it in body["items"] if it["envelope"]["object_id"] == canon.ids["block"])
+    assert block["scored_as"]["kind"] == "PAGE"
+    targets = fakes["hybrid"].late_calls[-1][1]
+    assert len(targets) == len({t["id"] for t in targets})                         # a page is scored once
+    assert body["item"]["record"]["rule"] == "rerank_text_late_v1"
+    assert {r["id"]: r["code"] for r in body["item"]["record"]["rejected"]} == {"VKM-SRC-002:p0009": "NOT_FOUND"}
+    assert not fakes["rerank"].text_calls                                           # EDGE is not called
+    top = _ok(client.post("/v1/rerank/text", json={"query": "q", "candidate_ids": ids[:3], "top_n": 2}, headers=HR))
+    assert len(top["items"]) == 2
+    monkeypatch.setenv("VKM_RERANK_TEXT_BACKEND", "gateway")
+    _ok(client.post("/v1/rerank/text", json={"query": "q", "candidate_ids": ["VKM-SRC-001:p0002"]}, headers=HR))
+    assert fakes["rerank"].text_calls                                               # the old path on request
+
+
+def test_hybrid_backend_late_rerank_calls_the_token_store_and_maps_errors():
+    """The real HybridBackend carries late_rerank (29.09: the method first landed on the BM25 backend and the fake
+    hid it) and maps a late-stage failure to the API error of that stage."""
+    from types import SimpleNamespace
+
+    from vkm_corpus.api.backends import HybridBackend
+    from vkm_corpus.api.errors import ApiFailure
+    from vkm_corpus.search.hybrid import HybridError
+
+    class Embed:
+        def __init__(self, fail=None):
+            self.fail, self.calls = fail, []
+
+        def late_scores(self, query, targets):
+            self.calls.append((query, targets))
+            if self.fail is not None:
+                raise self.fail
+            return SimpleNamespace(results={t["id"]: {"status": "SCORED", "late_score": 1.0} for t in targets})
+
+    settings = SimpleNamespace(opensearch_index_prefix="vkm")
+    visual = SimpleNamespace(enabled=False, mode="exact", ef_search=None)
+    target = [{"id": "VKM-SRC-001:p0001", "kind": "PAGE"}]
+    ok = HybridBackend(settings, search=object(), embed=Embed(), late_default=True, visual=visual)
+    assert ok.late_rerank("q", target).results["VKM-SRC-001:p0001"]["status"] == "SCORED"
+    down = HybridError("DEPENDENCY_UNAVAILABLE", "token store down", stage="late", tool="rx580-retrieval")
+    bad = HybridBackend(settings, search=object(), embed=Embed(fail=down), late_default=True, visual=visual)
+    with pytest.raises(ApiFailure) as err:
+        bad.late_rerank("q", target)
+    assert err.value.code == "DEPENDENCY_UNAVAILABLE"
 
 
 def service_texts(env, ids):

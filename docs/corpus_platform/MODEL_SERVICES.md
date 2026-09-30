@@ -4,6 +4,13 @@ VKM Corpus Platform v0, агент F. Решения: CP-18 (с REVISED), H-13, 
 ([журнал координатора](../implementation_work/COORDINATOR_DECISIONS.md)). Проект: [отчёт F, ред. 2](../implementation_work/AGENT_F_RERANKER_DEPLOYMENT.md).
 Состояние на 28.09.2026: развёрнуто на EDGE; parity PASS, acceptance PASS 9/9 — см. §7.
 
+**29.09.2026: текстовый реранкер v3.5 выведен из работы решением пользователя.** В RETRIEVAL_BENCHMARK_V1 он давал
++0,006 nDCG@10 поверх late-стадии (незначимо) при ~11 с на вызов. Контейнер `careerops-reranker` остановлен,
+автозапуск выключен; образ и веса сохранены, возврат — `docker update --restart=unless-stopped` и `docker start`.
+`rerank_text` в API считает MaxSim mLateOn на RX580 (`VKM_RERANK_TEXT_BACKEND=late`, по умолчанию; `gateway` —
+прежний путь для экспериментов). Шлюз отвечает `degraded` (text: unavailable, visual: ready) — это ожидаемо.
+Визуальный реранкер m0 работает как прежде; решение по нему — после замера поверх визуального маршрута.
+
 Оценки реранкеров — сигнал поиска, а не evidence: слой `SERVICE`, `review_status = NOT_APPLICABLE`, в канон не
 пишутся. Оценки сравнимы только внутри одного ответа и одной конфигурации (`model_config_sha256`, `placement`).
 
@@ -11,7 +18,7 @@ VKM Corpus Platform v0, агент F. Решения: CP-18 (с REVISED), H-13, 
 
 | Роль | Контейнер | Адрес | Кто управляет |
 |---|---|---|---|
-| text-rerank | `careerops-reranker` (существующий, KEEP) | `127.0.0.1:18082` (сервис слушает и все интерфейсы — техдолг D-F7) | не VKM: не останавливать, не пересоздавать, не менять конфиг/образ/кэш |
+| text-rerank (**остановлен 29.09**) | `careerops-reranker` (существующий, KEEP) | `127.0.0.1:18082` (сервис слушает и все интерфейсы — техдолг D-F7) | не VKM: не останавливать, не пересоздавать, не менять конфиг/образ/кэш |
 | visual-rerank | `vkm-rerank-m0` (llama-server) | только `127.0.0.1:18083` | compose-проект `vkm-rerank` |
 | gateway | `vkm-rerank-gateway` (FastAPI) | LAN-адрес EDGE `:18084` и `127.0.0.1:18084` | compose-проект `vkm-rerank` |
 
@@ -190,3 +197,21 @@ Receipts (`work/corpus_platform/impl/edge_receipts/`): `MODELS_RECEIPT_F.json` (
 - Лицензия обеих моделей CC BY-NC 4.0: некоммерческое использование, веса не распространяются.
 - Поддержка m0 + изображений в llama.cpp не официальная (свой mmproj, патч): держит только parity-тест; при смене
   commit llama.cpp parity повторяется до развёртывания.
+
+## 10. CORE, RX580: визуальный слот (агент VIS, 29.09.2026)
+
+Это не реранкер EDGE, а третья резидентная модель сервиса `rx580-retrieval` для визуального маршрута гибридного
+поиска ([отчёт VIS](../implementation_work/AGENT_VIS_QWEN3VL_ROUTE.md)). **Не развёрнут**: шаги координатора — в отчёте,
+§7.
+
+| Что | Значение |
+|---|---|
+| Роль слота | `visual`: текстовая башня Qwen3-VL-Embedding-2B кодирует запрос (`POST /embed/query`, `role = visual`) |
+| Модель @ ревизия | `Qwen/Qwen3-VL-Embedding-2B` @ `9f2f7e71…`, Apache-2.0; ключ `qwen3-vl-emb-2b` |
+| Вес | `qwen3-vl-emb-2b-F16.gguf` (конвертация llama.cpp `4da63377`, arch qwen3vl), sha256 `b1074096…`, 3 288 MiB; Q8_0 не прошёл паритет V2 |
+| Запрос | шаблон чата модели (system — инструкция V2, user — запрос, приглашение ассистента) + `<\|endoftext\|>`; пулинг последнего токена, L2; ids совпадают с официальными на 189 из 189 запросов |
+| llama.cpp | патч 0005: в контексте эмбеддингов нет lm_head (векторы побитно те же, CPU p50 −15 %); `-ot token_embd\.weight=CPU` держит связанную копию выходного слоя вне VRAM |
+| Паритет (CPU-заместитель) | F16 GGUF ↔ fp32-эталон: cos ср. 0,999999, мин. 0,999997; top-10 по страницам 0,9995 |
+| Гейт RX580 | `python -m vkm_corpus.embeddings.visual_gate run …`: cos ≥ 0,999 (мин. ≥ 0,995), top-10/50 ≥ 0,90, VRAM устройства ≤ 7 168 MiB, p95 ≤ 1 000 мс; **не запускался**: этой задаче запрещена запись на CORE |
+| Запасной вариант | тот же слот на CPU CORE: `"placement": "cpu"` (`--device none`; `/health` проверяет живость), нужен `mem_limit` ≥ 8g у `rx580-retrieval` (3,3 GB весов в RAM) |
+| Документы | не на RX580: векторы страниц кодирует RTX 5070 Ti (sentence-transformers, bf16), индекс — `<prefix>-pagevis` в OpenSearch |

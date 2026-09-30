@@ -1,0 +1,120 @@
+<mxfile host="vkm-drawio" agent="vkm-drawio writer/1" compressed="false" pages="1">
+  <diagram id="civil3d" name="Конвейер Civil 3D">
+    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="920" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Конвейер Civil 3D в vkm-cad 1.0: от таблицы точек до листа PDF" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="12" width="1760" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Задания только в новых документах, без GUI (решение CP-43, 29.09): AutoCAD 2026 + Civil 3D 2026 в консоли accoreconsole. Выходы — производные объекты, никогда не наблюдения." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="44" width="1760" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="t_in" value="Таблица точек&lt;br&gt;CSV / TSV («;» и десятичная запятая), JSON, Parquet или строки; неизвестная отметка остаётся неизвестной" style="fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="150" width="190" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="t_pts" value="c3d_points_from_table&lt;br&gt;COGO-точки + группа; копии DXF / JSON; name_policy (group_prefix для эпох)" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="236" y="150" width="190" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="t_tin" value="c3d_tin_surface&lt;br&gt;TIN из группы или точек; структурные линии, внешняя граница, макс. ребро; DXF треугольников&lt;br&gt;INTERPOLATION" style="fillColor=#dae8fc;fontSize=12;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="452" y="150" width="190" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="t_cont" value="c3d_contours&lt;br&gt;горизонтали кратно интервалу; основные — на отдельном слое" style="fillColor=#dae8fc;fontSize=12;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="668" y="150" width="190" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="t_diff" value="c3d_difference_surface&lt;br&gt;мульда как разность: поверхность объёмов (выемка / насыпь) + dz-TIN и изолинии dz; допущение «не наблюдение»" style="fillColor=#dae8fc;fontSize=12;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="884" y="150" width="190" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="t_prof" value="c3d_alignment_profile&lt;br&gt;трасса по полилинии (линия наблюдений), профили поверхностей с шагом, CSV + DXF, вид профиля" style="fillColor=#dae8fc;fontSize=12;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="150" width="190" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="t_sheet" value="cad_layout_sheet&lt;br&gt;лист A4…A0: DWG To PDF.pc3, рамка 20/5/5/5 мм, видовой экран 1:N, основная надпись по ГОСТ 2.104 (упрощённая)" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1316" y="150" width="190" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="t_pdf" value="cad_plot_pdf&lt;br&gt;печать листов в PDF (-PLOT)" style="fillColor=#dae8fc;fontSize=12;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1532" y="150" width="190" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="job" value="cad_job_create → каталог задания $VKM_WORK/cad_jobs/&amp;lt;job_id&amp;gt;&lt;br&gt;in/ — копии входов с SHA-256 до и после; runs/R001/ — скрипт, консоль, маркеры BEGIN / END; out/ — выходы с SHA-256 и происхождением; work/drawing.dwg — продвигается только при END … OK; receipt.json" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="380" width="560" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="engine" value="Движок: accoreconsole /product C3D + плагин VkmCadHost (.NET через Roslyn), изолированный профиль (/isolate); один процесс AutoCAD на все задания (_engine.lock); ≈ 3,5 с на прогон после первого запуска&lt;br&gt;Авария, диалог или таймаут → дерево процессов задания убивается: CAD_ENGINE_CRASHED | CAD_DIALOG_BLOCKED | CAD_RUN_TIMEOUT; отчёты об авариях не отправляются" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="610" y="380" width="560" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="fallback" value="engine = auto: Civil 3D, если есть задание C3D, Civil 3D и компилятор C#; иначе PURE_PYTHON_FALLBACK (scipy): Delaunay, горизонтали marching triangles, dz-TIN с точными объёмами, профили. Сверка на игрушечных данных: 162 треугольника, объём 3567,4 против 3566,2 м³ (0,03 %). Резервный TIN не соблюдает структурные линии — MODEL_CHOICE" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="380" width="580" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="prov" value="Провенанс и статусы выходов&lt;br&gt;• TIN — INTERPOLATION; горизонтали, разности, профили, листы, импорт PDF — DERIVATION; у каждого файла — метод, движок, список MODEL_CHOICE, derived_from с SHA-256&lt;br&gt;• crs_status = UNKNOWN_CRS, epsg = null; EXPLICIT_TRANSFORM — только явное преобразование offset | helmert2d | affine2d с основанием (MODEL_CHOICE)&lt;br&gt;• review_status = AUTO_EXTRACTED_UNREVIEWED; CAD-выходы никогда не вход извлечения; неизвестная отметка → точка 2D, в TIN не входит" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="500" width="860" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="cp43" value="Решение CP-43 (29.09): работаем только через консоль; скрытый полный экземпляр (python_com, невидимый acad.exe через COM) выключен — VKM_CAD_ALLOW_HIDDEN_INSTANCE не задан: он загружает и меняет профиль пользователя. Включается только по решению пользователя." style="align=left;dashed=1;fillColor=#f5f5f5;fontColor=#333333;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="910" y="500" width="870" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="other" value="Другие инструменты того же моста: cad_exec (scr, AutoLISP, C# с полным .NET API AutoCAD / Civil 3D) и cad_query; cad_draw (JSON → DXF, по желанию DWG); cad_convert (DXF ↔ DWG); cad_pdf_import (-PDFIMPORT); cad_import_pdf_vector (векторы PDF корпуса → DXF, v0)." style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="910" y="600" width="870" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="use" value="Назначение (план Phase 2): мульды как разность поверхностей разных эпох, профили по линиям наблюдений, графическая часть диплома (17.11–30.11). Проверено вживую на сетке 10 × 10 с синтетической мульдой." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="660" width="860" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Легенда" style="align=left;collapsible=0;container=1;dashed=0;fillColor=#ffffff;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="740" width="860" height="152" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_evidence" value="" style="fillColor=#d5e8d4;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="30" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_evidence" value="вход: таблица точек (например, наблюдения, оцифрованные с провенансом)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="28" width="800" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_service" value="" style="fillColor=#fff2cc;html=1;rounded=0;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="59" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_service" value="сервис, инструмент, шаг процесса" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="57" width="800" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_derived" value="" style="fillColor=#dae8fc;html=1;rounded=0;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="88" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_derived" value="производные объекты (INTERPOLATION / DERIVATION)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="86" width="800" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_paused" value="" style="dashed=1;fillColor=#f5f5f5;fontColor=#333333;html=1;rounded=0;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="117" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_paused" value="выключено решением пользователя" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="115" width="800" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="sources" value="Источники: docs/corpus_platform/MCP_TOOLS.md §4.1; implementation_work/AGENT_CAD_V1.md §1–§4, §7; receipts/cad_v1_smoke.json; implementation_work/COORDINATOR_DECISIONS.md (CP-43); README.md §10; docs/planning/PHASE2_PLAN_OCT_NOV_2026_RU.md §1, §3." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="910" y="750" width="870" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="e0" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="t_in" target="t_pts">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="t_pts" target="t_tin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="t_tin" target="t_cont">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="t_cont" target="t_diff">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="t_diff" target="t_prof">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="t_prof" target="t_sheet">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="t_sheet" target="t_pdf">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_tc" value="две поверхности&lt;br&gt;(эпохи)" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=0;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="t_tin" target="t_diff">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="547" y="125" />
+              <mxPoint x="979" y="125" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

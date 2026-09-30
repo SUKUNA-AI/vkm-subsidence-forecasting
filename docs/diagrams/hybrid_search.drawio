@@ -1,0 +1,143 @@
+<mxfile host="vkm-drawio" agent="vkm-drawio writer/1" compressed="false" pages="1">
+  <diagram id="search" name="Гибридный поиск">
+    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1720" pageHeight="1010" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Поиск по корпусу: BM25 + dense + RRF + late interaction, маршруты и реранкеры" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="12" width="1680" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="/v1/search/hybrid и MCP search_hybrid (развёрнутая схема E). Единицы vkm-units-v1 снимка snap-20260928T193550Z-738eebee: 205 784. Оценки ранжирования — сигнал поиска, не evidence." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="44" width="1680" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="q" value="запрос&lt;br&gt;MCP search_hybrid → VKM API /v1/search/hybrid" style="fillColor=#e1d5e7;fontSize=13;html=1;rounded=1;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="260" width="210" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="det" value="детектор библиографического запроса: фамилии с инициалами и годом, «et al.», «и др.», DOI/ISBN, «список литературы»" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="400" width="210" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="bm25" value="BM25 — OpenSearch (анализатор vkm_text), top-100 страниц" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="290" y="140" width="250" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="dense" value="dense — jina-v5-nano Q8_0: запрос кодирует RX 580, поиск kNN в OpenSearch, top-100" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="290" y="260" width="250" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="bib" value="маршрут библиографии: скан записей литературы (BIB_ENTRY) — третья ветка RRF" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="290" y="410" width="250" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="rrf" value="RRF (k = 60) по стабильным ID: страница — max по её единицам; дубли страниц сворачиваются → top-100" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="600" y="240" width="230" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="late" value="late interaction: mLateOn MaxSim по top-100 (rx580-retrieval)&lt;br&gt;pack: 205 784 единицы, 24,3 млн токенов, float16 memmap ≈ 6,2 ГБ, горячая замена; включён по умолчанию" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="890" y="215" width="260" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="fig" value="номер рисунка («рис. 3.1») усиливается только среди кандидатов своей темы; подписи объектов (object_label)" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="890" y="410" width="260" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="ans" value="ответ: кандидаты с трассой — bm25_rank, dense_rank, fused_rank, late-стадия; конверт vkm.envelope/1; retrieval_trace объясняет ранжирование" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="240" width="240" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="edge" value="EDGE — только по запросу" style="align=left;collapsible=0;container=1;dashed=1;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1210" y="400" width="480" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="rt" value="rerank_text: jina-reranker-v3.5, ≤ 24 кандидата; текст — из канона" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="edge">
+          <mxGeometry x="15" y="35" width="215" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="rv" value="rerank_visual: jina-reranker-m0, ≤ 8 изображений" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="edge">
+          <mxGeometry x="250" y="35" width="215" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="vis" value="визуальный маршрут — в работе: эмбеддинги изображений страниц Qwen3-VL-Embedding-2B (26 092 страницы). В V2: +0,109 nDCG@10 на визуальных запросах; на текстовых слияние вредит. Обслуживание не установлено: Q8_0 не проходит паритет, F16 проходит; индекса и слияния в сервисе нет" style="dashed=1;fillColor=#f5f5f5;fontColor=#333333;fontSize=13;html=1;rounded=1;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="290" y="570" width="540" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="nums" value="Измерено&lt;br&gt;• задержка на прогретом индексе: гибрид p50 76 мс; с late p50 148 мс&lt;br&gt;• V1 (186 запросов, полный корпус): схема E — 0,725 nDCG@10 на тексте против 0,551 у BM25&lt;br&gt;• без dense-канала E теряет 0,115 nDCG@10 (пул)&lt;br&gt;• маршрут библиографии: +0,195 nDCG@10 на библиографических запросах, остальные без изменений&lt;br&gt;• реранкер v3.5 по тексту значимо не помогает; по визуальным запросам глубина 12 даёт +0,043 (пул)&lt;br&gt;• CP-42: записи BIB_ENTRY не ранжируют страницы" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="880" y="570" width="810" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Легенда" style="align=left;collapsible=0;container=1;dashed=0;fillColor=#ffffff;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="770" width="560" height="181" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_derived" value="" style="fillColor=#dae8fc;html=1;rounded=0;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="30" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_derived" value="индексы и ответы (проекции; оценки — не evidence)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="28" width="500" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_service" value="" style="fillColor=#fff2cc;html=1;rounded=0;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="59" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_service" value="сервис, инструмент, шаг процесса" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="57" width="500" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_agent" value="" style="fillColor=#e1d5e7;html=1;rounded=0;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="88" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_agent" value="вызов агента через MCP" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="86" width="500" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_paused" value="" style="dashed=1;fillColor=#f5f5f5;fontColor=#333333;html=1;rounded=0;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="117" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_paused" value="приостановлено, в работе или будущее (пунктир)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="115" width="500" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_a_dash" value="" style="text;align=left;fillColor=none;html=1;strokeColor=none;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="8" y="153" width="2" height="2" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_b_dash" value="" style="text;align=left;fillColor=none;html=1;strokeColor=none;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="44" y="153" width="2" height="2" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_ext_dash" value="по запросу или по условию маршрута" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="144" width="500" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="sources" value="Источники: README.md §5; docs/corpus_platform/MCP_TOOLS.md §2; MODEL_SERVICES.md §2–§4; OPERATIONS.md §4a; implementation_work/AGENT_L_LATE_INTERACTION.md; receipts/late_interaction_deploy.json; benchmarks/retrieval_v1/RESULTS_V1.md §0; benchmarks/retrieval_v2/RESULTS_V2.md; implementation_work/COORDINATOR_DECISIONS.md (CP-39)." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="965" width="1680" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="e_q1" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.3;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="q" target="bm25">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_q2" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="q" target="dense">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_q3" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="q" target="det">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_d" value="да" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="det" target="bib">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_b" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.2;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="bm25" target="rrf">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_de" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="dense" target="rrf">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_bi" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.8;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="bib" target="rrf">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_rl" value="top-100" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="rrf" target="late">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_la" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="late" target="ans">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_fig" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="late" target="fig">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_rt" value="кандидаты по ID" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.3;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="ans" target="rt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_rv" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.8;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="ans" target="rv">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_vis" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=0.2;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="q" target="vis">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="62" y="632" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lg_e_dash" value="" style="dashed=1;edgeStyle=none;endArrow=classic;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="lg_a_dash" target="lg_b_dash">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

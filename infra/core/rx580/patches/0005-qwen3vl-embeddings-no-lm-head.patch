@@ -1,0 +1,18 @@
+diff --git a/src/models/qwen3vl.cpp b/src/models/qwen3vl.cpp
+--- a/src/models/qwen3vl.cpp
++++ b/src/models/qwen3vl.cpp
+@@ -169,6 +169,14 @@ llama_model_qwen3vl::graph::graph(const llama_model & model, const llm_graph_params & params) : llm_graph_context(params) {
+     cb(cur, "result_norm", -1);
+     res->t_embd = cur;
+ 
++    // VKM rx580 patch 0005: an embeddings context never reads logits (Qwen3-VL-Embedding text tower, last-token
++    // pooling reads t_embd); skip the vocab projection: n_tokens x n_vocab (152k) of compute buffer and FLOPs, and with
++    // --override-tensor token_embd.weight=CPU the tied output copy never occupies VRAM.
++    if (cparams.embeddings) {
++        ggml_build_forward_expand(gf, cur);
++        return;
++    }
++
+     // lm_head
+     cur = build_lora_mm(model.output, cur, model.output_s);
+ 

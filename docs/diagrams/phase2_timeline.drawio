@@ -1,0 +1,202 @@
+<mxfile host="vkm-drawio" agent="vkm-drawio writer/1" compressed="false" pages="1">
+  <diagram id="phase2" name="План Phase 2">
+    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1010" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Phase 2: октябрь–ноябрь 2026 (29.09–30.11) — работы, гейты, решения и риски" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="12" width="1760" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Решение D-19: данных предприятия нет; прогноз — нейросеть на ансамбле физических миров; Ansys — основной решатель, OGS + MFront — проверка. Оценки — время работы Claude с агентами; календарно добавляются решения и ревью пользователя на гейтах." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="44" width="1760" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="axis" value="" style="fillColor=#333333;fontSize=13;html=1;rounded=0;strokeColor=#333333;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="150" y="150" width="1606.5" height="2" as="geometry" />
+        </mxCell>
+        <mxCell id="tk0" value="" style="fillColor=#333333;fontSize=13;html=1;rounded=0;strokeColor=#333333;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="149.5" y="144" width="1" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="tl0" value="29.09" style="text;align=center;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="125" y="122" width="50" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="tk7" value="" style="fillColor=#333333;fontSize=13;html=1;rounded=0;strokeColor=#333333;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="328" y="144" width="1" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="tl7" value="06.10" style="text;align=center;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="303.5" y="122" width="50" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="tk21" value="" style="fillColor=#333333;fontSize=13;html=1;rounded=0;strokeColor=#333333;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="685" y="144" width="1" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="tl21" value="20.10" style="text;align=center;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="660.5" y="122" width="50" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="tk35" value="" style="fillColor=#333333;fontSize=13;html=1;rounded=0;strokeColor=#333333;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1042" y="144" width="1" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="tl35" value="03.11" style="text;align=center;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1017.5" y="122" width="50" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="tk49" value="" style="fillColor=#333333;fontSize=13;html=1;rounded=0;strokeColor=#333333;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1399" y="144" width="1" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="tl49" value="17.11" style="text;align=center;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1374.5" y="122" width="50" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="tk63" value="" style="fillColor=#333333;fontSize=13;html=1;rounded=0;strokeColor=#333333;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1756" y="144" width="1" height="14" as="geometry" />
+        </mxCell>
+        <mxCell id="tl63" value="01.12" style="text;align=center;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1731.5" y="122" width="50" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="row0" value="Период" style="text;align=left;fontSize=12;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="164" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="row1" value="Работы" style="text;align=left;fontSize=12;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="230" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="row2" value="Гейт" style="text;align=left;fontSize=12;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="435" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="p1_d" value="29.09–05.10" style="fillColor=#fff2cc;fontSize=12;fontStyle=1;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="153" y="164" width="172.5" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="p1_w" value="Закрыть платформу (навигационный слой, V1). Модель данных L4: миры, представления, наблюдения, прогоны. Таблицы законов и наборов параметров с основаниями из корпуса (NAV, MCP). Семейства миров" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#d79b00;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="153" y="206" width="172.5" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="p1_g" value="утверждённые проект ядер, семейства и оси; таблицы параметров (факт или сценарий)" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="153" y="416" width="172.5" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="p2_d" value="06.10–19.10" style="fillColor=#fff2cc;fontSize=12;fontStyle=1;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="331.5" y="164" width="351" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="p2_w" value="Достраивание C1…C5; ObservationWorld; Ansys (PyMAPDL): лестница решателя и эталонные задачи; World-0 v0 — порты, K из Ansys, законы; первые миры" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#d79b00;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="331.5" y="206" width="351" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="p2_g" value="миры проходят проверки; Ansys на эталонной задаче" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="331.5" y="416" width="351" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="p3_d" value="20.10–02.11" style="fillColor=#fff2cc;fontSize=12;fontStyle=1;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="688.5" y="164" width="351" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="p3_w" value="Ансамбль: World-0 — тысячи миров, Ansys — сотни, OGS — 2–3 сценария; внешняя эквивалентность и модель ошибки представления; покрытие ансамбля и NROY по реальным наблюдениям корпуса" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#d79b00;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="688.5" y="206" width="351" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="p3_g" value="ансамбль с квитанциями; сверка решателей; отчёт покрытия; NROY" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="688.5" y="416" width="351" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="p4_d" value="03.11–16.11" style="fillColor=#fff2cc;fontSize=12;fontStyle=1;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1045.5" y="164" width="351" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="p4_w" value="Методы прогноза, включая нейросеть; предрегистрированный бенчмарк; отложенные семейства и решатель; различимость; оценка на отложенных мирах и отдельно на реальных наблюдениях корпуса" style="align=left;fillColor=#ffe6cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#d79b00;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1045.5" y="206" width="351" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="p4_g" value="отчёт бенчмарка; ограничения применимости" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1045.5" y="416" width="351" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="p5_d" value="17.11–30.11" style="fillColor=#fff2cc;fontSize=12;fontStyle=1;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1402.5" y="164" width="351" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="p5_w" value="Текст диплома, графическая часть (Civil 3D), проверка, презентация" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;spacingTop=4;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1402.5" y="206" width="351" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="p5_g" value="диплом" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1402.5" y="416" width="351" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="dec" value="Решения пользователя&lt;br&gt;приняты (D-19): роли решателей; работа без данных предприятия; нейросеть на ансамбле миров&lt;br&gt;нужны: 2–3 сценария геомеханики и горизонты прогноза бенчмарка; состав графической части (листы); состав семейств миров (предложение — ползучесть 2–3 закона, механика закладки, гипотеза λ); домен Ansys; горизонты H и фреймворк нейросети (предложение — PyTorch на RTX 5070 Ti)" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="530" width="560" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="status" value="Состояние на 29.09: Phase 1 завершена, платформа корпуса развёрнута; решатели (Ansys, MATLAB, OGS) приостановлены пользователем 28.09; проект миров v2 сохранён, реализация отложена до отдельного проектирования; AutoCAD / Civil 3D работают через консоль." style="align=left;dashed=1;fillColor=#f5f5f5;fontColor=#333333;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="700" width="560" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="r_head" value="Риски и что делаем (PHASE2_PLAN §5)" style="text;align=left;fontSize=14;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="610" y="530" width="1170" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="r0" value="нейросеть выучит физику наших моделей, а не реальность" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="610" y="560" width="380" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="m0" value="диапазоны строго из evidence; несколько семейств моделей; отдельная проверка на реальных наблюдениях и честный отчёт о переносе" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="560" width="780" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="r1" value="мало реальных рядов для проверки" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="610" y="606" width="380" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="m1" value="InSAR (Мусихин и др.) и опубликованные ряды нивелирования, оцифровка с провенансом" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="606" width="780" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="r2" value="СК рудника неизвестна (CRS UNKNOWN)" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="610" y="646" width="380" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="m2" value="геопривязка по общим объектам — DERIVATION с оценкой ошибки; миры в локальной системе" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="646" width="780" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="r3" value="реология соли и начальные напряжения — UNKNOWN" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="610" y="686" width="380" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="m3" value="сценарные диапазоны с метками, без подбора под ответ" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="686" width="780" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="r4" value="отладка решателей съедает время" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="610" y="726" width="380" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="m4" value="лестница решателя с малых шагов; быстрая теория закрывает объём ансамбля" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="726" width="780" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="r5" value="объём работ" style="align=left;fillColor=#f8cecc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="610" y="766" width="380" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="m5" value="спецчасть — приоритет; gprMax и расширения — только при запасе времени" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="766" width="780" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Легенда" style="align=left;collapsible=0;container=1;dashed=0;fillColor=#ffffff;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="810" width="560" height="181" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_service" value="" style="fillColor=#fff2cc;html=1;rounded=0;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="30" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_service" value="период" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="28" width="500" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_model" value="" style="fillColor=#ffe6cc;html=1;rounded=0;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="59" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_model" value="работы по миру, решателям и прогнозу (MODEL_CHOICE-артефакты)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="57" width="500" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_evidence" value="" style="fillColor=#d5e8d4;html=1;rounded=0;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="88" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_evidence" value="гейт: проверка или отчёт" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="86" width="500" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_unknown" value="" style="fillColor=#f8cecc;html=1;rounded=0;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="117" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_unknown" value="риск" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="115" width="500" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_paused" value="" style="dashed=1;fillColor=#f5f5f5;fontColor=#333333;html=1;rounded=0;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="146" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_paused" value="текущее состояние: приостановлено или отложено" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="144" width="500" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="sources" value="Источники: docs/planning/PHASE2_PLAN_OCT_NOV_2026_RU.md §1–§5; docs/worldspec/WORLD_KERNELS_DESIGN_RU.md §9–§10; docs/governance/PHASE1_DESIGN_DECISIONS_RU.md (D-19); README.md (состояние, §10, §15)." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="610" y="860" width="1170" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="g_p1" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="p1_g" target="p2_g">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="g_p2" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="p2_g" target="p3_g">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="g_p3" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="p3_g" target="p4_g">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="g_p4" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="p4_g" target="p5_g">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

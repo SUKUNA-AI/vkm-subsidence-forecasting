@@ -1,0 +1,12 @@
+# 04:00 Moscow time, every day (user decision A3 of 29.09.2026); a missed run (host off) starts at the next boot.
+[Unit]
+Description=VKM nightly checks at 04:00 MSK
+
+[Timer]
+OnCalendar=*-*-* 04:00:00 Europe/Moscow
+Persistent=true
+AccuracySec=1min
+Unit=vkm-nightly.service
+
+[Install]
+WantedBy=timers.target

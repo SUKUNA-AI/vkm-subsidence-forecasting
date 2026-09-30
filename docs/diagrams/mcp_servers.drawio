@@ -1,0 +1,162 @@
+<mxfile host="vkm-drawio" agent="vkm-drawio writer/1" compressed="false" pages="1">
+  <diagram id="mcp" name="MCP-серверы">
+    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1780" pageHeight="1110" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="MCP-серверы проекта и группы инструментов (состояние 29.09.2026)" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="12" width="1740" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Подключение — локальный неотслеживаемый .mcp.json; адреса и токены — только переменные окружения. Ответы корпуса — в конверте vkm.envelope/1 (ID, источник и страница, review_status, origin, провенанс)." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="44" width="1740" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="claude" value="Claude Code&lt;br&gt;(MCP-клиент на WORKSTATION)" style="fillColor=#e1d5e7;fontSize=13;html=1;rounded=1;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="470" width="200" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="corpus" value="vkm-corpus — CORE, streamable HTTP + токен; 38 инструментов чтения (read_only_hint)" style="align=left;collapsible=0;container=1;dashed=0;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="270" y="90" width="1000" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="g_search" value="Поиск (6)&lt;br&gt;search_text, search_hybrid, search_objects, retrieval_trace, rerank_text, rerank_visual" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="corpus">
+          <mxGeometry x="15" y="35" width="480" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="g_obj" value="Объекты и провенанс (15)&lt;br&gt;get_source, get_work, get_page, get_page_image, get_figure, get_table, get_formula, get_object, get_document_neighbors, get_citations, list_source_pages, get_artifact, trace_document_provenance, get_processing_status, get_corpus_status" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="corpus">
+          <mxGeometry x="15" y="145" width="480" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="g_nav" value="Навигация (14)&lt;br&gt;get_outline, get_section, search_sections, get_formula_context, find_formulas, explore_concept, find_topics, get_topic, similar_sections, section_topics, copies_of, source_overlap, find_parameters, parameter_summary" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="corpus">
+          <mxGeometry x="505" y="35" width="480" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="g_graph" value="Граф NAV (2)&lt;br&gt;concept_paths, graph_neighbourhood" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="corpus">
+          <mxGeometry x="505" y="200" width="235" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="g_dossier" value="Досье (1)&lt;br&gt;reconstruct_topic — карта темы «от А до Я»" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="corpus">
+          <mxGeometry x="750" y="200" width="235" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="api" value="VKM API /v1 (канон DuckDB, OpenSearch, Neo4j, NavStore, пакет каталогов, rx580-retrieval; реранк — шлюз EDGE)" style="fillColor=#dae8fc;fontSize=12;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="corpus">
+          <mxGeometry x="15" y="320" width="970" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="rule_c" value="Правила: канон API и MCP не пишут никогда; результаты поиска — кандидаты из проекций (сниппет индекса — не текст объекта); автоматическое содержимое — AUTO_EXTRACTED_UNREVIEWED, не факт; область источника наследуется объектами, но не устанавливается для них." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="corpus">
+          <mxGeometry x="15" y="395" width="970" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="limits" value="Лимиты: rerank_text ≤ 24 кандидата, rerank_visual ≤ 8 изображений; изображения — длинная сторона 1024 px по умолчанию; досье — budget_chars ≤ 60 000." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="corpus">
+          <mxGeometry x="15" y="480" width="970" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="admin" value="vkm-corpus-admin — CORE, HTTP + отдельный токен" style="align=left;collapsible=0;container=1;dashed=0;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="90" width="450" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="adm_tools" value="reprocess_source, reprocess_page (write, идемпотентные); get_job (read); cancel_job (destructive, только до запуска)" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="admin">
+          <mxGeometry x="15" y="35" width="420" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="adm_flow" value="plan-first: PLAN_REQUESTED → PLANNED (воркер публикует план и plan_sha256) → CONFIRMED (человек подтверждает этот хеш) → RUNNING → PUBLISHED → ADMITTED | REJECTED" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="admin">
+          <mxGeometry x="15" y="130" width="420" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="adm_rule" value="подключается только осознанно; ≤ 20 заданий на страницы и ≤ 3 на источники" style="fillColor=#ffffff;fontSize=12;html=1;rounded=1;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="admin">
+          <mxGeometry x="15" y="245" width="420" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="cad" value="vkm-cad 1.0 — WORKSTATION, stdio; 27 инструментов" style="align=left;collapsible=0;container=1;dashed=0;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="270" y="690" width="1000" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="c_read" value="v0 чтение (6)&lt;br&gt;cad_status, cad_list_open_documents, cad_get_layers, cad_get_extents, cad_list_entities, cad_get_coordinate_system — только attach к AutoCAD пользователя" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="cad">
+          <mxGeometry x="15" y="35" width="320" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="c_scr" value="v0 scratch (5)&lt;br&gt;cad_create_scratch_document, cad_import_pdf_vector, cad_extract_geometry, cad_export_dxf, cad_save_copy" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="cad">
+          <mxGeometry x="345" y="35" width="310" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="c_jobs" value="v1 задания и код (6)&lt;br&gt;cad_capabilities, cad_job_create, cad_job_status, cad_job_list, cad_exec (scr, lisp, csharp), cad_query" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="cad">
+          <mxGeometry x="665" y="35" width="320" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="c_draw" value="v1 чертёж и листы (5)&lt;br&gt;cad_draw, cad_convert, cad_layout_sheet, cad_plot_pdf, cad_pdf_import" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="cad">
+          <mxGeometry x="15" y="175" width="470" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="c_c3d" value="Civil 3D (5)&lt;br&gt;c3d_points_from_table, c3d_tin_surface, c3d_contours, c3d_difference_surface, c3d_alignment_profile" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="cad">
+          <mxGeometry x="500" y="175" width="485" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="cad_rule" value="только консоль accoreconsole в новых документах заданий (CP-43); выходы — DERIVED, UNKNOWN_CRS, никогда не наблюдения" style="text;align=left;fontColor=#444444;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="cad">
+          <mxGeometry x="15" y="255" width="970" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="drawio" value="vkm-drawio — WORKSTATION, stdio; 8 инструментов" style="align=left;collapsible=0;container=1;dashed=0;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="420" width="450" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="d_tools" value="drawio_status, drawio_create_diagram, drawio_read_diagram, drawio_update_diagram, drawio_export, drawio_render_preview, drawio_open, drawio_list_diagrams" style="align=left;fillColor=#fff2cc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="drawio">
+          <mxGeometry x="15" y="35" width="420" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="d_roots" value="корни: public = docs/diagrams (коммитится; без машинных путей, адресов, секретов и растров), work = $VKM_WORK/diagrams (черновики, PDF)" style="fillColor=#ffffff;fontSize=12;html=1;rounded=1;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="drawio">
+          <mxGeometry x="15" y="140" width="420" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="paused" value="Приостановлено (28.09), в main не влито:&lt;br&gt;• MATLAB — официальный MATLAB MCP Server + слой заданий vkm_jobs (ветка агента)&lt;br&gt;• vkm-ansys — план на PyMAPDL / PyMechanical (ENGINEERING_TOOLS_MCP_PLAN_RU.md)" style="align=left;dashed=1;fillColor=#f5f5f5;fontColor=#333333;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="800" width="450" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="backends" value="за мостами: AutoCAD 2026 + Civil 3D 2026 (консоль); draw.io Desktop (CLI)" style="fillColor=#dae8fc;fontSize=12;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="690" width="450" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Легенда" style="align=left;collapsible=0;container=1;dashed=0;fillColor=#ffffff;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1000" width="700" height="152" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_service" value="" style="fillColor=#fff2cc;html=1;rounded=0;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="30" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_service" value="инструменты MCP" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="28" width="640" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_derived" value="" style="fillColor=#dae8fc;html=1;rounded=0;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="59" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_derived" value="сервисы и программы за серверами" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="57" width="640" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_agent" value="" style="fillColor=#e1d5e7;html=1;rounded=0;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="88" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_agent" value="агент Claude" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="86" width="640" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_sw_paused" value="" style="dashed=1;fillColor=#f5f5f5;fontColor=#333333;html=1;rounded=0;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="10" y="117" width="34" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="lg_tx_paused" value="приостановлено, в работе или будущее (пунктир)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
+          <mxGeometry x="52" y="115" width="640" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="sources" value="Источники: README.md §8; docs/corpus_platform/MCP_TOOLS.md §1–§6; implementation_work/AGENT_CAD_V1.md; docs/planning/ENGINEERING_TOOLS_MCP_PLAN_RU.md §0; receipts/evening_deploy_final.json (tools_listed 38, local_mcp_servers); implementation_work/COORDINATOR_DECISIONS.md (CP-43)." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="740" y="1010" width="1020" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="e_corpus" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.3;exitDx=0;exitDy=0;exitX=0.5;exitY=0;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="claude" target="corpus">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="120" y="258" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_admin" value="только осознанно" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.3;exitDx=0;exitDy=0;exitX=0.8;exitY=0;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="claude" target="admin">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="180" y="75" />
+              <mxPoint x="1290" y="75" />
+              <mxPoint x="1290" y="180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_cad" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="claude" target="cad">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="120" y="835" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_draw" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=0.8;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="claude" target="drawio">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="180" y="670" />
+              <mxPoint x="1290" y="670" />
+              <mxPoint x="1290" y="535" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_back1" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.2;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="cad" target="backends">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_back2" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="drawio" target="backends">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

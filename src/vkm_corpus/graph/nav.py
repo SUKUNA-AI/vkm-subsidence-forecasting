@@ -8,12 +8,18 @@ Flow of ``graph-load --nav-dir DIR`` (DIR = ``derived/navigation/<snapshot_id>``
       → DDL (idempotent) → gate: the DOCUMENT graph is READY and built from the same snapshot
       → DOCUMENT counts before → NavMeta LOADING → UNWIND/MERGE batches by id (nodes, then edges)
       → removal of NAV nodes and edges of any other snapshot → DOCUMENT counts after
-      → checks N1–N7 → NavMeta COMPLETE | FAILED (+ manifest, counts, checks) → receipt
+      → checks N1–N11 → NavMeta COMPLETE | FAILED (+ manifest, counts, checks) → receipt
 
 Checks: N1 every edge to a DOCUMENT node resolves; N2 DOCUMENT node/edge counts unchanged (and equal to the counts of
 its build); N3 NAV trees acyclic, one parent; N4 each NavSection covers ≥ 1 page; N5 loaded counts equal the rows of
 the projection rules (and every dataset row is accounted for); N6 no NAV label or type collides with DOCUMENT ones;
-N7 every NAV node and edge carries ``layer = 'NAV'``, the loaded ``snapshot_id`` and a ``rule_version``.
+N7 every NAV node and edge carries ``layer = 'NAV'``, the loaded ``snapshot_id`` and a ``rule_version``; N8 term
+dictionary: dictionary-only terms are exactly the expected ones, each has a dictionary edge and no concept-graph edge,
+no pair joins a term to itself; N9 each NavTable has one GRID_OF to the canonical table it names and at most one
+section; N10 each ObjectDupGroup has its n_members members of its object type, its primary among the members flagged
+is_primary and no is_primary member without a primary; N11 each ParameterValue has at most one table, formula, section
+and property edge, and its table and formula edges agree with its method and table. N8–N11 are SKIP when their part
+is absent from the build.
 
 Every Cypher statement that reads or writes data starts with a ``// vkm-nav:<op> [arg]`` comment (the offline fake
 driver of the tests dispatches on it). The DOCUMENT layer is only read.
@@ -30,7 +36,7 @@ from typing import Any, Callable, Iterable, Iterator, TypeVar
 from vkm_corpus.config import Settings
 from vkm_corpus.graph import nav_schema as N
 from vkm_corpus.graph import schema as S
-from vkm_corpus.graph.common import (LOCKS_DIR, CheckResult, FileLock, ProjectionError, check, failures,
+from vkm_corpus.graph.common import (LOCKS_DIR, SKIP, CheckResult, FileLock, ProjectionError, check, failures,
                                      normalize_value, utc_now, utc_stamp, write_receipt)
 from vkm_corpus.graph.nav_query import timed as _query
 from vkm_corpus.graph.nav_rows import (NavInput, ProjectionOptions, accounting, document_references, expected_counts,
@@ -192,6 +198,77 @@ def cy_bad_rel_props(ns: Namespace, rel_type: str) -> str:
             f"MATCH ()-[r:{q(ns.rel(rel_type))}]->() WHERE r.layer IS NULL OR r.layer <> $layer "
             f"OR coalesce(r.snapshot_id, '') <> $snapshot OR r.rule_version IS NULL "
             f"OR ($run_id IS NOT NULL AND coalesce(r.projection_run_id, '') <> $run_id) RETURN count(r) AS n")
+
+
+_CONCEPT_TYPES = ("CO_OCCURS", "CONTAINS_TERM", "SAME_TERM_AS", "DEFINED_AS", "MENTIONED_IN", "SYMBOL_OF")
+
+
+def cy_dictionary_check(ns: Namespace) -> str:
+    """N8: dictionary-only terms, their edges, and pairs that join a term to itself."""
+    term = q(ns.label("Term"))
+    dict_types = "|".join(q(ns.rel(t)) for t in N.DICTIONARY_TYPES)
+    concept_types = "|".join(q(ns.rel(t)) for t in _CONCEPT_TYPES)
+    return (f"// vkm-nav:dictionary-check\n"
+            f"CALL () {{\n"
+            f"  MATCH (t:{term}) WHERE t.dictionary_only = true\n"
+            f"  RETURN count(t) AS dictionary_only,\n"
+            f"         count(CASE WHEN NOT EXISTS {{ (t)-[:{dict_types}]-() }} THEN 1 END) AS without_pairs,\n"
+            f"         count(CASE WHEN EXISTS {{ (t)-[:{concept_types}]-() }} THEN 1 END) AS in_concept_graph\n"
+            f"}}\n"
+            f"CALL () {{\n"
+            f"  MATCH (a)-[r:{dict_types}]->(b) WHERE a = b RETURN count(r) AS self_pairs\n"
+            f"}}\n"
+            f"RETURN dictionary_only, without_pairs, in_concept_graph, self_pairs")
+
+
+def cy_tables_check(ns: Namespace) -> str:
+    """N9: every structured table has one GRID_OF edge to the canonical table it names, at most one section."""
+    grid, sec = q(ns.rel("GRID_OF")), q(ns.rel("TABLE_IN_SECTION"))
+    return (f"// vkm-nav:tables-check\n"
+            f"MATCH (t:{q(ns.label('NavTable'))})\n"
+            f"RETURN count(t) AS tables,\n"
+            f"       count(CASE WHEN NOT EXISTS {{ MATCH (t)-[:{grid}]->(x:{q(ns.label('Table'))}) "
+            f"WHERE x.id = t.table_id }} THEN 1 END) AS without_grid,\n"
+            f"       count(CASE WHEN COUNT {{ (t)-[:{grid}]->() }} > 1 THEN 1 END) AS several_grids,\n"
+            f"       count(CASE WHEN COUNT {{ (t)-[:{sec}]->() }} > 1 THEN 1 END) AS several_sections")
+
+
+def cy_dup_groups_check(ns: Namespace) -> str:
+    """N10: members of each object duplicate group (count, object type, primary)."""
+    typed = " OR ".join(f"(o:{q(ns.label(label))} AND g.object_type = '{object_type}')"
+                        for object_type, label in N.DUP_MEMBER_LABELS.items())
+    return (f"// vkm-nav:dup-groups-check\n"
+            f"MATCH (g:{q(ns.label('ObjectDupGroup'))})\n"
+            f"OPTIONAL MATCH (o)-[m:{q(ns.rel('DUP_MEMBER_OF'))}]->(g)\n"
+            f"WITH g, count(m) AS members, count(CASE WHEN m.is_primary THEN 1 END) AS primaries,\n"
+            f"     count(CASE WHEN m IS NOT NULL AND NOT ({typed}) THEN 1 END) AS wrong_members,\n"
+            f"     count(CASE WHEN m.is_primary AND o.id = g.primary_object_id THEN 1 END) AS primary_found\n"
+            f"RETURN count(g) AS groups,\n"
+            f"       count(CASE WHEN members <> g.n_members THEN 1 END) AS member_count_mismatch,\n"
+            f"       count(CASE WHEN members < 2 THEN 1 END) AS under_two_members,\n"
+            f"       count(CASE WHEN g.primary_object_id IS NOT NULL AND primary_found = 0 THEN 1 END) "
+            f"AS primary_not_member,\n"
+            f"       count(CASE WHEN g.primary_object_id IS NULL AND primaries > 0 THEN 1 END) "
+            f"AS primary_without_rule,\n"
+            f"       sum(wrong_members) AS wrong_type")
+
+
+def cy_values_check(ns: Namespace) -> str:
+    """N11: the locator edges of each parameter value agree with its method and table; single-valued edges."""
+    in_table, near = q(ns.rel("IN_TABLE")), q(ns.rel("NEAR_FORMULA"))
+    sec, of_ = q(ns.rel("VALUE_IN_SECTION")), q(ns.rel("VALUE_OF"))
+    return (f"// vkm-nav:values-check\n"
+            f"MATCH (v:{q(ns.label('ParameterValue'))})\n"
+            f"RETURN count(v) AS n_values,\n"
+            f"       count(CASE WHEN v.method <> 'TABLE' AND EXISTS {{ (v)-[:{in_table}]->() }} THEN 1 END) "
+            f"AS in_table_not_table,\n"
+            f"       count(CASE WHEN EXISTS {{ MATCH (v)-[:{in_table}]->(t) WHERE t.table_id <> v.table_id }} "
+            f"THEN 1 END) AS in_table_other_table,\n"
+            f"       count(CASE WHEN v.method <> 'NEAR_FORMULA' AND EXISTS {{ (v)-[:{near}]->() }} THEN 1 END) "
+            f"AS near_formula_other_method,\n"
+            f"       count(CASE WHEN COUNT {{ (v)-[:{in_table}]->() }} > 1 OR COUNT {{ (v)-[:{near}]->() }} > 1 "
+            f"OR COUNT {{ (v)-[:{sec}]->() }} > 1 OR COUNT {{ (v)-[:{of_}]->() }} > 1 THEN 1 END) "
+            f"AS several_edges")
 
 
 SERVER_INFO = ("// vkm-nav:server\n"
@@ -365,7 +442,7 @@ def purge_test_namespace(driver: Any, database: str, ns: Namespace) -> dict[str,
     return out
 
 
-# ---------------------------------------------------------------- checks N1–N7
+# ---------------------------------------------------------------- checks N1–N11
 def graph_counts(driver: Any, database: str, ns: Namespace) -> dict[str, dict[str, int]]:
     nodes = {n.label: _one(read(driver, database, cy_count_label(ns, n.label))) for n in N.NODE_TYPES}
     rels = {r.name: _one(read(driver, database, cy_count_rel(ns, r))) for r in N.REL_TYPES}
@@ -458,7 +535,78 @@ def run_checks(driver: Any, database: str, ns: Namespace, *, expected: dict[str,
             props.append(f"{rel_type}: {n} edge(s) without layer/snapshot/rule_version of this load")
     results.append(check("N7", "every NAV node and edge carries layer=NAV, the loaded snapshot_id and a rule_version",
                          props, code="E_INVARIANT_VIOLATION"))
+    results += part_checks(driver, database, ns, expected)
     return results, counts
+
+
+def _skip(check_id: str, title: str, reason: str) -> CheckResult:
+    return CheckResult(check_id, title, SKIP, details={"reason": reason})
+
+
+def _absent(expected: dict[str, Any], names: tuple[str, ...]) -> str | None:
+    """The reason a part is not loaded (the first of its registry entries the plan skipped), else None."""
+    return next((f"{x}: {expected['skipped'][x]}" for x in names if x in expected["skipped"]), None)
+
+
+def part_checks(driver: Any, database: str, ns: Namespace, expected: dict[str, Any]) -> list[CheckResult]:
+    """N8–N11: invariants of the term dictionary, structured tables, object duplicate groups and parameter values."""
+    out: list[CheckResult] = []
+    title = ("term dictionary: dictionary-only terms as planned, each with a dictionary edge and no concept-graph "
+             "edge; no pair joins a term to itself")
+    reason = _absent(expected, ("Term",) + N.DICTIONARY_TYPES)
+    if reason:
+        out.append(_skip("N8", title, reason))
+    else:
+        row = (read(driver, database, cy_dictionary_check(ns)) or [{}])[0]
+        viol = []
+        want = (expected.get("subsets") or {}).get("Term.dictionary_only")
+        if want is not None and int(row.get("dictionary_only") or 0) != int(want):
+            viol.append(f"dictionary-only terms: graph {row.get('dictionary_only')} != rows {want}")
+        for key, text in (("without_pairs", "dictionary-only terms without a dictionary edge"),
+                          ("in_concept_graph", "dictionary-only terms with a concept-graph edge"),
+                          ("self_pairs", "dictionary edges from a term to itself")):
+            if int(row.get(key) or 0):
+                viol.append(f"{text}: {row.get(key)}")
+        out.append(check("N8", title, viol, code="E_INVARIANT_VIOLATION"))
+    title = "structured tables: one GRID_OF to the canonical table each names, at most one section"
+    reason = _absent(expected, ("NavTable", "GRID_OF"))
+    if reason:
+        out.append(_skip("N9", title, reason))
+    else:
+        row = (read(driver, database, cy_tables_check(ns)) or [{}])[0]
+        viol = [f"{text}: {row.get(key)}" for key, text in (
+            ("without_grid", "tables without GRID_OF to the table they name"),
+            ("several_grids", "tables with several GRID_OF edges"),
+            ("several_sections", "tables in several sections")) if int(row.get(key) or 0)]
+        out.append(check("N9", title, viol, code="E_INVARIANT_VIOLATION"))
+    title = ("object duplicate groups: n_members members of the group's object type, the primary among them "
+             "flagged is_primary, no is_primary member without a primary")
+    reason = _absent(expected, ("ObjectDupGroup",) + tuple(f"DUP_MEMBER_OF:{x}" for x in N.DUP_MEMBER_LABELS.values()))
+    if reason:
+        out.append(_skip("N10", title, reason))
+    else:
+        row = (read(driver, database, cy_dup_groups_check(ns)) or [{}])[0]
+        viol = [f"{text}: {row.get(key)}" for key, text in (
+            ("member_count_mismatch", "groups whose member edges differ from n_members"),
+            ("under_two_members", "groups with fewer than two members"),
+            ("primary_not_member", "groups whose primary object is not a member flagged is_primary"),
+            ("primary_without_rule", "groups without a primary but with is_primary members"),
+            ("wrong_type", "members of another object type")) if int(row.get(key) or 0)]
+        out.append(check("N10", title, viol, code="E_INVARIANT_VIOLATION"))
+    title = ("parameter values: at most one table, formula, section and property edge each; table and formula edges "
+             "agree with the method and the table of the value")
+    reason = _absent(expected, ("ParameterValue",))
+    if reason:
+        out.append(_skip("N11", title, reason))
+    else:
+        row = (read(driver, database, cy_values_check(ns)) or [{}])[0]
+        viol = [f"{text}: {row.get(key)}" for key, text in (
+            ("in_table_not_table", "IN_TABLE edges of values not read from a table"),
+            ("in_table_other_table", "IN_TABLE edges to another table than the value's"),
+            ("near_formula_other_method", "NEAR_FORMULA edges of values not found next to a formula"),
+            ("several_edges", "values with several edges of one single-valued type")) if int(row.get(key) or 0)]
+        out.append(check("N11", title, viol, code="E_INVARIANT_VIOLATION"))
+    return out
 
 
 def summarize(results: list[CheckResult]) -> dict[str, int]:
@@ -656,7 +804,8 @@ def _execute(driver: Any, database: str, ns: Namespace, inp: NavInput, options: 
             "rule_versions": sorted(f"{k}={v.get('rule_version')}" for k, v in
                                     (inp.manifest.get("parts") or {}).items()) + [
                 f"covers_page={N.RULE_COVERS_PAGE}", f"mentions={N.RULE_MENTIONS}",
-                f"symbol_of={inp.symbol_of_info.get('rule_version', N.RULE_SYMBOL_OF)}"],
+                f"symbol_of={inp.symbol_of_info.get('rule_version', N.RULE_SYMBOL_OF)}",
+                f"property_term={inp.property_term_info.get('rule_version', N.RULE_PROPERTY_TERM)}"],
             "rules_json": inp.options.rules(), "counts_json": counts,
             "accounting_json": receipt["accounting"],
             "checks_json": {c.check_id: c.status for c in checks},
@@ -689,7 +838,7 @@ def _execute(driver: Any, database: str, ns: Namespace, inp: NavInput, options: 
 
 
 def verify(settings: Settings | None, options: NavLoadOptions, *, driver: Any = None) -> dict[str, Any]:
-    """``nav graph-verify``: checks N1–N7 of the loaded NAV graph against the NAV datasets, without writing."""
+    """``nav graph-verify``: checks N1–N11 of the loaded NAV graph against the NAV datasets, without writing."""
     ns = options.namespace
     database = options.database or (settings.neo4j_database if settings else "neo4j")
     with NavInput.open(options.nav_dir, options.projection) as inp:

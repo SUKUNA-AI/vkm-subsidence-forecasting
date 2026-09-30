@@ -1,0 +1,16 @@
+{
+ "benchmark": "CHART_MODELS_V1",
+ "decoding": {"temperature": 0.0, "top_p": 1.0, "seed": 0, "cache_prompt": false,
+              "max_tokens": {"T1": 2048, "T2": 16384, "H": 4096, "T2_granite": 4096},
+              "qwen_chat_template_kwargs": {"enable_thinking": false}},
+ "T1": "This image is a chart from a technical document (text may be in Russian). Read its axes.\nReturn only a JSON object, no other text:\n{\"x_axis\": {\"title\": <string or null>, \"unit\": <string or null>, \"tick_labels\": [<string>, ...]},\n \"y_axis\": {\"title\": <string or null>, \"unit\": <string or null>, \"tick_labels\": [<string>, ...]},\n \"legend\": [<string>, ...]}\nRules: copy every printed tick label of each axis exactly as printed (keep minus signs, decimal commas and dates as they are), x from left to right, y from bottom to top; for a categorical axis give the category labels; \"unit\" is the unit of measure printed in or next to the axis title; \"legend\" lists the series names printed in a legend or as labels on the curves (empty list if none); use null where nothing is printed; do not invent labels.",
+ "T2": "This image is a chart from a technical document (text may be in Russian). Extract the data of every data series drawn in the plot (lines, curves, marker sets).\nReturn only a JSON object, no other text:\n{\"x_axis\": {\"title\": <string or null>, \"unit\": <string or null>, \"type\": \"numeric\" | \"date\" | \"category\"},\n \"y_axis\": {\"title\": <string or null>, \"unit\": <string or null>},\n \"series\": [{\"label\": <legend or curve label, or null>, \"color\": <colour name or hex>, \"points\": [[x, y], ...]}, ...]}\nRules: read the values with the axis scales; give a point at every data marker and at every vertex where the line changes direction, and for smooth curves without markers at least one point per interval between x tick labels, from the first to the last visible point; x as a number, or \"dd.mm.yyyy\" for a date axis, or the category label for a category axis; y as a number in the axis units; include every drawn series, also those without a legend entry; do not add series that are not drawn.",
+ "H": "This image is a chart. For every tick label printed along the x axis and along the y axis, give its exact text and its bounding box.\nReturn only a JSON array, no other text: [{\"axis\": \"x\" | \"y\", \"text\": <string>, \"bbox_2d\": [x1, y1, x2, y2]}, ...]",
+ "T2_granite": "<chart2csv>",
+ "notes": {
+  "T1": "tick labels, axis titles and units, legend - compared with Tesseract as agent FD runs it in route R",
+  "T2": "chart to data - compared with the truth and with route R geometry on the same image",
+  "H": "grounded tick labels (Qwen only): text + box feed route R calibration instead of Tesseract (hybrid arm H)",
+  "T2_granite": "the task tag the Granite Vision card documents for chart-to-CSV; Granite T1 uses the T1 prompt"
+ }
+}

@@ -4,8 +4,9 @@ the corpus and the PUBLIC evidence catalogues contain about a question.
 Parts (each optional part degrades to a warning when its dependency is missing):
 
 a. retrieval — the injected :class:`TopicRetrieval` (default :class:`HybridTopicRetrieval`: BM25 + dense + late
-   interaction over pages) runs up to 5 formulations of the topic (the query, the caller's paraphrases, the concept's
-   synonyms — SAME_AS and narrower terms — and the query widened by its strongest concept neighbours) over two tiers of
+   interaction over pages) runs up to 5 formulations of the topic (the query, the caller's paraphrases, the query in the
+   other language from the NAV term dictionary, the concept's synonyms — SAME_AS and narrower terms — and the query
+   widened by its strongest concept neighbours) over two tiers of
    sources — the VKM core (sources of the evidence catalogues and sources whose register scope is VKM/SKRU/regional)
    and the whole corpus — and fuses them by RRF into a ranked page list per tier (TOPIC_BENCHMARK_V1: several
    formulations and the core tier are the measured gains); pages are grouped by source and NAV section
@@ -17,7 +18,9 @@ b. NAV sections whose titles match the formulations (stems, idf-weighted; plus t
    snippet of canonical text (runtime only);
 c. formulas on the chosen pages, by the meaning of their symbols (``find_formulas(concept=…)``) and with matching
    «где…» definitions near the hit pages: number, section, symbols, parameter candidates (AUTO_EXTRACTED_UNREVIEWED);
-   figures and tables near the hit pages whose captions or headers carry the query words (visual evidence);
+   figures and tables near the hit pages whose captions or headers carry the query words (visual evidence); when the
+   topic names a property of the parameters vocabulary (and perhaps a material), the structured tables of the NAV
+   part ``tables`` that tabulate it (``find_tables``; tables at the hit pages and of the VKM core first);
 d. the concept graph (``explore_concept``) and topics (``find_topics`` / ``topic``, when the build has them);
 e. provenance of the sources found, in the two tiers (register scope, primary work: title, authors, year, type) and
    CITES among them;
@@ -46,7 +49,8 @@ from typing import Any, Iterable, Protocol
 
 LOG = logging.getLogger("vkm.api.topic")
 
-RULE_VERSION = "topic_dossier_v2"
+RULE_VERSION = "topic_dossier_v3"        # v3: structured tables of the properties the topic names
+MAX_TABLES = 6                           # structured tables shown (the rest: counted, find_tables gets them)
 DEFAULT_BUDGET, MIN_BUDGET, MAX_BUDGET = 12_000, 1_000, 60_000
 SNIPPET_CHARS = 200
 RETRIEVAL_UNITS = 50               # pages asked per formulation and tier (the hybrid search's maximum)
@@ -54,6 +58,7 @@ CORE_PAGES, REST_PAGES = 50, 25    # fused pages kept per tier (the same budget 
 MAX_FORMULATIONS = 5
 MAX_PARAPHRASES = 4
 RRF_K = 60
+TRANSLATE_DEFAULT = True           # translation formulation by default (benchmarks/term_dictionary_v1)
 RETRIEVAL_WORKERS = 4
 PER_SOURCE_SECTIONS = 3
 MAX_SCAN_PAGES = 24
@@ -199,7 +204,13 @@ class HybridTopicRetrieval:
                limit: int = RETRIEVAL_UNITS) -> dict[str, Any]:
         request = {"query": query, "kinds": ("PAGE",), "filters": {"source_id": list(source_ids)} if source_ids else {},
                    "size": max(1, min(50, limit)), "offset": 0, "candidates": self.candidates,
-                   "include_duplicates": False, "exact": False, "late": None, "late_candidates": 100}
+                   "include_duplicates": False, "exact": False, "late": None, "late_candidates": 100,
+                   # a dossier is built from text units (sections, formulas, blocks): pages the page-image leg adds
+                   # have no unit to cite, so the visual route stays off here (agent VIS, MODEL_CHOICE)
+                   "visual_route": False,
+                   # the graph stages of the hybrid search were measured on single searches (GRAPH_SEARCH_V1), not
+                   # inside the dossier's fusion of formulations × tiers (TERM_DICTIONARY_V1): none here until measured
+                   "graph": ()}
         response = self.backend.search(request)
         units = []
         for hit in response.get("hits") or []:
@@ -229,6 +240,7 @@ class TopicRequest:
     max_formulas: int = 10
     max_processes: int = 6
     paraphrases: tuple[str, ...] = ()        # other wordings of the topic from the caller (fused with the query)
+    translate: bool = TRANSLATE_DEFAULT      # + the query in the other language (NAV term dictionary, agent TR)
 
 
 @dataclass
@@ -258,6 +270,8 @@ CATEGORIES: tuple[tuple[str, str, str, str], ...] = (
      "search_sections(query) · reconstruct_topic(source_ids=[…])"),
     ("formulas", "Формулы", "формулы", "find_formulas(concept=…) · get_formula_context(formula_id)"),
     ("visual", "Рисунки и таблицы у найденных страниц", "рисунки/таблицы", "get_figure · get_table · get_page"),
+    ("tables", "Структурированные таблицы свойств темы", "таблицы свойств",
+     "find_tables(property=…, material=…) · get_table_structured(table_id)"),
     ("concept", "Понятия", "понятия", "explore_concept(term)"),
     ("topics", "Темы", "темы", "find_topics / topic"),
     ("sources_core", "Источники — ядро ВКМ", "источники ядра",
@@ -277,11 +291,11 @@ SHORT_NAMES = {k: s for k, _h, s, _t in CATEGORIES}
 HOW_TO = {k: t for k, _h, _s, t in CATEGORIES}
 # budget priorities (higher stays longer): priority = base − step · rank; the gaps of a process follow the process
 BASE_PRIORITY = {"sections_core": 100, "processes": 92, "concept": 88, "sections_rest": 84, "formulas": 82,
-                 "conflicts": 80, "sources_core": 78, "models": 74, "visual": 72, "topics": 70, "sources_rest": 64,
-                 "evidence": 58, "citations": 56, "operators": 50, "causal": 48}
+                 "conflicts": 80, "sources_core": 78, "models": 74, "visual": 72, "topics": 70, "tables": 66,
+                 "sources_rest": 64, "evidence": 58, "citations": 56, "operators": 50, "causal": 48}
 STEP = {"sections_core": 5, "processes": 6, "concept": 12, "sections_rest": 6, "formulas": 5, "conflicts": 6,
-        "sources_core": 4, "models": 6, "visual": 5, "topics": 6, "sources_rest": 5, "evidence": 5, "citations": 4,
-        "operators": 6, "causal": 4}
+        "sources_core": 4, "models": 6, "visual": 5, "topics": 6, "tables": 5, "sources_rest": 5, "evidence": 5,
+        "citations": 4, "operators": 6, "causal": 4}
 
 
 def _prio(category: str, rank: int) -> float:
@@ -469,6 +483,7 @@ class _State:
     sections: list[dict[str, Any]] = field(default_factory=list)
     formulas: list[dict[str, Any]] = field(default_factory=list)
     visual: list[dict[str, Any]] = field(default_factory=list)
+    tables: list[dict[str, Any]] = field(default_factory=list)
     near: dict[str, float] | None = None      # hit pages and their ±1 neighbours → order key (computed once)
     concept: dict[str, Any] | None = None
     topics: list[dict[str, Any]] = field(default_factory=list)
@@ -520,7 +535,8 @@ class DossierBuilder:
             st.warn("CORE_TIER_UNAVAILABLE", f"core tier: {type(exc).__name__}: {str(exc)[:120]}")
         for name, fn, needs in (("concept", self._concept, nav_ok), ("retrieval", self._retrieve, True),
                                 ("sections", self._sections, nav_ok), ("formulas", self._formulas, nav_ok),
-                                ("visual", self._visual, True), ("topics", self._topics, nav_ok),
+                                ("visual", self._visual, True), ("tables", self._tables, nav_ok),
+                                ("topics", self._topics, nav_ok),
                                 ("sources", self._sources, True), ("catalogues", self._catalogue_part, cat_ok)):
             if not needs:
                 continue
@@ -607,8 +623,8 @@ class DossierBuilder:
 
     def _formulations(self, st: _State) -> list[dict[str, Any]]:
         """≤ 5 formulations of the topic: the query, the caller's paraphrases (≤ 4; they come before the automatic
-        ones), the concept's synonyms (its lemma, SAME_AS, a narrower term) and the query widened by its two strongest
-        concept neighbours."""
+        ones), the query in the other language (term dictionary), the concept's synonyms (its lemma, SAME_AS, a
+        narrower term) and the query widened by its two strongest concept neighbours."""
         out: list[dict[str, Any]] = []
         seen: set[str] = set()
 
@@ -621,6 +637,9 @@ class DossierBuilder:
         add("query", st.req.query)
         for p in st.req.paraphrases[:MAX_PARAPHRASES]:
             add("paraphrase", p)
+        translation = self._translation(st)
+        if translation:
+            add("translation", translation)
         c = st.concept or {}
         if c.get("match"):
             qwords = words_of(st.req.query)
@@ -633,6 +652,34 @@ class DossierBuilder:
             if near:
                 add("neighbours", f"{st.req.query} {' '.join(near)}")
         return out
+
+    # ---------------------------------------------------------------- term dictionary (agent TR)
+    def _translation(self, st: _State) -> str | None:
+        """The query in the other language (RU ↔ EN) from the NAV term dictionary (``translate_query``: its terms by
+        their trusted translations), when the request asks for it and the build has the dictionary; what happened is
+        in ``inputs.translation`` (a build without it: ``not in this build``, no warning)."""
+        if not st.req.translate or self.nav is None or not st.req.query.strip():
+            return None
+        from vkm_corpus.navigation import store as nav_store
+
+        functions = getattr(self.nav, "_functions", {}) or {}
+        if "translate_query" not in set(nav_store.QUERY_FUNCTIONS) | set(functions):
+            st.inputs["translation"] = "not in this build"
+            return None
+        try:
+            data = self.nav.run("translate_query", st.req.query)
+        except Exception as exc:  # noqa: BLE001 - a NAV build without term_translations, no morphology …
+            st.inputs["translation"] = {"status": "UNAVAILABLE", "reason": type(exc).__name__}
+            return None
+        data = data if isinstance(data, dict) else {}
+        text = data.get("translation")
+        st.inputs["translation"] = {
+            "status": "APPLIED" if text else "NOT_COVERED", "source_language": data.get("source_language"),
+            "target_language": data.get("target_language"), "coverage": data.get("coverage"),
+            "terms": [{k: t.get(k) for k in ("span", "translation", "score", "pair_id")}
+                      for t in (data.get("terms") or [])[:8]]}
+        return text
+    # ---------------------------------------------------------------- end term dictionary (agent TR)
 
     def _retrieve(self, st: _State) -> None:
         """Every formulation over the core tier and over the corpus (or over the caller's sources), fused by RRF per
@@ -891,18 +938,20 @@ class DossierBuilder:
 
     @staticmethod
     def _phrasings(st: _State) -> list[tuple[list[str], float]]:
-        """(stems, weight) of the query (1.0), each paraphrase (0.9) and the synonyms (0.8) — the formulations whose
-        words may match titles and catalogue rows on their own (the neighbour-widened one only feeds retrieval)."""
-        weights = {"query": 1.0, "paraphrase": 0.9, "synonyms": 0.8}
+        """(stems, weight) of the query (1.0), each paraphrase and the translation (0.9) and the synonyms (0.8) — the
+        formulations whose words may match titles and catalogue rows on their own (the neighbour-widened one only
+        feeds retrieval)."""
+        weights = {"query": 1.0, "paraphrase": 0.9, "translation": 0.9, "synonyms": 0.8}
         out = [(query_stems(f["text"]), weights[f["kind"]]) for f in st.formulations if f["kind"] in weights]
         return [(stems, w) for stems, w in out if stems] or [(st.stems, 1.0)]
 
     @staticmethod
     def _all_stems(st: _State) -> list[str]:
-        """Stems of the query, the paraphrases and the synonyms (not the neighbour-widened formulation)."""
+        """Stems of the query, the paraphrases, the translation and the synonyms (not the neighbour-widened
+        formulation)."""
         out = list(st.stems)
         for f in st.formulations:
-            if f["kind"] in ("paraphrase", "synonyms"):
+            if f["kind"] in ("paraphrase", "translation", "synonyms"):
                 out += [s for s in query_stems(f["text"]) if s not in out]
         return out
 
@@ -958,6 +1007,59 @@ class DossierBuilder:
         scored.sort(key=lambda x: (-x[0], x[1]["object_id"]))
         st.extra["visual"] = max(0, len(scored) - 8)
         st.visual = [{"rank": i, **v} for i, (_s, v) in enumerate(scored[:8], 1)]
+
+    _TABLE_DATASETS = ("table_structure", "table_cells", "table_columns")
+
+    def _tables(self, st: _State) -> None:
+        """Structured tables (NAV §10) of the properties the topic names: ``find_tables`` by the first formulation
+        (the query, then the paraphrases, then the translation) that names a property of the parameters vocabulary,
+        with its material when it names one (without a table of both: the property alone). Tables at or next to the
+        hit pages first, then the VKM core, then how strongly the table names the property. A topic that names no
+        property gets no table part; a NAV build without tables gets a warning."""
+        from vkm_corpus.navigation.parameters_query import resolve_material, resolve_property
+
+        texts = [("query", st.req.query)] + [(f["kind"], f["text"]) for f in st.formulations
+                                             if f["kind"] in ("paraphrase", "translation")]
+        found = next(((kind, text, keys) for kind, text in texts if (keys := resolve_property(text))), None)
+        if found is None:
+            st.inputs["tables"] = {"property_keys": []}
+            return
+        kind, text, keys = found
+        materials = resolve_material(text)
+        info: dict[str, Any] = {"from": kind, "property_keys": keys, "materials": materials}
+        st.inputs["tables"] = info
+        require = getattr(self.nav, "require", None)
+        try:
+            if require is not None:
+                require(*self._TABLE_DATASETS)
+            answer = self.nav.run("find_tables", property=text, material=text if materials else None, limit=50)
+            if materials and not (answer or {}).get("tables"):
+                info["material_dropped"] = True             # no table names both: the property alone
+                answer = self.nav.run("find_tables", property=text, limit=50)
+        except Exception as exc:  # noqa: BLE001 - NavUnavailable: the build has no part tables
+            st.warn("TABLES_UNAVAILABLE", f"structured tables: {str(exc)[:160]}")
+            return
+        rows = [t for t in (answer or {}).get("tables") or []
+                if not st.req.source_ids or t.get("source_id") in st.req.source_ids]
+        near = self._near_pages(st)
+        info["total"] = len(rows)
+
+        def order(t: dict[str, Any]) -> tuple[Any, ...]:
+            return (t.get("page_id") not in near, st.tier(t.get("source_id")) != "CORE", -(t.get("score") or 0),
+                    -(t.get("confidence") or 0), t.get("source_id") or "", t.get("page_index") or 0, t["table_id"])
+
+        rows.sort(key=order)
+        st.extra["tables"] = max(0, len(rows) - MAX_TABLES)
+        st.tables = [{"rank": i, "table_id": t["table_id"], "nav_table_id": t.get("nav_table_id"),
+                      "source_id": t.get("source_id"), "page_id": t.get("page_id"), "page_index": t.get("page_index"),
+                      "section_id": t.get("section_id"), "tier": st.tier(t.get("source_id")),
+                      "near_hits": t.get("page_id") in near, "table_number": t.get("table_number"),
+                      "caption": short(t.get("caption"), 90) or None, "n_rows": t.get("n_rows"),
+                      "n_cols": t.get("n_cols"), "property_keys": [k for k in t.get("property_keys") or [] if k in keys],
+                      "materials": t.get("materials") or [], "units": list(dict.fromkeys(
+                          c.get("unit_raw") for c in t.get("matched_columns") or [] if c.get("unit_raw"))),
+                      "confidence": t.get("confidence"), "review_status": NAV_STATUS}
+                     for i, t in enumerate(rows[:MAX_TABLES], 1)]
 
     def _reviewed_sources(self) -> set[str]:
         """Sources the evidence catalogues were built from (SOURCE_COVERAGE_MASTER): a mild ranking prior."""
@@ -1688,6 +1790,19 @@ class DossierBuilder:
             text = f"- `{v['object_id']}` [{what}] " + (f"{v['label']} " if v.get("label") else "") + \
                 (f"«{v['caption']}» " if v.get("caption") else "") + f"· `{v['page_id']}`"
             out.append(Entry("visual", v["object_id"], _prio("visual", v["rank"] - 1), [text], v))
+        for t in st.tables:
+            parts = [f"- `{t['nav_table_id'] or t['table_id']}`" + (f" табл. {t['table_number']}"
+                                                                     if t.get("table_number") else ""),
+                     f"{t['source_id']} {_pages(t['page_index'], None)}"]
+            if t.get("caption"):
+                parts.append(f"«{t['caption']}»")
+            parts.append(", ".join(t["property_keys"]) + (f" [{', '.join(t['units'][:3])}]" if t["units"] else ""))
+            if t["materials"]:
+                parts.append(", ".join(t["materials"][:3]))
+            if t.get("n_rows"):
+                parts.append(f"{t['n_rows']}×{t.get('n_cols') or '?'}")
+            parts.append(f"`{t['page_id']}`" + (" (у найденных страниц)" if t["near_hits"] else ""))
+            out.append(Entry("tables", t["table_id"], _prio("tables", t["rank"] - 1), [" · ".join(parts)], t))
         for f in st.formulas:
             parts = [f"- `{f['formula_id']}`" + (f" ({f['equation_number']})" if f["equation_number"] else ""),
                      f"{f['source_id']} {_pages(f['page_index'], None)}"]
@@ -1862,6 +1977,7 @@ class DossierBuilder:
             "sections": [e.data for e in by.get("sections_core", []) + by.get("sections_rest", [])],
             "formulas": [e.data for e in by.get("formulas", [])],
             "visual": [e.data for e in by.get("visual", [])],
+            "tables": [e.data for e in by.get("tables", [])],
             "concept": concept, "topics": [e.data for e in by.get("topics", [])],
             "sources": [e.data for e in by.get("sources_core", []) + by.get("sources_rest", [])],
             "citations": citations or None,

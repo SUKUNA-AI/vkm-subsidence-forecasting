@@ -44,8 +44,21 @@ QUERY_FUNCTIONS: dict[str, str] = {
     "section_topics": "vkm_corpus.navigation.topics_query:section_topics",
     "copies_of": "vkm_corpus.navigation.duplicates_query:copies_of",
     "source_overlap": "vkm_corpus.navigation.duplicates_query:source_overlap",
+    "copies_of_object": "vkm_corpus.navigation.object_duplicates_query:copies_of_object",
+    "shared_formulas": "vkm_corpus.navigation.object_duplicates_query:shared_formulas",
     "find_parameters": "vkm_corpus.navigation.parameters_query:find_parameters",
     "parameter_summary": "vkm_corpus.navigation.parameters_query:parameter_summary",
+    # term dictionary (agent TR): RU ↔ EN (DE) equivalents, synonyms, the other-language wording of a query
+    "translate_term": "vkm_corpus.navigation.term_dictionary_query:translate_term",
+    "synonyms": "vkm_corpus.navigation.term_dictionary_query:synonyms",
+    "translate_query": "vkm_corpus.navigation.term_dictionary_query:translate_query",
+    "table_structured": "vkm_corpus.navigation.tables_query:get_table_structured",
+    "find_tables": "vkm_corpus.navigation.tables_query:find_tables",
+    # graph stages of the hybrid search (agent GS): G3 — synonyms, abbreviations and a narrower term of the query
+    "expand_query": "vkm_corpus.navigation.expansion_query:expand_query",
+    # digitized chart series (agent FD2): DERIVATION values with errors, navigation — not evidence
+    "find_figure_series": "vkm_corpus.navigation.figure_series_query:find_figure_series",
+    "figure_series": "vkm_corpus.navigation.figure_series_query:get_figure_series",
 }
 
 
@@ -131,6 +144,7 @@ class NavStore:
         self._con: Any = None
         self._stamp: tuple | None = None
         self._snapshot: str | None = None
+        self._tables: frozenset[str] = frozenset()   # datasets packed in the served nav.duckdb
         self._titles: tuple | None = None          # (stamp, lemma index of the section titles) for search_sections
 
     # -------------------------------------------------------------- instance
@@ -170,12 +184,14 @@ class NavStore:
         for (t,) in con.execute("SELECT table_name FROM duckdb_tables() WHERE database_name = 'canon' "
                                 "AND schema_name = 'canonical'").fetchall():
             con.execute(f'CREATE VIEW canonical."{t}" AS SELECT * FROM canon.canonical."{t}"')
+        tables = set()
         for (t,) in con.execute("SELECT table_name FROM duckdb_tables() WHERE database_name = 'nav' "
                                 "AND schema_name = 'main'").fetchall():
             con.execute(f'CREATE VIEW "{t}" AS SELECT * FROM nav.main."{t}"')
             if not t.startswith("nav_"):     # the part modules query nav_<dataset> (as `vkm-corpus nav build` names them)
                 con.execute(f'CREATE VIEW "nav_{t}" AS SELECT * FROM nav.main."{t}"')
-        self._con, self._stamp, self._snapshot = con, stamp, snap
+            tables.add(t)
+        self._con, self._stamp, self._snapshot, self._tables = con, stamp, snap, frozenset(tables - {"nav_meta"})
         return con
 
     # -------------------------------------------------------------- API
@@ -187,6 +203,20 @@ class NavStore:
     def meta(self) -> dict[str, Any]:
         rows = self.query("SELECT meta_json FROM nav_meta")
         return json.loads(rows[0]["meta_json"]) if rows else {}
+
+    def datasets(self) -> frozenset[str]:
+        """The NAV datasets packed in the served ``nav.duckdb``."""
+        with self._lock:
+            self._instance()
+            return self._tables
+
+    def require(self, *names: str) -> None:
+        """``NavUnavailable`` unless the served build holds every dataset in ``names`` (a part not built yet)."""
+        have = self.datasets()
+        missing = [n for n in names if n not in have]
+        if missing:
+            raise NavUnavailable(f"the navigation layer {self._snapshot} has no {', '.join(missing)}: its part is not "
+                                 f"built into this nav.duckdb")
 
     def query(self, sql: str, params: list[Any] | tuple[Any, ...] = ()) -> list[dict[str, Any]]:
         with self._lock:

@@ -104,6 +104,9 @@ class FakeOpenSearch:
     def search(self, index: str, body: dict[str, Any]) -> dict[str, Any]:
         self.searches.append((index, copy.deepcopy(body)))
         knn = (body.get("query") or {}).get("knn")
+        script = (body.get("query") or {}).get("script_score")
+        if script is not None and (script.get("script") or {}).get("source") == "knn_score":
+            return self._script_knn(index, body, script)
         if knn is None:
             hits = self.bm25(index, body) if self.bm25 else []
             return {"hits": {"hits": hits, "total": {"value": len(hits)}}, "aggregations": {}}
@@ -118,6 +121,25 @@ class FakeOpenSearch:
                         "_source": {k: v for k, v in doc.items() if k != field}})
         out.sort(key=lambda h: (-h["_score"], h["_id"]))
         return {"hits": {"hits": out[:spec["k"]], "total": {"value": len(out)}}}
+
+    def _script_knn(self, index: str, body: dict[str, Any], script: dict[str, Any]) -> dict[str, Any]:
+        """Exact k-NN scoring script (``knn_score``) over the documents matching the inner query; inner-product scores
+        are reported as OpenSearch does (1 + ip for ip ≥ 0, else 1 / (1 − ip))."""
+        params = script["script"]["params"]
+        field, vector, space = params["field"], params["query_value"], params.get("space_type", "innerproduct")
+        inner = script.get("query") or {"match_all": {}}
+        bool_q = inner.get("bool") or {}
+        name = self._resolve(index)[0]
+        out = []
+        for doc_id, doc in self.indices_[name]["docs"].items():
+            if not _matches(doc, bool_q):
+                continue
+            ip = sum(a * b for a, b in zip(doc[field], vector))
+            score = (1.0 + ip if ip >= 0 else 1.0 / (1.0 - ip)) if space == "innerproduct" else ip
+            out.append({"_id": doc_id, "_index": name, "_score": score,
+                        "_source": {k: v for k, v in doc.items() if k != field}})
+        out.sort(key=lambda h: (-h["_score"], h["_id"]))
+        return {"hits": {"hits": out[:int(body.get("size", 10))], "total": {"value": len(out)}}}
 
 
 def _term_ok(doc: dict[str, Any], clause: dict[str, Any]) -> bool:

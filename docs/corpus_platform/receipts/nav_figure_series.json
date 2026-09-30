@@ -1,0 +1,721 @@
+{
+ "receipt": "nav_figure_series",
+ "agent": "FD2",
+ "date": "2026-09-29",
+ "task": "user request 29.09: turn agent FD's figure digitization prototype into a platform component whose results can be looked at and used — a deterministic NAV build step (route A), an optional flagged raster dataset (route R), API and MCP read tools, a local gallery, tests, docs and this receipt",
+ "snapshot_id": "snap-20260928T193550Z-738eebee",
+ "snapshot_manifest_sha256": "b6afea998a45768a988ddf9ce60b565c3beae628e4bd645d3cf4ddbefd9d7eb7",
+ "rule_version": "figure_series_v1",
+ "schema": "vkm.figure_series/1",
+ "digitizer_version": "fd-0.1.4",
+ "review_status": "AUTO_EXTRACTED_UNREVIEWED",
+ "layer_status": "DERIVED",
+ "status_note": "every value is DERIVATION from a publication with a half-width error, never an observation of the project and never evidence; model results and measurements are not told apart (series_nature UNCLASSIFIED); the site attribution is the source's (SCOPE_INHERITED_FROM_SOURCE); available_from = publication date of the work (UNKNOWN without a year); suspect calibrations are flagged, never corrected",
+ "code": {
+  "branch": "claude/agent-fd2-figure-series-2026-09-29",
+  "base": "79128d8 (claude/corpus-platform-v0-2026-09-28)",
+  "modules": [
+   "src/vkm_corpus/navigation/figure_series.py (part figure_series: candidates, route A/R, flags, datasets, import)",
+   "src/vkm_corpus/navigation/figure_series_query.py (find_figure_series, figure_series)",
+   "src/vkm_corpus/navigation/cli.py, ids.py, store.py (part, rule, datasets, QUERY_FUNCTIONS)",
+   "src/vkm_corpus/api/app.py, service.py, envelope.py (GET /v1/nav/figure_series, /v1/nav/figure_series/{ref})",
+   "src/vkm_corpus/mcp/servers.py (find_figure_series, get_figure_series)",
+   "infra/core/nightly/mcp_smoke.py, nightly_summary.py, nightly_checks.sh (41 read tools and nightly-mcp-smoke-3 on the branch; 45 and nightly-mcp-smoke-4 after the merge with the platform tip)",
+   "src/vkm_corpus/figures/pdf_route.py, calibrate.py, __init__.py (fd-0.1.3 rotated pages, fd-0.1.4 log rule)",
+   "src/vkm_corpus/figures/gallery.py (local review gallery)"
+  ],
+  "not_touched": "src/vkm_corpus/graph/nav*.py (agent G2); the FIGURE_SERIES graph projection is described in FIGURE_SERIES.md §9",
+  "merge_with_platform": {
+   "platform_tip": "03031b3",
+   "merge_commit": "e5d0eec",
+   "brings": "agent G2's four NAV tools, agent GS's graph stages (expand_query), agent CH's chart-model bench, agent LB's topic pool labels, the CADFIX fixes",
+   "conflicts": 15,
+   "resolution": "additive: both sides kept in the API routes, service methods, envelope kinds, MCP tools, store query functions, smoke tool list and plan, tests and docs; totals 45 read tools, smoke VERSION nightly-mcp-smoke-4; NAVIGATION_LAYER: graph stages keep §11, figure_series is §12",
+   "line_endings": "every staged blob LF, as the HEAD and platform blobs (112 paths checked by bytes)",
+   "figures_code_changed_by_the_platform": false,
+   "merged_tree_rebuild": "the merged tree rebuilt the part: identical sha256 of all six datasets — the staged bundle stays valid"
+  }
+ },
+ "environment": {
+  "where": "WORKSTATION, WSL archlinux (the source PDFs are in the PRIVATE clone there)",
+  "python": "3.13.15",
+  "pymupdf": "1.28.2",
+  "tesseract": "5.5.3",
+  "opencv": "5.0.0",
+  "scipy": "1.18.1",
+  "numpy": "2.5.3",
+  "pyarrow": "25.0.1",
+  "duckdb": "1.5.5",
+  "pymorphy3": "2.0.6",
+  "memory_cap": "systemd-run --user --scope -p MemoryMax=12G -p MemorySwapMax=0"
+ },
+ "build": {
+  "command": "VKM_RESOURCES_ROOT=<PRIVATE clone> vkm-corpus nav build --duckdb <canonical DuckDB copy of the snapshot> --out <build dir> --part figure_series --option figure_series.workers=6 --option figure_series.raster_pages=fd_monitoring",
+  "options": {
+   "raster_pages": "fd_monitoring",
+   "workers": 6
+  },
+  "seconds": 242.08,
+  "workers": 6,
+  "config_hash_route_a": "81884eee8d975010",
+  "config_hash_route_r": "9966cc21b9cc9dd5",
+  "determinism": "two builds of the same code in the same environment: identical sha256 of all six datasets (see datasets.*.second_build_sha256_equal)",
+  "seconds_per_figure_route_a": {
+   "max": 20.031,
+   "median": 0.014,
+   "n": 1230
+  },
+  "ocr": {
+   "calls": 1451,
+   "engine": "tesseract",
+   "lang": "eng",
+   "psm": 7,
+   "render_dpi": 600,
+   "use": "calibration of a derived object only; not corpus text, not canon",
+   "version": "tesseract 5.5.3",
+   "whitelist": "0123456789.,-/"
+  }
+ },
+ "candidates": {
+  "figures_in_snapshot": 17784,
+  "with_native_vectors": 4353,
+  "numeric_rule_pass": 1403,
+  "not_chartlike_after_vector_rule": 173,
+  "chartlike": 1230,
+  "sources_chartlike": 57,
+  "rotated_page_figures": 32,
+  "core_keyword_figures": 351,
+  "rule": "chartlike_v1 without the keyword filter"
+ },
+ "route_a": {
+  "figure_status": {
+   "AXES_OK_NO_SERIES": 75,
+   "DIGITIZED": 607,
+   "NO_AXES": 266,
+   "X_UNCALIBRATED": 139,
+   "Y_UNCALIBRATED": 143
+  },
+  "sources_with_series_both_axes": 40,
+  "series": 7992,
+  "series_both_axes": 3779,
+  "points": 933525,
+  "points_both_axes": 843632,
+  "time_series_both_axes": 465,
+  "points_outside_frame": 121740,
+  "series_with_points_outside_frame": 1020,
+  "axis_kinds_both_axes": {
+   "DATE/LINEAR": 1,
+   "LINEAR/LINEAR": 3434,
+   "LINEAR/LOG10": 156,
+   "LOG10/LINEAR": 106,
+   "LOG10/LOG10": 82
+  },
+  "sampling_both_axes": {
+   "MARKER_CENTRES": 407,
+   "VECTOR_VERTICES": 3372
+  },
+  "median_relative_half_width": {
+   "y": 0.00466,
+   "x": 0.00381
+  },
+  "flags_figures": {
+   "AVAILABILITY_UNKNOWN": 42,
+   "AXIS_LABELS_DETACHED": 11,
+   "AXIS_LABELS_INSIDE_PLOT": 56,
+   "EMBEDDED_RASTER_IN_FIGURE": 57,
+   "EXTRAPOLATED_BEYOND_TICKS": 121,
+   "LOCAL_OCR_CALIBRATION": 6,
+   "MODEL_HINT_IN_CAPTION": 40,
+   "POINTS_OUTSIDE_PLOT_AREA": 256,
+   "POWER_OF_TEN_LABELS": 11,
+   "ROTATED_PAGE": 32,
+   "SCOPE_INHERITED_FROM_SOURCE": 1230,
+   "SECOND_X_AXIS": 17,
+   "SECOND_Y_AXIS": 51,
+   "STROKES_DRAWN_AS_OUTLINES": 20,
+   "THOUSANDS_SEPARATOR_AMBIGUOUS": 5,
+   "WEAK_AXIS_CALIBRATION": 27
+  }
+ },
+ "route_r_raster": {
+  "pages": {
+   "VKM-SRC-001": [
+    10,
+    11,
+    13,
+    16,
+    18
+   ],
+   "VKM-SRC-002": [
+    12,
+    14,
+    15
+   ],
+   "VKM-SRC-003": [
+    42,
+    43,
+    47,
+    66,
+    70,
+    72,
+    73
+   ],
+   "VKM-SRC-004": [
+    6,
+    8,
+    9,
+    10,
+    13
+   ],
+   "VKM-SRC-007": [
+    8
+   ],
+   "VKM-SRC-011": [
+    131
+   ],
+   "VKM-SRC-012": [
+    46,
+    47,
+    49,
+    50,
+    51,
+    52,
+    56,
+    103,
+    104,
+    105,
+    107
+   ],
+   "VKM-SRC-024": [
+    82,
+    83,
+    84,
+    85
+   ],
+   "VKM-SRC-034": [
+    2
+   ]
+  },
+  "pages_listed": 38,
+  "figures_on_pages": 63,
+  "candidates": 55,
+  "figure_status": {
+   "AXES_OK_NO_SERIES": 8,
+   "DIGITIZED": 12,
+   "NO_AXES": 11,
+   "X_UNCALIBRATED": 12,
+   "Y_UNCALIBRATED": 12
+  },
+  "series": 215,
+  "series_both_axes": 48,
+  "points": 13064,
+  "points_both_axes": 4163,
+  "flags_figures": {
+   "EMBEDDED_RASTER_IN_FIGURE": 25,
+   "LOCAL_OCR_CALIBRATION": 51,
+   "MODEL_HINT_IN_CAPTION": 3,
+   "RASTER": 55,
+   "SCOPE_INHERITED_FROM_SOURCE": 55,
+   "TRACE_GAP_NOT_FILLED": 23
+  },
+  "ocr_calls": 823,
+  "note": "flagged second dataset (RASTER on every row, gaps not filled): always to be reviewed; the query tools leave it out unless include_raster"
+ },
+ "suspect_calibration": {
+  "flags": [
+   "AXIS_LABELS_INSIDE_PLOT",
+   "AXIS_LABELS_DETACHED",
+   "SECOND_Y_AXIS",
+   "SECOND_X_AXIS",
+   "POWER_OF_TEN_LABELS",
+   "THOUSANDS_SEPARATOR_AMBIGUOUS",
+   "WEAK_AXIS_CALIBRATION"
+  ],
+  "digitized_figures_with_any": 84,
+  "by_flag": {
+   "AXIS_LABELS_INSIDE_PLOT": {
+    "figures_all": 56,
+    "figures_digitized": 16,
+    "series_both_axes": 109
+   },
+   "AXIS_LABELS_DETACHED": {
+    "figures_all": 11,
+    "figures_digitized": 11,
+    "series_both_axes": 72
+   },
+   "SECOND_Y_AXIS": {
+    "figures_all": 51,
+    "figures_digitized": 40,
+    "series_both_axes": 330
+   },
+   "SECOND_X_AXIS": {
+    "figures_all": 17,
+    "figures_digitized": 6,
+    "series_both_axes": 59
+   },
+   "POWER_OF_TEN_LABELS": {
+    "figures_all": 11,
+    "figures_digitized": 6,
+    "series_both_axes": 26
+   },
+   "THOUSANDS_SEPARATOR_AMBIGUOUS": {
+    "figures_all": 5,
+    "figures_digitized": 3,
+    "series_both_axes": 11
+   },
+   "WEAK_AXIS_CALIBRATION": {
+    "figures_all": 27,
+    "figures_digitized": 13,
+    "series_both_axes": 157
+   }
+  },
+  "clean_both_axes": {
+   "series": 3077,
+   "points": 294143,
+   "figures": 523,
+   "sources": 40,
+   "time_series": 339,
+   "time_series_points": 75707,
+   "time_series_figures": 86,
+   "time_series_sources": 20
+  },
+  "clean_both_axes_all_points_in_frame": {
+   "series": 2890,
+   "points": 288793
+  },
+  "clean_time_series_in_mm": {
+   "series": 84,
+   "points": 26392,
+   "figures": 25,
+   "by_source": {
+    "VKM-SRC-017": 50,
+    "VKM-SRC-045": 12,
+    "VKM-SRC-034": 7,
+    "VKM-SRC-124": 7,
+    "VKM-SRC-226": 6,
+    "VKM-SRC-203": 2
+   }
+  }
+ },
+ "availability": {
+  "series_by_basis": {
+   "ASSUMED_FROM_PUBLICATION": 7662,
+   "UNKNOWN": 330
+  },
+  "available_from_range": [
+   "2002-12-31",
+   "2025-12-31"
+  ],
+  "unknown_by_source": [
+   {
+    "source_id": "VKM-SRC-193",
+    "series": 199,
+    "points": 494586
+   },
+   {
+    "source_id": "VKM-SRC-218",
+    "series": 93,
+    "points": 286
+   },
+   {
+    "source_id": "VKM-SRC-212",
+    "series": 38,
+    "points": 246
+   }
+  ],
+  "note": "the canon has no publication year for these works: UNKNOWN stays UNKNOWN"
+ },
+ "attribution": {
+  "VKM-SRC-034": {
+   "figure_status": {
+    "DIGITIZED": 5
+   },
+   "source_site_scope_raw": [
+    "OTHER_VKM_SITE"
+   ],
+   "note": "inherited from the source, not upgraded to SKRU-1"
+  }
+ },
+ "fd_v0_comparison": {
+  "fd_route_a_series": 1907,
+  "fd_figures": 284,
+  "present_with_same_ids": 1907,
+  "identical_values": 1856,
+  "different_values": 51,
+  "figures_changed": 9,
+  "reason": "fd-0.1.4: labels spanning < 3x are no longer fitted as log10 (FD had log10 on narrow ranges)",
+  "new_series_in_fd_figures": 14
+ },
+ "visual_check": {
+  "method": "gallery crops with overlays and re-plots from the numbers, headless browser screenshots; seeded samples and every changed suspect flag of the final rounds",
+  "figures": [
+   {
+    "figure_id": "VKM-SRC-017:p0005:f7475f4489844",
+    "suspect_flags": [],
+    "verdict": "time series (mm over years): values match the printed chart; clean; axis lines past the last labels are inside the frame"
+   },
+   {
+    "figure_id": "VKM-SRC-034:p0004:fd01f920beac9",
+    "suspect_flags": [],
+    "verdict": "benchmark profile chart: values match; clean (legend date rows are no second x axis)"
+   },
+   {
+    "figure_id": "VKM-SRC-185:p0008:fc293f0b1ed59",
+    "suspect_flags": [],
+    "verdict": "values match; the frame no longer runs to a line one box below"
+   },
+   {
+    "figure_id": "VKM-SRC-250:p0391:ff962bc2dad4b",
+    "suspect_flags": [],
+    "verdict": "values match; frame fixed (the rule above the figure is not the frame)"
+   },
+   {
+    "figure_id": "VKM-SRC-222:p0151:fa6d43a801e3e",
+    "suspect_flags": [],
+    "verdict": "values match; frame fixed"
+   },
+   {
+    "figure_id": "VKM-SRC-014:p0155:fb043b612adb8",
+    "suspect_flags": [],
+    "verdict": "values match; frame reaches the axis lines past the last labels"
+   },
+   {
+    "figure_id": "VKM-SRC-250:p0387:fbc639b8a87c7",
+    "suspect_flags": [],
+    "verdict": "stacked panels sharing one x axis: sound, not flagged"
+   },
+   {
+    "figure_id": "VKM-SRC-193:p0209:fa111fc1bda79",
+    "suspect_flags": [
+     "SECOND_Y_AXIS"
+    ],
+    "verdict": "two y axes: SECOND_Y_AXIS correct; the neighbour panel's series lie outside the frame"
+   },
+   {
+    "figure_id": "VKM-SRC-193:p0352:fb96e627f532d",
+    "suspect_flags": [
+     "SECOND_Y_AXIS"
+    ],
+    "verdict": "two y axes: SECOND_Y_AXIS correct"
+   },
+   {
+    "figure_id": "VKM-SRC-193:p0351:f0400a885e789",
+    "suspect_flags": [
+     "SECOND_Y_AXIS"
+    ],
+    "verdict": "two y axes: SECOND_Y_AXIS correct"
+   },
+   {
+    "figure_id": "VKM-SRC-193:p0312:f805b983cba16",
+    "suspect_flags": [
+     "SECOND_Y_AXIS"
+    ],
+    "verdict": "two y axes: SECOND_Y_AXIS correct"
+   },
+   {
+    "figure_id": "VKM-SRC-222:p0079:f3c882033bcb6",
+    "suspect_flags": [
+     "SECOND_Y_AXIS"
+    ],
+    "verdict": "two y axes: SECOND_Y_AXIS correct"
+   },
+   {
+    "figure_id": "VKM-SRC-226:p0303:fa5330b475b1a",
+    "suspect_flags": [
+     "SECOND_Y_AXIS"
+    ],
+    "verdict": "two y axes: SECOND_Y_AXIS correct (axis line beside the labels)"
+   },
+   {
+    "figure_id": "VKM-SRC-236:p0517:f4d9833077d26",
+    "suspect_flags": [
+     "SECOND_Y_AXIS"
+    ],
+    "verdict": "two y axes: SECOND_Y_AXIS correct"
+   },
+   {
+    "figure_id": "VKM-SRC-202:p0138:fd5575dfd21b6",
+    "suspect_flags": [
+     "SECOND_Y_AXIS"
+    ],
+    "verdict": "short right axis: SECOND_Y_AXIS correct"
+   },
+   {
+    "figure_id": "VKM-SRC-202:p0091:f6a0b69b108d5",
+    "suspect_flags": [
+     "SECOND_Y_AXIS"
+    ],
+    "verdict": "right axis of panel a: SECOND_Y_AXIS correct"
+   },
+   {
+    "figure_id": "VKM-SRC-236:p0062:f431841c5624f",
+    "suspect_flags": [
+     "SECOND_Y_AXIS"
+    ],
+    "verdict": "nomogram with side scales: SECOND_Y_AXIS correct"
+   },
+   {
+    "figure_id": "VKM-SRC-203:p0066:f7cc6fff7e2fe",
+    "suspect_flags": [
+     "SECOND_Y_AXIS"
+    ],
+    "verdict": "zone numbers at the frame: SECOND_Y_AXIS false positive (conservative)"
+   },
+   {
+    "figure_id": "VKM-SRC-236:p0682:f0d757d4d8df1",
+    "suspect_flags": [
+     "SECOND_Y_AXIS"
+    ],
+    "verdict": "colour bar at the frame: SECOND_Y_AXIS false positive (conservative)"
+   },
+   {
+    "figure_id": "VKM-SRC-233:p0054:f2127ef181867",
+    "suspect_flags": [
+     "SECOND_Y_AXIS"
+    ],
+    "verdict": "neighbour panel's labels at the frame: SECOND_Y_AXIS false positive (conservative)"
+   },
+   {
+    "figure_id": "VKM-SRC-203:p0031:f4698fb52f2aa",
+    "suspect_flags": [
+     "SECOND_X_AXIS"
+    ],
+    "verdict": "period labels under the chart: SECOND_X_AXIS false positive (conservative); values match"
+   },
+   {
+    "figure_id": "VKM-SRC-173:p0151:f7d12a4b2316b",
+    "suspect_flags": [
+     "THOUSANDS_SEPARATOR_AMBIGUOUS"
+    ],
+    "verdict": "«80 000» read as 80: THOUSANDS_SEPARATOR_AMBIGUOUS correct"
+   },
+   {
+    "figure_id": "VKM-SRC-236:p0557:ff32c1e557012",
+    "suspect_flags": [
+     "AXIS_LABELS_DETACHED",
+     "THOUSANDS_SEPARATOR_AMBIGUOUS"
+    ],
+    "verdict": "«1,000» read as 1: THOUSANDS_SEPARATOR_AMBIGUOUS correct"
+   },
+   {
+    "figure_id": "VKM-SRC-236:p0686:fd37f5d52a431",
+    "suspect_flags": [
+     "POWER_OF_TEN_LABELS"
+    ],
+    "verdict": "10^0…10^4 read as 100…104: POWER_OF_TEN_LABELS correct"
+   },
+   {
+    "figure_id": "VKM-SRC-236:p0416:f58330300a7a1",
+    "suspect_flags": [
+     "WEAK_AXIS_CALIBRATION"
+    ],
+    "verdict": "curve labels taken for the y axis: WEAK_AXIS_CALIBRATION correct"
+   },
+   {
+    "figure_id": "VKM-SRC-135:p0002:f0400dc33150e",
+    "suspect_flags": [
+     "AXIS_LABELS_DETACHED"
+    ],
+    "verdict": "x axis of another panel: AXIS_LABELS_DETACHED correct"
+   },
+   {
+    "figure_id": "VKM-SRC-179:p0006:f9601d196fcbf",
+    "suspect_flags": [
+     "AXIS_LABELS_DETACHED"
+    ],
+    "verdict": "inset axes mixed with the main chart: AXIS_LABELS_DETACHED correct"
+   },
+   {
+    "figure_id": "VKM-SRC-214:p0089:ff36c550d0355",
+    "suspect_flags": [
+     "AXIS_LABELS_DETACHED",
+     "SECOND_Y_AXIS"
+    ],
+    "verdict": "legend values taken for the y axis: AXIS_LABELS_DETACHED correct"
+   },
+   {
+    "figure_id": "VKM-SRC-202:p0049:fb8e824490f10",
+    "suspect_flags": [
+     "AXIS_LABELS_DETACHED"
+    ],
+    "verdict": "two y scales on one side: AXIS_LABELS_DETACHED keeps it out of clean_only"
+   },
+   {
+    "figure_id": "VKM-SRC-035:p0005:fbdf5ca0cbdbc",
+    "suspect_flags": [
+     "AXIS_LABELS_DETACHED"
+    ],
+    "verdict": "two stacked panels, lower panel's y axis: AXIS_LABELS_DETACHED (upper panel values sound, lower panel series outside)"
+   },
+   {
+    "figure_id": "VKM-SRC-057:p0004:fa42e900cced4",
+    "suspect_flags": [],
+    "verdict": "colour bar taken for the y axis: not flagged (miss, documented)"
+   },
+   {
+    "figure_id": "VKM-SRC-203:p0254:f639e85b6866f",
+    "suspect_flags": [],
+    "verdict": "series drawn with diamond markers largely missed: not flagged (limitation)"
+   },
+   {
+    "figure_id": "VKM-SRC-236:p0435:fc373121ef4ee",
+    "suspect_flags": [],
+    "verdict": "axis titles swapped in the metadata; values sound"
+   },
+   {
+    "figure_id": "VKM-SRC-226:p0693:f0698e1ff8fa7",
+    "suspect_flags": [],
+    "verdict": "wrong y title picked; values sound; curve-label column no longer a second axis"
+   },
+   {
+    "figure_id": "VKM-SRC-142:p0011:f7d48203e4952",
+    "suspect_flags": [],
+    "verdict": "values match; legend no longer a second x axis"
+   },
+   {
+    "figure_id": "VKM-SRC-124:p0003:fdd1aebea0b90",
+    "suspect_flags": [],
+    "verdict": "values match; earlier SECOND_Y_AXIS was a false positive, now clean"
+   }
+  ]
+ },
+ "datasets": {
+  "figure_series": {
+   "rows": 7992,
+   "sha256": "ee52b8dc808ea859d8ccc78f2ddc5cea577a3e6140b89d82fb481656680d63c2",
+   "bytes": 1230971,
+   "second_build_sha256_equal": true
+  },
+  "figure_series_figures": {
+   "rows": 1230,
+   "sha256": "babdc465d36a2cc5adec22459fb3c50a88a62161994be733f7a10df2e237834a",
+   "bytes": 198646,
+   "second_build_sha256_equal": true
+  },
+  "figure_series_points": {
+   "rows": 933525,
+   "sha256": "5417f83a9af2b9d9e549fcdcc8299ae91eafd9e5c39b665d12720c6ae2885f8f",
+   "bytes": 13811766,
+   "second_build_sha256_equal": true
+  },
+  "figure_series_raster": {
+   "rows": 215,
+   "sha256": "f4a13cd59e7529cb0ec3735593a666f374e3e5130c1de863ffe86c9e45b1642a",
+   "bytes": 42734,
+   "second_build_sha256_equal": true
+  },
+  "figure_series_raster_figures": {
+   "rows": 55,
+   "sha256": "4d49a409133e0af72df2d43fab3ee21c81fe73e9249aefd8f1732a6ae4af0c8d",
+   "bytes": 28566,
+   "second_build_sha256_equal": true
+  },
+  "figure_series_raster_points": {
+   "rows": 13064,
+   "sha256": "1c1157e7e7e372d6200426470880e5a5afbc8d47f7bba7ea80ad8cb8ec5b6a87",
+   "bytes": 187104,
+   "second_build_sha256_equal": true
+  }
+ },
+ "bundle": {
+  "location": "WORKSTATION: <WSL home>/vkm/nav/out/figure_series_v1/<snapshot_id>/ (6 Parquet + manifest.json)",
+  "manifest_sha256": "bd237a1b4c58bf9d7657b021ff39acb9408fe0016078356bc56bff68be635bdd"
+ },
+ "import_rehearsal": {
+  "where": "WORKSTATION, a copy of the local NAV build of the snapshot (19 datasets)",
+  "dry_run": "plan OK, canon check: 0 missing figure ids",
+  "import_and_pack_seconds": 6,
+  "byte_for_byte": true,
+  "nav_duckdb_tables": 25,
+  "refused_other_snapshot": "exit code 2",
+  "recorded_options": {
+   "raster_pages": "fd_monitoring",
+   "workers": 6
+  },
+  "queries": {
+   "find text=оседание time_series": {
+    "figures": 8,
+    "series": 10,
+    "ms_first": 571,
+    "ms_warm": 7
+   },
+   "find unit=мм time_series clean_only": {
+    "figures": 25,
+    "series": 84,
+    "ms": 6
+   },
+   "find text=конвергенция": {
+    "figures": 1,
+    "series": 4
+   },
+   "find text=ползучесть": {
+    "figures": 3,
+    "series": 17
+   },
+   "find source_id=VKM-SRC-034": {
+    "figures": 5,
+    "series": 32
+   },
+   "find source_id=VKM-SRC-012 include_raster": {
+    "figures": 4,
+    "series": 26,
+    "route": "R_RASTER"
+   },
+   "get series": {
+    "ms": 23
+   },
+   "get figure": {
+    "ms": 30
+   },
+   "other parts still served": "find_parameters OK"
+  }
+ },
+ "gallery": {
+  "path": "<PUBLIC main checkout>/work/figure_gallery/index.html (git-ignored, not committed)",
+  "figures": 1285,
+  "route_a": 1230,
+  "route_r": 55,
+  "crops": 1285,
+  "crop_errors": 0,
+  "csv": 1126,
+  "overlays": 1126,
+  "megabytes": 229,
+  "seconds": 26,
+  "check": "headless browser screenshot: page, filters, overlays and re-plots render from the file"
+ },
+ "tests": {
+  "figure_series": "tests/corpus/test_nav_figure_series.py + test_api_figure_series.py: 20 passed (WSL venv; synthetic PDFs and canon)",
+  "corpus_suite_wsl": "tests/corpus: 1378 passed, 35 skipped, 2 failed — test_cad_mcp.py (the WSL venv has no ezdxf; vkm-cad not touched), 6 hygiene tests deselected (run with Windows Python)",
+  "hygiene_and_leakage_windows": "tests/corpus/test_public_hygiene.py + tests/world/test_foundation.py -k leakage: 8 passed (Windows Python)",
+  "world_wsl": "tests/world: 207 passed, 2 skipped (legacy refs not in this clone)",
+  "verify_canonical_repository": "catalogue_sync and the other blocking groups PASS except host_paths, whose only hit is the untracked, git-ignored .claude/settings.local.json of the agent worktree (the harness permission list; not committed, not edited by the agent); frozen and retired references SKIPPED_REF_UNAVAILABLE",
+  "merged_tree": {
+   "corpus_suite_wsl": "tests/corpus: 1421 passed, 36 skipped, 2 failed — test_cad_mcp.py only (no ezdxf in the WSL venv; with Windows Python test_cad_mcp.py: 3 passed); 6 hygiene tests deselected",
+   "figure_series_mcp_nightly": "test_nav_figure_series, test_api_figure_series, test_mcp_contract, test_nightly_mcp_smoke: 37 passed",
+   "hygiene_and_leakage_windows": "tests/corpus/test_public_hygiene.py: 6 passed; tests/world/test_foundation.py -k leakage: 2 passed",
+   "world_wsl": "tests/world: 207 passed, 2 skipped",
+   "verify_canonical_repository": "only host_paths FAIL on the untracked, git-ignored .claude/settings.local.json of the agent worktree"
+  }
+ },
+ "core_deploy_for_coordinator": {
+  "note": "not executed by agent FD2 (nothing written on CORE or EDGE); the branch already contains the platform tip 03031b3 (merge e5d0eec): merge it into the platform branch, then import the bundle",
+  "steps": [
+   "rsync -a <WORKSTATION bundle>/ core:$VKM_DATA_ROOT/tmp/figure_series_v1/<snapshot_id>/",
+   "cp -a $VKM_DATA_ROOT/derived/navigation/<snapshot_id> $VKM_DATA_ROOT/derived/navigation/<snapshot_id>.fs",
+   "cd /srv/vkm/infra/core && docker compose --env-file .env --profile jobs run --rm -T --entrypoint python vkm-job -m vkm_corpus.navigation.figure_series import --bundle /data/tmp/figure_series_v1/<snapshot_id> --nav-dir /data/derived/navigation/<snapshot_id>.fs --canon-duckdb /data/duckdb/vkm_corpus.duckdb --dry-run",
+   "the same without --dry-run and with --pack (copies byte for byte, merges the manifest, packs nav.duckdb)",
+   "swap the directories: <snapshot_id> -> <snapshot_id>.prev, <snapshot_id>.fs -> <snapshot_id>",
+   "deploy the api/mcp image with the merged code (data first, then the image); the nightly MCP smoke (nightly-mcp-smoke-4) then expects 45 read tools"
+  ]
+ },
+ "not_done": [
+  "no push, no merge, nothing written on CORE or EDGE",
+  "merge into the platform branch, the CORE import and the deploy: by the coordinator (the branch already contains the platform tip 03031b3)",
+  "FIGURE_SERIES graph projection: only described (FIGURE_SERIES.md §9), graph/nav*.py not touched",
+  "values are never corrected: thousands separators, power-of-ten labels, second axes are flagged only",
+  "colour bars taken for an axis, series drawn with some marker styles, strokes drawn as outlines: not handled",
+  "route R keeps Tesseract labels (agent CH found Qwen3.5-9B reads labels better; not integrated here)",
+  "route B (AutoCAD cross-check) is not part of the build",
+  "observation vs model classification and site attribution: review only"
+ ]
+}

@@ -13,6 +13,7 @@ Flow rules (task §32, CP-19, H-13):
 from __future__ import annotations
 
 import hashlib
+import os
 import re
 import time
 from dataclasses import dataclass, field
@@ -33,6 +34,7 @@ MAX_TEXT_CANDIDATES = 24          # H-13 (listwise text reranker: one call, no s
 MAX_VISUAL_CANDIDATES = 8         # H-13
 TEXT_TOKEN_BUDGET = 4096          # whole listwise prompt of the text reranker (agent F)
 MAX_CANDIDATE_CHARS = 32_768
+LATE_RERANK_KINDS = ("PAGE", "FIGURE", "TABLE", "FORMULA")   # kinds the token store scores itself; a block → its page
 DEFAULT_PAGE_CHARS, MAX_PAGE_CHARS = 12_000, 60_000
 MAX_ARTIFACT_BYTES = 64 * 1024 * 1024
 MAX_IMAGE_SOURCE_BYTES = 30 * 1024 * 1024
@@ -450,24 +452,48 @@ class ApiService:
     def search_hybrid(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
                       candidates: int = 100, include_duplicates: bool = False, exact: bool = False, *,
                       late: bool | None = None, late_candidates: int = 100,
-                      bib_route: bool | None = None) -> Result:
+                      bib_route: bool | None = None, visual_route: bool | None = None,
+                      translate: bool | None = None, graph: Any = None) -> Result:
         """BM25 + dense k-NN fused by RRF, optionally re-scored by late interaction (``vkm_corpus.search.hybrid``);
         hits are hydrated from the canon exactly as in :meth:`search` and carry the per-stage trace. Without the query
         encoder, the vectors build or (with late) the token store the answer is DEPENDENCY_UNAVAILABLE — never BM25
-        or RRF results in disguise."""
+        or RRF results in disguise. ``translate`` adds the query in the other language (NAV term dictionary) as
+        extra RRF legs (None → :meth:`_hybrid_translate_default`); without the dictionary the search runs without them
+        and says so (a warning when the flag was asked for). ``graph`` names the graph stages (a list or a comma
+        string; None → the server default; ``search.graph_stages``); what they did is in ``stages.graph``."""
         backend = _require(self.deps.hybrid, "hybrid search", "hybrid")
         offset = int(cursor) if cursor and cursor.isdigit() else 0
+        use_translation = self._hybrid_translate_default(late) if translate is None else bool(translate)
+        expansions, translation = self._query_translation(query) if use_translation else ([], None)
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
                    "candidates": candidates, "include_duplicates": include_duplicates, "exact": exact,
-                   "late": late, "late_candidates": late_candidates, "bib_route": bib_route}
+                   "late": late, "late_candidates": late_candidates, "bib_route": bib_route,
+                   "visual_route": visual_route}
+        if expansions:
+            request["expansions"] = tuple(expansions)
+        if graph is not None:
+            from vkm_corpus.search.graph_stages import parse_stages
+
+            try:
+                request["graph"] = parse_stages(graph)
+            except ValueError as exc:
+                raise ApiFailure("INVALID_ARGUMENT", str(exc)[:300]) from exc
         response = backend.search(request)
-        dense = (response.get("stages") or {}).get("dense") or {}
+        stages = response.get("stages") or {}
+        dense = stages.get("dense") or {}
+        vis = stages.get("visual_route") if isinstance(stages.get("visual_route"), dict) else {}
         items, warnings = self._search_items(response, extra_built={
-            dense.get("build_id"): dense.get("built_from_snapshot_id")}, hybrid=True)
+            dense.get("build_id"): dense.get("built_from_snapshot_id"),
+            vis.get("build_id"): vis.get("built_from_snapshot_id")}, hybrid=True)
         record = {k: response.get(k) for k in ("fusion", "rrf_k", "candidates", "fused_total", "totals", "stages",
                                                "timings_ms", "late", "late_candidates", "route")}
         record.update({"kinds": list(kinds), "query_sha256": sha256_text(query),
                        "scores_are": "rank-fusion signals of a projection, not evidence"})
+        if use_translation:
+            record["translation"] = translation
+            if translate and translation.get("status") == "UNAVAILABLE":
+                warnings.append(ApiWarning(code="TRANSLATION_UNAVAILABLE",
+                                           message=str(translation.get("reason"))[:200]))
         envelope = Envelope(object_id=f"hybrid-{sha256_text(query)[:16]}", object_kind="SEARCH_RESULT",
                             review_status="NOT_APPLICABLE", layer="SERVICE", payload_form="NORMALIZED",
                             provenance=Provenance(model_id=dense.get("model_key"), model_revision=None),
@@ -582,15 +608,26 @@ class ApiService:
         return Result(items=items[:limit], next_cursor=str(offset + limit) if more else None)
 
     # ================================================================================================ rerank
+    def text_rerank_backend(self) -> str:
+        """``VKM_RERANK_TEXT_BACKEND``: ``late`` — mLateOn MaxSim on the RX580 token store — or ``gateway`` — the EDGE
+        text reranker jina-reranker-v3.5, retired by the user on 29.09 (+0.006 nDCG@10, n.s., at ~11 s a call on top
+        of the late stage, RETRIEVAL_BENCHMARK_V1). Unset: ``late`` when hybrid search is configured, else ``gateway``."""
+        raw = os.environ.get("VKM_RERANK_TEXT_BACKEND", "").strip().lower()
+        if raw in ("late", "gateway"):
+            return raw
+        return "late" if self.deps.hybrid is not None else "gateway"
+
     async def rerank_text(self, query: str, candidate_ids: list[str], top_n: int | None,
                           passages: dict[str, list[str]], request_id: str,
                           run_sync: Callable[..., Any]) -> Result:
-        backend = _require(self.deps.rerank, "text reranker", "rerank_text")
         if len(candidate_ids) > MAX_TEXT_CANDIDATES:
             raise ApiFailure("PAYLOAD_TOO_LARGE", f"at most {MAX_TEXT_CANDIDATES} text candidates per call (H-13); "
                                                   "batches are not spliced", details={"given": len(candidate_ids)})
         if len(set(candidate_ids)) != len(candidate_ids):
             raise ApiFailure("INVALID_ARGUMENT", "candidate ids must be unique")
+        if self.text_rerank_backend() == "late":
+            return await self._rerank_text_late(query, candidate_ids, top_n, request_id, run_sync)
+        backend = _require(self.deps.rerank, "text reranker", "rerank_text")
         wanted = set(candidate_ids) | {o for ids in passages.values() for o in ids}
         texts = await run_sync(self.canon.rerank_texts, wanted)
         hydrated = await run_sync(self.canon.hydrate, candidate_ids)
@@ -625,6 +662,61 @@ class ApiService:
                       "rule": "rerank_text_v1"}
             items.append(Item(envelope=self.envelope(kind, row, payload_form="REFERENCE"), record=jsonable(record)))
         return Result(item=self._service_item("text", response, request_id, rejected), items=items)
+
+    async def _rerank_text_late(self, query: str, candidate_ids: list[str], top_n: int | None, request_id: str,
+                                run_sync: Callable[..., Any]) -> Result:
+        """``rerank_text`` on the late interaction model (rule ``rerank_text_late_v1``): a candidate scores mLateOn
+        MaxSim over the stored token vectors of its units — a page over its units except BIB_ENTRY (CP-42), a figure,
+        table or formula over its own unit, a block through its page. ``passages`` do not apply; candidates the store
+        cannot score keep their input order after the scored ones."""
+        backend = _require(self.deps.hybrid, "late interaction (text rerank)", "rerank_text")
+        hydrated = await run_sync(self.canon.hydrate, candidate_ids)
+        target_of: dict[str, tuple[str, str]] = {}
+        rejected: list[dict[str, str]] = []
+        for cid in candidate_ids:
+            if cid not in hydrated:
+                rejected.append({"id": cid, "code": "NOT_FOUND"})
+                continue
+            kind, row = hydrated[cid]
+            if kind in LATE_RERANK_KINDS:
+                target_of[cid] = (cid, kind)
+            elif kind == "BLOCK":
+                target_of[cid] = (str(row.get("page_id") or cid.rsplit(":", 1)[0]), "PAGE")
+            else:
+                rejected.append({"id": cid, "code": "NOT_RERANKABLE"})
+        if not target_of:
+            raise ApiFailure("NO_RERANK_TEXT", "no candidate can be scored by the late interaction model",
+                             details={"rejected": rejected})
+        targets = [{"id": tid, "kind": tkind} for tid, tkind in dict.fromkeys(target_of.values())]
+        started = time.perf_counter()
+        late = await run_sync(backend.late_rerank, query, targets)
+        latency_ms = round((time.perf_counter() - started) * 1e3, 1)
+        position = {cid: i for i, cid in enumerate(candidate_ids)}
+
+        def order_key(cid: str) -> tuple[int, float, int]:
+            res = late.results.get(target_of[cid][0]) or {}
+            if res.get("status") == "SCORED" and res.get("late_score") is not None:
+                return 0, -float(res["late_score"]), position[cid]
+            return 1, 0.0, position[cid]
+
+        ranked = sorted(target_of, key=order_key)[:top_n] if top_n else sorted(target_of, key=order_key)
+        items = []
+        for rank, cid in enumerate(ranked, 1):
+            kind, row = hydrated[cid]
+            tid, tkind = target_of[cid]
+            res = late.results.get(tid) or {}
+            record = {"rank": rank, "score": res.get("late_score"), "status": res.get("status"),
+                      "scored_as": {"id": tid, "kind": tkind}, "best_unit_id": res.get("best_unit_id"),
+                      "units": res.get("units"), "tokens": res.get("tokens"), "passage_object_ids": [],
+                      "rule": "rerank_text_late_v1"}
+            items.append(Item(envelope=self.envelope(kind, row, payload_form="REFERENCE"), record=jsonable(record)))
+        response = {"model_id": late.model, "backend": "late interaction (rx580-retrieval /search/late)",
+                    "score_semantics": "mLateOn MaxSim of the query over the stored token vectors of the candidate's "
+                                       "units; higher is better; passages do not apply",
+                    "n_candidates": len(candidate_ids), "top_n": top_n, "query_sha256": sha256_text(query),
+                    "latency_ms": latency_ms, "candidate_ids": candidate_ids}
+        return Result(item=self._service_item("text", response, request_id, rejected, rule="rerank_text_late_v1"),
+                      items=items)
 
     async def rerank_visual(self, query: str, candidate_ids: list[str], top_n: int | None, request_id: str,
                             run_sync: Callable[..., Any], max_side: int = images.DEFAULT_MAX_SIDE) -> Result:
@@ -681,7 +773,7 @@ class ApiService:
         return prepared, {**meta, "row": self._get(kind, cid), "kind": kind}
 
     def _service_item(self, kind: str, response: dict[str, Any], request_id: str,
-                      rejected: list[dict[str, str]]) -> Item:
+                      rejected: list[dict[str, str]], rule: str | None = None) -> Item:
         record = {k: response.get(k) for k in ("model_id", "model_revision", "quant", "placement", "backend",
                                                "backend_version", "weights_sha256", "model_config_sha256",
                                                "score_semantics", "license", "n_candidates", "top_n",
@@ -689,7 +781,7 @@ class ApiService:
                                                "gateway_version", "created_at", "warnings")}
         record.update({"kind": kind, "candidate_ids": response.get("candidate_ids"), "rejected": rejected,
                        "scores_are": "a retrieval signal of one model/revision/quant, not evidence",
-                       "rule": "rerank_text_v1" if kind == "text" else None})
+                       "rule": rule or ("rerank_text_v1" if kind == "text" else None)})
         envelope = Envelope(object_id=f"rerank-{kind}-{request_id}", object_kind="RERANK_RESULT",
                             review_status="NOT_APPLICABLE", layer="SERVICE", payload_form="NORMALIZED",
                             provenance=Provenance(model_id=response.get("model_id"),
@@ -760,7 +852,7 @@ class ApiService:
 
     # ------------------------------------------------------------------ NAV graph (agent G): paths and neighbourhoods
     # in the Neo4j projection of the navigation layer (vkm_corpus.graph.nav_query); DERIVED, never evidence.
-    NAV_GRAPH_FAMILIES = ("concepts", "formulas", "sections", "topics")
+    NAV_GRAPH_FAMILIES = ("concepts", "formulas", "sections", "topics", "dictionary")
 
     def _nav_graph(self) -> tuple[Any, dict[str, Any]]:
         graph = _require(self.deps.graph, "neo4j", "neo4j")
@@ -839,7 +931,8 @@ class ApiService:
         from vkm_corpus.graph.nav_query import depth2_ids, layer_of, shape_neighbourhood
 
         if not node_id or len(node_id) > 120 or not re.fullmatch(r"[A-Za-z0-9_:\-]+", node_id):
-            raise ApiFailure("INVALID_ARGUMENT", "node_id is a NAV id (SEC-, TRM-, FSY-, FPR-, topic) or a VKM id")
+            raise ApiFailure("INVALID_ARGUMENT", "node_id is a NAV id (SEC-, TRM-, FSY-, FPR-, TOP-, TBL-, PRM-, "
+                                                 "OCL-) or a VKM id")
         if int(depth) not in (1, 2):
             raise ApiFailure("INVALID_ARGUMENT", "depth is 1 or 2")
         if not 1 <= int(limit) <= 200:
@@ -1010,10 +1103,197 @@ class ApiService:
         data, snap = self._nav_run(lambda nav: nav.run("parameter_summary", property, material=material))
         return self._nav_result("NAV_PARAMETER_SUMMARY", f"parameter_summary:{property[:40]}", data, snap)
 
+    # ------------------------------------------------------------------ term dictionary (agent TR)
+    _TRANSLATE_LANGS = frozenset({"ru", "en", "de"})
+    # hybrid ``translate`` when the request does not say (TERM_DICTIONARY_V1, benchmarks/term_dictionary_v1): on with
+    # the late stage — the measured configuration (nDCG@10 and R@50 not worse on V and P); off when the late stage does
+    # not run (exploratory: the extra legs then dilute same-language queries). VKM_HYBRID_TRANSLATE_DEFAULT (1/0)
+    # overrides the constant without a rebuild.
+    HYBRID_TRANSLATE_DEFAULT = True
+
+    def _hybrid_translate_default(self, late: bool | None) -> bool:
+        import os
+
+        raw = os.environ.get("VKM_HYBRID_TRANSLATE_DEFAULT", "").strip().lower()
+        on = {"1": True, "true": True, "on": True, "0": False, "false": False, "off": False}.get(
+            raw, self.HYBRID_TRANSLATE_DEFAULT)
+        if not on:
+            return False
+        if late is None:                                      # the backend's late default (VKM_HYBRID_LATE_DEFAULT)
+            late = getattr(self.deps.hybrid, "late_default", None)
+        if late is None:
+            from vkm_corpus.search.hybrid import LATE_DEFAULT
+
+            late = LATE_DEFAULT
+        return bool(late)
+
+    def nav_translate(self, term: str, target: str | None = None, limit: int = 10) -> Result:
+        """Equivalents of a term in the other languages, its synonyms and abbreviations (NAV ``term_translations``:
+        corpus evidence per pair, seed rows REVIEWED_BY_AGENT); a phrase without a pair is translated part by part."""
+        if not term or not term.strip() or len(term) > 200:
+            raise ApiFailure("INVALID_ARGUMENT", "term is 1..200 characters")
+        if target is not None and target not in self._TRANSLATE_LANGS:
+            raise ApiFailure("INVALID_ARGUMENT", f"target is one of {sorted(self._TRANSLATE_LANGS)}")
+        data, snap = self._nav_run(lambda nav: nav.run("translate_term", term, target=target, limit=limit))
+        return self._nav_result("NAV_TRANSLATION", f"translate:{term[:60]}", data, snap)
+
+    def _query_translation(self, query: str) -> tuple[list[str], dict[str, Any]]:
+        """The query in the other language for the hybrid ``translate`` flag: (expansions, what happened)."""
+        nav = self.deps.nav
+        if nav is None:
+            return [], {"status": "UNAVAILABLE", "reason": "the navigation layer is not configured"}
+        try:
+            data = nav.run("translate_query", query)
+        except Exception as exc:  # noqa: BLE001 - NavUnavailable, a build without term_translations …
+            return [], {"status": "UNAVAILABLE", "reason": f"term dictionary: {type(exc).__name__}"}
+        data = data if isinstance(data, dict) else {}
+        text = data.get("translation")
+        info = {"status": "APPLIED" if text else "NOT_COVERED", "text": text,
+                "source_language": data.get("source_language"), "target_language": data.get("target_language"),
+                "coverage": data.get("coverage"),
+                "terms": [{k: x.get(k) for k in ("span", "translation", "score", "pair_id")}
+                          for x in (data.get("terms") or [])[:8]],
+                "note": "derived navigation (AUTO_EXTRACTED_UNREVIEWED): query expansion, not evidence"}
+        return ([text] if text else []), info
+    # ------------------------------------------------------------------ end term dictionary (agent TR)
+
+    # ------------------------------------------------------------------ structured tables (agent TB) and repeated
+    # figures, tables and formulas (agent U2): NAV §10 and §9, DERIVED navigation — never evidence
+    _TABLE_DATASETS = ("table_structure", "table_cells", "table_columns")
+    _OBJECT_DUP_DATASETS = ("object_dup_clusters", "object_dup_members")
+    _TBL_ID = re.compile(r"TBL-[0-9a-f]{16}")
+
+    def _nav_run_parts(self, datasets: tuple[str, ...], fn: Callable[[Any], Any]) -> tuple[Any, str | None]:
+        """``_nav_run`` for a part that may be missing from the served build: DEPENDENCY_UNAVAILABLE naming it."""
+        def run(nav: Any) -> Any:
+            nav.require(*datasets)
+            return fn(nav)
+        return self._nav_run(run)
+
+    def _object_kind(self, object_id: str, allowed: tuple[str, ...], what: str) -> str:
+        from vkm_corpus.api.canon import kind_of
+
+        kind = kind_of(object_id)                          # INVALID_ID when it is no VKM id
+        if kind not in allowed:
+            raise ApiFailure("INVALID_ID", f"{object_id} is not a {what} id", object_id=object_id)
+        return kind
+
+    def nav_table(self, table_id: str, max_rows: int = 200, max_chars: int = 8000) -> Result:
+        """A structured table (grid with row roles, header paths, units and parsed values) by its canonical id or its
+        NAV id (``TBL-…``)."""
+        tid = (table_id or "").strip()
+        if not self._TBL_ID.fullmatch(tid):
+            self._object_kind(tid, ("TABLE",), "table (canonical …:t… or TBL-)")
+        if not (1 <= int(max_rows) <= 500 and 200 <= int(max_chars) <= 60_000):
+            raise ApiFailure("INVALID_ARGUMENT", "max_rows is 1..500, max_chars 200..60000")
+        data, snap = self._nav_run_parts(self._TABLE_DATASETS, lambda nav: nav.run(
+            "table_structured", tid, max_rows=int(max_rows), max_chars=int(max_chars)))
+        if not isinstance(data, dict) or not data.get("found"):
+            raise ApiFailure("NOT_FOUND", f"{tid} has no structured grid in the navigation layer", stage="navigation",
+                             tool="nav", object_id=tid, hint="get_table shows the canonical table; find_tables "
+                                                            "searches the structured ones")
+        table = data.get("table") or {}
+        return self._nav_result("NAV_TABLE", table.get("table_id") or tid, data, snap,
+                                source_id=table.get("source_id"), page_id=table.get("page_id"))
+
+    def nav_tables(self, property: str | None, material: str | None, source_id: str | None,  # noqa: A002
+                   text: str | None, limit: int = 20) -> Result:
+        """Structured tables whose columns, rows or caption name a property, a material or the words of ``text``."""
+        property, material, text = ((x or "").strip() or None for x in (property, material, text))
+        if not any((property, material, source_id, text)):
+            raise ApiFailure("INVALID_ARGUMENT", "give at least one of property, material, source_id, text")
+        if any(x and len(x) > 200 for x in (property, material, text)):
+            raise ApiFailure("INVALID_ARGUMENT", "property, material and text are ≤ 200 characters")
+        if source_id is not None and not re.fullmatch(r"VKM-SRC-\d{3,}", source_id):
+            raise ApiFailure("INVALID_ARGUMENT", "source_id has the form VKM-SRC-NNN")
+        if not 1 <= int(limit) <= 100:
+            raise ApiFailure("INVALID_ARGUMENT", "limit is 1..100")
+        data, snap = self._nav_run_parts(self._TABLE_DATASETS, lambda nav: nav.run(
+            "find_tables", property=property, material=material, source_id=source_id, text=text, limit=int(limit)))
+        key = "|".join(str(x) for x in (property, material, source_id, text) if x)[:60]
+        return self._nav_result("NAV_TABLES", f"tables:{key}", data, snap, source_id=source_id, search=True)
+
+    def nav_object_copies(self, object_id: str, limit: int = 50) -> Result:
+        """Where else a figure, table or formula appears (groups of the part object_duplicates, primary first)."""
+        oid = (object_id or "").strip()
+        kind = self._object_kind(oid, ("FIGURE", "TABLE", "FORMULA"), "figure, table or formula")
+        if not 1 <= int(limit) <= 200:
+            raise ApiFailure("INVALID_ARGUMENT", "limit is 1..200")
+        self._get(kind, oid)                                  # NOT_FOUND for an object the canon does not hold
+        data, snap = self._nav_run_parts(self._OBJECT_DUP_DATASETS, lambda nav: nav.run(
+            "copies_of_object", oid, limit=int(limit)))
+        data = dict(data or {})
+        if not data.get("clusters"):
+            data["hint"] = "no repeat of this object was found in other sources (object_duplicates_v1)"
+        page = oid.rsplit(":", 1)[0]
+        return self._nav_result("NAV_OBJECT_COPIES", oid, data, snap, source_id=oid.split(":", 1)[0],
+                                page_id=None if page.endswith(":doc") else page)
+
+    def nav_shared_formulas(self, ref: str, renamed: bool = True, limit: int = 50) -> Result:
+        """Where the same formula is written: by a formula id or a LaTeX string (canonical key, then the same
+        structure in other notation); groups by work, earliest first."""
+        ref = (ref or "").strip()
+        if not ref or len(ref) > 2000:
+            raise ApiFailure("INVALID_ARGUMENT", "ref is a formula id or a LaTeX string of 1..2000 characters")
+        if not 1 <= int(limit) <= 200:
+            raise ApiFailure("INVALID_ARGUMENT", "limit is 1..200")
+        by_id = ref.startswith("VKM-")
+        if by_id:
+            self._object_kind(ref, ("FORMULA",), "formula")
+            self._get("FORMULA", ref)
+        data, snap = self._nav_run_parts(("formula_keys",), lambda nav: nav.run(
+            "shared_formulas", ref, renamed=bool(renamed), limit=int(limit)))
+        data = dict(data or {})
+        if by_id and data.get("match") != "formula_id":      # no canonical key: never compare the id as LaTeX
+            data = {"query": ref, "match": None, "latex_key": None, "trivial": None, "distinctive": None,
+                    "exact": [], "renamed": [], "clusters": [], "n_exact": 0, "n_renamed": 0, "n_works": 0,
+                    "reason": "NO_FORMULA_KEY: the formula has no canonical LaTeX key in formula_keys",
+                    "note": data.get("note")}
+        object_id = ref if by_id else "latex:" + sha256_text(ref)[:16]
+        return self._nav_result("NAV_SHARED_FORMULAS", object_id, data, snap,
+                                source_id=ref.split(":", 1)[0] if by_id else None,
+                                page_id=ref.rsplit(":", 1)[0] if by_id and not ref.rsplit(":", 1)[0].endswith(":doc")
+                                else None)
+    # ------------------------------------------------------------------ end structured tables and object duplicates
+
+    # ------------------------------------------------------------------ digitized chart series (agent FD2)
+    _FIGURE_SERIES_REF = re.compile(r"FS-[0-9a-f]{16}|VKM-SRC-[0-9]{3}:(?:[prs][0-9]{4}|doc):f[0-9a-f]{12}")
+
+    def nav_figure_series_find(self, text: str | None, unit: str | None, source_id: str | None,
+                               time_series: bool | None, calibrated_only: bool = True, limit: int = 10,
+                               include_raster: bool = False, clean_only: bool = False) -> Result:
+        """Digitized chart series (NAV ``figure_series``: DERIVATION values with a half-width error each,
+        AUTO_EXTRACTED_UNREVIEWED) by words of captions, axis titles and series labels, unit, source, time only;
+        ``include_raster`` adds the flagged raster dataset (route R), ``clean_only`` drops suspect calibrations."""
+        if not (text or unit or source_id or time_series):
+            raise ApiFailure("INVALID_ARGUMENT", "give at least one of q (words), unit, source_id, time_series=true")
+        if text is not None and (not text.strip() or len(text) > 200):
+            raise ApiFailure("INVALID_ARGUMENT", "q is 1..200 characters")
+        if unit is not None and (not unit.strip() or len(unit) > 40):
+            raise ApiFailure("INVALID_ARGUMENT", "unit is 1..40 characters")
+        if source_id is not None and not re.fullmatch(r"VKM-SRC-\d{3,}", source_id):
+            raise ApiFailure("INVALID_ARGUMENT", "source_id has the form VKM-SRC-NNN")
+        data, snap = self._nav_run(lambda nav: nav.run("find_figure_series", text=text, unit=unit, source_id=source_id,
+                                                       time_series=time_series, calibrated_only=calibrated_only,
+                                                       limit=limit, include_raster=include_raster,
+                                                       clean_only=clean_only))
+        key = "|".join(str(x) for x in (text, unit, source_id, "time" if time_series else None) if x)[:60]
+        return self._nav_result("NAV_FIGURE_SERIES_LIST", f"figure_series:{key}", data, snap, source_id=source_id)
+
+    def nav_figure_series_get(self, ref: str, max_points: int = 1000) -> Result:
+        """One digitized series (FS-…) or all series of a figure: points with errors, calibration, provenance."""
+        if not self._FIGURE_SERIES_REF.fullmatch(ref or ""):
+            raise ApiFailure("INVALID_ARGUMENT", "ref is a series id FS-<16 hex> or a figure id")
+        data, snap = self._nav_run(lambda nav: nav.run("figure_series", ref, max_points=max_points))
+        fig = (data or {}).get("figure") or {}
+        return self._nav_result("NAV_FIGURE_SERIES", ref, data, snap, source_id=fig.get("source_id"),
+                                page_id=fig.get("page_id"))
+    # ------------------------------------------------------------------ end digitized chart series (agent FD2)
+
     # ------------------------------------------------------------------ topic dossier (navigation + catalogues)
     def reconstruct_topic(self, query: str, *, budget_chars: int = 12_000, source_ids: list[str] | None = None,
                           max_sources: int = 10, max_sections: int = 12, max_formulas: int = 10,
-                          paraphrases: list[str] | None = None) -> Result:
+                          paraphrases: list[str] | None = None, translate: bool | None = None) -> Result:
         """«От А до Я» on a topic in one call: ranked NAV sections in two tiers (the VKM core and the rest of the
         corpus; hybrid search over ≤ 5 formulations fused by RRF + titles), formulas, figures and tables near the
         hits, the concept, sources with provenance and CITES, the PUBLIC catalogues (processes with evidence records,
@@ -1043,7 +1323,9 @@ class ApiService:
         dossier = builder.build(topic.TopicRequest(query=query, budget_chars=int(budget_chars),
                                                    source_ids=tuple(sources), max_sources=max_sources,
                                                    max_sections=max_sections, max_formulas=max_formulas,
-                                                   paraphrases=tuple(paraphrases)))
+                                                   paraphrases=tuple(paraphrases),
+                                                   translate=topic.TRANSLATE_DEFAULT if translate is None
+                                                   else bool(translate)))
         proj = dossier.projection or {}
         built_from = proj.get("built_from_snapshot_id")
         envelope = Envelope(
@@ -1356,6 +1638,12 @@ class ApiService:
                         **{k: vec.get(k) for k in ("alias", "build_id", "built_from_snapshot_id", "count",
                                                    "model_key", "dimension", "space_type", "config_signature")},
                         "matches_canonical_snapshot": vec.get("built_from_snapshot_id") == snapshot}
+                pv = s.get("page_vectors") or {}
+                if pv.get("indices"):
+                    out["dependencies"]["opensearch"]["page_vectors"] = {
+                        **{k: pv.get(k) for k in ("alias", "build_id", "built_from_snapshot_id", "count",
+                                                  "model_key", "dimension", "space_type", "config_signature")},
+                        "matches_canonical_snapshot": pv.get("built_from_snapshot_id") == snapshot}
             except ApiFailure as exc:
                 out["dependencies"]["opensearch"] = {"available": False, "error": exc.code}
         if self.deps.hybrid is not None and hasattr(self.deps.hybrid, "status"):
@@ -1364,6 +1652,8 @@ class ApiService:
             if "late_default" in h:
                 out["dependencies"]["late_interaction"] = {
                     "default": h["late_default"], "store": (h.get("query_encoder") or {}).get("late_store")}
+            if "visual_route" in h:
+                out["dependencies"]["visual_route"] = h["visual_route"]
         if self.deps.graph is not None:
             try:
                 g = await run_sync(self.deps.graph.state)
@@ -1383,6 +1673,7 @@ class ApiService:
                                                      for name, b in (r.get("backends") or {}).items()}}
             except ApiFailure as exc:
                 out["dependencies"]["rerank"] = {"available": False, "error": exc.code}
+        out["dependencies"]["rerank_text_backend"] = self.text_rerank_backend()
         if self.deps.control is not None:
             try:
                 c = await run_sync(self.deps.control.status)

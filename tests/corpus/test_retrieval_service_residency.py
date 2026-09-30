@@ -104,6 +104,30 @@ def test_resident_means_weights_in_vram(monkeypatch):
         assert mgr.health()["models"][0]["resident"] is expected
 
 
+def test_cpu_slot_runs_without_offload_and_is_resident_when_alive(monkeypatch):
+    """Visual fallback (agent VIS): a slot placed on the host CPU gets --device none and counts as resident when its
+    server answers (no VRAM to check); GPU slots keep the VRAM criterion."""
+    from vkm_corpus.embeddings import gpu
+    from vkm_corpus.retrieval_service import residency as res_mod
+
+    slots = (ModelSlot(role="dense", key="granite-311m-r2", gguf="d.gguf", port=1),
+             ModelSlot(role="visual", key="qwen3-vl-emb-2b", gguf="q.gguf", port=2, placement="cpu", threads=8))
+    mgr = ResidencyManager(ServiceConfig(models=slots, keepalive_s=0), poolings={"dense": "cls", "visual": "last"},
+                           keepalive_ids={"dense": [1], "visual": [1]})
+    mgr.build()
+    argv = mgr.processes["visual"].argv("last")
+    assert argv[argv.index("-ngl") + 1] == "0" and argv[argv.index("--device") + 1] == "none"
+    assert mgr.processes["dense"].argv("cls")[mgr.processes["dense"].argv("cls").index("-ngl") + 1] == "999"
+    for p in mgr.processes.values():
+        monkeypatch.setattr(p.client, "health", lambda: {"http_status": 200})
+        monkeypatch.setattr(p, "gpu_usage", lambda: gpu.ProcessGpu(123, 0, 0, {}, 1))
+    monkeypatch.setattr(res_mod.gpu, "device_memory", lambda *a, **k: gpu.DeviceMemory(
+        8 * 1024 * 2 ** 20, None, None, None, None, "active", "auto", None, None, None))
+    by = {m["role"]: m for m in mgr.health()["models"]}
+    assert by["visual"]["resident"] is True and by["visual"]["placement"] == "cpu"
+    assert by["dense"]["resident"] is False                                  # 0 bytes in VRAM: not resident
+
+
 def test_resident_criterion_expectation_and_baseline():
     from vkm_corpus.retrieval_service.residency import resident_in_vram
 
