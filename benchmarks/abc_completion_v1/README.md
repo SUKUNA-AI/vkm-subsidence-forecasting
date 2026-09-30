@@ -18,6 +18,8 @@
 - `coverage/`: все зарегистрированные источники, диапазоны страниц, SHA,
   caption/context screening, native checks и отбор новых объектов. Screening
   всех источников не доказывает полноту визуального recall на каждой странице.
+  `screening_finalization_receipt.json` отдельно фиксирует visual role checks,
+  dedup и disposition; исходная квитанция screening сохраняется.
 - `readings/`, `geometry/`, `geology/`: отдельные наборы A/B/C, решения по прежней
   очереди, provenance и receipts. Неполное значение остаётся UNKNOWN.
 - `accepted/`: родительские наборы и отдельные файлы трёх статусов для A/B/C.
@@ -27,6 +29,10 @@
   `PASS / CORRECT / UNRESOLVED`.
 - `frozen_integrity.json`: фактическое сравнение прежних файлов с хэшами
   предыдущих receipts, включая raw responses, собранные readings, GeoJSON и GPKG.
+- `geometry/topology/`: классификация прежних invalid candidates и отдельные
+  производные слои. Разбиение допустимо только по существующим повторным
+  вершинам при сохранении ориентированных рёбер; строгая проверка QGIS остаётся
+  отдельным условием. Валидный graphic candidate ещё не принят как выработка.
 
 PUBLIC хранит этот код, synthetic tests, методы и агрегированную квитанцию.
 Источник научного содержания остаётся PRIVATE. Код не назначает неизвестный
@@ -43,11 +49,14 @@ python -B benchmarks/abc_completion_v1/readings.py
 python -B -m benchmarks.abc_completion_v1.close_retries
 python -B -m benchmarks.abc_completion_v1.frozen_integrity
 python -B -m benchmarks.abc_completion_v1.package
+python -B -m benchmarks.abc_completion_v1.public_receipt
 python -B -m pytest -q tests/corpus/test_abc_*.py
 ```
 
 PowerShell не раскрывает wildcard в аргументах pytest; передайте существующие
 файлы тестов явно или сформируйте список через `Get-ChildItem`.
+Publisher требует завершённый `verification_summary.json`; создание пакета
+до этого не означает успешного прохождения всех QA-гейтов.
 
 `retry_glm.py` требует принадлежащий исполнителю GPU-lock `SOL-ABC` и готовый
 локальный GLM endpoint. Первые ответы и ранее принятый gold не перезаписываются;
@@ -58,3 +67,9 @@ PowerShell не раскрывает wildcard в аргументах pytest; п
 соответствиях. Pixel registration, roundtrip сериализации и структурные tests
 не являются геодезической точностью или field validation. Неразрешённые rings
 не становятся площадями или принятой geometry после автоматического MakeValid.
+
+Следующая Astra-сессия также должна независимо разметить новые поисковые hits
+по отдельному протоколу из [отчёта поиска](../../docs/corpus_platform/SEARCH_METRICS_2026-09-30_RU.md).
+Это отдельная relevance-разметка: scientific evidence и старые frozen labels
+не перезаписываются. По решению владельца новый pool и labels в Sol-сессии
+не создаются.

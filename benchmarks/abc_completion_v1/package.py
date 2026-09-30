@@ -37,6 +37,7 @@ def queue_closure(queue, decisions):
             if identifier not in expected:raise ValueError(f'unknown original queue case: {identifier}')
             if identifier in seen:raise ValueError(f'duplicate original queue case: {identifier}')
             if not row.get('reason'):raise ValueError(f'case has no reason: {identifier}')
+            if not row.get('verification_method'):raise ValueError(f'case has no completed verification method: {identifier}')
             seen[identifier]=dataset
             records.append({'case_id':identifier,'dataset':dataset,'decision':row})
     missing=expected-set(seen)
@@ -58,6 +59,53 @@ def dataset_summary(dataset):
         groups[status].append(row['record_id'])
     return {'record_count':len(records),'counts':{status:len(ids) for status,ids in groups.items()},
             'partitions':groups}
+
+
+def topology_summary(topology, qgis):
+    """Geometry validity is a graphic check, never scientific admission."""
+    counts = topology['status_counts']
+    repaired = counts['REPAIRED_GRAPHIC_CANDIDATE']
+    unresolved = counts['UNRESOLVED_GRAPHIC_TOPOLOGY']
+    if min(repaired, unresolved) < 0 or repaired + unresolved != topology['original_invalid']:
+        raise ValueError('topology classification does not cover the original invalid set')
+    if (qgis['status'] != 'PASS' or qgis['repaired_candidates'] != repaired
+            or len(qgis['records']) != repaired
+            or any(row['status'] != 'PASS' or row.get('scientific_acceptance', False) for row in qgis['records'])):
+        raise ValueError('repaired graphic candidates lack strict QGIS acceptance')
+    if (not topology['raw_frozen_unchanged'] or topology['makevalid_calls']
+            or topology['new_coordinates_or_nonzero_edges'] or topology['semantic_geometry_accepted']):
+        raise ValueError('graphic repair crossed a frozen or semantic boundary')
+    return {'original_invalid': topology['original_invalid'], 'status_counts': counts,
+            'repaired_layers': topology['repaired_layers'], 'strict_qgis_passed': repaired,
+            'semantic_geometry_accepted_by_topology': False, 'new_coordinates_or_nonzero_edges': 0}
+
+
+def checked_coverage_finalization(repo, root):
+    directory = root/'coverage'
+    receipt = load(directory/'screening_finalization_receipt.json')
+    paths = {'candidates': directory/'candidates.json', 'coverage': directory/'coverage.json',
+             'inventory': repo/'work/figure_readings_2026-09-29/v2/inventory.json',
+             'visual_reviews': directory/'visual_role_reviews.json'}
+    for name, path in paths.items():
+        if sha(path) != receipt['inputs'][name]:
+            raise ValueError(f'coverage finalization input changed: {name}')
+    target = directory/'candidate_dispositions.json'
+    if sha(target) != receipt['outputs'][target.name]:
+        raise ValueError('coverage disposition output changed')
+    if sha(repo/'benchmarks/abc_completion_v1/coverage.py') != receipt['code_sha256']:
+        raise ValueError('coverage finalization code differs from the executed code')
+    candidates, dispositions = load(paths['candidates']), load(target)
+    expected = [row['candidate_id'] for row in candidates]
+    observed = [row['candidate_id'] for row in dispositions]
+    if len(expected) != len(set(expected)) or len(observed) != len(set(observed)) or set(expected) != set(observed):
+        raise ValueError('coverage dispositions must cover every candidate exactly once')
+    rows, reviews = load(paths['coverage']), load(paths['visual_reviews'])
+    if (len(rows) != receipt['sources'] or len({r['source_id'] for r in rows}) != len(rows)
+            or sum(row['pages_checked'] for row in rows) != receipt['pages_screened']
+            or len(dispositions) != receipt['candidate_dispositions']
+            or len(reviews) != receipt['visually_role_checked_candidates']):
+        raise ValueError('coverage counts disagree with their hashed artifacts')
+    return receipt
 
 
 CONTEXT_FIELDS=('case_id','priority','source_id','page_id','figure','problem_type',
@@ -132,6 +180,13 @@ def main(args):
     if retry['truncation_cases_closed']!=55:raise ValueError('not all 55 original GLM truncations closed')
     coverage=load(root/'coverage/receipt.json')
     if coverage['sources']!=271 or coverage['pages_screened']!=27135:raise ValueError('coverage does not match current snapshot')
+    coverage_final=checked_coverage_finalization(repo,root)
+    if (coverage_final['status']!='PASS_SCREENING_WITH_EXPLICIT_DISPOSITIONS'
+            or coverage_final['sources']!=271 or coverage_final['pages_screened']!=27135
+            or not coverage_final['initial_screening_receipt_preserved']):
+        raise ValueError('coverage review disposition finalization is incomplete')
+    topology=topology_summary(load(root/'geometry/topology/receipt.json'),
+                              load(root/'geometry/topology/qgis_acceptance.json'))
     frozen=load(root/'frozen_integrity.json')
     if frozen['status']!='PASS' or not frozen['checked_file_count']:
         raise ValueError('frozen byte verification must pass before acceptance packaging')
@@ -141,12 +196,16 @@ def main(args):
         if path.exists():cases.extend(load(path)['cases'])
     prepare_astra(repo,root/'ASTRA_REVIEW_PACKAGE',cases)
     inputs={path.relative_to(repo).as_posix():sha(path) for path in paths.values()}
-    for path in [root/'queue_closure.json',root/'retries/closure.json',root/'coverage/receipt.json',root/'frozen_integrity.json']:
+    for path in [root/'queue_closure.json',root/'retries/closure.json',root/'coverage/receipt.json',
+                 root/'coverage/screening_finalization_receipt.json',root/'geometry/topology/receipt.json',
+                 root/'geometry/topology/qgis_acceptance.json',root/'frozen_integrity.json']:
         inputs[path.relative_to(repo).as_posix()]=sha(path)
     receipt={'schema':'vkm.sol_abc_completion_receipt/1','datasets':summaries,
         'original_queue':{'cases':len(queue),'processed':closed['processed_cases'],'by_dataset':closed['by_dataset']},
         'glm_retry_closure':{key:retry[key] for key in ('truncation_cases_closed','resolution_counts','reader_attempt_count')},
-        'coverage':{key:coverage[key] for key in ('sources','pages_screened','source_sha_counts','status_counts','exhaustive_figure_recall_proven')},
+        'coverage':{**{key:coverage[key] for key in ('sources','pages_screened','source_sha_counts','status_counts','exhaustive_figure_recall_proven')},
+                    **{key:coverage_final[key] for key in ('candidate_dispositions','visually_role_checked_candidates','new_explicit_candidates_after_dedup','disposition_counts')}},
+        'topology':topology,
         'astra_review':{'case_count':len(cases),'priorities':dict(Counter(row['priority'] for row in cases))},
         'frozen_integrity':{'status':frozen['status'],'checked_file_count':frozen['checked_file_count']},
         'inputs':inputs,'raw_frozen_unchanged':True,'admitted_to_evidence':False,
