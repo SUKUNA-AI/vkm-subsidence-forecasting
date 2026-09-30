@@ -10,8 +10,9 @@ from .model import WorldSpec
 
 def to_json(world: WorldSpec) -> str:
     """Canonical JSON: sorted keys, UTF-8, no volatile fields → identical bytes for identical content."""
-    return json.dumps(world.model_dump(mode="json", exclude_none=True), ensure_ascii=False, sort_keys=True,
-                      indent=1) + "\n"
+    fresh = world.revalidated()
+    return json.dumps(fresh.model_dump(mode="json", exclude_none=True), ensure_ascii=False, sort_keys=True,
+                      allow_nan=False, indent=1) + "\n"
 
 
 def content_hash(world: WorldSpec) -> str:

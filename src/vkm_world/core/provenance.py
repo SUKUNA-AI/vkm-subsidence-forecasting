@@ -295,7 +295,7 @@ class UncertaintyComponent(str, Enum):
 
 
 class Uncertainty(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
     kind: UncertaintyKind = UncertaintyKind.UNKNOWN
     params: dict[str, float] = Field(default_factory=dict)
@@ -366,7 +366,7 @@ def provenance_errors(p: Provenance) -> list[str]:
 class Quantity(BaseModel):
     """A physical quantity with provenance. Point OR range OR discrete set OR nothing (UNKNOWN)."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
     name: str
     unit: str = Field(..., description="SI or explicit unit string understood by vkm_world.core.units")

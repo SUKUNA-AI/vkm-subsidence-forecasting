@@ -12,11 +12,16 @@ SOURCE_ID_RE = re.compile(r"^(VKM-SRC-\d{3}|EXT-SRC-\d{3}|EXTWEB-[A-Za-z0-9\-]+)
 
 
 class WorldObject(BaseModel):
-    """Anything the world contains: an id, a human name, provenance and free notes."""
+    """Anything the world contains: an id, a human name, provenance and free notes.
 
-    model_config = ConfigDict(extra="forbid")
+    IDs are globally unique because provenance input references are untyped. The former
+    collection-local wording allowed ambiguous references across collections and nested objects.
+    Mathematical metadata uses its separate ``model_id`` namespace.
+    """
 
-    id: str = Field(..., description="stable identifier, unique within its collection")
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+
+    id: str = Field(..., description="stable identifier, unique within a WorldSpec, including nested objects")
     name: str | None = None
     provenance: Provenance
     notes: str | None = None

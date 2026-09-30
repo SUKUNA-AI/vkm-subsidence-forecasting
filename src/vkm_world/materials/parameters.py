@@ -35,7 +35,8 @@ class MaterialParameter(WorldObject):
     test_method: TestMethod = TestMethod.UNKNOWN
     n_samples: int | None = None
     conditions: str | None = Field(None, description="stress level, strain rate, temperature, moisture, specimen size")
-    law_id: str | None = Field(None, description="math registry id if the parameter belongs to a constitutive law")
+    law_id: str | None = Field(None, description="exact math model id or separately registered law-catalogue id; "
+                                              "a catalogue law id does not identify an executable equation")
 
     @model_validator(mode="after")
     def _units(self) -> "MaterialParameter":
