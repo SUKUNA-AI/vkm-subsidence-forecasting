@@ -78,6 +78,18 @@ desktop = [
     "pywin32>=312; sys_platform == 'win32'",
     "scipy>=1.18",  # vkm-cad v1 pure-Python fallback (Delaunay TIN); tested 1.18.1
 ]
+# vkm-ansys stdio MCP server (plan docs/planning/ENGINEERING_TOOLS_MCP_PLAN_RU.md §4.6): its own venv work/venv-ansys,
+# exact pins in requirements/ansys.lock.txt (built with -c requirements/worldspec.lock.txt)
+ansys = [
+    "mcp==2.2.0",
+    "pywin32>=312; sys_platform == 'win32'",
+    "psutil>=7",
+    "ansys-mapdl-core==0.74.1",
+    "ansys-dpf-core==0.16.1",
+    "ansys-mechanical-core==0.13.3",
+    "ansys-workbench-core==0.14.0",
+    "ansys-optislang-core==1.6.1",
+]
 
 [project.scripts]
 vkm-corpus = "vkm_corpus.cli:main"
@@ -92,6 +104,7 @@ include = ["vkm_world*", "vkm_corpus*", "vkm_cad*", "vkm_drawio*", "vkm_qgis*", 
 vkm_corpus = ["duckdb/sql/*.sql", "ops/schema.sql"]
 vkm_cad = ["plugin/*.cs"]
 vkm_matlab = ["entry/*.m"]
+vkm_ansys = ["ladder/*.inp", "ladder/*.json"]
 
 [tool.pytest.ini_options]
 addopts = "-ra -p no:cacheprovider"
@@ -102,5 +115,5 @@ markers = [
     "gpu: needs a CUDA GPU or a running GLM-OCR/reranker model service",
     "desktop: needs Windows desktop tools (AutoCAD, draw.io)",
     "matlab: starts MATLAB and takes a licence (live smoke; opt-in: VKM_MATLAB_LIVE=1 and -m matlab)",
-    "ansys: starts an Ansys product and takes a licence (opt-in: -m ansys, by explicit task only)",
+    "ansys: needs Ansys 2026 R1 and takes an Ansys licence (run only with -m ansys and VKM_ANSYS_LIVE=1)",
 ]
