@@ -1,0 +1,167 @@
+{
+  "agreement": {
+    "n": 60,
+    "exact": 0.65,
+    "within_one": 0.9667,
+    "kappa": 0.5333,
+    "kappa_linear": 0.7143,
+    "kappa_quadratic": 0.843,
+    "krippendorff_alpha_ordinal": 0.8271,
+    "h_higher": 19,
+    "h_lower": 2,
+    "evidence_threshold_agreement": 0.9
+  },
+  "disagreements": [
+    {
+      "n": 2,
+      "topic_id": "MM-VENT",
+      "page_id": "VKM-SRC-173:p0104",
+      "grade_t1": 1,
+      "grade_h": 2
+    },
+    {
+      "n": 3,
+      "topic_id": "PC-06",
+      "page_id": "VKM-SRC-169:p0001",
+      "grade_t1": 0,
+      "grade_h": 1
+    },
+    {
+      "n": 5,
+      "topic_id": "MM-SUBS",
+      "page_id": "VKM-SRC-065:p0105",
+      "grade_t1": 2,
+      "grade_h": 3
+    },
+    {
+      "n": 10,
+      "topic_id": "MM-VENT",
+      "page_id": "VKM-SRC-089:p0279",
+      "grade_t1": 2,
+      "grade_h": 3
+    },
+    {
+      "n": 12,
+      "topic_id": "PC-72",
+      "page_id": "VKM-SRC-080:p0006",
+      "grade_t1": 2,
+      "grade_h": 3
+    },
+    {
+      "n": 15,
+      "topic_id": "PC-33",
+      "page_id": "VKM-SRC-208:p0016",
+      "grade_t1": 2,
+      "grade_h": 3
+    },
+    {
+      "n": 21,
+      "topic_id": "MM-RS",
+      "page_id": "VKM-SRC-006:p0069",
+      "grade_t1": 2,
+      "grade_h": 3
+    },
+    {
+      "n": 29,
+      "topic_id": "PC-45",
+      "page_id": "VKM-SRC-205:p0069",
+      "grade_t1": 1,
+      "grade_h": 3
+    },
+    {
+      "n": 37,
+      "topic_id": "PC-42",
+      "page_id": "VKM-SRC-011:p0114",
+      "grade_t1": 0,
+      "grade_h": 1
+    },
+    {
+      "n": 38,
+      "topic_id": "MM-INSAR",
+      "page_id": "VKM-SRC-007:p0004",
+      "grade_t1": 1,
+      "grade_h": 2
+    },
+    {
+      "n": 39,
+      "topic_id": "MM-ROOF",
+      "page_id": "VKM-SRC-019:p0005",
+      "grade_t1": 2,
+      "grade_h": 3
+    },
+    {
+      "n": 43,
+      "topic_id": "MM-DEM",
+      "page_id": "VKM-SRC-023:r0076",
+      "grade_t1": 1,
+      "grade_h": 0
+    },
+    {
+      "n": 49,
+      "topic_id": "MM-HYDRO",
+      "page_id": "VKM-SRC-054:p0008",
+      "grade_t1": 1,
+      "grade_h": 0
+    },
+    {
+      "n": 50,
+      "topic_id": "MM-GEOCHEM",
+      "page_id": "VKM-SRC-011:p0081",
+      "grade_t1": 2,
+      "grade_h": 3
+    },
+    {
+      "n": 51,
+      "topic_id": "MM-SUBS",
+      "page_id": "VKM-SRC-045:p0008",
+      "grade_t1": 1,
+      "grade_h": 2
+    },
+    {
+      "n": 52,
+      "topic_id": "MM-ML",
+      "page_id": "VKM-SRC-197:p0013",
+      "grade_t1": 2,
+      "grade_h": 3
+    },
+    {
+      "n": 55,
+      "topic_id": "MM-GASDYN",
+      "page_id": "VKM-SRC-169:p0001",
+      "grade_t1": 2,
+      "grade_h": 3
+    },
+    {
+      "n": 57,
+      "topic_id": "PC-44",
+      "page_id": "VKM-SRC-090:p0003",
+      "grade_t1": 2,
+      "grade_h": 3
+    },
+    {
+      "n": 58,
+      "topic_id": "MM-PROT",
+      "page_id": "VKM-SRC-202:p0017",
+      "grade_t1": 0,
+      "grade_h": 2
+    },
+    {
+      "n": 59,
+      "topic_id": "PC-42",
+      "page_id": "VKM-SRC-011:p0116",
+      "grade_t1": 1,
+      "grade_h": 2
+    },
+    {
+      "n": 60,
+      "topic_id": "PC-14",
+      "page_id": "VKM-SRC-047:p0033",
+      "grade_t1": 2,
+      "grade_h": 3
+    }
+  ],
+  "freeze_sample_sha256": "4425711b1dc99650ea3b3e8cda3a399994bb961f7e602f95a993d35b90dcd9e4",
+  "interpretation": "descriptive agreement; not fully independent blind review",
+  "blindness_status": "DEVIATION_ORIGINAL_TARGET_GRADES_EXPOSED_TO_SUBAGENT",
+  "labels_changed_after_unblind": false
+}
