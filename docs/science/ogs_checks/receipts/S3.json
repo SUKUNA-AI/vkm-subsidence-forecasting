@@ -1,0 +1,45 @@
+{
+  "step": "S3",
+  "title": "Layered column under gravity: sigma_v(z) = int rho g dz, K0 and settlement",
+  "created": "2026-09-28T19:45:13+00:00",
+  "status_note": "MODEL result of a verification toy; not SKRU-1, not a forecast, not an observation, not validated against field data.",
+  "versions": {
+    "ogs_version": "6.5.9",
+    "ogs_cmake_arguments": "-DOGS_BUILD_GUI=\"OFF\" -DOGS_CPU_ARCHITECTURE=\"native\" -DOGS_USE_MFRONT=\"ON\" -DOGS_USE_PIP=\"OFF\"",
+    "ogs_binary": "<OGS_BUILD>/bin/ogs",
+    "ogs_source_commit": "77b4c4fd12f2fa0c5c67a81c06ce4620653a48a5",
+    "tfel_version": "tfel-config 4.2.6-dev (git hash: 1c931d0e1)",
+    "python": "3.13.15",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "meshio": "5.3.5",
+    "platform": "Linux 6.6.114.1-microsoft-standard-WSL2 x86_64"
+  },
+  "inputs_sha256": {
+    "S3_column_gravity.prj": "ed1e2f55b7ade0ea9a5a48bb82c7b9e377b654be1e3ebfc234bae53f1b0a5459",
+    "s3_column.vtu": "7fcd9014202f575db2bb5e4d701948658e215f84dc0700501b5d8c9e776aff3c",
+    "s3_column.gml": "f708dfdd2bf7580339d8eaa73e0fa48c930c5e8de80f75b53fb8ac6d042ac913"
+  },
+  "run": {
+    "command": "<OGS_BUILD>/bin/ogs -o <RUN_ROOT>/S3/out <RUN_ROOT>/S3/S3_column_gravity.prj",
+    "exit_code": 0,
+    "wall_time_s": 0.14,
+    "log": "<RUN_ROOT>/S3/ogs.log",
+    "log_sha256": "febe366dc604c1bdb31f31153443a43bbb3a61f62e07d5099759e7e3da5b4a62"
+  },
+  "mesh": {
+    "elements": 110,
+    "nodes": 445,
+    "type": "QUAD8"
+  },
+  "checks": {
+    "sigma_v_bottom_Pa": -10983000.0,
+    "max_abs_err_sigma_yy_over_sigma_v_bottom": 2.0190951310360704e-12,
+    "max_abs_err_sigma_xx_vs_K0_over_sigma_v_bottom_(non-interface nodes)": 8.65053923785833e-13,
+    "surface_settlement_ogs_m": -0.6562664301077694,
+    "surface_settlement_analytic_m": -0.6562664301077694,
+    "max_abs_err_u_y_over_max_u": 4.652246675512277e-16
+  },
+  "tolerance_rel": 1e-06,
+  "pass": true
+}

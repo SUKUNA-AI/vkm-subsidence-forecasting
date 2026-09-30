@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<OpenGeoSysProject>
+    <mesh>s4_column.vtu</mesh>
+    <geometry>s4_column.gml</geometry>
+    <search_length_algorithm><type>fixed</type><value>1e-6</value>
+</search_length_algorithm>
+    
+    <processes>
+        <process>
+            <name>SD</name>
+            <type>SMALL_DEFORMATION</type>
+            <integration_order>3</integration_order>
+            <constitutive_relation id="0"><type>LinearElasticIsotropic</type>
+<youngs_modulus>E_marl</youngs_modulus>
+<poissons_ratio>nu_marl</poissons_ratio>
+</constitutive_relation>
+<constitutive_relation id="1"><type>LinearElasticIsotropic</type>
+<youngs_modulus>E_rock_salt</youngs_modulus>
+<poissons_ratio>nu_rock_salt</poissons_ratio>
+</constitutive_relation>
+<constitutive_relation id="2"><type>LinearElasticIsotropic</type>
+<youngs_modulus>E_rock_salt</youngs_modulus>
+<poissons_ratio>nu_rock_salt</poissons_ratio>
+</constitutive_relation>
+<constitutive_relation id="3"><type>LinearElasticIsotropic</type>
+<youngs_modulus>E_sylvinite</youngs_modulus>
+<poissons_ratio>nu_sylvinite</poissons_ratio>
+</constitutive_relation>
+<constitutive_relation id="5"><type>LinearElasticIsotropic</type>
+<youngs_modulus>E_rock_salt</youngs_modulus>
+<poissons_ratio>nu_rock_salt</poissons_ratio>
+</constitutive_relation>
+            <specific_body_force>0.0 -9.81</specific_body_force>
+            <initial_stress>sigma0</initial_stress>
+            
+            
+            <process_variables>
+<process_variable>displacement</process_variable>
+</process_variables>
+            <secondary_variables>
+<secondary_variable name="sigma"/>
+<secondary_variable name="epsilon"/>
+</secondary_variables>
+        </process>
+    </processes>
+    <time_loop>
+        <processes>
+            <process ref="SD">
+                <nonlinear_solver>basic_newton</nonlinear_solver>
+                <convergence_criterion><type>DeltaX</type>
+<norm_type>NORM2</norm_type>
+<abstol>1e-10</abstol>
+<reltol>1e-12</reltol>
+</convergence_criterion>
+                <time_discretization><type>BackwardEuler</type>
+</time_discretization>
+                <time_stepping><type>FixedTimeStepping</type>
+<t_initial>0.0</t_initial>
+<t_end>1.0</t_end>
+<timesteps>
+<pair>
+<repeat>1</repeat>
+<delta_t>1.0</delta_t>
+</pair>
+</timesteps>
+</time_stepping>
+            </process>
+        </processes>
+        <output><type>VTK</type>
+<prefix>column_lambda_0.71</prefix>
+<data_mode>Ascii</data_mode>
+<compress_output>false</compress_output>
+<timesteps>
+<pair>
+<repeat>1</repeat>
+<each_steps>1</each_steps>
+</pair>
+</timesteps>
+<variables>
+<variable>displacement</variable>
+<variable>sigma</variable>
+</variables>
+<suffix>_ts_{:timestep}_t_{:time}</suffix>
+</output>
+    </time_loop>
+    <media>
+<medium id="0">
+<phases>
+<phase><type>Solid</type>
+<properties>
+<property><name>density</name><type>Constant</type><value>2242.609582059123</value>
+</property>
+</properties>
+</phase>
+</phases>
+</medium>
+<medium id="1">
+<phases>
+<phase><type>Solid</type>
+<properties>
+<property><name>density</name><type>Constant</type><value>2242.609582059123</value>
+</property>
+</properties>
+</phase>
+</phases>
+</medium>
+<medium id="2">
+<phases>
+<phase><type>Solid</type>
+<properties>
+<property><name>density</name><type>Constant</type><value>2242.609582059123</value>
+</property>
+</properties>
+</phase>
+</phases>
+</medium>
+<medium id="3">
+<phases>
+<phase><type>Solid</type>
+<properties>
+<property><name>density</name><type>Constant</type><value>2140.6727828746175</value>
+</property>
+</properties>
+</phase>
+</phases>
+</medium>
+<medium id="5">
+<phases>
+<phase><type>Solid</type>
+<properties>
+<property><name>density</name><type>Constant</type><value>2242.609582059123</value>
+</property>
+</properties>
+</phase>
+</phases>
+</medium>
+</media>
+    <parameters>
+        <parameter><name>E_marl</name><type>Constant</type><value>600000000.0</value>
+</parameter>
+<parameter><name>nu_marl</name><type>Constant</type><value>0.3</value>
+</parameter>
+<parameter><name>E_rock_salt</name><type>Constant</type><value>9500000000.0</value>
+</parameter>
+<parameter><name>nu_rock_salt</name><type>Constant</type><value>0.3</value>
+</parameter>
+<parameter><name>E_sylvinite</name><type>Constant</type><value>10800000000.0</value>
+</parameter>
+<parameter><name>nu_sylvinite</name><type>Constant</type><value>0.2</value>
+</parameter>
+<parameter><name>zero</name><type>Constant</type><value>0.0</value>
+</parameter>
+<parameter><name>u0</name><type>Constant</type><values>0.0 0.0</values>
+</parameter>
+<parameter><name>sigma0</name><type>Function</type><expression>0.71*(if(y &gt; -185.9, (0.0 + 22000.0*(y - (0.0))), if(y &gt; -194.4, (-4089800.0 + 22000.0*(y - (-185.9))), if(y &gt; -205.4, (-4276800.0 + 22000.0*(y - (-194.4))), if(y &gt; -287.4, (-4518800.0 + 22000.0*(y - (-205.4))), if(y &gt; -294.0, (-6322799.999999999 + 21000.0*(y - (-287.4))), if(y &gt; -299.5, (-6461400.0 + 21000.0*(y - (-294.0))), if(y &gt; -304.4, (-6576900.0 + 21000.0*(y - (-299.5))), (-6679799.999999999 + 22000.0*(y - (-304.4)))))))))))</expression><expression>if(y &gt; -185.9, (0.0 + 22000.0*(y - (0.0))), if(y &gt; -194.4, (-4089800.0 + 22000.0*(y - (-185.9))), if(y &gt; -205.4, (-4276800.0 + 22000.0*(y - (-194.4))), if(y &gt; -287.4, (-4518800.0 + 22000.0*(y - (-205.4))), if(y &gt; -294.0, (-6322799.999999999 + 21000.0*(y - (-287.4))), if(y &gt; -299.5, (-6461400.0 + 21000.0*(y - (-294.0))), if(y &gt; -304.4, (-6576900.0 + 21000.0*(y - (-299.5))), (-6679799.999999999 + 22000.0*(y - (-304.4))))))))))</expression><expression>0.71*(if(y &gt; -185.9, (0.0 + 22000.0*(y - (0.0))), if(y &gt; -194.4, (-4089800.0 + 22000.0*(y - (-185.9))), if(y &gt; -205.4, (-4276800.0 + 22000.0*(y - (-194.4))), if(y &gt; -287.4, (-4518800.0 + 22000.0*(y - (-205.4))), if(y &gt; -294.0, (-6322799.999999999 + 21000.0*(y - (-287.4))), if(y &gt; -299.5, (-6461400.0 + 21000.0*(y - (-294.0))), if(y &gt; -304.4, (-6576900.0 + 21000.0*(y - (-299.5))), (-6679799.999999999 + 22000.0*(y - (-304.4)))))))))))</expression><expression>0.0</expression>
+</parameter>
+    </parameters>
+    <process_variables>
+        <process_variable>
+            <name>displacement</name>
+            <components>2</components>
+            <order>2</order>
+            <initial_condition>u0</initial_condition>
+            
+            <boundary_conditions>
+<boundary_condition>
+<geometrical_set>col</geometrical_set>
+<geometry>LEFT</geometry><type>Dirichlet</type>
+<component>0</component>
+<parameter>zero</parameter>
+</boundary_condition>
+<boundary_condition>
+<geometrical_set>col</geometrical_set>
+<geometry>RIGHT</geometry><type>Dirichlet</type>
+<component>0</component>
+<parameter>zero</parameter>
+</boundary_condition>
+<boundary_condition>
+<geometrical_set>col</geometrical_set>
+<geometry>BOTTOM</geometry><type>Dirichlet</type>
+<component>1</component>
+<parameter>zero</parameter>
+</boundary_condition>
+</boundary_conditions>
+        </process_variable>
+    </process_variables>
+    <nonlinear_solvers>
+        <nonlinear_solver><name>basic_newton</name><type>Newton</type>
+<max_iter>30</max_iter>
+        <linear_solver>general_linear_solver</linear_solver>
+</nonlinear_solver>
+    </nonlinear_solvers>
+    <linear_solvers>
+        <linear_solver><name>general_linear_solver</name>
+        <eigen>
+<solver_type>SparseLU</solver_type>
+<scaling>true</scaling>
+</eigen>
+</linear_solver>
+    </linear_solvers>
+</OpenGeoSysProject>

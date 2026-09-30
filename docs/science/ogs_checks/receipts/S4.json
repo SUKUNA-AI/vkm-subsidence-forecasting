@@ -1,0 +1,136 @@
+{
+  "step": "S4",
+  "title": "Initial stress sigma_h = lambda*sigma_v as initial condition -> equilibrium, no displacement",
+  "created": "2026-09-28T19:45:14+00:00",
+  "status_note": "MODEL result of a verification toy; not SKRU-1, not a forecast, not an observation, not validated against field data.",
+  "versions": {
+    "ogs_version": "6.5.9",
+    "ogs_cmake_arguments": "-DOGS_BUILD_GUI=\"OFF\" -DOGS_CPU_ARCHITECTURE=\"native\" -DOGS_USE_MFRONT=\"ON\" -DOGS_USE_PIP=\"OFF\"",
+    "ogs_binary": "<OGS_BUILD>/bin/ogs",
+    "ogs_source_commit": "77b4c4fd12f2fa0c5c67a81c06ce4620653a48a5",
+    "tfel_version": "tfel-config 4.2.6-dev (git hash: 1c931d0e1)",
+    "python": "3.13.15",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "meshio": "5.3.5",
+    "platform": "Linux 6.6.114.1-microsoft-standard-WSL2 x86_64"
+  },
+  "cases": [
+    {
+      "case": "column_lambda_0.45",
+      "lambda": 0.45,
+      "lambda_status": "NORMATIVE coefficient of roof-layer calc, f.(8.130) SRC-037 (not a measurement)",
+      "run": {
+        "command": "<OGS_BUILD>/bin/ogs -o <RUN_ROOT>/S4/out_column_lambda_0.45 <RUN_ROOT>/S4/S4_column_lambda_0.45.prj",
+        "exit_code": 0,
+        "wall_time_s": 0.13,
+        "log": "<RUN_ROOT>/S4/ogs_column_lambda_0.45.log",
+        "log_sha256": "243d752213a3faf5d975f18bb0ddb487557398839af7b97dc29e95ebf0c7e5ca"
+      },
+      "inputs_sha256": {
+        "S4_column_lambda_0.45.prj": "9d194d7d576894a7cc9f03646ea73aed87791e3aa7df58550219f4cd6de91dae",
+        "s4_column.vtu": "7fcd9014202f575db2bb5e4d701948658e215f84dc0700501b5d8c9e776aff3c",
+        "s4_column.gml": "f708dfdd2bf7580339d8eaa73e0fa48c930c5e8de80f75b53fb8ac6d042ac913"
+      },
+      "max_abs_u_m": 9.522051447909891e-17,
+      "max_abs_u_over_gravity_settlement": 1.4509429419307977e-16,
+      "max_err_sigma_yy_over_sigma_v_bottom": 3.3918695242300955e-15,
+      "max_err_sigma_xx_over_sigma_v_bottom": 5.766178191191162e-15,
+      "pass": true
+    },
+    {
+      "case": "column_lambda_0.6",
+      "lambda": 0.6,
+      "lambda_status": "measured BKPRU-2 ~350 m (SRC-029 p.128) -> ANALOGUE for SKRU-1",
+      "run": {
+        "command": "<OGS_BUILD>/bin/ogs -o <RUN_ROOT>/S4/out_column_lambda_0.6 <RUN_ROOT>/S4/S4_column_lambda_0.6.prj",
+        "exit_code": 0,
+        "wall_time_s": 0.12,
+        "log": "<RUN_ROOT>/S4/ogs_column_lambda_0.6.log",
+        "log_sha256": "bab9257600b5fc56302ba5a10884d28ff15e832e063c81f6e813cf310e29f1ba"
+      },
+      "inputs_sha256": {
+        "S4_column_lambda_0.6.prj": "ef3d5409d11618e03205e2dbe37bd96ebfbbb4f67aea73b6d6228bba78d2c757",
+        "s4_column.vtu": "7fcd9014202f575db2bb5e4d701948658e215f84dc0700501b5d8c9e776aff3c",
+        "s4_column.gml": "f708dfdd2bf7580339d8eaa73e0fa48c930c5e8de80f75b53fb8ac6d042ac913"
+      },
+      "max_abs_u_m": 9.561429356539028e-17,
+      "max_abs_u_over_gravity_settlement": 1.456943234925012e-16,
+      "max_err_sigma_yy_over_sigma_v_bottom": 3.7310564766531055e-15,
+      "max_err_sigma_xx_over_sigma_v_bottom": 7.546909691411963e-15,
+      "pass": true
+    },
+    {
+      "case": "column_lambda_0.71",
+      "lambda": 0.71,
+      "lambda_status": "Kaiser-effect mean GI UrO RAN (cited by SRC-012/-029) -> VKM_REGIONAL, ANALOGUE",
+      "run": {
+        "command": "<OGS_BUILD>/bin/ogs -o <RUN_ROOT>/S4/out_column_lambda_0.71 <RUN_ROOT>/S4/S4_column_lambda_0.71.prj",
+        "exit_code": 0,
+        "wall_time_s": 0.11,
+        "log": "<RUN_ROOT>/S4/ogs_column_lambda_0.71.log",
+        "log_sha256": "59da45b6f6eb3a8a8191e946889e86c0d2481052eda95593e26253d3ccf6ffa1"
+      },
+      "inputs_sha256": {
+        "S4_column_lambda_0.71.prj": "ec7990bf22b62418201a4b962611213b662172881a8f9198ea612fcfaa2dd331",
+        "s4_column.vtu": "7fcd9014202f575db2bb5e4d701948658e215f84dc0700501b5d8c9e776aff3c",
+        "s4_column.gml": "f708dfdd2bf7580339d8eaa73e0fa48c930c5e8de80f75b53fb8ac6d042ac913"
+      },
+      "max_abs_u_m": 9.590260355846285e-17,
+      "max_abs_u_over_gravity_settlement": 1.4613364200682049e-16,
+      "max_err_sigma_yy_over_sigma_v_bottom": 4.409430381499125e-15,
+      "max_err_sigma_xx_over_sigma_v_bottom": 8.903657501104001e-15,
+      "pass": true
+    },
+    {
+      "case": "column_lambda_1",
+      "lambda": 1.0,
+      "lambda_status": "MODEL_CHOICE hydrostatic (SRC-037 par.6.7; Lomakin 2022)",
+      "run": {
+        "command": "<OGS_BUILD>/bin/ogs -o <RUN_ROOT>/S4/out_column_lambda_1 <RUN_ROOT>/S4/S4_column_lambda_1.prj",
+        "exit_code": 0,
+        "wall_time_s": 0.1,
+        "log": "<RUN_ROOT>/S4/ogs_column_lambda_1.log",
+        "log_sha256": "92c11c855876cf89ebe8c247297a21b9db76d5c38063de636ea1140c36fd2837"
+      },
+      "inputs_sha256": {
+        "S4_column_lambda_1.prj": "ec1fc46891277ee7ae083aec4f35bc8d4d0eb3b51b969b37d1a906bd8f27966f",
+        "s4_column.vtu": "7fcd9014202f575db2bb5e4d701948658e215f84dc0700501b5d8c9e776aff3c",
+        "s4_column.gml": "f708dfdd2bf7580339d8eaa73e0fa48c930c5e8de80f75b53fb8ac6d042ac913"
+      },
+      "max_abs_u_m": 9.67042386792491e-17,
+      "max_abs_u_over_gravity_settlement": 1.4735515065637095e-16,
+      "max_err_sigma_yy_over_sigma_v_bottom": 5.087804286345143e-15,
+      "max_err_sigma_xx_over_sigma_v_bottom": 1.2549917239651353e-14,
+      "pass": true
+    },
+    {
+      "case": "toy_block_no_rooms_lambda_0.45",
+      "lambda": 0.45,
+      "run": {
+        "command": "<OGS_BUILD>/bin/ogs -o <RUN_ROOT>/S4/out_toy <RUN_ROOT>/S4/S4_toy_block_no_rooms_lambda_0.45.prj",
+        "exit_code": 0,
+        "wall_time_s": 3.91,
+        "log": "<RUN_ROOT>/S4/ogs_toy.log",
+        "log_sha256": "47d6559778947865fab9794856194232543bde7bbf2c672aef72235fc487591f"
+      },
+      "mesh": {
+        "elements": 5995,
+        "nodes": 18314
+      },
+      "inputs_sha256": {
+        "S4_toy_block_no_rooms_lambda_0.45.prj": "c7f34e690012f33e1cff593f4fb7ca7992ad5aa499ae51a1be1faae79f8e2513",
+        "s4_toy_block.vtu": "f28e8fe48c9e13c06ec14389fc74101632f202c8a9afa40006208caaaa1b7bf7",
+        "s4_toy_block.gml": "d0062583f76f8a26eab65a20aa9d9557b4f6f652707b59eb847afb35fea59882"
+      },
+      "max_abs_u_m": 3.591499990439865e-15,
+      "max_abs_u_over_gravity_settlement": 5.4726248756165746e-15,
+      "pass": true
+    }
+  ],
+  "reference_scale": {
+    "gravity_settlement_of_column_m": 0.6562664301077694,
+    "note": "S3 settlement without initial stress, used to normalise |u|"
+  },
+  "pass": true
+}

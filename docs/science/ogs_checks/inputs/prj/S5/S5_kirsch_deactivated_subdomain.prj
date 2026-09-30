@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<OpenGeoSysProject>
+    <mesh>s5_kirsch.vtu</mesh>
+    <geometry>s5_kirsch.gml</geometry>
+    <search_length_algorithm><type>fixed</type><value>1e-6</value>
+</search_length_algorithm>
+    
+    <processes>
+        <process>
+            <name>SD</name>
+            <type>SMALL_DEFORMATION</type>
+            <integration_order>3</integration_order>
+            <constitutive_relation id="*"><type>LinearElasticIsotropic</type>
+<youngs_modulus>E</youngs_modulus>
+<poissons_ratio>nu</poissons_ratio>
+</constitutive_relation>
+            <specific_body_force>0.0 0.0</specific_body_force>
+            <initial_stress>sigma0</initial_stress>
+            
+            
+            <process_variables>
+<process_variable>displacement</process_variable>
+</process_variables>
+            <secondary_variables>
+<secondary_variable name="sigma"/>
+<secondary_variable name="epsilon"/>
+</secondary_variables>
+        </process>
+    </processes>
+    <time_loop>
+        <processes>
+            <process ref="SD">
+                <nonlinear_solver>basic_newton</nonlinear_solver>
+                <convergence_criterion><type>DeltaX</type>
+<norm_type>NORM2</norm_type>
+<abstol>1e-10</abstol>
+<reltol>1e-12</reltol>
+</convergence_criterion>
+                <time_discretization><type>BackwardEuler</type>
+</time_discretization>
+                <time_stepping><type>FixedTimeStepping</type>
+<t_initial>0.0</t_initial>
+<t_end>2.0</t_end>
+<timesteps>
+<pair>
+<repeat>2</repeat>
+<delta_t>1.0</delta_t>
+</pair>
+</timesteps>
+</time_stepping>
+            </process>
+        </processes>
+        <output><type>VTK</type>
+<prefix>s5_deactivated_subdomain</prefix>
+<data_mode>Ascii</data_mode>
+<compress_output>false</compress_output>
+<timesteps>
+<pair>
+<repeat>2</repeat>
+<each_steps>1</each_steps>
+</pair>
+</timesteps>
+<variables>
+<variable>displacement</variable>
+<variable>sigma</variable>
+</variables>
+<suffix>_ts_{:timestep}_t_{:time}</suffix>
+</output>
+    </time_loop>
+    <media>
+<medium id="*">
+<phases>
+<phase><type>Solid</type>
+<properties>
+<property><name>density</name><type>Constant</type><value>0.0</value>
+</property>
+</properties>
+</phase>
+</phases>
+</medium>
+</media>
+    <parameters>
+        <parameter><name>E</name><type>Constant</type><value>10000000000.0</value>
+</parameter>
+<parameter><name>nu</name><type>Constant</type><value>0.25</value>
+</parameter>
+<parameter><name>zero</name><type>Constant</type><value>0.0</value>
+</parameter>
+<parameter><name>u0</name><type>Constant</type><values>0.0 0.0</values>
+</parameter>
+<parameter><name>tx</name><type>Constant</type><value>-5000000.0</value>
+</parameter>
+<parameter><name>ty</name><type>Constant</type><value>-10000000.0</value>
+</parameter>
+<parameter><name>sigma0</name><type>Constant</type><values>-5000000.0 -10000000.0 -5000000.0 0.0</values>
+</parameter>
+    </parameters>
+    <process_variables>
+        <process_variable>
+            <name>displacement</name>
+            <components>2</components>
+            <order>2</order>
+            <initial_condition>u0</initial_condition>
+            <deactivated_subdomains>
+<deactivated_subdomain>
+<time_interval>
+<start>1.5</start>
+<end>3.0</end>
+</time_interval>
+<material_ids>1</material_ids>
+</deactivated_subdomain>
+</deactivated_subdomains>
+            <boundary_conditions>
+<boundary_condition>
+<geometrical_set>k</geometrical_set>
+<geometry>LEFT</geometry><type>Dirichlet</type>
+<component>0</component>
+<parameter>zero</parameter>
+</boundary_condition>
+<boundary_condition>
+<geometrical_set>k</geometrical_set>
+<geometry>BOTTOM</geometry><type>Dirichlet</type>
+<component>1</component>
+<parameter>zero</parameter>
+</boundary_condition>
+<boundary_condition>
+<geometrical_set>k</geometrical_set>
+<geometry>RIGHT</geometry><type>Neumann</type>
+<component>0</component>
+<parameter>tx</parameter>
+</boundary_condition>
+<boundary_condition>
+<geometrical_set>k</geometrical_set>
+<geometry>TOP</geometry><type>Neumann</type>
+<component>1</component>
+<parameter>ty</parameter>
+</boundary_condition>
+</boundary_conditions>
+        </process_variable>
+    </process_variables>
+    <nonlinear_solvers>
+        <nonlinear_solver><name>basic_newton</name><type>Newton</type>
+<max_iter>30</max_iter>
+        <linear_solver>general_linear_solver</linear_solver>
+</nonlinear_solver>
+    </nonlinear_solvers>
+    <linear_solvers>
+        <linear_solver><name>general_linear_solver</name>
+        <eigen>
+<solver_type>SparseLU</solver_type>
+<scaling>true</scaling>
+</eigen>
+</linear_solver>
+    </linear_solvers>
+</OpenGeoSysProject>

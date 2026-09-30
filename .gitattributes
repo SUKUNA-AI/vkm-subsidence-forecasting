@@ -9,6 +9,8 @@
 *.js text eol=lf
 *.toml text eol=lf
 *.txt text eol=lf
+# OpenGeoSys project files (docs/science/ogs_checks/inputs/prj): receipts hash the LF bytes
+*.prj text eol=lf
 requirements/*.in text eol=lf
 # Corpus Platform infra files run on Linux hosts (decision CP-13); PowerShell scripts keep CRLF.
 *.service text eol=lf

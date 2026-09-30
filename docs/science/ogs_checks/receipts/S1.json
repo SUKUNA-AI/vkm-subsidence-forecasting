@@ -1,0 +1,213 @@
+{
+  "step": "S1",
+  "title": "Version and shipped OGS small-deformation benchmarks vs their references",
+  "created": "2026-09-28T19:32:20+00:00",
+  "status_note": "MODEL result of a verification toy; not SKRU-1, not a forecast, not an observation, not validated against field data.",
+  "versions": {
+    "ogs_version": "6.5.9",
+    "ogs_cmake_arguments": "-DOGS_BUILD_GUI=\"OFF\" -DOGS_CPU_ARCHITECTURE=\"native\" -DOGS_USE_MFRONT=\"ON\" -DOGS_USE_PIP=\"OFF\"",
+    "ogs_binary": "<OGS_BUILD>/bin/ogs",
+    "ogs_source_commit": "77b4c4fd12f2fa0c5c67a81c06ce4620653a48a5",
+    "tfel_version": "tfel-config 4.2.6-dev (git hash: 1c931d0e1)",
+    "python": "3.13.15",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "meshio": "5.3.5",
+    "platform": "Linux 6.6.114.1-microsoft-standard-WSL2 x86_64"
+  },
+  "method": "Benchmark folders copied from <OGS_SRC>/Tests/Data; OGS run with '-r <copy>' which executes the <test_definition> vtkdiff comparisons of the .prj against the shipped reference .vtu files with the tolerances defined by OGS developers.",
+  "benchmarks": [
+    {
+      "name": "disc_with_hole",
+      "benchmark": "<OGS_SRC>/Tests/Data/Mechanics/Linear/disc_with_hole.prj",
+      "description": "SMALL_DEFORMATION, LinearElasticIsotropic, plate with a hole under traction",
+      "inputs_sha256": {
+        "disc_with_hole.prj": "98bc9d9a245fcc267d240b6e4ad17db254b5601de1f4a70987a22e8440f87cd7",
+        "disc_with_hole.vtu": "d25d38cfa4a6c2d636362a725a9fe894bc28ed9a1077b5a60b4f49a01e0e7528",
+        "disc_with_hole.gml": "f1a6ae81343ec6b580a28043dcf70fc432d4dcd6d975fe3387a0b5f2c65fd75d"
+      },
+      "references_sha256": {
+        "disc_with_hole_ts_4_t_1.000000.vtu": "47246d66ed28f2be82c398df0bdca2dd679734a91611f2a27c33904d6d68cbdb"
+      },
+      "test_definition": [
+        {
+          "file": "disc_with_hole_ts_4_t_1.000000.vtu",
+          "field": "displacement",
+          "absolute_tolerance": "1e-16",
+          "relative_tolerance": "1e-16"
+        }
+      ],
+      "run": {
+        "command": "<OGS_BUILD>/bin/ogs -o <RUN_ROOT>/S1/disc_with_hole/out -r <RUN_ROOT>/S1/disc_with_hole/ref <RUN_ROOT>/S1/disc_with_hole/ref/disc_with_hole.prj",
+        "exit_code": 0,
+        "wall_time_s": 0.14,
+        "log": "<RUN_ROOT>/S1/disc_with_hole/ogs.log",
+        "log_sha256": "3edc8c4ebe41cc532ad23a02ea586eb3d7ec1a75c466b3ea5b8cd2472b86a207"
+      },
+      "vtkdiff_results": [
+        {
+          "file": "disc_with_hole_ts_4_t_1.000000.vtu",
+          "field": "displacement",
+          "abs_tol": 1e-16,
+          "rel_tol": 1e-16,
+          "abs_max_norm": [
+            1.387778780781446e-17,
+            5.551115123125783e-17
+          ],
+          "rel_max_norm": [
+            1.249771432159595e-14,
+            5.784297608335798e-16
+          ],
+          "all_components_within_tolerance": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "name": "square_with_deactivated_hole",
+      "benchmark": "<OGS_SRC>/Tests/Data/Mechanics/Linear/square_with_deactivated_hole.prj",
+      "description": "SMALL_DEFORMATION, deactivated subdomain (material id 1)",
+      "inputs_sha256": {
+        "square_with_deactivated_hole.prj": "1075668b4379b1d86c73ab0cf5457682645ce65fdc8e0f2f7dfdca9282342aa7",
+        "square_with_2_matIDs.vtu": "39468dbcc483f1e647d05fce818dc147dd3e64376614a72a545d9bf2763c574b",
+        "disc_with_hole.gml": "f1a6ae81343ec6b580a28043dcf70fc432d4dcd6d975fe3387a0b5f2c65fd75d"
+      },
+      "references_sha256": {
+        "square_with_deactivated_hole_ts_4_t_1.000000.vtu": "8dba25da2a361e663090f874e43c5567c35a5ea7bfb0b1e8c51637030c61133a"
+      },
+      "test_definition": [
+        {
+          "file": "square_with_deactivated_hole_ts_4_t_1.000000.vtu",
+          "field": "displacement",
+          "absolute_tolerance": "1e-14",
+          "relative_tolerance": "1e-14"
+        },
+        {
+          "file": "square_with_deactivated_hole_ts_4_t_1.000000.vtu",
+          "field": "sigma",
+          "absolute_tolerance": "1e-14",
+          "relative_tolerance": "1e-14"
+        }
+      ],
+      "run": {
+        "command": "<OGS_BUILD>/bin/ogs -o <RUN_ROOT>/S1/square_with_deactivated_hole/out -r <RUN_ROOT>/S1/square_with_deactivated_hole/ref <RUN_ROOT>/S1/square_with_deactivated_hole/ref/square_with_deactivated_hole.prj",
+        "exit_code": 0,
+        "wall_time_s": 0.15,
+        "log": "<RUN_ROOT>/S1/square_with_deactivated_hole/ogs.log",
+        "log_sha256": "ad1e6c3ed13c7edee64c200ce19411cc948e34491954e07dd9c963759ab38641"
+      },
+      "vtkdiff_results": [
+        {
+          "file": "square_with_deactivated_hole_ts_4_t_1.000000.vtu",
+          "field": "displacement",
+          "abs_tol": 1e-14,
+          "rel_tol": 1e-14,
+          "abs_max_norm": [
+            1.387778780781446e-17,
+            2.775557561562891e-17
+          ],
+          "rel_max_norm": [
+            6.615260803191043e-15,
+            8.670090469890631e-16
+          ],
+          "all_components_within_tolerance": true
+        },
+        {
+          "file": "square_with_deactivated_hole_ts_4_t_1.000000.vtu",
+          "field": "sigma",
+          "abs_tol": 1e-14,
+          "rel_tol": 1e-14,
+          "abs_max_norm": [
+            7.979727989493313e-17,
+            1.821459649775647e-16,
+            7.849623728795052e-17,
+            8.909431352399633e-17
+          ],
+          "rel_max_norm": [
+            1.534700504120275e-08,
+            7.189917808844582e-13,
+            9.397839906654194e-13,
+            5.903273991443051e-11
+          ],
+          "all_components_within_tolerance": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "name": "arehs_salt_creep_gravity",
+      "benchmark": "<OGS_SRC>/Tests/Data/Mechanics/CreepWithHeterogeneousReferenceTemperature/arehs-salt-M_gravity_only_element_refT.prj",
+      "description": "SMALL_DEFORMATION, CreepBGRa rock salt + elastic layers under gravity, 1000 years",
+      "inputs_sha256": {
+        "arehs-salt-M_gravity_only_element_refT.prj": "8a5d99ebfd01a80045f42f667097f6c6eb595017e0f6847826445aa0edbcc788",
+        "arehs-salt-TM0_ts_10_t_3153600000000.000000_element_ref_T.vtu": "4b3749f24101a0586fa9a820ef9c4f46428be6d042ce048ee99afaa9f9d46dcf",
+        "geometry_bottom.vtu": "18ef7e802701ddb87b634e9170eab7460d1313a691a03be26a2f4a63788cafbe",
+        "geometry_left.vtu": "f6a69ec928f270cc4644e69752d6d4bdeb9227b7811fa4b0c29a8d31b8633e57",
+        "geometry_right.vtu": "e00c0b5cad1de1a5033f03b31004c5033d4ef93acf216f2fcd1b98a049b1925b"
+      },
+      "references_sha256": {
+        "arehs-salt-M_gravity_only_ts_10_t_31535999999.999996.vtu": "eb5dfbc77a47ae9f43fc6918ae001d31dca3db45431fef911d5ed769366ff1d7"
+      },
+      "test_definition": [
+        {
+          "file": "arehs-salt-M_gravity_only_ts_10_t_31535999999.999996.vtu",
+          "field": "displacement",
+          "absolute_tolerance": "1.e-10",
+          "relative_tolerance": "1.e-10"
+        },
+        {
+          "file": "arehs-salt-M_gravity_only_ts_10_t_31535999999.999996.vtu",
+          "field": "sigma",
+          "absolute_tolerance": "1.e-9",
+          "relative_tolerance": "5.7e-7"
+        }
+      ],
+      "run": {
+        "command": "<OGS_BUILD>/bin/ogs -o <RUN_ROOT>/S1/arehs_salt_creep_gravity/out -r <RUN_ROOT>/S1/arehs_salt_creep_gravity/ref <RUN_ROOT>/S1/arehs_salt_creep_gravity/ref/arehs-salt-M_gravity_only_element_refT.prj",
+        "exit_code": 0,
+        "wall_time_s": 26.53,
+        "log": "<RUN_ROOT>/S1/arehs_salt_creep_gravity/ogs.log",
+        "log_sha256": "9a06eca7f488dea945f98395ec416f716f808aed513a5cd37402dad426c9d5d7"
+      },
+      "vtkdiff_results": [
+        {
+          "file": "arehs-salt-M_gravity_only_ts_10_t_31535999999.999996.vtu",
+          "field": "displacement",
+          "abs_tol": 1e-10,
+          "rel_tol": 1e-10,
+          "abs_max_norm": [
+            2.025046796916286e-13,
+            2.057798376142728e-13
+          ],
+          "rel_max_norm": [
+            1.031550679201961e-10,
+            1.014744818949305e-10
+          ],
+          "all_components_within_tolerance": true
+        },
+        {
+          "file": "arehs-salt-M_gravity_only_ts_10_t_31535999999.999996.vtu",
+          "field": "sigma",
+          "abs_tol": 1e-09,
+          "rel_tol": 5.7e-07,
+          "abs_max_norm": [
+            9.402632713317871e-06,
+            9.231269359588623e-06,
+            9.290874004364014e-06,
+            1.033185981214046e-06
+          ],
+          "rel_max_norm": [
+            5.821250478478736e-11,
+            9.567540214749842e-09,
+            3.510242371775131e-11,
+            3.568754271396278e-07
+          ],
+          "all_components_within_tolerance": true
+        }
+      ],
+      "pass": true
+    }
+  ],
+  "pass": true,
+  "check_summary": "all shipped comparisons passed"
+}
