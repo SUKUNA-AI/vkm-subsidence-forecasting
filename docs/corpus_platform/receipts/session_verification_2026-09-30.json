@@ -1,0 +1,72 @@
+{
+  "schema": "vkm.session_verification/1",
+  "date": "2026-09-30",
+  "canonical": {
+    "checks": 42,
+    "by_status": {
+      "PASS": 35,
+      "SKIPPED_REF_UNAVAILABLE": 7
+    },
+    "groups_run": [
+      "registry",
+      "frozen_references",
+      "retired_references",
+      "private_sources",
+      "markdown_links",
+      "leakage",
+      "host_paths",
+      "worldspec_schema",
+      "catalogue_sync"
+    ],
+    "elapsed_s": 16.457
+  },
+  "canonical_exit_code": 0,
+  "test_runs": {
+    "initial_general_wsl": {
+      "passed": 1513,
+      "skipped": 76,
+      "failed": 1,
+      "failure": "drawio spec mismatch; resolved13modulePASS"
+    },
+    "final_world_targeted_wsl": {
+      "passed": 245,
+      "skipped": 4,
+      "failed": 0,
+      "reason_skips": "OpenCV absent in WSL; same4regressions PASS in Windows"
+    },
+    "final_targeted_windows": {
+      "passed": 67,
+      "failed": 0
+    },
+    "qgis_windows": {
+      "passed": 32,
+      "skipped": 2,
+      "failed": 0
+    },
+    "geometry_regions_windows": {
+      "passed": 17,
+      "failed": 0
+    }
+  },
+  "windows_full_world_limit": {
+    "passed": 239,
+    "failed": 8,
+    "reason": "Existing symlink privileges, newline and synthetic Git fixture assumptions; canonical validation performed in WSL",
+    "repository_test_code_changed_to_hide_failure": false
+  },
+  "git_diff_check": "PASS",
+  "core_edge_mutations": false,
+  "solvers_ml_cad_executed": false,
+  "gpu_lock_released": true,
+  "h_freeze_content_hashes": {
+    "benchmarks/topic_v1/H_REVIEW_SAMPLE_T1.md": "4425711b1dc99650ea3b3e8cda3a399994bb961f7e602f95a993d35b90dcd9e4",
+    "benchmarks/topic_v1/H_REVIEW_NOTES_2026-09-30.md": "5e5b5737ad052f046df174342397e8dcf8d2a8a402ddbfc99784a06559cd9d78"
+  },
+  "diagnostic_fixture_location_run": {
+    "passed": 240,
+    "skipped": 4,
+    "failed": 5,
+    "cause": "Verifier synthetic roots placed below the real ignored work tree inherit parent Git; repeated with default external pytest temporary directory:245PASS4SKIP",
+    "test_code_changed": false
+  }
+}

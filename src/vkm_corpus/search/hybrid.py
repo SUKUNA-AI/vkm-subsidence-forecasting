@@ -60,7 +60,8 @@ interaction stage (mLateOn MaxSim), with a per-stage trace (постановка
   the leg widens the late window and the late score decides; G1 runs last. Every stage needs the late stage (the
   measured configuration) and the navigation layer (without it: a warning and E's answer). Server default
   :data:`graph_stages.DEFAULTS`; ``VKM_HYBRID_GRAPH`` overrides it (``HybridBackend``).
-* The EDGE text reranker stays the last stage (``rerank_text`` over the returned ``rerank_candidate``).
+* Optional ``rerank_text`` re-scores the returned ``rerank_candidate`` objects through its configured backend;
+  it is a separate call, not another stage run inside this search.
 """
 from __future__ import annotations
 
@@ -942,5 +943,5 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
                                      "fusion": "extra RRF legs of the expansions; the late stage scores the original "
                                                "query"} if xq else "NOT_RUN",
                        "graph": grun.record(),
-                       "rerank": "NOT_RUN here (EDGE text reranker: rerank_text over rerank_candidate)"},
+                       "rerank": "NOT_RUN here (rerank_text over rerank_candidate through its configured backend)"},
             "timings_ms": timings}

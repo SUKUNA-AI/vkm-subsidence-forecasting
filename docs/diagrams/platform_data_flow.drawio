@@ -1,19 +1,19 @@
-<mxfile host="vkm-drawio" agent="vkm-drawio writer/1" compressed="false" pages="1">
+<mxfile host="vkm-drawio" agent="vkm-drawio writer/1" compressed="false" pages="2">
   <diagram id="data_flow" name="Поток данных">
     <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1960" pageHeight="1190" math="0" shadow="0" background="#ffffff">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Платформа корпуса: поток данных от источников до инструментов MCP (состояние 29.09.2026)" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="title" value="Платформа корпуса: source → DOCUMENT → NAV → проекции → MCP (30.09.2026)" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="12" width="1920" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="subtitle" value="Канон — только Parquet-снимок на CORE (CURRENT); всё правее — пересобираемые проекции и производные каталоги. Снимок snap-20260928T193550Z-738eebee, reconcile — RECONCILED." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="subtitle" value="Канон CORE: snap-20260929T175107Z-574daaac. 271 источник, 27 135 страниц; 240 COMPLETE, 29 PARTIAL, 2 SKIPPED. Проекции пересобираемы; автоматические результаты не evidence." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="44" width="1920" height="25" as="geometry" />
         </mxCell>
         <mxCell id="priv" value="PRIVATE-репозиторий (Git + LFS)" style="swimlane;collapsible=0;container=1;fillColor=#d5e8d4;fontSize=14;fontStyle=1;html=1;rounded=0;startSize=28;strokeColor=#82b366;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="30" y="90" width="250" height="450" as="geometry" />
         </mxCell>
-        <mxCell id="reg" value="SOURCE_REGISTER.csv — 251 источник" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="priv">
+        <mxCell id="reg" value="SOURCE_REGISTER.csv — 271 источник" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="priv">
           <mxGeometry x="15" y="45" width="220" height="50" as="geometry" />
         </mxCell>
         <mxCell id="raw" value="Файлы источников: PDF · DjVu · EPUB · DOCX" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="priv">
@@ -88,16 +88,16 @@
         <mxCell id="lab" value="lab_refresh.sh --snapshot &amp;lt;ID&amp;gt;" style="align=left;collapsible=0;container=1;dashed=1;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="core">
           <mxGeometry x="15" y="600" width="280" height="260" as="geometry" />
         </mxCell>
-        <mxCell id="units" value="единицы vkm-units-v1 снимка: 205 784" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="lab">
+        <mxCell id="units" value="Единицы снимка: 209 259" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="lab">
           <mxGeometry x="15" y="35" width="250" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="dense" value="dense: jina-v5-nano на RX 580 (новых и изменённых — 24 821)" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="lab">
+        <mxCell id="dense" value="jina-v5-nano: 209 259 dense vectors" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="lab">
           <mxGeometry x="15" y="100" width="250" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="late" value="late: mLateOn → pack float16 (новых и изменённых — 2 823)" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="lab">
+        <mxCell id="late" value="mLateOn: 209 259 late units, 24,96 млн token vectors" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="lab">
           <mxGeometry x="15" y="175" width="250" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="s_nav" value="derived/ navigation/ &amp;lt;снимок&amp;gt;: nav.duckdb + CURRENT (с WORKSTATION); граф NAV: 111 922 узла, 2 203 152 связи" style="fillColor=#dae8fc;fontSize=12;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
+        <mxCell id="s_nav" value="NAV текущего снимка: nav.duckdb + CURRENT; Neo4j DOCUMENT/NAV" style="fillColor=#dae8fc;fontSize=12;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
           <mxGeometry x="330" y="60" width="135" height="175" as="geometry" />
         </mxCell>
         <mxCell id="s_cat" value="derived/ catalogues/ &amp;lt;коммит12&amp;gt; + CURRENT: 79 файлов, 53 943 строки" style="fillColor=#dae8fc;fontSize=12;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
@@ -109,16 +109,16 @@
         <mxCell id="s_neo" value="Neo4j: DOCUMENT + слой NAV" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
           <mxGeometry x="330" y="325" width="270" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s_os" value="OpenSearch: BM25 + индекс kNN dense (205 784)" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
+        <mxCell id="s_os" value="OpenSearch: BM25 + dense 209 259 + page-visual 26 744" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
           <mxGeometry x="330" y="405" width="270" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="s_rx" value="rx580-retrieval: кодирует запрос, MaxSim по late pack (memmap)" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="core">
+        <mxCell id="s_rx" value="CORE rx580-retrieval: dense, late MaxSim, Qwen3-VL page-visual query" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="core">
           <mxGeometry x="330" y="775" width="270" height="60" as="geometry" />
         </mxCell>
         <mxCell id="api" value="VKM API /v1&lt;br&gt;&lt;br&gt;объекты — по ID из DuckDB канона; кандидаты поиска — ID из OpenSearch; соседи — из Neo4j; NavStore (nav.duckdb + канон); досье — пакет каталогов; вектор запроса и MaxSim — rx580-retrieval&lt;br&gt;&lt;br&gt;конверт vkm.envelope/1; подмены канона текстом проекции нет" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;spacingTop=4;strokeColor=#d6b656;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="core">
           <mxGeometry x="640" y="60" width="210" height="800" as="geometry" />
         </mxCell>
-        <mxCell id="mcp" value="MCP vkm-corpus: 38 инструментов чтения" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="core">
+        <mxCell id="mcp" value="vkm-corpus: 45 read-only инструментов" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="core">
           <mxGeometry x="870" y="620" width="115" height="95" as="geometry" />
         </mxCell>
         <mxCell id="mcpadmin" value="MCP vkm-corpus-admin: задания plan-first" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="core">
@@ -133,13 +133,13 @@
         <mxCell id="gw" value="шлюз реранка" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="edge">
           <mxGeometry x="15" y="215" width="190" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="v35" value="jina-reranker-v3.5: текст, ≤ 24 кандидата" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="edge">
+        <mxCell id="v35" value="Текст EDGE: UNAVAILABLE; rerank_text → CORE mLateOn" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="edge">
           <mxGeometry x="15" y="300" width="190" height="70" as="geometry" />
         </mxCell>
         <mxCell id="m0" value="jina-reranker-m0: изображения, ≤ 8" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="edge">
           <mxGeometry x="15" y="400" width="190" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="claude" value="Claude Code — MCP-клиент на WORKSTATION: streamable HTTP + токен; admin — только осознанно" style="fillColor=#e1d5e7;fontSize=13;html=1;rounded=1;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="claude" value="Codex / Claude Code на WORKSTATION: read-only vkm-corpus; локальная обработка A/B/C" style="fillColor=#e1d5e7;fontSize=13;html=1;rounded=1;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1720" y="700" width="220" height="110" as="geometry" />
         </mxCell>
         <mxCell id="n1" value="Проекции и производные удаляются и собираются заново из снимка: DuckDB — duckdb build; Neo4j — graph ddl + graph rebuild; OpenSearch — search build; векторы — lab_refresh; NAV — nav build + nav graph-load; каталоги — catalogues pack + publish." style="align=left;backgroundOutline=1;fillColor=#ffffff;fontSize=12;html=1;shape=note;size=14;spacingLeft=6;spacingTop=4;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
@@ -172,7 +172,7 @@
         <mxCell id="lg_tx_agent" value="агент Claude" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
           <mxGeometry x="52" y="115" width="560" height="25" as="geometry" />
         </mxCell>
-        <mxCell id="sources" value="Источники: docs/corpus_platform/CORPUS_PLATFORM_ARCHITECTURE.md §1–§5; PIPELINE.md §1; OPERATIONS.md §1–§4a; NAVIGATION_LAYER.md §1, §5; MCP_TOOLS.md §1–§3; receipts/evening_deploy_final.json; infra/core/compose.yml." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="sources" value="Источники: PROJECT_STATE_RU.md; docs/corpus_platform/PLATFORM_INTEGRITY_2026-09-30_RU.md; docs/corpus_platform/receipts/intake_2026-09-29.json; MODEL_SERVICES.md." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="1150" width="1920" height="25" as="geometry" />
         </mxCell>
         <mxCell id="e_reg" value="реестр" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.3;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="reg" target="regimport">
@@ -309,7 +309,7 @@
         <mxCell id="e_mcpa" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=1;entryY=0.912;exitDx=0;exitDy=0;exitX=0;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="mcpadmin" target="api">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e_rr" value="реранк по ID" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.225;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="api" target="gw">
+        <mxCell id="e_rr" value="visual rerank по ID" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.225;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="api" target="gw">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e_plan" value="PLAN_REQUEST" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.05;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="api" target="pg">
@@ -334,6 +334,123 @@
               <mxPoint x="328" y="1005" />
               <mxPoint x="1950" y="1005" />
               <mxPoint x="1950" y="190" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="figures_geometry" name="Рисунки, геометрия, геология">
+    <mxGraphModel grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1520" pageHeight="920" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="A / B / C — исходные рисунки, геометрия и геология (локальная работа)" style="text;align=left;fontSize=22;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="10" width="1470" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="source" value="PRIVATE source files&lt;br&gt;SHA-256, source/page/figure/object&lt;br&gt;PDF, DOCX, DjVu" style="fillColor=#d5e8d4;html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="90" width="220" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="native" value="Извлечение исходного объекта&lt;br&gt;PDF paths/text/XObjects/clips/masks&lt;br&gt;DOCX media/relationships/OLE&lt;br&gt;whole → regions → overlapping tiles" style="fillColor=#dae8fc;html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="290" y="90" width="280" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="read" value="A: GLM-OCR — массовое чтение&lt;br&gt;Qwen — сохранённый сравнительный прогон&lt;br&gt;literal transcription + review&lt;br&gt;одна GPU-задача + gpu.lock&lt;br&gt;AUTO_EXTRACTED_UNREVIEWED" style="fillColor=#fff2cc;html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="620" y="90" width="250" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="quality" value="Проверка чтения&lt;br&gt;gold accuracy ≠ reader agreement&lt;br&gt;source resolution / extraction error&lt;br&gt;UNREADABLE / UNKNOWN" style="fillColor=#d5e8d4;html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="920" y="90" width="250" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="astra" value="ASTRA_REVIEW_REQUIRED&lt;br&gt;exact crop + coordinates + question&lt;br&gt;options + uncertainty + impact&lt;br&gt;отдельная будущая сессия" style="dashed=1;fillColor=#f5f5f5;html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1220" y="90" width="270" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="sourcegeo" value="B: source geometry&lt;br&gt;native vector / raster segmentation&lt;br&gt;панели, блоки, выработки, точки&lt;br&gt;2.5D + time; planned ≠ executed" style="fillColor=#dae8fc;html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="290" y="350" width="280" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="registration" value="Опорные точки и регистрация&lt;br&gt;similarity → affine → projective&lt;br&gt;residuals / RMS / max / LOO&lt;br&gt;неподтверждённая CRS = UNKNOWN" style="fillColor=#dae8fc;html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="620" y="350" width="250" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="geology" value="C: геология источника&lt;br&gt;колонки, разрезы, скважины, picks&lt;br&gt;section/source coordinates допустимы&lt;br&gt;3D surfaces не достраиваются" style="fillColor=#dae8fc;html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="290" y="610" width="280" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="qgis" value="Локальный PyQGIS / GDAL&lt;br&gt;vkm-qgis: thin MCP + worker&lt;br&gt;GeoPackage, layers, features,&lt;br&gt;control points, overlay, render/export" style="fillColor=#fff2cc;html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="920" y="350" width="250" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="privateout" value="work / PRIVATE outputs&lt;br&gt;skru1_geometry_v1.gpkg&lt;br&gt;source layers + registered layers&lt;br&gt;provenance + temporal conflicts" style="fillColor=#dae8fc;html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1220" y="350" width="270" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="evidence" value="Проверенная оцифровка → evidence&lt;br&gt;проверка scope, scale, статуса&lt;br&gt;затем интерпретация → WorldSpec&lt;br&gt;UNKNOWN сохраняется" style="fillColor=#d5e8d4;html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="920" y="610" width="250" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="public" value="PUBLIC&lt;br&gt;code + schemas + synthetic tests&lt;br&gt;sanitized receipts / aggregate metrics&lt;br&gt;цитаты, картинки, координаты PRIVATE" style="fillColor=#d5e8d4;html=1;rounded=1;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1220" y="610" width="270" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="paused" value="PhysicalWorld / Ansys / OGS + MFront / ML / solver calculations приостановлены до отдельной команды владельца." style="backgroundOutline=1;dashed=1;fillColor=#f5f5f5;html=1;shape=note;size=14;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="810" width="1470" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="e0" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="source" target="native">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="native" target="read">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="read" target="quality">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="quality" target="astra">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="native" target="sourcegeo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="sourcegeo" target="registration">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.2;exitX=0;exitY=0.8;html=1;rounded=0;" edge="1" parent="1" source="native" target="geology">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="260" y="210" />
+              <mxPoint x="260" y="638" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="registration" target="qgis">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="qgis" target="privateout">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.85;exitX=1;exitY=0.5;html=1;rounded=0;" edge="1" parent="1" source="geology" target="privateout">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="590" y="680" />
+              <mxPoint x="590" y="555" />
+              <mxPoint x="1205" y="555" />
+              <mxPoint x="1205" y="478" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.2;exitX=0;exitY=0.8;html=1;rounded=0;" edge="1" parent="1" source="quality" target="evidence">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="890" y="210" />
+              <mxPoint x="890" y="638" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e11" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0.5;entryY=0;exitX=0;exitY=0.8;html=1;rounded=0;" edge="1" parent="1" source="privateout" target="evidence">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1195" y="470" />
+              <mxPoint x="1195" y="580" />
+              <mxPoint x="1045" y="580" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=1;entryY=0.2;exitX=1;exitY=0.8;html=1;rounded=0;" edge="1" parent="1" source="privateout" target="public">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1510" y="470" />
+              <mxPoint x="1510" y="638" />
             </Array>
           </mxGeometry>
         </mxCell>

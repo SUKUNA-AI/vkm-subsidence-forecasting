@@ -7,7 +7,7 @@
         <mxCell id="title" value="Поиск по корпусу: BM25 + dense + RRF + late interaction, маршруты и реранкеры" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="12" width="1680" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="subtitle" value="/v1/search/hybrid и MCP search_hybrid (развёрнутая схема E). Единицы vkm-units-v1 снимка snap-20260928T193550Z-738eebee: 205 784. Оценки ранжирования — сигнал поиска, не evidence." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="subtitle" value="Снимок snap-20260929T175107Z-574daaac: 209 259 units. BM25 + jina-v5-nano + mLateOn; оценки поиска — кандидаты, не evidence." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="44" width="1680" height="25" as="geometry" />
         </mxCell>
         <mxCell id="q" value="запрос&lt;br&gt;MCP search_hybrid → VKM API /v1/search/hybrid" style="fillColor=#e1d5e7;fontSize=13;html=1;rounded=1;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="1">
@@ -28,7 +28,7 @@
         <mxCell id="rrf" value="RRF (k = 60) по стабильным ID: страница — max по её единицам; дубли страниц сворачиваются → top-100" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="600" y="240" width="230" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="late" value="late interaction: mLateOn MaxSim по top-100 (rx580-retrieval)&lt;br&gt;pack: 205 784 единицы, 24,3 млн токенов, float16 memmap ≈ 6,2 ГБ, горячая замена; включён по умолчанию" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="late" value="CORE mLateOn MaxSim: 209 259 units, 24,96 млн token vectors, float16 pack; включён по умолчанию" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="890" y="215" width="260" height="170" as="geometry" />
         </mxCell>
         <mxCell id="fig" value="номер рисунка («рис. 3.1») усиливается только среди кандидатов своей темы; подписи объектов (object_label)" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
@@ -37,16 +37,16 @@
         <mxCell id="ans" value="ответ: кандидаты с трассой — bm25_rank, dense_rank, fused_rank, late-стадия; конверт vkm.envelope/1; retrieval_trace объясняет ранжирование" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1210" y="240" width="240" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="edge" value="EDGE — только по запросу" style="align=left;collapsible=0;container=1;dashed=1;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="edge" value="Реранк по запросу: два отдельных backend" style="align=left;collapsible=0;container=1;dashed=1;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1210" y="400" width="480" height="150" as="geometry" />
         </mxCell>
-        <mxCell id="rt" value="rerank_text: jina-reranker-v3.5, ≤ 24 кандидата; текст — из канона" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="edge">
+        <mxCell id="rt" value="rerank_text ≤24: CORE mLateOn по сохранённым единицам" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="edge">
           <mxGeometry x="15" y="35" width="215" height="95" as="geometry" />
         </mxCell>
-        <mxCell id="rv" value="rerank_visual: jina-reranker-m0, ≤ 8 изображений" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="edge">
+        <mxCell id="rv" value="rerank_visual ≤8: EDGE jina-reranker-m0 Q6_K" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="edge">
           <mxGeometry x="250" y="35" width="215" height="95" as="geometry" />
         </mxCell>
-        <mxCell id="vis" value="визуальный маршрут — в работе: эмбеддинги изображений страниц Qwen3-VL-Embedding-2B (26 092 страницы). В V2: +0,109 nDCG@10 на визуальных запросах; на текстовых слияние вредит. Обслуживание не установлено: Q8_0 не проходит паритет, F16 проходит; индекса и слияния в сервисе нет" style="dashed=1;fillColor=#f5f5f5;fontColor=#333333;fontSize=13;html=1;rounded=1;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="vis" value="Visual route APPLIED: Qwen3-VL-Embedding-2B F16 на CORE, 26 744 page vectors × 2048 dimensions; слияние по визуальному запросу" style="dashed=0;fillColor=#dae8fc;fontColor=#333333;fontSize=13;html=1;rounded=1;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="290" y="570" width="540" height="125" as="geometry" />
         </mxCell>
         <mxCell id="nums" value="Измерено&lt;br&gt;• задержка на прогретом индексе: гибрид p50 76 мс; с late p50 148 мс&lt;br&gt;• V1 (186 запросов, полный корпус): схема E — 0,725 nDCG@10 на тексте против 0,551 у BM25&lt;br&gt;• без dense-канала E теряет 0,115 nDCG@10 (пул)&lt;br&gt;• маршрут библиографии: +0,195 nDCG@10 на библиографических запросах, остальные без изменений&lt;br&gt;• реранкер v3.5 по тексту значимо не помогает; по визуальным запросам глубина 12 даёт +0,043 (пул)&lt;br&gt;• CP-42: записи BIB_ENTRY не ранжируют страницы" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
@@ -88,7 +88,7 @@
         <mxCell id="lg_ext_dash" value="по запросу или по условию маршрута" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
           <mxGeometry x="52" y="144" width="500" height="25" as="geometry" />
         </mxCell>
-        <mxCell id="sources" value="Источники: README.md §5; docs/corpus_platform/MCP_TOOLS.md §2; MODEL_SERVICES.md §2–§4; OPERATIONS.md §4a; implementation_work/AGENT_L_LATE_INTERACTION.md; receipts/late_interaction_deploy.json; benchmarks/retrieval_v1/RESULTS_V1.md §0; benchmarks/retrieval_v2/RESULTS_V2.md; implementation_work/COORDINATOR_DECISIONS.md (CP-39)." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="sources" value="Источники: PROJECT_STATE_RU.md; docs/corpus_platform/PLATFORM_INTEGRITY_2026-09-30_RU.md; docs/corpus_platform/receipts/intake_2026-09-29.json; MODEL_SERVICES.md." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="965" width="1680" height="40" as="geometry" />
         </mxCell>
         <mxCell id="e_q1" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.3;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="q" target="bm25">

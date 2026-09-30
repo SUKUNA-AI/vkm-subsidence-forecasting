@@ -11,7 +11,7 @@
    "nodes": [
     {
      "id": "title",
-     "label": "Платформа корпуса: поток данных от источников до инструментов MCP (состояние 29.09.2026)",
+     "label": "Платформа корпуса: source → DOCUMENT → NAV → проекции → MCP (30.09.2026)",
      "x": 20,
      "y": 12,
      "w": 1920,
@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "Канон — только Parquet-снимок на CORE (CURRENT); всё правее — пересобираемые проекции и производные каталоги. Снимок snap-20260928T193550Z-738eebee, reconcile — RECONCILED.",
+     "label": "Канон CORE: snap-20260929T175107Z-574daaac. 271 источник, 27 135 страниц; 240 COMPLETE, 29 PARTIAL, 2 SKIPPED. Проекции пересобираемы; автоматические результаты не evidence.",
      "x": 20,
      "y": 44,
      "w": 1920,
@@ -41,7 +41,7 @@
     },
     {
      "id": "reg",
-     "label": "SOURCE_REGISTER.csv — 251 источник",
+     "label": "SOURCE_REGISTER.csv — 271 источник",
      "x": 15,
      "y": 45,
      "w": 220,
@@ -297,7 +297,7 @@
     },
     {
      "id": "units",
-     "label": "единицы vkm-units-v1 снимка: 205 784",
+     "label": "Единицы снимка: 209 259",
      "x": 15,
      "y": 35,
      "w": 250,
@@ -307,7 +307,7 @@
     },
     {
      "id": "dense",
-     "label": "dense: jina-v5-nano на RX 580 (новых и изменённых — 24 821)",
+     "label": "jina-v5-nano: 209 259 dense vectors",
      "x": 15,
      "y": 100,
      "w": 250,
@@ -317,7 +317,7 @@
     },
     {
      "id": "late",
-     "label": "late: mLateOn → pack float16 (новых и изменённых — 2 823)",
+     "label": "mLateOn: 209 259 late units, 24,96 млн token vectors",
      "x": 15,
      "y": 175,
      "w": 250,
@@ -327,7 +327,7 @@
     },
     {
      "id": "s_nav",
-     "label": "derived/ navigation/ <снимок>: nav.duckdb + CURRENT (с WORKSTATION); граф NAV: 111 922 узла, 2 203 152 связи",
+     "label": "NAV текущего снимка: nav.duckdb + CURRENT; Neo4j DOCUMENT/NAV",
      "x": 330,
      "y": 60,
      "w": 135,
@@ -367,7 +367,7 @@
     },
     {
      "id": "s_os",
-     "label": "OpenSearch: BM25 + индекс kNN dense (205 784)",
+     "label": "OpenSearch: BM25 + dense 209 259 + page-visual 26 744",
      "x": 330,
      "y": 405,
      "w": 270,
@@ -377,7 +377,7 @@
     },
     {
      "id": "s_rx",
-     "label": "rx580-retrieval: кодирует запрос, MaxSim по late pack (memmap)",
+     "label": "CORE rx580-retrieval: dense, late MaxSim, Qwen3-VL page-visual query",
      "x": 330,
      "y": 775,
      "w": 270,
@@ -397,7 +397,7 @@
     },
     {
      "id": "mcp",
-     "label": "MCP vkm-corpus: 38 инструментов чтения",
+     "label": "vkm-corpus: 45 read-only инструментов",
      "x": 870,
      "y": 620,
      "w": 115,
@@ -448,7 +448,7 @@
     },
     {
      "id": "v35",
-     "label": "jina-reranker-v3.5: текст, ≤ 24 кандидата",
+     "label": "Текст EDGE: UNAVAILABLE; rerank_text → CORE mLateOn",
      "x": 15,
      "y": 300,
      "w": 190,
@@ -468,7 +468,7 @@
     },
     {
      "id": "claude",
-     "label": "Claude Code — MCP-клиент на WORKSTATION: streamable HTTP + токен; admin — только осознанно",
+     "label": "Codex / Claude Code на WORKSTATION: read-only vkm-corpus; локальная обработка A/B/C",
      "x": 1720,
      "y": 700,
      "w": 220,
@@ -585,7 +585,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: docs/corpus_platform/CORPUS_PLATFORM_ARCHITECTURE.md §1–§5; PIPELINE.md §1; OPERATIONS.md §1–§4a; NAVIGATION_LAYER.md §1, §5; MCP_TOOLS.md §1–§3; receipts/evening_deploy_final.json; infra/core/compose.yml.",
+     "label": "Источники: PROJECT_STATE_RU.md; docs/corpus_platform/PLATFORM_INTEGRITY_2026-09-30_RU.md; docs/corpus_platform/receipts/intake_2026-09-29.json; MODEL_SERVICES.md.",
      "x": 20,
      "y": 1150,
      "w": 1920,
@@ -905,7 +905,7 @@
      "id": "e_rr",
      "source": "api",
      "target": "gw",
-     "label": "реранк по ID",
+     "label": "visual rerank по ID",
      "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.225;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
     },
     {
@@ -965,6 +965,332 @@
       [
        1950,
        190
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "id": "figures_geometry",
+   "name": "Рисунки, геометрия, геология",
+   "layout": "none",
+   "page_width": 1520,
+   "page_height": 920,
+   "grid": true,
+   "nodes": [
+    {
+     "id": "title",
+     "label": "A / B / C — исходные рисунки, геометрия и геология (локальная работа)",
+     "preset": "text",
+     "style": "text;align=left;fontSize=22;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;",
+     "x": 20.0,
+     "y": 10.0,
+     "w": 1470.0,
+     "h": 40.0
+    },
+    {
+     "id": "source",
+     "label": "PRIVATE source files\nSHA-256, source/page/figure/object\nPDF, DOCX, DjVu",
+     "preset": "box",
+     "style": "fillColor=#d5e8d4;html=1;rounded=1;whiteSpace=wrap;",
+     "x": 20.0,
+     "y": 90.0,
+     "w": 220.0,
+     "h": 110.0
+    },
+    {
+     "id": "native",
+     "label": "Извлечение исходного объекта\nPDF paths/text/XObjects/clips/masks\nDOCX media/relationships/OLE\nwhole → regions → overlapping tiles",
+     "preset": "box",
+     "style": "fillColor=#dae8fc;html=1;rounded=1;whiteSpace=wrap;",
+     "x": 290.0,
+     "y": 90.0,
+     "w": 280.0,
+     "h": 150.0
+    },
+    {
+     "id": "read",
+     "label": "A: GLM-OCR — массовое чтение\nQwen — сохранённый сравнительный прогон\nliteral transcription + review\nодна GPU-задача + gpu.lock\nAUTO_EXTRACTED_UNREVIEWED",
+     "preset": "box",
+     "style": "fillColor=#fff2cc;html=1;rounded=1;whiteSpace=wrap;",
+     "x": 620.0,
+     "y": 90.0,
+     "w": 250.0,
+     "h": 150.0
+    },
+    {
+     "id": "quality",
+     "label": "Проверка чтения\ngold accuracy ≠ reader agreement\nsource resolution / extraction error\nUNREADABLE / UNKNOWN",
+     "preset": "box",
+     "style": "fillColor=#d5e8d4;html=1;rounded=1;whiteSpace=wrap;",
+     "x": 920.0,
+     "y": 90.0,
+     "w": 250.0,
+     "h": 150.0
+    },
+    {
+     "id": "astra",
+     "label": "ASTRA_REVIEW_REQUIRED\nexact crop + coordinates + question\noptions + uncertainty + impact\nотдельная будущая сессия",
+     "preset": "box",
+     "style": "dashed=1;fillColor=#f5f5f5;html=1;rounded=1;whiteSpace=wrap;",
+     "x": 1220.0,
+     "y": 90.0,
+     "w": 270.0,
+     "h": 150.0
+    },
+    {
+     "id": "sourcegeo",
+     "label": "B: source geometry\nnative vector / raster segmentation\nпанели, блоки, выработки, точки\n2.5D + time; planned ≠ executed",
+     "preset": "box",
+     "style": "fillColor=#dae8fc;html=1;rounded=1;whiteSpace=wrap;",
+     "x": 290.0,
+     "y": 350.0,
+     "w": 280.0,
+     "h": 150.0
+    },
+    {
+     "id": "registration",
+     "label": "Опорные точки и регистрация\nsimilarity → affine → projective\nresiduals / RMS / max / LOO\nнеподтверждённая CRS = UNKNOWN",
+     "preset": "box",
+     "style": "fillColor=#dae8fc;html=1;rounded=1;whiteSpace=wrap;",
+     "x": 620.0,
+     "y": 350.0,
+     "w": 250.0,
+     "h": 150.0
+    },
+    {
+     "id": "geology",
+     "label": "C: геология источника\nколонки, разрезы, скважины, picks\nsection/source coordinates допустимы\n3D surfaces не достраиваются",
+     "preset": "box",
+     "style": "fillColor=#dae8fc;html=1;rounded=1;whiteSpace=wrap;",
+     "x": 290.0,
+     "y": 610.0,
+     "w": 280.0,
+     "h": 140.0
+    },
+    {
+     "id": "qgis",
+     "label": "Локальный PyQGIS / GDAL\nvkm-qgis: thin MCP + worker\nGeoPackage, layers, features,\ncontrol points, overlay, render/export",
+     "preset": "box",
+     "style": "fillColor=#fff2cc;html=1;rounded=1;whiteSpace=wrap;",
+     "x": 920.0,
+     "y": 350.0,
+     "w": 250.0,
+     "h": 150.0
+    },
+    {
+     "id": "privateout",
+     "label": "work / PRIVATE outputs\nskru1_geometry_v1.gpkg\nsource layers + registered layers\nprovenance + temporal conflicts",
+     "preset": "box",
+     "style": "fillColor=#dae8fc;html=1;rounded=1;whiteSpace=wrap;",
+     "x": 1220.0,
+     "y": 350.0,
+     "w": 270.0,
+     "h": 150.0
+    },
+    {
+     "id": "evidence",
+     "label": "Проверенная оцифровка → evidence\nпроверка scope, scale, статуса\nзатем интерпретация → WorldSpec\nUNKNOWN сохраняется",
+     "preset": "box",
+     "style": "fillColor=#d5e8d4;html=1;rounded=1;whiteSpace=wrap;",
+     "x": 920.0,
+     "y": 610.0,
+     "w": 250.0,
+     "h": 140.0
+    },
+    {
+     "id": "public",
+     "label": "PUBLIC\ncode + schemas + synthetic tests\nsanitized receipts / aggregate metrics\nцитаты, картинки, координаты PRIVATE",
+     "preset": "box",
+     "style": "fillColor=#d5e8d4;html=1;rounded=1;whiteSpace=wrap;",
+     "x": 1220.0,
+     "y": 610.0,
+     "w": 270.0,
+     "h": 140.0
+    },
+    {
+     "id": "paused",
+     "label": "PhysicalWorld / Ansys / OGS + MFront / ML / solver calculations приостановлены до отдельной команды владельца.",
+     "preset": "note",
+     "style": "backgroundOutline=1;dashed=1;fillColor=#f5f5f5;html=1;shape=note;size=14;whiteSpace=wrap;",
+     "x": 20.0,
+     "y": 810.0,
+     "w": 1470.0,
+     "h": 70.0
+    }
+   ],
+   "edges": [
+    {
+     "id": "e0",
+     "label": "",
+     "preset": "arrow",
+     "style": "edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;",
+     "source": "source",
+     "target": "native",
+     "waypoints": []
+    },
+    {
+     "id": "e1",
+     "label": "",
+     "preset": "arrow",
+     "style": "edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;",
+     "source": "native",
+     "target": "read",
+     "waypoints": []
+    },
+    {
+     "id": "e2",
+     "label": "",
+     "preset": "arrow",
+     "style": "edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;",
+     "source": "read",
+     "target": "quality",
+     "waypoints": []
+    },
+    {
+     "id": "e3",
+     "label": "",
+     "preset": "arrow",
+     "style": "dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;",
+     "source": "quality",
+     "target": "astra",
+     "waypoints": []
+    },
+    {
+     "id": "e4",
+     "label": "",
+     "preset": "arrow",
+     "style": "edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;",
+     "source": "native",
+     "target": "sourcegeo",
+     "waypoints": []
+    },
+    {
+     "id": "e5",
+     "label": "",
+     "preset": "arrow",
+     "style": "edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;",
+     "source": "sourcegeo",
+     "target": "registration",
+     "waypoints": []
+    },
+    {
+     "id": "e6",
+     "label": "",
+     "preset": "arrow",
+     "style": "edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.2;exitX=0;exitY=0.8;html=1;rounded=0;",
+     "source": "native",
+     "target": "geology",
+     "waypoints": [
+      [
+       260.0,
+       210.0
+      ],
+      [
+       260.0,
+       638.0
+      ]
+     ]
+    },
+    {
+     "id": "e7",
+     "label": "",
+     "preset": "arrow",
+     "style": "edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;",
+     "source": "registration",
+     "target": "qgis",
+     "waypoints": []
+    },
+    {
+     "id": "e8",
+     "label": "",
+     "preset": "arrow",
+     "style": "edgeStyle=orthogonalEdgeStyle;endArrow=classic;html=1;rounded=0;",
+     "source": "qgis",
+     "target": "privateout",
+     "waypoints": []
+    },
+    {
+     "id": "e9",
+     "label": "",
+     "preset": "arrow",
+     "style": "edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.85;exitX=1;exitY=0.5;html=1;rounded=0;",
+     "source": "geology",
+     "target": "privateout",
+     "waypoints": [
+      [
+       590.0,
+       680.0
+      ],
+      [
+       590.0,
+       555.0
+      ],
+      [
+       1205.0,
+       555.0
+      ],
+      [
+       1205.0,
+       478.0
+      ]
+     ]
+    },
+    {
+     "id": "e10",
+     "label": "",
+     "preset": "arrow",
+     "style": "edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0;entryY=0.2;exitX=0;exitY=0.8;html=1;rounded=0;",
+     "source": "quality",
+     "target": "evidence",
+     "waypoints": [
+      [
+       890.0,
+       210.0
+      ],
+      [
+       890.0,
+       638.0
+      ]
+     ]
+    },
+    {
+     "id": "e11",
+     "label": "",
+     "preset": "arrow",
+     "style": "edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=0.5;entryY=0;exitX=0;exitY=0.8;html=1;rounded=0;",
+     "source": "privateout",
+     "target": "evidence",
+     "waypoints": [
+      [
+       1195.0,
+       470.0
+      ],
+      [
+       1195.0,
+       580.0
+      ],
+      [
+       1045.0,
+       580.0
+      ]
+     ]
+    },
+    {
+     "id": "e12",
+     "label": "",
+     "preset": "arrow",
+     "style": "edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryX=1;entryY=0.2;exitX=1;exitY=0.8;html=1;rounded=0;",
+     "source": "privateout",
+     "target": "public",
+     "waypoints": [
+      [
+       1510.0,
+       470.0
+      ],
+      [
+       1510.0,
+       638.0
       ]
      ]
     }

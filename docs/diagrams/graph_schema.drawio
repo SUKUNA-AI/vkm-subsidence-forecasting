@@ -7,13 +7,13 @@
         <mxCell id="title" value="Схема графа Neo4j: слои DOCUMENT (doc-graph/1.0) и NAV (nav-graph/1.1)" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="12" width="1760" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="subtitle" value="Метки и типы рёбер — из реестров src/vkm_corpus/graph/schema.py и nav_schema.py. Числа — снимок snap-20260928T193550Z-738eebee. Обобщённые типы вроде RELATED запрещены (контракт §61)." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="subtitle" value="Schema — src/vkm_corpus/graph/schema.py и nav_schema.py. Снимок snap-20260929T175107Z-574daaac (intake receipt); 30.09 выборочный обход, полный sweep повторно не запускался." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="44" width="1760" height="25" as="geometry" />
         </mxCell>
         <mxCell id="doc" value="DOCUMENT — метка слоя DocumentLayer; проверки C1–C16" style="align=left;collapsible=0;container=1;dashed=0;fillColor=none;fontSize=14;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="90" width="930" height="900" as="geometry" />
         </mxCell>
-        <mxCell id="nav" value="NAV — метка слоя NavigationLayer; проверки N1–N11; 127 543 узла, 2 251 414 связей (сухой прогон 1.1)" style="align=left;collapsible=0;container=1;dashed=0;fillColor=none;fontSize=14;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="nav" value="NAV / NavigationLayer: 133 096 узлов, 2 348 208 связей; N1–N11 PASS в квитанции deployment" style="align=left;collapsible=0;container=1;dashed=0;fillColor=none;fontSize=14;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="990" y="90" width="790" height="900" as="geometry" />
         </mxCell>
         <mxCell id="author" value="Author" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
@@ -25,28 +25,28 @@
         <mxCell id="venue" value="Venue" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
           <mxGeometry x="700" y="60" width="150" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="source" value="Source (251)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+        <mxCell id="source" value="Source (271)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
           <mxGeometry x="330" y="250" width="200" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="page" value="Page (26 483)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+        <mxCell id="page" value="Page (27 135)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
           <mxGeometry x="330" y="450" width="200" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="block" value="Block&lt;br&gt;621 497" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+        <mxCell id="block" value="Block&lt;br&gt;632 420" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
           <mxGeometry x="30" y="680" width="160" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="figure" value="Figure&lt;br&gt;17 784" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+        <mxCell id="figure" value="Figure&lt;br&gt;18 297" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
           <mxGeometry x="200" y="680" width="160" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="table" value="Table&lt;br&gt;3 391" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+        <mxCell id="table" value="Table&lt;br&gt;3 689" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
           <mxGeometry x="370" y="680" width="160" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="bib" value="BibliographyEntry&lt;br&gt;23 682" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+        <mxCell id="bib" value="BibliographyEntry&lt;br&gt;24 105" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
           <mxGeometry x="540" y="680" width="160" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="formula" value="Formula&lt;br&gt;108 904" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
+        <mxCell id="formula" value="Formula&lt;br&gt;109 243" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="doc">
           <mxGeometry x="740" y="680" width="170" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="t_work" value="Work → Work: CITES (правило cites_v2; 193 ребра); ABSTRACT_OF, EDITION_OF, TRANSLATION_OF, VOLUME_SET_SIBLING, SERIES_SIBLING, COMPANION_OF, NOT_SAME" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="doc">
+        <mxCell id="t_work" value="Work → Work: CITES (cites_v2); ABSTRACT_OF, EDITION_OF, TRANSLATION_OF, VOLUME_SET_SIBLING, SERIES_SIBLING, COMPANION_OF, NOT_SAME" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="doc">
           <mxGeometry x="545" y="120" width="370" height="50" as="geometry" />
         </mxCell>
         <mxCell id="t_source" value="Source → Source: DERIVED_FROM, CONTAINS_COPY_OF, SHARES_PAGES_WITH" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="doc">
@@ -58,7 +58,7 @@
         <mxCell id="t_has" value="Page → объект: HAS_BLOCK, HAS_FIGURE, HAS_TABLE, HAS_BIBLIOGRAPHY_ENTRY, HAS_FORMULA" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="doc">
           <mxGeometry x="545" y="595" width="370" height="35" as="geometry" />
         </mxCell>
-        <mxCell id="t_ref" value="BibliographyEntry → Work: REFERENCE_OF (цитирующая работа); RESOLVES_TO (232 принятые связи)" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="doc">
+        <mxCell id="t_ref" value="BibliographyEntry → Work: REFERENCE_OF (цитирующая работа); RESOLVES_TO (принятые связи)" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="doc">
           <mxGeometry x="40" y="380" width="250" height="50" as="geometry" />
         </mxCell>
         <mxCell id="t_foreign" value="Page → Work: CARRIES_FOREIGN_CONTENT_OF (чужое содержимое на странице)" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="doc">
@@ -70,10 +70,10 @@
         <mxCell id="topic" value="NavTopic (720)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
           <mxGeometry x="60" y="90" width="200" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="section" value="NavSection (9 105)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
+        <mxCell id="section" value="NavSection (9 378)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
           <mxGeometry x="60" y="360" width="200" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="term" value="Term (94 597 + 607 из словаря)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
+        <mxCell id="term" value="Term (98 821; + словарь)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
           <mxGeometry x="500" y="360" width="200" height="50" as="geometry" />
         </mxCell>
         <mxCell id="symbol" value="FormulaSymbol" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
@@ -94,13 +94,13 @@
         <mxCell id="t_term" value="Term → Term: CO_OCCURS (NPMI), CONTAINS_TERM, SAME_TERM_AS; словарь RU↔EN: TRANSLATES_TO, SYNONYM_OF, ABBREVIATION_OF" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="nav">
           <mxGeometry x="480" y="420" width="290" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="nav_table" value="NavTable&lt;br&gt;3 391" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
+        <mxCell id="nav_table" value="NavTable&lt;br&gt;3 689" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
           <mxGeometry x="20" y="525" width="150" height="42" as="geometry" />
         </mxCell>
-        <mxCell id="param_value" value="ParameterValue&lt;br&gt;10 792" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
+        <mxCell id="param_value" value="ParameterValue&lt;br&gt;11 470" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
           <mxGeometry x="185" y="525" width="160" height="42" as="geometry" />
         </mxCell>
-        <mxCell id="dup_group" value="ObjectDupGroup&lt;br&gt;831" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
+        <mxCell id="dup_group" value="ObjectDupGroup&lt;br&gt;842" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="nav">
           <mxGeometry x="360" y="525" width="160" height="42" as="geometry" />
         </mxCell>
         <mxCell id="t_parts" value="NavTable → Table: GRID_OF; → NavSection: TABLE_IN_SECTION; → Term: TABULATES&lt;br&gt;ParameterValue → NavTable: IN_TABLE; → Block: IN_BLOCK; → Formula: NEAR_FORMULA; → NavSection: VALUE_IN_SECTION; → Term: VALUE_OF&lt;br&gt;Figure / Table / Formula → ObjectDupGroup: DUP_MEMBER_OF" style="text;align=left;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="nav">
@@ -127,7 +127,7 @@
         <mxCell id="lg_ext_dash" value="ребро по правилу-подсказке (не проверенный факт)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
           <mxGeometry x="52" y="57" width="520" height="25" as="geometry" />
         </mxCell>
-        <mxCell id="sources" value="Источники: src/vkm_corpus/graph/schema.py (NODE_TYPES, REL_TYPES); src/vkm_corpus/graph/nav_schema.py; src/vkm_corpus/contracts/vocab.py (WorkRelationType, SourceRelationType); docs/corpus_platform/NAVIGATION_LAYER.md §1; receipts/evening_deploy_final.json; receipts/nav_graph_tables_dictionary.json." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="sources" value="Источники: src/vkm_corpus/graph/schema.py и nav_schema.py; contracts/vocab.py; receipts/intake_2026-09-29.json; PLATFORM_INTEGRITY_2026-09-30_RU.md." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="1165" width="1760" height="25" as="geometry" />
         </mxCell>
         <mxCell id="d1" value="AUTHORED_BY" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=1;entryY=0.5;exitDx=0;exitDy=0;exitX=0;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="work" target="author">

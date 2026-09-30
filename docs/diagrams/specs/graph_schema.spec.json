@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "Метки и типы рёбер — из реестров src/vkm_corpus/graph/schema.py и nav_schema.py. Числа — снимок snap-20260928T193550Z-738eebee. Обобщённые типы вроде RELATED запрещены (контракт §61).",
+     "label": "Schema — src/vkm_corpus/graph/schema.py и nav_schema.py. Снимок snap-20260929T175107Z-574daaac (intake receipt); 30.09 выборочный обход, полный sweep повторно не запускался.",
      "x": 20,
      "y": 44,
      "w": 1760,
@@ -41,7 +41,7 @@
     },
     {
      "id": "nav",
-     "label": "NAV — метка слоя NavigationLayer; проверки N1–N11; 127 543 узла, 2 251 414 связей (сухой прогон 1.1)",
+     "label": "NAV / NavigationLayer: 133 096 узлов, 2 348 208 связей; N1–N11 PASS в квитанции deployment",
      "x": 990,
      "y": 90,
      "w": 790,
@@ -81,7 +81,7 @@
     },
     {
      "id": "source",
-     "label": "Source (251)",
+     "label": "Source (271)",
      "x": 330,
      "y": 250,
      "w": 200,
@@ -91,7 +91,7 @@
     },
     {
      "id": "page",
-     "label": "Page (26 483)",
+     "label": "Page (27 135)",
      "x": 330,
      "y": 450,
      "w": 200,
@@ -101,7 +101,7 @@
     },
     {
      "id": "block",
-     "label": "Block\n621 497",
+     "label": "Block\n632 420",
      "x": 30,
      "y": 680,
      "w": 160,
@@ -111,7 +111,7 @@
     },
     {
      "id": "figure",
-     "label": "Figure\n17 784",
+     "label": "Figure\n18 297",
      "x": 200,
      "y": 680,
      "w": 160,
@@ -121,7 +121,7 @@
     },
     {
      "id": "table",
-     "label": "Table\n3 391",
+     "label": "Table\n3 689",
      "x": 370,
      "y": 680,
      "w": 160,
@@ -131,7 +131,7 @@
     },
     {
      "id": "bib",
-     "label": "BibliographyEntry\n23 682",
+     "label": "BibliographyEntry\n24 105",
      "x": 540,
      "y": 680,
      "w": 160,
@@ -141,7 +141,7 @@
     },
     {
      "id": "formula",
-     "label": "Formula\n108 904",
+     "label": "Formula\n109 243",
      "x": 740,
      "y": 680,
      "w": 170,
@@ -151,7 +151,7 @@
     },
     {
      "id": "t_work",
-     "label": "Work → Work: CITES (правило cites_v2; 193 ребра); ABSTRACT_OF, EDITION_OF, TRANSLATION_OF, VOLUME_SET_SIBLING, SERIES_SIBLING, COMPANION_OF, NOT_SAME",
+     "label": "Work → Work: CITES (cites_v2); ABSTRACT_OF, EDITION_OF, TRANSLATION_OF, VOLUME_SET_SIBLING, SERIES_SIBLING, COMPANION_OF, NOT_SAME",
      "x": 545,
      "y": 120,
      "w": 370,
@@ -195,7 +195,7 @@
     },
     {
      "id": "t_ref",
-     "label": "BibliographyEntry → Work: REFERENCE_OF (цитирующая работа); RESOLVES_TO (232 принятые связи)",
+     "label": "BibliographyEntry → Work: REFERENCE_OF (цитирующая работа); RESOLVES_TO (принятые связи)",
      "x": 40,
      "y": 380,
      "w": 250,
@@ -238,7 +238,7 @@
     },
     {
      "id": "section",
-     "label": "NavSection (9 105)",
+     "label": "NavSection (9 378)",
      "x": 60,
      "y": 360,
      "w": 200,
@@ -248,7 +248,7 @@
     },
     {
      "id": "term",
-     "label": "Term (94 597 + 607 из словаря)",
+     "label": "Term (98 821; + словарь)",
      "x": 500,
      "y": 360,
      "w": 200,
@@ -321,7 +321,7 @@
     },
     {
      "id": "nav_table",
-     "label": "NavTable\n3 391",
+     "label": "NavTable\n3 689",
      "x": 20,
      "y": 525,
      "w": 150,
@@ -331,7 +331,7 @@
     },
     {
      "id": "param_value",
-     "label": "ParameterValue\n10 792",
+     "label": "ParameterValue\n11 470",
      "x": 185,
      "y": 525,
      "w": 160,
@@ -341,7 +341,7 @@
     },
     {
      "id": "dup_group",
-     "label": "ObjectDupGroup\n831",
+     "label": "ObjectDupGroup\n842",
      "x": 360,
      "y": 525,
      "w": 160,
@@ -436,7 +436,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: src/vkm_corpus/graph/schema.py (NODE_TYPES, REL_TYPES); src/vkm_corpus/graph/nav_schema.py; src/vkm_corpus/contracts/vocab.py (WorkRelationType, SourceRelationType); docs/corpus_platform/NAVIGATION_LAYER.md §1; receipts/evening_deploy_final.json; receipts/nav_graph_tables_dictionary.json.",
+     "label": "Источники: src/vkm_corpus/graph/schema.py и nav_schema.py; contracts/vocab.py; receipts/intake_2026-09-29.json; PLATFORM_INTEGRITY_2026-09-30_RU.md.",
      "x": 20,
      "y": 1165,
      "w": 1760,

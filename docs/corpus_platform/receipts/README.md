@@ -5,6 +5,12 @@
 
 | Файл | Что подтверждает |
 |---|---|
+| [platform_integrity_2026-09-30.json](platform_integrity_2026-09-30.json) | read-only smoke22tools/61calls на574daaac; отдельные FAIL/NOT_RUN, без изменений CORE/EDGE |
+| [architecture_drawio_2026-09-30.json](architecture_drawio_2026-09-30.json) | обновление девяти схем, JSON sources, SVG и отдельная страница A/B/C; byte-identical rebuild |
+| [figure_readings_v2.json](figure_readings_v2.json) |411sourceobjects, GLM bulk, per-record hashes/status, gold accuracy отдельно от agreement; цели99%/97% не объявлены достигнутыми |
+| [geometry_skru1_v1.json](geometry_skru1_v1.json) |135B/Cobjects,409GeoJSONlayers, source frames/DXF/UNKNOWN, diagnostic registration; метрическая приёмка открыта |
+| [qgis_mcp_2026-09-30.json](qgis_mcp_2026-09-30.json) | реальный PyQGIS/GDAL и stdio15tools, synthetic checks, source archive341layers/207165features;1938invalid topology candidates явно отделены от coordinate preservation |
+| [session_verification_2026-09-30.json](session_verification_2026-09-30.json) | финальная проверка world/targeted/QGIS, canonical35PASS/7missingrefs, git diff/leakage; Windows limitations и SKIP сохранены явно |
 | `canary_metrics.json` | canary (CP-23): K-01…K-19 — страницы без потерь, идемпотентность, детерминизм layout, аномалии OCR |
 | `canary_ocr_grid.json` | сетка конкурентности и dpi GLM-OCR на холодных срезах 044 |
 | `canary_scenario_b.json` | сценарий B: выборки CER и доля букв, решения о переOCR встроенных слоёв |

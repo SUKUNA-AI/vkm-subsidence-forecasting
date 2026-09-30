@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "/v1/search/hybrid и MCP search_hybrid (развёрнутая схема E). Единицы vkm-units-v1 снимка snap-20260928T193550Z-738eebee: 205 784. Оценки ранжирования — сигнал поиска, не evidence.",
+     "label": "Снимок snap-20260929T175107Z-574daaac: 209 259 units. BM25 + jina-v5-nano + mLateOn; оценки поиска — кандидаты, не evidence.",
      "x": 20,
      "y": 44,
      "w": 1680,
@@ -85,7 +85,7 @@
     },
     {
      "id": "late",
-     "label": "late interaction: mLateOn MaxSim по top-100 (rx580-retrieval)\npack: 205 784 единицы, 24,3 млн токенов, float16 memmap ≈ 6,2 ГБ, горячая замена; включён по умолчанию",
+     "label": "CORE mLateOn MaxSim: 209 259 units, 24,96 млн token vectors, float16 pack; включён по умолчанию",
      "x": 890,
      "y": 215,
      "w": 260,
@@ -112,7 +112,7 @@
     },
     {
      "id": "edge",
-     "label": "EDGE — только по запросу",
+     "label": "Реранк по запросу: два отдельных backend",
      "x": 1210,
      "y": 400,
      "w": 480,
@@ -122,7 +122,7 @@
     },
     {
      "id": "rt",
-     "label": "rerank_text: jina-reranker-v3.5, ≤ 24 кандидата; текст — из канона",
+     "label": "rerank_text ≤24: CORE mLateOn по сохранённым единицам",
      "x": 15,
      "y": 35,
      "w": 215,
@@ -132,7 +132,7 @@
     },
     {
      "id": "rv",
-     "label": "rerank_visual: jina-reranker-m0, ≤ 8 изображений",
+     "label": "rerank_visual ≤8: EDGE jina-reranker-m0 Q6_K",
      "x": 250,
      "y": 35,
      "w": 215,
@@ -142,12 +142,12 @@
     },
     {
      "id": "vis",
-     "label": "визуальный маршрут — в работе: эмбеддинги изображений страниц Qwen3-VL-Embedding-2B (26 092 страницы). В V2: +0,109 nDCG@10 на визуальных запросах; на текстовых слияние вредит. Обслуживание не установлено: Q8_0 не проходит паритет, F16 проходит; индекса и слияния в сервисе нет",
+     "label": "Visual route APPLIED: Qwen3-VL-Embedding-2B F16 на CORE, 26 744 page vectors × 2048 dimensions; слияние по визуальному запросу",
      "x": 290,
      "y": 570,
      "w": 540,
      "h": 125,
-     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;fontSize=13;"
+     "style": "dashed=0;fillColor=#dae8fc;fontColor=#333333;fontSize=13;html=1;rounded=1;strokeColor=#666666;whiteSpace=wrap;"
     },
     {
      "id": "nums",
@@ -291,7 +291,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: README.md §5; docs/corpus_platform/MCP_TOOLS.md §2; MODEL_SERVICES.md §2–§4; OPERATIONS.md §4a; implementation_work/AGENT_L_LATE_INTERACTION.md; receipts/late_interaction_deploy.json; benchmarks/retrieval_v1/RESULTS_V1.md §0; benchmarks/retrieval_v2/RESULTS_V2.md; implementation_work/COORDINATOR_DECISIONS.md (CP-39).",
+     "label": "Источники: PROJECT_STATE_RU.md; docs/corpus_platform/PLATFORM_INTEGRITY_2026-09-30_RU.md; docs/corpus_platform/receipts/intake_2026-09-29.json; MODEL_SERVICES.md.",
      "x": 20,
      "y": 965,
      "w": 1680,
