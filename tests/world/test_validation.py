@@ -279,10 +279,14 @@ def test_candidate_record_is_content_addressed_and_immutable(tmp_path):
     assert verify_candidate_artifacts(tmp_path, with_art)
 
 
-def test_test_is_sealed_without_matching_frozen_candidate():
-    rec = candidate()
-    setup = dict(task="subsidence_rate", split_version="v1", contract_hashes={"targets": H, "features": H},
-                 manifest_hashes={"train": H})
+def test_test_is_sealed_without_matching_frozen_candidate(tmp_path):
+    config = tmp_path / "config.json"
+    config.write_text("{}\n", encoding="utf-8")
+    artifacts = {"config.json": hashlib.sha256(b"{}\n").hexdigest()}
+    rec = freeze_candidate(tmp_path, "records/candidate.json", candidate(artifact_hashes=artifacts))
+    setup = dict(root=tmp_path, candidate_target="records/candidate.json", task="subsidence_rate", split_version="v1",
+                 contract_hashes={"targets": H, "features": H}, manifest_hashes={"train": H, "validation": H},
+                 dataset_sha256=H, evaluation_spec_sha256=H, environment_sha256=H, artifact_hashes=artifacts)
     assert authorize_test_access(rec, **setup) == rec["candidate_id"]
     with pytest.raises(SealedTestError):
         authorize_test_access(None, **setup)
@@ -290,8 +294,8 @@ def test_test_is_sealed_without_matching_frozen_candidate():
         authorize_test_access({**rec, "status": "draft"}, **setup)
     with pytest.raises(SealedTestError, match="contract"):
         authorize_test_access(rec, **{**setup, "contract_hashes": {"features": "b" * 64, "targets": H}})
-    with pytest.raises(SealedTestError, match="train manifest"):
-        authorize_test_access(rec, **{**setup, "manifest_hashes": {"train": "b" * 64}})
+    with pytest.raises(SealedTestError, match="manifest_hashes"):
+        authorize_test_access(rec, **{**setup, "manifest_hashes": {"train": "b" * 64, "validation": H}})
 
 
 def test_test_access_ledger_is_one_time(tmp_path):
