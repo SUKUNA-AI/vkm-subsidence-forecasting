@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vkm.qgis_transform/1",
+  "title": "VKM planar transform with explicit units and diagnostics",
+  "type": "object",
+  "required": ["schema", "transform_id", "model", "matrix", "inputs", "input_sha256", "rms", "max_residual", "residuals", "leave_one_out", "source_extent", "target_extent", "source_unit", "target_unit", "target_unit_verified", "epistemic_status", "verification", "crs_status", "epsg"],
+  "properties": {
+    "schema": {"const": "vkm.qgis_transform/1"},
+    "transform_id": {"type": "string", "pattern": "^TRF-[0-9a-f]{16}$"},
+    "model": {"enum": ["similarity", "affine"]},
+    "matrix": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}}},
+    "inputs": {"type": "object"},
+    "input_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "rms": {"type": "number", "minimum": 0},
+    "max_residual": {"type": "number", "minimum": 0},
+    "residuals": {"type": "array"},
+    "leave_one_out": {"type": "object", "required": ["status", "results", "rms"], "properties": {"status": {"enum": ["PASS", "NOT_RUN"]}}},
+    "source_extent": {"type": "array"}, "target_extent": {"type": "array"},
+    "source_unit": {"type": "string"}, "target_unit": {"type": "string"}, "target_unit_verified": {"type": "boolean"},
+    "epistemic_status": {"const": "DERIVATION"},
+    "verification": {"const": "AUTO_EXTRACTED_UNREVIEWED"},
+    "crs_status": {"enum": ["UNKNOWN_CRS", "LOCAL_ENGINEERING_CRS / AUTHORITY_UNKNOWN"]},
+    "epsg": {"type": "null"}
+  },
+  "allOf": [{"if": {"properties": {"crs_status": {"const": "LOCAL_ENGINEERING_CRS / AUTHORITY_UNKNOWN"}}},
+    "then": {"properties": {"target_unit": {"const": "m"}, "target_unit_verified": {"const": true}}}}]
+}

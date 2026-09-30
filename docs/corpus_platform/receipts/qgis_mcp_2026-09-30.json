@@ -1,0 +1,274 @@
+{
+  "acceptance_artifacts": {
+    "work/qgis_2026-09-30/invalid_real/7cc5554df3b740b5b478cd25c351f1ec/acceptance.json": "cf7e7ca520568939143cb802af682ac9d564baee08f1a9274d09580a246c3479",
+    "work/qgis_2026-09-30/invalid_synthetic/11e0c7047a9e460a981928493d5151d9/acceptance.json": "626fd97cd07adac74f7029c9cf61062d0feb404afc8bb3f2d20ab380cac3a697",
+    "work/qgis_2026-09-30/source_import/acceptance.json": "b0c222561ebced91f6f0c1a89657f9cc3e1bc00d2457c497b105bc962398e508",
+    "work/qgis_2026-09-30/source_import/api_acceptance.json": "b70a0982a0bd87808de56d4b1033665f349ddf038ce8ba8eb51ea594a203f7d8",
+    "work/qgis_2026-09-30/stdio/cfb3de2bde6a499893ec4fc615195c0e/acceptance.json": "9fdee04799229429d797c28527a9620b85efbabe0da09cf21a51bfe4ed0f3842",
+    "work/qgis_2026-09-30/synthetic/43b04ac13e9e48f1a3db8bc04590cdec/acceptance.json": "6c60756ba8e2d66b365393c1e35b41a6966a22919210a7eb9788648ebf132e99"
+  },
+  "canonical_services_touched": false,
+  "checks": [
+    {
+      "command": "python -m pytest -q --tb=short --basetemp=work/qgis_2026-09-30/verified_final_tmp -o cache_dir=work/qgis_2026-09-30/pytest_cache tests/qgis",
+      "id": "UNIT",
+      "observed": "32 passed, 2 skipped; pytest 117.51 s; all PUBLIC fixtures synthetic",
+      "status": "PASS"
+    },
+    {
+      "id": "NULL_EXTRA_GEOMETRY_UPDATE_REGRESSION",
+      "observed": "1 passed, 7.36 s",
+      "status": "PASS"
+    },
+    {
+      "id": "EXPORTED_EXTRA_PROPERTIES_ROUNDTRIP_REGRESSION",
+      "observed": "1 passed, 79.49 s; latest synthetic acceptance",
+      "status": "PASS"
+    },
+    {
+      "id": "RENDER_PNG_REPEATABILITY",
+      "observed": "1 passed, 8.97 s; two independent worker PNG SHA-256 equal",
+      "status": "PASS"
+    },
+    {
+      "id": "GPKG_15_LAYERS",
+      "status": "PASS"
+    },
+    {
+      "id": "FEATURE_ADD_UPDATE_GET_LIST_NO_FACT",
+      "status": "PASS"
+    },
+    {
+      "id": "VECTOR_SOURCE_COORD_ROUNDTRIP_APPEND",
+      "status": "PASS"
+    },
+    {
+      "affine_rms": 2.6289841173806246e-13,
+      "id": "SIMILARITY_AFFINE_GCP_FIT_LOO",
+      "similarity_rms": 4.615794116748394e-14,
+      "status": "PASS"
+    },
+    {
+      "id": "ATOMIC_GCP_POINT_MATCH_QGIS_HYDRATION",
+      "status": "PASS"
+    },
+    {
+      "id": "TRANSFORM_GEOMETRY",
+      "status": "PASS"
+    },
+    {
+      "id": "OVERLAY_INTERSECTION_DIFFERENCE_UNION",
+      "status": "PASS"
+    },
+    {
+      "id": "GDAL_RASTER_PIXELS_GEOTRANSFORM",
+      "status": "PASS"
+    },
+    {
+      "id": "PROJECT_CREATE_OPEN",
+      "status": "PASS"
+    },
+    {
+      "dimensions": [
+        320,
+        240
+      ],
+      "id": "CPU_RENDER_PNG",
+      "nonwhite_pixels": 30580,
+      "status": "PASS"
+    },
+    {
+      "id": "PUBLIC_WRITE_PATH_TRAVERSAL_NO_OVERWRITE",
+      "status": "PASS"
+    },
+    {
+      "id": "TARGET_COLLAPSE_AND_UNIT_CRS_GATES",
+      "status": "PASS"
+    },
+    {
+      "calls": 13,
+      "id": "STDIO_INITIALIZE_LIST_TOOLS_CALL_TOOL",
+      "status": "PASS",
+      "tools": 15
+    },
+    {
+      "id": "UNAVAILABLE_RUNTIME_STRUCTURED_STATUS_ERROR",
+      "status": "PASS"
+    },
+    {
+      "id": "SYMLINK_ESCAPE_RUNTIME",
+      "reason": "Windows symlink privilege unavailable; lexical/absolute/traversal/public-write checks PASS",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "INVALID_SOURCE_ARCHIVE_POLICY_DOWNSTREAM_REJECTION",
+      "real_invalid_features": 26,
+      "real_minimal_layer_features": 120,
+      "status": "PASS",
+      "synthetic_invalid_features": 1
+    },
+    {
+      "feature_count": 207165,
+      "gpkg_layers": 341,
+      "id": "SOURCE_GEOMETRY_IMPORT",
+      "imported_nonempty_layers": 326,
+      "input_layers": 409,
+      "skipped_empty_templates": 83,
+      "status": "PASS"
+    },
+    {
+      "all_ids_frames_statuses_input_hashes_checked": true,
+      "comparison_tolerance_source_units": 1e-09,
+      "id": "RAW_SOURCE_COORDINATE_PRESERVATION",
+      "make_valid_applied": false,
+      "max_absolute_coordinate_error_source_units": 2.2737367544323206e-13,
+      "status": "PASS"
+    },
+    {
+      "elapsed_seconds": 7.8579,
+      "id": "LARGE_SOURCE_PACKAGE_BOUNDED_LISTING_AND_REAL_DOWNSTREAM_GUARD",
+      "status": "PASS"
+    },
+    {
+      "id": "SOURCE_CANDIDATE_TOPOLOGY",
+      "invalid_geometry_count": 1938,
+      "layers_with_invalid_geometry": 79,
+      "reason": "Source extraction contains invalid candidate polygons; preserved explicitly as raw source archive, downstream operations rejected",
+      "status": "FAIL"
+    },
+    {
+      "id": "PROJECTIVE_NONLINEAR_SURFACES_SOLVER",
+      "reason": "Outside task scope",
+      "status": "NOT_RUN"
+    }
+  ],
+  "created_at": "2026-09-30T11:59:11.476638+00:00",
+  "gpu": false,
+  "inputs": {
+    "docs/qgis/README_RU.md": "7d0d42f9c412eb4720c74b4127411ea64d377e763e484a8d895600c8915dc896",
+    "docs/qgis/schemas/result.schema.json": "e5fe936d7b64b472654e374ba376476f9078f5f40a0d94f975a211f4affd2a4a",
+    "docs/qgis/schemas/transform.schema.json": "154f599268d0436ff8cd749b10db0b6b4d3171e2f58bab4f8039b2dbba0ffdd3",
+    "src/vkm_qgis/__init__.py": "e358b53ff115ad6e6af820ab9340e870a24efe0f1621538ae02c5ea6b336fc63",
+    "src/vkm_qgis/errors.py": "1211e3dddb95e7208838673370296d5b2bb3c4375172ee38f7eb7994f3b3057e",
+    "src/vkm_qgis/fitting.py": "e55075add71d614fd68864758894cc547d30a5c137f273db1b2124e67685f6c2",
+    "src/vkm_qgis/mcp_server.py": "9f27cca747e0e5f206a6c14530b31d00596932a0b5eada7bc7591a509afa82f4",
+    "src/vkm_qgis/policy.py": "26386079e6813d8ad272533ea75beb5bc111a039b63fcc0329fd91049ab12837",
+    "src/vkm_qgis/service.py": "f6054ea4972814a9cc9431cf69fc7e580f7a8f94f3764ad8be8004c2cb0d21ad",
+    "src/vkm_qgis/worker.py": "ea3527e8e387dd4a0e9447cfd194cfdc124aa725a83b4869ab8832c61a45d5d2",
+    "tests/qgis/make_synthetic_raster.py": "d1f1dd949f828d4707ad10564eae1860908245fd4fcc1a2cd0c771409bce034b",
+    "tests/qgis/test_render_determinism.py": "b2131e4429419ab036ed8b6e482de4bc44db66cbf31052f2c52e1a66cce92e91",
+    "tests/qgis/test_runtime.py": "33670e8e182ad762e274b3882cc82c524935cf3e1394e25b8e52b3ccae21ebd6",
+    "tests/qgis/test_stdio.py": "e9a088e5cb6e75d83aa039d16bae25c4fa1d0caf4b1ae31494e31dd76a26665b",
+    "tests/qgis/test_unit.py": "da0a57740f63c2b109154a13d241108d52d8003de7eff4ed0b6f77667dfc0f57"
+  },
+  "installed_dependencies": false,
+  "limitations": [
+    "Only similarity/affine; mixed-dimensional overlay rejected; vector-only render",
+    "Raster stored as companion GeoTIFF, not Gpkg tiles",
+    "GeoPackage layers are initially empty; no evidence or scientific readiness implied",
+    "Serialization is per MCP host, not a cross-process file lock",
+    "Full call data and source geometry remain ignored WORK/PRIVATE"
+  ],
+  "runtime": {
+    "available": true,
+    "bridge_version": "0.1.0",
+    "default_write_roots": [
+      "work",
+      "private"
+    ],
+    "epsg_inference": false,
+    "gdal_version": "3.13.3",
+    "gpu": false,
+    "gui": false,
+    "minimum_layers": [
+      "source_figures",
+      "control_points",
+      "control_point_matches",
+      "transforms",
+      "mine_boundaries",
+      "shafts",
+      "boreholes",
+      "profile_lines",
+      "panels",
+      "blocks",
+      "mining_zones",
+      "anomalies",
+      "geology_sections",
+      "stratigraphy",
+      "conflicts"
+    ],
+    "python_version": "3.12.14",
+    "qgis_version": "4.2.2-Belém do Pará",
+    "roots": [
+      "public",
+      "work"
+    ],
+    "status": "READY",
+    "transform_models": [
+      "similarity",
+      "affine"
+    ]
+  },
+  "schema": "vkm.qgis_mcp_acceptance/1",
+  "scientific_status": "Source statuses preserved; extraction candidates unreviewed; not evidence or WorldSpec",
+  "server": "vkm-qgis",
+  "server_mutations": false,
+  "source_package": {
+    "feature_count": 207165,
+    "finished_at": "2026-09-30T11:45:26.477419+00:00",
+    "imported_layers": 326,
+    "input_layer_count": 409,
+    "invalid_geometry_count": 1938,
+    "layer_count": 341,
+    "layers_with_invalid_geometry": 79,
+    "manifest_ref": "work:geometry_2026-09-29/qgis_import_manifest.json",
+    "manifest_sha256": "452cd217ffd363edfc79ecfb253ff7e37f66956e53cb7c231f3e2ea818b8c428",
+    "output_ref": "work:geometry_2026-09-29/geometry_sources.gpkg",
+    "output_sha256": "2c2c6a59ffb045607ed3266144aa57f9708b01c2d9562318b99ca86e87959bf0",
+    "raw_coordinate_preservation": "PASS",
+    "skipped_empty_templates": 83,
+    "started_at": "2026-09-30T11:30:58.081354+00:00",
+    "table_unit_status": "UNKNOWN; separate control_points_source_table; not metric GCP",
+    "topology_status": "FAIL",
+    "verification_counts": {
+      "ASTRA_REVIEW_REQUIRED": 19,
+      "AUTO_EXTRACTED_UNREVIEWED": 207126,
+      "VERIFIED_BY_EYE": 20
+    }
+  },
+  "status": "PASS_IMPLEMENTATION_AND_RAW_SOURCE_ARCHIVE_WITH_TOPOLOGY_FAILURES",
+  "stdio_protocol": "2025-11-25",
+  "synthetic_output_hashes": {
+    "work:qgis_2026-09-30/synthetic/43b04ac13e9e48f1a3db8bc04590cdec/copy.tif": "666379f92ea26865201c25a21c14f729fa787e0aa0ad10668dc23cb88455a814",
+    "work:qgis_2026-09-30/synthetic/43b04ac13e9e48f1a3db8bc04590cdec/geometry.gpkg": "aa43579d53e66f2ef9ff2191e54d99146a692c56457276b55c733554f2cffd42",
+    "work:qgis_2026-09-30/synthetic/43b04ac13e9e48f1a3db8bc04590cdec/metric.gpkg": "9e07a408f7487bb3160d54c6f11b9fcbd1399668f5d1a0e9ab3c73aba1ba4132",
+    "work:qgis_2026-09-30/synthetic/43b04ac13e9e48f1a3db8bc04590cdec/project.qgz": "f280a556822c3883602b1d8b43afaea87d938676a248417f9695442dfc902100",
+    "work:qgis_2026-09-30/synthetic/43b04ac13e9e48f1a3db8bc04590cdec/render.png": "ce0f68577424d58799a6ebe7429285c39144108d6534bf3c0039bd33c433185b",
+    "work:qgis_2026-09-30/synthetic/43b04ac13e9e48f1a3db8bc04590cdec/similarity.json": "3cce772a61b386253209cc2ed684e4ed5d2b71132e1cfd619ef83ffc6ee69fa6",
+    "work:qgis_2026-09-30/synthetic/43b04ac13e9e48f1a3db8bc04590cdec/source.geojson": "6acad504ef488dd466e22b020e5723a909a4123fce0a88a2aeaf12db000b2a5d"
+  },
+  "task_reference": "user_attachment:figures_geometry_geology_2026-09-30_sections_33_36",
+  "tool_names": [
+    "qgis_status",
+    "qgis_create_geopackage",
+    "qgis_list_layers",
+    "qgis_create_layer",
+    "qgis_feature",
+    "qgis_import_vector",
+    "qgis_register_control_points",
+    "qgis_fit_transform",
+    "qgis_residuals",
+    "qgis_apply_transform",
+    "qgis_overlay",
+    "qgis_export_layer",
+    "qgis_import_raster",
+    "qgis_project",
+    "qgis_render"
+  ],
+  "unit_policy": "Default UNKNOWN; LOCAL_ENGINEERING only target metres explicitly verified; no EPSG inference",
+  "version": "0.1.0",
+  "write_roots": [
+    "work",
+    "private"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vkm-qgis.result/1",
+  "title": "VKM QGIS MCP result envelope",
+  "type": "object",
+  "required": ["schema", "server", "server_version", "tool", "request_id", "ok", "result", "error", "receipt"],
+  "properties": {
+    "schema": {"const": "vkm-qgis.result/1"},
+    "server": {"const": "vkm-qgis"},
+    "server_version": {"type": "string"},
+    "tool": {"type": "string", "pattern": "^qgis_"},
+    "request_id": {"type": "string", "pattern": "^[0-9a-f]{32}$"},
+    "ok": {"type": "boolean"},
+    "receipt": {"type": "string", "pattern": "^work:"},
+    "result": {"type": ["object", "null"]},
+    "error": {"oneOf": [{"type": "null"}, {"type": "object", "required": ["code", "message", "retryable", "details"],
+      "properties": {"code": {"type": "string"}, "message": {"type": "string"}, "retryable": {"type": "boolean"}, "details": {"type": "object"}}}]}
+  },
+  "allOf": [{"if": {"properties": {"ok": {"const": true}}}, "then": {"properties": {"error": {"type": "null"}, "result": {"type": "object"}}},
+    "else": {"properties": {"result": {"type": "null"}, "error": {"type": "object"}}}}]
+}
