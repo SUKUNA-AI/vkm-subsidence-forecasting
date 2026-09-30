@@ -1,0 +1,125 @@
+{
+  "absolute_depth": "UNKNOWN",
+  "automatic_graphic_candidates": 207126,
+  "cad_executed": false,
+  "code": {
+    "benchmarks/geometry_skru1_v1/annotate.py": "0677d56c30f05aa22a17f0dad681dd4711f6cc60fd11884be3d8a37e11031b7a",
+    "benchmarks/geometry_skru1_v1/export_dxf.py": "30836621ed596239bd329fa593e40e3c67167a874a9af3db241edc604df4ac5c",
+    "benchmarks/geometry_skru1_v1/finish.py": "c65dbf90b6723269303bf38a21b403abd498581692c004e399f43d181d86895e",
+    "benchmarks/geometry_skru1_v1/geometry.py": "0841f26ed834e061b6a52d548e160cf1d053ba3aa552d143593b89004b3796a7",
+    "benchmarks/geometry_skru1_v1/package.py": "f2a4d319479cdc3407efeca6f5a38ce8ced2a677cc032f9a098bfeb63d4a1bc5",
+    "benchmarks/geometry_skru1_v1/run.py": "f0a1180ecb540795eb421a4b377d4a83d1f067fa919051f7f9b518d52907803e",
+    "benchmarks/geometry_skru1_v1/source_regions.py": "0a1c726296785aeebf8ce42d63324a54627dee435439a26bebb1defec04741b0",
+    "benchmarks/geometry_skru1_v1/targeted.py": "dbedfd759496dce8647746b6216dc5de788c652a26504bcb992f22347732330b"
+  },
+  "code_role": "CURRENT_PUBLIC_CODE_AT_REPORTING; executed code hashes remain in the original PRIVATE extraction receipt",
+  "date": "2026-09-30",
+  "dxf": {
+    "entities": 293417,
+    "invalid_polygon_policy": "SOURCE_POLYLINES_PRESERVED_WITHOUT_MAKEVALID",
+    "layers": 409,
+    "roundtrip_max_coordinate_delta": 0.0,
+    "version": "1.4.4"
+  },
+  "features_by_geometry": {
+    "LineString": 164745,
+    "MultiLineString": 624,
+    "Point": 22,
+    "Polygon": 41774
+  },
+  "features_by_source": {
+    "VKM-SRC-011": 129675,
+    "VKM-SRC-012": 37207,
+    "VKM-SRC-014": 18563,
+    "VKM-SRC-023": 3709,
+    "VKM-SRC-064": 10885,
+    "VKM-SRC-197": 7126
+  },
+  "frozen_B_C_objects": 135,
+  "gpu_in_geometry_pipeline": false,
+  "inventory_A_objects_at_reporting": 411,
+  "layer_units": {
+    "UNKNOWN": 1,
+    "pt": 111,
+    "px": 297
+  },
+  "layers": 409,
+  "metric_registration": "NOT_ACCEPTED",
+  "native_docx_252": {
+    "cells": [
+      40,
+      79
+    ],
+    "part_sha256": "100dfd320f7e06576309b9e99eeb8512f589fab12089f5fc7f7d5f9b540c3e43",
+    "relationships_sha256": "575cb32272d71f57e5dc3897ad460c51e18b508f42094840901ce0bfefa071b9",
+    "role": "PLANNED",
+    "source_sha256": "e7b03d3527fe7cf0a13a98edefe02eed12976856b520b335c952bcdb0fb758fb",
+    "tables": [
+      "1.1",
+      "1.2"
+    ],
+    "verification": "AUTO_EXTRACTED_UNREVIEWED"
+  },
+  "nonempty_layers": 326,
+  "private_artifacts": [
+    {
+      "logical_id": "SOURCE_IMPORT_SNAPSHOT",
+      "sha256": "452cd217ffd363edfc79ecfb253ff7e37f66956e53cb7c231f3e2ea818b8c428"
+    },
+    {
+      "logical_id": "AUTO_EXTRACTION_RECEIPT",
+      "sha256": "e476239f9c47339ca333a3069cf0496f08ac1b107fb2cb19cb0da049dfec3657"
+    },
+    {
+      "logical_id": "EXPLICIT_SOURCE_ANNOTATIONS_RECEIPT",
+      "sha256": "34bf8e79a6894a5c901c3559e5f90877bb14624974da97ddbcb3180e81af199e"
+    },
+    {
+      "logical_id": "DXF_SERIALIZATION_RECEIPT",
+      "sha256": "ef8b32a4e78221fd1cb86d6bc282d0df2cbebe9dd6a5877861c9f56c3fa27ea7"
+    },
+    {
+      "logical_id": "NATIVE_TARGETED_RECEIPT",
+      "sha256": "61ab4b0055711c68183619715aabe026d5f0ecdfcb2bdc83c8bf88730b87cafd"
+    },
+    {
+      "logical_id": "ACCURACY_PRIVATE",
+      "sha256": "0bbcb818ce79552e0f4619711079acdc2b41f779c7df4887d5d29952c23c3e30"
+    },
+    {
+      "logical_id": "GEO_REVIEW_PRIVATE",
+      "sha256": "02c0caa7d3ffa3cd54dfdef08bd8eff7a1162848d29701f1bab4ee12d0726dd6"
+    },
+    {
+      "logical_id": "QGIS_SOURCE_ARCHIVE_ACCEPTANCE",
+      "sha256": "b0c222561ebced91f6f0c1a89657f9cc3e1bc00d2457c497b105bc962398e508"
+    },
+    {
+      "logical_id": "PRIVATE_SOURCE_REGIONS_MIGRATION_RECEIPT",
+      "sha256": "5084de2b5f15e96a9f1b416384602815a8f3e02435b2ff07c9df1eb6a4137f03"
+    }
+  ],
+  "qgis_source_archive": {
+    "feature_count": 207165,
+    "invalid_geometry_count": 1938,
+    "layer_count": 341,
+    "layers_with_invalid_geometry": 79,
+    "output_sha256": "2c2c6a59ffb045607ed3266144aa57f9708b01c2d9562318b99ca86e87959bf0",
+    "raw_coordinate_preservation": "PASS",
+    "topology_status": "FAIL"
+  },
+  "qgis_status": "PASS_RAW_SOURCE_ARCHIVE_WITH_TOPOLOGY_FAILURES",
+  "sanitization": "Explicit whitelist; no literals, quotations, coordinates, source fragments or machine paths",
+  "schema": "vkm.geometry_skru1_v1.public_receipt/1",
+  "scientific_evidence_promotion": false,
+  "scope": "CPU_SOURCE_GEOMETRY_AND_QA_WITHOUT_METRIC_WORLD_ACCEPTANCE",
+  "solver_executed": false,
+  "source_annotations_pending_independent_acceptance": 19,
+  "table_target_points_unknown_units": 20,
+  "temporal_history": "UNKNOWN",
+  "tests": {
+    "command": "python -B -m pytest -q tests/corpus/test_geometry_skru1_v1.py",
+    "passed": 17
+  },
+  "tool": "geometry-skru1/0.1"
+}

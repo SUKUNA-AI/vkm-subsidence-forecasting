@@ -1,0 +1,264 @@
+{
+  "active_reader_counts": {
+    "glm": {
+      "CELL:PARSED": 668,
+      "CLASSIFY:MISSING": 411,
+      "LABEL:PARSED": 24,
+      "TILE:MISSING": 1690,
+      "TILE:PARSED": 4498,
+      "TILE:TRUNCATED_AT_TOKEN_LIMIT": 55
+    },
+    "qwen": {
+      "CELL:PARSED": 668,
+      "CLASSIFY:PARSED": 410,
+      "CLASSIFY:TRUNCATED_AT_TOKEN_LIMIT": 1,
+      "LABEL:MISSING": 24,
+      "TILE:MISSING": 6024,
+      "TILE:PARSED": 196,
+      "TILE:TRUNCATED_AT_TOKEN_LIMIT": 23
+    }
+  },
+  "astra_queue_count": 447,
+  "classification_counts_unreviewed": {
+    "GRAPH": 57,
+    "MAP": 121,
+    "PHOTO": 20,
+    "PLAN": 24,
+    "SCHEME": 31,
+    "SECTION": 61,
+    "STRATIGRAPHIC_COLUMN": 10,
+    "TABLE": 86
+  },
+  "code_hashes": {
+    "benchmarks/figure_readings_v2/assemble.py": "5f8931dc16ec5f7532deff9bf60f13f411c1a75bf0163ecb50832e70b9598a28",
+    "benchmarks/figure_readings_v2/classify_jobs.py": "0e3eda256c895feac3a7e79f7021375aa31a0340e7e2c2d1a97797d5095fb94b",
+    "benchmarks/figure_readings_v2/enrich_context.py": "02c5c767a94b057b9fc9763818e2d929766a82093919078303061ce9308eb421",
+    "benchmarks/figure_readings_v2/evaluate.py": "1845de80a35b5318984a07ed2469b7e544f1d7b4058af8c53790f4a126ab3d14",
+    "benchmarks/figure_readings_v2/prepare.py": "643baf428d0a0d7f1ba70b192775687d0cb6e6c5688e3be85f1ad3d78beeb0b8",
+    "benchmarks/figure_readings_v2/prepare_djvu.py": "bf7c9cfcd001f2bc726f44c8d445a5e17259f54e72c9ae0a953326e3bb1ba136",
+    "benchmarks/figure_readings_v2/read_local.py": "5a64d6a13ae05ce2a8157608329fadbe508cda25831d70a44b15eef481b80b1c",
+    "benchmarks/figure_readings_v2/select_jobs.py": "1405bffd556ea840155634a583579c1626fb0b27c61d55f5bb7d3c378e3ce04d"
+  },
+  "commands": [
+    "prepare.py --append",
+    "enrich_context.py",
+    "prepare_djvu.py",
+    "read_local.py --reader glm",
+    "evaluate.py",
+    "assemble.py"
+  ],
+  "coverage_limit": "Addressed corpus navigation and local inventory; no proof that all relevant figures have been found. Semantic and physical registration remains gated.",
+  "current_owner_reader_decision": "GLM bulk only; Qwen historical answers retained, no further Qwen run.",
+  "date": "2026-09-30",
+  "djvu_figures": 18,
+  "epistemic_status": "DERIVATION",
+  "extra_review": {
+    "eligible_literal_units": 56,
+    "glm_literal_accuracy": 0.75,
+    "glm_literal_correct": 42,
+    "literal_error_wilson95": [
+      0.15517054688270684,
+      0.376926421476675
+    ],
+    "map_97_percent_target": "NOT_ESTABLISHED",
+    "rejected_or_partial_units": 94,
+    "reviewed_units": 150,
+    "sampling_is_corpus_random": false,
+    "scope": "126 complete candidate-cell population from two non-gold screenshots +24 seeded native text crops. Not representative of corpus maps.",
+    "table_99_percent_target_met": false
+  },
+  "final_literal_status_counts": {
+    "AUTO_EXTRACTED_UNREVIEWED": 101,
+    "DISPLAY_TRUNCATED": 25,
+    "MIXED_CELLS": 3,
+    "NOT_A_CELL": 45,
+    "PARTIAL_LITERAL": 9,
+    "SOURCE_TRUNCATED": 34,
+    "UNREADABLE": 12,
+    "VERIFIED_BY_EYE": 190,
+    "VERIFIED_BY_EYE_EXISTING_GOLD": 257,
+    "VISIBLE_GLYPHS_REVIEWED_ENCODING_AMBIGUOUS": 16
+  },
+  "glm_request_prompt_sha256": "77e8207573e1b8ba857d25db3a5080ae8651d6ddc2ea79007af5ca7958b80017",
+  "goals": {
+    "automatic_table_99_percent": "NOT_ACHIEVED",
+    "map_labels_97_percent": "NOT_ESTABLISHED",
+    "physical_crs": "UNKNOWN"
+  },
+  "gold_accuracy": {
+    "agreement": {
+      "definition": "Reader agreement; not accuracy",
+      "exact": 0.7886977886977887,
+      "joint_readable_cells": 407
+    },
+    "glm": {
+      "coverage": 1.0,
+      "definition": "Accuracy against independently eye-reviewed published image transcription, not field validation",
+      "gold_cells": 407,
+      "literal_accuracy": 0.8452088452088452,
+      "literal_correct": 344,
+      "literal_wilson95": [
+        0.8068567712683714,
+        0.8771053605150192
+      ],
+      "readable": 407,
+      "typographic_accuracy": 0.8452088452088452
+    },
+    "qwen": {
+      "coverage": 1.0,
+      "definition": "Accuracy against independently eye-reviewed published image transcription, not field validation",
+      "gold_cells": 407,
+      "literal_accuracy": 0.85995085995086,
+      "literal_correct": 350,
+      "literal_wilson95": [
+        0.8228595087225401,
+        0.8903109703256216
+      ],
+      "readable": 407,
+      "typographic_accuracy": 0.85995085995086
+    }
+  },
+  "gpu_release_receipt_sha256": "3511cc9213a1b79606d0631b6cae763268b86e592310a4fb7f04449a08b0c7a0",
+  "gpu_released": true,
+  "input_hashes": {
+    "accuracy.json": "940bc11b2489fdcd5966d3779c35b6627b217b9db23430b001f41e4deaeae72d",
+    "inventory.json": "c8d5e149d431637523fa27f76312e111c5b3a4c99fa6fe2b5026eabffc819ac5",
+    "jobs_v2.json": "591404a6637f76c49d59990cd8f1aa554aa43e719e3f81c1f253ab66f8fcb216"
+  },
+  "inventory_objects": 411,
+  "job_counts": {
+    "CELL": 668,
+    "CLASSIFY": 411,
+    "LABEL": 24,
+    "TILE": 6243
+  },
+  "manual_review_counts": {
+    "other_source_units": 150,
+    "root_gold_purposive": 150
+  },
+  "manual_review_hashes": {
+    "review_root/review.json": "6020c687e015ed94abe5500f3c878ee21a61962895805ffbb73b7c4c5b1a443f",
+    "review_root_other/review.json": "7f4aee149b87f997b910ba68275a8faeb69bd0852ace8ba2df8261d045d7670d",
+    "review_sys/review.json": "8061c0cff6c32ec43722701c5559cc2cfbcad8db365179f2d8aa19a4eafc6ae4"
+  },
+  "method": "Native PDF objects, unchanged DOCX parts, addressed DjVu decode, literal GLM bulk OCR; source pixels retained.",
+  "models": {
+    "glm": {
+      "image_sha256": "8a69ffad015f138d7170c4ddc429e230a3bc1c1719f67e14324749df200a4b90",
+      "model": "GLM-OCR BF16",
+      "revision": "2e85a62840ccac27daa451df36c736c4636b8628",
+      "role": "CURRENT_BULK_OCR",
+      "runtime": "vLLM0.30.0"
+    },
+    "qwen": {
+      "image_sha256": "1c568d229561bbd4577698f1f38d3ed9bf3f5ab343e04f7a508e11ef63f4ced1",
+      "model": "Qwen3.5-9B-Q8_0",
+      "revision": "3885219b6810b007914f3a7950a8d1b469d598a5",
+      "role": "HISTORICAL_COMPARISON_ONLY",
+      "runtime": "llama.cpp b11243 fc07d781e"
+    }
+  },
+  "native_pdf_objects": 279,
+  "original_raw_including_superseded_counts": {
+    "glm": 5262,
+    "qwen": 1319
+  },
+  "output_manifest_hash": "24b29f6c128bd197de8fc255140e2c1b4cebb088259fccf3a335368705ae5c8a",
+  "prompt_hashes": {
+    "CELL": "8117f44c83f4f7962dcc3e9de8551217f9b4c387bce29acf58b2dcf7a5ab7e7d",
+    "CLASSIFY": "d866c5f4187066e3f2d75858793b489aa65235f3eb3fbb7582ea1eda491dc154",
+    "LABEL": "8117f44c83f4f7962dcc3e9de8551217f9b4c387bce29acf58b2dcf7a5ab7e7d",
+    "TILE": "51d291a41440a1ef9bf8d9ecfc8aa5bf761010dd31689d1219be9a210356f8d4"
+  },
+  "raw_response_manifest_sha256": "be4e4cfbaf8c7641397358c5cb6b00e5c2a2a6ba50612bbbcf4be22ac88f6549",
+  "sampling": {
+    "glm_repetition_penalty": 1.1,
+    "glm_top_k": 1,
+    "glm_top_p": 1e-05,
+    "max_tokens_cell_label": 128,
+    "max_tokens_tile": 1536,
+    "seed": 0,
+    "temperature": 0
+  },
+  "schema": "vkm.figure_readings_v2.public/2",
+  "source_ids": [
+    "INTAKE-kursach_reshetnikov",
+    "INTAKE-prgr2013_skru1",
+    "VKM-SRC-002",
+    "VKM-SRC-003",
+    "VKM-SRC-011",
+    "VKM-SRC-012",
+    "VKM-SRC-014",
+    "VKM-SRC-020",
+    "VKM-SRC-021",
+    "VKM-SRC-023",
+    "VKM-SRC-024",
+    "VKM-SRC-025",
+    "VKM-SRC-026",
+    "VKM-SRC-029",
+    "VKM-SRC-030",
+    "VKM-SRC-035",
+    "VKM-SRC-037",
+    "VKM-SRC-040",
+    "VKM-SRC-042",
+    "VKM-SRC-043",
+    "VKM-SRC-044",
+    "VKM-SRC-045",
+    "VKM-SRC-046",
+    "VKM-SRC-047",
+    "VKM-SRC-048",
+    "VKM-SRC-049",
+    "VKM-SRC-051",
+    "VKM-SRC-064",
+    "VKM-SRC-065",
+    "VKM-SRC-067",
+    "VKM-SRC-068",
+    "VKM-SRC-069",
+    "VKM-SRC-074",
+    "VKM-SRC-080",
+    "VKM-SRC-089",
+    "VKM-SRC-091",
+    "VKM-SRC-096",
+    "VKM-SRC-098",
+    "VKM-SRC-100",
+    "VKM-SRC-101",
+    "VKM-SRC-103",
+    "VKM-SRC-108",
+    "VKM-SRC-110",
+    "VKM-SRC-113",
+    "VKM-SRC-127",
+    "VKM-SRC-129",
+    "VKM-SRC-148",
+    "VKM-SRC-150",
+    "VKM-SRC-152",
+    "VKM-SRC-153",
+    "VKM-SRC-178",
+    "VKM-SRC-181",
+    "VKM-SRC-191",
+    "VKM-SRC-196",
+    "VKM-SRC-202",
+    "VKM-SRC-203",
+    "VKM-SRC-204",
+    "VKM-SRC-205",
+    "VKM-SRC-210",
+    "VKM-SRC-231",
+    "VKM-SRC-237",
+    "VKM-SRC-239",
+    "VKM-SRC-254",
+    "VKM-SRC-256",
+    "VKM-SRC-257",
+    "VKM-SRC-258",
+    "VKM-SRC-260",
+    "VKM-SRC-266",
+    "VKM-SRC-267",
+    "VKM-SRC-268"
+  ],
+  "tests": {
+    "figure_regressions": 4,
+    "fixtures": "SYNTHETIC_ONLY",
+    "status": "PASS",
+    "targeted_suite_passed": 65
+  },
+  "verification_status": "MIXED_PER_RECORD; NO_EVIDENCE_PROMOTION",
+  "whole_page_contexts": 228
+}
