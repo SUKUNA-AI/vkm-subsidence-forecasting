@@ -5,6 +5,7 @@
 
 | Файл | Что подтверждает |
 |---|---|
+| [search_metrics_2026-09-30.json](search_metrics_2026-09-30.json) | topic/retrieval before-after и controlled component runs на 574daaac; frozen truth сохранена, конфигурация не менялась; новую независимую разметку visual hits владелец отложил до Astra-review ([отчёт](../SEARCH_METRICS_2026-09-30_RU.md)) |
 | [platform_integrity_2026-09-30.json](platform_integrity_2026-09-30.json) | read-only smoke22tools/61calls на574daaac; отдельные FAIL/NOT_RUN, без изменений CORE/EDGE |
 | [architecture_drawio_2026-09-30.json](architecture_drawio_2026-09-30.json) | обновление девяти схем, JSON sources, SVG и отдельная страница A/B/C; byte-identical rebuild |
 | [figure_readings_v2.json](figure_readings_v2.json) |411sourceobjects, GLM bulk, per-record hashes/status, gold accuracy отдельно от agreement; цели99%/97% не объявлены достигнутыми |
