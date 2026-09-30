@@ -18,6 +18,7 @@ import json
 import os
 import re
 from contextlib import contextmanager
+from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Iterator, Mapping
@@ -155,16 +156,22 @@ def verify_candidate_record(record: Mapping[str, Any]) -> None:
 
 def freeze_candidate(root: str | Path, target: str | Path, record: Mapping[str, Any]) -> dict[str, Any]:
     """Write the record once. Re-freezing identical content is a no-op; different content is refused."""
-    verify_candidate_record(record)
+    if not isinstance(record, Mapping):
+        raise CandidateFreezeError("candidate record must be a mapping")
+    frozen = deepcopy(dict(record))
+    verify_candidate_record(frozen)
+    frozen["frozen_at_utc"] = utc_now()
+    serialized = json.dumps(frozen, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    frozen = json.loads(serialized)
+    verify_candidate_record(frozen)  # Validate the exact bytes to publish, with no caller-owned aliases.
     path = resolve_repo_path(root, target)
-    frozen = {**record, "frozen_at_utc": utc_now()}
     tmp_dir = resolve_repo_path(root, "work/validation")
     tmp_dir.mkdir(parents=True, exist_ok=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = tmp_dir / f"{path.name}.{uuid4().hex}.tmp"
     try:
         with open(tmp, "x", encoding="utf-8", newline="\n") as stream:
-            stream.write(json.dumps(frozen, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+            stream.write(serialized)
             stream.flush()
             os.fsync(stream.fileno())
         try:
@@ -177,8 +184,8 @@ def freeze_candidate(root: str | Path, target: str | Path, record: Mapping[str, 
                 verify_candidate_record(existing)
             except (OSError, ValueError) as exc:
                 raise CandidateFreezeError(f"existing frozen candidate is invalid at {target}") from exc
-            if "frozen_at_utc" in existing and existing["candidate_id"] == record["candidate_id"] and \
-                    candidate_digest(existing) == candidate_digest(record):
+            if "frozen_at_utc" in existing and existing["candidate_id"] == frozen["candidate_id"] and \
+                    candidate_digest(existing) == candidate_digest(frozen):
                 return existing
             raise CandidateFreezeError(f"a different frozen candidate already exists at {target}; "
                                        "create a new candidate version")

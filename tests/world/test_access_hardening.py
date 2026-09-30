@@ -5,6 +5,7 @@ import json
 import errno
 import multiprocessing as mp
 from pathlib import Path
+from threading import Event, Thread
 
 import pytest
 
@@ -247,3 +248,38 @@ def test_crashed_finalizer_releases_lock_but_claim_remains_spent(tmp_path):
         'failed_after_claim'
     with pytest.raises(access.RepeatedTestAccessError):
         access.claim_test_access(tmp_path, 'ledger/test.json', _candidate(), test_sample_ids_sha256=H, test_rows=1)
+
+
+@pytest.mark.parametrize(('field', 'key'), [('contract_hashes', 'features'), ('manifest_hashes', 'train'),
+                                          ('artifact_hashes', 'artifacts/config.json')])
+def test_freeze_snapshots_nested_caller_mappings_before_validation(tmp_path, monkeypatch, field, key):
+    record = _candidate(artifact_hashes={'artifacts/config.json': H})
+    validated, mutated = Event(), Event()
+    original_verify = access.verify_candidate_record
+
+    def pause_after_validation(snapshot):
+        original_verify(snapshot)
+        if not validated.is_set():
+            validated.set()
+            assert mutated.wait(timeout=5), 'caller mapping was not mutated'
+
+    def mutate_caller():
+        if validated.wait(timeout=5):
+            record[field][key] = 'b' * 64
+            mutated.set()
+
+    monkeypatch.setattr(access, 'verify_candidate_record', pause_after_validation)
+    mutator = Thread(target=mutate_caller)
+    mutator.start()
+    try:
+        frozen = access.freeze_candidate(tmp_path, 'records/candidate.json', record)
+    finally:
+        validated.set()
+        mutator.join(timeout=5)
+    assert not mutator.is_alive(), 'caller mutator exceeded timeout'
+    assert mutated.is_set()
+    saved = json.loads((tmp_path / 'records' / 'candidate.json').read_text(encoding='utf-8'))
+    original_verify(saved)
+    assert frozen == saved
+    assert saved[field][key] == H
+    assert record[field][key] == 'b' * 64
