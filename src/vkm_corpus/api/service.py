@@ -1683,8 +1683,12 @@ class ApiService:
             # Status bypasses the outer content gate to remain operationally
             # observable. Its data-bearing part nevertheless holds admission
             # through all reads and must discard an invalidated generation.
-            if guard is not None and (await generation_status(guard)).get("status") != "READY":
-                return jsonable(operations)
+            if guard is not None:
+                final_generation = await generation_status(guard)
+                out["production_controls"]["generation"] = final_generation
+                if final_generation.get("status") != "READY":
+                    return jsonable(operations)
+                result["production_controls"]["generation"] = final_generation
             return result
         finally:
             if lease is not None:

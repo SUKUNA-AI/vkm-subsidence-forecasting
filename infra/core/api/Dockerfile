@@ -27,7 +27,7 @@ RUN python -m venv /opt/vkm \
  && CONSTRAINTS="-c requirements/worldspec.lock.txt" \
  && if [ -f requirements/corpus-services.lock.txt ]; then CONSTRAINTS="$CONSTRAINTS -c requirements/corpus-services.lock.txt"; fi \
  && /opt/vkm/bin/pip install $CONSTRAINTS ".[corpus-services,navigation]" \
-      "duckdb>=1.5.5,<2" "pyarrow>=25.0.1,<26" "pillow>=12.3" "psycopg[binary]>=3.3" "pytz>=2025.2" \
+      "duckdb>=1.5.5,<2" "pyarrow>=25.0.1,<26" "pillow>=12.3" "psycopg[binary]>=3.3" "pytz>=2025.2" "packaging>=26.3,<27" \
  && /opt/vkm/bin/pip check \
  && /opt/vkm/bin/python -c "import pathlib, vkm_corpus; r = pathlib.Path(vkm_corpus.__file__).parent; \
 missing = [g for g in ('duckdb/sql/*.sql', 'ops/schema.sql') if not list(r.glob(g))]; \

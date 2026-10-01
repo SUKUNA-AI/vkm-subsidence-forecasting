@@ -60,13 +60,46 @@ def read_tool_names():
 
 
 def serving_dependencies_identity():
-    import platform
-    from importlib.metadata import version
-    packages = ("pydantic", "pydantic_core", "pyarrow", "duckdb", "fastapi", "starlette", "httpx",
-                "mcp", "pillow", "pytz", "uvicorn")
-    return record_hash({"python": platform.python_version(), "implementation": platform.python_implementation(),
-        "system": platform.system(), "machine": platform.machine(),
-        "dependencies": {name: version(name) for name in packages}})
+    from vkm_corpus.update.service_identity import runtime_dependency_inventory
+    # This production profile requires all native stores, not a caller-selected
+    # subset. PEP508 extras are essential: psycopg itself can import successfully
+    # with the binary driver missing or another implementation selected.
+    inventory = runtime_dependency_inventory("API_ALL_STORES_V1", (
+        ("numpy>=2.5.3,<3", "numpy"), ("pydantic>=2.13.5,<3", "pydantic"),
+        ("pyarrow>=25.0.1,<26", "pyarrow.parquet"), ("duckdb>=1.5.5,<2", "duckdb"),
+        ("fastapi>=0.141.1,<0.142", "fastapi"), ("uvicorn>=0.40", "uvicorn"),
+        ("httpx>=0.28", "httpx"), ("mcp==2.2.0", "mcp"),
+        ("pillow>=12.3", "PIL.Image"), ("pytz>=2025.2", "pytz"),
+        ("neo4j>=6.3.1,<7", "neo4j"), ("opensearch-py>=3.2.0,<4", "opensearchpy"),
+        ("psycopg[binary]>=3.3", "psycopg"), ("psycopg-binary>=3.3", "psycopg_binary.pq"),
+        ("packaging>=26.3,<27", "packaging"),
+        ("pymorphy3>=2.0.6,<3", "pymorphy3"),
+        ("pymorphy3-dicts-ru>=2.4.417150", "pymorphy3_dicts_ru"),
+        ("snowballstemmer>=3.1,<4", "snowballstemmer"),
+    ), (("httptools", "httptools"), ("uvloop", "uvloop"), ("websockets", "websockets"),
+        ("wsproto", "wsproto"), ("brotli", "brotli"), ("brotlicffi", "brotlicffi"),
+        ("zstandard", "zstandard")))
+    import psycopg.pq
+    if psycopg.pq.__impl__ != "binary":
+        raise GenerationUnavailable("API binary database driver profile is unavailable")
+    return record_hash(inventory)
+
+
+def require_navigation_runtime():
+    """Inspect the cached morphology actually used by each qualified query.
+
+    Optional fallback remains available to legacy/development readers. This
+    all-store production profile must not accept a corrupt dictionary or a
+    cached crude/stem-only reader under a pymorphy3 acceptance.
+    """
+    from vkm_corpus.navigation.concepts import Morphology
+    for module in ("concepts_query", "expansion_query", "topics_query", "parameters_query", "term_dictionary_query"):
+        try:
+            reader = importlib.import_module("vkm_corpus.navigation." + module)._morph()
+        except Exception as exc:
+            raise GenerationUnavailable("qualified navigation morphology is unavailable") from exc
+        if type(reader) is not Morphology or reader.name != "pymorphy3":
+            raise GenerationUnavailable("qualified navigation morphology has degraded")
 
 
 def serving_access_identity(api_config):
@@ -106,6 +139,7 @@ def require_serving_acceptance(runtime, manifest, api_config):
             or proof.get("checks") != dict.fromkeys(SERVING_CHECKS, "PASS")
             or proof.get("tools") != dict.fromkeys(read_tool_names(), "PASS")):
         raise GenerationUnavailable("serving acceptance scope/code/components/MCP contract is unqualified")
+    require_navigation_runtime()
     return proof
 
 

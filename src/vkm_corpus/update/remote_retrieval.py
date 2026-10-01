@@ -138,6 +138,9 @@ class RetrievalServiceLease:
     def __init__(self, encoders, residency, store):
         if residency is None or not encoders or set(encoders) != set(residency.processes):
             raise ValueError("all serving encoders require observed owned children")
+        from vkm_corpus.update.service_identity import (RETRIEVAL, require_retrieval_profile,
+            service_code_identity, service_dependencies_identity)
+        require_retrieval_profile(encoders, residency)
         self.store = store
         self.encoders, self.residency = encoders, residency
         self.models = {role: OwnedModelLease(enc, residency.processes[role]) for role, enc in encoders.items()}
@@ -148,13 +151,14 @@ class RetrievalServiceLease:
         expected = {k: getattr(encoders["late"].qconfig, k) for k in COMPATIBLE_FIELDS}
         if compatibility(store.current().manifest, expected):
             raise ValueError("native loaded pack is incompatible with the actual late encoder")
-        from vkm_corpus.api.production import serving_code_identity, serving_dependencies_identity
-        self.code = serving_code_identity()
-        self.dependencies = serving_dependencies_identity()
+        self.code = service_code_identity(RETRIEVAL)
+        self.dependencies = service_dependencies_identity(RETRIEVAL)
 
     def observe(self):
-        from vkm_corpus.api.production import serving_code_identity, serving_dependencies_identity
-        if serving_code_identity() != self.code or serving_dependencies_identity() != self.dependencies:
+        from vkm_corpus.update.service_identity import (RETRIEVAL, require_retrieval_profile,
+            service_code_identity, service_dependencies_identity)
+        require_retrieval_profile(self.encoders, self.residency)
+        if service_code_identity(RETRIEVAL) != self.code or service_dependencies_identity(RETRIEVAL) != self.dependencies:
             raise ValueError("retrieval service code/dependencies changed")
         if (set(self.encoders) != set(self.models) or set(self.residency.processes) != set(self.models)
                 or any(self.encoders[k] is not lease.encoder or self.residency.processes[k] is not lease.model

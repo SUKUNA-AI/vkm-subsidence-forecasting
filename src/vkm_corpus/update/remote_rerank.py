@@ -20,7 +20,8 @@ def config_identity(cfg):
 class RerankServiceLease:
     @classmethod
     async def bind(cls, cfg, res):
-        from vkm_corpus.api.production import serving_code_identity, serving_dependencies_identity
+        from vkm_corpus.update.service_identity import (RERANK, require_rerank_profile,
+            service_code_identity, service_dependencies_identity)
         if not cfg.auth_required or not cfg.token or not cfg.qualified_identity:
             raise ValueError("qualified rerank identity requires explicit authenticated profile")
         captures = getattr(res, "load_files", None)
@@ -28,12 +29,13 @@ class RerankServiceLease:
             raise ValueError("gateway load-time resource identity unavailable")
         if res.load_watch is None:
             raise ValueError("gateway load-time mutation watch unavailable")
+        require_rerank_profile(res)
         obj = cls()
         obj.cfg, obj.res, obj.captures = cfg, res, captures
         obj.objects = (res.text, res.visual, res.v35_tokens, res.m0_tokens, res.head)
         obj.clients = (res.text.client(), res.visual.client())
         obj.process, obj.config = own_process(), config_identity(cfg)
-        obj.code, obj.dependencies = serving_code_identity(), serving_dependencies_identity()
+        obj.code, obj.dependencies = service_code_identity(RERANK), service_dependencies_identity(RERANK)
         obj._local_fence()
         hashes = {p: sha256_of(Path(p)) for p in captures}
         obj.resources = {"text_tokenizer": hashes[str(Path(cfg.v35_tokenizer).absolute())],
@@ -47,13 +49,15 @@ class RerankServiceLease:
         return obj
 
     def _local_fence(self):
-        from vkm_corpus.api.production import serving_code_identity, serving_dependencies_identity
+        from vkm_corpus.update.service_identity import (RERANK, require_rerank_profile,
+            service_code_identity, service_dependencies_identity)
+        require_rerank_profile(self.res)
         self.res.load_watch.check()
         objects = (self.res.text, self.res.visual, self.res.v35_tokens, self.res.m0_tokens, self.res.head)
         if (any(a is not b for a, b in zip(objects, self.objects))
                 or any(file_signature(p) != sig for p, sig in self.captures.items())
                 or own_process() != self.process or config_identity(self.cfg) != self.config
-                or serving_code_identity() != self.code or serving_dependencies_identity() != self.dependencies
+                or service_code_identity(RERANK) != self.code or service_dependencies_identity(RERANK) != self.dependencies
                 or self.res.text.client() is not self.clients[0] or self.res.visual.client() is not self.clients[1]):
             raise ValueError("qualified rerank gateway instance/resources/configuration changed")
         import httpx
