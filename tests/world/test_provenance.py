@@ -60,6 +60,7 @@ def test_lab_to_massif_requires_transfer():
     moved = Quantity(name="E", unit="GPa", low=10, high=20, provenance=Provenance(
         status=S.FACT, sources=SRC, scale=Scale.LAB, scope=Scope.VKM_REGIONAL,
         transfer=Transfer(from_scale=Scale.LAB, to_scale=Scale.MASSIF, method="ENGINEERING_ASSUMPTION k=1",
+                          from_scope=Scope.VKM_REGIONAL, to_scope=Scope.VKM_REGIONAL,
                           status=S.ENGINEERING_ASSUMPTION, rationale="no scale-effect data for this unit")))
     assert check_scale_use(moved, Scale.MASSIF) == []
 
@@ -69,7 +70,10 @@ def test_offsite_value_flagged():
         status=S.FACT, sources=(SourceRef(source_id="VKM-SRC-029", pdf_page=128),), scope=Scope.BKPRU2))
     assert check_site_use(q)
     a = Quantity(name="lambda", unit="1", value=0.6, provenance=Provenance(
-        status=S.ANALOGUE, sources=(SourceRef(source_id="VKM-SRC-029", pdf_page=128),), scope=Scope.BKPRU2))
+        status=S.ANALOGUE, sources=(SourceRef(source_id="VKM-SRC-029", pdf_page=128),), scope=Scope.BKPRU2,
+        scale=Scale.MASSIF, transfer=Transfer(from_scale=Scale.MASSIF, to_scale=Scale.MASSIF,
+            from_scope=Scope.BKPRU2, to_scope=Scope.SKRU1, method="explicit synthetic analogue transfer",
+            status=S.ANALOGUE, rationale="fixture records applicability without promoting the analogue to FACT")))
     assert check_site_use(a) == []
 
 
@@ -99,6 +103,7 @@ def test_pillar_zone_is_not_field_wide_skru1():
     assert check_site_use(q, Scope.SKRU1)
     assert check_site_use(q, Scope.SKRU1, local_to_pillar=True) == []
     moved = _q(Scope.SKRU1_SKRU2_PILLAR, transfer=Transfer(from_scope=Scope.SKRU1_SKRU2_PILLAR, to_scope=Scope.SKRU1,
+                                                          from_scale=Scale.LAB, to_scale=Scale.LAB,
                                                           method="pillar zone → field, stated assumption",
                                                           status=S.ENGINEERING_ASSUMPTION, rationale="test"))
     assert check_site_use(moved, Scope.SKRU1) == []
@@ -110,7 +115,10 @@ def test_pillar_zone_is_not_field_wide_skru1():
 def test_unattributed_pooled_legacy_and_general_values_need_explicit_status(scope):
     """TRANSFER-023/024: unattributed, pooled, legacy joint and literature-range FACTs are not SKRU-1 values."""
     assert check_site_use(_q(scope), Scope.SKRU1)
-    assert check_site_use(_q(scope, status=S.MODEL_CHOICE), Scope.SKRU1) == []
+    # A written status alone used to pass; actual target-site use now records all four transfer axes.
+    assert check_site_use(_q(scope, status=S.MODEL_CHOICE, transfer=Transfer(from_scale=Scale.LAB, to_scale=Scale.LAB,
+        from_scope=scope, to_scope=Scope.SKRU1, method="explicit synthetic applicability choice",
+        status=S.MODEL_CHOICE, rationale="fixture scope transfer, not a site FACT")), Scope.SKRU1) == []
 
 
 def test_analogue_allowed_for_pooled_but_not_for_pillar_scope():
@@ -134,3 +142,16 @@ def test_material_parameter_requires_a_scale():
                           quantity=_q(Scope.SKRU1, scale=Scale.NOT_APPLICABLE))
     MaterialParameter(id="MP-2", variable="ucs", material="сильвинит", provenance=Provenance(status=S.FACT, sources=SRC),
                       quantity=_q(Scope.SKRU1, scale=Scale.LAB))
+
+
+def test_use_guard_rejects_mismatched_transfer_source_axes():
+    q = _q(Scope.VKM_REGIONAL, transfer=Transfer(from_scale=Scale.FIELD, to_scale=Scale.MASSIF,
+        from_scope=Scope.SKRU2, to_scope=Scope.SKRU1, method="synthetic transfer",
+        status=S.ENGINEERING_ASSUMPTION, rationale="synthetic fixture"))
+    assert check_scale_use(q, Scale.MASSIF)
+    assert check_site_use(q, Scope.SKRU1)
+
+
+def test_analogue_requires_complete_transfer_for_target_site_use():
+    q = _q(Scope.BKPRU2, status=S.ANALOGUE, scale=Scale.MASSIF)
+    assert check_site_use(q, Scope.SKRU1)

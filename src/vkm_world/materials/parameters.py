@@ -6,7 +6,7 @@ from enum import Enum
 from pydantic import Field, model_validator
 
 from ..core.base import WorldObject
-from ..core.provenance import Quantity, Scale, check_scale_use, check_site_use, Scope
+from ..core.provenance import Quantity, Scale, check_scale_use, check_site_use, Scope, transfer_use_errors
 from ..core.units import check_unit, is_hard_error
 
 
@@ -50,4 +50,6 @@ class MaterialParameter(WorldObject):
         return self
 
     def use_errors(self, as_scale: Scale = Scale.MASSIF, for_scope: Scope = Scope.SKRU1) -> list[str]:
+        if self.quantity.provenance.transfer is not None:
+            return transfer_use_errors(self.quantity.provenance, as_scale, for_scope)
         return check_scale_use(self.quantity, as_scale) + check_site_use(self.quantity, for_scope)
