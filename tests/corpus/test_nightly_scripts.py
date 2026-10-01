@@ -6,6 +6,7 @@ real host, a container or a service."""
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import importlib.util
 import json
 import os
@@ -50,7 +51,6 @@ def make_core(tmp: Path) -> tuple[Path, Path]:
         ".vkm_root.json": '{"root_kind": "CANONICAL"}',
         "canonical/CURRENT": "snap-20260929T193550Z-738eebee\n",
         "canonical/pages/source_id=VKM-SRC-001/run=RUN-1/part-00000.parquet": b"PAR1" + os.urandom(2048),
-        "canonical/_commits/run=RUN-1/VKM-SRC-001__CMT-1.json": "{}",
         "artifacts/png/ab/cd/abcd.png": os.urandom(4096),
         "duckdb/vkm_corpus.duckdb": os.urandom(1024),
         "derived/navigation/CURRENT": "snap-20260929T193550Z-738eebee\n",
@@ -61,6 +61,25 @@ def make_core(tmp: Path) -> tuple[Path, Path]:
         "tmp/x": "transient",
     }.items():
         _write(data, rel, blob)
+    # This fixture qualifies byte transport, not Parquet extraction/admission.
+    # Even a historical NOT_AVAILABLE root needs an actual CURRENT -> snapshot
+    # -> self-hashed source-head chain; dangling CURRENT is not restorable.
+    from vkm_corpus import ids
+    page_rel = "pages/source_id=VKM-SRC-001/run=RUN-1/part-00000.parquet"
+    page = data / "canonical" / page_rel
+    marker = {"commit_format": "1", "key": "VKM-SRC-001", "source_id": "VKM-SRC-001",
+              "source_sha256": hashlib.sha256(b"synthetic transport source").hexdigest(),
+              "processing_run_id": "RUN-1", "parent_commit_id": None,
+              "datasets": {"pages": {"path": page_rel, "bytes": page.stat().st_size,
+                                     "sha256": hashlib.sha256(page.read_bytes()).hexdigest()}}}
+    marker["commit_id"] = ids.commit_id(marker)
+    marker_rel = f"_commits/run=RUN-1/VKM-SRC-001__{marker['commit_id']}.json"
+    _write(data, "canonical/" + marker_rel, json.dumps(marker, sort_keys=True))
+    _write(data, "canonical/_snapshots/snap-20260929T193550Z-738eebee.json", json.dumps({
+        "snapshot_id": "snap-20260929T193550Z-738eebee", "inputs": {}, "registry_head": None,
+        "source_heads": {"VKM-SRC-001": marker["commit_id"]},
+        "head_commits": {"VKM-SRC-001": {"commit_id": marker["commit_id"], "marker_path": marker_rel}},
+        "accounting": {"status": "NOT_AVAILABLE"}}))
     compose = tmp / "core" / "compose"
     compose.mkdir(parents=True)
     (compose / ".env").write_text(f"VKM_DATA_ROOT_HOST={data}\n", encoding="utf-8")
@@ -87,7 +106,10 @@ def test_backup_chain_prepare_copy_verify_push_restore(tmp_path):
     r = prepare(compose)
     assert r.returncode == 0, r.stdout + r.stderr
     latest = json.loads((data / "receipts/backup/source/LATEST.json").read_text(encoding="utf-8"))
-    assert latest["files"] == 10 and latest["canonical_current"] == "snap-20260929T193550Z-738eebee"
+    assert latest["files"] == 11 and latest["canonical_current"] == "snap-20260929T193550Z-738eebee"
+    manifest_tool = _load("nightly_manifest_contract", EDGE / "vkm_manifest.py")
+    header, _ = manifest_tool.read_manifest(data / latest["manifest"])
+    assert header["accounting"]["status"] == "NOT_AVAILABLE"  # legacy backup is never extraction-qualified
     assert (data / "receipts/backup/edge").is_dir()
     env = backup_env(tmp_path, data)
     r = _run(["bash", str(EDGE / "vkm_backup.sh"), "--dry-run"], env)
@@ -97,7 +119,7 @@ def test_backup_chain_prepare_copy_verify_push_restore(tmp_path):
     r = _run(["bash", str(EDGE / "vkm_backup.sh")], env)
     assert r.returncode == 0, r.stdout + r.stderr
     status = json.loads((tmp_path / "edge/backup/status/latest.json").read_text(encoding="utf-8"))
-    assert status["status"] == "DONE" and status["verdict"] == "PASS" and status["compare"]["equal"] == 10
+    assert status["status"] == "DONE" and status["verdict"] == "PASS" and status["compare"]["equal"] == 11
     first = status["snapshot"]
     assert os.readlink(snaps / "latest") == first
     assert not (snaps / first / "tmp").exists() and not (snaps / first / "derived/embeddings/multivector/m/r/s/packs/P0").exists()
@@ -140,6 +162,24 @@ def test_backup_fails_without_a_fresh_manifest_and_keeps_nothing(tmp_path):
     assert r.returncode == 1
     status = json.loads((tmp_path / "edge/backup/status/latest.json").read_text(encoding="utf-8"))
     assert status["status"] == "FAILED" and status["failed_step"] == "manifest" and "LATEST.json" in status["note"]
+
+
+@pytest.mark.parametrize("missing", ["snapshot", "source_head"])
+def test_prepare_does_not_promote_dangling_legacy_current(tmp_path, missing):
+    data, compose = make_core(tmp_path)
+    initial = prepare(compose)
+    assert initial.returncode == 0, initial.stdout + initial.stderr
+    pointer = data / "receipts/backup/source/LATEST.json"
+    previous = pointer.read_bytes()
+    victim = (data / "canonical/_snapshots/snap-20260929T193550Z-738eebee.json" if missing == "snapshot"
+              else next((data / "canonical/_commits").glob("run=*/*.json")))
+    victim.unlink()
+    result = prepare(compose)
+    assert result.returncode == 1 and "manifest build failed (exit 2)" in result.stdout
+    assert pointer.read_bytes() == previous
+    reports = [json.loads(path.read_text(encoding="utf-8"))
+               for path in (data / "receipts/backup/source").glob("*.build.json")]
+    assert {"status": "FAIL", "accounting": {"status": "FAIL", "reason": "ACCOUNTING_CLOSURE_NOT_RESTORABLE"}} in reports
 
 
 @pytest.mark.parametrize("rel,expected", [
