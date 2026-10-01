@@ -38,6 +38,13 @@ def _common(p: argparse.ArgumentParser) -> None:
     p.add_argument("--no-ocr", action="store_true", help="skip the OCR phase (pages stay OCR_REQUIRED)")
     p.add_argument("--no-scenario-b", action="store_true")
     p.add_argument("--scan-dpi-max", type=int, default=None, help="upper dpi of scan crops for OCR")
+    p.add_argument("--profile", choices=("exploratory", "production"), default="exploratory")
+    p.add_argument("--expected-commit", default=None, help="exact full production checkout commit")
+    p.add_argument("--dependency-lock", action="append", default=[], help="additional checkout-relative exact lock")
+    p.add_argument("--memory-budget-gb", type=float, default=None, help="aggregate worker reservation, GiB")
+    p.add_argument("--memory-reserve-gb", type=float, default=None, help="coordinator reservation, GiB")
+    p.add_argument("--source-memory-gb", type=float, default=None, help="each worker RLIMIT_AS, GiB")
+    p.add_argument("--min-free-disk-gb", type=float, default=None, help="minimum staging free space, GiB")
 
 
 def register(subparsers: Any) -> None:
@@ -76,7 +83,11 @@ def _cfg(args: argparse.Namespace):
     from vkm_corpus.pipeline.config import load_pipeline_config
 
     cfg = load_pipeline_config(workers=args.workers, ocr_concurrency=args.concurrency,
-                               max_model_calls=args.max_model_calls)
+                               max_model_calls=args.max_model_calls,
+                               **{key: getattr(args, key, None) for key in (
+                                   "profile", "expected_commit", "memory_budget_gb", "memory_reserve_gb",
+                                   "source_memory_gb", "min_free_disk_gb")},
+                               dependency_locks=tuple(getattr(args, "dependency_lock", [])))
     if getattr(args, "no_scenario_b", False):
         cfg.scenario_b.enabled = False
     if getattr(args, "scan_dpi_max", None):
@@ -126,12 +137,19 @@ def cmd_plan(args: argparse.Namespace) -> int:
 def cmd_extract(args: argparse.Namespace) -> int:
     from vkm_corpus.parquet.blobs import put_blob
     from vkm_corpus.pipeline import commit as cm
-    from vkm_corpus.pipeline.context import open_cache, open_store, write_json_atomic
+    from vkm_corpus.pipeline.context import (open_cache, open_store, write_json_atomic, producer_identity,
+                                             resource_guard, ProducerGuardError)
     from vkm_corpus.pipeline.plan import build_plan
     from vkm_corpus.pipeline.runner import Orchestrator
     from vkm_corpus.pipeline.sources import load_sources, select
 
     cfg = _cfg(args)
+    try:
+        producer_identity(cfg)
+        resource_guard(cfg)
+    except ProducerGuardError as exc:
+        print(f"producer preflight refused: {exc}", file=sys.stderr)
+        return 4
     ids_ = _ids(args)
     sources = select(load_sources(cfg.resources_root), ids_ or None)
     if args.page and len(sources) != 1:
@@ -149,7 +167,7 @@ def cmd_extract(args: argparse.Namespace) -> int:
         cache = open_cache(cfg, orch.run_id, "plan")
         store = open_store(cfg, orch.run_id, "plan")
         plan = build_plan(cfg, sources, cache, store, force=args.force, failed_only=args.failed_only,
-                          recall=args.recall_model, page_range=args.page)
+                          recall=args.recall_model, page_range=args.page, no_ocr=args.no_ocr)
         store.close()
         cache.close()
         now = __import__("datetime").datetime.now(__import__("datetime").timezone.utc)
@@ -167,11 +185,13 @@ def cmd_extract(args: argparse.Namespace) -> int:
                                                   "commit")} for e in plan["sources"]]},
                              ensure_ascii=False, indent=1))
             return 0
-        if args.recall_model and args.confirm_plan != plan["plan_sha256"]:
-            print("refused: --recall-model needs --confirm-plan with the sha256 of this exact plan "
+        if (args.recall_model or cfg.profile == "production") and args.confirm_plan != plan["plan_sha256"]:
+            print("refused: production or --recall-model needs --confirm-plan with the sha256 of this exact plan "
                   f"(current plan_sha256={plan['plan_sha256']})", file=sys.stderr)
             status = "ABORTED"
             return 4
+        if cfg.profile == "production":
+            write_json_atomic(orch.dir / "approved_plan.json", plan)
         skipped = [s for s in sources if s.lifecycle != "ACTIVE"]
         orch.record_skips(skipped)
         todo_ids = {e["source_id"] for e in plan["sources"] if e["action"] == "PROCESS"}
@@ -206,7 +226,7 @@ def cmd_extract(args: argparse.Namespace) -> int:
             status = "PARTIAL"
             orch.crashed.append({"source_id": None, "phase": "ocr", "code": "OCR_QUALITY_STOP",
                                  "message": stops[0][:400]})
-        return 0
+        return int(cfg.profile == "production" and status != "SUCCEEDED")
     except Exception as exc:  # noqa: BLE001 - the run is closed as FAILED with its log
         status = "FAILED"
         log.exception("run failed")

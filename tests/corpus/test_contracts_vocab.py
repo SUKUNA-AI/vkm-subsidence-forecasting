@@ -137,4 +137,4 @@ def test_projection_error_literals_are_in_error_code():
     known = {c.value for c in v.ErrorCode}
     missing = {code: where for code, where in found.items() if code not in known}
     assert missing == {}, f"add these codes to vkm_corpus.contracts.vocab.ErrorCode: {missing}"
-    assert len(v.PROJECTION_ERROR_CODES) == 46 and "E_BAD_FILTER" in v.PROJECTION_ERROR_CODES
+    assert len(v.PROJECTION_ERROR_CODES) == 48 and "E_BAD_FILTER" in v.PROJECTION_ERROR_CODES

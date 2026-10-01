@@ -12,8 +12,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
-# v2: an HTML table cut at the token cap keeps its complete rows; trailing rows without text are dropped
-OCR_NORMALIZE_RULE = "ocr_normalize_v2"
+# v3: retain raw grid and explicit dispositions; native tables preserve empty rows.
+OCR_NORMALIZE_RULE = "ocr_normalize_v3"
 
 _MD_HEADING = re.compile(r"^\s{0,3}#{1,6}\s+", re.M)
 _MD_EMPH = re.compile(r"(\*\*|__)(.+?)\1", re.S)
@@ -41,8 +41,6 @@ _DELIMS = [
 ]
 _TAG_NUM = re.compile(r"\\tag\*?\{([^{}]+)\}")
 _TRAIL_NUM = re.compile(r"(?:\\q?quad|\\,|\\;|~|\s)*\(\s*(\d+(?:[.,]\d+)*[a-zа-я]?)\s*\)\s*$", re.I)
-_BEGIN = re.compile(r"\\begin\{([^}]+)\}")
-_END = re.compile(r"\\end\{([^}]+)\}")
 
 
 def strip_math_delimiters(content: str) -> str:
@@ -71,7 +69,14 @@ def latex_structure_ok(latex: str) -> bool:
         i += 1
     if depth != 0:
         return False
-    return _BEGIN.findall(latex) == _END.findall(latex)
+    environments: list[str] = []
+    for match in re.finditer(r"\\(begin|end)\{([^}]+)\}", latex):
+        kind, name = match.groups()
+        if kind == "begin":
+            environments.append(name)
+        elif not environments or environments.pop() != name:
+            return False
+    return not environments
 
 
 def normalize_formula(content: str | None) -> dict[str, Any]:
@@ -94,23 +99,35 @@ def normalize_formula(content: str | None) -> dict[str, Any]:
 
 # ---------------------------------------------------------------------------------------------------- table
 def _cell_text(el: Any) -> str:
-    return re.sub(r"\s+", " ", "".join(el.itertext())).strip()
+    # Nested tables are separate objects, not additional rows/text in the parent.
+    parts = []
+    for child in el.iter():
+        if child is not el and any(a.tag == "table" for a in child.iterancestors() if a is not el
+                                   and el in a.iterancestors()):
+            continue
+        if child.tag != "table" and child.text:
+            parts.append(child.text)
+        if child is not el and child.tail:
+            parts.append(child.tail)
+    return re.sub(r"\s+", " ", "".join(parts)).strip()
 
 
 def _table_markup(html: str) -> str | None:
     """The first ``<table>…</table>``; an output cut at the token cap keeps its complete rows (closed here)."""
-    m = re.search(r"<table\b.*?</table>", html, re.S | re.I)
-    if m:
-        return m.group(0)
     start = re.search(r"<table\b", html, re.I)
     if not start:
         return None
     body = html[start.start():]
+    depth = 0
+    for token in re.finditer(r"</?table\b[^>]*>", body, re.I):
+        depth += -1 if token.group(0).startswith("</") else 1
+        if depth == 0:
+            return body[:token.end()]
     last = body.lower().rfind("</tr>")
     return body[:last + 5] + "</table>" if last >= 0 else None
 
 
-def parse_html_table(html: str) -> dict[str, Any] | None:
+def parse_html_table(html: str, *, preserve_empty: bool = False) -> dict[str, Any] | None:
     from lxml import etree, html as lhtml
 
     markup = _table_markup(html)
@@ -125,7 +142,12 @@ def parse_html_table(html: str) -> dict[str, Any] | None:
         return None
     occupied: set[tuple[int, int]] = set()
     cells = []
-    rows = [tr for tr in table.iter("tr")]
+    rows = [tr for tr in table.iter("tr")
+            if next((a for a in tr.iterancestors() if a.tag == "table"), None) is table]
+    dispositions = []
+    for nested in table.iter("table"):
+        if nested is not table:
+            dispositions.append({"code": "NESTED_TABLE_SEPARATE", "locator": nested.getroottree().getpath(nested)})
     for r, tr in enumerate(rows):
         c = 0
         in_head = any(a.tag == "thead" for a in tr.iterancestors())
@@ -145,15 +167,28 @@ def parse_html_table(html: str) -> dict[str, Any] | None:
             cells.append({"row": r, "col": c, "row_span": rs, "col_span": cs,
                           "is_header": td.tag == "th" or in_head, "text": _cell_text(td)})
             c += cs
-    # trailing rows without any text are not content (GLM-OCR loops on empty <tr> after the last printed row)
+    raw_grid = {"cells": [dict(x) for x in cells], "n_rows": max(len(rows), max((r for r, _ in occupied), default=-1) + 1),
+                "n_cols": max((c for _, c in occupied), default=-1) + 1}
+    # OCR can loop on empty <tr>. Suppression is a recorded hypothesis, never raw data deletion.
     filled = {x["row"] + dr for x in cells if x["text"] for dr in range(x["row_span"])}
-    last = max(filled, default=-1)
+    last = raw_grid["n_rows"] - 1 if preserve_empty else max(filled, default=-1)
     dropped = sum(1 for x in cells if x["row"] > last)
+    for row in range(last + 1, raw_grid["n_rows"]):
+        dispositions.append({"code": "SUPPRESSED_TRAILING_EMPTY_ROW", "row": row,
+                             "reason": "OCR_EMPTY_LOOP_CANDIDATE", "requires_review": True})
+    for x in cells:
+        if x["row"] > last:
+            dispositions.append({"code": "SUPPRESSED_TRAILING_EMPTY", "row": x["row"], "col": x["col"],
+                                 "reason": "OCR_EMPTY_LOOP_CANDIDATE", "requires_review": True})
+        elif x["row"] + x["row_span"] - 1 > last:
+            dispositions.append({"code": "CLIPPED_EMPTY_SPAN", "row": x["row"], "col": x["col"],
+                                 "raw_row_span": x["row_span"], "normalized_row_span": last - x["row"] + 1})
     cells = [{**x, "row_span": min(x["row_span"], last - x["row"] + 1)} for x in cells if x["row"] <= last]
     occupied = {(r, c) for r, c in occupied if r <= last}
-    n_rows = max((r for r, _ in occupied), default=-1) + 1
+    n_rows = raw_grid["n_rows"] if preserve_empty else max((r for r, _ in occupied), default=-1) + 1
     n_cols = max((c for _, c in occupied), default=-1) + 1
-    return {"cells": cells, "n_rows": n_rows, "n_cols": n_cols, "format": "HTML", "trailing_empty_cells": dropped}
+    return {"cells": cells, "n_rows": n_rows, "n_cols": n_cols, "format": "HTML", "trailing_empty_cells": dropped,
+            "raw_grid": raw_grid, "dispositions": dispositions}
 
 
 def parse_markdown_table(content: str) -> dict[str, Any] | None:
@@ -178,17 +213,20 @@ def table_text(cells: list[dict[str, Any]]) -> str:
     return "\n".join(" | ".join(t for _, t in sorted(v)) for _, v in sorted(by_row.items()))
 
 
-def normalize_table(content: str | None) -> dict[str, Any]:
+def normalize_table(content: str | None, *, preserve_empty: bool = False) -> dict[str, Any]:
     if not content or not content.strip():
         return {"cells": [], "n_rows": None, "n_cols": None, "raw_format": "TEXT", "normalized_text": None,
                 "structure_ok": False}
-    parsed = parse_html_table(content) if "<table" in content.lower() else None
+    parsed = parse_html_table(content, preserve_empty=preserve_empty) if "<table" in content.lower() else None
     if parsed is None:
         parsed = parse_markdown_table(content)
     if parsed is None:
         return {"cells": [], "n_rows": None, "n_cols": None, "raw_format": "TEXT",
                 "normalized_text": text_from_markdown(content) or None, "structure_ok": False}
     return {"cells": parsed["cells"], "n_rows": parsed["n_rows"], "n_cols": parsed["n_cols"],
+            "raw_grid": parsed.get("raw_grid", {"cells": parsed["cells"], "n_rows": parsed["n_rows"],
+                                                "n_cols": parsed["n_cols"]}),
+            "dispositions": parsed.get("dispositions", []),
             "raw_format": parsed["format"], "normalized_text": table_text(parsed["cells"]) or None,
             "structure_ok": parsed["n_rows"] > 0 and parsed["n_cols"] > 0}
 
@@ -199,8 +237,11 @@ def normalize_table_bands(contents: list[str | None]) -> dict[str, Any]:
         return normalize_table(contents[0])
     cells: list[dict[str, Any]] = []
     offset, n_cols, ok, fmt = 0, 0, True, "HTML"
+    audits = []
     for i, c in enumerate(contents):
         t = normalize_table(c)
+        audits.append({"band": i, "normalized_row_offset": offset, "raw_grid": t.get("raw_grid"),
+                       "dispositions": t.get("dispositions", [])})
         ok = ok and t["structure_ok"]
         if t["raw_format"] not in ("HTML", "TEXT"):
             fmt = t["raw_format"]
@@ -209,4 +250,5 @@ def normalize_table_bands(contents: list[str | None]) -> dict[str, Any]:
         offset += t["n_rows"] or 0
         n_cols = max(n_cols, t["n_cols"] or 0)
     return {"cells": cells, "n_rows": offset or None, "n_cols": n_cols or None, "raw_format": fmt,
-            "normalized_text": table_text(cells) or None, "structure_ok": ok and bool(cells), "bands": len(contents)}
+            "normalized_text": table_text(cells) or None, "structure_ok": ok and bool(cells), "bands": len(contents),
+            "band_audits": audits}

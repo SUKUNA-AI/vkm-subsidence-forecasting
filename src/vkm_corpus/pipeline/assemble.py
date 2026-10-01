@@ -636,6 +636,14 @@ class Assembler:
             flags.append("SPANNING_CELLS")
         method = "OCR_GLM"
         raw_artifacts = list(common["raw_artifacts"])
+        audit = self.store.put_json({"schema": "vkm.table_structure_audit/1", "rule": onorm.OCR_NORMALIZE_RULE,
+                                    "status": "DERIVATION", "input_artifacts": raw_artifacts,
+                                    "raw_grid": norm.get("raw_grid"), "dispositions": norm.get("dispositions", []),
+                                    "band_audits": norm.get("band_audits", []),
+                                    "normalized_rows": norm["n_rows"], "normalized_cols": norm["n_cols"]},
+                                   "VALIDATION_REPORT", source_id=self.src.source_id,
+                                   page_id=f"{self.src.source_id}:p{page.page_index:04d}")
+        raw_artifacts.append(("STRUCTURAL_DIAGNOSTICS", audit.artifact_id))
         if self.fmt == "PDF" and page.route in ("NATIVE", "NATIVE_REPAIR") and spec.bbox_pt:
             native = self._native_table(page, spec.bbox_pt)
             if native is not None:
@@ -793,7 +801,7 @@ class Assembler:
 
         cfg = self.cfg
         recog = _recog_model(cfg)
-        epub_hash = _cfg_hash({"epub": "blocks_v1"})
+        epub_hash = _cfg_hash({"epub": "blocks_v2_mathml"})
         source_page_list = (self.prep.get("document") or {}).get("page_list_source")
         for row in self.prep["pages"]:
             idx = row["page_index"]
@@ -830,7 +838,7 @@ class Assembler:
                                   "reading_order_method": "DOCUMENT_ORDER"})
                 self.result.blocks.append(blk)
             for t in raw.get("tables", []):
-                norm = onorm.normalize_table(t["html"])
+                norm = onorm.normalize_table(t["html"], preserve_empty=True)
                 tb = TableX(page_index=idx, bbox=None, origin="NATIVE", region_origin="EPUB_ELEMENT",
                             extractor_id="epub-xhtml", extractor_version=EXTRACTOR_VERSIONS["epub-xhtml"],
                             generation=str(GENERATIONS["epub-xhtml"]), raw_config_hash=epub_hash,
@@ -841,6 +849,18 @@ class Assembler:
                             normalized_text=norm["normalized_text"], anchor_ordinal=t["order"])
                 tb.extra["element_path"] = t["xpath"]
                 self.result.tables.append(tb)
+            for m in raw.get("maths", []):
+                formula = FormulaX(page_index=idx, bbox=None, origin="NATIVE", region_origin="EPUB_ELEMENT",
+                    extractor_id="epub-xhtml", extractor_version=EXTRACTOR_VERSIONS["epub-xhtml"],
+                    generation=str(GENERATIONS["epub-xhtml"]), raw_config_hash=epub_hash,
+                    raw_artifact_id=page.native_raw_artifact_id,
+                    raw_artifacts=[("SOURCE_MARKUP", page.native_raw_artifact_id)], raw_locator=m["xpath"],
+                    formula_kind="DISPLAY" if m.get("display") else "INLINE", raw_format="MATHML",
+                    raw_output=m["markup"], native_glyph_text=m.get("linear_text"),
+                    normalized_latex=None, latex_parse_ok=None, recognition_method="NATIVE_MATHML",
+                    anchor_ordinal=m["order"])
+                formula.extra["element_path"] = m["xpath"]
+                self.result.formulas.append(formula)
             specs = plan_epub_tasks(self.src.source_id, raw)
             crops = {c.spec.epub_image_order: c for c in self._crops(specs)}
             for im in raw.get("images", []):
@@ -900,7 +920,8 @@ class Assembler:
                     fig.extra.update({"element_path": im["xpath"], "alt": im.get("alt")})
                     self.result.figures.append(fig)
             n_formula = sum(1 for im in raw.get("images", []) if im.get("is_formula_candidate"))
-            n_done = sum(1 for f in self.result.formulas if f.page_index == idx and f.raw_output)
+            n_done = sum(1 for f in self.result.formulas if f.page_index == idx and f.raw_output
+                         and f.recognition_method == "EPUB_IMAGE_OCR")
             page.native_char_count = sum(len(b["text"]) for b in raw.get("blocks", []))
             page.native_text_status = "PRESENT_OK" if page.native_char_count else "ABSENT"
             page.page_status = "NATIVE_OK"
@@ -916,7 +937,7 @@ class Assembler:
         from vkm_corpus.extract.docx import align_to_pages
 
         raw = self.store.read_json(self.prep["document_raw_artifact_id"])
-        docx_hash = _cfg_hash({"docx": "blocks_v1"})
+        docx_hash = _cfg_hash({"docx": "blocks_v2_parts"})
         page_texts = []
         for row in self.prep["pages"]:
             page = self._page_base(row)
@@ -936,8 +957,10 @@ class Assembler:
             page_texts.append(text)
         paras = raw.get("paragraphs", [])
         tables = raw.get("tables", [])
-        texts = [p["text"] for p in paras]
-        aligned = align_to_pages(texts, page_texts)
+        # Auxiliary parts and text boxes do not advance the body reading cursor.
+        body = [p for p in paras if p.get("container", "BODY") == "BODY"]
+        body_alignment = dict(zip((p["path"] for p in body), align_to_pages([p["text"] for p in body], page_texts)))
+        aligned = [body_alignment.get(p["path"], (None, 0.0)) for p in paras]
         common = dict(bbox=None, origin="NATIVE", region_origin="DOCX_ELEMENT", extractor_id="docx-xml",
                       extractor_version=EXTRACTOR_VERSIONS["docx-xml"], generation=str(GENERATIONS["docx-xml"]),
                       raw_config_hash=docx_hash, raw_artifact_id=self.prep["document_raw_artifact_id"],

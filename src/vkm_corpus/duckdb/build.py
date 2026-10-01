@@ -95,18 +95,24 @@ def open_snapshot(layout: CanonLayout, manifest: dict[str, Any] | None = None, s
     return con
 
 
-def table_fingerprints(con) -> dict[str, str]:
+def table_fingerprints(con, schema_versions: dict[str, str] | None = None) -> dict[str, str]:
     """Fingerprint (all columns) of every materialised canonical table, streamed in record batches."""
     out = {}
     for name in STORED_DATASETS:
         reader = con.execute(f'SELECT * FROM canonical."{name}"').to_arrow_reader(65536)
-        out[name] = ca.fingerprint_of(name, ca.digest_batches(name, reader))
+        out[name] = ca.fingerprint_of(name, ca.digest_batches(name, reader),
+                                      schema_version=(schema_versions or {}).get(name))
     return out
 
 
 def verify_fingerprints(con, manifest: dict[str, Any]) -> dict[str, tuple[str, str]]:
     """Datasets whose DuckDB table differs from the manifest: name → (expected, actual)."""
-    actual = table_fingerprints(con)
+    for name, definition in manifest.get("datasets", {}).items():
+        if definition.get("schema_version") and not ca.readable_schema(
+                name, definition["schema_version"], definition.get("schema_fingerprint")):
+            raise FingerprintMismatch(f"unrecognized manifest schema for {name}")
+    actual = table_fingerprints(con, {n: d["schema_version"] for n, d in manifest.get("datasets", {}).items()
+                                     if d.get("schema_version")})
     bad = {}
     for name in STORED_DATASETS:
         expected = manifest.get("datasets", {}).get(name, {}).get("table_fingerprint")

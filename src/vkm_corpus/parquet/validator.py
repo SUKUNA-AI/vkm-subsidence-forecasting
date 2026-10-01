@@ -139,7 +139,9 @@ class Validator:
             if spec is None or not spec.stored:
                 bad_version.append([name, "unknown dataset"])
                 continue
-            fp = ca.schema_fingerprint(name)
+            if (d.get("schema_version") or d.get("schema_fingerprint")) and not ca.readable_schema(
+                    name, d.get("schema_version"), d.get("schema_fingerprint")):
+                bad_version.append([name, "unrecognized manifest schema"])
             for f in d.get("files", []):
                 p = self.layout.path(f["path"])
                 if not p.is_file():
@@ -155,11 +157,18 @@ class Validator:
                     continue
                 if kv.get("vkm.dataset") != name:
                     bad_kv.append([f["path"], kv.get("vkm.dataset")])
-                if kv.get("vkm.schema_version") != spec.version or kv.get("vkm.schema_fingerprint") != fp:
+                if not ca.readable_schema(name, kv.get("vkm.schema_version"), kv.get("vkm.schema_fingerprint")):
                     bad_version.append([f["path"], kv.get("vkm.schema_version")])
                 import pyarrow.parquet as pq
 
-                names = set(pq.read_schema(p).names)
+                physical_schema = pq.read_schema(p)
+                names = set(physical_schema.names)
+                if kv.get("vkm.schema_version") != spec.version and ca.readable_schema(
+                        name, kv.get("vkm.schema_version"), kv.get("vkm.schema_fingerprint")):
+                    expected = ca.arrow_schema(name)
+                    expected = expected.remove(expected.get_field_index("raw_locator"))
+                    if not physical_schema.equals(expected, check_metadata=False):
+                        bad_version.append([f["path"], "historical metadata does not match physical schema"])
                 if names & FORBIDDEN_COLUMN_NAMES:
                     forbidden_cols.append([f["path"], sorted(names & FORBIDDEN_COLUMN_NAMES)])
                 if names - set(spec.fields):
@@ -193,7 +202,10 @@ class Validator:
             acc = ca.EMPTY_DIGEST
             for f in d.get("files", []):
                 acc = acc + ca.RowDigest.parse(f["rows"], f["digest"])
-            if d.get("table_fingerprint") and ca.fingerprint_of(name, acc) != d["table_fingerprint"]:
+            try:
+                if d.get("table_fingerprint") and ca.fingerprint_of(name, acc, schema_version=d.get("schema_version")) != d["table_fingerprint"]:
+                    fp_bad.append(name)
+            except ValueError:
                 fp_bad.append(name)
         self.add("A05", "files", "dataset fingerprints equal the combination of file digests", fp_bad)
 
@@ -253,7 +265,8 @@ class Validator:
                     "bbox_x0", "bbox_y0", "bbox_x1", "bbox_y1", "docx_paragraph_path", "extractor_id",
                     "extraction_generation", "raw_config_hash", "models", "quality_flags"]
             extra = ", reading_order, text" if name == "blocks" else ", NULL AS reading_order, NULL AS text"
-            rows = [dict(zip(cols + ["reading_order", "text"], r))
+            extra += ", raw_locator" if name in ("figures", "tables", "formulas") else ", NULL AS raw_locator"
+            rows = [dict(zip(cols + ["reading_order", "text", "raw_locator"], r))
                     for r in self.con.execute(f'SELECT {", ".join(cols)}{extra} FROM canonical."{name}"').fetchall()]
             # identical anchors get dup:0…n-1 from the allocator (no upper bound): allow as many as the rows sharing
             # the same (scope, kind, origin, region, anchor, producer) — not a fixed 8
@@ -267,6 +280,8 @@ class Validator:
                     anchor = ids.bbox_anchor(row["bbox_x0"], row["bbox_y0"], row["bbox_x1"], row["bbox_y1"])
                 elif row["reading_order"] is not None:
                     scope, anchor = row["page_id"], ids.ordinal_anchor(row["reading_order"], row["text"] or "")
+                elif row["region_origin"] == "EPUB_ELEMENT" and row["raw_locator"]:
+                    scope, anchor = row["page_id"], ids.xml_anchor(row["raw_locator"])
                 else:
                     skipped += 1
                     continue

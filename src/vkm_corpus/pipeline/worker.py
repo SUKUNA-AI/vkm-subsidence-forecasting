@@ -13,7 +13,8 @@ import time
 import traceback
 from pathlib import Path
 
-from vkm_corpus.pipeline.context import config_from_json, open_cache, open_store, run_dir, write_json_atomic
+from vkm_corpus.pipeline.context import (config_from_json, open_cache, open_store, run_dir, write_json_atomic,
+                                         verify_approved_sources)
 from vkm_corpus.pipeline.sources import load_sources, select
 
 
@@ -37,6 +38,9 @@ def main(argv: list[str] | None = None) -> int:
     a = ap.parse_args(argv)
     cfg = config_from_json(json.loads(Path(a.config).read_text(encoding="utf-8")))
     srcs = select(load_sources(cfg.resources_root), a.sources.split(","))
+    if cfg.profile == "production":
+        approved = Path(cfg.data_root) / "tmp" / f"run={a.run}" / "approved_plan.json"
+        verify_approved_sources(cfg, srcs, json.loads(approved.read_text(encoding="utf-8")))
     out_dir = run_dir(cfg, a.run) / a.phase
     name = f"{a.phase}-{srcs[0].source_id if len(srcs) == 1 else 'multi'}-{int(time.time())}"
     store = open_store(cfg, a.run, name)

@@ -196,7 +196,8 @@
     "EMBEDDED_TEXT_LAYER",
     "LAYOUT_DETECTIONS",
     "OCR_RESPONSE",
-    "SOURCE_MARKUP"
+    "SOURCE_MARKUP",
+    "STRUCTURAL_DIAGNOSTICS"
    ],
    "title": "RawArtifactRole",
    "type": "string"

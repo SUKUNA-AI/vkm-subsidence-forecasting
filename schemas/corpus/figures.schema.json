@@ -203,7 +203,8 @@
     "EMBEDDED_TEXT_LAYER",
     "LAYOUT_DETECTIONS",
     "OCR_RESPONSE",
-    "SOURCE_MARKUP"
+    "SOURCE_MARKUP",
+    "STRUCTURAL_DIAGNOSTICS"
    ],
    "title": "RawArtifactRole",
    "type": "string"
@@ -693,6 +694,19 @@
    "description": "hash of the raw content; invariant for a given object_id across snapshots (B07)",
    "title": "Raw Content Sha256"
   },
+  "raw_locator": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "source-part-qualified XPath or pointer into the raw artifact",
+   "title": "Raw Locator"
+  },
   "region_origin": {
    "$ref": "#/$defs/RegionOrigin",
    "description": "what produced the region (bbox) of the object (H-03)"
@@ -777,6 +791,6 @@
  "x-vkm-primary-key": [
   "object_id"
  ],
- "x-vkm-schema-fingerprint": "898cc0fa9f8ed1aadc3a6f71f635b885cf06cf9f28d595e70e5fed2b19a5cc50",
- "x-vkm-schema-version": "0.1.0"
+ "x-vkm-schema-fingerprint": "a1e8f43c2a7d5a1e530a7b9caeb8c3f17de4e0c6c500c1410cec77fe921ceff5",
+ "x-vkm-schema-version": "0.1.1"
 }

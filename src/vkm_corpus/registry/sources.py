@@ -1,5 +1,5 @@
 """``sources`` rows from ``SOURCE_REGISTER.csv`` (CP-05, CP-06, CP-07): one row per register entry, raw fields
-verbatim, file presence and sha256 verified (in parallel, cached by (path, size, mtime) in the data root's cache)."""
+verbatim, file presence and sha256 freshly verified in parallel. Stat cache reuse is explicit opt-in only."""
 from __future__ import annotations
 
 import csv
@@ -10,7 +10,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import date, datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Iterable, Mapping
 
 from vkm_corpus import ids
@@ -95,18 +95,51 @@ class ShaCache:
             os.replace(tmp, self.path)
 
 
-def check_file(resources_root: Path, row: Mapping[str, str], cache: ShaCache) -> FileCheck:
-    path = resources_root / row["canonical_path"]
+def resource_path(resources_root: Path, relative: str) -> Path:
+    """Resolve a registry identity inside PRIVATE; never follow an escaping symlink or host path."""
+    pure = PurePosixPath(relative)
+    if (not relative or "\\" in relative or PureWindowsPath(relative).drive or pure.is_absolute()
+            or any(part in ("", ".", "..") for part in relative.split("/"))):
+        raise RegisterError("canonical_path must be a normalized resource-relative path")
+    root = Path(resources_root).resolve()
+    path = (root / relative).resolve()
+    if not path.is_relative_to(root):
+        raise RegisterError("canonical_path escapes resources_root")
+    return path
+
+
+def fresh_source_identity(resources_root: Path, relative: str, expected_sha: str,
+                          expected_size: int | None) -> dict[str, Any]:
+    path = resource_path(resources_root, relative)
+    before = path.stat()
+    if not path.is_file() or is_lfs_pointer(path):
+        raise RegisterError("source bytes are not a materialized file")
+    sha = sha256_of(path)
+    after = path.stat()
+    if (before.st_size, before.st_mtime_ns, before.st_ino, before.st_ctime_ns) != (
+            after.st_size, after.st_mtime_ns, after.st_ino, after.st_ctime_ns):
+        raise RegisterError("source changed while verifying its bytes")
+    if sha != expected_sha or expected_size is None or after.st_size != expected_size:
+        raise RegisterError("fresh source bytes differ from registered identity")
+    return {"canonical_path": relative, "sha256": sha, "size_bytes": after.st_size, "verification": "FRESH_SHA256"}
+
+
+def check_file(resources_root: Path, row: Mapping[str, str], cache: ShaCache, *, fresh: bool = True) -> FileCheck:
+    path = resource_path(resources_root, row["canonical_path"])
     if not path.is_file():
         return FileCheck(FileStatus.MISSING, None, None, FileFormat.UNKNOWN)
     if is_lfs_pointer(path):
         return FileCheck(FileStatus.LFS_POINTER_ONLY, None, path.stat().st_size, FileFormat.UNKNOWN)
     try:
         st = path.stat()
-        sha = cache.get(row["canonical_path"], st)
+        sha = None if fresh else cache.get(row["canonical_path"], st)
         if sha is None:
             sha = sha256_of(path)
             cache.put(row["canonical_path"], st, sha)
+        after = path.stat()
+        if (st.st_size, st.st_mtime_ns, st.st_ino, st.st_ctime_ns) != (
+                after.st_size, after.st_mtime_ns, after.st_ino, after.st_ctime_ns):
+            return FileCheck(FileStatus.UNREADABLE, None, None, FileFormat.UNKNOWN)
         fmt, flags = detect_format(path)
     except OSError:
         return FileCheck(FileStatus.UNREADABLE, None, None, FileFormat.UNKNOWN)
@@ -120,12 +153,12 @@ def check_file(resources_root: Path, row: Mapping[str, str], cache: ShaCache) ->
 
 
 def verify_files(resources_root: Path, rows: Iterable[Mapping[str, str]], *, cache_path: Path | None = None,
-                 workers: int = 8) -> dict[str, FileCheck]:
-    """File checks of every register row, hashing in parallel; the cache is saved afterwards."""
+                 workers: int = 8, fresh: bool = True) -> dict[str, FileCheck]:
+    """File checks of every register row, fresh hashing by default; the advisory cache is saved afterwards."""
     cache = ShaCache.open(cache_path)
     rows = list(rows)
     with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
-        results = list(pool.map(lambda r: check_file(resources_root, r, cache), rows))
+        results = list(pool.map(lambda r: check_file(resources_root, r, cache, fresh=fresh), rows))
     cache.save()
     return {r["resource_id"]: c for r, c in zip(rows, results)}
 

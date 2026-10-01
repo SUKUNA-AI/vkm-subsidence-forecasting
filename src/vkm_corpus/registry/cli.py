@@ -30,25 +30,33 @@ def cmd_import(args) -> int:
 
 
 def cmd_verify(args) -> int:
-    from vkm_corpus.registry.sources import REGISTER_REL, load_register, verify_files
+    from vkm_corpus.registry.sources import REGISTER_REL, load_register, resource_path, verify_files
+    from vkm_corpus.registry.rules import lifecycle_for
 
     settings = load_settings()
     resources = settings.require_resources_root()
-    rows, sha = load_register(resources / REGISTER_REL)
+    rows, sha = load_register(resource_path(resources, REGISTER_REL))
     cache = None
     if settings.data_root is not None:
         cache = settings.require_data_root() / "cache" / "source_sha256_cache.json"
-    checks = verify_files(resources, rows, cache_path=cache, workers=args.workers)
+    active = [r for r in rows if lifecycle_for(r["migration_status"], r["evidence_scope"])[0].value == "ACTIVE"]
+    skipped = [{"source_id": r["resource_id"], "status": "SKIPPED_BY_REGISTER",
+                "lifecycle": lifecycle_for(r["migration_status"], r["evidence_scope"])[0].value}
+               for r in rows if r not in active]
+    checks = verify_files(resources, active, cache_path=cache, workers=args.workers, fresh=True)
     counts: dict[str, int] = {}
     problems = []
-    for r in rows:
+    for r in active:
         c = checks[r["resource_id"]]
         counts[c.status.value] = counts.get(c.status.value, 0) + 1
         if c.status.value != "PRESENT_VERIFIED":
             problems.append({"source_id": r["resource_id"], "status": c.status.value,
                              "migration_status": r["migration_status"]})
-    _print({"register_sha256": sha, "rows": len(rows), "file_status": counts, "not_verified": problems})
-    return 0
+    _print({"register_sha256": sha, "rows": len(rows), "active": len(active), "file_status": counts,
+            "not_verified": problems, "skipped_by_register": skipped,
+            "status": "FAIL" if problems else "PASS_WITH_SKIPPED" if skipped else "PASS",
+            "verification": "FRESH_SHA256"})
+    return int(bool(problems))
 
 
 def cmd_propose_works(args) -> int:
@@ -80,4 +88,3 @@ def register(subparsers) -> None:
     s.add_argument("--coverage", default=None)
     s.set_defaults(func=cmd_propose_works)
     p.set_defaults(func=lambda args: (p.print_help(), 2)[1])
-

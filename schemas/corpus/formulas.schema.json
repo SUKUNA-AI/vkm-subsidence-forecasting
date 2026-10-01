@@ -184,7 +184,8 @@
     "EMBEDDED_TEXT_LAYER",
     "LAYOUT_DETECTIONS",
     "OCR_RESPONSE",
-    "SOURCE_MARKUP"
+    "SOURCE_MARKUP",
+    "STRUCTURAL_DIAGNOSTICS"
    ],
    "title": "RawArtifactRole",
    "type": "string"
@@ -585,6 +586,19 @@
   "raw_format": {
    "$ref": "#/$defs/FormulaRawFormat"
   },
+  "raw_locator": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "source-part-qualified XPath or pointer into the raw artifact",
+   "title": "Raw Locator"
+  },
   "raw_output": {
    "anyOf": [
     {
@@ -690,6 +704,6 @@
  "x-vkm-primary-key": [
   "object_id"
  ],
- "x-vkm-schema-fingerprint": "1f94c66a512a6cdd9a617b822754a01bf0e2cb327905067ad73ca160d39e2c0f",
- "x-vkm-schema-version": "0.1.0"
+ "x-vkm-schema-fingerprint": "344557cd60cdd43e7c1e3d8c1908717d7e8803f8fdc86d7c969cd7fd05b81f05",
+ "x-vkm-schema-version": "0.1.1"
 }
