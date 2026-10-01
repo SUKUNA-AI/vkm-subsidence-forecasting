@@ -1368,7 +1368,8 @@ def import_bundle(bundle_dir: str | Path, nav_dir: str | Path, *, canon_duckdb: 
     nm_path = n / "manifest.json"
     if not nm_path.is_file():
         raise ImportRefused("the NAV directory has no manifest.json")
-    nm = json.loads(nm_path.read_text(encoding="utf-8"))
+    nm_raw = nm_path.read_bytes()
+    nm = json.loads(nm_raw.decode("utf-8"))
     nsnap = (nm.get("snapshot") or {}).get("snapshot_id")
     if nm.get("format") != MANIFEST_FORMAT or nsnap != snap:
         raise ImportRefused(f"snapshot mismatch: bundle {snap}, NAV directory {nsnap}")
@@ -1378,6 +1379,27 @@ def import_bundle(bundle_dir: str | Path, nav_dir: str | Path, *, canon_duckdb: 
         rows = pq.ParquetFile(b / f"{ds}.parquet").metadata.num_rows
         if e.get("rows") is not None and int(e["rows"]) != rows:
             raise ImportRefused(f"dataset {ds}: {rows} rows, the manifest says {e['rows']}")
+    # A merge must preserve the imported part's origin qualification. Checked
+    # bytes do not make a partial/unverified source identity a verified snapshot.
+    from vkm_corpus.navigation.manifest import UNVERIFIED, VERIFIED, load_datasets, snapshot_identified
+
+    try:
+        _bundle_tables, bundle_ref, _bm = load_datasets(
+            b, snap, skip=tuple(k for k in listed if k not in entries),
+            manifest_sha256=(nm.get("snapshot") or {}).get("manifest_sha256"))
+        _target_tables, target_ref, _nm = load_datasets(n, snap, skip=tuple(entries))
+    except ValueError as exc:
+        raise ImportRefused(str(exc)) from exc
+    if (bundle_ref["manifest_sha256"] != hashlib.sha256(bm_raw).hexdigest()
+            or target_ref["manifest_sha256"] != hashlib.sha256(nm_raw).hexdigest()):
+        raise ImportRefused("bundle or target manifest changed between parsing and checked loading")
+    if (bundle_ref["snapshot"].get("manifest_sha256") and target_ref["snapshot"].get("manifest_sha256")
+            and bundle_ref["snapshot"]["manifest_sha256"] != target_ref["snapshot"]["manifest_sha256"]):
+        raise ImportRefused("source canonical manifest SHA-256 differs from the target")
+    bm, nm = _bm, _nm              # merge exactly the manifests whose bytes were checked
+    part = bm["parts"][PART]
+    entries = {ds: bm["datasets"][ds] for ds in entries}
+    verified_origin = bundle_ref["identity_status"] == target_ref["identity_status"] == VERIFIED
     canon_check = None
     if canon_duckdb:
         import duckdb
@@ -1387,6 +1409,14 @@ def import_bundle(bundle_dir: str | Path, nav_dir: str | Path, *, canon_duckdb: 
             csnap = _snapshot_id(con)
             if csnap != snap:
                 raise ImportRefused(f"snapshot mismatch: bundle {snap}, canon {csnap}")
+            from vkm_corpus.navigation.cli import snapshot_of
+
+            source_snapshot = snapshot_of(con)
+            digest = source_snapshot.get("manifest_sha256")
+            for ref in (bundle_ref, target_ref):
+                if digest and ref["snapshot"].get("manifest_sha256") and digest != ref["snapshot"]["manifest_sha256"]:
+                    raise ImportRefused("source canonical manifest SHA-256 differs from the canon")
+            verified_origin = verified_origin and snapshot_identified(source_snapshot)
             missing = 0
             for ds in [d for d in entries if d.endswith("_figures")]:
                 fig_path = (b / f"{ds}.parquet").as_posix().replace("'", "''")
@@ -1401,9 +1431,15 @@ def import_bundle(bundle_dir: str | Path, nav_dir: str | Path, *, canon_duckdb: 
     plan = {"part": PART, "snapshot_id": snap, "rule_version": RULE_VERSION,
             "datasets": {ds: {"rows": e.get("rows"), "sha256": e.get("sha256")} for ds, e in entries.items()},
             "bundle_manifest_sha256": hashlib.sha256(bm_raw).hexdigest(), "canon_check": canon_check,
-            "dry_run": dry_run}
+            "identity_status": VERIFIED if verified_origin else UNVERIFIED,
+            "navigation_only": True, "scientific_decision": "NOT_CHECKED", "dry_run": dry_run}
     if dry_run:
         return plan
+    try:
+        bundle_ref.verify_unchanged()
+        target_ref.verify_unchanged()
+    except ValueError as exc:
+        raise ImportRefused(str(exc)) from exc
     for ds in entries:
         src, dst = b / f"{ds}.parquet", n / f"{ds}.parquet"
         tmp = dst.with_suffix(".parquet.tmp")
@@ -1418,7 +1454,15 @@ def import_bundle(bundle_dir: str | Path, nav_dir: str | Path, *, canon_duckdb: 
         nm["datasets"][ds] = {**e, "path": f"{ds}.parquet"}
     nm["parts"][PART] = {**part, "options": _recorded_options(part.get("options")), "imported": {
         "at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "bundle_built_at": bm.get("built_at"),
-        "bundle_manifest_sha256": plan["bundle_manifest_sha256"]}}
+        "bundle_manifest_sha256": plan["bundle_manifest_sha256"],
+        "bundle_identity_status": bundle_ref["identity_status"]}}
+    nm.update({"identity_status": plan["identity_status"], "navigation_only": True,
+               "scientific_decision": "NOT_CHECKED", "capabilities": sorted(nm["datasets"])})
+    try:
+        bundle_ref.verify_unchanged()
+        target_ref.verify_unchanged()
+    except ValueError as exc:
+        raise ImportRefused(str(exc)) from exc
     tmp = nm_path.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(nm, ensure_ascii=False, indent=1, sort_keys=True, default=str), encoding="utf-8")
     os.replace(tmp, nm_path)

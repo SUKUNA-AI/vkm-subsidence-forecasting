@@ -14,6 +14,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 from vkm_corpus.api.app import ApiConfig, create_app  # noqa: E402
 from vkm_corpus.api.envelope import Envelope  # noqa: E402
 from vkm_corpus.api.fixtures import synthetic_service  # noqa: E402
+from nav_manifest_fixture import write_nav_manifest  # noqa: E402
 from vkm_corpus.navigation import store  # noqa: E402
 
 READ = "read-token-for-tests-0000000000000000"
@@ -67,6 +68,7 @@ def env(tmp_path):
     pq.write_table(pa.table({"section_id": [SEC], "source_id": ["VKM-SRC-001"], "level": [1],
                              "title": ["Глава 1. Ползучесть соли"], "title_path": ["Глава 1. Ползучесть соли"]}),
                    nav_dir / "sections.parquet")
+    write_nav_manifest(nav_dir, NAV_SNAP)
     store.pack(nav_dir)
     store.publish(root, NAV_SNAP)
     service.deps.nav = store.NavStore(root, canonical_db=canon.duckdb_path, functions=_functions())

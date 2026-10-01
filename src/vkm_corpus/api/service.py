@@ -872,17 +872,22 @@ class ApiService:
 
         canon_snapshot = self.canon.snapshot_id()
         nav_snapshot = state.get("snapshot_id")
+        # Operational graph state exposes a source ID, not a checked canonical digest.
+        # Different IDs contradict identity; equal IDs alone cannot establish it.
+        canonical_match = False if nav_snapshot and canon_snapshot and nav_snapshot != canon_snapshot else None
         env = Envelope(object_id=object_id, object_kind=kind, source_id=source_id, page_id=page_id,
                        review_status="AUTO_EXTRACTED_UNREVIEWED", layer="PROJECTION", payload_form="NORMALIZED",
                        origin="DERIVED",
                        projection=Projection(engine="neo4j", index_or_graph="NavigationLayer",
                                              build_id=state.get("run_id"), built_from_snapshot_id=nav_snapshot,
-                                             matches_canonical_snapshot=nav_snapshot == canon_snapshot))
+                                             matches_canonical_snapshot=canonical_match))
         warnings = []
         if nav_snapshot and nav_snapshot != canon_snapshot:
             warnings.append(ApiWarning(code="NAV_SNAPSHOT_BEHIND", message="the NAV graph was built from another "
                                        "canonical snapshot; ids are stable, counts may differ"))
-        body = jsonable({**record, "nav_snapshot_id": nav_snapshot, "note": NOTE})
+        body = jsonable({**record, "nav_snapshot_id": nav_snapshot, "canonical_identity_status": "NOT_CHECKED",
+                         "navigation_only": True,
+                         "scientific_decision": "NOT_CHECKED", "note": NOTE})
         return Result(item=Item(envelope=env, record=body), warnings=warnings)
 
     def _nav_resolve_term(self, graph: Any, text: str) -> tuple[list[dict[str, Any]], str]:
@@ -983,18 +988,33 @@ class ApiService:
             raise ApiFailure("NOT_FOUND", f"{object_id} is not in the navigation layer", stage="navigation",
                              tool="nav")
         record = data if isinstance(data, dict) else {"items": data}
-        record = jsonable({**record, "nav_snapshot_id": nav_snapshot, "note": self._NAV_NOTE})
-        canon_snapshot = self.canon.snapshot_id()
+        meta = self.deps.nav.meta() if hasattr(self.deps.nav, "meta") else {}
+        from vkm_corpus.navigation.manifest import canonical_identity_match
+
+        identity = meta.get("identity_status", "AD_HOC_UNVERIFIED")
+        verified = identity == "SNAPSHOT_VERIFIED"
+        canonical = self.canon.status()
+        matches = canonical_identity_match(meta, canonical)
+        record = jsonable({**record, "nav_snapshot_id": nav_snapshot, "identity_status": identity,
+                           "nav_source_snapshot": meta.get("snapshot"), "matches_canonical_snapshot": matches,
+                           "navigation_only": True, "scientific_decision": "NOT_CHECKED", "note": self._NAV_NOTE})
+        canon_snapshot = canonical["snapshot_id"]
         env = Envelope(object_id=object_id, object_kind=kind, source_id=source_id, page_id=page_id,
                        review_status="AUTO_EXTRACTED_UNREVIEWED", layer="PROJECTION", payload_form="NORMALIZED",
                        origin="DERIVED",
                        projection=Projection(engine="navigation", index_or_graph="nav.duckdb", build_id=nav_snapshot,
-                                             built_from_snapshot_id=nav_snapshot,
-                                             matches_canonical_snapshot=nav_snapshot == canon_snapshot))
+                                             built_from_snapshot_id=nav_snapshot if verified else None,
+                                             matches_canonical_snapshot=matches))
         warnings = []
+        if not verified:
+            warnings.append(ApiWarning(code="NAV_IDENTITY_UNVERIFIED", message="NAV origin is AD_HOC_UNVERIFIED; "
+                                       "navigation only, scientific admission NOT_CHECKED"))
         if nav_snapshot and nav_snapshot != canon_snapshot:
             warnings.append(ApiWarning(code="NAV_SNAPSHOT_BEHIND", message="the navigation layer was built from "
                                        "another canonical snapshot; ids are stable, counts may differ"))
+        elif verified and matches is False:
+            warnings.append(ApiWarning(code="NAV_CANONICAL_IDENTITY_CONFLICT", message="NAV source canonical "
+                                       "manifest digest differs from the serving canon; navigation only"))
         return Result(item=Item(envelope=env, record=record), warnings=warnings)
 
     def nav_outline(self, source_id: str) -> Result:
@@ -1335,8 +1355,9 @@ class ApiService:
             source_id=sources[0] if len(sources) == 1 else None,
             projection=Projection(engine=proj.get("engine", "navigation"), index_or_graph=proj.get("index_or_graph"),
                                   build_id=proj.get("build_id"), built_from_snapshot_id=built_from,
-                                  matches_canonical_snapshot=None if built_from is None else
-                                  built_from == canon_snapshot))
+                                  matches_canonical_snapshot=proj.get("matches_canonical_snapshot",
+                                                                     None if built_from is None else
+                                                                     built_from == canon_snapshot)))
         warnings = [ApiWarning(code=w["code"], message=w["message"], count=w.get("count")) for w in dossier.warnings]
         return Result(item=Item(envelope=envelope, record=jsonable(dossier.record)), warnings=warnings)
 

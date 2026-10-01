@@ -367,6 +367,13 @@ Claude открывает только нужное (`get_section`, `get_formula
   - `NO_LINKED_RECORD` — распознанный параметр без связанной записи (с подсказкой, в каком каталоге искать);
   - `CURATED_GAP` — кураторский `data_gaps` процесса, как он записан в каталоге;
   - нераспознанные параметры — одна строка «не сверено» (`NOT_CHECKED`), а не «нет данных».
+  С `topic_dossier_v3.1` связанные записи СКРУ-1 или общих целиков сохраняются в диагностике
+  `LINKED_RECORDS_REQUIRE_BINDING` вместе со status, scope, scale, источником, локатором и проверками качества.
+  Поле `process_has_skru1_parameter_records` означает наличие таких связей, включая целики; оно не устанавливает
+  применимость к полю. `field_coverage = NOT_ESTABLISHED`, `binding_status = NOT_CHECKED` и
+  `scientific_decision = NOT_CHECKED` остаются явными. Причинные связи сохраняют квалификации и provenance обоих
+  концов. Все эти проекции имеют `navigation_only = true`: CITES не означает согласие, NEAR_FORMULA не означает
+  PARAMETER_OF, связь с СКРУ-1 не означает полевой факт.
 - **Бюджет** — жёсткий предел `budget_chars` (по умолчанию 12 000) для markdown. Первыми уходят пункты с наименьшим
   приоритетом (связи, операторы, строки evidence, дальние разделы); в конце — что не вошло и как получить. JSON содержит
   только оставшиеся пункты и `budget.trimmed` (ID и способ получить).
@@ -375,6 +382,17 @@ Claude открывает только нужное (`get_section`, `get_formula
   оставшегося и предупреждает (`RETRIEVAL_UNAVAILABLE`, `RETRIEVAL_PARTIAL`, `CONCEPTS_UNAVAILABLE`,
   `CATALOGUES_UNAVAILABLE`, `TABLES_UNAVAILABLE`, `CITES_PENDING` …); без NAV, поиска и каталогов сразу —
   `DEPENDENCY_UNAVAILABLE`.
+
+**Идентичность NAV.** `identity_status = SNAPSHOT_VERIFIED` подтверждает объявленный снимок, хеши прочитанных
+Parquet, строки и колонки; перед публикацией проверяется также содержимое упакованных таблиц. Это проверка
+целостности навигационного артефакта, научное решение остаётся `NOT_CHECKED`. Manifest задаёт список читаемых
+датасетов; корректный поднабор частей допустим и перечислен в `capabilities`. Каталоги без полной идентичности
+и объединения с непроверенными bundle получают `AD_HOC_UNVERIFIED`. Обычный `publish` требует проверенную
+идентичность; `require_verified=False` у API публикации явно разрешает исследовательский артефакт и записывает
+для него `AD_HOC_UNVERIFIED`, включая ранее проверенный пакет. Явные списки датасетов частей и `capabilities`
+согласуются с manifest; чтение поднабора при пересборке исключает объявленные пересобираемые датасеты из этих
+проверок. Совпадение со снимком обслуживаемого canon отдельно проверяет ID и известный хеш канонического manifest:
+при противоречии API возвращает `matches_canonical_snapshot = false` и `NAV_CANONICAL_IDENTITY_CONFLICT`.
 
 **Пакет каталогов.** `vkm-corpus catalogues pack --repo <PUBLIC> --out <каталог>` собирает все CSV из `catalogues/` и
 `evidence/` в один `catalogues.duckdb` (таблица на файл, ячейки как в CSV, без вывода типов) и `manifest.json` (коммит
@@ -820,3 +838,11 @@ cuGraph, без GPU — numpy. Файлы CPU и GPU совпадают поба
 - **Запросы** (`figure_series_query.py`, в `store.QUERY_FUNCTIONS`): `find_figure_series` и `figure_series`; API
   `GET /v1/nav/figure_series`, `GET /v1/nav/figure_series/{ref}`; MCP `find_figure_series`, `get_figure_series`.
 - **Галерея** для просмотра — `python -m vkm_corpus.figures.gallery` → git-игнорируемый `work/figure_gallery/`.
+
+## Идентичность графа и научные ограничения
+
+Neo4j operational `READY` means that its loading checks completed. Its current
+API state exposes a source snapshot ID without a checked canonical digest.
+Equal or absent IDs therefore yield `matches_canonical_snapshot=null` and
+`canonical_identity_status=NOT_CHECKED`; different known IDs yield `false`.
+This is independent of navigation availability and scientific admission.

@@ -24,6 +24,7 @@ from vkm_corpus.api.envelope import Envelope  # noqa: E402
 from vkm_corpus.api.fixtures import synthetic_service  # noqa: E402
 from vkm_corpus.navigation import ids as nav_ids  # noqa: E402
 from vkm_corpus.navigation import object_duplicates as OD  # noqa: E402
+from nav_manifest_fixture import write_nav_manifest  # noqa: E402
 from vkm_corpus.navigation import store  # noqa: E402
 from vkm_corpus.navigation import tables as TB  # noqa: E402
 
@@ -109,6 +110,7 @@ def _publish(root, datasets: dict[str, pa.Table]) -> store.NavStore:
                              "title": ["Глава 1"], "title_path": ["Глава 1"]}), nav_dir / "sections.parquet")
     for name, table in datasets.items():
         pq.write_table(table, nav_dir / f"{name}.parquet")
+    write_nav_manifest(nav_dir, NAV_SNAP)
     store.pack(nav_dir)
     store.publish(root, NAV_SNAP)
     return nav_dir

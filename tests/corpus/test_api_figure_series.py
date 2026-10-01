@@ -21,6 +21,7 @@ from vkm_corpus.api.app import ApiConfig, create_app  # noqa: E402
 from vkm_corpus.api.envelope import Envelope  # noqa: E402
 from vkm_corpus.api.fixtures import synthetic_service  # noqa: E402
 from vkm_corpus.navigation import figure_series as FS  # noqa: E402
+from nav_manifest_fixture import write_nav_manifest  # noqa: E402
 from vkm_corpus.navigation import store  # noqa: E402
 
 READ = "read-token-for-figure-series-000000000"
@@ -76,6 +77,7 @@ def _nav(root, with_part: bool = True) -> None:
     if with_part:
         for name, table in FS.to_tables(_results()).items():
             pq.write_table(table, nav_dir / f"{name}.parquet")
+    write_nav_manifest(nav_dir, NAV_SNAP)
     store.pack(nav_dir)
     store.publish(root, NAV_SNAP)
 
