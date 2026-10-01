@@ -1,0 +1,199 @@
+{
+  "$comment": "Serialized DatasetVersion.as_dict() contract. Admission additionally requires DatasetVersion.from_dict(), path containment, fresh member hashes and explicit policy checks; JSON Schema validation alone never admits a dataset.",
+  "$defs": {
+    "DataAccessClass": {
+      "enum": [
+        "PUBLIC",
+        "PRIVATE_CLOUD_ALLOWED",
+        "PRIVATE_LOCAL_ONLY",
+        "RESTRICTED",
+        "SEALED"
+      ],
+      "title": "DataAccessClass",
+      "type": "string"
+    },
+    "ExperimentalRole": {
+      "enum": [
+        "INPUT",
+        "CALIBRATION",
+        "VALIDATION",
+        "TEST_SEALED",
+        "TARGET",
+        "UNKNOWN"
+      ],
+      "title": "ExperimentalRole",
+      "type": "string"
+    },
+    "FileMember": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "role": {
+          "default": "ORIGINAL",
+          "enum": [
+            "ORIGINAL",
+            "COMPANION",
+            "METADATA"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "role",
+        "sha256",
+        "size_bytes"
+      ],
+      "title": "FileMember",
+      "type": "object"
+    },
+    "Policy": {
+      "additionalProperties": false,
+      "properties": {
+        "access_class": {
+          "$ref": "#/$defs/DataAccessClass"
+        },
+        "decision_ref": {
+          "pattern": "\\S",
+          "title": "Decision Ref",
+          "type": "string"
+        },
+        "experimental_role": {
+          "$ref": "#/$defs/ExperimentalRole"
+        }
+      },
+      "required": [
+        "access_class",
+        "experimental_role",
+        "decision_ref"
+      ],
+      "title": "Policy",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "available_from": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Available From"
+    },
+    "data_valid_at": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Data Valid At"
+    },
+    "dataset_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$",
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "entrypoints": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Entrypoints",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/FileMember"
+      },
+      "minItems": 1,
+      "title": "Files",
+      "type": "array"
+    },
+    "licence": {
+      "pattern": "\\S",
+      "title": "Licence",
+      "type": "string"
+    },
+    "owner": {
+      "pattern": "\\S",
+      "title": "Owner",
+      "type": "string"
+    },
+    "parents": {
+      "default": [],
+      "items": {
+        "pattern": "^[a-f0-9]{64}$",
+        "type": "string"
+      },
+      "title": "Parents",
+      "type": "array"
+    },
+    "policy": {
+      "$ref": "#/$defs/Policy"
+    },
+    "received_at": {
+      "title": "Received At",
+      "type": "string"
+    },
+    "restrictions": {
+      "default": "UNKNOWN",
+      "title": "Restrictions",
+      "type": "string"
+    },
+    "schema": {
+      "const": "vkm-dataset-version-v1",
+      "type": "string"
+    },
+    "source_ids": {
+      "default": [],
+      "items": {
+        "pattern": "^VKM-SRC-\\d+$",
+        "type": "string"
+      },
+      "title": "Source Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "available_from",
+    "data_valid_at",
+    "dataset_id",
+    "entrypoints",
+    "files",
+    "licence",
+    "owner",
+    "parents",
+    "policy",
+    "received_at",
+    "restrictions",
+    "schema",
+    "source_ids"
+  ],
+  "title": "DatasetVersion",
+  "type": "object"
+}

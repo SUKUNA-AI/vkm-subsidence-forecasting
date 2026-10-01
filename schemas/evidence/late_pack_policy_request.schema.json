@@ -1,0 +1,134 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "canonical_manifest_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Canonical Manifest Sha256",
+      "type": "string"
+    },
+    "canonical_root": {
+      "title": "Canonical Root",
+      "type": "string"
+    },
+    "context": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "max_canonical_bytes": {
+      "exclusiveMinimum": 0,
+      "title": "Max Canonical Bytes",
+      "type": "integer"
+    },
+    "max_pack_bytes": {
+      "exclusiveMinimum": 0,
+      "title": "Max Pack Bytes",
+      "type": "integer"
+    },
+    "max_source_rows": {
+      "exclusiveMinimum": 0,
+      "maximum": 10000000,
+      "title": "Max Source Rows",
+      "type": "integer"
+    },
+    "max_spool_bytes": {
+      "exclusiveMinimum": 0,
+      "title": "Max Spool Bytes",
+      "type": "integer"
+    },
+    "max_units": {
+      "exclusiveMinimum": 0,
+      "maximum": 100000000,
+      "title": "Max Units",
+      "type": "integer"
+    },
+    "memory_gib": {
+      "exclusiveMinimum": 0,
+      "maximum": 128,
+      "title": "Memory Gib",
+      "type": "number"
+    },
+    "min_free_disk_gib": {
+      "exclusiveMinimum": 0,
+      "title": "Min Free Disk Gib",
+      "type": "number"
+    },
+    "pack_manifest": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "policy": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "selected_kinds": {
+      "default": [
+        "BLOCK_GROUP",
+        "FIGURE",
+        "TABLE",
+        "FORMULA",
+        "BIB_ENTRY"
+      ],
+      "items": {
+        "enum": [
+          "BLOCK_GROUP",
+          "FIGURE",
+          "TABLE",
+          "FORMULA",
+          "BIB_ENTRY"
+        ],
+        "type": "string"
+      },
+      "title": "Selected Kinds",
+      "type": "array"
+    },
+    "snapshot_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$",
+      "title": "Snapshot Id",
+      "type": "string"
+    },
+    "timeout_seconds": {
+      "exclusiveMinimum": 0,
+      "maximum": 86400,
+      "title": "Timeout Seconds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "canonical_root",
+    "snapshot_id",
+    "canonical_manifest_sha256",
+    "pack_manifest",
+    "policy",
+    "context",
+    "max_units",
+    "max_source_rows",
+    "max_canonical_bytes",
+    "max_pack_bytes",
+    "max_spool_bytes",
+    "memory_gib",
+    "min_free_disk_gib",
+    "timeout_seconds"
+  ],
+  "title": "PackPolicyRequest",
+  "type": "object"
+}

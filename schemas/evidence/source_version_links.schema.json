@@ -1,0 +1,41 @@
+{
+  "$defs": {
+    "SourceVersionLink": {
+      "additionalProperties": false,
+      "properties": {
+        "relation": {
+          "enum": [
+            "DESCRIBED_BY",
+            "DERIVED_FROM",
+            "DISTRIBUTED_WITH",
+            "PRIMARY_SOURCE"
+          ],
+          "title": "Relation",
+          "type": "string"
+        },
+        "source_id": {
+          "pattern": "^VKM-SRC-[0-9]{3}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_sha256",
+        "relation"
+      ],
+      "title": "SourceVersionLink",
+      "type": "object"
+    }
+  },
+  "items": {
+    "$ref": "#/$defs/SourceVersionLink"
+  },
+  "title": "SourceVersionLinks",
+  "type": "array"
+}

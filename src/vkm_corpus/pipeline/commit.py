@@ -110,15 +110,32 @@ def load_ledger(cfg: PipelineConfig) -> dict[str, dict[str, Any]]:
         prev = out.get(rec["source_id"])
         if prev is None or rec.get("recorded_at", "") >= prev.get("recorded_at", ""):
             out[rec["source_id"]] = rec
+    from vkm_corpus.coverage.accounting import verify_binding
+
+    for rec in out.values():
+        try:
+            rec["accounting_state"] = verify_binding(cfg.data_root, rec["accounting_receipt"],
+                commit_id=rec["commit_id"], source_id=rec["source_id"], require_head=True)
+        except (OSError, ValueError, KeyError):
+            rec["accounting_state"] = "MISSING_OR_INVALID"
+            rec["commit_signature"] = None
+            rec["canonical_document_processing_status"] = rec.get("document_processing_status")
+            rec["document_processing_status"] = "PARTIAL"
     return out
 
 
 def commit_signature(cfg: PipelineConfig, cache: Any, src: SourceInput, prep: dict[str, Any] | None,
-                     visual: dict[str, Any] | None) -> str | None:
+                     visual: dict[str, Any] | None, *, accounting_events: list[dict] | None = None) -> str | None:
     """Signature of everything a commit is built from (configs, prep/visual summaries, cached model results)."""
     if prep is None:
         return None
     from vkm_corpus.extract.bibliography import CONFIG_HASH as BIBLIOGRAPHY_RULES
+    from vkm_corpus.coverage.accounting import ocr_events
+    from vkm_evidence.contracts import record_hash
+
+    if accounting_events is None:
+        accounting_events = [ref for ref, _ in ocr_events(cfg.data_root, src.source_id, src.sha256,
+                                                        record_hash(cfg.stage_config("OCR")))]
 
     calls = sorted(r["raw_artifact_id"] for entries in cache.calls.values() for r in entries
                    if r.get("source_id") == src.source_id and r.get("status") == "OK" and r.get("kind") == "OCR")
@@ -128,7 +145,9 @@ def commit_signature(cfg: PipelineConfig, cache: Any, src: SourceInput, prep: di
                       "visual_complete": (visual or {}).get("complete"),
                       "configs": {k: cfg.stage_config(k) for k in ("REGIONS", "OCR", "NORMALIZE", "SCENARIO_B")},
                       "ocr_results": _cfg_hash({"ids": calls}), "decision": (decision or {}).get("decision"),
-                      "to_canon": "to_canon_v3", "bibliography": BIBLIOGRAPHY_RULES})
+                      "to_canon": "to_canon_v3", "bibliography": BIBLIOGRAPHY_RULES,
+                      "accounting": "pipeline-object-accounting/1",
+                      "accounting_events": sorted(ref["sha256"] for ref in accounting_events)})
 
 
 # ---------------------------------------------------------------------------------------------------- commit
@@ -159,6 +178,12 @@ def commit_source_once(cfg: PipelineConfig, run_id: str, src: SourceInput, *, st
     now = datetime.now(timezone.utc)
     mapper = to_canon.CanonMapper(result, run_id=run_id, config_hashes=hashes, created_at=now, host_role=host_role)
     rows = mapper.build()
+    from vkm_corpus.coverage.accounting import publish_report, bind_commit
+
+    accounting = asm.accounting.finish(result, rows, cache, code_revision=code_revision)
+    if rows.document_status == "COMPLETE" and accounting["report"]["status"] != "ACCOUNTED":
+        raise ValueError("ACCOUNTING_INCOMPLETE_FOR_COMPLETE_SOURCE")
+    accounting_report = publish_report(cfg.data_root, accounting)
     index = load_index(Path(cfg.data_root) / "cache" / "artifacts")
     # OCR inputs are KEEP_RAW: index them with the source even though only the raw records reference them
     extra_ids = set()
@@ -169,12 +194,16 @@ def commit_source_once(cfg: PipelineConfig, run_id: str, src: SourceInput, *, st
     for aid in missing:
         result.errors.append(ErrorRec(code="ARTIFACT_MISSING", stage="COMMIT",
                                       message=f"artifact {aid} not in the staging index"))
-    commit_sig = commit_signature(cfg, cache, src, prep, visual)
+    # Pin exactly the attempts included in this report; a concurrent later event
+    # must invalidate plan eligibility, not enter a signature without accounting.
+    commit_sig = commit_signature(cfg, cache, src, prep, visual, accounting_events=accounting["ocr_events"])
     lease = acquire_lease(layout, src.source_id, run_id, host_role)
     try:
         res = commit_source(layout, source_id=src.source_id, source_sha256=src.sha256, run_id=run_id,
                             tables=rows.tables, artifact_rows=art_rows, document_processing_status=rows.document_status,
                             page_count=rows.page_count, host_role=host_role, code_revision=code_revision)
+        accounting_receipt = bind_commit(cfg.data_root, accounting_report, commit_id=res.commit_id,
+                                        source_id=src.source_id, source_sha256=src.sha256)
     finally:
         lease.release()
     finished = datetime.now(timezone.utc)
@@ -199,6 +228,7 @@ def commit_source_once(cfg: PipelineConfig, run_id: str, src: SourceInput, *, st
     rec = {"source_id": src.source_id, "commit_signature": commit_sig, "commit_id": res.commit_id, "noop": res.noop,
            "run_id": run_id, "document_processing_status": rows.document_status, "page_count": rows.page_count,
            "page_status_counts": _count([p.page_status for p in result.pages]), "counts": rows.counts,
+           "accounting_receipt": accounting_receipt, "accounting_state": accounting["report"]["status"],
            "recorded_at": finished.isoformat()}
     w = JsonlAppender(ledger_dir(cfg) / f"run={run_id}" / f"{src.source_id}.jsonl")
     w.append(rec)

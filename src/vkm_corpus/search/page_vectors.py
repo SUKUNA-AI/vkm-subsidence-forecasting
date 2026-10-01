@@ -208,6 +208,8 @@ class PageVectorBuildOptions:
     verify_checksums: bool = True
     skip_if_current: bool = False
     command: str = "search build-page-vectors"
+    publish: bool = True
+    policy_sha256: str | None = None
 
 
 def _resolve(path: str, root: Path) -> Path:
@@ -244,7 +246,9 @@ def build_page_vectors(settings: Settings, options: PageVectorBuildOptions, *, c
     """Checks + build + alias swap of the page-vector projection; returns the receipt (also written under
     receipts/projections/opensearch)."""
     from vkm_corpus.search.indexer import check_prefix
+    from vkm_corpus.update.remote_search import validate_prepare_options, freeze_prepared_indices
 
+    validate_prepare_options(options.publish, options.policy_sha256)
     prefix = check_prefix(options.prefix or settings.opensearch_index_prefix)
     root = require_canonical_root(settings)
     t0 = time.monotonic()
@@ -280,7 +284,7 @@ def build_page_vectors(settings: Settings, options: PageVectorBuildOptions, *, c
                                 "without_preview": len(page_docs) - len(expected),
                                 "expected_sha256": _expected_sha(expected)}
             receipt["mapping"] = {VECTOR_FIELD: knn_field(config)}
-            if options.skip_if_current and not options.plan_only:
+            if options.publish and options.skip_if_current and not options.plan_only:
                 if client is None:
                     from vkm_corpus.search.client import connect
 
@@ -335,6 +339,8 @@ def build_page_vectors(settings: Settings, options: PageVectorBuildOptions, *, c
                     "expected_sha256": receipt["pages"]["expected_sha256"],
                     "artifact_manifests_sha256": manifests_sha, "projector_version": PROJECTOR_VERSION,
                     "prefix": prefix, "build_status": BUILDING}
+            if options.policy_sha256 is not None:
+                meta["policy_sha256"] = options.policy_sha256
             client.indices.create(index=index, body=page_vectors_body(config, meta))
             created.append(index)
             started = time.monotonic()
@@ -382,9 +388,13 @@ def build_page_vectors(settings: Settings, options: PageVectorBuildOptions, *, c
             actions = [{"remove": {"index": old, "alias": alias}} for old in alias_indices(client, alias)
                        if old != index]
             actions.append({"add": {"index": index, "alias": alias}})
-            client.indices.update_aliases(body={"actions": actions})
-            receipt["alias_actions"] = actions
-            receipt["pruned"] = prune_pagevis_builds(client, prefix, keep=options.keep_builds)
+            if options.publish:
+                client.indices.update_aliases(body={"actions": actions})
+                receipt["alias_actions"] = actions
+                receipt["pruned"] = prune_pagevis_builds(client, prefix, keep=options.keep_builds)
+            else:
+                freeze_prepared_indices(client, [index])
+                receipt.update(alias_actions=[], pruned=[], publication="PREPARED_NOT_PUBLISHED", remote_qualification="NOT_RUN")
             receipt["status"] = COMPLETE
         except ProjectionError as exc:
             receipt["status"] = "FAILED"

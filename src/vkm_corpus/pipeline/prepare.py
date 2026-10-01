@@ -381,6 +381,9 @@ def prepare_source(cfg: PipelineConfig, store: ArtifactStore, cache: StageCache,
         prep["spreads"] = info.file_format in ("PDF", "DJVU") and _spreads(prep["pages"], cfg.spread_aspect)
         prep.setdefault("status", "PREPARED")
     prep["transient_errors"] = any(e.get("retryable") for e in prep["errors"])
+    from vkm_corpus.coverage.accounting import expected_summary
+
+    prep["accounting_expected"] = expected_summary(prep)
     prep["t_s"] = round(time.perf_counter() - t0, 2)
     if not info.path_exists or info.is_lfs_pointer or "SHA256_MISMATCH" in info.flags:
         return prep  # do not poison or overwrite a cache for different/unavailable bytes

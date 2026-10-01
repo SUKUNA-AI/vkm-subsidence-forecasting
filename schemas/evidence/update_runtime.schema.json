@@ -1,0 +1,269 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    },
+    "Observation": {
+      "additionalProperties": false,
+      "properties": {
+        "component": {
+          "enum": [
+            "DOCUMENT",
+            "DATASET",
+            "DUCKDB",
+            "NAV",
+            "DENSE",
+            "LATE",
+            "VISUAL",
+            "EVIDENCE"
+          ],
+          "title": "Component",
+          "type": "string"
+        },
+        "dataset_policy_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dataset Policy File"
+        },
+        "dataset_root": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dataset Root"
+        },
+        "native_manifest": {
+          "minLength": 1,
+          "title": "Native Manifest",
+          "type": "string"
+        },
+        "policy_binding": {
+          "minLength": 1,
+          "title": "Policy Binding",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "runtime_database": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runtime Database"
+        }
+      },
+      "required": [
+        "component",
+        "native_manifest",
+        "policy_binding"
+      ],
+      "title": "Observation",
+      "type": "object"
+    },
+    "QualityGateBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "plan_artifact": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Plan Artifact",
+          "type": "string"
+        },
+        "prediction_artifact": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Prediction Artifact",
+          "type": "string"
+        },
+        "required_scope": {
+          "minProperties": 1,
+          "patternProperties": {
+            "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$": {
+              "items": {
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "title": "Required Scope",
+          "type": "object"
+        }
+      },
+      "required": [
+        "plan_artifact",
+        "prediction_artifact",
+        "required_scope"
+      ],
+      "title": "QualityGateBinding",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "artifacts": {
+      "patternProperties": {
+        "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$": {
+          "$ref": "#/$defs/BoundFile"
+        }
+      },
+      "title": "Artifacts",
+      "type": "object"
+    },
+    "canonical_root": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Canonical Root"
+    },
+    "dependency_locks": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Dependency Locks",
+      "type": "array"
+    },
+    "evidence_root": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Evidence Root"
+    },
+    "expected_commit": {
+      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+      "title": "Expected Commit",
+      "type": "string"
+    },
+    "memory_budget_gib": {
+      "exclusiveMinimum": 0,
+      "title": "Memory Budget Gib",
+      "type": "number"
+    },
+    "memory_reserve_gib": {
+      "exclusiveMinimum": 0,
+      "title": "Memory Reserve Gib",
+      "type": "number"
+    },
+    "min_free_disk_gib": {
+      "exclusiveMinimum": 0,
+      "title": "Min Free Disk Gib",
+      "type": "number"
+    },
+    "native_serving": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BoundFile"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "observations": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Observation"
+      },
+      "title": "Observations",
+      "type": "array"
+    },
+    "originals_root": {
+      "title": "Originals Root",
+      "type": "string"
+    },
+    "policy": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "qualification_root": {
+      "title": "Qualification Root",
+      "type": "string"
+    },
+    "quality_gates": {
+      "patternProperties": {
+        "^[0-9a-f]{64}$": {
+          "$ref": "#/$defs/QualityGateBinding"
+        }
+      },
+      "title": "Quality Gates",
+      "type": "object"
+    },
+    "runtime_root": {
+      "title": "Runtime Root",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-update-runtime/1",
+      "default": "vkm-update-runtime/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "worker_memory_gib": {
+      "exclusiveMinimum": 0,
+      "title": "Worker Memory Gib",
+      "type": "number"
+    }
+  },
+  "required": [
+    "runtime_root",
+    "originals_root",
+    "policy",
+    "qualification_root",
+    "expected_commit",
+    "memory_budget_gib",
+    "memory_reserve_gib",
+    "worker_memory_gib",
+    "min_free_disk_gib"
+  ],
+  "title": "RuntimeConfig",
+  "type": "object"
+}

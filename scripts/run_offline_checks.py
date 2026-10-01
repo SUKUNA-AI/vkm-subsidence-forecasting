@@ -27,7 +27,11 @@ ROOT = Path(__file__).resolve().parents[1]
 WINDOWS_PATHS = ("tests/world", "tests/engineering", "tests/qgis", "tests/evidence", "tests/datasets",
                  "tests/corpus/test_nightly_summary.py",
                  "tests/corpus/test_nightly_dossiers.py", "tests/corpus/test_backup_manifest.py",
-                 "tests/corpus/test_unique_inventory.py")
+                 "tests/corpus/test_unique_inventory.py", "tests/corpus/test_remote_services.py",
+                 "tests/corpus/test_remote_search.py", "tests/corpus/test_remote_retrieval_identity.py",
+                 "tests/corpus/test_remote_graph.py", "tests/corpus/test_pack_policy.py",
+                 "tests/corpus/test_native_serving.py", "tests/corpus/test_mcp_contract.py",
+                 "tests/corpus/test_mcp_rejected_body.py")
 # Host prerequisites only. Missing locked CPU Python packages must fail, not become allowed NOT_RUN.
 KNOWN_SKIPS = (
     ("tests/corpus/test_extract_djvu.py", "DjVuLibre not installed (NOT_RUN)"),
@@ -65,13 +69,51 @@ LINUX_RECEIVER_CASES = (
     "test_token_rotation_preserves_roles_but_write_permission_invalidates_acceptance",
     "test_acceptance_cannot_validate_one_file_and_parse_replacement_bytes",
     "test_generic_pass_is_not_serving_qualification",
+    "test_native_watch_closes_even_when_all_stat_fields_repeat",
+)
+LINUX_PACK_REASON = ("NOT_RUN: qualified loaded-pack receiver requires Linux change-time semantics; "
+                     "native Windows qualification unavailable")
+LINUX_PACK_CASES = (
+    "test_loaded_pack_hashes_once_and_observes_actual_bound_bytes",
+    "test_same_size_restored_mtime_byte_change_closes_pack_admission[before_bind]",
+    "test_same_size_restored_mtime_byte_change_closes_pack_admission[after_bind]",
+    "test_qualified_pointer_change_does_not_wait_for_legacy_reload_interval",
+    "test_wrong_pinned_manifest_cannot_enable_qualified_pack",
+    "test_pack_watch_closes_even_when_all_stat_fields_repeat",
+)
+POSIX_SHARED_GATE_REASON = "NOT_RUN: POSIX shared admission gate"
+LINUX_RECEIVER_EXTRA_NODES = (
+    "tests/evidence/test_challenger_policy_binding.py::test_effective_policy_rebinding_cannot_reuse_qualified_generation[path]",
+    "tests/evidence/test_challenger_policy_binding.py::test_effective_policy_rebinding_cannot_reuse_qualified_generation[replace]",
+    "tests/evidence/test_challenger_policy_binding.py::test_effective_policy_rebinding_cannot_reuse_qualified_generation[remove]",
+    "tests/evidence/test_challenger_policy_binding.py::test_effective_policy_rebinding_cannot_reuse_qualified_generation[source_inventory]",
+    "tests/evidence/test_challenger_canon_binding.py::test_native_canon_connection_cannot_borrow_another_qualified_path[backend]",
+    "tests/evidence/test_challenger_canon_binding.py::test_native_canon_connection_cannot_borrow_another_qualified_path[connection]",
+    "tests/evidence/test_challenger_nav_binding.py::test_packed_nav_payload_change_cannot_reuse_unchanged_origin_metadata[False]",
+    "tests/evidence/test_challenger_nav_binding.py::test_packed_nav_payload_change_cannot_reuse_unchanged_origin_metadata[True]",
+)
+POSIX_SHARED_GATE_CASES = (
+    "tests/evidence/test_receiver_barrier.py::test_shared_gate_lease_covers_streamed_response_and_releases_after_cancellation",
+    "tests/evidence/test_receiver_barrier.py::test_replaced_gate_inode_cannot_silently_rebind_existing_receiver[acquire]",
+    "tests/evidence/test_receiver_barrier.py::test_replaced_gate_inode_cannot_silently_rebind_existing_receiver[rebind]",
+    "tests/evidence/test_receiver_barrier.py::test_receiver_cannot_change_gate_while_a_request_is_active",
+    "tests/evidence/test_deployment_lifecycle.py::test_late_or_replacement_receiver_stays_closed_through_failed_rebind_and_restore[receiver]",
+    "tests/evidence/test_deployment_lifecycle.py::test_late_or_replacement_receiver_stays_closed_through_failed_rebind_and_restore[late-receiver]",
+    "tests/evidence/test_deployment_lifecycle.py::test_unregistered_process_request_must_drain_before_any_selector_mutation",
+    "tests/evidence/test_deployment_lifecycle.py::test_replaced_admission_inode_invalidates_writer_fence_before_mutation",
+    "tests/evidence/test_deployment_lifecycle.py::test_rollback_rechecks_admission_before_each_selector_restore[duckdb]",
+    "tests/evidence/test_deployment_lifecycle.py::test_rollback_rechecks_admission_before_each_selector_restore[document]",
 )
 WINDOWS_NOT_RUN = (
     ("tests/evidence/test_qualification_cli.py::test_fifo_input_is_rejected_before_open", "POSIX FIFO"),
     ("tests/evidence/test_qualification_cli.py::test_fsync_failure_never_acknowledges_pass[directory]",
      "directory durability explicitly NOT_QUALIFIED on Windows"),
 ) + tuple(("tests/evidence/test_production_serving.py::" + case, LINUX_RECEIVER_REASON)
-          for case in LINUX_RECEIVER_CASES)
+          for case in LINUX_RECEIVER_CASES) + tuple(
+              ("tests/corpus/test_remote_retrieval_identity.py::" + case, LINUX_PACK_REASON)
+              for case in LINUX_PACK_CASES) + tuple(
+                  (nodeid, POSIX_SHARED_GATE_REASON) for nodeid in POSIX_SHARED_GATE_CASES) + tuple(
+                      (nodeid, LINUX_RECEIVER_REASON) for nodeid in LINUX_RECEIVER_EXTRA_NODES)
 
 
 def test_files(root: Path, suite: str) -> list[Path]:
@@ -144,7 +186,22 @@ class Accounting:
             self.stats["passed"] += 1
 
 
+def isolate_bytecode(output: Path) -> Path:
+    """Ignore existing timestamp/size .pyc files without removing any cache.
+
+    DONTWRITEBYTECODE alone still reads a stale cache. Each run gets a fresh
+    external namespace; inherited Python workers use the same empty namespace.
+    """
+    prefix = Path(tempfile.mkdtemp(prefix="bytecode-unwritten-", dir=output))
+    sys.pycache_prefix = str(prefix)
+    sys.dont_write_bytecode = True
+    os.environ["PYTHONPYCACHEPREFIX"] = str(prefix)
+    os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+    return prefix
+
+
 def run_tests(root: Path, suite: str, output: Path) -> dict:
+    isolate_bytecode(output)
     import pytest
 
     # Match `python -m pytest`: public benchmark helper modules live at the repository root.
@@ -199,6 +256,10 @@ def run_integrity(root: Path, output: Path) -> dict:
 
 
 def _run(argv: list[str], cwd: Path, log: Path) -> None:
+    if argv[0] == sys.executable and sys.pycache_prefix:
+        # -I ignores Python environment variables, so the installed-wheel smoke
+        # must carry these flags explicitly as well.
+        argv = [argv[0], "-B", "-X", "pycache_prefix=" + sys.pycache_prefix, *argv[1:]]
     with log.open("a", encoding="utf-8") as stream:
         stream.write(json.dumps(argv) + "\n")
         stream.flush()
@@ -290,6 +351,8 @@ def main(argv: list[str] | None = None) -> int:
             report[name] = {"status": "FAIL", "error": f"{type(exc).__name__}: {exc}"}
     statuses = [report[name]["status"] for name, _ in tasks]
     report["status"] = "FAIL" if "FAIL" in statuses else "PASS_WITH_NOT_RUN" if "PASS_WITH_NOT_RUN" in statuses else "PASS"
+    report["bytecode_cache"] = {"namespace": Path(sys.pycache_prefix).name,
+                               "existing_source_caches": "IGNORED", "writes": "DISABLED"}
     (output / "summary.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps({"status": report["status"], "suite": args.suite, "summary": str(output / "summary.json")}))
     return int(report["status"] == "FAIL")

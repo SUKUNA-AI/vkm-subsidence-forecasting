@@ -142,6 +142,21 @@ def test_page_documents_of_the_snapshot_carry_previews_and_filters(canon_env):
     assert set(exp) <= set(docs) and all(len(h) == 64 for h in exp.values())
 
 
+def test_prepare_page_vectors_keeps_serving_aliases_and_old_indices(canon_env, tmp_path):
+    pages = _pages()
+    art = _artifact(tmp_path, pages)
+    client = FakeOpenSearch()
+    first = build_page_vectors(canon_env["settings"], PageVectorBuildOptions(embeddings=str(art)), client=client, pages=pages)
+    old_aliases = {k: set(v) for k, v in client.aliases.items()}
+    receipt = build_page_vectors(canon_env["settings"], PageVectorBuildOptions(embeddings=str(art), publish=False,
+        policy_sha256="e" * 64, skip_if_current=True, keep_builds=1), client=client, pages=pages)
+    assert receipt["publication"] == "PREPARED_NOT_PUBLISHED"
+    assert receipt["index"] != first["index"]
+    assert client.aliases == old_aliases and not client.deleted
+    assert client.indices_[receipt["index"]]["meta"]["policy_sha256"] == "e" * 64
+    assert receipt["alias_actions"] == [] and receipt["pruned"] == []
+
+
 def test_build_checks_against_the_snapshot_then_swaps_the_alias(canon_env, tmp_path):
     pages = _pages()
     art = _artifact(tmp_path, pages)

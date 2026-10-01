@@ -45,10 +45,23 @@ class QueryEncoder:
     @classmethod
     def from_slot(cls, slot: ModelSlot, backend: Any) -> "QueryEncoder":
         spec = get(slot.key)
+        from vkm_corpus.update.remote_retrieval import capture_load_files
+        paths = [Path(slot.tokenizer_dir) / spec.tokenizer_file]
+        cfg = Path(slot.tokenizer_dir) / "tokenizer_config.json"
+        if cfg.is_file():
+            paths.append(cfg)
+        if slot.heads:
+            paths.append(Path(slot.heads))
+        before = capture_load_files(paths)
+        from vkm_corpus.update.native_files import optional_watch
+        watch = optional_watch(paths)
         tok = SpecTokenizer.from_dir(spec, Path(slot.tokenizer_dir),
                                      expected_sha256=slot.tokenizer_sha256 or None)
         heads = dict(np.load(slot.heads)) if slot.heads else None
-        return cls(slot, spec, tok, backend, heads=heads)
+        result = cls(slot, spec, tok, backend, heads=heads)
+        result._load_files = before if capture_load_files(paths) == before else None
+        result._load_watch = watch
+        return result
 
     @property
     def pooling(self) -> str:

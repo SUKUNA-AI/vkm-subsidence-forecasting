@@ -82,6 +82,9 @@ class Assembler:
         self.native_hash = _cfg_hash(cfg.stage_config("NATIVE_TEXT"))
         self.path = Path(cfg.resources_root) / src.canonical_path
         self._pdf = None
+        from vkm_corpus.coverage.accounting import SourceAccounting
+
+        self.accounting = SourceAccounting(cfg, prep, store)
 
     # ------------------------------------------------------------------ helpers
     def err(self, code: str, stage: str, message: str, page_index: int | None = None, retryable: bool = False,
@@ -153,6 +156,9 @@ class Assembler:
                                native_raw_artifact_id=self.prep.get("document_raw_artifact_id"), quality_flags=flags,
                                extra={"spreads": self.prep.get("spreads"), "docx_counts": self.prep.get("docx_counts")})
         self._source_steps(pagination)
+        if self.fmt == "DOCX" and self.prep.get("document_raw_artifact_id"):
+            aid = self.prep["document_raw_artifact_id"]
+            self.accounting.native(self.store.read_json(aid), aid, docx=True)
         if self.prep.get("status") in ("FAILED", "UNSUPPORTED") or pagination is None:
             r.status = "FAILED" if self.prep.get("status") != "UNSUPPORTED" else "UNSUPPORTED"
             return r
@@ -329,6 +335,8 @@ class Assembler:
             b.extra["order_key"] = (region.order_rank if region else self._nearest_rank(bbox, text_regions),
                                     units[idxs[0]][2])
             b.extra["layout_label"] = region.label if region else None
+            b.extra["accounting_native_locators"] = [f"/lines/{j}" if self.fmt == "DJVU"
+                                                    else f"/blocks/n={units[j][2]}" for j in idxs]
             if region is not None:
                 b.extra["layout_det_index"] = region.det_index
             blocks.append(b)
@@ -392,6 +400,7 @@ class Assembler:
                 continue
             page = self._page_base(row)
             self.result.pages.append(page)
+            self.accounting.page(idx)
             if row.get("route") == "FAILED" or row.get("error"):
                 e = row.get("error") or {}
                 self.err(e.get("code", "NATIVE_EXTRACT_FAILED"), e.get("stage", "NATIVE_TEXT"),
@@ -408,14 +417,18 @@ class Assembler:
             regions: list[Region] = []
             if vis.get("layout_raw_artifact_id"):
                 try:
-                    _, regions = ocr_stage.load_regions(self.store, vis["layout_raw_artifact_id"], page.width_pt,
-                                                        page.height_pt, cfg.region_thresholds)
+                    trace = []
+                    layout_raw, regions = ocr_stage.load_regions(self.store, vis["layout_raw_artifact_id"], page.width_pt,
+                                                        page.height_pt, cfg.region_thresholds, trace=trace)
+                    self.accounting.layout(layout_raw, vis["layout_raw_artifact_id"], idx, trace)
                     page.models.append(LAYOUT_MODEL)
                 except Exception as exc:  # noqa: BLE001
+                    self.accounting.gaps.append("LAYOUT_ACCOUNTING_UNAVAILABLE")
                     self.err("ARTIFACT_MISSING", "LAYOUT", f"{type(exc).__name__}: {exc}", idx)
             raw = {}
             if page.native_raw_artifact_id:
                 raw = self.store.read_json(page.native_raw_artifact_id)
+                self.accounting.native(raw, page.native_raw_artifact_id, idx)
             # --- native / embedded layer
             has_layer_text = bool(raw.get("blocks") or raw.get("lines"))
             route = page.route
@@ -437,6 +450,7 @@ class Assembler:
             # --- OCR tasks (same plan as the OCR phase)
             specs = plan_page_tasks(cfg, self.fmt, self.src.source_id, row, vis, regions,
                                     sample_b=idx in self.sample_pages, reocr=reocr)
+            self.accounting.tasks(idx, specs, page.layout_raw_artifact_id or page.native_raw_artifact_id, regions, route)
             crops = self._crops(specs)
             ocr_blocks: list[BlockX] = []
             text_specs = [s for s in specs if s.task == "text"]
@@ -495,7 +509,7 @@ class Assembler:
                               ([("LAYOUT_DETECTIONS", page.layout_raw_artifact_id)] if spec.det_index is not None
                                else []),
                               raw_locator=f"/detections/{spec.det_index}" if spec.det_index is not None else None,
-                              quality_flags=list(qflags))
+                              quality_flags=list(qflags), extra={"accounting_task_key": ocr_stage.task_key(cfg, spec)})
                 if len(found) > 1 and any(c.band_hard_cut for c, _, _ in found):
                     common["quality_flags"].append("BBOX_APPROX")
                 if spec.task == "text":
@@ -810,11 +824,13 @@ class Assembler:
                          native_raw_artifact_id=row.get("native_raw_artifact_id"), spine_href=row.get("spine_href"),
                          rotation_deg=0)
             self.result.pages.append(page)
+            self.accounting.page(idx)
             if row.get("route") == "FAILED":
                 self.err("NATIVE_EXTRACT_FAILED", "NATIVE_TEXT", (row.get("error") or {}).get("message", ""), idx)
                 page.page_status = "FAILED"
                 continue
             raw = self.store.read_json(page.native_raw_artifact_id)
+            self.accounting.native(raw, page.native_raw_artifact_id, idx)
             anchors = raw.get("page_anchors") or []
             if anchors:
                 page.printed_page_labels = [a[0] for a in anchors]
@@ -948,6 +964,7 @@ class Assembler:
             page.primary_text_layer = "DOCX_XML"
             page.printed_label_origin = "NONE"
             self.result.pages.append(page)
+            self.accounting.page(row["page_index"])
             text = ""
             if row.get("native_raw_artifact_id"):
                 nraw = self.store.read_json(row["native_raw_artifact_id"])

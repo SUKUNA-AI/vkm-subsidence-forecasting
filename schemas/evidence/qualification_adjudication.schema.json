@@ -1,0 +1,125 @@
+{
+  "$defs": {
+    "Match": {
+      "additionalProperties": false,
+      "properties": {
+        "gold_object_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Gold Object Id",
+          "type": "string"
+        },
+        "prediction_object_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Prediction Object Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "gold_object_id",
+        "prediction_object_id"
+      ],
+      "title": "Match",
+      "type": "object"
+    },
+    "MatchStratum": {
+      "additionalProperties": false,
+      "properties": {
+        "matches": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Match"
+          },
+          "title": "Matches",
+          "type": "array"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "FAILED",
+            "NOT_RUN"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "stratum_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Stratum Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stratum_id",
+        "status"
+      ],
+      "title": "MatchStratum",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "gold_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Gold Sha256",
+      "type": "string"
+    },
+    "plan_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Plan Sha256",
+      "type": "string"
+    },
+    "prediction_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Prediction Sha256",
+      "type": "string"
+    },
+    "reviewed_at": {
+      "format": "date-time",
+      "title": "Reviewed At",
+      "type": "string"
+    },
+    "reviewers": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Reviewers",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "vkm-qualification-matches/1",
+      "default": "vkm-qualification-matches/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "strata": {
+      "items": {
+        "$ref": "#/$defs/MatchStratum"
+      },
+      "title": "Strata",
+      "type": "array"
+    }
+  },
+  "required": [
+    "plan_sha256",
+    "gold_sha256",
+    "prediction_sha256",
+    "reviewers",
+    "reviewed_at",
+    "strata"
+  ],
+  "title": "MatchAdjudication",
+  "type": "object"
+}

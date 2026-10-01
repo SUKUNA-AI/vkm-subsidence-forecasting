@@ -99,12 +99,21 @@ def create_app(config=None, *, encoders: Optional[dict] = None, residency=None, 
 
     async def lifespan(app):
         res = state["residency"]
-        if res is not None and start_residency:
-            await asyncio.to_thread(res.start)
-        state["ready"] = True
+        identity_sha = config.search.qualified_pack_manifest_sha256 if config is not None else None
+        if identity_sha and not auth_token:
+            raise ValueError("qualified native retrieval identity requires authentication")
         try:
+            if res is not None and start_residency:
+                await asyncio.to_thread(res.start)
+            if identity_sha:
+                from vkm_corpus.update.remote_retrieval import RetrievalServiceLease
+                await asyncio.to_thread(state["store"].bind_qualified_identity, expected_manifest_sha256=identity_sha)
+                state["native_identity"] = await asyncio.to_thread(
+                    RetrievalServiceLease, state["encoders"], res, state["store"])
+            state["ready"] = True
             yield
         finally:
+            state["ready"] = False
             if res is not None:
                 await asyncio.to_thread(res.stop)
 
@@ -143,6 +152,11 @@ def create_app(config=None, *, encoders: Optional[dict] = None, residency=None, 
     @app.middleware("http")
     async def count_requests(request: Request, call_next):
         t0 = time.perf_counter()
+        if request.method == "POST" and state.get("native_identity") is not None:
+            try:
+                await asyncio.to_thread(state["native_identity"].observe)
+            except (OSError, ValueError):
+                return JSONResponse({"status": "UNAVAILABLE", "reason": "native generation changed"}, status_code=503)
         response = await call_next(request)
         path = request.url.path
         metrics.inc("http_requests", path=path, status=str(response.status_code))
@@ -192,6 +206,18 @@ def create_app(config=None, *, encoders: Optional[dict] = None, residency=None, 
                         "query_signature": enc.signature, "query_config": enc.qconfig.as_dict(),
                         "parity": parity.get(spec.key)})
         return {"service": SERVICE_NAME, "version": SERVICE_VERSION, "models": out}
+
+    @app.get("/identity", dependencies=[Depends(require_token)])
+    async def native_identity():
+        # A legacy /health READY is not native generation qualification. This
+        # endpoint neither loads models nor silently binds a new pack.
+        lease = state.get("native_identity")
+        if lease is None:
+            return JSONResponse({"status": "UNAVAILABLE", "reason": "native identity not qualified"}, status_code=503)
+        try:
+            return await asyncio.to_thread(lease.observe)
+        except (OSError, ValueError):
+            return JSONResponse({"status": "UNAVAILABLE", "reason": "native generation changed"}, status_code=503)
 
     @app.post("/embed/query", dependencies=[Depends(require_token)])
     async def embed_query(body: EmbedQueryRequest):

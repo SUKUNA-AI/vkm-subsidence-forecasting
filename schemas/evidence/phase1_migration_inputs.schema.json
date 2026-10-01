@@ -1,0 +1,291 @@
+{
+  "$defs": {
+    "CatalogueSpec": {
+      "additionalProperties": false,
+      "description": "Explicit column mapping, never a guess from a filename or cell contents.\n\nstatement_column=None deliberately archives otherwise unmappable catalogues\nas UNRESOLVED. Source/locator fields may contain multiple old references; the\nexact old locator string remains in the row, while owner bindings resolve it.",
+      "properties": {
+        "evidence_type_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "evidence_type",
+          "title": "Evidence Type Column"
+        },
+        "id_column": {
+          "title": "Id Column",
+          "type": "string"
+        },
+        "inputs_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Inputs Column"
+        },
+        "locator_column": {
+          "default": "locator",
+          "title": "Locator Column",
+          "type": "string"
+        },
+        "method_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Method Column"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "quote_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "quote",
+          "title": "Quote Column"
+        },
+        "rationale_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rationale Column"
+        },
+        "scale_column": {
+          "default": "scale",
+          "title": "Scale Column",
+          "type": "string"
+        },
+        "scope_column": {
+          "default": "scope",
+          "title": "Scope Column",
+          "type": "string"
+        },
+        "source_column": {
+          "default": "source_id",
+          "title": "Source Column",
+          "type": "string"
+        },
+        "statement_column": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "quote",
+          "title": "Statement Column"
+        },
+        "status_column": {
+          "default": "status",
+          "title": "Status Column",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "id_column"
+      ],
+      "title": "CatalogueSpec",
+      "type": "object"
+    },
+    "DataAccessClass": {
+      "enum": [
+        "PUBLIC",
+        "PRIVATE_CLOUD_ALLOWED",
+        "PRIVATE_LOCAL_ONLY",
+        "RESTRICTED",
+        "SEALED"
+      ],
+      "title": "DataAccessClass",
+      "type": "string"
+    },
+    "ExperimentalRole": {
+      "enum": [
+        "INPUT",
+        "CALIBRATION",
+        "VALIDATION",
+        "TEST_SEALED",
+        "TARGET",
+        "UNKNOWN"
+      ],
+      "title": "ExperimentalRole",
+      "type": "string"
+    },
+    "FrozenCatalogue": {
+      "additionalProperties": false,
+      "properties": {
+        "header": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Header",
+          "type": "array"
+        },
+        "row_count": {
+          "minimum": 0,
+          "title": "Row Count",
+          "type": "integer"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        },
+        "spec": {
+          "$ref": "#/$defs/CatalogueSpec"
+        }
+      },
+      "required": [
+        "spec",
+        "sha256",
+        "size_bytes",
+        "header",
+        "row_count"
+      ],
+      "title": "FrozenCatalogue",
+      "type": "object"
+    },
+    "MigrationBounds": {
+      "additionalProperties": false,
+      "properties": {
+        "max_cell_chars": {
+          "default": 100000,
+          "maximum": 100000,
+          "minimum": 1,
+          "title": "Max Cell Chars",
+          "type": "integer"
+        },
+        "max_columns": {
+          "default": 512,
+          "maximum": 2048,
+          "minimum": 1,
+          "title": "Max Columns",
+          "type": "integer"
+        },
+        "max_files": {
+          "default": 32,
+          "maximum": 256,
+          "minimum": 1,
+          "title": "Max Files",
+          "type": "integer"
+        },
+        "max_rows": {
+          "default": 2048,
+          "maximum": 4096,
+          "minimum": 1,
+          "title": "Max Rows",
+          "type": "integer"
+        },
+        "max_total_bytes": {
+          "default": 8388608,
+          "maximum": 16777216,
+          "minimum": 1,
+          "title": "Max Total Bytes",
+          "type": "integer"
+        }
+      },
+      "title": "MigrationBounds",
+      "type": "object"
+    },
+    "ResourcePolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "access_class": {
+          "$ref": "#/$defs/DataAccessClass",
+          "default": "RESTRICTED"
+        },
+        "authority": {
+          "minLength": 1,
+          "title": "Authority",
+          "type": "string"
+        },
+        "experimental_role": {
+          "$ref": "#/$defs/ExperimentalRole",
+          "default": "UNKNOWN"
+        },
+        "policy_version": {
+          "minLength": 1,
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "restrictions": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Restrictions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "policy_version",
+        "authority"
+      ],
+      "title": "ResourcePolicy",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "bounds": {
+      "$ref": "#/$defs/MigrationBounds"
+    },
+    "catalogue_policy": {
+      "$ref": "#/$defs/ResourcePolicy"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/FrozenCatalogue"
+      },
+      "title": "Files",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "vkm-phase1-migration-inputs/1",
+      "default": "vkm-phase1-migration-inputs/1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "files",
+    "catalogue_policy",
+    "bounds"
+  ],
+  "title": "FrozenMigrationInputs",
+  "type": "object"
+}

@@ -1,0 +1,74 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "capabilities": {
+      "default": [],
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+        "type": "string"
+      },
+      "title": "Capabilities",
+      "type": "array"
+    },
+    "code_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Code Sha256",
+      "type": "string"
+    },
+    "config_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Config Sha256",
+      "type": "string"
+    },
+    "dependencies_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Dependencies Sha256",
+      "type": "string"
+    },
+    "endpoint_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Endpoint Sha256",
+      "type": "string"
+    },
+    "instance_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Instance Sha256",
+      "type": "string"
+    },
+    "resources": {
+      "patternProperties": {
+        "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "title": "Resources",
+      "type": "object"
+    },
+    "runtime_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Runtime Sha256",
+      "type": "string"
+    },
+    "service": {
+      "enum": [
+        "RETRIEVAL",
+        "RERANK",
+        "CONTROL"
+      ],
+      "title": "Service",
+      "type": "string"
+    }
+  },
+  "required": [
+    "service",
+    "instance_sha256",
+    "code_sha256",
+    "dependencies_sha256",
+    "config_sha256",
+    "endpoint_sha256",
+    "runtime_sha256"
+  ],
+  "title": "ServiceIdentity",
+  "type": "object"
+}

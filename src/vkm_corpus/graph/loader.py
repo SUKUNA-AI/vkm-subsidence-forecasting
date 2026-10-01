@@ -81,6 +81,7 @@ def purge_test_namespace(driver: Any, database: str, ns: S.Namespace) -> dict[st
     """Remove everything of a *test* namespace: layer nodes, its ProjectionRun nodes and its DDL."""
     if not ns.is_test:
         raise ProjectionError("E_REFUSED", "refusing to purge the production namespace", stage="cleanup")
+    document_wipe_guard(driver, database, ns)
     counters = client.run_autocommit(driver, database, C.wipe_layer(ns, 10_000))
     client.write(driver, database, f"MATCH (r:{S.q(ns.run_label)}) DETACH DELETE r")
     drop_namespace_ddl(driver, database, ns)
@@ -93,6 +94,8 @@ def wipe(driver: Any, database: str, ns: S.Namespace, batch: int) -> dict[str, A
     """Delete the layer in separate bounded write transactions (LIMIT loop). One auto-commit
     ``CALL {…} IN TRANSACTIONS`` over the full-corpus graph exceeded the 1 GiB transaction memory pool
     (MemoryPoolOutOfMemoryError on 663 k nodes); a loop of small transactions keeps memory bounded."""
+    # This is also a public helper. Never rely exclusively on rebuild's preflight.
+    document_wipe_guard(driver, database, ns)
     batch = max(100, min(int(batch), 100_000))
     counters = {"nodes_deleted": 0, "relationships_deleted": 0, "nodes_created": 0, "transactions": 0}
     query = (f"MATCH (n:{S.q(ns.layer_label)}) WITH n LIMIT {batch} "
@@ -110,12 +113,67 @@ def wipe(driver: Any, database: str, ns: S.Namespace, batch: int) -> dict[str, A
     return counters
 
 
-def cross_layer_guard(driver: Any, database: str, ns: S.Namespace) -> None:
+def cross_layer_guard(driver: Any, database: str, ns: S.Namespace, *, allow_navigation: bool = False) -> None:
     rows = client.read(driver, database, C.cross_layer_edges(ns))
+    if allow_navigation:
+        from vkm_corpus.graph import nav_schema as N
+
+        nav_labels = {ns.label(N.LAYER_LABEL), *(ns.label(label) for label in N.NAV_LABELS)}
+        nav_types = {ns.rel(name) for name in N.REL_TYPE_NAMES}
+        rows = [row for row in rows if not (
+            row.get("rel_type") in nav_types and row.get("other_labels")
+            and set(row["other_labels"]) <= nav_labels)]
     if rows:
         raise ProjectionError("E_CROSS_LAYER_LOSS", "edges from other layers touch DOCUMENT nodes; a wipe would lose "
-                              "them: rebuild with --cascade (drops the derived NAV layer) or run `nav graph-drop --yes` "
-                              "first, then reload NAV with `nav graph-load`", stage="wipe", details={"edges": rows[:20]})
+                              "them. Only registered NAV dependencies may be replaced with --cascade. Scientific "
+                              "dependencies require a qualified shadow-generation replacement; deleting EVIDENCE "
+                              "or its support edges is not a recovery procedure", stage="wipe", details={"edges": rows[:20]})
+
+
+# Conservative barrier until a generation-qualified DOCUMENT+EVIDENCE publisher
+# exists. Presence is sufficient: absence of an edge does not prove independence.
+_EVIDENCE_KINDS = ("MENTION", "CLAIM", "OBSERVATION", "OBSERVATION_SET", "ENTITY", "ENTITY_RESOLUTION",
+                   "FORMULA_INTERPRETATION", "EVENT_ASSERTION", "EVIDENCE_RELATION", "REVIEW_DECISION",
+                   "SCIENTIFIC_USE_ADMISSION")
+
+
+def document_wipe_guard(driver: Any, database: str, ns: S.Namespace, *, allow_navigation: bool = False) -> None:
+    """Read-only, fail-closed preflight; no cascade/replacement bypass for evidence.
+
+    The in-place loader assumes an exclusively controlled graph writer. This
+    preflight is NOT a transactional distributed lock against concurrent writers.
+    A future remote evidence loader must use qualified shadow generations instead.
+    """
+    layers = sorted(set(S.LAYER_LABELS) - {"DOCUMENT", "NAVIGATION"})
+    labels = {S.LAYER_LABELS[layer] for layer in layers} | set(S.RESERVED_FUTURE_LABELS)
+    labels |= {"Evidence", "EVIDENCE", "Observation", "ReviewDecision", *_EVIDENCE_KINDS}
+
+    def exists(query: str, **params: Any) -> bool:
+        try:
+            rows = client.read(driver, database, query, **params)
+        except Exception as exc:
+            raise ProjectionError("E_WIPE_PREFLIGHT", "cannot establish DOCUMENT wipe safety: "
+                                  f"{type(exc).__name__}", stage="wipe") from exc
+        if len(rows) != 1 or set(rows[0]) != {"n"} or type(rows[0]["n"]) is not int or rows[0]["n"] not in (0, 1):
+            raise ProjectionError("E_WIPE_PREFLIGHT", "invalid DOCUMENT wipe safety probe result", stage="wipe")
+        return rows[0]["n"] == 1
+
+    if exists(C.scientific_nodes(ns), protected_labels=sorted(ns.prefix + name for name in labels),
+              protected_layers=layers, protected_kinds=list(_EVIDENCE_KINDS), namespace=ns.prefix,
+              test_prefix=S.TEST_LABEL_PREFIX):
+        raise ProjectionError("E_EVIDENCE_DEPENDENCY", "scientific graph records exist; DOCUMENT wipe/cascade "
+                              "cannot preserve source support, property-only references or review decisions. "
+                              "A qualified shadow-generation replacement is required and is not implemented by "
+                              "this loader", stage="wipe")
+    owned = set(ns.rel(rel.type) for rel in S.REL_TYPES)
+    if allow_navigation:
+        from vkm_corpus.graph import nav_schema as N
+
+        owned.update(ns.rel(name) for name in N.REL_TYPE_NAMES)
+    if exists(C.foreign_document_relationships(ns), owned_types=sorted(owned), protected_layers=layers):
+        raise ProjectionError("E_CROSS_LAYER_LOSS", "foreign-owned relationships touch DOCUMENT nodes, including "
+                              "possible edges between DOCUMENT endpoints; refusing wipe/cascade", stage="wipe")
+    cross_layer_guard(driver, database, ns, allow_navigation=allow_navigation)
 
 
 def _load_nodes(driver: Any, database: str, ns: S.Namespace, inp: ProjectionInput, run_id: str, batch_size: int,
@@ -257,6 +315,9 @@ def _execute(run: _Run, inp: ProjectionInput, driver: Any) -> dict[str, Any]:
     try:
         started = time.monotonic()
         receipt["server"] = client.server_info(driver, database)
+        # Before DDL, stale-run writes and NAV cascade: a refusal leaves the
+        # database unchanged, including the previously served graph generation.
+        document_wipe_guard(driver, database, ns, allow_navigation=options.cascade)
         receipt["ddl"] = apply_ddl(driver, database, ns)
         stale, fresh = runs.stale_building_runs(driver, database, ns)
         if fresh:
