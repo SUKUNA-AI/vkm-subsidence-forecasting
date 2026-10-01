@@ -252,6 +252,29 @@ def test_quote_shortening_preserves_exact_decimal_case_and_punctuation_prefix(tm
     assert longest_shared_run(words(row['summary']), quote_shingles([quote]))[0] < 25
 
 
+@pytest.mark.parametrize('separator', [' ', '-', '.'])
+def test_quote_shortening_never_exposes_content_past_legacy_word_limit(tmp_path, monkeypatch, separator):
+    import csv
+    from vkm_world.governance.leakage import longest_shared_run, quote_shingles, words
+    pub, private, canon, mapping = tree(tmp_path)
+    numeric_prefix = '0.03;  ' + '  '.join(str(i) for i in range(1, 19)) + '  SYNTHETIC-WORD: '
+    quote = numeric_prefix + separator.join('syntheticword' + chr(97+i) for i in range(25))
+    put(canon, 'z.csv', 'id,summary,quote\n1,' + quote + ',' + quote + '\n')
+    monkeypatch.setattr(B, 'ROOT', pub)
+    monkeypatch.setenv('VKM_RESOURCES_ROOT', str(private))
+    assert B.main() == 0
+    with (pub/mapping['z.csv']).open(newline='') as stream:
+        row = next(csv.DictReader(stream))
+    marker = ' … [сокращено: дословный текст источника — только в PRIVATE]'
+    excerpt = row['summary'].removesuffix(marker)
+    legacy_boundary = quote.index('SYNTHETIC-WORD:') + len('SYNTHETIC-WORD:')
+    assert quote.startswith(excerpt)
+    assert len(excerpt) <= legacy_boundary
+    assert excerpt.split() == quote.split()[:20]
+    assert sum(not token.isdigit() for token in words(excerpt)) <= 20
+    assert longest_shared_run(words(row['summary']), quote_shingles([quote]))[0] < 25
+
+
 def test_verifier_detects_exactly_25_short_alphabetic_words(tmp_path, monkeypatch):
     pub, private, canon, mapping = tree(tmp_path)
     quote = ' '.join(chr(97+i) for i in range(25))

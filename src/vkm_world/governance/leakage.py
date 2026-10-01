@@ -69,14 +69,21 @@ def words(text: str) -> list[str]:
 
 
 def quote_prefix(text: str, limit: int = 20) -> str:
-    """Original prefix ending at ``limit`` alphabetic tokens; preserve numbers and punctuation."""
+    """Exact prefix capped at both alphabetic tokens and legacy whitespace words."""
+    if limit <= 0:
+        return ''
+    stop = len(text)
+    for count, match in enumerate(re.finditer(r'\S+', text), 1):
+        if count == limit:
+            stop = match.end()
+            break
     count = 0
-    for match in _WORD.finditer(text):
+    for match in _WORD.finditer(text[:stop]):
         if not match.group().isdigit():
             count += 1
             if count == limit:
                 return text[:match.end()]
-    return text
+    return text[:stop]
 
 
 def quote_shingles(texts) -> set[str]:
