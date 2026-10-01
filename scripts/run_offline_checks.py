@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Run the same public CPU checks locally and in Actions, with explicit NOT_RUN accounting.
 
-World tests form one job; every other test_*.py, recursively, forms the other.
+World tests form one Linux job; every other test suite, recursively, forms the other.
+Windows additionally qualifies the explicitly listed synthetic filesystem and protocol suites.
 Only declared external-runtime markers are deselected. Unexpected skips fail.
 Build/install/import smoke uses temporary directories outside the checkout.
 """
@@ -23,41 +24,77 @@ import tomllib
 EXTERNAL_MARKERS = ("services", "gpu", "desktop", "matlab", "ansys", "qgis_runtime")
 MARKER_EXPRESSION = " and ".join(f"not {marker}" for marker in EXTERNAL_MARKERS)
 ROOT = Path(__file__).resolve().parents[1]
-# Exact existing prerequisites with missing committed dependency closures. See docs/development/OFFLINE_CHECKS.md.
+WINDOWS_PATHS = ("tests/world", "tests/engineering", "tests/qgis", "tests/evidence", "tests/datasets",
+                 "tests/corpus/test_nightly_summary.py",
+                 "tests/corpus/test_nightly_dossiers.py", "tests/corpus/test_backup_manifest.py",
+                 "tests/corpus/test_unique_inventory.py")
+# Host prerequisites only. Missing locked CPU Python packages must fail, not become allowed NOT_RUN.
 KNOWN_SKIPS = (
-    ("tests/corpus/test_figures_raster.py", "could not import 'cv2': No module named 'cv2'"),
-    ("tests/corpus/test_figure_readings_v2.py", "could not import 'cv2': No module named 'cv2'"),
-    ("tests/corpus/test_geometry_skru1_v1.py", "could not import 'cv2': No module named 'cv2'"),
-    ("tests/corpus/test_figures_pdf.py::test_glyph_outline_date_labels_are_read", "could not import 'cv2': No module named 'cv2'"),
-    ("tests/corpus/test_retrieval_lab_pipelines.py", "could not import 'snowballstemmer': No module named 'snowballstemmer'"),
-    ("tests/corpus/test_nav_concepts.py", "pymorphy3 not installed"),
-    ("tests/corpus/test_nav_concepts.py", "pymorphy3 not installed (extra `navigation`)"),
-    ("tests/corpus/test_nav_term_dictionary.py", "pymorphy3 not installed"),
-    ("tests/corpus/test_nav_term_dictionary.py", "pymorphy3 not installed (extra `navigation`)"),
-    ("tests/corpus/test_nav_expansion_query.py", "pymorphy3 not installed (extra `navigation`)"),
     ("tests/corpus/test_extract_djvu.py", "DjVuLibre not installed (NOT_RUN)"),
     ("tests/corpus/test_publish_transfer.py", "rsync not installed: NOT_RUN"),
     ("tests/corpus/test_figures_pdf.py", "local OCR helper (tesseract) not installed"),
     ("tests/corpus/test_nightly_scripts.py", "needs the CORE/EDGE host environment: bash, python3, flock, rsync, timeout, sha256sum"),
 )
+# These primitives do not exist on Windows. Missing symlink/locking privileges
+# remain failures; they must never be added to this operating-system allowance.
+LINUX_RECEIVER_REASON = ("NOT_RUN: qualified production receiver requires Linux filesystem change-time semantics; "
+                         "native Windows ChangeTime/reparse-handle qualification unavailable")
+LINUX_RECEIVER_CASES = (
+    "test_selected_database_change_and_policy_change_close_admission",
+    "test_data_change_with_unchanged_snapshot_metadata_is_unqualified[False]",
+    "test_data_change_with_unchanged_snapshot_metadata_is_unqualified[True]",
+    "test_same_size_rewrite_with_restored_mtime_invalidates_immutable_file",
+    "test_atomic_replacement_with_same_bytes_size_and_mtime_requires_rebind",
+    "test_wrong_file_hash_cannot_reuse_otherwise_qualified_acceptance",
+    "test_memory_canon_is_not_a_qualified_production_file",
+    "test_qualified_duckdb_must_be_an_ordinary_nonindirect_file[symlink]",
+    "test_qualified_duckdb_must_be_an_ordinary_nonindirect_file[directory]",
+    "test_qualified_duckdb_must_be_an_ordinary_nonindirect_file[fifo]",
+    "test_full_database_hash_is_only_computed_once_at_bind",
+    "test_mutation_during_full_hash_closes_startup",
+    "test_replacement_at_startup_observer_boundary_never_installs_guard[during_observer]",
+    "test_replacement_at_startup_observer_boundary_never_installs_guard[after_startup]",
+    "test_prepared_database_is_not_served_database",
+    "test_remote_service_cannot_be_omitted_from_generation[graph]",
+    "test_remote_service_cannot_be_omitted_from_generation[search]",
+    "test_remote_service_cannot_be_omitted_from_generation[hybrid]",
+    "test_remote_service_cannot_be_omitted_from_generation[rerank]",
+    "test_remote_service_cannot_be_omitted_from_generation[control]",
+    "test_contexts_and_current_policy_are_required",
+    "test_qualified_principal_permissions_cannot_change_under_old_acceptance",
+    "test_token_rotation_preserves_roles_but_write_permission_invalidates_acceptance",
+    "test_acceptance_cannot_validate_one_file_and_parse_replacement_bytes",
+    "test_generic_pass_is_not_serving_qualification",
+)
+WINDOWS_NOT_RUN = (
+    ("tests/evidence/test_qualification_cli.py::test_fifo_input_is_rejected_before_open", "POSIX FIFO"),
+    ("tests/evidence/test_qualification_cli.py::test_fsync_failure_never_acknowledges_pass[directory]",
+     "directory durability explicitly NOT_QUALIFIED on Windows"),
+) + tuple(("tests/evidence/test_production_serving.py::" + case, LINUX_RECEIVER_REASON)
+          for case in LINUX_RECEIVER_CASES)
 
 
 def test_files(root: Path, suite: str) -> list[Path]:
     config_file = root / "pyproject.toml"
-    config = tomllib.loads(config_file.read_text()) if config_file.is_file() else {}
+    config = tomllib.loads(config_file.read_text(encoding="utf-8")) if config_file.is_file() else {}
     patterns = config.get("tool", {}).get("pytest", {}).get("ini_options", {}).get("python_files", ["test_*.py", "*_test.py"])
     if isinstance(patterns, str):
         patterns = patterns.split()
     files = sorted(path for path in (root / "tests").rglob("*.py")
                    if any(fnmatch.fnmatch(path.name, pattern) for pattern in patterns))
+    if suite == "windows-offline":
+        return [path for path in files if any(path == root / rel or path.is_relative_to(root / rel)
+                                              for rel in WINDOWS_PATHS)]
     return [path for path in files if (path.relative_to(root / "tests").parts[0] == "world")
             == (suite == "world-integrity")]
 
 
-def allowed_skip(nodeid: str, reason: str) -> bool:
+def allowed_skip(nodeid: str, reason: str, *, host_platform: str | None = None) -> bool:
     module = nodeid.split("::", 1)[0]
     reason = reason.removeprefix("Skipped: ")
-    return (nodeid, reason) in KNOWN_SKIPS or (module, reason) in KNOWN_SKIPS
+    platform = sys.platform if host_platform is None else host_platform
+    return ((nodeid, reason) in KNOWN_SKIPS or (module, reason) in KNOWN_SKIPS
+            or (platform == "win32" and (nodeid, reason) in WINDOWS_NOT_RUN))
 
 
 def test_status(stats: dict, exit_code: int) -> str:
@@ -117,10 +154,16 @@ def run_tests(root: Path, suite: str, output: Path) -> dict:
     if not files:
         return {"status": "FAIL", "exit_code": 5, **accounting.stats}
     # Let pytest recurse with its own discovery configuration, including newly added suites.
-    paths = [root / "tests/world"] if suite == "world-integrity" else sorted(
-        path for path in (root / "tests").iterdir() if path.name != "world"
-        and (path.is_dir() or path in files))
-    code = pytest.main(["-q", "--strict-markers", "--strict-config", "-m", MARKER_EXPRESSION,
+    if suite == "windows-offline":
+        paths = [root / rel for rel in WINDOWS_PATHS]
+        if any(not path.exists() for path in paths):
+            return {"status": "FAIL", "exit_code": 5, "missing_required_paths": [
+                path.relative_to(root).as_posix() for path in paths if not path.exists()], **accounting.stats}
+    else:
+        paths = [root / "tests/world"] if suite == "world-integrity" else sorted(
+            path for path in (root / "tests").iterdir() if path.name != "world"
+            and (path.is_dir() or path in files))
+    code = pytest.main(["-q", "-p", "no:cacheprovider", "--strict-markers", "--strict-config", "-m", MARKER_EXPRESSION,
                         "--junitxml", str(output / "pytest.xml"),
                         "--basetemp", str(output / "pytest-tmp"), *map(str, paths)], plugins=[accounting])
     return {"status": test_status(accounting.stats, int(code)), "exit_code": int(code),
@@ -163,7 +206,7 @@ def _run(argv: list[str], cwd: Path, log: Path) -> None:
 
 
 def package_smoke(root: Path, output: Path) -> dict:
-    config = tomllib.loads((root / "pyproject.toml").read_text())
+    config = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
     settings = config["tool"]["setuptools"]
     resources, empty = {}, []
     for package, patterns in settings.get("package-data", {}).items():
@@ -216,7 +259,7 @@ print(json.dumps({'imported':packages,'resources_verified':len(resources)}))
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("suite", choices=("world-integrity", "corpus-offline"))
+    parser.add_argument("suite", choices=("world-integrity", "corpus-offline", "windows-offline"))
     parser.add_argument("--output", type=Path, required=True, help="artifact directory outside checkout")
     args = parser.parse_args(argv)
     output = args.output.resolve()
@@ -228,6 +271,8 @@ def main(argv: list[str] | None = None) -> int:
         if key.startswith("VKM_"):
             del os.environ[key]
     os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+    os.environ["PYTHONUTF8"] = "1"
+    os.environ["PYTHONIOENCODING"] = "utf-8"
     os.environ["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
     sys.dont_write_bytecode = True
     os.chdir(ROOT)

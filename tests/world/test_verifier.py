@@ -38,7 +38,7 @@ def _tree(root: Path, files: dict[str, str | bytes]) -> Path:
         if isinstance(content, bytes):
             path.write_bytes(content)
         else:
-            path.write_text(content, encoding="utf-8")
+            path.write_text(content, encoding="utf-8", newline="\n")
     return root
 
 
@@ -58,9 +58,11 @@ _GIT_REDIRECT_VARS = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_
 
 
 def _git(root: Path, *args: str) -> str:
-    env = {k: v for k, v in os.environ.items() if k not in _GIT_REDIRECT_VARS}
+    env = {k: v for k, v in os.environ.items() if k not in _GIT_REDIRECT_VARS
+           and not k.startswith(("GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_")) and k != "GIT_CONFIG_COUNT"}
     done = subprocess.run(["git", "-C", str(root), "-c", "user.name=test", "-c", "user.email=test@example.org",
-                           "-c", "commit.gpgsign=false", *args], capture_output=True, text=True, check=True, env=env)
+                           "-c", "commit.gpgsign=false", "-c", "core.autocrlf=false", "-c", "core.eol=lf", *args],
+                          capture_output=True, text=True, encoding="utf-8", check=True, env=env)
     return done.stdout.strip()
 
 

@@ -95,6 +95,36 @@ def test_public_text_problems():
         assert public_text_problems(bad), bad
 
 
+@pytest.mark.parametrize("identity", ["runner", "root", "service", "private-audit-user"])
+def test_static_hygiene_is_host_independent_but_runtime_values_are_redacted(monkeypatch, identity):
+    import vkm_jobs.redact as module
+
+    monkeypatch.setattr(module.getpass, "getuser", lambda: identity)
+    monkeypatch.setattr(module.socket, "gethostname", lambda: "private-audit-host")
+    assert public_text_problems("runner executes a service at the root") == []
+    assert public_text_problems(identity, identifiers=[identity])
+    red = Redactor(include_defaults=False)
+    payload = {"runner": {"python": "3.13.5"}, "root": "logical", "service": "logical", "note": identity}
+    assert red.obj(payload) == {"runner": {"python": "3.13.5"}, "root": "logical", "service": "logical",
+                                "note": "<NAME>"}
+
+
+def test_dynamic_identity_keys_are_redacted_and_collisions_block():
+    red = Redactor(include_defaults=False, identifiers=["runner", "private-audit-host"])
+    assert red.obj({"runner": {"python": "3.13.5"}, "meta": {"runner": "value"}}) == {
+        "runner": {"python": "3.13.5"}, "meta": {"<NAME>": "value"}}
+    for obj in ({"meta": {"runner": 1, "private-audit-host": 2}},
+                {"meta": {"runner": 1, "<NAME>": 2}}):
+        with pytest.raises(ToolFailure, match="merge distinct"):
+            red.obj(obj)
+
+
+def test_path_key_collision_cannot_drop_data(tmp_path):
+    red = Redactor({"<VKM_WORK>": tmp_path}, include_defaults=False, identifiers=[])
+    with pytest.raises(ToolFailure, match="merge distinct"):
+        red.obj({str(tmp_path): 1, "<VKM_WORK>": 2})
+
+
 # ------------------------------------------------------------------------------------------------ spec pieces
 def test_job_ids_timeouts_checks_params():
     job_id = new_job_id("MATLAB")

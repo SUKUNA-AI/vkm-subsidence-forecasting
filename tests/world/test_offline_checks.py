@@ -48,9 +48,9 @@ def test_false_green_stats_fail(stats):
     assert CHECKS.test_status(stats, 0) == "FAIL"
 
 
-def test_known_missing_dependency_is_not_counted_as_pass():
+def test_known_missing_host_tool_is_not_counted_as_pass():
     stats = {"selected": 2, "passed": 1, "skipped": 1,
-             "not_run": [{"nodeid": "tests/corpus/test_figures_raster.py", "reason": "missing cv2"}]}
+             "not_run": [{"nodeid": "tests/corpus/test_extract_djvu.py", "reason": "DjVuLibre not installed (NOT_RUN)"}]}
     assert CHECKS.test_status(stats, 0) == "PASS_WITH_NOT_RUN"
 
 
@@ -60,12 +60,58 @@ def test_external_deselection_is_not_counted_as_pass():
 
 
 def test_skip_allowance_is_module_and_reason_specific():
-    assert CHECKS.allowed_skip("tests/corpus/test_figures_raster.py", "could not import 'cv2': No module named 'cv2'")
+    assert CHECKS.allowed_skip("tests/corpus/test_extract_djvu.py", "DjVuLibre not installed (NOT_RUN)")
+    assert not CHECKS.allowed_skip("tests/corpus/test_figures_raster.py", "could not import 'cv2': No module named 'cv2'")
     assert not CHECKS.allowed_skip("tests/world/test_foundation.py", "could not import 'cv2': No module named 'cv2'")
     assert not CHECKS.allowed_skip("tests/corpus/test_figures_raster.py", "unrelated new reason")
     missing = "could not import 'cv2': No module named 'cv2'"
-    assert CHECKS.allowed_skip("tests/corpus/test_figures_pdf.py::test_glyph_outline_date_labels_are_read", missing)
+    assert not CHECKS.allowed_skip("tests/corpus/test_figures_pdf.py::test_glyph_outline_date_labels_are_read", missing)
     assert not CHECKS.allowed_skip("tests/corpus/test_figures_pdf.py::test_unrelated_new_check", missing)
+
+
+@pytest.mark.parametrize("nodeid,reason", CHECKS.WINDOWS_NOT_RUN)
+def test_posix_specific_skips_are_only_allowed_on_windows(nodeid, reason):
+    assert CHECKS.allowed_skip(nodeid, reason, host_platform="win32")
+    assert not CHECKS.allowed_skip(nodeid, reason, host_platform="linux")
+    assert not CHECKS.allowed_skip(nodeid, "new unrelated reason", host_platform="win32")
+    assert CHECKS.test_status({"selected": 2, "passed": 1, "skipped": 1,
+                              "not_run": [{"nodeid": nodeid, "reason": reason}]}, 0) == "PASS_WITH_NOT_RUN"
+
+
+def test_missing_windows_symlink_privilege_is_still_a_failure():
+    assert not CHECKS.allowed_skip("tests/qgis/test_unit.py::test_symlink_escape_if_supported",
+                                   "Symlink privilege unavailable", host_platform="win32")
+    assert not CHECKS.allowed_skip("tests/corpus/test_backup_manifest.py::test_symlinks_are_never_followed",
+                                   "symlinks are not permitted here", host_platform="win32")
+
+
+def test_windows_selection_is_explicit_and_does_not_include_live_corpus(tmp_path):
+    for rel in ("tests/world/test_validation.py", "tests/engineering/test_jobs_units.py", "tests/qgis/test_unit.py",
+                "tests/corpus/test_nightly_summary.py", "tests/corpus/test_search_live.py",
+                "tests/evidence/test_production_evidence.py", "tests/datasets/test_native.py"):
+        path = tmp_path / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("def test_ok(): pass\n", encoding="utf-8")
+    selected = {p.relative_to(tmp_path).as_posix() for p in CHECKS.test_files(tmp_path, "windows-offline")}
+    assert len(selected) == 6 and "tests/corpus/test_search_live.py" not in selected
+
+
+def test_actual_new_fast_suites_are_mandatory_in_linux_and_windows_selection():
+    for suite in ("corpus-offline", "windows-offline"):
+        selected = {p.relative_to(ROOT).as_posix() for p in CHECKS.test_files(ROOT, suite)}
+        assert {"tests/evidence/test_production_evidence.py", "tests/datasets/test_native.py"} <= selected
+    world = set(CHECKS.test_files(ROOT, "world-integrity"))
+    assert world == set((ROOT / "tests/world").rglob("test_*.py"))
+
+
+def test_vendor_gis_rehearsal_has_explicit_external_marker():
+    import ast
+
+    tree = ast.parse((ROOT / "tests/datasets/test_dataset_runtime.py").read_text(encoding="utf-8"))
+    test = next(node for node in tree.body if isinstance(node, ast.FunctionDef)
+                and node.name == "test_native_runtime_rehearsal")
+    assert any(ast.unparse(decorator) == "pytest.mark.qgis_runtime" for decorator in test.decorator_list)
+    assert "not qgis_runtime" in CHECKS.MARKER_EXPRESSION
 
 
 def test_frozen_object_missing_fails_even_when_verifier_is_nonblocking():

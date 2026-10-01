@@ -50,8 +50,9 @@ CORE_SET: dict[str, Any] = {
     "exclude": [".lock", "*.tmp", "*.tmp-*", "*/.rsync-partial/*", "receipts/backup/*", "derived/dossiers/.tmp-*",
                 "derived/dossiers/.old-*"],
     # files that may change between the source manifest and the copy (pointers, the DuckDB file replaced by a
-    # reconcile, receipts and logs being written): a difference there is a warning, never corruption
-    "volatile": ["CURRENT", "STATUS", "latest.json", "LATEST", "duckdb/*", "logs/*", "receipts/*",
+    # reconcile, receipts and logs being written). Only these declared mutable paths may differ with WARN;
+    # a different mtime never excuses a mismatch of an immutable object.
+    "volatile": ["CURRENT", "STATUS", "latest.json", "LATEST", "duckdb/*", "logs/*",
                  "canonical/_snapshots/candidates/*", "derived/dossiers/*"],
     # late-interaction token packs (derived/embeddings/**/packs/<pack_id>/, ~6 GB each) are rebuildable from the
     # multivector Parquet parts (`embed pack`, CPU, minutes): "current" = only the pack named by packs/CURRENT,
@@ -294,9 +295,10 @@ def compare(src_header: dict[str, Any], src: dict[str, tuple], dst_header: dict[
 
     * missing — in the source, not in the copy (volatile: warning; otherwise FAIL);
     * corrupt — same path, same modification second, other size or sha256, not volatile (FAIL);
-    * changed_after_manifest — other content and another modification time: the file changed on CORE between the
-      manifest and the copy (warning; ``stable_changed`` counts the non-volatile ones: an immutable file rewritten);
-    * extra — in the copy only (warning).
+    * changed_after_manifest — other content/time, or a volatile change. A changed timestamp is diagnostic only:
+      an immutable object with different bytes still FAILs (``stable`` counts those objects).
+    * extra — in the copy only; immutable extras FAIL, declared volatile extras WARN.
+    * cache_conflicts — a re-hash contradicted a previous hash cache; FAIL until independently reconciled.
     """
     volatile = list(volatile if volatile is not None else (src_header.get("set") or {}).get("volatile") or [])
     missing, missing_volatile, corrupt, changed, stable_changed = [], [], [], [], []
@@ -317,13 +319,17 @@ def compare(src_header: dict[str, Any], src: dict[str, tuple], dst_header: dict[
             continue
         corrupt.append(rel)
     extra = [rel for rel in dst if rel not in src]
-    verdict = "FAIL" if (missing or corrupt) else ("WARN" if (missing_volatile or changed or extra) else "PASS")
+    extra_immutable = [rel for rel in extra if not matches_any(rel, volatile)]
+    cache_conflicts = sum((h.get("cache_conflicts") or {}).get("count", 0) for h in (src_header, dst_header))
+    unsafe = bool(missing or corrupt or stable_changed or extra_immutable or cache_conflicts)
+    verdict = "FAIL" if unsafe else ("WARN" if (missing_volatile or changed or extra) else "PASS")
 
     def side(h: dict[str, Any], entries: dict[str, tuple]) -> dict[str, Any]:
         return {"created_at": h.get("created_at"), "label": h.get("label"), "files": len(entries),
                 "bytes": sum(e[0] for e in entries.values()), "digest": h.get("digest")}
 
     return {"schema": COMPARE_SCHEMA, "verdict": verdict, "compared_at": now_iso(),
+            "promotion_allowed": not unsafe, "cache_conflicts": cache_conflicts,
             "source": side(src_header, src), "target": side(dst_header, dst),
             "digest_equal": src_header.get("digest") == dst_header.get("digest"), "equal": equal,
             "missing": {"count": len(missing), "examples": _examples(missing)},
@@ -331,7 +337,7 @@ def compare(src_header: dict[str, Any], src: dict[str, tuple], dst_header: dict[
             "corrupt": {"count": len(corrupt), "examples": _examples(corrupt)},
             "changed_after_manifest": {"count": len(changed), "stable": len(stable_changed),
                                        "examples": _examples(changed)},
-            "extra": {"count": len(extra), "examples": _examples(extra)}}
+            "extra": {"count": len(extra), "immutable": len(extra_immutable), "examples": _examples(extra)}}
 
 
 def verify(root: Path, manifest: dict[str, tuple], prefixes: Iterable[str] = (), *, jobs: int = 1,

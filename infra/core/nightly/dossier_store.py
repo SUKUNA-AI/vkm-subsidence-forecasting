@@ -10,8 +10,9 @@ Reads the JSON lines of ``dossiers.py`` (run inside the API container) and write
 * ``index.json`` — per topic: counts and ids of sections (core tier / rest), catalogue processes and models, formulas,
   sources, pages, gaps, whether the topic's own process PC-xx (or model family MM-*) is among them, warnings, time.
 
-The directory is swapped in atomically, ``derived/dossiers/CURRENT`` names it, the newest ``--keep`` snapshot
-directories stay. If no dossier succeeded, the previous cache is left untouched. The index is compared with the
+The directory is swapped in atomically, ``derived/dossiers/CURRENT`` names it, CURRENT plus the newest ``--keep - 1``
+canonical snapshot identities stay (not ordered by mtime). Unknown directory names are preserved. If no dossier
+succeeded, the previous cache is left untouched. The index is compared with the
 previous nightly run (``--prev-index``): topics whose sections or processes changed, big changes, self-hit drop.
 
     python3 dossier_store.py --in raw/dossiers.jsonl --dossiers-dir <data root>/derived/dossiers \\
@@ -21,9 +22,11 @@ previous nightly run (``--prev-index``): topics whose sections or processes chan
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import hashlib
 import json
 import os
+import re
 import shutil
 import sys
 import time
@@ -32,6 +35,38 @@ from typing import Any, Iterable
 
 SCHEMA = "vkm.dossier_index/1"
 SNAPSHOT_RE_CHARS = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-")
+SNAPSHOT_ID = re.compile(r"snap-(\d{8}T\d{6}Z)-([0-9a-f]+)\Z")
+
+
+def retention_plan(names: Iterable[str], current: str, keep: int) -> dict[str, Any]:
+    """Keep CURRENT plus the newest canonical snapshot identities, independently of filesystem timestamps.
+
+    Unknown names cannot be ordered safely and are preserved for inspection. The current snapshot counts toward
+    the limit even when it is older than another snapshot (for example after rollback).
+    """
+    if isinstance(keep, bool) or not isinstance(keep, int) or keep < 1:
+        raise ValueError("keep must be a positive integer")
+    known, unknown = [], []
+    for name in set(names) | {current}:
+        match = SNAPSHOT_ID.fullmatch(name)
+        try:
+            if match is None:
+                raise ValueError("not a canonical snapshot identity")
+            stamp = dt.datetime.strptime(match[1], "%Y%m%dT%H%M%SZ")
+        except ValueError:
+            unknown.append(name)
+        else:
+            known.append((stamp, name))
+    ordered = [name for _, name in sorted(known, reverse=True) if name != current]
+    selected = [current, *ordered[:keep - 1]]
+    return {"basis": "canonical_snapshot_identity", "keep": selected, "delete": sorted(ordered[keep - 1:]),
+            "unclassified_preserved": sorted(n for n in unknown if n != current)}
+
+
+def _safe_component(value: str, label: str) -> None:
+    if (not isinstance(value, str) or not value or value in (".", "..")
+            or value.startswith(".") or set(value) - SNAPSHOT_RE_CHARS):
+        raise ValueError(f"bad {label}")
 
 
 def read_lines(path: Path) -> list[dict[str, Any]]:
@@ -160,17 +195,28 @@ def _write_json(path: Path, obj: Any) -> str:
 def store(lines: list[dict[str, Any]], dossiers_dir: Path, snapshot: str, *, run_tag: str, keep: int = 5,
           dry_run: bool = False) -> tuple[dict[str, Any], bool]:
     """Write the snapshot directory (unless dry_run or nothing succeeded); returns (index, stored)."""
-    if not snapshot or set(snapshot) - SNAPSHOT_RE_CHARS:
-        raise ValueError(f"bad snapshot id: {snapshot!r}")
+    _safe_component(snapshot, "snapshot id")
+    _safe_component(run_tag, "run tag")
+    if dossiers_dir.is_symlink():
+        raise ValueError("dossier root must not be a symlink")
     meta = next((x for x in lines if x.get("kind") == "meta"), {})
     end = next((x for x in lines if x.get("kind") == "end"), {})
     dossiers = [x for x in lines if x.get("kind") == "dossier"]
+    seen_topics: set[str] = set()
+    for line in dossiers:
+        _safe_component(line.get("topic_id"), "topic id")
+        if line["topic_id"].casefold() in seen_topics or line["topic_id"].lower() == "index":
+            raise ValueError("duplicate or reserved topic id")
+        seen_topics.add(line["topic_id"].casefold())
+    dirs = list(dossiers_dir.iterdir()) if dossiers_dir.is_dir() else []
+    plan = retention_plan((p.name for p in dirs if p.is_dir() and not p.is_symlink()
+                           and not p.name.startswith(".")), snapshot, keep)
     entries: list[dict[str, Any]] = []
     stored = False
     tmp = dossiers_dir / f".tmp-{run_tag}"
     any_ok = any(x.get("ok") for x in dossiers)
     if any_ok and not dry_run:
-        tmp.mkdir(parents=True, exist_ok=True)
+        tmp.mkdir(parents=True, exist_ok=False)
     for x in dossiers:
         sha = None
         if x.get("ok") and not dry_run:
@@ -178,11 +224,14 @@ def store(lines: list[dict[str, Any]], dossiers_dir: Path, snapshot: str, *, run
         entries.append(index_entry(x, sha))
     index = {"schema": SCHEMA, "snapshot": snapshot, "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
              "run": run_tag, "generator": {"version": meta.get("version"), "budget": meta.get("budget")},
-             "truncated": bool(end.get("truncated")), "summary": summarize(entries), "topics": entries}
+             "truncated": bool(end.get("truncated")), "summary": summarize(entries), "topics": entries,
+             "retention": plan}
     if any_ok and not dry_run:
         _write_json(tmp / "index.json", index)
         final = dossiers_dir / snapshot
         old = dossiers_dir / f".old-{run_tag}"
+        if final.is_symlink() or old.exists() or old.is_symlink():
+            raise ValueError("dossier publication target is unsafe or staging is occupied")
         if final.exists():
             os.replace(final, old)
         os.replace(tmp, final)
@@ -190,14 +239,12 @@ def store(lines: list[dict[str, Any]], dossiers_dir: Path, snapshot: str, *, run
         (dossiers_dir / "CURRENT.tmp").write_text(snapshot + "\n", encoding="utf-8")
         os.replace(dossiers_dir / "CURRENT.tmp", dossiers_dir / "CURRENT")
         stored = True
-        dirs = sorted((p for p in dossiers_dir.iterdir() if p.is_dir() and not p.name.startswith(".")),
-                      key=lambda p: p.stat().st_mtime, reverse=True)
-        for p in dirs[max(1, keep):]:
-            if p.name != snapshot:
+        for name in plan["delete"]:
+            p = dossiers_dir / name
+            # Recheck containment/symlink after publication; a substituted path must never be traversed by cleanup.
+            if p.is_dir() and not p.is_symlink() and p.resolve().parent == dossiers_dir.resolve():
                 shutil.rmtree(p, ignore_errors=True)
-        for p in dossiers_dir.iterdir():            # leftovers of interrupted runs
-            if p.is_dir() and p.name.startswith((".tmp-", ".old-")) and p.name != tmp.name:
-                shutil.rmtree(p, ignore_errors=True)
+        # Other .tmp/.old directories may belong to interrupted or active writers. This run never removes them.
     return index, stored
 
 

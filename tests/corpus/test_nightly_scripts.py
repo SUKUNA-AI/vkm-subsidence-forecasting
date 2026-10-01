@@ -142,6 +142,41 @@ def test_backup_fails_without_a_fresh_manifest_and_keeps_nothing(tmp_path):
     assert status["status"] == "FAILED" and status["failed_step"] == "manifest" and "LATEST.json" in status["note"]
 
 
+@pytest.mark.parametrize("rel,expected", [
+    ("canonical/pages/source_id=VKM-SRC-001/run=RUN-1/part-00000.parquet", "FAIL"),
+    ("duckdb/vkm_corpus.duckdb", "WARN"),
+])
+def test_change_after_manifest_cannot_promote_immutable_bytes(tmp_path, rel, expected):
+    data, compose = make_core(tmp_path)
+    env = backup_env(tmp_path, data)
+    assert prepare(compose).returncode == 0
+    first_run = _run(["bash", str(EDGE / "vkm_backup.sh")], env)
+    assert first_run.returncode == 0, first_run.stdout + first_run.stderr
+    snaps = tmp_path / "edge/backup/snapshots"
+    previous = os.readlink(snaps / "latest")
+    original = (snaps / previous / rel).read_bytes()
+
+    # CORE manifest is frozen first; then a writer changes both size/content and mtime. An mtime change must not
+    # turn immutable corruption into an acceptable race. A declared mutable DuckDB projection remains WARN.
+    assert prepare(compose).returncode == 0
+    path = data / rel
+    st = path.stat()
+    path.write_bytes(b"changed after manifest")
+    os.utime(path, ns=(st.st_atime_ns, st.st_mtime_ns + 60_000_000_000))
+    result = _run(["bash", str(EDGE / "vkm_backup.sh")], env)
+    status = json.loads((tmp_path / "edge/backup/status/latest.json").read_text(encoding="utf-8"))
+    assert status["verdict"] == expected, result.stdout + result.stderr
+    assert (snaps / previous / rel).read_bytes() == original
+    assert status["compare"]["promotion_allowed"] is (expected == "WARN")
+    if expected == "FAIL":
+        assert result.returncode == 1 and status["status"] == "FAILED"
+        assert os.readlink(snaps / "latest") == previous
+        assert list(snaps.glob("*.failed"))
+    else:
+        assert result.returncode == 0 and status["status"] == "DONE"
+        assert os.readlink(snaps / "latest") != previous
+
+
 # ---------------------------------------------------------------- forced command of the backup key
 def test_backup_gate_dispatch(tmp_path):
     data, compose = make_core(tmp_path)
@@ -262,7 +297,7 @@ def test_nightly_dry_run_checks_the_configuration(tmp_path):
     h = nightly_host(tmp_path)
     r = _run(["bash", str(CORE / "nightly_checks.sh"), "--dry-run"], h["env"])
     assert r.returncode == 0, r.stdout + r.stderr
-    assert "dossiers planned: 117 topics" in r.stdout and "MCP smoke plans 45 of 45" in r.stdout
+    assert "dossiers planned: 117 topics" in r.stdout and "MCP smoke plans 49 of 49" in r.stdout
     assert not (h["data"] / "receipts" / "nightly").exists()
 
 
