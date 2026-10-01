@@ -30,7 +30,8 @@ def test_additive_dataset_and_deployment_contracts_have_valid_json_schemas():
         "native_serving_profile", "phase1_migration_inputs", "phase1_migration_plan",
         "phase1_migration_approval", "semantic_extraction_plan", "semantic_extraction_job",
         "semantic_candidate_response", "semantic_model_identity", "late_pack_policy_request",
-        "late_pack_policy_qualification")} <= output.keys()
+        "late_pack_policy_qualification", "accounting_publication_request", "accounting_publication",
+        "accounting_publication_approval")} <= output.keys()
     for raw in output.values():
         jsonschema.Draft202012Validator.check_schema(json.loads(raw))
     generation = json.loads(output["generation.schema.json"])

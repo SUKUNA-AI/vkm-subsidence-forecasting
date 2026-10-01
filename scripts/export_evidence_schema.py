@@ -25,6 +25,7 @@ from vkm_evidence.cli import TrustedQualificationRegistration  # noqa: E402
 from vkm_evidence.migration import FrozenMigrationInputs, MigrationPlan, MigrationApproval  # noqa: E402
 from vkm_evidence.extraction import ExtractionPlan, ExtractionJob, CandidateResponse, ExtractionModelIdentity  # noqa: E402
 from vkm_corpus.update.pack_policy import PackPolicyRequest, PackPolicyQualification  # noqa: E402
+from vkm_corpus.coverage.publication import PublicationRequest, PublicationDescriptor, PublicationApproval  # noqa: E402
 
 MODELS = {"evidence_batch": EvidenceBatch, "object_coverage": CoverageLedger,
           "campaign": CampaignManifest, "generation": GenerationManifest, "update_runtime": RuntimeConfig,
@@ -42,7 +43,9 @@ MODELS = {"evidence_batch": EvidenceBatch, "object_coverage": CoverageLedger,
           "phase1_migration_plan": MigrationPlan, "phase1_migration_approval": MigrationApproval,
           "semantic_extraction_plan": ExtractionPlan, "semantic_extraction_job": ExtractionJob,
           "semantic_candidate_response": CandidateResponse, "semantic_model_identity": ExtractionModelIdentity,
-          "late_pack_policy_request": PackPolicyRequest, "late_pack_policy_qualification": PackPolicyQualification}
+          "late_pack_policy_request": PackPolicyRequest, "late_pack_policy_qualification": PackPolicyQualification,
+          "accounting_publication_request": PublicationRequest,
+          "accounting_publication": PublicationDescriptor, "accounting_publication_approval": PublicationApproval}
 
 
 def dataset_version_schema():

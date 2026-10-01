@@ -153,9 +153,11 @@ crop/band, token/size/budget failures, tampered Parquet, missing receipt и retr
 после сбоя между canonical commit и accounting ACK. Модели в тестах подменены,
 сетевой OCR и GPU не используются.
 
-До production остаются: qualification на разрешённом реальном наборе; согласование
-политик/ACL и retention частных accounting sidecars; включение sidecars в реальный
-staging→canonical publication/backup; проверка восстановимости на целевой файловой
-системе. Исторические outputs не получают новый verified report автоматически:
+Доставка, receiving gate и backup closure реализованы отдельным
+[publication contract](ACCOUNTING_PUBLICATION_RU.md). До production остаются:
+qualification на разрешённом реальном наборе; согласование политик/ACL и retention
+частных accounting sidecars; ввод updated publication/backup tools и approved
+campaign на реальных узлах; проверка восстановления на целевой файловой системе.
+Исторические outputs не получают новый verified report автоматически:
 старые cached артефакты можно переучесть CPU-only, но отсутствие сохранённой истории
 попыток или pre-raw detections должно остаться явно указанным.

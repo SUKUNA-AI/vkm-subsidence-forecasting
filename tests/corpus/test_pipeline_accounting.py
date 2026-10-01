@@ -298,7 +298,7 @@ def test_new_canonical_head_without_binding_invalidates_previous_complete_ledger
     newer = commit_source(open_root(cfg.data_root, "STAGING"), source_id=source.source_id,
         source_sha256=source.sha256, run_id="RUN-20260928T000011Z-0000c001",
         tables={name: [] for name in DOCUMENT_DATASETS},
-        document_processing_status="COMPLETE", page_count=3, require_lease=False)
+        document_processing_status="COMPLETE", page_count=3, require_lease=False, accounting_required=True)
     assert newer.commit_id != old["commit_id"]
     ledger = cm.load_ledger(cfg)[source.source_id]
     assert ledger["accounting_state"] == "MISSING_OR_INVALID"

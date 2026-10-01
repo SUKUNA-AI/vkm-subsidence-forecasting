@@ -98,6 +98,39 @@ def list_markers(layout: CanonLayout) -> list[dict[str, Any]]:
     return out
 
 
+def accounting_lineage(marker, resolve_parent, *, limit=4096):
+    """Validate monotone source accounting across the complete immutable chain.
+
+    Missing ancestors remain unresolved (callers must not admit a downgrade).
+    No partition or private content is read by this metadata-only gate.
+    """
+    source = marker.get("key")
+    head_required = marker.get("accounting_required", False)
+    lineage, seen = [], set()
+    while marker is not None:
+        body = {k: v for k, v in marker.items() if not k.startswith("_")}
+        cid = body.get("commit_id")
+        if (len(lineage) >= limit or cid in seen or body.get("commit_format") != "1"
+                or ids.commit_id(body) != cid or body.get("key") != source
+                or body.get("source_id") != source
+                or type(body.get("accounting_required", False)) is not bool):
+            raise ValueError("ACCOUNTING_LINEAGE_INVALID")
+        if body.get("accounting_required", False) and not head_required:
+            raise ValueError("ACCOUNTING_REQUIRED_DOWNGRADE_FORBIDDEN")
+        # Each later node must retain the flag once it has been introduced.
+        if lineage and body.get("accounting_required", False) and not lineage[-1].get("accounting_required", False):
+            raise ValueError("ACCOUNTING_REQUIRED_DOWNGRADE_FORBIDDEN")
+        seen.add(cid)
+        lineage.append(marker)
+        parent = body.get("parent_commit_id")
+        if parent is None:
+            break
+        marker = resolve_parent(parent)
+        if marker is None:
+            raise ValueError("ACCOUNTING_LINEAGE_INCOMPLETE")
+    return tuple(lineage)
+
+
 def chain_head(markers: Iterable[Mapping[str, Any]], key: str,
                allowed: set[str] | None = None) -> tuple[str | None, list[str]]:
     """Head of the parent chain of ``key`` among ``markers`` (optionally only commit ids in ``allowed``).
@@ -178,7 +211,8 @@ def _commit(layout: CanonLayout, *, scope: CommitScope, key: str, run_id: str, t
     digests = {n: (t.num_rows, ca.digest_table(n, t, VOLATILE_COLUMNS).hex()) for n, t in built.items()}
     if parent is not None:
         pm = marker_by_id(layout, parent)
-        if pm is not None and _digests_equal(pm, digests):
+        if pm is not None and _digests_equal(pm, digests) and \
+                bool(pm.get("accounting_required")) == bool(extra.get("accounting_required")):
             return CommitResult(key, parent, pm["_path"], pm.get("parent_commit_id"), True,
                                 {n: FileEntry.from_json(e) for n, e in pm["datasets"].items()})
     entries: dict[str, FileEntry] = {}
@@ -218,10 +252,19 @@ def commit_source(layout: CanonLayout, *, source_id: str, source_sha256: str, ru
                   tables: Mapping[str, Any], artifact_rows: Iterable[Any] = (), parent_commit_id: Any = AUTO,
                   document_processing_status: str | None = None, page_count: int | None = None,
                   host_role: str = "WORKSTATION", code_revision: str = "unknown",
-                  committed_at: datetime | None = None, require_lease: bool = True) -> CommitResult:
+                  committed_at: datetime | None = None, require_lease: bool = True,
+                  accounting_required: bool = False) -> CommitResult:
     """Commit the complete rebuilt state of one source (all document datasets, possibly empty)."""
     extra = {"source_id": source_id, "source_sha256": source_sha256,
              "document_processing_status": document_processing_status, "page_count": page_count}
+    if type(accounting_required) is not bool:
+        raise ValueError("ACCOUNTING_REQUIRED_FLAG_INVALID")
+    if accounting_required:
+        extra["accounting_required"] = True
+    # An accounted chain cannot silently downgrade through the legacy writer.
+    head = local_head(layout, source_id)
+    if head and not accounting_required and (marker_by_id(layout, head) or {}).get("accounting_required"):
+        raise ValueError("ACCOUNTING_REQUIRED_DOWNGRADE_FORBIDDEN")
     return _commit(layout, scope=CommitScope.SOURCE, key=source_id, run_id=run_id, tables=tables,
                    required=DOCUMENT_DATASETS, artifact_rows=artifact_rows, parent_commit_id=parent_commit_id,
                    extra=extra, host_role=host_role, code_revision=code_revision, committed_at=committed_at,

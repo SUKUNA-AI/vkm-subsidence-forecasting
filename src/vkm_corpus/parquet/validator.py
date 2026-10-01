@@ -67,6 +67,8 @@ class ValidationOptions:
     expected_sources: int | None = None   # e.g. 251 for the real register
     parent_manifest: dict[str, Any] | None = None   # for B07 (same object_id ⇒ same raw_content_sha256)
     trace_sample: int = 20
+    publication_approval: Any = None
+    policy_path: Any = None
 
 
 class Validator:
@@ -101,6 +103,20 @@ class Validator:
     def run(self) -> dict[str, Any]:
         from vkm_corpus.duckdb.build import apply_sql, attach_manifest, connect
 
+        from vkm_corpus.coverage.publication import snapshot_accounting
+        try:
+            accounting = snapshot_accounting(self.layout.root, self.manifest,
+                approval=self.opt.publication_approval, policy_path=self.opt.policy_path)
+            self.add("A00", "accounting", "pinned publication closure and source heads", 0,
+                     skipped=accounting["status"] == "NOT_AVAILABLE", note=accounting["status"])
+        except (OSError, ValueError, KeyError, PermissionError):
+            accounting = {"status": "BLOCKED"}
+            self.add("A00", "accounting", "pinned publication closure and source heads", 1,
+                     note="PUBLICATION_NOT_VERIFIED")
+            # Policy must be checked before reading any private partitions.
+            return {"validator_version": "1", "status": "FAIL", "blocking_failures": 1, "warnings": 0,
+                    "accounting": accounting, "counts": {}, "checks": [c.to_json() for c in self.checks]}
+
         self.check_files()
         counts: dict[str, Any] = {}
         if any(c.status == CheckStatus.FAIL for c in self.checks if c.check_id in ("A01", "A02")):
@@ -121,7 +137,7 @@ class Validator:
                 self.con = None
         blocking = [c for c in self.checks if c.status == CheckStatus.FAIL]
         warnings = [c for c in self.checks if c.status == CheckStatus.WARN]
-        return {"validator_version": "1", "status": "FAIL" if blocking else "PASS",
+        return {"validator_version": "1", "status": "FAIL" if blocking else "PASS", "accounting": accounting,
                 "blocking_failures": len(blocking), "warnings": len(warnings),
                 "options": {"deep": self.opt.deep, "acceptance": self.opt.acceptance,
                             "expected_sources": self.opt.expected_sources},

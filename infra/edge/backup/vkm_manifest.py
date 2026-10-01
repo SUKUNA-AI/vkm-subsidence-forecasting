@@ -46,9 +46,9 @@ EXAMPLES = 20
 # crosses "/").
 CORE_SET: dict[str, Any] = {
     "name": "vkm-core-data/1",
-    "include": [".vkm_root.json", "canonical", "artifacts", "duckdb", "derived", "receipts", "logs"],
+    "include": [".vkm_root.json", "canonical", "artifacts", "accounting", "duckdb", "derived", "receipts", "logs"],
     "exclude": [".lock", "*.tmp", "*.tmp-*", "*/.rsync-partial/*", "receipts/backup/*", "derived/dossiers/.tmp-*",
-                "derived/dossiers/.old-*"],
+                "derived/dossiers/.old-*", "accounting/tmp/*"],
     # files that may change between the source manifest and the copy (pointers, the DuckDB file replaced by a
     # reconcile, receipts and logs being written). Only these declared mutable paths may differ with WARN;
     # a different mtime never excuses a mismatch of an immutable object.
@@ -367,11 +367,153 @@ def verify(root: Path, manifest: dict[str, tuple], prefixes: Iterable[str] = (),
             ok += 1
         else:
             corrupt.append(rel)
-    return {"schema": VERIFY_SCHEMA, "verdict": "FAIL" if (missing or corrupt or not selected) else "PASS",
+    accounting = verify_accounting_closure(root, manifest) if not prefixes or any(
+        p == "canonical" or p.startswith("canonical/") for p in prefixes) else {"status": "NOT_RUN"}
+    return {"schema": VERIFY_SCHEMA, "verdict": "FAIL" if (missing or corrupt or not selected or
+            accounting["status"] == "FAIL") else "PASS", "accounting": accounting,
+            "full_accounting_recovery": not prefixes and not missing and not corrupt and accounting["status"] == "VERIFIED",
             "prefixes": prefixes, "files": len(selected), "bytes": sum(e[0] for e in selected.values()), "ok": ok,
             "missing": {"count": len(missing), "examples": _examples(missing)},
             "corrupt": {"count": len(corrupt), "examples": _examples(corrupt)},
             "seconds": round(time.monotonic() - t0, 1), "verified_at": now_iso()}
+
+
+def verify_accounting_closure(root: Path, entries: dict[str, tuple]) -> dict:
+    """Stdlib EDGE gate: pinned bytes/links, never scientific admission.
+
+    Receiving CORE performs the Parquet semantic check. Here the backup file
+    manifest must contain its exact immutable closure; no Python corpus runtime
+    or private source originals are needed on EDGE.
+    """
+    limit = 128 * 1024 * 1024
+    def path(rel):
+        if not isinstance(rel, str) or rel.startswith("/") or any(c in rel for c in ("\\", ":", "\0", "\n", "\r")) or \
+                any(p in ("", ".", "..") for p in rel.split("/")):
+            raise ValueError()
+        p = root / rel
+        if not p.resolve().is_relative_to(root.resolve()) or any(
+                q.is_symlink() or getattr(q, "is_junction", lambda: False)() for q in (p, *p.parents)):
+            raise ValueError()
+        return p
+    def read(rel, digest=None):
+        p = path(rel)
+        if rel not in entries or not p.is_file() or p.stat().st_size > limit:
+            raise ValueError()
+        wanted = digest or entries[rel][3]
+        if entries[rel][3] != wanted or sha256_file(p) != wanted:
+            raise ValueError()
+        return json.loads(p.read_bytes())
+    marker_paths = {}
+    for relative in entries:
+        if relative.startswith("canonical/_commits/run=") and relative.endswith(".json"):
+            marker_paths.setdefault(relative.rsplit("/", 1)[-1], []).append(relative)
+    def lineage(source_id, commit_id):
+        import re
+        if not re.fullmatch(r"VKM-SRC-\d{3}", source_id):
+            raise ValueError()
+        seen, result = set(), []
+        while commit_id is not None:
+            if not re.fullmatch(r"CMT-[a-f0-9]{16}", commit_id) or commit_id in seen or len(seen) >= 4096:
+                raise ValueError()
+            paths = marker_paths.get(source_id + "__" + commit_id + ".json", [])
+            if len(paths) != 1:
+                raise ValueError()
+            marker = read(paths[0])
+            body = {k: v for k, v in marker.items() if k not in {"commit_id", "committed_at"}}
+            digest = hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=False,
+                                               separators=(",", ":")).encode()).hexdigest()
+            flag = marker.get("accounting_required", False)
+            if ("CMT-" + digest[:16] != commit_id or marker.get("key") != source_id
+                    or marker.get("source_id") != source_id or type(flag) is not bool
+                    or (result and flag and not result[-1].get("accounting_required", False))):
+                raise ValueError()
+            seen.add(commit_id)
+            result.append(marker)
+            commit_id = marker.get("parent_commit_id")
+        return result
+    try:
+        current = path("canonical/CURRENT")
+        if not current.is_file():
+            return {"status": "NOT_RUN", "reason": "CURRENT_NOT_RESTORED"}
+        if "canonical/CURRENT" not in entries or sha256_file(current) != entries["canonical/CURRENT"][3]:
+            raise ValueError()
+        snapshot_id = current.read_text(encoding="utf-8").strip()
+        snapshot = read("canonical/_snapshots/" + snapshot_id + ".json")
+        ref = snapshot.get("inputs", {}).get("accounting_publication")
+        if ref is None:
+            if set(snapshot.get("source_heads", {})) != (set(snapshot.get("head_commits", {})) - {"REGISTRY"}):
+                raise ValueError()
+            for sid, head in snapshot.get("head_commits", {}).items():
+                if sid != "REGISTRY" and (snapshot["source_heads"][sid] != head["commit_id"] or
+                        lineage(sid, head["commit_id"])[0].get("accounting_required")):
+                    raise ValueError()
+            return {"status": "NOT_AVAILABLE"}
+        if ref["path"] != "accounting/publications/" + ref["sha256"] + ".json":
+            raise ValueError()
+        descriptor = read(ref["path"], ref["sha256"])
+        if descriptor.get("schema_version") != "vkm-accounting-publication/1" or len(descriptor["files"]) > 200_000:
+            raise ValueError()
+        files = {f["path"]: f for f in descriptor["files"]}
+        artifact_hashes = {f["sha256"] for rel, f in files.items() if rel.startswith("artifacts/")}
+        if len(files) != len(descriptor["files"]):
+            raise ValueError()
+        for rel, f in files.items():
+            p = path(rel)
+            if rel not in entries or entries[rel][0] != f["size_bytes"] or entries[rel][3] != f["sha256"] or \
+                    not p.is_file() or p.stat().st_size != f["size_bytes"]:
+                raise ValueError()
+        if snapshot["source_heads"] != {s["source_id"]: s["commit_id"] for s in descriptor["sources"]}:
+            raise ValueError()
+        def pinned(ref):
+            if ref["path"] not in files or files[ref["path"]]["sha256"] != ref["sha256"]:
+                raise ValueError()
+            return read(ref["path"], ref["sha256"])
+        expected_registry = (pinned(descriptor["registry"])["commit_id"] if descriptor.get("registry") else
+                             (descriptor.get("base") or {}).get("registry_head"))
+        if snapshot.get("registry_head") != expected_registry:
+            raise ValueError()
+        for source in descriptor["sources"]:
+            marker = pinned(source["marker"])
+            lineage(source["source_id"], source["commit_id"])
+            if (marker["commit_id"], marker["source_sha256"]) != (source["commit_id"], source["source_sha256"]):
+                raise ValueError()
+            head = snapshot.get("head_commits", {}).get(source["source_id"], {})
+            if head.get("commit_id") != source["commit_id"] or "canonical/" + head.get("marker_path", "") != source["marker"]["path"]:
+                raise ValueError()
+            for dataset, entry in marker["datasets"].items():
+                actual = [f for f in snapshot["datasets"][dataset]["files"] if f["path"] == entry["path"]]
+                if actual != [entry]:
+                    raise ValueError()
+            if source["binding"] is None:
+                if marker.get("accounting_required"):
+                    raise ValueError()
+                continue
+            binding = pinned(source["binding"])
+            if (binding["source_id"], binding["source_sha256"], binding["commit_id"], binding["accounting_state"]) != \
+                    (source["source_id"], source["source_sha256"], source["commit_id"], "ACCOUNTED"):
+                raise ValueError()
+            report = pinned(binding["report"])
+            if (report["source_id"], report["source_sha256"], report["report"]["status"]) != \
+                    (source["source_id"], source["source_sha256"], "ACCOUNTED"):
+                raise ValueError()
+            raw = set(report["raw_artifacts"].values())
+            for event_ref in report["ocr_events"]:
+                event = pinned(event_ref)
+                if (event["source_id"], event["source_sha256"]) != (source["source_id"], source["source_sha256"]):
+                    raise ValueError()
+                raw.update(event.get("outputs", []))
+            for digest in raw:
+                if digest not in artifact_hashes:
+                    raise ValueError()
+        for dataset in snapshot.get("datasets", {}).values():
+            for entry in dataset.get("files", []):
+                closure_entry = files.get("canonical/" + entry["path"])
+                if closure_entry is None or (closure_entry["sha256"], closure_entry["size_bytes"]) != (entry["sha256"], entry["bytes"]):
+                    raise ValueError()
+        return {"status": "VERIFIED", "descriptor_sha256": ref["sha256"],
+                "scientific_admission": "NOT_ESTABLISHED"}
+    except (OSError, ValueError, KeyError, TypeError):
+        return {"status": "FAIL", "reason": "ACCOUNTING_CLOSURE_NOT_RESTORABLE"}
 
 
 def new_bytes(src: dict[str, tuple], previous: dict[str, tuple]) -> dict[str, int]:
@@ -541,6 +683,11 @@ def cmd_build(args: argparse.Namespace) -> int:
         return 2
     header, entries = build(root, files, cache=_load_cache(args.cache), rehash_all=args.rehash_all, jobs=args.jobs,
                             header_extra=extra)
+    accounting = verify_accounting_closure(root, entries)
+    if accounting["status"] == "FAIL":
+        _dump({"status": "FAIL", "accounting": accounting}, None)
+        return 2  # no manifest/pointer promotion on an incomplete required closure
+    header["accounting"] = accounting
     write_manifest(Path(args.out), header, entries)
     summary = {k: header[k] for k in ("files", "bytes", "digest", "hashed", "hashed_bytes", "reused",
                                       "cache_conflicts", "seconds", "created_at")}

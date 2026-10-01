@@ -419,7 +419,20 @@ def bind_commit(root, report_ref, *, commit_id, source_id, source_sha256):
     marker = _commit_marker(root, source_id, commit_id)
     if marker["source_sha256"] != source_sha256:
         raise ValueError("ACCOUNTING_COMMIT_SOURCE_MISMATCH")
+    verify_committed_outputs(root, report, marker)
+    receipt = {"schema": "vkm-pipeline-accounting-commit/1", "commit_id": commit_id,
+        "source_id": source_id, "source_sha256": source_sha256, "report": report_ref,
+        "commit_marker_sha256": record_hash(marker),
+        "accounting_state": report["report"]["status"], "scientific_admission": "NOT_ESTABLISHED",
+        "directory_durability": "FSYNC_COMPLETED" if os.name == "posix" else "NOT_QUALIFIED",
+        "physical_durability": "NOT_QUALIFIED"}
+    return _publish(Path(root), "commits", receipt)
+
+
+def verify_committed_outputs(root, report, marker):
+    """Read-only deep check, shared by local binding and receiving publication."""
     import pyarrow.parquet as pq
+    source_id, source_sha256 = report["source_id"], report["source_sha256"]
 
     actual = {}
     for name in ("blocks", "tables", "formulas", "figures"):
@@ -437,13 +450,6 @@ def bind_commit(root, report_ref, *, commit_id, source_id, source_sha256):
                 actual[row["object_id"]] = row["content_sha256"]
     if actual != report["output_objects"]:
         raise ValueError("ACCOUNTING_COMMITTED_OUTPUTS_MISMATCH")
-    receipt = {"schema": "vkm-pipeline-accounting-commit/1", "commit_id": commit_id,
-        "source_id": source_id, "source_sha256": source_sha256, "report": report_ref,
-        "commit_marker_sha256": record_hash(marker),
-        "accounting_state": report["report"]["status"], "scientific_admission": "NOT_ESTABLISHED",
-        "directory_durability": "FSYNC_COMPLETED" if os.name == "posix" else "NOT_QUALIFIED",
-        "physical_durability": "NOT_QUALIFIED"}
-    return _publish(Path(root), "commits", receipt)
 
 
 def _commit_marker(root, source_id, commit_id):

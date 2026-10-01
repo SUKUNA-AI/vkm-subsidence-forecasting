@@ -201,7 +201,8 @@ def commit_source_once(cfg: PipelineConfig, run_id: str, src: SourceInput, *, st
     try:
         res = commit_source(layout, source_id=src.source_id, source_sha256=src.sha256, run_id=run_id,
                             tables=rows.tables, artifact_rows=art_rows, document_processing_status=rows.document_status,
-                            page_count=rows.page_count, host_role=host_role, code_revision=code_revision)
+                            page_count=rows.page_count, host_role=host_role, code_revision=code_revision,
+                            accounting_required=True)
         accounting_receipt = bind_commit(cfg.data_root, accounting_report, commit_id=res.commit_id,
                                         source_id=src.source_id, source_sha256=src.sha256)
     finally:

@@ -69,6 +69,8 @@ class RuntimeConfig(StrictModel):
     observations: tuple[Observation, ...] = ()
     quality_gates: dict[Sha256, QualityGateBinding] = Field(default_factory=dict)
     native_serving: BoundFile | None = None
+    # Authority is supplied by the operator, separately from incoming artifacts.
+    publication_approval: BoundFile | None = None
 
     @model_validator(mode="after")
     def _separation(self):
@@ -82,6 +84,11 @@ class RuntimeConfig(StrictModel):
             raise ValueError("budget cannot reserve worker and coordinator")
         if len({s.component for s in self.observations}) != len(self.observations):
             raise ValueError("duplicate native component observer")
+        if self.publication_approval is not None:
+            authority = Path(self.publication_approval.path).resolve()
+            if authority.is_relative_to(write) or (self.canonical_root and
+                    authority.is_relative_to(Path(self.canonical_root).resolve())):
+                raise ValueError("publication approval must be operator-owned outside delivery/write roots")
         return self
 
     def pipeline_config(self):
@@ -169,6 +176,29 @@ class UpdateRuntime:
         resource_guard(cfg)
         return identity
 
+    def publication_validation_options(self):
+        """Fresh operator authority and policy for the actual canonical adapter.
+
+        The descriptor identifies the producer campaign; it need not equal a
+        later code-only validation campaign. The operator freezes its precise
+        descriptor hash in this independent runtime binding. An artifact from
+        the delivery cannot grant itself approval.
+        """
+        from vkm_corpus.coverage.publication import PublicationApproval, _json
+        from vkm_corpus.parquet.validator import ValidationOptions
+        policy_path = read_bound(self.config.policy)
+        approval = None
+        ref = self.config.publication_approval
+        if ref is not None:
+            path = read_bound(ref)
+            if any(p.is_symlink() for p in (path, *path.parents)):
+                raise ValueError("indirect operator approval")
+            approval = PublicationApproval.model_validate(_json(path, limit=1024 * 1024))
+            read_bound(ref)
+            if approval.policy_sha256 != self.config.policy.sha256:
+                raise ValueError("publication approval policy differs from operator policy")
+        return ValidationOptions(publication_approval=approval, policy_path=policy_path)
+
     def stage_bindings(self, campaign: CampaignManifest, stage: Stage) -> dict:
         inputs = {"inputs": [i.model_dump(mode="json") for i in campaign.inputs],
                   "artifacts": {k: v.sha256 for k, v in sorted(self.config.artifacts.items())}}
@@ -196,6 +226,8 @@ class UpdateRuntime:
                 reasons.append("POLICY_CHANGED")
             for artifact in self.config.artifacts.values():
                 read_bound(artifact)
+            if self.config.publication_approval is not None:
+                self.publication_validation_options()
         except (OSError, ValueError):
             reasons.append("BOUND_INPUT_UNAVAILABLE")
         for stage in campaign.stages:
@@ -473,7 +505,8 @@ def _run_operation(runtime: UpdateRuntime, campaign, stage, folder: Path):
         from vkm_corpus.parquet.validator import validate
         manifest = json.loads(artifacts("artifact").read_bytes())
         layout = CanonLayout(Path(cfg.canonical_root)).require("CANONICAL")
-        report = validate(layout, manifest)
+        report = validate(layout, manifest, runtime.publication_validation_options())
+        runtime.publication_validation_options()  # authority revoked while validating
         if report["status"] != "PASS" or operation == "CANON_VALIDATE":
             return {"status": report["status"], "blocking_failures": report["blocking_failures"],
                     "snapshot_id": manifest.get("snapshot_id")}
@@ -489,6 +522,7 @@ def _run_operation(runtime: UpdateRuntime, campaign, stage, folder: Path):
             con.execute("CHECKPOINT")
         finally:
             con.close()
+        runtime.publication_validation_options()
         return {"status": "PASS", "snapshot_id": manifest["snapshot_id"], "gate": "SHADOW_DUCKDB_ONLY"}
     if operation == "BUILD_SHADOW" and opts["kind"] == "REGISTRY":
         from vkm_corpus.parquet.layout import init_root, open_root

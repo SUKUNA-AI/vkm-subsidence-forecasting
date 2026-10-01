@@ -224,6 +224,17 @@
     "policy": {
       "$ref": "#/$defs/BoundFile"
     },
+    "publication_approval": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BoundFile"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "qualification_root": {
       "title": "Qualification Root",
       "type": "string"
