@@ -112,27 +112,17 @@ def datasets_of(part: str) -> tuple[str, ...]:
 
 
 def load_inputs(inputs_dir: Path, snapshot_id: str | None,
-                skip: tuple[str, ...] = ()) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Datasets of an earlier build (``<dir>/<dataset>.parquet``) as Arrow tables + a manifest reference. The earlier
-    manifest, when present, must be of the same snapshot; datasets named in ``skip`` are not read."""
-    import pyarrow.parquet as pq
+                skip: tuple[str, ...] = (), *, manifest_sha256: str | None = None,
+                require_verified: bool = False) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Checked manifested inputs, or explicit AD_HOC_UNVERIFIED exploratory inputs.
 
-    d = Path(inputs_dir)
-    mpath = d / "manifest.json"
-    ref: dict[str, Any] = {"dir": d.name, "datasets": {}}
-    if mpath.is_file():
-        old = json.loads(mpath.read_text(encoding="utf-8"))
-        snap = (old.get("snapshot") or {}).get("snapshot_id") or old.get("snapshot_id")
-        if snapshot_id and snap and snap != snapshot_id:
-            raise ValueError(f"--inputs is a build of {snap}, the canon is {snapshot_id}")
-        ref["snapshot_id"] = snap
-    tables: dict[str, Any] = {}
-    for f in sorted(d.glob("*.parquet")):
-        name = f.stem
-        if not name.replace("_", "").isalnum() or name in skip:
-            continue
-        tables[name] = pq.read_table(f)
-        ref["datasets"][name] = {"rows": tables[name].num_rows, "sha256": _sha256_file(f)}
+    Scientific applicability is NOT_CHECKED. Production callers require verified
+    source identity and declared file hashes, counts and columns.
+    """
+    from vkm_corpus.navigation.manifest import load_datasets
+
+    tables, ref, _manifest = load_datasets(inputs_dir, snapshot_id, skip,
+                                         manifest_sha256=manifest_sha256, require_verified=require_verified)
     return tables, ref
 
 
@@ -178,19 +168,36 @@ def build_parts(con, out_dir: Path, parts: list[str], *, outlines: dict | None =
     import pyarrow.parquet as pq
 
     from vkm_corpus.navigation.ids import RULE_VERSIONS
+    from vkm_corpus.navigation.manifest import (DatasetReference, UNVERIFIED, VERIFIED, load_datasets,
+                                               snapshot_identified)
 
     out_dir.mkdir(parents=True, exist_ok=True)
+    if isinstance(inputs_ref, DatasetReference):
+        inputs_ref.verify_unchanged()
+        inputs_ref.verify_tables(inputs or {})
     snap = snapshot_of(con)
     mpath = out_dir / "manifest.json"
     manifest: dict[str, Any] = {}
+    retained_ref = None
     if mpath.is_file():
         old = json.loads(mpath.read_text(encoding="utf-8"))
-        if old.get("format") == MANIFEST_FORMAT and old.get("snapshot", {}).get("snapshot_id") == snap["snapshot_id"]:
+        if old.get("format") == MANIFEST_FORMAT and old.get("snapshot") == snap:
             manifest = old
+            rebuilding = tuple(n for p in parts for n in datasets_of(p))
+            _retained, retained_ref, _old = load_datasets(
+                out_dir, snap["snapshot_id"], skip=rebuilding, manifest_sha256=snap["manifest_sha256"])
+            if not _retained:
+                manifest = {}          # no previous output/provenance is being reused
     manifest.update({"format": MANIFEST_FORMAT, "snapshot": snap, "layer_status": "DERIVED",
                      "review_status": "AUTO_EXTRACTED_UNREVIEWED"})
     manifest.setdefault("parts", {})
     manifest.setdefault("datasets", {})
+    verified = (snapshot_identified(snap)
+                and (not retained_ref or not retained_ref["datasets"] or retained_ref["identity_status"] == VERIFIED)
+                and ((not inputs and inputs_ref is None) or (isinstance(inputs_ref, DatasetReference)
+                                                            and inputs_ref.get("identity_status") == VERIFIED)))
+    manifest.update({"identity_status": VERIFIED if verified else UNVERIFIED,
+                     "navigation_only": True, "scientific_decision": "NOT_CHECKED"})
     if outlines_ref is not None:
         manifest["outlines"] = outlines_ref
     if vectors_ref is not None:
@@ -203,6 +210,9 @@ def build_parts(con, out_dir: Path, parts: list[str], *, outlines: dict | None =
     for name, table in (inputs or {}).items():
         con.register(f"nav_{name}", table)
     for part in parts:
+        # Failed/skipped rebuilds must not advertise the previous output as current.
+        for dataset in datasets_of(part):
+            manifest["datasets"].pop(dataset, None)
         builder = resolve_part(part)
         if builder is None:
             manifest["parts"][part] = {"status": "SKIPPED_MODULE_MISSING", "rule_version": RULE_VERSIONS.get(part)}
@@ -236,6 +246,12 @@ def build_parts(con, out_dir: Path, parts: list[str], *, outlines: dict | None =
         if extra:
             manifest["parts"][part]["options"] = extra
     manifest["built_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    manifest["capabilities"] = sorted(manifest["datasets"])
+    if isinstance(inputs_ref, DatasetReference):
+        inputs_ref.verify_unchanged()
+        inputs_ref.verify_tables(inputs or {})
+    if retained_ref is not None:
+        retained_ref.verify_unchanged()
     tmp = mpath.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(manifest, ensure_ascii=False, indent=1, sort_keys=True, default=str), encoding="utf-8")
     tmp.replace(mpath)
@@ -273,7 +289,12 @@ def cmd_build(args: argparse.Namespace) -> int:
         inputs, inputs_ref = None, None
         if args.inputs:
             rebuilt = tuple(n for p in parts for n in datasets_of(p))
-            inputs, inputs_ref = load_inputs(Path(args.inputs), snapshot_of(con)["snapshot_id"], skip=rebuilt)
+            snap = snapshot_of(con)
+            from vkm_corpus.navigation.manifest import snapshot_identified
+
+            inputs, inputs_ref = load_inputs(
+                Path(args.inputs), snap["snapshot_id"], skip=rebuilt, manifest_sha256=snap["manifest_sha256"],
+                require_verified=snapshot_identified(snap) and not getattr(args, "allow_unverified_inputs", False))
         manifest = build_parts(con, Path(args.out), parts, outlines=outlines, outlines_ref=ref,
                                vectors=args.vectors, vectors_ref=vectors_ref, inputs=inputs, inputs_ref=inputs_ref,
                                part_options=part_options, artifacts=artifacts, artifacts_ref=artifacts_ref)
@@ -474,7 +495,12 @@ def cmd_term_phrases(args: argparse.Namespace) -> int:
 
     con = duckdb.connect(str(args.duckdb), read_only=True)
     try:
-        tables, _ref = load_inputs(Path(args.inputs), snapshot_of(con)["snapshot_id"])
+        from vkm_corpus.navigation.manifest import snapshot_identified
+
+        snap = snapshot_of(con)
+        tables, _ref = load_inputs(
+            Path(args.inputs), snap["snapshot_id"], manifest_sha256=snap["manifest_sha256"],
+            require_verified=snapshot_identified(snap) and not getattr(args, "allow_unverified_inputs", False))
         if "terms" not in tables:
             raise SystemExit("--inputs has no terms.parquet (build the concepts part first)")
         table = phrases(con, terms=tables["terms"], term_edges=tables.get("term_edges"),
@@ -507,6 +533,7 @@ def _register_term_dictionary(sub) -> None:
                                              "glosses, seeds) → Parquet (needs the extra `navigation`)")
     tp.add_argument("--duckdb", required=True, help="DuckDB file of the snapshot (opened read only)")
     tp.add_argument("--inputs", required=True, help="NAV build of the same snapshot (terms, term_edges, …)")
+    tp.add_argument("--allow-unverified-inputs", action="store_true", help="exploratory inputs; identity stays unverified")
     tp.add_argument("--out", required=True, help="output Parquet (lang, key, text)")
     tp.set_defaults(func=cmd_term_phrases)
     tv = sub.add_parser("term-vectors", help="term dictionary: encode the phrases with the dense model (jina-v5-nano) "
@@ -551,6 +578,8 @@ def register(subparsers) -> None:
     b.add_argument("--inputs", default=None,
                    help="directory of an earlier NAV build of the same snapshot: its datasets are offered to the "
                         "builders (read only, not copied)")
+    b.add_argument("--allow-unverified-inputs", action="store_true",
+                   help="exploratory reuse; output identity remains AD_HOC_UNVERIFIED")
     b.add_argument("--option", action="append", default=None, metavar="PART.KEY=VALUE",
                    help="builder option of one part, e.g. concepts.drop_duplicate_blocks=true (repeatable)")
     b.add_argument("--part", default="all", metavar="PART[,PART…]|all",

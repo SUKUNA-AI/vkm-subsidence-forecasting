@@ -441,6 +441,7 @@ def _gpu() -> bool:
     return D._gpu_modules() is not None
 
 
+@pytest.mark.gpu
 @pytest.mark.skipif(not _gpu(), reason="CuPy / CUDA device not available")
 def test_gpu_backend_matches_cpu(tmp_path, con, built):
     vdir, _ = _write_vectors(tmp_path, con)

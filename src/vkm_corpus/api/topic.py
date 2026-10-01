@@ -49,7 +49,7 @@ from typing import Any, Iterable, Protocol
 
 LOG = logging.getLogger("vkm.api.topic")
 
-RULE_VERSION = "topic_dossier_v3"        # v3: structured tables of the properties the topic names
+RULE_VERSION = "topic_dossier_v3.1"      # v3.1: linked-record qualifications and checked NAV origin
 MAX_TABLES = 6                           # structured tables shown (the rest: counted, find_tables gets them)
 DEFAULT_BUDGET, MIN_BUDGET, MAX_BUDGET = 12_000, 1_000, 60_000
 SNIPPET_CHARS = 200
@@ -75,7 +75,13 @@ TIER_LABEL = {"CORE": "ядро ВКМ", "REST": "остальной корпу�
 NAV_STATUS = "AUTO_EXTRACTED_UNREVIEWED"
 NOTE = ("Карта навигации, не evidence: разделы, формулы и понятия — AUTO_EXTRACTED_UNREVIEWED; записи каталогов — со "
         "своим статусом (FACT … UNKNOWN), scope и scale; сниппеты — текст корпуса только в ответе. Значения не "
-        "подставлять: UNKNOWN остаётся UNKNOWN. Открывать: get_section, get_formula_context, get_page, get_object.")
+        "подставлять: UNKNOWN остаётся UNKNOWN. CITES ≠ согласие, NEAR_FORMULA ≠ PARAMETER_OF; связь со СКРУ-1 "
+        "не устанавливает полевую применимость. Научное принятие: NOT_CHECKED. "
+        "Открывать: get_section, get_formula_context, get_page, get_object.")
+LINK_DIAGNOSTIC_FIELDS = ("vn_id", "kind", "source_id", "locator", "pdf_page", "status", "evidence_type",
+                          "scope", "scale", "confidence", "role", "extraction_method", "quote_check",
+                          "record_normalization")
+CAUSAL_DIAGNOSTIC_FIELDS = ("status", "scope", "scale", "confidence", "locator", "quote_check", "notes")
 
 # ============================================================================================================ text
 _WORD = re.compile(r"[^\W\d_]+", re.UNICODE)
@@ -567,14 +573,29 @@ class DossierBuilder:
             return False
         try:
             st.inputs["nav_snapshot_id"] = self.nav.snapshot_id()
+            meta = self.nav.meta() if hasattr(self.nav, "meta") else {}
+            st.inputs["nav_identity_status"] = meta.get("identity_status", "AD_HOC_UNVERIFIED")
+            st.inputs["nav_source_snapshot"] = meta.get("snapshot")
+            st.inputs["nav_manifest_sha256"] = meta.get("manifest_sha256")
+            if st.inputs["nav_identity_status"] != "SNAPSHOT_VERIFIED":
+                st.warn("NAV_IDENTITY_UNVERIFIED", "NAV origin is AD_HOC_UNVERIFIED; navigation only, scientific "
+                                                 "admission NOT_CHECKED")
         except Exception as exc:  # noqa: BLE001 - NavUnavailable or an unreadable build
             st.warn("NAV_UNAVAILABLE", f"the navigation layer is not available: {str(exc)[:160]}")
             return False
         canon_snapshot = self.canon.snapshot_id()
         st.inputs["canonical_snapshot_id"] = canon_snapshot
+        from vkm_corpus.navigation.manifest import canonical_identity_match
+
+        canonical = self.canon.status() if hasattr(self.canon, "status") else {"snapshot_id": canon_snapshot}
+        st.inputs["canonical_manifest_sha256"] = canonical.get("manifest_sha256")
+        st.inputs["nav_matches_canonical_snapshot"] = canonical_identity_match(meta, canonical)
         if st.inputs["nav_snapshot_id"] != canon_snapshot:
             st.warn("NAV_SNAPSHOT_BEHIND", "the navigation layer was built from another canonical snapshot; ids are "
                                            "stable, counts may differ")
+        elif st.inputs["nav_matches_canonical_snapshot"] is False:
+            st.warn("NAV_CANONICAL_IDENTITY_CONFLICT", "NAV source canonical manifest digest differs from the "
+                                                       "serving canon; navigation only")
         return True
 
     def _catalogues_ready(self, st: _State) -> bool:
@@ -1498,14 +1519,14 @@ class DossierBuilder:
             st.processes.append({
                 "rank": rank, "process_id": p["process_id"], "process": p.get("process"), "group": p.get("group"),
                 "domain": p.get("domain"), "readiness": p.get("readiness"), "status": p.get("status"),
+                "navigation_only": True, "scientific_decision": "NOT_CHECKED",
                 "scope": p.get("scope"), "confidence": p.get("confidence"),
                 "best_evidence_scope": p.get("best_evidence_scope"),
                 "governing_equations": short(p.get("governing_equations"), 220),
                 "required_parameters": short(p.get("required_parameters"), 220),
                 "data_gaps": short(p.get("data_gaps"), 220) or None,
                 "model_ids": split_ids(p.get("math_model_ids_FORMULAS_draft")),
-                "evidence": [{k: x.get(k) for k in ("vn_id", "kind", "source_id", "pdf_page", "status", "evidence_type",
-                                                    "scope", "scale", "confidence", "role")} for x in links[:8]],
+                "evidence": [{k: x.get(k) for k in LINK_DIAGNOSTIC_FIELDS} for x in links[:8]],
                 "n_evidence": len(links), "evidence_by_status": _count(links, "status"),
                 "evidence_by_scope": _count(links, "scope"), "matched_words": name, "linked_sources_found": overlap,
                 "evidence_pages_found": page_hits, "score": score})
@@ -1518,12 +1539,17 @@ class DossierBuilder:
         self._evidence_rows(st, cat, {x.get("vn_id") for p in st.processes for x in links_by.get(p["process_id"], [])})
 
     def _gaps(self, st: _State, p: dict[str, Any], links: list[dict[str, Any]], vn_vars: dict[str, set[str]]) -> None:
-        """Gaps of one process, all UNKNOWN and shown by name (never with the values printed in the catalogue cell):
+        """Navigation coverage of one process; linked records never establish applicability/readiness.
+
+        ``process_has_skru1_parameter_records`` is the historical related-record
+        indicator (includes the shared pillar), never a field-fact indicator.
+        Gaps remain UNKNOWN and are shown by name, never filled with values:
 
         * ``LINKED_OTHER_SCOPE`` — the parameter's evidence records linked to the process are all of other sites
           (a transfer to SKRU-1 needs an explicit Transfer);
         * ``NO_LINKED_RECORD`` — a recognised parameter (lexicon) with no linked record of its kind;
         * ``CURATED_GAP`` — the catalogue's own ``data_gaps``;
+        * ``LINKED_RECORDS_REQUIRE_BINDING`` — related records whose consumer applicability is NOT_CHECKED;
         * ``NOT_MATCHED`` — one line with the parameters the lexicon does not recognise: their coverage was not
           checked (reported as such, not as missing)."""
         pid = p["process_id"]
@@ -1536,7 +1562,9 @@ class DossierBuilder:
                 keys |= {k for k, (_st, _sy, vars_, _k) in PARAM_LEXICON.items() if var in vars_}
             link_keys.append((x, keys))
         base = {"process_id": pid, "status": "UNKNOWN", "readiness": p.get("readiness"),
-                "process_has_skru1_parameter_records": has_skru1}
+                "process_has_skru1_parameter_records": has_skru1, "navigation_only": True,
+                "scientific_decision": "NOT_CHECKED", "binding_status": "NOT_CHECKED",
+                "field_coverage": "NOT_ESTABLISHED"}
         unmatched: list[str] = []
         for item in _split_parameters(p.get("required_parameters")):
             words = words_of(item)
@@ -1548,12 +1576,29 @@ class DossierBuilder:
                 unmatched.append(_param_name(item))
                 continue
             linked = [x for x, k in link_keys if keys & k]
-            if any((x.get("scope") or "") in SKRU1_SCOPES for x in linked):
-                continue                                           # a SKRU-1 record is linked: not a gap here
+            related = any((x.get("scope") or "") in SKRU1_SCOPES for x in linked)
+            reasons = {"CONSUMER_BINDING_NOT_CHECKED"} if linked else set()
+            for x in linked:
+                if x.get("scope") != "SKRU1":
+                    reasons.add("SCOPE_REQUIRES_LOCAL_BINDING_OR_TRANSFER")
+                if x.get("scale") not in {"FIELD", "MASSIF"}:
+                    reasons.add("SCALE_REQUIRES_BINDING_OR_TRANSFER")
+                if x.get("status") != "FACT":
+                    reasons.add("STATUS_REQUIRES_REVIEW")
+                if x.get("quote_check") not in {"EXACT", "EXACT_ADJACENT_PAGE", "EXACT_SEGMENTS"}:
+                    reasons.add("SOURCE_QA_REQUIRES_REVIEW")
+                if x.get("evidence_type") in {"NORMATIVE", "DESIGN_VALUE", "TEACHING_EXAMPLE", "MODEL_CALIBRATED",
+                                               "LITERATURE_CITED", "MODEL_CHOICE"}:
+                    reasons.add("EVIDENCE_TYPE_REQUIRES_REVIEW")
+                if not x.get("source_id") or not x.get("locator"):
+                    reasons.add("PROVENANCE_INCOMPLETE")
             st.gaps.append({**base, "parameter": _param_name(item), "parameter_as_catalogued": short(item, 140),
-                            "coverage": "LINKED_OTHER_SCOPE" if linked else "NO_LINKED_RECORD",
+                            "coverage": "LINKED_RECORDS_REQUIRE_BINDING" if related else
+                                        "LINKED_OTHER_SCOPE" if linked else "NO_LINKED_RECORD",
                             "scopes": sorted({x.get("scope") or "?" for x in linked}),
                             "evidence_vn_ids": [x.get("vn_id") for x in linked][:4],
+                            "linked_records": [{k: x.get(k) for k in LINK_DIAGNOSTIC_FIELDS} for x in linked],
+                            "n_linked_records": len(linked), "review_reasons": sorted(reasons),
                             "where_to_look": sorted({PARAM_CATALOGUES[k] for k in keys if k in PARAM_CATALOGUES})})
         gaps_text = str(p.get("data_gaps") or "").strip()
         if _WORD.search(gaps_text) and norm(gaps_text) not in ("нет", "none", "n/a", "na"):
@@ -1633,6 +1678,10 @@ class DossierBuilder:
             idf = idf_weights(st.stems, [d[0][0] for d in docs.values()])
             matched |= {nid for nid, d in docs.items() if _word_score(st.stems, idf, d, 3.0)[0] >= 0.5}
         scored = []
+        def metadata(row: dict[str, Any]) -> dict[str, Any]:
+            return {**{k: row.get(k) for k in CAUSAL_DIAGNOSTIC_FIELDS},
+                    "source_ids": split_ids(row.get("source_ids")), "vn_ids": split_ids(row.get("vn_ids"))}
+
         for e in edges:
             a, b = e.get("from_node"), e.get("to_node")
             ends = int(a in matched) + int(b in matched)
@@ -1644,9 +1693,12 @@ class DossierBuilder:
                 "edge_id": e.get("edge_id"), "from_node": a,
                 "from_label": short((nodes.get(a) or {}).get("label_ru"), 60),
                 "to_node": b, "to_label": short((nodes.get(b) or {}).get("label_ru"), 60),
-                "edge_type": e.get("edge_type"), "mechanism": short(e.get("mechanism"), 100),
+                "edge_type": e.get("edge_type"), "mechanism": e.get("mechanism"),
                 "strength": e.get("strength"), "status": e.get("status"), "scope": e.get("scope"),
-                "processes": procs}))
+                **metadata(e), "evidence": e.get("evidence"), "feedback": e.get("feedback"),
+                "from_metadata": metadata(nodes.get(a) or {}), "to_metadata": metadata(nodes.get(b) or {}),
+                "process_ids": split_ids(e.get("process_ids")), "processes": procs,
+                "navigation_only": True, "scientific_decision": "NOT_CHECKED"}))
         scored.sort(key=lambda x: (-x[0], x[1]["edge_id"] or ""))
         st.extra["causal"] = max(0, len(scored) - 8)
         st.causal = [{"rank": i, **c} for i, (_s, c) in enumerate(scored[:8], 1)]
@@ -1744,7 +1796,9 @@ class DossierBuilder:
         nav_snap = st.inputs.get("nav_snapshot_id")
         if nav_snap:
             return {"engine": "navigation", "index_or_graph": "nav.duckdb (+ catalogues, search)",
-                    "build_id": nav_snap, "built_from_snapshot_id": nav_snap}
+                    "build_id": nav_snap, "built_from_snapshot_id": nav_snap
+                    if st.inputs.get("nav_identity_status") == "SNAPSHOT_VERIFIED" else None,
+                    "matches_canonical_snapshot": st.inputs.get("nav_matches_canonical_snapshot")}
         retrieval = st.inputs.get("retrieval") or {}
         if retrieval.get("mode") == "FULL":
             return {"engine": "opensearch", "index_or_graph": "hybrid (BM25 + dense)",
@@ -1863,7 +1917,8 @@ class DossierBuilder:
                            f"{e.get('scope')}/{e.get('scale')}/{e.get('confidence')}" for e in p["evidence"][:3])
             more = f" (+{p['n_evidence'] - 3})" if p["n_evidence"] > 3 else ""
             lines = [f"- **{p['process_id']}** {short(p['process'], 100)} · {p['group']}/{p['domain']} · "
-                     f"готовность {p['readiness']} · {p['status']} · scope {p['scope']} · {p['confidence']}",
+                     f"готовность по каталогу {p['readiness']} · применимость NOT_CHECKED · {p['status']} · "
+                     f"scope {p['scope']} · {p['confidence']}",
                      f"  уравнения: {short(p['governing_equations'], 150)}",
                      f"  параметры: {short(p['required_parameters'], 150)}"]
             if ev:
@@ -1884,6 +1939,12 @@ class DossierBuilder:
                 text = (f"- {g['process_id']} · не сверено с записями evidence (параметр не распознан): "
                         f"{short(g['parameter'], 150)}")
                 prio -= 3
+            elif g["coverage"] == "LINKED_RECORDS_REQUIRE_BINDING":
+                linked = "; ".join(f"`{r.get('vn_id')}` {r.get('source_id')} {short(r.get('locator'), 60)} "
+                                   f"{r.get('status')}/{r.get('scope')}/{r.get('scale')}/QA:{r.get('quote_check')}"
+                                   for r in g["linked_records"][:2])
+                text = (f"- {g['process_id']} · «{g['parameter']}» — UNKNOWN: записи связаны; "
+                        f"применимость и binding NOT_CHECKED · {linked}")
             else:
                 why = "связанной с процессом записи evidence не найдено"
                 if g.get("process_has_skru1_parameter_records"):
@@ -1912,8 +1973,10 @@ class DossierBuilder:
                 f"СКРУ-1: {o['skru1_data_availability']}"], o))
         for c in st.causal:
             out.append(Entry("causal", c["edge_id"] or "?", _prio("causal", c["rank"] - 1), [
-                f"- `{c['from_node']}` {c['from_label']} → `{c['to_node']}` {c['to_label']} · {c['edge_type']}/"
-                f"{c['strength']} · {c['status']}" + (f" · {', '.join(c['processes'])}" if c["processes"] else "")],
+                f"- `{c['edge_id']}` `{c['from_node']}` {c['from_label']} → `{c['to_node']}` {c['to_label']} · "
+                f"{c['edge_type']}/{c['strength']} · {c['status']}/{c['scope']}/{c['scale']}/QA:{c['quote_check']} · "
+                f"{', '.join(c['source_ids'])} {short(c['locator'], 90)} · научное принятие NOT_CHECKED"
+                + (f" · {', '.join(c['processes'])}" if c["processes"] else "")],
                 c))
         return out
 
@@ -1969,6 +2032,7 @@ class DossierBuilder:
                     "beyond_limits"] = n
         return {
             "query": req.query, "query_stems": st.stems, "rule_version": RULE_VERSION,
+            "navigation_only": True, "scientific_decision": "NOT_CHECKED",
             "mode": (st.inputs.get("retrieval") or {}).get("mode", "NAV_ONLY"), "note": NOTE,
             "source_filter": list(req.source_ids),
             "inputs": st.inputs,

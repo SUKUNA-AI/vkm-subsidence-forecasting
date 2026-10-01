@@ -331,7 +331,9 @@ def test_import_copies_byte_for_byte_and_merges_the_manifest(world, tmp_path):
     served.parent.mkdir(parents=True)
     nav.rename(served)
     store.pack(served)
-    store.publish(root, SNAP)
+    # This import fixture has partial source identity, so publication is explicitly exploratory.
+    store.publish(root, SNAP, require_verified=False)
+    assert store.NavStore(root, canonical_db=world["db"]).meta()["identity_status"] == "AD_HOC_UNVERIFIED"
     ns = store.NavStore(root, canonical_db=world["db"])
     hit = ns.run("find_figure_series", text="оседания", limit=5)
     assert hit["total_figures"] == 2 and hit["captions_searched"] is True

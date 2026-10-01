@@ -56,6 +56,7 @@ def _ok(resp, kind):
     assert env["projection"]["built_from_snapshot_id"] == SNAPSHOT_ID
     record = body["item"]["record"]
     assert record["nav_snapshot_id"] == SNAPSHOT_ID and "never a physical or causal claim" in record["note"]
+    assert record["navigation_only"] is True and record["scientific_decision"] == "NOT_CHECKED"
     return body, record
 
 

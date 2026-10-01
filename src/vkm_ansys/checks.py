@@ -1,18 +1,35 @@
-"""Expected-result checks of a job (plan §2.3): ``{name, kind, path, pointer, expected, rtol, atol}``.
+"""Deprecated compatibility API for expected-result checks; new callers should use ``vkm_jobs``.
 
-Kinds: ``file_exists``, ``json_value``, ``number_close``, ``text_contains``, ``text_absent``, ``exit_code``. Paths are
-relative to the job directory and may not leave it. The shared job layer evaluates the same records; this module lets
-the Ansys wrapper and the tests evaluate them without it.
+``validate`` / ``evaluate`` / ``evaluate_all`` remain available. Legacy text checks deliberately use regular
+expressions (shared job checks use literal substrings); ``file_exists`` honours ``expected=False``; numeric
+tolerances default to zero, ``json_value`` remains exact, and ``exit_code`` defaults to zero. JSON/numeric
+evaluation delegates to the shared finite/type/pointer checks; finite numeric error fields remain available.
+The historical ``pointer='/'`` whole-document alias is retained. No solver or licence is started here.
 """
 from __future__ import annotations
 
-import json
-import math
 import re
+from fractions import Fraction
 from pathlib import Path
 from typing import Any
 
-KINDS = frozenset({"file_exists", "json_value", "number_close", "text_contains", "text_absent", "exit_code"})
+from vkm_jobs.checks import _MISSING, _finite_error, _metadata, _numeric_difference, json_pointer, run_check
+from vkm_jobs.errors import ToolFailure
+from vkm_jobs.roots import resolve_inside
+from vkm_jobs.spec import CHECK_KINDS, validate_check
+
+KINDS = frozenset(CHECK_KINDS)
+
+
+def _normalised(check: dict[str, Any]) -> dict[str, Any]:
+    """Validate with the shared contract while retaining intentional legacy defaults."""
+    normalised = validate_check(check)
+    if normalised["kind"] == "number_close":
+        normalised["rtol"] = check.get("rtol") or 0.0
+        normalised["atol"] = check.get("atol") or 0.0
+    elif normalised["kind"] == "json_value":
+        normalised["rtol"] = normalised["atol"] = None
+    return normalised
 
 
 def validate(check: dict[str, Any]) -> dict[str, Any]:
@@ -25,58 +42,48 @@ def validate(check: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(path, str) or not path or path.startswith(("/", "\\")) or ".." in Path(path).parts \
                 or re.match(r"^[A-Za-z]:", path):
             raise ValueError("check path must be relative to the job directory, without '..'")
+    try:
+        _normalised({"expected": 0, **check} if check["kind"] == "exit_code" else check)
+    except ToolFailure as exc:
+        raise ValueError(exc.message) from exc
     return check
 
 
 def _pointer(doc: Any, pointer: str) -> Any:
-    if pointer in ("", "/"):
-        return doc
-    cur = doc
-    for raw in pointer.lstrip("/").split("/"):
-        key = raw.replace("~1", "/").replace("~0", "~")
-        if isinstance(cur, list):
-            cur = cur[int(key)]
-        elif isinstance(cur, dict):
-            cur = cur[key]
-        else:
-            raise KeyError(pointer)
-    return cur
+    result = json_pointer(doc, "" if pointer == "/" else pointer)
+    if result is _MISSING:
+        raise KeyError(pointer)
+    return result
 
 
 def evaluate(check: dict[str, Any], job_dir: Path, exit_code: int | None = None) -> dict[str, Any]:
-    kind = check["kind"]
-    out = {"name": check["name"], "kind": kind, "expected": check.get("expected"), "rtol": check.get("rtol"),
-           "atol": check.get("atol"), "path": check.get("path"), "pointer": check.get("pointer")}
+    out = {}
     try:
-        if kind == "exit_code":
-            actual = exit_code
-            ok = actual == int(check.get("expected", 0))
+        out = _metadata(check, keep_none=True)
+        raw = {"expected": 0, **check} if check.get("kind") == "exit_code" else check
+        normalised = _normalised(raw)
+        kind = normalised["kind"]
+        if kind == "file_exists":
+            actual = resolve_inside(job_dir, normalised["path"], what="check path").is_file()
+            out.update(actual=actual, passed=actual is bool(check.get("expected", True)))
+        elif kind in ("text_contains", "text_absent"):
+            path = resolve_inside(job_dir, normalised["path"], what="check path")
+            found = re.search(normalised["expected"], path.read_text(encoding="utf-8", errors="replace")) is not None
+            out.update(actual=found, passed=found if kind == "text_contains" else not found)
         else:
-            path = (job_dir / check["path"]).resolve()
-            if not path.is_relative_to(job_dir.resolve()):
-                raise ValueError("path outside the job directory")
-            if kind == "file_exists":
-                actual = path.is_file()
-                ok = actual is bool(check.get("expected", True))
-            elif kind in ("text_contains", "text_absent"):
-                text = path.read_text(encoding="utf-8", errors="replace")
-                found = re.search(check["expected"], text) is not None
-                actual = found
-                ok = found if kind == "text_contains" else not found
-            else:
-                doc = json.loads(path.read_text(encoding="utf-8"))
-                actual = _pointer(doc, check.get("pointer", ""))
-                if kind == "json_value":
-                    ok = actual == check.get("expected")
-                else:
-                    exp = float(check["expected"])
-                    act = float(actual)
-                    rtol = float(check.get("rtol") or 0.0)
-                    atol = float(check.get("atol") or 0.0)
-                    ok = math.isfinite(act) and abs(act - exp) <= atol + rtol * abs(exp)
-                    out["abs_error"] = abs(act - exp)
-                    out["rel_error"] = abs(act - exp) / abs(exp) if exp else None
-        out.update({"actual": actual, "passed": bool(ok)})
+            result = run_check(job_dir, normalised, exit_code, short_actual=False)
+            out.update(actual=result["actual"], passed=result["passed"])
+            if "message" in result:
+                out["error"] = result["message"]
+            if kind == "number_close" and isinstance(result["actual"], (int, float)) \
+                    and not isinstance(result["actual"], bool):
+                actual, expected = result["actual"], normalised["expected"]
+                error = _numeric_difference(actual, expected)
+                relative = error / abs(Fraction(expected)) if expected else None
+                out["abs_error"] = _finite_error(error, integer=isinstance(actual, int) and isinstance(expected, int))
+                out["rel_error"] = _finite_error(relative) if relative is not None else None
+                if out["abs_error"] is None or relative is not None and out["rel_error"] is None:
+                    out["diagnostic"] = "numeric error cannot be represented as a finite number"
     except Exception as exc:  # noqa: BLE001 - a check that cannot be evaluated fails
         out.update({"actual": None, "passed": False, "error": f"{type(exc).__name__}: {exc}"[:300]})
     return out

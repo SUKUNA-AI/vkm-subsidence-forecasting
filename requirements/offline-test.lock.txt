@@ -1,0 +1,19 @@
+# CPU test-only additions. Install alongside the existing worldspec/corpus/services locks.
+# Scientific/core pins are unchanged; no model runtimes or GPU packages are installed.
+# Sources: research freeze in docs/reset_2026_09/run_kit/venv_research_freeze.txt;
+# ezdxf: docs/corpus_platform/receipts/figure_digitization_v0.json;
+# setuptools/tokenizers: requirements/corpus-layout.lock.txt (CPU packages only).
+# OpenCV's receipt gives its runtime version, not a verified wheel-distribution pin.
+# snowballstemmer/pymorphy3 dependency closures have no committed exact pins.
+# Their tests remain explicitly NOT_RUN; no new package versions are guessed here.
+contourpy==1.4.0
+cycler==0.12.1
+ezdxf==1.4.4
+fonttools==4.66.0
+kiwisolver==1.5.1
+matplotlib==3.11.2
+pyparsing==3.3.3
+scipy==1.18.1
+setuptools==78.1.0
+shapely==2.1.2
+tokenizers==0.23.2

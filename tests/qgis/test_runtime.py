@@ -11,7 +11,7 @@ from vkm_qgis.fitting import apply_points
 from vkm_qgis.policy import Paths
 from vkm_qgis.service import QgisService,runtime_path,digest
 
-pytestmark=pytest.mark.skipif(not os.environ.get('VKM_QGIS_ROOT') and not os.environ.get('VKM_QGIS_PYTHON'),reason='Existing QGIS runtime not configured')
+pytestmark=[pytest.mark.qgis_runtime, pytest.mark.skipif(not os.environ.get('VKM_QGIS_ROOT') and not os.environ.get('VKM_QGIS_PYTHON'),reason='Existing QGIS runtime not configured')]
 
 def test_real_synthetic_roundtrip():
     root=Path(__file__).resolve().parents[2]

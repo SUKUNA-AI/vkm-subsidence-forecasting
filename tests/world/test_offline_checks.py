@@ -1,0 +1,117 @@
+"""CI must reject empty, entirely skipped, and broken collections."""
+from __future__ import annotations
+
+import importlib.util
+import sys
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[2]
+SPEC = importlib.util.spec_from_file_location("offline_checks", ROOT / "scripts/run_offline_checks.py")
+CHECKS = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = CHECKS
+SPEC.loader.exec_module(CHECKS)
+
+
+def test_recursive_selection_is_complete_disjoint_and_discovers_new_suites(tmp_path):
+    files = ["world/test_a.py", "corpus/deeper/test_b.py", "engineering/test_c.py", "future/deeper/newname_test.py"]
+    for file in files:
+        path = tmp_path / "tests" / file
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("def test_ok(): pass\n")
+    world = set(CHECKS.test_files(tmp_path, "world-integrity"))
+    corpus = set(CHECKS.test_files(tmp_path, "corpus-offline"))
+    assert not world & corpus
+    assert world | corpus == set((tmp_path / "tests").rglob("*.py"))
+    assert tmp_path / "tests/future/deeper/newname_test.py" in corpus
+
+
+def test_configured_python_files_are_honoured(tmp_path):
+    (tmp_path / "pyproject.toml").write_text('[tool.pytest.ini_options]\npython_files = ["check_*.py"]\n')
+    (tmp_path / "tests/future").mkdir(parents=True)
+    target = tmp_path / "tests/future/check_custom.py"
+    target.write_text("def test_ok(): pass\n")
+    assert CHECKS.test_files(tmp_path, "corpus-offline") == [target]
+
+
+@pytest.mark.parametrize("stats", [
+    {"selected": 0, "passed": 0},
+    {"selected": 2, "passed": 0, "skipped": 2},
+    {"selected": 2, "passed": 1, "collection_errors": ["bad import"]},
+    {"selected": 2, "passed": 1, "failed": 1},
+    {"selected": 2, "passed": 1, "unexpected_skips": ["new skip"]},
+    {"selected": 2, "passed": 1, "xfailed": 1},
+    {"selected": 2, "passed": 1, "xpassed": 1},
+])
+def test_false_green_stats_fail(stats):
+    assert CHECKS.test_status(stats, 0) == "FAIL"
+
+
+def test_known_missing_dependency_is_not_counted_as_pass():
+    stats = {"selected": 2, "passed": 1, "skipped": 1,
+             "not_run": [{"nodeid": "tests/corpus/test_figures_raster.py", "reason": "missing cv2"}]}
+    assert CHECKS.test_status(stats, 0) == "PASS_WITH_NOT_RUN"
+
+
+def test_external_deselection_is_not_counted_as_pass():
+    stats = {"selected": 1, "passed": 1, "deselected": [{"nodeid": "test_gpu", "status": "NOT_RUN"}]}
+    assert CHECKS.test_status(stats, 0) == "PASS_WITH_NOT_RUN"
+
+
+def test_skip_allowance_is_module_and_reason_specific():
+    assert CHECKS.allowed_skip("tests/corpus/test_figures_raster.py", "could not import 'cv2': No module named 'cv2'")
+    assert not CHECKS.allowed_skip("tests/world/test_foundation.py", "could not import 'cv2': No module named 'cv2'")
+    assert not CHECKS.allowed_skip("tests/corpus/test_figures_raster.py", "unrelated new reason")
+    missing = "could not import 'cv2': No module named 'cv2'"
+    assert CHECKS.allowed_skip("tests/corpus/test_figures_pdf.py::test_glyph_outline_date_labels_are_read", missing)
+    assert not CHECKS.allowed_skip("tests/corpus/test_figures_pdf.py::test_unrelated_new_check", missing)
+
+
+def test_frozen_object_missing_fails_even_when_verifier_is_nonblocking():
+    report = {"exit_code": 0, "checks": [
+        {"id": "catalogue_sync:manifest", "status": "PASS", "details": {}},
+        {"id": "frozen:X@1234567", "status": "SKIPPED_REF_UNAVAILABLE", "details": {}},
+    ]}
+    assert CHECKS.integrity_status(report)["status"] == "FAIL"
+
+
+def test_missing_tag_is_reported_without_creating_it():
+    report = {"exit_code": 0, "checks": [
+        {"id": "catalogue_sync:manifest", "status": "PASS", "details": {}},
+        {"id": "frozen:X@1234567", "status": "PASS", "details": {}},
+        {"id": "frozen:anchor:tag:frozen/x", "status": "SKIPPED_REF_UNAVAILABLE", "details": {}},
+    ]}
+    result = CHECKS.integrity_status(report)
+    assert result["status"] == "PASS_WITH_NOT_RUN"
+    assert result["not_run"] == ["frozen:anchor:tag:frozen/x"]
+
+
+def test_public_manifest_must_run_and_pass():
+    assert CHECKS.integrity_status({"exit_code": 0, "checks": []})["status"] == "FAIL"
+
+
+@pytest.mark.parametrize("source,expected", [
+    ("def test_ok(): pass\n", "PASS"),
+    ("import pytest\ndef test_skipped(): pytest.skip('new unexplained skip')\n", "FAIL"),
+    ("raise RuntimeError('broken collection')\n", "FAIL"),
+    ("import pytest\n@pytest.mark.unregistered\ndef test_ok(): pass\n", "FAIL"),
+])
+def test_real_pytest_run_accounts_for_collection_and_skips(tmp_path, source, expected):
+    import json
+    import subprocess
+
+    (tmp_path / "tests/world").mkdir(parents=True)
+    (tmp_path / "tests/world/test_probe.py").write_text(source)
+    output = tmp_path / "output"
+    output.mkdir()
+    script = "import importlib.util,json,pathlib,sys; s=importlib.util.spec_from_file_location('checks',sys.argv[1]); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); print('ACCOUNTING='+json.dumps(m.run_tests(pathlib.Path(sys.argv[2]),'world-integrity',pathlib.Path(sys.argv[3]))))"
+    result = subprocess.run([sys.executable, "-c", script, str(ROOT / "scripts/run_offline_checks.py"),
+                             str(tmp_path), str(output)], cwd=tmp_path, text=True, capture_output=True, check=True)
+    report = json.loads(result.stdout.split("ACCOUNTING=", 1)[1])
+    assert report["status"] == expected
+    assert (output / "pytest.xml").is_file()
+    if "broken collection" in source:
+        assert report["collection_errors"]
+    if "pytest.skip" in source:
+        assert report["passed"] == 0 and report["unexpected_skips"]

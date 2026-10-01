@@ -5,6 +5,7 @@ import sys
 import uuid
 from pathlib import Path
 import anyio
+import pytest
 try:
     from mcp.client.session import ClientSession
     from mcp.client.stdio import StdioServerParameters,stdio_client
@@ -79,8 +80,8 @@ async def smoke():
     (directory/'acceptance.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({'status':'PASS','tools':len(names),'calls':len(results),'artifact':prefix+'/acceptance.json'}))
 
+@pytest.mark.qgis_runtime
 def test_stdio_protocol():
-    import pytest
     if ClientSession is None: pytest.skip('Run stdio proof with an existing MCP host Python')
     if not (os.environ.get('VKM_QGIS_ROOT') or os.environ.get('VKM_QGIS_PYTHON')): pytest.skip('Existing QGIS runtime not configured')
     anyio.run(smoke)

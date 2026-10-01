@@ -7,7 +7,8 @@
 После D-18/D-19 научная цепочка: **источник → evidence → интерпретация → WorldSpec (3D + время) → физический мир → представление → оператор наблюдения → предрегистрированная проверка**.
 Планируемый метод прогноза — нейросеть на ансамбле физических миров по теории владельца v0.2.
 Ansys — основной решатель геомеханики, OGS + MFront — независимая проверка согласованных сценариев.
-Сейчас физические миры, решатели и ML приостановлены; рабочая задача — рисунки, геометрия и геология A/B/C.
+Сейчас физические миры, решатели и ML приостановлены. Текущий проход — инженерные контракты и offline CPU CI;
+дальнейшая оцифровка геометрии и новая геологическая реконструкция приостановлены до получения GIS-данных.
 Каноническое состояние и границы готовности — [PROJECT_STATE_RU.md](PROJECT_STATE_RU.md), решения — [D-18/D-19](docs/governance/PHASE1_DESIGN_DECISIONS_RU.md).
 
 ## Репозитории и источник истины
@@ -64,12 +65,18 @@ Visual retrieval на Qwen3-VL охватывает 26 744 страницы с p
 Перед изменениями читать [AGENTS.md](AGENTS.md). Рабочие результаты — в `work/` или PRIVATE, каждое преобразование оставляет receipt и SHA-256.
 
 ```bash
-python -m pytest -q tests/world tests/corpus tests/qgis
-VKM_RESOURCES_ROOT=<клон PRIVATE> python scripts/verify_canonical_repository.py
+python scripts/run_offline_checks.py world-integrity --output ../offline-world
+python scripts/run_offline_checks.py corpus-offline --output ../offline-corpus
+python scripts/verify_canonical_repository.py
 vkm-corpus mcp serve --kind read
 python -m vkm_drawio.mcp_server
 python -m vkm_qgis.mcp_server
 ```
+
+Точные lock-файлы, оба Actions jobs и учёт `NOT_RUN` описаны в
+[offline checks](docs/development/OFFLINE_CHECKS.md). Выбранное научное использование и DRAFT-протокол
+проверяются [отдельным контрактом](docs/worldspec/SCIENTIFIC_ADMISSION_DRAFT_RU.md): его `READY` означает
+согласованность предоставленных review-входов, а не физическую истинность или готовность решателя.
 
 Пути в tracked файлах логические или относительные. UNKNOWN не подменяется числом; LAB ≠ MASSIF, аналог ≠ СКРУ-1, норматив ≠ измерение, модельный результат ≠ наблюдение.
 Обучение и solver runs требуют отдельной задачи. Научные правила — [SCIENTIFIC_RULES_RU.md](docs/governance/SCIENTIFIC_RULES_RU.md), [VALIDATION_POLICY_RU.md](docs/governance/VALIDATION_POLICY_RU.md).

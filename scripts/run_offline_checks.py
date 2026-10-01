@@ -1,0 +1,254 @@
+#!/usr/bin/env python3
+"""Run the same public CPU checks locally and in Actions, with explicit NOT_RUN accounting.
+
+World tests form one job; every other test_*.py, recursively, forms the other.
+Only declared external-runtime markers are deselected. Unexpected skips fail.
+Build/install/import smoke uses temporary directories outside the checkout.
+"""
+from __future__ import annotations
+
+import argparse
+import fnmatch
+import hashlib
+import importlib.util
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tempfile
+import tomllib
+
+EXTERNAL_MARKERS = ("services", "gpu", "desktop", "matlab", "ansys", "qgis_runtime")
+MARKER_EXPRESSION = " and ".join(f"not {marker}" for marker in EXTERNAL_MARKERS)
+ROOT = Path(__file__).resolve().parents[1]
+# Exact existing prerequisites with missing committed dependency closures. See docs/development/OFFLINE_CHECKS.md.
+KNOWN_SKIPS = (
+    ("tests/corpus/test_figures_raster.py", "could not import 'cv2': No module named 'cv2'"),
+    ("tests/corpus/test_figure_readings_v2.py", "could not import 'cv2': No module named 'cv2'"),
+    ("tests/corpus/test_geometry_skru1_v1.py", "could not import 'cv2': No module named 'cv2'"),
+    ("tests/corpus/test_figures_pdf.py::test_glyph_outline_date_labels_are_read", "could not import 'cv2': No module named 'cv2'"),
+    ("tests/corpus/test_retrieval_lab_pipelines.py", "could not import 'snowballstemmer': No module named 'snowballstemmer'"),
+    ("tests/corpus/test_nav_concepts.py", "pymorphy3 not installed"),
+    ("tests/corpus/test_nav_concepts.py", "pymorphy3 not installed (extra `navigation`)"),
+    ("tests/corpus/test_nav_term_dictionary.py", "pymorphy3 not installed"),
+    ("tests/corpus/test_nav_term_dictionary.py", "pymorphy3 not installed (extra `navigation`)"),
+    ("tests/corpus/test_nav_expansion_query.py", "pymorphy3 not installed (extra `navigation`)"),
+    ("tests/corpus/test_extract_djvu.py", "DjVuLibre not installed (NOT_RUN)"),
+    ("tests/corpus/test_publish_transfer.py", "rsync not installed: NOT_RUN"),
+    ("tests/corpus/test_figures_pdf.py", "local OCR helper (tesseract) not installed"),
+    ("tests/corpus/test_nightly_scripts.py", "needs the CORE/EDGE host environment: bash, python3, flock, rsync, timeout, sha256sum"),
+)
+
+
+def test_files(root: Path, suite: str) -> list[Path]:
+    config_file = root / "pyproject.toml"
+    config = tomllib.loads(config_file.read_text()) if config_file.is_file() else {}
+    patterns = config.get("tool", {}).get("pytest", {}).get("ini_options", {}).get("python_files", ["test_*.py", "*_test.py"])
+    if isinstance(patterns, str):
+        patterns = patterns.split()
+    files = sorted(path for path in (root / "tests").rglob("*.py")
+                   if any(fnmatch.fnmatch(path.name, pattern) for pattern in patterns))
+    return [path for path in files if (path.relative_to(root / "tests").parts[0] == "world")
+            == (suite == "world-integrity")]
+
+
+def allowed_skip(nodeid: str, reason: str) -> bool:
+    module = nodeid.split("::", 1)[0]
+    reason = reason.removeprefix("Skipped: ")
+    return (nodeid, reason) in KNOWN_SKIPS or (module, reason) in KNOWN_SKIPS
+
+
+def test_status(stats: dict, exit_code: int) -> str:
+    if (exit_code or not stats.get("selected") or not stats.get("passed") or stats.get("failed")
+            or stats.get("collection_errors") or stats.get("unexpected_skips")
+            or stats.get("xfailed") or stats.get("xpassed")):
+        return "FAIL"
+    return "PASS_WITH_NOT_RUN" if stats.get("not_run") or stats.get("skipped") or stats.get("deselected") else "PASS"
+
+
+class Accounting:
+    def __init__(self):
+        self.stats = {"selected": 0, "passed": 0, "failed": 0, "skipped": 0, "xfailed": 0, "xpassed": 0,
+                      "collection_errors": [], "not_run": [], "unexpected_skips": [], "deselected": []}
+
+    def pytest_collection_finish(self, session):
+        self.stats["selected"] = len(session.items)
+
+    def pytest_deselected(self, items):
+        self.stats["deselected"].extend({"nodeid": item.nodeid, "status": "NOT_RUN",
+                                       "markers": [m.name for m in item.iter_markers() if m.name in EXTERNAL_MARKERS]}
+                                      for item in items)
+
+    def _skip(self, report, phase):
+        reason = str(report.longrepr[2]) if isinstance(report.longrepr, tuple) else str(report.longrepr)
+        record = {"nodeid": report.nodeid, "phase": phase, "status": "NOT_RUN",
+                  "reason": reason.removeprefix("Skipped: ")}
+        self.stats["not_run"].append(record)
+        if not allowed_skip(report.nodeid, reason):
+            self.stats["unexpected_skips"].append(record)
+
+    def pytest_collectreport(self, report):
+        if report.failed:
+            self.stats["collection_errors"].append({"nodeid": report.nodeid, "detail": str(report.longrepr)})
+        elif report.skipped:
+            self._skip(report, "collection")
+
+    def pytest_runtest_logreport(self, report):
+        if hasattr(report, "wasxfail"):
+            self.stats["xfailed" if report.skipped else "xpassed"] += 1
+        elif report.failed:
+            self.stats["failed"] += 1
+        elif report.skipped:
+            self.stats["skipped"] += 1
+            self._skip(report, report.when)
+        elif report.when == "call" and report.passed:
+            self.stats["passed"] += 1
+
+
+def run_tests(root: Path, suite: str, output: Path) -> dict:
+    import pytest
+
+    # Match `python -m pytest`: public benchmark helper modules live at the repository root.
+    sys.path.insert(0, str(root))
+    accounting = Accounting()
+    files = test_files(root, suite)
+    if not files:
+        return {"status": "FAIL", "exit_code": 5, **accounting.stats}
+    # Let pytest recurse with its own discovery configuration, including newly added suites.
+    paths = [root / "tests/world"] if suite == "world-integrity" else sorted(
+        path for path in (root / "tests").iterdir() if path.name != "world"
+        and (path.is_dir() or path in files))
+    code = pytest.main(["-q", "--strict-markers", "--strict-config", "-m", MARKER_EXPRESSION,
+                        "--junitxml", str(output / "pytest.xml"),
+                        "--basetemp", str(output / "pytest-tmp"), *map(str, paths)], plugins=[accounting])
+    return {"status": test_status(accounting.stats, int(code)), "exit_code": int(code),
+            "test_files": [p.relative_to(root).as_posix() for p in files], **accounting.stats}
+
+
+def integrity_status(report: dict) -> dict:
+    gaps, errors = [], []
+    manifest = next((check for check in report["checks"] if check["id"] == "catalogue_sync:manifest"), None)
+    if manifest is None or manifest["status"] != "PASS":
+        errors.append("catalogue_sync:manifest")
+    for check in report["checks"]:
+        if check["id"].startswith("frozen:anchor:tag:") and check["status"] == "SKIPPED_REF_UNAVAILABLE":
+            gaps.append(check["id"])
+        elif check["id"].startswith(("frozen:", "retired:")) and check["status"] != "PASS":
+            errors.append(check["id"])
+        elif check["status"] in ("SKIPPED", "SKIPPED_REF_UNAVAILABLE"):
+            gaps.append(check["id"])
+    status = "FAIL" if report["exit_code"] or errors else "PASS_WITH_NOT_RUN" if gaps else "PASS"
+    return {"status": status, "object_failures": errors, "not_run": gaps}
+
+
+def run_integrity(root: Path, output: Path) -> dict:
+    spec = importlib.util.spec_from_file_location("verify_canonical_repository", root / "scripts/verify_canonical_repository.py")
+    verifier = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = verifier
+    spec.loader.exec_module(verifier)
+    # These source comparisons require PRIVATE, which this runner never opens.
+    groups = [group for group in verifier.GROUPS if group != "private_sources"]
+    report = verifier.verify(root, groups=groups, use_env=False)
+    (output / "canonical-verification.json").write_text(json.dumps(report, indent=2) + "\n")
+    return integrity_status(report)
+
+
+def _run(argv: list[str], cwd: Path, log: Path) -> None:
+    with log.open("a", encoding="utf-8") as stream:
+        stream.write(json.dumps(argv) + "\n")
+        stream.flush()
+        subprocess.run(argv, cwd=cwd, stdout=stream, stderr=subprocess.STDOUT, check=True)
+
+
+def package_smoke(root: Path, output: Path) -> dict:
+    config = tomllib.loads((root / "pyproject.toml").read_text())
+    settings = config["tool"]["setuptools"]
+    resources, empty = {}, []
+    for package, patterns in settings.get("package-data", {}).items():
+        base = root / "src" / package.replace(".", "/")
+        for pattern in patterns:
+            matches = sorted(path for path in base.glob(pattern) if path.is_file())
+            if not matches:
+                empty.append({"package": package, "pattern": pattern, "status": "NO_SOURCE_FILES"})
+            for path in matches:
+                resources[path.relative_to(root / "src").as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+    includes = settings["packages"]["find"]["include"]
+    packages = sorted(path.name for path in (root / "src").iterdir()
+                      if (path / "__init__.py").is_file() and any(fnmatch.fnmatch(path.name, p) for p in includes))
+    log = output / "package-smoke.log"
+    with tempfile.TemporaryDirectory(prefix="vkm-offline-package-") as scratch:
+        temp = Path(scratch)
+        source = temp / "source"
+        source.mkdir()
+        shutil.copy2(root / "pyproject.toml", source / "pyproject.toml")
+        shutil.copytree(root / "src", source / "src", ignore=shutil.ignore_patterns("__pycache__", "*.egg-info"))
+        wheel_dir = temp / "wheel"
+        wheel_dir.mkdir()
+        _run([sys.executable, "-c", "import setuptools.build_meta as b; b.build_wheel(" + repr(str(wheel_dir)) + ")"], source, log)
+        wheel, = wheel_dir.glob("*.whl")
+        installed = temp / "installed"
+        if importlib.util.find_spec("pip") is not None:
+            install = [sys.executable, "-m", "pip", "install"]
+        elif uv := shutil.which("uv"):
+            # Local uv-created environments may have no pip/ensurepip. No package is downloaded.
+            install = [uv, "pip", "install", "--python", sys.executable]
+        else:
+            raise RuntimeError("wheel install needs existing pip or uv; neither is available")
+        _run([*install, "--no-deps", "--no-index", "--target", str(installed), str(wheel)], temp, log)
+        script = """import hashlib, importlib, json, pathlib, sys
+target=pathlib.Path(sys.argv[1]).resolve()
+sys.path.insert(0,str(target))
+packages=json.loads(sys.argv[2]); resources=json.loads(sys.argv[3])
+for name in packages:
+    module=importlib.import_module(name)
+    assert pathlib.Path(module.__file__).resolve().is_relative_to(target), name
+for relative,wanted in resources.items():
+    path=target/relative
+    assert path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest()==wanted, relative
+print(json.dumps({'imported':packages,'resources_verified':len(resources)}))
+"""
+        _run([sys.executable, "-I", "-c", script, str(installed), json.dumps(packages), json.dumps(resources)], temp, log)
+    return {"status": "PASS", "installation": "non-editable wheel outside checkout", "imported": packages,
+            "resources": resources, "empty_declarations": empty}
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("suite", choices=("world-integrity", "corpus-offline"))
+    parser.add_argument("--output", type=Path, required=True, help="artifact directory outside checkout")
+    args = parser.parse_args(argv)
+    output = args.output.resolve()
+    if output.is_relative_to(ROOT):
+        parser.error("--output must be outside the checkout")
+    output.mkdir(parents=True, exist_ok=True)
+    # Live configuration is intentionally absent. Synthetic tests set their own configuration.
+    for key in list(os.environ):
+        if key.startswith("VKM_"):
+            del os.environ[key]
+    os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+    os.environ["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
+    sys.dont_write_bytecode = True
+    os.chdir(ROOT)
+    report = {"suite": args.suite, "marker_expression": MARKER_EXPRESSION,
+              "scope": "PUBLIC synthetic CPU; no PRIVATE, live services, solver licences, or GPU",
+              "python": sys.version.split()[0]}
+    tasks = [("tests", lambda: run_tests(ROOT, args.suite, output))]
+    if args.suite == "world-integrity":
+        tasks += [("integrity", lambda: run_integrity(ROOT, output)),
+                  ("package", lambda: package_smoke(ROOT, output))]
+    for name, task in tasks:
+        try:
+            report[name] = task()
+        except Exception as exc:
+            report[name] = {"status": "FAIL", "error": f"{type(exc).__name__}: {exc}"}
+    statuses = [report[name]["status"] for name, _ in tasks]
+    report["status"] = "FAIL" if "FAIL" in statuses else "PASS_WITH_NOT_RUN" if "PASS_WITH_NOT_RUN" in statuses else "PASS"
+    (output / "summary.json").write_text(json.dumps(report, indent=2) + "\n")
+    print(json.dumps({"status": report["status"], "suite": args.suite, "summary": str(output / "summary.json")}))
+    return int(report["status"] == "FAIL")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

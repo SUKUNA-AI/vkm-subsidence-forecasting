@@ -381,25 +381,35 @@ UNKNOWN — полноправное значение. Масштаб по ум�
     и копии отчётов (PRIVATE `11_evidence_vnext/receipts/determinism_check_postmerge_2026-09-26.txt`).
   - Цепочка объединения sweep тоже воспроизводится побайтово
     ([REPRODUCIBILITY_REPORT_RU.md](docs/reset_2026_09/REPRODUCIBILITY_REPORT_RU.md)).
-- **Проверки PUBLIC.** `python -m pytest -q tests/world` — 209 тестов. Среди них:
+- **Проверки PUBLIC до ночного hardening.** `python -m pytest -q tests/world` — 209 тестов. Среди них:
   - глобальная уникальность id объектов в каталогах;
   - типы событий хронологии входят в схему;
   - каждая ссылка `EV-VN-…` разрешается.
 
-  `scripts/verify_canonical_repository.py` с `VKM_RESOURCES_ROOT` — 42/42 PASS. Группа `catalogue_sync` проверяет,
-  что PUBLIC-каталоги совпадают со свежей сборкой из PRIVATE и что ни один текст PUBLIC не повторяет 25 и более слов
-  цитаты подряд.
+  Ранее зафиксированный результат `scripts/verify_canonical_repository.py` с `VKM_RESOURCES_ROOT` — 42/42 PASS.
+  Группа `catalogue_sync` проверяет полноту manifest и сравнивает hashes опубликованных файлов с перечисленными
+  PRIVATE-входами; она не запускает свежую сборку. Проверка дословных совпадений 25 и более слов выполняется
+  отдельно при доступных PRIVATE evidence-каталогах. Без PRIVATE эти сравнения имеют статус `NOT_RUN` в offline gate.
+  Текущие локальные команды и Actions jobs — [OFFLINE_CHECKS.md](docs/development/OFFLINE_CHECKS.md).
 - **Итоговый отчёт cloud-run:** [CLOUD_ULTRACODE_PHASE1_FINAL_REPORT_RU.md](docs/reset_2026_09/CLOUD_ULTRACODE_PHASE1_FINAL_REPORT_RU.md).
 
 ## 8. Что дальше
 
-Текущая разрешённая работа — чтение рисунков A, source geometry B и геология C. Результаты и границы исполнения:
+Текущий проход — укрепление инженерных контрактов, PUBLIC/PRIVATE boundary и offline CPU CI.
+Дальнейшая оцифровка геометрии и новая геологическая реконструкция приостановлены до получения GIS-данных.
+Результаты предыдущего прохода и его границы сохранены:
 [отчёт 30.09.2026](docs/corpus_platform/WORK_SESSION_FIGURES_GEOMETRY_2026-09-30_RU.md),
 [метод чтения](benchmarks/figure_readings_v2/README.md), [геометрия](benchmarks/geometry_skru1_v1/README.md),
-[локальный PyQGIS/GDAL мост](docs/qgis/README_RU.md). Массовое OCR далее выполняет GLM-OCR; значения для геометрии
-требуют проверки по исходным изображениям. Автоматические graphic candidates не становятся выработками/evidence.
+[локальный PyQGIS/GDAL мост](docs/qgis/README_RU.md). Описанный GLM-OCR остаётся методом предыдущего прохода;
+новые OCR/solver/ML вычисления сейчас не запускаются. Автоматические graphic candidates не становятся выработками/evidence.
 CRS, абсолютные глубины и непроверенные даты остаются UNKNOWN. Полная метрическая, семантическая и временная приёмка
 не завершена. PhysicalWorld, решатели, новые solver experiments и ML на паузе до отдельного указания владельца.
+
+Минимальный [scientific admission и DRAFT consumer](docs/worldspec/SCIENTIFIC_ADMISSION_DRAFT_RU.md)
+проверяет выбранную точную форму, совместимые ссылки на параметры, условия, scale/scope/Transfer и доступность
+информации. `READY` относится к согласованности этих контрактов; физическая применимость и field validation
+автоматически не устанавливаются. Неполный DESIGN хранится; выбранный DRAFT consumer отклоняет
+блокирующие UNKNOWN и не создаёт представление для решателя.
 
 Последующий научный план ниже описывает отдельные будущие задачи, а не разрешение запускать их сейчас.
 

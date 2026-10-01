@@ -900,34 +900,83 @@ QUOTE_COLUMN_NAMES = {"quote", "verbatim_quote", "ocr_text", "page_text", "full_
 
 
 def check_catalogue_sync(ctx: Context) -> list[Check]:
-    """PUBLIC catalogues equal a fresh build from PRIVATE canonical (review DOCS_LEAKAGE-027), and no PUBLIC text
+    """Complete mapped inputs/outputs match manifest hashes (not a fresh regeneration), and no PUBLIC text
     repeats ≥ 25 consecutive words of a PRIVATE verbatim quote (review DOCS_LEAKAGE-023)."""
+    lk = _import_vkm_world(ctx)
+    from vkm_world.governance.publication import (  # noqa: PLC0415
+        contained_path, load_catalogue_map, public_json_texts, strict_json)
+
     ids = ("catalogue_sync:public_vs_private", "catalogue_sync:verbatim")
-    if ctx.resources_root is None:
-        return [Check(i, "catalogue_sync", SKIPPED, False, "PRIVATE resources not configured",
-                      {"how_to_enable": "set VKM_RESOURCES_ROOT to the resources checkout"}) for i in ids]
-    canon = ctx.resources_root / "11_evidence_vnext" / "canonical"
+    canon = ctx.resources_root / "11_evidence_vnext" / "canonical" if ctx.resources_root else None
     manifest_path = ctx.root / "evidence" / "PUBLIC_CATALOGUE_MANIFEST.json"
-    if not manifest_path.is_file():
-        return [Check(i, "catalogue_sync", FAIL, True, "evidence/PUBLIC_CATALOGUE_MANIFEST.json missing") for i in ids]
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    try:
+        mapping = load_catalogue_map(ctx.root / 'scripts/public_catalogue_map.json')
+        manifest = strict_json(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, UnicodeError) as exc:
+        return [Check('catalogue_sync:manifest', 'catalogue_sync', FAIL, True,
+                      f'cannot validate catalogue map/manifest: {type(exc).__name__}'),
+                *[Check(i, 'catalogue_sync', SKIPPED, False, 'catalogue map/manifest validation failed') for i in ids]]
     stale: list[dict] = []
-    for f in manifest.get("files", []):
-        src, tgt = canon / f["source"], ctx.root / f["target"]
-        if not src.is_file():
-            stale.append({"source": f["source"], "problem": "missing in PRIVATE canonical"})
-        elif sha256_file(src) != f.get("source_sha256"):
-            stale.append({"source": f["source"], "problem": "PRIVATE changed after the PUBLIC build: run "
-                                                          "scripts/build_public_catalogues.py"})
-        if not tgt.is_file() or sha256_file(tgt) != f.get("target_sha256"):
-            stale.append({"target": f["target"], "problem": "PUBLIC file differs from the build manifest"})
-    out = [Check(ids[0], "catalogue_sync", FAIL if stale else PASS, True,
-                 f"{len(manifest.get('files', []))} catalogues; {len(stale)} out of sync", {"problems": _capped(stale)})]
-    lk = _import_vkm_world(ctx)          # same verbatim rule as scripts/build_public_catalogues.py
+    private_stale: list[dict] = []
+    files = manifest.get('files') if isinstance(manifest, dict) else None
+    if not isinstance(files, list):
+        files = []
+        stale.append({'problem': 'manifest files must be an array'})
+    required = {'source', 'target', 'source_sha256', 'target_sha256', 'status'}
+    entries = {}
+    for f in files:
+        if not isinstance(f, dict) or not required.issubset(f) or set(f) - required - {'dropped_columns'}:
+            stale.append({'problem': 'invalid manifest file schema'})
+            continue
+        source, target = f['source'], f['target']
+        if not isinstance(source, str) or source not in mapping or target != mapping[source]:
+            stale.append({'problem': 'manifest pair is not in the catalogue map'})
+            continue
+        if source in entries:
+            stale.append({'source': source, 'problem': 'duplicate manifest source/target pair'})
+            continue
+        entries[source] = f
+        if (f['status'] != 'OK' or any(not isinstance(f[key], str) or not SHA256_RE.fullmatch(f[key])
+                                       for key in ('source_sha256', 'target_sha256'))):
+            stale.append({'source': source, 'problem': 'manifest requires OK status and SHA-256 hashes'})
+    for source, target in mapping.items():
+        f = entries.get(source)
+        if f is None:
+            stale.append({'source': source, 'problem': 'required mapped pair is absent from manifest'})
+        tgt = contained_path(ctx.root, target)
+        if not tgt.is_file() or f is not None and sha256_file(tgt) != f['target_sha256']:
+            stale.append({'target': target, 'problem': 'PUBLIC file differs from the build manifest or is missing'})
+        if canon is not None:
+            src = contained_path(canon, source)
+            if not src.is_file():
+                private_stale.append({'source': source, 'problem': 'missing in PRIVATE canonical'})
+            elif f is not None and sha256_file(src) != f['source_sha256']:
+                private_stale.append({'source': source, 'problem': 'PRIVATE changed after the PUBLIC build: run '
+                                                           'scripts/build_public_catalogues.py'})
+    if isinstance(manifest, dict) and manifest.get('leakage_problems', []):
+        stale.append({'problem': 'manifest records unresolved leakage problems'})
+    out = [Check('catalogue_sync:manifest', 'catalogue_sync', FAIL if stale else PASS, True,
+                 f'{len(mapping)} mapped catalogues; {len(stale)} PUBLIC manifest/hash problems',
+                 {'comparison': 'complete map/manifest bijection and SHA-256 file hashes',
+                  'fresh_regeneration_performed': False, 'problems': _capped(stale)}),
+           Check(ids[0], 'catalogue_sync', (FAIL if stale or private_stale else PASS) if canon is not None else SKIPPED,
+                 canon is not None,
+                 (f'{len(mapping)} mapped PRIVATE inputs; {len(private_stale)} input hash problems'
+                  if canon is not None else 'PRIVATE hash comparison not configured'),
+                 {'comparison': 'manifest-bound SHA-256 input hashes', 'fresh_regeneration_performed': False,
+                  'problems': _capped(private_stale)})]
+    if canon is None:
+        out.append(Check(ids[1], 'catalogue_sync', SKIPPED, False, 'PRIVATE quote comparison not configured',
+                         {'how_to_enable': 'set VKM_RESOURCES_ROOT to the resources checkout'}))
+        return out
     shingles: set[str] = set()
-    for f in manifest.get("files", []):
-        src = canon / f["source"]
-        if src.suffix.lower() != ".csv" or not src.is_file():
+    unavailable_quotes = []
+    for source in mapping:
+        src = contained_path(canon, source)
+        if not src.is_file():
+            unavailable_quotes.append(source)
+            continue
+        if src.suffix.lower() != ".csv":
             continue
         with open(src, encoding="utf-8", newline="") as fh:
             rd = csv.reader(fh)
@@ -936,6 +985,7 @@ def check_catalogue_sync(ctx: Context) -> list[Check]:
             shingles |= lk.quote_shingles(row[i] for row in rd for i in qi if i < len(row))
     hits: list[dict] = []
     texts: list[tuple[str, str, str]] = []
+    mapped_json = {target for target in mapping.values() if target.endswith('.json')}
     for rel in ctx.repo_files():
         path = ctx.root / rel
         if rel.endswith(".csv") and (rel.startswith("evidence/") or rel.startswith("catalogues/")):
@@ -944,18 +994,22 @@ def check_catalogue_sync(ctx: Context) -> list[Check]:
                 header = next(rd, [])
                 for n, row in enumerate(rd, 2):
                     for h, cell in zip(header, row):
-                        if len(cell) > 80 and not any(x in h.lower() for x in lk.BIBLIO_COLUMN_HINTS):
+                        if not any(x in h.lower() for x in lk.BIBLIO_COLUMN_HINTS):
                             texts.append((rel, f"line {n} [{h}]", cell))
         elif rel.endswith(".md") and not rel.startswith("docs/reset_2026_09/run_kit/"):
             texts.append((rel, "document", path.read_text(encoding="utf-8", errors="replace")))
+        elif rel in mapped_json or rel.startswith('docs/corpus_platform/receipts/') and rel.endswith('.json'):
+            value = strict_json(path.read_text(encoding='utf8'))
+            texts.extend((rel, f'JSON text run {n}', value)
+                         for n,value in enumerate(public_json_texts(value), 1))
     for rel, where, text in texts:
         longest = lk.longest_shared_run(lk.words(text), shingles)[0]
         if longest >= lk.VERBATIM_LIMIT_WORDS:
             hits.append({"file": rel, "where": where, "words": longest})
-    out.append(Check(ids[1], "catalogue_sync", FAIL if hits else PASS, True,
+    out.append(Check(ids[1], "catalogue_sync", FAIL if hits or unavailable_quotes else PASS, True,
                      f"{len(texts)} PUBLIC texts checked against {len(shingles)} {lk.SHINGLE_WORDS}-word shingles of "
                      f"PRIVATE quotes; {len(hits)} with ≥ {lk.VERBATIM_LIMIT_WORDS} consecutive quoted words",
-                     {"hits": _capped(hits)}))
+                     {"hits": _capped(hits), 'missing_quote_inputs': _capped(unavailable_quotes)}))
     return out
 
 

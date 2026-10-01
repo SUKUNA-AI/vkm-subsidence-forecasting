@@ -295,7 +295,7 @@ class UncertaintyComponent(str, Enum):
 
 
 class Uncertainty(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
     kind: UncertaintyKind = UncertaintyKind.UNKNOWN
     params: dict[str, float] = Field(default_factory=dict)
@@ -366,7 +366,7 @@ def provenance_errors(p: Provenance) -> list[str]:
 class Quantity(BaseModel):
     """A physical quantity with provenance. Point OR range OR discrete set OR nothing (UNKNOWN)."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
     name: str
     unit: str = Field(..., description="SI or explicit unit string understood by vkm_world.core.units")
@@ -415,32 +415,54 @@ def check_scale_use(q: Quantity, required: Scale) -> list[str]:
                 f"as {required.value}"]
     if p.scale in (required, Scale.NOT_APPLICABLE):
         return []
-    if p.transfer and p.transfer.to_scale == required:
-        return []
+    if p.transfer:
+        return transfer_use_errors(p, required, p.transfer.to_scope)
     return [f"{q.name}: {p.scale.value} value used as {required.value} without an explicit Transfer record"]
 
 
 def check_site_use(q: Quantity, target: Scope = Scope.SKRU1, local_to_pillar: bool = False) -> list[str]:
-    """Return errors if an off-site value is used as a target-site value without ANALOGUE/Transfer.
+    """Return errors if an off-site value is used as a target-site value without a complete Transfer.
 
     * only the target scope itself passes silently;
     * ``SKRU1_SKRU2_PILLAR`` passes for SKRU-1 only when the use is local to the intermine pillar zone
       (``local_to_pillar=True``); field-wide use needs a Transfer (review findings ATTRIBUTION-007, TRANSFER-023);
     * unattributed (SKRU-1 or SKRU-2), pooled (SKRU-1+2+3), legacy SKRU1_SKRU2 and GENERAL_METHOD values need
-      ANALOGUE / MODEL_CHOICE / ENGINEERING_ASSUMPTION status or a Transfer (TRANSFER-024);
+      a complete Transfer; epistemic status alone does not establish target-site applicability;
     * PROJECT scope passes for this project's own DERIVATION / INTERPOLATION."""
     p = q.provenance
     if p.scope == target:
-        return []
-    if p.status in (EpistemicStatus.ANALOGUE, EpistemicStatus.MODEL_CHOICE, EpistemicStatus.ENGINEERING_ASSUMPTION):
-        return []
-    if p.transfer and p.transfer.to_scope == target:
         return []
     if target is Scope.SKRU1 and p.scope is Scope.SKRU1_SKRU2_PILLAR and local_to_pillar:
         return []
     if p.scope is Scope.PROJECT and p.status in (EpistemicStatus.DERIVATION, EpistemicStatus.INTERPOLATION):
         return []
-    return [f"{q.name}: scope {p.scope.value} used for {target.value} with status {p.status.value} (needs ANALOGUE or Transfer)"]
+    if p.transfer:
+        return transfer_use_errors(p, p.transfer.to_scale, target)
+    return [f"{q.name}: scope {p.scope.value} used for {target.value} with status {p.status.value} (needs complete Transfer)"]
+
+
+def transfer_use_errors(p: Provenance, as_scale: Scale | None, for_scope: Scope | None) -> list[str]:
+    """Validate a declared transfer against actual source and requested target, without altering the source.
+
+    Incomplete records remain valid archival metadata. Actual use needs all four axes, a method/rationale,
+    and an explicit derived/analogue/assumption status. FACT is a source status, not a transfer status.
+    """
+    if (p.scale, p.scope) == (as_scale, for_scope):
+        return []  # original-source use does not consume a stored transfer to a different context
+    t = p.transfer
+    if t is None:
+        return ["TRANSFER_MISSING"] if p.scale != as_scale or p.scope != for_scope else []
+    errors = []
+    if None in (t.from_scale, t.to_scale, t.from_scope, t.to_scope): errors.append("TRANSFER_INCOMPLETE")
+    if (t.from_scale, t.from_scope) != (p.scale, p.scope): errors.append("TRANSFER_SOURCE_MISMATCH")
+    if (t.to_scale, t.to_scope) != (as_scale, for_scope): errors.append("TRANSFER_TARGET_MISMATCH")
+    if (Scale.UNSTATED in (t.from_scale, t.to_scale) or Scope.UNSTATED in (t.from_scope, t.to_scope)):
+        errors.append("TRANSFER_CONTEXT_UNKNOWN")
+    if t.status not in {EpistemicStatus.DERIVATION, EpistemicStatus.ANALOGUE,
+                        EpistemicStatus.MODEL_CHOICE, EpistemicStatus.ENGINEERING_ASSUMPTION}:
+        errors.append("TRANSFER_STATUS")
+    if not t.method.strip() or not t.rationale.strip(): errors.append("TRANSFER_EXPLANATION")
+    return errors
 
 
 def as_dict(obj: BaseModel) -> dict[str, Any]:

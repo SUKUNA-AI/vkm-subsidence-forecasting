@@ -79,45 +79,100 @@ def current_snapshot(data_root: str | Path) -> str | None:
 
 
 def pack(nav_dir: str | Path) -> dict[str, Any]:
-    """``<nav_dir>/*.parquet`` → ``<nav_dir>/nav.duckdb`` (tables named by dataset + ``nav_meta``); atomic replace."""
+    """Checked NAV datasets → nav.duckdb; exploratory origin stays unverified."""
     import duckdb
+    from vkm_corpus.navigation.manifest import load_datasets
 
     nav_dir = Path(nav_dir)
-    parts = sorted(p for p in nav_dir.glob("*.parquet"))
-    if not parts:
+    tables, identity, manifest = load_datasets(nav_dir)
+    if not tables:
         raise NavUnavailable(f"no NAV datasets in {nav_dir.name}")
-    manifest: dict[str, Any] = {}
-    if (nav_dir / "manifest.json").exists():
-        manifest = json.loads((nav_dir / "manifest.json").read_text(encoding="utf-8"))
     tmp = nav_dir / (NAV_DB + ".tmp")
     if tmp.exists():
         tmp.unlink()
     con = duckdb.connect(str(tmp))
     counts: dict[str, int] = {}
     try:
-        for p in parts:
-            name = p.stem
-            if not name.replace("_", "").isalnum():
-                raise ValueError(f"bad dataset name {name!r}")
-            con.execute(f'CREATE TABLE "{name}" AS SELECT * FROM read_parquet(?)', [str(p)])
+        for name, table in tables.items():
+            con.register("nav_input", table)
+            con.execute(f'CREATE TABLE "{name}" AS SELECT * FROM nav_input')
+            con.unregister("nav_input")
             counts[name] = int(con.execute(f'SELECT count(*) FROM "{name}"').fetchone()[0])
-        snapshot_id = manifest.get("snapshot_id") or (manifest.get("snapshot") or {}).get("snapshot_id")
-        meta = {"snapshot_id": snapshot_id, "rule_versions": manifest.get("rule_versions"),
+        meta = {**identity, "rule_versions": manifest.get("rule_versions"), "parts": manifest.get("parts", {}),
                 "built_at": manifest.get("built_at"), "packed_at": datetime.now(timezone.utc).isoformat(),
                 "counts": counts}
         con.execute("CREATE TABLE nav_meta AS SELECT ?::VARCHAR AS meta_json", [json.dumps(meta, ensure_ascii=False)])
         con.execute("CHECKPOINT")
     finally:
         con.close()
+    identity.verify_unchanged()
     os.replace(tmp, nav_dir / NAV_DB)
-    return {"nav_db": NAV_DB, "tables": counts, "snapshot_id": manifest.get("snapshot_id")}
+    return {"nav_db": NAV_DB, "tables": counts, "snapshot_id": identity["snapshot_id"],
+            "identity_status": identity["identity_status"], "navigation_only": True,
+            "scientific_decision": "NOT_CHECKED"}
 
 
-def publish(data_root: str | Path, snapshot_id: str) -> Path:
-    """Point CURRENT at ``derived/navigation/<snapshot_id>`` (which must hold a packed nav.duckdb)."""
+def publish(data_root: str | Path, snapshot_id: str, *, require_verified: bool = True) -> Path:
+    """Publish a verified origin; explicit exploratory publication stays unverified."""
+    import duckdb
+    from vkm_corpus.navigation.manifest import UNVERIFIED, VERIFIED, load_datasets
+
+    if not snapshot_id or "/" in snapshot_id or "\\" in snapshot_id or snapshot_id.startswith("."):
+        raise ValueError("bad NAV publication id")
     root = nav_root(data_root)
-    if not (root / snapshot_id / NAV_DB).exists():
+    nav_dir = root / snapshot_id
+    if not (nav_dir / NAV_DB).exists():
         raise NavUnavailable(f"{snapshot_id}/{NAV_DB} is not packed")
+    packed_stamp = NavStore._file_stamp(nav_dir / NAV_DB)
+    con = duckdb.connect(str(nav_dir / NAV_DB), read_only=require_verified)
+    try:
+        rows = con.execute("SELECT meta_json FROM nav_meta").fetchall()
+        if len(rows) != 1:
+            raise NavUnavailable("NAV packed identity is missing or ambiguous")
+        meta = json.loads(rows[0][0])
+        if not isinstance(meta, dict):
+            raise NavUnavailable("NAV packed identity must be an object")
+        origin = meta.get("snapshot_id")
+        if origin and origin != snapshot_id:
+            raise NavUnavailable("NAV publication name differs from its packed origin")
+        if require_verified:
+            tables, checked, _manifest = load_datasets(nav_dir, snapshot_id, require_verified=True)
+            if (meta.get("identity_status") != VERIFIED or checked["snapshot_id"] != origin
+                    or checked["snapshot"] != meta.get("snapshot")
+                    or checked["manifest_sha256"] != meta.get("manifest_sha256")
+                    or checked["datasets"] != meta.get("datasets")):
+                raise NavUnavailable("NAV packed identity is not verified against the current manifest")
+            actual = {r[0] for r in con.execute("SELECT table_name FROM information_schema.tables "
+                                                "WHERE table_schema = 'main'").fetchall()}
+            if actual != set(tables) | {"nav_meta"}:
+                raise NavUnavailable("NAV packed tables differ from the checked datasets")
+            for name, table in tables.items():
+                con.register("_publish_checked", table)
+                stored = [r[:2] for r in con.execute(f'DESCRIBE "{name}"').fetchall()]
+                expected = [r[:2] for r in con.execute('DESCRIBE _publish_checked').fetchall()]
+                if stored != expected:
+                    raise NavUnavailable(f"NAV packed dataset {name}: schema differs from checked input")
+                # EXCEPT ALL preserves duplicates and handles NULL/NaN and nested Arrow values.
+                changed = con.execute(f'SELECT EXISTS(SELECT * FROM ((SELECT * FROM "{name}" '
+                                      'EXCEPT ALL SELECT * FROM _publish_checked) UNION ALL '
+                                      f'(SELECT * FROM _publish_checked EXCEPT ALL SELECT * FROM "{name}")))').fetchone()[0]
+                con.unregister("_publish_checked")
+                if changed:
+                    raise NavUnavailable(f"NAV packed dataset {name}: content differs from checked input")
+            checked.verify_unchanged()
+        else:
+            # Permissive publication makes no checked-content claim, even if the
+            # database originally came from a verified pack.
+            meta.update({"identity_status": UNVERIFIED, "navigation_only": True,
+                         "scientific_decision": "NOT_CHECKED"})
+            con.execute("UPDATE nav_meta SET meta_json = ?", [json.dumps(meta, ensure_ascii=False)])
+            con.execute("CHECKPOINT")
+    finally:
+        con.close()
+    if require_verified and NavStore._file_stamp(nav_dir / NAV_DB) != packed_stamp:
+        raise NavUnavailable("NAV packed database changed during publication")
+    if require_verified:
+        checked.verify_unchanged()
     tmp = root / (CURRENT_FILE + ".tmp")
     tmp.write_text(snapshot_id + "\n", encoding="utf-8")
     os.replace(tmp, root / CURRENT_FILE)
@@ -152,6 +207,8 @@ class NavStore:
         snap = current_snapshot(self.data_root)
         if not snap:
             raise NavUnavailable("the navigation layer is not published (derived/navigation/CURRENT is missing)")
+        if "/" in snap or "\\" in snap or snap.startswith("."):
+            raise NavUnavailable("bad NAV CURRENT publication id")
         nav_db = nav_root(self.data_root) / snap / NAV_DB
         if not nav_db.exists():
             raise NavUnavailable(f"navigation layer {snap} is not packed")
@@ -191,7 +248,23 @@ class NavStore:
             if not t.startswith("nav_"):     # the part modules query nav_<dataset> (as `vkm-corpus nav build` names them)
                 con.execute(f'CREATE VIEW "nav_{t}" AS SELECT * FROM nav.main."{t}"')
             tables.add(t)
-        self._con, self._stamp, self._snapshot, self._tables = con, stamp, snap, frozenset(tables - {"nav_meta"})
+        try:
+            rows = con.execute("SELECT meta_json FROM nav_meta").fetchall()
+            if len(rows) != 1:
+                raise NavUnavailable("NAV packed identity is missing or ambiguous")
+            meta = json.loads(rows[0][0])
+            if not isinstance(meta, dict):
+                raise NavUnavailable("NAV packed identity must be an object")
+            origin = meta.get("snapshot_id")
+            if origin and origin != snap:
+                raise NavUnavailable("NAV CURRENT name differs from its packed origin")
+        except Exception as exc:
+            con.close()
+            if isinstance(exc, NavUnavailable):
+                raise
+            raise NavUnavailable("cannot read NAV packed identity") from exc
+        # CURRENT is a publication selector, never a replacement for origin metadata.
+        self._con, self._stamp, self._snapshot, self._tables = con, stamp, origin, frozenset(tables - {"nav_meta"})
         return con
 
     # -------------------------------------------------------------- API
@@ -201,8 +274,17 @@ class NavStore:
             return self._snapshot
 
     def meta(self) -> dict[str, Any]:
+        from vkm_corpus.navigation.manifest import UNVERIFIED, VERIFIED, snapshot_identified
+
         rows = self.query("SELECT meta_json FROM nav_meta")
-        return json.loads(rows[0]["meta_json"]) if rows else {}
+        meta = json.loads(rows[0]["meta_json"]) if rows else {}
+        snapshot = meta.get("snapshot") or {}
+        manifest_hash = meta.get("manifest_sha256")
+        verified = (meta.get("identity_status") == VERIFIED and isinstance(snapshot, dict)
+                    and snapshot_identified(snapshot) and meta.get("snapshot_id") == snapshot.get("snapshot_id")
+                    and isinstance(manifest_hash, str) and re.fullmatch(r"[0-9a-f]{64}", manifest_hash))
+        return {**meta, "identity_status": VERIFIED if verified else UNVERIFIED,
+                "navigation_only": True, "scientific_decision": "NOT_CHECKED"}
 
     def datasets(self) -> frozenset[str]:
         """The NAV datasets packed in the served ``nav.duckdb``."""

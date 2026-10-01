@@ -116,4 +116,5 @@ markers = [
     "desktop: needs Windows desktop tools (AutoCAD, draw.io)",
     "matlab: starts MATLAB and takes a licence (live smoke; opt-in: VKM_MATLAB_LIVE=1 and -m matlab)",
     "ansys: needs Ansys 2026 R1 and takes an Ansys licence (run only with -m ansys and VKM_ANSYS_LIVE=1)",
+    "qgis_runtime: needs an existing configured PyQGIS/GDAL runtime",
 ]

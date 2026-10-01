@@ -243,6 +243,7 @@ def test_fallback_morphology_without_pymorphy():
     assert any(e["kind"] == "CO_OCCURS" for e in res["term_edges"].to_pylist())
 
 
+@pytest.mark.gpu
 @pytest.mark.skipif(importlib.util.find_spec("cudf") is None, reason="cuDF not installed (GPU backend)")
 def test_gpu_backend_matches_duckdb():
     cpu = _build(morphology="crude")

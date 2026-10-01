@@ -58,6 +58,43 @@ PowerShell не раскрывает wildcard в аргументах pytest; п
 Publisher требует завершённый `verification_summary.json`; создание пакета
 до этого не означает успешного прохождения всех QA-гейтов.
 
+### Контракт QA перед PUBLIC-публикацией
+
+`verification_summary.json` создаёт оператор в PRIVATE work после фактических прогонов QA;
+автоматического producer этого файла нет. Publisher не запускает pytest или canonical verifier и
+не присваивает им PASS. Старые квитанции остаются историческими артефактами; для новой публикации
+нужен актуальный файл схемы `vkm.sol_abc_verification/1` с ровно следующими полями:
+
+| Поле | Допустимое содержимое |
+|---|---|
+| `schema` | `vkm.sol_abc_verification/1` |
+| `status` | `PASS` или `PASS_WITH_DISCLOSED_LIMITATIONS` |
+| `private_output_hashes` | Все ключи `OUTPUT_PATHS` из `public_receipt.py` и SHA-256 текущих файлов относительно `--work`; сюда входит сам `completion_receipt.json` |
+| `code_hashes` | Относительный PUBLIC-путь → SHA-256 всех `benchmarks/abc_completion_v1/*.py`, а также `src/vkm_world/governance/publication.py` и `leakage.py` |
+| `checks` | Ровно `accepted_datasets`, `queue_closure`, `glm_retry_closure`, `coverage`, `topology`, `frozen_integrity`, `public_leakage`, `tests`, `canonical_repository` |
+| `limitations` | Только счётчики `optional_runtime_skips` и `unavailable_frozen_git_refs`, целые неотрицательные числа; при отсутствии ограничений `{}` |
+
+Значения всех `checks` — `PASS`; только `tests` и `canonical_repository` допускают
+`PASS_WITH_DISCLOSED_LIMITATIONS`, соответственно при ненулевых `optional_runtime_skips` и
+`unavailable_frozen_git_refs`. Итоговый `status` обязан совпадать с наличием этих ограничений.
+FAIL, NOT_RUN, отсутствующий required check и произвольный вложенный текст отклоняются.
+
+Оператор сохраняет фактические логи и код выхода в PRIVATE work, выполняет проверки accepted datasets,
+закрытия очереди и retries, coverage, строгую topology/QGIS-приёмку, frozen bytes и leakage, затем
+тематические tests из команды выше и `scripts/verify_canonical_repository.py` с настроенным PRIVATE.
+Сводку заполняют по этим результатам; хеши вычисляют после последнего изменения входов и кода.
+Любое последующее изменение требует повторной проверки и обновления сводки. Publisher сопоставляет
+полный набор хешей и заново проверяет frozen bytes по предыдущим квитанциям и полному file table.
+Разбор completion, frozen receipt и QA использует те же зафиксированные байты, по которым вычислены
+хеши. После staging, leakage scan и подготовки резервных копий publisher под process lock повторно
+сверяет текущие входы, QA, инвентарь кода, frozen files и ссылки предыдущих квитанций до замены PUBLIC-файла.
+Хеш-привязка не заменяет фактическое выполнение заявленных оператором проверок.
+
+PUBLIC содержит только известные поля агрегатов, фиксированные категории статусов и целые
+неотрицательные counts; неизвестный вложенный ключ, bool вместо count, отрицательное, дробное или
+нечисловое значение блокируют публикацию. Исходные partitions, record IDs, literal readings и пути
+остаются PRIVATE. Проверка выполняется до замены существующей PUBLIC-квитанции.
+
 `retry_glm.py` требует принадлежащий исполнителю GPU-lock `SOL-ABC` и готовый
 локальный GLM endpoint. Первые ответы и ранее принятый gold не перезаписываются;
 повтор использует сохранённый request SHA. Повторное создание серверов или

@@ -68,6 +68,24 @@ def words(text: str) -> list[str]:
     return [w.replace("ё", "е") for w in _WORD.findall(text.lower())]
 
 
+def quote_prefix(text: str, limit: int = 20) -> str:
+    """Exact prefix capped at both alphabetic tokens and legacy whitespace words."""
+    if limit <= 0:
+        return ''
+    stop = len(text)
+    for count, match in enumerate(re.finditer(r'\S+', text), 1):
+        if count == limit:
+            stop = match.end()
+            break
+    count = 0
+    for match in _WORD.finditer(text[:stop]):
+        if not match.group().isdigit():
+            count += 1
+            if count == limit:
+                return text[:match.end()]
+    return text[:stop]
+
+
 def quote_shingles(texts) -> set[str]:
     """All 12-word shingles of the given verbatim quotes."""
     out: set[str] = set()

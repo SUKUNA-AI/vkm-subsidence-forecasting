@@ -83,6 +83,17 @@ def clamp_timeout(kind: str, value: int | float | None) -> int:
 
 
 # --------------------------------------------------------------------------------------------------- checks
+def _has_nonfinite_numbers(value: Any) -> bool:
+    """JSON numbers must be finite, including numbers nested inside expected/actual values."""
+    if isinstance(value, float):
+        return not math.isfinite(value)
+    if isinstance(value, Mapping):
+        return any(_has_nonfinite_numbers(k) or _has_nonfinite_numbers(v) for k, v in value.items())
+    if isinstance(value, (list, tuple)):
+        return any(_has_nonfinite_numbers(v) for v in value)
+    return False
+
+
 def validate_check(raw: Mapping[str, Any], *, default_path: str | None = None) -> dict[str, Any]:
     """``Check = {name, kind, path, pointer, expected, rtol, atol}`` (plan §2.3) → normalised dict."""
     if not isinstance(raw, Mapping):
@@ -100,10 +111,13 @@ def validate_check(raw: Mapping[str, Any], *, default_path: str | None = None) -
         path = clean_relpath(str(path), what=f"check '{name}' path")
     pointer = raw.get("pointer")
     if kind in ("json_value", "number_close"):
+        # Historical whole-document alias. An empty token elsewhere is retained (e.g. //value).
         pointer = "" if pointer in (None, "/") else str(pointer)
-        if pointer and not pointer.startswith("/"):
+        if pointer and (not pointer.startswith("/") or re.search(r"~(?![01])", pointer)):
             raise ToolFailure("INVALID_ARGUMENT", f"check '{name}': pointer is a JSON Pointer such as /s or /a/0")
     expected = raw.get("expected")
+    if _has_nonfinite_numbers(expected):
+        raise ToolFailure("INVALID_ARGUMENT", f"check '{name}': expected numbers must be finite")
     if kind in ("text_contains", "text_absent") and not isinstance(expected, str):
         raise ToolFailure("INVALID_ARGUMENT", f"check '{name}': expected must be a string for {kind}")
     if kind == "number_close" and (not isinstance(expected, (int, float)) or isinstance(expected, bool)):
@@ -113,8 +127,9 @@ def validate_check(raw: Mapping[str, Any], *, default_path: str | None = None) -
     out = {"name": name, "kind": kind, "path": path, "pointer": pointer, "expected": expected}
     for tol in ("rtol", "atol"):
         value = raw.get(tol)
-        if value is not None and (not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0):
-            raise ToolFailure("INVALID_ARGUMENT", f"check '{name}': {tol} must be a non-negative number")
+        if value is not None and (not isinstance(value, (int, float)) or isinstance(value, bool)
+                                  or _has_nonfinite_numbers(value) or value < 0):
+            raise ToolFailure("INVALID_ARGUMENT", f"check '{name}': {tol} must be a finite non-negative number")
         out[tol] = value
     if kind == "number_close":
         out["rtol"] = 1e-9 if out["rtol"] is None else out["rtol"]

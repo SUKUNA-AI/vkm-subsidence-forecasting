@@ -120,6 +120,7 @@ def test_crop_with_text_redaction_removes_offpage_text(tmp_path):
 
 @pytest.mark.skipif(shutil.which("tesseract") is None, reason="local OCR helper (tesseract) not installed")
 def test_glyph_outline_date_labels_are_read(tmp_path):
+    pytest.importorskip("cv2")  # glyph rendering rotates/masks with OpenCV; absent dependency is NOT_RUN
     pdf = tmp_path / "chart.pdf"
     _chart_pdf(pdf, date_glyphs=True, offpage_text=False)
     page = pymupdf.open(pdf)[0]

@@ -6,7 +6,7 @@ from enum import Enum
 from pydantic import Field, model_validator
 
 from ..core.base import WorldObject
-from ..core.provenance import Quantity, Scale, check_scale_use, check_site_use, Scope
+from ..core.provenance import Quantity, Scale, check_scale_use, check_site_use, Scope, transfer_use_errors
 from ..core.units import check_unit, is_hard_error
 
 
@@ -35,7 +35,8 @@ class MaterialParameter(WorldObject):
     test_method: TestMethod = TestMethod.UNKNOWN
     n_samples: int | None = None
     conditions: str | None = Field(None, description="stress level, strain rate, temperature, moisture, specimen size")
-    law_id: str | None = Field(None, description="math registry id if the parameter belongs to a constitutive law")
+    law_id: str | None = Field(None, description="exact math model id or separately registered law-catalogue id; "
+                                              "a catalogue law id does not identify an executable equation")
 
     @model_validator(mode="after")
     def _units(self) -> "MaterialParameter":
@@ -49,4 +50,6 @@ class MaterialParameter(WorldObject):
         return self
 
     def use_errors(self, as_scale: Scale = Scale.MASSIF, for_scope: Scope = Scope.SKRU1) -> list[str]:
+        if self.quantity.provenance.transfer is not None:
+            return transfer_use_errors(self.quantity.provenance, as_scale, for_scope)
         return check_scale_use(self.quantity, as_scale) + check_site_use(self.quantity, for_scope)

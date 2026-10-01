@@ -9,6 +9,7 @@ duckdb = pytest.importorskip("duckdb")
 pa = pytest.importorskip("pyarrow")
 pq = pytest.importorskip("pyarrow.parquet")
 
+from nav_manifest_fixture import write_nav_manifest  # noqa: E402
 from vkm_corpus.navigation import store  # noqa: E402
 
 SNAP = "snap-20260928T160616Z-5d669f09"
@@ -42,6 +43,7 @@ def test_pack_publish_and_serve(tmp_path):
         "WHERE s.source_id = ? ORDER BY s.level", [sid]).fetchall()})
     with pytest.raises(store.NavUnavailable):
         nav.snapshot_id()                                     # nothing published yet
+    write_nav_manifest(root / "derived" / "navigation" / SNAP, SNAP)
     info = store.pack(root / "derived" / "navigation" / SNAP)
     assert info["tables"] == {"sections": 2}
     store.publish(root, SNAP)
@@ -74,6 +76,7 @@ def test_search_sections_lemmas_key_terms_and_depth(tmp_path):
         "page_start_index": [1, 1, 5, 20], "page_end_index": [19, 4, 19, 30],
         "page_start_id": ["VKM-SRC-901:p0001"] * 4, "page_end_id": ["VKM-SRC-901:p0019"] * 4,
         "method": ["PDF_OUTLINE"] * 4}), nav_dir / "sections.parquet")
+    write_nav_manifest(nav_dir, SNAP)
     store.pack(nav_dir)
     store.publish(root, SNAP)
     nav = store.NavStore(root)
@@ -87,6 +90,7 @@ def test_search_sections_lemmas_key_terms_and_depth(tmp_path):
 
 def test_missing_query_module_is_unavailable(tmp_path):
     root = _root(tmp_path)
+    write_nav_manifest(root / "derived" / "navigation" / SNAP, SNAP)
     store.pack(root / "derived" / "navigation" / SNAP)
     store.publish(root, SNAP)
     nav = store.NavStore(root)

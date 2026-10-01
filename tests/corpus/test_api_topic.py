@@ -24,6 +24,7 @@ from vkm_corpus.api.errors import ApiFailure  # noqa: E402
 from vkm_corpus.api.fixtures import FakeHybrid, hybrid_hits, synthetic_service  # noqa: E402
 from vkm_corpus.catalogues import pack as cpack  # noqa: E402
 from vkm_corpus.catalogues.store import CatalogueStore  # noqa: E402
+from nav_manifest_fixture import write_nav_manifest  # noqa: E402
 from vkm_corpus.navigation import store as nav_store  # noqa: E402
 from vkm_corpus.navigation.formulas import definition_key  # noqa: E402
 
@@ -195,6 +196,7 @@ def env(tmp_path):
     nav_dir = root / "derived" / "navigation" / NAV_SNAP
     nav_dir.mkdir(parents=True)
     _write_nav(nav_dir, canon.ids["formula"])
+    write_nav_manifest(nav_dir, NAV_SNAP)
     nav_store.pack(nav_dir)
     nav_store.publish(root, NAV_SNAP)
     service.deps.nav = nav_store.NavStore(root, canonical_db=canon.duckdb_path,
@@ -561,11 +563,12 @@ def test_structured_tables_of_the_property_the_topic_names(env):
     other = "VKM-SRC-002:p0001:t0000000000c1"                                      # not in the canon: ids only
     nav_dir = root / "derived" / "navigation" / NAV_SNAP
     _write_tables(nav_dir, [canon.ids["table"], other])
+    write_nav_manifest(nav_dir, NAV_SNAP)
     nav_store.pack(nav_dir)
     service.deps.nav = nav_store.NavStore(root, canonical_db=canon.duckdb_path,
                                           functions={"explore_concept": fake_explore(canon.ids["block"])})
     record, warnings, _e = _dossier(service, query=query)
-    assert "TABLES_UNAVAILABLE" not in warnings and record["rule_version"] == "topic_dossier_v3"
+    assert "TABLES_UNAVAILABLE" not in warnings and record["rule_version"] == "topic_dossier_v3.1"
     [table] = record["tables"]                                  # the material narrows to the table of rock salt
     assert table["table_id"] == canon.ids["table"] and table["property_keys"] == ["deformation_modulus"]
     assert table["units"] == ["ГПа"] and table["review_status"] == "AUTO_EXTRACTED_UNREVIEWED"
