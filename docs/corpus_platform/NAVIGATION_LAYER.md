@@ -156,7 +156,7 @@ N1–N11 → `NavMeta = COMPLETE | FAILED` → квитанция `receipts/proj
 | `method` | string | `PDF_OUTLINE` / `EPUB_NAV` / `DJVU_OUTLINE` / `PRINTED_TOC` / `HEADING_NUMBERING` / `HEADING_LAYOUT` / `WHOLE_SOURCE` (источник без структуры — один раздел) |
 | `confidence` | float64 | уверенность метода (согласие источников) |
 | `heading_block_id` | string, null | блок заголовка, если найден на странице |
-| `rule_version` | string | `sections_v1` |
+| `rule_version` | string | `sections_v2` (исторические `sections_v1` сохранены) |
 
 **Датасет `section_pages`:** `section_id`, `page_id` — какие страницы покрывает раздел нижнего уровня.
 

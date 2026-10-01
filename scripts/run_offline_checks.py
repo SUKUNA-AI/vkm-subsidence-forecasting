@@ -31,11 +31,17 @@ WINDOWS_PATHS = ("tests/world", "tests/engineering", "tests/qgis", "tests/eviden
                  "tests/corpus/test_remote_search.py", "tests/corpus/test_remote_retrieval_identity.py",
                  "tests/corpus/test_remote_graph.py", "tests/corpus/test_pack_policy.py",
                  "tests/corpus/test_native_serving.py", "tests/corpus/test_mcp_contract.py",
-                 "tests/corpus/test_mcp_rejected_body.py")
+                 "tests/corpus/test_mcp_rejected_body.py", "tests/corpus/test_nav_incremental.py",
+                 "tests/corpus/test_nav_sections.py", "tests/corpus/test_nav_store.py",
+                 "tests/corpus/test_accounting_publication.py", "tests/corpus/test_runtime_publication.py",
+                 "tests/corpus/test_publish_transfer.py", "tests/corpus/test_service_identity.py",
+                 "tests/corpus/test_service_wheel.py", "tests/corpus/test_structural_fidelity.py")
 # Host prerequisites only. Missing locked CPU Python packages must fail, not become allowed NOT_RUN.
 KNOWN_SKIPS = (
     ("tests/corpus/test_extract_djvu.py", "DjVuLibre not installed (NOT_RUN)"),
-    ("tests/corpus/test_publish_transfer.py", "rsync not installed: NOT_RUN"),
+    ("tests/corpus/test_publish_transfer.py::test_publish_then_reconcile_moves_current", "rsync not installed: NOT_RUN"),
+    ("tests/corpus/test_accounting_publication.py::test_actual_local_rsync_transfers_only_pinned_closure",
+     "rsync not installed: NOT_RUN"),
     ("tests/corpus/test_figures_pdf.py", "local OCR helper (tesseract) not installed"),
     ("tests/corpus/test_nightly_scripts.py", "needs the CORE/EDGE host environment: bash, python3, flock, rsync, timeout, sha256sum"),
 )

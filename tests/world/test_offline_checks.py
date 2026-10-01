@@ -106,9 +106,25 @@ def test_actual_new_fast_suites_are_mandatory_in_linux_and_windows_selection():
                 "tests/corpus/test_pack_policy.py", "tests/corpus/test_native_serving.py",
                 "tests/corpus/test_mcp_contract.py", "tests/corpus/test_mcp_rejected_body.py",
                 "tests/corpus/test_remote_services.py", "tests/corpus/test_remote_search.py",
-                "tests/corpus/test_remote_retrieval_identity.py"} <= selected
+                "tests/corpus/test_remote_retrieval_identity.py", "tests/corpus/test_nav_incremental.py",
+                "tests/corpus/test_nav_sections.py", "tests/corpus/test_nav_store.py",
+                "tests/corpus/test_accounting_publication.py", "tests/corpus/test_runtime_publication.py",
+                "tests/corpus/test_publish_transfer.py", "tests/corpus/test_service_identity.py",
+                "tests/corpus/test_service_wheel.py", "tests/corpus/test_structural_fidelity.py"} <= selected
     world = set(CHECKS.test_files(ROOT, "world-integrity"))
     assert world == set((ROOT / "tests/world").rglob("test_*.py"))
+
+
+def test_rsync_capability_does_not_exempt_other_publication_or_symlink_failures():
+    reason = "rsync not installed: NOT_RUN"
+    for module, name in (
+            ("test_publish_transfer", "test_publish_then_reconcile_moves_current"),
+            ("test_accounting_publication", "test_actual_local_rsync_transfers_only_pinned_closure")):
+        path = f"tests/corpus/{module}.py"
+        assert CHECKS.allowed_skip(f"{path}::{name}", reason)
+        assert not CHECKS.allowed_skip(path, reason)
+        assert not CHECKS.allowed_skip(f"{path}::test_other", reason)
+        assert not CHECKS.allowed_skip(f"{path}::{name}", "symlink privilege unavailable")
 
 
 def test_linux_capability_allowance_never_covers_neighboring_or_new_cases():

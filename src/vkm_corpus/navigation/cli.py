@@ -168,9 +168,12 @@ def build_parts(con, out_dir: Path, parts: list[str], *, outlines: dict | None =
     import pyarrow.parquet as pq
 
     from vkm_corpus.navigation.ids import RULE_VERSIONS
+    from vkm_corpus.navigation import dependencies as D
     from vkm_corpus.navigation.manifest import (DatasetReference, UNVERIFIED, VERIFIED, load_datasets,
                                                snapshot_identified)
 
+    if not parts or parts != [p for p in PARTS if p in parts]:
+        raise ValueError("NAV parts must be unique and follow the declared dependency order")
     out_dir.mkdir(parents=True, exist_ok=True)
     if isinstance(inputs_ref, DatasetReference):
         inputs_ref.verify_unchanged()
@@ -179,19 +182,21 @@ def build_parts(con, out_dir: Path, parts: list[str], *, outlines: dict | None =
     mpath = out_dir / "manifest.json"
     manifest: dict[str, Any] = {}
     retained_ref = None
+    retained = {}
     if mpath.is_file():
         old = json.loads(mpath.read_text(encoding="utf-8"))
         if old.get("format") == MANIFEST_FORMAT and old.get("snapshot") == snap:
             manifest = old
-            rebuilding = tuple(n for p in parts for n in datasets_of(p))
+            rebuilding = tuple({n for p in parts for n in datasets_of(p)} |
+                               {n for p in parts for n in old.get("parts", {}).get(p, {}).get("datasets", [])})
             _retained, retained_ref, _old = load_datasets(
                 out_dir, snap["snapshot_id"], skip=rebuilding, manifest_sha256=snap["manifest_sha256"])
-            if not _retained:
-                manifest = {}          # no previous output/provenance is being reused
+            retained = _retained
     manifest.update({"format": MANIFEST_FORMAT, "snapshot": snap, "layer_status": "DERIVED",
                      "review_status": "AUTO_EXTRACTED_UNREVIEWED"})
     manifest.setdefault("parts", {})
     manifest.setdefault("datasets", {})
+    manifest.setdefault("invalidated_datasets", {})
     verified = (snapshot_identified(snap)
                 and (not retained_ref or not retained_ref["datasets"] or retained_ref["identity_status"] == VERIFIED)
                 and ((not inputs and inputs_ref is None) or (isinstance(inputs_ref, DatasetReference)
@@ -203,50 +208,148 @@ def build_parts(con, out_dir: Path, parts: list[str], *, outlines: dict | None =
     if vectors_ref is not None:
         manifest["vectors"] = vectors_ref
     if inputs_ref is not None:
-        manifest["inputs"] = inputs_ref
+        manifest["inputs"] = json.loads(json.dumps(inputs_ref))
+    elif inputs:
+        manifest["inputs"] = {"snapshot": snap, "identity_status": UNVERIFIED,
+                              "datasets": {name: {"sha256": D.table_digest(table)} for name, table in inputs.items()}}
     if artifacts_ref is not None:
         manifest["artifacts"] = artifacts_ref
+    # Old manifests have no dependency proof; never relabel their retained parts
+    # as coherent merely because the canonical snapshot ID happens to match.
+    manifest["dependency_contract"] = D.CONTRACT
+    resource_proofs = {p: D.external_identity(p, outlines=outlines, vectors=vectors, artifacts=artifacts) for p in parts}
+    option_proofs = {p: D.value_identity((part_options or {}).get(p, {})) for p in parts}
+    for p, record in manifest["parts"].items():
+        if p in parts or record.get("status") != "BUILT":
+            continue
+        proof = record.get("input_identity") or {}
+        if p in (part_options or {}) and proof.get("options") != D.value_identity(part_options[p]):
+            D.invalidate(manifest, p, "OPTIONS_CHANGED")
+        elif ((p == "sections" and outlines is not None) or (p in {"duplicates", "topics"} and vectors is not None)):
+            actual = D.external_identity(p, outlines=outlines, vectors=vectors, artifacts=artifacts)
+            if proof.get("external") != actual:
+                D.invalidate(manifest, p, "EXTERNAL_INPUT_CHANGED")
+    D.reconcile(manifest, current_rules=True, rebuilding=parts)
     built: dict[str, Any] = {}
-    for name, table in (inputs or {}).items():
-        con.register(f"nav_{name}", table)
+    external_tables = dict(inputs or {})
+    requested_names = {name for p in parts for name in datasets_of(p)}
+
+    def offered_tables():
+        # Local/current producers win; tombstones cannot be revived by --inputs.
+        # Check external child provenance against that same merged view.
+        while True:
+            removed = False
+            origin = manifest.get("inputs", {})
+            for name, entry in list(origin.get("datasets", {}).items()):
+                owner = entry.get("part")
+                proof = origin.get("parts", {}).get(owner, {}).get("input_identity")
+                if name in manifest["invalidated_datasets"] or (proof and any(
+                        value != D.binding(manifest, dep) for dep, value in proof.get("upstream", {}).items())):
+                    origin["datasets"].pop(name)
+                    external_tables.pop(name, None)
+                    removed = True
+            if not removed:
+                break
+        offered = {name: table for name, table in external_tables.items()
+                   if name not in requested_names and name not in manifest["invalidated_datasets"]}
+        offered.update({name: table for name, table in retained.items() if name in manifest["datasets"]})
+        offered.update(built)
+        return offered
+
+    # A caller may reuse a connection after a previous build. Clear owned temp
+    # aliases so optional-input SQL fallbacks cannot see stale registrations.
+    from vkm_corpus.navigation.ids import DATASETS
+    registered = set(DATASETS) | set(retained) | set(external_tables)
+    for name in registered:
+        con.unregister(f"nav_{name}")
+        con.execute(f'DROP VIEW IF EXISTS "nav_{name}"')
+        try:
+            con.execute(f'SELECT 1 FROM "{name}" LIMIT 0')
+        except Exception:
+            pass
+        else:
+            raise ValueError("NAV build connection exposes unchecked unqualified derived tables")
+
+    def remove_outputs(part, reason):
+        for name, entry in list(manifest["datasets"].items()):
+            if entry.get("part") == part or name in datasets_of(part):
+                manifest["invalidated_datasets"][name] = {"part": part, "reason": reason, "sha256": entry.get("sha256")}
+                manifest["datasets"].pop(name)
+                built.pop(name, None)
     for part in parts:
-        # Failed/skipped rebuilds must not advertise the previous output as current.
-        for dataset in datasets_of(part):
-            manifest["datasets"].pop(dataset, None)
         builder = resolve_part(part)
         if builder is None:
+            remove_outputs(part, "SKIPPED_MODULE_MISSING")
             manifest["parts"][part] = {"status": "SKIPPED_MODULE_MISSING", "rule_version": RULE_VERSIONS.get(part)}
+            D.reconcile(manifest)
             continue
         stats: dict[str, Any] = {}
         t0 = time.monotonic()
         # earlier datasets are also offered by name (e.g. ``section_pages=``) to builders that declare them
-        offered = {**(inputs or {}), **built}
+        offered = offered_tables()
         extra = (part_options or {}).get(part, {})
+        if set(extra) & (set(DATASETS) | {"datasets", "outlines", "vectors", "artifacts", "stats"}):
+            raise ValueError("NAV options cannot override checked dependency inputs")
+        for name in registered:
+            con.unregister(f"nav_{name}")
+            con.execute(f'DROP VIEW IF EXISTS "nav_{name}"')
+        for name, table in offered.items():
+            con.register(f"nav_{name}", table)
+        for name in D.upstream(part, extra, offered):
+            if D.binding(manifest, name) is not None and name not in offered:
+                raise ValueError(f"NAV current dependency {name} requires checked --inputs for this rebuild")
+        proof = D.recipe(part, manifest, extra, resource_proofs[part], offered)
+        qualified = verified and all(value is None or (value["identity_status"] == VERIFIED and
+                                value["producer_input_sha256"] is not None) for value in proof["upstream"].values())
+        qualified = qualified and "UNVERIFIED_EXTERNAL_DIRECTORY" not in json.dumps(proof)
+        qualification = VERIFIED if qualified else UNVERIFIED
         tables = call_builder(builder, con, {**offered, **extra, "outlines": outlines, "vectors": vectors,
                                              "artifacts": artifacts, "datasets": dict(offered), "stats": stats})
         if tables is None:
+            remove_outputs(part, "SKIPPED_NO_INPUT")
             manifest["parts"][part] = {"status": "SKIPPED_NO_INPUT", "rule_version": RULE_VERSIONS.get(part),
                                        "seconds": round(time.monotonic() - t0, 2), "stats": stats}
             if extra:
-                manifest["parts"][part]["options"] = extra
+                manifest["parts"][part]["options"] = proof["options"]
+            D.reconcile(manifest)
             continue
+        if (resource_proofs[part] != D.external_identity(part, outlines=outlines, vectors=vectors, artifacts=artifacts)
+                or option_proofs[part] != D.value_identity(extra)):
+            raise ValueError("NAV dependency bytes changed during the build")
         names = []
+        remove_outputs(part, "REPLACED_OUTPUT")
         for name, table in tables.items():
+            if not isinstance(name, str) or not name.replace("_", "").isalnum():
+                raise ValueError("invalid NAV output dataset name")
             path = out_dir / f"{name}.parquet"
             tmp = path.with_suffix(".parquet.tmp")
             pq.write_table(table, tmp, compression="zstd")
             tmp.replace(path)
             manifest["datasets"][name] = {"path": path.name, "part": part, "rows": table.num_rows,
-                                          "columns": table.schema.names, "sha256": _sha256_file(path)}
+                                          "columns": table.schema.names, "sha256": _sha256_file(path),
+                                          "identity_status": qualification}
+            manifest["invalidated_datasets"].pop(name, None)
             built[name] = table
+            registered.add(name)
             con.register(f"nav_{name}", table)
             names.append(name)
         manifest["parts"][part] = {"status": "BUILT", "rule_version": RULE_VERSIONS.get(part), "datasets": names,
-                                   "seconds": round(time.monotonic() - t0, 2), "stats": stats}
+                                   "seconds": round(time.monotonic() - t0, 2), "stats": stats,
+                                   "input_identity": proof, "input_sha256": D.digest(proof),
+                                   "identity_status": qualification}
         if extra:
-            manifest["parts"][part]["options"] = extra
+            manifest["parts"][part]["options"] = proof["options"]
+        offered_tables()  # discard stale external children before reconciling retained local parts
+        D.reconcile(manifest, rebuilding=[p for p in parts if p not in manifest["parts"]])
     manifest["built_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     manifest["capabilities"] = sorted(manifest["datasets"])
+    manifest["identity_status"] = VERIFIED if verified and all(
+        entry.get("identity_status") == VERIFIED for entry in manifest["datasets"].values()) else UNVERIFIED
+    D.validate(manifest)
+    for part in parts:
+        if (resource_proofs[part] != D.external_identity(part, outlines=outlines, vectors=vectors, artifacts=artifacts)
+                or option_proofs[part] != D.value_identity((part_options or {}).get(part, {}))):
+            raise ValueError("NAV dependency bytes changed before manifest publication")
     if isinstance(inputs_ref, DatasetReference):
         inputs_ref.verify_unchanged()
         inputs_ref.verify_tables(inputs or {})

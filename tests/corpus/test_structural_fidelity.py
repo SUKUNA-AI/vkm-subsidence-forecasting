@@ -128,6 +128,7 @@ def test_mathml_canonical_locator_and_id_validation_do_not_fake_image_ocr(tmp_pa
     from vkm_corpus.extract.model import DocumentX, SourceInput
     from vkm_corpus.pipeline.config import PipelineConfig
     from vkm_corpus.pipeline.assemble import Assembler
+    from vkm_corpus.artifacts.store import ArtifactStore
     from vkm_corpus.extract.to_canon import CanonMapper
     from vkm_corpus.contracts import arrow as ca
     from vkm_corpus.duckdb.build import attach_manifest
@@ -136,17 +137,23 @@ def test_mathml_canonical_locator_and_id_validation_do_not_fake_image_ocr(tmp_pa
     from vkm_corpus.testing import rows as R
     duckdb = pytest.importorskip("duckdb")
 
-    raw = {"index": 1, "blocks": [], "images": [{"href": "unavailable.gif", "xpath": "/html/body/p/img", "order": 2,
+    raw = {"schema": "vkm.native_raw.epub_unit/1", "index": 1, "blocks": [], "images": [{"href": "unavailable.gif", "xpath": "/html/body/p/img", "order": 2,
               "is_formula_candidate": True, "inline": False}],
            "maths": [{"xpath": "/html/body/p/math", "order": 1, "display": True, "markup": "<math>x=2</math>",
                       "linear_text": "x=2"}]}
     cfg = PipelineConfig(tmp_path / "data", tmp_path)
     src = SourceInput(R.SID, "synthetic.epub", "a" * 64, 0, evidence_scope="GENERAL_METHOD")
-    prep = {"inspect": {"file_format": "EPUB"}, "pages": [{"page_index": 1, "route": "NATIVE",
-                                                                      "native_raw_artifact_id": R.artifact("xml")} ]}
-    asm = Assembler(cfg, SimpleNamespace(read_json=lambda _: raw), SimpleNamespace(run_id=R.RUN_ID), src, prep, None)
+    store = ArtifactStore(tmp_path / "artifacts")
+    artifact = store.put_json(raw, "NATIVE_RAW", compress=True, source_id=src.source_id)
+    prep = {"source_id": src.source_id, "source_sha256": src.sha256,
+            "pagination": {"unit": "s", "count": 1, "basis": "EPUB_SPINE"},
+            "inspect": {"file_format": "EPUB"}, "pages": [{"page_index": 1, "route": "NATIVE",
+                                                         "native_raw_artifact_id": artifact.artifact_id}]}
+    asm = Assembler(cfg, store, SimpleNamespace(run_id=R.RUN_ID), src, prep, None)
     asm._crops = lambda _: []
     asm._epub()
+    assert asm.accounting.expected["denominator_state"] == "KNOWN"
+    assert len(asm.accounting.candidates) == 2  # native MathML and the still-unread formula image
     assert asm.result.pages[0].ocr_status == "REQUIRED"  # MathML success cannot satisfy an image OCR task
     asm.result.document = DocumentX("EPUB", None, None, None)
     rows = CanonMapper(asm.result, run_id=R.RUN_ID, config_hashes={}).formulas()

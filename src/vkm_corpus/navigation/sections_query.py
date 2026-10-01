@@ -42,8 +42,35 @@ def _section(con, section_id: str) -> dict[str, Any] | None:
 
 
 def _brief(r: dict[str, Any]) -> dict[str, Any]:
-    return {k: r[k] for k in ("section_id", "level", "numbering", "title", "page_start_index", "page_end_index",
-                              "page_start_id", "page_end_id")}
+    return {**{k: r[k] for k in ("section_id", "level", "numbering", "title", "page_start_index", "page_end_index",
+                                 "page_start_id", "page_end_id", "work_id")},
+            "work_attribution_status": _work_status(r)}
+
+
+def _work_status(row):
+    from vkm_corpus.navigation.ids import RULE_VERSIONS
+
+    if row.get("rule_version") != RULE_VERSIONS["sections"]:
+        return "LEGACY_ATTRIBUTION_UNVERIFIED"
+    return "NAV_RANGE_ASSIGNED_UNREVIEWED" if row.get("work_id") else "MIXED_OR_UNKNOWN"
+
+
+def _covers_canonical_source(con, source_id, rows):
+    """Sections that start after front matter cannot identify the whole file."""
+    try:
+        first, last, count = con.execute(
+            "SELECT min(page_index), max(page_index), count(DISTINCT page_index) FROM canonical.pages "
+            "WHERE source_id = ?", [source_id]).fetchone()
+    except Exception:
+        return False
+    if first != 1 or not last or count != last:
+        return False
+    next_page = 1
+    for row in sorted(rows, key=lambda row: (row["page_start_index"], row["page_end_index"])):
+        if row["page_start_index"] > next_page or row["page_end_index"] > last:
+            return False
+        next_page = max(next_page, row["page_end_index"] + 1)
+    return next_page == last + 1
 
 
 def get_outline(con, source_id: str, *, max_level: int | None = None) -> dict[str, Any]:
@@ -62,8 +89,16 @@ def get_outline(con, source_id: str, *, max_level: int | None = None) -> dict[st
         parent = nodes.get(r["parent_section_id"]) if r["parent_section_id"] else None
         (parent["children"] if parent is not None else roots).append(node)
     methods = sorted({r["method"] for r in rows})
+    covers_source = _covers_canonical_source(con, source_id, rows)
+    work_ids = {row["work_id"] for row in rows}
+    work = next(iter(work_ids)) if covers_source and len(work_ids) == 1 and None not in work_ids else None
     return {"source_id": source_id, "n_sections": len(rows), "methods": methods,
-            "work_id": rows[0]["work_id"] if rows else None, "rule_version": rows[0]["rule_version"] if rows else None,
+            "work_attribution_scope": "CANONICAL_SOURCE_PAGES" if covers_source else "OUTLINED_SECTIONS",
+            "work_id": work, "work_attribution_status": "NAV_RANGE_ASSIGNED_UNREVIEWED" if work and
+            all(_work_status(row) == "NAV_RANGE_ASSIGNED_UNREVIEWED" for row in rows) else
+            ("LEGACY_ATTRIBUTION_UNVERIFIED" if any(_work_status(row) == "LEGACY_ATTRIBUTION_UNVERIFIED" for row in rows)
+             else ("MIXED_OR_UNKNOWN" if covers_source else "PARTIAL_SECTION_COVERAGE")),
+            "rule_version": rows[0]["rule_version"] if rows else None,
             "sections": roots}
 
 
@@ -107,7 +142,7 @@ def get_section(con, section_id: str) -> dict[str, Any] | None:
                                            ).fetchall()]
     except Exception:
         pages = []
-    return {**row, "path": _path(con, row), "parent": _brief(parent) if parent else None,
+    return {**row, "work_attribution_status": _work_status(row), "path": _path(con, row), "parent": _brief(parent) if parent else None,
             "children": [_brief(c) for c in children],
             "pages": {"first_id": row["page_start_id"], "last_id": row["page_end_id"], "first_index": first,
                       "last_index": last, "n_pages": last - first + 1, "page_ids": pages[:MAX_PAGE_IDS],

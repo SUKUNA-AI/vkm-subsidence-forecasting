@@ -14,6 +14,12 @@ The second integration tranche additionally selects the pure native-service,
 search and loaded-pack protocol tests on Windows. Fake driver/process contracts
 run there; the six named loaded-pack filesystem cases need the Linux native
 mutation-event fence and are individually accounted as Windows `NOT_RUN`.
+The follow-up Windows selection includes NAV section/incremental/packed-store
+lifecycle, accounting publication, typed runtime publication, service identity
+and isolated wheel smoke, and structural extraction fidelity. It does not select
+the Linux production-memory adapter suite as a portable Windows runtime.
+The two actual rsync transfer checks have exact node-and-reason allowances when
+rsync is unavailable; publication integrity and symlink cases remain mandatory.
 The ten exact shared-admission-gate cases in receiver/deployment suites need
 POSIX file locking and likewise remain Windows `NOT_RUN`; unrelated cases in
 those files still execute. These allowances never apply on Linux.
@@ -65,7 +71,7 @@ have separate results and must not be inferred from it. The required numpy and
 setuptools dependencies retain their existing pins; the optional native DAWG2 fast
 extra is not needed. Known missing DjVuLibre,
 rsync, Tesseract, or nightly host tools are also recorded locally; Actions installs
-these CPU host tools. The allowlist is a module plus exact reason, not a blanket
+these CPU host tools. The allowlist is a module or exact node plus exact reason, not a blanket
 permission to skip. The glyph-outline PDF test additionally requires OpenCV;
 its existing Tesseract condition alone did not declare that prerequisite.
 All other skips fail. A partially executed job is
@@ -109,18 +115,58 @@ This is a baseline for that code state; subsequent integration changes need new
 qualification. Hosted Python 3.13.5 Windows and all required Actions checks remain
 separate gates. This baseline does not establish production or scientific readiness.
 
-The second tranche is not covered by those baseline counts or the 738-file hash.
-Its shadow-acceptance harness has a separate synthetic qualification: 45 tests
-passed on Linux 3.13.5 and 45 on Windows 3.13.13, with no skips. Those tests exercise
-the actual private ASGI/MCP wiring and synthetic failure receipts; no live
-CORE/EDGE endpoint, model process or production switch was qualified.
-The final broad workflow must be repeated after the integration source freeze.
+The second tranche has a separate frozen-byte baseline, completed before the
+post-freeze repairs below:
+
+| Local gate | Result | Explicit gaps |
+|---|---|---|
+| Linux 3.13.5 corpus-offline | 2795 PASS, 1 FAIL, zero skips; 1290.23 s; job `FAIL` | 33 external cases deselected; an old structural-fidelity fixture omitted the required source identity |
+| Linux 3.13.5 world-integrity | 552 PASS; installed wheel PASS; no verifier object failures; `PASS_WITH_NOT_RUN` | 7 unavailable tag anchors and 2 PRIVATE-dependent comparisons `NOT_RUN` |
+| Windows 3.13.13 windows-offline | 1617 PASS, 1 FAIL, 59 skips, 6 deselected; 200.56 s; job `FAIL` | One symlink creation WinError 1314 and 7 unexpected privilege skips; 52 expected OS-specific `NOT_RUN` |
+
+All three runs proved identical before/after bytes for 801
+code/test/schema/lock/workflow files, with manifest SHA-256
+`2231ea0cccabe914cf4bb470edfb409de12c18cf37c96fd7f01c8b12b43ef350`.
+The manifest covers tracked and nonignored untracked files in those areas;
+documentation/status files and Git HEAD are excluded. Git HEAD changed to
+`3031fd9f028002bd3fbf470cdd2d23fb974b8cc2` during the Linux corpus run without
+changing those bytes. The external receipt directories are named
+`corpus-tranche2-run2`, `world-tranche2-run2` and `windows-tranche2-run2`; each
+retains `summary.json`, `pytest.xml`, `console.log`, `qualification-proof.json`
+and before/after file-hash manifests. The original failed receipts are retained.
+
+After that baseline, the structural-fidelity fixture was repaired to use a real
+synthetic artifact store and complete prepare identity/pagination. Source
+accounting remains mandatory. A separate verifier regression reproduced
+`UnicodeEncodeError` with cp1251 stdout; the CLI now emits lossless UTF-8 JSON
+bytes regardless of the console encoding, matching its UTF-8 output file.
+The verifier, structural-fidelity and offline-runner test files then passed
+96 tests on Windows (6.43 s) and 96 on Linux (5.36 s), with zero skips and fresh
+bytecode namespaces. These targeted results do not convert the earlier full-run
+FAIL into PASS. No additional full local corpus run was performed; required
+hosted checks must qualify the final submitted bytes.
+
+For the pre-repair head `3031fd9f028002bd3fbf470cdd2d23fb974b8cc2`, hosted
+[run 36895206764](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/actions/runs/36895206764)
+confirmed Windows Python 3.13.5: 1625 PASS, 52 expected OS-specific `NOT_RUN`,
+6 deselected, zero failures or unexpected skips (235.83 s). The hosted symlink
+checks passed. Its world job also passed 552 tests (21.52 s), with the wrapper
+reporting `PASS_WITH_NOT_RUN`. Hosted corpus finished with 2795 PASS, the same
+single structural-fidelity fixture failure, zero skips and 33 deselected
+(550.19 s). No additional hosted test failure was observed. These results qualify
+that head only; they do not cover the later repairs or unfinished integration work.
+
+The shadow-acceptance harness is covered by synthetic private ASGI/MCP wiring and
+failure-receipt tests. No live CORE/EDGE endpoint, model process, production
+switch, complete corpus extraction or scientific admission was qualified by
+these CPU runs.
 
 `scripts/export_evidence_schema.py` publishes 29 deterministic JSON contracts,
 including the frozen Phase-1 migration inputs, plan and trusted operator approval.
-The nine additive contracts cover dataset versions/catalogues/source-version
+The additive contracts cover dataset versions/catalogues/source-version
 links, service identity, deployment profile, shadow acceptance plan, typed
-scientific-use context, historical read context and native serving profile. The
+scientific-use context, historical read context, native serving profile,
+Phase-1 migration, bounded semantic extraction and late-pack policy qualification. The
 dataset version schema describes `DatasetVersion.as_dict()` and preserves the
 existing `vkm-dataset-version-v1` discriminator; it does not rename serialized
 manifests or change their hashes. Runtime Python validation still enforces

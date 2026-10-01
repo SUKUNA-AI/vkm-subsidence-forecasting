@@ -115,6 +115,23 @@ def test_cli_writes_report_and_returns_exit_code(tmp_path, capsys):
     assert code == 1 and stdout["status"] == written["status"] == "FAIL"
 
 
+def test_cli_stdout_is_lossless_utf8_with_cp1251_stdio(tmp_path):
+    missing = "missing-\u2265-\u6e2c.md"
+    root = _tree(tmp_path, {"README.md": f"[missing]({missing})\n"})
+    output = tmp_path / "report.json"
+    env = {k: v for k, v in os.environ.items() if not k.startswith("VKM_")}
+    env.update(PYTHONIOENCODING="cp1251", PYTHONUTF8="0", PYTHONDONTWRITEBYTECODE="1")
+    done = subprocess.run([sys.executable, "-B", str(SCRIPT), "--root", str(root),
+                           "--only", "markdown_links", "--output", str(output)],
+                          capture_output=True, env=env)
+    assert done.returncode == 1  # the planted broken link remains a real failure
+    assert b"UnicodeEncodeError" not in done.stderr
+    stdout = json.loads(done.stdout.decode("utf-8"))
+    written = json.loads(output.read_bytes().decode("utf-8"))
+    assert stdout == written and stdout["exit_code"] == 1
+    assert _checks(stdout)["markdown:links"]["details"]["broken"]["items"][0]["target"] == missing
+
+
 # ---------------------------------------------------------------- planted failures
 def test_planted_broken_link_fails(tmp_path):
     root = _tree(tmp_path, {
