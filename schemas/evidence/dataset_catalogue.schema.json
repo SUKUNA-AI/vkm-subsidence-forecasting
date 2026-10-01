@@ -1,0 +1,264 @@
+{
+  "$defs": {
+    "DataAccessClass": {
+      "enum": [
+        "PUBLIC",
+        "PRIVATE_CLOUD_ALLOWED",
+        "PRIVATE_LOCAL_ONLY",
+        "RESTRICTED",
+        "SEALED"
+      ],
+      "title": "DataAccessClass",
+      "type": "string"
+    },
+    "DatasetArtifact": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "DatasetArtifact",
+      "type": "object"
+    },
+    "DatasetSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "conversions": {
+          "additionalProperties": {
+            "$ref": "#/$defs/DatasetArtifact"
+          },
+          "title": "Conversions",
+          "type": "object"
+        },
+        "dataset_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Dataset Id",
+          "type": "string"
+        },
+        "inherited_source_links": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SourceVersionLink"
+          },
+          "title": "Inherited Source Links",
+          "type": "array"
+        },
+        "inspections": {
+          "additionalProperties": {
+            "$ref": "#/$defs/DatasetArtifact"
+          },
+          "title": "Inspections",
+          "type": "object"
+        },
+        "lifecycle": {
+          "enum": [
+            "ACTIVE",
+            "RETIRED",
+            "EXCLUDED"
+          ],
+          "title": "Lifecycle",
+          "type": "string"
+        },
+        "manifest": {
+          "$ref": "#/$defs/DatasetArtifact"
+        },
+        "policy": {
+          "$ref": "#/$defs/ResourcePolicy"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "source_links": {
+          "items": {
+            "$ref": "#/$defs/SourceVersionLink"
+          },
+          "title": "Source Links",
+          "type": "array"
+        },
+        "source_register_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Source Register Sha256"
+        },
+        "version_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Version Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "dataset_id",
+        "version_sha256",
+        "manifest",
+        "lifecycle",
+        "policy",
+        "source_links",
+        "source_register_sha256",
+        "inspections",
+        "conversions"
+      ],
+      "title": "DatasetSelection",
+      "type": "object"
+    },
+    "ExperimentalRole": {
+      "enum": [
+        "INPUT",
+        "CALIBRATION",
+        "VALIDATION",
+        "TEST_SEALED",
+        "TARGET",
+        "UNKNOWN"
+      ],
+      "title": "ExperimentalRole",
+      "type": "string"
+    },
+    "ResourcePolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "access_class": {
+          "$ref": "#/$defs/DataAccessClass",
+          "default": "RESTRICTED"
+        },
+        "authority": {
+          "minLength": 1,
+          "title": "Authority",
+          "type": "string"
+        },
+        "experimental_role": {
+          "$ref": "#/$defs/ExperimentalRole",
+          "default": "UNKNOWN"
+        },
+        "policy_version": {
+          "minLength": 1,
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "restrictions": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Restrictions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "policy_version",
+        "authority"
+      ],
+      "title": "ResourcePolicy",
+      "type": "object"
+    },
+    "SourceVersionLink": {
+      "additionalProperties": false,
+      "properties": {
+        "relation": {
+          "enum": [
+            "DESCRIBED_BY",
+            "DERIVED_FROM",
+            "DISTRIBUTED_WITH",
+            "PRIMARY_SOURCE"
+          ],
+          "title": "Relation",
+          "type": "string"
+        },
+        "source_id": {
+          "pattern": "^VKM-SRC-[0-9]{3}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_sha256",
+        "relation"
+      ],
+      "title": "SourceVersionLink",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/DatasetSelection"
+      },
+      "title": "Entries",
+      "type": "array"
+    },
+    "policy_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Policy Sha256",
+      "type": "string"
+    },
+    "previous_snapshot_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Previous Snapshot Sha256"
+    },
+    "producer_identity_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Producer Identity Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-dataset-catalogue/1",
+      "default": "vkm-dataset-catalogue/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scientific_admission": {
+      "const": "NOT_ESTABLISHED",
+      "default": "NOT_ESTABLISHED",
+      "title": "Scientific Admission",
+      "type": "string"
+    }
+  },
+  "required": [
+    "policy_sha256",
+    "producer_identity_sha256",
+    "entries"
+  ],
+  "title": "DatasetCatalogSnapshot",
+  "type": "object"
+}

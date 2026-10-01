@@ -13,6 +13,7 @@ Flow rules (task §32, CP-19, H-13):
 from __future__ import annotations
 
 import hashlib
+import inspect
 import os
 import re
 import time
@@ -61,6 +62,17 @@ HOST_ROLES = {"CORE": ["vkm-api", "vkm-mcp (read)", "vkm-mcp-admin (write, plan-
               "WORKSTATION": ["pipeline (only producer)", "GLM-OCR", "vkm-cad (stdio)", "vkm-drawio (stdio)"]}
 
 
+async def generation_status(guard):
+    """Support live async observers without nesting asyncio.run in an ASGI loop."""
+    if guard is None:
+        return {"status": "NOT_CONFIGURED"}
+    if inspect.iscoroutinefunction(guard):
+        return await guard()
+    from starlette.concurrency import run_in_threadpool
+    result = await run_in_threadpool(guard)
+    return await result if inspect.isawaitable(result) else result
+
+
 def sha256_text(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
@@ -85,6 +97,13 @@ class ApiDeps:
     nav: Any = None                     # vkm_corpus.navigation.store.NavStore (navigation layer, optional)
     catalogues: Any = None              # vkm_corpus.catalogues.store.CatalogueStore (PUBLIC catalogues, optional)
     topic_retrieval: Any = None         # retrieval of the topic dossier (api.topic.TopicRetrieval); None → hybrid
+    evidence: Any = None                # immutable evidence journal reader
+    evidence_publisher: Any = None      # restricted review publisher, not arbitrary shell/SQL
+    access_policy: Any = None           # source policy admission before legacy projection reads
+    generation_guard: Any = None        # coherent served-generation gate
+    admission_barrier: Any = None       # lease covers every byte of an active HTTP response
+    serving_file_lease: Any = None      # native immutable-file watch; replaced only after a qualified rebind
+    serving_profile: str = "compatibility"  # synthetic/legacy readers never imply qualified production
 
 
 def _require(dep: Any, name: str, stage: str) -> Any:
@@ -1198,7 +1217,8 @@ class ApiService:
             raise ApiFailure("INVALID_ID", f"{object_id} is not a {what} id", object_id=object_id)
         return kind
 
-    def nav_table(self, table_id: str, max_rows: int = 200, max_chars: int = 8000) -> Result:
+    def nav_table(self, table_id: str, max_rows: int = 200, max_chars: int = 8000,
+                  cursor: str | None = None) -> Result:
         """A structured table (grid with row roles, header paths, units and parsed values) by its canonical id or its
         NAV id (``TBL-…``)."""
         tid = (table_id or "").strip()
@@ -1206,8 +1226,11 @@ class ApiService:
             self._object_kind(tid, ("TABLE",), "table (canonical …:t… or TBL-)")
         if not (1 <= int(max_rows) <= 500 and 200 <= int(max_chars) <= 60_000):
             raise ApiFailure("INVALID_ARGUMENT", "max_rows is 1..500, max_chars 200..60000")
-        data, snap = self._nav_run_parts(self._TABLE_DATASETS, lambda nav: nav.run(
-            "table_structured", tid, max_rows=int(max_rows), max_chars=int(max_chars)))
+        try:
+            data, snap = self._nav_run_parts(self._TABLE_DATASETS, lambda nav: nav.run(
+                "table_structured", tid, max_rows=int(max_rows), max_chars=int(max_chars), cursor=cursor))
+        except ValueError as exc:
+            raise ApiFailure("INVALID_ARGUMENT", str(exc), stage="navigation", tool="nav") from exc
         if not isinstance(data, dict) or not data.get("found"):
             raise ApiFailure("NOT_FOUND", f"{tid} has no structured grid in the navigation layer", stage="navigation",
                              tool="nav", object_id=tid, hint="get_table shows the canonical table; find_tables "
@@ -1636,6 +1659,42 @@ class ApiService:
     # ================================================================================================ status
     async def status(self, run_sync: Callable[..., Any]) -> dict[str, Any]:
         out: dict[str, Any] = {"api_version": API_VERSION, "host_roles": HOST_ROLES}
+        out["production_controls"] = {
+            "profile": self.deps.serving_profile,
+            "source_policy": "ENFORCED" if self.deps.access_policy is not None else "NOT_CONFIGURED",
+            "admission": self.deps.admission_barrier.status() if self.deps.admission_barrier is not None else {"status": "NOT_CONFIGURED"},
+            "generation": await generation_status(self.deps.generation_guard),
+            "evidence_journal": "CONFIGURED" if self.deps.evidence is not None else "NOT_PUBLISHED",
+            "review_publisher": "CONFIGURED" if self.deps.evidence_publisher is not None else "NOT_CONFIGURED",
+            "scientific_admission": "PER_RECORD_ONLY", "external_notifications": "NOT_CONFIGURED"}
+        operations = {**out, "data_status": "NOT_ADMITTED"}
+        guard = self.deps.generation_guard
+        if guard is not None and out["production_controls"]["generation"]["status"] != "READY":
+            return jsonable(operations)
+        lease = None
+        if self.deps.admission_barrier is not None:
+            from vkm_corpus.update.barrier import BarrierUnavailable
+            try:
+                lease = self.deps.admission_barrier.acquire()
+            except BarrierUnavailable:
+                return jsonable(operations)
+        try:
+            result = await self._status_components(out, run_sync)
+            # Status bypasses the outer content gate to remain operationally
+            # observable. Its data-bearing part nevertheless holds admission
+            # through all reads and must discard an invalidated generation.
+            if guard is not None:
+                final_generation = await generation_status(guard)
+                out["production_controls"]["generation"] = final_generation
+                if final_generation.get("status") != "READY":
+                    return jsonable(operations)
+                result["production_controls"]["generation"] = final_generation
+            return result
+        finally:
+            if lease is not None:
+                lease.release()
+
+    async def _status_components(self, out: dict[str, Any], run_sync: Callable[..., Any]) -> dict[str, Any]:
         try:
             out["canonical"] = await run_sync(self.canon.status)
             out["canonical"]["counts"] = await run_sync(self.canon.corpus_counts)

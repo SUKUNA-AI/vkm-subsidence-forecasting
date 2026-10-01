@@ -1,0 +1,338 @@
+{
+  "$defs": {
+    "CandidateDisposition": {
+      "additionalProperties": false,
+      "properties": {
+        "attempts": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Attempts",
+          "type": "array"
+        },
+        "candidate_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Candidate Id",
+          "type": "string"
+        },
+        "duplicate_of": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duplicate Of"
+        },
+        "kind": {
+          "enum": [
+            "TEXT",
+            "TABLE",
+            "FORMULA",
+            "FIGURE",
+            "GIS_FEATURE",
+            "CELL",
+            "OTHER"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "locator": {
+          "minLength": 1,
+          "title": "Locator",
+          "type": "string"
+        },
+        "output_objects": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Output Objects",
+          "type": "array"
+        },
+        "preserved_artifacts": {
+          "default": [],
+          "items": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Preserved Artifacts",
+          "type": "array"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "state": {
+          "enum": [
+            "EXTRACTED",
+            "IMAGE_PRESERVED",
+            "UNREADABLE",
+            "NEEDS_REVIEW",
+            "UNSUPPORTED",
+            "FAILED",
+            "FALSE_DETECTION",
+            "DUPLICATE",
+            "SUPPRESSED"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "unit_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Unit Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "candidate_id",
+        "unit_id",
+        "kind",
+        "locator",
+        "state"
+      ],
+      "title": "CandidateDisposition",
+      "type": "object"
+    },
+    "ExpectedUnit": {
+      "additionalProperties": false,
+      "properties": {
+        "locator": {
+          "minLength": 1,
+          "title": "Locator",
+          "type": "string"
+        },
+        "source_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "unit_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Unit Id",
+          "type": "string"
+        },
+        "unit_kind": {
+          "enum": [
+            "PAGE",
+            "SHEET",
+            "ATTACHMENT",
+            "NATIVE_OBJECT"
+          ],
+          "title": "Unit Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "unit_id",
+        "source_id",
+        "source_sha256",
+        "unit_kind",
+        "locator"
+      ],
+      "title": "ExpectedUnit",
+      "type": "object"
+    },
+    "ExtractionAttempt": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "candidate_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Candidate Id"
+        },
+        "code_revision": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Code Revision"
+        },
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "input_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Input Sha256",
+          "type": "string"
+        },
+        "object_outputs": {
+          "patternProperties": {
+            "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            }
+          },
+          "title": "Object Outputs",
+          "type": "object"
+        },
+        "outputs": {
+          "default": [],
+          "items": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "stage": {
+          "minLength": 1,
+          "title": "Stage",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "SUCCEEDED",
+            "FAILED",
+            "NOT_RUN",
+            "INTERRUPTED"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "unit_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Unit Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attempt_id",
+        "unit_id",
+        "stage",
+        "input_sha256",
+        "config_sha256",
+        "code_revision",
+        "state"
+      ],
+      "title": "ExtractionAttempt",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "attempts": {
+      "items": {
+        "$ref": "#/$defs/ExtractionAttempt"
+      },
+      "title": "Attempts",
+      "type": "array"
+    },
+    "campaign_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Campaign Sha256",
+      "type": "string"
+    },
+    "candidates": {
+      "items": {
+        "$ref": "#/$defs/CandidateDisposition"
+      },
+      "title": "Candidates",
+      "type": "array"
+    },
+    "detection_assessment": {
+      "default": "NOT_RUN",
+      "enum": [
+        "NOT_RUN",
+        "INDEPENDENT_ASSESSED"
+      ],
+      "title": "Detection Assessment",
+      "type": "string"
+    },
+    "detection_report_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Detection Report Sha256"
+    },
+    "inspected_units": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+        "type": "string"
+      },
+      "title": "Inspected Units",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "vkm-object-coverage/1",
+      "default": "vkm-object-coverage/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "units": {
+      "items": {
+        "$ref": "#/$defs/ExpectedUnit"
+      },
+      "title": "Units",
+      "type": "array"
+    }
+  },
+  "required": [
+    "campaign_sha256",
+    "units",
+    "inspected_units",
+    "candidates",
+    "attempts"
+  ],
+  "title": "CoverageLedger",
+  "type": "object"
+}

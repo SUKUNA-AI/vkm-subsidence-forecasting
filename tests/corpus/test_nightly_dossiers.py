@@ -7,6 +7,7 @@ from __future__ import annotations
 import importlib.util
 import io
 import json
+import os
 import subprocess
 import sys
 from contextlib import redirect_stdout
@@ -156,6 +157,71 @@ def test_keep_limits_snapshot_directories_and_dry_run_writes_nothing(tmp_path):
     assert not stored and not empty.exists()
     with pytest.raises(ValueError):
         D.store(dossier_lines(), ddir, "../evil", run_tag="x")
+
+
+def test_retention_uses_snapshot_identity_even_when_mtimes_tie_or_reverse(tmp_path):
+    ddir = tmp_path / "dossiers"
+    early, middle = "snap-20260901T000000Z-00000001", "snap-20260902T000000Z-00000002"
+    for i, snap in enumerate((middle, early)):
+        D.store(dossier_lines(), ddir, snap, run_tag=f"r{i}", keep=3)
+        os.utime(ddir / snap, (2_000_000_000, 2_000_000_000))
+    unknown = ddir / "not-a-snapshot"
+    unknown.mkdir()
+    index, _ = D.store(dossier_lines(), ddir, SNAP, run_tag="new", keep=2)
+    assert set(p.name for p in ddir.iterdir() if p.is_dir()) == {middle, SNAP, unknown.name}
+    assert index["retention"]["delete"] == [early]
+    assert index["retention"]["unclassified_preserved"] == [unknown.name]
+
+
+def test_retention_current_counts_toward_keep_after_rollback():
+    old = "snap-20260901T000000Z-00000001"
+    plan = D.retention_plan([SNAP, old], old, 1)
+    assert plan["keep"] == [old] and plan["delete"] == [SNAP]
+    assert D.retention_plan([old, SNAP], old, 1) == plan
+    assert D.retention_plan(["snap-20269999T000000Z-01", SNAP], SNAP, 2)["unclassified_preserved"] == [
+        "snap-20269999T000000Z-01"]
+
+
+@pytest.mark.parametrize("keep", [0, -1, True])
+def test_invalid_retention_is_rejected_before_writing(tmp_path, keep):
+    root = tmp_path / "cache"
+    with pytest.raises(ValueError):
+        D.store(dossier_lines(), root, SNAP, run_tag="x", keep=keep)
+    assert not root.exists()
+
+
+@pytest.mark.parametrize("field,bad", [("run_tag", "../../escape"), ("topic_id", "../escape"),
+                                       ("topic_id", "index"), ("snapshot", "..")])
+def test_dossier_paths_are_preflighted(tmp_path, field, bad):
+    lines = dossier_lines()
+    kwargs = {"run_tag": "x"}
+    snapshot = SNAP
+    if field == "topic_id":
+        lines[1]["topic_id"] = bad
+    elif field == "snapshot":
+        snapshot = bad
+    else:
+        kwargs[field] = bad
+    with pytest.raises(ValueError):
+        D.store(lines, tmp_path / "cache", snapshot, **kwargs)
+    assert not (tmp_path / "cache").exists()
+
+
+def test_retention_preserves_other_writer_staging(tmp_path):
+    staged = tmp_path / "cache/.tmp-other"
+    staged.mkdir(parents=True)
+    (staged / "sentinel").write_bytes(b"active or interrupted")
+    D.store(dossier_lines(), staged.parent, SNAP, run_tag="ours")
+    assert (staged / "sentinel").read_bytes() == b"active or interrupted"
+
+
+def test_topic_case_collision_is_rejected_on_every_host(tmp_path):
+    lines = dossier_lines()
+    first = next(line for line in lines if line.get("kind") == "dossier")
+    lines.append({**first, "topic_id": first["topic_id"].lower()})
+    with pytest.raises(ValueError, match="duplicate"):
+        D.store(lines, tmp_path / "cache", SNAP, run_tag="collision")
+    assert not (tmp_path / "cache").exists()
 
 
 def test_cli_writes_the_run_index_with_the_diff(tmp_path):

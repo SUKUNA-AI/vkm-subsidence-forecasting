@@ -18,6 +18,7 @@ Checks; every check emits structured entries ``{id, group, status, blocking, sum
 A missing git ref (shallow clone, tags not fetched) gives ``SKIPPED_REF_UNAVAILABLE`` (non-blocking) with
 instructions. Exit code 0 only if no blocking check FAILs. The JSON report goes to stdout and, with
 ``--output``, to a file (default ``work/verification/canonical_verification.json``).
+Both byte streams use UTF-8 regardless of the console's locale or PYTHONIOENCODING.
 
 Usage::
 
@@ -1115,7 +1116,16 @@ def main(argv: list[str] | None = None) -> int:
             destination.write_text(text, encoding="utf-8", newline="\n")
         except OSError as exc:
             print(f"cannot write report: {exc}", file=sys.stderr)
-    sys.stdout.write(text)
+    # JSON is a UTF-8 machine interface, not locale-formatted console prose.
+    # cp1251 cannot represent every source locator; replacement would lose data.
+    # A Unicode-only stream (e.g. StringIO) needs no encoding conversion.
+    binary = getattr(sys.stdout, "buffer", None)
+    if binary is None:
+        sys.stdout.write(text)
+    else:
+        sys.stdout.flush()
+        binary.write(text.encode("utf-8"))
+        binary.flush()
     return int(report["exit_code"])
 
 

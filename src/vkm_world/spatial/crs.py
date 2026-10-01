@@ -42,7 +42,7 @@ class CoordinateSystem(WorldObject):
     epsg: int | None = None
     vertical: VerticalKind = VerticalKind.UNKNOWN
     axes: AxisConvention = AxisConvention.UNKNOWN
-    units: str = "m"
+    units: str = "UNKNOWN"
     description: str | None = None
     used_by_sources: tuple[str, ...] = ()
 

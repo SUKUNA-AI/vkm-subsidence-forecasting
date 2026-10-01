@@ -91,11 +91,15 @@ class GatewayConfig:
     warmup: bool = True                 # max-size visual warmup after every (re)start of llama-server
     warmup_interval_s: float = 30.0
     token: str | None = field(default=None, repr=False)
+    qualified_identity: bool = False
+    text_native_token: str | None = field(default=None, repr=False)
+    visual_native_token: str | None = field(default=None, repr=False)
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> "GatewayConfig":
         env = os.environ if env is None else env
         settings = load_settings(env)
+        from vkm_corpus.config import _secret
         auth = env.get("VKM_RERANK_AUTH", "required").strip().lower() or "required"
         if auth not in ("required", "disabled"):
             raise ValueError("VKM_RERANK_AUTH must be 'required' or 'disabled'")
@@ -120,6 +124,9 @@ class GatewayConfig:
             auth_required=auth == "required",
             warmup=env.get("VKM_RERANK_WARMUP", "1").strip() not in ("0", "false", "no"),
             token=settings.rerank_token,
+            qualified_identity=env.get("VKM_RERANK_QUALIFIED_IDENTITY", "0").strip() == "1",
+            text_native_token=_secret(env, "VKM_RERANK_TEXT_NATIVE_TOKEN"),
+            visual_native_token=_secret(env, "VKM_RERANK_VISUAL_NATIVE_TOKEN"),
         )
 
     @property
@@ -150,6 +157,8 @@ class Resources:
     head: Any = None                # m0_head.M0Head
     gates: dict[str, BackendGate] = field(default_factory=dict)
     started_at: str = field(default_factory=_now)
+    load_files: Any = None
+    load_watch: Any = None
 
 
 def load_resources(cfg: GatewayConfig) -> Resources:
@@ -160,12 +169,19 @@ def load_resources(cfg: GatewayConfig) -> Resources:
                               ("VKM_RERANK_M0_TOKENIZER", cfg.m0_tokenizer), ("VKM_RERANK_M0_HEAD", cfg.m0_head)) if not v]
     if missing:
         raise ValueError(f"gateway configuration incomplete: {', '.join(missing)}")
-    return Resources(
+    from vkm_corpus.update.remote_retrieval import capture_load_files
+    from vkm_corpus.update.native_files import optional_watch
+    watch = optional_watch([cfg.v35_tokenizer, cfg.m0_tokenizer, cfg.m0_head])
+    captures = capture_load_files([cfg.v35_tokenizer, cfg.m0_tokenizer, cfg.m0_head])
+    resources = Resources(
         text=TextBackend(cfg.text_url), visual=VisualBackend(cfg.visual_url),
         v35_tokens=TokenCounter.from_file(cfg.v35_tokenizer, cfg.v35_tokenizer_sha256),
         m0_tokens=TokenCounter.from_file(cfg.m0_tokenizer, cfg.m0_tokenizer_sha256),
         head=M0Head.from_npz(cfg.m0_head, cfg.m0_head_sha256),
     )
+    resources.load_files = captures if captures == capture_load_files([cfg.v35_tokenizer, cfg.m0_tokenizer, cfg.m0_head]) else None
+    resources.load_watch = watch
+    return resources
 
 
 def _gates(cfg: GatewayConfig) -> dict[str, BackendGate]:
@@ -499,10 +515,17 @@ def create_app(cfg: GatewayConfig, resources: Resources | None = None):
         LOG.info("gateway started", extra={"vkm": {"status": "started", "gateway_version": GATEWAY_VERSION,
                                                    "visual_placement": cfg.visual_placement,
                                                    "text_max_inflight": cfg.text_max_inflight}})
-        task = asyncio.create_task(_warmup_loop(res, cfg)) if cfg.warmup else None
+        task = None
         try:
+            app.state.native_identity = None
+            if cfg.qualified_identity:
+                from vkm_corpus.update.remote_rerank import RerankServiceLease
+                app.state.native_identity = await RerankServiceLease.bind(cfg, res)
+            task = asyncio.create_task(_warmup_loop(res, cfg)) if cfg.warmup else None
             yield
         finally:
+            if res.load_watch is not None:
+                res.load_watch.close()
             if task:
                 task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
@@ -552,6 +575,12 @@ def create_app(cfg: GatewayConfig, resources: Resources | None = None):
                                                stage="auth"), rid)
         req = None
         try:
+            native = getattr(request.app.state, "native_identity", None)
+            if native is not None:
+                try:
+                    await native.observe()
+                except (OSError, ValueError) as exc:
+                    raise RerankError(M.E_BACKEND_UNAVAILABLE, "native rerank identity changed", stage="identity") from exc
             body = await _read_body(request, limit)
             req = _parse(body, model_cls, max_candidates, kind)
             if req.request_id:
@@ -595,6 +624,18 @@ def create_app(cfg: GatewayConfig, resources: Resources | None = None):
                                                stage="auth"), rid)
         payload = await status_payload(request.app.state.res, cfg)
         return JSONResponse(payload.model_dump(mode="json"), headers={M.HEADER_REQUEST_ID: rid})
+
+    @app.get("/identity")
+    async def get_identity(request: Request):
+        if not cfg.auth_required or not _authorized(request):
+            return JSONResponse({"status": "UNAVAILABLE"}, status_code=401)
+        native = getattr(request.app.state, "native_identity", None)
+        if native is None:
+            return JSONResponse({"status": "UNAVAILABLE", "reason": "NATIVE_MODEL_PROVIDERS_NOT_BOUND"}, status_code=503)
+        try:
+            return JSONResponse(await native.observe(), headers={"Cache-Control": "no-store"})
+        except (OSError, ValueError):
+            return JSONResponse({"status": "UNAVAILABLE", "reason": "NATIVE_IDENTITY_CHANGED"}, status_code=503)
 
     return app
 

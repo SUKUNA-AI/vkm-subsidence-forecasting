@@ -120,11 +120,45 @@ def test_all_green(tmp_path):
 
 def test_summary_files_and_cli(tmp_path, capsys):
     run = make_run(tmp_path)
-    assert S.main(["build", "--run-dir", str(run)]) == 0
+    assert S.main(["build", "--run-dir", str(run)], now=NOW) == 0
     assert (run / "summary.md").read_text(encoding="utf-8") == capsys.readouterr().out
     data = json.loads((run / "summary.json").read_text(encoding="utf-8"))
     assert data["schema"] == S.SCHEMA and data["date"] == "2026-09-30" and data["markdown"]
     assert {c["color"] for c in data["checks"]} == {"green"}
+
+
+@pytest.mark.parametrize("days", [0, 7, 30, 60])
+def test_cli_clock_injection_is_independent_of_wall_clock(tmp_path, capsys, monkeypatch, days):
+    class LaterDatetime(dt.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return NOW + dt.timedelta(days=days)
+
+    run = make_run(tmp_path)
+    monkeypatch.setattr(S.dt, "datetime", LaterDatetime)
+    assert S.main(["build", "--run-dir", str(run)], now=NOW) == 0
+    capsys.readouterr()
+    data = json.loads((run / "summary.json").read_text(encoding="utf-8"))
+    assert data["overall"] == "GREEN"
+    assert data["finished_at"] == NOW.isoformat(timespec="seconds")
+    if days:
+        assert by_id(S.build_summary(run))["backup"]["status"] == "FAIL"
+
+
+@pytest.mark.parametrize("seconds,status", [(-301, "FAIL"), (-300, "PASS"), (26 * 3600, "PASS"),
+                                            (26 * 3600 + 1, "WARN"), (36 * 3600 + 1, "FAIL")])
+def test_backup_freshness_uses_exact_age_and_rejects_future(tmp_path, seconds, status):
+    out = green_outputs()
+    out["backup"]["edge"]["finished_at"] = (NOW - dt.timedelta(seconds=seconds)).isoformat()
+    assert by_id(S.build_summary(make_run(tmp_path, outputs=out), now=NOW))["backup"]["status"] == status
+
+
+@pytest.mark.parametrize("field,value", [("status", "RUNNING"), ("status", None), ("verdict", "UNKNOWN"),
+                                          ("verdict", None), ("finished_at", "invalid")])
+def test_backup_requires_a_terminal_recognised_receipt(tmp_path, field, value):
+    out = green_outputs()
+    out["backup"]["edge"][field] = value
+    assert by_id(S.build_summary(make_run(tmp_path, outputs=out), now=NOW))["backup"]["status"] == "FAIL"
 
 
 # ---------------------------------------------------------------- red and yellow
@@ -169,6 +203,11 @@ def test_only_a_skip_is_yellow_and_warnings_are_yellow(tmp_path):
     c = by_id(s)
     assert s["overall"] == "YELLOW" and c["backup"]["status"] == "WARN"
     assert c["nav"]["status"] == "WARN" and "другому снимку" in c["nav"]["detail"]
+
+
+def test_naive_summary_clock_is_rejected(tmp_path):
+    with pytest.raises(ValueError, match="timezone-aware"):
+        S.build_summary(make_run(tmp_path), now=NOW.replace(tzinfo=None))
 
 
 def test_missing_edge_receipt_and_disk_thresholds(tmp_path):

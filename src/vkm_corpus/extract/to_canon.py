@@ -202,6 +202,7 @@ class CanonMapper:
                 image_artifact_id=f.image_artifact_id, image_dpi=f.image_dpi,
                 embedded_image_artifact_id=f.embedded_image_artifact_id,
                 embedded_image_transcoded=f.embedded_image_transcoded, original_filter=f.original_filter,
+                raw_locator=f.raw_locator,
                 vector_artifacts=[{"format": fmt, "artifact_id": a} for fmt, a in f.vector_artifacts]))
         return rows
 
@@ -226,7 +227,7 @@ class CanonMapper:
                 cells=[{k: c[k] for k in ("row", "col", "row_span", "col_span", "is_header", "text")} for c in t.cells],
                 normalized_text=normalize_text_v1(t.normalized_text) if t.normalized_text else None,
                 structure_confidence=t.structure_confidence, image_artifact_id=t.image_artifact_id,
-                image_dpi=t.image_dpi))
+                image_dpi=t.image_dpi, raw_locator=t.raw_locator))
         return rows
 
     def formulas(self) -> list[Any]:
@@ -237,7 +238,8 @@ class CanonMapper:
             env = self._envelope(f, "FORMULA", oid, page_id, prod, "formulas", _sha(key), dup)
             if f.image_artifact_id:
                 self.out.artifact_ids.add(f.image_artifact_id)
-            layer = "GLM_OCR" if f.origin == "OCR" else "DOCX_XML" if f.region_origin == "DOCX_ELEMENT" else "NONE"
+            layer = "GLM_OCR" if f.origin == "OCR" else "DOCX_XML" if f.region_origin == "DOCX_ELEMENT" else \
+                "EPUB_XHTML" if f.region_origin == "EPUB_ELEMENT" else "NONE"
             rows.append(build_row(
                 "formulas", env, region_origin=f.region_origin, text_layer=layer, **self._bbox(f),
                 docx_paragraph_path=self._docx_path(f) if f.region_origin == "DOCX_ELEMENT" else None,
@@ -245,7 +247,7 @@ class CanonMapper:
                 equation_label=f.equation_label, recognition_method=f.recognition_method, raw_format=f.raw_format,
                 raw_output=f.raw_output, normalized_latex=f.normalized_latex, latex_parse_ok=f.latex_parse_ok,
                 native_glyph_text=f.native_glyph_text, recognition_confidence=f.recognition_confidence,
-                image_artifact_id=f.image_artifact_id, image_dpi=None))
+                image_artifact_id=f.image_artifact_id, image_dpi=None, raw_locator=f.raw_locator))
         return rows
 
     def _bib_anchor(self, first: Any, ordinal: int, text: str) -> tuple[str, str]:

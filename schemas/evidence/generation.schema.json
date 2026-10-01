@@ -1,0 +1,182 @@
+{
+  "$defs": {
+    "ComponentIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "built_from": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Built From",
+          "type": "object"
+        },
+        "component": {
+          "enum": [
+            "DOCUMENT",
+            "DATASET",
+            "EVIDENCE",
+            "DUCKDB",
+            "NAV",
+            "GRAPH",
+            "SEARCH",
+            "DENSE",
+            "LATE",
+            "VISUAL"
+          ],
+          "title": "Component",
+          "type": "string"
+        },
+        "manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Manifest Sha256",
+          "type": "string"
+        },
+        "policy_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Policy Sha256",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "revision": {
+          "minLength": 1,
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "component",
+        "revision",
+        "manifest_sha256",
+        "policy_sha256",
+        "built_from"
+      ],
+      "title": "ComponentIdentity",
+      "type": "object"
+    },
+    "ServiceIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "capabilities": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "code_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Sha256",
+          "type": "string"
+        },
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "dependencies_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Dependencies Sha256",
+          "type": "string"
+        },
+        "endpoint_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Endpoint Sha256",
+          "type": "string"
+        },
+        "instance_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instance Sha256",
+          "type": "string"
+        },
+        "resources": {
+          "patternProperties": {
+            "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            }
+          },
+          "title": "Resources",
+          "type": "object"
+        },
+        "runtime_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Runtime Sha256",
+          "type": "string"
+        },
+        "service": {
+          "enum": [
+            "RETRIEVAL",
+            "RERANK",
+            "CONTROL"
+          ],
+          "title": "Service",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service",
+        "instance_sha256",
+        "code_sha256",
+        "dependencies_sha256",
+        "config_sha256",
+        "endpoint_sha256",
+        "runtime_sha256"
+      ],
+      "title": "ServiceIdentity",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "acceptance_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Acceptance Sha256",
+      "type": "string"
+    },
+    "code_commit": {
+      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+      "title": "Code Commit",
+      "type": "string"
+    },
+    "components": {
+      "items": {
+        "$ref": "#/$defs/ComponentIdentity"
+      },
+      "title": "Components",
+      "type": "array"
+    },
+    "policy_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Policy Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-served-generation/1",
+      "default": "vkm-served-generation/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "services": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ServiceIdentity"
+      },
+      "title": "Services",
+      "type": "array"
+    }
+  },
+  "required": [
+    "components",
+    "code_commit",
+    "policy_sha256",
+    "acceptance_sha256"
+  ],
+  "title": "GenerationManifest",
+  "type": "object"
+}

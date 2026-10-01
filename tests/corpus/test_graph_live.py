@@ -146,7 +146,7 @@ def test_cross_layer_edges_block_a_wipe(driver, ns, tmp_path):
         with pytest.raises(ProjectionError) as info:
             rebuild(_settings(), RebuildOptions(namespace=ns), driver=driver, inp=synthetic_input(),
                     data_root=tmp_path)
-        assert info.value.code == "E_CROSS_LAYER_LOSS"
+        assert info.value.code == "E_EVIDENCE_DEPENDENCY"
     finally:
         client.write(driver, DB, f"MATCH (c:`{claim}`) DETACH DELETE c")
 

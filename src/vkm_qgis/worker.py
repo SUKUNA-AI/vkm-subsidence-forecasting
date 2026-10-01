@@ -482,7 +482,9 @@ def register_gcps(paths,args):
             db.commit()
         except Exception:
             db.rollback(); raise
-    return {'ids':[x[1] for x in normalized],'outputs':[args['path']],'target_unit':'m','epsg':None}
+    return {'ids':[x[1] for x in normalized],'outputs':[args['path']],
+            'target_unit':args.get('target_unit','unknown'),
+            'target_unit_verified':bool(args.get('target_unit_verified',False)),'epsg':None}
 
 def fit(paths,args):
     from vkm_qgis.fitting import fit_transform

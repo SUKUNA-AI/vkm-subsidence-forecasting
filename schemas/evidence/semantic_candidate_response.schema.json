@@ -1,0 +1,160 @@
+{
+  "$defs": {
+    "Candidate": {
+      "additionalProperties": false,
+      "properties": {
+        "event_class": {
+          "anyOf": [
+            {
+              "enum": [
+                "PHYSICAL",
+                "INFORMATION"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Class"
+        },
+        "kind": {
+          "enum": [
+            "MENTION",
+            "CLAIM",
+            "OBSERVATION",
+            "OBSERVATION_SET",
+            "ENTITY",
+            "FORMULA",
+            "EVENT",
+            "ENTITY_LINK"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "left": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Left"
+        },
+        "local_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Local Id",
+          "type": "string"
+        },
+        "members": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Members",
+          "type": "array"
+        },
+        "right": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Right"
+        },
+        "spans": {
+          "items": {
+            "$ref": "#/$defs/CandidateSpan"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Spans",
+          "type": "array"
+        },
+        "time_literal": {
+          "default": "",
+          "maxLength": 1000,
+          "title": "Time Literal",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "local_id",
+        "kind",
+        "spans",
+        "value"
+      ],
+      "title": "Candidate",
+      "type": "object"
+    },
+    "CandidateSpan": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "exclusiveMinimum": 0,
+          "title": "End",
+          "type": "integer"
+        },
+        "input_index": {
+          "maximum": 63,
+          "minimum": 0,
+          "title": "Input Index",
+          "type": "integer"
+        },
+        "literal": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Literal",
+          "type": "string"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "input_index",
+        "start",
+        "end",
+        "literal"
+      ],
+      "title": "CandidateSpan",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "candidates": {
+      "items": {
+        "$ref": "#/$defs/Candidate"
+      },
+      "maxItems": 256,
+      "title": "Candidates",
+      "type": "array"
+    }
+  },
+  "required": [
+    "candidates"
+  ],
+  "title": "CandidateResponse",
+  "type": "object"
+}

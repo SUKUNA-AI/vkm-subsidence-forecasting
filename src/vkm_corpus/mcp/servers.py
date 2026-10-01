@@ -569,7 +569,9 @@ def build_read_server(api: ApiClient) -> MCPServer:
             table_id: Annotated[str, Field(min_length=1, max_length=120, pattern=TABLE_ID_PATTERN,
                                            description="a canonical table id (VKM-SRC-NNN:pNNNN:t…) or a TBL- id")],
             max_rows: Annotated[int, Field(ge=1, le=500)] = 200,
-            max_chars: Annotated[int, Field(ge=200, le=60_000, description="cap of the Markdown rendering")] = 8000
+            max_chars: Annotated[int, Field(ge=200, le=60_000, description="cap of the Markdown rendering")] = 8000,
+            cursor: Annotated[str | None, Field(max_length=2048,
+                description="pagination.next_cursor from the previous response; snapshot changes require restart")] = None
     ) -> CallToolResult:
         """A table as a structured grid: number and caption, size, header rows and how they were found, bands and
         blocks, orientation, confidence and quality flags; its columns (header path, symbol, unit and where the unit
@@ -578,7 +580,7 @@ def build_read_server(api: ApiClient) -> MCPServer:
         flags such as DECIMAL_POINT_SUSPECT) and a Markdown rendering. Values as printed, never corrected: check the
         page image before use (get_table with include_image). Navigation, not evidence."""
         return await call("get_table_structured", "GET", f"/v1/nav/table/{table_id}",
-                          params={"max_rows": max_rows, "max_chars": max_chars})
+                          params={"max_rows": max_rows, "max_chars": max_chars, **({"cursor": cursor} if cursor else {})})
 
     @server.tool(name="find_tables", annotations=READ_ONLY)
     async def find_tables(
@@ -763,6 +765,49 @@ def build_read_server(api: ApiClient) -> MCPServer:
         """Canonical snapshot and counts, projection builds and whether they match the snapshot, reranker models
         and licences, control-plane jobs; host roles only."""
         return await call("get_corpus_status", "GET", "/v1/status")
+
+    @server.tool(name="get_evidence_record", annotations=READ_ONLY)
+    async def get_evidence_record(record_id: Annotated[str, Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$")],
+                                  journal_revision: Annotated[str | None, Field(pattern=r"^[a-f0-9]{64}$")] = None,
+                                  as_of: Annotated[str | None, Field(pattern=r"^\d{4}-\d{2}-\d{2}$")] = None,
+                                  recorded_at: Annotated[str | None, Field(max_length=64)] = None) -> CallToolResult:
+        """Exact version, supports, policy and current admission; automatic extraction is not scientific review."""
+        return await call("get_evidence_record", "GET", f"/v1/evidence/records/{record_id}",
+                          params={"journal_revision": journal_revision, "as_of": as_of, "recorded_at": recorded_at})
+
+    @server.tool(name="list_evidence", annotations=READ_ONLY)
+    async def list_evidence(kind: Annotated[str | None, Field(max_length=60)] = None,
+                            limit: Annotated[int, Field(ge=1, le=500)] = 100,
+                            cursor: Annotated[str | None, Field(max_length=2048)] = None,
+                            as_of: Annotated[str | None, Field(pattern=r"^\d{4}-\d{2}-\d{2}$")] = None,
+                            entity_id: Annotated[str | None, Field(max_length=200)] = None,
+                            journal_revision: Annotated[str | None, Field(pattern=r"^[a-f0-9]{64}$")] = None,
+                            recorded_at: Annotated[str | None, Field(max_length=64)] = None) -> CallToolResult:
+        """All permitted evidence through a stable cursor; as_of excludes unknown availability."""
+        return await call("list_evidence", "GET", "/v1/evidence",
+                          params={"kind": kind, "limit": limit, "cursor": cursor, "as_of": as_of, "entity_id": entity_id,
+                                  "journal_revision": journal_revision, "recorded_at": recorded_at})
+
+    @server.tool(name="get_evidence_dependencies", annotations=READ_ONLY)
+    async def get_evidence_dependencies(record_id: Annotated[str, Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$")],
+                                        cursor: Annotated[str | None, Field(max_length=2048)] = None,
+                                        limit: Annotated[int, Field(ge=1, le=500)] = 500,
+                                        journal_revision: Annotated[str | None, Field(pattern=r"^[a-f0-9]{64}$")] = None,
+                                        as_of: Annotated[str | None, Field(pattern=r"^\d{4}-\d{2}-\d{2}$")] = None,
+                                        recorded_at: Annotated[str | None, Field(max_length=64)] = None) -> CallToolResult:
+        """Version-pinned inputs and reverse dependencies affected by correction."""
+        return await call("get_evidence_dependencies", "GET", f"/v1/evidence/dependencies/{record_id}",
+                          params={"cursor": cursor, "limit": limit, "journal_revision": journal_revision,
+                                  "as_of": as_of, "recorded_at": recorded_at})
+
+    @server.tool(name="get_evidence_review_packet", annotations=READ_ONLY)
+    async def get_evidence_review_packet(record_id: Annotated[str, Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$")],
+                                         journal_revision: Annotated[str | None, Field(pattern=r"^[a-f0-9]{64}$")] = None,
+                                         as_of: Annotated[str | None, Field(pattern=r"^\d{4}-\d{2}-\d{2}$")] = None,
+                                         recorded_at: Annotated[str | None, Field(max_length=64)] = None) -> CallToolResult:
+        """Original supports, exact dependency versions and bounded previews for review; this does not grant scientific admission."""
+        return await call("get_evidence_review_packet", "GET", f"/v1/evidence/review-packet/{record_id}",
+                          params={"journal_revision": journal_revision, "as_of": as_of, "recorded_at": recorded_at})
 
     return server
 

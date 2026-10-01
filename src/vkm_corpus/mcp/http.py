@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import contextlib
+import asyncio
 import hmac
 import json
 import os
@@ -23,6 +24,8 @@ from vkm_corpus.config import ConfigError, load_settings
 
 DEFAULT_ALLOWED_HOSTS = ["127.0.0.1:*", "localhost:*"]
 HEALTH_PATH = "/healthz"
+REJECTED_BODY_LIMIT = 64 * 1024
+REJECTED_BODY_TIMEOUT = 0.25
 
 
 def _secret(env: Mapping[str, str], name: str) -> str | None:
@@ -89,7 +92,9 @@ class BearerMiddleware:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
-        send = _closing(send)
+        body = _RequestBody(scope, receive)
+        receive = body.receive
+        send = _closing(send, body)
         if scope.get("path") == HEALTH_PATH and scope.get("method") == "GET":
             body = json.dumps({"status": "ok"}).encode()
             await send({"type": "http.response.start", "status": 200,
@@ -106,13 +111,52 @@ class BearerMiddleware:
         await self.app(scope, receive, send)
 
 
-def _closing(send: Any) -> Any:
+class _RequestBody:
+    """Discard a small unread request before closing its socket, without parsing.
+
+    Windows can abort a connection closed with unread POST bytes before the
+    client receives the 401/421 response. Reading has a byte/deadline bound and
+    never dispatches to the application or initiates a 100-continue upload.
+    """
+    def __init__(self, scope, receive):
+        self._receive = receive
+        headers = dict(scope.get("headers") or [])
+        self.done = (scope.get("method") in {"GET", "HEAD", "OPTIONS"}
+                     and not headers.get(b"content-length") and not headers.get(b"transfer-encoding"))
+        self.expect_continue = headers.get(b"expect", b"").lower() == b"100-continue"
+        self.bytes_seen = 0
+
+    async def receive(self):
+        message = await self._receive()
+        if message["type"] == "http.request":
+            self.bytes_seen += len(message.get("body", b""))
+            self.done = not message.get("more_body", False)
+        elif message["type"] == "http.disconnect":
+            self.done = True
+        return message
+
+    async def discard(self):
+        if self.done or self.expect_continue or self.bytes_seen >= REJECTED_BODY_LIMIT:
+            return
+
+        async def bounded():
+            while not self.done and self.bytes_seen < REJECTED_BODY_LIMIT:
+                await self.receive()
+        try:
+            await asyncio.wait_for(bounded(), timeout=REJECTED_BODY_TIMEOUT)
+        except (TimeoutError, OSError):
+            pass  # oversized/slow/disconnected uploads do not delay rejection
+
+
+def _closing(send: Any, body: _RequestBody | None = None) -> Any:
     """``send`` that marks every response ``Connection: close``, replacing a ``Connection`` header set upstream."""
 
     async def wrapped(message: dict[str, Any]) -> None:
         if message["type"] == "http.response.start":
             headers = [(k, v) for k, v in message.get("headers") or [] if k.lower() != b"connection"]
             message = {**message, "headers": [*headers, (b"connection", b"close")]}
+        elif message["type"] == "http.response.body" and not message.get("more_body", False) and body:
+            await body.discard()
         await send(message)
 
     return wrapped

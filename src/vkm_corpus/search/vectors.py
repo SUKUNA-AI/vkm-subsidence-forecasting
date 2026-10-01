@@ -431,6 +431,8 @@ class VectorBuildOptions:
     verify_checksums: bool = True
     skip_if_current: bool = False            # alias already on a COMPLETE build of this snapshot, signature and units
     command: str = "search build-vectors"
+    publish: bool = True
+    policy_sha256: str | None = None
 
 
 def resolve_embeddings(path: str, root: Path) -> Path:
@@ -579,7 +581,9 @@ def build_vectors(settings: Settings, options: VectorBuildOptions, *, client: An
                   page_meta: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
     """Checks + build + alias swap; returns the receipt (also written under receipts/projections/opensearch)."""
     from vkm_corpus.search.indexer import check_prefix
+    from vkm_corpus.update.remote_search import validate_prepare_options, freeze_prepared_indices
 
+    validate_prepare_options(options.publish, options.policy_sha256)
     prefix = check_prefix(options.prefix or settings.opensearch_index_prefix)
     root = require_canonical_root(settings)
     t0 = time.monotonic()
@@ -618,7 +622,7 @@ def build_vectors(settings: Settings, options: VectorBuildOptions, *, client: An
             receipt["units"] = {k: umeta.get(k) for k in ("snapshot_id", "count", "by_kind", "units_sha256",
                                                           "text_rule")}
             receipt["mapping"] = {VECTOR_FIELD: knn_field(config)}
-            if options.skip_if_current and not options.plan_only:
+            if options.publish and options.skip_if_current and not options.plan_only:
                 if client is None:
                     from vkm_corpus.search.client import connect
 
@@ -665,6 +669,8 @@ def build_vectors(settings: Settings, options: VectorBuildOptions, *, client: An
                     "storage_precision": config.storage_precision, "text_rule": config.text_rule,
                     "units_sha256": umeta.get("units_sha256"), "artifact_manifests_sha256": manifests_sha,
                     "projector_version": PROJECTOR_VERSION, "prefix": prefix, "build_status": BUILDING}
+            if options.policy_sha256 is not None:
+                meta["policy_sha256"] = options.policy_sha256
             client.indices.create(index=index, body=vectors_body(config, meta))
             created.append(index)
             started = time.monotonic()
@@ -712,9 +718,13 @@ def build_vectors(settings: Settings, options: VectorBuildOptions, *, client: An
             actions = [{"remove": {"index": old, "alias": alias}} for old in alias_indices(client, alias)
                        if old != index]
             actions.append({"add": {"index": index, "alias": alias}})
-            client.indices.update_aliases(body={"actions": actions})
-            receipt["alias_actions"] = actions
-            receipt["pruned"] = prune_vector_builds(client, prefix, keep=options.keep_builds)
+            if options.publish:
+                client.indices.update_aliases(body={"actions": actions})
+                receipt["alias_actions"] = actions
+                receipt["pruned"] = prune_vector_builds(client, prefix, keep=options.keep_builds)
+            else:
+                freeze_prepared_indices(client, [index])
+                receipt.update(alias_actions=[], pruned=[], publication="PREPARED_NOT_PUBLISHED", remote_qualification="NOT_RUN")
             receipt["status"] = COMPLETE
         except ProjectionError as exc:
             receipt["status"] = "FAILED"

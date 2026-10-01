@@ -137,8 +137,8 @@ if [ "$DRY" = 1 ]; then
   [ "$n" = 117 ] || rc=2
   m="$(python3 "$HERE/mcp_smoke.py" --dry-run 2>/dev/null \
        | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["planned_tools"]))' 2>/dev/null || echo 0)"
-  log "  MCP smoke plans $m of 45 read tools"
-  [ "$m" = 45 ] || rc=2
+  log "  MCP smoke plans $m of 49 read tools"
+  [ "$m" = 49 ] || rc=2
   rm -rf "$tmp"
   for s in "${STEPS[@]}"; do
     want_step "$s" && log "  step $s (timeout ${TIMEOUT[$s]} s)" || log "  step $s: skipped by options"

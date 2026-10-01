@@ -12,6 +12,14 @@ from vkm_corpus.contracts.vocab import DatasetClass, EnvelopeProfile, ObjectKind
 
 SCHEMA_VERSION = "0.1.0"
 
+# Exact pre-locator schemas from Git (schemas/corpus/arrow_schemas.json before
+# 0.1.1). This is a narrow read migration, not permission to accept arbitrary schemas.
+HISTORICAL_LOCATOR_SCHEMAS = {
+    "figures": ("0.1.0", "898cc0fa9f8ed1aadc3a6f71f635b885cf06cf9f28d595e70e5fed2b19a5cc50"),
+    "tables": ("0.1.0", "087678688e16af432f289c530c3ba76dad7c8ff1ba6a8bd7f050ff0502b1a1e8"),
+    "formulas": ("0.1.0", "1f94c66a512a6cdd9a617b822754a01bf0e2cb327905067ad73ca160d39e2c0f"),
+}
+
 
 @dataclass(frozen=True)
 class DatasetSpec:
@@ -40,7 +48,9 @@ class DatasetSpec:
 
 
 def _spec(name, model, cls, profile, pk, sort, kind=None) -> DatasetSpec:
-    return DatasetSpec(name, model, DatasetClass(cls), EnvelopeProfile(profile), tuple(pk), tuple(sort), kind)
+    # 0.1.1 appends a nullable source locator; old rows remain readable as UNKNOWN.
+    version = "0.1.1" if name in ("figures", "tables", "formulas") else SCHEMA_VERSION
+    return DatasetSpec(name, model, DatasetClass(cls), EnvelopeProfile(profile), tuple(pk), tuple(sort), kind, version)
 
 
 R, H, L, V = (DatasetClass.REGISTRY_GLOBAL, DatasetClass.HEAD_PER_SOURCE, DatasetClass.APPEND_LOG,

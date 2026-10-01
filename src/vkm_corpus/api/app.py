@@ -30,8 +30,9 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from vkm_corpus.api import images
 from vkm_corpus.api.envelope import API_VERSION, ApiError, ApiResponse, Meta
 from vkm_corpus.api.errors import ApiFailure
-from vkm_corpus.api.service import MAX_TEXT_CANDIDATES, MAX_VISUAL_CANDIDATES, ApiService, Result
+from vkm_corpus.api.service import MAX_TEXT_CANDIDATES, MAX_VISUAL_CANDIDATES, ApiService, Result, generation_status
 from vkm_corpus.contracts.vocab import Origin, ProcessingStatus, ReviewStatus, TextLayer
+from vkm_corpus.contracts.access import AccessContext
 from vkm_corpus.ids.grammar import SOURCE_ID, WORK_ID
 
 LOG = logging.getLogger("vkm.api")
@@ -45,6 +46,7 @@ class ApiConfig:
     read_tokens: dict[str, str] = field(default_factory=dict)     # token → label
     write_tokens: dict[str, str] = field(default_factory=dict)
     max_body_bytes: int = 1_000_000
+    access_contexts: dict[str, AccessContext] = field(default_factory=dict)
 
     @classmethod
     def from_settings(cls, settings: Any) -> "ApiConfig":
@@ -54,7 +56,13 @@ class ApiConfig:
         write = {settings.api_write_token: "write"} if settings.api_write_token else {}
         if not read and not write:
             raise ConfigError("no API token configured (VKM_API_TOKEN_FILE / VKM_API_WRITE_TOKEN_FILE)")
-        return cls(read_tokens=read, write_tokens=write)
+        import os
+        from pathlib import Path as FilePath
+        contexts = {}
+        if context_file := os.getenv("VKM_ACCESS_CONTEXT_FILE"):
+            contexts = {label: AccessContext.model_validate(value)
+                        for label, value in json.loads(FilePath(context_file).read_bytes()).items()}
+        return cls(read_tokens=read, write_tokens=write, access_contexts=contexts)
 
 
 # ---------------------------------------------------------------------------------------------------- bodies
@@ -254,6 +262,7 @@ def read_access(request: Request) -> str:
     if label is None:
         raise ApiFailure("UNAUTHORIZED", "invalid bearer token")
     request.state.token_label = label
+    _policy_access(request, label)
     return label
 
 
@@ -267,7 +276,25 @@ def write_access(request: Request) -> str:
             raise ApiFailure("FORBIDDEN", "the read token cannot request reprocessing")
         raise ApiFailure("UNAUTHORIZED", "invalid bearer token")
     request.state.token_label = label
+    _policy_access(request, label)
     return label
+
+
+def _policy_access(request: Request, label: str):
+    policy = request.app.state.service.deps.access_policy
+    if policy is None:
+        return  # compatibility mode is reported explicitly; new production requires policy inventory
+    context = request.app.state.config.access_contexts.get(label)
+    if context is None:
+        raise ApiFailure("FORBIDDEN", "access principal is not configured")
+    # Evidence reads use object policies and should remain possible for a narrow
+    # principal even when the legacy mixed corpus cannot be safely queried.
+    if request.url.path.startswith("/v1/evidence"):
+        return
+    try:
+        policy.require_served_corpus(context)
+    except (PermissionError, ValueError, OSError):
+        raise ApiFailure("FORBIDDEN", "resource policy denies this served corpus") from None
 
 
 Read = Annotated[str, Depends(read_access)]
@@ -275,9 +302,11 @@ Write = Annotated[str, Depends(write_access)]
 
 
 # ---------------------------------------------------------------------------------------------------- app
-def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
+def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> FastAPI:
+    if service.deps.evidence is not None and service.deps.access_policy is not None:
+        service.deps.evidence.source_policy = service.deps.access_policy.for_source
     app = FastAPI(title="VKM API", version=API_VERSION, docs_url="/v1/docs", openapi_url="/v1/openapi.json",
-                  redoc_url=None,
+                  redoc_url=None, lifespan=lifespan,
                   description="Semantic access to the VKM document corpus (canonical snapshot + projections). "
                               "Every object carries the vkm.envelope/1; automatic content is "
                               "AUTO_EXTRACTED_UNREVIEWED, never a fact.")
@@ -315,7 +344,10 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
         request.state.token_label = None
         request.state.error_code = None
         length = request.headers.get("content-length")
-        if length and length.isdigit() and int(length) > config.max_body_bytes:
+        guard = service.deps.generation_guard
+        if guard is not None and request.url.path not in {"/v1/health", "/v1/status"} and (await generation_status(guard)).get("status") != "READY":
+            response = error_response(request, ApiFailure("DEPENDENCY_UNAVAILABLE", "served generation is unavailable"))
+        elif length and length.isdigit() and int(length) > config.max_body_bytes:
             response = error_response(request, ApiFailure("PAYLOAD_TOO_LARGE", "request body too large"))
         else:
             response = await call_next(request)
@@ -333,6 +365,10 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
     @app.exception_handler(ApiFailure)
     async def _api_failure(request: Request, exc: ApiFailure):
         return error_response(request, exc)
+
+    from vkm_corpus.update.barrier import AdmissionBarrierMiddleware
+    app.add_middleware(AdmissionBarrierMiddleware,
+                       provider=lambda: getattr(service.deps, "admission_barrier", None))
 
     @app.exception_handler(RequestValidationError)
     async def _validation(request: Request, exc: RequestValidationError):
@@ -630,8 +666,9 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
     @app.get("/v1/nav/table/{table_id}", tags=["navigation"], **JSON_RESPONSES)
     def nav_table(request: Request, table_id: str, _auth: Read,
                   max_rows: Annotated[int, Query(ge=1, le=500)] = 200,
-                  max_chars: Annotated[int, Query(ge=200, le=60_000)] = 8000) -> JSONResponse:
-        return respond(request, service.nav_table(table_id, max_rows, max_chars))
+                  max_chars: Annotated[int, Query(ge=200, le=60_000)] = 8000,
+                  cursor: Annotated[str | None, Query(max_length=2048)] = None) -> JSONResponse:
+        return respond(request, service.nav_table(table_id, max_rows, max_chars, cursor))
 
     @app.get("/v1/nav/tables", tags=["navigation"], **JSON_RESPONSES)
     def nav_tables(request: Request, _auth: Read,
@@ -733,6 +770,8 @@ def create_app(service: ApiService, config: ApiConfig) -> FastAPI:
                                                 body.job_id, body.plan_sha256, label)
         return respond(request, result, status_code)
 
+    from vkm_evidence.api import mount_evidence_routes
+    mount_evidence_routes(app, service, config, respond, Read, Write)
     return app
 
 
@@ -743,6 +782,9 @@ def build_from_settings(settings: Any = None) -> FastAPI:
     from vkm_corpus.api.canon import CanonStore
     from vkm_corpus.api.service import ApiDeps
     from vkm_corpus.config import load_settings
+    import os
+    from vkm_corpus.api.production import require_serving_profile
+    profile = require_serving_profile(os.environ)
 
     settings = settings or load_settings()
     root = settings.require_data_root()
@@ -752,6 +794,7 @@ def build_from_settings(settings: Any = None) -> FastAPI:
                    graph=Neo4jBackend(settings) if settings.neo4j_uri else None,
                    rerank=GatewayRerankBackend(settings) if settings.rerank_url else None,
                    control=PgControlPlane(settings) if settings.pg_dsn else None)
+    deps.serving_profile = profile
     from vkm_corpus.catalogues.store import CatalogueStore
     from vkm_corpus.navigation.store import NavStore
 
@@ -769,6 +812,48 @@ def build_from_settings(settings: Any = None) -> FastAPI:
             except Exception:  # noqa: BLE001 - no NAV published yet: the first query builds it (or runs as E)
                 pass
 
-        threading.Thread(target=warm, name="vkm-graph-warm", daemon=True).start()
     deps.catalogues = CatalogueStore(root)     # served only once derived/catalogues/CURRENT is published
-    return create_app(ApiService(deps), ApiConfig.from_settings(settings))
+    import os
+    from pathlib import Path as FilePath
+    from vkm_corpus.contracts.policy_store import SourcePolicyStore
+    from vkm_evidence.journal import EvidenceJournal
+    from vkm_evidence.query import EvidenceReader
+    from vkm_evidence.objects import canonical_resolver
+    if policy_file := os.getenv("VKM_SOURCE_POLICY_FILE"):
+        deps.access_policy = SourcePolicyStore(FilePath(policy_file),
+            lambda: [r["source_id"] for r in deps.canon.query("SELECT source_id FROM sources")])
+    evidence_root = root / "canonical" / "evidence"
+    if (evidence_root / "HEAD").is_file():
+        reviewers = frozenset()
+        if reviewer_file := os.getenv("VKM_EVIDENCE_REVIEWERS_FILE"):
+            reviewers = frozenset(json.loads(FilePath(reviewer_file).read_bytes()))
+        journal = EvidenceJournal(evidence_root, reviewers=reviewers,
+            object_validator=canonical_resolver(deps.canon, deps.access_policy.for_source) if deps.access_policy else None)
+        deps.evidence = EvidenceReader(journal, source_policy=deps.access_policy.for_source if deps.access_policy else None)
+        if deps.access_policy is not None and reviewers:
+            deps.evidence_publisher = journal
+    api_config = ApiConfig.from_settings(settings)
+    runtime = None
+    if runtime_file := os.getenv("VKM_UPDATE_RUNTIME_FILE"):
+        from vkm_corpus.update.runtime import RuntimeConfig, UpdateRuntime
+        runtime = UpdateRuntime(RuntimeConfig.model_validate_json(FilePath(runtime_file).read_bytes()))
+        if runtime.config.native_serving is None:
+            from vkm_corpus.api.production import bind_generation_guard
+            bind_generation_guard(deps, runtime, api_config, root)
+        else:
+            # Reject requests even from a transport that skips ASGI lifespan.
+            deps.generation_guard = lambda: {"status": "UNAVAILABLE"}
+    from contextlib import asynccontextmanager
+    @asynccontextmanager
+    async def lifespan(_app):
+        try:
+            if runtime is not None and runtime.config.native_serving is not None:
+                from vkm_corpus.api.production import bind_native_generation_guard
+                await bind_native_generation_guard(deps, runtime, api_config, root)
+            if deps.hybrid is not None:
+                threading.Thread(target=warm, name="vkm-graph-warm", daemon=True).start()
+            yield
+        finally:
+            if deps.serving_file_lease is not None:
+                deps.serving_file_lease.close()
+    return create_app(ApiService(deps), api_config, lifespan=lifespan)

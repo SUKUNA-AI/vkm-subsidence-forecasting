@@ -1,0 +1,418 @@
+{
+  "$defs": {
+    "CandidatePin": {
+      "additionalProperties": false,
+      "properties": {
+        "access_config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Access Config Sha256",
+          "type": "string"
+        },
+        "code_commit": {
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+          "title": "Code Commit",
+          "type": "string"
+        },
+        "code_tree_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Tree Sha256",
+          "type": "string"
+        },
+        "components": {
+          "items": {
+            "$ref": "#/$defs/ComponentIdentity"
+          },
+          "title": "Components",
+          "type": "array"
+        },
+        "dependencies_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Dependencies Sha256",
+          "type": "string"
+        },
+        "duckdb_file_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Duckdb File Sha256",
+          "type": "string"
+        },
+        "nav_file_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nav File Sha256"
+        },
+        "policy_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Policy Sha256",
+          "type": "string"
+        },
+        "services": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ServiceIdentity"
+          },
+          "title": "Services",
+          "type": "array"
+        }
+      },
+      "required": [
+        "code_commit",
+        "code_tree_sha256",
+        "dependencies_sha256",
+        "access_config_sha256",
+        "policy_sha256",
+        "duckdb_file_sha256",
+        "components"
+      ],
+      "title": "CandidatePin",
+      "type": "object"
+    },
+    "ComponentIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "built_from": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Built From",
+          "type": "object"
+        },
+        "component": {
+          "enum": [
+            "DOCUMENT",
+            "DATASET",
+            "EVIDENCE",
+            "DUCKDB",
+            "NAV",
+            "GRAPH",
+            "SEARCH",
+            "DENSE",
+            "LATE",
+            "VISUAL"
+          ],
+          "title": "Component",
+          "type": "string"
+        },
+        "manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Manifest Sha256",
+          "type": "string"
+        },
+        "policy_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Policy Sha256",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "revision": {
+          "minLength": 1,
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "component",
+        "revision",
+        "manifest_sha256",
+        "policy_sha256",
+        "built_from"
+      ],
+      "title": "ComponentIdentity",
+      "type": "object"
+    },
+    "ControlSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "max_heartbeat_age_seconds": {
+          "default": 180,
+          "maximum": 900,
+          "minimum": 1,
+          "title": "Max Heartbeat Age Seconds",
+          "type": "integer"
+        },
+        "schema_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Schema Sha256",
+          "type": "string"
+        },
+        "workers": {
+          "items": {
+            "$ref": "#/$defs/WorkerRequirement"
+          },
+          "title": "Workers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema_sha256",
+        "workers"
+      ],
+      "title": "ControlSpec",
+      "type": "object"
+    },
+    "ServiceIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "capabilities": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "code_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Sha256",
+          "type": "string"
+        },
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "dependencies_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Dependencies Sha256",
+          "type": "string"
+        },
+        "endpoint_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Endpoint Sha256",
+          "type": "string"
+        },
+        "instance_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instance Sha256",
+          "type": "string"
+        },
+        "resources": {
+          "patternProperties": {
+            "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            }
+          },
+          "title": "Resources",
+          "type": "object"
+        },
+        "runtime_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Runtime Sha256",
+          "type": "string"
+        },
+        "service": {
+          "enum": [
+            "RETRIEVAL",
+            "RERANK",
+            "CONTROL"
+          ],
+          "title": "Service",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service",
+        "instance_sha256",
+        "code_sha256",
+        "dependencies_sha256",
+        "config_sha256",
+        "endpoint_sha256",
+        "runtime_sha256"
+      ],
+      "title": "ServiceIdentity",
+      "type": "object"
+    },
+    "ToolProbe": {
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "additionalProperties": true,
+          "title": "Arguments",
+          "type": "object"
+        },
+        "expected_object_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Expected Object Ids",
+          "type": "array"
+        },
+        "require_image": {
+          "default": false,
+          "title": "Require Image",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "arguments"
+      ],
+      "title": "ToolProbe",
+      "type": "object"
+    },
+    "WorkerRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "host_role": {
+          "enum": [
+            "WORKSTATION",
+            "CORE",
+            "EDGE"
+          ],
+          "title": "Host Role",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "PIPELINE",
+            "PUBLISHER"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "host_role",
+        "kind"
+      ],
+      "title": "WorkerRequirement",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "call_timeout_seconds": {
+      "default": 30,
+      "exclusiveMinimum": 0,
+      "maximum": 600,
+      "title": "Call Timeout Seconds",
+      "type": "number"
+    },
+    "candidate": {
+      "$ref": "#/$defs/CandidatePin"
+    },
+    "control_spec": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ControlSpec"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "denied_principal": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+      "title": "Denied Principal",
+      "type": "string"
+    },
+    "deployment_profile_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Deployment Profile Sha256",
+      "type": "string"
+    },
+    "drill_receipt_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Drill Receipt Sha256"
+    },
+    "isolation_attestation_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Isolation Attestation Sha256"
+    },
+    "max_response_bytes": {
+      "default": 2000000,
+      "exclusiveMinimum": 0,
+      "maximum": 16000000,
+      "title": "Max Response Bytes",
+      "type": "integer"
+    },
+    "max_total_response_bytes": {
+      "default": 64000000,
+      "exclusiveMinimum": 0,
+      "maximum": 256000000,
+      "title": "Max Total Response Bytes",
+      "type": "integer"
+    },
+    "reader_principal": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+      "title": "Reader Principal",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-shadow-plan/1",
+      "default": "vkm-shadow-plan/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "enum": [
+        "SYNTHETIC",
+        "SHADOW_PRODUCTION"
+      ],
+      "title": "Scope",
+      "type": "string"
+    },
+    "source_id": {
+      "pattern": "^VKM-SRC-[0-9]{3}$",
+      "title": "Source Id",
+      "type": "string"
+    },
+    "tools": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ToolProbe"
+      },
+      "title": "Tools",
+      "type": "object"
+    },
+    "total_timeout_seconds": {
+      "default": 900,
+      "exclusiveMinimum": 0,
+      "maximum": 7200,
+      "title": "Total Timeout Seconds",
+      "type": "number"
+    }
+  },
+  "required": [
+    "candidate",
+    "scope",
+    "tools",
+    "source_id",
+    "reader_principal",
+    "denied_principal",
+    "deployment_profile_sha256"
+  ],
+  "title": "AcceptancePlan",
+  "type": "object"
+}

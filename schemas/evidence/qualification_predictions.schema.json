@@ -1,0 +1,628 @@
+{
+  "$defs": {
+    "EntityField": {
+      "additionalProperties": false,
+      "properties": {
+        "candidates": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Candidates",
+          "type": "array"
+        },
+        "entity_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Entity Id"
+        },
+        "key": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "metric": {
+          "const": "ENTITY_EXACT",
+          "default": "ENTITY_EXACT",
+          "title": "Metric",
+          "type": "string"
+        },
+        "scope": {
+          "minLength": 1,
+          "title": "Scope",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "RESOLVED",
+            "AMBIGUOUS",
+            "UNKNOWN"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "entity_id",
+        "scope",
+        "state"
+      ],
+      "title": "EntityField",
+      "type": "object"
+    },
+    "EvalObject": {
+      "additionalProperties": false,
+      "properties": {
+        "classification": {
+          "minLength": 1,
+          "title": "Classification",
+          "type": "string"
+        },
+        "fields": {
+          "default": [],
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "ENTITY_EXACT": "#/$defs/EntityField",
+                "FORMULA_EXACT": "#/$defs/FormulaField",
+                "GRID_EXACT": "#/$defs/GridField",
+                "NUMERIC_EXACT": "#/$defs/NumericField",
+                "TEMPORAL_EXACT": "#/$defs/TemporalField"
+              },
+              "propertyName": "metric"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/NumericField"
+              },
+              {
+                "$ref": "#/$defs/GridField"
+              },
+              {
+                "$ref": "#/$defs/FormulaField"
+              },
+              {
+                "$ref": "#/$defs/EntityField"
+              },
+              {
+                "$ref": "#/$defs/TemporalField"
+              }
+            ]
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "locator": {
+          "minLength": 1,
+          "title": "Locator",
+          "type": "string"
+        },
+        "object_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "unit_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Unit Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "object_id",
+        "unit_id",
+        "locator",
+        "classification"
+      ],
+      "title": "EvalObject",
+      "type": "object"
+    },
+    "FormulaField": {
+      "additionalProperties": false,
+      "properties": {
+        "bindings": {
+          "default": [],
+          "items": {
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Bindings",
+          "type": "array"
+        },
+        "key": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "literal": {
+          "title": "Literal",
+          "type": "string"
+        },
+        "metric": {
+          "const": "FORMULA_EXACT",
+          "default": "FORMULA_EXACT",
+          "title": "Metric",
+          "type": "string"
+        },
+        "representation": {
+          "enum": [
+            "LATEX",
+            "OMML",
+            "MATHML",
+            "TEXT",
+            "IMAGE_ONLY"
+          ],
+          "title": "Representation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "representation",
+        "literal"
+      ],
+      "title": "FormulaField",
+      "type": "object"
+    },
+    "GridCell": {
+      "additionalProperties": false,
+      "properties": {
+        "col": {
+          "minimum": 0,
+          "title": "Col",
+          "type": "integer"
+        },
+        "colspan": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Colspan",
+          "type": "integer"
+        },
+        "row": {
+          "minimum": 0,
+          "title": "Row",
+          "type": "integer"
+        },
+        "rowspan": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Rowspan",
+          "type": "integer"
+        },
+        "state": {
+          "enum": [
+            "VALUE",
+            "EMPTY",
+            "UNREADABLE"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "row",
+        "col",
+        "text",
+        "state"
+      ],
+      "title": "GridCell",
+      "type": "object"
+    },
+    "GridField": {
+      "additionalProperties": false,
+      "properties": {
+        "cells": {
+          "items": {
+            "$ref": "#/$defs/GridCell"
+          },
+          "title": "Cells",
+          "type": "array"
+        },
+        "columns": {
+          "minimum": 1,
+          "title": "Columns",
+          "type": "integer"
+        },
+        "key": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "metric": {
+          "const": "GRID_EXACT",
+          "default": "GRID_EXACT",
+          "title": "Metric",
+          "type": "string"
+        },
+        "rows": {
+          "minimum": 1,
+          "title": "Rows",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "key",
+        "rows",
+        "columns",
+        "cells"
+      ],
+      "title": "GridField",
+      "type": "object"
+    },
+    "NumericField": {
+      "additionalProperties": false,
+      "properties": {
+        "decimal_value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Decimal Value"
+        },
+        "key": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "literal": {
+          "title": "Literal",
+          "type": "string"
+        },
+        "metric": {
+          "const": "NUMERIC_EXACT",
+          "default": "NUMERIC_EXACT",
+          "title": "Metric",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "VALUE",
+            "EMPTY",
+            "MISSING",
+            "UNREADABLE",
+            "NOT_APPLICABLE"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "key",
+        "literal",
+        "state"
+      ],
+      "title": "NumericField",
+      "type": "object"
+    },
+    "StratumKey": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "minLength": 1,
+          "title": "Format",
+          "type": "string"
+        },
+        "object_kind": {
+          "minLength": 1,
+          "title": "Object Kind",
+          "type": "string"
+        },
+        "quality": {
+          "minLength": 1,
+          "title": "Quality",
+          "type": "string"
+        },
+        "source_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_sha256",
+        "format",
+        "quality",
+        "object_kind"
+      ],
+      "title": "StratumKey",
+      "type": "object"
+    },
+    "StratumResult": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/StratumKey"
+        },
+        "objects": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/EvalObject"
+          },
+          "title": "Objects",
+          "type": "array"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "FAILED",
+            "NOT_RUN"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "stratum_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Stratum Id",
+          "type": "string"
+        },
+        "unit_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Unit Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "stratum_id",
+        "key",
+        "unit_ids",
+        "status"
+      ],
+      "title": "StratumResult",
+      "type": "object"
+    },
+    "TemporalField": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "metric": {
+          "const": "TEMPORAL_EXACT",
+          "default": "TEMPORAL_EXACT",
+          "title": "Metric",
+          "type": "string"
+        },
+        "support": {
+          "$ref": "#/$defs/TemporalSupport"
+        }
+      },
+      "required": [
+        "key",
+        "support"
+      ],
+      "title": "TemporalField",
+      "type": "object"
+    },
+    "TemporalSupport": {
+      "additionalProperties": false,
+      "description": "Physical time vs information time.\n\n``event_date``        when the physical event happened (e.g. chamber mined);\n``measurement_date``  when it was measured;\n``processing_date``   when the measurement was processed/interpreted;\n``publication_date``  when it was published;\n``available_from``    the earliest date a forecaster could have used it (information availability).\nA forecast issued at origin t0 may only use data with ``available_from <= t0``.",
+      "properties": {
+        "available_from": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Available From"
+        },
+        "available_from_precision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "precision of available_from if it differs from ``precision`` (e.g. a publication year)",
+          "title": "Available From Precision"
+        },
+        "event_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Date"
+        },
+        "event_date_end": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Date End"
+        },
+        "measurement_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Measurement Date"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "precision": {
+          "default": "unknown",
+          "description": "precision of the event/measurement dates: day|month|year|decade|unknown",
+          "title": "Precision",
+          "type": "string"
+        },
+        "processing_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Processing Date"
+        },
+        "publication_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publication Date"
+        }
+      },
+      "title": "TemporalSupport",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "extractor_identity_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Extractor Identity Sha256",
+      "type": "string"
+    },
+    "plan_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Plan Sha256",
+      "type": "string"
+    },
+    "producer_actors": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Producer Actors",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "vkm-qualification-prediction/1",
+      "default": "vkm-qualification-prediction/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "strata": {
+      "items": {
+        "$ref": "#/$defs/StratumResult"
+      },
+      "title": "Strata",
+      "type": "array"
+    }
+  },
+  "required": [
+    "plan_sha256",
+    "extractor_identity_sha256",
+    "producer_actors",
+    "started_at",
+    "strata"
+  ],
+  "title": "PredictionSet",
+  "type": "object"
+}

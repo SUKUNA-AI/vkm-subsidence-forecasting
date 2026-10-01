@@ -478,6 +478,7 @@ class FigureRow(DocObjectEnvelope):
                                                           "JBIG2Decode")
     vector_artifacts: list[VectorArtifactRef] = Field(default_factory=list, description="native vectors in "
                                                       "PAGE_PT_TL: paths JSON and SVG (task §23)")
+    raw_locator: str | None = Field(None, description="source-part-qualified XPath or pointer into the raw artifact")
 
     @model_validator(mode="after")
     def _figure_rules(self):
@@ -513,6 +514,7 @@ class TableRow(DocObjectEnvelope):
     image_artifact_id: ArtifactId | None = None
     image_dpi: Int16 | None = None
     continues_object_id: PageObjectId | None = Field(None, description="fragment on the next page")
+    raw_locator: str | None = Field(None, description="source-part-qualified XPath or pointer into the raw artifact")
 
     @model_validator(mode="after")
     def _table_rules(self):
@@ -541,6 +543,8 @@ class FormulaRow(DocObjectEnvelope):
     recognition_confidence: Float64 | None = None
     image_artifact_id: ArtifactId | None = None
     image_dpi: Int16 | None = None
+
+    raw_locator: str | None = Field(None, description="source-part-qualified XPath or pointer into the raw artifact")
 
     @model_validator(mode="after")
     def _formula_rules(self):

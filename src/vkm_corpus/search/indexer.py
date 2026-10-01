@@ -51,6 +51,8 @@ class BuildOptions:
     chunk_bytes: int = 10 * 1024 * 1024
     sample: int = 200
     command: str = "search build"
+    publish: bool = True
+    policy_sha256: str | None = None
 
 
 def check_prefix(prefix: str) -> str:
@@ -269,6 +271,8 @@ def build(settings: Settings, options: BuildOptions | None = None, *, client: An
           inp: ProjectionInput | None = None, data_root: Path | None = None) -> dict[str, Any]:
     """Build all indices and swap the aliases; returns the receipt."""
     options = options or BuildOptions()
+    from vkm_corpus.update.remote_search import validate_prepare_options
+    validate_prepare_options(options.publish, options.policy_sha256)
     prefix = check_prefix(options.prefix or settings.opensearch_index_prefix)
     own_input = inp is None
     if own_input:
@@ -327,6 +331,8 @@ def _build_indices(settings: Settings, options: BuildOptions, prefix: str, inp: 
         meta = {"build_id": build_id, "built_from_snapshot_id": inp.info.snapshot_id,
                 "canonical_manifest_sha256": inp.info.manifest_sha256, "projector_version": PROJECTOR_VERSION,
                 "build_status": BUILDING, "prefix": prefix}
+        if options.policy_sha256 is not None:
+            meta["policy_sha256"] = options.policy_sha256
         for index_type, name in indices.items():
             client.indices.create(index=name, body=index_body(index_type, meta))
             created.append(name)
@@ -356,8 +362,13 @@ def _build_indices(settings: Settings, options: BuildOptions, prefix: str, inp: 
                 "object_kind": index_body(index_type, {})["mappings"]["_meta"]["object_kind"],
                 "build_status": COMPLETE, "doc_stream_sha256": loaded[index_type]["doc_stream_sha256"],
                 "doc_count": loaded[index_type]["docs"], "completed_at": utc_now().isoformat()}})
-        receipt["alias_actions"] = swap_aliases(client, prefix, indices)
-        if options.prune:
+        if options.publish:
+            receipt["alias_actions"] = swap_aliases(client, prefix, indices)
+        else:
+            from vkm_corpus.update.remote_search import freeze_prepared_indices
+            freeze_prepared_indices(client, list(indices.values()))
+            receipt.update(alias_actions=[], publication="PREPARED_NOT_PUBLISHED", remote_qualification="NOT_RUN")
+        if options.publish and options.prune:
             receipt["pruned"] = prune(client, prefix, keep=options.keep_builds)
         receipt["status"] = COMPLETE
     except ProjectionError as exc:

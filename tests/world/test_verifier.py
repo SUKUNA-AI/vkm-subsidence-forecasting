@@ -38,7 +38,7 @@ def _tree(root: Path, files: dict[str, str | bytes]) -> Path:
         if isinstance(content, bytes):
             path.write_bytes(content)
         else:
-            path.write_text(content, encoding="utf-8")
+            path.write_text(content, encoding="utf-8", newline="\n")
     return root
 
 
@@ -58,9 +58,11 @@ _GIT_REDIRECT_VARS = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_
 
 
 def _git(root: Path, *args: str) -> str:
-    env = {k: v for k, v in os.environ.items() if k not in _GIT_REDIRECT_VARS}
+    env = {k: v for k, v in os.environ.items() if k not in _GIT_REDIRECT_VARS
+           and not k.startswith(("GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_")) and k != "GIT_CONFIG_COUNT"}
     done = subprocess.run(["git", "-C", str(root), "-c", "user.name=test", "-c", "user.email=test@example.org",
-                           "-c", "commit.gpgsign=false", *args], capture_output=True, text=True, check=True, env=env)
+                           "-c", "commit.gpgsign=false", "-c", "core.autocrlf=false", "-c", "core.eol=lf", *args],
+                          capture_output=True, text=True, encoding="utf-8", check=True, env=env)
     return done.stdout.strip()
 
 
@@ -111,6 +113,23 @@ def test_cli_writes_report_and_returns_exit_code(tmp_path, capsys):
     stdout = json.loads(capsys.readouterr().out)
     written = json.loads((root / V.DEFAULT_OUTPUT).read_text(encoding="utf-8"))
     assert code == 1 and stdout["status"] == written["status"] == "FAIL"
+
+
+def test_cli_stdout_is_lossless_utf8_with_cp1251_stdio(tmp_path):
+    missing = "missing-\u2265-\u6e2c.md"
+    root = _tree(tmp_path, {"README.md": f"[missing]({missing})\n"})
+    output = tmp_path / "report.json"
+    env = {k: v for k, v in os.environ.items() if not k.startswith("VKM_")}
+    env.update(PYTHONIOENCODING="cp1251", PYTHONUTF8="0", PYTHONDONTWRITEBYTECODE="1")
+    done = subprocess.run([sys.executable, "-B", str(SCRIPT), "--root", str(root),
+                           "--only", "markdown_links", "--output", str(output)],
+                          capture_output=True, env=env)
+    assert done.returncode == 1  # the planted broken link remains a real failure
+    assert b"UnicodeEncodeError" not in done.stderr
+    stdout = json.loads(done.stdout.decode("utf-8"))
+    written = json.loads(output.read_bytes().decode("utf-8"))
+    assert stdout == written and stdout["exit_code"] == 1
+    assert _checks(stdout)["markdown:links"]["details"]["broken"]["items"][0]["target"] == missing
 
 
 # ---------------------------------------------------------------- planted failures

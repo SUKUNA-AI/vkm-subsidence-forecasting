@@ -23,7 +23,7 @@ from vkm_corpus.extract.model import SourceInput
 from vkm_corpus.pipeline import commit as cm
 from vkm_corpus.pipeline.config import PipelineConfig
 from vkm_corpus.pipeline.context import (code_revision, config_to_json, logical_argv, open_cache, open_store,
-                                         run_dir, write_json_atomic)
+                                         run_dir, write_json_atomic, producer_identity, resource_guard, ProducerGuardError)
 from vkm_corpus.pipeline.sources import load_sources, select
 from vkm_corpus.versions import PIPELINE_VERSION
 
@@ -46,6 +46,18 @@ def _mem_limit(gb: float):
     return fn
 
 
+def guarded_worker_command(cmd: list[str], memory_gb: float) -> list[str]:
+    """Set and verify the limit in a fresh child, avoiding preexec_fn from a ThreadPoolExecutor thread."""
+    wrapper = ("import os,resource,sys\n"
+               "try:\n"
+               " limit=int(sys.argv[1]); resource.setrlimit(resource.RLIMIT_AS,(limit,limit))\n"
+               " if resource.getrlimit(resource.RLIMIT_AS)!=(limit,limit): raise RuntimeError('limit not applied')\n"
+               "except Exception:\n"
+               " print('PRODUCER_MEMORY_GUARD_REJECTED',file=sys.stderr); sys.exit(78)\n"
+               "os.execv(sys.argv[2],sys.argv[2:])\n")
+    return [sys.executable, "-c", wrapper, str(int(memory_gb * 1024 ** 3)), *cmd]
+
+
 class Orchestrator:
     def __init__(self, cfg: PipelineConfig, *, argv: list[str], flags: list[str], log: Any, run_kind: str = "EXTRACTION",
                  plan_only: bool = False, parent_run_id: str | None = None):
@@ -54,8 +66,11 @@ class Orchestrator:
 
         self.cfg = cfg
         self.log = log
+        self.producer_identity = producer_identity(cfg)
+        self.resources = resource_guard(cfg)
+        self.effective_workers = self.resources["effective_workers"]
         self.layout = init_root(cfg.data_root, "STAGING")
-        rev, dirty = code_revision()
+        rev, dirty = code_revision(strict=cfg.profile == "production")
         self.code_rev = rev + ("+dirty" if dirty else "")
         models = [{"role": "LAYOUT", "model_id": "PaddlePaddle/PP-DocLayoutV3_safetensors",
                    "model_revision": "97d101e6db2642e162a1d05392d1b0231c91033e",
@@ -64,7 +79,8 @@ class Orchestrator:
                   {"role": "RECOGNITION", "model_id": cfg.model.model_id, "model_revision": cfg.model.model_revision,
                    "weights_sha256": cfg.model.weights_sha256, "backend": "vllm"}]
         self.recorder = RunRecorder(self.layout, run_kind=run_kind, cli_command=logical_argv(argv, cfg),
-                                    host_role=HOST_ROLE, config=config_to_json_public(cfg),
+                                    host_role=HOST_ROLE, config={**config_to_json_public(cfg),
+                                        "producer_identity": self.producer_identity, "resource_guard": self.resources},
                                     code_revision=rev, code_dirty=dirty, models=models, cli_flags=flags,
                                     extra={"plan_only": plan_only, "parent_run_id": parent_run_id})
         self.recorder.start()
@@ -81,13 +97,24 @@ class Orchestrator:
                 mem_gb: float | None = None) -> int:
         cmd = [sys.executable, "-m", "vkm_corpus.pipeline.worker", phase, "--config", str(self.cfg_path),
                "--run", self.run_id, "--sources", ",".join(sources), *(extra or [])]
-        env = {**os.environ, "HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1"}
+        env = {**os.environ, "HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1", "PYTHONDONTWRITEBYTECODE": "1"}
+        if self.cfg.profile == "production":
+            from vkm_corpus.pipeline.context import verify_approved_sources
+
+            if producer_identity(self.cfg) != self.producer_identity:
+                raise ProducerGuardError("producer identity changed after planning")
+            approved = json.loads((self.dir / "approved_plan.json").read_text(encoding="utf-8"))
+            verify_approved_sources(self.cfg, select(load_sources(self.cfg.resources_root), sources), approved)
+            cmd = guarded_worker_command(cmd, mem_gb or self.cfg.source_memory_gb)
         try:
             proc = subprocess.run(cmd, capture_output=True, timeout=timeout, env=env,
-                                  preexec_fn=_mem_limit(mem_gb) if (mem_gb and os.name == "posix") else None)
+                                  preexec_fn=_mem_limit(mem_gb) if (mem_gb and os.name == "posix"
+                                                                   and self.cfg.profile != "production") else None)
         except subprocess.TimeoutExpired:
             self.log.error("worker timeout", extra={"vkm": {"stage": phase, "status": ",".join(sources)[:200]}})
             return -9
+        if self.cfg.profile == "production" and proc.returncode == 78:
+            raise ProducerGuardError("worker memory enforcement failed; execution was rejected")
         if proc.returncode != 0:
             tail = proc.stderr.decode("utf-8", "replace")[-2000:]
             self.log.error("worker failed", extra={"vkm": {"stage": phase, "status": f"exit {proc.returncode}",
@@ -124,7 +151,7 @@ class Orchestrator:
                 if self._result("prepare", s.source_id) is None:
                     self._crash(s, "prepare", rc, "prepare worker produced no result")
 
-        with ThreadPoolExecutor(max_workers=max(1, self.cfg.workers)) as ex:
+        with ThreadPoolExecutor(max_workers=self.effective_workers) as ex:
             list(ex.map(one, sources))
 
     def visual(self, sources: list[SourceInput], *, page_range: str | None = None,
@@ -277,7 +304,7 @@ class Orchestrator:
                 name = rel.split("/", 1)[0]
                 self.recorder.files.append(describe_file(self.layout, name, rel))
 
-        with ThreadPoolExecutor(max_workers=max(1, self.cfg.workers)) as ex:
+        with ThreadPoolExecutor(max_workers=self.effective_workers) as ex:
             list(ex.map(one, sources))
 
     # ------------------------------------------------------------------ journal entries of the orchestrator

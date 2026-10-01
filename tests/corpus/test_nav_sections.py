@@ -135,6 +135,111 @@ def rows_of(tables, sid):
     return [r for r in tables["sections"].to_pylist() if r["source_id"] == sid]
 
 
+@pytest.mark.parametrize("reverse", [False, True])
+def test_section_crossing_primary_work_ranges_has_no_invented_work(reverse):
+    c = Canon()
+    c.source("SRC-X", 4)
+    c.con.execute("DELETE FROM canonical.source_work_links")
+    c.con.execute("INSERT INTO canonical.works VALUES ('W-A', 'Работа А'), ('W-B', 'Работа Б')")
+    links = [("W-A", 1, 2), ("W-B", 3, 4)]
+    for wid, first, last in reversed(links) if reverse else links:
+        c.con.execute("INSERT INTO canonical.source_work_links VALUES ('SRC-X', ?, 'PARTIAL_COPY', true, ?, ?, 'CURATED')",
+                      [wid, first, last])
+    row, = rows_of(S.build(c.con), "SRC-X")
+    assert row["work_id"] is None
+    assert row["title"] == "SRC-X", "a mixed source must not borrow one primary work's title"
+
+
+@pytest.mark.parametrize("foreign_last, expected", [(1, None), (4, "W-FOREIGN")])
+def test_foreign_attribution_must_cover_whole_section_not_only_start(foreign_last, expected):
+    c = Canon()
+    c.source("SRC-X", 4)
+    c.con.execute("INSERT INTO canonical.source_work_links VALUES ('SRC-X', 'W-FOREIGN', 'FOREIGN_CONTENT', false, 1, ?, 'CURATED')",
+                  [foreign_last])
+    row, = rows_of(S.build(c.con), "SRC-X")
+    assert row["work_id"] == expected
+
+
+def test_outline_does_not_choose_first_work_from_distinct_sections():
+    c = Canon()
+    c.source("SRC-X", 4)
+    c.con.execute("DELETE FROM canonical.source_work_links")
+    c.con.execute("INSERT INTO canonical.source_work_links VALUES "
+                  "('SRC-X', 'W-A', 'PARTIAL_COPY', true, 1, 2, 'CURATED'), "
+                  "('SRC-X', 'W-B', 'PARTIAL_COPY', true, 3, 4, 'CURATED')")
+    tables = S.build(c.con, outlines={"SRC-X": [
+        {"level": 1, "title": "Основная часть одного исследования", "page_index": 1},
+        {"level": 1, "title": "Часть другого исследования", "page_index": 3}]})
+    assert [r["work_id"] for r in rows_of(tables, "SRC-X")] == ["W-A", "W-B"]
+    c.con.register("nav_sections", tables["sections"])
+    c.con.register("nav_section_pages", tables["section_pages"])
+    outline = Q.get_outline(c.con, "SRC-X")
+    assert outline["work_id"] is None
+    assert outline["work_attribution_status"] == "MIXED_OR_UNKNOWN"
+    assert [row["work_id"] for row in outline["sections"]] == ["W-A", "W-B"]
+
+
+@pytest.mark.parametrize("links, expected", [
+    ([("W-SRC-X", "FOREIGN_CONTENT", False, 2, 3, "CURATED")], "W-SRC-X"),
+    ([(None, "FOREIGN_CONTENT", False, 1, 4, "CURATED")], None),
+    ([("W-A", "FOREIGN_CONTENT", False, 1, 3, "CURATED"),
+      ("W-B", "FOREIGN_CONTENT", False, 2, 4, "CURATED")], None),
+    ([("W-A", "FULL_COPY", True, None, None, "CURATED")], None),
+    ([("W-A", "FOREIGN_CONTENT", False, 1, 4, "REJECTED")], "W-SRC-X"),
+    ([("W-A", "FOREIGN_CONTENT", False, 2, None, "CURATED")], None),
+])
+def test_range_attribution_keeps_unknown_conflicts_and_rejected_links_separate(links, expected):
+    c = Canon()
+    c.source("SRC-X", 4)
+    for wid, kind, primary, first, last, curation in links:
+        c.con.execute("INSERT INTO canonical.source_work_links VALUES ('SRC-X', ?, ?, ?, ?, ?, ?)",
+                      [wid, kind, primary, first, last, curation])
+    row, = rows_of(S.build(c.con), "SRC-X")
+    assert row["work_id"] == expected
+
+
+def test_legacy_section_attribution_is_not_reported_as_verified_range():
+    c = Canon()
+    c.source("SRC-X", 4)
+    tables = S.build(c.con)
+    rows = tables["sections"].to_pylist()
+    rows[0]["rule_version"] = "sections_v1"
+    c.con.register("nav_sections", pa.Table.from_pylist(rows, schema=S.SECTIONS_SCHEMA))
+    c.con.register("nav_section_pages", tables["section_pages"])
+    outline = Q.get_outline(c.con, "SRC-X")
+    assert outline["work_attribution_status"] == "LEGACY_ATTRIBUTION_UNVERIFIED"
+    assert Q.get_section(c.con, rows[0]["section_id"])["work_attribution_status"] == "LEGACY_ATTRIBUTION_UNVERIFIED"
+
+
+def test_outline_prefix_gap_does_not_promote_remaining_sections_to_whole_source_work():
+    c = Canon()
+    c.source("SRC-X", 6)
+    c.con.execute("DELETE FROM canonical.source_work_links")
+    c.con.execute("INSERT INTO canonical.source_work_links VALUES "
+                  "('SRC-X', 'W-A', 'PARTIAL_COPY', true, 3, 6, 'CURATED'), "
+                  "('SRC-X', 'W-B', 'FOREIGN_CONTENT', false, 1, 2, 'CURATED')")
+    tables = S.build(c.con, outlines={"SRC-X": [
+        {"level": 1, "title": "Основная часть одного исследования", "page_index": 3},
+        {"level": 1, "title": "Продолжение одного исследования", "page_index": 5}]})
+    c.con.register("nav_sections", tables["sections"])
+    c.con.register("nav_section_pages", tables["section_pages"])
+    assert {r["work_id"] for r in rows_of(tables, "SRC-X")} == {"W-A"}
+    outline = Q.get_outline(c.con, "SRC-X")
+    assert outline["work_id"] is None
+    assert outline["work_attribution_status"] == "PARTIAL_SECTION_COVERAGE"
+    assert outline["work_attribution_scope"] == "OUTLINED_SECTIONS"
+
+
+def test_attribution_range_outside_canonical_source_is_not_silently_clamped():
+    c = Canon()
+    c.source("SRC-X", 4)
+    c.con.execute("INSERT INTO canonical.source_work_links VALUES ('SRC-X', 'W-F', 'FOREIGN_CONTENT', false, 1, 999, 'CURATED')")
+    stats = {}
+    row, = rows_of(S.build(c.con, stats=stats), "SRC-X")
+    assert row["work_id"] is None
+    assert stats["counters"]["work_attribution_invalid_range"] == 1
+
+
 # ------------------------------------------------------------------------------------------ priority & tree
 def test_method_priority_outline_toc_numbering_layout_whole():
     c = make_corpus()
@@ -210,7 +315,7 @@ def test_ids_are_stable_and_follow_the_shared_rule():
     assert [r["section_id"] for r in t1] == [r["section_id"] for r in t2]
     for r in t1:
         assert r["section_id"] == section_id(r["source_id"], r["method"], r["level"], r["ordinal"], r["title"])
-        assert r["rule_version"] == "sections_v1"
+        assert r["rule_version"] == "sections_v2"
 
 
 # ------------------------------------------------------------------------------------------ printed TOC
@@ -430,7 +535,7 @@ def test_cli_build_writes_parquet_manifest_and_attach_reads_it(tmp_path, monkeyp
     manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["snapshot"]["snapshot_id"] == "snap-test"
     assert manifest["parts"]["sections"]["status"] == "BUILT"
-    assert manifest["parts"]["sections"]["rule_version"] == "sections_v1"
+    assert manifest["parts"]["sections"]["rule_version"] == "sections_v2"
     assert manifest["outlines"]["n_sources"] == 1
     stats = manifest["parts"]["sections"]["stats"]
     assert stats["sources_by_method"]["PDF_OUTLINE"] == 1 and stats["checks"].get("sibling_overlap", 0) == 0

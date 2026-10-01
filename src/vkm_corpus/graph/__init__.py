@@ -40,10 +40,14 @@ R5. Dependencies form a DAG, not a chain (H-31)::
 
     A synthetic observation dataset depends on a representation only through a ``SolverRun``; the layer of
     ``SolverRun`` is deliberately not fixed in v0 and must keep the graph acyclic when it is decided. Rebuilding a
-    layer requires rebuilding every layer with edges into it (``--cascade``, after a second layer exists).
-R6. In v0 the DOCUMENT layer is rebuilt only by ``wipe`` (H-43); ``refresh``/sweep and ``--cascade`` arrive together
-    with the second layer. A wipe is refused while any edge from another layer touches a DOCUMENT node
-    (``E_CROSS_LAYER_LOSS``).
+    layer requires a coordinated generation replacement of its dependants. ``--cascade`` only drops registered
+    derived NAV, and is not a scientific-layer replacement protocol.
+R6. The DOCUMENT in-place loader supports only ``wipe`` (H-43). Before DDL, ProjectionRun changes or NAV cascade,
+    a read-only preflight refuses any scientific-layer presence (``E_EVIDENCE_DEPENDENCY``), including dual labels
+    and evidence properties whose support edges are not yet materialised. Foreign-owned edges between DOCUMENT
+    nodes also block the wipe (``E_CROSS_LAYER_LOSS``). A qualified shadow-generation DOCUMENT+EVIDENCE replacement
+    is required; this loader implements no bypass for it. Direct wipe and test purge have the same guard.
+    This preflight assumes exclusive graph-writer control; it is not a distributed transaction/lock.
 R7. No manual writes. Only projectors write; MCP exposes no Cypher. Anything written by hand disappears at the next
     rebuild and is detected earlier by the digest check (``content_digest == expected_digest``).
 R8. DDL of a layer is named with its prefix (``doc_``, ``ev_``, ``phys_``, ``rep_``, ``obs_``, ``prov_``; system

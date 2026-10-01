@@ -35,7 +35,8 @@ from vkm_world.governance.leakage import FORBIDDEN_COLUMNS, _json_keys  # noqa: 
 
 ROOT = Path(__file__).resolve().parents[2]
 READ, WRITE = "mcp-test-read-token-000000000000000", "mcp-test-write-token-00000000000000"
-READ_TOOLS = {"search_text", "search_hybrid", "retrieval_trace", "search_objects", "get_source", "get_work",
+READ_TOOLS = {"get_evidence_record", "list_evidence", "get_evidence_dependencies", "get_evidence_review_packet",
+              "search_text", "search_hybrid", "retrieval_trace", "search_objects", "get_source", "get_work",
               "get_page", "get_page_image", "get_figure", "get_table", "get_formula", "get_object",
               "get_document_neighbors", "get_citations", "rerank_text", "rerank_visual", "get_processing_status",
               "trace_document_provenance", "get_artifact", "list_source_pages", "get_corpus_status",

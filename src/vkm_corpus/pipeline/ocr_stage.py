@@ -76,11 +76,11 @@ def crop_dpi_for(cfg: PipelineConfig, fmt: str, prep_row: dict[str, Any], task: 
 
 
 def load_regions(store: Any, layout_raw_artifact_id: str | None, width_pt: float, height_pt: float,
-                 thresholds: dict[str, float]) -> tuple[dict[str, Any] | None, list[Region]]:
+                 thresholds: dict[str, float], *, trace=None) -> tuple[dict[str, Any] | None, list[Region]]:
     if not layout_raw_artifact_id:
         return None, []
     raw = store.read_json(layout_raw_artifact_id)
-    return raw, regions_from_raw(raw, width_pt, height_pt, thresholds)
+    return raw, regions_from_raw(raw, width_pt, height_pt, thresholds, trace=trace)
 
 
 def _dedupe_text(regions: list[Region]) -> list[Region]:
@@ -446,9 +446,24 @@ async def run_ocr(cfg: PipelineConfig, store: Any, cache: Any, work: list[PageWo
     from vkm_corpus.ocr.client import GlmOcrClient, OcrRequest
     from vkm_corpus.ocr.quality import StopRun, StopWindow, call_flags
     from vkm_corpus.ocr.raw import build_record
+    from vkm_corpus.coverage.accounting import record_ocr_event
 
     stats = stats or OcrStats()
+    source_versions = {w.source_id: w.source_sha256 for w in work}
+    if any(source_versions[w.source_id] != w.source_sha256 for w in work):
+        raise ValueError("ACCOUNTING_MIXED_SOURCE_VERSIONS")
+
+    def event(spec, phase, reason=None, crop=None, outputs=(), attempt=None):
+        return record_ocr_event(cfg, cache, spec, source_versions[spec.source_id], phase=phase, reason=reason,
+                                crop=crop, outputs=outputs, attempt=attempt)
+
+    for w in work:
+        for spec in w.specs:
+            event(spec, "PLANNED", "OCR_NOT_STARTED")
     if not cfg.ocr_url:
+        for w in work:
+            for spec in w.specs:
+                event(spec, "NOT_RUN", "MODEL_UNAVAILABLE")
         raise RuntimeError("MODEL_UNAVAILABLE: VKM_OCR_URL is not set")
     window = StopWindow(window=cfg.stop_window)
     t_start = time.perf_counter()
@@ -463,6 +478,8 @@ async def run_ocr(cfg: PipelineConfig, store: Any, cache: Any, work: list[PageWo
 
         async def one(crop: CropOut) -> None:
             spec = crop.spec
+            attempt = cache.next_attempt(crop.call_signature)
+            event(spec, "RUNNING", "OCR_RESPONSE_NOT_YET_DURABLE", crop, attempt=attempt)
             inp = store.put_bytes(crop.png, "OCR_INPUT", "image/png", source_id=spec.source_id, page_id=spec.page_id,
                                   image_width_px=crop.width, image_height_px=crop.height, image_dpi=spec.crop_dpi or None,
                                   pixel_sha256=crop.pixel_sha256)
@@ -470,7 +487,6 @@ async def run_ocr(cfg: PipelineConfig, store: Any, cache: Any, work: list[PageWo
                              pixel_sha256=crop.pixel_sha256, width=crop.width, height=crop.height, mode=crop.mode,
                              sampling=cfg.sampling_for(spec.task))
             resp = await client.recognize(req)
-            attempt = cache.next_attempt(crop.call_signature)
             record = build_record(resp, call_signature=crop.call_signature, attempt=attempt, model=cfg.model,
                                   backend=backend, run_id=cache.run_id, source_id=spec.source_id,
                                   page_id=spec.page_id,
@@ -489,9 +505,14 @@ async def run_ocr(cfg: PipelineConfig, store: Any, cache: Any, work: list[PageWo
                            raw_artifact_id=raw.artifact_id, input_artifact_id=inp.artifact_id, kind="OCR",
                            source_id=spec.source_id, page_id=spec.page_id,
                            extra={"task": spec.task, "role": spec.role, "task_key": task_key(cfg, spec),
+                                  "source_sha256": source_versions[spec.source_id],
                                   "finish_reason": resp.finish_reason,
                                   "latency_ms": resp.latency_ms, "flags": flags,
                                   "error": None if resp.ok else (resp.error or resp.status)[:200]})
+            event(spec, "SUCCEEDED" if resp.ok else "FAILED",
+                  "OCR_TOKEN_LIMIT" if resp.finish_reason == "length" else "OCR_QUALITY_FLAGS" if flags
+                  else None if resp.ok else "OCR_MODEL_ERROR", crop,
+                  outputs=(raw.artifact_id[7:], inp.artifact_id[7:]), attempt=attempt)
             stats.called += 1
             if resp.ok:
                 stats.ok += 1
@@ -515,6 +536,8 @@ async def run_ocr(cfg: PipelineConfig, store: Any, cache: Any, work: list[PageWo
                 await one(crop)
             except Exception as exc:  # noqa: BLE001 - a store/cache failure of one call is counted, not fatal
                 stats.failed += 1
+                event(crop.spec, "FAILED", "OCR_CALL_OR_PERSISTENCE_FAILED", crop,
+                      attempt=cache.next_attempt(crop.call_signature))
                 if log is not None:
                     log.error("ocr call failed", extra={"vkm": {"page_id": crop.spec.page_id, "stage": "OCR",
                                                                 "error_code": "OCR_FAILED",
@@ -532,6 +555,8 @@ async def run_ocr(cfg: PipelineConfig, store: Any, cache: Any, work: list[PageWo
             w = next(work_iter, None)
             if w is None:
                 return False
+            for spec in w.specs:
+                event(spec, "RUNNING", "OCR_CROP_IN_PROGRESS")
             queue.append((w, loop.run_in_executor(executor, _crop_job,
                                                   (cfg_dict, w.fmt, w.file_path, [asdict(s) for s in w.specs]))))
             return True
@@ -544,7 +569,26 @@ async def run_ocr(cfg: PipelineConfig, store: Any, cache: Any, work: list[PageWo
                 if stop_event.is_set():
                     break
                 w, fut = queue.pop(0)
-                crops = [_crop_from_dict(d) for d in await fut]
+                try:
+                    crops = [_crop_from_dict(d) for d in await fut]
+                except Exception:
+                    for spec in w.specs:
+                        event(spec, "FAILED", "OCR_CROP_WORKER_FAILED")
+                    raise
+                expected_keys = {s.key() for s in w.specs}
+                if any(c.spec.key() not in expected_keys for c in crops):
+                    for spec in w.specs:
+                        event(spec, "FAILED", "OCR_CROP_WORKER_UNEXPECTED_OUTPUT")
+                    raise ValueError("OCR_CROP_WORKER_UNEXPECTED_OUTPUT")
+                for spec in w.specs:
+                    parts = [c for c in crops if c.spec.key() == spec.key()]
+                    if not parts:
+                        event(spec, "FAILED", "OCR_CROP_WORKER_OUTPUT_MISSING")
+                        raise ValueError("OCR_CROP_WORKER_OUTPUT_MISSING")
+                    elif (not 1 <= parts[0].band_count <= 4096 or len({c.band_count for c in parts}) != 1 or
+                          sorted(c.band_index for c in parts) != list(range(parts[0].band_count))):
+                        event(spec, "FAILED", "OCR_CROP_BANDS_INVALID")
+                        raise ValueError("OCR_CROP_BANDS_INVALID")
                 submit_next()
                 stats.pages_done += 1
                 if w.source_sha256 and not any(c.error for c in crops):
@@ -555,16 +599,24 @@ async def run_ocr(cfg: PipelineConfig, store: Any, cache: Any, work: list[PageWo
                     stats.tasks += 1
                     if crop.error:
                         stats.crop_errors += 1
+                        reason = "OCR_CROP_SIZE_GUARD" if any(s in crop.error.lower() for s in
+                            ("too large", "image size", "aspect ratio", "decompressionbomb")) else "OCR_CROP_FAILED"
+                        event(crop.spec, "FAILED", reason, crop)
                         continue
                     crop.call_signature = call_signature_for(cfg, crop.spec.task, crop.pixel_sha256)
                     if not recall and cache.best_call(crop.call_signature) is not None:
                         stats.cached += 1
+                        hit = cache.best_call(crop.call_signature)
+                        event(crop.spec, "SUCCEEDED", "REUSED_CACHED", crop,
+                              outputs=(hit["raw_artifact_id"][7:],), attempt=int(hit["attempt"]))
                         continue
                     if budget_left[0] is not None and budget_left[0] <= 0:
                         stats.skipped_budget += 1
+                        event(crop.spec, "NOT_RUN", "OCR_CALL_BUDGET_EXHAUSTED", crop)
                         continue
                     if budget_s is not None and time.perf_counter() - t_start > budget_s:
                         stats.skipped_budget += 1
+                        event(crop.spec, "NOT_RUN", "OCR_TIME_BUDGET_EXHAUSTED", crop)
                         continue
                     if stop_event.is_set():
                         break
@@ -581,6 +633,10 @@ async def run_ocr(cfg: PipelineConfig, store: Any, cache: Any, work: list[PageWo
             if inflight:
                 await asyncio.wait(inflight)
         finally:
+            if stop_event.is_set():
+                for w in work:
+                    for spec in w.specs:
+                        event(spec, "RUN_STOPPED", "OCR_QUALITY_STOP_WINDOW")
             for _, f in queue:
                 f.cancel()
             executor.shutdown(cancel_futures=True)

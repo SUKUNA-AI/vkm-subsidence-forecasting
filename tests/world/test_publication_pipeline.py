@@ -4,6 +4,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 
@@ -355,7 +356,8 @@ def test_json_bibliography_exclusion_does_not_join_unrelated_quote_fragments(tmp
 @pytest.mark.parametrize('failure', ['long_quote', 'exactly_25', 'leakage', 'canonical_quote'])
 def test_report_batch_preflight_blocks_leakage_before_any_write(tmp_path, failure):
     pub, private, canon, _ = tree(tmp_path)
-    (pub/'src').symlink_to(ROOT/'src', target_is_directory=True)
+    # This exercises publication preflight, not symlink privileges. Give the subprocess only its PUBLIC package.
+    shutil.copytree(ROOT/'src/vkm_world', pub/'src/vkm_world', ignore=shutil.ignore_patterns('__pycache__'))
     syn = tmp_path/'synthesis'
     put(syn, 'SYNTHETIC/first.md', 'Synthetic public paraphrase.\n')
     if failure in ('long_quote', 'exactly_25'):
@@ -372,5 +374,5 @@ def test_report_batch_preflight_blocks_leakage_before_any_write(tmp_path, failur
     env = dict(os.environ, VKM_PUB=str(pub), VKM_SYNTH_DIR=str(syn), VKM_RESOURCES_ROOT=str(private))
     done = subprocess.run([sys.executable, str(ROOT/'docs/reset_2026_09/run_kit/tools/publish_reports.py'),
                            'SYNTHETIC:first.md', 'SYNTHETIC:second.md'], env=env, capture_output=True, text=True)
-    assert done.returncode != 0
+    assert done.returncode == 1 and 'report publication aborted: ValueError' in done.stderr
     assert (first.read_bytes(), second.read_bytes()) == before

@@ -11,6 +11,11 @@ Ansys — основной решатель геомеханики, OGS + MFront
 дальнейшая оцифровка геометрии и новая геологическая реконструкция приостановлены до получения GIS-данных.
 Каноническое состояние и границы готовности — [PROJECT_STATE_RU.md](PROJECT_STATE_RU.md), решения — [D-18/D-19](docs/governance/PHASE1_DESIGN_DECISIONS_RU.md).
 
+Реализация производственной программы данных ведётся по [S01–S26](docs/planning/PRODUCTION_DATA_PROGRAM_2026-10-01_RU.md).
+Добавлены [dataset intake](docs/datasets/README_RU.md), [evidence/review/admission](docs/evidence/README_RU.md)
+и [контролируемый update runtime](docs/corpus_platform/UPDATE_RUNTIME_RUNBOOK_RU.md). Квалификация полного корпуса,
+проверка научно используемых данных по оригиналам и переключение production остаются отдельными gates.
+
 ## Репозитории и источник истины
 
 | Слой | Где находится | Роль |

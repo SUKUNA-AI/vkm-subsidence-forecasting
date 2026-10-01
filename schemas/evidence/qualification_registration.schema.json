@@ -1,0 +1,45 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "durable_receipt_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Durable Receipt Sha256",
+      "type": "string"
+    },
+    "gold_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Gold Sha256",
+      "type": "string"
+    },
+    "plan_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Plan Sha256",
+      "type": "string"
+    },
+    "registered_at": {
+      "format": "date-time",
+      "title": "Registered At",
+      "type": "string"
+    },
+    "registrar": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+      "title": "Registrar",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-qualification-registration/1",
+      "default": "vkm-qualification-registration/1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "plan_sha256",
+    "gold_sha256",
+    "registered_at",
+    "registrar",
+    "durable_receipt_sha256"
+  ],
+  "title": "FrozenRegistration",
+  "type": "object"
+}

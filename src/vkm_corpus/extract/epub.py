@@ -9,6 +9,7 @@ figures whose embedded bytes are kept as they are.
 from __future__ import annotations
 
 import posixpath
+import base64
 import re
 import zipfile
 import xml.etree.ElementTree as ET
@@ -63,6 +64,16 @@ class EpubTable:
 
 
 @dataclass
+class EpubMath:
+    xpath: str
+    element_id: str | None
+    markup: str
+    linear_text: str
+    display: bool
+    order: int
+
+
+@dataclass
 class SpineUnit:
     index: int
     idref: str
@@ -75,6 +86,10 @@ class SpineUnit:
     page_anchors: list[tuple[str, str]] = field(default_factory=list)  # (label, anchor origin)
     bib_ids: list[str] = field(default_factory=list)
     parse_error: str | None = None
+    maths: list[EpubMath] = field(default_factory=list)
+    raw_markup: str | None = None
+    raw_markup_base64: str | None = None
+    diagnostics: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
@@ -86,15 +101,16 @@ class EpubDoc:
     page_list_source: str      # NAV_PAGE_LIST | NCX_PAGE_LIST | EPUB_PAGEBREAK | CALIBRE_PAGE_ID | NONE
     n_page_anchors: int
     manifest_media_types: dict[str, int]
+    package_manifest: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _xml(data: bytes):
     from lxml import etree
 
     try:
-        return etree.fromstring(data)
+        return etree.fromstring(data, etree.XMLParser(resolve_entities=False, no_network=True))
     except etree.XMLSyntaxError:
-        return etree.fromstring(data, etree.HTMLParser(recover=True))
+        return etree.fromstring(data, etree.HTMLParser(recover=True, no_network=True))
 
 
 def read_structure(z: zipfile.ZipFile) -> tuple[str, Any, dict[str, tuple[str, str | None, str]], list[tuple[str, bool]]]:
@@ -140,7 +156,12 @@ def parse_unit(z: zipfile.ZipFile, unit: SpineUnit, manifest_by_href: dict[str, 
     from lxml import etree
 
     try:
-        root = _xml(z.read(unit.href))
+        raw = z.read(unit.href)
+        unit.raw_markup_base64 = base64.b64encode(raw).decode("ascii")
+        unit.raw_markup = raw.decode("utf-8-sig", errors="replace")
+        root = _xml(raw)
+        if "\ufffd" in unit.raw_markup:
+            unit.diagnostics.append({"code": "MARKUP_DECODE_REPLACEMENT", "member": unit.href})
     except Exception as exc:  # noqa: BLE001 - recorded on the unit
         unit.parse_error = f"{type(exc).__name__}: {exc}"[:300]
         return
@@ -162,6 +183,13 @@ def parse_unit(z: zipfile.ZipFile, unit: SpineUnit, manifest_by_href: dict[str, 
         if "pagebreak" in et.split():
             label = el.get("title") or el.get("aria-label") or _text_of(el) or (el_id or "")
             unit.page_anchors.append((label, "EPUB_PAGEBREAK"))
+        if tag == "math":
+            order += 1
+            unit.maths.append(EpubMath(tree.getpath(el), el_id, etree.tostring(el, encoding="unicode"),
+                                       _text_of(el), el.get("display") == "block", order))
+            continue
+        if tag in ("svg", "object", "iframe"):
+            unit.diagnostics.append({"code": "RAW_ONLY_" + tag.upper(), "xpath": tree.getpath(el)})
         if tag == "table":
             order += 1
             unit.tables.append(EpubTable(xpath=tree.getpath(el), element_id=el_id,
@@ -203,6 +231,8 @@ def parse_unit(z: zipfile.ZipFile, unit: SpineUnit, manifest_by_href: dict[str, 
             order += 1
             btype = "HEADING" if tag in HEADING else "LIST_ITEM" if tag == "li" else \
                 "CAPTION" if tag in ("caption", "figcaption") else "TEXT"
+            if "footnote" in et.split() or "endnote" in et.split():
+                btype = "FOOTNOTE"
             if el_id and el_id.startswith("BIBe"):
                 btype = "REFERENCE_LIST"
             unit.blocks.append(EpubBlock(tag=tag, text=text, xpath=tree.getpath(el), element_id=el_id, order=order,
@@ -275,7 +305,10 @@ def read_epub(path: Path) -> EpubDoc:
             source = "CALIBRE_PAGE_ID"
         return EpubDoc(opf_path=opf_path, version=opf.get("version"), metadata=md, spine=units,
                        page_list_source=source, n_page_anchors=sum(len(u.page_anchors) for u in units),
-                       manifest_media_types=mt)
+                       manifest_media_types=mt,
+                       package_manifest=[{"member": info.filename, "size_bytes": info.file_size, "crc32": info.CRC,
+                           "disposition": "SPINE_PARSED" if any(u.href == info.filename and not u.parse_error for u in units)
+                           else "RAW_ONLY"} for info in sorted(z.infolist(), key=lambda x: x.filename) if not info.is_dir()])
 
 
 def read_member(path: Path, member: str) -> bytes:

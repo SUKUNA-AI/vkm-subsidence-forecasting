@@ -1,0 +1,88 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "access_config_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Access Config Sha256",
+      "type": "string"
+    },
+    "adapter_ids": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Adapter Ids",
+      "type": "array"
+    },
+    "code_commit": {
+      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+      "title": "Code Commit",
+      "type": "string"
+    },
+    "code_tree_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Code Tree Sha256",
+      "type": "string"
+    },
+    "dependencies_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Dependencies Sha256",
+      "type": "string"
+    },
+    "deployment_profile_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Deployment Profile Sha256",
+      "type": "string"
+    },
+    "isolation_attestation_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Isolation Attestation Sha256"
+    },
+    "policy_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Policy Sha256",
+      "type": "string"
+    },
+    "receiver_ids": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Receiver Ids",
+      "type": "array"
+    },
+    "scope": {
+      "enum": [
+        "SYNTHETIC",
+        "SHADOW_PRODUCTION",
+        "PRODUCTION_SWITCH"
+      ],
+      "title": "Scope",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scope",
+    "code_commit",
+    "code_tree_sha256",
+    "dependencies_sha256",
+    "access_config_sha256",
+    "policy_sha256",
+    "deployment_profile_sha256",
+    "receiver_ids",
+    "adapter_ids"
+  ],
+  "title": "DeploymentProfile",
+  "type": "object"
+}

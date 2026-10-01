@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 import traceback
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any
 
 from vkm_corpus.artifacts.store import ArtifactStore, canonical_json_bytes
@@ -23,6 +24,7 @@ from vkm_corpus.pipeline.config import EXTRACTOR_VERSIONS, GENERATIONS, Pipeline
 from vkm_corpus.versions import PIPELINE_VERSION
 
 PREP_SCHEMA = "vkm.prep/1"
+NATIVE_FIDELITY_RULE = "native_fidelity_v2"
 
 
 def _sig(**kw: Any) -> str:
@@ -57,7 +59,8 @@ def library_versions() -> dict[str, str]:
 
 def prepare_signature(cfg: PipelineConfig, source: SourceInput, extra: dict[str, Any] | None = None) -> str:
     conf = {"native": cfg.stage_config("NATIVE_TEXT"), "classify": cfg.stage_config("CLASSIFY"),
-            "libraries": library_versions(), "spread_aspect": cfg.spread_aspect, **(extra or {})}
+            "libraries": library_versions(), "spread_aspect": cfg.spread_aspect,
+            "native_fidelity_rule": NATIVE_FIDELITY_RULE, **(extra or {})}
     return _sig(source_sha256=source.sha256, stage="PREPARE", pipeline_version=PIPELINE_VERSION,
                 extractor_id="vkm-pipeline", extractor_version=EXTRACTOR_VERSIONS["vkm-pipeline"],
                 stage_config_hash=_cfg_hash(conf))
@@ -211,7 +214,8 @@ def _prepare_epub(cfg: PipelineConfig, store: ArtifactStore, src: SourceInput, p
     ed = epub.read_epub(path)
     rec = store.put_json({"schema": "vkm.native_raw.epub_document/1", "opf_path": ed.opf_path, "version": ed.version,
                           "metadata": ed.metadata, "page_list_source": ed.page_list_source,
-                          "n_page_anchors": ed.n_page_anchors, "manifest_media_types": ed.manifest_media_types},
+                          "n_page_anchors": ed.n_page_anchors, "manifest_media_types": ed.manifest_media_types,
+                          "package_manifest": ed.package_manifest},
                          "NATIVE_RAW", compress=True, source_id=src.source_id)
     prep["document_raw_artifact_id"] = rec.artifact_id
     prep["document"] = {"is_encrypted": False, "has_native_page_labels": ed.n_page_anchors > 0,
@@ -226,7 +230,10 @@ def _prepare_epub(cfg: PipelineConfig, store: ArtifactStore, src: SourceInput, p
                "linear": unit.linear, "media_type": unit.media_type,
                "blocks": [b.__dict__ for b in unit.blocks], "images": [i.__dict__ for i in unit.images],
                "tables": [t.__dict__ for t in unit.tables], "page_anchors": unit.page_anchors,
-               "bib_ids": unit.bib_ids, "parse_error": unit.parse_error}
+               "bib_ids": unit.bib_ids, "parse_error": unit.parse_error,
+               "maths": [m.__dict__ for m in unit.maths], "raw_markup": unit.raw_markup,
+               "raw_markup_base64": unit.raw_markup_base64,
+               "diagnostics": unit.diagnostics}
         r = store.put_json(raw, "NATIVE_RAW", compress=True, source_id=src.source_id,
                            page_id=_page_id(src.source_id, "s", unit.index))
         row["native_raw_artifact_id"] = r.artifact_id
@@ -254,7 +261,9 @@ def _prepare_docx(cfg: PipelineConfig, store: ArtifactStore, cache: StageCache, 
     rec = store.put_json({"schema": "vkm.native_raw.docx_document/1", "paragraphs": [p.__dict__ for p in dd.paragraphs],
                           "maths": [m.__dict__ for m in dd.maths], "tables": [t.__dict__ for t in dd.tables],
                           "images": [i.__dict__ for i in dd.images], "app_properties": dd.app_properties,
-                          "core_properties": dd.core_properties, "counts": dd.counts},
+                          "core_properties": dd.core_properties, "counts": dd.counts,
+                          "raw_parts": dd.raw_parts, "raw_parts_base64": dd.raw_parts_base64,
+                          "diagnostics": dd.diagnostics, "package_manifest": dd.package_manifest},
                          "NATIVE_RAW", compress=True, source_id=src.source_id)
     prep["document_raw_artifact_id"] = rec.artifact_id
     prep["docx_counts"] = dd.counts
@@ -302,18 +311,30 @@ def _prepare_docx(cfg: PipelineConfig, store: ArtifactStore, cache: StageCache, 
 def prepare_source(cfg: PipelineConfig, store: ArtifactStore, cache: StageCache, src: SourceInput,
                    *, force: bool = False) -> dict[str, Any]:
     """Prep summary of a source (cached by the prepare signature unless ``force``)."""
-    sig = prepare_signature(cfg, src, {"docx_image": cfg.docx_render_image} if src.canonical_path.lower().endswith(
-        ".docx") else None)
-    if not force:
-        cached = load_prep(cfg.data_root, src.source_id, sig)
-        if cached is not None and not cached.get("transient_errors"):
-            return cached
     t0 = time.perf_counter()
     prep: dict[str, Any] = {"schema": PREP_SCHEMA, "source_id": src.source_id, "source_sha256": src.sha256,
-                            "prepare_signature": sig, "run_id": cache.run_id, "pages": [], "errors": [],
+                            "prepare_signature": None, "run_id": cache.run_id, "pages": [], "errors": [],
                             "lifecycle": src.lifecycle, "libraries": library_versions()}
-    path = Path(cfg.resources_root) / src.canonical_path
-    info = inspect_file(path, src.sha256)
+    try:
+        if not re.fullmatch(r"VKM-SRC-[0-9]{3}", src.source_id):
+            raise ValueError("invalid source identity")
+        root = Path(cfg.resources_root).resolve(strict=True)
+        relative = Path(src.canonical_path)
+        if relative.is_absolute() or PureWindowsPath(src.canonical_path).drive:
+            raise ValueError("source path must be relative to PRIVATE root")
+        path = (root / relative).resolve()
+        if not path.is_relative_to(root):
+            raise ValueError("source path escapes PRIVATE root")
+        if not src.sha256 or not re.fullmatch(r"[0-9a-f]{64}", src.sha256):
+            raise ValueError("source requires registered lowercase SHA-256")
+        sig = prepare_signature(cfg, src, {"docx_image": cfg.docx_render_image}
+                                if src.canonical_path.lower().endswith(".docx") else None)
+        prep["prepare_signature"] = sig
+        info = inspect_file(path, src.sha256)
+    except (OSError, ValueError) as exc:
+        prep.update(status="FAILED", transient_errors=False)
+        prep["errors"].append(_err("NATIVE_EXTRACT_FAILED", "INSPECT", str(exc)))
+        return prep
     prep["inspect"] = {"path_exists": info.path_exists, "size_bytes": info.size_bytes, "sha256": info.sha256,
                        "is_lfs_pointer": info.is_lfs_pointer, "file_format": info.file_format,
                        "format_version": info.format_version, "container_detail": info.container_detail,
@@ -328,6 +349,14 @@ def prepare_source(cfg: PipelineConfig, store: ArtifactStore, cache: StageCache,
         prep["status"] = "FAILED"
         prep["errors"].append(_err("SOURCE_SHA256_MISMATCH", "INSPECT", "sha256 differs from the register"))
     else:
+        # Admission is based on current bytes, never mtime/size or cached success.
+        if not force:
+            cached = load_prep(cfg.data_root, src.source_id, sig)
+            if (cached is not None and cached.get("status") == "PREPARED" and not cached.get("transient_errors")
+                    and not cached.get("errors") and cached.get("schema") == PREP_SCHEMA
+                    and cached.get("source_sha256") == src.sha256 and cached.get("prepare_signature") == sig
+                    and not any(row.get("route") == "FAILED" for row in cached.get("pages", []))):
+                return cached
         try:
             if info.file_format == "PDF":
                 _prepare_pdf(cfg, store, src, path, prep)
@@ -352,7 +381,12 @@ def prepare_source(cfg: PipelineConfig, store: ArtifactStore, cache: StageCache,
         prep["spreads"] = info.file_format in ("PDF", "DJVU") and _spreads(prep["pages"], cfg.spread_aspect)
         prep.setdefault("status", "PREPARED")
     prep["transient_errors"] = any(e.get("retryable") for e in prep["errors"])
+    from vkm_corpus.coverage.accounting import expected_summary
+
+    prep["accounting_expected"] = expected_summary(prep)
     prep["t_s"] = round(time.perf_counter() - t0, 2)
+    if not info.path_exists or info.is_lfs_pointer or "SHA256_MISMATCH" in info.flags:
+        return prep  # do not poison or overwrite a cache for different/unavailable bytes
     p = prep_path(cfg.data_root, src.source_id, sig)
     p.parent.mkdir(parents=True, exist_ok=True)
     tmp = p.with_suffix(".tmp")

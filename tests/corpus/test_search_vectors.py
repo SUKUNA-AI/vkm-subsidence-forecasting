@@ -165,6 +165,23 @@ def _embed_all(env, tmp: Path, cfg: EmbeddingConfig, *, skip: int = 0) -> Path:
     return w.dir
 
 
+def test_prepare_vectors_keeps_serving_aliases_and_old_indices(canon_env, tmp_path):
+    cfg = _cfg(weights_sha256="8" * 64)
+    art = _embed_all(canon_env, tmp_path, cfg)
+    client = FakeOpenSearch()
+    first = build_vectors(canon_env["settings"], VectorBuildOptions(embeddings=str(art)),
+                          client=client, page_meta=canon_env["pages"])
+    old_aliases = {k: set(v) for k, v in client.aliases.items()}
+    receipt = build_vectors(canon_env["settings"], VectorBuildOptions(embeddings=str(art), publish=False,
+        policy_sha256="e" * 64, skip_if_current=True, keep_builds=1), client=client, page_meta=canon_env["pages"])
+    assert receipt["publication"] == "PREPARED_NOT_PUBLISHED"
+    assert receipt["index"] != first["index"]
+    assert client.aliases == old_aliases and not client.deleted
+    assert client.indices_[receipt["index"]]["meta"]["policy_sha256"] == "e" * 64
+    assert receipt["alias_actions"] == [] and receipt["pruned"] == []
+    assert ("put_settings", receipt["index"]) in client.calls
+
+
 def test_build_vectors_checks_then_swaps_the_alias(canon_env, tmp_path):
     cfg = _cfg(weights_sha256="2" * 64)
     art = _embed_all(canon_env, tmp_path, cfg)

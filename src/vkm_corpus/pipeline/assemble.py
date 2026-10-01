@@ -82,6 +82,9 @@ class Assembler:
         self.native_hash = _cfg_hash(cfg.stage_config("NATIVE_TEXT"))
         self.path = Path(cfg.resources_root) / src.canonical_path
         self._pdf = None
+        from vkm_corpus.coverage.accounting import SourceAccounting
+
+        self.accounting = SourceAccounting(cfg, prep, store)
 
     # ------------------------------------------------------------------ helpers
     def err(self, code: str, stage: str, message: str, page_index: int | None = None, retryable: bool = False,
@@ -153,6 +156,9 @@ class Assembler:
                                native_raw_artifact_id=self.prep.get("document_raw_artifact_id"), quality_flags=flags,
                                extra={"spreads": self.prep.get("spreads"), "docx_counts": self.prep.get("docx_counts")})
         self._source_steps(pagination)
+        if self.fmt == "DOCX" and self.prep.get("document_raw_artifact_id"):
+            aid = self.prep["document_raw_artifact_id"]
+            self.accounting.native(self.store.read_json(aid), aid, docx=True)
         if self.prep.get("status") in ("FAILED", "UNSUPPORTED") or pagination is None:
             r.status = "FAILED" if self.prep.get("status") != "UNSUPPORTED" else "UNSUPPORTED"
             return r
@@ -329,6 +335,8 @@ class Assembler:
             b.extra["order_key"] = (region.order_rank if region else self._nearest_rank(bbox, text_regions),
                                     units[idxs[0]][2])
             b.extra["layout_label"] = region.label if region else None
+            b.extra["accounting_native_locators"] = [f"/lines/{j}" if self.fmt == "DJVU"
+                                                    else f"/blocks/n={units[j][2]}" for j in idxs]
             if region is not None:
                 b.extra["layout_det_index"] = region.det_index
             blocks.append(b)
@@ -392,6 +400,7 @@ class Assembler:
                 continue
             page = self._page_base(row)
             self.result.pages.append(page)
+            self.accounting.page(idx)
             if row.get("route") == "FAILED" or row.get("error"):
                 e = row.get("error") or {}
                 self.err(e.get("code", "NATIVE_EXTRACT_FAILED"), e.get("stage", "NATIVE_TEXT"),
@@ -408,14 +417,18 @@ class Assembler:
             regions: list[Region] = []
             if vis.get("layout_raw_artifact_id"):
                 try:
-                    _, regions = ocr_stage.load_regions(self.store, vis["layout_raw_artifact_id"], page.width_pt,
-                                                        page.height_pt, cfg.region_thresholds)
+                    trace = []
+                    layout_raw, regions = ocr_stage.load_regions(self.store, vis["layout_raw_artifact_id"], page.width_pt,
+                                                        page.height_pt, cfg.region_thresholds, trace=trace)
+                    self.accounting.layout(layout_raw, vis["layout_raw_artifact_id"], idx, trace)
                     page.models.append(LAYOUT_MODEL)
                 except Exception as exc:  # noqa: BLE001
+                    self.accounting.gaps.append("LAYOUT_ACCOUNTING_UNAVAILABLE")
                     self.err("ARTIFACT_MISSING", "LAYOUT", f"{type(exc).__name__}: {exc}", idx)
             raw = {}
             if page.native_raw_artifact_id:
                 raw = self.store.read_json(page.native_raw_artifact_id)
+                self.accounting.native(raw, page.native_raw_artifact_id, idx)
             # --- native / embedded layer
             has_layer_text = bool(raw.get("blocks") or raw.get("lines"))
             route = page.route
@@ -437,6 +450,7 @@ class Assembler:
             # --- OCR tasks (same plan as the OCR phase)
             specs = plan_page_tasks(cfg, self.fmt, self.src.source_id, row, vis, regions,
                                     sample_b=idx in self.sample_pages, reocr=reocr)
+            self.accounting.tasks(idx, specs, page.layout_raw_artifact_id or page.native_raw_artifact_id, regions, route)
             crops = self._crops(specs)
             ocr_blocks: list[BlockX] = []
             text_specs = [s for s in specs if s.task == "text"]
@@ -495,7 +509,7 @@ class Assembler:
                               ([("LAYOUT_DETECTIONS", page.layout_raw_artifact_id)] if spec.det_index is not None
                                else []),
                               raw_locator=f"/detections/{spec.det_index}" if spec.det_index is not None else None,
-                              quality_flags=list(qflags))
+                              quality_flags=list(qflags), extra={"accounting_task_key": ocr_stage.task_key(cfg, spec)})
                 if len(found) > 1 and any(c.band_hard_cut for c, _, _ in found):
                     common["quality_flags"].append("BBOX_APPROX")
                 if spec.task == "text":
@@ -636,6 +650,14 @@ class Assembler:
             flags.append("SPANNING_CELLS")
         method = "OCR_GLM"
         raw_artifacts = list(common["raw_artifacts"])
+        audit = self.store.put_json({"schema": "vkm.table_structure_audit/1", "rule": onorm.OCR_NORMALIZE_RULE,
+                                    "status": "DERIVATION", "input_artifacts": raw_artifacts,
+                                    "raw_grid": norm.get("raw_grid"), "dispositions": norm.get("dispositions", []),
+                                    "band_audits": norm.get("band_audits", []),
+                                    "normalized_rows": norm["n_rows"], "normalized_cols": norm["n_cols"]},
+                                   "VALIDATION_REPORT", source_id=self.src.source_id,
+                                   page_id=f"{self.src.source_id}:p{page.page_index:04d}")
+        raw_artifacts.append(("STRUCTURAL_DIAGNOSTICS", audit.artifact_id))
         if self.fmt == "PDF" and page.route in ("NATIVE", "NATIVE_REPAIR") and spec.bbox_pt:
             native = self._native_table(page, spec.bbox_pt)
             if native is not None:
@@ -793,7 +815,7 @@ class Assembler:
 
         cfg = self.cfg
         recog = _recog_model(cfg)
-        epub_hash = _cfg_hash({"epub": "blocks_v1"})
+        epub_hash = _cfg_hash({"epub": "blocks_v2_mathml"})
         source_page_list = (self.prep.get("document") or {}).get("page_list_source")
         for row in self.prep["pages"]:
             idx = row["page_index"]
@@ -802,11 +824,13 @@ class Assembler:
                          native_raw_artifact_id=row.get("native_raw_artifact_id"), spine_href=row.get("spine_href"),
                          rotation_deg=0)
             self.result.pages.append(page)
+            self.accounting.page(idx)
             if row.get("route") == "FAILED":
                 self.err("NATIVE_EXTRACT_FAILED", "NATIVE_TEXT", (row.get("error") or {}).get("message", ""), idx)
                 page.page_status = "FAILED"
                 continue
             raw = self.store.read_json(page.native_raw_artifact_id)
+            self.accounting.native(raw, page.native_raw_artifact_id, idx)
             anchors = raw.get("page_anchors") or []
             if anchors:
                 page.printed_page_labels = [a[0] for a in anchors]
@@ -830,7 +854,7 @@ class Assembler:
                                   "reading_order_method": "DOCUMENT_ORDER"})
                 self.result.blocks.append(blk)
             for t in raw.get("tables", []):
-                norm = onorm.normalize_table(t["html"])
+                norm = onorm.normalize_table(t["html"], preserve_empty=True)
                 tb = TableX(page_index=idx, bbox=None, origin="NATIVE", region_origin="EPUB_ELEMENT",
                             extractor_id="epub-xhtml", extractor_version=EXTRACTOR_VERSIONS["epub-xhtml"],
                             generation=str(GENERATIONS["epub-xhtml"]), raw_config_hash=epub_hash,
@@ -841,6 +865,18 @@ class Assembler:
                             normalized_text=norm["normalized_text"], anchor_ordinal=t["order"])
                 tb.extra["element_path"] = t["xpath"]
                 self.result.tables.append(tb)
+            for m in raw.get("maths", []):
+                formula = FormulaX(page_index=idx, bbox=None, origin="NATIVE", region_origin="EPUB_ELEMENT",
+                    extractor_id="epub-xhtml", extractor_version=EXTRACTOR_VERSIONS["epub-xhtml"],
+                    generation=str(GENERATIONS["epub-xhtml"]), raw_config_hash=epub_hash,
+                    raw_artifact_id=page.native_raw_artifact_id,
+                    raw_artifacts=[("SOURCE_MARKUP", page.native_raw_artifact_id)], raw_locator=m["xpath"],
+                    formula_kind="DISPLAY" if m.get("display") else "INLINE", raw_format="MATHML",
+                    raw_output=m["markup"], native_glyph_text=m.get("linear_text"),
+                    normalized_latex=None, latex_parse_ok=None, recognition_method="NATIVE_MATHML",
+                    anchor_ordinal=m["order"])
+                formula.extra["element_path"] = m["xpath"]
+                self.result.formulas.append(formula)
             specs = plan_epub_tasks(self.src.source_id, raw)
             crops = {c.spec.epub_image_order: c for c in self._crops(specs)}
             for im in raw.get("images", []):
@@ -900,7 +936,8 @@ class Assembler:
                     fig.extra.update({"element_path": im["xpath"], "alt": im.get("alt")})
                     self.result.figures.append(fig)
             n_formula = sum(1 for im in raw.get("images", []) if im.get("is_formula_candidate"))
-            n_done = sum(1 for f in self.result.formulas if f.page_index == idx and f.raw_output)
+            n_done = sum(1 for f in self.result.formulas if f.page_index == idx and f.raw_output
+                         and f.recognition_method == "EPUB_IMAGE_OCR")
             page.native_char_count = sum(len(b["text"]) for b in raw.get("blocks", []))
             page.native_text_status = "PRESENT_OK" if page.native_char_count else "ABSENT"
             page.page_status = "NATIVE_OK"
@@ -916,7 +953,7 @@ class Assembler:
         from vkm_corpus.extract.docx import align_to_pages
 
         raw = self.store.read_json(self.prep["document_raw_artifact_id"])
-        docx_hash = _cfg_hash({"docx": "blocks_v1"})
+        docx_hash = _cfg_hash({"docx": "blocks_v2_parts"})
         page_texts = []
         for row in self.prep["pages"]:
             page = self._page_base(row)
@@ -927,6 +964,7 @@ class Assembler:
             page.primary_text_layer = "DOCX_XML"
             page.printed_label_origin = "NONE"
             self.result.pages.append(page)
+            self.accounting.page(row["page_index"])
             text = ""
             if row.get("native_raw_artifact_id"):
                 nraw = self.store.read_json(row["native_raw_artifact_id"])
@@ -936,8 +974,10 @@ class Assembler:
             page_texts.append(text)
         paras = raw.get("paragraphs", [])
         tables = raw.get("tables", [])
-        texts = [p["text"] for p in paras]
-        aligned = align_to_pages(texts, page_texts)
+        # Auxiliary parts and text boxes do not advance the body reading cursor.
+        body = [p for p in paras if p.get("container", "BODY") == "BODY"]
+        body_alignment = dict(zip((p["path"] for p in body), align_to_pages([p["text"] for p in body], page_texts)))
+        aligned = [body_alignment.get(p["path"], (None, 0.0)) for p in paras]
         common = dict(bbox=None, origin="NATIVE", region_origin="DOCX_ELEMENT", extractor_id="docx-xml",
                       extractor_version=EXTRACTOR_VERSIONS["docx-xml"], generation=str(GENERATIONS["docx-xml"]),
                       raw_config_hash=docx_hash, raw_artifact_id=self.prep["document_raw_artifact_id"],

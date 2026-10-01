@@ -65,6 +65,7 @@ class SearchTargets:
     rrf_k: int = 60
     multivector_check_s: float = 10.0         # how often packs/CURRENT is re-read (hot reload of a new pack)
     multivector_rss_budget_mib: int = 256     # mapped token pages dropped from the RSS after this many MiB read
+    qualified_pack_manifest_sha256: str | None = None  # explicit native-generation profile; no implicit compatibility fallback
 
 
 @dataclass(frozen=True)
@@ -117,7 +118,12 @@ def load_config(env: Mapping[str, str] | None = None, *, path: str | Path | None
         dense_index=s.get("dense_index"), dense_field=s.get("dense_field", "vector"), id_field=s.get("id_field", "id"),
         multivector_dir=s.get("multivector_dir"), rrf_k=int(s.get("rrf_k", 60)),
         multivector_check_s=float(s.get("multivector_check_s", 10.0)),
-        multivector_rss_budget_mib=int(s.get("multivector_rss_budget_mib", 256)))
+        multivector_rss_budget_mib=int(s.get("multivector_rss_budget_mib", 256)),
+        qualified_pack_manifest_sha256=s.get("qualified_pack_manifest_sha256"))
+    if search.qualified_pack_manifest_sha256 is not None:
+        import re
+        if not isinstance(search.qualified_pack_manifest_sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", search.qualified_pack_manifest_sha256):
+            raise ServiceConfigError("qualified_pack_manifest_sha256 must be an explicit SHA-256")
     svc = raw.get("service", {})
     token = None
     tf = env.get("VKM_RX580_TOKEN_FILE", "").strip()

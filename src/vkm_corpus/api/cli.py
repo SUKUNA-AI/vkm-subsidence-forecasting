@@ -21,7 +21,7 @@ def _serve(args: argparse.Namespace) -> int:
 
     configure("vkm-api", log_dir=Path(args.log_dir) if args.log_dir else None)
     uvicorn.run(build_from_settings(), host=args.host, port=args.port, log_config=None, access_log=False,
-                proxy_headers=False)
+                proxy_headers=False, workers=1)
     return 0
 
 

@@ -85,6 +85,13 @@ class ModelProcess:
                 "--port", str(s.port), "--no-webui", *s.extra_args]
 
     def start(self, pooling: str, timeout_s: float = 180.0) -> None:
+        from vkm_corpus.update.remote_retrieval import capture_load_files
+        from vkm_corpus.update.native_files import optional_watch
+        old_watch = getattr(self, "_load_watch", None)
+        if old_watch is not None:
+            old_watch.close()
+        self._load_watch = optional_watch((self.slot.gguf, self.llama_server))
+        self._load_files = capture_load_files((self.slot.gguf, self.llama_server))
         log = None
         if self.log_dir:
             self.log_dir.mkdir(parents=True, exist_ok=True)
@@ -120,6 +127,9 @@ class ModelProcess:
         return gpu.process_gpu(self.pid) if self.pid else None
 
     def stop(self) -> None:
+        watch = getattr(self, "_load_watch", None)
+        if watch is not None:
+            watch.close()
         self.client.close()
         if self.proc is not None and self.proc.poll() is None:
             os.killpg(self.proc.pid, signal.SIGTERM)

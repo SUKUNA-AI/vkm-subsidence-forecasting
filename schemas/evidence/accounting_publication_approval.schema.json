@@ -1,0 +1,93 @@
+{
+  "$defs": {
+    "AccessContext": {
+      "additionalProperties": false,
+      "properties": {
+        "allow_targets": {
+          "default": false,
+          "title": "Allow Targets",
+          "type": "boolean"
+        },
+        "execution": {
+          "pattern": "^(LOCAL|CLOUD)$",
+          "title": "Execution",
+          "type": "string"
+        },
+        "granted_classes": {
+          "default": [
+            "PUBLIC"
+          ],
+          "items": {
+            "$ref": "#/$defs/DataAccessClass"
+          },
+          "title": "Granted Classes",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "principal": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Principal",
+          "type": "string"
+        }
+      },
+      "required": [
+        "principal",
+        "execution"
+      ],
+      "title": "AccessContext",
+      "type": "object"
+    },
+    "DataAccessClass": {
+      "enum": [
+        "PUBLIC",
+        "PRIVATE_CLOUD_ALLOWED",
+        "PRIVATE_LOCAL_ONLY",
+        "RESTRICTED",
+        "SEALED"
+      ],
+      "title": "DataAccessClass",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Operator-owned frozen campaign binding. Incoming files cannot grant access.",
+  "properties": {
+    "campaign_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Campaign Sha256",
+      "type": "string"
+    },
+    "context": {
+      "$ref": "#/$defs/AccessContext"
+    },
+    "descriptor_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Descriptor Sha256",
+      "type": "string"
+    },
+    "policy_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Policy Sha256",
+      "type": "string"
+    },
+    "source_ids": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 10000,
+      "minItems": 1,
+      "title": "Source Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "descriptor_sha256",
+    "campaign_sha256",
+    "policy_sha256",
+    "source_ids",
+    "context"
+  ],
+  "title": "PublicationApproval",
+  "type": "object"
+}

@@ -28,7 +28,7 @@ import unicodedata
 from typing import Iterable
 
 RULE_VERSIONS: dict[str, str] = {
-    "sections": "sections_v1",
+    "sections": "sections_v2",
     "formulas": "formula_context_v1",
     "duplicates": "duplicates_v1",
     "object_duplicates": "object_duplicates_v1",

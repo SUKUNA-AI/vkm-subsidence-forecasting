@@ -19,7 +19,7 @@ from vkm_corpus.ocr.quality import QUALITY_RULE
 from vkm_corpus.ocr.prompts import DEFAULT_MODEL, DEFAULT_SAMPLING, ModelIdentity, Sampling
 
 # semantic extraction generations (H-14): bumped consciously, they enter producer keys and object ids
-GENERATIONS: dict[str, int] = {"pymupdf-native": 1, "djvulibre-cli": 1, "epub-xhtml": 1, "docx-xml": 1,
+GENERATIONS: dict[str, int] = {"pymupdf-native": 2, "djvulibre-cli": 1, "epub-xhtml": 2, "docx-xml": 2,
                                "pp-doclayoutv3-hf": 1, "vkm-glm-ocr-client": 1, "pymupdf-find-tables": 1}
 EXTRACTOR_VERSIONS: dict[str, str] = {"pymupdf-native": "0.1.0", "djvulibre-cli": "0.1.0", "epub-xhtml": "0.1.0",
                                       "docx-xml": "0.1.0", "pp-doclayoutv3-hf": "0.1.0",
@@ -84,6 +84,12 @@ class PipelineConfig:
     spread_aspect: float = 1.25
     use_gpu_layout: bool = True     # False = explicit no-model configuration (different extractor id)
     normalize_tag: str | None = None  # test knob: changes only the NORMALIZE stage configuration
+    profile: str = "exploratory"  # production is fail-closed; no implicit promotion of exploratory receipts
+    expected_commit: str | None = None
+    dependency_locks: tuple[str, ...] = ()  # additional exact locks, relative to the clean source checkout
+    memory_budget_gb: float | None = None  # total concurrent worker reservation, GiB
+    memory_reserve_gb: float = 2.0
+    min_free_disk_gb: float = 10.0
 
     def sampling_for(self, task: str) -> Sampling:
         from dataclasses import replace

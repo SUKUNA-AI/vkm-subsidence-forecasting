@@ -21,8 +21,9 @@ RUN python -m venv /opt/vkm \
  && /opt/vkm/bin/pip install --upgrade pip \
  && CONSTRAINTS="-c requirements/worldspec.lock.txt" \
  && if [ -f requirements/corpus-services.lock.txt ]; then CONSTRAINTS="$CONSTRAINTS -c requirements/corpus-services.lock.txt"; fi \
- && /opt/vkm/bin/pip install $CONSTRAINTS ".[corpus-services]" "tokenizers>=0.22,<1" "pyarrow>=25.0.1,<26" \
- && /opt/vkm/bin/pip check
+ && /opt/vkm/bin/pip install $CONSTRAINTS -c requirements/retrieval-service.lock.txt ".[corpus-services,retrieval-rx580]" "packaging>=26.3,<27" \
+ && /opt/vkm/bin/pip check \
+ && /opt/vkm/bin/python -I -c "from vkm_corpus.update.service_identity import RETRIEVAL, code_inventory, dependency_inventory; code_inventory(RETRIEVAL); dependency_inventory(RETRIEVAL)"
 
 FROM ${PYTHON_IMAGE}
 ENV DEBIAN_FRONTEND=noninteractive

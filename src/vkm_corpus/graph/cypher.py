@@ -56,6 +56,30 @@ def cross_layer_edges(ns: Namespace) -> str:
             f"RETURN type(r) AS rel_type, labels(x) AS other_labels, count(r) AS n")
 
 
+def scientific_nodes(ns: Namespace) -> str:
+    """Existence probe, including property-only references and invalid dual-layer labels.
+
+    The old outside-DOCUMENT edge probe cannot establish that evidence is absent:
+    a projected review can hold its source locator in properties before its support
+    edge is materialised. No values, locators or IDs leave this probe.
+    """
+    scope = ("any(l IN labels(n) WHERE l STARTS WITH $namespace)" if ns.is_test else
+             "NOT any(l IN labels(n) WHERE l STARTS WITH $test_prefix)")
+    return ("// vkm-document:scientific-nodes\n"
+            "MATCH (n) WHERE any(l IN labels(n) WHERE l IN $protected_labels) OR ("
+            f"({scope}) AND (n.layer IN $protected_layers OR n.kind IN $protected_kinds OR "
+            "(n.record_sha256 IS NOT NULL AND n.record_id IS NOT NULL)))\n"
+            "WITH n LIMIT 1 RETURN count(n) AS n")
+
+
+def foreign_document_relationships(ns: Namespace) -> str:
+    """Also catches foreign ownership between two DOCUMENT-labelled endpoints."""
+    return ("// vkm-document:foreign-relationships\n"
+            f"MATCH (d:{q(ns.layer_label)})-[r]-() "
+            "WHERE NOT type(r) IN $owned_types OR r.layer IN $protected_layers\n"
+            "WITH r LIMIT 1 RETURN count(r) AS n")
+
+
 def count_label(ns: Namespace, label: str) -> str:
     return f"MATCH (n:{q(ns.label(label))}) RETURN count(n) AS n"
 

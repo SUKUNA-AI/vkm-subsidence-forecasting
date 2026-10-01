@@ -21,6 +21,7 @@ PAGE, FIG, TAB, FORM, BLOCK = ("VKM-SRC-014:p0118", "VKM-SRC-014:p0118:f01234567
 SEC, TOP, WORK, ART = "SEC-" + "1" * 16, "TOP-" + "2" * 16, "VKM-WRK-014", "sha256:" + "3" * 64
 TBL, TAB2 = "TBL-" + "4" * 16, "VKM-SRC-015:p0007:t0123456789ac"             # a structured table of find_tables
 FS = "FS-" + "4" * 16                                                           # a series of find_figure_series
+EVIDENCE = "synthetic-evidence-record"
 
 
 def env(oid, **extra):
@@ -60,6 +61,8 @@ class FakeClient:
         body = {"ok": True, "items": items}
         if name == "get_source":
             body["item"] = {"record": {"works": [{"work_id": WORK}]}}
+        elif name == "list_evidence":
+            body["item"] = {"record": {"items": [{"record_id": EVIDENCE}], "has_more": False}}
         elif name == "get_outline":
             body["item"] = {"record": {"sections": [{"section_id": SEC}]}}
         elif name == "find_topics":
@@ -81,9 +84,9 @@ def run(client, **kw):
 def test_all_read_tools_are_called_with_harvested_ids():
     client = FakeClient(page_size=10)                       # five pages of tools: pagination is followed
     rep = run(client)
-    assert rep["verdict"] == "PASS" and rep["tools_listed"] == 45 and rep["missing_tools"] == []
-    assert rep["summary"] == {"PASS": 45, "WARN": 0, "FAIL": 0, "SKIP": 0} and rep["not_called"] == []
-    assert rep["version"] == "nightly-mcp-smoke-4"
+    assert rep["verdict"] == "PASS" and rep["tools_listed"] == 49 and rep["missing_tools"] == []
+    assert rep["summary"] == {"PASS": 49, "WARN": 0, "FAIL": 0, "SKIP": 0} and rep["not_called"] == []
+    assert rep["version"] == "nightly-mcp-smoke-5"
     args = {}
     for name, a in client.calls:
         args.setdefault(name, a)
@@ -93,6 +96,10 @@ def test_all_read_tools_are_called_with_harvested_ids():
     assert args["get_topic"]["topic_id"] == TOP and args["get_artifact"]["artifact_id"] == ART
     assert args["get_object"]["object_id"] == BLOCK and args["rerank_visual"]["candidate_ids"] == [FIG]
     assert args["reconstruct_topic"]["budget_chars"] == 2000
+    assert args["list_evidence"] == {"limit": 1}
+    for tool in ("get_evidence_record", "get_evidence_dependencies", "get_evidence_review_packet"):
+        assert args[tool]["record_id"] == EVIDENCE
+    assert args["get_evidence_dependencies"]["limit"] == 3
     # the tools of the structured tables and the repeated objects: ids of earlier answers, fixed query words
     assert args["find_tables"] == {"property": "модуль деформации", "limit": 3}
     assert args["get_table_structured"]["table_id"] == TBL and args["get_table_structured"]["max_rows"] == 20
@@ -102,6 +109,7 @@ def test_all_read_tools_are_called_with_harvested_ids():
     calls = {c["tool"]: c for c in rep["calls"]}
     assert calls["get_figure"]["n_images"] == 1 and len(calls["search_text"]["sha256"]) == 64
     assert "query" not in calls["search_text"]["args"]                   # the report keeps no query text
+    assert EVIDENCE not in json.dumps(rep)                            # user-defined ids are not logged
 
 
 def test_data_errors_warn_and_dependency_errors_fail():
@@ -127,6 +135,27 @@ def test_missing_tool_timeout_and_unharvestable_ids():
     rep = run(Empty())
     assert rep["verdict"] == "WARN" and rep["per_tool"]["get_page"] == "SKIP"
     assert rep["per_tool"]["get_corpus_status"] == "PASS"
+    assert all(rep["per_tool"][tool] == "SKIP" for tool in (
+        "get_evidence_record", "get_evidence_dependencies", "get_evidence_review_packet"))
+
+
+def test_unavailable_evidence_never_becomes_success_or_exposes_error_ids():
+    rep = run(FakeClient(errors={"list_evidence": "DEPENDENCY_UNAVAILABLE"}))
+    assert rep["verdict"] == "FAIL" and rep["per_tool"]["list_evidence"] == "FAIL"
+    assert rep["per_tool"]["get_evidence_record"] == "SKIP"
+    harvest = SMOKE.Harvest()
+    harvest.add_evidence_page({"ok": False, "item": {"record": {"items": [{"record_id": EVIDENCE}]}}})
+    harvest.add_evidence_page({"ok": True, "item": {"record": {"items": [
+        {"text": EVIDENCE}, {"record_id": "../not-an-id"}, "not a record"]}}})
+    assert harvest.first("evidence_record") is None
+
+
+def test_legacy_read_server_is_missing_four_evidence_tools():
+    legacy = [tool for tool in SMOKE.EXPECTED_TOOLS if "evidence" not in tool]
+    rep = run(FakeClient(tools=legacy))
+    assert rep["verdict"] == "FAIL"
+    assert set(rep["missing_tools"]) == {
+        "list_evidence", "get_evidence_record", "get_evidence_dependencies", "get_evidence_review_packet"}
 
 
 def test_deadline_skips_the_rest():
@@ -146,7 +175,7 @@ def test_dry_run_plans_every_expected_tool():
     with redirect_stdout(buf):
         assert SMOKE.main(["--dry-run"]) == 0
     out = json.loads(buf.getvalue())
-    assert out["planned_tools"] == sorted(SMOKE.EXPECTED_TOOLS) and out["expected"] == 45
+    assert out["planned_tools"] == sorted(SMOKE.EXPECTED_TOOLS) and out["expected"] == 49
 
 
 def test_expected_tools_match_the_read_server():

@@ -38,7 +38,7 @@ def _summary(obj: Any, keys: tuple[str, ...]) -> dict[str, Any]:
 
 
 def reconcile(settings: Settings, *, run_id: str, graph: bool = True, search: bool = True,
-              smoke: bool = True) -> dict[str, Any]:
+              smoke: bool = True, publication_approval=None, policy_path=None) -> dict[str, Any]:
     from vkm_corpus.contracts.vocab import RootKind
     from vkm_corpus.duckdb.build import build_duckdb
     from vkm_corpus.parquet.admit import admit
@@ -49,15 +49,19 @@ def reconcile(settings: Settings, *, run_id: str, graph: bool = True, search: bo
     receipt: dict[str, Any] = {"kind": "RECONCILE", "run_id": run_id,
                                "started_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "steps": []}
     try:
-        adm = _step(receipt, "admit", admit, layout)
-        receipt["admission"] = {k: len(v) for k, v in adm.items()}
+        adm = _step(receipt, "admit", admit, layout, publication_approval=publication_approval, policy_path=policy_path)
+        receipt["admission"] = {k: len(adm[k]) for k in ("admitted", "rejected", "pending")}
+        if adm.get("accounting") == "PENDING":
+            receipt["result"] = "PUBLICATION_PENDING"
+            return receipt
         receipt["rejected"] = adm.get("rejected", [])
-        snap = _step(receipt, "snapshot", build_snapshot, layout, created_by_run_id=run_id)
+        snap = _step(receipt, "snapshot", build_snapshot, layout, created_by_run_id=run_id,
+                     publication_approval=publication_approval, policy_path=policy_path)
         report = snap.get("report") or {}
         receipt["snapshot"] = {"snapshot_id": snap.get("snapshot_id"), "status": snap.get("status"),
                                "current_moved": snap.get("current_moved"), "manifest_sha256": snap.get("manifest_sha256"),
                                "blocking_failures": report.get("blocking_failures"), "counts": report.get("counts", {})}
-        if snap.get("status") != "PASS" or not snap.get("current_moved"):
+        if snap.get("status") != "PASS" or not (snap.get("current_moved") or snap.get("noop")):
             receipt["result"] = "SNAPSHOT_NOT_PASSED_PROJECTIONS_UNCHANGED"
             return receipt
         sid = snap["snapshot_id"]
