@@ -5,6 +5,7 @@ import pytest
 from vkm_qgis.policy import Paths
 from vkm_qgis.service import QgisService,digest
 
+@pytest.mark.qgis_runtime
 @pytest.mark.skipif(not(os.environ.get('VKM_QGIS_ROOT') or os.environ.get('VKM_QGIS_PYTHON')),reason='Existing QGIS runtime not configured')
 def test_repeat_render_png_hash():
     root=Path(__file__).resolve().parents[2]; paths=Paths(root,root/'work'); service=QgisService(paths)
