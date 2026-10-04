@@ -629,7 +629,16 @@ def command(args):
         # Deployment intent includes local paths in adapter specs? Our unit
         # bindings are hashes only. Do not print approved environments/configs.
         print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2))
-        return 0 if result.get("status") in {"PASS", "READY", "RESTORED"} else 2
+        # Command completion is separate from serving/scientific admission.
+        # A coherent CLOSED restore is successful only for recovery; a generic
+        # CLOSED or another command's terminal state never becomes success.
+        successful = {
+            "status": {"READY", "CLOSED_BASELINE_QUALIFIED"},
+            "plan": {"READY"}, "drill-plan": {"READY"}, "recovery-plan": {"READY"},
+            "accept": {"PASS"}, "switch": {"PASS"}, "drill": {"PASS"},
+            "recover": {"RESTORED", "RESTORED_CLOSED"},
+        }
+        return 0 if result.get("status") in successful.get(action, set()) else 2
     except Exception as exc:
         print(json.dumps({"status": "BLOCKED", "reason": type(exc).__name__}))
         return 2
