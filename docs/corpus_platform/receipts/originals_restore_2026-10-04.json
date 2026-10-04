@@ -1,0 +1,49 @@
+{
+  "R1_R3_rest_of_UNBACKED_UNIQUE": "NOT_EXECUTED_BY_THIS_SCOPE",
+  "approved_plan_sha256": "30cd105b9ea007a2f98502c67ea911dbbe8db3e8c8ad33b82cc33568f63eb552",
+  "approved_tools_sha256": {
+    "age": "2821a4ed191da07372acd302e5f6feae7a7985e285e1417765ebe74025af45f0",
+    "python-dll": "6964e590037c41d631fd1215f05af154f7fa68105993c6f573a20689b473f1ac",
+    "python-launcher": "e6c07188984d41b80f822dcdaeaceeb217cdf977f18f79c421a3a53edba895c3",
+    "python-native": "dc7ecf75280678175b4f931ce05f1ef9c10d48984399ca7de6beee69d71bcb1b",
+    "remote-python-native": "17b78e0a93175e86f9ac03141924fd7a7f0c0c52e66b34bfa0de20ffef989df1",
+    "ssh": "786ff14be7cd652b2b9770a57e9b1aa5e03a052ce3a3d641fb4760c0ff3fde05"
+  },
+  "atomic_current_generation": "NOT_PROVEN",
+  "bootstrap_backup_admission": "NOT_GRANTED",
+  "control": {
+    "bytes": 726707,
+    "cipher_bytes": 727394,
+    "cipher_sha256": "72c57434e29b1f1895df129724d72e6b658b181ef34526f3bcdb03aa86fbb5c5",
+    "content_sha256": "bbf23785d0289a458bd7bba0cbb75cda2beea320161ff4369676c60c023c235d",
+    "files": 1,
+    "logical_backup_id": "20261004-r2-immutable-originals-stream-v1-control-0001",
+    "remote_manifest_sha256": "8dab66a9edd664ce6a40ba50f235ef7e3b94264997eb412614f937c94176282c"
+  },
+  "executor_sha256": "b5c652ce02dbb9e48e65b4b7f07011b4e1142b5c3d0ac0342e5e5e3638f64c46",
+  "helpers_sha256": {
+    "infra/recovery/frozen_inventory.py": "50f7b1af6f00cde34717fc5cd2061ed89aa760ee17f659c654cd4619795849dc",
+    "infra/recovery/stream_fileset.py": "80c5e8232d6e613124e2f19e9db958878036c4d70be4db74278ad743d7c87faa",
+    "infra/recovery/unique_inventory.py": "5c00c83474b16d1c809f106c1e87d81bee3309749e5c286895ddf5861e955d7c",
+    "src/vkm_jobs/procs.py": "47c7753c03622044b39402bf75e3e3f66faafe8eac2e564a51f43ae31a4c9c61"
+  },
+  "independent_failure_domain": "EDGE_STORAGE",
+  "input_receipt_sha256": "9ed7afe0b575cc10bd5d8bc142f5c3f0d3986bc2e708651c6d4ef97e921d8a80",
+  "key_escrow": "OWNER_CONFIRMED_NOT_INDEPENDENTLY_INSPECTED",
+  "manifest_sha256": "ed3c1577421034c7151b4da22c6000cea21109dd94c17eaa656be6bb013459d0",
+  "originals": {
+    "batches": 9,
+    "bytes": 2122899923,
+    "files": 272,
+    "native_companions": 3,
+    "union_sha256": "3f2b0e2ce7966224fd689e8a2a41f92136ee4aee5c579ef46ee93b69236fc84d"
+  },
+  "plaintext_or_key_transferred": false,
+  "publication_evidence": "EXACT_RUNTIME_RECEIPT_SCHEMA_AND_APPROVED_BINDINGS",
+  "runtime_reperformed_by_publisher": false,
+  "schema": "vkm-r2-independent-originals-recovery-safe-receipt/1",
+  "scientific_admission": "NOT_GRANTED",
+  "scope": "IMMUTABLE_EXPECTED_VERSIONS_NOT_ATOMIC_CURRENT_GENERATION",
+  "status": "RECOVERY_VERIFIED_EXACT_DECLARED_R2_VERSIONS",
+  "tool_hash_evidence": "EXACT_APPROVED_PLAN_BINDING_NOT_ADDITIONAL_LOADED_RUNTIME_PROOF"
+}

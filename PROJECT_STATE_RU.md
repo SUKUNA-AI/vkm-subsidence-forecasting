@@ -2,8 +2,9 @@
 
 04.10.2026 — производственная программа данных продолжена в отдельной рабочей
 ветке, draft PR #10. [Текущий отчёт](docs/reviews/RECOVERY_DOCX_GPU_CHECKPOINT_2026-10-04_RU.md)
-фиксирует проверенный restore 37 скриптов, 7 конфигураций и 28 review/provenance
-файлов, DOCX native grid/cache admission и первую compile/ABI-only GPU сборку.
+фиксирует проверенный restore 37 скриптов, 7 конфигураций, 28 review/provenance
+файлов и 272 оригиналов R2, DOCX native grid/cache admission и первую
+compile/ABI-only GPU сборку.
 Actual model/runtime/corpus qualifications ещё не выполнены. Production snapshot
 и научные статусы от этих изменений не обновлены; слияние в `main` не выполнено.
 

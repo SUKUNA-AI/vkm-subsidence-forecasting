@@ -88,3 +88,11 @@ source hashes и private locators этого набора не публикую�
 [recovery_docx_cpu_2026-10-04.json](recovery_docx_cpu_2026-10-04.json) содержит
 точные hashes public code и synthetic CPU tests для frozen recovery и DOCX
 grid/format admission; actual corpus processing и scientific review NOT_RUN.
+
+[originals_restore_2026-10-04.json](originals_restore_2026-10-04.json): actual
+encrypted copy и independent authenticated restore 272 зафиксированных R2 originals,
+2 122 899 923 bytes, девять batches и отдельный recovery control. Включены три
+native DOC companions. Все restored disk hashes и final source guards проверены;
+PUBLIC receipt содержит только агрегаты и approved bindings. R1/R3, atomic
+current generation, полный UNBACKED_UNIQUE и bootstrap/scientific admission
+этой квитанцией не закрываются.
