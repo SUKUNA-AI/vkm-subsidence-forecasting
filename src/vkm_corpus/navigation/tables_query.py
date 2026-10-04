@@ -171,7 +171,7 @@ def get_table_structured(con: Any, table_id: str, *, max_rows: int = 200, max_ch
     # Physical rows/IDs and their v1 cursor retain the existing contract. The
     # separate logical-chain cursor follows explicit canonical continuation
     # edges, and never promotes navigation interpretation to scientific data.
-    out["continuation"] = get_table_continuation(con, tid, s["source_id"], max_rows=max_rows,
+    out["continuation"] = get_table_continuation(con, tid, s.get("source_id"), max_rows=max_rows,
         cursor=logical_cursor, tables=t)
     return out
 

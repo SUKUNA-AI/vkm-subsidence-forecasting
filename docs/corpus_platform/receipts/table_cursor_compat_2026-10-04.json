@@ -1,0 +1,90 @@
+{
+  "backup_independent_read_only_review": "bounded 15-file claim supported; no executor rerun; full bootstrap backup NOT_QUALIFIED",
+  "base_commit": "5d24283157e24ca5bb522dd13320241bcec06eae",
+  "checks": {
+    "linux": {
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "bf3199bc5c895683b711dfcedf495a511203d3ed66d35d34d1317c3db1d32b62",
+      "passed": 228,
+      "skipped": 0,
+      "tests": 228
+    },
+    "linux_world": {
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "75a3bae0176ebae8086fe75179871e04c04264ad2e9c28514a931ac0d21fe67a",
+      "passed": 626,
+      "skipped": 0,
+      "tests": 626
+    },
+    "windows": {
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "bbb52a7d25e245d72ed211bb0b32dc8f71a4b9d51114d370053288879a0febac",
+      "passed": 228,
+      "skipped": 0,
+      "tests": 228
+    },
+    "windows_inaccessible_system_temp_attempt": {
+      "errors": 26,
+      "failures": 0,
+      "junit_sha256": "856327b6cfa37a13e67d754e16d908cd66908e422c2a6001611c3854b276f9b0",
+      "passed": 202,
+      "skipped": 0,
+      "tests": 228
+    }
+  },
+  "date": "2026-10-04",
+  "fix": "missing/null authorized source returns NOT_AVAILABLE before canonical reads; logical cursor raises; no identity inference or physical-cursor fallback",
+  "new_exact_head_ci": "NOT_RUN_AT_RECEIPT_CREATION",
+  "overlap": "Selections overlap; do not sum as unique tests",
+  "prior_hosted_ci": {
+    "commit": "5d24283157e24ca5bb522dd13320241bcec06eae",
+    "linux": {
+      "external_deselected_not_run": 77,
+      "failed": 5,
+      "passed": 3425,
+      "status": "FAIL"
+    },
+    "run_id": 37206779528,
+    "windows": {
+      "declared_not_run": 112,
+      "external_deselected_not_run": 50,
+      "passed": 2338,
+      "status": "SUCCESS"
+    },
+    "world": {
+      "passed": 626,
+      "status": "SUCCESS"
+    }
+  },
+  "production_switch": "NOT_RUN",
+  "real_model_runtime": "NOT_RUN",
+  "root_cause": "optional logical continuation unconditionally required source_id from existing minimal physical-table schema",
+  "schema": "vkm-table-cursor-compat-qualification/1",
+  "scope": "CPU_TARGETED_COMPATIBILITY_ONLY",
+  "source_inputs": [
+    {
+      "path": "scripts/run_offline_checks.py",
+      "sha256": "c27ea0a4121803d2eaf6b5eadfab1cc9bdf8b2d32bd09c105d496843e63c8aca"
+    },
+    {
+      "path": "src/vkm_corpus/navigation/table_continuations.py",
+      "sha256": "256453be2f5185f2b2ddf0b2cd19656b4eae3981d931877fc31f7ab766b6dbde"
+    },
+    {
+      "path": "src/vkm_corpus/navigation/tables_query.py",
+      "sha256": "a372e248c148b3483eda714b21e115d5d627c7d993a42d51e26a3da2672d63a0"
+    },
+    {
+      "path": "tests/corpus/test_table_cursor.py",
+      "sha256": "b3f41324556de1a1c5bbf2549826721f7ecae775c8c30d51ef79f1b9b4ba02bf"
+    },
+    {
+      "path": "tests/world/test_offline_checks.py",
+      "sha256": "abd94767262785ba630e27127f61adfa8c33d05cea87f18736cd525df98ec829"
+    }
+  ],
+  "windows_ci_selection": "legacy table cursor suite now mandatory"
+}

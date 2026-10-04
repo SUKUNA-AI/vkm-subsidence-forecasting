@@ -403,15 +403,21 @@ def _materialize(row):
     return out
 
 
-def get_table_continuation(con: Any, anchor_table_id: str, source_id: str, *, max_rows=200,
+def get_table_continuation(con: Any, anchor_table_id: str, source_id: str | None, *, max_rows=200,
         cursor: str | None = None, tables: Mapping[str, str] | None = None,
         limits: ContinuationLimits | None = None) -> dict[str, Any]:
     """Read a complete explicit chain, return one bounded page of row references.
 
     The caller has already authorized the anchor source. A different source is
     rejected before reading its cell texts; no additional source is authorized.
+    A legacy physical reader without source identity cannot acquire canonical
+    content here. Missing identity is NOT_AVAILABLE, never inferred from an ID.
     NOT_AVAILABLE describes older schemas; corrupt/ambiguous chains are BLOCKED.
     """
+    if not isinstance(source_id, str) or not source_id.strip():
+        if cursor:
+            raise ValueError("logical cursor authorized source identity is unavailable")
+        return _unavailable("AUTHORIZED_SOURCE_ID_NOT_AVAILABLE")
     limits = limits or ContinuationLimits()
     tables = {name: name for name in ("table_structure", "table_cells", "table_columns")} | dict(tables or {})
     try:

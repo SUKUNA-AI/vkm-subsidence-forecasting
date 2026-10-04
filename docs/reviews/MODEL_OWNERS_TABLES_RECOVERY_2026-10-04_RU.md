@@ -95,6 +95,29 @@ exports/checks PASS; PUBLIC+PRIVATE verifier: 36 PASS, 7 SKIPPED_REF_UNAVAILABLE
 Exact-head hosted CI проверяется после push и сохраняется в draft PR #10;
 прежний f94c50d CI не квалифицирует новые изменения.
 
+### Последующая проверка hosted CI и совместимости
+
+Commit `5d24283`: World job SUCCESS, 626 PASS; Windows job SUCCESS,
+2338 PASS / 112 declared NOT_RUN / 50 external deselected NOT_RUN. Linux job
+FAIL: 3425 PASS, 5 failures старого physical cursor suite, 77 external deselected
+NOT_RUN. [Run 37206779528](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/actions/runs/37206779528).
+
+Причина — optional continuation projection безусловно обращалась к `source_id`,
+которого прежняя минимальная physical-table схема не требовала. Fixture и старый
+physical contract сохранены: missing/null authorized source теперь даёт явный
+`NOT_AVAILABLE` без canonical reads; logical cursor отклоняется, source identity
+не выводится из имени таблицы. Cursor suite включён также в Windows CI selection.
+После исправления 228 targeted tests PASS каждой ОС; mandatory Linux World —
+626 PASS. Selections пересекаются с ранее выполненными и не суммируются.
+Первый дополнительный Windows запуск дал 26 setup errors из-за недоступного
+system pytest temp; повтор в новом ignored directory прошёл. Failed attempt
+сохранён. [Отдельная receipt исправления](../corpus_platform/receipts/table_cursor_compat_2026-10-04.json).
+Новый exact-head hosted CI квалифицируется отдельно; failed run не переименован.
+
+Независимый reviewer дополнительно сравнил public/frozen/copy/restore inventories,
+pins и executor контрольного backup. Ограниченный claim 15/15 подтверждён,
+существенных ошибок не найдено; executor/SSH/payloads повторно не запускались.
+
 ## Следующий реальный порядок
 
 1. Зафиксировать clean source commit и полный inventory оригиналов, uniquely

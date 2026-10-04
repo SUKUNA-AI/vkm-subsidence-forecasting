@@ -27,6 +27,8 @@ def con():
 
 def test_sparse_pagination_returns_every_cell_once(con):
     first = get_table_structured(con, "table-a", max_rows=2)
+    assert first["continuation"]["status"] == "NOT_AVAILABLE"
+    assert first["continuation"]["reasons"] == ["AUTHORIZED_SOURCE_ID_NOT_AVAILABLE"]
     assert [r["row"] for r in first["rows"]] == [0, 2]
     assert first["pagination"]["total_cells"] == 3
     last = get_table_structured(con, "TBL-a", max_rows=2, cursor=first["pagination"]["next_cursor"])
@@ -54,3 +56,24 @@ def test_ambiguous_table_identity_is_rejected(con):
     con.execute("INSERT INTO table_structure SELECT * FROM table_structure WHERE table_id='table-a'")
     with pytest.raises(ValueError, match="ambiguous"):
         get_table_structured(con, "table-a")
+
+
+@pytest.mark.parametrize("identity", ["missing", "null"])
+def test_missing_source_keeps_physical_traversal_but_never_reads_canonical_or_accepts_logical_cursor(con, identity):
+    if identity == "null":
+        con.execute("ALTER TABLE table_structure ADD COLUMN source_id VARCHAR")
+    class NoCanonicalRead:
+        def execute(self, sql, params=()):
+            assert "canonical" not in sql.lower(), "missing authorization must stop before canonical metadata/content"
+            return con.execute(sql, params)
+    guarded = NoCanonicalRead()
+    first = get_table_structured(guarded, "table-a", max_rows=1)
+    continuation = first["continuation"]
+    assert continuation["status"] == "NOT_AVAILABLE"
+    assert continuation["reasons"] == ["AUTHORIZED_SOURCE_ID_NOT_AVAILABLE"]
+    assert continuation["rows"] == [] and not continuation["pagination"]["complete"]
+    assert continuation["scientific_admission"] == "NOT_ESTABLISHED"
+    last = get_table_structured(guarded, "table-a", max_rows=2, cursor=first["pagination"]["next_cursor"])
+    assert [row["row"] for row in last["rows"]] == [2, 999]
+    with pytest.raises(ValueError, match="logical cursor authorized source identity"):
+        get_table_structured(guarded, "table-a", cursor="lt1:invalid")

@@ -6,6 +6,7 @@
 | Файл | Что подтверждает |
 |---|---|
 | [model_owners_tables_cpu_2026-10-04.json](model_owners_tables_cpu_2026-10-04.json) | Source-bound text/visual owner contracts, table continuation/compatibility и CPU checks; runtime/image/GPU/MCP49 и full corpus admission не выполнены |
+| [table_cursor_compat_2026-10-04.json](table_cursor_compat_2026-10-04.json) | Hosted Linux regression сохранён как FAIL; исправлена optional continuation compatibility, 228 targeted PASS каждой ОС и 626 Linux World PASS; missing source не разрешает canonical reads |
 | [control_restore_2026-10-04.json](control_restore_2026-10-04.json) | Реальный independent copy/restore 15 control files, 34 470 bytes; source/backup/restore hashes совпали, originals unchanged. Это не full corpus restore и не typed bootstrap backup |
 | [search_metrics_2026-09-30.json](search_metrics_2026-09-30.json) | topic/retrieval before-after и controlled component runs на 574daaac; frozen truth сохранена, конфигурация не менялась; новую независимую разметку visual hits владелец отложил до Astra-review ([отчёт](../SEARCH_METRICS_2026-09-30_RU.md)) |
 | [platform_integrity_2026-09-30.json](platform_integrity_2026-09-30.json) | read-only smoke22tools/61calls на574daaac; отдельные FAIL/NOT_RUN, без изменений CORE/EDGE |
