@@ -12,6 +12,7 @@
 | Конфигурации | 7 файлов зашифрованы age; на EDGE передан только ciphertext; независимое чтение, authenticated decrypt и все disk hashes проверены | Не подтверждает полную конфигурацию старого Docker runtime |
 | Review/provenance | 28 файлов PRIVATE, 1 672 195 bytes, получили encrypted copy и проверенный restore; оригиналы проверены повторно под удерживаемыми handles | Mutable files проверены как guarded Windows bytes; atomic snapshot и исключение прежних mmap writers не доказаны |
 | R2 originals | 272 файла, 2 122 899 923 bytes, зашифрованы в девяти bounded batches; отдельное чтение с EDGE, authenticated decrypt и сравнение всех restored disk hashes прошли. Проверен также отдельный encrypted recovery control | 269 зарегистрированных версий и три native DOC companions; это immutable expected versions, а не atomic current generation или полный UNBACKED_UNIQUE |
+| R1 evidence/exports | Дополнительно защищены и восстановлены 1 453 зафиксированные byte versions, 149 547 309 bytes, 23 batches и отдельный encrypted recovery control. Вместе с 28 точными ранее восстановленными версиями R0 покрыты все 1 481 записи выбранного набора | Физические файлы mutable; доказаны конкретные bytes под guards, не atomic generation, полнота workspace или научный допуск |
 | Recovery key | Новый ключ создан; владелец подтвердил отдельное хранение | OWNER_CONFIRMED_NOT_INDEPENDENTLY_INSPECTED; identity не передавалась на EDGE и не публиковалась |
 | DOCX | Исправлены merge через пропущенную строку, неучтённые physical cells и опасные geometry bounds; native audit проходит producer → canon → accounting | Только synthetic документы; реальные источники, rendering, OCR и scientific review NOT_RUN |
 | DOCX cache admission | Фактический byte format, source SHA и размер проверяются перед production reuse; DOCX под `.bin` не обходит child-stage gate через подменённый cached inspect | Поддержанные non-DOCX stage signature payloads сохранены; UNKNOWN/ZIP/IMAGE не получают successful native reuse |
@@ -23,7 +24,8 @@
 Receipts: [scripts](../corpus_platform/receipts/ops_restore_2026-10-04.json),
 [configs](../corpus_platform/receipts/encrypted_configs_restore_2026-10-04.json),
 [review/provenance](../corpus_platform/receipts/review_provenance_restore_2026-10-04.json),
-[R2 originals](../corpus_platform/receipts/originals_restore_2026-10-04.json).
+[R2 originals](../corpus_platform/receipts/originals_restore_2026-10-04.json),
+[R1 evidence versions](../corpus_platform/receipts/evidence_versions_restore_2026-10-04.json).
 Ни одна из них не заменяет full `IndependentBootstrapBackup`.
 
 R2 завершён за 154,118 секунды. Источники перепроверены под retained handles после
@@ -32,6 +34,13 @@ control содержит mapping и инструменты восстановл�
 также проверен. В PUBLIC опубликована только whitelist aggregate projection.
 Независимый challenger проверил exact plan/union/helper bindings и 29 negative
 publisher cases. Payload и recovery identity не читались моделью и не публиковались.
+
+R1 завершён за 60,582 секунды. Для каждого batch прошли отдельное чтение с EDGE,
+authenticated decrypt, проверка restored disk SHA и финальная проверка source bytes.
+Пять проверочных чтений исходных файлов выполнены под удерживаемыми handles.
+Отдельный recovery control объёмом 5 468 747 bytes также восстановлен и проверен.
+Его содержимое, paths источников, индивидуальные private hashes и ключ не публикуются.
+R0 вычтен только при полном совпадении size+SHA; эти 28 файлов повторно не прибавляются.
 
 DOCX regression: **223 PASS Linux; 221 PASS Windows + 2 explicit NOT_RUN**
 (symlink privilege, Linux RLIMIT_AS). Main agent независимо повторил эти selections.
@@ -58,10 +67,11 @@ Windows 2508 PASS / 112 declared NOT_RUN / 50 external NOT_RUN. Прежний
 
 1. **R2 originals:** byte recovery закрыт только для зафиксированных 272 версий.
    Recovery receipt не предоставляет bootstrap или scientific admission.
-2. **Остальная recovery closure:** R1 evidence/exports и R3 scientific work;
+2. **Остальная recovery closure:** R3 scientific work;
    семь конфликтов исторических hashes требуют разрешения, а не произвольного выбора.
    Полный inventory не завершён; Git/LFS metadata не доказывает удалённые payloads.
-3. **Actual GPU placement:** native owner должен читать реальные target weight
+3. **Actual GPU placement:** source-owned contract и negative CPU tests готовы;
+   actual image/model qualification ещё NOT_RUN. Native owner читает реальные target weight
    buffers под тем же load/destroy mutex. Requested layer count и startup log
    не доказывают offload; CUDA_Host не является GPU allocation. Scope нового proof
    ограничен target weights; mmproj/context/kernels/performance остаются NOT_PROVEN.
@@ -69,7 +79,10 @@ Windows 2508 PASS / 112 declared NOT_RUN / 50 external NOT_RUN. Прежний
    gates остановить разрешённый владельцем старый visual m0, загрузить новый GPU
    owner и проверить тот же inference process. Старые container/image/weights
    удерживаются для restart fallback. CPU-only model rehearsal не выполнять.
-5. **Full isolated qualification:** pinned text owner, matching CORE API/MCP,
+5. **Full isolated qualification:** explicit visual-only gateway profile сохраняет
+   отключённый text owner и действующий API → late fallback. Proof требует actual
+   ApiService и RETRIEVAL от того же observer; strict v1 по-прежнему требует оба owner.
+   Нужны matching CORE API/MCP,
    actual 49 tools, restart, failed-switch, restore и coherent previous rollback.
    Пока NOT_RUN. Владелец разрешил CORE/EDGE switch после успешной квалификации;
    короткое окно недоступности согласовано. GPU основного ПК запрещено использовать.

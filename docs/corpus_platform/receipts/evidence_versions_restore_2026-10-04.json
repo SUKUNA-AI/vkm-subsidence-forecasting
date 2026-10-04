@@ -1,0 +1,61 @@
+{
+  "R0_exact_already_restored_versions": {
+    "bytes": 1672195,
+    "files": 28,
+    "verified_receipt_sha256": "66ee60d37d43c6165c2893054be463de72aefd4dcb5552fdbe18308d980a454d"
+  },
+  "R3_remaining_UNBACKED_UNIQUE": "NOT_EXECUTED_BY_THIS_SCOPE",
+  "approved_plan_sha256": "c754231530dd5d629f4b9f48d0d4fae77a62221ed0906c4d9d911af8ed978b7c",
+  "approved_tools_sha256": {
+    "age": "2821a4ed191da07372acd302e5f6feae7a7985e285e1417765ebe74025af45f0",
+    "python-dll": "6964e590037c41d631fd1215f05af154f7fa68105993c6f573a20689b473f1ac",
+    "python-launcher": "e6c07188984d41b80f822dcdaeaceeb217cdf977f18f79c421a3a53edba895c3",
+    "python-native": "dc7ecf75280678175b4f931ce05f1ef9c10d48984399ca7de6beee69d71bcb1b",
+    "remote-python-native": "17b78e0a93175e86f9ac03141924fd7a7f0c0c52e66b34bfa0de20ffef989df1",
+    "ssh": "786ff14be7cd652b2b9770a57e9b1aa5e03a052ce3a3d641fb4760c0ff3fde05"
+  },
+  "atomic_current_generation": "NOT_PROVEN",
+  "bootstrap_backup_admission": "NOT_GRANTED",
+  "control": {
+    "bytes": 5468747,
+    "cipher_bytes": 5470587,
+    "cipher_sha256": "5727752ff818d58114b38bfc66caf329336947c66007e8ed318159f4ce41b3af",
+    "content_sha256": "e2f486722b83641b1d9daa5a4c1154df3cb07bab005d9aeab15e9f4afd2923ba",
+    "files": 1,
+    "logical_backup_id": "20261004-r1-exact-captured-byte-versions-v1-control-0001",
+    "remote_manifest_sha256": "a6787446b593de80c604beef4b37cef26f867b0efef91d2d8c9d14b161d36e82"
+  },
+  "copied_byte_versions": {
+    "batches": 23,
+    "bytes": 149547309,
+    "files": 1453,
+    "union_sha256": "9d6b41dbdcf8cf1964ec3bc731ce9208f390105565bb709fcb77ebf5cda1d009"
+  },
+  "covered_captured_selection": {
+    "bytes": 151219504,
+    "files": 1481
+  },
+  "executor_sha256": "b766fe3533cdeb3804d79cfb620a3096fa14855c0d01cf369e9fa7b7b5d9da9e",
+  "existing_mmap_writer_exclusion": "NOT_PROVEN",
+  "helpers_sha256": {
+    "infra/recovery/frozen_inventory.py": "50f7b1af6f00cde34717fc5cd2061ed89aa760ee17f659c654cd4619795849dc",
+    "infra/recovery/stream_fileset.py": "80c5e8232d6e613124e2f19e9db958878036c4d70be4db74278ad743d7c87faa",
+    "infra/recovery/unique_inventory.py": "5c00c83474b16d1c809f106c1e87d81bee3309749e5c286895ddf5861e955d7c",
+    "src/vkm_jobs/procs.py": "47c7753c03622044b39402bf75e3e3f66faafe8eac2e564a51f43ae31a4c9c61"
+  },
+  "independent_failure_domain": "EDGE_STORAGE",
+  "input_receipt_sha256": "b9ce26d81c99caf773d7f3e8e20f0e0bfdd88531927b83ca0aeb4a55351d6d2e",
+  "key_escrow": "OWNER_CONFIRMED_NOT_INDEPENDENTLY_INSPECTED",
+  "manifest_sha256": "b23d95772ee2879ce1850ab01e3f8a9d438ae846db0b84cd6896eff58bf07dbf",
+  "physical_source_behavior": "MUTABLE_WORKTREE_OR_REVIEW_RUN",
+  "plaintext_or_key_transferred": false,
+  "publication_evidence": "EXACT_RUNTIME_RECEIPT_SCHEMA_AND_APPROVED_BINDINGS",
+  "runtime_reperformed_by_publisher": false,
+  "schema": "vkm-r1-independent-evidence-versions-recovery-safe-receipt/1",
+  "scientific_admission": "NOT_GRANTED",
+  "scientific_current_selector_recovery": "NOT_QUALIFIED",
+  "scope": "FIXED_EXPECTED_BYTE_VERSIONS_OF_MUTABLE_FILES_NOT_ATOMIC_CURRENT_GENERATION",
+  "selected_intent_exhaustiveness": "EXACT_REGISTERED_SELECTION_NOT_FULL_WORKSPACE_INVENTORY",
+  "status": "RECOVERY_VERIFIED_EXACT_CAPTURED_R1_BYTE_VERSIONS",
+  "tool_hash_evidence": "EXACT_APPROVED_PLAN_BINDING_NOT_ADDITIONAL_LOADED_RUNTIME_PROOF"
+}

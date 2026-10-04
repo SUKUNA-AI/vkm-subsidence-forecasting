@@ -96,3 +96,12 @@ native DOC companions. Все restored disk hashes и final source guards про
 PUBLIC receipt содержит только агрегаты и approved bindings. R1/R3, atomic
 current generation, полный UNBACKED_UNIQUE и bootstrap/scientific admission
 этой квитанцией не закрываются.
+
+[evidence_versions_restore_2026-10-04.json](evidence_versions_restore_2026-10-04.json):
+actual encrypted copy и independent authenticated restore 1 453 captured R1 byte
+versions, 149 547 309 bytes, 23 batches и отдельно восстановленный recovery control.
+Вместе с 28 точными R0 versions покрыты все 1 481 записи выбранного набора.
+Это фиксированные expected bytes физических mutable файлов; atomic generation,
+весь UNBACKED_UNIQUE и bootstrap/scientific admission остаются не доказанными.
+Receipt содержит только whitelist-агрегаты и approved bindings, без private paths,
+индивидуальных source hashes, payload и ключа.
