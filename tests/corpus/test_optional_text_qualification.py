@@ -271,3 +271,67 @@ def test_visual_profile_refuses_live_text_object_even_before_probe(tmp_path, mon
             assert calls == []
         finally: await res.visual.aclose()
     asyncio.run(run())
+
+
+def optional_status_fixture():
+    from vkm_corpus.update.acceptance import CandidatePin
+    from vkm_corpus.update.contracts import ComponentIdentity
+    from vkm_evidence.contracts import record_hash
+    native = retrieval()
+    rerank = remote_services.rerank_identity(visual_body(), H, text_backend="late", retrieval=native)
+    pin = CandidatePin(code_commit="a" * 40, code_tree_sha256=H, dependencies_sha256=H,
+        access_config_sha256=H, policy_sha256=H, duckdb_file_sha256=H,
+        components=tuple(ComponentIdentity(component=kind, revision="synthetic", manifest_sha256=H,
+            policy_sha256=H, built_from={}) for kind in ("DOCUMENT", "DUCKDB")), services=(native, rerank))
+    body = {"ok": True, "meta": {"api_version": "0.1.0", "request_id": "synthetic-status"}, "status": {
+        "api_version": "0.1.0", "canonical": {"snapshot_id": pin.snapshot},
+        "production_controls": {"profile": "shadow", "source_policy": "ENFORCED",
+            "generation": {"status": "READY", "generation": record_hash(pin)}},
+        "dependencies": {"rerank_text_backend": "late", "rerank": {"available": True, "backends": {
+            "text": {"kind": "text", "status": "unavailable"}, "visual": {"kind": "visual", "status": "ready"}}}}}}
+    return pin, body
+
+
+def test_status_accepts_only_bound_intentionally_disabled_text():
+    from vkm_corpus.update.acceptance import _corpus_status
+    pin, body = optional_status_fixture()
+    _corpus_status(body, pin)
+
+
+@pytest.mark.parametrize("change", ["no_fallback", "fallback_drift", "retrieval_drift", "no_retrieval",
+    "no_late_scores", "no_late_pack", "text_model", "text_tokenizer", "v1", "other_capability",
+    "wrong_route", "text_error", "text_available_false", "text_not_run", "text_state_unavailable",
+    "text_nested_error", "text_mixed_snapshot", "visual_unavailable", "other_unavailable", "canonical_mixed"])
+def test_status_disabled_text_exception_cannot_hide_other_failure(change):
+    from vkm_corpus.update.acceptance import AcceptanceError, _corpus_status
+    from vkm_evidence.contracts import record_hash
+    pin, body = optional_status_fixture()
+    native, rerank = pin.services
+    resources = dict(rerank.resources)
+    if change == "no_fallback": resources.pop("text_fallback_late")
+    elif change == "fallback_drift": resources["text_fallback_late"] = "f" * 64
+    elif change == "retrieval_drift": native = native.model_copy(update={"instance_sha256": "f" * 64})
+    elif change == "no_late_scores": native = native.model_copy(update={"capabilities": ("dense_query",)})
+    elif change == "no_late_pack":
+        retained = dict(native.resources); retained.pop("LATE_PACK")
+        native = native.model_copy(update={"resources": retained})
+    elif change == "text_model": resources["text_model_weights"] = H
+    elif change == "text_tokenizer": resources["text_tokenizer"] = H
+    elif change == "v1": rerank = rerank.model_copy(update={"capabilities": ("rerank_visual", "rerank_text")})
+    elif change == "other_capability": rerank = rerank.model_copy(update={"capabilities": ("rerank_visual", "other")})
+    rerank = rerank.model_copy(update={"resources": resources})
+    pin = pin.model_copy(update={"services": (rerank,) if change == "no_retrieval" else (native, rerank)})
+    body["status"]["production_controls"]["generation"]["generation"] = record_hash(pin)
+    deps = body["status"]["dependencies"]
+    text = deps["rerank"]["backends"]["text"]
+    if change == "wrong_route": deps["rerank_text_backend"] = "gateway"
+    elif change == "text_error": text["error"] = "failed"
+    elif change == "text_available_false": text["available"] = False
+    elif change == "text_not_run": text["status"] = "NOT_RUN"
+    elif change == "text_state_unavailable": text["state"] = "UNAVAILABLE"
+    elif change == "text_nested_error": text["nested"] = {"status": "UNAVAILABLE"}
+    elif change == "text_mixed_snapshot": text["matches_canonical_snapshot"] = False
+    elif change == "visual_unavailable": deps["rerank"]["backends"]["visual"]["status"] = "unavailable"
+    elif change == "other_unavailable": deps["other"] = {"status": "UNAVAILABLE"}
+    elif change == "canonical_mixed": body["status"]["canonical"]["matches_canonical_snapshot"] = False
+    with pytest.raises(AcceptanceError): _corpus_status(body, pin)

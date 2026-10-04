@@ -573,20 +573,40 @@ def _corpus_status(body: dict, candidate: CandidatePin):
             or controls.get("profile") != "shadow" or controls.get("source_policy") != "ENFORCED"
             or controls.get("generation") != {"status": "READY", "generation": record_hash(candidate)}):
         raise AcceptanceError("corpus status lacks pinned shadow admission")
-    def healthy(value):
+    # Optional text is a disabled gateway route, not an unavailable dependency
+    # used by this API. Its exception is derived from the same frozen native
+    # service identities verified around every probe, never from status alone.
+    native = candidate.service_map
+    retrieval, rerank = native.get("RETRIEVAL"), native.get("RERANK")
+    dependencies = status.get("dependencies")
+    optional_text = bool(
+        retrieval and rerank and isinstance(dependencies, dict)
+        and dependencies.get("rerank_text_backend") == "late"
+        and rerank["capabilities"] == ["rerank_visual"]
+        and not any(k == "text_tokenizer" or k.startswith("text_model_") for k in rerank["resources"])
+        and "late_scores" in retrieval["capabilities"]
+        and {"LATE_PACK", "late_weights", "late_tokenizer", "late_resources", "late_query_config"}
+            <= retrieval["resources"].keys()
+        and rerank["resources"].get("text_fallback_late") == record_hash({
+            "selected_text_backend": "late", "retrieval": retrieval}))
+
+    def healthy(value, path):
         if isinstance(value, dict):
             if value.get("available") is False or value.get("error") or value.get("matches_canonical_snapshot") is False:
                 raise AcceptanceError("corpus status reports unavailable or inconsistent dependency")
             for key in ("status", "state"):
                 if str(value.get(key, "")).upper() in {"FAIL", "NOT_RUN", "SKIP", "UNAVAILABLE", "BLOCKED", "ERROR", "DEGRADED"}:
+                    if (optional_text and path == ("rerank", "backends", "text") and key == "status"
+                            and str(value[key]).upper() == "UNAVAILABLE"):
+                        continue
                     raise AcceptanceError("corpus dependency status is not qualified")
-            for nested in value.values():
-                healthy(nested)
+            for key, nested in value.items():
+                healthy(nested, (*path, key))
         elif isinstance(value, list):
-            for nested in value:
-                healthy(nested)
-    healthy(status.get("canonical"))
-    healthy(status.get("dependencies"))
+            for index, nested in enumerate(value):
+                healthy(nested, (*path, index))
+    healthy(status.get("canonical"), ("canonical",))
+    healthy(dependencies, ())
 
 
 def _tool_response(name, probe, answer, candidate):
