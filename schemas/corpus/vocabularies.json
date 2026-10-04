@@ -578,6 +578,10 @@
   "DJVU_TEXT_ZONE",
   "OCR_MODEL"
  ],
+ "RerankNativeProfile": [
+  "BOTH_NATIVE_V1",
+  "VISUAL_ONLY_TEXT_DISABLED_V2"
+ ],
  "RetentionClass": [
   "KEEP_RAW",
   "KEEP_REFERENCED"

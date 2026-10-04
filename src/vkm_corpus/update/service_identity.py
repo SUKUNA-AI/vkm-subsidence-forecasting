@@ -15,18 +15,13 @@ import json
 import platform
 import stat
 from dataclasses import dataclass
-from enum import Enum
 from pathlib import Path
+
+from vkm_corpus.contracts.vocab import RerankNativeProfile
 
 
 RETRIEVAL = "RETRIEVAL_LLAMA_TOKENIZERS_V1"
 RERANK = "RERANK_HTTP_TOKENIZERS_V1"
-
-
-class RerankNativeProfile(str, Enum):
-    """Declared gateway routes; disabling text never qualifies a missing model."""
-    BOTH_NATIVE_V1 = "BOTH_NATIVE_V1"
-    VISUAL_ONLY_TEXT_DISABLED_V2 = "VISUAL_ONLY_TEXT_DISABLED_V2"
 
 
 @dataclass(frozen=True)
@@ -41,7 +36,7 @@ class ServiceProfile:
 
 _COMMON = (
     "vkm_corpus", "vkm_corpus.cli", "vkm_corpus.config", "vkm_corpus.logs", "vkm_corpus.versions",
-    "vkm_corpus.contracts", "vkm_corpus.contracts.access",
+    "vkm_corpus.contracts", "vkm_corpus.contracts.access", "vkm_corpus.contracts.vocab",
     "vkm_corpus.parquet", "vkm_corpus.parquet.atomic", "vkm_corpus.update",
     "vkm_corpus.update.service_identity", "vkm_corpus.update.native_files",
     "vkm_corpus.update.remote_retrieval", "vkm_evidence", "vkm_evidence.contracts",

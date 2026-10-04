@@ -45,6 +45,7 @@ BRIDGE_MODULES = ("vkm_corpus", "vkm_corpus.update", "vkm_corpus.parquet", "vkm_
     "vkm_corpus.update.remote_models", "vkm_corpus.update.remote_retrieval",
     "vkm_corpus.update.native_files", "vkm_corpus.update.service_identity",
     "vkm_corpus.parquet.atomic", "vkm_evidence.contracts", "vkm_corpus.contracts.access", "vkm_corpus.contracts.access_vocab",
+    "vkm_corpus.contracts.vocab",
     "vkm_world.core.provenance", "vkm_corpus.retrieval.pins")
 DEPENDENCIES = (("httpx>=0.28,<1", "httpx"), ("pydantic>=2.13.5,<3", "pydantic"),
                 ("packaging>=26.3,<27", "packaging"))
