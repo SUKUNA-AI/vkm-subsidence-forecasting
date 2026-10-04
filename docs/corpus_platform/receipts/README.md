@@ -105,3 +105,9 @@ versions, 149 547 309 bytes, 23 batches и отдельно восстановл
 весь UNBACKED_UNIQUE и bootstrap/scientific admission остаются не доказанными.
 Receipt содержит только whitelist-агрегаты и approved bindings, без private paths,
 индивидуальных source hashes, payload и ключа.
+
+[native_owner_cpu_2026-10-04.json](native_owner_cpu_2026-10-04.json): точные hashes
+PUBLIC native placement/owner source и synthetic CPU JUnit. Declared platform
+NOT_RUN отделены от PASS; selections пересекаются и не суммируются. Проверены
+optional text → actual late owner, узкий status gate и обе actual ApiService factory
+передачи. Cached image/model/inference/full 49 tools и production switch NOT_RUN.

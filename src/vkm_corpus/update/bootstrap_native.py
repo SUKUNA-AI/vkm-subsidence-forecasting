@@ -491,7 +491,8 @@ class IsolatedBootstrap:
         if (app.state.update_runtime.config != runtime or runtime.native_serving is None
                 or not qualified_read_context(app.state.config, self.probes, release)):
             raise GenerationUnavailable("bootstrap private factory differs from pinned readers")
-        native = await NativeServingBindings.bind(app.state.service.deps, runtime.native_serving)
+        native = await NativeServingBindings.bind(
+            app.state.service.deps, runtime.native_serving, api_service=app.state.service)
         result = NativeRelease(None, app, app.state.update_runtime, native, self.probes, self.manifest)
         self.controller.coordinator.verify(self.manifest, result.components(), await native.observe_services())
         return result

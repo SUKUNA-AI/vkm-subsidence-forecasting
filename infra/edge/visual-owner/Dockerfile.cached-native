@@ -5,6 +5,10 @@ FROM ${PYTHON_IMAGE} AS python
 
 # This exact owned image was cold-built from pinned 4da source and 3 base pins.
 FROM sha256:c0c0280b8f59e040fadaba3f14bea0f9d8dae93c86fd9de7ca76f8203006609a AS native
+ARG PUBLIC_SOURCE_COMMIT
+ARG BUILD_INPUTS_SHA256
+LABEL vkm.owner.stage="cached-native-builder" vkm.owner-qualification="20261004-native-owners" \
+      vkm.owner.public-source="${PUBLIC_SOURCE_COMMIT}" vkm.owner.inputs-sha256="${BUILD_INPUTS_SHA256}"
 COPY --from=python /usr/local/ /usr/local/
 ENV LD_LIBRARY_PATH=/usr/local/lib:/out:/usr/local/cuda/lib64 PYTHONDONTWRITEBYTECODE=1
 COPY verify_native_cache.py /opt/verify-native-cache.py
@@ -27,6 +31,10 @@ RUN python -I /opt/verify-native-cache.py --plan /opt/native-cache-plan.json --p
  && cd /new-out && sha256sum llama-server *.so* > SHA256SUMS
 
 FROM ${CUDA_RUNTIME_IMAGE}
+ARG PUBLIC_SOURCE_COMMIT
+ARG BUILD_INPUTS_SHA256
+LABEL vkm.owner.stage="cached-runtime-builder" vkm.owner-qualification="20261004-native-owners" \
+      vkm.owner.public-source="${PUBLIC_SOURCE_COMMIT}" vkm.owner.inputs-sha256="${BUILD_INPUTS_SHA256}"
 COPY runtime-debs/ /debs/
 RUN set -eu; cd /debs; sha256sum -c SHA256SUMS; set -- /debs/*.deb; if [ -f "$1" ]; then dpkg -i "$@"; fi
 COPY --from=python /usr/local/ /usr/local/

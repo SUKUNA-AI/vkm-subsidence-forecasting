@@ -51,6 +51,17 @@ Frozen recovery helper: **47 PASS Windows**, Linux synthetic regression такж
 Runbooks: [DOCX](../development/DOCX_NATIVE_GRID_RU.md),
 [frozen fileset](../development/FROZEN_RECOVERY_FILESET_RU.md).
 
+Новый [owner CPU receipt](../corpus_platform/receipts/native_owner_cpu_2026-10-04.json)
+фиксирует independently repeated selections: owner/stream Linux 421 PASS / 2 Windows
+NOT_RUN; Windows 378 PASS / 45 явных Linux/compiler NOT_RUN; optional observer
+276 PASS на каждой ОС; status gate 259 PASS на каждой ОС; final factory/input/policy
+selection 219 PASS на каждой ОС. Эти числа относятся к пересекающимся selections
+и не складываются. Mandatory World на новой CPU policy: Linux 648 PASS.
+Оба operator/bootstrap factory передают фактический `app.state.service`, проверенный
+новыми positive/negative seam tests. Отдельно проверен отказ status gate: разрешён
+только intentionally disabled text при exact native late fallback identity; отказ
+visual или другой зависимости остаётся FAIL. Actual model load/inference не выполнен.
+
 Обязательный World: Linux 626 PASS; Windows 625 PASS / 1 FAIL WinError 1314
 из-за отсутствующего права создать symlink. Failed attempt сохранён, настройки ОС
 не менялись, fake PASS/skip не добавлен. PUBLIC+PRIVATE verifier: 36 PASS,
@@ -86,6 +97,8 @@ Windows 2508 PASS / 112 declared NOT_RUN / 50 external NOT_RUN. Прежний
    actual 49 tools, restart, failed-switch, restore и coherent previous rollback.
    Пока NOT_RUN. Владелец разрешил CORE/EDGE switch после успешной квалификации;
    короткое окно недоступности согласовано. GPU основного ПК запрещено использовать.
+   Первый LIVE baseline требует отдельного typed initialization boundary и
+   durable закрытия legacy ingress; shadow startup authority не переносится в live.
 6. **Научные данные:** полная DOCUMENT fidelity, реальные table/formula bindings,
    source-backed claims/entities/observation sets, конфликты и обе временные оси;
    independent stratified gold и сверка используемых данных по оригиналам; затем S26.

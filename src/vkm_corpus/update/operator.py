@@ -358,7 +358,8 @@ class CoreOperator:
                 or not qualified_read_context(app.state.config, plan, release)
                 or plan.scope != "SHADOW_PRODUCTION"):
             raise GenerationUnavailable("approved generation/acceptance/profile differ")
-        native = await NativeServingBindings.bind(app.state.service.deps, runtime.native_serving)
+        native = await NativeServingBindings.bind(
+            app.state.service.deps, runtime.native_serving, api_service=app.state.service)
         value = NativeRelease(binding, app, app.state.update_runtime, native, plan, manifest)
         self.controller.coordinator.verify(manifest, value.components(), await native.observe_services())
         return value
