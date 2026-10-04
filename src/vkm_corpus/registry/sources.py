@@ -110,18 +110,26 @@ def resource_path(resources_root: Path, relative: str) -> Path:
 
 def fresh_source_identity(resources_root: Path, relative: str, expected_sha: str,
                           expected_size: int | None) -> dict[str, Any]:
+    from vkm_corpus.extract.detect import inspect_file
+
     path = resource_path(resources_root, relative)
     before = path.stat()
     if not path.is_file() or is_lfs_pointer(path):
         raise RegisterError("source bytes are not a materialized file")
     sha = sha256_of(path)
+    # Reuse the extractor's byte-signature detector, never the extension or a cached prep declaration.
+    # Keep this read inside the same existing before/after source-identity fence as the fresh hash.
+    inspection = inspect_file(path, hash_file=False)
+    if not inspection.path_exists or inspection.is_lfs_pointer or "UNREADABLE" in inspection.flags:
+        raise RegisterError("source format inspection did not admit materialized readable bytes")
     after = path.stat()
     if (before.st_size, before.st_mtime_ns, before.st_ino, before.st_ctime_ns) != (
             after.st_size, after.st_mtime_ns, after.st_ino, after.st_ctime_ns):
         raise RegisterError("source changed while verifying its bytes")
     if sha != expected_sha or expected_size is None or after.st_size != expected_size:
         raise RegisterError("fresh source bytes differ from registered identity")
-    return {"canonical_path": relative, "sha256": sha, "size_bytes": after.st_size, "verification": "FRESH_SHA256"}
+    return {"canonical_path": relative, "sha256": sha, "size_bytes": after.st_size, "verification": "FRESH_SHA256",
+            "file_format": inspection.file_format}
 
 
 def check_file(resources_root: Path, row: Mapping[str, str], cache: ShaCache, *, fresh: bool = True) -> FileCheck:

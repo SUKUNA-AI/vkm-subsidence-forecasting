@@ -12,6 +12,7 @@ import os
 import re
 import time
 import traceback
+import zlib
 from pathlib import Path, PureWindowsPath
 from typing import Any
 
@@ -37,6 +38,91 @@ def _cfg_hash(d: dict[str, Any]) -> str:
     from vkm_corpus.contracts.signatures import config_hash
 
     return config_hash(d)
+
+
+def docx_grid_identity(source: SourceInput) -> dict[str, Any]:
+    """Exact child-stage identity of the native Word grid adapter, independent of filename.
+
+    This is cache freshness/provenance for grid parsing, not full object extraction
+    identity or scientific admission. No source path is read to compute it.
+    """
+    from lxml import etree
+    from vkm_corpus.extract.docx import DOCX_GRID_RULE, MAX_DOCX_GRID_COLUMNS, MAX_DOCX_GRID_POSITIONS
+
+    libraries = {"lxml": ".".join(map(str, etree.LXML_VERSION)),
+                 "libxml2": ".".join(map(str, etree.LIBXML_VERSION))}
+    limits = {"max_columns": MAX_DOCX_GRID_COLUMNS, "max_grid_positions": MAX_DOCX_GRID_POSITIONS}
+    signature = _sig(source_sha256=source.sha256, stage="NATIVE_TEXT", pipeline_version=PIPELINE_VERSION,
+        extractor_id="docx-xml", extractor_version=EXTRACTOR_VERSIONS["docx-xml"],
+        extraction_generation=GENERATIONS["docx-xml"],
+        stage_config_hash=_cfg_hash({"scope": "DOCX_NATIVE_GRID", "rule": DOCX_GRID_RULE, "libraries": libraries,
+                                     "limits": limits}))
+    return {"docx_grid_rule": DOCX_GRID_RULE, "docx_grid_signature": signature,
+            "docx_grid_libraries": libraries, "docx_grid_limits": limits}
+
+
+def docx_grid_current(value: dict[str, Any], source: SourceInput) -> bool:
+    """Fail closed on old/missing/forged DOCX child-stage metadata, including renamed packages."""
+    if not isinstance(value, dict) or value.get("source_id") != source.source_id or value.get("source_sha256") != source.sha256:
+        return False
+    return all(value.get(key) == expected for key, expected in docx_grid_identity(source).items())
+
+
+class _ReadOnlyNativeStore:
+    """Artifact reads without ArtifactStore's directory-creating constructor."""
+    find = ArtifactStore.find
+    read_bytes = ArtifactStore.read_bytes
+    read_json = ArtifactStore.read_json
+
+    def __init__(self, root: Path):
+        self.root = Path(root)
+
+
+def docx_grid_cache_current(prep: dict[str, Any], source: SourceInput, *, store=None, data_root=None) -> bool:
+    """Fresh native child metadata in both summary and hash-verified artifact; no filesystem writes."""
+    if (not isinstance(prep, dict) or (prep.get("inspect") or {}).get("file_format") != "DOCX"
+            or not docx_grid_current(prep, source)):
+        return False
+    aid = prep.get("document_raw_artifact_id")
+    if not isinstance(aid, str) or not re.fullmatch(r"sha256:[a-f0-9]{64}", aid):
+        return False
+    if store is None:
+        if data_root is None:
+            return False
+        store = _ReadOnlyNativeStore(Path(data_root) / "artifacts")
+    try:
+        raw = store.read_json(aid)
+        return (isinstance(raw, dict) and raw.get("schema") == "vkm.native_raw.docx_document/1"
+                and docx_grid_current(raw, source))
+    except (KeyError, ValueError, FileNotFoundError, RuntimeError, OSError, EOFError, zlib.error):
+        return False
+
+
+def source_format_admitted(cfg: PipelineConfig, source: SourceInput, prep: dict[str, Any], *,
+                           _fresh_source_identity: dict[str, Any] | None = None) -> bool:
+    """Production cache reuse requires the actual admitted source format.
+
+    The private keyword is only for the current source-owned planner's fresh admission result;
+    never populate it from prep/cache/manifest JSON. Direct consumers independently admit bytes.
+    This is a predicate, not a new PREPARE/commit/OCR signature component. Exploratory readers
+    retain their historical diagnostic behavior when original files are unavailable.
+    """
+    if cfg.profile != "production":
+        return True
+    from vkm_corpus.registry.sources import RegisterError, fresh_source_identity
+
+    actual = _fresh_source_identity
+    if actual is None:
+        actual = fresh_source_identity(cfg.resources_root, source.canonical_path, source.sha256, source.size_bytes)
+    if (actual.get("canonical_path") != source.canonical_path or actual.get("sha256") != source.sha256
+            or actual.get("size_bytes") != source.size_bytes or actual.get("verification") != "FRESH_SHA256"
+            or not isinstance(actual.get("file_format"), str)):
+        raise RegisterError("fresh source format identity does not match selected source")
+    inspection = prep.get("inspect")
+    return (actual["file_format"] in {"PDF", "DJVU", "EPUB", "DOCX"}
+            and isinstance(inspection, dict) and prep.get("source_id") == source.source_id
+            and prep.get("source_sha256") == source.sha256
+            and inspection.get("file_format") == actual["file_format"])
 
 
 def library_versions() -> dict[str, str]:
@@ -258,14 +344,18 @@ def _prepare_docx(cfg: PipelineConfig, store: ArtifactStore, cache: StageCache, 
     from vkm_corpus.extract import pdf_native
 
     dd = dx.read_docx(path)
-    rec = store.put_json({"schema": "vkm.native_raw.docx_document/1", "paragraphs": [p.__dict__ for p in dd.paragraphs],
+    identity = docx_grid_identity(src)
+    rec = store.put_json({"schema": "vkm.native_raw.docx_document/1", "source_id": src.source_id,
+                          "source_sha256": src.sha256, **identity, "paragraphs": [p.__dict__ for p in dd.paragraphs],
                           "maths": [m.__dict__ for m in dd.maths], "tables": [t.__dict__ for t in dd.tables],
                           "images": [i.__dict__ for i in dd.images], "app_properties": dd.app_properties,
                           "core_properties": dd.core_properties, "counts": dd.counts,
                           "raw_parts": dd.raw_parts, "raw_parts_base64": dd.raw_parts_base64,
                           "diagnostics": dd.diagnostics, "package_manifest": dd.package_manifest},
-                         "NATIVE_RAW", compress=True, source_id=src.source_id)
+                         "NATIVE_RAW", compress=True, source_id=src.source_id,
+                         producer_signature=identity["docx_grid_signature"])
     prep["document_raw_artifact_id"] = rec.artifact_id
+    prep.update(identity)
     prep["docx_counts"] = dd.counts
     prep["document"] = {"is_encrypted": False, "has_native_page_labels": None,
                         "metadata": {**{f"app_{k}": v for k, v in dd.app_properties.items()},
@@ -348,14 +438,29 @@ def prepare_source(cfg: PipelineConfig, store: ArtifactStore, cache: StageCache,
     elif "SHA256_MISMATCH" in info.flags:
         prep["status"] = "FAILED"
         prep["errors"].append(_err("SOURCE_SHA256_MISMATCH", "INSPECT", "sha256 differs from the register"))
+    elif "UNREADABLE" in info.flags:
+        prep["status"] = "FAILED"
+        prep["errors"].append(_err("SOURCE_UNREADABLE", "INSPECT", "source format inspection failed"))
     else:
         # Admission is based on current bytes, never mtime/size or cached success.
         if not force:
             cached = load_prep(cfg.data_root, src.source_id, sig)
+            docx_cache_current = True
+            if (info.file_format == "DOCX" or cached is not None
+                    and (cached.get("inspect") or {}).get("file_format") == "DOCX"):
+                # Format was inspected from admitted bytes, never guessed from
+                # the filename. The child identity closes legacy/disguised cache reuse.
+                docx_cache_current = (cached is not None
+                    and (cached.get("inspect") or {}).get("file_format") == info.file_format == "DOCX"
+                    and docx_grid_cache_current(cached, src, store=store, data_root=cfg.data_root))
             if (cached is not None and cached.get("status") == "PREPARED" and not cached.get("transient_errors")
                     and not cached.get("errors") and cached.get("schema") == PREP_SCHEMA
                     and cached.get("source_sha256") == src.sha256 and cached.get("prepare_signature") == sig
-                    and not any(row.get("route") == "FAILED" for row in cached.get("pages", []))):
+                    and not any(row.get("route") == "FAILED" for row in cached.get("pages", []))
+                    and info.file_format in {"PDF", "DJVU", "EPUB", "DOCX"}
+                    and (cfg.profile != "production"
+                         or (cached.get("inspect") or {}).get("file_format") == info.file_format)
+                    and docx_cache_current):
                 return cached
         try:
             if info.file_format == "PDF":
@@ -385,7 +490,7 @@ def prepare_source(cfg: PipelineConfig, store: ArtifactStore, cache: StageCache,
 
     prep["accounting_expected"] = expected_summary(prep)
     prep["t_s"] = round(time.perf_counter() - t0, 2)
-    if not info.path_exists or info.is_lfs_pointer or "SHA256_MISMATCH" in info.flags:
+    if not info.path_exists or info.is_lfs_pointer or {"SHA256_MISMATCH", "UNREADABLE"}.intersection(info.flags):
         return prep  # do not poison or overwrite a cache for different/unavailable bytes
     p = prep_path(cfg.data_root, src.source_id, sig)
     p.parent.mkdir(parents=True, exist_ok=True)

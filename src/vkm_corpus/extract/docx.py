@@ -18,6 +18,11 @@ from pathlib import Path
 from typing import Any
 
 EXTRACTOR_ID = "docx-xml"
+DOCX_GRID_RULE = "docx-native-grid/2"
+# Limits concern inferred grid geometry, not the physical source objects.
+# Unsupported geometry remains fully raw-accounted, never silently clipped.
+MAX_DOCX_GRID_COLUMNS = 16_384
+MAX_DOCX_GRID_POSITIONS = 1_000_000
 NS = {
     "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
     "m": "http://schemas.openxmlformats.org/officeDocument/2006/math",
@@ -63,8 +68,9 @@ class DocxTable:
     xml: str
     cells: list[dict[str, Any]]
     n_rows: int
-    n_cols: int
+    n_cols: int | None
     text: str
+    grid_audit: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -132,53 +138,185 @@ def _math_linear(m: Any) -> str:
     return "".join(t.text or "" for t in m.iter(M + "t"))
 
 
-def _grid(tbl: Any) -> tuple[list[dict[str, Any]], int, int]:
-    """Cells of a w:tbl with row/col spans (gridSpan, vMerge restart/continue)."""
+def native_table_grid(tbl: Any, *, locator=None) -> tuple[list[dict[str, Any]], int, int | None, dict[str, Any]]:
+    """Project explicit Word grid structure; never join a vertical merge across a missing row.
+
+    The audit accounts for every physical ``w:tc``, including continuation cells.
+    Malformed geometry stays in raw markup/audit rather than receiving guessed spans.
+    """
+    locate = locator or tbl.getroottree().getpath
     rows = [tr for tr in tbl if tr.tag == W + "tr"]
     cells: list[dict[str, Any]] = []
-    open_vmerge: dict[int, dict[str, Any]] = {}
+    previous_vmerge: dict[int, dict[str, Any]] = {}
+    physical, row_audit, diagnostics = [], [], []
+    geometry_known = True
+    grid = tbl.find(W + "tblGrid")
+    declared_cols = sum(child.tag == W + "gridCol" for child in grid) if grid is not None else None
+    if declared_cols is not None and declared_cols > MAX_DOCX_GRID_COLUMNS:
+        diagnostics.append({"code": "GRID_COLUMN_LIMIT", "raw_locator": locate(grid),
+                            "declared_columns": declared_cols, "limit": MAX_DOCX_GRID_COLUMNS})
+        geometry_known = False
     ncols = 0
+
+    def integer(element, default, minimum, code, row, limit_code):
+        nonlocal geometry_known
+        if element is None:
+            return default
+        raw = element.get(W + "val")
+        try:
+            value = int(raw)
+        except (TypeError, ValueError):
+            value = None
+        if value is None or value < minimum or value > 2_147_483_647:
+            diagnostics.append({"code": code, "row": row, "raw_locator": locate(element), "raw_value": raw})
+            geometry_known = False
+            return None
+        if value > MAX_DOCX_GRID_COLUMNS:
+            diagnostics.append({"code": limit_code, "row": row, "raw_locator": locate(element),
+                                "raw_value": raw, "limit": MAX_DOCX_GRID_COLUMNS})
+            geometry_known = False
+            return None
+        return value
+
     for r, tr in enumerate(rows):
+        # Only entries observed in the immediately preceding row may continue.
+        # A gridBefore/gridAfter omission, empty row or ordinary cell closes the chain.
+        next_vmerge: dict[int, dict[str, Any]] = {}
         row_pr = tr.find(W + "trPr")
         before = row_pr.find(W + "gridBefore") if row_pr is not None else None
         after = row_pr.find(W + "gridAfter") if row_pr is not None else None
         header = row_pr.find(W + "tblHeader") if row_pr is not None else None
-        c = max(0, int(before.get(W + "val", "0"))) if before is not None else 0
-        is_header = header is not None and header.get(W + "val", "1").lower() not in ("0", "false", "off")
+        c = integer(before, 0, 0, "INVALID_GRID_BEFORE", r, "GRID_BEFORE_LIMIT")
+        omitted_after = integer(after, 0, 0, "INVALID_GRID_AFTER", r, "GRID_AFTER_LIMIT")
+        header_value = header.get(W + "val", "1").lower() if header is not None else None
+        is_header = header_value in {"1", "true", "on"}
+        if header_value is not None and header_value not in {"1", "true", "on", "0", "false", "off"}:
+            diagnostics.append({"code": "INVALID_TABLE_HEADER", "row": r,
+                                "raw_locator": locate(header), "raw_value": header.get(W + "val")})
+        row_audit.append({"row": r, "raw_locator": locate(tr), "grid_before": c,
+                          "grid_after": omitted_after, "is_header": is_header,
+                          "declared_grid_before": before.get(W + "val") if before is not None else None,
+                          "declared_grid_after": after.get(W + "val") if after is not None else None,
+                          "header_declaration": {"raw_locator": locate(header), "raw_value": header.get(W + "val")}
+                                                if header is not None else None})
         for tc in tr:
             if tc.tag != W + "tc":
                 continue
             pr = tc.find(W + "tcPr")
+            gs = vm = hm = None
             span = 1
             vmerge = None
+            cell_diagnostics = []
             if pr is not None:
                 gs = pr.find(W + "gridSpan")
-                if gs is not None:
-                    span = int(gs.get(W + "val", "1"))
+                span = integer(gs, 1, 1, "INVALID_GRID_SPAN", r, "GRID_COLUMN_LIMIT")
                 vm = pr.find(W + "vMerge")
                 if vm is not None:
                     vmerge = vm.get(W + "val", "continue")
+                    if vmerge not in {"restart", "continue"}:
+                        cell_diagnostics.append("INVALID_VERTICAL_MERGE")
+                hm = pr.find(W + "hMerge")
+                if hm is not None:
+                    # Legacy hMerge does not establish gridSpan. Preserve its exact
+                    # markup without claiming an unimplemented horizontal projection.
+                    cell_diagnostics.append("UNSUPPORTED_HORIZONTAL_MERGE")
+                    geometry_known = False
             text = "\n".join(_para_text(p) for p in tc.iter(W + "p")
                              if next((a for a in p.iterancestors() if a.tag == W + "tbl"), None) is tbl
                              and not any(a.tag == W + "txbxContent" for a in p.iterancestors())).strip()
-            cell_path = tbl.getroottree().getpath(tc)
-            if vmerge == "continue" and c in open_vmerge and open_vmerge[c]["col_span"] == span:
-                open_vmerge[c]["row_span"] += 1
-                open_vmerge[c]["merge_fragments"].append({"row": r, "raw_locator": cell_path, "text": text})
+            cell_path = locate(tc)
+            physical.append({"row": r, "col": c, "col_span": span, "is_header": is_header,
+                             "raw_locator": cell_path, "text": text, "vmerge": vmerge,
+                             "declared_grid_span": gs.get(W + "val") if gs is not None else None,
+                             "vmerge_declaration": {"raw_locator": locate(vm), "raw_value": vm.get(W + "val")}
+                                                   if vm is not None else None,
+                             "hmerge_declaration": {"raw_locator": locate(hm), "raw_value": hm.get(W + "val")}
+                                                   if hm is not None else None})
+            origin = previous_vmerge.get(c) if c is not None else None
+            if c is not None and span is not None and vmerge == "continue" and origin is not None \
+                    and origin["col_span"] == span:
+                origin["row_span"] += 1
+                origin["merge_fragments"].append({"row": r, "raw_locator": cell_path, "text": text,
+                                                  "is_header": is_header})
                 if text:
-                    open_vmerge[c]["text"] += "\n" + text
-            else:
+                    origin["text"] += "\n" + text
+                next_vmerge[c] = origin
+            elif c is not None and span is not None:
+                if vmerge == "continue":
+                    cell_diagnostics.append("VERTICAL_MERGE_SPAN_MISMATCH" if origin is not None
+                                            else "ORPHAN_VERTICAL_MERGE")
                 cell = {"row": r, "col": c, "row_span": 1, "col_span": span, "is_header": is_header, "text": text,
                         "raw_locator": cell_path, "merge_fragments": [],
-                        "structural_diagnostics": ["ORPHAN_VERTICAL_MERGE"] if vmerge == "continue" else []}
+                        "structural_diagnostics": cell_diagnostics}
                 cells.append(cell)
                 if vmerge == "restart":
-                    open_vmerge[c] = cell
-                else:
-                    open_vmerge.pop(c, None)
-            c += span
-        ncols = max(ncols, c + (max(0, int(after.get(W + "val", "0"))) if after is not None else 0))
-    return cells, len(rows), ncols
+                    next_vmerge[c] = cell
+            diagnostics.extend({"code": code, "row": r, "raw_locator": cell_path}
+                               for code in cell_diagnostics)
+            c = c + span if c is not None and span is not None else None
+            if c is not None and c > 2_147_483_647:
+                diagnostics.append({"code": "GRID_WIDTH_OVERFLOW", "row": r, "raw_locator": cell_path})
+                geometry_known, c = False, None
+            elif c is not None and c > MAX_DOCX_GRID_COLUMNS:
+                diagnostics.append({"code": "GRID_COLUMN_LIMIT", "row": r, "raw_locator": cell_path,
+                                    "observed_columns": c, "limit": MAX_DOCX_GRID_COLUMNS})
+                geometry_known, c = False, None
+        previous_vmerge = next_vmerge
+        width = c + omitted_after if c is not None and omitted_after is not None else None
+        if width is not None and width > 2_147_483_647:
+            diagnostics.append({"code": "GRID_WIDTH_OVERFLOW", "row": r, "raw_locator": locate(tr)})
+            geometry_known, width = False, None
+        elif width is not None and width > MAX_DOCX_GRID_COLUMNS:
+            diagnostics.append({"code": "GRID_COLUMN_LIMIT", "row": r, "raw_locator": locate(tr),
+                                "observed_columns": width, "limit": MAX_DOCX_GRID_COLUMNS})
+            geometry_known, width = False, None
+        row_audit[-1]["observed_width"] = width
+        if width is not None:
+            ncols = max(ncols, width)
+            if declared_cols is not None and width != declared_cols:
+                diagnostics.append({"code": "ROW_GRID_WIDTH_MISMATCH", "row": r, "raw_locator": locate(tr),
+                                    "declared_columns": declared_cols, "observed_width": width})
+    ncols = max(ncols, declared_cols or 0) if geometry_known else None
+    if ncols is not None and len(rows) * ncols > MAX_DOCX_GRID_POSITIONS:
+        diagnostics.append({"code": "GRID_POSITION_LIMIT", "raw_locator": locate(tbl), "n_rows": len(rows),
+                            "observed_columns": ncols, "limit": MAX_DOCX_GRID_POSITIONS})
+        geometry_known, ncols = False, None
+    if not geometry_known:
+        cells = []
+    audit = {"rule": DOCX_GRID_RULE, "status": "STRUCTURE_UNRESOLVED" if not geometry_known else
+             "NEEDS_REVIEW" if diagnostics else "PARSED_UNREVIEWED", "table_locator": locate(tbl),
+             "declared_columns": declared_cols, "physical_cell_count": len(physical), "rows": row_audit,
+             "physical_cells": physical, "diagnostics": diagnostics, "projected_cells": cells,
+             "n_rows": len(rows), "n_cols": ncols, "scientific_admission": "NOT_ESTABLISHED"}
+    audit["limits"] = {"max_columns": MAX_DOCX_GRID_COLUMNS, "max_grid_positions": MAX_DOCX_GRID_POSITIONS}
+    return cells, len(rows), ncols, audit
+
+
+def _grid(tbl: Any) -> tuple[list[dict[str, Any]], int, int | None]:
+    """Compatibility wrapper for callers requiring only the projected grid."""
+    cells, rows, cols, _ = native_table_grid(tbl)
+    return cells, rows, cols
+
+
+def grid_audit_matches(xml: str, table_locator: str, audit: dict[str, Any]) -> bool:
+    """Verify a cached audit against its exact native table markup and occurrence.
+
+    Detached XML receives the original table prefix; main-part anchors stay unchanged.
+    This checks deterministic structural parsing, never original-source review.
+    """
+    from lxml import etree
+
+    try:
+        table = etree.fromstring(xml.encode("utf-8"), etree.XMLParser(resolve_entities=False, no_network=True))
+        if table.tag != W + "tbl":
+            return False
+        tree = table.getroottree()
+        root_path = tree.getpath(table)
+        _, _, _, expected = native_table_grid(table, locator=lambda el:
+            table_locator + tree.getpath(el)[len(root_path):])
+        return audit == expected
+    except (ValueError, TypeError, etree.XMLSyntaxError):
+        return False
 
 
 def read_docx(path: Path) -> DocxDoc:
@@ -263,10 +401,11 @@ def read_docx(path: Path) -> DocxDoc:
                     if container == 'BODY':
                         counts['paragraphs_body'] += 1
                 elif el.tag == W + 'tbl':
-                    cells, nr, nc = _grid(el)
+                    cells, nr, nc, grid_audit = native_table_grid(el, locator=locator)
                     doc.tables.append(DocxTable(len(doc.tables) + 1, locator(el),
                         etree.tostring(el, encoding='unicode'), cells, nr, nc,
-                        '\n'.join(c['text'] for c in cells if c['text'])))
+                        '\n'.join(c['text'] for c in cells if c['text']) if cells else
+                        '\n'.join(c['text'] for c in grid_audit['physical_cells'] if c['text']), grid_audit))
                     counts['tables_all'] += 1
                     if part == 'word/document.xml' and el.getparent().tag == W + 'body':
                         counts['tables_body'] += 1

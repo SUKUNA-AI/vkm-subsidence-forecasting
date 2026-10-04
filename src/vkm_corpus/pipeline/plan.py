@@ -17,7 +17,7 @@ from vkm_corpus.extract.model import SourceInput
 from vkm_corpus.pipeline import commit as cm
 from vkm_corpus.pipeline import ocr_stage
 from vkm_corpus.pipeline.config import PipelineConfig
-from vkm_corpus.pipeline.prepare import load_prep
+from vkm_corpus.pipeline.prepare import docx_grid_cache_current, load_prep, source_format_admitted
 from vkm_corpus.pipeline.context import producer_identity
 from vkm_corpus.registry.sources import fresh_source_identity
 
@@ -61,6 +61,14 @@ def build_plan(cfg: PipelineConfig, sources: list[SourceInput], cache: Any, stor
             continue
         sig = cm.prep_signature_for(cfg, s)
         prep = load_prep(cfg.data_root, s.source_id, sig)
+        admitted = {"_fresh_source_identity": fresh[s.source_id]} if s.source_id in fresh else {}
+        if prep is not None and not source_format_admitted(cfg, s, prep, **admitted):
+            prep = None
+            e["reasons"].append("SOURCE_FORMAT_CACHE_MISMATCH")
+        if prep is not None and (prep.get("inspect") or {}).get("file_format") == "DOCX" \
+                and not docx_grid_cache_current(prep, s, store=store):
+            prep = None
+            e["reasons"].append("DOCX_NATIVE_GRID_STALE")
         any_prep = (Path(cfg.data_root) / "cache" / "prep" / s.source_id).exists()
         if prep is None:
             e["prepare"] = "SIGNATURE_CHANGED" if any_prep else "NEW"
@@ -71,7 +79,7 @@ def build_plan(cfg: PipelineConfig, sources: list[SourceInput], cache: Any, stor
         visual = None
         if prep is not None:
             prep.setdefault("canonical_path", s.canonical_path)
-            _, visual = cm.load_state(cfg, s)
+            _, visual = cm.load_state(cfg, s, **admitted)
             fmt = prep.get("inspect", {}).get("file_format")
             e["pages"] = len(prep.get("pages", []))
             e["format"] = fmt
@@ -123,7 +131,7 @@ def build_plan(cfg: PipelineConfig, sources: list[SourceInput], cache: Any, stor
             totals["ocr_calls_known"] += e["ocr_calls_known"]
             if e["ocr_calls_known"]:
                 e["reasons"].append("OCR_PENDING")
-        csig = cm.commit_signature(cfg, cache, s, prep, visual) if prep is not None else None
+        csig = cm.commit_signature(cfg, cache, s, prep, visual, **admitted) if prep is not None else None
         led = ledger.get(s.source_id)
         e["commit_signature"] = csig
         e["head_status"] = (led or {}).get("document_processing_status")

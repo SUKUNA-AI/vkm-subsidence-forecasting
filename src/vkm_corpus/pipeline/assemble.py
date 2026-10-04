@@ -7,6 +7,7 @@ result is found by its call signature; a task without a cached result leaves the
 """
 from __future__ import annotations
 
+import hashlib
 import re
 from pathlib import Path
 from typing import Any
@@ -950,9 +951,12 @@ class Assembler:
 
     # ------------------------------------------------------------------ DOCX
     def _docx(self) -> None:
-        from vkm_corpus.extract.docx import align_to_pages
+        from vkm_corpus.extract.docx import DOCX_GRID_RULE, align_to_pages, grid_audit_matches
 
         raw = self.store.read_json(self.prep["document_raw_artifact_id"])
+        from vkm_corpus.pipeline.prepare import docx_grid_current
+
+        native_grid_identity_current = docx_grid_current(raw, self.src) and docx_grid_current(self.prep, self.src)
         docx_hash = _cfg_hash({"docx": "blocks_v2_parts"})
         page_texts = []
         for row in self.prep["pages"]:
@@ -1004,6 +1008,25 @@ class Assembler:
                         cells=t["cells"], normalized_text=norm_text, anchor_ordinal=t["order"])
             tb.extra.update({"docx_paragraph_path": t["path"], "render_page_index": pg,
                              "render_page_status": "RENDER_DEPENDENT", "render_alignment_score": score})
+            grid_audit = t.get("grid_audit")
+            if (not native_grid_identity_current or not grid_audit or grid_audit.get("rule") != DOCX_GRID_RULE
+                    or grid_audit.get("table_locator") != t["path"]
+                    or grid_audit.get("projected_cells") != t["cells"]
+                    or grid_audit.get("n_rows") != t["n_rows"] or grid_audit.get("n_cols") != t["n_cols"]
+                    or not grid_audit_matches(t["xml"], t["path"], grid_audit)):
+                # Historical raw artifacts remain readable. Their old projection
+                # is not silently promoted to the new native-grid contract.
+                grid_audit = {"rule": DOCX_GRID_RULE, "status": "NOT_AVAILABLE", "table_locator": t["path"],
+                              "diagnostics": [{"code": "NATIVE_GRID_AUDIT_MISSING_OR_INCONSISTENT"}],
+                              "scientific_admission": "NOT_ESTABLISHED"}
+            audit = self.store.put_json({"schema": "vkm.docx_native_grid/1", "source_id": self.src.source_id,
+                "source_sha256": self.src.sha256, "native_raw_artifact_id": self.prep["document_raw_artifact_id"],
+                "table_raw_content_sha256": hashlib.sha256(t["xml"].encode("utf-8")).hexdigest(), "grid": grid_audit},
+                "NATIVE_RAW", compress=True, source_id=self.src.source_id)
+            tb.raw_artifacts = [*tb.raw_artifacts, ("STRUCTURAL_DIAGNOSTICS", audit.artifact_id)]
+            tb.extra["native_grid_status"] = grid_audit["status"]
+            if grid_audit["status"] != "PARSED_UNREVIEWED":
+                tb.quality_flags.append("TABLE_STRUCTURE_UNCERTAIN")
             if any(c["row_span"] > 1 or c["col_span"] > 1 for c in t["cells"]):
                 tb.quality_flags.append("SPANNING_CELLS")
             self.result.tables.append(tb)

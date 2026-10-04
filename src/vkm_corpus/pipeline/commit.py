@@ -19,7 +19,7 @@ from vkm_corpus.pipeline import scenario_b as sb
 from vkm_corpus.pipeline.assemble import Assembler
 from vkm_corpus.pipeline.cache import JsonlAppender, _iter_lines
 from vkm_corpus.pipeline.config import PipelineConfig
-from vkm_corpus.pipeline.prepare import load_prep, prepare_signature
+from vkm_corpus.pipeline.prepare import docx_grid_cache_current, load_prep, prepare_signature, source_format_admitted
 from vkm_corpus.pipeline.visual import load_visual, visual_signature
 from vkm_corpus.versions import PIPELINE_VERSION
 
@@ -35,10 +35,16 @@ def prep_signature_for(cfg: PipelineConfig, src: SourceInput) -> str:
                              if src.canonical_path.lower().endswith(".docx") else None)
 
 
-def load_state(cfg: PipelineConfig, src: SourceInput) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+def load_state(cfg: PipelineConfig, src: SourceInput, *, _fresh_source_identity: dict[str, Any] | None = None
+               ) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
     prep = load_prep(cfg.data_root, src.source_id, prep_signature_for(cfg, src))
     if prep is None:
         return None, None
+    if not source_format_admitted(cfg, src, prep, _fresh_source_identity=_fresh_source_identity):
+        return None, None
+    if prep.get("inspect", {}).get("file_format") == "DOCX" and not docx_grid_cache_current(
+            prep, src, data_root=cfg.data_root):
+        return None, None  # old native DOCX prep requires fresh adapter execution, even without .docx suffix
     prep.setdefault("canonical_path", src.canonical_path)
     visual = load_visual(cfg.data_root, src.source_id, visual_signature(cfg, prep)) \
         if prep.get("inspect", {}).get("file_format") in ("PDF", "DJVU", "DOCX") else None
@@ -125,9 +131,15 @@ def load_ledger(cfg: PipelineConfig) -> dict[str, dict[str, Any]]:
 
 
 def commit_signature(cfg: PipelineConfig, cache: Any, src: SourceInput, prep: dict[str, Any] | None,
-                     visual: dict[str, Any] | None, *, accounting_events: list[dict] | None = None) -> str | None:
+                     visual: dict[str, Any] | None, *, accounting_events: list[dict] | None = None,
+                     _fresh_source_identity: dict[str, Any] | None = None) -> str | None:
     """Signature of everything a commit is built from (configs, prep/visual summaries, cached model results)."""
     if prep is None:
+        return None
+    if not source_format_admitted(cfg, src, prep, _fresh_source_identity=_fresh_source_identity):
+        return None
+    docx = (prep.get("inspect") or {}).get("file_format") == "DOCX"
+    if docx and not docx_grid_cache_current(prep, src, data_root=cfg.data_root):
         return None
     from vkm_corpus.extract.bibliography import CONFIG_HASH as BIBLIOGRAPHY_RULES
     from vkm_corpus.coverage.accounting import ocr_events
@@ -140,14 +152,18 @@ def commit_signature(cfg: PipelineConfig, cache: Any, src: SourceInput, prep: di
     calls = sorted(r["raw_artifact_id"] for entries in cache.calls.values() for r in entries
                    if r.get("source_id") == src.source_id and r.get("status") == "OK" and r.get("kind") == "OCR")
     decision = load_decision(cfg, cache, prep)
-    return _cfg_hash({"pipeline": PIPELINE_VERSION, "prep": prep.get("prepare_signature"),
+    inputs = {"pipeline": PIPELINE_VERSION, "prep": prep.get("prepare_signature"),
                       "visual": (visual or {}).get("visual_signature"),
                       "visual_complete": (visual or {}).get("complete"),
                       "configs": {k: cfg.stage_config(k) for k in ("REGIONS", "OCR", "NORMALIZE", "SCENARIO_B")},
                       "ocr_results": _cfg_hash({"ids": calls}), "decision": (decision or {}).get("decision"),
                       "to_canon": "to_canon_v3", "bibliography": BIBLIOGRAPHY_RULES,
                       "accounting": "pipeline-object-accounting/1",
-                      "accounting_events": sorted(ref["sha256"] for ref in accounting_events)})
+                      "accounting_events": sorted(ref["sha256"] for ref in accounting_events)}
+    if docx:
+        inputs["docx_native_grid"] = {"signature": prep["docx_grid_signature"],
+                                      "native_artifact_id": prep["document_raw_artifact_id"]}
+    return _cfg_hash(inputs)
 
 
 # ---------------------------------------------------------------------------------------------------- commit

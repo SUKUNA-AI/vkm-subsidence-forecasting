@@ -314,6 +314,8 @@ class SourceAccounting:
             if matches and candidate["kind"] == "FORMULA" and any(not r.get("raw_output") for r in matches.values()):
                 state, reason = "NEEDS_REVIEW", "FORMULA_IMAGE_ONLY_OR_EMPTY"
             native_grid = candidate["details"].get("native_cell_projection_sha256")
+            if native_grid and matches and "TABLE_STRUCTURE_UNCERTAIN" in flags:
+                state, reason = "NEEDS_REVIEW", "NATIVE_TABLE_STRUCTURE_UNCERTAIN"
             if native_grid and matches and any(record_hash(r.get("cells", [])) != native_grid or
                     r.get("n_rows") != candidate["details"]["native_rows"] or
                     r.get("n_cols") != candidate["details"]["native_cols"] for r in matches.values()):
