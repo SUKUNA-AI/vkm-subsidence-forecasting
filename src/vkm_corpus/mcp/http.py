@@ -213,7 +213,7 @@ def build(kind: Literal["read", "admin"], config: McpHttpConfig | None = None, *
         from pathlib import Path
         if config.kind != "read" or not config.deployment_gate_file or not Path(config.deployment_gate_file).is_file():
             raise ConfigError("qualified MCP proof requires the read receiver and existing gate")
-        barrier = ReceiverBarrier("core-read-mcp", gate_path=Path(config.deployment_gate_file))
+        barrier = ReceiverBarrier("core-read-mcp", gate_path=Path(config.deployment_gate_file), require_durable=True)
         proof = McpReceiverProofMiddleware(app, server, api, config, barrier)
         return AdmissionBarrierMiddleware(proof, provider=lambda: barrier)
     return app

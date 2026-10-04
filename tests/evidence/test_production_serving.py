@@ -107,6 +107,39 @@ def replace_acceptance(runtime, **changes):
 
 
 @requires_linux_receiver
+def test_operator_receiver_starts_closed_without_durable_record_but_proves_metadata(tmp_path):
+    import asyncio
+    from dataclasses import replace
+    from vkm_corpus.update.admission import AdmissionState, STATE_FILE
+    deps, runtime, cfg, root = setup(tmp_path)
+    cfg = replace(cfg, deployment_token="x" * 64)
+    guard = bind_generation_guard(deps, runtime, cfg, root)
+    served = runtime.root / "served"
+    try:
+        assert guard()["status"] == "UNAVAILABLE"
+        proof = asyncio.run(deps.receiver_identity("1" * 64))
+        assert not proof.admission_open  # metadata proof does not open content
+        current = (served / "CURRENT").read_text()
+        event = {"schema": "vkm-deployment-event/1", "request_key": "a" * 64,
+                 "parent_sha256": None, "phase": "RECEIVERS_VERIFIED", "detail": {
+                     "generation_sha256": current, "native_sha256": "b" * 64,
+                     "receiver_proofs": {"synthetic-test-receiver": "c" * 64}}}
+        data = canonical_bytes(event)
+        import hashlib
+        sha = hashlib.sha256(data).hexdigest()
+        (served / "journals").mkdir()
+        (served / "journals" / (sha + ".json")).write_bytes(data)
+        (served / STATE_FILE).write_bytes(canonical_bytes(AdmissionState(status="OPEN", request_key="a" * 64,
+            generation_sha256=current, verified_event_sha256=sha)))
+        assert guard()["status"] == "READY"
+        (served / STATE_FILE).unlink()
+        assert guard()["status"] == "UNAVAILABLE"
+        assert not asyncio.run(deps.receiver_identity("2" * 64)).admission_open
+    finally:
+        deps.serving_file_lease.close()
+
+
+@requires_linux_receiver
 def test_receiver_proof_observes_actual_bound_generation_and_native_process(tmp_path):
     import asyncio
     from vkm_corpus.update.receiver import linux_process_identity, verify_identity, ReceiverChallenge, sign_identity

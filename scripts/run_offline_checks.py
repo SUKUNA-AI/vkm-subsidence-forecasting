@@ -50,6 +50,7 @@ KNOWN_SKIPS = (
 LINUX_RECEIVER_REASON = ("NOT_RUN: qualified production receiver requires Linux filesystem change-time semantics; "
                          "native Windows ChangeTime/reparse-handle qualification unavailable")
 LINUX_RECEIVER_CASES = (
+    "test_operator_receiver_starts_closed_without_durable_record_but_proves_metadata",
     "test_receiver_proof_observes_actual_bound_generation_and_native_process",
     "test_receiver_proof_rejects_mutation_and_gate_replacement",
     "test_selected_database_change_and_policy_change_close_admission",
@@ -101,6 +102,12 @@ LINUX_RECEIVER_EXTRA_NODES = (
     "tests/evidence/test_challenger_nav_binding.py::test_packed_nav_payload_change_cannot_reuse_unchanged_origin_metadata[True]",
 )
 POSIX_SHARED_GATE_CASES = (
+    "tests/evidence/test_durable_admission.py::test_native_rebind_cannot_publish_open_without_returned_proof",
+    "tests/evidence/test_durable_admission.py::test_native_lock_watch_survives_owned_read_only_fences_and_repeated_writer",
+    "tests/evidence/test_durable_admission.py::test_actual_writer_process_exit_does_not_reopen_unverified_replacement[MAINTENANCE_REMOVED]",
+    "tests/evidence/test_durable_admission.py::test_actual_writer_process_exit_does_not_reopen_unverified_replacement[REBOUND:receiver]",
+    "tests/evidence/test_durable_admission.py::test_actual_writer_process_exit_does_not_reopen_unverified_replacement[RECEIVERS_VERIFIED]",
+    "tests/evidence/test_durable_admission.py::test_actual_writer_process_exit_does_not_reopen_unverified_replacement[ADMISSION_OPEN]",
     "tests/evidence/test_receiver_identity.py::test_mcp_client_response_holds_native_gate_after_upstream_has_finished",
     "tests/evidence/test_receiver_barrier.py::test_shared_gate_lease_covers_streamed_response_and_releases_after_cancellation",
     "tests/evidence/test_receiver_barrier.py::test_replaced_gate_inode_cannot_silently_rebind_existing_receiver[acquire]",

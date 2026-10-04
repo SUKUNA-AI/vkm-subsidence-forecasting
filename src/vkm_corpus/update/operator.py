@@ -208,7 +208,7 @@ class CoreOperator:
         self.units = CoreUnitControl(config.units)
         self.loaded = {}
         self._drilling = False
-        self.barrier = ReceiverBarrier("core-api-and-read-mcp", gate_path=self.root / "admission.lock")
+        self.barrier = ReceiverBarrier("core-api-and-read-mcp", gate_path=self.root / "admission.lock", require_durable=True)
         self.portal = NativePortal()
         try:
             self.controller = DurableDeployment(self.root,
@@ -355,7 +355,8 @@ class CoreOperator:
         selected = self._selected()
         if selected.manifest != manifest:
             raise GenerationUnavailable("receiver selected another approved generation")
-        self.units.rebind(manifest, gate=self.barrier._gate_identity)
+        proof = self.units.rebind(manifest, gate=self.barrier._gate_identity)
+        return proof.model_dump(mode="json")
 
     def plan(self, request_id):
         previous = self.controller._current()

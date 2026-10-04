@@ -120,6 +120,14 @@ previous selector/config/image tuple; gate закрыт при недоказа�
 
 ### PW-02-B — первый qualified baseline
 
+**Prerequisite на 04.10 реализован:** durable CLOSED/OPEN, metadata-only closed
+startup и publication fence защищают gap после удаления MAINTENANCE и смерти
+контроллера. Candidate и previous lost ACK разрешаются без повторного restart;
+RESTORE_PREVIOUS независим от повреждения candidate generation artifact.
+CPU crash/regression tests и независимый static review проверяют эти границы.
+Это не typed bootstrap intent/receipt, не полный cold drill и не actual CORE
+qualification. Приведённая ниже задача PW-02-B остаётся открытой.
+
 **Проблема:** текущий factory принимает только уже qualified previous. Legacy
 receiver не выдаёт новый proof; acceptance первого baseline не может ссылаться
 на несуществующий previous→candidate→previous drill.

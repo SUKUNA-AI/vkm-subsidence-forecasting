@@ -15,6 +15,7 @@ from vkm_evidence.coverage import CoverageLedger  # noqa: E402
 from pydantic import TypeAdapter  # noqa: E402
 from vkm_corpus.update.contracts import CampaignManifest, GenerationManifest, ServiceIdentity  # noqa: E402
 from vkm_corpus.update.deployment import DeploymentProfile  # noqa: E402
+from vkm_corpus.update.admission import AdmissionState  # noqa: E402
 from vkm_corpus.update.acceptance import AcceptancePlan  # noqa: E402
 from vkm_corpus.update.runtime import RuntimeConfig  # noqa: E402
 from vkm_corpus.update.serving import NativeServingProfile  # noqa: E402
@@ -39,6 +40,7 @@ MODELS = {"evidence_batch": EvidenceBatch, "object_coverage": CoverageLedger,
           "dataset_version": DatasetVersion, "dataset_catalogue": DatasetCatalogSnapshot,
           "source_version_links": TypeAdapter(tuple[SourceVersionLink, ...]),
           "service_identity": ServiceIdentity, "deployment_profile": DeploymentProfile,
+          "durable_admission": AdmissionState,
           "shadow_acceptance_plan": AcceptancePlan,
           "scientific_use_context": ScientificUseContext, "historical_read_context": HistoricalReadContext,
           "native_serving_profile": NativeServingProfile,

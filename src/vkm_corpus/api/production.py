@@ -434,11 +434,14 @@ def bind_generation_guard(deps, runtime, api_config, data_root: Path, *, _native
         from vkm_corpus.update.barrier import ReceiverBarrier
         barrier = getattr(deps, "admission_barrier", None)
         if barrier is None:
-            barrier = ReceiverBarrier("api-receiver", gate_path=coordinator.root / "admission.lock")
+            barrier = ReceiverBarrier("api-receiver", gate_path=coordinator.root / "admission.lock",
+                                      require_durable=api_config.deployment_token is not None)
         elif not isinstance(barrier, ReceiverBarrier):
             raise GenerationUnavailable("receiver admission barrier is unqualified")
         barrier.status()  # reject a barrier inherited by another process
         barrier.bind_gate(coordinator.root / "admission.lock")
+        if api_config.deployment_token is not None:
+            barrier.require_durable = True
     except BaseException:
         file_lease.close()
         raise
@@ -446,12 +449,19 @@ def bind_generation_guard(deps, runtime, api_config, data_root: Path, *, _native
     deps.admission_barrier = barrier
     deps.serving_file_lease = file_lease
     if _native is None:
-        deps.generation_guard = lambda: runtime.generation_status(observer)
+        def local_guard():
+            if not barrier.status()["admission_open"]:
+                return {"status": "UNAVAILABLE"}
+            status = runtime.generation_status(observer)
+            return status if barrier.status()["admission_open"] else {"status": "UNAVAILABLE"}
+        deps.generation_guard = local_guard
     else:
-        async def native_guard():
+        async def native_guard(*, _startup=False):
             import asyncio
             from vkm_corpus.api.errors import ApiFailure
             try:
+                if not _startup and not barrier.status()["admission_open"]:
+                    raise GenerationUnavailable("durable receiver admission is closed")
                 manifest = coordinator.manifest()
                 services = await _native.observe_services()
                 components = await asyncio.to_thread(observer)
@@ -459,6 +469,8 @@ def bind_generation_guard(deps, runtime, api_config, data_root: Path, *, _native
                 if coordinator.manifest().sha256 != manifest.sha256:
                     raise GenerationUnavailable("generation changed during native admission")
                 require_immutable_duckdb()
+                if not _startup and not barrier.status()["admission_open"]:
+                    raise GenerationUnavailable("durable receiver admission changed")
                 return {"status": "READY", "generation": manifest.sha256}
             except (OSError, ValueError, GenerationUnavailable, ApiFailure):
                 return {"status": "UNAVAILABLE"}
@@ -484,7 +496,9 @@ async def bind_native_generation_guard(deps, runtime, api_config, data_root: Pat
     from vkm_corpus.update.serving import NativeServingBindings
     native = await NativeServingBindings.bind(deps, runtime.config.native_serving)
     guard = await asyncio.to_thread(bind_generation_guard, deps, runtime, api_config, data_root, _native=native)
-    if (await guard())["status"] != "READY":
+    # Closed startup proves native bindings to the operator; the public guard
+    # and every content route still require durable OPEN.
+    if (await guard(_startup=True))["status"] != "READY":
         deps.serving_file_lease.close()
         raise GenerationUnavailable("native serving changed after startup qualification")
     return guard

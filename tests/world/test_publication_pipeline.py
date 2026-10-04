@@ -231,7 +231,7 @@ def test_generated_csv_rechecks_exact_word_boundary_after_shortening(tmp_path, m
     monkeypatch.setattr(B, 'ROOT', pub)
     monkeypatch.setenv('VKM_RESOURCES_ROOT', str(private))
     assert B.main() == 0
-    text = (pub/mapping['z.csv']).read_text()
+    text = (pub/mapping['z.csv']).read_text(encoding='utf-8')
     assert longest_shared_run(words(text), quote_shingles([quote]))[0] < 25
     if count == 24:
         assert quote in text
@@ -247,7 +247,7 @@ def test_quote_shortening_preserves_exact_decimal_case_and_punctuation_prefix(tm
     monkeypatch.setattr(B, 'ROOT', pub)
     monkeypatch.setenv('VKM_RESOURCES_ROOT', str(private))
     assert B.main() == 0
-    with (pub/mapping['z.csv']).open(newline='') as stream:
+    with (pub/mapping['z.csv']).open(newline='', encoding='utf-8') as stream:
         row = next(csv.DictReader(stream))
     assert row['summary'].startswith(prefix)
     assert longest_shared_run(words(row['summary']), quote_shingles([quote]))[0] < 25
@@ -264,7 +264,7 @@ def test_quote_shortening_never_exposes_content_past_legacy_word_limit(tmp_path,
     monkeypatch.setattr(B, 'ROOT', pub)
     monkeypatch.setenv('VKM_RESOURCES_ROOT', str(private))
     assert B.main() == 0
-    with (pub/mapping['z.csv']).open(newline='') as stream:
+    with (pub/mapping['z.csv']).open(newline='', encoding='utf-8') as stream:
         row = next(csv.DictReader(stream))
     marker = ' … [сокращено: дословный текст источника — только в PRIVATE]'
     excerpt = row['summary'].removesuffix(marker)
@@ -309,7 +309,7 @@ def test_self_consistent_manifest_cannot_hide_quote_in_nested_public_json(tmp_pa
     payload = quote.split() if split_words else quote
     public_json = put(pub, target, json.dumps({'unknown_nested': [{'unknown_field': payload}]}))
     if target == mapping['summary.json']:
-        manifest = json.loads((pub/'evidence/PUBLIC_CATALOGUE_MANIFEST.json').read_text())
+        manifest = json.loads((pub/'evidence/PUBLIC_CATALOGUE_MANIFEST.json').read_text(encoding='utf-8'))
         for entry in manifest['files']:
             if entry['target'] == target:
                 entry['target_sha256'] = hashlib.sha256(public_json.read_bytes()).hexdigest()

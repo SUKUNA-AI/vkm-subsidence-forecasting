@@ -1,8 +1,8 @@
 # Закрытый CORE operator: контракт и границы квалификации
 
-Реализация: `vkm_corpus.update.operator`, `operator_units`, `receiver`;
+Реализация: `vkm_corpus.update.operator`, `operator_units`, `receiver`, `admission`;
 CLI `vkm-corpus deployment`. Контракты опубликованы в `schemas/evidence/`:
-`core_operator`, `core_unit_control`, `receiver_identity`, `mcp_receiver_identity`.
+`core_operator`, `core_unit_control`, `receiver_identity`, `mcp_receiver_identity`, `durable_admission`.
 
 Это часть производственной программы, не готовый deploy существующего CORE.
 Native Docker/restart/restore ещё NOT_RUN. Для legacy baseline и promotion
@@ -68,6 +68,43 @@ Shared SH lease MCP удерживается до последнего ASGI resp
 отправку уже полученного API payload. Поэтому EX writer ждёт не только API
 запросы, но и завершение отдачи MCP клиентам. Replacement receivers при EX lease
 не получают доступ к данным, хотя их metadata proofs остаются доступны.
+
+## Смерть контроллера и durable admission
+
+Kernel lease снимается при смерти writer process. Поэтому одной блокировки
+недостаточно: перед drain writer сохраняет `ADMISSION.json` со статусом CLOSED.
+Этот статус проверяется каждым content request API/read-MCP под shared lease.
+Перед native rebind `MAINTENANCE` удаляется для доступа к CURRENT и metadata,
+но CLOSED остаётся. После rebind выполняются native verification и заключительный
+fence исходного approved profile, writer/gate inode/watch, CLOSED owner и CURRENT.
+Сохраняется hash-linked `RECEIVERS_VERIFIED`, проверки повторяются, затем atomically
+публикуется OPEN со ссылкой на exact generation/event. Отсутствие, повреждение,
+indirect path или несовпадение record/CURRENT/event закрывает qualified receiver.
+
+API с operator credential может стартовать закрытым ради metadata proof;
+его public status остаётся UNAVAILABLE, content routes закрыты. Это не bootstrap
+qualification: обычная code/data acceptance всё ещё обязательна. Legacy apps без
+operator configuration не приобретают новый deployment readiness автоматически.
+Shared/writer flock descriptors открывают existing lock files read-only, чтобы
+собственные чтения не создавали ложные `CLOSE_WRITE` mutation events. Реальные
+изменения lock-файлов по-прежнему инвалидируют native lease.
+
+Durable OPEN — commit point. После смерти до FINISHED identical switch retry
+сверяет admitted generation и возвращает receipt без нового apply/restart.
+Lost ACK после RECOVERED_PREVIOUS разрешается identical recover retry с exact
+confirmation/mode. Если previous уже открыт, повторное восстановление не нужно.
+RESTORE_PREVIOUS не читает candidate generation artifact: повреждённый candidate
+не блокирует сохранённый coherent previous. Сбой до OPEN оставляет durable CLOSED
+и требует explicit recovery. Process-exit CPU tests не заменяют power-loss,
+actual Docker/MCP/restore qualification; все они пока NOT_RUN.
+
+Дополнительная Windows CPU-проверка выявила false path escape при concurrent
+publication: resolved root и child могли различаться только native DOS prefix.
+`vkm_world.core.io` сравнивает уже resolved DOS/UNC aliases, сохраняя native I/O
+path и проверки выхода за root; GUID/device namespaces к drive letter не
+приравниваются. UTF-8 CSV test readers теперь явно задают кодировку. Поведение
+final-path DOS prefix описано в [Microsoft GetFinalPathNameByHandleW](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfinalpathnamebyhandlew).
+Эти CPU fixes не квалифицируют Windows для native CORE deployment.
 
 ## Последовательность для уже qualified baseline
 

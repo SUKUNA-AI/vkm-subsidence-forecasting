@@ -755,7 +755,7 @@ def test_cli_e2e_only_outputs_safe_aggregate(tmp_path):
 def test_existing_public_catalogue_formula_does_not_gain_admission_without_binding_review():
     import csv
     api = importlib.import_module('vkm_world.validation.scientific')
-    with (ROOT/'catalogues/mathematics/MATHEMATICAL_MODEL_REGISTRY.csv').open() as source:
+    with (ROOT/'catalogues/mathematics/MATHEMATICAL_MODEL_REGISTRY.csv').open(encoding='utf-8') as source:
         record = next(row for row in csv.DictReader(source) if row['model_id'].startswith('MM-CREEP-'))
     world = WorldSpec(meta=WorldMeta(world_id='CATALOGUE-CHECK', title='catalogue metadata check'),
                       math_models=[MathModelRecord.model_validate(record)])

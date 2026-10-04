@@ -42,7 +42,7 @@ class RequestLease:
 
 
 class ReceiverBarrier:
-    def __init__(self, receiver_id: str, *, gate_path: Path | None = None):
+    def __init__(self, receiver_id: str, *, gate_path: Path | None = None, require_durable: bool = False):
         if not receiver_id or len(receiver_id) > 120 or not all(c.isalnum() or c in "_-" for c in receiver_id):
             raise ValueError("invalid receiver identity")
         self.receiver_id, self.pid = receiver_id, os.getpid()
@@ -51,6 +51,8 @@ class ReceiverBarrier:
         self._owner: str | None = None
         self.gate_path: Path | None = None
         self._gate_identity: tuple[int, int] | None = None
+        self.admission_root: Path | None = None
+        self.require_durable = require_durable
         if gate_path is not None:
             self.bind_gate(gate_path)
 
@@ -66,7 +68,15 @@ class ReceiverBarrier:
             if any(p.is_symlink() for p in (selected, *selected.parents)):
                 raise BarrierUnavailable("indirect admission gate")
             selected.parent.mkdir(parents=True, exist_ok=True)
-            fd = os.open(selected, os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0), 0o600)
+            try:
+                fd = os.open(selected, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+            except FileNotFoundError:
+                try:
+                    created = os.open(selected, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
+                    os.close(created)
+                except FileExistsError:
+                    pass
+                fd = os.open(selected, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
             try:
                 identity = (os.fstat(fd).st_dev, os.fstat(fd).st_ino)
                 current = selected.stat(follow_symlinks=False)
@@ -78,6 +88,22 @@ class ReceiverBarrier:
                 os.close(fd)
             self.gate_path = selected
             self._gate_identity = identity
+            self.admission_root = selected.parent
+
+    def _durable_admission(self):
+        from vkm_corpus.update.admission import STATE_FILE, AdmissionUnavailable, require_open
+        root = self.admission_root
+        if root is None:
+            if self.require_durable:
+                raise BarrierUnavailable("durable admission root is unbound")
+            return
+        if self.require_durable or (root / STATE_FILE).exists() or (root / STATE_FILE).is_symlink():
+            try:
+                require_open(root)
+            except AdmissionUnavailable as exc:
+                raise BarrierUnavailable("durable receiver admission is unavailable") from exc
+        elif (root / "MAINTENANCE").exists():
+            raise BarrierUnavailable("receiver maintenance is unresolved")
 
     def _shared_gate(self):
         if self.gate_path is None:
@@ -86,8 +112,10 @@ class ReceiverBarrier:
         path = self.gate_path
         if any(p.is_symlink() for p in (path, *path.parents)):
             raise BarrierUnavailable("indirect admission gate")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        fd = os.open(path, os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0), 0o600)
+        try:
+            fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+        except OSError as exc:
+            raise BarrierUnavailable("shared receiver gate is unavailable") from exc
         try:
             fcntl.flock(fd, fcntl.LOCK_SH | fcntl.LOCK_NB)
             if (not stat.S_ISREG(os.fstat(fd).st_mode)
@@ -112,6 +140,12 @@ class ReceiverBarrier:
             if self._owner is not None:
                 raise BarrierUnavailable("receiver admission is paused")
             fd = self._shared_gate()
+            try:
+                self._durable_admission()
+            except BaseException:
+                if fd is not None:
+                    os.close(fd)
+                raise
             token = uuid.uuid4().hex
             self._active.add(token)
             return RequestLease(self, token, fd)
@@ -159,12 +193,17 @@ class ReceiverBarrier:
         self._same_process()
         with self._condition:
             gate_available = True
-            if self.gate_path is not None:
-                try:
+            try:
+                if self.gate_path is not None:
                     fd = self._shared_gate()
-                    os.close(fd)
-                except (BarrierUnavailable, OSError):
-                    gate_available = False
+                    try:
+                        self._durable_admission()
+                    finally:
+                        os.close(fd)
+                else:
+                    self._durable_admission()
+            except (BarrierUnavailable, OSError):
+                gate_available = False
             return {"receiver_id": self.receiver_id, "pid": self.pid,
                     "scope": "CROSS_PROCESS" if self.gate_path is not None else "SINGLE_PROCESS",
                     "paused": self._owner is not None,

@@ -13,6 +13,29 @@ PUBLIC tip — `73f2f55f494b2b6cc00e1b4e39840c61c792504b`, семь commits.
 
 ## Что уже реализовано
 
+Последующее продолжение 04.10 закрыло crash-gap перед первым baseline: durable
+admission record, closed metadata startup, final publication fence и idempotent
+recovery ACK. [Runbook](../development/CORE_OPERATOR_RU.md#смерть-контроллера-и-durable-admission)
+описывает новую границу. Bootstrap/PW-02-P/PW-03 и реальные исполнения остаются
+открытыми. Старые CPU/CI counts ниже относятся к предыдущему состоянию;
+Новая qualification: Linux 782 PASS (API/MCP/admission/schema + world), Windows
+161 PASS/46 exact OS NOT_RUN для связанного API/MCP набора; schema check PASS.
+PUBLIC/PRIVATE staged verifier: 36 PASS, 7 known unavailable historical anchors,
+blocking failures отсутствуют. Новый
+[source-bound CPU receipt](../corpus_platform/receipts/durable_admission_cpu_2026-10-04.json)
+содержит source/code/JUnit hashes. Hosted CI нового commit — отдельный gate.
+
+В дополнительной Windows проверке исправлены UTF-8 test readers и native DOS/UNC
+alias comparison при concurrent artifact publication. False escape воспроизведён
+в 4 из 6 instrumented synthetic runs; после исправления все 6 runs прошли.
+Negative containment cases сохраняют root boundary и отказ для других
+drive/server/share/GUID/device namespaces; native I/O path не переписывается.
+Полный локальный Windows world после этих исправлений: 574 PASS, 1 FAIL из-за
+отсутствия symlink privilege (WinError 1314), включая unsandboxed run. Это
+ограничение среды; проверка не отключена и FAIL не повышен до PASS/NOT_RUN.
+Linux world проверяет actual symlink escape. Изменение прав Windows в этом
+проходе не выполнялось; новый hosted Windows job обязан проверить весь набор.
+
 | Направление | Результат в коде | Что этим не подтверждено |
 |---|---|---|
 | CI / producer | Clock injection, future-time/retention guards, redaction, exact CPU locks, Linux/Windows checks, code/input/config identity и resource admission | Required main checks ещё не применены; реальный clean producer workload не квалифицирован |

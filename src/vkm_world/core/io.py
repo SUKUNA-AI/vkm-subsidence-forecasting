@@ -53,6 +53,25 @@ def sha256_json(payload: Any) -> str:
 
 
 # ---------------------------------------------------------------- paths
+def _comparison_path(path: Path | PureWindowsPath):
+    """Compare native resolved DOS/UNC aliases without changing the I/O path.
+
+    Windows final-path APIs can retain the extended namespace prefix when a
+    missing directory appears during resolution. GUID/device namespaces are
+    deliberately not equated to a drive letter. Inputs must already be resolved.
+    """
+    if not isinstance(path, PureWindowsPath) or not path.is_absolute():
+        return path
+    drive = path.drive
+    if drive.startswith("\\\\?\\"):
+        tail = drive[4:]
+        if len(tail) == 2 and tail[0].isascii() and tail[0].isalpha() and tail[1] == ":":
+            drive = tail
+        elif tail[:4].casefold() == "unc\\":
+            drive = "\\\\" + tail[4:]
+    return PureWindowsPath(drive + path.root, *path.parts[1:])
+
+
 def resolve_repo_path(root: str | Path, relative: str | Path) -> Path:
     """Resolve a repository-relative path; reject absolute paths and escapes from ``root``."""
     text = str(relative)
@@ -65,7 +84,7 @@ def resolve_repo_path(root: str | Path, relative: str | Path) -> Path:
         raise PathPolicyError(f"artifact path must use POSIX separators: {text}")
     base = Path(root).resolve()
     resolved = (base / text).resolve()
-    if not resolved.is_relative_to(base):
+    if not _comparison_path(resolved).is_relative_to(_comparison_path(base)):
         raise PathPolicyError(f"artifact path escapes repository root: {text}")
     return resolved
 
@@ -74,7 +93,7 @@ def _target(root: Path, target: str | Path) -> Path:
     """Relative → ``resolve_repo_path``; absolute → must already lie inside ``root``."""
     if Path(target).is_absolute():
         resolved = Path(target).resolve()
-        if not resolved.is_relative_to(root.resolve()):
+        if not _comparison_path(resolved).is_relative_to(_comparison_path(root.resolve())):
             raise PathPolicyError(f"artifact path is outside repository root: {target}")
         return resolved
     return resolve_repo_path(root, target)
@@ -82,7 +101,7 @@ def _target(root: Path, target: str | Path) -> Path:
 
 def repo_relative(root: str | Path, path: str | Path) -> str:
     """POSIX path of ``path`` relative to ``root`` (error if outside)."""
-    return _target(Path(root), path).relative_to(Path(root).resolve()).as_posix()
+    return _comparison_path(_target(Path(root), path)).relative_to(_comparison_path(Path(root).resolve())).as_posix()
 
 
 # ---------------------------------------------------------------- atomic writers

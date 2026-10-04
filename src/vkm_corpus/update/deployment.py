@@ -21,6 +21,8 @@ from pydantic import Field, model_validator
 
 from vkm_corpus.parquet.atomic import create_exclusive, write_bytes, _fsync_dir
 from vkm_corpus.update.barrier import BarrierUnavailable, ReceiverBarrier
+from vkm_corpus.update.admission import (AdmissionState, AdmissionUnavailable, STATE_FILE,
+                                          VERIFIED_PHASE, require_open)
 from vkm_corpus.update.contracts import GenerationManifest
 from vkm_corpus.update.generation import GenerationCoordinator, GenerationUnavailable
 from vkm_evidence.contracts import Identifier, Sha256, StrictModel, canonical_bytes, record_hash
@@ -69,7 +71,7 @@ class SelectorAdapter:
 @dataclass(frozen=True)
 class ReceiverControl:
     barrier: ReceiverBarrier
-    rebind: Callable[[GenerationManifest], None]
+    rebind: Callable[[GenerationManifest], object]
 
 
 class DurableDeployment:
@@ -94,6 +96,8 @@ class DurableDeployment:
         self._writer_fd = None
         self._gate_fd = None
         self._lock_watch = None
+        for receiver in self.receivers.values():
+            receiver.barrier.admission_root = self.root
         if os.name == "posix":
             for receiver in self.receivers.values():
                 receiver.barrier.bind_gate(self.root / "admission.lock")
@@ -113,7 +117,17 @@ class DurableDeployment:
             raise GenerationUnavailable("deployment writer is busy")
         self._path("writer.lock").parent.mkdir(parents=True, exist_ok=True)
         path = self._path("writer.lock")
-        fd = os.open(path, os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0), 0o600)
+        if os.name == "posix":
+            try:
+                created = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
+                os.close(created)
+            except FileExistsError:
+                pass
+            # flock needs no write descriptor. CLOSE_WRITE on our own ordinary
+            # reads would otherwise invalidate the immutable lock-file watch.
+            fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+        else:
+            fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o600)
         try:
             if not stat.S_ISREG(os.fstat(fd).st_mode):
                 raise GenerationUnavailable("deployment writer requires an ordinary file")
@@ -287,6 +301,7 @@ class DurableDeployment:
         elif not create_exclusive(flag, key):
             raise GenerationUnavailable("maintenance owner changed")
         _fsync_dir(flag.parent)
+        self._publish_admission(AdmissionState(status="CLOSED", request_key=key))
         for receiver in self.receivers.values():
             receiver.barrier.pause(key)
         self._event(key, "ADMISSION_CLOSED")
@@ -296,7 +311,7 @@ class DurableDeployment:
         if os.name == "posix" and self._gate_fd is None:
             import fcntl
             path = self._path("admission.lock")
-            fd = os.open(path, os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0), 0o600)
+            fd = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
             deadline = time.monotonic() + self.timeout
             try:
                 while True:
@@ -335,6 +350,10 @@ class DurableDeployment:
             raise GenerationUnavailable("actual code/dependencies/policy/profile changed")
         if self._path("MAINTENANCE").read_text(encoding="ascii") != key:
             raise GenerationUnavailable("maintenance lease lost")
+        from vkm_corpus.update.admission import read_state
+        admission = read_state(self.root)
+        if admission.status != "CLOSED" or admission.request_key != key:
+            raise GenerationUnavailable("durable admission closure lost")
         for receiver in self.receivers.values():
             state = receiver.barrier.status()
             if not state["paused"] or state["active_requests"]:
@@ -356,20 +375,86 @@ class DurableDeployment:
         write_bytes(self._path("tmp"), self._path(manifest.sha256 + ".json"), canonical_bytes(manifest))
         write_bytes(self._path("tmp"), self._path("CURRENT"), (manifest.sha256 + "\n").encode("ascii"), overwrite=True)
 
+    def _publish_admission(self, state):
+        write_bytes(self._path("tmp"), self._path(STATE_FILE), canonical_bytes(state), overwrite=True)
+
+    def _publication_fence(self, key, manifest):
+        """Final approved identity fence after MAINTENANCE has been removed."""
+        if self._writer_fd is None:
+            raise GenerationUnavailable("admission publication requires the writer lease")
+        self._require_gate()
+        if self._lock_watch is not None:
+            self._lock_watch.check()
+        owned = os.fstat(self._writer_fd)
+        current = self._path("writer.lock").stat(follow_symlinks=False)
+        if (owned.st_dev, owned.st_ino) != (current.st_dev, current.st_ino):
+            raise GenerationUnavailable("admission writer inode changed")
+        plan = self._load_plan(key)
+        if self._profile().model_dump(mode="json") != plan["profile"]:
+            raise GenerationUnavailable("approved deployment profile changed before OPEN")
+        previous = GenerationManifest.model_validate(plan["previous"]) if plan["previous"] else None
+        if (manifest.sha256 not in {plan["candidate_sha256"], previous.sha256 if previous else None}
+                or self._current() != manifest or self._path("MAINTENANCE").exists()):
+            raise GenerationUnavailable("admission generation or maintenance boundary changed")
+        from vkm_corpus.update.admission import read_state
+        admission = read_state(self.root)
+        if admission.status != "CLOSED" or admission.request_key != key:
+            raise GenerationUnavailable("durable closure changed before admission")
+
+    def _committed_open(self, key, manifest):
+        try:
+            state = require_open(self.root)
+            expected = manifest if isinstance(manifest, str) else manifest.sha256
+            return state.request_key == key and state.generation_sha256 == expected
+        except AdmissionUnavailable:
+            return False
+
+    def _finish_committed(self, key, plan, candidate, events):
+        # OPEN is the durable commit point. A lost ACK (including death before
+        # FINISHED) is reconciliation, never another apply/restart/rollback.
+        self.qualification(candidate)
+        self._verify(candidate)
+        self._resume_local(key)
+        if events[-1]["phase"] != "FINISHED":
+            self._event(key, "FINISHED")
+        return self._result(key, plan, "PASS")
+
+    def _resume_local(self, key):
+        for receiver in self.receivers.values():
+            if receiver.barrier._owner not in {None, key}:
+                raise GenerationUnavailable("another owner paused the committed receiver")
+            if receiver.barrier._owner == key:
+                receiver.barrier.resume(key)
+
     def _open(self, key, manifest):
         self._require_gate()
         self._verify(manifest)
         flag = self._path("MAINTENANCE")
         if flag.read_text(encoding="ascii") != key:
             raise GenerationUnavailable("maintenance owner differs before rebind")
-        # Every receiver remains paused while CURRENT becomes observable for a
-        # normal strict rebind. Other/new receivers still verify native identity.
+        # CURRENT must be observable for native startup/metadata proofs. Durable
+        # CLOSED survives a controller death after MAINTENANCE is removed.
         flag.unlink()
         _fsync_dir(flag.parent)
+        self._fault("MAINTENANCE_REMOVED")
+        proofs = {}
         for receiver in self.receivers.values():
-            receiver.rebind(manifest)
-        self._require_gate()
-        self._verify(manifest)
+            proof = receiver.rebind(manifest)
+            if self._profile().scope != "SYNTHETIC" and not isinstance(proof, dict):
+                raise GenerationUnavailable("native receiver rebind omitted its proof")
+            proofs[receiver.barrier.receiver_id] = record_hash(proof)
+            self._fault("REBOUND:" + receiver.barrier.receiver_id)
+        self._publication_fence(key, manifest)
+        native = self._verify(manifest)
+        verified = self._event(key, VERIFIED_PHASE, detail={"generation_sha256": manifest.sha256,
+            "native_sha256": record_hash(native), "receiver_proofs": proofs})
+        self._fault("RECEIVERS_VERIFIED")
+        if record_hash(self._verify(manifest)) != record_hash(native):
+            raise GenerationUnavailable("native serving changed before durable OPEN")
+        self._publication_fence(key, manifest)
+        self._publish_admission(AdmissionState(status="OPEN", request_key=key,
+            generation_sha256=manifest.sha256, verified_event_sha256=verified))
+        self._fault("ADMISSION_OPEN")
         for receiver in self.receivers.values():
             receiver.barrier.resume(key)
 
@@ -407,9 +492,8 @@ class DurableDeployment:
             events = self.history(request_id)
             if events:
                 current = self._current()
-                if events[-1]["phase"] == "FINISHED" and current is not None and current.sha256 == candidate.sha256:
-                    self._verify(candidate)
-                    return self._result(key, plan, "PASS")
+                if current is not None and current.sha256 == candidate.sha256 and self._committed_open(key, candidate):
+                    return self._finish_committed(key, plan, candidate, events)
                 raise GenerationUnavailable("interrupted deployment requires explicit recovery plan")
             write_bytes(self._path("tmp"), request, canonical_bytes(plan))
             write_bytes(self._path("tmp"), self._path(candidate.sha256 + ".json"), canonical_bytes(candidate))
@@ -434,6 +518,8 @@ class DurableDeployment:
                 self._open(key, candidate)
                 self._event(key, "FINISHED")
             except Exception:
+                if self._committed_open(key, candidate):
+                    raise  # durable OPEN was committed; retry reconciles the ACK
                 # A process kill/BaseException leaves the intent and maintenance
                 # for recover(); a normal exception restores the exact snapshot.
                 self._restore(key, plan)
@@ -450,6 +536,11 @@ class DurableDeployment:
         events = self.history(request_id)
         if not events or events[-1]["phase"] in {"FINISHED", "FAILED_RESTORED", "RECOVERED_PREVIOUS"}:
             raise GenerationUnavailable("no interrupted deployment to recover")
+        # RESTORE_PREVIOUS must not depend on readable candidate artifacts.
+        # The trusted intent digest suffices to detect a committed candidate;
+        # only COMPLETE_CANDIDATE loads that candidate manifest.
+        if self._committed_open(key, plan["candidate_sha256"]):
+            raise GenerationUnavailable("candidate is already admitted; retry the original switch to reconcile its ACK")
         if mode not in {"RESTORE_PREVIOUS", "COMPLETE_CANDIDATE"}:
             raise ValueError("explicit recovery mode required")
         body = {"request_id": request_id, "mode": mode, "journal_sha256": events[-1]["journal_sha256"],
@@ -459,16 +550,37 @@ class DurableDeployment:
 
     def recover(self, request_id, confirmation, *, mode="RESTORE_PREVIOUS"):
         with self._writer():
+            key = self._request_key(request_id)
+            plan = self._load_plan(key)
+            events = self.history(request_id)
+            terminal = "RECOVERED_PREVIOUS" if mode == "RESTORE_PREVIOUS" else "FINISHED"
+            if (events and events[-1]["phase"] == terminal
+                    and events[-1]["detail"].get("recovery_sha256") == confirmation
+                    and events[-1]["detail"].get("mode") == mode):
+                if self._profile().model_dump(mode="json") != plan["profile"]:
+                    raise GenerationUnavailable("committed recovery profile changed")
+                selected = (GenerationManifest.model_validate(plan["previous"]) if mode == "RESTORE_PREVIOUS"
+                            else self.coordinator._load_head(plan["candidate_sha256"]))
+                if not self._committed_open(key, selected):
+                    raise GenerationUnavailable("committed recovery is no longer admitted")
+                self._verify(selected)
+                self._resume_local(key)
+                result = self._result(key, plan, "RESTORED" if mode == "RESTORE_PREVIOUS" else "PASS")
+                return {**result, "generation_sha256": selected.sha256}
             recovery = self.recovery_plan(request_id, mode=mode)
             if recovery["recovery_sha256"] != confirmation:
                 raise GenerationUnavailable("fresh recovery confirmation required")
-            key = self._request_key(request_id)
-            plan = self._load_plan(key)
             if recovery["profile"] != plan["profile"]:
                 raise GenerationUnavailable("deployment profile changed; automatic recovery is unqualified")
             if mode == "RESTORE_PREVIOUS":
-                previous = self._restore(key, plan)
-                self._event(key, "RECOVERED_PREVIOUS")
+                previous = GenerationManifest.model_validate(plan["previous"]) if plan["previous"] else None
+                if previous is not None and self._committed_open(key, previous):
+                    self._verify(previous)
+                    self._resume_local(key)
+                else:
+                    previous = self._restore(key, plan)
+                self._event(key, "RECOVERED_PREVIOUS", detail={"recovery_sha256": confirmation, "mode": mode})
+                self._fault("RECOVERY_ACK")
                 return {**self._result(key, plan, "RESTORED"), "generation_sha256": previous.sha256}
             candidate = self.coordinator._load_head(plan["candidate_sha256"])
             self._pause(key)
@@ -479,7 +591,8 @@ class DurableDeployment:
             self._select_current(candidate)
             self._event(key, "COMMITTED")
             self._open(key, candidate)
-            self._event(key, "FINISHED")
+            self._event(key, "FINISHED", detail={"recovery_sha256": confirmation, "mode": mode})
+            self._fault("RECOVERY_ACK")
             return self._result(key, plan, "PASS")
 
     def _result(self, key, plan, status):
