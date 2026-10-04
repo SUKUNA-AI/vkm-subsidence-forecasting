@@ -5,6 +5,8 @@
 
 | Файл | Что подтверждает |
 |---|---|
+| [model_owners_tables_cpu_2026-10-04.json](model_owners_tables_cpu_2026-10-04.json) | Source-bound text/visual owner contracts, table continuation/compatibility и CPU checks; runtime/image/GPU/MCP49 и full corpus admission не выполнены |
+| [control_restore_2026-10-04.json](control_restore_2026-10-04.json) | Реальный independent copy/restore 15 control files, 34 470 bytes; source/backup/restore hashes совпали, originals unchanged. Это не full corpus restore и не typed bootstrap backup |
 | [search_metrics_2026-09-30.json](search_metrics_2026-09-30.json) | topic/retrieval before-after и controlled component runs на 574daaac; frozen truth сохранена, конфигурация не менялась; новую независимую разметку visual hits владелец отложил до Astra-review ([отчёт](../SEARCH_METRICS_2026-09-30_RU.md)) |
 | [platform_integrity_2026-09-30.json](platform_integrity_2026-09-30.json) | read-only smoke22tools/61calls на574daaac; отдельные FAIL/NOT_RUN, без изменений CORE/EDGE |
 | [architecture_drawio_2026-09-30.json](architecture_drawio_2026-09-30.json) | обновление девяти схем, JSON sources, SVG и отдельная страница A/B/C; byte-identical rebuild |

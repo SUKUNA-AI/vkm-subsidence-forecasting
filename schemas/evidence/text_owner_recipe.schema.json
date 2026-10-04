@@ -1,0 +1,127 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "dependency_versions": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "maxProperties": 128,
+      "minProperties": 1,
+      "title": "Dependency Versions",
+      "type": "object"
+    },
+    "dynamic_modules_cache": {
+      "title": "Dynamic Modules Cache",
+      "type": "string"
+    },
+    "expected_sha256": {
+      "additionalProperties": {
+        "pattern": "^[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "title": "Expected Sha256",
+      "type": "object"
+    },
+    "identity_token": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "implementation_files": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 512,
+      "minItems": 1,
+      "title": "Implementation Files",
+      "type": "array"
+    },
+    "max_clients": {
+      "default": 8,
+      "maximum": 32,
+      "minimum": 1,
+      "title": "Max Clients",
+      "type": "integer"
+    },
+    "model_snapshot": {
+      "title": "Model Snapshot",
+      "type": "string"
+    },
+    "python_version": {
+      "pattern": "^3\\.13\\.[0-9]+$",
+      "title": "Python Version",
+      "type": "string"
+    },
+    "request_timeout_s": {
+      "default": 20.0,
+      "exclusiveMinimum": 0,
+      "maximum": 60,
+      "title": "Request Timeout S",
+      "type": "number"
+    },
+    "resources": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Resources",
+      "type": "object"
+    },
+    "runtime_config": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "schema_version": {
+      "const": "vkm-text-owner-recipe/1",
+      "default": "vkm-text-owner-recipe/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "enum": [
+        "TEXT_OWNER_PRODUCTION",
+        "SYNTHETIC"
+      ],
+      "title": "Scope",
+      "type": "string"
+    },
+    "tokenizer_snapshot": {
+      "title": "Tokenizer Snapshot",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scope",
+    "runtime_config",
+    "model_snapshot",
+    "tokenizer_snapshot",
+    "dynamic_modules_cache",
+    "identity_token",
+    "resources",
+    "implementation_files",
+    "expected_sha256",
+    "python_version",
+    "dependency_versions"
+  ],
+  "title": "TextOwnerRecipe",
+  "type": "object"
+}

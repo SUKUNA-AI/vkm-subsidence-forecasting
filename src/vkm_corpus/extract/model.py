@@ -10,6 +10,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from vkm_corpus.contracts.models import TableContinuationCandidate
+from vkm_corpus.contracts.fieldtypes import Sha256Hex
+
 BBox = tuple[float, float, float, float]  # PAGE_PT_TL: points, origin top-left of the displayed page, y down
 
 
@@ -151,6 +154,8 @@ class TableX(ObjectBase):
     image_artifact_id: str | None = None
     image_dpi: int | None = None
     layout_score: float | None = None
+    continuation_candidate: TableContinuationCandidate | None = None
+    extraction_signature: Sha256Hex | None = None
 
 
 @dataclass

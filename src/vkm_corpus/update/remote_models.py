@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import importlib
 import importlib.metadata
+import json
 import os
 import platform
 from pathlib import Path
@@ -29,13 +30,36 @@ class NativeModelProof(StrictModel):
     dependencies_sha256: Sha256
     config_sha256: Sha256
     resources: dict[str, Sha256]
+    tokenizer_binding: Literal["STANDALONE_LOADED", "EMBEDDED_WEIGHTS_VOCAB"] = "STANDALONE_LOADED"
 
     @model_validator(mode="after")
     def _resources(self):
         required = {"weights", "tokenizer"} | ({"mmproj"} if self.kind == "visual" else set())
         if not required <= self.resources.keys():
             raise ValueError("native loaded model resources incomplete")
+        if self.tokenizer_binding == "EMBEDDED_WEIGHTS_VOCAB":
+            if self.kind != "visual" or self.resources["tokenizer"] != self.resources["weights"]:
+                raise ValueError("embedded native vocabulary must be bound to actual visual weights")
         return self
+
+
+def native_identity_json(raw):
+    """An authenticated identity must have one unambiguous value per field."""
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("duplicate native identity field")
+            result[key] = value
+        return result
+
+    def nonfinite(_):
+        raise ValueError("nonfinite native identity value")
+
+    try:
+        return json.loads(raw, object_pairs_hook=unique, parse_constant=nonfinite)
+    except (UnicodeDecodeError, RecursionError) as exc:
+        raise ValueError("invalid native identity encoding or structure") from exc
 
 
 def own_process():
@@ -120,7 +144,7 @@ async def read_backend_model_identity(backend, kind, token):
         raise ValueError("native model identity transport unavailable") from exc
     if response.status_code != 200 or len(response.content) > 262144:
         raise ValueError("native model identity unavailable")
-    proof = NativeModelProof.model_validate(response.json())
+    proof = NativeModelProof.model_validate(native_identity_json(response.content))
     if proof.kind != kind:
         raise ValueError("native model kind differs from serving route")
     return proof

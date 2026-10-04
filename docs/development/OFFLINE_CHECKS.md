@@ -1,5 +1,15 @@
 # PUBLIC offline CPU checks
 
+Owner/table integration on 04.10 adds both narrow model-owner bridge suites,
+native vocabulary binding, table continuations and historical schema checks to
+Windows selection. The 21 exact visual procfs/inotify cases are Windows NOT_RUN;
+neighboring protocol cases still run. Actual CareerOps source-handler tests carry
+`native_source` and require separately supplied pinned sources. CI records their
+deselection as NOT_RUN; it does not download or vendor private sources. The
+original C++ lifecycle header is compiled with an existing C++17 compiler only;
+its single missing-compiler case is a declared host prerequisite, not model
+qualification. Full llama/image/GPU/MCP qualification remains a separate gate.
+
 All Actions jobs use `scripts/run_offline_checks.py`. Python is pinned to 3.13.5.
 The `world-integrity` job covers `tests/world`; `corpus-offline` lets pytest discover
 every other immediate child of `tests` recursively, including future suites and

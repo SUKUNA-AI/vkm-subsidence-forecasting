@@ -8,6 +8,15 @@
 
 ## Обновление статуса реализации
 
+Дополнение 04.10: actual text/visual owner entrypoints и pinned native hook
+реализованы в коде; сложная связь продолжений таблиц проходит synthetic
+producer→canonical→NAV→consumer. Реальные adapters ещё не объявляют все такие
+связи/signatures, corpus extraction и модельная qualification не выполнены.
+Metadata inventory подтвердил 44 bounded recovery candidates; independent copy
+и restore выполнены для 15 контрольных файлов, включая 10 из этих candidates.
+Full unique inventory/backup/restore и typed bootstrap backup остаются открытыми.
+Основание — [новый отчёт](../reviews/MODEL_OWNERS_TABLES_RECOVERY_2026-10-04_RU.md).
+
 R01: code integration готов — `vkm_datasets.catalogue/update` и dataset stages
 единого update runtime; actual GIS intake/backup admission остаются NOT_RUN.
 R02: frozen migration input/plan/private archive/map и owner-approved publish
@@ -32,8 +41,9 @@ R04: typed source-backed semantic extraction adapter реализован; origi
 model/tokenizer/config identities, budgets, private raw-response cache и закрытые
 untrusted candidates проверены синтетически. Реальный endpoint с native identity,
 его квалификация, corpus extraction и review остаются NOT_RUN.
-R07/R08/R09: реальные unique backup/restore, independent gold/review и полная
-кампания корпуса остаются NOT_RUN. Карточки ниже задают полный acceptance scope;
+R07: real metadata inventory и bounded 15-file independent copy/restore выполнены;
+полное покрытие unique assets и full restore не подтверждены. R08/R09: independent
+gold/review и полная кампания корпуса остаются NOT_RUN. Карточки ниже задают полный acceptance scope;
 наличие этих модулей не означает закрытия карточки целиком.
 
 ## Общие правила выполнения

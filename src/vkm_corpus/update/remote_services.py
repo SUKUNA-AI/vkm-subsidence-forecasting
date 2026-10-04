@@ -10,7 +10,7 @@ import asyncio
 
 from vkm_corpus.update.contracts import ServiceIdentity
 from vkm_corpus.update.remote_control import ControlServiceLease, ControlSpec
-from vkm_corpus.update.remote_models import NativeModelProof
+from vkm_corpus.update.remote_models import NativeModelProof, native_identity_json
 from vkm_evidence.contracts import record_hash
 
 
@@ -24,7 +24,7 @@ def _endpoint(client):
 def _body(response):
     if response.status_code != 200 or len(response.content) > 262144:
         raise ValueError("native serving identity unavailable")
-    body = response.json()
+    body = native_identity_json(response.content)
     if (not isinstance(body, dict) or body.get("status") != "READY"
             or body.get("functional_qualification") != "NOT_RUN"):
         raise ValueError("native identity must not substitute for functional qualification")
@@ -83,7 +83,12 @@ def rerank_identity(body, endpoint):
     resources = dict(body["resources"])
     for kind in ("text", "visual"):
         proof = NativeModelProof.model_validate(body["models"][kind])
-        if proof.kind != kind or proof.resources["tokenizer"] != resources[kind + "_tokenizer"]:
+        if proof.kind != kind:
+            raise ValueError("native downstream model differs from gateway route")
+        if kind == "text" and (proof.tokenizer_binding != "STANDALONE_LOADED"
+                or proof.resources["tokenizer"] != resources["text_tokenizer"]):
+            raise ValueError("native text tokenizer differs from gateway route")
+        if kind == "visual" and proof.tokenizer_binding != "EMBEDDED_WEIGHTS_VOCAB":
             raise ValueError("native downstream model differs from gateway route")
         resources.update({kind + "_model_" + k: v for k, v in proof.resources.items()})
     return ServiceIdentity(service="RERANK", instance_sha256=body["instance_sha256"],

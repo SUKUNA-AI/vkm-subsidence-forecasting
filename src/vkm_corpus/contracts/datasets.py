@@ -20,6 +20,20 @@ HISTORICAL_LOCATOR_SCHEMAS = {
     "formulas": ("0.1.0", "1f94c66a512a6cdd9a617b822754a01bf0e2cb327905067ad73ca160d39e2c0f"),
 }
 
+# Exact tables schema before the additive unreviewed continuation declaration.
+HISTORICAL_CONTINUATION_SCHEMAS = {
+    "tables": ("0.1.1", "6d4ec517fb8373617acfc092b4e1d75dac75ddf7e237f9cb34802a0c3d3ea487"),
+}
+
+
+def historical_omissions(name: str, version: str | None) -> frozenset[str]:
+    """Columns absent from an exact historical version; never mutate an old hash by NULL padding."""
+    if name in HISTORICAL_LOCATOR_SCHEMAS and version == HISTORICAL_LOCATOR_SCHEMAS[name][0]:
+        return frozenset({"raw_locator", "continuation_provenance"} if name == "tables" else {"raw_locator"})
+    if name in HISTORICAL_CONTINUATION_SCHEMAS and version == HISTORICAL_CONTINUATION_SCHEMAS[name][0]:
+        return frozenset({"continuation_provenance"})
+    return frozenset()
+
 
 @dataclass(frozen=True)
 class DatasetSpec:
@@ -50,6 +64,8 @@ class DatasetSpec:
 def _spec(name, model, cls, profile, pk, sort, kind=None) -> DatasetSpec:
     # 0.1.1 appends a nullable source locator; old rows remain readable as UNKNOWN.
     version = "0.1.1" if name in ("figures", "tables", "formulas") else SCHEMA_VERSION
+    if name == "tables":
+        version = "0.1.2"
     return DatasetSpec(name, model, DatasetClass(cls), EnvelopeProfile(profile), tuple(pk), tuple(sort), kind, version)
 
 

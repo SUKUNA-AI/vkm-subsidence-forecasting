@@ -4,6 +4,12 @@
 [карточки R01–R09](PRODUCTION_DATA_REMAINING_TASKS_RU.md). Это конкретизация
 подтверждённых остаточных пробелов. Наличие draft PR не закрывает программу.
 
+Дополнение 04.10: [owners, table fidelity и реальный контрольный restore](../reviews/MODEL_OWNERS_TABLES_RECOVERY_2026-10-04_RU.md).
+Owner entrypoints/native hook теперь реализованы в коде; actual model/image/49-tool
+runtime qualification остаётся NOT_RUN. 15-file restore не заменяет полный
+`IndependentBootstrapBackup`. S17/S18 consumer не доказывает обнаружение всех
+продолжений таблиц реальными extraction adapters.
+
 ## R03-PUB / R03-ADMIT / R03-BACKUP — доставка полного accounting
 
 **Статус:** код и synthetic qualification реализованы; реальные доставка,
@@ -185,10 +191,12 @@ update; scientific admission не повышать.
 
 ## PW-03 — native proof от действующих владельцев RERANK моделей
 
-**Частично реализован:** text load-time owner и owned-child boundaries с CPU
-negative tests. Действующие text/visual services **UNWIRED**, actual load-time
-proof и functional/GPU parity **NOT_RUN**. У pinned llama-server native hook
-отсутствует; mmproj digest/read не заменяет loaded-model proof.
+**Код подключения реализован:** actual-source text loader/handler bridge и
+pinned llama native lifecycle hook с owned inference proxy; shared proof
+разделяет embedded GGUF vocabulary и gateway JSON tokenizer. CPU tests и
+independent review выполнены. Действующие text/visual services **UNWIRED** до
+нового isolated runtime deployment; actual model proof/functional/GPU parity
+**NOT_RUN**. mmproj digest/read не заменяет loaded-model proof.
 [Исходники, ограничения и путь подключения](../development/MODEL_OWNER_QUALIFICATION_RU.md).
 
 **Причина:** внешние text/visual model owners пока не подключены к load-time

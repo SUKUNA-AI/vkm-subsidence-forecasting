@@ -76,9 +76,12 @@ def respond(request):
     calls.append(kind)
     values = {'weights': pins.TEXT['weights_sha256'] if kind=='text' else cfg.m0_weights_sha256,
               'tokenizer': sha(tok)}
-    if kind == 'visual': values['mmproj'] = cfg.m0_mmproj_sha256
+    if kind == 'visual':
+        values['mmproj'] = cfg.m0_mmproj_sha256
+        values['tokenizer'] = cfg.m0_weights_sha256
     proof = NativeModelProof(kind=kind, instance_sha256='a'*64, code_sha256='b'*64,
-        dependencies_sha256='c'*64, config_sha256='d'*64, resources=values)
+        dependencies_sha256='c'*64, config_sha256='d'*64, resources=values,
+        tokenizer_binding='EMBEDDED_WEIGHTS_VOCAB' if kind=='visual' else 'STANDALONE_LOADED')
     return httpx.Response(200, json=proof.model_dump(mode='json'))
 resources.text._client = httpx.AsyncClient(base_url=cfg.text_url, transport=httpx.MockTransport(respond))
 resources.visual._client = httpx.AsyncClient(base_url=cfg.visual_url, transport=httpx.MockTransport(respond))

@@ -1,0 +1,55 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "capture_before_load": {
+      "title": "Capture Before Load",
+      "type": "boolean"
+    },
+    "epoch": {
+      "maximum": 18446744073709551615,
+      "minimum": 1,
+      "title": "Epoch",
+      "type": "integer"
+    },
+    "handles": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Handles",
+      "type": "object"
+    },
+    "nonce": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Nonce",
+      "type": "string"
+    },
+    "paths": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Paths",
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "vkm-native-loaded-witness/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "upstream_commit": {
+      "const": "4da6337767f973e2b4d0797e5b323d77d8565e4a",
+      "title": "Upstream Commit",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "upstream_commit",
+    "nonce",
+    "epoch",
+    "capture_before_load",
+    "handles",
+    "paths"
+  ],
+  "title": "LoadedWitness",
+  "type": "object"
+}

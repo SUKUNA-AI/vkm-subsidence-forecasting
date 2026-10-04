@@ -182,7 +182,9 @@ class Validator:
                 if kv.get("vkm.schema_version") != spec.version and ca.readable_schema(
                         name, kv.get("vkm.schema_version"), kv.get("vkm.schema_fingerprint")):
                     expected = ca.arrow_schema(name)
-                    expected = expected.remove(expected.get_field_index("raw_locator"))
+                    from vkm_corpus.contracts.datasets import historical_omissions
+                    for field in historical_omissions(name, kv.get("vkm.schema_version")):
+                        expected = expected.remove(expected.get_field_index(field))
                     if not physical_schema.equals(expected, check_metadata=False):
                         bad_version.append([f["path"], "historical metadata does not match physical schema"])
                 if names & FORBIDDEN_COLUMN_NAMES:

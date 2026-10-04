@@ -89,6 +89,10 @@ def get_table_structured(con: Any, table_id: str, *, max_rows: int = 200, max_ch
     size, header rows, bands and blocks, orientation, confidence, flags), columns (header path, unit and its source,
     role, type, property), rows (role, block, cells with the parsed value, unit and flags) up to ``max_rows`` and a
     Markdown rendering of the cleaned texts (≤ ``max_chars``)."""
+    from vkm_corpus.navigation.table_continuations import CURSOR_PREFIX, get_table_continuation
+
+    logical_cursor = cursor if isinstance(cursor, str) and cursor.startswith(CURSOR_PREFIX) else None
+    cursor = None if logical_cursor is not None else cursor
     t = _names(tables)
     found = _rows(con, f"SELECT * FROM {t['table_structure']} WHERE table_id = ? OR nav_table_id = ?",
                   [table_id, table_id])
@@ -164,6 +168,11 @@ def get_table_structured(con: Any, table_id: str, *, max_rows: int = 200, max_ch
                                "has_more": more, "next_cursor": base64.urlsafe_b64encode(json.dumps(
                                    {"v": 1, "table": tid, "version": version, "after": last},
                                    separators=(",", ":")).encode()).decode().rstrip("=") if more else None}})
+    # Physical rows/IDs and their v1 cursor retain the existing contract. The
+    # separate logical-chain cursor follows explicit canonical continuation
+    # edges, and never promotes navigation interpretation to scientific data.
+    out["continuation"] = get_table_continuation(con, tid, s["source_id"], max_rows=max_rows,
+        cursor=logical_cursor, tables=t)
     return out
 
 

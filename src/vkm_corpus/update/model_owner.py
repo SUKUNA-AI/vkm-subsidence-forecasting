@@ -283,9 +283,7 @@ class OwnedChildModelOwner:
             if len(obj.environment) > 256 or sum(len(k) + len(v) for k, v in obj.environment.items()) > 65536:
                 raise ValueError("native child environment exceeds limit")
             # No inherited process environment, shell, executable fallback or restart.
-            obj.proc = subprocess.Popen([recipe.executable, *recipe.arguments], env=obj.environment,
-                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                close_fds=True, start_new_session=True)
+            obj.proc = obj._spawn_child()
             obj.pid = obj.proc.pid
             deadline = time.monotonic() + recipe.startup_timeout_s
             last_error = None
@@ -315,6 +313,16 @@ class OwnedChildModelOwner:
         except BaseException:
             obj.close()
             raise
+
+    def _spawn_child(self):
+        return subprocess.Popen([self.recipe.executable, *self.recipe.arguments], env=self.environment,
+            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            close_fds=True, start_new_session=True)
+
+    def _loaded_resource_fence(self):
+        # Default boundary remains actual mmap; only an explicit hook subclass
+        # can use the native load lifecycle protocol instead.
+        _mapped_resources(self.pid, self.recipe.resources, self.signatures)
 
     def _client_fence(self):
         if self.getter() is not self.client:
@@ -346,8 +354,9 @@ class OwnedChildModelOwner:
         if (executable.resolve() != Path(self.recipe.executable)
                 or (observed.st_dev, observed.st_ino) != expected[:2]):
             raise ValueError("actual child executable identity differs from load inventory")
-        _mapped_resources(self.pid, self.recipe.resources, self.signatures)
         listener = _listener_record(self.pid, self.recipe.port)
+        # Prove the recipient before a hook sends its private challenge.
+        self._loaded_resource_fence()
         after = _pid_record(self.pid)
         if after != record:
             # R/S state changes are ordinary scheduler activity, not identity.

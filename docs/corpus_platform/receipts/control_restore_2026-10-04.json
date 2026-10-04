@@ -1,0 +1,100 @@
+{
+  "backup_domain": "EDGE_HOST_NVME",
+  "backup_manifest_sha256": "cc204f4ac8dcdd146f0a720c55b5dd935fbbd16098a44d9a4266dc08ff678b0f",
+  "candidate_scripts_newly_protected": 10,
+  "canonical_full_restore": "NOT_RUN",
+  "elapsed_seconds": 0.609,
+  "executor_sha256": "604a84874e7c1c401457652fa9c181a80897e8bc784369e7c9d3e07dc7e79783",
+  "failure_domain_limit": "Separate observed host/disk only; site/power/credentials independence NOT_VERIFIED",
+  "file_count": 15,
+  "files": [
+    {
+      "logical_id": "control-001",
+      "sha256": "63043428a2ccb3cd3f94388af140bce1cefcf6b2ee99da939e6aa6e93151b87b",
+      "size": 1327
+    },
+    {
+      "logical_id": "control-002",
+      "sha256": "b16a25fd4c620ecf32ad8046afb67b38b80a649fab8b070d0ca22fde87633944",
+      "size": 824
+    },
+    {
+      "logical_id": "control-003",
+      "sha256": "d6fa2437ac0835e90fb78c4b91bedeabf1893568105ae37362bcee892ee14079",
+      "size": 867
+    },
+    {
+      "logical_id": "control-004",
+      "sha256": "6edcb4c8cae20ca59a888b21c30a1e9f512b4a717ab5816a41699fd26241dca6",
+      "size": 1572
+    },
+    {
+      "logical_id": "control-005",
+      "sha256": "ae46f1f53a12cc1b0436fbff827b98372442eaeb26550a156f94c511515e5414",
+      "size": 506
+    },
+    {
+      "logical_id": "control-006",
+      "sha256": "4e56cf564a7011398d6f45fd08468ef39850ee8ea8f044b2609ca7ce0dc453b4",
+      "size": 1343
+    },
+    {
+      "logical_id": "control-007",
+      "sha256": "2e96b3246242f7ce09d00f7626b106c1240f50aecb5a99d65a314d40fac2dad8",
+      "size": 717
+    },
+    {
+      "logical_id": "control-008",
+      "sha256": "ff4e978b892a6b94a9289142a19021820a36b15e0ce9f9b0d59a0a7855dec3c3",
+      "size": 1035
+    },
+    {
+      "logical_id": "control-009",
+      "sha256": "d6773fba7b542082abf7d5feed067331cc3ef44a9a5907a876c861d9e0fc01d2",
+      "size": 1337
+    },
+    {
+      "logical_id": "control-010",
+      "sha256": "15dde6ddfa09742fb8c635067e98c78b9f93c584b4c90bf8717b23b1b932c5c6",
+      "size": 1395
+    },
+    {
+      "logical_id": "control-011",
+      "sha256": "a2a4f0cbd3e558d45e92bb0af6a7f3b6cbb871196f54897d00ece191406a5f53",
+      "size": 7021
+    },
+    {
+      "logical_id": "control-012",
+      "sha256": "3e8b4de43026459cb6d7d99881449b1a32187193cba9b927d8d1a36254e11f28",
+      "size": 1578
+    },
+    {
+      "logical_id": "control-013",
+      "sha256": "38e08d9d20cd30b302078a555dea3d80f6198156db5ef7b510b3b8aa92216b85",
+      "size": 1364
+    },
+    {
+      "logical_id": "control-014",
+      "sha256": "3b2b0f77c09c91631b3efff567476922b67ece4841f6aa91f4cce60be93e9674",
+      "size": 7730
+    },
+    {
+      "logical_id": "control-015",
+      "sha256": "014f515443292cc3292ff2fa848ffd28ebcad3f70872a6d0f76f6d68babdb764",
+      "size": 5854
+    }
+  ],
+  "frozen_intent_sha256": "4843cf1ae812cfae256cd08d4f803edea4f3bcd75cd4be541b2a6d1dc6b79d14",
+  "observed_unique_candidates": 44,
+  "remaining_candidates_not_newly_verified": 34,
+  "schema": "vkm-control-restore-drill/1",
+  "scope": "EXPLICIT_15_CONTROL_FILES_ONLY",
+  "secret_scan": "BOUNDED_NO_MATCH",
+  "secret_scan_limit": "UTF-8 and bounded regex; not proof of absence of arbitrary secrets",
+  "source_backup_restore_sha256_equal": true,
+  "source_domain": "WORKSTATION_DATA_DISK",
+  "source_untouched": true,
+  "status": "RESTORE_VERIFIED",
+  "total_bytes": 34470,
+  "typed_bootstrap_backup": "NOT_QUALIFIED"
+}

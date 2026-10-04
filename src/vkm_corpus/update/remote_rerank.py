@@ -70,10 +70,12 @@ class RerankServiceLease:
         visual = await read_backend_model_identity(self.res.visual, "visual", self.cfg.visual_native_token)
         from vkm_corpus.retrieval import pins
         if (text.resources["weights"] != pins.TEXT["weights_sha256"]
+                or text.tokenizer_binding != "STANDALONE_LOADED"
                 or text.resources["tokenizer"] != self.res.v35_tokens.sha256
                 or visual.resources["weights"] != self.cfg.m0_weights_sha256
                 or visual.resources["mmproj"] != self.cfg.m0_mmproj_sha256
-                or visual.resources["tokenizer"] != self.res.m0_tokens.sha256):
+                or visual.tokenizer_binding != "EMBEDDED_WEIGHTS_VOCAB"
+                or visual.resources["tokenizer"] != visual.resources["weights"]):
             raise ValueError("native loaded rerank model differs from actual gateway inputs")
         return {"text": text.model_dump(mode="json"), "visual": visual.model_dump(mode="json")}
 

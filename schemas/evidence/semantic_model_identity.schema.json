@@ -44,6 +44,15 @@
           "default": "vkm-loaded-model/1",
           "title": "Schema Version",
           "type": "string"
+        },
+        "tokenizer_binding": {
+          "default": "STANDALONE_LOADED",
+          "enum": [
+            "STANDALONE_LOADED",
+            "EMBEDDED_WEIGHTS_VOCAB"
+          ],
+          "title": "Tokenizer Binding",
+          "type": "string"
         }
       },
       "required": [

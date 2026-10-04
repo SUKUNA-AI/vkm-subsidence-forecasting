@@ -110,7 +110,10 @@ def test_actual_new_fast_suites_are_mandatory_in_linux_and_windows_selection():
                 "tests/corpus/test_nav_sections.py", "tests/corpus/test_nav_store.py",
                 "tests/corpus/test_accounting_publication.py", "tests/corpus/test_runtime_publication.py",
                 "tests/corpus/test_publish_transfer.py", "tests/corpus/test_service_identity.py",
-                "tests/corpus/test_service_wheel.py", "tests/corpus/test_structural_fidelity.py"} <= selected
+                "tests/corpus/test_service_wheel.py", "tests/corpus/test_structural_fidelity.py",
+                "tests/corpus/test_text_owner_bridge.py", "tests/corpus/test_visual_owner_bridge.py",
+                "tests/corpus/test_native_tokenizer_binding.py", "tests/corpus/test_table_continuations.py",
+                "tests/corpus/test_locator_schema_compat.py", "tests/corpus/test_visual_native_header.py"} <= selected
     world = set(CHECKS.test_files(ROOT, "world-integrity"))
     assert world == set((ROOT / "tests/world").rglob("test_*.py"))
 

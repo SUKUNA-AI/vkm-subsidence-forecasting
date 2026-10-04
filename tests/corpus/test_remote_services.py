@@ -91,6 +91,7 @@ def native_models():
 
 def payloads():
     models = {kind: rm.NativeModelProof(kind=kind, instance_sha256=H, code_sha256=H, dependencies_sha256=H,
+        tokenizer_binding="EMBEDDED_WEIGHTS_VOCAB" if kind == "visual" else "STANDALONE_LOADED",
         config_sha256=H, resources={"weights": H, "tokenizer": H, **({"mmproj": H} if kind == "visual" else {})}
         ).model_dump(mode="json") for kind in ("text", "visual")}
     return {"rerank": {"schema": "vkm-rerank-native-identity/1", "status": "READY", "instance_sha256": H,
@@ -228,7 +229,7 @@ def test_gateway_qualifies_actual_downstream_clients_and_fences_local_objects(tm
     text_hash, visual_hash, head_hash = [sha256_of(p) for p in paths]
     models = payloads()["rerank"]["models"]
     models["text"]["resources"] = {"weights": pins.TEXT["weights_sha256"], "tokenizer": text_hash}
-    models["visual"]["resources"] = {"weights": cfg.m0_weights_sha256, "tokenizer": visual_hash,
+    models["visual"]["resources"] = {"weights": cfg.m0_weights_sha256, "tokenizer": cfg.m0_weights_sha256,
                                      "mmproj": cfg.m0_mmproj_sha256}
     called = []
     def response(req):

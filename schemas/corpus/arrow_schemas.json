@@ -3451,6 +3451,11 @@
      "name": "raw_locator",
      "nullable": true,
      "type": "string"
+    },
+    {
+     "name": "continuation_provenance",
+     "nullable": true,
+     "type": "struct<candidate: struct<source_sha256: string not null, target_page_index: int32 not null, target_raw_locator: string not null, target_raw_content_sha256: string not null, declaration_locator: string not null, declaration_artifact_id: string not null, basis: string not null, review_status: string not null> not null, candidate_sha256: string not null, target_object_id: string not null, target_extraction_generation: int32 not null>"
     }
    ],
    "partition_keys": [
@@ -3460,8 +3465,8 @@
    "primary_key": [
     "object_id"
    ],
-   "schema_fingerprint": "6d4ec517fb8373617acfc092b4e1d75dac75ddf7e237f9cb34802a0c3d3ea487",
-   "schema_version": "0.1.1",
+   "schema_fingerprint": "4f656593233fb58d366f15b2422da9c363bbce31632acb4e97d7788541eb1619",
+   "schema_version": "0.1.2",
    "sort_key": [
     "page_id",
     "bbox_y0",

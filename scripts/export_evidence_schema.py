@@ -36,6 +36,10 @@ from vkm_corpus.update.bootstrap import (BootstrapStartupAuthority, BootstrapPro
 from vkm_corpus.update.bootstrap_native import BootstrapControlConfig  # noqa: E402
 from vkm_corpus.update.promotion import PromotionBinding, PromotionRecipe, LivePromotionProbeReceipt  # noqa: E402
 from vkm_corpus.update.model_owner import ModelOwnerStatus, OwnedChildRecipe, OwnedChildIdentity  # noqa: E402
+from vkm_corpus.update.remote_models import NativeModelProof  # noqa: E402
+from vkm_corpus.update.text_owner_bridge import TextOwnerRecipe, TextOwnerImagePlan  # noqa: E402
+from vkm_corpus.update.visual_owner_bridge import (HookedChildRecipe, HookedChildIdentity,
+    LoadedWitness, VisualOwnerRecipe)  # noqa: E402
 
 MODELS = {"evidence_batch": EvidenceBatch, "object_coverage": CoverageLedger,
           "campaign": CampaignManifest, "generation": GenerationManifest, "update_runtime": RuntimeConfig,
@@ -67,7 +71,11 @@ MODELS.update({"previous_admission": PreviousAdmission,
     "bootstrap_control": BootstrapControlConfig, "promotion_binding": PromotionBinding,
     "promotion_recipe": PromotionRecipe, "live_promotion_probe": LivePromotionProbeReceipt,
     "model_owner_status": ModelOwnerStatus, "owned_child_recipe": OwnedChildRecipe,
-    "owned_child_identity": OwnedChildIdentity})
+    "owned_child_identity": OwnedChildIdentity,
+    "native_loaded_model": NativeModelProof, "text_owner_recipe": TextOwnerRecipe,
+    "text_owner_image_plan": TextOwnerImagePlan, "hooked_child_recipe": HookedChildRecipe,
+    "hooked_child_identity": HookedChildIdentity, "native_loaded_witness": LoadedWitness,
+    "visual_owner_recipe": VisualOwnerRecipe})
 
 
 def dataset_version_schema():

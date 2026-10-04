@@ -1,5 +1,11 @@
 # Состояние проекта ВКМ / СКРУ-1 (каноническое)
 
+04.10.2026 — производственная программа данных продолжена в отдельной рабочей
+ветке, draft PR #10. [Текущий отчёт](docs/reviews/MODEL_OWNERS_TABLES_RECOVERY_2026-10-04_RU.md)
+разделяет реализацию owners/table fidelity, выполненный bounded backup/restore и
+ещё не выполненные native model/runtime/corpus qualifications. Production snapshot
+и научные статусы от этих изменений не обновлены; слияние в `main` не выполнено.
+
 Дата базового среза Phase 1: 26.09.2026; последнее обновление состояния — 30.09.2026 (работа A/B/C ниже). Phase 1 слита в `main`
 обоих репозиториев merge-коммитами:
 [PUBLIC #1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/pull/1) → `40ca0ed`,

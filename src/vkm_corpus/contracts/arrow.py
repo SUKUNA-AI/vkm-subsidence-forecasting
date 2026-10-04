@@ -24,7 +24,8 @@ from typing import Annotated, Any, Iterable, Sequence, Union, get_args, get_orig
 
 from pydantic import BaseModel
 
-from vkm_corpus.contracts.datasets import DATASETS, HISTORICAL_LOCATOR_SCHEMAS, VOLATILE_COLUMNS, DatasetSpec, dataset
+from vkm_corpus.contracts.datasets import (DATASETS, HISTORICAL_LOCATOR_SCHEMAS, HISTORICAL_CONTINUATION_SCHEMAS,
+    VOLATILE_COLUMNS, DatasetSpec, dataset, historical_omissions)
 from vkm_corpus.contracts.fieldtypes import ArrowType
 
 _ARROW_NAMES = {
@@ -245,13 +246,13 @@ def digest_rows(name: str, rows: Iterable[dict], exclude: frozenset[str] = froze
     total = 0
     for r in rows:
         row_columns = columns
-        historical = HISTORICAL_LOCATOR_SCHEMAS.get(name)
-        if historical and r.get("schema_version") == historical[0]:
-            if r.get("raw_locator") is not None:
-                raise ValueError(f"{name}: historical 0.1.0 row cannot contain raw_locator; produce 0.1.1")
+        omitted = historical_omissions(name, r.get("schema_version"))
+        if omitted:
+            if any(r.get(c) is not None for c in omitted):
+                raise ValueError(f"{name}: historical row cannot contain {sorted(omitted)}; produce {spec.version} (locator since 0.1.1)")
             # Old immutable file digests omitted the field; a materialised NULL
             # must not change their hashes in a mixed old/new snapshot.
-            row_columns = [c for c in columns if c != "raw_locator"]
+            row_columns = [c for c in columns if c not in omitted]
         line = canonical_row(r, row_columns)
         total += int.from_bytes(hashlib.sha256(line.encode("utf-8")).digest(), "big")
         n += 1
@@ -278,20 +279,22 @@ def fingerprint_of(name: str, digest: RowDigest, content: bool = False, *, schem
     spec = dataset(name)
     columns = [c for c in spec.fields if not (content and c in VOLATILE_COLUMNS)]
     if schema_version is not None and schema_version != spec.version:
-        historical = HISTORICAL_LOCATOR_SCHEMAS.get(name)
-        if historical is None or schema_version != historical[0]:
+        omitted = historical_omissions(name, schema_version)
+        if not omitted:
             raise ValueError(f"unknown {name} fingerprint schema version: {schema_version}")
-        columns = [c for c in columns if c != "raw_locator"]
+        columns = [c for c in columns if c not in omitted]
     kind = "content" if content else "table"
     payload = f"vkm-fp-v2|{kind}|{name}|{','.join(columns)}|{digest.rows}|{digest.hex()}"
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 def readable_schema(name: str, version: str | None, fingerprint: str | None) -> bool:
-    """Only current or the exact pre-locator historical schema can be read."""
+    """Only current or exact allowlisted immutable historical schemas can be read."""
     return ((version, fingerprint) == (dataset(name).version, schema_fingerprint(name))
             or (name in HISTORICAL_LOCATOR_SCHEMAS
-                and (version, fingerprint) == HISTORICAL_LOCATOR_SCHEMAS[name]))
+                and (version, fingerprint) == HISTORICAL_LOCATOR_SCHEMAS[name])
+            or (name in HISTORICAL_CONTINUATION_SCHEMAS
+                and (version, fingerprint) == HISTORICAL_CONTINUATION_SCHEMAS[name]))
 
 
 def table_fingerprint(name: str, table) -> str:

@@ -28,7 +28,11 @@ Dockerfile text eol=lf
 .python-version text eol=lf
 .gitattributes text eol=lf
 .gitignore text eol=lf
-*.patch text eol=lf
+# Unified diffs carry a literal space on empty context lines; it is syntax,
+# not trailing whitespace in the patched source.
+*.patch text eol=lf whitespace=-blank-at-eol
+*.h text eol=lf
+*.cpp text eol=lf
 # engineering-tool sources (MATLAB, APDL, Workbench journals)
 *.m text eol=lf
 *.inp text eol=lf

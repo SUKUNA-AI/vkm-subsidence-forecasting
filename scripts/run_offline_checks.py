@@ -21,7 +21,7 @@ import sys
 import tempfile
 import tomllib
 
-EXTERNAL_MARKERS = ("services", "gpu", "desktop", "matlab", "ansys", "qgis_runtime")
+EXTERNAL_MARKERS = ("services", "gpu", "desktop", "matlab", "ansys", "qgis_runtime", "native_source")
 MARKER_EXPRESSION = " and ".join(f"not {marker}" for marker in EXTERNAL_MARKERS)
 ROOT = Path(__file__).resolve().parents[1]
 WINDOWS_PATHS = ("tests/world", "tests/engineering", "tests/qgis", "tests/evidence", "tests/datasets",
@@ -36,7 +36,10 @@ WINDOWS_PATHS = ("tests/world", "tests/engineering", "tests/qgis", "tests/eviden
                  "tests/corpus/test_accounting_publication.py", "tests/corpus/test_runtime_publication.py",
                  "tests/corpus/test_publish_transfer.py", "tests/corpus/test_service_identity.py",
                  "tests/corpus/test_service_wheel.py", "tests/corpus/test_structural_fidelity.py",
-                 "tests/corpus/test_model_owner.py", "tests/corpus/test_read_credentials.py")
+                 "tests/corpus/test_model_owner.py", "tests/corpus/test_read_credentials.py",
+                 "tests/corpus/test_text_owner_bridge.py", "tests/corpus/test_visual_owner_bridge.py",
+                 "tests/corpus/test_native_tokenizer_binding.py", "tests/corpus/test_table_continuations.py",
+                 "tests/corpus/test_locator_schema_compat.py", "tests/corpus/test_visual_native_header.py")
 # Host prerequisites only. Missing locked CPU Python packages must fail, not become allowed NOT_RUN.
 KNOWN_SKIPS = (
     ("tests/corpus/test_extract_djvu.py", "DjVuLibre not installed (NOT_RUN)"),
@@ -45,6 +48,8 @@ KNOWN_SKIPS = (
      "rsync not installed: NOT_RUN"),
     ("tests/corpus/test_figures_pdf.py", "local OCR helper (tesseract) not installed"),
     ("tests/corpus/test_nightly_scripts.py", "needs the CORE/EDGE host environment: bash, python3, flock, rsync, timeout, sha256sum"),
+    ("tests/corpus/test_visual_native_header.py::test_original_native_lifecycle_header_compiles_and_fences",
+     "C++17 compiler not installed (NOT_RUN)"),
 )
 # These primitives do not exist on Windows. Missing symlink/locking privileges
 # remain failures; they must never be added to this operating-system allowance.
@@ -148,7 +153,19 @@ WINDOWS_NOT_RUN = (
         "test_owned_file_hash_mismatch_prevents_any_spawn", "test_owned_hardlink_alias_is_unqualified",
         *("test_actual_owned_child_fences_each_replacement_and_load_time_event[" + case + "]" for case in
           ("client_object", "client_url", "client_closed", "weights", "mmproj", "recipe", "restore_bytes",
-           "unmap-mmproj", "close-listener", "exit"))))
+           "unmap-mmproj", "close-listener", "exit")))) + tuple(
+    ("tests/corpus/test_visual_owner_bridge.py::" + case,
+     "NOT_RUN: actual owned child procfs/inotify qualification requires Linux") for case in (
+        "test_owned_live_witness_without_mmap_and_sanitized_identity",
+        *("test_invalid_first_witness_never_qualifies[" + case + "]" for case in
+          ("epoch", "nonce", "zero", "path", "capture", "duplicate", "oversized", "sleep")),
+        *("test_changed_lifetime_or_owned_boundary_closes_permanently[" + case + "]" for case in
+          ("epoch", "handle", "sleep", "bytes", "auth", "transport")),
+        "test_foreign_listener_never_receives_private_challenge", "test_hook_file_watch_precedes_child_spawn",
+        "test_response_buffer_discarded_when_native_epoch_changes_during_inference",
+        "test_same_owned_client_proxy_routes_and_no_synthetic_native_identity",
+        "test_factory_owns_child_and_recipe_token_watch_before_inference",
+        "test_factory_refuses_omitted_actual_bridge_code_before_child"))
 
 
 def test_files(root: Path, suite: str) -> list[Path]:

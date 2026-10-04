@@ -278,6 +278,95 @@
    "title": "TableCell",
    "type": "object"
   },
+  "TableContinuationCandidate": {
+   "additionalProperties": false,
+   "description": "Explicit source-backed structural proposal; no numbering/caption heuristic and no review admission.",
+   "properties": {
+    "basis": {
+     "title": "Basis",
+     "type": "string"
+    },
+    "declaration_artifact_id": {
+     "pattern": "^sha256:[0-9a-f]{64}$",
+     "title": "Declaration Artifact Id",
+     "type": "string"
+    },
+    "declaration_locator": {
+     "minLength": 1,
+     "title": "Declaration Locator",
+     "type": "string"
+    },
+    "review_status": {
+     "default": "AUTO_EXTRACTED_UNREVIEWED",
+     "title": "Review Status",
+     "type": "string"
+    },
+    "source_sha256": {
+     "pattern": "^[0-9a-f]{64}$",
+     "title": "Source Sha256",
+     "type": "string"
+    },
+    "target_page_index": {
+     "maximum": 2147483647,
+     "minimum": -2147483648,
+     "title": "Target Page Index",
+     "type": "integer"
+    },
+    "target_raw_content_sha256": {
+     "pattern": "^[0-9a-f]{64}$",
+     "title": "Target Raw Content Sha256",
+     "type": "string"
+    },
+    "target_raw_locator": {
+     "minLength": 1,
+     "title": "Target Raw Locator",
+     "type": "string"
+    }
+   },
+   "required": [
+    "source_sha256",
+    "target_page_index",
+    "target_raw_locator",
+    "target_raw_content_sha256",
+    "declaration_locator",
+    "declaration_artifact_id",
+    "basis"
+   ],
+   "title": "TableContinuationCandidate",
+   "type": "object"
+  },
+  "TableContinuationProvenance": {
+   "additionalProperties": false,
+   "properties": {
+    "candidate": {
+     "$ref": "#/$defs/TableContinuationCandidate"
+    },
+    "candidate_sha256": {
+     "pattern": "^[0-9a-f]{64}$",
+     "title": "Candidate Sha256",
+     "type": "string"
+    },
+    "target_extraction_generation": {
+     "maximum": 2147483647,
+     "minimum": -2147483648,
+     "title": "Target Extraction Generation",
+     "type": "integer"
+    },
+    "target_object_id": {
+     "pattern": "^VKM-SRC-[0-9]{3}:(?:[prs][0-9]{4}|doc):[bftmc][0-9a-f]{12}$",
+     "title": "Target Object Id",
+     "type": "string"
+    }
+   },
+   "required": [
+    "candidate",
+    "candidate_sha256",
+    "target_object_id",
+    "target_extraction_generation"
+   ],
+   "title": "TableContinuationProvenance",
+   "type": "object"
+  },
   "TableRawFormat": {
    "enum": [
     "HTML",
@@ -416,6 +505,18 @@
    "pattern": "^[0-9a-f]{64}$",
    "title": "Content Sha256",
    "type": "string"
+  },
+  "continuation_provenance": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/TableContinuationProvenance"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "explicit unreviewed continuation declaration; NULL for immutable historical fragments"
   },
   "continues_object_id": {
    "anyOf": [
@@ -819,6 +920,6 @@
  "x-vkm-primary-key": [
   "object_id"
  ],
- "x-vkm-schema-fingerprint": "6d4ec517fb8373617acfc092b4e1d75dac75ddf7e237f9cb34802a0c3d3ea487",
- "x-vkm-schema-version": "0.1.1"
+ "x-vkm-schema-fingerprint": "4f656593233fb58d366f15b2422da9c363bbce31632acb4e97d7788541eb1619",
+ "x-vkm-schema-version": "0.1.2"
 }

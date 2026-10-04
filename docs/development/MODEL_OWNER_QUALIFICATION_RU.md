@@ -1,5 +1,10 @@
 # PW-03: load-time identity владельцев моделей
 
+Дополнение к кодовой реализации: [actual text owner](TEXT_OWNER_INTEGRATION_RU.md)
+и [pinned native visual hook](../corpus_platform/VISUAL_OWNED_LOAD_WITNESS_RU.md).
+Действующий deployment ими ещё не заменён. Новые bridges и CPU regression не
+означают full model/image/runtime qualification.
+
 Дата проверки: 04.10.2026. Статус действующих text/visual owners: **UNWIRED**.
 Добавлены исполняемые Python/owned-child границы и CPU qualification. Это не
 доказательство текущих загруженных production моделей, GPU residency, parity,

@@ -9,22 +9,35 @@ pq = pytest.importorskip("pyarrow.parquet")
 duckdb = pytest.importorskip("duckdb")
 
 from vkm_corpus.contracts import arrow as ca
-from vkm_corpus.contracts.datasets import DATASETS, HISTORICAL_LOCATOR_SCHEMAS
+from vkm_corpus.contracts.datasets import (DATASETS, HISTORICAL_LOCATOR_SCHEMAS, HISTORICAL_CONTINUATION_SCHEMAS,
+    historical_omissions)
+from vkm_corpus.contracts.builders import content_sha256
+from vkm_corpus.contracts.models import ENVELOPE_FIELDS
 from vkm_corpus.duckdb.build import attach_manifest, verify_fingerprints, FingerprintMismatch
 from vkm_corpus.parquet.layout import init_root
 from vkm_corpus.parquet.validator import Validator
 from vkm_corpus.testing import rows as R
 
 
-def _old_file(layout, name, row):
-    old_version, old_fp = HISTORICAL_LOCATOR_SCHEMAS[name]
-    old_description = [field for field in ca.schema_description(name) if field[0] != "raw_locator"]
+def _old_file(layout, name, row, historical=None):
+    old_version, old_fp = historical or HISTORICAL_LOCATOR_SCHEMAS[name]
+    omitted = historical_omissions(name, old_version)
+    old_description = [field for field in ca.schema_description(name) if field[0] not in omitted]
     assert hashlib.sha256(json.dumps(old_description, sort_keys=True, ensure_ascii=False,
                                     separators=(",", ":")).encode()).hexdigest() == old_fp
     row = {**row.model_dump(), "schema_version": old_version}
-    row.pop("raw_locator", None)
+    for field in omitted:
+        row.pop(field, None)
     schema = ca.arrow_schema(name)
-    schema = schema.remove(schema.get_field_index("raw_locator"))
+    for field in omitted:
+        schema = schema.remove(schema.get_field_index(field))
+    # An independent version-appropriate content hash, not the new schema's
+    # nullable padding. Original bytes/IDs and both digests remain unchanged.
+    payload = {k: ca.canonical_value(row.get(k)) for k in schema.names
+        if k not in ENVELOPE_FIELDS[DATASETS[name].profile]}
+    row["content_sha256"] = hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False,
+        separators=(",", ":")).encode()).hexdigest()
+    assert content_sha256(name, row) == row["content_sha256"]
     metadata = dict(schema.metadata)
     metadata[b"vkm.schema_version"] = old_version.encode()
     metadata[b"vkm.schema_fingerprint"] = old_fp.encode()
@@ -35,7 +48,7 @@ def _old_file(layout, name, row):
     # Independently compute the old implementation's row hash and column-set fingerprint.
     encoded = ca.canonical_row(row, schema.names).encode()
     digest = ca.RowDigest(1, int.from_bytes(hashlib.sha256(encoded).digest(), "big"))
-    assert ca.digest_rows(name, [{**row, "raw_locator": None}]) == digest
+    assert ca.digest_rows(name, [{**row, **{field: None for field in omitted}}]) == digest
     entry = {"path": f"{name}/legacy.parquet", "bytes": path.stat().st_size,
              "sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "rows": 1, "digest": digest.hex(),
              "schema_version": old_version, "schema_fingerprint": old_fp}
@@ -79,3 +92,31 @@ def test_historical_row_cannot_smuggle_new_locator():
         ca.digest_rows("tables", [{"schema_version": "0.1.0", "raw_locator": "/hidden/new/field"}])
     assert not ca.readable_schema("tables", "0.0.9", HISTORICAL_LOCATOR_SCHEMAS["tables"][1])
     assert not ca.readable_schema("tables", "0.1.0", "0" * 64)
+
+
+def test_pre_continuation_files_keep_original_content_and_file_fingerprints(tmp_path):
+    layout = init_root(tmp_path / "canon", "CANONICAL")
+    historical = HISTORICAL_CONTINUATION_SCHEMAS["tables"]
+    entry, digest, table_fp = _old_file(layout, "tables", R.make_table(raw_locator="/synthetic/table[1]"), historical)
+    manifest = {"datasets": {"tables": {"files": [entry], "schema_version": historical[0],
+        "schema_fingerprint": historical[1], "table_fingerprint": table_fp}}}
+    con = duckdb.connect()
+    attach_manifest(con, layout, manifest)
+    assert con.execute("SELECT continuation_provenance FROM canonical.tables").fetchone() == (None,)
+    assert verify_fingerprints(con, manifest) == {}
+    validator = Validator(layout, manifest)
+    validator.check_files()
+    assert all(c.violations == 0 for c in validator.checks if c.check_id in ("A01", "A02", "A05"))
+    row = con.execute("SELECT * FROM canonical.tables").to_arrow_table().to_pylist()[0]
+    assert content_sha256("tables", row) == row["content_sha256"]
+    assert ca.digest_rows("tables", [row]) == digest
+    row["continuation_provenance"] = {"forged": "payload"}
+    with pytest.raises(ValueError, match="historical"):
+        ca.digest_rows("tables", [row])
+    with pytest.raises(ValueError, match="historical"):
+        content_sha256("tables", row)
+    assert not ca.readable_schema("tables", "0.1.1", "0" * 64)
+    assert not ca.readable_schema("tables", "0.1.3", historical[1])
+    with pytest.raises(ValueError, match="unknown"):
+        ca.fingerprint_of("tables", digest, schema_version="0.1.3")
+    con.close()

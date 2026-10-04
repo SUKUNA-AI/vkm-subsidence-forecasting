@@ -25,6 +25,7 @@ Rules enforced at row level (the canon validator repeats and extends them across
 from __future__ import annotations
 
 import hashlib
+import json
 from typing import ClassVar
 
 from pydantic import Field, field_validator, model_validator
@@ -494,6 +495,49 @@ class FigureRow(DocObjectEnvelope):
         return self
 
 
+class TableContinuationCandidate(ContractModel):
+    """Explicit source-backed structural proposal; no numbering/caption heuristic and no review admission."""
+    source_sha256: Sha256Hex
+    target_page_index: Int32 = Field(ge=1)
+    target_raw_locator: str = Field(min_length=1)
+    target_raw_content_sha256: Sha256Hex
+    declaration_locator: str = Field(min_length=1)
+    declaration_artifact_id: ArtifactId
+    basis: str
+    review_status: str = "AUTO_EXTRACTED_UNREVIEWED"
+
+    @field_validator("basis")
+    @classmethod
+    def _basis(cls, value):
+        if value not in {"NATIVE_SOURCE_RELATION", "EXPLICIT_STRUCTURE_LINK"}:
+            raise ValueError("continuation basis must be an explicit source relation or structure link")
+        return value
+
+    @field_validator("review_status")
+    @classmethod
+    def _unreviewed(cls, value):
+        if value != "AUTO_EXTRACTED_UNREVIEWED":
+            raise ValueError("a continuation candidate is unreviewed, never scientific admission")
+        return value
+
+    def declaration_sha256(self) -> str:
+        raw = json.dumps(self.model_dump(), sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+class TableContinuationProvenance(ContractModel):
+    candidate: TableContinuationCandidate
+    candidate_sha256: Sha256Hex
+    target_object_id: PageObjectId
+    target_extraction_generation: Int32 = Field(ge=1)
+
+    @model_validator(mode="after")
+    def _hash(self):
+        if self.candidate_sha256 != self.candidate.declaration_sha256():
+            raise ValueError("continuation candidate hash mismatch")
+        return self
+
+
 class TableRow(DocObjectEnvelope):
     OBJECT_KIND: ClassVar[str] = ObjectKind.TABLE
 
@@ -515,6 +559,8 @@ class TableRow(DocObjectEnvelope):
     image_dpi: Int16 | None = None
     continues_object_id: PageObjectId | None = Field(None, description="fragment on the next page")
     raw_locator: str | None = Field(None, description="source-part-qualified XPath or pointer into the raw artifact")
+    continuation_provenance: TableContinuationProvenance | None = Field(None,
+        description="explicit unreviewed continuation declaration; NULL for immutable historical fragments")
 
     @model_validator(mode="after")
     def _table_rules(self):
@@ -524,6 +570,16 @@ class TableRow(DocObjectEnvelope):
             if (self.n_rows is not None and c.row + c.row_span > self.n_rows) or \
                     (self.n_cols is not None and c.col + c.col_span > self.n_cols):
                 raise ValueError("table cell outside n_rows/n_cols")
+        if self.continuation_provenance is not None:
+            proof = self.continuation_provenance
+            candidate = proof.candidate
+            if self.continues_object_id != proof.target_object_id or self.source_sha256 != candidate.source_sha256:
+                raise ValueError("continuation declaration does not bind the source/target")
+            registered = {r.artifact_id for r in self.raw_artifacts} | {self.raw_artifact_id}
+            if candidate.declaration_artifact_id not in registered:
+                raise ValueError("continuation declaration artifact is not registered behind this source object")
+            if candidate.basis == "NATIVE_SOURCE_RELATION" and self.origin != "NATIVE":
+                raise ValueError("a native source relation requires a native source object")
         return self
 
 
