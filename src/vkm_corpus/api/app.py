@@ -874,7 +874,7 @@ def build_from_settings(settings: Any = None, *, environ=None, _defer_generation
                 raise RuntimeError("private candidate preparation cannot serve a public lifespan")
             if runtime is not None and runtime.config.native_serving is not None:
                 from vkm_corpus.api.production import bind_native_generation_guard
-                await bind_native_generation_guard(deps, runtime, api_config, root)
+                await bind_native_generation_guard(deps, runtime, api_config, root, api_service=_app.state.service)
             if deps.hybrid is not None:
                 threading.Thread(target=warm, name="vkm-graph-warm", daemon=True).start()
             yield

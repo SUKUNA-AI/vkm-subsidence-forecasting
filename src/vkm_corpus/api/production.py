@@ -495,7 +495,7 @@ def bind_generation_guard(deps, runtime, api_config, data_root: Path, *, _native
     return deps.generation_guard
 
 
-async def bind_native_generation_guard(deps, runtime, api_config, data_root: Path):
+async def bind_native_generation_guard(deps, runtime, api_config, data_root: Path, *, api_service=None):
     """ASGI startup: qualify the actual configured clients without nested loops."""
     import asyncio
     if platform.system() != "Linux":
@@ -505,7 +505,7 @@ async def bind_native_generation_guard(deps, runtime, api_config, data_root: Pat
         # silently omit a remote dependency.
         return await asyncio.to_thread(bind_generation_guard, deps, runtime, api_config, data_root)
     from vkm_corpus.update.serving import NativeServingBindings
-    native = await NativeServingBindings.bind(deps, runtime.config.native_serving)
+    native = await NativeServingBindings.bind(deps, runtime.config.native_serving, api_service=api_service)
     guard = await asyncio.to_thread(bind_generation_guard, deps, runtime, api_config, data_root, _native=native)
     # Closed startup proves native bindings to the operator; the public guard
     # and every content route still require durable OPEN.

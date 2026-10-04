@@ -282,7 +282,7 @@ class PrivateASGIProbeTransport:
             if self._service_observer is None and self.plan.candidate.services:
                 from vkm_corpus.update.remote_services import NativeServiceObserver
                 self._service_observer = await asyncio.wait_for(NativeServiceObserver.bind(
-                    self._service.deps, control_spec=self.plan.control_spec), self.plan.call_timeout_seconds)
+                    self._service.deps, control_spec=self.plan.control_spec, api_service=self._service), self.plan.call_timeout_seconds)
             await self.observe_services()
             wire = httpx.ASGITransport(app=self._app, raise_app_exceptions=False)
             self._http = httpx.AsyncClient(transport=wire, base_url="http://private-candidate.invalid", trust_env=False)

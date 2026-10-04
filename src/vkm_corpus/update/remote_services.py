@@ -11,6 +11,7 @@ import asyncio
 from vkm_corpus.update.contracts import ServiceIdentity
 from vkm_corpus.update.remote_control import ControlServiceLease, ControlSpec
 from vkm_corpus.update.remote_models import NativeModelProof, native_identity_json
+from vkm_corpus.update.service_identity import RerankNativeProfile
 from vkm_evidence.contracts import record_hash
 
 
@@ -74,14 +75,29 @@ def retrieval_identity(body, endpoint):
         resources=resources, capabilities=("dense_query", "late_query", "late_scores", "visual_query"))
 
 
-def rerank_identity(body, endpoint):
-    if (set(body) != {"schema", "status", "instance_sha256", "code_sha256", "dependencies_sha256", "config_sha256",
-                      "resources", "models", "functional_qualification"}
-            or body["schema"] != "vkm-rerank-native-identity/1" or set(body["models"]) != {"text", "visual"}
-            or set(body["resources"]) != {"text_tokenizer", "visual_tokenizer", "visual_head"}):
+def rerank_identity(body, endpoint, *, text_backend=None, retrieval: ServiceIdentity | None = None):
+    fields = {"schema", "status", "instance_sha256", "code_sha256", "dependencies_sha256", "config_sha256",
+              "resources", "models", "functional_qualification"}
+    optional = isinstance(body, dict) and body.get("schema") == "vkm-rerank-native-identity/2"
+    kinds = ("visual",) if optional else ("text", "visual")
+    resources_required = {"visual_tokenizer", "visual_head"} | (set() if optional else {"text_tokenizer"})
+    if (not isinstance(body, dict) or set(body) != fields | ({"profile", "text_route"} if optional else set())
+            or body["status"] != "READY" or body["functional_qualification"] != "NOT_RUN"
+            or body["schema"] != ("vkm-rerank-native-identity/2" if optional else "vkm-rerank-native-identity/1")
+            or not isinstance(body["models"], dict) or set(body["models"]) != set(kinds)
+            or not isinstance(body["resources"], dict) or set(body["resources"]) != resources_required):
         raise ValueError("incomplete native rerank gateway proof")
+    fallback = None
+    if optional:
+        if (body["profile"] != RerankNativeProfile.VISUAL_ONLY_TEXT_DISABLED_V2.value
+                or body["text_route"] != "DISABLED_UNAVAILABLE" or text_backend != "late"
+                or type(retrieval) is not ServiceIdentity or retrieval.service != "RETRIEVAL"
+                or "late_scores" not in retrieval.capabilities
+                or not {"LATE_PACK", "late_weights", "late_tokenizer", "late_resources", "late_query_config"} <= retrieval.resources.keys()):
+            raise ValueError("disabled text requires actual API late route and same qualified retrieval")
+        fallback = {"selected_text_backend": text_backend, "retrieval": retrieval.model_dump(mode="json")}
     resources = dict(body["resources"])
-    for kind in ("text", "visual"):
+    for kind in kinds:
         proof = NativeModelProof.model_validate(body["models"][kind])
         if proof.kind != kind:
             raise ValueError("native downstream model differs from gateway route")
@@ -91,23 +107,34 @@ def rerank_identity(body, endpoint):
         if kind == "visual" and proof.tokenizer_binding != "EMBEDDED_WEIGHTS_VOCAB":
             raise ValueError("native downstream model differs from gateway route")
         resources.update({kind + "_model_" + k: v for k, v in proof.resources.items()})
+    if fallback is not None:
+        resources["text_fallback_late"] = record_hash(fallback)
     return ServiceIdentity(service="RERANK", instance_sha256=body["instance_sha256"],
         code_sha256=body["code_sha256"], dependencies_sha256=body["dependencies_sha256"],
         config_sha256=body["config_sha256"], endpoint_sha256=endpoint,
-        runtime_sha256=record_hash(body["models"]), resources=resources,
-        capabilities=("rerank_text", "rerank_visual"))
+        runtime_sha256=record_hash({"models": body["models"], "profile": body["profile"], "text_fallback": fallback})
+            if optional else record_hash(body["models"]), resources=resources,
+        capabilities=("rerank_visual",) if optional else ("rerank_text", "rerank_visual"))
 
 
 class NativeServiceObserver:
     """Bind once before admission; every observe uses those actual backends."""
     @classmethod
-    async def bind(cls, deps, *, control_spec: ControlSpec):
+    async def bind(cls, deps, *, control_spec: ControlSpec, api_service=None):
         from vkm_corpus.api.backends import GatewayRerankBackend, HybridBackend, PgControlPlane
+        from vkm_corpus.api.service import ApiService
         if (not isinstance(deps.rerank, GatewayRerankBackend) or not isinstance(deps.hybrid, HybridBackend)
                 or not isinstance(deps.control, PgControlPlane)):
             raise ValueError("complete production service identity requires actual rerank/retrieval/control backends")
         obj = cls()
         obj.deps = deps
+        # Optional-text qualification needs the actual serving ApiService, never
+        # an expected route, a new receiver, an injected callback or an env claim.
+        if api_service is not None and (type(api_service) is not ApiService or api_service.deps is not deps):
+            raise ValueError("actual API service/dependencies required for native route binding")
+        obj.api_service = api_service
+        obj.api_selector = ApiService.text_rerank_backend
+        obj.text_backend = obj._api_text_backend()
         obj.backends = (deps.rerank, deps.hybrid, deps.control)
         obj.rerank = deps.rerank._client
         obj.embed = deps.hybrid._embed
@@ -121,12 +148,25 @@ class NativeServiceObserver:
         obj.identities = await obj._observe()
         return obj
 
+    def _api_text_backend(self):
+        if self.api_service is None:
+            return None  # Strict v1 remains valid; v2 rejects absence below.
+        from vkm_corpus.api.service import ApiService
+        method = self.api_service.text_rerank_backend
+        if (type(self.api_service) is not ApiService or self.api_service.deps is not self.deps
+                or ApiService.text_rerank_backend is not self.api_selector
+                or getattr(method, "__self__", None) is not self.api_service
+                or getattr(method, "__func__", None) is not self.api_selector):
+            raise ValueError("actual API text selector replaced")
+        return method()
+
     def _fence(self):
         actual = (self.deps.rerank, self.deps.hybrid, self.deps.control)
         if (any(a is not b for a, b in zip(actual, self.backends))
                 or self.deps.rerank._client is not self.rerank or self.deps.hybrid._embed is not self.embed
                 or self.rerank._http is not self.clients[0] or self.embed._http is not self.clients[1]
-                or tuple(_endpoint(c) for c in self.clients) != self.endpoints):
+                or tuple(_endpoint(c) for c in self.clients) != self.endpoints
+                or self._api_text_backend() != self.text_backend):
             raise ValueError("actual serving backend/client/endpoint replaced")
 
     async def _observe(self):
@@ -142,8 +182,9 @@ class NativeServiceObserver:
             raise ValueError("native serving identity transport unavailable") from exc
         control = await asyncio.to_thread(self.control.observe)
         retrieval_body = _body(retrieval)
-        identities = (rerank_identity(_body(rerank), self.endpoints[0]),
-                      retrieval_identity(retrieval_body, self.endpoints[1]), control)
+        retrieval_proof = retrieval_identity(retrieval_body, self.endpoints[1])
+        identities = (rerank_identity(_body(rerank), self.endpoints[0], text_backend=self.text_backend,
+                                     retrieval=retrieval_proof), retrieval_proof, control)
         self._fence()
         self.pack_proof = retrieval_body["pack"]
         return {i.service: i.model_dump(mode="json") for i in identities}
@@ -155,6 +196,6 @@ class NativeServiceObserver:
         return actual
 
 
-async def observe_services(deps, *, control_spec: ControlSpec):
+async def observe_services(deps, *, control_spec: ControlSpec, api_service=None):
     """Factory: bind expensive proofs once, return an async native observer."""
-    return await NativeServiceObserver.bind(deps, control_spec=control_spec)
+    return await NativeServiceObserver.bind(deps, control_spec=control_spec, api_service=api_service)

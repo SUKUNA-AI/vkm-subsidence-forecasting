@@ -5,6 +5,35 @@
 использует mLateOn. Ни этот entrypoint, ни тесты не изменяют route/fallback и не
 делают отключённый text owner обязательным READY.
 
+## Явное отключение text в qualified gateway
+
+Код qualification поддерживает два профиля `VKM_RERANK_NATIVE_PROFILE`:
+
+- `BOTH_NATIVE_V1` — прежний default: identity schema `/1` требует настоящие
+  load-time proofs и text, и visual. Отсутствующий text не становится optional.
+- `VISUAL_ONLY_TEXT_DISABLED_V2` — явно выбранный профиль: text client и tokenizer
+  не создаются, `/v1/rerank/text` отвечает `RERANK_BACKEND_UNAVAILABLE` до чтения
+  тела и до обращения к backend. Health/status сохраняют text `unavailable`;
+  gateway не опрашивает отключённый сервис. Identity schema `/2` содержит только
+  visual proof, `text_route=DISABLED_UNAVAILABLE` и capability `rerank_visual`.
+
+Само имя профиля не даёт READY. Остаются обязательны authenticated gateway,
+actual visual owner, watched loaded visual tokenizer/head, code/dependency
+identity и неизменные clients/config. API consumer принимает `/2` только с
+**фактическим экземпляром `ApiService`**, тем же объектом `deps` и его исходным
+bound selector, который действительно выбрал `late`. Замена метода, deps или
+маршрута закрывает qualification. Тот же native observer обязан проверить
+полную RETRIEVAL identity с `late_scores` и загруженным LATE pack; эта identity
+включается в runtime hash и `text_fallback_late` resource gateway. Переданный
+ожидаемый маршрут, callback или JSON `UNAVAILABLE` эту связку не заменяет.
+
+Public startup и private MCP acceptance передают свой actual `ApiService`.
+Старые strict-v1 callers совместимы без этого аргумента; visual-only v2 без него
+закрывается. Перед выдачей результата qualified gateway повторно проверяет
+native identity. Успешная identity не является функциональной qualification:
+`functional_qualification=NOT_RUN` сохраняется. Эта правка не активирует
+CareerOps, не запускает модели и не меняет текущие host configs или late route.
+
 ## Фактические исходники и ограничения
 
 CareerOps `careerops_reranker/runtime.py`, `server.py`, `config.py` прочитаны

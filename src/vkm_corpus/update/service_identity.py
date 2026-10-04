@@ -15,11 +15,18 @@ import json
 import platform
 import stat
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 
 
 RETRIEVAL = "RETRIEVAL_LLAMA_TOKENIZERS_V1"
 RERANK = "RERANK_HTTP_TOKENIZERS_V1"
+
+
+class RerankNativeProfile(str, Enum):
+    """Declared gateway routes; disabling text never qualifies a missing model."""
+    BOTH_NATIVE_V1 = "BOTH_NATIVE_V1"
+    VISUAL_ONLY_TEXT_DISABLED_V2 = "VISUAL_ONLY_TEXT_DISABLED_V2"
 
 
 @dataclass(frozen=True)
@@ -192,7 +199,10 @@ def require_retrieval_profile(encoders, residency) -> None:
             raise ValueError("unsupported retrieval encoder runtime profile")
 
 
-def require_rerank_profile(resources) -> None:
+def require_rerank_profile(resources, native_profile=RerankNativeProfile.BOTH_NATIVE_V1) -> None:
     from vkm_corpus.retrieval.backends import TextBackend, VisualBackend
-    if type(resources.text) is not TextBackend or type(resources.visual) is not VisualBackend:
+    profile = RerankNativeProfile(native_profile)
+    text_ok = (type(resources.text) is TextBackend if profile is RerankNativeProfile.BOTH_NATIVE_V1
+               else resources.text is None and resources.v35_tokens is None)
+    if not text_ok or type(resources.visual) is not VisualBackend:
         raise ValueError("unsupported rerank client runtime profile")

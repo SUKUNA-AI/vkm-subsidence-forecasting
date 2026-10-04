@@ -46,7 +46,7 @@ class NativeServingProfile(StrictModel):
 
 class NativeServingBindings:
     @classmethod
-    async def bind(cls, deps, profile_file: BoundFile):
+    async def bind(cls, deps, profile_file: BoundFile, *, api_service=None):
         from vkm_corpus.graph.shadow_bundle import CombinedGraphBundle
         from vkm_corpus.update.remote_graph import NativeGraphObserver
 
@@ -63,7 +63,7 @@ class NativeServingBindings:
         obj = cls()
         obj.deps, obj.profile_file = deps, profile_file
         obj.profile, obj.search, obj.graph = await asyncio.to_thread(components)
-        obj.services = await NativeServiceObserver.bind(deps, control_spec=obj.profile.control)
+        obj.services = await NativeServiceObserver.bind(deps, control_spec=obj.profile.control, api_service=api_service)
         await obj.services.observe()
         obj.observe_components()
         return obj
