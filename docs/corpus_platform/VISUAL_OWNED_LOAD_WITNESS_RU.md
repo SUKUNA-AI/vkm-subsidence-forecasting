@@ -1,9 +1,14 @@
 # Native load witness и владелец visual llama
 
-Статус реализации: код и CPU synthetic checks. Реальная сборка полного llama,
-загрузка m0, GPU residency, функциональная эквивалентность и production admission
-**NOT_RUN**. Текущий прямой llama deployment автоматически не меняется и не
-становится квалифицированным от появления этих файлов.
+Статус на 04.10: выполнена изолированная offline сборка полного llama и wheel
+чистого component commit `6b8a0b3658d098dfe77dc2254eda56ce6b9109eb`, включая
+ABI CPython 3.13.15, pip check и native version. Этот образ предшествует
+расширению placement и подтверждает только build/ABI. Изменённый native getter
+placement дополнительно прошёл compile/link на полном pinned upstream в
+отдельном контейнере без модели и GPU. Полный immutable образ нового компонента,
+загрузка m0, функциональная эквивалентность и production admission **NOT_RUN**.
+Текущий прямой llama deployment автоматически не меняется и не становится
+квалифицированным от появления этих файлов.
 
 ## Граница владения
 
@@ -20,6 +25,9 @@ network namespace и принадлежащий именно ребёнку loop
 В production фактические executable/.so mappings ребёнка должны входить в
 зафиксированный до запуска implementation inventory. Библиотека, загруженная
 позднее вне этого inventory, закрывает квалификацию.
+В production inventory/watch обязательно содержит также фактический resolved
+`sys.executable` parent и все fixed bridge modules, включая placement reader.
+Пропуск Python binary отклоняется до запуска native child.
 
 Патч `0002-vkm-owned-loaded-witness.patch` относится к точному upstream commit
 `4da6337767f973e2b4d0797e5b323d77d8565e4a`. Оригинальный заголовок
@@ -69,8 +77,9 @@ child. Public-safe identity содержит только SHA-256, тип гра
    должны иметь точные hashes. Нативный child сохраняет текущие pinned Q6_K
    weights/Q8_0 projector, embeddings/last pooling и существующие параметры
    placement. Новый список параметров или override требует отдельного профиля.
-2. Собрать патчи вместе с оригинальным header на точном upstream. Docker recipe
-   уже копирует header и включает его hash в PATCHES_SHA256, но image не строился.
+2. Собрать патчи вместе с обоими оригинальными headers на точном upstream.
+   Recipe копирует headers и включает их hashes в PATCHES_SHA256. Образ с новым
+   placement getter требует нового чистого component commit и build manifest.
    Проверить полный compile/link, actual native endpoint и реальную mapped
    implementation closure, включая загружаемые CUDA/ggml/системные библиотеки.
 3. В отдельном образе/entrypoint с установленным wheel запустить
@@ -92,6 +101,48 @@ production NativeModelProof через `/identity`. Проверки предп�
 operator-owned image и файлы на поддерживаемой Linux local filesystem, а не
 защиту от привилегированного вмешательства в память процесса. Windows, DrvFS и
 сетевые файловые системы не квалифицированы для этой native boundary.
+
+## Фактическое размещение target weights
+
+Расширение `vkm-native-target-weight-placement/1` читает `tensors_by_name` именно
+загруженного `model_tgt`, связанные `ctx_tgt`, настоящие tensor data/buffer/base,
+buffer type/device, размеры allocations и цепочки `view_src`/offsets. Чтение
+выполняется внутри того же lifecycle mutex и входит в live witness с nonce/epoch.
+Значения tensor не читаются. `no_alloc`, null/zero storage, циклические или
+слишком длинные views, выходы за storage span, split/meta/unsupported device и
+противоречивые buffer identities закрывают witness. Requested `n_gpu_layers`,
+load logs и оценки scheduler memory не используются как подтверждение.
+
+Классификация GPU требует backend device типа GPU **и** обоих отрицательных
+host-флагов buffer/buffer-type. `CUDA_Host` остаётся HOST даже при device CUDA.
+Группа output определяется принадлежностью tensor настоящим model output,
+output_norm или output_b; при tied weights одно имя может обозначать разные
+allocations, поэтому occurrences различаются по `(name, tensor)`. Если один
+tensor принадлежит и input, и output, обе роли сохраняются как explicit aliases;
+его размещение не становится двумя независимыми allocations. Группы `blk.N`,
+`output` и `other` показывают GPU/HOST/MIXED; allocations
+считаются один раз по buffer identity. SHA-256 включает все per-tensor bindings,
+shape/type, view offsets и identities, поэтому перестановка при сохранении
+counts/bytes тоже инвалидирует прежнюю lease.
+
+Authenticated `/placement` использует тот же pinned credential, owner и serving
+boundary, что `/identity`. Наружу выдаются typed summary и hashes instance,
+process, witness и placement; raw pointers, tensor names и native paths не
+выдаются. В production отсутствие placement не допускается; synthetic transport
+не экспортирует production placement или identity. Ответ защищён повторной
+проверкой owner до и после формирования, как inference.
+
+Контракт доказывает только `LLAMA_TARGET_WEIGHT_PLACEMENT`: mmproj placement,
+context allocations, kernel execution, производительность и полная GPU residency
+остаются `NOT_PROVEN`. Generic `NativeModelProof.gpu_residency` не повышается.
+Отдельный guard профиля требует полный inventory групп: actual effective и
+total layer count 28; GPU `blk.9`…`blk.27` и `output` на CUDA0; HOST `blk.0`…`blk.8`
+и input/other. Это следует из pinned upstream `llama-model.cpp`:
+`i_gpu_start=max(n_layer_all+1-n_gpu_layers,0)`, а output получает bucket
+`n_layer_all`. При `-ngl 20` число GPU buckets равно 20. Пропущенная HOST группа,
+замена одной GPU группы другой при том же count или MIXED группа не проходят
+приёмку. Одна запись в argv не выполняет guard. CPU-only модель для runtime
+rehearsal не запускается.
 
 ## Выполненные проверки
 

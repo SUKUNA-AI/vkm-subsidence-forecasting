@@ -12,6 +12,9 @@ struct loaded_handles {
     std::uintptr_t model = 0, context = 0, mmproj = 0, vocab = 0;
     std::string weights_path, mmproj_path;
     std::uint64_t epoch = 0;
+    // Constructed by the live native getter while this lifecycle mutex is held.
+    // Empty for older/synthetic callers; no GPU or residency claim is inferred.
+    std::string target_weight_placement_json;
 };
 
 class loaded_lifetime {

@@ -1,12 +1,15 @@
 --- a/tools/server/server-context.cpp
 +++ b/tools/server/server-context.cpp
-@@ -1,4 +1,5 @@
+@@ -1,4 +1,8 @@
  #include "server-context.h"
 +#include "vkm-loaded-lifetime.h"
++#include "vkm-weight-placement.h"
++#include "ggml-backend.h"
++#include "../../src/llama-model.h"
  #include "server-chat.h"
  #include "server-common.h"
  #include "server-http.h"
-@@ -887,6 +888,7 @@
+@@ -887,6 +891,7 @@
      // note: accessing these fields outside of this class is not thread-safe
      // use server_context methods instead
  
@@ -14,7 +17,7 @@
      common_params params_base;
  
      // note: keep these alive - they determine the lifetime of the model, context, etc.
-@@ -947,6 +949,7 @@
+@@ -947,6 +952,7 @@
      int64_t t_last_load_progress_ms = 0;
  
      void destroy() {
@@ -22,7 +25,7 @@
          spec.reset();
          spec_init.reset();
  
-@@ -1015,6 +1018,7 @@
+@@ -1015,6 +1021,7 @@
      // load the model and initialize llama_context
      // this may also be called to resume from sleeping state
      bool load_model(common_params & params) {
@@ -30,7 +33,7 @@
          load_progress_data load_progress_text  (this, "text_model");
          load_progress_data load_progress_mmproj(this, "mmproj_model");
          load_progress_data load_progress_spec  (this, "spec_model");
-@@ -1398,13 +1402,11 @@
+@@ -1398,13 +1405,11 @@
          params = params_base;
  
          if (!is_resume) {
@@ -47,7 +50,7 @@
          return true;
      }
  
-@@ -4185,6 +4187,29 @@
+@@ -4185,6 +4190,115 @@
      return impl->ctx_tgt;
  }
  
@@ -58,11 +61,96 @@
 +        value.model = reinterpret_cast<std::uintptr_t>(impl->model_tgt);
 +        value.context = reinterpret_cast<std::uintptr_t>(impl->ctx_tgt);
 +        value.mmproj = reinterpret_cast<std::uintptr_t>(impl->mctx);
-+        if (impl->model_tgt && impl->ctx_tgt && llama_get_model(impl->ctx_tgt) == impl->model_tgt) {
-+            value.vocab = reinterpret_cast<std::uintptr_t>(llama_model_get_vocab(impl->model_tgt));
++        if (!impl->model_tgt || !impl->ctx_tgt || llama_get_model(impl->ctx_tgt) != impl->model_tgt) {
++            throw std::runtime_error("target model/context unavailable");
 +        }
++        const auto * model = impl->model_tgt;
++        value.vocab = reinterpret_cast<std::uintptr_t>(llama_model_get_vocab(model));
 +        value.weights_path = impl->params_base.model.path;
 +        value.mmproj_path = impl->params_base.mmproj.path;
++        // Read only immutable allocated weight metadata. No tensor values,
++        // scheduler/context estimates, requested n_gpu_layers or load logs.
++        if (model->hparams.no_alloc || model->split_mode() == LLAMA_SPLIT_MODE_ROW ||
++                model->tensors_by_name.empty() || model->tensors_by_name.size() > 1024) {
++            throw std::runtime_error("unsupported target weight allocation");
++        }
++        std::vector<vkm::weight_slot> slots;
++        for (const auto & entry : model->tensors_by_name) {
++            const auto * tensor = entry.second;
++            if (!tensor) throw std::runtime_error("target tensor unavailable");
++            vkm::weight_slot slot;
++            slot.name = entry.first;
++            const bool output = tensor == model->output || tensor == model->output_norm || tensor == model->output_b;
++            slot.group = output ? "output" : "other";
++            if (output && tensor == model->tok_embd) slot.aliases = {"INPUT", "OUTPUT"};
++            if (!output && slot.name.rfind("blk.", 0) == 0) {
++                const auto end = slot.name.find('.', 4);
++                if (end == std::string::npos || slot.name.find_first_not_of("0123456789", 4) != end) {
++                    throw std::runtime_error("target tensor layer unavailable");
++                }
++                slot.group = slot.name.substr(0, end);
++            }
++            slot.tensor = reinterpret_cast<std::uintptr_t>(tensor);
++            slot.data = reinterpret_cast<std::uintptr_t>(tensor->data);
++            slot.tensor_bytes = ggml_nbytes(tensor);
++            slot.tensor_type = static_cast<int>(tensor->type);
++            slot.shape.assign(tensor->ne, tensor->ne + GGML_MAX_DIMS);
++            const auto * storage = tensor;
++            while (true) {
++                const auto handle = reinterpret_cast<std::uintptr_t>(storage);
++                if (slot.view_chain.size() >= 9 ||
++                        std::find(slot.view_chain.begin(), slot.view_chain.end(), handle) != slot.view_chain.end()) {
++                    throw std::runtime_error("unsupported target tensor view");
++                }
++                slot.view_chain.push_back(handle);
++                if (!storage->view_src) break;
++                slot.view_offsets.push_back(storage->view_offs);
++                storage = storage->view_src;
++            }
++            const auto buffer = storage->buffer;
++            if (!buffer) throw std::runtime_error("target buffer unavailable");
++            const auto buft = ggml_backend_buffer_get_type(buffer);
++            const auto device = buft ? ggml_backend_buft_get_device(buft) : nullptr;
++            if (!buft || !device) throw std::runtime_error("target buffer device unavailable");
++            const auto kind = ggml_backend_dev_type(device);
++            if (kind != GGML_BACKEND_DEVICE_TYPE_CPU && kind != GGML_BACKEND_DEVICE_TYPE_GPU) {
++                throw std::runtime_error("unsupported target buffer device");
++            }
++            const char * device_name = ggml_backend_dev_name(device);
++            const char * buffer_name = ggml_backend_buffer_name(buffer);
++            if (!device_name || !buffer_name) throw std::runtime_error("target buffer identity unavailable");
++            slot.storage_tensor = reinterpret_cast<std::uintptr_t>(storage);
++            slot.storage_data = reinterpret_cast<std::uintptr_t>(storage->data);
++            slot.storage_bytes = ggml_nbytes(storage);
++            slot.buffer = reinterpret_cast<std::uintptr_t>(buffer);
++            slot.base = reinterpret_cast<std::uintptr_t>(ggml_backend_buffer_get_base(buffer));
++            slot.buffer_bytes = ggml_backend_buffer_get_size(buffer);
++            slot.buft = reinterpret_cast<std::uintptr_t>(buft);
++            slot.device = reinterpret_cast<std::uintptr_t>(device);
++            slot.host = ggml_backend_buffer_is_host(buffer) || ggml_backend_buft_is_host(buft);
++            slot.device_kind = kind == GGML_BACKEND_DEVICE_TYPE_GPU ? "GPU" : "CPU";
++            slot.device_name = device_name;
++            slot.buffer_name = buffer_name;
++            slots.push_back(std::move(slot));
++        }
++        vkm::require_weight_inventory(slots, model->hparams.no_alloc);
++        json tensors = json::array();
++        for (const auto & slot : slots) {
++            tensors.push_back({{"name", slot.name}, {"group", slot.group}, {"aliases", slot.aliases},
++                {"tensor", slot.tensor}, {"storage_tensor", slot.storage_tensor},
++                {"data", slot.data}, {"storage_data", slot.storage_data}, {"buffer", slot.buffer}, {"base", slot.base},
++                {"buft", slot.buft}, {"device", slot.device}, {"tensor_bytes", slot.tensor_bytes},
++                {"storage_bytes", slot.storage_bytes}, {"buffer_bytes", slot.buffer_bytes}, {"host", slot.host},
++                {"device_kind", slot.device_kind}, {"device_name", slot.device_name}, {"buffer_name", slot.buffer_name},
++                {"view_chain", slot.view_chain}, {"view_offsets", slot.view_offsets},
++                {"tensor_type", slot.tensor_type}, {"shape", slot.shape}});
++        }
++        value.target_weight_placement_json = json({{"schema_version", "vkm-native-target-weight-placement/1"},
++            {"scope", "LLAMA_TARGET_WEIGHT_PLACEMENT"}, {"model_handle", value.model},
++            {"context_handle", value.context}, {"no_alloc", false}, {"layer_count", model->hparams.n_layer()},
++            {"total_layer_count", model->hparams.n_layer_all},
++            {"tensors", tensors}}).dump();
++        if (value.target_weight_placement_json.size() > 500000) throw std::runtime_error("target placement exceeds bound");
 +        return value;
 +    });
 +    return {{"schema_version", "vkm-native-loaded-witness/1"},
@@ -71,7 +159,8 @@
 +        {"handles", {{"model", state.model}, {"context", state.context},
 +            {"mmproj", state.mmproj}, {"vocab", state.vocab}}},
 +        {"paths", {{"weights", state.weights_path}, {"tokenizer", state.weights_path},
-+            {"mmproj", state.mmproj_path}}}};
++            {"mmproj", state.mmproj_path}}},
++        {"target_weight_placement", json::parse(state.target_weight_placement_json)}};
 +}
 +
  server_response_reader server_context::get_response_reader() {

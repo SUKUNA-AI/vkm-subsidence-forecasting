@@ -15,6 +15,7 @@ import logging
 import os
 import secrets
 import signal
+import sys
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -29,17 +30,18 @@ from vkm_corpus.update.native_files import NativeFileWatch
 from vkm_corpus.update.remote_models import NativeModelProof
 from vkm_corpus.update.remote_retrieval import file_signature
 from vkm_corpus.update.service_identity import runtime_dependency_inventory
+from vkm_corpus.update.visual_placement import OwnedTargetWeightPlacement, TargetWeightPlacement
 from vkm_evidence.contracts import Sha256, StrictModel, canonical_bytes, record_hash
 
 UPSTREAM = "4da6337767f973e2b4d0797e5b323d77d8565e4a"
 WITNESS_HEADER = "X-VKM-Witness-Authorization"
 WITNESS_ENV = "VKM_OWNED_WITNESS_TOKEN"
-WITNESS_LIMIT = 32768
+WITNESS_LIMIT = 512 * 1024
 LOG = logging.getLogger(__name__)
 # Fixed client/native capabilities. No manifest-selected module/import list.
 BRIDGE_MODULES = ("vkm_corpus", "vkm_corpus.update", "vkm_corpus.parquet", "vkm_corpus.contracts",
     "vkm_corpus.retrieval", "vkm_evidence", "vkm_world", "vkm_world.core",
-    "vkm_corpus.update.visual_owner_bridge", "vkm_corpus.update.model_owner",
+    "vkm_corpus.update.visual_owner_bridge", "vkm_corpus.update.visual_placement", "vkm_corpus.update.model_owner",
     "vkm_corpus.update.remote_models", "vkm_corpus.update.remote_retrieval",
     "vkm_corpus.update.native_files", "vkm_corpus.update.service_identity",
     "vkm_corpus.parquet.atomic", "vkm_evidence.contracts", "vkm_corpus.contracts.access", "vkm_corpus.contracts.access_vocab",
@@ -115,6 +117,7 @@ class LoadedWitness(StrictModel):
     capture_before_load: bool = Field(strict=True)
     handles: dict[str, StrictInt]
     paths: dict[str, str]
+    target_weight_placement: TargetWeightPlacement | None = None
 
     @model_validator(mode="after")
     def _complete(self):
@@ -123,6 +126,10 @@ class LoadedWitness(StrictModel):
                 or set(self.paths) != {"weights", "tokenizer", "mmproj"}
                 or any(not Path(p).is_absolute() or len(p) > 4096 for p in self.paths.values())):
             raise ValueError("incomplete live native handles/paths")
+        if self.target_weight_placement is not None and (
+                self.target_weight_placement.model_handle != self.handles["model"]
+                or self.target_weight_placement.context_handle != self.handles["context"]):
+            raise ValueError("target-weight placement belongs to another native lifetime")
         return self
 
 
@@ -210,6 +217,8 @@ class OwnedHookChildOwner(OwnedChildModelOwner):
         if (witness.nonce != nonce or witness.epoch != 1 or witness.paths !=
                 {role: self.recipe.resources[role] for role in ("weights", "tokenizer", "mmproj")}):
             raise ValueError("native load epoch/resource/challenge differs")
+        if self.recipe.scope == "VISUAL_OWNER_PRODUCTION" and witness.target_weight_placement is None:
+            raise ValueError("actual target-weight placement unavailable")
         core = witness.model_dump(exclude={"nonce"})
         if self._witness is None: self._witness = core
         elif core != self._witness: raise ValueError("native loaded handles/lifetime changed")
@@ -272,9 +281,9 @@ class VisualOwnerBridge:
 
     def dispatch(self, method, path, headers, body=b""):
         """Bounded buffered adapter; never forwards a URL, auth, streaming or controls."""
-        if (method, path) not in ROUTES | {("GET", "/identity")}:
+        if (method, path) not in ROUTES | {("GET", "/identity"), ("GET", "/placement")}:
             return 404, canonical_bytes({"error": "not_found"})
-        if path == "/identity":
+        if path in {"/identity", "/placement"}:
             auth = [v for k, v in headers if k.lower() == "authorization"]
             if (len(auth) != 1 or len(auth[0]) > 512 or not hmac.compare_digest(
                     auth[0].encode("utf-8"), ("Bearer " + self.token).encode("ascii"))):
@@ -292,10 +301,18 @@ class VisualOwnerBridge:
         try:
             self._check()
             with self.owner.serving() as client:
-                if path == "/identity":
+                if path in {"/identity", "/placement"}:
                     identity = self.owner.observe()
                     if self.recipe.child.scope != "VISUAL_OWNER_PRODUCTION":
                         status, raw = 503, canonical_bytes({"error": "synthetic_owner_not_production"})
+                    elif path == "/placement":
+                        placement = TargetWeightPlacement.model_validate(self.owner._witness["target_weight_placement"])
+                        status, raw = 200, canonical_bytes(OwnedTargetWeightPlacement(
+                            instance_sha256=identity.model.instance_sha256,
+                            process_sha256=identity.process_sha256,
+                            witness_sha256=identity.witness_sha256,
+                            placement_sha256=placement.sha256,
+                            observation=placement.summary()))
                     else:
                         proof = identity.model.model_copy(update={"dependencies_sha256": self.dependencies,
                             "config_sha256": record_hash({"owner": identity.model.config_sha256,
@@ -336,6 +353,8 @@ def create_visual_owner(recipe_path: Path, recipe_sha256: str):
         if hashlib.sha256(_read(recipe_path, 1024*1024)).hexdigest() != recipe_sha256:
             raise ValueError("recipe changed before watch installation")
         inventory = set(recipe.child.implementation_files)
+        if recipe.child.scope == "VISUAL_OWNER_PRODUCTION" and str(Path(sys.executable).resolve(strict=True)) not in inventory:
+            raise ValueError("actual visual owner Python executable absent from inventory")
         for name in BRIDGE_MODULES:
             module = importlib.import_module(name)
             if str(Path(module.__file__).absolute()) not in inventory:

@@ -5,7 +5,7 @@
 
 int main() {
     vkm::loaded_lifetime lifetime;
-    vkm::loaded_handles actual{1,2,3,4,"weights","mmproj",0};
+    vkm::loaded_handles actual{1,2,3,4,"weights","mmproj",0,""};
     auto getter = [&] { return actual; };
     auto unavailable = [&] {
         bool failed = false;

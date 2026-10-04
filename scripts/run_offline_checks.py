@@ -43,7 +43,12 @@ WINDOWS_PATHS = ("tests/world", "tests/engineering", "tests/qgis", "tests/eviden
                  "tests/corpus/test_table_cursor.py", "tests/corpus/test_frozen_inventory.py",
                  "tests/corpus/test_docx_native_grid.py",
                  "tests/corpus/test_extract_epub_docx.py", "tests/corpus/test_prepare_admission.py",
-                 "tests/corpus/test_pipeline_accounting.py", "tests/corpus/test_pipeline_e2e.py")
+                 "tests/corpus/test_pipeline_accounting.py", "tests/corpus/test_pipeline_e2e.py",
+                 "tests/corpus/test_stream_fileset.py", "tests/corpus/test_visual_owner_inputs.py",
+                 "tests/corpus/test_visual_gpu_preflight.py", "tests/corpus/test_visual_native_cache.py",
+                 "tests/corpus/test_visual_placement.py",
+                 "tests/corpus/test_visual_weight_native_header.py",
+                 "tests/corpus/test_optional_text_qualification.py")
 # Host prerequisites only. Missing locked CPU Python packages must fail, not become allowed NOT_RUN.
 KNOWN_SKIPS = (
     ("tests/corpus/test_extract_djvu.py", "DjVuLibre not installed (NOT_RUN)"),
@@ -54,6 +59,12 @@ KNOWN_SKIPS = (
     ("tests/corpus/test_nightly_scripts.py", "needs the CORE/EDGE host environment: bash, python3, flock, rsync, timeout, sha256sum"),
     ("tests/corpus/test_visual_native_header.py::test_original_native_lifecycle_header_compiles_and_fences",
      "C++17 compiler not installed (NOT_RUN)"),
+    ("tests/corpus/test_visual_weight_native_header.py::test_native_weight_placement_header_compiles_and_rejects_invalid_metadata",
+     "C++17 compiler not installed (NOT_RUN)"),
+    ("tests/corpus/test_stream_fileset.py::test_actual_windows_job_cap_is_applied_before_execute_and_bounds_allocation",
+     "NOT_RUN: suspended Windows Job memory-cap qualification"),
+    ("tests/corpus/test_stream_fileset.py::test_failed_job_assignment_never_resumes_actual_child",
+     "NOT_RUN: suspended Windows Job memory-cap qualification"),
 )
 # These primitives do not exist on Windows. Missing symlink/locking privileges
 # remain failures; they must never be added to this operating-system allowance.
@@ -162,14 +173,28 @@ WINDOWS_NOT_RUN = (
      "NOT_RUN: actual owned child procfs/inotify qualification requires Linux") for case in (
         "test_owned_live_witness_without_mmap_and_sanitized_identity",
         *("test_invalid_first_witness_never_qualifies[" + case + "]" for case in
-          ("epoch", "nonce", "zero", "path", "capture", "duplicate", "oversized", "sleep")),
+          ("epoch", "nonce", "zero", "path", "capture", "duplicate", "oversized", "sleep", "placement-zero")),
         *("test_changed_lifetime_or_owned_boundary_closes_permanently[" + case + "]" for case in
-          ("epoch", "handle", "sleep", "bytes", "auth", "transport")),
+          ("epoch", "handle", "sleep", "bytes", "auth", "transport", "placement")),
         "test_foreign_listener_never_receives_private_challenge", "test_hook_file_watch_precedes_child_spawn",
-        "test_response_buffer_discarded_when_native_epoch_changes_during_inference",
+        *("test_response_buffer_discarded_when_native_epoch_changes_during_inference[" + mode + "]" for mode in
+          ("drift-in-response", "placement-in-response")),
         "test_same_owned_client_proxy_routes_and_no_synthetic_native_identity",
         "test_factory_owns_child_and_recipe_token_watch_before_inference",
-        "test_factory_refuses_omitted_actual_bridge_code_before_child"))
+        "test_factory_refuses_omitted_actual_bridge_code_before_child")) + tuple(
+    ("tests/corpus/test_stream_fileset.py::" + case,
+     "NOT_RUN: FD-relative Linux durability/alias tests") for case in (
+        "test_actual_remote_fd_relative_cipher_copy_and_separate_restore_are_exact",
+        *("test_actual_remote_failed_copy_never_writes_committed[" + change + "]" for change in
+          ("truncated", "extra", "digest")),
+        *("test_remote_wrong_owned_identity_rejected_before_namespace_creation[" + field + "]" for field in
+          ("root_uid", "root_gid", "root_device", "root_inode", "parent_inode")),
+        *("test_remote_wrong_actual_python_binary_rejected_before_namespace_creation[" + field + "]" for field in
+          ("sha256", "path", "inode", "uid")),
+        *("test_remote_private_permissions_fail_closed_on_copy_and_restore[" + node + "]" for node in
+          ("root", "parent", "namespace", "cipher")),
+        *("test_remote_alarm_terminates_actual_blocked_pipe_without_caller_kill[" + operation + "]" for operation in
+          ("read", "write"))))
 
 
 def test_files(root: Path, suite: str) -> list[Path]:

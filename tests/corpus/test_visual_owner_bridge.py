@@ -43,6 +43,13 @@ class H(BaseHTTPRequestHandler):
    data={'schema_version':'vkm-native-loaded-witness/1','upstream_commit':'4da6337767f973e2b4d0797e5b323d77d8565e4a',
     'nonce':nonce,'epoch':1,'capture_before_load':True,'handles':{'model':1,'context':2,'mmproj':3,'vocab':4},
     'paths':{'weights':a.model,'tokenizer':a.model,'mmproj':a.mmproj}}
+   data['target_weight_placement']={'schema_version':'vkm-native-target-weight-placement/1',
+    'scope':'LLAMA_TARGET_WEIGHT_PLACEMENT','model_handle':1,'context_handle':2,'no_alloc':False,
+    'layer_count':28,'total_layer_count':28,'tensors':[{'name':'blk.0.weight','group':'blk.0','aliases':[],'tensor':100,'storage_tensor':100,
+    'data':10000,'storage_data':10000,'buffer':200,'base':10000,'buft':300,'device':400,
+    'tensor_bytes':64,'storage_bytes':64,'buffer_bytes':128,'host':False,'device_kind':'GPU',
+    'device_name':'CUDA0','buffer_name':'CUDA0','view_chain':[100],'view_offsets':[],
+    'tensor_type':0,'shape':[16,1,1,1]}]}
    if action=='sleep':self.reply(b'{}',503);return
    if action=='epoch':data['epoch']=2
    if action=='nonce':data['nonce']='f'*64
@@ -50,14 +57,17 @@ class H(BaseHTTPRequestHandler):
    if action=='zero':data['handles']['model']=0
    if action=='path':data['paths']['weights']=a.mmproj
    if action=='capture':data['capture_before_load']=False
+   if action=='placement':data['target_weight_placement']['tensors'][0]['device']=401
+   if action=='placement-zero':data['target_weight_placement']['tensors'][0]['data']=0
    raw=json.dumps(data).encode()
    if action=='duplicate':raw=b'{"epoch":1,'+raw[1:]
-   if action=='oversized':raw=b' '*33000+raw
+   if action=='oversized':raw=b' '*524289+raw
    self.reply(raw);return
   self.reply(b'{"media_marker":"SYNTHETIC"}')
  def do_POST(self):
   self.rfile.read(int(self.headers.get('Content-Length',0)))
   if a.mode=='drift-in-response':control.write_text('epoch')
+  if a.mode=='placement-in-response':control.write_text('placement')
   self.reply(b'[{"embedding":[0.1],"index":0}]')
 HTTPServer((a.host,int(a.port)),H).serve_forever()
 '''
@@ -140,7 +150,7 @@ def test_owned_live_witness_without_mmap_and_sanitized_identity(tmp_path):
 
 
 @LINUX
-@pytest.mark.parametrize("mode",["epoch","nonce","zero","path","capture","duplicate","oversized","sleep"])
+@pytest.mark.parametrize("mode",["epoch","nonce","zero","path","capture","duplicate","oversized","sleep","placement-zero"])
 def test_invalid_first_witness_never_qualifies(tmp_path,mode,monkeypatch):
     recipe,client=_recipe(tmp_path,mode=mode,timeout=.75)
     calls=[]
@@ -156,12 +166,12 @@ def test_invalid_first_witness_never_qualifies(tmp_path,mode,monkeypatch):
 
 
 @LINUX
-@pytest.mark.parametrize("change",["epoch","handle","sleep","bytes","auth","transport"])
+@pytest.mark.parametrize("change",["epoch","handle","sleep","bytes","auth","transport","placement"])
 def test_changed_lifetime_or_owned_boundary_closes_permanently(tmp_path,change):
     recipe,client=_recipe(tmp_path)
     try:
         with _start(recipe,client) as owner:
-            if change in {"epoch","handle","sleep"}:(tmp_path/"control").write_text(change)
+            if change in {"epoch","handle","sleep","placement"}:(tmp_path/"control").write_text(change)
             elif change=="bytes":Path(recipe.resources["mmproj"]).write_bytes(b"changed")
             elif change=="auth":client.headers[vb.WITNESS_HEADER]="Bearer other"
             else:client._transport=httpx.HTTPTransport()
@@ -206,8 +216,9 @@ def _bridge(owner,recipe,client):
 
 
 @LINUX
-def test_response_buffer_discarded_when_native_epoch_changes_during_inference(tmp_path):
-    recipe,client=_recipe(tmp_path,mode="drift-in-response")
+@pytest.mark.parametrize("mode",["drift-in-response","placement-in-response"])
+def test_response_buffer_discarded_when_native_epoch_changes_during_inference(tmp_path,mode):
+    recipe,client=_recipe(tmp_path,mode=mode)
     try:
         with _start(recipe,client) as owner:
             bridge=_bridge(owner,recipe,client)
@@ -226,6 +237,8 @@ def test_same_owned_client_proxy_routes_and_no_synthetic_native_identity(tmp_pat
             assert b.dispatch("POST","/embedding",[],b'{"content":"synthetic"}')[0]==200
             assert b.dispatch("GET","/identity",[])[0]==401
             assert b.dispatch("GET","/identity",[("Authorization","Bearer "+b.token)])[0]==503
+            assert b.dispatch("GET","/placement",[])[0]==401
+            assert b.dispatch("GET","/placement",[("Authorization","Bearer "+b.token)])[0]==503
             with pytest.raises(ValueError,match="synthetic"):vb.serve_visual_owner(b,threading_event())
     finally:client.close()
 
@@ -296,6 +309,32 @@ def test_factory_refuses_omitted_actual_bridge_code_before_child(tmp_path,monkey
     path,_=_bridge_input(tmp_path);calls=[]
     monkeypatch.setattr(vb.OwnedHookChildOwner,"start",lambda *a,**kw:calls.append(True))
     with pytest.raises(ValueError,match="implementation absent"):
+        vb.create_visual_owner(path,sha256_of(path))
+    assert calls==[]
+
+
+def test_factory_production_requires_actual_python_executable_before_child(tmp_path,monkeypatch):
+    """Pre-spawn production branch only: no production child or model is run."""
+    import importlib
+    from vkm_corpus.retrieval.pins import VISUAL
+    path,recipe=_bridge_input(tmp_path)
+    native=tmp_path/"llama-server";native.write_bytes(b"SYNTHETIC-NONEXECUTED-NATIVE-FILE")
+    modules=tuple(str(Path(importlib.import_module(name).__file__).absolute()) for name in vb.BRIDGE_MODULES)
+    child=recipe.child.model_dump()
+    child.update(scope="VISUAL_OWNER_PRODUCTION",executable=str(native),implementation_files=modules,
+        arguments=("-m",recipe.child.resources["weights"],"--mmproj",recipe.child.resources["mmproj"],
+            "--host","127.0.0.1","--port",str(recipe.child.port),"--embeddings","--pooling","last"))
+    child["expected_sha256"]={p:sha256_of(Path(p)) for p in (str(native),*modules,*recipe.child.resources.values())}
+    child["expected_sha256"][recipe.child.resources["weights"]]=VISUAL["weights_sha256"]
+    child["expected_sha256"][recipe.child.resources["mmproj"]]=VISUAL["mmproj_sha256"]
+    # This recipe reaches the parent closure branch. Startup has no injection
+    # switch; hashes of synthetic model bytes would fail if start were invoked.
+    production=vb.VisualOwnerRecipe.model_validate(recipe.model_dump()|{"child":child})
+    path.write_bytes(canonical_bytes(production))
+    calls=[]
+    monkeypatch.setattr(vb,"NativeFileWatch",lambda *a:SimpleNamespace(close=lambda:None))
+    monkeypatch.setattr(vb.OwnedHookChildOwner,"start",lambda *a,**kw:calls.append(True))
+    with pytest.raises(ValueError,match="Python executable absent"):
         vb.create_visual_owner(path,sha256_of(path))
     assert calls==[]
 
