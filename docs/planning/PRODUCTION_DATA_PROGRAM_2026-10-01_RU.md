@@ -10,6 +10,10 @@ review/admission → согласованные DuckDB/Neo4j/OpenSearch/NAV/MCP 
 UNKNOWN, scope, scale, конфликты, версии и независимость наблюдений сохраняются.
 Программа не включает solver/ML и автоматически не допускает данные научно.
 
+Продолжение на 04.10: [отчёт и следующий порядок](../reviews/PRODUCTION_DATA_CONTINUATION_2026-10-04_RU.md),
+[CORE operator runbook](../development/CORE_OPERATOR_RU.md). Таблица ниже сохраняет
+раздельные code, qualification и actual corpus/runtime статусы.
+
 ## Порядок и критерии
 
 | ID | Результат | Зависимости |
@@ -50,7 +54,7 @@ semantic reviewed; scientifically admitted. Учёт 100% обнаруженны
 значений по оригиналу обязательны. Приём оригиналов 07.10 не зависит от завершения
 полной семантической программы.
 
-## Фактический статус реализации на 01.10.2026
+## Фактический статус реализации (обновлено 04.10.2026)
 
 Это состояние рабочего дерева, а не сертификат production-ready. `IMPLEMENTED`
 означает наличие кода указанного контракта; `PARTIAL` — реализована только часть
@@ -63,14 +67,14 @@ semantic reviewed; scientifically admitted. Учёт 100% обнаруженны
 |---|---|---|---|
 | S01 | IMPLEMENTED: injected UTC clock, future/terminal backup guards; retention по snapshot identity | Целевые nightly/dossier regression tests выполнены; финальный CI на публикуемом commit остаётся gate | Изменения nightly на CORE/EDGE не развёрнуты |
 | S02 | IMPLEMENTED: host-independent scanner, сохранение schema keys, отказ при key collision | Целевые redaction tests выполнены; проверка всего публикуемого дерева остаётся gate | Новая redaction не развёрнута в production |
-| S03 | IMPLEMENTED: exact CPU pins, Linux/Windows jobs, dependency closure и обязательный учёт NOT_RUN | Hosted commit 3031fd9: world 552 PASS и wheel PASS; Windows 1625 PASS, 52 OS-specific NOT_RUN, 6 deselected. Corpus 2795 PASS/1 fixture FAIL; исправление проверено отдельно. Новый tip требует всех трёх jobs | Required checks ещё не включены |
-| S04 | NOT_APPLIED: имена jobs определены, настройки только прочитаны | PUBLIC main unprotected; protection-detail API: connector 403; PRIVATE rulesets: ограничение тарифа | BLOCKED: GitHub admin/доступ интеграции; изменения settings не выполнялись |
+| S03 | IMPLEMENTED: exact CPU pins, Linux/Windows jobs, dependency closure и обязательный учёт NOT_RUN | Hosted 73f2f55: world 554 PASS/wheel PASS; corpus 2921 PASS/33 external NOT_RUN; Windows 1811 PASS/54 explicit OS/capability NOT_RUN/6 external. Все 3 jobs SUCCESS, run 36904526352. Следующий tip требует новых всех 3 jobs | Required checks ещё не включены |
+| S04 | NOT_APPLIED: имена jobs определены, настройки только прочитаны | В исходном аудите PUBLIC main unprotected; protection-detail API: connector 403; PRIVATE rulesets: ограничение тарифа. Настройки повторно 04.10 не проверялись | BLOCKED: GitHub admin/доступ интеграции; изменения settings не выполнялись |
 | S05 | IMPLEMENTED: hybrid dataset catalogue, immutable versions/members, SOURCE↔DATASET links и единый update routing; access class/experimental role отдельно | Synthetic dataset registration/resume/ACK/policy tests; реальные новые комплекты не принимались | Реальные dataset manifests/admission: NOT_RUN |
 | S06 | PARTIAL: immutable mismatch запрещает promotion; явные inventory/verify и synthetic restore command | Recovery: 35 Windows PASS и 35 WSL PASS; два полных SHA-прохода в явном бюджете, original synthetic bytes неизменны; полный real restore: NOT_RUN | Новые backup scripts не развёрнуты; уникальные внешние artifacts не объявляются сохранёнными |
 | S07 | IMPLEMENTED: native GIS/Excel inspection/conversion и opt-in synthetic runtime rehearsal | По результату GIS-исполнителя: 7 actual GDAL/xlrd synthetic tests PASS; 104 unit PASS, 2 Windows link tests NOT_RUN; exact-commit CI остаётся gate | Приём и конвертация реальных новых данных: NOT_RUN |
 | S08 | IMPLEMENTED: production producer identity, clean relevant tree, fresh source hashes, ресурсные guards | Целевые producer/registry tests выполнены; реальный clean checkout + exact locks ещё не квалифицирован | Production processing: NOT_RUN; неподдерживаемый memory enforcement закрывает запуск |
-| S09 | PARTIAL: immutable campaign, bounded CPU execute/resume, datasets; durable selector intent, kernel drain и явный recovery | Lifecycle regressions проверяют partial apply, crash/retry, ACK loss, exact restore и другой процесс. Operator registration всех CORE units и exact-commit CI остаются gates | Remote CLI/operator wiring и физический restore не квалифицированы; реальный switch: NOT_RUN |
-| S10 | PARTIAL: shadow DuckDB/NAV, native graph/search/pack/model/control observers и actual API startup factory | CPU/fake transport qualification; late issuer отдельно сравнивает весь index с canonical без inference. Production Linux filesystem/native endpoints/full MCP rehearsal: NOT_RUN | CORE/EDGE deployment и switch: NOT_RUN; внешний rerank load-time identity producer ещё не подключён |
+| S09 | PARTIAL: immutable campaign, bounded CPU execute/resume, datasets; durable intent/recovery и закрытый CORE operator CLI | Lifecycle/operator regressions проверяют partial apply, crash/retry, ACK loss, corrupt candidate, exact previous restore и полный native MCP response drain. Exact-tip CI и actual units остаются gates | Первый qualified baseline и shadow→live promotion ещё code gates; физический restore/switch NOT_RUN |
+| S10 | PARTIAL: shadow DuckDB/NAV, native store/model/control observers, actual API factory и signed native API/read-MCP identity contract | CPU/fake transport qualification; actual container image/config/PID/loopback/upstream и exact accepted READ context проверяются closed adapter. Production Docker/native endpoints/full MCP rehearsal: NOT_RUN | CORE/EDGE deployment/switch NOT_RUN; bootstrap/promotion и actual rerank model-owner integration не завершены |
 | S11 | IMPLEMENTED: UNKNOWN unit handling и policy/receipt guards в узком GIS контуре | GDAL synthetic rehearsal проверяет NonEarth/unknown CRS и отказ при несовпадении bytes; это не full deployed MCP acceptance | Production MCP registration/configuration и реальные GIS admission: NOT_RUN |
 | S12 | PARTIAL: ranged section attribution, sections_v2 и dependency-aware partial NAV builds реализованы | Sections/store/API/graph/status: 97 PASS на каждой ОС; отрицательные случаи mixed ranges, foreign overrun, partial outline. NAV инвалидирует зависимые parts при смене upstream bytes/rules/options | Реальный lab/NAV/topics/graph refresh и повторный подсчёт orphan sections: NOT_RUN |
 | S13 | PARTIAL: явные readiness/status/error contracts; NOT_RUN не повышается до PASS | Synthetic API/jobs/status проверки; unattended delivery/recovery ещё отдельный gate | OCR debt не обработан; полный контроль удалённых jobs и delivery не квалифицирован |

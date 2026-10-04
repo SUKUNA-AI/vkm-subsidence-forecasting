@@ -34,6 +34,7 @@ GROUPS: dict[str, str] = {
     "catalogues": "vkm_corpus.catalogues.cli",           # topic dossier: PUBLIC evidence catalogues as a DuckDB pack
     "evidence": "vkm_evidence.cli",                    # immutable evidence, review and admission journal
     "update": "vkm_corpus.update.cli",                 # qualified, resumable campaign contract
+    "deployment": "vkm_corpus.update.operator",         # fixed operator-owned CORE receiver lifecycle
 }
 
 

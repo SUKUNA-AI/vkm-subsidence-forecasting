@@ -121,8 +121,9 @@ class HybridBackend:
 
     def __init__(self, settings: Any, search: OpenSearchBackend | None = None, *, embed: Any = None,
                  late_default: bool | None = None, visual: Any = None, graph: Any = None,
-                 graph_defaults: Any = None) -> None:
+                 graph_defaults: Any = None, environ: Any = None) -> None:
         import os
+        environ = os.environ if environ is None else environ
 
         from vkm_corpus.search import graph_stages
         from vkm_corpus.search.hybrid import VISUAL_ROUTE_DEFAULT, EmbedClient, VisualRouteSettings
@@ -134,22 +135,22 @@ class HybridBackend:
         self._vmeta: tuple[float, dict[str, Any]] | None = None
         flags = {"1": True, "true": True, "on": True, "0": False, "false": False, "off": False}
         if late_default is None:
-            raw = os.environ.get("VKM_HYBRID_LATE_DEFAULT", "").strip().lower()
+            raw = environ.get("VKM_HYBRID_LATE_DEFAULT", "").strip().lower()
             late_default = flags.get(raw)
         self.late_default = late_default
         if visual is None:
-            enabled = flags.get(os.environ.get("VKM_HYBRID_VISUAL_ROUTE", "").strip().lower())
-            mode = os.environ.get("VKM_HYBRID_VISUAL_SEARCH", "").strip().lower() or "exact"
-            ef = os.environ.get("VKM_HYBRID_VISUAL_EF_SEARCH", "").strip()
+            enabled = flags.get(environ.get("VKM_HYBRID_VISUAL_ROUTE", "").strip().lower())
+            mode = environ.get("VKM_HYBRID_VISUAL_SEARCH", "").strip().lower() or "exact"
+            ef = environ.get("VKM_HYBRID_VISUAL_EF_SEARCH", "").strip()
             visual = VisualRouteSettings(enabled=VISUAL_ROUTE_DEFAULT if enabled is None else enabled,
                                          mode=mode if mode in ("exact", "hnsw") else "exact",
                                          ef_search=int(ef) if ef.isdigit() else None)
         self.visual = visual
         self.graph = graph
         self.graph_error: str | None = None
-        if graph_defaults is None and os.environ.get("VKM_HYBRID_GRAPH") is not None:
+        if graph_defaults is None and environ.get("VKM_HYBRID_GRAPH") is not None:
             try:
-                graph_defaults = graph_stages.parse_stages(os.environ["VKM_HYBRID_GRAPH"])
+                graph_defaults = graph_stages.parse_stages(environ["VKM_HYBRID_GRAPH"])
             except ValueError as exc:                # a typo never stops the API: the code default stays
                 self.graph_error = f"VKM_HYBRID_GRAPH ignored: {exc}"
         self.graph_defaults = graph_defaults

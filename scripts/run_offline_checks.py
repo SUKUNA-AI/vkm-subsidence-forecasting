@@ -50,6 +50,8 @@ KNOWN_SKIPS = (
 LINUX_RECEIVER_REASON = ("NOT_RUN: qualified production receiver requires Linux filesystem change-time semantics; "
                          "native Windows ChangeTime/reparse-handle qualification unavailable")
 LINUX_RECEIVER_CASES = (
+    "test_receiver_proof_observes_actual_bound_generation_and_native_process",
+    "test_receiver_proof_rejects_mutation_and_gate_replacement",
     "test_selected_database_change_and_policy_change_close_admission",
     "test_data_change_with_unchanged_snapshot_metadata_is_unqualified[False]",
     "test_data_change_with_unchanged_snapshot_metadata_is_unqualified[True]",
@@ -99,6 +101,7 @@ LINUX_RECEIVER_EXTRA_NODES = (
     "tests/evidence/test_challenger_nav_binding.py::test_packed_nav_payload_change_cannot_reuse_unchanged_origin_metadata[True]",
 )
 POSIX_SHARED_GATE_CASES = (
+    "tests/evidence/test_receiver_identity.py::test_mcp_client_response_holds_native_gate_after_upstream_has_finished",
     "tests/evidence/test_receiver_barrier.py::test_shared_gate_lease_covers_streamed_response_and_releases_after_cancellation",
     "tests/evidence/test_receiver_barrier.py::test_replaced_gate_inode_cannot_silently_rebind_existing_receiver[acquire]",
     "tests/evidence/test_receiver_barrier.py::test_replaced_gate_inode_cannot_silently_rebind_existing_receiver[rebind]",

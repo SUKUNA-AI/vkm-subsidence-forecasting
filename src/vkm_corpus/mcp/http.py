@@ -44,6 +44,8 @@ class McpHttpConfig:
     client_tokens: dict[str, str] = field(default_factory=dict)
     allowed_hosts: list[str] = field(default_factory=lambda: list(DEFAULT_ALLOWED_HOSTS))
     path: str = "/mcp"
+    deployment_token: str | None = field(default=None, repr=False)
+    deployment_gate_file: str | None = None
 
     @classmethod
     def from_env(cls, kind: Literal["read", "admin"], env: Mapping[str, str] | None = None) -> "McpHttpConfig":
@@ -66,7 +68,22 @@ class McpHttpConfig:
             raise ConfigError(f"no client token for the {kind} MCP server "
                               f"({'VKM_MCP_TOKEN' if kind == 'read' else 'VKM_MCP_ADMIN_TOKEN'}[_FILE])")
         hosts = [h.strip() for h in env.get("VKM_MCP_ALLOWED_HOSTS", "").split(",") if h.strip()]
+        deployment = None
+        if env.get("VKM_DEPLOYMENT_TOKEN_FILE"):
+            if kind != "read":
+                raise ConfigError("only read MCP can provide the operator receiver proof")
+            from pathlib import Path
+            from vkm_corpus.update.receiver import operator_token
+            deployment = operator_token(Path(env["VKM_DEPLOYMENT_TOKEN_FILE"]))
+            if deployment in {client, api_token}:
+                raise ConfigError("receiver proof requires a separate operator credential")
+            gate = env.get("VKM_DEPLOYMENT_GATE_FILE")
+            if (not gate or not Path(gate).is_absolute() or ".." in Path(gate).parts
+                    or not Path(gate).is_file() or any(p.is_symlink() for p in (Path(gate), *Path(gate).parents))):
+                raise ConfigError("qualified read MCP requires the existing shared admission gate")
         return cls(kind=kind, api_url=settings.api_url, api_token=api_token,
+                   deployment_token=deployment,
+                   deployment_gate_file=env.get("VKM_DEPLOYMENT_GATE_FILE") if deployment else None,
                    client_tokens={client: f"mcp-{kind}"}, allowed_hosts=hosts or list(DEFAULT_ALLOWED_HOSTS))
 
 
@@ -189,7 +206,17 @@ def build(kind: Literal["read", "admin"], config: McpHttpConfig | None = None, *
     config = config or McpHttpConfig.from_env(kind)
     api = ApiClient(config.api_url, config.api_token, transport=transport)
     server = build_read_server(api) if kind == "read" else build_admin_server(api)
-    return build_http_app(server, config)
+    app = build_http_app(server, config)
+    if config.deployment_token is not None:
+        from vkm_corpus.update.receiver import McpReceiverProofMiddleware
+        from vkm_corpus.update.barrier import AdmissionBarrierMiddleware, ReceiverBarrier
+        from pathlib import Path
+        if config.kind != "read" or not config.deployment_gate_file or not Path(config.deployment_gate_file).is_file():
+            raise ConfigError("qualified MCP proof requires the read receiver and existing gate")
+        barrier = ReceiverBarrier("core-read-mcp", gate_path=Path(config.deployment_gate_file))
+        proof = McpReceiverProofMiddleware(app, server, api, config, barrier)
+        return AdmissionBarrierMiddleware(proof, provider=lambda: barrier)
+    return app
 
 
 def serve(kind: Literal["read", "admin"], host: str, port: int) -> None:

@@ -1,0 +1,357 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    },
+    "ComposeRelease": {
+      "additionalProperties": false,
+      "properties": {
+        "access_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Access Sha256",
+          "type": "string"
+        },
+        "code_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Sha256",
+          "type": "string"
+        },
+        "compose": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "dependencies_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Dependencies Sha256",
+          "type": "string"
+        },
+        "mcp_read_principal_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Mcp Read Principal Sha256",
+          "type": "string"
+        },
+        "project": {
+          "enum": [
+            "vkm-core",
+            "vkm-core-shadow"
+          ],
+          "title": "Project",
+          "type": "string"
+        },
+        "runtime_config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Runtime Config Sha256",
+          "type": "string"
+        },
+        "units": {
+          "additionalProperties": {
+            "$ref": "#/$defs/UnitPin"
+          },
+          "propertyNames": {
+            "enum": [
+              "api",
+              "mcp"
+            ]
+          },
+          "title": "Units",
+          "type": "object"
+        }
+      },
+      "required": [
+        "compose",
+        "project",
+        "units",
+        "runtime_config_sha256",
+        "code_sha256",
+        "dependencies_sha256",
+        "access_sha256",
+        "mcp_read_principal_sha256"
+      ],
+      "title": "ComposeRelease",
+      "type": "object"
+    },
+    "OperatorRelease": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptance_plan": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "environment": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "generation": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "receiver_release_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Receiver Release Sha256",
+          "type": "string"
+        },
+        "runtime": {
+          "$ref": "#/$defs/BoundFile"
+        }
+      },
+      "required": [
+        "receiver_release_sha256",
+        "environment",
+        "runtime",
+        "generation",
+        "acceptance_plan"
+      ],
+      "title": "OperatorRelease",
+      "type": "object"
+    },
+    "UnitControlConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "api_container_port": {
+          "default": 8000,
+          "maximum": 65535,
+          "minimum": 1,
+          "title": "Api Container Port",
+          "type": "integer"
+        },
+        "command_timeout_seconds": {
+          "default": 90,
+          "exclusiveMinimum": 0,
+          "maximum": 300,
+          "title": "Command Timeout Seconds",
+          "type": "number"
+        },
+        "compose_binary": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "control_root": {
+          "title": "Control Root",
+          "type": "string"
+        },
+        "docker": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "docker_socket": {
+          "title": "Docker Socket",
+          "type": "string"
+        },
+        "mcp_container_port": {
+          "default": 8765,
+          "maximum": 65535,
+          "minimum": 1,
+          "title": "Mcp Container Port",
+          "type": "integer"
+        },
+        "mcp_receiver_url": {
+          "title": "Mcp Receiver Url",
+          "type": "string"
+        },
+        "operator_token_file": {
+          "title": "Operator Token File",
+          "type": "string"
+        },
+        "receiver_url": {
+          "title": "Receiver Url",
+          "type": "string"
+        },
+        "releases": {
+          "items": {
+            "$ref": "#/$defs/ComposeRelease"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Releases",
+          "type": "array"
+        },
+        "restart_timeout_seconds": {
+          "default": 120,
+          "exclusiveMinimum": 0,
+          "maximum": 600,
+          "title": "Restart Timeout Seconds",
+          "type": "number"
+        },
+        "schema_version": {
+          "const": "vkm-core-unit-control/1",
+          "default": "vkm-core-unit-control/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "SYNTHETIC",
+            "SHADOW_PRODUCTION",
+            "PRODUCTION_SWITCH"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "selected_release": {
+          "default": "receiver-release.CURRENT",
+          "title": "Selected Release",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope",
+        "docker",
+        "compose_binary",
+        "docker_socket",
+        "control_root",
+        "receiver_url",
+        "mcp_receiver_url",
+        "operator_token_file",
+        "releases"
+      ],
+      "title": "UnitControlConfig",
+      "type": "object"
+    },
+    "UnitPin": {
+      "additionalProperties": false,
+      "properties": {
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "image_id": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Image Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "image_id",
+        "config_sha256"
+      ],
+      "title": "UnitPin",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "access_config_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Access Config Sha256",
+      "type": "string"
+    },
+    "authority_root": {
+      "title": "Authority Root",
+      "type": "string"
+    },
+    "candidate_release_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Candidate Release Sha256",
+      "type": "string"
+    },
+    "drain_timeout_seconds": {
+      "default": 30,
+      "exclusiveMinimum": 0,
+      "maximum": 300,
+      "title": "Drain Timeout Seconds",
+      "type": "number"
+    },
+    "expected_code_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Expected Code Sha256",
+      "type": "string"
+    },
+    "expected_commit": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Expected Commit",
+      "type": "string"
+    },
+    "expected_dependencies_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Expected Dependencies Sha256",
+      "type": "string"
+    },
+    "factory": {
+      "const": "CORE_RELEASE_V1",
+      "default": "CORE_RELEASE_V1",
+      "title": "Factory",
+      "type": "string"
+    },
+    "isolation_attestation_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Isolation Attestation Sha256"
+    },
+    "max_duckdb_bytes": {
+      "default": 8589934592,
+      "exclusiveMinimum": 0,
+      "maximum": 137438953472,
+      "title": "Max Duckdb Bytes",
+      "type": "integer"
+    },
+    "policy": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "protected_roots": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Protected Roots",
+      "type": "array"
+    },
+    "qualification_root": {
+      "title": "Qualification Root",
+      "type": "string"
+    },
+    "releases": {
+      "items": {
+        "$ref": "#/$defs/OperatorRelease"
+      },
+      "maxItems": 16,
+      "minItems": 1,
+      "title": "Releases",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "vkm-core-operator/1",
+      "default": "vkm-core-operator/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "units": {
+      "$ref": "#/$defs/UnitControlConfig"
+    }
+  },
+  "required": [
+    "units",
+    "releases",
+    "candidate_release_sha256",
+    "expected_commit",
+    "expected_code_sha256",
+    "expected_dependencies_sha256",
+    "access_config_sha256",
+    "policy",
+    "authority_root",
+    "protected_roots",
+    "qualification_root"
+  ],
+  "title": "CoreOperatorConfig",
+  "type": "object"
+}

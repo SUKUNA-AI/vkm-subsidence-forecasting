@@ -103,6 +103,7 @@ class ApiDeps:
     generation_guard: Any = None        # coherent served-generation gate
     admission_barrier: Any = None       # lease covers every byte of an active HTTP response
     serving_file_lease: Any = None      # native immutable-file watch; replaced only after a qualified rebind
+    receiver_identity: Any = None       # authenticated metadata proof from this actual process
     serving_profile: str = "compatibility"  # synthetic/legacy readers never imply qualified production
 
 

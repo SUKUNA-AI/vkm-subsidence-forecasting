@@ -18,6 +18,9 @@ from vkm_corpus.update.deployment import DeploymentProfile  # noqa: E402
 from vkm_corpus.update.acceptance import AcceptancePlan  # noqa: E402
 from vkm_corpus.update.runtime import RuntimeConfig  # noqa: E402
 from vkm_corpus.update.serving import NativeServingProfile  # noqa: E402
+from vkm_corpus.update.operator import CoreOperatorConfig  # noqa: E402
+from vkm_corpus.update.operator_units import UnitControlConfig  # noqa: E402
+from vkm_corpus.update.receiver import SignedReceiverIdentity, SignedMcpReceiverIdentity  # noqa: E402
 from vkm_datasets.manifest import DatasetVersion, SCHEMA as DATASET_SCHEMA  # noqa: E402
 from vkm_datasets.contracts import DatasetCatalogSnapshot, SourceVersionLink  # noqa: E402
 from vkm_evidence.qualification import FrozenPlan, FrozenRegistration, GoldSet, PredictionSet, MatchAdjudication  # noqa: E402
@@ -39,6 +42,8 @@ MODELS = {"evidence_batch": EvidenceBatch, "object_coverage": CoverageLedger,
           "shadow_acceptance_plan": AcceptancePlan,
           "scientific_use_context": ScientificUseContext, "historical_read_context": HistoricalReadContext,
           "native_serving_profile": NativeServingProfile,
+          "core_operator": CoreOperatorConfig, "core_unit_control": UnitControlConfig,
+          "receiver_identity": SignedReceiverIdentity, "mcp_receiver_identity": SignedMcpReceiverIdentity,
           "phase1_migration_inputs": FrozenMigrationInputs,
           "phase1_migration_plan": MigrationPlan, "phase1_migration_approval": MigrationApproval,
           "semantic_extraction_plan": ExtractionPlan, "semantic_extraction_job": ExtractionJob,

@@ -466,6 +466,9 @@ def bind_generation_guard(deps, runtime, api_config, data_root: Path, *, _native
     if previous_lease is not None:
         previous_lease.close()
     deps.serving_profile = "production"
+    from vkm_corpus.update.receiver import ReceiverIdentityProvider
+    deps.receiver_identity = ReceiverIdentityProvider(deps, runtime, api_config, observer,
+        _native.observe_services if _native is not None else None)
     return deps.generation_guard
 
 

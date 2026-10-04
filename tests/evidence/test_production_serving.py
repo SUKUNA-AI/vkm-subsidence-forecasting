@@ -107,6 +107,39 @@ def replace_acceptance(runtime, **changes):
 
 
 @requires_linux_receiver
+def test_receiver_proof_observes_actual_bound_generation_and_native_process(tmp_path):
+    import asyncio
+    from vkm_corpus.update.receiver import linux_process_identity, verify_identity, ReceiverChallenge, sign_identity
+    deps, runtime, cfg, root = setup(tmp_path)
+    bind_generation_guard(deps, runtime, cfg, root)
+    proof = asyncio.run(deps.receiver_identity("1" * 64))
+    assert {k: getattr(proof, k) for k in linux_process_identity()} == linux_process_identity()
+    served = runtime.root / "served"
+    manifest = GenerationManifest.model_validate_json((served / ((served / "CURRENT").read_text() + ".json")).read_bytes())
+    assert verify_identity(canonical_bytes(sign_identity(proof, "x" * 64)), token="x" * 64,
+        challenge=ReceiverChallenge(nonce="1" * 64), manifest=manifest,
+        runtime_sha256=record_hash(runtime.config), code_sha256=serving_code_identity(),
+        dependencies_sha256=serving_dependencies_identity(), access_sha256=serving_access_identity(cfg),
+        gate=deps.admission_barrier._gate_identity, admission_open=True) == proof
+    deps.serving_file_lease.close()
+
+
+@requires_linux_receiver
+def test_receiver_proof_rejects_mutation_and_gate_replacement(tmp_path):
+    import asyncio
+    deps, runtime, cfg, root = setup(tmp_path)
+    bind_generation_guard(deps, runtime, cfg, root)
+    assert asyncio.run(deps.receiver_identity("1" * 64)).generation_sha256
+    gate = deps.admission_barrier.gate_path
+    replacement = gate.with_suffix(".replacement")
+    replacement.touch()
+    replacement.replace(gate)
+    with pytest.raises((ValueError, GenerationUnavailable), match="gate"):
+        asyncio.run(deps.receiver_identity("2" * 64))
+    deps.serving_file_lease.close()
+
+
+@requires_linux_receiver
 def test_selected_database_change_and_policy_change_close_admission(tmp_path):
     deps, runtime, cfg, root = setup(tmp_path)
     guard = bind_generation_guard(deps, runtime, cfg, root)

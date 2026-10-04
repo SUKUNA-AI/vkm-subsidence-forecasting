@@ -1,0 +1,271 @@
+{
+  "$defs": {
+    "McpReceiverIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "admission_open": {
+          "title": "Admission Open",
+          "type": "boolean"
+        },
+        "api_url": {
+          "title": "Api Url",
+          "type": "string"
+        },
+        "code_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Sha256",
+          "type": "string"
+        },
+        "dependencies_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Dependencies Sha256",
+          "type": "string"
+        },
+        "gate_device": {
+          "minimum": 0,
+          "title": "Gate Device",
+          "type": "integer"
+        },
+        "gate_inode": {
+          "exclusiveMinimum": 0,
+          "title": "Gate Inode",
+          "type": "integer"
+        },
+        "instance": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instance",
+          "type": "string"
+        },
+        "nonce": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Nonce",
+          "type": "string"
+        },
+        "pid_namespace_inode": {
+          "exclusiveMinimum": 0,
+          "title": "Pid Namespace Inode",
+          "type": "integer"
+        },
+        "process_pid": {
+          "exclusiveMinimum": 0,
+          "title": "Process Pid",
+          "type": "integer"
+        },
+        "process_start_ticks": {
+          "exclusiveMinimum": 0,
+          "title": "Process Start Ticks",
+          "type": "integer"
+        },
+        "read_contract_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Read Contract Sha256",
+          "type": "string"
+        },
+        "read_credential_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Read Credential Sha256",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "vkm-mcp-receiver-identity/1",
+          "default": "vkm-mcp-receiver-identity/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "upstream": {
+          "$ref": "#/$defs/SignedReceiverIdentity"
+        }
+      },
+      "required": [
+        "nonce",
+        "instance",
+        "process_pid",
+        "process_start_ticks",
+        "pid_namespace_inode",
+        "code_sha256",
+        "dependencies_sha256",
+        "read_contract_sha256",
+        "api_url",
+        "read_credential_sha256",
+        "gate_device",
+        "gate_inode",
+        "admission_open",
+        "upstream"
+      ],
+      "title": "McpReceiverIdentity",
+      "type": "object"
+    },
+    "ReceiverIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "access_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Access Sha256",
+          "type": "string"
+        },
+        "admission_open": {
+          "title": "Admission Open",
+          "type": "boolean"
+        },
+        "code_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Sha256",
+          "type": "string"
+        },
+        "components_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Components Sha256",
+          "type": "string"
+        },
+        "dependencies_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Dependencies Sha256",
+          "type": "string"
+        },
+        "gate_device": {
+          "minimum": 0,
+          "title": "Gate Device",
+          "type": "integer"
+        },
+        "gate_inode": {
+          "exclusiveMinimum": 0,
+          "title": "Gate Inode",
+          "type": "integer"
+        },
+        "generation_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Generation Sha256",
+          "type": "string"
+        },
+        "instance": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instance",
+          "type": "string"
+        },
+        "nonce": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Nonce",
+          "type": "string"
+        },
+        "pid_namespace_inode": {
+          "exclusiveMinimum": 0,
+          "title": "Pid Namespace Inode",
+          "type": "integer"
+        },
+        "process_pid": {
+          "exclusiveMinimum": 0,
+          "title": "Process Pid",
+          "type": "integer"
+        },
+        "process_start_ticks": {
+          "exclusiveMinimum": 0,
+          "title": "Process Start Ticks",
+          "type": "integer"
+        },
+        "read_contract_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Read Contract Sha256",
+          "type": "string"
+        },
+        "read_credential_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Read Credential Sha256"
+        },
+        "read_principal_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Read Principal Sha256"
+        },
+        "runtime_config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Runtime Config Sha256",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "vkm-receiver-identity/1",
+          "default": "vkm-receiver-identity/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "services_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Services Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "nonce",
+        "instance",
+        "process_pid",
+        "process_start_ticks",
+        "pid_namespace_inode",
+        "generation_sha256",
+        "runtime_config_sha256",
+        "code_sha256",
+        "dependencies_sha256",
+        "access_sha256",
+        "components_sha256",
+        "services_sha256",
+        "gate_device",
+        "gate_inode",
+        "admission_open",
+        "read_contract_sha256"
+      ],
+      "title": "ReceiverIdentity",
+      "type": "object"
+    },
+    "SignedReceiverIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "hmac_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Hmac Sha256",
+          "type": "string"
+        },
+        "identity": {
+          "$ref": "#/$defs/ReceiverIdentity"
+        }
+      },
+      "required": [
+        "identity",
+        "hmac_sha256"
+      ],
+      "title": "SignedReceiverIdentity",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "hmac_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Hmac Sha256",
+      "type": "string"
+    },
+    "identity": {
+      "$ref": "#/$defs/McpReceiverIdentity"
+    }
+  },
+  "required": [
+    "identity",
+    "hmac_sha256"
+  ],
+  "title": "SignedMcpReceiverIdentity",
+  "type": "object"
+}

@@ -179,7 +179,8 @@ class AdmissionBarrierMiddleware:
 
     async def __call__(self, scope, receive, send):
         barrier = self.provider()
-        if scope["type"] != "http" or scope.get("path") in {"/v1/health", "/v1/status"} or barrier is None:
+        from vkm_corpus.update.receiver import RECEIVER_ROUTE
+        if scope["type"] != "http" or scope.get("path") in {"/v1/health", "/v1/status", RECEIVER_ROUTE} or barrier is None:
             await self.app(scope, receive, send)
             return
         try:

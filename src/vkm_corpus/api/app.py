@@ -47,9 +47,16 @@ class ApiConfig:
     write_tokens: dict[str, str] = field(default_factory=dict)
     max_body_bytes: int = 1_000_000
     access_contexts: dict[str, AccessContext] = field(default_factory=dict)
+    deployment_token: str | None = field(default=None, repr=False)
+
+    def __post_init__(self):
+        if self.deployment_token is not None and (not 32 <= len(self.deployment_token) <= 256
+                or any(ord(c) < 33 or ord(c) > 126 for c in self.deployment_token)
+                or self.deployment_token in self.read_tokens or self.deployment_token in self.write_tokens):
+            raise ValueError("deployment credential must be separate from API tokens")
 
     @classmethod
-    def from_settings(cls, settings: Any) -> "ApiConfig":
+    def from_settings(cls, settings: Any, *, environ=None) -> "ApiConfig":
         from vkm_corpus.config import ConfigError
 
         read = {settings.api_token: "read"} if settings.api_token else {}
@@ -58,11 +65,16 @@ class ApiConfig:
             raise ConfigError("no API token configured (VKM_API_TOKEN_FILE / VKM_API_WRITE_TOKEN_FILE)")
         import os
         from pathlib import Path as FilePath
+        environ = os.environ if environ is None else environ
         contexts = {}
-        if context_file := os.getenv("VKM_ACCESS_CONTEXT_FILE"):
+        if context_file := environ.get("VKM_ACCESS_CONTEXT_FILE"):
             contexts = {label: AccessContext.model_validate(value)
                         for label, value in json.loads(FilePath(context_file).read_bytes()).items()}
-        return cls(read_tokens=read, write_tokens=write, access_contexts=contexts)
+        deployment_token = None
+        if token_file := environ.get("VKM_DEPLOYMENT_TOKEN_FILE"):
+            from vkm_corpus.update.receiver import operator_token
+            deployment_token = operator_token(FilePath(token_file))
+        return cls(read_tokens=read, write_tokens=write, access_contexts=contexts, deployment_token=deployment_token)
 
 
 # ---------------------------------------------------------------------------------------------------- bodies
@@ -312,6 +324,8 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
                               "AUTO_EXTRACTED_UNREVIEWED, never a fact.")
     app.state.service = service
     app.state.config = config
+    from vkm_corpus.update.receiver import mount_receiver_route, RECEIVER_ROUTE
+    mount_receiver_route(app, service, config)
 
     # ------------------------------------------------------------------------------------------ plumbing
     def request_id(request: Request) -> str:
@@ -345,7 +359,7 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
         request.state.error_code = None
         length = request.headers.get("content-length")
         guard = service.deps.generation_guard
-        if guard is not None and request.url.path not in {"/v1/health", "/v1/status"} and (await generation_status(guard)).get("status") != "READY":
+        if guard is not None and request.url.path not in {"/v1/health", "/v1/status", RECEIVER_ROUTE} and (await generation_status(guard)).get("status") != "READY":
             response = error_response(request, ApiFailure("DEPENDENCY_UNAVAILABLE", "served generation is unavailable"))
         elif length and length.isdigit() and int(length) > config.max_body_bytes:
             response = error_response(request, ApiFailure("PAYLOAD_TOO_LARGE", "request body too large"))
@@ -775,7 +789,7 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
     return app
 
 
-def build_from_settings(settings: Any = None) -> FastAPI:
+def build_from_settings(settings: Any = None, *, environ=None, _defer_generation_binding=False) -> FastAPI:
     """Production wiring: canon of the CANONICAL root + configured projections, rerank gateway and control plane."""
     from vkm_corpus.api.backends import (ArtifactBlobs, GatewayRerankBackend, HybridBackend, Neo4jBackend,
                                          OpenSearchBackend, PgControlPlane)
@@ -784,13 +798,14 @@ def build_from_settings(settings: Any = None) -> FastAPI:
     from vkm_corpus.config import load_settings
     import os
     from vkm_corpus.api.production import require_serving_profile
-    profile = require_serving_profile(os.environ)
+    environ = os.environ if environ is None else environ
+    profile = require_serving_profile(environ)
 
-    settings = settings or load_settings()
+    settings = settings or load_settings(environ)
     root = settings.require_data_root()
     search = OpenSearchBackend(settings) if settings.opensearch_url else None
     deps = ApiDeps(canon=CanonStore.from_data_root(root), blobs=ArtifactBlobs(root / "artifacts"),
-                   search=search, hybrid=HybridBackend(settings, search) if search is not None else None,
+                   search=search, hybrid=HybridBackend(settings, search, environ=environ) if search is not None else None,
                    graph=Neo4jBackend(settings) if settings.neo4j_uri else None,
                    rerank=GatewayRerankBackend(settings) if settings.rerank_url else None,
                    control=PgControlPlane(settings) if settings.pg_dsn else None)
@@ -819,25 +834,25 @@ def build_from_settings(settings: Any = None) -> FastAPI:
     from vkm_evidence.journal import EvidenceJournal
     from vkm_evidence.query import EvidenceReader
     from vkm_evidence.objects import canonical_resolver
-    if policy_file := os.getenv("VKM_SOURCE_POLICY_FILE"):
+    if policy_file := environ.get("VKM_SOURCE_POLICY_FILE"):
         deps.access_policy = SourcePolicyStore(FilePath(policy_file),
             lambda: [r["source_id"] for r in deps.canon.query("SELECT source_id FROM sources")])
     evidence_root = root / "canonical" / "evidence"
     if (evidence_root / "HEAD").is_file():
         reviewers = frozenset()
-        if reviewer_file := os.getenv("VKM_EVIDENCE_REVIEWERS_FILE"):
+        if reviewer_file := environ.get("VKM_EVIDENCE_REVIEWERS_FILE"):
             reviewers = frozenset(json.loads(FilePath(reviewer_file).read_bytes()))
         journal = EvidenceJournal(evidence_root, reviewers=reviewers,
             object_validator=canonical_resolver(deps.canon, deps.access_policy.for_source) if deps.access_policy else None)
         deps.evidence = EvidenceReader(journal, source_policy=deps.access_policy.for_source if deps.access_policy else None)
         if deps.access_policy is not None and reviewers:
             deps.evidence_publisher = journal
-    api_config = ApiConfig.from_settings(settings)
+    api_config = ApiConfig.from_settings(settings, environ=environ)
     runtime = None
-    if runtime_file := os.getenv("VKM_UPDATE_RUNTIME_FILE"):
+    if runtime_file := environ.get("VKM_UPDATE_RUNTIME_FILE"):
         from vkm_corpus.update.runtime import RuntimeConfig, UpdateRuntime
         runtime = UpdateRuntime(RuntimeConfig.model_validate_json(FilePath(runtime_file).read_bytes()))
-        if runtime.config.native_serving is None:
+        if runtime.config.native_serving is None and not _defer_generation_binding:
             from vkm_corpus.api.production import bind_generation_guard
             bind_generation_guard(deps, runtime, api_config, root)
         else:
@@ -847,6 +862,8 @@ def build_from_settings(settings: Any = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(_app):
         try:
+            if _defer_generation_binding:
+                raise RuntimeError("private candidate preparation cannot serve a public lifespan")
             if runtime is not None and runtime.config.native_serving is not None:
                 from vkm_corpus.api.production import bind_native_generation_guard
                 await bind_native_generation_guard(deps, runtime, api_config, root)
@@ -856,4 +873,6 @@ def build_from_settings(settings: Any = None) -> FastAPI:
         finally:
             if deps.serving_file_lease is not None:
                 deps.serving_file_lease.close()
-    return create_app(ApiService(deps), api_config, lifespan=lifespan)
+    app = create_app(ApiService(deps), api_config, lifespan=lifespan)
+    app.state.update_runtime = runtime
+    return app
