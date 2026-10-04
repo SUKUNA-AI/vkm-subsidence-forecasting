@@ -65,3 +65,26 @@
 | `deploy_20260929_figure_series.json` | развёртывание оцифровки графиков на CORE: часть NAV `figure_series` (агент FD2) импортирована в NAV снимка 738eebee байт в байт (sha256 шести датасетов, проверка канона), api/mcp на образе коммита 9d049dc (45 инструментов чтения), ночные скрипты (smoke-4); MCP smoke 45/45 PASS; откат |
 | `figure_readings_v1.json` | машинное чтение сложных рисунков (агент QV, код [benchmarks/figure_readings_v1](../../../benchmarks/figure_readings_v1/)): ВКР Филатовой (VKM-SRC-023, 64 изображения из DOCX в исходном разрешении, EMF через LibreOffice), рисунки корпуса из поиска данных (рендер 200 dpi) и два файла пользователя — классы изображений, Qwen3.5-9B (llama.cpp) и второй чтец таблиц GLM-OCR (режим таблиц конвейера), совпадение по ячейкам, зацикливания и повторы, хэши моделей и промптов, время, пик видеопамяти; все чтения `AUTO_EXTRACTED_UNREVIEWED` / `VLM_EXTRACTED`, значений, подписей и текста нет |
 | `intake_2026-09-29.json` | приёмка 29.09 (агент IN, [заметка](../INTAKE_2026-09-29.md)): 20 источников VKM-SRC-252…271 (17 файлов пользователя и 2 статьи CC BY; выпуск журнала разрезан на 2 статьи; 252 — внутренний документ предприятия, в PUBLIC только id и нейтральное описание), SHA-256, конвертация `.doc` → DOCX и выделение страниц с проверками, реестр работ (ред. 3) и изменение атрибуции стр. 1 VKM-SRC-106 (до и после), прогон конвейера (652 страницы, 19 COMPLETE + 1 PARTIAL, сбой по памяти и продолжение), решение по слою CP1251 источника 266 с постраничной проверкой, репетиция снимка на локальной CANONICAL-копии (валидатор PASS), все части NAV (строки против 738eebee), сухой прогон графа NAV, векторы страниц, выкладка на CORE: 29.09 публикация и сверка (снимок `snap-20260929T175107Z-574daaac`, 271 источник, PASS), 30.09 NAV и его граф (N1–N11 PASS), dense + late (209 259, equal), индекс страниц (26 744), перезапуск api/mcp, MCP smoke 45/45 PASS |
+## Recovery 04.10.2026: explicit control closure
+
+- [ops_restore_2026-10-04.json](ops_restore_2026-10-04.json): actual independent copy
+  и полный restore 37 ранее выявленных operational scripts, 61 367 bytes.
+- [encrypted_configs_restore_2026-10-04.json](encrypted_configs_restore_2026-10-04.json):
+  authenticated encrypted copy/restore 7 host configs, 70 934 original bytes;
+  plaintext и recovery identity на EDGE не передавались. Off-host key storage
+  подтверждено владельцем, не проверялось независимо.
+
+Это все 44 кандидата первоначального bounded control inventory. Полный
+UNBACKED_UNIQUE inventory, canonical restore и typed bootstrap backup остаются
+незавершёнными. [Контракт и ограничения](../../development/FROZEN_RECOVERY_FILESET_RU.md).
+
+Дополнительно сохранены и восстановлены 28 PRIVATE review/provenance records:
+[aggregate receipt](review_provenance_restore_2026-10-04.json). Содержимое,
+source hashes и private locators этого набора не публикуются; EDGE хранит ciphertext.
+Все 28 исходных файлов перепроверены после restore под retained handles.
+Это отдельный bounded file set; полный canonical restore и bootstrap qualification
+по-прежнему NOT_RUN/NOT_QUALIFIED.
+
+[recovery_docx_cpu_2026-10-04.json](recovery_docx_cpu_2026-10-04.json) содержит
+точные hashes public code и synthetic CPU tests для frozen recovery и DOCX
+grid/format admission; actual corpus processing и scientific review NOT_RUN.

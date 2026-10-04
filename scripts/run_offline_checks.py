@@ -40,7 +40,10 @@ WINDOWS_PATHS = ("tests/world", "tests/engineering", "tests/qgis", "tests/eviden
                  "tests/corpus/test_text_owner_bridge.py", "tests/corpus/test_visual_owner_bridge.py",
                  "tests/corpus/test_native_tokenizer_binding.py", "tests/corpus/test_table_continuations.py",
                  "tests/corpus/test_locator_schema_compat.py", "tests/corpus/test_visual_native_header.py",
-                 "tests/corpus/test_table_cursor.py")
+                 "tests/corpus/test_table_cursor.py", "tests/corpus/test_frozen_inventory.py",
+                 "tests/corpus/test_docx_native_grid.py",
+                 "tests/corpus/test_extract_epub_docx.py", "tests/corpus/test_prepare_admission.py",
+                 "tests/corpus/test_pipeline_accounting.py", "tests/corpus/test_pipeline_e2e.py")
 # Host prerequisites only. Missing locked CPU Python packages must fail, not become allowed NOT_RUN.
 KNOWN_SKIPS = (
     ("tests/corpus/test_extract_djvu.py", "DjVuLibre not installed (NOT_RUN)"),

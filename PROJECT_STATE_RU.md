@@ -1,9 +1,10 @@
 # Состояние проекта ВКМ / СКРУ-1 (каноническое)
 
 04.10.2026 — производственная программа данных продолжена в отдельной рабочей
-ветке, draft PR #10. [Текущий отчёт](docs/reviews/MODEL_OWNERS_TABLES_RECOVERY_2026-10-04_RU.md)
-разделяет реализацию owners/table fidelity, выполненный bounded backup/restore и
-ещё не выполненные native model/runtime/corpus qualifications. Production snapshot
+ветке, draft PR #10. [Текущий отчёт](docs/reviews/RECOVERY_DOCX_GPU_CHECKPOINT_2026-10-04_RU.md)
+фиксирует проверенный restore 37 скриптов, 7 конфигураций и 28 review/provenance
+файлов, DOCX native grid/cache admission и первую compile/ABI-only GPU сборку.
+Actual model/runtime/corpus qualifications ещё не выполнены. Production snapshot
 и научные статусы от этих изменений не обновлены; слияние в `main` не выполнено.
 
 Дата базового среза Phase 1: 26.09.2026; последнее обновление состояния — 30.09.2026 (работа A/B/C ниже). Phase 1 слита в `main`

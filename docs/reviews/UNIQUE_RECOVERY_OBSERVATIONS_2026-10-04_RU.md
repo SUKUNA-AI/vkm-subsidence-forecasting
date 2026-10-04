@@ -1,5 +1,37 @@
 # Реальные metadata-наблюдения: unique recovery, 04.10.2026
 
+## Дополнение: recovery всего первоначального control set
+
+Позднее 04.10 выполнены новые отдельные attempts, не перезаписывающие описанный
+ниже 15-file drill. **Все 44 первоначально выявленных кандидата восстановлены**:
+
+- 37 operational scripts / 61 367 bytes: exact selected source set закреплён
+  одновременными guarded Windows handles, двумя full SHA passes; выполнены
+  независимый EDGE copy и второй SSH restore, локальная запись и полный source
+  recheck. Capture/copy/restore совпали 37/37, originals/native identities не изменены.
+- 7 mutable host configurations / 70 934 bytes: declaration mutable сохранена;
+  использован явный Windows guarded byte capture. Только authenticated age
+  ciphertext / 101 532 bytes передан на EDGE. Восстановлены remote ciphertext,
+  plaintext и все 7 локальных файлов; final source bytes/native stamps совпали.
+  Recovery identity осталась локально; владелец подтвердил её отдельное хранение.
+
+Оба исполнения и metadata независимо reviewed без чтения payloads/credentials.
+Exact execution-time capture tool versions сохранены отдельно по закреплённым
+SHA; current implementation имеет более строгий preflight budget guard.
+Начальные failed attempts сохранены: cross-context Windows ACL mismatch и
+недоступный SSH в default sandbox. ACL не менялись; новый attempt в одном
+execution context завершён успешно.
+
+[37 scripts receipt](../corpus_platform/receipts/ops_restore_2026-10-04.json),
+[encrypted configs receipt](../corpus_platform/receipts/encrypted_configs_restore_2026-10-04.json),
+[recovery contract](../development/FROZEN_RECOVERY_FILESET_RU.md).
+
+Это закрывает **только первоначальный 44-file control set**. Полный UNBACKED_UNIQUE
+inventory WSL/work/PRIVATE, canonical restore и IndependentBootstrapBackup всё
+ещё не квалифицированы. Source capture не является atomic filesystem snapshot;
+existing mmap writers не исключены. Off-host ключ подтверждён владельцем,
+а не осмотром независимого носителя; Sigsum verification portable age NOT_RUN.
+
 Статус: **BOUNDED_OBSERVATIONS_COMPLETE / CONTROL_COPY_VERIFIED / CONTROL_RESTORE_VERIFIED**.
 Наблюдения выполнены 04.10.2026, 12:34–12:43 UTC. Это ограниченная проверка существующих
 файлов, topology и backup receipts, а не утверждение полноты резервного копирования.
