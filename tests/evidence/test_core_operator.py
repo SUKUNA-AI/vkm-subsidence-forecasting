@@ -459,3 +459,23 @@ def test_cli_is_closed_and_errors_never_echo_paths_secrets_or_commands(capsys):
     assert json.loads(output)["status"] == "BLOCKED" and "sensitive" not in output
     with pytest.raises(SystemExit):
         build_parser(["deployment", "shell"]).parse_args(["deployment", "shell"])
+
+
+def test_closed_drill_callback_binds_original_startup_authority(rig):
+    from vkm_corpus.update.deployment import PreviousAdmission
+    previous = generation("synthetic-closed-previous")
+    path = rig.authority / "previous-generation.json"
+    raw = canonical_bytes(previous)
+    path.write_bytes(raw)
+    path.chmod(0o600)
+    ref = BoundFile(path=str(path), sha256=hashlib.sha256(raw).hexdigest())
+    operator = object.__new__(CoreOperator)
+    operator.config = SimpleNamespace(releases=(SimpleNamespace(generation=ref),))
+    policy = PreviousAdmission(mode="CLOSED_BASELINE", qualification_sha256="1" * 64,
+                              closed_owner_key="2" * 64)
+    operator._previous_admission = lambda manifest: policy if manifest == previous else None
+    proof = {"previous_generation_sha256": ref.sha256, "startup_authority_sha256": previous.acceptance_sha256}
+    assert operator._closed_drill_previous(proof) == policy
+    proof["startup_authority_sha256"] = "3" * 64
+    with pytest.raises(GenerationUnavailable, match="another startup authority"):
+        operator._closed_drill_previous(proof)

@@ -1,0 +1,96 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "admission": {
+      "const": "CLOSED_BASELINE",
+      "default": "CLOSED_BASELINE",
+      "title": "Admission",
+      "type": "string"
+    },
+    "baseline_generation_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Baseline Generation Sha256",
+      "type": "string"
+    },
+    "boundary_receipt_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Boundary Receipt Sha256",
+      "type": "string"
+    },
+    "closed_owner_key": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Closed Owner Key",
+      "type": "string"
+    },
+    "intent_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Intent Sha256",
+      "type": "string"
+    },
+    "legacy_topology_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Legacy Topology Sha256",
+      "type": "string"
+    },
+    "preparation_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Preparation Sha256",
+      "type": "string"
+    },
+    "private_probe_receipt_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Private Probe Receipt Sha256",
+      "type": "string"
+    },
+    "repeated_native_start_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Repeated Native Start Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-closed-baseline/1",
+      "default": "vkm-closed-baseline/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scientific_admission": {
+      "const": false,
+      "default": false,
+      "title": "Scientific Admission",
+      "type": "boolean"
+    },
+    "scope": {
+      "enum": [
+        "SYNTHETIC",
+        "BOOTSTRAP_SHADOW_PRODUCTION"
+      ],
+      "title": "Scope",
+      "type": "string"
+    },
+    "startup_authority_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Startup Authority Sha256",
+      "type": "string"
+    },
+    "status": {
+      "const": "CLOSED_BASELINE_QUALIFIED",
+      "default": "CLOSED_BASELINE_QUALIFIED",
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scope",
+    "intent_sha256",
+    "startup_authority_sha256",
+    "preparation_sha256",
+    "baseline_generation_sha256",
+    "private_probe_receipt_sha256",
+    "boundary_receipt_sha256",
+    "repeated_native_start_sha256",
+    "legacy_topology_sha256",
+    "closed_owner_key"
+  ],
+  "title": "BaselineQualification",
+  "type": "object"
+}

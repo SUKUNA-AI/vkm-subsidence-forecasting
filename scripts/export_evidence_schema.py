@@ -14,7 +14,7 @@ from vkm_evidence.temporal import HistoricalReadContext  # noqa: E402
 from vkm_evidence.coverage import CoverageLedger  # noqa: E402
 from pydantic import TypeAdapter  # noqa: E402
 from vkm_corpus.update.contracts import CampaignManifest, GenerationManifest, ServiceIdentity  # noqa: E402
-from vkm_corpus.update.deployment import DeploymentProfile  # noqa: E402
+from vkm_corpus.update.deployment import DeploymentProfile, PreviousAdmission  # noqa: E402
 from vkm_corpus.update.admission import AdmissionState  # noqa: E402
 from vkm_corpus.update.acceptance import AcceptancePlan  # noqa: E402
 from vkm_corpus.update.runtime import RuntimeConfig  # noqa: E402
@@ -30,6 +30,12 @@ from vkm_evidence.migration import FrozenMigrationInputs, MigrationPlan, Migrati
 from vkm_evidence.extraction import ExtractionPlan, ExtractionJob, CandidateResponse, ExtractionModelIdentity  # noqa: E402
 from vkm_corpus.update.pack_policy import PackPolicyRequest, PackPolicyQualification  # noqa: E402
 from vkm_corpus.coverage.publication import PublicationRequest, PublicationDescriptor, PublicationApproval  # noqa: E402
+from vkm_corpus.update.bootstrap import (BootstrapStartupAuthority, BootstrapProbePlan, BootstrapIntent,
+    BootstrapPreparation, BootstrapBoundaryReceipt, BaselineQualification, BaselineRegistration,
+    IndependentBootstrapBackup)  # noqa: E402
+from vkm_corpus.update.bootstrap_native import BootstrapControlConfig  # noqa: E402
+from vkm_corpus.update.promotion import PromotionBinding, PromotionRecipe, LivePromotionProbeReceipt  # noqa: E402
+from vkm_corpus.update.model_owner import ModelOwnerStatus, OwnedChildRecipe, OwnedChildIdentity  # noqa: E402
 
 MODELS = {"evidence_batch": EvidenceBatch, "object_coverage": CoverageLedger,
           "campaign": CampaignManifest, "generation": GenerationManifest, "update_runtime": RuntimeConfig,
@@ -53,6 +59,15 @@ MODELS = {"evidence_batch": EvidenceBatch, "object_coverage": CoverageLedger,
           "late_pack_policy_request": PackPolicyRequest, "late_pack_policy_qualification": PackPolicyQualification,
           "accounting_publication_request": PublicationRequest,
           "accounting_publication": PublicationDescriptor, "accounting_publication_approval": PublicationApproval}
+MODELS.update({"previous_admission": PreviousAdmission,
+    "bootstrap_startup": BootstrapStartupAuthority, "bootstrap_probe_plan": BootstrapProbePlan,
+    "bootstrap_intent": BootstrapIntent, "bootstrap_preparation": BootstrapPreparation,
+    "bootstrap_boundary": BootstrapBoundaryReceipt, "baseline_qualification": BaselineQualification,
+    "baseline_registration": BaselineRegistration, "bootstrap_backup": IndependentBootstrapBackup,
+    "bootstrap_control": BootstrapControlConfig, "promotion_binding": PromotionBinding,
+    "promotion_recipe": PromotionRecipe, "live_promotion_probe": LivePromotionProbeReceipt,
+    "model_owner_status": ModelOwnerStatus, "owned_child_recipe": OwnedChildRecipe,
+    "owned_child_identity": OwnedChildIdentity})
 
 
 def dataset_version_schema():

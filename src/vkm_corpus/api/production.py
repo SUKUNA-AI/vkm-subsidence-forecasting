@@ -143,6 +143,13 @@ def require_serving_acceptance(runtime, manifest, api_config):
     return proof
 
 
+def _require_startup_proof(runtime, manifest, api_config):
+    if runtime.config.bootstrap_startup is not None:
+        from vkm_corpus.update.bootstrap import require_closed_startup
+        return require_closed_startup(runtime, manifest, api_config)
+    return require_serving_acceptance(runtime, manifest, api_config)
+
+
 def _duckdb_file_signature(path: Path) -> tuple[int, int, int, int, int]:
     """Cheap lifetime check of an operator-owned immutable serving artifact.
 
@@ -325,7 +332,7 @@ def bind_generation_guard(deps, runtime, api_config, data_root: Path, *, _native
         if not set(canonical_sources).issubset(selected_policy.read()):
             raise GenerationUnavailable("actual canonical sources lack current policy")
 
-    proof = require_serving_acceptance(runtime, coordinator.manifest(), api_config)
+    proof = _require_startup_proof(runtime, coordinator.manifest(), api_config)
     signature, duckdb_sha256, canonical_lease = _qualify_duckdb_file(
         selected_duckdb, proof["duckdb_file_sha256"], capture_watch=True)
     selected_nav = None
@@ -377,7 +384,7 @@ def bind_generation_guard(deps, runtime, api_config, data_root: Path, *, _native
             raise GenerationUnavailable("generation omits served dependencies or current policy")
         if manifest.code_commit != runtime.config.expected_commit:
             raise GenerationUnavailable("generation code/acceptance qualification is stale")
-        proof = require_serving_acceptance(runtime, manifest, api_config)
+        proof = _require_startup_proof(runtime, manifest, api_config)
         if proof["duckdb_file_sha256"] != duckdb_sha256:
             raise GenerationUnavailable("acceptance refers to another serving DuckDB artifact")
         if selected_nav is not None and proof.get("nav_file_sha256") != nav_sha256:
@@ -450,6 +457,8 @@ def bind_generation_guard(deps, runtime, api_config, data_root: Path, *, _native
     deps.serving_file_lease = file_lease
     if _native is None:
         def local_guard():
+            if runtime.config.bootstrap_startup is not None:
+                return {"status": "UNAVAILABLE"}
             if not barrier.status()["admission_open"]:
                 return {"status": "UNAVAILABLE"}
             status = runtime.generation_status(observer)
@@ -460,6 +469,8 @@ def bind_generation_guard(deps, runtime, api_config, data_root: Path, *, _native
             import asyncio
             from vkm_corpus.api.errors import ApiFailure
             try:
+                if not _startup and runtime.config.bootstrap_startup is not None:
+                    raise GenerationUnavailable("bootstrap permits closed metadata only")
                 if not _startup and not barrier.status()["admission_open"]:
                     raise GenerationUnavailable("durable receiver admission is closed")
                 manifest = coordinator.manifest()

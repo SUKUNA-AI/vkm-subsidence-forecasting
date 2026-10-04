@@ -35,7 +35,8 @@ WINDOWS_PATHS = ("tests/world", "tests/engineering", "tests/qgis", "tests/eviden
                  "tests/corpus/test_nav_sections.py", "tests/corpus/test_nav_store.py",
                  "tests/corpus/test_accounting_publication.py", "tests/corpus/test_runtime_publication.py",
                  "tests/corpus/test_publish_transfer.py", "tests/corpus/test_service_identity.py",
-                 "tests/corpus/test_service_wheel.py", "tests/corpus/test_structural_fidelity.py")
+                 "tests/corpus/test_service_wheel.py", "tests/corpus/test_structural_fidelity.py",
+                 "tests/corpus/test_model_owner.py", "tests/corpus/test_read_credentials.py")
 # Host prerequisites only. Missing locked CPU Python packages must fail, not become allowed NOT_RUN.
 KNOWN_SKIPS = (
     ("tests/corpus/test_extract_djvu.py", "DjVuLibre not installed (NOT_RUN)"),
@@ -129,7 +130,25 @@ WINDOWS_NOT_RUN = (
               ("tests/corpus/test_remote_retrieval_identity.py::" + case, LINUX_PACK_REASON)
               for case in LINUX_PACK_CASES) + tuple(
                   (nodeid, POSIX_SHARED_GATE_REASON) for nodeid in POSIX_SHARED_GATE_CASES) + tuple(
-                      (nodeid, LINUX_RECEIVER_REASON) for nodeid in LINUX_RECEIVER_EXTRA_NODES)
+                      (nodeid, LINUX_RECEIVER_REASON) for nodeid in LINUX_RECEIVER_EXTRA_NODES) + tuple(
+    ("tests/evidence/test_closed_startup.py::" + case, LINUX_RECEIVER_REASON) for case in (
+        "test_actual_closed_receiver_proves_metadata_but_never_serves_content",
+        *("test_closed_receiver_metadata_rechecks_actual_bindings[" + case + "]" for case in
+          ("policy_bytes", "canonical_bytes", "current_generation", "authority_owner")))) + tuple(
+    ("tests/evidence/test_bootstrap_probes.py::" + case,
+     "NOT_RUN: Linux native bootstrap flock and inotify qualification") for case in (
+        "test_native_fds_are_borrowed_and_fake_transport_never_qualifies_production",
+        *("test_actual_native_lease_loss_is_not_an_owned_writer[" + case + "]" for case in
+          ("unlock_writer", "unlock_gate", "shared", "closed_fd", "replace_gate", "mutate_restore")))) + tuple(
+    ("tests/corpus/test_model_owner.py::" + case,
+     "NOT_RUN: actual owned child procfs/inotify qualification requires Linux") for case in (
+        "test_actual_owned_child_socket_maps_and_client_qualify_without_inference",
+        "test_mmproj_read_or_digest_without_mapping_is_never_loaded_proof",
+        "test_foreign_ready_listener_and_saved_hash_cannot_qualify_child",
+        "test_owned_file_hash_mismatch_prevents_any_spawn", "test_owned_hardlink_alias_is_unqualified",
+        *("test_actual_owned_child_fences_each_replacement_and_load_time_event[" + case + "]" for case in
+          ("client_object", "client_url", "client_closed", "weights", "mmproj", "recipe", "restore_bytes",
+           "unmap-mmproj", "close-listener", "exit"))))
 
 
 def test_files(root: Path, suite: str) -> list[Path]:

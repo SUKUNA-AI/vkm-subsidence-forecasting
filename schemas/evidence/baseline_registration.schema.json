@@ -1,0 +1,79 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "boundary": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "failed_preparation": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "intent": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "native_start": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "preparation": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "private_probe": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "probes": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "qualification": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "schema_version": {
+      "const": "vkm-baseline-registration/1",
+      "default": "vkm-baseline-registration/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "enum": [
+        "SYNTHETIC",
+        "BOOTSTRAP_SHADOW_PRODUCTION"
+      ],
+      "title": "Scope",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scope",
+    "intent",
+    "probes",
+    "failed_preparation",
+    "preparation",
+    "private_probe",
+    "boundary",
+    "native_start",
+    "qualification"
+  ],
+  "title": "BaselineRegistration",
+  "type": "object"
+}

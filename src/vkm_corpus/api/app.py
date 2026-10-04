@@ -70,6 +70,14 @@ class ApiConfig:
         if context_file := environ.get("VKM_ACCESS_CONTEXT_FILE"):
             contexts = {label: AccessContext.model_validate(value)
                         for label, value in json.loads(FilePath(context_file).read_bytes()).items()}
+        if credential_file := environ.get("VKM_API_READ_CREDENTIALS_FILE"):
+            # Host-owned READ credentials permit a real denied principal for
+            # private acceptance. Tokens remain in separate mode-600 files.
+            from vkm_corpus.api.read_credentials import additional_read_credentials
+            for token, label in additional_read_credentials(FilePath(credential_file)).items():
+                if token in write or token in read and read[token] != label or label not in contexts:
+                    raise ConfigError("READ credentials conflict or lack an access context")
+                read[token] = label
         deployment_token = None
         if token_file := environ.get("VKM_DEPLOYMENT_TOKEN_FILE"):
             from vkm_corpus.update.receiver import operator_token

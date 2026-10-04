@@ -381,7 +381,10 @@ def validate_drill(raw: bytes, plan: AcceptancePlan):
             result[key] = value
         return result
     proof = json.loads(raw, object_pairs_hook=unique)
-    expected = {"schema": "vkm-deployment-drill/1", "scope": plan.scope, "status": "PASS",
+    from vkm_corpus.update.deployment import CLOSED_DRILL_CHECKS, ClosedRestoreCommit, PreviousAdmission
+    closed = proof.get("schema") == "vkm-closed-baseline-drill/1"
+    expected = {"schema": "vkm-closed-baseline-drill/1" if closed else "vkm-deployment-drill/1",
+        "scope": plan.scope, "status": "PASS",
         "candidate_components_sha256": plan.candidate.components_sha256,
         "candidate_services_sha256": plan.candidate.services_sha256,
         "code_commit": plan.candidate.code_commit, "policy_sha256": plan.candidate.policy_sha256,
@@ -389,7 +392,7 @@ def validate_drill(raw: bytes, plan: AcceptancePlan):
         "dependencies_sha256": plan.candidate.dependencies_sha256,
         "access_config_sha256": plan.candidate.access_config_sha256,
         "deployment_profile_sha256": plan.deployment_profile_sha256,
-        "checks": dict.fromkeys(DRILL_CHECKS, "PASS")}
+        "checks": dict.fromkeys(CLOSED_DRILL_CHECKS if closed else DRILL_CHECKS, "PASS")}
     if any(proof.get(key) != value for key, value in expected.items()):
         raise AcceptanceError("deployment drill scope/context/checks differ")
     if plan.scope == "SHADOW_PRODUCTION" and proof.get("isolation_attestation_sha256") != plan.isolation_attestation_sha256:
@@ -399,6 +402,18 @@ def validate_drill(raw: bytes, plan: AcceptancePlan):
     for key in ("native_before_sha256", "native_after_restore_sha256", "previous_components_sha256", "previous_services_sha256",
                 "bindings_before_sha256", "bindings_after_restore_sha256"):
         digest.validate_python(proof.get(key))
+    if closed:
+        policy = PreviousAdmission.model_validate(proof.get("previous_admission"))
+        marker = ClosedRestoreCommit.model_validate(proof.get("closed_restore_commit"))
+        for key in ("previous_generation_sha256", "startup_authority_sha256", "closed_restore_commit_sha256"):
+            digest.validate_python(proof.get(key))
+        if (policy.mode != "CLOSED_BASELINE" or marker.generation_sha256 != proof["previous_generation_sha256"]
+                or marker.closed_owner_key != policy.closed_owner_key
+                or marker.previous_admission_sha256 != record_hash(policy)
+                or record_hash(marker) != proof["closed_restore_commit_sha256"]):
+            raise AcceptanceError("closed drill previous admission/commit binding differs")
+    elif any(key in proof for key in ("previous_admission", "closed_restore_commit", "closed_restore_commit_sha256")):
+        raise AcceptanceError("closed baseline evidence cannot masquerade as an OPEN rollback drill")
     transitions = proof.get("transitions")
     if not isinstance(transitions, list) or any(not isinstance(t, dict) or set(t) != {"phase", "journal_sha256"}
             or not isinstance(t["phase"], str) or not t["phase"] for t in transitions):
@@ -424,12 +439,14 @@ class AcceptanceRegistrar:
     Directory access/ownership is an operator responsibility, not a signature.
     """
 
-    def __init__(self, root: Path, *, approved_plan_sha256: str):
+    def __init__(self, root: Path, *, approved_plan_sha256: str, closed_baseline_verifier=None):
         from vkm_evidence.cli import _qualification_path
         self.root = _qualification_path(Path(root))
         if not self.root.is_dir():
             raise AcceptanceError("operator receipt directory must already exist")
         self.approved_plan_sha256 = approved_plan_sha256
+        # Supplied by the concrete operator factory, never decoded from a plan.
+        self.closed_baseline_verifier = closed_baseline_verifier
 
     def store(self, value: dict) -> str:
         from vkm_evidence.cli import _qualification_write_report
@@ -463,42 +480,14 @@ class AcceptanceRegistrar:
         if (report.get("checks") != dict.fromkeys(SERVING_CHECKS, "PASS") or
                 report.get("tools") != dict.fromkeys(read_tool_names(), "PASS")):
             raise AcceptanceError("incomplete serving contract")
-        seen_tools, api_cases, listings = set(), set(), 0
-        hashes = report.get("raw_probe_receipts", [])
-        if not isinstance(hashes, list) or len(set(hashes)) != len(hashes):
-            raise AcceptanceError("duplicate or invalid raw probe receipts")
-        for digest in hashes:
-            receipt = json.loads(self.read(digest))
-            if (receipt.get("schema") != "vkm-shadow-probe/1" or receipt.get("plan_sha256") != plan.sha256
-                    or receipt.get("status") != "PASS" or
-                    receipt.get("native_components_sha256") != record_hash(plan.candidate.component_map) or
-                    receipt.get("native_services_sha256") != record_hash(plan.candidate.service_map)):
-                raise AcceptanceError("probe receipt mismatch")
-            from pydantic import TypeAdapter
-            TypeAdapter(Sha256).validate_python(receipt.get("response_sha256"))
-            if not isinstance(receipt.get("response_bytes"), int) or not 0 < receipt["response_bytes"] <= plan.max_response_bytes:
-                raise AcceptanceError("invalid raw response budget")
-            if receipt.get("kind") == "MCP" and receipt.get("operation") == "tools/list":
-                listings += 1
-            elif receipt.get("kind") == "MCP":
-                name = receipt.get("operation")
-                if (name not in plan.tools or name in seen_tools or
-                        receipt.get("arguments_sha256") != record_hash(plan.tools[name].arguments)):
-                    raise AcceptanceError("tool receipt inventory mismatch")
-                seen_tools.add(name)
-            elif receipt.get("kind") == "API":
-                api_cases.add((receipt.get("operation"), receipt.get("arguments_sha256")))
-            else:
-                raise AcceptanceError("unknown probe receipt kind")
-        wanted_api = {(method + " " + route, record_hash({"principal": principal, "body": body}))
-                      for principal, method, route, body, _, _ in _api_probes(plan)}
-        if seen_tools != read_tool_names() or api_cases != wanted_api or not 1 <= listings <= 20:
-            raise AcceptanceError("probe receipts are incomplete")
+        _verify_probe_receipts(report, plan, self.read, schema="vkm-shadow-probe/1", plan_sha256=plan.sha256)
         return self.store(report)
 
     def require_drill(self, plan):
         proof = validate_drill(self.read(plan.drill_receipt_sha256), plan)
+        closed = proof["schema"] == "vkm-closed-baseline-drill/1"
         parent, request_key, phases, partial = None, None, [], []
+        closed_events = []
         for transition in proof["transitions"]:
             digest = transition["journal_sha256"]
             event = json.loads(self.read(digest))
@@ -512,6 +501,8 @@ class AcceptanceRegistrar:
                 raise AcceptanceError("mixed deployment requests")
             parent = digest
             phases.append(event["phase"])
+            if event["phase"] == "CLOSED_RECEIVERS_VERIFIED":
+                closed_events.append((digest, event))
             if event["phase"] == "FAULT_INJECTED":
                 detail = event.get("detail", {})
                 native = TypeAdapter(Sha256).validate_python(detail.get("native_partial_sha256"))
@@ -525,6 +516,33 @@ class AcceptanceRegistrar:
                 raise AcceptanceError("deployment failure/restore phases are incomplete or reordered") from None
         if phases[-1] != "FAILED_RESTORED" or not partial or not all(partial):
             raise AcceptanceError("deployment drill is not terminal restored")
+        if closed:
+            from vkm_corpus.update.deployment import PreviousAdmission
+            policy = PreviousAdmission.model_validate(proof["previous_admission"])
+            marker = proof["closed_restore_commit"]
+            if (len(closed_events) != 1 or closed_events[0][0] != marker["verified_event_sha256"]
+                    or marker["request_key"] != request_key
+                    or phases.index("CLOSED_RECEIVERS_VERIFIED") <= phases.index("RESTORED")):
+                raise AcceptanceError("closed restore commit does not attest its verified journal")
+            detail = closed_events[0][1]["detail"]
+            expected = {"generation_sha256": proof["previous_generation_sha256"],
+                "native_sha256": proof["native_after_restore_sha256"],
+                "closed_owner_key": policy.closed_owner_key, "previous_admission_sha256": record_hash(policy)}
+            if (set(detail) != set(expected) | {"receiver_proofs"}
+                    or any(detail.get(k) != v for k, v in expected.items())
+                    or set(detail.get("receiver_proofs", {})) != set(proof.get("receiver_ids", []))
+                    or not detail.get("receiver_proofs")):
+                raise AcceptanceError("closed restore native receiver proof inventory differs")
+            from pydantic import TypeAdapter
+            for digest in detail["receiver_proofs"].values():
+                TypeAdapter(Sha256).validate_python(digest)
+            if self.closed_baseline_verifier is None:
+                if plan.scope != "SYNTHETIC":
+                    raise AcceptanceError("production closed drill requires independent baseline chain verification")
+            else:
+                observed_policy = self.closed_baseline_verifier(proof)
+                if type(observed_policy) is not PreviousAdmission or observed_policy != policy:
+                    raise AcceptanceError("verified baseline qualification differs from closed drill")
         return proof
 
 
@@ -610,41 +628,84 @@ def _api_probes(plan):
          "reason": "isolated read-token rejection probe"}, 403, "FORBIDDEN"))
 
 
-async def qualify_shadow(plan: AcceptancePlan, *, transport: ProbeTransport | None,
-                         fence: CandidateFence, registrar: AcceptanceRegistrar) -> dict:
-    """Execute actual fixed read probes. Failed attempts never publish acceptance.
-
-    Missing transport/drill returns NOT_RUN; transport failures return FAIL.
-    Raw payloads/token values are neither logged nor copied into public receipts.
-    """
-    if registrar.approved_plan_sha256 != plan.sha256 or fence.pin != plan.candidate:
+def _require_private_transport(plan, transport, fence):
+    """Production callers cannot replace real route execution with a transcript."""
+    if fence.pin != plan.candidate:
         raise AcceptanceError("candidate/approved plan binding mismatch")
     if plan.scope == "SHADOW_PRODUCTION" and (type(transport) is not PrivateASGIProbeTransport or
             transport.fence is not fence or transport.plan != plan or not fence.production):
         if transport is not None:
             raise AcceptanceError("production requires the real private ASGI/MCP transport")
-    base = {"schema": "vkm-serving-acceptance/1", "scope": plan.scope, "plan_sha256": plan.sha256,
-            **plan.candidate.model_dump(mode="json", exclude={"components", "services"}),
-            "components_sha256": plan.candidate.components_sha256, "services_sha256": plan.candidate.services_sha256}
-    tools, checks, receipts = {}, {}, []
-    def attempt(status, **detail):
-        report = {**base, "status": status, **detail, "tools": tools, "checks": checks,
-                  "raw_probe_receipts": receipts}
-        return {**report, "attempt_receipt_sha256": registrar.store(report)}
-    if transport is None or plan.drill_receipt_sha256 is None:
-        return attempt("NOT_RUN", reason="TRANSPORT_OR_DEPLOYMENT_DRILL_UNAVAILABLE")
-    try:
-        drill_raw = registrar.read(plan.drill_receipt_sha256)
-    except FileNotFoundError:
-        return attempt("NOT_RUN", reason="DEPLOYMENT_DRILL_NOT_REGISTERED")
+
+
+def _verify_probe_receipts(report, plan, read, *, schema, plan_sha256):
+    """Re-read every immutable probe; neither bootstrap nor serving may omit one."""
+    from pydantic import TypeAdapter
+    from vkm_corpus.update.operator_units import strict_json
+
+    seen_tools, api_cases, listings, total_bytes = set(), set(), 0, 0
+    hashes = report.get("raw_probe_receipts", [])
+    if not isinstance(hashes, list) or len(set(hashes)) != len(hashes):
+        raise AcceptanceError("duplicate or invalid raw probe receipts")
+    fields = {"schema", "plan_sha256", "status", "kind", "operation", "arguments_sha256",
+              "response_sha256", "response_bytes", "native_components_sha256", "native_services_sha256"}
+    for digest in hashes:
+        receipt = strict_json(read(digest))
+        if (set(receipt) != fields or receipt.get("schema") != schema or receipt.get("plan_sha256") != plan_sha256
+                or receipt.get("status") != "PASS"
+                or receipt.get("native_components_sha256") != record_hash(plan.candidate.component_map)
+                or receipt.get("native_services_sha256") != record_hash(plan.candidate.service_map)):
+            raise AcceptanceError("probe receipt mismatch")
+        TypeAdapter(Sha256).validate_python(receipt.get("response_sha256"))
+        TypeAdapter(Sha256).validate_python(receipt.get("arguments_sha256"))
+        size = receipt.get("response_bytes")
+        if type(size) is not int or not 0 < size <= plan.max_response_bytes:
+            raise AcceptanceError("invalid raw response budget")
+        total_bytes += size
+        if receipt["kind"] == "MCP" and receipt["operation"] == "tools/list":
+            listings += 1
+        elif receipt["kind"] == "MCP":
+            name = receipt["operation"]
+            if (name not in plan.tools or name in seen_tools
+                    or receipt["arguments_sha256"] != record_hash(plan.tools[name].arguments)):
+                raise AcceptanceError("tool receipt inventory mismatch")
+            seen_tools.add(name)
+        elif receipt["kind"] == "API":
+            case = (receipt["operation"], receipt["arguments_sha256"])
+            if case in api_cases:
+                raise AcceptanceError("duplicate API policy challenge")
+            api_cases.add(case)
+        else:
+            raise AcceptanceError("unknown probe receipt kind")
+    wanted_api = {(method + " " + route, record_hash({"principal": principal, "body": body}))
+                  for principal, method, route, body, _, _ in _api_probes(plan)}
+    if (seen_tools != read_tool_names() or api_cases != wanted_api or not 1 <= listings <= 20
+            or total_bytes > plan.max_total_response_bytes):
+        raise AcceptanceError("probe receipts are incomplete or exceed budget")
+
+
+async def _execute_private_probes(plan, *, transport, fence, store, tools, checks, receipts,
+                                  receipt_schema, receipt_plan_sha256, boundary_check=None):
+    """Only common read execution; this function grants no deployment/admission.
+
+    Registrars select the fixed receipt schema and independently validate their
+    own drill or CLOSED capability. No callback is read from an input document.
+    """
+    _require_private_transport(plan, transport, fence)
     deadline = asyncio.get_running_loop().time() + plan.total_timeout_seconds
     total_bytes = 0
 
+    def boundary():
+        if boundary_check is not None:
+            boundary_check()
+
     async def services():
+        boundary()
         timeout = min(plan.call_timeout_seconds, deadline - asyncio.get_running_loop().time())
         if timeout <= 0:
             raise TimeoutError("qualification deadline")
         value = await asyncio.wait_for(transport.observe_services(), timeout)
+        boundary()
         if value != plan.candidate.service_map:
             raise AcceptanceError("candidate service identity differs")
         return record_hash(value)
@@ -664,65 +725,95 @@ async def qualify_shadow(plan: AcceptancePlan, *, transport: ProbeTransport | No
         validate(answer)
         native_services = await services()
         native = fence.check()
-        receipt = {"schema": "vkm-shadow-probe/1", "plan_sha256": plan.sha256, "status": "PASS",
+        receipt = {"schema": receipt_schema, "plan_sha256": receipt_plan_sha256, "status": "PASS",
             "kind": kind, "operation": operation, "arguments_sha256": record_hash(arguments),
             "response_sha256": hashlib.sha256(raw).hexdigest(), "response_bytes": len(raw),
             "native_components_sha256": native, "native_services_sha256": native_services}
-        receipts.append(registrar.store(receipt))
+        boundary()
+        receipts.append(store(receipt))
+        boundary()
         return answer
 
+    boundary()
+    fence.check(full=True)
+    await services()
+    checks["native_identity"] = "PASS"
+    discovered, cursors, cursor = {}, set(), None
+    for _ in range(20):
+        def validate_listing(answer):
+            if not isinstance(answer, dict) or not isinstance(answer.get("tools"), list):
+                raise AcceptanceError("invalid tools/list response")
+            for tool in answer["tools"]:
+                if not isinstance(tool, dict):
+                    raise AcceptanceError("invalid MCP tool description")
+                name = tool.get("name")
+                if name in discovered or name not in read_tool_names() or tool.get("read_only") is not True:
+                    raise AcceptanceError("unexpected, duplicate or non-read-only MCP tool")
+                if not isinstance(tool.get("input_schema"), dict) or tool["input_schema"].get("type") != "object":
+                    raise AcceptanceError("MCP input schema unavailable")
+                discovered[name] = tool
+        answer = await request("MCP", "tools/list", {"cursor": cursor},
+            lambda: transport.list_tools(cursor), validate_listing)
+        cursor = answer.get("next_cursor")
+        if not cursor:
+            break
+        if not isinstance(cursor, str) or cursor in cursors:
+            raise AcceptanceError("tools/list cursor loop")
+        cursors.add(cursor)
+    if cursor or set(discovered) != read_tool_names():
+        raise AcceptanceError("complete READ tool contract unavailable")
+    for name, probe in sorted(plan.tools.items()):
+        def validate_tool(answer):
+            _tool_response(name, probe, answer, plan.candidate)
+        await request("MCP", name, probe.arguments, lambda: transport.call_tool(name, probe.arguments), validate_tool)
+        tools[name] = "PASS"
+    checks["full_mcp"] = "PASS"
+    for principal, method, route, body, status, error in _api_probes(plan):
+        def validate_api(answer):
+            if answer.get("http_status") != status:
+                raise AcceptanceError("API policy challenge HTTP status differs")
+            value = ApiResponse.model_validate(answer.get("body"))
+            if error:
+                if (answer["body"].get("ok") is not False or value.ok or not value.error
+                        or value.error.code != error or value.item or value.items):
+                    raise AcceptanceError("API policy challenge did not deny cleanly")
+            else:
+                _positive(answer["body"], plan.candidate, (plan.source_id,))
+        await request("API", method + " " + route, {"principal": principal, "body": body},
+            lambda: transport.api(principal, method, route, body), validate_api)
+    checks.update(policy_enforcement="PASS", generation_consistency="PASS")
+    fence.check(full=True)
+    await services()
+    boundary()
+
+
+async def qualify_shadow(plan: AcceptancePlan, *, transport: ProbeTransport | None,
+                         fence: CandidateFence, registrar: AcceptanceRegistrar) -> dict:
+    """Ordinary qualification still requires its independent failed-switch drill."""
+    if registrar.approved_plan_sha256 != plan.sha256:
+        raise AcceptanceError("candidate/approved plan binding mismatch")
+    _require_private_transport(plan, transport, fence)
+    base = {"schema": "vkm-serving-acceptance/1", "scope": plan.scope, "plan_sha256": plan.sha256,
+            **plan.candidate.model_dump(mode="json", exclude={"components", "services"}),
+            "components_sha256": plan.candidate.components_sha256, "services_sha256": plan.candidate.services_sha256}
+    tools, checks, receipts = {}, {}, []
+    def attempt(status, **detail):
+        report = {**base, "status": status, **detail, "tools": tools, "checks": checks,
+                  "raw_probe_receipts": receipts}
+        return {**report, "attempt_receipt_sha256": registrar.store(report)}
+    if transport is None or plan.drill_receipt_sha256 is None:
+        return attempt("NOT_RUN", reason="TRANSPORT_OR_DEPLOYMENT_DRILL_UNAVAILABLE")
     try:
-        fence.check(full=True)
-        await services()
-        # Re-read the same immutable hash while validating every journal link.
+        registrar.read(plan.drill_receipt_sha256)
+    except FileNotFoundError:
+        return attempt("NOT_RUN", reason="DEPLOYMENT_DRILL_NOT_REGISTERED")
+    try:
         registrar.require_drill(plan)
-        checks.update(failed_switch="PASS", rollback="PASS", native_identity="PASS")
-        discovered, cursors, cursor = {}, set(), None
-        for _ in range(20):
-            def validate_listing(answer):
-                if not isinstance(answer, dict) or not isinstance(answer.get("tools"), list):
-                    raise AcceptanceError("invalid tools/list response")
-                for tool in answer["tools"]:
-                    if not isinstance(tool, dict):
-                        raise AcceptanceError("invalid MCP tool description")
-                    name = tool.get("name")
-                    if name in discovered or name not in read_tool_names() or tool.get("read_only") is not True:
-                        raise AcceptanceError("unexpected, duplicate or non-read-only MCP tool")
-                    if not isinstance(tool.get("input_schema"), dict) or tool["input_schema"].get("type") != "object":
-                        raise AcceptanceError("MCP input schema unavailable")
-                    discovered[name] = tool
-            answer = await request("MCP", "tools/list", {"cursor": cursor},
-                lambda: transport.list_tools(cursor), validate_listing)
-            cursor = answer.get("next_cursor")
-            if not cursor:
-                break
-            if not isinstance(cursor, str) or cursor in cursors:
-                raise AcceptanceError("tools/list cursor loop")
-            cursors.add(cursor)
-        if cursor or set(discovered) != read_tool_names():
-            raise AcceptanceError("complete READ tool contract unavailable")
-        for name, probe in sorted(plan.tools.items()):
-            def validate_tool(answer):
-                _tool_response(name, probe, answer, plan.candidate)
-            await request("MCP", name, probe.arguments, lambda: transport.call_tool(name, probe.arguments), validate_tool)
-            tools[name] = "PASS"
-        checks["full_mcp"] = "PASS"
-        for principal, method, route, body, status, error in _api_probes(plan):
-            def validate_api(answer):
-                if answer.get("http_status") != status:
-                    raise AcceptanceError("API policy challenge HTTP status differs")
-                value = ApiResponse.model_validate(answer.get("body"))
-                if error:
-                    if (answer["body"].get("ok") is not False or value.ok or not value.error
-                            or value.error.code != error or value.item or value.items):
-                        raise AcceptanceError("API policy challenge did not deny cleanly")
-                else:
-                    _positive(answer["body"], plan.candidate, (plan.source_id,))
-            await request("API", method + " " + route, {"principal": principal, "body": body},
-                lambda: transport.api(principal, method, route, body), validate_api)
-        checks.update(policy_enforcement="PASS", generation_consistency="PASS", shadow_acceptance="PASS")
-        fence.check(full=True)
-        await services()
+        checks.update(failed_switch="PASS", rollback="PASS")
+        await _execute_private_probes(plan, transport=transport, fence=fence, store=registrar.store,
+            tools=tools, checks=checks, receipts=receipts, receipt_schema="vkm-shadow-probe/1",
+            receipt_plan_sha256=plan.sha256)
+        checks["shadow_acceptance"] = "PASS"
         report = {**base, "status": "PASS", "tools": tools, "checks": checks,
                   "deployment_drill_sha256": plan.drill_receipt_sha256, "raw_probe_receipts": receipts}
         digest = registrar.register(report, plan)

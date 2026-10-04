@@ -1,0 +1,62 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "boundary": {
+      "enum": [
+        "PYTHON_ACTUAL_RUNTIME",
+        "OWNED_NATIVE_CHILD"
+      ],
+      "title": "Boundary",
+      "type": "string"
+    },
+    "functional_qualification": {
+      "const": "NOT_RUN",
+      "default": "NOT_RUN",
+      "title": "Functional Qualification",
+      "type": "string"
+    },
+    "gpu_residency": {
+      "const": "NOT_PROVEN",
+      "default": "NOT_PROVEN",
+      "title": "Gpu Residency",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "text",
+        "visual"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "reason": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-model-owner-status/1",
+      "default": "vkm-model-owner-status/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "UNWIRED",
+        "BOUND",
+        "CLOSED"
+      ],
+      "title": "State",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "state",
+    "boundary",
+    "reason"
+  ],
+  "title": "ModelOwnerStatus",
+  "type": "object"
+}

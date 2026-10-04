@@ -1,0 +1,120 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "candidate_generation_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Candidate Generation Sha256",
+      "type": "string"
+    },
+    "checks": {
+      "additionalProperties": {
+        "const": "PASS",
+        "type": "string"
+      },
+      "propertyNames": {
+        "enum": [
+          "native_identity",
+          "policy_enforcement",
+          "generation_consistency",
+          "full_mcp"
+        ]
+      },
+      "title": "Checks",
+      "type": "object"
+    },
+    "live_probe_context_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Live Probe Context Sha256",
+      "type": "string"
+    },
+    "live_profile_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Live Profile Sha256",
+      "type": "string"
+    },
+    "promotion_binding_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Promotion Binding Sha256",
+      "type": "string"
+    },
+    "raw_probe_receipts": {
+      "items": {
+        "pattern": "^[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Raw Probe Receipts",
+      "type": "array"
+    },
+    "receiver_after_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Receiver After Sha256",
+      "type": "string"
+    },
+    "receiver_before_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Receiver Before Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-live-promotion-private-probe/1",
+      "default": "vkm-live-promotion-private-probe/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scientific_admission": {
+      "const": false,
+      "default": false,
+      "title": "Scientific Admission",
+      "type": "boolean"
+    },
+    "scope": {
+      "enum": [
+        "SYNTHETIC",
+        "LIVE_PRIVATE_REBIND"
+      ],
+      "title": "Scope",
+      "type": "string"
+    },
+    "source_shadow_acceptance_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Source Shadow Acceptance Sha256",
+      "type": "string"
+    },
+    "source_shadow_plan_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Source Shadow Plan Sha256",
+      "type": "string"
+    },
+    "status": {
+      "const": "PASS",
+      "default": "PASS",
+      "title": "Status",
+      "type": "string"
+    },
+    "tools": {
+      "additionalProperties": {
+        "const": "PASS",
+        "type": "string"
+      },
+      "title": "Tools",
+      "type": "object"
+    }
+  },
+  "required": [
+    "scope",
+    "promotion_binding_sha256",
+    "live_profile_sha256",
+    "source_shadow_plan_sha256",
+    "source_shadow_acceptance_sha256",
+    "candidate_generation_sha256",
+    "live_probe_context_sha256",
+    "receiver_before_sha256",
+    "receiver_after_sha256",
+    "tools",
+    "checks",
+    "raw_probe_receipts"
+  ],
+  "title": "LivePromotionProbeReceipt",
+  "type": "object"
+}

@@ -71,6 +71,8 @@ class RuntimeConfig(StrictModel):
     native_serving: BoundFile | None = None
     # Authority is supplied by the operator, separately from incoming artifacts.
     publication_approval: BoundFile | None = None
+    # Explicit metadata-only first-baseline mode; no ordinary/public admission.
+    bootstrap_startup: BoundFile | None = None
 
     @model_validator(mode="after")
     def _separation(self):
@@ -89,6 +91,13 @@ class RuntimeConfig(StrictModel):
             if authority.is_relative_to(write) or (self.canonical_root and
                     authority.is_relative_to(Path(self.canonical_root).resolve())):
                 raise ValueError("publication approval must be operator-owned outside delivery/write roots")
+        if self.bootstrap_startup is not None:
+            authority = Path(self.bootstrap_startup.path).resolve()
+            if self.native_serving is None:
+                raise ValueError("bootstrap startup requires full native serving")
+            if (authority.is_relative_to(write) or any(authority.is_relative_to(Path(root).resolve())
+                    for root in (self.originals_root, self.canonical_root, self.evidence_root) if root)):
+                raise ValueError("bootstrap authority must be independently operator-owned")
         return self
 
     def pipeline_config(self):

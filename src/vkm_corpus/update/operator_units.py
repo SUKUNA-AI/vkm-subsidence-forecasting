@@ -63,7 +63,8 @@ def bound_json(ref: BoundFile):
 
 class UnitPin(StrictModel):
     image_id: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
-    # Captured from a qualified container with the SAME effective configuration.
+    # Captured natively with the SAME effective configuration. A CLOSED cold
+    # prepare may capture this pin; the pin alone never proves qualification.
     config_sha256: Sha256
 
 
@@ -136,13 +137,15 @@ class UnitControlConfig(StrictModel):
         return self
 
 
-def container_fingerprint(raw: dict, *, project: str, unit: str) -> dict:
+def container_fingerprint(raw: dict, *, project: str, unit: str, _stopped_prepare: bool = False) -> dict:
     """Hash native effective settings; never persist environment/secret values."""
     labels = raw["Config"].get("Labels") or {}
     if (unit not in UNITS or labels.get("com.docker.compose.project") != project
             or labels.get("com.docker.compose.service") != unit
             or labels.get("com.docker.compose.container-number") != "1"
-            or raw["State"].get("Running") is not True or raw["State"].get("Paused") is not False):
+            or raw["State"].get("Running") is not (not _stopped_prepare)
+            or raw["State"].get("Paused") is not False
+            or (_stopped_prepare and raw["State"].get("Pid") != 0)):
         raise GenerationUnavailable("actual container is not the registered running receiver")
     config = dict(raw["Config"])
     # Docker generates hostname and Compose generates these bookkeeping labels.

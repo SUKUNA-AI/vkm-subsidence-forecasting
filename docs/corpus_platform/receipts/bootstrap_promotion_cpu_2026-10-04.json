@@ -1,0 +1,119 @@
+{
+  "base_commit": "f50fa1b848f099afdb089aaf4cdbe5c116fe6d4f",
+  "canonical_verifier": {
+    "blocking_failures": [],
+    "historical_ref_unavailable": 7,
+    "passed": 36,
+    "status": "PASS_WITH_NONBLOCKING"
+  },
+  "combined_source_note": "Combined run precedes final two-line closed-drill startup SHA fence and its test. Final callback runs qualify that delta; overlapping counts are not added.",
+  "date": "2026-10-04",
+  "final_input_sha256": {
+    "schemas/evidence/baseline_qualification.schema.json": "a4f77114f2d47ff04a46f7d3c52562b74e26c26232c7c59ea6ac34f22d673440",
+    "schemas/evidence/baseline_registration.schema.json": "bcc3b4630e96613f9bbaa70ac0f9bcb0f2e45cc11bb976f6a216c3a408d98fad",
+    "schemas/evidence/bootstrap_backup.schema.json": "097bcbf8cf0e3a63e4cea8babc24183b3a478933f0bc9c6edfc14b74486c4d19",
+    "schemas/evidence/bootstrap_boundary.schema.json": "b6786eba9f527b4c37e2fe88a7cdb3c2c5909d0dc3d5ca5cc1416646b79af9eb",
+    "schemas/evidence/bootstrap_control.schema.json": "00d177cdc0a286334c95f7a5eccc8aa7defbf0ec75b24c0f3b7c722011c930df",
+    "schemas/evidence/bootstrap_intent.schema.json": "f4407da3d9ef960fc27408ae6d537ed7b676ba7b3c46e3152e5bc1185ece8270",
+    "schemas/evidence/bootstrap_preparation.schema.json": "5833a5315a7b228e970403c7dc97a18bf09bc5fcd7db9dc89b779a6c4474fa67",
+    "schemas/evidence/bootstrap_probe_plan.schema.json": "f86366452a84928ae6ddeead2e1da9711c3299622bbfc46a2830d3d7ffe07edc",
+    "schemas/evidence/bootstrap_startup.schema.json": "47758ff0033b4dfe0a9e0c1ddc8b4f9fc10fec6bdd16b3faa1957f95b0e1caed",
+    "schemas/evidence/core_operator.schema.json": "8c2094ba453e8ad4bfe53f0b106ac8b112e1b9038ade2a889849121445df5532",
+    "schemas/evidence/live_promotion_probe.schema.json": "a3eb086c7a99587d7e2da51a4b5a2ed37b85e8b1858eac78fb0713a06be37ffe",
+    "schemas/evidence/model_owner_status.schema.json": "623bbddd007d75c7c8c0fd55be97d4af667cbfc2ec7927da152d9684ffcbfcb1",
+    "schemas/evidence/owned_child_identity.schema.json": "b6e5420104cd1ccdcddffe65f9f0e21ae539eb50ab5e486be01278c9000deea8",
+    "schemas/evidence/owned_child_recipe.schema.json": "ad53a130d2aaa07d694fa771cb2bf8b3a88dbef29e759a49a02914bd104588bd",
+    "schemas/evidence/previous_admission.schema.json": "09409270253cb7824debd74266e1c929a268a8a292bcacbc9b9ee382f43c32bf",
+    "schemas/evidence/promotion_binding.schema.json": "1e990a62d671888ebaa9d4e54559d358474d7d69213a420c0b2c251d0f54151e",
+    "schemas/evidence/promotion_recipe.schema.json": "1a096c244cfa615b89522c9cce4a892efadd82b3d200cf5a4562c797cfb08f7e",
+    "schemas/evidence/update_runtime.schema.json": "b1b1d00876efdb97e987f0a1556560d81cfbbe55fda8cb2fd4781ecb5cb26d88",
+    "scripts/export_evidence_schema.py": "91ad47ecd290e43b50f62fc84fc9e551d89267b018facc5e2a937515e7e75d22",
+    "scripts/run_offline_checks.py": "2d184213830bfe2b2def70e0e65da5dcf0df832645e9446fb11d20ed67067888",
+    "src/vkm_corpus/api/app.py": "4db809e8d0e39cdabd576409cc60fa46ad0595f46f3298fdd9375e2a8ba9bb92",
+    "src/vkm_corpus/api/production.py": "edf2b8a5950e419d364a6ac38d1d6aef269d94e72281e769e9655c6fa591be60",
+    "src/vkm_corpus/api/read_credentials.py": "087483a3a0903a997bf48662989de79367f07f14613d29509985e655299418bd",
+    "src/vkm_corpus/cli.py": "2890a7b4efc206a8ae49d9a91bc00f94b7c4401bc0bcc5d07111a7c7d2854a09",
+    "src/vkm_corpus/update/acceptance.py": "01945c5943c4ebfcd25ca67f90bcbe387bd0edb9065b4d4d6c440f26c3ee94a6",
+    "src/vkm_corpus/update/bootstrap.py": "a190c34ecf1e1aa48c862bf73ae420c13824556f1479d6c7dfaba0b845d68253",
+    "src/vkm_corpus/update/bootstrap_native.py": "50659ed47528b9a555bff7881cc77af4d5f3ee1e980c450ba8ee862bfbb6af05",
+    "src/vkm_corpus/update/bootstrap_probes.py": "0abb53d0c2d8f8403e7beaa31fa9f4ca7e4a94056003f32321e301c6665ed2f1",
+    "src/vkm_corpus/update/bootstrap_verify.py": "1cf78185048f6f53bb62c7de6d7bc913bc0112d95dc892cb2d9d2d1191e6bc50",
+    "src/vkm_corpus/update/deployment.py": "8bff81accd3192b688f9143ec5820178ddabc708fe2c185e1622ce0dbeda1acf",
+    "src/vkm_corpus/update/model_owner.py": "f9903644bc1bd3d06c5db10a5935bdd82e8883e4195417d3009152ae4bfc3608",
+    "src/vkm_corpus/update/operator.py": "54f138b864e60159aac51cf70079eb827a11882bb42877823cfbbefaf07cb271",
+    "src/vkm_corpus/update/operator_units.py": "fcc9f1589d1ad7eb4471241bdda90b0daefa35955a97f269cf66be1ded6aefe2",
+    "src/vkm_corpus/update/promotion.py": "1baf7ca8942b2451ee77576b26409aa117dbfc2641e3ca73b4aefc15e9a5c6bb",
+    "src/vkm_corpus/update/runtime.py": "f4146b0d2cb91e7b164d7ce129e751eebca9d17d7ae3c6e6cd6d8f514ac241d0",
+    "tests/corpus/test_model_owner.py": "88525b84b9b09330bdc9748f92a455937808eaff48ddec467306def6c5085e5b",
+    "tests/corpus/test_read_credentials.py": "ff736f0c9cb73f6637c1f1b1da95b3d7497e5e941a319ceefb5f011497b3a479",
+    "tests/evidence/test_bootstrap_native.py": "6836a766ac34d13302790e31b41a90ac50fca66d49cd99d7bb53886b0ec57b85",
+    "tests/evidence/test_bootstrap_probes.py": "92f3d72fa1610c4a05c010fd9630b0f569e5fa483aaebe13a836454f381a1a82",
+    "tests/evidence/test_bootstrap_verify.py": "fdb0403ca797f57652140a7dede3958fed8c6cbc0d8749888b5d7dfd32dfd0a9",
+    "tests/evidence/test_closed_baseline_deployment.py": "68edd938ae93b4e468da8cfafee1306557900227ddccca78d4f930e473af062e",
+    "tests/evidence/test_closed_startup.py": "e0f8e37575e93691ce035d6a28b3f166bbaa9cb381bd465418f160123ef8376a",
+    "tests/evidence/test_core_operator.py": "c3a0c20b23302dc4b920b9d2a688cc76afa18866a46252d6a03e8d0dfbecde0d",
+    "tests/evidence/test_promotion_binding.py": "5d50ad27bcecd23fdad4ba9479d18d2eb90d568a2d2db8e240483c67e67b27e8"
+  },
+  "hygiene_and_wheel_cpu": {
+    "failures": 0,
+    "passed": 7
+  },
+  "model_owner_wiring": "UNWIRED",
+  "runs": {
+    "combined_linux": {
+      "errors": 0,
+      "failures": 0,
+      "not_run": 0,
+      "path": "work/production_data/bootstrap_final_linux_20261004.xml",
+      "sha256": "6627efd9ac228032019c95fdf7f57dc8a2aecd7058b7242304b1aae7beed9822",
+      "tests": 628
+    },
+    "combined_windows": {
+      "errors": 0,
+      "failures": 0,
+      "not_run": 68,
+      "path": "work/production_data/bootstrap_final_windows_20261004.xml",
+      "sha256": "66b1058e77f2a178a9531e30bb54493171840af05874d2ccc4ab255394e1b8d8",
+      "tests": 628
+    },
+    "final_callback_linux": {
+      "errors": 0,
+      "failures": 0,
+      "not_run": 0,
+      "path": "work/production_data/bootstrap_callback_linux_20261004.xml",
+      "sha256": "5511740e88b4e4d4bf018f585081c0356fd9eda370e84bf87f9eaf3dadd0a890",
+      "tests": 78
+    },
+    "final_callback_windows": {
+      "errors": 0,
+      "failures": 0,
+      "not_run": 0,
+      "path": "work/production_data/bootstrap_callback_windows_20261004.xml",
+      "sha256": "516fc373179b723755992a6d3f4d736893e3ce6f7ae5e611bc685185f7db97c7",
+      "tests": 78
+    },
+    "final_world_linux": {
+      "errors": 0,
+      "failures": 0,
+      "not_run": 0,
+      "path": "work/production_data/bootstrap_world_linux_20261004.xml",
+      "sha256": "f4b5ec0f035e503a5e2ce50e9497d112a4cc007627bd0ea5d7936a0c493efcf0",
+      "tests": 602
+    }
+  },
+  "runtime": {
+    "actual_49_tool_acceptance": "NOT_RUN",
+    "actual_model_owners": "NOT_RUN",
+    "docker_shadow": "NOT_RUN",
+    "failed_switch_restart_restore": "NOT_RUN",
+    "full_corpus_campaign": "NOT_RUN",
+    "independent_backup": "NOT_RUN",
+    "production_switch": "NOT_RUN"
+  },
+  "schema": "vkm-bootstrap-promotion-cpu-evidence/1",
+  "schema_check": "PASS",
+  "scientific_admission": false,
+  "scope": "CPU_SYNTHETIC_ONLY",
+  "serving_code_sha256": "e5d36afd93db3943ac9c9587dc3a72c00719ba72105ab005f639efe0eb136e45",
+  "windows_unexpected_not_run": 0
+}

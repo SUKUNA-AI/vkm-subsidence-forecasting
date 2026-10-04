@@ -1,0 +1,525 @@
+{
+  "$defs": {
+    "BootstrapNetwork": {
+      "additionalProperties": false,
+      "properties": {
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "name": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "network_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Network Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "network_id",
+        "config_sha256"
+      ],
+      "title": "BootstrapNetwork",
+      "type": "object"
+    },
+    "BootstrapRecipe": {
+      "additionalProperties": false,
+      "properties": {
+        "compose": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "images": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "propertyNames": {
+            "enum": [
+              "api",
+              "mcp"
+            ]
+          },
+          "title": "Images",
+          "type": "object"
+        },
+        "networks": {
+          "items": {
+            "$ref": "#/$defs/BootstrapNetwork"
+          },
+          "maxItems": 4,
+          "minItems": 1,
+          "title": "Networks",
+          "type": "array"
+        },
+        "project": {
+          "const": "vkm-core-shadow",
+          "default": "vkm-core-shadow",
+          "title": "Project",
+          "type": "string"
+        }
+      },
+      "required": [
+        "compose",
+        "images",
+        "networks"
+      ],
+      "title": "BootstrapRecipe",
+      "type": "object"
+    },
+    "BootstrapStartupAuthority": {
+      "additionalProperties": false,
+      "properties": {
+        "bootstrap_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Bootstrap Id",
+          "type": "string"
+        },
+        "candidate": {
+          "$ref": "#/$defs/CandidatePin"
+        },
+        "control_root": {
+          "minLength": 1,
+          "title": "Control Root",
+          "type": "string"
+        },
+        "independent_backup_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Independent Backup Sha256",
+          "type": "string"
+        },
+        "isolation_attestation_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Isolation Attestation Sha256",
+          "type": "string"
+        },
+        "legacy_topology_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Legacy Topology Sha256",
+          "type": "string"
+        },
+        "mode": {
+          "const": "SHADOW_CLOSED_METADATA",
+          "default": "SHADOW_CLOSED_METADATA",
+          "title": "Mode",
+          "type": "string"
+        },
+        "request_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "vkm-bootstrap-startup/1",
+          "default": "vkm-bootstrap-startup/1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "bootstrap_id",
+        "request_id",
+        "candidate",
+        "control_root",
+        "isolation_attestation_sha256",
+        "legacy_topology_sha256",
+        "independent_backup_sha256"
+      ],
+      "title": "BootstrapStartupAuthority",
+      "type": "object"
+    },
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    },
+    "CandidatePin": {
+      "additionalProperties": false,
+      "properties": {
+        "access_config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Access Config Sha256",
+          "type": "string"
+        },
+        "code_commit": {
+          "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+          "title": "Code Commit",
+          "type": "string"
+        },
+        "code_tree_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Tree Sha256",
+          "type": "string"
+        },
+        "components": {
+          "items": {
+            "$ref": "#/$defs/ComponentIdentity"
+          },
+          "title": "Components",
+          "type": "array"
+        },
+        "dependencies_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Dependencies Sha256",
+          "type": "string"
+        },
+        "duckdb_file_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Duckdb File Sha256",
+          "type": "string"
+        },
+        "nav_file_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nav File Sha256"
+        },
+        "policy_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Policy Sha256",
+          "type": "string"
+        },
+        "services": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ServiceIdentity"
+          },
+          "title": "Services",
+          "type": "array"
+        }
+      },
+      "required": [
+        "code_commit",
+        "code_tree_sha256",
+        "dependencies_sha256",
+        "access_config_sha256",
+        "policy_sha256",
+        "duckdb_file_sha256",
+        "components"
+      ],
+      "title": "CandidatePin",
+      "type": "object"
+    },
+    "ComponentIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "built_from": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Built From",
+          "type": "object"
+        },
+        "component": {
+          "enum": [
+            "DOCUMENT",
+            "DATASET",
+            "EVIDENCE",
+            "DUCKDB",
+            "NAV",
+            "GRAPH",
+            "SEARCH",
+            "DENSE",
+            "LATE",
+            "VISUAL"
+          ],
+          "title": "Component",
+          "type": "string"
+        },
+        "manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Manifest Sha256",
+          "type": "string"
+        },
+        "policy_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Policy Sha256",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "revision": {
+          "minLength": 1,
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "component",
+        "revision",
+        "manifest_sha256",
+        "policy_sha256",
+        "built_from"
+      ],
+      "title": "ComponentIdentity",
+      "type": "object"
+    },
+    "LegacyTopology": {
+      "additionalProperties": false,
+      "properties": {
+        "compose": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "project": {
+          "const": "vkm-core",
+          "default": "vkm-core",
+          "title": "Project",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "vkm-retained-legacy-topology/1",
+          "default": "vkm-retained-legacy-topology/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "selectors": {
+          "items": {
+            "$ref": "#/$defs/BoundFile"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Selectors",
+          "type": "array"
+        },
+        "units": {
+          "additionalProperties": {
+            "$ref": "#/$defs/LegacyUnitPin"
+          },
+          "propertyNames": {
+            "enum": [
+              "api",
+              "mcp"
+            ]
+          },
+          "title": "Units",
+          "type": "object"
+        }
+      },
+      "required": [
+        "compose",
+        "units",
+        "selectors"
+      ],
+      "title": "LegacyTopology",
+      "type": "object"
+    },
+    "LegacyUnitPin": {
+      "additionalProperties": false,
+      "properties": {
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "container_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Container Id",
+          "type": "string"
+        },
+        "image_id": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Image Id",
+          "type": "string"
+        },
+        "started_at": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Started At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "image_id",
+        "config_sha256",
+        "container_id",
+        "started_at"
+      ],
+      "title": "LegacyUnitPin",
+      "type": "object"
+    },
+    "ServiceIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "capabilities": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "code_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Sha256",
+          "type": "string"
+        },
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "dependencies_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Dependencies Sha256",
+          "type": "string"
+        },
+        "endpoint_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Endpoint Sha256",
+          "type": "string"
+        },
+        "instance_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instance Sha256",
+          "type": "string"
+        },
+        "resources": {
+          "patternProperties": {
+            "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            }
+          },
+          "title": "Resources",
+          "type": "object"
+        },
+        "runtime_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Runtime Sha256",
+          "type": "string"
+        },
+        "service": {
+          "enum": [
+            "RETRIEVAL",
+            "RERANK",
+            "CONTROL"
+          ],
+          "title": "Service",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service",
+        "instance_sha256",
+        "code_sha256",
+        "dependencies_sha256",
+        "config_sha256",
+        "endpoint_sha256",
+        "runtime_sha256"
+      ],
+      "title": "ServiceIdentity",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "bootstrap_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+      "title": "Bootstrap Id",
+      "type": "string"
+    },
+    "deployment_profile_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Deployment Profile Sha256",
+      "type": "string"
+    },
+    "environment": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "independent_backup": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "legacy": {
+      "$ref": "#/$defs/LegacyTopology"
+    },
+    "probe_spec_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Probe Spec Sha256",
+      "type": "string"
+    },
+    "recipe": {
+      "$ref": "#/$defs/BootstrapRecipe"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "retained_startup": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BootstrapStartupAuthority"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "runtime": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "schema_version": {
+      "const": "vkm-bootstrap-intent/1",
+      "default": "vkm-bootstrap-intent/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "enum": [
+        "SYNTHETIC",
+        "BOOTSTRAP_SHADOW_PRODUCTION"
+      ],
+      "title": "Scope",
+      "type": "string"
+    },
+    "startup_authority": {
+      "$ref": "#/$defs/BoundFile"
+    }
+  },
+  "required": [
+    "scope",
+    "bootstrap_id",
+    "request_id",
+    "startup_authority",
+    "probe_spec_sha256",
+    "deployment_profile_sha256",
+    "environment",
+    "runtime",
+    "recipe",
+    "legacy",
+    "independent_backup"
+  ],
+  "title": "BootstrapIntent",
+  "type": "object"
+}

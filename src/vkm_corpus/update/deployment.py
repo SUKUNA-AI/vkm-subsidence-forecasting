@@ -22,13 +22,40 @@ from pydantic import Field, model_validator
 from vkm_corpus.parquet.atomic import create_exclusive, write_bytes, _fsync_dir
 from vkm_corpus.update.barrier import BarrierUnavailable, ReceiverBarrier
 from vkm_corpus.update.admission import (AdmissionState, AdmissionUnavailable, STATE_FILE,
-                                          VERIFIED_PHASE, require_open)
+                                          VERIFIED_PHASE, require_open, read_state, _ordinary_bytes)
 from vkm_corpus.update.contracts import GenerationManifest
 from vkm_corpus.update.generation import GenerationCoordinator, GenerationUnavailable
 from vkm_evidence.contracts import Identifier, Sha256, StrictModel, canonical_bytes, record_hash
 
 DRILL_CHECKS = {"admission_closed", "drained", "partial_apply_failed",
                 "restored_exact_previous", "rollback_admission"}
+CLOSED_DRILL_CHECKS = {"admission_remained_closed", "exclusive_gate_held", "partial_apply_failed",
+                       "restored_exact_previous", "restored_closed_policy"}
+
+
+class PreviousAdmission(StrictModel):
+    """Verified original admission policy, frozen before selector mutation."""
+    mode: Literal["OPEN_QUALIFIED", "CLOSED_BASELINE"] = "OPEN_QUALIFIED"
+    qualification_sha256: Sha256 | None = None
+    closed_owner_key: Sha256 | None = None
+
+    @model_validator(mode="after")
+    def _complete(self):
+        if ((self.mode == "CLOSED_BASELINE") !=
+                (self.qualification_sha256 is not None and self.closed_owner_key is not None)
+                or (self.mode == "OPEN_QUALIFIED" and
+                    (self.qualification_sha256 is not None or self.closed_owner_key is not None))):
+            raise ValueError("closed previous requires its qualified baseline and exact original owner")
+        return self
+
+
+class ClosedRestoreCommit(StrictModel):
+    schema_version: Literal["vkm-closed-restore-commit/1"] = "vkm-closed-restore-commit/1"
+    request_key: Sha256
+    generation_sha256: Sha256
+    closed_owner_key: Sha256
+    previous_admission_sha256: Sha256
+    verified_event_sha256: Sha256
 
 
 def components_sha256(manifest):
@@ -81,6 +108,7 @@ class DurableDeployment:
                  qualification: Callable[[GenerationManifest], None],
                  candidate_probe: Callable[[GenerationManifest], None],
                  service_observer: Callable[[], dict] | None = None,
+                 previous_admission: Callable[[GenerationManifest], PreviousAdmission] | None = None,
                  drain_timeout_seconds: float = 30, fault: Callable[[str], None] | None = None):
         self.root = Path(root).absolute()
         self.adapters = {a.adapter_id: a for a in adapters}
@@ -90,6 +118,7 @@ class DurableDeployment:
         self.observer, self.identity_provider = observer, identity_provider
         self.service_observer = service_observer
         self.qualification, self.candidate_probe = qualification, candidate_probe
+        self.previous_admission = previous_admission
         if drain_timeout_seconds <= 0:
             raise ValueError("bounded drain deadline required")
         self.timeout, self.fault = drain_timeout_seconds, fault
@@ -186,7 +215,7 @@ class DurableDeployment:
     def _load_plan(self, key):
         plan = self._read("requests/" + key + ".json")
         expected = {"request_id", "candidate_sha256", "profile", "payload_sha256", "previous",
-                    "bindings", "native_before_sha256", "plan_sha256"}
+                    "previous_admission", "bindings", "native_before_sha256", "plan_sha256"}
         if set(plan) != expected or self._request_key(plan["request_id"]) != key:
             raise GenerationUnavailable("deployment intent ownership differs")
         profile = DeploymentProfile.model_validate(plan["profile"])
@@ -196,6 +225,9 @@ class DurableDeployment:
             raise GenerationUnavailable("deployment intent bytes or native binding identities differ")
         if plan["previous"]:
             GenerationManifest.model_validate(plan["previous"])
+        policy = PreviousAdmission.model_validate(plan["previous_admission"])
+        if plan["previous"] is None and policy.mode != "OPEN_QUALIFIED":
+            raise GenerationUnavailable("closed baseline previous is absent")
         events = self.history(plan["request_id"])
         if events and (events[0]["phase"] != "PREPARED"
                        or events[0]["detail"].get("plan_sha256") != plan["plan_sha256"]):
@@ -228,6 +260,27 @@ class DurableDeployment:
         self.coordinator.verify(manifest, native["components"], native["services"])
         return native
 
+    def _previous_policy(self, manifest):
+        policy = self.previous_admission(manifest) if manifest is not None and self.previous_admission else PreviousAdmission()
+        if type(policy) is not PreviousAdmission:
+            raise GenerationUnavailable("typed source-owned previous admission policy required")
+        return policy
+
+    def _frozen_previous_policy(self, plan):
+        previous = GenerationManifest.model_validate(plan["previous"]) if plan["previous"] else None
+        policy = PreviousAdmission.model_validate(plan["previous_admission"])
+        if self._previous_policy(previous) != policy:
+            raise GenerationUnavailable("qualified previous admission policy changed")
+        return policy
+
+    def _require_closed_previous(self, previous, policy):
+        state = read_state(self.root)
+        if (state.status != "CLOSED" or state.request_key != policy.closed_owner_key
+                or self._current() != previous or self._path("MAINTENANCE").exists()
+                or any(r.barrier.status()["admission_open"] or r.barrier.status()["active_requests"]
+                       for r in self.receivers.values())):
+            raise GenerationUnavailable("qualified closed baseline is not selected and closed")
+
     def plan(self, candidate: GenerationManifest, request_id: str):
         profile = self._profile()
         if candidate.code_commit != profile.code_commit or candidate.policy_sha256 != profile.policy_sha256:
@@ -241,29 +294,37 @@ class DurableDeployment:
             old = self._load_plan(key)
             if old.get("payload_sha256") != record_hash(payload):
                 raise GenerationUnavailable("request ID already names different deployment content")
+            self._frozen_previous_policy(old)
             if not self.history(request_id):
                 self._revalidate_previous(old)
             return old
         if self._path("MAINTENANCE").exists():
             raise GenerationUnavailable("another unresolved maintenance transaction exists")
         previous = self._current()
+        previous_policy = self._previous_policy(previous)
         observed = self._native()
         if previous:
             self._verify(previous, observed)
+            if previous_policy.mode == "CLOSED_BASELINE":
+                self._require_closed_previous(previous, previous_policy)
         elif observed["components"] or observed["services"]:
             raise GenerationUnavailable("initial deployment has unregistered serving components")
         body = {**payload, "payload_sha256": record_hash(payload),
                 "previous": previous.model_dump(mode="json") if previous else None,
+                "previous_admission": previous_policy.model_dump(mode="json"),
                 "bindings": self._bindings(), "native_before_sha256": record_hash(observed)}
         return {**body, "plan_sha256": record_hash(body)}
 
     def _revalidate_previous(self, plan):
         current = self._current()
         expected = GenerationManifest.model_validate(plan["previous"]) if plan["previous"] else None
+        policy = self._frozen_previous_policy(plan)
         if ((current.sha256 if current else None) != (expected.sha256 if expected else None)
                 or record_hash(self._native()) != plan["native_before_sha256"]
                 or self._bindings() != plan["bindings"]):
             raise GenerationUnavailable("orphan deployment intent has stale previous selectors")
+        if policy.mode == "CLOSED_BASELINE":
+            self._require_closed_previous(expected, policy)
 
     def _event(self, key, phase, *, detail=None):
         head = self._path("journals/" + key + ".head")
@@ -346,6 +407,7 @@ class DurableDeployment:
         if (owned.st_dev, owned.st_ino) != (current_stat.st_dev, current_stat.st_ino):
             raise GenerationUnavailable("deployment writer inode changed")
         plan = self._load_plan(key)
+        self._frozen_previous_policy(plan)
         if self._profile().model_dump(mode="json") != plan["profile"]:
             raise GenerationUnavailable("actual code/dependencies/policy/profile changed")
         if self._path("MAINTENANCE").read_text(encoding="ascii") != key:
@@ -390,6 +452,7 @@ class DurableDeployment:
         if (owned.st_dev, owned.st_ino) != (current.st_dev, current.st_ino):
             raise GenerationUnavailable("admission writer inode changed")
         plan = self._load_plan(key)
+        self._frozen_previous_policy(plan)
         if self._profile().model_dump(mode="json") != plan["profile"]:
             raise GenerationUnavailable("approved deployment profile changed before OPEN")
         previous = GenerationManifest.model_validate(plan["previous"]) if plan["previous"] else None
@@ -408,6 +471,97 @@ class DurableDeployment:
             return state.request_key == key and state.generation_sha256 == expected
         except AdmissionUnavailable:
             return False
+
+    def _committed_closed(self, key, manifest, policy):
+        """Closed restore commit, bound to this transaction and original owner."""
+        if policy.mode != "CLOSED_BASELINE":
+            return False
+        try:
+            from vkm_corpus.update.operator_units import strict_json
+            marker = ClosedRestoreCommit.model_validate(strict_json(_ordinary_bytes(self._path("CLOSED_BASELINE.json"), 4096)))
+            state = read_state(self.root)
+            if (marker.request_key != key or marker.generation_sha256 != manifest.sha256
+                    or marker.closed_owner_key != policy.closed_owner_key
+                    or marker.previous_admission_sha256 != record_hash(policy)
+                    or state.status != "CLOSED" or state.request_key != policy.closed_owner_key
+                    or self._current() != manifest or self._path("MAINTENANCE").exists()):
+                return False
+            data = _ordinary_bytes(self._path("journals/" + marker.verified_event_sha256 + ".json"), 65536)
+            event = strict_json(data)
+            expected = {"generation_sha256": manifest.sha256, "closed_owner_key": policy.closed_owner_key,
+                        "previous_admission_sha256": record_hash(policy)}
+            detail = event.get("detail", {})
+            if (hashlib.sha256(data).hexdigest() != marker.verified_event_sha256
+                    or set(event) != {"schema", "request_key", "parent_sha256", "phase", "detail"}
+                    or event.get("schema") != "vkm-deployment-event/1" or event.get("request_key") != key
+                    or event.get("phase") != "CLOSED_RECEIVERS_VERIFIED"
+                    or set(detail) != set(expected) | {"native_sha256", "receiver_proofs"}
+                    or any(detail.get(k) != v for k, v in expected.items())
+                    or detail.get("native_sha256") != record_hash(self._verify(manifest))
+                    or set(detail.get("receiver_proofs", {})) != set(self.receivers)):
+                return False
+            from pydantic import TypeAdapter
+            for digest in detail["receiver_proofs"].values():
+                TypeAdapter(Sha256).validate_python(digest)
+            # A detached valid event is not a committed transaction event.
+            plan = self._load_plan(key)
+            return (self._profile().model_dump(mode="json") == plan["profile"]
+                    and self._frozen_previous_policy(plan) == policy and
+                    marker.verified_event_sha256 in {e["journal_sha256"] for e in self.history(plan["request_id"])})
+        except (OSError, ValueError, TypeError, AttributeError, AdmissionUnavailable, GenerationUnavailable):
+            return False
+
+    def _closed_publication_fence(self, key, plan, manifest, policy):
+        if self._writer_fd is None:
+            raise GenerationUnavailable("closed restore requires its live writer")
+        self._require_gate()
+        if self._lock_watch is not None:
+            self._lock_watch.check()
+        owned, current = os.fstat(self._writer_fd), self._path("writer.lock").stat(follow_symlinks=False)
+        if ((owned.st_dev, owned.st_ino) != (current.st_dev, current.st_ino)
+                or self._load_plan(key) != plan
+                or self._profile().model_dump(mode="json") != plan["profile"]
+                or self._frozen_previous_policy(plan) != policy
+                or GenerationManifest.model_validate(plan["previous"]) != manifest):
+            raise GenerationUnavailable("closed restore writer/profile/previous policy changed")
+        self._require_closed_previous(manifest, policy)
+
+    def _restore_closed_receivers(self, key, plan, manifest, policy):
+        # The original authority owns CLOSED metadata startup, while this action
+        # owns the writer/gate and its journal. Do not conflate those identities.
+        self.writer_fence(plan["request_id"])
+        self._publish_admission(AdmissionState(status="CLOSED", request_key=policy.closed_owner_key))
+        self._fault("CLOSED_OWNER_RESTORED")
+        flag = self._path("MAINTENANCE")
+        if flag.read_text(encoding="ascii") != key:
+            raise GenerationUnavailable("closed restore maintenance owner changed")
+        flag.unlink()
+        _fsync_dir(flag.parent)
+        self._fault("CLOSED_MAINTENANCE_REMOVED")
+        proofs = {}
+        for receiver in self.receivers.values():
+            proof = receiver.rebind(manifest)
+            if self._profile().scope != "SYNTHETIC" and not isinstance(proof, dict):
+                raise GenerationUnavailable("closed receiver rebind omitted its native proof")
+            proofs[receiver.barrier.receiver_id] = record_hash(proof)
+            self._fault("CLOSED_REBOUND:" + receiver.barrier.receiver_id)
+        self._closed_publication_fence(key, plan, manifest, policy)
+        native = self._verify(manifest)
+        verified = self._event(key, "CLOSED_RECEIVERS_VERIFIED", detail={
+            "generation_sha256": manifest.sha256, "native_sha256": record_hash(native),
+            "receiver_proofs": proofs, "closed_owner_key": policy.closed_owner_key,
+            "previous_admission_sha256": record_hash(policy)})
+        self._fault("CLOSED_RECEIVERS_VERIFIED")
+        self._closed_publication_fence(key, plan, manifest, policy)
+        if record_hash(self._verify(manifest)) != record_hash(native):
+            raise GenerationUnavailable("closed baseline changed before restore commit")
+        marker = ClosedRestoreCommit(request_key=key, generation_sha256=manifest.sha256,
+            closed_owner_key=policy.closed_owner_key, previous_admission_sha256=record_hash(policy),
+            verified_event_sha256=verified)
+        write_bytes(self._path("tmp"), self._path("CLOSED_BASELINE.json"), canonical_bytes(marker), overwrite=True)
+        self._fault("CLOSED_RESTORE_COMMITTED")
+        self._closed_publication_fence(key, plan, manifest, policy)
+        self._resume_local(key)  # durable CLOSED still denies every public read
 
     def _finish_committed(self, key, plan, candidate, events):
         # OPEN is the durable commit point. A lost ACK (including death before
@@ -459,6 +613,7 @@ class DurableDeployment:
             receiver.barrier.resume(key)
 
     def _restore(self, key, plan):
+        policy = self._frozen_previous_policy(plan)
         self._pause(key)  # covers exceptions after any receivers resumed
         self.writer_fence(plan["request_id"])
         for name, adapter in reversed(list(sorted(self.adapters.items()))):
@@ -475,7 +630,10 @@ class DurableDeployment:
         self.writer_fence(plan["request_id"])
         self._select_current(previous)
         self._event(key, "RESTORED")
-        self._open(key, previous)
+        if policy.mode == "CLOSED_BASELINE":
+            self._restore_closed_receivers(key, plan, previous, policy)
+        else:
+            self._open(key, previous)
         return previous
 
     def _fault(self, phase):
@@ -533,6 +691,7 @@ class DurableDeployment:
     def recovery_plan(self, request_id, *, mode: Literal["RESTORE_PREVIOUS", "COMPLETE_CANDIDATE"]):
         key = self._request_key(request_id)
         plan = self._load_plan(key)
+        self._frozen_previous_policy(plan)
         events = self.history(request_id)
         if not events or events[-1]["phase"] in {"FINISHED", "FAILED_RESTORED", "RECOVERED_PREVIOUS"}:
             raise GenerationUnavailable("no interrupted deployment to recover")
@@ -552,6 +711,7 @@ class DurableDeployment:
         with self._writer():
             key = self._request_key(request_id)
             plan = self._load_plan(key)
+            policy = self._frozen_previous_policy(plan)
             events = self.history(request_id)
             terminal = "RECOVERED_PREVIOUS" if mode == "RESTORE_PREVIOUS" else "FINISHED"
             if (events and events[-1]["phase"] == terminal
@@ -561,11 +721,13 @@ class DurableDeployment:
                     raise GenerationUnavailable("committed recovery profile changed")
                 selected = (GenerationManifest.model_validate(plan["previous"]) if mode == "RESTORE_PREVIOUS"
                             else self.coordinator._load_head(plan["candidate_sha256"]))
-                if not self._committed_open(key, selected):
+                closed = mode == "RESTORE_PREVIOUS" and policy.mode == "CLOSED_BASELINE"
+                if not (self._committed_closed(key, selected, policy) if closed else self._committed_open(key, selected)):
                     raise GenerationUnavailable("committed recovery is no longer admitted")
                 self._verify(selected)
                 self._resume_local(key)
-                result = self._result(key, plan, "RESTORED" if mode == "RESTORE_PREVIOUS" else "PASS")
+                result = self._result(key, plan, ("RESTORED_CLOSED" if closed else "RESTORED")
+                                      if mode == "RESTORE_PREVIOUS" else "PASS")
                 return {**result, "generation_sha256": selected.sha256}
             recovery = self.recovery_plan(request_id, mode=mode)
             if recovery["recovery_sha256"] != confirmation:
@@ -574,14 +736,17 @@ class DurableDeployment:
                 raise GenerationUnavailable("deployment profile changed; automatic recovery is unqualified")
             if mode == "RESTORE_PREVIOUS":
                 previous = GenerationManifest.model_validate(plan["previous"]) if plan["previous"] else None
-                if previous is not None and self._committed_open(key, previous):
+                committed = previous is not None and (self._committed_closed(key, previous, policy)
+                    if policy.mode == "CLOSED_BASELINE" else self._committed_open(key, previous))
+                if committed:
                     self._verify(previous)
                     self._resume_local(key)
                 else:
                     previous = self._restore(key, plan)
                 self._event(key, "RECOVERED_PREVIOUS", detail={"recovery_sha256": confirmation, "mode": mode})
                 self._fault("RECOVERY_ACK")
-                return {**self._result(key, plan, "RESTORED"), "generation_sha256": previous.sha256}
+                return {**self._result(key, plan, "RESTORED_CLOSED" if policy.mode == "CLOSED_BASELINE" else "RESTORED"),
+                        "generation_sha256": previous.sha256}
             candidate = self.coordinator._load_head(plan["candidate_sha256"])
             self._pause(key)
             self._verify(candidate)
@@ -611,7 +776,9 @@ class DurableDeployment:
         plan = self.plan(candidate, request_id)
         if plan["previous"] is None:
             raise GenerationUnavailable("restore drill requires exact previous generation")
-        original_leases = [r.barrier.acquire() for r in self.receivers.values()]
+        policy = self._frozen_previous_policy(plan)
+        closed = policy.mode == "CLOSED_BASELINE"
+        original_leases = [] if closed else [r.barrier.acquire() for r in self.receivers.values()]
         def inject(phase):
             if phase == "ADMISSION_CLOSED":
                 for receiver in self.receivers.values():
@@ -651,9 +818,15 @@ class DurableDeployment:
         native_after = record_hash(self._native())
         if native_after != plan["native_before_sha256"] or self._bindings() != plan["bindings"]:
             raise GenerationUnavailable("drill did not restore the exact previous generation")
-        if any(r.barrier.status()["paused"] for r in self.receivers.values()):
+        if closed:
+            previous = GenerationManifest.model_validate(plan["previous"])
+            if not self._committed_closed(self._request_key(request_id), previous, policy):
+                raise GenerationUnavailable("closed rollback lacks its exact verified commit")
+            self._require_closed_previous(previous, policy)
+        elif any(r.barrier.status()["paused"] for r in self.receivers.values()):
             raise GenerationUnavailable("rollback receiver admission did not reopen")
-        body = {"schema": "vkm-deployment-drill/1", "status": "PASS", **profile.model_dump(mode="json"),
+        body = {"schema": "vkm-closed-baseline-drill/1" if closed else "vkm-deployment-drill/1",
+                "status": "PASS", **profile.model_dump(mode="json"),
                 "candidate_components_sha256": components_sha256(candidate),
                 "candidate_services_sha256": services_sha256(candidate),
                 "previous_components_sha256": components_sha256(GenerationManifest.model_validate(plan["previous"])),
@@ -662,7 +835,16 @@ class DurableDeployment:
                 "bindings_before_sha256": record_hash(plan["bindings"]),
                 "bindings_after_restore_sha256": record_hash(self._bindings()),
                 "transitions": [{"phase": e["phase"], "journal_sha256": e["journal_sha256"]} for e in events],
-                "journal_receipts": [e["journal_sha256"] for e in events], "checks": dict.fromkeys(DRILL_CHECKS, "PASS")}
+                "journal_receipts": [e["journal_sha256"] for e in events],
+                "checks": dict.fromkeys(CLOSED_DRILL_CHECKS if closed else DRILL_CHECKS, "PASS")}
+        if closed:
+            body["previous_admission"] = policy.model_dump(mode="json")
+            previous = GenerationManifest.model_validate(plan["previous"])
+            body["previous_generation_sha256"] = previous.sha256
+            body["startup_authority_sha256"] = previous.acceptance_sha256
+            raw_marker = _ordinary_bytes(self._path("CLOSED_BASELINE.json"), 4096)
+            body["closed_restore_commit_sha256"] = hashlib.sha256(raw_marker).hexdigest()
+            body["closed_restore_commit"] = json.loads(raw_marker)
         data = canonical_bytes(body)
         sha = hashlib.sha256(data).hexdigest()
         write_bytes(self._path("tmp"), self._path("drills/" + sha + ".json"), data)

@@ -20,9 +20,10 @@ GEOMETRY_INPUT без typed WorldSpec interpretation остаётся BLOCKED.
 R06: общий graph bundle, actual native observers/factory, typed late issuer и
 durable switch/recovery реализованы. На 04.10 добавлены закрытый operator CLI,
 API/read-MCP native identity proofs, фиксированный unit adapter и полный MCP
-response drain. Первый qualified baseline и explicit shadow→live promotion
-ещё требуют реализации; actual endpoints/model owners и production acceptance
-NOT_RUN. Подробности — в PRODUCTION_DATA_NEXT_GATES_RU.md.
+response drain. Typed первый закрытый baseline и explicit shadow→live promotion
+реализованы и проверены CPU fixtures; actual endpoints/model owners и production
+acceptance NOT_RUN. Подробности — в PRODUCTION_DATA_NEXT_GATES_RU.md и
+[отчёте bootstrap/promotion](../reviews/PRODUCTION_BASELINE_PROMOTION_2026-10-04_RU.md).
 R03: actual prepare/layout/OCR/assemble/commit accounting реализован и проверен
 целевыми тестами обеих ОС. Immutable accounting closure уже входит в
 publish/transfer, admission/snapshot и CORE→EDGE backup manifest. Реальная

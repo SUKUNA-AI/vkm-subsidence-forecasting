@@ -35,6 +35,7 @@ GROUPS: dict[str, str] = {
     "evidence": "vkm_evidence.cli",                    # immutable evidence, review and admission journal
     "update": "vkm_corpus.update.cli",                 # qualified, resumable campaign contract
     "deployment": "vkm_corpus.update.operator",         # fixed operator-owned CORE receiver lifecycle
+    "bootstrap": "vkm_corpus.update.bootstrap_native",  # isolated CLOSED first baseline, no serving admission
 }
 
 

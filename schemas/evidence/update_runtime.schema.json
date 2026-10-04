@@ -146,6 +146,17 @@
       "title": "Artifacts",
       "type": "object"
     },
+    "bootstrap_startup": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BoundFile"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "canonical_root": {
       "anyOf": [
         {

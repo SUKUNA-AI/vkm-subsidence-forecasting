@@ -88,8 +88,9 @@ CPU light. **Rollback:** previous immutable image/config и matching receipts.
 `update.operator`, `operator_units`, `receiver`, CLI `deployment`, signed native
 API/read-MCP proofs, full-response shared gate и image-reference preflight.
 Readiness проверяет actual READ credential отдельно от operator credential.
-Bootstrap текущего legacy CORE и shadow→live promotion остаются **code gates**;
-actual Docker/restart/shadow/full MCP/restore — **NOT_RUN**. Это не завершение PW-02/PW-04.
+Typed bootstrap текущего legacy CORE и shadow→live promotion реализованы в коде
+и проверены CPU fixtures; actual Docker/restart/shadow/full MCP/restore —
+**NOT_RUN**. Это не завершение PW-02/PW-04.
 Runbook: [CORE_OPERATOR_RU.md](../development/CORE_OPERATOR_RU.md).
 
 **Причина:** coordinator и native observers существуют; process-local callback
@@ -120,13 +121,12 @@ previous selector/config/image tuple; gate закрыт при недоказа�
 
 ### PW-02-B — первый qualified baseline
 
-**Prerequisite на 04.10 реализован:** durable CLOSED/OPEN, metadata-only closed
-startup и publication fence защищают gap после удаления MAINTENANCE и смерти
-контроллера. Candidate и previous lost ACK разрешаются без повторного restart;
-RESTORE_PREVIOUS независим от повреждения candidate generation artifact.
-CPU crash/regression tests и независимый static review проверяют эти границы.
-Это не typed bootstrap intent/receipt, не полный cold drill и не actual CORE
-qualification. Приведённая ниже задача PW-02-B остаётся открытой.
+**Код на 04.10 реализован:** отдельные typed startup/intent/preparation/private
+probe/boundary/registration contracts, isolated cold factory и закрытый previous.
+CPU fixtures проверяют полный lifecycle, два EMPTY fallback, сохранение legacy,
+private 49-tool contract, interrupted recovery/retry и durable lost ACK.
+[Runbook](../development/BOOTSTRAP_BASELINE_RU.md). Реальные backup, native model
+owners и CORE/EDGE bootstrap qualification **NOT_RUN**: этот runtime gate открыт.
 
 **Проблема:** текущий factory принимает только уже qualified previous. Legacy
 receiver не выдаёт новый proof; acceptance первого baseline не может ссылаться
@@ -155,6 +155,11 @@ legacy/frozen releases, модели и научные статусы.
 
 ### PW-02-P — явный shadow→live promotion
 
+**Код и operator wiring реализованы; runtime NOT_RUN.** Immutable binding,
+ограниченная mapping, отдельная live-private receipt и previous-only recovery
+проверены CPU fixtures. Исходные scope/profile hashes сохраняются.
+[Contract/runbook](../development/PROMOTION_BINDING_RU.md).
+
 **Проблема:** shadow и live закономерно имеют разные project/root/endpoint/scope
 hashes. Receipt исходного shadow нельзя молча считать квалификацией live profile.
 
@@ -179,6 +184,12 @@ actual CORE/EDGE qualification отдельно. **Не менять:** store co
 update; scientific admission не повышать.
 
 ## PW-03 — native proof от действующих владельцев RERANK моделей
+
+**Частично реализован:** text load-time owner и owned-child boundaries с CPU
+negative tests. Действующие text/visual services **UNWIRED**, actual load-time
+proof и functional/GPU parity **NOT_RUN**. У pinned llama-server native hook
+отсутствует; mmproj digest/read не заменяет loaded-model proof.
+[Исходники, ограничения и путь подключения](../development/MODEL_OWNER_QUALIFICATION_RU.md).
 
 **Причина:** внешние text/visual model owners пока не подключены к load-time
 identity contract. Authenticated `/identity` должен принадлежать тому же serving

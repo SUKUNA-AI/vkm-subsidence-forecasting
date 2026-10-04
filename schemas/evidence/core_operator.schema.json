@@ -93,6 +93,17 @@
         "acceptance_plan": {
           "$ref": "#/$defs/BoundFile"
         },
+        "baseline_registration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoundFile"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "environment": {
           "$ref": "#/$defs/BoundFile"
         },
@@ -307,6 +318,17 @@
     },
     "policy": {
       "$ref": "#/$defs/BoundFile"
+    },
+    "promotion_approval": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BoundFile"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "protected_roots": {
       "items": {

@@ -1,0 +1,66 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "intent_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Intent Sha256",
+      "type": "string"
+    },
+    "native_container_ids": {
+      "additionalProperties": {
+        "pattern": "^[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "propertyNames": {
+        "enum": [
+          "api",
+          "mcp"
+        ]
+      },
+      "title": "Native Container Ids",
+      "type": "object"
+    },
+    "receiver_release": {
+      "additionalProperties": true,
+      "title": "Receiver Release",
+      "type": "object"
+    },
+    "recipe_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Recipe Sha256",
+      "type": "string"
+    },
+    "runtime_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Runtime Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-bootstrap-preparation/1",
+      "default": "vkm-bootstrap-preparation/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "startup_authority_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Startup Authority Sha256",
+      "type": "string"
+    },
+    "status": {
+      "const": "PREPARED_CLOSED_NOT_QUALIFIED",
+      "default": "PREPARED_CLOSED_NOT_QUALIFIED",
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "intent_sha256",
+    "startup_authority_sha256",
+    "recipe_sha256",
+    "runtime_sha256",
+    "receiver_release",
+    "native_container_ids"
+  ],
+  "title": "BootstrapPreparation",
+  "type": "object"
+}
