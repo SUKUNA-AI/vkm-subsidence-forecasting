@@ -1,0 +1,105 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "ip": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BoundFile"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "nft": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "reboot_safety": {
+      "const": "NOT_QUALIFIED",
+      "default": "NOT_QUALIFIED",
+      "title": "Reboot Safety",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-first-live-frontdoor/1",
+      "default": "vkm-first-live-frontdoor/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "enum": [
+        "SYNTHETIC",
+        "FIRST_LIVE_PRODUCTION"
+      ],
+      "title": "Scope",
+      "type": "string"
+    },
+    "tc": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BoundFile"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "tcp_ports": {
+      "items": {
+        "type": "integer"
+      },
+      "maxItems": 16,
+      "minItems": 1,
+      "title": "Tcp Ports",
+      "type": "array"
+    },
+    "timeout_seconds": {
+      "default": 10,
+      "exclusiveMinimum": 0,
+      "maximum": 30,
+      "title": "Timeout Seconds",
+      "type": "number"
+    },
+    "trusted_bridges": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 4,
+      "title": "Trusted Bridges",
+      "type": "array"
+    }
+  },
+  "required": [
+    "scope",
+    "nft",
+    "tcp_ports"
+  ],
+  "title": "FrontdoorProfile",
+  "type": "object"
+}

@@ -87,6 +87,36 @@
       "title": "ComposeRelease",
       "type": "object"
     },
+    "PublicReceiverBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "host_ip": {
+          "title": "Host Ip",
+          "type": "string"
+        },
+        "host_port": {
+          "maximum": 65535,
+          "minimum": 1024,
+          "title": "Host Port",
+          "type": "integer"
+        },
+        "unit": {
+          "enum": [
+            "api",
+            "mcp"
+          ],
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "unit",
+        "host_ip",
+        "host_port"
+      ],
+      "title": "PublicReceiverBinding",
+      "type": "object"
+    },
     "UnitPin": {
       "additionalProperties": false,
       "properties": {
@@ -153,6 +183,14 @@
     "operator_token_file": {
       "title": "Operator Token File",
       "type": "string"
+    },
+    "public_bindings": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/PublicReceiverBinding"
+      },
+      "title": "Public Bindings",
+      "type": "array"
     },
     "receiver_url": {
       "title": "Receiver Url",

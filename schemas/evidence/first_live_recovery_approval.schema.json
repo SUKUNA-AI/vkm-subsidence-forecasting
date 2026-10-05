@@ -1,0 +1,107 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Owner approval capability, not a producer's assertion of independence.\n\nCreated only after reviewing the exact executed opaque recovery packet.\nThe controller verifies its closure; it cannot independently prove a remote\nfailure domain from JSON. No existing corpus receipt qualifies this scope.",
+  "properties": {
+    "authenticated_host_key_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Authenticated Host Key Sha256",
+      "type": "string"
+    },
+    "backup_failure_domain": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+      "title": "Backup Failure Domain",
+      "type": "string"
+    },
+    "backup_machine_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Backup Machine Sha256",
+      "type": "string"
+    },
+    "copy_receipt": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "decision_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+      "title": "Decision Id",
+      "type": "string"
+    },
+    "frozen_capture": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "frozen_executor": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "procedure": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "restore_receipt": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "restored_inventory_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Restored Inventory Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-owner-approved-control-recovery/1",
+      "default": "vkm-owner-approved-control-recovery/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "const": "RECEIVER_CONTROL_ONLY",
+      "default": "RECEIVER_CONTROL_ONLY",
+      "title": "Scope",
+      "type": "string"
+    },
+    "source_failure_domain": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+      "title": "Source Failure Domain",
+      "type": "string"
+    },
+    "source_machine_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Source Machine Sha256",
+      "type": "string"
+    }
+  },
+  "required": [
+    "decision_id",
+    "frozen_executor",
+    "frozen_capture",
+    "procedure",
+    "copy_receipt",
+    "restore_receipt",
+    "restored_inventory_sha256",
+    "source_failure_domain",
+    "backup_failure_domain",
+    "source_machine_sha256",
+    "backup_machine_sha256",
+    "authenticated_host_key_sha256"
+  ],
+  "title": "LegacyRecoveryApproval",
+  "type": "object"
+}

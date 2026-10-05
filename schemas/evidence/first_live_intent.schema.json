@@ -1,0 +1,1023 @@
+{
+  "$defs": {
+    "BootstrapNetwork": {
+      "additionalProperties": false,
+      "properties": {
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "name": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "network_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Network Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "network_id",
+        "config_sha256"
+      ],
+      "title": "BootstrapNetwork",
+      "type": "object"
+    },
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    },
+    "CandidateDocuments": {
+      "additionalProperties": false,
+      "description": "Named complete control graph; names replace BoundFile locations in diff.",
+      "properties": {
+        "documents": {
+          "maxProperties": 128,
+          "minProperties": 6,
+          "patternProperties": {
+            "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$": {
+              "$ref": "#/$defs/BoundFile"
+            }
+          },
+          "title": "Documents",
+          "type": "object"
+        },
+        "effective": {
+          "additionalProperties": {
+            "$ref": "#/$defs/BoundFile"
+          },
+          "propertyNames": {
+            "enum": [
+              "api",
+              "mcp"
+            ]
+          },
+          "title": "Effective",
+          "type": "object"
+        },
+        "opaque": {
+          "maxProperties": 64,
+          "patternProperties": {
+            "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$": {
+              "$ref": "#/$defs/BoundFile"
+            }
+          },
+          "title": "Opaque",
+          "type": "object"
+        }
+      },
+      "required": [
+        "documents",
+        "effective"
+      ],
+      "title": "CandidateDocuments",
+      "type": "object"
+    },
+    "ComponentIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "built_from": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Built From",
+          "type": "object"
+        },
+        "component": {
+          "enum": [
+            "DOCUMENT",
+            "DATASET",
+            "EVIDENCE",
+            "DUCKDB",
+            "NAV",
+            "GRAPH",
+            "SEARCH",
+            "DENSE",
+            "LATE",
+            "VISUAL"
+          ],
+          "title": "Component",
+          "type": "string"
+        },
+        "manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Manifest Sha256",
+          "type": "string"
+        },
+        "policy_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Policy Sha256",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "revision": {
+          "minLength": 1,
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "component",
+        "revision",
+        "manifest_sha256",
+        "policy_sha256",
+        "built_from"
+      ],
+      "title": "ComponentIdentity",
+      "type": "object"
+    },
+    "ComposeRelease": {
+      "additionalProperties": false,
+      "properties": {
+        "access_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Access Sha256",
+          "type": "string"
+        },
+        "code_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Sha256",
+          "type": "string"
+        },
+        "compose": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "dependencies_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Dependencies Sha256",
+          "type": "string"
+        },
+        "mcp_read_principal_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Mcp Read Principal Sha256",
+          "type": "string"
+        },
+        "project": {
+          "enum": [
+            "vkm-core",
+            "vkm-core-shadow"
+          ],
+          "title": "Project",
+          "type": "string"
+        },
+        "runtime_config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Runtime Config Sha256",
+          "type": "string"
+        },
+        "units": {
+          "additionalProperties": {
+            "$ref": "#/$defs/UnitPin"
+          },
+          "propertyNames": {
+            "enum": [
+              "api",
+              "mcp"
+            ]
+          },
+          "title": "Units",
+          "type": "object"
+        }
+      },
+      "required": [
+        "compose",
+        "project",
+        "units",
+        "runtime_config_sha256",
+        "code_sha256",
+        "dependencies_sha256",
+        "access_sha256",
+        "mcp_read_principal_sha256"
+      ],
+      "title": "ComposeRelease",
+      "type": "object"
+    },
+    "FirstLiveMapping": {
+      "additionalProperties": false,
+      "properties": {
+        "after": {
+          "maxLength": 8192,
+          "minLength": 1,
+          "title": "After",
+          "type": "string"
+        },
+        "before": {
+          "maxLength": 8192,
+          "minLength": 1,
+          "title": "Before",
+          "type": "string"
+        },
+        "document": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Document",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "PROJECT",
+            "AUTHORITY_ROOT",
+            "CONTROL_ROOT",
+            "QUALIFICATION_ROOT"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "pointer": {
+          "maxLength": 2048,
+          "pattern": "^/(?:[^~]|~[01])+$",
+          "title": "Pointer",
+          "type": "string"
+        }
+      },
+      "required": [
+        "document",
+        "pointer",
+        "before",
+        "after",
+        "kind"
+      ],
+      "title": "FirstLiveMapping",
+      "type": "object"
+    },
+    "FrontdoorProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "ip": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoundFile"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "nft": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "reboot_safety": {
+          "const": "NOT_QUALIFIED",
+          "default": "NOT_QUALIFIED",
+          "title": "Reboot Safety",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "vkm-first-live-frontdoor/1",
+          "default": "vkm-first-live-frontdoor/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "SYNTHETIC",
+            "FIRST_LIVE_PRODUCTION"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "tc": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoundFile"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tcp_ports": {
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Tcp Ports",
+          "type": "array"
+        },
+        "timeout_seconds": {
+          "default": 10,
+          "exclusiveMinimum": 0,
+          "maximum": 30,
+          "title": "Timeout Seconds",
+          "type": "number"
+        },
+        "trusted_bridges": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 4,
+          "title": "Trusted Bridges",
+          "type": "array"
+        }
+      },
+      "required": [
+        "scope",
+        "nft",
+        "tcp_ports"
+      ],
+      "title": "FrontdoorProfile",
+      "type": "object"
+    },
+    "LegacyFile": {
+      "additionalProperties": false,
+      "properties": {
+        "bytes": {
+          "maximum": 67108864,
+          "minimum": 0,
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "file": {
+          "$ref": "#/$defs/BoundFile"
+        }
+      },
+      "required": [
+        "file",
+        "bytes"
+      ],
+      "title": "LegacyFile",
+      "type": "object"
+    },
+    "LegacyRecoveryBoundary": {
+      "additionalProperties": false,
+      "properties": {
+        "backup_failure_domain": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Backup Failure Domain",
+          "type": "string"
+        },
+        "independent_copy": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "independent_restore": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "max_control_bytes": {
+          "default": 67108864,
+          "exclusiveMinimum": 0,
+          "maximum": 268435456,
+          "title": "Max Control Bytes",
+          "type": "integer"
+        },
+        "observer": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RetainedSharedObserver"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "original_container_ids": {
+          "additionalProperties": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "propertyNames": {
+            "enum": [
+              "api",
+              "mcp",
+              "mcp-admin"
+            ]
+          },
+          "title": "Original Container Ids",
+          "type": "object"
+        },
+        "owner_approval": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoundFile"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "restore_compose": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "restored_files": {
+          "items": {
+            "$ref": "#/$defs/LegacyFile"
+          },
+          "maxItems": 128,
+          "minItems": 1,
+          "title": "Restored Files",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "vkm-first-live-legacy-boundary/1",
+          "default": "vkm-first-live-legacy-boundary/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scope": {
+          "default": "SYNTHETIC",
+          "enum": [
+            "SYNTHETIC",
+            "RECEIVER_CONTROL_ONLY"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "selector_restores": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RestoredLegacySelector"
+          },
+          "maxItems": 64,
+          "title": "Selector Restores",
+          "type": "array"
+        },
+        "selectors": {
+          "items": {
+            "$ref": "#/$defs/BoundFile"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Selectors",
+          "type": "array"
+        },
+        "shared_services_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Shared Services Sha256",
+          "type": "string"
+        },
+        "source_failure_domain": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Source Failure Domain",
+          "type": "string"
+        },
+        "status": {
+          "const": "UNQUALIFIED_LEGACY",
+          "default": "UNQUALIFIED_LEGACY",
+          "title": "Status",
+          "type": "string"
+        },
+        "units": {
+          "additionalProperties": {
+            "$ref": "#/$defs/UnitPin"
+          },
+          "propertyNames": {
+            "enum": [
+              "api",
+              "mcp",
+              "mcp-admin"
+            ]
+          },
+          "title": "Units",
+          "type": "object"
+        }
+      },
+      "required": [
+        "restore_compose",
+        "units",
+        "original_container_ids",
+        "selectors",
+        "restored_files",
+        "independent_copy",
+        "independent_restore",
+        "source_failure_domain",
+        "backup_failure_domain",
+        "shared_services_sha256"
+      ],
+      "title": "LegacyRecoveryBoundary",
+      "type": "object"
+    },
+    "OperatorRelease": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptance_plan": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "baseline_registration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoundFile"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "environment": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "generation": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "receiver_release_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Receiver Release Sha256",
+          "type": "string"
+        },
+        "runtime": {
+          "$ref": "#/$defs/BoundFile"
+        }
+      },
+      "required": [
+        "receiver_release_sha256",
+        "environment",
+        "runtime",
+        "generation",
+        "acceptance_plan"
+      ],
+      "title": "OperatorRelease",
+      "type": "object"
+    },
+    "PublicReceiverBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "host_ip": {
+          "title": "Host Ip",
+          "type": "string"
+        },
+        "host_port": {
+          "maximum": 65535,
+          "minimum": 1024,
+          "title": "Host Port",
+          "type": "integer"
+        },
+        "unit": {
+          "enum": [
+            "api",
+            "mcp"
+          ],
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "unit",
+        "host_ip",
+        "host_port"
+      ],
+      "title": "PublicReceiverBinding",
+      "type": "object"
+    },
+    "RestoredLegacySelector": {
+      "additionalProperties": false,
+      "properties": {
+        "restored": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "source": {
+          "$ref": "#/$defs/BoundFile"
+        }
+      },
+      "required": [
+        "source",
+        "restored"
+      ],
+      "title": "RestoredLegacySelector",
+      "type": "object"
+    },
+    "RetainedSharedObserver": {
+      "additionalProperties": false,
+      "description": "Read-only observation recipe, independent of candidate G/R/CURRENT.",
+      "properties": {
+        "components": {
+          "items": {
+            "$ref": "#/$defs/ComponentIdentity"
+          },
+          "minItems": 1,
+          "title": "Components",
+          "type": "array"
+        },
+        "duckdb": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "environment": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "max_local_identity_bytes": {
+          "exclusiveMinimum": 0,
+          "maximum": 137438953472,
+          "title": "Max Local Identity Bytes",
+          "type": "integer"
+        },
+        "native": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "nav": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "runtime": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "services": {
+          "items": {
+            "$ref": "#/$defs/ServiceIdentity"
+          },
+          "minItems": 1,
+          "title": "Services",
+          "type": "array"
+        }
+      },
+      "required": [
+        "environment",
+        "runtime",
+        "native",
+        "duckdb",
+        "nav",
+        "max_local_identity_bytes",
+        "components",
+        "services"
+      ],
+      "title": "RetainedSharedObserver",
+      "type": "object"
+    },
+    "ServiceIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "capabilities": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "code_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Sha256",
+          "type": "string"
+        },
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "dependencies_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Dependencies Sha256",
+          "type": "string"
+        },
+        "endpoint_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Endpoint Sha256",
+          "type": "string"
+        },
+        "instance_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instance Sha256",
+          "type": "string"
+        },
+        "resources": {
+          "patternProperties": {
+            "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            }
+          },
+          "title": "Resources",
+          "type": "object"
+        },
+        "runtime_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Runtime Sha256",
+          "type": "string"
+        },
+        "service": {
+          "enum": [
+            "RETRIEVAL",
+            "RERANK",
+            "CONTROL"
+          ],
+          "title": "Service",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service",
+        "instance_sha256",
+        "code_sha256",
+        "dependencies_sha256",
+        "config_sha256",
+        "endpoint_sha256",
+        "runtime_sha256"
+      ],
+      "title": "ServiceIdentity",
+      "type": "object"
+    },
+    "UnitControlConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "api_container_port": {
+          "default": 8000,
+          "maximum": 65535,
+          "minimum": 1,
+          "title": "Api Container Port",
+          "type": "integer"
+        },
+        "command_timeout_seconds": {
+          "default": 90,
+          "exclusiveMinimum": 0,
+          "maximum": 300,
+          "title": "Command Timeout Seconds",
+          "type": "number"
+        },
+        "compose_binary": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "control_root": {
+          "title": "Control Root",
+          "type": "string"
+        },
+        "docker": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "docker_socket": {
+          "title": "Docker Socket",
+          "type": "string"
+        },
+        "mcp_container_port": {
+          "default": 8765,
+          "maximum": 65535,
+          "minimum": 1,
+          "title": "Mcp Container Port",
+          "type": "integer"
+        },
+        "mcp_receiver_url": {
+          "title": "Mcp Receiver Url",
+          "type": "string"
+        },
+        "operator_token_file": {
+          "title": "Operator Token File",
+          "type": "string"
+        },
+        "public_bindings": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PublicReceiverBinding"
+          },
+          "title": "Public Bindings",
+          "type": "array"
+        },
+        "receiver_url": {
+          "title": "Receiver Url",
+          "type": "string"
+        },
+        "releases": {
+          "items": {
+            "$ref": "#/$defs/ComposeRelease"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Releases",
+          "type": "array"
+        },
+        "restart_timeout_seconds": {
+          "default": 120,
+          "exclusiveMinimum": 0,
+          "maximum": 600,
+          "title": "Restart Timeout Seconds",
+          "type": "number"
+        },
+        "schema_version": {
+          "const": "vkm-core-unit-control/1",
+          "default": "vkm-core-unit-control/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "SYNTHETIC",
+            "SHADOW_PRODUCTION",
+            "PRODUCTION_SWITCH"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "selected_release": {
+          "default": "receiver-release.CURRENT",
+          "title": "Selected Release",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope",
+        "docker",
+        "compose_binary",
+        "docker_socket",
+        "control_root",
+        "receiver_url",
+        "mcp_receiver_url",
+        "operator_token_file",
+        "releases"
+      ],
+      "title": "UnitControlConfig",
+      "type": "object"
+    },
+    "UnitPin": {
+      "additionalProperties": false,
+      "properties": {
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "image_id": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Image Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "image_id",
+        "config_sha256"
+      ],
+      "title": "UnitPin",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "authority_root": {
+      "title": "Authority Root",
+      "type": "string"
+    },
+    "boot_checkpoint": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BoundFile"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "boot_registration": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BoundFile"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "candidate": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "candidate_release": {
+      "$ref": "#/$defs/ComposeRelease"
+    },
+    "frontdoor": {
+      "$ref": "#/$defs/FrontdoorProfile"
+    },
+    "legacy": {
+      "$ref": "#/$defs/LegacyRecoveryBoundary"
+    },
+    "live_documents": {
+      "$ref": "#/$defs/CandidateDocuments"
+    },
+    "mappings": {
+      "items": {
+        "$ref": "#/$defs/FirstLiveMapping"
+      },
+      "maxItems": 256,
+      "title": "Mappings",
+      "type": "array"
+    },
+    "networks": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/BootstrapNetwork"
+      },
+      "maxItems": 4,
+      "title": "Networks",
+      "type": "array"
+    },
+    "operator_code_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Operator Code Sha256",
+      "type": "string"
+    },
+    "operator_commit": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Operator Commit",
+      "type": "string"
+    },
+    "operator_dependencies_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Operator Dependencies Sha256",
+      "type": "string"
+    },
+    "protected_roots": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 16,
+      "minItems": 1,
+      "title": "Protected Roots",
+      "type": "array"
+    },
+    "qualification_root": {
+      "title": "Qualification Root",
+      "type": "string"
+    },
+    "reboot_safety": {
+      "const": "NOT_QUALIFIED",
+      "default": "NOT_QUALIFIED",
+      "title": "Reboot Safety",
+      "type": "string"
+    },
+    "release": {
+      "$ref": "#/$defs/OperatorRelease"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-first-live-intent/1",
+      "default": "vkm-first-live-intent/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "enum": [
+        "SYNTHETIC",
+        "FIRST_LIVE_PRODUCTION"
+      ],
+      "title": "Scope",
+      "type": "string"
+    },
+    "shadow_acceptance": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "shadow_documents": {
+      "$ref": "#/$defs/CandidateDocuments"
+    },
+    "shadow_operator": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "shadow_plan": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "units": {
+      "$ref": "#/$defs/UnitControlConfig"
+    }
+  },
+  "required": [
+    "scope",
+    "request_id",
+    "candidate",
+    "shadow_operator",
+    "shadow_acceptance",
+    "shadow_plan",
+    "shadow_documents",
+    "live_documents",
+    "mappings",
+    "legacy",
+    "candidate_release",
+    "release",
+    "units",
+    "frontdoor",
+    "authority_root",
+    "qualification_root",
+    "protected_roots",
+    "operator_code_sha256",
+    "operator_dependencies_sha256",
+    "operator_commit"
+  ],
+  "title": "FirstLiveIntent",
+  "type": "object"
+}

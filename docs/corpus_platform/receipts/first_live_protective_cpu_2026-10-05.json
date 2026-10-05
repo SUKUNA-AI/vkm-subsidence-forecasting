@@ -1,0 +1,139 @@
+{
+  "schema_version": "vkm-first-live-protective-cpu/1",
+  "status": "CPU_VERIFIED_PRODUCTION_NOT_READY",
+  "scope": "CODE_AND_SYNTHETIC_ONLY",
+  "source_freeze_sha256": "50a96712cc6fce741424fd0c93ac6146b0b5454c2441b6600ca7456ea3ecfef2",
+  "source_files": [
+    {
+      "path": "src/vkm_corpus/update/first_live.py",
+      "sha256": "3a2240baf65910da262c6a0a15952b3790eafd1ef3cee079a1d4630ac73f1059",
+      "bytes": 29823
+    },
+    {
+      "path": "src/vkm_corpus/update/first_live_native.py",
+      "sha256": "cb9a2d3e62aeb6c4e96d30faee364a0843e14b806aef18fa9c256868cd5b970f",
+      "bytes": 45286
+    },
+    {
+      "path": "src/vkm_corpus/update/frontdoor.py",
+      "sha256": "36c800d1ed361389c1ab180ef64e1e8e54f8f1e1e365d1ba84c4d55bca1c5418",
+      "bytes": 27211
+    },
+    {
+      "path": "src/vkm_corpus/update/operator_units.py",
+      "sha256": "b503a12e391712fbe3d572e6e44ecdb9c5785f317eae350af2d8f92ab9fc597b",
+      "bytes": 30121
+    },
+    {
+      "path": "scripts/export_evidence_schema.py",
+      "sha256": "4627045776b13344be98e5170867d05625c97f3cb6d676b1f4cb38ab1b8399ac",
+      "bytes": 9510
+    },
+    {
+      "path": "tests/evidence/test_first_live_controller.py",
+      "sha256": "4643beea133ff5d38b4c0a7e7c091d6912ff02471c4df5e7d8ec8713290f5d5e",
+      "bytes": 19308
+    },
+    {
+      "path": "tests/evidence/test_first_live_frontdoor.py",
+      "sha256": "60278e7c9909692a599b1e84560b862cfbba00009b7adb031c300421fc575446",
+      "bytes": 11970
+    },
+    {
+      "path": "tests/evidence/test_first_live_native.py",
+      "sha256": "de6ddcefd06a94c8c746946bd39e8c2b7eafce6b588cfee6d7b1820acff64d08",
+      "bytes": 15912
+    },
+    {
+      "path": "docs/corpus_platform/FIRST_LIVE_BOUNDARY_RU.md",
+      "sha256": "fb6ec9208e33afb3fc8ebb134ee40424473b19057bf1303fb4a1a30dffedbe6d",
+      "bytes": 15898
+    },
+    {
+      "path": "schemas/evidence/core_operator.schema.json",
+      "sha256": "f4d42eaa1712b6a65fe01c9dc54edc5623f49adc718a77a938b1e962cd007993",
+      "bytes": 9961
+    },
+    {
+      "path": "schemas/evidence/core_unit_control.schema.json",
+      "sha256": "d6d97fe2f2955b646913b2b5bb96ff07d2a6cc84d653d341bbb5aff896c7c4c8",
+      "bytes": 5659
+    },
+    {
+      "path": "schemas/evidence/first_live_authority.schema.json",
+      "sha256": "0d0ed5d39c8954e55ca208f7df8171f6d858720924b00e468f8fc3b8e33b96bd",
+      "bytes": 1652
+    },
+    {
+      "path": "schemas/evidence/first_live_boot_registration.schema.json",
+      "sha256": "a45d3b602ef93b9de9d94642b6680d4f32195f404466465baea587d94e969d91",
+      "bytes": 1557
+    },
+    {
+      "path": "schemas/evidence/first_live_frontdoor.schema.json",
+      "sha256": "1153c4bb989302b06403732491b3573f7fa4e41c9a0f98e7d463cacb19a3a82d",
+      "bytes": 2013
+    },
+    {
+      "path": "schemas/evidence/first_live_intent.schema.json",
+      "sha256": "cae8006f404135f0a4b3cf7f17771fd72394033ce4397f8f3d10bcaa96e94f03",
+      "bytes": 24763
+    },
+    {
+      "path": "schemas/evidence/first_live_legacy_boundary.schema.json",
+      "sha256": "cbfdacd244a53aa67d3ac42c6b094f38c84a3e1d68d4b7c9801bbe50637bd456",
+      "bytes": 9692
+    },
+    {
+      "path": "schemas/evidence/first_live_receipt.schema.json",
+      "sha256": "c4f0f015cae4f349efa62b3e21b0c41f083592f084f49e817e3b155afe20c531",
+      "bytes": 2123
+    },
+    {
+      "path": "schemas/evidence/first_live_recovery_approval.schema.json",
+      "sha256": "d6d065634e363afd8db07cca389a3255974203865f252e3b6d297996d358c0e8",
+      "bytes": 2919
+    },
+    {
+      "path": "schemas/evidence/first_live_retained_observer.schema.json",
+      "sha256": "3c67bbaca3b7caa3094c1182a7183ca6d002d444786ee168af5adb018ed36d78",
+      "bytes": 4890
+    }
+  ],
+  "reports": [
+    {
+      "environment": "windows",
+      "junit_sha256": "84f9c5ac901c43da4bd79988fda4cb1e1e42fc4d4d72628d55abc1e8e1c1d943",
+      "passed": 164,
+      "failed": 0,
+      "not_run": 0
+    },
+    {
+      "environment": "linux",
+      "junit_sha256": "7672622186be0058b2a018605659e59adfc6840724b0f0ebe368a504c28b29a5",
+      "passed": 164,
+      "failed": 0,
+      "not_run": 0
+    }
+  ],
+  "review": "Main independently repeated all 164 selected tests on both OS after LF-only normalization; challenger independently reviewed previous semantically identical protective slice and 19 production no-effect negative cases",
+  "source_fence": "19_EXACT_LF_FILES_UNCHANGED_AFTER_TESTS",
+  "production_status": "FIRST_LIVE_NOT_READY",
+  "previous_v3_runtime_preservation_claim": "REFUTED_COMPOSE_CONVERGENCE_CAN_DELETE_ORIGINALS",
+  "protective_fix": "REMOVE_COMPOSE_CREATE_AND_REJECT_PRODUCTION_BEFORE_NATIVE_EFFECTS",
+  "next_required_adapter": "SOURCE_BOUND_FIXED_ENGINE_CREATE_WITH_POST_INSPECT_AND_ORIGINAL_ID_PRESERVATION",
+  "mandatory_world_linux_passed": 648,
+  "canonical_verifier": {
+    "pass": 36,
+    "skipped_ref_unavailable": 7,
+    "exit_code": 0
+  },
+  "limits": {
+    "production_runtime": "NOT_RUN",
+    "boot_qualification": "NOT_RUN",
+    "actual_49_tools": "NOT_RUN",
+    "original_runtime_preservation": "NOT_QUALIFIED",
+    "core_switch": "NOT_RUN",
+    "workstation_gpu": "NOT_USED"
+  }
+}

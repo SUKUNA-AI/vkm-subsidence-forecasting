@@ -89,6 +89,21 @@ class ComposeRelease(StrictModel):
         return record_hash(self)
 
 
+class PublicReceiverBinding(StrictModel):
+    unit: Literal["api", "mcp"]
+    host_ip: str
+    host_port: int = Field(ge=1024, le=65535)
+
+    @model_validator(mode="after")
+    def _concrete(self):
+        from ipaddress import ip_address
+        value = ip_address(self.host_ip)
+        if (str(value) != self.host_ip or value.is_unspecified or value.is_loopback
+                or value.is_multicast or value.is_link_local or "%" in self.host_ip):
+            raise ValueError("explicit non-loopback unicast ingress address required")
+        return self
+
+
 class UnitControlConfig(StrictModel):
     schema_version: Literal["vkm-core-unit-control/1"] = "vkm-core-unit-control/1"
     scope: Literal["SYNTHETIC", "SHADOW_PRODUCTION", "PRODUCTION_SWITCH"]
@@ -105,6 +120,9 @@ class UnitControlConfig(StrictModel):
     command_timeout_seconds: float = Field(default=90, gt=0, le=300)
     restart_timeout_seconds: float = Field(default=120, gt=0, le=600)
     releases: tuple[ComposeRelease, ...] = Field(min_length=1, max_length=16)
+    # Metadata proof always uses the independently joined loopback endpoint.
+    # Additional ingress bindings are opt-in exact native addresses, never '*'.
+    public_bindings: tuple["PublicReceiverBinding", ...] = ()
 
     @model_validator(mode="after")
     def _closed(self):
@@ -115,6 +133,9 @@ class UnitControlConfig(StrictModel):
             raise ValueError("fixed local Docker socket/selector required")
         if len({r.sha256 for r in self.releases}) != len(self.releases):
             raise ValueError("duplicate receiver release")
+        if (self.public_bindings and self.scope == "SHADOW_PRODUCTION"
+                or len({(b.host_ip, b.host_port) for b in self.public_bindings}) != len(self.public_bindings)):
+            raise ValueError("public receiver bindings require a unique explicit live profile")
         if len({r.project for r in self.releases}) != 1:
             raise ValueError("all releases must control the same isolated Compose project")
         if self.scope == "SHADOW_PRODUCTION" and self.releases[0].project != "vkm-core-shadow":
@@ -339,7 +360,12 @@ class CoreUnitControl:
                               ("mcp", self.config.mcp_receiver_url, self.config.mcp_container_port)):
             host_port = urlsplit(url).port or (443 if url.startswith("https:") else 80)
             endpoints = before[unit].get("NetworkSettings", {}).get("Ports", {}).get(str(port) + "/tcp")
-            if endpoints != [{"HostIp": "127.0.0.1", "HostPort": str(host_port)}]:
+            expected = [{"HostIp": "127.0.0.1", "HostPort": str(host_port)},
+                *({"HostIp": b.host_ip, "HostPort": str(b.host_port)}
+                  for b in self.config.public_bindings if b.unit == unit)]
+            order = lambda rows: sorted(rows, key=lambda row: (row["HostIp"], row["HostPort"]))
+            if (not isinstance(endpoints, list) or any(set(e) != {"HostIp", "HostPort"} for e in endpoints)
+                    or order(endpoints) != order(expected)):
                 raise GenerationUnavailable("receiver endpoint differs from the native published binding")
         proof = self._proof(manifest, gate=gate, admission_open=admission_open)
         self.process_probe(api, proof)

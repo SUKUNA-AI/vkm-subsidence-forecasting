@@ -40,6 +40,9 @@ from vkm_corpus.update.remote_models import NativeModelProof  # noqa: E402
 from vkm_corpus.update.text_owner_bridge import TextOwnerRecipe, TextOwnerImagePlan  # noqa: E402
 from vkm_corpus.update.visual_owner_bridge import (HookedChildRecipe, HookedChildIdentity,
     LoadedWitness, VisualOwnerRecipe)  # noqa: E402
+from vkm_corpus.update.first_live import (FirstLiveIntent, LiveAdmissionAuthority, FirstLiveReceipt,
+    LegacyRecoveryBoundary, LegacyRecoveryApproval, RetainedSharedObserver)  # noqa: E402
+from vkm_corpus.update.frontdoor import FrontdoorProfile, BootSealRegistration  # noqa: E402
 
 MODELS = {"evidence_batch": EvidenceBatch, "object_coverage": CoverageLedger,
           "campaign": CampaignManifest, "generation": GenerationManifest, "update_runtime": RuntimeConfig,
@@ -76,6 +79,10 @@ MODELS.update({"previous_admission": PreviousAdmission,
     "text_owner_image_plan": TextOwnerImagePlan, "hooked_child_recipe": HookedChildRecipe,
     "hooked_child_identity": HookedChildIdentity, "native_loaded_witness": LoadedWitness,
     "visual_owner_recipe": VisualOwnerRecipe})
+MODELS.update({"first_live_intent": FirstLiveIntent, "first_live_authority": LiveAdmissionAuthority,
+    "first_live_receipt": FirstLiveReceipt, "first_live_legacy_boundary": LegacyRecoveryBoundary,
+    "first_live_recovery_approval": LegacyRecoveryApproval, "first_live_retained_observer": RetainedSharedObserver,
+    "first_live_frontdoor": FrontdoorProfile, "first_live_boot_registration": BootSealRegistration})
 
 
 def dataset_version_schema():
