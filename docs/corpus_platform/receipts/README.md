@@ -111,3 +111,28 @@ PUBLIC native placement/owner source и synthetic CPU JUnit. Declared platform
 NOT_RUN отделены от PASS; selections пересекаются и не суммируются. Проверены
 optional text → actual late owner, узкий status gate и обе actual ApiService factory
 передачи. Cached image/model/inference/full 49 tools и production switch NOT_RUN.
+
+[native_owner_hosted_ci_2026-10-04.json](native_owner_hosted_ci_2026-10-04.json):
+все три hosted jobs exact commit `bd81589` завершились SUCCESS. World 648 PASS;
+Linux corpus 3832 PASS / 2 NOT_RUN; Windows 2779 PASS / 134 NOT_RUN. Исключённые
+runtime selections учтены отдельно. Квитанция не распространяется на параллельный
+незакоммиченный first-LIVE код, actual model load, 49-tool acceptance или switch.
+
+[edge_owner_image_2026-10-04.json](edge_owner_image_2026-10-04.json): actual EDGE
+software image из exact `bd81589`, 472 raw Git wheel members, pinned inputs и
+проверенного native cache. Сборка завершилась с exit 0 за 47,663 s; реальные
+cgroup limits и ABI проверены. Actual model load/inference, 49 tools и switch
+остаются NOT_RUN. Старый сервис этой сборкой не останавливался.
+
+[edge_owner_shadow_attempt_2026-10-04.json](edge_owner_shadow_attempt_2026-10-04.json):
+actual SHADOW attempt FAILED после успешного CUDA preflight. Loaded identity,
+placement и inference не получены; стадия отказа UNRESOLVED. Первичный fallback
+восстановил старый retained container; main agent отдельно подтвердил exact
+container/image, новый PID и native health 200. Ошибка повторной recovery сохранена
+как FAILED, не заменена PASS. CORE/LIVE/full49 не выполнялись.
+
+[first_live_protective_cpu_2026-10-05.json](first_live_protective_cpu_2026-10-05.json):
+164 PASS Windows и 164 PASS Linux, независимо повторены main agent по exact LF
+source closure. Опасный Compose-create удалён; production блокируется до effects.
+Статус FIRST_LIVE_NOT_READY: требуется отдельный безопасный native-create adapter
+и actual runtime qualification. Synthetic PASS не доказывает сохранность originals.

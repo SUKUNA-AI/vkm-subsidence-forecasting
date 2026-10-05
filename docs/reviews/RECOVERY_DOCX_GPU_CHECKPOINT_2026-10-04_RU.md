@@ -76,18 +76,70 @@ Windows 2508 PASS / 112 declared NOT_RUN / 50 external NOT_RUN. Прежний
 
 ## Следующие gates
 
+Последующая проверка exact commit `bd81589` закрыла две CI-регрессии: расположение
+`RerankNativeProfile` вне shared vocabulary и устаревшую опубликованную схему native
+witness. Все три [hosted jobs](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/actions/runs/37228787130)
+завершились SUCCESS: World 648 PASS; Linux corpus 3832 PASS / 2 NOT_RUN; Windows
+2779 PASS / 134 NOT_RUN. [Отдельная квитанция](../corpus_platform/receipts/native_owner_hosted_ci_2026-10-04.json)
+сохраняет границу exact commit: текущий незакоммиченный first-LIVE код и actual GPU
+qualification этим run не проверены. Основной GPU WORKSTATION не использовался.
+
+Новый [EDGE software image](../corpus_platform/receipts/edge_owner_image_2026-10-04.json)
+собран именно из `bd81589`: все 472 code members wheel byte-exact по raw Git blobs.
+Actual build exit 0, 47,663 s; образ закреплён по digest, ABI и cgroups проверены.
+Это воспроизводимая производная проверенного native cache, не независимая cold
+build. Models/inference NOT_RUN; прежний сервис сборка не меняла.
+
+### Итог последнего часа EDGE — 05.10, около 00:10 МСК
+
+Software/device и typed recipe preflight фактически пройдены. Последующий
+[SHADOW attempt](../corpus_platform/receipts/edge_owner_shadow_attempt_2026-10-04.json)
+**FAILED**: после CUDA preflight новый owner вышел с exit 2, причины по имеющейся
+generic diagnostic не установлены. Загрузка могла быть начата; её завершение,
+loaded identity, target placement и inference не подтверждены. Child-death и
+restart qualification не выполнены. Новый image и stopped candidate сохранены.
+
+Первичный fallback восстановил исходный retained m0; main независимо проверил
+exact container/image, новый PID и native `/health=200` в 00:00:58 МСК.
+Baseline работает. Повторная recovery завершилась ValueError и оставила
+консервативный FAILED receipt; он сохранён без изменения. Это отдельный дефект
+диагностики/восстановления, его root cause пока UNRESOLVED. Холодное восстановление
+retained baseline данным запуском не квалифицировано.
+
+Повторную GPU загрузку в этом сеансе не запускали. Следующий bounded drill требует
+source-owned stage/exception-class diagnostics без raw credentials/payload,
+локализации startup и recovery отказов, точного нового packet и fresh acceptance.
+Контроллер также должен раньше замечать завершившийся candidate вместо ожидания
+полного load timeout. Никаких новых model/solver/OCR/corpus campaigns не запускать
+из этого checkpoint автоматически.
+
+Отдельно challenger опроверг прежнюю v3 гарантию first-LIVE: переименование
+legacy containers сохраняет Compose labels, а same-project convergence может
+удалить originals вместе с writable layers. Опасный create удалён, production
+запрещён до host effects. [Защитная CPU-проверка](../corpus_platform/receipts/first_live_protective_cpu_2026-10-05.json):
+164 PASS Windows и 164 PASS Linux по exact LF source, независимо повторены main.
+**FIRST_LIVE_NOT_READY**, требуется reviewed fixed Engine-create adapter и actual
+original-ID preservation drill; CORE runtime/boot/switch/full49 NOT_RUN.
+
+R3 capture не завершён: actual attempt остановился на metadata guard родительского
+каталога Windows Python (WinError 5), до чтения scientific bytes; output capture
+не создан. Сохранён failed attempt. Следующий сеанс: отдельно квалифицировать
+существующий runtime guard, не ослабляя read fences, затем повторить exact frozen
+capture. Остальные UNBACKED_UNIQUE и full restore closure остаются незавершёнными.
+
 1. **R2 originals:** byte recovery закрыт только для зафиксированных 272 версий.
    Recovery receipt не предоставляет bootstrap или scientific admission.
 2. **Остальная recovery closure:** R3 scientific work;
    семь конфликтов исторических hashes требуют разрешения, а не произвольного выбора.
    Полный inventory не завершён; Git/LFS metadata не доказывает удалённые payloads.
 3. **Actual GPU placement:** source-owned contract и negative CPU tests готовы;
-   actual image/model qualification ещё NOT_RUN. Native owner читает реальные target weight
+   actual image/device preflight PASS, model qualification ATTEMPTED_FAILED.
+   Native owner по контракту читает реальные target weight
    buffers под тем же load/destroy mutex. Requested layer count и startup log
    не доказывают offload; CUDA_Host не является GPU allocation. Scope нового proof
    ограничен target weights; mmproj/context/kernels/performance остаются NOT_PROVEN.
 4. **Narrow EDGE replacement:** после source freeze и actual device/placement
-   gates остановить разрешённый владельцем старый visual m0, загрузить новый GPU
+   gates повторить bounded SHADOW drill после диагностики отказа; затем загрузить новый GPU
    owner и проверить тот же inference process. Старые container/image/weights
    удерживаются для restart fallback. CPU-only model rehearsal не выполнять.
 5. **Full isolated qualification:** explicit visual-only gateway profile сохраняет

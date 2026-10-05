@@ -1,0 +1,63 @@
+{
+  "schema_version": "vkm-edge-owner-shadow-attempt/1",
+  "status": "FAILED_QUALIFICATION_RETAINED_BASELINE_RESTORED",
+  "public_component_commit": "bd815893c6af421e1e86b7ca153e49dff207aa19",
+  "image_id": "sha256:cdb424c0f04b08a3952c56c4c0c85e06b19ff10ac2c7da5217f35333a2eb3d2a",
+  "scope": "EDGE_VISUAL_COMPONENT_SHADOW_ONLY",
+  "artifact_sha256": {
+    "metadata.receipt.json": "73cf819d2b6f83f4e21b1d7634d08996dc81b277df8ca663b493c5cefd3ea71e",
+    "metadata.run.receipt.json": "ac7b4d6db2219409a1fe323a2b32fb49d54852f1b3a3571de31d1583bd6e7e28",
+    "recipe-preflight.receipt.json": "bbef6ffad4636341135f463872ae5c26d9e47dbdbcad7c471052b3180837ef7d",
+    "recipe-preflight.run.receipt.json": "ec41d727d0d78a7c2b7ba8f3560f5bfb6ab35fb2b68931582f5f271a51249bcd",
+    "gpu_shadow_execution_packet.v4.json": "4a69f1beccb8a6401d791c71e77290d3bf873e599b15ea2b5e9d12f03434e8bb",
+    "plan.json": "05efd19034a41503769b00850e1921727c74fa74ca804f311120f5b71b3daa77",
+    "qualification.receipt.json": "18986f4fc2f7a881ae498b549e97bfd4bf0556db667fc929807a863c2fdb29d0",
+    "watchdog.receipt.json": "b21dad28e2451954cc3dc0cc9f6e11d5cb718af32249be9e679826f3e3e3fea0",
+    "controller.journal.jsonl": "55646f01075739e4340ebc4845a5fc79b4657824082b1ae19c9e499fccc6a228",
+    "root_restored_health.receipt.json": "d5af3fa75d1a28730055ecb421a36321b45b4c08a4b59718a289bd254bfec32c"
+  },
+  "controller_sha256": "6ece9bcd4d66cf38b5337f357237f97422fedd7fb349a89590f26bf76b32f513",
+  "independent_controller_cpu": {
+    "linux_passed": 39,
+    "windows_passed": 36,
+    "windows_posix_not_run": 3
+  },
+  "software_device_preflight": "ACTUAL_PASS_NO_MODEL_QUALIFICATION",
+  "gpu_free_mib_after_old_stop": 3715,
+  "model_load": "ATTEMPTED_COMPLETION_NOT_VERIFIED",
+  "native_loaded_identity": "NOT_OBTAINED",
+  "target_weight_placement": "NOT_OBTAINED",
+  "same_owner_inference": "NOT_RUN_NO_READY_OWNER",
+  "child_death_and_restart_qualification": "NOT_RUN_NO_READY_OWNER",
+  "candidate_exit_code": 2,
+  "startup_cause": "UNRESOLVED_GENERIC_STARTUP_UNAVAILABLE_AFTER_CUDA_PREFLIGHT",
+  "retained_baseline": {
+    "restoration": "VERIFIED_SAME_HOST_RETAINED_CONTAINER_ONLY",
+    "new_native_pid": 2378990,
+    "started_at": "2026-10-04T20:53:43.857367956Z",
+    "first_restored_at": "2026-10-04T20:53:45.468434Z",
+    "root_observed_at": "2026-10-04T21:00:58.626567+00:00",
+    "root_health_status": 200,
+    "failed_candidate_running": false,
+    "cold_recreate": "NOT_QUALIFIED"
+  },
+  "secondary_recovery": {
+    "status": "FAILED_RECOVERY_NOT_VERIFIED_OWNER_INTERVENTION_REQUIRED",
+    "cause": "UNRESOLVED",
+    "raw_failure_preserved": true,
+    "does_not_override_fresh_native_baseline_observation": true
+  },
+  "limits": {
+    "drill_seconds": 420,
+    "independent_recovery_seconds": 180,
+    "runtime_disk_reserve": "NOT_CHECKED_PRIOR_BUILD_GUARD_ONLY",
+    "live_qualification": "NOT_RUN",
+    "actual_49_tool_mcp_acceptance": "NOT_RUN",
+    "core_switch": "NOT_RUN",
+    "scientific_admission": false,
+    "cpu_only_model": "NOT_RUN",
+    "original_model_write_actions": "NONE_READ_ONLY_MOUNTS",
+    "workstation_gpu": "NOT_USED"
+  },
+  "review": "Main agent and challenger reviewed exact source/packets; main independently inspected raw receipts and remotely checked exact containers and native legacy health after fallback; no inference success inferred"
+}
