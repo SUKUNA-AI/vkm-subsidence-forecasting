@@ -39,6 +39,15 @@ network namespace и принадлежащий именно ребёнку loop
 Неготовая или занятая загрузкой граница возвращает 503. Проверяется связь
 `llama_get_model(ctx_tgt) == model_tgt`.
 
+05.10.2026: веса CPU-слоёв, отображённые через mmap, upstream размещает в буфере
+`ggml_backend_cpu_buffer_from_ptr` типа `CPU_Mapped`, у которого `device = NULL`
+(FIXME в `ggml-backend.cpp` commit `4da6337`). Прежний getter требовал device у
+каждого тензора и на рабочем профиле (`-ngl 20`: blk.0–8 и `token_embd` на CPU)
+всегда отвечал 503 — это наблюдено на EDGE (receipts `edge_owner_shadow_attempt_2026-10-05*.json`).
+Теперь только host-буфер точного типа `CPU_Mapped` без device атрибутируется
+зарегистрированному CPU device (`ggml_backend_dev_by_type(CPU)`); любой другой
+буфер без device по-прежнему отклоняется. Это CPU-размещение, а не GPU-residency.
+
 Принимается только первый epoch=1, `capture_before_load=true`, точный upstream,
 свежий nonce и неизменный live core ответа. Sleep/destroy/reload, неуспешная
 загрузка, иной handle, source path или изменение файла делают прежнюю lease

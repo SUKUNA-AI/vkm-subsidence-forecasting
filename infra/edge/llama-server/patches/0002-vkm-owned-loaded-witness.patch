@@ -50,7 +50,7 @@
          return true;
      }
  
-@@ -4185,6 +4190,115 @@
+@@ -4185,6 +4190,125 @@
      return impl->ctx_tgt;
  }
  
@@ -110,7 +110,17 @@
 +            const auto buffer = storage->buffer;
 +            if (!buffer) throw std::runtime_error("target buffer unavailable");
 +            const auto buft = ggml_backend_buffer_get_type(buffer);
-+            const auto device = buft ? ggml_backend_buft_get_device(buft) : nullptr;
++            auto device = buft ? ggml_backend_buft_get_device(buft) : nullptr;
++            // Upstream FIXME: the host-pointer CPU buffer type ("CPU_Mapped", used for
++            // mmap-backed weights) carries no device. Only that exact host buffer type
++            // is attributed to the registered CPU device; any other device-less buffer
++            // remains unsupported.
++            if (buft && !device && ggml_backend_buffer_is_host(buffer) && ggml_backend_buft_is_host(buft)) {
++                const char * buft_name = ggml_backend_buft_name(buft);
++                if (buft_name && std::string(buft_name) == "CPU_Mapped") {
++                    device = ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_CPU);
++                }
++            }
 +            if (!buft || !device) throw std::runtime_error("target buffer device unavailable");
 +            const auto kind = ggml_backend_dev_type(device);
 +            if (kind != GGML_BACKEND_DEVICE_TYPE_CPU && kind != GGML_BACKEND_DEVICE_TYPE_GPU) {
