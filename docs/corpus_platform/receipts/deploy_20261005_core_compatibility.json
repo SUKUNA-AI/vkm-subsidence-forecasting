@@ -1,0 +1,99 @@
+{
+  "authorization": "owner chose 'CORE now, EDGE later' in chat on 2026-10-05 (ordinary compose path)",
+  "change": "api/mcp/mcp-admin switched from the image of commit 9d049dc (45 read tools) to the image of commit 18d96c2 (49 read tools: + list_evidence, get_evidence_record, get_evidence_dependencies, get_evidence_review_packet), serving profile COMPATIBILITY; canonical snapshot and projections unchanged",
+  "checks": {
+    "client_check": "desktop MCP search_text answered from snapshot snap-20260929T175107Z-574daaac",
+    "containers_after": {
+      "vkm-core-api-1": {
+        "api_profile": "compatibility",
+        "health": "healthy",
+        "image": "vkm-corpus-api:0.1.0-18d96c2a0512",
+        "restart_count": 0
+      },
+      "vkm-core-mcp-1": {
+        "api_profile": null,
+        "health": "healthy",
+        "image": "vkm-corpus-api:0.1.0-18d96c2a0512",
+        "restart_count": 0
+      },
+      "vkm-core-mcp-admin-1": {
+        "api_profile": null,
+        "health": "healthy",
+        "image": "vkm-corpus-api:0.1.0-18d96c2a0512",
+        "restart_count": 0
+      }
+    },
+    "mcp_smoke": {
+      "expected": 49,
+      "missing_tools": [],
+      "route": "loopback",
+      "seconds": 5.6,
+      "summary": {
+        "FAIL": 0,
+        "PASS": 45,
+        "SKIP": 4,
+        "WARN": 0
+      },
+      "tools_listed": 49,
+      "transport": "streamable-http",
+      "unexpected_tools": [],
+      "verdict": "WARN",
+      "version": "nightly-mcp-smoke-6"
+    },
+    "precheck_smoke5_summary": {
+      "FAIL": 1,
+      "PASS": 45,
+      "SKIP": 3,
+      "WARN": 0
+    },
+    "precheck_smoke6_summary": {
+      "FAIL": 0,
+      "PASS": 45,
+      "SKIP": 4,
+      "WARN": 0
+    },
+    "skip_reason": "EVIDENCE_NOT_PUBLISHED (API /v1/status evidence_journal)",
+    "skipped_tools": [
+      "get_evidence_dependencies",
+      "get_evidence_record",
+      "get_evidence_review_packet",
+      "list_evidence"
+    ]
+  },
+  "config_commit": "5426afd (compose: VKM_API_PROFILE=compatibility for api; nightly smoke-6)",
+  "image": {
+    "build_result": "#13 DONE 1.0s",
+    "built_on": "CORE from git archive of 18d96c2 (pyproject.toml, requirements, src, infra/core/api)",
+    "id": "sha256:5b3916e7e8347771c0184fe9cc0e0b28cb3dd1fd2756bdefe8b9f698127c061a",
+    "tag": "vkm-corpus-api:0.1.0-18d96c2a0512"
+  },
+  "limits": {
+    "edge_reranker": "unchanged (retained vkm-rerank-m0); new visual owner LIVE switch NOT_RUN",
+    "evidence_journal": "NOT_PUBLISHED on CORE; the 4 evidence tools answer only after publication",
+    "first_live_engine_path": "not used (ordinary compose deployment)",
+    "serving_profile": "COMPATIBILITY — source policy, access contexts and generation guard NOT_CONFIGURED"
+  },
+  "operation_outputs_sha256": {
+    "core_state_after.json": "93f915adad7ec1ca015f59f99113dc4f4b994aa9daba4508ead91fc2d4660357",
+    "deploy_smoke6.json": "4c2bddd1d1c2ee83adde98fef0cc36f831beccc5cdde0f185029de2e4f2326b2",
+    "precheck_smoke5.json": "2c00c641e4623eef385b49467043f05fbb1daff75f1f151d5bc414e56ae4264d",
+    "precheck_smoke6.json": "9e7be222edeb274d0424f43c8128bb9e1f36b34234e230c52e98f976ef04fc07"
+  },
+  "previous_image": {
+    "id": "sha256:6b072c22604aa3bbc132dcf7c6bf6cf4b68eaea52ec98151b494c147a8753e20",
+    "kept": true,
+    "tag": "vkm-corpus-api:0.1.0-9d049dc0fec9"
+  },
+  "recorded_at": "2026-10-05T13:43:54.995700+00:00",
+  "rollback": [
+    "restore .env, compose.yml, bin/vkm-job, nightly/ from .bak-20261005T164145",
+    "docker compose --env-file .env up -d api mcp mcp-admin (image 9d049dc0fec9 is kept)"
+  ],
+  "schema_version": "vkm-core-deploy-receipt/1",
+  "steps": [
+    "attempt 1 (16:35): .env image tag -> 18d96c2a0512, compose up -d api mcp mcp-admin: api refused to start ('production serving requires policy, access contexts and qualified runtime configuration'); mcp/mcp-admin not started",
+    "rollback (16:36-16:37): .env and bin/vkm-job restored from .bak, nightly scripts restored, compose up -d: 9d049dc healthy, smoke-4 PASS; api/mcp unavailable ~1.5 min in total",
+    "precheck (16:38-16:40): side-by-side api+mcp of the new image via compose run (no published ports, no service alias, read-only data mounts), VKM_API_PROFILE=compatibility: health OK; smoke-5 45 PASS / 1 FAIL (list_evidence DEPENDENCY_UNAVAILABLE: evidence journal not published) / 3 SKIP; smoke-6 45 PASS / 4 SKIP",
+    "switch (16:41): precheck containers removed; .env, compose.yml, bin/vkm-job, nightly/ backed up (.bak-20261005T164145); compose.yml and 5 nightly files from 5426afd; image tag -> 18d96c2a0512; compose config OK; compose up -d api mcp mcp-admin: all healthy"
+  ]
+}

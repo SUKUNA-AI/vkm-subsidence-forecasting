@@ -139,6 +139,13 @@ L1 attempt 2 после исправления `ac9589e` (AppArmor с учёто
 `vkm-l1q-*`, не first-LIVE: activation по-прежнему невозможна (`_joined_proof`
 требует Compose labels), switch NOT_RUN.
 
+[deploy_20261005_core_compatibility.json](deploy_20261005_core_compatibility.json): обычное
+развёртывание CORE (compose) — api/mcp/mcp-admin на образе `18d96c2` (49 инструментов чтения),
+профиль `compatibility`; первая попытка не стартовала (образ по умолчанию требует
+production-конфигурацию), откат за ~1,5 мин, проверка рядом, затем переключение. Smoke-6:
+45 PASS, 4 evidence-инструмента SKIP (журнал evidence на CORE не опубликован), 0 FAIL.
+EDGE не менялся.
+
 [first_live_engine_create_cpu_2026-10-05_apparmor.json](first_live_engine_create_cpu_2026-10-05_apparmor.json):
 L0 на `ac9589e` (AppArmor с учётом жизненного цикла) — 410 тестов на Windows и Linux,
 файлы сверены побайтно с коммитом; заменяет pins `_names` receipt.
