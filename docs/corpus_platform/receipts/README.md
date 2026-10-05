@@ -146,6 +146,13 @@ production-конфигурацию), откат за ~1,5 мин, провер�
 45 PASS, 4 evidence-инструмента SKIP (журнал evidence на CORE не опубликован), 0 FAIL.
 EDGE не менялся.
 
+[deploy_20261005_edge_visual_owner_live.json](deploy_20261005_edge_visual_owner_live.json): EDGE
+`vkm-rerank-m0` переключён на visual owner v8 (собственный llama-server child, native witness и
+проверка размещения весов), профиль LIVE, прокси на 18083 для прежнего gateway; готов за 22 с,
+откат не понадобился. `/identity` 200 с закреплённым токеном и 401 без него; `blk.9`–`blk.27`
+и `output` на CUDA0 (921 МБ); `rerank_visual` через MCP работает (~4,4 с на картинку).
+Удалено старое на CORE и EDGE, оставлено по одной версии для отката.
+
 [first_live_engine_create_cpu_2026-10-05_apparmor.json](first_live_engine_create_cpu_2026-10-05_apparmor.json):
 L0 на `ac9589e` (AppArmor с учётом жизненного цикла) — 410 тестов на Windows и Linux,
 файлы сверены побайтно с коммитом; заменяет pins `_names` receipt.
