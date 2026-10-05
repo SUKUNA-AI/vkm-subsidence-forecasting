@@ -174,3 +174,13 @@ activation невозможна до замены Compose-proof.
 Класс причины — исключение getter — **наблюдён**; место броска (device NULL у
 mmap CPU buffer) выведено из исходника. OLD восстановлен контроллером (health 200),
 повторная recovery — verified no-op. LIVE/switch NOT_RUN.
+
+[edge_owner_shadow_qualified_2026-10-05.json](edge_owner_shadow_qualified_2026-10-05.json):
+**E1 пройден** в SHADOW scope (одобрено владельцем, challenger GO). Образ из `74ae2b6` с
+нативным исправлением witness getter (`CPU_Mapped` → CPU device). Фактически проверены:
+нативная loaded identity = ожидаемой из preflight, тот же owner до и после synthetic
+inference, размещение целевых весов (blk.0–8 HOST, blk.9–27 и output на CUDA0),
+отказ неверному credential (401), отзыв доказательства и health при гибели child,
+новый instance и inference после рестарта, возврат exact retained OLD (health 200).
+Простой m0 ~18 с. Не доказаны: mmproj/context/kernels/performance/полная GPU-residency;
+LIVE, 49 tools, switch и научный допуск — NOT_RUN.
