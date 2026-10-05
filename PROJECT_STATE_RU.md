@@ -1,11 +1,11 @@
 # Состояние проекта ВКМ / СКРУ-1 (каноническое)
 
 05.10.2026 — [передача Claude](docs/reviews/CLAUDE_HANDOFF_2026-10-05_RU.md): ограниченная
-диагностика EDGE visual owner; стадия отказа старта наблюдена (witness 503 до дедлайна,
-корень выведен из upstream: CPU-веса через mmap без device), повторная recovery исправлена
-и подтверждена на runtime; импорт 60 H-меток; first-LIVE Engine-create adapter (L0, без
-снятия production block). E1 FAILED, B0/S0 BLOCKED, I1/P1/S1 NOT_RUN; научные статусы
-не менялись.
+диагностика EDGE visual owner (отказ старта — нативный witness getter не принимал mmap
+CPU-веса без device; повторная recovery — порядок Docker Mounts), нативное исправление и
+**bounded SHADOW квалификация visual owner пройдена** (E1; LIVE/switch не выполнялись);
+импорт 60 H-меток; first-LIVE Engine-create adapter (L0, production block сохранён).
+B0/S0 BLOCKED, L1/I1/P1/S1 NOT_RUN; научные статусы не менялись.
 
 04.10.2026 — производственная программа данных продолжена в отдельной рабочей
 ветке, draft PR #10. [Текущий отчёт](docs/reviews/RECOVERY_DOCX_GPU_CHECKPOINT_2026-10-04_RU.md)
