@@ -1,0 +1,570 @@
+{
+  "cleanup": {
+    "adapter_removed": 0,
+    "network": "REMOVED",
+    "stand_containers_removed": 0
+  },
+  "containers_after": {
+    "080cab1796c0320bb7e6e2862376faf8438d0dcbc849af067fc58c28c5cca12a": {
+      "name": "/vkm-core-api-1",
+      "restart_count": 0,
+      "running": true,
+      "started_at": "2026-09-30T07:03:05.495002845Z"
+    },
+    "6eca53424eebce25b6136128f48460b9ea7ff1cb6c3938c41881ce1a7f6448bc": {
+      "name": "/vkm-core-rx580-retrieval-1",
+      "restart_count": 0,
+      "running": true,
+      "started_at": "2026-09-29T11:27:59.623376281Z"
+    },
+    "96284aec76d0501875cf4b73e9ff93cbda49a38b3e83f98d6445c4fcdac3aade": {
+      "name": "/youtrack",
+      "restart_count": 0,
+      "running": true,
+      "started_at": "2026-09-08T23:01:20.176652779Z"
+    },
+    "ad1acb2037a6e80fea3341d5ea44578c5921ff6a4b7104457f51b18ecf175a8b": {
+      "name": "/vkm-core-mcp-admin-1",
+      "restart_count": 0,
+      "running": true,
+      "started_at": "2026-09-30T07:03:36.391981341Z"
+    },
+    "b9db786c806ef9987b109b2d664c1c9721c97ad9e1e0806f0ca18b2b52276422": {
+      "name": "/vkm-core-neo4j-1",
+      "restart_count": 0,
+      "running": true,
+      "started_at": "2026-09-28T00:33:55.229277883Z"
+    },
+    "c8aca6f5390f140f34894c67897d20a767d8218a22175c67952a05d230d0b3e1": {
+      "name": "/vkm-core-opensearch-1",
+      "restart_count": 0,
+      "running": true,
+      "started_at": "2026-09-28T00:33:55.227555778Z"
+    },
+    "f6d316bc9fd487c06356ebe3481e7027a9e1d2a948ac53f9e4645ce733081fd9": {
+      "name": "/vkm-core-mcp-1",
+      "restart_count": 0,
+      "running": true,
+      "started_at": "2026-09-30T07:03:36.391925546Z"
+    }
+  },
+  "containers_before": {
+    "080cab1796c0320bb7e6e2862376faf8438d0dcbc849af067fc58c28c5cca12a": {
+      "name": "/vkm-core-api-1",
+      "restart_count": 0,
+      "running": true,
+      "started_at": "2026-09-30T07:03:05.495002845Z"
+    },
+    "6eca53424eebce25b6136128f48460b9ea7ff1cb6c3938c41881ce1a7f6448bc": {
+      "name": "/vkm-core-rx580-retrieval-1",
+      "restart_count": 0,
+      "running": true,
+      "started_at": "2026-09-29T11:27:59.623376281Z"
+    },
+    "96284aec76d0501875cf4b73e9ff93cbda49a38b3e83f98d6445c4fcdac3aade": {
+      "name": "/youtrack",
+      "restart_count": 0,
+      "running": true,
+      "started_at": "2026-09-08T23:01:20.176652779Z"
+    },
+    "ad1acb2037a6e80fea3341d5ea44578c5921ff6a4b7104457f51b18ecf175a8b": {
+      "name": "/vkm-core-mcp-admin-1",
+      "restart_count": 0,
+      "running": true,
+      "started_at": "2026-09-30T07:03:36.391981341Z"
+    },
+    "b9db786c806ef9987b109b2d664c1c9721c97ad9e1e0806f0ca18b2b52276422": {
+      "name": "/vkm-core-neo4j-1",
+      "restart_count": 0,
+      "running": true,
+      "started_at": "2026-09-28T00:33:55.229277883Z"
+    },
+    "c8aca6f5390f140f34894c67897d20a767d8218a22175c67952a05d230d0b3e1": {
+      "name": "/vkm-core-opensearch-1",
+      "restart_count": 0,
+      "running": true,
+      "started_at": "2026-09-28T00:33:55.227555778Z"
+    },
+    "f6d316bc9fd487c06356ebe3481e7027a9e1d2a948ac53f9e4645ce733081fd9": {
+      "name": "/vkm-core-mcp-1",
+      "restart_count": 0,
+      "running": true,
+      "started_at": "2026-09-30T07:03:36.391925546Z"
+    }
+  },
+  "daemon_api": {
+    "ApiVersion": "1.45",
+    "Arch": "amd64",
+    "MinAPIVersion": "1.24",
+    "Os": "linux"
+  },
+  "daemon_pin": {
+    "cgroup_driver": "systemd",
+    "cgroup_version": "2",
+    "components": [
+      {
+        "name": "Engine",
+        "version": "26.1.5+dfsg1"
+      },
+      {
+        "name": "containerd",
+        "version": "1.7.24~ds1"
+      },
+      {
+        "name": "runc",
+        "version": "1.1.15+ds1"
+      },
+      {
+        "name": "docker-init",
+        "version": "0.19.0"
+      }
+    ],
+    "daemon_id_sha256": "980894766e50fc9f262838d8cea2538a52b1254cb0732e5b8c279ffff354a594",
+    "default_runtime": "runc",
+    "docker_root_dir_sha256": "51a410b83742a7a80dda061a19bb9205e86525fb6847b2086dd7aed101a1e45e",
+    "engine_version": "26.1.5+dfsg1",
+    "security_options": [
+      "name=apparmor",
+      "name=seccomp,profile=builtin",
+      "name=cgroupns"
+    ]
+  },
+  "duration_seconds": 2.399,
+  "engine_create_sha256": "619f3ef11681c8e8de57c11dae3a1e57e279c28f469237ff3069392f3dd4360c",
+  "finished_unix": 1791206735.6468823,
+  "first_live_qualified": false,
+  "harness_sha256": "3f426e02827e0064b85cee9f5db1087b9772ee664bc39a88459bda9dad0bd513",
+  "hashing": "sha256('vkm-l1-public/1:' + field + ':' + value)",
+  "journal_head_sha256": "a6748ce38a54b8a424d6b380323970bb4da070009894e531c199a7e436da23eb",
+  "journal_phases": {
+    "ATTEMPT_CLOSED": 4,
+    "ATTEMPT_OPEN": 4,
+    "CREATE_ACK": 2,
+    "CREATE_ADOPTED": 1,
+    "CREATE_INTENT": 4,
+    "CREATE_PARTIAL": 1,
+    "JOURNAL_OPEN": 1,
+    "POST_CREATE_VERIFIED": 3,
+    "REMOVED": 4,
+    "REMOVE_INTENT": 4,
+    "STARTED": 2,
+    "START_INTENT": 2,
+    "STOPPED": 2,
+    "STOP_INTENT": 2
+  },
+  "journal_records": 36,
+  "limits": {
+    "activation": "IMPOSSIBLE_JOINED_PROOF_REQUIRES_COMPOSE_LABELS",
+    "first_live_switch": "NOT_RUN",
+    "scope": "QUALIFICATION_FAMILY_ON_CORE_ONLY_NOT_A_FIRST_LIVE_QUALIFICATION"
+  },
+  "name_family": "QUALIFICATION",
+  "networks_after": {
+    "132afd8343a7154bb3faf95fd152bd56e657b972a12b3d55bb203dd6b3e8613a": {
+      "containers": [],
+      "name": "vkm-core_default",
+      "subnets": [
+        "172.19.0.0/16"
+      ]
+    },
+    "55d369ffa5dfa3246e38a50578ff41c4a321b3531a5cd896e7b754dc479c7d1f": {
+      "containers": [
+        "080cab1796c0320bb7e6e2862376faf8438d0dcbc849af067fc58c28c5cca12a",
+        "6eca53424eebce25b6136128f48460b9ea7ff1cb6c3938c41881ce1a7f6448bc",
+        "ad1acb2037a6e80fea3341d5ea44578c5921ff6a4b7104457f51b18ecf175a8b",
+        "b9db786c806ef9987b109b2d664c1c9721c97ad9e1e0806f0ca18b2b52276422",
+        "c8aca6f5390f140f34894c67897d20a767d8218a22175c67952a05d230d0b3e1",
+        "f6d316bc9fd487c06356ebe3481e7027a9e1d2a948ac53f9e4645ce733081fd9"
+      ],
+      "name": "vkm-core_vkm_internal",
+      "subnets": [
+        "172.20.0.0/16"
+      ]
+    },
+    "bb27ef737032ee95fc1881136d1dae34c4bc8be125a5306c1517dd87b8bd416a": {
+      "containers": [
+        "4d8df8b5f272bfa1ea306c3ba979831c67d6616deb164ae7b6408114c0ce6008"
+      ],
+      "name": "none",
+      "subnets": []
+    },
+    "ec9913efc49fed310dc95cc2d269f9b7db72177031f34cc707dca8ea673da448": {
+      "containers": [
+        "30d6eb9565a7133d361cbb09fb07bbe0a457b42dd8f5c89f8107e9b54dfaf733",
+        "a604729578d4552bab13b90fc6cc2c2fc481671012fa11553131b3a7dd286e2b"
+      ],
+      "name": "host",
+      "subnets": []
+    },
+    "fa05f12ae8da26bac418f109d1619c4f15cb0fcc078552c690c9086371abfffd": {
+      "containers": [],
+      "name": "bridge",
+      "subnets": [
+        "172.17.0.0/16"
+      ]
+    },
+    "fede12e857dcdfe3290b7c0b53c3e44505576211aa19c3e078c6e53f304711da": {
+      "containers": [
+        "96284aec76d0501875cf4b73e9ff93cbda49a38b3e83f98d6445c4fcdac3aade"
+      ],
+      "name": "youtrack_default",
+      "subnets": [
+        "172.18.0.0/16"
+      ]
+    }
+  },
+  "networks_before": {
+    "132afd8343a7154bb3faf95fd152bd56e657b972a12b3d55bb203dd6b3e8613a": {
+      "containers": [],
+      "name": "vkm-core_default",
+      "subnets": [
+        "172.19.0.0/16"
+      ]
+    },
+    "55d369ffa5dfa3246e38a50578ff41c4a321b3531a5cd896e7b754dc479c7d1f": {
+      "containers": [
+        "080cab1796c0320bb7e6e2862376faf8438d0dcbc849af067fc58c28c5cca12a",
+        "6eca53424eebce25b6136128f48460b9ea7ff1cb6c3938c41881ce1a7f6448bc",
+        "ad1acb2037a6e80fea3341d5ea44578c5921ff6a4b7104457f51b18ecf175a8b",
+        "b9db786c806ef9987b109b2d664c1c9721c97ad9e1e0806f0ca18b2b52276422",
+        "c8aca6f5390f140f34894c67897d20a767d8218a22175c67952a05d230d0b3e1",
+        "f6d316bc9fd487c06356ebe3481e7027a9e1d2a948ac53f9e4645ce733081fd9"
+      ],
+      "name": "vkm-core_vkm_internal",
+      "subnets": [
+        "172.20.0.0/16"
+      ]
+    },
+    "bb27ef737032ee95fc1881136d1dae34c4bc8be125a5306c1517dd87b8bd416a": {
+      "containers": [
+        "4d8df8b5f272bfa1ea306c3ba979831c67d6616deb164ae7b6408114c0ce6008"
+      ],
+      "name": "none",
+      "subnets": []
+    },
+    "ec9913efc49fed310dc95cc2d269f9b7db72177031f34cc707dca8ea673da448": {
+      "containers": [
+        "30d6eb9565a7133d361cbb09fb07bbe0a457b42dd8f5c89f8107e9b54dfaf733",
+        "a604729578d4552bab13b90fc6cc2c2fc481671012fa11553131b3a7dd286e2b"
+      ],
+      "name": "host",
+      "subnets": []
+    },
+    "fa05f12ae8da26bac418f109d1619c4f15cb0fcc078552c690c9086371abfffd": {
+      "containers": [],
+      "name": "bridge",
+      "subnets": [
+        "172.17.0.0/16"
+      ]
+    },
+    "fede12e857dcdfe3290b7c0b53c3e44505576211aa19c3e078c6e53f304711da": {
+      "containers": [
+        "96284aec76d0501875cf4b73e9ff93cbda49a38b3e83f98d6445c4fcdac3aade"
+      ],
+      "name": "youtrack_default",
+      "subnets": [
+        "172.18.0.0/16"
+      ]
+    }
+  },
+  "plan_sha256": "c3596953f81e94d8bfeca002894c298b12ffd0b1b3a1c5faf44f139911cc6aaa",
+  "private_receipt_sha256": "a2ab9fb8c113607e7fdd15dcce5b1c207f00ad2d9ce10ea9514e567353564093",
+  "production_switch": "NOT_RUN",
+  "profile_sha256": {
+    "api": "bef3f06316e15fed45a27985b30ddeea0e5dce414dbf5efaf4b7a8a074a716c0",
+    "mcp": "fc0a278dbb84e7d5bb6b99afaa60faf3add8607b397b7645aa3e68351d16015a"
+  },
+  "requests": {
+    "adapter": 165,
+    "adapter_mutations": [
+      [
+        "DELETE",
+        "/v1.45/containers/<id>",
+        "204"
+      ],
+      [
+        "POST",
+        "/v1.45/containers/<id>/start",
+        "204"
+      ],
+      [
+        "POST",
+        "/v1.45/containers/<id>/stop",
+        "204"
+      ],
+      [
+        "POST",
+        "/v1.45/containers/create",
+        "201"
+      ],
+      [
+        "POST",
+        "/v1.45/containers/create",
+        "201:RESPONSE_DISCARDED"
+      ],
+      [
+        "POST",
+        "/v1.45/containers/create",
+        "DROPPED_BEFORE_SEND"
+      ]
+    ],
+    "not_completed": 2,
+    "stand": 47
+  },
+  "scenarios": {
+    "S1_preflight": {
+      "status": "PASS"
+    },
+    "S2_create_contract": {
+      "create_requests": 2,
+      "status": "PASS",
+      "units": {
+        "api": {
+          "container_id": "56fc0795cc30a9378cd87d52bd7d21c56f7a84f8e205ff63a64875673760d016",
+          "drift_fields": [],
+          "observed": {
+            "aliases_include_short_id": false,
+            "apparmor_profile": "",
+            "created_minus_intent_seconds": 0.003,
+            "hostconfig_mount_targets": [
+              "/l1q/a",
+              "/l1q/b",
+              "/l1q/c"
+            ],
+            "inspect_mount_destinations": [
+              "/l1q/a",
+              "/l1q/b",
+              "/l1q/c"
+            ],
+            "masked_paths_null": false,
+            "network_id_set": false,
+            "runtime": "runc"
+          },
+          "ok": true,
+          "pin_equal": true,
+          "running": false,
+          "status": "created"
+        },
+        "mcp": {
+          "container_id": "d9fb4713f8ec6b2138ae4efa4a00445e0a22746fbbfb6de7578d5206f575e4c8",
+          "drift_fields": [],
+          "observed": {
+            "aliases_include_short_id": false,
+            "apparmor_profile": "",
+            "created_minus_intent_seconds": 0.003,
+            "hostconfig_mount_targets": [
+              "/l1q/a"
+            ],
+            "inspect_mount_destinations": [
+              "/l1q/a"
+            ],
+            "masked_paths_null": false,
+            "network_id_set": false,
+            "runtime": "runc"
+          },
+          "ok": true,
+          "pin_equal": true,
+          "running": false,
+          "status": "created"
+        }
+      }
+    },
+    "S3_start_running_contract": {
+      "api": {
+        "container_id": "56fc0795cc30a9378cd87d52bd7d21c56f7a84f8e205ff63a64875673760d016",
+        "drift_fields": [],
+        "observed": {
+          "aliases_include_short_id": false,
+          "apparmor_profile": "docker-default",
+          "created_minus_intent_seconds": null,
+          "hostconfig_mount_targets": [
+            "/l1q/a",
+            "/l1q/b",
+            "/l1q/c"
+          ],
+          "inspect_mount_destinations": [
+            "/l1q/c",
+            "/l1q/a",
+            "/l1q/b"
+          ],
+          "masked_paths_null": false,
+          "network_id_set": true,
+          "runtime": "runc"
+        },
+        "ok": true,
+        "pin_equal": true,
+        "running": true,
+        "status": "running"
+      },
+      "status": "PASS"
+    },
+    "S4_resume_new_instance": {
+      "recognized": true,
+      "removed_count": 2,
+      "start_requests": 1,
+      "status": "PASS",
+      "units": {
+        "api": {
+          "container_id": "56fc0795cc30a9378cd87d52bd7d21c56f7a84f8e205ff63a64875673760d016",
+          "drift_fields": [],
+          "observed": {
+            "aliases_include_short_id": false,
+            "apparmor_profile": "docker-default",
+            "created_minus_intent_seconds": null,
+            "hostconfig_mount_targets": [
+              "/l1q/a",
+              "/l1q/b",
+              "/l1q/c"
+            ],
+            "inspect_mount_destinations": [
+              "/l1q/a",
+              "/l1q/b",
+              "/l1q/c"
+            ],
+            "masked_paths_null": false,
+            "network_id_set": true,
+            "runtime": "runc"
+          },
+          "ok": true,
+          "pin_equal": true,
+          "running": true,
+          "status": "running"
+        },
+        "mcp": {
+          "container_id": "d9fb4713f8ec6b2138ae4efa4a00445e0a22746fbbfb6de7578d5206f575e4c8",
+          "drift_fields": [],
+          "observed": {
+            "aliases_include_short_id": false,
+            "apparmor_profile": "docker-default",
+            "created_minus_intent_seconds": null,
+            "hostconfig_mount_targets": [
+              "/l1q/a"
+            ],
+            "inspect_mount_destinations": [
+              "/l1q/a"
+            ],
+            "masked_paths_null": false,
+            "network_id_set": true,
+            "runtime": "runc"
+          },
+          "ok": true,
+          "pin_equal": true,
+          "running": true,
+          "status": "running"
+        }
+      }
+    },
+    "S5_lost_ack_adopt_without_second_create": {
+      "adopted": true,
+      "api": {
+        "container_id": "5b7676b9184134803a624b4d5d6d7bb92d57f9e3c3a27f5df4494125797e5df7",
+        "drift_fields": [],
+        "observed": {
+          "aliases_include_short_id": false,
+          "apparmor_profile": "",
+          "created_minus_intent_seconds": null,
+          "hostconfig_mount_targets": [
+            "/l1q/a",
+            "/l1q/b",
+            "/l1q/c"
+          ],
+          "inspect_mount_destinations": [
+            "/l1q/a",
+            "/l1q/b",
+            "/l1q/c"
+          ],
+          "masked_paths_null": false,
+          "network_id_set": false,
+          "runtime": "runc"
+        },
+        "ok": true,
+        "pin_equal": true,
+        "running": false,
+        "status": "created"
+      },
+      "create_requests": 1,
+      "status": "PASS"
+    },
+    "S6_foreign_same_name_refused": {
+      "adapter_mutations_on_foreign": 0,
+      "refused": true,
+      "status": "PASS",
+      "untouched": true
+    },
+    "S7_weakened_attempt_candidate_partial": {
+      "classified_partial": true,
+      "drift_fields": [
+        "host.CapDrop"
+      ],
+      "never_started": true,
+      "pending_after_drop": true,
+      "start_refused": true,
+      "status": "PASS"
+    },
+    "S8_remove_only_journal_owned": {
+      "journal_owned": 4,
+      "leftovers_removed": 0,
+      "mutated_ids": 4,
+      "remaining_candidates": [],
+      "status": "PASS"
+    },
+    "S9_production_untouched": {
+      "containers_unchanged": true,
+      "networks_unchanged": true,
+      "requests_touching_watched": 0,
+      "status": "PASS"
+    }
+  },
+  "schema_version": "vkm-first-live-engine-l1-public/1",
+  "scope": "L1_ISOLATED_ENGINE_LIFECYCLE",
+  "source_schema": "vkm-l1-engine-qualification/2",
+  "src_modules": {
+    "vkm_corpus/__init__.py": "d0c879402c245375f4bcfaf9809994f7793181081bfc1d681e576c70e8c5ef4b",
+    "vkm_corpus/api/__init__.py": "21a9474ae2f23a00a51093a9019440a010d113e705cbdfb04defb29754cb0d5c",
+    "vkm_corpus/api/envelope.py": "33b02be990db85608dfd7fc2b990a54bffea82f82bc64c8fc364e2247f7e4e55",
+    "vkm_corpus/api/production.py": "068d0f98b8072019828984e22ce4118b26b5339d01c6cea479bd082abbd65cb3",
+    "vkm_corpus/contracts/__init__.py": "b5a97651e676b7d49fe44da108a5b81cb99b9d13cc4438bce544c91d4c3f7228",
+    "vkm_corpus/contracts/access.py": "207087db168196690197877fd9b753be1b15cf848764476fa681866a7b3b1537",
+    "vkm_corpus/contracts/access_vocab.py": "2d00531a2ccc7bc4f7a6c43df8e197108274919b8ce162f7cf7882d5d0d58050",
+    "vkm_corpus/contracts/vocab.py": "34fc48f5c3d4db871fc310f4ddc2b67a4faf2ef11d5fdd7302d56c93422644e1",
+    "vkm_corpus/parquet/__init__.py": "5ed3fef802876f6b600eb5b0571174d6a43c3d8780ef59e42e4f3ac481c28806",
+    "vkm_corpus/parquet/atomic.py": "b48743b1d12c2c76c9efafe46b40c4cbcbcac980e6ce959133882d3075f37d8d",
+    "vkm_corpus/update/__init__.py": "916b4b56c6473f9e051d8fea115104ef16556dc36cdbc2d5b4f983f39eac7b21",
+    "vkm_corpus/update/acceptance.py": "51918785ce20781cd4288a5a7b5170e84763298524ad24db0c23b22099b58015",
+    "vkm_corpus/update/admission.py": "2e4819a494525f4e96f387aa4ea014370b8c2a16dc1b3f480f0567d03a27887c",
+    "vkm_corpus/update/barrier.py": "762207582abeb5ec148eaa2991130ae0938129013921638e173948fe4e305ab3",
+    "vkm_corpus/update/bootstrap.py": "a190c34ecf1e1aa48c862bf73ae420c13824556f1479d6c7dfaba0b845d68253",
+    "vkm_corpus/update/bootstrap_native.py": "44fefe87a0e39d57cd9758025d9340e6ceafce68d50f984edf63fbf987b099b5",
+    "vkm_corpus/update/contracts.py": "0541885a541e3ef7ee9fc4c540f3b567465d028d7337fa16b9ade0e036293226",
+    "vkm_corpus/update/cycle.py": "69355e0cc8b7c863bb7c21c2797b239240bc49ba511c5a83feee1b5fe0f6c936",
+    "vkm_corpus/update/deployment.py": "8bff81accd3192b688f9143ec5820178ddabc708fe2c185e1622ce0dbeda1acf",
+    "vkm_corpus/update/engine_create.py": "619f3ef11681c8e8de57c11dae3a1e57e279c28f469237ff3069392f3dd4360c",
+    "vkm_corpus/update/generation.py": "0ec9a027733648b40dacfe87a04b1c5065287cf7fb704878377e94bf9c498e1c",
+    "vkm_corpus/update/operator.py": "e6040a0d36065b9826fb99eb0cf3c232ab289fcc5850034a55a4f6db0e6ea3f7",
+    "vkm_corpus/update/operator_units.py": "b503a12e391712fbe3d572e6e44ecdb9c5785f317eae350af2d8f92ab9fc597b",
+    "vkm_corpus/update/receiver.py": "bd493dace8c7078cd80afd26b632ed01cff1c6399fe0b5dda298261d3a03fc1a",
+    "vkm_corpus/update/remote_control.py": "09ad62535cff48f70f0fe26c7746daa5c472a507c6f5313fde0d03b3d901ba92",
+    "vkm_corpus/update/runtime.py": "f4146b0d2cb91e7b164d7ce129e751eebca9d17d7ae3c6e6cd6d8f514ac241d0",
+    "vkm_corpus/versions.py": "302d7f23abc77ca24b6b450bb5a0db20ce566d419291155bb34a649f07ef0907",
+    "vkm_datasets/__init__.py": "5ea5501d016c78ef893f3458deb9d124b8c53e42bb7f3c5d9685cb2f3e1c4bda",
+    "vkm_datasets/contracts.py": "8969fb4a3a79e3c24c84b5df8fc937fd0a5c84a14006c8ce4166de88fc27db08",
+    "vkm_datasets/manifest.py": "22fccd28f4c5fae95c1ad468690d18d818f42c4c04a9079b266b18fe075792d2",
+    "vkm_datasets/policy.py": "c8df08f80e54d5771b1b81c7d39b1486a1846c41b70ed5450c73bca45ce6d41e",
+    "vkm_evidence/__init__.py": "da84cc43ebf7744bdf4216f708c52d4f01c276073389842235fc4c7747c215d0",
+    "vkm_evidence/contracts.py": "00fcc2e6b3c72993a2afce4efcc95fea21b43983439e3741ce7080eaab73690a",
+    "vkm_world/__init__.py": "21809475e12127901a72161656a565bec9ade4be0fdb77f58f9dafdf8a34bc9b",
+    "vkm_world/core/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "vkm_world/core/provenance.py": "bb4d4fea9765d96accbbf9d920c83089996952a8665e26810e88fb8a14d5e97a"
+  },
+  "stand_network": {
+    "config_sha256": "1b54169e32fd98524c22897f8eb1c557cb3278c2c023fa58151c8ddaa9c48ccc",
+    "id": "f2cf2471dbc9312cd7101e045fdcceccdaadf49e023a2a9dbc819ff393f7c5c6"
+  },
+  "stand_subnet": {
+    "gateway": "172.30.99.1",
+    "subnet": "172.30.99.0/24"
+  },
+  "started_unix": 1791206733.248169,
+  "status": "L1_PASS",
+  "watchdog": "ARMED"
+}

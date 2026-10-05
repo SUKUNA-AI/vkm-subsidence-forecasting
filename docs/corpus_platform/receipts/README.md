@@ -127,6 +127,18 @@ L0 на `f6f6472` — закрытые семейства имён PRODUCTION (`
 до = после), удаление только journal-owned (S8 PASS), стенд убран. `daemon_id` и
 `docker_root_dir` захешированы.
 
+[first_live_engine_l1_core_2026-10-05.json](first_live_engine_l1_core_2026-10-05.json):
+L1 attempt 2 после исправления `ac9589e` (AppArmor с учётом жизненного цикла) —
+**L1_PASS**, 9/9 сценариев на Docker 26.1.5 CORE: create с точным post-create
+контрактом (AppArmor пусто до старта), start и running-контракт (`docker-default`),
+продолжение по журналу новым экземпляром (1 start), lost-ACK без второго create
+(adopt), отказ трогать чужой одноимённый контейнер, ослабленный кандидат
+(`host.CapDrop`) — partial и не запущен, удаление только journal-owned, production и
+наблюдаемые контейнеры/сети без изменений. Порядок `Mounts` в inspect снова
+недетерминирован — контракт его нормализует. Это квалификация адаптера в семействе
+`vkm-l1q-*`, не first-LIVE: activation по-прежнему невозможна (`_joined_proof`
+требует Compose labels), switch NOT_RUN.
+
 [native_owner_cpu_2026-10-04.json](native_owner_cpu_2026-10-04.json): точные hashes
 PUBLIC native placement/owner source и synthetic CPU JUnit. Declared platform
 NOT_RUN отделены от PASS; selections пересекаются и не суммируются. Проверены

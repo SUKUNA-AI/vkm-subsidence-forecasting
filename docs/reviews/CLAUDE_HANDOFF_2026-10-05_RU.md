@@ -66,7 +66,7 @@ host-буфер точного типа `CPU_Mapped` → CPU device) **подт�
 | **E1** | **PASSED (SHADOW scope)** | v6 FAILED (стадия наблюдена), v7 FAILED (класс причины наблюдён), **v8 `SHADOW_QUALIFIED_BASELINE_RESTORED`** (05.10 11:58:37–11:58:55Z; запуск подтверждён владельцем, GO challenger): образ `sha256:5eac4947…` из `74ae2b6`; loaded identity = preflight; тот же owner до/после synthetic inference; target weights blk.9–27 + output на CUDA0 (921 МБ), blk.0–8/other на CPU; 401 на неверный credential; отзыв proof/health при гибели child; новый instance и inference после рестарта; exact retained OLD (health 200); простой m0 ~19 с. Receipts `edge_owner_shadow_attempt_2026-10-05*.json`, `edge_owner_shadow_qualified_2026-10-05.json`. Не доказаны mmproj/context/kernels/performance; LIVE-recipe не квалифицирован. |
 | **B0** | **NOT_CLOSED (R3 захвачен)** | R3 exact capture **COMPLETE** (05.10, 31 с): 9 836 файлов, 2.18 ГБ, executor/plan по утверждённым SHA, gate `read_committed_capture` PASS (`r3_capture_2026-10-05.json`). Прежний отказ: учётке песочницы Codex не хватало `ReadAttributes+Synchronize` на каталог профиля (CreateFileW всегда добавляет SYNCHRONIZE), плюс исчезла запись Codex на `AppData`; владелец выдал `(RA,S)` и восстановил запись; запуск через `codex sandbox` (workspace-write от корня репозитория, `-X pycache_prefix`). B0 не закрыт: зашифрованная копия/restore R3 — отдельный executor; 61 622 пути не классифицированы; SRC-013 original не найден. IndependentBootstrapBackup не выдан. |
 | **L0** | **CLOSED (код + synthetic)** | `93ebfbf`: allowlist операций Engine API; профиль из approved полей, Env только имена + BoundFile; post-create inspect до start; write-ahead journal; lost-ACK/409 без повторного create; удаление только journal-owned ID; проверки daemon/binding до парковки оригиналов; Compose не вызывается. 388 PASS Windows и Linux (JUnit в `first_live_engine_create_cpu_2026-10-05.json`). Production block сохранён. |
-| **L1** | **NOT_RUN** | Нет утверждённого изолированного stand; daemon pin — заглушки. `_joined_proof`/fingerprint требуют Compose labels — activation невозможна и после L1; Compose `rebind` опасен, пока есть parked originals. |
+| **L1** | **PASSED (QUALIFICATION scope)** | Владелец утвердил stand «CORE, изолированно». Добавлено закрытое семейство имён `vkm-l1q-*` (`f6f6472`). Attempt 1 — L1_FAIL: post-create drift `apparmor_profile` (Docker 26 заполняет профиль только при первом старте) → исправление `ac9589e`, challenger GO. Attempt 2 — **L1_PASS 9/9** на Docker 26.1.5 CORE: реальный daemon pin, create/start/контракты, resume по журналу, lost-ACK adopt без второго create, отказ на чужой одноимённый, ослабленный кандидат partial, удаление только journal-owned; production и 4 наблюдаемых контейнера, сети — без изменений (receipts `first_live_engine_l1_core_2026-10-05*.json`). Не доказано: explicit `apparmor=docker-default`, реальные receivers. `_joined_proof`/fingerprint требуют Compose labels — activation невозможна; Compose `rebind` опасен, пока есть parked originals. |
 | **I1** | **NOT_RUN** | all49 actual transport, restart/rollback не выполнялись. |
 | **P1** | **NOT_RUN** | Production switch не выполнялся; production m0 — прежний retained container. |
 | **S0** | **BLOCKED** | Генеративного владельца с `vkm-evidence-model/1` + `/v1/chat/completions` нет ни на CORE, ни на EDGE; EDGE GPU 4 ГБ занят visual owner; основной GPU запрещён. |
@@ -110,16 +110,16 @@ Deploy»); результат v7 получен позже вместе с вл�
 1. **R3 capture — выполнен 05.10** (вариант A). Владелец выдал учётке песочницы Codex
    `(RA,S)` на каталог профиля без наследования и восстановил запись Codex на `AppData`;
    capture запущен через `codex sandbox` (см. `R3_RERUN_FOR_CODEX_RU.md`, уточнения 05.10).
-   Право `(RA,S)` снимает владелец (`icacls … /remove:g`), затем проверить `AppData`.
-2. Утверждённый изолированный stand для L1.
+   Право `(RA,S)` владелец снял; запись Codex на `AppData` сохранилась (проверено).
+2. Stand для L1 утверждён («CORE, изолированно»); L1 выполнен (attempt 2 — PASS).
 3. Решение о квалификации LIVE-recipe visual owner (порт 18083, образ v8) — отдельный
    bounded шаг, затем I1 перед любым switch.
 
 ## 8. Следующий конкретный шаг
 
 1. Исполнитель зашифрованной копии/restore R3 (capture готов: `r3_capture_2026-10-05.json`).
-2. L1 на утверждённом stand; затем замена Compose-proof (`_joined_proof`,
-   `container_fingerprint`) для Engine-created receivers.
+2. Замена Compose-proof (`_joined_proof`, `container_fingerprint`) для
+   Engine-created receivers — без неё activation невозможна и после L1.
 3. LIVE-recipe visual owner и I1 (all49 по транспорту) — до switch.
 
 ## 9. CI
@@ -131,3 +131,11 @@ Deploy»); результат v7 получен позже вместе с вл�
 Linux `tests/world` 661 passed / 2 skipped; `verify_canonical_repository.py` с PRIVATE —
 36 PASS, 7 SKIPPED_REF_UNAVAILABLE (нет исторических тегов), exit 0. Main не сливался,
 protection не менялась.
+
+## 10. Дополнение 05.10 (после передачи)
+
+- R3 capture выполнен; научное извлечение (S0/S1) владелец отложил — варианты
+  записаны, запуск по отдельному разрешению.
+- L1: `f6f6472` (семейства имён) → attempt 1 FAIL (AppArmor до старта) → `ac9589e` →
+  attempt 2 PASS 9/9. Receipts L0 на новые коммиты: `first_live_engine_create_cpu_2026-10-05_names.json`
+  и (по готовности) `…_apparmor.json`.
