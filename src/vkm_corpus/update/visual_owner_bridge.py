@@ -158,6 +158,25 @@ def _response_bytes(response, limit):
     return bytes(body)
 
 
+WITNESS_GETTER_UNAVAILABLE = b'{"error":"loaded_witness_unavailable"}'
+
+
+def _unavailable_kind(raw):
+    """Closed class of a witness 503: owner getter vs server still loading.
+
+    Matches only two fixed native bodies; anything else stays unclassified.
+    The body is never stored or exported."""
+    if raw == WITNESS_GETTER_UNAVAILABLE:
+        return "WITNESS_GETTER_UNAVAILABLE"
+    try:
+        error = _json(raw).get("error")
+        if isinstance(error, dict) and error.get("message") == "Loading model" and error.get("code") == 503:
+            return "WITNESS_SERVER_LOADING"
+    except (ValueError, TypeError, AttributeError):
+        pass
+    return None
+
+
 def _mapped_implementation(pid):
     """The owned executable's actual mapped runtime, not a declared library list."""
     paths = set()
@@ -221,6 +240,11 @@ class OwnedHookChildOwner(OwnedChildModelOwner):
             with self.client.stream("GET", "/__vkm_loaded_witness", params={"nonce": nonce}, timeout=1.0) as response:
                 if response.status_code != 200:
                     self._fence_step, self._witness_status = "WITNESS_STATUS", response.status_code
+                    try:
+                        kind = _unavailable_kind(_response_bytes(response, 4096))
+                    except (httpx.HTTPError, ValueError):
+                        kind = None
+                    if kind is not None: self._fence_step = kind
                     raise ValueError("loaded native witness unavailable")
                 self._fence_step = "WITNESS_BODY"
                 raw = _response_bytes(response, WITNESS_LIMIT)

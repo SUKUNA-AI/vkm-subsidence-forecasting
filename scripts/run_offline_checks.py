@@ -187,7 +187,8 @@ WINDOWS_NOT_RUN = (
         *("test_load_proof_deadline_names_the_exact_failing_fence[" + case + "]" for case in
           ("sleep-WITNESS_STATUS-ValueError", "epoch-WITNESS_BINDING-ValueError", "nonce-WITNESS_BINDING-ValueError",
            "duplicate-WITNESS_SCHEMA-ValueError", "oversized-WITNESS_BODY-ValueError",
-           "placement-zero-WITNESS_SCHEMA-ValidationError", "capture-WITNESS_SCHEMA-ValidationError")),
+           "placement-zero-WITNESS_SCHEMA-ValidationError", "capture-WITNESS_SCHEMA-ValidationError",
+           "getter503-WITNESS_GETTER_UNAVAILABLE-ValueError", "loading503-WITNESS_SERVER_LOADING-ValueError")),
         "test_exited_child_is_reported_immediately_with_exit_code",
         "test_foreign_listener_is_localized_without_sending_the_challenge",
         "test_cleanup_failure_does_not_mask_the_primary_startup_cause",

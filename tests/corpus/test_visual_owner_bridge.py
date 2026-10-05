@@ -52,6 +52,8 @@ class H(BaseHTTPRequestHandler):
     'device_name':'CUDA0','buffer_name':'CUDA0','view_chain':[100],'view_offsets':[],
     'tensor_type':0,'shape':[16,1,1,1]}]}
    if action=='sleep':self.reply(b'{}',503);return
+   if action=='getter503':self.reply(b'{"error":"loaded_witness_unavailable"}',503);return
+   if action=='loading503':self.reply(b'{"error":{"code":503,"message":"Loading model","type":"unavailable_error"}}',503);return
    if action=='epoch':data['epoch']=2
    if action=='nonce':data['nonce']='f'*64
    if action=='handle':data['handles']['mmproj']=40
@@ -395,7 +397,8 @@ def _diagnosed_start(tmp_path, mode, timeout=.75):
     ("sleep", "WITNESS_STATUS", "ValueError"), ("epoch", "WITNESS_BINDING", "ValueError"),
     ("nonce", "WITNESS_BINDING", "ValueError"), ("duplicate", "WITNESS_SCHEMA", "ValueError"),
     ("oversized", "WITNESS_BODY", "ValueError"), ("placement-zero", "WITNESS_SCHEMA", "ValidationError"),
-    ("capture", "WITNESS_SCHEMA", "ValidationError")])
+    ("capture", "WITNESS_SCHEMA", "ValidationError"),
+    ("getter503", "WITNESS_GETTER_UNAVAILABLE", "ValueError"), ("loading503", "WITNESS_SERVER_LOADING", "ValueError")])
 def test_load_proof_deadline_names_the_exact_failing_fence(tmp_path, mode, step, cause):
     value = _diagnosed_start(tmp_path, mode)
     assert value["terminal_stage"] == "NATIVE_LOAD_PROOF" and value["outcome"] == "LOAD_PROOF_DEADLINE"
@@ -404,7 +407,7 @@ def test_load_proof_deadline_names_the_exact_failing_fence(tmp_path, mode, step,
     assert any(f[0] == step and f[1] == cause for f in value["fence_failures"])
     stages = [s[0] for s in value["stages"]]
     assert stages == ["FILE_INVENTORY", "SPAWN", "NATIVE_LOAD_PROOF"]
-    if mode == "sleep":
+    if mode in {"sleep", "getter503", "loading503"}:
         assert value["witness_http_status"] and value["witness_http_status"][0][0] == 503
 
 
