@@ -7,6 +7,16 @@ CPU-веса без device; повторная recovery — порядок Docke
 импорт 60 H-меток; first-LIVE Engine-create adapter (L0, production block сохранён).
 B0/S0 BLOCKED, L1/I1/P1/S1 NOT_RUN; научные статусы не менялись.
 
+05.10.2026, вечер — по решению владельца развёрнуто обычным путём (compose), с
+откатом наготове: CORE api/mcp на образе `18d96c2` (49 инструментов чтения), профиль
+`compatibility`, политика источников (все 271 — `PRIVATE_CLOUD_ALLOWED`) и права доступа
+включены; EDGE `vkm-rerank-m0` = visual owner v8 в режиме LIVE. Smoke-6: 45 PASS, 4
+evidence-инструмента SKIP (журнал evidence ещё не опубликован), 0 FAIL. Пройдены R3
+capture и L1 (9/9 на Docker CORE). Старые образы/контейнеры удалены, по одной версии
+для отката оставлено. Полный профиль `production` требует квалифицированного поколения
+(deployment drill/accept) — NOT_RUN. Receipts: `deploy_20261005_*`, `r3_capture_*`,
+`first_live_engine_l1_core_*` в `docs/corpus_platform/receipts/`.
+
 04.10.2026 — производственная программа данных продолжена в отдельной рабочей
 ветке, draft PR #10. [Текущий отчёт](docs/reviews/RECOVERY_DOCX_GPU_CHECKPOINT_2026-10-04_RU.md)
 фиксирует проверенный restore 37 скриптов, 7 конфигураций, 28 review/provenance
