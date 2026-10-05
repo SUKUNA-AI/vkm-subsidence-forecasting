@@ -232,6 +232,14 @@ admission и требует explicit recovery. Терминальный восс
   и отсутствие Compose labels, зафиксировать отдельное решение и только затем удалить
   этот единственный контейнер вручную по точному ID; после этого повторить restore.
   Автоматического расширения допуска нет; величину skew измеряет L1.
+* Закрытые семейства имён: `EngineCreatePlan.name_family` — `PRODUCTION`
+  (`vkm-core-{unit}-1`, по умолчанию) или `QUALIFICATION` (`vkm-l1q-{unit}-1`). Имена
+  profiles обязаны принадлежать семейству плана; transport и adapter строят regex owned
+  name (create, inspect, sweeps) только из этого семейства, поэтому QUALIFICATION adapter
+  не может адресовать `vkm-core-*`, и наоборот. `FirstLiveIntent` принимает только
+  `PRODUCTION`. `QUALIFICATION` нужен лишь для изолированного L1 на CORE рядом с
+  работающими production receivers; его результат не является квалификацией самого
+  first-LIVE switch и не снимает code gaps ниже.
 * Torn/повреждённый journal никогда не чинится автоматически: оператор сохраняет
   копию файла, сверяет последнюю целую запись с native inspect owned names и journal
   IDs и принимает отдельное решение; удалять или обрезать journal нельзя.

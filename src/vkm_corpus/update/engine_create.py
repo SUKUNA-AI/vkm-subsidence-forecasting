@@ -75,7 +75,18 @@ APPROVED_SECURITY_OPT = frozenset({"no-new-privileges", "no-new-privileges:true"
 
 HEX64 = re.compile(r"[0-9a-f]{64}")
 IMAGE_ID = re.compile(r"sha256:[0-9a-f]{64}")
-OWNED_NAME = re.compile(r"vkm-core-(?:api|mcp)-1")
+# Closed name families. PRODUCTION is the only one a first-LIVE intent accepts;
+# QUALIFICATION exists for the isolated L1 Engine lifecycle run on a host whose
+# production receivers must stay untouched. A transport addresses one family only.
+NAME_FAMILIES = {"PRODUCTION": "vkm-core-", "QUALIFICATION": "vkm-l1q-"}
+
+
+def owned_name(family: str, unit: str) -> str:
+    return NAME_FAMILIES[family] + unit + "-1"
+
+
+def owned_name_pattern(family: str) -> re.Pattern:
+    return re.compile(re.escape(NAME_FAMILIES[family]) + r"(?:api|mcp)-1")
 API_VERSION = r"1\.(?:4[1-9]|5[0-9])"
 
 
@@ -242,7 +253,7 @@ class EngineCreateProfile(StrictModel):
 
     schema_version: Literal["vkm-engine-create-profile/2"] = "vkm-engine-create-profile/2"
     unit: Literal["api", "mcp"]
-    name: str = Field(pattern=r"^vkm-core-(?:api|mcp)-1$")
+    name: str = Field(pattern=r"^(?:vkm-core|vkm-l1q)-(?:api|mcp)-1$")
     image: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
     cmd: tuple[Arg, ...] = Field(min_length=1, max_length=64)
     entrypoint: tuple[Arg, ...] | None = Field(default=None, max_length=16)
@@ -274,8 +285,8 @@ class EngineCreateProfile(StrictModel):
 
     @model_validator(mode="after")
     def _approved(self):
-        if self.name != "vkm-core-" + self.unit + "-1":
-            raise ValueError("owned receiver name must be fixed by its unit")
+        if self.name not in {owned_name(family, self.unit) for family in NAME_FAMILIES}:
+            raise ValueError("owned receiver name must be fixed by its family and unit")
         if len(set(self.env_names)) != len(self.env_names) or bool(self.env_names) != (self.environment is not None):
             raise ValueError("unique Env names require exactly one SHA-pinned environment file")
         if any(k.startswith(COMPOSE_LABEL_PREFIX) or k.startswith(LABEL_PREFIX) for k in self.labels):
@@ -341,6 +352,7 @@ class EngineCreatePlan(StrictModel):
     model_config = ConfigDict(hide_input_in_errors=True)
 
     schema_version: Literal["vkm-engine-create-plan/2"] = "vkm-engine-create-plan/2"
+    name_family: Literal["PRODUCTION", "QUALIFICATION"] = "PRODUCTION"
     api_version: str = Field(pattern=r"^1\.(?:4[1-9]|5[0-9])$")
     daemon: EngineDaemonPin
     request_timeout_seconds: float = Field(default=15, gt=0, le=60)
@@ -353,6 +365,8 @@ class EngineCreatePlan(StrictModel):
     def _both(self):
         if set(self.profiles) != set(UNITS) or any(p.unit != u for u, p in self.profiles.items()):
             raise ValueError("plan must contain exactly the API and read-MCP profiles")
+        if any(p.name != owned_name(self.name_family, u) for u, p in self.profiles.items()):
+            raise ValueError("profile names must belong to the plan's name family")
         api, mcp = self.profiles["api"], self.profiles["mcp"]
         if (api.network.name, api.network.network_id, api.network.config_sha256) != (
                 mcp.network.name, mcp.network.network_id, mcp.network.config_sha256):
@@ -648,16 +662,21 @@ class EngineTransport:
         "stop": ("POST", "/v{api}/containers/{container_id}/stop", ("container_id",), ("t",)),
         "remove": ("DELETE", "/v{api}/containers/{container_id}", ("container_id",), ("force", "v")),
     }
-    _PARAMS = {"image_id": IMAGE_ID, "network_id": HEX64, "container_id": HEX64,
-               "ref": re.compile(r"[0-9a-f]{64}|vkm-core-(?:api|mcp)-1")}
-    _QUERY = {"name": OWNED_NAME, "t": re.compile(r"[0-9]{1,3}"), "force": re.compile(r"false"), "v": re.compile(r"false")}
-
     def __init__(self, api_version: str, *, transport=None, socket_path: str = ENGINE_SOCKET,
-                 timeout_seconds: float = 15, max_response_bytes: int = 1024 * 1024,
+                 name_family: str = "PRODUCTION", timeout_seconds: float = 15, max_response_bytes: int = 1024 * 1024,
                  _monotonic: Callable[[], float] = time.monotonic):
         import httpx
         if not re.fullmatch(API_VERSION, api_version or ""):
             raise EngineRequestRefused("Engine API version is not pinned")
+        if name_family not in NAME_FAMILIES:
+            raise EngineRequestRefused("unknown owned-name family")
+        # Owned names are built from this transport's single family only.
+        owned = owned_name_pattern(name_family)
+        self.name_family = name_family
+        self._PARAMS = {"image_id": IMAGE_ID, "network_id": HEX64, "container_id": HEX64,
+                        "ref": re.compile(r"[0-9a-f]{64}|" + owned.pattern)}
+        self._QUERY = {"name": owned, "t": re.compile(r"[0-9]{1,3}"), "force": re.compile(r"false"),
+                       "v": re.compile(r"false")}
         if not _posix_absolute(socket_path or "") or not socket_path.endswith(".sock"):
             raise EngineRequestRefused("fixed Engine socket path required")
         self.api_version = api_version
@@ -672,7 +691,7 @@ class EngineTransport:
             "image": re.compile("/v" + api + "/images/sha256:[0-9a-f]{64}/json"),
             "network": re.compile("/v" + api + "/networks/[0-9a-f]{64}"),
             "create": re.compile("/v" + api + "/containers/create"),
-            "inspect": re.compile("/v" + api + "/containers/(?:[0-9a-f]{64}|vkm-core-(?:api|mcp)-1)/json"),
+            "inspect": re.compile("/v" + api + "/containers/(?:[0-9a-f]{64}|" + owned.pattern + ")/json"),
             "start": re.compile("/v" + api + "/containers/[0-9a-f]{64}/start"),
             "stop": re.compile("/v" + api + "/containers/[0-9a-f]{64}/stop"),
             "remove": re.compile("/v" + api + "/containers/[0-9a-f]{64}"),
@@ -998,7 +1017,7 @@ class EngineCreateAdapter:
         self.journal = EngineEffectJournal(Path(journal_path), {"journal_id": self.journal_id,
             "intent_sha256": intent_sha256, "plan_sha256": plan.sha256, "preserved_ids": list(preserved)}, clock=clock)
         self.engine = EngineTransport(plan.api_version, transport=transport, socket_path=socket_path,
-            timeout_seconds=plan.request_timeout_seconds, max_response_bytes=plan.max_response_bytes,
+            name_family=plan.name_family, timeout_seconds=plan.request_timeout_seconds, max_response_bytes=plan.max_response_bytes,
             _monotonic=_monotonic)
         self.socket_path = socket_path
         self._images = {}

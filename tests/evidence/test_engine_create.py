@@ -57,12 +57,17 @@ IMAGE_DOC = {"Id": IMAGE, "Config": {"Env": ["PATH=/usr/local/bin:/usr/bin", "LA
              "Labels": {"org.opencontainers.image.version": "1"}, "ExposedPorts": {"9999/tcp": {}},
              "Entrypoint": ["vkm"], "Cmd": ["--help"], "WorkingDir": "/app", "User": "", "Volumes": None,
              "Healthcheck": None}}
-ALLOWED = {
-    "GET": [r"/v1\.44/version", r"/v1\.44/info", r"/v1\.44/images/sha256:[0-9a-f]{64}/json",
-            r"/v1\.44/networks/[0-9a-f]{64}", r"/v1\.44/containers/(?:[0-9a-f]{64}|vkm-core-(?:api|mcp)-1)/json"],
-    "POST": [r"/v1\.44/containers/create", r"/v1\.44/containers/[0-9a-f]{64}/(?:start|stop)"],
-    "DELETE": [r"/v1\.44/containers/[0-9a-f]{64}"],
-}
+
+
+def allowed(api="1.44", prefix="vkm-core"):
+    v = "/v" + re.escape(api)
+    return {"GET": [v + "/version", v + "/info", v + r"/images/sha256:[0-9a-f]{64}/json",
+                    v + r"/networks/[0-9a-f]{64}", v + r"/containers/(?:[0-9a-f]{64}|" + prefix + r"-(?:api|mcp)-1)/json"],
+            "POST": [v + "/containers/create", v + r"/containers/[0-9a-f]{64}/(?:start|stop)"],
+            "DELETE": [v + r"/containers/[0-9a-f]{64}"]}
+
+
+ALLOWED = allowed()
 DEFAULT_ENV = {"api": {"VKM_API_PROFILE": "production", "VKM_DATA_ROLE": "canonical",
                        "VKM_UPDATE_RUNTIME_FILE": "/srv/runtime.json", "VKM_SECRET_PROBE": SENTINEL},
                "mcp": {"VKM_API_URL": "http://api:8000", "VKM_MCP_TOKEN_FILE": "/srv/served/mcp.token",
@@ -88,7 +93,8 @@ def rfc3339(unix):
 class FakeDaemon:
     """Minimal Docker-like semantics for exactly the allowlisted endpoints."""
 
-    def __init__(self):
+    def __init__(self, *, api="1.44", prefix="vkm-core"):
+        self.allowed = allowed(api, prefix)
         self.containers, self.requests, self.cli_calls, self.bodies = {}, [], [], []
         self.images = {IMAGE: copy.deepcopy(IMAGE_DOC)}
         self.networks = {NETWORK_ID: copy.deepcopy(NETWORK)}
@@ -163,7 +169,7 @@ class FakeDaemon:
     def handle(self, request):
         path, query = request.url.path, dict(request.url.params)
         self.requests.append((request.method, path, query))
-        assert any(re.fullmatch(p, path) for p in ALLOWED.get(request.method, ())), (request.method, path)
+        assert any(re.fullmatch(p, path) for p in self.allowed.get(request.method, ())), (request.method, path)
         part = path.split("/")
         reply = lambda status, value=None: httpx.Response(status, json=value) if value is not None else httpx.Response(status)
         if path.endswith("/version") or path.endswith("/info"):
@@ -288,11 +294,11 @@ def env_file(root, unit, values):
     return BoundFile(path=str(path), sha256=hashlib.sha256(data).hexdigest())
 
 
-def profile(unit, root, *, env=None, **update):
+def profile(unit, root, *, env=None, family="PRODUCTION", **update):
     port, host_port = (8000, 18000) if unit == "api" else (8765, 18765)
     env_values = DEFAULT_ENV[unit] if env is None else env
     data = Path(root).parent / "data"
-    values = dict(unit=unit, name="vkm-core-" + unit + "-1", image=IMAGE,
+    values = dict(unit=unit, name=E.owned_name(family, unit), image=IMAGE,
         cmd=(unit, "serve", "--host", "0.0.0.0", "--port", str(port)),
         env_names=tuple(sorted(env_values)), environment=env_file(root, unit, env_values),
         user="10001:10001", labels={"org.example.role": "receiver"}, exposed_ports=(str(port) + "/tcp",),
@@ -309,9 +315,9 @@ def profile(unit, root, *, env=None, **update):
     return EngineCreateProfile(**values)
 
 
-def make_plan(root, *, daemon=DAEMON, **update):
-    return EngineCreatePlan(api_version="1.44", daemon=daemon,
-                            profiles={u: profile(u, root, **update) for u in ("api", "mcp")})
+def make_plan(root, *, daemon=DAEMON, family="PRODUCTION", **update):
+    return EngineCreatePlan(api_version="1.44", daemon=daemon, name_family=family,
+                            profiles={u: profile(u, root, family=family, **update) for u in ("api", "mcp")})
 
 
 @pytest.fixture
@@ -1638,3 +1644,74 @@ def test_backward_clock_step_keeps_an_unattributable_late_candidate_fail_closed(
         engine.remove_owned()
     assert ident in world.daemon.containers and ident not in world.daemon.deleted
     assert phases(world.journal)[-1] != "ATTEMPT_CLOSED"
+
+
+# ------------------------------------------------------ closed name families --
+
+def test_profile_names_must_belong_to_the_plan_family(tmp_path):
+    root = tmp_path / "runtime" / "served"
+    production = {u: profile(u, root) for u in ("api", "mcp")}
+    qualification = {u: profile(u, root, family="QUALIFICATION") for u in ("api", "mcp")}
+    assert qualification["api"].name == "vkm-l1q-api-1" and production["mcp"].name == "vkm-core-mcp-1"
+    with pytest.raises(ValueError, match="name family"):
+        EngineCreatePlan(api_version="1.44", daemon=DAEMON, name_family="QUALIFICATION", profiles=production)
+    with pytest.raises(ValueError, match="name family"):
+        EngineCreatePlan(api_version="1.44", daemon=DAEMON, profiles=qualification)  # default PRODUCTION
+    with pytest.raises(ValueError, match="name family"):
+        EngineCreatePlan(api_version="1.44", daemon=DAEMON, name_family="QUALIFICATION",
+                         profiles={"api": qualification["api"], "mcp": production["mcp"]})
+    for bad in ("vkm-l1q-mcp-1", "vkm-x-api-1", "vkm-l1q-api-2"):
+        with pytest.raises(ValueError):
+            profile("api", root, name=bad)
+    with pytest.raises(ValueError):
+        EngineCreatePlan(api_version="1.44", daemon=DAEMON, name_family="STAGING", profiles=production)
+
+
+@pytest.mark.parametrize("family,own,other", [("QUALIFICATION", "vkm-l1q", "vkm-core"), ("PRODUCTION", "vkm-core", "vkm-l1q")])
+def test_transport_addresses_only_its_own_name_family(family, own, other):
+    daemon = FakeDaemon(prefix=own)
+    t = EngineTransport("1.44", transport=daemon.transport(), name_family=family)
+    for unit in ("api", "mcp"):
+        assert t.inspect(own + "-" + unit + "-1") is None  # reaches the daemon (404)
+        for call in (lambda: t.inspect(other + "-" + unit + "-1"),
+                     lambda: t.create(other + "-" + unit + "-1", {"Image": IMAGE}, timeout=1),
+                     lambda: t._request("inspect", params={"ref": other + "-" + unit + "-1"})):
+            with pytest.raises(E.EngineRequestRefused):
+                call()
+    assert [p for _, p, _ in daemon.requests] == ["/v1.44/containers/" + own + "-api-1/json",
+                                                  "/v1.44/containers/" + own + "-mcp-1/json"]
+    with pytest.raises(E.EngineRequestRefused):
+        EngineTransport("1.44", transport=daemon.transport(), name_family="STAGING")
+
+
+def test_qualification_adapter_never_addresses_production_names(tmp_path):
+    root = tmp_path / "runtime" / "served"
+    root.mkdir(parents=True)
+    (root / "admission.lock").touch()
+    (root.parent / "data").mkdir()
+    daemon, clock = FakeDaemon(prefix="vkm-l1q"), Clock()
+    daemon.clock = clock
+    production = {}
+    for unit, ident in ORIGINALS.items():  # live production receivers on the same daemon
+        daemon.containers[ident] = legacy_doc(unit, ident)
+        production[ident] = copy.deepcopy(daemon.containers[ident])
+    plan = make_plan(root, family="QUALIFICATION")
+    engine = EngineCreateAdapter(plan, journal_path=engine_journal_path(str(root), INTENT_SHA), intent_sha256=INTENT_SHA,
+        preserved_ids=ORIGINALS.values(), transport=daemon.transport(), clock=clock)
+    ids = {u: engine.create(u) for u in ("api", "mcp")}
+    assert {daemon.containers[i]["Name"] for i in ids.values()} == {"/vkm-l1q-api-1", "/vkm-l1q-mcp-1"}
+    engine.start("api")
+    assert sorted(engine.remove_owned()) == sorted(ids.values())
+    assert {i: daemon.containers[i] for i in ORIGINALS.values()} == production
+    paths = [p for _, p, _ in daemon.requests]
+    assert not any("vkm-core" in p for p in paths) and not any(i in p for i in ORIGINALS.values() for p in paths)
+
+
+def test_first_live_intent_refuses_a_qualification_plan(tmp_path):
+    from vkm_corpus.update.first_live import FirstLiveIntent
+    value = intent_value(tmp_path)
+    value["engine_create"]["name_family"] = "QUALIFICATION"
+    for unit in ("api", "mcp"):
+        value["engine_create"]["profiles"][unit]["name"] = "vkm-l1q-" + unit + "-1"
+    with pytest.raises(ValueError, match="PRODUCTION name family"):
+        FirstLiveIntent.model_validate(value)

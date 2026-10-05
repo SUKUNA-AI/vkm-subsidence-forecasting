@@ -260,6 +260,8 @@ class FirstLiveIntent(StrictModel):
         """
         from urllib.parse import urlsplit
         from vkm_corpus.update.engine_create import native_overlap
+        if self.engine_create.name_family != "PRODUCTION":
+            raise ValueError("first LIVE accepts only the PRODUCTION name family")
         pins = {(n.name, n.network_id, n.config_sha256) for n in self.networks}
         root = Path(self.units.control_root)
         # API: the live operator environment itself. Read MCP: only its own explicitly

@@ -186,7 +186,7 @@
           "type": "array"
         },
         "name": {
-          "pattern": "^vkm-core-(?:api|mcp)-1$",
+          "pattern": "^(?:vkm-core|vkm-l1q)-(?:api|mcp)-1$",
           "title": "Name",
           "type": "string"
         },
@@ -602,6 +602,15 @@
       "minimum": 65536,
       "title": "Max Response Bytes",
       "type": "integer"
+    },
+    "name_family": {
+      "default": "PRODUCTION",
+      "enum": [
+        "PRODUCTION",
+        "QUALIFICATION"
+      ],
+      "title": "Name Family",
+      "type": "string"
     },
     "profiles": {
       "additionalProperties": {
