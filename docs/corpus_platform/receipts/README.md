@@ -166,3 +166,11 @@ ID, проверки daemon/binding до парковки оригиналов, 
 388 PASS Windows и 388 PASS Linux по JUnit; независимый challenger — 2 раунда,
 открытых MUST_FIX нет. FIRST_LIVE_NOT_READY: L1 (реальный Engine) NOT_RUN,
 activation невозможна до замены Compose-proof.
+
+[edge_owner_shadow_attempt_2026-10-05_v7.json](edge_owner_shadow_attempt_2026-10-05_v7.json):
+диагностический bounded drill v7 (commit `7be32d2`, классификация тела 503). Наблюдено:
+сервер отвечал `Loading model` только ~1 с после spawn (загрузка модели завершается),
+затем 4521 ответ нативного witness getter `loaded_witness_unavailable` до дедлайна.
+Класс причины — исключение getter — **наблюдён**; место броска (device NULL у
+mmap CPU buffer) выведено из исходника. OLD восстановлен контроллером (health 200),
+повторная recovery — verified no-op. LIVE/switch NOT_RUN.
