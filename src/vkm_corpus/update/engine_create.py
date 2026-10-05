@@ -55,6 +55,10 @@ MAX_JOURNAL_RECORDS = 4096
 MAX_CREATE_INTENTS = 3
 CREATED_TOLERANCE_SECONDS = 1.0
 IMAGE_DEFAULT = "IMAGE_DEFAULT"
+# Docker's zero time: State.StartedAt of a container that was never started.
+DOCKER_ZERO_TIME = "0001-01-01T00:00:00Z"
+APPARMOR_AS_EXPECTED = "APPARMOR_AS_EXPECTED_FOR_LIFECYCLE"
+APPARMOR_DIFFERS = "APPARMOR_DIFFERS_FROM_LIFECYCLE"
 DIFFERS_FROM_IMAGE = "DIFFERS_FROM_IMAGE"
 DEFAULT_OR_STRICTER = "DEFAULT_OR_STRICTER"
 WEAKENED = "WEAKENED"
@@ -492,7 +496,7 @@ def expected_contract(profile: EngineCreateProfile, ownership: dict, env_digests
     mounts = sorted(({"Type": "bind", "Source": m.source, "Destination": m.target, "RW": not m.read_only}
                      for m in profile.mounts), key=lambda m: (m["Destination"], m["Source"]))
     return {"name": "/" + profile.name, "image": profile.image, "compose_labels": False,
-            "apparmor_profile": daemon.apparmor_profile, "config": config, "host": host, "mounts": mounts,
+            "apparmor_profile": APPARMOR_AS_EXPECTED, "config": config, "host": host, "mounts": mounts,
             "networks": {profile.network.name: {"NetworkID": profile.network.network_id,
                 "Aliases": sorted(profile.network.aliases), "IPAMConfig": [], "Links": [], "DriverOpts": []}}}
 
@@ -515,6 +519,26 @@ def _image_field(actual, image, pinned):
     if pinned is not None:
         return actual
     return IMAGE_DEFAULT if (actual or None) == (image or None) else DIFFERS_FROM_IMAGE
+
+
+def expected_apparmor(item: dict, profile: EngineCreateProfile, daemon: EngineDaemonPin) -> str | None:
+    """AppArmor profile the Engine reports for this lifecycle phase; None = no consistent phase.
+
+    Docker (observed on 26.1.5) fills an implicit AppArmorProfile only at the first
+    start; an explicit ``apparmor=docker-default`` option is recorded at create.
+    Without daemon AppArmor support the profile is always empty.
+    """
+    if not daemon.apparmor_profile:
+        return ""
+    if "apparmor=" + daemon.apparmor_profile in profile.security_opt:
+        return daemon.apparmor_profile
+    state = item.get("State") or {}
+    started_at, running = state.get("StartedAt"), state.get("Running")
+    if started_at == DOCKER_ZERO_TIME and running is False:
+        return ""  # created, never started
+    if isinstance(started_at, str) and started_at and started_at != DOCKER_ZERO_TIME:
+        return daemon.apparmor_profile  # started at least once (running or exited)
+    return None  # inconsistent lifecycle: never as expected
 
 
 def observed_contract(item: dict, image_config: dict, profile: EngineCreateProfile, daemon: EngineDaemonPin) -> dict:
@@ -608,7 +632,8 @@ def observed_contract(item: dict, image_config: dict, profile: EngineCreateProfi
                     for name, n in sorted(((item.get("NetworkSettings") or {}).get("Networks") or {}).items())}
         return {"name": item.get("Name"), "image": item.get("Image"),
                 "compose_labels": any(str(k).startswith(COMPOSE_LABEL_PREFIX) for k in labels),
-                "apparmor_profile": item.get("AppArmorProfile") or "",
+                "apparmor_profile": APPARMOR_AS_EXPECTED
+                if (item.get("AppArmorProfile") or "") == expected_apparmor(item, profile, daemon) else APPARMOR_DIFFERS,
                 "config": config, "host": observed_host, "mounts": native_mounts, "networks": networks}
     except (AttributeError, TypeError, ValueError):
         raise EngineContractDrift("native inspect document is malformed") from None

@@ -139,8 +139,11 @@ class FakeDaemon:
                      "ReadonlyPaths": sorted(E.BASELINE_READONLY_PATHS)})
         network = body["HostConfig"]["NetworkMode"]
         aliases = body["NetworkingConfig"]["EndpointsConfig"][network]["Aliases"]
+        # Real Engine behaviour (26.1.5): an implicit AppArmor profile appears only at the
+        # first start; an explicit apparmor= option is recorded at create.
+        explicit = [o.split("=", 1)[1] for o in body["HostConfig"].get("SecurityOpt") or [] if o.startswith("apparmor=")]
         return {"Id": ident, "Name": "/" + name, "Image": body["Image"], "Created": rfc3339(self.clock()),
-                "AppArmorProfile": "docker-default",
+                "AppArmorProfile": explicit[0] if explicit else "",
                 "Config": {"Hostname": ident[:12], "Image": body["Image"], "Cmd": body.get("Cmd") or image.get("Cmd"),
                            "Entrypoint": body.get("Entrypoint", image.get("Entrypoint")),
                            "Env": [k + "=" + v for k, v in env.items()],
@@ -157,7 +160,8 @@ class FakeDaemon:
                     "NetworkID": "" if self.late_network_id else self.network_by_name(network)["Id"],
                     "Aliases": list(aliases) + [ident[:12]], "IPAMConfig": None, "Links": None, "DriverOpts": None,
                     "DNSNames": [name, ident[:12], *aliases]}}, "Ports": {}},
-                "State": {"Status": "created", "Running": False, "Paused": False, "Restarting": False, "Pid": 0}}
+                "State": {"Status": "created", "Running": False, "Paused": False, "Restarting": False, "Pid": 0,
+                          "StartedAt": E.DOCKER_ZERO_TIME}}
 
     def network_by_name(self, name):
         return next(n for n in self.networks.values() if n["Name"] == name)
@@ -213,7 +217,10 @@ class FakeDaemon:
             assert query == {}
             if item["State"]["Running"]:
                 return reply(304)
-            item["State"].update(Running=True, Pid=4000 + len(self.started), Status="running")
+            item["State"].update(Running=True, Pid=4000 + len(self.started), Status="running",
+                                 StartedAt=rfc3339(self.clock()))
+            if not item.get("AppArmorProfile") and "name=apparmor" in self.info["SecurityOptions"]:
+                item["AppArmorProfile"] = "docker-default"
             if self.late_network_id == "assign-on-start":
                 for name, endpoint in item["NetworkSettings"]["Networks"].items():
                     endpoint["NetworkID"] = self.network_by_name(name)["Id"]
@@ -1715,3 +1722,79 @@ def test_first_live_intent_refuses_a_qualification_plan(tmp_path):
         value["engine_create"]["profiles"][unit]["name"] = "vkm-l1q-" + unit + "-1"
     with pytest.raises(ValueError, match="PRODUCTION name family"):
         FirstLiveIntent.model_validate(value)
+
+
+# ------------------------------------------------- lifecycle-aware AppArmor (L1 attempt 1) --
+
+APPARMOR_CASES = [
+    # (explicit apparmor opt, daemon has AppArmor, phase, reported profile, expected to verify)
+    (False, True, "created", "", True),
+    (False, True, "created", "docker-default", False),  # Docker does not fill it before the first start
+    (False, True, "created", "unconfined", False),
+    (False, True, "started", "docker-default", True),
+    (False, True, "started", "", False),
+    (False, True, "started", "unconfined", False),
+    (True, True, "created", "docker-default", True),
+    (True, True, "created", "", False),
+    (True, True, "started", "docker-default", True),
+    (True, True, "started", "unconfined", False),
+    (False, False, "created", "", True),
+    (False, False, "started", "", True),
+    (False, False, "started", "docker-default", False),
+]
+
+
+@pytest.mark.parametrize("explicit,enabled,phase,reported,ok", APPARMOR_CASES)
+def test_apparmor_expectation_follows_the_container_lifecycle(world, explicit, enabled, phase, reported, ok):
+    if not enabled:
+        world.daemon.info["SecurityOptions"] = ["name=seccomp,profile=builtin", "name=cgroupns"]
+    daemon_pin = DAEMON if enabled else DAEMON.model_copy(update={"security_options": tuple(world.daemon.info["SecurityOptions"])})
+    opts = ("no-new-privileges:true", "apparmor=docker-default") if explicit else ("no-new-privileges:true",)
+    plan = make_plan(world.root, daemon=daemon_pin, security_opt=opts)
+    engine = world.adapter(plan=plan)
+    ident = engine.create("api")  # the fake reports what the real Engine reports here
+    if phase == "started":
+        engine.start("api")
+    world.daemon.containers[ident]["AppArmorProfile"] = reported
+    profile = plan.profiles["api"]
+    _, _, fields = engine._observe(ident, profile, 1)
+    assert (fields == []) is ok and (ok or fields == ["apparmor_profile"])
+    pin = engine.observe("api", running=phase == "started")[1]
+    assert (pin == engine.expected_pin("api")) is ok
+
+
+def test_never_started_with_implicit_apparmor_creates_verifies_and_starts_like_docker_26(world):
+    """The exact L1 attempt-1 sequence: created reports "", running reports docker-default."""
+    engine = world.adapter()
+    ids = {u: engine.create(u) for u in ("api", "mcp")}
+    assert all(world.daemon.containers[i]["AppArmorProfile"] == "" for i in ids.values())
+    assert "VERIFY_FAILED" not in phases(world.journal)
+    engine.start("api")
+    assert world.daemon.containers[ids["api"]]["AppArmorProfile"] == "docker-default"
+    world.adapter().start("mcp")
+    assert phases(world.journal).count("STARTED") == 2
+
+
+@pytest.mark.parametrize("profile_value", ["", "docker-default"])
+def test_lost_ack_adoption_uses_the_lifecycle_expectation(world, profile_value):
+    def lost(request, doc):
+        doc["AppArmorProfile"] = profile_value
+        raise httpx.ReadTimeout("lost", request=request)
+    world.daemon.hooks["after_create"] = lost
+    engine = world.adapter()
+    if profile_value == "":
+        assert engine.create("api") == world.daemon.created[0]
+        assert phases(world.journal)[-2:] == ["CREATE_ADOPTED", "POST_CREATE_VERIFIED"]
+    else:
+        with pytest.raises(E.EngineContractDrift):
+            engine.create("api")
+        assert phases(world.journal)[-1] == "CREATE_PARTIAL"
+
+
+def test_inconsistent_lifecycle_never_matches_an_apparmor_expectation(world):
+    engine = world.adapter()
+    ident = engine.create("api")
+    world.daemon.containers[ident]["State"].update(Running=True, Pid=77, Status="running")  # StartedAt still zero
+    for value in ("", "docker-default"):
+        world.daemon.containers[ident]["AppArmorProfile"] = value
+        assert engine._observe(ident, world.plan.profiles["api"], 1)[2] == ["apparmor_profile"]

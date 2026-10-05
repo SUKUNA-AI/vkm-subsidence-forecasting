@@ -205,6 +205,11 @@ admission и требует explicit recovery. Терминальный восс
   `MaskedPaths`/`ReadonlyPaths` (не слабее defaults), devices/device requests/cgroup rules,
   `GroupAdd`, ulimits, OOM, DNS, sysctls, AppArmor profile, `LogConfig`, endpoint
   IPAM/links/driver options, TTY/stdin.
+  AppArmor проверяется с учётом жизненного цикла (наблюдено на Docker 26.1.5 в L1
+  attempt 1): без явного `apparmor=docker-default` ни разу не стартовавший кандидат
+  обязан показывать пустой профиль, стартовавший — `docker-default`; с явной опцией —
+  `docker-default` в обеих фазах; daemon без AppArmor — пусто. Любое другое значение,
+  включая `unconfined`, — drift.
 * Write-ahead hash-chained JSONL journal (`<control_root>/first-live-engine/<intent>.jsonl`,
   O_EXCL, O_APPEND, проверка inode, fsync файла и каталога): `CREATE_INTENT` (attempt,
   owned name, profile SHA, preserved original IDs, deadline) до запроса, затем
