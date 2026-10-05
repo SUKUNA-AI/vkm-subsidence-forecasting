@@ -86,7 +86,7 @@ def test_all_read_tools_are_called_with_harvested_ids():
     rep = run(client)
     assert rep["verdict"] == "PASS" and rep["tools_listed"] == 49 and rep["missing_tools"] == []
     assert rep["summary"] == {"PASS": 49, "WARN": 0, "FAIL": 0, "SKIP": 0} and rep["not_called"] == []
-    assert rep["version"] == "nightly-mcp-smoke-5"
+    assert rep["version"] == "nightly-mcp-smoke-6"
     args = {}
     for name, a in client.calls:
         args.setdefault(name, a)
@@ -149,6 +149,38 @@ def test_unavailable_evidence_never_becomes_success_or_exposes_error_ids():
         {"text": EVIDENCE}, {"record_id": "../not-an-id"}, "not a record"]}}})
     assert harvest.first("evidence_record") is None
 
+
+
+class StatusClient(FakeClient):
+    """get_corpus_status reports the evidence journal state like the API's production_controls."""
+
+    def __init__(self, journal, **kw):
+        super().__init__(**kw)
+        self.journal = journal
+
+    async def call_tool(self, name, arguments=None):
+        result = await super().call_tool(name, arguments)
+        if name == "get_corpus_status" and not result.is_error:
+            result.structured_content["item"] = {"record": {"production_controls": {
+                "profile": "compatibility", "evidence_journal": self.journal}}}
+        return result
+
+
+def test_unpublished_evidence_journal_skips_evidence_tools_without_calling_them():
+    client = StatusClient("NOT_PUBLISHED", errors={"list_evidence": "DEPENDENCY_UNAVAILABLE"})
+    rep = run(client)
+    assert rep["verdict"] == "WARN" and rep["summary"]["FAIL"] == 0
+    assert all(rep["per_tool"][t] == "SKIP" for t in SMOKE.EVIDENCE_TOOLS)
+    calls = {c["tool"]: c for c in rep["calls"]}
+    assert all(calls[t]["error_code"] == "EVIDENCE_NOT_PUBLISHED" for t in SMOKE.EVIDENCE_TOOLS)
+    assert not any(name in SMOKE.EVIDENCE_TOOLS for name, _ in client.calls)
+
+
+def test_configured_evidence_journal_keeps_dependency_failures_failing():
+    rep = run(StatusClient("CONFIGURED", errors={"list_evidence": "DEPENDENCY_UNAVAILABLE"}))
+    assert rep["verdict"] == "FAIL" and rep["per_tool"]["list_evidence"] == "FAIL"
+    rep = run(StatusClient("CONFIGURED"))
+    assert rep["verdict"] == "PASS" and all(rep["per_tool"][t] == "PASS" for t in SMOKE.EVIDENCE_TOOLS)
 
 def test_legacy_read_server_is_missing_four_evidence_tools():
     legacy = [tool for tool in SMOKE.EXPECTED_TOOLS if "evidence" not in tool]

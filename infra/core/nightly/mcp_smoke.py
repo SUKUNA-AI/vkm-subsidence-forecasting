@@ -26,7 +26,7 @@ import sys
 import time
 from datetime import datetime, timezone
 
-VERSION = "nightly-mcp-smoke-5"
+VERSION = "nightly-mcp-smoke-6"
 EXPECTED_TOOLS = (
     "search_text", "search_hybrid", "retrieval_trace", "search_objects", "get_source", "get_work", "get_page",
     "get_page_image", "get_figure", "get_table", "get_formula", "get_object", "get_document_neighbors",
@@ -42,6 +42,8 @@ EXPECTED_TOOLS = (
     # versioned, access-filtered evidence (production data program, 01.10)
     "list_evidence", "get_evidence_record", "get_evidence_dependencies", "get_evidence_review_packet",
 )
+EVIDENCE_TOOLS = frozenset({"list_evidence", "get_evidence_record", "get_evidence_dependencies",
+                            "get_evidence_review_packet"})
 # service failures (the tool layer or a dependency is broken); other error codes are data errors of the input
 FAIL_CODES = {"DEPENDENCY_UNAVAILABLE", "DEPENDENCY_TIMEOUT", "DEPENDENCY_ERROR", "INTERNAL", "INTERNAL_ERROR",
               "UNAUTHORIZED", "FORBIDDEN", "SNAPSHOT_UNAVAILABLE", "TIMEOUT", "EXCEPTION", "NO_ANSWER"}
@@ -73,6 +75,7 @@ class Harvest:
         self.ids = {k: [] for k in RE}
         self.ids["evidence_record"] = []
         self.image_figures = []
+        self.evidence_journal = None             # production_controls.evidence_journal of get_corpus_status
 
     def add(self, body):
         text = json.dumps(body, ensure_ascii=False)
@@ -83,6 +86,20 @@ class Harvest:
 
     def first(self, kind):
         return self.ids[kind][0] if self.ids[kind] else None
+
+    def add_status(self, body):
+        """Record whether the API itself reports an evidence journal (CONFIGURED / NOT_PUBLISHED)."""
+        stack, seen = [body], 0
+        while stack and seen < 200:
+            node = stack.pop(); seen += 1
+            if isinstance(node, dict):
+                controls = node.get("production_controls")
+                if isinstance(controls, dict) and isinstance(controls.get("evidence_journal"), str):
+                    self.evidence_journal = controls["evidence_journal"]
+                    return
+                stack.extend(node.values())
+            elif isinstance(node, list):
+                stack.extend(node)
 
     def add_evidence_page(self, body):
         """Use only actual permitted records, never an id embedded in quoted text or an error."""
@@ -192,6 +209,12 @@ async def run(client, deadline_s=600.0, call_timeout_s=240.0):
             entry.update(status="FAIL", error_code="TOOL_NOT_LISTED")
             calls.append(entry)
             continue
+        if tool in EVIDENCE_TOOLS and hv.evidence_journal == "NOT_PUBLISHED":
+            # The API reports no published evidence journal: these tools have nothing to serve yet.
+            # Not a success (SKIP -> verdict WARN); once the journal is CONFIGURED a failure is a FAIL again.
+            entry.update(status="SKIP", error_code="EVIDENCE_NOT_PUBLISHED")
+            calls.append(entry)
+            continue
         if callable(args):
             args = args(hv)
         if not args and args != {}:
@@ -215,6 +238,8 @@ async def run(client, deadline_s=600.0, call_timeout_s=240.0):
             exc = f"EXCEPTION:{type(e).__name__}"
         status, code = classify(body, is_error, exc)
         hv.add(body)
+        if tool == "get_corpus_status" and body.get("ok"):
+            hv.add_status(body)
         if tool == "list_evidence":
             hv.add_evidence_page(body)
         if tool == "search_objects" and args.get("has_image") and body.get("ok"):

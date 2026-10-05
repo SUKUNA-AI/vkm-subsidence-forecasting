@@ -95,6 +95,10 @@ services:
     environment:
       VKM_DATA_ROOT: /data
       VKM_DATA_ROLE: canonical
+      # The image defaults to "production", which requires VKM_SOURCE_POLICY_FILE, VKM_ACCESS_CONTEXT_FILE and
+      # VKM_UPDATE_RUNTIME_FILE (not provisioned on CORE yet). "compatibility" serves as before and reports
+      # itself in /v1/status production_controls; switch when the policy files exist (05.10.2026).
+      VKM_API_PROFILE: compatibility
       VKM_NEO4J_URI: bolt://neo4j:7687
       VKM_NEO4J_PASSWORD_FILE: /run/secrets/neo4j_password
       VKM_OPENSEARCH_URL: http://opensearch:9200
