@@ -1625,9 +1625,13 @@ def test_symlinked_mount_source_into_a_forbidden_tree_is_refused_natively(tmp_pa
     except OSError:  # unprivileged Windows: no link, nothing to resolve
         assert E.mount_source_problem(str(tmp_path / "absent")) == "unavailable"
         return
-    assert E.mount_source_problem(str(link)) == "indirect"
-    if os.name == "posix":
-        assert E.forbidden_host_path(os.path.realpath(str(link)))
+    try:
+        assert E.mount_source_problem(str(link)) == "indirect"
+        if os.name == "posix":
+            assert E.forbidden_host_path(os.path.realpath(str(link)))
+    finally:
+        # A link to /run left in the pytest temp tree makes the CI step that walks it fail with EACCES.
+        link.unlink()
 
 
 def test_backward_clock_step_keeps_an_unattributable_late_candidate_fail_closed(world):
