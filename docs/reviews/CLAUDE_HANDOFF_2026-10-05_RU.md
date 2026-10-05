@@ -137,4 +137,10 @@ native cache и образ, повторить bounded drill v7 с тем же �
 
 ## 9. CI
 
-Заполняется после push финальной ревизии.
+Рабочая ветка запушена (`bd81589..4032029`, затем этот docs-коммит); hosted workflows
+(`world-integrity`, `corpus-offline`, `windows-offline`) запускаются на финальной
+ревизии ветки PR #10. Результаты в этой сессии **не наблюдались**: привязка PR в
+приложении недоступна (`gh` не авторизован), самостоятельный опрос CI не выполнялся.
+Проверить в PR #10. Локально перед push: Linux `tests/world` 661 passed / 2 skipped;
+`verify_canonical_repository.py` с PRIVATE — 36 PASS, 7 SKIPPED_REF_UNAVAILABLE
+(локально нет исторических тегов), exit 0. Main не сливался, protection не менялась.
