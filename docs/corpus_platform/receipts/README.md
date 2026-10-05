@@ -139,6 +139,10 @@ L1 attempt 2 после исправления `ac9589e` (AppArmor с учёто
 `vkm-l1q-*`, не first-LIVE: activation по-прежнему невозможна (`_joined_proof`
 требует Compose labels), switch NOT_RUN.
 
+[first_live_engine_create_cpu_2026-10-05_apparmor.json](first_live_engine_create_cpu_2026-10-05_apparmor.json):
+L0 на `ac9589e` (AppArmor с учётом жизненного цикла) — 410 тестов на Windows и Linux,
+файлы сверены побайтно с коммитом; заменяет pins `_names` receipt.
+
 [native_owner_cpu_2026-10-04.json](native_owner_cpu_2026-10-04.json): точные hashes
 PUBLIC native placement/owner source и synthetic CPU JUnit. Declared platform
 NOT_RUN отделены от PASS; selections пересекаются и не суммируются. Проверены
