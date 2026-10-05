@@ -153,6 +153,11 @@ EDGE не менялся.
 и `output` на CUDA0 (921 МБ); `rerank_visual` через MCP работает (~4,4 с на картинку).
 Удалено старое на CORE и EDGE, оставлено по одной версии для отката.
 
+[evidence_journal_20261005.json](evidence_journal_20261005.json): первый настоящий журнал evidence на CORE —
+пилот переноса Phase-1 (механика 1 429 + реология 7 = 1 436 записей, 342 строки UNRESOLVED в частном архиве),
+привязка к точным страницам, объекты без подписи — по версии «содержимое@коммит» (решение владельца), все записи
+UNREVIEWED; api `34570ee`, политика 271 + 50 внешних id; smoke-6 49/49 PASS.
+
 [first_live_engine_create_cpu_2026-10-05_apparmor.json](first_live_engine_create_cpu_2026-10-05_apparmor.json):
 L0 на `ac9589e` (AppArmor с учётом жизненного цикла) — 410 тестов на Windows и Linux,
 файлы сверены побайтно с коммитом; заменяет pins `_names` receipt.
