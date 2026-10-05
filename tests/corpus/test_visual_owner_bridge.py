@@ -532,3 +532,24 @@ def test_cancel_request_stops_load_loop_even_when_signal_is_swallowed(tmp_path):
         client.close()
     assert time.monotonic() - began < 10
     assert diag.public()["cause_code"] == "NATIVE_LOAD_PROOF/FAILED/UNSET/InterruptedError"
+
+
+@LINUX
+def test_owner_config_identity_excludes_spawn_time_witness_credential(tmp_path):
+    # The plan's expected identity is computed before any model load from the
+    # recipe and its configured environment; the per-lifetime witness token that
+    # the hook adds at spawn must not enter config_sha256 (else no match ever).
+    recipe, client = _recipe(tmp_path)
+    environment = {"LANG": "C.UTF-8"}
+    try:
+        owner = vb.OwnedHookChildOwner.start(recipe, inference_client=client, serving_client_getter=lambda: client,
+            environment=environment)
+        with owner:
+            expected = record_hash({"recipe": record_hash(recipe), "environment": environment})
+            assert owner.proof.config_sha256 == expected
+            assert owner.observe().model.config_sha256 == expected
+            assert vb.WITNESS_ENV in owner.environment and vb.WITNESS_ENV not in owner.configured_environment
+            with_token = record_hash({"recipe": record_hash(recipe), "environment": owner.environment})
+            assert with_token != expected
+    finally:
+        client.close()

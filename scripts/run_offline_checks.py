@@ -192,7 +192,8 @@ WINDOWS_NOT_RUN = (
         "test_foreign_listener_is_localized_without_sending_the_challenge",
         "test_cleanup_failure_does_not_mask_the_primary_startup_cause",
         "test_fatal_unretried_fence_error_is_attributed_to_its_own_step",
-        "test_cancel_request_stops_load_loop_even_when_signal_is_swallowed")) + tuple(
+        "test_cancel_request_stops_load_loop_even_when_signal_is_swallowed",
+        "test_owner_config_identity_excludes_spawn_time_witness_credential")) + tuple(
     ("tests/corpus/test_stream_fileset.py::" + case,
      "NOT_RUN: FD-relative Linux durability/alias tests") for case in (
         "test_actual_remote_fd_relative_cipher_copy_and_separate_restore_are_exact",

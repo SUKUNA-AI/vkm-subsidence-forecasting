@@ -300,6 +300,9 @@ class OwnedChildModelOwner:
                 raise ValueError("explicit bounded child environment required")
             if len(obj.environment) > 256 or sum(len(k) + len(v) for k, v in obj.environment.items()) > 65536:
                 raise ValueError("native child environment exceeds limit")
+            # The configured identity excludes any per-lifetime credential a hook
+            # adds at spawn (e.g. the witness token); that lives in the process.
+            obj.configured_environment = dict(obj.environment)
             # No inherited process environment, shell, executable fallback or restart.
             diag.enter("SPAWN")
             obj.proc = obj._spawn_child()
@@ -349,7 +352,7 @@ class OwnedChildModelOwner:
                 dependencies_sha256=record_hash({"python": platform.python_version(),
                     "pydantic": importlib.metadata.version("pydantic"),
                     "native_implementation": [obj.hashes[path] for path in recipe.implementation_files]}),
-                config_sha256=record_hash({"recipe": obj.recipe_hash, "environment": obj.environment}),
+                config_sha256=record_hash({"recipe": obj.recipe_hash, "environment": obj.configured_environment}),
                 resources={role: obj.hashes[path] for role, path in recipe.resources.items()})
             obj.observe()
             return obj
