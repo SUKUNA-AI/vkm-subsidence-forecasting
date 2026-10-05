@@ -106,6 +106,14 @@ versions, 149 547 309 bytes, 23 batches и отдельно восстановл
 Receipt содержит только whitelist-агрегаты и approved bindings, без private paths,
 индивидуальных source hashes, payload и ключа.
 
+[r3_capture_2026-10-05.json](r3_capture_2026-10-05.json): exact R3 capture текущих
+байтовых идентичностей — 9 836 файлов, 2 180 880 117 bytes, 156 групп; executor и
+frozen plan по утверждённым SHA; собственный gate `read_committed_capture` PASS.
+Исторические объявления: 9 819 совпали, 0 расхождений, 7 конфликтующих сохранены
+нерешёнными (текущие байты совпали с одним из вариантов), у 10 исторического SHA нет.
+Запуск от учётки песочницы Codex после точечного права владельца на каталог профиля.
+Зашифрованная копия и независимый restore R3 — отдельный executor; B0 не закрыт.
+
 [native_owner_cpu_2026-10-04.json](native_owner_cpu_2026-10-04.json): точные hashes
 PUBLIC native placement/owner source и synthetic CPU JUnit. Declared platform
 NOT_RUN отделены от PASS; selections пересекаются и не суммируются. Проверены

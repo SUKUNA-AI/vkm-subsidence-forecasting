@@ -64,7 +64,7 @@ host-буфер точного типа `CPU_Mapped` → CPU device) **подт�
 |---|---|---|
 | **E0** | **CLOSED** | Обе причины установлены и исправлены; диагностика: закрытые стадии/шаги fence/классы, primary≠secondary, sentinel-тесты, отмена загрузки по stop, классификация 503. Challenger: MUST_FIX закрыты. |
 | **E1** | **PASSED (SHADOW scope)** | v6 FAILED (стадия наблюдена), v7 FAILED (класс причины наблюдён), **v8 `SHADOW_QUALIFIED_BASELINE_RESTORED`** (05.10 11:58:37–11:58:55Z; запуск подтверждён владельцем, GO challenger): образ `sha256:5eac4947…` из `74ae2b6`; loaded identity = preflight; тот же owner до/после synthetic inference; target weights blk.9–27 + output на CUDA0 (921 МБ), blk.0–8/other на CPU; 401 на неверный credential; отзыв proof/health при гибели child; новый instance и inference после рестарта; exact retained OLD (health 200); простой m0 ~19 с. Receipts `edge_owner_shadow_attempt_2026-10-05*.json`, `edge_owner_shadow_qualified_2026-10-05.json`. Не доказаны mmproj/context/kernels/performance; LIVE-recipe не квалифицирован. |
-| **B0** | **BLOCKED → путь согласован** | R3 (9 836 файлов, 2.18 ГБ) не захвачен: попытка шла от `CodexSandboxOffline`, у которой нет `FILE_READ_ATTRIBUTES` на профиль. Владелец разрешил вариант A — §7. Даже после capture B0 не закрыт: зашифрованная копия/restore R3 — отдельный executor; 61 622 пути не классифицированы; SRC-013 original не найден. IndependentBootstrapBackup не выдан. |
+| **B0** | **NOT_CLOSED (R3 захвачен)** | R3 exact capture **COMPLETE** (05.10, 31 с): 9 836 файлов, 2.18 ГБ, executor/plan по утверждённым SHA, gate `read_committed_capture` PASS (`r3_capture_2026-10-05.json`). Прежний отказ: учётке песочницы Codex не хватало `ReadAttributes+Synchronize` на каталог профиля (CreateFileW всегда добавляет SYNCHRONIZE), плюс исчезла запись Codex на `AppData`; владелец выдал `(RA,S)` и восстановил запись; запуск через `codex sandbox` (workspace-write от корня репозитория, `-X pycache_prefix`). B0 не закрыт: зашифрованная копия/restore R3 — отдельный executor; 61 622 пути не классифицированы; SRC-013 original не найден. IndependentBootstrapBackup не выдан. |
 | **L0** | **CLOSED (код + synthetic)** | `93ebfbf`: allowlist операций Engine API; профиль из approved полей, Env только имена + BoundFile; post-create inspect до start; write-ahead journal; lost-ACK/409 без повторного create; удаление только journal-owned ID; проверки daemon/binding до парковки оригиналов; Compose не вызывается. 388 PASS Windows и Linux (JUnit в `first_live_engine_create_cpu_2026-10-05.json`). Production block сохранён. |
 | **L1** | **NOT_RUN** | Нет утверждённого изолированного stand; daemon pin — заглушки. `_joined_proof`/fingerprint требуют Compose labels — activation невозможна и после L1; Compose `rebind` опасен, пока есть parked originals. |
 | **I1** | **NOT_RUN** | all49 actual transport, restart/rollback не выполнялись. |
@@ -107,19 +107,17 @@ Deploy»); результат v7 получен позже вместе с вл�
 
 ## 7. Решения и действия владельца
 
-1. **R3 capture — вариант A разрешён владельцем.** Право — изменение настроек
-   безопасности, команду `icacls` выполняет владелец; exact frozen capture может
-   повторить только учётка Codex-sandbox (план приватен ей). Последовательность:
-   `work/production_data/recovery_inventory_20261004/R3_RERUN_FOR_CODEX_RU.md`
-   (grant `(RA)` без наследования → read-only probe доступа → preflight → `--capture`
-   с утверждёнными SHA executor/plan → `/remove:g`).
+1. **R3 capture — выполнен 05.10** (вариант A). Владелец выдал учётке песочницы Codex
+   `(RA,S)` на каталог профиля без наследования и восстановил запись Codex на `AppData`;
+   capture запущен через `codex sandbox` (см. `R3_RERUN_FOR_CODEX_RU.md`, уточнения 05.10).
+   Право `(RA,S)` снимает владелец (`icacls … /remove:g`), затем проверить `AppData`.
 2. Утверждённый изолированный stand для L1.
 3. Решение о квалификации LIVE-recipe visual owner (порт 18083, образ v8) — отдельный
    bounded шаг, затем I1 перед любым switch.
 
 ## 8. Следующий конкретный шаг
 
-1. R3 по инструкции (владелец + Codex), затем исполнитель зашифрованной копии/restore R3.
+1. Исполнитель зашифрованной копии/restore R3 (capture готов: `r3_capture_2026-10-05.json`).
 2. L1 на утверждённом stand; затем замена Compose-proof (`_joined_proof`,
    `container_fingerprint`) для Engine-created receivers.
 3. LIVE-recipe visual owner и I1 (all49 по транспорту) — до switch.

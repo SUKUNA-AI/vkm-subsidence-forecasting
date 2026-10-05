@@ -1,0 +1,75 @@
+{
+  "capture": {
+    "age_or_ssh": "NOT_RUN",
+    "approved_plan_sha256": "b96ade68a243eba397d3d1f09d388ddafb39644c9de16f84b815eaa1ad75664c",
+    "atomic_current_generation": "NOT_PROVEN",
+    "capture_groups": 156,
+    "commit_acknowledgement": "FINAL_RECORD_VALID_AFTER_COMMIT_EVEN_IF_PROCESS_RESPONSE_LOST",
+    "completion_contract": "EXCLUSIVE_FINAL_NAME_AFTER_FINAL_HELD_GUARD_AND_VERIFIED_FENCE_TEARDOWN",
+    "elapsed_seconds": 28.9,
+    "executor_sha256": "19292bf2fb1f29cdcbb9f969c7d29132c6e47d62f05957b650e574d416aca36c",
+    "guard_validity_scope": "INDIVIDUAL_CAPTURE_EPOCHS_NOT_ATOMIC_CURRENT_FILESYSTEM",
+    "historical_comparison": {
+      "conflicting_current_matches_none": 0,
+      "conflicting_current_matches_one": 7,
+      "conflicting_declarations": 7,
+      "no_historical_sha": 10,
+      "single_match": 9819,
+      "single_mismatch": 0
+    },
+    "historical_conflicts": "ALL_SEVEN_UNRESOLVED",
+    "identity_payload_read": "NOT_RUN",
+    "identity_sha256": "3da39896c28cbf6d65879f12382c683ccc05b72c21b868aaf4517f3bc49a7d41",
+    "large_manifest_sha256": "bc61d6583daffa042ff8b24df62166dd258a7011e6a459e479776ec041bce29b",
+    "large_original_bytes": 883740672,
+    "large_original_files": 1,
+    "manifest_sha256": "9aab82d7ddfcde685273a06780d5d716e578db39d3205c386619c7efa29d195a",
+    "prepared_receipt_sha256": "66c124f65cf408a0d1cf65144e3ada18a3eb485dd98123a59e263d178b924e3f",
+    "schema": "vkm-r3-aggregate-current-byte-capture/1",
+    "scientific_admission": "NOT_GRANTED",
+    "small_file_batches": 154,
+    "small_manifest_sha256": "e9063d2b97246d057b1b8b73acdde623d071fe93484cc37683fe1845ad472034",
+    "source_bytes": 2180880117,
+    "source_bytes_read": 6542640351,
+    "source_files": 9836,
+    "source_payload_decoded": false,
+    "status": "COMPLETE_CURRENT_BYTE_IDENTITY_CAPTURE_BACKUP_NOT_RUN",
+    "transport_preparation_sha256": "536aab5454438e08ac8d8be7cd2493486d7fa18171437b475a8c632e6c63aa7e"
+  },
+  "completion_gate": {
+    "complete_receipt_sha256": "36038727b7707a0d85305f5a77c6b66e4446a9fe76b7afdc0cc2e31c6af1a6f3",
+    "gate": "read_committed_capture_PASS",
+    "output_entries": [
+      "all_current_byte_version_manifest.json",
+      "complete-safe-capture-receipt.json",
+      "exact-software-at-capture",
+      "fresh_identity.json",
+      "large_original_manifest.json",
+      "prepared-safe-capture-receipt.json",
+      "transport_preparation.json",
+      "whole_file_transport_manifest.json"
+    ],
+    "pending_record_present": false
+  },
+  "execution_context": {
+    "account": "Codex Windows sandbox account (the account that owns the frozen plan); run via `codex sandbox`",
+    "owner_access_change": "owner granted the sandbox account ReadAttributes+Synchronize (no list, no inheritance) on the user profile directory for this run; removal is the owner's action",
+    "previous_attempt": "04.10 BLOCKED (GUARDED_OPEN_FAILED, no access to the profile directory); retained, not overwritten",
+    "python": "pinned venv launcher over pinned CPython 3.13.13; -I -B and the executor's pycache_prefix fence",
+    "sandbox_policy": "workspace-write, rooted at the repository workspace (pre-existing Codex write grant); no new write grant"
+  },
+  "limits": {
+    "atomic_current_generation": "NOT_PROVEN",
+    "b0_backup_closure": "NOT_CLOSED — encrypted copy and independent restore of R3 need a separate executor",
+    "historical_conflicts": "7 conflicting historical declarations retained unresolved (current bytes match one of each)",
+    "independent_bootstrap_backup": "NOT_ISSUED",
+    "no_historical_sha": 10,
+    "scientific_admission": "NOT_GRANTED"
+  },
+  "operation_outputs_sha256": {
+    "r3_capture_run_2026-10-05.stdout.json": "2226fbdcee6764155278fcafbc42b9a58c0fe6eff28e414b661bdf26f6047f83",
+    "r3_capture_verify_2026-10-05.stdout.json": "85a8b5344d77b382892cb8fcf9ecaeaf2ba6aef9a146fad019a4b0e5e323944e"
+  },
+  "recorded_at": "2026-10-05T12:45:00.742189+00:00",
+  "schema_version": "vkm-r3-capture-public-receipt/1"
+}
