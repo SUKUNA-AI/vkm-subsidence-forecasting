@@ -1,0 +1,223 @@
+{
+  "artifact_sha256": {
+    "cached-image-build.receipt.v6.json": "94a625f55f53b5f7556c4f9e30689e339b5a9fbf569af1b29508dbc0c9db50a0",
+    "controller.journal.jsonl": "fd02f60529390071b49c88586361f390dd7e1bc99fe2d3d5d318c7bce424bbcf",
+    "metadata.receipt.json": "850b688470527020413aed063988c4a7f8903cacf5f5784db0a5fe766f8d3818",
+    "plan.json": "ae4b28834c2885298daa58993ff815e5de41404026ebd105a246eb13b553d4e0",
+    "post_drill_observation.json": "a161d3acaa6b6a218bde40fecd4799b5cb1964614fa50588f3b4d2c73db06b11",
+    "qualification.receipt.json": "376f38ec48cdf0135ed2dab11d4c5ae95325adfd64daba6ee5a22a5274253a5b",
+    "recipe-preflight.receipt.json": "1fec391fd85c2d64101bac12d50e00698c8e0cc4ed1457e76e401f25f6ab38d4",
+    "recovery.receipt.json": "3f9f1adae30c0ae3766027165bf770a25e0da97da7073f713a955cfafffb360a",
+    "stage1.receipt.json": "591e3eccbfd0217c3f87c3e81ade4ec4be1ce0b58fe8c38091e65067f31bdb35",
+    "watchdog.receipt.json": "6e998ce591db456183e7cdc25aea9871d17d1591c84165d92c4cf9b42879ce41"
+  },
+  "candidate_exit_code": 2,
+  "controller_fixes_runtime_observed": {
+    "fallback": "EXACT_RETAINED_BASELINE_RESTORED_FRESH_LIFETIME",
+    "old_m0_downtime_seconds": 187.4,
+    "repeated_recovery": "ALREADY_RESTORED_VERIFIED_NOOP",
+    "retained_baseline_after": {
+      "health_status": 200,
+      "image": "sha256:456889f579db75828ab0bbb7721491ca647d4b06af1f9ecbdf82892dc67a537f",
+      "pid": 2681294,
+      "running": true,
+      "started_at": "2026-10-05T10:28:06.532580141Z"
+    },
+    "terminal_exit_detected_without_waiting_for_proof_deadline": true,
+    "watchdog_status": "FAILED_DRILL_BASELINE_RESTORED"
+  },
+  "controller_sha256": "898dfbe105154c63e69a64ea0a8331a41bf5f29de44368adcf99b69f7cb47491",
+  "exit_detected_after_start_s": 185.665,
+  "image_build": {
+    "abi": "PASS_NO_MODEL",
+    "inputs_sha256": "c4d3dd1c7228ac6d018fe21f37166816f47e11b29f502c344af576524d7877c2",
+    "native_cache_image_id": "sha256:c0c0280b8f59e040fadaba3f14bea0f9d8dae93c86fd9de7ca76f8203006609a",
+    "status": "BUILT_NOT_MODEL_QUALIFIED"
+  },
+  "image_id": "sha256:d8f19975d9d573376fdce6845c1e50c5e08f8a1fcc96b6fe087a4fc3179d8f65",
+  "limits": {
+    "actual_49_tool_mcp_acceptance": "NOT_RUN",
+    "core_switch": "NOT_RUN",
+    "cpu_only_model": "NOT_RUN",
+    "drill_seconds": 420,
+    "gpu_layers": 20,
+    "live_qualification": "NOT_RUN",
+    "original_model_write_actions": "NONE_READ_ONLY_MOUNTS",
+    "recovery_seconds": 180,
+    "scientific_admission": "NOT_GRANTED",
+    "startup_timeout_s": 180.0,
+    "workstation_gpu": "NOT_USED"
+  },
+  "metadata_inventory_files": 68,
+  "not_obtained": {
+    "child_death_restart": "NOT_RUN",
+    "inference": "NOT_RUN",
+    "loaded_identity": "NOT_OBTAINED",
+    "target_weight_placement": "NOT_OBTAINED"
+  },
+  "observed_stage": {
+    "child_alive_at_deadline": true,
+    "evidence_class": "OBSERVED_OWNER_DIAGNOSTIC",
+    "fence_failures": {
+      "CHILD_PROCESS": {
+        "class": "ValueError",
+        "count": 1,
+        "first_ms": 3921,
+        "last_ms": 3921
+      },
+      "LISTENER": {
+        "class": "ValueError",
+        "count": 5,
+        "first_ms": 3952,
+        "last_ms": 4077
+      },
+      "WITNESS_STATUS": {
+        "class": "ValueError",
+        "count": 4579,
+        "first_ms": 4115,
+        "last_ms": 183923
+      }
+    },
+    "fence_step": "WITNESS_STATUS",
+    "outcome": "LOAD_PROOF_DEADLINE",
+    "spawn_after_ms": 3920,
+    "terminal_stage": "NATIVE_LOAD_PROOF",
+    "unexpected_mapped_libraries": [],
+    "witness_http_status": [
+      [
+        503,
+        4579
+      ]
+    ]
+  },
+  "plan_sha256": "ae4b28834c2885298daa58993ff815e5de41404026ebd105a246eb13b553d4e0",
+  "private_diagnostic_receipt_sha256": "52612d92740fbeb78cc35ead9a193df6b9c4ef060f817cb528800902ee52f516",
+  "public_component_commit": "5ee07e45023d653b6bbcf66266a5605dab30d389",
+  "recipe_preflight": "EXACT_IMPLEMENTATION_AND_CUDA_PREFLIGHT_PASSED_NO_MODEL",
+  "recorded_at": "2026-10-05T10:32:18.997454+00:00",
+  "review": "Independent challenger: NO-GO on v5 packet (config identity included spawn-time token) fixed in 5ee07e4; GO on v6 packet",
+  "root_cause": {
+    "applies_to_2026_10_04_attempt": "MOST_PROBABLE_SAME_CAUSE_IDENTICAL_TIMING_AND_NATIVE_BUILD",
+    "distinguishing_next_probe": "classify the witness 503 body by fixed strings (Loading model vs loaded_witness_unavailable) in the bridge diagnostics",
+    "fix_scope": "native witness getter must accept host buffers whose buffer type has no device (map to the CPU device) together with the Python placement contract; requires native cache rebuild and new qualification",
+    "not_excluded": [
+      "model load itself never finishing (middleware 503 'Loading model' has the same status code)"
+    ],
+    "source_refs": [
+      "ggml/src/ggml-backend.cpp: ggml_backend_cpu_buffer_from_ptr_type .device = NULL // FIXME",
+      "ggml/src/ggml-cpu/ggml-cpu.cpp: ggml_backend_cpu_device_buffer_from_host_ptr -> ggml_backend_cpu_buffer_from_ptr",
+      "src/llama-model.cpp: use_mmap + buffer_from_host_ptr for default CPU buffer type",
+      "infra/edge/llama-server/patches/0002-vkm-owned-loaded-witness.patch: if (!buft || !device) throw ... ; catch(...) -> 503"
+    ],
+    "statement": "witness getter throws for every load whose CPU weights are mmap-backed: llama.cpp maps them with ggml_backend_cpu_buffer_from_ptr, whose buffer type has device NULL; get_loaded_witness requires a non-null device and answers 503 loaded_witness_unavailable",
+    "status": "DERIVED_FROM_EXACT_UPSTREAM_SOURCE_NOT_DIRECTLY_OBSERVED",
+    "upstream_commit": "4da6337767f973e2b4d0797e5b323d77d8565e4a",
+    "workload_fact": "-ngl 20 of 28 layers: blk.0-8 and token_embd stay on CPU (mmap by default)"
+  },
+  "schema_version": "vkm-edge-owner-shadow-attempt/2",
+  "scope": "EDGE_VISUAL_COMPONENT_SHADOW_ONLY",
+  "startup_diagnostic_public": {
+    "cause_code": "NATIVE_LOAD_PROOF/LOAD_PROOF_DEADLINE/WITNESS_STATUS/ValueError",
+    "child": {
+      "alive_at_terminal": true,
+      "exit_code": null,
+      "spawned": true
+    },
+    "diagnostic_id": "df8960d81e84cb3a589db16db1930aa0",
+    "elapsed_ms": 184433,
+    "exception_class": "ValueError",
+    "fence_failures": [
+      [
+        "CHILD_PROCESS",
+        "ValueError",
+        1,
+        3921,
+        3921
+      ],
+      [
+        "LISTENER",
+        "ValueError",
+        5,
+        3952,
+        4077
+      ],
+      [
+        "WITNESS_STATUS",
+        "ValueError",
+        4579,
+        4115,
+        183923
+      ]
+    ],
+    "fence_step": "WITNESS_STATUS",
+    "identity": {
+      "recipe_sha256": "69ea19ff2d28c91f77d004b7c635a787e6d1a8876f4789f9d16b679988b613e8"
+    },
+    "kind": "visual",
+    "outcome": "LOAD_PROOF_DEADLINE",
+    "payload": "NOT_RECORDED",
+    "schema_version": "vkm-owner-startup-diagnostic/1",
+    "secondary": [],
+    "stages": [
+      [
+        "GPU_RECIPE",
+        0
+      ],
+      [
+        "IMPLEMENTATION_FENCE",
+        1
+      ],
+      [
+        "CUDA_PREFLIGHT",
+        743
+      ],
+      [
+        "RECIPE_IDENTITY",
+        1272
+      ],
+      [
+        "WATCHES",
+        1273
+      ],
+      [
+        "DEPENDENCY_INVENTORY",
+        1297
+      ],
+      [
+        "CREDENTIAL_READ",
+        1353
+      ],
+      [
+        "CLIENT_SETUP",
+        1353
+      ],
+      [
+        "FILE_INVENTORY",
+        1433
+      ],
+      [
+        "SPAWN",
+        3920
+      ],
+      [
+        "NATIVE_LOAD_PROOF",
+        3921
+      ]
+    ],
+    "terminal_stage": "NATIVE_LOAD_PROOF",
+    "unexpected_mapped_count": 0,
+    "witness_http_status": [
+      [
+        503,
+        4579
+      ]
+    ]
+  },
+  "status": "FAILED_QUALIFICATION_RETAINED_BASELINE_RESTORED_STAGE_OBSERVED",
+  "timeline_utc": {
+    "candidate_finished": "2026-10-05T10:28:05.904823483Z",
+    "candidate_started": "2026-10-05T10:25:00.609334004Z",
+    "old_restored": "2026-10-05T10:28:07.705077+00:00",
+    "old_stopped": "2026-10-05T10:25:00.346884+00:00"
+  }
+}

@@ -146,3 +146,14 @@ SHA-256 throughput; никаких container effects). Повторная recove
 candidate. Startup exit 2: по таймингу наиболее вероятен дедлайн 180 с доказательства
 загрузки при живом child; конкретный fence NOT_ESTABLISHED — его покажет bounded
 диагностика нового образа. GPU drill, model load и switch этим receipt не выполнялись.
+
+[edge_owner_shadow_attempt_2026-10-05.json](edge_owner_shadow_attempt_2026-10-05.json):
+повторная bounded SHADOW попытка на образе с диагностикой (commit `5ee07e4`) и
+контроллере v5. FAILED: candidate exit 2 через 185.7 с, но теперь стадия
+**наблюдена**: listener поднят за ~150 мс, затем witness endpoint 4579 раз отвечал
+503 до дедлайна 180 с, child жив, лишних mapped-библиотек нет. Корень выведен из
+точного upstream `4da6337`: CPU-веса через mmap получают buffer type с device NULL,
+нативный witness getter требует device и отвечает 503. Не исключено: незавершённая
+загрузка с тем же кодом 503. Исправленный контроллер обнаружил exit сразу, вернул
+exact retained OLD (новый PID, health 200, простой 187 с); повторная recovery —
+verified no-op. Identity/placement/inference не получены; LIVE/switch NOT_RUN.
