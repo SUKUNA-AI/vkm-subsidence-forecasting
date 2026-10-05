@@ -136,3 +136,13 @@ container/image, новый PID и native health 200. Ошибка повтор�
 source closure. Опасный Compose-create удалён; production блокируется до effects.
 Статус FIRST_LIVE_NOT_READY: требуется отдельный безопасный native-create adapter
 и actual runtime qualification. Synthetic PASS не доказывает сохранность originals.
+
+[edge_owner_e0_diagnosis_2026-10-05.json](edge_owner_e0_diagnosis_2026-10-05.json):
+read-only диагностика попытки 04.10 (docker inspect, procfs, loopback health,
+SHA-256 throughput; никаких container effects). Повторная recovery: механизм
+воспроизведён на точном коде v4 — Docker отдаёт retained Mounts в недетерминированном
+порядке (27/200), v4 сравнивал упорядоченный список (29/200 ValueError); наиболее
+вероятная причина, исправлено в контроллере v5. Внешний waiter ждал 55 с после exit
+candidate. Startup exit 2: по таймингу наиболее вероятен дедлайн 180 с доказательства
+загрузки при живом child; конкретный fence NOT_ESTABLISHED — его покажет bounded
+диагностика нового образа. GPU drill, model load и switch этим receipt не выполнялись.
