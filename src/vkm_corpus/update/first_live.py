@@ -11,16 +11,21 @@ from pathlib import Path
 import stat
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 
 from vkm_corpus.update.acceptance import AcceptancePlan, AcceptanceRegistrar
 from vkm_corpus.update.contracts import GenerationManifest, ComponentIdentity, ServiceIdentity
+from vkm_corpus.update.engine_create import EngineCreatePlan
 from vkm_corpus.update.frontdoor import FrontdoorProfile
 from vkm_corpus.update.bootstrap import BootstrapNetwork
 from vkm_corpus.update.operator import CoreOperatorConfig, OperatorRelease
 from vkm_corpus.update.operator_units import ComposeRelease, UnitControlConfig, UnitPin, bound_json
 from vkm_corpus.update.runtime import BoundFile
 from vkm_evidence.contracts import Identifier, Sha256, StrictModel, record_hash
+
+
+# Name of the read-MCP Engine environment inside the live control graph (shadow-compared).
+MCP_ENVIRONMENT_DOCUMENT = "mcp-engine-environment"
 
 
 class FirstLiveError(ValueError):
@@ -170,6 +175,9 @@ class FirstLiveMapping(StrictModel):
 
 
 class FirstLiveIntent(StrictModel):
+    # Engine-create Env values may be secrets: validation errors never echo inputs.
+    model_config = ConfigDict(hide_input_in_errors=True)
+
     schema_version: Literal["vkm-first-live-intent/1"] = "vkm-first-live-intent/1"
     scope: Literal["SYNTHETIC", "FIRST_LIVE_PRODUCTION"]
     request_id: Identifier
@@ -186,6 +194,9 @@ class FirstLiveIntent(StrictModel):
     units: UnitControlConfig
     frontdoor: FrontdoorProfile
     networks: tuple[BootstrapNetwork, ...] = Field(default=(), max_length=4)
+    # Exact operator-approved native create subset of both candidate receivers.
+    # Compose never creates them; production still requires actual qualification.
+    engine_create: EngineCreatePlan | None = None
     authority_root: str
     qualification_root: str
     protected_roots: tuple[str, ...] = Field(min_length=1, max_length=16)
@@ -221,6 +232,10 @@ class FirstLiveIntent(StrictModel):
                 or self.scope == "FIRST_LIVE_PRODUCTION" and
                     (not self.networks or self.legacy.scope != "RECEIVER_CONTROL_ONLY")):
             raise ValueError("production requires retained external networks and approved control-only recovery")
+        if self.scope == "FIRST_LIVE_PRODUCTION" and self.engine_create is None:
+            raise ValueError("production first LIVE requires an approved fixed Engine-create plan")
+        if self.engine_create is not None:
+            self._engine_bound()
         roots = [Path(x) for x in (self.authority_root, self.units.control_root, self.qualification_root, *self.protected_roots)]
         if any(not p.is_absolute() or ".." in p.parts for p in roots):
             raise ValueError("normalized absolute first-LIVE roots required")
@@ -236,6 +251,48 @@ class FirstLiveIntent(StrictModel):
                     or not Path(r.path).is_relative_to(roots[0]) for r in refs):
                 raise ValueError("live inputs and retained control closure require an independent authority root")
         return self
+
+    def _engine_bound(self):
+        """Bind each Engine profile to the qualified pins, typed ingress and mount policy.
+
+        Env values never appear here: each profile names an authority-root file
+        that is itself a member of the live control graph (shadow-compared).
+        """
+        from urllib.parse import urlsplit
+        from vkm_corpus.update.engine_create import native_overlap
+        pins = {(n.name, n.network_id, n.config_sha256) for n in self.networks}
+        root = Path(self.units.control_root)
+        # API: the live operator environment itself. Read MCP: only its own explicitly
+        # named live control document, never another (e.g. the API's secret) document.
+        approved = {"api": self.release.environment,
+                    "mcp": {**self.live_documents.documents, **self.live_documents.opaque}.get(MCP_ENVIRONMENT_DOCUMENT)}
+        sealed = (self.authority_root, self.qualification_root, *self.protected_roots)
+        for unit, profile in self.engine_create.profiles.items():
+            env = profile.environment
+            if (env is None or env != approved[unit] or not Path(env.path).is_relative_to(Path(self.authority_root))
+                    or unit == "mcp" and (env.path == self.release.environment.path
+                                          or env.sha256 == self.release.environment.sha256)):
+                raise ValueError("engine profile environment is not the approved live control document")
+            for mount in profile.mounts:
+                if (any(native_overlap(mount.source, r) for r in sealed)
+                        or native_overlap(mount.source, self.units.docker_socket)
+                        or not mount.read_only and native_overlap(mount.source, root)
+                        and Path(mount.source) != root / "admission.lock"):
+                    raise ValueError("engine profile mount exposes sealed roots, the Engine socket or writable control")
+            if profile.image != self.candidate_release.units[unit].image_id:
+                raise ValueError("engine profile image differs from the qualified candidate pin")
+            if (profile.network.name, profile.network.network_id, profile.network.config_sha256) not in pins:
+                raise ValueError("engine profile network is not a retained pinned external network")
+            endpoint = self.units.receiver_url if unit == "api" else self.units.mcp_receiver_url
+            target = self.units.api_container_port if unit == "api" else self.units.mcp_container_port
+            expected = {(target, "127.0.0.1", urlsplit(endpoint).port or 80)} | {
+                (target, b.host_ip, b.host_port) for b in self.units.public_bindings if b.unit == unit}
+            actual = [(b.container_port, b.host_ip, b.host_port) for b in profile.port_bindings]
+            if set(actual) != expected or len(actual) != len(expected):
+                raise ValueError("engine profile ingress differs from the exact typed receiver bindings")
+            mounts = {(Path(m.source), m.read_only) for m in profile.mounts}
+            if not {(root, True), (root / "admission.lock", False)} <= mounts:
+                raise ValueError("engine profile lacks read-only control state and the shared gate file")
 
     @property
     def sha256(self):

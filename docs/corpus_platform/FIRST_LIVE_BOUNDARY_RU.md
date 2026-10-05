@@ -10,11 +10,10 @@ container mutators также блокируют production. Это исправ
 путь, но не реализует готовый безопасный switch. Синтетические fake-adapter tests
 проверяют только механику состояний. V3 CPU receipts не доказывают сохранность runtime.
 
-Для продолжения нужен отдельный reviewed fixed Engine-create adapter: exact
-approved Config/HostConfig/NetworkingConfig, pinned images и external networks,
-native post-inspect до start, запрет любых remove/recreate original IDs, negative
-тесты label discovery/config drift/partial create. Никакого произвольного Engine
-API или manifest shell. До его реализации и квалификации все production CLI
+Gate L0 (код и синтетические тесты) реализован: fixed Engine-create adapter
+`engine_create.py` (см. раздел «Fixed Engine-create (Gate L0)»). Gate L1 —
+фактическая изолированная квалификация Engine lifecycle — **NOT_RUN**. До неё
+`NativeFirstLiveAdapters` по-прежнему не конструируется, и все production CLI
 actions возвращают `FIRST_LIVE_NOT_READY` с exit 2; restore тоже не предлагается
 как выполненный или квалифицированный fallback. Existing deployment не изменён.
 
@@ -153,10 +152,104 @@ rollback receipt не создаётся. `resume` после lost ACK допу�
 admission и требует explicit recovery. Терминальный восстановленный legacy не
 перезапускается повторно, если его exact native instance уже подтверждён.
 
+## Fixed Engine-create (Gate L0)
+
+`engine_create.py` создаёт кандидатов без Compose. Реализовано и проверено только
+кодом и синтетическим fake Engine transport (Windows и Linux); реальный Docker не
+вызывался. Активация по-прежнему невозможна (см. code gaps ниже).
+
+* Транспорт: unix socket `units.docker_socket` intent (тот же путь, что `DOCKER_HOST`
+  фиксированного legacy CLI) и закрытый allowlist (method, path-template), собранный
+  кодом: `GET version`, `GET info`, `GET images/{sha256-id}/json`, `GET networks/{id}`,
+  `POST containers/create?name=vkm-core-{api|mcp}-1`, `GET containers/{id|owned name}/json`,
+  `POST containers/{id}/start|stop`, `DELETE containers/{id}?force=false&v=false`.
+  Параметры пути строго проверяются; pull/build/exec/rename/kill и generic executor
+  отсутствуют; без redirects и proxy; ограничены размер ответа, время каждого чтения
+  и общий monotonic deadline запроса. Start и stop — по точному journal-owned ID:
+  start только после повторной проверки daemon, image, network и contract; stop нужен,
+  потому что remove без force не удаляет running/restarting container.
+* Daemon pin в плане: daemon ID, точная версия Engine и `Components`, `DefaultRuntime`,
+  `SecurityOptions`, cgroup driver/version, `DockerRootDir`. Значения закрепляются по
+  результатам L1. Legacy CLI (`docker info`) и Engine adapter обязаны видеть тот же ID.
+  Привязка adapter к intent, проверки daemon, image, network и bind sources выполняются
+  до остановки и переименования originals. Если journal пуст (write-ahead: ни одного
+  Engine create не запрашивалось), legacy restore не требует daemon pin: выполняется
+  только read-only проверка, что на owned names нет кандидата с labels этого journal,
+  а guard исходного имени по-прежнему не вытесняет неизвестный контейнер. При наличии
+  записей в journal rollback требует точный pinned daemon.
+* `EngineCreatePlan`/`EngineCreateProfile` (поле `engine_create` в intent) — точное
+  одобренное подмножество Config/HostConfig/NetworkingConfig. Image — только pinned
+  `sha256:` ID; network — существующая pinned external network; host IP явные;
+  user — числовой не-root `uid:gid`; privileged запрещён; `cap_add` и `security_opt`
+  только из проверенных allowlist (`no-new-privileges[:=true]`, `apparmor=docker-default`);
+  restart policy только `no`; `com.docker.compose.*` labels
+  запрещены, поэтому Compose не может adopt кандидата. Bind mounts не могут указывать
+  на Engine socket (или каталог с ним), `/`, `/proc`, `/sys`, `/dev`, Docker data root,
+  authority/qualification/protected roots; запись в control root разрешена только
+  для `admission.lock`. Перед create и start bind source проверяется natively: существует,
+  без symlink-компонентов, на POSIX `realpath == source`, не socket/device/FIFO, а
+  разрешённый путь не попадает в запрещённые деревья. Intent связывает profile с candidate image pin, pinned network,
+  точным typed ingress inventory и control/gate mounts. Production intent без плана
+  невалиден.
+* Env-секреты не входят в profile, intent, journal, receipts и exceptions: profile
+  хранит только имена Env и `BoundFile` (path+SHA) файла в authority root. Для API это
+  `release.environment`, для read MCP — только документ live control graph с именем
+  `mcp-engine-environment` (сравнивается с shadow), отличный от environment API. Значения читаются с проверкой SHA только при create;
+  contract сравнивает их SHA-256. `FIRST_LIVE_INTENT.json` и `FIRST_LIVE_RESULT`
+  пишутся с правами 0600, journal — 0600 в каталоге 0700.
+* Тело create строится только из profile и разрешённых Env. После create native
+  inspect сравнивается с нормализованным contract; inspect `Mounts` сравниваются как
+  множество (порядок из Go map недетерминирован). Унаследованные от pinned image
+  Env/Labels/ports/Healthcheck допускаются только равными значениям image. Закреплены
+  hardened значения: runtime, `IpcMode`/`CgroupnsMode=private`, cgroup parent,
+  `MaskedPaths`/`ReadonlyPaths` (не слабее defaults), devices/device requests/cgroup rules,
+  `GroupAdd`, ulimits, OOM, DNS, sysctls, AppArmor profile, `LogConfig`, endpoint
+  IPAM/links/driver options, TTY/stdin.
+* Write-ahead hash-chained JSONL journal (`<control_root>/first-live-engine/<intent>.jsonl`,
+  O_EXCL, O_APPEND, проверка inode, fsync файла и каталога): `CREATE_INTENT` (attempt,
+  owned name, profile SHA, preserved original IDs, deadline) до запроса, затем
+  `CREATE_ACK`/`ADOPTED`/`PARTIAL`/`ABSENT`, `OCCUPANT_OWNED`, `POST_CREATE_VERIFIED`,
+  `START_INTENT`/`STARTED`, `STOP_*`, `REMOVE_INTENT`/`REMOVED`. Deadlines в journal —
+  wall-clock (нужны между процессами); ожидание внутри процесса — monotonic.
+* Lost ACK/409/ошибка daemon: повторный create не делается вслепую; inspect точного
+  owned name. 409 без видимого occupant остаётся pending. Контейнер на owned name
+  принадлежит этой попытке, только если его labels (attempt, unit, profile SHA)
+  соответствуют записанному `CREATE_INTENT` и он создан не раньше него; точный
+  pending — adopt, иначе он owned только для удаления (никогда не start). Чужой
+  контейнер — отказ без cleanup. Возобновление после crash — по journal.
+* Rollback удаляет только journal-owned IDs с labels этой попытки (в том числе поздно
+  появившиеся occupants записанных intents); preserved original IDs и renamed originals
+  со старыми Compose labels не выбираются и не удаляются. Attempt не закрывается, пока
+  остаются неразрешённые intents или occupants с labels этого journal. Fallback не
+  вытесняет неизвестный контейнер с исходного имени. Потерянный journal при живом
+  кандидате с его labels — отказ, а не «ничего не создано».
+* Атрибуция по `Created` использует часы daemon и controller одного host с допуском
+  1 s. Если wall clock был переведён назад (или daemon отстаёт), собственный поздний
+  кандидат становится неатрибутируемым: rollback завершается `EngineCreateAmbiguous`,
+  attempt не закрывается, контейнер не удаляется и originals остаются parked. Процедура
+  оператора: сохранить journal, сравнить `Created` контейнера с `recorded_unix`
+  соответствующего `CREATE_INTENT`, проверить labels (attempt, unit, profile SHA), image
+  и отсутствие Compose labels, зафиксировать отдельное решение и только затем удалить
+  этот единственный контейнер вручную по точному ID; после этого повторить restore.
+  Автоматического расширения допуска нет; величину skew измеряет L1.
+* Torn/повреждённый journal никогда не чинится автоматически: оператор сохраняет
+  копию файла, сверяет последнюю целую запись с native inspect owned names и journal
+  IDs и принимает отдельное решение; удалять или обрезать journal нельзя.
+
 ## Оставшиеся фактические gates
 
-* Code gate: безопасный native candidate-create, сохраняющий original IDs и layers.
-  Он отсутствует; это не просто отложенная runtime qualification.
+* Gate L1 (NOT_RUN): фактическая изолированная квалификация Engine lifecycle
+  (create/inspect/start/stop/remove, lost ACK, late create, сохранение original IDs и
+  layers) на реальном daemon заданной версии; закрепление daemon pin и проверка
+  нормализации inspect (MaskedPaths/ReadonlyPaths, NetworkID до start, CAP_-имена,
+  SecurityOpt, default PATH, Created). Peer credentials socket не проверяются.
+  До L1 production constructor заблокирован.
+* Code gaps после L0 (активация невозможна): candidate proof
+  (`CoreUnitControl._inspect`/`_joined_proof`, `container_fingerprint`) всё ещё требует
+  Compose labels и несовместим с Engine-created receivers; profile не сверяется с shadow
+  effective config сверх image/network/ingress/mounts/environment file; обычный Compose
+  `rebind` после первого LIVE нашёл бы parked originals по labels, поэтому он
+  недопустим, пока originals существуют.
 * Approved actual opaque legacy control copy + independent restore, затем отдельная
   owner approval. Это не backup всего корпуса или модели.
 * Реальное квалифицированное native hosted profile всех shared components/services,

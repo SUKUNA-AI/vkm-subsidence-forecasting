@@ -1,0 +1,647 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    },
+    "EngineComponentPin": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "pattern": "^[A-Za-z][A-Za-z0-9 _.-]{0,63}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.+:~-]{0,127}$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "title": "EngineComponentPin",
+      "type": "object"
+    },
+    "EngineCreateProfile": {
+      "additionalProperties": false,
+      "description": "Exact approved Config / HostConfig / NetworkingConfig subset of one receiver.\n\nThe create body is built from this profile only, never from an inspect\ndocument. Env values are NOT part of the profile: ``env_names`` plus the\nSHA-pinned authority-root ``environment`` file are resolved at create time.",
+      "properties": {
+        "cap_add": {
+          "default": [],
+          "items": {
+            "pattern": "^(?:ALL|[A-Z][A-Z0-9_]{1,40})$",
+            "type": "string"
+          },
+          "title": "Cap Add",
+          "type": "array"
+        },
+        "cap_drop": {
+          "default": [
+            "ALL"
+          ],
+          "items": {
+            "pattern": "^(?:ALL|[A-Z][A-Z0-9_]{1,40})$",
+            "type": "string"
+          },
+          "title": "Cap Drop",
+          "type": "array"
+        },
+        "cmd": {
+          "items": {
+            "maxLength": 4096,
+            "pattern": "^[^\\x00]*$",
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Cmd",
+          "type": "array"
+        },
+        "entrypoint": {
+          "anyOf": [
+            {
+              "items": {
+                "maxLength": 4096,
+                "pattern": "^[^\\x00]*$",
+                "type": "string"
+              },
+              "maxItems": 16,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Entrypoint"
+        },
+        "env_names": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,127}$",
+            "type": "string"
+          },
+          "maxItems": 128,
+          "title": "Env Names",
+          "type": "array"
+        },
+        "environment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoundFile"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "exposed_ports": {
+          "items": {
+            "pattern": "^[0-9]{1,5}/tcp$",
+            "type": "string"
+          },
+          "maxItems": 16,
+          "title": "Exposed Ports",
+          "type": "array"
+        },
+        "image": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Image",
+          "type": "string"
+        },
+        "init": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Init"
+        },
+        "labels": {
+          "maxProperties": 64,
+          "patternProperties": {
+            "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$": {
+              "maxLength": 4096,
+              "pattern": "^[^\\x00]*$",
+              "type": "string"
+            }
+          },
+          "title": "Labels",
+          "type": "object"
+        },
+        "log_config": {
+          "$ref": "#/$defs/EngineLogConfig"
+        },
+        "memory_bytes": {
+          "exclusiveMinimum": 0,
+          "maximum": 68719476736,
+          "title": "Memory Bytes",
+          "type": "integer"
+        },
+        "memory_swap_bytes": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 137438953472,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Memory Swap Bytes"
+        },
+        "mounts": {
+          "items": {
+            "$ref": "#/$defs/EngineMount"
+          },
+          "maxItems": 32,
+          "title": "Mounts",
+          "type": "array"
+        },
+        "name": {
+          "pattern": "^vkm-core-(?:api|mcp)-1$",
+          "title": "Name",
+          "type": "string"
+        },
+        "nano_cpus": {
+          "exclusiveMinimum": 0,
+          "maximum": 64000000000,
+          "title": "Nano Cpus",
+          "type": "integer"
+        },
+        "network": {
+          "$ref": "#/$defs/EngineNetworkAttachment"
+        },
+        "pids_limit": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 1000000,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pids Limit"
+        },
+        "port_bindings": {
+          "items": {
+            "$ref": "#/$defs/EnginePortBinding"
+          },
+          "maxItems": 16,
+          "title": "Port Bindings",
+          "type": "array"
+        },
+        "privileged": {
+          "const": false,
+          "default": false,
+          "title": "Privileged",
+          "type": "boolean"
+        },
+        "readonly_rootfs": {
+          "const": true,
+          "default": true,
+          "title": "Readonly Rootfs",
+          "type": "boolean"
+        },
+        "restart_policy": {
+          "$ref": "#/$defs/EngineRestartPolicy",
+          "default": {
+            "maximum_retry_count": 0,
+            "name": "no"
+          }
+        },
+        "schema_version": {
+          "const": "vkm-engine-create-profile/2",
+          "default": "vkm-engine-create-profile/2",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "security_opt": {
+          "default": [],
+          "items": {
+            "pattern": "^[a-z][a-z-]{1,40}(?:[:=][A-Za-z0-9_./:-]{1,256})?$",
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Security Opt",
+          "type": "array"
+        },
+        "stop_signal": {
+          "anyOf": [
+            {
+              "pattern": "^SIG[A-Z0-9]{1,12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stop Signal"
+        },
+        "stop_timeout": {
+          "anyOf": [
+            {
+              "maximum": 300,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stop Timeout"
+        },
+        "tmpfs": {
+          "additionalProperties": {
+            "pattern": "^[a-z0-9=,_.-]{0,256}$",
+            "type": "string"
+          },
+          "maxProperties": 8,
+          "propertyNames": {
+            "maxLength": 4096,
+            "minLength": 2
+          },
+          "title": "Tmpfs",
+          "type": "object"
+        },
+        "unit": {
+          "enum": [
+            "api",
+            "mcp"
+          ],
+          "title": "Unit",
+          "type": "string"
+        },
+        "user": {
+          "pattern": "^[1-9][0-9]{0,9}:[1-9][0-9]{0,9}$",
+          "title": "User",
+          "type": "string"
+        },
+        "working_dir": {
+          "anyOf": [
+            {
+              "maxLength": 4096,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Working Dir"
+        }
+      },
+      "required": [
+        "unit",
+        "name",
+        "image",
+        "cmd",
+        "user",
+        "exposed_ports",
+        "mounts",
+        "port_bindings",
+        "network",
+        "memory_bytes",
+        "nano_cpus",
+        "log_config"
+      ],
+      "title": "EngineCreateProfile",
+      "type": "object"
+    },
+    "EngineDaemonPin": {
+      "additionalProperties": false,
+      "description": "Exact daemon identity; the actual values come from the L1 qualification.",
+      "properties": {
+        "cgroup_driver": {
+          "enum": [
+            "systemd",
+            "cgroupfs"
+          ],
+          "title": "Cgroup Driver",
+          "type": "string"
+        },
+        "cgroup_version": {
+          "enum": [
+            "1",
+            "2"
+          ],
+          "title": "Cgroup Version",
+          "type": "string"
+        },
+        "components": {
+          "items": {
+            "$ref": "#/$defs/EngineComponentPin"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Components",
+          "type": "array"
+        },
+        "daemon_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9:_.-]{7,127}$",
+          "title": "Daemon Id",
+          "type": "string"
+        },
+        "default_runtime": {
+          "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$",
+          "title": "Default Runtime",
+          "type": "string"
+        },
+        "docker_root_dir": {
+          "maxLength": 4096,
+          "minLength": 2,
+          "title": "Docker Root Dir",
+          "type": "string"
+        },
+        "engine_version": {
+          "pattern": "^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}(?:[-+][A-Za-z0-9.+-]{1,64})?$",
+          "title": "Engine Version",
+          "type": "string"
+        },
+        "security_options": {
+          "items": {
+            "pattern": "^name=[a-z0-9]+(?:,[a-z]+=[A-Za-z0-9_./-]+)*$",
+            "type": "string"
+          },
+          "maxItems": 16,
+          "title": "Security Options",
+          "type": "array"
+        }
+      },
+      "required": [
+        "daemon_id",
+        "engine_version",
+        "components",
+        "default_runtime",
+        "security_options",
+        "cgroup_driver",
+        "cgroup_version",
+        "docker_root_dir"
+      ],
+      "title": "EngineDaemonPin",
+      "type": "object"
+    },
+    "EngineLogConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "maxProperties": 16,
+          "patternProperties": {
+            "^[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "maxLength": 256,
+              "pattern": "^[^\\x00]*$",
+              "type": "string"
+            }
+          },
+          "title": "Config",
+          "type": "object"
+        },
+        "type": {
+          "enum": [
+            "json-file",
+            "local",
+            "journald",
+            "none"
+          ],
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "EngineLogConfig",
+      "type": "object"
+    },
+    "EngineMount": {
+      "additionalProperties": false,
+      "properties": {
+        "read_only": {
+          "title": "Read Only",
+          "type": "boolean"
+        },
+        "source": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "maxLength": 4096,
+          "minLength": 2,
+          "title": "Target",
+          "type": "string"
+        },
+        "type": {
+          "const": "bind",
+          "default": "bind",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "read_only"
+      ],
+      "title": "EngineMount",
+      "type": "object"
+    },
+    "EngineNetworkAttachment": {
+      "additionalProperties": false,
+      "description": "An existing external network; it is never created or removed here.",
+      "properties": {
+        "aliases": {
+          "default": [],
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_.-]{0,62}$",
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Aliases",
+          "type": "array"
+        },
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "name": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "network_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Network Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "network_id",
+        "config_sha256"
+      ],
+      "title": "EngineNetworkAttachment",
+      "type": "object"
+    },
+    "EnginePortBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "container_port": {
+          "maximum": 65535,
+          "minimum": 1,
+          "title": "Container Port",
+          "type": "integer"
+        },
+        "host_ip": {
+          "maxLength": 45,
+          "minLength": 2,
+          "title": "Host Ip",
+          "type": "string"
+        },
+        "host_port": {
+          "maximum": 65535,
+          "minimum": 1,
+          "title": "Host Port",
+          "type": "integer"
+        },
+        "protocol": {
+          "const": "tcp",
+          "default": "tcp",
+          "title": "Protocol",
+          "type": "string"
+        },
+        "unspecified_host_ip_approved": {
+          "default": false,
+          "title": "Unspecified Host Ip Approved",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "container_port",
+        "host_ip",
+        "host_port"
+      ],
+      "title": "EnginePortBinding",
+      "type": "object"
+    },
+    "EngineRestartPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "maximum_retry_count": {
+          "const": 0,
+          "default": 0,
+          "title": "Maximum Retry Count",
+          "type": "integer"
+        },
+        "name": {
+          "const": "no",
+          "default": "no",
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "title": "EngineRestartPolicy",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Operator-approved fixed create of both first-LIVE receivers.",
+  "properties": {
+    "api_version": {
+      "pattern": "^1\\.(?:4[1-9]|5[0-9])$",
+      "title": "Api Version",
+      "type": "string"
+    },
+    "create_timeout_seconds": {
+      "default": 60,
+      "exclusiveMinimum": 0,
+      "maximum": 180,
+      "title": "Create Timeout Seconds",
+      "type": "number"
+    },
+    "daemon": {
+      "$ref": "#/$defs/EngineDaemonPin"
+    },
+    "max_response_bytes": {
+      "default": 1048576,
+      "maximum": 8388608,
+      "minimum": 65536,
+      "title": "Max Response Bytes",
+      "type": "integer"
+    },
+    "profiles": {
+      "additionalProperties": {
+        "$ref": "#/$defs/EngineCreateProfile"
+      },
+      "propertyNames": {
+        "enum": [
+          "api",
+          "mcp"
+        ]
+      },
+      "title": "Profiles",
+      "type": "object"
+    },
+    "request_timeout_seconds": {
+      "default": 15,
+      "exclusiveMinimum": 0,
+      "maximum": 60,
+      "title": "Request Timeout Seconds",
+      "type": "number"
+    },
+    "schema_version": {
+      "const": "vkm-engine-create-plan/2",
+      "default": "vkm-engine-create-plan/2",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "stop_timeout_seconds": {
+      "default": 30,
+      "maximum": 120,
+      "minimum": 0,
+      "title": "Stop Timeout Seconds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "api_version",
+    "daemon",
+    "profiles"
+  ],
+  "title": "EngineCreatePlan",
+  "type": "object"
+}

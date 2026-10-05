@@ -2,7 +2,10 @@
 
 The only test seam is explicit SYNTHETIC authority. Production is disabled before
 native adapter construction: same-project Compose creation can delete parked
-legacy containers by labels. No runtime preservation claim is made by this code.
+legacy containers by labels, so candidates are created only by the fixed
+Engine-create adapter (``engine_create``) and removed only by exact journal-owned
+IDs. That adapter has no actual Engine lifecycle qualification yet (Gate L1
+NOT_RUN). No runtime preservation claim is made by this code.
 """
 from __future__ import annotations
 
@@ -15,7 +18,7 @@ import platform
 import re
 import time
 
-from vkm_corpus.parquet.atomic import write_bytes, _fsync_dir
+from vkm_corpus.parquet.atomic import write_bytes, write_with, _fsync_dir
 from vkm_corpus.update.acceptance import (AcceptanceRegistrar, CandidateFence, PrivateASGIProbeTransport,
     _execute_private_probes, _verify_probe_receipts, read_tool_names)
 from vkm_corpus.update.admission import AdmissionState, ReceiverVerification, read_state, require_open
@@ -62,14 +65,50 @@ def require_sealed_legacy_ingress(native, sealed_ports):
 class NativeFirstLiveAdapters:
     def __init__(self, intent: FirstLiveIntent):
         # Do not create clients, threads, paths, firewall rules or containers.
-        # A reviewed direct-Engine creation contract is still missing.
+        # The fixed Engine-create adapter is implemented and synthetically tested
+        # only; an actual isolated Engine lifecycle qualification (Gate L1) is
+        # still required before any native construction is allowed.
         raise FirstLiveNotReady(FirstLiveNotReady.reason)
 
     def _require_synthetic_mutation_test(self):
         # Only object.__new__ fake-adapter tests can reach these mechanics.
         # The public constructor deliberately accepts no native authority yet.
-        if getattr(self.intent, "scope", None) != "SYNTHETIC":
+        if getattr(getattr(self, "intent", None), "scope", None) != "SYNTHETIC":
             raise FirstLiveNotReady(FirstLiveNotReady.reason)
+
+    def _engine(self):
+        """The fixed Engine-create adapter; absent means NOT_READY, never Compose."""
+        self._require_synthetic_mutation_test()
+        engine = getattr(self, "engine", None)
+        if engine is None:
+            raise FirstLiveNotReady(FirstLiveNotReady.reason)
+        return engine
+
+    def _bound_engine(self, *, daemon=True):
+        """The adapter must carry exactly this intent's plan, journal, socket and preserved IDs.
+
+        With ``daemon`` the fixed legacy CLI (park/restore) and the Engine adapter must
+        also address the same pinned daemon: same socket path and daemon ID from both.
+        """
+        from vkm_corpus.update.engine_create import engine_journal_path
+        engine = self._engine()
+        units = self.intent.units
+        if (engine.plan != self.intent.engine_create or engine.intent_sha256 != self.intent.sha256
+                or engine.preserved != frozenset(self.intent.legacy.original_container_ids.values())
+                or engine.socket_path != units.docker_socket
+                or engine.journal.path != engine_journal_path(units.control_root, self.intent.sha256)):
+            raise FirstLiveError("Engine-create adapter is not bound to this exact intent")
+        if not daemon:
+            return engine
+        cli_daemon = strict_json(self.units.commands.run("docker", ("info", "--format", "{{json .ID}}")))
+        if cli_daemon != engine.plan.daemon.daemon_id:
+            raise FirstLiveError("legacy CLI and Engine adapter address different daemons")
+        return engine
+
+    def _name_occupant(self, name):
+        payload = self.units.commands.run("docker", ("container", "ls", "--all", "--filter",
+            "name=^/" + name + "$", "--format", "{{json .ID}}", "--no-trunc"))
+        return strict_json(payload) if payload.strip() else None
 
     def fence(self, *, recovery_only=False):
         if operator_identity() != (self.intent.operator_code_sha256, self.intent.operator_dependencies_sha256):
@@ -226,6 +265,11 @@ class NativeFirstLiveAdapters:
         return expected
 
     def _inspect(self, unit, *, stopped=False, reference=None):
+        engine = getattr(self, "engine", None)
+        if reference is None and engine is not None and unit in ("api", "mcp") and engine.current(unit) is not None:
+            # A journal-owned candidate is observed only by its exact ID through
+            # the fixed Engine adapter; its pin is the normalized contract hash.
+            return engine.observe(unit, running=not stopped)
         reference = reference or "vkm-core-" + unit + "-1"
         raw = strict_json(self.units.commands.run("docker", ("inspect", "--type", "container", reference)))
         if not isinstance(raw, list) or len(raw) != 1:
@@ -296,51 +340,49 @@ class NativeFirstLiveAdapters:
             self.event("LEGACY_ORIGINAL_PARKED", unit=unit, container_id=raw["Id"])
 
     def _remove_owned(self):
-        """Remove only candidate IDs. Original legacy layers are never removed."""
+        """Remove only exact IDs journaled as created by this intent's attempts.
+
+        Never by name, name prefix or labels: renamed originals keep their old
+        Compose labels and are never candidates. Preserved original IDs are refused.
+        """
         self._require_synthetic_mutation_test()
-        for unit in self.intent.candidate_release.units:
-            payload = self.units.commands.run("docker", ("container", "ls", "--all", "--filter",
-                "name=^/vkm-core-" + unit + "-1$", "--format", "{{json .ID}}", "--no-trunc"))
-            if not payload.strip():
-                continue
-            raw = strict_json(payload)
-            if not isinstance(raw, str) or not re.fullmatch(r"[0-9a-f]{64}", raw):
-                raise FirstLiveError("unknown receiver inventory during restore")
-            if raw == self.intent.legacy.original_container_ids[unit]:
-                self._legacy_id(unit)  # an already restored original, not disposable
-                continue
-            stopped = False
-            try:
-                observed, pin = self._inspect(unit)
-            except (ValueError, GenerationUnavailable):
-                observed, pin = self._inspect(unit, stopped=True)
-                stopped = True
-            if pin != self.intent.candidate_release.units[unit].model_dump(mode="json") or observed["Id"] != raw:
-                raise FirstLiveError("refusing to remove an unknown native container")
-            if not stopped:
-                self.units.commands.run("docker", ("stop", "--time", "30", raw))
-            self.units.commands.run("docker", ("rm", raw))
+        engine = self._bound_engine(daemon=False)
+        if not engine.has_effects():
+            # Write-ahead journal is empty: no Engine create was ever requested. Daemon
+            # identity drift must not strand a pure legacy fallback; the read-only check
+            # still refuses a lost journal, and _name_occupant refuses any occupant.
+            engine.assert_no_unjournaled_candidate()
+            return
+        self._bound_engine().remove_owned()
 
     def _create(self, ref, units):
-        # Rename preserves Compose project/service labels. Even without force,
-        # same-project convergence can remove originals on image/config drift.
-        # No native creation adapter is qualified; do not inspect or execute one.
-        raise FirstLiveNotReady(FirstLiveNotReady.reason)
+        # Rename preserves Compose project/service labels, so Compose create/up is
+        # never used here. Only the fixed Engine adapter creates exact profiles,
+        # without compose labels, and verifies them natively before any start.
+        engine = self._bound_engine()
+        release = self.intent.candidate_release
+        if (ref != release.compose or units != release.units
+                or any(engine.plan.profiles[u].image != units[u].image_id for u in ("api", "mcp"))):
+            raise FirstLiveError("Engine create request is not the intent's candidate release")
+        return {unit: engine.create(unit) for unit in ("api", "mcp")}
 
     def candidate_start(self, *, partial=False):
-        self._require_synthetic_mutation_test()
+        # Bind and check daemon identity, images, networks and mount sources BEFORE
+        # any original is stopped or renamed: drift must fail without parking.
+        engine = self._bound_engine()
+        engine.preflight()
         self.units._compose(self.intent.candidate_release)
         self._park_legacy()
         self._remove_owned()
         ids = self._create(self.intent.candidate_release.compose, self.intent.candidate_release.units)
-        self.units.commands.run("docker", ("start", ids["api"]))
+        engine.start("api")
         if partial:
             for unit in ("api", "mcp"):
                 raw, pin = self._inspect(unit, stopped=unit == "mcp")
-                if raw["Id"] != ids[unit] or pin != self.intent.candidate_release.units[unit].model_dump(mode="json"):
+                if raw["Id"] != ids[unit] or pin != engine.expected_pin(unit):
                     raise FirstLiveError("actual partial native start differs from owned prepared receivers")
             return {"started": {"api": ids["api"]}, "stopped": {"mcp": ids["mcp"]}}
-        self.units.commands.run("docker", ("start", ids["mcp"]))
+        engine.start("mcp")
         return ids
 
     def candidate_proof(self, gate, *, admission_open=False):
@@ -363,6 +405,10 @@ class NativeFirstLiveAdapters:
             original = "vkm-core-" + unit + "-1"
             raw = self._legacy_id(unit)
             if raw.get("Name") == "/" + self._retained_name(unit):
+                if self._name_occupant(original) is not None:
+                    # Only journal-owned candidates were removed; anything else at
+                    # the original name is neither displaced nor removed.
+                    raise FirstLiveError("refusing to displace an unknown native container at the original name")
                 if raw["State"]["Running"]:
                     self.units.commands.run("docker", ("stop", "--time", "30", raw["Id"]))
                 self.units.commands.run("docker", ("rename", raw["Id"], original))
@@ -401,6 +447,8 @@ class NativeFirstLiveAdapters:
         finally:
             for lease in self.retained_leases:
                 lease.close()
+            if getattr(self, "engine", None) is not None:
+                self.engine.close()
             self.portal.close()
 
 
@@ -441,8 +489,21 @@ class FirstLiveController:
             self.fault(phase)
         return digest
 
+    # Controller-private files; receiver-readable selectors keep the shared modes.
+    PRIVATE_FILES = frozenset({"FIRST_LIVE_INTENT.json", "FIRST_LIVE_RESULT"})
+
     def _write(self, name, data, *, overwrite=False):
-        write_bytes(self.root / "tmp", self.journal._path(name), data, overwrite=overwrite)
+        if name not in self.PRIVATE_FILES:
+            write_bytes(self.root / "tmp", self.journal._path(name), data, overwrite=overwrite)
+            return
+
+        def private(tmp):
+            fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
+                         | getattr(os, "O_NOFOLLOW", 0), 0o600)
+            with os.fdopen(fd, "wb") as handle:
+                handle.write(data)
+            os.chmod(tmp, 0o600)
+        write_with(self.root / "tmp", self.journal._path(name), private, overwrite=overwrite)
 
     def _admission(self, state):
         self._write("ADMISSION.json", canonical_bytes(state), overwrite=True)

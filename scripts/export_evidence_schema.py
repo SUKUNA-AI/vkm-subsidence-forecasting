@@ -43,6 +43,7 @@ from vkm_corpus.update.visual_owner_bridge import (HookedChildRecipe, HookedChil
 from vkm_corpus.update.first_live import (FirstLiveIntent, LiveAdmissionAuthority, FirstLiveReceipt,
     LegacyRecoveryBoundary, LegacyRecoveryApproval, RetainedSharedObserver)  # noqa: E402
 from vkm_corpus.update.frontdoor import FrontdoorProfile, BootSealRegistration  # noqa: E402
+from vkm_corpus.update.engine_create import EngineCreatePlan  # noqa: E402
 
 MODELS = {"evidence_batch": EvidenceBatch, "object_coverage": CoverageLedger,
           "campaign": CampaignManifest, "generation": GenerationManifest, "update_runtime": RuntimeConfig,
@@ -82,7 +83,8 @@ MODELS.update({"previous_admission": PreviousAdmission,
 MODELS.update({"first_live_intent": FirstLiveIntent, "first_live_authority": LiveAdmissionAuthority,
     "first_live_receipt": FirstLiveReceipt, "first_live_legacy_boundary": LegacyRecoveryBoundary,
     "first_live_recovery_approval": LegacyRecoveryApproval, "first_live_retained_observer": RetainedSharedObserver,
-    "first_live_frontdoor": FrontdoorProfile, "first_live_boot_registration": BootSealRegistration})
+    "first_live_frontdoor": FrontdoorProfile, "first_live_boot_registration": BootSealRegistration,
+    "first_live_engine_create_plan": EngineCreatePlan})
 
 
 def dataset_version_schema():

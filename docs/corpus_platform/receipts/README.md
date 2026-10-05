@@ -157,3 +157,12 @@ candidate. Startup exit 2: по таймингу наиболее верояте
 загрузка с тем же кодом 503. Исправленный контроллер обнаружил exit сразу, вернул
 exact retained OLD (новый PID, health 200, простой 187 с); повторная recovery —
 verified no-op. Identity/placement/inference не получены; LIVE/switch NOT_RUN.
+
+[first_live_engine_create_cpu_2026-10-05.json](first_live_engine_create_cpu_2026-10-05.json):
+L0 — узкий фиксированный Engine-create adapter (allowlist операций Engine API,
+профиль из approved полей без значений Env, post-create inspect до start,
+write-ahead journal, lost-ACK без повторного create, удаление только journal-owned
+ID, проверки daemon/binding до парковки оригиналов, Compose не вызывается).
+388 PASS Windows и 388 PASS Linux по JUnit; независимый challenger — 2 раунда,
+открытых MUST_FIX нет. FIRST_LIVE_NOT_READY: L1 (реальный Engine) NOT_RUN,
+activation невозможна до замены Compose-proof.

@@ -155,10 +155,14 @@ def test_partial_start_is_observed_natively_instead_of_echoing_start_command(wro
     adapter = object.__new__(NativeFirstLiveAdapters)
     adapter.intent = NS(scope="SYNTHETIC", candidate_release=NS(compose="bound", units={"api": pin, "mcp": pin}))
     adapter.units = NS(_compose=lambda _: None, commands=NS(run=lambda *a: b""))
+    calls, started, order = [], [], []
     adapter._remove_owned = lambda: None
-    adapter._park_legacy = lambda: None
+    adapter._park_legacy = lambda: order.append("park")
     adapter._create = lambda *a: {"api": "api-id", "mcp": "mcp-id"}
-    calls = []
+    # Fixed Engine-create seam: bound and preflighted before parking; start by owned unit.
+    adapter.engine = NS(start=started.append, expected_pin=lambda unit: pin.model_dump(mode="json"),
+                        preflight=lambda: order.append("preflight"))
+    adapter._bound_engine = lambda: adapter.engine
     def inspect(unit, *, stopped=False):
         calls.append((unit, stopped))
         return {"Id": "wrong" if wrong else unit + "-id"}, pin.model_dump(mode="json")
@@ -169,6 +173,7 @@ def test_partial_start_is_observed_natively_instead_of_echoing_start_command(wro
     else:
         assert adapter.candidate_start(partial=True) == {"started": {"api": "api-id"}, "stopped": {"mcp": "mcp-id"}}
         assert calls == [("api", False), ("mcp", True)]
+        assert started == ["api"] and order == ["preflight", "park"]
 
 
 @pytest.mark.parametrize("outcome", ["success", "overflow", "failure", "timeout", "interruption"])
@@ -205,8 +210,10 @@ def test_native_command_is_bounded_and_keeps_the_held_executable_fd(monkeypatch,
     assert len(calls) == 1
 
 
-def parked_fixture():
+def parked_fixture(tmp_path):
     import copy
+    from test_engine_create import Clock, FakeDaemon, INTENT_SHA, make_plan
+    from vkm_corpus.update.engine_create import ENGINE_SOCKET, EngineCreateAdapter, engine_journal_path
     from vkm_corpus.update.operator_units import UnitPin
     from vkm_corpus.update.generation import GenerationUnavailable
     from vkm_evidence.contracts import canonical_bytes
@@ -217,9 +224,20 @@ def parked_fixture():
         "pin": legacy_pin, "unique_layer": "DO_NOT_LOSE_" + unit} for unit, identity in ids.items()}
     calls, events = [], []
     state = NS(fault=None)
+    # Candidates exist only through the fixed Engine adapter (a fake daemon over the
+    # same native objects) and are owned only through its durable effect journal.
+    root = tmp_path / "runtime" / "served"
+    root.mkdir(parents=True)
+    (root / "admission.lock").touch()
+    (root.parent / "data").mkdir()
+    daemon, plan = FakeDaemon(), make_plan(root)
+    daemon.containers = objects
     adapter = object.__new__(NativeFirstLiveAdapters)
     adapter.intent = NS(scope="SYNTHETIC", request_id="preserve-legacy", legacy=NS(units=dict.fromkeys(ids, legacy_pin), original_container_ids=ids),
-        candidate_release=NS(units=dict.fromkeys(ids, candidate_pin)))
+        candidate_release=NS(units=dict.fromkeys(ids, candidate_pin)), sha256=INTENT_SHA, engine_create=plan,
+        units=NS(docker_socket=ENGINE_SOCKET, control_root=str(root)))
+    adapter.engine = EngineCreateAdapter(plan, journal_path=engine_journal_path(str(root), INTENT_SHA),
+        intent_sha256=INTENT_SHA, preserved_ids=ids.values(), transport=daemon.transport(), clock=Clock())
     def inspect(unit, *, stopped=False, reference=None):
         selected = reference or "/vkm-core-" + unit + "-1"
         obj = next((v for k, v in objects.items() if k == selected or v["Name"] == selected), None)
@@ -228,6 +246,8 @@ def parked_fixture():
         return copy.deepcopy(obj), obj["pin"].model_dump(mode="json")
     def run(tool, argv):
         calls.append(argv)
+        if argv[0] == "info":  # the same pinned daemon as the Engine adapter
+            return canonical_bytes(daemon.info["ID"])
         if argv[:2] == ("container", "ls"):
             name = argv[4].removeprefix("name=^").removesuffix("$")
             found = [v["Id"] for v in objects.values() if v["Name"] == name]
@@ -250,47 +270,50 @@ def parked_fixture():
     adapter.event = lambda phase, **detail: events.append((phase, detail))
     adapter.legacy_observe = lambda **kw: {u: adapter._legacy_id(u)["Id"] for u in ids}
     adapter._create = lambda *a: (_ for _ in ()).throw(AssertionError("legacy must not be recreated"))
-    return adapter, objects, ids, calls, state, candidate_pin
+    return adapter, objects, ids, calls, state, candidate_pin, daemon
 
 
-def test_same_original_container_ids_and_unique_writable_layers_survive_fallback():
-    a, objects, ids, calls, _, candidate_pin = parked_fixture()
+def test_same_original_container_ids_and_unique_writable_layers_survive_fallback(tmp_path):
+    a, objects, ids, calls, _, candidate_pin, daemon = parked_fixture(tmp_path)
     a._park_legacy()
     assert all(not objects[i]["State"]["Running"] for i in ids.values())
-    for n, unit in enumerate(ids, 3):
-        identity = str(n) * 64
-        objects[identity] = {"Id": identity, "Name": "/vkm-core-" + unit + "-1",
-            "State": {"Running": True}, "pin": candidate_pin, "unique_layer": "disposable"}
+    candidates = {unit: a.engine.create(unit) for unit in ids}
+    for unit in ids:
+        a.engine.start(unit)
+    assert all(objects[i]["Name"] == "/vkm-core-" + u + "-1" and objects[i]["State"]["Running"]
+               for u, i in candidates.items())
     assert a.legacy_restore() == ids
     assert set(objects) == set(ids.values())
     assert all(objects[i]["State"]["Running"] and objects[i]["unique_layer"] == "DO_NOT_LOSE_" + u for u, i in ids.items())
     assert {cmd[1] for cmd in calls if cmd[0] == "rm"}.isdisjoint(ids.values())
+    assert sorted(daemon.deleted) == sorted(candidates.values()) and set(daemon.deleted).isdisjoint(ids.values())
 
 
 @pytest.mark.parametrize("fault", ["stop", "rename"])
-def test_interrupted_parking_restores_originals_without_candidate_artifacts(fault):
-    a, objects, ids, calls, state, _ = parked_fixture()
+def test_interrupted_parking_restores_originals_without_candidate_artifacts(tmp_path, fault):
+    a, objects, ids, calls, state, _, daemon = parked_fixture(tmp_path)
     state.fault = fault
     with pytest.raises(KeyboardInterrupt): a._park_legacy()
     state.fault = None
     assert a.legacy_restore() == ids
     assert all(objects[i]["State"]["Running"] for i in ids.values())
-    assert not any(cmd[0] == "rm" for cmd in calls)
+    assert not any(cmd[0] == "rm" for cmd in calls) and daemon.mutations() == []
 
 
-def test_foreign_original_name_is_not_overwritten_or_removed_for_fallback():
-    a, objects, ids, calls, _, pin = parked_fixture()
+def test_foreign_original_name_is_not_overwritten_or_removed_for_fallback(tmp_path):
+    a, objects, ids, calls, _, pin, daemon = parked_fixture(tmp_path)
     a._park_legacy()
     objects["9" * 64] = {"Id": "9" * 64, "Name": "/vkm-core-api-1", "State": {"Running": True},
         "pin": pin.model_copy(update={"config_sha256": "f" * 64})}
     with pytest.raises(FirstLiveError, match="unknown native"):
         a.legacy_restore()
     assert all(i in objects for i in ids.values()) and not any(cmd[0] == "rm" for cmd in calls)
+    assert "9" * 64 in objects and daemon.mutations() == []
 
 
-def test_missing_original_layer_blocks_instead_of_silently_recreating_from_image():
-    a, objects, ids, calls, _, _ = parked_fixture()
+def test_missing_original_layer_blocks_instead_of_silently_recreating_from_image(tmp_path):
+    a, objects, ids, calls, _, _, daemon = parked_fixture(tmp_path)
     a._park_legacy()
     del objects[ids["api"]]
     with pytest.raises((ValueError, RuntimeError)): a.legacy_restore()
-    assert not any(cmd[0] in {"rm", "start"} for cmd in calls)
+    assert not any(cmd[0] in {"rm", "start"} for cmd in calls) and daemon.mutations() == []

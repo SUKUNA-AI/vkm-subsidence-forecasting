@@ -1,0 +1,93 @@
+{
+  "challenger": "independent; round 1: MUST_FIX F1 (env secrets in control root) + SHOULD_FIX F2-F6 -> CLOSED; round 2: R1 (checks after parking) + R2-R4 -> CLOSED; R5 documented; no open MUST_FIX",
+  "limits": {
+    "activation": "IMPOSSIBLE_JOINED_PROOF_REQUIRES_COMPOSE_LABELS",
+    "actual_engine_lifecycle_L1": "NOT_RUN",
+    "compose_rebind_hazard_with_parked_originals": "OPEN_DOCUMENTED",
+    "core_switch": "NOT_RUN",
+    "daemon_pin_values": "PLACEHOLDERS_UNTIL_L1",
+    "original_runtime_preservation": "NOT_QUALIFIED",
+    "workstation_gpu": "NOT_USED"
+  },
+  "production_status": "FIRST_LIVE_NOT_READY",
+  "python": {
+    "linux": "3.13.5",
+    "windows": "3.13.13"
+  },
+  "recorded_at": "2026-10-05T10:56:02.580942+00:00",
+  "reports": {
+    "linux": {
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "957f5c57bf12877fc5896d34da411cb2f45df5953be18d100566d2074999c299",
+      "skipped": 0,
+      "tests": 388
+    },
+    "windows": {
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "246dfdb7cdd7276d62f2f48d27dc9b7761ba2ffc5fc75c6a9293f28f0948e5b6",
+      "skipped": 0,
+      "tests": 388
+    }
+  },
+  "schema_version": "vkm-first-live-engine-create-cpu/1",
+  "scope": "CODE_AND_SYNTHETIC_FAKE_ENGINE_ONLY",
+  "selection": [
+    "tests/evidence/test_engine_create.py",
+    "tests/evidence/test_first_live_controller.py",
+    "tests/evidence/test_first_live_native.py",
+    "tests/evidence/test_first_live_frontdoor.py",
+    "tests/evidence/test_core_operator.py",
+    "tests/evidence/test_published_schemas.py"
+  ],
+  "source_files": [
+    {
+      "bytes": 83580,
+      "path": "src/vkm_corpus/update/engine_create.py",
+      "sha256": "1ff818171c9078109e27d09e85103fa20440bdab39a6784acf9f40d522481af6"
+    },
+    {
+      "bytes": 33905,
+      "path": "src/vkm_corpus/update/first_live.py",
+      "sha256": "21f7935b9b869cfff8a7b43805c0018bf36cd55ddf0e28b02e9dd86b11d6cc85"
+    },
+    {
+      "bytes": 48717,
+      "path": "src/vkm_corpus/update/first_live_native.py",
+      "sha256": "06514820eadfb06ab7f57e9115fc35bf1e4d2f28a85519c83dcd7882849a3f6e"
+    },
+    {
+      "bytes": 87994,
+      "path": "tests/evidence/test_engine_create.py",
+      "sha256": "28e0a2f16882e57a9c9015afc9ad576580bb9f22766d1acf030928512732daed"
+    },
+    {
+      "bytes": 17719,
+      "path": "tests/evidence/test_first_live_native.py",
+      "sha256": "5c42766a1e4cd138d430215dec9459f7ef7836acd6b4c9162a37f32223b4625b"
+    },
+    {
+      "bytes": 25842,
+      "path": "docs/corpus_platform/FIRST_LIVE_BOUNDARY_RU.md",
+      "sha256": "7d68c68c10ed79b74cbd018a2e92a4e23190ae5b46514dbaf005a0419a0f9232"
+    },
+    {
+      "bytes": 40823,
+      "path": "schemas/evidence/first_live_intent.schema.json",
+      "sha256": "c929f5a20e36a4b786304e7a4c180ee077c32adb4f0d7b0548983617fba52b06"
+    },
+    {
+      "bytes": 16036,
+      "path": "schemas/evidence/first_live_engine_create_plan.schema.json",
+      "sha256": "6d66658934a943ed83a9393bdb690bd088d3d4b2bcad1c6bee6d1884f5442c50"
+    },
+    {
+      "bytes": 9640,
+      "path": "scripts/export_evidence_schema.py",
+      "sha256": "34cfc88b10a3c94a8c82f167235c7a97b7ee2b38426a42c1be1cdaa520040f0e"
+    }
+  ],
+  "status": "L0_CODE_AND_SYNTHETIC_TESTS_PASSED_PRODUCTION_NOT_READY",
+  "supersedes_source_pins_of": "first_live_protective_cpu_2026-10-05.json (historical; its 6 overlapping pins are now stale by design)"
+}
