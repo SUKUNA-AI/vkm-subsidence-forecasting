@@ -44,6 +44,15 @@ class _PinnedCanon:
     def snapshot_id(self):
         return self.snapshot().snapshot_id
 
+    def commit_of(self, key):
+        """Canonical commit of the pinned snapshot (the version of unsigned legacy objects)."""
+        if not hasattr(self.canon, "commit_of"):
+            raise ValueError("canonical commit unavailable for an unsigned object")
+        self.snapshot()
+        commit = self.canon.commit_of(key)
+        self.snapshot()
+        return commit
+
     def row(self, kind, oid):
         self.snapshot()
         if (kind, oid) not in self.rows:

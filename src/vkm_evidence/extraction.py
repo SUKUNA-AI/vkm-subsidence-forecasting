@@ -22,7 +22,8 @@ from vkm_corpus.contracts.access import AccessContext, ResourcePolicy
 from vkm_evidence.contracts import (StrictModel, Sha256, Identifier, ObjectRef, EvidenceBatch,
     Mention, Claim, Observation, ObservationSet, Entity, FormulaInterpretation, EventAssertion,
     EvidenceRelation, canonical_bytes, record_hash)
-from vkm_evidence.objects import ObjectCatalogue, OriginalObject, canonical_text, canonical_locator
+from vkm_evidence.objects import (ObjectCatalogue, OriginalObject, canonical_locator, canonical_text,
+                                  served_object_version)
 from vkm_world.core.provenance import Provenance, SourceRef, TemporalSupport
 from vkm_corpus.update.remote_models import NativeModelProof
 
@@ -234,11 +235,12 @@ class CanonTextSource:
             if len(lengths) != 1 or lengths[0]["n"] > plan.budget.max_object_bytes:
                 raise ExtractionBlocked("CANONICAL_OBJECT_MISSING_DUPLICATE_OR_OVERSIZED")
             row = self.canon.row(kind, ref.object_id)
+            version = served_object_version(self.canon, row) if row is not None else None
             if (row is None or row.get("object_kind", kind) != kind or
                     ref.source_id != row.get("source_id") or ref.snapshot_id != snapshot.snapshot_id or
                     ref.object_id != row.get(key) or ref.source_sha256 != row.get("source_sha256") or
                     ref.content_sha256 != row.get("content_sha256") or
-                    ref.object_version != row.get("extraction_signature") or
+                    not version or ref.object_version != version or
                     ref.extraction_generation != str(row.get("extraction_generation")) or
                     ref.locator != canonical_locator(row)):
                 raise ExtractionBlocked("CANONICAL_IDENTITY_MISMATCH")

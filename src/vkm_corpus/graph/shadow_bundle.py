@@ -315,6 +315,12 @@ class CombinedGraphBundle:
                 class CanonView:
                     def __init__(self, inp): self.inp = inp
                     def snapshot_id(self): return self.inp.info.snapshot_id
+                    def commit_of(self, key):
+                        # from the pinned input snapshot itself, never the live store
+                        result = self.inp.fetch("SELECT commit_id FROM meta.commits WHERE commit_key=?", [key or ""])
+                        if len(result) > 1:
+                            raise ValueError("duplicated canonical commit key")
+                        return result[0]["commit_id"] if result else None
                     def row(self, kind, oid):
                         table, key = KIND_TABLE[kind]  # closed registry, never caller SQL
                         result = self.inp.fetch(f'SELECT * FROM {table} WHERE "{key}"=?', [oid])

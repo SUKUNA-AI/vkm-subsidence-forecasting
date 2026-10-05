@@ -272,3 +272,84 @@ def test_resolver_real_canonstore_schema_and_unicode_spans(native):
         assert canonical_resolver(CanonStore(connection=con), lambda _: POLICY)(ref) == POLICY
     finally:
         con.close()
+
+
+def _legacy_canon(signature, commit="CMT-legacy0001", content=OTHER):
+    """A real CanonStore over one block; ``signature=None`` models the historical unsigned snapshot."""
+    duckdb = pytest.importorskip("duckdb")
+    con = duckdb.connect(":memory:")
+    con.execute("CREATE SCHEMA meta")
+    con.execute("CREATE TABLE meta.snapshot AS SELECT 'snap-1' snapshot_id, ? manifest_sha256, "
+                "TIMESTAMPTZ '2026-10-01 00:00:00+00' built_at, 'synthetic' duckdb_version", [SHA])
+    con.execute("CREATE TABLE meta.commits(commit_key VARCHAR, commit_id VARCHAR)")
+    if commit is not None:
+        con.execute("INSERT INTO meta.commits VALUES (?, ?)", [SID, commit])
+    con.execute("CREATE TABLE blocks AS SELECT ? object_id, ? source_id, ? source_sha256, ? content_sha256, "
+                '1 extraction_generation, ? extraction_signature, ? raw_locator, NULL docx_paragraph_path, ? page_id, '
+                '? AS "text"', [OID, SID, SHA, content, signature, REF.locator, PAGE, TEXT])
+    return con
+
+
+def test_unsigned_legacy_object_binds_only_by_the_served_content_at_commit_version():
+    """Owner decision 05.10.2026: historical objects carry no extraction_signature; they are cited by the
+    version the API serves (<content_sha256>@<commit>), the signature stays UNKNOWN."""
+    con = _legacy_canon(signature=None)
+    try:
+        store = CanonStore(connection=con)
+        resolve = canonical_resolver(store, lambda _: POLICY)
+        served = OTHER + "@CMT-legacy0001"
+        assert resolve(REF.model_copy(update={"object_version": served})) == POLICY
+        for wrong in (OTHER + "@CMT-other00001", SHA + "@CMT-legacy0001", OTHER, SHA, "UNKNOWN"):
+            with pytest.raises(ValueError):
+                resolve(REF.model_copy(update={"object_version": wrong}))
+    finally:
+        con.close()
+
+
+def test_unsigned_object_without_a_commit_never_binds():
+    con = _legacy_canon(signature=None, commit=None)
+    try:
+        resolve = canonical_resolver(CanonStore(connection=con), lambda _: POLICY)
+        for version in (OTHER + "@None", OTHER + "@", OTHER):
+            with pytest.raises(ValueError):
+                resolve(REF.model_copy(update={"object_version": version}))
+    finally:
+        con.close()
+
+
+def test_signed_object_still_requires_its_signature_not_the_content_at_commit_form():
+    con = _legacy_canon(signature=SHA)
+    try:
+        resolve = canonical_resolver(CanonStore(connection=con), lambda _: POLICY)
+        assert resolve(REF.model_copy(update={"object_version": SHA})) == POLICY
+        with pytest.raises(ValueError):
+            resolve(REF.model_copy(update={"object_version": OTHER + "@CMT-legacy0001"}))
+    finally:
+        con.close()
+
+
+class LegacyCanon(Canon):
+    """A canon that also knows the commit of the pinned snapshot (as CanonStore does)."""
+
+    def commit_of(self, key):
+        return "CMT-legacy0001" if key == SID else None
+
+
+def test_review_packet_shows_an_unsigned_legacy_support():
+    served = OTHER + "@CMT-legacy0001"
+    ref = REF.model_copy(update={"object_version": served})
+    packet = build_review_packet(reader(entity(supports=(ref,))), LegacyCanon([row(ref, extraction_signature=None)]),
+                                 "e1", CONTEXT)
+    assert packet["original_supports"][0]["excerpt"]["text"] == TEXT
+    assert packet["review_state"] == "NOT_REVIEWED"
+
+
+def test_empty_signature_or_missing_commit_lookup_fails_closed():
+    served = OTHER + "@CMT-legacy0001"
+    ref = REF.model_copy(update={"object_version": served})
+    with pytest.raises(ValueError):           # "" is a corrupt signature, never the unsigned form
+        build_review_packet(reader(entity(supports=(ref,))), LegacyCanon([row(ref, extraction_signature="")]),
+                            "e1", CONTEXT)
+    with pytest.raises(ValueError):           # a canon without commit identity cannot resolve unsigned objects
+        build_review_packet(reader(entity(supports=(ref,))), Canon([row(ref, extraction_signature=None)]),
+                            "e1", CONTEXT)

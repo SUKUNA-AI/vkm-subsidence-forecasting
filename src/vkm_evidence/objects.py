@@ -39,6 +39,26 @@ class ObjectCatalogue:
         return obj.policy
 
 
+def served_object_version(canon, row) -> str | None:
+    """The occurrence version an evidence support must cite (owner decision 05.10.2026).
+
+    A signed object is identified by its producing-step ``extraction_signature``.
+    A legacy object without a signature (the extraction config of historical
+    snapshots was never recorded and is not backfilled) is identified by the
+    version the API itself serves for it: ``<content_sha256>@<canonical commit>``.
+    That pins the exact bytes of the served snapshot; the extraction signature
+    stays UNKNOWN and is never invented. A signed object never matches this form.
+    """
+    signature = row.get("extraction_signature")
+    if signature is not None:
+        return signature          # a signed object (an empty or corrupt signature never matches a ref)
+    if not hasattr(canon, "commit_of"):
+        raise ValueError("canonical commit unavailable for an unsigned object")
+    commit = canon.commit_of(row.get("source_id"))
+    content = row.get("content_sha256")
+    return f"{content}@{commit}" if commit and content else None
+
+
 def canonical_locator(row):
     """Exact stored native path/raw pointer, otherwise the canonical page ID."""
     return row.get("raw_locator") or row.get("docx_paragraph_path") or row.get("page_id")
@@ -74,6 +94,9 @@ def canonical_resolver(canon, policy_for_source):
                 or ref.object_id.split(":", 1)[0] != ref.source_id):
             raise ValueError("canonical occurrence identity mismatch")
         row = canon.row(kind, ref.object_id)
+        # The version is taken once, before the snapshot re-check, so a row and a commit can never come
+        # from two different snapshots.
+        version = served_object_version(canon, row) if row is not None else None
         current = canon.snapshot() if hasattr(canon, "snapshot") else canon.snapshot_id()
         if current != snapshot:
             raise ValueError("original snapshot changed during resolution")
@@ -83,7 +106,7 @@ def canonical_resolver(canon, policy_for_source):
                 or row.get("source_id") != ref.source_id or row.get("source_sha256") != ref.source_sha256
                 or row.get("content_sha256") != ref.content_sha256
                 or str(row.get("extraction_generation")) != ref.extraction_generation
-                or row.get("extraction_signature") != ref.object_version):
+                or not version or version != ref.object_version):
             raise ValueError("canonical occurrence identity mismatch")
         # Locators must be reconstructed from authoritative metadata. Caller text
         # is not evidence that a printed page or XML path exists.
