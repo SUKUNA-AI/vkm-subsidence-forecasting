@@ -158,6 +158,12 @@ EDGE не менялся.
 привязка к точным страницам, объекты без подписи — по версии «содержимое@коммит» (решение владельца), все записи
 UNREVIEWED; api `34570ee`, политика 271 + 50 внешних id; smoke-6 49/49 PASS.
 
+[deploy_20261005_core_search_flags.json](deploy_20261005_core_search_flags.json): CORE api/mcp/mcp-admin
+на образе `d5385da` — необязательные флаги гибридного поиска (`formulations` до 4 перефразировок со слиянием
+RRF, `expand=terms`, `max_per_source`, `late_candidates` ≤ 300), по умолчанию выключены. Первая попытка
+откатилась автоматически из-за ошибки в проверочном запросе скрипта (без токена, 401); вторая — PASS:
+hybrid-smoke, запрос с формулировками (stages записаны), smoke-6 49/49.
+
 [first_live_engine_create_cpu_2026-10-05_apparmor.json](first_live_engine_create_cpu_2026-10-05_apparmor.json):
 L0 на `ac9589e` (AppArmor с учётом жизненного цикла) — 410 тестов на Windows и Linux,
 файлы сверены побайтно с коммитом; заменяет pins `_names` receipt.

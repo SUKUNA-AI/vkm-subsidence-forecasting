@@ -1,0 +1,53 @@
+{
+ "schema": "vkm.deploy_receipt/1",
+ "date": "2026-10-05",
+ "host": "CORE",
+ "authorization": "owner in chat 2026-10-05: «выкати версию с формулировками сейчас» (ordinary compose path)",
+ "change": "api/mcp/mcp-admin switched from the image of commit 34570ee to the image of commit d5385da: optional hybrid-search flags formulations (<= 4 other wordings, RRF fusion), expand=terms, max_per_source, late_candidates <= 300; all flags off by default (the path without flags is unchanged); canonical snapshot, projections, evidence journal, policy and profile unchanged",
+ "image": {
+  "tag": "vkm-corpus-api:0.1.0-d5385da81e76",
+  "id": "sha256:55ce137390fdf68c87cfe0b33799cbdf5bcc711a78161e77bcc0ce99eb575584",
+  "code_check": "inside the image: MAX_LATE_CANDIDATES = 300, mcp search_hybrid exposes formulations; src and infra/core identical between d5385da and 904d69b; CORE compose.yml identical to the repository (sha256 prefix 9f5192709a88897c)"
+ },
+ "previous_image": {
+  "tag": "vkm-corpus-api:0.1.0-34570ee0877b",
+  "id": "sha256:723d5bb20ac51c8a2735756620dbf438905910209f34faffa4942b06a2041cec",
+  "rollback": "restore .env.bak-20261005T214345 (VKM_API_IMAGE) and `docker compose up -d --no-deps api mcp mcp-admin`"
+ },
+ "attempts": [
+  {
+   "result": "ROLLED_BACK",
+   "cause": "the deploy script's own formulations probe sent no read token (HTTP 401); the switch itself was healthy and hybrid-smoke PASS; automatic rollback to 34570ee, healthy"
+  },
+  {
+   "result": "DEPLOYED",
+   "cause": "probe fixed (read token from VKM_API_TOKEN_FILE inside the api container, request field `query`)"
+  }
+ ],
+ "checks": {
+  "containers_after": {
+   "vkm-core-api-1": {"image": "vkm-corpus-api:0.1.0-d5385da81e76", "health": "healthy", "restart_count": 0},
+   "vkm-core-mcp-1": {"image": "vkm-corpus-api:0.1.0-d5385da81e76", "health": "healthy", "restart_count": 0},
+   "vkm-core-mcp-admin-1": {"image": "vkm-corpus-api:0.1.0-d5385da81e76", "health": "healthy", "restart_count": 0}
+  },
+  "hybrid_smoke_late": "PASS",
+  "formulations_probe": {
+   "request": "POST /v1/search/hybrid, kinds PAGE, limit 10, late true; once without and once with 2 formulations",
+   "ok": [true, true],
+   "hits": [10, 10],
+   "stages_formulations_recorded": true,
+   "top10_overlap_with_plain_query": 3
+  },
+  "mcp_smoke": {
+   "version": "nightly-mcp-smoke-6",
+   "summary": {"PASS": 49, "WARN": 0, "FAIL": 0, "SKIP": 0},
+   "output_sha256": "9044ad0c0ca7f7594f1331e7976ec4d1694ddfcc0e5f1ca398988ef193a07b85"
+  }
+ },
+ "benchmark_basis": "benchmarks/topic_v1/RESULTS_EXPERIMENTS_2026-10-05.md (human3 R@50 +0.131; terms, cap5, pool200/300 without significant gain — not enabled by default)",
+ "limits": {
+  "defaults": "no flag is enabled by default; gains need good formulations passed by the caller (agent via MCP search_hybrid)",
+  "edge": "unchanged",
+  "serving_profile": "COMPATIBILITY (unchanged)"
+ }
+}
