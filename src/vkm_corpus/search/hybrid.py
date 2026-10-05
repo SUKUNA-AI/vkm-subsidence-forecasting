@@ -60,15 +60,37 @@ interaction stage (mLateOn MaxSim), with a per-stage trace (постановка
   the leg widens the late window and the late score decides; G1 runs last. Every stage needs the late stage (the
   measured configuration) and the navigation layer (without it: a warning and E's answer). Server default
   :data:`graph_stages.DEFAULTS`; ``VKM_HYBRID_GRAPH`` overrides it (``HybridBackend``).
+* Multi-formulation fusion (``formulations``; opt-in, topic_v1 post-hoc: RRF of a topic's three wordings raised
+  page_recall@50 0.303 → 0.446 at the same 50-page budget): the query and each other wording (≤ 4; the API's
+  ``expand=terms`` derives them from the NAV term dictionary) run the whole pipeline above — as an independent
+  request would, with its own expansions — one after another, the query first. The final orders are fused by
+  RRF(``rrf_k``) over the first :data:`FUSION_DEPTH` keys of each (ties: the earlier formulation first) and the window
+  is cut from the fused list; a hit keeps the trace of the first formulation that ranked it plus
+  ``trace.formulations`` (its rank in each). Cursor: the depth is fixed, so every page re-runs the formulations and
+  pages through the same fused list (``fused_total`` = its length). A failed other formulation is a warning and a
+  ``FAILED`` entry of ``stages.formulations`` (the query's own failure fails the request); no formulation starts after
+  :data:`FUSION_BUDGET_S`; duplicates of an earlier wording are skipped. With fewer than two answered formulations
+  nothing is fused: the query's own order is served (``NOT_APPLIED``).
+* Per-source cap (``max_per_source`` = N; opt-in): applied last to the whole final order (after the fusion of the
+  formulations). Of each source the first N keys keep their places; its next N follow after every source's first N,
+  and so on (sort by ⌊index within the source / N⌋, then position) — nothing is dropped, and the order does not
+  depend on the window, so offsets page through it. A window inside the first round holds ≤ N keys per source; it
+  can hold more only when the candidates come from fewer than ``size / N`` sources. Hits beyond their source's first
+  N carry ``trace.source_cap`` (round, rank before the cap); ``stages.source_cap`` counts them.
+* Late pool (:data:`MAX_LATE_CANDIDATES` = 300): the RX580 service accepts up to 1000 targets per ``/search/late``
+  call (``LateSearchBody``); with ``candidates`` ≤ 200 per leg the RRF list (BM25 ∪ dense) is usually long enough to
+  fill it — when it is shorter, every fused key is a candidate.
 * Optional ``rerank_text`` re-scores the returned ``rerank_candidate`` objects through its configured backend;
   it is a separate call, not another stage run inside this search.
 """
 from __future__ import annotations
 
+import dataclasses
+import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable, Mapping
 
 from vkm_corpus.retrieval_lab.fusion import rrf
 from vkm_corpus.search import graph_stages as GS
@@ -90,13 +112,18 @@ PAGE_OVERSAMPLE = 3                       # units fetched per wanted page (sever
 MAX_KNN = 1000
 EMBED_TIMEOUT_S = 15.0
 LATE_TIMEOUT_S = 30.0
-MAX_LATE_CANDIDATES = 200
+MAX_LATE_CANDIDATES = 300                 # RX580 /search/late takes ≤ 1000 targets (retrieval_service LateSearchBody)
 LATE_CANDIDATES = 100                     # J's service scheme: RRF top-100 → mLateOn
 LATE_DEFAULT = False                      # late stage when the request does not say (agent L: from CORE latency)
 BIB_KIND = "BIB_ENTRY"                    # the kind the bibliographic route scans (CP-42 keeps it out of PAGE ranking)
 VISUAL_ROUTE_DEFAULT = False              # server switch of the visual route (VKM_HYBRID_VISUAL_ROUTE after the gate)
 VISUAL_OVERSAMPLE = 4                     # page vectors fetched per wanted page (duplicate groups collapse; V2: 400)
 MAX_EXPANSIONS = 2                        # query expansions (term dictionary, agent TR): extra BM25 + dense legs each
+MAX_FORMULATIONS = 5                      # the query + ≤ 4 other wordings, each a whole pipeline run (opt-in fusion)
+FUSION_DEPTH = 50                         # keys of each formulation's final order that enter the fusion (topic_v1: 50)
+FUSION_BUDGET_S = 60.0                    # no further formulation starts after this (a running one keeps its timeouts)
+MAX_PER_SOURCE = 50                       # largest per-source cap a request may ask for
+_SOURCE_PREFIX = re.compile(r"^(VKM-SRC-\d{3,}):")
 
 
 class HybridError(RuntimeError):
@@ -326,6 +353,10 @@ class HybridRequest:
     visual_route: bool | None = None       # None → the visual intent detector decides (when the server enables it)
     expansions: tuple[str, ...] = ()       # other wordings (the query in the other language): extra RRF legs
     graph: tuple[str, ...] | None = None   # graph stages (graph_stages.STAGES); None → the server default
+    # other formulations of the question (str or {"text", "origin", "expansions"}): each runs the whole pipeline and
+    # the final orders are fused by RRF (opt-in; () → the query alone, today's path)
+    formulations: tuple[Any, ...] = ()
+    max_per_source: int | None = None      # at most N keys of one source before the overflow (None → off)
 
     def validate(self) -> None:
         if not self.query or not self.query.strip() or len(self.query) > 512:
@@ -337,6 +368,13 @@ class HybridRequest:
         self.expansions = tuple(" ".join(str(x).split()) for x in self.expansions or ())
         if len(self.expansions) > MAX_EXPANSIONS or any(not x or len(x) > 512 for x in self.expansions):
             raise SearchRequestError("E_BAD_QUERY", f"at most {MAX_EXPANSIONS} expansions of 1..512 characters")
+        self.formulations = tuple(_formulation(x) for x in self.formulations or ())
+        if len(self.formulations) > MAX_FORMULATIONS - 1:
+            raise SearchRequestError("E_BAD_QUERY", f"at most {MAX_FORMULATIONS - 1} other formulations")
+        if self.max_per_source is not None:
+            if isinstance(self.max_per_source, bool) or not 1 <= int(self.max_per_source) <= MAX_PER_SOURCE:
+                raise SearchRequestError("E_BAD_SIZE", f"max_per_source 1..{MAX_PER_SOURCE}")
+            self.max_per_source = int(self.max_per_source)
         self.kinds = tuple(k.upper() for k in self.kinds)
         if not self.kinds or any(k not in HYBRID_KINDS for k in self.kinds) or len(set(self.kinds)) != len(self.kinds):
             raise SearchRequestError("E_BAD_KIND", f"hybrid kinds must be distinct values of {HYBRID_KINDS} (blocks "
@@ -354,6 +392,54 @@ class HybridRequest:
             raise SearchRequestError("E_BAD_FILTER", f"filters {bad} are object-type fields; hybrid search "
                                                              "filters on page-level fields only")
         compile_filters(self.filters)
+
+
+def _formulation(x: Any) -> dict[str, Any]:
+    """One other formulation → ``{"text", "origin", "expansions"}`` (whitespace collapsed; idempotent)."""
+    if isinstance(x, str):
+        x = {"text": x}
+    if not isinstance(x, Mapping):
+        raise SearchRequestError("E_BAD_QUERY", "a formulation is a string or {text, origin, expansions}")
+    text = " ".join(str(x.get("text") or "").split())
+    expansions = tuple(" ".join(str(e).split()) for e in x.get("expansions") or ())
+    if not text or len(text) > 512:
+        raise SearchRequestError("E_BAD_QUERY", "a formulation must be 1..512 characters")
+    if len(expansions) > MAX_EXPANSIONS or any(not e or len(e) > 512 for e in expansions):
+        raise SearchRequestError("E_BAD_QUERY", f"at most {MAX_EXPANSIONS} expansions of 1..512 characters per "
+                                                "formulation")
+    origin = " ".join(str(x.get("origin") or "caller").split())[:40] or "caller"
+    return {"text": text, "origin": origin, "expansions": expansions}
+
+
+# ---------------------------------------------------------------- per-source cap
+def cap_per_source(keys: list[str], source_of: Callable[[str], str | None], n: int
+                   ) -> tuple[list[str], dict[str, dict[str, int]]]:
+    """The per-source cap over a whole final order: of each source the first ``n`` keys keep their places, its next
+    ``n`` follow after every source's first ``n``, and so on — sorted by (⌊index within the source / n⌋, position).
+    Keys without a known source stay in the first round. Nothing is dropped. → (new order, over-cap key → {round,
+    rank_before_cap}: every key beyond its source's first ``n``, moved back or not)."""
+    seen: dict[str, int] = {}
+    rounds: list[tuple[int, int, str]] = []
+    for pos, key in enumerate(keys):
+        src = source_of(key)
+        r = 0
+        if src:
+            i = seen.get(src, 0)
+            seen[src] = i + 1
+            r = i // n
+        rounds.append((r, pos, key))
+    rounds.sort()
+    moved = {key: {"round": r, "rank_before_cap": pos + 1} for r, pos, key in rounds if r > 0}
+    return [key for _r, _pos, key in rounds], moved
+
+
+def _cap_stage(n: int, over: dict[str, dict[str, int]], source_of: Callable[[str], str | None], before: list[str],
+               after: list[str], applied_to: str) -> dict[str, Any]:
+    moved = sum(1 for i, key in enumerate(after) if before[i] != key)
+    return {"max_per_source": n, "over_cap": len(over), "moved": moved,
+            "sources_over_cap": len({source_of(k) for k in over}), "keys": len(before), "applied_to": applied_to,
+            "rule": f"of each source the first {n} keep their places; its next {n} follow after every source's first "
+                    f"{n}, and so on (nothing dropped; the order does not depend on the window)"}
 
 
 # ---------------------------------------------------------------- vectors build
@@ -594,8 +680,23 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                   graph_params: GS.GraphParams | None = None) -> dict[str, Any]:
     """BM25 + dense → RRF (→ late MaxSim when ``req.late``) (→ the graph stages' legs) (→ the visual route's RRF with
     the page-image channel) (→ G1 collapse); hits carry ids, the per-stage trace and E's highlights/best blocks when
-    BM25 found them. ``graph`` is a :class:`graph_stages.GraphSignals` (the navigation layer)."""
+    BM25 found them. ``graph`` is a :class:`graph_stages.GraphSignals` (the navigation layer). With
+    ``req.formulations`` every formulation runs this pipeline and the final orders are fused (:func:`_multi_search`);
+    ``req.max_per_source`` caps the final order per source (:func:`cap_per_source`)."""
     req.validate()
+    kw = {"meta": meta, "visual": visual, "vmeta": vmeta, "graph": graph, "graph_defaults": graph_defaults,
+          "graph_params": graph_params}
+    if req.formulations:
+        return _multi_search(client, embed, req, prefix, **kw)
+    return _one_search(client, embed, req, prefix, **kw)
+
+
+def _one_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str, *, meta: dict[str, Any] | None,
+                visual: VisualRouteSettings | None, vmeta: Any, graph: Any, graph_defaults: Iterable[str] | None,
+                graph_params: GS.GraphParams | None, window: tuple[int, int] | None = None,
+                cap: bool = True) -> dict[str, Any]:
+    """One pipeline run of a validated request; ``window`` = (offset, size) of the hits instead of the request's,
+    ``cap`` = apply ``req.max_per_source`` here (off when the fusion of formulations caps afterwards)."""
     timings: dict[str, float] = {}
     t0 = time.perf_counter()
     grun = GS.GraphRun(GS.resolve(req.graph, graph_defaults), graph_params or GS.GraphParams(), graph,
@@ -604,7 +705,7 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
     pool = ThreadPoolExecutor(max_workers=3) if grun.on("concepts") or grun.on("cites") else None
     try:
         return _hybrid_search(client, embed, req, prefix, meta=meta, visual=visual, vmeta=vmeta, grun=grun,
-                              pool=pool, timings=timings, t0=t0)
+                              pool=pool, timings=timings, t0=t0, window=window, cap=cap)
     finally:
         if pool is not None:
             pool.shutdown(wait=False, cancel_futures=True)
@@ -612,7 +713,8 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
 
 def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str, *, meta: dict[str, Any] | None,
                    visual: VisualRouteSettings | None, vmeta: Any, grun: GS.GraphRun, pool: ThreadPoolExecutor | None,
-                   timings: dict[str, float], t0: float) -> dict[str, Any]:
+                   timings: dict[str, float], t0: float, window: tuple[int, int] | None = None,
+                   cap: bool = True) -> dict[str, Any]:
     gp = grun.params
 
     def concepts_task() -> tuple[list[str], list[list[str]]]:
@@ -853,6 +955,26 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
         kept = set(grun.finish([key for key, _s in order], kind_of))
         order = [(key, s) for key, s in order if key in kept]
         timings["graph_collapse"] = round((time.perf_counter() - t1) * 1e3, 2)
+    # per-source cap (opt-in): last, over the whole final order — the overflow moves back, nothing is dropped
+    moved: dict[str, dict[str, int]] = {}
+    cap_stage: dict[str, Any] | None = None
+    if cap and req.max_per_source:
+        t1 = time.perf_counter()
+
+        def source_of(key: str) -> str | None:
+            bmh, dh = bm25_hits.get(key), dense_hits.get(key)
+            src = dh.source if dh is not None else vis_src.get(key, {})
+            m = _SOURCE_PREFIX.match(key)
+            return (bmh.source_id if bmh else None) or src.get("source_id") or (m.group(1) if m else None)
+
+        keys = [key for key, _s in order]
+        new_keys, moved = cap_per_source(keys, source_of, req.max_per_source)
+        score_of = dict(order)
+        order = [(key, score_of[key]) for key in new_keys]
+        cap_stage = _cap_stage(req.max_per_source, moved, source_of, keys, new_keys,
+                               "the final order (after late, graph stages, visual route and G1)")
+        timings["source_cap"] = round((time.perf_counter() - t1) * 1e3, 2)
+    off, size = window if window is not None else (req.offset, req.size)
     for fut in (word_future, cite_future):          # a leg that no fusion point waited for (no RRF result at all)
         if fut is not None and not fut.done():
             try:
@@ -867,9 +989,9 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
     scores = {name: dict(lst) for name, lst in rankings.items()}
     hits = []
     for rank, (key, score) in enumerate(order, 1):
-        if rank <= req.offset:
+        if rank <= off:
             continue
-        if len(hits) >= req.size:
+        if len(hits) >= size:
             break
         kind = kind_of[key]
         bmh, dh = bm25_hits.get(key), dense_hits.get(key)
@@ -903,6 +1025,8 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
         gtrace = grun.trace(key)
         if gtrace:
             trace["graph"] = gtrace
+        if key in moved:
+            trace.update({"source_cap": moved[key], "final_rank": rank})
         if dh is not None:
             trace["dense_unit"] = {"unit_id": dh.unit_id, "unit_kind": dh.unit_kind, "object_ids": dh.object_ids}
         src = dh.source if dh is not None else vis_src.get(key, {})
@@ -925,7 +1049,7 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
         hits.append(hit)
     timings["total"] = round((time.perf_counter() - t0) * 1e3, 2)
     routes = [name for name, st in (("bibliographic", bib_status), ("visual", vis_status)) if st == "APPLIED"]
-    return {"query": req.query, "kinds": list(req.kinds), "hits": hits, "fusion": "RRF", "rrf_k": req.rrf_k,
+    out = {"query": req.query, "kinds": list(req.kinds), "hits": hits, "fusion": "RRF", "rrf_k": req.rrf_k,
             "candidates": req.candidates, "fused_total": len(order), "totals": totals, "warnings": warnings,
             "late": bool(req.late), "late_candidates": req.late_candidates if req.late else None,
             "route": "+".join(routes) or "default",
@@ -945,3 +1069,174 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
                        "graph": grun.record(),
                        "rerank": "NOT_RUN here (rerank_text over rerank_candidate through its configured backend)"},
             "timings_ms": timings}
+    if cap_stage is not None:
+        out["stages"]["source_cap"] = cap_stage
+    return out
+
+
+# ---------------------------------------------------------------- multi-formulation fusion
+def fuse_formulations(lists: list[tuple[int, list[str]]], *, k: int, depth: int = FUSION_DEPTH
+                      ) -> tuple[list[str], dict[str, float], dict[str, dict[str, int]], dict[str, int]]:
+    """RRF(k) of the formulations' final orders, the first ``depth`` keys of each: ``Σ 1 / (k + rank)``; ties keep the
+    first occurrence (the earlier formulation, then its rank — the query first). ``lists`` = [(formulation number,
+    keys in order)]. → (fused keys, score, ranks per formulation ``{"f<n>": rank}``, formulation the key came from)."""
+    score: dict[str, float] = {}
+    first: dict[str, int] = {}
+    ranks: dict[str, dict[str, int]] = {}
+    origin: dict[str, int] = {}
+    for n, keys in lists:
+        for rank, key in enumerate(keys[:depth], 1):
+            score[key] = score.get(key, 0.0) + 1.0 / (k + rank)
+            ranks.setdefault(key, {})[f"f{n}"] = rank
+            if key not in first:
+                first[key] = len(first)
+                origin[key] = n
+    order = sorted(score, key=lambda key: (-score[key], first[key]))
+    return order, score, ranks, origin
+
+
+def _window(order: list[str], hit_of: Mapping[str, dict[str, Any]], offset: int, size: int,
+            extra: Callable[[str, int], dict[str, Any]]) -> list[dict[str, Any]]:
+    """Hits ``offset … offset + size`` of ``order`` from the given hit dicts (copied; rank and trace updated)."""
+    out = []
+    for rank, key in enumerate(order[offset:offset + size], offset + 1):
+        hit = dict(hit_of[key])
+        trace = dict(hit.get("trace") or {})
+        trace.update(extra(key, rank))
+        hit.update({"rank": rank, "trace": trace})
+        out.append(hit)
+    return out
+
+
+def _multi_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str, *, meta: dict[str, Any] | None,
+                  **kw: Any) -> dict[str, Any]:
+    """The query and its other formulations, each through the whole pipeline (one after another, the query first),
+    their final orders fused by :func:`fuse_formulations`; the per-source cap goes last, over the fused list. The
+    query's own run serves its whole order (up to E's window) so that, with nothing to fuse, the answer is exactly the
+    single-query one."""
+    t0 = time.perf_counter()
+    meta = meta or vectors_meta(client, prefix)
+    entries = [{"text": " ".join(req.query.split()), "origin": "query", "expansions": tuple(req.expansions)},
+               *req.formulations]
+    runs: list[dict[str, Any]] = []
+    answered: list[tuple[int, dict[str, Any]]] = []
+    warnings: list[str] = []
+    timings: dict[str, float] = {}
+    seen: set[str] = set()
+    for n, f in enumerate(entries):
+        info: dict[str, Any] = {"n": n, "origin": f["origin"], "text": f["text"]}
+        runs.append(info)
+        norm = " ".join(f["text"].lower().replace("ё", "е").split())
+        if norm in seen:
+            info["status"] = "SKIPPED_DUPLICATE"
+            continue
+        seen.add(norm)
+        if n and time.perf_counter() - t0 > FUSION_BUDGET_S:
+            info["status"] = "SKIPPED_BUDGET"
+            warnings.append(f"FORMULATION_SKIPPED_BUDGET: f{n} not run (the formulations took over "
+                            f"{FUSION_BUDGET_S:g} s)")
+            continue
+        sub = dataclasses.replace(req, query=f["text"] if n else req.query, expansions=tuple(f["expansions"]),
+                                  formulations=(), max_per_source=None, offset=0)
+        t1 = time.perf_counter()
+        try:
+            sub.validate()
+            res = _one_search(client, embed, sub, prefix, meta=meta, **kw,
+                              window=(0, MAX_WINDOW if n == 0 else FUSION_DEPTH), cap=False)
+        except (HybridError, SearchRequestError) as exc:
+            if n == 0:
+                raise                                   # the query's own failure fails the request, as without fusion
+            err = ({"code": exc.code, "stage": exc.stage, "tool": exc.tool, "message": exc.message[:200]}
+                   if isinstance(exc, HybridError) else {"code": exc.code, "message": exc.message[:200]})
+            info.update({"status": "FAILED", "error": err, "ms": round((time.perf_counter() - t1) * 1e3, 2)})
+            where = f" ({err['stage']})" if "stage" in err else ""
+            warnings.append(f"FORMULATION_FAILED: f{n} {err['code']}{where}")
+            continue
+        except Exception as exc:  # noqa: BLE001 - an other formulation never sinks the query's answer
+            if n == 0:
+                raise
+            info.update({"status": "FAILED", "error": {"code": "DEPENDENCY_ERROR", "message": type(exc).__name__},
+                         "ms": round((time.perf_counter() - t1) * 1e3, 2)})
+            warnings.append(f"FORMULATION_FAILED: f{n} DEPENDENCY_ERROR ({type(exc).__name__})")
+            continue
+        ms = round((time.perf_counter() - t1) * 1e3, 2)
+        timings[f"f{n}"] = ms
+        expansion = res["stages"].get("expansion")
+        info.update({"status": "OK", "ms": ms, "fused_total": res["fused_total"], "route": res["route"],
+                     "late": res["late"], "expansions": list(expansion.get("texts") or [])
+                     if isinstance(expansion, dict) else [],
+                     "warnings": len(res["warnings"]), "timings_ms": res["timings_ms"]})
+        if n:
+            warnings += [f"f{n}: {w}" for w in res["warnings"]]
+        answered.append((n, res))
+    base = answered[0][1]
+    t1 = time.perf_counter()
+    stage: dict[str, Any] = {
+        "status": "APPLIED" if len(answered) >= 2 else "NOT_APPLIED", "answered": len(answered),
+        "depth": FUSION_DEPTH, "max_formulations": MAX_FORMULATIONS, "budget_s": FUSION_BUDGET_S,
+        "fusion": f"RRF(k={req.rrf_k}) of the final orders (first {FUSION_DEPTH} of each formulation; ties: the "
+                  "earlier formulation first)",
+        "cursor": "the fused list has a fixed depth: every page re-runs the formulations and pages through the same "
+                  "list (fused_total = its length)",
+        "runs": runs}
+    if len(answered) >= 2:
+        # dedupe: a page another formulation served as the representative of its duplicate group (E's collapsed
+        # ``duplicates``) joins that representative — the first one seen (the query first)
+        hit_of: dict[str, dict[str, Any]] = {}
+        alias: dict[str, str] = {}
+        lists: list[tuple[int, list[str]]] = []
+        merged = 0
+        for n, res in answered:
+            keys: list[str] = []
+            for h in res["hits"][:FUSION_DEPTH]:
+                rep = alias.setdefault(h["id"], h["id"])
+                merged += rep != h["id"]
+                for d in h.get("duplicates") or []:
+                    alias.setdefault(str(d), rep)
+                hit_of.setdefault(rep, h)
+                if rep not in keys:
+                    keys.append(rep)
+            lists.append((n, keys))
+        order, score, ranks, origin = fuse_formulations(lists, k=req.rrf_k)
+        stage["duplicates_merged"] = merged
+    else:
+        stage["reason"] = "no other formulation answered: the query's own order"
+        hit_of = {h["id"]: h for h in base["hits"]}
+        order, score, ranks, origin = [h["id"] for h in base["hits"]], {}, {}, {}
+    fused_pos = {key: i for i, key in enumerate(order, 1)}
+    moved: dict[str, dict[str, int]] = {}
+    cap_stage = None
+    if req.max_per_source:
+        def source_of(key: str) -> str | None:
+            m = _SOURCE_PREFIX.match(key)
+            return hit_of[key].get("source_id") or (m.group(1) if m else None)
+
+        before = order
+        order, moved = cap_per_source(order, source_of, req.max_per_source)
+        cap_stage = _cap_stage(req.max_per_source, moved, source_of, before, order,
+                               "the fused list of the formulations" if score else "the query's final order")
+
+    def extra(key: str, rank: int) -> dict[str, Any]:
+        x: dict[str, Any] = {}
+        if score:
+            x["formulations"] = {"fused_rank": fused_pos[key], "rrf_score": round(score[key], 8), "ranks": ranks[key],
+                                 "hit_from": f"f{origin[key]}"}
+            x["final_rank"] = rank
+        if key in moved:
+            x.update({"source_cap": moved[key], "final_rank": rank})
+        elif not score and "final_rank" in (hit_of[key].get("trace") or {}):
+            x["final_rank"] = rank
+        return x
+
+    hits = _window(order, hit_of, req.offset, req.size, extra)
+    if score:
+        for h in hits:
+            h["score"] = round(score[h["id"]], 8)
+    timings["fusion"] = round((time.perf_counter() - t1) * 1e3, 2)
+    timings["total"] = round((time.perf_counter() - t0) * 1e3, 2)
+    out = {**base, "hits": hits, "fused_total": len(order) if score else base["fused_total"],
+           "warnings": list(base["warnings"]) + warnings,
+           "stages": {**base["stages"], "formulations": stage}, "timings_ms": timings}
+    if cap_stage is not None:
+        out["stages"]["source_cap"] = cap_stage
+    return out

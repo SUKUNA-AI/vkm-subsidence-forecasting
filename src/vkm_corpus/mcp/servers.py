@@ -174,14 +174,20 @@ def build_read_server(api: ApiClient) -> MCPServer:
                     available_until: str | None, unknown_policy: str | None, limit: int, candidates: int,
                     cursor: str | None = None, late: bool | None = None,
                     late_candidates: int = 100, bib_route: bool | None = None,
-                    visual_route: bool | None = None, graph: list[str] | None = None) -> dict[str, Any]:
+                    visual_route: bool | None = None, graph: list[str] | None = None,
+                    formulations: list[str] | None = None, expand: str = "none",
+                    max_per_source: int | None = None) -> dict[str, Any]:
         filters = {k: v for k, v in {
             "source_ids": source_ids, "work_ids": work_ids, "source_scope": source_scope, "year_from": year_from,
             "year_to": year_to, "available_until": available_until, "unknown_policy": unknown_policy}.items()
             if v is not None}
+        # the opt-in fields travel only when set: the default body stays the one older API images accept
         return {"query": query, "kinds": kinds, "filters": filters, "limit": limit, "candidates": candidates,
                 "cursor": cursor, "late": late, "late_candidates": late_candidates, "bib_route": bib_route,
-                "visual_route": visual_route, **({"graph": list(graph)} if graph is not None else {})}
+                "visual_route": visual_route, **({"graph": list(graph)} if graph is not None else {}),
+                **({"formulations": list(formulations)} if formulations else {}),
+                **({"expand": expand} if expand != "none" else {}),
+                **({"max_per_source": max_per_source} if max_per_source is not None else {})}
 
     @server.tool(name="search_hybrid", annotations=READ_ONLY)
     async def search_hybrid(
@@ -200,7 +206,7 @@ def build_read_server(api: ApiClient) -> MCPServer:
             cursor: Annotated[str | None, Field(max_length=10)] = None,
             late: Annotated[bool | None, Field(description="late interaction (mLateOn MaxSim) over the RRF top "
                                                            "late_candidates; null = server default")] = None,
-            late_candidates: Annotated[int, Field(ge=1, le=200)] = 100,
+            late_candidates: Annotated[int, Field(ge=1, le=300)] = 100,
             bib_route: Annotated[bool | None, Field(description="bibliographic route: also search the reference-list "
                                                                "entries (BIB_ENTRY) and score pages with them; null "
                                                                "= automatic from the query's bibliographic cues")]
@@ -218,7 +224,20 @@ def build_read_server(api: ApiClient) -> MCPServer:
                                                              "first 10), concepts (synonyms, abbreviations, a narrower "
                                                              "term), cites (works cited by / citing the top sources), "
                                                              "topics (later pages in the NAV topics of the first 10); "
-                                                             "[] = none; null = server default")] = None
+                                                             "[] = none; null = server default")] = None,
+            formulations: Annotated[list[Annotated[str, Field(min_length=1, max_length=512)]] | None,
+                                    Field(max_length=4, description="other wordings of the same question (<= 4): "
+                                                                    "each runs the whole search, the final orders "
+                                                                    "are fused by RRF (record stages.formulations)")]
+            = None,
+            expand: Annotated[Literal["none", "terms"], Field(description="terms: up to 3 more wordings from the NAV "
+                                                                          "term dictionary (other language, synonyms, "
+                                                                          "abbreviations), fused like formulations")]
+            = "none",
+            max_per_source: Annotated[int | None, Field(ge=1, le=50, description="at most N hits of one source "
+                                                                                 "before the others' (the overflow "
+                                                                                 "follows, nothing dropped); null = "
+                                                                                 "off")] = None
             ) -> CallToolResult:
         """Hybrid search: BM25 + dense embeddings (RX580 query encoder, OpenSearch k-NN over embedding units),
         fused by reciprocal rank, then (late) re-scored by late interaction (mLateOn MaxSim over token vectors; a page
@@ -231,12 +250,15 @@ def build_read_server(api: ApiClient) -> MCPServer:
         "visual"; trace e_rank/vis_rank/vis_score). With the late stage the query is also searched in the other
         language (RU ↔ EN, NAV term dictionary: record translation, trace expansion_ranks). Graph stages (graph=
         [...]): copies collapse onto one hit (copies), a section or topic the first results share lends its other
-        pages, synonyms / abbreviations and citations add BM25 legs (record stages.graph, trace graph). Fails with
-        DEPENDENCY_UNAVAILABLE when the encoder, the vector index or (late) the token store is missing (use
-        search_text, or late=false, then)."""
+        pages, synonyms / abbreviations and citations add BM25 legs (record stages.graph, trace graph). Several
+        wordings of one question (formulations=[...], expand="terms") are searched separately and fused (record
+        stages.formulations, trace formulations); max_per_source=N keeps one source from filling the page (trace
+        source_cap). Fails with DEPENDENCY_UNAVAILABLE when the encoder, the vector index or (late) the token store is
+        missing (use search_text, or late=false, then)."""
         return await call("search_hybrid", "POST", "/v1/search/hybrid", body=hybrid_body(
             query, kinds, source_ids, work_ids, source_scope, year_from, year_to, available_until, unknown_policy,
-            limit, candidates, cursor, late, late_candidates, bib_route, visual_route, graph))
+            limit, candidates, cursor, late, late_candidates, bib_route, visual_route, graph, formulations, expand,
+            max_per_source))
 
     @server.tool(name="retrieval_trace", annotations=READ_ONLY)
     async def retrieval_trace(
@@ -248,7 +270,7 @@ def build_read_server(api: ApiClient) -> MCPServer:
             candidates: Annotated[int, Field(ge=10, le=200)] = 100,
             late: Annotated[bool | None, Field(description="include the late interaction stage; null = server "
                                                            "default")] = None,
-            late_candidates: Annotated[int, Field(ge=1, le=200)] = 100,
+            late_candidates: Annotated[int, Field(ge=1, le=300)] = 100,
             visual_route: Annotated[bool | None, Field(description="visual route (page images); null = automatic "
                                                                   "from picture words")] = None) -> CallToolResult:
         """Explain a hybrid ranking: per hit the rank and score of every stage (BM25, dense, RRF fusion, late

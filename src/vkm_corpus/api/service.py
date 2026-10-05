@@ -473,16 +473,35 @@ class ApiService:
                       candidates: int = 100, include_duplicates: bool = False, exact: bool = False, *,
                       late: bool | None = None, late_candidates: int = 100,
                       bib_route: bool | None = None, visual_route: bool | None = None,
-                      translate: bool | None = None, graph: Any = None) -> Result:
+                      translate: bool | None = None, graph: Any = None, formulations: list[str] | None = None,
+                      expand: str = "none", max_per_source: int | None = None) -> Result:
         """BM25 + dense k-NN fused by RRF, optionally re-scored by late interaction (``vkm_corpus.search.hybrid``);
         hits are hydrated from the canon exactly as in :meth:`search` and carry the per-stage trace. Without the query
         encoder, the vectors build or (with late) the token store the answer is DEPENDENCY_UNAVAILABLE — never BM25
         or RRF results in disguise. ``translate`` adds the query in the other language (NAV term dictionary) as
         extra RRF legs (None → :meth:`_hybrid_translate_default`); without the dictionary the search runs without them
         and says so (a warning when the flag was asked for). ``graph`` names the graph stages (a list or a comma
-        string; None → the server default; ``search.graph_stages``); what they did is in ``stages.graph``."""
+        string; None → the server default; ``search.graph_stages``); what they did is in ``stages.graph``.
+
+        Opt-in (none of them → today's request): ``formulations`` (≤ 4 other wordings of the question) and ``expand``
+        = ``terms`` (≤ 3 more from the NAV term dictionary, :meth:`_query_term_formulations`) run the whole search per
+        formulation and fuse the final orders by RRF (``stages.formulations``; the caller's wordings first, at most
+        :data:`~vkm_corpus.search.hybrid.MAX_FORMULATIONS` with the query; each formulation gets its own translation
+        legs when ``translate`` is on); ``max_per_source`` caps the final order per source (the overflow follows,
+        nothing is dropped; ``stages.source_cap``). With fused formulations the cursor pages through the fused list."""
+        from vkm_corpus.search.hybrid import MAX_FORMULATIONS, MAX_PER_SOURCE
+
         backend = _require(self.deps.hybrid, "hybrid search", "hybrid")
         offset = int(cursor) if cursor and cursor.isdigit() else 0
+        caller = [" ".join(str(f).split()) for f in formulations or []]
+        if len(caller) > MAX_FORMULATIONS - 1 or any(not f or len(f) > 512 for f in caller):
+            raise ApiFailure("INVALID_ARGUMENT", f"formulations: at most {MAX_FORMULATIONS - 1} wordings of 1..512 "
+                                                 "characters")
+        if expand not in ("none", "terms"):
+            raise ApiFailure("INVALID_ARGUMENT", "expand is none or terms")
+        if max_per_source is not None and (isinstance(max_per_source, bool) or
+                                           not 1 <= int(max_per_source) <= MAX_PER_SOURCE):
+            raise ApiFailure("INVALID_ARGUMENT", f"max_per_source is 1..{MAX_PER_SOURCE}")
         use_translation = self._hybrid_translate_default(late) if translate is None else bool(translate)
         expansions, translation = self._query_translation(query) if use_translation else ([], None)
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
@@ -498,6 +517,15 @@ class ApiService:
                 request["graph"] = parse_stages(graph)
             except ValueError as exc:
                 raise ApiFailure("INVALID_ARGUMENT", str(exc)[:300]) from exc
+        plan, plan_warnings = None, []
+        if caller or expand == "terms":
+            plan, plan_warnings = self._formulation_plan(query, caller, expand, use_translation, MAX_FORMULATIONS - 1)
+            if plan["sent"]:
+                request["formulations"] = tuple({"text": f["text"], "origin": f["origin"],
+                                                 "expansions": tuple(f.get("expansions") or ())}
+                                                for f in plan["sent"])
+        if max_per_source is not None:
+            request["max_per_source"] = int(max_per_source)
         response = backend.search(request)
         stages = response.get("stages") or {}
         dense = stages.get("dense") or {}
@@ -514,11 +542,19 @@ class ApiService:
             if translate and translation.get("status") == "UNAVAILABLE":
                 warnings.append(ApiWarning(code="TRANSLATION_UNAVAILABLE",
                                            message=str(translation.get("reason"))[:200]))
+        if plan is not None:
+            record["formulations"] = plan
+            warnings += plan_warnings
         envelope = Envelope(object_id=f"hybrid-{sha256_text(query)[:16]}", object_kind="SEARCH_RESULT",
                             review_status="NOT_APPLICABLE", layer="SERVICE", payload_form="NORMALIZED",
                             provenance=Provenance(model_id=dense.get("model_key"), model_revision=None),
                             canonical_snapshot_id=self.canon.snapshot_id())
-        more = offset + limit < min(int(response.get("fused_total") or 0), candidates * len(kinds))
+        fused_total = int(response.get("fused_total") or 0)
+        fstage = stages.get("formulations")
+        if isinstance(fstage, dict) and fstage.get("status") == "APPLIED":
+            more = offset + limit < fused_total             # the fused list is the whole answer (fixed depth)
+        else:
+            more = offset + limit < min(fused_total, candidates * len(kinds))
         return Result(item=Item(envelope=envelope, record=jsonable(record)), items=items, warnings=warnings,
                       next_cursor=str(offset + limit) if more else None)
 
@@ -1195,6 +1231,84 @@ class ApiService:
                           for x in (data.get("terms") or [])[:8]],
                 "note": "derived navigation (AUTO_EXTRACTED_UNREVIEWED): query expansion, not evidence"}
         return ([text] if text else []), info
+
+    # hybrid ``expand=terms``: the NAV query functions and their arguments, in the order the formulations are taken
+    _TERM_FORMULATIONS: tuple[tuple[str, str, dict[str, Any]], ...] = (
+        ("translation", "translate_query", {}),                                          # TRANSLATES_TO
+        ("synonyms", "expand_query", {"narrower": False, "relations": ("SYNONYM",)}),    # SYNONYM_OF
+        ("abbreviations", "expand_query", {"narrower": False, "relations": ("ABBREVIATION",)}))  # ABBREVIATION_OF
+
+    def _query_term_formulations(self, query: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        """≤ 3 other formulations of the query from the NAV term dictionary, deterministic (no model, no sampling), in
+        this order: the query in the other language (TRANSLATES_TO pairs, ``translate_query``), its phrases replaced by
+        their synonyms (SYNONYM_OF) and by their abbreviations or full forms (ABBREVIATION_OF; ``expand_query`` with
+        one relation each, trusted pairs only). → (formulations, what happened); no navigation layer → none."""
+        nav = self.deps.nav
+        if nav is None:
+            return [], {"status": "UNAVAILABLE", "reason": "the navigation layer is not configured"}
+        out: list[dict[str, Any]] = []
+        parts: dict[str, Any] = {}
+        for origin, name, kwargs in self._TERM_FORMULATIONS:
+            try:
+                data = nav.run(name, query, **kwargs)
+            except Exception as exc:  # noqa: BLE001 - NavUnavailable, a build without the dictionary …
+                parts[origin] = {"status": "UNAVAILABLE", "reason": type(exc).__name__}
+                continue
+            data = data if isinstance(data, dict) else {}
+            if name == "translate_query":
+                text = data.get("translation")
+                terms = [{k: x.get(k) for k in ("span", "translation", "score", "pair_id")}
+                         for x in (data.get("terms") or [])[:8]]
+            else:
+                exp = next((x for x in data.get("expansions") or [] if x.get("kind") == "equivalents"), None) or {}
+                text = exp.get("text")
+                terms = [{k: x.get(k) for k in ("span", "equivalent", "relation", "score", "pair_id")}
+                         for x in (exp.get("terms") or [])[:8]]
+            text = " ".join(str(text).split())[:512] if text else None
+            parts[origin] = {"status": "APPLIED" if text else "NOT_COVERED", "text": text, "terms": terms}
+            if text:
+                out.append({"text": text, "origin": origin})
+        statuses = {p["status"] for p in parts.values()}
+        status = "APPLIED" if out else ("UNAVAILABLE" if statuses == {"UNAVAILABLE"} else "NOT_COVERED")
+        return out, {"status": status, "parts": parts,
+                     "note": "derived navigation (AUTO_EXTRACTED_UNREVIEWED): query formulations, not evidence"}
+
+    def _formulation_plan(self, query: str, caller: list[str], expand: str, use_translation: bool,
+                          budget: int) -> tuple[dict[str, Any], list[ApiWarning]]:
+        """The other formulations a hybrid request runs: the caller's first, then ``expand=terms``; duplicates of the
+        query or of an earlier one and those beyond ``budget`` are listed as skipped (never dropped silently). Each
+        sent formulation gets its own translation legs when the translation is on (as its own request would)."""
+        warnings: list[ApiWarning] = []
+        candidates = [{"text": f, "origin": "caller"} for f in caller]
+        terms_info = None
+        if expand == "terms":
+            derived, terms_info = self._query_term_formulations(query)
+            candidates += derived
+            if terms_info["status"] == "UNAVAILABLE":
+                reason = terms_info.get("reason") or "term dictionary unavailable"
+                warnings.append(ApiWarning(code="TERM_EXPANSION_UNAVAILABLE", message=str(reason)[:200]))
+        seen = {" ".join(query.lower().replace("ё", "е").split())}
+        sent, skipped = [], []
+        for f in candidates:
+            key = " ".join(f["text"].lower().replace("ё", "е").split())
+            if key in seen:
+                skipped.append({**f, "reason": "DUPLICATE"})
+            elif len(sent) >= budget:
+                skipped.append({**f, "reason": "BUDGET"})
+            else:
+                seen.add(key)
+                sent.append(dict(f))
+        if any(s["reason"] == "BUDGET" for s in skipped):
+            warnings.append(ApiWarning(code="FORMULATIONS_OVER_BUDGET", message=f"at most {budget} other formulations "
+                                       "run; the rest are listed in record.formulations.skipped",
+                                       count=sum(1 for s in skipped if s["reason"] == "BUDGET")))
+        if use_translation:
+            for f in sent:
+                f["expansions"], _info = self._query_translation(f["text"])
+        plan: dict[str, Any] = {"expand": expand, "caller": len(caller), "sent": sent, "skipped": skipped}
+        if terms_info is not None:
+            plan["terms"] = terms_info
+        return plan, warnings
     # ------------------------------------------------------------------ end term dictionary (agent TR)
 
     # ------------------------------------------------------------------ structured tables (agent TB) and repeated

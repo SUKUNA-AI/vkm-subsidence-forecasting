@@ -188,10 +188,11 @@ def test_snapshot_mismatch_of_the_pack_is_a_warning_and_validation():
     svc = _service({P1: 1.0}, store={**STORE, "snapshot_id": "SNAP-0"})
     out = hybrid_search(_client(), svc, HybridRequest(query="x", candidates=10, late=True), "vkm")
     assert any(w.startswith("LATE_STORE_SNAPSHOT_MISMATCH") for w in out["warnings"])
-    for bad in (0, 201):
+    for bad in (0, 301):                                       # the RX580 service takes ≤ 1000 targets: pool ≤ 300
         with pytest.raises(SearchRequestError) as exc:
             HybridRequest(query="x", late=True, late_candidates=bad).validate()
         assert exc.value.code == "E_BAD_SIZE"
+    HybridRequest(query="x", late=True, late_candidates=300).validate()
 
 
 def test_bibliography_units_never_rank_pages_cp42():

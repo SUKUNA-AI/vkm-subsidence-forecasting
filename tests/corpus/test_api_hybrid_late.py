@@ -55,7 +55,9 @@ def test_late_fields_reach_the_backend_and_the_record(env):
     assert sent["late"] is False and sent["late_candidates"] == 10
     client.post("/v1/search/hybrid", headers=H, json={"query": "мульда"})
     assert service.deps.hybrid.requests[-1]["late"] is None                   # server default decides
-    for bad in ({"late_candidates": 0}, {"late_candidates": 201}, {"late": "maybe"}):
+    client.post("/v1/search/hybrid", headers=H, json={"query": "мульда", "late_candidates": 300})
+    assert service.deps.hybrid.requests[-1]["late_candidates"] == 300                # the wider late pool
+    for bad in ({"late_candidates": 0}, {"late_candidates": 301}, {"late": "maybe"}):
         resp = client.post("/v1/search/hybrid", headers=H, json={"query": "x", **bad})
         assert resp.status_code == 400 and resp.json()["error"]["code"] == "INVALID_ARGUMENT"
 
