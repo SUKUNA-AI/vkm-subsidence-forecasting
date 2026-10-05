@@ -164,7 +164,7 @@
       "containers": [],
       "name": "vkm-core_default",
       "subnets": [
-        "172.19.0.0/16"
+        "ipv4-sha256:719b70befa3edae4"
       ]
     },
     "55d369ffa5dfa3246e38a50578ff41c4a321b3531a5cd896e7b754dc479c7d1f": {
@@ -178,7 +178,7 @@
       ],
       "name": "vkm-core_vkm_internal",
       "subnets": [
-        "172.20.0.0/16"
+        "ipv4-sha256:d4e114d2201b3791"
       ]
     },
     "bb27ef737032ee95fc1881136d1dae34c4bc8be125a5306c1517dd87b8bd416a": {
@@ -200,7 +200,7 @@
       "containers": [],
       "name": "bridge",
       "subnets": [
-        "172.17.0.0/16"
+        "ipv4-sha256:fa6306189d29a5a4"
       ]
     },
     "fede12e857dcdfe3290b7c0b53c3e44505576211aa19c3e078c6e53f304711da": {
@@ -209,7 +209,7 @@
       ],
       "name": "youtrack_default",
       "subnets": [
-        "172.18.0.0/16"
+        "ipv4-sha256:31747dfd812e8b07"
       ]
     }
   },
@@ -218,7 +218,7 @@
       "containers": [],
       "name": "vkm-core_default",
       "subnets": [
-        "172.19.0.0/16"
+        "ipv4-sha256:719b70befa3edae4"
       ]
     },
     "55d369ffa5dfa3246e38a50578ff41c4a321b3531a5cd896e7b754dc479c7d1f": {
@@ -232,7 +232,7 @@
       ],
       "name": "vkm-core_vkm_internal",
       "subnets": [
-        "172.20.0.0/16"
+        "ipv4-sha256:d4e114d2201b3791"
       ]
     },
     "bb27ef737032ee95fc1881136d1dae34c4bc8be125a5306c1517dd87b8bd416a": {
@@ -254,7 +254,7 @@
       "containers": [],
       "name": "bridge",
       "subnets": [
-        "172.17.0.0/16"
+        "ipv4-sha256:fa6306189d29a5a4"
       ]
     },
     "fede12e857dcdfe3290b7c0b53c3e44505576211aa19c3e078c6e53f304711da": {
@@ -263,7 +263,7 @@
       ],
       "name": "youtrack_default",
       "subnets": [
-        "172.18.0.0/16"
+        "ipv4-sha256:31747dfd812e8b07"
       ]
     }
   },
@@ -561,8 +561,8 @@
     "id": "f2cf2471dbc9312cd7101e045fdcceccdaadf49e023a2a9dbc819ff393f7c5c6"
   },
   "stand_subnet": {
-    "gateway": "172.30.99.1",
-    "subnet": "172.30.99.0/24"
+    "gateway": "ipv4-sha256:0716ccda5c33390b",
+    "subnet": "ipv4-sha256:edc28d3f506dca31"
   },
   "started_unix": 1791206733.248169,
   "status": "L1_PASS",

@@ -11,7 +11,7 @@ from pydantic import BaseModel, ValidationError
 
 from vkm_corpus.update import owner_diagnostics as od
 
-SENTINEL = "SENTINEL-TOKEN-7f3a /home/owner/private/models/w.gguf Bearer abcdef"
+SENTINEL = "SENTINEL-TOKEN-7f3a /srv/owner-private/models/w.gguf Bearer abcdef"
 
 
 class _Clock:
