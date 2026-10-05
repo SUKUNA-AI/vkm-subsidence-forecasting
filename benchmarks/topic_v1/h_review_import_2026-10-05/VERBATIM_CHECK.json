@@ -1,0 +1,113 @@
+{
+ "checked_files": [
+  {
+   "path": "benchmarks/topic_v1/h_review_import_2026-10-05/H_REVIEW_T1_IMPORTED.jsonl",
+   "sha256": "d40e04f35b6f5e32749d89cf44774ca7196c616fbefba9bfc28304e7517669ee"
+  },
+  {
+   "path": "benchmarks/topic_v1/h_review_import_2026-10-05/SOURCE_FIRST_REVIEW_QUEUE.jsonl",
+   "sha256": "4db4ee9694b380acf87e5e652f872d7d369fb6d7a9a78d68d6e9a089cf95c0c0"
+  },
+  {
+   "path": "benchmarks/topic_v1/h_review_import_2026-10-05/handoff_2026-10-05/H_REVIEW_IMPORT_RECEIPT.json",
+   "sha256": "84eec81aeacc5b80da0247c10366a30dca2116592038d081062ef39e3d09da50"
+  },
+  {
+   "path": "benchmarks/topic_v1/h_review_import_2026-10-05/handoff_2026-10-05/H_REVIEW_T1_ANNOTATED.jsonl",
+   "sha256": "6a5ba6a97e84bcbfd6d6b3fad65ad209bfcd17b67a11f669ea27610912905313"
+  },
+  {
+   "path": "benchmarks/topic_v1/h_review_import_2026-10-05/handoff_2026-10-05/H_REVIEW_T1_ANNOTATED.md",
+   "sha256": "bc90d8c955f4341c26a7d050353f1bde455266632706a00b00b81f8aeb4d02b9"
+  },
+  {
+   "path": "benchmarks/topic_v1/h_review_import_2026-10-05/handoff_2026-10-05/SOURCE_FIRST_REVIEW_REQUESTS.jsonl",
+   "sha256": "e54e8ddf2307163bdd83130dc1ccdc4ec16a95e766119ab31eab69e11259dcad"
+  }
+ ],
+ "excluded_text": [],
+ "import_id": "H0-IMPORT-2026-10-05",
+ "method": "leakage guard words() and 12-word shingles; a PUBLIC text may not repeat 25 consecutive words of a source text; plus the longest run of consecutive words shared by each rationale/description and its own page (any length)",
+ "own_page_longest_common_run_words": {
+  "description_as_supplied": 6,
+  "rationale_ru": 3
+ },
+ "page_texts": {
+  "location": "git-ignored work/h_review_2026-09-30/ (raw get_page answers of the 30.09 review, snapshot snap-20260929T175107Z-574daaac); texts are not copied",
+  "max_shingle_run_words": 0,
+  "pages": 59,
+  "samples": 60,
+  "text_sha256_by_page": {
+   "VKM-SRC-003:p0007": "fc0d61adc6fc4c47521399ddeebbed2e0f075d61e4cadc940229f3e4eb2f1a32",
+   "VKM-SRC-003:p0028": "237fc8dff56a6ea866fb75019ecd68a8bb70e2402cf4593e2e159376136891d4",
+   "VKM-SRC-006:p0069": "84fbfc89f6ee2e35acb302059c9191d965d2c2efbff327a538b266b92a481340",
+   "VKM-SRC-007:p0004": "bd0aceab97f3fa6946973b141a372bd762b84344224d472d0e9b54979df37a2f",
+   "VKM-SRC-011:p0077": "69bbdbca085af9b85005125d8c69a505ac3d06416a504b7dc43657a5f6041e7f",
+   "VKM-SRC-011:p0081": "db5da99a563be1d6216878b5402d2be7c03b9c10b68eade10d9490001b81b33f",
+   "VKM-SRC-011:p0114": "30e2b58ecd73e07f0d142515f1f79dd13c689d59e17dc3510a673665a19d3657",
+   "VKM-SRC-011:p0116": "2285fceb7ececd3949912538a97cd7a5f310e397abe1a8208166b30fe868482b",
+   "VKM-SRC-012:p0053": "4fd0f7fc672c2737b450e9ddab1eda6197fadf4e86fd8b71f82a4101310c0575",
+   "VKM-SRC-019:p0005": "c34464b72d2ed42fdc31d2989fdbc066d9c397143f74fef409b1dfcf3f570f6d",
+   "VKM-SRC-023:r0076": "e76980bbf139b9c208254686e05bb27fad748448c31ec70b8013215a52c29faa",
+   "VKM-SRC-024:p0149": "f5707474d443b8fc9983415e801d514ae1ed2bbf493f2b579bf4d9d009ac004c",
+   "VKM-SRC-025:p0028": "54c66be89b9d829d2fc5456762aff87026cfed308914887b3d0d24f0aa720ddf",
+   "VKM-SRC-025:p0096": "04660982d1a813f4173c8a22232e1ab2eb266c948e39835c6060d6cd91d654ea",
+   "VKM-SRC-035:p0003": "6bc3f7f5470377599d3e32dc0859d575bb19e37097a5c73b84f1f0c2b5b9e9e8",
+   "VKM-SRC-037:p0005": "c31b64fa7abc00a8729935774fb189383ee192092ab67e58c1489269a7f9edfd",
+   "VKM-SRC-037:p0137": "68880a320a9588fab8e61db31f97165a0e1cddbf73bb4862b8c3d7f8d0e7e744",
+   "VKM-SRC-037:p0169": "0cb96c040580f385d58bb90a30effec731b044feba5debd456d690c4ef008808",
+   "VKM-SRC-037:p0196": "4eea15f7c6941199276f6a19709e125d40943a41a4983d3da49cf99c39d03a99",
+   "VKM-SRC-043:p0002": "b49013d261077b16c634e0f5b637818502fd7c3ab6940c5df4505c335263c04e",
+   "VKM-SRC-045:p0008": "fb4beeb164c6d3a7c0daedf22da678eb2c50772c8b0ffe6a70f8c3ae2b55291b",
+   "VKM-SRC-045:p0025": "3c03974d0261c99046e8dfea330ff2e63d4ae0694f0efeab46ececacca7fa203",
+   "VKM-SRC-047:p0019": "48833fb18c2d62b52af9e78fe4f4a42552c374914e704c984616c4e78a165cd8",
+   "VKM-SRC-047:p0033": "59cc89c7c83ccdff415b957d6a215afd7978bc4d0d91433049ffeba29d1c3f65",
+   "VKM-SRC-047:p0080": "ecbfe397d4a24eb97b5a31c31d401e20174b2c46e62e08b9a272e1a098dc21f3",
+   "VKM-SRC-049:p0239": "49e9a5fa85823f7b63eb9ce05ff81e3311cd47b7fab48ed85e2e77ff93a614c7",
+   "VKM-SRC-054:p0008": "e295ee0c83f620a8d275b79970ee5fb569f295268ef9a5b4cd8c6ae976c35954",
+   "VKM-SRC-054:p0028": "9ffbc524fafd0ebc0035054e947d01343afe0ff3a5264d0792b5b436bd80eceb",
+   "VKM-SRC-065:p0098": "bd2760e20ed2d1be3ea461d0e0ac3f4430bf7fbd8f71bb047f2512b33f4636bd",
+   "VKM-SRC-065:p0105": "ccdbfcf078174f2ca29cef21752de3d9e75e9ece102cb4953c2e71d81bad7461",
+   "VKM-SRC-065:p0123": "93f4e9368e221095c96c49d62e1a82c6a01ab0ca1b98093b011886b1dcb7bbb4",
+   "VKM-SRC-066:p0116": "03c44e1b24c0886c17b2f55dc782fccc9bcfa271b231aabb661dd08e55685614",
+   "VKM-SRC-067:p0009": "8a5465f164d812f608cb7d0e6635d00a6fc9e3dafc773baf62cdc3bc848f27cf",
+   "VKM-SRC-067:p0048": "020ddff713d7970687e0367d68b26ccb5fa91ec2e27f6042c2c31cd53ec2f582",
+   "VKM-SRC-067:p0167": "eff41b4d7f35e8301ee5c795caa99b72162a8b1e1abe386e525a845738dabda6",
+   "VKM-SRC-080:p0006": "46b8fb669309127a9dfaa1e6e65fb9e2d405fdc6079013e5e9389e33d541732e",
+   "VKM-SRC-089:p0107": "647efb7584f372daa9f6bae970922bdad959ebd4dbfcfa783c665288a7adad9f",
+   "VKM-SRC-089:p0170": "8b09509a222067508eca941890d706d431375166d3fa41f02ac51d6a211b08ac",
+   "VKM-SRC-089:p0279": "43136e917d804cbae29e11779a42b6b58cc29a3d29e41e390de7ebba14fc6b58",
+   "VKM-SRC-090:p0003": "2aeb98aa269162088a6fed6c967c48190135baae835ca94f51b35dcae2ac4c92",
+   "VKM-SRC-103:p0002": "6f71e3582ec89b820ff97865402a083b9aef540aaf1bfda9db445f5b1069b340",
+   "VKM-SRC-122:p0003": "0518abe6974f338c9c532e96713d5c5d8ada718ef0e46864970b5f914fd09adc",
+   "VKM-SRC-148:p0017": "604ce1a420802aba80ca4e09e52677b805864555fb70f0b1ebd322d9c4bcdf3d",
+   "VKM-SRC-163:p0069": "d047f37fa9c22bcb04d0e36a43dceca6ccb9168b86bc0cde96b0defdeee38e9c",
+   "VKM-SRC-169:p0001": "01f9a12e9483ccea9b7ec5ff0314e1401fbfb1f28a7a531fc7c4cf419014ed7b",
+   "VKM-SRC-169:p0003": "05325bc200526529ffe31fccb576fe8e3764f0343281616448b3e1bcd54edf8b",
+   "VKM-SRC-173:p0104": "b20f5a6e8c6364b607943bc3c95fc1b9ef89b179e39e183e6d1dcfe6a701c17a",
+   "VKM-SRC-173:p0224": "2a3d9d6af13e0a3c21db44850dda912b509ae47e92ccffff7dbceb206068d9db",
+   "VKM-SRC-197:p0013": "40e8f3efcdc60a0a8e12a81f713d53084dbe960eb5707dc2ad7c2c2d5bbde01b",
+   "VKM-SRC-198:p0002": "eb093176de6931403b936b6c31ca6c2b7a363ffce06bb043405644dc1b1c9a5f",
+   "VKM-SRC-202:p0017": "dc74dc66e5d8fae0a688692d300a3e1f1a94d6595aa723e8daebe04ca6a50785",
+   "VKM-SRC-203:p0195": "21400d1158de22b7ed1c4bf100d5b4d1333b1f83457cff7ee61ebce8a6786685",
+   "VKM-SRC-204:p0096": "bb5e31b0475a0dc425f492b32ec704b6216eb375627608153bddd849e4b66871",
+   "VKM-SRC-205:p0069": "0407c9f26dfed4d6bd0fd50cc1c6eaf5b49809448763c7c5d42909a4c90abe65",
+   "VKM-SRC-208:p0016": "c5b11da62ccc13036e0684712fdfb0d2b5979bc641d06c24c776019fee317053",
+   "VKM-SRC-212:p0069": "75fd006cc9ef7d14c84235b59aaae3f83c671bdecb5613d7df9c51b4d5b7a052",
+   "VKM-SRC-212:p0078": "57fe8e2aac81148de1336520b4c6e57255cfceaee04cefcedb9fbb600e5416dd",
+   "VKM-SRC-232:p0017": "da1f87bec9846af0efb9edef4b22000ca046177c8eda951219ec113a8bdbac7c",
+   "VKM-SRC-238:p0160": "345702892ec05dc43fac32abb746d142d971096840d26ec21f3d5586f0d9df8c"
+  }
+ },
+ "private_quotes": {
+  "csv_files": 43,
+  "inputs_digest": "e30ce5e328bc95ee17f16928c6e280bb8a78e07a726fb200bf934b1299d8665b",
+  "location": "$VKM_RESOURCES_ROOT CSV columns full_text, ocr_text, page_text, quote, verbatim_quote",
+  "max_shingle_run_words": 0,
+  "quotes": 20676,
+  "shingles": 175736
+ },
+ "schema": "vkm.h_review_import_verbatim_check/1",
+ "status": "PASS",
+ "texts_checked": 6360
+}

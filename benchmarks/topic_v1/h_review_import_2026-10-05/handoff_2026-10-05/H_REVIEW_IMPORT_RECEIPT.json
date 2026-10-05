@@ -1,0 +1,54 @@
+{
+  "current_context_prior_H_exposed": true,
+  "current_context_topic_target_grades_exposed": true,
+  "current_source_review": "NOT_RUN",
+  "expected_frozen_sample_sha256": "4425711b1dc99650ea3b3e8cda3a399994bb961f7e602f95a993d35b90dcd9e4",
+  "freeze_reference": {
+    "commit": "bd815893c6af421e1e86b7ca153e49dff207aa19",
+    "frozen_at_utc": "2026-09-30T09:13:16.675356+00:00",
+    "path": "benchmarks/topic_v1/H_REVIEW_FREEZE_2026-09-30.json",
+    "repository": "SUKUNA-AI/vkm-subsidence-forecasting"
+  },
+  "frozen_hash_match": true,
+  "grade_counts": {
+    "0": 14,
+    "1": 10,
+    "2": 9,
+    "3": 27
+  },
+  "grades_changed": 0,
+  "historical_blindness_status": "DEVIATION_ORIGINAL_TARGET_GRADES_EXPOSED_TO_SUBAGENT",
+  "historical_image_review_rows_reported": 34,
+  "historical_root_rechecked_rows_reported": 31,
+  "hscore_executed": false,
+  "input_bytes": 22654,
+  "input_file": "H_REVIEW_SAMPLE_T1.md",
+  "input_sha256": "4425711b1dc99650ea3b3e8cda3a399994bb961f7e602f95a993d35b90dcd9e4",
+  "new_independent_labels": 0,
+  "operation": "STRUCTURE_PRESERVING_IMPORT_WITH_HISTORICAL_ANNOTATION",
+  "output_domain": "HISTORICAL_RETRIEVAL_RELEVANCE_LABELS",
+  "pooled_qrels_opened_current_session": false,
+  "prepared_date": "2026-10-05",
+  "row_count": 60,
+  "s26_extraction_gold": "NOT_QUALIFIED",
+  "schema": "vkm.h_review_import_receipt/1",
+  "scientific_admission": "NOT_ESTABLISHED",
+  "snapshot_id": "snap-20260929T175107Z-574daaac",
+  "source_originals_read_in_current_session": 0,
+  "structural_checks": [
+    "sample IDs 1..60 unique and complete",
+    "unique topic/page pairs",
+    "strict integer H in 0..3",
+    "all supplied H unchanged",
+    "all page IDs unchanged",
+    "source hashes preserved",
+    "59 grouped page requests",
+    "historical methods/rationales attributed; current original check not claimed"
+  ],
+  "track_counts": {
+    "MODEL_FAMILY": 36,
+    "PROCESS": 24
+  },
+  "unique_pages": 59,
+  "unique_topic_page_pairs": 60
+}

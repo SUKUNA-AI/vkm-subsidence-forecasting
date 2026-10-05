@@ -1,0 +1,202 @@
+{
+ "checks": [
+  "frozen sample SHA-256 equals the freeze and the pinned value",
+  "freeze binds the historical notes; snapshot, grades_changed_after_root_review=0, pool not opened",
+  "sample ids 1..60 complete and ordered; 60 unique topic/page pairs; strict integer H 0..3",
+  "notes table rows 1..60 equal the sample (topic, page, H); method text or text+image",
+  "every annotation field taken from the sample is unchanged (ids, titles, descriptions, H)",
+  "annotation constants: NOT_RUN, not blind, new grade null, NOT_ESTABLISHED, RETRIEVAL_RELEVANCE",
+  "track and title agree with the frozen topic_set_v1.jsonl; locators and namespaces unchanged",
+  "root-recheck flags equal the freeze list; method flags equal the notes",
+  "rationale text identical between the handoff JSONL and MD tables",
+  "59 page requests equal the grouping of the frozen sample, cover exactly the 60 pairs, not blind",
+  "handoff receipt counts and flags agree with the recomputed values"
+ ],
+ "counts": {
+  "grade_counts": {
+   "0": 14,
+   "1": 10,
+   "2": 9,
+   "3": 27
+  },
+  "historical_image_review_rows_reported": 34,
+  "historical_root_rechecked_rows_reported": 31,
+  "rendered_locators_preserved": [
+   "VKM-SRC-023:r0076"
+  ],
+  "request_queue_items": 59,
+  "request_queue_pairs_covered": 60,
+  "rows": 60,
+  "shared_page_different_topics": [
+   {
+    "page_id": "VKM-SRC-169:p0001",
+    "sample_ids": [
+     3,
+     55
+    ],
+    "topic_ids": [
+     "PC-06",
+     "MM-GASDYN"
+    ]
+   }
+  ],
+  "track_counts": {
+   "MODEL_FAMILY": 36,
+   "PROCESS": 24
+  },
+  "unique_pages": 59,
+  "unique_topic_page_pairs": 60
+ },
+ "gate": "H0",
+ "gate_h0": {
+  "labels_preserved": "60/60",
+  "lineage_imported": true,
+  "new_original_checks": "NOT_RUN",
+  "scope": "TECHNICAL_IMPORT_ONLY",
+  "status": "PASS"
+ },
+ "grades_changed": 0,
+ "h3_meaning": "H=3 is topical retrieval relevance only: not numeric validity, applicability, scientific admission or extraction qualification",
+ "handoff": {
+  "imported_files": [
+   {
+    "package_path": "annotations/H_REVIEW_IMPORT_RECEIPT.json",
+    "path": "benchmarks/topic_v1/h_review_import_2026-10-05/handoff_2026-10-05/H_REVIEW_IMPORT_RECEIPT.json",
+    "sha256": "84eec81aeacc5b80da0247c10366a30dca2116592038d081062ef39e3d09da50"
+   },
+   {
+    "package_path": "annotations/H_REVIEW_T1_ANNOTATED.jsonl",
+    "path": "benchmarks/topic_v1/h_review_import_2026-10-05/handoff_2026-10-05/H_REVIEW_T1_ANNOTATED.jsonl",
+    "sha256": "6a5ba6a97e84bcbfd6d6b3fad65ad209bfcd17b67a11f669ea27610912905313"
+   },
+   {
+    "package_path": "annotations/H_REVIEW_T1_ANNOTATED.md",
+    "path": "benchmarks/topic_v1/h_review_import_2026-10-05/handoff_2026-10-05/H_REVIEW_T1_ANNOTATED.md",
+    "sha256": "bc90d8c955f4341c26a7d050353f1bde455266632706a00b00b81f8aeb4d02b9"
+   },
+   {
+    "package_path": "annotations/SOURCE_FIRST_REVIEW_REQUESTS.jsonl",
+    "path": "benchmarks/topic_v1/h_review_import_2026-10-05/handoff_2026-10-05/SOURCE_FIRST_REVIEW_REQUESTS.jsonl",
+    "sha256": "e54e8ddf2307163bdd83130dc1ccdc4ec16a95e766119ab31eab69e11259dcad"
+   }
+  ],
+  "not_imported_byte_identical_to_repository": {
+   "package_path": "annotations/H_REVIEW_SAMPLE_T1.original.md",
+   "repository_path": "benchmarks/topic_v1/H_REVIEW_SAMPLE_T1.md",
+   "sha256": "4425711b1dc99650ea3b3e8cda3a399994bb961f7e602f95a993d35b90dcd9e4"
+  },
+  "package": "VKM_CLAUDE_HANDOFF_2026-10-05",
+  "package_delivery_validation": {
+   "run": "by the owner before delivery and again by the import executor on 2026-10-05",
+   "scope": "HANDOFF_FILE_INTEGRITY_AND_LABEL_IMPORT_ONLY",
+   "status": "PASS",
+   "tool": "validate_delivery.py of the package (stdlib, package files only)"
+  },
+  "package_manifest_sha256": "2b39772b372540e79872ab16227f4234043d156299d6512c5bcbfa6e1c6994ad",
+  "upstream_freeze_reference": {
+   "commit": "bd815893c6af421e1e86b7ca153e49dff207aa19",
+   "frozen_at_utc": "2026-09-30T09:13:16.675356+00:00",
+   "path": "benchmarks/topic_v1/H_REVIEW_FREEZE_2026-09-30.json",
+   "repository": "SUKUNA-AI/vkm-subsidence-forecasting"
+  },
+  "upstream_operation": "STRUCTURE_PRESERVING_IMPORT_WITH_HISTORICAL_ANNOTATION",
+  "upstream_receipt_schema": "vkm.h_review_import_receipt/1"
+ },
+ "historical_blindness_status": "DEVIATION_ORIGINAL_TARGET_GRADES_EXPOSED_TO_SUBAGENT",
+ "historical_files_written": false,
+ "hscore_executed": false,
+ "idempotency": "build rewrites a file only when its bytes change; `check` regenerates in memory and compares",
+ "import_context": {
+  "historical_agreement_result_visible": true,
+  "is_blind": false,
+  "note": "the import is mechanical; no grade is assigned or adjudicated in this context",
+  "prior_H_and_rationales_exposed": true
+ },
+ "import_id": "H0-IMPORT-2026-10-05",
+ "inputs": [
+  {
+   "bytes": 22654,
+   "path": "benchmarks/topic_v1/H_REVIEW_SAMPLE_T1.md",
+   "role": "FROZEN_HISTORICAL_SAMPLE_ONLY_SOURCE_OF_H",
+   "sha256": "4425711b1dc99650ea3b3e8cda3a399994bb961f7e602f95a993d35b90dcd9e4"
+  },
+  {
+   "bytes": 939,
+   "path": "benchmarks/topic_v1/H_REVIEW_FREEZE_2026-09-30.json",
+   "role": "FREEZE_RECORD",
+   "sha256": "80a24ae215ee407d75aa3d9242ddb4078be21774914297f3c0551bde72ad1c9e"
+  },
+  {
+   "bytes": 21600,
+   "path": "benchmarks/topic_v1/H_REVIEW_NOTES_2026-09-30.md",
+   "role": "HISTORICAL_REVIEW_SIDECAR_RATIONALE_ATTRIBUTION",
+   "sha256": "5e5b5737ad052f046df174342397e8dcf8d2a8a402ddbfc99784a06559cd9d78"
+  },
+  {
+   "bytes": 299566,
+   "path": "benchmarks/topic_v1/topic_set_v1.jsonl",
+   "role": "FROZEN_TOPIC_SET_TRACK_AND_TITLE_LOOKUP",
+   "sha256": "4dbc595723cbb9ed3e59d1a71cbe84301c9554ecedc41b7f3abf654258bac2b1"
+  },
+  {
+   "bytes": 3419,
+   "path": "benchmarks/topic_v1/H_REVIEW_RESULT_2026-09-30.json",
+   "role": "HISTORICAL_AGREEMENT_RESULT_HASHED_ONLY_NOT_RECOMPUTED",
+   "sha256": "e69a22710961b2d5e97237e282e0427cfc1f1138c6fc903309fb0d3aba21e5bf"
+  },
+  {
+   "bytes": 123190,
+   "path": "benchmarks/topic_v1/h_review_import_2026-10-05/handoff_2026-10-05/H_REVIEW_T1_ANNOTATED.jsonl",
+   "role": "OWNER_HANDOFF_ANNOTATION_TRANSPORT",
+   "sha256": "6a5ba6a97e84bcbfd6d6b3fad65ad209bfcd17b67a11f669ea27610912905313"
+  },
+  {
+   "bytes": 55338,
+   "path": "benchmarks/topic_v1/h_review_import_2026-10-05/handoff_2026-10-05/SOURCE_FIRST_REVIEW_REQUESTS.jsonl",
+   "role": "OWNER_HANDOFF_FUTURE_REVIEW_REQUESTS",
+   "sha256": "e54e8ddf2307163bdd83130dc1ccdc4ec16a95e766119ab31eab69e11259dcad"
+  },
+  {
+   "bytes": 1964,
+   "path": "benchmarks/topic_v1/h_review_import_2026-10-05/handoff_2026-10-05/H_REVIEW_IMPORT_RECEIPT.json",
+   "role": "OWNER_HANDOFF_RECEIPT",
+   "sha256": "84eec81aeacc5b80da0247c10366a30dca2116592038d081062ef39e3d09da50"
+  },
+  {
+   "bytes": 18360,
+   "path": "benchmarks/topic_v1/h_review_import_2026-10-05/handoff_2026-10-05/H_REVIEW_T1_ANNOTATED.md",
+   "role": "OWNER_HANDOFF_HUMAN_READABLE_TABLE",
+   "sha256": "bc90d8c955f4341c26a7d050353f1bde455266632706a00b00b81f8aeb4d02b9"
+  }
+ ],
+ "locators_changed": 0,
+ "new_independent_labels": 0,
+ "new_original_reviews": 0,
+ "operation": "IDEMPOTENT_TECHNICAL_IMPORT_OF_HISTORICAL_LABELS_WITH_LINEAGE",
+ "output_domain": "HISTORICAL_RETRIEVAL_RELEVANCE_LABELS",
+ "outputs": [
+  {
+   "path": "benchmarks/topic_v1/h_review_import_2026-10-05/H_REVIEW_T1_IMPORTED.jsonl",
+   "rows": 60,
+   "sha256": "d40e04f35b6f5e32749d89cf44774ca7196c616fbefba9bfc28304e7517669ee"
+  },
+  {
+   "path": "benchmarks/topic_v1/h_review_import_2026-10-05/SOURCE_FIRST_REVIEW_QUEUE.jsonl",
+   "rows": 59,
+   "sha256": "4db4ee9694b380acf87e5e652f872d7d369fb6d7a9a78d68d6e9a089cf95c0c0"
+  }
+ ],
+ "pooled_qrels_opened_by_import": false,
+ "prepared_date": "2026-10-05",
+ "public_text_check": {
+  "path": "benchmarks/topic_v1/h_review_import_2026-10-05/VERBATIM_CHECK.json",
+  "sha256": "9716e54b734f5edb13c19f2aed4aa07e81b8bcdf242f8805f20c4e80452b20d0",
+  "status": "PASS"
+ },
+ "rationale_policy": "rationale_ru is the owner's paraphrase of the historical sidecar, attributed to H_REVIEW_NOTES_2026-09-30.md and not re-verified against originals now",
+ "s26_extraction_gold": "NOT_QUALIFIED",
+ "schema": "vkm.h_review_repo_import_receipt/1",
+ "scientific_admission": "NOT_ESTABLISHED",
+ "script": "benchmarks/topic_v1/scripts/import_h_review_2026_10_05.py",
+ "snapshot_id": "snap-20260929T175107Z-574daaac"
+}
