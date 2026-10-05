@@ -49,7 +49,8 @@ WINDOWS_PATHS = ("tests/world", "tests/engineering", "tests/qgis", "tests/eviden
                  "tests/corpus/test_visual_placement.py",
                  "tests/corpus/test_visual_weight_native_header.py",
                  "tests/corpus/test_optional_text_qualification.py",
-                 "tests/corpus/test_optional_text_factory_wiring.py")
+                 "tests/corpus/test_optional_text_factory_wiring.py",
+                 "tests/corpus/test_owner_diagnostics.py", "tests/corpus/test_h_review_import.py")
 # Host prerequisites only. Missing locked CPU Python packages must fail, not become allowed NOT_RUN.
 KNOWN_SKIPS = (
     ("tests/corpus/test_extract_djvu.py", "DjVuLibre not installed (NOT_RUN)"),
@@ -182,7 +183,16 @@ WINDOWS_NOT_RUN = (
           ("drift-in-response", "placement-in-response")),
         "test_same_owned_client_proxy_routes_and_no_synthetic_native_identity",
         "test_factory_owns_child_and_recipe_token_watch_before_inference",
-        "test_factory_refuses_omitted_actual_bridge_code_before_child")) + tuple(
+        "test_factory_refuses_omitted_actual_bridge_code_before_child",
+        *("test_load_proof_deadline_names_the_exact_failing_fence[" + case + "]" for case in
+          ("sleep-WITNESS_STATUS-ValueError", "epoch-WITNESS_BINDING-ValueError", "nonce-WITNESS_BINDING-ValueError",
+           "duplicate-WITNESS_SCHEMA-ValueError", "oversized-WITNESS_BODY-ValueError",
+           "placement-zero-WITNESS_SCHEMA-ValidationError", "capture-WITNESS_SCHEMA-ValidationError")),
+        "test_exited_child_is_reported_immediately_with_exit_code",
+        "test_foreign_listener_is_localized_without_sending_the_challenge",
+        "test_cleanup_failure_does_not_mask_the_primary_startup_cause",
+        "test_fatal_unretried_fence_error_is_attributed_to_its_own_step",
+        "test_cancel_request_stops_load_loop_even_when_signal_is_swallowed")) + tuple(
     ("tests/corpus/test_stream_fileset.py::" + case,
      "NOT_RUN: FD-relative Linux durability/alias tests") for case in (
         "test_actual_remote_fd_relative_cipher_copy_and_separate_restore_are_exact",

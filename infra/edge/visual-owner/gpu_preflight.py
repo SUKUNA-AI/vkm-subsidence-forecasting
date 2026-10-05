@@ -106,9 +106,16 @@ def _bounded_command(command, environment):
         process.stdout.close()
 
 
+class _NoDiagnostics:
+    def enter(self, stage): pass
+    def placement(self, groups): pass
+    def cleanup_failure(self, component, exc): pass
+
+
 @contextlib.contextmanager
-def implementation_fence(recipe, path, raw_sha256):
+def implementation_fence(recipe, path, raw_sha256, *, diagnostics=None):
     """Qualify executable/library/code bytes before the first native command."""
+    diag = _NoDiagnostics() if diagnostics is None else diagnostics
     from vkm_corpus.parquet.atomic import sha256_of
     from vkm_corpus.update.native_files import NativeFileWatch
     from vkm_corpus.update.remote_retrieval import file_signature
@@ -123,6 +130,7 @@ def implementation_fence(recipe, path, raw_sha256):
     if not selected <= set(recipe.child.expected_sha256):
         raise ValueError("native preflight implementation hashes absent from recipe")
     watch = NativeFileWatch([path, *selected])
+    failed = False
     try:
         signatures = {p: file_signature(p) for p in (str(path), *selected)}
         if any(Path(p).stat().st_nlink != 1 for p in signatures):
@@ -136,8 +144,15 @@ def implementation_fence(recipe, path, raw_sha256):
                 raise ValueError("native preflight implementation changed")
         check()
         yield check
+    except BaseException:
+        failed = True
+        raise
     finally:
-        watch.close()
+        try:
+            watch.close()
+        except Exception as cleanup:  # secondary; never replaces a primary failure
+            diag.cleanup_failure("IMPLEMENTATION_FENCE_CLOSE", cleanup)
+            if not failed: raise
 
 
 def preflight(recipe, *, recipe_raw_sha256, profile="SHADOW", check):
@@ -163,20 +178,27 @@ def preflight(recipe, *, recipe_raw_sha256, profile="SHADOW", check):
             "model_load": "NOT_RUN", "gpu_residency": "NOT_PROVEN"}
 
 
-def serve_qualified_gpu_owner(path, raw_sha256, *, recipe, profile, stop, check):
+def serve_qualified_gpu_owner(path, raw_sha256, *, recipe, profile, stop, check, diagnostics=None,
+                              on_listening=None, cancel=None):
     """THIS GPU recipe refuses to open a proxy for HOST/wrong native placement."""
     from vkm_corpus.update import visual_owner_bridge
     from vkm_corpus.update.visual_placement import TargetWeightPlacement, require_cuda_weight_profile
+    diag = _NoDiagnostics() if diagnostics is None else diagnostics
+    owner_options = {} if diagnostics is None else {"diagnostics": diagnostics}
+    if cancel is not None: owner_options["cancel"] = cancel
     bridge = None
+    failed = False
     try:
         require_workload(recipe, profile=profile)
         check()
-        bridge = visual_owner_bridge.create_visual_owner(path, raw_sha256)
+        bridge = visual_owner_bridge.create_visual_owner(path, raw_sha256, **owner_options)
+        diag.enter("PLACEMENT_PROFILE")
         if bridge.recipe != recipe:
             raise ValueError("actual GPU owner recipe differs from preflight")
         require_workload(bridge.recipe, profile=profile)
         identity = bridge.owner.observe()
         placement = TargetWeightPlacement.model_validate(bridge.owner._witness["target_weight_placement"])
+        diag.placement(placement.summary()["groups"])
         summary = require_cuda_weight_profile(placement)
         bridge._check()
         check()
@@ -187,18 +209,58 @@ def serve_qualified_gpu_owner(path, raw_sha256, *, recipe, profile, stop, check)
             "placement_sha256": placement.sha256, "observation": summary,
             "gpu_residency": "NOT_PROVEN", "inference": "NOT_RUN"}
         print(json.dumps(receipt, sort_keys=True), flush=True)
-        visual_owner_bridge.serve_visual_owner(bridge, stop)
+        def listening():
+            if on_listening is not None: on_listening()
+            if diagnostics is not None:
+                print(diagnostics.line("visual_gpu_owner_ready"), file=sys.stderr, flush=True)
+        serve_options = ({} if diagnostics is None and on_listening is None
+                         else {"diagnostics": diagnostics, "on_listening": listening})
+        visual_owner_bridge.serve_visual_owner(bridge, stop, **serve_options)
+    except BaseException:
+        failed = True
+        raise
     finally:
-        if bridge is not None: bridge.close()
+        if bridge is not None:
+            try:
+                bridge.close()
+            except Exception as cleanup:  # secondary; never replaces a primary failure
+                diag.cleanup_failure("BRIDGE_CLOSE", cleanup)
+                if not failed: raise
 
 
-def main(argv=None):
+def _parser():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--recipe", type=Path, required=True)
     parser.add_argument("--recipe-sha256", required=True)
     parser.add_argument("--workload-profile", choices=tuple(PROFILES), required=True)
     parser.add_argument("--workload-binding-sha256", required=True)
-    args = parser.parse_args(argv)
+    # Optional operator-owned writable directory for the private diagnostic receipt.
+    parser.add_argument("--diagnostics-dir", type=Path)
+    return parser
+
+
+def main(argv=None, *, diagnostics=None):
+    diag = _NoDiagnostics() if diagnostics is None else diagnostics
+    diag.enter("GPU_RECIPE")
+    args = _parser().parse_args(argv)
+    # A stop signal before serving interrupts startup once (closed class in the
+    # diagnostic line, owned child closed by the normal cleanup path); after the
+    # listener opens it only requests the ordinary graceful stop.
+    stop = threading.Event()
+    state = {"serving": False, "interrupted": False}
+    def on_signal(*_):
+        stop.set()
+        if not state["serving"] and not state["interrupted"]:
+            state["interrupted"] = True
+            raise InterruptedError("startup interrupted by stop signal")
+    previous = {sig: signal.signal(sig, on_signal) for sig in (signal.SIGTERM, signal.SIGINT)}
+    try:
+        return _startup(args, diag, diagnostics, stop, state)
+    finally:
+        for sig, handler in previous.items(): signal.signal(sig, handler)
+
+
+def _startup(args, diag, diagnostics, stop, state):
     _, binding = workload_binding(args.workload_profile, args.recipe_sha256)
     if binding != args.workload_binding_sha256:
         raise ValueError("approved raw recipe/workload profile binding differs")
@@ -217,19 +279,51 @@ def main(argv=None):
     from vkm_corpus.update.visual_owner_bridge import VisualOwnerRecipe, _json
     recipe = VisualOwnerRecipe.model_validate(_json(raw))
     require_workload(recipe, profile=args.workload_profile)
-    with implementation_fence(recipe, path, args.recipe_sha256) as check:
+    diag.enter("IMPLEMENTATION_FENCE")
+    fence_options = {} if diagnostics is None else {"diagnostics": diagnostics}
+    with implementation_fence(recipe, path, args.recipe_sha256, **fence_options) as check:
+        diag.enter("CUDA_PREFLIGHT")
         print(json.dumps(preflight(recipe, recipe_raw_sha256=args.recipe_sha256,
             profile=args.workload_profile, check=check), sort_keys=True), flush=True)
         check()
-        stop = threading.Event()
-        for sig in (signal.SIGTERM, signal.SIGINT): signal.signal(sig, lambda *_: stop.set())
         serve_qualified_gpu_owner(path, args.recipe_sha256, recipe=recipe,
-            profile=args.workload_profile, stop=stop, check=check)
+            profile=args.workload_profile, stop=stop, check=check,
+            on_listening=lambda: state.update(serving=True), cancel=stop.is_set, **fence_options)
     return 0
 
 
+def run(argv=None):
+    """Exit-code entrypoint. Prints one closed public diagnostic line on failure.
+
+    The fixed marker stays first so existing log readers keep working. No
+    exception text, path, argv, environment or credential is ever printed.
+    """
+    diagnostics, directory = None, None
+    try:
+        from vkm_corpus.update.owner_diagnostics import StartupDiagnostics
+        from vkm_corpus.update.visual_owner_bridge import code_identity
+        known, _ = _parser().parse_known_args(argv)
+        directory = known.diagnostics_dir
+        identity = {"recipe_sha256": known.recipe_sha256}
+        try:
+            identity["code_sha256"] = hashlib.sha256((code_identity() + hashlib.sha256(
+                Path(__file__).read_bytes()).hexdigest()).encode("ascii")).hexdigest()
+        except Exception:
+            pass
+        diagnostics = StartupDiagnostics(kind="visual", identity=identity)
+    except BaseException:
+        diagnostics = None  # argument/import failure: fall back to the bare marker
+    try:
+        return main(argv, diagnostics=diagnostics)
+    except Exception as exc:
+        if diagnostics is None:
+            print("visual_gpu_owner_startup_unavailable", file=sys.stderr, flush=True)
+        else:
+            diagnostics.fail(exc)
+            diagnostics.write_private(directory)
+            print(diagnostics.line("visual_gpu_owner_startup_unavailable"), file=sys.stderr, flush=True)
+        return 2
+
+
 if __name__ == "__main__":
-    try: raise SystemExit(main())
-    except Exception:
-        print("visual_gpu_owner_startup_unavailable", file=sys.stderr, flush=True)
-        raise SystemExit(2) from None
+    raise SystemExit(run())

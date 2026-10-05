@@ -16,6 +16,7 @@ from __future__ import annotations
 import contextlib
 import importlib
 import importlib.metadata
+import logging
 import os
 import platform
 import signal
@@ -30,10 +31,12 @@ from pydantic import Field, model_validator
 
 from vkm_corpus.parquet.atomic import sha256_of
 from vkm_corpus.update.native_files import NativeFileWatch
+from vkm_corpus.update.owner_diagnostics import NULL as NULL_DIAGNOSTICS, classify
 from vkm_corpus.update.remote_models import LoadedModelLease, NativeModelProof, own_process
 from vkm_corpus.update.remote_retrieval import file_signature
 from vkm_evidence.contracts import Sha256, StrictModel, record_hash
 
+LOG = logging.getLogger(__name__)
 
 class ModelOwnerStatus(StrictModel):
     schema_version: Literal["vkm-model-owner-status/1"] = "vkm-model-owner-status/1"
@@ -252,9 +255,17 @@ class OwnedChildModelOwner:
     """
     @classmethod
     def start(cls, recipe: OwnedChildRecipe, *, inference_client, serving_client_getter,
-              environment: dict[str, str]):
+              environment: dict[str, str], diagnostics=None, cancel=None):
         if platform.system() != "Linux":
             raise ValueError("native child owner requires Linux procfs and local mutation watches")
+        diag = NULL_DIAGNOSTICS if diagnostics is None else diagnostics
+
+        def cancelled():
+            # Explicit stop request (e.g. SIGTERM flag): a signal that lands in a
+            # blocked socket read is otherwise converted into a retried fence error.
+            if cancel is not None and cancel():
+                diag.fence_failure(None, "InterruptedError")
+                raise InterruptedError("owner startup cancelled")
         obj = cls()
         obj.recipe = recipe.model_copy(deep=True)
         obj.recipe_hash = record_hash(obj.recipe)
@@ -265,9 +276,16 @@ class OwnedChildModelOwner:
         obj._closed = False
         obj._invalid = False
         obj._watch = None
+        # Closed diagnosis cursor: which startup-proof fence step failed and the
+        # allowlisted class of its inner cause. Never exception text or paths.
+        obj._fence_step = None
+        obj._fence_cause = None
+        obj._witness_status = None
+        obj._diagnostics = diagnostics
         obj._client_fence()
         files = sorted(recipe.expected_sha256)
         try:
+            diag.enter("FILE_INVENTORY")
             obj._watch = NativeFileWatch(files)
             obj.signatures = {path: file_signature(path) for path in files}
             if any(Path(path).stat(follow_symlinks=False).st_nlink != 1 for path in files):
@@ -283,23 +301,48 @@ class OwnedChildModelOwner:
             if len(obj.environment) > 256 or sum(len(k) + len(v) for k, v in obj.environment.items()) > 65536:
                 raise ValueError("native child environment exceeds limit")
             # No inherited process environment, shell, executable fallback or restart.
+            diag.enter("SPAWN")
             obj.proc = obj._spawn_child()
             obj.pid = obj.proc.pid
+            diag.spawned()
+            diag.enter("NATIVE_LOAD_PROOF")
             deadline = time.monotonic() + recipe.startup_timeout_s
             last_error = None
             while time.monotonic() < deadline:
+                obj._fence_step = obj._fence_cause = obj._witness_status = None
+                cancelled()
                 try:
                     obj.process = obj._process_fence()
+                    obj._fence_step = "FILE_LEASE"
                     obj._file_fence()
+                    obj._fence_step = "CLIENT_FENCE"
                     obj._client_fence()
                     break
                 except (ValueError, FileNotFoundError, ProcessLookupError) as exc:
                     last_error = exc
-                    if obj.proc.poll() is not None:
+                    diag.fence_failure(obj._fence_step, obj._fence_cause or classify(exc),
+                                       http_status=obj._witness_status)
+                    code = obj.proc.poll()
+                    if code is not None:
+                        diag.child_exit(code)
                         raise ValueError("owned model child exited during loading") from exc
-                    time.sleep(min(0.025, max(0, deadline - time.monotonic())))
+                    obj._fence_step = None
+                    cancelled()
+                    try:
+                        time.sleep(min(0.025, max(0, deadline - time.monotonic())))
+                    except BaseException as interrupted:  # signal during the pause: no fence step
+                        diag.fence_failure(None, interrupted)
+                        raise
+                except BaseException as exc:
+                    # Not retried: attribute the fatal class to the step it came from.
+                    diag.fence_failure(obj._fence_step, obj._fence_cause or classify(exc),
+                                       http_status=obj._witness_status)
+                    raise
             else:
+                code = obj.proc.poll()
+                diag.deadline(child_alive=code is None, exit_code=code)
                 raise ValueError("bounded native child load proof unavailable") from last_error
+            diag.enter("PROOF_IDENTITY")
             obj.proof = NativeModelProof(kind="visual", instance_sha256=record_hash(obj.process),
                 code_sha256=record_hash({path: obj.hashes[path] for path in
                     sorted({recipe.executable, *recipe.implementation_files})}),
@@ -311,7 +354,13 @@ class OwnedChildModelOwner:
             obj.observe()
             return obj
         except BaseException:
-            obj.close()
+            # A secondary cleanup failure is recorded, never raised over the cause.
+            try:
+                obj.close()
+            except BaseException as cleanup:
+                diag.cleanup_failure("OWNER_CLOSE", cleanup)
+                # Fixed text and allowlisted class only, also without a recorder.
+                LOG.error("owned_model_child_cleanup_failed %s", classify(cleanup))
             raise
 
     def _spawn_child(self):
@@ -322,6 +371,7 @@ class OwnedChildModelOwner:
     def _loaded_resource_fence(self):
         # Default boundary remains actual mmap; only an explicit hook subclass
         # can use the native load lifecycle protocol instead.
+        self._fence_step = "MAPPED_RESOURCES"
         _mapped_resources(self.pid, self.recipe.resources, self.signatures)
 
     def _client_fence(self):
@@ -341,6 +391,7 @@ class OwnedChildModelOwner:
             raise ValueError("native owner resources/configuration/parent changed")
 
     def _process_fence(self):
+        self._fence_step = "CHILD_PROCESS"
         if self.proc is None or self.proc.pid != self.pid or self.proc.poll() is not None:
             raise ValueError("owned inference child died or was replaced")
         record = _pid_record(self.pid)
@@ -348,15 +399,18 @@ class OwnedChildModelOwner:
                 or record["command"] != [os.fsencode(self.recipe.executable),
                     *(os.fsencode(a) for a in self.recipe.arguments)]):
             raise ValueError("actual child ownership/command differs from load recipe")
+        self._fence_step = "CHILD_EXECUTABLE"
         executable = Path("/proc") / str(self.pid) / "exe"
         expected = self.signatures[self.recipe.executable]
         observed = executable.stat()
         if (executable.resolve() != Path(self.recipe.executable)
                 or (observed.st_dev, observed.st_ino) != expected[:2]):
             raise ValueError("actual child executable identity differs from load inventory")
+        self._fence_step = "LISTENER"
         listener = _listener_record(self.pid, self.recipe.port)
         # Prove the recipient before a hook sends its private challenge.
         self._loaded_resource_fence()
+        self._fence_step = "PROCESS_STABILITY"
         after = _pid_record(self.pid)
         if after != record:
             # R/S state changes are ordinary scheduler activity, not identity.

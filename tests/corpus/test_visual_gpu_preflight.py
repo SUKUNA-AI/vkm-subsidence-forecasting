@@ -192,3 +192,103 @@ def test_actual_preflight_implementation_bytes_are_checked_before_native_exec(re
         with gate.implementation_fence(recipe,control,hashlib.sha256(b"{}").hexdigest()):
             commands.append("native command would follow")
     assert commands == []
+
+
+# --- Entrypoint diagnostics: one closed public line, private receipt, no masking ---
+
+from vkm_corpus.update import owner_diagnostics as od  # noqa: E402
+
+_ARGS = ["--recipe", "/run/owner/recipe.json", "--recipe-sha256", "a"*64, "--workload-profile", "SHADOW",
+         "--workload-binding-sha256", "b"*64]
+
+
+@pytest.mark.parametrize("stage,exc,cause", [
+    ("CUDA_PREFLIGHT", ValueError("SENTINEL /run/owner/identity.token"), "CUDA_PREFLIGHT/FAILED/-/ValueError"),
+    ("CREDENTIAL_READ", PermissionError(13, "SENTINEL"), "CREDENTIAL_READ/FAILED/-/PermissionError"),
+    ("PLACEMENT_PROFILE", KeyError("SENTINEL"), "PLACEMENT_PROFILE/FAILED/-/KeyError")])
+def test_run_reports_the_exact_stage_and_class_without_text(monkeypatch, capsys, tmp_path, stage, exc, cause):
+    def fake_main(argv, *, diagnostics):
+        diagnostics.enter("GPU_RECIPE"); diagnostics.enter(stage)
+        raise exc
+    monkeypatch.setattr(gate, "main", fake_main)
+    out = tmp_path / "diag"; out.mkdir()
+    assert gate.run([*_ARGS, "--diagnostics-dir", str(out.resolve())]) == 2
+    captured = capsys.readouterr()
+    lines = captured.err.strip().splitlines()
+    assert len(lines) == 1 and lines[0].startswith("visual_gpu_owner_startup_unavailable {")
+    value = json.loads(lines[0].split(" ", 1)[1])
+    assert od.validate_public(value) and value["cause_code"] == cause
+    assert value["identity"]["recipe_sha256"] == "a"*64 and len(value["identity"]["code_sha256"]) == 64
+    files = list(out.iterdir())
+    assert len(files) == 1
+    for text in (captured.err, captured.out, files[0].read_text()):
+        assert "SENTINEL" not in text and "identity.token" not in text
+
+
+def test_run_without_diagnostics_directory_still_exits_two_with_public_line(monkeypatch, capsys):
+    monkeypatch.setattr(gate, "main", lambda argv, *, diagnostics: (_ for _ in ()).throw(OSError("SENTINEL")))
+    assert gate.run(_ARGS) == 2
+    err = capsys.readouterr().err
+    assert err.startswith("visual_gpu_owner_startup_unavailable {") and "SENTINEL" not in err
+
+
+def test_placement_failure_records_groups_privately_and_close_failure_is_secondary(recipe, monkeypatch, tmp_path):
+    from vkm_corpus.update import visual_owner_bridge as bridge_module
+    owner = SimpleNamespace(_witness={"target_weight_placement": _placement(wrong=True)},
+        observe=lambda: SimpleNamespace(process_sha256="b"*64, witness_sha256="c"*64))
+    def broken_close(): raise RuntimeError("SENTINEL close")
+    bridge = SimpleNamespace(recipe=recipe, owner=owner, _check=lambda: None, close=broken_close)
+    monkeypatch.setattr(bridge_module, "create_visual_owner", lambda *a, **kw: bridge)
+    monkeypatch.setattr(bridge_module, "serve_visual_owner", lambda *a, **kw: pytest.fail("listener opened"))
+    diag = od.StartupDiagnostics(kind="visual")
+    with pytest.raises(ValueError, match="approved profile"):
+        gate.serve_qualified_gpu_owner(tmp_path/"c", "a"*64, recipe=recipe, profile="SHADOW",
+            stop=threading.Event(), check=lambda: None, diagnostics=diag)
+    diag.fail(ValueError("x"))
+    value = diag.public()
+    assert value["terminal_stage"] == "PLACEMENT_PROFILE" and value["secondary"] == [["BRIDGE_CLOSE", "RuntimeError"]]
+    groups = diag.private()["placement_groups"]
+    assert groups["blk.0"] == "GPU" and groups["blk.27"] == "HOST"
+
+
+def test_successful_shutdown_does_not_hide_a_cleanup_failure(recipe, monkeypatch, tmp_path):
+    from vkm_corpus.update import visual_owner_bridge as bridge_module
+    owner = SimpleNamespace(_witness={"target_weight_placement": _placement()},
+        observe=lambda: SimpleNamespace(process_sha256="b"*64, witness_sha256="c"*64))
+    def broken_close(): raise RuntimeError("close failed")
+    bridge = SimpleNamespace(recipe=recipe, owner=owner, _check=lambda: None, close=broken_close)
+    monkeypatch.setattr(bridge_module, "create_visual_owner", lambda *a, **kw: bridge)
+    listened = []
+    monkeypatch.setattr(bridge_module, "serve_visual_owner", lambda b, s, **kw: (listened.append(True), kw["on_listening"]()))
+    diag = od.StartupDiagnostics(kind="visual")
+    with pytest.raises(RuntimeError, match="close failed"):
+        gate.serve_qualified_gpu_owner(tmp_path/"c", "a"*64, recipe=recipe, profile="SHADOW",
+            stop=threading.Event(), check=lambda: None, diagnostics=diag)
+    assert listened and diag.public()["secondary"] == [["BRIDGE_CLOSE", "RuntimeError"]]
+
+
+def test_stop_signal_before_serving_interrupts_startup_with_closed_line(monkeypatch, capsys):
+    import signal as signal_module
+    before = signal_module.getsignal(signal_module.SIGINT)
+    def startup(args, diag, diagnostics, stop, state):
+        diagnostics.enter("NATIVE_LOAD_PROOF")
+        signal_module.raise_signal(signal_module.SIGINT)
+        pytest.fail("startup continued after the stop signal")
+    monkeypatch.setattr(gate, "_startup", startup)
+    assert gate.run(_ARGS) == 2
+    err = capsys.readouterr().err.strip()
+    value = json.loads(err.split(" ", 1)[1])
+    assert value["cause_code"] == "NATIVE_LOAD_PROOF/FAILED/-/InterruptedError"
+    assert signal_module.getsignal(signal_module.SIGINT) is before
+
+
+def test_stop_signal_after_listener_only_requests_graceful_stop(monkeypatch):
+    import signal as signal_module
+    seen = {}
+    def startup(args, diag, diagnostics, stop, state):
+        state.update(serving=True)
+        signal_module.raise_signal(signal_module.SIGINT)
+        seen["stop"] = stop.is_set()
+        return 0
+    monkeypatch.setattr(gate, "_startup", startup)
+    assert gate.main(_ARGS) == 0 and seen == {"stop": True}

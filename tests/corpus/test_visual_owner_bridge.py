@@ -27,6 +27,7 @@ from pathlib import Path
 p=argparse.ArgumentParser()
 for name in ['model','mmproj','host','port','control','mode']:p.add_argument('--'+name)
 a=p.parse_args()
+if a.mode=='exit':raise SystemExit(3)
 # A synthetic stand-in intentionally does not mmap: the ordinary owner must fail.
 Path(a.model).read_bytes();Path(a.mmproj).read_bytes()
 control=Path(a.control)
@@ -365,3 +366,169 @@ def test_native_implementation_mapping_contains_executable_and_shared_libraries(
     monkeypatch.setattr(vb,"_read",lambda *a:b'001-002 r-xp 0 00:00 1 /app/llama-server\n'
         b'002-003 r--p 0 00:00 2 /lib/libggml.so\n003-004 r--p 0 00:00 3 /models/weights.gguf\n')
     assert vb._mapped_implementation(123)=={"/app/llama-server","/lib/libggml.so"}
+
+
+# --- Bounded source-owned startup diagnostics (closed stage/fence/class only) ---
+
+from vkm_corpus.update import owner_diagnostics as od  # noqa: E402
+
+
+def _diagnosed_start(tmp_path, mode, timeout=.75):
+    recipe, client = _recipe(tmp_path, mode=mode, timeout=timeout)
+    diag = od.StartupDiagnostics(kind="visual", identity={"recipe_sha256": "a"*64})
+    try:
+        with pytest.raises(ValueError) as caught:
+            vb.OwnedHookChildOwner.start(recipe, inference_client=client, serving_client_getter=lambda: client,
+                environment={}, diagnostics=diag)
+        diag.fail(caught.value)
+    finally:
+        client.close()
+    value = diag.public()
+    assert od.validate_public(value)
+    raw = json.dumps(diag.private())
+    assert str(tmp_path) not in raw and "SYNTHETIC-GGUF" not in raw and "Bearer" not in raw
+    return value
+
+
+@LINUX
+@pytest.mark.parametrize("mode,step,cause", [
+    ("sleep", "WITNESS_STATUS", "ValueError"), ("epoch", "WITNESS_BINDING", "ValueError"),
+    ("nonce", "WITNESS_BINDING", "ValueError"), ("duplicate", "WITNESS_SCHEMA", "ValueError"),
+    ("oversized", "WITNESS_BODY", "ValueError"), ("placement-zero", "WITNESS_SCHEMA", "ValidationError"),
+    ("capture", "WITNESS_SCHEMA", "ValidationError")])
+def test_load_proof_deadline_names_the_exact_failing_fence(tmp_path, mode, step, cause):
+    value = _diagnosed_start(tmp_path, mode)
+    assert value["terminal_stage"] == "NATIVE_LOAD_PROOF" and value["outcome"] == "LOAD_PROOF_DEADLINE"
+    assert value["fence_step"] == step and value["child"] == {"spawned": True, "alive_at_terminal": True,
+                                                              "exit_code": None}
+    assert any(f[0] == step and f[1] == cause for f in value["fence_failures"])
+    stages = [s[0] for s in value["stages"]]
+    assert stages == ["FILE_INVENTORY", "SPAWN", "NATIVE_LOAD_PROOF"]
+    if mode == "sleep":
+        assert value["witness_http_status"] and value["witness_http_status"][0][0] == 503
+
+
+@LINUX
+def test_exited_child_is_reported_immediately_with_exit_code(tmp_path):
+    import time
+    began = time.monotonic()
+    value = _diagnosed_start(tmp_path, "exit", timeout=30)
+    assert time.monotonic() - began < 10
+    assert value["outcome"] == "CHILD_EXITED_DURING_LOAD" and value["child"]["exit_code"] == 3
+    assert value["child"]["alive_at_terminal"] is False
+
+
+@LINUX
+def test_foreign_listener_is_localized_without_sending_the_challenge(tmp_path, monkeypatch):
+    recipe, client = _recipe(tmp_path, timeout=.3)
+    sent = []
+    monkeypatch.setattr(client, "stream", lambda *a, **kw: sent.append(True))
+    diag = od.StartupDiagnostics(kind="visual")
+    with socket.socket() as foreign:
+        foreign.bind(("127.0.0.1", recipe.port)); foreign.listen(1)
+        try:
+            with pytest.raises(ValueError):
+                vb.OwnedHookChildOwner.start(recipe, inference_client=client, serving_client_getter=lambda: client,
+                    environment={}, diagnostics=diag)
+        finally:
+            client.close()
+    assert sent == []
+    assert {f[0] for f in diag.public()["fence_failures"]} <= {"LISTENER", "CHILD_PROCESS"}
+
+
+@LINUX
+def test_cleanup_failure_does_not_mask_the_primary_startup_cause(tmp_path, monkeypatch):
+    original = mo.OwnedChildModelOwner.close
+    def broken_close(self):
+        original(self)
+        raise RuntimeError("SENTINEL secondary " + str(tmp_path))
+    monkeypatch.setattr(mo.OwnedChildModelOwner, "close", broken_close)
+    recipe, client = _recipe(tmp_path, mode="sleep", timeout=.3)
+    diag = od.StartupDiagnostics(kind="visual")
+    try:
+        with pytest.raises(ValueError, match="bounded native child load proof unavailable"):
+            vb.OwnedHookChildOwner.start(recipe, inference_client=client, serving_client_getter=lambda: client,
+                environment={}, diagnostics=diag)
+    finally:
+        client.close()
+    assert diag.public()["secondary"] == [["OWNER_CLOSE", "RuntimeError"]]
+
+
+def test_unexpected_mapped_library_basenames_reach_only_the_private_record(tmp_path, monkeypatch):
+    recipe, client = _recipe(tmp_path, timeout=.3)
+    production = recipe.model_copy(update={"scope": "VISUAL_OWNER_PRODUCTION"})
+    owner = vb.OwnedHookChildOwner.__new__(vb.OwnedHookChildOwner)
+    owner.recipe, owner.pid, owner._diagnostics = production, 1, od.StartupDiagnostics(kind="visual")
+    monkeypatch.setattr(vb, "_mapped_implementation",
+                        lambda pid: {recipe.executable, str(tmp_path / "private" / "libextra.so.9")})
+    with pytest.raises(ValueError, match="absent from pre-spawn inventory"):
+        owner._loaded_resource_fence()
+    client.close()
+    assert owner._fence_step == "MAPPED_IMPLEMENTATION"
+    assert owner._diagnostics.private()["unexpected_mapped_basenames"] == ["libextra.so.9"]
+    assert str(tmp_path) not in json.dumps(owner._diagnostics.public())
+
+
+def test_bridge_main_prints_one_closed_line_and_private_receipt(tmp_path, monkeypatch, capsys):
+    secret = "SENTINEL-" + str(tmp_path)
+    def fail(*a, diagnostics=None, **kw):
+        diagnostics.enter("CREDENTIAL_READ")
+        raise PermissionError(13, secret)
+    monkeypatch.setattr(vb, "create_visual_owner", fail)
+    out = tmp_path / "diag"; out.mkdir()
+    assert vb.main(["--recipe", str(tmp_path / "r.json"), "--recipe-sha256", "c"*64,
+                    "--diagnostics-dir", str(out.resolve())]) == 2
+    err = capsys.readouterr().err.strip().splitlines()
+    assert len(err) == 1 and err[0].startswith("visual_owner_startup_unavailable {")
+    value = json.loads(err[0].split(" ", 1)[1])
+    assert od.validate_public(value) and value["cause_code"] == "CREDENTIAL_READ/FAILED/-/PermissionError"
+    private = list(out.iterdir())
+    assert len(private) == 1 and "SENTINEL" not in private[0].read_text() and "SENTINEL" not in err[0]
+
+
+@LINUX
+def test_fatal_unretried_fence_error_is_attributed_to_its_own_step(tmp_path, monkeypatch):
+    calls = []
+    def fence(self):
+        calls.append(True)
+        if len(calls) <= 2:
+            self._fence_step, self._witness_status = "WITNESS_STATUS", 503
+            raise ValueError("loaded native witness unavailable")
+        self._fence_step = "MAPPED_IMPLEMENTATION"
+        raise PermissionError(13, "SENTINEL " + str(tmp_path))
+    monkeypatch.setattr(vb.OwnedHookChildOwner, "_loaded_resource_fence", fence)
+    recipe, client = _recipe(tmp_path, timeout=30)
+    diag = od.StartupDiagnostics(kind="visual")
+    try:
+        with pytest.raises(PermissionError) as caught:
+            vb.OwnedHookChildOwner.start(recipe, inference_client=client, serving_client_getter=lambda: client,
+                environment={}, diagnostics=diag)
+        diag.fail(caught.value)
+    finally:
+        client.close()
+    value = diag.public()
+    assert value["cause_code"] == "NATIVE_LOAD_PROOF/FAILED/MAPPED_IMPLEMENTATION/PermissionError"
+    assert ["MAPPED_IMPLEMENTATION", "PermissionError"] == [f[:2] for f in value["fence_failures"]
+                                                         if f[0] == "MAPPED_IMPLEMENTATION"][0]
+    assert "SENTINEL" not in json.dumps(value)
+
+
+@LINUX
+def test_cancel_request_stops_load_loop_even_when_signal_is_swallowed(tmp_path):
+    import time
+    recipe, client = _recipe(tmp_path, mode="sleep", timeout=30)
+    diag = od.StartupDiagnostics(kind="visual")
+    calls = []
+    def cancel():
+        calls.append(True)
+        return len(calls) > 4
+    began = time.monotonic()
+    try:
+        with pytest.raises(InterruptedError) as caught:
+            vb.OwnedHookChildOwner.start(recipe, inference_client=client, serving_client_getter=lambda: client,
+                environment={}, diagnostics=diag, cancel=cancel)
+        diag.fail(caught.value)
+    finally:
+        client.close()
+    assert time.monotonic() - began < 10
+    assert diag.public()["cause_code"] == "NATIVE_LOAD_PROOF/FAILED/UNSET/InterruptedError"

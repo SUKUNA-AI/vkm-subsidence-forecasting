@@ -27,6 +27,7 @@ from pydantic import Field, StrictInt, model_validator
 from vkm_corpus.parquet.atomic import sha256_of
 from vkm_corpus.update.model_owner import OwnedChildModelOwner, OwnedChildRecipe
 from vkm_corpus.update.native_files import NativeFileWatch
+from vkm_corpus.update.owner_diagnostics import NULL as NULL_DIAGNOSTICS, StartupDiagnostics, classify
 from vkm_corpus.update.remote_models import NativeModelProof
 from vkm_corpus.update.remote_retrieval import file_signature
 from vkm_corpus.update.service_identity import runtime_dependency_inventory
@@ -44,6 +45,7 @@ BRIDGE_MODULES = ("vkm_corpus", "vkm_corpus.update", "vkm_corpus.parquet", "vkm_
     "vkm_corpus.update.visual_owner_bridge", "vkm_corpus.update.visual_placement", "vkm_corpus.update.model_owner",
     "vkm_corpus.update.remote_models", "vkm_corpus.update.remote_retrieval",
     "vkm_corpus.update.native_files", "vkm_corpus.update.service_identity",
+    "vkm_corpus.update.owner_diagnostics",
     "vkm_corpus.parquet.atomic", "vkm_evidence.contracts", "vkm_corpus.contracts.access", "vkm_corpus.contracts.access_vocab",
     "vkm_corpus.contracts.vocab",
     "vkm_world.core.provenance", "vkm_corpus.retrieval.pins")
@@ -205,21 +207,36 @@ class OwnedHookChildOwner(OwnedChildModelOwner):
 
     def _loaded_resource_fence(self):
         if self.recipe.scope == "VISUAL_OWNER_PRODUCTION":
+            self._fence_step = "MAPPED_IMPLEMENTATION"
             mapped = _mapped_implementation(self.pid)
-            if not mapped <= {self.recipe.executable, *self.recipe.implementation_files}:
+            outside = mapped - {self.recipe.executable, *self.recipe.implementation_files}
+            if outside:
+                # Basenames only, for the private diagnostic receipt.
+                record = getattr(self, "_diagnostics", None)
+                if record is not None: record.unexpected_mapping(Path(p).name for p in outside)
                 raise ValueError("actual native loaded library absent from pre-spawn inventory")
         nonce = secrets.token_hex(32)
+        self._fence_step = "WITNESS_HTTP"
         try:
             with self.client.stream("GET", "/__vkm_loaded_witness", params={"nonce": nonce}, timeout=1.0) as response:
-                if response.status_code != 200: raise ValueError("loaded native witness unavailable")
-                witness = LoadedWitness.model_validate(_json(_response_bytes(response, WITNESS_LIMIT)))
-        except (httpx.HTTPError, ValueError, TypeError, KeyError):
+                if response.status_code != 200:
+                    self._fence_step, self._witness_status = "WITNESS_STATUS", response.status_code
+                    raise ValueError("loaded native witness unavailable")
+                self._fence_step = "WITNESS_BODY"
+                raw = _response_bytes(response, WITNESS_LIMIT)
+                self._fence_step = "WITNESS_SCHEMA"
+                witness = LoadedWitness.model_validate(_json(raw))
+        except (httpx.HTTPError, ValueError, TypeError, KeyError) as exc:
+            self._fence_cause = classify(exc)
             raise ValueError("loaded native witness unavailable") from None
+        self._fence_step = "WITNESS_BINDING"
         if (witness.nonce != nonce or witness.epoch != 1 or witness.paths !=
                 {role: self.recipe.resources[role] for role in ("weights", "tokenizer", "mmproj")}):
             raise ValueError("native load epoch/resource/challenge differs")
+        self._fence_step = "PLACEMENT_PRESENT"
         if self.recipe.scope == "VISUAL_OWNER_PRODUCTION" and witness.target_weight_placement is None:
             raise ValueError("actual target-weight placement unavailable")
+        self._fence_step = "WITNESS_LIFETIME"
         core = witness.model_dump(exclude={"nonce"})
         if self._witness is None: self._witness = core
         elif core != self._witness: raise ValueError("native loaded handles/lifetime changed")
@@ -341,18 +358,22 @@ class VisualOwnerBridge:
         self.watch.close()
 
 
-def create_visual_owner(recipe_path: Path, recipe_sha256: str):
+def create_visual_owner(recipe_path: Path, recipe_sha256: str, *, diagnostics=None, cancel=None):
+    diag = NULL_DIAGNOSTICS if diagnostics is None else diagnostics
+    diag.enter("RECIPE_IDENTITY")
     raw = _read(recipe_path, 1024*1024)
     if hashlib.sha256(raw).hexdigest() != recipe_sha256: raise ValueError("visual owner recipe changed")
     recipe = VisualOwnerRecipe.model_validate(_json(raw))
     obj = VisualOwnerBridge()
     obj.closed, obj.invalid, obj.owner, obj.client = False, False, None, None
     obj.recipe, obj.recipe_path, obj.recipe_hash = recipe, Path(recipe_path), record_hash(recipe)
+    diag.enter("WATCHES")
     obj.watch = NativeFileWatch([recipe_path, recipe.identity_token_path, *recipe.child.expected_sha256])
     try:
         obj.recipe_signature = file_signature(recipe_path)
         if hashlib.sha256(_read(recipe_path, 1024*1024)).hexdigest() != recipe_sha256:
             raise ValueError("recipe changed before watch installation")
+        diag.enter("DEPENDENCY_INVENTORY")
         inventory = set(recipe.child.implementation_files)
         if recipe.child.scope == "VISUAL_OWNER_PRODUCTION" and str(Path(sys.executable).resolve(strict=True)) not in inventory:
             raise ValueError("actual visual owner Python executable absent from inventory")
@@ -361,24 +382,33 @@ def create_visual_owner(recipe_path: Path, recipe_sha256: str):
             if str(Path(module.__file__).absolute()) not in inventory:
                 raise ValueError("actual visual owner implementation absent from inventory")
         obj.dependencies = record_hash(runtime_dependency_inventory("VISUAL_OWNER_HTTP_V1", DEPENDENCIES))
+        diag.enter("CREDENTIAL_READ")
         token = _read(recipe.identity_token_path, 256)
         if (hashlib.sha256(token).hexdigest() != recipe.identity_token_sha256 or not 32 <= len(token) <= 256
                 or any(c < 33 or c > 126 for c in token)):
             raise ValueError("invalid pinned visual identity credential")
         obj.token = token.decode("ascii")
+        diag.enter("CLIENT_SETUP")
         obj.client = httpx.Client(base_url=f"http://127.0.0.1:{recipe.child.port}", trust_env=False,
             follow_redirects=False, headers={"Accept-Encoding": "identity"},
             limits=httpx.Limits(max_connections=1, max_keepalive_connections=1), timeout=recipe.request_timeout_s)
+        owner_options = {} if diagnostics is None else {"diagnostics": diagnostics}
+        if cancel is not None: owner_options["cancel"] = cancel
         obj.owner = OwnedHookChildOwner.start(recipe.child, inference_client=obj.client,
-            serving_client_getter=lambda: obj.client, environment=recipe.environment)
+            serving_client_getter=lambda: obj.client, environment=recipe.environment, **owner_options)
+        diag.enter("BRIDGE_CHECK")
         obj._check()
         return obj
     except BaseException:
-        obj.close()
+        try:
+            obj.close()
+        except BaseException as cleanup:  # never replaces the primary startup cause
+            diag.cleanup_failure("BRIDGE_CLOSE", cleanup)
+            LOG.error("visual_owner_cleanup_failed %s", classify(cleanup))
         raise
 
 
-def serve_visual_owner(bridge, stop):
+def serve_visual_owner(bridge, stop, *, diagnostics=None, on_listening=None):
     if bridge.recipe.child.scope != "VISUAL_OWNER_PRODUCTION":
         raise ValueError("synthetic bridge cannot open an external serving listener")
     class Handler(BaseHTTPRequestHandler):
@@ -417,28 +447,60 @@ def serve_visual_owner(bridge, stop):
             finally: slots.release()
         def handle_error(self, *args): LOG.error("visual_owner_http_unavailable")
     slots = threading.BoundedSemaphore(bridge.recipe.max_clients)
+    diag = NULL_DIAGNOSTICS if diagnostics is None else diagnostics
+    diag.enter("LISTENER")
     with Server((bridge.recipe.host, bridge.recipe.port), Handler) as server:
         server.timeout = 0.5
+        diag.enter("SERVING")
+        diag.ready()
+        if on_listening is not None: on_listening()
         while not stop.is_set(): server.handle_request()
+
+
+def code_identity():
+    """Hash of the installed owner/bridge/diagnostic sources actually imported."""
+    from vkm_corpus.update import model_owner, owner_diagnostics
+    return record_hash({name: sha256_of(Path(module.__file__)) for name, module in
+                        (("visual_owner_bridge", sys.modules[__name__]), ("model_owner", model_owner),
+                         ("owner_diagnostics", owner_diagnostics))})
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Actual owned visual llama inference bridge")
     parser.add_argument("--recipe", required=True)
     parser.add_argument("--recipe-sha256", required=True)
+    parser.add_argument("--diagnostics-dir")
     args = parser.parse_args(argv)
     bridge = None
+    identity = {"recipe_sha256": args.recipe_sha256}
     try:
-        bridge = create_visual_owner(Path(args.recipe), args.recipe_sha256)
+        identity["code_sha256"] = code_identity()
+    except Exception:
+        pass
+    diagnostics = StartupDiagnostics(kind="visual", identity=identity)
+    failed = False
+    try:
+        bridge = create_visual_owner(Path(args.recipe), args.recipe_sha256, diagnostics=diagnostics)
         stop = threading.Event()
         for sig in (signal.SIGTERM, signal.SIGINT): signal.signal(sig, lambda *_: stop.set())
-        serve_visual_owner(bridge, stop)
+        serve_visual_owner(bridge, stop, diagnostics=diagnostics, on_listening=lambda: print(
+            diagnostics.line("visual_owner_ready"), file=sys.stderr, flush=True))
         return 0
-    except Exception:
-        LOG.error("visual_owner_startup_unavailable")
+    except Exception as exc:
+        failed = True
+        diagnostics.fail(exc)
         return 2
     finally:
-        if bridge is not None: bridge.close()
+        if bridge is not None:
+            try:
+                bridge.close()
+            except Exception as cleanup:
+                diagnostics.cleanup_failure("BRIDGE_CLOSE", cleanup)
+                if not failed: raise
+        if failed:
+            # After cleanup, so a secondary close failure is part of the same record.
+            diagnostics.write_private(args.diagnostics_dir)
+            print(diagnostics.line("visual_owner_startup_unavailable"), file=sys.stderr, flush=True)
 
 
 if __name__ == "__main__":
