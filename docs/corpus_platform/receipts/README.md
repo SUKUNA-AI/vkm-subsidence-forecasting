@@ -114,6 +114,19 @@ frozen plan по утверждённым SHA; собственный gate `read
 Запуск от учётки песочницы Codex после точечного права владельца на каталог профиля.
 Зашифрованная копия и независимый restore R3 — отдельный executor; B0 не закрыт.
 
+[first_live_engine_create_cpu_2026-10-05_names.json](first_live_engine_create_cpu_2026-10-05_names.json):
+L0 на `f6f6472` — закрытые семейства имён PRODUCTION (`vkm-core-*`) и QUALIFICATION
+(`vkm-l1q-*`); 393 теста на Windows и Linux. Прежний L0 receipt не изменён.
+
+[first_live_engine_l1_core_2026-10-05_attempt1.json](first_live_engine_l1_core_2026-10-05_attempt1.json):
+первый настоящий прогон L1 на Docker CORE (изолированно, `vkm-l1q-*`, своя сеть) —
+**L1_FAIL**. Post-create проверка нашла расхождение `apparmor_profile`: Docker 26
+записывает профиль `docker-default` только при первом старте, а контракт ожидал его
+сразу после create; адаптер отказался и удалил кандидата, остальные сценарии упали
+каскадом. Production не затронут (S9 PASS: контейнеры, StartedAt/RestartCount и сети
+до = после), удаление только journal-owned (S8 PASS), стенд убран. `daemon_id` и
+`docker_root_dir` захешированы.
+
 [native_owner_cpu_2026-10-04.json](native_owner_cpu_2026-10-04.json): точные hashes
 PUBLIC native placement/owner source и synthetic CPU JUnit. Declared platform
 NOT_RUN отделены от PASS; selections пересекаются и не суммируются. Проверены
