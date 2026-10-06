@@ -532,3 +532,35 @@ def test_xscore_against_the_key(t2, tmp_path, monkeypatch):
     res = json.loads((work / "xcheck_score.json").read_text(encoding="utf-8"))
     assert res["T1"]["exact"] == 1.0 and res["T2"]["n"] == 1 and res["T2"]["second_higher"] == 1
     assert res["all"]["n"] == 3 and res["file"] == "xc-001.txt"
+
+
+def test_score_t2_merges_t1_and_t2_labels_and_alias_links(tmp_path, monkeypatch):
+    """score_t2.merged_labels: T1 ∪ T2 rows, T2 groups appended, a T2 t1_alias_links page becomes an alias of its T1
+    unit; a pair labelled in both T1 and T2 is refused."""
+    spec = importlib.util.spec_from_file_location("topic_v1_score_t2", SCRIPT.parent / "score_t2.py")
+    st2 = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(st2)
+    head = "query_id\tlevel\tdoc_id\tgrade\tstatus\tbasis\tlabel_source\tpooled_from\trationale\n"
+    t1_tsv, t2_tsv, t2_groups = tmp_path / "t1.tsv", tmp_path / "t2.tsv", tmp_path / "t2_groups.json"
+    t1_tsv.write_text(head + "PC-01\tPAGE\tVKM-SRC-001:p0001\t3\tCANDIDATE\tPOOL_JUDGMENT\tLLM_AGENT_T1\tbm25@1\tKEY_OBS\n",
+                      encoding="utf-8")
+    t2_tsv.write_text(head + "PC-01\tPAGE\tVKM-SRC-252:p0002\t2\tCANDIDATE\tPOOL_JUDGMENT\tLLM_AGENT_T2\tnav@2\tSUP_ASPECT\n",
+                      encoding="utf-8")
+    t2_groups.write_text(json.dumps({"groups": [{"topic_id": "PC-01", "pages": ["VKM-SRC-252:p0002"],
+                                                  "aliases": ["VKM-SRC-253:p0002"]}],
+                                     "t1_alias_links": [{"topic_id": "PC-01", "page": "VKM-SRC-260:p0001",
+                                                         "t1_pages": ["VKM-SRC-001:p0001"]}]}), encoding="utf-8")
+    monkeypatch.setattr(st2.P2, "load_t1", lambda: (B.load_pooled_qrels(t1_tsv), []))
+    monkeypatch.setattr(st2.P2, "OUT_TSV", t2_tsv)
+    monkeypatch.setattr(st2.P2, "OUT_GROUPS", t2_groups)
+    monkeypatch.setattr(st2.PT, "OUT_TSV", t1_tsv)
+    rows, groups, info = st2.merged_labels()
+    assert [(r["query_id"], r["doc_id"], r["label_source"]) for r in rows] == [
+        ("PC-01", "VKM-SRC-001:p0001", "LLM_AGENT_T1"), ("PC-01", "VKM-SRC-252:p0002", "LLM_AGENT_T2")]
+    assert {"topic_id": "PC-01", "pages": ["VKM-SRC-001:p0001"], "aliases": ["VKM-SRC-260:p0001"]} in groups
+    assert {"topic_id": "PC-01", "pages": ["VKM-SRC-252:p0002"], "aliases": ["VKM-SRC-253:p0002"]} in groups
+    assert info["t1_rows"] == 1 and info["t2_rows"] == 1 and info["t1_alias_links"] == 1
+    t2_tsv.write_text(head + "PC-01\tPAGE\tVKM-SRC-001:p0001\t1\tCANDIDATE\tPOOL_JUDGMENT\tLLM_AGENT_T2\tnav@2\tMENTION\n",
+                      encoding="utf-8")
+    with pytest.raises(SystemExit):
+        st2.merged_labels()
