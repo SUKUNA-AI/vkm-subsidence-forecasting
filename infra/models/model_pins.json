@@ -46,6 +46,34 @@
       "role": "VISUAL_RERANK_SOURCE",
       "host": "EDGE",
       "served_by": "source of the converted vision projector, the scoring head and the parity reference"
+    },
+    {
+      "key": "paddleocr-vl-1.6",
+      "repo_id": "PaddlePaddle/PaddleOCR-VL-1.6",
+      "revision": "c5630abae1d940eafe0697512a0325494b02ab42",
+      "local_dir": "PaddlePaddle__PaddleOCR-VL-1.6/c5630abae1d940eafe0697512a0325494b02ab42",
+      "role": "OCR",
+      "host": "WORKSTATION",
+      "served_by": "PaddleOCR genai vLLM server, image sha256:073bd0cf36400d1f7fcb0bd028289a1ccbf2820772ecb023a4cc13219104399c (OCR v2 run 06.10.2026)",
+      "weights_sha256": {
+        "model.safetensors": "85a479d506a11e724e7285d395c551be69f41dbc16b6342d3cacfb189aed71db",
+        "config.json": "ce7f4565f8b1db78532ad5d1b9ebe55c2139d49bd4cb04778b580a08a598f171",
+        "tokenizer.json": "c8a215a59183d0d0781adc33bacd3ce6162716f7fd568fb30234a74d69803a7d"
+      }
+    },
+    {
+      "key": "pp-doclayout-v3-paddle",
+      "repo_id": "PaddlePaddle/PP-DocLayoutV3",
+      "revision": "241f8bdfc77a7c7bee915a5057aaee58c235a8d3",
+      "local_dir": "PaddlePaddle__PP-DocLayoutV3/241f8bdfc77a7c7bee915a5057aaee58c235a8d3",
+      "role": "LAYOUT",
+      "host": "WORKSTATION",
+      "served_by": "PaddleX 3.7.2 doc parser (paddleocr 3.7.0, paddlepaddle-gpu 3.4.0) in the OCR v2 client",
+      "weights_sha256": {
+        "inference.pdiparams": "70bd316b0582769ec968829fd1feb1a6a58b7c941b938327e551b6b12b45c137",
+        "inference.json": "2b68367c5b312a03de5a6e1642c597c8f95165a7e40cd59c6700cf4a5042f4fd",
+        "inference.yml": "506fcfac13b3b546ae40d7886b44126420f392adb694e3f8bb6a6286a1f90fdc"
+      }
     }
   ]
 }
