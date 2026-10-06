@@ -101,6 +101,9 @@ vkm-corpus evidence export --context context.json --policy policy.json --output 
 vkm-corpus evidence project --context context.json --policy policy.json --output projections
 ```
 
+Перенос опор на новый снимок канона (ревизии+1, только с разрешения владельца) — `evidence rebase-plan` и
+`evidence rebase-publish`, см. [REBASE_RU.md](REBASE_RU.md).
+
 SCHEMA_VALID означает только схему. Incomplete/invalid inventory возвращает nonzero.
 Export проходит все generation-bound cursor pages и создаёт SHA manifest только
 после полного durable output; уже существующий файл не перезаписывается.

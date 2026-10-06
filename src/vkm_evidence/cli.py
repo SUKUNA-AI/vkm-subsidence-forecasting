@@ -216,9 +216,87 @@ def _root(args):
     return load_settings().require_data_root() / "canonical" / "evidence"
 
 
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def rebase_command(args):
+    """Plan (read-only) or publish (owner-approved) re-anchoring onto a new canonical snapshot.
+
+    Canons are explicit read-only DuckDB files; the journal root defaults to the
+    configured runtime. Printed output carries counts, hashes and reason codes only.
+    """
+    from vkm_corpus.api.canon import CanonStore
+    from vkm_corpus.contracts.policy_store import SourcePolicyStore
+    from vkm_evidence import rebase as rb
+    from vkm_evidence.objects import canonical_resolver
+
+    try:
+        context = _context(args)
+        store = SourcePolicyStore(Path(args.policy), lambda: ())
+        journal_root = Path(args.journal_root) if args.journal_root else _root(args)
+        opened: dict[Path, CanonStore] = {}
+
+        def canon(path):
+            key = Path(path).resolve()
+            if not key.is_file():
+                raise rb.RebaseBlocked("CANON_FILE_MISSING")
+            return opened.setdefault(key, CanonStore(key))
+
+        target = canon(args.new_canon)
+        sources = [canon(p) for p in args.old_canon]
+        inputs = {"source_policy_file": _file_sha256(Path(args.policy)),
+                  "target_canon_duckdb": _file_sha256(Path(args.new_canon).resolve())}
+        for path, store_ in zip(args.old_canon, sources):
+            if store_ is not target:
+                inputs["source_canon_duckdb:" + str(store_.snapshot_id())] = _file_sha256(Path(path).resolve())
+
+        def plan(policy, recorded_at, revision=None):
+            return rb.plan_rebase(EvidenceJournal(journal_root), canons=sources, target=target, policy=policy,
+                                  source_policy=store.for_source, context=context, recorded_at=recorded_at,
+                                  target_snapshot_id=args.new_snapshot_id, revision=revision)
+
+        if args.command == "rebase-plan":
+            recorded_at = datetime.fromisoformat(args.recorded_at) if args.recorded_at else datetime.now(timezone.utc)
+            if recorded_at.tzinfo is None:
+                raise rb.RebaseBlocked("REBASE_TIMESTAMP_REQUIRES_TIMEZONE")
+            policy = rb.RebasePolicy(fuzzy_threshold=args.fuzzy_threshold, fuzzy_min_chars=args.fuzzy_min_chars,
+                                     not_found=args.not_found)
+            planned = plan(policy, recorded_at)
+            receipt = rb.write_outputs(planned, Path(args.output_dir), inputs_sha256=inputs,
+                                       public_dir=Path(args.public_output_dir) if args.public_output_dir else None)
+            result = {key: receipt[key] for key in ("schema", "status", "journal_base_revision", "to_snapshot",
+                                                    "from_snapshots", "counts", "per_source", "outputs",
+                                                    "artifacts_sha256")}
+            result["held_to_acknowledge"] = rb.held_count(planned)
+            result["not_found_repointed_to_acknowledge"] = rb.not_found_repointed(planned)
+        else:
+            planned = rb.RebasePlan.model_validate_json(Path(args.plan).read_bytes())
+            approval = rb.RebaseApproval.model_validate_json(_qualification_bytes(Path(args.approval),
+                                                                                  args.approval_sha256))
+            owners = frozenset(json.loads(Path(args.owners).read_bytes()))
+            journal = EvidenceJournal(journal_root, object_validator=canonical_resolver(target, store.for_source))
+            result = rb.publish_rebase(journal, planned, approval, owners=owners, context=context,
+                                       replan=lambda: plan(planned.policy, planned.recorded_at, planned.base_revision))
+            from vkm_evidence.migration import _path, _write_once
+            _write_once(_path(Path(args.plan).absolute().parent, "publish-receipt.json"), canonical_bytes(result))
+    except rb.RebaseBlocked as exc:
+        # Stable reason codes only; never record values, quotes or paths.
+        print(json.dumps({"status": "BLOCKED", "code": str(exc)}))
+        return 1
+    print(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=1))
+    return 0
+
+
 def command(args):
     if args.command == "qualification":
         return qualification_command(args)
+    if args.command in {"rebase-plan", "rebase-publish"}:
+        return rebase_command(args)
     if args.command == "validate-batch":
         batch = EvidenceBatch.model_validate_json(Path(args.input).read_bytes())
         result = {"status": "SCHEMA_VALID", "records": len(batch.records), "scientific_admission": "NOT_RUN"}
@@ -354,6 +432,28 @@ def configure(parser):
         p.add_argument("--" + arg, required=True)
     p.add_argument("--reviewers")
     p.set_defaults(func=safe_command)
+    for name in ("rebase-plan", "rebase-publish"):
+        p = sub.add_parser(name, help="re-anchor evidence supports onto a new canonical snapshot (revision+1)")
+        p.add_argument("--journal-root", help="evidence journal root; default: configured runtime data root")
+        p.add_argument("--old-canon", action="append", required=True,
+                       help="read-only DuckDB of a snapshot the current supports cite (repeatable)")
+        p.add_argument("--new-canon", required=True, help="read-only DuckDB of the target snapshot")
+        p.add_argument("--new-snapshot-id", required=True)
+        p.add_argument("--policy", required=True, help="live source policy inventory")
+        p.add_argument("--context", required=True, help="publisher AccessContext JSON")
+        if name == "rebase-plan":
+            p.add_argument("--output-dir", required=True, help="PRIVATE package directory outside the PUBLIC checkout")
+            p.add_argument("--public-output-dir", help="optional copy of the public-safe receipt and review list")
+            p.add_argument("--recorded-at", help="ISO timestamp with timezone (default: now)")
+            p.add_argument("--not-found", choices=("HOLD", "REPOINT_IF_BASELINE_ABSENT", "REPOINT"), default="HOLD")
+            p.add_argument("--fuzzy-threshold", type=float, default=90.0)
+            p.add_argument("--fuzzy-min-chars", type=int, default=24)
+        else:
+            p.add_argument("--plan", required=True, help="plan.json of the PRIVATE package")
+            p.add_argument("--approval", required=True, help="owner RebaseApproval JSON")
+            p.add_argument("--approval-sha256", required=True, help="operator-pinned SHA-256 of the approval bytes")
+            p.add_argument("--owners", required=True, help="operator-configured JSON list of owner authorities")
+        p.set_defaults(func=safe_command)
 
 
 def register(subparsers):
