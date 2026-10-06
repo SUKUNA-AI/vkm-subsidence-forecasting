@@ -74,6 +74,7 @@
     "RENDER",
     "LAYOUT",
     "OCR",
+    "IMPORTED_LAYER",
     "TABLES",
     "FORMULAS",
     "FIGURES",

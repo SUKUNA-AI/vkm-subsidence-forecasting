@@ -3,7 +3,9 @@
 Inputs: the prep summary, the visual summary, NATIVE_RAW / LAYOUT_RAW / OCR_RAW artifacts and the call cache. The
 OCR tasks of every page are re-planned with ``ocr_stage.plan_page_tasks`` and re-cropped deterministically, so each
 result is found by its call signature; a task without a cached result leaves the page ``OCR_REQUIRED``/``PARTIAL``
-(never ``NATIVE_OK`` with empty text). The output is a ``SourceResult`` for ``extract.to_canon``.
+(never ``NATIVE_OK`` with empty text). A page with an entry of the ``IMPORTED_LAYER`` stage
+(``pipeline.imported_layer``) gets the imported objects as its primary layer after its own objects are built; those
+stay as the secondary layer. The output is a ``SourceResult`` for ``extract.to_canon``.
 """
 from __future__ import annotations
 
@@ -19,6 +21,7 @@ from vkm_corpus.layout import ppdoclayout as ppl
 from vkm_corpus.layout.regions import Region, assign, overlap_share
 from vkm_corpus.ocr import normalize as onorm
 from vkm_corpus.ocr.quality import call_flags
+from vkm_corpus.pipeline import imported_layer as il
 from vkm_corpus.pipeline import ocr_stage, scenario_b
 from vkm_corpus.pipeline.cache import StageCache
 from vkm_corpus.pipeline.config import EXTRACTOR_VERSIONS, GENERATIONS, PipelineConfig
@@ -86,6 +89,9 @@ class Assembler:
         from vkm_corpus.coverage.accounting import SourceAccounting
 
         self.accounting = SourceAccounting(cfg, prep, store)
+        # imported recognition layer (OCR v2): read only from the stage cache, never re-imported here
+        self.imports = il.load_source_import(cache, src.source_id, src.sha256) if self.fmt in ("PDF", "DJVU") \
+            else None
 
     # ------------------------------------------------------------------ helpers
     def err(self, code: str, stage: str, message: str, page_index: int | None = None, retryable: bool = False,
@@ -157,6 +163,11 @@ class Assembler:
                                native_raw_artifact_id=self.prep.get("document_raw_artifact_id"), quality_flags=flags,
                                extra={"spreads": self.prep.get("spreads"), "docx_counts": self.prep.get("docx_counts")})
         self._source_steps(pagination)
+        if self.imports is not None:
+            for idx, reason in self.imports.stale:
+                if idx is None:
+                    self.err("IMPORTED_LAYER_STALE", "IMPORTED_LAYER", f"{reason}: entry "
+                             f"{self.imports.entry_signature[:16]}; the previous primary layers are kept")
         if self.fmt == "DOCX" and self.prep.get("document_raw_artifact_id"):
             aid = self.prep["document_raw_artifact_id"]
             self.accounting.native(self.store.read_json(aid), aid, docx=True)
@@ -402,6 +413,7 @@ class Assembler:
             page = self._page_base(row)
             self.result.pages.append(page)
             self.accounting.page(idx)
+            n_tables0, n_formulas0 = len(self.result.tables), len(self.result.formulas)
             if row.get("route") == "FAILED" or row.get("error"):
                 e = row.get("error") or {}
                 self.err(e.get("code", "NATIVE_EXTRACT_FAILED"), e.get("stage", "NATIVE_TEXT"),
@@ -532,6 +544,8 @@ class Assembler:
                     self._formula_from_ocr(page, spec, first_hit, contents[0], common, raw)
             # --- figures (layout image/chart regions) and native tables without OCR
             self._figures(page, regions, raw)
+            # --- imported layer (OCR v2, CHOICE_V1 NEW pages): primary; this page's own objects become secondary
+            imported = self._imported_page(page, n_tables0, n_formulas0) if self.imports is not None else None
             # --- primary layer and statuses
             if route == "OCR_OPTIONAL" and reocr and text_specs and text_done == len(text_specs):
                 for b in native_blocks:
@@ -548,10 +562,15 @@ class Assembler:
             if route == "OCR_REQUIRED" and page.page_class == "BROKEN_TEXT_LAYER":
                 for b in native_blocks:
                     b.is_primary_layer = False
+            if imported is not None:
+                for b in native_blocks + ocr_blocks:
+                    b.is_primary_layer = False
             self.result.blocks.extend(native_blocks)
             self.result.blocks.extend(ocr_blocks)
+            if imported is not None:
+                self.result.blocks.extend(imported)
             self._page_status(page, route, text_specs, text_done, ocr_blocks, native_blocks, empty_on_ink, truncated,
-                              specs, crops)
+                              specs, crops, imported=imported)
             if route == "OCR_OPTIONAL" and ocr_blocks and native_blocks:
                 layer = "\n".join(b.text for b in sorted(native_blocks, key=lambda b: b.reading_order or 0))
                 glm = "\n".join(onorm.text_from_markdown(b.text) for b in ocr_blocks)
@@ -564,7 +583,10 @@ class Assembler:
 
     def _page_status(self, page: PageX, route: str | None, text_specs: list[Any], text_done: int,
                      ocr_blocks: list[BlockX], native_blocks: list[BlockX], empty_on_ink: bool, truncated: bool,
-                     specs: list[Any], crops: list[Any]) -> None:
+                     specs: list[Any], crops: list[Any], imported: list[BlockX] | None = None) -> None:
+        """Statuses from the page's own layers; an imported primary layer (``imported``) then decides the primary
+        text layer/origin and the page status (its own layers' errors stay recorded, their flags do not)."""
+        flags_before = list(page.quality_flags)
         ocr_total = len(specs)
         ocr_done = sum(1 for c in crops if c.call_signature and self.cache.best_call(c.call_signature))
         if route == "EMPTY" and not text_specs:
@@ -598,7 +620,12 @@ class Assembler:
             if empty_on_ink and page.page_status == "OCR_OK":
                 page.page_status = "NEEDS_REVIEW"
                 self.err("OCR_EMPTY_ON_INK", "OCR", "empty recognition on a crop with ink", page.page_index)
-        if truncated and page.page_status in ("OCR_OK", "EMBEDDED_TEXT_OK", "NATIVE_OK"):
+        if imported is not None:
+            page.quality_flags = flags_before + (["EMPTY_PAGE"] if not any(b.text.strip() for b in imported) else [])
+            page.page_status = "OCR_OK"
+            page.primary_text_origin = "OCR"
+            page.primary_text_layer = il.TEXT_LAYER
+        elif truncated and page.page_status in ("OCR_OK", "EMBEDDED_TEXT_OK", "NATIVE_OK"):
             page.page_status = "PARTIAL"
             page.quality_flags.append("TRUNCATED")
         if ocr_total == 0:
@@ -610,6 +637,120 @@ class Assembler:
         else:
             page.ocr_status = "PARTIAL"
         page.recognized_char_count = sum(len(b.text) for b in ocr_blocks) if ocr_blocks else None
+        if imported is not None:
+            page.recognized_char_count = sum(len(b.text) for b in imported)
+
+    # ------------------------------------------------------------------ imported layer
+    def _imported_page(self, page: PageX, n_tables0: int, n_formulas0: int) -> list[BlockX] | None:
+        """Blocks of the page's imported layer (``None`` when the page has no usable import); its tables/formulas
+        are appended, and the tables/formulas the page already had become secondary (``is_primary_layer`` False).
+        Stale or refused entries are errors and leave the page on its previous layers."""
+        imp = self.imports
+        idx = page.page_index
+        for r in imp.refused:
+            if r.get("page_index") == idx:
+                self.err("IMPORTED_LAYER_REFUSED", "IMPORTED_LAYER", f"{r.get('code')}: {r.get('detail') or ''}"
+                         "; the previous primary layer is kept", idx)
+        for sidx, reason in imp.stale:
+            if sidx == idx:
+                self.err("IMPORTED_LAYER_STALE", "IMPORTED_LAYER", f"{reason}; the previous primary layer is kept", idx)
+        entry = imp.pages.get(idx)
+        if entry is None:
+            return None
+        if not (page.width_pt and page.height_pt) or abs(float(entry["width_pt"]) - float(page.width_pt)) > 0.01 \
+                or abs(float(entry["height_pt"]) - float(page.height_pt)) > 0.01:
+            self.err("IMPORTED_LAYER_STALE", "IMPORTED_LAYER", "page size differs from the size checked at import; "
+                     "the previous primary layer is kept", idx)
+            return None
+        aid = entry["raw_artifact_id"]
+        try:
+            record = self.store.read_json(aid)
+            pi = il.page_objects(record, float(page.width_pt), float(page.height_pt))
+        except (FileNotFoundError, RuntimeError) as exc:
+            self.err("ARTIFACT_MISSING", "IMPORTED_LAYER", f"{aid}: {exc}", idx)
+            return None
+        except il.ImportRefused as exc:
+            self.err("IMPORTED_LAYER_STALE", "IMPORTED_LAYER", f"{exc.code}; the previous primary layer is kept", idx)
+            return None
+        for t in self.result.tables[n_tables0:]:
+            t.is_primary_layer = False
+        for f in self.result.formulas[n_formulas0:]:
+            f.is_primary_layer = False
+        common = dict(page_index=idx, origin="OCR", region_origin="LAYOUT_MODEL", extractor_id=il.EXTRACTOR_ID,
+                      extractor_version=EXTRACTOR_VERSIONS[il.EXTRACTOR_ID],
+                      generation=str(GENERATIONS[il.EXTRACTOR_ID]), raw_config_hash=imp.config_hash,
+                      models=[il.LAYOUT_MODEL, il.RECOGNITION_MODEL], raw_artifact_id=aid)
+        blocks: list[BlockX] = []
+        for o in pi.objects:
+            extra = {"layout_label": o.label, "imported_part": o.part, "imported_block_id": o.block_id,
+                     "imported_answer": o.source}
+            if o.kind == "BLOCK":
+                b = BlockX(**common, bbox=o.bbox, raw_artifacts=[("OCR_RESPONSE", aid)], raw_locator=o.locator,
+                           quality_flags=list(o.flags), text=o.text, block_type=o.block_type,
+                           text_layer=il.TEXT_LAYER, is_primary_layer=True, reading_order=o.order)
+                b.extra.update(extra, reading_order_method="PADDLEX_LAYOUT_ORDER", order_key=(o.order, 0))
+                blocks.append(b)
+            elif o.kind == "TABLE":
+                self._table_from_import(page, o, common, aid, extra)
+            else:
+                self._formula_from_import(o, common, aid, extra)
+        self.accounting.imported(idx, aid, record, pi)
+        self.step("IMPORTED_LAYER", idx, "REUSED_CACHED", "OCR_OK", entry["signature"], il.EXTRACTOR_ID,
+                  imp.config_hash, model_id=il.RECOGNITION_MODEL.model_id,
+                  model_revision=il.RECOGNITION_MODEL.model_revision,
+                  input_artifact_ids=[a for a in [imp.provenance_artifact_id] if a], output_artifact_ids=[aid],
+                  n_objects_out=len(pi.objects))
+        for f in pi.page_flags:
+            if f not in page.quality_flags:
+                page.quality_flags.append(f)
+        # the page's text now comes from the imported layer: its envelope names that recognition model even when the
+        # layer has no text block on this page (a figure-only page)
+        page.models = [m for m in page.models if m.role != "RECOGNITION"] + [il.RECOGNITION_MODEL]
+        page.extra["primary_ocr_raw_artifact_id"] = aid
+        page.extra["imported_layer"] = {"choice": entry.get("choice"), "reason": entry.get("choice_reason"),
+                                        "verdict": entry.get("verdict")}
+        return blocks
+
+    def _table_from_import(self, page: PageX, o: Any, common: dict[str, Any], aid: str, extra: dict[str, Any]
+                           ) -> None:
+        norm = onorm.normalize_table(o.html)
+        flags = list(o.flags)
+        if not norm["structure_ok"] and "TABLE_STRUCTURE_UNCERTAIN" not in flags:
+            flags.append("TABLE_STRUCTURE_UNCERTAIN")
+        if any(c["row_span"] > 1 or c["col_span"] > 1 for c in norm["cells"]):
+            flags.append("SPANNING_CELLS")
+        raw_artifacts = [("OCR_RESPONSE", aid)]
+        audit = self.store.put_json({"schema": "vkm.table_structure_audit/1", "rule": onorm.OCR_NORMALIZE_RULE,
+                                     "status": "DERIVATION", "input_artifacts": raw_artifacts,
+                                     "raw_locator": o.locator, "raw_grid": norm.get("raw_grid"),
+                                     "dispositions": norm.get("dispositions", []),
+                                     "normalized_rows": norm["n_rows"], "normalized_cols": norm["n_cols"]},
+                                    "VALIDATION_REPORT", source_id=self.src.source_id,
+                                    page_id=f"{self.src.source_id}:p{page.page_index:04d}")
+        raw_artifacts.append(("STRUCTURAL_DIAGNOSTICS", audit.artifact_id))
+        t = TableX(**common, bbox=o.bbox, raw_artifacts=raw_artifacts, raw_locator=o.locator, quality_flags=flags,
+                   raw_format=norm["raw_format"], raw_output=o.html or "", recognition_method=il.RECOGNITION_METHOD,
+                   n_rows=norm["n_rows"], n_cols=norm["n_cols"], cells=norm["cells"],
+                   normalized_text=norm["normalized_text"], layout_score=o.layout_score, text_layer=il.TEXT_LAYER,
+                   is_primary_layer=True)
+        t.extra.update(extra)
+        self.result.tables.append(t)
+
+    def _formula_from_import(self, o: Any, common: dict[str, Any], aid: str, extra: dict[str, Any]) -> None:
+        content = o.latex or None
+        norm = onorm.normalize_formula(content)
+        flags = list(o.flags)
+        if norm["latex_parse_ok"] is False and "FORMULA_LATEX_UNPARSEABLE" not in flags:
+            flags.append("FORMULA_LATEX_UNPARSEABLE")
+        f = FormulaX(**common, bbox=o.bbox, raw_artifacts=[("OCR_RESPONSE", aid)], raw_locator=o.locator,
+                     quality_flags=flags, formula_kind=o.formula_kind or "UNKNOWN",
+                     equation_label=o.number or norm["equation_label"],
+                     raw_format="LATEX" if content else "IMAGE_ONLY", raw_output=content,
+                     normalized_latex=norm["normalized_latex"], latex_parse_ok=norm["latex_parse_ok"],
+                     recognition_method=il.RECOGNITION_METHOD, layout_score=o.layout_score,
+                     text_layer=il.TEXT_LAYER, is_primary_layer=True)
+        f.extra.update(extra)
+        self.result.formulas.append(f)
 
     # ------------------------------------------------------------------ objects
     def _region_image(self, page: PageX, spec: Any, found: list[tuple[Any, dict[str, Any], Any]]) -> str | None:

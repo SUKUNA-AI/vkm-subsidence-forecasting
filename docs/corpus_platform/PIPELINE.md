@@ -122,6 +122,40 @@ origin `EMBEDDED_OCR` и при маршруте `OCR_REQUIRED`, когда сл
   GPU-часов. При двух слоях основной выбирается правилом (`is_primary_layer`). CER пишется в
   `pages.native_ocr_cer`, `NEEDS_REVIEW` из-за расхождения слоёв не ставится.
 
+## 5а. Импортированный слой OCR v2 (`PADDLEOCR_VL`, стадия `IMPORTED_LAYER`)
+
+Слой распознан вне конвейера: прогон OCR v2 06.10.2026 (PaddleX doc parser = PP-DocLayoutV3 + PaddleOCR-VL-1.6 на
+локальном vLLM, BF16; `work/ocr_run_20261006`). Код — `pipeline/imported_layer.py`; модели закреплены в
+`infra/models/model_pins.json` (`paddleocr-vl-1.6`, `pp-doclayout-v3-paddle`).
+
+- `vkm-corpus run import-layer --ocr-root <корень прогона> --run-tag full_v2 --manifest <manifest.jsonl>
+  [--source …] [--dry-run]` берёт только страницы, выбранные правилом `CHOICE_V1` как `NEW`. Модель не вызывается,
+  коммита нет.
+- Проверки до записи: sha256 источника в реестре = манифест прогона = сводка prep; размер страницы канона = размер
+  подготовленного растра (соотношение сторон ±1 %, размер PDF от pdfium ±0,2 %, для DjVu — сетка INFO без
+  увеличения); выбор слоя вычислен по тому же `pages.jsonl` (sha256 в квитанции выбора). Отказ записывается с кодом,
+  страница остаётся на прежнем слое, при сборке появляется ошибка `IMPORTED_LAYER_REFUSED`.
+- На страницу пишется один неизменяемый `OCR_RAW` (`vkm.ocr_raw.paddleocr_vl_page/1`, KEEP_RAW): сырой JSON PaddleX
+  каждой части (страница или половины `a`/`b` разворота), запись подготовки (только sha256 картинок, без PNG),
+  запись постобработки и строка выбора. Машинные пути заменены логическими (`OCRV2_IMG:png/…`). Провенанс прогона
+  (модели, образ сервера, версии paddleocr/paddlex/paddle, параметры, sha256 кода и входов) — артефакт `RUN_CONFIG`.
+- Кеш стадий: запись страницы по `stage_signature(source_sha256, IMPORTED_LAYER, страница, cfg_hash(провенанс,
+  правило геометрии, CHOICE_V1))` и запись источника со списком страниц и отказов. Повторный импорт тех же входов
+  ничего не добавляет.
+- Сборка (`Assembler`) после собственных объектов страницы делает импортированные блоки, таблицы и формулы основным
+  слоем: `text_layer = PADDLEOCR_VL`, origin `OCR`, регион `LAYOUT_MODEL`, `AUTO_EXTRACTED_UNREVIEWED`,
+  `recognition_method = OCR_PADDLEOCR_VL`. Прежние блоки (`GLM_OCR`, `DJVU_EMBEDDED_OCR_LAYER`, `PDF_TEXT_LAYER`),
+  таблицы и формулы страницы остаются в каноне вторичным слоем с теми же ID. Текст страницы, подписи, печатные
+  номера и библиография выводятся прежними правилами из основного слоя.
+- Геометрия `ocrv2_geometry_v1`: поворот выравнивания снимается матрицей PIL `rotate(-a, expand=True)` (огибающая
+  четырёх углов, флаг `BBOX_APPROX`), добавляется смещение части, растр переводится в точки страницы и обрезается по
+  ней. Объект, найденный в обеих половинах разворота в полосе перекрытия (IoU ≥ 0,5), остаётся один раз (из `a`);
+  порядок чтения — `a`, затем `b`. Рисунки берутся из собственной разметки конвейера.
+- Подпись коммита включает дайджест импорта только у источников с импортом. Учёт (accounting): каждый сырой блок —
+  кандидат; объединённые блоки, прикреплённые номера формул, рисунки и дубли перекрытия — `SUPPRESSED` с причиной.
+- Запись импорта другого правила или версии источника не используется молча: ошибка `IMPORTED_LAYER_STALE`,
+  прежний слой остаётся основным.
+
 ## 6. Артефакты
 
 Хранилище `artifacts/<kind_dir>/<hh>/<hh>/<sha256>.<ext>` — то же правило, что `CanonLayout.blob_relpath`. Blob
@@ -170,6 +204,7 @@ vkm-corpus run extract  [--source ID ...|--canary] [--page A-B] [--resume [RUN]]
                         [--plan-only] [--max-model-calls N] [--recall-model --confirm-plan SHA] [--no-ocr]
                         [--concurrency N] [--workers N] [--scan-dpi-max N] [--no-scenario-b]
 vkm-corpus run render-docx --source VKM-SRC-023
+vkm-corpus run import-layer --ocr-root DIR --run-tag TAG --manifest FILE [--source ID ...] [--dry-run]
 vkm-corpus run status   [--run RUN]
 vkm-corpus ocr check | ocr smoke
 ```

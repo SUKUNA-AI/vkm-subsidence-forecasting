@@ -60,7 +60,8 @@ def guarded_worker_command(cmd: list[str], memory_gb: float) -> list[str]:
 
 class Orchestrator:
     def __init__(self, cfg: PipelineConfig, *, argv: list[str], flags: list[str], log: Any, run_kind: str = "EXTRACTION",
-                 plan_only: bool = False, parent_run_id: str | None = None):
+                 plan_only: bool = False, parent_run_id: str | None = None,
+                 extra_models: list[dict[str, Any]] | None = None):
         from vkm_corpus.parquet.layout import init_root
         from vkm_corpus.parquet.runs import RunRecorder
 
@@ -77,7 +78,7 @@ class Orchestrator:
                    "weights_sha256": "5ea422c6cc5fe759a47e1357c35639b58173508e025a3131cbe4b6ac59e2b85e",
                    "backend": "transformers", "device": "cuda"},
                   {"role": "RECOGNITION", "model_id": cfg.model.model_id, "model_revision": cfg.model.model_revision,
-                   "weights_sha256": cfg.model.weights_sha256, "backend": "vllm"}]
+                   "weights_sha256": cfg.model.weights_sha256, "backend": "vllm"}] + list(extra_models or [])
         self.recorder = RunRecorder(self.layout, run_kind=run_kind, cli_command=logical_argv(argv, cfg),
                                     host_role=HOST_ROLE, config={**config_to_json_public(cfg),
                                         "producer_identity": self.producer_identity, "resource_guard": self.resources},

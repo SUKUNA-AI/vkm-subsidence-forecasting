@@ -116,11 +116,15 @@ def _path(con, row: dict[str, Any]) -> list[dict[str, Any]]:
 
 def _counts(con, source_id: str, first: int, last: int) -> dict[str, int]:
     out: dict[str, int] = {}
+    from vkm_corpus.contracts.primary_layer import primary_clause
+
     for key, table in COUNTED:
         try:
+            # tables/formulas of a kept secondary layer are not counted twice (contracts.primary_layer)
+            primary = primary_clause(con, table, "o") if table in ("tables", "formulas") else "TRUE"
             out[key] = con.execute(f'SELECT count(*) FROM canonical."{table}" o JOIN canonical.pages p '
-                                   "ON p.page_id = o.page_id WHERE p.source_id = ? AND p.page_index BETWEEN ? AND ?",
-                                   [source_id, first, last]).fetchone()[0]
+                                   "ON p.page_id = o.page_id WHERE p.source_id = ? AND p.page_index BETWEEN ? AND ? "
+                                   f"AND {primary}", [source_id, first, last]).fetchone()[0]
         except Exception:        # a canon without that table (tests, partial copies): count unknown
             out[key] = None
     return out

@@ -25,13 +25,24 @@ HISTORICAL_CONTINUATION_SCHEMAS = {
     "tables": ("0.1.1", "6d4ec517fb8373617acfc092b4e1d75dac75ddf7e237f9cb34802a0c3d3ea487"),
 }
 
+# Exact tables/formulas schemas before the additive nullable ``is_primary_layer`` (imported OCR v2 layer, CHOICE_V1).
+HISTORICAL_PRIMARY_FLAG_SCHEMAS = {
+    "tables": ("0.1.2", "4f656593233fb58d366f15b2422da9c363bbce31632acb4e97d7788541eb1619"),
+    "formulas": ("0.1.1", "344557cd60cdd43e7c1e3d8c1908717d7e8803f8fdc86d7c969cd7fd05b81f05"),
+}
+# datasets that received the column (absent from every older version of them)
+_PRIMARY_FLAG = {"tables", "formulas"}
+
 
 def historical_omissions(name: str, version: str | None) -> frozenset[str]:
     """Columns absent from an exact historical version; never mutate an old hash by NULL padding."""
+    flag = {"is_primary_layer"} if name in _PRIMARY_FLAG else set()
     if name in HISTORICAL_LOCATOR_SCHEMAS and version == HISTORICAL_LOCATOR_SCHEMAS[name][0]:
-        return frozenset({"raw_locator", "continuation_provenance"} if name == "tables" else {"raw_locator"})
+        return frozenset(({"raw_locator", "continuation_provenance"} if name == "tables" else {"raw_locator"}) | flag)
     if name in HISTORICAL_CONTINUATION_SCHEMAS and version == HISTORICAL_CONTINUATION_SCHEMAS[name][0]:
-        return frozenset({"continuation_provenance"})
+        return frozenset({"continuation_provenance"} | flag)
+    if name in HISTORICAL_PRIMARY_FLAG_SCHEMAS and version == HISTORICAL_PRIMARY_FLAG_SCHEMAS[name][0]:
+        return frozenset(flag)
     return frozenset()
 
 
@@ -65,7 +76,9 @@ def _spec(name, model, cls, profile, pk, sort, kind=None) -> DatasetSpec:
     # 0.1.1 appends a nullable source locator; old rows remain readable as UNKNOWN.
     version = "0.1.1" if name in ("figures", "tables", "formulas") else SCHEMA_VERSION
     if name == "tables":
-        version = "0.1.2"
+        version = "0.1.3"   # 0.1.2 continuation declaration, 0.1.3 nullable is_primary_layer
+    if name == "formulas":
+        version = "0.1.2"   # 0.1.2 nullable is_primary_layer (old rows: NULL = no layer choice recorded)
     return DatasetSpec(name, model, DatasetClass(cls), EnvelopeProfile(profile), tuple(pk), tuple(sort), kind, version)
 
 

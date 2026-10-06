@@ -234,6 +234,33 @@ class SourceAccounting:
             "top_k": raw.get("config", {}).get("top_k"),
             "pre_raw_suppression": "NOT_ENUMERATED", "detector_recall": "NOT_ESTABLISHED"})
 
+    def imported(self, index, aid, record, page_import):
+        """Every raw parsing result of an imported page (``OCR_RAW`` record of stage IMPORTED_LAYER) is a candidate
+        before filtering: mapped objects match it by (record, JSON pointer); merged followers, attached formula
+        numbers, figures (mapped from the pipeline's own layout) and spread-overlap duplicates are SUPPRESSED with
+        their reason."""
+        uid = self.page(index)
+        kinds = {o.locator: {"BLOCK": "TEXT"}.get(o.kind, o.kind) for o in page_import.objects}
+        suppressed = {s.locator: s for s in page_import.suppressed}
+        refs, n = {}, 0
+        for k, part in enumerate(record.get("parts") or []):
+            for i, raw in enumerate(((part.get("raw") or {}).get("res") or {}).get("parsing_res_list") or []):
+                locator = f"/parts/{k}/raw/res/parsing_res_list/{i}"
+                sup = suppressed.get(locator)
+                label = raw.get("block_label") or "text"
+                kind = sup.kind if sup is not None else kinds.get(locator, "TEXT")
+                refs[locator] = self.candidate(uid, kind, locator, aid, details={
+                    "label": label, "part": part.get("part"), "block_id": raw.get("block_id"),
+                    "layer": "PADDLEOCR_VL"}, state="SUPPRESSED" if sup is not None else None,
+                    reason=sup.reason if sup is not None else None, input_hash=record_hash(raw))
+                n += 1
+        for sup in suppressed.values():
+            if sup.duplicate_of and sup.locator in refs and sup.duplicate_of in refs:
+                self.candidates[refs[sup.locator]]["duplicate_of"] = refs[sup.duplicate_of]
+        self.channels.append({"unit_id": uid, "channel": "IMPORTED_LAYER", "raw_artifact_id": aid,
+            "text_layer": "PADDLEOCR_VL", "candidate_scope": "STORED_RAW_PARSING_RESULTS", "n_raw_blocks": n,
+            "detector_recall": "NOT_ESTABLISHED"})
+
     def tasks(self, index, specs, aid, regions, route):
         from vkm_corpus.pipeline.ocr_stage import task_key
         uid = self.page(index)

@@ -20,11 +20,14 @@ from vkm_corpus.ocr.prompts import DEFAULT_MODEL, DEFAULT_SAMPLING, ModelIdentit
 
 # semantic extraction generations (H-14): bumped consciously, they enter producer keys and object ids
 GENERATIONS: dict[str, int] = {"pymupdf-native": 2, "djvulibre-cli": 1, "epub-xhtml": 2, "docx-xml": 2,
-                               "pp-doclayoutv3-hf": 1, "vkm-glm-ocr-client": 1, "pymupdf-find-tables": 1}
+                               "pp-doclayoutv3-hf": 1, "vkm-glm-ocr-client": 1, "pymupdf-find-tables": 1,
+                               "paddleocr-vl-import": 1}
+# paddleocr-vl-import: the imported OCR v2 layer (pipeline.imported_layer; PaddleX PP-DocLayoutV3 + PaddleOCR-VL-1.6)
 EXTRACTOR_VERSIONS: dict[str, str] = {"pymupdf-native": "0.1.0", "djvulibre-cli": "0.1.0", "epub-xhtml": "0.1.0",
                                       "docx-xml": "0.1.0", "pp-doclayoutv3-hf": "0.1.0",
                                       "vkm-glm-ocr-client": "0.1.0", "pymupdf-find-tables": "0.1.0",
-                                      "vkm-pipeline": "0.1.0", "libreoffice-docx-pdf": "0.1.0"}
+                                      "vkm-pipeline": "0.1.0", "libreoffice-docx-pdf": "0.1.0",
+                                      "paddleocr-vl-import": "0.1.0"}
 
 
 @dataclass

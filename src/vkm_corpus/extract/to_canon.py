@@ -249,8 +249,9 @@ class CanonMapper:
             env["extraction_signature"] = t.extraction_signature
             if t.image_artifact_id:
                 self.out.artifact_ids.add(t.image_artifact_id)
-            layer = {"OCR": "GLM_OCR"}.get(t.origin) or ("EPUB_XHTML" if t.region_origin == "EPUB_ELEMENT" else
-                                                         "DOCX_XML" if t.region_origin == "DOCX_ELEMENT" else "NONE")
+            layer = t.text_layer or {"OCR": "GLM_OCR"}.get(t.origin) or (
+                "EPUB_XHTML" if t.region_origin == "EPUB_ELEMENT" else
+                "DOCX_XML" if t.region_origin == "DOCX_ELEMENT" else "NONE")
             rows.append(build_row(
                 "tables", env, region_origin=t.region_origin, text_layer=layer, **self._bbox(t),
                 docx_paragraph_path=self._docx_path(t) if t.region_origin == "DOCX_ELEMENT" else None,
@@ -265,7 +266,8 @@ class CanonMapper:
                 structure_confidence=t.structure_confidence, image_artifact_id=t.image_artifact_id,
                 image_dpi=t.image_dpi, raw_locator=t.raw_locator,
                 continues_object_id=links[index].target_object_id if index in links else None,
-                continuation_provenance=links[index].model_dump() if index in links else None))
+                continuation_provenance=links[index].model_dump() if index in links else None,
+                is_primary_layer=t.is_primary_layer))
         return rows
 
     def formulas(self) -> list[Any]:
@@ -276,8 +278,8 @@ class CanonMapper:
             env = self._envelope(f, "FORMULA", oid, page_id, prod, "formulas", _sha(key), dup)
             if f.image_artifact_id:
                 self.out.artifact_ids.add(f.image_artifact_id)
-            layer = "GLM_OCR" if f.origin == "OCR" else "DOCX_XML" if f.region_origin == "DOCX_ELEMENT" else \
-                "EPUB_XHTML" if f.region_origin == "EPUB_ELEMENT" else "NONE"
+            layer = f.text_layer or ("GLM_OCR" if f.origin == "OCR" else "DOCX_XML" if f.region_origin == "DOCX_ELEMENT"
+                                     else "EPUB_XHTML" if f.region_origin == "EPUB_ELEMENT" else "NONE")
             rows.append(build_row(
                 "formulas", env, region_origin=f.region_origin, text_layer=layer, **self._bbox(f),
                 docx_paragraph_path=self._docx_path(f) if f.region_origin == "DOCX_ELEMENT" else None,
@@ -285,7 +287,8 @@ class CanonMapper:
                 equation_label=f.equation_label, recognition_method=f.recognition_method, raw_format=f.raw_format,
                 raw_output=f.raw_output, normalized_latex=f.normalized_latex, latex_parse_ok=f.latex_parse_ok,
                 native_glyph_text=f.native_glyph_text, recognition_confidence=f.recognition_confidence,
-                image_artifact_id=f.image_artifact_id, image_dpi=None, raw_locator=f.raw_locator))
+                image_artifact_id=f.image_artifact_id, image_dpi=None, raw_locator=f.raw_locator,
+                is_primary_layer=f.is_primary_layer))
         return rows
 
     def _bib_anchor(self, first: Any, ordinal: int, text: str) -> tuple[str, str]:
@@ -314,6 +317,12 @@ class CanonMapper:
         rows = []
         for e, raw_hash in zip(entries, raw_hashes):
             first = e.blocks[0]
+            layers = sorted({str(b.text_layer) for b in e.blocks})
+            if len(layers) > 1:
+                # an entry continued on a page of another text layer (e.g. an imported PADDLEOCR_VL page): its text
+                # depends on both layers, so its id does too — a layer change of the continuation page is a new
+                # entry, never the same id with other content (validator B07)
+                raw_hash = config_hash({"bibliography_raw_config_hash": raw_hash, "fragment_text_layers": layers})
             prod = ProducerContext(pipeline_version=PIPELINE_VERSION, processing_run_id=self.run_id,
                                    extractor_id=bib.EXTRACTOR_ID, extractor_version=bib.EXTRACTOR_VERSION,
                                    config_hash=bib.CONFIG_HASH, raw_config_hash=raw_hash,
@@ -404,7 +413,8 @@ class CanonMapper:
                 normalized_text=pt.normalized_text, text_rule=pt.rule, text_sha256=pt.text_sha256,
                 char_count=pt.char_count, native_ocr_cer=p.native_ocr_cer,
                 native_raw_artifact_id=p.native_raw_artifact_id, layout_raw_artifact_id=p.layout_raw_artifact_id,
-                ocr_raw_artifact_id=p.ocr_raw_artifact_ids[0] if len(p.ocr_raw_artifact_ids) == 1 else None,
+                ocr_raw_artifact_id=p.extra.get("primary_ocr_raw_artifact_id") or (
+                    p.ocr_raw_artifact_ids[0] if len(p.ocr_raw_artifact_ids) == 1 else None),
                 render_artifact_id=p.layout_render_artifact_id,
                 render_dpi=200 if p.layout_render_artifact_id else None, preview_artifact_id=p.render_artifact_id,
                 spine_href=p.spine_href))

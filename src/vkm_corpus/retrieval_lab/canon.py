@@ -84,12 +84,22 @@ class CanonReader:
         where, vals = _in_list("source_id", sources)
         return self._rows(f"SELECT {FIGURE_COLS} FROM canonical.figures{where} ORDER BY object_id", vals)
 
+    def _primary(self, table: str, where: str) -> str:
+        """Secondary-layer tables/formulas (``is_primary_layer`` FALSE) are no retrieval units
+        (``contracts.primary_layer``)."""
+        from vkm_corpus.contracts.primary_layer import primary_clause
+
+        clause = primary_clause(self.con, table)
+        return where if clause == "TRUE" else (f"{where} AND {clause}" if where else f" WHERE {clause}")
+
     def tables(self, sources: Iterable[str] | None = None) -> list[dict[str, Any]]:
         where, vals = _in_list("source_id", sources)
+        where = self._primary("tables", where)
         return self._rows(f'SELECT {TABLE_COLS} FROM canonical."tables"{where} ORDER BY object_id', vals)
 
     def formulas(self, sources: Iterable[str] | None = None) -> list[dict[str, Any]]:
         where, vals = _in_list("source_id", sources)
+        where = self._primary("formulas", where)
         return self._rows(f"SELECT {FORMULA_COLS} FROM canonical.formulas{where} ORDER BY object_id", vals)
 
     def bibliography(self, sources: Iterable[str] | None = None) -> list[dict[str, Any]]:

@@ -181,6 +181,7 @@
     "EPUB_XHTML",
     "DOCX_XML",
     "OCR_GLM",
+    "OCR_PADDLEOCR_VL",
     "EPUB_IMAGE_OCR",
     "BOTH_AGREE",
     "BOTH_DISAGREE",
@@ -388,6 +389,7 @@
     "EPUB_XHTML",
     "DOCX_XML",
     "GLM_OCR",
+    "PADDLEOCR_VL",
     "NONE"
    ],
    "title": "TextLayer",
@@ -624,6 +626,19 @@
    ],
    "default": null,
    "title": "Image Dpi"
+  },
+  "is_primary_layer": {
+   "anyOf": [
+    {
+     "type": "boolean"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "description": "TRUE: object of the page's primary layer; FALSE: object of a kept secondary layer of a page whose primary layer is another one (imported PADDLEOCR_VL page, old GLM_OCR/native object); NULL: no layer choice recorded (every historical row, every page without an imported layer) — readers treat NULL as primary (``is_primary_layer IS NOT FALSE``)",
+   "title": "Is Primary Layer"
   },
   "model_id": {
    "anyOf": [
@@ -920,6 +935,6 @@
  "x-vkm-primary-key": [
   "object_id"
  ],
- "x-vkm-schema-fingerprint": "4f656593233fb58d366f15b2422da9c363bbce31632acb4e97d7788541eb1619",
- "x-vkm-schema-version": "0.1.2"
+ "x-vkm-schema-fingerprint": "67f65a2404aaf28febcd6d5a7842105106ddfdcc136cd7fb479f73482c9e31df",
+ "x-vkm-schema-version": "0.1.3"
 }

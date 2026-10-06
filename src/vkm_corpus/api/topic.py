@@ -1010,7 +1010,8 @@ class DossierBuilder:
             "FROM figures WHERE page_id IN (SELECT unnest(?::VARCHAR[]))", ids)]
         rows += [("TABLE", r) for r in self._canon_rows(
             "SELECT object_id, page_id, source_id, table_label AS label, caption_normalized AS caption, "
-            "left(normalized_text, 300) AS head FROM tables WHERE page_id IN (SELECT unnest(?::VARCHAR[]))", ids)]
+            "left(normalized_text, 300) AS head FROM tables WHERE page_id IN (SELECT unnest(?::VARCHAR[])) "
+            "AND is_primary_layer IS NOT FALSE", ids)]     # a kept secondary layer is not offered (primary_layer)
         scored = []
         for kind, r in rows:
             if st.req.source_ids and r["source_id"] not in st.req.source_ids:

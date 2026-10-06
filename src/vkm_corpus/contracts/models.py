@@ -71,6 +71,7 @@ from vkm_corpus.contracts.vocab import (
     CRS_REQUIRED_SPACES,
     DOCUMENT_ORIGINS,
     OBJECT_KIND_CODE,
+    OCR_ENGINE_TEXT_LAYERS,
     PAGE_KIND_UNIT,
     TEXT_LAYER_ORIGIN,
     TEXT_ORIGINS,
@@ -400,8 +401,8 @@ class PageRow(DocEnvelope):
             raise ValueError(f"page_status {self.page_status} requires primary_text_origin {expected} (H-02)")
         if self.page_class == PageClass.RASTER_SCAN and self.primary_text_origin == Origin.NATIVE:
             raise ValueError("a raster scan page cannot have NATIVE text (embedded OCR is EMBEDDED_OCR, H-02)")
-        if self.file_text_layer == TextLayer.GLM_OCR:
-            raise ValueError("file_text_layer describes the file, never GLM_OCR")
+        if self.file_text_layer in OCR_ENGINE_TEXT_LAYERS:
+            raise ValueError("file_text_layer describes the file, never an OCR-engine layer (GLM_OCR, PADDLEOCR_VL)")
         if self.embedded_layer_evidence is not None and self.file_text_layer not in (
                 TextLayer.PDF_EMBEDDED_OCR_LAYER, TextLayer.DJVU_EMBEDDED_OCR_LAYER):
             raise ValueError("embedded_layer_evidence only for embedded OCR layers")
@@ -495,6 +496,13 @@ class FigureRow(DocObjectEnvelope):
         return self
 
 
+# tables and formulas (schema 0.1.3 / 0.1.2): which recognition layer of the page an object belongs to
+PRIMARY_LAYER_OBJECT_NOTE = ("TRUE: object of the page's primary layer; FALSE: object of a kept secondary layer of a "
+                             "page whose primary layer is another one (imported PADDLEOCR_VL page, old GLM_OCR/native "
+                             "object); NULL: no layer choice recorded (every historical row, every page without an "
+                             "imported layer) — readers treat NULL as primary (``is_primary_layer IS NOT FALSE``)")
+
+
 class TableContinuationCandidate(ContractModel):
     """Explicit source-backed structural proposal; no numbering/caption heuristic and no review admission."""
     source_sha256: Sha256Hex
@@ -561,6 +569,7 @@ class TableRow(DocObjectEnvelope):
     raw_locator: str | None = Field(None, description="source-part-qualified XPath or pointer into the raw artifact")
     continuation_provenance: TableContinuationProvenance | None = Field(None,
         description="explicit unreviewed continuation declaration; NULL for immutable historical fragments")
+    is_primary_layer: bool | None = Field(None, description=PRIMARY_LAYER_OBJECT_NOTE)
 
     @model_validator(mode="after")
     def _table_rules(self):
@@ -601,6 +610,7 @@ class FormulaRow(DocObjectEnvelope):
     image_dpi: Int16 | None = None
 
     raw_locator: str | None = Field(None, description="source-part-qualified XPath or pointer into the raw artifact")
+    is_primary_layer: bool | None = Field(None, description=PRIMARY_LAYER_OBJECT_NOTE)
 
     @model_validator(mode="after")
     def _formula_rules(self):

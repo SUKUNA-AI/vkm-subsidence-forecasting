@@ -54,7 +54,7 @@ def test_cp16_vocabularies_are_exact():
                                        "RELEVANT_SECTIONS_REVIEWED", "FULLY_REVIEWED", "NOT_APPLICABLE"]
     assert _values(v.Origin) == ["NATIVE", "EMBEDDED_OCR", "OCR", "DERIVED", "REGISTRY", "CURATED"]
     assert _values(v.TextLayer) == ["PDF_TEXT_LAYER", "PDF_EMBEDDED_OCR_LAYER", "DJVU_EMBEDDED_OCR_LAYER",
-                                    "EPUB_XHTML", "DOCX_XML", "GLM_OCR", "NONE"]
+                                    "EPUB_XHTML", "DOCX_XML", "GLM_OCR", "PADDLEOCR_VL", "NONE"]
     assert _values(v.RegionOrigin) == ["PDF_TEXT_BLOCK", "PDF_XOBJECT", "VECTOR_CLUSTER", "NATIVE_TABLE_FINDER",
                                        "LAYOUT_MODEL", "EPUB_ELEMENT", "DOCX_ELEMENT", "DJVU_TEXT_ZONE",
                                        "OCR_MODEL"]

@@ -60,8 +60,9 @@ ROW_ROLES = ("TITLE", "HEADER", "UNITS", "NUMBERING_HEAD", "AXIS_TITLE", "AXIS",
              "REPEATED_HEADER", "NOTE", "EMPTY", "UNKNOWN")
 _BENIGN = frozenset({"MATH_RENDERED", "UNBALANCED_MATH_CLOSED", "HEADER_RESPACED", "DEHYPHENATED"})
 _CANON_FLAGS = ("TRUNCATED", "REPETITION", "EMPTY_ON_INK", "NATIVE_OCR_DISAGREE", "TABLE_STRUCTURE_UNCERTAIN")
+# OCR_PADDLEOCR_VL (imported OCR v2 tables) is an OCR-from-image grid like OCR_GLM: same base, same penalties
 _BASE_CONFIDENCE = {"EPUB_XHTML": 0.9, "DOCX_XML": 0.9, "NATIVE_FIND_TABLES": 0.85, "BOTH_AGREE": 0.85,
-                    "OCR_GLM": 0.75, "BOTH_DISAGREE": 0.65}
+                    "OCR_GLM": 0.75, "OCR_PADDLEOCR_VL": 0.75, "BOTH_DISAGREE": 0.65}
 _PENALTIES = {"TRUNCATED": 0.2, "REPETITION": 0.3, "EMPTY_ON_INK": 0.2, "FIGURE_SUSPECT": 0.2,
               "BAND_COLUMNS_MISMATCH": 0.15, "BANDS_UNRESOLVED": 0.1, "NO_HEADER": 0.1, "HEADER_SHORT": 0.1,
               "SPARSE": 0.1, "RAGGED_ROWS": 0.05, "OVERLAPPING_CELLS": 0.1, "TOO_LARGE": 0.2,
@@ -1415,9 +1416,11 @@ def build(con: Any, *, section_pages: Any = None, sections: Any = None, formula_
     opts = {**DEFAULTS, **{k: v for k, v in options.items() if k in DEFAULTS}}
     only = sorted(set(source_ids)) if source_ids else None
     counters: Counter = Counter()
-    where, params = "", []
+    from vkm_corpus.contracts.primary_layer import primary_clause
+
+    where, params = f"WHERE {primary_clause(con, 'tables', 't')}", []   # secondary-layer tables are not NAV grids
     if only:
-        where = f"WHERE t.source_id IN ({', '.join('?' for _ in only)})"
+        where += f" AND t.source_id IN ({', '.join('?' for _ in only)})"
         params = list(only)
     cur = con.execute(f"""
         SELECT t.object_id, t.source_id, t.page_id, coalesce(p.page_index, 0) AS page_index, t.table_label, t.caption,

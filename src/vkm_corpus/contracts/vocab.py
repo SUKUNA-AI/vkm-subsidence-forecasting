@@ -138,6 +138,7 @@ class Stage(StrEnum):
     RENDER = "RENDER"
     LAYOUT = "LAYOUT"                # layout model (PP-DocLayoutV3), LAYOUT_RAW
     OCR = "OCR"
+    IMPORTED_LAYER = "IMPORTED_LAYER"  # recognition layer produced outside the pipeline, read from its stage cache
     TABLES = "TABLES"
     FORMULAS = "FORMULAS"
     FIGURES = "FIGURES"
@@ -184,6 +185,8 @@ class ErrorCode(StrEnum):
     OCR_TRUNCATED = "OCR_TRUNCATED"
     OCR_EMPTY_ON_INK = "OCR_EMPTY_ON_INK"
     OCR_QUALITY_STOP = "OCR_QUALITY_STOP"                # emergency stop of CP-22 (length/empty/repetition rates)
+    IMPORTED_LAYER_REFUSED = "IMPORTED_LAYER_REFUSED"    # an imported page failed its source/size checks: old layer kept
+    IMPORTED_LAYER_STALE = "IMPORTED_LAYER_STALE"        # import entries of another rule/source version: old layer kept
     MODEL_UNAVAILABLE = "MODEL_UNAVAILABLE"
     MODEL_CALL_BUDGET_EXHAUSTED = "MODEL_CALL_BUDGET_EXHAUSTED"  # --max-model-calls reached
     RAW_OUTPUT_UNPARSEABLE = "RAW_OUTPUT_UNPARSEABLE"
@@ -377,7 +380,7 @@ class DerivedRule(StrEnum):
 class Origin(StrEnum):
     NATIVE = "NATIVE"                # the file's own born-digital structures (text layer, vectors, XML, XHTML)
     EMBEDDED_OCR = "EMBEDDED_OCR"    # foreign OCR layer embedded in a scan (PDF invisible text, DjVu TXTz) — not NATIVE
-    OCR = "OCR"                      # output of our recognition model (GLM-OCR); model_id/model_revision mandatory
+    OCR = "OCR"                      # output of a recognition model (GLM-OCR, imported PaddleOCR-VL); model mandatory
     DERIVED = "DERIVED"              # computed from other canonical rows (render pages of DOCX, authors, matches)
     REGISTRY = "REGISTRY"            # loaded from PRIVATE 00_registry files
     CURATED = "CURATED"              # human correction through a future review overlay; not written in v0
@@ -394,6 +397,7 @@ class TextLayer(StrEnum):
     EPUB_XHTML = "EPUB_XHTML"
     DOCX_XML = "DOCX_XML"
     GLM_OCR = "GLM_OCR"
+    PADDLEOCR_VL = "PADDLEOCR_VL"    # imported OCR v2 layer (PaddleX PP-DocLayoutV3 + PaddleOCR-VL-1.6), CHOICE_V1 pages
     NONE = "NONE"
 
 
@@ -405,7 +409,10 @@ TEXT_LAYER_ORIGIN: dict[str, str] = {
     TextLayer.EPUB_XHTML: Origin.NATIVE,
     TextLayer.DOCX_XML: Origin.NATIVE,
     TextLayer.GLM_OCR: Origin.OCR,
+    TextLayer.PADDLEOCR_VL: Origin.OCR,
 }
+# layers produced by a recognition engine: never a file's own layer (``pages.file_text_layer``)
+OCR_ENGINE_TEXT_LAYERS: frozenset[str] = frozenset(k for k, v in TEXT_LAYER_ORIGIN.items() if v == Origin.OCR)
 
 
 class EmbeddedLayerEvidence(StrEnum):
@@ -444,6 +451,7 @@ class RecognitionMethod(StrEnum):
     EPUB_XHTML = "EPUB_XHTML"
     DOCX_XML = "DOCX_XML"
     OCR_GLM = "OCR_GLM"
+    OCR_PADDLEOCR_VL = "OCR_PADDLEOCR_VL"   # imported PaddleOCR-VL-1.6 answer (OCR v2), chosen by its postprocess
     EPUB_IMAGE_OCR = "EPUB_IMAGE_OCR"
     BOTH_AGREE = "BOTH_AGREE"
     BOTH_DISAGREE = "BOTH_DISAGREE"

@@ -4,6 +4,9 @@
     run extract  [--source ...] [--canary] [--page A-B] [--resume [RUN]] [--force] [--failed-only] [--plan-only]
                  [--max-model-calls N] [--recall-model --confirm-plan SHA] [--no-ocr] [--concurrency N] [--workers N]
     run render-docx --source VKM-SRC-023      (on the Docker host: pinned LibreOffice render → cached artifact)
+    run import-layer --ocr-root DIR --run-tag TAG --manifest FILE [--source ...] [--dry-run]
+                 (stage IMPORTED_LAYER: OCR v2 pages chosen NEW by CHOICE_V1 → OCR_RAW records + stage cache; no
+                 model call, no commit — the next ``run extract`` of those sources assembles them as primary layer)
     run status   [--run RUN]
 
 One meaning of ``--force``: rebuild rows (prepare, visual summary, commit) and use the model caches. A model is called
@@ -63,6 +66,13 @@ def register(subparsers: Any) -> None:
     p_docx.add_argument("--source", action="append", default=[])
     p_docx.add_argument("--image", default=None)
     p_docx.set_defaults(func=cmd_render_docx)
+    p_imp = sub.add_parser("import-layer", help="import an external OCR layer (OCR v2, CHOICE_V1 NEW pages)")
+    p_imp.add_argument("--ocr-root", required=True, help="OCR v2 run root (img/, runs/<tag>/, pp/<tag>/, choice/)")
+    p_imp.add_argument("--run-tag", required=True, help="run tag of the OCR v2 run, e.g. full_v2")
+    p_imp.add_argument("--manifest", required=True, help="page manifest of the OCR v2 kit (source_sha256, page size)")
+    p_imp.add_argument("--source", action="append", default=[], help="source id(s); default: all of the run")
+    p_imp.add_argument("--dry-run", action="store_true", help="check and count only; nothing is stored")
+    p_imp.set_defaults(func=cmd_import_layer)
     p_st = sub.add_parser("status", help="summary of a run (default: the latest)")
     p_st.add_argument("--run", default=None)
     p_st.set_defaults(func=cmd_status)
@@ -156,8 +166,11 @@ def cmd_extract(args: argparse.Namespace) -> int:
         print("--page needs exactly one --source", file=sys.stderr)
         return 2
     log, _ = _logger(cfg)
+    from vkm_corpus.pipeline.imported_layer import imported_run_models
+
     orch = Orchestrator(cfg, argv=["vkm-corpus", "run", "extract", *sys.argv[3:]], flags=_flags(args), log=log,
-                        run_kind="PLAN" if args.plan_only else "EXTRACTION", plan_only=bool(args.plan_only))
+                        run_kind="PLAN" if args.plan_only else "EXTRACTION", plan_only=bool(args.plan_only),
+                        extra_models=imported_run_models(cfg, [s.source_id for s in sources]))
     log, log_path = _logger(cfg, orch.run_id)
     orch.log = log
     t0 = time.time()
@@ -182,7 +195,7 @@ def cmd_extract(args: argparse.Namespace) -> int:
                                               "sources": [{k: v for k, v in e.items() if k in (
                                                   "source_id", "action", "reasons", "prepare", "layout_pending_pages",
                                                   "ocr_tasks_known", "ocr_cached_known", "ocr_calls_known",
-                                                  "commit")} for e in plan["sources"]]},
+                                                  "imported_layer", "commit")} for e in plan["sources"]]},
                              ensure_ascii=False, indent=1))
             return 0
         if (args.recall_model or cfg.profile == "production") and args.confirm_plan != plan["plan_sha256"]:
@@ -323,6 +336,48 @@ def cmd_render_docx(args: argparse.Namespace) -> int:
         store.close()
         cache.close()
     print(json.dumps(out, ensure_ascii=False, indent=1))
+    return 0
+
+
+def cmd_import_layer(args: argparse.Namespace) -> int:
+    """Stage IMPORTED_LAYER (no model, no commit): see ``vkm_corpus.pipeline.imported_layer``."""
+    from vkm_corpus import ids
+    from vkm_corpus.pipeline.config import load_pipeline_config
+    from vkm_corpus.pipeline.context import REPO_ROOT, open_cache, open_store, run_dir, write_json_atomic
+    from vkm_corpus.pipeline.imported_layer import ImportRefused, OcrRunInputs, import_layer
+    from vkm_corpus.pipeline.sources import load_sources, select
+
+    cfg = load_pipeline_config()
+    inputs = OcrRunInputs(ocr_root=Path(args.ocr_root).expanduser(), run_tag=args.run_tag,
+                          kit_manifest=Path(args.manifest).expanduser())
+    for path in (inputs.pages, inputs.choice, inputs.choice_receipt, inputs.prep_manifest, inputs.kit_manifest,
+                 inputs.postprocess_receipt, inputs.prep_receipt):
+        if not path.is_file():
+            print(f"import-layer: missing input {path.name}", file=sys.stderr)
+            return 2
+    ids_ = _ids(args)
+    if not ids_:
+        with open(inputs.kit_manifest, encoding="utf-8") as fh:
+            ids_ = sorted({json.loads(line)["source_id"] for line in fh if line.strip()})
+    sources = select(load_sources(cfg.resources_root), ids_)
+    run_id = ids.new_run_id()
+    log, _ = _logger(cfg)
+    store = open_store(cfg, run_id, "import-layer")
+    cache = open_cache(cfg, run_id, "import-layer")
+    try:
+        receipt = import_layer(cfg, store, cache, sources, inputs, repo_root=REPO_ROOT, run_id=run_id,
+                               dry_run=args.dry_run, log=log)
+    except ImportRefused as exc:
+        print(json.dumps({"status": "REFUSED", "code": exc.code, "detail": exc.detail}, ensure_ascii=False))
+        return 3
+    finally:
+        store.close()
+        cache.close()
+    write_json_atomic(run_dir(cfg, run_id) / "import_layer.json", receipt)
+    print(json.dumps({k: receipt[k] for k in ("run_id", "config_hash", "provenance_artifact_id", "totals", "wall_s",
+                                              "dry_run")} | {"refused": {sid: r["refused"] for sid, r in
+                                                                         receipt["sources"].items() if r["refused"]}},
+                     ensure_ascii=False, indent=1))
     return 0
 
 

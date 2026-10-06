@@ -131,6 +131,13 @@ def build_plan(cfg: PipelineConfig, sources: list[SourceInput], cache: Any, stor
             totals["ocr_calls_known"] += e["ocr_calls_known"]
             if e["ocr_calls_known"]:
                 e["reasons"].append("OCR_PENDING")
+        if prep is not None and (prep.get("inspect") or {}).get("file_format") in ("PDF", "DJVU"):
+            from vkm_corpus.pipeline.imported_layer import load_source_import
+
+            imp = load_source_import(cache, s.source_id, s.sha256)
+            if imp is not None:
+                e["imported_layer"] = {"pages": len(imp.pages), "refused": len(imp.refused), "stale": len(imp.stale)}
+                totals["imported_pages"] = totals.get("imported_pages", 0) + len(imp.pages)
         csig = cm.commit_signature(cfg, cache, s, prep, visual, **admitted) if prep is not None else None
         led = ledger.get(s.source_id)
         e["commit_signature"] = csig

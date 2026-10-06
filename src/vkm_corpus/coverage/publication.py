@@ -201,7 +201,16 @@ def _authorize_partition(path, dataset, policies, context):
                 if sid not in policies:
                     raise PermissionError("RESOURCE_POLICY_UNCLASSIFIED")
                 ResourcePolicy.model_validate(policies[sid]).require(context)
-    if set(names) != set(ca.arrow_schema(dataset).names):
+    expected = set(ca.arrow_schema(dataset).names)
+    kv = parquet.schema_arrow.metadata or {}
+    version = (kv.get(b"vkm.schema_version") or b"").decode("utf-8", "replace")
+    fingerprint = (kv.get(b"vkm.schema_fingerprint") or b"").decode("utf-8", "replace")
+    if version != DATASETS[dataset].version and ca.readable_schema(dataset, version, fingerprint):
+        # an unchanged base partition of an exact allowlisted historical schema (e.g. tables 0.1.0/0.1.2) is
+        # published as is: its column set is the current one minus the columns that version did not have
+        from vkm_corpus.contracts.datasets import historical_omissions
+        expected -= historical_omissions(dataset, version)
+    if set(names) != expected:
         raise PublicationBlocked("PUBLICATION_PARTITION_SCHEMA_INVALID")
 
 

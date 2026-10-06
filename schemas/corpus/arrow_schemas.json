@@ -1881,6 +1881,11 @@
      "name": "raw_locator",
      "nullable": true,
      "type": "string"
+    },
+    {
+     "name": "is_primary_layer",
+     "nullable": true,
+     "type": "bool"
     }
    ],
    "partition_keys": [
@@ -1890,8 +1895,8 @@
    "primary_key": [
     "object_id"
    ],
-   "schema_fingerprint": "344557cd60cdd43e7c1e3d8c1908717d7e8803f8fdc86d7c969cd7fd05b81f05",
-   "schema_version": "0.1.1",
+   "schema_fingerprint": "27a94f3d3c721ec6693e9650e3647dee454ee45137721ec874d16a6e940894f1",
+   "schema_version": "0.1.2",
    "sort_key": [
     "page_id",
     "bbox_y0",
@@ -3456,6 +3461,11 @@
      "name": "continuation_provenance",
      "nullable": true,
      "type": "struct<candidate: struct<source_sha256: string not null, target_page_index: int32 not null, target_raw_locator: string not null, target_raw_content_sha256: string not null, declaration_locator: string not null, declaration_artifact_id: string not null, basis: string not null, review_status: string not null> not null, candidate_sha256: string not null, target_object_id: string not null, target_extraction_generation: int32 not null>"
+    },
+    {
+     "name": "is_primary_layer",
+     "nullable": true,
+     "type": "bool"
     }
    ],
    "partition_keys": [
@@ -3465,8 +3475,8 @@
    "primary_key": [
     "object_id"
    ],
-   "schema_fingerprint": "4f656593233fb58d366f15b2422da9c363bbce31632acb4e97d7788541eb1619",
-   "schema_version": "0.1.2",
+   "schema_fingerprint": "67f65a2404aaf28febcd6d5a7842105106ddfdcc136cd7fb479f73482c9e31df",
+   "schema_version": "0.1.3",
    "sort_key": [
     "page_id",
     "bbox_y0",
