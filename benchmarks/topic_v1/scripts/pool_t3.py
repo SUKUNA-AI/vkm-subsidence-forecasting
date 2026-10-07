@@ -2,8 +2,8 @@
 
 T1 (``LLM_AGENT_T1``) labelled the first 10 pages of the pool systems on ``snap-20260928T160616Z-5d669f09``, T2
 (``LLM_AGENT_T2``) the delta on ``snap-20260929T175107Z-574daaac``. Since 07.10.2026 CORE serves the OCR v2 snapshot
-``SNAPSHOT``: the PADDLEOCR_VL text layer of 94 sources changes their page texts and with them the lexical and dense
-rankings. T3 labels the topic × page pairs that the systems bring now and that carry no T1 or T2 judgment.
+``SNAPSHOT``: the PADDLEOCR_VL text layer (7 057 pages of 76 sources) changes their page texts and with them the
+lexical and dense rankings. T3 labels the topic × page pairs that the systems bring now and that carry no T1 or T2 judgment.
 
 Everything else is the T2 code (``pool_t2.py``) with the T3 constants: the same systems (re-run ``bm25``,
 ``hybrid_late``, ``hybrid_nolate``, ``nav`` + experiment variant ``human3``), depth 10, unit, scale, reason codes,
@@ -45,7 +45,8 @@ P2 = _private_t2()
 REPO, BENCH = PT.REPO, PT.BENCH
 T2_TSV, T2_GROUPS = P2.OUT_TSV, P2.OUT_GROUPS                     # read only
 SNAPSHOT = "snap-20261007T103222Z-2d71e9e8"                        # the OCR v2 snapshot with VKM-SRC-053 / -230
-# sources whose primary text layer is PADDLEOCR_VL since OCR v2 (92 published 06.10 + 053 and 230 on 07.10)
+# sources recommitted by the OCR v2 campaign (92 published 06.10 + 053 and 230 on 07.10); 76 of them have pages
+# whose primary text layer is PADDLEOCR_VL (7 057 pages in snapshot 2d71e9e8)
 OCR_V2_SOURCES = frozenset(f"VKM-SRC-{n:03d}" for n in (
     3, 11, 12, 14, 18, 20, 25, 28, 29, 37, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 59, 60, 61, 62, 63, 64,
     69, 82, 89, 97, 98, 99, 103, 117, 123, 124, 140, 141, 142, 144, 146, 148, 149, 150, 151, 177, 185, 190, 192, 193,
@@ -59,7 +60,7 @@ P2.LABEL_SOURCE = "LLM_AGENT_T3"
 P2.OUT_TSV = BENCH / "qrels_topic_v1_pooled_t3.tsv"
 P2.OUT_GROUPS = BENCH / "qrels_topic_v1_pooled_t3_groups.json"
 P2.SNAPSHOT = SNAPSHOT
-P2.NEW_SOURCES = OCR_V2_SOURCES          # "new" in the T2 summaries = a source with the OCR v2 text layer
+P2.NEW_SOURCES = OCR_V2_SOURCES          # "new" in the T2 summaries = a source recommitted by OCR v2
 P2.CID_PREFIX = "e"                      # T3 unit ids e001…; T1 c001…, T2 d001…
 P2.POOL_FILE = "pool_t3.json"
 P2.XCHECK_NAME = "xc-002"
