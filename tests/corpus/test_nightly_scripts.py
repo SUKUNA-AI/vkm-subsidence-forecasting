@@ -375,6 +375,31 @@ def test_nightly_run_writes_the_summary_dossiers_and_scores(tmp_path):
     assert {c["id"]: c["status"] for c in summary["checks"]}["graph"] == "SKIP"
 
 
+def test_canon_step_passes_the_publication_approval_of_an_accounted_snapshot(tmp_path):
+    h = nightly_host(tmp_path)
+    desc = "a" * 64
+    _write(h["data"], f"canonical/_snapshots/{h['cur']}.json",
+           json.dumps({"snapshot_id": h["cur"], "inputs": {"accounting_publication": {"path": "x", "sha256": desc}}}))
+    op = tmp_path / "operator"
+    for name, d in (("pub-old", "b" * 64), ("pub-new", desc)):
+        (op / name).mkdir(parents=True)
+        (op / name / "approval.json").write_text(json.dumps({"descriptor_sha256": d}), encoding="utf-8")
+        (op / name / "source_policy.json").write_text("{}", encoding="utf-8")
+    sha = hashlib.sha256((op / "pub-new" / "approval.json").read_bytes()).hexdigest()
+    env = {**h["env"], "VKM_NIGHTLY_OPERATOR_ROOT": str(op)}
+    r = _run(["bash", str(CORE / "nightly_checks.sh"), "--only", "canon"], env, timeout=600)
+    assert r.returncode in (0, 1), r.stdout + r.stderr
+    call = next(x for x in h["log"].read_text(encoding="utf-8").splitlines() if "canon validate" in x)
+    assert f"-v {op / 'pub-new'}:/operator:ro" in call
+    assert f"--approval /operator/approval.json --approval-sha256 {sha} --policy /operator/source_policy.json" in call
+    # no matching approval (or a legacy snapshot): the plain validate, as before
+    (op / "pub-new" / "approval.json").write_text(json.dumps({"descriptor_sha256": "c" * 64}), encoding="utf-8")
+    h["log"].write_text("", encoding="utf-8")
+    r = _run(["bash", str(CORE / "nightly_checks.sh"), "--only", "canon"], env, timeout=600)
+    call = next(x for x in h["log"].read_text(encoding="utf-8").splitlines() if "canon validate" in x)
+    assert "--approval" not in call and "/operator" not in call
+
+
 def test_a_step_timeout_is_a_failure_and_the_run_goes_on(tmp_path):
     h = nightly_host(tmp_path)
     env = {**h["env"], "FAKE_SLEEP_MCP": "30", "VKM_NIGHTLY_TIMEOUT_MCP": "2"}

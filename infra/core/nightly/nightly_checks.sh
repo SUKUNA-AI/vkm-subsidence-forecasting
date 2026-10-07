@@ -5,7 +5,8 @@
 # Steps (stdout → raw/<step>.out, stderr → raw/<step>.err, exit code and seconds → steps.jsonl):
 #   containers     docker compose ps: state and health of the vkm-core services (addresses are dropped)
 #   disk           free space of the data root
-#   canon          snapshot validator on CURRENT (canon validate; --deep on VKM_NIGHTLY_DEEP_WEEKDAY)
+#   canon          snapshot validator on CURRENT (canon validate; --deep on VKM_NIGHTLY_DEEP_WEEKDAY; an accounted
+#                  snapshot with the operator approval of its publication, see canon_approval)
 #   duckdb         the DuckDB file against CURRENT (duckdb status)
 #   graph          DOCUMENT graph checks C1–C16 (graph verify)
 #   nav            NAV graph checks N1–N11 (nav graph-verify on derived/navigation/CURRENT)
@@ -34,7 +35,8 @@
 #   topic_v1/ next to this script), VKM_NIGHTLY_DEEP_WEEKDAY (1–7, 0 = never; default 7), VKM_NIGHTLY_DOSSIER_BUDGET
 #   (default 12000), VKM_NIGHTLY_KEEP_DAYS (default 60), VKM_NIGHTLY_WAIT_BUSY_S (default 3600), VKM_NIGHTLY_POLL_S
 #   (default 60), VKM_NIGHTLY_DOSSIER_KEEP (snapshot dirs of dossiers, default 5), VKM_NIGHTLY_TIMEOUT_<STEP>
-#   (seconds, e.g. VKM_NIGHTLY_TIMEOUT_DOSSIERS=5400).
+#   (seconds, e.g. VKM_NIGHTLY_TIMEOUT_DOSSIERS=5400), VKM_NIGHTLY_OPERATOR_ROOT (operator publication dirs; default:
+#   <data root>/../operator).
 set -Eeuo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -49,7 +51,7 @@ WAIT_BUSY_S="${VKM_NIGHTLY_WAIT_BUSY_S:-3600}"
 POLL_S="${VKM_NIGHTLY_POLL_S:-60}"
 DOSSIER_KEEP="${VKM_NIGHTLY_DOSSIER_KEEP:-5}"
 STEPS=(containers disk canon duckdb graph nav search_status search rx580 hybrid vectors mcp dossiers topic_v1 backup)
-declare -A TIMEOUT=([containers]=60 [disk]=30 [canon]=1800 [duckdb]=300 [graph]=1800 [nav]=1800 [search_status]=300
+declare -A TIMEOUT=([containers]=60 [disk]=30 [canon]=3600 [duckdb]=300 [graph]=1800 [nav]=1800 [search_status]=300
                     [search]=600 [rx580]=60 [hybrid]=300 [vectors]=60 [mcp]=900 [dossiers]=3600 [topic_v1]=2400
                     [backup]=30)
 DRY=0 ONLY="" SKIP_STEPS=""
@@ -89,7 +91,7 @@ RUN="$BASE/$DATE"
 RAW="$RUN/raw"
 DEEP=0
 [ "$DEEP_WEEKDAY" != 0 ] && [ "$(TZ=Europe/Moscow date +%u)" = "$DEEP_WEEKDAY" ] && DEEP=1
-[ "$DEEP" = 1 ] && TIMEOUT[canon]=3600
+[ "$DEEP" = 1 ] && TIMEOUT[canon]=7200
 for s in "${STEPS[@]}"; do      # VKM_NIGHTLY_TIMEOUT_<STEP>=seconds overrides a step's timeout
   v="VKM_NIGHTLY_TIMEOUT_${s^^}"
   if [ -n "${!v:-}" ]; then
@@ -296,7 +298,42 @@ for r in rows:
     print(json.dumps({k: r.get(k) for k in keep}, ensure_ascii=False))'
 }
 step_disk() { LC_ALL=C df -B1 --output=size,used,avail,target "$DATA"; }
-step_canon() { if [ "$DEEP" = 1 ]; then VJ canon validate --deep; else VJ canon validate; fi; }
+# An accounted snapshot (OCR v2 on, 06.10) validates only with the operator PublicationApproval of its descriptor
+# (snapshot_accounting: PUBLICATION_OPERATOR_APPROVAL_REQUIRED, A00 FAIL otherwise). The approval is the
+# <operator root>/*/approval.json whose descriptor_sha256 is the accounting_publication of the CURRENT manifest, pinned by
+# its own sha256, with the source_policy.json next to it; the operator root (default: next to the data root) is mounted
+# read-only. No match → plain validate (a legacy snapshot passes; an accounted one fails as before). With the approval
+# the closure is re-hashed: 1 600 s on 07.10 (1.1M files), hence the 3600 s default timeout of the step.
+canon_approval() {
+  python3 - "$DATA" "${VKM_NIGHTLY_OPERATOR_ROOT:-$(dirname "$DATA")/operator}" <<'PY' 2>/dev/null || true
+import glob, hashlib, json, os, sys
+data, op = sys.argv[1:3]
+cur = open(os.path.join(data, "canonical", "CURRENT"), encoding="utf-8").read().strip()
+manifest = json.load(open(os.path.join(data, "canonical", "_snapshots", cur + ".json"), encoding="utf-8"))
+ref = (manifest.get("inputs") or {}).get("accounting_publication") or {}
+for path in sorted(glob.glob(os.path.join(op, "*", "approval.json"))):
+    try:
+        raw = open(path, "rb").read()
+        ok = ref.get("sha256") and json.loads(raw).get("descriptor_sha256") == ref["sha256"]
+    except (OSError, ValueError):
+        continue
+    if ok and os.path.isfile(os.path.join(os.path.dirname(path), "source_policy.json")):
+        print(os.path.dirname(path), hashlib.sha256(raw).hexdigest())
+        break
+PY
+}
+step_canon() {
+  local adir="" asha="" args=(canon validate) mount=()
+  [ "$DEEP" = 1 ] && args+=(--deep)
+  read -r adir asha <<< "$(canon_approval)" || true
+  if [ -n "$adir" ] && [ -n "$asha" ]; then
+    mount=(-v "$adir:/operator:ro")
+    args+=(--approval /operator/approval.json --approval-sha256 "$asha" --policy /operator/source_policy.json)
+    echo "canon validate with the publication approval ${adir##*/} (sha256 ${asha:0:12}…)" >&2
+  fi
+  T "${DC[@]}" --profile nightly run --rm -T "${mount[@]}" --name "vkm-nightly-${CUR_STEP//_/-}-${TAG,,}" vkm-nightly \
+    "${args[@]}" </dev/null
+}
 step_duckdb() { VJ duckdb status; }
 step_graph() { VJ graph verify; }
 step_nav() {
