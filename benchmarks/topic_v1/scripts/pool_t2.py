@@ -58,6 +58,7 @@ LABEL_SOURCE = "LLM_AGENT_T2"
 OUT_TSV = BENCH / "qrels_topic_v1_pooled_t2.tsv"
 OUT_GROUPS = BENCH / "qrels_topic_v1_pooled_t2_groups.json"
 H_SAMPLE = BENCH / "H_REVIEW_SAMPLE_T1.md"
+POOL_FILE = "pool_t2.json"                                         # in $LB_WORK (pool_t3.py reuses this code)
 SNAPSHOT = "snap-20260929T175107Z-574daaac"
 RUN_SYSTEMS = ("bm25", "hybrid_late", "hybrid_nolate", "nav")    # the four topic_v1 pool systems, re-run on SNAPSHOT
 EXPERIMENT_SYSTEMS = ("human3",)                                  # experiment of 05.10: +2 human formulations, RRF
@@ -100,7 +101,7 @@ def load_t1() -> tuple[list[dict[str, str]], list[dict]]:
 
 
 def load_pool(work: Path | None = None) -> dict:
-    return json.load(open((work or PT.env_path("LB_WORK")) / "pool_t2.json", encoding="utf-8"))
+    return json.load(open((work or PT.env_path("LB_WORK")) / POOL_FILE, encoding="utf-8"))
 
 
 # ------------------------------------------------------------------------------------------------ rankings
@@ -300,7 +301,7 @@ def pool(systems: tuple[str, ...] = SYSTEMS) -> None:
         raise SystemExit("T1 labels fail their own checks:\n" + "\n".join(problems[:20]))
     delta = delta_candidates(topics, as_lists(rankings), {s: DEPTH for s in systems}, dup,
                              t1_judged(topics, rows, groups))
-    old = load_pool(work)["topics"] if (work / "pool_t2.json").is_file() else {}
+    old = load_pool(work)["topics"] if (work / POOL_FILE).is_file() else {}
     topics_out = make_units(topics, delta, old)
     summary = {"canonical_snapshot_id": snapshot, "systems": list(systems), "depth": DEPTH,
                "label_source": LABEL_SOURCE, "new_sources": f"{min(NEW_SOURCES)}…{max(NEW_SOURCES)}",
@@ -309,7 +310,7 @@ def pool(systems: tuple[str, ...] = SYSTEMS) -> None:
                           "t1_groups_sha256": PT.sha256_file(PT.OUT_GROUPS),
                           "canon_db_sha256": sha256_big(canon_db), "canon_duplicate_pages": len(dup)},
                "control": ctl, **pool_summary(topics_out, delta)}
-    PT.write_lf(work / "pool_t2.json", json.dumps({"summary": summary, "topics": topics_out}, ensure_ascii=False,
+    PT.write_lf(work / POOL_FILE, json.dumps({"summary": summary, "topics": topics_out}, ensure_ascii=False,
                                                   indent=0) + "\n")
     print(json.dumps(summary, ensure_ascii=False, indent=1))
 
@@ -557,7 +558,7 @@ def packets(force: bool = False) -> None:
     PT.write_lf(xdir / f"{XCHECK_NAME}.md", xtext)
     nav = os.environ.get("NAV_SECTIONS")
     td = PT.env_path("TD_WORK") / "stage_a.json"
-    inputs = {"pool_t2_sha256": PT.sha256_file(work / "pool_t2.json"), "canonical_snapshot_id": snapshot,
+    inputs = {f"{Path(POOL_FILE).stem}_sha256": PT.sha256_file(work / POOL_FILE), "canonical_snapshot_id": snapshot,
               "canon_db_sha256": sha256_big(canon_db), "td_stage_a_sha256": PT.sha256_file(td),
               "nav_sections_sha256": sha256_big(Path(nav).expanduser()) if nav and Path(nav).expanduser().is_file()
               else None, "t1_qrels_sha256": PT.sha256_file(PT.OUT_TSV),
@@ -659,7 +660,7 @@ def ingest(partial: bool = False, out_tsv: Path = OUT_TSV, out_groups: Path = OU
              for x in v["t1_alias_links"]]
     doc = {"benchmark": "TOPIC_BENCHMARK_V1", "label_source": LABEL_SOURCE, "qrels": out_tsv.name,
            "qrels_sha256": PT.sha256_file(out_tsv), "canonical_snapshot_id": data["summary"]["canonical_snapshot_id"],
-           "pool_t2_sha256": PT.sha256_file(work / "pool_t2.json"),
+           f"{Path(POOL_FILE).stem}_sha256": PT.sha256_file(work / POOL_FILE),
            "rule": "label units of the T2 pool with more than one page (duplicates among a topic's candidates share one "
                    "grade) or with duplicate aliases (API duplicates of the page, canonical duplicate_page_candidates "
                    "of the snapshot); truth P makes one target per unit: its first page, the other pages and the "
