@@ -20,7 +20,9 @@ from vkm_evidence.coverage import CoverageLedger, ExpectedUnit, CandidateDisposi
 
 RULE = "pipeline-object-accounting/1"
 LIMIT = 500_000
-MAX_REPORT_BYTES = 128 * 1024 * 1024
+# Owner decision 07.10.2026 (chat): the DjVu sources VKM-SRC-053 / -230 (one candidate per text line) exceed 128 MiB,
+# the largest accepted report (VKM-SRC-226, 871 pages) is already 126.9 MiB.
+MAX_REPORT_BYTES = 512 * 1024 * 1024
 SHA = re.compile(r"[a-f0-9]{64}\Z")
 
 

@@ -18,8 +18,10 @@ from vkm_evidence.contracts import StrictModel, Sha256, canonical_bytes, record_
 
 # Closure limits (owner decision 06.10.2026, chat): a full-base publication after the 93-source OCR v2 recommit is
 # ~504k files with a ~101 MB descriptor; the earlier 200k / 64 MiB caps were sized for small intakes.
-MAX_FILES = 1_000_000
-MAX_BYTES = 256 * 1024 * 1024
+# Raised again 07.10.2026 (owner, chat): the OCR v2 closure froze at 990k files / 222 MiB, so re-adding
+# VKM-SRC-053 / -230 does not fit 1M / 256 MiB.
+MAX_FILES = 2_000_000
+MAX_BYTES = 512 * 1024 * 1024
 
 
 class PublicationBlocked(ValueError):
