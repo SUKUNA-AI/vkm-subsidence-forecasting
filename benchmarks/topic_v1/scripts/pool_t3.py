@@ -3,7 +3,8 @@
 T1 (``LLM_AGENT_T1``) labelled the first 10 pages of the pool systems on ``snap-20260928T160616Z-5d669f09``, T2
 (``LLM_AGENT_T2``) the delta on ``snap-20260929T175107Z-574daaac``. Since 07.10.2026 CORE serves the OCR v2 snapshot
 ``SNAPSHOT``: the PADDLEOCR_VL text layer (7 057 pages of 76 sources) changes their page texts and with them the
-lexical and dense rankings. T3 labels the topic × page pairs that the systems bring now and that carry no T1 or T2 judgment.
+lexical and dense rankings. T3 labels the topic × page pairs that the systems bring now and that carry no T1 or T2
+judgment.
 
 Everything else is the T2 code (``pool_t2.py``) with the T3 constants: the same systems (re-run ``bm25``,
 ``hybrid_late``, ``hybrid_nolate``, ``nav`` + experiment variant ``human3``), depth 10, unit, scale, reason codes,
@@ -96,13 +97,24 @@ P2.run_paths = run_paths
 P2.t1_judged = judged_t1_t2              # pool() and ingest() exclude / refuse pairs judged in T1 or T2
 
 
+_t2_ingest = P2.ingest
+
+
+def ingest(partial: bool = False) -> None:
+    """``pool_t2.ingest`` with the T3 files passed explicitly: its default output paths are bound to the T2 files when
+    the function is defined, so patching ``P2.OUT_TSV`` alone would overwrite T2 (07.10, restored from git)."""
+    protected = {p.resolve() for p in (PT.OUT_TSV, PT.OUT_GROUPS, T2_TSV, T2_GROUPS)}
+    if {P2.OUT_TSV.resolve(), P2.OUT_GROUPS.resolve()} & protected:
+        raise SystemExit("the T1 and T2 files are never written")
+    _t2_ingest(partial, out_tsv=P2.OUT_TSV, out_groups=P2.OUT_GROUPS)
+
+
+P2.ingest = ingest                      # P2.main() calls ingest(args.partial) through the module global
+
+
 def main() -> None:
     if SNAPSHOT == "snap-PENDING":
         raise SystemExit("SNAPSHOT is not set: the T3 snapshot id is fixed in POOL_LABELING_T3.md before the pool")
-    if len(sys.argv) > 1 and sys.argv[1] == "ingest":
-        protected = {p.resolve() for p in (PT.OUT_TSV, PT.OUT_GROUPS, T2_TSV, T2_GROUPS)}
-        if {P2.OUT_TSV.resolve(), P2.OUT_GROUPS.resolve()} & protected:
-            raise SystemExit("the T1 and T2 files are never written")
     P2.main()
 
 

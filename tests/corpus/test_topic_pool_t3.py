@@ -27,7 +27,8 @@ def t3():
 
 
 def topic(tid: str, targets=()) -> TB.Topic:
-    qs = tuple(TB.Query(f"TQ-{tid}-{i}", tid, v, f"оседание {tid} {v.lower()}") for i, v in enumerate(TB.VARIANTS))
+    qs = tuple(TB.Query(f"TQ-{tid}-{i}", tid, v, f"оседание {tid} {v.lower()}")
+               for i, v in enumerate(TB.VARIANTS))
     tg = tuple(TB.Target(f"{tid}/T{i + 1:03d}", p, p.split(":")[0], ()) for i, p in enumerate(targets))
     return TB.Topic(tid, "PROCESS", "OBS", f"Тема {tid}", qs, tg)
 
@@ -83,3 +84,16 @@ def test_main_refuses_without_the_snapshot(t3, monkeypatch):
     monkeypatch.setattr("sys.argv", ["pool_t3.py", "status"])
     with pytest.raises(SystemExit, match="SNAPSHOT is not set"):
         t3.main()
+
+
+def test_ingest_writes_the_t3_files_never_t1_or_t2(t3, monkeypatch):
+    calls = []
+    monkeypatch.setattr(t3, "_t2_ingest", lambda partial, out_tsv, out_groups: calls.append(
+        (partial, out_tsv, out_groups)))
+    monkeypatch.setattr("sys.argv", ["pool_t3.py", "ingest", "--partial"])
+    t3.main()
+    assert calls == [(True, t3.BENCH / "qrels_topic_v1_pooled_t3.tsv",
+                      t3.BENCH / "qrels_topic_v1_pooled_t3_groups.json")]
+    monkeypatch.setattr(t3.P2, "OUT_TSV", t3.T2_TSV)
+    with pytest.raises(SystemExit, match="never written"):
+        t3.ingest()
