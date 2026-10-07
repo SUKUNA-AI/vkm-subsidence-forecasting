@@ -1,17 +1,17 @@
 <mxfile host="vkm-drawio" agent="vkm-drawio writer/1" compressed="false" pages="1">
   <diagram id="nav" name="Навигационный слой">
-    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1820" pageHeight="980" math="0" shadow="0" background="#ffffff">
+    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1820" pageHeight="1055" math="0" shadow="0" background="#ffffff">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="title" value="Навигационный слой NAV: части, их входы и зависимости, сборка и выдача" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="12" width="1780" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="subtitle" value="NAV текущего снимка snap-20260929T175107Z-574daaac. DERIVED / AUTO_EXTRACTED_UNREVIEWED; навигация, не evidence. Исторические длительности отдельных частей — сборка 28.09." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="subtitle" value="NAV текущего снимка snap-20261007T103222Z-2d71e9e8 (07.10.2026; собрана на WORKSTATION, GPU). DERIVED / AUTO_EXTRACTED_UNREVIEWED; навигация, не evidence; публикация AD_HOC_UNVERIFIED." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="44" width="1780" height="25" as="geometry" />
         </mxCell>
         <mxCell id="inputs" value="Входы (WORKSTATION, WSL)" style="swimlane;collapsible=0;container=1;fillColor=#ffffff;fontSize=14;fontStyle=1;html=1;rounded=0;startSize=28;strokeColor=#666666;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="20" y="100" width="250" height="700" as="geometry" />
+          <mxGeometry x="20" y="100" width="250" height="775" as="geometry" />
         </mxCell>
         <mxCell id="duck" value="копия DuckDB снимка: страницы, блоки, заголовки, формулы, таблицы — читают все части" style="backgroundOutline=1;boundedLbl=1;fillColor=#dae8fc;fontSize=13;html=1;shape=cylinder3;size=12;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="inputs">
           <mxGeometry x="15" y="45" width="220" height="95" as="geometry" />
@@ -31,31 +31,43 @@
         <mxCell id="gpu" value="GPU RAPIDS: CuPy, cuML, cuGraph, cuVS; без GPU — numpy и Louvain" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="inputs">
           <mxGeometry x="15" y="560" width="220" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="parts" value="vkm-corpus nav build — части снимка 29.09 (main parts 235 с; figure_series 234 с)" style="align=left;collapsible=0;container=1;dashed=1;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="300" y="100" width="870" height="700" as="geometry" />
+        <mxCell id="parts" value="vkm-corpus nav build — 10 частей снимка 07.10 (9 частей 247 с; figure_series 245 с)" style="align=left;collapsible=0;container=1;dashed=1;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="300" y="100" width="870" height="775" as="geometry" />
         </mxCell>
-        <mxCell id="sections" value="sections (9,41 с)&lt;br&gt;DuckDB + оглавления&lt;br&gt;sections 9 378; section_pages 27 955&lt;br&gt;Закладки PDF, EPUB nav, outline DjVu, печатное оглавление и заголовки; покрытие отдельно от числа section-page связей." style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+        <mxCell id="sections" value="sections (10,50 с)&lt;br&gt;DuckDB + оглавления&lt;br&gt;sections 9 477; section_pages 27 885&lt;br&gt;Закладки PDF, EPUB nav, outline DjVu, печатное оглавление и заголовки; покрытие отдельно от числа section-page связей." style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
           <mxGeometry x="15" y="45" width="255" height="215" as="geometry" />
         </mxCell>
-        <mxCell id="formulas" value="formulas (12,52 с)&lt;br&gt;DuckDB + sections&lt;br&gt;formula_context 109 243; symbols 339 491; refs 16 113; parameters 2 116&lt;br&gt;Номера, вводная, «где…», ссылки." style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+        <mxCell id="formulas" value="formulas (12,16 с)&lt;br&gt;DuckDB + sections&lt;br&gt;formula_context 84 423; symbols 303 833; refs 17 063; parameters 1 886&lt;br&gt;Номера, вводная, «где…», ссылки." style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
           <mxGeometry x="307" y="45" width="255" height="215" as="geometry" />
         </mxCell>
-        <mxCell id="parameters" value="parameters v2 (18,79 с)&lt;br&gt;DuckDB + sections + формулы&lt;br&gt;candidates 11 470; summary 637&lt;br&gt;LAB / MASSIF / NORMATIVE / MODEL / UNKNOWN; автоматическое извлечение." style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+        <mxCell id="parameters" value="parameters v2 (20,32 с)&lt;br&gt;DuckDB + sections + формулы&lt;br&gt;candidates 11 879; summary 655&lt;br&gt;LAB / MASSIF / NORMATIVE / MODEL / UNKNOWN; автоматическое извлечение." style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
           <mxGeometry x="599" y="45" width="255" height="215" as="geometry" />
         </mxCell>
-        <mxCell id="duplicates" value="duplicates (12,90 с)&lt;br&gt;DuckDB + vectors&lt;br&gt;clusters 773; members 1 897; source_overlap 511&lt;br&gt;MinHash-LSH + kNN + шинглы; происхождение проверяется отдельно." style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+        <mxCell id="duplicates" value="duplicates (14,16 с)&lt;br&gt;DuckDB + vectors&lt;br&gt;clusters 783; members 1 994; source_overlap 526&lt;br&gt;MinHash-LSH + kNN + шинглы; происхождение проверяется отдельно." style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
           <mxGeometry x="15" y="330" width="255" height="215" as="geometry" />
         </mxCell>
-        <mxCell id="concepts" value="concepts (52,94 с)&lt;br&gt;DuckDB + sections + словарь + pymorphy3; duplicates исключены&lt;br&gt;terms 98 821; mentions 1 629 621; edges 1 612 768&lt;br&gt;NPMI, SAME_AS, DEFINED_AS, Leiden." style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+        <mxCell id="concepts" value="concepts (51,95 с)&lt;br&gt;DuckDB + sections + словарь + pymorphy3; duplicates исключены&lt;br&gt;terms 98 698; mentions 1 632 335; edges 1 623 120&lt;br&gt;NPMI, SAME_AS, DEFINED_AS, Leiden." style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
           <mxGeometry x="307" y="330" width="255" height="215" as="geometry" />
         </mxCell>
-        <mxCell id="topics" value="topics (18,97 с)&lt;br&gt;sections + terms + vectors&lt;br&gt;aggregates 8 398; vectors 7 869; topics 720; members 23 607; edges 2 377&lt;br&gt;Новые разделы без dense vectors не вошли в topics этого intake." style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+        <mxCell id="topics" value="topics (22,88 с)&lt;br&gt;sections + terms + vectors&lt;br&gt;aggregates 8 443; vectors 8 210; topics 697; members 24 630; edges 2 211&lt;br&gt;Разделы без dense vectors в topics не входят; темы — Leiden (RAPIDS)." style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
           <mxGeometry x="599" y="330" width="255" height="215" as="geometry" />
         </mxCell>
-        <mxCell id="rule" value="Каждая часть — чистая функция над строками канона; все пороги — MODEL_CHOICE в manifest.json; сборка повторяется бит в бит. Узел любой части указывает на реальные страницы." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="parts">
-          <mxGeometry x="15" y="625" width="840" height="55" as="geometry" />
+        <mxCell id="tables" value="tables (25,07 с)&lt;br&gt;DuckDB&lt;br&gt;structure 3 747; cells 396 099; columns 24 273" style="align=left;fillColor=#dae8fc;fontSize=11;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+          <mxGeometry x="15" y="590" width="200" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="pack" value="store.pack → nav.duckdb (sha256 0e23c6c0…) + manifest.json" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="objdup" value="object_duplicates (47,39 с)&lt;br&gt;DuckDB + артефакты&lt;br&gt;clusters 784; members 1 674; formula_keys 84 285; figure_hashes 18 297" style="align=left;fillColor=#dae8fc;fontSize=11;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+          <mxGeometry x="230" y="590" width="200" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="translations" value="translations (38,02 с)&lt;br&gt;terms + векторы терминов&lt;br&gt;term_translations 6 548" style="align=left;fillColor=#dae8fc;fontSize=11;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+          <mxGeometry x="445" y="590" width="200" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="figseries" value="figure_series (243,64 с)&lt;br&gt;DuckDB + PDF из PRIVATE&lt;br&gt;figures 1 216; series 7 995; points 924 090; растр 55 / 215 / 13 064" style="align=left;fillColor=#dae8fc;fontSize=11;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="parts">
+          <mxGeometry x="660" y="590" width="200" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="rule" value="Каждая часть — чистая функция над строками канона; все пороги — MODEL_CHOICE в manifest.json; сборка повторяется бит в бит. Узел любой части указывает на реальные страницы." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="parts">
+          <mxGeometry x="15" y="705" width="840" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="pack" value="store.pack → nav.duckdb (sha256 09a33628…) + manifest.json; 33 таблицы, 5,34 млн строк" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1210" y="110" width="280" height="70" as="geometry" />
         </mxCell>
         <mxCell id="pub" value="CORE: derived/navigation/&amp;lt;снимок&amp;gt; + CURRENT (sha256 сверены на обеих сторонах)" style="backgroundOutline=1;boundedLbl=1;fillColor=#dae8fc;fontSize=13;html=1;shape=cylinder3;size=12;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
@@ -64,7 +76,7 @@
         <mxCell id="navstore" value="NavStore в VKM API: nav.duckdb + каноническая DuckDB, только чтение" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1210" y="335" width="280" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="graph" value="Neo4j NavigationLayer: 133 096 узлов, 2 348 208 связей; N1–N11 PASS в intake deployment receipt; 30.09 live sampled traversal PASS" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="graph" value="Neo4j NavigationLayer: 133 447 узлов, 2 337 562 связи; graph-load COMPLETE 07.10 (проверки N1–N11 в квитанции загрузки)" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1530" y="215" width="270" height="115" as="geometry" />
         </mxCell>
         <mxCell id="tools" value="MCP / API навигации: get_outline, get_section, search_sections, get_formula_context, find_formulas, explore_concept, find_topics, get_topic, similar_sections, section_topics, copies_of, source_overlap, find_parameters, parameter_summary; досье reconstruct_topic" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
@@ -76,8 +88,8 @@
         <mxCell id="claude" value="Claude: сводка ветки в момент вопроса, со ссылками на страницы" style="fillColor=#e1d5e7;fontSize=13;html=1;rounded=1;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1530" y="505" width="270" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="checks" value="Текущий deployment: N1–N11 PASS в intake receipt; 30.09 — выборочный read-only smoke. Прежние quality samples NAV относятся к сборке 28.09; текущая H-оценка — отдельный frozen artifact с ограничением слепоты." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="20" y="825" width="1150" height="45" as="geometry" />
+        <mxCell id="checks" value="07.10: graph-load COMPLETE, MCP smoke 48 PASS / 1 WARN (пакет evidence до переноса опор). Публикация AD_HOC_UNVERIFIED: object_duplicates читает каталог артефактов без квалификации, figure_series наследует; 8 частей SNAPSHOT_VERIFIED. На CPU CORE (12 ГиБ) сборка не помещается — NAV собирается на WORKSTATION." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="900" width="1150" height="45" as="geometry" />
         </mxCell>
         <mxCell id="legend" value="Легенда" style="align=left;collapsible=0;container=1;dashed=0;fillColor=#ffffff;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#666666;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1210" y="660" width="590" height="181" as="geometry" />
@@ -115,8 +127,8 @@
         <mxCell id="lg_ext_dash" value="по опции concepts.drop_duplicate_blocks=true (включена в сборке)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
           <mxGeometry x="52" y="144" width="530" height="25" as="geometry" />
         </mxCell>
-        <mxCell id="sources" value="Источники: docs/corpus_platform/receipts/intake_2026-09-29.json (nav_rehearsal, core); PLATFORM_INTEGRITY_2026-09-30_RU.md; NAVIGATION_LAYER.md; src/vkm_corpus/navigation/." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="20" y="935" width="1780" height="25" as="geometry" />
+        <mxCell id="sources" value="Источники: docs/corpus_platform/receipts/deploy_20261006_ocr_v2_core.json, deploy_20261007_readd_053_230.json; NAVIGATION_LAYER.md; src/vkm_corpus/navigation/ (cli.py, dependencies.py, store.py)." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1010" width="1780" height="25" as="geometry" />
         </mxCell>
         <mxCell id="e_toc" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.3;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="toc" target="sections">
           <mxGeometry relative="1" as="geometry" />

@@ -5,7 +5,7 @@
    "name": "Навигационный слой",
    "layout": "none",
    "page_width": 1820,
-   "page_height": 980,
+   "page_height": 1055,
    "background": "#ffffff",
    "grid": false,
    "nodes": [
@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "NAV текущего снимка snap-20260929T175107Z-574daaac. DERIVED / AUTO_EXTRACTED_UNREVIEWED; навигация, не evidence. Исторические длительности отдельных частей — сборка 28.09.",
+     "label": "NAV текущего снимка snap-20261007T103222Z-2d71e9e8 (07.10.2026; собрана на WORKSTATION, GPU). DERIVED / AUTO_EXTRACTED_UNREVIEWED; навигация, не evidence; публикация AD_HOC_UNVERIFIED.",
      "x": 20,
      "y": 44,
      "w": 1780,
@@ -35,7 +35,7 @@
      "x": 20,
      "y": 100,
      "w": 250,
-     "h": 700,
+     "h": 775,
      "preset": "swimlane",
      "style": "swimlane;startSize=28;fillColor=#ffffff;strokeColor=#666666;fontStyle=1;fontSize=14;swimlaneFillColor=#ffffff;rounded=0;"
     },
@@ -102,17 +102,17 @@
     },
     {
      "id": "parts",
-     "label": "vkm-corpus nav build — части снимка 29.09 (main parts 235 с; figure_series 234 с)",
+     "label": "vkm-corpus nav build — 10 частей снимка 07.10 (9 частей 247 с; figure_series 245 с)",
      "x": 300,
      "y": 100,
      "w": 870,
-     "h": 700,
+     "h": 775,
      "preset": "container",
      "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=1;rounded=0;"
     },
     {
      "id": "sections",
-     "label": "sections (9,41 с)\nDuckDB + оглавления\nsections 9 378; section_pages 27 955\nЗакладки PDF, EPUB nav, outline DjVu, печатное оглавление и заголовки; покрытие отдельно от числа section-page связей.",
+     "label": "sections (10,50 с)\nDuckDB + оглавления\nsections 9 477; section_pages 27 885\nЗакладки PDF, EPUB nav, outline DjVu, печатное оглавление и заголовки; покрытие отдельно от числа section-page связей.",
      "x": 15,
      "y": 45,
      "w": 255,
@@ -122,7 +122,7 @@
     },
     {
      "id": "formulas",
-     "label": "formulas (12,52 с)\nDuckDB + sections\nformula_context 109 243; symbols 339 491; refs 16 113; parameters 2 116\nНомера, вводная, «где…», ссылки.",
+     "label": "formulas (12,16 с)\nDuckDB + sections\nformula_context 84 423; symbols 303 833; refs 17 063; parameters 1 886\nНомера, вводная, «где…», ссылки.",
      "x": 307,
      "y": 45,
      "w": 255,
@@ -132,7 +132,7 @@
     },
     {
      "id": "parameters",
-     "label": "parameters v2 (18,79 с)\nDuckDB + sections + формулы\ncandidates 11 470; summary 637\nLAB / MASSIF / NORMATIVE / MODEL / UNKNOWN; автоматическое извлечение.",
+     "label": "parameters v2 (20,32 с)\nDuckDB + sections + формулы\ncandidates 11 879; summary 655\nLAB / MASSIF / NORMATIVE / MODEL / UNKNOWN; автоматическое извлечение.",
      "x": 599,
      "y": 45,
      "w": 255,
@@ -142,7 +142,7 @@
     },
     {
      "id": "duplicates",
-     "label": "duplicates (12,90 с)\nDuckDB + vectors\nclusters 773; members 1 897; source_overlap 511\nMinHash-LSH + kNN + шинглы; происхождение проверяется отдельно.",
+     "label": "duplicates (14,16 с)\nDuckDB + vectors\nclusters 783; members 1 994; source_overlap 526\nMinHash-LSH + kNN + шинглы; происхождение проверяется отдельно.",
      "x": 15,
      "y": 330,
      "w": 255,
@@ -152,7 +152,7 @@
     },
     {
      "id": "concepts",
-     "label": "concepts (52,94 с)\nDuckDB + sections + словарь + pymorphy3; duplicates исключены\nterms 98 821; mentions 1 629 621; edges 1 612 768\nNPMI, SAME_AS, DEFINED_AS, Leiden.",
+     "label": "concepts (51,95 с)\nDuckDB + sections + словарь + pymorphy3; duplicates исключены\nterms 98 698; mentions 1 632 335; edges 1 623 120\nNPMI, SAME_AS, DEFINED_AS, Leiden.",
      "x": 307,
      "y": 330,
      "w": 255,
@@ -162,7 +162,7 @@
     },
     {
      "id": "topics",
-     "label": "topics (18,97 с)\nsections + terms + vectors\naggregates 8 398; vectors 7 869; topics 720; members 23 607; edges 2 377\nНовые разделы без dense vectors не вошли в topics этого intake.",
+     "label": "topics (22,88 с)\nsections + terms + vectors\naggregates 8 443; vectors 8 210; topics 697; members 24 630; edges 2 211\nРазделы без dense vectors в topics не входят; темы — Leiden (RAPIDS).",
      "x": 599,
      "y": 330,
      "w": 255,
@@ -171,10 +171,50 @@
      "parent": "parts"
     },
     {
+     "id": "tables",
+     "x": 15,
+     "y": 590,
+     "w": 200,
+     "h": 100,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "parts",
+     "label": "tables (25,07 с)\nDuckDB\nstructure 3 747; cells 396 099; columns 24 273"
+    },
+    {
+     "id": "objdup",
+     "x": 230,
+     "y": 590,
+     "w": 200,
+     "h": 100,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "parts",
+     "label": "object_duplicates (47,39 с)\nDuckDB + артефакты\nclusters 784; members 1 674; formula_keys 84 285; figure_hashes 18 297"
+    },
+    {
+     "id": "translations",
+     "x": 445,
+     "y": 590,
+     "w": 200,
+     "h": 100,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "parts",
+     "label": "translations (38,02 с)\nterms + векторы терминов\nterm_translations 6 548"
+    },
+    {
+     "id": "figseries",
+     "x": 660,
+     "y": 590,
+     "w": 200,
+     "h": 100,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "parts",
+     "label": "figure_series (243,64 с)\nDuckDB + PDF из PRIVATE\nfigures 1 216; series 7 995; points 924 090; растр 55 / 215 / 13 064"
+    },
+    {
      "id": "rule",
      "label": "Каждая часть — чистая функция над строками канона; все пороги — MODEL_CHOICE в manifest.json; сборка повторяется бит в бит. Узел любой части указывает на реальные страницы.",
      "x": 15,
-     "y": 625,
+     "y": 705,
      "w": 840,
      "h": 55,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
@@ -182,7 +222,7 @@
     },
     {
      "id": "pack",
-     "label": "store.pack → nav.duckdb (sha256 0e23c6c0…) + manifest.json",
+     "label": "store.pack → nav.duckdb (sha256 09a33628…) + manifest.json; 33 таблицы, 5,34 млн строк",
      "x": 1210,
      "y": 110,
      "w": 280,
@@ -210,7 +250,7 @@
     },
     {
      "id": "graph",
-     "label": "Neo4j NavigationLayer: 133 096 узлов, 2 348 208 связей; N1–N11 PASS в intake deployment receipt; 30.09 live sampled traversal PASS",
+     "label": "Neo4j NavigationLayer: 133 447 узлов, 2 337 562 связи; graph-load COMPLETE 07.10 (проверки N1–N11 в квитанции загрузки)",
      "x": 1530,
      "y": 215,
      "w": 270,
@@ -246,9 +286,9 @@
     },
     {
      "id": "checks",
-     "label": "Текущий deployment: N1–N11 PASS в intake receipt; 30.09 — выборочный read-only smoke. Прежние quality samples NAV относятся к сборке 28.09; текущая H-оценка — отдельный frozen artifact с ограничением слепоты.",
+     "label": "07.10: graph-load COMPLETE, MCP smoke 48 PASS / 1 WARN (пакет evidence до переноса опор). Публикация AD_HOC_UNVERIFIED: object_duplicates читает каталог артефактов без квалификации, figure_series наследует; 8 частей SNAPSHOT_VERIFIED. На CPU CORE (12 ГиБ) сборка не помещается — NAV собирается на WORKSTATION.",
      "x": 20,
-     "y": 825,
+     "y": 900,
      "w": 1150,
      "h": 45,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
@@ -386,9 +426,9 @@
     },
     {
      "id": "sources",
-     "label": "Источники: docs/corpus_platform/receipts/intake_2026-09-29.json (nav_rehearsal, core); PLATFORM_INTEGRITY_2026-09-30_RU.md; NAVIGATION_LAYER.md; src/vkm_corpus/navigation/.",
+     "label": "Источники: docs/corpus_platform/receipts/deploy_20261006_ocr_v2_core.json, deploy_20261007_readd_053_230.json; NAVIGATION_LAYER.md; src/vkm_corpus/navigation/ (cli.py, dependencies.py, store.py).",
      "x": 20,
-     "y": 935,
+     "y": 1010,
      "w": 1780,
      "h": 25,
      "preset": "text",

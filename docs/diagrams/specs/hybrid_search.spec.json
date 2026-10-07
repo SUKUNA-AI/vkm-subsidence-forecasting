@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "Снимок snap-20260929T175107Z-574daaac: 209 259 units. BM25 + jina-v5-nano + mLateOn; оценки поиска — кандидаты, не evidence.",
+     "label": "Снимок snap-20261007T103222Z-2d71e9e8 (OCR v2): 184 006 units. BM25 + jina-v5-nano + mLateOn; оценки поиска — кандидаты, не evidence.",
      "x": 20,
      "y": 44,
      "w": 1680,
@@ -85,7 +85,7 @@
     },
     {
      "id": "late",
-     "label": "CORE mLateOn MaxSim: 209 259 units, 24,96 млн token vectors, float16 pack; включён по умолчанию",
+     "label": "CORE mLateOn MaxSim: 184 006 units, 23,45 млн token vectors, float16 pack; включён по умолчанию",
      "x": 890,
      "y": 215,
      "w": 260,

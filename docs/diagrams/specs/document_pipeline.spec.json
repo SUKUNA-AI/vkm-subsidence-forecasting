@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "vkm-corpus run extract — четыре фазы на WORKSTATION (STAGING), затем публикация и reconcile на CORE. Native first: OCR — только где нужно; сырьё моделей хранится (KEEP_RAW), повторный прогон моделей не вызывает.",
+     "label": "vkm-corpus run extract — четыре фазы на WORKSTATION (STAGING), затем публикация и reconcile на CORE. Native first: OCR — только где нужно; сырьё моделей хранится (KEEP_RAW), повторный прогон моделей не вызывает. С 06.10 основной слой сканов — импортированный OCR v2 (PADDLEOCR_VL).",
      "x": 20,
      "y": 44,
      "w": 1760,
@@ -283,6 +283,16 @@
      "parent": "ph3"
     },
     {
+     "id": "ocrv2",
+     "x": 15,
+     "y": 555,
+     "w": 270,
+     "h": 130,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;",
+     "parent": "ph3",
+     "label": "OCR v2 (06.10, вне конвейера): PP-DocLayoutV3 + PaddleOCR-VL-1.6 на vLLM, BF16, 1 МП → run import-layer, правило CHOICE_V1 → OCR_RAW paddleocr_vl_page (KEEP_RAW) → основной слой PADDLEOCR_VL, прежний слой остаётся вторичным"
+    },
+    {
      "id": "norm",
      "label": "нормализация сырья: ocr_normalize_v2 (текст, LaTeX, сетка таблицы); флаги ocr_quality_v2 пересчитываются при коммите",
      "x": 15,
@@ -395,7 +405,7 @@
     },
     {
      "id": "nav",
-     "label": "NAV: nav build на WORKSTATION → nav.duckdb, граф NAV",
+     "label": "NAV: nav build на WORKSTATION (GPU) → nav.duckdb, граф NAV",
      "x": 225,
      "y": 330,
      "w": 195,
@@ -405,7 +415,7 @@
     },
     {
      "id": "snapnum",
-     "label": "Снимок snap-20260929T175107Z-574daaac:\n271 источник: 240 COMPLETE, 29 PARTIAL, 2 SKIPPED\n27 135 страниц, 632 420 блоков\n18 297 рисунков, 3 689 таблиц, 109 243 формулы\n24 105 записей литературы, 209 259 поисковых единиц",
+     "label": "Снимок snap-20261007T103222Z-2d71e9e8 (07.10.2026):\n271 источник: 253 COMPLETE, 16 PARTIAL, 2 SKIPPED\n27 135 страниц, 698 246 блоков; PADDLEOCR_VL — 7 057 стр.\n18 297 рисунков, 5 165 таблиц, 125 351 формула\n24 121 запись литературы, 184 006 поисковых единиц",
      "x": 20,
      "y": 415,
      "w": 400,
@@ -531,7 +541,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: docs/corpus_platform/PIPELINE.md §1–§6; CORPUS_PLATFORM_ARCHITECTURE.md §2–§3; OPERATIONS.md §1, §4; BIBLIOGRAPHY.md; README.md §4; receipts/evening_deploy_final.json; implementation_work/COORDINATOR_DECISIONS.md (CP-22, CP-38).",
+     "label": "Источники: docs/corpus_platform/PIPELINE.md §1–§6, §5а; CORPUS_PLATFORM_ARCHITECTURE.md §2–§3; OPERATIONS.md §1, §4; BIBLIOGRAPHY.md; receipts/deploy_20261006_ocr_v2_core.json, deploy_20261007_readd_053_230.json; implementation_work/COORDINATOR_DECISIONS.md (CP-22, CP-38).",
      "x": 20,
      "y": 985,
      "w": 1760,
@@ -776,6 +786,23 @@
      "target": "nav",
      "label": "копия",
      "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "x_ocrv2",
+     "source": "ocrv2",
+     "target": "objects",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;",
+     "waypoints": [
+      [
+       1010,
+       710
+      ],
+      [
+       1010,
+       338
+      ]
+     ]
     }
    ]
   }

@@ -11,7 +11,7 @@
    "nodes": [
     {
      "id": "title",
-     "label": "Платформа корпуса: source → DOCUMENT → NAV → проекции → MCP (30.09.2026)",
+     "label": "Платформа корпуса: source → DOCUMENT → NAV → проекции → MCP (07.10.2026)",
      "x": 20,
      "y": 12,
      "w": 1920,
@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "Канон CORE: snap-20260929T175107Z-574daaac. 271 источник, 27 135 страниц; 240 COMPLETE, 29 PARTIAL, 2 SKIPPED. Проекции пересобираемы; автоматические результаты не evidence.",
+     "label": "Канон CORE: snap-20261007T103222Z-2d71e9e8 (OCR v2). 271 источник, 27 135 страниц; 253 COMPLETE, 16 PARTIAL, 2 SKIPPED. Проекции пересобираемы; автоматические результаты не evidence.",
      "x": 20,
      "y": 44,
      "w": 1920,
@@ -142,7 +142,7 @@
     },
     {
      "id": "extract",
-     "label": "run extract по фазам:\n1 prepare — формат, страницы двумя методами, нативный текст\n2 visual — рендер 200 dpi, PP-DocLayoutV3\n3 ocr — GLM-OCR, где нужно\n4 commit — источник целиком",
+     "label": "run extract по фазам:\n1 prepare — формат, страницы двумя методами, нативный текст\n2 visual — рендер 200 dpi, PP-DocLayoutV3\n3 ocr — GLM-OCR, где нужно; import-layer — слой OCR v2 PADDLEOCR_VL\n4 commit — источник целиком",
      "x": 15,
      "y": 120,
      "w": 290,
@@ -183,7 +183,7 @@
     },
     {
      "id": "navbuild",
-     "label": "nav build --part all (GPU, RAPIDS; ≈ 2 мин): sections · formulas · parameters · duplicates · concepts · topics → store.pack → nav.duckdb",
+     "label": "nav build (GPU, RAPIDS; ≈ 4 мин + figure_series ≈ 4 мин): sections · formulas · tables · parameters · duplicates · concepts · translations · topics · figure_series → store.pack → nav.duckdb",
      "x": 15,
      "y": 570,
      "w": 290,
@@ -297,7 +297,7 @@
     },
     {
      "id": "units",
-     "label": "Единицы снимка: 209 259",
+     "label": "Единицы снимка: 184 006",
      "x": 15,
      "y": 35,
      "w": 250,
@@ -307,7 +307,7 @@
     },
     {
      "id": "dense",
-     "label": "jina-v5-nano: 209 259 dense vectors",
+     "label": "jina-v5-nano: 184 006 dense vectors",
      "x": 15,
      "y": 100,
      "w": 250,
@@ -317,7 +317,7 @@
     },
     {
      "id": "late",
-     "label": "mLateOn: 209 259 late units, 24,96 млн token vectors",
+     "label": "mLateOn: 184 006 late units, 23,45 млн token vectors",
      "x": 15,
      "y": 175,
      "w": 250,
@@ -367,7 +367,7 @@
     },
     {
      "id": "s_os",
-     "label": "OpenSearch: BM25 + dense 209 259 + page-visual 26 744",
+     "label": "OpenSearch: BM25 + dense 184 006 + page-visual 26 744",
      "x": 330,
      "y": 405,
      "w": 270,
@@ -397,7 +397,7 @@
     },
     {
      "id": "mcp",
-     "label": "vkm-corpus: 45 read-only инструментов",
+     "label": "vkm-corpus: 49 read-only инструментов",
      "x": 870,
      "y": 620,
      "w": 115,
@@ -477,7 +477,7 @@
     },
     {
      "id": "n1",
-     "label": "Проекции и производные удаляются и собираются заново из снимка: DuckDB — duckdb build; Neo4j — graph ddl + graph rebuild; OpenSearch — search build; векторы — lab_refresh; NAV — nav build + nav graph-load; каталоги — catalogues pack + publish.",
+     "label": "Проекции и производные удаляются и собираются заново из снимка: DuckDB — duckdb build; Neo4j — graph ddl + graph rebuild; OpenSearch — search build; векторы — lab_refresh; NAV — nav build + nav graph-load; каталоги — catalogues pack + publish. Опоры журнала evidence переносятся на новый снимок отдельно (evidence rebase-plan / rebase-publish).",
      "x": 30,
      "y": 1030,
      "w": 1260,
@@ -585,7 +585,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: PROJECT_STATE_RU.md; docs/corpus_platform/PLATFORM_INTEGRITY_2026-09-30_RU.md; docs/corpus_platform/receipts/intake_2026-09-29.json; MODEL_SERVICES.md.",
+     "label": "Источники: PROJECT_STATE_RU.md; docs/corpus_platform/receipts/deploy_20261006_ocr_v2_core.json, deploy_20261007_readd_053_230.json, evidence_rebase_20261007.json; docs/evidence/REBASE_RU.md; MODEL_SERVICES.md.",
      "x": 20,
      "y": 1150,
      "w": 1920,
