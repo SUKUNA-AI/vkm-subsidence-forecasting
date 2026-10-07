@@ -24,7 +24,7 @@
 | [backfill_mechanics](backfill_mechanics.svg) | механика закладки PC-37…PC-40 в цепи оседаний: известно, оспаривается, неизвестно; гипотезы DB-H и сценарные диапазоны DB-S | [BACKFILL_MECHANICS_RU.md](../science/topic_dossiers/BACKFILL_MECHANICS_RU.md) |
 | [solver_ladder](solver_ladder.svg) | лестница решателя из 10 ступеней и роли Ansys, OGS + MFront, MATLAB, Civil 3D, PyTorch, gprMax с текущим статусом | [CLAUDE.md](../../CLAUDE.md), [README.md](../../README.md), [PHASE2_PLAN_OCT_NOV_2026_RU.md](../planning/PHASE2_PLAN_OCT_NOV_2026_RU.md) |
 | [civil3d_pipeline](civil3d_pipeline.svg) | конвейер Civil 3D в vkm-cad: таблица точек → COGO → TIN → горизонтали → мульда → профиль → лист → PDF; решение CP-43 | [MCP_TOOLS.md](../corpus_platform/MCP_TOOLS.md) §4.1, [AGENT_CAD_V1.md](../implementation_work/AGENT_CAD_V1.md) |
-| [benchmarks](benchmarks.svg) | бенчмарки retrieval_v0 → v1 → v2 → topic_v1: постановка, главные числа, решения | [README.md](../../README.md), [benchmarks/](../../benchmarks/) |
+| [benchmarks](benchmarks.svg) | бенчмарки retrieval_v0 → v1 → v2 → topic_v1 (с дозаразметкой T2 и T3): постановка, главные числа, решения | [README.md](../../README.md), [benchmarks/](../../benchmarks/) |
 | [phase2_timeline](phase2_timeline.svg) | план Phase 2 на октябрь–ноябрь: периоды, работы, гейты, решения пользователя и риски | [PHASE2_PLAN_OCT_NOV_2026_RU.md](../planning/PHASE2_PLAN_OCT_NOV_2026_RU.md), [WORLD_KERNELS_DESIGN_RU.md](../worldspec/WORLD_KERNELS_DESIGN_RU.md) §9 |
 
 ## Цвета
@@ -54,4 +54,4 @@ python -m vkm_drawio.cli export --root public --path <имя>.drawio --format sv
 
 30.09.2026: девять актуальных платформенных схем обновлены через vkm-drawio; источники specs синхронизированы и проходят byte-identical rebuild. Страница A/B/C отдельно: [SVG](platform_data_flow_abc.svg), editable page2 в [drawio](platform_data_flow.drawio). Массовый OCR далее GLM, Qwen retained comparison; source geometry не повышается до evidence. Solver/ML остаются на паузе. [Отчёт](../corpus_platform/WORK_SESSION_FIGURES_GEOMETRY_2026-09-30_RU.md).
 
-07.10.2026: восемь схем (путь документа, поток данных, хосты, NAV, MCP-серверы, гибридный поиск, слои данных, схема графа) переведены на снимок OCR v2 `snap-20261007T103222Z-2d71e9e8`; источники чисел — квитанции [deploy_20261006_ocr_v2_core.json](../corpus_platform/receipts/deploy_20261006_ocr_v2_core.json) и [deploy_20261007_readd_053_230.json](../corpus_platform/receipts/deploy_20261007_readd_053_230.json).
+07.10.2026: девять схем (бенчмарки, путь документа, поток данных, хосты, NAV, MCP-серверы, гибридный поиск, слои данных, схема графа) переведены на снимок OCR v2 `snap-20261007T103222Z-2d71e9e8`; источники чисел — квитанции [deploy_20261006_ocr_v2_core.json](../corpus_platform/receipts/deploy_20261006_ocr_v2_core.json) и [deploy_20261007_readd_053_230.json](../corpus_platform/receipts/deploy_20261007_readd_053_230.json).

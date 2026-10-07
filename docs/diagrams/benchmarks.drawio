@@ -4,7 +4,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Бенчмарки поиска и досье: V0 → V1 → V2 → topic_v1 (28–29.09.2026)" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="title" value="Бенчмарки поиска и досье: V0 → V1 → V2 → topic_v1 (28.09–07.10.2026)" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="12" width="1760" height="30" as="geometry" />
         </mxCell>
         <mxCell id="subtitle" value="Все бенчмарки предрегистрируются до первого прогона: набор, метрики и правило решения фиксируются с sha256. Метрика — nDCG@10 на уровне страниц, если не сказано иначе. Числа разных бенчмарков несравнимы между собой." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
@@ -58,6 +58,9 @@
         <mxCell id="tv1_d" value="Итог: ориентиры приёмки (success@10 ≥ 0,80, source_recall@10 ≥ 0,60, page_recall@50 ≥ 0,40) не пройдены; главная причина — неполная истина; рецепт формулировок вошёл в reconstruct_topic" style="align=left;fillColor=#d5e8d4;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1358" y="340" width="420" height="75" as="geometry" />
         </mxCell>
+        <mxCell id="tv1_t3" value="• дозаразметка T2 (574daaac) и T3 (OCR v2, 2d71e9e8): первая десятка оценена полностью; на P (5 125 целей) hybrid_late R@50 0,393, MRR 0,859, S@10 0,974; human3 R@50 0,604 (+0,211, p Холма 0,0003)" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1358" y="425" width="420" height="68" as="geometry" />
+        </mxCell>
         <mxCell id="next" value="Следующий бенчмарк — прогноз оседаний (D-19): предрегистрация до обучения (t0, горизонты H, метрики, разбиение по мирам и по времени, available_from ≤ t0); проверка на отложенных семействах, другом решателе и разрешении; отдельно — на реальных наблюдениях корпуса в пределах применимости." style="align=left;dashed=1;fillColor=#f5f5f5;fontColor=#333333;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="520" width="1100" height="45" as="geometry" />
         </mxCell>
@@ -88,7 +91,7 @@
         <mxCell id="lg_tx_paused" value="следующий, ещё не предрегистрирован" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
           <mxGeometry x="52" y="115" width="570" height="25" as="geometry" />
         </mxCell>
-        <mxCell id="sources" value="Источники: README.md §11; benchmarks/retrieval_v0/MODEL_SELECTION_V0.md; benchmarks/retrieval_v1/RESULTS_V1.md §0–§1; benchmarks/retrieval_v2/RESULTS_V2.md; benchmarks/topic_v1/RESULTS_V1.md §0–§2; receipts/retrieval_v1_h_review.json; COORDINATOR_DECISIONS.md (CP-39)." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="sources" value="Источники: README.md §11; benchmarks/retrieval_v0/MODEL_SELECTION_V0.md; benchmarks/retrieval_v1/RESULTS_V1.md §0–§1; benchmarks/retrieval_v2/RESULTS_V2.md; benchmarks/topic_v1/RESULTS_V1.md §0–§2, RESULTS_POOL_T2.md, RESULTS_POOL_T3.md; receipts/retrieval_v1_h_review.json; COORDINATOR_DECISIONS.md (CP-39)." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="620" width="1100" height="40" as="geometry" />
         </mxCell>
         <mxCell id="e01" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="v0_h" target="v1_h">
