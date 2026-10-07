@@ -1,0 +1,73 @@
+{
+ "schema": "vkm.deploy_receipt/1",
+ "date": "2026-10-07",
+ "host": "WORKSTATION (producer, NAV) + CORE",
+ "authorization": "owner in chat 2026-10-07: «Поднять лимиты сейчас» (re-add VKM-SRC-053 / -230), «Да, публикуй» to «Публикуем 053/230?» (descriptor a8f9b631…), then full authorization for the session and the evidence rebase approved in advance («перенос evidence я одобряю сразу»)",
+ "change": "VKM-SRC-053 and VKM-SRC-230 (DjVu, 384 / 562 pages) re-added to the OCR v2 canon: their accounting reports (179 / 161 MiB) exceeded the 128 MiB cap on 06.10; new snapshot snap-20261007T103222Z-2d71e9e8 with every projection rebuilt, evidence rebased onto it",
+ "code": {
+  "commit": "475e92f",
+  "limits": "accounting report 128 -> 512 MiB; publication closure 1M -> 2M files, 256 -> 512 MiB",
+  "image": "vkm-corpus-api:0.1.0-475e92f3aa85 (job wrapper, api, mcp, mcp-admin)",
+  "previous_image": "vkm-corpus-api:0.1.0-372f0186b466",
+  "rollback": "restore /srv/vkm/bin/vkm-job and infra/core/.env from *.bak-readd-20261007T100645Z, canonical and NAV CURRENT -> snap-20261006T200208Z-7b9bc860, evidence HEAD -> 137ce5f2…, recreate api/mcp/mcp-admin"
+ },
+ "producer": {
+  "commit": "475e92f (clean clone)",
+  "profile": "production",
+  "plan_sha256": "51f1d00ae026e0b013207c9af2d8db1035d37d339fc06684adc5b1edd3fdfcbc",
+  "model_calls": 3429,
+  "model_calls_note": "GLM-OCR (pinned revision 2e85a628…) for 3 420 uncached OCR tasks of VKM-SRC-053; the 06.10 run was cache-only (--max-model-calls 0) and would have left them empty",
+  "commits": {"VKM-SRC-053": {"status": "COMPLETE", "commit_id": "CMT-d9cd41ff8fe3e52b", "pages": 384, "errors": 0},
+              "VKM-SRC-230": {"status": "COMPLETE", "commit_id": "CMT-f83b0d83a76e918f", "pages": 562, "errors": 0}},
+  "wall_s": 1382
+ },
+ "publication": {
+  "base_snapshot_id": "snap-20261006T200208Z-7b9bc860",
+  "request": "269 sources, 2 changed; 94 sources carry their accounting binding",
+  "operator_fix": "the operator request builder (private) now gives a binding to every head whose marker requires accounting, not only to changed heads: the 92 heads published on 06.10 are unchanged against this base, and the first freeze was BLOCKED with PUBLICATION_REQUIRED_BINDING_MISSING",
+  "descriptor_sha256": "a8f9b63163517f34e5ff13d8c81e8743ee7e44f706cfcd0ca599b4ef5a6f89ae",
+  "descriptor_bytes": 266804104,
+  "approval_sha256": "e0b1e4657f17b56a21af21aa3c3bea4068bdafe4e0879d92375282981e97e142",
+  "transferred": "130 945 files, 824 441 886 bytes (2026-10-07 13:04-13:06)"
+ },
+ "canonical": {
+  "snapshot_id": "snap-20261007T103222Z-2d71e9e8",
+  "manifest_sha256": "442fccb3a7be80c994905079862d10fc1a59df127dd57fc11a6b503e16389e81",
+  "reconcile": {"run": "reconcile-readd-20261007T100645Z", "seconds": {"admit": 1536, "snapshot": 1579, "duckdb": 165, "graph": 441, "search": 256}},
+  "counts": {"sources_total": 271, "sources_complete": 253, "sources_partial": 16, "sources_skipped_by_register": 2,
+             "pages_total": 27135, "pages_native": 17054, "pages_embedded_text": 2668, "pages_ocr": 7387, "blocks": 698246,
+             "figures": 18297, "tables": 5165, "formulas": 125351, "bibliography_entries": 24121},
+  "counts_before": {"pages_embedded_text": 3033, "pages_ocr": 7022, "blocks": 685582, "tables": 5085, "formulas": 122266,
+                    "bibliography_entries": 24123}
+ },
+ "projections": {
+  "lab_refresh": "refresh-20261007T111346Z DONE (966 s): units 184 006 = dense index = late pack, equal=True; 5 287 units encoded (4 992 new, 295 changed)",
+  "nav": {
+   "built_on": "WORKSTATION (WSL; RAPIDS 9 parts 247 s, figure_series 245 s)",
+   "packed": "33 tables, 5 341 090 rows",
+   "nav_duckdb_sha256": "09a336287fc29fe7ff74363f75317fe0983e64f7b4f80e44a15f1f764d7e99bc",
+   "manifest_sha256": "495159cd69609df966d229127a1a3699e0c0640df0ec7efd3ad61d49092dcf61",
+   "identity_status": "AD_HOC_UNVERIFIED (explicit exploratory publish, as in deploy_20261006_ocr_v2_core.json)",
+   "graph_load": "VKM-PRJ-NAV-20261007T113911Z-0bc11c49: 133 447 nodes, 2 337 562 relationships"
+  },
+  "page_vectors": "build 20261007t114350z-442fccb3-ef2f297d, 0 pages missing"
+ },
+ "evidence_rebase": {
+  "policy": "REPOINT_IF_BASELINE_ABSENT (owner «Б»)",
+  "old_canons": ["snap-20261006T200208Z-7b9bc860", "snap-20260929T175107Z-574daaac"],
+  "plan_sha256": "3eb0e09723af31aefd3cd8850b56110afdb605b2c3f450ed0fcf65064d585038",
+  "counts": {"REBASED": 1432, "HELD": 4, "supports_UNCHANGED": 1442, "supports_NOT_FOUND": 4, "not_found_repointed": 0},
+  "held": "MR-MECH-0040, -0045, -1303, -1333: NUMERIC_MISMATCH again (they stay on 574daaac)",
+  "approval_sha256": "269a5a9954e1ea81a9d68c322285108eced3434f05efa13919b1e245f32f026d",
+  "journal": {"parent": "137ce5f2c81b9ece3d818bea9148a74077636255baf3c034c48494ee18fe3aea",
+              "revision": "40861bab57949d9470c0a5914e0a4f7fd2457c1aabb26797cad91eb2f8f5cf1d",
+              "partition_sha256": "e30862f842b4022787de3b7686ba08dd4e80960f50b9e2502f88c159ab70ff25",
+              "delivery": "commits + partitions verified by sha256 on CORE, HEAD last"}
+ },
+ "checks": {
+  "mcp_smoke": {"version": "nightly-mcp-smoke-6", "summary": {"PASS": 48, "WARN": 1, "FAIL": 0, "SKIP": 0},
+                "warn": "get_evidence_review_packet before the evidence rebase (supports still on the previous snapshot)"},
+  "review_packet_after_rebase": "get_evidence_review_packet(MR-MECH-0036): generation 40861bab…, snapshot 2d71e9e8, REVIEW_MATERIAL_PREPARED"
+ },
+ "limits": "derived layers only; nothing here is reviewed, evidence or a scientific admission"
+}

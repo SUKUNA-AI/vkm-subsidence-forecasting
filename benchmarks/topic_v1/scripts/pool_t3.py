@@ -44,7 +44,7 @@ def _private_t2():
 P2 = _private_t2()
 REPO, BENCH = PT.REPO, PT.BENCH
 T2_TSV, T2_GROUPS = P2.OUT_TSV, P2.OUT_GROUPS                     # read only
-SNAPSHOT = "snap-PENDING"                                          # the OCR v2 snapshot with VKM-SRC-053 / -230
+SNAPSHOT = "snap-20261007T103222Z-2d71e9e8"                        # the OCR v2 snapshot with VKM-SRC-053 / -230
 # sources whose primary text layer is PADDLEOCR_VL since OCR v2 (92 published 06.10 + 053 and 230 on 07.10)
 OCR_V2_SOURCES = frozenset(f"VKM-SRC-{n:03d}" for n in (
     3, 11, 12, 14, 18, 20, 25, 28, 29, 37, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 59, 60, 61, 62, 63, 64,
