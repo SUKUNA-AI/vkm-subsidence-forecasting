@@ -116,7 +116,19 @@ def convert(value: float, unit: str, kind: str) -> tuple[float | None, str]:
         return (value, "x1") if u in ("", "-", "д.ед.") else (None, "UNIT_NOT_CONVERTED")
     if kind == "angle":
         return (value, "deg") if u in ("°", "град", "град.", "градус", "deg", "degree", "") else (None, "UNIT_NOT_CONVERTED")
+    if kind == "length":                                     # C1 thickness / depth, C4 geometry, observations
+        f = _LENGTH.get(u)
+        return (value * f, f"x{f:g}") if f else (None, "UNIT_NOT_CONVERTED")
+    if kind == "fraction":                                   # extraction ratio, fill ratio: «%» or a fraction
+        if u == "%":
+            return value / 100.0, "%/100"
+        return (value, "x1") if u in ("", "-", "д.ед.", "1", "доли", "долиед.") else (None, "UNIT_NOT_CONVERTED")
+    if kind == "temperature":                                # kept in °C (the corpus prints °C); K = °C + 273.15
+        return (value, "degC") if u in ("°c", "°с", "ºc", "ºс", "градс", "c", "с") else (None, "UNIT_NOT_CONVERTED")
     return None, "UNIT_NOT_CONVERTED"
+
+
+_LENGTH = {"м": 1.0, "m": 1.0, "мм": 1e-3, "mm": 1e-3, "см": 1e-2, "cm": 1e-2, "км": 1e3, "km": 1e3, "дм": 0.1}
 
 
 def _num(s: str) -> float | None:

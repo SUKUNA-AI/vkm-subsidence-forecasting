@@ -73,3 +73,12 @@ def test_evidence_rows_and_summary(wp):
     s = summ[("UCS.SYLVINITE", "SKRU1")]
     assert (s["n_rows"], s["n_sources"], float(s["si_min"]), float(s["si_max"])) == (2, 2, 20e6, 30e6)
     assert all(x["wpe_id"].startswith("WPE-") for x in ev)
+
+@pytest.mark.parametrize("value,unit,kind,expected", [
+    (450, "мм", "length", 0.45), (12, "м", "length", 12.0), (1.5, "км", "length", 1500.0), (35, "см", "length", 0.35),
+    (70, "%", "fraction", 0.7), (0.65, "доли", "fraction", 0.65), (24, "°C", "temperature", 24.0)])
+def test_si_conversion_passport_kinds(wp, value, unit, kind, expected):
+    """Kinds added for the passport (C1 thickness / depth, C4 geometry and ratios, C3 temperature in °C)."""
+    got, rule = wp.convert(value, unit, kind)
+    assert got == pytest.approx(expected) and rule != "UNIT_NOT_CONVERTED"
+    assert wp.convert(value, "фут", kind)[0] is None
