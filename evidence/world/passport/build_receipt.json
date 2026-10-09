@@ -1,0 +1,105 @@
+{
+ "rule_version": "world_passport_v1",
+ "runs": [
+  "high_full",
+  "double"
+ ],
+ "inputs": {
+  "WORLD_PARAMETERS/curated/c2_c4_conflicts.csv": "e39d45cf0e29d3e3eb44480617bbb87583648c6ac5e46774de5bae3f975ede53",
+  "WORLD_PARAMETERS/curated/c2_creep_laws.csv": "261e8b1136ee07227ca56aa10c96811088775758dc36b1ddcfba0c2515aece4f",
+  "WORLD_PARAMETERS/curated/c2_transfer_branches.csv": "b81d4bdd2205cbcbaaeb6cff967a27ee41354ad4d0670b128207920e4c51ade5",
+  "WORLD_PARAMETERS/curated/c3_conflicts.csv": "6f0dc9f69314739bd943bc5c3ea83696281c34d4ccf0811df2fee923af452574",
+  "WORLD_PARAMETERS/curated/c3_gaps.csv": "44c82049cc809dc5743590223b4d723e778412c6b0b044037c3ca35f573af54d",
+  "WORLD_PARAMETERS/curated/c3_hypotheses.csv": "9d8f681d6b4d24538ec34bc6a12a6f6c9a22772b330cd974d831076176cd7e07",
+  "WORLD_PARAMETERS/curated/c3_parameters.csv": "79713132f139a08164052870fae59806901ae53cc53c7ebe2cab1cf5bec1f75f",
+  "WORLD_PARAMETERS/curated/c4_backfill_parameters.csv": "dea2e2d83f5a2b0ecf134520e0c76a0c0daf2dadc649c8ba0c5417568a7522c0",
+  "WORLD_PARAMETERS/curated/skru1_c1_column.csv": "d67b986ab9e914e80e9f775ca81966217100639b2782c6a950b28e5efa981d65",
+  "WORLD_PARAMETERS/curated/skru1_c4_chamber_design.csv": "4378761fc7613eb55c4bebbdced422d0d02531eee141467695ac79028e4bfc0b",
+  "WORLD_PARAMETERS/curated/skru1_c4_extraction_history.csv": "dd8d02a958fb886077d4fc5344a756300d8aabada33de390a3232bb52ea27dfc",
+  "WORLD_PARAMETERS/world_c1_thickness_evidence.csv": "627d929154aa52208e1e42e89bbd77542874c9e2e9544c5ceab70257759b244f",
+  "WORLD_PARAMETERS/world_c1_thickness_summary.csv": "86bfaf70a73cda659e19fc54d7fd5eb57f407416fa30136417e19981b13d61e9",
+  "WORLD_PARAMETERS/world_parameter_evidence.csv": "097a0223cde5cfec543d7b669aa988c7f008dc528e4f05d22677e9cdadf47a16",
+  "WORLD_PARAMETERS/world_parameter_summary.csv": "adb6f9139bfaa977bc2f001b146c39b53a89bc8240fa28d79747eb77d6f58144",
+  "WORLD_EXTRACTION/high_full/accepted.jsonl": "90e823aab3786b305d3be64f88e0a809a94729ea6abd41f2a7ab2376092740c1",
+  "WORLD_EXTRACTION/double/accepted.jsonl": "2dc627a19ce20cfe2ac9f61aa74c8818019aa26236f0456f4a550eca3fdb9de0"
+ },
+ "outputs": {
+  "passport_evidence.csv": "aeb693fc730c92c25330651deb56b1997b0da350d710c07ebb4e38a77c70748b",
+  "passport_evidence_c1.csv": "bd51b449b4cf1fcfde342060dcaeeee8a3e632e7e7979c0c1e39062eecbffd96",
+  "passport_evidence_c2.csv": "0399c132d7e5e78a264930c7e854b4c25b67634fe0068a5d383d5c8239942579",
+  "passport_evidence_c3.csv": "d1b8ce72930071648b0cba36c499e7b8d0f9aff45dda222aa385817938affbaa",
+  "passport_evidence_c4.csv": "ce0b86056efdf9cc5deb162ee7c711af9f5d9d4e60bab883b1274f8938875a9a",
+  "world_passport.csv": "71585a2344238a8b45347b3ad61393a8d29eb11a2e424f3a30f69ba3069ef8a8",
+  "passport_conflicts.csv": "a05b1ffb2a4e9f89b3b2f5d546f1cfe8c82a96a31ec2de41a95a495758595f75",
+  "world_objects.csv": "d6fc94fd3768fcb0d9d049aed152695df3e6f1ba3947cf0c4f648c01771d8807",
+  "cited_literature.csv": "08f170fad0e7759e9017b491f034d11ff0b7f6d6880407b1f09fdb03857402ac",
+  "transfer_branches.csv": "f1fd8b241d8034080207a71100c379c21e0b43878c960d726ad9912579d2e83b"
+ },
+ "counts": {
+  "evidence": 32350,
+  "by_producer": {
+   "SOL_HIGH_FULL": 28242,
+   "CLAUDE_DOUBLE_ENTRY": 2261,
+   "PHASE1_CATALOGUE": 1208,
+   "CURATED_LAWS_20261009": 262,
+   "CURATED_C3_20261009": 198,
+   "CURATED_SKRU1_20261008": 179
+  },
+  "by_module": {
+   "OTHER": 10290,
+   "C1": 9315,
+   "C2": 4568,
+   "C4": 4023,
+   "OBS": 3405,
+   "C3": 749
+  },
+  "copy_clusters": 4279,
+  "passport_rows": 1429,
+  "passport_by_status": {
+   "SCENARIO_RANGE": 935,
+   "ANALOGUE_VIA_TRANSFER": 453,
+   "UNKNOWN": 23,
+   "FACT": 18
+  },
+  "conflicts": 165,
+  "conflicts_computed": 34,
+  "objects": 4365,
+  "objects_new_candidates": 3721,
+  "cited_refs": 1020,
+  "cited_by_resolution": {
+   "UNRESOLVED": 275,
+   "ENTRY_PARSED_NOT_IN_CORPUS": 654,
+   "EXTERNAL_REGISTER_AUTO": 30,
+   "CORPUS_WORK": 41,
+   "CORPUS_WORK_AUTO": 20
+  }
+ },
+ "double_entry_agreement": {
+  "records_a": 3419,
+  "records_b": 2566,
+  "numeric_a": 2401,
+  "numeric_b": 1990,
+  "matched": 2054,
+  "matched_numeric": 1918,
+  "number_recall_b_vs_a": 0.799,
+  "number_precision_b_vs_a": 0.964,
+  "attribution_full_agreement": 0.392,
+  "attribution_no_contradiction": 0.805,
+  "attribution_disagreements": {
+   "material": 196,
+   "material_one_side": 236,
+   "parameter_code": 37,
+   "parameter_code_one_side": 235,
+   "scale": 190,
+   "scale_one_side": 98,
+   "site_norm": 84,
+   "site_norm_soft": 613
+  },
+  "only_a": 1365,
+  "only_b": 512,
+  "reference": "CLAUDE_DOUBLE_ENTRY is B, the producer run is A",
+  "packets_double": 27,
+  "common_pages": 206
+ },
+ "nav_used": true
+}

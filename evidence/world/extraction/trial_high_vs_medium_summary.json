@@ -1,0 +1,27 @@
+{
+ "records_a": 116,
+ "records_b": 90,
+ "numeric_a": 45,
+ "numeric_b": 43,
+ "matched": 67,
+ "matched_numeric": 40,
+ "number_recall_b_vs_a": 0.889,
+ "number_precision_b_vs_a": 0.93,
+ "attribution_full_agreement": 0.75,
+ "attribution_no_contradiction": 1.0,
+ "attribution_disagreements": {
+  "material_one_side": 1,
+  "parameter_code_one_side": 2,
+  "scale_one_side": 7
+ },
+ "only_a": 49,
+ "only_b": 23,
+ "rule_version": "extract_accept_v1",
+ "run_a": "trial_high",
+ "run_b": "trial_medium",
+ "packets": [
+  "VKM-SRC-011_p0124-0130",
+  "VKM-SRC-023_p0038-0049"
+ ],
+ "n_common_pages": 12
+}

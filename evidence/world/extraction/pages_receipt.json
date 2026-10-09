@@ -1,0 +1,29 @@
+{
+ "rule_version": "extract_select_pages_v1",
+ "nav_snapshot": [
+  "snap-20261007T103222Z-2d71e9e8",
+  "442fccb3a7be80c994905079862d10fc1a59df127dd57fc11a6b503e16389e81"
+ ],
+ "budget": 2000,
+ "n_refs": 4268,
+ "stats": {
+  "ref_page_not_in_nav": 94,
+  "long_range_not_expanded": 13,
+  "merged_text_duplicate": 2,
+  "copy_of_work_redirected": 5,
+  "too_little_text": 36,
+  "candidates": 3772,
+  "selected": 2000,
+  "dropped_by_budget": 1772
+ },
+ "by_tier": {
+  "A": 925,
+  "B": 902,
+  "C": 173
+ },
+ "n_sources": 152,
+ "excluded_sources": [
+  "VKM-SRC-252"
+ ],
+ "output_sha256": "3a17f556d29f8c5044b603b505b09e891ffb5b96f32ca807909a227756081b4f"
+}

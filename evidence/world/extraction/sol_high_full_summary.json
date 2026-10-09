@@ -1,0 +1,95 @@
+{
+ "rule_version": "extract_accept_v1",
+ "run": "high_full",
+ "packets": 324,
+ "records": 37132,
+ "accepted": 35593,
+ "rejected": 1539,
+ "reject_reasons": {
+  "VALUE_MIN_NOT_PRINTED": 1469,
+  "VALUE_MAX_NOT_PRINTED": 1445,
+  "UNIT_NOT_ON_PAGE": 26,
+  "NUMBER_NOT_ON_PAGE": 21,
+  "QUOTE_NOT_ON_PAGE": 14
+ },
+ "kinds": {
+  "PARAMETER": 13503,
+  "GEOMETRY": 11002,
+  "ENTITY": 5959,
+  "OBSERVATION": 2973,
+  "HISTORY": 1583,
+  "CITATION": 1397,
+  "LAW": 715
+ },
+ "accepted_by_kind": {
+  "PARAMETER": 13058,
+  "GEOMETRY": 10113,
+  "ENTITY": 5954,
+  "OBSERVATION": 2867,
+  "HISTORY": 1491,
+  "CITATION": 1397,
+  "LAW": 713
+ },
+ "accepted_by_scale": {
+  "MODEL": 8158,
+  "UNKNOWN": 8108,
+  "FIELD": 7863,
+  "LAB": 5503,
+  "MASSIF": 3823,
+  "NORMATIVE": 2138
+ },
+ "accepted_by_site": {
+  "UNKNOWN": 13822,
+  "VKM_UNSPECIFIED": 10625,
+  "NON_VKM": 2161,
+  "SKRU1": 1275,
+  "BKPRU1": 1199,
+  "BKPRU4": 1155,
+  "BKPRU2": 1132,
+  "SKRU2": 1125,
+  "OTHER_POTASH_SITE": 1108,
+  "SKRU3": 1092,
+  "BEREZNIKI_CITY": 492,
+  "BKPRU3": 272,
+  "SKRU1_OR_SKRU2_UNATTRIBUTED": 66,
+  "SOLIKAMSK_CITY": 41,
+  "UST_YAYVA": 28
+ },
+ "producers": [
+  {
+   "producer": {
+    "auth": "ChatGPT subscription (codex login)",
+    "codex_cli": "codex-cli 0.160.1",
+    "disabled_features": [
+     "shell_tool",
+     "unified_exec",
+     "multi_agent",
+     "apps",
+     "browser_use",
+     "computer_use",
+     "image_generation",
+     "memories",
+     "plugins",
+     "view_image",
+     "goals",
+     "skill_search",
+     "tool_suggest",
+     "in_app_browser"
+    ],
+    "effort": "high",
+    "flags": [
+     "--ignore-user-config",
+     "--ephemeral",
+     "-s read-only",
+     "--skip-git-repo-check",
+     "--output-schema",
+     "--json",
+     "web_search=\"disabled\""
+    ],
+    "model": "gpt-6.1-sol"
+   },
+   "packets": 324
+  }
+ ],
+ "record_format": "fields of the answer schema that are null are omitted; producer per packet in run_meta.jsonl"
+}

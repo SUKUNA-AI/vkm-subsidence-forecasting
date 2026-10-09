@@ -1,0 +1,65 @@
+{
+ "rule_version": "extract_build_packets_v1",
+ "schema_version": "vkm.page_extraction/1",
+ "nav_snapshot": [
+  "snap-20261007T103222Z-2d71e9e8",
+  "442fccb3a7be80c994905079862d10fc1a59df127dd57fc11a6b503e16389e81"
+ ],
+ "pages_csv_sha256": "3a17f556d29f8c5044b603b505b09e891ffb5b96f32ca807909a227756081b4f",
+ "task_sha256": "abefc038b6fb39919347aec4cf5de5b95fb53bf7c6c0aeed94b559d146b07d17",
+ "schema_sha256": "7bb3d4240394e046eb47d79614b0115a52ce0ced245be4d5749e23e0a8f9a127",
+ "n_packets": 325,
+ "n_pages": 2011,
+ "pinned_packets": [
+  "MIX-003_VKM-SRC-021",
+  "MIX-005_VKM-SRC-069",
+  "VKM-SRC-011_p0124-0130",
+  "VKM-SRC-012_p0017-0027",
+  "VKM-SRC-012_p0028-0038",
+  "VKM-SRC-012_p0050-0058",
+  "VKM-SRC-014_p0026-0034",
+  "VKM-SRC-014_p0055-0073",
+  "VKM-SRC-014_p0112-0120",
+  "VKM-SRC-023_p0038-0049",
+  "VKM-SRC-025_p0058-0067",
+  "VKM-SRC-025_p0121-0129",
+  "VKM-SRC-026_p0001-0008",
+  "VKM-SRC-026_p0017-0026",
+  "VKM-SRC-026_p0027-0036",
+  "VKM-SRC-029_p0135-0146",
+  "VKM-SRC-037_p0045-0052",
+  "VKM-SRC-037_p0053-0060",
+  "VKM-SRC-037_p0163-0171",
+  "VKM-SRC-044_p0113-0120",
+  "VKM-SRC-046_p0001-0006",
+  "VKM-SRC-067_p0122-0149",
+  "VKM-SRC-074_p0001-0008",
+  "VKM-SRC-087_p0001-0008",
+  "VKM-SRC-096_p0001-0008",
+  "VKM-SRC-104_p0001-0007",
+  "VKM-SRC-198_p0001-0007"
+ ],
+ "pinned_pages_not_in_selection": [
+  "VKM-SRC-026:p0001",
+  "VKM-SRC-026:p0002",
+  "VKM-SRC-026:p0003"
+ ],
+ "by_tier": {
+  "A": 205,
+  "B": 101,
+  "C": 19
+ },
+ "pages_per_packet": {
+  "min": 1,
+  "median": 7,
+  "max": 8
+ },
+ "chars_total": 5534987,
+ "limits": {
+  "MAX_PAGES": 8,
+  "MIN_PAGES": 5,
+  "MAX_CHARS": 32000,
+  "MAX_NUMBERS": 400
+ },
+ "mixed_packets": 30
+}
