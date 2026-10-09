@@ -44,7 +44,7 @@ def verify_run(work: Path, run: str) -> dict:
     out = work / "accept" / run
     out.mkdir(parents=True, exist_ok=True)
     acc, rej = [], []
-    reasons, kinds = Counter(), Counter()
+    reasons, kinds, producers = Counter(), Counter(), Counter()
     for pid in packets_of(work, run):
         pk = json.loads((work / "packets" / f"{pid}.json").read_text(encoding="utf-8"))
         pages = {p: V.PageText(p, t) for p, t in pk["page_texts"].items()}
@@ -56,10 +56,11 @@ def verify_run(work: Path, run: str) -> dict:
         meta_p = work / "sol" / run / pid / "meta.json"
         producer = json.loads(meta_p.read_text(encoding="utf-8"))["producer"] if meta_p.is_file() else \
             {"producer": "claude-subagent double entry"}
+        producers[json.dumps(producer, sort_keys=True, ensure_ascii=False)] += 1
         for i, r in enumerate(ans.get("records", []), 1):
-            rr = dict(r)
+            rr = {k: v for k, v in r.items() if v not in (None, "")}    # absent = null in the answer
             rr.update(record_id=f"{run}:{pid}:{i:03d}", run=run, packet_id=pid,
-                      producer=producer, review_status="AUTO_EXTRACTED_UNREVIEWED")
+                      review_status="AUTO_EXTRACTED_UNREVIEWED")
             why = V.check_record(r, pages)
             kinds[r.get("kind")] += 1
             if why:
@@ -79,7 +80,10 @@ def verify_run(work: Path, run: str) -> dict:
             "reject_reasons": dict(reasons.most_common()), "kinds": dict(kinds.most_common()),
             "accepted_by_kind": dict(Counter(r.get("kind") for r in acc).most_common()),
             "accepted_by_scale": dict(Counter(r.get("scale") for r in acc).most_common()),
-            "accepted_by_site": dict(Counter(r.get("site_norm") for r in acc).most_common())}
+            "accepted_by_site": dict(Counter(r.get("site_norm") for r in acc).most_common()),
+            "producers": [{"producer": json.loads(k), "packets": v} for k, v in sorted(producers.items())],
+            "record_format": "fields of the answer schema that are null are omitted; producer per packet in "
+                             "run_meta.jsonl"}
     (out / "summary.json").write_text(json.dumps(summ, ensure_ascii=False, indent=1) + "\n", encoding="utf-8", newline="\n")
     return summ
 

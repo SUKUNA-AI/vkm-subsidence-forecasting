@@ -13,7 +13,8 @@ Inputs (PRIVATE ``11_evidence_vnext/canonical/``):
 - optional ``--nav`` (NAV page export) for the bibliography entries behind cited numbers.
 
 Outputs (``WORLD_PASSPORT/``): ``passport_evidence.csv`` (one row per number, all producers, SI value, class,
-branch, copy cluster, double-entry agreement), ``world_passport.csv`` (the registry), ``passport_conflicts.csv``,
+branch, copy cluster, double-entry agreement; ``passport_evidence_c1.csv`` … ``_c4.csv`` — the rows of each module
+behind the registry, the views published to PUBLIC), ``world_passport.csv`` (the registry), ``passport_conflicts.csv``,
 ``world_objects.csv``, ``cited_literature.csv``, ``build_receipt.json``.
 
 Rules: SI conversion and material classes are imported from ``build_world_parameters.py`` (not copied). Numbers are
@@ -756,9 +757,12 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
     reg = registry(ev, by_ev, transfer_links(trans))
     objs = objects(canon, runs)
     lit = cited_literature(ev, nav, canon)
-    files = {"passport_evidence.csv": _csv(ev, EV_COLS), "world_passport.csv": _csv(reg),
+    files = {"passport_evidence.csv": _csv(ev, EV_COLS)}
+    for mod in ("C1", "C2", "C3", "C4"):                  # per-module views (PUBLIC text files stay under 5 MB)
+        files[f"passport_evidence_{mod.lower()}.csv"] = _csv([x for x in ev if x["module"] == mod], EV_COLS)
+    files.update({"world_passport.csv": _csv(reg),
              "passport_conflicts.csv": _csv(conf), "world_objects.csv": _csv(objs),
-             "cited_literature.csv": _csv(lit), "transfer_branches.csv": _csv(trans)}
+             "cited_literature.csv": _csv(lit), "transfer_branches.csv": _csv(trans)})
     inputs = {}
     for p in sorted(canon.glob("WORLD_PARAMETERS/**/*.csv")) + [canon / "WORLD_EXTRACTION" / r / "accepted.jsonl"
                                                                 for r in runs]:

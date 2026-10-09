@@ -187,3 +187,10 @@ def test_compare_matches_numbers_and_reports_attribution():
     soft = C.attribution_diff({"site_norm": "UNKNOWN", "scale": "UNKNOWN", "parameter_code": "OTHER"},
                               {"site_norm": "VKM_UNSPECIFIED", "scale": "LAB", "parameter_code": "E"})
     assert soft == ["parameter_code_one_side", "scale_one_side", "site_norm_soft"]
+
+
+@pytest.mark.parametrize("name", ["extract_select_pages", "extract_build_packets", "extract_run_codex", "extract_accept",
+                                  "extract_export_private", "build_world_passport", "build_world_observations"])
+def test_pipeline_scripts_import(name):
+    """Every script of the extraction / passport pipeline at least compiles and imports (no network, no codex)."""
+    assert callable(_script(name).main)

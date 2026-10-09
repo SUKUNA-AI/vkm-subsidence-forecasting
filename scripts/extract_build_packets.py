@@ -113,10 +113,8 @@ def main() -> int:
         (out / "packets" / f"{pk.packet_id}.txt").write_bytes(pk.render().encode("utf-8"))
         manifests.append(pk.manifest())
     for part in P.split_dense(pinned):                       # dense pinned packets: parts for the producer
-        (out / "packets" / f"{part.packet_id}.json").write_text(P.to_json(part) + "
-", encoding="utf-8",
-                                                               newline="
-")
+        (out / "packets" / f"{part.packet_id}.json").write_text(P.to_json(part) + "\n", encoding="utf-8",
+                                                               newline="\n")
         (out / "packets" / f"{part.packet_id}.txt").write_bytes(part.render().encode("utf-8"))
         manifests.append(part.manifest())
     manifests.sort(key=lambda m: ("ABC".index(m["tier"]), m["packet_id"]))
