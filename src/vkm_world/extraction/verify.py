@@ -74,7 +74,7 @@ def _num_key(token: str) -> str:
 
 def printed_numbers(value_as_printed: str) -> list[str]:
     """Number tokens of a printed value, in their printed form (thousands spaces kept as in print)."""
-    spaced = _WS.sub(" ", base_norm(value_as_printed or ""))
+    spaced = _WS.sub(" ", base_norm(value_as_printed or "")).replace("...", " ... ")     # «8,5…9,0»
     return [m.group(0) for m in _NUM.finditer(spaced)]
 
 

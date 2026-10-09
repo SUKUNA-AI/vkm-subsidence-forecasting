@@ -87,7 +87,7 @@ def main() -> int:
             shutil.copyfile(p, dst / p.name)
         receipt["compare"][c] = {p.name: sha(dst / p.name) for p in sorted(dst.iterdir())}
     (canon / f"export_receipt_{'_'.join(a.runs)}.json").write_text(
-        json.dumps(receipt, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+        json.dumps(receipt, ensure_ascii=False, indent=1) + "\n", encoding="utf-8", newline="\n")
     print(json.dumps(receipt, ensure_ascii=False, indent=1))
     return 0
 

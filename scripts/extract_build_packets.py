@@ -108,7 +108,7 @@ def main() -> int:
             mixed_no += 1
         pk = P.Packet(P.packet_id(g, mixed_no if len(sids) > 1 else None), tier, ids, {x: texts[x] for x in ids},
                       context, headers)
-        (out / "packets" / f"{pk.packet_id}.json").write_text(P.to_json(pk) + "\n", encoding="utf-8")
+        (out / "packets" / f"{pk.packet_id}.json").write_text(P.to_json(pk) + "\n", encoding="utf-8", newline="\n")
         (out / "packets" / f"{pk.packet_id}.txt").write_bytes(pk.render().encode("utf-8"))
         manifests.append(pk.manifest())
     manifests.sort(key=lambda m: ("ABC".index(m["tier"]), m["packet_id"]))
@@ -130,7 +130,7 @@ def main() -> int:
                "limits": {"MAX_PAGES": P.MAX_PAGES, "MIN_PAGES": P.MIN_PAGES, "MAX_CHARS": P.MAX_CHARS},
                "mixed_packets": mixed_no}
     (out / "packets_receipt.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=1) + "\n",
-                                              encoding="utf-8")
+                                              encoding="utf-8", newline="\n")
     print(json.dumps(receipt, ensure_ascii=False, indent=1))
     return 0
 

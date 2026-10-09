@@ -81,6 +81,7 @@ def test_candidate_values_and_warnings():
     assert -143.0 in V.candidate_values("гор. –143 м") and -143.0 not in V.candidate_values("100–143")
     assert -2.5 in V.candidate_values("-2,5") and 0.6 in V.candidate_values("0,60-0,71")
     assert V.printed_numbers("0,60–0,71") == ["0,60", "0,71"]
+    assert V.printed_numbers("8,5…9,0 МПа") == ["8,5", "9,0"]
     assert "HEADER_MULTIPLIER" in V.warnings_for({"multiplier_as_printed": "·10⁻³"})
     assert "VALUE_NOT_IN_QUOTE" in V.warnings_for({"value_as_printed": "12", "quote": "n равно двенадцати"})
 

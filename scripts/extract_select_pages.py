@@ -341,7 +341,7 @@ def main() -> int:
                "excluded_sources": sorted(EXCLUDED_SOURCES),
                "output_sha256": hashlib.sha256(a.out.read_bytes()).hexdigest()}
     (a.out.parent / "pages_receipt.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=1) + "\n",
-                                                     encoding="utf-8")
+                                                     encoding="utf-8", newline="\n")
     print(json.dumps(receipt, ensure_ascii=False, indent=1))
     return 0
 

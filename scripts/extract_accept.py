@@ -80,7 +80,7 @@ def verify_run(work: Path, run: str) -> dict:
             "accepted_by_kind": dict(Counter(r.get("kind") for r in acc).most_common()),
             "accepted_by_scale": dict(Counter(r.get("scale") for r in acc).most_common()),
             "accepted_by_site": dict(Counter(r.get("site_norm") for r in acc).most_common())}
-    (out / "summary.json").write_text(json.dumps(summ, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    (out / "summary.json").write_text(json.dumps(summ, ensure_ascii=False, indent=1) + "\n", encoding="utf-8", newline="\n")
     return summ
 
 
@@ -126,7 +126,7 @@ def compare_runs(work: Path, a: str, b: str) -> dict:
             w.writerow(cols + ["quote"])
             for r in rows:
                 w.writerow([r.get(c) for c in cols] + [r.get("quote")])
-    (out / "summary.json").write_text(json.dumps(summ, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    (out / "summary.json").write_text(json.dumps(summ, ensure_ascii=False, indent=1) + "\n", encoding="utf-8", newline="\n")
     return summ
 
 

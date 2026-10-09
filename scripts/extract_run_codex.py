@@ -190,8 +190,8 @@ def run_packet(pid: str, a, codex: Path, version: str, task: bytes, schema_path:
             shutil.copyfile(d / f"events.attempt{attempt}.jsonl", d / "events.jsonl")
             shutil.copyfile(d / f"stderr.attempt{attempt}.log", d / "stderr.log")
             meta.update(status="OK", exit_code=code, usage=rec["usage"], finished_at=rec["finished_at"])
-            (d / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-            (d / "DONE").write_text(now() + "\n", encoding="utf-8")
+            (d / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1) + "\n", encoding="utf-8", newline="\n")
+            (d / "DONE").write_text(now() + "\n", encoding="utf-8", newline="\n")
             return {"packet_id": pid, "status": "OK", "n_records": rec["n_records"], "usage": rec["usage"],
                     "seconds": rec["seconds"]}
         blob = " ".join(rec["errors"]) + " " + err_text[-4000:]
@@ -207,7 +207,7 @@ def run_packet(pid: str, a, codex: Path, version: str, task: bytes, schema_path:
             log(a.work, a.run, f"{pid}: attempt {attempt} failed (exit {code}); retry in {back}s")
             time.sleep(back)
     meta.update(status="FAILED")
-    (d / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    (d / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1) + "\n", encoding="utf-8", newline="\n")
     return {"packet_id": pid, "status": "FAILED"}
 
 
