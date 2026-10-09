@@ -184,3 +184,6 @@ def test_compare_matches_numbers_and_reports_attribution():
     s = C.agreement(a, b)
     assert s["number_recall_b_vs_a"] == 1.0 and s["number_precision_b_vs_a"] == 0.5
     assert s["attribution_disagreements"] == {"scale": 1}
+    soft = C.attribution_diff({"site_norm": "UNKNOWN", "scale": "UNKNOWN", "parameter_code": "OTHER"},
+                              {"site_norm": "VKM_UNSPECIFIED", "scale": "LAB", "parameter_code": "E"})
+    assert soft == ["parameter_code_one_side", "scale_one_side", "site_norm_soft"]

@@ -12,6 +12,8 @@ import unicodedata
 from collections import defaultdict
 
 ATTRIBUTION = ("parameter_code", "scale", "site_norm", "material")
+SOFT = {"site_norm": {"UNKNOWN", "VKM_UNSPECIFIED"}, "scale": set(), "parameter_code": set()}
+SOFT_ONE_SIDE = {"site_norm": set(), "scale": {"UNKNOWN"}, "parameter_code": {"OTHER"}}
 
 
 def _norm(s: str | None) -> str:
@@ -88,11 +90,19 @@ def match(a: list[dict], b: list[dict]) -> tuple[list[tuple[dict, dict]], list[d
 
 
 def attribution_diff(r: dict, s: dict) -> list[str]:
-    """Fields that differ; ``material_one_side`` — the rock / layer is given by one producer only (weaker than a
-    contradiction ``material``)."""
+    """Fields that differ. Hard: ``parameter_code``, ``scale``, ``site_norm``, ``material``. Soft: ``*_one_side`` — one
+    producer left the field open (OTHER / UNKNOWN / no rock); ``site_norm_soft`` — UNKNOWN against VKM_UNSPECIFIED,
+    both meaning that the page names no mine."""
     out = []
     for f in ("parameter_code", "scale", "site_norm"):
-        if (r.get(f) or "") != (s.get(f) or ""):
+        a, b = r.get(f) or "", s.get(f) or ""
+        if a == b:
+            continue
+        if {a, b} <= SOFT[f]:
+            out.append(f"{f}_soft")                     # both say «not stated»: a variant, not a contradiction
+        elif SOFT_ONE_SIDE[f] & {a, b}:
+            out.append(f"{f}_one_side")                 # one producer left it open
+        else:
             out.append(f)
     ka, kb = material_key(r.get("material_as_printed")), material_key(s.get("material_as_printed"))
     if bool(ka) != bool(kb):
@@ -115,7 +125,7 @@ def agreement(a: list[dict], b: list[dict]) -> dict:
         for f in d:
             diffs[f] += 1
         full += not d
-        strict += not [f for f in d if f != "material_one_side"]
+        strict += not [f for f in d if not f.endswith(("_one_side", "_soft"))]
     n = len(num_pairs)
     return {"records_a": len(a), "records_b": len(b), "numeric_a": len(num_a), "numeric_b": len(num_b),
             "matched": len(pairs), "matched_numeric": n,
