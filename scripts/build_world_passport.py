@@ -397,9 +397,18 @@ def double_entry_flags(ev: list[dict], canon: Path, sol_run: str) -> dict:
     dbl = _jsonl(canon / "WORLD_EXTRACTION" / "double" / "accepted.jsonl")
     if not sol or not dbl:
         return {}
-    common = {r["packet_id"] for r in dbl} & {r["packet_id"] for r in sol}
-    a = [r for r in sol if r["packet_id"] in common]
-    b = [r for r in dbl if r["packet_id"] in common]
+    man = canon / "WORLD_EXTRACTION" / "packets.jsonl"
+    pages = {}
+    if man.is_file():
+        for line in open(man, encoding="utf-8"):
+            m = json.loads(line)
+            pages[m["packet_id"]] = set(m["page_ids"])
+    covered_sol = {pg for pid in {r["packet_id"] for r in sol} for pg in pages.get(pid, ())}
+    covered_dbl = {pg for pid in {r["packet_id"] for r in dbl} for pg in pages.get(pid, ())}
+    common_pages = covered_sol & covered_dbl if pages else ({r["page_id"] for r in sol} & {r["page_id"] for r in dbl})
+    common = {r["packet_id"] for r in dbl}
+    a = [r for r in sol if r["page_id"] in common_pages]
+    b = [r for r in dbl if r["page_id"] in common_pages]
     pairs, only_a, only_b = C.match(a, b)
     flag = {}
     for r, s in pairs:
@@ -414,7 +423,8 @@ def double_entry_flags(ev: list[dict], canon: Path, sol_run: str) -> dict:
         if x["producer_record_id"] in flag:
             x["double_entry"] = flag[x["producer_record_id"]]
     summ = C.agreement(a, b)
-    summ["packets"] = len(common)
+    summ.update(reference="CLAUDE_DOUBLE_ENTRY is B, the producer run is A", packets_double=len(common),
+                common_pages=len(common_pages))
     return summ
 
 
