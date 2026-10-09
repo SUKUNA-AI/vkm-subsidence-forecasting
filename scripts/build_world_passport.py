@@ -183,9 +183,10 @@ def phase1_rows(canon: Path) -> list[dict]:
                         value_as_printed=r["thickness_as_printed"], unit_as_printed="м",
                         si_min=r["thickness_min_m"], si_max=r["thickness_max_m"], si_unit="m", conversion="x1",
                         conditions=r["spatial_level"], method=r["observation_type"], n_samples="",
-                        origin="CITED" if r["secondary_copy_of"] else "ORIGINAL", cited_ref=r["secondary_copy_of"],
+                        origin="CITED" if r["secondary_copy_of"] else "ORIGINAL", cited_ref="",
                         source_id=r["source_id"], page_id=_page_id(r["source_id"], r["pdf_page"]),
-                        locator=r["locator"], quote="", status=r["status"], verification="PHASE1_REVIEWED", notes=""))
+                        locator=r["locator"], quote="", status=r["status"], verification="PHASE1_REVIEWED",
+                        notes=f"secondary copy of {r['secondary_copy_of']}" if r["secondary_copy_of"] else ""))
     return out
 
 
@@ -604,38 +605,104 @@ def objects(canon: Path, runs: list[str]) -> list[dict]:
 
 
 # ------------------------------------------------------------------------------------------------ literature
-def cited_literature(ev: list[dict], nav: Path | None) -> list[dict]:
-    """Bibliography entries behind cited numbers: «[12]» on a page → entry 12 of that source's list → a corpus work
-    when the link is known (NAV bibliography_links), else UNRESOLVED with the entry text."""
+def _title_key(t: str) -> set[str]:
+    return {w[:6] for w in _key(t).split() if len(w) >= 4}
+
+
+def _surname(a: str) -> str:
+    m = re.match(r"\s*([A-Za-zА-Яа-яЁё\-]{3,})", a or "")
+    return _key(m.group(1)) if m else ""
+
+
+def match_work(title: str, authors: str, year, works: list[dict]) -> tuple[str, float]:
+    """Best corpus / external work for a parsed bibliography entry: title stems overlap ≥ 0.6 of the shorter title
+    and the year or the first author's surname agrees. Returns (work id, score) or ("", 0)."""
+    tk, sn = _title_key(title), _surname(authors)
+    best, score = "", 0.0
+    if len(tk) < 2:
+        return best, score
+    for w in works:
+        wk = w["_tk"]
+        if len(wk) < 2:
+            continue
+        ov = len(tk & wk) / min(len(tk), len(wk))
+        if ov < 0.6:
+            continue
+        same_year = bool(year) and str(year) == str(w.get("year") or "")
+        same_author = bool(sn) and sn == w["_sn"]
+        if not (same_year or same_author):
+            continue
+        sc = ov + 0.2 * same_year + 0.2 * same_author
+        if sc > score:
+            best, score = w["id"], sc
+    return best, round(score, 3)
+
+
+def cited_literature(ev: list[dict], nav: Path | None, canon: Path | None = None) -> list[dict]:
+    """Bibliography entries behind cited numbers: «[12]» on a page → entry 12 of that source's list (NAV) → a corpus
+    work (NAV link, else a title / author / year match) or a work of the external register; otherwise the parsed entry
+    stays as a work to obtain. Matches are AUTO, unreviewed."""
     cited = defaultdict(list)
     for x in ev:
         if x["origin"] == "CITED" and x["cited_ref"] and x["source_id"].startswith("VKM-"):
-            for lab in re.findall(r"\[(\d{1,3})(?:[,–-]\s*\d{1,3})*\]|^(\d{1,3})$", x["cited_ref"]):
-                n = lab[0] or lab[1]
+            labs = re.findall(r"\[(\d{1,3})", x["cited_ref"]) + re.findall(r"[,;]\s*(\d{1,3})(?=[\],;])",
+                                                                              x["cited_ref"])
+            if re.fullmatch(r"\s*\d{1,3}\s*", x["cited_ref"]):
+                labs = [x["cited_ref"].strip()]
+            for n in dict.fromkeys(labs):
                 cited[(x["source_id"], n)].append(x["ev_id"])
-            if not re.search(r"\[\d", x["cited_ref"]):
+            if not labs:
                 cited[(x["source_id"], x["cited_ref"][:120])].append(x["ev_id"])
-    entries, links = {}, {}
+    entries, links, works = {}, {}, []
     if nav and nav.is_file():
         import duckdb
         c = duckdb.connect(str(nav), read_only=True)
-        cols = {r[0] for r in c.execute("select column_name from information_schema.columns where "
-                                        "table_name='bibliography_entries'").fetchall()}
-        txt = "normalized_text" if "normalized_text" in cols else ("text" if "text" in cols else "''")
-        for oid, sid, lab, ordn, t in c.execute(f"select object_id, source_id, entry_label, ordinal_in_list, {txt} "
-                                                f"from bibliography_entries").fetchall():
+        for oid, sid, lab, ordn, t, pa, pt, py in c.execute(
+                "select object_id, source_id, entry_label, ordinal_in_list, normalized_text, parsed_authors::varchar, "
+                "parsed_title, parsed_year from bibliography_entries order by object_id").fetchall():
             key_lab = re.sub(r"\D", "", lab or "") or (str(ordn) if ordn is not None else "")
-            entries.setdefault((sid, key_lab), (oid, (t or "")[:300]))
+            entries.setdefault((sid, key_lab), (oid, (t or "")[:300], pa or "", pt or "", py))
         for eid, wid, st in c.execute("select entry_id, cited_work_id, match_status from bibliography_links").fetchall():
             links[eid] = (wid, st)
+        for wid, title, auth, year in c.execute("select work_id, title, authors_display, publication_year from works"
+                                                ).fetchall():
+            works.append({"id": wid, "year": year, "_tk": _title_key(title or ""), "_sn": _surname(auth or "")})
+    ext = []
+    if canon is not None:
+        for r in _rows(canon / "EXTERNAL" / "external_sources.csv"):
+            ext.append({"id": r["ext_id"], "year": r["year"], "_tk": _title_key(r["title"]), "_sn": _surname(r["authors"]),
+                        "doi": r["doi"]})
     out = []
     for (sid, ref), evs in sorted(cited.items()):
         ent = entries.get((sid, ref))
-        wid, st = links.get(ent[0], ("", "")) if ent else ("", "")
-        out.append({"cl_id": f"WCL-{len(out) + 1:05d}", "citing_source_id": sid, "cited_ref": ref, "bibliography_entry_id": ent[0] if ent else "",
-                    "entry_text": ent[1] if ent else "", "cited_work_id": wid or "",
-                    "resolution": "CORPUS_WORK" if wid else ("ENTRY_FOUND" if ent else "UNRESOLVED"),
-                    "link_status": st or "", "n_evidence": len(evs), "evidence_ids": ";".join(evs)[:1500]})
+        if ent is None and not ref.isdigit():                       # «Кудряшов А.И., Мараков В.Е., 2012»
+            sn, yr = _surname(ref), (re.search(r"(?<!\d)(1[89]\d\d|20[0-2]\d)(?!\d)", ref) or [None])[0]
+            if sn and yr:
+                hits = [e for (s2, _l), e in entries.items() if s2 == sid and str(e[4] or "") == yr
+                        and sn in _key(e[2] or e[1])]
+                ent = hits[0] if len(hits) == 1 else None
+        rec = {"cl_id": f"WCL-{len(out) + 1:05d}", "citing_source_id": sid, "cited_ref": ref,
+               "bibliography_entry_id": "", "entry_text": "", "parsed_authors": "", "parsed_title": "",
+               "parsed_year": "", "cited_work_id": "", "match_method": "", "match_score": "", "resolution": "UNRESOLVED",
+               "n_evidence": len(evs), "evidence_ids": ";".join(evs)[:1500]}
+        if ent:
+            oid, text, pa, pt, py = ent
+            rec.update(bibliography_entry_id=oid, entry_text=text, parsed_authors=pa[:200], parsed_title=pt[:300],
+                       parsed_year=py or "", resolution="ENTRY_PARSED_NOT_IN_CORPUS")
+            wid, st = links.get(oid, ("", ""))
+            if wid:
+                rec.update(cited_work_id=wid, match_method=f"NAV:{st}", match_score="1", resolution="CORPUS_WORK")
+            else:
+                w, sc = match_work(pt or text, pa or text, py, works)
+                if w:
+                    rec.update(cited_work_id=w, match_method="TITLE_STEMS+YEAR/AUTHOR", match_score=sc,
+                               resolution="CORPUS_WORK_AUTO")
+                else:
+                    e, sc = match_work(pt or text, pa or text, py, ext)
+                    if e:
+                        rec.update(cited_work_id=e, match_method="TITLE_STEMS+YEAR/AUTHOR", match_score=sc,
+                                   resolution="EXTERNAL_REGISTER_AUTO")
+        out.append(rec)
     return out
 
 
@@ -678,7 +745,7 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
     trans = _rows(canon / "WORLD_PARAMETERS" / "curated" / "c2_transfer_branches.csv")
     reg = registry(ev, by_ev, transfer_links(trans))
     objs = objects(canon, runs)
-    lit = cited_literature(ev, nav)
+    lit = cited_literature(ev, nav, canon)
     files = {"passport_evidence.csv": _csv(ev, EV_COLS), "world_passport.csv": _csv(reg),
              "passport_conflicts.csv": _csv(conf), "world_objects.csv": _csv(objs),
              "cited_literature.csv": _csv(lit), "transfer_branches.csv": _csv(trans)}
