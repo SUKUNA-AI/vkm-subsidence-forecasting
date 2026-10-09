@@ -127,7 +127,8 @@ def main() -> int:
                "by_tier": {t: sum(1 for m in manifests if m["tier"] == t) for t in "ABC"},
                "pages_per_packet": {"min": sizes[0], "median": sizes[len(sizes) // 2], "max": sizes[-1]},
                "chars_total": sum(m["chars"] for m in manifests),
-               "limits": {"MAX_PAGES": P.MAX_PAGES, "MIN_PAGES": P.MIN_PAGES, "MAX_CHARS": P.MAX_CHARS},
+               "limits": {"MAX_PAGES": P.MAX_PAGES, "MIN_PAGES": P.MIN_PAGES, "MAX_CHARS": P.MAX_CHARS,
+                          "MAX_NUMBERS": P.MAX_NUMBERS},
                "mixed_packets": mixed_no}
     (out / "packets_receipt.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=1) + "\n",
                                               encoding="utf-8", newline="\n")

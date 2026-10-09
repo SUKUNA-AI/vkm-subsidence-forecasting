@@ -127,6 +127,14 @@ def test_packets_balanced_chunks_and_mixed_pool():
     assert P.packet_id(groups[0]) == "VKM-SRC-001_p0001-0005"
 
 
+def test_packets_split_dense_tables_by_number_count():
+    rows = _rows("VKM-SRC-005", range(1, 7))
+    texts = {r["page_id"]: " ".join(["12,5"] * 150) for r in rows}           # 150 numbers per page
+    groups = P.group_pages(rows, texts)
+    assert all(sum(P.n_numbers(texts[r["page_id"]]) for r in g) <= P.MAX_NUMBERS for g in groups)
+    assert sum(len(g) for g in groups) == 6
+
+
 def test_packet_render_marks_context_and_keeps_page_text():
     pk = P.Packet("X", "A", ["VKM-SRC-001:p0002"], {"VKM-SRC-001:p0002": "текст страницы"},
                   {"VKM-SRC-001:p0001": ["1.2 Заголовок раздела"]}, {"VKM-SRC-001": "Автор, «Книга» (2000)"})

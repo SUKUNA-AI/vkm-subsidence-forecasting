@@ -16,6 +16,12 @@ from dataclasses import dataclass, field
 MAX_PAGES = 8
 MIN_PAGES = 5
 MAX_CHARS = 32000
+MAX_NUMBERS = 400                 # printed numbers per packet: dense property tables otherwise overflow one answer
+_NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
+
+
+def n_numbers(text: str) -> int:
+    return len(_NUMBER.findall(text or ""))
 
 _HEADING = re.compile(r"^\s*(?:глава\s+\d|приложение\s|введение|заключение|выводы|"
                       r"\d{1,2}(?:\.\d{1,2}){0,3}\.?\s+[А-ЯЁA-Z][^.]{3,110}$)", re.I)
@@ -99,16 +105,19 @@ class Packet:
 def _chunks(rows: list[dict], texts: dict[str, str]) -> list[list[dict]]:
     """Balanced chunks of one source's pages: ≤ MAX_PAGES pages and ≤ MAX_CHARS characters each."""
     n = len(rows)
-    k = max(1, math.ceil(n / MAX_PAGES), math.ceil(sum(len(texts[r["page_id"]]) for r in rows) / MAX_CHARS))
+    nums = {r["page_id"]: n_numbers(texts[r["page_id"]]) for r in rows}
+    k = max(1, math.ceil(n / MAX_PAGES), math.ceil(sum(len(texts[r["page_id"]]) for r in rows) / MAX_CHARS),
+            math.ceil(sum(nums.values()) / MAX_NUMBERS))
     size = math.ceil(n / k)
-    out, cur, chars = [], [], 0
+    out, cur, chars, numbers = [], [], 0, 0
     for r in rows:
-        t = len(texts[r["page_id"]])
-        if cur and (len(cur) >= size or chars + t > MAX_CHARS):
+        t, u = len(texts[r["page_id"]]), nums[r["page_id"]]
+        if cur and (len(cur) >= size or chars + t > MAX_CHARS or numbers + u > MAX_NUMBERS):
             out.append(cur)
-            cur, chars = [], 0
+            cur, chars, numbers = [], 0, 0
         cur.append(r)
         chars += t
+        numbers += u
     if cur:
         out.append(cur)
     return out
@@ -125,14 +134,16 @@ def group_pages(rows: list[dict], texts: dict[str, str]) -> list[list[dict]]:
         for ch in _chunks(sorted(by_src[src], key=lambda r: int(r["page_index"])), texts):
             (full if len(ch) >= MIN_PAGES else small).append(ch)
     small.sort(key=lambda ch: (min(r["tier"] for r in ch), ch[0]["source_id"]))
-    mixed, cur, chars = [], [], 0
+    mixed, cur, chars, numbers = [], [], 0, 0
     for ch in small:
         t = sum(len(texts[r["page_id"]]) for r in ch)
-        if cur and (len(cur) + len(ch) > MAX_PAGES or chars + t > MAX_CHARS):
+        u = sum(n_numbers(texts[r["page_id"]]) for r in ch)
+        if cur and (len(cur) + len(ch) > MAX_PAGES or chars + t > MAX_CHARS or numbers + u > MAX_NUMBERS):
             mixed.append(cur)
-            cur, chars = [], 0
+            cur, chars, numbers = [], 0, 0
         cur += ch
         chars += t
+        numbers += u
     if cur:
         mixed.append(cur)
     return full + mixed
