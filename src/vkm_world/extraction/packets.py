@@ -95,7 +95,8 @@ class Packet:
 
     def manifest(self) -> dict:
         body = self.render()
-        return {"packet_id": self.packet_id, "source_ids": self.source_ids, "tier": self.tier,
+        extra = {"split_of": self.split_of} if getattr(self, "split_of", None) else {}
+        return {**extra, "packet_id": self.packet_id, "source_ids": self.source_ids, "tier": self.tier,
                 "page_ids": self.page_ids, "n_pages": len(self.page_ids), "chars": len(body),
                 "packet_sha256": hashlib.sha256(body.encode("utf-8")).hexdigest(),
                 "page_text_sha256": {p: hashlib.sha256(t.encode("utf-8")).hexdigest()
@@ -154,6 +155,28 @@ def packet_id(pages: list[dict], mixed_no: int | None = None) -> str:
     if len(srcs) == 1 and mixed_no is None:
         return f"{pages[0]['source_id']}_p{int(pages[0]['page_index']):04d}-{int(pages[-1]['page_index']):04d}"
     return f"MIX-{mixed_no:03d}_{pages[0]['source_id']}"
+
+
+def split_dense(pinned: dict) -> list[Packet]:
+    """A pinned packet (kept byte-identical for the double entry) with more than 1.5 × MAX_NUMBERS printed numbers is
+    also cut into parts for the producer; each part keeps the pages' text, headers and context and names the pinned
+    packet in ``split_of``. Comparison then goes by page."""
+    parts = []
+    for pid, pk in sorted(pinned.items()):
+        texts = pk["page_texts"]
+        if sum(n_numbers(t) for t in texts.values()) <= 1.5 * MAX_NUMBERS:
+            continue
+        rows = [{"page_id": x, "source_id": _page_key(x)[0], "page_index": str(_page_key(x)[1]),
+                 "tier": pk["manifest"]["tier"]} for x in pk["manifest"]["page_ids"]]
+        for ch in _chunks(rows, texts):
+            ids = [r["page_id"] for r in ch]
+            ctx = {k: v for k, v in pk["context"].items()
+                   if any(abs(_page_key(k)[1] - _page_key(x)[1]) == 1 for x in ids)}
+            part = Packet(packet_id(ch), pk["manifest"]["tier"], ids, {x: texts[x] for x in ids}, ctx,
+                          {s: h for s, h in pk["headers"].items() if any(x.startswith(s + ":") for x in ids)})
+            part.split_of = pid
+            parts.append(part)
+    return parts
 
 
 def to_json(p: Packet) -> str:

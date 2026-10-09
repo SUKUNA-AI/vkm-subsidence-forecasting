@@ -78,6 +78,7 @@ def main() -> int:
     out = a.out
     (out / "packets").mkdir(parents=True, exist_ok=True)
     keep = {f"{pid}.{ext}" for pid in pinned for ext in ("json", "txt")}
+    keep |= {f"{x.packet_id}.{ext}" for x in P.split_dense(pinned) for ext in ("json", "txt")}
     for f in (out / "packets").iterdir():
         if f.name not in keep:
             f.unlink()
@@ -111,6 +112,13 @@ def main() -> int:
         (out / "packets" / f"{pk.packet_id}.json").write_text(P.to_json(pk) + "\n", encoding="utf-8", newline="\n")
         (out / "packets" / f"{pk.packet_id}.txt").write_bytes(pk.render().encode("utf-8"))
         manifests.append(pk.manifest())
+    for part in P.split_dense(pinned):                       # dense pinned packets: parts for the producer
+        (out / "packets" / f"{part.packet_id}.json").write_text(P.to_json(part) + "
+", encoding="utf-8",
+                                                               newline="
+")
+        (out / "packets" / f"{part.packet_id}.txt").write_bytes(part.render().encode("utf-8"))
+        manifests.append(part.manifest())
     manifests.sort(key=lambda m: ("ABC".index(m["tier"]), m["packet_id"]))
     with open(out / "packets.jsonl", "w", encoding="utf-8", newline="\n") as f:
         for m in manifests:
