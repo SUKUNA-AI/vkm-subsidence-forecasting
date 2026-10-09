@@ -20,8 +20,8 @@ def _norm(s: str | None) -> str:
 
 
 def material_key(s: str | None) -> str:
-    """Rock / layer as a comparable key: lower case, no punctuation, word stems of 5 letters."""
-    words = [w[:5] for w in _norm(s).split() if len(w) > 2]
+    """Rock / layer as a comparable key: lower case, no punctuation, word stems of 4 letters."""
+    words = [w[:4] for w in _norm(s).split() if len(w) > 2]
     return " ".join(sorted(set(words)))
 
 
@@ -88,11 +88,16 @@ def match(a: list[dict], b: list[dict]) -> tuple[list[tuple[dict, dict]], list[d
 
 
 def attribution_diff(r: dict, s: dict) -> list[str]:
+    """Fields that differ; ``material_one_side`` — the rock / layer is given by one producer only (weaker than a
+    contradiction ``material``)."""
     out = []
     for f in ("parameter_code", "scale", "site_norm"):
         if (r.get(f) or "") != (s.get(f) or ""):
             out.append(f)
-    if not _material_agree(r.get("material_as_printed"), s.get("material_as_printed")):
+    ka, kb = material_key(r.get("material_as_printed")), material_key(s.get("material_as_printed"))
+    if bool(ka) != bool(kb):
+        out.append("material_one_side")
+    elif not _material_agree(r.get("material_as_printed"), s.get("material_as_printed")):
         out.append("material")
     return out
 
@@ -104,17 +109,19 @@ def agreement(a: list[dict], b: list[dict]) -> dict:
     num_b = [r for r in b if r.get("value_min") is not None]
     num_pairs = [(r, s) for r, s in pairs if r.get("value_min") is not None]
     diffs = defaultdict(int)
-    full = 0
+    full = strict = 0
     for r, s in num_pairs:
         d = attribution_diff(r, s)
         for f in d:
             diffs[f] += 1
         full += not d
+        strict += not [f for f in d if f != "material_one_side"]
     n = len(num_pairs)
     return {"records_a": len(a), "records_b": len(b), "numeric_a": len(num_a), "numeric_b": len(num_b),
             "matched": len(pairs), "matched_numeric": n,
             "number_recall_b_vs_a": round(n / len(num_a), 3) if num_a else None,
             "number_precision_b_vs_a": round(n / len(num_b), 3) if num_b else None,
             "attribution_full_agreement": round(full / n, 3) if n else None,
+            "attribution_no_contradiction": round(strict / n, 3) if n else None,
             "attribution_disagreements": dict(sorted(diffs.items())),
             "only_a": len(only_a), "only_b": len(only_b)}
