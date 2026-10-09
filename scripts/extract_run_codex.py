@@ -137,6 +137,20 @@ def run_packet(pid: str, a, codex: Path, version: str, task: bytes, schema_path:
     if (d / "DONE").is_file():
         return {"packet_id": pid, "status": "SKIPPED_DONE"}
     d.mkdir(parents=True, exist_ok=True)
+    try:                                               # one runner per packet, also across runner processes
+        fd = os.open(d / "CLAIM", os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        os.write(fd, f"{os.getpid()} {now()}\n".encode())
+        os.close(fd)
+    except FileExistsError:
+        return {"packet_id": pid, "status": "SKIPPED_CLAIMED"}
+    try:
+        return _run_claimed(pid, d, pk, body, a, codex, version, task, schema_path)
+    finally:
+        (d / "CLAIM").unlink(missing_ok=True)
+
+
+def _run_claimed(pid, d, pk, body, a, codex, version, task, schema_path) -> dict:
+    global _pause_until
     prompt = task + b"\n\n" + body
     (d / "prompt.txt").write_bytes(prompt)
     cwd = a.work / "sol_cwd" / f"{a.run}__{pid}"
@@ -240,6 +254,8 @@ def main() -> int:
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--parallel", type=int, default=4)
     ap.add_argument("--status", action="store_true")
+    ap.add_argument("--reclaim", action="store_true", help="drop CLAIM markers left by a stopped runner (packets "
+                                                            "without DONE) before starting")
     a = ap.parse_args()
     a.work = a.work.resolve()
     if a.status:
@@ -259,6 +275,11 @@ def main() -> int:
     if a.limit:
         ids = ids[:a.limit]
     (a.work / "sol" / a.run).mkdir(parents=True, exist_ok=True)
+    if a.reclaim:
+        for pid in ids:
+            d = a.work / "sol" / a.run / pid
+            if (d / "CLAIM").is_file() and not (d / "DONE").is_file():
+                (d / "CLAIM").unlink()
     log(a.work, a.run, f"start: {len(ids)} packets, effort {a.effort}, parallel {a.parallel}, {version}")
     res = []
     with ThreadPoolExecutor(max_workers=a.parallel) as ex:
@@ -271,7 +292,7 @@ def main() -> int:
                                f"out={r.get('usage', {}).get('output_tokens', '-')} s={r.get('seconds', '-')}")
     bad = [r for r in res if r["status"] == "FAILED"]
     log(a.work, a.run, f"end: ok={sum(r['status'] == 'OK' for r in res)} skipped="
-                       f"{sum(r['status'] == 'SKIPPED_DONE' for r in res)} failed={len(bad)}")
+                       f"{sum(r['status'].startswith('SKIPPED') for r in res)} failed={len(bad)}")
     return 1 if bad else 0
 
 
