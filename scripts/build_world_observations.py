@@ -58,6 +58,12 @@ def modality_of(text: str) -> str:
     return "OTHER"
 
 
+def fig_no(label: str | None) -> str:
+    """«Рис. 4.3.4», «Рисунок 4.3.4 –», «рисунок 2.» → «4.3.4», «2»."""
+    m = re.search(r"(\d+(?:\.\d+)*)", label or "")
+    return m.group(1) if m else ""
+
+
 def skru1_flag(site_norm: str) -> str:
     s = (site_norm or "").upper()
     if s == "SKRU1":
@@ -158,7 +164,7 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
                                "y_value": p.get("y_value", ""), "y_unit": p.get("y_unit", ""),
                                "sign_convention": p.get("sign_convention", ""), "point_kind": p.get("point_kind", ""),
                                "status": "DERIVATION"})
-    digitized_pages = {(o["page_id"], (o["figure_label"] or "").lower()) for o in obs}
+    digitized_pages = {(o["page_id"], fig_no(o["figure_label"])) for o in obs}
 
     # 2. figures reviewed on 08.10 (YES / PARTIAL) not digitized again
     for r in _rows(canon / "WORLD_OBSERVATIONS" / "figure_series_review.csv"):
@@ -175,8 +181,8 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
                         calibration_ref="NAV figure_series (auto, vector route)", calibration_check=r["calibration_check"],
                         status="DERIVATION", applicability=r["reason"], usable_for_validation=r["usable_for_validation"],
                         producer=r["reviewed_by"], review_status="AUTO_EXTRACTED_UNREVIEWED",
-                        notes=(r["notes"] + (" | also digitized 09.10" if (r["page_id"], r["figure_label"].lower())
-                                             in digitized_pages else ""))[:500]))
+                        notes=((" also digitized 09.10 (see DIGITIZED_SERIES) |" if (r["page_id"], fig_no(r["figure_label"]))
+                                in digitized_pages else "") + r["notes"])[:500]))
 
     # 3. Phase-1 monitoring catalogue: datasets with values in the corpus
     for r in _rows(canon / "MONITORING_LIFECYCLE" / "monitoring_observation_catalog.csv"):
