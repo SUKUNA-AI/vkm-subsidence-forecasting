@@ -103,14 +103,26 @@ def _load(path: Path) -> list[dict]:
 
 
 def compare_runs(work: Path, a: str, b: str) -> dict:
-    common = sorted(set(packets_of(work, a)) & set(packets_of(work, b)))
-    ra = [r for r in _load(work / "accept" / a / "accepted.jsonl") if r["packet_id"] in common]
-    rb = [r for r in _load(work / "accept" / b / "accepted.jsonl") if r["packet_id"] in common]
+    pages = {}
+    for line in open(work / "packets.jsonl", encoding="utf-8"):
+        m = json.loads(line)
+        pages[m["packet_id"]] = m["page_ids"]
+    for d in (work / "packets").glob("*.json"):            # packets of earlier builds kept on disk (pinned)
+        if d.stem not in pages:
+            pages[d.stem] = json.loads(d.read_text(encoding="utf-8"))["manifest"]["page_ids"]
+
+    def pages_done(run):
+        return {pg for pid in packets_of(work, run) for pg in pages.get(pid, ())}
+    common_pages = pages_done(a) & pages_done(b)            # pages, so a packet split for one run still compares
+    common = sorted({pid for pid in set(packets_of(work, a)) | set(packets_of(work, b))
+                     if set(pages.get(pid, ())) & common_pages})
+    ra = [r for r in _load(work / "accept" / a / "accepted.jsonl") if r["page_id"] in common_pages]
+    rb = [r for r in _load(work / "accept" / b / "accepted.jsonl") if r["page_id"] in common_pages]
     out = work / "compare" / f"{a}__{b}"
     out.mkdir(parents=True, exist_ok=True)
     pairs, only_a, only_b = C.match(ra, rb)
     summ = C.agreement(ra, rb)
-    summ.update(rule_version=RULE_VERSION, run_a=a, run_b=b, packets=common)
+    summ.update(rule_version=RULE_VERSION, run_a=a, run_b=b, packets=common, n_common_pages=len(common_pages))
     cols = ["page_id", "kind", "parameter_code", "value_as_printed", "unit_as_printed", "material_as_printed",
             "scale", "site_norm", "conditions", "record_id"]
     with open(out / "disagreements.csv", "w", encoding="utf-8", newline="") as f:
