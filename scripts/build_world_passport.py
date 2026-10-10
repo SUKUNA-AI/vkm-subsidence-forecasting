@@ -439,6 +439,58 @@ def skru1_rows(canon: Path, units: Units) -> list[dict]:
     return out
 
 
+def _year(iso: str | None) -> float | None:
+    """«1941», «1941-05», «1941-05-12» → decimal year (the start of the period of that precision)."""
+    m = re.match(r"\s*(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?", iso or "")
+    if not m:
+        return None
+    y, mo, d = int(m.group(1)), int(m.group(2) or 1), int(m.group(3) or 1)
+    return round(y + (mo - 1) / 12 + (d - 1) / 365, 3)
+
+
+def calendar_rows(canon: Path) -> list[dict]:
+    """Mining and backfill calendar of SKRU-1 (curated ``skru1_mining_calendar*.csv``, 10.10.2026): one evidence row per
+    dated event (years as decimal numbers, plan kept apart from fact by scale) and one per printed chamber / pillar
+    size."""
+    out = []
+    for path in sorted((canon / "WORLD_PARAMETERS" / "curated").glob("skru1_mining_calendar*.csv")):
+        for r in _rows(path):
+            ev = (r.get("event") or "").upper()
+            param = ("MINING_DATE" if ev.startswith("MINING") else "BACKFILL_DATE" if ev.startswith("BACKFILL")
+                     else "EVENT_DATE")
+            plan = (r.get("planned_or_actual") or "").upper()
+            scale = "NORMATIVE" if plan in ("PLANNED", "FORECAST", "EXPECTED") else "FIELD"
+            target = ": ".join(x for x in (r.get("seam"), r.get("object_id") or r.get("object_as_printed")) if x)[:120]
+            y0, y1 = _year(r.get("date_start_iso")), _year(r.get("date_end_iso"))
+            ys = [y for y in (y0, y1) if y is not None]
+            span = " – ".join(x for x in (r.get("date_start_as_printed"), r.get("date_end_as_printed")) if x)
+            base = dict(producer="CURATED_C4_CALENDAR_20261010", module="C4", target=target, material_class="",
+                        material_as_printed=r.get("seam") or "", scale=scale, branch="-",
+                        site_norm=r.get("site_norm") or "UNKNOWN",
+                        site_group=SITE_GROUP.get(r.get("site_norm") or "UNKNOWN", "GENERAL_OR_UNSTATED"),
+                        site_basis="PAGE", conditions=f"{ev}; {plan}", method=r.get("method_as_printed") or "",
+                        n_samples="", origin="CITED" if "вторич" in (r.get("note") or "") else "ORIGINAL",
+                        cited_ref="", source_id=r.get("source_id") or "", page_id=r.get("page_id") or "",
+                        locator=r.get("locator") or "", quote=r.get("quote") or "", status=r.get("status") or "",
+                        verification="VERIFIED_ON_PAGE_BY_AGENT" if r.get("verified_on_page") in ("YES", "SOURCE_FILE")
+                        else "NOT_VERIFIED", notes=(r.get("note") or "")[:300], kind="HISTORY")
+            out.append(dict(base, producer_record_id=r["row_id"], parameter=param, value_as_printed=span,
+                            unit_as_printed="", si_min=f"{min(ys):.3f}" if ys else "",
+                            si_max=f"{max(ys):.3f}" if ys else "", si_unit="year" if ys else "",
+                            conversion="ISO date → decimal year" if ys else "NO_VALUE", time_as_printed=span))
+            for col, gp in (("chamber_width_m", "CHAMBER_WIDTH"), ("pillar_width_m", "PILLAR_WIDTH"),
+                            ("extracted_height_m", "CHAMBER_HEIGHT"), ("extraction_ratio", "EXTRACTION_RATIO"),
+                            ("backfill_ratio", "BACKFILL_RATIO"), ("loading_degree_C", "LOADING_DEGREE")):
+                nums = _nums(r.get(col))
+                if nums:
+                    unit = "1" if gp in ("EXTRACTION_RATIO", "BACKFILL_RATIO", "LOADING_DEGREE") else "m"
+                    out.append(dict(base, producer_record_id=f"{r['row_id']}-{gp}", parameter=gp,
+                                    value_as_printed=r.get(col), unit_as_printed=unit, si_min=f"{min(nums):.6g}",
+                                    si_max=f"{max(nums):.6g}", si_unit=unit, conversion="x1", time_as_printed=span,
+                                    kind="GEOMETRY"))
+    return out
+
+
 def clusters(ev: list[dict]) -> None:
     """Copies of one number: same parameter, target, SI min/max (or printed value and unit) in several rows.
     ORIGINAL rows of the earliest source are primary; others are copies or cross-producer duplicates."""
@@ -926,9 +978,10 @@ def _csv(rows: list[dict], cols: list[str] | None = None) -> bytes:
 
 def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
     units = Units(_rows(canon / "GEOLOGY_COORDS" / "stratigraphic_units.csv"))
-    ev = phase1_rows(canon) + curated_rows(canon) + skru1_rows(canon, units) + extraction_rows(canon, runs, units)
+    ev = (phase1_rows(canon) + curated_rows(canon) + skru1_rows(canon, units) + calendar_rows(canon)
+          + extraction_rows(canon, runs, units))
     prod_order = {"PHASE1_CATALOGUE": 0, "CURATED_SKRU1_20261008": 1, "CURATED_C3_20261009": 2,
-                  "CURATED_LAWS_20261009": 3}
+                  "CURATED_LAWS_20261009": 3, "CURATED_C4_CALENDAR_20261010": 4}
     ev.sort(key=lambda x: (x["module"], x["parameter"], x["target"], prod_order.get(x["producer"], 5), x["producer"],
                            x["source_id"], x["page_id"], x["producer_record_id"]))
     for i, x in enumerate(ev, 1):
