@@ -216,3 +216,15 @@ def test_more_printed_forms():
     assert 0.25 in V.candidate_values("1/4") and -12.0 in V.candidate_values("±12")
     assert 2e-5 in V.candidate_values("2•10-5") and 1.5 in V.candidate_values("1, 5")
     assert {1, 2} <= set(V.candidate_values("один-два")) and {2, 3} <= set(V.candidate_values("двух-трех"))
+
+
+def test_review_groups_split_by_source_pages_and_size():
+    spec = importlib.util.spec_from_file_location("extract_review_groups", ROOT / "scripts" / "extract_review_groups.py")
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    recs = {f"r{i}": {"record_id": f"r{i}", "page_id": pid, "packet_id": "P"}
+            for i, pid in enumerate(["S-1:p0001"] * 3 + ["S-1:p0002"] * 2 + ["S-2:p0001"])}
+    flags = [{"producer_record_id": k, "why": ["OUT_OF_BOUNDS"]} for k in recs] + [{"producer_record_id": "gone"}]
+    groups = m.layout(flags, recs, {"r0": {"si_min": "1", "si_max": "1", "si_unit": "Pa", "target": "ROCKSALT"}}, 4, 10)
+    assert [[p["page_id"] for p in g["pages"]] for g in groups] == [["S-1:p0001"], ["S-1:p0002"], ["S-2:p0001"]]
+    assert groups[0]["pages"][0]["items"][0]["passport_si"] == ["1", "1", "Pa"]
