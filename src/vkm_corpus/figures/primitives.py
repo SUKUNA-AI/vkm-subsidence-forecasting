@@ -71,14 +71,22 @@ class Path:
 
 # ------------------------------------------------------------------------------------------------ label parsing
 _NUM = re.compile(r"^\s*([-−–+]?)\s*(\d{1,3}(?:[   ]\d{3})+|\d+)(?:[.,](\d+))?\s*(%?)\s*$")
+# a spreadsheet's scientific notation: '5E-18', '-5E-19' (zero with a rounding residue), '1E+05', '2,5E-3'
+_SCI = re.compile(r"^\s*([-−–+]?)\s*(\d+(?:[.,]\d+)?)[Ee]([-−–+]?)(\d{1,3})\s*$")
 _DATE = re.compile(r"^\s*(\d{1,2})[./](\d{1,2})[./](\d{2}|\d{4})\s*(?:г\.?)?\s*$")
 _MONTH_YEAR = re.compile(r"^\s*(\d{1,2})[./](\d{4})\s*$")
 
 
 def parse_number(s: str) -> float | None:
-    """'−1 150', '–60', '0,5', '1.25', '12%' → float; anything else → None. A plain space separates thousands only
-    after a 1–2 digit group ('1 150', '12 500'): '187 188 189' is a row of labels merged by an import, not a number
-    (a thin or no-break space is always a thousands separator)."""
+    """'−1 150', '–60', '0,5', '1.25', '12%', '5E-18' → float; anything else → None. A plain space separates
+    thousands only after a 1–2 digit group ('1 150', '12 500'): '187 188 189' is a row of labels merged by an import,
+    not a number (a thin or no-break space is always a thousands separator). Scientific notation is a number
+    (fd-0.1.5): a tick label «-5E-19» is the zero of an axis, never an axis title."""
+    m = _SCI.match(s)
+    if m:
+        sign, mant, esign, exp = m.groups()
+        v = float(mant.replace(",", ".")) * 10.0 ** (-int(exp) if esign in ("-", "−", "–") else int(exp))
+        return -v if sign in ("-", "−", "–") else v
     m = _NUM.match(s)
     if not m:
         return None

@@ -226,7 +226,7 @@ def test_route_a_values_errors_units_and_availability(world):
             "UNCLASSIFIED"
         assert json.loads(s["calibration"])["x"]["kind"] == "LINEAR"
         prov = json.loads(s["provenance"])
-        assert prov["source_sha256"] and prov["digitizer_version"] == "fd-0.1.4" and prov["route"] == "A"
+        assert prov["source_sha256"] and prov["digitizer_version"] == "fd-0.1.5" and prov["route"] == "A"
         assert abs(s["x_max"] - 30.0) < 1e-2 and "EXTRAPOLATED_BEYOND_TICKS" not in s["flags"]
     assert abs(by_colour["#ff0000"]["x_min"]) < 1e-2 and abs(by_colour["#0000ff"]["x_min"] - HIDDEN[0]) < 1e-2
 

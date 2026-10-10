@@ -163,8 +163,11 @@ def jsonable(res: dict) -> dict:
     out = {k: v for k, v in res.items() if k not in ("x_axis", "y_axis", "series")}
     out["x_axis"] = res["x_axis"].to_json() if res.get("x_axis") is not None else None
     out["y_axis"] = res["y_axis"].to_json() if res.get("y_axis") is not None else None
-    out["series"] = [{k: v for k, v in s.items() if k not in ("points", "pts", "trace_px")} |
-                     {"n_points": len(s["points"])} for s in res.get("series", [])]
+    # a series read on its own panel's y scale (fd-0.1.5, Y_AXIS_PER_SERIES) carries that axis
+    out["series"] = [{k: v for k, v in s.items() if k not in ("points", "pts", "trace_px", "y_axis")} |
+                     {"n_points": len(s["points"])} |
+                     ({"y_axis": s["y_axis"].to_json()} if s.get("y_axis") is not None else {})
+                     for s in res.get("series", [])]
     return json.loads(json.dumps(out, default=lambda o: o.tolist() if hasattr(o, "tolist") else str(o)))
 
 
