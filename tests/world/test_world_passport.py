@@ -170,3 +170,35 @@ def test_world_priors_proposal_keeps_branches_apart(wpp, canon):
     e = {(r["branch_or_hypothesis"], r["site_group"]): r for r in rows if r["parameter"] == "E" and r["target"] == "SYLVINITE"}
     assert e[("A", "VKM")]["proposed_min"] == "2e+09" and e[("B", "VKM")]["proposed_max"] == "4e+08"
     assert any(r["parameter"] == "PHI" and r["target"] == "COVER" and r["world_status"] == "UNKNOWN" for r in rows)
+
+
+def test_borehole_picks_enter_c1_per_target_site(wpp, canon):
+    _write(canon / "BOREHOLES" / "borehole_catalog.csv", [
+        dict(borehole_id="BH-1", alternate_ids="12", mine_or_site="СКРУ-3", scope="SKRU3"),
+        dict(borehole_id="BH-2", alternate_ids="40", mine_or_site="Дуринская площадь", scope="OTHER_VKM_SITE")])
+    pick = dict(pick_id="", borehole_id="", borehole_id_as_printed="", unit_as_printed="ПКС", unit_canonical_guess="ПКС",
+                pick_kind="STRAT_BOUNDARY", reference="depth_below_collar", top_depth_m="", bottom_depth_m="",
+                top_abs_m="", bottom_abs_m="", thickness_m="", value_as_printed="", source_id="VKM-SRC-011",
+                locator="", extraction_method="TEXT_LAYER", status="FACT", scope="", scale="FIELD", notes="", quote="")
+    _write(canon / "BOREHOLES" / "borehole_picks.csv", [
+        dict(pick, pick_id="PK-1", borehole_id="BH-1", borehole_id_as_printed="скв. 12", scope="SKRU3",
+             top_depth_m="251.5", thickness_m="18"),
+        dict(pick, pick_id="PK-2", borehole_id="BH-2", borehole_id_as_printed="скв. 40", scope="OTHER_VKM_SITE",
+             thickness_m="30"),
+        dict(pick, pick_id="PK-3", borehole_id="BH-2", pick_kind="TEACHING_EXAMPLE", thickness_m="99")])
+    files = wpp.build(canon, ["high_full"], None)
+    ev = {r["producer_record_id"]: r for r in csv.DictReader(files["passport_evidence.csv"].decode("utf-8").splitlines())}
+    assert (ev["PK-1-DEPTH_TOP"]["si_min"], ev["PK-1-DEPTH_TOP"]["site_norm"], ev["PK-1-DEPTH_TOP"]["target"]) == \
+        ("251.5", "SKRU3", "PKS")
+    assert ev["PK-1-THICKNESS"]["borehole_id"] == "BH-1" and ev["PK-2-THICKNESS"]["site_norm"] == "VKM_UNSPECIFIED"
+    assert "PK-3-THICKNESS" not in ev                                              # teaching example: not geometry
+    out = canon / "WORLD_PASSPORT"
+    out.mkdir(parents=True, exist_ok=True)
+    for k, v in files.items():
+        (out / k).write_bytes(v)
+    rows = list(csv.DictReader(_load("build_world_priors").build(canon)["world_priors_proposal.csv"]
+                               .decode("utf-8").splitlines()))
+    thk = {r["site_group"]: r for r in rows if r["module"] == "C1" and r["parameter"] == "THICKNESS"
+           and r["target"] == "PKS"}
+    assert thk["SKRU3"]["world_status"] == "FACT" and thk["SKRU1"]["world_status"] == "FACT"
+    assert thk["VKM"]["world_status"] == "ANALOGUE_VIA_TRANSFER" and "СКРУ-2" in thk["VKM"]["note"]

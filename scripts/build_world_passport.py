@@ -448,12 +448,94 @@ def _year(iso: str | None) -> float | None:
     return round(y + (mo - 1) / 12 + (d - 1) / 365, 3)
 
 
+PICK_SCOPE_SITE = {"SKRU1": "SKRU1", "SKRU2": "SKRU2", "SKRU3": "SKRU3", "BKPRU1": "BKPRU1", "BKPRU2": "BKPRU2",
+                   "BKPRU3": "BKPRU3", "BKPRU4": "BKPRU4", "UST_YAYVA": "UST_YAYVA",
+                   "SKRU1_SKRU2_PILLAR": "SKRU1_OR_SKRU2_UNATTRIBUTED",
+                   "SKRU1_OR_SKRU2_UNATTRIBUTED": "SKRU1_OR_SKRU2_UNATTRIBUTED", "OTHER_VKM_SITE": "VKM_UNSPECIFIED",
+                   "VKM_REGIONAL": "VKM_UNSPECIFIED", "VKM_UNSPECIFIED": "VKM_UNSPECIFIED",
+                   "OTHER_POTASH_SITE": "OTHER_POTASH_SITE", "NON_VKM": "NON_VKM", "UNSTATED": "UNKNOWN",
+                   "UNKNOWN": "UNKNOWN"}
+PICK_KINDS_C1 = {"STRAT_BOUNDARY", "LITHO_INTERVAL", "SEAM", "GROUP_POOLED_INTERVAL", "BRACKET", "HYDRO_LEVEL",
+                 "TOP", "BOTTOM", "INTERVAL", "THICKNESS", "COLLAR_ELEVATION", "TOTAL_DEPTH", "WATER_LEVEL"}
+PICK_VALUES = (("thickness_m", "THICKNESS"), ("top_depth_m", "DEPTH_TOP"), ("bottom_depth_m", "DEPTH_BOTTOM"),
+               ("top_abs_m", "ELEV_TOP"), ("bottom_abs_m", "ELEV_BOTTOM"), ("collar_elevation_m", "COLLAR_ELEVATION"),
+               ("total_depth_m", "TOTAL_DEPTH"))
+
+
+def _unit_codes(canon: Path) -> dict[str, str]:
+    """Abbreviation / unit id → unit id of the stratigraphic tree (exact match, also for two-letter codes)."""
+    out = {}
+    for r in _rows(canon / "GEOLOGY_COORDS" / "stratigraphic_units.csv"):
+        out[r["unit_id"]] = r["unit_id"]
+        for a in re.split(r"[/;]", r["abbrev"] or ""):
+            if a.strip():
+                out.setdefault(a.strip(), r["unit_id"])
+    return out
+
+
+def borehole_rows(canon: Path, units: Units) -> list[dict]:
+    """Borehole picks as C1 evidence: one row per printed thickness, depth of top / bottom (below the collar),
+    elevation of top / bottom, collar elevation and total depth, by borehole and unit. Phase 1 picks
+    (``BOREHOLES/borehole_picks.csv``) and the picks of the page review (``WORLD_PARAMETERS/curated/borehole_picks*.csv``,
+    10.10.2026). Qualitative, teaching and breakout picks are not geometry of the worlds and are left out."""
+    codes = _unit_codes(canon)
+    cat = {r["borehole_id"]: r for r in _rows(canon / "BOREHOLES" / "borehole_catalog.csv")}
+    sources = [("PHASE1_BOREHOLE_PICKS", canon / "BOREHOLES" / "borehole_picks.csv")]
+    sources += [("CURATED_BOREHOLE_PICKS_" + p.stem.rsplit("_", 1)[-1], p)
+                for p in sorted((canon / "WORLD_PARAMETERS" / "curated").glob("borehole_picks*.csv"))]
+    out = []
+    for prod, path in sources:
+        for r in _rows(path):
+            if (r.get("pick_kind") or "") not in PICK_KINDS_C1 or (r.get("status") or "") in ("ANALOGUE",):
+                continue
+            guess = (r.get("unit_canonical") or r.get("unit_canonical_guess") or "").strip()
+            guess = guess[len("UNRESOLVED:"):] if guess.startswith("UNRESOLVED:") else guess
+            unit = codes.get(guess) or codes.get(guess.split("_")[0]) or units.unit_of(guess) \
+                or units.unit_of(r.get("unit_as_printed") or "")
+            if not unit and re.search(r"соляное зеркало|кровл\w* соляной толщи", guess, re.I):
+                unit = "SURFACE:SALT_MIRROR"
+            elif not unit and guess.startswith("lithology:"):
+                unit = "LITHOLOGY:" + guess[len("lithology:"):].split("(")[0].strip()[:60]
+            if r.get("pick_kind") in ("COLLAR_ELEVATION", "TOTAL_DEPTH"):
+                unit = "BOREHOLE"
+            elif r.get("pick_kind") in ("HYDRO_LEVEL", "WATER_LEVEL"):
+                unit = "WATER_LEVEL"
+            bh = r.get("borehole_id") or r.get("borehole_id_catalogue") or ""
+            site = r.get("site_norm") or PICK_SCOPE_SITE.get(r.get("scope") or "", "UNKNOWN")
+            if site == "UNKNOWN" and bh in cat:
+                site = PICK_SCOPE_SITE.get(cat[bh].get("scope") or "", "UNKNOWN")
+            name = r.get("borehole_id_as_printed") or r.get("borehole_as_printed") or bh
+            area = (cat.get(bh, {}).get("mine_or_site") or r.get("site_as_printed") or "")[:80]
+            base = dict(producer=prod, module="C1", target=unit or f"UNRESOLVED:{guess or r.get('unit_as_printed')}"[:80],
+                        material_class="", material_as_printed=r.get("unit_as_printed") or "",
+                        scale=SCALE_NORM.get(r.get("scale") or "FIELD", "FIELD"), branch="-", site_norm=site,
+                        site_group=SITE_GROUP.get(site, "GENERAL_OR_UNSTATED"), site_basis="BOREHOLE_CATALOGUE",
+                        value_as_printed=r.get("value_as_printed") or "", unit_as_printed="м", si_unit="m",
+                        conversion="x1", conditions="; ".join(x for x in (
+                            f"скв. {name}" + (f" ({bh})" if bh else ""), area, r.get("pick_kind"),
+                            r.get("reference") and f"отсчёт: {r.get('reference')}") if x)[:300],
+                        method=r.get("extraction_method") or r.get("read_from") or "", n_samples="1",
+                        origin="ORIGINAL", cited_ref="", source_id=r.get("source_id") or (r.get("page_id") or "")
+                        .split(":")[0], page_id=r.get("page_id") or "", locator=r.get("locator") or "",
+                        quote=r.get("quote") or "", status=r.get("status") or "FACT",
+                        verification="PHASE1_REVIEWED" if prod == "PHASE1_BOREHOLE_PICKS"
+                        else (r.get("verification") or "ADJUDICATED_TWO_LENS"), notes=(r.get("notes") or "")[:300],
+                        kind="GEOMETRY", time_as_printed="", borehole_id=bh)
+            for col, param in PICK_VALUES:
+                v = _f(r.get(col))
+                if v is None:
+                    continue
+                out.append(dict(base, producer_record_id=f"{r.get('pick_id') or r.get('pick_key')}-{param}",
+                                parameter=param, si_min=f"{v:.6g}", si_max=f"{v:.6g}"))
+    return out
+
+
 def calendar_rows(canon: Path) -> list[dict]:
-    """Mining and backfill calendar of SKRU-1 (curated ``skru1_mining_calendar*.csv``, 10.10.2026): one evidence row per
+    """Mining and backfill calendars of the mines (curated ``<mine>_mining_calendar*.csv``, 10.10.2026): one evidence row per
     dated event (years as decimal numbers, plan kept apart from fact by scale) and one per printed chamber / pillar
     size."""
     out = []
-    for path in sorted((canon / "WORLD_PARAMETERS" / "curated").glob("skru1_mining_calendar*.csv")):
+    for path in sorted((canon / "WORLD_PARAMETERS" / "curated").glob("*_mining_calendar*.csv")):
         for r in _rows(path):
             ev = (r.get("event") or "").upper()
             param = ("MINING_DATE" if ev.startswith("MINING") else "BACKFILL_DATE" if ev.startswith("BACKFILL")
@@ -973,7 +1055,8 @@ def apply_literature_review(rows: list[dict], canon: Path | None) -> list[dict]:
 
 # ------------------------------------------------------------------------------------------------ build
 EV_COLS = ["ev_id", "producer", "producer_record_id", "module", "parameter", "kind", "target", "material_class",
-           "material_as_printed", "scale", "branch", "site_norm", "site_group", "site_basis", "content_kind",
+           "material_as_printed", "borehole_id", "scale", "branch", "site_norm", "site_group", "site_basis",
+           "content_kind",
            "value_as_printed", "unit_as_printed",
            "si_min", "si_max", "si_unit", "conversion", "symbol", "equation_as_printed", "time_as_printed",
            "conditions", "method", "n_samples", "origin", "cited_ref", "source_id", "page_id", "locator", "quote",
@@ -994,9 +1077,9 @@ def _csv(rows: list[dict], cols: list[str] | None = None) -> bytes:
 def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
     units = Units(_rows(canon / "GEOLOGY_COORDS" / "stratigraphic_units.csv"))
     ev = (phase1_rows(canon) + curated_rows(canon) + skru1_rows(canon, units) + calendar_rows(canon)
-          + extraction_rows(canon, runs, units))
+          + borehole_rows(canon, units) + extraction_rows(canon, runs, units))
     prod_order = {"PHASE1_CATALOGUE": 0, "CURATED_SKRU1_20261008": 1, "CURATED_C3_20261009": 2,
-                  "CURATED_LAWS_20261009": 3, "CURATED_C4_CALENDAR_20261010": 4}
+                  "CURATED_LAWS_20261009": 3, "CURATED_C4_CALENDAR_20261010": 4, "PHASE1_BOREHOLE_PICKS": 5}
     ev.sort(key=lambda x: (x["module"], x["parameter"], x["target"], prod_order.get(x["producer"], 5), x["producer"],
                            x["source_id"], x["page_id"], x["producer_record_id"]))
     for i, x in enumerate(ev, 1):

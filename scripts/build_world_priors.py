@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Draft of the world prior sheet (10.10.2026): for every parameter the worlds of SKRU-1 need (modules C1–C4), the
-range the passport can offer per branch / hypothesis / site group, the evidence behind it and whether the owner has to
-choose. The sheet is a PROPOSAL: the owner approves it; nothing here becomes a world input by itself.
+"""Draft of the world prior sheet (10.10.2026): for every parameter the worlds need (modules C1–C4), the range the
+passport can offer per branch / hypothesis / site, the evidence behind it and whether the owner has to choose. The
+worlds cover the whole VKM; the target sites are SKRU-1, SKRU-2, SKRU-3 and BKPRU-4 (owner, 10.10.2026): C1 and C4
+are proposed per target site, C2 per class over the VKM with the count of each target site. The sheet is a PROPOSAL: the owner approves it; nothing here becomes a world input by itself.
 
 Inputs (PRIVATE ``11_evidence_vnext/canonical/``): ``WORLD_PASSPORT/world_passport.csv``, ``passport_evidence.csv``,
 ``transfer_branches.csv``; ``WORLD_PARAMETERS/curated/c3_hypotheses.csv``.
@@ -28,12 +29,26 @@ from collections import defaultdict
 from pathlib import Path
 
 csv.field_size_limit(sys.maxsize)
-RULE_VERSION = "world_priors_v0"
+RULE_VERSION = "world_priors_v1"
 CLASSES = ("ROCKSALT", "SYLVINITE", "CARNALLITE", "CLAY_CONTACT", "TRANSITION_OVERBURDEN", "COVER", "BACKFILL")
 C2_PARAMS = ("RHO", "E", "EDEF", "NU", "UCS", "UTS", "COH", "PHI", "LTS_RATIO")
 C4_PARAMS = ("CHAMBER_WIDTH", "PILLAR_WIDTH", "CHAMBER_HEIGHT", "EXTRACTION_RATIO", "LOADING_DEGREE",
              "BACKFILL_RATIO", "BACKFILL_DELAY", "BACKFILL_STIFFNESS", "BACKFILL_COMPACTION")
 SITE_ORDER = ("SKRU1", "OTHER_VKM_SITE", "VKM_REGIONAL", "GENERAL_OR_UNSTATED", "NON_VKM")
+TARGETS = {"SKRU1": "СКРУ-1", "SKRU2": "СКРУ-2", "SKRU3": "СКРУ-3", "BKPRU4": "БКПРУ-4"}
+C1_PARAMS = ("THICKNESS", "DEPTH_TOP", "ELEV_TOP")
+NON_TARGET_VKM = {"SKRU1_OR_SKRU2_UNATTRIBUTED", "BKPRU1", "BKPRU2", "BKPRU3", "UST_YAYVA", "BEREZNIKI_CITY",
+                  "SOLIKAMSK_CITY", "VKM_UNSPECIFIED"}
+
+
+def per_site(rows: list[dict]) -> str:
+    """«СКРУ-1: 3, СКРУ-2: 0, …» for the target sites, plus rows of SKRU-1 or SKRU-2 without split."""
+    n = defaultdict(int)
+    for x in rows:
+        n[x["site_norm"]] += 1
+    txt = ", ".join(f"{v}: {n[k]}" for k, v in TARGETS.items())
+    return txt + (f"; СКРУ-1 или СКРУ-2 без разделения: {n['SKRU1_OR_SKRU2_UNATTRIBUTED']}"
+                  if n["SKRU1_OR_SKRU2_UNATTRIBUTED"] else "")
 EXCLUDED = {"ADJUDICATED_REJECT", "ADJUDICATED_NOT_WORLD"}
 
 
@@ -99,17 +114,16 @@ def build(canon: Path) -> dict[str, bytes]:
                 if not rows:
                     continue
                 found = True
-                n_sk = sum(1 for x in rows if x["site_group"] == "SKRU1")
                 tf = [t["transfer_id"] for t in trans if t.get("parameter", "").split(" ")[0] in (p, "EDEF" if p == "E" else p)
                       and cls in (t.get("material_class") or "")]
-                note = label + (f"; из них СКРУ-1: {n_sk}" if site == "VKM" else "; только аналоги вне ВКМ (Transfer)")
+                note = label + (f"; из них {per_site(rows)}" if site == "VKM" else "; только аналоги вне ВКМ (Transfer)")
                 if br == "A":
                     note += f"; множители переноса: {';'.join(tf)[:200]}" if tf else "; множитель переноса UNKNOWN"
                 add("C2", p, cls, br, site, unit,
                     ("SCENARIO_RANGE" if site == "VKM" else "ANALOGUE_VIA_TRANSFER") if br in ("A", "B")
                     else "NORMATIVE_LISTED", note, rows, "Y" if br in ("A", "B") else "")
             if not found:
-                add("C2", p, cls, "-", "SKRU1", unit, "UNKNOWN", "нет evidence для класса", [])
+                add("C2", p, cls, "-", "VKM", unit, "UNKNOWN", "нет evidence для класса", [])
         creep = [x for x in ev if x["module"] == "C2" and x["parameter"].startswith("CREEP") and x["target"] == cls]
         laws = sorted({x["parameter"] for x in creep})
         for law in laws:
@@ -117,7 +131,7 @@ def build(canon: Path) -> dict[str, bytes]:
             add("C2", law, cls, ";".join(sorted({x["branch"] for x in rows})), "ANY", rows[0]["si_unit"],
                 "SCENARIO_RANGE", "параметр закона ползучести (семейство — выбор мира)", rows, "Y")
         if not laws:
-            add("C2", "CREEP_LAW_PARAM", cls, "-", "SKRU1", "", "UNKNOWN", "нет закона ползучести для класса", [])
+            add("C2", "CREEP_LAW_PARAM", cls, "-", "VKM", "", "UNKNOWN", "нет закона ползучести для класса", [])
     for h in hyps:
         add("C3", "LAMBDA", h["hypothesis_id"], h["hypothesis_id"], "ANY", "1",
             "SCENARIO_RANGE" if h.get("lambda_min") not in ("", "UNKNOWN") else "UNKNOWN",
@@ -127,28 +141,38 @@ def build(canon: Path) -> dict[str, bytes]:
     for p in ("TEMPERATURE", "PORE_PRESSURE"):
         rows = [x for x in ev if x["module"] == "C3" and x["parameter"] == p and x["si_min"]]
         add("C3", p, "UNSPECIFIED", "-", "ANY", rows[0]["si_unit"] if rows else "", "SCENARIO_RANGE" if rows else "UNKNOWN",
-            "СКРУ-1: нет собственных значений" if rows else "нет evidence", rows, "Y" if rows else "")
-    c1 = [x for x in ev if x["module"] == "C1" and x["parameter"] == "THICKNESS" and x["si_min"]]
-    for unit_id in sorted({x["target"] for x in c1 if x["target"]}):
-        rows_sk = [x for x in c1 if x["target"] == unit_id and x["site_group"] == "SKRU1"]
-        rows_vk = [x for x in c1 if x["target"] == unit_id and x["site_group"] != "SKRU1"]
-        if rows_sk:
-            add("C1", "THICKNESS", unit_id, "-", "SKRU1", "m", "FACT", "мощность по СКРУ-1 (скважины/разрезы)",
-                rows_sk)
-        elif rows_vk:
-            add("C1", "THICKNESS", unit_id, "-", "VKM", "m", "ANALOGUE_VIA_TRANSFER", "только региональные данные",
-                rows_vk, "Y")
+            f"по участкам: {per_site(rows)}" if rows else "нет evidence", rows, "Y" if rows else "")
+    for p in C1_PARAMS:                    # per target site; regional data only where a site has none
+        c1 = [x for x in ev if x["module"] == "C1" and x["parameter"] == p and x["si_min"]]
+        for unit_id in sorted({x["target"] for x in c1 if x["target"] and not x["target"].startswith("UNRESOLVED")}):
+            rows = [x for x in c1 if x["target"] == unit_id]
+            missing = []
+            for site, name in TARGETS.items():
+                own = [x for x in rows if x["site_norm"] == site]
+                if own:
+                    add("C1", p, unit_id, "-", site, "m", "FACT", f"{name}: скважины/разрезы участка", own)
+                else:
+                    missing.append(name)
+            rest = [x for x in rows if x["site_norm"] in NON_TARGET_VKM]
+            if missing and rest:
+                add("C1", p, unit_id, "-", "VKM", "m", "ANALOGUE_VIA_TRANSFER",
+                    f"нет своих значений у: {', '.join(missing)}; данные других участков ВКМ", rest, "Y")
     for p in C4_PARAMS:
-        rows = [x for x in ev if x["module"] == "C4" and x["parameter"] == p and x["site_group"] == "SKRU1"]
-        rows_vk = [x for x in ev if x["module"] == "C4" and x["parameter"] == p and x["site_group"] != "SKRU1"]
-        if rows:
-            add("C4", p, "SKRU1 (по зонам/пластам — см. evidence)", "-", "SKRU1", rows[0]["si_unit"] or "",
-                "SCENARIO_RANGE", "проект/факт СКРУ-1; распределение по зонам — из календаря C4", rows)
-        elif rows_vk:
-            add("C4", p, "VKM", "-", "VKM", rows_vk[0]["si_unit"] or "", "ANALOGUE_VIA_TRANSFER",
-                "нет значений СКРУ-1", rows_vk, "Y")
-        else:
-            add("C4", p, "-", "-", "SKRU1", "", "UNKNOWN", "нет evidence", [])
+        rows_p = [x for x in ev if x["module"] == "C4" and x["parameter"] == p]
+        missing = []
+        for site, name in TARGETS.items():
+            rows = [x for x in rows_p if x["site_norm"] == site]
+            if rows:
+                add("C4", p, f"{site} (по зонам/пластам — см. evidence)", "-", site, rows[0]["si_unit"] or "",
+                    "SCENARIO_RANGE", f"проект/факт {name}; распределение по зонам — из календаря C4", rows)
+            else:
+                missing.append(name)
+        rest = [x for x in rows_p if x["site_norm"] in NON_TARGET_VKM]
+        if missing and rest:
+            add("C4", p, "VKM", "-", "VKM", rest[0]["si_unit"] or "", "ANALOGUE_VIA_TRANSFER",
+                f"нет своих значений у: {', '.join(missing)}", rest, "Y")
+        elif missing:
+            add("C4", p, "-", "-", "VKM", "", "UNKNOWN", f"нет evidence у: {', '.join(missing)}", [])
     for i, r in enumerate(out, 1):
         r["prior_id"] = f"WPR-{i:04d}"
     cols = ["prior_id", "module", "parameter", "target", "branch_or_hypothesis", "site_group", "si_unit",
