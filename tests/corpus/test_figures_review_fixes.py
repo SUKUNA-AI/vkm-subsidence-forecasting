@@ -9,8 +9,7 @@ import numpy as np
 import pytest
 
 from vkm_corpus.figures import core
-from vkm_corpus.figures.calibrate import (corner_gaps, detect_axes, other_panels, pair_axes, structure_lines,
-                                          structure_segments)
+from vkm_corpus.figures.calibrate import corner_gaps, detect_axes, pair_axes, structure_lines, structure_segments
 from vkm_corpus.figures.primitives import Path, Text, label_value, parse_number
 from vkm_corpus.figures.series import extract_series, marker_legend, same_shape
 
