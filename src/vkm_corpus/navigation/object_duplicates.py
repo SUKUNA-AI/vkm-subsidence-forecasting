@@ -951,9 +951,13 @@ def _table_texts(t: dict[str, Any]) -> tuple[str, str]:
 
 
 def load_tables(con: Any) -> list[dict[str, Any]]:
-    return _select(con, "tables", ("object_id", "source_id", "page_id", "table_label", "caption",
+    """Primary-layer tables only (a kept secondary layer is not a second copy of the table; contracts.primary_layer)."""
+    from vkm_corpus.contracts.primary_layer import is_primary
+
+    rows = _select(con, "tables", ("object_id", "source_id", "page_id", "table_label", "caption",
                                    "caption_normalized", "cells", "normalized_text", "header_rows", "n_rows",
-                                   "n_cols"), "ORDER BY object_id")
+                                   "n_cols", "is_primary_layer"), "ORDER BY object_id")
+    return [{k: v for k, v in r.items() if k != "is_primary_layer"} for r in rows if is_primary(r)]
 
 
 def _shared_counts(keys: list[np.ndarray], src: np.ndarray, max_df: int) -> dict[tuple[int, int], int]:
@@ -1537,8 +1541,13 @@ def _build_tables(con: Any, ctx: _Ctx, page_idx: dict[str, int], p: dict[str, An
 
 # ================================================================================================ build: formulas
 def load_formulas(con: Any) -> list[dict[str, Any]]:
-    return _select(con, "formulas", ("object_id", "source_id", "page_id", "formula_kind", "normalized_latex",
-                                     "raw_output", "raw_format", "equation_label"), "ORDER BY object_id")
+    """Primary-layer formulas only (contracts.primary_layer)."""
+    from vkm_corpus.contracts.primary_layer import is_primary
+
+    rows = _select(con, "formulas", ("object_id", "source_id", "page_id", "formula_kind", "normalized_latex",
+                                     "raw_output", "raw_format", "equation_label", "is_primary_layer"),
+                   "ORDER BY object_id")
+    return [{k: v for k, v in r.items() if k != "is_primary_layer"} for r in rows if is_primary(r)]
 
 
 def _definitions(formula_symbols: Any) -> dict[str, set[str]]:

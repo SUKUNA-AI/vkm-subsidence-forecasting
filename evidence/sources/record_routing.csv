@@ -3347,7 +3347,7 @@ EV-VN-S011-2094,VKM-SRC-011,borehole,131,DOMAIN,7,evidence/boreholes/borehole_ca
 EV-VN-S011-2095,VKM-SRC-011,borehole,131,DOMAIN,2,evidence/boreholes/borehole_catalog.csv;evidence/boreholes/borehole_identity_issues.csv,evidence/qa/visual_ocr_qa_ledger.csv
 EV-VN-S011-2096,VKM-SRC-011,borehole,131,DOMAIN,2,evidence/boreholes/borehole_catalog.csv;evidence/boreholes/borehole_identity_issues.csv,evidence/qa/visual_ocr_qa_ledger.csv
 EV-VN-S011-2097,VKM-SRC-011,monitoring_observation,131,DOMAIN,10,catalogues/causal/causal_graph.json;catalogues/causal/causal_graph_edges.csv;catalogues/causal/causal_graph_nodes.csv;catalogues/observations/observation_operator_design.csv;catalogues/physics/physics_coverage_and_execution_matrix.csv;catalogues/physics/process_evidence_links.csv;evidence/monitoring/catalogue_id_map.csv;evidence/monitoring/monitoring_campaigns_timeline.csv;evidence/monitoring/monitoring_observation_catalog.csv;evidence/monitoring/monitoring_systems_by_site.csv,evidence/qa/correction_impact.csv;evidence/qa/evidence_corrections.csv;evidence/qa/review_fixes/monitoring_lifecycle_visual_rechecks.csv;evidence/qa/visual_ocr_qa_ledger.csv
-EV-VN-S011-2098,VKM-SRC-011,visual_check,131,DOMAIN,2,evidence/geology/geology_evidence.csv;evidence/geology/stratigraphy_conflicts.csv,evidence/qa/visual_ocr_qa_ledger.csv
+EV-VN-S011-2098,VKM-SRC-011,visual_check,131,DOMAIN,3,evidence/geology/geology_evidence.csv;evidence/geology/stratigraphy_conflicts.csv;evidence/world/passport/passport_conflicts.csv,evidence/qa/visual_ocr_qa_ledger.csv
 EV-VN-S011-2099,VKM-SRC-011,claim,131,DOMAIN,5,catalogues/causal/causal_graph.json;catalogues/causal/causal_graph_edges.csv;catalogues/physics/physics_coverage_and_execution_matrix.csv;catalogues/physics/process_evidence_links.csv;evidence/geology/geology_evidence.csv,
 EV-VN-S011-2100,VKM-SRC-011,claim,131,DOMAIN,1,evidence/geology/geology_evidence.csv,
 EV-VN-S011-2101,VKM-SRC-011,information_lifecycle,131,DOMAIN,3,evidence/lifecycle/information_lifecycle_matrix.csv;evidence/lifecycle/information_lifecycle_record_map.csv;evidence/lifecycle/lifecycle_stages.csv,
@@ -9447,7 +9447,7 @@ EV-VN-S025-0201,VKM-SRC-025,engineering_rule,33,DOMAIN,6,catalogues/mathematics/
 EV-VN-S025-0202,VKM-SRC-025,information_lifecycle,33,DOMAIN,3,evidence/lifecycle/information_lifecycle_record_map.csv;evidence/sources/SOURCE_CITATION_GRAPH.csv;evidence/sources/primary_source_targets.csv,
 EV-VN-S025-0203,VKM-SRC-025,lifecycle_stage,33,DOMAIN,2,evidence/lifecycle/lifecycle_stage_record_map.csv;evidence/lifecycle/lifecycle_stages.csv,
 EV-VN-S025-0204,VKM-SRC-025,citation,30,DOMAIN,2,evidence/sources/SOURCE_CITATION_GRAPH.csv;evidence/sources/primary_source_targets.csv,evidence/qa/visual_ocr_qa_ledger.csv
-EV-VN-S025-0205,VKM-SRC-025,conflict_note,31,DOMAIN,1,evidence/materials/mechanics_evidence_catalog.csv,
+EV-VN-S025-0205,VKM-SRC-025,conflict_note,31,DOMAIN,2,evidence/materials/mechanics_evidence_catalog.csv;evidence/world/passport/passport_evidence_c2.csv,
 EV-VN-S025-0206,VKM-SRC-025,visual_check,10,QA_ONLY,0,,evidence/qa/evidence_corrections.csv;evidence/qa/visual_ocr_qa_ledger.csv
 EV-VN-S025-0207,VKM-SRC-025,open_question,9,UNROUTED,0,,
 EV-VN-S025-0208,VKM-SRC-025,open_question,11,UNROUTED,0,,

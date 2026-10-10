@@ -37,7 +37,7 @@ CREATE OR REPLACE VIEW all_objects AS
   FROM canonical.figures
   UNION ALL BY NAME
   SELECT object_id, object_kind, source_id, page_id, source_sha256, source_site_scope, source_site_scope_raw,
-         source_site_scope_mapping, origin, text_layer, region_origin, NULL::BOOLEAN AS is_primary_layer,
+         source_site_scope_mapping, origin, text_layer, region_origin, is_primary_layer,
          pipeline_version, processing_run_id, extractor_id, extractor_version, extraction_generation, model_id,
          model_revision, models, config_hash, raw_config_hash, extraction_signature, raw_content_sha256,
          content_sha256, raw_artifact_id, raw_artifacts, created_at, review_status, quality_flags, schema_version,
@@ -45,7 +45,7 @@ CREATE OR REPLACE VIEW all_objects AS
   FROM canonical."tables"
   UNION ALL BY NAME
   SELECT object_id, object_kind, source_id, page_id, source_sha256, source_site_scope, source_site_scope_raw,
-         source_site_scope_mapping, origin, text_layer, region_origin, NULL::BOOLEAN AS is_primary_layer,
+         source_site_scope_mapping, origin, text_layer, region_origin, is_primary_layer,
          pipeline_version, processing_run_id, extractor_id, extractor_version, extraction_generation, model_id,
          model_revision, models, config_hash, raw_config_hash, extraction_signature, raw_content_sha256,
          content_sha256, raw_artifact_id, raw_artifacts, created_at, review_status, quality_flags, schema_version,
@@ -148,12 +148,12 @@ CREATE OR REPLACE VIEW rerank_text AS
            NULLIF(concat_ws(' ', NULLIF(figure_label, ''), NULLIF(caption_normalized, '')), '')
     FROM canonical.figures
     UNION ALL
-    SELECT object_id, object_kind, source_id, page_id, true,
+    SELECT object_id, object_kind, source_id, page_id, coalesce(is_primary_layer, true),
            NULLIF(concat_ws(chr(10), NULLIF(table_label, ''), NULLIF(caption_normalized, ''),
                             NULLIF(normalized_text, '')), '')
     FROM canonical."tables"
     UNION ALL
-    SELECT object_id, object_kind, source_id, page_id, true,
+    SELECT object_id, object_kind, source_id, page_id, coalesce(is_primary_layer, true),
            NULLIF(concat_ws(' ', NULLIF(equation_label, ''),
                             NULLIF(coalesce(normalized_latex,
                                             CASE WHEN raw_format <> 'IMAGE_ONLY' THEN raw_output END), '')), '')

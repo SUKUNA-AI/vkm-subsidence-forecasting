@@ -11,7 +11,7 @@
    "nodes": [
     {
      "id": "title",
-     "label": "MCP-серверы проекта (30.09.2026)",
+     "label": "MCP-серверы проекта (07.10.2026)",
      "x": 20,
      "y": 12,
      "w": 1740,
@@ -40,7 +40,7 @@
     },
     {
      "id": "corpus",
-     "label": "vkm-corpus — CORE: 45 read-only инструментов",
+     "label": "vkm-corpus — CORE: 49 read-only инструментов",
      "x": 270,
      "y": 90,
      "w": 1000,
@@ -74,7 +74,7 @@
      "x": 505,
      "y": 35,
      "w": 480,
-     "h": 150,
+     "h": 95,
      "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
      "parent": "corpus"
     },
@@ -82,7 +82,7 @@
      "id": "g_graph",
      "label": "Граф NAV: concept_paths, graph_neighbourhood",
      "x": 505,
-     "y": 200,
+     "y": 145,
      "w": 235,
      "h": 95,
      "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
@@ -92,11 +92,21 @@
      "id": "g_dossier",
      "label": "reconstruct_topic; find_figure_series / get_figure_series — автоматические DERIVATION",
      "x": 750,
-     "y": 200,
+     "y": 145,
      "w": 235,
      "h": 95,
      "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
      "parent": "corpus"
+    },
+    {
+     "id": "g_evidence",
+     "x": 505,
+     "y": 250,
+     "w": 480,
+     "h": 60,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "parent": "corpus",
+     "label": "Журнал evidence (4): list_evidence, get_evidence_record, get_evidence_dependencies, get_evidence_review_packet — чтение; пакет проверки ≠ review и допуск"
     },
     {
      "id": "api",
@@ -387,7 +397,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: PROJECT_STATE_RU.md; PLATFORM_INTEGRITY_2026-09-30_RU.md; MCP_TOOLS.md; docs/qgis/ (локальный адаптер).",
+     "label": "Источники: PROJECT_STATE_RU.md; MCP_TOOLS.md; receipts/evidence_journal_20261005.json, deploy_20261007_readd_053_230.json (smoke: 49 инструментов); docs/qgis/ (локальный адаптер).",
      "x": 740,
      "y": 1010,
      "w": 1020,

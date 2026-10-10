@@ -115,8 +115,15 @@ raw_artifacts[], created_at, review_status, quality_flags`. У объектов 
   обязательны), `DERIVED`, `REGISTRY`, `CURATED` (в v0 не пишется). Если хоть часть содержимого сделала модель,
   объект — `OCR`.
 - `text_layer` подтверждает `origin`: `PDF_TEXT_LAYER`/`EPUB_XHTML`/`DOCX_XML` → NATIVE,
-  `PDF_EMBEDDED_OCR_LAYER`/`DJVU_EMBEDDED_OCR_LAYER` → EMBEDDED_OCR, `GLM_OCR` → OCR. Для страниц-сканов
+  `PDF_EMBEDDED_OCR_LAYER`/`DJVU_EMBEDDED_OCR_LAYER` → EMBEDDED_OCR, `GLM_OCR` и `PADDLEOCR_VL` (импортированный слой
+  OCR v2, PIPELINE.md §5а) → OCR. Слой движка распознавания никогда не бывает `file_text_layer`. Для страниц-сканов
   (`page_class = RASTER_SCAN`) и страниц DjVu NATIVE-текста не бывает.
+- `is_primary_layer` у таблиц (схема 0.1.3) и формул (0.1.2) — nullable: `TRUE` — объект основного слоя страницы,
+  `FALSE` — объект сохранённого вторичного слоя (страница перешла на импортированный слой), `NULL` — выбор слоя не
+  записан (все исторические строки и страницы без импорта) и читается как основной. Читатели, берущие таблицы и
+  формулы целиком (NAV, единицы retrieval, тематические карты), пропускают только `FALSE`
+  (`contracts/primary_layer.py`); граф и поиск хранят все объекты с этим свойством, поиск скрывает `FALSE`
+  по умолчанию, как вторичные блоки. Файлы таблиц 0.1.0–0.1.2 и формул 0.1.0–0.1.1 читаются с исходными хешами.
 - `region_origin` — чем порождён регион; `LAYOUT_MODEL` ⇒ модель с ролью LAYOUT в `models[]` (H-03). `models[]`
   перечисляет модели, породившие регион или содержимое; `model_id/model_revision` — модель содержимого.
 - `raw_artifact_id` — главный сырой выход (строка всегда canonical); `raw_artifacts[]` — все сырые выходы с ролью

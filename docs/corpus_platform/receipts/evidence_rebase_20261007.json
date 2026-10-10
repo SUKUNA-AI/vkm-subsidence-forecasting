@@ -1,0 +1,59 @@
+{
+ "schema_version": "vkm-evidence-rebase-deploy-receipt/1",
+ "recorded_at": "2026-10-07T08:00:00+00:00",
+ "authorization": "owner in chat 2026-10-06: NOT_FOUND policy «вариант Б» = REPOINT_IF_BASELINE_ABSENT; 2026-10-07: «Да, публикуй» to the exact plan ecf54ba0 (1 432 rebased, 4 held, 1 196 re-pointed)",
+ "change": "evidence supports re-anchored from snap-20260929T175107Z-574daaac to snap-20261006T200208Z-7b9bc860 (OCR v2); every rebased record is revision+1 with an exact supersedes; review packets work again on CORE",
+ "code": {"module": "vkm_evidence.rebase", "procedure": "docs/evidence/REBASE_RU.md", "commit": "372f018"},
+ "plan": {
+  "plan_sha256": "ecf54ba04d80d4b5794cc8f36d41c7d7fb744d85e3d8d0268829c69338818f35",
+  "batch_sha256": "b20e2f7a21efabc412475c625a582898632c85bf909cc45d7e23ee58b3312f06",
+  "not_found_policy": "REPOINT_IF_BASELINE_ABSENT",
+  "fuzzy_threshold": 90.0,
+  "fuzzy_min_chars": 24,
+  "inputs_sha256": {
+   "source_canon_duckdb:snap-20260929T175107Z-574daaac": "f5907f6f1c517d780ca419b36c4bdcd045ca880685d4084bdcf1b4da38f0f287",
+   "target_canon_duckdb": "3b3f3f1278e8211b2460358846eb04beaf56c3be1358f2e73375ecc99611937c",
+   "source_policy_file": "8130086d160e9854cbafbe925be3ee78b4e0fbff435b6275b63969701463a027"
+  },
+  "to_snapshot": {"snapshot_id": "snap-20261006T200208Z-7b9bc860",
+                  "manifest_sha256": "70988c1dc87e259b93fe829e17abcba8615e48c0f3b94103ca62c236356161a0"},
+  "counts": {
+   "records_with_supports": 1436,
+   "records_by_action": {"REBASED": 1432, "HELD": 4},
+   "supports_by_status": {"UNCHANGED": 168, "QUOTE_FOUND_PRIMARY": 21, "QUOTE_FOUND_SECONDARY_LAYER": 2, "FUZZY": 45,
+                          "NOT_FOUND": 1200},
+   "baseline_by_status": {"NOT_APPLICABLE->UNCHANGED": 168, "FUZZY->QUOTE_FOUND_PRIMARY": 19,
+                          "ABSENT->QUOTE_FOUND_PRIMARY": 2, "EXACT->QUOTE_FOUND_SECONDARY_LAYER": 2,
+                          "FUZZY->FUZZY": 29, "ABSENT->FUZZY": 16, "ABSENT->NOT_FOUND": 1200},
+   "record_reasons": {"BELOW_THRESHOLD": 1188, "QUOTE_TOO_SHORT_FOR_FUZZY": 8, "NUMERIC_MISMATCH": 4},
+   "not_found_repointed": 1196,
+   "secondary_layers": {"GLM_OCR": 7, "PDF_TEXT_LAYER": 2},
+   "stale_dependents": 0
+  },
+  "held_records": {
+   "MR-MECH-0040": "NUMERIC_MISMATCH (VKM-SRC-037:p0152, fuzzy 91.67)",
+   "MR-MECH-0045": "NUMERIC_MISMATCH (VKM-SRC-037:p0072, fuzzy 99.67)",
+   "MR-MECH-1303": "NUMERIC_MISMATCH (VKM-SRC-025:p0032, fuzzy 93.97)",
+   "MR-MECH-1333": "NUMERIC_MISMATCH (VKM-SRC-037:p0012, fuzzy 93.46)",
+   "effect": "they stay at their previous revision on 574daaac: readable, but no review packet until an owner decision"
+  },
+  "comparison": "the same journal under policy HOLD: 236 REBASED / 1 200 HELD"
+ },
+ "approval": {"sha256": "a13a189a500a9942a7e77e8b83e27dd2ea952b427563781f45349950c67c5f62", "authority": "owner",
+              "publisher": "owner-write", "acknowledged_held": 4, "acknowledged_not_found_repointed": 1196},
+ "journal": {
+  "parent": "cfd42f6018069a648fb41b48fd9ea9a4b23e149b912e24bcd8da39f2141bc1c9",
+  "revision": "137ce5f2c81b9ece3d818bea9148a74077636255baf3c034c48494ee18fe3aea",
+  "partition_sha256": "f0283b0ae5cdf7ad066a97bcbc1552087d223b0d13eff3c0b9124ee29f9eb6c3",
+  "record_count": 1432,
+  "request_id": "evidence-rebase:ecf54ba04d80d4b5794cc8f36d41c7d7fb744d85e3d8d0268829c69338818f35",
+  "status": "COMMITTED",
+  "delivery": "commits + partitions copied to CORE and verified by sha256 against the private journal, HEAD last"
+ },
+ "serving_check": "get_evidence_review_packet(MR-MECH-0036) on CORE: generation 137ce5f2…, supports on snap-20261006T200208Z-7b9bc860, status REVIEW_MATERIAL_PREPARED",
+ "limits": {
+  "review_state": "all records UNREVIEWED; rebase is not review, source inspection or scientific admission",
+  "not_found_meaning": "1 196 re-pointed supports never contained their historical quote (Phase-1 PARAPHRASE field); they rest on page identity, as before",
+  "private_artifacts": "plan, batch, map, approval and the full review list stay PRIVATE"
+ }
+}

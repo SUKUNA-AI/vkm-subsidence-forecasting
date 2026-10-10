@@ -1,0 +1,46 @@
+{
+ "benchmark": "TOPIC_BENCHMARK_V1",
+ "label_source": "LLM_AGENT_T3",
+ "qrels": "qrels_topic_v1_pooled_t3.tsv",
+ "qrels_sha256": "e9c47e6836be563f63c1ac88d71a3499093f600ae26a874009d3dd2b895939bf",
+ "canonical_snapshot_id": "snap-20261007T103222Z-2d71e9e8",
+ "pool_t3_sha256": "87d08fb9dbd9617236f41628a851d2a6c10956aac1fa058965b8ac15393b7b22",
+ "rule": "label units of the T2 pool with more than one page (duplicates among a topic's candidates share one grade) or with duplicate aliases (API duplicates of the page, canonical duplicate_page_candidates of the snapshot); truth P makes one target per unit: its first page, the other pages and the aliases as alternates. t1_alias_links: candidates not labelled in T2 because a duplicate alias carries the T1 judgment of the topic (alternates of that T1 unit)",
+ "groups": [
+  {
+   "topic_id": "PC-06",
+   "pages": [
+    "VKM-SRC-025:p0146",
+    "VKM-SRC-202:p0146"
+   ],
+   "aliases": []
+  },
+  {
+   "topic_id": "PC-47",
+   "pages": [
+    "VKM-SRC-025:p0083"
+   ],
+   "aliases": [
+    "VKM-SRC-202:p0083"
+   ]
+  },
+  {
+   "topic_id": "MM-IS",
+   "pages": [
+    "VKM-SRC-032:p0001"
+   ],
+   "aliases": [
+    "VKM-SRC-005:p0006"
+   ]
+  }
+ ],
+ "t1_alias_links": [
+  {
+   "topic_id": "PC-54",
+   "page": "VKM-SRC-202:p0183",
+   "t1_pages": [
+    "VKM-SRC-025:p0183"
+   ]
+  }
+ ]
+}

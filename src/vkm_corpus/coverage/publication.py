@@ -16,8 +16,12 @@ from vkm_corpus.coverage import accounting as A
 from vkm_corpus.parquet.atomic import sha256_of, write_bytes
 from vkm_evidence.contracts import StrictModel, Sha256, canonical_bytes, record_hash
 
-MAX_FILES = 200_000
-MAX_BYTES = 64 * 1024 * 1024
+# Closure limits (owner decision 06.10.2026, chat): a full-base publication after the 93-source OCR v2 recommit is
+# ~504k files with a ~101 MB descriptor; the earlier 200k / 64 MiB caps were sized for small intakes.
+# Raised again 07.10.2026 (owner, chat): the OCR v2 closure froze at 990k files / 222 MiB, so re-adding
+# VKM-SRC-053 / -230 does not fit 1M / 256 MiB.
+MAX_FILES = 2_000_000
+MAX_BYTES = 512 * 1024 * 1024
 
 
 class PublicationBlocked(ValueError):
@@ -201,7 +205,16 @@ def _authorize_partition(path, dataset, policies, context):
                 if sid not in policies:
                     raise PermissionError("RESOURCE_POLICY_UNCLASSIFIED")
                 ResourcePolicy.model_validate(policies[sid]).require(context)
-    if set(names) != set(ca.arrow_schema(dataset).names):
+    expected = set(ca.arrow_schema(dataset).names)
+    kv = parquet.schema_arrow.metadata or {}
+    version = (kv.get(b"vkm.schema_version") or b"").decode("utf-8", "replace")
+    fingerprint = (kv.get(b"vkm.schema_fingerprint") or b"").decode("utf-8", "replace")
+    if version != DATASETS[dataset].version and ca.readable_schema(dataset, version, fingerprint):
+        # an unchanged base partition of an exact allowlisted historical schema (e.g. tables 0.1.0/0.1.2) is
+        # published as is: its column set is the current one minus the columns that version did not have
+        from vkm_corpus.contracts.datasets import historical_omissions
+        expected -= historical_omissions(dataset, version)
+    if set(names) != expected:
         raise PublicationBlocked("PUBLICATION_PARTITION_SCHEMA_INVALID")
 
 

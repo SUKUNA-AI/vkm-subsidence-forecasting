@@ -220,6 +220,7 @@
     "EPUB_XHTML",
     "DOCX_XML",
     "GLM_OCR",
+    "PADDLEOCR_VL",
     "NONE"
    ],
    "title": "TextLayer",

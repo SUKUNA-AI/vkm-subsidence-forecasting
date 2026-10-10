@@ -116,7 +116,7 @@ def test_pre_continuation_files_keep_original_content_and_file_fingerprints(tmp_
     with pytest.raises(ValueError, match="historical"):
         content_sha256("tables", row)
     assert not ca.readable_schema("tables", "0.1.1", "0" * 64)
-    assert not ca.readable_schema("tables", "0.1.3", historical[1])
+    assert not ca.readable_schema("tables", "0.1.9", historical[1])
     with pytest.raises(ValueError, match="unknown"):
-        ca.fingerprint_of("tables", digest, schema_version="0.1.3")
+        ca.fingerprint_of("tables", digest, schema_version="0.1.9")
     con.close()

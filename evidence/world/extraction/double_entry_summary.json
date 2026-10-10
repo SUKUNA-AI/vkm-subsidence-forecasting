@@ -1,0 +1,59 @@
+{
+ "rule_version": "extract_accept_v1",
+ "run": "double",
+ "packets": 27,
+ "records": 2566,
+ "accepted": 2566,
+ "rejected": 0,
+ "reject_reasons": {},
+ "kinds": {
+  "PARAMETER": 1324,
+  "GEOMETRY": 730,
+  "ENTITY": 258,
+  "HISTORY": 84,
+  "LAW": 68,
+  "OBSERVATION": 55,
+  "CITATION": 47
+ },
+ "accepted_by_kind": {
+  "PARAMETER": 1324,
+  "GEOMETRY": 730,
+  "ENTITY": 258,
+  "HISTORY": 84,
+  "LAW": 68,
+  "OBSERVATION": 55,
+  "CITATION": 47
+ },
+ "accepted_by_scale": {
+  "LAB": 693,
+  "MODEL": 558,
+  "NORMATIVE": 496,
+  "FIELD": 419,
+  "UNKNOWN": 332,
+  "MASSIF": 68
+ },
+ "accepted_by_site": {
+  "VKM_UNSPECIFIED": 1564,
+  "SKRU1": 279,
+  "UNKNOWN": 265,
+  "SKRU2": 94,
+  "BKPRU2": 79,
+  "SKRU1_OR_SKRU2_UNATTRIBUTED": 70,
+  "SKRU3": 67,
+  "BKPRU4": 53,
+  "OTHER_POTASH_SITE": 51,
+  "NON_VKM": 33,
+  "BKPRU1": 9,
+  "BKPRU3": 1,
+  "SOLIKAMSK_CITY": 1
+ },
+ "producers": [
+  {
+   "producer": {
+    "producer": "claude-subagent double entry"
+   },
+   "packets": 27
+  }
+ ],
+ "record_format": "fields of the answer schema that are null are omitted; producer per packet in run_meta.jsonl"
+}

@@ -1,0 +1,63 @@
+{
+ "schema": "vkm.deploy_receipt/1",
+ "date": "2026-10-06/2026-10-07",
+ "host": "CORE (+ WORKSTATION for NAV)",
+ "authorization": "owner in chat 2026-10-06: «давай сделаем все», publication limits «первый вариант», evidence policy «вариант Б», «да» to «Публикуем?» (22:19); 2026-10-07: «сейчас можешь уже на моей машине запускать» (NAV on the workstation)",
+ "change": "OCR v2 text layer (PADDLEOCR_VL) served: 92 sources recommitted (6 132 pages switch their primary layer), new canonical snapshot, all projections rebuilt on it; api/mcp/mcp-admin on the image of commit 372f018",
+ "image": {
+  "tag": "vkm-corpus-api:0.1.0-372f0186b466",
+  "previous": "vkm-corpus-api:0.1.0-d5385da81e76",
+  "rollback": "restore infra/core/.env and /srv/vkm/bin/vkm-job from *.bak-ocrv2-20261006T192035Z, canonical CURRENT -> snap-20260929T175107Z-574daaac, NAV CURRENT -> snap-20260929T175107Z-574daaac, `docker compose up -d --no-deps --force-recreate api mcp mcp-admin` (CORE_RUNBOOK)"
+ },
+ "canonical": {
+  "snapshot_id": "snap-20261006T200208Z-7b9bc860",
+  "manifest_sha256": "70988c1dc87e259b93fe829e17abcba8615e48c0f3b94103ca62c236356161a0",
+  "previous_snapshot_id": "snap-20260929T175107Z-574daaac",
+  "reconcile_run": "reconcile-ocrv2-20261006T193923Z (admit + snapshot PASS)",
+  "publication": "515 912 files, 4.36 GB published 2026-10-06 22:35-22:38; closure 990 452 files (1 % under the 1 000 000 cap of 372f018)",
+  "not_published": {
+   "VKM-SRC-053": "COMMIT_FAILED ACCOUNTING_REPORT_LIMIT (DjVu, 384 pages: per-line candidates exceed the 128 MiB accounting report cap)",
+   "VKM-SRC-230": "COMMIT_FAILED ACCOUNTING_REPORT_LIMIT (DjVu, 562 pages)",
+   "effect": "their pages keep the previous text layer; the largest accepted report (VKM-SRC-226, 871 pages) is 126.9 MiB; owner decision pending"
+  },
+  "counts": {"sources_total": 271, "sources_complete": 253, "sources_partial": 16, "pages_total": 27135, "blocks": 685582,
+             "figures": 18297, "tables": 5085, "formulas": 122266}
+ },
+ "projections": {
+  "opensearch_lexical": "build 20261006t203352z-70988c1d (pages, blocks, figures, tables, formulas), matches the snapshot",
+  "lab_refresh": "refresh-20261006T203802Z DONE: units 189 428, dense index 189 428, late pack 189 428, equal=True (3 224 s on CORE)",
+  "neo4j_doc_graph": "VKM-PRJ-DOC-20261006T202626Z-414b732e, matches the snapshot",
+  "page_vectors": "build 20261007t080221z-70988c1d-ef2f297d, 26 744 pages, 0 pages missing a vector (previews unchanged)",
+  "nav": {
+   "snapshot_id": "snap-20261006T200208Z-7b9bc860",
+   "built_on": "WORKSTATION (WSL; RAPIDS venv for 9 parts, topics = Leiden as in the 30.09 intake; fd2 venv for figure_series), committed code 372f018",
+   "parts_seconds": {"sections": 10.81, "formulas": 12.59, "tables": 25.7, "parameters": 20.33, "duplicates": 14.93,
+                     "object_duplicates": 53.35, "concepts": 55.88, "translations": 37.17, "topics": 22.98, "figure_series": 247.78},
+   "packed": "33 tables, 5 355 540 rows",
+   "nav_duckdb_sha256": "68e790a1dc52b6d6813ebcfd2be26db0b2e9b17d1119d337d20526fb84f85c68",
+   "manifest_sha256": "980861b147fb4fe055ac0a96f714e96827290ed2b368293de9c471b6e9f9bf1d",
+   "identity_status": "AD_HOC_UNVERIFIED",
+   "identity_note": "8 parts SNAPSHOT_VERIFIED; object_duplicates is UNVERIFIED_EXTERNAL_DIRECTORY by design whenever --artifacts is given (no artifact qualification yet) and figure_series inherits it, so the verified store.publish refused; published with require_verified=False (explicit exploratory mode, nav_meta AD_HOC_UNVERIFIED; the API serves it with the NAV_IDENTITY_UNVERIFIED warning). The previous NAV (574daaac) had no identity record at all.",
+   "graph_load": "receipt VKM-PRJ-NAV-20261007T075742Z-2b6bb3aa: COMPLETE, 133 319 nodes, 2 337 731 relationships"
+  }
+ },
+ "attempts": [
+  {"step": "NAV on CORE CPU (container 12 CPU / 12 GiB)", "result": "FAILED", "cause": "memcg OOM kill at ~294 s (2026-10-07 00:36); the overnight chain stopped before any switch, service unaffected"},
+  {"step": "NAV on CORE CPU with concepts.workers=6", "result": "FAILED", "cause": "same OOM at ~294 s: the worker count is not the cause; peak on the workstation was ~11 GiB during concepts"},
+  {"step": "NAV on the workstation + verified publish", "result": "REFUSED", "cause": "NAV input identity AD_HOC_UNVERIFIED (see identity_note); NAV CURRENT unchanged"},
+  {"step": "same NAV, exploratory publish + graph + page vectors + restart", "result": "DEPLOYED"}
+ ],
+ "checks": {
+  "containers_after": {"api": "healthy", "mcp": "healthy", "mcp-admin": "healthy", "image": "vkm-corpus-api:0.1.0-372f0186b466"},
+  "mcp_smoke": {"version": "nightly-mcp-smoke-6", "summary": {"PASS": 48, "WARN": 1, "FAIL": 0, "SKIP": 0},
+                "warn": "get_evidence_review_packet: evidence supports are still pinned to snap-20260929T175107Z-574daaac until the evidence rebase is published"},
+  "get_corpus_status": "every projection matches_canonical_snapshot = true; late store READY on the snapshot",
+  "find_figure_series": "answers from the new NAV (17 figures / 48 series for «оседание»)"
+ },
+ "pending": {
+  "evidence_rebase": "plan ready (policy REPOINT_IF_BASELINE_ABSENT, owner «Б»): plan_sha256 ecf54ba04d80d4b5794cc8f36d41c7d7fb744d85e3d8d0268829c69338818f35, base cfd42f60…, 1 432 REBASED / 4 HELD (NUMERIC_MISMATCH), 1 196 NOT_FOUND re-pointed (baseline ABSENT); public-safe receipt in work/evidence_rebase (not committed); publish waits for the owner's approval",
+  "sources_053_230": "accounting report cap (owner decision)",
+  "topic_v1": "rerun on the new snapshot + T3 delta pool"
+ },
+ "limits": "derived layers only; nothing here is reviewed, evidence or a scientific admission; the OCR v2 layer is AUTO_EXTRACTED_UNREVIEWED"
+}

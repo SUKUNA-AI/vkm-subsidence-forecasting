@@ -145,7 +145,7 @@ class TableX(ObjectBase):
     caption_block_index: int | None = None
     raw_format: str = "HTML"
     raw_output: str = ""
-    recognition_method: str = "OCR_GLM"      # NATIVE_FIND_TABLES | OCR_GLM | BOTH_AGREE | BOTH_DISAGREE | DOCX_XML | XHTML
+    recognition_method: str = "OCR_GLM"      # NATIVE_FIND_TABLES | OCR_GLM | OCR_PADDLEOCR_VL | BOTH_* | DOCX_XML | XHTML
     n_rows: int | None = None
     n_cols: int | None = None
     cells: list[dict[str, Any]] = field(default_factory=list)
@@ -156,6 +156,8 @@ class TableX(ObjectBase):
     layout_score: float | None = None
     continuation_candidate: TableContinuationCandidate | None = None
     extraction_signature: Sha256Hex | None = None
+    text_layer: str | None = None            # None: from origin/region (OCR → GLM_OCR, EPUB, DOCX, else NONE)
+    is_primary_layer: bool | None = None     # None: no layer choice recorded on the page (contract 0.1.3)
 
 
 @dataclass
@@ -167,10 +169,12 @@ class FormulaX(ObjectBase):
     normalized_latex: str | None = None
     latex_parse_ok: bool | None = None
     native_glyph_text: str | None = None
-    recognition_method: str = "OCR_GLM"      # OCR_GLM | NATIVE_OMML | EPUB_IMAGE_OCR | MATHML
+    recognition_method: str = "OCR_GLM"      # OCR_GLM | OCR_PADDLEOCR_VL | NATIVE_OMML | EPUB_IMAGE_OCR | MATHML
     recognition_confidence: float | None = None
     image_artifact_id: str | None = None
     layout_score: float | None = None
+    text_layer: str | None = None            # None: from origin/region (OCR → GLM_OCR, EPUB, DOCX, else NONE)
+    is_primary_layer: bool | None = None     # None: no layer choice recorded on the page (contract 0.1.2)
 
 
 @dataclass

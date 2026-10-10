@@ -163,6 +163,12 @@ def commit_signature(cfg: PipelineConfig, cache: Any, src: SourceInput, prep: di
     if docx:
         inputs["docx_native_grid"] = {"signature": prep["docx_grid_signature"],
                                       "native_artifact_id": prep["document_raw_artifact_id"]}
+    from vkm_corpus.pipeline.imported_layer import load_source_import
+
+    imported = load_source_import(cache, src.source_id, src.sha256) \
+        if (prep.get("inspect") or {}).get("file_format") in ("PDF", "DJVU") else None
+    if imported is not None:  # only sources with an imported layer: the signature of every other source is unchanged
+        inputs["imported_layer"] = imported.digest()
     return _cfg_hash(inputs)
 
 

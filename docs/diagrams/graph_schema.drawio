@@ -7,7 +7,7 @@
         <mxCell id="title" value="Схема графа Neo4j: слои DOCUMENT (doc-graph/1.0) и NAV (nav-graph/1.1)" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="12" width="1760" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="subtitle" value="Schema — src/vkm_corpus/graph/schema.py и nav_schema.py. Снимок snap-20260929T175107Z-574daaac (intake receipt); 30.09 выборочный обход, полный sweep повторно не запускался." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="subtitle" value="Schema — src/vkm_corpus/graph/schema.py и nav_schema.py. Снимок snap-20261007T103222Z-2d71e9e8: DOCUMENT VKM-PRJ-DOC-20261007T110136Z-74666e14; NAV graph-load 07.10 — 133 447 узлов, 2 337 562 связи." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="44" width="1760" height="25" as="geometry" />
         </mxCell>
         <mxCell id="doc" value="DOCUMENT — метка слоя DocumentLayer; проверки C1–C16" style="align=left;collapsible=0;container=1;dashed=0;fillColor=none;fontSize=14;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">

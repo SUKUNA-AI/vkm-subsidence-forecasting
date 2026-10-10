@@ -160,7 +160,7 @@ def test_mathml_canonical_locator_and_id_validation_do_not_fake_image_ocr(tmp_pa
     math = rows[0]
     assert math.raw_locator == raw["maths"][0]["xpath"]
     assert math.raw_output == "<math>x=2</math>" and math.normalized_latex is None
-    assert math.recognition_method == "NATIVE_MATHML" and math.schema_version == "0.1.1"
+    assert math.recognition_method == "NATIVE_MATHML" and math.schema_version == "0.1.2"
     layout = init_root(tmp_path / "canon", "CANONICAL")
     con = duckdb.connect()
     attach_manifest(con, layout, {})

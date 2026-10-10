@@ -7,7 +7,7 @@
         <mxCell id="title" value="Поиск по корпусу: BM25 + dense + RRF + late interaction, маршруты и реранкеры" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="12" width="1680" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="subtitle" value="Снимок snap-20260929T175107Z-574daaac: 209 259 units. BM25 + jina-v5-nano + mLateOn; оценки поиска — кандидаты, не evidence." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="subtitle" value="Снимок snap-20261007T103222Z-2d71e9e8 (OCR v2): 184 006 units. BM25 + jina-v5-nano + mLateOn; оценки поиска — кандидаты, не evidence." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="44" width="1680" height="25" as="geometry" />
         </mxCell>
         <mxCell id="q" value="запрос&lt;br&gt;MCP search_hybrid → VKM API /v1/search/hybrid" style="fillColor=#e1d5e7;fontSize=13;html=1;rounded=1;strokeColor=#9673a6;whiteSpace=wrap;" vertex="1" parent="1">
@@ -28,7 +28,7 @@
         <mxCell id="rrf" value="RRF (k = 60) по стабильным ID: страница — max по её единицам; дубли страниц сворачиваются → top-100" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="600" y="240" width="230" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="late" value="CORE mLateOn MaxSim: 209 259 units, 24,96 млн token vectors, float16 pack; включён по умолчанию" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="late" value="CORE mLateOn MaxSim: 184 006 units, 23,45 млн token vectors, float16 pack; включён по умолчанию" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="890" y="215" width="260" height="170" as="geometry" />
         </mxCell>
         <mxCell id="fig" value="номер рисунка («рис. 3.1») усиливается только среди кандидатов своей темы; подписи объектов (object_label)" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="1">

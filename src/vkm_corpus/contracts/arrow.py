@@ -25,7 +25,7 @@ from typing import Annotated, Any, Iterable, Sequence, Union, get_args, get_orig
 from pydantic import BaseModel
 
 from vkm_corpus.contracts.datasets import (DATASETS, HISTORICAL_LOCATOR_SCHEMAS, HISTORICAL_CONTINUATION_SCHEMAS,
-    VOLATILE_COLUMNS, DatasetSpec, dataset, historical_omissions)
+    HISTORICAL_PRIMARY_FLAG_SCHEMAS, VOLATILE_COLUMNS, DatasetSpec, dataset, historical_omissions)
 from vkm_corpus.contracts.fieldtypes import ArrowType
 
 _ARROW_NAMES = {
@@ -294,7 +294,9 @@ def readable_schema(name: str, version: str | None, fingerprint: str | None) -> 
             or (name in HISTORICAL_LOCATOR_SCHEMAS
                 and (version, fingerprint) == HISTORICAL_LOCATOR_SCHEMAS[name])
             or (name in HISTORICAL_CONTINUATION_SCHEMAS
-                and (version, fingerprint) == HISTORICAL_CONTINUATION_SCHEMAS[name]))
+                and (version, fingerprint) == HISTORICAL_CONTINUATION_SCHEMAS[name])
+            or (name in HISTORICAL_PRIMARY_FLAG_SCHEMAS
+                and (version, fingerprint) == HISTORICAL_PRIMARY_FLAG_SCHEMAS[name]))
 
 
 def table_fingerprint(name: str, table) -> str:

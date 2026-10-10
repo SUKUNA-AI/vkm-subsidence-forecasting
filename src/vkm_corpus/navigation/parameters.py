@@ -2174,10 +2174,13 @@ def build(con: Any, *, section_pages: Any = None, sections: Any = None, formula_
     # ---- tables
     trows = []
     if _has(con, "SELECT 1 FROM canonical.tables LIMIT 0"):
-        trows = con.execute("""
+        from vkm_corpus.contracts.primary_layer import primary_clause
+
+        trows = con.execute(f"""
             SELECT t.object_id, t.source_id, t.page_id, coalesce(p.page_index, 0), t.table_label, t.caption, t.n_rows,
                    t.n_cols, t.header_rows, t.cells, t.bbox_y0
             FROM canonical.tables t LEFT JOIN canonical.pages p ON p.page_id = t.page_id
+            WHERE {primary_clause(con, 'tables', 't')}
             ORDER BY t.source_id, t.page_id, t.object_id""").fetchall()
     for tid, sid, pid, pidx, label, caption, nr, nc, hr, cells, y0 in trows:
         if only and sid not in only:

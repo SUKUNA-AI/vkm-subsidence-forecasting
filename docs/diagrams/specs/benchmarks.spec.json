@@ -11,7 +11,7 @@
    "nodes": [
     {
      "id": "title",
-     "label": "Бенчмарки поиска и досье: V0 → V1 → V2 → topic_v1 (28–29.09.2026)",
+     "label": "Бенчмарки поиска и досье: V0 → V1 → V2 → topic_v1 (28.09–07.10.2026)",
      "x": 20,
      "y": 12,
      "w": 1760,
@@ -174,6 +174,15 @@
      "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
     },
     {
+     "id": "tv1_t3",
+     "x": 1358,
+     "y": 425,
+     "w": 420,
+     "h": 68,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=6;spacingRight=4;",
+     "label": "• дозаразметка T2 (574daaac) и T3 (OCR v2, 2d71e9e8): первая десятка оценена полностью; на P (5 125 целей) hybrid_late R@50 0,393, MRR 0,859, S@10 0,974; human3 R@50 0,604 (+0,211, p Холма 0,0003)"
+    },
+    {
      "id": "next",
      "label": "Следующий бенчмарк — прогноз оседаний (D-19): предрегистрация до обучения (t0, горизонты H, метрики, разбиение по мирам и по времени, available_from ≤ t0); проверка на отложенных семействах, другом решателе и разрешении; отдельно — на реальных наблюдениях корпуса в пределах применимости.",
      "x": 20,
@@ -282,7 +291,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: README.md §11; benchmarks/retrieval_v0/MODEL_SELECTION_V0.md; benchmarks/retrieval_v1/RESULTS_V1.md §0–§1; benchmarks/retrieval_v2/RESULTS_V2.md; benchmarks/topic_v1/RESULTS_V1.md §0–§2; receipts/retrieval_v1_h_review.json; COORDINATOR_DECISIONS.md (CP-39).",
+     "label": "Источники: README.md §11; benchmarks/retrieval_v0/MODEL_SELECTION_V0.md; benchmarks/retrieval_v1/RESULTS_V1.md §0–§1; benchmarks/retrieval_v2/RESULTS_V2.md; benchmarks/topic_v1/RESULTS_V1.md §0–§2, RESULTS_POOL_T2.md, RESULTS_POOL_T3.md; receipts/retrieval_v1_h_review.json; COORDINATOR_DECISIONS.md (CP-39).",
      "x": 20,
      "y": 620,
      "w": 1100,

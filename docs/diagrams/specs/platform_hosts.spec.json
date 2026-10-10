@@ -11,7 +11,7 @@
    "nodes": [
     {
      "id": "title",
-     "label": "Платформа корпуса: хосты и сервисы (30.09.2026)",
+     "label": "Платформа корпуса: хосты и сервисы (07.10.2026)",
      "x": 20,
      "y": 12,
      "w": 1760,
@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "Снимок snap-20260929T175107Z-574daaac: 271 источник, 27 135 страниц. CORE/EDGE в этой сессии только читались.",
+     "label": "Снимок snap-20261007T103222Z-2d71e9e8 (OCR v2): 271 источник, 27 135 страниц. api, mcp, mcp-admin и vkm-job — образ коммита 475e92f.",
      "x": 20,
      "y": 44,
      "w": 1760,
@@ -174,11 +174,11 @@
     },
     {
      "id": "rtx",
-     "label": "Локальные Qwen3.5-9B / GLM-OCR: одна GPU-задача, gpu.lock",
+     "label": "Локальные модели, одна GPU-задача (gpu.lock): GLM-OCR, PaddleOCR-VL-1.6 (OCR v2), Qwen3.5-9B",
      "x": 15,
      "y": 475,
      "w": 285,
-     "h": 45,
+     "h": 55,
      "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
      "parent": "wsl"
     },
@@ -216,7 +216,7 @@
     },
     {
      "id": "mcp",
-     "label": "vkm-corpus: 45 read-only инструментов",
+     "label": "vkm-corpus: 49 read-only инструментов",
      "x": 15,
      "y": 35,
      "w": 180,
@@ -297,7 +297,7 @@
     },
     {
      "id": "canon",
-     "label": "canonical/ — Parquet-снимок, manifest, CURRENT (сдвигается только при PASS валидатора); artifacts/; duckdb/",
+     "label": "canonical/ — Parquet-снимок, manifest, CURRENT (сдвигается только при PASS валидатора), evidence/ — журнал evidence (HEAD); artifacts/; duckdb/",
      "x": 15,
      "y": 35,
      "w": 300,
@@ -319,7 +319,7 @@
     },
     {
      "id": "receipts",
-     "label": "receipts/ — квитанции reconcile, проекций, NAV, lab_refresh",
+     "label": "receipts/ — квитанции reconcile, проекций, NAV, lab_refresh, ночных проверок",
      "x": 335,
      "y": 35,
      "w": 260,
@@ -489,7 +489,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: PROJECT_STATE_RU.md; docs/corpus_platform/PLATFORM_INTEGRITY_2026-09-30_RU.md; docs/corpus_platform/receipts/intake_2026-09-29.json; MODEL_SERVICES.md.",
+     "label": "Источники: PROJECT_STATE_RU.md; docs/corpus_platform/receipts/deploy_20261006_ocr_v2_core.json, deploy_20261007_readd_053_230.json; DEPLOYMENT.md; MODEL_SERVICES.md.",
      "x": 20,
      "y": 1040,
      "w": 1760,

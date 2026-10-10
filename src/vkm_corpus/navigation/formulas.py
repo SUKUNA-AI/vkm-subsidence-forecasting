@@ -1202,12 +1202,15 @@ ORDER BY b.source_id, p.page_index, b.reading_order, b.object_id
 
 
 def _load(con: Any, source_ids: Iterable[str] | None) -> tuple[list[_Fml], list[_Blk]]:
+    from vkm_corpus.contracts.primary_layer import primary_clause
+
     params: list[Any] = []
-    fwhere = where = ""
+    fwhere = ""
+    where = f"WHERE {primary_clause(con, 'formulas', 'f')}"   # formulas of a secondary layer are not NAV formulas
     if source_ids:
         ids_ = sorted(set(source_ids))
         ph = ", ".join("?" for _ in ids_)
-        where = f"WHERE f.source_id IN ({ph})"
+        where += f" AND f.source_id IN ({ph})"
         fwhere = f"WHERE source_id IN ({ph})"
         params = ids_
     fml = [_Fml(r) for r in con.execute(_FORMULA_SQL.format(where=where), params).fetchall()]

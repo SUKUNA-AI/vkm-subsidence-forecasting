@@ -1,0 +1,72 @@
+{
+ "rule_version": "world_observations_v1",
+ "runs": [
+  "high_full",
+  "double"
+ ],
+ "outputs": {
+  "world_observation_catalog.csv": "4ae027cadcda70bcbf5aff0e55473f188c115e71ebf3257f571a6f82fdaeafc5",
+  "digitized_series_points.csv": "41deb0005d61482a23954ba4500945e40004be52597d10de3f331df21c088e94"
+ },
+ "counts": {
+  "items": 3340,
+  "by_kind": {
+   "TEXT_VALUE": 2843,
+   "DIGITIZED_SERIES": 301,
+   "MONITORING_CATALOGUE_DATASET": 168,
+   "REVIEWED_FIGURE_SERIES": 24,
+   "PUBLIC_DIGITIZATION_PHASE1": 4
+  },
+  "by_modality": {
+   "OTHER": 1848,
+   "LEVELLING": 1024,
+   "INSAR": 314,
+   "CONVERGENCE": 146,
+   "GNSS": 8
+  },
+  "by_skru1_flag": {
+   "NO": 3025,
+   "YES": 184,
+   "SKRU1_OR_SKRU2": 131
+  },
+  "by_target_site": {
+   "-": 2659,
+   "SKRU2": 200,
+   "SKRU1": 184,
+   "SKRU1|SKRU2": 131,
+   "BKPRU4": 117,
+   "SKRU3": 49
+  },
+  "by_site": {
+   "UNKNOWN": 1323,
+   "NON_VKM": 326,
+   "BEREZNIKI_CITY": 286,
+   "VKM_UNSPECIFIED": 284,
+   "SKRU2": 200,
+   "SKRU1": 184,
+   "SKRU1_OR_SKRU2_UNATTRIBUTED": 124,
+   "BKPRU2": 123,
+   "BKPRU4": 117,
+   "BKPRU3": 90,
+   "BKPRU1": 71,
+   "OTHER_POTASH_SITE": 66,
+   "OTHER_VKM_SITE": 60,
+   "SKRU3": 49,
+   "SOLIKAMSK_CITY": 17,
+   "SKRU1_SKRU2_PILLAR": 7,
+   "UNSTATED": 5,
+   "VKM_REGIONAL": 5,
+   "GENERAL_METHOD": 1,
+   "SKRU1+SKRU3+SKRU2": 1,
+   "SKRU3+SKRU2": 1
+  },
+  "digitized_points": 10576,
+  "digitized_points_georeferenced": 2405,
+  "digitized_points_excluded_not_observation": {
+   "MODEL_RESULT": 476,
+   "BENCHMARK_POSITION_AS_PUBLISHED": 23
+  },
+  "without_available_from": 16
+ },
+ "nav_used": true
+}

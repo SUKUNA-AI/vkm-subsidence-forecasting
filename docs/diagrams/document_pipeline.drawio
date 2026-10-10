@@ -7,7 +7,7 @@
         <mxCell id="title" value="Путь документа в конвейере корпуса: от реестра до снимка и проекций" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="12" width="1760" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="subtitle" value="vkm-corpus run extract — четыре фазы на WORKSTATION (STAGING), затем публикация и reconcile на CORE. Native first: OCR — только где нужно; сырьё моделей хранится (KEEP_RAW), повторный прогон моделей не вызывает." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="subtitle" value="vkm-corpus run extract — четыре фазы на WORKSTATION (STAGING), затем публикация и reconcile на CORE. Native first: OCR — только где нужно; сырьё моделей хранится (KEEP_RAW), повторный прогон моделей не вызывает. С 06.10 основной слой сканов — импортированный OCR v2 (PADDLEOCR_VL)." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="44" width="1760" height="25" as="geometry" />
         </mxCell>
         <mxCell id="ph1" value="1 prepare — subprocess на источник, CPU" style="swimlane;collapsible=0;container=1;fillColor=#fff2cc;fontSize=13;fontStyle=1;html=1;rounded=0;startSize=28;strokeColor=#d6b656;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
@@ -85,6 +85,9 @@
         <mxCell id="scenb" value="сценарий B: ≈ 5 % страниц со встроенным слоем, CER против GLM; переOCR источника при CER &amp;gt; 10 %" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="ph3">
           <mxGeometry x="15" y="455" width="270" height="85" as="geometry" />
         </mxCell>
+        <mxCell id="ocrv2" value="OCR v2 (06.10, вне конвейера): PP-DocLayoutV3 + PaddleOCR-VL-1.6 на vLLM, BF16, 1 МП → run import-layer, правило CHOICE_V1 → OCR_RAW paddleocr_vl_page (KEEP_RAW) → основной слой PADDLEOCR_VL, прежний слой остаётся вторичным" style="fillColor=#fff2cc;fontSize=12;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="ph3">
+          <mxGeometry x="15" y="555" width="270" height="130" as="geometry" />
+        </mxCell>
         <mxCell id="norm" value="нормализация сырья: ocr_normalize_v2 (текст, LaTeX, сетка таблицы); флаги ocr_quality_v2 пересчитываются при коммите" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="ph4">
           <mxGeometry x="15" y="45" width="270" height="95" as="geometry" />
         </mxCell>
@@ -118,10 +121,10 @@
         <mxCell id="vec" value="векторы: lab_refresh (dense + late)" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
           <mxGeometry x="20" y="330" width="195" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="nav" value="NAV: nav build на WORKSTATION → nav.duckdb, граф NAV" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
+        <mxCell id="nav" value="NAV: nav build на WORKSTATION (GPU) → nav.duckdb, граф NAV" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
           <mxGeometry x="225" y="330" width="195" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="snapnum" value="Снимок snap-20260929T175107Z-574daaac:&lt;br&gt;271 источник: 240 COMPLETE, 29 PARTIAL, 2 SKIPPED&lt;br&gt;27 135 страниц, 632 420 блоков&lt;br&gt;18 297 рисунков, 3 689 таблиц, 109 243 формулы&lt;br&gt;24 105 записей литературы, 209 259 поисковых единиц" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="core">
+        <mxCell id="snapnum" value="Снимок snap-20261007T103222Z-2d71e9e8 (07.10.2026):&lt;br&gt;271 источник: 253 COMPLETE, 16 PARTIAL, 2 SKIPPED&lt;br&gt;27 135 страниц, 698 246 блоков; PADDLEOCR_VL — 7 057 стр.&lt;br&gt;18 297 рисунков, 5 165 таблиц, 125 351 формула&lt;br&gt;24 121 запись литературы, 184 006 поисковых единиц" style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="core">
           <mxGeometry x="20" y="415" width="400" height="150" as="geometry" />
         </mxCell>
         <mxCell id="statuses" value="Нет тихих потерь: каждая страница получает строку со статусом — NATIVE_OK, EMBEDDED_TEXT_OK, OCR_OK, OCR_REQUIRED, PARTIAL, UNSUPPORTED, FAILED, NEEDS_REVIEW, SKIPPED_BY_REGISTER, NOT_PROCESSED. Упавший subprocess даёт ошибку WORKER_CRASHED или TIMEOUT; страницы получат строки при следующем коммите из кешей." style="align=left;fillColor=#ffffff;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
@@ -157,7 +160,7 @@
         <mxCell id="lg_tx_unknown" value="аварийная остановка прогона" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
           <mxGeometry x="52" y="115" width="540" height="25" as="geometry" />
         </mxCell>
-        <mxCell id="sources" value="Источники: docs/corpus_platform/PIPELINE.md §1–§6; CORPUS_PLATFORM_ARCHITECTURE.md §2–§3; OPERATIONS.md §1, §4; BIBLIOGRAPHY.md; README.md §4; receipts/evening_deploy_final.json; implementation_work/COORDINATOR_DECISIONS.md (CP-22, CP-38)." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="sources" value="Источники: docs/corpus_platform/PIPELINE.md §1–§6, §5а; CORPUS_PLATFORM_ARCHITECTURE.md §2–§3; OPERATIONS.md §1, §4; BIBLIOGRAPHY.md; receipts/deploy_20261006_ocr_v2_core.json, deploy_20261007_readd_053_230.json; implementation_work/COORDINATOR_DECISIONS.md (CP-22, CP-38)." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="985" width="1760" height="25" as="geometry" />
         </mxCell>
         <mxCell id="c0" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="reg" target="fmt">
@@ -263,6 +266,14 @@
         </mxCell>
         <mxCell id="s4" value="копия" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.3;entryY=0;exitDx=0;exitDy=0;exitX=1;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="duck" target="nav">
           <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="x_ocrv2" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.8;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="ocrv2" target="objects">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1010" y="710" />
+              <mxPoint x="1010" y="338" />
+            </Array>
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
