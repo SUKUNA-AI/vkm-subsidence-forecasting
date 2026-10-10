@@ -73,6 +73,51 @@ def skru1_flag(site_norm: str) -> str:
     return "NO"
 
 
+TARGET_SITES = ("SKRU1", "SKRU2", "SKRU3", "BKPRU4")      # target sites of the worlds (owner, 10.10.2026)
+
+
+def target_site(site_norm: str) -> str:
+    """The target site an observation belongs to: SKRU1 / SKRU2 / SKRU3 / BKPRU4, «SKRU1|SKRU2» when the source does
+    not split SKRU-1 and SKRU-2, empty otherwise."""
+    s = (site_norm or "").upper()
+    if s in TARGET_SITES:
+        return s
+    return "SKRU1|SKRU2" if s in ("SKRU1_OR_SKRU2_UNATTRIBUTED", "SKRU1_SKRU2_PILLAR") else ""
+
+
+SITE_CODES = ("SKRU1", "SKRU2", "SKRU3", "SKRU1_OR_SKRU2_UNATTRIBUTED", "BKPRU1", "BKPRU2", "BKPRU3", "BKPRU4",
+              "UST_YAYVA", "BEREZNIKI_CITY", "SOLIKAMSK_CITY", "VKM_UNSPECIFIED", "OTHER_POTASH_SITE", "NON_VKM",
+              "UNKNOWN")
+
+
+def series_site(meta: dict, ser_id: str) -> str:
+    """Mine of one digitized series: a code, a per-series map, or (figures with panels of several mines) the mine
+    code named in the series id; a free-text mixture without a code in the id stays UNKNOWN."""
+    sn = meta.get("site_norm")
+    if isinstance(sn, dict):
+        return sn.get(ser_id) or "UNKNOWN"
+    if (sn or "") in SITE_CODES or sn == "":
+        return sn or "UNKNOWN"
+    m = re.search(r"(?<![A-Z])(SKRU[123]|BKPRU[1-4])(?![0-9])", ser_id)
+    return m.group(1) if m else "UNKNOWN"
+
+
+def calibration_use(canon: Path) -> dict[str, list[dict]]:
+    """Series a source used to calibrate a model whose parameters may enter the worlds
+    (``WORLD_OBSERVATIONS/calibration_use*.csv``): source id → rows (figures «3.4;3.5» or «*»)."""
+    out: dict[str, list[dict]] = {}
+    for p in sorted((canon / "WORLD_OBSERVATIONS").glob("calibration_use*.csv")):
+        for r in _rows(p):
+            out.setdefault(r["source_id"], []).append(r)
+    return out
+
+
+def calibration_of(cal: dict[str, list[dict]], sid: str, label: str) -> str:
+    n = fig_no(label)
+    hits = [r for r in cal.get(sid, ()) if r["figures"] == "*" or n in r["figures"].split(";")]
+    return "; ".join(f"{r['cal_id']} ({r['parameter_refs']})" for r in hits)
+
+
 def _rows(p: Path) -> list[dict]:
     return list(csv.DictReader(open(p, encoding="utf-8"))) if p.is_file() else []
 
@@ -92,13 +137,15 @@ def availability(nav: Path | None) -> dict[str, tuple[str, str]]:
 
 
 def base(**kw) -> dict:
-    keys = ["obs_id", "item_kind", "modality", "site_as_printed", "site_norm", "skru1_flag", "georef", "line_or_benchmark",
+    keys = ["obs_id", "item_kind", "modality", "site_as_printed", "site_norm", "target_site", "skru1_flag", "georef",
+            "line_or_benchmark",
             "epochs", "time_start", "time_end", "quantity", "unit", "value_min", "value_max", "n_points",
             "available_from", "available_from_basis", "source_id", "page_id", "figure_label", "figure_id",
-            "calibration_ref", "calibration_check", "status", "primary_data_origin", "applicability",
+            "calibration_ref", "calibration_check", "used_to_calibrate", "status", "primary_data_origin", "applicability",
             "usable_for_validation", "producer", "review_status", "notes"]
     r = {k: "" for k in keys}
     r.update({k: ("" if v is None else v) for k, v in kw.items()})
+    r["target_site"] = target_site(r["site_norm"])
     return r
 
 
@@ -124,6 +171,7 @@ def georef_points(canon: Path) -> dict[str, dict]:
 def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
     avail = availability(nav)
     geo = georef_points(canon)
+    cal = calibration_use(canon)
     obs, points = [], []
     excluded = Counter()
 
@@ -143,7 +191,8 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
         sid = meta.get("source_id") or fig_dir.parent.name
         for ser_id, pts in sorted(by_series.items()):
             first = pts[0]
-            nature = first.get("series_nature") or "OBSERVATION_AS_PUBLISHED"
+            nature = (first.get("series_nature") or "OBSERVATION_AS_PUBLISHED").split("(")[0].strip()
+            site = series_site(meta, ser_id)
             if nature in NOT_OBSERVATION:
                 excluded[nature] += len(pts)
                 continue
@@ -151,8 +200,8 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
             obs.append(base(obs_id=f"WOB-DIG-{ser_id}", item_kind="DIGITIZED_SERIES",
                             modality=modality_of(" ".join(str(meta.get(k, "")) for k in ("quantity", "caption",
                                                                                            "site_as_printed"))),
-                            site_as_printed=meta.get("site_as_printed"), site_norm=meta.get("site_norm"),
-                            skru1_flag=skru1_flag(meta.get("site_norm")),
+                            site_as_printed=meta.get("site_as_printed"), site_norm=site,
+                            skru1_flag=skru1_flag(site),
                             line_or_benchmark=";".join(meta.get("line_ids") or []) or first.get("line_id"),
                             epochs=first.get("epoch_or_date") or "", time_start=first.get("epoch_or_date") or "",
                             time_end=first.get("epoch_or_date") or "", quantity=meta.get("quantity"),
@@ -162,13 +211,15 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
                             available_from_basis=av(sid)[1] if av(sid)[0] else meta.get("available_from_precision", ""),
                             source_id=sid, page_id=meta.get("page_id"), figure_label=meta.get("figure_label"),
                             figure_id=meta.get("figure_id_layer", ""), calibration_ref=f"{rel}/calibration.json",
-                            calibration_check="AXIS_POINTS_IN_CALIBRATION_JSON", status="DERIVATION",
+                            calibration_check="AXIS_POINTS_IN_CALIBRATION_JSON",
+                            used_to_calibrate=calibration_of(cal, sid, meta.get("figure_label") or fig_dir.name),
+                            status="DERIVATION",
                             primary_data_origin=meta.get("primary_data_origin", ""),
                             applicability=meta.get("applicability", ""),
-                            usable_for_validation="YES" if meta.get("site_norm") not in ("UNKNOWN", "") else "PARTIAL",
+                            usable_for_validation="YES" if site not in ("UNKNOWN", "") else "PARTIAL",
                             producer=meta.get("digitizer", "Claude subagent 09.10.2026"),
                             review_status=meta.get("review_status", "AUTO_EXTRACTED_UNREVIEWED"),
-                            notes=(("среднее, вычисленное автором (DERIVATION автора); " if nature == "AUTHOR_DERIVED_MEAN"
+                            notes=(("производная автора (DERIVATION автора); " if nature.startswith("AUTHOR_DERIVED")
                                     else "") + "; ".join(meta.get("notes", []) if isinstance(meta.get("notes"), list)
                                                          else [str(meta.get("notes", ""))]))[:500]))
             n_geo = sum(1 for p in pts if p.get("benchmark_id") in geo)
@@ -275,6 +326,7 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
                "counts": {"items": len(obs), "by_kind": dict(Counter(o["item_kind"] for o in obs).most_common()),
                           "by_modality": dict(Counter(o["modality"] for o in obs).most_common()),
                           "by_skru1_flag": dict(Counter(o["skru1_flag"] for o in obs).most_common()),
+                          "by_target_site": dict(Counter(o["target_site"] or "-" for o in obs).most_common()),
                           "by_site": dict(Counter(o["site_norm"] for o in obs).most_common()),
                           "digitized_points": len(points),
                           "digitized_points_georeferenced": sum(1 for x in points if x.get("x_local_m") != ""),
