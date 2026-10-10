@@ -195,14 +195,65 @@ def _page_id(src: str, pdf_page: str) -> str:
     return f"{src}:p{int(pdf_page):04d}" if (pdf_page or "").strip().isdigit() and src.startswith("VKM-") else ""
 
 
+def load_adjudication(canon: Path) -> dict[str, dict]:
+    """Third-opinion verdicts by record id (``WORLD_EXTRACTION/adjudication/*.jsonl``), the last file wins."""
+    out = {}
+    for p in sorted((canon / "WORLD_EXTRACTION" / "adjudication").glob("*.jsonl")):
+        for v in _jsonl(p):
+            out[v["record_id"]] = v
+    return out
+
+
+def load_site_ranges(canon: Path) -> dict[str, list[dict]]:
+    """Mine of a document / chapter / page range by context (curated ``source_site_ranges*.csv``)."""
+    out = defaultdict(list)
+    for p in sorted((canon / "WORLD_PARAMETERS" / "curated").glob("source_site_ranges*.csv")):
+        for r in _rows(p):
+            out[r["source_id"]].append(r)
+    return out
+
+
+SPECIFIC_SITES = {"SKRU1", "SKRU2", "SKRU3", "SKRU1_OR_SKRU2_UNATTRIBUTED", "BKPRU1", "BKPRU2", "BKPRU3", "BKPRU4",
+                  "UST_YAYVA", "BEREZNIKI_CITY", "SOLIKAMSK_CITY", "OTHER_POTASH_SITE", "NON_VKM"}
+
+
+def site_from_document(ranges: dict[str, list[dict]], page_id: str) -> tuple[str, str]:
+    src, _, p = page_id.rpartition(":")
+    try:
+        idx = int(p.lstrip("pr"))
+    except ValueError:
+        return "", ""
+    for r in ranges.get(src, ()):
+        try:
+            a, b = int(r["page_from"]), int(r["page_to"])
+        except (TypeError, ValueError):
+            continue
+        if a <= idx <= b and r.get("site_norm") in SPECIFIC_SITES:
+            return r["site_norm"], f"{r.get('scope_kind', '')}: {r.get('basis', '')}"[:200]
+    return "", ""
+
+
 def extraction_rows(canon: Path, runs: list[str], units: Units) -> list[dict]:
+    """Page extraction records that passed the verifier. A third-opinion verdict (if any) corrects the record
+    (fields, rock class, header multiplier, branch) or excludes it from the registry (REJECT / NOT_WORLD_PARAMETER,
+    the row stays with its verdict). A record without a mine on its page takes the mine of its document / chapter when
+    the curated ranges name one (``site_basis`` DOCUMENT_CONTEXT)."""
+    adj = load_adjudication(canon)
+    ranges = load_site_ranges(canon)
     out = []
     for run in runs:
         prod = "CLAUDE_DOUBLE_ENTRY" if run == "double" else f"SOL_{run.upper()}"
-        for r in _jsonl(canon / "WORLD_EXTRACTION" / run / "accepted.jsonl"):
-            code = r.get("parameter_code") or "OTHER"
-            if r.get("kind") in ("ENTITY", "CITATION"):
+        for r0 in _jsonl(canon / "WORLD_EXTRACTION" / run / "accepted.jsonl"):
+            if r0.get("kind") in ("ENTITY", "CITATION"):
                 continue
+            v = adj.get(r0["record_id"])
+            r = dict(r0, **((v or {}).get("corrected") or {}))
+            verification = "VERIFIED_PROGRAMMATIC"
+            if v:
+                verification = {"CORRECT": "ADJUDICATED_OK", "CORRECTED": "ADJUDICATED_CORRECTED",
+                                "REJECT": "ADJUDICATED_REJECT",
+                                "NOT_WORLD_PARAMETER": "ADJUDICATED_NOT_WORLD"}.get(v.get("verdict"), "ADJUDICATED")
+            code = r.get("parameter_code") or "OTHER"
             if code in OBS_CODES or r.get("kind") == "OBSERVATION":
                 module, kind, si_unit = "OBS", ("length" if code in ("SUBSIDENCE", "SUBSIDENCE_MAX", "CONVERGENCE",
                                                                       "HORIZONTAL_DISPLACEMENT", "INSAR_LOS")
@@ -212,24 +263,41 @@ def extraction_rows(canon: Path, runs: list[str], units: Units) -> list[dict]:
             else:
                 module, kind, si_unit = {"GEOMETRY": "C1", "HISTORY": "C4", "LAW": "C2"}.get(r.get("kind"), "OTHER"), \
                     "none", ""
+            if verification in ("ADJUDICATED_REJECT", "ADJUDICATED_NOT_WORLD"):
+                module = "EXCLUDED"
             scale = SCALE_NORM.get(r.get("scale") or "UNKNOWN", "UNKNOWN")
             ctx = " ".join(x or "" for x in (r.get("conditions"), r.get("notes")))
             cls = material_class(r.get("material_as_printed") or "", "", "", ctx if code in ("RHO", "UNIT_WEIGHT")
                                  else "") if module in ("C2", "C3") else ""
+            if v and v.get("material_class") and module in ("C2", "C3"):
+                cls = v["material_class"]
             target = cls if module in ("C2", "C3") else (units.unit_of(r.get("material_as_printed") or "")
                                                           if module == "C1" else "")
-            vals = [v for v in (_f(r.get("value_min")), _f(r.get("value_max"))) if v is not None]
+            factor = _f((v or {}).get("value_scale_factor")) or 1.0
+            vals = [x * factor for x in (_f(r.get("value_min")), _f(r.get("value_max"))) if x is not None]
             si, rule = [], "NO_VALUE" if not vals else ""
-            if vals and kind != "none" and not r.get("multiplier_as_printed"):
-                conv = [convert(v, r.get("unit_as_printed") or "", kind) for v in vals]
+            header_ok = not r.get("multiplier_as_printed") or factor != 1.0
+            if vals and kind != "none" and header_ok:
+                conv = [convert(x, r.get("unit_as_printed") or "", kind) for x in vals]
                 si = [c[0] for c in conv if c[0] is not None]
-                rule = conv[0][1]
+                rule = conv[0][1] + (f"; header x{factor:g}" if factor != 1.0 else "")
             elif vals:
-                rule = "HEADER_MULTIPLIER_NOT_APPLIED" if r.get("multiplier_as_printed") else "UNIT_NOT_CONVERTED"
+                rule = "HEADER_MULTIPLIER_NOT_APPLIED" if not header_ok else "UNIT_NOT_CONVERTED"
+            site, site_basis = r.get("site_norm") or "UNKNOWN", "PAGE"
+            if v and "site_norm" in (v.get("corrected") or {}):
+                site_basis = "ADJUDICATED"
+            elif site in ("UNKNOWN", "VKM_UNSPECIFIED"):
+                dsite, dbasis = site_from_document(ranges, r["page_id"])
+                if dsite:
+                    site, site_basis = dsite, f"DOCUMENT_CONTEXT ({dbasis})"
+            branch = branch_of(code, scale)
+            if v and v.get("branch_hint") in ("A", "B", "N") and branch != "-":
+                branch = v["branch_hint"]
+            note = (f"[разбор: {v.get('basis', '')}] " if v else "") + (r.get("notes") or "")
             out.append(dict(producer=prod, producer_record_id=r["record_id"], module=module, parameter=code,
                             target=target, material_class=cls, material_as_printed=r.get("material_as_printed") or "",
-                            scale=scale, branch=branch_of(code, scale), site_norm=r.get("site_norm") or "UNKNOWN",
-                            site_group=SITE_GROUP.get(r.get("site_norm") or "UNKNOWN", "GENERAL_OR_UNSTATED"),
+                            scale=scale, branch=branch, site_norm=site,
+                            site_group=SITE_GROUP.get(site, "GENERAL_OR_UNSTATED"), site_basis=site_basis,
                             value_as_printed=r.get("value_as_printed") or "", unit_as_printed=r.get("unit_as_printed")
                             or "", si_min=f"{min(si):.6g}" if si else "", si_max=f"{max(si):.6g}" if si else "",
                             si_unit=si_unit if si else "", conversion=rule, conditions=r.get("conditions") or "",
@@ -237,7 +305,7 @@ def extraction_rows(canon: Path, runs: list[str], units: Units) -> list[dict]:
                             origin=r.get("origin") or "UNKNOWN", cited_ref=r.get("cited_ref") or "",
                             source_id=r["page_id"].split(":")[0], page_id=r["page_id"], locator=r.get("locator") or "",
                             quote=r.get("quote") or "", status="AUTO_EXTRACTED_UNREVIEWED",
-                            verification="VERIFIED_PROGRAMMATIC", notes=(r.get("notes") or "")[:300],
+                            verification=verification, notes=note[:300],
                             kind=r.get("kind"), time_as_printed=r.get("time_as_printed") or "",
                             equation_as_printed=r.get("equation_as_printed") or "", symbol=r.get("symbol") or ""))
     return out
@@ -744,7 +812,8 @@ def cited_literature(ev: list[dict], nav: Path | None, canon: Path | None = None
 
 # ------------------------------------------------------------------------------------------------ build
 EV_COLS = ["ev_id", "producer", "producer_record_id", "module", "parameter", "kind", "target", "material_class",
-           "material_as_printed", "scale", "branch", "site_norm", "site_group", "value_as_printed", "unit_as_printed",
+           "material_as_printed", "scale", "branch", "site_norm", "site_group", "site_basis", "value_as_printed",
+           "unit_as_printed",
            "si_min", "si_max", "si_unit", "conversion", "symbol", "equation_as_printed", "time_as_printed",
            "conditions", "method", "n_samples", "origin", "cited_ref", "source_id", "page_id", "locator", "quote",
            "status", "verification", "copy_cluster", "copy_role", "cluster_sources", "cluster_producers",

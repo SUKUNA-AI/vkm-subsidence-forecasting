@@ -123,3 +123,36 @@ def test_observation_catalogue_keeps_statuses(wob, canon):
     pts = list(csv.DictReader(files["digitized_series_points.csv"].decode("utf-8").splitlines()))
     assert pts[0]["point_id"] == "WOP-000001" and pts[0]["status"] == "DERIVATION"
     assert wob.skru1_flag("SKRU1_OR_SKRU2_UNATTRIBUTED") == "SKRU1_OR_SKRU2"
+
+
+def test_adjudication_and_document_site(wpp, canon):
+    acc = canon / "WORLD_EXTRACTION" / "high_full" / "accepted.jsonl"
+    extra = [{"record_id": "high_full:P2:001", "packet_id": "P2", "kind": "PARAMETER", "page_id": "VKM-SRC-201:p0005",
+              "parameter_code": "E", "value_min": 2.26, "value_max": 2.26, "unit_as_printed": "МПа",
+              "multiplier_as_printed": "E·10⁻³", "value_as_printed": "2,26", "material_as_printed": "C $ \\Pi $ecTp",
+              "scale": "LAB", "site_norm": "UNKNOWN", "origin": "ORIGINAL", "quote": "2,26"},
+             {"record_id": "high_full:P2:002", "packet_id": "P2", "kind": "PARAMETER", "page_id": "VKM-SRC-201:p0005",
+              "parameter_code": "UCS", "value_min": 50.0, "value_max": 50.0, "unit_as_printed": "м",
+              "value_as_printed": "50", "scale": "FIELD", "site_norm": "UNKNOWN", "quote": "50 м"}]
+    with open(acc, "a", encoding="utf-8") as f:
+        for r in extra:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    adj = canon / "WORLD_EXTRACTION" / "adjudication"
+    adj.mkdir(parents=True)
+    (adj / "adjudication_20261010.jsonl").write_text("\n".join(json.dumps(v, ensure_ascii=False) for v in (
+        {"record_id": "high_full:P2:001", "verdict": "CORRECTED", "corrected": {}, "material_class": "SYLVINITE",
+         "value_scale_factor": 1000, "branch_hint": "A", "basis": "шапка табл. E·10⁻³"},
+        {"record_id": "high_full:P2:002", "verdict": "NOT_WORLD_PARAMETER", "corrected": {}, "basis": "расстояние"},
+    )) + "\n", encoding="utf-8")
+    _write(canon / "WORLD_PARAMETERS" / "curated" / "source_site_ranges_20261010.csv", [dict(
+        source_id="VKM-SRC-201", page_from="1", page_to="20", site_norm="SKRU3", scope_kind="WHOLE_DOCUMENT",
+        basis="статья о СКРУ-3", basis_page_id="VKM-SRC-201:p0001", confidence="HIGH")])
+    files = wpp.build(canon, ["high_full"], None)
+    ev = {r["producer_record_id"]: r for r in csv.DictReader(files["passport_evidence.csv"].decode("utf-8").splitlines())}
+    e = ev["high_full:P2:001"]
+    assert (e["material_class"], e["si_min"], e["branch"], e["verification"]) == ("SYLVINITE", "2.26e+09", "A",
+                                                                                  "ADJUDICATED_CORRECTED")
+    assert e["site_norm"] == "SKRU3" and e["site_basis"].startswith("DOCUMENT_CONTEXT")
+    assert ev["high_full:P2:002"]["module"] == "EXCLUDED"
+    reg = list(csv.DictReader(files["world_passport.csv"].decode("utf-8").splitlines()))
+    assert not any("high_full:P2:002" in r["evidence_ids"] for r in reg)
