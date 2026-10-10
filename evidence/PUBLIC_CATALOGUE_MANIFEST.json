@@ -750,10 +750,10 @@
   {
    "dropped_columns": [],
    "source": "WORLD_OBSERVATIONS/build_receipt.json",
-   "source_sha256": "31e89c12250cea971fb4dfff43beddd03a3f515ecb6921827332ad2eb844dc1a",
+   "source_sha256": "650345950e6d529ee7ef048aab4db729201e42027bb4f0cdc2e92ecf3e7ae6e0",
    "status": "OK",
    "target": "evidence/world/observations/build_receipt.json",
-   "target_sha256": "31e89c12250cea971fb4dfff43beddd03a3f515ecb6921827332ad2eb844dc1a"
+   "target_sha256": "650345950e6d529ee7ef048aab4db729201e42027bb4f0cdc2e92ecf3e7ae6e0"
   },
   {
    "dropped_columns": [],
@@ -774,10 +774,28 @@
   {
    "dropped_columns": [],
    "source": "WORLD_OBSERVATIONS/world_observation_catalog.csv",
-   "source_sha256": "4ae027cadcda70bcbf5aff0e55473f188c115e71ebf3257f571a6f82fdaeafc5",
+   "source_sha256": "3ca837de3a93b260c3ec9a6871b74ccee9283b2611b011cc9c134d83b3560006",
    "status": "OK",
    "target": "evidence/world/observations/world_observation_catalog.csv",
-   "target_sha256": "4ae027cadcda70bcbf5aff0e55473f188c115e71ebf3257f571a6f82fdaeafc5"
+   "target_sha256": "3ca837de3a93b260c3ec9a6871b74ccee9283b2611b011cc9c134d83b3560006"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD_PARAMETERS/curated/bkpru4_calendar_conflicts_20261010.csv",
+   "source_sha256": "ad5f4d0fa3b9b2e0079a7296eaeb092195a2a289acb2b12e8ff4dc127ac02e83",
+   "status": "OK",
+   "target": "evidence/world/c4/bkpru4_calendar_conflicts.csv",
+   "target_sha256": "4de6b77c2b796c8d082fd02ecff5f4321cb34b10ca4544bf58b2f3a892d9bd24"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "WORLD_PARAMETERS/curated/bkpru4_mining_calendar_20261010.csv",
+   "source_sha256": "56374bacccf08d2fbc3da097c2f2b8c28e993f5b502b7a28875480b806d86d52",
+   "status": "OK",
+   "target": "evidence/world/c4/bkpru4_mining_calendar.csv",
+   "target_sha256": "c6525adb82703da621efa2f3acd5f46a5a25201502b6e8f2a3e837fd7f6f038f"
   },
   {
    "dropped_columns": [],
@@ -815,6 +833,42 @@
   },
   {
    "dropped_columns": [],
+   "source": "WORLD_PARAMETERS/curated/skru2_calendar_conflicts_20261010.csv",
+   "source_sha256": "2915fb2e5f92344671f028151d1d76d9532b029dd506a7a5bc67cf57e39e2c3e",
+   "status": "OK",
+   "target": "evidence/world/c4/skru2_calendar_conflicts.csv",
+   "target_sha256": "4c3c5ba7171a1ad255e17ee456f7b1d524f11365c236e81ea5bef066d82c5977"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "WORLD_PARAMETERS/curated/skru2_mining_calendar_20261010.csv",
+   "source_sha256": "8cf3ace8bf2fe1cf35e09e5c250fe2c161e36c79ec12fbf159aa0d7bc61ff828",
+   "status": "OK",
+   "target": "evidence/world/c4/skru2_mining_calendar.csv",
+   "target_sha256": "4923e507bdef83cd0b705dbf528f3f4a3d0f5111fed0fef72f91b11c024089cf"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD_PARAMETERS/curated/skru3_calendar_conflicts_20261010.csv",
+   "source_sha256": "1a15ca73189072f1075ed670380e3c78130bf3eb4ca18cd4ba485cea247acaea",
+   "status": "OK",
+   "target": "evidence/world/c4/skru3_calendar_conflicts.csv",
+   "target_sha256": "37666951e4771b4ff7ebd06d000e5ee41683283980da9ceb9011b23c0e005f67"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "WORLD_PARAMETERS/curated/skru3_mining_calendar_20261010.csv",
+   "source_sha256": "1e25e10d0f9e4a5b5b23121dcbbbf2b1b93feac0f5d84605d18d3c532632e537",
+   "status": "OK",
+   "target": "evidence/world/c4/skru3_mining_calendar.csv",
+   "target_sha256": "df1ceee037fe099c8736fe0295b4723811de637aa8df85c0728dd0f05b34d716"
+  },
+  {
+   "dropped_columns": [],
    "source": "WORLD_PARAMETERS/curated/source_site_ranges_20261010.csv",
    "source_sha256": "cdef9ef6946e304caf9c8c86e602b880547cac41d7715bd8e3d6f7c047ba9f1e",
    "status": "OK",
@@ -824,106 +878,146 @@
   {
    "dropped_columns": [],
    "source": "WORLD_PASSPORT/build_receipt.json",
-   "source_sha256": "3ef67bec359fe2bb9281e93d02dacba7cb682e84f0df564e599d6112e116abba",
+   "source_sha256": "3ada30cd181a33c2e28ea698b3a86fdc7ccc29a38795598c43d7a5fbb835a807",
    "status": "OK",
    "target": "evidence/world/passport/build_receipt.json",
-   "target_sha256": "3ef67bec359fe2bb9281e93d02dacba7cb682e84f0df564e599d6112e116abba"
+   "target_sha256": "3ada30cd181a33c2e28ea698b3a86fdc7ccc29a38795598c43d7a5fbb835a807"
   },
   {
    "dropped_columns": [],
    "source": "WORLD_PASSPORT/cited_literature.csv",
-   "source_sha256": "910936235f16be8b6d53001fe46df66a644c97cedcb8292af5c6cf5e563c60d2",
+   "source_sha256": "91c9237f8ab96f1ac8c9f0e87311468ec36ee4c065e3640953106cee328e0514",
    "status": "OK",
    "target": "evidence/world/passport/cited_literature.csv",
-   "target_sha256": "22c6f18caf68abc8aa3769a8248642b4703c586a53c06ade2b3e7ea1ecb8cc77"
+   "target_sha256": "b23e9e9be02b304068316146f9a53ac705d8596af23a9a455ea84247014ebb45"
   },
   {
    "dropped_columns": [],
    "source": "WORLD_PASSPORT/passport_conflicts.csv",
-   "source_sha256": "410df37027718fd636ec4f3c16df3b5765837fe79eddb86537a10b3ee89db46e",
+   "source_sha256": "4308e53acd90d662c94f68bfd970faf8835a3e2f20ed909d420e1d0104f23b9d",
    "status": "OK",
    "target": "evidence/world/passport/passport_conflicts.csv",
-   "target_sha256": "410df37027718fd636ec4f3c16df3b5765837fe79eddb86537a10b3ee89db46e"
+   "target_sha256": "4308e53acd90d662c94f68bfd970faf8835a3e2f20ed909d420e1d0104f23b9d"
   },
   {
    "dropped_columns": [
     "quote"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c1.csv",
-   "source_sha256": "58e2f4e9b878106d46dc3b38ba4eba4f9dc0c40190afb6e2de7c60483a8891d3",
+   "source_sha256": "fbd59311e2c76932da1650c12daa39db93dda21a9580163f8095d8b12cd7cd33",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c1.csv",
-   "target_sha256": "e574aae1f19224942f847f469a5bf895fc2f97611a004e91b46e5690d51a3e28"
+   "target_sha256": "12a169c1996adcd43b6d703f84dfc8790c738d087fb76bbec6072ea25d08e0ec"
   },
   {
    "dropped_columns": [
     "quote"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c1_sol_high_full.csv",
-   "source_sha256": "f0c361a4440f16cf5bf80130c281d2b5d43ec442bec381c61f8b2f1a07f2ec33",
+   "source_sha256": "61f5cef6ab9fe3f74453a70b691e949aee28e26f9e0463d61334c3320c64d72b",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c1_sol_high_full.csv",
-   "target_sha256": "2dfbf5d2e398792a85dadf28d5c1e8ba907826c7ec5592f0bc3803c4bbef7ecd"
+   "target_sha256": "d8f08e35039293137f8a27c9ae4bcd9de6fba65625fb8fe64f046adf18e6746b"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "WORLD_PASSPORT/passport_evidence_c1_sol_wave2_high.csv",
+   "source_sha256": "276997e82df7fefe7880d76c5bf7285b538d7b04cc09ec58ef422e15cb46fecc",
+   "status": "OK",
+   "target": "evidence/world/passport/passport_evidence_c1_sol_wave2_high.csv",
+   "target_sha256": "0389b0129e870e04d04c1f4f79ba5af4c5bcb738b9c42e6bf0250b3fa9e0e643"
   },
   {
    "dropped_columns": [
     "quote"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c2.csv",
-   "source_sha256": "61e16fc7c125aea95429e4ef4a18078a9a1c34f3cb972a5b229458aacc3b273f",
+   "source_sha256": "bac61283fc6da4c319da99eb710d75812cd39c24c12d49ba9faa65ce73096cbc",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c2.csv",
-   "target_sha256": "ef92d07daf2c6be00c668fe01146960aa66a0f1bc2f00ba6efe32f56435003f4"
+   "target_sha256": "e2c92a9ddb005478aa59b87c65f2d03ffc0214c156c23afbd339df78c3dddb1c"
   },
   {
    "dropped_columns": [
     "quote"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c2_sol_high_full.csv",
-   "source_sha256": "22a5a3e0d403f3c35e0b785a5467bd964ff7437486b4af732b64a9ea4eaf8e1f",
+   "source_sha256": "9facafeadbed54c270cd1fcf5610a2ed17a6d42666271cc90dac112753b752fe",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c2_sol_high_full.csv",
-   "target_sha256": "f884d83f9368000004cd6c820bcb4838a9cfa4cb7598d5c0ecff5c071279bc75"
+   "target_sha256": "6f3bb011b1768725289c3cf3763da5b4bb7b8f964c6e76ca73f3d959c9801614"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "WORLD_PASSPORT/passport_evidence_c2_sol_wave2_high.csv",
+   "source_sha256": "be4f71212a1c91982add39a58614323c792e0a3721b5406bb56d9547dc057c60",
+   "status": "OK",
+   "target": "evidence/world/passport/passport_evidence_c2_sol_wave2_high.csv",
+   "target_sha256": "5bb07b871aa75ca994295943da4039c7c0cf66d58b0c48b3f365a2618aeff85b"
   },
   {
    "dropped_columns": [
     "quote"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c3.csv",
-   "source_sha256": "fe95f7e842540dbd5266bc69ddd42797ed5cf2541b7ca344a3cb16a8eea1aef9",
+   "source_sha256": "6300bd3b2d46cbd9013093bd1ab9319bf6a45467d8e9d420f5c8b8e1f6600aee",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c3.csv",
-   "target_sha256": "9c22d98d9821f3b555f1a7f148129f2e684f6e10e0d4b0b8acdd25c705d60b33"
+   "target_sha256": "262cf5cae6ccb60a953fe99bb317c60c23d3347931dccf7e6701a9750cb4c5e4"
   },
   {
    "dropped_columns": [
     "quote"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c3_sol_high_full.csv",
-   "source_sha256": "a4b3d225615e6ebc3e17ce1afc5d2b7ef74cafcbb0132711ab8e9dda3dd3dff8",
+   "source_sha256": "7ea42f6fae518f5b82338640de00899804926c12b3039fa98a3e30d48be7a8e1",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c3_sol_high_full.csv",
-   "target_sha256": "80e66d1a09945cafda73ad4fb9667b0abfe3b63d0a8868a0c004b363abfd717d"
+   "target_sha256": "4933ae13f59e29d9135a7e567ce744d865163c755ba3daf7ce47bba99245eaab"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "WORLD_PASSPORT/passport_evidence_c3_sol_wave2_high.csv",
+   "source_sha256": "a8392ac70f688139a1e001b6e4324d574bd1cd299a83ef1c478613427e973c82",
+   "status": "OK",
+   "target": "evidence/world/passport/passport_evidence_c3_sol_wave2_high.csv",
+   "target_sha256": "2302436edb75e0755656e9b806f30d6bd2b958a3e084a9c51bcf69d749634b8e"
   },
   {
    "dropped_columns": [
     "quote"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c4.csv",
-   "source_sha256": "b89c860591e749dcc14c9a50a95bca07f6d303569e5330ed2d1de2ba53d021db",
+   "source_sha256": "6edd0b64c7ccc1ed20eaf2498921215891fe72a74f659fdbb4eb6e59ec7f00ca",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c4.csv",
-   "target_sha256": "d701476ad5ecaf8ed43245fe17c87a66f10c937056c8ad2879824d55a9d31a54"
+   "target_sha256": "1e6a4d1445cc5983dccf245d8d3d450f4f82dbe2a6540c0643730bed5e2ce3cb"
   },
   {
    "dropped_columns": [
     "quote"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c4_sol_high_full.csv",
-   "source_sha256": "15bce650ec425bdd61eb241643e4a9932d75a8ef769f94898b069cce12ef1867",
+   "source_sha256": "17c641a40afc69207a317d75aeb06034fa59cb1680bafb65aec0c2460e8158b6",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c4_sol_high_full.csv",
-   "target_sha256": "dde476e6e09fb9535c53eb32d93ed692be039b760fb2c415071991c79a1e9cf1"
+   "target_sha256": "62c74d12090c6a836d5cdddcda2f5b969ff74da45a9f17f08bee634351a10f1e"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "WORLD_PASSPORT/passport_evidence_c4_sol_wave2_high.csv",
+   "source_sha256": "b40c8fc57a797854e5b0eacef3379e791d6a3c86812afea31afad8faf902c8a6",
+   "status": "OK",
+   "target": "evidence/world/passport/passport_evidence_c4_sol_wave2_high.csv",
+   "target_sha256": "b345a425919c509d6a7c50e76acb7c77b1d79306e54b43f7626056451e10bcfe"
   },
   {
    "dropped_columns": [
@@ -938,26 +1032,26 @@
   {
    "dropped_columns": [],
    "source": "WORLD_PASSPORT/world_objects.csv",
-   "source_sha256": "8fb15737a342ee76636568afffe27baf975e24373ec38faadd7a52fc83fae1ed",
+   "source_sha256": "f684b8895c92034f8a1d203ec4d84b51fc840a7c4e5cc2da32ac64dab42119e0",
    "status": "OK",
    "target": "evidence/world/passport/world_objects.csv",
-   "target_sha256": "df232434df4b8f3aab1a567d24124e160724248ffef44b5d7d53cfeede3b24de"
+   "target_sha256": "4f425b8cf81c8e2ddf002ca00a5c1e52237e587f7615901855c161e5ef24879f"
   },
   {
    "dropped_columns": [],
    "source": "WORLD_PASSPORT/world_passport.csv",
-   "source_sha256": "c1bc6b6739d02f04ece4680341d9c8511b6c2ab427923c9e350141f7b07c6652",
+   "source_sha256": "114de0b2f972d69195ccab2f2bcfdf8a72ba1ad59c96e7ffeccc03c4eaf50dcb",
    "status": "OK",
    "target": "evidence/world/passport/world_passport.csv",
-   "target_sha256": "c1bc6b6739d02f04ece4680341d9c8511b6c2ab427923c9e350141f7b07c6652"
+   "target_sha256": "114de0b2f972d69195ccab2f2bcfdf8a72ba1ad59c96e7ffeccc03c4eaf50dcb"
   },
   {
    "dropped_columns": [],
    "source": "WORLD_PASSPORT/world_priors_proposal.csv",
-   "source_sha256": "f3de170973cc4d06c83df0c64a6ff09a2d876c93a9f2c6a47fee654d8ae42dc4",
+   "source_sha256": "94c99fff60b01016fb935940d32d9619987349a8e812ea53e51a0727e7192f9a",
    "status": "OK",
    "target": "evidence/world/passport/world_priors_proposal.csv",
-   "target_sha256": "f3de170973cc4d06c83df0c64a6ff09a2d876c93a9f2c6a47fee654d8ae42dc4"
+   "target_sha256": "94c99fff60b01016fb935940d32d9619987349a8e812ea53e51a0727e7192f9a"
   }
  ],
  "generator": "scripts/build_public_catalogues.py",
@@ -1105,62 +1199,122 @@
    },
    {
     "column": "entry_text",
-    "copied_words": 42,
+    "copied_words": 46,
     "row": 6,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 46,
+    "copied_words": 42,
     "row": 7,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 40,
-    "row": 9,
+    "copied_words": 46,
+    "row": 8,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 38,
+    "copied_words": 40,
     "row": 10,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 25,
+    "copied_words": 38,
+    "row": 11,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 40,
+    "row": 13,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 27,
     "row": 14,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 29,
-    "row": 16,
+    "copied_words": 25,
+    "row": 15,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 25,
-    "row": 18,
+    "row": 19,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 44,
+    "row": 21,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 44,
+    "row": 22,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 29,
+    "row": 23,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 44,
+    "row": 24,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 25,
+    "row": 26,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 34,
+    "row": 27,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 27,
+    "row": 28,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 33,
-    "row": 30,
+    "row": 45,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 27,
+    "row": 48,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 32,
-    "row": 35,
+    "row": 51,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 28,
-    "row": 36,
+    "copied_words": 26,
+    "row": 52,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
@@ -1171,531 +1325,645 @@
    },
    {
     "column": "entry_text",
-    "copied_words": 25,
-    "row": 83,
+    "copied_words": 30,
+    "row": 64,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 25,
-    "row": 97,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 31,
-    "row": 119,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 31,
-    "row": 129,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 27,
-    "row": 136,
+    "copied_words": 28,
+    "row": 77,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 29,
-    "row": 137,
+    "row": 78,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 25,
+    "row": 92,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 25,
+    "row": 109,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 25,
+    "row": 123,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 27,
+    "row": 140,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 31,
+    "row": 151,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 31,
+    "row": 164,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 28,
+    "row": 170,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 27,
+    "row": 173,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 41,
+    "row": 174,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 28,
+    "row": 175,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 29,
+    "row": 176,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 38,
-    "row": 159,
+    "row": 204,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 38,
-    "row": 160,
+    "row": 205,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 37,
-    "row": 203,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 30,
-    "row": 210,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 26,
-    "row": 213,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 25,
-    "row": 216,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 28,
-    "row": 218,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 29,
-    "row": 219,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 26,
-    "row": 221,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 27,
-    "row": 222,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 31,
-    "row": 223,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 28,
-    "row": 233,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 30,
-    "row": 234,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 28,
-    "row": 248,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 31,
-    "row": 250,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 27,
-    "row": 254,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 26,
     "row": 256,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 29,
-    "row": 259,
+    "copied_words": 30,
+    "row": 263,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 26,
+    "row": 266,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 25,
+    "row": 269,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 28,
-    "row": 260,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 27,
     "row": 271,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 26,
+    "copied_words": 29,
     "row": 272,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 27,
-    "row": 273,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 30,
+    "copied_words": 26,
     "row": 274,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 25,
+    "copied_words": 27,
     "row": 275,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 25,
+    "copied_words": 31,
     "row": 276,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 27,
-    "row": 278,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 25,
-    "row": 279,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 26,
-    "row": 281,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 32,
-    "row": 282,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 26,
-    "row": 283,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 35,
-    "row": 284,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 27,
+    "copied_words": 28,
     "row": 286,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 26,
-    "row": 288,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 37,
-    "row": 292,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
     "copied_words": 30,
-    "row": 294,
+    "row": 287,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 30,
-    "row": 296,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 36,
+    "copied_words": 28,
     "row": 301,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
+    "copied_words": 31,
+    "row": 303,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
     "copied_words": 27,
-    "row": 302,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 34,
-    "row": 311,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 35,
-    "row": 331,
+    "row": 307,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 26,
-    "row": 345,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 26,
-    "row": 351,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 27,
-    "row": 360,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 30,
-    "row": 372,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 27,
-    "row": 379,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 25,
-    "row": 381,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 36,
-    "row": 384,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 30,
-    "row": 385,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 25,
-    "row": 397,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 25,
-    "row": 399,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 25,
-    "row": 402,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 33,
-    "row": 403,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 32,
-    "row": 409,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 30,
-    "row": 410,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 35,
-    "row": 413,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 27,
-    "row": 415,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 30,
-    "row": 417,
+    "row": 309,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 29,
-    "row": 419,
+    "row": 312,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 28,
-    "row": 422,
+    "row": 313,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 25,
-    "row": 423,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 31,
-    "row": 425,
+    "copied_words": 27,
+    "row": 324,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 26,
-    "row": 430,
+    "row": 325,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 27,
+    "row": 326,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 30,
+    "row": 327,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 25,
+    "row": 328,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 25,
+    "row": 329,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 27,
+    "row": 331,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 25,
+    "row": 332,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 26,
+    "row": 334,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 32,
-    "row": 431,
+    "row": 335,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 36,
-    "row": 432,
+    "copied_words": 26,
+    "row": 336,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 35,
+    "row": 337,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 27,
-    "row": 434,
+    "row": 339,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 36,
-    "row": 435,
+    "copied_words": 26,
+    "row": 341,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 31,
-    "row": 437,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 25,
-    "row": 439,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 25,
-    "row": 440,
+    "copied_words": 37,
+    "row": 345,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 30,
-    "row": 441,
+    "row": 347,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 26,
-    "row": 467,
+    "copied_words": 30,
+    "row": 349,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
-    "copied_words": 28,
-    "row": 468,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 26,
-    "row": 490,
+    "copied_words": 36,
+    "row": 354,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 27,
-    "row": 732,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 31,
-    "row": 846,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 28,
-    "row": 857,
+    "row": 355,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 34,
-    "row": 858,
+    "row": 365,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 35,
+    "row": 385,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 26,
+    "row": 400,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 34,
+    "row": 403,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 26,
+    "row": 407,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 27,
-    "row": 924,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 27,
-    "row": 925,
-    "target": "evidence/world/passport/cited_literature.csv"
-   },
-   {
-    "column": "entry_text",
-    "copied_words": 27,
-    "row": 926,
+    "row": 416,
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
     "column": "entry_text",
     "copied_words": 30,
-    "row": 1021,
+    "row": 428,
     "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 27,
+    "row": 435,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 25,
+    "row": 437,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 36,
+    "row": 441,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 30,
+    "row": 442,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 25,
+    "row": 454,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 25,
+    "row": 456,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 32,
+    "row": 459,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 25,
+    "row": 462,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 33,
+    "row": 463,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 32,
+    "row": 470,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 30,
+    "row": 471,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 27,
+    "row": 474,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 35,
+    "row": 475,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 30,
+    "row": 476,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 27,
+    "row": 478,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 30,
+    "row": 480,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 29,
+    "row": 482,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 28,
+    "row": 485,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 25,
+    "row": 486,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 31,
+    "row": 488,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 26,
+    "row": 493,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 32,
+    "row": 494,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 36,
+    "row": 495,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 27,
+    "row": 497,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 36,
+    "row": 498,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 31,
+    "row": 500,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 25,
+    "row": 502,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 25,
+    "row": 503,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 30,
+    "row": 504,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 26,
+    "row": 530,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 28,
+    "row": 531,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 26,
+    "row": 556,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 26,
+    "row": 635,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 26,
+    "row": 829,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 28,
+    "row": 939,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 29,
+    "row": 1135,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 27,
+    "row": 1141,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 31,
+    "row": 1287,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 28,
+    "row": 1307,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 34,
+    "row": 1308,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 29,
+    "row": 1401,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 27,
+    "row": 1513,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 27,
+    "row": 1514,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 27,
+    "row": 1515,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "entry_text",
+    "copied_words": 30,
+    "row": 1791,
+    "target": "evidence/world/passport/cited_literature.csv"
+   },
+   {
+    "column": "material_as_printed",
+    "copied_words": 30,
+    "row": 4463,
+    "target": "evidence/world/passport/passport_evidence_c1_sol_wave2_high.csv"
    },
    {
     "column": "notes",
     "copied_words": 25,
     "row": 1015,
     "target": "evidence/world/passport/passport_evidence_c2.csv"
+   },
+   {
+    "column": "equation_as_printed",
+    "copied_words": 31,
+    "row": 835,
+    "target": "evidence/world/passport/passport_evidence_c2_sol_wave2_high.csv"
    },
    {
     "column": "name",
