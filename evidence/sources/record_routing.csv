@@ -8318,7 +8318,7 @@ EV-VN-S023-0079,VKM-SRC-023,claim,27,QA_ONLY,0,,evidence/qa/visual_ocr_qa_ledger
 EV-VN-S023-0080,VKM-SRC-023,mining_geometry,27,DOMAIN,3,evidence/mining/geometry_row_id_rename_receipt.csv;evidence/mining/mining_conflicts.csv;evidence/mining/mining_geometry_catalog.csv,evidence/qa/visual_ocr_qa_ledger.csv
 EV-VN-S023-0081,VKM-SRC-023,conflict_note,27,DOMAIN,1,evidence/mining/mining_conflicts.csv,evidence/qa/visual_ocr_qa_ledger.csv
 EV-VN-S023-0082,VKM-SRC-023,borehole,27,DOMAIN,4,evidence/boreholes/borehole_catalog.csv;evidence/boreholes/borehole_identity_issues.csv;evidence/sources/SOURCE_CITATION_GRAPH.csv;evidence/sources/multi_source_cited_works.csv,
-EV-VN-S023-0083,VKM-SRC-023,borehole,27,DOMAIN,3,evidence/boreholes/borehole_catalog.csv;evidence/sources/SOURCE_CITATION_GRAPH.csv;evidence/sources/multi_source_cited_works.csv,
+EV-VN-S023-0083,VKM-SRC-023,borehole,27,DOMAIN,4,evidence/boreholes/borehole_catalog.csv;evidence/sources/SOURCE_CITATION_GRAPH.csv;evidence/sources/multi_source_cited_works.csv;evidence/world/passport/passport_evidence_c1.csv,
 EV-VN-S023-0084,VKM-SRC-023,stratigraphic_unit,27,DOMAIN,4,evidence/geology/stratigraphic_thickness_observations.csv;evidence/geology/stratigraphic_units.csv;evidence/sources/SOURCE_CITATION_GRAPH.csv;evidence/sources/multi_source_cited_works.csv,evidence/qa/visual_ocr_qa_ledger.csv
 EV-VN-S023-0085,VKM-SRC-023,visual_check,28,DOMAIN,1,evidence/coordinates/coordinate_datum_evidence.csv,evidence/qa/evidence_corrections.csv;evidence/qa/visual_ocr_qa_ledger.csv
 EV-VN-S023-0086,VKM-SRC-023,borehole,28,DOMAIN,3,evidence/boreholes/borehole_catalog.csv;evidence/sources/SOURCE_CITATION_GRAPH.csv;evidence/sources/multi_source_cited_works.csv,

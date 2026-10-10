@@ -2,57 +2,58 @@
  "rule_version": "world_observations_v1",
  "runs": [
   "high_full",
+  "wave2_high",
   "double"
  ],
  "outputs": {
-  "world_observation_catalog.csv": "4ae027cadcda70bcbf5aff0e55473f188c115e71ebf3257f571a6f82fdaeafc5",
+  "world_observation_catalog.csv": "3ca837de3a93b260c3ec9a6871b74ccee9283b2611b011cc9c134d83b3560006",
   "digitized_series_points.csv": "41deb0005d61482a23954ba4500945e40004be52597d10de3f331df21c088e94"
  },
  "counts": {
-  "items": 3340,
+  "items": 4755,
   "by_kind": {
-   "TEXT_VALUE": 2843,
+   "TEXT_VALUE": 4258,
    "DIGITIZED_SERIES": 301,
    "MONITORING_CATALOGUE_DATASET": 168,
    "REVIEWED_FIGURE_SERIES": 24,
    "PUBLIC_DIGITIZATION_PHASE1": 4
   },
   "by_modality": {
-   "OTHER": 1848,
-   "LEVELLING": 1024,
-   "INSAR": 314,
-   "CONVERGENCE": 146,
-   "GNSS": 8
+   "OTHER": 2653,
+   "LEVELLING": 1256,
+   "INSAR": 443,
+   "CONVERGENCE": 308,
+   "GNSS": 95
   },
   "by_skru1_flag": {
-   "NO": 3025,
-   "YES": 184,
+   "NO": 4436,
+   "YES": 188,
    "SKRU1_OR_SKRU2": 131
   },
   "by_target_site": {
-   "-": 2659,
-   "SKRU2": 200,
-   "SKRU1": 184,
+   "-": 3961,
+   "SKRU2": 227,
+   "SKRU1": 188,
+   "BKPRU4": 141,
    "SKRU1|SKRU2": 131,
-   "BKPRU4": 117,
-   "SKRU3": 49
+   "SKRU3": 107
   },
   "by_site": {
-   "UNKNOWN": 1323,
-   "NON_VKM": 326,
-   "BEREZNIKI_CITY": 286,
-   "VKM_UNSPECIFIED": 284,
-   "SKRU2": 200,
-   "SKRU1": 184,
+   "UNKNOWN": 1917,
+   "NON_VKM": 773,
+   "VKM_UNSPECIFIED": 414,
+   "BEREZNIKI_CITY": 326,
+   "SKRU2": 227,
+   "SKRU1": 188,
+   "BKPRU2": 151,
+   "BKPRU4": 141,
    "SKRU1_OR_SKRU2_UNATTRIBUTED": 124,
-   "BKPRU2": 123,
-   "BKPRU4": 117,
-   "BKPRU3": 90,
-   "BKPRU1": 71,
-   "OTHER_POTASH_SITE": 66,
+   "SKRU3": 107,
+   "BKPRU1": 105,
+   "OTHER_POTASH_SITE": 92,
+   "BKPRU3": 91,
    "OTHER_VKM_SITE": 60,
-   "SKRU3": 49,
-   "SOLIKAMSK_CITY": 17,
+   "SOLIKAMSK_CITY": 19,
    "SKRU1_SKRU2_PILLAR": 7,
    "UNSTATED": 5,
    "VKM_REGIONAL": 5,
@@ -66,7 +67,7 @@
    "MODEL_RESULT": 476,
    "BENCHMARK_POSITION_AS_PUBLISHED": 23
   },
-  "without_available_from": 16
+  "without_available_from": 18
  },
  "nav_used": true
 }

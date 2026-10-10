@@ -37,7 +37,8 @@ C4_PARAMS = ("CHAMBER_WIDTH", "PILLAR_WIDTH", "CHAMBER_HEIGHT", "EXTRACTION_RATI
 SITE_ORDER = ("SKRU1", "OTHER_VKM_SITE", "VKM_REGIONAL", "GENERAL_OR_UNSTATED", "NON_VKM")
 TARGETS = {"SKRU1": "СКРУ-1", "SKRU2": "СКРУ-2", "SKRU3": "СКРУ-3", "BKPRU4": "БКПРУ-4"}
 C1_PARAMS = ("THICKNESS", "DEPTH_TOP", "ELEV_TOP")
-NON_TARGET_VKM = {"SKRU1_OR_SKRU2_UNATTRIBUTED", "BKPRU1", "BKPRU2", "BKPRU3", "UST_YAYVA", "BEREZNIKI_CITY",
+NON_TARGET_VKM = {"SKRU1_OR_SKRU2_UNATTRIBUTED", "SKRU2_OR_SKRU3_UNATTRIBUTED", "SKRU1_SKRU2_SKRU3_POOLED",
+                  "SOLIKAMSK_MINES_UNATTRIBUTED", "SKRU3_ATTRIBUTION_NOT_ESTABLISHED", "BKPRU1", "BKPRU2", "BKPRU3", "UST_YAYVA", "BEREZNIKI_CITY",
                   "SOLIKAMSK_CITY", "VKM_UNSPECIFIED"}
 
 
@@ -47,8 +48,10 @@ def per_site(rows: list[dict]) -> str:
     for x in rows:
         n[x["site_norm"]] += 1
     txt = ", ".join(f"{v}: {n[k]}" for k, v in TARGETS.items())
-    return txt + (f"; СКРУ-1 или СКРУ-2 без разделения: {n['SKRU1_OR_SKRU2_UNATTRIBUTED']}"
-                  if n["SKRU1_OR_SKRU2_UNATTRIBUTED"] else "")
+    return (txt + (f"; СКРУ-1 или СКРУ-2 без разделения: {n['SKRU1_OR_SKRU2_UNATTRIBUTED']}"
+                   if n["SKRU1_OR_SKRU2_UNATTRIBUTED"] else "")
+            + (f"; СКРУ-2 или СКРУ-3 без разделения: {n['SKRU2_OR_SKRU3_UNATTRIBUTED']}"
+               if n["SKRU2_OR_SKRU3_UNATTRIBUTED"] else ""))
 EXCLUDED = {"ADJUDICATED_REJECT", "ADJUDICATED_NOT_WORLD"}
 
 

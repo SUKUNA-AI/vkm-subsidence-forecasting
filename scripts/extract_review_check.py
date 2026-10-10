@@ -26,7 +26,8 @@ CLASSES = {"ROCKSALT", "SYLVINITE", "CARNALLITE", "CLAY_CONTACT", "TRANSITION_OV
            "SALT_GENERAL", "COLUMN", "UNCLASSIFIED"}
 FIELDS = {"parameter_code", "parameter", "value_as_printed", "value_min", "value_max", "unit_as_printed",
           "multiplier_as_printed", "material_as_printed", "scale", "site_as_printed", "site_norm", "conditions",
-          "method", "n_samples", "time_as_printed", "locator", "quote", "origin", "cited_ref"}
+          "method", "n_samples", "time_as_printed", "locator", "quote", "origin", "cited_ref", "entity_name", "notes",
+          "confidence"}
 ENUMS = {"parameter_code": set(S.PARAMETER_CODES), "scale": set(S.SCALES), "site_norm": set(S.SITES),
          "origin": set(S.ORIGINS)}
 

@@ -95,7 +95,9 @@ REQUIRED = {"C2": ("RHO", "E", "NU", "UCS", "UTS", "COH", "PHI", "LTS_RATIO", "C
 SITE_GROUP = {"SKRU1": "SKRU1", "SKRU2": "OTHER_VKM_SITE", "SKRU3": "OTHER_VKM_SITE", "BKPRU1": "OTHER_VKM_SITE",
               "BKPRU2": "OTHER_VKM_SITE", "BKPRU3": "OTHER_VKM_SITE", "BKPRU4": "OTHER_VKM_SITE",
               "UST_YAYVA": "OTHER_VKM_SITE", "BEREZNIKI_CITY": "OTHER_VKM_SITE", "SOLIKAMSK_CITY": "OTHER_VKM_SITE",
-              "SKRU1_OR_SKRU2_UNATTRIBUTED": "OTHER_VKM_SITE", "VKM_UNSPECIFIED": "VKM_REGIONAL",
+              "SKRU1_OR_SKRU2_UNATTRIBUTED": "OTHER_VKM_SITE", "SKRU2_OR_SKRU3_UNATTRIBUTED": "OTHER_VKM_SITE",
+              "SKRU1_SKRU2_SKRU3_POOLED": "OTHER_VKM_SITE", "SOLIKAMSK_MINES_UNATTRIBUTED": "OTHER_VKM_SITE",
+              "SKRU3_ATTRIBUTION_NOT_ESTABLISHED": "VKM_REGIONAL", "VKM_UNSPECIFIED": "VKM_REGIONAL",
               "OTHER_POTASH_SITE": "NON_VKM", "NON_VKM": "NON_VKM", "UNKNOWN": "GENERAL_OR_UNSTATED"}
 SCALE_NORM = {"LAB": "LAB", "MASSIF": "MASSIF", "FIELD": "FIELD", "FIELD_MEASUREMENT": "FIELD", "MODEL": "MODEL",
               "MODEL_CHOICE": "MODEL", "CALIBRATED_EFFECTIVE_MODEL": "CALIBRATED", "CALIBRATED_EFFECTIVE": "CALIBRATED",
@@ -753,8 +755,8 @@ def conflicts(canon: Path, ev: list[dict]) -> tuple[list[dict], dict]:
                              ("MINING/mining_conflicts.csv", "conflict_id", "topic"),
                              ("WORLD_PARAMETERS/curated/c3_conflicts.csv", "conflict_id", "topic"),
                              ("WORLD_PARAMETERS/curated/c2_c4_conflicts.csv", "conflict_id", "topic"),
-                             ("WORLD_PARAMETERS/curated/skru1_calendar_conflicts_20261010.csv", "conflict_id",
-                              "topic")):
+                             *((f"WORLD_PARAMETERS/curated/{p.name}", "conflict_id", "topic") for p in
+                               sorted((canon / "WORLD_PARAMETERS" / "curated").glob("*_calendar_conflicts*.csv")))):
         for r in _rows(canon / name):
             out.append({"pc_id": "", "conflict_id": r.get(idc, ""), "origin": name.split("/")[-1], "kind": "RECORDED",
                         "topic": (r.get(topic) or "")[:300], "parameter": "", "target": "", "site_group": "",
