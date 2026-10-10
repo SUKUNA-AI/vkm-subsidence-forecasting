@@ -27,8 +27,9 @@ fd-0.1.5 — fixes after the visual review of 89 figures (08.10): labels snap to
 its tick is snapped where its neighbours put it, the axes are one chart's corner (multi-panel boxes), stacked panels
 read each series on its own y scale, a second y scale beside the first is flagged, legend markers are not data and
 name their series, identical markers close together are kept, scientific-notation tick labels are numbers; route R:
-strips anchored at the axis lines, minus signs kept, implausible OCR axes withdrawn, misread labels dropped, rotated
-date labels read, the plot box no longer cut at a zone line.
+strips anchored at the axis lines, minus signs kept (also read as «=», «—»), implausible OCR axes withdrawn, misread
+labels dropped, rotated date labels read, the plot box no longer cut at a zone line and reaching the unread first
+tick, filled label boxes not traced, OCR garbage and tick numbers not series labels.
 """
 DIGITIZER_VERSION = "fd-0.1.5"
 STATUS = "DERIVATION"

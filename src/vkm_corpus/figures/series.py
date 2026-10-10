@@ -250,14 +250,18 @@ def extract_series(paths: list[Path], texts: list[Text], box, min_chain_frac: fl
         keep = [p for p, s in zip(ms, sizes) if 0.6 * med <= s <= 1.6 * med]
         if len(keep) >= 3:
             same = same_shape(keep, med)
+            # letters drawn as filled outlines sit shoulder to shoulder; data markers are spaced out
+            c = np.array([((p.bbox[0] + p.bbox[2]) / 2, (p.bbox[1] + p.bbox[3]) / 2) for p in keep])
+            d = np.sqrt(((c[:, None, :] - c[None, :, :]) ** 2).sum(-1))
+            np.fill_diagonal(d, np.inf)
+            spaced = [p for p, nn in zip(keep, d.min(1)) if nn >= 1.2 * med]
             if same is not None:
-                keep = same          # one marker shape repeated: data markers, however close they stand
+                # one marker shape repeated: data markers, however close they stand; markers of other shapes in the
+                # group stay as before (spaced out)
+                ids = {id(p) for p in same}
+                keep = same + [p for p in spaced if id(p) not in ids]
             else:
-                # letters drawn as filled outlines sit shoulder to shoulder; data markers are spaced out
-                c = np.array([((p.bbox[0] + p.bbox[2]) / 2, (p.bbox[1] + p.bbox[3]) / 2) for p in keep])
-                d = np.sqrt(((c[:, None, :] - c[None, :, :]) ** 2).sum(-1))
-                np.fill_diagonal(d, np.inf)
-                keep = [p for p, nn in zip(keep, d.min(1)) if nn >= 1.2 * med]
+                keep = spaced
         # the legend's sample of the series: a marker with the legend words right of it — not a data point
         samples = marker_legend(keep, texts, med)
         keep = [p for p in keep if id(p) not in samples]

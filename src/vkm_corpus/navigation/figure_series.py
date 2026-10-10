@@ -81,6 +81,7 @@ from typing import Any, Iterable
 
 from vkm_corpus.figures import calibrate as _cal
 from vkm_corpus.figures import raster as _ras
+from vkm_corpus.figures import raster_digitize as _rd
 from vkm_corpus.figures import series as _ser
 
 PART = "figure_series"
@@ -170,6 +171,10 @@ RASTER_CONFIG: dict[str, Any] = {
     # fd-0.1.5: plausibility of OCR axes, labels on one line, rotated date labels, strip anchors at the axis lines
     "min_axis_span": _ras.RASTER_MIN_SPAN, "label_subset_share": _ras.RASTER_SUBSET_SHARE,
     "rotated_date_labels": True, "strip_anchors": "frame and outermost axis lines",
+    # fd-0.1.5: filled areas (label boxes) are not curves; OCR garbage and far numbers do not name series; OCR minus
+    "fill_share": _ras.FILL_SHARE, "fill_tol_de": _ras.FILL_TOL, "fill_window_strokes": _ras.FILL_WINDOW_STROKES,
+    "fill_max_colours": _ras.FILL_MAX_COLOURS, "label_min_letters": _rd.LABEL_MIN_LETTERS,
+    "label_max_other": _rd.LABEL_MAX_OTHER, "ocr_minus_dashes": "=—–−-",
 }
 RASTER_ERROR_MODEL = ("half-width in value units: axis label-fit rms ⊕ half the native pixel (y: ⊕ half the stroke "
                       "width) (route R, raster at 300 dpi); gaps of a trace are not filled")

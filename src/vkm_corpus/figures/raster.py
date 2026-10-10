@@ -210,6 +210,17 @@ def _runs_centres(idx: np.ndarray, offset: int) -> list[float]:
 
 
 # ------------------------------------------------------------------------------------------------ OCR words
+# A minus sign of a small raster is read as «=», «—» or «–», sometimes with the hyphen as well (fd-0.1.5: the y labels
+# «−10 … −60» of VKM-SRC-004 p.13 came out as «=10», «—40», «—-60» and the axis stayed uncalibrated): a run of such
+# dashes right before the digits of a word is one minus sign.
+_OCR_MINUS = re.compile(r"^[=—–−-]+(?=\d)")
+
+
+def ocr_minus(text: str) -> str:
+    """«=10», «—40», «—-60» → «-10», «-40», «-60»; other words unchanged."""
+    return _OCR_MINUS.sub("-", text)
+
+
 def ocr_words(rgb: np.ndarray, engine: OcrEngine, psm: int = 11, whitelist: str | None = None,
               min_conf: float = 30.0, scale: int = 2, offset=(0, 0), gray: np.ndarray | None = None) -> list[Text]:
     """Tesseract words with boxes (pixel frame of the full image: ``offset`` = position of this crop)."""
@@ -242,7 +253,7 @@ def ocr_words(rgb: np.ndarray, engine: OcrEngine, psm: int = 11, whitelist: str 
         left, top, width, height = (int(parts[i]) / scale for i in (6, 7, 8, 9))
         left += offset[0]
         top += offset[1]
-        words.append(Text(parts[11].strip(), left, left + width, top + height / 2, height * 0.8, 0.0,
+        words.append(Text(ocr_minus(parts[11].strip()), left, left + width, top + height / 2, height * 0.8, 0.0,
                           f"OCR:{conf:.0f}", "LOCAL_OCR"))
     return words
 
@@ -301,7 +312,7 @@ def ocr_blobs(gray: np.ndarray, offset, engine: OcrEngine, whitelist: str, min_h
                      OcrEngine(exe=engine.exe, whitelist=whitelist, version=engine.version).read_line(big))
         engine.calls += 0 if whitelist == engine.whitelist else 1
         # a tick mark next to the label is read as a trailing «-» (fd-0.1.5: «-100-»): no number ends with one
-        txt = re.sub(r"(?<=\d)[-.,]+$", "", txt)
+        txt = ocr_minus(re.sub(r"(?<=\d)[-.,]+$", "", txt))
         if txt:
             out.append(Text(txt, offset[0] + x0, offset[0] + x1, offset[1] + (y0 + y1) / 2, (y1 - y0) * 0.95, 0.0,
                             "OCR_BLOB", "LOCAL_OCR"))
@@ -366,7 +377,8 @@ def rotated_date_axis(rgb: np.ndarray, coloured: np.ndarray, engine: OcrEngine, 
     plot (fd-0.1.5; «01.01.1980 … 01.01.2035» of a time chart were not read, the chart stayed X_UNCALIBRATED): the
     band is turned clockwise, read in sparse mode with a digits-and-dots whitelist, the dates mapped back to their
     columns (the label's thickness is its tick position) and fitted as a DATE axis — only labels that parse as dates
-    count, misread ones are dropped (:func:`_subset_axis` logic); None when fewer than three dates line up."""
+    count, up to a quarter of them may be dropped as misread outliers; None when fewer than three dates line up or the
+    axis is implausible (:func:`plausible_axis`)."""
     import cv2
 
     from vkm_corpus.figures.calibrate import _snap
@@ -653,6 +665,72 @@ def marker_axis(orient: str, markers: list[float], words: list[Text], min_agree:
 
 
 # ------------------------------------------------------------------------------------------------ curves
+# Filled areas (fd-0.1.5, MODEL_CHOICE): a label box or a colour band is ink of one colour that fills a window of
+# FILL_WINDOW_STROKES stroke widths (at least 15 px) to FILL_SHARE or more — a curve, however thick, fills a third of it
+# at most. Colours are the frequent ink colours (pixels within FILL_TOL ΔE of a colour bin's mean); an area is kept
+# when its core covers half a window, and it extends over the same colour up to one window around the core (the edges
+# and the gaps between the letters of the box). Its pixels are not curve pixels (VKM-SRC-012 p.46: the yellow boxes of
+# the zone names were traced as three «series» at −90…−110 mm).
+FILL_SHARE, FILL_TOL, FILL_WINDOW_STROKES, FILL_MAX_COLOURS = 0.45, 10.0, 4.0, 24
+
+
+def stroke_width(mask: np.ndarray, step: int = 3) -> float:
+    """Typical stroke width of the ink in ``mask``: the median length of its vertical runs (every ``step``-th
+    column); 3 px for an empty mask."""
+    runs: list[np.ndarray] = []
+    for x in range(0, mask.shape[1], step):
+        col = np.flatnonzero(mask[:, x])
+        if len(col) < 2:
+            continue
+        br = np.flatnonzero(np.diff(col) > 1)
+        starts, ends = np.r_[0, br + 1], np.r_[br, len(col) - 1]
+        runs.append(col[ends] - col[starts] + 1)
+    return float(np.median(np.concatenate(runs))) if runs else 3.0
+
+
+def filled_areas(coloured: np.ndarray, lab: np.ndarray, stroke: float | None = None) -> np.ndarray:
+    """Mask of filled areas of one ink colour (label boxes, bands) among the ``coloured`` pixels (see
+    :data:`FILL_SHARE`), with a margin of one stroke width around them (the anti-aliased border of a box has other
+    colours and would be traced as a thin line)."""
+    import cv2
+
+    fill = np.zeros(coloured.shape, bool)
+    ys, xs = np.nonzero(coloured)
+    if not len(ys):
+        return fill
+    stroke = stroke if stroke else stroke_width(coloured)
+    k = int(max(15, FILL_WINDOW_STROKES * stroke)) | 1
+    pix = lab[ys, xs].astype(np.float32)
+    pix[:, 0] *= 100 / 255
+    q = np.round(pix / 6).astype(np.int64)
+    _, inv, counts = np.unique(q[:, 0] * 1_000_000 + (q[:, 1] + 500) * 1000 + (q[:, 2] + 500), return_inverse=True,
+                               return_counts=True)
+    inv = inv.ravel()
+    centres: list[np.ndarray] = []
+    for o in np.argsort(-counts):
+        if counts[o] < k * k or len(centres) >= FILL_MAX_COLOURS:
+            break
+        c = pix[inv == o].mean(0)
+        if any(float(np.linalg.norm(c - d)) <= FILL_TOL for d in centres):
+            continue
+        centres.append(c)
+        same_idx = np.linalg.norm(pix - c, axis=1) <= FILL_TOL
+        if same_idx.sum() < k * k:
+            continue
+        same = np.zeros(coloured.shape, np.float32)
+        same[ys[same_idx], xs[same_idx]] = 1.0
+        core = (cv2.boxFilter(same, -1, (k, k)) >= FILL_SHARE) & (same > 0)
+        n, cc, st, _ = cv2.connectedComponentsWithStats(core.astype(np.uint8), 8)
+        keep = np.zeros(n, bool)
+        keep[1:] = st[1:, cv2.CC_STAT_AREA] >= k * k // 2
+        if not keep.any():
+            continue
+        grown = cv2.dilate(keep[cc].astype(np.uint8), np.ones((k, k), np.uint8)) > 0
+        fill |= grown & (same > 0)
+    if fill.any():
+        m = 2 * int(round(max(2.0, stroke))) + 1
+        fill = cv2.dilate(fill.astype(np.uint8), np.ones((m, m), np.uint8)) > 0
+    return fill
 
 
 def track_curves(mask: np.ndarray, lab: np.ndarray, x0: int, x1: int, max_jump: float, max_run: float,

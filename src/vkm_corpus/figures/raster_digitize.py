@@ -21,12 +21,43 @@ def markers_on_line(dark: np.ndarray, hline, band: int = 5) -> list[float]:
     return R._runs_centres(idx, int(x0))
 
 
+# Series labels of route R (fd-0.1.5, MODEL_CHOICE): the OCR of a chart reads curve marks and broken glyphs as words
+# («\m», «|ho», «I~», «/N» named the series of VKM-SRC-012 p.46). A worded label has at least LABEL_MIN_LETTERS
+# letters and at most LABEL_MAX_OTHER of its characters other than letters, digits and the punctuation of labels; a
+# number standing in a row of three or more numbers on one line is a tick label wherever it is.
+LABEL_MIN_LETTERS, LABEL_MAX_OTHER = 3, 0.2
+_LABEL_PUNCT = frozenset(" .,-–−%/()№=+:")
+
+
+def label_word(text: str) -> bool:
+    """A word that may label a series (:data:`LABEL_MIN_LETTERS`)."""
+    s = text.strip()
+    if not s:
+        return False
+    letters = sum(ch.isalpha() for ch in s)
+    other = sum(not (ch.isalnum() or ch in _LABEL_PUNCT) for ch in s)
+    return letters >= LABEL_MIN_LETTERS and other <= LABEL_MAX_OTHER * len(s)
+
+
+def numeric_rows(words) -> set:
+    """ids of the numeric words that stand in a row of three or more numbers (same line within half a height)."""
+    nums = [t for t in words if label_value(t.text)[0] is not None]
+    out: set = set()
+    for t in nums:
+        row = [u for u in nums if abs(u.yc - t.yc) <= 0.5 * max(t.h, u.h)]
+        if len(row) >= 3:
+            out.add(id(t))
+    return out
+
+
 def _box_from(xa, ya, hl, vl, shape, words=()):
     """Plot area of a raster chart: the label spans, extended by axis/frame lines that overlap them, bounded by the
     value axis line. fd-0.1.5: the value axis line is the line *nearest* the first (last) labelled tick — not the last
     of several lines met while walking inwards (a zone boundary at x = 20 cut off the chart's 0…20) — and the x span
     reaches the y axis line left of the first label read (labels 0…10 unread: the chart starts at the axis, not at
-    15); a line with tick labels between it and the span is not that axis."""
+    15); a line with tick labels between it and the span is not that axis. Without such a line the span stays at the
+    first label read (extending it by whole tick steps changed the length thresholds of the tracing, which are shares
+    of the box width, and lost a usable fragment of VKM-SRC-012 p.47 — not done)."""
     h, w = shape
     xs = list(xa.span) if xa is not None else [0.0, float(w - 1)]
     ys = list(ya.span) if ya is not None else [0.0, float(h - 1)]
@@ -140,7 +171,9 @@ def digitize_raster(fig: R.RasterFigure, engine: OcrEngine, corpus_words=None, s
     for t in words:
         cv2.rectangle(textmask, (int(t.x0) - 2, int(t.yc - t.h * 0.7) - 2), (int(t.x1) + 2, int(t.yc + t.h * 0.7) + 2),
                       255, -1)
-    curve_mask = coloured & plot & (textmask == 0)
+    # filled areas of one colour (label boxes, bands) are not curves (fd-0.1.5)
+    fill = R.filled_areas(coloured & plot, lab)
+    curve_mask = coloured & plot & (textmask == 0) & ~fill
     # remove tiny specks
     n, cc, stats, _ = cv2.connectedComponentsWithStats(curve_mask.astype(np.uint8), 8)
     keep = np.zeros(n, bool)
@@ -148,15 +181,18 @@ def digitize_raster(fig: R.RasterFigure, engine: OcrEngine, corpus_words=None, s
     curve_mask = keep[cc]
     # inline / legend labels by colour of the word's ink (tick labels excluded)
     word_colour = []
+    in_rows = numeric_rows(words)
     for t in words:
         v, k = label_value(t.text)
-        if v is None and not any(ch.isalpha() for ch in t.text):
-            continue
+        if v is None and not label_word(t.text):
+            continue          # OCR garbage («\m», «|ho»), not a label (fd-0.1.5)
+        if v is not None and id(t) in in_rows:
+            continue          # a number in a row of numbers is a tick label, also inside the plot
         if not (x0 <= t.xc <= x1 and y0 <= t.yc <= y1) and v is not None and not ("." in t.text and k == "DATE"):
             continue          # numbers outside the plot are tick labels, not curve labels (legend dates stay)
         xa0, xa1 = int(max(0, t.x0)), int(min(dark.shape[1] - 1, t.x1))
         ya0, ya1 = int(max(0, t.yc - t.h * 0.7)), int(min(dark.shape[0] - 1, t.yc + t.h * 0.7))
-        sub = coloured[ya0:ya1 + 1, xa0:xa1 + 1]
+        sub = coloured[ya0:ya1 + 1, xa0:xa1 + 1] & ~fill[ya0:ya1 + 1, xa0:xa1 + 1]   # a box's fill is not ink
         if sub.sum() < 5:
             continue
         mean = lab[ya0:ya1 + 1, xa0:xa1 + 1][sub].mean(0)
@@ -225,6 +261,9 @@ def digitize_raster(fig: R.RasterFigure, engine: OcrEngine, corpus_words=None, s
     for cost, wi, ti in pairs:
         if cost > 12.0 or wi in used_words or ti in label_of:
             continue
+        v, k = label_value(word_colour[wi][0].text)
+        if cost >= 10.0 and v is not None and k != "DATE":
+            continue          # a number names only the curve it stands beside; by colour alone, only a legend date
         label_of[ti] = word_colour[wi][0].text
         used_words.add(wi)
     series = []

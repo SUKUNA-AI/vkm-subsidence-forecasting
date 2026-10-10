@@ -198,6 +198,11 @@ def test_identical_markers_close_together_are_all_data_and_curve_pieces_are_not_
     assert same_shape(dense, 6.0 * math.sqrt(2)) is not None
     (s,) = extract_series(dense, [], (100, 100, 400, 300))[0]
     assert len(s["pts"]) == 12
+    # markers of another shape in the same colour group are kept as the old rule kept them (spaced out)
+    triangles = [Path(np.array([[x - 3, 253], [x + 3, 253], [x, 247]], float), 0x4F81BD, 0.0, "FILL", closed=True)
+                 for x in (200.0, 260.0, 320.0)]
+    (s2,) = extract_series(dense + triangles, [], (100, 100, 400, 300))[0]
+    assert len(s2["pts"]) == 15
     pieces = []
     for i in range(30):                                                       # a thick red curve as quads
         x, y, x2, y2 = 110 + 8 * i, 200 + 4 * math.sin(i / 4), 118 + 8 * i, 200 + 4 * math.sin((i + 1) / 4)
@@ -289,6 +294,65 @@ def test_join_tracks_takes_the_cheapest_continuation():
     out = R.join_tracks(tracks, max_gap_x=12.0, max_dy=8.0)
     first = next(o for o in out if o["xs"][0] == 0)
     assert len(first["xs"]) == 40 and first["gaps"] == [(19.0, 25.0)] and np.allclose(first["ys"][20:], 100.5)
+
+
+def test_raster_label_boxes_are_not_traced_as_curves():
+    """VKM-SRC-012 p.46: the pale yellow boxes of the zone names («2ЮВ», «СКРУ-2») were traced as three series at
+    −90…−110 mm. A filled box of one colour is not a curve; a curve of another colour beside it stays whole."""
+    cv2 = pytest.importorskip("cv2")
+    R = pytest.importorskip("vkm_corpus.figures.raster")
+
+    h, w = 400, 900
+    img = np.full((h, w, 3), 255, np.uint8)
+    xs = np.arange(40, 860)
+    ys = (150 + 60 * np.sin(xs / 90.0)).astype(np.int32)
+    cv2.polylines(img, [np.stack([xs, ys], 1).astype(np.int32)], False, (220, 40, 40), 5)        # a red curve
+    for bx in (100, 300, 500):                                                      # pale yellow boxes with text
+        cv2.rectangle(img, (bx, 290), (bx + 120, 370), (250, 250, 160), -1)
+        cv2.putText(img, "2UV", (bx + 15, 345), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 3)
+    dark, grey, coloured, bg, chroma, lab = R.masks(img)
+    fill = R.filled_areas(coloured, lab)
+    box = np.zeros((h, w), bool)
+    box[290:371, 100:621] = True
+    assert fill[290:371, 100:221].mean() > 0.95 and fill[290:371, 300:421].mean() > 0.95
+    curve = coloured & ~box
+    assert not (fill & curve).any()                                             # the curve is not a filled area
+    tracks = [t for t in R.track_curves(coloured & ~fill, lab, 0, w - 1, max_jump=12, max_run=100)
+              if len(t["xs"]) >= 8]
+    assert tracks and all(float(np.max(t["ys"])) < 230 for t in tracks)               # only the red curve
+    # without the rule the boxes' rows are traced as well
+    assert any(float(np.min(t["ys"])) > 280 for t in R.track_curves(coloured, lab, 0, w - 1, max_jump=12, max_run=100)
+               if len(t["xs"]) >= 30)
+
+
+def test_raster_minus_read_as_a_dash_still_calibrates_the_axis():
+    """VKM-SRC-004 p.13 (InSAR): the y labels «−10 … −60» of a small raster were read as «=10», «—40», «—-60»: the
+    column did not parse and the chart stayed NO_AXES."""
+    R = pytest.importorskip("vkm_corpus.figures.raster")
+
+    assert [R.ocr_minus(s) for s in ("=10", "—40", "—-60", "-10", "10", "a=10", "==", "–5")] == \
+        ["-10", "-40", "-60", "-10", "10", "a=10", "==", "-5"]
+    read = [("0", 142.0), ("=10", 201.5), ("=30", 319.0), ("—40", 378.5), ("=50", 436.5), ("—-60", 495.5)]
+    raw = [Text(s, 98.0, 161.0, y, 22.0, source="LOCAL_OCR") for s, y in read]
+    _, ya_raw = R.calibrate(raw, [], [], None, None, extent=(637.0, 616.0))
+    assert ya_raw is None
+    words = [Text(R.ocr_minus(s), 98.0, 161.0, y, 22.0, source="LOCAL_OCR") for s, y in read]
+    _, ya = R.calibrate(words, [], [], None, None, extent=(637.0, 616.0))
+    assert ya is not None and float(ya.value(142.0)) == pytest.approx(0.0, abs=0.8)
+    assert float(ya.value(495.5)) == pytest.approx(-60.0, abs=0.8)
+
+
+def test_raster_ocr_garbage_and_tick_rows_do_not_name_series():
+    """VKM-SRC-012 p.46/p.51: «\\m», «|ho», «I~», «/N» and the numbers of a top axis inside the plot named series."""
+    rd = pytest.importorskip("vkm_corpus.figures.raster_digitize")
+
+    assert not any(rd.label_word(s) for s in ("\\m", "|ho", "I~", "/N", "it", "L", ""))
+    assert all(rd.label_word(s) for s in ("Прогноз", "СКРУ-2", "нивелирование", "Репер"))
+    row = [Text(str(v), 100 + 200 * i, 130 + 200 * i, 50.0, 12.0) for i, v in enumerate((10, 20, 30, 40))]
+    lone = Text("2", 500, 510, 300.0, 12.0)
+    pair = [Text("27.12.91", 800, 860, 400.0, 12.0), Text("04.12.92", 900, 960, 400.0, 12.0)]   # legend columns
+    ids = rd.numeric_rows(row + [lone] + pair)
+    assert ids == {id(t) for t in row}
 
 
 # ------------------------------------------------------------------------------------------------ raster with OCR
