@@ -36,6 +36,9 @@ def main() -> int:
     ap.add_argument("--work", required=True, type=Path)
     ap.add_argument("--runs", nargs="+", required=True)
     ap.add_argument("--compare", nargs="*", default=[], help="compare/<A>__<B> directories to copy")
+    ap.add_argument("--fixed-dir", default="",
+                    help="subdirectory of WORLD_EXTRACTION for the selection/packet files of a later wave "
+                         "(the root keeps those of the first wave)")
     a = ap.parse_args()
     res = os.environ.get("VKM_RESOURCES_ROOT")
     if not res:
@@ -46,10 +49,13 @@ def main() -> int:
     canon.mkdir(parents=True, exist_ok=True)
     raw_dir.mkdir(parents=True, exist_ok=True)
     receipt = {"rule_version": "extract_export_private_v1", "fixed": {}, "runs": {}, "compare": {}}
+    fixed_dst = canon / a.fixed_dir if a.fixed_dir else canon
+    fixed_dst.mkdir(parents=True, exist_ok=True)
+    receipt["fixed_dir"] = a.fixed_dir or "."
     for name in FIXED:
         src = a.work / name
         if src.is_file():
-            shutil.copyfile(src, canon / name)
+            shutil.copyfile(src, fixed_dst / name)
             receipt["fixed"][name] = sha(src)
     for run in a.runs:
         acc = a.work / "accept" / run
