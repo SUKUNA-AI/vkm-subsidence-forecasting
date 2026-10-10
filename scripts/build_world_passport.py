@@ -669,7 +669,9 @@ def conflicts(canon: Path, ev: list[dict]) -> tuple[list[dict], dict]:
                              ("GEOLOGY_COORDS/stratigraphy_conflicts.csv", "conflict_id", "topic"),
                              ("MINING/mining_conflicts.csv", "conflict_id", "topic"),
                              ("WORLD_PARAMETERS/curated/c3_conflicts.csv", "conflict_id", "topic"),
-                             ("WORLD_PARAMETERS/curated/c2_c4_conflicts.csv", "conflict_id", "topic")):
+                             ("WORLD_PARAMETERS/curated/c2_c4_conflicts.csv", "conflict_id", "topic"),
+                             ("WORLD_PARAMETERS/curated/skru1_calendar_conflicts_20261010.csv", "conflict_id",
+                              "topic")):
         for r in _rows(canon / name):
             out.append({"pc_id": "", "conflict_id": r.get(idc, ""), "origin": name.split("/")[-1], "kind": "RECORDED",
                         "topic": (r.get(topic) or "")[:300], "parameter": "", "target": "", "site_group": "",
