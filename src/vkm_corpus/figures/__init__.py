@@ -22,9 +22,15 @@ publication date of the source work; nothing here is promoted to evidence.
 As a pipeline stage, route A runs as the NAV part ``figure_series`` (:mod:`vkm_corpus.navigation.figure_series`).
 
 Versions: fd-0.1.2 — FD sweep (29.09); fd-0.1.3 — route A reads rotated pages in the displayed frame (agent FD2);
-fd-0.1.4 — a log10 axis only when its labels span ≥ 3× (years and narrow ranges stay linear; agent FD2).
+fd-0.1.4 — a log10 axis only when its labels span ≥ 3× (years and narrow ranges stay linear; agent FD2);
+fd-0.1.5 — fixes after the visual review of 89 figures (08.10): labels snap to the tick beside them, a corner «0» off
+its tick is snapped where its neighbours put it, the axes are one chart's corner (multi-panel boxes), stacked panels
+read each series on its own y scale, a second y scale beside the first is flagged, legend markers are not data and
+name their series, identical markers close together are kept, scientific-notation tick labels are numbers; route R:
+strips anchored at the axis lines, minus signs kept, implausible OCR axes withdrawn, misread labels dropped, rotated
+date labels read, the plot box no longer cut at a zone line.
 """
-DIGITIZER_VERSION = "fd-0.1.4"
+DIGITIZER_VERSION = "fd-0.1.5"
 STATUS = "DERIVATION"
 REVIEW_STATUS = "AUTO_EXTRACTED_UNREVIEWED"
 FORBIDDEN_STATUSES = frozenset({"FACT", "REVIEWED_MEASUREMENT", "ACCEPTED_PARAMETER", "ACCEPTED_FORMULA"})
