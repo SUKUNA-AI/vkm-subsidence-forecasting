@@ -1,0 +1,37 @@
+{
+  "additionalProperties": false,
+  "description": "Trusted operator configuration, not a self-approved publish request.",
+  "properties": {
+    "allow_unresolved": {
+      "default": false,
+      "title": "Allow Unresolved",
+      "type": "boolean"
+    },
+    "authority": {
+      "title": "Authority",
+      "type": "string"
+    },
+    "base_revision": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Base Revision",
+      "type": "string"
+    },
+    "plan_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Plan Sha256",
+      "type": "string"
+    },
+    "publisher": {
+      "title": "Publisher",
+      "type": "string"
+    }
+  },
+  "required": [
+    "plan_sha256",
+    "base_revision",
+    "publisher",
+    "authority"
+  ],
+  "title": "MigrationApproval",
+  "type": "object"
+}

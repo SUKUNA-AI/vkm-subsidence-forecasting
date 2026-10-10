@@ -1,0 +1,89 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "empty_after_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Empty After Sha256",
+      "type": "string"
+    },
+    "empty_before_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Empty Before Sha256",
+      "type": "string"
+    },
+    "failed_native_start_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Failed Native Start Sha256",
+      "type": "string"
+    },
+    "intent_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Intent Sha256",
+      "type": "string"
+    },
+    "journal_receipts": {
+      "items": {
+        "pattern": "^[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "maxItems": 256,
+      "minItems": 1,
+      "title": "Journal Receipts",
+      "type": "array"
+    },
+    "legacy_after_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Legacy After Sha256",
+      "type": "string"
+    },
+    "legacy_before_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Legacy Before Sha256",
+      "type": "string"
+    },
+    "preparation_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Preparation Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-bootstrap-boundary/1",
+      "default": "vkm-bootstrap-boundary/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "enum": [
+        "SYNTHETIC",
+        "BOOTSTRAP_SHADOW_PRODUCTION"
+      ],
+      "title": "Scope",
+      "type": "string"
+    },
+    "startup_authority_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Startup Authority Sha256",
+      "type": "string"
+    },
+    "status": {
+      "const": "EMPTY_FALLBACK_VERIFIED",
+      "default": "EMPTY_FALLBACK_VERIFIED",
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scope",
+    "intent_sha256",
+    "startup_authority_sha256",
+    "preparation_sha256",
+    "legacy_before_sha256",
+    "legacy_after_sha256",
+    "empty_before_sha256",
+    "empty_after_sha256",
+    "failed_native_start_sha256",
+    "journal_receipts"
+  ],
+  "title": "BootstrapBoundaryReceipt",
+  "type": "object"
+}

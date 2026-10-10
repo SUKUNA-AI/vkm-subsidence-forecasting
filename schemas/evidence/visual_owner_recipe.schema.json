@@ -1,0 +1,181 @@
+{
+  "$defs": {
+    "HookedChildRecipe": {
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Arguments",
+          "type": "array"
+        },
+        "executable": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "title": "Executable",
+          "type": "string"
+        },
+        "expected_sha256": {
+          "additionalProperties": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Expected Sha256",
+          "type": "object"
+        },
+        "implementation_files": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Implementation Files",
+          "type": "array"
+        },
+        "kind": {
+          "const": "visual",
+          "default": "visual",
+          "title": "Kind",
+          "type": "string"
+        },
+        "port": {
+          "maximum": 65535,
+          "minimum": 1,
+          "title": "Port",
+          "type": "integer"
+        },
+        "resources": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Resources",
+          "type": "object"
+        },
+        "schema_version": {
+          "const": "vkm-owned-hook-child-recipe/1",
+          "default": "vkm-owned-hook-child-recipe/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scope": {
+          "enum": [
+            "VISUAL_OWNER_PRODUCTION",
+            "SYNTHETIC"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "startup_timeout_s": {
+          "default": 180.0,
+          "exclusiveMinimum": 0,
+          "maximum": 600,
+          "title": "Startup Timeout S",
+          "type": "number"
+        },
+        "strategy": {
+          "const": "NATIVE_LOADED_WITNESS_V1",
+          "title": "Strategy",
+          "type": "string"
+        },
+        "upstream_commit": {
+          "const": "4da6337767f973e2b4d0797e5b323d77d8565e4a",
+          "default": "4da6337767f973e2b4d0797e5b323d77d8565e4a",
+          "title": "Upstream Commit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "executable",
+        "arguments",
+        "resources",
+        "implementation_files",
+        "expected_sha256",
+        "port",
+        "strategy",
+        "scope"
+      ],
+      "title": "HookedChildRecipe",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "child": {
+      "$ref": "#/$defs/HookedChildRecipe"
+    },
+    "environment": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Environment",
+      "type": "object"
+    },
+    "host": {
+      "const": "127.0.0.1",
+      "default": "127.0.0.1",
+      "title": "Host",
+      "type": "string"
+    },
+    "identity_token_path": {
+      "title": "Identity Token Path",
+      "type": "string"
+    },
+    "identity_token_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Identity Token Sha256",
+      "type": "string"
+    },
+    "max_clients": {
+      "default": 4,
+      "maximum": 16,
+      "minimum": 1,
+      "title": "Max Clients",
+      "type": "integer"
+    },
+    "max_request_bytes": {
+      "default": 16777216,
+      "maximum": 67108864,
+      "minimum": 1024,
+      "title": "Max Request Bytes",
+      "type": "integer"
+    },
+    "max_response_bytes": {
+      "default": 16777216,
+      "maximum": 67108864,
+      "minimum": 1024,
+      "title": "Max Response Bytes",
+      "type": "integer"
+    },
+    "port": {
+      "maximum": 65535,
+      "minimum": 1,
+      "title": "Port",
+      "type": "integer"
+    },
+    "request_timeout_s": {
+      "default": 60,
+      "exclusiveMinimum": 0,
+      "maximum": 180,
+      "title": "Request Timeout S",
+      "type": "number"
+    },
+    "schema_version": {
+      "const": "vkm-visual-owner-bridge/1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "child",
+    "environment",
+    "identity_token_path",
+    "identity_token_sha256",
+    "port"
+  ],
+  "title": "VisualOwnerRecipe",
+  "type": "object"
+}

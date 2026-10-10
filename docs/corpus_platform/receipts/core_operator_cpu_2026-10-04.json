@@ -1,0 +1,97 @@
+{
+  "challenger": "STATIC_REVIEW_NO_NEW_P0_P1_IN_REVIEWED_BOUNDARIES",
+  "date": "2026-10-04",
+  "guarantees": {
+    "docker_commands_executed": false,
+    "models_executed": false,
+    "private_originals_read": false,
+    "production_mutations": false
+  },
+  "installed_serving_code_sha256": "a8eedfc03339ca4bf97a4b222dde83002c12924774c0d7e95e112a601901c786",
+  "limits": "Overlapping targeted selections are not summed; this is not hosted exact-tip CI or production qualification.",
+  "linux": {
+    "failed": 0,
+    "junit_sha256": "6b2cafe4d39d68d5b72be5d85293148aff2c2b0556ac991de811b1bded475f8b",
+    "passed": 164,
+    "python": "3.13.5",
+    "seconds": 177.64,
+    "selection": [
+      "test_core_operator",
+      "test_receiver_identity",
+      "test_shadow_acceptance",
+      "test_deployment_lifecycle",
+      "test_receiver_barrier",
+      "test_production_serving"
+    ],
+    "skipped": 0
+  },
+  "not_run": [
+    "NATIVE_DOCKER_RECREATE",
+    "CORE_EDGE_DEPLOYMENT",
+    "EXTERNAL_MODEL_OWNER",
+    "REAL_MCP_ACCEPTANCE",
+    "REAL_DATA_RESTORE",
+    "CORPUS_EXTRACTION",
+    "SCIENTIFIC_REVIEW"
+  ],
+  "open_code_gates": [
+    "PW-02-B_BOOTSTRAP",
+    "PW-02-P_PROMOTION",
+    "PW-03_ACTUAL_MODEL_OWNERS"
+  ],
+  "parent_commit": "73f2f55f494b2b6cc00e1b4e39840c61c792504b",
+  "schema_check": "PASS",
+  "staged_public_private_verifier": {
+    "blocking_failures": [],
+    "checks": 43,
+    "exit_code": 0,
+    "known_historical_ref_not_run": 7,
+    "passed": 36
+  },
+  "schema_version": "vkm-local-cpu-qualification/1",
+  "scope": "TARGETED_CPU",
+  "source_file_sha256": {
+    "schemas/evidence/core_operator.schema.json": "5b33b1a2ecc5f9fd2ddbdc84763f4fd3c3389eaac1f72e90228b643318c3f878",
+    "schemas/evidence/core_unit_control.schema.json": "ee663888695e4c9ae2ab203846fb66e8dd7d11886a8f3a5cb2849399605e5fb8",
+    "schemas/evidence/mcp_receiver_identity.schema.json": "979b32b7e9f16a9ae4dc86dc9bba962bdb0efb86475c739461561a1145db3508",
+    "schemas/evidence/receiver_identity.schema.json": "fa660c7cf3e5a69945664ae9f552e73f5ee2be21ea19697060cdab5ba9115149",
+    "scripts/export_evidence_schema.py": "466a99922250383ea5b8268b5268ebb48e4136c9b10862418d541026ccd47aa6",
+    "scripts/run_offline_checks.py": "9479ce28d32d5758ecbdc5f1be2162e7380fcd08bf62a5b5384e3e2792ada42c",
+    "src/vkm_corpus/api/app.py": "a912e7a4bb442718e4d9b6c78f92dc9434b753bf295f69969e24873b9de4b340",
+    "src/vkm_corpus/api/backends.py": "e240f0721cc3ee8cf7f13f3c3ad569286f4b2670d2aec5eab18bf083e93e60af",
+    "src/vkm_corpus/api/production.py": "96b7755e894753387a8cf91d19acc050da413cee84e9ebe4bc61d2ec4467b3a0",
+    "src/vkm_corpus/api/service.py": "2f2c50eadb4f6e1540ab1d522ec22bbab6e8977fc3187f65f12128793fc4a95f",
+    "src/vkm_corpus/cli.py": "0c9cd9e1ee8990562923fba3cb1ee10b277853c22abf28db1fb46fbcbd85c014",
+    "src/vkm_corpus/mcp/http.py": "014c8d1d53be7a1d0f7aab022f1c7c0d7d4613118da90091264a203508d87cab",
+    "src/vkm_corpus/update/barrier.py": "d2f2bfa064f472067abd2a2a9783dc98f620fb03caefb844e1ac85e6dd9888a2",
+    "src/vkm_corpus/update/operator.py": "9e4ef4abbaa389667bfc74c8c6ec7e109c1816923575e384655673296ff2ae13",
+    "src/vkm_corpus/update/operator_units.py": "c4b1f1e87446e6509d277e49dfb3c7c013a5558c23ed0f2f5807912f8765e5cd",
+    "src/vkm_corpus/update/receiver.py": "bd493dace8c7078cd80afd26b632ed01cff1c6399fe0b5dda298261d3a03fc1a",
+    "tests/evidence/test_core_operator.py": "4df0821bef2df942a9fe2ac424cea71df408263fe7fd1395179b0059a6fe0bb7",
+    "tests/evidence/test_production_serving.py": "3db5df744744a81170ebfab58c3bbe4f870ad65ae14b8e0295239ff69f48ad96",
+    "tests/evidence/test_receiver_identity.py": "66bd5cb9e55d67d5ec8b0927438f7da92fa12f930c6206573ce5f7a988542471"
+  },
+  "status": "PASS_WITH_EXPLICIT_NOT_RUN",
+  "windows": {
+    "explicit_posix_not_run": 11,
+    "failed": 0,
+    "junit_sha256": "09c1914ea921019c7cf8f53355e249751f8eecbe1dfe51bad5100174e1763c07",
+    "passed": 121,
+    "python": "3.13.13",
+    "seconds": 44.59,
+    "selection": [
+      "test_core_operator",
+      "test_receiver_identity",
+      "test_shadow_acceptance",
+      "test_deployment_lifecycle",
+      "test_receiver_barrier"
+    ]
+  },
+  "world_linux": {
+    "failed": 0,
+    "junit_sha256": "492fb5ae245dcf1485daefb4b6bee71f1faf8b28ef4178ed88a57d2f76f525cb",
+    "passed": 557,
+    "seconds": 22.01,
+    "skipped": 0
+  }
+}

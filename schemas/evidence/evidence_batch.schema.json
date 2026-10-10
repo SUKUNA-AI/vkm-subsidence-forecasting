@@ -1,0 +1,2727 @@
+{
+  "$defs": {
+    "Claim": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor",
+          "type": "string"
+        },
+        "attribution": {
+          "minLength": 1,
+          "title": "Attribution",
+          "type": "string"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "kind": {
+          "const": "CLAIM",
+          "default": "CLAIM",
+          "title": "Kind",
+          "type": "string"
+        },
+        "modality": {
+          "enum": [
+            "OBSERVED",
+            "REPORTED",
+            "HYPOTHESIZED",
+            "PLANNED",
+            "NORMATIVE",
+            "UNKNOWN"
+          ],
+          "title": "Modality",
+          "type": "string"
+        },
+        "polarity": {
+          "enum": [
+            "AFFIRMED",
+            "NEGATED",
+            "UNCERTAIN"
+          ],
+          "title": "Polarity",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/ResourcePolicy"
+        },
+        "proposition": {
+          "minLength": 1,
+          "title": "Proposition",
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "qualifiers": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Qualifiers",
+          "type": "array"
+        },
+        "record_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "references": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "References",
+          "type": "array"
+        },
+        "review_state": {
+          "$ref": "#/$defs/ReviewState",
+          "default": "UNREVIEWED"
+        },
+        "revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "vkm-evidence/1",
+          "default": "vkm-evidence/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "supports": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObjectRef"
+          },
+          "title": "Supports",
+          "type": "array"
+        },
+        "time": {
+          "$ref": "#/$defs/TemporalSupport"
+        }
+      },
+      "required": [
+        "record_id",
+        "recorded_at",
+        "actor",
+        "policy",
+        "proposition",
+        "attribution",
+        "polarity",
+        "modality",
+        "provenance"
+      ],
+      "title": "Claim",
+      "type": "object"
+    },
+    "DataAccessClass": {
+      "enum": [
+        "PUBLIC",
+        "PRIVATE_CLOUD_ALLOWED",
+        "PRIVATE_LOCAL_ONLY",
+        "RESTRICTED",
+        "SEALED"
+      ],
+      "title": "DataAccessClass",
+      "type": "string"
+    },
+    "Entity": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor",
+          "type": "string"
+        },
+        "aliases": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Aliases",
+          "type": "array"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "entity_type": {
+          "minLength": 1,
+          "title": "Entity Type",
+          "type": "string"
+        },
+        "identity_state": {
+          "default": "CANDIDATE",
+          "enum": [
+            "CANDIDATE",
+            "RESOLVED",
+            "AMBIGUOUS"
+          ],
+          "title": "Identity State",
+          "type": "string"
+        },
+        "kind": {
+          "const": "ENTITY",
+          "default": "ENTITY",
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/ResourcePolicy"
+        },
+        "record_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "references": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "References",
+          "type": "array"
+        },
+        "review_state": {
+          "$ref": "#/$defs/ReviewState",
+          "default": "UNREVIEWED"
+        },
+        "revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "vkm-evidence/1",
+          "default": "vkm-evidence/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "site_scope": {
+          "default": "UNSTATED",
+          "title": "Site Scope",
+          "type": "string"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "supports": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObjectRef"
+          },
+          "title": "Supports",
+          "type": "array"
+        },
+        "time": {
+          "$ref": "#/$defs/TemporalSupport"
+        }
+      },
+      "required": [
+        "record_id",
+        "recorded_at",
+        "actor",
+        "policy",
+        "entity_type",
+        "label"
+      ],
+      "title": "Entity",
+      "type": "object"
+    },
+    "EntityResolutionDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor",
+          "type": "string"
+        },
+        "decision": {
+          "enum": [
+            "SAME_ENTITY",
+            "DISTINCT",
+            "SPLIT",
+            "AMBIGUOUS"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "kind": {
+          "const": "ENTITY_RESOLUTION",
+          "default": "ENTITY_RESOLUTION",
+          "title": "Kind",
+          "type": "string"
+        },
+        "participants": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "minItems": 2,
+          "title": "Participants",
+          "type": "array"
+        },
+        "policy": {
+          "$ref": "#/$defs/ResourcePolicy"
+        },
+        "rationale": {
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "record_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "references": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "References",
+          "type": "array"
+        },
+        "review_state": {
+          "$ref": "#/$defs/ReviewState",
+          "default": "UNREVIEWED"
+        },
+        "revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "vkm-evidence/1",
+          "default": "vkm-evidence/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "supports": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObjectRef"
+          },
+          "title": "Supports",
+          "type": "array"
+        },
+        "time": {
+          "$ref": "#/$defs/TemporalSupport"
+        }
+      },
+      "required": [
+        "record_id",
+        "recorded_at",
+        "actor",
+        "policy",
+        "participants",
+        "decision",
+        "rationale"
+      ],
+      "title": "EntityResolutionDecision",
+      "type": "object"
+    },
+    "EpistemicStatus": {
+      "enum": [
+        "FACT",
+        "DERIVATION",
+        "INTERPOLATION",
+        "MODEL_CHOICE",
+        "ENGINEERING_ASSUMPTION",
+        "ANALOGUE",
+        "UNKNOWN"
+      ],
+      "title": "EpistemicStatus",
+      "type": "string"
+    },
+    "EventAssertion": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor",
+          "type": "string"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "event_class": {
+          "enum": [
+            "PHYSICAL",
+            "INFORMATION"
+          ],
+          "title": "Event Class",
+          "type": "string"
+        },
+        "event_type": {
+          "minLength": 1,
+          "title": "Event Type",
+          "type": "string"
+        },
+        "kind": {
+          "const": "EVENT_ASSERTION",
+          "default": "EVENT_ASSERTION",
+          "title": "Kind",
+          "type": "string"
+        },
+        "participants": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Participants",
+          "type": "array"
+        },
+        "policy": {
+          "$ref": "#/$defs/ResourcePolicy"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "record_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "references": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "References",
+          "type": "array"
+        },
+        "revealed_by": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Revealed By",
+          "type": "array"
+        },
+        "review_state": {
+          "$ref": "#/$defs/ReviewState",
+          "default": "UNREVIEWED"
+        },
+        "revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "vkm-evidence/1",
+          "default": "vkm-evidence/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "ACTUAL",
+            "PLANNED",
+            "HYPOTHETICAL",
+            "UNKNOWN"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "supports": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObjectRef"
+          },
+          "title": "Supports",
+          "type": "array"
+        },
+        "temporal_expression": {
+          "title": "Temporal Expression",
+          "type": "string"
+        },
+        "time": {
+          "$ref": "#/$defs/TemporalSupport"
+        }
+      },
+      "required": [
+        "record_id",
+        "recorded_at",
+        "actor",
+        "policy",
+        "time",
+        "event_type",
+        "event_class",
+        "state",
+        "temporal_expression",
+        "provenance"
+      ],
+      "title": "EventAssertion",
+      "type": "object"
+    },
+    "EvidenceRelation": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor",
+          "type": "string"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "kind": {
+          "const": "EVIDENCE_RELATION",
+          "default": "EVIDENCE_RELATION",
+          "title": "Kind",
+          "type": "string"
+        },
+        "object": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Object",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/ResourcePolicy"
+        },
+        "predicate": {
+          "enum": [
+            "REPORTS",
+            "USES_DATA_FROM",
+            "DERIVED_FROM",
+            "REPRINTS",
+            "CORRECTS",
+            "SUPPORTS",
+            "CONTRADICTS",
+            "POSSIBLE_SAME_ENTITY",
+            "SAME_OCCURRENCE",
+            "SPLIT",
+            "MERGED",
+            "REMOVED",
+            "AMBIGUOUS"
+          ],
+          "title": "Predicate",
+          "type": "string"
+        },
+        "rationale": {
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "record_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "references": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "References",
+          "type": "array"
+        },
+        "review_state": {
+          "$ref": "#/$defs/ReviewState",
+          "default": "UNREVIEWED"
+        },
+        "revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "vkm-evidence/1",
+          "default": "vkm-evidence/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "subject": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Subject",
+          "type": "string"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "supports": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObjectRef"
+          },
+          "title": "Supports",
+          "type": "array"
+        },
+        "time": {
+          "$ref": "#/$defs/TemporalSupport"
+        }
+      },
+      "required": [
+        "record_id",
+        "recorded_at",
+        "actor",
+        "policy",
+        "subject",
+        "predicate",
+        "object",
+        "rationale"
+      ],
+      "title": "EvidenceRelation",
+      "type": "object"
+    },
+    "EvidenceTransfer": {
+      "additionalProperties": false,
+      "description": "Reviewed application of an explicit WorldSpec transfer to an exact value.",
+      "properties": {
+        "actor": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor",
+          "type": "string"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "kind": {
+          "const": "EVIDENCE_TRANSFER",
+          "default": "EVIDENCE_TRANSFER",
+          "title": "Kind",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/ResourcePolicy"
+        },
+        "record_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "references": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "References",
+          "type": "array"
+        },
+        "review_state": {
+          "$ref": "#/$defs/ReviewState",
+          "default": "UNREVIEWED"
+        },
+        "revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "vkm-evidence/1",
+          "default": "vkm-evidence/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "supports": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObjectRef"
+          },
+          "title": "Supports",
+          "type": "array"
+        },
+        "target": {
+          "$ref": "#/$defs/VersionRef"
+        },
+        "time": {
+          "$ref": "#/$defs/TemporalSupport"
+        },
+        "transfer": {
+          "$ref": "#/$defs/Transfer"
+        }
+      },
+      "required": [
+        "record_id",
+        "recorded_at",
+        "actor",
+        "policy",
+        "target",
+        "transfer"
+      ],
+      "title": "EvidenceTransfer",
+      "type": "object"
+    },
+    "EvidenceType": {
+      "enum": [
+        "MEASURED",
+        "FIELD_OBSERVATION",
+        "LAB_TEST",
+        "NORMATIVE",
+        "DESIGN_VALUE",
+        "CALCULATED_BY_AUTHOR",
+        "MODEL_CALIBRATED",
+        "TEACHING_EXAMPLE",
+        "LITERATURE_CITED",
+        "INTERPRETATION",
+        "DESCRIPTIVE",
+        "COMPUTED_THIS_PROJECT",
+        "NOT_APPLICABLE"
+      ],
+      "title": "EvidenceType",
+      "type": "string"
+    },
+    "ExperimentalRole": {
+      "enum": [
+        "INPUT",
+        "CALIBRATION",
+        "VALIDATION",
+        "TEST_SEALED",
+        "TARGET",
+        "UNKNOWN"
+      ],
+      "title": "ExperimentalRole",
+      "type": "string"
+    },
+    "FormulaInterpretation": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor",
+          "type": "string"
+        },
+        "assumptions": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Assumptions",
+          "type": "array"
+        },
+        "conflicting_versions": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Conflicting Versions",
+          "type": "array"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "domain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Domain"
+        },
+        "kind": {
+          "const": "FORMULA_INTERPRETATION",
+          "default": "FORMULA_INTERPRETATION",
+          "title": "Kind",
+          "type": "string"
+        },
+        "normalized_form": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Normalized Form"
+        },
+        "origin": {
+          "default": "UNKNOWN",
+          "enum": [
+            "AUTHOR",
+            "CITED",
+            "MODIFIED",
+            "UNKNOWN"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "original_form": {
+          "minLength": 1,
+          "title": "Original Form",
+          "type": "string"
+        },
+        "parse_state": {
+          "default": "UNPARSED",
+          "enum": [
+            "PARSED",
+            "UNPARSED",
+            "IMAGE_ONLY",
+            "CONFLICT"
+          ],
+          "title": "Parse State",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/ResourcePolicy"
+        },
+        "record_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "references": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "References",
+          "type": "array"
+        },
+        "representation": {
+          "enum": [
+            "LATEX",
+            "OMML",
+            "MATHML",
+            "TEXT",
+            "IMAGE_ONLY"
+          ],
+          "title": "Representation",
+          "type": "string"
+        },
+        "review_state": {
+          "$ref": "#/$defs/ReviewState",
+          "default": "UNREVIEWED"
+        },
+        "revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "vkm-evidence/1",
+          "default": "vkm-evidence/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "supports": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObjectRef"
+          },
+          "title": "Supports",
+          "type": "array"
+        },
+        "symbols": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SymbolBinding"
+          },
+          "title": "Symbols",
+          "type": "array"
+        },
+        "time": {
+          "$ref": "#/$defs/TemporalSupport"
+        }
+      },
+      "required": [
+        "record_id",
+        "recorded_at",
+        "actor",
+        "policy",
+        "original_form",
+        "representation"
+      ],
+      "title": "FormulaInterpretation",
+      "type": "object"
+    },
+    "Mention": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor",
+          "type": "string"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "entity_candidates": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Entity Candidates",
+          "type": "array"
+        },
+        "kind": {
+          "const": "MENTION",
+          "default": "MENTION",
+          "title": "Kind",
+          "type": "string"
+        },
+        "literal": {
+          "minLength": 1,
+          "title": "Literal",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/ResourcePolicy"
+        },
+        "record_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "references": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "References",
+          "type": "array"
+        },
+        "review_state": {
+          "$ref": "#/$defs/ReviewState",
+          "default": "UNREVIEWED"
+        },
+        "revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "vkm-evidence/1",
+          "default": "vkm-evidence/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "supports": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObjectRef"
+          },
+          "title": "Supports",
+          "type": "array"
+        },
+        "time": {
+          "$ref": "#/$defs/TemporalSupport"
+        }
+      },
+      "required": [
+        "record_id",
+        "recorded_at",
+        "actor",
+        "policy",
+        "literal"
+      ],
+      "title": "Mention",
+      "type": "object"
+    },
+    "ObjectRef": {
+      "additionalProperties": false,
+      "properties": {
+        "char_end": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char End"
+        },
+        "char_start": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char Start"
+        },
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        },
+        "extraction_generation": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Extraction Generation",
+          "type": "string"
+        },
+        "fragment_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fragment Sha256"
+        },
+        "locator": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Locator",
+          "type": "string"
+        },
+        "object_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "object_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Object Version",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "source_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_sha256",
+        "snapshot_id",
+        "object_id",
+        "object_version",
+        "content_sha256",
+        "locator",
+        "extraction_generation"
+      ],
+      "title": "ObjectRef",
+      "type": "object"
+    },
+    "Observation": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor",
+          "type": "string"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "entity_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Entity Id"
+        },
+        "kind": {
+          "const": "OBSERVATION",
+          "default": "OBSERVATION",
+          "title": "Kind",
+          "type": "string"
+        },
+        "method": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Method"
+        },
+        "original_value": {
+          "title": "Original Value",
+          "type": "string"
+        },
+        "origins": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/OriginSlice"
+          },
+          "title": "Origins",
+          "type": "array"
+        },
+        "policy": {
+          "$ref": "#/$defs/ResourcePolicy"
+        },
+        "quantity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "record_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "references": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "References",
+          "type": "array"
+        },
+        "review_state": {
+          "$ref": "#/$defs/ReviewState",
+          "default": "UNREVIEWED"
+        },
+        "revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "vkm-evidence/1",
+          "default": "vkm-evidence/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "supports": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObjectRef"
+          },
+          "title": "Supports",
+          "type": "array"
+        },
+        "time": {
+          "$ref": "#/$defs/TemporalSupport"
+        },
+        "value_state": {
+          "enum": [
+            "VALUE",
+            "EMPTY",
+            "MISSING",
+            "UNREADABLE",
+            "NOT_APPLICABLE"
+          ],
+          "title": "Value State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "record_id",
+        "recorded_at",
+        "actor",
+        "policy",
+        "original_value",
+        "value_state"
+      ],
+      "title": "Observation",
+      "type": "object"
+    },
+    "ObservationSet": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor",
+          "type": "string"
+        },
+        "campaign_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Campaign Id"
+        },
+        "dataset_version_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dataset Version Id"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "kind": {
+          "const": "OBSERVATION_SET",
+          "default": "OBSERVATION_SET",
+          "title": "Kind",
+          "type": "string"
+        },
+        "lineage_state": {
+          "default": "UNKNOWN",
+          "enum": [
+            "VERIFIED",
+            "POSSIBLE_OVERLAP",
+            "UNKNOWN"
+          ],
+          "title": "Lineage State",
+          "type": "string"
+        },
+        "observation_ids": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Observation Ids",
+          "type": "array"
+        },
+        "origins": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/OriginSlice"
+          },
+          "title": "Origins",
+          "type": "array"
+        },
+        "policy": {
+          "$ref": "#/$defs/ResourcePolicy"
+        },
+        "record_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "references": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "References",
+          "type": "array"
+        },
+        "review_state": {
+          "$ref": "#/$defs/ReviewState",
+          "default": "UNREVIEWED"
+        },
+        "revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "vkm-evidence/1",
+          "default": "vkm-evidence/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "supports": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObjectRef"
+          },
+          "title": "Supports",
+          "type": "array"
+        },
+        "time": {
+          "$ref": "#/$defs/TemporalSupport"
+        }
+      },
+      "required": [
+        "record_id",
+        "recorded_at",
+        "actor",
+        "policy"
+      ],
+      "title": "ObservationSet",
+      "type": "object"
+    },
+    "OriginSlice": {
+      "additionalProperties": false,
+      "description": "A reviewed primary origin and explicit subset; empty members means whole set.",
+      "properties": {
+        "independence_basis": {
+          "minLength": 1,
+          "title": "Independence Basis",
+          "type": "string"
+        },
+        "members": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Members",
+          "type": "array"
+        },
+        "origin_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Origin Id",
+          "type": "string"
+        },
+        "verified": {
+          "default": false,
+          "title": "Verified",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "origin_id",
+        "independence_basis"
+      ],
+      "title": "OriginSlice",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": "UNSTATED",
+          "title": "Confidence",
+          "type": "string"
+        },
+        "evidence_type": {
+          "$ref": "#/$defs/EvidenceType",
+          "default": "NOT_APPLICABLE"
+        },
+        "inputs": {
+          "default": [],
+          "description": "ids of WorldSpec items this was derived/interpolated from",
+          "items": {
+            "type": "string"
+          },
+          "title": "Inputs",
+          "type": "array"
+        },
+        "method": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "derivation / interpolation method",
+          "title": "Method"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "rationale": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "mandatory for MODEL_CHOICE / ENGINEERING_ASSUMPTION",
+          "title": "Rationale"
+        },
+        "scale": {
+          "$ref": "#/$defs/Scale",
+          "default": "UNSTATED"
+        },
+        "scope": {
+          "$ref": "#/$defs/Scope",
+          "default": "UNSTATED"
+        },
+        "sources": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          },
+          "title": "Sources",
+          "type": "array"
+        },
+        "spatial": {
+          "$ref": "#/$defs/SpatialSupport"
+        },
+        "status": {
+          "$ref": "#/$defs/EpistemicStatus"
+        },
+        "temporal": {
+          "$ref": "#/$defs/TemporalSupport"
+        },
+        "transfer": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Transfer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "Quantity": {
+      "additionalProperties": false,
+      "description": "A physical quantity with provenance. Point OR range OR discrete set OR nothing (UNKNOWN).",
+      "properties": {
+        "high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "High"
+        },
+        "low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Low"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "original": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "value/unit exactly as printed in the source",
+          "title": "Original"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "uncertainty": {
+          "$ref": "#/$defs/Uncertainty"
+        },
+        "unit": {
+          "description": "SI or explicit unit string understood by vkm_world.core.units",
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "name",
+        "unit",
+        "provenance"
+      ],
+      "title": "Quantity",
+      "type": "object"
+    },
+    "ResourcePolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "access_class": {
+          "$ref": "#/$defs/DataAccessClass",
+          "default": "RESTRICTED"
+        },
+        "authority": {
+          "minLength": 1,
+          "title": "Authority",
+          "type": "string"
+        },
+        "experimental_role": {
+          "$ref": "#/$defs/ExperimentalRole",
+          "default": "UNKNOWN"
+        },
+        "policy_version": {
+          "minLength": 1,
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "restrictions": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Restrictions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "policy_version",
+        "authority"
+      ],
+      "title": "ResourcePolicy",
+      "type": "object"
+    },
+    "ReviewDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor",
+          "type": "string"
+        },
+        "checks": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Checks",
+          "type": "array"
+        },
+        "decision": {
+          "enum": [
+            "VERIFIED_TRANSCRIPTION",
+            "SEMANTIC_REVIEWED",
+            "CONFLICT",
+            "REJECTED",
+            "REVOKED"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "kind": {
+          "const": "REVIEW_DECISION",
+          "default": "REVIEW_DECISION",
+          "title": "Kind",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/ResourcePolicy"
+        },
+        "rationale": {
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "record_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "references": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "References",
+          "type": "array"
+        },
+        "review_state": {
+          "$ref": "#/$defs/ReviewState",
+          "default": "UNREVIEWED"
+        },
+        "reviewer_authority": {
+          "minLength": 1,
+          "title": "Reviewer Authority",
+          "type": "string"
+        },
+        "revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "vkm-evidence/1",
+          "default": "vkm-evidence/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_verified": {
+          "default": false,
+          "title": "Source Verified",
+          "type": "boolean"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "supports": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObjectRef"
+          },
+          "title": "Supports",
+          "type": "array"
+        },
+        "target": {
+          "$ref": "#/$defs/VersionRef"
+        },
+        "time": {
+          "$ref": "#/$defs/TemporalSupport"
+        }
+      },
+      "required": [
+        "record_id",
+        "recorded_at",
+        "actor",
+        "policy",
+        "target",
+        "decision",
+        "rationale",
+        "reviewer_authority"
+      ],
+      "title": "ReviewDecision",
+      "type": "object"
+    },
+    "ReviewState": {
+      "enum": [
+        "UNREVIEWED",
+        "VERIFIED_TRANSCRIPTION",
+        "SEMANTIC_REVIEWED",
+        "CONFLICT",
+        "REJECTED"
+      ],
+      "title": "ReviewState",
+      "type": "string"
+    },
+    "Scale": {
+      "enum": [
+        "LAB",
+        "MASSIF",
+        "CALIBRATED_EFFECTIVE_MODEL",
+        "FIELD",
+        "DESIGN",
+        "NOT_APPLICABLE",
+        "UNSTATED"
+      ],
+      "title": "Scale",
+      "type": "string"
+    },
+    "ScientificTransferBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "$ref": "#/$defs/VersionRef"
+        },
+        "transfer_record": {
+          "$ref": "#/$defs/VersionRef"
+        },
+        "transfer_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Transfer Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target",
+        "transfer_record",
+        "transfer_sha256"
+      ],
+      "title": "ScientificTransferBinding",
+      "type": "object"
+    },
+    "ScientificUseAdmission": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Actor",
+          "type": "string"
+        },
+        "dependency_versions": {
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "Dependency Versions",
+          "type": "array"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "kind": {
+          "const": "SCIENTIFIC_USE_ADMISSION",
+          "default": "SCIENTIFIC_USE_ADMISSION",
+          "title": "Kind",
+          "type": "string"
+        },
+        "origin": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "title": "Origin",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/ResourcePolicy"
+        },
+        "policy_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Policy Sha256",
+          "type": "string"
+        },
+        "purpose": {
+          "minLength": 1,
+          "title": "Purpose",
+          "type": "string"
+        },
+        "reasons": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "record_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "references": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "References",
+          "type": "array"
+        },
+        "review_state": {
+          "$ref": "#/$defs/ReviewState",
+          "default": "UNREVIEWED"
+        },
+        "review_versions": {
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "title": "Review Versions",
+          "type": "array"
+        },
+        "revision": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Revision",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "vkm-evidence/1",
+          "default": "vkm-evidence/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "READY",
+            "NOT_READY",
+            "REVOKED"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VersionRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "supports": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObjectRef"
+          },
+          "title": "Supports",
+          "type": "array"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/VersionRef"
+          },
+          "minItems": 1,
+          "title": "Targets",
+          "type": "array"
+        },
+        "time": {
+          "$ref": "#/$defs/TemporalSupport"
+        },
+        "use_context": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScientificUseContext"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "record_id",
+        "recorded_at",
+        "actor",
+        "policy",
+        "purpose",
+        "origin",
+        "targets",
+        "dependency_versions",
+        "review_versions",
+        "status",
+        "policy_sha256"
+      ],
+      "title": "ScientificUseAdmission",
+      "type": "object"
+    },
+    "ScientificUseContext": {
+      "additionalProperties": false,
+      "properties": {
+        "scale": {
+          "$ref": "#/$defs/Scale"
+        },
+        "site": {
+          "$ref": "#/$defs/Scope"
+        },
+        "transfers": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ScientificTransferBinding"
+          },
+          "title": "Transfers",
+          "type": "array"
+        },
+        "use": {
+          "enum": [
+            "SOURCE_INTERPRETATION",
+            "IDENTITY",
+            "GEOMETRY_INPUT",
+            "MATERIAL_PARAMETER",
+            "CALIBRATION_INPUT",
+            "VALIDATION_OBSERVATION",
+            "PREDICTION_INPUT",
+            "BENCHMARK_INPUT",
+            "SCENARIO_INPUT"
+          ],
+          "title": "Use",
+          "type": "string"
+        }
+      },
+      "required": [
+        "use",
+        "site",
+        "scale"
+      ],
+      "title": "ScientificUseContext",
+      "type": "object"
+    },
+    "Scope": {
+      "description": "Site scope of a datum. Only SKRU1 is field-wide site-specific for SKRU-1.\n\nThe SKRU-1/SKRU-2 joint labels are kept apart (review finding TRANSFER-023):\n``SKRU1_SKRU2_PILLAR`` — the intermine pillar zone on the SKRU-1/SKRU-2 boundary (usable for SKRU-1 only locally,\nat the pillar, or through an explicit Transfer); ``SKRU1_OR_SKRU2_UNATTRIBUTED`` — the source does not say which\nof the two mines; ``SOLIKAMSK_GROUP`` — pooled over SKRU-1, SKRU-2 and SKRU-3. ``SKRU1_SKRU2`` is the legacy\nambiguous label of the first Phase-1 catalogues; it is valid but never counts as SKRU-1 data.",
+      "enum": [
+        "SKRU1",
+        "SKRU1_SKRU2_PILLAR",
+        "SKRU1_OR_SKRU2_UNATTRIBUTED",
+        "SOLIKAMSK_GROUP",
+        "SKRU1_SKRU2",
+        "SKRU2",
+        "SKRU3",
+        "BKPRU1",
+        "BKPRU2",
+        "BKPRU3",
+        "BKPRU4",
+        "USOLSKY",
+        "OTHER_VKM_SITE",
+        "VKM_REGIONAL",
+        "OTHER_POTASH_SITE",
+        "NON_VKM",
+        "GENERAL_METHOD",
+        "PROJECT",
+        "UNSTATED"
+      ],
+      "title": "Scope",
+      "type": "string"
+    },
+    "SourceRef": {
+      "additionalProperties": false,
+      "description": "Pointer into the registered private corpus (or an external source).",
+      "properties": {
+        "evidence_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "extraction_method": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Extraction Method"
+        },
+        "locator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "table/figure/equation/section/rendered page",
+          "title": "Locator"
+        },
+        "pdf_page": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pdf Page"
+        },
+        "printed_page": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Printed Page"
+        },
+        "source_id": {
+          "description": "VKM-SRC-xxx, EXT-SRC-xxx or EXTWEB-xxx",
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id"
+      ],
+      "title": "SourceRef",
+      "type": "object"
+    },
+    "SpatialLevel": {
+      "description": "Spatial hierarchy of the VKM / SKRU-1 world, coarse → fine.",
+      "enum": [
+        "deposit",
+        "district",
+        "mine",
+        "neighbour_mine",
+        "intermine_pillar",
+        "exploration_area",
+        "deposit_part",
+        "mine_field",
+        "shaft",
+        "mine_horizon",
+        "panel",
+        "block",
+        "site",
+        "working",
+        "chamber",
+        "pillar",
+        "seam",
+        "interseam",
+        "geological_element",
+        "borehole",
+        "borehole_interval",
+        "gpr_profile",
+        "survey_line",
+        "benchmark",
+        "specimen",
+        "point",
+        "unstated"
+      ],
+      "title": "SpatialLevel",
+      "type": "string"
+    },
+    "SpatialSupport": {
+      "additionalProperties": false,
+      "properties": {
+        "entity_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "id of a node in the WorldSpec spatial hierarchy",
+          "title": "Entity Id"
+        },
+        "level": {
+          "$ref": "#/$defs/SpatialLevel",
+          "default": "unstated"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        }
+      },
+      "title": "SpatialSupport",
+      "type": "object"
+    },
+    "SymbolBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "definition": {
+          "minLength": 1,
+          "title": "Definition",
+          "type": "string"
+        },
+        "role": {
+          "default": "UNKNOWN",
+          "enum": [
+            "LHS",
+            "RHS",
+            "UNKNOWN"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "scope": {
+          "minLength": 1,
+          "title": "Scope",
+          "type": "string"
+        },
+        "supports": {
+          "items": {
+            "$ref": "#/$defs/ObjectRef"
+          },
+          "minItems": 1,
+          "title": "Supports",
+          "type": "array"
+        },
+        "symbol": {
+          "minLength": 1,
+          "title": "Symbol",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "symbol",
+        "definition",
+        "scope",
+        "supports"
+      ],
+      "title": "SymbolBinding",
+      "type": "object"
+    },
+    "TemporalSupport": {
+      "additionalProperties": false,
+      "description": "Physical time vs information time.\n\n``event_date``        when the physical event happened (e.g. chamber mined);\n``measurement_date``  when it was measured;\n``processing_date``   when the measurement was processed/interpreted;\n``publication_date``  when it was published;\n``available_from``    the earliest date a forecaster could have used it (information availability).\nA forecast issued at origin t0 may only use data with ``available_from <= t0``.",
+      "properties": {
+        "available_from": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Available From"
+        },
+        "available_from_precision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "precision of available_from if it differs from ``precision`` (e.g. a publication year)",
+          "title": "Available From Precision"
+        },
+        "event_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Date"
+        },
+        "event_date_end": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Date End"
+        },
+        "measurement_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Measurement Date"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "precision": {
+          "default": "unknown",
+          "description": "precision of the event/measurement dates: day|month|year|decade|unknown",
+          "title": "Precision",
+          "type": "string"
+        },
+        "processing_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Processing Date"
+        },
+        "publication_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publication Date"
+        }
+      },
+      "title": "TemporalSupport",
+      "type": "object"
+    },
+    "Transfer": {
+      "additionalProperties": false,
+      "description": "Explicit record of moving a value across scale or site (LAB→MASSIF, analogue→SKRU-1).",
+      "properties": {
+        "from_scale": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Scale"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "from_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Scope"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "method": {
+          "description": "e.g. scale-effect factor from VKM-SRC-025 p.31, or ENGINEERING_ASSUMPTION",
+          "title": "Method",
+          "type": "string"
+        },
+        "rationale": {
+          "title": "Rationale",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/EpistemicStatus"
+        },
+        "to_scale": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Scale"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "to_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Scope"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "method",
+        "status",
+        "rationale"
+      ],
+      "title": "Transfer",
+      "type": "object"
+    },
+    "Uncertainty": {
+      "additionalProperties": false,
+      "properties": {
+        "components": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/UncertaintyComponent"
+          },
+          "title": "Components",
+          "type": "array"
+        },
+        "kind": {
+          "$ref": "#/$defs/UncertaintyKind",
+          "default": "UNKNOWN"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "params": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Params",
+          "type": "object"
+        },
+        "values": {
+          "default": [],
+          "items": {
+            "type": "number"
+          },
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "title": "Uncertainty",
+      "type": "object"
+    },
+    "UncertaintyComponent": {
+      "enum": [
+        "measurement",
+        "spatial",
+        "temporal",
+        "source_conflict",
+        "interpolation",
+        "model_form",
+        "parameter",
+        "transferability",
+        "engineering_assumption"
+      ],
+      "title": "UncertaintyComponent",
+      "type": "string"
+    },
+    "UncertaintyKind": {
+      "enum": [
+        "NONE_STATED",
+        "INTERVAL",
+        "NORMAL",
+        "LOGNORMAL",
+        "UNIFORM",
+        "TRIANGULAR",
+        "DISCRETE_SET",
+        "UNKNOWN"
+      ],
+      "title": "UncertaintyKind",
+      "type": "string"
+    },
+    "VersionRef": {
+      "additionalProperties": false,
+      "properties": {
+        "record_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "record_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Record Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "record_id",
+        "record_sha256"
+      ],
+      "title": "VersionRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "records": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "CLAIM": "#/$defs/Claim",
+            "ENTITY": "#/$defs/Entity",
+            "ENTITY_RESOLUTION": "#/$defs/EntityResolutionDecision",
+            "EVENT_ASSERTION": "#/$defs/EventAssertion",
+            "EVIDENCE_RELATION": "#/$defs/EvidenceRelation",
+            "EVIDENCE_TRANSFER": "#/$defs/EvidenceTransfer",
+            "FORMULA_INTERPRETATION": "#/$defs/FormulaInterpretation",
+            "MENTION": "#/$defs/Mention",
+            "OBSERVATION": "#/$defs/Observation",
+            "OBSERVATION_SET": "#/$defs/ObservationSet",
+            "REVIEW_DECISION": "#/$defs/ReviewDecision",
+            "SCIENTIFIC_USE_ADMISSION": "#/$defs/ScientificUseAdmission"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/Mention"
+          },
+          {
+            "$ref": "#/$defs/Claim"
+          },
+          {
+            "$ref": "#/$defs/Observation"
+          },
+          {
+            "$ref": "#/$defs/ObservationSet"
+          },
+          {
+            "$ref": "#/$defs/Entity"
+          },
+          {
+            "$ref": "#/$defs/EntityResolutionDecision"
+          },
+          {
+            "$ref": "#/$defs/FormulaInterpretation"
+          },
+          {
+            "$ref": "#/$defs/EventAssertion"
+          },
+          {
+            "$ref": "#/$defs/EvidenceRelation"
+          },
+          {
+            "$ref": "#/$defs/ReviewDecision"
+          },
+          {
+            "$ref": "#/$defs/ScientificUseAdmission"
+          },
+          {
+            "$ref": "#/$defs/EvidenceTransfer"
+          }
+        ]
+      },
+      "title": "Records",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "vkm-evidence/1",
+      "default": "vkm-evidence/1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "records"
+  ],
+  "title": "EvidenceBatch",
+  "type": "object"
+}

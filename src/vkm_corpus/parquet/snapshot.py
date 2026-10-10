@@ -108,18 +108,54 @@ def build_manifest(layout: CanonLayout, *, created_at: datetime, created_by_run_
 
 
 def build_snapshot(layout: CanonLayout, *, options: ValidationOptions | None = None, now: datetime | None = None,
-                   created_by_run_id: str | None = None, inputs: dict[str, Any] | None = None) -> dict[str, Any]:
+                   created_by_run_id: str | None = None, inputs: dict[str, Any] | None = None,
+                   publication_approval=None, policy_path=None) -> dict[str, Any]:
     """Build, validate and (if PASS) publish a snapshot; ``CURRENT`` moves only on PASS."""
     layout.require(RootKind.CANONICAL)
     created = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    opts = options or ValidationOptions()
+    publication_approval = publication_approval or opts.publication_approval
+    policy_path = policy_path if policy_path is not None else opts.policy_path
     with root_lock(layout):
+        if publication_approval is not None:
+            from vkm_corpus.coverage.publication import descriptor_path
+            inputs = {**(inputs or {}), "accounting_publication": {
+                "path": descriptor_path(publication_approval.descriptor_sha256),
+                "sha256": publication_approval.descriptor_sha256}}
         manifest = build_manifest(layout, created_at=created, created_by_run_id=created_by_run_id, inputs=inputs)
-        opts = options or ValidationOptions()
+        opts.publication_approval, opts.policy_path = publication_approval, policy_path
         if opts.parent_manifest is None and manifest["parent_snapshot_id"]:
             from vkm_corpus.parquet.reader import load_manifest
 
             opts.parent_manifest = load_manifest(layout, manifest["parent_snapshot_id"])
         report = validate(layout, manifest, opts)
+        if publication_approval is not None:
+            from vkm_corpus.coverage.publication import authorize
+            authorize(policy_path, publication_approval.policy_sha256,
+                      publication_approval.source_ids, publication_approval.context)
+        if publication_approval is not None and report["status"] == "PASS" and current_snapshot_id(layout):
+            from vkm_corpus.parquet.reader import load_manifest
+            current = load_manifest(layout)
+            if (current.get("inputs", {}).get("accounting_publication") == manifest["inputs"]["accounting_publication"]
+                    and current["source_heads"] == manifest["source_heads"]
+                    and current["registry_head"] == manifest["registry_head"]):
+                from vkm_corpus.coverage.publication import PublicationBlocked
+                # Checking a newly assembled candidate cannot certify the old
+                # CURRENT manifest returned after lost ACK. Match every data
+                # map and attribution input before reusing those exact bytes.
+                stable = ("manifest_version", "code", "inputs", "source_heads", "registry_head",
+                          "head_commits", "runs", "datasets", "rejected_commits")
+                if (any(current.get(key) != manifest.get(key) for key in stable)
+                        or current.get("counts") != report.get("counts", {})
+                        or current.get("accounting") != report.get("accounting")
+                        or current.get("validation", {}).get("status") != "PASS"):
+                    raise PublicationBlocked("PUBLICATION_RETRY_MANIFEST_CHANGED")
+                # Lost receiving ACK: reverify immutable closure and retain the
+                # already published snapshot instead of manufacturing a new ID.
+                rel = layout.snapshot_manifest(current["snapshot_id"])
+                return {"snapshot_id": current["snapshot_id"], "status": "PASS", "current_moved": False,
+                        "noop": True, "manifest_path": rel,
+                        "manifest_sha256": hashlib.sha256(layout.path(rel).read_bytes()).hexdigest(), "report": report}
         report_bytes = dump_json(report).encode("utf-8")
         rep = put_blob(layout, ArtifactKind.VALIDATION_REPORT, report_bytes, "application/json",
                        run_id=created_by_run_id or "RUN-19700101T000000Z-00000000", created_at=created)
@@ -127,6 +163,7 @@ def build_snapshot(layout: CanonLayout, *, options: ValidationOptions | None = N
                                   "warnings": report["warnings"], "report_artifact_id": rep["artifact_id"],
                                   "report_relpath": rep["storage_relpath"]}
         manifest["counts"] = report.get("counts", {})
+        manifest["accounting"] = report.get("accounting", {"status": "NOT_AVAILABLE"})
         passed = report["status"] == "PASS"
         rel = layout.snapshot_manifest(manifest["snapshot_id"], candidate=not passed)
         write_json(layout.tmp, layout.path(rel), manifest)

@@ -1,0 +1,23 @@
+{
+  "schema_version": "vkm-native-owner-hosted-ci/1",
+  "status": "EXACT_COMMIT_CPU_CI_PASS_WITH_DECLARED_NOT_RUN",
+  "public_commit": "bd815893c6af421e1e86b7ca153e49dff207aa19",
+  "workflow_run_id": 37228787130,
+  "workflow_run_url": "https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/actions/runs/37228787130",
+  "jobs": [
+    {"job_id": 111513873753, "name": "world-integrity", "conclusion": "success", "passed": 648, "failed": 0, "elapsed_seconds": 22.38},
+    {"job_id": 111513873905, "name": "corpus-offline", "conclusion": "success", "passed": 3832, "failed": 0, "not_run": 2, "deselected": 77, "elapsed_seconds": 797.45},
+    {"job_id": 111513873888, "name": "windows-offline", "conclusion": "success", "passed": 2779, "failed": 0, "not_run": 134, "deselected": 50, "elapsed_seconds": 823.03}
+  ],
+  "evidence": "Read-only GitHub jobs and decoded logs independently inspected by the main agent after all three jobs completed",
+  "not_run_semantics": "Platform-specific skips and excluded runtime selections retain separate statuses; test selections are not summed",
+  "contract_sync_receipt": "native_owner_contract_sync_2026-10-04.json",
+  "limits": {
+    "concurrent_uncommitted_first_live_code": "NOT_INCLUDED_IN_THIS_COMMIT_OR_RUN",
+    "actual_gpu_model_load_and_inference": "NOT_RUN",
+    "actual_49_tool_mcp_acceptance": "NOT_RUN",
+    "production_switch": "NOT_RUN",
+    "scientific_admission": false,
+    "workstation_gpu": "NOT_USED"
+  }
+}

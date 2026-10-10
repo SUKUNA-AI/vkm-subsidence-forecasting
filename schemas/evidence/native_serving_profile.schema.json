@@ -1,0 +1,160 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    },
+    "ControlSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "max_heartbeat_age_seconds": {
+          "default": 180,
+          "maximum": 900,
+          "minimum": 1,
+          "title": "Max Heartbeat Age Seconds",
+          "type": "integer"
+        },
+        "schema_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Schema Sha256",
+          "type": "string"
+        },
+        "workers": {
+          "items": {
+            "$ref": "#/$defs/WorkerRequirement"
+          },
+          "title": "Workers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema_sha256",
+        "workers"
+      ],
+      "title": "ControlSpec",
+      "type": "object"
+    },
+    "SearchBundleSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "indices": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Indices",
+          "type": "object"
+        },
+        "prefix": {
+          "pattern": "^[a-z][a-z0-9]{1,30}$",
+          "title": "Prefix",
+          "type": "string"
+        }
+      },
+      "required": [
+        "prefix",
+        "indices"
+      ],
+      "title": "SearchBundleSpec",
+      "type": "object"
+    },
+    "WorkerRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "host_role": {
+          "enum": [
+            "WORKSTATION",
+            "CORE",
+            "EDGE"
+          ],
+          "title": "Host Role",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "PIPELINE",
+            "PUBLISHER"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "host_role",
+        "kind"
+      ],
+      "title": "WorkerRequirement",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "control": {
+      "$ref": "#/$defs/ControlSpec"
+    },
+    "graph_manifest": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "graph_page_size": {
+      "default": 500,
+      "maximum": 5000,
+      "minimum": 1,
+      "title": "Graph Page Size",
+      "type": "integer"
+    },
+    "late_policy_binding": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "late_qualification": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "max_search_documents": {
+      "maximum": 100000000,
+      "minimum": 1,
+      "title": "Max Search Documents",
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "vkm-native-serving-profile/1",
+      "default": "vkm-native-serving-profile/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "search": {
+      "$ref": "#/$defs/SearchBundleSpec"
+    },
+    "search_timeout_seconds": {
+      "exclusiveMinimum": 0,
+      "maximum": 3600,
+      "title": "Search Timeout Seconds",
+      "type": "number"
+    }
+  },
+  "required": [
+    "search",
+    "graph_manifest",
+    "late_policy_binding",
+    "late_qualification",
+    "control",
+    "max_search_documents",
+    "search_timeout_seconds"
+  ],
+  "title": "NativeServingProfile",
+  "type": "object"
+}

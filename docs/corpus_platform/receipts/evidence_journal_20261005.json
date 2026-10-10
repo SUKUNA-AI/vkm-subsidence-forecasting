@@ -1,0 +1,70 @@
+{
+  "authorization": "owner in chat 05.10.2026: contract decision (unsigned legacy objects bound by served <content_sha256>@<commit>), publication of both pilot plans with allow_unresolved",
+  "binding_rule": "exact page objects only: same VKM-SRC id (register sha256 = canon source sha256), unambiguous 1-based physical page proven by printed labels; no fuzzy text matching; quotes kept as PARAPHRASE",
+  "change": "first real evidence journal published (Phase-1 PRIVATE catalogues, pilot: MECH_RHEO mechanics + rheology) and served on CORE; the 4 evidence MCP tools answer",
+  "code": {
+    "challenger": "NO-GO (review packet commit_of) -> fixed -> GO",
+    "commit": "34570ee",
+    "contract": "docs/evidence/PHASE1_MIGRATION_RU.md (objects without extraction signature)",
+    "image": "vkm-corpus-api:0.1.0-34570ee0877b"
+  },
+  "journal": {
+    "commits": 2,
+    "copy_order": "commits+partitions verified by sha256, HEAD last",
+    "head_file_sha256": "627ae5571d70a5cd48369972a926f63f7e4a04012546e4ab4bab10e780307f6e",
+    "partitions_sha256": [
+      "5905331962976650dc835e2136d0da41b48cae0d4ecb3d93a8451b02dfecc3e0",
+      "f7e823f986a726d0fa88ffd552283611cc141c25d9adb8fb5ee8bf499e5071de"
+    ],
+    "records": 1436,
+    "revision": "cfd42f6018069a648fb41b48fd9ea9a4b23e149b912e24bcd8da39f2141bc1c9",
+    "status": "JOURNAL_VALID"
+  },
+  "limits": {
+    "coverage": "pilot: 2 of 98 catalogues; Phase-1 catalogues cover sources VKM-SRC-001..041 only",
+    "private_artifacts": "migration packages, approvals and receipts stay PRIVATE (WSL private root)",
+    "review_state": "all records UNREVIEWED; no ScientificUseAdmission",
+    "statement": "proposition = historical quote field; full row (columns, units) kept in the private archive"
+  },
+  "plans": [
+    {
+      "base_revision": "0000000000000000000000000000000000000000000000000000000000000000",
+      "catalogue": "MECH_RHEO/mechanics",
+      "migrated": 1429,
+      "plan_sha256": "03482da5a91d8a590f26d1cfa9cc0d8ff124917b666bf8df6628bc1eca2a69f6",
+      "rows": 1722,
+      "unresolved": 293,
+      "unresolved_reasons": {
+        "HISTORICAL_PROVENANCE_NOT_REPRESENTABLE": 102,
+        "ORIGINAL_BINDING_MISSING": 191
+      }
+    },
+    {
+      "base_revision": "dd6efd4fe03165cd646301b0de0bfed08bb2ac4525c49d63201cf39a7d5d33a6",
+      "catalogue": "MECH_RHEO/rheology",
+      "migrated": 7,
+      "note": "re-based on the mechanics commit; rows identical to the approved plan 35ff2fb3",
+      "plan_sha256": "f1f12684fb7d7d1831a4bcab3119c0cfdd5eb6bb35131d3cac1a8dfd6d9dd755",
+      "rows": 56,
+      "unresolved": 49
+    }
+  ],
+  "recorded_at": "2026-10-05T16:59:11.896215+00:00",
+  "schema_version": "vkm-evidence-journal-deploy-receipt/1",
+  "serving": {
+    "mcp_smoke": {
+      "summary": {
+        "FAIL": 0,
+        "PASS": 49,
+        "SKIP": 0,
+        "WARN": 0
+      },
+      "tools_listed": 49,
+      "verdict": "PASS",
+      "version": "nightly-mcp-smoke-6"
+    },
+    "profile": "compatibility",
+    "source_policy": "271 corpus + 50 external ids, all PRIVATE_CLOUD_ALLOWED (owner)",
+    "source_policy_sha256": "8130086d160e9854cbafbe925be3ee78b4e0fbff435b6275b63969701463a027"
+  }
+}

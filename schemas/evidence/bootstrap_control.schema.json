@@ -1,0 +1,146 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "api_container_port": {
+      "default": 8000,
+      "maximum": 65535,
+      "minimum": 1,
+      "title": "Api Container Port",
+      "type": "integer"
+    },
+    "authority_root": {
+      "title": "Authority Root",
+      "type": "string"
+    },
+    "command_timeout_seconds": {
+      "default": 90,
+      "exclusiveMinimum": 0,
+      "maximum": 300,
+      "title": "Command Timeout Seconds",
+      "type": "number"
+    },
+    "compose_binary": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "control_root": {
+      "title": "Control Root",
+      "type": "string"
+    },
+    "docker": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "docker_socket": {
+      "title": "Docker Socket",
+      "type": "string"
+    },
+    "drain_timeout_seconds": {
+      "default": 30,
+      "exclusiveMinimum": 0,
+      "maximum": 300,
+      "title": "Drain Timeout Seconds",
+      "type": "number"
+    },
+    "factory": {
+      "const": "ISOLATED_EMPTY_BASELINE_V1",
+      "default": "ISOLATED_EMPTY_BASELINE_V1",
+      "title": "Factory",
+      "type": "string"
+    },
+    "intent": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "max_duckdb_bytes": {
+      "default": 8589934592,
+      "exclusiveMinimum": 0,
+      "maximum": 137438953472,
+      "title": "Max Duckdb Bytes",
+      "type": "integer"
+    },
+    "mcp_container_port": {
+      "default": 8765,
+      "maximum": 65535,
+      "minimum": 1,
+      "title": "Mcp Container Port",
+      "type": "integer"
+    },
+    "mcp_receiver_url": {
+      "title": "Mcp Receiver Url",
+      "type": "string"
+    },
+    "operator_token_file": {
+      "title": "Operator Token File",
+      "type": "string"
+    },
+    "probe_spec": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "protected_roots": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Protected Roots",
+      "type": "array"
+    },
+    "qualification_root": {
+      "title": "Qualification Root",
+      "type": "string"
+    },
+    "receiver_url": {
+      "title": "Receiver Url",
+      "type": "string"
+    },
+    "restart_timeout_seconds": {
+      "default": 120,
+      "exclusiveMinimum": 0,
+      "maximum": 600,
+      "title": "Restart Timeout Seconds",
+      "type": "number"
+    },
+    "schema_version": {
+      "const": "vkm-bootstrap-control/1",
+      "default": "vkm-bootstrap-control/1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "intent",
+    "probe_spec",
+    "docker",
+    "compose_binary",
+    "docker_socket",
+    "control_root",
+    "authority_root",
+    "qualification_root",
+    "protected_roots",
+    "receiver_url",
+    "mcp_receiver_url",
+    "operator_token_file"
+  ],
+  "title": "BootstrapControlConfig",
+  "type": "object"
+}

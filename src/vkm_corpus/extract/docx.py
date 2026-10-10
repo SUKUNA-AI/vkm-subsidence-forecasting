@@ -1,21 +1,28 @@
 """DOCX via python-docx + raw WordprocessingML (lxml).
 
-* blocks: body paragraphs in order; the stable anchor is ``docx_paragraph_path`` (XPath of the ``w:p``), the page is a
+* blocks: body, textboxes and auxiliary Word parts; ``docx_paragraph_path`` is a part-qualified XPath; the page is a
   DERIVATION through the pinned LibreOffice render (``render_page_id``, status RENDER_DEPENDENT; H-50);
 * formulas: every ``m:oMath`` (121 in VKM-SRC-023) is kept as raw OMML (``raw_format = OMML``); no LaTeX is invented
   – ``normalized_latex`` stays NULL until a pinned converter is decided;
-* tables: body ``w:tbl`` with the raw XML and a cell grid (gridSpan / vMerge);
+* tables: every ``w:tbl``, including nested tables, with raw XML and gridSpan / vMerge provenance;
 * images: ``a:blip r:embed`` → media bytes as they are (EMF/PNG/JPEG/GIF), not transcoded.
 """
 from __future__ import annotations
 
 import re
+import base64
+import posixpath
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 EXTRACTOR_ID = "docx-xml"
+DOCX_GRID_RULE = "docx-native-grid/2"
+# Limits concern inferred grid geometry, not the physical source objects.
+# Unsupported geometry remains fully raw-accounted, never silently clipped.
+MAX_DOCX_GRID_COLUMNS = 16_384
+MAX_DOCX_GRID_POSITIONS = 1_000_000
 NS = {
     "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
     "m": "http://schemas.openxmlformats.org/officeDocument/2006/math",
@@ -41,6 +48,8 @@ class DocxParagraph:
     n_math: int
     has_page_break_before: bool
     last_rendered_page_breaks: int
+    part: str = "word/document.xml"
+    container: str = "BODY"
 
 
 @dataclass
@@ -59,8 +68,9 @@ class DocxTable:
     xml: str
     cells: list[dict[str, Any]]
     n_rows: int
-    n_cols: int
+    n_cols: int | None
     text: str
+    grid_audit: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -82,6 +92,10 @@ class DocxDoc:
     app_properties: dict[str, str | None] = field(default_factory=dict)
     core_properties: dict[str, str | None] = field(default_factory=dict)
     counts: dict[str, int] = field(default_factory=dict)
+    raw_parts: dict[str, str] = field(default_factory=dict)
+    raw_parts_base64: dict[str, str] = field(default_factory=dict)
+    diagnostics: list[dict[str, Any]] = field(default_factory=list)
+    package_manifest: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _style_block_type(style: str | None, has_num: bool) -> str:
@@ -103,6 +117,11 @@ def _para_text(p: Any) -> str:
     """Visible run text of a paragraph (w:t, tabs, breaks), excluding math and deleted text."""
     parts = []
     for el in p.iter():
+        # A text box contains its own paragraphs; they are extracted separately.
+        if next((a for a in el.iterancestors() if a.tag == W + "p"), p) is not p:
+            continue
+        if any(a.tag in (W + "del", M + "oMath") for a in el.iterancestors()):
+            continue
         tag = el.tag
         if tag == W + "t":
             anc_del = any(a.tag in (W + "del", M + "oMath") for a in el.iterancestors())
@@ -119,137 +138,308 @@ def _math_linear(m: Any) -> str:
     return "".join(t.text or "" for t in m.iter(M + "t"))
 
 
-def _grid(tbl: Any) -> tuple[list[dict[str, Any]], int, int]:
-    """Cells of a w:tbl with row/col spans (gridSpan, vMerge restart/continue)."""
+def native_table_grid(tbl: Any, *, locator=None) -> tuple[list[dict[str, Any]], int, int | None, dict[str, Any]]:
+    """Project explicit Word grid structure; never join a vertical merge across a missing row.
+
+    The audit accounts for every physical ``w:tc``, including continuation cells.
+    Malformed geometry stays in raw markup/audit rather than receiving guessed spans.
+    """
+    locate = locator or tbl.getroottree().getpath
     rows = [tr for tr in tbl if tr.tag == W + "tr"]
     cells: list[dict[str, Any]] = []
-    open_vmerge: dict[int, dict[str, Any]] = {}
+    previous_vmerge: dict[int, dict[str, Any]] = {}
+    physical, row_audit, diagnostics = [], [], []
+    geometry_known = True
+    grid = tbl.find(W + "tblGrid")
+    declared_cols = sum(child.tag == W + "gridCol" for child in grid) if grid is not None else None
+    if declared_cols is not None and declared_cols > MAX_DOCX_GRID_COLUMNS:
+        diagnostics.append({"code": "GRID_COLUMN_LIMIT", "raw_locator": locate(grid),
+                            "declared_columns": declared_cols, "limit": MAX_DOCX_GRID_COLUMNS})
+        geometry_known = False
     ncols = 0
+
+    def integer(element, default, minimum, code, row, limit_code):
+        nonlocal geometry_known
+        if element is None:
+            return default
+        raw = element.get(W + "val")
+        try:
+            value = int(raw)
+        except (TypeError, ValueError):
+            value = None
+        if value is None or value < minimum or value > 2_147_483_647:
+            diagnostics.append({"code": code, "row": row, "raw_locator": locate(element), "raw_value": raw})
+            geometry_known = False
+            return None
+        if value > MAX_DOCX_GRID_COLUMNS:
+            diagnostics.append({"code": limit_code, "row": row, "raw_locator": locate(element),
+                                "raw_value": raw, "limit": MAX_DOCX_GRID_COLUMNS})
+            geometry_known = False
+            return None
+        return value
+
     for r, tr in enumerate(rows):
-        c = 0
+        # Only entries observed in the immediately preceding row may continue.
+        # A gridBefore/gridAfter omission, empty row or ordinary cell closes the chain.
+        next_vmerge: dict[int, dict[str, Any]] = {}
+        row_pr = tr.find(W + "trPr")
+        before = row_pr.find(W + "gridBefore") if row_pr is not None else None
+        after = row_pr.find(W + "gridAfter") if row_pr is not None else None
+        header = row_pr.find(W + "tblHeader") if row_pr is not None else None
+        c = integer(before, 0, 0, "INVALID_GRID_BEFORE", r, "GRID_BEFORE_LIMIT")
+        omitted_after = integer(after, 0, 0, "INVALID_GRID_AFTER", r, "GRID_AFTER_LIMIT")
+        header_value = header.get(W + "val", "1").lower() if header is not None else None
+        is_header = header_value in {"1", "true", "on"}
+        if header_value is not None and header_value not in {"1", "true", "on", "0", "false", "off"}:
+            diagnostics.append({"code": "INVALID_TABLE_HEADER", "row": r,
+                                "raw_locator": locate(header), "raw_value": header.get(W + "val")})
+        row_audit.append({"row": r, "raw_locator": locate(tr), "grid_before": c,
+                          "grid_after": omitted_after, "is_header": is_header,
+                          "declared_grid_before": before.get(W + "val") if before is not None else None,
+                          "declared_grid_after": after.get(W + "val") if after is not None else None,
+                          "header_declaration": {"raw_locator": locate(header), "raw_value": header.get(W + "val")}
+                                                if header is not None else None})
         for tc in tr:
             if tc.tag != W + "tc":
                 continue
             pr = tc.find(W + "tcPr")
+            gs = vm = hm = None
             span = 1
             vmerge = None
+            cell_diagnostics = []
             if pr is not None:
                 gs = pr.find(W + "gridSpan")
-                if gs is not None:
-                    span = int(gs.get(W + "val", "1"))
+                span = integer(gs, 1, 1, "INVALID_GRID_SPAN", r, "GRID_COLUMN_LIMIT")
                 vm = pr.find(W + "vMerge")
                 if vm is not None:
                     vmerge = vm.get(W + "val", "continue")
-            text = "\n".join(_para_text(p) for p in tc.iter(W + "p")).strip()
-            if vmerge == "continue" and c in open_vmerge:
-                open_vmerge[c]["row_span"] += 1
-            else:
-                cell = {"row": r, "col": c, "row_span": 1, "col_span": span, "is_header": r == 0, "text": text}
+                    if vmerge not in {"restart", "continue"}:
+                        cell_diagnostics.append("INVALID_VERTICAL_MERGE")
+                hm = pr.find(W + "hMerge")
+                if hm is not None:
+                    # Legacy hMerge does not establish gridSpan. Preserve its exact
+                    # markup without claiming an unimplemented horizontal projection.
+                    cell_diagnostics.append("UNSUPPORTED_HORIZONTAL_MERGE")
+                    geometry_known = False
+            text = "\n".join(_para_text(p) for p in tc.iter(W + "p")
+                             if next((a for a in p.iterancestors() if a.tag == W + "tbl"), None) is tbl
+                             and not any(a.tag == W + "txbxContent" for a in p.iterancestors())).strip()
+            cell_path = locate(tc)
+            physical.append({"row": r, "col": c, "col_span": span, "is_header": is_header,
+                             "raw_locator": cell_path, "text": text, "vmerge": vmerge,
+                             "declared_grid_span": gs.get(W + "val") if gs is not None else None,
+                             "vmerge_declaration": {"raw_locator": locate(vm), "raw_value": vm.get(W + "val")}
+                                                   if vm is not None else None,
+                             "hmerge_declaration": {"raw_locator": locate(hm), "raw_value": hm.get(W + "val")}
+                                                   if hm is not None else None})
+            origin = previous_vmerge.get(c) if c is not None else None
+            if c is not None and span is not None and vmerge == "continue" and origin is not None \
+                    and origin["col_span"] == span:
+                origin["row_span"] += 1
+                origin["merge_fragments"].append({"row": r, "raw_locator": cell_path, "text": text,
+                                                  "is_header": is_header})
+                if text:
+                    origin["text"] += "\n" + text
+                next_vmerge[c] = origin
+            elif c is not None and span is not None:
+                if vmerge == "continue":
+                    cell_diagnostics.append("VERTICAL_MERGE_SPAN_MISMATCH" if origin is not None
+                                            else "ORPHAN_VERTICAL_MERGE")
+                cell = {"row": r, "col": c, "row_span": 1, "col_span": span, "is_header": is_header, "text": text,
+                        "raw_locator": cell_path, "merge_fragments": [],
+                        "structural_diagnostics": cell_diagnostics}
                 cells.append(cell)
                 if vmerge == "restart":
-                    open_vmerge[c] = cell
-                else:
-                    open_vmerge.pop(c, None)
-            c += span
-        ncols = max(ncols, c)
-    return cells, len(rows), ncols
+                    next_vmerge[c] = cell
+            diagnostics.extend({"code": code, "row": r, "raw_locator": cell_path}
+                               for code in cell_diagnostics)
+            c = c + span if c is not None and span is not None else None
+            if c is not None and c > 2_147_483_647:
+                diagnostics.append({"code": "GRID_WIDTH_OVERFLOW", "row": r, "raw_locator": cell_path})
+                geometry_known, c = False, None
+            elif c is not None and c > MAX_DOCX_GRID_COLUMNS:
+                diagnostics.append({"code": "GRID_COLUMN_LIMIT", "row": r, "raw_locator": cell_path,
+                                    "observed_columns": c, "limit": MAX_DOCX_GRID_COLUMNS})
+                geometry_known, c = False, None
+        previous_vmerge = next_vmerge
+        width = c + omitted_after if c is not None and omitted_after is not None else None
+        if width is not None and width > 2_147_483_647:
+            diagnostics.append({"code": "GRID_WIDTH_OVERFLOW", "row": r, "raw_locator": locate(tr)})
+            geometry_known, width = False, None
+        elif width is not None and width > MAX_DOCX_GRID_COLUMNS:
+            diagnostics.append({"code": "GRID_COLUMN_LIMIT", "row": r, "raw_locator": locate(tr),
+                                "observed_columns": width, "limit": MAX_DOCX_GRID_COLUMNS})
+            geometry_known, width = False, None
+        row_audit[-1]["observed_width"] = width
+        if width is not None:
+            ncols = max(ncols, width)
+            if declared_cols is not None and width != declared_cols:
+                diagnostics.append({"code": "ROW_GRID_WIDTH_MISMATCH", "row": r, "raw_locator": locate(tr),
+                                    "declared_columns": declared_cols, "observed_width": width})
+    ncols = max(ncols, declared_cols or 0) if geometry_known else None
+    if ncols is not None and len(rows) * ncols > MAX_DOCX_GRID_POSITIONS:
+        diagnostics.append({"code": "GRID_POSITION_LIMIT", "raw_locator": locate(tbl), "n_rows": len(rows),
+                            "observed_columns": ncols, "limit": MAX_DOCX_GRID_POSITIONS})
+        geometry_known, ncols = False, None
+    if not geometry_known:
+        cells = []
+    audit = {"rule": DOCX_GRID_RULE, "status": "STRUCTURE_UNRESOLVED" if not geometry_known else
+             "NEEDS_REVIEW" if diagnostics else "PARSED_UNREVIEWED", "table_locator": locate(tbl),
+             "declared_columns": declared_cols, "physical_cell_count": len(physical), "rows": row_audit,
+             "physical_cells": physical, "diagnostics": diagnostics, "projected_cells": cells,
+             "n_rows": len(rows), "n_cols": ncols, "scientific_admission": "NOT_ESTABLISHED"}
+    audit["limits"] = {"max_columns": MAX_DOCX_GRID_COLUMNS, "max_grid_positions": MAX_DOCX_GRID_POSITIONS}
+    return cells, len(rows), ncols, audit
+
+
+def _grid(tbl: Any) -> tuple[list[dict[str, Any]], int, int | None]:
+    """Compatibility wrapper for callers requiring only the projected grid."""
+    cells, rows, cols, _ = native_table_grid(tbl)
+    return cells, rows, cols
+
+
+def grid_audit_matches(xml: str, table_locator: str, audit: dict[str, Any]) -> bool:
+    """Verify a cached audit against its exact native table markup and occurrence.
+
+    Detached XML receives the original table prefix; main-part anchors stay unchanged.
+    This checks deterministic structural parsing, never original-source review.
+    """
+    from lxml import etree
+
+    try:
+        table = etree.fromstring(xml.encode("utf-8"), etree.XMLParser(resolve_entities=False, no_network=True))
+        if table.tag != W + "tbl":
+            return False
+        tree = table.getroottree()
+        root_path = tree.getpath(table)
+        _, _, _, expected = native_table_grid(table, locator=lambda el:
+            table_locator + tree.getpath(el)[len(root_path):])
+        return audit == expected
+    except (ValueError, TypeError, etree.XMLSyntaxError):
+        return False
 
 
 def read_docx(path: Path) -> DocxDoc:
+    """Read all Word text-bearing parts, keeping exact XML and part-qualified locators.
+
+    Table-cell paragraphs are represented by their tables; their formulas/images
+    are still separate objects. Text boxes, notes, headers and footers are blocks.
+    Deleted content and unsupported markup remain in raw_parts with diagnostics.
+    """
     from lxml import etree
 
     doc = DocxDoc()
+    parser = etree.XMLParser(resolve_entities=False, no_network=True)
     with zipfile.ZipFile(path) as z:
         names = set(z.namelist())
-        root = etree.fromstring(z.read("word/document.xml"))
-        tree = root.getroottree()
-        rels: dict[str, str] = {}
-        if "word/_rels/document.xml.rels" in names:
-            rr = etree.fromstring(z.read("word/_rels/document.xml.rels"))
-            for rel in rr:
-                target = rel.get("Target") or ""
-                rels[rel.get("Id")] = target if target.startswith("/") else "word/" + target
-        styles: dict[str, str] = {}
-        if "word/styles.xml" in names:
-            st = etree.fromstring(z.read("word/styles.xml"))
-            for s in st.iter(W + "style"):
-                name = s.find(W + "name")
-                styles[s.get(W + "styleId")] = name.get(W + "val") if name is not None else s.get(W + "styleId")
-        for part, target in (("docProps/app.xml", doc.app_properties), ("docProps/core.xml", doc.core_properties)):
+        styles = {}
+        if 'word/styles.xml' in names:
+            for style in etree.fromstring(z.read('word/styles.xml'), parser).iter(W + 'style'):
+                name = style.find(W + 'name')
+                styles[style.get(W + 'styleId')] = name.get(W + 'val') if name is not None else style.get(W + 'styleId')
+        for part, target in [('docProps/app.xml', doc.app_properties), ('docProps/core.xml', doc.core_properties)]:
             if part in names:
-                x = etree.fromstring(z.read(part))
-                for el in x:
-                    target[etree.QName(el).localname] = (el.text or "").strip() or None
-        body = root.find(W + "body")
-        order = 0
-        for child in body:
-            if child.tag == W + "p":
-                order += 1
-                p = child
-                ppr = p.find(W + "pPr")
-                style_id = None
-                has_num = False
-                pb_before = False
-                if ppr is not None:
-                    ps = ppr.find(W + "pStyle")
-                    style_id = ps.get(W + "val") if ps is not None else None
-                    has_num = ppr.find(W + "numPr") is not None
-                    pb_before = ppr.find(W + "pageBreakBefore") is not None
-                style = styles.get(style_id, style_id) if style_id else None
-                maths = list(p.iter(M + "oMath"))
-                ppath = tree.getpath(p)
-                doc.paragraphs.append(DocxParagraph(
-                    order=order, path=ppath, style=style, block_type=_style_block_type(style, has_num),
-                    text=_para_text(p), n_math=len(maths), has_page_break_before=pb_before,
-                    last_rendered_page_breaks=sum(1 for _ in p.iter(W + "lastRenderedPageBreak"))))
-                for mth in maths:
-                    doc.maths.append(DocxMath(order=len(doc.maths) + 1, paragraph_path=ppath,
-                                              display=any(a.tag == M + "oMathPara" for a in mth.iterancestors()),
-                                              omml=etree.tostring(mth, encoding="unicode"),
-                                              linear_text=_math_linear(mth)))
-                for blip in p.iter("{%s}blip" % NS["a"]):
-                    rid = blip.get("{%s}embed" % NS["r"])
-                    if not rid or rid not in rels:
+                for el in etree.fromstring(z.read(part), parser):
+                    target[etree.QName(el).localname] = (el.text or '').strip() or None
+        parts = ['word/document.xml'] + sorted(n for n in names if re.fullmatch(
+            r'word/(?:footnotes|endnotes|comments|header[0-9]*|footer[0-9]*)\.xml', n))
+        counts = {'omath': 0, 'omath_para': 0, 'tables_body': 0, 'tables_all': 0,
+                  'paragraphs_body': 0, 'paragraphs_all': 0, 'last_rendered_page_breaks': 0,
+                  'explicit_page_breaks': 0}
+        for part in parts:
+            raw = z.read(part)
+            root = etree.fromstring(raw, parser)
+            tree = root.getroottree()
+            # Exact original bytes remain available even for UTF-16 XML declarations.
+            doc.raw_parts_base64[part] = base64.b64encode(raw).decode('ascii')
+            doc.raw_parts[part] = etree.tostring(root, encoding='unicode')
+            def locator(el):
+                xpath = tree.getpath(el)
+                return xpath if part == 'word/document.xml' else part + '#' + xpath
+            rels = {}
+            relpart = posixpath.join(posixpath.dirname(part), '_rels', posixpath.basename(part) + '.rels')
+            if relpart in names:
+                for rel in etree.fromstring(z.read(relpart), parser):
+                    target = rel.get('Target') or ''
+                    if rel.get('TargetMode') == 'External':
+                        doc.diagnostics.append({'part': part, 'code': 'EXTERNAL_RELATIONSHIP_NOT_FETCHED',
+                                                'relationship_id': rel.get('Id')})
                         continue
+                    member = posixpath.normpath(posixpath.join(posixpath.dirname(part), target))
+                    if target.startswith('/'):
+                        member = target.lstrip('/')
+                    if member.startswith('../') or member not in names:
+                        doc.diagnostics.append({'part': part, 'code': 'UNRESOLVED_RELATIONSHIP',
+                                                'relationship_id': rel.get('Id')})
+                        continue
+                    rels[rel.get('Id')] = member
+            for el in root.iter():
+                if not isinstance(el.tag, str):
+                    continue
+                deleted = any(a.tag == W + 'del' for a in el.iterancestors())
+                if el.tag in (W + 'del', W + 'altChunk', W + 'object', W + 'fldSimple', W + 'instrText'):
+                    doc.diagnostics.append({'part': part, 'locator': locator(el),
+                                            'code': 'RAW_ONLY_' + etree.QName(el).localname.upper()})
+                if deleted:
+                    continue
+                if el.tag == W + 'p':
+                    counts['paragraphs_all'] += 1
+                    parent_table = next((a for a in el.iterancestors() if a.tag == W + 'tbl'), None)
+                    textbox = any(a.tag == W + 'txbxContent' for a in el.iterancestors())
+                    if parent_table is not None and not textbox:
+                        continue
+                    pr = el.find(W + 'pPr')
+                    sid = pr.find(W + 'pStyle') if pr is not None else None
+                    style_id = sid.get(W + 'val') if sid is not None else None
+                    style = styles.get(style_id, style_id)
+                    container = 'TEXTBOX' if textbox else 'BODY' if part == 'word/document.xml' else posixpath.basename(part).split('.')[0].upper()
+                    kind = 'FOOTNOTE' if container in ('FOOTNOTES', 'ENDNOTES') else _style_block_type(style, pr is not None and pr.find(W + 'numPr') is not None)
+                    maths = [m for m in el.iter(M + 'oMath') if next((a for a in m.iterancestors() if a.tag == W + 'p'), None) is el]
+                    doc.paragraphs.append(DocxParagraph(len(doc.paragraphs) + 1, locator(el), style, kind,
+                        _para_text(el), len(maths), pr is not None and pr.find(W + 'pageBreakBefore') is not None,
+                        sum(1 for _ in el.iter(W + 'lastRenderedPageBreak')), part, container))
+                    if container == 'BODY':
+                        counts['paragraphs_body'] += 1
+                elif el.tag == W + 'tbl':
+                    cells, nr, nc, grid_audit = native_table_grid(el, locator=locator)
+                    doc.tables.append(DocxTable(len(doc.tables) + 1, locator(el),
+                        etree.tostring(el, encoding='unicode'), cells, nr, nc,
+                        '\n'.join(c['text'] for c in cells if c['text']) if cells else
+                        '\n'.join(c['text'] for c in grid_audit['physical_cells'] if c['text']), grid_audit))
+                    counts['tables_all'] += 1
+                    if part == 'word/document.xml' and el.getparent().tag == W + 'body':
+                        counts['tables_body'] += 1
+                elif el.tag == M + 'oMath':
+                    par = next((a for a in el.iterancestors() if a.tag == W + 'p'), el)
+                    display = any(a.tag == M + 'oMathPara' for a in el.iterancestors())
+                    doc.maths.append(DocxMath(len(doc.maths) + 1, locator(par), display,
+                        etree.tostring(el, encoding='unicode'), _math_linear(el)))
+                    counts['omath'] += 1
+                elif el.tag == M + 'oMathPara':
+                    counts['omath_para'] += 1
+                elif el.tag in ('{%s}blip' % NS['a'], '{%s}imagedata' % NS['v']):
+                    rid = el.get('{%s}embed' % NS['r']) or el.get('{%s}id' % NS['r'])
+                    if rid not in rels:
+                        doc.diagnostics.append({'part': part, 'locator': locator(el), 'code': 'UNRESOLVED_IMAGE', 'relationship_id': rid})
+                        continue
+                    par = next((a for a in el.iterancestors() if a.tag == W + 'p'), el)
                     member = rels[rid]
-                    ext = Path(member).suffix.lower()
-                    descr = None
-                    for anc in blip.iterancestors():
-                        dp = anc.find("{http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing}docPr")
-                        if dp is not None:
-                            descr = dp.get("descr") or dp.get("title")
-                            break
-                    doc.images.append(DocxImage(order=len(doc.images) + 1, paragraph_path=ppath, rel_id=rid,
-                                                member=member, media_type=MEDIA_TYPES.get(ext,
-                                                                                          "application/octet-stream"),
-                                                descr=descr))
-            elif child.tag == W + "tbl":
-                order += 1
-                cells, nr, nc = _grid(child)
-                # maths inside tables belong to the table cell paragraphs
-                for mth in child.iter(M + "oMath"):
-                    par = next((a for a in mth.iterancestors() if a.tag == W + "p"), None)
-                    doc.maths.append(DocxMath(order=len(doc.maths) + 1,
-                                              paragraph_path=tree.getpath(par) if par is not None else
-                                              tree.getpath(child),
-                                              display=any(a.tag == M + "oMathPara" for a in mth.iterancestors()),
-                                              omml=etree.tostring(mth, encoding="unicode"),
-                                              linear_text=_math_linear(mth)))
-                doc.tables.append(DocxTable(order=order, path=tree.getpath(child),
-                                            xml=etree.tostring(child, encoding="unicode"), cells=cells, n_rows=nr,
-                                            n_cols=nc, text="\n".join(c["text"] for c in cells if c["text"])))
-        docxml = z.read("word/document.xml")
-        doc.counts = {
-            "omath": len(root.findall(".//" + M + "oMath")),
-            "omath_para": len(root.findall(".//" + M + "oMathPara")),
-            "tables_body": len(doc.tables),
-            "tables_all": len(root.findall(".//" + W + "tbl")),
-            "paragraphs_body": len(doc.paragraphs),
-            "images": len(doc.images),
-            "media_files": sum(1 for n in names if n.startswith("word/media/")),
-            "last_rendered_page_breaks": docxml.count(b"<w:lastRenderedPageBreak/>"),
-            "explicit_page_breaks": len(re.findall(rb'<w:br [^>]*w:type="page"', docxml)),
-        }
+                    drawing = next((a for a in el.iterancestors() if a.tag == W + 'drawing'), None)
+                    props = drawing.xpath('.//*[local-name()="docPr"]') if drawing is not None else []
+                    descr = next((p.get('descr') or p.get('title') for p in props if p.get('descr') or p.get('title')), None)
+                    doc.images.append(DocxImage(len(doc.images) + 1, locator(par), rid, member,
+                        MEDIA_TYPES.get(Path(member).suffix.lower(), 'application/octet-stream'), descr or el.get('title')))
+                elif el.tag == W + 'lastRenderedPageBreak':
+                    counts['last_rendered_page_breaks'] += 1
+                elif el.tag == W + 'br' and el.get(W + 'type') == 'page':
+                    counts['explicit_page_breaks'] += 1
+        counts.update(images=len(doc.images), media_files=sum(n.startswith('word/media/') for n in names))
+        doc.counts = counts
+        referenced_images = {im.member for im in doc.images}
+        doc.package_manifest = [{"member": info.filename, "size_bytes": info.file_size, "crc32": info.CRC,
+            "disposition": "STRUCTURED_AND_RAW" if info.filename in doc.raw_parts else
+                           "EMBEDDED_REFERENCED" if info.filename in referenced_images else "RAW_ONLY"}
+            for info in sorted(z.infolist(), key=lambda x: x.filename) if not info.is_dir()]
     return doc
 
 

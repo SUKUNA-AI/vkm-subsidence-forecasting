@@ -1,0 +1,307 @@
+{
+  "$defs": {
+    "OriginSlice": {
+      "additionalProperties": false,
+      "description": "A reviewed primary origin and explicit subset; empty members means whole set.",
+      "properties": {
+        "independence_basis": {
+          "minLength": 1,
+          "title": "Independence Basis",
+          "type": "string"
+        },
+        "members": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Members",
+          "type": "array"
+        },
+        "origin_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Origin Id",
+          "type": "string"
+        },
+        "verified": {
+          "default": false,
+          "title": "Verified",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "origin_id",
+        "independence_basis"
+      ],
+      "title": "OriginSlice",
+      "type": "object"
+    },
+    "StratumKey": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "minLength": 1,
+          "title": "Format",
+          "type": "string"
+        },
+        "object_kind": {
+          "minLength": 1,
+          "title": "Object Kind",
+          "type": "string"
+        },
+        "quality": {
+          "minLength": 1,
+          "title": "Quality",
+          "type": "string"
+        },
+        "source_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_sha256",
+        "format",
+        "quality",
+        "object_kind"
+      ],
+      "title": "StratumKey",
+      "type": "object"
+    },
+    "StratumPlan": {
+      "additionalProperties": false,
+      "properties": {
+        "design": {
+          "enum": [
+            "POSITIVE_OBJECTS",
+            "NEGATIVE_UNITS"
+          ],
+          "title": "Design",
+          "type": "string"
+        },
+        "key": {
+          "$ref": "#/$defs/StratumKey"
+        },
+        "sampling_basis": {
+          "minLength": 1,
+          "title": "Sampling Basis",
+          "type": "string"
+        },
+        "stratum_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Stratum Id",
+          "type": "string"
+        },
+        "thresholds": {
+          "items": {
+            "$ref": "#/$defs/Threshold"
+          },
+          "minItems": 1,
+          "title": "Thresholds",
+          "type": "array"
+        },
+        "unit_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Unit Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "stratum_id",
+        "key",
+        "unit_ids",
+        "design",
+        "sampling_basis",
+        "thresholds"
+      ],
+      "title": "StratumPlan",
+      "type": "object"
+    },
+    "Threshold": {
+      "additionalProperties": false,
+      "properties": {
+        "decision_statistic": {
+          "enum": [
+            "POINT",
+            "WILSON_LOWER"
+          ],
+          "title": "Decision Statistic",
+          "type": "string"
+        },
+        "metric": {
+          "enum": [
+            "DISCOVERY_RECALL",
+            "DISCOVERY_PRECISION",
+            "CLASSIFICATION_ACCURACY",
+            "EMPTY_UNIT_ACCURACY",
+            "NUMERIC_EXACT",
+            "GRID_EXACT",
+            "FORMULA_EXACT",
+            "ENTITY_EXACT",
+            "TEMPORAL_EXACT"
+          ],
+          "title": "Metric",
+          "type": "string"
+        },
+        "minimum": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Minimum",
+          "type": "number"
+        },
+        "minimum_denominator": {
+          "minimum": 1,
+          "title": "Minimum Denominator",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "metric",
+        "minimum",
+        "minimum_denominator",
+        "decision_statistic"
+      ],
+      "title": "Threshold",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "confidence": {
+      "exclusiveMaximum": 1,
+      "exclusiveMinimum": 0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "exact_rule": {
+      "const": "EXACT_TYPED_VALUE_V1",
+      "default": "EXACT_TYPED_VALUE_V1",
+      "title": "Exact Rule",
+      "type": "string"
+    },
+    "extractor_identity_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Extractor Identity Sha256",
+      "type": "string"
+    },
+    "gold_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Gold Sha256",
+      "type": "string"
+    },
+    "matching_rule": {
+      "const": "INDEPENDENT_ORIGINAL_ADJUDICATION_V1",
+      "default": "INDEPENDENT_ORIGINAL_ADJUDICATION_V1",
+      "title": "Matching Rule",
+      "type": "string"
+    },
+    "plan_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+      "title": "Plan Id",
+      "type": "string"
+    },
+    "population": {
+      "enum": [
+        "SYNTHETIC",
+        "CORPUS"
+      ],
+      "title": "Population",
+      "type": "string"
+    },
+    "producer_actors": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Producer Actors",
+      "type": "array"
+    },
+    "purpose": {
+      "enum": [
+        "INDEPENDENT_EXTRACTION_VALIDATION",
+        "SHARED_ORIGIN_HOLDOUT",
+        "TRANSFER_CONSISTENCY"
+      ],
+      "title": "Purpose",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-extraction-qualification/1",
+      "default": "vkm-extraction-qualification/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "strata": {
+      "items": {
+        "$ref": "#/$defs/StratumPlan"
+      },
+      "minItems": 1,
+      "title": "Strata",
+      "type": "array"
+    },
+    "tuning_actors": {
+      "default": [],
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+        "type": "string"
+      },
+      "title": "Tuning Actors",
+      "type": "array"
+    },
+    "tuning_declaration_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tuning Declaration Sha256"
+    },
+    "tuning_origins": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/OriginSlice"
+      },
+      "title": "Tuning Origins",
+      "type": "array"
+    },
+    "tuning_state": {
+      "enum": [
+        "DECLARED",
+        "NO_TUNING_ATTESTED",
+        "UNKNOWN"
+      ],
+      "title": "Tuning State",
+      "type": "string"
+    }
+  },
+  "required": [
+    "plan_id",
+    "population",
+    "purpose",
+    "gold_sha256",
+    "extractor_identity_sha256",
+    "producer_actors",
+    "tuning_state",
+    "strata",
+    "confidence"
+  ],
+  "title": "FrozenPlan",
+  "type": "object"
+}

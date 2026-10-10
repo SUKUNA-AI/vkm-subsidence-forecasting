@@ -22,7 +22,7 @@ from vkm_corpus.contracts.datasets import DATASETS, DOCUMENT_DATASETS, REGISTRY_
 from vkm_corpus.contracts.vocab import AdmissionStatus, ErrorCode, RootKind
 from vkm_corpus.parquet.atomic import create_exclusive, dump_json, sha256_of, write_json
 from vkm_corpus.parquet.blobs import check_blob
-from vkm_corpus.parquet.commits import REGISTRY_KEY, chain_head, list_markers
+from vkm_corpus.parquet.commits import REGISTRY_KEY, chain_head, list_markers, accounting_lineage
 from vkm_corpus.parquet.layout import CanonLayout, RootError
 
 
@@ -112,17 +112,41 @@ def verify_commit(layout: CanonLayout, marker: dict[str, Any], register: dict[st
     return problems
 
 
-def admit(layout: CanonLayout, *, now: datetime | None = None) -> dict[str, list]:
+def admit(layout: CanonLayout, *, now: datetime | None = None, publication_approval=None,
+          policy_path=None) -> dict[str, list]:
     """Admit or reject every new commit (registry first); returns ``{admitted, rejected, pending}``."""
     layout.require(RootKind.CANONICAL)
     result: dict[str, list] = {"admitted": [], "rejected": [], "pending": []}
     with root_lock(layout):
+        selected = None
+        if publication_approval is not None:
+            from vkm_corpus.coverage.publication import verify_publication, require_receiving_base
+            try:
+                descriptor = verify_publication(layout.root, publication_approval,
+                    policy_path=policy_path, receiving=True)
+                require_receiving_base(layout, descriptor, publication_approval.descriptor_sha256)
+            except (OSError, ValueError, KeyError, PermissionError):
+                return {**result, "accounting": "PENDING", "reason": "PUBLICATION_NOT_VERIFIED"}
+            selected = {s.commit_id for s in descriptor.sources}
+            if descriptor.registry:
+                from vkm_corpus.coverage.publication import _marker
+                selected.add(_marker(layout.root, descriptor.registry, "REGISTRY")["commit_id"])
         markers = list_markers(layout)
         by_id = {m["commit_id"]: m for m in markers}
         records = load_admissions(layout)
         admitted = {c for c, r in records.items() if r["status"] == AdmissionStatus.ADMITTED}
         rejected = {c for c, r in records.items() if r["status"] == AdmissionStatus.REJECTED}
         todo = [m for m in markers if m["commit_id"] not in records]
+        accounting_pending = set()
+        for marker in todo:
+            if marker["key"] == REGISTRY_KEY:
+                continue
+            try:
+                accounting_lineage(marker, by_id.get)
+                if marker.get("accounting_required") and selected is None:
+                    accounting_pending.add(marker["commit_id"])
+            except ValueError:
+                accounting_pending.add(marker["commit_id"])
         ts = (now or datetime.now(timezone.utc)).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         def record(m: dict[str, Any], status: str, problems: list[list[str]]) -> None:
@@ -143,6 +167,9 @@ def admit(layout: CanonLayout, *, now: datetime | None = None) -> dict[str, list
             for m in sorted(todo, key=lambda x: (x["key"] != REGISTRY_KEY, x["key"], x["committed_at"])):
                 if m["commit_id"] in records:
                     continue
+                if (selected is not None and m["commit_id"] not in selected) or \
+                        m["commit_id"] in accounting_pending:
+                    continue  # publication incomplete/unapproved: retryable, never permanent REJECTED
                 head, _ = chain_head([by_id[c] for c in admitted if c in by_id], m["key"])
                 parent = m.get("parent_commit_id")
                 if parent != head:
@@ -160,6 +187,9 @@ def admit(layout: CanonLayout, *, now: datetime | None = None) -> dict[str, list
                 if m["key"] == REGISTRY_KEY:
                     break               # re-read the register before checking sources
         result["pending"] = sorted(m["commit_id"] for m in todo if m["commit_id"] not in records)
+        if accounting_pending:
+            result["accounting"] = "PENDING"
+            result["reason"] = "PUBLICATION_OPERATOR_APPROVAL_REQUIRED"
     return result
 
 

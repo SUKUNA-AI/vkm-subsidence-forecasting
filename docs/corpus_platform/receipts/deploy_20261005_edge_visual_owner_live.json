@@ -1,0 +1,124 @@
+{
+  "authorization": "owner: 'все разворачивай новое и старое убирай'; explicit confirmation of the m0 switch in chat (AskUserQuestion) on 2026-10-05; cleanup scope confirmed in chat (keep one rollback version)",
+  "change": "EDGE vkm-rerank-m0 switched from the direct llama-server container to the v8 visual owner (owned llama-server child + native loaded witness + target-weight placement), workload profile LIVE, proxy on loopback 18083 for the unchanged gateway; old artifacts removed",
+  "checks_actual": {
+    "end_to_end": "MCP rerank_visual (CORE api -> EDGE gateway -> owner): 3 figures scored, ok; ~13 s per call of 3 images (backend ~4.4 s/image on GTX 1650, 20/28 layers on GPU); performance vs the old m0 NOT_MEASURED",
+    "gateway": {
+      "health": "healthy",
+      "image": "vkm/rerank-gateway:0.1.1"
+    },
+    "identity_endpoint": {
+      "with_pinned_credential": 200,
+      "without_credential": 401
+    },
+    "m0": {
+      "health": "healthy",
+      "restart_policy": "unless-stopped"
+    },
+    "startup": {
+      "code_sha256": "116022bdf33270951d5f9d9b23583f5695b2186124e297c1046c53cd69186859",
+      "elapsed_ms": 4744,
+      "outcome": "READY",
+      "terminal_stage": "SERVING",
+      "unexpected_mapped_count": 0
+    },
+    "target_weight_placement": {
+      "context_buffers": "NOT_PROVEN",
+      "full_gpu_residency": "NOT_PROVEN",
+      "gpu_buffer_bytes": 921147648,
+      "groups": {
+        "blk.0": "HOST",
+        "blk.1": "HOST",
+        "blk.10": "GPU",
+        "blk.11": "GPU",
+        "blk.12": "GPU",
+        "blk.13": "GPU",
+        "blk.14": "GPU",
+        "blk.15": "GPU",
+        "blk.16": "GPU",
+        "blk.17": "GPU",
+        "blk.18": "GPU",
+        "blk.19": "GPU",
+        "blk.2": "HOST",
+        "blk.20": "GPU",
+        "blk.21": "GPU",
+        "blk.22": "GPU",
+        "blk.23": "GPU",
+        "blk.24": "GPU",
+        "blk.25": "GPU",
+        "blk.26": "GPU",
+        "blk.27": "GPU",
+        "blk.3": "HOST",
+        "blk.4": "HOST",
+        "blk.5": "HOST",
+        "blk.6": "HOST",
+        "blk.7": "HOST",
+        "blk.8": "HOST",
+        "blk.9": "GPU",
+        "other": "HOST",
+        "output": "GPU"
+      },
+      "host_buffer_bytes": 537085440,
+      "kernel_execution": "NOT_PROVEN",
+      "layer_count": 28,
+      "mmproj": "NOT_PROVEN",
+      "performance": "NOT_PROVEN",
+      "scope": "LLAMA_TARGET_WEIGHT_PLACEMENT",
+      "tensor_count": 339,
+      "total_layer_count": 28,
+      "unique_buffers": 2
+    }
+  },
+  "cleanup": {
+    "core": "18 old vkm-corpus-api image tags, rx580-retrieval 0.1.0-0.1.3, 2 vkm-corpus-job dev images, dangling images, build cache (~29 GB), old build dirs and L1 stand dirs removed; kept: current 18d96c2a0512 + rollback 9d049dc0fec9",
+    "edge": "14 stopped owner qualification containers (v4-v8), visual-owned-gpu images v3-v7 and 6b8a0b3, careerops-reranker container and image, pytorch image, dangling build outputs, build cache removed; native build cache image kept as vkm/llama-native-cache:c0c0280b8f59; rollback llama-server image kept",
+    "edge_containers_after": [
+      "careerops-postgres Up 7 days (healthy)",
+      "vkm-rerank-gateway Up About a minute (healthy)",
+      "vkm-rerank-m0 Up About a minute (healthy)"
+    ],
+    "edge_images_after": [
+      "hello-world:latest",
+      "nvidia/cuda:13.2.1-devel-ubuntu24.04",
+      "nvidia/cuda:13.2.1-runtime-ubuntu24.04",
+      "postgres:18.6",
+      "python:3.13-slim-bookworm",
+      "ubuntu:latest",
+      "vkm/llama-native-cache:c0c0280b8f59",
+      "vkm/llama-server-cu132-sm75:b11223-4da6337767f9-p1",
+      "vkm/rerank-gateway:0.1.0",
+      "vkm/rerank-gateway:0.1.1",
+      "vkm/visual-owned-gpu:74ae2b6e802b-cached-20261005-v8"
+    ]
+  },
+  "image": "sha256:5eac49479658e2fd4a8f9f7d96b41d9d5f5bfcc1f516c819c60dee26114a326c",
+  "limits": {
+    "gateway_qualified_identity_binding": "NOT_ENABLED",
+    "mmproj_context_kernels_performance": "NOT_PROVEN",
+    "scientific_admission": "NOT_APPLICABLE"
+  },
+  "operation_output_sha256": {
+    "edge_state_after_switch.json": "989bd131cf08a5353a4e67167d925c56f54a704a0aa91e947595f21165e195e8"
+  },
+  "public_component_commit": "74ae2b6",
+  "qualified_by": "SHADOW drill v8 (edge_owner_shadow_qualified_2026-10-05.json); LIVE differs only in proxy port and credential",
+  "recipe": {
+    "differs_from_qualified_shadow_recipe_only_in": [
+      "identity_token_sha256",
+      "port"
+    ],
+    "proxy_port": 18083,
+    "recipe_sha256": "a5cdad166d9683b776755db478bca3cba566c89d54424c8d3ff6bf8e7410ce3f",
+    "workload_binding_sha256": "bc32bee18da2ecba6a67402efb8406e82954951a405ebb388b81dad434d4ce16",
+    "workload_profile": "LIVE"
+  },
+  "recorded_at": "2026-10-05T16:10:10.372134+00:00",
+  "schema_version": "vkm-edge-deploy-receipt/1",
+  "switch": {
+    "automatic_rollback_armed": true,
+    "backups": "compose.yml/.env .bak-20261005T190754; rollback image vkm/llama-server-cu132-sm75:b11223-4da6337767f9-p1 kept",
+    "method": "docker compose up -d m0 gateway (infra/edge/compose.yml m0 = visual owner LIVE)",
+    "rollback_used": false,
+    "time_to_healthy_s": 22
+  }
+}

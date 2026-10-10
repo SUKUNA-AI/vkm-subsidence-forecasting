@@ -1,20 +1,64 @@
 # PUBLIC offline CPU checks
 
-Both Actions jobs use `scripts/run_offline_checks.py`. Python is pinned to 3.13.5.
+Owner/table integration on 04.10 adds both narrow model-owner bridge suites,
+native vocabulary binding, table continuations and historical schema checks to
+Windows selection. The 21 exact visual procfs/inotify cases are Windows NOT_RUN;
+neighboring protocol cases still run. Actual CareerOps source-handler tests carry
+`native_source` and require separately supplied pinned sources. CI records their
+deselection as NOT_RUN; it does not download or vendor private sources. The
+original C++ lifecycle header is compiled with an existing C++17 compiler only;
+its single missing-compiler case is a declared host prerequisite, not model
+qualification. Full llama/image/GPU/MCP qualification remains a separate gate.
+
+All Actions jobs use `scripts/run_offline_checks.py`. Python is pinned to 3.13.5.
 The `world-integrity` job covers `tests/world`; `corpus-offline` lets pytest discover
 every other immediate child of `tests` recursively, including future suites and
-its configured `python_files` patterns. They do not overlap. Existing synthetic
+its configured `python_files` patterns. These two Linux jobs do not overlap. The
+`windows-offline` job repeats the world, engineering, evidence, dataset and pure QGIS suites plus
+nightly summary/dossier and backup-manifest checks on Windows 2025. Existing synthetic
 API/MCP and job-runner tests run; no PRIVATE corpus or deployed service is opened.
+The evidence and dataset fast suites are included in recursive Linux discovery and explicit
+Windows selection; a regression check asserts both. The native GDAL rehearsal remains
+`qgis_runtime` and is reported as deselected `NOT_RUN`, without installing GIS dependencies.
+The second integration tranche additionally selects the pure native-service,
+search and loaded-pack protocol tests on Windows. Fake driver/process contracts
+run there; the six named loaded-pack filesystem cases need the Linux native
+mutation-event fence and are individually accounted as Windows `NOT_RUN`.
+The follow-up Windows selection includes NAV section/incremental/packed-store
+lifecycle, accounting publication, typed runtime publication, service identity
+and isolated wheel smoke, and structural extraction fidelity. It does not select
+the Linux production-memory adapter suite as a portable Windows runtime.
+The two actual rsync transfer checks have exact node-and-reason allowances when
+rsync is unavailable; publication integrity and symlink cases remain mandatory.
+The ten exact shared-admission-gate cases in receiver/deployment suites need
+POSIX file locking and likewise remain Windows `NOT_RUN`; unrelated cases in
+those files still execute. These allowances never apply on Linux.
+The nightly MCP smoke contract now covers 49 read tools, including the four evidence
+queries. It discovers a permitted record with a bounded list query before reading its
+record, dependency page and review packet. User-defined evidence ids and payloads are
+not written to the smoke report. An absent backend or missing tool fails; an empty
+permitted list leaves dependent calls `SKIP` and the overall smoke `WARN`, never `PASS`.
+These synthetic client checks do not qualify a deployed service or scientific evidence.
 
 Run after installing the exact lock files used by the corresponding workflow job:
 
 ```bash
 python scripts/run_offline_checks.py world-integrity --output ../offline-world
 python scripts/run_offline_checks.py corpus-offline --output ../offline-corpus
+python scripts/run_offline_checks.py windows-offline --output ../offline-windows
 ```
 
 The output must be outside the checkout. Each job writes JUnit and `summary.json`;
 the world job also writes the public canonical verifier report and wheel smoke log.
+For local WSL runs, use a persistent external directory: `/tmp` may be tmpfs and
+its reports can disappear when the distribution stops. Keep the log and summary
+before ending that runtime; a lost report cannot prove a successful qualification.
+Each run creates a fresh external `PYTHONPYCACHEPREFIX` with bytecode writes disabled.
+This ignores existing timestamp/size `.pyc` caches without deleting them;
+`PYTHONDONTWRITEBYTECODE` alone would still read such caches. Python child processes
+inherit the namespace, and isolated `-I` wheel checks receive explicit `-B -X
+pycache_prefix=...` flags. A synthetic regression proves that same-size source
+replacement with restored mtime imports the new source, including child processes.
 Collection failures, no selected tests, no passing tests, failures, xfail/xpass,
 and unexpected skips fail the job. Collection skips and runtime skips are recorded
 as `NOT_RUN`, with their node and exact reason. Deselected `services`, `gpu`,
@@ -23,25 +67,140 @@ as `NOT_RUN`, with their node and exact reason. Deselected `services`, `gpu`,
 tests remain runnable locally with their marker; pure Python QGIS unit tests run
 in the offline corpus job. Two existing GPU parity tests now have GPU markers.
 
-The only allowed CPU Python dependency skips are existing OpenCV tests, the
-Snowball retrieval-pipeline module, and morphology tests in the three NAV modules.
-The committed receipt records OpenCV runtime 5.0.0 but does not establish an exact
-wheel-distribution version. Snowball and the pymorphy3 dependency closure have no
-committed exact pins. They remain `NOT_RUN` until those pins are established.
-No unverified version is added merely to remove a skip. Known missing DjVuLibre,
+CPU Python dependencies are now required: OpenCV, Snowball and morphology skips
+fail the job. Their distribution METADATA was inspected on 01.10.2026 in the
+existing Windows core environment and WSL figure/navigation environments:
+`opencv-python-headless==5.0.0.93`, `pymorphy3==2.0.6`,
+`pymorphy3-dicts-ru==2.4.417150.4580142`, `DAWG2-Python==0.9.0`,
+`snowballstemmer==3.1.1`. Those initial observations were installed-distribution
+evidence. A separate fresh Linux environment was then qualified on 01.10.2026:
+Python 3.13.5, exactly 84 installed distributions, all 84 applicable pins from the
+four CPU locks matched, and `uv pip check` exited 0. This qualifies installation
+and dependency closure; the complete test workflow and fresh Windows installation
+have separate results and must not be inferred from it. The required numpy and
+setuptools dependencies retain their existing pins; the optional native DAWG2 fast
+extra is not needed. Known missing DjVuLibre,
 rsync, Tesseract, or nightly host tools are also recorded locally; Actions installs
-these CPU host tools. The allowlist is a module plus exact reason, not a blanket
+these CPU host tools. The allowlist is a module or exact node plus exact reason, not a blanket
 permission to skip. The glyph-outline PDF test additionally requires OpenCV;
 its existing Tesseract condition alone did not declare that prerequisite.
-The missing-OpenCV allowance for this test is restricted to its exact node ID.
 All other skips fail. A partially executed job is
 `PASS_WITH_NOT_RUN`, never reported as an entirely passed suite.
+
+A fresh native Windows environment uses the available Python 3.13.13, separately
+from the hosted job's Python 3.13.5. Its initial `pip check` exposed two missing
+Windows dependencies of MCP/psycopg. The CPU lock now additionally pins
+[`pywin32==312`](https://pypi.org/project/pywin32/312/) and `tzdata==2026.3`, both
+with `sys_platform == "win32"`; the former has the official CPython 3.13 x64 wheel,
+the latter was observed in the existing Windows environment. The new environment
+has 87 matching distributions and passes `pip check`; Linux still has 84 applicable
+pins. All three Actions jobs now run `pip check` after installation with `--no-deps`.
+This does not replace either platform's actual test result.
+
+The FIFO input and directory-fsync-failure cases are recorded as `NOT_RUN` on Windows
+only: the underlying POSIX primitives are unavailable. Production receiver binding
+explicitly requires Linux filesystem change-time semantics and a native file watch, so its 26 named cases
+plus eight exact policy/CanonStore/NAV binding challenger cases
+are also Windows `NOT_RUN`; the default-profile and unsupported-OS rejection tests
+still run. These allowances are scoped to exact test ids and reasons and are not
+allowed on Linux. Missing
+Windows symlink privileges still fail the qualification; the runner does not
+enable Developer Mode, change privileges, or turn those missing checks into PASS.
+
+The 01.10.2026 integration baseline qualified the bytes committed as
+`ecf25c6a3fedca4e04a001320ec29319b623bbdb`:
+
+| Local gate | Result | Explicit gaps |
+|---|---|---|
+| Linux 3.13.5 corpus-offline | 2305 PASS, zero failures/skips; 958.04 s | 33 external cases deselected; `PASS_WITH_NOT_RUN` |
+| Linux 3.13.5 world-integrity | 525 PASS; installed wheel PASS; no verifier object failures | 7 unavailable tag anchors and 2 PRIVATE-dependent comparisons `NOT_RUN` |
+| Windows 3.13.13 windows-offline | 1142 PASS, 1 FAIL, 34 skips, 6 deselected; 90.10 s; job `FAIL` | One symlink creation WinError 1314 and 7 unexpected privilege skips; 27 expected OS-specific `NOT_RUN` |
+
+Both corpus/Windows runs proved identical before/after bytes for 738
+code/test/schema/lock/workflow files, with manifest SHA-256
+`84b3e82d1bbeb717737ed807a06906b3b80f5eb4424264e5cdc37cc15d82aa07`.
+Git HEAD changed during the Linux run; those bytes did not. Raw JUnit, summary,
+environment and per-file hash manifests are retained outside the checkout.
+This is a baseline for that code state; subsequent integration changes need new
+qualification. Hosted Python 3.13.5 Windows and all required Actions checks remain
+separate gates. This baseline does not establish production or scientific readiness.
+
+The second tranche has a separate frozen-byte baseline, completed before the
+post-freeze repairs below:
+
+| Local gate | Result | Explicit gaps |
+|---|---|---|
+| Linux 3.13.5 corpus-offline | 2795 PASS, 1 FAIL, zero skips; 1290.23 s; job `FAIL` | 33 external cases deselected; an old structural-fidelity fixture omitted the required source identity |
+| Linux 3.13.5 world-integrity | 552 PASS; installed wheel PASS; no verifier object failures; `PASS_WITH_NOT_RUN` | 7 unavailable tag anchors and 2 PRIVATE-dependent comparisons `NOT_RUN` |
+| Windows 3.13.13 windows-offline | 1617 PASS, 1 FAIL, 59 skips, 6 deselected; 200.56 s; job `FAIL` | One symlink creation WinError 1314 and 7 unexpected privilege skips; 52 expected OS-specific `NOT_RUN` |
+
+All three runs proved identical before/after bytes for 801
+code/test/schema/lock/workflow files, with manifest SHA-256
+`2231ea0cccabe914cf4bb470edfb409de12c18cf37c96fd7f01c8b12b43ef350`.
+The manifest covers tracked and nonignored untracked files in those areas;
+documentation/status files and Git HEAD are excluded. Git HEAD changed to
+`3031fd9f028002bd3fbf470cdd2d23fb974b8cc2` during the Linux corpus run without
+changing those bytes. The external receipt directories are named
+`corpus-tranche2-run2`, `world-tranche2-run2` and `windows-tranche2-run2`; each
+retains `summary.json`, `pytest.xml`, `console.log`, `qualification-proof.json`
+and before/after file-hash manifests. The original failed receipts are retained.
+
+After that baseline, the structural-fidelity fixture was repaired to use a real
+synthetic artifact store and complete prepare identity/pagination. Source
+accounting remains mandatory. A separate verifier regression reproduced
+`UnicodeEncodeError` with cp1251 stdout; the CLI now emits lossless UTF-8 JSON
+bytes regardless of the console encoding, matching its UTF-8 output file.
+The verifier, structural-fidelity and offline-runner test files then passed
+96 tests on Windows (6.43 s) and 96 on Linux (5.36 s), with zero skips and fresh
+bytecode namespaces. These targeted results do not convert the earlier full-run
+FAIL into PASS. No additional full local corpus run was performed; required
+hosted checks must qualify the final submitted bytes.
+
+For the pre-repair head `3031fd9f028002bd3fbf470cdd2d23fb974b8cc2`, hosted
+[run 36895206764](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/actions/runs/36895206764)
+confirmed Windows Python 3.13.5: 1625 PASS, 52 expected OS-specific `NOT_RUN`,
+6 deselected, zero failures or unexpected skips (235.83 s). The hosted symlink
+checks passed. Its world job also passed 552 tests (21.52 s), with the wrapper
+reporting `PASS_WITH_NOT_RUN`. Hosted corpus finished with 2795 PASS, the same
+single structural-fidelity fixture failure, zero skips and 33 deselected
+(550.19 s). No additional hosted test failure was observed. These results qualify
+that head only; they do not cover the later repairs or unfinished integration work.
+
+The shadow-acceptance harness is covered by synthetic private ASGI/MCP wiring and
+failure-receipt tests. No live CORE/EDGE endpoint, model process, production
+switch, complete corpus extraction or scientific admission was qualified by
+these CPU runs.
+
+`scripts/export_evidence_schema.py` publishes 29 deterministic JSON contracts,
+including the frozen Phase-1 migration inputs, plan and trusted operator approval.
+The additive contracts cover dataset versions/catalogues/source-version
+links, service identity, deployment profile, shadow acceptance plan, typed
+scientific-use context, historical read context, native serving profile,
+Phase-1 migration, bounded semantic extraction and late-pack policy qualification. The
+dataset version schema describes `DatasetVersion.as_dict()` and preserves the
+existing `vkm-dataset-version-v1` discriminator; it does not rename serialized
+manifests or change their hashes. Runtime Python validation still enforces
+cross-field invariants, containment, fresh hashes, native identity and policy.
+JSON Schema validation alone establishes neither data admission nor scientific
+readiness. The mandatory published-schema tests compare exact generated bytes;
+`python scripts/export_evidence_schema.py --check` is the read-only manual check.
 
 The existing WorldSpec, corpus and service lock files retain their pins. Additional
 CPU test packages have exact versions in `requirements/offline-test.lock.txt`, with
 their committed freeze/receipt sources. Torch, model downloads, Ansys, MATLAB and
 live services are not installed or started. Action revisions were resolved from
 the respective upstream release tags and are pinned to full commit SHAs.
+The actions declare Node24 explicitly. No insecure old-Node override is enabled.
+UTF-8 is explicit for all jobs and subprocesses. Synthetic Git fixtures isolate
+line-ending conversion and inherited repository redirects; PRIVATE byte-exact
+attributes and frozen hashes are unchanged. Missing symlink/locking capability is
+not allowed to become a passed Windows test.
+
+The nightly CLI accepts an injected aware-UTC clock through its Python entry point;
+production invocations continue using the current clock. Tests move the wall clock
+by 0, 7, 30 and 60 days and verify deterministic injected results. Freshness still
+uses the production 26/36-hour thresholds, and receipts more than five minutes in
+the future or without a recognised terminal verdict fail.
 
 The world job checks frozen identities directly from Git objects without downloading
 LFS payloads. Missing objects, unavailable legacy branches, or mismatched frozen

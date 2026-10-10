@@ -90,6 +90,22 @@ def test_narrower_term_of_the_main_concept_only():
 
 
 @needs_pymorphy
+def test_relations_limit_the_equivalents_to_one_kind():
+    """The hybrid search's ``expand=terms`` asks for synonyms and abbreviations separately; the default is both."""
+    con = _con(PAIRS, TERMS, CONTAINS)
+
+    def texts(q, **kw):
+        return [x["text"] for x in X.expand_query(con, q, morph=MORPH, narrower=False, **kw)["expansions"]]
+
+    assert texts("мощность водозащитной толщи", relations=("ABBREVIATION",)) == ["мощность ВЗТ"]
+    assert texts("мощность водозащитной толщи", relations=("SYNONYM",)) == []
+    q = "камерная система разработки месторождения"
+    assert texts(q, relations=("SYNONYM",)) == ["камерная система отработки месторождения"] == texts(q)
+    assert texts(q, relations=("ABBREVIATION",)) == [] and texts(q, relations=()) == []
+    assert texts(q, relations=("TRANSLATION",)) == []                      # not an equivalent relation
+
+
+@needs_pymorphy
 def test_missing_tables_skip_their_part():
     con = duckdb.connect()
     con.execute("CREATE TABLE terms (term_id VARCHAR, lemma VARCHAR, lemma_key VARCHAR, language VARCHAR, "

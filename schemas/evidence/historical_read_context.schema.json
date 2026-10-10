@@ -1,0 +1,34 @@
+{
+  "additionalProperties": false,
+  "description": "Exact transaction revision plus separately stated information/record times.\n\nrecorded_at is the record's asserted timestamp, not a reconstructed server\ncommit time. Only the exact retained journal revision proves transaction order.",
+  "properties": {
+    "as_of": {
+      "format": "date",
+      "title": "As Of",
+      "type": "string"
+    },
+    "journal_revision": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Journal Revision",
+      "type": "string"
+    },
+    "recorded_at": {
+      "format": "date-time",
+      "title": "Recorded At",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-evidence-history/1",
+      "default": "vkm-evidence-history/1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "journal_revision",
+    "as_of",
+    "recorded_at"
+  ],
+  "title": "HistoricalReadContext",
+  "type": "object"
+}

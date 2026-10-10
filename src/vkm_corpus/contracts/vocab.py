@@ -9,7 +9,14 @@ rule ids). Enum *values* are stored in Arrow/Parquet as plain strings.
 """
 from __future__ import annotations
 
-from enum import StrEnum
+from enum import Enum, StrEnum
+
+
+class RerankNativeProfile(str, Enum):
+    """Declared gateway routes; preserve the existing string Enum contract."""
+
+    BOTH_NATIVE_V1 = "BOTH_NATIVE_V1"
+    VISUAL_ONLY_TEXT_DISABLED_V2 = "VISUAL_ONLY_TEXT_DISABLED_V2"
 
 
 # ---------------------------------------------------------------- processing status (CP-16 p. 2; task §44)
@@ -239,6 +246,8 @@ class ErrorCode(StrEnum):
     E_UNKNOWN_RELATION_TYPE = "E_UNKNOWN_RELATION_TYPE"
     E_UNKNOWN_VALUE = "E_UNKNOWN_VALUE"
     E_WIPE_INCOMPLETE = "E_WIPE_INCOMPLETE"
+    E_WIPE_PREFLIGHT = "E_WIPE_PREFLIGHT"
+    E_EVIDENCE_DEPENDENCY = "E_EVIDENCE_DEPENDENCY"
 
 
 # error codes of the projections (agent E) — the ``E_*`` members above
@@ -450,6 +459,7 @@ class RawArtifactRole(StrEnum):
     LAYOUT_DETECTIONS = "LAYOUT_DETECTIONS"
     OCR_RESPONSE = "OCR_RESPONSE"
     SOURCE_MARKUP = "SOURCE_MARKUP"
+    STRUCTURAL_DIAGNOSTICS = "STRUCTURAL_DIAGNOSTICS"
 
 
 class VectorFormat(StrEnum):
@@ -1149,7 +1159,8 @@ class CheckStatus(StrEnum):
     SKIP = "SKIP"
 
 
-def all_vocabularies() -> dict[str, type[StrEnum]]:
-    """Every StrEnum of this module by class name (export, tests)."""
+def all_vocabularies() -> dict[str, type[Enum]]:
+    """Every closed string vocabulary, including compatibility string Enums."""
     return {name: obj for name, obj in globals().items()
-            if isinstance(obj, type) and issubclass(obj, StrEnum) and obj is not StrEnum}
+            if isinstance(obj, type) and issubclass(obj, Enum)
+            and obj not in {Enum, StrEnum} and issubclass(obj, str)}

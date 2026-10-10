@@ -38,7 +38,7 @@ def _tree(root: Path, files: dict[str, str | bytes]) -> Path:
         if isinstance(content, bytes):
             path.write_bytes(content)
         else:
-            path.write_text(content, encoding="utf-8")
+            path.write_text(content, encoding="utf-8", newline="\n")
     return root
 
 
@@ -58,9 +58,11 @@ _GIT_REDIRECT_VARS = ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_
 
 
 def _git(root: Path, *args: str) -> str:
-    env = {k: v for k, v in os.environ.items() if k not in _GIT_REDIRECT_VARS}
+    env = {k: v for k, v in os.environ.items() if k not in _GIT_REDIRECT_VARS
+           and not k.startswith(("GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_")) and k != "GIT_CONFIG_COUNT"}
     done = subprocess.run(["git", "-C", str(root), "-c", "user.name=test", "-c", "user.email=test@example.org",
-                           "-c", "commit.gpgsign=false", *args], capture_output=True, text=True, check=True, env=env)
+                           "-c", "commit.gpgsign=false", "-c", "core.autocrlf=false", "-c", "core.eol=lf", *args],
+                          capture_output=True, text=True, encoding="utf-8", check=True, env=env)
     return done.stdout.strip()
 
 
@@ -113,6 +115,23 @@ def test_cli_writes_report_and_returns_exit_code(tmp_path, capsys):
     assert code == 1 and stdout["status"] == written["status"] == "FAIL"
 
 
+def test_cli_stdout_is_lossless_utf8_with_cp1251_stdio(tmp_path):
+    missing = "missing-\u2265-\u6e2c.md"
+    root = _tree(tmp_path, {"README.md": f"[missing]({missing})\n"})
+    output = tmp_path / "report.json"
+    env = {k: v for k, v in os.environ.items() if not k.startswith("VKM_")}
+    env.update(PYTHONIOENCODING="cp1251", PYTHONUTF8="0", PYTHONDONTWRITEBYTECODE="1")
+    done = subprocess.run([sys.executable, "-B", str(SCRIPT), "--root", str(root),
+                           "--only", "markdown_links", "--output", str(output)],
+                          capture_output=True, env=env)
+    assert done.returncode == 1  # the planted broken link remains a real failure
+    assert b"UnicodeEncodeError" not in done.stderr
+    stdout = json.loads(done.stdout.decode("utf-8"))
+    written = json.loads(output.read_bytes().decode("utf-8"))
+    assert stdout == written and stdout["exit_code"] == 1
+    assert _checks(stdout)["markdown:links"]["details"]["broken"]["items"][0]["target"] == missing
+
+
 # ---------------------------------------------------------------- planted failures
 def test_planted_broken_link_fails(tmp_path):
     root = _tree(tmp_path, {
@@ -124,6 +143,69 @@ def test_planted_broken_link_fails(tmp_path):
     assert link["status"] == "FAIL" and link["blocking"] and report["exit_code"] == 1
     assert sorted(b["target"] for b in link["details"]["broken"]["items"]) == ["docs/also_missing.md",
                                                                              "docs/missing.md"]
+
+
+@pytest.mark.parametrize("ignored", [False, True])
+def test_standalone_subtree_never_inherits_parent_git_identity_or_empty_inventory(tmp_path, ignored):
+    parent = _tree(tmp_path / "parent", {"README.md": "# Parent repo\n", ".gitignore": "work/\n" if ignored else ""})
+    _git(parent, "init", "-q")
+    assert Path(_git(parent, "rev-parse", "--show-toplevel")).resolve() == parent.resolve()
+    _git(parent, "add", "README.md", ".gitignore")
+    _git(parent, "commit", "-q", "-m", "synthetic parent")
+    parent_head = _git(parent, "rev-parse", "HEAD")
+    # A generated synthetic quote; no PRIVATE corpus text is read or vendored.
+    quote = " ".join("syntheticword" + chr(ord("a") + n) for n in range(25))
+    private_raw = ("source_id,quote\nS-1," + quote + "\n").encode()
+    public_raw = b"source_id,summary\nS-1,safe public paraphrase\n"
+    resources = _tree(parent / "work/private", {"11_evidence_vnext/canonical/records.csv": private_raw})
+    nested = _tree(parent / "work/public", {
+        "README.md": "[missing](missing.md)\n" + quote + "\n",
+        "scripts/public_catalogue_map.json": json.dumps({"records.csv": "evidence/records.csv"}),
+        "evidence/records.csv": public_raw,
+        "evidence/leak.csv": "source_id,quote\nS-1,synthetic forbidden column\n",
+        "evidence/PUBLIC_CATALOGUE_MANIFEST.json": json.dumps({"files": [{"source": "records.csv",
+            "target": "evidence/records.csv", "source_sha256": _sha(private_raw), "target_sha256": _sha(public_raw),
+            "status": "OK"}]}),
+    })
+    # Git itself still sees the ancestor; its scoped inventory is empty when
+    # ignored. The verifier must instead scan this root's actual filesystem.
+    assert _git(nested, "rev-parse", "HEAD") == parent_head
+    if ignored: assert _git(nested, "ls-files", "--cached", "--others", "--exclude-standard") == ""
+    report = V.verify(nested, resources_root=resources,
+        groups=["markdown_links", "leakage", "catalogue_sync"], use_env=False)
+    checks = _checks(report)
+    assert checks["markdown:links"]["status"] == "FAIL"
+    assert checks["markdown:links"]["details"]["broken"]["items"][0]["target"] == "missing.md"
+    assert checks["catalogue_sync:manifest"]["status"] == "PASS"
+    assert checks["catalogue_sync:public_vs_private"]["status"] == "PASS"
+    assert checks["catalogue_sync:verbatim"]["status"] == "FAIL"
+    assert checks["catalogue_sync:verbatim"]["details"]["hits"]["items"] == [
+        {"file": "README.md", "where": "document", "words": 25}]
+    assert checks["leakage:scan"]["status"] == "FAIL"
+    assert any("evidence/leak.csv" in problem
+               for problem in checks["leakage:scan"]["details"]["problems"]["items"])
+    assert report["status"] == "FAIL" and report["exit_code"] == 1
+    assert report["repository"] == {"root_name": "public", "git_work_tree": False, "head": None,
+                                   "branch": None, "shallow": None}
+    assert _git(parent, "rev-parse", "HEAD") == parent_head
+
+
+def test_exact_non_ascii_git_root_keeps_its_inventory_and_commit_identity(tmp_path):
+    root = _tree(tmp_path / "repository-\u2265-\u6e2c", {
+        ".gitignore": "scratch.md\n",
+        "README.md": "# Exact repo\n",
+        "scratch.md": "[ignored scratch](missing.md)\n",
+    })
+    _git(root, "init", "-q")
+    assert Path(_git(root, "rev-parse", "--show-toplevel")).resolve() == root.resolve()
+    _git(root, "add", "README.md", ".gitignore")
+    _git(root, "commit", "-q", "-m", "synthetic exact non-ASCII root")
+    head = _git(root, "rev-parse", "HEAD")
+    report = V.verify(root, groups=["markdown_links"], use_env=False)
+    assert report["status"] == "PASS" and report["exit_code"] == 0
+    assert report["repository"]["git_work_tree"] is True
+    assert report["repository"]["head"] == head
+    assert _git(root, "rev-parse", "HEAD") == head
 
 
 def test_links_into_externalized_trees_are_nonblocking(tmp_path):

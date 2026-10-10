@@ -1,0 +1,264 @@
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -1,4 +1,8 @@
+ #include "server-context.h"
++#include "vkm-loaded-lifetime.h"
++#include "vkm-weight-placement.h"
++#include "ggml-backend.h"
++#include "../../src/llama-model.h"
+ #include "server-chat.h"
+ #include "server-common.h"
+ #include "server-http.h"
+@@ -887,6 +891,7 @@
+     // note: accessing these fields outside of this class is not thread-safe
+     // use server_context methods instead
+ 
++    vkm::loaded_lifetime vkm_lifetime;
+     common_params params_base;
+ 
+     // note: keep these alive - they determine the lifetime of the model, context, etc.
+@@ -947,6 +952,7 @@
+     int64_t t_last_load_progress_ms = 0;
+ 
+     void destroy() {
++        vkm::loaded_lifetime::mutation lifetime_change(vkm_lifetime);
+         spec.reset();
+         spec_init.reset();
+ 
+@@ -1015,6 +1021,7 @@
+     // load the model and initialize llama_context
+     // this may also be called to resume from sleeping state
+     bool load_model(common_params & params) {
++        vkm::loaded_lifetime::mutation lifetime_change(vkm_lifetime);
+         load_progress_data load_progress_text  (this, "text_model");
+         load_progress_data load_progress_mmproj(this, "mmproj_model");
+         load_progress_data load_progress_spec  (this, "spec_model");
+@@ -1398,13 +1405,11 @@
+         params = params_base;
+ 
+         if (!is_resume) {
+-            return init();
+-        }
+-
+-        if (callback_state) {
++            if (!init()) return false;
++        } else if (callback_state) {
+             callback_state(SERVER_STATE_READY, {});
+         }
+-
++        lifetime_change.seal();
+         return true;
+     }
+ 
+@@ -4185,6 +4190,125 @@
+     return impl->ctx_tgt;
+ }
+ 
++json server_context::get_loaded_witness(const std::string & nonce) const {
++    if (!vkm::nonce_valid(nonce)) throw std::invalid_argument("invalid witness nonce");
++    const auto state = impl->vkm_lifetime.snapshot([this]() {
++        vkm::loaded_handles value;
++        value.model = reinterpret_cast<std::uintptr_t>(impl->model_tgt);
++        value.context = reinterpret_cast<std::uintptr_t>(impl->ctx_tgt);
++        value.mmproj = reinterpret_cast<std::uintptr_t>(impl->mctx);
++        if (!impl->model_tgt || !impl->ctx_tgt || llama_get_model(impl->ctx_tgt) != impl->model_tgt) {
++            throw std::runtime_error("target model/context unavailable");
++        }
++        const auto * model = impl->model_tgt;
++        value.vocab = reinterpret_cast<std::uintptr_t>(llama_model_get_vocab(model));
++        value.weights_path = impl->params_base.model.path;
++        value.mmproj_path = impl->params_base.mmproj.path;
++        // Read only immutable allocated weight metadata. No tensor values,
++        // scheduler/context estimates, requested n_gpu_layers or load logs.
++        if (model->hparams.no_alloc || model->split_mode() == LLAMA_SPLIT_MODE_ROW ||
++                model->tensors_by_name.empty() || model->tensors_by_name.size() > 1024) {
++            throw std::runtime_error("unsupported target weight allocation");
++        }
++        std::vector<vkm::weight_slot> slots;
++        for (const auto & entry : model->tensors_by_name) {
++            const auto * tensor = entry.second;
++            if (!tensor) throw std::runtime_error("target tensor unavailable");
++            vkm::weight_slot slot;
++            slot.name = entry.first;
++            const bool output = tensor == model->output || tensor == model->output_norm || tensor == model->output_b;
++            slot.group = output ? "output" : "other";
++            if (output && tensor == model->tok_embd) slot.aliases = {"INPUT", "OUTPUT"};
++            if (!output && slot.name.rfind("blk.", 0) == 0) {
++                const auto end = slot.name.find('.', 4);
++                if (end == std::string::npos || slot.name.find_first_not_of("0123456789", 4) != end) {
++                    throw std::runtime_error("target tensor layer unavailable");
++                }
++                slot.group = slot.name.substr(0, end);
++            }
++            slot.tensor = reinterpret_cast<std::uintptr_t>(tensor);
++            slot.data = reinterpret_cast<std::uintptr_t>(tensor->data);
++            slot.tensor_bytes = ggml_nbytes(tensor);
++            slot.tensor_type = static_cast<int>(tensor->type);
++            slot.shape.assign(tensor->ne, tensor->ne + GGML_MAX_DIMS);
++            const auto * storage = tensor;
++            while (true) {
++                const auto handle = reinterpret_cast<std::uintptr_t>(storage);
++                if (slot.view_chain.size() >= 9 ||
++                        std::find(slot.view_chain.begin(), slot.view_chain.end(), handle) != slot.view_chain.end()) {
++                    throw std::runtime_error("unsupported target tensor view");
++                }
++                slot.view_chain.push_back(handle);
++                if (!storage->view_src) break;
++                slot.view_offsets.push_back(storage->view_offs);
++                storage = storage->view_src;
++            }
++            const auto buffer = storage->buffer;
++            if (!buffer) throw std::runtime_error("target buffer unavailable");
++            const auto buft = ggml_backend_buffer_get_type(buffer);
++            auto device = buft ? ggml_backend_buft_get_device(buft) : nullptr;
++            // Upstream FIXME: the host-pointer CPU buffer type ("CPU_Mapped", used for
++            // mmap-backed weights) carries no device. Only that exact host buffer type
++            // is attributed to the registered CPU device; any other device-less buffer
++            // remains unsupported.
++            if (buft && !device && ggml_backend_buffer_is_host(buffer) && ggml_backend_buft_is_host(buft)) {
++                const char * buft_name = ggml_backend_buft_name(buft);
++                if (buft_name && std::string(buft_name) == "CPU_Mapped") {
++                    device = ggml_backend_dev_by_type(GGML_BACKEND_DEVICE_TYPE_CPU);
++                }
++            }
++            if (!buft || !device) throw std::runtime_error("target buffer device unavailable");
++            const auto kind = ggml_backend_dev_type(device);
++            if (kind != GGML_BACKEND_DEVICE_TYPE_CPU && kind != GGML_BACKEND_DEVICE_TYPE_GPU) {
++                throw std::runtime_error("unsupported target buffer device");
++            }
++            const char * device_name = ggml_backend_dev_name(device);
++            const char * buffer_name = ggml_backend_buffer_name(buffer);
++            if (!device_name || !buffer_name) throw std::runtime_error("target buffer identity unavailable");
++            slot.storage_tensor = reinterpret_cast<std::uintptr_t>(storage);
++            slot.storage_data = reinterpret_cast<std::uintptr_t>(storage->data);
++            slot.storage_bytes = ggml_nbytes(storage);
++            slot.buffer = reinterpret_cast<std::uintptr_t>(buffer);
++            slot.base = reinterpret_cast<std::uintptr_t>(ggml_backend_buffer_get_base(buffer));
++            slot.buffer_bytes = ggml_backend_buffer_get_size(buffer);
++            slot.buft = reinterpret_cast<std::uintptr_t>(buft);
++            slot.device = reinterpret_cast<std::uintptr_t>(device);
++            slot.host = ggml_backend_buffer_is_host(buffer) || ggml_backend_buft_is_host(buft);
++            slot.device_kind = kind == GGML_BACKEND_DEVICE_TYPE_GPU ? "GPU" : "CPU";
++            slot.device_name = device_name;
++            slot.buffer_name = buffer_name;
++            slots.push_back(std::move(slot));
++        }
++        vkm::require_weight_inventory(slots, model->hparams.no_alloc);
++        json tensors = json::array();
++        for (const auto & slot : slots) {
++            tensors.push_back({{"name", slot.name}, {"group", slot.group}, {"aliases", slot.aliases},
++                {"tensor", slot.tensor}, {"storage_tensor", slot.storage_tensor},
++                {"data", slot.data}, {"storage_data", slot.storage_data}, {"buffer", slot.buffer}, {"base", slot.base},
++                {"buft", slot.buft}, {"device", slot.device}, {"tensor_bytes", slot.tensor_bytes},
++                {"storage_bytes", slot.storage_bytes}, {"buffer_bytes", slot.buffer_bytes}, {"host", slot.host},
++                {"device_kind", slot.device_kind}, {"device_name", slot.device_name}, {"buffer_name", slot.buffer_name},
++                {"view_chain", slot.view_chain}, {"view_offsets", slot.view_offsets},
++                {"tensor_type", slot.tensor_type}, {"shape", slot.shape}});
++        }
++        value.target_weight_placement_json = json({{"schema_version", "vkm-native-target-weight-placement/1"},
++            {"scope", "LLAMA_TARGET_WEIGHT_PLACEMENT"}, {"model_handle", value.model},
++            {"context_handle", value.context}, {"no_alloc", false}, {"layer_count", model->hparams.n_layer()},
++            {"total_layer_count", model->hparams.n_layer_all},
++            {"tensors", tensors}}).dump();
++        if (value.target_weight_placement_json.size() > 500000) throw std::runtime_error("target placement exceeds bound");
++        return value;
++    });
++    return {{"schema_version", "vkm-native-loaded-witness/1"},
++        {"upstream_commit", "4da6337767f973e2b4d0797e5b323d77d8565e4a"},
++        {"nonce", nonce}, {"epoch", state.epoch}, {"capture_before_load", true},
++        {"handles", {{"model", state.model}, {"context", state.context},
++            {"mmproj", state.mmproj}, {"vocab", state.vocab}}},
++        {"paths", {{"weights", state.weights_path}, {"tokenizer", state.weights_path},
++            {"mmproj", state.mmproj_path}}},
++        {"target_weight_placement", json::parse(state.target_weight_placement_json)}};
++}
++
+ server_response_reader server_context::get_response_reader() {
+     return impl->get_response_reader();
+ }
+--- a/tools/server/server-context.h
++++ b/tools/server/server-context.h
+@@ -101,6 +101,9 @@
+     // not thread-safe, should only be used from the main thread
+     llama_context * get_llama_context() const;
+ 
++    // Authenticated owner-only witness; live getter under load/destroy mutex.
++    json get_loaded_witness(const std::string & nonce) const;
++
+     // get a new response reader, used by CLI application
+     server_response_reader get_response_reader();
+ 
+--- a/tools/server/server-http.cpp
++++ b/tools/server/server-http.cpp
+@@ -1,6 +1,7 @@
+ #include "common.h"
+ #include "http.h"
+ #include "server-http.h"
++#include "vkm-loaded-lifetime.h"
+ #include "server-common.h"
+ #include "ui.h"
+ 
+@@ -327,8 +328,29 @@
+         return true;
+     };
+ 
+-    // register server middlewares
+-    srv->set_pre_routing_handler([&params, middleware_validate_api_key, middleware_server_state](const httplib::Request & req, httplib::Response & res) {
++    const char * vkm_env = std::getenv("VKM_OWNED_WITNESS_TOKEN");
++    const std::string vkm_token = vkm_env ? vkm_env : "";
++    if (vkm_env && (!vkm::nonce_valid(vkm_token) || params.hostnames.size() != 1 || params.hostnames[0] != "127.0.0.1" || !params.api_prefix.empty())) {
++        return false;
++    }
++    // Owner mode has a private token and only the routes used by the bound
++    // inference client. No direct LoRA/control/slot mutation can bypass epoch.
++    srv->set_pre_routing_handler([&params, vkm_token, middleware_validate_api_key, middleware_server_state](const httplib::Request & req, httplib::Response & res) {
++        if (!vkm_token.empty()) {
++            const bool authenticated = req.get_header_value_count("X-VKM-Witness-Authorization") == 1 &&
++                vkm::secret_equal(req.get_header_value("X-VKM-Witness-Authorization"), "Bearer " + vkm_token);
++            const bool allowed = (req.method == "GET" && (req.path == "/health" || req.path == "/props" ||
++                req.path == "/__vkm_loaded_witness")) || (req.method == "POST" &&
++                (req.path == "/embedding" || req.path == "/embeddings" || req.path == "/v1/embeddings" || req.path == "/tokenize"));
++            const bool query_ok = req.path == "/__vkm_loaded_witness" ?
++                req.params.size() == 1 && req.get_param_value_count("nonce") == 1 &&
++                    vkm::nonce_valid(req.get_param_value("nonce")) : req.params.empty();
++            if (!authenticated || !allowed || !query_ok) {
++                res.status = authenticated ? 404 : 401;
++                res.set_content("{\"error\":\"owner_request_rejected\"}", "application/json");
++                return httplib::Server::HandlerResponse::Handled;
++            }
++        }
+         if (params.cors_credentials && params.cors_origins == "*") {
+             // special case: echo back the Origin header to allow any origin to access the server with credentials
+             res.set_header("Access-Control-Allow-Origin", req.get_header_value("Origin"));
+@@ -354,7 +376,7 @@
+         if (!middleware_server_state(req, res)) {
+             return httplib::Server::HandlerResponse::Handled;
+         }
+-        if (!middleware_validate_api_key(req, res)) {
++        if (vkm_token.empty() && !middleware_validate_api_key(req, res)) {
+             return httplib::Server::HandlerResponse::Handled;
+         }
+         return httplib::Server::HandlerResponse::Unhandled;
+--- a/tools/server/server.cpp
++++ b/tools/server/server.cpp
+@@ -246,6 +246,20 @@
+         ctx_http.post("/models/unload",        ex_wrapper(models_routes->post_router_models_unload));
+         ctx_http.get ("/models/sse",           ex_wrapper(models_routes->get_router_models_sse));
+         ctx_http.del ("/models",               ex_wrapper(models_routes->del_router_models));
++    }
++
++    if (!is_router_server && std::getenv("VKM_OWNED_WITNESS_TOKEN")) {
++        ctx_http.get("/__vkm_loaded_witness", [&ctx_server](const server_http_req & req) -> server_http_res_ptr {
++            auto response = std::make_unique<server_http_res>();
++            response->headers["Cache-Control"] = "no-store";
++            try {
++                response->data = safe_json_to_str(ctx_server.get_loaded_witness(req.get_param("nonce")));
++            } catch (...) {
++                response->status = 503;
++                response->data = "{\"error\":\"loaded_witness_unavailable\"}";
++            }
++            return response;
++        });
+     }
+ 
+     ctx_http.get ("/health",                   ex_wrapper(routes.get_health)); // public endpoint (no API key check)

@@ -22,7 +22,7 @@ from pydantic import BaseModel
 
 from vkm_corpus.contracts.arrow import canonical_value
 from vkm_corpus.contracts.base import ModelRef
-from vkm_corpus.contracts.datasets import dataset
+from vkm_corpus.contracts.datasets import dataset, historical_omissions
 from vkm_corpus.contracts.models import ENVELOPE_FIELDS
 from vkm_corpus.contracts.vocab import EnvelopeProfile, ModelRole, ReviewStatus
 from vkm_corpus.ids import object_id as make_object_id
@@ -36,7 +36,10 @@ def content_sha256(dataset_name: str, row: Mapping[str, Any] | BaseModel) -> str
         raise ValueError(f"{dataset_name} rows have no content hash")
     data = row.model_dump(mode="python") if isinstance(row, BaseModel) else dict(row)
     env = ENVELOPE_FIELDS[spec.profile]
-    payload = {k: canonical_value(data.get(k)) for k in spec.fields if k not in env}
+    omitted = historical_omissions(dataset_name, data.get("schema_version"))
+    if any(data.get(k) is not None for k in omitted):
+        raise ValueError("a historical row cannot contain fields introduced in a newer schema")
+    payload = {k: canonical_value(data.get(k)) for k in spec.fields if k not in env and k not in omitted}
     text = json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 

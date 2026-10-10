@@ -1,0 +1,39 @@
+{
+  "schema_version": "vkm-edge-owner-software-image/1",
+  "status": "ACTUAL_IMAGE_BUILT_ABI_VERIFIED_MODELS_NOT_RUN",
+  "scope": "SOFTWARE_BUILD_AND_ABI_ONLY",
+  "public_commit": "bd815893c6af421e1e86b7ca153e49dff207aa19",
+  "build_packet_sha256": "642bc021034cbfacedee7117a463d02f0b494e4caa3d44118743e1dca60b21c2",
+  "source_plan_sha256": "312ce6e60e0ab3c9ae72bd2cae13589e917b1337909d98db6724d5aaf3bdd4b0",
+  "wheel_sha256": "d9295fdcb8618e41b23caa3bc86d403024b64459b5c513e98c4fc2554a442f29",
+  "wheel_members_verified_against_raw_git_blobs": 472,
+  "inputs_sha256": "00f0eb21575e51c65b71d15d84904414381609fcf58ec0e631f6d4b01f5f88f8",
+  "runner_sha256": "a4164b28729563f619050aa06c51076f129067c42463f75aa7ced90b191b8e18",
+  "actual_build_receipt_sha256": "aa5b34371977d9e598171051d9603869b5d4b1c9388b1f94e0207006bc43427a",
+  "actual_build_log_sha256": "ada297e22ae44fc1f1813dc285d3f00329db975978d817f969fcc695d0b370ee",
+  "image_id": "sha256:cdb424c0f04b08a3952c56c4c0c85e06b19ff10ac2c7da5217f35333a2eb3d2a",
+  "image_bytes": 2649898191,
+  "new_filesystem_bytes": 474513408,
+  "build_seconds": 47.663,
+  "exit_code": 0,
+  "abi_status": "PASS_NO_MODEL",
+  "actual_build_limits": {"cpu_count": 2, "memory_bytes": 8589934592, "swap_bytes": 0},
+  "abi_versions": {"python": "3.13.15", "httpx": "0.28.1", "pydantic": "2.13.5", "numpy": "2.5.3"},
+  "native_cache": {
+    "image_id": "sha256:c0c0280b8f59e040fadaba3f14bea0f9d8dae93c86fd9de7ca76f8203006609a",
+    "plan_sha256": "5d3c0fc5d4cebd2caa471f798c0b8fb7be347c3c6e18eea93b7477f63ebae681",
+    "source_files_after_overlay": 3649,
+    "source_and_binary_files_checked_after_build": 3692,
+    "route": "SOURCE_BOUND_DERIVATION_NOT_INDEPENDENT_COLD_BUILD"
+  },
+  "review": "Exact packet independently reviewed by main agent and challenger before execution; fetched actual receipt and log hashes rechecked by main agent",
+  "limits": {
+    "cpu_model_execution": "NOT_RUN",
+    "gpu_model_execution": "NOT_RUN",
+    "existing_services_changed": false,
+    "actual_49_tool_mcp_acceptance": "NOT_RUN",
+    "production_switch": "NOT_RUN",
+    "scientific_admission": false,
+    "workstation_gpu": "NOT_USED"
+  }
+}

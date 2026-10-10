@@ -22,52 +22,41 @@ x-hardening: &hardening
       max-file: "3"
 
 services:
+  # m0 = the owned visual model (05.10.2026): the visual-owner bridge image starts its own llama-server child
+  # (loopback 28083, native loaded-load witness + target-weight placement checked before any listener opens) and
+  # serves the fixed llama routes (/health, /props, /embedding(s), /tokenize) on loopback 18083 for the gateway.
+  # Image, approved recipe bytes and the LIVE workload binding are pinned in the host-local .env; the control root
+  # (recipe.json, identity.token, helper) is host-local and read-only here. Qualified in SHADOW by drill v8
+  # (docs/corpus_platform/receipts/edge_owner_shadow_qualified_2026-10-05.json); the LIVE recipe differs only in
+  # the proxy port and the credential.
   m0:
     <<: *hardening
     container_name: vkm-rerank-m0
-    image: ${VKM_RERANK_LLAMA_IMAGE:?pinned llama-server image}
+    image: ${VKM_RERANK_LLAMA_IMAGE:?pinned visual-owner image ID}
+    pull_policy: never
     network_mode: host
     user: "10001:10001"
+    init: true
+    mem_limit: 8g
+    memswap_limit: 8g
+    cpus: "6.0"
+    pids_limit: 128
+    command:
+      - --recipe
+      - /run/owner/recipe.json
+      - --recipe-sha256
+      - ${VKM_VISUAL_OWNER_RECIPE_SHA256:?approved exact recipe bytes}
+      - --workload-profile
+      - LIVE
+      - --workload-binding-sha256
+      - ${VKM_VISUAL_OWNER_WORKLOAD_BINDING_SHA256:?approved LIVE profile and recipe binding}
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
     volumes:
+      - ${VKM_VISUAL_OWNER_CONTROL_ROOT:?host-local owner control root}:/run/owner:ro
       - ${VKM_EDGE_ROOT:?}/models/jina-reranker-m0-GGUF/61490ce6a4799192781ab7beab4ee4661675488c:/models/m0:ro
       - ${VKM_EDGE_ROOT:?}/models/jina-reranker-m0-mmproj/llama.cpp-4da6337767f9:/models/mmproj:ro
-    command:
-      - -m
-      - /models/m0/jina-reranker-m0-Q6_K.gguf
-      - --mmproj
-      - /models/mmproj/mmproj-jina-reranker-m0-Q8_0.gguf
-      - --embeddings
-      - --pooling
-      - last
-      - -ngl
-      - "${VKM_RERANK_M0_NGL:-20}"
-      - --fit
-      - "off"
-      - -fa
-      - "${VKM_RERANK_M0_FA:-on}"
-      - -c
-      - "1024"
-      - -np
-      - "1"
-      - -b
-      - "1024"
-      - -ub
-      - "512"
-      - --image-min-tokens
-      - "4"
-      - --image-max-tokens
-      - "768"
-      - --no-warmup
-      - --cache-ram
-      - "0"
-      - --no-webui
-      - --metrics
-      - -t
-      - "6"
-      - --host
-      - 127.0.0.1
-      - --port
-      - "18083"
     deploy:
       resources:
         reservations:
@@ -76,7 +65,7 @@ services:
               count: 1
               capabilities: [gpu]
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:18083/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:18083/health', timeout=4).read()"]
       interval: 15s
       timeout: 5s
       retries: 5

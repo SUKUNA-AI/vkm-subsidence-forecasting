@@ -1,0 +1,407 @@
+{
+  "$defs": {
+    "CampaignDatasetInput": {
+      "additionalProperties": false,
+      "properties": {
+        "dataset_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Dataset Id",
+          "type": "string"
+        },
+        "lifecycle": {
+          "default": "ACTIVE",
+          "enum": [
+            "ACTIVE",
+            "RETIRED",
+            "EXCLUDED"
+          ],
+          "title": "Lifecycle",
+          "type": "string"
+        },
+        "manifest_artifact": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Manifest Artifact",
+          "type": "string"
+        },
+        "originals_prefix": {
+          "title": "Originals Prefix",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "source_links": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SourceVersionLink"
+          },
+          "title": "Source Links",
+          "type": "array"
+        },
+        "source_register_artifact": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Register Artifact"
+        },
+        "version_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Version Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "dataset_id",
+        "manifest_artifact",
+        "version_sha256",
+        "originals_prefix"
+      ],
+      "title": "CampaignDatasetInput",
+      "type": "object"
+    },
+    "CampaignInput": {
+      "additionalProperties": false,
+      "properties": {
+        "dataset_version_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dataset Version Sha256"
+        },
+        "lifecycle": {
+          "enum": [
+            "ACTIVE",
+            "RETIRED",
+            "MISSING",
+            "EXCLUDED"
+          ],
+          "title": "Lifecycle",
+          "type": "string"
+        },
+        "logical_path": {
+          "minLength": 1,
+          "title": "Logical Path",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        },
+        "source_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_sha256",
+        "logical_path",
+        "size_bytes",
+        "lifecycle"
+      ],
+      "title": "CampaignInput",
+      "type": "object"
+    },
+    "QualificationGate": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence Sha256"
+        },
+        "gate_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Gate Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "NOT_RUN",
+            "BLOCKED"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "gate_id",
+        "status"
+      ],
+      "title": "QualificationGate",
+      "type": "object"
+    },
+    "SourceVersionLink": {
+      "additionalProperties": false,
+      "properties": {
+        "relation": {
+          "enum": [
+            "DESCRIBED_BY",
+            "DERIVED_FROM",
+            "DISTRIBUTED_WITH",
+            "PRIMARY_SOURCE"
+          ],
+          "title": "Relation",
+          "type": "string"
+        },
+        "source_id": {
+          "pattern": "^VKM-SRC-[0-9]{3}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_sha256",
+        "relation"
+      ],
+      "title": "SourceVersionLink",
+      "type": "object"
+    },
+    "Stage": {
+      "additionalProperties": false,
+      "properties": {
+        "attempts": {
+          "default": 1,
+          "maximum": 3,
+          "minimum": 1,
+          "title": "Attempts",
+          "type": "integer"
+        },
+        "compute": {
+          "enum": [
+            "CPU",
+            "GPU",
+            "WINDOWS_DESKTOP",
+            "CORE_EDGE"
+          ],
+          "title": "Compute",
+          "type": "string"
+        },
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "depends_on": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "input_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Input Sha256",
+          "type": "string"
+        },
+        "memory_gib": {
+          "exclusiveMinimum": 0,
+          "title": "Memory Gib",
+          "type": "number"
+        },
+        "min_free_disk_gib": {
+          "minimum": 0,
+          "title": "Min Free Disk Gib",
+          "type": "number"
+        },
+        "operation": {
+          "enum": [
+            "VERIFY_ORIGINALS",
+            "EXTRACT",
+            "COVERAGE",
+            "EVIDENCE_VALIDATE",
+            "EVIDENCE_PROJECT",
+            "CANON_VALIDATE",
+            "BUILD_SHADOW",
+            "ACCEPT_SHADOW",
+            "SWITCH",
+            "VERIFY_SWITCH",
+            "DATASET_VERIFY",
+            "DATASET_INSPECT",
+            "DATASET_CONVERT",
+            "DATASET_REGISTER"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "options": {
+          "additionalProperties": true,
+          "title": "Options",
+          "type": "object"
+        },
+        "required_gates": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Required Gates",
+          "type": "array"
+        },
+        "stage_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Stage Id",
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "exclusiveMinimum": 0,
+          "title": "Timeout Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "stage_id",
+        "operation",
+        "input_sha256",
+        "config_sha256",
+        "memory_gib",
+        "min_free_disk_gib",
+        "timeout_seconds",
+        "compute"
+      ],
+      "title": "Stage",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "campaign_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+      "title": "Campaign Id",
+      "type": "string"
+    },
+    "code_commit": {
+      "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$",
+      "title": "Code Commit",
+      "type": "string"
+    },
+    "dataset_inputs": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CampaignDatasetInput"
+      },
+      "title": "Dataset Inputs",
+      "type": "array"
+    },
+    "gates": {
+      "items": {
+        "$ref": "#/$defs/QualificationGate"
+      },
+      "title": "Gates",
+      "type": "array"
+    },
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/CampaignInput"
+      },
+      "title": "Inputs",
+      "type": "array"
+    },
+    "policy_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Policy Sha256",
+      "type": "string"
+    },
+    "producer_identity_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Producer Identity Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-production-campaign/1",
+      "default": "vkm-production-campaign/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scientific_use": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Scientific Use"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/Stage"
+      },
+      "title": "Stages",
+      "type": "array"
+    }
+  },
+  "required": [
+    "campaign_id",
+    "code_commit",
+    "producer_identity_sha256",
+    "policy_sha256",
+    "inputs",
+    "stages",
+    "gates"
+  ],
+  "title": "CampaignManifest",
+  "type": "object"
+}

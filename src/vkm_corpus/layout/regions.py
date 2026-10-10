@@ -81,22 +81,32 @@ def overlap_share(inner: tuple[float, float, float, float], outer: tuple[float, 
 
 
 def regions_from_raw(raw: dict[str, Any], page_w: float, page_h: float,
-                     thresholds: dict[str, float] | None = None) -> list[Region]:
+                     thresholds: dict[str, float] | None = None, *,
+                     trace: list[dict[str, Any]] | None = None) -> list[Region]:
     th = {**DEFAULT_THRESHOLDS, **(thresholds or {})}
     best: dict[tuple[str | None, int], tuple[int, dict[str, Any]]] = {}
     for i, d in enumerate(raw.get("detections", [])):
         key = (d.get("half"), int(d["query"]))
         if key not in best or d["score"] > best[key][1]["score"]:
             best[key] = (i, d)
+    decisions = {i: {"det_index": i, "state": "SUPPRESSED", "reason": "BEST_QUERY_CLASS",
+                     "duplicate_of": best[(d.get("half"), int(d["query"]))][0],
+                     "label": fine_label(int(d["label_id"]), d["label"]), "score": float(d["score"]),
+                     "raw_locator": f"/detections/{i}"}
+                 for i, d in enumerate(raw.get("detections", []))}
     cands: list[Region] = []
     for (half, q), (i, d) in best.items():
         label = fine_label(int(d["label_id"]), d["label"])
+        decisions[i].pop("duplicate_of", None)
+        decisions[i]["threshold"] = th.get(label, th["*"])
         if d["score"] < th.get(label, th["*"]):
+            decisions[i]["reason"] = "CONFIDENCE_THRESHOLD"
             continue
         x0, y0, x1, y1 = d["box_pt"]
         x0, y0 = max(0.0, min(x0, page_w)), max(0.0, min(y0, page_h))
         x1, y1 = max(0.0, min(x1, page_w)), max(0.0, min(y1, page_h))
         if x1 - x0 < 1.0 or y1 - y0 < 1.0:
+            decisions[i]["reason"] = "CLIPPED_BOX_TOO_SMALL"
             continue
         cands.append(Region(det_index=i, query=q, label=label, label_id=int(d["label_id"]), score=float(d["score"]),
                             bbox=(round(x0, 3), round(y0, 3), round(x1, 3), round(y1, 3)),
@@ -110,10 +120,14 @@ def regions_from_raw(raw: dict[str, Any], page_w: float, page_h: float,
             v = iou(r.bbox, k.bbox)
             if (k.family == r.family and v >= 0.85) or v >= 0.95:
                 dup = True
+                decisions[r.det_index].update(reason="NMS_OVERLAP", duplicate_of=k.det_index, iou=v)
                 break
         if not dup:
             kept.append(r)
+            decisions[r.det_index].update(state="KEPT", reason=None)
     kept.sort(key=lambda r: (r.order_rank, r.bbox[1], r.bbox[0], r.det_index))
+    if trace is not None:
+        trace.extend(decisions[i] for i in sorted(decisions))
     return kept
 
 

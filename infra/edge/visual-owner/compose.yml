@@ -1,0 +1,58 @@
+# Separate qualification project. Never run this against the existing project.
+# Actual start requires approved immutable image, recipe, backup and fallback.
+name: vkm-owner-gpu-20261004
+services:
+  visual-owner:
+    image: ${VKM_VISUAL_OWNER_IMAGE:?exact independently validated local image ID}
+    pull_policy: never
+    container_name: vkm-owner-gpu-20261004-visual
+    network_mode: host
+    user: "10001:10001"
+    read_only: true
+    restart: "no"
+    init: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 8g
+    memswap_limit: 8g
+    cpus: "6.0"
+    pids_limit: 128
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m,mode=1777
+    command:
+      - --recipe
+      - /run/owner/recipe.json
+      - --recipe-sha256
+      - ${VKM_VISUAL_OWNER_RECIPE_SHA256:?approved exact original recipe bytes}
+      - --workload-profile
+      - SHADOW
+      - --workload-binding-sha256
+      - ${VKM_VISUAL_OWNER_WORKLOAD_BINDING_SHA256:?approved SHADOW profile and raw recipe binding}
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ${VKM_VISUAL_OWNER_CONTROL_ROOT:?dedicated host-local control root}:/run/owner:ro
+      - ${VKM_EDGE_ROOT:?}/models/jina-reranker-m0-GGUF/61490ce6a4799192781ab7beab4ee4661675488c:/models/m0:ro
+      - ${VKM_EDGE_ROOT:?}/models/jina-reranker-m0-mmproj/llama.cpp-4da6337767f9:/models/mmproj:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    labels:
+      vkm.owner-qualification: 20261004-native-owners
+      vkm.owner.scope: isolated-gpu-shadow
+    logging:
+      driver: json-file
+      options:
+        max-size: 5m
+        max-file: "2"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:28084/health', timeout=4).read()"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 180s

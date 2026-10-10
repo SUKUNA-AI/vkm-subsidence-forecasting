@@ -19,6 +19,7 @@ from vkm_corpus.contracts import vocab
 from vkm_corpus.contracts.base import ArtifactRecipe, ModelRef as CModelRef
 from vkm_corpus.contracts.builders import ProducerContext, SourceContext, build_row, doc_envelope
 from vkm_corpus.contracts.datasets import DOCUMENT_DATASETS
+from vkm_corpus.contracts.models import TableContinuationCandidate, TableContinuationProvenance
 from vkm_corpus.contracts.signatures import config_hash
 from vkm_corpus.contracts.site_scope import map_site_scope
 from vkm_corpus.contracts.text_rules import normalize_text_v1, page_text_v1
@@ -202,14 +203,50 @@ class CanonMapper:
                 image_artifact_id=f.image_artifact_id, image_dpi=f.image_dpi,
                 embedded_image_artifact_id=f.embedded_image_artifact_id,
                 embedded_image_transcoded=f.embedded_image_transcoded, original_filter=f.original_filter,
+                raw_locator=f.raw_locator,
                 vector_artifacts=[{"format": fmt, "artifact_id": a} for fmt, a in f.vector_artifacts]))
         return rows
 
     def tables(self) -> list[Any]:
         rows = []
-        for t in self.r.tables:
-            oid, page_id, dup, prod = self._allocate(t, "TABLE", t.raw_output or "")
+        # Allocate in exactly the previous order/with the previous anchors before
+        # resolving any link. Adding a declaration cannot change physical IDs.
+        allocated = [self._allocate(t, "TABLE", t.raw_output or "") for t in self.r.tables]
+        keys: dict[tuple[int, str | None, str], list[int]] = {}
+        for index, table in enumerate(self.r.tables):
+            key = (table.page_index, table.raw_locator, _sha(table.raw_output or ""))
+            keys.setdefault(key, []).append(index)
+        links, incoming = {}, set()
+        for index, table in enumerate(self.r.tables):
+            if table.continuation_candidate is None:
+                continue
+            candidate = TableContinuationCandidate.model_validate(table.continuation_candidate)
+            registered = {table.raw_artifact_id} | {aid for _, aid in table.raw_artifacts}
+            if (candidate.source_sha256 != self.src.sha256
+                    or candidate.declaration_artifact_id not in registered
+                    or candidate.basis == "NATIVE_SOURCE_RELATION" and table.origin != "NATIVE"
+                    or not table.raw_locator):
+                raise ValueError("continuation declaration is not source-bound")
+            target = keys.get((candidate.target_page_index, candidate.target_raw_locator,
+                candidate.target_raw_content_sha256), [])
+            if len(target) != 1:
+                raise ValueError("continuation target occurrence is missing or ambiguous")
+            target_index = target[0]
+            target_table = self.r.tables[target_index]
+            if (candidate.target_page_index != table.page_index + 1 or target_index in incoming
+                    or int(target_table.generation) != int(table.generation)
+                    or allocated[index][1] is None or allocated[target_index][1] is None):
+                raise ValueError("continuation must uniquely link adjacent same-generation physical pages")
+            incoming.add(target_index)
+            proof = TableContinuationProvenance(candidate=candidate, candidate_sha256=candidate.declaration_sha256(),
+                target_object_id=allocated[target_index][0], target_extraction_generation=int(target_table.generation))
+            links[index] = proof
+        for index, t in enumerate(self.r.tables):
+            oid, page_id, dup, prod = allocated[index]
             env = self._envelope(t, "TABLE", oid, page_id, prod, "tables", _sha(t.raw_output or ""), dup)
+            # Passed by a producing stage, never reconstructed from a run ID or
+            # backfilled into immutable historical objects.
+            env["extraction_signature"] = t.extraction_signature
             if t.image_artifact_id:
                 self.out.artifact_ids.add(t.image_artifact_id)
             layer = {"OCR": "GLM_OCR"}.get(t.origin) or ("EPUB_XHTML" if t.region_origin == "EPUB_ELEMENT" else
@@ -226,7 +263,9 @@ class CanonMapper:
                 cells=[{k: c[k] for k in ("row", "col", "row_span", "col_span", "is_header", "text")} for c in t.cells],
                 normalized_text=normalize_text_v1(t.normalized_text) if t.normalized_text else None,
                 structure_confidence=t.structure_confidence, image_artifact_id=t.image_artifact_id,
-                image_dpi=t.image_dpi))
+                image_dpi=t.image_dpi, raw_locator=t.raw_locator,
+                continues_object_id=links[index].target_object_id if index in links else None,
+                continuation_provenance=links[index].model_dump() if index in links else None))
         return rows
 
     def formulas(self) -> list[Any]:
@@ -237,7 +276,8 @@ class CanonMapper:
             env = self._envelope(f, "FORMULA", oid, page_id, prod, "formulas", _sha(key), dup)
             if f.image_artifact_id:
                 self.out.artifact_ids.add(f.image_artifact_id)
-            layer = "GLM_OCR" if f.origin == "OCR" else "DOCX_XML" if f.region_origin == "DOCX_ELEMENT" else "NONE"
+            layer = "GLM_OCR" if f.origin == "OCR" else "DOCX_XML" if f.region_origin == "DOCX_ELEMENT" else \
+                "EPUB_XHTML" if f.region_origin == "EPUB_ELEMENT" else "NONE"
             rows.append(build_row(
                 "formulas", env, region_origin=f.region_origin, text_layer=layer, **self._bbox(f),
                 docx_paragraph_path=self._docx_path(f) if f.region_origin == "DOCX_ELEMENT" else None,
@@ -245,7 +285,7 @@ class CanonMapper:
                 equation_label=f.equation_label, recognition_method=f.recognition_method, raw_format=f.raw_format,
                 raw_output=f.raw_output, normalized_latex=f.normalized_latex, latex_parse_ok=f.latex_parse_ok,
                 native_glyph_text=f.native_glyph_text, recognition_confidence=f.recognition_confidence,
-                image_artifact_id=f.image_artifact_id, image_dpi=None))
+                image_artifact_id=f.image_artifact_id, image_dpi=None, raw_locator=f.raw_locator))
         return rows
 
     def _bib_anchor(self, first: Any, ordinal: int, text: str) -> tuple[str, str]:

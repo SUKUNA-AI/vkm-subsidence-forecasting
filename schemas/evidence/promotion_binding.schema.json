@@ -1,0 +1,147 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    },
+    "Mapping": {
+      "additionalProperties": false,
+      "properties": {
+        "after": {
+          "maxLength": 8192,
+          "minLength": 1,
+          "title": "After",
+          "type": "string"
+        },
+        "before": {
+          "maxLength": 8192,
+          "minLength": 1,
+          "title": "Before",
+          "type": "string"
+        },
+        "document": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Document",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "PROJECT",
+            "AUTHORITY_ROOT",
+            "CONTROL_ROOT",
+            "QUALIFICATION_ROOT",
+            "ORIGINALS_ROOT",
+            "CANONICAL_ROOT",
+            "EVIDENCE_ROOT",
+            "API_ENDPOINT",
+            "MCP_ENDPOINT"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "pointer": {
+          "maxLength": 2048,
+          "pattern": "^/(?:[^~]|~[01])+$",
+          "title": "Pointer",
+          "type": "string"
+        }
+      },
+      "required": [
+        "document",
+        "pointer",
+        "kind",
+        "before",
+        "after"
+      ],
+      "title": "Mapping",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "isolation_attestation": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "live_recipe": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "mappings": {
+      "items": {
+        "$ref": "#/$defs/Mapping"
+      },
+      "maxItems": 512,
+      "minItems": 1,
+      "title": "Mappings",
+      "type": "array"
+    },
+    "mode": {
+      "enum": [
+        "SYNTHETIC",
+        "SHADOW_TO_LIVE"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "receipt_closure": {
+      "items": {
+        "$ref": "#/$defs/BoundFile"
+      },
+      "maxItems": 256,
+      "minItems": 1,
+      "title": "Receipt Closure",
+      "type": "array"
+    },
+    "retained_previous": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "schema_version": {
+      "const": "vkm-shadow-live-promotion/1",
+      "default": "vkm-shadow-live-promotion/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "shadow_acceptance": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "shadow_drill": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "shadow_plan": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "shadow_recipe": {
+      "$ref": "#/$defs/BoundFile"
+    }
+  },
+  "required": [
+    "mode",
+    "shadow_recipe",
+    "live_recipe",
+    "shadow_plan",
+    "shadow_drill",
+    "shadow_acceptance",
+    "receipt_closure",
+    "isolation_attestation",
+    "retained_previous",
+    "mappings"
+  ],
+  "title": "PromotionBinding",
+  "type": "object"
+}

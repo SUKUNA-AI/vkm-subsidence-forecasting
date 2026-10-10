@@ -5,6 +5,9 @@
 
 | Файл | Что подтверждает |
 |---|---|
+| [model_owners_tables_cpu_2026-10-04.json](model_owners_tables_cpu_2026-10-04.json) | Source-bound text/visual owner contracts, table continuation/compatibility и CPU checks; runtime/image/GPU/MCP49 и full corpus admission не выполнены |
+| [table_cursor_compat_2026-10-04.json](table_cursor_compat_2026-10-04.json) | Hosted Linux regression сохранён как FAIL; исправлена optional continuation compatibility, 228 targeted PASS каждой ОС и 626 Linux World PASS; missing source не разрешает canonical reads |
+| [control_restore_2026-10-04.json](control_restore_2026-10-04.json) | Реальный independent copy/restore 15 control files, 34 470 bytes; source/backup/restore hashes совпали, originals unchanged. Это не full corpus restore и не typed bootstrap backup |
 | [search_metrics_2026-09-30.json](search_metrics_2026-09-30.json) | topic/retrieval before-after и controlled component runs на 574daaac; frozen truth сохранена, конфигурация не менялась; новую независимую разметку visual hits владелец отложил до Astra-review ([отчёт](../SEARCH_METRICS_2026-09-30_RU.md)) |
 | [platform_integrity_2026-09-30.json](platform_integrity_2026-09-30.json) | read-only smoke22tools/61calls на574daaac; отдельные FAIL/NOT_RUN, без изменений CORE/EDGE |
 | [architecture_drawio_2026-09-30.json](architecture_drawio_2026-09-30.json) | обновление девяти схем, JSON sources, SVG и отдельная страница A/B/C; byte-identical rebuild |
@@ -62,3 +65,178 @@
 | `deploy_20260929_figure_series.json` | развёртывание оцифровки графиков на CORE: часть NAV `figure_series` (агент FD2) импортирована в NAV снимка 738eebee байт в байт (sha256 шести датасетов, проверка канона), api/mcp на образе коммита 9d049dc (45 инструментов чтения), ночные скрипты (smoke-4); MCP smoke 45/45 PASS; откат |
 | `figure_readings_v1.json` | машинное чтение сложных рисунков (агент QV, код [benchmarks/figure_readings_v1](../../../benchmarks/figure_readings_v1/)): ВКР Филатовой (VKM-SRC-023, 64 изображения из DOCX в исходном разрешении, EMF через LibreOffice), рисунки корпуса из поиска данных (рендер 200 dpi) и два файла пользователя — классы изображений, Qwen3.5-9B (llama.cpp) и второй чтец таблиц GLM-OCR (режим таблиц конвейера), совпадение по ячейкам, зацикливания и повторы, хэши моделей и промптов, время, пик видеопамяти; все чтения `AUTO_EXTRACTED_UNREVIEWED` / `VLM_EXTRACTED`, значений, подписей и текста нет |
 | `intake_2026-09-29.json` | приёмка 29.09 (агент IN, [заметка](../INTAKE_2026-09-29.md)): 20 источников VKM-SRC-252…271 (17 файлов пользователя и 2 статьи CC BY; выпуск журнала разрезан на 2 статьи; 252 — внутренний документ предприятия, в PUBLIC только id и нейтральное описание), SHA-256, конвертация `.doc` → DOCX и выделение страниц с проверками, реестр работ (ред. 3) и изменение атрибуции стр. 1 VKM-SRC-106 (до и после), прогон конвейера (652 страницы, 19 COMPLETE + 1 PARTIAL, сбой по памяти и продолжение), решение по слою CP1251 источника 266 с постраничной проверкой, репетиция снимка на локальной CANONICAL-копии (валидатор PASS), все части NAV (строки против 738eebee), сухой прогон графа NAV, векторы страниц, выкладка на CORE: 29.09 публикация и сверка (снимок `snap-20260929T175107Z-574daaac`, 271 источник, PASS), 30.09 NAV и его граф (N1–N11 PASS), dense + late (209 259, equal), индекс страниц (26 744), перезапуск api/mcp, MCP smoke 45/45 PASS |
+## Recovery 04.10.2026: explicit control closure
+
+- [ops_restore_2026-10-04.json](ops_restore_2026-10-04.json): actual independent copy
+  и полный restore 37 ранее выявленных operational scripts, 61 367 bytes.
+- [encrypted_configs_restore_2026-10-04.json](encrypted_configs_restore_2026-10-04.json):
+  authenticated encrypted copy/restore 7 host configs, 70 934 original bytes;
+  plaintext и recovery identity на EDGE не передавались. Off-host key storage
+  подтверждено владельцем, не проверялось независимо.
+
+Это все 44 кандидата первоначального bounded control inventory. Полный
+UNBACKED_UNIQUE inventory, canonical restore и typed bootstrap backup остаются
+незавершёнными. [Контракт и ограничения](../../development/FROZEN_RECOVERY_FILESET_RU.md).
+
+Дополнительно сохранены и восстановлены 28 PRIVATE review/provenance records:
+[aggregate receipt](review_provenance_restore_2026-10-04.json). Содержимое,
+source hashes и private locators этого набора не публикуются; EDGE хранит ciphertext.
+Все 28 исходных файлов перепроверены после restore под retained handles.
+Это отдельный bounded file set; полный canonical restore и bootstrap qualification
+по-прежнему NOT_RUN/NOT_QUALIFIED.
+
+[recovery_docx_cpu_2026-10-04.json](recovery_docx_cpu_2026-10-04.json) содержит
+точные hashes public code и synthetic CPU tests для frozen recovery и DOCX
+grid/format admission; actual corpus processing и scientific review NOT_RUN.
+
+[originals_restore_2026-10-04.json](originals_restore_2026-10-04.json): actual
+encrypted copy и independent authenticated restore 272 зафиксированных R2 originals,
+2 122 899 923 bytes, девять batches и отдельный recovery control. Включены три
+native DOC companions. Все restored disk hashes и final source guards проверены;
+PUBLIC receipt содержит только агрегаты и approved bindings. R1/R3, atomic
+current generation, полный UNBACKED_UNIQUE и bootstrap/scientific admission
+этой квитанцией не закрываются.
+
+[evidence_versions_restore_2026-10-04.json](evidence_versions_restore_2026-10-04.json):
+actual encrypted copy и independent authenticated restore 1 453 captured R1 byte
+versions, 149 547 309 bytes, 23 batches и отдельно восстановленный recovery control.
+Вместе с 28 точными R0 versions покрыты все 1 481 записи выбранного набора.
+Это фиксированные expected bytes физических mutable файлов; atomic generation,
+весь UNBACKED_UNIQUE и bootstrap/scientific admission остаются не доказанными.
+Receipt содержит только whitelist-агрегаты и approved bindings, без private paths,
+индивидуальных source hashes, payload и ключа.
+
+[r3_capture_2026-10-05.json](r3_capture_2026-10-05.json): exact R3 capture текущих
+байтовых идентичностей — 9 836 файлов, 2 180 880 117 bytes, 156 групп; executor и
+frozen plan по утверждённым SHA; собственный gate `read_committed_capture` PASS.
+Исторические объявления: 9 819 совпали, 0 расхождений, 7 конфликтующих сохранены
+нерешёнными (текущие байты совпали с одним из вариантов), у 10 исторического SHA нет.
+Запуск от учётки песочницы Codex после точечного права владельца на каталог профиля.
+Зашифрованная копия и независимый restore R3 — отдельный executor; B0 не закрыт.
+
+[first_live_engine_create_cpu_2026-10-05_names.json](first_live_engine_create_cpu_2026-10-05_names.json):
+L0 на `f6f6472` — закрытые семейства имён PRODUCTION (`vkm-core-*`) и QUALIFICATION
+(`vkm-l1q-*`); 393 теста на Windows и Linux. Прежний L0 receipt не изменён.
+
+[first_live_engine_l1_core_2026-10-05_attempt1.json](first_live_engine_l1_core_2026-10-05_attempt1.json):
+первый настоящий прогон L1 на Docker CORE (изолированно, `vkm-l1q-*`, своя сеть) —
+**L1_FAIL**. Post-create проверка нашла расхождение `apparmor_profile`: Docker 26
+записывает профиль `docker-default` только при первом старте, а контракт ожидал его
+сразу после create; адаптер отказался и удалил кандидата, остальные сценарии упали
+каскадом. Production не затронут (S9 PASS: контейнеры, StartedAt/RestartCount и сети
+до = после), удаление только journal-owned (S8 PASS), стенд убран. `daemon_id` и
+`docker_root_dir` захешированы.
+
+[first_live_engine_l1_core_2026-10-05.json](first_live_engine_l1_core_2026-10-05.json):
+L1 attempt 2 после исправления `ac9589e` (AppArmor с учётом жизненного цикла) —
+**L1_PASS**, 9/9 сценариев на Docker 26.1.5 CORE: create с точным post-create
+контрактом (AppArmor пусто до старта), start и running-контракт (`docker-default`),
+продолжение по журналу новым экземпляром (1 start), lost-ACK без второго create
+(adopt), отказ трогать чужой одноимённый контейнер, ослабленный кандидат
+(`host.CapDrop`) — partial и не запущен, удаление только journal-owned, production и
+наблюдаемые контейнеры/сети без изменений. Порядок `Mounts` в inspect снова
+недетерминирован — контракт его нормализует. Это квалификация адаптера в семействе
+`vkm-l1q-*`, не first-LIVE: activation по-прежнему невозможна (`_joined_proof`
+требует Compose labels), switch NOT_RUN.
+
+[deploy_20261005_core_compatibility.json](deploy_20261005_core_compatibility.json): обычное
+развёртывание CORE (compose) — api/mcp/mcp-admin на образе `18d96c2` (49 инструментов чтения),
+профиль `compatibility`; первая попытка не стартовала (образ по умолчанию требует
+production-конфигурацию), откат за ~1,5 мин, проверка рядом, затем переключение. Smoke-6:
+45 PASS, 4 evidence-инструмента SKIP (журнал evidence на CORE не опубликован), 0 FAIL.
+EDGE не менялся.
+
+[deploy_20261005_edge_visual_owner_live.json](deploy_20261005_edge_visual_owner_live.json): EDGE
+`vkm-rerank-m0` переключён на visual owner v8 (собственный llama-server child, native witness и
+проверка размещения весов), профиль LIVE, прокси на 18083 для прежнего gateway; готов за 22 с,
+откат не понадобился. `/identity` 200 с закреплённым токеном и 401 без него; `blk.9`–`blk.27`
+и `output` на CUDA0 (921 МБ); `rerank_visual` через MCP работает (~4,4 с на картинку).
+Удалено старое на CORE и EDGE, оставлено по одной версии для отката.
+
+[evidence_journal_20261005.json](evidence_journal_20261005.json): первый настоящий журнал evidence на CORE —
+пилот переноса Phase-1 (механика 1 429 + реология 7 = 1 436 записей, 342 строки UNRESOLVED в частном архиве),
+привязка к точным страницам, объекты без подписи — по версии «содержимое@коммит» (решение владельца), все записи
+UNREVIEWED; api `34570ee`, политика 271 + 50 внешних id; smoke-6 49/49 PASS.
+
+[first_live_engine_create_cpu_2026-10-05_apparmor.json](first_live_engine_create_cpu_2026-10-05_apparmor.json):
+L0 на `ac9589e` (AppArmor с учётом жизненного цикла) — 410 тестов на Windows и Linux,
+файлы сверены побайтно с коммитом; заменяет pins `_names` receipt.
+
+[native_owner_cpu_2026-10-04.json](native_owner_cpu_2026-10-04.json): точные hashes
+PUBLIC native placement/owner source и synthetic CPU JUnit. Declared platform
+NOT_RUN отделены от PASS; selections пересекаются и не суммируются. Проверены
+optional text → actual late owner, узкий status gate и обе actual ApiService factory
+передачи. Cached image/model/inference/full 49 tools и production switch NOT_RUN.
+
+[native_owner_hosted_ci_2026-10-04.json](native_owner_hosted_ci_2026-10-04.json):
+все три hosted jobs exact commit `bd81589` завершились SUCCESS. World 648 PASS;
+Linux corpus 3832 PASS / 2 NOT_RUN; Windows 2779 PASS / 134 NOT_RUN. Исключённые
+runtime selections учтены отдельно. Квитанция не распространяется на параллельный
+незакоммиченный first-LIVE код, actual model load, 49-tool acceptance или switch.
+
+[edge_owner_image_2026-10-04.json](edge_owner_image_2026-10-04.json): actual EDGE
+software image из exact `bd81589`, 472 raw Git wheel members, pinned inputs и
+проверенного native cache. Сборка завершилась с exit 0 за 47,663 s; реальные
+cgroup limits и ABI проверены. Actual model load/inference, 49 tools и switch
+остаются NOT_RUN. Старый сервис этой сборкой не останавливался.
+
+[edge_owner_shadow_attempt_2026-10-04.json](edge_owner_shadow_attempt_2026-10-04.json):
+actual SHADOW attempt FAILED после успешного CUDA preflight. Loaded identity,
+placement и inference не получены; стадия отказа UNRESOLVED. Первичный fallback
+восстановил старый retained container; main agent отдельно подтвердил exact
+container/image, новый PID и native health 200. Ошибка повторной recovery сохранена
+как FAILED, не заменена PASS. CORE/LIVE/full49 не выполнялись.
+
+[first_live_protective_cpu_2026-10-05.json](first_live_protective_cpu_2026-10-05.json):
+164 PASS Windows и 164 PASS Linux, независимо повторены main agent по exact LF
+source closure. Опасный Compose-create удалён; production блокируется до effects.
+Статус FIRST_LIVE_NOT_READY: требуется отдельный безопасный native-create adapter
+и actual runtime qualification. Synthetic PASS не доказывает сохранность originals.
+
+[edge_owner_e0_diagnosis_2026-10-05.json](edge_owner_e0_diagnosis_2026-10-05.json):
+read-only диагностика попытки 04.10 (docker inspect, procfs, loopback health,
+SHA-256 throughput; никаких container effects). Повторная recovery: механизм
+воспроизведён на точном коде v4 — Docker отдаёт retained Mounts в недетерминированном
+порядке (27/200), v4 сравнивал упорядоченный список (29/200 ValueError); наиболее
+вероятная причина, исправлено в контроллере v5. Внешний waiter ждал 55 с после exit
+candidate. Startup exit 2: по таймингу наиболее вероятен дедлайн 180 с доказательства
+загрузки при живом child; конкретный fence NOT_ESTABLISHED — его покажет bounded
+диагностика нового образа. GPU drill, model load и switch этим receipt не выполнялись.
+
+[edge_owner_shadow_attempt_2026-10-05.json](edge_owner_shadow_attempt_2026-10-05.json):
+повторная bounded SHADOW попытка на образе с диагностикой (commit `5ee07e4`) и
+контроллере v5. FAILED: candidate exit 2 через 185.7 с, но теперь стадия
+**наблюдена**: listener поднят за ~150 мс, затем witness endpoint 4579 раз отвечал
+503 до дедлайна 180 с, child жив, лишних mapped-библиотек нет. Корень выведен из
+точного upstream `4da6337`: CPU-веса через mmap получают buffer type с device NULL,
+нативный witness getter требует device и отвечает 503. Не исключено: незавершённая
+загрузка с тем же кодом 503. Исправленный контроллер обнаружил exit сразу, вернул
+exact retained OLD (новый PID, health 200, простой 187 с); повторная recovery —
+verified no-op. Identity/placement/inference не получены; LIVE/switch NOT_RUN.
+
+[first_live_engine_create_cpu_2026-10-05.json](first_live_engine_create_cpu_2026-10-05.json):
+L0 — узкий фиксированный Engine-create adapter (allowlist операций Engine API,
+профиль из approved полей без значений Env, post-create inspect до start,
+write-ahead journal, lost-ACK без повторного create, удаление только journal-owned
+ID, проверки daemon/binding до парковки оригиналов, Compose не вызывается).
+388 PASS Windows и 388 PASS Linux по JUnit; независимый challenger — 2 раунда,
+открытых MUST_FIX нет. FIRST_LIVE_NOT_READY: L1 (реальный Engine) NOT_RUN,
+activation невозможна до замены Compose-proof.
+
+[edge_owner_shadow_attempt_2026-10-05_v7.json](edge_owner_shadow_attempt_2026-10-05_v7.json):
+диагностический bounded drill v7 (commit `7be32d2`, классификация тела 503). Наблюдено:
+сервер отвечал `Loading model` только ~1 с после spawn (загрузка модели завершается),
+затем 4521 ответ нативного witness getter `loaded_witness_unavailable` до дедлайна.
+Класс причины — исключение getter — **наблюдён**; место броска (device NULL у
+mmap CPU buffer) выведено из исходника. OLD восстановлен контроллером (health 200),
+повторная recovery — verified no-op. LIVE/switch NOT_RUN.
+
+[edge_owner_shadow_qualified_2026-10-05.json](edge_owner_shadow_qualified_2026-10-05.json):
+**E1 пройден** в SHADOW scope (одобрено владельцем, challenger GO). Образ из `74ae2b6` с
+нативным исправлением witness getter (`CPU_Mapped` → CPU device). Фактически проверены:
+нативная loaded identity = ожидаемой из preflight, тот же owner до и после synthetic
+inference, размещение целевых весов (blk.0–8 HOST, blk.9–27 и output на CUDA0),
+отказ неверному credential (401), отзыв доказательства и health при гибели child,
+новый instance и inference после рестарта, возврат exact retained OLD (health 200).
+Простой m0 ~18 с. Не доказаны: mmproj/context/kernels/performance/полная GPU-residency;
+LIVE, 49 tools, switch и научный допуск — NOT_RUN.

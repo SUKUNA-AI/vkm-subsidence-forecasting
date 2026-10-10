@@ -1,0 +1,209 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    },
+    "ComponentIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "built_from": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Built From",
+          "type": "object"
+        },
+        "component": {
+          "enum": [
+            "DOCUMENT",
+            "DATASET",
+            "EVIDENCE",
+            "DUCKDB",
+            "NAV",
+            "GRAPH",
+            "SEARCH",
+            "DENSE",
+            "LATE",
+            "VISUAL"
+          ],
+          "title": "Component",
+          "type": "string"
+        },
+        "manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Manifest Sha256",
+          "type": "string"
+        },
+        "policy_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Policy Sha256",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "revision": {
+          "minLength": 1,
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "component",
+        "revision",
+        "manifest_sha256",
+        "policy_sha256",
+        "built_from"
+      ],
+      "title": "ComponentIdentity",
+      "type": "object"
+    },
+    "ServiceIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "capabilities": {
+          "default": [],
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "code_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Sha256",
+          "type": "string"
+        },
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "dependencies_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Dependencies Sha256",
+          "type": "string"
+        },
+        "endpoint_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Endpoint Sha256",
+          "type": "string"
+        },
+        "instance_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instance Sha256",
+          "type": "string"
+        },
+        "resources": {
+          "patternProperties": {
+            "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            }
+          },
+          "title": "Resources",
+          "type": "object"
+        },
+        "runtime_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Runtime Sha256",
+          "type": "string"
+        },
+        "service": {
+          "enum": [
+            "RETRIEVAL",
+            "RERANK",
+            "CONTROL"
+          ],
+          "title": "Service",
+          "type": "string"
+        }
+      },
+      "required": [
+        "service",
+        "instance_sha256",
+        "code_sha256",
+        "dependencies_sha256",
+        "config_sha256",
+        "endpoint_sha256",
+        "runtime_sha256"
+      ],
+      "title": "ServiceIdentity",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Read-only observation recipe, independent of candidate G/R/CURRENT.",
+  "properties": {
+    "components": {
+      "items": {
+        "$ref": "#/$defs/ComponentIdentity"
+      },
+      "minItems": 1,
+      "title": "Components",
+      "type": "array"
+    },
+    "duckdb": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "environment": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "max_local_identity_bytes": {
+      "exclusiveMinimum": 0,
+      "maximum": 137438953472,
+      "title": "Max Local Identity Bytes",
+      "type": "integer"
+    },
+    "native": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "nav": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "runtime": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "services": {
+      "items": {
+        "$ref": "#/$defs/ServiceIdentity"
+      },
+      "minItems": 1,
+      "title": "Services",
+      "type": "array"
+    }
+  },
+  "required": [
+    "environment",
+    "runtime",
+    "native",
+    "duckdb",
+    "nav",
+    "max_local_identity_bytes",
+    "components",
+    "services"
+  ],
+  "title": "RetainedSharedObserver",
+  "type": "object"
+}

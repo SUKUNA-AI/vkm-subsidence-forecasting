@@ -1,0 +1,82 @@
+{
+  "canonical_verifier": {
+    "artifact": "work/production_data/canonical_recovery_docx_20261004_v1.json",
+    "exit_code": 0,
+    "passed": 36,
+    "sha256": "1a83e452107527ade22f82ecb5527529e1da5b801b12f7c70a71360e5d2b72a0",
+    "skipped_ref_unavailable": 7
+  },
+  "date": "2026-10-04",
+  "docx": {
+    "actual_sources_rendering_ocr_scientific_review": "NOT_RUN",
+    "admission": "NOT_ESTABLISHED",
+    "linux_root_repeat": {
+      "artifact": "docx_root_final_linux_v8",
+      "errors": 0,
+      "failures": 0,
+      "passed": 223,
+      "sha256": "b7dce219c75827c1155fccee33a77f16abbe3d9516f637e49205cb810b32bbe7",
+      "skipped": 0,
+      "tests": 223
+    },
+    "red_attempts_preserved": true,
+    "windows_not_run": [
+      "symlink privilege unavailable",
+      "Linux RLIMIT_AS enforcement"
+    ],
+    "windows_root_repeat": {
+      "artifact": "work/production_data/docx_root_final_20261004_v8.xml",
+      "errors": 0,
+      "failures": 0,
+      "passed": 221,
+      "sha256": "786aa48dd85638ff2d1ad7a87f3e3a52e2cc6a02ad28b908b96e849ac3a6e63a",
+      "skipped": 2,
+      "tests": 223
+    }
+  },
+  "frozen_recovery": {
+    "atomic_snapshot": "NOT_PROVEN",
+    "full_unique_inventory": "NOT_COMPLETE",
+    "windows": {
+      "artifact": "work/production_data/frozen_receipt_20261004_v6.xml",
+      "errors": 0,
+      "failures": 0,
+      "passed": 47,
+      "sha256": "fc217de583a328efea010b63f023b53e97041be2c8e0fd05f96fea01b6df9c18",
+      "skipped": 0,
+      "tests": 47
+    }
+  },
+  "full_49_tool_acceptance": "NOT_RUN",
+  "hosted_ci_for_this_delta": "PENDING_EXACT_COMMIT",
+  "mandatory_world": {
+    "linux": {
+      "passed": 626
+    },
+    "windows": {
+      "failures": 1,
+      "passed": 625,
+      "reason": "WinError1314 directory symlink privilege"
+    },
+    "windows_settings_changed": false
+  },
+  "private_payloads_or_identity_read_by_publisher": false,
+  "production_switch": "NOT_RUN",
+  "schema": "vkm-recovery-docx-cpu-checkpoint/1",
+  "scope": "PUBLIC_CODE_AND_SYNTHETIC_CPU_TARGETED_TESTS",
+  "source_sha256": {
+    "docs/development/DOCX_NATIVE_GRID_RU.md": "f9c1242affed81eab1a76b9014912103c5c97643039c5242e05ec3cf120c595a",
+    "infra/recovery/frozen_inventory.py": "50f7b1af6f00cde34717fc5cd2061ed89aa760ee17f659c654cd4619795849dc",
+    "src/vkm_corpus/coverage/accounting.py": "879a32a415e5594f23f67ca26fda2f9732e64bb409385180e84a5ee82fb9c09c",
+    "src/vkm_corpus/extract/docx.py": "0ea7abfae37c0587d5db1dbc09e8806307ae08d2c033d25450f93fa6f72bde35",
+    "src/vkm_corpus/pipeline/assemble.py": "4ef269099a04f53b933fffdc7a70751fdfad7bf24b0e129f3eb34de4daccde9b",
+    "src/vkm_corpus/pipeline/commit.py": "116634a028dee527752b71100076e51c28e580171a9f61ba41e5fffcf28d99d3",
+    "src/vkm_corpus/pipeline/plan.py": "e1261c2f0134a6b4ec39fcafd018adaa59e217f3014b8058afbe5f11e0a5fbed",
+    "src/vkm_corpus/pipeline/prepare.py": "b5ad503e4d01926c2ff0275df0bebf05642813b321679c0ce9a3ce7df0ebd65a",
+    "src/vkm_corpus/registry/sources.py": "b89ec2be3f8eaeb7ea5a18728f70045c54327736f3395cc1cb926f74c08e2f31",
+    "src/vkm_corpus/update/operator.py": "cfaaad7ecfd34e1801f87d39f3f2d7c33eefe7fc132b3e44c61ab2f76725d2d7",
+    "tests/corpus/test_docx_native_grid.py": "0c88634f1f6349c49219d2014e39e8e84d31d3515915da1e5da0e791243a0f0b",
+    "tests/corpus/test_frozen_inventory.py": "a7a5e13233fcc4825d4bc0766cf39fab03b97d57257d0adbf36fed4bd26a9e35",
+    "tests/evidence/test_operator_cli_status.py": "ba0540acc9ea6d1b7e73e61a7af2c36baf38aa4055f9f4b5656272f1f3b6034e"
+  }
+}

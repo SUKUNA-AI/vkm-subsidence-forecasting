@@ -1,0 +1,93 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    },
+    "RecipeDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "file": {
+          "$ref": "#/$defs/BoundFile"
+        },
+        "name": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "file"
+      ],
+      "title": "RecipeDocument",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "documents": {
+      "items": {
+        "$ref": "#/$defs/RecipeDocument"
+      },
+      "maxItems": 128,
+      "minItems": 1,
+      "title": "Documents",
+      "type": "array"
+    },
+    "effective_configurations": {
+      "additionalProperties": {
+        "$ref": "#/$defs/BoundFile"
+      },
+      "propertyNames": {
+        "enum": [
+          "candidate.api",
+          "candidate.mcp",
+          "previous.api",
+          "previous.mcp"
+        ]
+      },
+      "title": "Effective Configurations",
+      "type": "object"
+    },
+    "operator_config": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "schema_version": {
+      "const": "vkm-promotion-recipe/1",
+      "default": "vkm-promotion-recipe/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "selected_previous_release_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Selected Previous Release Sha256",
+      "type": "string"
+    }
+  },
+  "required": [
+    "operator_config",
+    "selected_previous_release_sha256",
+    "effective_configurations",
+    "documents"
+  ],
+  "title": "PromotionRecipe",
+  "type": "object"
+}

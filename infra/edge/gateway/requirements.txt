@@ -1,3 +1,19 @@
+# Complete active Linux client dependency closure, observed in the existing
+# CPU qualification environment; no torch/transformers model-owner runtime here.
+annotated-doc==0.0.5
+annotated-types==0.8.0
+certifi==2026.7.22
+click==8.5.0
+filelock==3.32.3
+fsspec==2026.7.0
+hf-xet==1.6.0
+huggingface-hub==1.33.0
+idna==3.20
+packaging==26.3
+pyyaml==6.0.3
+tqdm==4.70.1
+typing-extensions==4.16.0
+typing-inspection==0.4.4
 fastapi==0.141.1
 starlette==1.7.0
 uvicorn==0.54.0

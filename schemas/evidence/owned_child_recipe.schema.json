@@ -1,0 +1,80 @@
+{
+  "additionalProperties": false,
+  "description": "Actual owner configuration; paths are runtime-local, not exported evidence.\n\nThis record is supplied by installed owner code. No executable, loader or\ncommand is selected from a corpus/generation manifest or an HTTP payload.\nNative hashes must cover every resource and loaded implementation file.",
+  "properties": {
+    "arguments": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 256,
+      "minItems": 1,
+      "title": "Arguments",
+      "type": "array"
+    },
+    "executable": {
+      "maxLength": 4096,
+      "minLength": 1,
+      "title": "Executable",
+      "type": "string"
+    },
+    "expected_sha256": {
+      "additionalProperties": {
+        "pattern": "^[0-9a-f]{64}$",
+        "type": "string"
+      },
+      "title": "Expected Sha256",
+      "type": "object"
+    },
+    "implementation_files": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 256,
+      "minItems": 1,
+      "title": "Implementation Files",
+      "type": "array"
+    },
+    "kind": {
+      "const": "visual",
+      "default": "visual",
+      "title": "Kind",
+      "type": "string"
+    },
+    "port": {
+      "maximum": 65535,
+      "minimum": 1,
+      "title": "Port",
+      "type": "integer"
+    },
+    "resources": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Resources",
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "vkm-owned-model-recipe/1",
+      "default": "vkm-owned-model-recipe/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "startup_timeout_s": {
+      "default": 180.0,
+      "exclusiveMinimum": 0,
+      "maximum": 600,
+      "title": "Startup Timeout S",
+      "type": "number"
+    }
+  },
+  "required": [
+    "executable",
+    "arguments",
+    "resources",
+    "implementation_files",
+    "expected_sha256",
+    "port"
+  ],
+  "title": "OwnedChildRecipe",
+  "type": "object"
+}

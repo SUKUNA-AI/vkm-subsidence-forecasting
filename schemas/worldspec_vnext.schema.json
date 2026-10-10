@@ -556,7 +556,7 @@
      "$ref": "#/$defs/Provenance"
     },
     "units": {
-     "default": "m",
+     "default": "UNKNOWN",
      "title": "Units",
      "type": "string"
     },

@@ -94,15 +94,15 @@ def test_file_checks_and_sources(private, tmp_path):
     assert src["VKM-SRC-001"].input_row == 1 and src["VKM-SRC-001"].input_ref.startswith("PRIVATE:")
 
 
-def test_sha_cache_avoids_rehashing(private, tmp_path, monkeypatch):
+def test_stat_cache_is_explicitly_opt_in_and_not_a_fresh_verification(private, tmp_path, monkeypatch):
     from vkm_corpus.registry import sources as mod
 
     rows, _ = load_register(private / "00_registry" / "SOURCE_REGISTER.csv")
     cache = tmp_path / "cache.json"
-    verify_files(private, rows, cache_path=cache)
+    verify_files(private, rows, cache_path=cache, fresh=False)
     calls = []
     monkeypatch.setattr(mod, "sha256_of", lambda p: calls.append(p) or "0" * 64)
-    verify_files(private, rows, cache_path=cache)
+    verify_files(private, rows, cache_path=cache, fresh=False)
     assert calls == []
 
 

@@ -1,5 +1,31 @@
 # Состояние проекта ВКМ / СКРУ-1 (каноническое)
 
+05.10.2026 — [передача Claude](docs/reviews/CLAUDE_HANDOFF_2026-10-05_RU.md): ограниченная
+диагностика EDGE visual owner (отказ старта — нативный witness getter не принимал mmap
+CPU-веса без device; повторная recovery — порядок Docker Mounts), нативное исправление и
+**bounded SHADOW квалификация visual owner пройдена** (E1; LIVE/switch не выполнялись);
+импорт 60 H-меток; first-LIVE Engine-create adapter (L0, production block сохранён).
+B0/S0 BLOCKED, L1/I1/P1/S1 NOT_RUN; научные статусы не менялись.
+
+05.10.2026, вечер — по решению владельца развёрнуто обычным путём (compose), с
+откатом наготове: CORE api/mcp на образе `18d96c2` (49 инструментов чтения), профиль
+`compatibility`, политика источников (все 271 — `PRIVATE_CLOUD_ALLOWED`) и права доступа
+включены; EDGE `vkm-rerank-m0` = visual owner v8 в режиме LIVE. Smoke-6: 45 PASS, 4
+evidence-инструмента SKIP (журнал evidence ещё не опубликован), 0 FAIL. Пройдены R3
+capture и L1 (9/9 на Docker CORE). Старые образы/контейнеры удалены, по одной версии
+для отката оставлено. Полный профиль `production` требует квалифицированного поколения
+(deployment drill/accept) — NOT_RUN. Receipts: `deploy_20261005_*`, `r3_capture_*`,
+`first_live_engine_l1_core_*` в `docs/corpus_platform/receipts/`.
+
+04.10.2026 — производственная программа данных продолжена в отдельной рабочей
+ветке, draft PR #10. [Текущий отчёт](docs/reviews/RECOVERY_DOCX_GPU_CHECKPOINT_2026-10-04_RU.md)
+фиксирует проверенный restore 37 скриптов, 7 конфигураций, 28 review/provenance
+файлов, 272 оригиналов R2 и 1 453 дополнительных R1 byte versions
+(полный выбранный R1 набор: 1 481 с учётом точных 28 R0), DOCX native grid/cache
+admission и первую compile/ABI-only GPU сборку.
+Actual model/runtime/corpus qualifications ещё не выполнены. Production snapshot
+и научные статусы от этих изменений не обновлены; слияние в `main` не выполнено.
+
 Дата базового среза Phase 1: 26.09.2026; последнее обновление состояния — 30.09.2026 (работа A/B/C ниже). Phase 1 слита в `main`
 обоих репозиториев merge-коммитами:
 [PUBLIC #1](https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/pull/1) → `40ca0ed`,

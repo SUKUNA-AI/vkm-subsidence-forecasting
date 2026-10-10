@@ -1,0 +1,37 @@
+--- a/src/careerops_reranker/runtime.py
++++ b/src/careerops_reranker/runtime.py
+@@ -78,7 +78,16 @@
+         self._inference_lock = threading.Lock()
+ 
+     @classmethod
+-    def load(cls, config: RerankerRuntimeConfig) -> JinaRerankerRuntime:
++    def load(
++        cls,
++        config: RerankerRuntimeConfig,
++        *,
++        model_snapshot: str | None = None,
++        tokenizer_snapshot: str | None = None,
++        local_files_only: bool = False,
++    ) -> JinaRerankerRuntime:
++        if local_files_only and (not model_snapshot or not tokenizer_snapshot):
++            raise ValueError("offline owner requires both immutable snapshots")
+         """Загружает exact pinned model/code/tokenizer revisions на заданное устройство"""
+ 
+         if config.runtime_backend != "transformers-cuda":
+@@ -100,12 +109,14 @@
+             raise RuntimeError("CUDA недоступна для careerops-reranker")
+ 
+         tokenizer = AutoTokenizer.from_pretrained(
+-            config.model_id,
++            tokenizer_snapshot or config.model_id,
++            local_files_only=local_files_only,
+             revision=config.tokenizer_revision,
+             trust_remote_code=True,
+         )
+         model = AutoModel.from_pretrained(
+-            config.model_id,
++            model_snapshot or config.model_id,
++            local_files_only=local_files_only,
+             revision=config.model_revision,
+             code_revision=config.model_code_revision,
+             dtype=torch.float16,

@@ -18,6 +18,7 @@ Checks; every check emits structured entries ``{id, group, status, blocking, sum
 A missing git ref (shallow clone, tags not fetched) gives ``SKIPPED_REF_UNAVAILABLE`` (non-blocking) with
 instructions. Exit code 0 only if no blocking check FAILs. The JSON report goes to stdout and, with
 ``--output``, to a file (default ``work/verification/canonical_verification.json``).
+Both byte streams use UTF-8 regardless of the console's locale or PYTHONIOENCODING.
 
 Usage::
 
@@ -153,11 +154,19 @@ class Git:
         self.root = root
         self._batch: subprocess.Popen | None = None
         self._resolved: dict[str, str | None] = {}
-        self.available = self.run("rev-parse", "--is-inside-work-tree") == "true"
+        # A standalone tree under an ancestor checkout is not that repository.
+        # In particular, ignored work/ fixtures yield an empty ls-files output;
+        # treating that as this tree's inventory silently skips every check.
+        toplevel = self.run("rev-parse", "--show-toplevel") if self.run("rev-parse", "--is-inside-work-tree") == "true" else None
+        try:
+            self.available = toplevel is not None and Path(toplevel).resolve() == self.root.resolve()
+        except (OSError, RuntimeError):
+            self.available = False
 
     def run(self, *args: str) -> str | None:
         try:
-            done = subprocess.run(["git", "-C", str(self.root), *args], capture_output=True, text=True, timeout=120)
+            done = subprocess.run(["git", "-C", str(self.root), *args], capture_output=True,
+                                  text=True, encoding="utf-8", timeout=120)
         except (OSError, subprocess.SubprocessError):
             return None
         return done.stdout.strip() if done.returncode == 0 else None
@@ -239,7 +248,7 @@ class Context:
     repo_files_cache: list[str] | None = None
 
     def repo_files(self) -> list[str]:
-        """Repository files that exist in the working tree (tracked + untracked-not-ignored)."""
+        """Exact Git-root inventory, or ordinary files of a standalone subtree."""
         if self.repo_files_cache is None:
             names: list[str] | None = None
             if self.git.available:
@@ -816,7 +825,9 @@ def _import_vkm_world(ctx: Context):
 
 def check_leakage(ctx: Context) -> list[Check]:
     leakage = _import_vkm_world(ctx)
-    problems = leakage.scan(ctx.root)
+    # Reuse the exact-root decision: the guard's own default git discovery can
+    # otherwise rediscover an ancestor and omit an ignored standalone subtree.
+    problems = leakage.scan(ctx.root, files=[ctx.root / name for name in ctx.repo_files()])
     return [Check("leakage:scan", "leakage", FAIL if problems else PASS, True,
                   f"vkm_world.governance.leakage.scan: {len(problems)} problems", {"problems": _capped(problems)})]
 
@@ -1115,7 +1126,16 @@ def main(argv: list[str] | None = None) -> int:
             destination.write_text(text, encoding="utf-8", newline="\n")
         except OSError as exc:
             print(f"cannot write report: {exc}", file=sys.stderr)
-    sys.stdout.write(text)
+    # JSON is a UTF-8 machine interface, not locale-formatted console prose.
+    # cp1251 cannot represent every source locator; replacement would lose data.
+    # A Unicode-only stream (e.g. StringIO) needs no encoding conversion.
+    binary = getattr(sys.stdout, "buffer", None)
+    if binary is None:
+        sys.stdout.write(text)
+    else:
+        sys.stdout.flush()
+        binary.write(text.encode("utf-8"))
+        binary.flush()
     return int(report["exit_code"])
 
 

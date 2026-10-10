@@ -258,6 +258,10 @@ class NavStore:
             origin = meta.get("snapshot_id")
             if origin and origin != snap:
                 raise NavUnavailable("NAV CURRENT name differs from its packed origin")
+            from vkm_corpus.navigation.dependencies import validate
+            validate(meta)
+            if "dependency_contract" in meta and tables != set(meta.get("datasets", {})) | {"nav_meta"}:
+                raise NavUnavailable("NAV packed tables differ from its dependency whitelist")
         except Exception as exc:
             con.close()
             if isinstance(exc, NavUnavailable):

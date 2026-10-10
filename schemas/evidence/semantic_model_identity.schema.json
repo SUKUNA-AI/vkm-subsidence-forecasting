@@ -1,0 +1,118 @@
+{
+  "$defs": {
+    "NativeModelProof": {
+      "additionalProperties": false,
+      "properties": {
+        "code_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Sha256",
+          "type": "string"
+        },
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "dependencies_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Dependencies Sha256",
+          "type": "string"
+        },
+        "instance_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instance Sha256",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "text",
+            "visual"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "resources": {
+          "additionalProperties": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Resources",
+          "type": "object"
+        },
+        "schema_version": {
+          "const": "vkm-loaded-model/1",
+          "default": "vkm-loaded-model/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "tokenizer_binding": {
+          "default": "STANDALONE_LOADED",
+          "enum": [
+            "STANDALONE_LOADED",
+            "EMBEDDED_WEIGHTS_VOCAB"
+          ],
+          "title": "Tokenizer Binding",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "instance_sha256",
+        "code_sha256",
+        "dependencies_sha256",
+        "config_sha256",
+        "resources"
+      ],
+      "title": "NativeModelProof",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "idempotency": {
+      "const": "REPLAY_EXACT_RESPONSE_V1",
+      "title": "Idempotency",
+      "type": "string"
+    },
+    "model": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Model",
+      "type": "string"
+    },
+    "native": {
+      "$ref": "#/$defs/NativeModelProof"
+    },
+    "prompt_format_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Prompt Format Sha256",
+      "type": "string"
+    },
+    "schema": {
+      "const": "vkm-evidence-model/1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "tokenizer_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Tokenizer Sha256",
+      "type": "string"
+    },
+    "weights_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Weights Sha256",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "model",
+    "weights_sha256",
+    "tokenizer_sha256",
+    "prompt_format_sha256",
+    "idempotency",
+    "native"
+  ],
+  "title": "ExtractionModelIdentity",
+  "type": "object"
+}

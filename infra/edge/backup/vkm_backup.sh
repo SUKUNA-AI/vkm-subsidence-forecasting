@@ -11,8 +11,8 @@
 #      also --checksum, so a damaged file of the store is copied again instead of linked;
 #   4. snapshot manifest — sha256 of every copied file (hashes of hard-linked files reused from the previous snapshot;
 #      all re-read on the re-hash weekday: bit rot of the store shows up as cache conflicts);
-#   5. verification — source manifest vs snapshot manifest (vkm_manifest.py compare): PASS / WARN (files that changed
-#      on CORE after the manifest, volatile pointers and receipts) / FAIL (missing or corrupt immutable files);
+#   5. verification — source manifest vs snapshot manifest (vkm_manifest.py compare): PASS / WARN (declared mutable
+#      pointers and receipts only) / FAIL (immutable byte/set mismatch, regardless of mtime, or cache conflicts);
 #   6. promote — PASS/WARN: rename to snapshots/<name>, move snapshots/latest; FAIL: keep as <name>.failed;
 #   7. retention — newest per day (7), ISO week (4), month (6), at least 3, never latest; the free-space guard deletes
 #      the oldest beyond that while free space < VKM_BACKUP_MIN_FREE_GB;
@@ -188,6 +188,10 @@ receipt = {
                                                          "cache_conflicts", "seconds")},
     "compare": cmp_ and {"verdict": cmp_.get("verdict"), "equal": cmp_.get("equal"),
                          "digest_equal": cmp_.get("digest_equal"),
+                         "promotion_allowed": cmp_.get("promotion_allowed"),
+                         "cache_conflicts": cmp_.get("cache_conflicts"),
+                         "changed_immutable": (cmp_.get("changed_after_manifest") or {}).get("stable"),
+                         "extra_immutable": (cmp_.get("extra") or {}).get("immutable"),
                          **{k: (cmp_.get(k) or {}).get("count") for k in ("missing", "missing_volatile", "corrupt",
                                                                           "changed_after_manifest", "extra")},
                          "examples": {k: (cmp_.get(k) or {}).get("examples", [])[:5]
@@ -347,14 +351,18 @@ python3 "$TOOL" "${tb_args[@]}" > "$WORK/target_build.json" || TB_RC=$?
 cp "$WORK/target_build.json" "$SNAP/.vkm_backup/target_build.json"
 
 # ---------------------------------------------------------------- 5. verification: source vs copy
+COMPARE_RC=0
 python3 "$TOOL" compare "$WORK/source.manifest.jsonl.gz" "$SNAP/.vkm_backup/target_manifest.jsonl.gz" \
-  --out "$WORK/compare.json" || true
+  --out "$WORK/compare.json" || COMPARE_RC=$?
 cp "$WORK/compare.json" "$SNAP/.vkm_backup/compare.json"
 VERDICT="$(jget "$WORK/compare.json" verdict)"
-[ -n "$VERDICT" ] || VERDICT="FAIL"
-if [ "$TB_RC" = 1 ] && [ "$VERDICT" != "FAIL" ]; then
-  VERDICT="WARN"
-  NOTE="re-hash found files whose content changed without a new mtime/inode (cache conflicts; see target_build.json)"
+case "$VERDICT" in PASS|WARN) ;; *) VERDICT="FAIL" ;; esac
+if [ "$COMPARE_RC" != 0 ] || [ "$(jget "$WORK/compare.json" promotion_allowed)" != true ]; then
+  VERDICT="FAIL"
+fi
+if [ "$TB_RC" != 0 ]; then
+  VERDICT="FAIL"
+  NOTE="re-hash contradicted the hash cache; promotion blocked pending reconciliation (see target_build.json)"
 fi
 log "verification: $VERDICT (equal $(jget "$WORK/compare.json" equal), missing $(jget "$WORK/compare.json" missing.count)," \
     "corrupt $(jget "$WORK/compare.json" corrupt.count), changed $(jget "$WORK/compare.json" changed_after_manifest.count))"

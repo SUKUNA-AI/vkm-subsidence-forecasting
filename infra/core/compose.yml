@@ -95,6 +95,14 @@ services:
     environment:
       VKM_DATA_ROOT: /data
       VKM_DATA_ROLE: canonical
+      # The image defaults to "production", which requires VKM_SOURCE_POLICY_FILE, VKM_ACCESS_CONTEXT_FILE and
+      # VKM_UPDATE_RUNTIME_FILE (not provisioned on CORE yet). "compatibility" serves as before and reports
+      # itself in /v1/status production_controls; switch when the policy files exist (05.10.2026).
+      VKM_API_PROFILE: compatibility
+      # Owner source policy (all served sources classified) and the read/write access contexts: the API enforces
+      # the policy on corpus reads and evidence routes need a context per token label. Host-local, never in git.
+      VKM_SOURCE_POLICY_FILE: /run/secrets/source_policy
+      VKM_ACCESS_CONTEXT_FILE: /run/secrets/access_contexts
       VKM_NEO4J_URI: bolt://neo4j:7687
       VKM_NEO4J_PASSWORD_FILE: /run/secrets/neo4j_password
       VKM_OPENSEARCH_URL: http://opensearch:9200
@@ -112,7 +120,8 @@ services:
       # tower p50 108 ms / p95 144 ms, device VRAM 3.4 GiB with dense and late; "0" switches it off without a rebuild
       VKM_HYBRID_VISUAL_ROUTE: "${VKM_HYBRID_VISUAL_ROUTE:-1}"
       VKM_LOG_LEVEL: INFO
-    secrets: [api_read_token, api_write_token, neo4j_password, rerank_token, pg_dsn, embed_token]
+    secrets: [api_read_token, api_write_token, neo4j_password, rerank_token, pg_dsn, embed_token, source_policy,
+              access_contexts]
     # Directories (not files), so an atomic replace (CURRENT, the DuckDB file) is seen by the container. Long syntax
     # with create_host_path: false — a missing path (duckdb/ exists only after the first reconcile) fails `up`
     # instead of being created by the daemon as root, which would lock vkm-job out of it.
@@ -382,3 +391,8 @@ secrets:
     file: ${VKM_SECRETS_DIR}/rx580_token
   embed_token:
     file: ${VKM_SECRETS_DIR}/${VKM_APP_RX580_TOKEN_FILE:-rx580_token}
+  # vkm-source-policy/1 for every served source and the {read, write} access contexts (owned by VKM_DATA_UID, 0400)
+  source_policy:
+    file: ${VKM_SECRETS_DIR}/source_policy.json
+  access_contexts:
+    file: ${VKM_SECRETS_DIR}/access_contexts.json

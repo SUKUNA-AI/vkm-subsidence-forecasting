@@ -32,6 +32,10 @@ GROUPS: dict[str, str] = {
     "retrieval-service": "vkm_corpus.retrieval_service.cli",  # K: RX580 dense + late-interaction service
     "nav": "vkm_corpus.navigation.cli",                  # N: navigation layer (outlines, sections, formulas, concepts)
     "catalogues": "vkm_corpus.catalogues.cli",           # topic dossier: PUBLIC evidence catalogues as a DuckDB pack
+    "evidence": "vkm_evidence.cli",                    # immutable evidence, review and admission journal
+    "update": "vkm_corpus.update.cli",                 # qualified, resumable campaign contract
+    "deployment": "vkm_corpus.update.operator",         # fixed operator-owned CORE receiver lifecycle
+    "bootstrap": "vkm_corpus.update.bootstrap_native",  # isolated CLOSED first baseline, no serving admission
 }
 
 

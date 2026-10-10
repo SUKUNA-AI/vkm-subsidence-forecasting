@@ -121,7 +121,8 @@ def test_pyarrow_schema_matches_pure_description(name):
                                      R.make_bibliography_entry, R.make_document, R.make_source, R.make_work])
 def test_factories_produce_valid_rows(factory):
     row = factory()
-    assert row.schema_version == "0.1.0"
+    spec = next(spec for spec in DATASETS.values() if type(row) is spec.model)
+    assert row.schema_version == spec.version
 
 
 def test_content_hash_ignores_envelope_and_tracks_content():

@@ -1,0 +1,108 @@
+{
+  "additional_windows_world": {
+    "failed": 1,
+    "failure_node": "tests/world/test_validation.py::test_resolve_repo_path_rejects_symlink_escape",
+    "junit_sha256": "07cda12a9b8904cb923f2c9f9a828e60318bcfa62dec899e0a99ecab6edb58c4",
+    "not_run": 0,
+    "passed": 574,
+    "reason": "WinError 1314: native symlink privilege unavailable, including unsandboxed run; check not disabled",
+    "seconds": 23.6,
+    "status": "FAIL_ENVIRONMENT"
+  },
+  "challenger": "STATIC_REVIEW: findings fixed; no new P1 in final reviewed boundaries",
+  "date": "2026-10-04",
+  "guarantees": {
+    "git_settings_changed": false,
+    "models_executed": false,
+    "originals_modified": false,
+    "production_mutations": false,
+    "scientific_admission_granted": false
+  },
+  "installed_serving_code_sha256": "53f1f4a95ac943c621ffa786d7c993a72ad95431b3c5f58683ca1e4b84038631",
+  "limits": "CPU proofs are not bootstrap qualification, serving acceptance or scientific admission; overlapping selections are not summed.",
+  "linux": {
+    "failed": 0,
+    "junit_sha256": "453375e3c282505909c3373781f89ff7a855a7892747af26bcf8611afb773b83",
+    "not_run": 0,
+    "passed": 782,
+    "python": "3.13.5",
+    "seconds": 353.89,
+    "selection": "operator/API/MCP/admission/schema + all tests/world"
+  },
+  "not_run": [
+    "ACTUAL_DOCKER_RECREATE",
+    "REAL_49_TOOL_ACCEPTANCE",
+    "INDEPENDENT_REAL_BACKUP_RESTORE",
+    "CORE_EDGE_SWITCH",
+    "PHYSICAL_POWER_LOSS",
+    "CORPUS_EXTRACTION_REVIEW_CAMPAIGN"
+  ],
+  "open_code_gates": [
+    "PW-02-B_BOOTSTRAP_INTENT_RECEIPT",
+    "PW-02-P_PROMOTION",
+    "PW-03_ACTUAL_MODEL_OWNERS"
+  ],
+  "parent_commit": "f8b1160c4a3ec4cbb6ba1c0258b0caff0cecb4f1",
+  "schema": "vkm-durable-admission-cpu/1",
+  "schema_check": "PASS",
+  "scope": "SYNTHETIC_NONPRODUCTION",
+  "source_files_sha256": {
+    "schemas/evidence/durable_admission.schema.json": "9297a03ee5d324ac42cca37f3a6c24255421d18e14be558b12a65aeafefcb4e9",
+    "scripts/export_evidence_schema.py": "5f991468e883a3230266dedff7cce946d2a24e97e55fa4fa6430901bda15681b",
+    "scripts/run_offline_checks.py": "1781c38211c8e95c642a0df159801e85c1bde4f0ab74c12d292fa2b1182e21e7",
+    "src/vkm_corpus/api/production.py": "13b113d752df0e58cf2b2255689152def01940de1b80f6642535cccb3f14b1fa",
+    "src/vkm_corpus/mcp/http.py": "498ca6e5672aae87e9b304e413d23e9df5e7937417d273dff7ded8e6f909b515",
+    "src/vkm_corpus/update/admission.py": "2e4819a494525f4e96f387aa4ea014370b8c2a16dc1b3f480f0567d03a27887c",
+    "src/vkm_corpus/update/barrier.py": "762207582abeb5ec148eaa2991130ae0938129013921638e173948fe4e305ab3",
+    "src/vkm_corpus/update/deployment.py": "86d2dcca1c4de50a1dc3536ea3af47b0d678f5ada7b328536cc2539b8b5e3324",
+    "src/vkm_corpus/update/operator.py": "3b954f03979d1d04c94fc10d75c9de57a1e0f06642e3ccc91969ed40fb30821e",
+    "src/vkm_corpus/update/operator_units.py": "c4b1f1e87446e6509d277e49dfb3c7c013a5558c23ed0f2f5807912f8765e5cd",
+    "src/vkm_world/core/io.py": "ff10191a6af43cacd3031fd923614c3930225ac7909cabffd8df4879150d6750",
+    "tests/evidence/test_durable_admission.py": "d2b90f857e9839ee4a2a680af6f9293eef3f7f0e87c8ab4234b6333865a576a0",
+    "tests/evidence/test_production_serving.py": "106d23f5d5b72f94f2d9fa5bbf10951095e1f814bb182f88a140fca512f726e2",
+    "tests/world/test_publication_pipeline.py": "dba4200532cbb99415af507ca1772fa22e45d671fa5c8fa0cbde70c1c25deed8",
+    "tests/world/test_scientific_admission.py": "cfaf0030115957a9b8cdc6117b7befa5d49bee73cee214088649d886c3be25e8",
+    "tests/world/test_windows_path_aliases.py": "1c89effabf541ba64edc31715550e0a6dca61f0988c733f8153c9a3d037dbd5c"
+  },
+  "staged_public_private_verifier": {
+    "blocking_failures": [],
+    "exit_code": 0,
+    "status": "PASS_WITH_NONBLOCKING",
+    "summary": {
+      "by_status": {
+        "PASS": 36,
+        "SKIPPED_REF_UNAVAILABLE": 7
+      },
+      "checks": 43,
+      "elapsed_s": 8.516,
+      "groups_run": [
+        "registry",
+        "frozen_references",
+        "retired_references",
+        "private_sources",
+        "markdown_links",
+        "leakage",
+        "host_paths",
+        "worldspec_schema",
+        "catalogue_sync"
+      ]
+    }
+  },
+  "windows": {
+    "failed": 0,
+    "junit_sha256": "c977709cbf399b2b29ccb485c9c62d22d863a3ad2b1550a70d83fef5cb73a23d",
+    "not_run": 46,
+    "passed": 161,
+    "python": "3.13.13",
+    "seconds": 90.33,
+    "selection": "operator/API/MCP/admission/schema"
+  },
+  "windows_concurrent_path_regression": {
+    "after_passed_runs": 6,
+    "after_runs": 6,
+    "before_failed_runs": 4,
+    "before_runs": 6,
+    "method": "bounded instrumented multiprocessing probe; counts not added to qualification totals",
+    "tests_per_run": 2
+  }
+}

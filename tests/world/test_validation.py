@@ -272,7 +272,7 @@ def test_candidate_record_is_content_addressed_and_immutable(tmp_path):
     with pytest.raises(CandidateFreezeError, match="different frozen candidate"):
         freeze_candidate(tmp_path, "records/candidate.json", candidate(random_seed=1))
     art = tmp_path / "records" / "model.json"
-    art.write_text("{}\n", encoding="utf-8")
+    art.write_bytes(b"{}\n")
     with_art = candidate(artifact_hashes={"records/model.json": hashlib.sha256(b"{}\n").hexdigest()})
     assert verify_candidate_artifacts(tmp_path, with_art) == []
     art.write_text("{\"changed\": 1}\n", encoding="utf-8")
@@ -281,7 +281,7 @@ def test_candidate_record_is_content_addressed_and_immutable(tmp_path):
 
 def test_test_is_sealed_without_matching_frozen_candidate(tmp_path):
     config = tmp_path / "config.json"
-    config.write_text("{}\n", encoding="utf-8")
+    config.write_bytes(b"{}\n")
     artifacts = {"config.json": hashlib.sha256(b"{}\n").hexdigest()}
     rec = freeze_candidate(tmp_path, "records/candidate.json", candidate(artifact_hashes=artifacts))
     setup = dict(root=tmp_path, candidate_target="records/candidate.json", task="subsidence_rate", split_version="v1",

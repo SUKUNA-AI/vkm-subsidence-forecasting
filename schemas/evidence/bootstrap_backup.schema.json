@@ -1,0 +1,101 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "candidate_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Candidate Sha256",
+      "type": "string"
+    },
+    "copy_verification": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "independent_failure_domain": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+      "title": "Independent Failure Domain",
+      "type": "string"
+    },
+    "inventory_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Inventory Sha256",
+      "type": "string"
+    },
+    "legacy_topology_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Legacy Topology Sha256",
+      "type": "string"
+    },
+    "restore_verification": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "schema_version": {
+      "const": "vkm-bootstrap-backup/1",
+      "default": "vkm-bootstrap-backup/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "const": "BOOTSTRAP_SHADOW_PRODUCTION",
+      "default": "BOOTSTRAP_SHADOW_PRODUCTION",
+      "title": "Scope",
+      "type": "string"
+    },
+    "source_failure_domain": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+      "title": "Source Failure Domain",
+      "type": "string"
+    },
+    "status": {
+      "const": "INDEPENDENT_COPY_AND_RESTORE_VERIFIED",
+      "default": "INDEPENDENT_COPY_AND_RESTORE_VERIFIED",
+      "title": "Status",
+      "type": "string"
+    },
+    "verified_bytes": {
+      "exclusiveMinimum": 0,
+      "title": "Verified Bytes",
+      "type": "integer"
+    },
+    "verified_files": {
+      "exclusiveMinimum": 0,
+      "maximum": 10000000,
+      "title": "Verified Files",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "candidate_sha256",
+    "legacy_topology_sha256",
+    "inventory_sha256",
+    "source_failure_domain",
+    "independent_failure_domain",
+    "verified_files",
+    "verified_bytes",
+    "copy_verification",
+    "restore_verification"
+  ],
+  "title": "IndependentBootstrapBackup",
+  "type": "object"
+}

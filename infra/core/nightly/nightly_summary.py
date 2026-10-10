@@ -37,6 +37,7 @@ EXPECTED_MCP_TOOLS = 45
 DISK_FAIL_PCT, DISK_FAIL_BYTES = 10.0, 30 * 10**9
 DISK_WARN_PCT, DISK_WARN_BYTES = 20.0, 60 * 10**9
 BACKUP_WARN_H, BACKUP_FAIL_H = 26.0, 36.0
+BACKUP_CLOCK_SKEW_S = 300.0              # tolerate at most five minutes between the two host clocks
 EDGE_FREE_WARN_BYTES = 60 * 10**9
 TOPIC_DROP_WARN = 0.02                 # absolute drop of R@50 or MRR@50 against the previous run
 TOPIC_METRICS = ("page_recall@10", "page_recall@20", "page_recall@50", "mrr@50", "source_recall@10", "success@10")
@@ -491,7 +492,8 @@ def check_backup(run: Run, now: dt.datetime) -> dict[str, Any]:
             detail += f"; манифест CORE {source.get('name')}"
         return check("backup", TITLES["backup"], FAIL, detail)
     finished = parse_time(edge.get("finished_at"))
-    age_h = round((now - finished).total_seconds() / 3600, 1) if finished else None
+    age_s = (now - finished).total_seconds() if finished else None
+    age_h = round(age_s / 3600, 1) if age_s is not None else None
     verdict = edge.get("verdict")
     store = edge.get("store") or {}
     transfer = edge.get("transfer") or {}
@@ -500,13 +502,18 @@ def check_backup(run: Run, now: dt.datetime) -> dict[str, Any]:
               f"{gb_ru(src.get('bytes'))} (новых {gb_ru(transfer.get('bytes_transferred'))}), "
               f"снимков {store.get('count', '—')}, EDGE свободно {gb_ru(store.get('fs_free_bytes'))}")
     status = PASS
-    if edge.get("status") == "FAILED" or verdict == FAIL or age_h is None or age_h > BACKUP_FAIL_H:
+    if (edge.get("status") != "DONE" or verdict not in (PASS, WARN) or age_s is None
+            or age_s < -BACKUP_CLOCK_SKEW_S or age_s > BACKUP_FAIL_H * 3600):
         status = FAIL
-    elif verdict == WARN or age_h > BACKUP_WARN_H or store.get("over_budget") or \
+    elif verdict == WARN or age_s > BACKUP_WARN_H * 3600 or store.get("over_budget") or \
             (store.get("fs_free_bytes") is not None and store["fs_free_bytes"] < EDGE_FREE_WARN_BYTES):
         status = WARN
     if age_h is not None and age_h > BACKUP_WARN_H:
         detail += f"; квитанции {num_ru(age_h, 1)} ч"
+    if age_s is not None and age_s < -BACKUP_CLOCK_SKEW_S:
+        detail += "; время квитанции находится в будущем: проверить часы CORE/EDGE"
+    if edge.get("status") != "DONE" or verdict not in (PASS, WARN):
+        detail += "; нет подтверждённого завершения копирования"
     if edge.get("note"):
         detail += f"; {str(edge['note'])[:120]}"
     return check("backup", TITLES["backup"], status, detail, verdict=verdict, age_h=age_h,
@@ -576,6 +583,9 @@ def build_summary(run_dir: Path, *, base: Path | None = None, now: dt.datetime |
                   prev_dir: Path | None = None) -> dict[str, Any]:
     run = Run(run_dir)
     now = now or dt.datetime.now(dt.timezone.utc)
+    if now.tzinfo is None or now.utcoffset() is None:
+        raise ValueError("summary clock must be timezone-aware")
+    now = now.astimezone(dt.timezone.utc)
     base = base or run_dir.parent
     date = run.context.get("date") or run_dir.name[:10]
     if prev_dir is None:
@@ -653,7 +663,7 @@ def write_summary(run_dir: Path, summary: dict[str, Any]) -> None:
         os.replace(tmp, run_dir / name)
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: list[str] | None = None, *, now: dt.datetime | None = None) -> int:
     ap = argparse.ArgumentParser(prog="nightly_summary.py", description=__doc__.splitlines()[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
     b = sub.add_parser("build", help="summary.json + summary.md of a run directory")
@@ -672,7 +682,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     run_dir = Path(args.run_dir)
     summary = build_summary(run_dir, base=Path(args.base) if args.base else None,
-                            prev_dir=Path(args.prev_dir) if args.prev_dir else None)
+                            prev_dir=Path(args.prev_dir) if args.prev_dir else None, now=now)
     if not args.dry_run:
         write_summary(run_dir, summary)
     sys.stdout.write(summary["markdown"])

@@ -1,0 +1,154 @@
+{
+  "actual_cached_image": "NOT_RUN",
+  "actual_inference": "NOT_RUN",
+  "actual_loaded_gpu_model": "NOT_RUN",
+  "code_changes_since_owner_selection": "CACHED_BUILD_STAGE_LABELS_ONLY; placement code unchanged; independently tested actual ApiService factory forwards",
+  "date": "2026-10-04",
+  "declared_not_run": {
+    "owner_linux": [
+      "two Windows Job cases"
+    ],
+    "owner_windows": [
+      "24 procfs/inotify cases",
+      "two C++ cases: compiler absent",
+      "19 FD-relative Linux cases"
+    ]
+  },
+  "failed_harness_preserved": "DrvFS receiver qualification failed closed; native filesystem rerun passed",
+  "full_49_tool_acceptance": "NOT_RUN",
+  "hosted_ci": "PENDING_EXACT_COMMIT",
+  "native_cpp_compile": "PASS_LINUX_SYNTHETIC_NO_MODEL",
+  "optional_reports_scope": "Base optional observer tests before status correction; status reports qualify correction",
+  "private_payloads_keys_credentials_read": false,
+  "production_switch": "NOT_RUN",
+  "retired_text_route": "VISUAL_ONLY_TEXT_DISABLED_V2_REQUIRES_ACTUAL_API_LATE_AND_SAME_RETRIEVAL",
+  "root_independent_reports": {
+    "final_factory_and_inputs_linux": {
+      "artifact": "root-final-seam-linux-v1.xml",
+      "errors": 0,
+      "failures": 0,
+      "passed": 219,
+      "sha256": "d1ed2c4d6b0b8ac585183d35370b8635edb0bdf4c8054144be176cc09aed25e7",
+      "skipped": 0,
+      "tests": 219
+    },
+    "final_factory_and_inputs_windows": {
+      "artifact": "root-final-seam-win-v1.xml",
+      "errors": 0,
+      "failures": 0,
+      "passed": 219,
+      "sha256": "dc7bffe051badacefa58043dd1abc8fa157794b7dd9fa8362fb7191c8e49eb68",
+      "skipped": 0,
+      "tests": 219
+    },
+    "optional_linux": {
+      "artifact": "root-optional-review-linux-v1.xml",
+      "errors": 0,
+      "failures": 0,
+      "passed": 276,
+      "sha256": "b9d8abefe3a1207c4e678075dce1bbdab9d86c20ec9bb786c5ad64b56f9bb2d6",
+      "skipped": 0,
+      "tests": 276
+    },
+    "optional_windows": {
+      "artifact": "root-optional-review-win-v1.xml",
+      "errors": 0,
+      "failures": 0,
+      "passed": 276,
+      "sha256": "676ad3cdf921272f3330ca274f66d83b09cc84f487bc16bcd92f153069e68381",
+      "skipped": 0,
+      "tests": 276
+    },
+    "owner_linux": {
+      "artifact": "root-owner-final-linux-20261004-v3.xml",
+      "errors": 0,
+      "failures": 0,
+      "passed": 421,
+      "sha256": "69f5c1a120520a95639ed3b55385c425cd1d2f6c2a53ee8554763f5840f85072",
+      "skipped": 2,
+      "tests": 423
+    },
+    "owner_windows": {
+      "artifact": "root-owner-final-windows-20261004-v3.xml",
+      "errors": 0,
+      "failures": 0,
+      "passed": 378,
+      "sha256": "04d033bc52b9c52e05484c35ed1e25a82a70a5f2740a15cf4026b65385d82a1b",
+      "skipped": 45,
+      "tests": 423
+    },
+    "status_linux": {
+      "artifact": "root-status-review-linux-v1.xml",
+      "errors": 0,
+      "failures": 0,
+      "passed": 259,
+      "sha256": "4fd97141e0cf776accfd1fcef70edc09cb4301dba67a57ca265180713b62f4f5",
+      "skipped": 0,
+      "tests": 259
+    },
+    "status_windows": {
+      "artifact": "root-status-review-win-v1.xml",
+      "errors": 0,
+      "failures": 0,
+      "passed": 259,
+      "sha256": "952cdeeb8b38ba61f9d67e138800a5aa4389842c0298510b2b78f00bdb381048",
+      "skipped": 0,
+      "tests": 259
+    },
+    "world_linux": {
+      "artifact": "root-owner-world-20261004-v2.xml",
+      "errors": 0,
+      "failures": 0,
+      "passed": 648,
+      "sha256": "94c1c1827a5f691991a47fce2aa8c77fbffca21ef206483646e7fc808d402ef5",
+      "skipped": 0,
+      "tests": 648
+    }
+  },
+  "schema": "vkm-native-visual-and-optional-text-cpu-checkpoint/1",
+  "scientific_admission": "NOT_GRANTED",
+  "scope": "PUBLIC_SOFTWARE_AND_SYNTHETIC_CPU_ONLY",
+  "source_sha256": {
+    "docs/corpus_platform/VISUAL_OWNED_LOAD_WITNESS_RU.md": "b50376a114217dc4d29ac25213d9581ed16daa2147975780c9b9a47fdd90a335",
+    "docs/development/TEXT_OWNER_INTEGRATION_RU.md": "a2beda1fb139c0164e23f7e6567de143cd00ca7bc24d3158076fc6dc53f82722",
+    "infra/edge/llama-server/Dockerfile": "01e4d27a18cb888857a1bb1ef050d2c1b60324d5953dc2e57bc38fd134444924",
+    "infra/edge/llama-server/patches/0002-vkm-owned-loaded-witness.patch": "7a8927137f43215019f7cc256ff0eeef123f28280f9ae6f35479efa37d1a9003",
+    "infra/edge/llama-server/vkm-loaded-lifetime.h": "50baa9b0fce018bae8035a02546c90efa9ffcad28a87e77e656ba9206876581b",
+    "infra/edge/llama-server/vkm-weight-placement.h": "0037927fb9d0d21e4bf47c94c800c27819f99f3bbf9812f1f09527e3566dfcae",
+    "infra/edge/visual-owner/.dockerignore": "0f4c699f4fce2154ddb42cfbd61415dfcc0d0d0d7bb5672edc562abf093d641d",
+    "infra/edge/visual-owner/Dockerfile": "bd1dcc745a589ac311c7a05f8ca458b8a690051cb613997a603a2cf466fb3141",
+    "infra/edge/visual-owner/Dockerfile.cached-native": "1eaf3e8f5490a8f152d8f5bb3ecdd6b5923174764748255fa11febdb4c9b0110",
+    "infra/edge/visual-owner/README_RU.md": "f6d04d47e7bbee5f08ce543a72733c97ad2e0c16398b3b5bf304a5d21169342f",
+    "infra/edge/visual-owner/compose.yml": "14491427c8c0aa0a6b07861092cf3cedbdce5ee79f8550722d263cac39acf7ac",
+    "infra/edge/visual-owner/gpu_preflight.py": "1ea3caeb1ed05d6e51c9b51f362a2cbc37a64022ef7c2fd6139c8ae39a48803b",
+    "infra/edge/visual-owner/requirements.txt": "fb6fcf9a06e40867b256cec1fb8416756583d1a44a7ec5c51cafc16ab14eb494",
+    "infra/edge/visual-owner/verify_inputs.py": "ee5664233194e6974823506f0a3ef270ac7a968cb7cefd8c4988973a023de27c",
+    "infra/edge/visual-owner/verify_native_cache.py": "e77f56d9c8537b408a86a8397b14669f1f4a2c3947d1bbae47ca3a046f86855a",
+    "scripts/run_offline_checks.py": "da43819af81c9e0643493507ce1a0a6494ad1cd8ee7dfb3c42b6fb4192a56399",
+    "src/vkm_corpus/api/app.py": "1bd4a155546af2c6cfddd20adf567272f5288d58c9e6d141cd1655ac7e9d294e",
+    "src/vkm_corpus/api/production.py": "068d0f98b8072019828984e22ce4118b26b5339d01c6cea479bd082abbd65cb3",
+    "src/vkm_corpus/retrieval/gateway.py": "168617aeadedbe33a924ff7092649daf4c9e45429b0f771c566cff9ceb7be4bf",
+    "src/vkm_corpus/update/acceptance.py": "51918785ce20781cd4288a5a7b5170e84763298524ad24db0c23b22099b58015",
+    "src/vkm_corpus/update/bootstrap_native.py": "44fefe87a0e39d57cd9758025d9340e6ceafce68d50f984edf63fbf987b099b5",
+    "src/vkm_corpus/update/operator.py": "e6040a0d36065b9826fb99eb0cf3c232ab289fcc5850034a55a4f6db0e6ea3f7",
+    "src/vkm_corpus/update/remote_rerank.py": "94abcfaf318edc9a7477cf59b7e10fa0325c25b40cdd2328249506a56536ecaa",
+    "src/vkm_corpus/update/remote_services.py": "e2a17384a0bf5d3dad4e4b0f5581ee4e7834b1238d7927323b37cbd19b344b1e",
+    "src/vkm_corpus/update/service_identity.py": "ef1c5665451495dc8061da3df2ab3dcf91f63e083630e60f05a4b6380a082d39",
+    "src/vkm_corpus/update/serving.py": "efa632b17f71b94e33a6e485e238a2484246f4559931a551eeec51e55974f9ff",
+    "src/vkm_corpus/update/visual_owner_bridge.py": "89ddb3b45ef2c1b797e26ab1b0c3ea6da0275461db59589b899bdb4612b4db1b",
+    "src/vkm_corpus/update/visual_placement.py": "5ca1d07f087abe239db6fa5621d3f5b0d5cdc2269a04ca933811ef0a2aba6e24",
+    "tests/corpus/test_optional_text_factory_wiring.py": "04ff56b662e731292325f927b43a555b9b516dd17b65891f4e579868884f18fb",
+    "tests/corpus/test_optional_text_qualification.py": "a8c27f12bfc6743440888dcde8b56774733896ed185d19386e24d14481edc336",
+    "tests/corpus/test_visual_gpu_preflight.py": "73572576c11e19cb8547f2c59717568a2fa7a37d4dd43dc677bc9d2b4b0bab8b",
+    "tests/corpus/test_visual_native_cache.py": "923ed1752233afba4569f332d1ea94fd32e4964e950ea31780e8b30e426b9745",
+    "tests/corpus/test_visual_owner_bridge.py": "6b8a5adbda8a3dc8cdd24aa4c29ee26ae344ad11cbe87afd3f85559c9a08fa97",
+    "tests/corpus/test_visual_owner_inputs.py": "ee1964354f3a12dc37520d543ad2154dbab2b13d2d9611eea34907623cc65cdf",
+    "tests/corpus/test_visual_placement.py": "f8a4b8366b41969c0d0ae5d8f1e8189754c0057dd8de8a08c1b492d7397b42e3",
+    "tests/corpus/test_visual_weight_native_header.py": "10972b6f565af1f5950534464d884af74344960748249610993bbe20d3add18d",
+    "tests/native/test_loaded_lifetime.cpp": "d727bffe11c6b37d04702c8cad9063d69a8f446f3666394cc5530d108a632c6d",
+    "tests/native/test_weight_placement.cpp": "ac7d48cba6da8f78d7c377adf17a17dd4e17c88438990710e1b11501ee200f1a"
+  },
+  "status": "CODE_TESTED_ACTUAL_MODEL_NOT_RUN",
+  "strict_v1": "BOTH_NATIVE_MODELS_REQUIRED",
+  "workstation_gpu": "FORBIDDEN_NOT_USED"
+}

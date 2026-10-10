@@ -22,6 +22,7 @@ def _print(obj: Any) -> None:
 
 def _summary(report: dict[str, Any]) -> dict[str, Any]:
     return {"status": report["status"], "blocking_failures": report["blocking_failures"],
+            "accounting": report.get("accounting", {"status": "NOT_AVAILABLE"}),
             "warnings": report["warnings"], "counts": report.get("counts"),
             "not_pass": [{k: c[k] for k in ("check_id", "status", "violations", "examples")}
                          for c in report["checks"] if c["status"] != "PASS"]}
@@ -57,16 +58,19 @@ def cmd_status(args) -> int:
 
 def cmd_admit(args) -> int:
     from vkm_corpus.parquet.admit import admit
+    from vkm_corpus.publish.cli import _approval
 
-    res = admit(_layout("CANONICAL"))
+    res = admit(_layout("CANONICAL"), publication_approval=_approval(args), policy_path=args.policy)
     _print(res)
-    return 1 if res["rejected"] else 0
+    return 1 if res["rejected"] or res["pending"] or res.get("accounting") == "PENDING" else 0
 
 
 def _options(args):
     from vkm_corpus.parquet.validator import ValidationOptions
+    from vkm_corpus.publish.cli import _approval
 
-    return ValidationOptions(deep=args.deep, acceptance=args.acceptance, expected_sources=args.expected_sources)
+    return ValidationOptions(deep=args.deep, acceptance=args.acceptance, expected_sources=args.expected_sources,
+                             publication_approval=_approval(args), policy_path=args.policy)
 
 
 def cmd_snapshot(args) -> int:
@@ -75,7 +79,7 @@ def cmd_snapshot(args) -> int:
     res = build_snapshot(_layout("CANONICAL"), options=_options(args))
     _print({"snapshot_id": res["snapshot_id"], "current_moved": res["current_moved"],
             "manifest_path": res["manifest_path"], **_summary(res["report"])})
-    return 0 if res["current_moved"] else 1
+    return 0 if res["current_moved"] or res.get("noop") else 1
 
 
 def cmd_validate(args) -> int:
@@ -119,6 +123,7 @@ def cmd_schemas(args) -> int:
 
 
 def register(subparsers) -> None:
+    from vkm_corpus.publish.cli import _approval_args, _publication_call
     p = subparsers.add_parser("canon", help="canonical Parquet store: init, admit, snapshot, validate, status, gc")
     sub = p.add_subparsers(dest="canon_cmd", metavar="<command>")
     s = sub.add_parser("init", help="create the data root marker (STAGING on producers, CANONICAL on CORE)")
@@ -126,17 +131,20 @@ def register(subparsers) -> None:
     s.set_defaults(func=cmd_init)
     sub.add_parser("status", help="root kind, CURRENT, pending/rejected commits, crashed runs, leases").set_defaults(
         func=cmd_status)
-    sub.add_parser("admit", help="admit published commits (CANONICAL)").set_defaults(func=cmd_admit)
+    s = sub.add_parser("admit", help="admit published commits (CANONICAL)")
+    _approval_args(s)
+    s.set_defaults(func=_publication_call(cmd_admit))
     for name, fn, hlp in (("snapshot", cmd_snapshot, "build + validate a snapshot; CURRENT moves only on PASS"),
                           ("validate", cmd_validate, "validate a snapshot manifest (default CURRENT)")):
         s = sub.add_parser(name, help=hlp)
         s.add_argument("--deep", action="store_true", help="hash every stored blob")
         s.add_argument("--acceptance", action="store_true", help="acceptance mode (F02 blocking)")
         s.add_argument("--expected-sources", type=int, default=None, help="e.g. 251")
+        _approval_args(s)
         if name == "validate":
             s.add_argument("--snapshot", default=None)
             s.add_argument("--candidate", action="store_true")
-        s.set_defaults(func=fn)
+        s.set_defaults(func=_publication_call(fn))
     s = sub.add_parser("gc", help="list (or --delete) orphan partitions and stale tmp files older than 24 h")
     s.add_argument("--delete", action="store_true")
     s.add_argument("--min-age-hours", type=float, default=24.0)
@@ -149,5 +157,4 @@ def register(subparsers) -> None:
     s.add_argument("action", choices=["export", "check"])
     s.set_defaults(func=cmd_schemas)
     p.set_defaults(func=lambda args: (p.print_help(), 2)[1])
-
 

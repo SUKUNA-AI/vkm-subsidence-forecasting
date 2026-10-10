@@ -190,8 +190,15 @@ def extract_page(doc: Any, index0: int, font_cache: dict[int, tuple[bool, str, s
     # -- glyph statistics (texttrace: render mode / opacity reveal hidden OCR layers)
     codes: list[int] = []
     invisible = 0
-    for s in page.get_texttrace():
+    traces = []
+    for trace_index, s in enumerate(page.get_texttrace()):
         hidden = s.get("type") == 3 or s.get("opacity") == 0
+        traces.append({"locator": f"page:{index0 + 1}/texttrace:{trace_index}", "font": s.get("font"),
+                       "size": s.get("size"), "type": s.get("type"), "opacity": s.get("opacity"),
+                       "seqno": s.get("seqno"), "hidden": hidden,
+                       "chars": [{"ordinal": i, "unicode": ch[0], "glyph_id": ch[1],
+                                  "origin": rot_point(ch[2], m), "bbox": list(rot_bbox(ch[3], m))}
+                                 for i, ch in enumerate(s["chars"])]})
         for ch in s["chars"]:
             c = ch[0]
             if c in (0x20, 0x09, 0x0A, 0x0D, 0x0C, 0xA0) or c < 0:
@@ -199,6 +206,7 @@ def extract_page(doc: Any, index0: int, font_cache: dict[int, tuple[bool, str, s
             codes.append(c)
             if hidden:
                 invisible += 1
+    raw["texttrace"] = traces
     f.update(char_stats(codes))
     f["chars_invisible"] = invisible
     plain = page.get_text()  # default flags: byte-compatible with the Phase-1 text manifest (K-11)

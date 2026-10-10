@@ -14,7 +14,9 @@ import re
 import socket
 import tempfile
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Iterable, Mapping
+
+from vkm_jobs.errors import ToolFailure
 
 _PATH_CHARS = r"[^\s\"'<>|*?,;()\[\]{}]*"
 ABS_WINDOWS = re.compile(r"(?<![A-Za-z0-9_<])[A-Za-z]:[\\/]+" + _PATH_CHARS)
@@ -28,6 +30,20 @@ DRIVE_PATH = re.compile(r"(?<![A-Za-z0-9_])[A-Za-z]:[\\/](?=\w)")
 POSIX_HOST_DIR = re.compile(r"(?<![\w.~/\-])/(?:home|Users|root|mnt|media)/[\w.\-]")
 UNC = re.compile(r"(?<![\\\w])\\\\[A-Za-z0-9._-]+\\")
 MIN_NAME_LEN = 4            # account / host names shorter than this are not masked (they would hit ordinary words)
+# Field names of the job protocol are identities of the schema, not identities of the current OS user.
+# Arbitrary user mappings under DYNAMIC_FIELDS do not receive this exemption.
+PROTOCOL_KEYS = frozenset("""
+schema job_id label app name kind pool command cwd env_names git_commit git_dirty git_scope queued_at started_at
+ended_at queue_wait_s duration_s timeout_s exit_code status status_reason log_summary inputs outputs scratch checks
+checks_passed params model_choices result_status review_status runner vkm_jobs python platform process_tree job_dir
+meta detached error files errors warnings first_error license_failure path size_bytes sha256 bytes count jobs
+next_cursor queue_position gated reason progress receipt root service version value unit passed expected actual
+rtol atol pointer message isolation killed_by_runner processes pid parent_pid alive internal source code retryable
+details note available elapsed_s remaining_s completed total fraction percent phase work in out logs original
+format declared found missing required retained removed policy timestamp current cancelled cancel_requested
+already_terminal limit offset eof truncated next_offset matches lines text evidence_id status_code provenance
+""".split())
+DYNAMIC_FIELDS = frozenset({"params", "meta", "expected", "actual", "environment"})
 
 
 def _short_long_variants(path: str) -> set[str]:
@@ -71,7 +87,7 @@ class Redactor:
     """Rewrites machine-specific text to logical names (idempotent)."""
 
     def __init__(self, roots: Mapping[str, str | Path] | None = None, *, env: Mapping[str, str] | None = None,
-                 include_defaults: bool = True) -> None:
+                 include_defaults: bool = True, identifiers: Iterable[str] | None = None) -> None:
         merged: dict[str, str] = {}
         for logical, path in (roots or {}).items():
             if path:
@@ -87,7 +103,7 @@ class Redactor:
         pairs.sort(key=lambda kv: len(kv[0]), reverse=True)            # the most specific root wins
         self._roots = [(_root_pattern(v), logical) for v, logical in pairs]
         names = set()
-        for name in (_safe(getpass.getuser), _safe(socket.gethostname)):
+        for name in (identifiers if identifiers is not None else (_safe(getpass.getuser), _safe(socket.gethostname))):
             if name and len(name) >= MIN_NAME_LEN:
                 names.add(name)
         self._names = [re.compile(r"(?<![\w-])" + re.escape(n) + r"(?![\w-])", re.IGNORECASE) for n in names]
@@ -106,13 +122,26 @@ class Redactor:
         return PRIVATE_IPV4.sub("<IP>", out)
 
     def obj(self, value: Any) -> Any:
-        """Redact every string (keys too) of a JSON-like value."""
+        """Redact JSON values and dynamic keys while preserving declared protocol fields.
+
+        Two different keys must never silently collapse into the same redacted key. Such a payload cannot be
+        represented losslessly and is blocked before returning/publishing any result.
+        """
+        return self._obj(value, protocol=True)
+
+    def _obj(self, value: Any, *, protocol: bool) -> Any:
         if isinstance(value, str):
             return self.text(value)
         if isinstance(value, dict):
-            return {self.text(k) if isinstance(k, str) else k: self.obj(v) for k, v in value.items()}
+            out = {}
+            for key, item in value.items():
+                new_key = key if protocol and key in PROTOCOL_KEYS else self.text(key) if isinstance(key, str) else key
+                if new_key in out:
+                    raise ToolFailure("PUBLISH_BLOCKED", "redaction would merge distinct object keys")
+                out[new_key] = self._obj(item, protocol=protocol and key not in DYNAMIC_FIELDS)
+            return out
         if isinstance(value, (list, tuple)):
-            return [self.obj(v) for v in value]
+            return [self._obj(v, protocol=protocol) for v in value]
         return value
 
 
@@ -123,16 +152,20 @@ def _safe(fn) -> str | None:
         return None
 
 
-def public_text_problems(text: str) -> list[str]:
-    """Why ``text`` may not enter the PUBLIC tree: host paths, drive letters, UNC, private IPs, secrets, names."""
+def public_text_problems(text: str, *, identifiers: Iterable[str] = ()) -> list[str]:
+    """Deterministic static hygiene: paths, private IPs, secrets and explicitly supplied sensitive identifiers.
+
+    Host/user discovery belongs to the runtime Redactor; applying it to source code makes ordinary words such as
+    a protocol's ``runner`` field change the verdict depending on the CI account name.
+    """
     problems = []
     for label, pattern in (("windows drive path", DRIVE_PATH), ("posix host path", POSIX_HOST_DIR), ("UNC path", UNC),
                            ("private IPv4", PRIVATE_IPV4), ("secret", SECRET)):
         m = pattern.search(text)
         if m:
             problems.append(f"{label}: …{text[max(0, m.start() - 20):m.end() + 20]}…")
-    for name in (_safe(getpass.getuser), _safe(socket.gethostname)):
+    for name in identifiers:
         if name and len(name) >= MIN_NAME_LEN and re.search(r"(?<![\w-])" + re.escape(name) + r"(?![\w-])", text,
                                                             re.IGNORECASE):
-            problems.append("account or host name of this machine")
+            problems.append("explicit sensitive identifier")
     return problems

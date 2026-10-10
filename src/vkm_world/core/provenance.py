@@ -242,7 +242,7 @@ class TemporalSupport(BaseModel):
         if self.available_from:
             for name in ("measurement_date", "processing_date"):
                 d = getattr(self, name)
-                if d and self.available_from < d:
+                if d and self.available_latest() < date_bounds(d, self.precision)[0]:
                     raise ValueError(f"available_from precedes {name}: information cannot be available before it exists")
         return self
 

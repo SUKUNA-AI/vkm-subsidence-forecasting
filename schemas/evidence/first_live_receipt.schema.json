@@ -1,0 +1,88 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "authority_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Authority Sha256",
+      "type": "string"
+    },
+    "candidate_generation_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Candidate Generation Sha256",
+      "type": "string"
+    },
+    "frontdoor_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Frontdoor Sha256",
+      "type": "string"
+    },
+    "intent_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Intent Sha256",
+      "type": "string"
+    },
+    "journal_head_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Journal Head Sha256",
+      "type": "string"
+    },
+    "native_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Native Sha256",
+      "type": "string"
+    },
+    "reboot_safety": {
+      "const": "NOT_QUALIFIED",
+      "default": "NOT_QUALIFIED",
+      "title": "Reboot Safety",
+      "type": "string"
+    },
+    "rollback_scope": {
+      "const": "RECEIVER_CONTROL_ONLY_SHARED_STATE_UNCHANGED",
+      "default": "RECEIVER_CONTROL_ONLY_SHARED_STATE_UNCHANGED",
+      "title": "Rollback Scope",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-first-live-result/1",
+      "default": "vkm-first-live-result/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scientific_admission": {
+      "const": false,
+      "default": false,
+      "title": "Scientific Admission",
+      "type": "boolean"
+    },
+    "scope": {
+      "enum": [
+        "SYNTHETIC",
+        "FIRST_LIVE_PRODUCTION"
+      ],
+      "title": "Scope",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "PRIVATE_49_VERIFIED_CLOSED",
+        "LEGACY_RESTORED_UNQUALIFIED_CLOSED",
+        "FIRST_LIVE_ACTIVATED"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scope",
+    "status",
+    "intent_sha256",
+    "authority_sha256",
+    "candidate_generation_sha256",
+    "journal_head_sha256",
+    "native_sha256",
+    "frontdoor_sha256"
+  ],
+  "title": "FirstLiveReceipt",
+  "type": "object"
+}

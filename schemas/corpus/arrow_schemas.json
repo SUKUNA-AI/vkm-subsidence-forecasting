@@ -1615,6 +1615,11 @@
      "name": "vector_artifacts",
      "nullable": false,
      "type": "list<item: struct<format: string not null, artifact_id: string not null>>"
+    },
+    {
+     "name": "raw_locator",
+     "nullable": true,
+     "type": "string"
     }
    ],
    "partition_keys": [
@@ -1624,8 +1629,8 @@
    "primary_key": [
     "object_id"
    ],
-   "schema_fingerprint": "898cc0fa9f8ed1aadc3a6f71f635b885cf06cf9f28d595e70e5fed2b19a5cc50",
-   "schema_version": "0.1.0",
+   "schema_fingerprint": "a1e8f43c2a7d5a1e530a7b9caeb8c3f17de4e0c6c500c1410cec77fe921ceff5",
+   "schema_version": "0.1.1",
    "sort_key": [
     "page_id",
     "bbox_y0",
@@ -1871,6 +1876,11 @@
      "name": "image_dpi",
      "nullable": true,
      "type": "int16"
+    },
+    {
+     "name": "raw_locator",
+     "nullable": true,
+     "type": "string"
     }
    ],
    "partition_keys": [
@@ -1880,8 +1890,8 @@
    "primary_key": [
     "object_id"
    ],
-   "schema_fingerprint": "1f94c66a512a6cdd9a617b822754a01bf0e2cb327905067ad73ca160d39e2c0f",
-   "schema_version": "0.1.0",
+   "schema_fingerprint": "344557cd60cdd43e7c1e3d8c1908717d7e8803f8fdc86d7c969cd7fd05b81f05",
+   "schema_version": "0.1.1",
    "sort_key": [
     "page_id",
     "bbox_y0",
@@ -3436,6 +3446,16 @@
      "name": "continues_object_id",
      "nullable": true,
      "type": "string"
+    },
+    {
+     "name": "raw_locator",
+     "nullable": true,
+     "type": "string"
+    },
+    {
+     "name": "continuation_provenance",
+     "nullable": true,
+     "type": "struct<candidate: struct<source_sha256: string not null, target_page_index: int32 not null, target_raw_locator: string not null, target_raw_content_sha256: string not null, declaration_locator: string not null, declaration_artifact_id: string not null, basis: string not null, review_status: string not null> not null, candidate_sha256: string not null, target_object_id: string not null, target_extraction_generation: int32 not null>"
     }
    ],
    "partition_keys": [
@@ -3445,8 +3465,8 @@
    "primary_key": [
     "object_id"
    ],
-   "schema_fingerprint": "087678688e16af432f289c530c3ba76dad7c8ff1ba6a8bd7f050ff0502b1a1e8",
-   "schema_version": "0.1.0",
+   "schema_fingerprint": "4f656593233fb58d366f15b2422da9c363bbce31632acb4e97d7788541eb1619",
+   "schema_version": "0.1.2",
    "sort_key": [
     "page_id",
     "bbox_y0",

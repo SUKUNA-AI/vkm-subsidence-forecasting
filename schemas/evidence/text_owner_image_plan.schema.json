@@ -1,0 +1,110 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Exact immutable Python-3.13 image inputs; never an image-ready claim.",
+  "properties": {
+    "base_image": {
+      "pattern": "^[A-Za-z0-9._/:+-]+@sha256:[0-9a-f]{64}$",
+      "title": "Base Image",
+      "type": "string"
+    },
+    "base_verification": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "cuda_version": {
+      "const": "13.2",
+      "default": "13.2",
+      "title": "Cuda Version",
+      "type": "string"
+    },
+    "dependency_lock": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "dependency_wheels": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/BoundFile"
+      },
+      "maxItems": 512,
+      "title": "Dependency Wheels",
+      "type": "array"
+    },
+    "dockerfile": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "native_wheel": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "public_wheel": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "pydantic_version": {
+      "const": "2.13.5",
+      "default": "2.13.5",
+      "title": "Pydantic Version",
+      "type": "string"
+    },
+    "python_version": {
+      "const": "3.13.13",
+      "default": "3.13.13",
+      "title": "Python Version",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-text-owner-image-plan/1",
+      "default": "vkm-text-owner-image-plan/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "const": "PLANNED_NOT_BUILT",
+      "default": "PLANNED_NOT_BUILT",
+      "title": "Status",
+      "type": "string"
+    },
+    "torch_version": {
+      "pattern": "^2\\.14\\.0(?:\\+cu132)?$",
+      "title": "Torch Version",
+      "type": "string"
+    },
+    "transformers_version": {
+      "const": "4.57.3",
+      "default": "4.57.3",
+      "title": "Transformers Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "base_image",
+    "base_verification",
+    "dockerfile",
+    "public_wheel",
+    "native_wheel",
+    "dependency_lock",
+    "torch_version"
+  ],
+  "title": "TextOwnerImagePlan",
+  "type": "object"
+}

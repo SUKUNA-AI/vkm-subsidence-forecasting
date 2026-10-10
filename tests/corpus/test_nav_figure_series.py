@@ -322,9 +322,11 @@ def test_import_copies_byte_for_byte_and_merges_the_manifest(world, tmp_path):
     m = json.loads((nav / "manifest.json").read_text(encoding="utf-8"))
     assert "sections" in m["datasets"] and m["parts"]["sections"]["status"] == "BUILT"
     assert m["parts"]["figure_series"]["imported"]["bundle_manifest_sha256"] == out["bundle_manifest_sha256"]
-    # CORE records no workstation path: an option holding a path keeps its last name only
+    # The dependency contract records a portable, explicitly unqualified directory
+    # identity. It cannot promote an unhashed resource directory to checked bytes.
     assert str(world["root"]) not in json.dumps(m["parts"]["figure_series"])
-    assert m["parts"]["figure_series"]["options"]["resources"] == "<file>/" + world["root"].name
+    assert m["parts"]["figure_series"]["options"]["resources"] == {
+        "directory": world["root"].name, "qualification": "UNVERIFIED_EXTERNAL_DIRECTORY"}
     # served: pack, publish, query through the NAV store
     root = tmp_path / "data"
     served = root / "derived" / "navigation" / SNAP

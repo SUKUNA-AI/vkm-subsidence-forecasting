@@ -1,0 +1,425 @@
+{
+  "$defs": {
+    "AccessContext": {
+      "additionalProperties": false,
+      "properties": {
+        "allow_targets": {
+          "default": false,
+          "title": "Allow Targets",
+          "type": "boolean"
+        },
+        "execution": {
+          "pattern": "^(LOCAL|CLOUD)$",
+          "title": "Execution",
+          "type": "string"
+        },
+        "granted_classes": {
+          "default": [
+            "PUBLIC"
+          ],
+          "items": {
+            "$ref": "#/$defs/DataAccessClass"
+          },
+          "title": "Granted Classes",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "principal": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Principal",
+          "type": "string"
+        }
+      },
+      "required": [
+        "principal",
+        "execution"
+      ],
+      "title": "AccessContext",
+      "type": "object"
+    },
+    "DataAccessClass": {
+      "enum": [
+        "PUBLIC",
+        "PRIVATE_CLOUD_ALLOWED",
+        "PRIVATE_LOCAL_ONLY",
+        "RESTRICTED",
+        "SEALED"
+      ],
+      "title": "DataAccessClass",
+      "type": "string"
+    },
+    "ExperimentalRole": {
+      "enum": [
+        "INPUT",
+        "CALIBRATION",
+        "VALIDATION",
+        "TEST_SEALED",
+        "TARGET",
+        "UNKNOWN"
+      ],
+      "title": "ExperimentalRole",
+      "type": "string"
+    },
+    "ExtractionBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "max_candidates": {
+          "maximum": 256,
+          "minimum": 1,
+          "title": "Max Candidates",
+          "type": "integer"
+        },
+        "max_input_bytes": {
+          "maximum": 1048576,
+          "minimum": 1,
+          "title": "Max Input Bytes",
+          "type": "integer"
+        },
+        "max_input_tokens": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Max Input Tokens",
+          "type": "integer"
+        },
+        "max_inputs": {
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Max Inputs",
+          "type": "integer"
+        },
+        "max_object_bytes": {
+          "maximum": 16777216,
+          "minimum": 1,
+          "title": "Max Object Bytes",
+          "type": "integer"
+        },
+        "max_output_tokens": {
+          "maximum": 65536,
+          "minimum": 1,
+          "title": "Max Output Tokens",
+          "type": "integer"
+        },
+        "max_response_bytes": {
+          "maximum": 2097152,
+          "minimum": 1,
+          "title": "Max Response Bytes",
+          "type": "integer"
+        },
+        "memory_bytes": {
+          "maximum": 137438953472,
+          "minimum": 134217728,
+          "title": "Memory Bytes",
+          "type": "integer"
+        },
+        "min_free_disk_bytes": {
+          "minimum": 1,
+          "title": "Min Free Disk Bytes",
+          "type": "integer"
+        },
+        "timeout_seconds": {
+          "maximum": 3600,
+          "minimum": 1,
+          "title": "Timeout Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_inputs",
+        "max_object_bytes",
+        "max_input_bytes",
+        "max_response_bytes",
+        "max_candidates",
+        "max_input_tokens",
+        "max_output_tokens",
+        "timeout_seconds",
+        "memory_bytes",
+        "min_free_disk_bytes"
+      ],
+      "title": "ExtractionBudget",
+      "type": "object"
+    },
+    "ModelPin": {
+      "additionalProperties": false,
+      "properties": {
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "execution": {
+          "enum": [
+            "LOCAL",
+            "CLOUD"
+          ],
+          "title": "Execution",
+          "type": "string"
+        },
+        "identity_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Identity Sha256",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "prompt_format_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Prompt Format Sha256",
+          "type": "string"
+        },
+        "tokenizer_overhead_tokens": {
+          "maximum": 65536,
+          "minimum": 0,
+          "title": "Tokenizer Overhead Tokens",
+          "type": "integer"
+        },
+        "tokenizer_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Tokenizer Sha256",
+          "type": "string"
+        },
+        "weights_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Weights Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "endpoint",
+        "model",
+        "weights_sha256",
+        "tokenizer_sha256",
+        "identity_sha256",
+        "prompt_format_sha256",
+        "tokenizer_overhead_tokens",
+        "execution"
+      ],
+      "title": "ModelPin",
+      "type": "object"
+    },
+    "ObjectRef": {
+      "additionalProperties": false,
+      "properties": {
+        "char_end": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char End"
+        },
+        "char_start": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char Start"
+        },
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        },
+        "extraction_generation": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Extraction Generation",
+          "type": "string"
+        },
+        "fragment_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fragment Sha256"
+        },
+        "locator": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Locator",
+          "type": "string"
+        },
+        "object_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Object Id",
+          "type": "string"
+        },
+        "object_version": {
+          "maxLength": 256,
+          "minLength": 1,
+          "title": "Object Version",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "source_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_sha256",
+        "snapshot_id",
+        "object_id",
+        "object_version",
+        "content_sha256",
+        "locator",
+        "extraction_generation"
+      ],
+      "title": "ObjectRef",
+      "type": "object"
+    },
+    "ResourcePolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "access_class": {
+          "$ref": "#/$defs/DataAccessClass",
+          "default": "RESTRICTED"
+        },
+        "authority": {
+          "minLength": 1,
+          "title": "Authority",
+          "type": "string"
+        },
+        "experimental_role": {
+          "$ref": "#/$defs/ExperimentalRole",
+          "default": "UNKNOWN"
+        },
+        "policy_version": {
+          "minLength": 1,
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "restrictions": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Restrictions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "policy_version",
+        "authority"
+      ],
+      "title": "ResourcePolicy",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "actor": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Actor",
+      "type": "string"
+    },
+    "budget": {
+      "$ref": "#/$defs/ExtractionBudget"
+    },
+    "context": {
+      "$ref": "#/$defs/AccessContext"
+    },
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/ObjectRef"
+      },
+      "maxItems": 64,
+      "minItems": 1,
+      "title": "Inputs",
+      "type": "array"
+    },
+    "model": {
+      "$ref": "#/$defs/ModelPin"
+    },
+    "output_policy": {
+      "$ref": "#/$defs/ResourcePolicy"
+    },
+    "prompt_sha256": {
+      "default": "a93d7046236926588b4efd3feaab93143e616b5e30399d1b94b97865651fcc8f",
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Prompt Sha256",
+      "type": "string"
+    },
+    "recorded_at": {
+      "title": "Recorded At",
+      "type": "string"
+    },
+    "rule_version": {
+      "const": "source-candidates/1",
+      "default": "source-candidates/1",
+      "title": "Rule Version",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-evidence-extraction-plan/1",
+      "default": "vkm-evidence-extraction-plan/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "enum": [
+        "SYNTHETIC",
+        "PRODUCTION"
+      ],
+      "title": "Scope",
+      "type": "string"
+    },
+    "seed": {
+      "maximum": 2147483647,
+      "minimum": 0,
+      "title": "Seed",
+      "type": "integer"
+    },
+    "source_policies_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Source Policies Sha256",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scope",
+    "inputs",
+    "source_policies_sha256",
+    "model",
+    "budget",
+    "context",
+    "output_policy",
+    "actor",
+    "recorded_at",
+    "seed"
+  ],
+  "title": "ExtractionPlan",
+  "type": "object"
+}

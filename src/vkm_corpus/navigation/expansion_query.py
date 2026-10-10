@@ -20,7 +20,7 @@ result is DERIVED navigation (``AUTO_EXTRACTED_UNREVIEWED``): a query expansion,
 """
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 from vkm_corpus.navigation.concepts import Morphology, analyze_text
 
@@ -76,9 +76,13 @@ def _exists(con: Any, name: str) -> bool:
 
 def expand_query(con: Any, text: str, *, min_score: float = MIN_SCORE, narrower: bool = True,
                  narrower_min_df: int = NARROWER_MIN_DF, max_expansions: int = MAX_EXPANSIONS,
-                 tables: Mapping[str, str] | None = None, morph: Morphology | None = None) -> dict[str, Any]:
+                 relations: Sequence[str] = RELATIONS, tables: Mapping[str, str] | None = None,
+                 morph: Morphology | None = None) -> dict[str, Any]:
     """≤ ``max_expansions`` other wordings of ``text``: ``equivalents`` (synonyms / abbreviations of its phrases) and
-    ``narrower`` (+ one narrower term). ``terms`` lists what was used; a build without a table skips its part."""
+    ``narrower`` (+ one narrower term). ``relations`` limits the equivalents to SYNONYM or ABBREVIATION pairs (the
+    hybrid search's ``expand=terms`` asks for each alone). ``terms`` lists what was used; a build without a table
+    skips its part."""
+    relations = tuple(r for r in RELATIONS if r in set(relations))
     t = {**DEFAULT_TABLES, **(tables or {})}
     q = " ".join((text or "").split())
     out: dict[str, Any] = {"query": q, "expansions": [], "phrases": 0, "note": NOTE}
@@ -103,7 +107,7 @@ def expand_query(con: Any, text: str, *, min_score: float = MIN_SCORE, narrower:
     keys = sorted(keyset)
     expansions: list[dict[str, Any]] = []
     # ---- equivalents: synonyms and abbreviations of the dictionary
-    if _exists(con, t["term_translations"]):
+    if relations and _exists(con, t["term_translations"]):
         ks = [f"{lg}\t{k}" for lg, k in keys]
         pairs = _rows(con, f"""
             SELECT pair_id, relation, lang_a, key_a, lemma_a, lang_b, key_b, lemma_b, in_terms_a, in_terms_b, score
@@ -111,7 +115,7 @@ def expand_query(con: Any, text: str, *, min_score: float = MIN_SCORE, narrower:
             WHERE score >= ? AND relation IN (SELECT unnest(?::VARCHAR[]))
               AND (lang_a || chr(9) || key_a IN (SELECT unnest(?::VARCHAR[]))
                    OR lang_b || chr(9) || key_b IN (SELECT unnest(?::VARCHAR[])))
-            ORDER BY score DESC, pair_id""", [float(min_score), list(RELATIONS), ks, ks])
+            ORDER BY score DESC, pair_id""", [float(min_score), list(relations), ks, ks])
         best: dict[tuple[str, str], dict[str, Any]] = {}
         for p in pairs:
             for side, other in (("a", "b"), ("b", "a")):

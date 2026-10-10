@@ -626,7 +626,13 @@ class PackStore:
         man_path = self.directory / MANIFEST_FILE
         if not man_path.is_file():
             raise PackError("E_PREFLIGHT", f"no {MANIFEST_FILE} in the pack directory")
-        self.manifest = json.loads(man_path.read_text(encoding="utf-8"))
+        from vkm_corpus.update.remote_pack import file_signatures
+        from vkm_corpus.update.native_files import optional_watch
+        self._load_watch = optional_watch(self.directory / n for n in (MANIFEST_FILE, TOKENS_FILE, INDEX_FILE))
+        self._load_signatures = file_signatures(self.directory)
+        manifest_bytes = man_path.read_bytes()
+        self._load_manifest_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
+        self.manifest = json.loads(manifest_bytes)
         if self.manifest.get("schema") != PACK_SCHEMA or self.manifest.get("dtype") != "float16":
             raise PackError("E_PREFLIGHT", f"not a {PACK_SCHEMA} float16 pack")
         self.dim = int(self.manifest["dimension"])
@@ -675,6 +681,9 @@ class PackStore:
                 self._object.setdefault(objs[0], i)
         del idx
         self._mm = np.memmap(tokens, dtype=DTYPE, mode="r", shape=(max(1, self.total), self.dim))
+        if file_signatures(self.directory) != self._load_signatures:
+            _close_memmap(self._mm)
+            raise PackError("E_DIGEST_MISMATCH", "pack changed while loading")
         self.rss_budget = rss_budget_bytes
         self._touched = 0
         self._lock = threading.Lock()
@@ -815,6 +824,9 @@ class PackStore:
         return out
 
     def close(self) -> None:
+        watch = getattr(self, "_load_watch", None)
+        if watch is not None:
+            watch.close()
         mm = getattr(self._mm, "_mmap", None)
         self._mm = None
         if mm is not None:
@@ -842,6 +854,7 @@ class PackHandle:
         self._status: dict[str, Any] = {"status": "NOT_LOADED"}
         self._checked = -math.inf
         self.loads = 0
+        self._qualified_lease = None
         self.refresh(force=True)
 
     def _target(self) -> Path | None:
@@ -851,6 +864,16 @@ class PackHandle:
         return None if ptr is None else self.directory / PACKS_DIR / ptr["pack_id"]
 
     def refresh(self, *, force: bool = False) -> None:
+        if self._qualified_lease is not None:
+            try:
+                if self._target() != self._store.directory:
+                    raise ValueError("pack selector changed; generation rebind required")
+                self._qualified_lease.observe()
+                self._status = {**self._status_of_store(), "identity_status": "QUALIFIED_IMMUTABLE"}
+            except (OSError, ValueError, KeyError, PackError) as exc:
+                self._status = {"status": "UNAVAILABLE", "reason": type(exc).__name__,
+                                "identity_status": "GENERATION_REBIND_REQUIRED"}
+            return
         now = self._clock()
         if not force and now - self._checked < self.check_s:
             return
@@ -900,6 +923,8 @@ class PackHandle:
     def current(self) -> PackStore:
         """The store to use now; ``LookupError`` (→ HTTP 503) when there is none."""
         self.refresh()
+        if self._qualified_lease is not None and self._status.get("status") != "READY":
+            raise LookupError("qualified pack generation is unavailable; rebind required")
         store = self._store
         if store is None:
             raise LookupError(f"late-interaction token store {self._status.get('status')}: "
@@ -909,6 +934,39 @@ class PackHandle:
     def status(self) -> dict[str, Any]:
         self.refresh()
         out = dict(self._status)
-        if self._store is not None:
+        if self._store is not None and (self._qualified_lease is None or self._status.get("status") == "READY"):
             out.update({"status": "READY", "releases": self._store.releases, "loads": self.loads})
         return out
+
+    def bind_qualified_identity(self, *, expected_manifest_sha256: str) -> dict[str, Any]:
+        """Explicit transition to an immutable generation; compatibility hot reload stays opt-in separate.
+
+        Call after startup and before admitting readers. A new selector requires
+        a new handle/rebind under the deployment controller's drained lease.
+        """
+        from vkm_corpus.update.remote_pack import QualifiedPackLease
+        self.refresh(force=True)
+        if self._qualified_lease is not None:
+            result = self.qualified_identity()
+            if result["manifest_sha256"] != expected_manifest_sha256:
+                raise ValueError("qualified pack rebind requires a new handle")
+            return result
+        with self._lock:
+            if self._store is None or self._status.get("last_error") or self._target() != self._store.directory:
+                raise ValueError("selected pack is not the successfully loaded store")
+            lease = QualifiedPackLease(self._store)
+            if lease.identity["manifest_sha256"] != expected_manifest_sha256:
+                raise ValueError("selected pack differs from pinned native manifest")
+            if self._target() != self._store.directory:
+                raise ValueError("pack selector changed during bind")
+            self._qualified_lease = lease
+        return self.qualified_identity()
+
+    def qualified_identity(self) -> dict[str, Any]:
+        """Read-only identity endpoint; never implicitly hashes/reloads/qualifies a pack."""
+        if self._qualified_lease is None:
+            raise ValueError("pack identity has not been qualified")
+        self.refresh(force=True)
+        if self._status.get("status") != "READY":
+            raise ValueError("qualified pack changed; generation rebind required")
+        return self._qualified_lease.observe()

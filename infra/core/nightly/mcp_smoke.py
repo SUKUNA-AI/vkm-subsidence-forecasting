@@ -26,7 +26,7 @@ import sys
 import time
 from datetime import datetime, timezone
 
-VERSION = "nightly-mcp-smoke-4"
+VERSION = "nightly-mcp-smoke-6"
 EXPECTED_TOOLS = (
     "search_text", "search_hybrid", "retrieval_trace", "search_objects", "get_source", "get_work", "get_page",
     "get_page_image", "get_figure", "get_table", "get_formula", "get_object", "get_document_neighbors",
@@ -39,7 +39,11 @@ EXPECTED_TOOLS = (
     "get_table_structured", "find_tables", "copies_of_object", "shared_formulas",
     # digitized chart series (agent FD2, 29.09)
     "find_figure_series", "get_figure_series",
+    # versioned, access-filtered evidence (production data program, 01.10)
+    "list_evidence", "get_evidence_record", "get_evidence_dependencies", "get_evidence_review_packet",
 )
+EVIDENCE_TOOLS = frozenset({"list_evidence", "get_evidence_record", "get_evidence_dependencies",
+                            "get_evidence_review_packet"})
 # service failures (the tool layer or a dependency is broken); other error codes are data errors of the input
 FAIL_CODES = {"DEPENDENCY_UNAVAILABLE", "DEPENDENCY_TIMEOUT", "DEPENDENCY_ERROR", "INTERNAL", "INTERNAL_ERROR",
               "UNAUTHORIZED", "FORBIDDEN", "SNAPSHOT_UNAVAILABLE", "TIMEOUT", "EXCEPTION", "NO_ANSWER"}
@@ -69,7 +73,9 @@ class Harvest:
 
     def __init__(self):
         self.ids = {k: [] for k in RE}
+        self.ids["evidence_record"] = []
         self.image_figures = []
+        self.evidence_journal = None             # production_controls.evidence_journal of get_corpus_status
 
     def add(self, body):
         text = json.dumps(body, ensure_ascii=False)
@@ -81,12 +87,43 @@ class Harvest:
     def first(self, kind):
         return self.ids[kind][0] if self.ids[kind] else None
 
+    def add_status(self, body):
+        """Record whether the API itself reports an evidence journal (CONFIGURED / NOT_PUBLISHED)."""
+        stack, seen = [body], 0
+        while stack and seen < 200:
+            node = stack.pop(); seen += 1
+            if isinstance(node, dict):
+                controls = node.get("production_controls")
+                if isinstance(controls, dict) and isinstance(controls.get("evidence_journal"), str):
+                    self.evidence_journal = controls["evidence_journal"]
+                    return
+                stack.extend(node.values())
+            elif isinstance(node, list):
+                stack.extend(node)
+
+    def add_evidence_page(self, body):
+        """Use only actual permitted records, never an id embedded in quoted text or an error."""
+        if not body.get("ok"):
+            return
+        for record in ((body.get("item") or {}).get("record") or {}).get("items") or []:
+            record_id = record.get("record_id") if isinstance(record, dict) else None
+            if isinstance(record_id, str) and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}", record_id):
+                if record_id not in self.ids["evidence_record"]:
+                    self.ids["evidence_record"].append(record_id)
+
 
 def plan():
     """(tool, arguments or a function of the harvest → arguments or None) in call order."""
     h = lambda kind: (lambda hv: hv.first(kind))  # noqa: E731
     return [
         ("get_corpus_status", {}),
+        ("list_evidence", {"limit": 1}),
+        ("get_evidence_record", lambda hv: hv.first("evidence_record") and
+         {"record_id": hv.first("evidence_record")}),
+        ("get_evidence_dependencies", lambda hv: hv.first("evidence_record") and
+         {"record_id": hv.first("evidence_record"), "limit": 3}),
+        ("get_evidence_review_packet", lambda hv: hv.first("evidence_record") and
+         {"record_id": hv.first("evidence_record")}),
         ("search_text", {"query": QUERY, "kinds": ["PAGE", "BLOCK"], "limit": 10}),
         ("search_hybrid", {"query": "ползучесть каменной соли", "limit": 5}),
         ("retrieval_trace", {"query": "мульда сдвижения", "limit": 5}),
@@ -172,6 +209,12 @@ async def run(client, deadline_s=600.0, call_timeout_s=240.0):
             entry.update(status="FAIL", error_code="TOOL_NOT_LISTED")
             calls.append(entry)
             continue
+        if tool in EVIDENCE_TOOLS and hv.evidence_journal == "NOT_PUBLISHED":
+            # The API reports no published evidence journal: these tools have nothing to serve yet.
+            # Not a success (SKIP -> verdict WARN); once the journal is CONFIGURED a failure is a FAIL again.
+            entry.update(status="SKIP", error_code="EVIDENCE_NOT_PUBLISHED")
+            calls.append(entry)
+            continue
         if callable(args):
             args = args(hv)
         if not args and args != {}:
@@ -195,6 +238,10 @@ async def run(client, deadline_s=600.0, call_timeout_s=240.0):
             exc = f"EXCEPTION:{type(e).__name__}"
         status, code = classify(body, is_error, exc)
         hv.add(body)
+        if tool == "get_corpus_status" and body.get("ok"):
+            hv.add_status(body)
+        if tool == "list_evidence":
+            hv.add_evidence_page(body)
         if tool == "search_objects" and args.get("has_image") and body.get("ok"):
             for it in body.get("items") or []:
                 oid = (it.get("envelope") or {}).get("object_id")
@@ -203,7 +250,8 @@ async def run(client, deadline_s=600.0, call_timeout_s=240.0):
         entry.update(status=status, ok=bool(body.get("ok")), is_error=is_error, error_code=code,
                      ms=round((time.perf_counter() - t0) * 1000, 1), n_items=len(body.get("items") or []),
                      n_images=n_images, sha256=sha(body) if body else None,
-                     args={k: v for k, v in args.items() if k != "query"})
+                     # Evidence record ids are caller-defined and can themselves carry private labels.
+                     args={k: v for k, v in args.items() if k not in ("query", "record_id")})
         calls.append(entry)
     return report(names, calls, started)
 

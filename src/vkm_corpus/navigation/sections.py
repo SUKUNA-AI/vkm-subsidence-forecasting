@@ -1,4 +1,4 @@
-"""Sections (document tree) of the navigation layer — rule ``sections_v1``, no LLM.
+"""Sections (document tree) of the navigation layer — rule ``sections_v2``, no LLM.
 
 ``build(con, *, outlines=None, stats=None)`` reads the canon (``canonical.pages``, ``canonical.blocks`` primary layer,
 ``canonical.documents``, ``canonical.sources``, ``canonical.source_work_links``) and returns two Arrow tables:
@@ -662,6 +662,39 @@ def _rows(con, sql: str, params: list[Any] | None = None) -> list[tuple]:
     return con.execute(sql, params or []).fetchall()
 
 
+def range_work(primary, foreign, first: int, last: int, *, source_last: int) -> tuple[str | None, str]:
+    """Resolve every interval, never expand one page's attribution to a section.
+
+    Foreign content overrides primary links only inside its own explicit range.
+    Conflicts, unknown foreign works and gaps remain unresolved. Interval borders
+    avoid iterating a potentially large number of pages, and insertion order is
+    irrelevant. This is navigation attribution, never a scientific review.
+    """
+    boundaries = {first, last + 1}
+    scoped = []
+    for is_foreign, links in ((False, primary), (True, foreign)):
+        for start, end, work in links:
+            if start is None and end is None and not is_foreign:
+                start, end = first, last
+            elif start is None or end is None or start < 1 or end < start or end > source_last:
+                return None, "INVALID_RANGE"
+            start, end = max(start, first), min(end, last)
+            if start <= end:
+                boundaries.update((start, end + 1))
+                scoped.append((start, end, work, is_foreign))
+    resolved = set()
+    for border in sorted(boundaries)[:-1]:
+        active = [row for row in scoped if row[0] <= border <= row[1]]
+        overrides = {row[2] for row in active if row[3]}
+        candidates = overrides if overrides else {row[2] for row in active if not row[3]}
+        if not candidates:
+            return None, "MIXED_OR_UNKNOWN"
+        if len(candidates) != 1 or None in candidates:
+            return None, "MIXED_OR_UNKNOWN"
+        resolved.update(candidates)
+    return (next(iter(resolved)), "RANGE_ASSIGNED") if len(resolved) == 1 else (None, "MIXED_OR_UNKNOWN")
+
+
 def build(con, *, outlines: dict[str, list[dict[str, Any]]] | None = None,
           stats: dict[str, Any] | None = None) -> dict[str, pa.Table]:
     """``sections`` and ``section_pages`` over the canonical rows of ``con`` (DuckDB)."""
@@ -674,15 +707,18 @@ def build(con, *, outlines: dict[str, list[dict[str, Any]]] | None = None,
         pages_by_src[sid].append((int(idx), pid, list(labels or []), status or "NONE"))
     fmt = {sid: f for sid, f in _rows(con, "SELECT source_id, format_detected FROM canonical.documents")}
     klass = {sid: c for sid, c in _rows(con, "SELECT source_id, source_class_raw FROM canonical.sources")}
-    work_primary: dict[str, str] = {}
-    foreign: dict[str, list[tuple[int, int, str | None]]] = defaultdict(list)
+    from vkm_corpus.contracts.vocab import INSTANCE_LINK_TYPES
+
+    primary: dict[str, list[tuple[int | None, int | None, str | None]]] = defaultdict(list)
+    foreign: dict[str, list[tuple[int | None, int | None, str | None]]] = defaultdict(list)
     for sid, wid, ltype, prim, p0, p1 in _rows(con, "SELECT source_id, work_id, link_type, is_primary, page_start, "
                                                     "page_end FROM canonical.source_work_links "
                                                     "WHERE curation_status IS DISTINCT FROM 'REJECTED'"):
-        if ltype == "FOREIGN_CONTENT" and p0 is not None and p1 is not None:
-            foreign[sid].append((int(p0), int(p1), wid))
-        elif prim and wid:
-            work_primary.setdefault(sid, wid)
+        bounds = (int(p0) if p0 is not None else None, int(p1) if p1 is not None else None, wid)
+        if ltype == "FOREIGN_CONTENT":
+            foreign[sid].append(bounds)
+        elif prim and ltype in INSTANCE_LINK_TYPES:
+            primary[sid].append(bounds)
     work_title = {wid: t for wid, t in _rows(con, "SELECT work_id, title FROM canonical.works")}
     blocks: dict[str, dict[str, list[Block]]] = defaultdict(lambda: defaultdict(list))
     for sid, bid, btype, idx, order, text in _rows(
@@ -784,7 +820,8 @@ def build(con, *, outlines: dict[str, list[dict[str, Any]]] | None = None,
             method = "WHOLE_SOURCE"
             first_title = next((b for b in blocks.get(sid, {}).get("TITLE", []) if b.page <= 2), None)
             title = clean_title(first_title.text) if first_title else ""
-            title = title or clean_title(work_title.get(work_primary.get(sid, ""), "")) or sid
+            whole_work, _ = range_work(primary[sid], foreign[sid], 1, n_pages, source_last=n_pages)
+            title = title or clean_title(work_title.get(whole_work or "", "")) or sid
             ents = [Entry(rank=1, title=title, numbering=None, page=1, order=0,
                           heading_block_id=first_title.block_id if first_title else None)]
         ents = sorted(ents, key=lambda e: (e.page, 0))  # stable: reading order kept within a page
@@ -814,11 +851,9 @@ def build(con, *, outlines: dict[str, list[dict[str, Any]]] | None = None,
                 conf += 0.05
             if e.page_origin in ("HEADING_OFFSET", "NEXT_ENTRY"):
                 conf -= 0.1
-            wid = work_primary.get(sid)
-            for p0, p1, fw in foreign.get(sid, []):
-                if p0 <= e.page <= p1:
-                    wid = fw
             end = min(max(e.end, e.page), n_pages)
+            wid, attribution = range_work(primary[sid], foreign[sid], e.page, end, source_last=n_pages)
+            st["work_attribution_" + attribution.lower()] += 1
             sec_rows["section_id"].append(ids[i])
             sec_rows["source_id"].append(sid)
             sec_rows["work_id"].append(wid)

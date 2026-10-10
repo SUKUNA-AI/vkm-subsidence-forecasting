@@ -37,6 +37,7 @@ from vkm_corpus.logs import get_logger
 from vkm_corpus.retrieval import models as M
 from vkm_corpus.retrieval import pins
 from vkm_corpus.retrieval.backends import BackendGate, RerankError, TextBackend, VisualBackend
+from vkm_corpus.update.service_identity import RerankNativeProfile
 
 GATEWAY_VERSION = "0.1.0"
 LOG = get_logger("rerank.gateway")
@@ -91,11 +92,23 @@ class GatewayConfig:
     warmup: bool = True                 # max-size visual warmup after every (re)start of llama-server
     warmup_interval_s: float = 30.0
     token: str | None = field(default=None, repr=False)
+    qualified_identity: bool = False
+    text_native_token: str | None = field(default=None, repr=False)
+    visual_native_token: str | None = field(default=None, repr=False)
+    native_profile: RerankNativeProfile = RerankNativeProfile.BOTH_NATIVE_V1
+
+    def __post_init__(self):
+        object.__setattr__(self, "native_profile", RerankNativeProfile(self.native_profile))
+
+    @property
+    def text_disabled(self) -> bool:
+        return self.native_profile == RerankNativeProfile.VISUAL_ONLY_TEXT_DISABLED_V2
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> "GatewayConfig":
         env = os.environ if env is None else env
         settings = load_settings(env)
+        from vkm_corpus.config import _secret
         auth = env.get("VKM_RERANK_AUTH", "required").strip().lower() or "required"
         if auth not in ("required", "disabled"):
             raise ValueError("VKM_RERANK_AUTH must be 'required' or 'disabled'")
@@ -120,6 +133,10 @@ class GatewayConfig:
             auth_required=auth == "required",
             warmup=env.get("VKM_RERANK_WARMUP", "1").strip() not in ("0", "false", "no"),
             token=settings.rerank_token,
+            qualified_identity=env.get("VKM_RERANK_QUALIFIED_IDENTITY", "0").strip() == "1",
+            text_native_token=_secret(env, "VKM_RERANK_TEXT_NATIVE_TOKEN"),
+            visual_native_token=_secret(env, "VKM_RERANK_VISUAL_NATIVE_TOKEN"),
+            native_profile=RerankNativeProfile(env.get("VKM_RERANK_NATIVE_PROFILE", "BOTH_NATIVE_V1").strip()),
         )
 
     @property
@@ -150,22 +167,34 @@ class Resources:
     head: Any = None                # m0_head.M0Head
     gates: dict[str, BackendGate] = field(default_factory=dict)
     started_at: str = field(default_factory=_now)
+    load_files: Any = None
+    load_watch: Any = None
 
 
 def load_resources(cfg: GatewayConfig) -> Resources:
     from vkm_corpus.retrieval.m0_head import M0Head
     from vkm_corpus.retrieval.tokens import TokenCounter
 
-    missing = [n for n, v in (("VKM_RERANK_V35_TOKENIZER", cfg.v35_tokenizer),
-                              ("VKM_RERANK_M0_TOKENIZER", cfg.m0_tokenizer), ("VKM_RERANK_M0_HEAD", cfg.m0_head)) if not v]
+    selected = [("VKM_RERANK_M0_TOKENIZER", cfg.m0_tokenizer), ("VKM_RERANK_M0_HEAD", cfg.m0_head)]
+    if not cfg.text_disabled:
+        selected.insert(0, ("VKM_RERANK_V35_TOKENIZER", cfg.v35_tokenizer))
+    missing = [n for n, v in selected if not v]
     if missing:
         raise ValueError(f"gateway configuration incomplete: {', '.join(missing)}")
-    return Resources(
-        text=TextBackend(cfg.text_url), visual=VisualBackend(cfg.visual_url),
-        v35_tokens=TokenCounter.from_file(cfg.v35_tokenizer, cfg.v35_tokenizer_sha256),
+    from vkm_corpus.update.remote_retrieval import capture_load_files
+    from vkm_corpus.update.native_files import optional_watch
+    paths = [value for _, value in selected]
+    watch = optional_watch(paths)
+    captures = capture_load_files(paths)
+    resources = Resources(
+        text=None if cfg.text_disabled else TextBackend(cfg.text_url), visual=VisualBackend(cfg.visual_url),
+        v35_tokens=None if cfg.text_disabled else TokenCounter.from_file(cfg.v35_tokenizer, cfg.v35_tokenizer_sha256),
         m0_tokens=TokenCounter.from_file(cfg.m0_tokenizer, cfg.m0_tokenizer_sha256),
         head=M0Head.from_npz(cfg.m0_head, cfg.m0_head_sha256),
     )
+    resources.load_files = captures if captures == capture_load_files(paths) else None
+    resources.load_watch = watch
+    return resources
 
 
 def _gates(cfg: GatewayConfig) -> dict[str, BackendGate]:
@@ -224,6 +253,8 @@ async def _warmup_loop(res: Resources, cfg: GatewayConfig) -> None:
 # ----------------------------------------------------------------------------------------------------------- flows
 async def rerank_text(req: M.TextRerankRequest, res: Resources, cfg: GatewayConfig, request_id: str
                       ) -> M.RerankResponse:
+    if cfg.text_disabled:
+        raise RerankError(M.E_BACKEND_UNAVAILABLE, "text route disabled by qualified profile", stage="admission")
     t0 = time.perf_counter()
     warnings: list[str] = []
     n = len(req.candidates)
@@ -374,11 +405,14 @@ async def rerank_visual(req: M.VisualRerankRequest, res: Resources, cfg: Gateway
 
 async def status_payload(res: Resources, cfg: GatewayConfig) -> M.StatusResponse:
     text_state, runtime, detail = "unavailable", None, None
-    try:
-        runtime = await res.text.identity(refresh=True)
-        text_state = "ready"
-    except RerankError as exc:
-        detail = exc.message
+    if cfg.text_disabled:
+        detail = "DISABLED_BY_QUALIFIED_PROFILE"
+    else:
+        try:
+            runtime = await res.text.identity(refresh=True)
+            text_state = "ready"
+        except RerankError as exc:
+            detail = exc.message
     visual_state = await res.visual.health()
     vprops: dict[str, Any] = {}
     vdetail = None
@@ -499,10 +533,17 @@ def create_app(cfg: GatewayConfig, resources: Resources | None = None):
         LOG.info("gateway started", extra={"vkm": {"status": "started", "gateway_version": GATEWAY_VERSION,
                                                    "visual_placement": cfg.visual_placement,
                                                    "text_max_inflight": cfg.text_max_inflight}})
-        task = asyncio.create_task(_warmup_loop(res, cfg)) if cfg.warmup else None
+        task = None
         try:
+            app.state.native_identity = None
+            if cfg.qualified_identity:
+                from vkm_corpus.update.remote_rerank import RerankServiceLease
+                app.state.native_identity = await RerankServiceLease.bind(cfg, res)
+            task = asyncio.create_task(_warmup_loop(res, cfg)) if cfg.warmup else None
             yield
         finally:
+            if res.load_watch is not None:
+                res.load_watch.close()
             if task:
                 task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
@@ -552,11 +593,24 @@ def create_app(cfg: GatewayConfig, resources: Resources | None = None):
                                                stage="auth"), rid)
         req = None
         try:
+            if kind == "text" and cfg.text_disabled:
+                raise RerankError(M.E_BACKEND_UNAVAILABLE, "text route disabled by qualified profile", stage="admission")
+            native = getattr(request.app.state, "native_identity", None)
+            if native is not None:
+                try:
+                    await native.observe()
+                except (OSError, ValueError) as exc:
+                    raise RerankError(M.E_BACKEND_UNAVAILABLE, "native rerank identity changed", stage="identity") from exc
             body = await _read_body(request, limit)
             req = _parse(body, model_cls, max_candidates, kind)
             if req.request_id:
                 rid = req.request_id
             resp = await flow(req, request.app.state.res, cfg, rid)
+            if native is not None:
+                try:
+                    await native.observe()
+                except (OSError, ValueError) as exc:
+                    raise RerankError(M.E_BACKEND_UNAVAILABLE, "native rerank identity changed", stage="identity") from exc
         except RerankError as exc:
             _log(rid, kind, exc.status, t0, error_code=exc.code,
                  n_candidates=len(req.candidates) if req else None)
@@ -581,7 +635,7 @@ def create_app(cfg: GatewayConfig, resources: Resources | None = None):
     @app.get("/health")
     async def get_health(request: Request):
         res = request.app.state.res
-        text_state = await res.text.health()
+        text_state = "unavailable" if cfg.text_disabled else await res.text.health()
         visual_state = await res.visual.health()
         states = {"text": text_state, "visual": visual_state}
         overall = "ok" if all(s == "ready" for s in states.values()) else "degraded"
@@ -595,6 +649,18 @@ def create_app(cfg: GatewayConfig, resources: Resources | None = None):
                                                stage="auth"), rid)
         payload = await status_payload(request.app.state.res, cfg)
         return JSONResponse(payload.model_dump(mode="json"), headers={M.HEADER_REQUEST_ID: rid})
+
+    @app.get("/identity")
+    async def get_identity(request: Request):
+        if not cfg.auth_required or not _authorized(request):
+            return JSONResponse({"status": "UNAVAILABLE"}, status_code=401)
+        native = getattr(request.app.state, "native_identity", None)
+        if native is None:
+            return JSONResponse({"status": "UNAVAILABLE", "reason": "NATIVE_MODEL_PROVIDERS_NOT_BOUND"}, status_code=503)
+        try:
+            return JSONResponse(await native.observe(), headers={"Cache-Control": "no-store"})
+        except (OSError, ValueError):
+            return JSONResponse({"status": "UNAVAILABLE", "reason": "NATIVE_IDENTITY_CHANGED"}, status_code=503)
 
     return app
 
@@ -630,5 +696,6 @@ def serve(hosts: list[str], port: int, cfg: GatewayConfig | None = None, log_dir
 def config_summary(cfg: GatewayConfig) -> dict[str, Any]:
     """Printable configuration (token redacted)."""
     data = asdict(cfg)
-    data["token"] = "<set>" if cfg.token else None
+    for name in ("token", "text_native_token", "visual_native_token"):
+        data[name] = "<set>" if getattr(cfg, name) else None
     return data

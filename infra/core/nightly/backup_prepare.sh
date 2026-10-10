@@ -2,7 +2,7 @@
 # VKM backup to EDGE, CORE side (agent OPS, 29.09.2026): the source manifest of the backup set, before EDGE copies it.
 #
 #   backup set of the CANONICAL data root (vkm_manifest.py CORE_SET: .vkm_root.json, canonical/, artifacts/, duckdb/,
-#   derived/ with only the CURRENT late pack, receipts/ without receipts/backup/, logs/) → sha256 manifest (hashes of
+#   accounting/ without tmp/, derived/ with only the CURRENT late pack, receipts/ without receipts/backup/, logs/) → sha256 manifest (hashes of
 #   unchanged files are reused from the previous manifest; every file is re-read on VKM_BACKUP_REHASH_DAY) →
 #   receipts/backup/source/<YYYY-MM-DDTHHMM>.manifest.jsonl.gz + LATEST.json (pointer, sha256 of the manifest file,
 #   counts) → EDGE (infra/edge/backup/vkm_backup.sh, 02:30 MSK) copies exactly the files of this manifest and compares

@@ -1,0 +1,315 @@
+{
+  "$defs": {
+    "TargetWeightPlacement": {
+      "additionalProperties": false,
+      "properties": {
+        "context_handle": {
+          "maximum": 18446744073709551615,
+          "minimum": 1,
+          "title": "Context Handle",
+          "type": "integer"
+        },
+        "layer_count": {
+          "maximum": 1024,
+          "minimum": 1,
+          "title": "Layer Count",
+          "type": "integer"
+        },
+        "model_handle": {
+          "maximum": 18446744073709551615,
+          "minimum": 1,
+          "title": "Model Handle",
+          "type": "integer"
+        },
+        "no_alloc": {
+          "title": "No Alloc",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "vkm-native-target-weight-placement/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scope": {
+          "const": "LLAMA_TARGET_WEIGHT_PLACEMENT",
+          "title": "Scope",
+          "type": "string"
+        },
+        "tensors": {
+          "items": {
+            "$ref": "#/$defs/TargetWeightTensor"
+          },
+          "maxItems": 1024,
+          "minItems": 1,
+          "title": "Tensors",
+          "type": "array"
+        },
+        "total_layer_count": {
+          "maximum": 1024,
+          "minimum": 1,
+          "title": "Total Layer Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "scope",
+        "model_handle",
+        "context_handle",
+        "no_alloc",
+        "layer_count",
+        "total_layer_count",
+        "tensors"
+      ],
+      "title": "TargetWeightPlacement",
+      "type": "object"
+    },
+    "TargetWeightTensor": {
+      "additionalProperties": false,
+      "properties": {
+        "aliases": {
+          "items": {
+            "enum": [
+              "INPUT",
+              "OUTPUT"
+            ],
+            "type": "string"
+          },
+          "maxItems": 2,
+          "title": "Aliases",
+          "type": "array"
+        },
+        "base": {
+          "maximum": 18446744073709551615,
+          "minimum": 1,
+          "title": "Base",
+          "type": "integer"
+        },
+        "buffer": {
+          "maximum": 18446744073709551615,
+          "minimum": 1,
+          "title": "Buffer",
+          "type": "integer"
+        },
+        "buffer_bytes": {
+          "maximum": 18446744073709551615,
+          "minimum": 1,
+          "title": "Buffer Bytes",
+          "type": "integer"
+        },
+        "buffer_name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Buffer Name",
+          "type": "string"
+        },
+        "buft": {
+          "maximum": 18446744073709551615,
+          "minimum": 1,
+          "title": "Buft",
+          "type": "integer"
+        },
+        "data": {
+          "maximum": 18446744073709551615,
+          "minimum": 1,
+          "title": "Data",
+          "type": "integer"
+        },
+        "device": {
+          "maximum": 18446744073709551615,
+          "minimum": 1,
+          "title": "Device",
+          "type": "integer"
+        },
+        "device_kind": {
+          "enum": [
+            "CPU",
+            "GPU"
+          ],
+          "title": "Device Kind",
+          "type": "string"
+        },
+        "device_name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Device Name",
+          "type": "string"
+        },
+        "group": {
+          "pattern": "^(other|output|blk\\.(0|[1-9][0-9]{0,3}))$",
+          "title": "Group",
+          "type": "string"
+        },
+        "host": {
+          "title": "Host",
+          "type": "boolean"
+        },
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.-]+$",
+          "title": "Name",
+          "type": "string"
+        },
+        "shape": {
+          "items": {
+            "maximum": 1099511627776,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "title": "Shape",
+          "type": "array"
+        },
+        "storage_bytes": {
+          "maximum": 18446744073709551615,
+          "minimum": 1,
+          "title": "Storage Bytes",
+          "type": "integer"
+        },
+        "storage_data": {
+          "maximum": 18446744073709551615,
+          "minimum": 1,
+          "title": "Storage Data",
+          "type": "integer"
+        },
+        "storage_tensor": {
+          "maximum": 18446744073709551615,
+          "minimum": 1,
+          "title": "Storage Tensor",
+          "type": "integer"
+        },
+        "tensor": {
+          "maximum": 18446744073709551615,
+          "minimum": 1,
+          "title": "Tensor",
+          "type": "integer"
+        },
+        "tensor_bytes": {
+          "maximum": 18446744073709551615,
+          "minimum": 1,
+          "title": "Tensor Bytes",
+          "type": "integer"
+        },
+        "tensor_type": {
+          "maximum": 1024,
+          "minimum": 0,
+          "title": "Tensor Type",
+          "type": "integer"
+        },
+        "view_chain": {
+          "items": {
+            "maximum": 18446744073709551615,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "maxItems": 9,
+          "minItems": 1,
+          "title": "View Chain",
+          "type": "array"
+        },
+        "view_offsets": {
+          "items": {
+            "maximum": 18446744073709551615,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 8,
+          "title": "View Offsets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "group",
+        "aliases",
+        "tensor",
+        "storage_tensor",
+        "data",
+        "storage_data",
+        "buffer",
+        "base",
+        "buft",
+        "device",
+        "tensor_bytes",
+        "storage_bytes",
+        "buffer_bytes",
+        "host",
+        "device_kind",
+        "device_name",
+        "buffer_name",
+        "view_chain",
+        "view_offsets",
+        "tensor_type",
+        "shape"
+      ],
+      "title": "TargetWeightTensor",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "capture_before_load": {
+      "title": "Capture Before Load",
+      "type": "boolean"
+    },
+    "epoch": {
+      "maximum": 18446744073709551615,
+      "minimum": 1,
+      "title": "Epoch",
+      "type": "integer"
+    },
+    "handles": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Handles",
+      "type": "object"
+    },
+    "nonce": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Nonce",
+      "type": "string"
+    },
+    "paths": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Paths",
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "vkm-native-loaded-witness/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "target_weight_placement": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TargetWeightPlacement"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "upstream_commit": {
+      "const": "4da6337767f973e2b4d0797e5b323d77d8565e4a",
+      "title": "Upstream Commit",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "upstream_commit",
+    "nonce",
+    "epoch",
+    "capture_before_load",
+    "handles",
+    "paths"
+  ],
+  "title": "LoadedWitness",
+  "type": "object"
+}

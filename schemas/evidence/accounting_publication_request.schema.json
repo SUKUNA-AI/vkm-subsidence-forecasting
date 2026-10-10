@@ -1,0 +1,173 @@
+{
+  "$defs": {
+    "FileRef": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes"
+      ],
+      "title": "FileRef",
+      "type": "object"
+    },
+    "PublicationSource": {
+      "additionalProperties": false,
+      "properties": {
+        "binding": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FileRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "commit_id": {
+          "pattern": "^CMT-[a-f0-9]{16}$",
+          "title": "Commit Id",
+          "type": "string"
+        },
+        "marker": {
+          "$ref": "#/$defs/FileRef"
+        },
+        "source_id": {
+          "pattern": "^VKM-SRC-\\d{3}$",
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "source_sha256",
+        "commit_id",
+        "marker"
+      ],
+      "title": "PublicationSource",
+      "type": "object"
+    },
+    "SnapshotBase": {
+      "additionalProperties": false,
+      "properties": {
+        "manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Manifest Sha256",
+          "type": "string"
+        },
+        "registry_head": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Registry Head"
+        },
+        "snapshot_id": {
+          "pattern": "^snap-[A-Za-z0-9-]+$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "source_heads": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Source Heads",
+          "type": "object"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "manifest_sha256",
+        "source_heads"
+      ],
+      "title": "SnapshotBase",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "base": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SnapshotBase"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "campaign_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Campaign Sha256",
+      "type": "string"
+    },
+    "max_total_bytes": {
+      "exclusiveMinimum": 0,
+      "maximum": 1099511627776,
+      "title": "Max Total Bytes",
+      "type": "integer"
+    },
+    "policy_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Policy Sha256",
+      "type": "string"
+    },
+    "registry": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FileRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/PublicationSource"
+      },
+      "maxItems": 10000,
+      "minItems": 1,
+      "title": "Sources",
+      "type": "array"
+    }
+  },
+  "required": [
+    "campaign_sha256",
+    "policy_sha256",
+    "max_total_bytes",
+    "sources"
+  ],
+  "title": "PublicationRequest",
+  "type": "object"
+}

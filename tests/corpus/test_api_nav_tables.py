@@ -191,6 +191,25 @@ def test_find_tables_by_property_material_source_and_words(env):
     _error(client.get("/v1/nav/tables", params={"text": "x", "limit": 101}, headers=HR), "INVALID_ARGUMENT")
 
 
+def test_table_cursor_continuation_is_complete_and_authenticated(env):
+    client, _service, canon, _app, _tmp = env
+    table = canon.ids["table"]
+    rows, cursor, versions = [], None, set()
+    while True:
+        params = {"max_rows": 1, **({"cursor": cursor} if cursor else {})}
+        _body, record = _ok(client.get(f"/v1/nav/table/{table}", params=params, headers=HR), "NAV_TABLE")
+        rows.extend(record["rows"])
+        versions.add(record["pagination"]["table_version"])
+        cursor = record["pagination"]["next_cursor"]
+        if not cursor:
+            assert not record["truncated"]["rows"]
+            break
+        assert client.get(f"/v1/nav/table/{table}", params={"cursor": cursor}).status_code == 401
+    assert [row["row"] for row in rows] == [0, 1, 2]
+    assert sum(len(row["cells"]) for row in rows) == 6 and len(versions) == 1
+    _error(client.get(f"/v1/nav/table/{table}", params={"cursor": "not-a-cursor"}, headers=HR), "INVALID_ARGUMENT")
+
+
 def test_copies_of_an_object(env):
     client, _service, canon, _app, _tmp = env
     figure = canon.ids["figure"]
@@ -278,6 +297,10 @@ def test_mcp_tools(env):
                 "bad_table": await client.call_tool("get_table_structured", {"table_id": "a/b"}),
                 "bad_object": await client.call_tool("copies_of_object", {"object_id": canon.ids["block"]}),
             }
+            first = await client.call_tool("get_table_structured", {"table_id": canon.ids["table"], "max_rows": 1})
+            cursor = first.structured_content["item"]["record"]["pagination"]["next_cursor"]
+            out["continued"] = await client.call_tool("get_table_structured", {
+                "table_id": canon.ids["table"], "max_rows": 1, "cursor": cursor})
             return tools, out
 
     tools, out = asyncio.run(go())
@@ -289,6 +312,8 @@ def test_mcp_tools(env):
     assert out["tables"].structured_content["item"]["record"]["tables"][0]["table_id"] == canon.ids["table"]
     assert out["copies"].structured_content["item"]["record"]["clusters"][0]["copies"][0]["object_id"] == OTHER_FIGURE
     assert out["formulas"].structured_content["item"]["record"]["n_exact"] == 2
+    assert out["continued"].structured_content["item"]["record"]["rows"][0]["row"] == 1
+    assert "cursor" in tools["get_table_structured"].input_schema["properties"]
     assert out["bad_table"].is_error and out["bad_object"].is_error              # schema: ids of the right kind
     schema = tools["copies_of_object"].input_schema["properties"]["object_id"]["pattern"]
     assert ":[ftm][0-9a-f]{12}" in schema

@@ -1,0 +1,117 @@
+{
+  "$defs": {
+    "NativeModelProof": {
+      "additionalProperties": false,
+      "properties": {
+        "code_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Sha256",
+          "type": "string"
+        },
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "dependencies_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Dependencies Sha256",
+          "type": "string"
+        },
+        "instance_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instance Sha256",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "text",
+            "visual"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "resources": {
+          "additionalProperties": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Resources",
+          "type": "object"
+        },
+        "schema_version": {
+          "const": "vkm-loaded-model/1",
+          "default": "vkm-loaded-model/1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "tokenizer_binding": {
+          "default": "STANDALONE_LOADED",
+          "enum": [
+            "STANDALONE_LOADED",
+            "EMBEDDED_WEIGHTS_VOCAB"
+          ],
+          "title": "Tokenizer Binding",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "instance_sha256",
+        "code_sha256",
+        "dependencies_sha256",
+        "config_sha256",
+        "resources"
+      ],
+      "title": "NativeModelProof",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "boundary": {
+      "const": "OWNED_LOAD_TIME_MMAP_AND_SOCKET",
+      "default": "OWNED_LOAD_TIME_MMAP_AND_SOCKET",
+      "title": "Boundary",
+      "type": "string"
+    },
+    "functional_qualification": {
+      "const": "NOT_RUN",
+      "default": "NOT_RUN",
+      "title": "Functional Qualification",
+      "type": "string"
+    },
+    "gpu_residency": {
+      "const": "NOT_PROVEN",
+      "default": "NOT_PROVEN",
+      "title": "Gpu Residency",
+      "type": "string"
+    },
+    "model": {
+      "$ref": "#/$defs/NativeModelProof"
+    },
+    "process_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Process Sha256",
+      "type": "string"
+    },
+    "recipe_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Recipe Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "vkm-owned-model-identity/1",
+      "default": "vkm-owned-model-identity/1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "model",
+    "recipe_sha256",
+    "process_sha256"
+  ],
+  "title": "OwnedChildIdentity",
+  "type": "object"
+}

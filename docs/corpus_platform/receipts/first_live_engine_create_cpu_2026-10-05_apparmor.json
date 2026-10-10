@@ -1,0 +1,97 @@
+{
+  "adds": "lifecycle-aware AppArmor expectation: implicit profile '' before the first start, 'docker-default' once started; explicit apparmor=docker-default in both phases; '' without daemon AppArmor; anything else is drift (L1 attempt 1 finding)",
+  "challenger": "GO, no MUST_FIX; AppArmor rule cannot accept a weaker container; explicit apparmor=docker-default branch not qualified by L1",
+  "commit": "ac9589e0a1a817664448452be8753ae65e7cf23f",
+  "head_at_generation": "4be75dc6072e2a30c9b004d3cdca30d166d82359",
+  "limits": {
+    "activation": "IMPOSSIBLE_JOINED_PROOF_REQUIRES_COMPOSE_LABELS",
+    "actual_engine_lifecycle_L1": "L1_PASS attempt 2 on CORE, QUALIFICATION family only, with this engine_create (first_live_engine_l1_core_2026-10-05.json); attempt 1 L1_FAIL on the pre-start AppArmor expectation",
+    "compose_rebind_hazard_with_parked_originals": "OPEN_DOCUMENTED",
+    "core_switch": "NOT_RUN",
+    "daemon_pin_values": "OBSERVED_BY_L1_NOT_BOUND_TO_ANY_PRODUCTION_PLAN",
+    "original_runtime_preservation": "NOT_QUALIFIED",
+    "workstation_gpu": "NOT_USED"
+  },
+  "production_status": "FIRST_LIVE_NOT_READY",
+  "python": {
+    "linux": "3.13.5",
+    "windows": "3.13.13"
+  },
+  "recorded_at": "2026-10-05T13:29:34.215227+00:00",
+  "reports": {
+    "linux": {
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "6dac8f3e549b5500a27880ba28545c7f94fbd1047aa24e67cace1483526fe766",
+      "skipped": 0,
+      "tests": 410
+    },
+    "windows": {
+      "errors": 0,
+      "failures": 0,
+      "junit_sha256": "175e8a9039609f52a272e8a597f0ea6c0bfe7278ab515eaf7cb646ef45b98a8c",
+      "skipped": 0,
+      "tests": 410
+    }
+  },
+  "schema_version": "vkm-first-live-engine-create-cpu/1",
+  "scope": "CODE_AND_SYNTHETIC_FAKE_ENGINE_ONLY",
+  "selection": [
+    "tests/evidence/test_engine_create.py",
+    "tests/evidence/test_first_live_controller.py",
+    "tests/evidence/test_first_live_native.py",
+    "tests/evidence/test_first_live_frontdoor.py",
+    "tests/evidence/test_core_operator.py",
+    "tests/evidence/test_published_schemas.py"
+  ],
+  "source_files": [
+    {
+      "bytes": 86131,
+      "path": "src/vkm_corpus/update/engine_create.py",
+      "sha256": "619f3ef11681c8e8de57c11dae3a1e57e279c28f469237ff3069392f3dd4360c"
+    },
+    {
+      "bytes": 34047,
+      "path": "src/vkm_corpus/update/first_live.py",
+      "sha256": "b5abb4a192d153a5869e1d28629646609f41ba068257765d68a5d578bf605611"
+    },
+    {
+      "bytes": 48717,
+      "path": "src/vkm_corpus/update/first_live_native.py",
+      "sha256": "06514820eadfb06ab7f57e9115fc35bf1e4d2f28a85519c83dcd7882849a3f6e"
+    },
+    {
+      "bytes": 96795,
+      "path": "tests/evidence/test_engine_create.py",
+      "sha256": "0ef5b86859643e6bcce826a30a428edb45bf07c0f8d0b2fdce43007aa47ed631"
+    },
+    {
+      "bytes": 17719,
+      "path": "tests/evidence/test_first_live_native.py",
+      "sha256": "5c42766a1e4cd138d430215dec9459f7ef7836acd6b4c9162a37f32223b4625b"
+    },
+    {
+      "bytes": 27286,
+      "path": "docs/corpus_platform/FIRST_LIVE_BOUNDARY_RU.md",
+      "sha256": "920fd750dd06d3b8e6ea6fbfcad3086cb7d5a299fa79e97755a8df039d26c367"
+    },
+    {
+      "bytes": 41054,
+      "path": "schemas/evidence/first_live_intent.schema.json",
+      "sha256": "5ac06e202e3322f1e75fa837db986e0349fa1e33ae633566e687c2094e32fa98"
+    },
+    {
+      "bytes": 16231,
+      "path": "schemas/evidence/first_live_engine_create_plan.schema.json",
+      "sha256": "3042c0022af25458965e2cb81a7a48250d984fcbd39261940a0e9a5753eae6a0"
+    },
+    {
+      "bytes": 9640,
+      "path": "scripts/export_evidence_schema.py",
+      "sha256": "34cfc88b10a3c94a8c82f167235c7a97b7ee2b38426a42c1be1cdaa520040f0e"
+    }
+  ],
+  "status": "L0_CODE_AND_SYNTHETIC_TESTS_PASSED_PRODUCTION_NOT_READY",
+  "supersedes_source_pins_of": "first_live_engine_create_cpu_2026-10-05_names.json (L0 + name families at f6f6472; its overlapping pins are stale by design)",
+  "tested_tree": "src/, schemas/, scripts/, tests/evidence/ byte-identical to the pinned commit"
+}

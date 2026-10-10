@@ -1,0 +1,126 @@
+{
+  "code_fix": {
+    "controller_v5_sha256": "5ef0f18cfbe34ea8f1744d74d8181ac3d8c700ae8bce331fd6aa7d27c56f1b72",
+    "controller_v5_tests_sha256": "1b8d450026868bd3f8df0540e2bc5821f442b632b51b8219719f3236caa19e6b",
+    "repository_files": {
+      "infra/edge/visual-owner/gpu_preflight.py": "cfdc5874fa7d2ad859056360b793dd33b6990696abfb056f20a47275fec7e209",
+      "src/vkm_corpus/update/model_owner.py": "dced7f1da15cbbad0e33194836e92dfe9f94bb0995c149525c2c08579b59d457",
+      "src/vkm_corpus/update/owner_diagnostics.py": "fda95b2c147204c3a29ccafb6000cdf9e5fc2e42033da6ad63f4f48c7618aec1",
+      "src/vkm_corpus/update/visual_owner_bridge.py": "16c0a2d757ab3b6bc7af0dee48c3652974cb0cdaf27159f644d1e7ac015f684c"
+    }
+  },
+  "historical_attempt": {
+    "candidate_cid": "cf2dbf85dc026ba6c17eb6aa4fd89fe94c1b0df5719fe8c1c97935f7e555e058",
+    "candidate_image": "sha256:cdb424c0f04b08a3952c56c4c0c85e06b19ff10ac2c7da5217f35333a2eb3d2a",
+    "controller_sha256": "6ece9bcd4d66cf38b5337f357237f97422fedd7fb349a89590f26bf76b32f513",
+    "failed_receipts_preserved": true,
+    "journal_sha256": "55646f01075739e4340ebc4845a5fc79b4657824082b1ae19c9e499fccc6a228",
+    "plan_sha256": "05efd19034a41503769b00850e1921727c74fa74ca804f311120f5b71b3daa77",
+    "qualification_receipt_sha256": "18986f4fc2f7a881ae498b549e97bfd4bf0556db667fc929807a863c2fdb29d0",
+    "retained_cid": "d39fc9c8013a47f986a0358dce614c92758cb65c0c09379ea8756752ee1df500",
+    "retained_image": "sha256:456889f579db75828ab0bbb7721491ca647d4b06af1f9ecbdf82892dc67a537f"
+  },
+  "limits": {
+    "core_switch": "NOT_RUN",
+    "gpu_drill": "NOT_RUN_IN_THIS_DIAGNOSIS",
+    "live_qualification": "NOT_RUN",
+    "model_load": "NOT_RUN",
+    "scientific_admission": "NOT_GRANTED",
+    "workstation_gpu": "NOT_USED"
+  },
+  "outer_waiter": {
+    "candidate_finished_at": "2026-10-04T20:52:48.723521122Z",
+    "cause": "QUALIFY_LOOP_POLLED_HTTP_ONLY_UNTIL_240S_NEVER_CHECKED_OWN_CONTAINER_STATE",
+    "seconds_waited_after_terminal_exit": 55.13,
+    "status": "DEFECT_CONFIRMED_FROM_CODE_AND_TIMESTAMPS_FIXED_IN_V5_CODE_NOT_RUNTIME_QUALIFIED",
+    "waiter_stopped_and_restored_old_at": "2026-10-04T20:53:43.857367956Z"
+  },
+  "readonly_observations": {
+    "candidate": {
+      "exit_code": 2,
+      "finished_at": "2026-10-04T20:52:48.723521122Z",
+      "lifetime_seconds": 185.62,
+      "running": false,
+      "started_at": "2026-10-04T20:49:43.103714716Z"
+    },
+    "mutations": "NONE_DOCKER_INSPECT_PROCFS_AND_LOOPBACK_HEALTH_ONLY",
+    "observed_at": "2026-10-05T09:04:25Z",
+    "probe_outputs_sha256": {
+      "edge_mounts_order_probe.out.json": "cceb6ab235e7171f52184ca21c37d6cf766d828dc2ba3af03e2708d71776ad26",
+      "edge_old_maps_probe.out.json": "8517560c5838bcf5c06d441a29d07259bba90d08c24adea7ba26126844275d7f",
+      "edge_sha256_throughput_probe.out.json": "5509a0657db3f28a31732ba8cb2464776d84f7ce4d519869e5bb33f6f6e6c2cd"
+    },
+    "probe_sources_sha256": {
+      "edge_mounts_order_probe.py": "7aa61fb82a8b3ba550312b55b066c683b5cd137fb9c52a0c9ab6b19d8c1c5174",
+      "edge_old_maps_probe.py": "8cb77db9b21cb7c2b98ce141090056a0e3e77c9e53f23c3660dc6b75518176b4",
+      "edge_sha256_throughput_probe.py": "7db3633419424974b670dcafb82d25d15feb2b3d549002fe1e50908566da51d7"
+    },
+    "retained_baseline": {
+      "health_status": 200,
+      "pid": 2378990,
+      "running": true,
+      "started_at": "2026-10-04T20:53:43.857367956Z",
+      "unchanged_during_probe": true
+    }
+  },
+  "recorded_at": "2026-10-05T10:06:16.544206+00:00",
+  "schema_version": "vkm-edge-owner-e0-diagnosis/1",
+  "scope": "EDGE_VISUAL_OWNER_SHADOW_ATTEMPT_2026-10-04_DIAGNOSIS_ONLY",
+  "secondary_recovery_valueerror": {
+    "cause": "RETAINED_MOUNTS_COMPARED_AS_ORDERED_LIST_BUT_DOCKER_INSPECT_ORDER_IS_NONDETERMINISTIC",
+    "consistent_with": "recovery journal has no 7th event and no recovery.receipt.json",
+    "evidence_class": "OBSERVED_ON_EXACT_V4_CODE_READ_ONLY",
+    "exact_v4_inspect_old_value_errors": 29,
+    "historical_receipts_recorded": "CLASS_NAME_ONLY_VALUEERROR",
+    "not_excluded": [
+      "transient docker CLI non-zero exit in an uncaught inspect"
+    ],
+    "reversed_mount_order_calls": 27,
+    "samples": 200,
+    "status": "MECHANISM_REPRODUCED_MOST_PROBABLE_FIXED_IN_V5_CODE_NOT_RUNTIME_QUALIFIED",
+    "uncaught_call_sites_v4": [
+      "Drill.recover: obj.inspect_old()",
+      "Drill.fallback: prior=self.inspect_old()"
+    ]
+  },
+  "startup_exit2": {
+    "basis": {
+      "bytes_hashed_before_spawn": 4307640812,
+      "candidate_lifetime_s": 185.62,
+      "edge_sha256_mb_s_median_warm_cache": 1524.7,
+      "estimated_pre_spawn_hash_seconds_warm_cache": 2.83,
+      "excluded_by_timing": [
+        "pre-spawn recipe/inventory/credential failures (exit within seconds)",
+        "child exit early during load (poll raises at once)",
+        "credential permission error (pre-spawn, immediate)"
+      ],
+      "lifetime_minus_startup_timeout_covers": "pre-spawn work + teardown (<=2 s after SIGTERM + <=2 s after SIGKILL) + process exit",
+      "lifetime_minus_startup_timeout_s": 5.62,
+      "startup_timeout_s": 180.0,
+      "throughput_page_cache": "NOT_CONTROLLED_LIKELY_WARM"
+    },
+    "deadline_does_not_imply_slow_load": "deterministic fence failures are retried until the deadline",
+    "evidence_class": "DERIVED_FROM_TIMING_AND_CODE_PATHS",
+    "most_probable_stage": "NATIVE_LOAD_PROOF_DEADLINE_CHILD_ALIVE",
+    "next_probe": "diagnostics-enabled image (owner_diagnostics public line: stage/fence_step/class/witness status/child state) in a new pinned bounded SHADOW drill with v5 controller",
+    "not_established": [
+      "which fence step never passed (listener, mapped implementation, file lease, witness HTTP/status/schema/binding, placement presence)",
+      "whether model load completed",
+      "loaded identity",
+      "weight placement"
+    ],
+    "not_excluded": [
+      "late proof success within the last seconds followed by a post-proof failure (identity/placement profile)",
+      "child exit close to spawn + 180 s",
+      "cold-cache hashing slower than the warm measurement"
+    ],
+    "readonly_corroboration": {
+      "deleted_or_pseudo_mappings": 0,
+      "note": "different image; supports but does not prove mapped-implementation fence was not the cause",
+      "retained_cuda_llama_server_selected_mappings": 24,
+      "retained_mapping_names_outside_candidate_inventory_names": []
+    },
+    "status": "MOST_PROBABLE_FROM_TIMING_NOT_ESTABLISHED",
+    "token_permission_hypothesis": "NOT_SUPPORTED_PERMISSION_ERROR_WOULD_EXIT_IMMEDIATELY"
+  }
+}

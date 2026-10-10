@@ -11,6 +11,9 @@ from __future__ import annotations
 
 import os
 import re
+import base64
+import hashlib
+import json
 from typing import Any, Mapping
 
 from vkm_corpus.navigation.tables import NOTE, VALUE_ROWS
@@ -80,25 +83,72 @@ def _markdown(cells: list[dict[str, Any]], n_cols: int, header_rows: set[int], m
 
 
 def get_table_structured(con: Any, table_id: str, *, max_rows: int = 200, max_chars: int = 8000,
+                         cursor: str | None = None,
                          tables: Mapping[str, str] | None = None) -> dict[str, Any]:
     """A structured table by its canonical id (``<page_id>:t…``) or NAV id (``TBL-…``): structure (number, caption,
     size, header rows, bands and blocks, orientation, confidence, flags), columns (header path, unit and its source,
     role, type, property), rows (role, block, cells with the parsed value, unit and flags) up to ``max_rows`` and a
     Markdown rendering of the cleaned texts (≤ ``max_chars``)."""
+    from vkm_corpus.navigation.table_continuations import CURSOR_PREFIX, get_table_continuation
+
+    logical_cursor = cursor if isinstance(cursor, str) and cursor.startswith(CURSOR_PREFIX) else None
+    cursor = None if logical_cursor is not None else cursor
     t = _names(tables)
     found = _rows(con, f"SELECT * FROM {t['table_structure']} WHERE table_id = ? OR nav_table_id = ?",
                   [table_id, table_id])
     out: dict[str, Any] = {"query": table_id, "found": bool(found), "review_status": REVIEW_STATUS, "note": NOTE}
     if not found:
         return out
+    if len(found) != 1:
+        raise ValueError("ambiguous table identity in navigation snapshot")
     s = found[0]
     tid = s["table_id"]
-    columns = [_compact({k: c.get(k) for k in COLUMN_FIELDS}) for c in _rows(
-        con, f"SELECT * FROM {t['table_columns']} WHERE table_id = ? ORDER BY block, col", [tid])
+    raw_columns = _rows(con, f"SELECT * FROM {t['table_columns']} WHERE table_id = ? ORDER BY block, col", [tid])
+    # Fingerprint the full record, including raw cell text. A repack or same-snapshot
+    # correction cannot silently continue an older traversal. Stream the hash so a
+    # large table is not materialised just to compute its identity.
+    digest = hashlib.sha256()
+    def hash_row(row: Any) -> None:
+        digest.update(json.dumps(row, ensure_ascii=False, sort_keys=True, default=str,
+                                 separators=(",", ":")).encode("utf-8") + b"\n")
+    snapshot = None
+    if con.execute("SELECT count(*) FROM information_schema.tables WHERE table_name='nav_meta'").fetchone()[0]:
+        meta = json.loads(con.execute("SELECT meta_json FROM nav_meta").fetchone()[0])
+        snapshot = meta.get("snapshot_id")
+    hash_row({"snapshot_id": snapshot, "structure": s, "columns": raw_columns})
+    stream = con.execute(f'SELECT * FROM {t["table_cells"]} WHERE table_id=? ORDER BY "row", col, cell_id', [tid])
+    field_names = [d[0] for d in stream.description]
+    total_cells = 0
+    while batch := stream.fetchmany(1024):
+        for row in batch:
+            hash_row(dict(zip(field_names, row)))
+        total_cells += len(batch)
+    version = digest.hexdigest()
+    after = -1
+    if cursor:
+        try:
+            if len(cursor) > 2048:
+                raise ValueError("oversized cursor")
+            token = json.loads(base64.b64decode(cursor + "=" * (-len(cursor) % 4), altchars=b"-_", validate=True))
+            if (set(token) != {"v", "table", "version", "after"} or type(token["v"]) is not int or token["v"] != 1
+                    or token["table"] != tid or type(token["after"]) is not int
+                    or not 0 <= token["after"] <= 2_147_483_647):
+                raise ValueError("invalid table cursor")
+            if token["version"] != version:
+                raise ValueError("table cursor is stale: snapshot or table content changed; restart traversal")
+            after = token["after"]
+        except (TypeError, KeyError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+            raise ValueError(f"invalid or stale table cursor: {exc}") from exc
+    columns = [_compact({k: c.get(k) for k in COLUMN_FIELDS}) for c in raw_columns
         if c.get("role") != "EMPTY" or c.get("header_text")]
     limit = max(1, int(max_rows))
-    cells = _rows(con, f"SELECT * FROM {t['table_cells']} WHERE table_id = ? AND \"row\" < ? ORDER BY \"row\", col",
-                  [tid, limit])
+    row_ids = [r[0] for r in con.execute(f'SELECT DISTINCT "row" FROM {t["table_cells"]} '
+                                       'WHERE table_id=? AND "row">? ORDER BY "row" LIMIT ?',
+                                       [tid, after, limit + 1]).fetchall()]
+    more = len(row_ids) > limit
+    last = row_ids[min(len(row_ids), limit) - 1] if row_ids else after
+    cells = _rows(con, f'SELECT * FROM {t["table_cells"]} WHERE table_id=? AND "row">? AND "row"<=? '
+                      'ORDER BY "row", col, cell_id', [tid, after, last])
     rows: dict[int, dict[str, Any]] = {}
     for c in cells:
         r = rows.setdefault(c["row"], {"row": c["row"], "role": c["row_role"], "block": c["block"],
@@ -113,7 +163,16 @@ def get_table_structured(con: Any, table_id: str, *, max_rows: int = 200, max_ch
     md, cut = _markdown(cells, int(s.get("n_cols") or 0), header_rows, max(200, int(max_chars)))
     out.update({"table": _compact({k: s.get(k) for k in TABLE_FIELDS}), "columns": columns,
                 "rows": [rows[r] for r in sorted(rows)], "markdown": md,
-                "truncated": {"rows": int(s.get("n_rows") or 0) > limit, "markdown": cut}})
+                "truncated": {"rows": more, "markdown": cut},
+                "pagination": {"snapshot_id": snapshot, "table_version": version, "total_cells": total_cells,
+                               "has_more": more, "next_cursor": base64.urlsafe_b64encode(json.dumps(
+                                   {"v": 1, "table": tid, "version": version, "after": last},
+                                   separators=(",", ":")).encode()).decode().rstrip("=") if more else None}})
+    # Physical rows/IDs and their v1 cursor retain the existing contract. The
+    # separate logical-chain cursor follows explicit canonical continuation
+    # edges, and never promotes navigation interpretation to scientific data.
+    out["continuation"] = get_table_continuation(con, tid, s.get("source_id"), max_rows=max_rows,
+        cursor=logical_cursor, tables=t)
     return out
 
 

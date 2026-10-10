@@ -1,0 +1,36 @@
+{
+  "schema_version": "vkm-native-owner-contract-sync/1",
+  "status": "CODE_FIXED_CPU_VERIFIED_FULL_CI_PENDING_RUNTIME_NOT_RUN",
+  "base_commit": "4b6f29a9126a1d10589cf98d5c810c033a6bf6bd",
+  "failed_ci_run": 37226612380,
+  "confirmed_causes": [
+    "RerankNativeProfile was declared outside the shared contract vocabulary",
+    "Published native loaded witness schema omitted target weight placement"
+  ],
+  "changes": {
+    "profile": "Same string Enum values and defaults, relocated with compatible import alias",
+    "code_identity": "Shared vocabulary included in fixed serving and visual owner implementation inventories",
+    "schemas": "Deterministic native witness and vocabulary export; runtime validators unchanged"
+  },
+  "source_sha256": {
+    "src/vkm_corpus/contracts/vocab.py": "34fc48f5c3d4db871fc310f4ddc2b67a4faf2ef11d5fdd7302d56c93422644e1",
+    "src/vkm_corpus/update/service_identity.py": "92ce7e17cd99c937895ac4c027bbdb10c4e3d429876c859b29a1ac56e06d40b7",
+    "src/vkm_corpus/update/visual_owner_bridge.py": "8f79160ee5498dddfb5571a43987b4f3db954111873c78e4a6c3c3c5c1009308",
+    "schemas/corpus/vocabularies.json": "3cb0d36eff6312fd641c488848bdb8ba5e3186565fe718056fcfc60776284d83",
+    "schemas/evidence/native_loaded_witness.schema.json": "2ed56846ddd146a932a36ef855385d931ec49dab1217be2b5dcda6cdcd9e0cd2"
+  },
+  "verification": {
+    "source": "Clean base archive plus only the five listed overlays; excludes concurrent unfinished first-LIVE changes",
+    "linux": {"passed": 209, "failed": 0, "not_run": 0},
+    "windows": {"passed": 185, "failed": 0, "not_run": 24, "reason": "Linux procfs and inotify owner tests"},
+    "scope": "Contract publication, vocabulary, installed service identities, optional text qualification, factory wiring and owned visual bridge",
+    "runtime": "CPU_SYNTHETIC_ONLY"
+  },
+  "full_ci": "PENDING_NEW_EXACT_COMMIT",
+  "historical_image": "SOFTWARE_TESTED_AT_BASE_COMMIT_NOT_QUALIFIED_FOR_CHANGED_IMPLEMENTATION_CLOSURE",
+  "new_image": "NOT_RUN",
+  "gpu_model": "NOT_RUN",
+  "production_switch": "NOT_RUN",
+  "scientific_admission": false,
+  "workstation_gpu": "NOT_USED"
+}

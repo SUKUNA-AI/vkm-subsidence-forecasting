@@ -1,0 +1,71 @@
+{
+  "$defs": {
+    "BoundFile": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "BoundFile",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Fixed boot ordering recipe; installation/reboot are external actions.",
+  "properties": {
+    "code_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Code Sha256",
+      "type": "string"
+    },
+    "dependencies_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Dependencies Sha256",
+      "type": "string"
+    },
+    "docker_dropin": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "profile": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "python": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "schema_version": {
+      "const": "vkm-frontdoor-boot-registration/1",
+      "default": "vkm-frontdoor-boot-registration/1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "service_file": {
+      "$ref": "#/$defs/BoundFile"
+    },
+    "systemctl": {
+      "$ref": "#/$defs/BoundFile"
+    }
+  },
+  "required": [
+    "profile",
+    "python",
+    "systemctl",
+    "service_file",
+    "docker_dropin",
+    "code_sha256",
+    "dependencies_sha256"
+  ],
+  "title": "BootSealRegistration",
+  "type": "object"
+}

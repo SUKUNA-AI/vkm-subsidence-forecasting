@@ -3,17 +3,26 @@
 # Sources: research freeze in docs/reset_2026_09/run_kit/venv_research_freeze.txt;
 # ezdxf: docs/corpus_platform/receipts/figure_digitization_v0.json;
 # setuptools/tokenizers: requirements/corpus-layout.lock.txt (CPU packages only).
-# OpenCV's receipt gives its runtime version, not a verified wheel-distribution pin.
-# snowballstemmer/pymorphy3 dependency closures have no committed exact pins.
-# Their tests remain explicitly NOT_RUN; no new package versions are guessed here.
+# Additional CPU pins: distribution METADATA inspected 2026-10-01 in the existing
+# Windows core and WSL figure/navigation environments (see docs/development/OFFLINE_CHECKS.md).
+# Their required numpy/setuptools closure is already pinned by the existing locks.
 contourpy==1.4.0
 cycler==0.12.1
 ezdxf==1.4.4
 fonttools==4.66.0
 kiwisolver==1.5.1
 matplotlib==3.11.2
+opencv-python-headless==5.0.0.93
+pymorphy3==2.0.6
+pymorphy3-dicts-ru==2.4.417150.4580142
+DAWG2-Python==0.9.0
 pyparsing==3.3.3
 scipy==1.18.1
 setuptools==78.1.0
 shapely==2.1.2
+snowballstemmer==3.1.1
 tokenizers==0.23.2
+# Windows transitive closure: mcp>=2.2 requires pywin32>=311; psycopg requires tzdata.
+# pywin32 312: official PyPI CPython 3.13 wheel; tzdata 2026.3: existing Windows METADATA.
+pywin32==312 ; sys_platform == "win32"
+tzdata==2026.3 ; sys_platform == "win32"

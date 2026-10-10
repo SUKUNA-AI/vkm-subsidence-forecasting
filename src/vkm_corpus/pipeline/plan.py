@@ -17,7 +17,9 @@ from vkm_corpus.extract.model import SourceInput
 from vkm_corpus.pipeline import commit as cm
 from vkm_corpus.pipeline import ocr_stage
 from vkm_corpus.pipeline.config import PipelineConfig
-from vkm_corpus.pipeline.prepare import load_prep
+from vkm_corpus.pipeline.prepare import docx_grid_cache_current, load_prep, source_format_admitted
+from vkm_corpus.pipeline.context import producer_identity
+from vkm_corpus.registry.sources import fresh_source_identity
 
 
 def _range(page_range: str | None) -> set[int] | None:
@@ -28,7 +30,14 @@ def _range(page_range: str | None) -> set[int] | None:
 
 
 def build_plan(cfg: PipelineConfig, sources: list[SourceInput], cache: Any, store: Any, *, force: bool = False,
-               failed_only: bool = False, recall: bool = False, page_range: str | None = None) -> dict[str, Any]:
+               failed_only: bool = False, recall: bool = False, page_range: str | None = None,
+               no_ocr: bool = False) -> dict[str, Any]:
+    identity = producer_identity(cfg)
+    # Verify BEFORE reading stage caches: size+mtime caches cannot attest the current source bytes.
+    fresh = {s.source_id: fresh_source_identity(cfg.resources_root, s.canonical_path, s.sha256, s.size_bytes)
+             for s in sources if s.lifecycle == "ACTIVE"} if cfg.profile == "production" else {}
+    if len({s.source_id for s in sources}) != len(sources):
+        raise ValueError("duplicate source IDs in plan selection")
     ledger = cm.load_ledger(cfg)
     by_task: dict[str, bool] = {}
     for entries in cache.calls.values():
@@ -43,6 +52,8 @@ def build_plan(cfg: PipelineConfig, sources: list[SourceInput], cache: Any, stor
     for s in sources:
         totals["sources"] += 1
         e: dict[str, Any] = {"source_id": s.source_id, "reasons": []}
+        if s.source_id in fresh:
+            e["source_identity"] = fresh[s.source_id]
         if s.lifecycle != "ACTIVE":
             e.update(action="SKIPPED_BY_REGISTER", reason_code=s.skip_reason)
             totals["skipped_by_register"] += 1
@@ -50,6 +61,14 @@ def build_plan(cfg: PipelineConfig, sources: list[SourceInput], cache: Any, stor
             continue
         sig = cm.prep_signature_for(cfg, s)
         prep = load_prep(cfg.data_root, s.source_id, sig)
+        admitted = {"_fresh_source_identity": fresh[s.source_id]} if s.source_id in fresh else {}
+        if prep is not None and not source_format_admitted(cfg, s, prep, **admitted):
+            prep = None
+            e["reasons"].append("SOURCE_FORMAT_CACHE_MISMATCH")
+        if prep is not None and (prep.get("inspect") or {}).get("file_format") == "DOCX" \
+                and not docx_grid_cache_current(prep, s, store=store):
+            prep = None
+            e["reasons"].append("DOCX_NATIVE_GRID_STALE")
         any_prep = (Path(cfg.data_root) / "cache" / "prep" / s.source_id).exists()
         if prep is None:
             e["prepare"] = "SIGNATURE_CHANGED" if any_prep else "NEW"
@@ -60,7 +79,7 @@ def build_plan(cfg: PipelineConfig, sources: list[SourceInput], cache: Any, stor
         visual = None
         if prep is not None:
             prep.setdefault("canonical_path", s.canonical_path)
-            _, visual = cm.load_state(cfg, s)
+            _, visual = cm.load_state(cfg, s, **admitted)
             fmt = prep.get("inspect", {}).get("file_format")
             e["pages"] = len(prep.get("pages", []))
             e["format"] = fmt
@@ -112,7 +131,7 @@ def build_plan(cfg: PipelineConfig, sources: list[SourceInput], cache: Any, stor
             totals["ocr_calls_known"] += e["ocr_calls_known"]
             if e["ocr_calls_known"]:
                 e["reasons"].append("OCR_PENDING")
-        csig = cm.commit_signature(cfg, cache, s, prep, visual) if prep is not None else None
+        csig = cm.commit_signature(cfg, cache, s, prep, visual, **admitted) if prep is not None else None
         led = ledger.get(s.source_id)
         e["commit_signature"] = csig
         e["head_status"] = (led or {}).get("document_processing_status")
@@ -138,9 +157,10 @@ def build_plan(cfg: PipelineConfig, sources: list[SourceInput], cache: Any, stor
             totals["to_process"] += 1
         out.append(e)
     body = {"schema": "vkm.run_plan/1", "flags": {"force": force, "failed_only": failed_only, "recall_model": recall,
-                                                  "page_range": page_range},
-            "sources": out, "totals": totals}
+                                                  "page_range": page_range, "no_ocr": no_ocr},
+            "sources": out, "totals": totals, "producer_identity": identity}
     body["plan_sha256"] = hashlib.sha256(json.dumps(
-        {"flags": body["flags"], "sources": [{k: v for k, v in x.items() if k != "head_status"} for x in out]},
+        {"flags": body["flags"], "producer_identity": identity,
+         "sources": [{k: v for k, v in x.items() if k != "head_status"} for x in out]},
         sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).hexdigest()
     return body

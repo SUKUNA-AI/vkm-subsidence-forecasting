@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import contextlib
+import asyncio
 import hmac
 import json
 import os
@@ -23,6 +24,8 @@ from vkm_corpus.config import ConfigError, load_settings
 
 DEFAULT_ALLOWED_HOSTS = ["127.0.0.1:*", "localhost:*"]
 HEALTH_PATH = "/healthz"
+REJECTED_BODY_LIMIT = 64 * 1024
+REJECTED_BODY_TIMEOUT = 0.25
 
 
 def _secret(env: Mapping[str, str], name: str) -> str | None:
@@ -41,6 +44,8 @@ class McpHttpConfig:
     client_tokens: dict[str, str] = field(default_factory=dict)
     allowed_hosts: list[str] = field(default_factory=lambda: list(DEFAULT_ALLOWED_HOSTS))
     path: str = "/mcp"
+    deployment_token: str | None = field(default=None, repr=False)
+    deployment_gate_file: str | None = None
 
     @classmethod
     def from_env(cls, kind: Literal["read", "admin"], env: Mapping[str, str] | None = None) -> "McpHttpConfig":
@@ -63,7 +68,22 @@ class McpHttpConfig:
             raise ConfigError(f"no client token for the {kind} MCP server "
                               f"({'VKM_MCP_TOKEN' if kind == 'read' else 'VKM_MCP_ADMIN_TOKEN'}[_FILE])")
         hosts = [h.strip() for h in env.get("VKM_MCP_ALLOWED_HOSTS", "").split(",") if h.strip()]
+        deployment = None
+        if env.get("VKM_DEPLOYMENT_TOKEN_FILE"):
+            if kind != "read":
+                raise ConfigError("only read MCP can provide the operator receiver proof")
+            from pathlib import Path
+            from vkm_corpus.update.receiver import operator_token
+            deployment = operator_token(Path(env["VKM_DEPLOYMENT_TOKEN_FILE"]))
+            if deployment in {client, api_token}:
+                raise ConfigError("receiver proof requires a separate operator credential")
+            gate = env.get("VKM_DEPLOYMENT_GATE_FILE")
+            if (not gate or not Path(gate).is_absolute() or ".." in Path(gate).parts
+                    or not Path(gate).is_file() or any(p.is_symlink() for p in (Path(gate), *Path(gate).parents))):
+                raise ConfigError("qualified read MCP requires the existing shared admission gate")
         return cls(kind=kind, api_url=settings.api_url, api_token=api_token,
+                   deployment_token=deployment,
+                   deployment_gate_file=env.get("VKM_DEPLOYMENT_GATE_FILE") if deployment else None,
                    client_tokens={client: f"mcp-{kind}"}, allowed_hosts=hosts or list(DEFAULT_ALLOWED_HOSTS))
 
 
@@ -89,7 +109,9 @@ class BearerMiddleware:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
-        send = _closing(send)
+        body = _RequestBody(scope, receive)
+        receive = body.receive
+        send = _closing(send, body)
         if scope.get("path") == HEALTH_PATH and scope.get("method") == "GET":
             body = json.dumps({"status": "ok"}).encode()
             await send({"type": "http.response.start", "status": 200,
@@ -106,13 +128,52 @@ class BearerMiddleware:
         await self.app(scope, receive, send)
 
 
-def _closing(send: Any) -> Any:
+class _RequestBody:
+    """Discard a small unread request before closing its socket, without parsing.
+
+    Windows can abort a connection closed with unread POST bytes before the
+    client receives the 401/421 response. Reading has a byte/deadline bound and
+    never dispatches to the application or initiates a 100-continue upload.
+    """
+    def __init__(self, scope, receive):
+        self._receive = receive
+        headers = dict(scope.get("headers") or [])
+        self.done = (scope.get("method") in {"GET", "HEAD", "OPTIONS"}
+                     and not headers.get(b"content-length") and not headers.get(b"transfer-encoding"))
+        self.expect_continue = headers.get(b"expect", b"").lower() == b"100-continue"
+        self.bytes_seen = 0
+
+    async def receive(self):
+        message = await self._receive()
+        if message["type"] == "http.request":
+            self.bytes_seen += len(message.get("body", b""))
+            self.done = not message.get("more_body", False)
+        elif message["type"] == "http.disconnect":
+            self.done = True
+        return message
+
+    async def discard(self):
+        if self.done or self.expect_continue or self.bytes_seen >= REJECTED_BODY_LIMIT:
+            return
+
+        async def bounded():
+            while not self.done and self.bytes_seen < REJECTED_BODY_LIMIT:
+                await self.receive()
+        try:
+            await asyncio.wait_for(bounded(), timeout=REJECTED_BODY_TIMEOUT)
+        except (TimeoutError, OSError):
+            pass  # oversized/slow/disconnected uploads do not delay rejection
+
+
+def _closing(send: Any, body: _RequestBody | None = None) -> Any:
     """``send`` that marks every response ``Connection: close``, replacing a ``Connection`` header set upstream."""
 
     async def wrapped(message: dict[str, Any]) -> None:
         if message["type"] == "http.response.start":
             headers = [(k, v) for k, v in message.get("headers") or [] if k.lower() != b"connection"]
             message = {**message, "headers": [*headers, (b"connection", b"close")]}
+        elif message["type"] == "http.response.body" and not message.get("more_body", False) and body:
+            await body.discard()
         await send(message)
 
     return wrapped
@@ -145,7 +206,17 @@ def build(kind: Literal["read", "admin"], config: McpHttpConfig | None = None, *
     config = config or McpHttpConfig.from_env(kind)
     api = ApiClient(config.api_url, config.api_token, transport=transport)
     server = build_read_server(api) if kind == "read" else build_admin_server(api)
-    return build_http_app(server, config)
+    app = build_http_app(server, config)
+    if config.deployment_token is not None:
+        from vkm_corpus.update.receiver import McpReceiverProofMiddleware
+        from vkm_corpus.update.barrier import AdmissionBarrierMiddleware, ReceiverBarrier
+        from pathlib import Path
+        if config.kind != "read" or not config.deployment_gate_file or not Path(config.deployment_gate_file).is_file():
+            raise ConfigError("qualified MCP proof requires the read receiver and existing gate")
+        barrier = ReceiverBarrier("core-read-mcp", gate_path=Path(config.deployment_gate_file), require_durable=True)
+        proof = McpReceiverProofMiddleware(app, server, api, config, barrier)
+        return AdmissionBarrierMiddleware(proof, provider=lambda: barrier)
+    return app
 
 
 def serve(kind: Literal["read", "admin"], host: str, port: int) -> None:

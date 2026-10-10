@@ -27,10 +27,21 @@ def _lifecycle(row: dict[str, str]) -> tuple[str, str | None]:
 
 
 def load_sources(resources_root: Path) -> list[SourceInput]:
-    path = Path(resources_root) / REGISTER_RELPATH
+    from vkm_corpus.registry.sources import resource_path, RegisterError
+    from vkm_corpus import ids
+
+    path = resource_path(resources_root, REGISTER_RELPATH)
     out: list[SourceInput] = []
-    with open(path, encoding="utf-8", newline="") as f:
+    seen = set()
+    with open(path, encoding="utf-8-sig", newline="") as f:
         for row in csv.DictReader(f):
+            sid = row["resource_id"].strip()
+            if not ids.grammar.matches("source", sid):
+                raise RegisterError("invalid source identity in pipeline register")
+            if sid in seen:
+                raise RegisterError("duplicate resource_id in pipeline register")
+            seen.add(sid)
+            resource_path(resources_root, row["canonical_path"].strip())
             lifecycle, reason = _lifecycle(row)
             try:
                 size = int(row.get("size_bytes") or 0) or None

@@ -42,7 +42,7 @@ ApiObjectKind = Literal["ARTIFACT", "PROCESSING_RUN", "JOB", "RERANK_RESULT", "S
                         # digitized chart series (agent FD2): DERIVATION values with errors — navigation
                         "NAV_FIGURE_SERIES", "NAV_FIGURE_SERIES_LIST",
                         # topic dossier (reconstruct_topic): NAV + search + PUBLIC catalogues, navigation not evidence
-                        "TOPIC_DOSSIER"]
+                        "TOPIC_DOSSIER", "EVIDENCE_QUERY", "EVIDENCE_RECORD", "EVIDENCE_DEPENDENCIES", "EVIDENCE_COMMIT"]
 # interpretation flags added by the API (the canonical quality_flags stay as stored)
 API_FLAGS = frozenset({
     "SCOPE_INHERITED_FROM_SOURCE",   # H-18: the area is the source's, not established for this object

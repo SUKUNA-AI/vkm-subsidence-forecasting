@@ -1,0 +1,126 @@
+{
+  "$defs": {
+    "Scale": {
+      "enum": [
+        "LAB",
+        "MASSIF",
+        "CALIBRATED_EFFECTIVE_MODEL",
+        "FIELD",
+        "DESIGN",
+        "NOT_APPLICABLE",
+        "UNSTATED"
+      ],
+      "title": "Scale",
+      "type": "string"
+    },
+    "ScientificTransferBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "target": {
+          "$ref": "#/$defs/VersionRef"
+        },
+        "transfer_record": {
+          "$ref": "#/$defs/VersionRef"
+        },
+        "transfer_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Transfer Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target",
+        "transfer_record",
+        "transfer_sha256"
+      ],
+      "title": "ScientificTransferBinding",
+      "type": "object"
+    },
+    "Scope": {
+      "description": "Site scope of a datum. Only SKRU1 is field-wide site-specific for SKRU-1.\n\nThe SKRU-1/SKRU-2 joint labels are kept apart (review finding TRANSFER-023):\n``SKRU1_SKRU2_PILLAR`` — the intermine pillar zone on the SKRU-1/SKRU-2 boundary (usable for SKRU-1 only locally,\nat the pillar, or through an explicit Transfer); ``SKRU1_OR_SKRU2_UNATTRIBUTED`` — the source does not say which\nof the two mines; ``SOLIKAMSK_GROUP`` — pooled over SKRU-1, SKRU-2 and SKRU-3. ``SKRU1_SKRU2`` is the legacy\nambiguous label of the first Phase-1 catalogues; it is valid but never counts as SKRU-1 data.",
+      "enum": [
+        "SKRU1",
+        "SKRU1_SKRU2_PILLAR",
+        "SKRU1_OR_SKRU2_UNATTRIBUTED",
+        "SOLIKAMSK_GROUP",
+        "SKRU1_SKRU2",
+        "SKRU2",
+        "SKRU3",
+        "BKPRU1",
+        "BKPRU2",
+        "BKPRU3",
+        "BKPRU4",
+        "USOLSKY",
+        "OTHER_VKM_SITE",
+        "VKM_REGIONAL",
+        "OTHER_POTASH_SITE",
+        "NON_VKM",
+        "GENERAL_METHOD",
+        "PROJECT",
+        "UNSTATED"
+      ],
+      "title": "Scope",
+      "type": "string"
+    },
+    "VersionRef": {
+      "additionalProperties": false,
+      "properties": {
+        "record_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "record_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Record Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "record_id",
+        "record_sha256"
+      ],
+      "title": "VersionRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "scale": {
+      "$ref": "#/$defs/Scale"
+    },
+    "site": {
+      "$ref": "#/$defs/Scope"
+    },
+    "transfers": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ScientificTransferBinding"
+      },
+      "title": "Transfers",
+      "type": "array"
+    },
+    "use": {
+      "enum": [
+        "SOURCE_INTERPRETATION",
+        "IDENTITY",
+        "GEOMETRY_INPUT",
+        "MATERIAL_PARAMETER",
+        "CALIBRATION_INPUT",
+        "VALIDATION_OBSERVATION",
+        "PREDICTION_INPUT",
+        "BENCHMARK_INPUT",
+        "SCENARIO_INPUT"
+      ],
+      "title": "Use",
+      "type": "string"
+    }
+  },
+  "required": [
+    "use",
+    "site",
+    "scale"
+  ],
+  "title": "ScientificUseContext",
+  "type": "object"
+}

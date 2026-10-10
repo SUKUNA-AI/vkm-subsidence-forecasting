@@ -223,7 +223,7 @@ def test_same_mtime_other_content_is_corruption(data_root, tmp_path):
     assert r["verdict"] == "FAIL" and r["corrupt"]["count"] == 1
 
 
-def test_file_changed_on_core_after_the_manifest_is_a_warning(data_root, tmp_path):
+def test_immutable_change_fails_even_with_a_changed_mtime(data_root, tmp_path):
     sh, se, copy = _manifests(data_root, tmp_path)
     for rel in ("canonical/_snapshots/snap-20260929T000000Z-0000aaaa.json", "duckdb/vkm_corpus.duckdb"):
         p = copy / rel
@@ -232,8 +232,9 @@ def test_file_changed_on_core_after_the_manifest_is_a_warning(data_root, tmp_pat
         os.utime(p, ns=(st.st_atime_ns, st.st_mtime_ns + 60_000_000_000))
     th, te = M.build(copy, M.iter_tree(copy))
     r = M.compare(sh, se, th, te)
-    assert r["verdict"] == "WARN" and r["changed_after_manifest"]["count"] == 2
-    assert r["changed_after_manifest"]["stable"] == 1          # the snapshot manifest is immutable: worth a look
+    assert r["verdict"] == "FAIL" and r["changed_after_manifest"]["count"] == 2
+    assert r["changed_after_manifest"]["stable"] == 1
+    assert r["promotion_allowed"] is False
 
 
 def test_volatile_file_with_other_content_is_never_corruption(data_root, tmp_path):
@@ -247,11 +248,39 @@ def test_volatile_file_with_other_content_is_never_corruption(data_root, tmp_pat
     assert r["verdict"] == "WARN" and r["corrupt"]["count"] == 0
 
 
-def test_extra_file_in_the_copy_is_a_warning(data_root, tmp_path):
+def test_extra_immutable_file_in_the_copy_blocks_promotion(data_root, tmp_path):
     sh, se, copy = _manifests(data_root, tmp_path)
     _write(copy, "canonical/unexpected.bin", b"?")
     th, te = M.build(copy, M.iter_tree(copy))
-    assert M.compare(sh, se, th, te)["extra"]["examples"] == ["canonical/unexpected.bin"]
+    result = M.compare(sh, se, th, te)
+    assert result["extra"]["examples"] == ["canonical/unexpected.bin"]
+    assert result["extra"]["immutable"] == 1 and result["verdict"] == "FAIL"
+    assert result["promotion_allowed"] is False
+
+
+def test_only_declared_mutable_changes_allow_warn_promotion(data_root, tmp_path):
+    sh, se, copy = _manifests(data_root, tmp_path)
+    _write(copy, "duckdb/vkm_corpus.duckdb", b"new materialized projection")
+    _write(copy, "logs/new.jsonl", b"new log entry")
+    th, te = M.build(copy, M.iter_tree(copy))
+    result = M.compare(sh, se, th, te)
+    assert result["verdict"] == "WARN" and result["promotion_allowed"] is True
+    assert result["changed_after_manifest"]["stable"] == 0 and result["extra"]["immutable"] == 0
+
+
+def test_historical_receipts_are_immutable():
+    assert not M.matches_any("receipts/lab_stage3/run-1/receipt.json", M.CORE_SET["volatile"])
+    assert M.matches_any("receipts/lab_stage3/latest.json", M.CORE_SET["volatile"])
+
+
+@pytest.mark.parametrize("side", ["source", "target"])
+def test_rehash_cache_conflict_blocks_promotion_even_when_digests_match(data_root, tmp_path, side):
+    sh, se, copy = _manifests(data_root, tmp_path)
+    th, te = M.build(copy, M.iter_tree(copy))
+    (sh if side == "source" else th)["cache_conflicts"] = {"count": 1, "examples": ["canonical/x"]}
+    result = M.compare(sh, se, th, te)
+    assert result["digest_equal"] and result["verdict"] == "FAIL"
+    assert result["cache_conflicts"] == 1 and result["promotion_allowed"] is False
 
 
 def test_tree_manifest_skips_the_backup_metadata(tmp_path):

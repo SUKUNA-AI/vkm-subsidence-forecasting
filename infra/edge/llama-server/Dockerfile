@@ -18,15 +18,19 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends git cmake ninja-build build-essential ca-certificates \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
-RUN git init -q . \
+RUN test "${LLAMA_CPP_COMMIT}" = "4da6337767f973e2b4d0797e5b323d77d8565e4a" \
+ && git init -q . \
  && git remote add origin https://github.com/ggml-org/llama.cpp.git \
  && git fetch -q --depth 1 origin "${LLAMA_CPP_COMMIT}" \
  && git checkout -q FETCH_HEAD \
  && test "$(git rev-parse HEAD)" = "${LLAMA_CPP_COMMIT}"
 COPY patches/ /patches/
+COPY vkm-loaded-lifetime.h /src/tools/server/vkm-loaded-lifetime.h
+COPY vkm-weight-placement.h /src/tools/server/vkm-weight-placement.h
 RUN set -e; : > /PATCHES_SHA256; for p in /patches/*.patch; do [ -e "$p" ] || continue; \
       git apply --verbose "$p"; (cd /patches && sha256sum "$(basename "$p")") >> /PATCHES_SHA256; done; \
     git diff --stat
+RUN sha256sum tools/server/vkm-loaded-lifetime.h tools/server/vkm-weight-placement.h >> /PATCHES_SHA256
 RUN cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
       -DGGML_NATIVE=OFF -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="${CUDA_ARCHITECTURES}" \
       -DGGML_BACKEND_DL=ON -DGGML_CPU_ALL_VARIANTS=ON \

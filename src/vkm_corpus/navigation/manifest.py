@@ -116,6 +116,8 @@ def load_datasets(directory: Path, snapshot_id: str | None = None, skip: tuple[s
     parts = manifest.get("parts") or {}
     if not isinstance(parts, dict) or any(not isinstance(part, dict) for part in parts.values()):
         raise ValueError("NAV parts must contain objects")
+    from vkm_corpus.navigation.dependencies import validate
+    validate(manifest)
     def names(value: Any, label: str) -> set[str]:
         if (not isinstance(value, list) or any(not isinstance(x, str) for x in value)
                 or len(value) != len(set(value))):
@@ -170,12 +172,20 @@ def load_datasets(directory: Path, snapshot_id: str | None = None, skip: tuple[s
         verified = verified and all(k in entry for k in ("sha256", "rows", "columns"))
         tables[name] = table
         datasets[name] = {"path": filename, "rows": rows, "columns": columns, "sha256": digest}
+        if "part" in entry:
+            datasets[name]["part"] = entry["part"]
+        if "identity_status" in entry:
+            datasets[name]["identity_status"] = entry["identity_status"]
     listed_files = {v.get("path") or f"{k}.parquet" for k, v in entries.items() if isinstance(v, dict)}
     ref = DatasetReference({
         "dir": directory.name, "snapshot_id": claimed, "claimed_snapshot_id": claimed, "snapshot": snapshot,
         "manifest_sha256": hashlib.sha256(raw).hexdigest() if raw is not None else None,
         "identity_status": VERIFIED if verified else UNVERIFIED,
         "navigation_only": True, "scientific_decision": "NOT_CHECKED", "datasets": datasets,
+        "parts": parts, "inputs": input_ref,
+        **({"dependency_contract": manifest["dependency_contract"],
+            "invalidated_datasets": manifest.get("invalidated_datasets", {})}
+           if "dependency_contract" in manifest else {}),
         "capabilities": sorted(tables),
         "excluded_unmanifested": sorted(p.name for p in directory.glob("*.parquet")
                                         if listed and p.name not in listed_files)}, directory, tables)
