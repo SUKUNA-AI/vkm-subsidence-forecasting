@@ -82,8 +82,8 @@
   "WORLD_EXTRACTION/double/accepted.jsonl": "2dc627a19ce20cfe2ac9f61aa74c8818019aa26236f0456f4a550eca3fdb9de0"
  },
  "outputs": {
-  "passport_evidence.csv": "835e721c297000c4f4dbc5d84be365a4efc16cf06d00aebbb8f4475db09507bf",
-  "passport_evidence_c1.csv": "fbd59311e2c76932da1650c12daa39db93dda21a9580163f8095d8b12cd7cd33",
+  "passport_evidence.csv": "3df7e70e002ad835267e1bb4243148deeca6324c4679d96a69941cbc740ffcb2",
+  "passport_evidence_c1.csv": "39203cae01967334f38c25a483185b73913a602f87d04a7b1c49e076f59092cf",
   "passport_evidence_c1_sol_high_full.csv": "61f5cef6ab9fe3f74453a70b691e949aee28e26f9e0463d61334c3320c64d72b",
   "passport_evidence_c1_sol_wave2_high.csv": "276997e82df7fefe7880d76c5bf7285b538d7b04cc09ec58ef422e15cb46fecc",
   "passport_evidence_c2.csv": "bac61283fc6da4c319da99eb710d75812cd39c24c12d49ba9faa65ce73096cbc",
@@ -97,7 +97,7 @@
   "passport_evidence_c4_sol_wave2_high.csv": "b40c8fc57a797854e5b0eacef3379e791d6a3c86812afea31afad8faf902c8a6",
   "world_passport.csv": "114de0b2f972d69195ccab2f2bcfdf8a72ba1ad59c96e7ffeccc03c4eaf50dcb",
   "passport_conflicts.csv": "4308e53acd90d662c94f68bfd970faf8835a3e2f20ed909d420e1d0104f23b9d",
-  "world_objects.csv": "f684b8895c92034f8a1d203ec4d84b51fc840a7c4e5cc2da32ac64dab42119e0",
+  "world_objects.csv": "8a785892189a3dcbb18b7738d7189ab5f03928101d04da2616dd0c33ceb9e7a2",
   "cited_literature.csv": "91c9237f8ab96f1ac8c9f0e87311468ec36ee4c065e3640953106cee328e0514",
   "transfer_branches.csv": "f1fd8b241d8034080207a71100c379c21e0b43878c960d726ad9912579d2e83b",
   "works_to_obtain.csv": "be7f23abf8e1b5d35577704c330e1efe80a33a47654288c1ac279252dc423456"
@@ -135,9 +135,9 @@
   },
   "conflicts": 249,
   "conflicts_computed": 44,
-  "objects": 6790,
+  "objects": 7268,
   "objects_by_resolution": {
-   "HIERARCHY": 1755,
+   "HIERARCHY": 2233,
    "UNIT": 379,
    "NEW_KEYED": 1398,
    "NEW_NAME_ONLY": 2782,
