@@ -217,20 +217,33 @@ SPECIFIC_SITES = {"SKRU1", "SKRU2", "SKRU3", "SKRU1_OR_SKRU2_UNATTRIBUTED", "BKP
                   "UST_YAYVA", "BEREZNIKI_CITY", "SOLIKAMSK_CITY", "OTHER_POTASH_SITE", "NON_VKM"}
 
 
-def site_from_document(ranges: dict[str, list[dict]], page_id: str) -> tuple[str, str]:
+def doc_ranges_of(ranges: dict[str, list[dict]], page_id: str) -> list[dict]:
     src, _, p = page_id.rpartition(":")
     try:
         idx = int(p.lstrip("pr"))
     except ValueError:
-        return "", ""
+        return []
+    out = []
     for r in ranges.get(src, ()):
         try:
             a, b = int(r["page_from"]), int(r["page_to"])
         except (TypeError, ValueError):
             continue
-        if a <= idx <= b and r.get("site_norm") in SPECIFIC_SITES:
+        if a <= idx <= b:
+            out.append(r)
+    return out
+
+
+def site_from_document(ranges: dict[str, list[dict]], page_id: str) -> tuple[str, str]:
+    for r in doc_ranges_of(ranges, page_id):
+        if r.get("site_norm") in SPECIFIC_SITES:
             return r["site_norm"], f"{r.get('scope_kind', '')}: {r.get('basis', '')}"[:200]
     return "", ""
+
+
+def content_kind_of(ranges: dict[str, list[dict]], page_id: str) -> str:
+    kinds = {r.get("content_kind") or "" for r in doc_ranges_of(ranges, page_id)} - {""}
+    return ";".join(sorted(kinds))
 
 
 def extraction_rows(canon: Path, runs: list[str], units: Units) -> list[dict]:
@@ -290,6 +303,10 @@ def extraction_rows(canon: Path, runs: list[str], units: Units) -> list[dict]:
                 dsite, dbasis = site_from_document(ranges, r["page_id"])
                 if dsite:
                     site, site_basis = dsite, f"DOCUMENT_CONTEXT ({dbasis})"
+            content_kind = content_kind_of(ranges, r["page_id"])
+            if "WORKED_EXAMPLE" in content_kind.split(";") and not (v and v.get("verdict") in ("CORRECT", "CORRECTED")):
+                module = "EXCLUDED"                 # numbers of worked examples do not set the ranges of the worlds
+                verification = "EXCLUDED_WORKED_EXAMPLE" if verification == "VERIFIED_PROGRAMMATIC" else verification
             branch = branch_of(code, scale)
             if v and v.get("branch_hint") in ("A", "B", "N") and branch != "-":
                 branch = v["branch_hint"]
@@ -305,7 +322,7 @@ def extraction_rows(canon: Path, runs: list[str], units: Units) -> list[dict]:
                             origin=r.get("origin") or "UNKNOWN", cited_ref=r.get("cited_ref") or "",
                             source_id=r["page_id"].split(":")[0], page_id=r["page_id"], locator=r.get("locator") or "",
                             quote=r.get("quote") or "", status="AUTO_EXTRACTED_UNREVIEWED",
-                            verification=verification, notes=note[:300],
+                            verification=verification, notes=note[:300], content_kind=content_kind,
                             kind=r.get("kind"), time_as_printed=r.get("time_as_printed") or "",
                             equation_as_printed=r.get("equation_as_printed") or "", symbol=r.get("symbol") or ""))
     return out
@@ -889,8 +906,8 @@ def apply_literature_review(rows: list[dict], canon: Path | None) -> list[dict]:
 
 # ------------------------------------------------------------------------------------------------ build
 EV_COLS = ["ev_id", "producer", "producer_record_id", "module", "parameter", "kind", "target", "material_class",
-           "material_as_printed", "scale", "branch", "site_norm", "site_group", "site_basis", "value_as_printed",
-           "unit_as_printed",
+           "material_as_printed", "scale", "branch", "site_norm", "site_group", "site_basis", "content_kind",
+           "value_as_printed", "unit_as_printed",
            "si_min", "si_max", "si_unit", "conversion", "symbol", "equation_as_printed", "time_as_printed",
            "conditions", "method", "n_samples", "origin", "cited_ref", "source_id", "page_id", "locator", "quote",
            "status", "verification", "copy_cluster", "copy_role", "cluster_sources", "cluster_producers",
