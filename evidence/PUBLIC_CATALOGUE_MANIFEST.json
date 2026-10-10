@@ -878,10 +878,10 @@
   {
    "dropped_columns": [],
    "source": "WORLD_PASSPORT/build_receipt.json",
-   "source_sha256": "3ada30cd181a33c2e28ea698b3a86fdc7ccc29a38795598c43d7a5fbb835a807",
+   "source_sha256": "12139081fe38b9d135e4725619b83dbf1ecfd6e2575998add81280b7cf6490d1",
    "status": "OK",
    "target": "evidence/world/passport/build_receipt.json",
-   "target_sha256": "3ada30cd181a33c2e28ea698b3a86fdc7ccc29a38795598c43d7a5fbb835a807"
+   "target_sha256": "12139081fe38b9d135e4725619b83dbf1ecfd6e2575998add81280b7cf6490d1"
   },
   {
    "dropped_columns": [],
