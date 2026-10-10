@@ -156,3 +156,17 @@ def test_adjudication_and_document_site(wpp, canon):
     assert ev["high_full:P2:002"]["module"] == "EXCLUDED"
     reg = list(csv.DictReader(files["world_passport.csv"].decode("utf-8").splitlines()))
     assert not any("high_full:P2:002" in r["evidence_ids"] for r in reg)
+
+
+def test_world_priors_proposal_keeps_branches_apart(wpp, canon):
+    spec = importlib.util.spec_from_file_location("build_world_priors", ROOT / "scripts" / "build_world_priors.py")
+    wpr = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(wpr)
+    out = canon / "WORLD_PASSPORT"
+    out.mkdir(parents=True, exist_ok=True)
+    for k, v in wpp.build(canon, ["high_full"], None).items():
+        (out / k).write_bytes(v)
+    rows = list(csv.DictReader(wpr.build(canon)["world_priors_proposal.csv"].decode("utf-8").splitlines()))
+    e = {(r["branch_or_hypothesis"], r["site_group"]): r for r in rows if r["parameter"] == "E" and r["target"] == "SYLVINITE"}
+    assert e[("A", "VKM")]["proposed_min"] == "2e+09" and e[("B", "VKM")]["proposed_max"] == "4e+08"
+    assert any(r["parameter"] == "PHI" and r["target"] == "COVER" and r["world_status"] == "UNKNOWN" for r in rows)
