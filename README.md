@@ -39,7 +39,7 @@ Public-каталоги выпускаются через [build_public_catalogu
 текстовый слой OCR v2 (`PADDLEOCR_VL`, PaddleOCR-VL-1.6) — основной у 7 057 страниц 76 источников.
 Поиск: BM25 + jina-v5-nano + mLateOn. Visual retrieval на Qwen3-VL — страницы с preview. Есть NAV, структурированные
 таблицы, формулы, provenance и `figure_series` (оцифровщик исправлен 10.10 по эталону 89 рисунков: 54 улучшено,
-0 ухудшено; слой на CORE пересобирается отдельным шагом).
+0 ухудшено; слой на CORE пересобран 10.10 — 592 векторных и 23 растровых рисунка оцифрованы).
 Квитанции развёртывания — [receipts](docs/corpus_platform/receipts/README.md), выборочная проверка — [platform integrity](docs/corpus_platform/PLATFORM_INTEGRITY_2026-09-30_RU.md).
 
 | Хост | Ответственность |

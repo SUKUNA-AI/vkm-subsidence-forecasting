@@ -1,0 +1,33 @@
+{
+  "authorization": "owner in chat on 2026-10-10: «слой рисунков пересоберем» (after PR #12 / #15 were merged)",
+  "change": "NAV part figure_series of the CURRENT snapshot rebuilt on the WORKSTATION with the fixed digitizer (fd-0.1.5, PUBLIC main bd0d9fd) and imported on CORE byte for byte (python -m vkm_corpus.navigation.figure_series import --pack, image code 475e92f); nav.duckdb repacked; api/mcp/mcp-admin recreated on the unchanged image; canonical snapshot, other NAV parts, graph and search projections unchanged",
+  "snapshot": "snap-20261007T103222Z-2d71e9e8",
+  "build": {
+    "host": "WORKSTATION (WSL archlinux, venv-fd2: PyMuPDF 1.28.2, OpenCV 5.0.0, Tesseract 5.5.3)",
+    "command": "vkm-corpus nav build --part figure_series --option figure_series.workers=6 --option figure_series.raster_pages=fd_monitoring",
+    "seconds": 194,
+    "rule_version": "figure_series_v1",
+    "bundle_manifest_sha256": "d5ca5517612c991339e4c995fe9e139c7084549aede4154c8265c898e899fe76",
+    "bundle_identity_status": "SNAPSHOT_VERIFIED"
+  },
+  "before_after": {
+    "figure_series_figures": {"rows": [1216, 1216], "DIGITIZED": [583, 592], "Y_UNCALIBRATED": [147, 142], "AXES_OK_NO_SERIES": [73, 69], "X_UNCALIBRATED": [138, 139], "NO_AXES": [275, 274]},
+    "figure_series": [7995, 8068],
+    "figure_series_points": [924090, 941639],
+    "figure_series_raster_figures": {"rows": [55, 55], "DIGITIZED": [12, 23], "NO_AXES": [11, 5], "Y_UNCALIBRATED": [12, 5]},
+    "figure_series_raster": [215, 218],
+    "figure_series_raster_points": [13064, 24984],
+    "status_changes_vector": "Y_UNCALIBRATED→DIGITIZED 6, AXES_OK_NO_SERIES→DIGITIZED 5, NO_AXES→X_UNCALIBRATED 2, DIGITIZED→AXES_OK_NO_SERIES 1, DIGITIZED→Y_UNCALIBRATED 1, X_UNCALIBRATED→NO_AXES 1",
+    "reference_set": "89 reviewed figures (work/review_20261010/digitizer/REPORT_RU.md): 54 IMPROVED, 35 SAME, 0 REGRESSED"
+  },
+  "checks": {
+    "import_dry_run": "PASS (manifest, rule version, dataset sha256 and rows, snapshot, figure ids in canonical.figures)",
+    "manifest_part": "figure_series BUILT figure_series_v1, imported 2026-10-10T18:13:20Z",
+    "containers_after": "api, mcp, mcp-admin healthy on vkm-corpus-api:0.1.0-475e92f3aa85",
+    "mcp_smoke": {"version": "nightly-mcp-smoke-6", "verdict": "PASS", "summary": {"PASS": 49, "FAIL": 0, "SKIP": 0, "WARN": 0}, "seconds": 13.4},
+    "client_check": "MCP find_figure_series VKM-SRC-004 (raster InSAR, p0010): DIGITIZED, y calibrated 0…−134"
+  },
+  "rollback": "CORE /srv/vkm/data/tmp/nav-fs-backup-20261010 (6 figure_series parquet, manifest.json, nav.duckdb of before) → copy back into derived/navigation/<snapshot>, recreate api/mcp/mcp-admin",
+  "scripts": "work/figure_series_rebuild_20261010/ (ws_build_fs.sh, ws_compare.sh, core_import.sh; git-ignored)",
+  "status_note": "navigation layer: DERIVATION, AUTO_EXTRACTED_UNREVIEWED, NAV identity AD_HOC_UNVERIFIED; not evidence"
+}

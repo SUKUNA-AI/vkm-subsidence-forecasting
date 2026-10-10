@@ -480,17 +480,23 @@ def borehole_rows(canon: Path, units: Units) -> list[dict]:
     """Borehole picks as C1 evidence: one row per printed thickness, depth of top / bottom (below the collar),
     elevation of top / bottom, collar elevation and total depth, by borehole and unit. Phase 1 picks
     (``BOREHOLES/borehole_picks.csv``) and the picks of the page review (``WORLD_PARAMETERS/curated/borehole_picks*.csv``,
-    10.10.2026). Qualitative, teaching and breakout picks are not geometry of the worlds and are left out."""
+    10.10.2026). Qualitative, teaching and breakout picks are not geometry of the worlds and are left out. The catalogue
+    carries the review picks too (``PKR-…`` rows, ``scripts/update_borehole_catalogue.py``): they are read once, from the
+    curated table, and take the catalogue's borehole id (``BH-PR-…`` for boreholes new to the catalogue)."""
     codes = _unit_codes(canon)
     cat = {r["borehole_id"]: r for r in _rows(canon / "BOREHOLES" / "borehole_catalog.csv")}
+    phase1 = _rows(canon / "BOREHOLES" / "borehole_picks.csv")
+    review_bh = {r["vn_id"]: r["borehole_id"] for r in phase1 if r["pick_id"].startswith("PKR-")}
     sources = [("PHASE1_BOREHOLE_PICKS", canon / "BOREHOLES" / "borehole_picks.csv")]
     sources += [("CURATED_BOREHOLE_PICKS_" + p.stem.rsplit("_", 1)[-1], p)
                 for p in sorted((canon / "WORLD_PARAMETERS" / "curated").glob("borehole_picks*.csv"))]
     out = []
     for prod, path in sources:
-        for r in _rows(path):
+        for r in (phase1 if prod == "PHASE1_BOREHOLE_PICKS" else _rows(path)):
             if (r.get("pick_kind") or "") not in PICK_KINDS_C1 or (r.get("status") or "") in ("ANALOGUE",):
                 continue
+            if prod == "PHASE1_BOREHOLE_PICKS" and r["pick_id"].startswith("PKR-"):
+                continue                    # a review pick: read from its curated table
             guess = (r.get("unit_canonical") or r.get("unit_canonical_guess") or "").strip()
             guess = guess[len("UNRESOLVED:"):] if guess.startswith("UNRESOLVED:") else guess
             unit = codes.get(guess) or codes.get(guess.split("_")[0]) or units.unit_of(guess) \
@@ -503,7 +509,7 @@ def borehole_rows(canon: Path, units: Units) -> list[dict]:
                 unit = "BOREHOLE"
             elif r.get("pick_kind") in ("HYDRO_LEVEL", "WATER_LEVEL"):
                 unit = "WATER_LEVEL"
-            bh = r.get("borehole_id") or r.get("borehole_id_catalogue") or ""
+            bh = r.get("borehole_id") or r.get("borehole_id_catalogue") or review_bh.get(r.get("pick_id") or "", "")
             site = r.get("site_norm") or PICK_SCOPE_SITE.get(r.get("scope") or "", "UNKNOWN")
             if site == "UNKNOWN" and bh in cat:
                 site = PICK_SCOPE_SITE.get(cat[bh].get("scope") or "", "UNKNOWN")

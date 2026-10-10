@@ -164,6 +164,12 @@ RRF, `expand=terms`, `max_per_source`, `late_candidates` ≤ 300), по умол
 откатилась автоматически из-за ошибки в проверочном запросе скрипта (без токена, 401); вторая — PASS:
 hybrid-smoke, запрос с формулировками (stages записаны), smoke-6 49/49.
 
+[deploy_20261010_figure_series_fd015.json](deploy_20261010_figure_series_fd015.json): слой NAV `figure_series`
+снимка `2d71e9e8` пересобран на WORKSTATION исправленным оцифровщиком (fd-0.1.5, main `bd0d9fd`) и импортирован на CORE
+побайтно (`figure_series import --pack`); оцифровано 592 векторных рисунка (было 583) и 23 растровых (было 12), точек
+растра 25 тыс. (было 13 тыс.); api/mcp/mcp-admin пересозданы на прежнем образе, smoke-6 49/49 PASS; копия для отката —
+`tmp/nav-fs-backup-20261010` на CORE.
+
 [first_live_engine_create_cpu_2026-10-05_apparmor.json](first_live_engine_create_cpu_2026-10-05_apparmor.json):
 L0 на `ac9589e` (AppArmor с учётом жизненного цикла) — 410 тестов на Windows и Linux,
 файлы сверены побайтно с коммитом; заменяет pins `_names` receipt.
