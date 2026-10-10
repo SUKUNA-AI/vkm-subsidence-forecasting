@@ -173,7 +173,8 @@ RASTER_CONFIG: dict[str, Any] = {
     "rotated_date_labels": True, "strip_anchors": "frame and outermost axis lines",
     # fd-0.1.5: filled areas (label boxes) are not curves; OCR garbage and far numbers do not name series; OCR minus
     "fill_share": _ras.FILL_SHARE, "fill_tol_de": _ras.FILL_TOL, "fill_window_strokes": _ras.FILL_WINDOW_STROKES,
-    "fill_max_colours": _ras.FILL_MAX_COLOURS, "label_min_letters": _rd.LABEL_MIN_LETTERS,
+    "fill_max_colours": _ras.FILL_MAX_COLOURS, "fill_text_share": _ras.FILL_TEXT_SHARE,
+    "label_min_letters": _rd.LABEL_MIN_LETTERS,
     "label_max_other": _rd.LABEL_MAX_OTHER, "ocr_minus_dashes": "=—–−-",
 }
 RASTER_ERROR_MODEL = ("half-width in value units: axis label-fit rms ⊕ half the native pixel (y: ⊕ half the stroke "

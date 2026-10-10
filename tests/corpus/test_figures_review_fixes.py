@@ -310,18 +310,27 @@ def test_raster_label_boxes_are_not_traced_as_curves():
     for bx in (100, 300, 500):                                                      # pale yellow boxes with text
         cv2.rectangle(img, (bx, 290), (bx + 120, 370), (250, 250, 160), -1)
         cv2.putText(img, "2UV", (bx + 15, 345), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 3)
+    for cx in (700, 790):                                    # big filled data markers of a thin-line chart, no text
+        cv2.circle(img, (cx, 330), 15, (40, 90, 200), -1)
+        cv2.circle(img, (cx, 330), 15, (0, 0, 0), 2)         # with a dark outline
     dark, grey, coloured, bg, chroma, lab = R.masks(img)
-    fill = R.filled_areas(coloured, lab)
+    fill = R.filled_areas(coloured, lab, stroke=3.0, dark=dark)
+    assert not fill[315:346, 685:806].any()                   # markers are not label boxes
+    assert R.filled_areas(coloured, lab, stroke=3.0)[325:336, 695:706].all()   # without the text rule they would be
+    fill = R.filled_areas(coloured, lab, dark=dark)
     box = np.zeros((h, w), bool)
     box[290:371, 100:621] = True
     assert fill[290:371, 100:221].mean() > 0.95 and fill[290:371, 300:421].mean() > 0.95
     curve = coloured & ~box
     assert not (fill & curve).any()                                             # the curve is not a filled area
+    def in_boxes(t):
+        return bool(np.any((t["xs"] <= 640) & (t["ys"] > 280)))
     tracks = [t for t in R.track_curves(coloured & ~fill, lab, 0, w - 1, max_jump=12, max_run=100)
               if len(t["xs"]) >= 8]
-    assert tracks and all(float(np.max(t["ys"])) < 230 for t in tracks)               # only the red curve
+    assert any(float(np.max(t["ys"])) < 230 and len(t["xs"]) > 600 for t in tracks)   # the red curve
+    assert not any(in_boxes(t) for t in tracks)                                         # nothing in the boxes
     # without the rule the boxes' rows are traced as well
-    assert any(float(np.min(t["ys"])) > 280 for t in R.track_curves(coloured, lab, 0, w - 1, max_jump=12, max_run=100)
+    assert any(in_boxes(t) for t in R.track_curves(coloured, lab, 0, w - 1, max_jump=12, max_run=100)
                if len(t["xs"]) >= 30)
 
 

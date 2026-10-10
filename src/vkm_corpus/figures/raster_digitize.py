@@ -171,8 +171,8 @@ def digitize_raster(fig: R.RasterFigure, engine: OcrEngine, corpus_words=None, s
     for t in words:
         cv2.rectangle(textmask, (int(t.x0) - 2, int(t.yc - t.h * 0.7) - 2), (int(t.x1) + 2, int(t.yc + t.h * 0.7) + 2),
                       255, -1)
-    # filled areas of one colour (label boxes, bands) are not curves (fd-0.1.5)
-    fill = R.filled_areas(coloured & plot, lab)
+    # filled label boxes (one colour, text inside) are not curves (fd-0.1.5)
+    fill = R.filled_areas(coloured & plot, lab, dark=dark)
     curve_mask = coloured & plot & (textmask == 0) & ~fill
     # remove tiny specks
     n, cc, stats, _ = cv2.connectedComponentsWithStats(curve_mask.astype(np.uint8), 8)

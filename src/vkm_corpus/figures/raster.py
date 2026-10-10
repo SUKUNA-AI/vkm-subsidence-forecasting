@@ -669,9 +669,10 @@ def marker_axis(orient: str, markers: list[float], words: list[Text], min_agree:
 # FILL_WINDOW_STROKES stroke widths (at least 15 px) to FILL_SHARE or more — a curve, however thick, fills a third of it
 # at most. Colours are the frequent ink colours (pixels within FILL_TOL ΔE of a colour bin's mean); an area is kept
 # when its core covers half a window, and it extends over the same colour up to one window around the core (the edges
-# and the gaps between the letters of the box). Its pixels are not curve pixels (VKM-SRC-012 p.46: the yellow boxes of
-# the zone names were traced as three «series» at −90…−110 mm).
-FILL_SHARE, FILL_TOL, FILL_WINDOW_STROKES, FILL_MAX_COLOURS = 0.45, 10.0, 4.0, 24
+# and the gaps between the letters of the box). Route R takes only areas with text in their middle half (dark ink
+# ≥ FILL_TEXT_SHARE of it): label boxes, never big filled data markers. Their pixels are not curve pixels
+# (VKM-SRC-012 p.46: the yellow boxes of the zone names were traced as three «series» at −90…−110 mm).
+FILL_SHARE, FILL_TOL, FILL_WINDOW_STROKES, FILL_MAX_COLOURS, FILL_TEXT_SHARE = 0.45, 10.0, 4.0, 24, 0.03
 
 
 def stroke_width(mask: np.ndarray, step: int = 3) -> float:
@@ -688,10 +689,12 @@ def stroke_width(mask: np.ndarray, step: int = 3) -> float:
     return float(np.median(np.concatenate(runs))) if runs else 3.0
 
 
-def filled_areas(coloured: np.ndarray, lab: np.ndarray, stroke: float | None = None) -> np.ndarray:
+def filled_areas(coloured: np.ndarray, lab: np.ndarray, stroke: float | None = None,
+                 dark: np.ndarray | None = None) -> np.ndarray:
     """Mask of filled areas of one ink colour (label boxes, bands) among the ``coloured`` pixels (see
     :data:`FILL_SHARE`), with a margin of one stroke width around them (the anti-aliased border of a box has other
-    colours and would be traced as a thin line)."""
+    colours and would be traced as a thin line). With ``dark`` (the dark-neutral mask) only areas holding text in their
+    middle half (:data:`FILL_TEXT_SHARE`) count: label boxes, not big filled markers."""
     import cv2
 
     fill = np.zeros(coloured.shape, bool)
@@ -726,7 +729,18 @@ def filled_areas(coloured: np.ndarray, lab: np.ndarray, stroke: float | None = N
         if not keep.any():
             continue
         grown = cv2.dilate(keep[cc].astype(np.uint8), np.ones((k, k), np.uint8)) > 0
-        fill |= grown & (same > 0)
+        area = grown & (same > 0)
+        if dark is not None:
+            # a label box holds its text: dark ink in the middle half of the area (a big filled marker, even with a
+            # dark outline, has none there)
+            n2, cc2, st2, _ = cv2.connectedComponentsWithStats(area.astype(np.uint8), 8)
+            ok = np.zeros(n2, bool)
+            for i in range(1, n2):
+                x, y, w, h = (int(v) for v in st2[i, :4])
+                mid = dark[y + h // 4:y + h - h // 4, x + w // 4:x + w - w // 4]
+                ok[i] = mid.size > 0 and float(mid.mean()) >= FILL_TEXT_SHARE
+            area = ok[cc2]
+        fill |= area
     if fill.any():
         m = 2 * int(round(max(2.0, stroke))) + 1
         fill = cv2.dilate(fill.astype(np.uint8), np.ones((m, m), np.uint8)) > 0
