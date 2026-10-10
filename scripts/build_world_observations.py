@@ -92,7 +92,7 @@ def availability(nav: Path | None) -> dict[str, tuple[str, str]]:
 
 
 def base(**kw) -> dict:
-    keys = ["obs_id", "item_kind", "modality", "site_as_printed", "site_norm", "skru1_flag", "line_or_benchmark",
+    keys = ["obs_id", "item_kind", "modality", "site_as_printed", "site_norm", "skru1_flag", "georef", "line_or_benchmark",
             "epochs", "time_start", "time_end", "quantity", "unit", "value_min", "value_max", "n_points",
             "available_from", "available_from_basis", "source_id", "page_id", "figure_label", "figure_id",
             "calibration_ref", "calibration_check", "status", "primary_data_origin", "applicability",
@@ -107,8 +107,23 @@ def _years(text: str) -> tuple[str, str]:
     return (str(ys[0]), str(ys[-1])) if ys else ("", "")
 
 
+def georef_points(canon: Path) -> dict[str, dict]:
+    """Benchmarks placed on the SKRU-1 mine-field plan (``WORLD_OBSERVATIONS/georef/*.geojson``, local system
+    SKRU1_LOCAL_SH1: X east, Y north, metres, origin shaft No 1, CRS UNKNOWN): digitized benchmark id → position."""
+    out = {}
+    for p in sorted((canon / "WORLD_OBSERVATIONS" / "georef").glob("*.geojson")):
+        for f in json.loads(p.read_text(encoding="utf-8")).get("features", []):
+            pr, geom = f.get("properties") or {}, f.get("geometry") or {}
+            key = pr.get("digitized_benchmark_id") or pr.get("benchmark_id")
+            if key and geom.get("type") == "Point":
+                out[key] = {"x": geom["coordinates"][0], "y": geom["coordinates"][1], "error_m": pr.get("error_m"),
+                            "status": pr.get("status") or "", "method": pr.get("method") or ""}
+    return out
+
+
 def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
     avail = availability(nav)
+    geo = georef_points(canon)
     obs, points = [], []
     excluded = Counter()
 
@@ -156,8 +171,14 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
                             notes=(("среднее, вычисленное автором (DERIVATION автора); " if nature == "AUTHOR_DERIVED_MEAN"
                                     else "") + "; ".join(meta.get("notes", []) if isinstance(meta.get("notes"), list)
                                                          else [str(meta.get("notes", ""))]))[:500]))
+            n_geo = sum(1 for p in pts if p.get("benchmark_id") in geo)
+            obs[-1]["georef"] = f"{n_geo}/{len(pts)} точек на плане СКРУ-1 (SKRU1_LOCAL_SH1)" if n_geo else ""
             for p in pts:
-                points.append({"point_id": f"WOP-{len(points) + 1:06d}", "obs_id": f"WOB-DIG-{ser_id}", "series_id": ser_id, "source_id": sid,
+                g = geo.get(p.get("benchmark_id") or "", {})
+                points.append({"point_id": f"WOP-{len(points) + 1:06d}", "obs_id": f"WOB-DIG-{ser_id}",
+                               "x_local_m": g.get("x", ""), "y_local_m": g.get("y", ""),
+                               "xy_error_m": g.get("error_m", "") if g.get("error_m") is not None else "",
+                               "xy_status": g.get("status", ""), "series_id": ser_id, "source_id": sid,
                                "page_id": meta.get("page_id"), "epoch_or_date": p.get("epoch_or_date", ""),
                                "line_id": p.get("line_id", ""), "benchmark_id": p.get("benchmark_id", ""),
                                "x_value": p.get("x_value", ""), "x_unit": p.get("x_unit", ""),
@@ -256,6 +277,7 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
                           "by_skru1_flag": dict(Counter(o["skru1_flag"] for o in obs).most_common()),
                           "by_site": dict(Counter(o["site_norm"] for o in obs).most_common()),
                           "digitized_points": len(points),
+                          "digitized_points_georeferenced": sum(1 for x in points if x.get("x_local_m") != ""),
                           "digitized_points_excluded_not_observation": dict(excluded),
                           "without_available_from": sum(1 for o in obs if not o["available_from"])},
                "nav_used": bool(avail)}
