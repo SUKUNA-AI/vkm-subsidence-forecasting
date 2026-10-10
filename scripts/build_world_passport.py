@@ -734,6 +734,16 @@ def objects(canon: Path, runs: list[str], units: "Units | None" = None) -> list[
         if k:
             by_key.setdefault(k, h["entity_id"])
             out[h["entity_id"]].update(kind=k[0], mine=k[1], ident=k[2])
+    for b in _rows(canon / "BOREHOLES" / "borehole_catalog.csv"):     # boreholes: merge targets of the review
+        bid = b.get("borehole_id")
+        if bid and bid not in out:
+            out[bid] = {"wo_id": "", "object_id": bid, "kind": "BOREHOLE", "mine": "", "ident": "",
+                        "name": f"скв. {(b.get('alternate_ids') or bid).split('|')[0].strip()}", "level": "borehole",
+                        "entity_type": b.get("type") or "", "parent_id": b.get("spatial_entity_id") or "",
+                        "mine_attribution": b.get("mine_or_site") or "", "site_scope": "",
+                        "origin": "PHASE1_BOREHOLE_CATALOGUE", "resolution": "HIERARCHY", "n_mentions_extraction": 0,
+                        "names_as_printed": "", "pages": "", "source_ids": b.get("sources") or "",
+                        "status": b.get("site_attribution_status") or ""}
     mine_ids = {k[1]: v for k, v in by_key.items() if k[0] == "MINE"}
     pages, names = defaultdict(set), defaultdict(set)
     for run in runs:
@@ -778,9 +788,12 @@ def objects(canon: Path, runs: list[str], units: "Units | None" = None) -> list[
             o = out[oid]
             o["review_basis"] = (d.get("basis") or "")[:300]
             o["review_page_id"] = d.get("basis_page_id") or ""
-            if act == "MERGE_INTO" and d.get("target_object_id") in out and d["target_object_id"] != oid:
-                merged[d["target_object_id"]].append(oid)
-                o["resolution"] = f"MERGED_INTO:{d['target_object_id']}"
+            tgt = d.get("target_object_id") or ""
+            if act == "MERGE_INTO" and ";" in tgt:
+                o["resolution"] = f"CONFLATED:{tgt}"[:300]      # one name, several objects: mentions stay here
+            elif act == "MERGE_INTO" and tgt in out and tgt != oid:
+                merged[tgt].append(oid)
+                o["resolution"] = f"MERGED_INTO:{tgt}"
             elif act == "NEW_OBJECT":
                 o.update(name=d.get("canonical_name") or o["name"], kind=d.get("kind") or o["kind"],
                          mine=d.get("mine") or o["mine"], mine_attribution=d.get("mine") or o["mine_attribution"],
