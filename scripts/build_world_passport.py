@@ -697,11 +697,44 @@ def objects(canon: Path, runs: list[str], units: "Units | None" = None) -> list[
             out[oid]["n_mentions_extraction"] += 1
             pages[oid].add(r["page_id"])
             names[oid].add(r["entity_name"].strip())
+    # reviewed decisions (curated object_resolution*.csv): merge, new object with parent, re-attribution, not an object
+    merged = defaultdict(list)
+    for res_p in sorted((canon / "WORLD_PARAMETERS" / "curated").glob("object_resolution*.csv")):
+        for d in _rows(res_p):
+            oid, act = d.get("object_id", ""), (d.get("action") or "").upper()
+            if oid not in out:
+                continue
+            o = out[oid]
+            o["review_basis"] = (d.get("basis") or "")[:300]
+            o["review_page_id"] = d.get("basis_page_id") or ""
+            if act == "MERGE_INTO" and d.get("target_object_id") in out and d["target_object_id"] != oid:
+                merged[d["target_object_id"]].append(oid)
+                o["resolution"] = f"MERGED_INTO:{d['target_object_id']}"
+            elif act == "NEW_OBJECT":
+                o.update(name=d.get("canonical_name") or o["name"], kind=d.get("kind") or o["kind"],
+                         mine=d.get("mine") or o["mine"], mine_attribution=d.get("mine") or o["mine_attribution"],
+                         parent_id=d.get("parent_id") or o["parent_id"], resolution="REVIEWED_NEW")
+            elif act == "REATTRIBUTE":
+                o.update(mine=d.get("mine") or o["mine"], mine_attribution=d.get("mine") or o["mine_attribution"],
+                         parent_id=d.get("parent_id") or o["parent_id"], resolution="REVIEWED_REATTRIBUTED")
+            elif act == "NOT_OBJECT":
+                o["resolution"] = "NOT_OBJECT"
+            elif act == "KEEP_AS_IS":
+                o["resolution"] = "REVIEWED_KEPT"
+    for target, srcs in merged.items():
+        for oid in srcs:
+            pages[target] |= pages.get(oid, set())
+            names[target] |= names.get(oid, set())
+            out[target]["n_mentions_extraction"] += out[oid]["n_mentions_extraction"]
+        out[target]["merged_ids"] = ";".join(sorted(srcs))[:600]
     for oid, ps in pages.items():
         out[oid]["pages"] = ";".join(sorted(ps))[:1500]
         out[oid]["names_as_printed"] = " | ".join(sorted(names[oid]))[:600]
         if out[oid]["origin"] == "EXTRACTION_CANDIDATE":
             out[oid]["source_ids"] = ";".join(sorted({p.split(":")[0] for p in ps}))
+    for o in out.values():
+        for k in ("review_basis", "review_page_id", "merged_ids"):
+            o.setdefault(k, "")
     res = sorted(out.values(), key=lambda o: (o["origin"] != "PHASE1_SPATIAL_HIERARCHY", o["object_id"]))
     for i, o in enumerate(res, 1):
         o["wo_id"] = f"WOJ-{i:05d}"
@@ -807,6 +840,50 @@ def cited_literature(ev: list[dict], nav: Path | None, canon: Path | None = None
                         rec.update(cited_work_id=e, match_method="TITLE_STEMS+YEAR/AUTHOR", match_score=sc,
                                    resolution="EXTERNAL_REGISTER_AUTO")
         out.append(rec)
+    return apply_literature_review(out, canon)
+
+
+def apply_literature_review(rows: list[dict], canon: Path | None) -> list[dict]:
+    """Reviewed resolution (curated ``literature_resolution*.csv`` with the ``cited_literature`` table it was made
+    from, ``literature_input*.csv``): a reference is matched by (citing source, reference as printed) and may split into
+    parts (several works behind one reference)."""
+    if canon is None:
+        return rows
+    cur = canon / "WORLD_PARAMETERS" / "curated"
+    key_of = {}
+    for p in sorted(cur.glob("literature_input*.csv")):
+        for r in _rows(p):
+            key_of[r["cl_id"]] = (r["citing_source_id"], r["cited_ref"])
+    review = defaultdict(list)
+    for p in sorted(cur.glob("literature_resolution*.csv")):
+        for r in _rows(p):
+            k = key_of.get(r.get("cl_id", ""))
+            if k:
+                review[k].append(r)
+    if not review:
+        return rows
+    out = []
+    for row in rows:
+        parts = review.get((row["citing_source_id"], row["cited_ref"]))
+        if not parts:
+            out.append(row)
+            continue
+        for part in sorted(parts, key=lambda r: r.get("part_no") or ""):
+            nr = dict(row)
+            nr.update(cited_ref_part=part.get("cited_ref_part") or row["cited_ref"],
+                      resolution=part.get("resolution_new") or row["resolution"],
+                      bibliography_entry_id=part.get("bibliography_entry_id") or row["bibliography_entry_id"],
+                      parsed_authors=part.get("authors") or row["parsed_authors"],
+                      parsed_title=part.get("title") or row["parsed_title"],
+                      parsed_year=part.get("year") or row["parsed_year"],
+                      cited_work_id=part.get("corpus_work_id") or part.get("external_id") or row["cited_work_id"],
+                      match_method="REVIEWED", match_score=part.get("confidence") or "",
+                      review_basis=(part.get("basis") or "")[:300])
+            out.append(nr)
+    for i, r in enumerate(out, 1):
+        r["cl_id"] = f"WCL-{i:05d}"
+        r.setdefault("cited_ref_part", "")
+        r.setdefault("review_basis", "")
     return out
 
 
@@ -857,6 +934,11 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
     files.update({"world_passport.csv": _csv(reg),
              "passport_conflicts.csv": _csv(conf), "world_objects.csv": _csv(objs),
              "cited_literature.csv": _csv(lit), "transfer_branches.csv": _csv(trans)})
+    obtain = []
+    for p in sorted((canon / "WORLD_PARAMETERS" / "curated").glob("works_to_obtain*.csv")):
+        obtain += _rows(p)
+    if obtain:
+        files["works_to_obtain.csv"] = _csv(obtain)
     inputs = {}
     for p in sorted(canon.glob("WORLD_PARAMETERS/**/*.csv")) + [canon / "WORLD_EXTRACTION" / r / "accepted.jsonl"
                                                                 for r in runs]:
