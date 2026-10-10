@@ -10,6 +10,7 @@ have not been reviewed yet are flagged for a page-image review when
 Flags are review requests, not verdicts. Output: one JSON line per flagged record.
 
 Usage:  python scripts/extract_plausibility_flags.py --passport <WORLD_PASSPORT dir> --out <flags.jsonl>
+        [--producers SOL_WAVE2_HIGH]
 """
 from __future__ import annotations
 
@@ -64,9 +65,11 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--passport", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
+    ap.add_argument("--producers", nargs="+", default=list(PRODUCERS),
+                    help="producers whose unreviewed numbers are swept (e.g. SOL_WAVE2_HIGH for the second wave)")
     a = ap.parse_args()
     ev = list(csv.DictReader(open(a.passport / "passport_evidence.csv", encoding="utf-8")))
-    fl = flags(ev)
+    fl = flags(ev, tuple(a.producers))
     with open(a.out, "w", encoding="utf-8", newline="\n") as f:
         for x in fl:
             f.write(json.dumps(x, ensure_ascii=False) + "\n")

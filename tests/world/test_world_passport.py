@@ -202,3 +202,23 @@ def test_borehole_picks_enter_c1_per_target_site(wpp, canon):
            and r["target"] == "PKS"}
     assert thk["SKRU3"]["world_status"] == "FACT" and thk["SKRU1"]["world_status"] == "FACT"
     assert thk["VKM"]["world_status"] == "ANALOGUE_VIA_TRANSFER" and "СКРУ-2" in thk["VKM"]["note"]
+
+
+def test_reviewed_borehole_picks_reach_c1(wpp, canon):
+    conv = _load("build_borehole_picks_review")
+    groups = [{"group": 1, "judged": True, "picks": [
+        dict(pick_key="k1", page_id="VKM-SRC-048:p0042", borehole_as_printed="скв. 7", borehole_id_catalogue="",
+             site_as_printed="СКРУ-2", site_norm="SKRU2", unit_as_printed="ПКС", unit_canonical="PKS", pick_kind="TOP",
+             top_depth_m=212.4, read_from="IMAGE", status="FACT", confidence="HIGH", value_as_printed="212,4"),
+        dict(pick_key="k2", page_id="VKM-SRC-048:p0042", borehole_as_printed="скв. 7", site_norm="SKRU2",
+             unit_as_printed="", pick_kind="TOTAL_DEPTH", bottom_depth_m=480, read_from="TEXT", status="FACT",
+             confidence="HIGH", value_as_printed="480")]}]
+    rows = conv.rows_of(groups)
+    assert rows[1]["total_depth_m"] == "480" and rows[1]["bottom_depth_m"] == ""
+    assert rows[0]["verification"] == "ADJUDICATED_JUDGE"
+    _write(canon / "WORLD_PARAMETERS" / "curated" / "borehole_picks_20261010.csv", rows)
+    ev = {r["producer_record_id"]: r for r in csv.DictReader(
+        wpp.build(canon, ["high_full"], None)["passport_evidence.csv"].decode("utf-8").splitlines())}
+    top, td = ev["BPR-00001-DEPTH_TOP"], ev["BPR-00002-TOTAL_DEPTH"]
+    assert (top["si_min"], top["site_norm"], top["producer"]) == ("212.4", "SKRU2", "CURATED_BOREHOLE_PICKS_20261010")
+    assert (td["target"], td["si_min"]) == ("BOREHOLE", "480")

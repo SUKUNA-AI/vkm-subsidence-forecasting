@@ -1,0 +1,695 @@
+range_id,source_id,page_from,page_to,site_norm,sites_list,scope_kind,content_kind,basis,basis_page_id,confidence
+SSR-0001,VKM-SRC-001,1,10,MIXED,NON_VKM;VKM_UNSPECIFIED,SECTION,METHOD,"Автореферат: актуальность, методика и перечень объектов (Илецкое, ВКМ (ОАО «Сильвинит»), Астраханское ГКМ и др.).",VKM-SRC-001:p0010,MEDIUM
+SSR-0002,VKM-SRC-001,11,13,MIXED,SKRU1;SKRU2;SKRU3,SECTION,ORIGINAL_DATA,"Результаты по «территории деятельности ОАО «Сильвинит»» (солеотвалы, рис. 3) и сравнение с нивелированием в г. Соликамск 2011 — без разделения по рудникам.",VKM-SRC-001:p0011,MEDIUM
+SSR-0003,VKM-SRC-001,14,16,NON_VKM,,SECTION,ORIGINAL_DATA,"Астраханское ГКМ: базисы съёмки, истории оседаний.",VKM-SRC-001:p0014,HIGH
+SSR-0004,VKM-SRC-001,17,22,UNKNOWN,,SECTION,METHOD,Рекомендации по методике мониторинга и выводы — без привязки к объекту.,VKM-SRC-001:p0017,MEDIUM
+SSR-0005,VKM-SRC-002,1,11,UNKNOWN,,PAGES,METHOD,Слайды 1–11 — общая методика радарной интерферометрии и обработка снимков; объект не назван.,VKM-SRC-002:p0002,MEDIUM
+SSR-0006,VKM-SRC-002,12,13,SKRU1_OR_SKRU2_UNATTRIBUTED,,SECTION,ORIGINAL_DATA,Заголовок блока слайдов: мониторинг застроенной территории СКРУ-1 и СКРУ-2 (Соликамск); без разделения по рудникам.,VKM-SRC-002:p0012,MEDIUM
+SSR-0007,VKM-SRC-002,14,14,SKRU1,,PAGES,ORIGINAL_DATA,Подпись слайда: карта скоростей оседаний территории деятельности СКРУ-1 за 2016 г.,VKM-SRC-002:p0014,HIGH
+SSR-0008,VKM-SRC-002,15,15,SKRU1_OR_SKRU2_UNATTRIBUTED,,PAGES,ORIGINAL_DATA,Сводные графики оседаний по профильным линиям под заголовком «территории СКРУ-1 и СКРУ-2 (Соликамск)»; рудник линий не указан.,VKM-SRC-002:p0015,MEDIUM
+SSR-0009,VKM-SRC-002,16,17,UNKNOWN,,PAGES,REVIEW,Список литературы и состав исполнителей; данных площадки нет.,VKM-SRC-002:p0016,LOW
+SSR-0010,VKM-SRC-003,1,12,MIXED,BEREZNIKI_CITY;SOLIKAMSK_CITY;NON_VKM,SECTION,REVIEW,"Оглавление и введение диссертации: Березники, Соликамск, ПХГ, землетрясение в Турции.",VKM-SRC-003:p0002,MEDIUM
+SSR-0011,VKM-SRC-003,13,30,NON_VKM,,CHAPTER,METHOD,"Гл. 1: методы РСА-интерферометрии (DInSAR, SBAS, PS, IPTA, офсеты) — без привязки к объекту.",VKM-SRC-003:p0002,HIGH
+SSR-0012,VKM-SRC-003,31,38,MIXED,BEREZNIKI_CITY;SOLIKAMSK_CITY,CHAPTER,METHOD,Гл. 2: технология оценки оседаний на подработанных территориях г. Березники и г. Соликамск.,VKM-SRC-003:p0002,HIGH
+SSR-0013,VKM-SRC-003,39,62,BEREZNIKI_CITY,,SECTION,ORIGINAL_DATA,"3.1–3.3: мониторинг оседаний подработанной территории г. Березники (DInSAR, устойчивые отражатели).",VKM-SRC-003:p0002,HIGH
+SSR-0014,VKM-SRC-003,63,68,SKRU2,SOLIKAMSK_CITY,SECTION,ORIGINAL_DATA,3.4: площадной мониторинг оседаний в пределах подработанной территории г. Соликамск (рудник СКРУ-2).,VKM-SRC-003:p0002,HIGH
+SSR-0015,VKM-SRC-003,69,76,BEREZNIKI_CITY,,SECTION,ORIGINAL_DATA,3.5: анализ временных рядов оседаний на территории г. Березники; выводы по главе 3.,VKM-SRC-003:p0002,HIGH
+SSR-0016,VKM-SRC-003,77,84,NON_VKM,,SECTION,ORIGINAL_DATA,4.1: точность по модели подземного хранилища газа.,VKM-SRC-003:p0077,HIGH
+SSR-0017,VKM-SRC-003,85,97,OTHER_POTASH_SITE,STAROBIN_BELARUS,SECTION,ORIGINAL_DATA,4.2: модель оседаний над лавной (столбовой) отработкой сильвинитовых пластов; геометрия съёмки — Старобинское месторождение (стр. 90).,VKM-SRC-003:p0090,MEDIUM
+SSR-0018,VKM-SRC-003,98,113,NON_VKM,,CHAPTER,ORIGINAL_DATA,Гл. 5: землетрясение в Турции 06.02.2023.,VKM-SRC-003:p0003,HIGH
+SSR-0019,VKM-SRC-003,114,126,MIXED,BEREZNIKI_CITY;SOLIKAMSK_CITY;NON_VKM,SECTION,REVIEW,"Заключение, сокращения, список литературы.",VKM-SRC-003:p0003,LOW
+SSR-0020,VKM-SRC-004,1,19,BEREZNIKI_CITY,,WHOLE_DOCUMENT,ORIGINAL_DATA,Заглавие и аннотация: мониторинг оседаний на территории г. Березники (над затопленным рудником БКПРУ-1 и соседними) методами InSAR.,VKM-SRC-004:p0001,HIGH
+SSR-0021,VKM-SRC-005,1,6,UNKNOWN,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Рудник/месторождение в статье не названы (участок пласта «Нижний II», скв. 47 и BZK-8, падение 10–15° на СЗ); реестр ставит OTHER_POTASH_SITE. Стр. 1 и 6 — чужие статьи выпуска.",VKM-SRC-005:p0002,LOW
+SSR-0022,VKM-SRC-006,1,94,NON_VKM,,WHOLE_DOCUMENT,METHOD,Учебное пособие по спутниковому мониторингу геодинамики; рудники ВКМ не рассматриваются.,VKM-SRC-006:p0001,HIGH
+SSR-0023,VKM-SRC-007,1,10,NON_VKM,,WHOLE_DOCUMENT,ORIGINAL_DATA,Аннотация: 40 карт вертикальных смещений г. Санкт-Петербург по Sentinel-1; ВКМ не рассматривается.,VKM-SRC-007:p0001,HIGH
+SSR-0024,VKM-SRC-008,1,11,NON_VKM,,WHOLE_DOCUMENT,METHOD,Методическая статья об информационно-вычислительных аспектах радарной интерферометрии; рудники ВКМ не упоминаются.,VKM-SRC-008:p0001,MEDIUM
+SSR-0025,VKM-SRC-009,1,11,OTHER_POTASH_SITE,STAROBIN_BELARUS,WHOLE_DOCUMENT,ORIGINAL_DATA,"Авторы и объект — Республика Беларусь, деформации от добычи калийных солей (Старобинское месторождение); ВКМ не рассматривается.",VKM-SRC-009:p0001,HIGH
+SSR-0026,VKM-SRC-010,1,10,NON_VKM,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Введение: Кемеровская область (Кузбасс), угольные шахты и разрезы; ВКМ не рассматривается.",VKM-SRC-010:p0001,HIGH
+SSR-0027,VKM-SRC-011,1,40,VKM_UNSPECIFIED,,CHAPTER,REVIEW,"Аннотация и гл. 1: общая геология Верхнекамского месторождения (стратиграфия, тектоника, гидрогеология); примеры рудников подписаны на рисунках.",VKM-SRC-011:p0002,HIGH
+SSR-0028,VKM-SRC-011,41,99,VKM_UNSPECIFIED,,CHAPTER,ORIGINAL_DATA,"Гл. 2: строение и состав соляной толщи; сечения и примеры с разных рудников (БКПРУ-2, -4, СКРУ-1, -2, -3) названы на своих страницах.",VKM-SRC-011:p0042,MEDIUM
+SSR-0029,VKM-SRC-011,100,126,VKM_UNSPECIFIED,,CHAPTER,MIXED,"Гл. 3 «Онтогенез ВКМС»: соленакопление, эпигенез, карст, механизмы деформации — месторождение в целом.",VKM-SRC-011:p0002,MEDIUM
+SSR-0030,VKM-SRC-011,127,131,VKM_UNSPECIFIED,,CHAPTER,REVIEW,Гл. 4: геологические задачи освоения месторождения.,VKM-SRC-011:p0127,MEDIUM
+SSR-0031,VKM-SRC-011,132,186,VKM_UNSPECIFIED,,SECTION,REVIEW,Литература и английское резюме.,VKM-SRC-011:p0173,LOW
+SSR-0032,VKM-SRC-012,1,12,MIXED,SKRU1;SKRU2;SKRU3,SECTION,MIXED,Оглавление и введение: объект — междушахтные целики между полями СКРУ-1–СКРУ-2 и СКРУ-2–СКРУ-3.,VKM-SRC-012:p0009,HIGH
+SSR-0033,VKM-SRC-012,13,27,VKM_UNSPECIFIED,,SECTION,REVIEW,"1.1–1.3 и 1.4.1: обзор нормативов, моделей и свойств пород ВКМКС по чужим работам (ГИ УрО РАН, ПНИПУ, ВНИИ Галургии).",VKM-SRC-012:p0025,HIGH
+SSR-0034,VKM-SRC-012,28,34,MIXED,SKRU1;SKRU2;SKRU3,SECTION,FIELD_REPORT,1.4.2: геология и технология в районе целиков между полями СКРУ-1–СКРУ-2 и СКРУ-2–СКРУ-3 (рис. 1.1).,VKM-SRC-012:p0028,HIGH
+SSR-0035,VKM-SRC-012,35,36,VKM_UNSPECIFIED,,SECTION,REVIEW,1.4.3: опыт геофизических методов для сохранности ВЗТ при разработке ВКМКС — обзор.,VKM-SRC-012:p0002,MEDIUM
+SSR-0036,VKM-SRC-012,37,47,MIXED,SKRU1;SKRU2;SKRU3,SECTION,FIELD_REPORT,"1.5–2.2: задачи; наблюдательная станция в районе междушахтных целиков СКРУ-1–СКРУ-2 и СКРУ-2–СКРУ-3, линия нефтепровода.",VKM-SRC-012:p0003,HIGH
+SSR-0037,VKM-SRC-012,48,53,SKRU2,,SECTION,FIELD_REPORT,"2.3: наблюдения ПАО «Уралкалий» — профильные линии на территории СКРУ-2 (заложены в 2017 г.), линия № 23 у целика СКРУ-2–СКРУ-3.",VKM-SRC-012:p0048,MEDIUM
+SSR-0038,VKM-SRC-012,54,58,MIXED,SKRU1;SKRU2;SKRU3,SECTION,ORIGINAL_DATA,2.4–2.5: нормативный расчёт сдвижений при оставлении целиков между полями СКРУ-1–СКРУ-2 и СКРУ-2–СКРУ-3.,VKM-SRC-012:p0003,HIGH
+SSR-0039,VKM-SRC-012,59,92,MIXED,SKRU1;SKRU2;SKRU3,CHAPTER,ORIGINAL_DATA,"Гл. 3: геолого-геомеханическая модель массива в районе целиков между полями СКРУ-1–СКРУ-2 и СКРУ-2–СКРУ-3 (скважины, ГИС, керн).",VKM-SRC-012:p0003,HIGH
+SSR-0040,VKM-SRC-012,93,117,MIXED,SKRU1;SKRU2;SKRU3,CHAPTER,ORIGINAL_DATA,"Гл. 4 и заключение: НДС и прогноз для междушахтных целиков СКРУ-1–СКРУ-2 и СКРУ-2–СКРУ-3, сравнение с наблюдениями.",VKM-SRC-012:p0003,HIGH
+SSR-0041,VKM-SRC-012,118,131,VKM_UNSPECIFIED,,SECTION,REVIEW,"Список литературы и приложения (акт использования результатов, заявка на патент).",VKM-SRC-012:p0004,LOW
+SSR-0042,VKM-SRC-014,1,27,VKM_UNSPECIFIED,,CHAPTER,REVIEW,"Практикум, гл. 1: геологическая характеристика ВКМКС в целом (стратиграфия, тектоника, гидрогеология, газоносность центральной части).",VKM-SRC-014:p0003,HIGH
+SSR-0043,VKM-SRC-014,28,76,MIXED,SKRU1;SKRU2;SKRU3;BKPRU2;BKPRU4,CHAPTER,REVIEW,"Гл. 2 «Общие сведения о калийных рудниках ВКМКС»: вскрытие, подготовка, подъём, вентиляторы, системы, транспорт — по нескольким рудникам.",VKM-SRC-014:p0003,MEDIUM
+SSR-0044,VKM-SRC-014,77,83,SKRU1,,SECTION,REVIEW,"3.1 Подготовка и отработка оставшихся запасов шахтного поля рудника СКРУ-1 (по оглавлению, стр. 77–83).",VKM-SRC-014:p0003,HIGH
+SSR-0045,VKM-SRC-014,84,91,SKRU2,,SECTION,REVIEW,3.2 Подготовка и отработка запасов шахтного поля рудника СКРУ-2.,VKM-SRC-014:p0003,HIGH
+SSR-0046,VKM-SRC-014,92,96,SKRU3,,SECTION,REVIEW,3.3 Подготовка и отработка запасов шахтного поля СКРУ-3.,VKM-SRC-014:p0003,HIGH
+SSR-0047,VKM-SRC-014,97,101,BKPRU2,,SECTION,REVIEW,3.4 Подготовка и отработка запасов шахтного поля БКПРУ-2.,VKM-SRC-014:p0003,HIGH
+SSR-0048,VKM-SRC-014,102,106,BKPRU4,,SECTION,REVIEW,3.5 Подготовка и отработка запасов шахтного поля БКПРУ-4.,VKM-SRC-014:p0003,HIGH
+SSR-0049,VKM-SRC-014,107,112,VKM_UNSPECIFIED,,SECTION,REVIEW,3.6–3.7 Проходка разведочных выработок и камер большого сечения — без привязки к руднику.,VKM-SRC-014:p0003,MEDIUM
+SSR-0050,VKM-SRC-014,113,120,SKRU1,,SECTION,REVIEW,4.1–4.2 Очистная выемка сильвинитовых пластов и карналлитового пласта Вк на руднике СКРУ-1.,VKM-SRC-014:p0004,HIGH
+SSR-0051,VKM-SRC-014,121,127,SKRU2,,SECTION,REVIEW,4.3 Технология отработки сильвинитовых пластов на руднике СКРУ-2.,VKM-SRC-014:p0004,HIGH
+SSR-0052,VKM-SRC-014,128,128,MIXED,SKRU3;BKPRU2,PAGES,REVIEW,На стр. 128 оба раздела: 4.4 (рудник СКРУ-3) и начало 4.5 (рудник БКПРУ-2).,VKM-SRC-014:p0004,HIGH
+SSR-0053,VKM-SRC-014,129,133,BKPRU2,,SECTION,REVIEW,4.5 Технология выемки сильвинитовых пластов на руднике БКПРУ-2.,VKM-SRC-014:p0004,HIGH
+SSR-0054,VKM-SRC-014,134,137,BKPRU4,,SECTION,REVIEW,4.6 Технология выемки сильвинитовых пластов на руднике БКПРУ-4.,VKM-SRC-014:p0004,HIGH
+SSR-0055,VKM-SRC-014,138,150,VKM_UNSPECIFIED,,CHAPTER,REVIEW,"Гл. 5 Закладочные работы, размещение шламов и солеотвалы — для рудников ВКМКС в целом.",VKM-SRC-014:p0004,MEDIUM
+SSR-0056,VKM-SRC-014,151,171,VKM_UNSPECIFIED,,CHAPTER,WORKED_EXAMPLE,Гл. 6 практикума: «Пример 1–7» и «Расчетная работа № 1–4» с исходными данными по вариантам.,VKM-SRC-014:p0151,HIGH
+SSR-0057,VKM-SRC-014,172,179,VKM_UNSPECIFIED,,SECTION,METHOD,7.1 Методика оценки времени устойчивого состояния капитальных и подготовительных выработок.,VKM-SRC-014:p0004,MEDIUM
+SSR-0058,VKM-SRC-014,180,184,VKM_UNSPECIFIED,,SECTION,WORKED_EXAMPLE,Примеры 1–2 и «Расчетная работа № 5» к методике 7.1.,VKM-SRC-014:p0180,HIGH
+SSR-0059,VKM-SRC-014,185,187,VKM_UNSPECIFIED,,SECTION,METHOD,7.2 Методика оценки времени устойчивого состояния кровли очистных выработок.,VKM-SRC-014:p0005,MEDIUM
+SSR-0060,VKM-SRC-014,188,192,VKM_UNSPECIFIED,,SECTION,WORKED_EXAMPLE,Примеры 1–3 и «Расчетная работа № 6» к методике 7.2.,VKM-SRC-014:p0188,HIGH
+SSR-0061,VKM-SRC-014,193,195,VKM_UNSPECIFIED,,SECTION,METHOD,7.3 Методика для технологического междупластья при нисходящей отработке сближенных пластов.,VKM-SRC-014:p0005,MEDIUM
+SSR-0062,VKM-SRC-014,196,198,VKM_UNSPECIFIED,,SECTION,WORKED_EXAMPLE,«Пример» и «Расчетная работа № 7» к методике 7.3.,VKM-SRC-014:p0196,HIGH
+SSR-0063,VKM-SRC-014,199,199,OTHER_POTASH_SITE,WORLD,SECTION,REVIEW,8.1 Мировые лидеры по производству калийных удобрений.,VKM-SRC-014:p0005,HIGH
+SSR-0064,VKM-SRC-014,200,218,OTHER_POTASH_SITE,CANADA_SASKATCHEWAN,SECTION,REVIEW,8.2 Разработка калийных солей в Канаде (Саскачеванский бассейн).,VKM-SRC-014:p0005,HIGH
+SSR-0065,VKM-SRC-014,219,225,OTHER_POTASH_SITE,STAROBIN_BELARUS,SECTION,REVIEW,8.3 Разработка калийных солей в Белоруссии (Старобинское месторождение).,VKM-SRC-014:p0005,HIGH
+SSR-0066,VKM-SRC-014,226,237,OTHER_POTASH_SITE,GERMANY,SECTION,REVIEW,"8.4 Калийные месторождения Германии (K+S, шахта «Верра»).",VKM-SRC-014:p0005,HIGH
+SSR-0067,VKM-SRC-014,238,243,OTHER_POTASH_SITE,UK_BOULBY,SECTION,REVIEW,"8.5 Великобритания: Йоркширское месторождение, рудник «Боулби».",VKM-SRC-014:p0005,HIGH
+SSR-0068,VKM-SRC-014,244,245,OTHER_POTASH_SITE,SPAIN,SECTION,REVIEW,8.6 Калийные месторождения Испании.,VKM-SRC-014:p0005,HIGH
+SSR-0069,VKM-SRC-014,246,261,OTHER_POTASH_SITE,USA,SECTION,REVIEW,8.7 Разработка калийных месторождений в США (верх стр. 246 — конец 8.6).,VKM-SRC-014:p0246,MEDIUM
+SSR-0070,VKM-SRC-014,262,265,UNKNOWN,,PAGES,REVIEW,Список литературы.,VKM-SRC-014:p0262,LOW
+SSR-0071,VKM-SRC-015,1,15,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Аннотация: рудники Верхнекамского месторождения в целом; исследуемый участок выработки без названия рудника.,VKM-SRC-015:p0001,MEDIUM
+SSR-0072,VKM-SRC-016,1,1,BKPRU4,,SECTION,ORIGINAL_DATA,"Аннотация: ВЗТ при отработке 1-го западного блока панели 2-СЗП на БКПРУ-4, глубина 380 м.",VKM-SRC-016:p0001,HIGH
+SSR-0073,VKM-SRC-016,2,3,VKM_UNSPECIFIED,,SECTION,REVIEW,"Введение и обзор: аварии БКПРУ-1, СКРУ-2, БКПРУ-3 и чужие работы по ВКМ — пересказ, не объект статьи.",VKM-SRC-016:p0002,MEDIUM
+SSR-0074,VKM-SRC-016,4,14,BKPRU4,,SECTION,MIXED,"Модель блока панели 2-СЗП БКПРУ-4; табл. 1 — параметры из НИР по рудникам ПАО «Уралкалий» (стр. 5), подобраны по натурным наблюдениям.",VKM-SRC-016:p0004,MEDIUM
+SSR-0075,VKM-SRC-017,1,10,BEREZNIKI_CITY,,WHOLE_DOCUMENT,ORIGINAL_DATA,Аннотация: осадки зданий в г. Березники над затопленным калийным рудником (БКПРУ-1).,VKM-SRC-017:p0001,HIGH
+SSR-0076,VKM-SRC-018,1,5,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Линеаментно-геодинамический анализ всего ВКМКС (рис. 1 — активные зоны месторождения по АКГИ 1:100 000).,VKM-SRC-018:p0005,HIGH
+SSR-0077,VKM-SRC-018,6,8,MIXED,VKM:TALITSKY;UST_YAYVA,SECTION,ORIGINAL_DATA,"Рис. 2 — Талицкий участок ВКМКС; районирование Усть-Яйвинского участка (рис. 3, стр. 7); заключение — ВКМКС в целом.",VKM-SRC-018:p0006,MEDIUM
+SSR-0078,VKM-SRC-019,1,5,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,MIXED,"Аннотация: камеры большого сечения на рудниках ВКМ в целом; БКПРУ-1, БКПРУ-4, СКРУ-1 упомянуты лишь как места постройки КБС.",VKM-SRC-019:p0001,MEDIUM
+SSR-0079,VKM-SRC-020,1,63,MIXED,BKPRU1;BKPRU2;BKPRU4;SKRU1;SKRU2;SKRU3,CHAPTER,REVIEW,"Гл. 1 «Характеристика рудников Верхнекамского месторождения» (печ. с. 5–65): геология, вскрытие, параметры систем по рудникам; рудник указан не везде.",VKM-SRC-020:p0269,MEDIUM
+SSR-0080,VKM-SRC-020,64,125,VKM_UNSPECIFIED,,CHAPTER,NORMATIVE,Гл. 2–3: типовые схемы работы комбайновых комплексов и маркшейдерское обеспечение (печ. с. 66–127).,VKM-SRC-020:p0269,MEDIUM
+SSR-0081,VKM-SRC-020,126,207,VKM_UNSPECIFIED,,CHAPTER,REVIEW,"Гл. 4–5: назначение и технические характеристики комбайнов, вагонов, бурильных установок и вспомогательного оборудования.",VKM-SRC-020:p0270,MEDIUM
+SSR-0082,VKM-SRC-020,208,273,VKM_UNSPECIFIED,,CHAPTER,NORMATIVE,"Гл. 6–9: организация труда, техника безопасности, противопожарная защита, план ликвидации аварий; содержание и литература.",VKM-SRC-020:p0270,MEDIUM
+SSR-0083,VKM-SRC-021,1,5,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,MIXED,Аннотация: методика показана «на примере одного из действующих рудников ВКМКС» — рудник не назван. Стр. 1 начинается концом чужой статьи.,VKM-SRC-021:p0001,HIGH
+SSR-0084,VKM-SRC-023,1,11,SKRU1,,SECTION,MIXED,"Титул, аннотация и введение ВКР: геоинформационное моделирование оседаний шахтного поля СКРУ-1.",VKM-SRC-023:p0006,MEDIUM
+SSR-0085,VKM-SRC-023,12,24,MIXED,VKM_UNSPECIFIED;OTHER_POTASH_SITE;NON_VKM,CHAPTER,REVIEW,"Гл. 1: анализ условий калийных месторождений и мировых подходов к мониторингу (Саскачеван, InSAR, ИНС) — обзор.",VKM-SRC-023:p0012,HIGH
+SSR-0086,VKM-SRC-023,25,39,VKM_UNSPECIFIED,,CHAPTER,REVIEW,"Гл. 2 озаглавлена «Геологические условия шахтного поля СКРУ-1», но 2.1–2.4 — региональный обзор ВКМС и Соликамской впадины.",VKM-SRC-023:p0025,MEDIUM
+SSR-0087,VKM-SRC-023,40,75,SKRU1,,CHAPTER,MIXED,"Гл. 3: ГИС-база шахтного поля СКРУ-1 (таблица «Параметры_шахтного_поля_СКРУ1»), долговременный мониторинг оседаний, ДМА и ИНС.",VKM-SRC-023:p0042,HIGH
+SSR-0088,VKM-SRC-023,76,110,SKRU1,,CHAPTER,ORIGINAL_DATA,Гл. 4: геоинформационное и нейросетевое моделирование оседаний шахтного поля СКРУ-1; мероприятия мониторинга.,VKM-SRC-023:p0076,HIGH
+SSR-0089,VKM-SRC-023,111,117,SKRU1,,SECTION,REVIEW,Заключение и список источников.,VKM-SRC-023:p0111,LOW
+SSR-0090,VKM-SRC-024,1,8,OTHER_POTASH_SITE,GREMYACHINSKOE,SECTION,REVIEW,Введение ВКР: Гремячинское месторождение (ООО «ЕвроХим-ВолгаКалий»).,VKM-SRC-024:p0007,HIGH
+SSR-0091,VKM-SRC-024,9,17,OTHER_POTASH_SITE,GREMYACHINSKOE,SECTION,FIELD_REPORT,Геологическая и горная части ВКР по Гремячинскому руднику.,VKM-SRC-024:p0006,HIGH
+SSR-0092,VKM-SRC-024,18,20,OTHER_POTASH_SITE,GREMYACHINSKOE,SECTION,NORMATIVE,Техника безопасности и охрана труда.,VKM-SRC-024:p0006,MEDIUM
+SSR-0093,VKM-SRC-024,21,23,OTHER_POTASH_SITE,GREMYACHINSKOE,SECTION,WORKED_EXAMPLE,Экономическая часть ВКР (учебные расчёты).,VKM-SRC-024:p0006,MEDIUM
+SSR-0094,VKM-SRC-024,24,48,OTHER_POTASH_SITE,GREMYACHINSKOE,CHAPTER,FIELD_REPORT,"Маркшейдерская часть: геодезическое обоснование, опорные и съёмочные сети рудника.",VKM-SRC-024:p0006,MEDIUM
+SSR-0095,VKM-SRC-024,49,54,OTHER_POTASH_SITE,GREMYACHINSKOE,SECTION,WORKED_EXAMPLE,6.1 Разработка проекта подземной наблюдательной станции — проектная (учебная) часть.,VKM-SRC-024:p0006,HIGH
+SSR-0096,VKM-SRC-024,55,85,OTHER_POTASH_SITE,GREMYACHINSKOE,SECTION,FIELD_REPORT,6.2–6.4 Инструментальные измерения на наблюдательных станциях и их анализ.,VKM-SRC-024:p0006,MEDIUM
+SSR-0097,VKM-SRC-024,86,158,OTHER_POTASH_SITE,GREMYACHINSKOE,SECTION,MIXED,"Заключение, литература, приложения (текстовая и графическая части).",VKM-SRC-024:p0006,MEDIUM
+SSR-0098,VKM-SRC-025,1,21,VKM_UNSPECIFIED,,CHAPTER,REVIEW,"Введение и гл. I: общие сведения о ВКМКС (геология, минералогия, особенности разработки).",VKM-SRC-025:p0007,HIGH
+SSR-0099,VKM-SRC-025,22,55,VKM_UNSPECIFIED,,SECTION,METHOD,"2.1–2.9: понятия, методы испытаний, отбор проб, оборудование — без привязки к руднику.",VKM-SRC-025:p0022,HIGH
+SSR-0100,VKM-SRC-025,56,59,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,"2.10, табл. 2.2: средние свойства соляных пород «центральной части ВКМКС» по керну 250 подземных скважин; рудник не указан.",VKM-SRC-025:p0057,HIGH
+SSR-0101,VKM-SRC-025,60,60,MIXED,SKRU1;SKRU2;SKRU3,PAGES,ORIGINAL_DATA,"Таблица свойств пород продуктивной толщи «рудников ОАО «Сильвинит»» (три шахтных поля Соликамских рудников, стр. 130) без разделения.",VKM-SRC-025:p0060,MEDIUM
+SSR-0102,VKM-SRC-025,61,104,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,"Окончание 2.10 и гл. III (форма, масштаб, контакт, скорость, объёмное нагружение): монолиты без указания рудника.",VKM-SRC-025:p0066,MEDIUM
+SSR-0103,VKM-SRC-025,105,110,SKRU3,,SECTION,ORIGINAL_DATA,"4.2: монолиты подстилающей каменной соли из блоков 1, 2 8-й панели рудника СКРУ-3.",VKM-SRC-025:p0105,HIGH
+SSR-0104,VKM-SRC-025,111,112,MIXED,UST_YAYVA;VKM:POLOVODOVSKY;VKM:BOROVSKOY,SECTION,ORIGINAL_DATA,"4.3: керн поверхностных скважин Половодовского, Боровского и Усть-Яйвинского участков ВКМКС.",VKM-SRC-025:p0112,MEDIUM
+SSR-0105,VKM-SRC-025,113,124,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,4.4–4.5: глинистые прослойки и влажность (контекст затопления БКПРУ-1); рудник отбора образцов не назван.,VKM-SRC-025:p0113,MEDIUM
+SSR-0106,VKM-SRC-025,125,130,MIXED,SKRU1;SKRU2;SKRU3,SECTION,ORIGINAL_DATA,"4.6: статистика по разведке шахтных полей рудников ОАО «Сильвинит» (три поля; пример — поле СКРУ-3, Тверитинская мульда).",VKM-SRC-025:p0125,MEDIUM
+SSR-0107,VKM-SRC-025,131,162,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,"Гл. V контакты и 6.1–6.2 ползучесть, ускоренная длительная прочность — монолиты без указания рудника.",VKM-SRC-025:p0131,MEDIUM
+SSR-0108,VKM-SRC-025,163,165,MIXED,SKRU1;SKRU3,SECTION,ORIGINAL_DATA,6.3: монолит-1 — шахтное поле рудника СКРУ-1; монолит-2 — шахтное поле СКРУ-3.,VKM-SRC-025:p0163,HIGH
+SSR-0109,VKM-SRC-025,166,173,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,"7.1–7.3 Трещиностойкость и хрупкость (лаборатория), рудник не назван.",VKM-SRC-025:p0166,MEDIUM
+SSR-0110,VKM-SRC-025,174,176,SKRU1,,SECTION,ORIGINAL_DATA,7.4: натурные исследования хрупкости прибором БП-18 проводились на руднике СКРУ-1.,VKM-SRC-025:p0175,HIGH
+SSR-0111,VKM-SRC-025,177,183,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,7.5 Жёсткость системы «нагрузочное устройство – образец».,VKM-SRC-025:p0177,MEDIUM
+SSR-0112,VKM-SRC-025,184,198,VKM_UNSPECIFIED,,SECTION,METHOD,Контрольные вопросы и задания; список литературы.,VKM-SRC-025:p0184,MEDIUM
+SSR-0113,VKM-SRC-026,1,4,VKM_UNSPECIFIED,,SECTION,REVIEW,Учебное пособие: введение о камерной системе разработки на ВКМКС.,VKM-SRC-026:p0004,MEDIUM
+SSR-0114,VKM-SRC-026,5,8,MIXED,SKRU1;SKRU2;SKRU3;BKPRU2;BKPRU4,SECTION,REVIEW,"Гл. 1: панельная (СКРУ-1, СКРУ-2, БКПРУ-2) и панельно-блоковая (СКРУ-3, БКПРУ-4) схемы подготовки — рудник назван у каждой схемы.",VKM-SRC-026:p0005,HIGH
+SSR-0115,VKM-SRC-026,9,23,VKM_UNSPECIFIED,,SECTION,REVIEW,"Гл. 2–4: управление кровлей, комбайновая выемка, камерная система для сильвинитовых и карналлитового пластов на рудниках ВКМКС.",VKM-SRC-026:p0003,MEDIUM
+SSR-0116,VKM-SRC-026,24,31,VKM_UNSPECIFIED,,CHAPTER,WORKED_EXAMPLE,"Гл. 5: учебный расчёт технико-экономических показателей камерной системы (запасы, потери, выработки, трудоёмкость).",VKM-SRC-026:p0003,HIGH
+SSR-0117,VKM-SRC-026,32,40,VKM_UNSPECIFIED,,SECTION,WORKED_EXAMPLE,Приложение 1: варианты индивидуальных заданий для практических занятий.,VKM-SRC-026:p0003,HIGH
+SSR-0118,VKM-SRC-026,41,42,VKM_UNSPECIFIED,,SECTION,REVIEW,Список использованной литературы.,VKM-SRC-026:p0003,LOW
+SSR-0119,VKM-SRC-027,1,7,OTHER_POTASH_SITE,VKM:USOLSKY_UKK,WHOLE_DOCUMENT,ORIGINAL_DATA,Заглавие: 5-я юго-восточная панель рудника ООО «ЕвроХим – Усольский калийный комбинат» (Усольский участок ВКМ).,VKM-SRC-027:p0001,HIGH
+SSR-0120,VKM-SRC-028,1,426,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,REVIEW,"Учебное пособие ОАО «Уралкалий» (ч. 2): устройство, электрооборудование и монтаж комбайновых комплексов — оборудование, без привязки к руднику.",VKM-SRC-028:p0420,MEDIUM
+SSR-0121,VKM-SRC-029,1,10,VKM_UNSPECIFIED,,SECTION,REVIEW,Оглавление и введение: метод измерения напряжений на основе эффекта Кайзера (ВКМ и другие объекты).,VKM-SRC-029:p0004,MEDIUM
+SSR-0122,VKM-SRC-029,11,59,NON_VKM,,CHAPTER,REVIEW,Гл. 1: обзор методов измерения напряжений и моделей эффекта Кайзера — общая литература.,VKM-SRC-029:p0002,HIGH
+SSR-0123,VKM-SRC-029,60,76,MIXED,VKM_UNSPECIFIED;NON_VKM,SECTION,ORIGINAL_DATA,2.1–2.2: аппаратура и натурные опыты — нетронутый массив соляных пород ВКМ (рудник не назван) и Жаман-Айбат (Казахстан).,VKM-SRC-029:p0069,MEDIUM
+SSR-0124,VKM-SRC-029,77,89,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,2.3: стендовые опыты на монолитах соляных пород «с шахтных полей Верхнекамского месторождения» — рудник не назван.,VKM-SRC-029:p0078,MEDIUM
+SSR-0125,VKM-SRC-029,90,109,UNKNOWN,,CHAPTER,ORIGINAL_DATA,Гл. 3: численное моделирование околоскважинной области — модельные параметры без привязки к руднику.,VKM-SRC-029:p0002,LOW
+SSR-0126,VKM-SRC-029,110,127,VKM_UNSPECIFIED,,CHAPTER,ORIGINAL_DATA,Гл. 4: лабораторный эффект Кайзера на образцах соляных пород в камере трёхосного сжатия; рудник отбора не назван.,VKM-SRC-029:p0110,LOW
+SSR-0127,VKM-SRC-029,128,129,BKPRU2,,SECTION,ORIGINAL_DATA,5.1.1: измерения напряжений в массиве соляных пород рудника БКПРУ-2.,VKM-SRC-029:p0003,HIGH
+SSR-0128,VKM-SRC-029,130,131,SKRU3,,SECTION,ORIGINAL_DATA,5.1.2: измерения напряжений в массиве соляных пород рудника СКРУ-3.,VKM-SRC-029:p0003,HIGH
+SSR-0129,VKM-SRC-029,132,138,NON_VKM,,SECTION,ORIGINAL_DATA,5.2–5.3: месторождение Жаман-Айбат и Сарбайский карьер.,VKM-SRC-029:p0003,HIGH
+SSR-0130,VKM-SRC-029,139,144,OTHER_POTASH_SITE,GREMYACHINSKOE,SECTION,ORIGINAL_DATA,5.4: напряжённое состояние соляных пород Гремячинского месторождения.,VKM-SRC-029:p0004,HIGH
+SSR-0131,VKM-SRC-029,145,159,MIXED,VKM_UNSPECIFIED;NON_VKM;OTHER_POTASH_SITE,SECTION,REVIEW,Заключение и список литературы.,VKM-SRC-029:p0004,LOW
+SSR-0132,VKM-SRC-030,1,6,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Аннотация: ГИС нефтяных скважин месторождений Верхней Камы, Соликамская впадина в целом; рудники не рассматриваются.",VKM-SRC-030:p0001,MEDIUM
+SSR-0133,VKM-SRC-031,1,4,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Аннотация: участок у длительно остановленной границы горных работ «для условий камерной системы»; рудник не назван.,VKM-SRC-031:p0001,MEDIUM
+SSR-0134,VKM-SRC-031,5,5,UNKNOWN,,PAGES,ORIGINAL_DATA,"Конец списка литературы и начало следующей статьи выпуска (Губанова, Глебова), объект которой не назван.",VKM-SRC-031:p0005,LOW
+SSR-0135,VKM-SRC-032,1,5,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,"Аннотация: степень нагружения МКЦ при несоосных камерах, ВКМС в целом; рудник не назван. Стр. 1 начинается концом чужой статьи.",VKM-SRC-032:p0001,MEDIUM
+SSR-0136,VKM-SRC-032,6,6,UNKNOWN,,PAGES,ORIGINAL_DATA,Начало следующей статьи выпуска (микротомография образца красного сильвинита); происхождение образца на странице не указано.,VKM-SRC-032:p0006,LOW
+SSR-0137,VKM-SRC-033,1,5,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Введение: глинизация продуктивных пластов ВКМКС в целом; расчёт несущей способности МКЦ без привязки к руднику.,VKM-SRC-033:p0001,MEDIUM
+SSR-0138,VKM-SRC-034,1,4,BKPRU4,,SECTION,FIELD_REPORT,Рассмотрен «характерный участок» на 1 ЮЗП рудника БКПРУ-4 (пласт АБ отработан в 2010 г.): оседания и замерные станции.,VKM-SRC-034:p0001,HIGH
+SSR-0139,VKM-SRC-034,5,5,UNKNOWN,,PAGES,REVIEW,"Список литературы и начало следующей статьи выпуска (Кузьминых, испытания сильвинита) — рудник образцов на странице не назван.",VKM-SRC-034:p0005,LOW
+SSR-0140,VKM-SRC-035,1,5,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Инженерные критерии нарушения сплошности ВЗТ калийных месторождений (ВКМ) по моделированию; конкретный рудник не назван.,VKM-SRC-035:p0001,MEDIUM
+SSR-0141,VKM-SRC-036,1,18,UNKNOWN,,WHOLE_DOCUMENT,ORIGINAL_DATA,Испытания на ползучесть образцов красного сильвинита 60×30×30 мм; месторождение и рудник отбора образцов в статье не указаны.,VKM-SRC-036:p0002,LOW
+SSR-0142,VKM-SRC-037,1,16,VKM_UNSPECIFIED,,CHAPTER,REVIEW,"Гл. 1.1–1.2: геология, механические свойства и газоносность пород Верхнекамского месторождения в целом.",VKM-SRC-037:p0003,HIGH
+SSR-0143,VKM-SRC-037,17,32,MIXED,SKRU1;SKRU2;SKRU3;BKPRU1;BKPRU2;BKPRU3;BKPRU4,SECTION,FIELD_REPORT,"1.3 «Общие сведения о калийных рудниках»: вскрытие, подготовка, системы, транспорт по всем рудникам; рудник указан не на каждой странице.",VKM-SRC-037:p0017,MEDIUM
+SSR-0144,VKM-SRC-037,33,33,BKPRU1,,SECTION,NORMATIVE,2.1 Подготовка и отработка оставшихся запасов шахтного поля БКПРУ-1.,VKM-SRC-037:p0033,HIGH
+SSR-0145,VKM-SRC-037,34,34,BKPRU2,,SECTION,NORMATIVE,2.2 Подготовка и отработка оставшихся запасов шахтного поля БКПРУ-2.,VKM-SRC-037:p0034,HIGH
+SSR-0146,VKM-SRC-037,35,35,BKPRU4,,SECTION,NORMATIVE,2.3 Подготовка и отработка запасов центральной части шахтного поля БКЗ-4 (БКПРУ-4).,VKM-SRC-037:p0035,HIGH
+SSR-0147,VKM-SRC-037,36,36,MIXED,SKRU1;SKRU2;SKRU3,SECTION,NORMATIVE,"2.4–2.6 на одной странице: шахтные поля СКПРУ-1, СКПРУ-2 (центральная часть), СКПРУ-3.",VKM-SRC-037:p0036,HIGH
+SSR-0148,VKM-SRC-037,37,43,VKM_UNSPECIFIED,,SECTION,NORMATIVE,"2.7–2.9: разведочные выработки, подземное пространство, камеры для шламов — без привязки (верх стр. 37 — конец 2.6, СКПРУ-3).",VKM-SRC-037:p0037,MEDIUM
+SSR-0149,VKM-SRC-037,44,44,BKPRU1,,SECTION,NORMATIVE,3.1–3.2 Комбайновая выемка пласта Красный-II при полевой и пластовой подготовке (БКПРУ-1).,VKM-SRC-037:p0044,HIGH
+SSR-0150,VKM-SRC-037,45,49,VKM_UNSPECIFIED,,SECTION,NORMATIVE,3.3–3.4: выемка КрII самоходным оборудованием и карналлитового пласта В — рудник в заголовках и оглавлении не указан.,VKM-SRC-037:p0045,MEDIUM
+SSR-0151,VKM-SRC-037,50,50,BKPRU2,,SECTION,NORMATIVE,3.5 Параметры очистных и подготовительных работ при выемке пластов АБ и КрII (БКПРУ-2).,VKM-SRC-037:p0050,HIGH
+SSR-0152,VKM-SRC-037,51,52,BKPRU4,,SECTION,NORMATIVE,3.6–3.7: очистная выемка сильвинитовых пластов и перспективная технология КрII на руднике БКЗ-4.,VKM-SRC-037:p0051,HIGH
+SSR-0153,VKM-SRC-037,53,53,MIXED,SKRU1;SKRU1_OR_SKRU2_UNATTRIBUTED,PAGES,NORMATIVE,3.8 Параметры выемки на руднике СКПРУ-1 и начало 3.9 (рудники СКПРУ-1 и СКПРУ-2 вместе).,VKM-SRC-037:p0053,HIGH
+SSR-0154,VKM-SRC-037,54,58,SKRU1_OR_SKRU2_UNATTRIBUTED,,SECTION,NORMATIVE,"3.9–3.10: технологии выемки складчатых пластов АБ, В и буровзрывной выемки «на рудниках СКПРУ-1 и СКПРУ-2» без разделения.",VKM-SRC-037:p0055,HIGH
+SSR-0155,VKM-SRC-037,59,59,SKRU1,,SECTION,NORMATIVE,3.11 Механизированная выемка карналлитового пласта В умеренной складчатости (СКПРУ-1).,VKM-SRC-037:p0059,HIGH
+SSR-0156,VKM-SRC-037,60,64,SKRU2,,SECTION,NORMATIVE,3.12–3.16: параметры и технологии выемки сильвинитовых пластов на руднике СКПРУ-2.,VKM-SRC-037:p0060,HIGH
+SSR-0157,VKM-SRC-037,65,65,MIXED,SKRU2;SKRU3,PAGES,NORMATIVE,Конец 3.16 (СКПРУ-2) и 3.17 Параметры очистной выемки на руднике СКПРУ-3.,VKM-SRC-037:p0065,HIGH
+SSR-0158,VKM-SRC-037,66,66,MIXED,SKRU2;VKM_UNSPECIFIED,PAGES,NORMATIVE,"3.18 Выемка с гидрозакладкой на руднике СКПРУ-2 и начало 3.19 (перспективная технология, без рудника).",VKM-SRC-037:p0066,MEDIUM
+SSR-0159,VKM-SRC-037,67,77,VKM_UNSPECIFIED,,SECTION,NORMATIVE,3.19–3.20 и гл. 4 «Технологические схемы закладочных работ» — для рудников ВКМ в целом.,VKM-SRC-037:p0071,MEDIUM
+SSR-0160,VKM-SRC-037,78,87,VKM_UNSPECIFIED,,CHAPTER,MIXED,Гл. 5 Газодинамические явления: статистика по рудникам и способы предупреждения; рудники названы на своих страницах.,VKM-SRC-037:p0078,MEDIUM
+SSR-0161,VKM-SRC-037,88,97,VKM_UNSPECIFIED,,SECTION,METHOD,6.1–6.6 Методики категорий устойчивости и выбора крепи для рудников ВКМ.,VKM-SRC-037:p0088,MEDIUM
+SSR-0162,VKM-SRC-037,98,98,VKM_UNSPECIFIED,,PAGES,WORKED_EXAMPLE,Примеры 1–3 расчёта времени устойчивого состояния выработки («Требуется рассчитать…»).,VKM-SRC-037:p0098,HIGH
+SSR-0163,VKM-SRC-037,99,101,VKM_UNSPECIFIED,,SECTION,METHOD,6.7–6.8 Рациональная форма узлов сопряжения и пристволовых выработок.,VKM-SRC-037:p0100,MEDIUM
+SSR-0164,VKM-SRC-037,102,106,VKM_UNSPECIFIED,,SECTION,WORKED_EXAMPLE,6.9: «Пример 1–3» расчёта зон влияния выработок и коэффициента изрезанности.,VKM-SRC-037:p0102,HIGH
+SSR-0165,VKM-SRC-037,107,109,VKM_UNSPECIFIED,,SECTION,METHOD,6.10 Методики расчёта времени устойчивого состояния и анкерной крепи.,VKM-SRC-037:p0107,MEDIUM
+SSR-0166,VKM-SRC-037,110,121,VKM_UNSPECIFIED,,SECTION,WORKED_EXAMPLE,Примеры расчёта устойчивости и анкерной крепи «в условиях» БКПРУ-1/2/4 — иллюстративные; рудник назван на своих страницах.,VKM-SRC-037:p0116,HIGH
+SSR-0167,VKM-SRC-037,122,136,MIXED,SKRU1;SKRU2;SKRU3;BKPRU1;BKPRU2;BKPRU3;BKPRU4,CHAPTER,FIELD_REPORT,Гл. 7: трудоёмкость и себестоимость по объединениям и рудникам за 1980–1988 гг.,VKM-SRC-037:p0122,MEDIUM
+SSR-0168,VKM-SRC-037,137,143,VKM_UNSPECIFIED,,SECTION,METHOD,8.1 Методика расчёта производительности комбайновых комплексов; исходные данные для Верхнекамских рудников.,VKM-SRC-037:p0137,MEDIUM
+SSR-0169,VKM-SRC-037,144,147,VKM_UNSPECIFIED,,SECTION,WORKED_EXAMPLE,8.1.8 «Примеры расчета производительности комбайновых комплексов».,VKM-SRC-037:p0145,HIGH
+SSR-0170,VKM-SRC-037,148,172,VKM_UNSPECIFIED,,SECTION,METHOD,"8.2–8.5: буровзрывные работы, проветривание, расчёт целиков, основы расчёта сдвижений.",VKM-SRC-037:p0165,MEDIUM
+SSR-0171,VKM-SRC-037,173,184,VKM_UNSPECIFIED,,SECTION,WORKED_EXAMPLE,"8.6.1–8.6.4: «Пример 1, 2» расчётов производительности закладки и заполнения камер.",VKM-SRC-037:p0173,HIGH
+SSR-0172,VKM-SRC-037,185,192,VKM_UNSPECIFIED,,SECTION,METHOD,"8.6.5 Коэффициент заполнения при гидрозакладке, шламовые массивы (данные БКПРУ-1 названы на стр. 189).",VKM-SRC-037:p0189,MEDIUM
+SSR-0173,VKM-SRC-037,193,203,VKM_UNSPECIFIED,,SECTION,WORKED_EXAMPLE,"8.7–8.9: «Пример 1–3», «Решение» — расчёты потерь, разубоживания и сечения выработки.",VKM-SRC-037:p0195,HIGH
+SSR-0174,VKM-SRC-037,204,236,VKM_UNSPECIFIED,,CHAPTER,REVIEW,"Гл. 9 Технические характеристики оборудования, литература, приложение (вентиляторы), оглавление.",VKM-SRC-037:p0204,MEDIUM
+SSR-0175,VKM-SRC-038,1,6,BKPRU1,,WHOLE_DOCUMENT,ORIGINAL_DATA,Аварийный водоприток в БКПРУ-1 (17.10.2006); модель массива в пределах шахтного поля БКПРУ-1 и последствия для г. Березники.,VKM-SRC-038:p0001,HIGH
+SSR-0176,VKM-SRC-039,1,5,OTHER_POTASH_SITE,GREMYACHINSKOE,WHOLE_DOCUMENT,ORIGINAL_DATA,Аннотация: мульда сдвижения на примере Гремячинского месторождения калийных солей (большие глубины).,VKM-SRC-039:p0001,HIGH
+SSR-0177,VKM-SRC-040,1,16,VKM_UNSPECIFIED,,SECTION,REVIEW,Введение и 1.1: геологическое строение ВКМС и актуальность георадиолокации на рудниках ВКМС.,VKM-SRC-040:p0004,HIGH
+SSR-0178,VKM-SRC-040,17,38,VKM_UNSPECIFIED,,SECTION,REVIEW,"1.2–1.3: шахтные стволы ВКМС, нарушения бетонной крепи, геофизические технологии (стволы рудников названы на страницах).",VKM-SRC-040:p0002,MEDIUM
+SSR-0179,VKM-SRC-040,39,86,UNKNOWN,,CHAPTER,ORIGINAL_DATA,"Гл. 2: геофизика на физической модели сегмента бетонной крепи — модельный объект, рудник не применим.",VKM-SRC-040:p0002,MEDIUM
+SSR-0180,VKM-SRC-040,87,103,VKM_UNSPECIFIED,,SECTION,METHOD,3.1–3.3: условия проведения работ и адаптация методик УЗ-томографии и георадиолокации.,VKM-SRC-040:p0002,MEDIUM
+SSR-0181,VKM-SRC-040,104,109,SKRU3,,SECTION,ORIGINAL_DATA,3.4: опытные работы в действующем стволе № 3 рудника СКРУ-3.,VKM-SRC-040:p0104,HIGH
+SSR-0182,VKM-SRC-040,110,115,VKM_UNSPECIFIED,,SECTION,METHOD,3.5: технология диагностики бетонной крепи стволов геофизическими методами.,VKM-SRC-040:p0003,MEDIUM
+SSR-0183,VKM-SRC-040,116,136,SKRU3,,CHAPTER,ORIGINAL_DATA,"Гл. 4: опытные работы по пластам КС, КрII, АБ, Вс в шахте рудника СКРУ-3 (2016): скорость и глубина проникновения ЭМ волн.",VKM-SRC-040:p0116,HIGH
+SSR-0184,VKM-SRC-040,137,154,VKM_UNSPECIFIED,,SECTION,MIXED,"Гл. 5: перспективы георадиолокации на рудниках ПАО «Уралкалий» (с примерами рудников Канады, Германии); заключение, литература.",VKM-SRC-040:p0137,MEDIUM
+SSR-0185,VKM-SRC-041,1,1,UNKNOWN,,PAGES,REVIEW,Стр. 1 — конец списка литературы чужой статьи (нефтяные скважины) и шапка статьи Ковина.,VKM-SRC-041:p0001,LOW
+SSR-0186,VKM-SRC-041,2,4,SKRU3,,SECTION,ORIGINAL_DATA,Исследования на блоках пород из сильвинитовых пластов рудника СКРУ-3 (табл. 1).,VKM-SRC-041:p0002,HIGH
+SSR-0187,VKM-SRC-042,1,4,VKM_UNSPECIFIED,,SECTION,METHOD,Методика прогноза оседаний на основе линейной вязкоупругости для пластов Верхнекамского месторождения в целом.,VKM-SRC-042:p0001,HIGH
+SSR-0188,VKM-SRC-042,5,5,VKM_UNSPECIFIED,,PAGES,ORIGINAL_DATA,Табл. 1 — обобщённые реологические параметры для всех пластов по маркшейдерским наблюдениям месторождения; в конце — начало примера 1 (Solikamsk-1).,VKM-SRC-042:p0005,MEDIUM
+SSR-0189,VKM-SRC-042,6,6,MIXED,SKRU1;SKRU2,PAGES,ORIGINAL_DATA,Пример 1 — блок № 77 Solikamsk-1; пример 2 — 3-я юго-западная панель Solikamsk-2; рис. 3a/b.,VKM-SRC-042:p0006,HIGH
+SSR-0190,VKM-SRC-042,7,7,SKRU1,,PAGES,ORIGINAL_DATA,"Пример 3 — профильная линия 14 рудника Solikamsk-1, блоки 76, 88, 100, 115, 129; рис. 4 (1992, 1995, 2001).",VKM-SRC-042:p0007,HIGH
+SSR-0191,VKM-SRC-042,8,8,VKM_UNSPECIFIED,,PAGES,METHOD,Выводы о применимости методики при разработке калийных пластов; список литературы.,VKM-SRC-042:p0008,MEDIUM
+SSR-0192,VKM-SRC-043,1,4,VKM_UNSPECIFIED,,SECTION,METHOD,Модифицированный метод переменных модулей для камерной отработки калийных пластов — теория без привязки к руднику.,VKM-SRC-043:p0001,HIGH
+SSR-0193,VKM-SRC-043,5,9,SKRU1,,SECTION,ORIGINAL_DATA,"Приложение: южный участок шахтного поля Solikamsk Mine-1 у барьерного целика с Mine-2 (контекст — авария 1995 г. на Mine-2), профильная линия 14.",VKM-SRC-043:p0005,MEDIUM
+SSR-0194,VKM-SRC-044,1,10,VKM_UNSPECIFIED,,CHAPTER,REVIEW,Введение и гл. 1: минералого-петрографическая характеристика соляных пород ВКМ.,VKM-SRC-044:p0007,HIGH
+SSR-0195,VKM-SRC-044,11,108,VKM_UNSPECIFIED,,CHAPTER,MIXED,"Гл. 2–5: лабораторные свойства, запредельное деформирование, реология, контакты соляных пород ВКМ; зарубежные и старобинские данные названы на своих страницах.",VKM-SRC-044:p0011,MEDIUM
+SSR-0196,VKM-SRC-044,109,134,MIXED,VKM_UNSPECIFIED;BKPRU2;BKPRU3;SKRU3;OTHER_POTASH_SITE,SECTION,MIXED,"6.1–6.2: начальные напряжения (БКРУ-2, БКРУ-3, СКРУ-3, Стратфорд, Старобин) и реология в массиве (ВКМ, Солигорск).",VKM-SRC-044:p0110,MEDIUM
+SSR-0197,VKM-SRC-044,135,148,VKM_UNSPECIFIED,,SECTION,FIELD_REPORT,6.3–6.4: измерения деформаций целиков и геофизика приконтурного массива на калийных рудниках ВКМ (рудник не всегда назван).,VKM-SRC-044:p0138,MEDIUM
+SSR-0198,VKM-SRC-044,149,154,MIXED,OTHER_POTASH_SITE;VKM_UNSPECIFIED,SECTION,REVIEW,6.5: формы проявления горного давления — Солигорские (Старобинские) рудники и ВКМ.,VKM-SRC-044:p0149,MEDIUM
+SSR-0199,VKM-SRC-044,155,176,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,"7.1–7.3 (начало): принципы моделирования, НДС у очистных выработок сильвинитовых пластов ВКМ.",VKM-SRC-044:p0155,MEDIUM
+SSR-0200,VKM-SRC-044,177,178,SKRU1,,PAGES,ORIGINAL_DATA,Моделирование массива на участке профильной линии V рудника СКРУ-1 АО «Сильвинит» (табл. 28).,VKM-SRC-044:p0177,HIGH
+SSR-0201,VKM-SRC-044,179,188,SKRU3,,SECTION,ORIGINAL_DATA,Открытые тектонические трещины при отработке блоков 1 и 2 панели № 1 рудника СКРУ-3 и расчёты для этого участка.,VKM-SRC-044:p0179,MEDIUM
+SSR-0202,VKM-SRC-044,189,205,VKM_UNSPECIFIED,,SECTION,REVIEW,Список литературы.,VKM-SRC-044:p0189,LOW
+SSR-0203,VKM-SRC-045,1,29,VKM_UNSPECIFIED,,CHAPTER,REVIEW,"Введение и гл. 1: методы расчёта оседаний, модели соляных пород, свойства и исходные напряжения ВКМКС — обзор.",VKM-SRC-045:p0002,HIGH
+SSR-0204,VKM-SRC-045,30,40,VKM_UNSPECIFIED,,SECTION,METHOD,2.1–2.2: теоретические основы и МКЭ-реализация модели деформирования и разрушения соляных пород.,VKM-SRC-045:p0002,MEDIUM
+SSR-0205,VKM-SRC-045,41,58,OTHER_POTASH_SITE,VKM:USOLSKY_UKK,SECTION,ORIGINAL_DATA,2.3: модельные задачи на образцах каменной соли и красного сильвинита из ствола № 2 Усольского калийного комбината.,VKM-SRC-045:p0041,HIGH
+SSR-0206,VKM-SRC-045,59,75,MIXED,SKRU1;SKRU3,CHAPTER,ORIGINAL_DATA,"Гл. 3: замерные станции по пластам АБ и КрII на рудниках СКРУ-1 (10, 12 ЗП) и СКРУ-3 (1П, 5П); калибровка параметров модели (табл. на стр. 72).",VKM-SRC-045:p0061,HIGH
+SSR-0207,VKM-SRC-045,76,101,VKM_UNSPECIFIED,,SECTION,WORKED_EXAMPLE,4.1–4.2: сравнение с нормативами «на примере отработки панели длиной 1200 м» — условная расчётная схема.,VKM-SRC-045:p0076,MEDIUM
+SSR-0208,VKM-SRC-045,102,121,SKRU2,,SECTION,MIXED,"4.3: отработка 1СВП, 2СВП, 1ЮЗП, 1ЮВП рудника СКРУ-2; наблюдения по профильным линиям № 7 и № 2 (ПАО «Уралкалий») и расчёт.",VKM-SRC-045:p0102,HIGH
+SSR-0209,VKM-SRC-045,122,133,VKM_UNSPECIFIED,,SECTION,REVIEW,Заключение и список источников.,VKM-SRC-045:p0003,LOW
+SSR-0210,VKM-SRC-046,1,6,SKRU1,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Опытный участок повторной отработки пласта ВК шахтного поля СКРУ-1 (южная часть 2ВП, северная часть 201 блока).",VKM-SRC-046:p0001,HIGH
+SSR-0211,VKM-SRC-047,1,13,VKM_UNSPECIFIED,,CHAPTER,REVIEW,Предисловие и гл. 1: геологическая характеристика ВКМКС.,VKM-SRC-047:p0005,HIGH
+SSR-0212,VKM-SRC-047,14,66,MIXED,VKM_UNSPECIFIED;NON_VKM;OTHER_POTASH_SITE,CHAPTER,REVIEW,"Гл. 2: анализ литературных данных о свойствах соляных пород (ВКМ, рудники ГДР/ФРГ и др.); рудники названы на страницах.",VKM-SRC-047:p0014,HIGH
+SSR-0213,VKM-SRC-047,67,92,MIXED,SKRU1;SKRU2;VKM_UNSPECIFIED,CHAPTER,ORIGINAL_DATA,"Гл. 3: собственные испытания образцов с рудников «Уралкалия» в Соликамске и Березниках; пласт Вс СКРУ-2 и Вк СКРУ-1 (стр. 67), прочие — без рудника.",VKM-SRC-047:p0067,MEDIUM
+SSR-0214,VKM-SRC-047,93,124,VKM_UNSPECIFIED,,CHAPTER,ORIGINAL_DATA,Гл. 4: нано- и микроиндентирование фракций соляных пород; рудник отбора не назван.,VKM-SRC-047:p0093,MEDIUM
+SSR-0215,VKM-SRC-047,125,144,VKM_UNSPECIFIED,,SECTION,METHOD,5.1–5.3: модели деформирования и разрушения соляных пород (обзор и наследственная модель).,VKM-SRC-047:p0125,MEDIUM
+SSR-0216,VKM-SRC-047,145,150,MIXED,SKRU1;BKPRU1;BKPRU2,SECTION,ORIGINAL_DATA,"5.4: параметры наследственной ползучести по натурным данным — сжатие целиков СКРУ-1 (блок 89, 3ВП), БКПРУ-1, БКПРУ-2.",VKM-SRC-047:p0146,HIGH
+SSR-0217,VKM-SRC-047,151,170,VKM_UNSPECIFIED,,SECTION,METHOD,5.5–5.6: модели с внутренними параметрами и структурная модель.,VKM-SRC-047:p0151,MEDIUM
+SSR-0218,VKM-SRC-047,171,191,VKM_UNSPECIFIED,,SECTION,REVIEW,Список источников и приложение.,VKM-SRC-047:p0172,LOW
+SSR-0219,VKM-SRC-048,1,12,VKM_UNSPECIFIED,,CHAPTER,REVIEW,"Предисловие и гл. 1: история исследований, объекты и термины по Верхнекамскому месторождению в целом.",VKM-SRC-048:p0005,HIGH
+SSR-0220,VKM-SRC-048,13,96,VKM_UNSPECIFIED,,SECTION,MIXED,"2.1–2.3.1: тектоника ВКМКМС (складки, надвиги, сдвиги, сейсморазведка); примеры рудников названы на своих страницах.",VKM-SRC-048:p0013,MEDIUM
+SSR-0221,VKM-SRC-048,97,105,SKRU3,,SECTION,ORIGINAL_DATA,2.3.2 Геологическая интерпретация сейсмоматериалов МОГТ по шахтному полю СКПРУ-3.,VKM-SRC-048:p0097,HIGH
+SSR-0222,VKM-SRC-048,106,116,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,"2.4–2.4.3: полигенетические дислокации, брекчии, экзогенное трещинообразование — месторождение в целом.",VKM-SRC-048:p0106,MEDIUM
+SSR-0223,VKM-SRC-048,117,117,MIXED,SKRU2;SKRU3;BKPRU2;BKPRU3;BKPRU4,PAGES,ORIGINAL_DATA,"Скважины в пределах шахтных полей СКПРУ-3, БКПРУ-2, 3, 4 и др.; начало 2.4.4 «Техногенные дислокации».",VKM-SRC-048:p0117,MEDIUM
+SSR-0224,VKM-SRC-048,118,128,BKPRU2,,SECTION,ORIGINAL_DATA,"2.4.4: исследовательские штреки в отработанном пространстве рудника БКПРУ-2 (1991), монолит 14, табл. 2.2.",VKM-SRC-048:p0118,MEDIUM
+SSR-0225,VKM-SRC-048,129,146,MIXED,BKPRU1;BKPRU2;BKPRU3;BKPRU4,SECTION,ORIGINAL_DATA,3.1.1.1 Зоны галитизации сильвинитов «в пределах шахтных полей ОАО «Уралкалий»» (Березниковские рудники); рудник назван не на каждой странице.,VKM-SRC-048:p0129,MEDIUM
+SSR-0226,VKM-SRC-048,147,154,MIXED,SKRU1;SKRU2;SKRU3,SECTION,ORIGINAL_DATA,"3.1.1.2 Зоны галитизации шахтных полей ОАО «Сильвинит» (СКПРУ-1, -2, -3 — центральная часть ВКМКМС).",VKM-SRC-048:p0147,MEDIUM
+SSR-0227,VKM-SRC-048,155,339,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,"3.1.2–4.2: литогеохимия, пирротинизация, петрография, газоносность, эксперименты — месторождение в целом.",VKM-SRC-048:p0155,MEDIUM
+SSR-0228,VKM-SRC-048,340,348,SKRU2,,SECTION,ORIGINAL_DATA,4.3.1 Петротектоническая модель аварийного участка ЧС 1995 г. на северо-востоке шахтного поля СКПРУ-2.,VKM-SRC-048:p0341,HIGH
+SSR-0229,VKM-SRC-048,349,364,VKM_UNSPECIFIED,,SECTION,MIXED,4.3.2 Тектоническое районирование шахтных полей ВКМКМС и заключение.,VKM-SRC-048:p0349,MEDIUM
+SSR-0230,VKM-SRC-048,365,396,VKM_UNSPECIFIED,,SECTION,REVIEW,"Использованные источники, содержание и английское оглавление.",VKM-SRC-048:p0382,LOW
+SSR-0231,VKM-SRC-049,1,8,VKM_UNSPECIFIED,,SECTION,REVIEW,Предисловие и оглавление: опыт ВНИИ Галургии на рудниках Верхнекамского и Гремячинского месторождений и алмазных рудниках Якутии.,VKM-SRC-049:p0007,MEDIUM
+SSR-0232,VKM-SRC-049,9,46,MIXED,VKM_UNSPECIFIED;NON_VKM;OTHER_POTASH_SITE,SECTION,MIXED,"1.1 Свойства соляных пород: ВКМ (в т. ч. образцы СКРУ-1, СКРУ-2 на стр. 18) вперемежку с Чарской свитой рудника «Интернациональный» и Старобином.",VKM-SRC-049:p0010,MEDIUM
+SSR-0233,VKM-SRC-049,47,53,MIXED,NON_VKM;OTHER_POTASH_SITE,SECTION,ORIGINAL_DATA,1.2 Ангидрит-доломитовые породы: рудник «Интернациональный» (АЛРОСА) и Гремячинское месторождение.,VKM-SRC-049:p0052,HIGH
+SSR-0234,VKM-SRC-049,54,61,VKM_UNSPECIFIED,,SECTION,FIELD_REPORT,"2.1–2.3.1 Горное давление и выработки на Верхнекамских калийных рудниках (примеры БКПРУ-2, СКРУ-2 названы на страницах).",VKM-SRC-049:p0056,MEDIUM
+SSR-0235,VKM-SRC-049,62,69,NON_VKM,,SECTION,FIELD_REPORT,2.3.2 Горизонтальные выработки в соленосных породах рудника «Интернациональный» АК «АЛРОСА».,VKM-SRC-049:p0064,HIGH
+SSR-0236,VKM-SRC-049,70,81,MIXED,NON_VKM;OTHER_POTASH_SITE;BKPRU3,SECTION,REVIEW,"2.4–2.6: крепь стволов и мониторинг (Стебник, БКРУ-3, «Интернациональный»), ангидрит-доломитовые породы (Гремячинское).",VKM-SRC-049:p0070,MEDIUM
+SSR-0237,VKM-SRC-049,82,114,VKM_UNSPECIFIED,,SECTION,METHOD,Гл. 3–4: инженерные методы расчёта анкерной крепи и поддержание выработок в соляных породах (ВКМ; сравнения с «Интернациональным»).,VKM-SRC-049:p0082,MEDIUM
+SSR-0238,VKM-SRC-049,115,127,MIXED,OTHER_POTASH_SITE;NON_VKM,CHAPTER,METHOD,Гл. 5: крепь выработок в ангидрит-доломитовых породах (условия рудника Гремячинского ГОКа и рудника «Интернациональный»).,VKM-SRC-049:p0115,MEDIUM
+SSR-0239,VKM-SRC-049,128,133,MIXED,VKM_UNSPECIFIED;NON_VKM,SECTION,METHOD,6.1–6.3: крепь шахтных стволов и материалы податливого слоя; наблюдения на руднике «Интернациональный».,VKM-SRC-049:p0132,LOW
+SSR-0240,VKM-SRC-049,134,161,MIXED,UST_YAYVA;VKM:POLOVODOVSKY,SECTION,ORIGINAL_DATA,6.4–6.13: крепь стволов применительно к Усть-Яйвинскому руднику и Половодовскому участку.,VKM-SRC-049:p0134,HIGH
+SSR-0241,VKM-SRC-049,162,188,MIXED,VKM:USOLSKY_UKK;UST_YAYVA,CHAPTER,ORIGINAL_DATA,Гл. 7: сопряжения стволов Усольского калийного комбината и Усть-Яйвинского рудника.,VKM-SRC-049:p0163,HIGH
+SSR-0242,VKM-SRC-049,189,201,SKRU3,,SECTION,ORIGINAL_DATA,Гл. 8 и 9.1: изрезанность массива и бункер в околоствольном дворе ствола № 4 рудника СКРУ-3.,VKM-SRC-049:p0191,HIGH
+SSR-0243,VKM-SRC-049,202,211,SKRU2,,SECTION,FIELD_REPORT,9.2: бункерная загрузка и дозаторная камера ствола № 5 рудника СКРУ-2.,VKM-SRC-049:p0202,HIGH
+SSR-0244,VKM-SRC-049,212,215,MIXED,SKRU2;SKRU1,SECTION,ORIGINAL_DATA,10.1: образцы из пласта Вс рудника Второго Соликамского и пласта Вк Первого Соликамского рудоуправления.,VKM-SRC-049:p0214,HIGH
+SSR-0245,VKM-SRC-049,216,221,SKRU3,,SECTION,ORIGINAL_DATA,10.2–10.3: ползучесть в узлах общешахтных бункеров ствола № 4 рудника Третьего Соликамского (СКРУ-3).,VKM-SRC-049:p0216,HIGH
+SSR-0246,VKM-SRC-049,222,225,OTHER_POTASH_SITE,GREMYACHINSKOE,SECTION,WORKED_EXAMPLE,Приложение А: примеры расчёта крепи в доломит-ангидритовых породах «в условиях рудника Гремячинского ГОКа».,VKM-SRC-049:p0223,HIGH
+SSR-0247,VKM-SRC-049,226,255,BKPRU2,,SECTION,WORKED_EXAMPLE,"Приложения Б, В: примеры технических решений (гараж и сопряжение ствола) в околоствольном дворе рудника Второго Березниковского рудоуправления.",VKM-SRC-049:p0226,HIGH
+SSR-0248,VKM-SRC-049,256,264,VKM_UNSPECIFIED,,SECTION,REVIEW,Библиографический список.,VKM-SRC-049:p0256,LOW
+SSR-0249,VKM-SRC-050,1,30,VKM_UNSPECIFIED,,SECTION,REVIEW,Гл. 1: варианты камерной системы и закладки на рудниках ВКМ (примеры Первого Березниковского рудника названы на страницах).,VKM-SRC-050:p0009,MEDIUM
+SSR-0250,VKM-SRC-050,31,60,BKPRU1,,SECTION,FIELD_REPORT,Гл. 2: опытные схемы гидрозакладки и замерные станции на 3-й и 4-й западной/восточной панелях Первого Березниковского рудника (БКРУ-1).,VKM-SRC-050:p0038,MEDIUM
+SSR-0251,VKM-SRC-050,61,134,VKM_UNSPECIFIED,,SECTION,METHOD,Гл. 3–5: моделирование технологических схем и грузопотоков калийных рудников.,VKM-SRC-050:p0074,MEDIUM
+SSR-0252,VKM-SRC-050,135,151,MIXED,BKPRU1;BKPRU2;BKPRU3,SECTION,MIXED,"Гл. 6: технический уровень оборудования и затраты по рудникам ПО «Уралкалий» (БКРУ-1, -2, -3).",VKM-SRC-050:p0147,MEDIUM
+SSR-0253,VKM-SRC-050,152,161,VKM_UNSPECIFIED,,SECTION,METHOD,Гл. 7: АРМ «Технолога-горняка»; приложения.,VKM-SRC-050:p0152,LOW
+SSR-0254,VKM-SRC-051,1,22,VKM_UNSPECIFIED,,CHAPTER,REVIEW,Введение и гл. 1: комплексирование геофизических методов на месторождениях водорастворимых руд — обзор.,VKM-SRC-051:p0004,HIGH
+SSR-0255,VKM-SRC-051,23,75,VKM_UNSPECIFIED,,CHAPTER,MIXED,Гл. 2: геофизические исследования и информационная модель Верхнекамского месторождения в целом (рудники названы на страницах).,VKM-SRC-051:p0002,MEDIUM
+SSR-0256,VKM-SRC-051,76,89,BKPRU4,,CHAPTER,ORIGINAL_DATA,Гл. 3: достоверность геофизики по материалам района Дуринского прогиба — восточная половина шахтного поля БКПРУ-4 (границы панелей БКПРУ-4 на рисунках).,VKM-SRC-051:p0084,MEDIUM
+SSR-0257,VKM-SRC-051,90,111,VKM_UNSPECIFIED,,SECTION,METHOD,4.1–4.2.2: иерархия задач и методика геолого-экономического обоснования комплексов (на примере ВКМ).,VKM-SRC-051:p0002,MEDIUM
+SSR-0258,VKM-SRC-051,112,124,BKPRU4,,SECTION,ORIGINAL_DATA,4.2.3: рациональный комплекс исследований ВЗТ в районе Дуринского прогиба (шахтное поле БКПРУ-4).,VKM-SRC-051:p0003,MEDIUM
+SSR-0259,VKM-SRC-051,125,156,VKM_UNSPECIFIED,,SECTION,REVIEW,"Заключение, сокращения, литература, приложения.",VKM-SRC-051:p0003,LOW
+SSR-0260,VKM-SRC-052,1,22,NON_VKM,,SECTION,METHOD,"Учебник по теории ползучести и релаксации (общая механика), без привязки к месторождениям.",VKM-SRC-052:p0003,HIGH
+SSR-0261,VKM-SRC-052,23,23,NON_VKM,,PAGES,WORKED_EXAMPLE,Учебный «Пример» расчёта в тексте учебника.,VKM-SRC-052:p0023,HIGH
+SSR-0262,VKM-SRC-052,24,276,NON_VKM,,SECTION,METHOD,"Учебник по теории ползучести и релаксации (общая механика), без привязки к месторождениям.",VKM-SRC-052:p0003,HIGH
+SSR-0263,VKM-SRC-053,1,384,NON_VKM,,WHOLE_DOCUMENT,METHOD,"Монография по наследственной механике твёрдых тел (общая теория), без привязки к ВКМ.",VKM-SRC-053:p0153,HIGH
+SSR-0264,VKM-SRC-054,1,29,MIXED,OTHER_POTASH_SITE;NON_VKM;VKM_UNSPECIFIED,SECTION,REVIEW,"Часть 1: калийные и соляные месторождения СССР (Старобинское, Верхнекамское, Прикарпатье и др.) — общие сведения.",VKM-SRC-054:p0265,HIGH
+SSR-0265,VKM-SRC-054,30,174,MIXED,OTHER_POTASH_SITE;NON_VKM;VKM_UNSPECIFIED,SECTION,MIXED,"Части 2–3: свойства соляных пород разных месторождений (I Солигорский рудник, Соликамский рудник и др.); месторождение каждой таблицы проверять на странице.",VKM-SRC-054:p0126,HIGH
+SSR-0266,VKM-SRC-054,175,258,MIXED,OTHER_POTASH_SITE;NON_VKM;VKM_UNSPECIFIED,SECTION,WORKED_EXAMPLE,Часть 4: «Примеры использования показателей… при расчете параметров систем разработки» (гл. XVII–XVIII).,VKM-SRC-054:p0175,HIGH
+SSR-0267,VKM-SRC-054,259,270,UNKNOWN,,SECTION,REVIEW,"Список литературы, оглавление, выходные данные.",VKM-SRC-054:p0265,LOW
+SSR-0268,VKM-SRC-055,1,4,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Аннотация: степень нагружения МКЦ сложной формы, Верхнекамское месторождение в целом; рудник не назван. Стр. 1 начинается концом чужой статьи.",VKM-SRC-055:p0001,MEDIUM
+SSR-0269,VKM-SRC-057,1,5,BKPRU1,,WHOLE_DOCUMENT,ORIGINAL_DATA,Аннотация: НДС при проектных параметрах очистных работ на Первом Березниковском калийном руднике (северо-восточная часть).,VKM-SRC-057:p0001,HIGH
+SSR-0270,VKM-SRC-058,1,9,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,METHOD,Программный модуль учёта закладки для маркшейдерских отделов всех рудников ПАО «Уралкалий»/ВКМКС; отдельный рудник не является объектом.,VKM-SRC-058:p0002,MEDIUM
+SSR-0271,VKM-SRC-059,1,12,OTHER_POTASH_SITE,GREMYACHINSKOE,WHOLE_DOCUMENT,ORIGINAL_DATA,"Введение и выводы: устойчивость выработок Гремячинского месторождения (глубокий калийный рудник, Волгоградская обл.).",VKM-SRC-059:p0001,HIGH
+SSR-0272,VKM-SRC-064,1,55,NON_VKM,,CHAPTER,REVIEW,"Технический альбом, гл. 1: подземная разработка металлических месторождений (Тырнауз, «Апатит», Кривбасс и др.).",VKM-SRC-064:p0003,HIGH
+SSR-0273,VKM-SRC-064,56,90,VKM_UNSPECIFIED,,CHAPTER,REVIEW,"Гл. 2: разработка калийных месторождений — схемы и процессы; рудник указан в подписи каждого рисунка (БПКРУ-1, -2, СКРУ-1, -2).",VKM-SRC-064:p0003,MEDIUM
+SSR-0274,VKM-SRC-064,91,97,NON_VKM,,CHAPTER,REVIEW,Гл. 3: строительные материалы и каменная соль (не калийные рудники ВКМ).,VKM-SRC-064:p0003,HIGH
+SSR-0275,VKM-SRC-064,98,164,VKM_UNSPECIFIED,,CHAPTER,REVIEW,Гл. 4: технические характеристики горного оборудования для калийных рудников.,VKM-SRC-064:p0003,MEDIUM
+SSR-0276,VKM-SRC-064,165,165,BKPRU4,,PAGES,FIELD_REPORT,Рис. 5.1: деление шахтного поля БКПРУ-4 на гидроизолированные участки.,VKM-SRC-064:p0165,HIGH
+SSR-0277,VKM-SRC-064,166,171,SKRU1,,SECTION,FIELD_REPORT,"Планы горных выработок по подстилающей соли, пластам КрII, АБ, В рудника СКРУ-1.",VKM-SRC-064:p0168,HIGH
+SSR-0278,VKM-SRC-064,172,177,SKRU2,,SECTION,FIELD_REPORT,"Планы поверхности и горных выработок рудника СКРУ-2 (по каменной соли, пласту В; оборудование 2007 г.).",VKM-SRC-064:p0172,HIGH
+SSR-0279,VKM-SRC-064,178,183,SKRU3,,SECTION,FIELD_REPORT,"Планы горных выработок по каменной соли, пластам КрII, АБ, В рудника СКРУ-3.",VKM-SRC-064:p0178,HIGH
+SSR-0280,VKM-SRC-064,184,187,BKPRU4,,SECTION,FIELD_REPORT,Схемы ведения очистных работ и подготовки блока на руднике БКПРУ-4.,VKM-SRC-064:p0185,MEDIUM
+SSR-0281,VKM-SRC-064,188,188,BKPRU2,,PAGES,FIELD_REPORT,Схема ведения очистных работ на руднике БКПРУ-2.,VKM-SRC-064:p0188,HIGH
+SSR-0282,VKM-SRC-064,189,191,UNKNOWN,,PAGES,REVIEW,Список литературы и выходные данные.,VKM-SRC-064:p0189,LOW
+SSR-0283,VKM-SRC-065,1,54,VKM_UNSPECIFIED,,CHAPTER,REVIEW,"Введение и гл. 1: геология и отработка ВКМС, изученность процесса сдвижения и угловых параметров на ВКМС — обзор.",VKM-SRC-065:p0002,HIGH
+SSR-0284,VKM-SRC-065,55,82,VKM_UNSPECIFIED,,CHAPTER,METHOD,Гл. 2–3: перечень угловых параметров и критерии их установления (используются наблюдения по 15 профильным линиям ВКМС без названия рудников).,VKM-SRC-065:p0002,MEDIUM
+SSR-0285,VKM-SRC-065,83,153,VKM_UNSPECIFIED,,CHAPTER,ORIGINAL_DATA,Гл. 4: величины угловых параметров по участкам профильных линий «на шахтных полях рудников ВКМС» — рудники не названы.,VKM-SRC-065:p0085,MEDIUM
+SSR-0286,VKM-SRC-065,154,165,VKM_UNSPECIFIED,,CHAPTER,MIXED,Гл. 5: сравнение с нормативными значениями угловых параметров и оценка значимости.,VKM-SRC-065:p0004,MEDIUM
+SSR-0287,VKM-SRC-065,166,185,VKM_UNSPECIFIED,,SECTION,REVIEW,"Заключение, сокращения, список источников.",VKM-SRC-065:p0004,LOW
+SSR-0288,VKM-SRC-066,1,26,VKM_UNSPECIFIED,,CHAPTER,REVIEW,"Введение и гл. 1: условия разработки ВКМ, опыт расчётов устойчивости МКЦ, методы моделирования — обзор.",VKM-SRC-066:p0002,HIGH
+SSR-0289,VKM-SRC-066,27,89,VKM_UNSPECIFIED,,CHAPTER,ORIGINAL_DATA,Гл. 2–3: упругопластические и упруго-вязкопластические модели по испытаниям крупных кубических соляных образцов; рудник отбора не назван.,VKM-SRC-066:p0028,MEDIUM
+SSR-0290,VKM-SRC-066,90,157,MIXED,SKRU3;BKPRU4;BKPRU2,CHAPTER,ORIGINAL_DATA,"Гл. 4: натурные замерные станции на рудниках СКРУ-3 (3, 15 панели), БКПРУ-4 (10 ЮВП, 1 ЮЗП, 2 СЗП), БКПРУ-2 (18 ЗП) и численные модели МКЦ.",VKM-SRC-066:p0096,MEDIUM
+SSR-0291,VKM-SRC-066,158,194,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Гл. 5: прогноз МКЦ и безопасных условий подработки ВЗТ (рудник не назван); заключение; литература.,VKM-SRC-066:p0003,MEDIUM
+SSR-0292,VKM-SRC-066,195,199,MIXED,BKPRU4;SKRU3;BKPRU2,SECTION,FIELD_REPORT,"Приложения: характеристика замерных станций (БКПРУ-4 2 СЗП, 10 ЮВП, 1 ЮЗП и др.).",VKM-SRC-066:p0195,MEDIUM
+SSR-0293,VKM-SRC-067,1,62,VKM_UNSPECIFIED,,CHAPTER,REVIEW,"Введение и гл. 1: условия разработки ВКМ, состояние элементов камерной системы, влияние формы, неоднородности и реологии — обзор.",VKM-SRC-067:p0002,HIGH
+SSR-0294,VKM-SRC-067,63,83,MIXED,BKPRU4;SKRU1,SECTION,ORIGINAL_DATA,"2.1–2.4: образцы сильвинита из монолитов шахтных полей БКПРУ-4 (2-3 ЮЗП, 4-5 и 8-9 СВП) и СКРУ-1 (1 СВП) — табл. 2.1.",VKM-SRC-067:p0064,HIGH
+SSR-0295,VKM-SRC-067,84,88,BKPRU4,,SECTION,MIXED,2.5: пример применения — степень нагружения МКЦ на добычных участках рудника БКПРУ-4.,VKM-SRC-067:p0086,MEDIUM
+SSR-0296,VKM-SRC-067,89,106,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,3.1–3.4: слоистые (составные) образцы из тех же монолитов ВКМ — лабораторные испытания.,VKM-SRC-067:p0089,MEDIUM
+SSR-0297,VKM-SRC-067,107,111,OTHER_POTASH_SITE,VKM:USOLSKY_UKK,SECTION,MIXED,3.5: пример — слоистые МКЦ при отработке шахтного поля рудника ООО «ЕвроХим – Усольский калийный комбинат».,VKM-SRC-067:p0107,HIGH
+SSR-0298,VKM-SRC-067,112,153,MIXED,VKM_UNSPECIFIED;OTHER_POTASH_SITE,SECTION,ORIGINAL_DATA,4.1–4.4: ползучесть сильвинита — монолиты и керн с участков ВКМ и скважины рудника ООО «ЕвроХим-ВолгаКалий» (Гремячинское).,VKM-SRC-067:p0112,MEDIUM
+SSR-0299,VKM-SRC-067,154,162,VKM_UNSPECIFIED,,SECTION,MIXED,4.5: форма образцов и боковое давление; пример практического использования на участках ВКМКС.,VKM-SRC-067:p0003,MEDIUM
+SSR-0300,VKM-SRC-067,163,191,VKM_UNSPECIFIED,,SECTION,METHOD,Гл. 5: совершенствование методики расчёта несущей способности МКЦ; заключение; литература.,VKM-SRC-067:p0003,MEDIUM
+SSR-0301,VKM-SRC-067,192,193,MIXED,SKRU1;BKPRU4,PAGES,ORIGINAL_DATA,"Прил. 1: средние показатели сильвинитовых образцов по блокам (91-2 — СКРУ-1, прочие — БКПРУ-4).",VKM-SRC-067:p0192,MEDIUM
+SSR-0302,VKM-SRC-067,194,196,BKPRU4,,PAGES,MIXED,"Прил. 2: пример расчёта степени нагружения МКЦ различной длины (панели 2-3 ЮЗП и др., БКПРУ-4).",VKM-SRC-067:p0194,MEDIUM
+SSR-0303,VKM-SRC-067,197,203,VKM_UNSPECIFIED,,PAGES,ORIGINAL_DATA,Прил. 3–4: двухслойные блоки и поля деформаций составных образцов.,VKM-SRC-067:p0197,MEDIUM
+SSR-0304,VKM-SRC-067,204,207,OTHER_POTASH_SITE,VKM:USOLSKY_UKK,PAGES,MIXED,Прил. 5: степень нагружения МКЦ при нормальной и повышенной глинизации в условиях рудника «ЕвроХим – УКК».,VKM-SRC-067:p0204,HIGH
+SSR-0305,VKM-SRC-067,208,210,MIXED,VKM_UNSPECIFIED;OTHER_POTASH_SITE,PAGES,ORIGINAL_DATA,Прил. 6: условия и скорости ползучести по блокам и скважинам (ВКМ и Гремячинское).,VKM-SRC-067:p0208,MEDIUM
+SSR-0306,VKM-SRC-067,211,212,BKPRU4,,PAGES,MIXED,Прил. 7: допустимая степень нагружения МКЦ на участках рудника «БКПРУ-4».,VKM-SRC-067:p0211,HIGH
+SSR-0307,VKM-SRC-069,1,7,SKRU1,,WHOLE_DOCUMENT,ORIGINAL_DATA,Аннотация: микросейсмическая активность и прогноз плотности сейсмической энергии для рудника СКРУ-1.,VKM-SRC-069:p0001,HIGH
+SSR-0308,VKM-SRC-070,1,15,OTHER_POTASH_SITE,STAROBIN_BELARUS,WHOLE_DOCUMENT,ORIGINAL_DATA,Параметры съёмки и модели мульды соответствуют Старобинскому месторождению (Беларусь); ВКМ не рассматривается.,VKM-SRC-070:p0006,MEDIUM
+SSR-0309,VKM-SRC-073,1,11,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Лабораторные испытания соляных пород для целиков рудников ВКМКС/ПАО «Уралкалий»; рудник отбора образцов не назван.,VKM-SRC-073:p0003,MEDIUM
+SSR-0310,VKM-SRC-074,1,8,SKRU1,,WHOLE_DOCUMENT,ORIGINAL_DATA,Заглавие и методика: модель прогноза сейсмической активности для рудника СКРУ-1 (наблюдения более 20 лет).,VKM-SRC-074:p0001,HIGH
+SSR-0311,VKM-SRC-075,1,17,BEREZNIKI_CITY,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Заглавие: мониторинг оседаний на территории г. Березники методами InSAR (DInSAR), провалы над затопленным БКПРУ-1.",VKM-SRC-075:p0001,HIGH
+SSR-0312,VKM-SRC-076,1,4,BEREZNIKI_CITY,,SECTION,ORIGINAL_DATA,"Аннотация: гравиметрический полигон в г. Березники (102 пункта, 2016–2020 гг.) над затопленными шахтными полями.",VKM-SRC-076:p0001,HIGH
+SSR-0313,VKM-SRC-076,5,5,BKPRU4,,PAGES,ORIGINAL_DATA,"Начало следующей статьи выпуска (Щербинина): восток Легчимского выступа, северо-восток территории БКПРУ-4; верх страницы — литература предыдущей статьи.",VKM-SRC-076:p0005,MEDIUM
+SSR-0314,VKM-SRC-077,1,7,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,MIXED,"Инженерные критерии подработки ВЗТ на Верхнекамском месторождении в целом; примеры с разных рудников (БКПРУ-2, СКРУ-1, БКПРУ-1) названы на своих страницах.",VKM-SRC-077:p0001,MEDIUM
+SSR-0315,VKM-SRC-079,1,4,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Аннотация: моделирование камерного блока с жёсткими целиками с учётом ползучести; рудник не назван.,VKM-SRC-079:p0001,MEDIUM
+SSR-0316,VKM-SRC-080,1,13,BKPRU2,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Повторная отработка пласта КрII* на участке Второго Березниковского рудника (БКПРУ-2): вскрытие, натурные и лабораторные испытания.",VKM-SRC-080:p0002,HIGH
+SSR-0317,VKM-SRC-081,1,4,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,MIXED,Методика контроля целиков на всех действующих рудниках ВКМ; результаты по Соликамскому и Березниковскому рудоуправлениям и УКК без разделения по руднику.,VKM-SRC-081:p0002,MEDIUM
+SSR-0318,VKM-SRC-082,1,11,BKPRU1,BEREZNIKI_CITY,WHOLE_DOCUMENT,ORIGINAL_DATA,"Abstract: оседания над затопленным рудником Berezniki-1 (с 10.2006), почти целиком в пределах г. Березники.",VKM-SRC-082:p0001,HIGH
+SSR-0319,VKM-SRC-083,1,18,NON_VKM,,WHOLE_DOCUMENT,METHOD,Оценка сейсмической опасности в рудниках; пример — рудник «Ренисон» (Австралия).,VKM-SRC-083:p0008,HIGH
+SSR-0320,VKM-SRC-084,1,4,BEREZNIKI_CITY,,WHOLE_DOCUMENT,MIXED,Методика гравиметрического мониторинга карста; опробована на потенциально опасном участке в г. Березники (с 2016 г.). Стр. 1 — конец чужой статьи.,VKM-SRC-084:p0003,MEDIUM
+SSR-0321,VKM-SRC-086,1,25,MIXED,NON_VKM;OTHER_POTASH_SITE;BKPRU1;BKPRU3,WHOLE_DOCUMENT,REVIEW,"Аннотация: обзор мирового опыта ликвидации калийных рудников и соляных шахт (Саскачеван, Калуш, БКПРУ-3, БКПРУ-1 и др.).",VKM-SRC-086:p0001,HIGH
+SSR-0322,VKM-SRC-087,1,8,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Меры охраны калийных рудников от затопления (зоны смягчения) по моделированию; рудник не назван.,VKM-SRC-087:p0001,MEDIUM
+SSR-0323,VKM-SRC-088,1,6,SKRU2,,WHOLE_DOCUMENT,ORIGINAL_DATA,Заглавие и аннотация: провалы на участке аварии 1995 г. на руднике СКРУ-2 (массовое обрушение МКЦ).,VKM-SRC-088:p0001,HIGH
+SSR-0324,VKM-SRC-089,8,11,OTHER_POTASH_SITE,GREMYACHINSKOE,SECTION,ORIGINAL_DATA,Коротченкова: минералогия соляных пород Гремячинского месторождения (сравнение с Половодовским участком ВКМ).,VKM-SRC-089:p0008,HIGH
+SSR-0325,VKM-SRC-089,12,14,OTHER_POTASH_SITE,VKM:POLOVODOVSKY,SECTION,ORIGINAL_DATA,Чиркова: контрольно-стволовая скважина 704/1 под строительство Половодовского рудника.,VKM-SRC-089:p0012,HIGH
+SSR-0326,VKM-SRC-089,26,29,NON_VKM,,SECTION,ORIGINAL_DATA,Русловые процессы р. Чепца (пос. Балезино).,VKM-SRC-089:p0026,HIGH
+SSR-0327,VKM-SRC-089,30,36,NON_VKM,,SECTION,ORIGINAL_DATA,"Кунгурская ледяная пещера (гидратация, морфометрия).",VKM-SRC-089:p0030,HIGH
+SSR-0328,VKM-SRC-089,41,47,NON_VKM,,SECTION,ORIGINAL_DATA,"Кунгурская ледяная пещера (грот Длинный, маркшейдерский мониторинг).",VKM-SRC-089:p0041,HIGH
+SSR-0329,VKM-SRC-089,60,63,NON_VKM,,SECTION,ORIGINAL_DATA,Диоксид углерода в почвенных газах Пермского Прикамья — не рудники ВКМ.,VKM-SRC-089:p0060,MEDIUM
+SSR-0330,VKM-SRC-089,70,77,NON_VKM,,SECTION,ORIGINAL_DATA,Золото западного склона Урала; хвосты Сарановской шахты «Рудная».,VKM-SRC-089:p0070,HIGH
+SSR-0331,VKM-SRC-089,78,81,VKM_UNSPECIFIED,,SECTION,REVIEW,Барях: актуальные задачи геомеханики ВКМС — обзор по месторождению в целом.,VKM-SRC-089:p0078,HIGH
+SSR-0332,VKM-SRC-089,82,84,VKM_UNSPECIFIED,,SECTION,METHOD,Самоделкина: упругопластическое деформирование слоистых массивов — методика; рудник не объект.,VKM-SRC-089:p0082,MEDIUM
+SSR-0333,VKM-SRC-089,85,89,OTHER_POTASH_SITE,VKM:USOLSKY_PALASHERSKY,SECTION,ORIGINAL_DATA,Лобанов: отработка сближенных пластов КрII и КрIII в условиях рудника ООО «Еврохим – Усольский калийный комбинат» (Палашерский участок); опыт БКПРУ-2.,VKM-SRC-089:p0088,HIGH
+SSR-0334,VKM-SRC-089,90,95,OTHER_POTASH_SITE,VKM:USOLSKY_UKK,SECTION,ORIGINAL_DATA,Телегина: глубина работ и извлечение руды для рудника ООО «ЕвроХим – Усольский…»; история нормативов после затопления БКПРУ-3.,VKM-SRC-089:p0090,MEDIUM
+SSR-0335,VKM-SRC-089,96,97,OTHER_POTASH_SITE,STAROBIN_BELARUS,SECTION,ORIGINAL_DATA,Федосеев: ГДЯ при слоевой выемке Третьего пласта на рудниках Старобинского месторождения.,VKM-SRC-089:p0096,HIGH
+SSR-0336,VKM-SRC-089,98,100,BKPRU1,,SECTION,ORIGINAL_DATA,Девятков: провалы при аварийном затоплении на примере аварии 2006/07 гг. на руднике БКПРУ-1 (участок ППП).,VKM-SRC-089:p0099,MEDIUM
+SSR-0337,VKM-SRC-089,101,105,BKPRU2,,SECTION,ORIGINAL_DATA,Ломакин: НДС ВЗТ в районе 15 ЗП рудника БКПРУ-2 (7–17 ЗП).,VKM-SRC-089:p0102,HIGH
+SSR-0338,VKM-SRC-089,106,113,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Деформационный критерий устойчивости МКЦ (ВКМС) и экспериментальное обеспечение параметров системы разработки на шахтных полях ВКМКС.,VKM-SRC-089:p0106,MEDIUM
+SSR-0339,VKM-SRC-089,114,121,UNKNOWN,,SECTION,METHOD,Паньков: теоретическая оценка бокового распора при тектонических силах — без привязки к объекту.,VKM-SRC-089:p0114,LOW
+SSR-0340,VKM-SRC-089,122,124,BKPRU1,,SECTION,ORIGINAL_DATA,Аникин: газопровод в зоне подработки в пределах 6 ЗП и блоков 4–6 шахтного поля рудника БКПРУ-1.,VKM-SRC-089:p0122,HIGH
+SSR-0341,VKM-SRC-089,125,127,MIXED,BKPRU2;VKM:USOLSKY_PALASHERSKY,SECTION,ORIGINAL_DATA,Евсеев: схемы отработки при высокой глинистости — юго-восточная часть БКПРУ-2 и Палашерский участок.,VKM-SRC-089:p0126,MEDIUM
+SSR-0342,VKM-SRC-089,132,134,OTHER_POTASH_SITE,YAKSHINSKOE,SECTION,ORIGINAL_DATA,Кузьминых: паспорта прочности по образцам Якшинского месторождения.,VKM-SRC-089:p0132,HIGH
+SSR-0343,VKM-SRC-089,135,139,BKPRU4,,SECTION,ORIGINAL_DATA,Морозов: многоступенчатое объёмное нагружение — блок сильвинита отобран на руднике БКРУ-4.,VKM-SRC-089:p0135,HIGH
+SSR-0344,VKM-SRC-089,143,145,NON_VKM,,SECTION,ORIGINAL_DATA,Генік: региональные работы на нефть и газ в Пермском крае и Кировской области.,VKM-SRC-089:p0143,HIGH
+SSR-0345,VKM-SRC-089,146,155,UNKNOWN,,SECTION,METHOD,"Методические статьи (ИИ в гравиразведке, микромагнитная съёмка подземного коллектора) — объект не назван.",VKM-SRC-089:p0146,LOW
+SSR-0346,VKM-SRC-089,161,163,BEREZNIKI_CITY,,SECTION,ORIGINAL_DATA,Симанов: гравиметрический мониторинг карстово-суффозионных процессов (г. Березники).,VKM-SRC-089:p0161,MEDIUM
+SSR-0347,VKM-SRC-089,164,172,UNKNOWN,,SECTION,ORIGINAL_DATA,Чадаев (региональное гравиполе) и Щербинина (выклинивание лунежской соляной толщи) — рудники ВКМ не названы.,VKM-SRC-089:p0167,LOW
+SSR-0348,VKM-SRC-089,173,176,BKPRU1,,SECTION,ORIGINAL_DATA,Шулаков: скважинные датчики локальных сейсмосетей; система мониторинга района «большого» провала на руднике БКПРУ-1.,VKM-SRC-089:p0175,MEDIUM
+SSR-0349,VKM-SRC-089,177,180,NON_VKM,,SECTION,ORIGINAL_DATA,Геодинамически неустойчивые зоны Южного Предуралья; микросейсмика при ГРП на нефтяных месторождениях.,VKM-SRC-089:p0177,HIGH
+SSR-0350,VKM-SRC-089,181,183,UNKNOWN,,SECTION,METHOD,Сейсмический регистратор «Ермак-5» (2017–2018) — аппаратура для разных объектов.,VKM-SRC-089:p0181,LOW
+SSR-0351,VKM-SRC-089,190,192,SKRU2,,SECTION,ORIGINAL_DATA,"Санфиров, Нежданов: изменчивость волнового поля в пределах участка аварии на шахтном поле СКРУ-2 в 2017 г.",VKM-SRC-089:p0190,HIGH
+SSR-0352,VKM-SRC-089,193,199,VKM_UNSPECIFIED,,SECTION,METHOD,Малоглубинная сейсморазведка 3D на опасных участках ВКМКС и точность построений для резервных участков ВКМ.,VKM-SRC-089:p0193,MEDIUM
+SSR-0353,VKM-SRC-089,200,203,UNKNOWN,,SECTION,METHOD,Сравнение обработки малоглубинной сейсморазведки на месторождениях твёрдых полезных ископаемых — без объекта.,VKM-SRC-089:p0200,LOW
+SSR-0354,VKM-SRC-089,206,209,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Провал 2014 г. «на территории одного из соляных рудников ВКМКС» — рудник не назван.,VKM-SRC-089:p0206,MEDIUM
+SSR-0355,VKM-SRC-089,254,257,UNKNOWN,,SECTION,METHOD,Безопасность горных работ в современных условиях — обзор без конкретного объекта.,VKM-SRC-089:p0254,LOW
+SSR-0356,VKM-SRC-089,258,262,MIXED,NON_VKM;OTHER_POTASH_SITE,SECTION,METHOD,"Зайцев: ресурсосберегающие системы теплового режима глубоких рудников (Норильск, Беларуськалий).",VKM-SRC-089:p0258,MEDIUM
+SSR-0357,VKM-SRC-089,263,271,OTHER_POTASH_SITE,STAROBIN_BELARUS,SECTION,ORIGINAL_DATA,Ледопородные ограждения при строительстве стволов рудника Нежинского ГОК (Беларусь).,VKM-SRC-089:p0265,MEDIUM
+SSR-0358,VKM-SRC-089,287,287,UNKNOWN,,PAGES,METHOD,Стык статей о воздушно-депрессионных съёмках и проветривании калийных рудников (Беларуськалий) — объект не однозначен.,VKM-SRC-089:p0287,LOW
+SSR-0359,VKM-SRC-089,300,307,OTHER_POTASH_SITE,STAROBIN_BELARUS,SECTION,ORIGINAL_DATA,Андрейко: ГДЯ при слоевой выемке третьего калийного пласта Старобинского месторождения.,VKM-SRC-089:p0300,HIGH
+SSR-0360,VKM-SRC-089,308,312,NON_VKM,,SECTION,ORIGINAL_DATA,Алыменко: проветривание рудника «Каральвеем».,VKM-SRC-089:p0308,HIGH
+SSR-0361,VKM-SRC-089,313,316,OTHER_POTASH_SITE,GREMYACHINSKOE,SECTION,ORIGINAL_DATA,Иванов: газоносность пород околоствольного двора рудника Гремячинского ГОКа.,VKM-SRC-089:p0313,HIGH
+SSR-0362,VKM-SRC-089,320,323,OTHER_POTASH_SITE,STAROBIN_BELARUS,SECTION,ORIGINAL_DATA,Литвиновская: давление свободных газов в рудниках ОАО «Беларуськалий».,VKM-SRC-089:p0320,HIGH
+SSR-0363,VKM-SRC-089,324,326,SKRU1,,SECTION,ORIGINAL_DATA,"Нестеров, Мальцев: торпедирование карналлитового пласта В на руднике СКРУ-1 (камера № 100, 11 ВП).",VKM-SRC-089:p0324,HIGH
+SSR-0364,VKM-SRC-089,327,329,OTHER_POTASH_SITE,STAROBIN_BELARUS,SECTION,ORIGINAL_DATA,Бобров: газоносность пород между III и IV горизонтами на шахтном поле рудника 2 РУ ОАО «Беларуськалий».,VKM-SRC-089:p0327,HIGH
+SSR-0365,VKM-SRC-089,330,332,BKPRU2,,SECTION,ORIGINAL_DATA,Лукьянец: надвиговые и сдвиговые зоны на шахтном поле рудника БКПРУ-2.,VKM-SRC-089:p0331,HIGH
+SSR-0366,VKM-SRC-089,333,340,UNKNOWN,,SECTION,REVIEW,Энергоэффективная экономика Пермского края — не геомеханика конкретного рудника.,VKM-SRC-089:p0338,LOW
+SSR-0367,VKM-SRC-090,1,14,BKPRU1,BEREZNIKI_CITY,WHOLE_DOCUMENT,ORIGINAL_DATA,"Синтезированная модель затопленного рудника БКПРУ-1 в г. Березники (водоприток 17.10.2006, растворение солей).",VKM-SRC-090:p0001,HIGH
+SSR-0368,VKM-SRC-091,1,6,VKM_UNSPECIFIED,,SECTION,METHOD,Система сейсмо-геомеханического контроля и методика анализа ВЗТ калийных рудников — без привязки к руднику.,VKM-SRC-091:p0004,HIGH
+SSR-0369,VKM-SRC-091,7,11,BKPRU4,,SECTION,ORIGINAL_DATA,Пример реализации: участок 4 и 5 блоков 3 ЮВП Четвертого Березниковского калийного рудника (рис. 1 и далее).,VKM-SRC-091:p0007,HIGH
+SSR-0370,VKM-SRC-091,12,13,VKM_UNSPECIFIED,,SECTION,METHOD,Выводы о системе контроля и список литературы.,VKM-SRC-091:p0012,MEDIUM
+SSR-0371,VKM-SRC-092,1,4,VKM_UNSPECIFIED,,SECTION,MIXED,Лабораторная ползучесть соляных пород и натурные исследования МКЦ ВКМКС; рудник образцов и опытных участков не назван.,VKM-SRC-092:p0002,MEDIUM
+SSR-0372,VKM-SRC-092,5,5,SKRU1,,PAGES,ORIGINAL_DATA,Рис. 3: расчётные оседания вдоль меридионального профиля в южной части шахтного поля рудника СКРУ-1 (1950–2014 гг.).,VKM-SRC-092:p0005,HIGH
+SSR-0373,VKM-SRC-092,6,8,VKM_UNSPECIFIED,,SECTION,METHOD,"Рис. 4 (вероятно продолжение расчёта для СКРУ-1, но без подписи рудника) и методика оценки состояния МКЦ по рудникам ВКМКС.",VKM-SRC-092:p0006,MEDIUM
+SSR-0374,VKM-SRC-093,1,12,BKPRU1,BEREZNIKI_CITY,WHOLE_DOCUMENT,ORIGINAL_DATA,Провалы после затопления Первого Березниковского рудника (БКПРУ-1) в пределах г. Березники; модель для условий БКПРУ-1.,VKM-SRC-093:p0001,HIGH
+SSR-0375,VKM-SRC-094,1,13,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Методика роста степени нагружения МКЦ во времени для Верхнекамского месторождения в целом; рудник не назван.,VKM-SRC-094:p0001,MEDIUM
+SSR-0376,VKM-SRC-096,1,8,SKRU1,,WHOLE_DOCUMENT,ORIGINAL_DATA,Аннотация: выемка карналлитового пласта с закладкой в условиях рудника СКРУ-1 (с начала 1940-х гг.).,VKM-SRC-096:p0001,HIGH
+SSR-0377,VKM-SRC-097,1,6,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Испытания на ползучесть соляных пород Верхнекамского месторождения (каменная соль, красный сильвинит, карналлит); рудник отбора не назван.",VKM-SRC-097:p0001,MEDIUM
+SSR-0378,VKM-SRC-098,1,112,NON_VKM,,SECTION,NORMATIVE,Общегосударственная инструкция по нивелированию I–IV классов; не привязана к ВКМ.,VKM-SRC-098:p0003,HIGH
+SSR-0379,VKM-SRC-098,113,113,NON_VKM,,PAGES,WORKED_EXAMPLE,Иллюстративный «Пример» в тексте инструкции.,VKM-SRC-098:p0113,HIGH
+SSR-0380,VKM-SRC-098,114,231,NON_VKM,,SECTION,NORMATIVE,Общегосударственная инструкция по нивелированию I–IV классов; не привязана к ВКМ.,VKM-SRC-098:p0003,HIGH
+SSR-0381,VKM-SRC-100,1,5,SKRU2,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Авария осенью 2014 г. на руднике Соликамского рудоуправления; номер рудника назван только в ссылке на стр. 5 («втором Соликамском калийном руднике», ноябрь 2014).",VKM-SRC-100:p0001,MEDIUM
+SSR-0382,VKM-SRC-101,1,8,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Аннотация: галокинез и рифогенные массивы Соликамской впадины в целом; рудники не являются объектом.,VKM-SRC-101:p0001,HIGH
+SSR-0383,VKM-SRC-102,1,4,VKM_UNSPECIFIED,,SECTION,METHOD,Теория: ослабление модуля сдвига в краевой части подработанного массива — без привязки к руднику.,VKM-SRC-102:p0004,HIGH
+SSR-0384,VKM-SRC-102,5,10,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Пример: «участок одного из шахтных полей ВКМС» — рудник не назван.,VKM-SRC-102:p0005,HIGH
+SSR-0385,VKM-SRC-103,1,41,MIXED,VKM_UNSPECIFIED;OTHER_POTASH_SITE;NON_VKM,CHAPTER,REVIEW,"Введение и гл. 1: обзор моделей соляных пород и методов оценки ВЗТ (Верхнекамское, Старобинское, Гремячинское, Нивенское).",VKM-SRC-103:p0004,HIGH
+SSR-0386,VKM-SRC-103,42,89,OTHER_POTASH_SITE,VKM:USOLSKY_PALASHERSKY,SECTION,ORIGINAL_DATA,"Гл. 2–3 (до 3.4): керн скважин № 107г-1, 107г-2 Палашерского участка ВКМКС, наблюдения на участке УКК, параметры моделей Палашерского участка.",VKM-SRC-103:p0042,HIGH
+SSR-0387,VKM-SRC-103,90,100,SKRU1,,SECTION,ORIGINAL_DATA,Метод прогноза НДС МКЦ с тросовой крепью: отработка пласта АБ в 10-й западной панели рудника СКРУ-1 и наблюдения там.,VKM-SRC-103:p0093,MEDIUM
+SSR-0388,VKM-SRC-103,101,116,OTHER_POTASH_SITE,VKM:USOLSKY_PALASHERSKY,CHAPTER,ORIGINAL_DATA,Гл. 4: моделирование НДС подрабатываемой ВЗТ в горно-геологических условиях Палашерского участка (пласт КрII).,VKM-SRC-103:p0101,HIGH
+SSR-0389,VKM-SRC-103,117,131,MIXED,VKM:USOLSKY_PALASHERSKY;SKRU1,SECTION,REVIEW,"Заключение, литература, акт использования и патент.",VKM-SRC-103:p0003,LOW
+SSR-0390,VKM-SRC-104,1,8,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Физическое моделирование неоднородных МКЦ на цементно-песчаных образцах для рудников ВКМКС; стр. 8 — начало статьи Евсеева (рудник не назван).,VKM-SRC-104:p0003,MEDIUM
+SSR-0391,VKM-SRC-105,1,11,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Аннотация: типовые неоднородности соляной толщи ВКМКС в целом, сейсмическое моделирование.",VKM-SRC-105:p0001,MEDIUM
+SSR-0392,VKM-SRC-106,1,8,SKRU2,,WHOLE_DOCUMENT,ORIGINAL_DATA,Заглавие и аннотация: прогноз микросейсмичности на руднике СКРУ-2 (Второе Соликамское рудоуправление).,VKM-SRC-106:p0001,HIGH
+SSR-0393,VKM-SRC-108,1,11,SKRU2,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Аннотация: апробация прогноза сейсмической активности на данных рудника СКРУ-2 (2018–2021 гг.), землетрясение 05.01.1995.",VKM-SRC-108:p0001,HIGH
+SSR-0394,VKM-SRC-109,1,6,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Образцы из монолита № 97/3, пласт КрII слой 7, 1-я СВП «шахтного поля рудника ПАО «Уралкалий»» — рудник не назван.",VKM-SRC-109:p0002,MEDIUM
+SSR-0395,VKM-SRC-110,1,10,MIXED,SKRU1;SKRU2;SKRU3,WHOLE_DOCUMENT,ORIGINAL_DATA,"Модель участка шахтных полей СКРУ-1, СКРУ-2, СКРУ-3 и междушахтных целиков между ними (рис. 1).",VKM-SRC-110:p0003,HIGH
+SSR-0396,VKM-SRC-112,1,9,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Гравитационное поле и геодинамическое воздействие Урала на соляную толщу Предуральского прогиба в целом.,VKM-SRC-112:p0001,HIGH
+SSR-0397,VKM-SRC-113,1,2,VKM_UNSPECIFIED,,SECTION,METHOD,Реферат и постановка: тектонические дислокации ВКМКС под действием напряжений.,VKM-SRC-113:p0001,MEDIUM
+SSR-0398,VKM-SRC-113,3,5,MIXED,VKM_UNSPECIFIED;NON_VKM,SECTION,REVIEW,"Региональное поле напряжений по литературе и измерениям на рудниках Среднего Урала (не ВКМ, перенос); табл. 1 — свойства пород ВКМ.",VKM-SRC-113:p0003,MEDIUM
+SSR-0399,VKM-SRC-113,6,11,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Расчёт напряжений по геологическому разрезу ВКМКС (рис. 2); рудник разреза не назван.,VKM-SRC-113:p0007,MEDIUM
+SSR-0400,VKM-SRC-114,1,10,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Аннотация: гидроизолирующие сооружения «в шахте одного из рудников Верхнекамского месторождения» — рудник не назван.,VKM-SRC-114:p0001,HIGH
+SSR-0401,VKM-SRC-116,1,2,VKM_UNSPECIFIED,,SECTION,MIXED,"Нормативы и сравнение частей месторождения (рудники Соликамского рудоуправления, рудник БКПРУ-4) без привязки примера.",VKM-SRC-116:p0002,MEDIUM
+SSR-0402,VKM-SRC-116,3,4,OTHER_POTASH_SITE,VKM:USOLSKY_PALASHERSKY,SECTION,FIELD_REPORT,Инструментальный контроль на одном из участков шахтного поля в условиях Палашерского участка ВКМ (рис. 3 — скорости оседания).,VKM-SRC-116:p0003,HIGH
+SSR-0403,VKM-SRC-119,1,4,UNKNOWN,,WHOLE_DOCUMENT,REVIEW,"Закон Нортона по чужим лабораторным данным [12] (сильвинит, карналлит); месторождение образцов на страницах не указано. Стр. 1 начинается чужой статьёй.",VKM-SRC-119:p0002,LOW
+SSR-0404,VKM-SRC-120,1,6,SKRU2,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Аннотация: аварийный участок рудника СКРУ-2 (северо-восточная часть шахтного поля), провалы через 20 лет после обрушения МКЦ.",VKM-SRC-120:p0001,HIGH
+SSR-0405,VKM-SRC-121,1,6,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Сейсморазведка зон выклинивания пластов ВЗТ «на одном из участков Верхнекамского месторождения» — рудник не назван.,VKM-SRC-121:p0003,MEDIUM
+SSR-0406,VKM-SRC-122,1,5,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Участок ускоренных оседаний на ВКМКС — рудник не назван; функция ползучести по экстраполяции натурных наблюдений.,VKM-SRC-122:p0001,MEDIUM
+SSR-0407,VKM-SRC-125,1,4,VKM_UNSPECIFIED,,SECTION,METHOD,Введение (аварии на двух рудниках ВКМ — пересказ) и методика многоступенчатого объёмного нагружения.,VKM-SRC-125:p0001,MEDIUM
+SSR-0408,VKM-SRC-125,5,10,BKPRU4,,SECTION,ORIGINAL_DATA,Блок полосчатого сильвинита 400×400×400 мм отобран на 4-м Березниковском калийном руднике; 26 образцов.,VKM-SRC-125:p0005,HIGH
+SSR-0409,VKM-SRC-126,1,5,BEREZNIKI_CITY,BKPRU1,WHOLE_DOCUMENT,ORIGINAL_DATA,Гравиметрический мониторинг в районе провалов на территории г. Березники после затопления Первого Березниковского рудника (2006).,VKM-SRC-126:p0002,MEDIUM
+SSR-0410,VKM-SRC-127,1,8,BEREZNIKI_CITY,,WHOLE_DOCUMENT,ORIGINAL_DATA,Аннотация: гидрогеологический мониторинг подработанной территории г. Березники.,VKM-SRC-127:p0001,HIGH
+SSR-0411,VKM-SRC-129,1,5,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,MIXED,"Сейсмологический мониторинг ВКМ в целом; данные по шахтным полям (СКРУ-1, СКРУ-2, БКПРУ-2, БКПРУ-4) названы на своих страницах.",VKM-SRC-129:p0001,MEDIUM
+SSR-0412,VKM-SRC-130,1,5,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,METHOD,Сейсморазведочный комплекс сопровождения горных работ на ВКМКС в целом; рудник не назван.,VKM-SRC-130:p0001,MEDIUM
+SSR-0413,VKM-SRC-132,1,9,MIXED,BKPRU1;BKPRU3;SKRU2;OTHER_POTASH_SITE,WHOLE_DOCUMENT,REVIEW,"Обзор аварий и мер снижения рисков затопления (БКПРУ-1, БКПРУ-3, «Соликамск-2», зарубежные рудники).",VKM-SRC-132:p0002,HIGH
+SSR-0414,VKM-SRC-135,1,7,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Ползучесть образцов красного сильвинита разной формы для рудников ВКМ; рудник отбора не назван.,VKM-SRC-135:p0001,MEDIUM
+SSR-0415,VKM-SRC-136,1,13,NON_VKM,,WHOLE_DOCUMENT,ORIGINAL_DATA,Аннотация: Ромашкинское нефтяное месторождение (окрестности г. Альметьевска).,VKM-SRC-136:p0001,HIGH
+SSR-0416,VKM-SRC-137,1,4,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Масштабный эффект в соляных породах ВКМКС (лабораторные испытания); рудник отбора образцов не назван.,VKM-SRC-137:p0001,MEDIUM
+SSR-0417,VKM-SRC-139,1,5,BKPRU2,,WHOLE_DOCUMENT,ORIGINAL_DATA,Эксперименты со скважинным гидродомкратом Гудмана проведены в условиях рудника БКПРУ-2 ОАО «Уралкалий».,VKM-SRC-139:p0001,HIGH
+SSR-0418,VKM-SRC-141,1,8,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Объёмное нагружение пёстрого сильвинита (пласт Б) и подстилающей каменной соли ВКМ; рудник отбора монолитов не назван.,VKM-SRC-141:p0001,MEDIUM
+SSR-0419,VKM-SRC-144,1,6,VKM_UNSPECIFIED,,SECTION,METHOD,Патент: способ гидрогеологического районирования шахтных полей калийных предприятий (формула и описание без привязки).,VKM-SRC-144:p0001,MEDIUM
+SSR-0420,VKM-SRC-144,7,8,BKPRU1,,SECTION,ORIGINAL_DATA,Пример применения способа на шахтном поле Первого Березниковского калийного рудоуправления (БКРУ-1).,VKM-SRC-144:p0007,MEDIUM
+SSR-0421,VKM-SRC-148,1,115,NON_VKM,,WHOLE_DOCUMENT,NORMATIVE,"Инструкция ВНИМИ 1988 по наблюдениям за сдвижением при подземной разработке рудных месторождений — общий норматив, не ВКМ.",VKM-SRC-148:p0003,HIGH
+SSR-0422,VKM-SRC-153,1,12,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Гравитирующие объекты Соликамской впадины в целом (региональная геофизика); рудники не являются объектом.,VKM-SRC-153:p0001,HIGH
+SSR-0423,VKM-SRC-160,1,7,UNKNOWN,,WHOLE_DOCUMENT,ORIGINAL_DATA,Натурные фильтрационные эксперименты «на глубинных участках месторождения калийных солей» — месторождение и рудник не названы; ВКМ лишь в обзоре аварий.,VKM-SRC-160:p0001,LOW
+SSR-0424,VKM-SRC-161,1,8,OTHER_POTASH_SITE,STAROBIN_BELARUS,WHOLE_DOCUMENT,ORIGINAL_DATA,Авторы из Беларуси (Солигорск); подработанный массив при повторной отработке в условиях Старобинского месторождения.,VKM-SRC-161:p0001,HIGH
+SSR-0425,VKM-SRC-162,1,6,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Методика учёта размеров целиков по испытаниям образцов; рудник отбора не назван.,VKM-SRC-162:p0001,LOW
+SSR-0426,VKM-SRC-163,1,15,OTHER_POTASH_SITE,GREMYACHINSKOE,SECTION,REVIEW,Введение и 1.1: краткая характеристика Гремячинского месторождения.,VKM-SRC-163:p0004,HIGH
+SSR-0427,VKM-SRC-163,16,43,MIXED,VKM_UNSPECIFIED;OTHER_POTASH_SITE;NON_VKM,SECTION,REVIEW,"1.2–1.3 обзор: устойчивость выработок и свойства соляных пород ВКМКС, Старобина и др. (пересказ).",VKM-SRC-163:p0018,HIGH
+SSR-0428,VKM-SRC-163,44,47,OTHER_POTASH_SITE,GREMYACHINSKOE,SECTION,ORIGINAL_DATA,"2.1–2.2: образцы пород Гремячинского месторождения, одноосное сжатие и растяжение.",VKM-SRC-163:p0002,HIGH
+SSR-0429,VKM-SRC-163,48,58,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,2.3: многоступенчатое объёмное сжатие на блоке полосчатого сильвинита ВКМ (вывод 2 на стр. 68); рудник блока не назван.,VKM-SRC-163:p0068,MEDIUM
+SSR-0430,VKM-SRC-163,59,153,OTHER_POTASH_SITE,GREMYACHINSKOE,SECTION,ORIGINAL_DATA,"2.4–гл. 4, заключение: свойства пород, натурные участки и модели Гремячинского месторождения.",VKM-SRC-163:p0003,HIGH
+SSR-0431,VKM-SRC-164,1,4,VKM_UNSPECIFIED,,SECTION,FIELD_REPORT,Конвергенция на 6 экспериментальных участках «на одном из рудников Верхнекамского месторождения» — рудник не назван.,VKM-SRC-164:p0002,HIGH
+SSR-0432,VKM-SRC-164,5,5,OTHER_POTASH_SITE,GREMYACHINSKOE,PAGES,ORIGINAL_DATA,Литература и начало следующей статьи выпуска: коэффициент формы пород шахтного поля Гремячинского рудника.,VKM-SRC-164:p0005,MEDIUM
+SSR-0433,VKM-SRC-165,1,9,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,MIXED,Обобщение изучения трещинных зон ВКМКС гравиразведкой; пример района СКРУ-2 (рис. на стр. 4) назван на своей странице.,VKM-SRC-165:p0001,MEDIUM
+SSR-0434,VKM-SRC-166,1,11,NON_VKM,,WHOLE_DOCUMENT,REVIEW,"Прорывы вод в рудниках в сложных гидрогеологических условиях (рудник «Мир», «Муфулира» и др.); ВКМ — только в ссылках.",VKM-SRC-166:p0002,MEDIUM
+SSR-0435,VKM-SRC-167,1,4,SKRU3,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Образцы из монолита сильвинита, отобранного на пласте АБ рудника СКРУ-3 (ползучесть при растяжении).",VKM-SRC-167:p0001,HIGH
+SSR-0436,VKM-SRC-168,1,6,SKRU1,SKRU2,WHOLE_DOCUMENT,ORIGINAL_DATA,Поступление воды в выработки рудника СКРУ-1 через перемычку в сбойке с рудником СКРУ-2 (авария СКРУ-2 2014 г.); устойчивость МКЦ.,VKM-SRC-168:p0001,HIGH
+SSR-0437,VKM-SRC-169,1,9,OTHER_POTASH_SITE,VKM:USOLSKY_UKK,WHOLE_DOCUMENT,ORIGINAL_DATA,Исследования ГДЯ для условий шахтного поля рудника Усольского калийного комбината; во введении — обзор ГДЯ ВКМ и Старобина.,VKM-SRC-169:p0002,MEDIUM
+SSR-0438,VKM-SRC-170,1,5,BKPRU4,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Образцы из четырёх монолитов, отобранных на шахтном поле рудника БКПРУ-4 ПАО «Уралкалий».",VKM-SRC-170:p0002,HIGH
+SSR-0439,VKM-SRC-171,1,5,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Природные трещины «на одном из участков Верхнекамского месторождения» — рудник не назван; стр. 5 — начало следующей статьи (ВКМКС в целом).,VKM-SRC-171:p0002,MEDIUM
+SSR-0440,VKM-SRC-172,1,8,UNKNOWN,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Сверхдлительная ползучесть каменной соли (лаборатория ООО «Газпром геотехнологии», подземные хранилища); месторождение образцов не указано.",VKM-SRC-172:p0001,LOW
+SSR-0441,VKM-SRC-173,1,13,MIXED,NON_VKM;OTHER_POTASH_SITE,SECTION,REVIEW,"Введение: внедрение на рудниках Норильского никеля, Беларуськалия, Гремячинского ГОК; ВКМ не объект.",VKM-SRC-173:p0010,HIGH
+SSR-0442,VKM-SRC-173,14,55,MIXED,NON_VKM;OTHER_POTASH_SITE,CHAPTER,REVIEW,"Глава 1: микроклимат глубоких рудников (Норильск, ЮАР, Беларуськалий, Гремячинский) — обзор.",VKM-SRC-173:p0016,HIGH
+SSR-0443,VKM-SRC-173,56,59,NON_VKM,,SECTION,ORIGINAL_DATA,2.1.1 Медно-никелевые рудники Норильского промышленного района.,VKM-SRC-173:p0056,HIGH
+SSR-0444,VKM-SRC-173,60,62,OTHER_POTASH_SITE,STAROBIN_BELARUS,SECTION,ORIGINAL_DATA,2.1.2 Калийные рудники Старобинского месторождения.,VKM-SRC-173:p0060,HIGH
+SSR-0445,VKM-SRC-173,63,120,MIXED,NON_VKM;OTHER_POTASH_SITE,SECTION,METHOD,2.1.3–3.4: закономерности и модели теплового режима глубоких рудников без привязки к ВКМ.,VKM-SRC-173:p0063,MEDIUM
+SSR-0446,VKM-SRC-173,121,126,OTHER_POTASH_SITE,STAROBIN_BELARUS,SECTION,ORIGINAL_DATA,4.2 Испытания рециркуляционного проветривания на руднике 4 РУ ОАО «Беларуськалий».,VKM-SRC-173:p0121,HIGH
+SSR-0447,VKM-SRC-173,127,173,MIXED,NON_VKM;OTHER_POTASH_SITE,SECTION,METHOD,"4.3–6.2: расчёт рециркуляции, теплообменники, схемы кондиционирования — без привязки к ВКМ.",VKM-SRC-173:p0127,MEDIUM
+SSR-0448,VKM-SRC-173,174,183,NON_VKM,,SECTION,ORIGINAL_DATA,6.3 Испытания КШР-350Н на руднике «Таймырский» ЗФ ПАО «ГМК «Норильский никель».,VKM-SRC-173:p0174,HIGH
+SSR-0449,VKM-SRC-173,184,247,MIXED,NON_VKM;OTHER_POTASH_SITE,SECTION,METHOD,"Глава 7, заключение, литература: системы управления тепловым режимом глубоких рудников; ВКМ лишь в ссылке.",VKM-SRC-173:p0184,MEDIUM
+SSR-0450,VKM-SRC-174,1,6,NON_VKM,,WHOLE_DOCUMENT,METHOD,Обратная задача по данным подземной геодезии проверена численными экспериментами с синтетическим шумом; конкретный рудник не рассматривается.,VKM-SRC-174:p0005,MEDIUM
+SSR-0451,VKM-SRC-175,1,8,NON_VKM,,WHOLE_DOCUMENT,REVIEW,Аннотация: влияние температуры на каменную соль для подземных хранилищ газа (обзор); ВКМ не рассматривается.,VKM-SRC-175:p0001,MEDIUM
+SSR-0452,VKM-SRC-176,1,6,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Моделирование влияния межходовых целиков для камерной системы ВКМКС; рудник не назван.,VKM-SRC-176:p0001,MEDIUM
+SSR-0453,VKM-SRC-178,1,12,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Уфимские галогенные отложения Соликамской впадины по 2000+ скважинам; региональная геология, рудники не объект.",VKM-SRC-178:p0001,HIGH
+SSR-0454,VKM-SRC-181,1,1,MIXED,BKPRU2;BKPRU4,PAGES,ORIGINAL_DATA,Заглавие и аннотация: надвиговые и сдвиговые зоны шахтных полей рудников БКПРУ-2 и БКПРУ-4.,VKM-SRC-181:p0001,HIGH
+SSR-0455,VKM-SRC-181,2,5,BKPRU2,,SECTION,ORIGINAL_DATA,"Раздел о газоносности пласта АБ и ГДЯ на шахтном поле рудника БКПРУ-2 (Зырянский сдвиг, Троицкий надвиг; рис. 2).",VKM-SRC-181:p0003,HIGH
+SSR-0456,VKM-SRC-181,6,7,BKPRU4,,SECTION,ORIGINAL_DATA,"Раздел «шахтного поля рудника БКПРУ-4»: структурно-тектонические особенности, рис. 3.",VKM-SRC-181:p0006,HIGH
+SSR-0457,VKM-SRC-181,8,10,MIXED,BKPRU2;BKPRU4,SECTION,ORIGINAL_DATA,Раздел «Управление газодинамическими процессами … на шахтных полях рудников БКПРУ-2 и БКПРУ-4»; панели без указания рудника.,VKM-SRC-181:p0008,MEDIUM
+SSR-0458,VKM-SRC-192,1,195,NON_VKM,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Модель поведения дроблёной соли (программа WIPP, США); не калийный рудник ВКМ.",VKM-SRC-192:p0018,HIGH
+SSR-0459,VKM-SRC-193,1,691,NON_VKM,,WHOLE_DOCUMENT,MIXED,"Труды конференций Mechanical Behavior of Salt: зарубежные соляные объекты (Asse, WIPP, Gorleben и др.); ВКМ в отобранных статьях нет.",VKM-SRC-193:p0218,HIGH
+SSR-0460,VKM-SRC-194,1,25,NON_VKM,,WHOLE_DOCUMENT,METHOD,Масштабные факторы и модификация условия Хука–Брауна по обобщению мировых данных; ВКМ не рассматривается.,VKM-SRC-194:p0001,HIGH
+SSR-0461,VKM-SRC-195,1,11,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,MIXED,"Моделирование разрушения кубических образцов соляных пород; рудник отбора не назван; натурное сравнение (БКПРУ-4, 10 ЮВП и 1 ЮЗП) подписано на стр. 4.",VKM-SRC-195:p0001,MEDIUM
+SSR-0462,VKM-SRC-196,1,22,MIXED,NON_VKM;BEREZNIKI_CITY;VKM_UNSPECIFIED,CHAPTER,REVIEW,Введение и гл. 1: обзор мониторинга деформаций больших территорий и примеры InSAR (в т. ч. Березники).,VKM-SRC-196:p0002,MEDIUM
+SSR-0463,VKM-SRC-196,23,49,NON_VKM,,CHAPTER,METHOD,Гл. 2: теоретические основы дифференциальной радарной интерферометрии.,VKM-SRC-196:p0002,HIGH
+SSR-0464,VKM-SRC-196,50,59,NON_VKM,,SECTION,ORIGINAL_DATA,"3.1–3.4: Жирновское, Кулешовское, Астраханское ГКМ, Илецкое, Северные Бузачи.",VKM-SRC-196:p0002,HIGH
+SSR-0465,VKM-SRC-196,60,64,MIXED,SKRU1;SKRU2;SKRU3,SECTION,ORIGINAL_DATA,"3.5: мониторинг «территории деятельности ОАО «Сильвинит»» (полигон ВКМКС в г. Соликамск, TerraSAR-X 2011) без разделения по рудникам.",VKM-SRC-196:p0060,MEDIUM
+SSR-0466,VKM-SRC-196,65,65,SKRU1,,PAGES,ORIGINAL_DATA,Рисунок 30 — карта скоростей оседаний по точечному интерферометрическому анализу территории СКРУ-1.,VKM-SRC-196:p0065,HIGH
+SSR-0467,VKM-SRC-196,66,67,MIXED,SKRU1;SKRU2;SKRU3,SECTION,ORIGINAL_DATA,Итоги работы по территории деятельности ОАО «Сильвинит» и выводы по разделу 3.5.,VKM-SRC-196:p0066,MEDIUM
+SSR-0468,VKM-SRC-196,68,79,NON_VKM,,SECTION,ORIGINAL_DATA,"3.6–3.7: Астраханское ГКМ (TerraSAR-X), трубопроводы Ненецкого АО.",VKM-SRC-196:p0003,HIGH
+SSR-0469,VKM-SRC-196,80,88,MIXED,NON_VKM;SOLIKAMSK_CITY,SECTION,ORIGINAL_DATA,"3.8–3.9: сравнение с нивелированием II класса — АГКМ и «территория ВКМКС в г. Соликамск» 2011 (профильные линии № 5, № 17; рудник не назван).",VKM-SRC-196:p0082,MEDIUM
+SSR-0470,VKM-SRC-196,89,146,NON_VKM,,CHAPTER,METHOD,Гл. 4: методика комплексной обработки данных радиолокационного зондирования; заключение; литература.,VKM-SRC-196:p0003,MEDIUM
+SSR-0471,VKM-SRC-197,1,1,SKRU1,,PAGES,ORIGINAL_DATA,Аннотация: методика нейросетевого прогноза оседаний протестирована на примере рудника СКРУ-1.,VKM-SRC-197:p0001,HIGH
+SSR-0472,VKM-SRC-197,2,3,VKM_UNSPECIFIED,,SECTION,REVIEW,Введение: обзор подходов и данных рудников Верхнекамского месторождения в целом.,VKM-SRC-197:p0002,MEDIUM
+SSR-0473,VKM-SRC-197,4,14,SKRU1,,SECTION,ORIGINAL_DATA,"Методика и расчёты на слоях данных; апробация «на примере рудника СКРУ-1» (стр. 1, 5, 14); отдельные страницы рудник не повторяют.",VKM-SRC-197:p0014,MEDIUM
+SSR-0474,VKM-SRC-197,15,16,VKM_UNSPECIFIED,,PAGES,REVIEW,Список литературы.,VKM-SRC-197:p0015,LOW
+SSR-0475,VKM-SRC-198,1,3,VKM_UNSPECIFIED,,SECTION,METHOD,"Стадии оседания и критическая деформация целиков по лабораторным данным [7, 8]; без привязки к руднику.",VKM-SRC-198:p0002,MEDIUM
+SSR-0476,VKM-SRC-198,4,5,BKPRU4,,SECTION,FIELD_REPORT,Участок ускоренных оседаний в северной части рудника БКПРУ-4 (пласты АБ и КрII): конвергенция и расчёт оседаний.,VKM-SRC-198:p0004,HIGH
+SSR-0477,VKM-SRC-198,6,8,VKM_UNSPECIFIED,,SECTION,METHOD,Рис. 5 — критические деформации целиков КрII от коэффициента формы и рекомендации; литература.,VKM-SRC-198:p0006,MEDIUM
+SSR-0478,VKM-SRC-199,1,5,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Испытания образцов сильвинита «с ВКМКС» на длительное растяжение; рудник не назван. Стр. 1 начинается концом чужой статьи.,VKM-SRC-199:p0001,MEDIUM
+SSR-0479,VKM-SRC-200,1,10,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Опробование ультразвукового томографа «на территории шахтного поля Верхнекамского месторождения» — рудник не назван.,VKM-SRC-200:p0001,MEDIUM
+SSR-0480,VKM-SRC-201,1,2,UNKNOWN,,PAGES,METHOD,Слайды о методе радарной интерферометрии; объект не назван.,VKM-SRC-201:p0002,MEDIUM
+SSR-0481,VKM-SRC-201,3,3,MIXED,BEREZNIKI_CITY;SOLIKAMSK_CITY;NON_VKM,PAGES,ORIGINAL_DATA,"Перечень объектов мониторинга по спутникам: Березники, Соликамск и десятки нефтегазовых и зарубежных объектов.",VKM-SRC-201:p0003,MEDIUM
+SSR-0482,VKM-SRC-201,4,5,UNKNOWN,,PAGES,ORIGINAL_DATA,"Карты и графики оседаний 2003–2015 гг. (профильные линии рп.166–рп.109, рп.26–рп.7) без названия территории.",VKM-SRC-201:p0004,LOW
+SSR-0483,VKM-SRC-201,6,8,NON_VKM,,PAGES,ORIGINAL_DATA,"Южно-Кустовое (Когалым), Комсомольское, Ванкорское месторождения.",VKM-SRC-201:p0006,HIGH
+SSR-0484,VKM-SRC-201,9,9,UNKNOWN,,PAGES,ORIGINAL_DATA,Оседания трубопровода в зонах геодинамического риска 3а/3б; объект не назван.,VKM-SRC-201:p0009,LOW
+SSR-0485,VKM-SRC-201,10,10,NON_VKM,,PAGES,ORIGINAL_DATA,Месторождение Бованенково.,VKM-SRC-201:p0010,HIGH
+SSR-0486,VKM-SRC-201,11,11,UNKNOWN,,PAGES,ORIGINAL_DATA,Обзорная карта оседаний 10.2017–10.2018 без названия территории.,VKM-SRC-201:p0011,LOW
+SSR-0487,VKM-SRC-201,12,12,MIXED,BKPRU1;BKPRU2;BKPRU4;SKRU1;SKRU2;SKRU3,PAGES,ORIGINAL_DATA,"Заголовок слайда: радарный мониторинг на шахтных полях БКПРУ-1, -2, -4, СКРУ-1, -2, -3 (без разделения).",VKM-SRC-201:p0012,HIGH
+SSR-0488,VKM-SRC-201,13,13,BEREZNIKI_CITY,,PAGES,ORIGINAL_DATA,Карты скоростей оседаний на территории Березников и аварийного участка г. Березники (2019).,VKM-SRC-201:p0013,HIGH
+SSR-0489,VKM-SRC-201,14,14,UNKNOWN,,PAGES,ORIGINAL_DATA,Карта оседаний 09.04–26.10.2018 «в зоне подработки» — территория не названа.,VKM-SRC-201:p0014,LOW
+SSR-0490,VKM-SRC-201,15,20,NON_VKM,,PAGES,ORIGINAL_DATA,"Жезказган, Риддер-Сокольный, Тишинский карьер, Северные Бузачи (Казахстан).",VKM-SRC-201:p0015,HIGH
+SSR-0491,VKM-SRC-201,21,21,UNKNOWN,,PAGES,METHOD,Состав исполнителей.,VKM-SRC-201:p0021,LOW
+SSR-0492,VKM-SRC-203,8,10,SKRU3,,SECTION,ORIGINAL_DATA,Васюков: трещины скола в солях рудника СКПРУ-3 (восточный фланг шахтного поля).,VKM-SRC-203:p0008,HIGH
+SSR-0493,VKM-SRC-203,11,19,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Минералогия и геохимия солей ВКМ; начало калийного седиментогенеза на территории ВКМКС — месторождение в целом.,VKM-SRC-203:p0011,MEDIUM
+SSR-0494,VKM-SRC-203,23,52,NON_VKM,,SECTION,ORIGINAL_DATA,"Статьи по оглавлению: Оренбуржье (золото, медноколчеданные, малые реки), бокситы СУБРа, нефтяные месторождения.",VKM-SRC-203:p0279,HIGH
+SSR-0495,VKM-SRC-203,56,67,NON_VKM,,SECTION,ORIGINAL_DATA,"Кунгурская ледяная пещера, карст Нижнесылвинского района и г. Кунгура.",VKM-SRC-203:p0279,HIGH
+SSR-0496,VKM-SRC-203,74,78,NON_VKM,,SECTION,ORIGINAL_DATA,Блинова: сейсмичность Западно-Уральского региона как проявление глубинной геодинамики.,VKM-SRC-203:p0280,MEDIUM
+SSR-0497,VKM-SRC-203,92,94,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Ипатов: подработка ВКМКС и магистральные газопроводы Березниковского и Соликамского участков ЛПУ.,VKM-SRC-203:p0093,MEDIUM
+SSR-0498,VKM-SRC-203,95,97,VKM_UNSPECIFIED,,SECTION,METHOD,Ковин: методика георадарных измерений в калийных рудниках ВКМКС (примеры СКРУ-3 названы на странице).,VKM-SRC-203:p0095,MEDIUM
+SSR-0499,VKM-SRC-203,98,100,BKPRU1,,SECTION,ORIGINAL_DATA,Кустов: влияние параметров системы разработки на наведённую сейсмичность (БПКРУ-1).,VKM-SRC-203:p0098,HIGH
+SSR-0500,VKM-SRC-203,101,103,SKRU2,,SECTION,ORIGINAL_DATA,Маловичко: техногенная природа соликамского землетрясения (СКРУ-2).,VKM-SRC-203:p0101,HIGH
+SSR-0501,VKM-SRC-203,104,106,SKRU2,,SECTION,ORIGINAL_DATA,Шулаков: микросейсмичность и сдвижения на рудниках ОАО «Сильвинит»; данные для северо-восточного края шахтного поля СКРУ-2.,VKM-SRC-203:p0104,MEDIUM
+SSR-0502,VKM-SRC-203,114,115,VKM_UNSPECIFIED,,SECTION,METHOD,Веселкова: построение кровли соляной толщи по гравиметрическим данным.,VKM-SRC-203:p0280,MEDIUM
+SSR-0503,VKM-SRC-203,116,119,UNKNOWN,,SECTION,ORIGINAL_DATA,Геник: строение Предуральского краевого прогиба по гравиметрии — региональная задача.,VKM-SRC-203:p0280,LOW
+SSR-0504,VKM-SRC-203,120,125,NON_VKM,,SECTION,METHOD,Газовые месторождения; аналитические аппроксимации геопотенциальных полей — не ВКМ.,VKM-SRC-203:p0280,MEDIUM
+SSR-0505,VKM-SRC-203,135,137,UNKNOWN,,SECTION,ORIGINAL_DATA,Сидоров: техногенное и природное расслоение пород по скважинам — месторождение не названо.,VKM-SRC-203:p0135,LOW
+SSR-0506,VKM-SRC-203,149,153,VKM_UNSPECIFIED,,SECTION,REVIEW,Колесников: электрометрия для задач разработки Верхнекамского месторождения солей.,VKM-SRC-203:p0281,MEDIUM
+SSR-0507,VKM-SRC-203,162,163,SKRU3,,SECTION,ORIGINAL_DATA,Санфиров и др.: поле отражённых волн — северо-восточная часть шахтного поля СКПРУ-3.,VKM-SRC-203:p0162,HIGH
+SSR-0508,VKM-SRC-203,164,167,UNKNOWN,,SECTION,METHOD,"Бабкин, Ахматов: физическое моделирование метода многократных перекрытий.",VKM-SRC-203:p0281,LOW
+SSR-0509,VKM-SRC-203,168,170,NON_VKM,,SECTION,ORIGINAL_DATA,Ярославцев: инженерная сейсморазведка МОГТ на месторождении гипса.,VKM-SRC-203:p0281,HIGH
+SSR-0510,VKM-SRC-203,174,177,VKM_UNSPECIFIED,,SECTION,METHOD,Глебов: технико-экономические подходы к комплексированию геофизики на ВКМ.,VKM-SRC-203:p0281,MEDIUM
+SSR-0511,VKM-SRC-203,186,188,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Самоделкина: устойчивость промышленных объектов при неоднородности приповерхностного разреза; объект не назван.,VKM-SRC-203:p0281,LOW
+SSR-0512,VKM-SRC-203,189,192,BKPRU2,,SECTION,ORIGINAL_DATA,Лобанов: деформирование слоистых пород во времени; расчётный участок у границы 6 ЗП и 6 ВП рудника БКПРУ-2.,VKM-SRC-203:p0192,MEDIUM
+SSR-0513,VKM-SRC-203,193,196,VKM_UNSPECIFIED,,SECTION,METHOD,Телегина: прогноз оседаний при отработке свиты калийных пластов — без названия рудника.,VKM-SRC-203:p0281,MEDIUM
+SSR-0514,VKM-SRC-203,197,198,NON_VKM,,SECTION,ORIGINAL_DATA,Федосеев: трещиноватость нижнемеловых отложений Когалымского региона.,VKM-SRC-203:p0282,HIGH
+SSR-0515,VKM-SRC-203,199,200,SKRU3,,SECTION,ORIGINAL_DATA,Шумихина: аномальное строение ВЗТ — 6 блок панели № 8 рудника СКРУ-3.,VKM-SRC-203:p0199,HIGH
+SSR-0516,VKM-SRC-203,201,203,BKPRU1,BEREZNIKI_CITY,SECTION,ORIGINAL_DATA,"Девятков: трёхмерный анализ подработанной городской территории (г. Березники, рудник БКПРУ-1).",VKM-SRC-203:p0201,HIGH
+SSR-0517,VKM-SRC-203,204,205,VKM_UNSPECIFIED,,SECTION,METHOD,"Хронусов, Барский: геомеханические расчёты в базах геоданных; рудник шахтного поля не назван.",VKM-SRC-203:p0204,LOW
+SSR-0518,VKM-SRC-203,214,217,SKRU3,,SECTION,ORIGINAL_DATA,Токсаров: скважинные гидравлические датчики в период строительства рудника СКРУ-3.,VKM-SRC-203:p0214,HIGH
+SSR-0519,VKM-SRC-203,218,221,VKM_UNSPECIFIED,,SECTION,REVIEW,Казаков: системы вентиляции калийных рудников — обзор.,VKM-SRC-203:p0282,MEDIUM
+SSR-0520,VKM-SRC-203,226,229,VKM_UNSPECIFIED,,SECTION,METHOD,"Круглов: автоматизация расчётов вентиляционных сетей (примеры БКПРУ-2, СКРУ-2 на страницах).",VKM-SRC-203:p0226,LOW
+SSR-0521,VKM-SRC-203,233,237,MIXED,OTHER_POTASH_SITE;VKM_UNSPECIFIED,SECTION,ORIGINAL_DATA,Воздухоподготовка рудников летом (упоминается «Беларуськалий»); борьба с пылью в калийных рудниках.,VKM-SRC-203:p0282,LOW
+SSR-0522,VKM-SRC-203,244,246,SKRU3,,SECTION,ORIGINAL_DATA,"Южанин: шахтные испытания нормализации атмосферы в газонасыщенных зонах (СКРУ-3, 1 панель, 11 блок, пласт АБ).",VKM-SRC-203:p0244,HIGH
+SSR-0523,VKM-SRC-203,266,268,OTHER_POTASH_SITE,STAROBIN_BELARUS,SECTION,ORIGINAL_DATA,Некрасов: надработка выбросоопасного 12 горизонта в условиях Старобинского месторождения.,VKM-SRC-203:p0283,HIGH
+SSR-0524,VKM-SRC-203,269,272,SKRU1,,SECTION,ORIGINAL_DATA,Нестерова: безвзрывная дегазация при выемке карналлитового пласта В (СКПРУ-1).,VKM-SRC-203:p0270,HIGH
+SSR-0525,VKM-SRC-203,273,274,MIXED,NON_VKM;BKPRU1,SECTION,ORIGINAL_DATA,"Лыхин, Полетаев: гидрозакладка — рудники СУБРа, «Глубокий» и рудник БКРУ-1.",VKM-SRC-203:p0273,MEDIUM
+SSR-0526,VKM-SRC-203,275,276,UNKNOWN,,SECTION,METHOD,Электрометрия для степени загрязнения шахтных вод — объект не назван.,VKM-SRC-203:p0283,LOW
+SSR-0527,VKM-SRC-204,4,6,OTHER_POTASH_SITE,VKM:POLOVODOVSKY,SECTION,ORIGINAL_DATA,Статья Чайковского: разрез контрольно-стволовых скважин Половодовского участка ВКМ; СКРУ и БКПРУ — аналоги.,VKM-SRC-204:p0004,MEDIUM
+SSR-0528,VKM-SRC-204,7,13,NON_VKM,,SECTION,ORIGINAL_DATA,Статьи о карстовых ландшафтах ООПТ Урала и ископаемых млекопитающих правобережья Камы — не ВКМ.,VKM-SRC-204:p0007,HIGH
+SSR-0529,VKM-SRC-204,14,18,OTHER_POTASH_SITE,VKM:POLOVODOVSKY,SECTION,ORIGINAL_DATA,"Статьи о сфалерите и гипергенезе надсолевого разреза: скважины 704/1, 704/2 Половодовского участка ВКМ.",VKM-SRC-204:p0014,HIGH
+SSR-0530,VKM-SRC-204,19,21,BKPRU4,,SECTION,ORIGINAL_DATA,"Монолиты из пласта КрII (№ 146, БКПРУ-4, 2 СВП, 5-й восточный блок).",VKM-SRC-204:p0019,HIGH
+SSR-0531,VKM-SRC-204,22,26,SKRU1,,SECTION,ORIGINAL_DATA,Переработка шламов: пробы из закрытой части шламохранилища СКРУ-1.,VKM-SRC-204:p0023,MEDIUM
+SSR-0532,VKM-SRC-204,32,34,BKPRU4,,SECTION,ORIGINAL_DATA,Гидродинамическая модель рассолосборника БКПРУ-4.,VKM-SRC-204:p0032,HIGH
+SSR-0533,VKM-SRC-204,35,37,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Сброс избыточных рассолов калийных предприятий в Камское водохранилище (участок г. Березники – д. Мелехово); рудник не объект.,VKM-SRC-204:p0036,LOW
+SSR-0534,VKM-SRC-204,38,50,NON_VKM,,SECTION,ORIGINAL_DATA,Статьи о Кунгурской ледяной пещере и карсте Кунгурского района — не ВКМ.,VKM-SRC-204:p0038,HIGH
+SSR-0535,VKM-SRC-204,63,65,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Эколого-геохимия продуктов переработки глинисто-солевых шламов калийного производства; предприятие не названо.,VKM-SRC-204:p0063,MEDIUM
+SSR-0536,VKM-SRC-204,69,72,MIXED,NON_VKM;OTHER_POTASH_SITE;VKM_UNSPECIFIED,SECTION,REVIEW,"Барях: обзор мировых аварий с нарушением ВЗТ (Саскачеван, Ронненберг, Ретсоф и др.) и подходов к оценке рисков.",VKM-SRC-204:p0069,HIGH
+SSR-0537,VKM-SRC-204,73,84,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,"Статьи о степени нагружения МКЦ во времени, деформационных критериях и критериях сплошности ВЗТ для ВКМ в целом.",VKM-SRC-204:p0073,MEDIUM
+SSR-0538,VKM-SRC-204,85,88,BKPRU1,,SECTION,ORIGINAL_DATA,Прогноз НДС в пределах шахтного поля затопленного рудника БКПРУ-1 (3D-моделирование).,VKM-SRC-204:p0085,HIGH
+SSR-0539,VKM-SRC-204,89,92,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Длительная несущая способность МКЦ на ВКМКС (пласты АБ и КрII) — рудник не назван.,VKM-SRC-204:p0089,MEDIUM
+SSR-0540,VKM-SRC-204,93,96,BKPRU4,,SECTION,ORIGINAL_DATA,"Дополнительные меры охраны ВЗТ на участке 3 ЮВП рудника БКПРУ-4 (реперы 48–53, 2013 г.).",VKM-SRC-204:p0093,HIGH
+SSR-0541,VKM-SRC-204,97,99,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Условия формирования провалов при затоплении калийных рудников — общая постановка (БКПРУ-1 только в ссылке).,VKM-SRC-204:p0097,LOW
+SSR-0542,VKM-SRC-204,106,108,OTHER_POTASH_SITE,VKM:POLOVODOVSKY,SECTION,ORIGINAL_DATA,Влияние температуры на породы надсолевой толщи: керн КСС-1 Половодовского участка.,VKM-SRC-204:p0106,HIGH
+SSR-0543,VKM-SRC-204,109,111,NON_VKM,,SECTION,ORIGINAL_DATA,Поле напряжений на меднорудном месторождении Жаман-Айбат (Казахстан).,VKM-SRC-204:p0109,HIGH
+SSR-0544,VKM-SRC-204,112,115,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Отработка пластов некондиционной мощности на рудниках ВКМКС; пример БКПРУ-4 назван на стр. 112.,VKM-SRC-204:p0112,MEDIUM
+SSR-0545,VKM-SRC-204,116,118,NON_VKM,,SECTION,ORIGINAL_DATA,"Пешеланский гипсовый рудник (Бебяевское месторождение, Нижегородская обл.).",VKM-SRC-204:p0116,HIGH
+SSR-0546,VKM-SRC-204,119,121,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Акустоэмиссионная память на образцах каменной соли и красного сильвинита ВКМКС; рудник отбора не назван.,VKM-SRC-204:p0119,MEDIUM
+SSR-0547,VKM-SRC-204,122,124,OTHER_POTASH_SITE,VKM:POLOVODOVSKY,SECTION,ORIGINAL_DATA,Реологические параметры пород по трассе стволов: керн КСС № 1 и № 2 Половодовского участка.,VKM-SRC-204:p0122,HIGH
+SSR-0548,VKM-SRC-204,125,126,MIXED,BKPRU2;BKPRU4,SECTION,ORIGINAL_DATA,Безлюдная выемка пласта КрI применительно к шахтным полям рудников БКПРУ-2 и БКПРУ-4.,VKM-SRC-204:p0125,HIGH
+SSR-0549,VKM-SRC-204,127,129,UNKNOWN,,SECTION,METHOD,"Методы обработки высокоточных гравиметрических наблюдений — общая методика, объект не назван.",VKM-SRC-204:p0127,LOW
+SSR-0550,VKM-SRC-204,140,142,MIXED,BKPRU4;BKPRU1,SECTION,ORIGINAL_DATA,"Наземно-подземные гравиметрические съёмки на ВКМКС: БКПРУ-4 (6 ЮЗП, ОЭП) и БКПРУ-1 (пос. Н. Зырянка).",VKM-SRC-204:p0140,MEDIUM
+SSR-0551,VKM-SRC-204,151,153,UNKNOWN,,SECTION,METHOD,Аномалии силы тяжести в неполной топографической редукции — методика без объекта.,VKM-SRC-204:p0151,LOW
+SSR-0552,VKM-SRC-204,160,161,NON_VKM,,SECTION,ORIGINAL_DATA,"Плотность земной коры и верхней мантии по глубинной сейсмике — региональная геофизика, не рудники ВКМ.",VKM-SRC-204:p0160,MEDIUM
+SSR-0553,VKM-SRC-204,162,164,BKPRU4,,SECTION,ORIGINAL_DATA,"Гравиметрия на опытно-эксплуатационном участке и 5–6 ЮВП БКПРУ-4 (Быгельско-Троицкий участок, 2013).",VKM-SRC-204:p0162,HIGH
+SSR-0554,VKM-SRC-204,165,167,BKPRU1,,SECTION,ORIGINAL_DATA,Сейсморазведочные прогнозы для территорий ускоренных оседаний: шахтное поле затопленного рудника БКПРУ-1.,VKM-SRC-204:p0165,MEDIUM
+SSR-0555,VKM-SRC-204,168,169,VKM_UNSPECIFIED,,SECTION,METHOD,Акустические исследования на рудниках ВКМ — аппаратура и методика.,VKM-SRC-204:p0168,MEDIUM
+SSR-0556,VKM-SRC-204,170,172,OTHER_POTASH_SITE,TYUBEGATAN_UZBEKISTAN,SECTION,ORIGINAL_DATA,Сейсморазведка на Тюбегатанском месторождении солей (рудник Дехканабадского завода).,VKM-SRC-204:p0170,HIGH
+SSR-0557,VKM-SRC-204,173,175,UNKNOWN,,SECTION,METHOD,Обзор программ расчёта верхней части разреза по первым вступлениям — без объекта.,VKM-SRC-204:p0173,LOW
+SSR-0558,VKM-SRC-204,176,178,NON_VKM,,SECTION,ORIGINAL_DATA,AVO-атрибуты для рудника Талнахского месторождения полиметаллических руд.,VKM-SRC-204:p0176,HIGH
+SSR-0559,VKM-SRC-204,182,184,OTHER_POTASH_SITE,VKM:USOLSKY_PALASHERSKY,SECTION,ORIGINAL_DATA,Плотность сейсмонаблюдений в пределах Палашерского лицензионного участка ВКМКС.,VKM-SRC-204:p0182,HIGH
+SSR-0560,VKM-SRC-204,185,190,NON_VKM,,SECTION,METHOD,Шахтная сейсморазведка на Талнахском месторождении никеля; трещиноватые коллекторы — не ВКМ.,VKM-SRC-204:p0185,HIGH
+SSR-0561,VKM-SRC-204,191,196,BEREZNIKI_CITY,,SECTION,ORIGINAL_DATA,Мониторинговые скважины г. Березники и сейсморазведка у храма Иоанна Предтечи (юг целика под промплощадку БКПРУ-1).,VKM-SRC-204:p0191,HIGH
+SSR-0562,VKM-SRC-204,202,204,UNKNOWN,,SECTION,ORIGINAL_DATA,"Вертикальные движения и очаги землетрясений Западного Урала — региональная задача, рудник не объект.",VKM-SRC-204:p0202,LOW
+SSR-0563,VKM-SRC-204,205,206,BEREZNIKI_CITY,,SECTION,FIELD_REPORT,"Совершенствование системы сейсмологического мониторинга г. Березники (упомянуты и рудники СКРУ-1, -2, -3).",VKM-SRC-204:p0205,MEDIUM
+SSR-0564,VKM-SRC-204,225,227,NON_VKM,,SECTION,METHOD,Метод ВЭЗ при изучении месторождения гипса.,VKM-SRC-204:p0225,HIGH
+SSR-0565,VKM-SRC-204,234,236,OTHER_POTASH_SITE,STAROBIN_BELARUS,SECTION,ORIGINAL_DATA,Дегазационное бурение в южной краевой зоне шахтного поля Березовского рудника ОАО «Беларуськалий».,VKM-SRC-204:p0234,HIGH
+SSR-0566,VKM-SRC-204,237,238,MIXED,SKRU1;SKRU2;SKRU3;BKPRU2;BKPRU4,SECTION,ORIGINAL_DATA,Газоносность пластов на всех 5 работающих рудниках ОАО «Уралкалий».,VKM-SRC-204:p0237,HIGH
+SSR-0567,VKM-SRC-204,239,241,NON_VKM,,SECTION,ORIGINAL_DATA,Реверсивный режим проветривания рудника «Двойное».,VKM-SRC-204:p0239,HIGH
+SSR-0568,VKM-SRC-204,247,249,UNKNOWN,,SECTION,METHOD,Аналитико-графический выбор средств местного проветривания; ссылки на регламенты разных рудников.,VKM-SRC-204:p0247,LOW
+SSR-0569,VKM-SRC-204,253,256,NON_VKM,,SECTION,ORIGINAL_DATA,Ярегское нефтяное месторождение (Коми).,VKM-SRC-204:p0253,HIGH
+SSR-0570,VKM-SRC-204,262,265,MIXED,OTHER_POTASH_SITE;NON_VKM,SECTION,METHOD,Нормирование микроклимата глубоких рудников (нормы Республики Беларусь и др.).,VKM-SRC-204:p0262,LOW
+SSR-0571,VKM-SRC-204,270,275,UNKNOWN,,SECTION,METHOD,Аэродинамическое сопротивление стволов глубоких рудников; комбинированная отработка рудных месторождений — объекты не названы.,VKM-SRC-204:p0270,LOW
+SSR-0572,VKM-SRC-204,279,281,OTHER_POTASH_SITE,VKM:USOLSKY_UKK,SECTION,ORIGINAL_DATA,Воздухоподготовка: смоделирована вентиляционная сеть рудника Усольского калийного комбината.,VKM-SRC-204:p0280,MEDIUM
+SSR-0573,VKM-SRC-204,285,287,UNKNOWN,,SECTION,REVIEW,Современные требования к системам вентиляции рудников — обзор без конкретного объекта.,VKM-SRC-204:p0285,LOW
+SSR-0574,VKM-SRC-204,294,296,OTHER_POTASH_SITE,STAROBIN_BELARUS,SECTION,ORIGINAL_DATA,Выпадение влаги в выработках: пример рудника Красная Слобода (ОАО «Беларуськалий»).,VKM-SRC-204:p0294,HIGH
+SSR-0575,VKM-SRC-204,300,301,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Нейтрализатор ядовитых газов при работе комбайновых комплексов на калийных рудниках ВКМ.,VKM-SRC-204:p0300,MEDIUM
+SSR-0576,VKM-SRC-205,5,9,NON_VKM,,SECTION,METHOD,Борисов: геохимия подземных вод на участках разработки нефтяных месторождений.,VKM-SRC-205:p0005,HIGH
+SSR-0577,VKM-SRC-205,10,13,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Кадебская: уточнение границ Соликамского карстового района (регион ВКМ; рудники не объект).,VKM-SRC-205:p0010,MEDIUM
+SSR-0578,VKM-SRC-205,14,14,MIXED,VKM_UNSPECIFIED;NON_VKM,PAGES,REVIEW,Стык статей: литература Кадебской и начало статьи о материалах В.Н. Дублянского в музее карста.,VKM-SRC-205:p0014,LOW
+SSR-0579,VKM-SRC-205,15,20,NON_VKM,,SECTION,REVIEW,Материалы профессора В.Н. Дублянского в музее карста и спелеологии — не ВКМ.,VKM-SRC-205:p0014,HIGH
+SSR-0580,VKM-SRC-205,28,34,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,"Трапезников, Чиркова: литология и газоносность соляных пород на примере ВКМС — рудник не назван.",VKM-SRC-205:p0028,MEDIUM
+SSR-0581,VKM-SRC-205,35,40,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Бельтюков: акустическая эмиссия при разрушении соляных пород — рудник отбора не назван.,VKM-SRC-205:p0035,MEDIUM
+SSR-0582,VKM-SRC-205,54,58,OTHER_POTASH_SITE,VKM:USOLSKY_UKK,SECTION,ORIGINAL_DATA,Федосеев: расположение выработки и опасность ГДЯ — условия рудника «Усольского калийного комбината».,VKM-SRC-205:p0054,MEDIUM
+SSR-0583,VKM-SRC-205,68,73,VKM_UNSPECIFIED,,SECTION,METHOD,Жикин: информативность сейсморазведки в зонах соляного карста по математическому моделированию.,VKM-SRC-205:p0068,MEDIUM
+SSR-0584,VKM-SRC-205,74,79,SKRU2,,SECTION,FIELD_REPORT,Калашникова: комплексный мониторинг аварийной зоны в пределах шахтного поля рудника СКРУ-2.,VKM-SRC-205:p0074,HIGH
+SSR-0585,VKM-SRC-205,80,84,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Никифорова: Камский прогиб южной части ВКМКС по наземной и шахтной сейсморазведке; рудник не назван.,VKM-SRC-205:p0080,MEDIUM
+SSR-0586,VKM-SRC-205,85,88,VKM_UNSPECIFIED,,SECTION,METHOD,Простолупов: обратная задача гравиметрии методом POLUS (применяется на рудниках ВКМКС).,VKM-SRC-205:p0085,LOW
+SSR-0587,VKM-SRC-205,94,99,NON_VKM,,SECTION,ORIGINAL_DATA,Шулаков: сейсмическая опасность для района г. Перми.,VKM-SRC-205:p0094,HIGH
+SSR-0588,VKM-SRC-205,100,100,MIXED,NON_VKM;VKM_UNSPECIFIED,PAGES,ORIGINAL_DATA,Стык статей: конец статьи о сейсмической опасности Перми и начало статьи Щербининой о Соликамской впадине.,VKM-SRC-205:p0100,LOW
+SSR-0589,VKM-SRC-205,101,102,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Щербинина: франско-турнейские рифогенные массивы в плотностном строении Соликамской впадины.,VKM-SRC-205:p0100,MEDIUM
+SSR-0590,VKM-SRC-205,109,116,UNKNOWN,,SECTION,METHOD,"Кузьминых, Кормщиков: расчёт воздуха для разжижения выхлопных газов на «рудниках РФ» — объект не назван.",VKM-SRC-205:p0109,LOW
+SSR-0591,VKM-SRC-205,117,121,UNKNOWN,,SECTION,ORIGINAL_DATA,Левин и др.: групповой несчастный случай «на одном из рудников РФ» — рудник не назван.,VKM-SRC-205:p0117,LOW
+SSR-0592,VKM-SRC-206,14,18,NON_VKM,,SECTION,REVIEW,"Отчёт о Генеральной ассамблее Европейской сейсмологической комиссии (Мальта, 2018).",VKM-SRC-206:p0014,HIGH
+SSR-0593,VKM-SRC-206,28,40,NON_VKM,,SECTION,ORIGINAL_DATA,Фильтрация нефти в трещиновато-пористом коллекторе; Катав-Ивановское землетрясение 04.09.2018.,VKM-SRC-206:p0031,HIGH
+SSR-0594,VKM-SRC-206,41,43,UNKNOWN,,SECTION,REVIEW,Конец статьи о сульфатном карсте и репортаж о разрушении тюбинговой крепи ствола «одного из рудников» — рудник не назван.,VKM-SRC-206:p0041,LOW
+SSR-0595,VKM-SRC-206,44,51,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,Калийный аэрозоль при проветривании хранилищ в выработках (ВКМ упомянут как ресурс); конкретный рудник не назван.,VKM-SRC-206:p0044,LOW
+SSR-0596,VKM-SRC-206,52,73,NON_VKM,,SECTION,REVIEW,"Хроника: Абаканский рудник, юбилей «Беларуськалия», поездка в Германию, генеалогия, некролог — не данные ВКМ.",VKM-SRC-206:p0052,HIGH
+SSR-0597,VKM-SRC-207,5,8,VKM_UNSPECIFIED,,SECTION,REVIEW,Краткие итоги научной деятельности ГИ УрО РАН в 2009 г. (в т. ч. работы по ВКМ без привязки к руднику).,VKM-SRC-207:p0005,MEDIUM
+SSR-0598,VKM-SRC-207,24,32,NON_VKM,,SECTION,ORIGINAL_DATA,"Макросейсмическое обследование землетрясения в районе Качканарского ГОКа (Верхний Ис, Бисер, Павда) — не ВКМ.",VKM-SRC-207:p0025,HIGH
+SSR-0599,VKM-SRC-207,54,57,NON_VKM,,SECTION,REVIEW,Хроника: первый выпуск горных инженеров ПГУ; Кунгурская и Ординская пещеры.,VKM-SRC-207:p0054,MEDIUM
+SSR-0600,VKM-SRC-208,1,100,NON_VKM,,WHOLE_DOCUMENT,METHOD,Учебник Орлова по сдвижению горных пород (угольные и рудные месторождения в целом); ВКМ не рассматривается.,VKM-SRC-208:p0004,HIGH
+SSR-0601,VKM-SRC-209,1,99,NON_VKM,,WHOLE_DOCUMENT,METHOD,"Учебник Орлова: сдвижение при разработке угольных, рудных месторождений и скважинной добыче (оглавление); ВКМ не рассматривается.",VKM-SRC-209:p0096,HIGH
+SSR-0602,VKM-SRC-210,1,112,NON_VKM,,WHOLE_DOCUMENT,METHOD,Учебное пособие по сдвижению и деформациям при горных работах (общая методика); ВКМ не рассматривается.,VKM-SRC-210:p0014,HIGH
+SSR-0603,VKM-SRC-211,1,5,NON_VKM,,WHOLE_DOCUMENT,METHOD,ВНИМИ: моделирование геомеханических процессов в разломной земной коре без привязки к ВКМ.,VKM-SRC-211:p0001,MEDIUM
+SSR-0604,VKM-SRC-212,1,196,NON_VKM,,SECTION,METHOD,"Учебник по закладочным смесям (общий, не ВКМ).",VKM-SRC-212:p0002,HIGH
+SSR-0605,VKM-SRC-212,197,209,NON_VKM,,SECTION,WORKED_EXAMPLE,"Приложения А и Б: примеры расчёта прочности закладки и трубопровода (рудник «Октябрьский», Норильский никель).",VKM-SRC-212:p0203,HIGH
+SSR-0606,VKM-SRC-213,1,140,NON_VKM,,WHOLE_DOCUMENT,METHOD,Монография по моделированию гидродинамики разработки нефтегазовых месторождений; не ВКМ.,VKM-SRC-213:p0085,HIGH
+SSR-0607,VKM-SRC-214,55,55,NON_VKM,,PAGES,ORIGINAL_DATA,"Отчёт УрО РАН 2024: минералогия (углистый хондрит, кафеосит) — не ВКМ.",VKM-SRC-214:p0055,HIGH
+SSR-0608,VKM-SRC-214,87,87,NON_VKM,,PAGES,ORIGINAL_DATA,Отчёт УрО РАН 2024: переработка сидеритовых руд Бакальского месторождения — не ВКМ.,VKM-SRC-214:p0087,HIGH
+SSR-0609,VKM-SRC-214,104,104,NON_VKM,,PAGES,ORIGINAL_DATA,Отчёт УрО РАН 2024: геофизика Среднего Урала — не ВКМ.,VKM-SRC-214:p0104,MEDIUM
+SSR-0610,VKM-SRC-214,105,105,UNKNOWN,,PAGES,ORIGINAL_DATA,"Межскважинное сейсмопросвечивание «в интервале водозащитной толщи» — вероятно калийный рудник, но рудник и месторождение не названы.",VKM-SRC-214:p0105,LOW
+SSR-0611,VKM-SRC-214,136,137,NON_VKM,,PAGES,ORIGINAL_DATA,"Отчёт УрО РАН 2024: геология нефти и газа, сейсмостанция Оренбург — не ВКМ.",VKM-SRC-214:p0136,HIGH
+SSR-0612,VKM-SRC-214,142,143,NON_VKM,,PAGES,ORIGINAL_DATA,"Отчёт УрО РАН 2024: Институт горного дела УрО РАН, рудные карьеры и рудники — не ВКМ.",VKM-SRC-214:p0142,HIGH
+SSR-0613,VKM-SRC-214,159,160,NON_VKM,,PAGES,ORIGINAL_DATA,Отчёт УрО РАН 2024: устойчивость выработок рудных тел (висячий/лежачий бок) — не ВКМ.,VKM-SRC-214:p0160,MEDIUM
+SSR-0614,VKM-SRC-214,262,262,NON_VKM,,PAGES,ORIGINAL_DATA,Отчёт УрО РАН 2024: физика неравновесных систем — не ВКМ.,VKM-SRC-214:p0262,HIGH
+SSR-0615,VKM-SRC-214,476,488,NON_VKM,,PAGES,REVIEW,Отчёт УрО РАН 2024: научно-организационная и общественная деятельность — не ВКМ.,VKM-SRC-214:p0476,HIGH
+SSR-0616,VKM-SRC-215,1,22,NON_VKM,,SECTION,ORIGINAL_DATA,"Важнейшие результаты ПФИЦ УрО РАН 2024: фотоника, механика жидкости и др. — не ВКМ.",VKM-SRC-215:p0005,MEDIUM
+SSR-0617,VKM-SRC-215,23,63,VKM_UNSPECIFIED,,SECTION,METHOD,Результаты ГИ УрО РАН: методика прогноза оседаний по деформациям выработок для камерной системы на солевых месторождениях; рудник не назван.,VKM-SRC-215:p0023,MEDIUM
+SSR-0618,VKM-SRC-216,1,198,UNKNOWN,,WHOLE_DOCUMENT,REVIEW,Библиографический указатель «Летопись журнальных статей» 1964 — только библиографические записи.,VKM-SRC-216:p0057,MEDIUM
+SSR-0619,VKM-SRC-217,1,93,NON_VKM,,SECTION,METHOD,Учебник высшей геодезии; не ВКМ.,VKM-SRC-217:p0039,HIGH
+SSR-0620,VKM-SRC-217,94,94,NON_VKM,,PAGES,WORKED_EXAMPLE,Учебный пример с «Исходными данными».,VKM-SRC-217:p0094,HIGH
+SSR-0621,VKM-SRC-217,95,222,NON_VKM,,SECTION,METHOD,Учебник высшей геодезии; не ВКМ.,VKM-SRC-217:p0039,HIGH
+SSR-0622,VKM-SRC-218,1,160,NON_VKM,,SECTION,METHOD,Учебное пособие по высшей геодезии и координатно-временным системам; не ВКМ.,VKM-SRC-218:p0016,HIGH
+SSR-0623,VKM-SRC-218,161,161,NON_VKM,,PAGES,WORKED_EXAMPLE,Учебный расчётный пример в тексте пособия.,VKM-SRC-218:p0161,MEDIUM
+SSR-0624,VKM-SRC-218,162,216,NON_VKM,,SECTION,METHOD,Учебное пособие по высшей геодезии и координатно-временным системам; не ВКМ.,VKM-SRC-218:p0016,HIGH
+SSR-0625,VKM-SRC-220,1,87,NON_VKM,,SECTION,METHOD,Учебное пособие по нормальному гравитационному полю; не ВКМ.,VKM-SRC-220:p0017,HIGH
+SSR-0626,VKM-SRC-220,88,88,NON_VKM,,PAGES,WORKED_EXAMPLE,Учебный расчётный пример в тексте пособия.,VKM-SRC-220:p0088,MEDIUM
+SSR-0627,VKM-SRC-220,89,107,NON_VKM,,SECTION,METHOD,Учебное пособие по нормальному гравитационному полю; не ВКМ.,VKM-SRC-220:p0017,HIGH
+SSR-0628,VKM-SRC-229,1,528,NON_VKM,,WHOLE_DOCUMENT,METHOD,"Седов, «Механика сплошной среды», т. 1 — общая теория.",VKM-SRC-229:p0048,HIGH
+SSR-0629,VKM-SRC-230,1,562,NON_VKM,,WHOLE_DOCUMENT,METHOD,"Седов, «Механика сплошной среды», т. 2 — общая теория.",VKM-SRC-230:p0230,HIGH
+SSR-0630,VKM-SRC-231,1,647,NON_VKM,,WHOLE_DOCUMENT,METHOD,"Brady & Brown, Rock Mechanics for Underground Mining — общий учебник, ВКМ не рассматривается.",VKM-SRC-231:p0178,HIGH
+SSR-0631,VKM-SRC-238,1,256,NON_VKM,,WHOLE_DOCUMENT,METHOD,Учебник по инженерно-геологическим расчётам и моделированию (МГУ); не ВКМ.,VKM-SRC-238:p0005,HIGH
+SSR-0632,VKM-SRC-239,1,147,NON_VKM,,WHOLE_DOCUMENT,METHOD,Учебное пособие по гидрогеологии и инженерной геологии (ТПУ); не ВКМ.,VKM-SRC-239:p0020,HIGH
+SSR-0633,VKM-SRC-240,1,87,NON_VKM,,WHOLE_DOCUMENT,METHOD,Математические методы в гидрогеологии и инженерной геологии; не ВКМ.,VKM-SRC-240:p0028,HIGH
+SSR-0634,VKM-SRC-241,1,7,SKRU1,,WHOLE_DOCUMENT,ORIGINAL_DATA,"Показатели комбайновых комплексов на руднике СКРУ-1 ОАО «Сильвинит» (пласты АБ, КрII; панельная подготовка).",VKM-SRC-241:p0001,HIGH
+SSR-0635,VKM-SRC-242,1,7,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Изотопы природных вод Соликамской впадины; рассолы со всех рудников БКПРУ-1–4 и СКРУ-1–3 без разделения по руднику.,VKM-SRC-242:p0001,MEDIUM
+SSR-0636,VKM-SRC-252,1,78,SKRU1,,WHOLE_DOCUMENT,FIELD_REPORT,"План развития горных работ на 2013 год (рудник СКРУ-1), ОАО «Уралкалий» — документ предприятия по одному руднику.",VKM-SRC-252:p0001,HIGH
+SSR-0637,VKM-SRC-253,1,6,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,METHOD,Автоматизация маркшейдерских задач в ГГИС ПАО «Уралкалий» для всех рудников.,VKM-SRC-253:p0001,MEDIUM
+SSR-0638,VKM-SRC-254,1,3,MIXED,SKRU1;SKRU2;SKRU3,SECTION,ORIGINAL_DATA,Анализ данных для геологической модели на рудниках Соликамской площадки (рис. 1 — скважины в горных отводах).,VKM-SRC-254:p0001,HIGH
+SSR-0639,VKM-SRC-254,4,4,SKRU1,,PAGES,ORIGINAL_DATA,"Рис. 4: три панели первого Соликамского рудника (1080×1360 м); камера 118, 12-я западная панель СКРУ-1.",VKM-SRC-254:p0004,MEDIUM
+SSR-0640,VKM-SRC-254,5,12,MIXED,SKRU1;SKRU2;SKRU3,SECTION,ORIGINAL_DATA,Статистика скважин по промышленным пластам трёх рудников Соликамской площадки; выводы и литература.,VKM-SRC-254:p0005,MEDIUM
+SSR-0641,VKM-SRC-255,1,9,OTHER_POTASH_SITE,VKM:ROMANOVSKY,WHOLE_DOCUMENT,ORIGINAL_DATA,"Реферат: метод реализован для Романовского участка Верхнекамского месторождения (сейсмика 2D, ГГМ).",VKM-SRC-255:p0001,HIGH
+SSR-0642,VKM-SRC-256,1,67,MIXED,SKRU1;SKRU2;SKRU3;BKPRU2;BKPRU3;BKPRU4;UST_YAYVA;VKM:POLOVODOVSKY,SECTION,FIELD_REPORT,"Годовой отчёт ПАО «Уралкалий» 2023: стратегия, риски, ESG, отчётность — по всем рудникам; конкретный рудник назван на своей странице.",VKM-SRC-256:p0028,MEDIUM
+SSR-0643,VKM-SRC-256,68,68,SKRU2,,PAGES,FIELD_REPORT,Примечание к финансовой отчётности о руднике СКРУ-2 (Соликамское рудоуправление).,VKM-SRC-256:p0068,MEDIUM
+SSR-0644,VKM-SRC-256,69,100,MIXED,SKRU1;SKRU2;SKRU3;BKPRU2;BKPRU4;UST_YAYVA;VKM:POLOVODOVSKY,SECTION,FIELD_REPORT,Финансовая отчётность и обзор минеральных ресурсов по всем рудникам и участкам компании.,VKM-SRC-256:p0094,MEDIUM
+SSR-0645,VKM-SRC-256,101,101,SKRU2,,PAGES,FIELD_REPORT,Обзор минеральных ресурсов: запасы рудника СКРУ-2 (сокращение запасов).,VKM-SRC-256:p0101,MEDIUM
+SSR-0646,VKM-SRC-256,102,113,MIXED,SKRU1;SKRU2;SKRU3;BKPRU2;BKPRU4;UST_YAYVA;VKM:POLOVODOVSKY,SECTION,FIELD_REPORT,"Контрольный перечень критериев JORC: опробование, геология залежей Соликамск/Березники/Усть-Яйва/Половодово.",VKM-SRC-256:p0106,MEDIUM
+SSR-0647,VKM-SRC-257,1,5,MIXED,SKRU1;SKRU2;SKRU3,SECTION,MIXED,"75 тестов гидроразрыва в шахтных полях рудников СКРУ-1, 2, 3 (2016); оснащение комплекса; перечень замерных станций.",VKM-SRC-257:p0001,HIGH
+SSR-0648,VKM-SRC-257,6,7,SKRU2,,SECTION,ORIGINAL_DATA,"Пример: журнал тестов на замерных станциях № 7, 8 рудника СКРУ-2 (табл. 1).",VKM-SRC-257:p0006,HIGH
+SSR-0649,VKM-SRC-258,1,1,SKRU3,,PAGES,ORIGINAL_DATA,Аннотация: напряжения в подземных выработках рудника СКРУ-3 методом гидроразрыва.,VKM-SRC-258:p0001,HIGH
+SSR-0650,VKM-SRC-258,2,2,MIXED,OTHER_POTASH_SITE;BKPRU2;BKPRU3;SKRU1,PAGES,REVIEW,"Сравнительная таблица ранее полученных напряжений соляных месторождений СНГ и рудников БКРУ-2, БКРУ-3, СКРУ-1 по ссылкам.",VKM-SRC-258:p0002,HIGH
+SSR-0651,VKM-SRC-258,3,6,SKRU3,,SECTION,ORIGINAL_DATA,Методика и результаты измерений на четырёх замерных станциях рудника СКРУ-3.,VKM-SRC-258:p0004,HIGH
+SSR-0652,VKM-SRC-259,1,8,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,REVIEW,Мониторинг геологической среды Верхнекамского соленосного бассейна в целом; рудник не является объектом.,VKM-SRC-259:p0001,MEDIUM
+SSR-0653,VKM-SRC-260,1,11,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Картирование структурно-тектонических объектов ВКМКС в магнитном поле — вся территория.,VKM-SRC-260:p0001,HIGH
+SSR-0654,VKM-SRC-261,1,9,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,ORIGINAL_DATA,Тектонический план ВКМКС по физическому моделированию — вся территория.,VKM-SRC-261:p0001,HIGH
+SSR-0655,VKM-SRC-262,1,6,VKM_UNSPECIFIED,,WHOLE_DOCUMENT,REVIEW,Гравитационное поле Верхнекамского месторождения в целом (история и результаты съёмок). Стр. 1 начинается чужой статьёй.,VKM-SRC-262:p0001,HIGH
+SSR-0656,VKM-SRC-263,1,5,NON_VKM,,SECTION,METHOD,Интерпретация гравиметрии в расчленённом (горном) рельефе; ВКМ на этих страницах не рассматривается.,VKM-SRC-263:p0001,MEDIUM
+SSR-0657,VKM-SRC-263,6,6,SKRU2,,PAGES,ORIGINAL_DATA,Начало следующей статьи выпуска (Злобина): прогноз микросейсмичности на руднике СКРУ-2.,VKM-SRC-263:p0006,MEDIUM
+SSR-0658,VKM-SRC-264,1,12,OTHER_POTASH_SITE,VKM:USOLSKY_PALASHERSKY,WHOLE_DOCUMENT,ORIGINAL_DATA,Заглавие: породы продуктивной толщи Палашерского участка ВКМ (шахтное поле ООО «ЕвроХим-Усольский калийный комбинат»).,VKM-SRC-264:p0001,HIGH
+SSR-0659,VKM-SRC-265,1,13,NON_VKM,,WHOLE_DOCUMENT,REVIEW,Обзор интенсификации трубопроводного транспорта закладки (рудники Казахстана и др.); ВКМ упомянут один раз в обзоре.,VKM-SRC-265:p0002,MEDIUM
+SSR-0660,VKM-SRC-266,1,6,VKM_UNSPECIFIED,,SECTION,REVIEW,Оглавление и предисловие монографии о разработке Верхнекамского месторождения.,VKM-SRC-266:p0005,MEDIUM
+SSR-0661,VKM-SRC-266,7,12,MIXED,SKRU1;SKRU2;SKRU3;BKPRU2;BKPRU4;UST_YAYVA,CHAPTER,REVIEW,Гл. 1: геологическая характеристика шахтных полей и общие сведения о рудниках ВКМ.,VKM-SRC-266:p0003,MEDIUM
+SSR-0662,VKM-SRC-266,13,25,OTHER_POTASH_SITE,CANADA_SASKATCHEWAN,SECTION,REVIEW,"2.1–2.2: калийная промышленность мира, Канада (Саскачеванский бассейн).",VKM-SRC-266:p0014,HIGH
+SSR-0663,VKM-SRC-266,26,30,OTHER_POTASH_SITE,STAROBIN_BELARUS,SECTION,REVIEW,2.3 Белоруссия.,VKM-SRC-266:p0003,HIGH
+SSR-0664,VKM-SRC-266,31,38,OTHER_POTASH_SITE,GERMANY,SECTION,REVIEW,2.4 Германия.,VKM-SRC-266:p0003,HIGH
+SSR-0665,VKM-SRC-266,39,44,OTHER_POTASH_SITE,UK;USA;SPAIN;UZBEKISTAN;CHILE,SECTION,REVIEW,"2.5–2.9: Великобритания, США, Испания, Узбекистан, Чили.",VKM-SRC-266:p0003,HIGH
+SSR-0666,VKM-SRC-266,45,50,MIXED,OTHER_POTASH_SITE;VKM:NEW_AREAS,CHAPTER,REVIEW,"Гл. 3: освоение новых участков и месторождений (Канада, Россия — новые участки ВКМ, перспективные регионы).",VKM-SRC-266:p0003,MEDIUM
+SSR-0667,VKM-SRC-266,51,52,VKM_UNSPECIFIED,,SECTION,REVIEW,4.1 Общие условия организации горных работ на ВКМ.,VKM-SRC-266:p0051,MEDIUM
+SSR-0668,VKM-SRC-266,53,58,VKM_UNSPECIFIED,,SECTION,NORMATIVE,4.2 Безопасные условия ведения горных работ по действующим нормативным документам.,VKM-SRC-266:p0003,MEDIUM
+SSR-0669,VKM-SRC-266,59,71,VKM_UNSPECIFIED,,SECTION,ORIGINAL_DATA,"4.3–4.4 Геомеханические особенности и последовательная выемка с закладкой (Ansys, натурные наблюдения); рудники названы на страницах.",VKM-SRC-266:p0003,MEDIUM
+SSR-0670,VKM-SRC-266,72,80,MIXED,SKRU1;SKRU2;SKRU3;BKPRU2;BKPRU4;UST_YAYVA,CHAPTER,ORIGINAL_DATA,"Гл. 5: схемы вскрытия, подготовки и деления шахтных полей Верхнекамских рудников — сравнительный анализ.",VKM-SRC-266:p0003,MEDIUM
+SSR-0671,VKM-SRC-266,81,93,VKM_UNSPECIFIED,,CHAPTER,ORIGINAL_DATA,"Гл. 6: оптимальные размеры шахтных полей, гидроизолированных участков, панелей и блоков ВКМ.",VKM-SRC-266:p0004,MEDIUM
+SSR-0672,VKM-SRC-266,94,125,VKM_UNSPECIFIED,,CHAPTER,ORIGINAL_DATA,"Гл. 7: защита шахтных стволов, сопряжений и бункеров; конкретные стволы названы на страницах.",VKM-SRC-266:p0094,MEDIUM
+SSR-0673,VKM-SRC-266,126,167,VKM_UNSPECIFIED,,CHAPTER,ORIGINAL_DATA,"Гл. 8: очистная выемка, пластовая подготовка, транспорт, закладка, селективная выемка на Верхнекамских рудниках.",VKM-SRC-266:p0126,MEDIUM
+SSR-0674,VKM-SRC-266,168,173,OTHER_POTASH_SITE,VKM:TALITSKY,SECTION,ORIGINAL_DATA,Приложение: пример реализации подходов при вскрытии шахтного поля Талицкого ГОКа.,VKM-SRC-266:p0168,HIGH
+SSR-0675,VKM-SRC-266,174,182,VKM_UNSPECIFIED,,SECTION,REVIEW,Библиографический список.,VKM-SRC-266:p0174,LOW
+SSR-0676,VKM-SRC-267,1,11,NON_VKM,,SECTION,MIXED,"Спецвыпуск Вестника госэкспертизы: угольные шахты, рудные карьеры — не ВКМ.",VKM-SRC-267:p0009,HIGH
+SSR-0677,VKM-SRC-267,12,13,MIXED,OTHER_POTASH_SITE;BKPRU1;VKM_UNSPECIFIED,PAGES,MIXED,Статья ПФИЦ УрО РАН: ледопородное ограждение стволов Петриковского ГОК (Беларусь) и мониторинг ВЗТ рудников ВКМ; рис. 4 — провал БКПРУ-1.,VKM-SRC-267:p0012,MEDIUM
+SSR-0678,VKM-SRC-267,14,14,BKPRU2,,PAGES,ORIGINAL_DATA,Пример системы сейсмогеомеханического мониторинга «на примере одного из участков рудника БКПРУ-2» (рис. 3).,VKM-SRC-267:p0014,HIGH
+SSR-0679,VKM-SRC-267,15,20,NON_VKM,,SECTION,MIXED,Статья ООО «Институт Гипроникель» о геотехнических испытаниях керна медно-никелевых руд — не ВКМ.,VKM-SRC-267:p0015,HIGH
+SSR-0680,VKM-SRC-267,21,22,MIXED,VKM_UNSPECIFIED;OTHER_POTASH_SITE;NON_VKM,SECTION,REVIEW,"Статья ВостНИИ: обзор аварий соляных рудников (Саскачеван, Сент-Поль, ВКМ, Солотвино, Стебник).",VKM-SRC-267:p0021,MEDIUM
+SSR-0681,VKM-SRC-267,23,54,NON_VKM,,SECTION,MIXED,"Остальные статьи выпуска: уголь, откосы, трубка «Мир», нормативы промышленной безопасности — не ВКМ.",VKM-SRC-267:p0039,HIGH
+SSR-0682,VKM-SRC-268,1,57,OTHER_POTASH_SITE,VKM:TALITSKY,WHOLE_DOCUMENT,FIELD_REPORT,Отчёт SRK Consulting (2016): оценка минеральных ресурсов и запасов Талицкого участка ВКМ; прочие рудники — для сравнения.,VKM-SRC-268:p0010,HIGH
+SSR-0683,VKM-SRC-269,1,11,SKRU3,,WHOLE_DOCUMENT,FIELD_REPORT,Горно-геологическая характеристика шахтного поля СКРУ-3 (Ново-Соликамский участок); стр. 2 начинается общими сведениями о ВКМ.,VKM-SRC-269:p0002,MEDIUM
+SSR-0684,VKM-SRC-270,1,3,SKRU2,,SECTION,WORKED_EXAMPLE,Титул и введение курсового проекта (шахтное поле СКРУ-2).,VKM-SRC-270:p0003,MEDIUM
+SSR-0685,VKM-SRC-270,4,4,VKM_UNSPECIFIED,,PAGES,REVIEW,Основные сведения о Верхнекамском месторождении в целом.,VKM-SRC-270:p0004,MEDIUM
+SSR-0686,VKM-SRC-270,5,16,SKRU2,,SECTION,FIELD_REPORT,"Шахтное поле СКРУ-2: границы, пласты, проветривание, подготовка, вскрытие 8–9 ЮВП (сведения о руднике).",VKM-SRC-270:p0005,HIGH
+SSR-0687,VKM-SRC-270,17,31,SKRU2,,SECTION,WORKED_EXAMPLE,"«Выбор и обоснование предлагаемого варианта», расчёты ТЭП и затрат — учебный проект студента.",VKM-SRC-270:p0017,HIGH
+SSR-0688,VKM-SRC-271,1,3,VKM_UNSPECIFIED,,SECTION,WORKED_EXAMPLE,"Курсовая работа: «Контрольный вариант-18», шахтное поле не названо.",VKM-SRC-271:p0003,HIGH
+SSR-0689,VKM-SRC-271,4,5,VKM_UNSPECIFIED,,SECTION,REVIEW,Общие сведения о Верхнекамском месторождении.,VKM-SRC-271:p0004,MEDIUM
+SSR-0690,VKM-SRC-271,6,6,VKM_UNSPECIFIED,,PAGES,WORKED_EXAMPLE,"Стратиграфия по скважинам учебного варианта (скв. 2, 20, 27, 30).",VKM-SRC-271:p0006,MEDIUM
+SSR-0691,VKM-SRC-271,7,7,VKM_UNSPECIFIED,,PAGES,REVIEW,Тектоника Предуральского прогиба — общие сведения.,VKM-SRC-271:p0007,MEDIUM
+SSR-0692,VKM-SRC-271,8,15,VKM_UNSPECIFIED,,SECTION,WORKED_EXAMPLE,Тектоника участка по изогипсам и подсчёт запасов по блокам учебного варианта.,VKM-SRC-271:p0008,HIGH
+SSR-0693,VKM-SRC-271,16,18,VKM_UNSPECIFIED,,SECTION,REVIEW,"ВЗТ, водоносные горизонты, карст — общие сведения.",VKM-SRC-271:p0016,MEDIUM
+SSR-0694,VKM-SRC-271,19,21,VKM_UNSPECIFIED,,SECTION,WORKED_EXAMPLE,"Карст по скважинам варианта, итоговый подсчёт запасов и срок службы; литература (методические указания).",VKM-SRC-271:p0020,MEDIUM
