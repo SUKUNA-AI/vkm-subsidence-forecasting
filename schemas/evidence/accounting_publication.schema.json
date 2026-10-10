@@ -134,7 +134,7 @@
       "items": {
         "$ref": "#/$defs/FileRef"
       },
-      "maxItems": 200000,
+      "maxItems": 2000000,
       "title": "Files",
       "type": "array"
     },
