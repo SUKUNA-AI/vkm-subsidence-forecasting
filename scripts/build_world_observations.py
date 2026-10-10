@@ -77,16 +77,18 @@ TARGET_SITES = ("SKRU1", "SKRU2", "SKRU3", "BKPRU4")      # target sites of the 
 
 
 def target_site(site_norm: str) -> str:
-    """The target site an observation belongs to: SKRU1 / SKRU2 / SKRU3 / BKPRU4, «SKRU1|SKRU2» when the source does
-    not split SKRU-1 and SKRU-2, empty otherwise."""
+    """The target site an observation belongs to: SKRU1 / SKRU2 / SKRU3 / BKPRU4, «SKRU1|SKRU2» («SKRU2|SKRU3») when
+    the source does not split SKRU-1 and SKRU-2 (SKRU-2 and SKRU-3), empty otherwise."""
     s = (site_norm or "").upper()
     if s in TARGET_SITES:
         return s
-    return "SKRU1|SKRU2" if s in ("SKRU1_OR_SKRU2_UNATTRIBUTED", "SKRU1_SKRU2_PILLAR") else ""
+    if s in ("SKRU1_OR_SKRU2_UNATTRIBUTED", "SKRU1_SKRU2_PILLAR"):
+        return "SKRU1|SKRU2"
+    return "SKRU2|SKRU3" if s == "SKRU2_OR_SKRU3_UNATTRIBUTED" else ""
 
 
-SITE_CODES = ("SKRU1", "SKRU2", "SKRU3", "SKRU1_OR_SKRU2_UNATTRIBUTED", "BKPRU1", "BKPRU2", "BKPRU3", "BKPRU4",
-              "UST_YAYVA", "BEREZNIKI_CITY", "SOLIKAMSK_CITY", "VKM_UNSPECIFIED", "OTHER_POTASH_SITE", "NON_VKM",
+SITE_CODES = ("SKRU1", "SKRU2", "SKRU3", "SKRU1_OR_SKRU2_UNATTRIBUTED", "SKRU2_OR_SKRU3_UNATTRIBUTED", "BKPRU1",
+              "BKPRU2", "BKPRU3", "BKPRU4", "UST_YAYVA", "BEREZNIKI_CITY", "SOLIKAMSK_CITY", "VKM_UNSPECIFIED", "OTHER_POTASH_SITE", "NON_VKM",
               "UNKNOWN")
 
 
