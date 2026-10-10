@@ -68,6 +68,23 @@ NEEDS = (
                    r"InSAR|интерферометр|радарн\w*\s+съ[её]мк|мульд\w*\s+сдвижени|GNSS|GPS", "subs"),
 )
 _NEED_RX = [(n, m, re.compile(t, re.I), re.compile(_NUM_UNIT[u], re.I)) for n, m, t, u in NEEDS]
+# wave 2 (10.10.2026): the holes of the passport — cover and overburden rocks, clay contacts, backfill laws,
+# pore pressure and temperature, tables of observations
+GAP_NEEDS = (
+    ("GAP_COVER", "C2", r"четвертичн|покровн\w*\s+отложени|суглин|супес|галечн|аллюви|делюви|элюви|песк\w*\s+(?:мелк|"
+                        r"средн|пылеват)", "mech"),
+    ("GAP_OVERBURDEN", "C2", r"мергел|известняк|доломит|песчаник|аргиллит|алевролит|ангидрит|пестроцвет|"
+                             r"терригенно-карбонатн|соляно-мергельн|надсолев", "mech"),
+    ("GAP_CLAY_CONTACT", "C2", r"глинист\w*\s+(?:прослой|контакт|слой|пропласт)|межпластов\w*\s+глин|"
+                               r"маркирующ\w*\s+глин|контакт\w*\s+(?:пласт|слоев|слоёв)|трени\w*\s+по\s+контакт|"
+                               r"сцеплени\w*\s+по\s+контакт", "ratio"),
+    ("GAP_BACKFILL_LAW", "C4", r"уплотнени\w*\s+закладк|компресси\w*|модул\w*\s+(?:деформации\s+)?закладк|"
+                               r"закладочн\w*\s+массив|усадк\w*|сжимаемост", "mech"),
+    ("GAP_HYDRO_THERMAL", "C3", r"поров\w*\s+давлени|пластов\w*\s+давлени|напор\w*|температур\w*\s+(?:пород|массива|"
+                                r"в\s+выработк|воздух)|геотермическ|градиент\w*\s+температур|водоприток|рассол", "creep"),
+    ("GAP_OBS_TABLE", "OBS", r"оседани|сдвижени|репер|нивелир|конвергенц", "subs"),
+)
+_GAP_RX = [(n, m, re.compile(t, re.I), re.compile(_NUM_UNIT[u], re.I)) for n, m, t, u in GAP_NEEDS]
 RANGE_NEEDS = {"C2_MECH", "C2_CREEP", "C3_STRESS", "C4_BACKFILL"}   # tier A when massif/calibrated or SKRU-1
 
 
@@ -196,7 +213,16 @@ def load_nav(nav_path: Path) -> dict:
     return {"pages": pages, "tables": tabs, "sources": src, "dups": dups, "copies": copies, "snapshot": snap}
 
 
-def build(nav: dict, refs: list[dict], budget: int) -> tuple[list[dict], dict]:
+def build(nav: dict, refs: list[dict], budget: int, excluded: set[str] | None = None,
+          exclude_pages: set[str] | None = None, gap: bool = False,
+          whole_sources: set[str] | None = None) -> tuple[list[dict], dict]:
+    """``excluded`` — sources left out (default: VKM-SRC-252); ``exclude_pages`` — pages of an earlier wave;
+    ``gap`` — also search the GAP_NEEDS (wave 2; a gap hit outranks everything); ``whole_sources`` — every page of
+    these sources with text is a candidate."""
+    excluded = EXCLUDED_SOURCES if excluded is None else excluded
+    exclude_pages = exclude_pages or set()
+    whole_sources = whole_sources or set()
+    EXCLUDED = excluded
     pages, tabs, srcs = nav["pages"], nav["tables"], nav["sources"]
     by_src_idx = {(p["source_id"], p["page_index"]): pid for pid, p in pages.items()}
     # duplicates → one representative (first by source, page); copies of one work → the source cited most
@@ -232,7 +258,7 @@ def build(nav: dict, refs: list[dict], budget: int) -> tuple[list[dict], dict]:
 
     for r in refs:
         s = r["source_id"]
-        if s in EXCLUDED_SOURCES:
+        if s in EXCLUDED:
             stats["excluded_source_refs"] += 1
             continue
         if s in copy_of:
@@ -251,20 +277,26 @@ def build(nav: dict, refs: list[dict], budget: int) -> tuple[list[dict], dict]:
 
     # term search: need terms and numbers of that need on the page text with its tables
     for pid, p in pages.items():
-        if p["source_id"] in EXCLUDED_SOURCES or p["source_id"] in copy_of or pid in rep:
+        if p["source_id"] in EXCLUDED or p["source_id"] in copy_of or pid in rep:
             continue
         text = p["text"] + "\n" + "\n".join(tabs.get(pid, ()))
         hits = []
-        for n, _m, trx, nrx in _NEED_RX:
+        for n, _m, trx, nrx in _NEED_RX + (_GAP_RX if gap else []):
+            if n == "GAP_OBS_TABLE" and not tabs.get(pid):
+                continue                                   # observation tables only
             nt = len(trx.findall(text))
             if nt and nrx.search(text):
                 hits.append((n, nt, len(nrx.findall(text))))
+        if p["source_id"] in whole_sources:
+            hits.append(("WHOLE_SOURCE", 1, 0))
         if hits:
             p["_hits"] = hits
 
     rows = []
     for pid, p in pages.items():
-        if p["source_id"] in EXCLUDED_SOURCES:
+        if p["source_id"] in EXCLUDED or pid in exclude_pages:
+            if pid in exclude_pages:
+                stats["already_in_earlier_wave"] += 1
             continue
         x = cand.get(pid)
         hits = p.get("_hits", [])
@@ -298,7 +330,9 @@ def build(nav: dict, refs: list[dict], budget: int) -> tuple[list[dict], dict]:
                      "catalogue_row_ids": ";".join(sorted(set(x["row_ids"])))[:2000] if x else ""})
     # budget order: tier A; catalogue pages of tiers B and C (known to carry values); search pages of B, then C
     def order(r):
-        if r["tier"] == "A":
+        if gap and ("search:GAP_" in r["reasons"] or "search:WHOLE_SOURCE" in r["reasons"]):
+            band = -1                                      # wave 2: the holes first
+        elif r["tier"] == "A":
             band = 0
         elif r["from_catalogue"] == "Y":
             band = 1
@@ -322,11 +356,18 @@ def main() -> int:
     ap.add_argument("--figures", type=Path, default=ROOT / "work" / "world_obs_20261008" / "figure_candidates.json")
     ap.add_argument("--budget", type=int, default=2000)
     ap.add_argument("--out", required=True, type=Path)
+    ap.add_argument("--exclude-pages", type=Path, help="pages.csv of an earlier wave: its pages are not selected again")
+    ap.add_argument("--allow-source", action="append", default=[],
+                    help="a source otherwise excluded (VKM-SRC-252: owner «yes» 10.10.2026)")
+    ap.add_argument("--whole-source", action="append", default=[], help="every page of this source is a candidate")
+    ap.add_argument("--gap", action="store_true", help="wave 2: search the holes of the passport first")
     a = ap.parse_args()
     canon = a.resources / "11_evidence_vnext" / "canonical"
     refs = catalogue_refs(canon) + dossier_refs(a.dossiers) + figure_refs(a.figures)
     nav = load_nav(a.nav)
-    rows, stats = build(nav, refs, a.budget)
+    excluded = EXCLUDED_SOURCES - set(a.allow_source)
+    done = {r["page_id"] for r in csv.DictReader(open(a.exclude_pages, encoding="utf-8"))} if a.exclude_pages else set()
+    rows, stats = build(nav, refs, a.budget, excluded, done, a.gap, set(a.whole_source))
     a.out.parent.mkdir(parents=True, exist_ok=True)
     with open(a.out, "w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator="\n")
@@ -338,7 +379,10 @@ def main() -> int:
     receipt = {"rule_version": RULE_VERSION, "nav_snapshot": list(nav["snapshot"]), "budget": a.budget,
                "n_refs": len(refs), "stats": stats, "by_tier": dict(sorted(by_tier.items())),
                "n_sources": len({r["source_id"] for r in rows}),
-               "excluded_sources": sorted(EXCLUDED_SOURCES),
+               "excluded_sources": sorted(excluded), "allowed_sources": sorted(a.allow_source),
+               "whole_sources": sorted(a.whole_source), "gap": a.gap,
+               "exclude_pages_sha256": hashlib.sha256(a.exclude_pages.read_bytes()).hexdigest() if a.exclude_pages
+               else "",
                "output_sha256": hashlib.sha256(a.out.read_bytes()).hexdigest()}
     (a.out.parent / "pages_receipt.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=1) + "\n",
                                                      encoding="utf-8", newline="\n")

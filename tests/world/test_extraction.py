@@ -194,3 +194,25 @@ def test_compare_matches_numbers_and_reports_attribution():
 def test_pipeline_scripts_import(name):
     """Every script of the extraction / passport pipeline at least compiles and imports (no network, no codex)."""
     assert callable(_script(name).main)
+
+
+@pytest.mark.parametrize("text,value", [("шесть", 6), ("двух", 2), ("три года", 3), ("полтора", 1.5),
+                                        ("двадцать пять", 25), ("три тысячи", 3000), ("девяносто", 90),
+                                        ("12 мм", None), ("года", None), ("нулю", 0), ("единице", 1),
+                                        ("three", 3), ("половину", 0.5)])
+def test_word_numbers(text, value):
+    assert V.word_number(text) == value
+
+
+def test_number_words_pass_when_printed(pages):
+    page = {"S:p0002": V.PageText("S:p0002", "Наблюдения велись шесть лет на двух линиях.")}
+    ok = {"page_id": "S:p0002", "quote": "Наблюдения велись шесть лет", "value_as_printed": "шесть",
+          "value_min": 6, "value_max": 6, "unit_as_printed": None}
+    assert V.check_record(ok, page) == [] and "NUMBER_AS_WORD" in V.warnings_for(ok)
+    assert "WORD_NOT_ON_PAGE" in V.check_record(dict(ok, value_as_printed="семь", value_min=7, value_max=7), page)
+
+
+def test_more_printed_forms():
+    assert 0.25 in V.candidate_values("1/4") and -12.0 in V.candidate_values("±12")
+    assert 2e-5 in V.candidate_values("2•10-5") and 1.5 in V.candidate_values("1, 5")
+    assert {1, 2} <= set(V.candidate_values("один-два")) and {2, 3} <= set(V.candidate_values("двух-трех"))

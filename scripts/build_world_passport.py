@@ -573,40 +573,65 @@ def conflicts(canon: Path, ev: list[dict]) -> tuple[list[dict], dict]:
 
 
 # ------------------------------------------------------------------------------------------------ objects
-def objects(canon: Path, runs: list[str]) -> list[dict]:
+def objects(canon: Path, runs: list[str], units: "Units | None" = None) -> list[dict]:
+    """Layer of objects: the Phase-1 spatial hierarchy plus the objects named in the extraction. A name becomes a key
+    (kind, mine, ident) — :func:`vkm_world.extraction.objects.object_key`; names with one key are one object, linked to
+    the hierarchy entity with that key or kept as a new keyed object (parent: the mine) or, without a pattern, as a
+    name-only candidate."""
+    sys.path.insert(0, str(ROOT / "src"))
+    from vkm_world.extraction import objects as OK
+    seam_of = units.unit_of if units else None
     hier = _rows(canon / "MINING" / "spatial_hierarchy.csv")
-    alias = {}
-    out = {}
-    for h in hier:
-        out[h["entity_id"]] = {"wo_id": "", "object_id": h["entity_id"], "name": h["name"], "level": h["level"],
-                               "entity_type": h["entity_type_as_source"], "parent_id": h["parent_id"],
-                               "mine_attribution": h["mine_attribution"], "site_scope": h["site_scope"],
-                               "origin": "PHASE1_SPATIAL_HIERARCHY", "n_mentions_extraction": 0, "pages": "",
-                               "source_ids": h["source_ids"], "status": h["status"]}
-        for a in [h["name"]] + (h["aliases"] or "").split(";"):
-            if _key(a):
-                alias.setdefault(_key(a), h["entity_id"])
-    pages = defaultdict(set)
-    new = {}
+    out, by_key = {}, {}
+    level_rank = {"mine": 0, "mine_field": 1, "neighbour_mine": 2}
+    for h in sorted(hier, key=lambda h: (level_rank.get(h["level"], 9), h["entity_id"])):
+        out[h["entity_id"]] = {"wo_id": "", "object_id": h["entity_id"], "kind": "", "mine": "", "ident": "",
+                               "name": h["name"], "level": h["level"], "entity_type": h["entity_type_as_source"],
+                               "parent_id": h["parent_id"], "mine_attribution": h["mine_attribution"],
+                               "site_scope": h["site_scope"], "origin": "PHASE1_SPATIAL_HIERARCHY",
+                               "resolution": "HIERARCHY", "n_mentions_extraction": 0, "names_as_printed": "",
+                               "pages": "", "source_ids": h["source_ids"], "status": h["status"]}
+        k = OK.hierarchy_key(h, seam_of)
+        if k:
+            by_key.setdefault(k, h["entity_id"])
+            out[h["entity_id"]].update(kind=k[0], mine=k[1], ident=k[2])
+    mine_ids = {k[1]: v for k, v in by_key.items() if k[0] == "MINE"}
+    pages, names = defaultdict(set), defaultdict(set)
     for run in runs:
         for r in _jsonl(canon / "WORLD_EXTRACTION" / run / "accepted.jsonl"):
             if r.get("kind") != "ENTITY" or not r.get("entity_name"):
                 continue
-            k = _key(r["entity_name"])
-            oid = alias.get(k)
+            k = OK.object_key(r["entity_name"], r.get("entity_type"), r.get("site_norm"), seam_of)
+            oid = by_key.get(k)
+            if oid is None and k[0] == "SEAM":               # a seam is its stratigraphic unit
+                oid = f"UNIT:{k[2]}"
+                by_key[k] = oid
+                out.setdefault(oid, {"wo_id": "", "object_id": oid, "kind": "SEAM", "mine": "", "ident": k[2],
+                                     "name": units.name.get(k[2], k[2]) if units else k[2], "level": "unit",
+                                     "entity_type": "SEAM", "parent_id": "", "mine_attribution": "",
+                                     "site_scope": "", "origin": "STRATIGRAPHIC_UNIT", "resolution": "UNIT",
+                                     "n_mentions_extraction": 0, "names_as_printed": "", "pages": "",
+                                     "source_ids": "", "status": "PHASE1_REVIEWED"})
             if oid is None:
-                oid = new.setdefault((k, r.get("site_norm") or "UNKNOWN"),
-                                     f"OBJ-NEW-{len(new) + 1:04d}")
-                if oid not in out:
-                    out[oid] = {"wo_id": "", "object_id": oid, "name": r["entity_name"], "level": "",
-                                "entity_type": r.get("entity_type") or "", "parent_id": "",
-                                "mine_attribution": r.get("site_norm") or "UNKNOWN", "site_scope": r.get("site_norm"),
-                                "origin": "EXTRACTION_CANDIDATE", "n_mentions_extraction": 0, "pages": "",
-                                "source_ids": "", "status": "AUTO_EXTRACTED_UNREVIEWED"}
+                ident = re.sub(r"[^\w]+", "_", k[2])[:60].strip("_") or "_"
+                oid = f"X:{k[0]}:{k[1] or 'DEPOSIT'}:{ident}"
+                by_key[k] = oid
+                keyed = k[0] != "OTHER" and (k[0] in ("BOREHOLE", "FAULT", "SEAM") or not re.search(r"\s", k[2]))
+                out[oid] = {"wo_id": "", "object_id": oid, "kind": k[0], "mine": k[1], "ident": k[2],
+                            "name": r["entity_name"], "level": "", "entity_type": r.get("entity_type") or "",
+                            "parent_id": mine_ids.get(k[1], f"X:MINE:{k[1]}:_" if k[1] not in ("", "UNKNOWN") else "")
+                            if k[0] not in ("MINE", "BOREHOLE", "FAULT", "SEAM") else "",
+                            "mine_attribution": k[1] or (r.get("site_norm") or "UNKNOWN"),
+                            "site_scope": r.get("site_norm") or "", "origin": "EXTRACTION_CANDIDATE",
+                            "resolution": "NEW_KEYED" if keyed else "NEW_NAME_ONLY", "n_mentions_extraction": 0,
+                            "names_as_printed": "", "pages": "", "source_ids": "",
+                            "status": "AUTO_EXTRACTED_UNREVIEWED"}
             out[oid]["n_mentions_extraction"] += 1
             pages[oid].add(r["page_id"])
+            names[oid].add(r["entity_name"].strip())
     for oid, ps in pages.items():
         out[oid]["pages"] = ";".join(sorted(ps))[:1500]
+        out[oid]["names_as_printed"] = " | ".join(sorted(names[oid]))[:600]
         if out[oid]["origin"] == "EXTRACTION_CANDIDATE":
             out[oid]["source_ids"] = ";".join(sorted({p.split(":")[0] for p in ps}))
     res = sorted(out.values(), key=lambda o: (o["origin"] != "PHASE1_SPATIAL_HIERARCHY", o["object_id"]))
@@ -755,7 +780,7 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
             x["conflict_ids"] = ";".join(filter(None, [x.get("conflict_ids", "")] + extra))
     trans = _rows(canon / "WORLD_PARAMETERS" / "curated" / "c2_transfer_branches.csv")
     reg = registry(ev, by_ev, transfer_links(trans))
-    objs = objects(canon, runs)
+    objs = objects(canon, runs, units)
     lit = cited_literature(ev, nav, canon)
     files = {"passport_evidence.csv": _csv(ev, EV_COLS)}
     for mod in ("C1", "C2", "C3", "C4"):                  # per-module views (PUBLIC text files stay under 5 MB)
@@ -776,8 +801,9 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
                           "passport_rows": len(reg),
                           "passport_by_status": dict(Counter(r["world_status"] for r in reg).most_common()),
                           "conflicts": len(conf), "conflicts_computed": sum(1 for c in conf if c["origin"] == "computed"),
-                          "objects": len(objs), "objects_new_candidates": sum(1 for o in objs
-                                                                              if o["origin"] != "PHASE1_SPATIAL_HIERARCHY"),
+                          "objects": len(objs), "objects_by_resolution": dict(Counter(o["resolution"] for o in objs)),
+                          "hierarchy_objects_mentioned": sum(1 for o in objs if o["origin"] == "PHASE1_SPATIAL_HIERARCHY"
+                                                             and o["n_mentions_extraction"]),
                           "cited_refs": len(lit), "cited_by_resolution": dict(Counter(x["resolution"] for x in lit))},
                "double_entry_agreement": de,
                "nav_used": bool(nav and nav.is_file())}

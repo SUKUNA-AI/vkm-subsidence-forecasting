@@ -29,7 +29,7 @@ _HYPHEN_BREAK = re.compile(r"-[ \t]*\n\s*")
 # a printed number: digits, optional thousands groups separated by a (thin) space, optional decimal part
 _NUM = re.compile(r"(?<![\d.,])\d+(?:[    ]\d{3})*(?:[.,]\d+)?(?![\d])")
 _DIGITS = re.compile(r"\d+(?:[.,]\d+)?")
-_POW = re.compile(r"(\d+(?:[.,]\d+)?)\s*(?:[·×x*∙⋅]|\\cdot|\\times)\s*10\s*(?:\^|\*\*)?\s*\{?\s*(-?)\s*(\d+)\s*\}?")
+_POW = re.compile(r"(\d+(?:[.,]\d+)?)\s*(?:[·×x*∙⋅•]|\\cdot|\\times)\s*10\s*(?:\^|\*\*)?\s*\{?\s*(-?)\s*(\d+)\s*\}?")
 _EXP = re.compile(r"(\d+(?:[.,]\d+)?)\s*[eE]\s*([-+]?)(\d+)")
 # «5.1 10-2»: a power of ten printed after a space, without a multiplication sign (signed exponent only)
 _POW_SPACE = re.compile(r"(\d+(?:[.,]\d+)?)\s+10\s*\^?\s*\{?\s*(-)\s*(\d+)")
@@ -89,6 +89,20 @@ def candidate_values(value_as_printed: str) -> list[float]:
         return s[:at].rstrip().endswith("-") and not re.search(r"\d\s*-\s*$", s[:at])
 
     out += [-float(_num_key(m.group(1))) for m in _NEG.finditer(s) if not re.search(r"\d\s*$", s[:m.start()])]
+    w = word_number(s)
+    if w is not None:
+        out.append(w)
+        for part in re.split(r"\s*-\s*", base_norm(value_as_printed or "")):   # «один-два», «двух-трех»
+            pw = word_number(part)
+            if pw is not None:
+                out.append(pw)
+    for m in re.finditer(r"(?<![\d.,])(\d+)\s*/\s*(\d+)(?![\d.,])", s):         # «1/4»
+        if int(m.group(2)):
+            out.append(int(m.group(1)) / int(m.group(2)))
+    for m in re.finditer(r"±\s*(\d+(?:[.,]\d+)?)", s):                         # «±12»
+        out.append(-float(m.group(1).replace(",", ".")))
+    for m in re.finditer(r"(?<![\d.,])(\d+),\s(\d{1,2})(?![\d.,])", s):         # OCR «1, 5» = 1,5
+        out.append(float(f"{m.group(1)}.{m.group(2)}"))
     for rx in (_POW, _EXP, _POW_SPACE):
         for m in rx.finditer(s):
             mant = float(m.group(1).replace(",", "."))
@@ -119,6 +133,8 @@ def check_record(rec: dict, pages: dict[str, PageText]) -> list[str]:
         if not all(page.has_fragment(p) for p in parts):
             reasons.append("QUOTE_NOT_ON_PAGE")
     vap = rec.get("value_as_printed")
+    if vap not in (None, "") and word_number(vap) is not None and not page.has_fragment(vap):
+        reasons.append("WORD_NOT_ON_PAGE")
     if vap not in (None, ""):
         toks = printed_numbers(vap)
         missing = [t for t in toks if _num_key(t) not in page.numbers]
@@ -149,4 +165,61 @@ def warnings_for(rec: dict) -> list[str]:
             w.append("VALUE_NOT_IN_QUOTE")
     if rec.get("multiplier_as_printed"):
         w.append("HEADER_MULTIPLIER")
+    if vap and word_number(vap) is not None:
+        w.append("NUMBER_AS_WORD")
+    if vap and re.search(r"(?<![\d.,])\d+,\s\d{1,2}(?![\d.,])", vap):
+        w.append("DECIMAL_COMMA_WITH_SPACE")
     return w
+
+# Russian number words («шесть», «двух», «полтора», «двадцать пять», «три тысячи»): a printed value without digits
+_WORD_UNITS = {
+    **dict.fromkeys(("один", "одна", "одно", "одного", "одной", "одном", "одному", "одним", "одну", "одними"), 1),
+    **dict.fromkeys(("два", "две", "двух", "двум", "двумя"), 2), **dict.fromkeys(("три", "трех", "трем", "тремя"), 3),
+    **dict.fromkeys(("четыре", "четырех", "четырем", "четырьмя"), 4), **dict.fromkeys(("пять", "пяти", "пятью"), 5),
+    **dict.fromkeys(("шесть", "шести", "шестью"), 6), **dict.fromkeys(("семь", "семи", "семью"), 7),
+    **dict.fromkeys(("восемь", "восьми", "восемью", "восьмью"), 8), **dict.fromkeys(("девять", "девяти", "девятью"), 9),
+    **dict.fromkeys(("десять", "десяти", "десятью"), 10), **dict.fromkeys(("сто", "ста"), 100),
+    **dict.fromkeys(("сорок", "сорока"), 40), **dict.fromkeys(("девяносто", "девяноста"), 90),
+    **dict.fromkeys(("полтора", "полторы", "полутора"), 1.5),
+    **dict.fromkeys(("ноль", "нуль", "нуля", "нулю", "нулем", "нулём"), 0),
+    **dict.fromkeys(("единица", "единице", "единицы", "единицу", "единицей"), 1),
+    **dict.fromkeys(("половина", "половину", "половине", "половины"), 0.5),
+    **dict.fromkeys(("zero",), 0), **dict.fromkeys(("one", "unity"), 1), "two": 2, "three": 3, "four": 4, "five": 5,
+    "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+}
+_WORD_STEMS = (("одиннадцат", 11), ("двенадцат", 12), ("тринадцат", 13), ("четырнадцат", 14), ("пятнадцат", 15),
+               ("шестнадцат", 16), ("семнадцат", 17), ("восемнадцат", 18), ("девятнадцат", 19), ("двадцат", 20),
+               ("тридцат", 30), ("пятьдесят", 50), ("пятидесят", 50), ("шестьдесят", 60), ("шестидесят", 60),
+               ("семьдесят", 70), ("семидесят", 70), ("восемьдесят", 80), ("восьмидесят", 80), ("двест", 200),
+               ("двухсот", 200), ("трист", 300), ("трехсот", 300), ("четырест", 400), ("четырехсот", 400),
+               ("пятьсот", 500), ("пятисот", 500), ("шестьсот", 600), ("шестисот", 600), ("семьсот", 700),
+               ("семисот", 700), ("восемьсот", 800), ("восьмисот", 800), ("девятьсот", 900), ("девятисот", 900))
+_WORD_MULT = (("тысяч", 1e3), ("миллион", 1e6))
+
+
+def word_number(text: str | None) -> float | None:
+    """Value of a number written in Russian words, from its first number word to the next non-number word; None if
+    the text has digits or no number word."""
+    t = base_norm(text or "").casefold().replace("ё", "е")
+    if re.search(r"\d", t):
+        return None
+    t = re.split(r"\s*-\s*", t)[0]                    # «один-два» is a range: its first number
+    total, cur, started = 0.0, 0.0, False
+    for w in re.findall(r"[а-яa-z]+", t):
+        v = _WORD_UNITS.get(w)
+        if v is None:
+            v = next((n for st, n in _WORD_STEMS if w.startswith(st)), None)
+        mult = next((m for st, m in _WORD_MULT if w.startswith(st)), None)
+        if v is not None:
+            cur += v
+            started = True
+        elif mult is not None and started:
+            total += (cur or 1) * mult
+            cur = 0.0
+        elif mult is not None:
+            total += mult
+            started = True
+        elif started:
+            break
+    return (total + cur) if started else None
+
