@@ -210,6 +210,17 @@ def _runs_centres(idx: np.ndarray, offset: int) -> list[float]:
 
 
 # ------------------------------------------------------------------------------------------------ OCR words
+# A minus sign of a small raster is read as «=», «—» or «–», sometimes with the hyphen as well (fd-0.1.5: the y labels
+# «−10 … −60» of VKM-SRC-004 p.13 came out as «=10», «—40», «—-60» and the axis stayed uncalibrated): a run of such
+# dashes right before the digits of a word is one minus sign.
+_OCR_MINUS = re.compile(r"^[=—–−-]+(?=\d)")
+
+
+def ocr_minus(text: str) -> str:
+    """«=10», «—40», «—-60» → «-10», «-40», «-60»; other words unchanged."""
+    return _OCR_MINUS.sub("-", text)
+
+
 def ocr_words(rgb: np.ndarray, engine: OcrEngine, psm: int = 11, whitelist: str | None = None,
               min_conf: float = 30.0, scale: int = 2, offset=(0, 0), gray: np.ndarray | None = None) -> list[Text]:
     """Tesseract words with boxes (pixel frame of the full image: ``offset`` = position of this crop)."""
@@ -242,7 +253,7 @@ def ocr_words(rgb: np.ndarray, engine: OcrEngine, psm: int = 11, whitelist: str 
         left, top, width, height = (int(parts[i]) / scale for i in (6, 7, 8, 9))
         left += offset[0]
         top += offset[1]
-        words.append(Text(parts[11].strip(), left, left + width, top + height / 2, height * 0.8, 0.0,
+        words.append(Text(ocr_minus(parts[11].strip()), left, left + width, top + height / 2, height * 0.8, 0.0,
                           f"OCR:{conf:.0f}", "LOCAL_OCR"))
     return words
 
@@ -275,7 +286,11 @@ def ocr_blobs(gray: np.ndarray, offset, engine: OcrEngine, whitelist: str, min_h
             inside = gy0 - 0.2 * hmed <= c[1] + c[3] / 2 <= gy1 + 0.2 * hmed
             last_small = g[-1][3] < 0.5 * hmed
             max_gap = 0.9 * hmed if (small or last_small) else 0.6 * hmed
-            if (overlap > 0.3 * hmed or (small and inside)) and -0.1 * hmed <= c[0] - gx1 <= max_gap:
+            # a leading minus sign (a group of small marks so far) belongs to the digits that follow when it sits at
+            # their mid-height (fd-0.1.5: «−10 … −110» were read as «10», «30»)
+            lead = all(k[3] < 0.5 * hmed for k in g) and c[1] - 0.2 * hmed <= (gy0 + gy1) / 2 <= \
+                c[1] + c[3] + 0.2 * hmed
+            if (overlap > 0.3 * hmed or (small and inside) or lead) and -0.1 * hmed <= c[0] - gx1 <= max_gap:
                 g.append(c)
                 placed = True
                 break
@@ -296,9 +311,20 @@ def ocr_blobs(gray: np.ndarray, offset, engine: OcrEngine, whitelist: str, min_h
         txt = re.sub(r"\s+", "", engine.read_line(big) if whitelist == engine.whitelist else
                      OcrEngine(exe=engine.exe, whitelist=whitelist, version=engine.version).read_line(big))
         engine.calls += 0 if whitelist == engine.whitelist else 1
+        # a tick mark next to the label is read as a trailing «-» (fd-0.1.5: «-100-»): no number ends with one
+        txt = ocr_minus(re.sub(r"(?<=\d)[-.,]+$", "", txt))
         if txt:
             out.append(Text(txt, offset[0] + x0, offset[0] + x1, offset[1] + (y0 + y1) / 2, (y1 - y0) * 0.95, 0.0,
                             "OCR_BLOB", "LOCAL_OCR"))
+    return out
+
+
+def _anchors(values: list[float], min_gap: float) -> list[float]:
+    """Distinct strip anchors: values more than ``min_gap`` apart, in the order given."""
+    out: list[float] = []
+    for v in values:
+        if all(abs(v - o) > min_gap for o in out):
+            out.append(float(v))
     return out
 
 
@@ -322,12 +348,17 @@ def ocr_axis_strips(rgb: np.ndarray, coloured: np.ndarray, hl, vl, engine: OcrEn
     if not xs0:
         return []
     left, right, top, bottom = min(xs0), max(xs1), min(ys0), max(ys1)
-    strips = [
-        (left - 7 * th, top - th, left - gap, bottom + th),        # y labels, left
-        (right + gap, top - th, right + 7 * th, bottom + th),      # y labels, right (secondary axis)
-        (left - 2 * th, top - 3.2 * th, right + 2 * th, top - gap),     # x labels, above the frame
-        (left - 2 * th, bottom + gap, right + 2 * th, bottom + 3.2 * th),  # x labels, below the frame
-    ]
+    # fd-0.1.5: the frame's extreme is not always the axis — an x axis line or the legend's line that runs past the y
+    # axis put the strip of the y labels left of them (the «−100 … −700» of a chart read as «.5.», «2.»). The outermost
+    # vertical lines (horizontal for x labels) anchor strips of their own.
+    lefts = _anchors([left] + ([min(s[2] for s in vl)] if vl else []), th)
+    rights = _anchors([right] + ([max(s[2] for s in vl)] if vl else []), th)
+    tops = _anchors([top] + ([min(s[2] for s in hl)] if hl else []), th)
+    bottoms = _anchors([bottom] + ([max(s[2] for s in hl)] if hl else []), th)
+    strips = [(lx - 7 * th, top - th, lx - gap, bottom + th) for lx in lefts]           # y labels, left
+    strips += [(rx + gap, top - th, rx + 7 * th, bottom + th) for rx in rights]         # y labels, right (second axis)
+    strips += [(left - 2 * th, ty - 3.2 * th, right + 2 * th, ty - gap) for ty in tops]        # x labels, above
+    strips += [(left - 2 * th, by + gap, right + 2 * th, by + 3.2 * th) for by in bottoms]     # x labels, below
     for a, b, c, d in strips:
         c0, r0, c1, r1 = int(max(0, a)), int(max(0, b)), int(min(w, c)), int(min(h, d))
         if c1 - c0 < 8 or r1 - r0 < 8:
@@ -339,6 +370,52 @@ def ocr_axis_strips(rgb: np.ndarray, coloured: np.ndarray, hl, vl, engine: OcrEn
         if not any(u.text == t.text and abs(u.xc - t.xc) < t.h and abs(u.yc - t.yc) < t.h for u in uniq):
             uniq.append(t)
     return uniq
+
+
+def rotated_date_axis(rgb: np.ndarray, coloured: np.ndarray, engine: OcrEngine, band, snap_x: list[float]):
+    """x axis from date labels printed rotated by 90° (read bottom to top) in ``band`` = (x0, y0, x1, y1) below the
+    plot (fd-0.1.5; «01.01.1980 … 01.01.2035» of a time chart were not read, the chart stayed X_UNCALIBRATED): the
+    band is turned clockwise, read in sparse mode with a digits-and-dots whitelist, the dates mapped back to their
+    columns (the label's thickness is its tick position) and fitted as a DATE axis — only labels that parse as dates
+    count, up to a quarter of them may be dropped as misread outliers; None when fewer than three dates line up or the
+    axis is implausible (:func:`plausible_axis`)."""
+    import cv2
+
+    from vkm_corpus.figures.calibrate import _snap
+
+    h, w = coloured.shape
+    x0, y0, x1, y1 = (int(round(v)) for v in band)
+    x0, y0, x1, y1 = max(0, x0), max(0, y0), min(w, x1), min(h, y1)
+    if x1 - x0 < 20 or y1 - y0 < 20 or not engine.available():
+        return None
+    gray = cv2.cvtColor(np.ascontiguousarray(rgb[y0:y1, x0:x1]), cv2.COLOR_RGB2GRAY)
+    gray = np.where(coloured[y0:y1, x0:x1], 255, gray).astype(np.uint8)
+    rot = cv2.rotate(gray, cv2.ROTATE_90_CLOCKWISE)          # dst(x, y) = src(y, H − 1 − x)
+    hb = gray.shape[0]
+    found = ocr_words(rot, engine, psm=11, whitelist="0123456789.", gray=rot)
+    labels = []
+    for t in found:
+        v, k = label_value(t.text)
+        if v is None or k != "DATE":
+            continue
+        top, bottom = t.yc - t.h / 1.6, t.yc + t.h / 1.6     # the text's thickness in the turned image
+        xc = x0 + (top + bottom) / 2
+        yc = y0 + (hb - 1) - (t.x0 + t.x1) / 2
+        labels.append(Text(t.text, xc - (bottom - top) / 2, xc + (bottom - top) / 2, yc, bottom - top, 90.0,
+                           "OCR_ROTATED", "LOCAL_OCR"))
+    if len(labels) < 3:
+        return None
+    hmed = float(np.median([t.h for t in labels]))
+    rows = []
+    for t in sorted(labels, key=lambda t: t.xc):
+        q = _snap(t.xc, snap_x, t.h)
+        rows.append([t.text, label_value(t.text)[0], q if q is not None else t.xc, q is not None, "LOCAL_OCR"])
+    ax = fit_axis("x", rows, "DATE", hmed, 3, max_drop=max(1, len(rows) // 4), method_hint="OCR_ROTATED_LABELS",
+                  label_source="LOCAL_OCR")
+    if ax is None or not plausible_axis(ax, float(w)):
+        return None
+    ax.ocr = engine.provenance()
+    return ax
 
 
 # ------------------------------------------------------------------------------------------------ calibration
@@ -377,9 +454,83 @@ class PiecewiseAxis:
                            for t, v, p, s, src in self.labels], "dropped_labels": self.dropped}
 
 
-def calibrate(words: list[Text], snap_x: list[float], snap_y: list[float], plot_hint, engine: OcrEngine | None):
+# Plausibility of an axis read by OCR (fd-0.1.5, MODEL_CHOICE): its labels span at least RASTER_MIN_SPAN of the
+# analysed image along the axis (three numbers of a table cell 36 px apart made a log10 axis of a whole chart); a log10
+# axis carries the mantissas of a printed log axis; an axis kept on at most four labels steps regularly. A row or
+# column with misread labels keeps its largest subset on one line when that subset is at least RASTER_SUBSET_SHARE of
+# it, at least three labels, regularly stepped (dropped labels are recorded); otherwise no axis — «не знаю» rather
+# than a wrong scale.
+RASTER_MIN_SPAN, RASTER_SUBSET_SHARE = 0.12, 0.5
+_LOG_MANTISSAS = (1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
+
+
+def _regular_values(values) -> bool:
+    """Printed tick values: every step a whole multiple of the smallest (to 2 %), at most five steps skipped."""
+    vals = sorted({float(v) for v in values})
+    if len(vals) < 3:
+        return False
+    steps = [b - a for a, b in zip(vals, vals[1:])]
+    s0 = min(steps)
+    return s0 > 0 and all(abs(s / s0 - round(s / s0)) <= 0.02 and s / s0 <= 6.0 for s in steps)
+
+
+def _log_mantissas(values) -> bool:
+    for v in values:
+        if v <= 0:
+            return False
+        m = v / 10 ** math.floor(math.log10(v) + 1e-9)
+        if not (any(abs(m - q) <= 0.02 * q for q in _LOG_MANTISSAS) or abs(m - 10.0) <= 0.2):
+            return False
+    return True
+
+
+def plausible_axis(ax, size: float | None) -> bool:
+    """An OCR axis that may calibrate a chart (:data:`RASTER_MIN_SPAN`, regular steps, log mantissas)."""
+    if ax is None:
+        return False
+    ps = [float(lab[2]) for lab in ax.labels]
+    if size and (max(ps) - min(ps)) < RASTER_MIN_SPAN * size:
+        return False
+    vals = [float(lab[1]) for lab in ax.labels]
+    if ax.kind == "LOG10":
+        return _log_mantissas(vals)
+    if ax.kind == "LINEAR" and len(vals) <= 4:
+        return _regular_values(vals)
+    return True
+
+
+def _subset_axis(orient: str, rows: list, kind0: str, hmed: float, source: str):
+    """The largest subset of labels on one straight line (every pair of labels proposes one), at least
+    ``RASTER_SUBSET_SHARE`` of the row and three labels, regularly stepped; fitted on that subset, the others dropped."""
+    n = len(rows)
+    if n < 4 or kind0 == "DATE":
+        return None
+    pos = np.array([float(r[2]) for r in rows])
+    val = np.array([float(r[1]) for r in rows])
+    spacing = float(np.median(np.diff(np.sort(pos)))) if n > 1 else 1.0
+    tol = max(0.3 * hmed, 0.08 * abs(spacing))
+    best: list[int] = []
+    for i in range(n):
+        for j in range(i + 1, n):
+            if pos[i] == pos[j] or val[i] == val[j]:
+                continue
+            b = (val[j] - val[i]) / (pos[j] - pos[i])
+            inl = np.where(np.abs(pos - pos[i] - (val - val[i]) / b) <= tol)[0]
+            if len(inl) > len(best):
+                best = [int(k) for k in inl]
+    if len(best) < 3 or len(best) < RASTER_SUBSET_SHARE * n or not _regular_values(val[best]):
+        return None
+    ax = fit_axis(orient, [rows[k] for k in best], kind0, hmed, 3, max_drop=0, label_source=source)
+    if ax is not None:
+        ax.dropped = [rows[k][0] for k in range(n) if k not in best]
+    return ax
+
+
+def calibrate(words: list[Text], snap_x: list[float], snap_y: list[float], plot_hint, engine: OcrEngine | None,
+              extent: tuple[float, float] | None = None):
     """x axis from a row of numeric/date labels, y axis from a column; piecewise when the row is monotone but not
-    linear (irregular positions)."""
+    linear (irregular positions). ``extent`` (width, height of the analysed image): an axis must be plausible
+    (:func:`plausible_axis`) — misread labels are dropped (:func:`_subset_axis`) or the axis stays uncalibrated."""
     lab = []
     for t in words:
         v, k = label_value(t.text)
@@ -390,7 +541,8 @@ def calibrate(words: list[Text], snap_x: list[float], snap_y: list[float], plot_
     hmed = float(np.median([t.h for t, _, _ in lab]))
     from vkm_corpus.figures.calibrate import _clusters, _snap
 
-    best_x = best_y = None
+    wx, wy = extent if extent is not None else (None, None)
+    best_x = best_y = sub_x = sub_y = None
     for row in _clusters(lab, key=lambda r: r[0].yc, tol=0.5 * hmed):
         if len(row) < 3 or len({k for *_, k in row}) != 1:
             continue
@@ -400,10 +552,17 @@ def calibrate(words: list[Text], snap_x: list[float], snap_y: list[float], plot_
             q = _snap(t.xc, snap_x, t.h)
             rows.append([t.text, v, q if q is not None else t.xc, q is not None, t.source])
         ax = fit_axis("x", rows, kind0, hmed, 3, max_drop=1, label_source=row[0][0].source)
+        if ax is not None and not plausible_axis(ax, wx):
+            ax = None
         if ax is None:
+            sub = _subset_axis("x", rows, kind0, hmed, row[0][0].source)
+            if sub is not None and plausible_axis(sub, wx) and (sub_x is None or len(sub.labels) > len(sub_x.labels)):
+                sub_x = sub
             ax = _piecewise("x", rows)
             if ax is not None:
                 ax.label_source = row[0][0].source
+                if not plausible_axis(ax, wx):
+                    ax = None
         if ax is not None and (best_x is None or len(ax.labels) > len(best_x.labels)):
             best_x = ax
     for key in (lambda r: r[0].x1, lambda r: r[0].xc):
@@ -415,8 +574,18 @@ def calibrate(words: list[Text], snap_x: list[float], snap_y: list[float], plot_
                 q = _snap(t.yc, snap_y, t.h)
                 rows.append([t.text, v, q if q is not None else t.yc, q is not None, t.source])
             ax = fit_axis("y", rows, col[0][2], hmed, 3, max_drop=1, label_source=col[0][0].source)
+            if ax is not None and not plausible_axis(ax, wy):
+                ax = None
+            if ax is None:
+                sub = _subset_axis("y", rows, col[0][2], hmed, col[0][0].source)
+                if sub is not None and plausible_axis(sub, wy) and (sub_y is None or len(sub.labels) > len(sub_y.labels)):
+                    sub_y = sub
             if ax is not None and (best_y is None or len(ax.labels) > len(best_y.labels)):
                 best_y = ax
+    # an axis on a subset of misread labels only where no row (column) fits as a whole: a column of legend numbers
+    # with a few misread entries must not displace the axis
+    best_x = best_x or sub_x
+    best_y = best_y or sub_y
     for ax in (best_x, best_y):
         if ax is not None and engine is not None:
             ax.ocr = engine.provenance()
@@ -496,6 +665,86 @@ def marker_axis(orient: str, markers: list[float], words: list[Text], min_agree:
 
 
 # ------------------------------------------------------------------------------------------------ curves
+# Filled areas (fd-0.1.5, MODEL_CHOICE): a label box or a colour band is ink of one colour that fills a window of
+# FILL_WINDOW_STROKES stroke widths (at least 15 px) to FILL_SHARE or more — a curve, however thick, fills a third of it
+# at most. Colours are the frequent ink colours (pixels within FILL_TOL ΔE of a colour bin's mean); an area is kept
+# when its core covers half a window, and it extends over the same colour up to one window around the core (the edges
+# and the gaps between the letters of the box). Route R takes only areas with text in their middle half (dark ink
+# ≥ FILL_TEXT_SHARE of it): label boxes, never big filled data markers. Their pixels are not curve pixels
+# (VKM-SRC-012 p.46: the yellow boxes of the zone names were traced as three «series» at −90…−110 mm).
+FILL_SHARE, FILL_TOL, FILL_WINDOW_STROKES, FILL_MAX_COLOURS, FILL_TEXT_SHARE = 0.45, 10.0, 4.0, 24, 0.03
+
+
+def stroke_width(mask: np.ndarray, step: int = 3) -> float:
+    """Typical stroke width of the ink in ``mask``: the median length of its vertical runs (every ``step``-th
+    column); 3 px for an empty mask."""
+    runs: list[np.ndarray] = []
+    for x in range(0, mask.shape[1], step):
+        col = np.flatnonzero(mask[:, x])
+        if len(col) < 2:
+            continue
+        br = np.flatnonzero(np.diff(col) > 1)
+        starts, ends = np.r_[0, br + 1], np.r_[br, len(col) - 1]
+        runs.append(col[ends] - col[starts] + 1)
+    return float(np.median(np.concatenate(runs))) if runs else 3.0
+
+
+def filled_areas(coloured: np.ndarray, lab: np.ndarray, stroke: float | None = None,
+                 dark: np.ndarray | None = None) -> np.ndarray:
+    """Mask of filled areas of one ink colour (label boxes, bands) among the ``coloured`` pixels (see
+    :data:`FILL_SHARE`), with a margin of one stroke width around them (the anti-aliased border of a box has other
+    colours and would be traced as a thin line). With ``dark`` (the dark-neutral mask) only areas holding text in their
+    middle half (:data:`FILL_TEXT_SHARE`) count: label boxes, not big filled markers."""
+    import cv2
+
+    fill = np.zeros(coloured.shape, bool)
+    ys, xs = np.nonzero(coloured)
+    if not len(ys):
+        return fill
+    stroke = stroke if stroke else stroke_width(coloured)
+    k = int(max(15, FILL_WINDOW_STROKES * stroke)) | 1
+    pix = lab[ys, xs].astype(np.float32)
+    pix[:, 0] *= 100 / 255
+    q = np.round(pix / 6).astype(np.int64)
+    _, inv, counts = np.unique(q[:, 0] * 1_000_000 + (q[:, 1] + 500) * 1000 + (q[:, 2] + 500), return_inverse=True,
+                               return_counts=True)
+    inv = inv.ravel()
+    centres: list[np.ndarray] = []
+    for o in np.argsort(-counts):
+        if counts[o] < k * k or len(centres) >= FILL_MAX_COLOURS:
+            break
+        c = pix[inv == o].mean(0)
+        if any(float(np.linalg.norm(c - d)) <= FILL_TOL for d in centres):
+            continue
+        centres.append(c)
+        same_idx = np.linalg.norm(pix - c, axis=1) <= FILL_TOL
+        if same_idx.sum() < k * k:
+            continue
+        same = np.zeros(coloured.shape, np.float32)
+        same[ys[same_idx], xs[same_idx]] = 1.0
+        core = (cv2.boxFilter(same, -1, (k, k)) >= FILL_SHARE) & (same > 0)
+        n, cc, st, _ = cv2.connectedComponentsWithStats(core.astype(np.uint8), 8)
+        keep = np.zeros(n, bool)
+        keep[1:] = st[1:, cv2.CC_STAT_AREA] >= k * k // 2
+        if not keep.any():
+            continue
+        grown = cv2.dilate(keep[cc].astype(np.uint8), np.ones((k, k), np.uint8)) > 0
+        area = grown & (same > 0)
+        if dark is not None:
+            # a label box holds its text: dark ink in the middle half of the area (a big filled marker, even with a
+            # dark outline, has none there)
+            n2, cc2, st2, _ = cv2.connectedComponentsWithStats(area.astype(np.uint8), 8)
+            ok = np.zeros(n2, bool)
+            for i in range(1, n2):
+                x, y, w, h = (int(v) for v in st2[i, :4])
+                mid = dark[y + h // 4:y + h - h // 4, x + w // 4:x + w - w // 4]
+                ok[i] = mid.size > 0 and float(mid.mean()) >= FILL_TEXT_SHARE
+            area = ok[cc2]
+        fill |= area
+    if fill.any():
+        m = 2 * int(round(max(2.0, stroke))) + 1
+        fill = cv2.dilate(fill.astype(np.uint8), np.ones((m, m), np.uint8)) > 0
+    return fill
 
 
 def track_curves(mask: np.ndarray, lab: np.ndarray, x0: int, x1: int, max_jump: float, max_run: float,
@@ -576,39 +825,38 @@ def join_tracks(tracks: list[dict], max_gap_x: float, max_dy: float, max_de: flo
                 bridges: list[tuple[float, float, float, float]] = ()) -> list[dict]:
     """Join fragments of one curve, cheapest pair first: the next fragment starts after the previous ends, where
     the previous one's end slope predicts it, with a similar ink colour. ``bridges`` (x0, x1, y0, y1): text boxes an
-    inline label cuts out of its curve — a gap covered by one may be as long as the box."""
+    inline label cuts out of its curve — a gap covered by one may be as long as the box. The pair costs are computed
+    as arrays (fd-0.1.5: the same choices as the pairwise loop, hundreds of fragments in seconds, not minutes)."""
     tracks = [dict(t) for t in tracks]
-    while True:
-        best = None
-        for i, a in enumerate(tracks):
-            sa = _end_slope(a, True)
-            for j, b in enumerate(tracks):
-                if i == j:
-                    continue
-                dx = b["xs"][0] - a["xs"][-1]
-                if dx <= 0:
-                    continue
-                ya, yb = a["ys"][-1], b["ys"][0]
-                allowed = max_gap_x
-                for bx0, bx1, by0, by1 in bridges:
-                    if bx0 - max_gap_x <= a["xs"][-1] <= bx1 and bx0 <= b["xs"][0] <= bx1 + max_gap_x \
-                            and by0 - max_dy <= (ya + yb) / 2 <= by1 + max_dy:
-                        allowed = max(allowed, (bx1 - bx0) + 2 * max_gap_x)
-                de = de_lab(a["colour"], b["colour"])
-                # a matching ink colour tolerates a longer gap and a larger jump (a faint stretch at the bottom of
-                # a trough breaks the tracking); the gap itself is never filled with values
-                if dx > (max(allowed, 3 * max_gap_x) if de <= 12 else allowed):
-                    continue
-                pred = ya + sa * dx
-                dy = min(abs(yb - pred), abs(yb - ya))
-                slack = 0.4 * dx if de <= 12 else 0.05 * dx
-                if dy <= max_dy + slack and de <= max_de:
-                    cost = dy + 0.05 * dx + 0.3 * de
-                    if best is None or cost < best[0]:
-                        best = (cost, i, j)
-        if best is None:
+    while len(tracks) > 1:
+        n = len(tracks)
+        ex = np.array([float(t["xs"][-1]) for t in tracks])
+        ey = np.array([float(t["ys"][-1]) for t in tracks])
+        sx = np.array([float(t["xs"][0]) for t in tracks])
+        sy = np.array([float(t["ys"][0]) for t in tracks])
+        sa = np.array([_end_slope(t, True) for t in tracks])
+        col = np.array([np.asarray(t["colour"], float) for t in tracks])
+        dx = sx[None, :] - ex[:, None]                       # [i, j]: gap from the end of i to the start of j
+        ya, yb = ey[:, None], sy[None, :]
+        allowed = np.full((n, n), float(max_gap_x))
+        for bx0, bx1, by0, by1 in bridges:
+            hit = ((bx0 - max_gap_x <= ex[:, None]) & (ex[:, None] <= bx1) & (bx0 <= sx[None, :])
+                   & (sx[None, :] <= bx1 + max_gap_x) & (by0 - max_dy <= (ya + yb) / 2) & ((ya + yb) / 2 <= by1 + max_dy))
+            allowed = np.where(hit, np.maximum(allowed, (bx1 - bx0) + 2 * max_gap_x), allowed)
+        d = col[:, None, :] - col[None, :, :]
+        de = np.sqrt((d[..., 0] * 100 / 255) ** 2 + d[..., 1] ** 2 + d[..., 2] ** 2)
+        # a matching ink colour tolerates a longer gap and a larger jump (a faint stretch at the bottom of a trough
+        # breaks the tracking); the gap itself is never filled with values
+        limit = np.where(de <= 12, np.maximum(allowed, 3 * max_gap_x), allowed)
+        pred = ya + sa[:, None] * dx
+        dy = np.minimum(np.abs(yb - pred), np.abs(yb - ya))
+        slack = np.where(de <= 12, 0.4 * dx, 0.05 * dx)
+        ok = (dx > 0) & (dx <= limit) & (dy <= max_dy + slack) & (de <= max_de)
+        np.fill_diagonal(ok, False)
+        if not ok.any():
             return tracks
-        _, i, j = best
+        cost = np.where(ok, dy + 0.05 * dx + 0.3 * de, np.inf)
+        i, j = (int(v) for v in np.unravel_index(int(np.argmin(cost)), cost.shape))
         a, b = tracks[i], tracks[j]
         a.setdefault("gaps", []).append((float(a["xs"][-1]), float(b["xs"][0])))
         a["gaps"] += b.get("gaps", [])
@@ -618,6 +866,7 @@ def join_tracks(tracks: list[dict], max_gap_x: float, max_dy: float, max_de: flo
         na, nb = len(a["xs"]) - len(b["xs"]), len(b["xs"])
         a["colour"] = (a["colour"] * na + b["colour"] * nb) / (na + nb)
         tracks.pop(j)
+    return tracks
 
 
 def series_markers(curve_mask: np.ndarray, lab: np.ndarray, colour, xs: np.ndarray, ys: np.ndarray, width: float,

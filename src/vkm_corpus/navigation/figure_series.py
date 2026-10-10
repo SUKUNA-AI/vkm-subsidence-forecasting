@@ -53,7 +53,11 @@ outlines: not traced), ``ROTATED_PAGE``, ``EMBEDDED_RASTER_IN_FIGURE``, ``OCR_HE
 ``CANDIDATE_RULE_NOT_EVALUATED``, ``WORK_ATTRIBUTION_AMBIGUOUS``; and the calibration plausibility flags that make
 every series of the figure suspect (``SUSPECT_FLAGS``; the query filter ``clean_only`` drops them):
 ``AXIS_LABELS_INSIDE_PLOT``, ``AXIS_LABELS_DETACHED``, ``SECOND_Y_AXIS`` / ``SECOND_X_AXIS``,
-``POWER_OF_TEN_LABELS``, ``THOUSANDS_SEPARATOR_AMBIGUOUS``, ``WEAK_AXIS_CALIBRATION``.
+``POWER_OF_TEN_LABELS``, ``THOUSANDS_SEPARATOR_AMBIGUOUS``, ``WEAK_AXIS_CALIBRATION``. fd-0.1.5 adds the
+informational ``OTHER_PANELS_IN_REGION`` (the figure box holds the corners of several charts; the axes and series are
+one chart's), ``Y_AXIS_PER_SERIES`` (panels sharing the x axis: the series is read on the y scale of its own panel —
+the series row carries that axis) and ``LEGEND_MARKER_EXCLUDED`` (the legend's sample marker is not a point of the
+series; its words label it); ``SECOND_Y_AXIS`` also covers a second scale printed beside the first on the same side.
 
 IDs: ``series_id = FS-<16 hex>`` of (figure id, route, series index, label, colour) — the id of FD's sweep for the
 same series; a point is ``(series_id, i)``.
@@ -74,6 +78,11 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
+
+from vkm_corpus.figures import calibrate as _cal
+from vkm_corpus.figures import raster as _ras
+from vkm_corpus.figures import raster_digitize as _rd
+from vkm_corpus.figures import series as _ser
 
 PART = "figure_series"
 RULE_VERSION = "figure_series_v1"
@@ -129,6 +138,12 @@ CONFIG: dict[str, Any] = {
     "second_axis_min_span": SECOND_AXIS_MIN_SPAN,
     "second_axis_gap_h": SECOND_AXIS_GAP_H, "thousands_gap_h": THOUSANDS_GAP_H, "log_mantissas": list(LOG_MANTISSAS),
     "suspect_flags": sorted(SUSPECT_FLAGS),
+    # fd-0.1.5 (review of 08.10): snapping beside the label, one chart's corner, markers and their legend
+    "snap_across_h": _cal.SNAP_ACROSS_H, "snap_tie_pt": _cal.SNAP_TIE_PT, "resnap_h": _cal.RESNAP_H,
+    "resnap_along_h": _cal.RESNAP_ALONG_H, "corner_across_h": _cal.CORNER_ACROSS_H,
+    "corner_along_h": _cal.CORNER_ALONG_H, "marker_same_share": _ser.MARKER_SAME_SHARE,
+    "marker_shape_tol": _ser.MARKER_SHAPE_TOL, "marker_legend_gap_h": _ser.MARKER_LEGEND_GAP_H,
+    "marker_chain_share": _ser.MARKER_CHAIN_SHARE, "scientific_notation_labels": True,
 }
 FIGURE_STATUSES = ("DIGITIZED", "AXES_OK_NO_SERIES", "X_UNCALIBRATED", "Y_UNCALIBRATED", "NO_AXES",
                    "SOURCE_UNAVAILABLE", "SOURCE_HASH_MISMATCH", "ERROR")
@@ -153,6 +168,14 @@ RASTER_CONFIG: dict[str, Any] = {
     "layouts": ["CHART", "MIXED", "RASTER_IMAGE"], "min_box_pt": [100.0, 60.0], "sample_markers": True,
     "ocr_psm": 7, "ocr_whitelist": "0123456789.,-/", "outside_tol": OUTSIDE_TOL,
     "beyond_ticks_tol": BEYOND_TICKS_TOL, "beyond_ticks_share": BEYOND_TICKS_SHARE,
+    # fd-0.1.5: plausibility of OCR axes, labels on one line, rotated date labels, strip anchors at the axis lines
+    "min_axis_span": _ras.RASTER_MIN_SPAN, "label_subset_share": _ras.RASTER_SUBSET_SHARE,
+    "rotated_date_labels": True, "strip_anchors": "frame and outermost axis lines",
+    # fd-0.1.5: filled areas (label boxes) are not curves; OCR garbage and far numbers do not name series; OCR minus
+    "fill_share": _ras.FILL_SHARE, "fill_tol_de": _ras.FILL_TOL, "fill_window_strokes": _ras.FILL_WINDOW_STROKES,
+    "fill_max_colours": _ras.FILL_MAX_COLOURS, "fill_text_share": _ras.FILL_TEXT_SHARE,
+    "label_min_letters": _rd.LABEL_MIN_LETTERS,
+    "label_max_other": _rd.LABEL_MAX_OTHER, "ocr_minus_dashes": "=—–−-",
 }
 RASTER_ERROR_MODEL = ("half-width in value units: axis label-fit rms ⊕ half the native pixel (y: ⊕ half the stroke "
                       "width) (route R, raster at 300 dpi); gaps of a trace are not filled")
@@ -712,6 +735,50 @@ def other_axis(chosen: Any, cands: list, texts: list, box, frame=None, segments=
     return False
 
 
+def beside_axis(chosen: Any, cands: list, texts: list, box, frame=None) -> bool:
+    """Another y scale on the same side as the chosen one (fd-0.1.5): a column of labels snapped to ticks at least in
+    part (≥ 3, other labels than the chosen column's), outside the frame, within ``SECOND_AXIS_GAP_H`` label heights
+    of the chosen column across, whose label span overlaps the chosen one over ≥ ``SECOND_AXIS_MIN_SPAN`` of the
+    plot and that gives another scale («S/S₀, %» 0…80 and «ΔV» −2…8 printed side by side left of one chart). Its
+    labels count even when FD's legend rule sets them aside (labels right of the other column's tick marks). Which
+    series belongs to which scale is not known. Stacked scales (spans that do not overlap) are read per series
+    instead (``Y_AXIS_PER_SERIES``)."""
+    if chosen is None or chosen.orient != "y" or not texts:
+        return False
+    mine = {(lab[0], round(float(lab[2]), 1)) for lab in chosen.labels}
+    ws0 = label_words(chosen, texts)
+    if len(ws0) < 3:
+        return False
+    x0, y0, x1, y1 = box
+    fx0, _, fx1, _ = frame if frame is not None else box
+    mid = (x0 + x1) / 2
+    left = statistics.median(t.xc for t in ws0) < mid
+    a0, a1 = min(t.x0 for t in ws0), max(t.x1 for t in ws0)
+    lo, hi = min(float(lab[2]) for lab in chosen.labels), max(float(lab[2]) for lab in chosen.labels)
+    span = abs(float(chosen.value(y1)) - float(chosen.value(y0))) or 1.0
+    for c in cands:
+        if c is chosen or c.orient != "y" or len(c.labels) < 3 or c.method == "TEXT_CENTRE":
+            continue
+        theirs = {(lab[0], round(float(lab[2]), 1)) for lab in c.labels}
+        if len(theirs & mine) >= 0.5 * min(len(theirs), len(mine)):
+            continue
+        ws = label_words(c, texts)
+        if len(ws) < 3 or (statistics.median(t.xc for t in ws) < mid) != left:
+            continue
+        hm = statistics.median(t.h for t in ws)
+        b0, b1 = min(t.x0 for t in ws), max(t.x1 for t in ws)
+        if (left and b1 > fx0 + 0.5 * hm) or (not left and b0 < fx1 - 0.5 * hm):
+            continue                                   # inside the frame: curve labels or a legend
+        if max(0.0, b0 - a1, a0 - b1) > SECOND_AXIS_GAP_H * hm:
+            continue
+        ps = [float(lab[2]) for lab in c.labels]
+        if min(max(ps), hi) - max(min(ps), lo) < SECOND_AXIS_MIN_SPAN * abs(y1 - y0):
+            continue
+        if max(abs(float(c.value(p)) - float(chosen.value(p))) for p in (lo, hi)) > 0.01 * span:
+            return True
+    return False
+
+
 def power_of_ten_labels(ax: Any) -> bool:
     """Tick labels such as «100, 101, 102, 103» or «100, 102, 104»: powers of ten whose superscript exponent merged
     into the number (10³ read as 103; the exponent steps by 1 to 3) — a log axis calibrated as a linear one."""
@@ -804,7 +871,7 @@ def axis_flags(res: dict[str, Any], texts: list, paths: list, region, frame=None
     two axes of one orientation, power-of-ten labels read as numbers, thousands groups read as small numbers, an axis
     kept on three chance labels. ``frame`` and ``lines``: the chart frame and merged neutral lines (default
     :func:`chart_frame`)."""
-    from vkm_corpus.figures.calibrate import detect_axes, structure_lines
+    from vkm_corpus.figures.calibrate import detect_axes, structure_lines, structure_segments
     from vkm_corpus.figures.series import legend_text_ids
 
     xa, ya, box = res["x_axis"], res["y_axis"], res["plot_box"]
@@ -826,20 +893,23 @@ def axis_flags(res: dict[str, Any], texts: list, paths: list, region, frame=None
             flags.add("WEAK_AXIS_CALIBRATION")
     if (xa is not None and xa.label_source == "NATIVE") or (ya is not None and ya.label_source == "NATIVE"):
         snap_h, snap_v = structure_lines(paths)
+        struct = structure_segments(paths)            # labels snap beside them, as in the calibration (fd-0.1.5)
         segments = lines
         # every label counts for a second y axis, also those FD's legend rule sets aside: the labels of a right-hand
         # axis stand right of its tick marks exactly like legend labels right of their samples
-        _, _, all_cands = detect_axes(texts, snap_h, snap_v)
+        _, _, all_cands = detect_axes(texts, snap_h, snap_v, segments=struct)
         if xa is not None and ya is not None and xa.label_source == ya.label_source == "NATIVE" \
                 and labels_detached(xa, ya, texts, frame, segments, all_cands):
             flags.add("AXIS_LABELS_DETACHED")
         if ya is not None and ya.label_source == "NATIVE":
-            if other_axis(ya, all_cands, texts, box, frame, segments):
+            if other_axis(ya, all_cands, texts, box, frame, segments) or beside_axis(ya, all_cands, texts, box,
+                                                                                      frame):
                 flags.add("SECOND_Y_AXIS")
         if xa is not None and xa.label_source == "NATIVE":
             # x tick marks are vertical: the legend rule never hides an x axis, but it keeps legend rows (dates of
             # the curves under a chart) from passing for one
-            _, _, cands = detect_axes(texts, snap_h, snap_v, exclude=legend_text_ids(paths, texts, region))
+            _, _, cands = detect_axes(texts, snap_h, snap_v, exclude=legend_text_ids(paths, texts, region),
+                                      segments=struct)
             if other_axis(xa, cands, texts, box, frame, segments):
                 flags.add("SECOND_X_AXIS")
     return flags
@@ -876,6 +946,8 @@ def digitize_figure(page: Any, c: dict[str, Any], engine: Any, source_sha256: st
     n_outline, n_stroke = outlined_strokes(paths)
     if n_outline >= OUTLINE_MIN and n_outline > 2 * n_stroke:
         flags.add("STROKES_DRAWN_AS_OUTLINES")       # curves drawn as filled outlines: not traced, series missing
+    if res.get("other_panels"):
+        flags.add("OTHER_PANELS_IN_REGION")          # the box holds more charts; the axes are one chart's corner
     frame, lines = chart_frame(res, texts, paths)
     suspect = axis_flags(res, texts, paths, region, frame, lines)  # a suspect calibration makes every series suspect
     return assemble(c, res, ROUTE, prov, CONFIG, extra_flags=flags | suspect, series_flags=suspect,
@@ -904,24 +976,26 @@ def assemble(c: dict[str, Any], res: dict[str, Any], route: str, prov: dict[str,
     axis_status = res["axis_status"]
     box = [float(v) for v in (area or res["plot_box"])]
     series_rows, point_rows = [], []
-    for r in fd_rows:
+    for r, s in zip(fd_rows, res.get("series", [])):
         pts = r.pop("points")
         r.pop("schema", None)
+        sya = s.get("y_axis") or ya            # a series read on its own panel's y scale (Y_AXIS_PER_SERIES)
+        sys_ = _axis_summary(sya, pt_per_unit) if sya is not ya else ys
         xv = [p["x"] for p in pts if p.get("x") is not None]
         yv = [p["y"] for p in pts if p.get("y") is not None]
         dates = [p["x_date"] for p in pts if p.get("x_date")]
-        cal = "BOTH" if (xa is not None and ya is not None) else "X_ONLY" if xa is not None else \
-            "Y_ONLY" if ya is not None else "NONE"
+        cal = "BOTH" if (xa is not None and sya is not None) else "X_ONLY" if xa is not None else \
+            "Y_ONLY" if sya is not None else "NONE"
         inside = [in_plot_area(box, p.get("x_drawing"), p.get("y_drawing")) for p in pts]
         n_out = sum(1 for v in inside if v is False)
         extra = set(series_flags)
         if n_out:
             extra.add("POINTS_OUTSIDE_PLOT_AREA")
-        if max(beyond_ticks_share(xa, xv), beyond_ticks_share(ya, yv)) > BEYOND_TICKS_SHARE:
+        if max(beyond_ticks_share(xa, xv), beyond_ticks_share(sya, yv)) > BEYOND_TICKS_SHARE:
             extra.add("EXTRAPOLATED_BEYOND_TICKS")
         r.update({
             "axes_calibrated": cal, "x_cal_method": xs["method"], "x_cal_rms_pt": xs["rms_pt"],
-            "y_cal_method": ys["method"], "y_cal_rms_pt": ys["rms_pt"],
+            "y_cal_method": sys_["method"], "y_cal_rms_pt": sys_["rms_pt"],
             "x_min": min(xv) if xv else None, "x_max": max(xv) if xv else None,
             "y_min": min(yv) if yv else None, "y_max": max(yv) if yv else None,
             "x_date_min": min(dates) if dates else None, "x_date_max": max(dates) if dates else None,
@@ -935,8 +1009,8 @@ def assemble(c: dict[str, Any], res: dict[str, Any], route: str, prov: dict[str,
                 "source_id": r["source_id"], "page_id": r["page_id"], "series_label_raw": r["series_label_raw"],
                 "x": p.get("x"), "x_date": p.get("x_date"), "y": p.get("y"), "x_err": p.get("x_err"),
                 "y_err": p.get("y_err"), "x_unit_raw": r["x_unit_raw"], "y_unit_raw": r["y_unit_raw"],
-                "x_cal_method": xs["method"], "x_cal_rms_pt": xs["rms_pt"], "y_cal_method": ys["method"],
-                "y_cal_rms_pt": ys["rms_pt"], "x_page_pt": p.get("x_drawing"), "y_page_pt": p.get("y_drawing"),
+                "x_cal_method": xs["method"], "x_cal_rms_pt": xs["rms_pt"], "y_cal_method": sys_["method"],
+                "y_cal_rms_pt": sys_["rms_pt"], "x_page_pt": p.get("x_drawing"), "y_page_pt": p.get("y_drawing"),
                 "in_plot_area": ins, "status": STATUS, "review_status": REVIEW_STATUS,
                 "available_from": r["available_from"], "available_basis": r["available_basis"],
             })
@@ -945,7 +1019,8 @@ def assemble(c: dict[str, Any], res: dict[str, Any], route: str, prov: dict[str,
     for r in series_rows:
         flags |= {f for f in r["flags"] if f in ("LOCAL_OCR_CALIBRATION", "MODEL_HINT_IN_CAPTION", "RASTER",
                                                  "TRACE_GAP_NOT_FILLED", "POINTS_OUTSIDE_PLOT_AREA",
-                                                 "EXTRAPOLATED_BEYOND_TICKS") or f in SUSPECT_FLAGS}
+                                                 "EXTRAPOLATED_BEYOND_TICKS", "Y_AXIS_PER_SERIES",
+                                                 "LEGEND_MARKER_EXCLUDED") or f in SUSPECT_FLAGS}
     for ax in (xa, ya):
         if ax is not None and ax.label_source == "LOCAL_OCR":
             flags.add("LOCAL_OCR_CALIBRATION")

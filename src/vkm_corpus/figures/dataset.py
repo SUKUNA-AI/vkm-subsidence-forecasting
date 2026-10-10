@@ -78,7 +78,6 @@ def build_rows(ctx: FigureContext, result: dict, route: str, provenance: dict, c
         raise SeriesValidationError(f"unknown route {route}")
     xa, ya = result.get("x_axis"), result.get("y_axis")
     xq, xu = split_title(result.get("x_title_raw"))
-    yq, yu = split_title(result.get("y_title_raw"))
     hint = bool(ctx.caption_text_for_hints and MODEL_HINT.search(ctx.caption_text_for_hints))
     key = ctx.figure_id or f"{ctx.page_id}:{provenance.get('crop_box_pt')}"
     rows = []
@@ -87,6 +86,10 @@ def build_rows(ctx: FigureContext, result: dict, route: str, provenance: dict, c
         yerr = [p["y_err"] for p in pts if p.get("y_err") is not None]
         xerr = [p["x_err"] for p in pts if p.get("x_err") is not None]
         label = s.get("label_raw")
+        # a series read on the y scale of its own panel (fd-0.1.5, flag Y_AXIS_PER_SERIES) carries that axis
+        sya, syt = (s["y_axis"], s.get("y_title_raw")) if s.get("y_axis") is not None else \
+            (ya, result.get("y_title_raw"))
+        syq, syu = split_title(syt)
         unknown_avail = not ctx.available_from and ctx.publication_year is None
         flags = sorted(set(s.get("flags", [])) | ({"MODEL_HINT_IN_CAPTION"} if hint else set())
                        | ({"SCOPE_INHERITED_FROM_SOURCE"} if ctx.site_scope_raw else set())
@@ -100,8 +103,8 @@ def build_rows(ctx: FigureContext, result: dict, route: str, provenance: dict, c
             "series_nature": "UNCLASSIFIED",
             "x_quantity_raw": xq, "x_unit_raw": xu, "x_title_raw": result.get("x_title_raw"),
             "x_axis_kind": None if xa is None else xa.kind, "x_is_time": is_time_axis(xa, result.get("x_title_raw")),
-            "y_quantity_raw": yq, "y_unit_raw": yu, "y_title_raw": result.get("y_title_raw"),
-            "y_axis_kind": None if ya is None else ya.kind,
+            "y_quantity_raw": syq, "y_unit_raw": syu, "y_title_raw": syt,
+            "y_axis_kind": None if sya is None else sya.kind,
             "n_points": len(pts),
             "points": [{k: p.get(k) for k in ("i", "x", "x_date", "y", "x_err", "y_err", "x_drawing", "y_drawing")}
                        for p in pts],
@@ -109,7 +112,7 @@ def build_rows(ctx: FigureContext, result: dict, route: str, provenance: dict, c
             "y_err_median": None if not yerr else sorted(yerr)[len(yerr) // 2],
             "error_model": ("half-width in value units: axis label-fit rms ⊕ coordinate quantum (vector); "
                             "⊕ half the native pixel and half the stroke width (raster)"),
-            "calibration": json.dumps({"x": _axis_json(xa), "y": _axis_json(ya),
+            "calibration": json.dumps({"x": _axis_json(xa), "y": _axis_json(sya),
                                        "plot_box": result.get("plot_box"), "notes": result.get("notes", []),
                                        "axis_status": result.get("axis_status")}, ensure_ascii=False, default=float),
             "sampling": s.get("sampling", "VECTOR_VERTICES"),
