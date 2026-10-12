@@ -875,6 +875,12 @@ class EngineEffectJournal:
     O_APPEND after an exact device/inode check, and every record is fsynced
     together with its directory. Any torn, reordered, foreign or edited record
     fails closed; a torn tail is never auto-repaired (operator procedure).
+
+    Once bound, the journal holds a read-only descriptor of its inode on POSIX.
+    A file system may hand a freed inode number to the next created file (ext4
+    does so at once), so a journal replaced by identical bytes could otherwise
+    pass the device/inode check; an open descriptor keeps the bound inode
+    allocated and its number unique. NTFS file ids are not reused this way.
     """
 
     def __init__(self, path: Path, header: dict, *, clock: Callable[[], float] = time.time):
@@ -884,6 +890,29 @@ class EngineEffectJournal:
         self.header = dict(header)
         self.clock = clock
         self._identity = None
+        self._pin = None
+
+    def _bind(self, identity):
+        """Remember the journal inode; on POSIX keep it allocated (see the class docstring)."""
+        if os.name == "posix" and self._pin is None:
+            fd = os.open(self.path, self._flags(os.O_RDONLY))
+            held = os.fstat(fd)
+            if (held.st_dev, held.st_ino) != identity:
+                os.close(fd)
+                raise EngineJournalError("journal inode changed")
+            self._pin = fd
+        self._identity = identity
+
+    def close(self):
+        pin, self._pin = self._pin, None
+        if pin is not None:
+            os.close(pin)
+
+    def __del__(self):
+        try:
+            self.close()
+        except OSError:
+            pass
 
     def _flags(self, flags):
         return flags | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
@@ -913,6 +942,10 @@ class EngineEffectJournal:
                 raise EngineJournalError("journal inode changed")
         if self._identity is not None and identity != self._identity:
             raise EngineJournalError("journal inode changed")
+        if self._pin is not None:
+            pinned = os.fstat(self._pin)
+            if (pinned.st_dev, pinned.st_ino) != identity or pinned.st_nlink != 1:
+                raise EngineJournalError("journal inode changed")
         return identity
 
     def records(self) -> list[dict]:
@@ -961,7 +994,7 @@ class EngineEffectJournal:
             result.append(record)
         if result[0]["detail"] != self.header:
             raise EngineJournalError("journal belongs to another intent, plan or preserved set")
-        self._identity = identity
+        self._bind(identity)
         return result
 
     def append(self, phase: str, **detail) -> str:
@@ -994,7 +1027,7 @@ class EngineEffectJournal:
             raise EngineJournalError("journal appeared concurrently") from None
         try:
             held = os.fstat(fd)
-            self._identity = (held.st_dev, held.st_ino)
+            self._bind((held.st_dev, held.st_ino))
             self._write_all(fd, canonical_bytes(record) + b"\n")
         finally:
             os.close(fd)

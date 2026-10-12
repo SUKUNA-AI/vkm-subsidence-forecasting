@@ -1,0 +1,53 @@
+{
+ "rule": "seed_world_id_ledger_v1",
+ "runs": [
+  "high_full",
+  "wave2_high",
+  "double"
+ ],
+ "v1_tables": {
+  "passport_evidence.csv": "3df7e70e002ad835267e1bb4243148deeca6324c4679d96a69941cbc740ffcb2",
+  "world_passport.csv": "114de0b2f972d69195ccab2f2bcfdf8a72ba1ad59c96e7ffeccc03c4eaf50dcb",
+  "world_priors_proposal.csv": "94c99fff60b01016fb935940d32d9619987349a8e812ea53e51a0727e7192f9a"
+ },
+ "inputs": {
+  "BOREHOLES/borehole_catalog.csv": "a0056127970432e7f58e176d3a94b987af58fa5f91c194c1121e72fc4bae29d7",
+  "BOREHOLES/borehole_picks.csv": "9b92a56c1880b9d433ed3f1c3856498a0c4601654c5ab7a3701e3d6e501cba62",
+  "GEOLOGY_COORDS/stratigraphic_units.csv": "f0832ab6772f8595cf38aed5dcf6d91d8047229890f5bc07e635ebc72c961f90",
+  "WORLD_EXTRACTION/adjudication/adjudication_20261010.jsonl": "4f9e1a2a38e47da0203c547017f5397454f13d7d263110fffcc9ec306aca5f69",
+  "WORLD_EXTRACTION/adjudication/adjudication_20261010_plausibility.jsonl": "aed27ba3cfa3a84defcd32fa3602cc171ad87000f1016c671ebcad6eff1e7223",
+  "WORLD_EXTRACTION/adjudication/adjudication_20261010_verified.jsonl": "cecc519224111534e014aec8bbc2582dda4079bfbf0c4d7c75efa3e98bb0166e",
+  "WORLD_EXTRACTION/adjudication/adjudication_20261011_wave2.jsonl": "ae942ec2f19d83ae7fd8e1d3881777abfcdf34a93865a385f71cf6316ab8bce4",
+  "WORLD_EXTRACTION/double/accepted.jsonl": "2dc627a19ce20cfe2ac9f61aa74c8818019aa26236f0456f4a550eca3fdb9de0",
+  "WORLD_EXTRACTION/high_full/accepted.jsonl": "90e823aab3786b305d3be64f88e0a809a94729ea6abd41f2a7ab2376092740c1",
+  "WORLD_EXTRACTION/wave2_high/accepted.jsonl": "7e32f8f68aa200c4fc3b204577d971abecc5bc426eeebfa1ce6820e10e3115fc",
+  "WORLD_PARAMETERS/curated/bkpru4_mining_calendar_20261010.csv": "56374bacccf08d2fbc3da097c2f2b8c28e993f5b502b7a28875480b806d86d52",
+  "WORLD_PARAMETERS/curated/borehole_picks_20261010.csv": "71f80fa6140fa3d5d1af6c53e1e335a1d0b78f0af7bb4a17ba027e1e05b278e3",
+  "WORLD_PARAMETERS/curated/c2_creep_laws.csv": "261e8b1136ee07227ca56aa10c96811088775758dc36b1ddcfba0c2515aece4f",
+  "WORLD_PARAMETERS/curated/c3_parameters.csv": "79713132f139a08164052870fae59806901ae53cc53c7ebe2cab1cf5bec1f75f",
+  "WORLD_PARAMETERS/curated/c4_backfill_parameters.csv": "dea2e2d83f5a2b0ecf134520e0c76a0c0daf2dadc649c8ba0c5417568a7522c0",
+  "WORLD_PARAMETERS/curated/skru1_c1_column.csv": "d67b986ab9e914e80e9f775ca81966217100639b2782c6a950b28e5efa981d65",
+  "WORLD_PARAMETERS/curated/skru1_c4_chamber_design.csv": "4378761fc7613eb55c4bebbdced422d0d02531eee141467695ac79028e4bfc0b",
+  "WORLD_PARAMETERS/curated/skru1_c4_extraction_history.csv": "dd8d02a958fb886077d4fc5344a756300d8aabada33de390a3232bb52ea27dfc",
+  "WORLD_PARAMETERS/curated/skru1_mining_calendar_20261010.csv": "69e4d9247689aa816d7d344bf2f59a6e6e915f74d6b937fecbb7a57cfb274827",
+  "WORLD_PARAMETERS/curated/skru2_mining_calendar_20261010.csv": "8cf3ace8bf2fe1cf35e09e5c250fe2c161e36c79ec12fbf159aa0d7bc61ff828",
+  "WORLD_PARAMETERS/curated/skru3_mining_calendar_20261010.csv": "1e25e10d0f9e4a5b5b23121dcbbbf2b1b93feac0f5d84605d18d3c532632e537",
+  "WORLD_PARAMETERS/curated/source_site_ranges_20261010.csv": "cdef9ef6946e304caf9c8c86e602b880547cac41d7715bd8e3d6f7c047ba9f1e",
+  "WORLD_PARAMETERS/world_c1_thickness_evidence.csv": "627d929154aa52208e1e42e89bbd77542874c9e2e9544c5ceab70257759b244f",
+  "WORLD_PARAMETERS/world_parameter_evidence.csv": "097a0223cde5cfec543d7b669aa988c7f008dc528e4f05d22677e9cdadf47a16"
+ },
+ "check": {
+  "wpv_rows_reproduced": 55893,
+  "wpv_mismatches": 0
+ },
+ "counts": {
+  "WPV": 55893,
+  "WPP": 3119,
+  "WPR": 594
+ },
+ "outputs": {
+  "evidence_id_ledger.csv": "a093785a0bc9be96045846eac3ac9b931472e9f58c9e439ecb8a03c6dbaf8c1d",
+  "passport_id_ledger.csv": "0a7af25b7310aaaea1ca678271ab03d017338369c8b257dc487adba0e44e1680",
+  "priors_id_ledger.csv": "1ae63ed61aab0a70f0bac1e96ae8069bee4acc41d4bfd195030a047ee441e3a2"
+ }
+}

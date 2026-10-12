@@ -170,6 +170,45 @@ class NativeAcceptance(unittest.TestCase):
         self.assertIn("INVALID_SOURCE_GEOMETRY", str(receipt["errors"]))
         self.assertFalse((out / "data.gpkg").exists())
 
+    def test_geojson_fid_zero_empty_geometry_and_crs84_roundtrip(self):
+        root = ROOT / "geojson"; root.mkdir()
+        polygon = {"type": "MultiPolygon", "coordinates": [[[[56.8, 59.6], [56.81, 59.6], [56.81, 59.61], [56.8, 59.6]]]]}
+        features = [{"type": "Feature", "properties": {"zone": 1.5, "name": "Зона"}, "geometry": polygon},
+                    {"type": "Feature", "properties": {"zone": 1.5, "name": "Зона"}, "geometry": polygon},
+                    {"type": "Feature", "properties": {"zone": None, "name": None},
+                     "geometry": {"type": "MultiPolygon", "coordinates": []}}]
+        doc = {"type": "FeatureCollection", "crs": {"type": "name", "properties":
+                                                    {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}}, "features": features}
+        (root / "zones.geojson").write_text(json.dumps(doc, ensure_ascii=False), encoding="utf-8")
+        v = manifest(root, "zones.geojson")
+        report = inspect_vector(root, v, "zones.geojson")
+        self.assertEqual(report["driver"], "GeoJSON")
+        self.assertIn("CRS84", report["native_header"]["crs_member"])
+        receipt = convert_to_gpkg(root, v, "zones.geojson", ROOT / "geojson-converted")
+        self.assertEqual(receipt["status"], "PASS_CONVERSION", receipt["errors"])
+        self.assertEqual(receipt["source_layers"][0]["fid_sha256"], receipt["target_layers"][0]["fid_sha256"])
+        target = ogr.Open(str(ROOT / "geojson-converted" / "data.gpkg"))
+        layer = target.GetLayer(0)
+        self.assertEqual([f.GetFID() for f in layer], [0, 1, 2])                   # FID 0 kept, duplicates kept
+        empty = layer.GetFeature(2)
+        self.assertTrue(empty.GetGeometryRef().IsEmpty())                         # empty geometry kept, not dropped
+        self.assertEqual(layer.GetSpatialRef().GetAuthorityCode(None), "4326")
+
+    def test_csv_stays_text_with_bom_and_semicolon(self):
+        root = ROOT / "csv"; root.mkdir()
+        (root / "показатели.csv").write_bytes("﻿xcoord;ycoord;Load\r\n56.8462479;59.63692303;0.602272727\r\n"
+                                             "56.8462479;59.63692303;0.10\r\n".encode("utf-8"))
+        v = manifest(root, "показатели.csv")
+        receipt = convert_to_gpkg(root, v, "показатели.csv", ROOT / "csv-converted")
+        self.assertEqual(receipt["status"], "PASS_CONVERSION", receipt["errors"])
+        self.assertTrue(receipt["native_header"]["utf8_bom"])
+        self.assertEqual(receipt["native_header"]["separator_counts"][";"], 2)
+        target = ogr.Open(str(ROOT / "csv-converted" / "data.gpkg"))
+        layer = target.GetLayer(0)
+        self.assertEqual([layer.GetLayerDefn().GetFieldDefn(i).GetTypeName() for i in range(3)], ["String"] * 3)
+        self.assertEqual([f.GetField("Load") for f in layer], ["0.602272727", "0.10"])   # text, no float rounding
+        self.assertEqual(layer.GetLayerDefn().GetGeomType(), ogr.wkbNone)
+
     def test_xls_native_formulas_and_hidden_sheet(self):
         import xlwt
         root = ROOT / "xls"; root.mkdir()

@@ -45,11 +45,21 @@ from pathlib import Path
 
 csv.field_size_limit(sys.maxsize)
 ROOT = Path(__file__).resolve().parents[1]
-RULE_VERSION = "world_passport_v1"
+RULE_VERSION = "world_passport_v2"
 _spec = importlib.util.spec_from_file_location("build_world_parameters", ROOT / "scripts" / "build_world_parameters.py")
 WP = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(WP)
 convert, material_class, site_group = WP.convert, WP.material_class, WP.site_group
+sys.path.insert(0, str(ROOT / "src"))
+from vkm_world.extraction import passport_rules as PR  # noqa: E402
+
+CODE_FILES = ("scripts/build_world_passport.py", "scripts/build_world_parameters.py",
+              "src/vkm_world/extraction/passport_rules.py", "src/vkm_world/extraction/compare.py",
+              "src/vkm_world/extraction/objects.py")
+LEDGERS = {"WPV": "evidence_id_ledger.csv", "WPP": "passport_id_ledger.csv"}   # WPV: PRIVATE only (size)
+# every input file actually read by this build (path relative to the canonical root → SHA-256 or ABSENT)
+_READ: dict[str, str] = {}
+_CANON: list[Path] = []
 
 # parameter code (Sol schema / Phase 1) → (module, unit kind, SI unit, quantity)
 PARAM = {
@@ -128,12 +138,32 @@ def _key(s: str | None) -> str:
     return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", t)).strip()
 
 
+def _record(p: Path) -> bytes | None:
+    """Read an input and record it in the receipt (relative to the canonical root; ABSENT when missing)."""
+    try:
+        rel = p.resolve().relative_to(_CANON[0].resolve()).as_posix() if _CANON else p.name
+    except ValueError:
+        rel = p.name
+    if not p.is_file():
+        _READ.setdefault(rel, "ABSENT")
+        return None
+    data = p.read_bytes()
+    _READ[rel] = hashlib.sha256(data).hexdigest()
+    return data
+
+
+def _text(data: bytes) -> str:
+    return io.StringIO(data.decode("utf-8"), newline=None).read()     # universal newlines, as open() reads
+
+
 def _rows(p: Path) -> list[dict]:
-    return list(csv.DictReader(open(p, encoding="utf-8"))) if p.is_file() else []
+    data = _record(p)
+    return list(csv.DictReader(io.StringIO(_text(data)))) if data is not None else []
 
 
 def _jsonl(p: Path) -> list[dict]:
-    return [json.loads(x) for x in open(p, encoding="utf-8")] if p.is_file() else []
+    data = _record(p)
+    return [json.loads(x) for x in _text(data).split("\n") if x.strip()] if data is not None else []
 
 
 # ------------------------------------------------------------------------------------------- C1 unit vocabulary
@@ -187,7 +217,8 @@ def phase1_rows(canon: Path) -> list[dict]:
                         value_as_printed=r["thickness_as_printed"], unit_as_printed="м",
                         si_min=r["thickness_min_m"], si_max=r["thickness_max_m"], si_unit="m", conversion="x1",
                         conditions=r["spatial_level"], method=r["observation_type"], n_samples="",
-                        origin="CITED" if r["secondary_copy_of"] else "ORIGINAL", cited_ref="",
+                        # no origin field: a row that is not a recorded copy is not thereby the original
+                        origin="CITED" if r["secondary_copy_of"] else "UNKNOWN", cited_ref="",
                         source_id=r["source_id"], page_id=_page_id(r["source_id"], r["pdf_page"]),
                         locator=r["locator"], quote="", status=r["status"], verification="PHASE1_REVIEWED",
                         notes=f"secondary copy of {r['secondary_copy_of']}" if r["secondary_copy_of"] else ""))
@@ -369,8 +400,11 @@ def curated_rows(canon: Path) -> list[dict]:
             else:
                 code = BACKFILL_KIND.get(r.get("parameter_kind") or "", f"BACKFILL_{r.get('parameter_kind') or 'OTHER'}")
             scale = SCALE_NORM.get(r.get("scale", ""), r.get("scale") or "UNKNOWN")
-            out.append(dict(producer="CURATED_LAWS_20261009", producer_record_id=r.get("law_id") or r.get("bf_id") or
+            # one law (law_id) has several rows: the row is the record (row_id), the law id stays in the notes
+            out.append(dict(producer="CURATED_LAWS_20261009", producer_record_id=r.get("row_id") or r.get("bf_id") or
+                            r.get("law_id") or "", _legacy_record_id=r.get("law_id") or r.get("bf_id") or
                             r.get("row_id") or "", module=module, parameter=code,
+                            equation_as_printed=r.get("equation_normalized") or r.get("equation_as_printed") or "",
                             target=(r.get("material_class") or "UNCLASSIFIED") if module == "C2" else "BACKFILL",
                             material_class=r.get("material_class", ""),
                             material_as_printed=r.get("lithology_as_printed") or r.get("material_as_printed", ""),
@@ -386,7 +420,7 @@ def curated_rows(canon: Path) -> list[dict]:
                             page_id=r.get("page_id", ""), locator=r.get("locator", ""), quote=r.get("quote", ""),
                             status=r.get("status", ""), verification="VERIFIED_ON_PAGE_BY_AGENT"
                             if r.get("verified_on_page") == "YES" else "NOT_VERIFIED",
-                            notes=" ".join(x for x in (r.get("family", ""), r.get("parameter", ""),
+                            notes=" ".join(x for x in (r.get("law_id", ""), r.get("family", ""), r.get("parameter", ""),
                                                         r.get("equation_normalized", ""), r.get("notes", "")) if x)[:300],
                             conflict_ids=r.get("conflict_ids", "")))
     return out
@@ -412,9 +446,10 @@ def skru1_rows(canon: Path, units: Units) -> list[dict]:
                     origin=origin, cited_ref="", source_id=src, page_id=_page_id(src, page), locator=loc, quote="",
                     status=status, verification="HAND_SHEET_08_10", notes=notes[:300],
                     time_as_printed=value if param in ("MINING_DATE", "BACKFILL_DATE") else "")
+    # the hand sheets of 08.10 record no origin of the numbers: UNKNOWN, never ORIGINAL by default
     for i, r in enumerate(_rows(cur / "skru1_c1_column.csv"), 1):
         out.append(row(f"SKRU1-C1-{i:03d}", "C1", "THICKNESS", units.unit_of(r["unit"]) or r["unit"], r["thickness_m"],
-                       "m", "FIELD", "ORIGINAL", r["source_id"], r["pdf_page"], r["locator"],
+                       "m", "FIELD", "UNKNOWN", r["source_id"], r["pdf_page"], r["locator"],
                        r["thickness_status"], f"{r['support']}; {r['unit']}; {r['reading_error_m']}; {r['note']}",
                        r["support_kind"]))
     for i, r in enumerate(_rows(cur / "skru1_c4_chamber_design.csv"), 1):
@@ -424,7 +459,7 @@ def skru1_rows(canon: Path, units: Units) -> list[dict]:
                                  ("areal_extraction_ratio", "EXTRACTION_RATIO", "1")):
             if r[col]:
                 out.append(row(f"SKRU1-C4D-{i:02d}-{param}", "C4", param, f"{r['seam']}: {r['zone']}", r[col], unit,
-                               "DESIGN", "ORIGINAL", r["source_id"], page, r["locator"], r["status"],
+                               "DESIGN", "UNKNOWN", r["source_id"], page, r["locator"], r["status"],
                                f"{r['label']}; {r['extraction_ratio_status'] if param == 'EXTRACTION_RATIO' else ''}; "
                                f"{r['note']}"))
     for i, r in enumerate(_rows(cur / "skru1_c4_extraction_history.csv"), 1):
@@ -524,9 +559,11 @@ def borehole_rows(canon: Path, units: Units) -> list[dict]:
                             f"скв. {name}" + (f" ({bh})" if bh else ""), area, r.get("pick_kind"),
                             r.get("reference") and f"отсчёт: {r.get('reference')}") if x)[:300],
                         method=r.get("extraction_method") or r.get("read_from") or "", n_samples="1",
-                        origin="ORIGINAL", cited_ref="", source_id=r.get("source_id") or (r.get("page_id") or "")
+                        # the pick tables record no origin; a missing status is UNKNOWN, never FACT
+                        origin=r.get("original_or_cited") or "UNKNOWN", cited_ref="",
+                        source_id=r.get("source_id") or (r.get("page_id") or "")
                         .split(":")[0], page_id=r.get("page_id") or "", locator=r.get("locator") or "",
-                        quote=r.get("quote") or "", status=r.get("status") or "FACT",
+                        quote=r.get("quote") or "", status=r.get("status") or "UNKNOWN",
                         verification="PHASE1_REVIEWED" if prod == "PHASE1_BOREHOLE_PICKS"
                         else (r.get("verification") or "ADJUDICATED_TWO_LENS"), notes=(r.get("notes") or "")[:300],
                         kind="GEOMETRY", time_as_printed="", borehole_id=bh)
@@ -560,7 +597,9 @@ def calendar_rows(canon: Path) -> list[dict]:
                         site_norm=r.get("site_norm") or "UNKNOWN",
                         site_group=SITE_GROUP.get(r.get("site_norm") or "UNKNOWN", "GENERAL_OR_UNSTATED"),
                         site_basis="PAGE", conditions=f"{ev}; {plan}", method=r.get("method_as_printed") or "",
-                        n_samples="", origin="CITED" if "вторич" in (r.get("note") or "") else "ORIGINAL",
+                        # the calendars record no origin; a note «вторич…» marks a retelling, its absence proves nothing
+                        n_samples="", origin=r.get("original_or_cited") or
+                        ("CITED" if "вторич" in (r.get("note") or "") else "UNKNOWN"),
                         cited_ref="", source_id=r.get("source_id") or "", page_id=r.get("page_id") or "",
                         locator=r.get("locator") or "", quote=r.get("quote") or "", status=r.get("status") or "",
                         verification="VERIFIED_ON_PAGE_BY_AGENT" if r.get("verified_on_page") in ("YES", "SOURCE_FILE")
@@ -582,11 +621,28 @@ def calendar_rows(canon: Path) -> list[dict]:
     return out
 
 
-def clusters(ev: list[dict]) -> None:
-    """Copies of one number: same parameter, target, SI min/max (or printed value and unit) in several rows.
-    ORIGINAL rows of the earliest source are primary; others are copies or cross-producer duplicates."""
+COUNTED_MODULES = ("C1", "C2", "C3", "C4")
+
+
+def clusters(ev: list[dict], reextracted: dict[str, str] | None = None,
+             cited_sources: dict[str, set[str]] | None = None) -> None:
+    """Equal numbers: same parameter, target, SI min/max (or printed value and unit) in several rows form a cluster of
+    match candidates. Equality of numbers is not identity — different boreholes, samples, table cells, sites, scales,
+    branches or times print equal numbers. A row leaves the counting only when its identity is confirmed:
+
+    - ``CONFIRMED_REEXTRACTION`` — the double-entry record of a statement that the producer run also extracted
+      (one-to-one MATCH on the page: same number, unit, parameter, scale, site and rock; ``reextracted``:
+      double record id → producer record id), when the producer row is counted;
+    - ``COPY_CITED_CONFIRMED`` — a CITED row whose cited work resolves to the source of the ORIGINAL primary
+      (``cited_sources``: ev id → corpus sources of the resolved cited works), same scale, branch and site group.
+
+    Everything else stays counted: ``SAME_PAGE_VALUE_CANDIDATE`` (same page as the primary: possibly another cell),
+    ``COPY_CITED_CANDIDATE`` (a retelling without a resolved link to the primary), ``SAME_VALUE_OTHER_SOURCE``."""
+    reextracted, cited_sources = reextracted or {}, cited_sources or {}
+    counted_producer = {x["producer_record_id"]: x for x in ev if x["producer"] != "CLAUDE_DOUBLE_ENTRY"}
     groups = defaultdict(list)
     for x in ev:
+        x["copy_cluster"], x["copy_role"], x["cluster_sources"], x["cluster_producers"] = "", "", "", ""
         if x["si_min"] != "":
             k = (x["parameter"], x["target"], f"{float(x['si_min']):.4g}", f"{float(x['si_max']):.4g}")
         elif x["value_as_printed"]:
@@ -596,42 +652,56 @@ def clusters(ev: list[dict]) -> None:
         groups[k].append(x)
     n = 0
     for k, xs in sorted(groups.items()):
-        srcs = {x["source_id"] for x in xs}
-        prods = {x["producer"] for x in xs}
         if len(xs) < 2:
             continue
+        srcs = {x["source_id"] for x in xs}
+        prods = {x["producer"] for x in xs}
         n += 1
         cid = f"CC-{n:05d}"
-        orig = [x for x in xs if x["origin"] == "ORIGINAL"]
-        prim = min(orig or xs, key=lambda x: (x["source_id"], x["producer"] != "PHASE1_CATALOGUE", x["page_id"]))
+        members = {id(x) for x in xs}
+        reext = set()
         for x in xs:
             x["copy_cluster"] = cid
-            if x is prim:
-                x["copy_role"] = "PRIMARY"
-            elif x["source_id"] == prim["source_id"] and x["page_id"] == prim["page_id"]:
-                x["copy_role"] = "SAME_NUMBER_OTHER_PRODUCER"
-            elif x["origin"] == "CITED":
-                x["copy_role"] = "COPY_CITED"
-            else:
-                x["copy_role"] = "SAME_VALUE_OTHER_SOURCE"
             x["cluster_sources"] = len(srcs)
             x["cluster_producers"] = len(prods)
+            partner = counted_producer.get(reextracted.get(x["producer_record_id"], "")) \
+                if x["producer"] == "CLAUDE_DOUBLE_ENTRY" else None
+            if partner is not None and id(partner) in members and partner["module"] in COUNTED_MODULES:
+                reext.add(id(x))
+        pool = [x for x in xs if id(x) not in reext]
+        orig = [x for x in pool if PR.origin_class(x["origin"]) == PR.ORIGINAL]
+        prim = min(orig or pool, key=lambda x: (x["source_id"], x["producer"] != "PHASE1_CATALOGUE", x["page_id"]))
+        for x in xs:
+            if id(x) in reext:
+                x["copy_role"] = "CONFIRMED_REEXTRACTION"
+            elif x is prim:
+                x["copy_role"] = "PRIMARY"
+            elif PR.origin_class(x["origin"]) == PR.CITED:
+                same_ctx = (x["scale"], x["branch"], x["site_group"]) == (prim["scale"], prim["branch"],
+                                                                          prim["site_group"])
+                confirmed = (prim in orig and same_ctx and prim["source_id"] in cited_sources.get(x["ev_id"], ()))
+                x["copy_role"] = "COPY_CITED_CONFIRMED" if confirmed else "COPY_CITED_CANDIDATE"
+            elif x["source_id"] == prim["source_id"] and x["page_id"] == prim["page_id"]:
+                x["copy_role"] = "SAME_PAGE_VALUE_CANDIDATE"
+            else:
+                x["copy_role"] = "SAME_VALUE_OTHER_SOURCE"
+    for x in ev:                                    # a re-extraction whose producer row has another target / value
+        if (x["producer"] == "CLAUDE_DOUBLE_ENTRY" and x["producer_record_id"] in reextracted
+                and x["copy_role"] not in PR.CONFIRMED_DUPLICATE_ROLES):
+            x["copy_role"] = x["copy_role"] or "REEXTRACTION_CANDIDATE"
 
 
-def double_entry_flags(ev: list[dict], canon: Path, sol_run: str) -> dict:
-    """For Sol records on double-entry packets: MATCH / ATTRIBUTION_DIFF:<fields> / NOT_IN_DOUBLE."""
-    sys.path.insert(0, str(ROOT / "src"))
+def double_entry_flags(ev: list[dict], canon: Path, sol_run: str) -> tuple[dict, dict[str, str]]:
+    """For Sol records on double-entry packets: MATCH / ATTRIBUTION_DIFF:<fields> / NOT_IN_DOUBLE. Also returns the
+    confirmed re-extractions: double record id → Sol record id of every MATCH pair."""
     from vkm_world.extraction import compare as C
     sol = _jsonl(canon / "WORLD_EXTRACTION" / sol_run / "accepted.jsonl")
     dbl = _jsonl(canon / "WORLD_EXTRACTION" / "double" / "accepted.jsonl")
     if not sol or not dbl:
-        return {}
-    man = canon / "WORLD_EXTRACTION" / "packets.jsonl"
+        return {}, {}
     pages = {}
-    if man.is_file():
-        for line in open(man, encoding="utf-8"):
-            m = json.loads(line)
-            pages[m["packet_id"]] = set(m["page_ids"])
+    for m in _jsonl(canon / "WORLD_EXTRACTION" / "packets.jsonl"):
+        pages[m["packet_id"]] = set(m["page_ids"])
     covered_sol = {pg for pid in {r["packet_id"] for r in sol} for pg in pages.get(pid, ())}
     covered_dbl = {pg for pid in {r["packet_id"] for r in dbl} for pg in pages.get(pid, ())}
     common_pages = covered_sol & covered_dbl if pages else ({r["page_id"] for r in sol} & {r["page_id"] for r in dbl})
@@ -639,11 +709,13 @@ def double_entry_flags(ev: list[dict], canon: Path, sol_run: str) -> dict:
     a = [r for r in sol if r["page_id"] in common_pages]
     b = [r for r in dbl if r["page_id"] in common_pages]
     pairs, only_a, only_b = C.match(a, b)
-    flag = {}
+    flag, reext = {}, {}
     for r, s in pairs:
         d = C.attribution_diff(r, s)
         flag[r["record_id"]] = "MATCH" if not d else "ATTRIBUTION_DIFF:" + ";".join(d)
         flag[s["record_id"]] = flag[r["record_id"]]
+        if not d:
+            reext[s["record_id"]] = r["record_id"]
     for r in only_a:
         flag[r["record_id"]] = "NOT_IN_DOUBLE"
     for s in only_b:
@@ -653,8 +725,8 @@ def double_entry_flags(ev: list[dict], canon: Path, sol_run: str) -> dict:
             x["double_entry"] = flag[x["producer_record_id"]]
     summ = C.agreement(a, b)
     summ.update(reference="CLAUDE_DOUBLE_ENTRY is B, the producer run is A", packets_double=len(common),
-                common_pages=len(common_pages))
-    return summ
+                common_pages=len(common_pages), confirmed_reextractions=len(reext))
+    return summ, reext
 
 
 # ------------------------------------------------------------------------------------------------ registry
@@ -669,9 +741,22 @@ def _stats(vals: list[float]) -> dict:
 RANK = {"UNKNOWN": 0, "SCENARIO_RANGE": 1, "ANALOGUE_VIA_TRANSFER": 2, "FACT": 3}
 
 
+def registry_key(x: dict, unit: str | None = None) -> tuple[str, str]:
+    """(natural key, base key) of the registry group of an evidence row. The base is the key of rule v1
+    (module | parameter | target | site group | branch); v2 keeps measurements, published-model parameters and norms
+    apart (evidence kind), never merges SI units, and keeps different definitions of a creep law apart. A row without
+    an SI value carries no unit: it joins the single unit of its group (``unit``)."""
+    base = "|".join((x["module"], x["parameter"], x["target"] or "UNSPECIFIED", x["site_group"], x["branch"]))
+    parts = [PR.evidence_kind(x["scale"]), x["si_unit"] or unit or "-"]
+    if x["module"] == "C2" and x["parameter"].startswith("CREEP"):
+        parts.append(PR.definition_key(x.get("equation_as_printed")))
+    return base + "|" + "|".join(parts), base
+
+
 def world_status(rows: list[dict], branch: str, site: str) -> tuple[str, str]:
-    """(status for the world, basis). FACT only for SKRU-1 field / massif evidence of the source itself."""
-    orig = [x for x in rows if x["origin"] != "CITED"]
+    """(status for the world, basis). FACT only for SKRU-1 field / massif evidence of the source itself whose value
+    was checked on the page (:func:`vkm_world.extraction.passport_rules.fact_failures`): UNKNOWN origin is not
+    ORIGINAL, the name of the mine or a number alone never gives FACT."""
     if not rows:
         return "UNKNOWN", "нет evidence"
     if branch == "N":
@@ -680,10 +765,11 @@ def world_status(rows: list[dict], branch: str, site: str) -> tuple[str, str]:
         return "SCENARIO_RANGE", "ветка A: лабораторное значение × масштабный коэффициент LAB → MASSIF (Transfer)"
     if branch in ("B", "M"):
         return "SCENARIO_RANGE", "ветка B: эффективное / расчётное значение источника (MODEL_CHOICE источника)"
-    if site == "SKRU1" and orig and all(x["scale"] in ("FIELD", "MASSIF") for x in orig):
-        return "FACT", "натурные данные СКРУ-1, оригинал"
     if site == "SKRU1":
-        return "SCENARIO_RANGE", "СКРУ-1, но не натурный оригинал (пересказ / неизвестный масштаб)"
+        why = PR.fact_failures(rows)
+        if not why:
+            return "FACT", "натурные данные СКРУ-1, первоисточник, значение проверено по странице"
+        return "SCENARIO_RANGE", "СКРУ-1, не FACT: " + "; ".join(why)
     if site in ("OTHER_VKM_SITE", "VKM_REGIONAL"):
         return "ANALOGUE_VIA_TRANSFER", "ВКМ, не СКРУ-1: перенос только через явный Transfer"
     if site == "NON_VKM":
@@ -703,26 +789,50 @@ def transfer_links(transfers: list[dict]) -> dict[tuple[str, str], list[str]]:
     return out
 
 
-def registry(ev: list[dict], conflicts_by_ev: dict, transfers: dict | None = None) -> list[dict]:
+def _unit_cell(x: dict) -> tuple:
+    """The registry group of a row without its unit (rows without an SI value take the unit of this cell)."""
+    return (x["module"], x["parameter"], x["target"] or "UNSPECIFIED", x["site_group"], x["branch"],
+            PR.evidence_kind(x["scale"]), PR.definition_key(x.get("equation_as_printed"))
+            if x["module"] == "C2" and x["parameter"].startswith("CREEP") else "")
+
+
+def registry(ev: list[dict], conflicts_by_ev: dict, transfers: dict | None = None,
+             ledger: "PR.IdLedger | None" = None) -> tuple[list[dict], list[dict]]:
+    """Registry of the world parameters: one row per natural key (:func:`registry_key`) with the range of its counted
+    evidence (confirmed duplicates are not counted twice; match candidates are counted and reported). Ids come from
+    the ledger (stable across builds). Returns (registry rows, registry → evidence links)."""
     transfers = transfers or {}
-    groups = defaultdict(list)
-    for x in ev:
-        if x["module"] not in ("C1", "C2", "C3", "C4"):
-            continue
-        if x.get("copy_role") in ("COPY_CITED", "SAME_NUMBER_OTHER_PRODUCER"):
-            continue                                 # a copy does not count twice
-        groups[(x["module"], x["parameter"], x["target"] or "UNSPECIFIED", x["site_group"], x["branch"])].append(x)
+    ledger = ledger if ledger is not None else PR.IdLedger()
+    groups, meta = defaultdict(list), {}
+    counted = [x for x in ev if x["module"] in COUNTED_MODULES
+               and x.get("copy_role") not in PR.CONFIRMED_DUPLICATE_ROLES]   # a confirmed duplicate counts once
+    units = defaultdict(set)
+    for x in counted:
+        if x["si_unit"]:
+            units[_unit_cell(x)].add(x["si_unit"])
+    for x in counted:
+        u = units.get(_unit_cell(x), set())
+        k, base = registry_key(x, next(iter(u)) if len(u) == 1 else None)
+        groups[k].append(x)
+        meta[k] = (base, x["module"], x["parameter"], x["target"] or "UNSPECIFIED", x["site_group"], x["branch"],
+                   PR.evidence_kind(x["scale"]), x["si_unit"],
+                   PR.definition_key(x.get("equation_as_printed")) if x["module"] == "C2"
+                   and x["parameter"].startswith("CREEP") else "")
     for mod, params in REQUIRED.items():
         targets = WORLD_CLASSES if mod == "C2" else ("UNSPECIFIED",)
         for p in params:
             for t in targets:
                 if mod == "C2" and t == "BACKFILL" and p not in ("RHO", "E", "CREEP_LAW_PARAM"):
                     continue
-                if not any(k[0] == mod and (k[2] == t or mod != "C2") and
-                           (k[1] == p or (p == "CREEP_LAW_PARAM" and k[1].startswith("CREEP"))) for k in groups):
-                    groups[(mod, p, t, "SKRU1", "-")] = []
-    out = []
-    for (mod, p, t, site, br), xs in sorted(groups.items()):
+                if not any(m[1] == mod and (m[3] == t or mod != "C2") and
+                           (m[2] == p or (p == "CREEP_LAW_PARAM" and m[2].startswith("CREEP"))) for m in meta.values()):
+                    base = "|".join((mod, p, t, "SKRU1", "-"))
+                    groups[base + "|NO_EVIDENCE|-"] = []
+                    meta[base + "|NO_EVIDENCE|-"] = (base, mod, p, t, "SKRU1", "-", "", "", "")
+    ids = ledger.assign("WPP", [(k, m[0]) for k, m in meta.items()], RULE_VERSION, 5)
+    out, links = [], []
+    for k, xs in groups.items():
+        base, mod, p, t, site, br, kind, unit, dkey = meta[k]
         vals = [float(v) for x in xs for v in {x["si_min"], x["si_max"]} if v != ""]
         st, basis = world_status(xs, br, site)
         hints = {x.get("world_status_hint") for x in xs} - {None, ""}
@@ -731,27 +841,32 @@ def registry(ev: list[dict], conflicts_by_ev: dict, transfers: dict | None = Non
             basis += f"; оценка листа 09.10: {st}"
         cf = sorted({c for x in xs for c in conflicts_by_ev.get(id(x), ())} |
                     {c for x in xs for c in (x.get("conflict_ids") or "").split(";") if c})
-        rec = {"passport_id": "", "module": mod, "parameter": p, "quantity": PARAM.get(p, ("", "", "", p))[3],
-               "target": t, "site_group": site, "branch": br, "world_status": st, "status_basis": basis,
+        rec = {"passport_id": ids[k], "natural_key": k, "module": mod, "parameter": p,
+               "quantity": PARAM.get(p, ("", "", "", p))[3], "target": t, "site_group": site, "branch": br,
+               "evidence_kind": kind, "law_definition": next((x.get("equation_as_printed") for x in xs
+                                                             if x.get("equation_as_printed")), "")[:200]
+               if dkey else "", "world_status": st, "status_basis": basis, **PR.checks(xs),
                "n_evidence": len(xs), "n_sources": len({x["source_id"] for x in xs}),
-               "n_original": sum(1 for x in xs if x["origin"] == "ORIGINAL"),
+               "n_original": sum(1 for x in xs if PR.origin_class(x["origin"]) == PR.ORIGINAL),
+               "n_match_candidates": sum(1 for x in xs if x.get("copy_role") in PR.CANDIDATE_ROLES),
                "n_converted": sum(1 for x in xs if x["si_min"] != ""),
                "si_unit": next((x["si_unit"] for x in xs if x["si_unit"]), PARAM.get(p, ("", "", ""))[2]),
                **_stats(vals),
-               "scales": ";".join(f"{k}:{v}" for k, v in sorted(Counter(x["scale"] for x in xs).items())),
-               "evidence_statuses": ";".join(f"{k}:{v}" for k, v in sorted(Counter(x["status"] for x in xs).items())),
-               "producers": ";".join(f"{k}:{v}" for k, v in sorted(Counter(x["producer"] for x in xs).items())),
+               "scales": ";".join(f"{a}:{b}" for a, b in sorted(Counter(x["scale"] for x in xs).items())),
+               "evidence_statuses": ";".join(f"{a}:{b}" for a, b in sorted(Counter(x["status"] for x in xs).items())),
+               "producers": ";".join(f"{a}:{b}" for a, b in sorted(Counter(x["producer"] for x in xs).items())),
                "sources_pages": ";".join(sorted({x["page_id"] or x["source_id"] for x in xs}))[:1500],
                "evidence_ids": ";".join(x["ev_id"] for x in xs)[:3000], "conflict_ids": ";".join(cf),
                "transfer_ids": ";".join(transfers.get((p, t), [])) if mod == "C2" else "",
                "review_status": "AUTO_EXTRACTED_UNREVIEWED" if any(x["producer"].startswith(("SOL", "CLAUDE"))
                                                                     for x in xs) else "MIXED"}
         out.append(rec)
+        links += [{"passport_id": ids[k], "ev_id": x["ev_id"]} for x in xs]
     order = {m: i for i, m in enumerate(("C1", "C2", "C3", "C4"))}
-    out.sort(key=lambda r: (order[r["module"]], r["parameter"], r["target"], r["site_group"], r["branch"]))
-    for i, r in enumerate(out, 1):
-        r["passport_id"] = f"WPP-{i:05d}"
-    return out
+    out.sort(key=lambda r: (order[r["module"]], r["parameter"], r["target"], r["site_group"], r["branch"],
+                            r["natural_key"]))
+    links.sort(key=lambda r: (r["passport_id"], r["ev_id"]))
+    return out, links
 
 
 def conflicts(canon: Path, ev: list[dict]) -> tuple[list[dict], dict]:
@@ -996,7 +1111,7 @@ def cited_literature(ev: list[dict], nav: Path | None, canon: Path | None = None
         rec = {"cl_id": f"WCL-{len(out) + 1:05d}", "citing_source_id": sid, "cited_ref": ref,
                "bibliography_entry_id": "", "entry_text": "", "parsed_authors": "", "parsed_title": "",
                "parsed_year": "", "cited_work_id": "", "match_method": "", "match_score": "", "resolution": "UNRESOLVED",
-               "n_evidence": len(evs), "evidence_ids": ";".join(evs)[:1500]}
+               "n_evidence": len(evs), "evidence_ids": ";".join(evs)[:1500], "_evs": tuple(evs)}
         if ent:
             oid, text, pa, pt, py = ent
             rec.update(bibliography_entry_id=oid, entry_text=text, parsed_authors=pa[:200], parsed_title=pt[:300],
@@ -1083,7 +1198,50 @@ def _csv(rows: list[dict], cols: list[str] | None = None) -> bytes:
     return buf.getvalue().encode("utf-8")
 
 
+def evidence_key(x: dict) -> str:
+    """Natural key of an evidence row: producer | record | parameter (a curated law row is its row id)."""
+    return f"{x['producer']}|{x['producer_record_id']}|{x['parameter']}"
+
+
+def work_sources(nav: Path | None) -> dict[str, set[str]]:
+    """Corpus sources of each work (NAV ``work_sources``)."""
+    out = defaultdict(set)
+    if nav and nav.is_file():
+        import duckdb
+        c = duckdb.connect(str(nav), read_only=True)
+        for wid, sid in c.execute("select work_id, source_id from work_sources").fetchall():
+            if wid and sid:
+                out[wid].add(sid)
+    return out
+
+
+def cited_source_map(lit: list[dict], nav: Path | None) -> dict[str, set[str]]:
+    """ev id → corpus sources of the cited works resolved to a corpus work (NAV link or review; automatic title
+    matches are not used to confirm a copy)."""
+    ws = work_sources(nav)
+    out = defaultdict(set)
+    for r in lit:
+        if r.get("resolution") == "CORPUS_WORK" and r.get("cited_work_id") in ws:
+            for e in r.get("_evs", ()):
+                out[e] |= ws[r["cited_work_id"]]
+    return out
+
+
+def _sha_text(p: Path) -> str:
+    return hashlib.sha256(p.read_bytes().replace(b"\r\n", b"\n")).hexdigest()   # same on CRLF checkouts
+
+
+def _sha_file(p: Path) -> str:
+    h = hashlib.sha256()
+    with open(p, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
+    _READ.clear()
+    _CANON[:] = [canon]
     units = Units(_rows(canon / "GEOLOGY_COORDS" / "stratigraphic_units.csv"))
     ev = (phase1_rows(canon) + curated_rows(canon) + skru1_rows(canon, units) + calendar_rows(canon)
           + borehole_rows(canon, units) + extraction_rows(canon, runs, units))
@@ -1091,20 +1249,29 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
                   "CURATED_LAWS_20261009": 3, "CURATED_C4_CALENDAR_20261010": 4, "PHASE1_BOREHOLE_PICKS": 5}
     ev.sort(key=lambda x: (x["module"], x["parameter"], x["target"], prod_order.get(x["producer"], 5), x["producer"],
                            x["source_id"], x["page_id"], x["producer_record_id"]))
-    for i, x in enumerate(ev, 1):
-        x["ev_id"] = f"WPV-{i:06d}"
-    clusters(ev)
+    ledger = PR.IdLedger([r for kind, name in sorted(LEDGERS.items()) for r in _rows(canon / "WORLD_PASSPORT" / name)
+                          if r["kind"] == kind])
+    keys = [evidence_key(x) for x in ev]
+    dup = sorted(k for k, n in Counter(keys).items() if n > 1)
+    if dup:
+        raise ValueError(f"evidence natural keys are not unique: {dup[:5]}")
+    ids = ledger.assign("WPV", [(k, k) for k in keys], RULE_VERSION, 6)
+    for x, k in zip(ev, keys):
+        x["ev_id"] = ids[k]
     sol_runs = [r for r in runs if r != "double"]
-    de = double_entry_flags(ev, canon, sol_runs[0]) if sol_runs and "double" in runs else {}
+    de, reext = double_entry_flags(ev, canon, sol_runs[0]) if sol_runs and "double" in runs else ({}, {})
+    lit = cited_literature(ev, nav, canon)
+    clusters(ev, reext, cited_source_map(lit, nav))
+    for r in lit:
+        r.pop("_evs", None)
     conf, by_ev = conflicts(canon, ev)
     for x in ev:
         extra = sorted(by_ev.get(id(x), ()))
         if extra:
             x["conflict_ids"] = ";".join(filter(None, [x.get("conflict_ids", "")] + extra))
     trans = _rows(canon / "WORLD_PARAMETERS" / "curated" / "c2_transfer_branches.csv")
-    reg = registry(ev, by_ev, transfer_links(trans))
+    reg, reg_links = registry(ev, by_ev, transfer_links(trans), ledger)
     objs = objects(canon, runs, units)
-    lit = cited_literature(ev, nav, canon)
     files = {"passport_evidence.csv": _csv(ev, EV_COLS)}
     for mod in ("C1", "C2", "C3", "C4"):    # per-module views; Sol runs apart (PUBLIC text files stay under 5 MB)
         rows = [x for x in ev if x["module"] == mod]
@@ -1113,33 +1280,38 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
         for run in (r for r in runs if r != "double"):
             files[f"passport_evidence_{mod.lower()}_sol_{run}.csv"] = _csv(
                 [x for x in rows if x["producer"] == f"SOL_{run.upper()}"], EV_COLS)
-    files.update({"world_passport.csv": _csv(reg),
-             "passport_conflicts.csv": _csv(conf), "world_objects.csv": _csv(objs),
-             "cited_literature.csv": _csv(lit), "transfer_branches.csv": _csv(trans)})
+    files.update({"world_passport.csv": _csv(reg), "world_passport_links.csv": _csv(reg_links,
+                                                                                     ["passport_id", "ev_id"]),
+                  "passport_conflicts.csv": _csv(conf), "world_objects.csv": _csv(objs),
+                  "cited_literature.csv": _csv(lit), "transfer_branches.csv": _csv(trans)})
     obtain = []
     for p in sorted((canon / "WORLD_PARAMETERS" / "curated").glob("works_to_obtain*.csv")):
         obtain += _rows(p)
     if obtain:
         files["works_to_obtain.csv"] = _csv(obtain)
-    inputs = {}
-    for p in sorted(canon.glob("WORLD_PARAMETERS/**/*.csv")) + [canon / "WORLD_EXTRACTION" / r / "accepted.jsonl"
-                                                                for r in runs]:
-        if p.is_file():
-            inputs[p.relative_to(canon).as_posix()] = hashlib.sha256(p.read_bytes()).hexdigest()
-    receipt = {"rule_version": RULE_VERSION, "runs": runs, "inputs": inputs,
+    for kind, name in LEDGERS.items():
+        files[name] = _csv([r for r in ledger.table() if r["kind"] == kind], PR.LEDGER_COLS)
+    nav_used = bool(nav and nav.is_file())
+    receipt = {"rule_version": RULE_VERSION, "runs": runs,
+               "code_sha256": {f: _sha_text(ROOT / f) for f in CODE_FILES},
+               "inputs": dict(sorted(_READ.items())),
+               "nav": {"file": nav.name, "sha256": _sha_file(nav)} if nav_used else None,
                "outputs": {k: hashlib.sha256(v).hexdigest() for k, v in files.items()},
                "counts": {"evidence": len(ev), "by_producer": dict(Counter(x["producer"] for x in ev).most_common()),
                           "by_module": dict(Counter(x["module"] for x in ev).most_common()),
                           "copy_clusters": len({x.get("copy_cluster") for x in ev if x.get("copy_cluster")}),
+                          "copy_roles": dict(sorted(Counter(x.get("copy_role") or "" for x in ev).items())),
+                          "origin_classes": dict(sorted(Counter(PR.origin_class(x["origin"]) for x in ev).items())),
                           "passport_rows": len(reg),
                           "passport_by_status": dict(Counter(r["world_status"] for r in reg).most_common()),
+                          "ledger": dict(sorted(Counter(f"{r['kind']}:{r['state']}" for r in ledger.rows).items())),
                           "conflicts": len(conf), "conflicts_computed": sum(1 for c in conf if c["origin"] == "computed"),
                           "objects": len(objs), "objects_by_resolution": dict(Counter(o["resolution"] for o in objs)),
                           "hierarchy_objects_mentioned": sum(1 for o in objs if o["origin"] == "PHASE1_SPATIAL_HIERARCHY"
                                                              and o["n_mentions_extraction"]),
                           "cited_refs": len(lit), "cited_by_resolution": dict(Counter(x["resolution"] for x in lit))},
                "double_entry_agreement": de,
-               "nav_used": bool(nav and nav.is_file())}
+               "nav_used": nav_used}
     files["build_receipt.json"] = (json.dumps(receipt, ensure_ascii=False, indent=1) + "\n").encode("utf-8")
     return files
 

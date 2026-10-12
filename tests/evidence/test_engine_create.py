@@ -952,6 +952,26 @@ def test_journal_damage_fails_closed(world, damage):
     assert world.daemon.deleted == []
 
 
+def test_bound_journal_keeps_its_inode_so_a_replacement_cannot_reuse_the_number(world):
+    """CI 10.10.2026 (ext4): unlink + rewrite of identical bytes got the freed inode number back and passed the
+    device/inode check. While the journal is bound its inode stays allocated, so the replacement gets another number."""
+    engine = world.adapter()
+    engine.create("api")
+    path = Path(world.journal)
+    bound = os.stat(path)
+    data = path.read_bytes()
+    path.unlink()
+    path.write_bytes(data)
+    assert (os.stat(path).st_dev, os.stat(path).st_ino) != (bound.st_dev, bound.st_ino)
+    for effect in (engine.remove_owned, lambda: engine.start("api")):
+        with pytest.raises(E.EngineJournalError):
+            effect()
+    assert world.daemon.deleted == [] and world.daemon.started == []
+    engine.journal.close()
+    with pytest.raises(E.EngineJournalError):
+        engine.remove_owned()
+
+
 def test_deleted_journal_with_a_live_candidate_is_detected_not_treated_as_fresh(world):
     """F7: a lost journal never silently becomes 'nothing was created'."""
     engine = world.adapter()

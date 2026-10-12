@@ -1,0 +1,39 @@
+{
+ "rule_version": "world_priors_v2",
+ "code_sha256": {
+  "scripts/build_world_priors.py": "43549b279707bac6314c237a2e0a6d600d9692a364ae4346a902f7b18bd8258f",
+  "src/vkm_world/extraction/passport_rules.py": "3304850ddc653b6aec55de12977855f4e5356cf9158a17fe339826400cd55198"
+ },
+ "inputs": {
+  "WORLD_PARAMETERS/curated/c3_hypotheses.csv": "9d8f681d6b4d24538ec34bc6a12a6f6c9a22772b330cd974d831076176cd7e07",
+  "WORLD_PASSPORT/passport_evidence.csv": "18a1cbe5c5ca42d633280c794e8592e6e6dee75efd8fb4a9227cce41e3ad07a4",
+  "WORLD_PASSPORT/priors_id_ledger.csv": "9313d6c5698af8accd21950df8df4a9167d27b77c2be2de2c4497fb0569464f9",
+  "WORLD_PASSPORT/transfer_branches.csv": "f1fd8b241d8034080207a71100c379c21e0b43878c960d726ad9912579d2e83b"
+ },
+ "outputs": {
+  "world_priors_proposal.csv": "ccdb6ff378bcc2658bfa4717768f73a107e2af38eb08d53eb36cf837ea61d0e0",
+  "world_priors_links.csv": "afb41d20b40f2267943d5f88406c031d4f75c5861a483200d8a62ef147a1d355",
+  "priors_id_ledger.csv": "9313d6c5698af8accd21950df8df4a9167d27b77c2be2de2c4497fb0569464f9"
+ },
+ "output_sha256": "ccdb6ff378bcc2658bfa4717768f73a107e2af38eb08d53eb36cf837ea61d0e0",
+ "rows": 824,
+ "by_status": {
+  "C1:ANALOGUE_VIA_TRANSFER": 150,
+  "C1:SCENARIO_RANGE": 202,
+  "C2:ANALOGUE_VIA_TRANSFER": 62,
+  "C2:NORMATIVE_LISTED": 20,
+  "C2:SCENARIO_RANGE": 253,
+  "C2:UNKNOWN": 13,
+  "C3:ANALOGUE_VIA_TRANSFER": 8,
+  "C3:SCENARIO_RANGE": 23,
+  "C3:UNKNOWN": 4,
+  "C4:ANALOGUE_VIA_TRANSFER": 16,
+  "C4:SCENARIO_RANGE": 73
+ },
+ "ledger": {
+  "WPR:ACTIVE": 824,
+  "WPR:RETIRED": 99
+ },
+ "owner_choice_needed": 516,
+ "approval": "PROPOSAL_NOT_APPROVED"
+}

@@ -55,7 +55,10 @@ def test_manifest_matches_committed_catalogues():
 LINK_TABLES = {"evidence/sources/source_family_membership.csv", "evidence/sources/repeated_secondary_citations.csv",
                "evidence/monitoring/monitoring_systems_by_site.csv", "evidence/qa/correction_impact.csv",
                "evidence/external/target_resolution.csv", "evidence/sources/lineage_affected_records.csv",
-               "catalogues/physics/process_evidence_links.csv", "evidence/qa/review_fixes/mech_rheo_visual_rechecks.csv"}
+               "catalogues/physics/process_evidence_links.csv", "evidence/qa/review_fixes/mech_rheo_visual_rechecks.csv",
+               # registry/prior → evidence links and the id ledgers (registers of the ids of other catalogues)
+               "evidence/world/passport/world_passport_links.csv", "evidence/world/passport/world_priors_links.csv",
+               "evidence/world/passport/passport_id_ledger.csv", "evidence/world/passport/priors_id_ledger.csv"}
 # first columns that reference records, sources, findings, retired ids or ranks instead of naming a new object
 NATURAL_KEYS = frozenset({"vn_id", "source_id", "finding_id", "target", "old_row_id", "rank", "order"})
 VN_ID = re.compile(r"EV-VN-S(\d{3})-\d{4}")

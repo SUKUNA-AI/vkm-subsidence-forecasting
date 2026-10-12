@@ -26,7 +26,8 @@ source_ids и hashes предыдущих версий. Неизвестные �
 `discover` читает только перечисленные entrypoints и их MapInfo companion-файлы. Native spatial TAB
 требует DAT/MAP/ID, IND включается при наличии; MIF требует MID. Неспространственный TAB разрешается
 отдельным параметром создания manifest; GIS adapter квалифицирован для пространственного TAB.
-Другие TAB-варианты (raster, seamless, external table) отклоняются. QGS/QGZ регистрируются как
+Другие TAB-варианты (raster, seamless, external table) отклоняются. GeoJSON и CSV (12.10.2026) — однофайловые
+точки входа без companion-файлов: соседние файлы с тем же именем не подхватываются. QGS/QGZ регистрируются как
 оригинальные байты; этот пакет не исполняет проекты и не разрешает их внешние слои.
 
 Все trust-boundary проверки используют свежий SHA-256. Paths не допускают traversal, symlinks,
@@ -87,9 +88,11 @@ BIFF dependencies/defined names также имеют нативные locators.
 GDAL/PyQGIS не импортируются при обычном импорте пакета. API не устанавливает зависимости,
 не вызывает shell и не меняет MCP configs.
 
-Маршрут: TAB/MIF/GPKG → **GPKG напрямую**. Нет промежуточного GeoJSON/Shapefile, назначения EPSG,
-перепроекции, MakeValid или интерполяции. Дополнительная проверка запрещает GDAL читать companion,
-который не вошёл в неизменяемый manifest.
+Маршрут: TAB/MIF/GPKG/GeoJSON/CSV → **GPKG напрямую**. Нет промежуточного GeoJSON/Shapefile, назначения EPSG,
+перепроекции, MakeValid или интерполяции. Каждый суффикс открывается единственным разрешённым драйвером GDAL;
+CSV читается без угадывания типов (все поля — текст, пустая строка не NULL) и без геометрии из столбцов координат.
+Для GeoJSON сохраняется объявление `crs`, для CSV — BOM, перевод строк и разделитель (`native_header`).
+Дополнительная проверка запрещает GDAL читать companion, который не вошёл в неизменяемый manifest.
 
 Проверяются все layer names, порядок/имена/types/subtypes полей, feature counts, атрибуты и WKB
 каждой геометрии (хеш последовательности), CRS equivalence, invalid geometry и заявленные составные
@@ -256,8 +259,10 @@ API остаются отдельными задачами. Результат R
 - `convert`: новый проверенный conversion bundle.
 - `verify-bundle`: commit marker, expected version и свежие output hashes.
 
-Ошибки и REJECTED возвращают ненулевой exit. Для проекта не добавлялось ни одной production dataset
-version и не запускалось преобразование пользовательских оригиналов.
+Ошибки и REJECTED возвращают ненулевой exit. Первая пользовательская версия (12.10.2026) — `dma-skru1-losev`
+(контуры и показатели ДМА СКРУ-1, CSV + GeoJSON; [описание](DMA_SKRU1_SURFACE_RU.md)): manifest, регистрация,
+инспекция и две конвертации выполнены standalone CLI в PRIVATE; через update runtime (VERIFY/INSPECT/CONVERT/REGISTER)
+версия не проводилась — production dataset catalogue не обновлялся.
 
 ## Проверки
 
