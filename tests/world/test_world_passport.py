@@ -90,14 +90,19 @@ def test_passport_branches_status_unknown_and_copies(wpp, canon):
     e_syl = {(r["site_group"], r["branch"]): r for r in reg if r["parameter"] == "E" and r["target"] == "SYLVINITE"}
     assert e_syl[("VKM_REGIONAL", "A")]["world_status"] == "SCENARIO_RANGE"          # LAB → needs a scale factor
     assert e_syl[("VKM_REGIONAL", "B")]["si_min"] == "4e+08"                           # calibrated: branch B, apart
-    assert e_syl[("VKM_REGIONAL", "A")]["n_evidence"] == "2"                           # the cited copy is not counted
+    # an equal number in a retelling without a resolved link to the primary is a candidate, not a proven copy
+    assert e_syl[("VKM_REGIONAL", "A")]["n_evidence"] == "3"
+    assert e_syl[("VKM_REGIONAL", "A")]["n_match_candidates"] == "1"
     roles = {r["producer_record_id"]: r["copy_role"] for r in ev}
-    assert roles["WPE-00001"] == "PRIMARY" and roles["WPE-00004"] == "COPY_CITED"
+    assert roles["WPE-00001"] == "PRIMARY" and roles["WPE-00004"] == "COPY_CITED_CANDIDATE"
     ucs = [r for r in ev if r["parameter"] == "UCS"][0]
     assert (ucs["si_min"], ucs["material_class"], ucs["branch"]) == ("2.4e+07", "SYLVINITE", "A")
     assert any(r["world_status"] == "UNKNOWN" and r["parameter"] == "PHI" and r["target"] == "COVER" for r in reg)
     c1 = [r for r in reg if r["module"] == "C1" and r["target"] == "PKS"][0]
-    assert c1["world_status"] == "FACT" and c1["site_group"] == "SKRU1"
+    # a thickness row that is not a recorded copy is not thereby the original: no FACT without a known origin
+    assert c1["world_status"] == "SCENARIO_RANGE" and c1["site_group"] == "SKRU1"
+    assert "UNKNOWN ≠ ORIGINAL" in c1["status_basis"] and c1["origin_check"] == "HAS_UNKNOWN"
+    assert c1["scientific_use"] == "NOT_ESTABLISHED"
     conf = list(csv.DictReader(files["passport_conflicts.csv"].decode("utf-8").splitlines()))
     assert any(c["kind"] == "SPREAD_GT_3X" and c["parameter"] == "E" for c in conf)   # 10.8 vs 2 GPa: recorded
     objs = list(csv.DictReader(files["world_objects.csv"].decode("utf-8").splitlines()))
@@ -200,7 +205,9 @@ def test_borehole_picks_enter_c1_per_target_site(wpp, canon):
                                .decode("utf-8").splitlines()))
     thk = {r["site_group"]: r for r in rows if r["module"] == "C1" and r["parameter"] == "THICKNESS"
            and r["target"] == "PKS"}
-    assert thk["SKRU3"]["world_status"] == "FACT" and thk["SKRU1"]["world_status"] == "FACT"
+    # own data of the site, but the pick tables record no origin: not FACT (UNKNOWN ≠ ORIGINAL)
+    assert thk["SKRU3"]["world_status"] == "SCENARIO_RANGE" and thk["SKRU1"]["world_status"] == "SCENARIO_RANGE"
+    assert "происхождение не установлено" in thk["SKRU3"]["note"] and thk["SKRU3"]["approval"] == "PROPOSAL_NOT_APPROVED"
     assert thk["VKM"]["world_status"] == "ANALOGUE_VIA_TRANSFER" and "СКРУ-2" in thk["VKM"]["note"]
 
 
