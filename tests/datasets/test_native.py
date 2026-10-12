@@ -85,6 +85,17 @@ def test_companions_are_complete_and_case_safe(tmp_path):
         discover(tmp_path, ("line.mif",))
 
 
+def test_geojson_and_csv_are_single_file_entrypoints(tmp_path):
+    (tmp_path / "контуры.geojson").write_bytes(b'{"type": "FeatureCollection", "features": []}')
+    (tmp_path / "контуры.csv").write_bytes(b"\xef\xbb\xbfx;y\r\n1;2\r\n")
+    (tmp_path / "контуры.qmd").write_bytes(b"<qgis/>")           # a sibling is not silently taken as a companion
+    files = discover(tmp_path, ("контуры.geojson", "контуры.csv"))
+    assert [(f.path, f.role) for f in files] == [("контуры.csv", "ORIGINAL"), ("контуры.geojson", "ORIGINAL")]
+    (tmp_path / "x.shp").write_bytes(b"synthetic")
+    with pytest.raises(ValueError, match="unsupported"):
+        discover(tmp_path, ("x.shp",))
+
+
 @pytest.mark.parametrize("bad", ["../bad", "a/../bad", "C:/bad", "a\\b", "a/CON.xlsx", "a./b", "/bad", "./bad"])
 def test_rejects_traversal_aliases(bad, tmp_path):
     with pytest.raises(ValueError):

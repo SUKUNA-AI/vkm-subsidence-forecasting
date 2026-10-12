@@ -190,11 +190,17 @@ def _scan(ds, limits: VectorLimits, keys: dict[str, tuple[str, ...]] | None = No
     return layers, styles
 
 
+# suffix → (the only GDAL driver allowed to open it, open options). CSV: every field stays text (no type guessing,
+# empty string is not NULL) and no geometry is made from coordinate columns.
+VECTOR_DRIVERS = {".tab": ("MapInfo File", []), ".mif": ("MapInfo File", []), ".gpkg": ("GPKG", ["LIST_ALL_TABLES=NO"]),
+                  ".geojson": ("GeoJSON", []),
+                  ".csv": ("CSV", ["AUTODETECT_TYPE=NO", "EMPTY_STRING_AS_NULL=NO", "KEEP_GEOM_COLUMNS=YES"])}
+
+
 def _open(path):
     gdal, _ = _engine()
-    ds = gdal.OpenEx(str(path), gdal.OF_VECTOR | gdal.OF_READONLY,
-                     allowed_drivers=["MapInfo File", "GPKG"],
-                     open_options=["LIST_ALL_TABLES=NO"] if Path(path).suffix.lower() == ".gpkg" else [])
+    driver, options = VECTOR_DRIVERS[Path(path).suffix.lower()]
+    ds = gdal.OpenEx(str(path), gdal.OF_VECTOR | gdal.OF_READONLY, allowed_drivers=[driver], open_options=options)
     if ds is None:
         raise ValueError("GDAL could not open the declared native vector dataset")
     return ds
@@ -209,7 +215,20 @@ def _native_members(root, version, entrypoint):
 
 
 def _native_header(path):
-    if path.suffix.lower() not in {".tab", ".mif"}:
+    suffix = path.suffix.lower()
+    if suffix in {".geojson", ".csv"}:
+        with path.open("rb") as stream:
+            head = stream.read(65536)
+        if suffix == ".csv":
+            first = head.split(b"\n", 1)[0]
+            return {"utf8_bom": head.startswith(b"\xef\xbb\xbf"),
+                    "line_ending": "CRLF" if first.endswith(b"\r") else "LF",
+                    "separator_counts": {sep: first.count(sep.encode()) for sep in (";", ",", "\t")},
+                    "text_decoding": "GDAL_INTERPRETATION; original bytes retained, scientific review NOT_CHECKED"}
+        crs = re.search(rb'"crs"\s*:\s*(\{[^{}]*\{[^{}]*\}[^{}]*\})', head)
+        return {"crs_member": crs.group(1).decode("utf-8") if crs else None,
+                "text_decoding": "GDAL_INTERPRETATION; original bytes retained, scientific review NOT_CHECKED"}
+    if suffix not in {".tab", ".mif"}:
         return {}
     with path.open("rb") as stream:
         raw = stream.read(1024 * 1024)
@@ -223,7 +242,7 @@ def _native_header(path):
 def inspect_vector(root: Path, version: DatasetVersion, entrypoint: str, *, destination="local",
                    keys: dict[str, tuple[str, ...]] | None = None, limits=VectorLimits()) -> dict:
     version.policy.require(destination)
-    if entrypoint not in version.entrypoints or Path(entrypoint).suffix.lower() not in {".tab", ".mif", ".gpkg"}:
+    if entrypoint not in version.entrypoints or Path(entrypoint).suffix.lower() not in VECTOR_DRIVERS:
         raise ValueError("not a registered native vector entrypoint")
     verify_members(root, version.files)
     _native_members(root, version, entrypoint)
@@ -282,7 +301,7 @@ def convert_to_gpkg(root: Path, version: DatasetVersion, entrypoint: str, output
     Unknown CRS remains unknown and never acquires a metric/scientific admission claim.
     """
     version.policy.require(destination)
-    if entrypoint not in version.entrypoints or Path(entrypoint).suffix.lower() not in {".tab", ".mif", ".gpkg"}:
+    if entrypoint not in version.entrypoints or Path(entrypoint).suffix.lower() not in VECTOR_DRIVERS:
         raise ValueError("not a registered native vector entrypoint")
     verify_members(root, version.files)
     _native_members(root, version, entrypoint)

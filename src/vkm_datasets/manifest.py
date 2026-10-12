@@ -125,6 +125,7 @@ def discover(root: Path, entrypoints: tuple[str, ...], *, additional: tuple[str,
 
     Native spatial TAB requires DAT/MAP/ID; IND is optional. Nonspatial TAB is opt-in.
     MIF always requires MID. Other TAB variants (raster/seamless/external tables) are refused.
+    GeoJSON and CSV are single-file entrypoints without companions (12.10.2026).
     Additional project/style/metadata members must be named explicitly.
     """
     if not entrypoints:
@@ -134,7 +135,7 @@ def discover(root: Path, entrypoints: tuple[str, ...], *, additional: tuple[str,
         p = confined(root, name)
         selected[name] = "ORIGINAL"
         suffix = p.suffix.lower()
-        if suffix not in {".tab", ".mif", ".gpkg", ".xlsx", ".xls", ".qgs", ".qgz"}:
+        if suffix not in {".tab", ".mif", ".gpkg", ".geojson", ".csv", ".xlsx", ".xls", ".qgs", ".qgz"}:
             raise ValueError("unsupported dataset entrypoint")
         if suffix in {".tab", ".mif"}:
             siblings = {}
