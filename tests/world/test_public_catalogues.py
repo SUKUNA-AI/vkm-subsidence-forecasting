@@ -137,7 +137,8 @@ def test_math_registry_rows_match_schema():
 @pytest.mark.parametrize("path", ["catalogues/physics/physics_coverage_and_execution_matrix.csv",
                                   "catalogues/observations/observation_operator_design.csv",
                                   "catalogues/mathematics/formula_conflicts.csv",
-                                  "catalogues/mathematics/record_to_model_map.csv"])
+                                  "catalogues/mathematics/record_to_model_map.csv",
+                                  "catalogues/mathematics/model_formula_links.csv"])
 def test_model_references_resolve(path):
     registry = {r["model_id"] for r in _rows(REGISTRY)}
     refs = set(MODEL_ID.findall((ROOT / path).read_text(encoding="utf-8")))

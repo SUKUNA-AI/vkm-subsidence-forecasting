@@ -213,6 +213,14 @@
   },
   {
    "dropped_columns": [],
+   "source": "FORMULAS/MODEL_FORMULA_LINKS.csv",
+   "source_sha256": "39f5a86988f84f703652bacec5247197573aec475e3889915fa3586478f72f67",
+   "status": "OK",
+   "target": "catalogues/mathematics/model_formula_links.csv",
+   "target_sha256": "39f5a86988f84f703652bacec5247197573aec475e3889915fa3586478f72f67"
+  },
+  {
+   "dropped_columns": [],
    "source": "FORMULAS/RECORD_TO_MODEL_MAP.csv",
    "source_sha256": "280f3e464cee62f25300e9f35aaad3e779471bba05898f5a18132b9163b2e0aa",
    "status": "OK",

@@ -22,6 +22,7 @@
  "FORMULAS/FORMULA_CONFLICTS.csv": "catalogues/mathematics/formula_conflicts.csv",
  "FORMULAS/FORMULA_VISUAL_CHECKS.csv": "catalogues/mathematics/formula_visual_checks.csv",
  "FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv": "catalogues/mathematics/MATHEMATICAL_MODEL_REGISTRY.csv",
+ "FORMULAS/MODEL_FORMULA_LINKS.csv": "catalogues/mathematics/model_formula_links.csv",
  "FORMULAS/RECORD_TO_MODEL_MAP.csv": "catalogues/mathematics/record_to_model_map.csv",
  "GEOLOGY_COORDS/FIX_LOG.csv": "evidence/qa/review_fixes/geology_coords_fix_log.csv",
  "GEOLOGY_COORDS/coordinate_datum_evidence.csv": "evidence/coordinates/coordinate_datum_evidence.csv",
