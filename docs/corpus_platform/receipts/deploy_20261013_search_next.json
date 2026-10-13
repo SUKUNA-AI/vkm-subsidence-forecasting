@@ -81,5 +81,22 @@
   "serving_profile": "COMPATIBILITY (unchanged)",
   "science": "authors are name-key clusters (NAME_KEY_ONLY), not identified persons; the entity index is navigation built from the PUBLIC catalogues (identity across sources not guessed); late flags are an experiment (benchmark E11 runs on this image)"
  },
- "work_dir": "work/deploy_search_next_20261013 (deploy_core.sh, deploy_core_2.sh; git-ignored)"
+ "work_dir": "work/deploy_search_next_20261013 (deploy_core.sh, deploy_core_2.sh; git-ignored)",
+ "followup_image_only": {
+  "at": "2026-10-13T12:14Z",
+  "tag": "vkm-corpus-api:0.1.0-e15f9b397c34",
+  "id": "sha256:ba79f13a7175beb8dbe69e7e03824a77303929e109e6d398e6ece9fb48fa38b2",
+  "change": "MCP descriptions only: formulations / paraphrases — 1–2 Russian wordings with other terms, the server adds the English translation (benchmark E6b); ranking unchanged; catalogue pack 85bf6c1e00d9 and smoke-8 unchanged",
+  "smoke": {
+   "version": "nightly-mcp-smoke-8",
+   "summary": {
+    "PASS": 51,
+    "WARN": 0,
+    "FAIL": 0,
+    "SKIP": 0
+   }
+  },
+  "rollback": ".env.bak-next4-20261013T121438Z and vkm-job.bak-next4-20261013T121438Z (image 1b20e03)",
+  "also": "nightly_checks.sh on CORE: dry-run compares planned smoke calls with the smoke's own expected list (51), backup nightly_checks.sh.bak-20261013T113543Z"
+ }
 }
