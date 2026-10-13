@@ -137,10 +137,12 @@ if [ "$DRY" = 1 ]; then
   n="$(python3 "$tmp/dossiers.py" --dry-run 2>/dev/null | grep -c '"kind": "plan"' || true)"
   log "  dossiers planned: $n topics (expected 117)"
   [ "$n" = 117 ] || rc=2
-  m="$(python3 "$HERE/mcp_smoke.py" --dry-run 2>/dev/null \
-       | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["planned_tools"]))' 2>/dev/null || echo 0)"
-  log "  MCP smoke plans $m of 49 read tools"
-  [ "$m" = 49 ] || rc=2
+  # planned tools vs the smoke's own list of expected read tools (51 since smoke-8, 13.10.2026)
+  read -r m e <<<"$(python3 "$HERE/mcp_smoke.py" --dry-run 2>/dev/null \
+       | python3 -c 'import json,sys; d=json.load(sys.stdin); print(len(d["planned_tools"]), d.get("expected", 0))' \
+       2>/dev/null || echo "0 0")"
+  log "  MCP smoke plans $m of $e read tools"
+  { [ "$m" = "$e" ] && [ "$e" -gt 0 ]; } || rc=2
   rm -rf "$tmp"
   for s in "${STEPS[@]}"; do
     want_step "$s" && log "  step $s (timeout ${TIMEOUT[$s]} s)" || log "  step $s: skipped by options"

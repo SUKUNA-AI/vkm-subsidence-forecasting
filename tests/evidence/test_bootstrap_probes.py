@@ -92,11 +92,11 @@ def report(case, out):
     return json.loads(case.registrar.read(out["receipt_sha256"]))
 
 
-def test_full_49_private_probes_are_separate_from_serving_and_baseline(bootstrap_case):
+def test_full_private_probes_are_separate_from_serving_and_baseline(bootstrap_case):
     c = bootstrap_case
     out = run(c)
     assert out["status"] == "PRIVATE_PROBES_VERIFIED", out
-    assert len(out["tools"]) == 49 and set(out["tools"]) == A.read_tool_names()
+    assert len(out["tools"]) == len(A.read_tool_names()) == 51 and set(out["tools"]) == A.read_tool_names()
     assert out["checks"] == dict.fromkeys(B.BOOTSTRAP_CHECKS, "PASS")
     assert out["admission"] == "CLOSED" and out["serving_admission"] is False
     assert out["scientific_admission"] is False and out["scope"] == "SYNTHETIC"
