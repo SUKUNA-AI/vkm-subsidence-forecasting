@@ -95,7 +95,9 @@ class Scenario:
         tools_sha = _sha([{"name": t.name, "input_schema": t.input_schema} for t in sorted(tools.tools,
                                                                                            key=lambda t: t.name)])
         notes: list[str] = []
-        body, _ = await self.call("search_text", {"query": query, "kinds": ["BLOCK", "PAGE"], "limit": 20})
+        # the full view: the gate checks every envelope (the tools answer brief by default)
+        body, _ = await self.call("search_text", {"query": query, "kinds": ["BLOCK", "PAGE"], "limit": 20,
+                                                  "view": "full"})
         candidates: list[str] = []
         passages: list[dict[str, Any]] = []
         for item in body.get("items") or []:
@@ -122,7 +124,7 @@ class Scenario:
         if not figures:
             sources = sorted({p.split(":")[0] for p in pages})
             found, _ = await self.call("search_objects", {"kinds": ["FIGURE"], "source_ids": sources[:50],
-                                                          "has_image": True, "limit": 8})
+                                                          "has_image": True, "limit": 8, "view": "full"})
             figures = [i["envelope"]["object_id"] for i in found.get("items") or []]
             notes.append("figures found by search_objects in the sources of the ranked pages")
         if not figures:

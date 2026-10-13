@@ -26,7 +26,7 @@ import sys
 import time
 from datetime import datetime, timezone
 
-VERSION = "nightly-mcp-smoke-6"
+VERSION = "nightly-mcp-smoke-7"
 EXPECTED_TOOLS = (
     "search_text", "search_hybrid", "retrieval_trace", "search_objects", "get_source", "get_work", "get_page",
     "get_page_image", "get_figure", "get_table", "get_formula", "get_object", "get_document_neighbors",
@@ -243,8 +243,8 @@ async def run(client, deadline_s=600.0, call_timeout_s=240.0):
         if tool == "list_evidence":
             hv.add_evidence_page(body)
         if tool == "search_objects" and args.get("has_image") and body.get("ok"):
-            for it in body.get("items") or []:
-                oid = (it.get("envelope") or {}).get("object_id")
+            for it in body.get("items") or []:          # full view: the envelope; brief view (default): id
+                oid = (it.get("envelope") or {}).get("object_id") or it.get("id")
                 if oid and oid not in hv.image_figures:
                     hv.image_figures.append(oid)
         entry.update(status=status, ok=bool(body.get("ok")), is_error=is_error, error_code=code,

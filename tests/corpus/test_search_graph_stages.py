@@ -32,8 +32,9 @@ def test_parse_and_resolve_stages():
         G.parse_stages("collapse,reranker")
     assert G.resolve(None) == tuple(s for s in G.STAGES if s in G.DEFAULTS)
     assert G.resolve(None, ["topics"]) == ("topics",) and G.resolve((), ["topics"]) == ()
-    # coordinator 29.09: off by default (the per-stage rule passes no stage; GC only by a hair) — see RESULTS.md
-    assert G.DEFAULTS == frozenset()
+    # owner 13.10: copies of one work collapse by default (G1); the other stages stay off (coordinator 29.09: the
+    # per-stage rule passes no stage; GC only by a hair) — see RESULTS.md
+    assert G.DEFAULTS == frozenset({"collapse"})
     P = G.GraphParams()
     assert (P.cohesion_weight, P.concepts_narrower, P.concepts_mode, P.cites_mode, P.topics_weight) == \
         (0.5, False, "post", "window", 0.5)
@@ -85,6 +86,50 @@ def test_collapse_pages_objects_and_direction():
     assert kept2 == [a2, a] and copies2 == {}                     # a is only 0.4 covered by a2
     kept3, _ = G.collapse([a, a2], {}, m, G.GraphParams(copy_min_coverage=0.95))
     assert kept3 == [a, a2]                                        # below the threshold nothing leaves
+
+
+def _work_maps() -> G.GraphMaps:
+    """Sources 025 and 202 are copies of WRK-013 (202 shifted by one page), 044 is another work; 300 has one page."""
+    A, B, C = "VKM-SRC-025", "VKM-SRC-202", "VKM-SRC-044"
+    dups = [(f"DCL-{i}", "SAME_WORK_COPY", p(i, A), 900) for i in (10, 11, 12, 40)]
+    dups += [(f"DCL-{i}", "SAME_WORK_COPY", p(i + 1, B), 900) for i in (10, 11, 12)]
+    dups += [("DCL-40", "SAME_WORK_COPY", p(77, B), 900)]          # one odd pair: 4 pairs, 3 agree (0.75 < 0.8)…
+    dups += [("DCL-50", "PARTIAL_OVERLAP", p(50, A), 500), ("DCL-50", "PARTIAL_OVERLAP", p(51, B), 500),
+             ("DCL-50", "PARTIAL_OVERLAP", p(9, C), 500)]             # …a quote cluster with a third work agrees: 4/5
+    dups += [("DCL-60", "BOILERPLATE", p(1, A), 300), ("DCL-60", "BOILERPLATE", p(2, A), 300),
+             ("DCL-60", "BOILERPLATE", p(2, B), 300)]                 # two pages of 025: pairs nothing
+    return maps(dup_members=dups, page_chars={p(i, s): 1000 for s in (A, B, C) for i in range(1, 100)},
+                primary_works=[(A, "VKM-WRK-013"), (B, "VKM-WRK-013"), (C, "VKM-WRK-044"),
+                               ("VKM-SRC-300", "VKM-WRK-300")])
+
+
+def test_copy_offsets_from_nav_pairs_of_one_work():
+    m = _work_maps()
+    A, B = "VKM-SRC-025", "VKM-SRC-202"
+    assert m.work_of_source == {A: "VKM-WRK-013", B: "VKM-WRK-013"}      # works with one source are left out
+    assert m.copy_offsets == {(A, B): 1, (B, A): -1} and m.copy_sources(A) == [B]
+    assert G.page_position(p(152, B)) == (B, 152) and G.page_position("VKM-SRC-025:p0152:f0123456789ab") is None
+    # without an agreed offset (too few pairs) nothing is guessed
+    few = G.copy_offsets([("D1", "SAME_WORK_COPY", p(3, A), 1), ("D1", "SAME_WORK_COPY", p(3, B), 1)],
+                         {A: "W", B: "W"})
+    assert few == {}
+
+
+def test_collapse_aligned_pages_of_copies_of_one_work():
+    A, B, C = "VKM-SRC-025", "VKM-SRC-202", "VKM-SRC-044"
+    m = _work_maps()
+    P = G.GraphParams()
+    # p(152) of 025 and p(153) of 202 share no text in NAV (a table page): the work rule makes them one position;
+    # p(152) of 202 is another page (not aligned); 044 is another work
+    order = [p(152, A), p(152, B), p(153, B), p(9, C), p(30, B), p(29, A)]
+    kept, copies = G.collapse(order, {}, m, P)
+    assert kept == [p(152, A), p(152, B), p(9, C), p(30, B)]
+    assert copies[p(152, A)] == [{"page_id": p(153, B), "coverage": None, "kinds": ["SAME_WORK_ALIGNED_PAGE"],
+                                  "work_id": "VKM-WRK-013", "page_offset": 1}]
+    assert copies[p(30, B)][0]["page_id"] == p(29, A) and copies[p(30, B)][0]["page_offset"] == -1
+    # the text rule keeps precedence (its coverage and kinds); the switch turns the work rule off
+    kept2, _ = G.collapse(order, {}, m, G.GraphParams(work_copies=False))
+    assert kept2 == order
 
 
 # ---------------------------------------------------------------------------------------------------- G2
@@ -324,13 +369,39 @@ def test_server_default_applies_when_the_request_does_not_say():
     assert out["stages"]["graph"]["requested"] == ["collapse"] and p(3) not in [h["id"] for h in out["hits"]]
     out2, _ = _run((), defaults=("collapse",))                                  # [] = none, whatever the default
     assert out2["stages"]["graph"].startswith("NOT_RUN")
-    # all five requested by the server without a navigation layer: E's answer, the status says so, no warning
-    out3, _ = _run(None, defaults=G.STAGES, signals=None)
+    # stages the server requests without a navigation layer: E's answer, the status says so; no warning unless G1 is
+    # among them (owner 13.10: the answer says that copies of one work were not collapsed)
+    out3, _ = _run(None, defaults=("cohesion", "topics"), signals=None)
     assert [h["id"] for h in out3["hits"]] == [p(i) for i in range(1, 7)] and not out3["warnings"]
-    assert set(out3["stages"]["graph"]["status"].values()) == {"UNAVAILABLE"}
+    assert set(out3["stages"]["graph"]["status"].values()) == {"UNAVAILABLE", "OFF"}
+    out5, _ = _run(None, defaults=G.STAGES, signals=None)
+    assert [h["id"] for h in out5["hits"]] == [p(i) for i in range(1, 7)]
+    assert set(out5["stages"]["graph"]["status"].values()) == {"UNAVAILABLE"}
+    assert out5["warnings"] == ["GRAPH_UNAVAILABLE: the navigation layer is not configured; copies of one work are "
+                                "not collapsed (server default)"]
+    # the code default (G1) runs when neither the request nor the server says; include_duplicates drops it
+    out6, _ = _run(None, defaults=None)
+    assert out6["stages"]["graph"]["requested"] == ["collapse"] and p(3) not in [h["id"] for h in out6["hits"]]
+    out7 = hybrid_search(_client(), _rx(LATE), HybridRequest(query=Q, candidates=10, late=True,
+                                                             include_duplicates=True), "vkm", graph=_signals())
+    assert out7["stages"]["graph"].startswith("NOT_RUN") and p(3) in [h["id"] for h in out7["hits"]]
     # a request that names a stage the server cannot run is told
     out4, _ = _run(("collapse",), signals=None)
     assert out4["warnings"] == ["GRAPH_UNAVAILABLE: the navigation layer is not configured; graph stages skipped"]
+
+
+def test_operator_switch_keeps_turning_the_default_off():
+    """VKM_HYBRID_GRAPH=none still switches the default G1 off without a rebuild; unset → the code default."""
+    from vkm_corpus.api.backends import HybridBackend
+    from vkm_corpus.config import load_settings
+
+    settings = load_settings({"VKM_OPENSEARCH_URL": "http://opensearch:9200"})
+    off = HybridBackend(settings, embed=EmbedClient(None), environ={"VKM_HYBRID_GRAPH": "none"})
+    assert off.graph_defaults == () and off.status()["graph"]["defaults"] == []
+    code = HybridBackend(settings, embed=EmbedClient(None), environ={})
+    assert code.graph_defaults is None and code.status()["graph"]["defaults"] == ["collapse"]
+    out, _ = _run(None, defaults=off.graph_defaults)
+    assert out["stages"]["graph"].startswith("NOT_RUN") and p(3) in [h["id"] for h in out["hits"]]
 
 
 def test_all_five_stages_run_together():

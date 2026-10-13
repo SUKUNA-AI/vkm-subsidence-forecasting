@@ -27,7 +27,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from vkm_corpus.api import images
+from vkm_corpus.api import brief, images
 from vkm_corpus.api.envelope import API_VERSION, ApiError, ApiResponse, Meta
 from vkm_corpus.api.errors import ApiFailure
 from vkm_corpus.api.service import MAX_TEXT_CANDIDATES, MAX_VISUAL_CANDIDATES, ApiService, Result, generation_status
@@ -39,6 +39,11 @@ LOG = logging.getLogger("vkm.api")
 SearchKind = Literal["PAGE", "BLOCK", "FIGURE", "TABLE", "FORMULA"]
 ObjectQueryKind = Literal["BLOCK", "FIGURE", "TABLE", "FORMULA", "BIBLIOGRAPHY_ENTRY"]
 IdStr = Annotated[str, Field(min_length=1, max_length=120)]
+# answer of the search endpoints: full = ApiResponse (envelopes, records, traces); brief = vkm.brief/1 (api.brief)
+View = Literal["full", "brief"]
+VIEW_DOC = ("full (default): the ApiResponse with envelopes, records and traces; brief: vkm.brief/1 — one short entry "
+            "per hit (id, ranks, one snippet, labels), source cards, warning codes, the run summary (api.brief)")
+CURSOR_DOC = "next_cursor of the previous page (an offset); anything else is INVALID_ARGUMENT"
 
 
 @dataclass
@@ -104,6 +109,10 @@ class SearchFilters(_Body):
     source_scope: list[Annotated[str, Field(max_length=60)]] = Field(
         default_factory=list, max_length=20, description="area of the SOURCE (normalised Scope), inherited by objects")
     source_scope_raw: list[Annotated[str, Field(max_length=60)]] = Field(default_factory=list, max_length=20)
+    include_ambiguous: bool = Field(False, description="with source_scope: also the sources that may hold the area "
+                                                       "but are not mapped to it (AMBIGUOUS mapping with the area "
+                                                       "among the candidates, or a related area such as "
+                                                       "SKRU1_SKRU2_PILLAR); the answer lists them")
     year_from: int | None = Field(None, ge=1500, le=2100)
     year_to: int | None = Field(None, ge=1500, le=2100)
     available_until: date | None = Field(None, description="known at t0: needs unknown_policy (H-19)")
@@ -133,6 +142,8 @@ class SearchFilters(_Body):
             out["unknown_policy"] = self.unknown_policy
         if self.has_preview is not None:
             out["has_preview"] = self.has_preview
+        if self.include_ambiguous:                   # not an index field: the service widens source_scope with it
+            out["include_ambiguous"] = True
         return out
 
 
@@ -141,7 +152,8 @@ class SearchBody(_Body):
     kinds: list[SearchKind] = Field(default_factory=lambda: ["PAGE"], min_length=1, max_length=5)
     filters: SearchFilters = Field(default_factory=SearchFilters)
     limit: int = Field(20, ge=1, le=50)
-    cursor: str | None = Field(None, max_length=10)
+    cursor: str | None = Field(None, max_length=10, description=CURSOR_DOC)
+    view: View = Field("full", description=VIEW_DOC)
     include_duplicates: bool = False
     exact: bool = Field(False, description="unstemmed word forms instead of morphology")
 
@@ -157,7 +169,9 @@ class HybridSearchBody(_Body):
     filters: SearchFilters = Field(default_factory=SearchFilters,
                                    description="page-level filters only (figure_type / text_layer are refused)")
     limit: int = Field(20, ge=1, le=50)
-    cursor: str | None = Field(None, max_length=10)
+    cursor: str | None = Field(None, max_length=10, description=CURSOR_DOC + "; the list ends at min(fused_total, "
+                                                                            "candidates × kinds)")
+    view: View = Field("full", description=VIEW_DOC)
     candidates: int = Field(100, ge=10, le=200, description="candidates per stage (BM25, dense) and kind")
     include_duplicates: bool = False
     exact: bool = Field(False, description="unstemmed word forms in the BM25 stage")
@@ -205,9 +219,12 @@ class ObjectsQueryBody(_Body):
     has_image: bool | None = None
     source_scope: list[Annotated[str, Field(max_length=60)]] = Field(default_factory=list, max_length=20)
     source_scope_raw: list[Annotated[str, Field(max_length=60)]] = Field(default_factory=list, max_length=20)
+    include_ambiguous: bool = Field(False, description="with source_scope: also the sources that may hold the area "
+                                                       "but are not mapped to it (listed in the answer)")
     caption_query: str | None = Field(None, min_length=1, max_length=200)
     limit: int = Field(50, ge=1, le=200)
-    cursor: str | None = Field(None, max_length=10)
+    cursor: str | None = Field(None, max_length=10, description=CURSOR_DOC)
+    view: View = Field("full", description=VIEW_DOC)
 
 
 class TopicBody(_Body):
@@ -349,7 +366,8 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
     def request_id(request: Request) -> str:
         return request.state.request_id
 
-    def respond(request: Request, result: Result, status: int = 200) -> JSONResponse:
+    def respond(request: Request, result: Result, status: int = 200, *, view: str = "full",
+                brief_kind: str | None = None) -> JSONResponse:
         snapshot = None
         try:
             snapshot = service.canon.snapshot_id()
@@ -359,6 +377,10 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
                     elapsed_ms=round((time.perf_counter() - request.state.started) * 1000, 1),
                     warnings=result.warnings)
         body = ApiResponse(ok=True, meta=meta, item=result.item, items=result.items, next_cursor=result.next_cursor)
+        if view == "brief" and brief_kind:            # a projection of the same ApiResponse (api.brief)
+            return JSONResponse(brief.brief_response(body.model_dump(mode="json"), kind=brief_kind,
+                                                     source_names=lambda ids: brief.source_names(service.canon, ids)),
+                                status_code=status)
         return JSONResponse(body.model_dump(mode="json"), status_code=status)
 
     def error_response(request: Request, failure: ApiFailure) -> JSONResponse:
@@ -437,14 +459,17 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
     def search_post(request: Request, body: SearchBody, _auth: Read) -> JSONResponse:
         request.state.query_sha256 = hashlib.sha256(body.query.encode("utf-8")).hexdigest()
         return respond(request, service.search(body.query, list(body.kinds), body.filters.to_search(), body.limit,
-                                               body.cursor, body.include_duplicates, body.exact))
+                                               body.cursor, body.include_duplicates, body.exact),
+                       view=body.view, brief_kind="search")
 
     @app.get("/v1/search", tags=["search"], **JSON_RESPONSES)
     def search_get(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],
                    kinds: Annotated[list[SearchKind] | None, Query()] = None,
                    limit: Annotated[int, Query(ge=1, le=50)] = 20,
-                   cursor: Annotated[str | None, Query(max_length=10)] = None) -> JSONResponse:
-        return respond(request, service.search(q, list(kinds or ["PAGE"]), {}, limit, cursor))
+                   cursor: Annotated[str | None, Query(max_length=10, description=CURSOR_DOC)] = None,
+                   view: Annotated[View, Query(description=VIEW_DOC)] = "full") -> JSONResponse:
+        return respond(request, service.search(q, list(kinds or ["PAGE"]), {}, limit, cursor), view=view,
+                       brief_kind="search")
 
     @app.post("/v1/search/hybrid", tags=["search"], **JSON_RESPONSES)
     def search_hybrid_post(request: Request, body: HybridSearchBody, _auth: Read) -> JSONResponse:
@@ -455,13 +480,15 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
                                                       late_candidates=body.late_candidates, bib_route=body.bib_route,
                                                       visual_route=body.visual_route, translate=body.translate,
                                                       graph=body.graph, formulations=body.formulations,
-                                                      expand=body.expand, max_per_source=body.max_per_source))
+                                                      expand=body.expand, max_per_source=body.max_per_source),
+                       view=body.view, brief_kind="hybrid")
 
     @app.get("/v1/search/hybrid", tags=["search"], **JSON_RESPONSES)
     def search_hybrid_get(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],
                           kinds: Annotated[list[HybridKind] | None, Query()] = None,
                           limit: Annotated[int, Query(ge=1, le=50)] = 20,
-                          cursor: Annotated[str | None, Query(max_length=10)] = None,
+                          cursor: Annotated[str | None, Query(max_length=10, description=CURSOR_DOC)] = None,
+                          view: Annotated[View, Query(description=VIEW_DOC)] = "full",
                           candidates: Annotated[int, Query(ge=10, le=200)] = 100,
                           late: Annotated[bool | None, Query()] = None,
                           late_candidates: Annotated[int, Query(ge=1, le=300)] = 100,
@@ -481,14 +508,16 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
                                                       late=late, late_candidates=late_candidates,
                                                       bib_route=bib_route, visual_route=visual_route,
                                                       translate=translate, graph=graph, formulations=formulations,
-                                                      expand=expand, max_per_source=max_per_source))
+                                                      expand=expand, max_per_source=max_per_source),
+                       view=view, brief_kind="hybrid")
 
     @app.post("/v1/objects/query", tags=["search"], **JSON_RESPONSES)
     def objects_query(request: Request, body: ObjectsQueryBody, _auth: Read) -> JSONResponse:
-        filters = body.model_dump(exclude={"kinds", "limit", "cursor"})
+        filters = body.model_dump(exclude={"kinds", "limit", "cursor", "view"})
         filters["review_status"] = [str(v) for v in body.review_status]
         filters["origin"] = [str(v) for v in body.origin]
-        return respond(request, service.query_objects(list(body.kinds), body.limit, body.cursor, **filters))
+        return respond(request, service.query_objects(list(body.kinds), body.limit, body.cursor, **filters),
+                       view=body.view, brief_kind="objects")
 
     @app.get("/v1/source/{source_id}", tags=["objects"], **JSON_RESPONSES)
     def get_source(request: Request, source_id: str, _auth: Read) -> JSONResponse:

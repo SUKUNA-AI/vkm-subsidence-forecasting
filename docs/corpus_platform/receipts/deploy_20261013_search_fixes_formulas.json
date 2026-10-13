@@ -1,0 +1,65 @@
+{
+ "schema": "vkm.deploy_receipt/1",
+ "date": "2026-10-13",
+ "host": "CORE",
+ "authorization": "owner in chat 2026-10-13: «выкатывай на core»; site scope decision «пусть относятся ко всем трем рудникам» (SKRU1_SKRU2_SKRU3 → SKRU1, SKRU2, SKRU3) (ordinary compose path)",
+ "change": "api/mcp/mcp-admin and the vkm-job wrapper switched from the image of commit 475e92f to the image of commit 4cefa90 (branch claude/search-fixes-formulas-2026-10-13, PR #18): MCP search tools answer brief by default (view), reconstruct_topic structured_content compact (include_json), cursor validation and a consistent end of list, objects/query next_cursor for one kind, copies of one work collapsed by default (graph default collapse + same-work aligned pages), NAV summaries per work, source scope map v2 (SKRU1_SKRU2_SKRU3 MULTI, applied at answer time over the v1 snapshot), scope filter warnings and include_ambiguous, numbered objects in the query, registry models of a formula and formula ids of a dossier model; catalogue pack 99f0ee6c6e05 → 4cefa905d39a (116 CSV files, model_formula_links included); nightly MCP smoke 6 → 7; canonical snapshot, projections, NAV, evidence journal, policy and profile unchanged",
+ "image": {
+  "tag": "vkm-corpus-api:0.1.0-4cefa905d39a",
+  "id": "sha256:0081aed6a66a6dbee907174f9d4d189df08e13c4a11af58d372a56f3083f0d29",
+  "built_on": "CORE from git archive of 4cefa905d39acc6d484c47396ee46dc26f256feb (pyproject.toml, requirements, src, infra/core/api)",
+  "code_check": "inside the image: graph_stages.DEFAULTS = ['collapse'], SITE_SCOPE_MAP_VERSION = '2', map_site_scope('SKRU1_SKRU2_SKRU3').scopes = (SKRU1, SKRU2, SKRU3), modules api.brief and search.object_refs present; CORE compose.yml identical to the repository (sha256 prefix 9f5192709a88897c)"
+ },
+ "previous_image": {
+  "tag": "vkm-corpus-api:0.1.0-475e92f3aa85",
+  "id": "sha256:a5d8b389f0d9a3e7fb94812d1637fed766fea067bdcce840cc022d9627efedd5",
+  "rollback": "restore .env.bak-search-20261013T091455Z (VKM_API_IMAGE) and vkm-job.bak-search-20261013T091455Z, `docker compose up -d --no-deps api mcp mcp-admin`; nightly/mcp_smoke.py.bak-search-20261013T091455Z; catalogue pack: write 99f0ee6c6e05 into derived/catalogues/CURRENT (the old pack is kept)"
+ },
+ "catalogue_pack": {
+  "pack_id": "4cefa905d39a",
+  "git_commit": "4cefa905d39acc6d484c47396ee46dc26f256feb",
+  "working_tree": "clean",
+  "built_on": "WORKSTATION (WSL, clean clone at the commit), `vkm-corpus catalogues pack`; published on CORE with `catalogues publish` (image 4cefa90)",
+  "files": 116,
+  "rows": 157935,
+  "db_sha256": "ebb5e94e783e36bf7d9129b251b00555738fd23273bb814fc5eb1dc7e7bb6c91",
+  "previous_pack": "99f0ee6c6e05 (2026-09-28, 79 files; kept)"
+ },
+ "checks": {
+  "containers_after": {
+   "vkm-core-api-1": {"image": "vkm-corpus-api:0.1.0-4cefa905d39a", "health": "healthy", "restart_count": 0},
+   "vkm-core-mcp-1": {"image": "vkm-corpus-api:0.1.0-4cefa905d39a", "health": "healthy", "restart_count": 0},
+   "vkm-core-mcp-admin-1": {"image": "vkm-corpus-api:0.1.0-4cefa905d39a", "health": "healthy", "restart_count": 0}
+  },
+  "mcp_smoke": {
+   "version": "nightly-mcp-smoke-7",
+   "summary": {"PASS": 49, "WARN": 0, "FAIL": 0, "SKIP": 0},
+   "verdict": "PASS",
+   "tools_listed": 49,
+   "seconds": 10.5,
+   "output_sha256": "cdefbf9693a424053f34b792011487156c5130862ef09bd7081d8ff73d8a6762"
+  },
+  "probe_before_after": {
+   "set": "24 fixed hybrid queries from the search review of 12.10 (API, view full, limit 10), before — on image 475e92f, after — on image 4cefa90, the same snapshot",
+   "identical_top10": 18,
+   "changed": {
+    "оседание земной поверхности над выработками СКРУ-1 + source_scope SKRU1": "VKM-SRC-012 (Лебедева) and 045 (Ермашов) now in the top 10 (scope map v2); the warning names only 110 and 120",
+    "реологические свойства соляных пород": "VKM-SRC-202:p0152 (copy of 025, work WRK-013) collapsed onto 025:p0152",
+    "предел прочности на одноосное сжатие сильвинита МПа (TABLE)": "VKM-SRC-025:p0163 collapsed onto its copy 202:p0163",
+    "скважина 75": "VKM-SRC-011:p0159 («…пройденных скважиной 75 в 1950 году…») promoted from 91 to 1 by the reference phrase; the table page 012:p0064 (word and number in different cells) is not reached by a phrase — needs the borehole entity index",
+    "скв. 75 геологический разрез": "small reordering at 7–10",
+    "рисунок 3.1 Соловьев Секунцов": "the work's pages (014:p0077, p0078) now lead; title pages follow"
+   },
+   "latency_ms": "client p50 about the same (≈ 200–280 ms per query); the bibliographic route ≈ 0.7 s"
+  },
+  "mcp_live": "search_hybrid brief: 5 hits ≈ 3 thousand characters with copies listed; get_formula_context VKM-SRC-014:p0151:m55276b886081 → registry_models MM-BACKFILL-001 (EXACT); VKM-SRC-045 scope SKRU1, SKRU2, SKRU3"
+ },
+ "tests": "PUBLIC branch: tests/corpus + tests/world 3699 passed, 73 skipped, 1 failed (test_visual_owner_bridge timing under load; 3/3 alone, files unchanged); after the scope map v2: scope/API/search/MCP 635 passed; test_public_hygiene 6/6; verify_canonical_repository PASS_WITH_NONBLOCKING (36 PASS, 7 tag anchors skipped)",
+ "limits": {
+  "projections": "the snapshot, OpenSearch and vector indices keep the v1 scope fields; the API maps at answer time and the scope filter takes SKRU1_SKRU2_SKRU3 sources by source_id until the next rebuild",
+  "edge": "unchanged",
+  "serving_profile": "COMPATIBILITY (unchanged)",
+  "science": "model_formula_links: DERIVATION, AUTO_EXTRACTED_UNREVIEWED; a link between a registry model and a formula of a book is navigation, not a check of the law; the source scope says the work covers the three mines, the mine of a value is still read from the text"
+ },
+ "work_dir": "work/deploy_search_fixes_20261013 (deploy_core.sh; git-ignored)"
+}

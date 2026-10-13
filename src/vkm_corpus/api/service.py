@@ -28,6 +28,7 @@ from vkm_corpus.api.envelope import (API_VERSION, ApiWarning, Envelope, Geometry
                                      Provenance, SourceScope)
 from vkm_corpus.api.errors import ApiFailure
 from vkm_corpus.contracts import vocab
+from vkm_corpus.contracts.site_scope import with_current_scope
 from vkm_corpus.ids import grammar
 from vkm_corpus.ops.worker import ALLOWED_OPTIONS as REPROCESS_OPTIONS
 
@@ -114,6 +115,38 @@ def _require(dep: Any, name: str, stage: str) -> Any:
     return dep
 
 
+def cursor_offset(cursor: str | None) -> int:
+    """Offset of a numeric page cursor — the ``next_cursor`` of the previous page; none (or empty) → the first page.
+    Anything else (letters, a sign, spaces) is INVALID_ARGUMENT: a foreign cursor never silently restarts the list."""
+    if not cursor:
+        return 0
+    if not (cursor.isascii() and cursor.isdigit()):
+        raise ApiFailure("INVALID_ARGUMENT", f"cursor {cursor[:12]!r} is not a page cursor",
+                         hint="pass next_cursor of the previous answer unchanged (digits: an offset), or no cursor "
+                              "for the first page; next_cursor null means the list has ended")
+    return int(cursor)
+
+
+def past_end(offset: int, served: int, end: int | None = None) -> list[ApiWarning]:
+    """``CURSOR_PAST_END`` when a cursor points at or beyond the end of the list (the page is empty and
+    ``next_cursor`` null; ``end`` = the list's length when known)."""
+    if offset <= 0 or served or (end is not None and offset < end):
+        return []
+    where = f"the list ends at {end}" if end is not None else "the list ended before this offset"
+    return [ApiWarning(code="CURSOR_PAST_END", message=f"{where}: an empty page (next_cursor was null)", count=end)]
+
+
+def hybrid_depth(response: dict[str, Any], candidates: int, kinds: list[str]) -> int:
+    """How deep a hybrid answer pages: with fused formulations the fused list is the whole answer (fixed depth),
+    otherwise the first ``candidates`` × kinds of the final order. Hits beyond it are not served, so a cursor and
+    ``next_cursor`` agree."""
+    fused_total = int(response.get("fused_total") or 0)
+    fstage = (response.get("stages") or {}).get("formulations")
+    if isinstance(fstage, dict) and fstage.get("status") == "APPLIED":
+        return fused_total
+    return min(fused_total, candidates * len(kinds))
+
+
 def _window(text: str | None, offset: int, max_chars: int) -> tuple[str | None, dict[str, Any]]:
     if text is None:
         return None, {"offset": 0, "chars_total": 0, "truncated": False}
@@ -165,6 +198,7 @@ class ApiService:
                  copy_counts: dict[str, int] | None = None) -> Envelope:
         snapshot = self.canon.snapshot_id()
         flags = list(flags or [])
+        row = with_current_scope(row)                       # the current site scope map (the snapshot may be older)
         if kind in DOC_KINDS:
             object_id = row.get("object_id") or row.get("page_id")
             page_id = row.get("page_id")
@@ -266,7 +300,7 @@ class ApiService:
 
     @staticmethod
     def record(row: dict[str, Any], *, drop: frozenset[str] = ENVELOPE_COLUMNS) -> dict[str, Any]:
-        return jsonable({k: v for k, v in row.items() if k not in drop})
+        return jsonable({k: v for k, v in with_current_scope(row).items() if k not in drop})
 
     def _item(self, kind: str, row: dict[str, Any], *, record: dict[str, Any] | None = None, **kw: Any) -> Item:
         return Item(envelope=self.envelope(kind, row, **kw), record=record if record is not None else self.record(row))
@@ -304,12 +338,13 @@ class ApiService:
         self._get("SOURCE", source_id)
         if not 1 <= limit <= 500:
             raise ApiFailure("INVALID_ARGUMENT", "limit must be 1…500")
-        offset = int(cursor) if cursor and cursor.isdigit() else 0
+        offset = cursor_offset(cursor)
         rows = self.canon.pages_of_source(source_id, from_page, to_page, limit + 1, offset)
         more = len(rows) > limit
         items = [Item(envelope=self.envelope("PAGE", self._get("PAGE", r["page_id"]), payload_form="REFERENCE"),
                       record=jsonable(r)) for r in rows[:limit]]
-        return Result(items=items, next_cursor=str(offset + limit) if more else None)
+        return Result(items=items, next_cursor=str(offset + limit) if more else None,
+                      warnings=past_end(offset, len(rows)))
 
     def get_work(self, work_id: str) -> Result:
         self._check("work", work_id)
@@ -457,16 +492,56 @@ class ApiService:
             self._search_status = (now, status)
         return self._search_status[1]
 
+    # source area filter (agent Б, 13.10): what ``source_scope`` leaves out — ``vkm_corpus.search.scope_filter``
+    def _scope_sources(self) -> list[dict[str, Any]]:
+        """Registered sources with their area mapping (cached per canonical snapshot)."""
+        snapshot = self.canon.snapshot_id()
+        cached = getattr(self, "_scope_cache", None)
+        if cached is None or cached[0] != snapshot:
+            rows = self.canon.query("SELECT source_id, site_scope, site_scope_candidates, site_scope_mapping, "
+                                    "site_scope_raw FROM sources")
+            rows = [with_current_scope(r) for r in rows]           # the current map (the snapshot may be older)
+            cached = self._scope_cache = (snapshot, rows)
+        return cached[1]
+
+    def _scope_filter(self, filters: dict[str, Any] | None) -> tuple[dict[str, Any], list[ApiWarning]]:
+        """The filters to run (``include_ambiguous`` popped) and the warning: ``SCOPE_FILTER_EXCLUDED_AMBIGUOUS`` (the
+        sources the area filter leaves out although they may hold it) or, with ``include_ambiguous``, the filter «area
+        OR these sources» and ``SCOPE_FILTER_INCLUDED_AMBIGUOUS``. No area filter → unchanged, no warning."""
+        from vkm_corpus.search import scope_filter as SF
+
+        filters = dict(filters or {})
+        include = bool(filters.pop("include_ambiguous", False))
+        scopes = filters.get("source_scope")
+        if not scopes:
+            return filters, []
+        within = filters.get("source_id")
+        requested = scopes if isinstance(scopes, (list, tuple)) else [scopes]
+        within_ids = None if within is None else (within if isinstance(within, (list, tuple)) else [within])
+        sources = self._scope_sources()
+        # sources the current map gives the area while the snapshot's stored scope (and so the index) does not — they
+        # are always searched (the map is the decision; the projections catch up at the next rebuild)
+        remapped = SF.remapped_sources(requested, sources, within=within_ids)
+        found = SF.excluded_sources(requested, sources, within=within_ids)
+        if not found:
+            return SF.widen(filters, remapped), []
+        code = "SCOPE_FILTER_INCLUDED_AMBIGUOUS" if include else "SCOPE_FILTER_EXCLUDED_AMBIGUOUS"
+        warning = ApiWarning(code=code, message=SF.message(found, included=include), count=len(found))
+        return SF.widen(filters, remapped + (found if include else [])), [warning]
+
     def search(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
                include_duplicates: bool = False, exact: bool = False) -> Result:
         backend = _require(self.deps.search, "opensearch", "opensearch")
-        offset = int(cursor) if cursor and cursor.isdigit() else 0
+        offset = cursor_offset(cursor)
+        filters, scope_warnings = self._scope_filter(filters)
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
                    "include_duplicates": include_duplicates, "exact": exact}
         response = backend.search(request)
         items, warnings = self._search_items(response)
+        warnings = scope_warnings + warnings
         hits = response.get("hits", [])
         more = len(hits) == limit and offset + limit < 1000
+        warnings += past_end(offset, len(hits))
         return Result(items=items, warnings=warnings, next_cursor=str(offset + limit) if more else None)
 
     def search_hybrid(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
@@ -488,11 +563,13 @@ class ApiService:
         formulation and fuse the final orders by RRF (``stages.formulations``; the caller's wordings first, at most
         :data:`~vkm_corpus.search.hybrid.MAX_FORMULATIONS` with the query; each formulation gets its own translation
         legs when ``translate`` is on); ``max_per_source`` caps the final order per source (the overflow follows,
-        nothing is dropped; ``stages.source_cap``). With fused formulations the cursor pages through the fused list."""
+        nothing is dropped; ``stages.source_cap``). With fused formulations the cursor pages through the fused list.
+        The answer ends at :func:`hybrid_depth`: no hit past it is served, a cursor at or past it gives an empty page
+        with ``CURSOR_PAST_END``."""
         from vkm_corpus.search.hybrid import MAX_FORMULATIONS, MAX_PER_SOURCE
 
         backend = _require(self.deps.hybrid, "hybrid search", "hybrid")
-        offset = int(cursor) if cursor and cursor.isdigit() else 0
+        offset = cursor_offset(cursor)
         caller = [" ".join(str(f).split()) for f in formulations or []]
         if len(caller) > MAX_FORMULATIONS - 1 or any(not f or len(f) > 512 for f in caller):
             raise ApiFailure("INVALID_ARGUMENT", f"formulations: at most {MAX_FORMULATIONS - 1} wordings of 1..512 "
@@ -504,6 +581,7 @@ class ApiService:
             raise ApiFailure("INVALID_ARGUMENT", f"max_per_source is 1..{MAX_PER_SOURCE}")
         use_translation = self._hybrid_translate_default(late) if translate is None else bool(translate)
         expansions, translation = self._query_translation(query) if use_translation else ([], None)
+        filters, scope_warnings = self._scope_filter(filters)
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
                    "candidates": candidates, "include_duplicates": include_duplicates, "exact": exact,
                    "late": late, "late_candidates": late_candidates, "bib_route": bib_route,
@@ -527,12 +605,15 @@ class ApiService:
         if max_per_source is not None:
             request["max_per_source"] = int(max_per_source)
         response = backend.search(request)
+        depth = hybrid_depth(response, candidates, kinds)          # never serve past the end next_cursor reports
+        response = {**response, "hits": list(response.get("hits") or [])[:max(0, depth - offset)]}
         stages = response.get("stages") or {}
         dense = stages.get("dense") or {}
         vis = stages.get("visual_route") if isinstance(stages.get("visual_route"), dict) else {}
         items, warnings = self._search_items(response, extra_built={
             dense.get("build_id"): dense.get("built_from_snapshot_id"),
             vis.get("build_id"): vis.get("built_from_snapshot_id")}, hybrid=True)
+        warnings = scope_warnings + warnings
         record = {k: response.get(k) for k in ("fusion", "rrf_k", "candidates", "fused_total", "totals", "stages",
                                                "timings_ms", "late", "late_candidates", "route")}
         record.update({"kinds": list(kinds), "query_sha256": sha256_text(query),
@@ -549,12 +630,8 @@ class ApiService:
                             review_status="NOT_APPLICABLE", layer="SERVICE", payload_form="NORMALIZED",
                             provenance=Provenance(model_id=dense.get("model_key"), model_revision=None),
                             canonical_snapshot_id=self.canon.snapshot_id())
-        fused_total = int(response.get("fused_total") or 0)
-        fstage = stages.get("formulations")
-        if isinstance(fstage, dict) and fstage.get("status") == "APPLIED":
-            more = offset + limit < fused_total             # the fused list is the whole answer (fixed depth)
-        else:
-            more = offset + limit < min(fused_total, candidates * len(kinds))
+        more = offset + limit < depth
+        warnings += past_end(offset, len(response["hits"]), depth)
         return Result(item=Item(envelope=envelope, record=jsonable(record)), items=items, warnings=warnings,
                       next_cursor=str(offset + limit) if more else None)
 
@@ -579,7 +656,7 @@ class ApiService:
         works = self.works_of_sources(row.get("source_id") for _k, row in hydrated.values())
         copy_counts = self.canon.work_copy_counts(works.values())
         items: list[Item] = []
-        seen_works: dict[str, int] = {}
+        seen_works: dict[str, set[str]] = {}               # work → sources of the hits (copies shown side by side)
         for hit in hits:
             if hit["id"] not in hydrated:
                 continue
@@ -592,7 +669,7 @@ class ApiService:
                                     built_from_snapshot_id=built_from, matches_canonical_snapshot=matches)
             work_id = hit.get("work_id") or works.get(row.get("source_id"))
             if work_id:
-                seen_works[work_id] = seen_works.get(work_id, 0) + 1
+                seen_works.setdefault(work_id, set()).add(str(row.get("source_id")))
             ordered_blocks = sorted(hit.get("best_blocks") or [], key=lambda b: (
                 b.get("reading_order") is None, b.get("reading_order"), b.get("id")))
             record = {"rank": hit.get("rank"), "bm25_score": hit.get("score"), "rrf_score": hit.get("rrf_score"),
@@ -614,6 +691,8 @@ class ApiService:
                 record.update({"bm25_score": trace.get("bm25_score"), "rrf_score": trace.get("rrf_score"),
                                "dense_score": trace.get("dense_score"), "late_score": trace.get("late_score"),
                                "rank_in_kind": None, "trace": trace})
+                if "copies" in hit:                       # G1: copies of this hit that left the ranking
+                    record["copies"] = list(hit.get("copies") or [])
                 unit = trace.get("dense_unit") or {}
                 if not ordered_blocks and hit.get("object_type") == "PAGE" and unit.get("object_ids"):
                     record["rerank_candidate"]["object_ids"] = list(unit["object_ids"])[:20]
@@ -623,11 +702,14 @@ class ApiService:
             warnings.append(ApiWarning(code="PROJECTION_BUILD_MISMATCH",
                                        message="the index was built from another canonical snapshot",
                                        count=mismatched))
-        repeated = {w: n for w, n in seen_works.items() if n > 1 or copy_counts.get(w, 0) > 1}
+        # copies shown side by side: hits from two or more sources of one work (pages of one source are not copies; a
+        # work whose other copies left the ranking — G1 ``copies`` — or were never hit says so on the hit:
+        # ``work_copy_count``, ``copies``)
+        repeated = {w: s for w, s in seen_works.items() if len(s) > 1}
         if repeated:
             warnings.append(ApiWarning(code="WORK_HAS_MULTIPLE_COPIES",
-                                       message="several hits or registered files belong to one work: copies are not "
-                                               "independent evidence", count=len(repeated)))
+                                       message="hits from several copies of one work: copies are not independent "
+                                               "evidence", count=len(repeated)))
         for code in response.get("warnings") or []:
             warnings.append(ApiWarning(code="SEARCH_WARNING", message=str(code)[:200]))
         return items, warnings
@@ -647,21 +729,51 @@ class ApiService:
             return {}
         return {r["formula_id"]: str(r["equation_number"]) for r in rows if r.get("equation_number")}
 
+    def _nav_object_groups(self, object_ids: Any) -> dict[str, str]:
+        """object id → its NAV ``object_dup_clusters`` group (BOILERPLATE groups left out) for merging copies of one
+        work (best effort: a build without the part only means no group key)."""
+        ids = sorted({str(o) for o in object_ids if o})
+        nav = self.deps.nav
+        if not ids or nav is None or not hasattr(nav, "query"):
+            return {}
+        try:
+            ph = ", ".join("?" for _ in ids)
+            rows = nav.query(f"SELECT object_id, cluster_id FROM object_dup_members WHERE object_id IN ({ph}) "
+                             "AND kind <> 'BOILERPLATE'", ids)
+        except Exception:  # noqa: BLE001 - NavUnavailable, missing table
+            return {}
+        return {r["object_id"]: r["cluster_id"] for r in rows if r.get("cluster_id")}
+
     def query_objects(self, kinds: list[str], limit: int, cursor: str | None, **filters: Any) -> Result:
-        offset = int(cursor) if cursor and cursor.isdigit() else 0
+        offset = cursor_offset(cursor)
         if not kinds or any(k not in QUERYABLE_KINDS for k in kinds):
             raise ApiFailure("INVALID_ARGUMENT", f"kinds must be values of {QUERYABLE_KINDS}")
+        scoped, warnings = self._scope_filter({"source_scope": filters.get("source_scope") or [],
+                                               "include_ambiguous": filters.pop("include_ambiguous", False),
+                                               **({"source_id": filters["source_ids"]} if filters.get("source_ids")
+                                                  else {})})
+        if "source_scope_or_source_id" in scoped:          # include_ambiguous: the area OR these sources
+            filters["scope_source_ids"] = scoped["source_scope_or_source_id"]["source_id"]
         items: list[Item] = []
+        # one kind: its rows from the offset; several kinds: every kind from the start and the page is a window of the
+        # merged order (object id), so the cursor pages through all kinds together without skipping objects
+        rows_of: list[tuple[str, dict[str, Any]]] = []
         for kind in kinds:
-            rows = self.canon.query_objects(kind, limit=limit + 1, offset=offset, **filters)
-            for row in rows[:limit]:
-                record = {k: v for k, v in self.record(row).items()
-                          if k not in ("text", "normalized_text", "raw_output", "normalized_html", "cells")}
-                record.update(object_label(kind, row) or {})
-                items.append(Item(envelope=self.envelope(kind, row, payload_form="REFERENCE"), record=record))
+            rows = self.canon.query_objects(kind, limit=limit + 1 + (offset if len(kinds) > 1 else 0),
+                                            offset=0 if len(kinds) > 1 else offset, **filters)
+            rows_of += [(kind, row) for row in rows]
+        if len(kinds) > 1:
+            rows_of.sort(key=lambda kr: str(kr[1].get("object_id")))
+            rows_of = rows_of[offset:]
+        more = len(rows_of) > limit
+        for kind, row in rows_of[:limit]:
+            record = {k: v for k, v in self.record(row).items()
+                      if k not in ("text", "normalized_text", "raw_output", "normalized_html", "cells")}
+            record.update(object_label(kind, row) or {})
+            items.append(Item(envelope=self.envelope(kind, row, payload_form="REFERENCE"), record=record))
         items.sort(key=lambda it: it.envelope.object_id)
-        more = len(items) > limit
-        return Result(items=items[:limit], next_cursor=str(offset + limit) if more else None)
+        return Result(items=items, next_cursor=str(offset + limit) if more else None,
+                      warnings=warnings + past_end(offset, len(items)))
 
     # ================================================================================================ rerank
     def text_rerank_backend(self) -> str:
@@ -1096,7 +1208,27 @@ class ApiService:
         data, snap = self._nav_run(lambda nav: nav.run("formula_context", formula_id))
         src = data.get("source_id") if isinstance(data, dict) else None
         page = data.get("page_id") if isinstance(data, dict) else None
+        if isinstance(data, dict) and data:
+            data = {**data, "registry_models": self._registry_models(formula_id)}
         return self._nav_result("NAV_FORMULA", formula_id, data, snap, source_id=src, page_id=page)
+
+    def _registry_models(self, formula_id: str) -> list[dict[str, Any]] | None:
+        """Formula-registry models linked to this formula (catalogue ``model_formula_links``: AUTO_EXTRACTED_UNREVIEWED
+        navigation links, DERIVATION; a REJECTED check is left out) — None when no catalogue pack is served."""
+        from vkm_corpus.api import topic
+        from vkm_corpus.catalogues.store import CataloguesUnavailable
+
+        if self.deps.catalogues is None:
+            return None
+        try:
+            links = [r for r in topic.model_formula_links(self.deps.catalogues) if r["formula_id"] == formula_id]
+            names = {m.get("model_id"): m.get("name_ru") for m in self.deps.catalogues.rows(
+                "mathematical_model_registry", ["model_id", "name_ru"])} if links else {}
+        except CataloguesUnavailable:
+            return None
+        return [{"model_id": r["model_id"], "name": topic.short(names.get(r["model_id"]), 110),
+                 "equation_ref": r.get("equation_ref"), "match_status": r["match_status"],
+                 "check": r.get("check") or "NOT_REVIEWED"} for r in links]
 
     def nav_formulas(self, concept: str | None, symbol: str | None, source_id: str | None, limit: int) -> Result:
         if not (concept or symbol):
@@ -1169,7 +1301,14 @@ class ApiService:
             raise ApiFailure("INVALID_ARGUMENT", "source_id has the form VKM-SRC-NNN")
         data, snap = self._nav_run(lambda nav: nav.run("find_parameters", property=property, material=material,
                                                        site=site, scale=scale.upper() if scale else None,
-                                                       source_id=source_id, limit=limit))
+                                                       source_id=source_id, limit=min(2 * int(limit), 400)))
+        if isinstance(data, dict) and isinstance(data.get("candidates"), list):   # copies of one work: one position
+            from vkm_corpus.navigation.work_rollup import merge_copies, parameter_keys
+
+            work_of = self.works_of_sources(c.get("source_id") for c in data["candidates"])
+            cands, by_work = merge_copies(data["candidates"], work_of, parameter_keys, id_field="candidate_id",
+                                          limit=limit)
+            data = {**data, "candidates": cands, "by_work": by_work}
         key = "|".join(str(x) for x in (property, material, site, scale, source_id) if x)[:60]
         return self._nav_result("NAV_PARAMETERS", f"parameters:{key}", data, snap, source_id=source_id)
 
@@ -1177,6 +1316,11 @@ class ApiService:
         if not property or len(property) > 200:
             raise ApiFailure("INVALID_ARGUMENT", "property is 1..200 characters")
         data, snap = self._nav_run(lambda nav: nav.run("parameter_summary", property, material=material))
+        if isinstance(data, dict) and isinstance(data.get("rows"), list):          # n_works next to n_sources
+            from vkm_corpus.navigation.work_rollup import NOTE, summary_by_work
+
+            work_of = self.works_of_sources(s for r in data["rows"] for s in r.get("source_ids") or [])
+            data = {**data, "rows": summary_by_work(data["rows"], work_of), "by_work_note": NOTE}
         return self._nav_result("NAV_PARAMETER_SUMMARY", f"parameter_summary:{property[:40]}", data, snap)
 
     # ------------------------------------------------------------------ term dictionary (agent TR)
@@ -1223,7 +1367,10 @@ class ApiService:
         except Exception as exc:  # noqa: BLE001 - NavUnavailable, a build without term_translations …
             return [], {"status": "UNAVAILABLE", "reason": f"term dictionary: {type(exc).__name__}"}
         data = data if isinstance(data, dict) else {}
-        text = data.get("translation")
+        # numbered objects keep their numbers («скважина 75» → «borehole» → «borehole 75»; search.object_refs)
+        from vkm_corpus.search.object_refs import keep_refs
+
+        text = keep_refs(query, data.get("translation"))
         info = {"status": "APPLIED" if text else "NOT_COVERED", "text": text,
                 "source_language": data.get("source_language"), "target_language": data.get("target_language"),
                 "coverage": data.get("coverage"),
@@ -1264,7 +1411,10 @@ class ApiService:
                 text = exp.get("text")
                 terms = [{k: x.get(k) for k in ("span", "equivalent", "relation", "score", "pair_id")}
                          for x in (exp.get("terms") or [])[:8]]
-            text = " ".join(str(text).split())[:512] if text else None
+            from vkm_corpus.search.object_refs import keep_refs           # numbered objects keep their numbers
+
+            text = keep_refs(query, " ".join(str(text).split())[:512], english=origin == "translation") if text \
+                else None
             parts[origin] = {"status": "APPLIED" if text else "NOT_COVERED", "text": text, "terms": terms}
             if text:
                 out.append({"text": text, "origin": origin})
@@ -1367,7 +1517,16 @@ class ApiService:
         if not 1 <= int(limit) <= 100:
             raise ApiFailure("INVALID_ARGUMENT", "limit is 1..100")
         data, snap = self._nav_run_parts(self._TABLE_DATASETS, lambda nav: nav.run(
-            "find_tables", property=property, material=material, source_id=source_id, text=text, limit=int(limit)))
+            "find_tables", property=property, material=material, source_id=source_id, text=text,
+            limit=min(2 * int(limit), 200)))
+        if isinstance(data, dict) and isinstance(data.get("tables"), list):        # copies of one work: one position
+            from vkm_corpus.navigation.work_rollup import merge_copies, table_keys
+
+            work_of = self.works_of_sources(t.get("source_id") for t in data["tables"])
+            groups = self._nav_object_groups(t.get("table_id") for t in data["tables"])
+            tables, by_work = merge_copies(data["tables"], work_of, lambda t, w: table_keys(t, w, groups),
+                                           id_field="table_id", limit=int(limit))
+            data = {**data, "tables": tables, "by_work": by_work}
         key = "|".join(str(x) for x in (property, material, source_id, text) if x)[:60]
         return self._nav_result("NAV_TABLES", f"tables:{key}", data, snap, source_id=source_id, search=True)
 

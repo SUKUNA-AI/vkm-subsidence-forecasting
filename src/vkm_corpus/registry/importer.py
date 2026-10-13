@@ -18,6 +18,7 @@ from typing import Any
 
 from vkm_corpus import ids
 from vkm_corpus.contracts.signatures import config_hash as make_config_hash
+from vkm_corpus.contracts.site_scope import SITE_SCOPE_MAP_VERSION
 from vkm_corpus.contracts.vocab import ErrorCode, FileStatus, RunKind, RunStatus
 from vkm_corpus.parquet.commits import REGISTRY_KEY, acquire_lease, commit_registry
 from vkm_corpus.parquet.layout import CanonLayout
@@ -86,7 +87,7 @@ def import_registry(layout: CanonLayout, resources_root: Path, *, work_registry:
     coverage = load_phase1_coverage(coverage_path) if coverage_path else {}
     config = {"register": "PRIVATE:" + REGISTER_REL, "work_registry": "PRIVATE:" + WORK_REGISTRY_REL,
               "coverage": "PUBLIC:evidence/sources/SOURCE_COVERAGE_MASTER.csv" if coverage_path else None,
-              "site_scope_map_version": "1"}
+              "site_scope_map_version": SITE_SCOPE_MAP_VERSION}
     chash = make_config_hash(config)
     wdir = work_registry or work_registry_dir(resources_root)
     run = RunRecorder(layout, run_kind=RunKind.REGISTRY_IMPORT, cli_command=cli_command, host_role=host_role,

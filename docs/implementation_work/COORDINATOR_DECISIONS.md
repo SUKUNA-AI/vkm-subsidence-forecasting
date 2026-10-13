@@ -53,6 +53,10 @@ REVIEWED_MEASUREMENT / ACCEPTED_PARAMETER / ACCEPTED_FORMULA запрещена 
 `site_scope_raw` (дословно `evidence_scope`), `site_scope` (список значений `vkm_world.Scope`), `site_scope_mapping`
 ∈ {EXACT, CASE, SYNONYM, LOSSY, MULTI, AMBIGUOUS, NOT_A_SCOPE}. AMBIGUOUS (002, 012, 045) в v0 не разрешается.
 Реестр на месте не чистится.
+*Таблица v2 (решение владельца 13.10.2026):* `SKRU1_SKRU2_SKRU3` (002, 012, 045) — MULTI → SKRU1, SKRU2, SKRU3
+(работа охватывает все три рудника; рудник отдельного значения по-прежнему определяется по тексту). AMBIGUOUS остаётся
+только `VKM_Solikamsk`. Снимки и индексы, собранные по v1, API отвечает по v2 (`with_current_scope`), а фильтр
+`source_scope` берёт такие источники по `source_id` до пересборки проекций.
 
 **CP-08 Идентичность страницы — ACCEPTED (формат ID — у агента D).**
 PDF и DjVu: физический индекс с 1 (совпадает с `pdf_page` всех 13 596 записей evidence). Развороты (037, 243)

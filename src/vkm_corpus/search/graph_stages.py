@@ -4,14 +4,22 @@ and the topic tree — used around E's ranking without any model change (no new 
 re-encoding; the deployed models stay exactly as they are).
 
 E (``search.hybrid``) = BM25 + dense → RRF → the late window (RRF top ``late_candidates``) re-scored by mLateOn MaxSim.
-Every stage is a separate switch (request ``graph``; server default :data:`DEFAULTS`, ``VKM_HYBRID_GRAPH``):
+Every stage is a separate switch (request ``graph``; server default :data:`DEFAULTS` = G1 since 13.10,
+``VKM_HYBRID_GRAPH``; a request with ``include_duplicates`` drops the default G1 — it asked for the copies):
 
 * **G1 ``collapse``** — a page whose text is at least half shared with a better-ranked page leaves the ranking and is
   listed on that hit (``copies``). The pairs come from NAV ``dup_members``: clusters SAME_WORK_COPY, REPRINT and
   SHARED_ABSTRACT; a quote (PARTIAL_OVERLAP) or a template (BOILERPLATE) never makes a copy. The share is the shared
-  text of the page's units (``shared_chars``) over its characters. An object hit (figure, table, formula) leaves when a
-  better-ranked object of the same NAV ``object_dup_clusters`` group is shown (BOILERPLATE groups never collapse).
-  Runs last, over all kinds: the top k holds distinct content.
+  text of the page's units (``shared_chars``) over its characters. *Copies of one work* (agent Б, 13.10): two sources
+  that are instances of one Work (canon ``work_sources``, primary link — e.g. VKM-SRC-025 and VKM-SRC-202 of
+  VKM-WRK-013) are the same pages under different OCR; a page of one leaves when the *aligned* page of the other is
+  shown — same page index after the offset that the NAV text pairs of the two sources agree on (``copy_offsets``:
+  the modal index difference of the page pairs of NAV passage clusters, any kind, that hold one page of each copy;
+  ≥ :data:`OFFSET_MIN_PAIRS` pairs and ≥ :data:`OFFSET_MIN_SHARE` of them). Pages without shared text (figures,
+  tables, title pages, a passage in a PARTIAL_OVERLAP or BOILERPLATE cluster) collapse this way too; without an
+  agreed offset nothing is guessed. An
+  object hit (figure, table, formula) leaves when a better-ranked object of the same NAV ``object_dup_clusters`` group
+  is shown (BOILERPLATE groups never collapse). Runs last, over all kinds: the top k holds distinct content.
 * **G2 ``cohesion``** — when ≥ 2 of the first 10 pages (after late) fall in the same deep NAV section (level ≥ 2,
   ≤ 16 pages; chapters never), the other pages of that section — nearest to the hits first, ≤ 4 per section, ≤ 12 —
   form a leg fused after late: a section the ranking already found twice lends its other pages (tables, figures and
@@ -35,21 +43,27 @@ runs them in the served path and the benchmark runs the same functions over its 
 """
 from __future__ import annotations
 
+import re
 import threading
 import time
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass, field
 from typing import Any, Callable, Iterable, Mapping, Protocol, Sequence
 
 STAGES: tuple[str, ...] = ("collapse", "cohesion", "concepts", "cites", "topics")
 CODES: dict[str, str] = {"collapse": "G1", "cohesion": "G2", "concepts": "G3", "cites": "G4", "topics": "G5"}
 PAGE_STAGES: tuple[str, ...] = ("cohesion", "concepts", "cites", "topics")
-# server default: none (coordinator, 29.09). GRAPH_SEARCH_V1's rule is worded per stage and no stage passes alone;
-# the combination GC passes only by a hair (topic_v1 page_recall@50 +0.021 [+0.006; +0.037], Holm p 0.046) and in
+# владелец 13.10: копии одной работы схлопываются по умолчанию; G1 по GRAPH_SEARCH_V1 +0,010, без вреда.
+# Server default: G1 only — page_recall@50 +0.010 [+0.004; +0.019] (Holm p 0.011), no harm on retrieval_v1
+# (benchmarks/graph_search_v1/RESULTS.md §1). The other stages stay off (coordinator,
+# 29.09): no stage passes the per-stage rule alone, the combination GC only by a hair (+0.021, Holm p 0.046) and in
 # the standard nDCG form it loses text nDCG@10 −0.009 and R@50 −0.043 on retrieval_v1; G3 alone hurts text R@50.
-# G1 + G5 (post hoc +0.020) goes to a confirmatory preregistered run on the pooled topic labels of agent LB.
-# VKM_HYBRID_GRAPH switches stages on without a rebuild ("none", or a comma list of stages).
-DEFAULTS: frozenset[str] = frozenset()
+# VKM_HYBRID_GRAPH overrides it without a rebuild ("none" switches G1 off, or a comma list of stages).
+DEFAULTS: frozenset[str] = frozenset({"collapse"})
+# copies of one work (G1): the page offset of two copies is the modal index difference of their verified NAV passage
+# pairs — at least this many pairs, at least this share of them (MODEL_CHOICE; no agreed offset → no work rule)
+OFFSET_MIN_PAIRS = 3
+OFFSET_MIN_SHARE = 0.8
 MODES: tuple[str, ...] = ("post", "window")
 REVIEW_STATUS = "AUTO_EXTRACTED_UNREVIEWED"
 NOTE = ("graph stages: DERIVED navigation (AUTO_EXTRACTED_UNREVIEWED) reorders or adds candidates of the hybrid "
@@ -86,6 +100,7 @@ class GraphParams:
     copy_min_coverage: float = 0.5              # shared text / page characters (the NAV containment threshold)
     copy_kinds: tuple[str, ...] = ("SAME_WORK_COPY", "REPRINT", "SHARED_ABSTRACT")
     object_skip_kinds: tuple[str, ...] = ("BOILERPLATE",)
+    work_copies: bool = True                    # aligned pages of two copies of one work (13.10; after GRAPH_SEARCH_V1)
     # G2 cohesion
     cohesion_top: int = 10
     cohesion_min_hits: int = 2
@@ -146,11 +161,57 @@ class GraphMaps:
     section_pages: dict[str, tuple[tuple[str, int], ...]] = field(default_factory=dict)
     section_topics: dict[tuple[str, int], str] = field(default_factory=dict)  # (section, level) → topic
     cite_neighbours: dict[str, frozenset[str]] = field(default_factory=dict)  # source → sources (CITES)
+    work_of_source: dict[str, str] = field(default_factory=dict)              # source → its work (primary instance)
+    # (source a, source b) of one work → page index in b minus the aligned page index in a (both directions)
+    copy_offsets: dict[tuple[str, str], int] = field(default_factory=dict)
     parts: dict[str, str] = field(default_factory=dict)                       # part → OK | MISSING … | ERROR …
     build_ms: float | None = None
 
     def sections_of(self, page_id: str) -> tuple[SectionRef, ...]:
         return self.page_sections.get(page_id, ())
+
+    def copy_sources(self, source_id: str) -> list[str]:
+        """The other sources of the work of ``source_id`` with an agreed page offset (sorted)."""
+        return sorted(b for (a, b) in self.copy_offsets if a == source_id)
+
+
+_PAGE_NO = re.compile(r"^(VKM-SRC-\d{3,}):[prs](\d{4})$")
+
+
+def page_position(page_id: str) -> tuple[str, int] | None:
+    """(source, page index) of a page id (``VKM-SRC-025:p0152`` → (``VKM-SRC-025``, 152)); None for other ids."""
+    m = _PAGE_NO.match(page_id or "")
+    return (m.group(1), int(m.group(2))) if m else None
+
+
+def copy_offsets(dup_members: Iterable[tuple[str, str, str, int]], work_of: Mapping[str, str], *,
+                 min_pairs: int = OFFSET_MIN_PAIRS, min_share: float = OFFSET_MIN_SHARE) -> dict[tuple[str, str], int]:
+    """Page offsets of the copies of one work from the NAV passage clusters (any kind). A cluster that holds exactly
+    one page of each of two sources of one work pairs those pages (``index(b) − index(a)``; a cluster with several pages
+    of a source pairs nothing — a chain of passages says nothing about alignment); the modal difference is the offset
+    when ≥ ``min_pairs`` distinct page pairs agree and they are ≥ ``min_share`` of the pairs of the two sources."""
+    by_cluster: dict[str, dict[str, set[int]]] = defaultdict(lambda: defaultdict(set))
+    for cid, _kind, pid, _shared in dup_members:
+        pos = page_position(pid)
+        if pos and work_of.get(pos[0]):
+            by_cluster[cid][pos[0]].add(pos[1])
+    diffs: dict[tuple[str, str], Counter[int]] = defaultdict(Counter)
+    seen: set[tuple[str, int, str, int]] = set()
+    for members in by_cluster.values():
+        single = {s: next(iter(idx)) for s, idx in members.items() if len(idx) == 1}
+        for sa, ia in single.items():
+            for sb, ib in single.items():
+                if sa < sb and work_of[sa] == work_of[sb] and (sa, ia, sb, ib) not in seen:
+                    seen.add((sa, ia, sb, ib))
+                    diffs[(sa, sb)][ib - ia] += 1
+    out: dict[tuple[str, str], int] = {}
+    for (sa, sb), counter in diffs.items():
+        total = sum(counter.values())
+        offset, n = min(counter.items(), key=lambda x: (-x[1], abs(x[0]), x[0]))
+        if n >= min_pairs and n / total >= min_share:
+            out[(sa, sb)] = offset
+            out[(sb, sa)] = -offset
+    return out
 
 
 class GraphSignals(Protocol):
@@ -193,12 +254,18 @@ def build_maps(*, sections: Iterable[tuple[str, int]] = (), section_pages: Itera
                dup_members: Iterable[tuple[str, str, str, int]] = (), page_chars: Mapping[str, int] | None = None,
                object_members: Iterable[tuple[str, str, str]] = (),
                cites: Iterable[tuple[str, str]] = (), source_works: Iterable[tuple[str, str]] = (),
+               primary_works: Iterable[tuple[str, str]] = (),
                copy_kinds: Sequence[str] = GraphParams.copy_kinds, snapshot_id: str | None = None,
                parts: Mapping[str, str] | None = None) -> GraphMaps:
     """The lookup from plain rows: ``sections`` (id, level), ``section_pages`` (section, page, page index),
     ``topic_members`` (section, level, topic), ``dup_members`` (cluster, kind, page, shared_chars), ``page_chars``
     (page → characters), ``object_members`` (object, cluster, kind), ``cites`` (citing work, cited work),
-    ``source_works`` (source, work)."""
+    ``source_works`` (source, work: every link, for CITES), ``primary_works`` (source, the work it is an instance of:
+    the copies of one work)."""
+    dup_members = list(dup_members)
+    work_of = {s: w for s, w in primary_works if s and w}
+    multi = {w for w, n in Counter(work_of.values()).items() if n > 1}
+    work_of = {s: w for s, w in work_of.items() if w in multi}            # only works with two or more sources
     level = {sid: int(lv or 0) for sid, lv in sections}
     pages, of_page = _pages_of_rows(section_pages)
     refs = {pid: tuple(SectionRef(s, level.get(s, 0), len(pages[s])) for s in sids) for pid, sids in of_page.items()}
@@ -234,7 +301,8 @@ def build_maps(*, sections: Iterable[tuple[str, int]] = (), section_pages: Itera
     return GraphMaps(snapshot_id=snapshot_id, coverage=coverage,
                      copy_kinds={k: tuple(sorted(v)) for k, v in kinds.items()}, object_groups=objects,
                      page_sections=refs, section_pages=pages, section_topics=topics,
-                     cite_neighbours={s: frozenset(v) for s, v in nb.items()}, parts=dict(parts or {}))
+                     cite_neighbours={s: frozenset(v) for s, v in nb.items()}, work_of_source=work_of,
+                     copy_offsets=copy_offsets(dup_members, work_of) if work_of else {}, parts=dict(parts or {}))
 
 
 class NavGraphSignals:
@@ -333,9 +401,18 @@ class NavGraphSignals:
             parts["cites"] = "OK"
         except Exception as exc:  # noqa: BLE001 - an older canon without the CITES view
             parts["cites"] = f"ERROR ({type(exc).__name__})"
+        primary: list[tuple[str, str]] = []
+        try:                                         # D's instance links: the work each source is a copy of
+            sql = "SELECT source_id, work_id FROM {} WHERE is_primary AND work_id IS NOT NULL"
+            rows = (self.canon.query(sql.format("work_sources")) if self.canon is not None
+                    else self._q(sql.format("canon.main.work_sources")))
+            primary = [(r["source_id"], r["work_id"]) for r in rows]
+            parts["work_copies"] = "OK"
+        except Exception as exc:  # noqa: BLE001 - a canon without the view: copies by text only
+            parts["work_copies"] = f"ERROR ({type(exc).__name__})"
         return build_maps(sections=sections, section_pages=spages, topic_members=topics, dup_members=dups,
                           page_chars=chars, object_members=objects, cites=cites, source_works=works,
-                          snapshot_id=self.nav.snapshot_id(), parts=parts)
+                          primary_works=primary, snapshot_id=self.nav.snapshot_id(), parts=parts)
 
     def expansions(self, query: str, params: GraphParams) -> dict[str, Any]:
         return self.nav.run("expand_query", query, min_score=params.concepts_min_score,
@@ -346,10 +423,12 @@ class NavGraphSignals:
 def collapse(order: Sequence[str], kind_of: Mapping[str, str], maps: GraphMaps, params: GraphParams
              ) -> tuple[list[str], dict[str, list[dict[str, Any]]]]:
     """G1 over the served order (every kind). A page leaves when a page already shown covers ≥ ``copy_min_coverage``
-    of its text (the best-ranked such page keeps it as a copy); an object leaves when an object of its NAV group is
-    already shown. Returns the order without the copies and the copies of every kept hit (in the order they left)."""
+    of its text, or (``work_copies``) when the aligned page of another copy of its work is already shown (the
+    best-ranked such page keeps it as a copy); an object leaves when an object of its NAV group is already shown.
+    Returns the order without the copies and the copies of every kept hit (in the order they left)."""
     kept: list[str] = []
     shown: dict[str, int] = {}
+    shown_at: dict[tuple[str, int], str] = {}            # (source, page index) of a shown page → its page id
     group_rep: dict[str, str] = {}
     copies: dict[str, list[dict[str, Any]]] = {}
     for key in order:
@@ -360,11 +439,25 @@ def collapse(order: Sequence[str], kind_of: Mapping[str, str], maps: GraphMaps, 
             for q, share in cov.items():
                 if share >= params.copy_min_coverage and q in shown and (best is None or shown[q] < shown[best]):
                     best = q
+            pos = page_position(key)
             if best is not None:
                 copies.setdefault(best, []).append({"page_id": key, "coverage": cov[best],
                                                     "kinds": list(maps.copy_kinds.get((key, best), ()))})
                 continue
+            if params.work_copies and pos is not None and pos[0] in maps.work_of_source:
+                for other in maps.copy_sources(pos[0]):          # the aligned page of another copy, best-ranked
+                    q = shown_at.get((other, pos[1] - maps.copy_offsets[(other, pos[0])]))
+                    if q is not None and (best is None or shown[q] < shown[best]):
+                        best = q
+                if best is not None:
+                    copies.setdefault(best, []).append({
+                        "page_id": key, "coverage": cov.get(best), "kinds": ["SAME_WORK_ALIGNED_PAGE"],
+                        "work_id": maps.work_of_source[pos[0]],
+                        "page_offset": maps.copy_offsets[(page_position(best)[0], pos[0])]})  # type: ignore[index]
+                    continue
             shown[key] = len(kept)
+            if pos is not None:
+                shown_at.setdefault(pos, key)
         else:
             g = maps.object_groups.get(key)
             if g is not None and g[1] not in params.object_skip_kinds:
@@ -567,19 +660,22 @@ class GraphRun:
     # ---- gates
     def gate(self, *, page_kind: bool, late: bool) -> None:
         """Stages that cannot run: no navigation layer, no PAGE kind (G2–G5), late off (every stage: the measured
-        configuration is E with the late stage). A missing navigation layer is a warning only when the request named
-        the stages; under the server default the search simply runs as E (the status says so)."""
+        configuration is E with the late stage). A missing navigation layer is a warning when the request named the
+        stages, and under the server default when G1 is among them (the owner's default since 13.10: the answer must
+        say that copies of one work were not collapsed); otherwise the search simply runs as E (the status says so)."""
         if not self.stages:
             return
         if not late:
             for s in self.stages:
                 self.status[s] = "SKIPPED_LATE_OFF"
             return
+        tell = self.explicit or "collapse" in self.stages
+        what = "graph stages skipped" if self.explicit else "copies of one work are not collapsed (server default)"
         if self.signals is None:
             for s in self.stages:
                 self.status[s] = "UNAVAILABLE"
-            if self.explicit:
-                self.warnings.append("GRAPH_UNAVAILABLE: the navigation layer is not configured; graph stages skipped")
+            if tell:
+                self.warnings.append(f"GRAPH_UNAVAILABLE: the navigation layer is not configured; {what}")
             return
         t0 = time.perf_counter()
         try:
@@ -587,9 +683,8 @@ class GraphRun:
         except Exception as exc:  # noqa: BLE001 - NavUnavailable, a broken build: search without the stages
             for s in self.stages:
                 self.status[s] = "UNAVAILABLE"
-            if self.explicit:
-                self.warnings.append(f"GRAPH_UNAVAILABLE: navigation layer ({type(exc).__name__}); graph stages "
-                                     "skipped")
+            if tell:
+                self.warnings.append(f"GRAPH_UNAVAILABLE: navigation layer ({type(exc).__name__}); {what}")
             return
         self.timings["graph_view"] = round((time.perf_counter() - t0) * 1000, 2)
         if not page_kind:
@@ -698,7 +793,9 @@ class GraphRun:
         n = sum(len(v) for v in self.copies.values())
         self.info["collapse"] = {"collapsed": n, "pages": sum(1 for v in self.copies.values() for c in v
                                                               if "page_id" in c),
-                                 "objects": sum(1 for v in self.copies.values() for c in v if "object_id" in c)}
+                                 "objects": sum(1 for v in self.copies.values() for c in v if "object_id" in c),
+                                 "aligned_work_pages": sum(1 for v in self.copies.values() for c in v
+                                                           if "page_offset" in c)}
         if not n:
             self.status["collapse"] = "NOT_TRIGGERED"
         return kept

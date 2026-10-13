@@ -19,14 +19,16 @@ PostgreSQL (тест), поэтому «сырой SQL/Cypher» через MCP �
 ## 1. Ответ корпуса: `ApiResponse` и конверт `vkm.envelope/1`
 
 Каждый tool серверов корпуса возвращает ответ API как `structured_content` и тем же JSON в текстовом блоке;
-`is_error = not ok`. Тело:
+`is_error = not ok`. Исключения: `search_text`, `search_hybrid` и `search_objects` в MCP по умолчанию отвечают кратким
+видом (§1.1; `view = "full"` — прежний `ApiResponse`), `reconstruct_topic` — markdown-оглавлением в тексте и короткой
+сводкой в `structured_content` (`include_json = true` — полный `ApiResponse`). Тело `ApiResponse`:
 
 | Поле | Смысл |
 |---|---|
 | `ok` | `true` / `false` |
 | `meta` | `request_id` (он же `log_ref` в логах), `api_version`, `canonical_snapshot_id`, `elapsed_ms`, `warnings[]` |
 | `item` / `items[]` | объект(ы): `{envelope, record}`; `record` — канонические поля без дублей конверта |
-| `next_cursor` | курсор следующей страницы результата |
+| `next_cursor` | курсор следующей страницы (смещение, строка цифр); `null` — список кончился (§1.2) |
 | `error` | `code`, `message`, `retryable`, `stage`, `tool`, `object_id`, `hint`, `log_ref`, `details` |
 
 Конверт отвечает на вопросы §50 без догадок агента:
@@ -55,18 +57,101 @@ PostgreSQL (тест), поэтому «сырой SQL/Cypher» через MCP �
 `DEPENDENCY_ERROR` 502, `SNAPSHOT_UNAVAILABLE`/`DEPENDENCY_UNAVAILABLE` 503,
 `DEPENDENCY_TIMEOUT` 504. Подмены канона текстом проекции нет: без DuckDB-снимка ответ — 503.
 
+### 1.1 Краткий ответ поиска: `view = "brief"` (`vkm.brief/1`)
+
+Полный ответ поиска тяжёл для контекста агента: 20 результатов `search_hybrid` — ≈ 79 тыс. знаков JSON (конверты
+≈ 40 тыс., трассы ≈ 12 тыс.), `search_text` — ≈ 59 тыс. Поэтому у `POST/GET /v1/search`, `POST/GET /v1/search/hybrid`
+и `POST /v1/objects/query` есть поле `view`: `full` — `ApiResponse` (умолчание API: бенчмарки, harness и приёмка §60
+читают полные конверты), `brief` — проекция того же ответа (`vkm_corpus.api.brief`). У MCP-tools `search_text`,
+`search_hybrid`, `search_objects` умолчание — `brief`; `view = "full"` возвращает прежний ответ. Ошибки в обоих видах
+одинаковы (`ApiResponse` с `error`).
+
+| Уровень | Поля краткого ответа |
+|---|---|
+| ответ | `ok`, `view = "brief"`, `schema = "vkm.brief/1"`, `meta` (`request_id`, `snapshot`, `warnings[]` — только коды с `count`; предупреждение E — `SEARCH_WARNING:<код>`), `note` (одна строка: автоматические кандидаты проекций, `AUTO_EXTRACTED_UNREVIEWED`, скоры — сигналы поиска, не evidence; сниппет — текст индекса, не объекта; область — источника), `defaults` (`review_status`, `origin` большинства результатов), `sources`, `items`, `next_cursor` |
+| `run` (только гибридный) | `route`, `late` (вкл./выкл.), `translation` (`status`, `text`), `stages` — статусы `bib_route`, `visual_route`, `graph` (по стадиям, кроме `OFF`), `formulations` (`status`, `answered`), `source_cap` (`max_per_source`, `moved`); `formulations` — отправленные формулировки; `fused_total`, `candidates`, `totals`, `ms` (полное время) |
+| `sources` | карточка источника: `name` (stem `canonical_path` реестра, ≤ 60 знаков), `work_id`, `scope` (значения области **источника**; `scope_raw` — когда сопоставление не EXACT/CASE), `work_copies` (зарегистрированных копий работы, если их > 1) |
+| `items[]` поиска | `id` (источник и страница — его префиксы: `VKM-SRC-NNN:pNNNN[:объект]`; `source_id`/`page_id` пишутся, только если это не так), `rank`, `object_type`, `page_label`; гибридный — `bm25_rank`, `dense_rank`, `fused_rank`, `late_score`, `vis_rank`, `bib_rank` (что есть); BM25 — `bm25_score`; `snippet` (одна подсветка индекса без тегов `<em>`, ≤ 140 знаков, окно у первого совпадения); `object_label` и `title_or_caption` (≤ 120) рисунка/таблицы/формулы; `duplicates`, `copies` (только ID; `copies_count`, если в трассе только число); `flags` (флаги API, кроме общего `SCOPE_INHERITED_FROM_SOURCE`); `review_status`/`origin` — только если отличаются от `defaults` |
+| `items[]` `search_objects` | `id`, `object_type`, `page_label`, `object_label`, `title_or_caption` (подпись ≤ 120) или `latex` формулы, `figure_type`, `has_image`, `flags`, отличия от `defaults` |
+
+В кратком виде нет конвертов, провенанса, геометрии, сведений о проекции, `quality_flags`, полной трассы и
+`rerank_candidate`: их дают `view = "full"`, `retrieval_trace` и `get_*`. Ничего не дописывается: значения нет в полном
+ответе — нет и в кратком. Размер (синтетические ответы формы CORE на 20 результатов —
+`tests/corpus/search_size_fixture.py`, порог — `test_api_brief.py`; знаки `json.dumps`): `search_hybrid` 74 546 → 7 469,
+`search_text` 60 013 → 6 086, `search_objects` (8 объектов) 19 076 → 1 533; без пробелов-разделителей JSON — ещё ≈ 5 %
+меньше. Около 2,7 тыс. знаков краткого ответа — сниппеты.
+
+`reconstruct_topic`: текст ответа — markdown-оглавление в пределах `budget_chars` (как раньше), `structured_content` —
+короткая сводка (`dossier_id`, `object_kind`, `review_status`, `navigation_only`, `mode`, `budget` с числом урезанных
+записей по частям, `counts` по частям, `meta` с кодами предупреждений): Claude Code показывает модели именно
+`structured_content`, и полный JSON досье (на CORE ≈ 25 тыс. знаков при `budget_chars = 4000`) обесценивал бюджет.
+`include_json = true` возвращает полный `ApiResponse` (`TOPIC_DOSSIER`: ранжированные страницы по ярусам, данные каждой
+записи). На синтетическом досье: 18 220 → 837 знаков.
+
+### 1.2 Курсор страниц
+
+`cursor` поиска (`/v1/search`, `/v1/search/hybrid`), `/v1/objects/query` и `/v1/source/{id}/pages` — смещение: строка
+цифр из `next_cursor` предыдущего ответа, без изменений; без курсора (или пустой) — первая страница. Иное (буквы, знак,
+пробел, не-ASCII цифры) — `400 INVALID_ARGUMENT` с подсказкой; раньше такой курсор молча означал 0. Конец списка
+согласован с `next_cursor`: страница, заходящая за конец, обрезается по нему; курсор на конце или за ним — пустая
+страница (`items: []`, `next_cursor: null`) и предупреждение `CURSOR_PAST_END` (`count` — длина списка, если известна).
+Конец гибридного списка — `min(fused_total, candidates × число видов)`; со слиянием формулировок (`formulations`,
+`expand = terms`) — длина слитого списка фиксированной глубины (каждая страница заново выполняет формулировки и листает
+тот же список). `offset + limit > 1000` — `400` (предел окна поиска E). Курсор `get_table_structured` и `list_evidence` —
+непрозрачная строка своего формата (не смещение).
+
+### 1.3 Изменения 13.10.2026: формулы реестра, копии одной работы, область источника, номера объектов
+
+- **Формулы и реестр моделей.** `get_formula_context` (NAV, [NAVIGATION_LAYER.md](NAVIGATION_LAYER.md) §5) отдаёт
+  `registry_models`: модели реестра `MM-*`, связанные с формулой по каталогу
+  [model_formula_links](../science/MODEL_FORMULA_LINKS_RU.md) (`model_id`, `name`, `equation_ref`, `match_status` EXACT /
+  NUMBER_MATCH / FORM_MATCH / CANDIDATE, `check` CONFIRMED / UNSURE / NOT_REVIEWED; REJECTED и NOT_FOUND не
+  показываются; `null` — пакет каталогов не подключён). Связь «модель ↔ запись в книге» — навигация, не проверка закона.
+
+- **Копии одной работы схлопываются по умолчанию.** Умолчание графовых стадий `search_hybrid` — `["collapse"]` (G1;
+  решение владельца 13.10; GRAPH_SEARCH_V1: G1 даёт `page_recall@50` +0,010 без вреда на retrieval_v1). Кроме
+  текстовых дублей NAV страница уходит из выдачи, когда уже показана выровненная страница другого источника той же
+  работы (сдвиг страниц выводится из NAV: ≥ 3 пар и ≥ 80 % согласных; не угадывается). У оставшегося хита
+  `record.copies`: `{page_id, coverage, kinds}`, для выровненной страницы — ещё `kinds: ["SAME_WORK_ALIGNED_PAGE"]`,
+  `work_id`, `page_offset`; у объектов — `{object_id, cluster_id, kind}`. `graph: []` или `VKM_HYBRID_GRAPH=none`
+  выключает; `include_duplicates: true` снимает умолчание; нужна поздняя стадия (иначе `SKIPPED_LATE_OFF`), без NAV —
+  предупреждение. Предупреждение `WORK_HAS_MULTIPLE_COPIES` в `meta.warnings` — только когда среди хитов два и более
+  источника одной работы.
+- **Сводки по работам.** `parameter_summary`: в строках `n_works`, `work_ids`, `copies` (`n_candidates`, `n_pages` —
+  по-прежнему по файлам). `find_parameters`, `find_tables`: одна позиция на объект работы, другие экземпляры — в
+  `copies`, сводка `by_work` (`merged`, `n_works`, `n_sources`); `total` — число файловых позиций NAV.
+- **Область `SKRU1_SKRU2_SKRU3` — все три рудника** (таблица областей v2, решение владельца 13.10;
+  [CP-07](../implementation_work/COORDINATOR_DECISIONS.md)): VKM-SRC-002, 012 (Лебедева), 045 (Ермашов) — MULTI →
+  SKRU1, SKRU2, SKRU3; фильтр `source_scope=SKRU1` (SKRU2, SKRU3) их берёт. Снимок 2d71e9e8 и индексы собраны по v1:
+  API отвечает по v2 (конверты, `get_source`), а фильтр добавляет эти источники по `source_id` до пересборки проекций.
+  Рудник отдельного значения по-прежнему определяется по тексту.
+- **Фильтр области источника и неоднозначные источники.** Источники с областью AMBIGUOUS (`VKM_Solikamsk`, кандидат
+  `SKRU1_OR_SKRU2_UNATTRIBUTED`) и источники «родственной» области (для SKRU1/SKRU2: `SKRU1_SKRU2_PILLAR`,
+  `SKRU1_OR_SKRU2_UNATTRIBUTED`, `SOLIKAMSK_GROUP`; для SKRU3: `SOLIKAMSK_GROUP`) фильтр `source_scope` не включает. Ответ называет их предупреждением `SCOPE_FILTER_EXCLUDED_AMBIGUOUS` (`count`, ID в
+  сообщении). Параметр `include_ambiguous: true` (`search_text`, `search_hybrid`, `search_objects`; в API —
+  `filters.include_ambiguous`, у `/v1/objects/query` — `include_ambiguous`) делает фильтр «область ИЛИ эти источники»
+  во всех каналах (BM25, dense, изображения страниц, библиография) и отвечает `SCOPE_FILTER_INCLUDED_AMBIGUOUS`.
+  Область источника наследуется объектами и не устанавливает атрибуцию конкретного значения руднику.
+- **Номера объектов в запросе.** «скв. N», «скважина № N», «профильная линия N», «блок N», «панель N», «репер N»,
+  «рис./табл. N.N», «формула (N.N)» распознаются (число без слова типа — нет: «75 м», «УДК О-75», «СКРУ-1»). Тема
+  запроса без номера ранжирует, номер поднимает внутри первых хитов темы (правило Q5); номер рисунка, таблицы, формулы
+  в поиске страниц даёт ветвь RRF `label:PAGE` по объектам с этой печатной меткой; перевод сохраняет номер
+  («скважина 75» → «borehole 75»). В ответе `record.stages.object_ref` (`refs`, `topic`, `label_route`, `flagged`,
+  `moved`, `promote_k`) и `trace.object_ref` (`matched`: phrase / label, `page_rank_before`, `label_rank`,
+  `label_object_id`). Запросы без номера идут прежним путём.
+
 ## 2. `vkm-corpus` — read-tools
 
 Все tools: `read_only_hint = true`, `destructive_hint = false`.
 
 | Tool | Главные аргументы | Что возвращает | Эндпоинт API |
 |---|---|---|---|
-| `search_text` | `query`, `kinds` (PAGE, BLOCK, FIGURE, TABLE, FORMULA), фильтры (`source_ids`, `work_ids`, `source_scope`, `source_scope_raw`, `review_status`, `origin`, `language`, `year_from/to`, `available_until` + `unknown_policy`, `quality_flags_none`), `limit`, `cursor` | кандидаты с каноническими конвертами, сниппеты индекса (`highlight_origin = SEARCH_INDEX`), `rerank_candidate` | `POST /v1/search` |
-| `search_hybrid` | `query`, `kinds` (PAGE, FIGURE, TABLE, FORMULA), фильтры уровня страницы (`source_ids`, `work_ids`, `source_scope`, `year_from/to`, `available_until` + `unknown_policy`), `limit`, `candidates` (кандидатов на стадию, 10–200), `cursor` | кандидаты BM25 + dense (эмбеддинги единиц `vkm-units-v1`, кодировщик запроса на RX580), слияние RRF (k = 60); у каждого `record.trace`: `bm25_rank`, `dense_rank`, `fused_rank`, `rrf_score`, совпавшая единица; `item` — сведения о прогоне (сборка векторов, модель, тайминги); без кодировщика или векторного индекса — `DEPENDENCY_UNAVAILABLE`, подмены на BM25 нет; с поздней стадией запрос ищется и на другом языке (словарь терминов NAV: `item.record.translation`, `trace.expansion_ranks`) | `POST /v1/search/hybrid` |
-| `retrieval_trace` | `query`, `object_ids` (необязательно), `kinds`, `limit`, `candidates`, `late`, `visual_route` | компактная трасса гибридного ранжирования: ранги и скоры каждой стадии по кандидатам, конфигурация стадий; late interaction и реранк — следующие стадии (`null`) | `POST /v1/search/hybrid` |
+| `search_text` | `query`, `kinds` (PAGE, BLOCK, FIGURE, TABLE, FORMULA), фильтры (`source_ids`, `work_ids`, `source_scope`, `source_scope_raw`, `review_status`, `origin`, `language`, `year_from/to`, `available_until` + `unknown_policy`, `quality_flags_none`), `limit`, `cursor` (§1.2), `view` (`brief` по умолчанию, `full`) | `brief` (§1.1): `id`, `rank`, `bm25_score`, сниппет, метка и подпись, карточки источников; `full`: кандидаты с каноническими конвертами, сниппеты индекса (`highlight_origin = SEARCH_INDEX`), `rerank_candidate` | `POST /v1/search` |
+| `search_hybrid` | `query`, `kinds` (PAGE, FIGURE, TABLE, FORMULA), фильтры уровня страницы (`source_ids`, `work_ids`, `source_scope`, `year_from/to`, `available_until` + `unknown_policy`), `limit`, `candidates` (кандидатов на стадию, 10–200), `cursor` (§1.2), `view` (`brief` по умолчанию: ранги, `late_score`, сниппет, сводка прогона — §1.1; `full` — всё ниже) | кандидаты BM25 + dense (эмбеддинги единиц `vkm-units-v1`, кодировщик запроса на RX580), слияние RRF (k = 60); затем поздняя стадия — late interaction (MaxSim mLateOn по векторам слов, RX580) над первыми `late_candidates`: на CORE включена по умолчанию (`VKM_HYBRID_LATE_DEFAULT=1` в compose; без переменной код её не запускает), `late = false` — без неё; у каждого `record.trace`: `bm25_rank`, `dense_rank`, `fused_rank`, `rrf_score`, `late_rank`, `late_score`, совпавшие единицы; `item` — сведения о прогоне (сборка векторов, модель, тайминги); без кодировщика или векторного индекса — `DEPENDENCY_UNAVAILABLE`, подмены на BM25 нет; с поздней стадией запрос ищется и на другом языке (словарь терминов NAV: `item.record.translation`, `trace.expansion_ranks`) | `POST /v1/search/hybrid` |
+| `retrieval_trace` | `query`, `object_ids` (необязательно), `kinds`, `limit`, `candidates`, `late`, `visual_route` | компактная трасса гибридного ранжирования (без конвертов): ранги и скоры каждой стадии по кандидатам (BM25, dense, RRF, поздняя стадия, когда она идёт, визуальный маршрут), конфигурация стадий; `rerank_rank` — `null` (реранк — отдельный tool) | `POST /v1/search/hybrid` |
 | `search_hybrid` → `visual_route` | `null` — решают слова-картинки запроса (рисунок, схема, карта, план, разрез, график, профиль, радарограмма, фото, таблица…), `true` — включить, `false` — выключить | визуальный маршрут (агент VIS): RRF выдачи E и страниц по векторам изображений Qwen3-VL; `route = visual`, в трассе `e_rank`, `vis_rank`, `vis_score`, `visual_rrf_score`, в `stages.visual_route` — статус, признаки, тайминги; работает, когда сервер включил маршрут (`VKM_HYBRID_VISUAL_ROUTE`), иначе статус `DISABLED`, а `true` — `DEPENDENCY_UNAVAILABLE` | `POST /v1/search/hybrid` |
-| `search_hybrid` → `graph` | список стадий `collapse`, `cohesion`, `concepts`, `cites`, `topics`; `[]` — без стадий; `null` — умолчание сервера (по GRAPH_SEARCH_V1 — все пять, `VKM_HYBRID_GRAPH` меняет без пересборки) | графовые стадии над навигационным слоем, модели те же (агент GS, [NAVIGATION_LAYER.md](NAVIGATION_LAYER.md) §11): копии уходят из выдачи и видны у оригинала (`copies`), связный раздел и тема первых страниц поднимают свои страницы, синонимы и аббревиатуры словаря и цитирования дают ветви BM25; первые 10 мест ветви после поздней стадии не трогают; в `stages.graph` — статусы и что сделала каждая стадия, в трассе `graph` (`e_rank`, `legs`, `window_leg`, `copies`); нужна поздняя стадия | `POST /v1/search/hybrid` |
-| `search_objects` | `kinds`, `source_ids`, `work_ids`, `page_from/to`, `figure_types`, `review_status`, `origin`, `quality_flags_any/none`, `has_image`, `source_scope*`, `caption_query` | объекты без текстовых тел | `POST /v1/objects/query` |
+| `search_hybrid` → `graph` | список стадий `collapse`, `cohesion`, `concepts`, `cites`, `topics`; `[]` — без стадий; `null` — умолчание сервера: `collapse` (копии одной работы схлопываются в один результат), остальные стадии — по запросу; `VKM_HYBRID_GRAPH` меняет умолчание без пересборки | графовые стадии над навигационным слоем, модели те же (агент GS, [NAVIGATION_LAYER.md](NAVIGATION_LAYER.md) §11): копии уходят из выдачи и видны у оригинала (`copies`), связный раздел и тема первых страниц поднимают свои страницы, синонимы и аббревиатуры словаря и цитирования дают ветви BM25; первые 10 мест ветви после поздней стадии не трогают; в `stages.graph` — статусы и что сделала каждая стадия, в трассе `graph` (`e_rank`, `legs`, `window_leg`, `copies`); нужна поздняя стадия | `POST /v1/search/hybrid` |
+| `search_objects` | `kinds`, `source_ids`, `work_ids`, `page_from/to`, `figure_types`, `review_status`, `origin`, `quality_flags_any/none`, `has_image`, `source_scope*`, `caption_query`, `limit`, `cursor` (§1.2), `view` (`brief` по умолчанию, `full`) | объекты без текстовых тел: `brief` — ID, метка, подпись ≤ 120 (LaTeX формулы), тип рисунка, `has_image`; `full` — с конвертами | `POST /v1/objects/query` |
 | `get_source` | `source_id` | строка реестра, `lifecycle_status` (013/022 — 200), связи с Work, сводка обработки | `GET /v1/source/{id}` |
 | `get_work` | `work_id` | Work, авторы (`name_as_listed`, NAME_KEY_ONLY), экземпляры-Source, `work_copy_count`, `resolved_work_id` | `GET /v1/work/{id}` |
 | `get_page` | `page_id`, `include` (text, blocks, objects), `max_chars` (≤ 60 000), `text_offset` | страница, окно `normalized_text`, объекты страницы | `GET /v1/page/{id}` |
@@ -77,7 +162,7 @@ PostgreSQL (тест), поэтому «сырой SQL/Cypher» через MCP �
 | `get_object` | `object_id` (любой ID) | объект с конвертом | `GET /v1/object/{id}` |
 | `get_document_neighbors` | `object_id`, `rel_types`, `direction`, `limit` | соседи из графа (проекция), гидратированные из канона | `GET /v1/neighbors/{id}` |
 | `get_citations` | `work_id`, `direction` (cites, cited_by, both), `include_unlinked` | записи библиографии (LINKED / CANDIDATE / UNLINKED), цитирующие работы | `GET /v1/citations/{id}` |
-| `rerank_text` | `query`, `candidate_ids` (≤ 24), `top_n`, `passages[]` | пересчёт late interaction: MaxSim mLateOn по сохранённым векторам слов единиц кандидата (страница — по своим единицам, блок — через страницу; правило `rerank_text_late_v1`); `passages` действуют только при `VKM_RERANK_TEXT_BACKEND=gateway` (текстовый реранкер EDGE v3.5 выключен 29.09, правило `rerank_text_v1`); блок SERVICE с моделью | `POST /v1/rerank/text` |
+| `rerank_text` | `query`, `candidate_ids` (≤ 24), `top_n`, `passages[]` | пересчёт late interaction: MaxSim mLateOn по сохранённым векторам слов единиц кандидата (страница — по своим единицам, блок — через страницу; правило `rerank_text_late_v1`); `passages` действуют только при `VKM_RERANK_TEXT_BACKEND=gateway` (текстовый реранкер EDGE v3.5 выключен 29.09, правило `rerank_text_v1`); блок SERVICE с моделью. Это та же модель mLateOn, что и в поздней стадии `search_hybrid`: порядок выдачи `search_hybrid` с поздней стадией он не уточняет (новой информации нет); полезен для кандидатов `search_text` и собранных из разных вызовов | `POST /v1/rerank/text` |
 | `rerank_visual` | `query`, `candidate_ids` (≤ 8: страницы, рисунки, таблицы, артефакты-изображения), `top_n`, `max_side` | ранжирование по изображениям; кандидаты без изображения — в `rejected` | `POST /v1/rerank/visual` |
 | `get_processing_status` | один из `source_id`, `page_id`, `run_id`, `job_id` | статусы, последние попытки стадий, ошибки, задания | `GET /v1/processing/status` |
 | `trace_document_provenance` | `object_id` | цепочка провенанса + ответы §50 (`interpretability`) | `GET /v1/provenance/{id}` |
@@ -86,7 +171,7 @@ PostgreSQL (тест), поэтому «сырой SQL/Cypher» через MCP �
 | `get_corpus_status` | — | снимок и счётчики, сборки проекций, модели реранка и лицензии, задания; только роли хостов | `GET /v1/status` |
 | `concept_paths` | `term_a`, `term_b` (фраза в любой форме или `TRM-…`), `max_len` (1–6, по умолчанию 4), `limit` (≤ 20), `via` (`concepts`, `formulas`, `sections`, `topics`, `dictionary`) | кратчайшие пути в графе NAV (Neo4j) через термины, символы формул, формулы, разделы, темы и пары словаря RU↔EN (переводы, синонимы, аббревиатуры; у шага — оценка и страницы-примеры), ранжированные по силе связи; у каждого шага — до трёх ID страниц и счётчики источников; термин только из словаря помечен `dictionary_only`; навигация, не причинная цепочка | `GET /v1/nav/graph/paths` |
 | `graph_neighbourhood` | `node_id` (ID NAV: `SEC-`, `TRM-`, `FSY-`, `FPR-`, `TOP-`, `TBL-`, `PRM-`, `OCL-`; или любой ID VKM), `depth` (1–2), `limit` (≤ 200) | соседи узла NAV или DOCUMENT, сгруппированные по типу ребра и направлению, с общим числом и сильнейшими соседями (имена, ID страниц): у термина — ещё эквиваленты словаря, таблицы свойства (`TABULATES`) и значения (`VALUE_OF`); у таблицы канона — её сетка и группа повторов; `depth = 2` — соседи соседей | `GET /v1/nav/graph/neighbourhood/{id}` |
-| `reconstruct_topic` | `query`, `budget_chars` (1000–60 000, по умолчанию 12 000), `source_ids` (≤ 20), `paraphrases` (≤ 4) | досье темы «от А до Я» одним вызовом: поиск по формулировкам темы (≤ 5: запрос, перефразы, синонимы и соседи понятия) со слиянием RRF; разделы NAV двумя ярусами — ядро ВКМ (источники каталогов evidence и области ВКМ/СКРУ) и остальное — со страницами, лучшими единицами и сниппетами ≤ 200 знаков; список страниц по ярусам; формулы (номер, «где…», параметры-кандидаты); рисунки и таблицы у найденных страниц; структурированные таблицы свойства, которое тема называет (≤ 6, `find_tables`); понятие и темы; источники с провенансом и CITES; процессы PC-xx каталогов с записями evidence, модели, конфликты, причинные связи; пробелы UNKNOWN. Текст ответа — markdown-оглавление в пределах бюджета (не JSON), `structured_content` — полный `ApiResponse` (`TOPIC_DOSSIER`). Навигация, не evidence ([NAVIGATION_LAYER.md](NAVIGATION_LAYER.md) §5) | `GET/POST /v1/topic` |
+| `reconstruct_topic` | `query`, `budget_chars` (1000–60 000, по умолчанию 12 000), `source_ids` (≤ 20), `paraphrases` (≤ 4), `include_json` (по умолчанию `false`) | досье темы «от А до Я» одним вызовом: поиск по формулировкам темы (≤ 5: запрос, перефразы, синонимы и соседи понятия) со слиянием RRF; разделы NAV двумя ярусами — ядро ВКМ (источники каталогов evidence и области ВКМ/СКРУ) и остальное — со страницами, лучшими единицами и сниппетами ≤ 200 знаков; список страниц по ярусам; формулы (номер, «где…», параметры-кандидаты); рисунки и таблицы у найденных страниц; структурированные таблицы свойства, которое тема называет (≤ 6, `find_tables`); понятие и темы; источники с провенансом и CITES; процессы PC-xx каталогов с записями evidence, модели (у каждой `formula_ids` — до 8 привязанных формул корпуса, каталог [model_formula_links](../science/MODEL_FORMULA_LINKS_RU.md)), конфликты, причинные связи; пробелы UNKNOWN. Текст ответа — markdown-оглавление в пределах бюджета (не JSON), `structured_content` — короткая сводка (бюджет, что урезано, счётчики частей; §1.1), с `include_json = true` — полный `ApiResponse` (`TOPIC_DOSSIER`). Навигация, не evidence ([NAVIGATION_LAYER.md](NAVIGATION_LAYER.md) §5) | `GET/POST /v1/topic` |
 | `find_topics` | `terms` (1–5 фраз), `limit` (≤ 50), `level` (1–3) | темы поперёк книг (дерево тем без LLM), совпадающие со всеми фразами по леммам и SAME_AS |
 | `get_topic` | `topic_id` (`TOP-…`) | путь к корню, дети, разделы-члены с источниками и страницами, центральные разделы, соседние темы |
 | `similar_sections` | `section_id`, `k` (≤ 50), `other_sources_only` | разделы других книг, ближайшие по смыслу (косинус векторов разделов) |
@@ -94,7 +179,7 @@ PostgreSQL (тест), поэтому «сырой SQL/Cypher» через MCP �
 | `copies_of` | `ref` (единица `u1-…`, страница или блок), `limit` | где тот же текст есть в других источниках: перепечатки, копии, общие аннотации; первичный — подсказка, не авторство |
 | `source_overlap` | `source_id`, `limit` | источники, повторяющие текст данного: общие фрагменты, доли, кто раньше |
 | `find_parameters` | `property`, `material`, `site`, `scale` (LAB/MASSIF/NORMATIVE/MODEL/UNKNOWN), `source_id`, `limit` | кандидаты значений параметров из таблиц и текста с источником, страницей, единицей (как напечатано и СИ), материалом, масштабом; не evidence и не рекомендуемое значение |
-| `parameter_summary` | `property`, `material` | по материалу и масштабу: число кандидатов, источников, страниц и диапазон в СИ — карта, не значение |
+| `parameter_summary` | `property`, `material` | по материалу и масштабу: число кандидатов, источников, работ (`n_works`, `work_ids`, `copies`; §1.3), страниц и диапазон в СИ — карта, не значение |
 | `translate_term` | `term` (фраза в любой форме, аббревиатура или `TRM-…`), `target` (ru, en, de), `limit` | эквиваленты термина на других языках корпуса, его синонимы и аббревиатуры из словаря NAV `term_translations`: методы, оценка (ожидаемая точность), страницы-примеры, статус (`AUTO_EXTRACTED_UNREVIEWED`, строки сидов — `REVIEWED_BY_AGENT`); фраза без своей пары переводится по частям — навигация, не evidence ([NAVIGATION_LAYER.md](NAVIGATION_LAYER.md) §4) | `GET /v1/nav/translate` |
 | `get_table_structured` | `table_id` (ID таблицы канона `VKM-SRC-NNN:pNNNN:t…` или `TBL-…`), `max_rows` (1–500, по умолчанию 200), `max_chars` (200–60 000, 8 000) | таблица как сетка (NAV §10): номер и подпись, размер, строки шапки и способ их поиска, полосы и блоки, ориентация, уверенность и флаги; колонки (путь шапки, символ, единица и откуда она, роль, свойство словаря параметров); строки с ролями и ячейками (текст как напечатан, разобранное значение, единица, флаги вроде `DECIMAL_POINT_SUSPECT`) и markdown. Значения не исправляются — сверять со страницей. Таблица без сетки — NOT_FOUND (`get_table` показывает таблицу канона) | `GET /v1/nav/table/{id}` |
 | `find_tables` | `property` («модуль деформации», «σсж», «ucs»), `material` («каменная соль», «соляные породы»), `source_id`, `text` (слова подписи, шапки, меток строк), `limit` (≤ 100) — хотя бы один | структурированные таблицы, где колонка значений, строка значений или подпись называет свойство, шапка или подпись — материал; все фильтры вместе; сначала таблицы со свойством в колонках. У таблицы: ID канона и `TBL-`, источник, страница, раздел, номер, подпись, размер, ориентация, уверенность, флаги и совпавшие колонки с единицами; как разобран запрос (`query`, `unresolved`) | `GET /v1/nav/tables` |
@@ -107,8 +192,11 @@ PostgreSQL (тест), поэтому «сырой SQL/Cypher» через MCP �
 все единицы страницы засчитываются странице (первое вхождение; дубли страниц сворачиваются по `dup_group_id`, как в
 BM25), для рисунков, таблиц и формул — ID объекта. Фильтры по полям типа объекта (`figure_type`, `text_layer`) в
 гибридном поиске не поддерживаются (400). Ранги BM25 и dense считаются отдельно по каждому виду, сырые скоры видов не
-сравниваются. Последняя стадия — по-прежнему `rerank_text` по `rerank_candidate` (для страницы, найденной только dense,
-пассаж — блоки совпавшей единицы). Late interaction (MaxSim на RX580) — следующий этап, в трассе `late_rank = null`.
+сравниваются. Поздняя стадия (late interaction, MaxSim mLateOn на RX580) на CORE включена по умолчанию
+(`VKM_HYBRID_LATE_DEFAULT=1`): она переупорядочивает первые `late_candidates` результатов RRF, в трассе `late_rank`,
+`late_score`, `late_unit`; `late = false` — выдача RRF. `rerank_text` считает ту же модель по тем же векторам, поэтому
+после `search_hybrid` с поздней стадией он порядок не уточняет; он нужен для выдачи `search_text` (`rerank_candidate`;
+для страницы, найденной только dense, пассаж — блоки совпавшей единицы) и для кандидатов из разных вызовов.
 
 Лимиты (H-13, H-45): текстовый реранк — не больше 24 кандидатов за вызов (больше — 413, пачки не склеиваются);
 визуальный — не больше 8 изображений, таймаут клиента 330 с (реранкер обрабатывает изображение секунды);
