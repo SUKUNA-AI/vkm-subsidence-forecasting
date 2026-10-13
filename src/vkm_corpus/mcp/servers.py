@@ -291,7 +291,11 @@ def build_read_server(api: ApiClient) -> MCPServer:
             formulations: Annotated[list[Annotated[str, Field(min_length=1, max_length=512)]] | None,
                                     Field(max_length=4, description="other wordings of the same question (<= 4): "
                                                                     "each runs the whole search, the final orders "
-                                                                    "are fused by RRF (record stages.formulations)")]
+                                                                    "are fused by RRF (record stages.formulations); "
+                                                                    "write them in Russian with other terms — the "
+                                                                    "server already searches the English translation "
+                                                                    "(E6b: two Russian wordings beat a Russian + "
+                                                                    "English pair)")]
             = None,
             expand: Annotated[Literal["none", "terms"], Field(description="terms: up to 3 more wordings from the NAV "
                                                                           "term dictionary (other language, synonyms, "
@@ -819,9 +823,10 @@ def build_read_server(api: ApiClient) -> MCPServer:
             source_ids: Annotated[list[Annotated[str, Field(pattern=SOURCE_ID)]] | None,
                                   Field(max_length=20, description="only these sources")] = None,
             paraphrases: Annotated[list[Annotated[str, Field(min_length=1, max_length=512)]] | None, Field(
-                max_length=4, description="1–2 other wordings of the topic (other terms, an English phrasing): "
-                                          "searched too and fused with the query by RRF; the topic benchmark "
-                                          "found more evidence pages with them")] = None,
+                max_length=4, description="1–2 other wordings of the topic in Russian with other terms (the "
+                                          "translation to English is added by the server): searched too and fused "
+                                          "with the query by RRF; the topic benchmark found more evidence pages "
+                                          "with them (E6b)")] = None,
             include_json: Annotated[bool, Field(description=(
                 "also return the full JSON dossier as structured content (large: ranked pages per tier, data of "
                 "every entry); default: the markdown text and a compact summary"))] = False) -> CallToolResult:
@@ -833,8 +838,8 @@ def build_read_server(api: ApiClient) -> MCPServer:
         structured tables of a property the topic names (модуль деформации, плотность …); the concept;
         sources with provenance (register scope, work, authors, year) and who cites whom; physics processes PC-xx with
         their evidence records (status, scope, scale), formula-registry models, conflicts, causal neighbours; and the
-        gaps: required parameters without evidence records, explicitly UNKNOWN — never fill them. Pass 1–2
-        paraphrases. Text = markdown outline with ids and pages; structured content = a compact summary (budget,
+        gaps: required parameters without evidence records, explicitly UNKNOWN — never fill them. Pass 1–2 Russian
+        paraphrases with other terms. Text = markdown outline with ids and pages; structured content = a compact summary (budget,
         what was trimmed, counts) or, with include_json=true, the full JSON (ranked page list per tier included).
         Navigation, not evidence: open what you need with get_section, get_formula_context, get_page, get_object."""
         started = time.perf_counter()
