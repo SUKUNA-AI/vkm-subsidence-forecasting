@@ -4,169 +4,284 @@
    "id": "search",
    "name": "Гибридный поиск",
    "layout": "none",
-   "page_width": 1720,
-   "page_height": 1010,
+   "page_width": 1900,
+   "page_height": 1150,
    "background": "#ffffff",
    "grid": false,
    "nodes": [
     {
      "id": "title",
-     "label": "Поиск по корпусу: BM25 + dense + RRF + late interaction, маршруты и реранкеры",
+     "label": "Поиск по корпусу: BM25 + dense + RRF + late interaction, маршруты, графовые стадии, краткий ответ",
      "x": 20,
      "y": 12,
-     "w": 1680,
+     "w": 1860,
      "h": 30,
-     "preset": "text",
-     "style": "fontSize=20;align=left;fontStyle=1;"
+     "style": "fontSize=20;align=left;fontStyle=1;",
+     "preset": "text"
     },
     {
      "id": "subtitle",
-     "label": "Снимок snap-20261007T103222Z-2d71e9e8 (OCR v2): 184 006 units. BM25 + jina-v5-nano + mLateOn; оценки поиска — кандидаты, не evidence.",
+     "label": "CORE, образ 1b20e03 (13.10.2026), пакет каталогов 85bf6c1e00d9; снимок snap-20261007T103222Z-2d71e9e8 (OCR v2): 184 006 units. Оценки поиска — кандидаты, не evidence.",
      "x": 20,
      "y": 44,
-     "w": 1680,
+     "w": 1860,
      "h": 25,
-     "preset": "text",
-     "style": "fontSize=12;align=left;fontColor=#444444;"
+     "style": "fontSize=12;align=left;fontColor=#444444;",
+     "preset": "text"
     },
     {
      "id": "q",
-     "label": "запрос\nMCP search_hybrid → VKM API /v1/search/hybrid",
+     "label": "запрос\nMCP search_hybrid → VKM API\nPOST /v1/search/hybrid",
      "x": 20,
-     "y": 260,
-     "w": 210,
-     "h": 90,
+     "y": 110,
+     "w": 230,
+     "h": 150,
      "style": "fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;"
     },
     {
      "id": "det",
-     "label": "детектор библиографического запроса: фамилии с инициалами и годом, «et al.», «и др.», DOI/ISBN, «список литературы»",
+     "label": "Детекторы запроса\n• библиография: фамилия с инициалами и годом, «et al.», «и др.», DOI/ISBN, «список литературы»\n• номер рисунка, таблицы, формулы: «рис. N.N», «табл. N.N», «формула (N.N)»\n• номер объекта мира: «скв. N», «профильная линия N», «блок N», «панель N», «репер N»\n• автор реестра: «работы / труды … X», «X и др.», «X А.А.», «по X» (не эпонимы «закон … X»)\n• картинка: рисунок, схема, карта, план, разрез, график …",
      "x": 20,
-     "y": 400,
-     "w": 210,
-     "h": 125,
-     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+     "y": 290,
+     "w": 230,
+     "h": 370,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "legs",
+     "label": "Ветви RRF (фильтры запроса — в каждой)",
+     "x": 290,
+     "y": 90,
+     "w": 330,
+     "h": 585,
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=1;rounded=0;",
+     "preset": "container"
     },
     {
      "id": "bm25",
-     "label": "BM25 — OpenSearch (анализатор vkm_text), top-100 страниц",
-     "x": 290,
-     "y": 140,
-     "w": 250,
-     "h": 70,
-     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;"
+     "label": "BM25 — OpenSearch (анализатор vkm_text), top-100; фраза номера объекта отмечает страницы",
+     "x": 15,
+     "y": 35,
+     "w": 300,
+     "h": 60,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;",
+     "parent": "legs"
     },
     {
      "id": "dense",
-     "label": "dense — jina-v5-nano Q8_0: запрос кодирует RX 580, поиск kNN в OpenSearch, top-100",
-     "x": 290,
-     "y": 260,
-     "w": 250,
-     "h": 85,
-     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;"
+     "label": "dense — jina-v5-nano Q8_0 (запрос кодирует RX 580), kNN, top-100; перевод запроса по словарю NAV — свои ветви BM25 и dense",
+     "x": 15,
+     "y": 105,
+     "w": 300,
+     "h": 80,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;",
+     "parent": "legs"
     },
     {
      "id": "bib",
-     "label": "маршрут библиографии: скан записей литературы (BIB_ENTRY) — третья ветка RRF",
-     "x": 290,
-     "y": 410,
-     "w": 250,
-     "h": 85,
-     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;"
+     "label": "библиография: записи BIB_ENTRY (скан late) — ветвь RRF, если запрос библиографический",
+     "x": 15,
+     "y": 200,
+     "w": 300,
+     "h": 75,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;",
+     "parent": "legs"
+    },
+    {
+     "id": "label",
+     "label": "label:PAGE — объекты с этой печатной меткой (рис., табл., формула) и словами темы в подписи, тексте или работе",
+     "x": 15,
+     "y": 290,
+     "w": 300,
+     "h": 80,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;",
+     "parent": "legs"
+    },
+    {
+     "id": "entity",
+     "label": "entity:PAGE — указатель объектов мира entity_index (каталоги скважин, линий, блоков, панелей, реперов; 2 838 строк): страницы этого вида и номера",
+     "x": 15,
+     "y": 385,
+     "w": 300,
+     "h": 90,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;",
+     "parent": "legs"
+    },
+    {
+     "id": "author",
+     "label": "author:PAGE — страницы собственных работ автора реестра (AUTHOR, CORPORATE_AUTHOR или роль неизвестна); руководство и редакция — нет",
+     "x": 15,
+     "y": 490,
+     "w": 300,
+     "h": 80,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;",
+     "parent": "legs"
+    },
+    {
+     "id": "scope",
+     "label": "Фильтр области источника v2 — в каждой ветви: BM25, dense, изображения страниц, библиография\n• SKRU1_SKRU2_SKRU3 → SKRU1, SKRU2, SKRU3 (VKM-SRC-002, 012, 045); снимок и индексы собраны по v1 — API добавляет эти источники по source_id\n• AMBIGUOUS и «родственные» области фильтр не включает: предупреждение SCOPE_FILTER_EXCLUDED_AMBIGUOUS\n• include_ambiguous: true — «область ИЛИ эти источники» (SCOPE_FILTER_INCLUDED_AMBIGUOUS)\n• область источника наследуется объектами; рудник значения — по тексту",
+     "x": 20,
+     "y": 705,
+     "w": 600,
+     "h": 145,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
     },
     {
      "id": "rrf",
-     "label": "RRF (k = 60) по стабильным ID: страница — max по её единицам; дубли страниц сворачиваются → top-100",
-     "x": 600,
-     "y": 240,
-     "w": 230,
-     "h": 125,
+     "label": "RRF (k = 60) по стабильным ID: страница — max по её единицам; дубли страниц сворачиваются",
+     "x": 670,
+     "y": 290,
+     "w": 200,
+     "h": 150,
      "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;"
     },
     {
      "id": "late",
-     "label": "CORE mLateOn MaxSim: 184 006 units, 23,45 млн token vectors, float16 pack; включён по умолчанию",
-     "x": 890,
-     "y": 215,
-     "w": 260,
-     "h": 170,
+     "label": "поздняя стадия — CORE mLateOn MaxSim: 184 006 units, 23,45 млн token vectors, float16 pack; включена по умолчанию (late = false — порядок RRF)",
+     "x": 940,
+     "y": 290,
+     "w": 250,
+     "h": 150,
      "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;"
     },
     {
-     "id": "fig",
-     "label": "номер рисунка («рис. 3.1») усиливается только среди кандидатов своей темы; подписи объектов (object_label)",
-     "x": 890,
-     "y": 410,
-     "w": 260,
-     "h": 95,
+     "id": "flags",
+     "label": "Флаги поздней стадии — эксперимент, не прошёл E11; по умолчанию выключены, путь без них прежний байт в байт\n• late_fusion = rrf (умолчание replace)\n• late_query = best_translation (умолчание original)",
+     "x": 940,
+     "y": 490,
+     "w": 250,
+     "h": 185,
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "g2",
+     "label": "графовые стадии NAV по запросу (graph): G2 cohesion, G3 concepts, G4 cites, G5 topics; первые 10 мест не трогают",
+     "x": 1230,
+     "y": 90,
+     "w": 290,
+     "h": 85,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+    },
+    {
+     "id": "vis",
+     "label": "визуальный маршрут (слово-картинка): Qwen3-VL-Embedding-2B F16 на CORE, 26 744 page vectors × 2048; RRF первых N страниц E и канала",
+     "x": 1230,
+     "y": 200,
+     "w": 290,
+     "h": 110,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;"
+    },
+    {
+     "id": "prom",
+     "label": "подъём страниц маршрутов (порядок внутри сохраняется)\n• номер и указатель — внутри первых 100 страниц темы (правило Q5); без темы — до 20 страниц указателя первыми\n• автор — с темой внутри первых 100; без темы до 20 первыми; библиографический запрос с темой — не больше 3; запрос о ссылках на автора — без подъёма",
+     "x": 1230,
+     "y": 335,
+     "w": 290,
+     "h": 160,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=6;spacingRight=4;fontSize=12;"
+    },
+    {
+     "id": "g1",
+     "label": "G1 collapse — по умолчанию (решение владельца 13.10): копии одной работы и выровненные страницы копий (≥ 3 пар, ≥ 80 % согласных) уходят из выдачи, видны у оригинала в copies; graph = [] — выкл.",
+     "x": 1230,
+     "y": 520,
+     "w": 290,
+     "h": 125,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+    },
+    {
+     "id": "frag",
+     "label": "склейка фрагментов рисунка (FIGURE, по умолчанию): области страницы с общим caption_block_id — одна позиция, остальные в fragments",
+     "x": 1230,
+     "y": 670,
+     "w": 290,
+     "h": 100,
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+    },
+    {
+     "id": "cap",
+     "label": "max_per_source (по запросу): лишнее уходит назад, не удаляется",
+     "x": 1230,
+     "y": 795,
+     "w": 290,
+     "h": 55,
      "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
     },
     {
      "id": "ans",
-     "label": "ответ: кандидаты с трассой — bm25_rank, dense_rank, fused_rank, late-стадия; конверт vkm.envelope/1; retrieval_trace объясняет ранжирование",
-     "x": 1210,
-     "y": 240,
-     "w": 240,
-     "h": 125,
-     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;"
+     "label": "ответ\nMCP — view = brief по умолчанию (vkm.brief/1): id, ранги стадий, late_score, сниппет ≤ 140, карточки источников, run.stages\nview = full — ApiResponse: конверты vkm.envelope/1, полная трасса; retrieval_trace объясняет ранжирование\ncursor — строка цифр (иное — 400)",
+     "x": 1570,
+     "y": 660,
+     "w": 310,
+     "h": 190,
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
     },
     {
-     "id": "edge",
+     "id": "rr",
      "label": "Реранк по запросу: два отдельных backend",
-     "x": 1210,
-     "y": 400,
-     "w": 480,
-     "h": 150,
-     "preset": "container",
-     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=1;rounded=0;"
+     "x": 1570,
+     "y": 440,
+     "w": 310,
+     "h": 180,
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=none;strokeColor=#999999;dashed=1;rounded=0;",
+     "preset": "container"
     },
     {
      "id": "rt",
-     "label": "rerank_text ≤24: CORE mLateOn по сохранённым единицам",
-     "x": 15,
+     "label": "rerank_text ≤ 24: CORE mLateOn по сохранённым единицам",
+     "x": 10,
      "y": 35,
-     "w": 215,
-     "h": 95,
+     "w": 140,
+     "h": 130,
      "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;",
-     "parent": "edge"
+     "parent": "rr"
     },
     {
      "id": "rv",
-     "label": "rerank_visual ≤8: EDGE jina-reranker-m0 Q6_K",
-     "x": 250,
+     "label": "rerank_visual ≤ 8: EDGE jina-reranker-m0 Q6_K",
+     "x": 160,
      "y": 35,
-     "w": 215,
-     "h": 95,
+     "w": 140,
+     "h": 130,
      "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;",
-     "parent": "edge"
+     "parent": "rr"
     },
     {
-     "id": "vis",
-     "label": "Visual route APPLIED: Qwen3-VL-Embedding-2B F16 на CORE, 26 744 page vectors × 2048 dimensions; слияние по визуальному запросу",
-     "x": 290,
-     "y": 570,
-     "w": 540,
-     "h": 125,
-     "style": "dashed=0;fillColor=#dae8fc;fontColor=#333333;fontSize=13;html=1;rounded=1;strokeColor=#666666;whiteSpace=wrap;"
+     "id": "opts",
+     "label": "выключатели запроса\n• late = false — порядок RRF\n• visual_route: true / false\n• graph: [] — без стадий; include_duplicates — копии в выдаче\n• author_route, entity_route = false (бенчмарки)\n• group_fragments = false — каждая область отдельно\n• source_scope + include_ambiguous\n• formulations — до 4 формулировок, слияние RRF\n• max_per_source",
+     "x": 1570,
+     "y": 90,
+     "w": 310,
+     "h": 230,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
     },
     {
-     "id": "nums",
-     "label": "Измерено\n• задержка на прогретом индексе: гибрид p50 76 мс; с late p50 148 мс\n• V1 (186 запросов, полный корпус): схема E — 0,725 nDCG@10 на тексте против 0,551 у BM25\n• без dense-канала E теряет 0,115 nDCG@10 (пул)\n• маршрут библиографии: +0,195 nDCG@10 на библиографических запросах, остальные без изменений\n• реранкер v3.5 по тексту значимо не помогает; по визуальным запросам глубина 12 даёт +0,043 (пул)\n• CP-42: записи BIB_ENTRY не ранжируют страницы",
-     "x": 880,
-     "y": 570,
-     "w": 810,
-     "h": 175,
+     "id": "meas_old",
+     "label": "Измерено раньше\n• задержка на прогретом индексе: гибрид p50 76 мс; с late p50 148 мс\n• V1 (186 запросов): схема E — 0,725 nDCG@10 на тексте против 0,551 у BM25; без dense E теряет 0,115\n• маршрут библиографии: +0,195 nDCG@10 на библиографических запросах\n• реранкер v3.5 по тексту значимо не помогает; визуальные — глубина 12 даёт +0,043 (пул)\n• CP-42: записи BIB_ENTRY не ранжируют страницы",
+     "x": 680,
+     "y": 705,
+     "w": 500,
+     "h": 145,
+     "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
+    },
+    {
+     "id": "meas_new",
+     "label": "Измерено 13.10 (сигнал поиска по AUTO-канону, не evidence; метки — агенты-LLM)\n• E7: G1 без вреда в форме с группами копий, retrieval_v1 текст nDCG@10 +0,028 (P); G5 сверх G1 даёт R@50 +0,014 — ниже порога +0,02, по умолчанию не включается\n• E11: ни один вариант флагов поздней стадии не дал выигрыша; late_query = best_translation: topic_v1 R@50 −0,021, retrieval_v1 текст R@50 −0,048 (V)\n• E10, query_types_v1 (70 запросов): скважины R@10 0,244 → 0,988, доля источников автора @10 0,514 → 0,978; истина и маршруты взяты из одних каталогов — круговость\n• retrieval_v1 целиком: маршруты автора и указателя значимо не меняют выдачу (текст nDCG@10 P +0,004 после 1b20e03)\n• краткий вид: 20 хитов search_hybrid — 74 546 → 7 469 знаков (синтетический ответ формы CORE)\n• фрагменты: 1 897 групп — 4 396 из 18 297 рисунков; в 15 запросах повторы занимали 67 из 300 мест первой двадцатки search_hybrid\n• «скважина 75» → VKM-SRC-012:p0064 (табл. 3.1) первой — строка указателя BH-SOL-75",
+     "x": 590,
+     "y": 880,
+     "w": 1290,
+     "h": 155,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
     },
     {
      "id": "legend",
      "label": "Легенда",
      "x": 20,
-     "y": 770,
-     "w": 560,
+     "y": 880,
+     "w": 540,
      "h": 181,
-     "preset": "container",
-     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#666666;dashed=0;rounded=0;"
+     "style": "container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=8;spacingTop=2;fontSize=12;fontStyle=1;fillColor=#ffffff;strokeColor=#666666;dashed=0;rounded=0;",
+     "preset": "container"
     },
     {
      "id": "lg_sw_derived",
@@ -175,20 +290,20 @@
      "y": 30,
      "w": 34,
      "h": 16,
-     "parent": "legend",
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;",
      "preset": "box",
-     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;"
+     "parent": "legend"
     },
     {
      "id": "lg_tx_derived",
-     "label": "индексы и ответы (проекции; оценки — не evidence)",
+     "label": "индексы, указатель, ответы (проекции; оценки — не evidence)",
      "x": 52,
      "y": 28,
-     "w": 500,
+     "w": 480,
      "h": 25,
-     "parent": "legend",
+     "style": "fontSize=12;verticalAlign=top;",
      "preset": "text",
-     "style": "fontSize=12;verticalAlign=top;"
+     "parent": "legend"
     },
     {
      "id": "lg_sw_service",
@@ -197,20 +312,20 @@
      "y": 59,
      "w": 34,
      "h": 16,
-     "parent": "legend",
+     "style": "fillColor=#fff2cc;strokeColor=#d6b656;",
      "preset": "box",
-     "style": "fillColor=#fff2cc;strokeColor=#d6b656;"
+     "parent": "legend"
     },
     {
      "id": "lg_tx_service",
      "label": "сервис, инструмент, шаг процесса",
      "x": 52,
      "y": 57,
-     "w": 500,
+     "w": 480,
      "h": 25,
-     "parent": "legend",
+     "style": "fontSize=12;verticalAlign=top;",
      "preset": "text",
-     "style": "fontSize=12;verticalAlign=top;"
+     "parent": "legend"
     },
     {
      "id": "lg_sw_agent",
@@ -219,20 +334,20 @@
      "y": 88,
      "w": 34,
      "h": 16,
-     "parent": "legend",
+     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;",
      "preset": "box",
-     "style": "fillColor=#e1d5e7;strokeColor=#9673a6;"
+     "parent": "legend"
     },
     {
      "id": "lg_tx_agent",
      "label": "вызов агента через MCP",
      "x": 52,
      "y": 86,
-     "w": 500,
+     "w": 480,
      "h": 25,
-     "parent": "legend",
+     "style": "fontSize=12;verticalAlign=top;",
      "preset": "text",
-     "style": "fontSize=12;verticalAlign=top;"
+     "parent": "legend"
     },
     {
      "id": "lg_sw_paused",
@@ -241,20 +356,20 @@
      "y": 117,
      "w": 34,
      "h": 16,
-     "parent": "legend",
+     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;",
      "preset": "box",
-     "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;"
+     "parent": "legend"
     },
     {
      "id": "lg_tx_paused",
-     "label": "приостановлено, в работе или будущее (пунктир)",
+     "label": "эксперимент, выключен по умолчанию (пунктир)",
      "x": 52,
      "y": 115,
-     "w": 500,
+     "w": 480,
      "h": 25,
-     "parent": "legend",
+     "style": "fontSize=12;verticalAlign=top;",
      "preset": "text",
-     "style": "fontSize=12;verticalAlign=top;"
+     "parent": "legend"
     },
     {
      "id": "lg_a_dash",
@@ -263,9 +378,9 @@
      "y": 153,
      "w": 2,
      "h": 2,
-     "parent": "legend",
+     "style": "strokeColor=none;fillColor=none;",
      "preset": "text",
-     "style": "strokeColor=none;fillColor=none;"
+     "parent": "legend"
     },
     {
      "id": "lg_b_dash",
@@ -274,30 +389,30 @@
      "y": 153,
      "w": 2,
      "h": 2,
-     "parent": "legend",
+     "style": "strokeColor=none;fillColor=none;",
      "preset": "text",
-     "style": "strokeColor=none;fillColor=none;"
+     "parent": "legend"
     },
     {
      "id": "lg_ext_dash",
      "label": "по запросу или по условию маршрута",
      "x": 52,
      "y": 144,
-     "w": 500,
+     "w": 480,
      "h": 25,
-     "parent": "legend",
+     "style": "fontSize=12;verticalAlign=top;",
      "preset": "text",
-     "style": "fontSize=12;verticalAlign=top;"
+     "parent": "legend"
     },
     {
      "id": "sources",
-     "label": "Источники: PROJECT_STATE_RU.md; docs/corpus_platform/PLATFORM_INTEGRITY_2026-09-30_RU.md; docs/corpus_platform/receipts/intake_2026-09-29.json; MODEL_SERVICES.md.",
+     "label": "Источники: docs/corpus_platform/MCP_TOOLS.md §1.1–1.5, §2; src/vkm_corpus/search/hybrid.py, registry_routes.py; docs/corpus_platform/receipts/deploy_20261013_search_fixes_formulas.json, deploy_20261013_search_next.json; benchmarks/topic_v1/RESULTS_EXPERIMENTS_2026-10-13.md; benchmarks/query_types_v1/RESULTS_V1.md; PROJECT_STATE_RU.md; PLATFORM_INTEGRITY_2026-09-30_RU.md; receipts/intake_2026-09-29.json; MODEL_SERVICES.md.",
      "x": 20,
-     "y": 965,
-     "w": 1680,
+     "y": 1095,
+     "w": 1860,
      "h": 40,
-     "preset": "text",
-     "style": "fontSize=11;align=left;fontColor=#555555;"
+     "style": "fontSize=11;align=left;fontColor=#555555;",
+     "preset": "text"
     }
    ],
    "edges": [
@@ -313,7 +428,7 @@
      "source": "q",
      "target": "dense",
      "label": "",
-     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.8333;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
     },
     {
      "id": "e_q3",
@@ -323,32 +438,46 @@
      "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_d",
+     "id": "e_d_bib",
      "source": "det",
      "target": "bib",
-     "label": "да",
-     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.1014;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_b",
-     "source": "bm25",
-     "target": "rrf",
+     "id": "e_d_label",
+     "source": "det",
+     "target": "label",
      "label": "",
-     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.2;entryDx=0;entryDy=0;"
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.3514;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_de",
-     "source": "dense",
-     "target": "rrf",
+     "id": "e_d_entity",
+     "source": "det",
+     "target": "entity",
      "label": "",
-     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.6216;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_bi",
-     "source": "bib",
+     "id": "e_d_author",
+     "source": "det",
+     "target": "author",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.8919;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_scope",
+     "source": "scope",
+     "target": "legs",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.5455;entryY=1;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_legs",
+     "source": "legs",
      "target": "rrf",
      "label": "",
-     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;"
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.4701;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
     },
     {
      "id": "e_rl",
@@ -358,45 +487,74 @@
      "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_la",
+     "id": "e_flags",
+     "source": "flags",
+     "target": "late",
+     "label": "выкл.",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_lg",
      "source": "late",
-     "target": "ans",
+     "target": "g2",
      "label": "",
      "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
     },
     {
-     "id": "e_fig",
-     "source": "late",
-     "target": "fig",
+     "id": "e_g2_vis",
+     "source": "g2",
+     "target": "vis",
      "label": "",
      "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_vis_prom",
+     "source": "vis",
+     "target": "prom",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_prom_g1",
+     "source": "prom",
+     "target": "g1",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_g1_frag",
+     "source": "g1",
+     "target": "frag",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_frag_cap",
+     "source": "frag",
+     "target": "cap",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_ans",
+     "source": "cap",
+     "target": "ans",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.8553;entryDx=0;entryDy=0;"
     },
     {
      "id": "e_rt",
      "source": "ans",
      "target": "rt",
      "label": "кандидаты по ID",
-     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.2581;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;"
     },
     {
      "id": "e_rv",
      "source": "ans",
      "target": "rv",
      "label": "",
-     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.8;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
-    },
-    {
-     "id": "e_vis",
-     "source": "q",
-     "target": "vis",
-     "label": "",
-     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.2;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;",
-     "waypoints": [
-      [
-       62,
-       632
-      ]
-     ]
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.7419;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;"
     },
     {
      "id": "lg_e_dash",
