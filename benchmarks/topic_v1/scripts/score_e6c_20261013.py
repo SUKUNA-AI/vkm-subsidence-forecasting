@@ -151,10 +151,11 @@ def _sd(xs: list[float]) -> float | None:
     return stdev(xs) if len(xs) > 1 else None
 
 
-def spread(rows: list[dict], exact_v: dict) -> dict:
-    """Between-generation spread on R@50 (V): the three differences against base, per-topic SD over generations,
-    per-topic sign agreement against base, SD over topics of each generation's per-topic difference."""
-    deltas = {g: exact_v[f"{L(g)} - {L('base')} | {PRIMARY}"] for g in GENS}
+def spread(rows: list[dict], exact: dict) -> dict:
+    """Between-generation spread on R@50 of the truth of ``rows`` (V primary, P descriptive): the three differences
+    against base, per-topic SD over generations, per-topic sign agreement against base, SD over topics of each
+    generation's per-topic difference. (Key names without "_V_" since the run: the block is computed per truth.)"""
+    deltas = {g: exact[f"{L(g)} - {L('base')} | {PRIMARY}"] for g in GENS}
     xs = list(deltas.values())
     sd3 = _sd(xs)
     tm = {s: TB.topic_means(rows, L(s), PRIMARY) for s in SYSTEMS}
@@ -166,11 +167,11 @@ def spread(rows: list[dict], exact_v: dict) -> dict:
         pos, neg = sum(x > 1e-12 for x in d), sum(x < -1e-12 for x in d)
         signs["all_equal_base" if pos == neg == 0 else "all_above" if pos == 3 else "all_below" if neg == 3 else
               "mixed_signs" if pos and neg else "above_or_equal" if pos else "below_or_equal"] += 1
-    return {"delta_R50_V_exact": deltas, "min": min(xs), "max": max(xs), "range": max(xs) - min(xs),
+    return {"delta_R50_exact": deltas, "min": min(xs), "max": max(xs), "range": max(xs) - min(xs),
             "sd_of_three_deltas": sd3, "mean_of_three": mean(xs),
             "t_interval_95_of_generation_mean_descriptive": ([mean(xs) - T975_DF2 * sd3 / 3 ** 0.5,
                                                               mean(xs) + T975_DF2 * sd3 / 3 ** 0.5] if sd3 else None),
-            "R50_V_topic_mean": {s: sum(tm[s].values()) / len(tm[s]) for s in SYSTEMS},
+            "R50_topic_mean": {s: sum(tm[s].values()) / len(tm[s]) for s in SYSTEMS},
             "per_topic_sd_over_generations": {"n_topics": len(topics), "mean": mean(per_topic_sd),
                                               "median": median(per_topic_sd), "max": max(per_topic_sd),
                                               "topics_all_three_equal": sum(1 for x in per_topic_sd if x < 1e-12)},
