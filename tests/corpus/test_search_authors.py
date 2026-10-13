@@ -171,3 +171,29 @@ def test_canon_authors_is_cached_per_snapshot():
     canon.snap = "S2"
     assert ca.index() is not first and Canon.calls == 8
     assert [m.method for m in first.match("Баряха")] == ["INFLECTED"]
+
+
+def test_own_works_come_before_supervised_ones():
+    """«работы X» are the works X wrote (live check 13.10: theses Барях supervised came first): ``works_of`` puts the
+    works where the cluster is AUTHOR before the supervised ones, and the author route drops the latter."""
+    from vkm_corpus.search.registry_routes import OWN_ROLES
+
+    base = _index()
+    wa = [dict(r, work_id=w) for w, rows in base.work_authors.items() for r in rows]
+    wa.append({"work_id": "VKM-WRK-065", "author_id": "AUT-baryakh-cy", "ordinal": 2, "role": "SUPERVISOR",
+               "name_as_listed": "Барях А.А."})
+    wa.append({"work_id": "VKM-WRK-065", "author_id": "AUT-gorsky", "ordinal": 1, "role": "AUTHOR",
+               "name_as_listed": "Горский П.П."})
+    works = list(base.works.values()) + [{"work_id": "VKM-WRK-065", "title": "диссертация", "publication_year": 2026,
+                                          "status": "ACTIVE"}]
+    sources = [dict(s, work_id=w) for w, ss in base.sources.items() for s in ss]
+    sources.append({"work_id": "VKM-WRK-065", "source_id": "VKM-SRC-065", "link_type": "FULL_COPY",
+                    "is_primary": True})
+    authors = [{"author_id": a.author_id, "name_display": a.name_display,
+                "name_key": f"{a.surname}|{a.initials}||{a.script}", "script": a.script,
+                "identity_status": "NAME_KEY_ONLY"} for a in base.authors.values()]
+    index = A.AuthorIndex.from_rows(authors, wa, works, sources, "SNAP")
+    rows = index.works_of(["AUT-baryakh-cy"])
+    assert rows[-1]["work"]["work_id"] == "VKM-WRK-065"          # newest, but supervised: last
+    assert [a["role"] for a in rows[-1]["matched"]] == ["SUPERVISOR"] and "SUPERVISOR" not in OWN_ROLES
+    assert all(a["role"] == "AUTHOR" for r in rows[:-1] for a in r["matched"])

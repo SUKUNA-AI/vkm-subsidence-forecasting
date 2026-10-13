@@ -281,8 +281,9 @@ class AuthorIndex:
 
     def works_of(self, author_ids: Iterable[str], *, active_only: bool = True) -> list[dict[str, Any]]:
         """Works of the clusters (merged works left out with ``active_only``), each with its authors as listed,
-        the matched clusters (ordinal, role) and the registered sources; order: lead author first, then newer year,
-        then id."""
+        the matched clusters (ordinal, role) and the registered sources; order: works the cluster wrote (role
+        AUTHOR / CORPORATE_AUTHOR / unknown) before supervised, edited or translated ones, then lead author first,
+        then newer year, then id."""
         want = set(author_ids)
         rows = []
         for wid in sorted({w for a in want for w in self.authors[a].works if a in self.authors}):
@@ -293,7 +294,9 @@ class AuthorIndex:
             matched = [a for a in authors if a.get("author_id") in want]
             rows.append({"work": work, "authors": authors, "matched": matched,
                          "sources": self.sources.get(wid, [])})
-        rows.sort(key=lambda r: (min((a.get("ordinal") or 99) for a in r["matched"]) if r["matched"] else 99,
+        own = {"AUTHOR", "CORPORATE_AUTHOR", "UNKNOWN", None}       # works the cluster wrote before supervised ones
+        rows.sort(key=lambda r: (not any(a.get("role") in own for a in r["matched"]),
+                                 min((a.get("ordinal") or 99) for a in r["matched"]) if r["matched"] else 99,
                                  -(r["work"].get("publication_year") or 0), r["work"].get("work_id") or ""))
         return rows
 

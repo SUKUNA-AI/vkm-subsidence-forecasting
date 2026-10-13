@@ -50,6 +50,9 @@ from vkm_corpus.search.object_refs import ObjectRef, has_topic
 from vkm_corpus.search.query import MAX_SIZE, SearchRequest, compile_filters, search
 
 AUTHOR_LEG_DEPTH = 40          # pages of the author leg
+# «работы X» are the works X wrote: a supervised thesis, an edited volume or a translation is not one (live check
+# 13.10: «работы Баряха» put the dissertations Барях supervised, VKM-SRC-065 / 066, first); a missing role counts
+OWN_ROLES = frozenset({"AUTHOR", "CORPORATE_AUTHOR", "UNKNOWN", None})
 AUTHOR_MAX_SOURCES = 60        # sources of the matched authors' works searched (lead-author works, newer first)
 FIRST_PAGES = 2                # title pages per source when the query names no topic
 AUTHOR_PROMOTE_K = 100         # with a topic: the author's pages move up inside E's first K pages
@@ -166,7 +169,9 @@ def author_leg(client: Any, req: Any, prefix: str, registry: RegistrySignals | N
     if route.status != "MATCHED":
         return [], {}, stage
     assert index is not None
-    works = index.works_of([a.author_id for a in route.authors])
+    all_works = index.works_of([a.author_id for a in route.authors])
+    works = [w for w in all_works if any(a.get("role") in OWN_ROLES for a in w["matched"])]
+    other_roles = sorted({str(a.get("role")) for w in all_works if w not in works for a in w["matched"]})
     sources: list[str] = []
     of_source: dict[str, dict[str, Any]] = {}
     for w in works:
@@ -188,7 +193,8 @@ def author_leg(client: Any, req: Any, prefix: str, registry: RegistrySignals | N
     timings["author_route"] = round((time.perf_counter() - t1) * 1e3, 2)
     citations = sorted(CITATION_CUES & set(bibliographic_intent(req.query).cues))
     stage.update({"status": "APPLIED" if leg else "NO_PAGES", "authors": [a.as_record() for a in route.authors],
-                  "works": len(works), "sources": len(sources), "sources_searched": len(searched),
+                  "works": len(works), "works_other_roles": len(all_works) - len(works),
+                  "other_roles": other_roles, "sources": len(sources), "sources_searched": len(searched),
                   "topic": topic or None, "mode": "TOPIC" if topic else "FIRST_PAGES", "pages": len(leg),
                   "depth": AUTHOR_LEG_DEPTH,
                   "fusion": "one more RRF leg of the PAGE candidates (pages of the author's own works)",
