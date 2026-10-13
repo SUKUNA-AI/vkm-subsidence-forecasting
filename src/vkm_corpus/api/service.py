@@ -579,7 +579,7 @@ class ApiService:
         works = self.works_of_sources(row.get("source_id") for _k, row in hydrated.values())
         copy_counts = self.canon.work_copy_counts(works.values())
         items: list[Item] = []
-        seen_works: dict[str, int] = {}
+        seen_works: dict[str, set[str]] = {}               # work → sources of the hits (copies shown side by side)
         for hit in hits:
             if hit["id"] not in hydrated:
                 continue
@@ -592,7 +592,7 @@ class ApiService:
                                     built_from_snapshot_id=built_from, matches_canonical_snapshot=matches)
             work_id = hit.get("work_id") or works.get(row.get("source_id"))
             if work_id:
-                seen_works[work_id] = seen_works.get(work_id, 0) + 1
+                seen_works.setdefault(work_id, set()).add(str(row.get("source_id")))
             ordered_blocks = sorted(hit.get("best_blocks") or [], key=lambda b: (
                 b.get("reading_order") is None, b.get("reading_order"), b.get("id")))
             record = {"rank": hit.get("rank"), "bm25_score": hit.get("score"), "rrf_score": hit.get("rrf_score"),
@@ -614,6 +614,8 @@ class ApiService:
                 record.update({"bm25_score": trace.get("bm25_score"), "rrf_score": trace.get("rrf_score"),
                                "dense_score": trace.get("dense_score"), "late_score": trace.get("late_score"),
                                "rank_in_kind": None, "trace": trace})
+                if "copies" in hit:                       # G1: copies of this hit that left the ranking
+                    record["copies"] = list(hit.get("copies") or [])
                 unit = trace.get("dense_unit") or {}
                 if not ordered_blocks and hit.get("object_type") == "PAGE" and unit.get("object_ids"):
                     record["rerank_candidate"]["object_ids"] = list(unit["object_ids"])[:20]
@@ -623,11 +625,14 @@ class ApiService:
             warnings.append(ApiWarning(code="PROJECTION_BUILD_MISMATCH",
                                        message="the index was built from another canonical snapshot",
                                        count=mismatched))
-        repeated = {w: n for w, n in seen_works.items() if n > 1 or copy_counts.get(w, 0) > 1}
+        # copies shown side by side: hits from two or more sources of one work (pages of one source are not copies; a
+        # work whose other copies left the ranking — G1 ``copies`` — or were never hit says so on the hit:
+        # ``work_copy_count``, ``copies``)
+        repeated = {w: s for w, s in seen_works.items() if len(s) > 1}
         if repeated:
             warnings.append(ApiWarning(code="WORK_HAS_MULTIPLE_COPIES",
-                                       message="several hits or registered files belong to one work: copies are not "
-                                               "independent evidence", count=len(repeated)))
+                                       message="hits from several copies of one work: copies are not independent "
+                                               "evidence", count=len(repeated)))
         for code in response.get("warnings") or []:
             warnings.append(ApiWarning(code="SEARCH_WARNING", message=str(code)[:200]))
         return items, warnings

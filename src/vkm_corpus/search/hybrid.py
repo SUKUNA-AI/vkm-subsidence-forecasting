@@ -699,7 +699,10 @@ def _one_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str
     ``cap`` = apply ``req.max_per_source`` here (off when the fusion of formulations caps afterwards)."""
     timings: dict[str, float] = {}
     t0 = time.perf_counter()
-    grun = GS.GraphRun(GS.resolve(req.graph, graph_defaults), graph_params or GS.GraphParams(), graph,
+    stages = GS.resolve(req.graph, graph_defaults)
+    if req.graph is None and req.include_duplicates:      # asked for the duplicates: the default G1 would hide them
+        stages = tuple(s for s in stages if s != "collapse")
+    grun = GS.GraphRun(stages, graph_params or GS.GraphParams(), graph,
                        bm25=_graph_bm25(client, req, prefix), explicit=req.graph is not None)
     grun.gate(page_kind="PAGE" in req.kinds, late=bool(req.late))
     pool = ThreadPoolExecutor(max_workers=3) if grun.on("concepts") or grun.on("cites") else None
@@ -1181,7 +1184,8 @@ def _multi_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
         "runs": runs}
     if len(answered) >= 2:
         # dedupe: a page another formulation served as the representative of its duplicate group (E's collapsed
-        # ``duplicates``) joins that representative — the first one seen (the query first)
+        # ``duplicates``) or of its copies (G1 ``copies``) joins that representative — the first one seen (the query
+        # first); a hit whose own copies include an earlier representative joins it too (G1 kept the other copy there)
         hit_of: dict[str, dict[str, Any]] = {}
         alias: dict[str, str] = {}
         lists: list[tuple[int, list[str]]] = []
@@ -1189,9 +1193,12 @@ def _multi_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
         for n, res in answered:
             keys: list[str] = []
             for h in res["hits"][:FUSION_DEPTH]:
-                rep = alias.setdefault(h["id"], h["id"])
+                copy_ids = [str(c.get("page_id") or c.get("object_id")) for c in h.get("copies") or []
+                            if c.get("page_id") or c.get("object_id")]
+                rep = alias.get(h["id"]) or next((alias[c] for c in copy_ids if c in alias), None) or h["id"]
+                alias.setdefault(h["id"], rep)
                 merged += rep != h["id"]
-                for d in h.get("duplicates") or []:
+                for d in [*(h.get("duplicates") or []), *copy_ids]:
                     alias.setdefault(str(d), rep)
                 hit_of.setdefault(rep, h)
                 if rep not in keys:
