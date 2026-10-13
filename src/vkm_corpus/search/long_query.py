@@ -82,7 +82,8 @@ _EDGE_PUNCT = " \t,.;:!?–—-«»\"'"            # not brackets: «форму�
 
 def content_terms(text: str) -> list[str]:
     """The terms of ``text`` the BM25 match counts: tokens as the analyzer cuts them (``vkm_text`` mirror, lower case,
-    ё folded), minus the ``_russian_`` and ``_english_`` stop words, without numbered objects («скв. 75», «рис. 3.1» …)."""
+    ё folded), minus the ``_russian_`` and ``_english_`` stop words, without numbered objects («скв. 75», «рис. 3.1»
+    …)."""
     refs = parse_refs(text)
     topic = strip_refs(text, refs) if refs else text
     return [t for t in raw_tokens(topic) if t not in RU_STOP and t not in EN_STOP]
