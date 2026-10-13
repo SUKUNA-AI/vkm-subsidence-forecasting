@@ -144,6 +144,12 @@ class FakeOpenSearch:
 
 def _term_ok(doc: dict[str, Any], clause: dict[str, Any]) -> bool:
     (kind, spec), = clause.items()
+    if kind == "bool":                            # nested: filter / must_not, and should with minimum_should_match
+        should = spec.get("should") or []
+        need = int(spec.get("minimum_should_match", 1 if should else 0))
+        return _matches(doc, spec) and sum(_term_ok(doc, c) for c in should) >= need
+    if kind == "exists":
+        return doc.get(spec["field"]) not in (None, [])
     if kind in ("terms", "term"):
         (fld, want), = spec.items()
         want = want if isinstance(want, list) else [want]

@@ -181,6 +181,28 @@ def test_duplicate_pages_of_other_formulations_merge_into_the_first_representati
     assert out["hits"][0]["trace"]["formulations"]["ranks"] == {"f0": 1, "f1": 1}
 
 
+def test_copies_g1_kept_in_other_formulations_merge_into_the_first_representative():
+    """G1 by default (owner 13.10): B1 is a copy of A1; whichever of the two a formulation kept, the fused list holds
+    one position — through the representative's ``copies`` or the hit's own ``copies``."""
+    from vkm_corpus.search import graph_stages as G
+
+    maps = G.build_maps(dup_members=[("DCL-1", "SAME_WORK_COPY", A1, 900), ("DCL-1", "SAME_WORK_COPY", B1, 900)],
+                        page_chars={A1: 1000, B1: 1000})
+    signals = G.StaticSignals(maps)
+
+    def run(table, late):
+        return hybrid_search(_client(table), _embed(late=late), HybridRequest(
+            query="альфа", formulations=("бета",), candidates=10, late=True), "vkm", graph=signals)
+
+    # the query showed A1 and G1 put B1 among its copies; «бета» kept B1 (A1 was not among its hits)
+    out = run({"альфа": [A1, B1, A2], "бета": [B1]}, {A1: 9.0, A2: 8.0, B1: 6.0})
+    assert _ids(out) == [A1, A2] and out["stages"]["formulations"]["duplicates_merged"] == 1
+    assert out["hits"][0]["copies"][0]["page_id"] == B1
+    # the other way round: «бета» ranked B1 first and G1 put A1 among B1's copies — B1 joins the query's A1
+    out2 = run({"альфа": [A1, A2], "бета": [B1, A1]}, {B1: 9.5, A1: 9.0, A2: 8.0})
+    assert _ids(out2) == [A1, A2] and out2["stages"]["formulations"]["duplicates_merged"] == 1
+
+
 def test_formulation_validation():
     for bad in (("a",) * 5, ("x" * 513,), ("",), ({"text": "a", "expansions": ("b", "c", "d")},), (7,)):
         with pytest.raises(SearchRequestError) as exc:

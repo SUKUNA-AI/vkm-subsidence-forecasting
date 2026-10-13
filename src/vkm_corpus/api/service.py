@@ -490,14 +490,48 @@ class ApiService:
             self._search_status = (now, status)
         return self._search_status[1]
 
+    # source area filter (agent Б, 13.10): what ``source_scope`` leaves out — ``vkm_corpus.search.scope_filter``
+    def _scope_sources(self) -> list[dict[str, Any]]:
+        """Registered sources with their area mapping (cached per canonical snapshot)."""
+        snapshot = self.canon.snapshot_id()
+        cached = getattr(self, "_scope_cache", None)
+        if cached is None or cached[0] != snapshot:
+            rows = self.canon.query("SELECT source_id, site_scope, site_scope_candidates, site_scope_mapping, "
+                                    "site_scope_raw FROM sources")
+            cached = self._scope_cache = (snapshot, rows)
+        return cached[1]
+
+    def _scope_filter(self, filters: dict[str, Any] | None) -> tuple[dict[str, Any], list[ApiWarning]]:
+        """The filters to run (``include_ambiguous`` popped) and the warning: ``SCOPE_FILTER_EXCLUDED_AMBIGUOUS`` (the
+        sources the area filter leaves out although they may hold it) or, with ``include_ambiguous``, the filter «area
+        OR these sources» and ``SCOPE_FILTER_INCLUDED_AMBIGUOUS``. No area filter → unchanged, no warning."""
+        from vkm_corpus.search import scope_filter as SF
+
+        filters = dict(filters or {})
+        include = bool(filters.pop("include_ambiguous", False))
+        scopes = filters.get("source_scope")
+        if not scopes:
+            return filters, []
+        within = filters.get("source_id")
+        found = SF.excluded_sources(scopes if isinstance(scopes, (list, tuple)) else [scopes], self._scope_sources(),
+                                    within=None if within is None else (within if isinstance(within, (list, tuple))
+                                                                        else [within]))
+        if not found:
+            return filters, []
+        code = "SCOPE_FILTER_INCLUDED_AMBIGUOUS" if include else "SCOPE_FILTER_EXCLUDED_AMBIGUOUS"
+        warning = ApiWarning(code=code, message=SF.message(found, included=include), count=len(found))
+        return (SF.widen(filters, found) if include else filters), [warning]
+
     def search(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
                include_duplicates: bool = False, exact: bool = False) -> Result:
         backend = _require(self.deps.search, "opensearch", "opensearch")
         offset = cursor_offset(cursor)
+        filters, scope_warnings = self._scope_filter(filters)
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
                    "include_duplicates": include_duplicates, "exact": exact}
         response = backend.search(request)
         items, warnings = self._search_items(response)
+        warnings = scope_warnings + warnings
         hits = response.get("hits", [])
         more = len(hits) == limit and offset + limit < 1000
         warnings += past_end(offset, len(hits))
@@ -540,6 +574,7 @@ class ApiService:
             raise ApiFailure("INVALID_ARGUMENT", f"max_per_source is 1..{MAX_PER_SOURCE}")
         use_translation = self._hybrid_translate_default(late) if translate is None else bool(translate)
         expansions, translation = self._query_translation(query) if use_translation else ([], None)
+        filters, scope_warnings = self._scope_filter(filters)
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
                    "candidates": candidates, "include_duplicates": include_duplicates, "exact": exact,
                    "late": late, "late_candidates": late_candidates, "bib_route": bib_route,
@@ -571,6 +606,7 @@ class ApiService:
         items, warnings = self._search_items(response, extra_built={
             dense.get("build_id"): dense.get("built_from_snapshot_id"),
             vis.get("build_id"): vis.get("built_from_snapshot_id")}, hybrid=True)
+        warnings = scope_warnings + warnings
         record = {k: response.get(k) for k in ("fusion", "rrf_k", "candidates", "fused_total", "totals", "stages",
                                                "timings_ms", "late", "late_candidates", "route")}
         record.update({"kinds": list(kinds), "query_sha256": sha256_text(query),
@@ -613,7 +649,7 @@ class ApiService:
         works = self.works_of_sources(row.get("source_id") for _k, row in hydrated.values())
         copy_counts = self.canon.work_copy_counts(works.values())
         items: list[Item] = []
-        seen_works: dict[str, int] = {}
+        seen_works: dict[str, set[str]] = {}               # work → sources of the hits (copies shown side by side)
         for hit in hits:
             if hit["id"] not in hydrated:
                 continue
@@ -626,7 +662,7 @@ class ApiService:
                                     built_from_snapshot_id=built_from, matches_canonical_snapshot=matches)
             work_id = hit.get("work_id") or works.get(row.get("source_id"))
             if work_id:
-                seen_works[work_id] = seen_works.get(work_id, 0) + 1
+                seen_works.setdefault(work_id, set()).add(str(row.get("source_id")))
             ordered_blocks = sorted(hit.get("best_blocks") or [], key=lambda b: (
                 b.get("reading_order") is None, b.get("reading_order"), b.get("id")))
             record = {"rank": hit.get("rank"), "bm25_score": hit.get("score"), "rrf_score": hit.get("rrf_score"),
@@ -648,6 +684,8 @@ class ApiService:
                 record.update({"bm25_score": trace.get("bm25_score"), "rrf_score": trace.get("rrf_score"),
                                "dense_score": trace.get("dense_score"), "late_score": trace.get("late_score"),
                                "rank_in_kind": None, "trace": trace})
+                if "copies" in hit:                       # G1: copies of this hit that left the ranking
+                    record["copies"] = list(hit.get("copies") or [])
                 unit = trace.get("dense_unit") or {}
                 if not ordered_blocks and hit.get("object_type") == "PAGE" and unit.get("object_ids"):
                     record["rerank_candidate"]["object_ids"] = list(unit["object_ids"])[:20]
@@ -657,11 +695,14 @@ class ApiService:
             warnings.append(ApiWarning(code="PROJECTION_BUILD_MISMATCH",
                                        message="the index was built from another canonical snapshot",
                                        count=mismatched))
-        repeated = {w: n for w, n in seen_works.items() if n > 1 or copy_counts.get(w, 0) > 1}
+        # copies shown side by side: hits from two or more sources of one work (pages of one source are not copies; a
+        # work whose other copies left the ranking — G1 ``copies`` — or were never hit says so on the hit:
+        # ``work_copy_count``, ``copies``)
+        repeated = {w: s for w, s in seen_works.items() if len(s) > 1}
         if repeated:
             warnings.append(ApiWarning(code="WORK_HAS_MULTIPLE_COPIES",
-                                       message="several hits or registered files belong to one work: copies are not "
-                                               "independent evidence", count=len(repeated)))
+                                       message="hits from several copies of one work: copies are not independent "
+                                               "evidence", count=len(repeated)))
         for code in response.get("warnings") or []:
             warnings.append(ApiWarning(code="SEARCH_WARNING", message=str(code)[:200]))
         return items, warnings
@@ -681,10 +722,31 @@ class ApiService:
             return {}
         return {r["formula_id"]: str(r["equation_number"]) for r in rows if r.get("equation_number")}
 
+    def _nav_object_groups(self, object_ids: Any) -> dict[str, str]:
+        """object id → its NAV ``object_dup_clusters`` group (BOILERPLATE groups left out) for merging copies of one
+        work (best effort: a build without the part only means no group key)."""
+        ids = sorted({str(o) for o in object_ids if o})
+        nav = self.deps.nav
+        if not ids or nav is None or not hasattr(nav, "query"):
+            return {}
+        try:
+            ph = ", ".join("?" for _ in ids)
+            rows = nav.query(f"SELECT object_id, cluster_id FROM object_dup_members WHERE object_id IN ({ph}) "
+                             "AND kind <> 'BOILERPLATE'", ids)
+        except Exception:  # noqa: BLE001 - NavUnavailable, missing table
+            return {}
+        return {r["object_id"]: r["cluster_id"] for r in rows if r.get("cluster_id")}
+
     def query_objects(self, kinds: list[str], limit: int, cursor: str | None, **filters: Any) -> Result:
         offset = cursor_offset(cursor)
         if not kinds or any(k not in QUERYABLE_KINDS for k in kinds):
             raise ApiFailure("INVALID_ARGUMENT", f"kinds must be values of {QUERYABLE_KINDS}")
+        scoped, warnings = self._scope_filter({"source_scope": filters.get("source_scope") or [],
+                                               "include_ambiguous": filters.pop("include_ambiguous", False),
+                                               **({"source_id": filters["source_ids"]} if filters.get("source_ids")
+                                                  else {})})
+        if "source_scope_or_source_id" in scoped:          # include_ambiguous: the area OR these sources
+            filters["scope_source_ids"] = scoped["source_scope_or_source_id"]["source_id"]
         items: list[Item] = []
         for kind in kinds:
             rows = self.canon.query_objects(kind, limit=limit + 1, offset=offset, **filters)
@@ -696,7 +758,7 @@ class ApiService:
         items.sort(key=lambda it: it.envelope.object_id)
         more = len(items) > limit
         return Result(items=items[:limit], next_cursor=str(offset + limit) if more else None,
-                      warnings=past_end(offset, len(items)))
+                      warnings=warnings + past_end(offset, len(items)))
 
     # ================================================================================================ rerank
     def text_rerank_backend(self) -> str:
@@ -1204,7 +1266,14 @@ class ApiService:
             raise ApiFailure("INVALID_ARGUMENT", "source_id has the form VKM-SRC-NNN")
         data, snap = self._nav_run(lambda nav: nav.run("find_parameters", property=property, material=material,
                                                        site=site, scale=scale.upper() if scale else None,
-                                                       source_id=source_id, limit=limit))
+                                                       source_id=source_id, limit=min(2 * int(limit), 400)))
+        if isinstance(data, dict) and isinstance(data.get("candidates"), list):   # copies of one work: one position
+            from vkm_corpus.navigation.work_rollup import merge_copies, parameter_keys
+
+            work_of = self.works_of_sources(c.get("source_id") for c in data["candidates"])
+            cands, by_work = merge_copies(data["candidates"], work_of, parameter_keys, id_field="candidate_id",
+                                          limit=limit)
+            data = {**data, "candidates": cands, "by_work": by_work}
         key = "|".join(str(x) for x in (property, material, site, scale, source_id) if x)[:60]
         return self._nav_result("NAV_PARAMETERS", f"parameters:{key}", data, snap, source_id=source_id)
 
@@ -1212,6 +1281,11 @@ class ApiService:
         if not property or len(property) > 200:
             raise ApiFailure("INVALID_ARGUMENT", "property is 1..200 characters")
         data, snap = self._nav_run(lambda nav: nav.run("parameter_summary", property, material=material))
+        if isinstance(data, dict) and isinstance(data.get("rows"), list):          # n_works next to n_sources
+            from vkm_corpus.navigation.work_rollup import NOTE, summary_by_work
+
+            work_of = self.works_of_sources(s for r in data["rows"] for s in r.get("source_ids") or [])
+            data = {**data, "rows": summary_by_work(data["rows"], work_of), "by_work_note": NOTE}
         return self._nav_result("NAV_PARAMETER_SUMMARY", f"parameter_summary:{property[:40]}", data, snap)
 
     # ------------------------------------------------------------------ term dictionary (agent TR)
@@ -1258,7 +1332,10 @@ class ApiService:
         except Exception as exc:  # noqa: BLE001 - NavUnavailable, a build without term_translations …
             return [], {"status": "UNAVAILABLE", "reason": f"term dictionary: {type(exc).__name__}"}
         data = data if isinstance(data, dict) else {}
-        text = data.get("translation")
+        # numbered objects keep their numbers («скважина 75» → «borehole» → «borehole 75»; search.object_refs)
+        from vkm_corpus.search.object_refs import keep_refs
+
+        text = keep_refs(query, data.get("translation"))
         info = {"status": "APPLIED" if text else "NOT_COVERED", "text": text,
                 "source_language": data.get("source_language"), "target_language": data.get("target_language"),
                 "coverage": data.get("coverage"),
@@ -1299,7 +1376,10 @@ class ApiService:
                 text = exp.get("text")
                 terms = [{k: x.get(k) for k in ("span", "equivalent", "relation", "score", "pair_id")}
                          for x in (exp.get("terms") or [])[:8]]
-            text = " ".join(str(text).split())[:512] if text else None
+            from vkm_corpus.search.object_refs import keep_refs           # numbered objects keep their numbers
+
+            text = keep_refs(query, " ".join(str(text).split())[:512], english=origin == "translation") if text \
+                else None
             parts[origin] = {"status": "APPLIED" if text else "NOT_COVERED", "text": text, "terms": terms}
             if text:
                 out.append({"text": text, "origin": origin})
@@ -1402,7 +1482,16 @@ class ApiService:
         if not 1 <= int(limit) <= 100:
             raise ApiFailure("INVALID_ARGUMENT", "limit is 1..100")
         data, snap = self._nav_run_parts(self._TABLE_DATASETS, lambda nav: nav.run(
-            "find_tables", property=property, material=material, source_id=source_id, text=text, limit=int(limit)))
+            "find_tables", property=property, material=material, source_id=source_id, text=text,
+            limit=min(2 * int(limit), 200)))
+        if isinstance(data, dict) and isinstance(data.get("tables"), list):        # copies of one work: one position
+            from vkm_corpus.navigation.work_rollup import merge_copies, table_keys
+
+            work_of = self.works_of_sources(t.get("source_id") for t in data["tables"])
+            groups = self._nav_object_groups(t.get("table_id") for t in data["tables"])
+            tables, by_work = merge_copies(data["tables"], work_of, lambda t, w: table_keys(t, w, groups),
+                                           id_field="table_id", limit=int(limit))
+            data = {**data, "tables": tables, "by_work": by_work}
         key = "|".join(str(x) for x in (property, material, source_id, text) if x)[:60]
         return self._nav_result("NAV_TABLES", f"tables:{key}", data, snap, source_id=source_id, search=True)
 

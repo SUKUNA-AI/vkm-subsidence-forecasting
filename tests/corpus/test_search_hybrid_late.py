@@ -104,7 +104,10 @@ def test_late_stage_reorders_pages_by_maxsim_with_a_full_trace():
     assert late["model_key"] == "mlateon" and late["candidates"] == 4 and late["scored"] == 3
     assert late["unscored_ids"] == [P5] and late["store"]["pack_id"] == STORE["pack_id"]
     assert out["late"] is True and out["late_candidates"] == 100 and "late" in out["timings_ms"]
-    assert not out["warnings"]
+    # no navigation layer here: the default G1 (owner 13.10) cannot run and the answer says so — nothing else
+    assert out["warnings"] == ["GRAPH_UNAVAILABLE: the navigation layer is not configured; copies of one work are "
+                               "not collapsed (server default)"]
+    assert out["stages"]["graph"]["status"]["collapse"] == "UNAVAILABLE"
 
 
 def test_candidates_beyond_late_candidates_keep_rrf_order_and_pagination():

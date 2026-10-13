@@ -203,7 +203,9 @@ def _hit(item: dict[str, Any], kind: str, defaults: dict[str, Any], seen: dict[s
         out["duplicates"] = [str(d) for d in rec["duplicates"]]
     copies = rec.get("copies")
     if isinstance(copies, list) and copies:
-        out["copies"] = [c if isinstance(c, str) else str((c or {}).get("id")) for c in copies]
+        out["copies"] = [c if isinstance(c, str) else
+                         str((c or {}).get("page_id") or (c or {}).get("object_id") or (c or {}).get("id"))
+                         for c in copies]
     elif isinstance(trace.get("graph"), dict) and trace["graph"].get("copies"):
         out["copies_count"] = trace["graph"]["copies"]
     _scientific(out, env, defaults)
