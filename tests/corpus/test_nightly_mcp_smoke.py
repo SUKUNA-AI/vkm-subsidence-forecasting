@@ -82,11 +82,11 @@ def run(client, **kw):
 
 
 def test_all_read_tools_are_called_with_harvested_ids():
-    client = FakeClient(page_size=10)                       # five pages of tools: pagination is followed
+    client = FakeClient(page_size=10)                       # six pages of tools: pagination is followed
     rep = run(client)
-    assert rep["verdict"] == "PASS" and rep["tools_listed"] == 49 and rep["missing_tools"] == []
-    assert rep["summary"] == {"PASS": 49, "WARN": 0, "FAIL": 0, "SKIP": 0} and rep["not_called"] == []
-    assert rep["version"] == "nightly-mcp-smoke-7"
+    assert rep["verdict"] == "PASS" and rep["tools_listed"] == 51 and rep["missing_tools"] == []
+    assert rep["summary"] == {"PASS": 51, "WARN": 0, "FAIL": 0, "SKIP": 0} and rep["not_called"] == []
+    assert rep["version"] == "nightly-mcp-smoke-8"
     args = {}
     for name, a in client.calls:
         args.setdefault(name, a)
@@ -106,6 +106,9 @@ def test_all_read_tools_are_called_with_harvested_ids():
     assert args["copies_of_object"]["object_id"] == FIG and args["shared_formulas"]["ref"] == FORM
     # the digitized chart series: the series id comes from the answer of find_figure_series
     assert args["get_figure_series"]["ref"] == FS and args["find_figure_series"]["limit"] == 3
+    # the registry tools (agent Г): fixed words — an author surname, a borehole number
+    assert args["find_works"] == {"author": "Барях", "limit": 3}
+    assert args["find_entities"] == {"kind": "BOREHOLE", "number": "75", "limit": 5}
     calls = {c["tool"]: c for c in rep["calls"]}
     assert calls["get_figure"]["n_images"] == 1 and len(calls["search_text"]["sha256"]) == 64
     assert "query" not in calls["search_text"]["args"]                   # the report keeps no query text
@@ -207,7 +210,7 @@ def test_dry_run_plans_every_expected_tool():
     with redirect_stdout(buf):
         assert SMOKE.main(["--dry-run"]) == 0
     out = json.loads(buf.getvalue())
-    assert out["planned_tools"] == sorted(SMOKE.EXPECTED_TOOLS) and out["expected"] == 49
+    assert out["planned_tools"] == sorted(SMOKE.EXPECTED_TOOLS) and out["expected"] == 51
 
 
 def test_expected_tools_match_the_read_server():

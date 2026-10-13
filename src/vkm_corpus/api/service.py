@@ -97,6 +97,7 @@ class ApiDeps:
     hybrid: HybridBackend | None = None
     nav: Any = None                     # vkm_corpus.navigation.store.NavStore (navigation layer, optional)
     catalogues: Any = None              # vkm_corpus.catalogues.store.CatalogueStore (PUBLIC catalogues, optional)
+    registry: Any = None                # search.registry_routes.RegistrySignals (authors, entity index); lazy if None
     topic_retrieval: Any = None         # retrieval of the topic dossier (api.topic.TopicRetrieval); None → hybrid
     evidence: Any = None                # immutable evidence journal reader
     evidence_publisher: Any = None      # restricted review publisher, not arbitrary shell/SQL
@@ -549,7 +550,8 @@ class ApiService:
                       late: bool | None = None, late_candidates: int = 100,
                       bib_route: bool | None = None, visual_route: bool | None = None,
                       translate: bool | None = None, graph: Any = None, formulations: list[str] | None = None,
-                      expand: str = "none", max_per_source: int | None = None) -> Result:
+                      expand: str = "none", max_per_source: int | None = None, author_route: bool | None = None,
+                      entity_route: bool | None = None) -> Result:
         """BM25 + dense k-NN fused by RRF, optionally re-scored by late interaction (``vkm_corpus.search.hybrid``);
         hits are hydrated from the canon exactly as in :meth:`search` and carry the per-stage trace. Without the query
         encoder, the vectors build or (with late) the token store the answer is DEPENDENCY_UNAVAILABLE — never BM25
@@ -604,6 +606,9 @@ class ApiService:
                                                 for f in plan["sent"])
         if max_per_source is not None:
             request["max_per_source"] = int(max_per_source)
+        for name, value in (("author_route", author_route), ("entity_route", entity_route)):   # registry routes
+            if value is not None:
+                request[name] = bool(value)
         response = backend.search(request)
         depth = hybrid_depth(response, candidates, kinds)          # never serve past the end next_cursor reports
         response = {**response, "hits": list(response.get("hits") or [])[:max(0, depth - offset)]}
@@ -1606,6 +1611,151 @@ class ApiService:
         return self._nav_result("NAV_FIGURE_SERIES", ref, data, snap, source_id=fig.get("source_id"),
                                 page_id=fig.get("page_id"))
     # ------------------------------------------------------------------ end digitized chart series (agent FD2)
+
+    # ------------------------------------------------------------------ registry: works of an author, entity index
+    # (agent Г, 13.10; vkm_corpus.search.authors / entities / registry_routes) — navigation, never identity or evidence
+    def _registry(self) -> Any:
+        if self.deps.registry is None:
+            from vkm_corpus.search.registry_routes import RegistrySignals
+
+            self.deps.registry = RegistrySignals(self.deps.canon, self.deps.catalogues)
+        return self.deps.registry
+
+    def find_works(self, author: str, limit: int = 50, cursor: str | None = None) -> Result:
+        """Works of the registry whose author matches ``author`` by name key (``search.authors``: EXACT_KEY,
+        INFLECTED, TRANSLIT; FUZZY only when nothing else matched). Every matched cluster counts — homonyms are
+        listed side by side (warning ``AUTHOR_HOMONYMS``), never merged or chosen. Items: the WORK envelopes with the
+        authors as listed, the matched clusters with their method, the registered copies (``source_id``)."""
+        from vkm_corpus.search import authors as A
+
+        text = " ".join(str(author or "").split())
+        if not 2 <= len(text) <= 200:
+            raise ApiFailure("INVALID_ARGUMENT", "author is 2..200 characters (a surname, «Барях А.А.», «Baryakh»)")
+        if not 1 <= int(limit) <= 200:
+            raise ApiFailure("INVALID_ARGUMENT", "limit must be 1…200")
+        offset = cursor_offset(cursor)
+        index = self._registry().author_index(strict=True)
+        if index is None:
+            raise ApiFailure("DEPENDENCY_UNAVAILABLE", "the work registry is not configured on this API instance",
+                             stage="registry", tool="canon")
+        name = A.PersonName.parse(text)
+        matches = index.match(text)
+        method_of = {m.author_id: m.method for m in matches}
+        works = index.works_of(method_of)
+        window = works[offset:offset + int(limit)]
+        hydrated = self.canon.hydrate([w["work"]["work_id"] for w in window])
+        counts = self.canon.work_copy_counts(w["work"]["work_id"] for w in window)
+        items, stale = [], 0
+        for w in window:
+            wid = w["work"]["work_id"]
+            if wid not in hydrated:
+                stale += 1
+                continue
+            _kind, row = hydrated[wid]
+            matched = [{**a, "method": method_of.get(a.get("author_id"))} for a in w["matched"]]
+            record = {"work_id": wid, "title": row.get("title"), "publication_year": row.get("publication_year"),
+                      "work_type": row.get("work_type"), "status": row.get("status"), "authors": w["authors"],
+                      "matched_authors": matched,
+                      "match_method": min((m["method"] for m in matched if m["method"]), key=A.METHOD_ORDER.get,
+                                          default=None),
+                      "sources": w["sources"], "source_ids": [s["source_id"] for s in w["sources"]],
+                      "work_copy_count": counts.get(wid, len(w["sources"]))}
+            items.append(self._item("WORK", row, record=jsonable(record), copy_counts=counts))
+        clusters = [{**m.as_record(), "n_works": len(index.authors[m.author_id].works)} for m in matches]
+        warnings: list[ApiWarning] = []
+        if len(matches) > 1:
+            warnings.append(ApiWarning(code="AUTHOR_HOMONYMS", message=A.HOMONYM_NOTE, count=len(matches)))
+        if any(m.method == A.FUZZY for m in matches):
+            warnings.append(ApiWarning(code="AUTHOR_FUZZY_MATCH", message="no exact, inflected or transliterated key "
+                                       "matched: one-edit matches of the surname skeleton (check the names)"))
+        if stale:
+            warnings.append(ApiWarning(code="STALE_PROJECTION", message="registry works missing from the canonical "
+                                                                        "snapshot were dropped", count=stale))
+        warnings += past_end(offset, len(window), len(works))
+        record = {"query": text, "parsed": None if name is None else {"surname": name.surname,
+                                                                       "initials": name.initials or None,
+                                                                       "script": name.script},
+                  "authors": clusters, "total_works": len(works), "returned": len(items),
+                  "methods": {A.EXACT_KEY: "same script, same surname key", A.INFLECTED: "a Russian case form of the "
+                              "surname", A.TRANSLIT: "the other script or another Latin spelling (one skeleton)",
+                              A.FUZZY: "one edit of the skeleton (only when nothing else matched)"},
+                  "note": "registry works (curated register); authors are name-key clusters (NAME_KEY_ONLY), not "
+                          "identified persons; copies (source_ids) are not independent evidence"}
+        env = Envelope(object_id=f"works-{sha256_text(text.casefold())[:16]}", object_kind="AUTHOR_WORKS",
+                       review_status="NOT_APPLICABLE", layer="SERVICE", payload_form="NORMALIZED", origin="REGISTRY",
+                       canonical_snapshot_id=self.canon.snapshot_id())
+        more = offset + int(limit) < len(works)
+        return Result(item=Item(envelope=env, record=jsonable(record)), items=items, warnings=warnings,
+                      next_cursor=str(offset + int(limit)) if more else None)
+
+    def find_entities(self, kind: str | None = None, number: str | None = None, site: str | None = None,
+                      source_id: str | None = None, page_id: str | None = None, limit: int = 50,
+                      cursor: str | None = None) -> Result:
+        """Rows of the entity index (catalogue pack table ``entity_index``): where a catalogued borehole, profile line,
+        benchmark, block, panel or shaft is mentioned — one row per (object, source, page), the site as the catalogue
+        states it. ``number`` may carry its type word («скв. 75» → BOREHOLE 75). Without ``site`` every site of the
+        number is listed, each its own object (``objects``; warning ``ENTITY_SEVERAL_OBJECTS``)."""
+        from vkm_corpus.search import entities as E
+        from vkm_corpus.search.object_refs import parse_refs
+
+        if not any((kind, number, site, source_id, page_id)):
+            raise ApiFailure("INVALID_ARGUMENT", "give at least one of kind, number, site, source_id, page_id")
+        if not 1 <= int(limit) <= 500:
+            raise ApiFailure("INVALID_ARGUMENT", "limit must be 1…500")
+        try:
+            want_kind = E.entity_kind(kind)
+        except ValueError as exc:
+            raise ApiFailure("INVALID_ARGUMENT", str(exc)) from exc
+        if source_id is not None and not re.fullmatch(r"VKM-SRC-\d{3,}", source_id):
+            raise ApiFailure("INVALID_ARGUMENT", "source_id has the form VKM-SRC-NNN")
+        if page_id is not None:
+            self._check("page", page_id)
+        num = (number or "").strip() or None
+        refs = parse_refs(num) if num else []
+        if refs and refs[0].kind in E.REF_KIND:            # «скв. 75», «профильная линия 12»
+            want_kind = want_kind or E.REF_KIND[refs[0].kind]
+            num = refs[0].number
+        offset = cursor_offset(cursor)
+        try:
+            index = self._registry().entity_index(strict=True)
+        except Exception as exc:  # noqa: BLE001 - CataloguesUnavailable and pack errors alike
+            raise ApiFailure("DEPENDENCY_UNAVAILABLE", f"the catalogue pack is not available ({type(exc).__name__})",
+                             stage="catalogues", tool="catalogues") from exc
+        if index is None:
+            raise ApiFailure("DEPENDENCY_UNAVAILABLE", "the served catalogue pack has no entity index (table "
+                             f"{E.TABLE})", stage="catalogues", tool="catalogues",
+                             hint="scripts/build_entity_index.py → commit → catalogues pack → publish")
+        rows = index.lookup(want_kind, num, site, source_id, page_id)
+        window = rows[offset:offset + int(limit)]
+        objs = E.objects(rows)
+        out_rows = [{**r, "page_index": int(r["page_index"]) if str(r["page_index"]).isdigit() else None,
+                     "number_key": E.number_keys(r["number_key"]), "record_ids": E.number_keys(r["record_ids"])}
+                    for r in window]
+        warnings: list[ApiWarning] = []
+        if num and len(objs) > 1:
+            warnings.append(ApiWarning(code="ENTITY_SEVERAL_OBJECTS", message="the number names several catalogue "
+                                       "objects (sites or catalogue records): listed apart, not one object",
+                                       count=len(objs)))
+        warnings += past_end(offset, len(window), len(rows))
+        query = {"kind": want_kind, "number": num, "number_key": E.number_key(num) if num else None, "site": site,
+                 "source_id": source_id, "page_id": page_id}
+        record = {"query": query, "total": len(rows), "returned": len(out_rows), "rows": out_rows,
+                  "objects": objs, "pack_id": index.pack_id, "rule": E.RULE, "identity_rule": E.IDENTITY_RULE,
+                  "navigation_only": True, "note": E.NOTE}
+        key = "|".join(str(x) for x in query.values() if x)[:60]
+        try:
+            snapshot = self.canon.snapshot_id() if self.canon is not None else None
+        except ApiFailure:                                  # the index needs no canon: answer without the snapshot
+            snapshot = None
+        env = Envelope(object_id=f"entities:{key}", object_kind="ENTITY_INDEX", source_id=source_id,
+                       review_status="AUTO_EXTRACTED_UNREVIEWED", layer="PROJECTION", payload_form="NORMALIZED",
+                       origin="DERIVED", canonical_snapshot_id=snapshot,
+                       projection=Projection(engine="catalogues", index_or_graph=f"catalogues.duckdb:{E.TABLE}",
+                                             build_id=index.pack_id))
+        more = offset + int(limit) < len(rows)
+        return Result(item=Item(envelope=env, record=jsonable(record)), warnings=warnings,
+                      next_cursor=str(offset + int(limit)) if more else None)
+    # ------------------------------------------------------------------ end registry (agent Г)
 
     # ------------------------------------------------------------------ topic dossier (navigation + catalogues)
     def reconstruct_topic(self, query: str, *, budget_chars: int = 12_000, source_ids: list[str] | None = None,

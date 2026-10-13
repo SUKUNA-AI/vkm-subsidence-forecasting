@@ -9,7 +9,8 @@
 topics and duplicates: ``find_topics``, ``get_topic``, ``similar_sections``, ``section_topics``, ``copies_of``,
 ``source_overlap``; parameters: ``find_parameters``, ``parameter_summary``; term dictionary: ``translate_term``;
 structured tables: ``get_table_structured``, ``find_tables``; repeated figures, tables and formulas:
-``copies_of_object``, ``shared_formulas``; digitized chart series: ``find_figure_series``, ``get_figure_series``.
+``copies_of_object``, ``shared_formulas``; digitized chart series: ``find_figure_series``, ``get_figure_series``;
+registry: ``find_works`` (works of an author by name key), ``find_entities`` (the entity index of the catalogues).
 
 ``vkm-corpus-admin`` (write, plan-first H-12): ``reprocess_source``, ``reprocess_page``, ``get_job``.
 
@@ -748,6 +749,45 @@ def build_read_server(api: ApiClient) -> MCPServer:
         use."""
         return await call("get_figure_series", "GET", f"/v1/nav/figure_series/{ref}",
                           params={"max_points": max_points})
+
+    # registry (agent Г, 13.10): works of an author by name key; where catalogued world objects are mentioned
+    @server.tool(name="find_works", annotations=READ_ONLY)
+    async def find_works(
+            author: Annotated[str, Field(min_length=2, max_length=200, description="a surname in any case form or "
+                                                                                   "script, with or without initials: "
+                                                                                   "«Баряха», «Барях А.А.», "
+                                                                                   "«Baryakh»")],
+            limit: Annotated[int, Field(ge=1, le=200)] = 50, cursor: Cursor = None) -> CallToolResult:
+        """Works of the work registry written by an author: the author is matched by name key — EXACT_KEY (same
+        surname), INFLECTED (a Russian case form: «Баряха» → «Барях»), TRANSLIT (the other script or Latin spelling:
+        «Baryakh» ↔ «Барях»), FUZZY (one edit, only when nothing else matched). Per work: title, year, authors as
+        listed, the matched authors with the method, the registered copies (source_id) and their count. Authors are
+        name-key clusters, not identified persons; several clusters of one surname (homonyms) are all listed and
+        flagged, never merged. Use the source ids with search_hybrid (source_ids) or get_source."""
+        return await call("find_works", "GET", "/v1/works", params={"author": author, "limit": limit,
+                                                                    "cursor": cursor})
+
+    @server.tool(name="find_entities", annotations=READ_ONLY)
+    async def find_entities(
+            kind: Annotated[Literal["BOREHOLE", "PROFILE_LINE", "LINE", "BENCHMARK", "BLOCK", "PANEL", "SHAFT"] | None,
+                            Field(description="object kind (LINE = PROFILE_LINE)")] = None,
+            number: Annotated[str | None, Field(max_length=60, description="the number as printed, optionally with "
+                                                                           "its type word: «75», «скв. 75», «9 ВП», "
+                                                                           "«201»")] = None,
+            site: Annotated[str | None, Field(max_length=100, description="«СКРУ-1» / «SKRU1» (matched in the "
+                                                                          "catalogue's site text)")] = None,
+            source_id: Annotated[str | None, Field(pattern=r"^VKM-SRC-\d{3,}$")] = None,
+            page_id: Annotated[str | None, Field(pattern=PAGE_ID)] = None,
+            limit: Annotated[int, Field(ge=1, le=500)] = 50, cursor: Cursor = None) -> CallToolResult:
+        """Where a catalogued world object is mentioned: the entity index built from the PUBLIC catalogues
+        (boreholes and their picks, C4 mining calendars, observation and monitoring catalogues, mining geometry) —
+        one row per (object, source, page) with the page id, the label as printed, the catalogue, its record ids and
+        status, and the site as the catalogue states it (with its attribution). Identity is never inferred: the same
+        number at two mines or in two catalogues is two objects (``objects`` lists them apart; without a site every
+        site is shown). Navigation, not evidence — read the page (get_page) and the catalogue record."""
+        return await call("find_entities", "GET", "/v1/entities",
+                          params={"kind": kind, "number": number, "site": site, "source_id": source_id,
+                                  "page_id": page_id, "limit": limit, "cursor": cursor})
 
     @server.tool(name="reconstruct_topic", annotations=READ_ONLY)
     async def reconstruct_topic(
