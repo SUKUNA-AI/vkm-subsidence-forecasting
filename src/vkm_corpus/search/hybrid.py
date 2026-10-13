@@ -114,6 +114,15 @@ interaction stage (mLateOn MaxSim), with a per-stage trace (постановка
   after G1 the FIGURE keys of one page with the same caption block become one key — the largest region, at the place
   of the best-ranked one; the others in ``fragments`` (regions of keys the BM25 leg did not return are looked up in the
   figures index by id); ``stages.fragments``.
+* Long questions (agent M, 13.10; ``long_query``, ``vkm_corpus.search.long_query``; off by default — ``strict`` is
+  the path above, byte for byte): ``relax`` | ``strip`` | ``relax_strip`` change only the BM25 legs of the query and
+  of its expansions (each wording by its own plan): a wording with at least 6 content terms runs with
+  ``minimum_should_match`` ``"3<70% 5<50%"`` (relax) and/or without its question frame (strip); a shorter wording is
+  unchanged. The dense leg, the late stage, the routes (bibliographic, visual, author, entity, label) and the graph
+  legs keep the original query — dense and late encoders read whole sentences, and the routes' detectors key on the
+  question's own words. The API builds the translation (``expansions``) from the stripped question. Each formulation
+  runs with the same mode. ``stages.long_query`` (absent in ``strict``): the query's plan (``mode``, ``status``,
+  ``long``, ``terms``, ``msm``, ``strip``, ``stripped_text``, ``removed`` …), ``expansions`` (their plans).
 * Late pool (:data:`MAX_LATE_CANDIDATES` = 300): the RX580 service accepts up to 1000 targets per ``/search/late``
   call (``LateSearchBody``); with ``candidates`` ≤ 200 per leg the RRF list (BM25 ∪ dense) is usually long enough to
   fill it — when it is shorter, every fused key is a candidate.
@@ -132,6 +141,7 @@ from typing import Any, Callable, Iterable, Mapping
 from vkm_corpus.retrieval_lab.fusion import rrf
 from vkm_corpus.search import fragments as FR
 from vkm_corpus.search import graph_stages as GS
+from vkm_corpus.search import long_query as LQ
 from vkm_corpus.search import registry_routes as RR
 from vkm_corpus.search.intent import bibliographic_intent, visual_intent
 from vkm_corpus.search.mappings import alias_name
@@ -407,6 +417,7 @@ class HybridRequest:
     group_fragments: bool = False          # FIGURE: one key per page + caption block (vkm_corpus.search.fragments)
     author_route: bool | None = None       # registry author route (None → a registry author in the query decides)
     entity_route: bool | None = None       # entity-index pages of a numbered object (None → on when one is named)
+    long_query: str = LQ.LONG_QUERY_DEFAULT  # BM25 legs of a long question: strict | relax | strip | relax_strip
 
     def validate(self) -> None:
         if not self.query or not self.query.strip() or len(self.query) > 512:
@@ -414,6 +425,8 @@ class HybridRequest:
         if self.late_fusion not in LATE_FUSIONS or self.late_query not in LATE_QUERIES:
             raise SearchRequestError("E_BAD_MODE", f"late_fusion is one of {LATE_FUSIONS}, late_query one of "
                                                    f"{LATE_QUERIES}")
+        if self.long_query not in LQ.LONG_QUERY_MODES:
+            raise SearchRequestError("E_BAD_MODE", f"long_query is one of {LQ.LONG_QUERY_MODES}")
         try:
             self.graph = GS.parse_stages(self.graph)
         except ValueError as exc:
@@ -944,12 +957,15 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
     kind_of: dict[str, str] = {}
     totals: dict[str, dict[str, int]] = {}
     warnings: list[str] = []
+    lq_plans: dict[str, dict[str, Any]] = {}             # wording → its long-question plan (long_query not strict)
     for kind in req.kinds:
         t1 = time.perf_counter()
         bm = search(client, SearchRequest(query=req.query, kinds=(kind,), filters=dict(req.filters),
                                           size=req.candidates, include_duplicates=req.include_duplicates,
-                                          exact=req.exact), prefix)
+                                          exact=req.exact, long_query=req.long_query), prefix)
         timings[f"bm25_{kind.lower()}"] = round((time.perf_counter() - t1) * 1e3, 2)
+        if bm.long_query is not None:
+            lq_plans.setdefault(req.query, bm.long_query)
         warnings += bm.warnings
         bm_list = []
         for h in bm.hits:
@@ -972,7 +988,10 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
         for n, (x, xv) in enumerate(xq, 1):                     # expansion legs
             t1 = time.perf_counter()
             bmx = search(client, SearchRequest(query=x, kinds=(kind,), filters=dict(req.filters), size=req.candidates,
-                                               include_duplicates=req.include_duplicates, exact=req.exact), prefix)
+                                               include_duplicates=req.include_duplicates, exact=req.exact,
+                                               long_query=req.long_query), prefix)
+            if bmx.long_query is not None:
+                lq_plans.setdefault(x, bmx.long_query)
             warnings += bmx.warnings
             lst = []
             for h in bmx.hits:
@@ -1416,6 +1435,14 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
         out["stages"]["expansion"]["fusion"] = ("extra RRF legs of the expansions; the late stage scores the query and "
                                                 "every expansion (late_query = best_translation)")
     out["stages"]["author_route"] = author_stage       # registry author route (agent Г): status for every query
+    if req.long_query != LQ.STRICT:                    # long questions (agent M): only when the request asked
+        stage = dict(lq_plans.get(req.query) or LQ.plan(req.query, req.long_query).record())
+        stage["scope"] = ("the BM25 legs of the query and of its expansions (each wording by its own plan); dense, "
+                          "late, routes and graph legs: the original query")
+        if xq:
+            stage["expansions"] = [{"text": x, **{k: v for k, v in (lq_plans.get(x) or {}).items() if k != "mode"}}
+                                   for x, _v in xq]
+        out["stages"]["long_query"] = stage
     return out
 
 
@@ -1511,6 +1538,8 @@ def _multi_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
                      "late": res["late"], "expansions": list(expansion.get("texts") or [])
                      if isinstance(expansion, dict) else [],
                      "warnings": len(res["warnings"]), "timings_ms": res["timings_ms"]})
+        if isinstance(res["stages"].get("long_query"), dict):          # long questions (agent M): per formulation
+            info["long_query"] = {k: res["stages"]["long_query"].get(k) for k in ("status", "terms", "strip")}
         if n:
             warnings += [f"f{n}: {w}" for w in res["warnings"]]
         answered.append((n, res))
