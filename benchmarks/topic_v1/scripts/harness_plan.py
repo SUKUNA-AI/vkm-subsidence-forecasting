@@ -26,7 +26,7 @@ import time
 import urllib.error
 import urllib.request
 
-HARNESS_VERSION = "plan-harness-20261013-2"
+HARNESS_VERSION = "plan-harness-20261013-3"
 BASE = os.environ.get("VKM_BENCH_API", "http://127.0.0.1:8000")
 PAGE_RE = re.compile(r"VKM-SRC-\d{3}:[a-z]\d{4}")
 ROUTES = ("/v1/search", "/v1/search/hybrid")
@@ -130,7 +130,8 @@ def diagnostics(rec: dict) -> dict:
     ar = stages.get("author_route")
     if isinstance(ar, dict):
         out["author_route"] = {"status": ar.get("status"), "in_head": ar.get("in_head"), "moved": ar.get("moved"),
-                               "n_authors": len(ar.get("authors") or [])}
+                               "n_authors": len(ar.get("authors") or []), "promotion": ar.get("promotion"),
+                               "promote_max": ar.get("promote_max"), "mode": ar.get("mode")}
     late = stages.get("late")
     if isinstance(late, dict):
         out["late_stage"] = {k: late.get(k) for k in ("status", "candidates", "scored", "query")
