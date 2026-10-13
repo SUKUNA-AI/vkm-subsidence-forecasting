@@ -61,6 +61,11 @@ def brief_response(body: dict[str, Any], *, kind: str, source_names: SourceNames
                            "meta": brief_meta(body.get("meta") or {}), "note": NOTE, "defaults": defaults}
     if kind == "hybrid":
         out["run"] = _run(((body.get("item") or {}).get("record")) or {})
+    elif kind == "search":                    # BM25: a run only with a long-question mode (long_query not strict)
+        lq = _long_query((((body.get("item") or {}).get("record") or {}).get("stages") or {}).get("long_query"))
+        if lq is not None:
+            rec = (body.get("item") or {}).get("record") or {}
+            out["run"] = {"stages": {"long_query": lq}, "totals": rec.get("totals")}
     out["sources"] = _sources(seen, source_names)
     out["items"] = entries
     out["next_cursor"] = body.get("next_cursor")
@@ -278,6 +283,16 @@ def _status(stage: Any) -> Any:
     return stage
 
 
+def _long_query(stage: Any) -> dict[str, Any] | None:
+    """The long-question plan in a few fields (``vkm_corpus.search.long_query``); ``None`` without one."""
+    if not isinstance(stage, dict):
+        return None
+    out = {k: stage.get(k) for k in ("mode", "status", "terms", "msm", "strip") if stage.get(k) is not None}
+    if stage.get("stripped_text"):
+        out["stripped_text"] = cut(stage["stripped_text"], TITLE_CHARS)
+    return out
+
+
 def _run(rec: dict[str, Any]) -> dict[str, Any]:
     """The hybrid run in a few fields: route, late on/off, translation, stage statuses, totals, total time."""
     stages = rec.get("stages") if isinstance(rec.get("stages"), dict) else {}
@@ -308,6 +323,9 @@ def _run(rec: dict[str, Any]) -> dict[str, Any]:
     if isinstance(late, dict) and (late.get("fusion") or late.get("late_query")):     # experiment flags only
         st["late"] = {k: v for k, v in (("fusion", (late.get("fusion") or {}).get("mode")),
                                         ("late_query", _status(late.get("late_query")))) if v}
+    lq = _long_query(stages.get("long_query"))
+    if lq is not None:                                 # long-question mode (agent M): only when asked
+        st["long_query"] = lq
     out["stages"] = st
     plan = rec.get("formulations")
     if isinstance(plan, dict):

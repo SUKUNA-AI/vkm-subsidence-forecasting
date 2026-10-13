@@ -32,6 +32,14 @@
   (``_msearch``), then reciprocal-rank fusion (H-44).
 * Rerank candidates are IDs plus a passage reference by rule ``rerank_text_v1``; the text is read from agent D's
   DuckDB view ``rerank_text``, never from the index (H-04, H-13): ≤ 24 text candidates, ≤ 8 images per call.
+* Long questions (agent M, 13.10; ``long_query``, ``vkm_corpus.search.long_query``; opt-in): ``strict`` (default) is
+  the path above, byte for byte. Otherwise a query with at least ``LONG_QUERY_MIN_TERMS`` (6) content terms (after
+  the ``_russian_``/``_english_`` stop words, numbered objects left out) runs with ``relax`` —
+  ``minimum_should_match`` ``RELAXED_MSM`` (``"3<70% 5<50%"``) instead of the request's —, ``strip`` — the question
+  without its frame («какие», «в каком году», «что известно о», «наблюдались» …; terms and numbered objects stay) as
+  the text of every clause (match, phrase, title boost, label and reference gates) — or ``relax_strip`` (both). A
+  shorter query takes the old path in every mode. The answer then carries ``long_query`` (the plan: ``mode``,
+  ``status``, ``long``, ``terms``, ``msm``, ``strip``, ``stripped_text`` …) and keeps the query as asked.
 """
 from __future__ import annotations
 
@@ -41,6 +49,7 @@ from datetime import date
 from typing import Any
 
 from vkm_corpus.contracts import vocab
+from vkm_corpus.search import long_query as LQ
 from vkm_corpus.search.fragments import FRAGMENT_DEPTH, group_hits
 from vkm_corpus.search.mappings import KIND_INDEX, TEXT_FIELDS, alias_name, properties
 from vkm_corpus.search.object_refs import ObjectRef, has_topic, parse_refs, strip_refs
@@ -141,10 +150,13 @@ class SearchRequest:
     rrf_k: int = RRF_K
     window: int = 50
     group_fragments: bool = False            # FIGURE: one hit per page + caption block (vkm_corpus.search.fragments)
+    long_query: str = LQ.LONG_QUERY_DEFAULT  # strict | relax | strip | relax_strip (vkm_corpus.search.long_query)
 
     def validate(self) -> None:
         if not self.query or not self.query.strip() or len(self.query) > 512:
             raise SearchRequestError("E_BAD_QUERY", "query must be 1..512 characters")
+        if self.long_query not in LQ.LONG_QUERY_MODES:
+            raise SearchRequestError("E_BAD_MODE", f"long_query is one of {LQ.LONG_QUERY_MODES}")
         self.kinds = tuple(k.upper() for k in self.kinds)
         if not self.kinds or any(k not in KINDS for k in self.kinds) or len(set(self.kinds)) != len(self.kinds):
             raise SearchRequestError("E_BAD_KIND", f"kinds must be distinct values of {KINDS}")
@@ -373,11 +385,15 @@ class SearchResponse:
     availability_counts: dict[str, int]
     fusion: str
     warnings: list[str] = field(default_factory=list)
+    long_query: dict[str, Any] | None = None       # the long-question plan (only when ``long_query`` is not strict)
 
     def as_dict(self) -> dict[str, Any]:
-        return {"query": self.query, "kinds": list(self.kinds), "hits": [h.as_dict() for h in self.hits],
-                "totals": self.totals, "availability_counts": self.availability_counts, "fusion": self.fusion,
-                "warnings": self.warnings}
+        out = {"query": self.query, "kinds": list(self.kinds), "hits": [h.as_dict() for h in self.hits],
+               "totals": self.totals, "availability_counts": self.availability_counts, "fusion": self.fusion,
+               "warnings": self.warnings}
+        if self.long_query is not None:
+            out["long_query"] = self.long_query
+        return out
 
 
 def _build_id_of(index: str) -> str | None:
@@ -446,9 +462,24 @@ def _gated_label(req: SearchRequest, kind: str) -> tuple[str, SearchRequest] | N
 
 
 def search(client: Any, req: SearchRequest, prefix: str, *, indices: dict[str, str] | None = None) -> SearchResponse:
-    """Run a request against the type aliases (or explicit ``indices`` — build checks run before the alias swap)."""
+    """Run a request against the type aliases (or explicit ``indices`` — build checks run before the alias swap).
+    ``req.long_query`` other than ``strict`` runs a long question's plan (``vkm_corpus.search.long_query``: the
+    stripped text and/or the relaxed ``minimum_should_match``); the answer keeps the query as asked and carries the
+    plan (``long_query``)."""
     req.validate()
-    targets = {k: (indices or {}).get(KIND_INDEX[k]) or alias_name(prefix, KIND_INDEX[k]) for k in req.kinds}
+    if req.long_query == LQ.STRICT:
+        return _search(client, req, prefix, indices)
+    lq = LQ.plan(req.query, req.long_query, req.minimum_should_match)
+    run = replace(req, query=lq.bm25_text, minimum_should_match=lq.msm) if lq.changed else req
+    response = _search(client, run, prefix, indices)
+    response.query = req.query
+    response.long_query = lq.record()
+    return response
+
+
+def _search(client: Any, req: SearchRequest, prefix: str, indices: dict[str, str] | None) -> SearchResponse:
+    """:func:`search` of a validated request (the query and ``minimum_should_match`` it runs)."""
+    targets ={k: (indices or {}).get(KIND_INDEX[k]) or alias_name(prefix, KIND_INDEX[k]) for k in req.kinds}
     totals: dict[str, int] = {}
     availability: dict[str, int] = {}
     warnings: list[str] = []
