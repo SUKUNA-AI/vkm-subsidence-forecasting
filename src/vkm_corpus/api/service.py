@@ -531,9 +531,17 @@ class ApiService:
         return SF.widen(filters, remapped + (found if include else [])), [warning]
 
     def search(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
-               include_duplicates: bool = False, exact: bool = False, group_fragments: bool = True) -> Result:
+               include_duplicates: bool = False, exact: bool = False, group_fragments: bool = True,
+               long_query: str = "strict") -> Result:
         """BM25 search hydrated from the canon. ``group_fragments`` (default on): FIGURE regions of one page sharing a
-        caption block are one hit, the others in ``record.fragments`` (``vkm_corpus.search.fragments``)."""
+        caption block are one hit, the others in ``record.fragments`` (``vkm_corpus.search.fragments``).
+        ``long_query`` (default ``strict``: today's request and answer): ``relax`` | ``strip`` | ``relax_strip`` for a
+        long question (``vkm_corpus.search.long_query``); it travels to the backend only when not default, and the
+        answer then has an ``item`` (``SEARCH_RESULT``) with ``record.stages.long_query`` and the BM25 ``totals``."""
+        from vkm_corpus.search.long_query import LONG_QUERY_MODES
+
+        if long_query not in LONG_QUERY_MODES:
+            raise ApiFailure("INVALID_ARGUMENT", f"long_query is one of {', '.join(LONG_QUERY_MODES)}")
         backend = _require(self.deps.search, "opensearch", "opensearch")
         offset = cursor_offset(cursor)
         filters, scope_warnings = self._scope_filter(filters)
@@ -541,13 +549,25 @@ class ApiService:
                    "include_duplicates": include_duplicates, "exact": exact}
         if group_fragments and "FIGURE" in kinds:
             request["group_fragments"] = True
+        if long_query != "strict":                          # opt-in: sent only when not default
+            request["long_query"] = long_query
         response = backend.search(request)
         items, warnings = self._search_items(response)
         warnings = scope_warnings + warnings
         hits = response.get("hits", [])
         more = len(hits) == limit and offset + limit < 1000
         warnings += past_end(offset, len(hits))
-        return Result(items=items, warnings=warnings, next_cursor=str(offset + limit) if more else None)
+        item = None
+        if isinstance(response.get("long_query"), dict):    # the long-question plan the BM25 legs ran
+            envelope = Envelope(object_id=f"search-{sha256_text(query)[:16]}", object_kind="SEARCH_RESULT",
+                                review_status="NOT_APPLICABLE", layer="SERVICE", payload_form="NORMALIZED",
+                                provenance=Provenance(model_id=None, model_revision=None),
+                                canonical_snapshot_id=self.canon.snapshot_id())
+            item = Item(envelope=envelope, record=jsonable({
+                "kinds": list(kinds), "query_sha256": sha256_text(query), "totals": response.get("totals"),
+                "stages": {"long_query": response["long_query"]},
+                "scores_are": "BM25 signals of a projection, not evidence"}))
+        return Result(item=item, items=items, warnings=warnings, next_cursor=str(offset + limit) if more else None)
 
     def search_hybrid(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
                       candidates: int = 100, include_duplicates: bool = False, exact: bool = False, *,
@@ -556,7 +576,8 @@ class ApiService:
                       translate: bool | None = None, graph: Any = None, formulations: list[str] | None = None,
                       expand: str = "none", max_per_source: int | None = None, group_fragments: bool = True,
                       late_fusion: str = "replace", late_query: str = "original",
-                      author_route: bool | None = None, entity_route: bool | None = None) -> Result:
+                      author_route: bool | None = None, entity_route: bool | None = None,
+                      long_query: str = "strict") -> Result:
         """BM25 + dense k-NN fused by RRF, optionally re-scored by late interaction (``vkm_corpus.search.hybrid``);
         hits are hydrated from the canon exactly as in :meth:`search` and carry the per-stage trace. Without the query
         encoder, the vectors build or (with late) the token store the answer is DEPENDENCY_UNAVAILABLE — never BM25
@@ -577,9 +598,17 @@ class ApiService:
         ``group_fragments`` (default on): FIGURE regions of one page sharing a caption block are one hit (the others in
         ``record.fragments``). Experiment flags of the late stage, off by default (``vkm_corpus.search.hybrid``):
         ``late_fusion`` = ``replace`` | ``rrf``, ``late_query`` = ``original`` | ``best_translation``; they travel to
-        the backend only when not default and apply to every formulation."""
-        from vkm_corpus.search.hybrid import LATE_FUSIONS, LATE_QUERIES, MAX_FORMULATIONS, MAX_PER_SOURCE
+        the backend only when not default and apply to every formulation.
 
+        ``long_query`` (default ``strict``: today's request): ``relax`` | ``strip`` | ``relax_strip`` change the BM25
+        legs of a long question (``vkm_corpus.search.long_query``; ``stages.long_query``); it travels only when not
+        default and applies to every formulation. With ``strip`` / ``relax_strip`` the translation of a long wording
+        is built from its stripped text (``record.translation.built_from = STRIPPED_QUERY``)."""
+        from vkm_corpus.search.hybrid import LATE_FUSIONS, LATE_QUERIES, MAX_FORMULATIONS, MAX_PER_SOURCE
+        from vkm_corpus.search.long_query import LONG_QUERY_MODES
+
+        if long_query not in LONG_QUERY_MODES:
+            raise ApiFailure("INVALID_ARGUMENT", f"long_query is one of {', '.join(LONG_QUERY_MODES)}")
         backend = _require(self.deps.hybrid, "hybrid search", "hybrid")
         offset = cursor_offset(cursor)
         caller = [" ".join(str(f).split()) for f in formulations or []]
@@ -595,7 +624,7 @@ class ApiService:
             raise ApiFailure("INVALID_ARGUMENT", f"late_fusion is one of {', '.join(LATE_FUSIONS)}; late_query one of "
                                                  f"{', '.join(LATE_QUERIES)}")
         use_translation = self._hybrid_translate_default(late) if translate is None else bool(translate)
-        expansions, translation = self._query_translation(query) if use_translation else ([], None)
+        expansions, translation = self._translation_of(query, long_query) if use_translation else ([], None)
         filters, scope_warnings = self._scope_filter(filters)
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
                    "candidates": candidates, "include_duplicates": include_duplicates, "exact": exact,
@@ -612,7 +641,8 @@ class ApiService:
                 raise ApiFailure("INVALID_ARGUMENT", str(exc)[:300]) from exc
         plan, plan_warnings = None, []
         if caller or expand == "terms":
-            plan, plan_warnings = self._formulation_plan(query, caller, expand, use_translation, MAX_FORMULATIONS - 1)
+            plan, plan_warnings = self._formulation_plan(query, caller, expand, use_translation, MAX_FORMULATIONS - 1,
+                                                         long_query=long_query)
             if plan["sent"]:
                 request["formulations"] = tuple({"text": f["text"], "origin": f["origin"],
                                                  "expansions": tuple(f.get("expansions") or ())}
@@ -628,6 +658,8 @@ class ApiService:
         for name, value in (("author_route", author_route), ("entity_route", entity_route)):   # registry routes
             if value is not None:
                 request[name] = bool(value)
+        if long_query != "strict":                          # long questions (agent M): sent only when not default
+            request["long_query"] = long_query
         response = backend.search(request)
         depth = hybrid_depth(response, candidates, kinds)          # never serve past the end next_cursor reports
         response = {**response, "hits": list(response.get("hits") or [])[:max(0, depth - offset)]}
@@ -1411,6 +1443,20 @@ class ApiService:
                 "note": "derived navigation (AUTO_EXTRACTED_UNREVIEWED): query expansion, not evidence"}
         return ([text] if text else []), info
 
+    def _translation_of(self, text: str, long_query: str = "strict") -> tuple[list[str], dict[str, Any]]:
+        """:meth:`_query_translation` of one wording; with ``long_query`` ``strip`` / ``relax_strip`` a long wording is
+        translated from its stripped text (``vkm_corpus.search.long_query``), recorded as ``built_from`` and
+        ``source_text``. Any other case: exactly :meth:`_query_translation` of the wording."""
+        if long_query not in ("strip", "relax_strip"):
+            return self._query_translation(text)
+        from vkm_corpus.search.long_query import plan
+
+        stripped = plan(text, long_query).stripped_text
+        if not stripped:
+            return self._query_translation(text)
+        expansions, info = self._query_translation(stripped)
+        return expansions, {**info, "built_from": "STRIPPED_QUERY", "source_text": stripped}
+
     # hybrid ``expand=terms``: the NAV query functions and their arguments, in the order the formulations are taken
     _TERM_FORMULATIONS: tuple[tuple[str, str, dict[str, Any]], ...] = (
         ("translation", "translate_query", {}),                                          # TRANSLATES_TO
@@ -1456,10 +1502,11 @@ class ApiService:
                      "note": "derived navigation (AUTO_EXTRACTED_UNREVIEWED): query formulations, not evidence"}
 
     def _formulation_plan(self, query: str, caller: list[str], expand: str, use_translation: bool,
-                          budget: int) -> tuple[dict[str, Any], list[ApiWarning]]:
+                          budget: int, *, long_query: str = "strict") -> tuple[dict[str, Any], list[ApiWarning]]:
         """The other formulations a hybrid request runs: the caller's first, then ``expand=terms``; duplicates of the
         query or of an earlier one and those beyond ``budget`` are listed as skipped (never dropped silently). Each
-        sent formulation gets its own translation legs when the translation is on (as its own request would)."""
+        sent formulation gets its own translation legs when the translation is on (as its own request would; with
+        ``long_query`` strip modes, from its stripped text — :meth:`_translation_of`)."""
         warnings: list[ApiWarning] = []
         candidates = [{"text": f, "origin": "caller"} for f in caller]
         terms_info = None
@@ -1486,7 +1533,7 @@ class ApiService:
                                        count=sum(1 for s in skipped if s["reason"] == "BUDGET")))
         if use_translation:
             for f in sent:
-                f["expansions"], _info = self._query_translation(f["text"])
+                f["expansions"], _info = self._translation_of(f["text"], long_query)
         plan: dict[str, Any] = {"expand": expand, "caller": len(caller), "sent": sent, "skipped": skipped}
         if terms_info is not None:
             plan["terms"] = terms_info
