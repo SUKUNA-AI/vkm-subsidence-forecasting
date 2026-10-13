@@ -2,11 +2,14 @@
 mapped to it — never resolved here, only named.
 
 The scope of a source is the versioned mapping of its register value (``vkm_corpus.contracts.site_scope``; not changed
-here). A filter ``source_scope = [SKRU1]`` takes the sources whose ``site_scope`` holds SKRU1. It does not take:
+here). A filter ``source_scope = [SKRU1]`` takes the sources whose ``site_scope`` holds SKRU1 under the *current* map —
+on a snapshot built with an older map those whose stored scope lacks it are added by ``source_id``
+(:func:`remapped_sources`; e.g. ``SKRU1_SKRU2_SKRU3`` → SKRU1, SKRU2, SKRU3 since map v2, owner 13.10.2026). It does
+not take:
 
 * **AMBIGUOUS** sources (``site_scope = []``) whose ``site_scope_candidates`` hold the requested area or a related one
-  — e.g. VKM-SRC-002, 012 (Лебедева), 045 (Ермашов): raw ``SKRU1_SKRU2_SKRU3``, candidates SOLIKAMSK_GROUP, SKRU1,
-  SKRU2, SKRU3; raw ``VKM_Solikamsk``: candidate SKRU1_OR_SKRU2_UNATTRIBUTED;
+  — e.g. raw ``VKM_Solikamsk``: candidate SKRU1_OR_SKRU2_UNATTRIBUTED (``SKRU1_SKRU2_SKRU3`` of VKM-SRC-002, 012, 045
+  was AMBIGUOUS until map v2);
 * sources mapped to a **related** area (:data:`RELATED_SCOPES`) but not to the requested one — e.g. VKM-SRC-110,
   ``SKRU1_SKRU2_PILLAR`` (EXACT): the intermine pillar zone on the SKRU-1/SKRU-2 boundary.
 
@@ -68,6 +71,24 @@ def excluded_sources(requested: Iterable[str], sources: Iterable[Mapping[str, An
             continue
         out.append({"source_id": sid, "reason": reason, "matched": matched, "site_scope_raw": s.get("site_scope_raw"),
                     "site_scope_mapping": mapping})
+    return sorted(out, key=lambda r: r["source_id"])
+
+
+def remapped_sources(requested: Iterable[str], sources: Iterable[Mapping[str, Any]],
+                     within: Iterable[str] | None = None) -> list[dict[str, Any]]:
+    """Sources whose scope under the current map (``site_scope``, see ``contracts.site_scope.with_current_scope``)
+    holds a requested area while the snapshot's stored scope (``site_scope_stored``, what the search index carries)
+    does not — e.g. ``SKRU1_SKRU2_SKRU3`` (map v2, owner 13.10.2026) on a v1 snapshot. The filter takes them by
+    ``source_id`` until the projections are rebuilt; sorted by id."""
+    req = {str(s) for s in requested}
+    allowed = None if within is None else {str(s) for s in within}
+    out = []
+    for s in sources:
+        sid = str(s.get("source_id") or "")
+        if not sid or "site_scope_stored" not in s or (allowed is not None and sid not in allowed):
+            continue
+        if {str(x) for x in s.get("site_scope") or []} & req and not {str(x) for x in s["site_scope_stored"]} & req:
+            out.append({"source_id": sid, "reason": "SCOPE_MAP_CURRENT", "site_scope_raw": s.get("site_scope_raw")})
     return sorted(out, key=lambda r: r["source_id"])
 
 

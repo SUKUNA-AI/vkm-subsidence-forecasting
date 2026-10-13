@@ -120,10 +120,14 @@ PostgreSQL (тест), поэтому «сырой SQL/Cypher» через MCP �
 - **Сводки по работам.** `parameter_summary`: в строках `n_works`, `work_ids`, `copies` (`n_candidates`, `n_pages` —
   по-прежнему по файлам). `find_parameters`, `find_tables`: одна позиция на объект работы, другие экземпляры — в
   `copies`, сводка `by_work` (`merged`, `n_works`, `n_sources`); `total` — число файловых позиций NAV.
-- **Фильтр области источника и неоднозначные источники.** Источники с областью AMBIGUOUS (например, `SKRU1_SKRU2_SKRU3`
-  у VKM-SRC-002, 012, 045; `VKM_Solikamsk`) и источники «родственной» области (для SKRU1/SKRU2: `SKRU1_SKRU2_PILLAR`,
-  `SKRU1_OR_SKRU2_UNATTRIBUTED`, `SOLIKAMSK_GROUP`; для SKRU3: `SOLIKAMSK_GROUP`) фильтр `source_scope` не включает —
-  маппинг областей не меняется. Ответ называет их предупреждением `SCOPE_FILTER_EXCLUDED_AMBIGUOUS` (`count`, ID в
+- **Область `SKRU1_SKRU2_SKRU3` — все три рудника** (таблица областей v2, решение владельца 13.10;
+  [CP-07](../implementation_work/COORDINATOR_DECISIONS.md)): VKM-SRC-002, 012 (Лебедева), 045 (Ермашов) — MULTI →
+  SKRU1, SKRU2, SKRU3; фильтр `source_scope=SKRU1` (SKRU2, SKRU3) их берёт. Снимок 2d71e9e8 и индексы собраны по v1:
+  API отвечает по v2 (конверты, `get_source`), а фильтр добавляет эти источники по `source_id` до пересборки проекций.
+  Рудник отдельного значения по-прежнему определяется по тексту.
+- **Фильтр области источника и неоднозначные источники.** Источники с областью AMBIGUOUS (`VKM_Solikamsk`, кандидат
+  `SKRU1_OR_SKRU2_UNATTRIBUTED`) и источники «родственной» области (для SKRU1/SKRU2: `SKRU1_SKRU2_PILLAR`,
+  `SKRU1_OR_SKRU2_UNATTRIBUTED`, `SOLIKAMSK_GROUP`; для SKRU3: `SOLIKAMSK_GROUP`) фильтр `source_scope` не включает. Ответ называет их предупреждением `SCOPE_FILTER_EXCLUDED_AMBIGUOUS` (`count`, ID в
   сообщении). Параметр `include_ambiguous: true` (`search_text`, `search_hybrid`, `search_objects`; в API —
   `filters.include_ambiguous`, у `/v1/objects/query` — `include_ambiguous`) делает фильтр «область ИЛИ эти источники»
   во всех каналах (BM25, dense, изображения страниц, библиография) и отвечает `SCOPE_FILTER_INCLUDED_AMBIGUOUS`.

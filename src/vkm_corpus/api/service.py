@@ -28,6 +28,7 @@ from vkm_corpus.api.envelope import (API_VERSION, ApiWarning, Envelope, Geometry
                                      Provenance, SourceScope)
 from vkm_corpus.api.errors import ApiFailure
 from vkm_corpus.contracts import vocab
+from vkm_corpus.contracts.site_scope import with_current_scope
 from vkm_corpus.ids import grammar
 from vkm_corpus.ops.worker import ALLOWED_OPTIONS as REPROCESS_OPTIONS
 
@@ -197,6 +198,7 @@ class ApiService:
                  copy_counts: dict[str, int] | None = None) -> Envelope:
         snapshot = self.canon.snapshot_id()
         flags = list(flags or [])
+        row = with_current_scope(row)                       # the current site scope map (the snapshot may be older)
         if kind in DOC_KINDS:
             object_id = row.get("object_id") or row.get("page_id")
             page_id = row.get("page_id")
@@ -298,7 +300,7 @@ class ApiService:
 
     @staticmethod
     def record(row: dict[str, Any], *, drop: frozenset[str] = ENVELOPE_COLUMNS) -> dict[str, Any]:
-        return jsonable({k: v for k, v in row.items() if k not in drop})
+        return jsonable({k: v for k, v in with_current_scope(row).items() if k not in drop})
 
     def _item(self, kind: str, row: dict[str, Any], *, record: dict[str, Any] | None = None, **kw: Any) -> Item:
         return Item(envelope=self.envelope(kind, row, **kw), record=record if record is not None else self.record(row))
@@ -498,6 +500,7 @@ class ApiService:
         if cached is None or cached[0] != snapshot:
             rows = self.canon.query("SELECT source_id, site_scope, site_scope_candidates, site_scope_mapping, "
                                     "site_scope_raw FROM sources")
+            rows = [with_current_scope(r) for r in rows]           # the current map (the snapshot may be older)
             cached = self._scope_cache = (snapshot, rows)
         return cached[1]
 
@@ -513,14 +516,18 @@ class ApiService:
         if not scopes:
             return filters, []
         within = filters.get("source_id")
-        found = SF.excluded_sources(scopes if isinstance(scopes, (list, tuple)) else [scopes], self._scope_sources(),
-                                    within=None if within is None else (within if isinstance(within, (list, tuple))
-                                                                        else [within]))
+        requested = scopes if isinstance(scopes, (list, tuple)) else [scopes]
+        within_ids = None if within is None else (within if isinstance(within, (list, tuple)) else [within])
+        sources = self._scope_sources()
+        # sources the current map gives the area while the snapshot's stored scope (and so the index) does not — they
+        # are always searched (the map is the decision; the projections catch up at the next rebuild)
+        remapped = SF.remapped_sources(requested, sources, within=within_ids)
+        found = SF.excluded_sources(requested, sources, within=within_ids)
         if not found:
-            return filters, []
+            return SF.widen(filters, remapped), []
         code = "SCOPE_FILTER_INCLUDED_AMBIGUOUS" if include else "SCOPE_FILTER_EXCLUDED_AMBIGUOUS"
         warning = ApiWarning(code=code, message=SF.message(found, included=include), count=len(found))
-        return (SF.widen(filters, found) if include else filters), [warning]
+        return SF.widen(filters, remapped + (found if include else [])), [warning]
 
     def search(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
                include_duplicates: bool = False, exact: bool = False) -> Result:
