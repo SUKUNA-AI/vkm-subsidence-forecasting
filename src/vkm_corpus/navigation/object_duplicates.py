@@ -527,7 +527,9 @@ def canonical_formula(latex: str | None) -> dict[str, Any]:
     return _canonical(latex, DEFAULTS)
 
 
-def _canonical(latex: str | None, p: dict[str, Any]) -> dict[str, Any]:
+def canonical_tokens(latex: str | None) -> list[tuple[str, str]]:
+    """The typed canonical tokens behind ``latex_key`` — ``(type, text)``, types id, num, op, func, word, open,
+    close, sup, sub; an identifier keeps its subscript (``Q_{з . max}``); leading and trailing punctuation removed."""
     atoms = _fm._LatexParser(latex or "").parse()
     toks: list[tuple[str, str]] = []
     _ser(atoms, toks)
@@ -535,6 +537,11 @@ def _canonical(latex: str | None, p: dict[str, Any]) -> dict[str, Any]:
         toks.pop()
     while toks and toks[0][0] == "op" and toks[0][1] in _TRAIL:
         toks.pop(0)
+    return toks
+
+
+def _canonical(latex: str | None, p: dict[str, Any]) -> dict[str, Any]:
+    toks = canonical_tokens(latex)
     names: dict[str, str] = {}
     shape = []
     for typ, t in toks:
