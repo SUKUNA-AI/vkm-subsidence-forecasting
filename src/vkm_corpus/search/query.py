@@ -87,6 +87,9 @@ FILTERS: dict[str, tuple[str | None, str]] = {
     "year": ("year", "range"), "page_index": ("page_index", "range"),
     "has_preview": ("has_preview", "bool"),
     "available_until": ("available_latest_day", "availability"), "unknown_policy": (None, "policy"),
+    # {"source_scope": [...], "source_id": [...]}: the area OR one of these sources (``include_ambiguous`` of the API;
+    # ``vkm_corpus.search.scope_filter``) — every document type carries both fields, the vector documents too
+    "source_scope_or_source_id": (None, "scope_or_sources"),
 }
 _RANGE_KEYS = frozenset({"gte", "lte", "gt", "lt"})
 
@@ -188,6 +191,14 @@ def compile_filters(filters: dict[str, Any]) -> tuple[list[dict[str, Any]], list
             if not isinstance(value, dict) or not value or set(value) - _RANGE_KEYS:
                 raise SearchRequestError("E_BAD_FILTER", f"{name} must be a range object with {sorted(_RANGE_KEYS)}")
             clauses.append({"range": {index_field: dict(sorted(value.items()))}})
+        elif kind == "scope_or_sources":
+            if not isinstance(value, dict) or set(value) - {"source_scope", "source_id"}:
+                raise SearchRequestError("E_BAD_FILTER", f"{name} is {{source_scope: [...], source_id: [...]}}")
+            should = [{"terms": {field_name: _as_list(name, value[key])}} for key, field_name in
+                      (("source_scope", "source_site_scope"), ("source_id", "source_id")) if value.get(key)]
+            if not should:
+                raise SearchRequestError("E_BAD_FILTER", f"filter {name} needs at least one value")
+            clauses.append({"bool": {"should": should, "minimum_should_match": 1}})
         elif kind == "availability":
             if policy is None:
                 raise SearchRequestError("E_UNKNOWN_POLICY_REQUIRED",

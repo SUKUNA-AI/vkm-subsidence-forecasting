@@ -104,6 +104,10 @@ class SearchFilters(_Body):
     source_scope: list[Annotated[str, Field(max_length=60)]] = Field(
         default_factory=list, max_length=20, description="area of the SOURCE (normalised Scope), inherited by objects")
     source_scope_raw: list[Annotated[str, Field(max_length=60)]] = Field(default_factory=list, max_length=20)
+    include_ambiguous: bool = Field(False, description="with source_scope: also the sources that may hold the area "
+                                                       "but are not mapped to it (AMBIGUOUS mapping with the area "
+                                                       "among the candidates, or a related area such as "
+                                                       "SKRU1_SKRU2_PILLAR); the answer lists them")
     year_from: int | None = Field(None, ge=1500, le=2100)
     year_to: int | None = Field(None, ge=1500, le=2100)
     available_until: date | None = Field(None, description="known at t0: needs unknown_policy (H-19)")
@@ -133,6 +137,8 @@ class SearchFilters(_Body):
             out["unknown_policy"] = self.unknown_policy
         if self.has_preview is not None:
             out["has_preview"] = self.has_preview
+        if self.include_ambiguous:                   # not an index field: the service widens source_scope with it
+            out["include_ambiguous"] = True
         return out
 
 
@@ -205,6 +211,8 @@ class ObjectsQueryBody(_Body):
     has_image: bool | None = None
     source_scope: list[Annotated[str, Field(max_length=60)]] = Field(default_factory=list, max_length=20)
     source_scope_raw: list[Annotated[str, Field(max_length=60)]] = Field(default_factory=list, max_length=20)
+    include_ambiguous: bool = Field(False, description="with source_scope: also the sources that may hold the area "
+                                                       "but are not mapped to it (listed in the answer)")
     caption_query: str | None = Field(None, min_length=1, max_length=200)
     limit: int = Field(50, ge=1, le=200)
     cursor: str | None = Field(None, max_length=10)

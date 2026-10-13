@@ -457,14 +457,48 @@ class ApiService:
             self._search_status = (now, status)
         return self._search_status[1]
 
+    # source area filter (agent Б, 13.10): what ``source_scope`` leaves out — ``vkm_corpus.search.scope_filter``
+    def _scope_sources(self) -> list[dict[str, Any]]:
+        """Registered sources with their area mapping (cached per canonical snapshot)."""
+        snapshot = self.canon.snapshot_id()
+        cached = getattr(self, "_scope_cache", None)
+        if cached is None or cached[0] != snapshot:
+            rows = self.canon.query("SELECT source_id, site_scope, site_scope_candidates, site_scope_mapping, "
+                                    "site_scope_raw FROM sources")
+            cached = self._scope_cache = (snapshot, rows)
+        return cached[1]
+
+    def _scope_filter(self, filters: dict[str, Any] | None) -> tuple[dict[str, Any], list[ApiWarning]]:
+        """The filters to run (``include_ambiguous`` popped) and the warning: ``SCOPE_FILTER_EXCLUDED_AMBIGUOUS`` (the
+        sources the area filter leaves out although they may hold it) or, with ``include_ambiguous``, the filter «area
+        OR these sources» and ``SCOPE_FILTER_INCLUDED_AMBIGUOUS``. No area filter → unchanged, no warning."""
+        from vkm_corpus.search import scope_filter as SF
+
+        filters = dict(filters or {})
+        include = bool(filters.pop("include_ambiguous", False))
+        scopes = filters.get("source_scope")
+        if not scopes:
+            return filters, []
+        within = filters.get("source_id")
+        found = SF.excluded_sources(scopes if isinstance(scopes, (list, tuple)) else [scopes], self._scope_sources(),
+                                    within=None if within is None else (within if isinstance(within, (list, tuple))
+                                                                        else [within]))
+        if not found:
+            return filters, []
+        code = "SCOPE_FILTER_INCLUDED_AMBIGUOUS" if include else "SCOPE_FILTER_EXCLUDED_AMBIGUOUS"
+        warning = ApiWarning(code=code, message=SF.message(found, included=include), count=len(found))
+        return (SF.widen(filters, found) if include else filters), [warning]
+
     def search(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
                include_duplicates: bool = False, exact: bool = False) -> Result:
         backend = _require(self.deps.search, "opensearch", "opensearch")
         offset = int(cursor) if cursor and cursor.isdigit() else 0
+        filters, scope_warnings = self._scope_filter(filters)
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
                    "include_duplicates": include_duplicates, "exact": exact}
         response = backend.search(request)
         items, warnings = self._search_items(response)
+        warnings = scope_warnings + warnings
         hits = response.get("hits", [])
         more = len(hits) == limit and offset + limit < 1000
         return Result(items=items, warnings=warnings, next_cursor=str(offset + limit) if more else None)
@@ -504,6 +538,7 @@ class ApiService:
             raise ApiFailure("INVALID_ARGUMENT", f"max_per_source is 1..{MAX_PER_SOURCE}")
         use_translation = self._hybrid_translate_default(late) if translate is None else bool(translate)
         expansions, translation = self._query_translation(query) if use_translation else ([], None)
+        filters, scope_warnings = self._scope_filter(filters)
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
                    "candidates": candidates, "include_duplicates": include_duplicates, "exact": exact,
                    "late": late, "late_candidates": late_candidates, "bib_route": bib_route,
@@ -533,6 +568,7 @@ class ApiService:
         items, warnings = self._search_items(response, extra_built={
             dense.get("build_id"): dense.get("built_from_snapshot_id"),
             vis.get("build_id"): vis.get("built_from_snapshot_id")}, hybrid=True)
+        warnings = scope_warnings + warnings
         record = {k: response.get(k) for k in ("fusion", "rrf_k", "candidates", "fused_total", "totals", "stages",
                                                "timings_ms", "late", "late_candidates", "route")}
         record.update({"kinds": list(kinds), "query_sha256": sha256_text(query),
@@ -671,6 +707,12 @@ class ApiService:
         offset = int(cursor) if cursor and cursor.isdigit() else 0
         if not kinds or any(k not in QUERYABLE_KINDS for k in kinds):
             raise ApiFailure("INVALID_ARGUMENT", f"kinds must be values of {QUERYABLE_KINDS}")
+        scoped, warnings = self._scope_filter({"source_scope": filters.get("source_scope") or [],
+                                               "include_ambiguous": filters.pop("include_ambiguous", False),
+                                               **({"source_id": filters["source_ids"]} if filters.get("source_ids")
+                                                  else {})})
+        if "source_scope_or_source_id" in scoped:          # include_ambiguous: the area OR these sources
+            filters["scope_source_ids"] = scoped["source_scope_or_source_id"]["source_id"]
         items: list[Item] = []
         for kind in kinds:
             rows = self.canon.query_objects(kind, limit=limit + 1, offset=offset, **filters)
@@ -681,7 +723,7 @@ class ApiService:
                 items.append(Item(envelope=self.envelope(kind, row, payload_form="REFERENCE"), record=record))
         items.sort(key=lambda it: it.envelope.object_id)
         more = len(items) > limit
-        return Result(items=items[:limit], next_cursor=str(offset + limit) if more else None)
+        return Result(items=items[:limit], warnings=warnings, next_cursor=str(offset + limit) if more else None)
 
     # ================================================================================================ rerank
     def text_rerank_backend(self) -> str:

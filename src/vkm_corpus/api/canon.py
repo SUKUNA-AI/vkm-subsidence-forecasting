@@ -381,8 +381,10 @@ class CanonStore:
                       page_to: int | None, figure_types: list[str], review_status: list[str],
                       quality_flags_any: list[str], quality_flags_none: list[str], has_image: bool | None,
                       source_scope: list[str], source_scope_raw: list[str], caption_query: str | None,
-                      origin: list[str], limit: int, offset: int) -> list[dict[str, Any]]:
-        """Structured lookup of document objects (typed filters only; ordered by object id)."""
+                      origin: list[str], limit: int, offset: int,
+                      scope_source_ids: list[str] | None = None) -> list[dict[str, Any]]:
+        """Structured lookup of document objects (typed filters only; ordered by object id). ``scope_source_ids``
+        widens ``source_scope`` to «the area OR these sources» (``include_ambiguous`` of the API)."""
         table, _key = KIND_TABLE[kind]
         where, params = ["1 = 1"], []
         if source_ids:
@@ -413,7 +415,11 @@ class CanonStore:
         if has_image is not None and kind in ("FIGURE", "TABLE", "FORMULA"):
             where.append("(o.image_artifact_id IS NOT NULL) = ?")
             params.append(has_image)
-        if source_scope:
+        if source_scope and scope_source_ids:
+            where.append("(len(list_intersect(o.source_site_scope, ?::VARCHAR[])) > 0 OR o.source_id IN "
+                         "(SELECT unnest(?::VARCHAR[])))")
+            params += [source_scope, scope_source_ids]
+        elif source_scope:
             where.append("len(list_intersect(o.source_site_scope, ?::VARCHAR[])) > 0")
             params.append(source_scope)
         if source_scope_raw:

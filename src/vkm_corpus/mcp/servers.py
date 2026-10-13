@@ -73,6 +73,10 @@ IdList = Annotated[list[Annotated[str, Field(min_length=1, max_length=120)]], Fi
 TABLE_ID_PATTERN = r"^(?:TBL-[0-9a-f]{16}|VKM-SRC-[0-9]{3}:(?:[prs][0-9]{4}|doc):t[0-9a-f]{12})$"
 # objects the part object_duplicates groups: figures, tables, formulas
 REPEATABLE_ID_PATTERN = r"^VKM-SRC-[0-9]{3}:(?:[prs][0-9]{4}|doc):[ftm][0-9a-f]{12}$"
+INCLUDE_AMBIGUOUS = ("with source_scope: also search the sources that may hold the area but are not mapped to it "
+                     "(AMBIGUOUS mapping with the area among the candidates, or a related area such as "
+                     "SKRU1_SKRU2_PILLAR); without it they are left out and the answer names them "
+                     "(SCOPE_FILTER_EXCLUDED_AMBIGUOUS)")
 StrList = Annotated[list[Annotated[str, Field(max_length=60)]] | None, Field(max_length=20)]
 SearchKind = Literal["PAGE", "BLOCK", "FIGURE", "TABLE", "FORMULA"]
 HybridKind = Literal["PAGE", "FIGURE", "TABLE", "FORMULA"]
@@ -156,7 +160,8 @@ def build_read_server(api: ApiClient) -> MCPServer:
             unknown_policy: Literal["EXCLUDE", "INCLUDE"] | None = None,
             quality_flags_none: StrList = None,
             limit: Annotated[int, Field(ge=1, le=50)] = 20,
-            cursor: Annotated[str | None, Field(max_length=10)] = None) -> CallToolResult:
+            cursor: Annotated[str | None, Field(max_length=10)] = None,
+            include_ambiguous: Annotated[bool, Field(description=INCLUDE_AMBIGUOUS)] = False) -> CallToolResult:
         """Full-text BM25 search over pages, blocks, figures, tables and formulas. Returns candidate objects with
         canonical envelopes, index snippets (a projection, not the object's text) and a rerank_candidate for
         rerank_text. Read content with get_page / get_figure / get_object."""
@@ -164,7 +169,8 @@ def build_read_server(api: ApiClient) -> MCPServer:
             "source_ids": source_ids, "work_ids": work_ids, "source_scope": source_scope,
             "source_scope_raw": source_scope_raw, "review_status": review_status, "origin": origin,
             "language": language, "year_from": year_from, "year_to": year_to, "available_until": available_until,
-            "unknown_policy": unknown_policy, "quality_flags_none": quality_flags_none}.items() if v is not None}
+            "unknown_policy": unknown_policy, "quality_flags_none": quality_flags_none,
+            "include_ambiguous": include_ambiguous or None}.items() if v is not None}
         return await call("search_text", "POST", "/v1/search", body={"query": query, "kinds": kinds,
                                                                      "filters": filters, "limit": limit,
                                                                      "cursor": cursor})
@@ -176,11 +182,11 @@ def build_read_server(api: ApiClient) -> MCPServer:
                     late_candidates: int = 100, bib_route: bool | None = None,
                     visual_route: bool | None = None, graph: list[str] | None = None,
                     formulations: list[str] | None = None, expand: str = "none",
-                    max_per_source: int | None = None) -> dict[str, Any]:
+                    max_per_source: int | None = None, include_ambiguous: bool = False) -> dict[str, Any]:
         filters = {k: v for k, v in {
             "source_ids": source_ids, "work_ids": work_ids, "source_scope": source_scope, "year_from": year_from,
-            "year_to": year_to, "available_until": available_until, "unknown_policy": unknown_policy}.items()
-            if v is not None}
+            "year_to": year_to, "available_until": available_until, "unknown_policy": unknown_policy,
+            "include_ambiguous": include_ambiguous or None}.items() if v is not None}
         # the opt-in fields travel only when set: the default body stays the one older API images accept
         return {"query": query, "kinds": kinds, "filters": filters, "limit": limit, "candidates": candidates,
                 "cursor": cursor, "late": late, "late_candidates": late_candidates, "bib_route": bib_route,
@@ -237,7 +243,8 @@ def build_read_server(api: ApiClient) -> MCPServer:
             max_per_source: Annotated[int | None, Field(ge=1, le=50, description="at most N hits of one source "
                                                                                  "before the others' (the overflow "
                                                                                  "follows, nothing dropped); null = "
-                                                                                 "off")] = None
+                                                                                 "off")] = None,
+            include_ambiguous: Annotated[bool, Field(description=INCLUDE_AMBIGUOUS)] = False
             ) -> CallToolResult:
         """Hybrid search: BM25 + dense embeddings (RX580 query encoder, OpenSearch k-NN over embedding units),
         fused by reciprocal rank, then (late) re-scored by late interaction (mLateOn MaxSim over token vectors; a page
@@ -258,7 +265,7 @@ def build_read_server(api: ApiClient) -> MCPServer:
         return await call("search_hybrid", "POST", "/v1/search/hybrid", body=hybrid_body(
             query, kinds, source_ids, work_ids, source_scope, year_from, year_to, available_until, unknown_policy,
             limit, candidates, cursor, late, late_candidates, bib_route, visual_route, graph, formulations, expand,
-            max_per_source))
+            max_per_source, include_ambiguous))
 
     @server.tool(name="retrieval_trace", annotations=READ_ONLY)
     async def retrieval_trace(
@@ -314,7 +321,8 @@ def build_read_server(api: ApiClient) -> MCPServer:
             caption_query: Annotated[str | None, Field(min_length=1, max_length=200,
                                                        description="substring of caption/text")] = None,
             limit: Annotated[int, Field(ge=1, le=200)] = 50,
-            cursor: Annotated[str | None, Field(max_length=10)] = None) -> CallToolResult:
+            cursor: Annotated[str | None, Field(max_length=10)] = None,
+            include_ambiguous: Annotated[bool, Field(description=INCLUDE_AMBIGUOUS)] = False) -> CallToolResult:
         """Structured lookup of document objects by metadata (kind, source/work, page range, detected figure type,
         review status, origin, quality flags, has image, source area; optional caption substring). Stable IDs +
         envelopes; no text bodies."""
@@ -323,7 +331,7 @@ def build_read_server(api: ApiClient) -> MCPServer:
             "page_to": page_to, "figure_types": figure_types, "review_status": review_status, "origin": origin,
             "quality_flags_any": quality_flags_any, "quality_flags_none": quality_flags_none, "has_image": has_image,
             "source_scope": source_scope, "source_scope_raw": source_scope_raw, "caption_query": caption_query,
-            "limit": limit, "cursor": cursor}.items() if v is not None}
+            "include_ambiguous": include_ambiguous or None, "limit": limit, "cursor": cursor}.items() if v is not None}
         return await call("search_objects", "POST", "/v1/objects/query", body=body)
 
     @server.tool(name="get_source", annotations=READ_ONLY)
