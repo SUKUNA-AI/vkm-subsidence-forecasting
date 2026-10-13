@@ -82,6 +82,12 @@ INCLUDE_AMBIGUOUS = ("with source_scope: also search the sources that may hold t
                      "(AMBIGUOUS mapping with the area among the candidates, or a related area such as "
                      "SKRU1_SKRU2_PILLAR); without it they are left out and the answer names them "
                      "(SCOPE_FILTER_EXCLUDED_AMBIGUOUS)")
+GROUP_FRAGMENTS = ("FIGURE: regions of one page sharing one caption block (sub-panels, legend swatches) are one hit — "
+                   "the largest region; the others in fragments; false = every detected region separately")
+LATE_FUSION = ("experiment (late stage): replace = the late score orders each kind's head (default); rrf = RRF of the "
+               "head's RRF order and its late order (trace late_fusion_rank)")
+LATE_QUERY = ("experiment (late stage): original = the query alone (default); best_translation = also its translation "
+              "(with translate): late score = max of MaxSim / query tokens (trace late_query)")
 StrList = Annotated[list[Annotated[str, Field(max_length=60)]] | None, Field(max_length=20)]
 SearchKind = Literal["PAGE", "BLOCK", "FIGURE", "TABLE", "FORMULA"]
 HybridKind = Literal["PAGE", "FIGURE", "TABLE", "FORMULA"]
@@ -202,20 +208,22 @@ def build_read_server(api: ApiClient) -> MCPServer:
             limit: Annotated[int, Field(ge=1, le=50)] = 20,
             cursor: Cursor = None,
             include_ambiguous: Annotated[bool, Field(description=INCLUDE_AMBIGUOUS)] = False,
-            view: View = "brief") -> CallToolResult:
+            view: View = "brief",
+            group_fragments: Annotated[bool, Field(description=GROUP_FRAGMENTS)] = True) -> CallToolResult:
         """Full-text BM25 search over pages, blocks, figures, tables and formulas. Returns candidate objects with
         index snippets (a projection, not the object's text): brief by default (id, rank, bm25_score, snippet, label;
-        source cards); view="full" adds canonical envelopes and a rerank_candidate for rerank_text. Read content with
-        get_page / get_figure / get_object."""
+        source cards); view="full" adds canonical envelopes and a rerank_candidate for rerank_text. Regions of one
+        figure (one page, one caption block) are one hit with their ids in fragments. Read content with get_page /
+        get_figure / get_object."""
         filters = {k: v for k, v in {
             "source_ids": source_ids, "work_ids": work_ids, "source_scope": source_scope,
             "source_scope_raw": source_scope_raw, "review_status": review_status, "origin": origin,
             "language": language, "year_from": year_from, "year_to": year_to, "available_until": available_until,
             "unknown_policy": unknown_policy, "quality_flags_none": quality_flags_none,
             "include_ambiguous": include_ambiguous or None}.items() if v is not None}
-        return await call("search_text", "POST", "/v1/search", body=_with_view({"query": query, "kinds": kinds,
-                                                                                "filters": filters, "limit": limit,
-                                                                                "cursor": cursor}, view))
+        body = {"query": query, "kinds": kinds, "filters": filters, "limit": limit, "cursor": cursor,
+                **({} if group_fragments else {"group_fragments": False})}      # the default body is unchanged
+        return await call("search_text", "POST", "/v1/search", body=_with_view(body, view))
 
     def hybrid_body(query: str, kinds: list[str], source_ids: list[str] | None, work_ids: list[str] | None,
                     source_scope: list[str] | None, year_from: int | None, year_to: int | None,
@@ -224,7 +232,9 @@ def build_read_server(api: ApiClient) -> MCPServer:
                     late_candidates: int = 100, bib_route: bool | None = None,
                     visual_route: bool | None = None, graph: list[str] | None = None,
                     formulations: list[str] | None = None, expand: str = "none",
-                    max_per_source: int | None = None, include_ambiguous: bool = False) -> dict[str, Any]:
+                    max_per_source: int | None = None, include_ambiguous: bool = False, *,
+                    group_fragments: bool = True, late_fusion: str = "replace",
+                    late_query: str = "original") -> dict[str, Any]:
         filters = {k: v for k, v in {
             "source_ids": source_ids, "work_ids": work_ids, "source_scope": source_scope, "year_from": year_from,
             "year_to": year_to, "available_until": available_until, "unknown_policy": unknown_policy,
@@ -235,7 +245,10 @@ def build_read_server(api: ApiClient) -> MCPServer:
                 "visual_route": visual_route, **({"graph": list(graph)} if graph is not None else {}),
                 **({"formulations": list(formulations)} if formulations else {}),
                 **({"expand": expand} if expand != "none" else {}),
-                **({"max_per_source": max_per_source} if max_per_source is not None else {})}
+                **({"max_per_source": max_per_source} if max_per_source is not None else {}),
+                **({} if group_fragments else {"group_fragments": False}),
+                **({"late_fusion": late_fusion} if late_fusion != "replace" else {}),
+                **({"late_query": late_query} if late_query != "original" else {})}
 
     @server.tool(name="search_hybrid", annotations=READ_ONLY)
     async def search_hybrid(
@@ -287,7 +300,10 @@ def build_read_server(api: ApiClient) -> MCPServer:
                                                                                  "before the others' (the overflow "
                                                                                  "follows, nothing dropped); null = "
                                                                                  "off")] = None,
-            include_ambiguous: Annotated[bool, Field(description=INCLUDE_AMBIGUOUS)] = False
+            include_ambiguous: Annotated[bool, Field(description=INCLUDE_AMBIGUOUS)] = False,
+            group_fragments: Annotated[bool, Field(description=GROUP_FRAGMENTS)] = True,
+            late_fusion: Annotated[Literal["replace", "rrf"], Field(description=LATE_FUSION)] = "replace",
+            late_query: Annotated[Literal["original", "best_translation"], Field(description=LATE_QUERY)] = "original"
             ) -> CallToolResult:
         """Hybrid search: BM25 + dense embeddings (RX580 query encoder, OpenSearch k-NN over embedding units),
         fused by reciprocal rank, then (late) re-scored by late interaction (mLateOn MaxSim over token vectors; a page
@@ -310,7 +326,8 @@ def build_read_server(api: ApiClient) -> MCPServer:
         return await call("search_hybrid", "POST", "/v1/search/hybrid", body=_with_view(hybrid_body(
             query, kinds, source_ids, work_ids, source_scope, year_from, year_to, available_until, unknown_policy,
             limit, candidates, cursor, late, late_candidates, bib_route, visual_route, graph, formulations, expand,
-            max_per_source, include_ambiguous), view))
+            max_per_source, include_ambiguous, group_fragments=group_fragments, late_fusion=late_fusion,
+            late_query=late_query), view))
 
     @server.tool(name="retrieval_trace", annotations=READ_ONLY)
     async def retrieval_trace(
@@ -324,7 +341,10 @@ def build_read_server(api: ApiClient) -> MCPServer:
                                                            "default")] = None,
             late_candidates: Annotated[int, Field(ge=1, le=300)] = 100,
             visual_route: Annotated[bool | None, Field(description="visual route (page images); null = automatic "
-                                                                  "from picture words")] = None) -> CallToolResult:
+                                                                  "from picture words")] = None,
+            late_fusion: Annotated[Literal["replace", "rrf"], Field(description=LATE_FUSION)] = "replace",
+            late_query: Annotated[Literal["original", "best_translation"], Field(description=LATE_QUERY)] = "original"
+            ) -> CallToolResult:
         """Explain a hybrid ranking: per hit the rank and score of every stage (BM25, dense, RRF fusion, late
         interaction MaxSim when run, the visual route's page-image rank and fusion when applied; reranking is a later
         stage), the dense and late units that matched, plus the stage configuration (vector build, query encoders,
@@ -332,7 +352,7 @@ def build_read_server(api: ApiClient) -> MCPServer:
         started = time.perf_counter()
         body = await api.call("POST", "/v1/search/hybrid", body=hybrid_body(
             query, kinds, None, None, None, None, None, None, None, limit, candidates, None, late, late_candidates,
-            None, visual_route))
+            None, visual_route, late_fusion=late_fusion, late_query=late_query))
         if body.get("ok"):
             wanted = set(object_ids or [])
             rows = []
