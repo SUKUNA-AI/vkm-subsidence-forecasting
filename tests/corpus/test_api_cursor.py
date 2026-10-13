@@ -90,3 +90,21 @@ def test_bm25_objects_and_pages_past_the_end_are_empty_with_a_warning(client):
     assert pages["items"] == [] and pages["meta"]["warnings"][0]["code"] == "CURSOR_PAST_END"
     middle = _ok(client.post("/v1/search", headers=H, json={"query": Q, "limit": 10, "cursor": "10"}))
     assert len(middle["items"]) == 10 and "CURSOR_PAST_END" not in {w["code"] for w in middle["meta"]["warnings"]}
+
+
+@pytest.mark.parametrize("kinds", [["BLOCK"], ["FIGURE", "TABLE", "FORMULA", "BLOCK"]])
+def test_objects_query_pages_through_every_object_once(client, kinds):
+    """``next_cursor`` of one kind used to stay null after a full page (more was counted after the cut); with several
+    kinds a page is a window of the merged object-id order, so paging never skips or repeats an object."""
+    whole = [it["envelope"]["object_id"] for it in
+             _ok(client.post("/v1/objects/query", headers=H, json={"kinds": kinds, "limit": 200}))["items"]]
+    assert len(whole) >= 3
+    paged, cursor = [], None
+    for _ in range(len(whole) + 2):
+        body = _ok(client.post("/v1/objects/query", headers=H,
+                               json={"kinds": kinds, "limit": 2, **({"cursor": cursor} if cursor else {})}))
+        paged += [it["envelope"]["object_id"] for it in body["items"]]
+        cursor = body["next_cursor"]
+        if cursor is None:
+            break
+    assert paged == whole

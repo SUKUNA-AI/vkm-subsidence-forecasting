@@ -748,16 +748,24 @@ class ApiService:
         if "source_scope_or_source_id" in scoped:          # include_ambiguous: the area OR these sources
             filters["scope_source_ids"] = scoped["source_scope_or_source_id"]["source_id"]
         items: list[Item] = []
+        # one kind: its rows from the offset; several kinds: every kind from the start and the page is a window of the
+        # merged order (object id), so the cursor pages through all kinds together without skipping objects
+        rows_of: list[tuple[str, dict[str, Any]]] = []
         for kind in kinds:
-            rows = self.canon.query_objects(kind, limit=limit + 1, offset=offset, **filters)
-            for row in rows[:limit]:
-                record = {k: v for k, v in self.record(row).items()
-                          if k not in ("text", "normalized_text", "raw_output", "normalized_html", "cells")}
-                record.update(object_label(kind, row) or {})
-                items.append(Item(envelope=self.envelope(kind, row, payload_form="REFERENCE"), record=record))
+            rows = self.canon.query_objects(kind, limit=limit + 1 + (offset if len(kinds) > 1 else 0),
+                                            offset=0 if len(kinds) > 1 else offset, **filters)
+            rows_of += [(kind, row) for row in rows]
+        if len(kinds) > 1:
+            rows_of.sort(key=lambda kr: str(kr[1].get("object_id")))
+            rows_of = rows_of[offset:]
+        more = len(rows_of) > limit
+        for kind, row in rows_of[:limit]:
+            record = {k: v for k, v in self.record(row).items()
+                      if k not in ("text", "normalized_text", "raw_output", "normalized_html", "cells")}
+            record.update(object_label(kind, row) or {})
+            items.append(Item(envelope=self.envelope(kind, row, payload_form="REFERENCE"), record=record))
         items.sort(key=lambda it: it.envelope.object_id)
-        more = len(items) > limit
-        return Result(items=items[:limit], next_cursor=str(offset + limit) if more else None,
+        return Result(items=items, next_cursor=str(offset + limit) if more else None,
                       warnings=warnings + past_end(offset, len(items)))
 
     # ================================================================================================ rerank
