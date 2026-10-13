@@ -77,7 +77,7 @@ _FRAME_SOURCES: tuple[str, ...] = (
 # MODEL_CHOICE (a priori, by meaning): the question frame removed by ``strip``; ё is folded before matching
 FRAME_PATTERNS: tuple[re.Pattern[str], ...] = tuple(re.compile(rf"(?<![{_W}])(?:{p})(?![{_W}])", re.IGNORECASE)
                                                      for p in _FRAME_SOURCES)
-_EDGE_PUNCT = " \t,.;:!?–—-«»\"'()"
+_EDGE_PUNCT = " \t,.;:!?–—-«»\"'"            # not brackets: «формула (3.12)» keeps its closing one
 
 
 def content_terms(text: str) -> list[str]:
