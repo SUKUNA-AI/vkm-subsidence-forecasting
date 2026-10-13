@@ -1297,7 +1297,10 @@ class ApiService:
         except Exception as exc:  # noqa: BLE001 - NavUnavailable, a build without term_translations …
             return [], {"status": "UNAVAILABLE", "reason": f"term dictionary: {type(exc).__name__}"}
         data = data if isinstance(data, dict) else {}
-        text = data.get("translation")
+        # numbered objects keep their numbers («скважина 75» → «borehole» → «borehole 75»; search.object_refs)
+        from vkm_corpus.search.object_refs import keep_refs
+
+        text = keep_refs(query, data.get("translation"))
         info = {"status": "APPLIED" if text else "NOT_COVERED", "text": text,
                 "source_language": data.get("source_language"), "target_language": data.get("target_language"),
                 "coverage": data.get("coverage"),
@@ -1338,7 +1341,10 @@ class ApiService:
                 text = exp.get("text")
                 terms = [{k: x.get(k) for k in ("span", "equivalent", "relation", "score", "pair_id")}
                          for x in (exp.get("terms") or [])[:8]]
-            text = " ".join(str(text).split())[:512] if text else None
+            from vkm_corpus.search.object_refs import keep_refs           # numbered objects keep their numbers
+
+            text = keep_refs(query, " ".join(str(text).split())[:512], english=origin == "translation") if text \
+                else None
             parts[origin] = {"status": "APPLIED" if text else "NOT_COVERED", "text": text, "terms": terms}
             if text:
                 out.append({"text": text, "origin": origin})

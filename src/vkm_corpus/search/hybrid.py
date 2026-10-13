@@ -58,8 +58,26 @@ interaction stage (mLateOn MaxSim), with a per-stage trace (постановка
   citing the top sources), G5 ``topics`` (E's later candidates in the NAV topics of the first pages). A leg never enters
   E's RRF: after late the first 10 positions stay and the rest is fused with the legs by weighted RRF, or (``window``)
   the leg widens the late window and the late score decides; G1 runs last. Every stage needs the late stage (the
-  measured configuration) and the navigation layer (without it: a warning and E's answer). Server default
-  :data:`graph_stages.DEFAULTS`; ``VKM_HYBRID_GRAPH`` overrides it (``HybridBackend``).
+  measured configuration) and the navigation layer (without it: E's answer and, when the request named the stages or
+  the default G1 cannot run, a warning). Server default :data:`graph_stages.DEFAULTS` = G1 (owner 13.10: copies of
+  one work collapse by default; G1 also merges the aligned pages of two copies of one work — see ``graph_stages``);
+  ``VKM_HYBRID_GRAPH`` overrides it (``HybridBackend``; ``none`` switches it off); ``include_duplicates`` drops the
+  default G1 (the request asked for the copies).
+* Numbered objects (agent Б, 13.10; ``vkm_corpus.search.object_refs``): a PAGE query that names «скв. 75», «профильная
+  линия 12», «блок 2», «панель 5», «репер 104», «рис. 3.1», «табл. 2.4» or «формула (3.12)» gets the stage
+  ``object_ref`` (absent for every other query). (1) E's BM25 leg ranks by the topic and promotes the pages holding the
+  reference phrase (``vkm_corpus.search.query``); (2) a printed figure/table/formula number next to a topic adds the
+  *label route* — the objects with exactly that ``object_label``/``equation_label`` whose caption, text or work
+  (authors, title) match the topic, their pages one more RRF leg ``label:PAGE`` (:func:`label_route`; no topic → not
+  run: every book has its own «рис. 3.1»); (3) after late, the graph legs and the visual route, the pages flagged by
+  (1) or (2) move to the front inside E's first :data:`OBJECT_REF_PROMOTE_K` pages, order kept
+  (:func:`promote_ref_pages`; other kinds keep their positions) — the Q5 rule: the topic ranks, the number lifts
+  inside the topic's top. Hits carry ``trace.object_ref`` (matched by phrase / label, the page rank before, the label
+  object). The dense leg and the late stage score the whole query as before.
+* Area filter: ``source_scope_or_source_id`` (the API's ``include_ambiguous``: the area OR the sources a plain area
+  filter leaves out — ``vkm_corpus.search.scope_filter``) compiles to one clause on ``source_site_scope`` /
+  ``source_id`` for every leg: BM25, dense k-NN (unit documents carry both), the page-image channel and the
+  bibliographic channel's page filter.
 * Multi-formulation fusion (``formulations``; opt-in, topic_v1 post-hoc: RRF of a topic's three wordings raised
   page_recall@50 0.303 → 0.446 at the same 50-page budget): the query and each other wording (≤ 4; the API's
   ``expand=terms`` derives them from the NAV term dictionary) run the whole pipeline above — as an independent
@@ -96,8 +114,9 @@ from vkm_corpus.retrieval_lab.fusion import rrf
 from vkm_corpus.search import graph_stages as GS
 from vkm_corpus.search.intent import bibliographic_intent, visual_intent
 from vkm_corpus.search.mappings import alias_name
-from vkm_corpus.search.query import (MAX_SIZE, MAX_WINDOW, RRF_K, SearchRequest, SearchRequestError,
-                                     compile_filters, search)
+from vkm_corpus.search.object_refs import ObjectRef, has_topic, parse_refs, strip_refs
+from vkm_corpus.search.query import (FIELDS, LABEL_FIELD, MAX_SIZE, MAX_WINDOW, REF_TOPIC_FIELDS, RRF_K, SearchRequest,
+                                     SearchRequestError, _exact, compile_filters, search)
 from vkm_corpus.search.vectors import (COMPLETE, UNIT_SOURCE_FIELDS, VECTOR_FIELD, alias_indices,
                                       list_vector_builds, vectors_alias)
 
@@ -123,6 +142,9 @@ MAX_FORMULATIONS = 5                      # the query + ≤ 4 other wordings, ea
 FUSION_DEPTH = 50                         # keys of each formulation's final order that enter the fusion (topic_v1: 50)
 FUSION_BUDGET_S = 60.0                    # no further formulation starts after this (a running one keeps its timeouts)
 MAX_PER_SOURCE = 50                       # largest per-source cap a request may ask for
+OBJECT_REF_PROMOTE_K = 100                # pages holding an asked numbered object move up inside E's first K pages
+LABEL_ROUTE_DEPTH = 20                    # objects with the asked printed number in the label route (MODEL_CHOICE)
+LABEL_INDEX = {"FIGURE": "figures", "TABLE": "tables", "FORMULA": "formulas"}
 _SOURCE_PREFIX = re.compile(r"^(VKM-SRC-\d{3,}):")
 
 
@@ -655,6 +677,55 @@ def late_order(fused: list[tuple[str, float]], kind_of: dict[str, str], results:
     return [it for it in new_head if it is not None] + tail, late_rank
 
 
+# ---------------------------------------------------------------- numbered objects (agent Б, 13.10)
+def label_route(client: Any, req: HybridRequest, prefix: str, refs: list[ObjectRef], topic: str,
+                depth: int = LABEL_ROUTE_DEPTH) -> list[dict[str, Any]]:
+    """PAGE view of «рис. 3.1 …», «табл. 2.4 …», «формула (3.12) …»: the figures / tables / formulas whose printed
+    number is the asked one (``object_label`` / ``equation_label``, exact) and whose caption, text or work (authors,
+    title) matches the topic (``cross_fields``, E's ``minimum_should_match``), BM25 order; the request's filters apply
+    (every object carries the page-level fields). → [{page_id, object_id, kind, label, score}], first object per
+    page."""
+    out: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    clauses, must_not = compile_filters(req.filters)
+    for r in refs:
+        index_type = LABEL_INDEX.get(r.kind)
+        if index_type is None:
+            continue
+        fields = [*(_exact(f) for f in FIELDS[index_type]), "authors^1.0", "work_title.exact^1.0"] if req.exact \
+            else [*FIELDS[index_type], *REF_TOPIC_FIELDS]
+        body = {"size": int(depth), "_source": {"includes": ["id", "page_id", "source_id"]},
+                "query": {"bool": {"filter": [{"term": {LABEL_FIELD[index_type]: r.number}}, *clauses],
+                                   "must": [{"multi_match": {"query": topic, "type": "cross_fields", "fields": fields,
+                                                             "minimum_should_match": "3<70%"}}],
+                                   "must_not": [*must_not, {"term": {"is_primary_layer": False}}]}},
+                "sort": [{"_score": "desc"}, {"id": "asc"}]}
+        resp = client.search(index=alias_name(prefix, index_type), body=body)
+        for h in resp.get("hits", {}).get("hits", []):
+            src = h.get("_source") or {}
+            pid = src.get("page_id")
+            if pid and pid not in seen:
+                seen.add(pid)
+                out.append({"page_id": pid, "object_id": str(src.get("id") or h.get("_id")), "kind": r.kind,
+                            "label": r.number, "score": float(h.get("_score") or 0.0)})
+    return out
+
+
+def promote_ref_pages(order: list[str], kind_of: Mapping[str, str], flagged: Mapping[str, list[str]],
+                      k: int = OBJECT_REF_PROMOTE_K) -> tuple[list[str], dict[str, int]]:
+    """Among the first ``k`` PAGE keys of ``order`` the flagged pages (holding the asked numbered object) move to the
+    front of the PAGE positions, order kept; other kinds keep their positions (H-44). → (new order, promoted page →
+    its PAGE rank before)."""
+    pages = [key for key in order if kind_of.get(key, "PAGE") == "PAGE"]
+    head = pages[:k]
+    up = [p for p in head if p in flagged]
+    if not up or up == head[:len(up)]:
+        return list(order), {}
+    before = {p: i for i, p in enumerate(pages, 1)}
+    new_pages = up + [p for p in head if p not in flagged] + pages[k:]
+    return GS.on_pages(order, kind_of, new_pages), {p: before[p] for p in up}
+
+
 # ---------------------------------------------------------------- search
 def _graph_bm25(client: Any, req: HybridRequest, prefix: str):
     """BM25 page search for the graph legs (G3 wordings, G4 sources): the request's filters (a source list meets the
@@ -796,6 +867,39 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
             rankings[f"dense:{kind}~x{n}"] = [(d.key, d.score) for d in dx]
             timings[f"expansion_{kind.lower()}_x{n}"] = round((time.perf_counter() - t1) * 1e3, 2)
             totals[kind][f"x{n}_returned"] = len(lst) + len(dx)
+    # numbered objects (object_refs): the label route's pages — objects with the asked printed number whose caption,
+    # text or work matches the topic — are one more RRF leg of the PAGE candidates; promotion after the routes
+    refs = parse_refs(req.query) if "PAGE" in req.kinds else []
+    ref_topic = strip_refs(req.query, refs) if refs else ""
+    ref_stage: dict[str, Any] | None = None
+    label_info: dict[str, dict[str, Any]] = {}
+    if refs:
+        ref_stage = {"refs": [r.as_record() for r in refs], "topic": ref_topic if has_topic(ref_topic) else None}
+        label_refs = [r for r in refs if r.is_label]
+        if label_refs and has_topic(ref_topic):
+            t1 = time.perf_counter()
+            found = label_route(client, req, prefix, label_refs, ref_topic)
+            allowed = page_filter(client, prefix, [x["page_id"] for x in found], req.filters) if found else {}
+            label_list, groups = [], set()
+            for x in found:
+                pid = x["page_id"]
+                group = pid if req.include_duplicates else allowed.get(pid)
+                if pid not in allowed or group in groups:
+                    continue
+                groups.add(group)
+                label_list.append((pid, x["score"]))
+                label_info[pid] = x
+                kind_of.setdefault(pid, "PAGE")
+            if label_list:
+                rankings["label:PAGE"] = label_list
+            ref_stage["label_route"] = {"status": "APPLIED" if label_list else "NO_MATCH", "objects": len(found),
+                                        "pages": len(label_list), "depth": LABEL_ROUTE_DEPTH,
+                                        "fusion": "one more RRF leg of the PAGE candidates (pages of the objects "
+                                                  "with the asked printed number that match the topic)"}
+            timings["label_route"] = round((time.perf_counter() - t1) * 1e3, 2)
+        elif label_refs:
+            ref_stage["label_route"] = {"status": "NO_TOPIC", "reason": "a printed number alone names an object in "
+                                                                        "every book: the label route needs a topic"}
     bib_status, intent = bib_route_status(req)
     bib_stage: dict[str, Any] = {"status": bib_status, "cues": list(intent.cues), "weak_cues": list(intent.weak)}
     bib_info: dict[str, dict[str, Any]] = {}
@@ -952,6 +1056,27 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
                           "new_pages": sum(1 for p, _s in vis_list if p not in before), "depth": req.candidates,
                           "fusion": f"RRF(k={req.rrf_k}) of E's top-{req.candidates} pages (served order) and the "
                                     f"page-image leg's top-{req.candidates}"})
+    # numbered objects: pages holding the asked object (BM25 reference phrase, label route) move up inside E's first
+    # OBJECT_REF_PROMOTE_K pages — after late, the graph legs and the visual route, before G1
+    ref_flagged: dict[str, list[str]] = {}
+    ref_moved: dict[str, int] = {}
+    if ref_stage is not None:
+        for key, h in bm25_hits.items():
+            if kind_of.get(key) == "PAGE" and h.fields.get("object_ref_matched"):
+                ref_flagged.setdefault(key, []).append("phrase")
+        for pid in label_info:
+            ref_flagged.setdefault(pid, []).append("label")
+        keys, ref_moved = promote_ref_pages([key for key, _s in order], kind_of, ref_flagged)
+        if ref_moved:
+            score_of = dict(order)
+            order = [(key, score_of.get(key, 0.0)) for key in keys]
+        head = [key for key, _s in order if kind_of.get(key) == "PAGE"][:OBJECT_REF_PROMOTE_K]
+        ref_stage.update({"status": "APPLIED" if ref_flagged else "NO_MATCH", "flagged": len(ref_flagged),
+                          "flagged_in_head": sum(1 for p in head if p in ref_flagged), "moved": len(ref_moved),
+                          "promote_k": OBJECT_REF_PROMOTE_K,
+                          "rule": f"pages holding the asked numbered object (the BM25 reference phrase or the label "
+                                  f"route) move to the front inside E's first {OBJECT_REF_PROMOTE_K} pages, order "
+                                  f"kept; the topic ranks (Q5)"})
     # G1: copies leave the ranking (last step, every kind) and are listed on the hit that stays
     if grun.on("collapse"):
         t1 = time.perf_counter()
@@ -1025,6 +1150,10 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
                           "vis_score": None if key not in vis_scores else round(vis_scores[key], 6),
                           "visual_rrf_score": None if key not in vis_rrf else round(vis_rrf[key], 8),
                           "final_rank": rank})
+        if key in ref_flagged:
+            trace["object_ref"] = {"matched": ref_flagged[key], "page_rank_before": ref_moved.get(key),
+                                   "label_rank": ranks.get("label:PAGE", {}).get(key),
+                                   **({"label_object_id": label_info[key]["object_id"]} if key in label_info else {})}
         gtrace = grun.trace(key)
         if gtrace:
             trace["graph"] = gtrace
@@ -1074,6 +1203,8 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
             "timings_ms": timings}
     if cap_stage is not None:
         out["stages"]["source_cap"] = cap_stage
+    if ref_stage is not None:                          # only queries that name a numbered object
+        out["stages"]["object_ref"] = ref_stage
     return out
 
 

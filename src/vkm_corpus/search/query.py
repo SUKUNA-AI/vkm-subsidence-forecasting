@@ -11,6 +11,18 @@
   and among the topic's top ``LABEL_TOPIC_K`` hits those whose printed number equals the asked one move to the front
   (topic order kept); a labelled object that does not match the topic is never pulled up. A query that is only a
   number («рис. 3.1») keeps the plain term boost. Hits carry ``fields.topic_rank`` and ``fields.label_promoted``.
+* Numbered objects on pages and blocks (agent Б, 13.10; ``vkm_corpus.search.object_refs``): «скв. 75», «скважина № 75»,
+  «профильная линия 12», «блок 2», «панель 5», «репер 104», «рис. 3.1», «табл. 2.4», «формула (3.12)». A query with
+  a topic next to the reference is ranked by the topic (``cross_fields`` over the text and the work's authors and
+  title, so «рис. 3.1 Соловьев Секунцов» names the work), and among the topic's first :data:`OBJECT_REF_TOPIC_K`
+  hits those holding a reference phrase («скв 75», «скважина 75», «borehole 75» … — the named query
+  :data:`OBJECT_REF_NAME`, boost 0) move to the front, topic order kept (``fields.object_ref_matched``,
+  ``fields.object_ref_promoted``, ``fields.topic_rank``). A query that is only references matches the phrase or the
+  terms, the phrase boosted (:data:`OBJECT_REF_BOOST`). On figures, tables and formulas a printed number stays with
+  the label gate above; a non-label reference only adds the phrase boost. A query without a reference takes exactly
+  the old body.
+* The filter ``source_scope_or_source_id`` (``{source_scope, source_id}``) is the area OR one of the sources — the
+  API's ``include_ambiguous`` (``vkm_corpus.search.scope_filter``).
 * Blocks collapse by ``page_id`` (``best_blocks``); pages collapse duplicate pages by ``dup_group_id``.
 * Several kinds are never ranked by raw BM25 across indices (their statistics differ): one query per kind
   (``_msearch``), then reciprocal-rank fusion (H-44).
@@ -26,6 +38,7 @@ from typing import Any
 
 from vkm_corpus.contracts import vocab
 from vkm_corpus.search.mappings import KIND_INDEX, TEXT_FIELDS, alias_name, properties
+from vkm_corpus.search.object_refs import ObjectRef, has_topic, parse_refs, strip_refs
 
 MAX_SIZE = 200
 MAX_WINDOW = 1000
@@ -66,6 +79,12 @@ HIGHLIGHT: dict[str, dict[str, Any]] = {
 }
 LABEL_FIELD = {"figures": "object_label", "tables": "object_label", "formulas": "equation_label"}
 LABEL_TOPIC_K = 20                # topical candidates among which an exact object number is promoted (MODEL_CHOICE)
+# numbered objects of a query (``vkm_corpus.search.object_refs``; agent Б 13.10; MODEL_CHOICE): pages and blocks
+OBJECT_REF_NAME = "object_ref"    # named query: a hit that holds one of the reference phrases
+OBJECT_REF_BOOST = 10.0           # a query that is only references: the phrase outweighs scattered terms
+OBJECT_REF_TOPIC_K = MAX_SIZE     # topical pages among which the pages holding the reference are promoted
+REF_TOPIC_FIELDS = ["authors.stem^1.0", "work_title^1.0"]   # the topic may name the work («… Соловьев Секунцов»)
+REF_KINDS = ("pages", "blocks")   # figures/tables/formulas: printed numbers keep the label gate below (Q5)
 _LABEL_QUERY = re.compile(r"(?:рис(?:унок|унке|\.)?|fig(?:ure|\.)?|табл(?:ица|ице|\.)?|table)\s*"
                           r"(\d+(?:[.\-]\d+)*[a-zа-я]?)", re.IGNORECASE)
 _EQUATION_QUERY = re.compile(r"\((\d+(?:\.\d+)*)\)")
@@ -157,6 +176,46 @@ def promote_labels(hits: list["SearchHit"], label: str, field_name: str, k: int 
     return out
 
 
+def body_refs(index_type: str, query: str) -> list[ObjectRef]:
+    """The references that change the BM25 body of ``index_type``: every one on pages and blocks; on figures, tables
+    and formulas only those that are not printed object numbers (those stay with the label gate)."""
+    refs = parse_refs(query)
+    return refs if index_type in REF_KINDS else [r for r in refs if not r.is_label]
+
+
+def ref_gate(req: "SearchRequest", kind: str) -> tuple[list[ObjectRef], str] | None:
+    """(references, topic) when ``kind`` is pages/blocks and the query names a numbered object next to a topic: the
+    topic ranks, the pages holding the reference are promoted among its first :data:`OBJECT_REF_TOPIC_K` hits."""
+    if KIND_INDEX[kind] not in REF_KINDS:
+        return None
+    refs = parse_refs(req.query)
+    topic = strip_refs(req.query, refs) if refs else ""
+    return (refs, topic) if refs and has_topic(topic) else None
+
+
+def _ref_clause(refs: list[ObjectRef], phrase_fields: list[str], boost: float, name: str | None) -> dict[str, Any]:
+    """Any phrase «<type word> <number>» of the references (no slop: «скважина № 75» is two adjacent tokens)."""
+    clause: dict[str, Any] = {"bool": {"should": [{"match_phrase": {f: {"query": ph}}} for r in refs for ph in r.phrases
+                                                  for f in phrase_fields], "minimum_should_match": 1, "boost": boost}}
+    if name:
+        clause["bool"]["_name"] = name
+    return clause
+
+
+def promote_refs(hits: list["SearchHit"], k: int = OBJECT_REF_TOPIC_K) -> list["SearchHit"]:
+    """Hits in topic order → among the first ``k`` those holding a reference phrase first (topic order kept), then
+    the others; ranks renumbered from 1 (``fields.topic_rank``, ``fields.object_ref_promoted``)."""
+    head, tail = hits[:k], hits[k:]
+    promoted = {id(h) for h in head if h.fields.get("object_ref_matched")}
+    out = [h for h in head if id(h) in promoted] + [h for h in head if id(h) not in promoted] + tail
+    for i, h in enumerate(out, 1):
+        h.fields.setdefault("topic_rank", h.rank)
+        h.fields["object_ref_promoted"] = id(h) in promoted
+        h.rank = i
+        h.rank_in_kind = i
+    return out
+
+
 def _as_list(name: str, value: Any) -> list[Any]:
     values = value if isinstance(value, (list, tuple, set)) else [value]
     values = [v for v in values if v is not None]
@@ -226,19 +285,36 @@ def build_body(index_type: str, req: SearchRequest, *, size: int, offset: int) -
         must_not.append({"term": {"is_primary_layer": False}})
     fields = [_exact(f) for f in FIELDS[index_type]] if req.exact else FIELDS[index_type]
     phrase_fields = [_exact(f) for f in PHRASE_FIELDS[index_type]] if req.exact else PHRASE_FIELDS[index_type]
-    should: list[dict[str, Any]] = [{"match_phrase": {f: {"query": req.query, "slop": 3, "boost": 2.0}}}
+    # numbered objects (object_refs): pages/blocks with a topic → the topic (with the work's authors and title) is the
+    # query and the reference phrase only names the hits that hold it (boost 0; ``promote_refs`` lifts them); only
+    # references → the phrase may match instead of the scattered terms and outweighs them; figures/tables/formulas →
+    # a boost for a non-label reference («скважина 75» in a table caption), the query itself unchanged
+    refs = body_refs(index_type, req.query)
+    topic = strip_refs(req.query, refs) if refs else ""
+    gated = bool(refs) and index_type in REF_KINDS and has_topic(topic)
+    text = topic if gated else req.query
+    should: list[dict[str, Any]] = [{"match_phrase": {f: {"query": text, "slop": 3, "boost": 2.0}}}
                                     for f in phrase_fields]
-    should.append({"multi_match": {"query": req.query, "type": "best_fields", "fields": TITLE_BOOST_FIELDS}})
+    should.append({"multi_match": {"query": text, "type": "best_fields", "fields": TITLE_BOOST_FIELDS}})
     label = parse_object_label(req.query) if index_type in LABEL_FIELD else None
     if label:
         should.append({"term": {LABEL_FIELD[index_type]: {"value": label, "boost": 5.0}}})
+    must: dict[str, Any] = {"multi_match": {"query": req.query, "type": "best_fields", "fields": fields,
+                                            "tie_breaker": 0.2, "minimum_should_match": req.minimum_should_match}}
+    if gated:
+        ref_topic = ["authors^1.0", "work_title.exact^1.0"] if req.exact else REF_TOPIC_FIELDS
+        must = {"multi_match": {"query": topic, "type": "cross_fields", "fields": [*fields, *ref_topic],
+                                "tie_breaker": 0.2, "minimum_should_match": req.minimum_should_match}}
+        should.append(_ref_clause(refs, phrase_fields, 0.0, OBJECT_REF_NAME))
+    elif refs:
+        should.append(_ref_clause(refs, phrase_fields, OBJECT_REF_BOOST, OBJECT_REF_NAME))
+        if not has_topic(topic):
+            must = {"bool": {"should": [must, _ref_clause(refs, phrase_fields, 1.0, None)],
+                             "minimum_should_match": 1}}
     body: dict[str, Any] = {
         "size": size, "from": offset, "track_total_hits": True,
         "_source": {"includes": _source_fields(index_type)},
-        "query": {"bool": {"must": [{"multi_match": {"query": req.query, "type": "best_fields",
-                                                     "fields": fields, "tie_breaker": 0.2,
-                                                     "minimum_should_match": req.minimum_should_match}}],
-                           "should": should, "filter": clauses, "must_not": must_not}},
+        "query": {"bool": {"must": [must], "should": should, "filter": clauses, "must_not": must_not}},
         "sort": [{"_score": "desc"}, {"id": "asc"}],
         "aggs": {"availability": {"terms": {"field": "available_basis", "size": 10}}},
     }
@@ -317,14 +393,17 @@ def parse_hits(resp: dict[str, Any], kind: str, offset: int = 0) -> tuple[list[S
         best = [{"id": x["_id"], "score": x.get("_score"), "reading_order": (x.get("_source") or {}).get("reading_order")}
                 for x in (inner.get("best_blocks") or {}).get("hits", {}).get("hits", [])]
         dups = [x["_id"] for x in (inner.get("duplicates") or {}).get("hits", {}).get("hits", []) if x["_id"] != h["_id"]]
+        named = h.get("matched_queries") or ()              # a list, or {name: score} with named-query scores
+        fields = {k: v for k, v in src.items() if k not in ("id", "object_type", "source_id", "work_id", "page_id",
+                                                            "page_index")}
+        if OBJECT_REF_NAME in named:
+            fields["object_ref_matched"] = True
         hits.append(SearchHit(
             id=h["_id"], object_type=src.get("object_type") or kind, index=h["_index"],
             build_id=_build_id_of(h["_index"]), score=float(h.get("_score") or 0.0), rank=i,
             source_id=src.get("source_id"), work_id=src.get("work_id"), page_id=src.get("page_id"),
             page_index=src.get("page_index"), highlights=fragments, best_blocks=best, duplicates=dups,
-            fields={k: v for k, v in src.items() if k not in ("id", "object_type", "source_id", "work_id", "page_id",
-                                                             "page_index")},
-            rank_in_kind=i))
+            fields=fields, rank_in_kind=i))
     return hits, warnings
 
 
@@ -370,7 +449,13 @@ def search(client: Any, req: SearchRequest, prefix: str, *, indices: dict[str, s
     if len(req.kinds) == 1:
         kind = req.kinds[0]
         gate = _gated_label(req, kind)
-        if gate is None:
+        rgate = ref_gate(req, kind) if gate is None else None
+        if rgate is not None:                  # the topic first, then the pages holding the numbered object
+            window = min(max(req.size + req.offset, OBJECT_REF_TOPIC_K), MAX_WINDOW)
+            resp = client.search(index=targets[kind], body=build_body(KIND_INDEX[kind], req, size=window, offset=0))
+            hits, warnings = parse_hits(resp, kind)
+            hits = promote_refs(hits)[req.offset:req.offset + req.size]
+        elif gate is None:
             resp = client.search(index=targets[kind], body=build_body(KIND_INDEX[kind], req, size=req.size,
                                                                       offset=req.offset))
             hits, warnings = parse_hits(resp, kind, req.offset)
@@ -387,10 +472,12 @@ def search(client: Any, req: SearchRequest, prefix: str, *, indices: dict[str, s
     window = min(max(req.size + req.offset, req.window), MAX_WINDOW)
     lines: list[dict[str, Any]] = []
     gates = {kind: _gated_label(req, kind) for kind in req.kinds}
+    rgates = {kind: ref_gate(req, kind) if gates[kind] is None else None for kind in req.kinds}
     for kind in req.kinds:
         body_req = gates[kind][1] if gates[kind] else req
-        lines += [{"index": targets[kind]}, build_body(KIND_INDEX[kind], body_req, size=max(window, LABEL_TOPIC_K)
-                                                       if gates[kind] else window, offset=0)]
+        depth = max(window, LABEL_TOPIC_K) if gates[kind] else (
+            min(max(window, OBJECT_REF_TOPIC_K), MAX_WINDOW) if rgates[kind] else window)
+        lines += [{"index": targets[kind]}, build_body(KIND_INDEX[kind], body_req, size=depth, offset=0)]
     responses = client.msearch(body=lines)["responses"]
     per_kind: dict[str, list[SearchHit]] = {}
     for kind, resp in zip(req.kinds, responses):
@@ -399,6 +486,8 @@ def search(client: Any, req: SearchRequest, prefix: str, *, indices: dict[str, s
         per_kind[kind], w = parse_hits(resp, kind)
         if gates[kind]:
             per_kind[kind] = promote_labels(per_kind[kind], gates[kind][0], LABEL_FIELD[KIND_INDEX[kind]])
+        elif rgates[kind]:
+            per_kind[kind] = promote_refs(per_kind[kind])
         warnings += w
         totals[kind] = int(resp["hits"]["total"]["value"])
         for key, n in _availability(resp).items():
