@@ -1242,8 +1242,13 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
     author_moved: dict[str, int | None] = {}
     if author_list and author_stage.get("promotion") != "OFF_CITATION_QUERY":
         keys0 = [key for key, _s in order]
+        # «работы X о …» with the bibliographic route reads both ways (his works / the records of them): capped;
+        # without a topic («работы Баряха») the list of his works is the answer — not capped
+        cap = RR.AUTHOR_PROMOTE_MAX_BIB if bib_status == "APPLIED" and author_stage.get("mode") == "TOPIC" else None
         keys, author_moved = RR.promote(keys0, kind_of, [p for p, _s in author_list], k=RR.AUTHOR_PROMOTE_K,
-                                        front=author_stage.get("mode") != "TOPIC")
+                                        front=author_stage.get("mode") != "TOPIC", limit=cap)
+        if cap is not None:
+            author_stage.update({"promotion": "CAPPED_BIBLIOGRAPHIC", "promote_max": cap})
         if author_moved:
             score_of = dict(order)
             order = [(key, score_of.get(key, 0.0)) for key in keys]

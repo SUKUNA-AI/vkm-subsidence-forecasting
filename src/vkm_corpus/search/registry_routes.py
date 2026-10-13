@@ -56,6 +56,10 @@ OWN_ROLES = frozenset({"AUTHOR", "CORPORATE_AUTHOR", "UNKNOWN", None})
 AUTHOR_MAX_SOURCES = 60        # sources of the matched authors' works searched (lead-author works, newer first)
 FIRST_PAGES = 2                # title pages per source when the query names no topic
 AUTHOR_PROMOTE_K = 100         # with a topic: the author's pages move up inside E's first K pages
+# a bibliographic query with a topic («работы X о …», «articles by X in …») reads both ways — his own works or the records of them:
+# at most this many of his pages move up, the rest stay one RRF leg (E11 route check 13.10: promoting 7–8 own pages
+# lowered T-BIB-003 nDCG@10 P 1.000 → 0.762 and T-BIB-006 0.833 → 0.578, whose qrels are mostly reference entries)
+AUTHOR_PROMOTE_MAX_BIB = 3
 ENTITY_LEG_DEPTH = 60          # pages of the entity leg
 FRONT_MAX = 20                 # without a topic: at most this many leg pages are put in front
 CITATION_CUES = frozenset({"bibliography_phrase", "citation_phrase"})   # the query asks for citations: no promotion
@@ -277,10 +281,12 @@ def entity_leg(client: Any, req: Any, prefix: str, registry: RegistrySignals | N
 
 # ---------------------------------------------------------------------------------------------- ordering
 def promote(order: list[str], kind_of: Mapping[str, str], flagged: Iterable[str], *, k: int | None = None,
-            front: bool = False, front_max: int = FRONT_MAX) -> tuple[list[str], dict[str, int]]:
+            front: bool = False, front_max: int = FRONT_MAX, limit: int | None = None
+            ) -> tuple[list[str], dict[str, int]]:
     """Pages of ``flagged`` move to the front of the PAGE positions: among E's first ``k`` pages (order kept) or,
-    with ``front``, the first ``front_max`` of ``flagged`` in their own order wherever they are (added when absent).
-    → (new order, moved page → its PAGE rank before or None if it was not in the list)."""
+    with ``front``, the first ``front_max`` of ``flagged`` in their own order wherever they are (added when absent);
+    ``limit`` caps how many move. → (new order, moved page → its PAGE rank before or None if it was not in the
+    list)."""
     pages = [key for key in order if kind_of.get(key, "PAGE") == "PAGE"]
     before = {p: i for i, p in enumerate(pages, 1)}
     flagged = list(dict.fromkeys(flagged))
@@ -289,6 +295,8 @@ def promote(order: list[str], kind_of: Mapping[str, str], flagged: Iterable[str]
     else:
         wanted = set(flagged)
         up = [p for p in pages[:k] if p in wanted]
+    if limit is not None:
+        up = up[:limit]
     if not up or pages[:len(up)] == up:
         return list(order), {}
     taken = set(up)

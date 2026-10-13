@@ -257,3 +257,19 @@ def test_registry_signals_status_and_errors():
         sig.author_index(strict=True)
     st = sig.status()
     assert st["authors"] is None and st["entities"] == {"rows": 3, "pack_id": "pack-1"}
+
+
+def test_a_bibliographic_query_with_a_topic_promotes_at_most_three_own_pages():
+    """«работы X о …» with the bibliographic route reads both ways (E11 route check 13.10: 7–8 promoted own pages
+    pushed the reference entries out of the first 10): at most AUTHOR_PROMOTE_MAX_BIB own pages move up."""
+    own = [f"VKM-SRC-044:p00{n}" for n in range(50, 56)]
+    for p in own:
+        PAGES[p] = int(p[-4:])
+    late = {p: 9.0 - i for i, p in enumerate(CITING)}
+    out = _run("работы Баряха по сдвижению", _client(CITING + own, topical={"по сдвижению": own}), late=late,
+               scan=CITING[:3])
+    st = out["stages"]["author_route"]
+    assert out["stages"]["bib_route"]["status"] == "APPLIED"
+    assert st["promotion"] == "CAPPED_BIBLIOGRAPHIC" and st["promote_max"] == RR.AUTHOR_PROMOTE_MAX_BIB == 3
+    assert st["moved"] <= 3 and sum(1 for p in ids(out)[:3] if p in own) == 3
+    assert ids(out)[3] not in own                                   # the rest of the head is E's order again
