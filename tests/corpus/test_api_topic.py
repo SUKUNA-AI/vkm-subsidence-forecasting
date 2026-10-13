@@ -658,14 +658,31 @@ def test_mcp_tool_returns_markdown_and_structured_json(env):
                                                               "source_ids": ["VKM-SRC-001"],
                                                               "paraphrases": ["мульда сдвижения"]})
             bad = await client.call_tool("reconstruct_topic", {"query": QUERY, "budget_chars": 5})
-            return tools["reconstruct_topic"], ok, bad
+            full = await client.call_tool("reconstruct_topic", {"query": QUERY, "budget_chars": 3000,
+                                                                "source_ids": ["VKM-SRC-001"],
+                                                                "paraphrases": ["мульда сдвижения"],
+                                                                "include_json": True})
+            return tools["reconstruct_topic"], ok, bad, full
 
-    tool, ok, bad = asyncio.run(go())
+    tool, ok, bad, full = asyncio.run(go())
     assert tool.annotations.read_only_hint and "UNKNOWN" in tool.description
+    assert tool.input_schema["properties"]["include_json"]["default"] is False
     assert ok.is_error is False and ok.content[0].text.startswith("# Досье темы") and len(ok.content) == 1
     assert "предупреждения: " in ok.content[0].text and "RETRIEVAL_UNAVAILABLE" in ok.content[0].text
     assert len(ok.content[0].text) <= 3000                                   # the MCP text keeps the budget
-    assert ok.structured_content["ok"] and ok.structured_content["item"]["envelope"]["object_kind"] == "TOPIC_DOSSIER"
-    assert ok.structured_content["item"]["record"]["formulations"][1]["kind"] == "paraphrase"
-    assert len(ok.structured_content["item"]["record"]["markdown"]) <= 3000
+    # structured content: a compact summary by default (clients that show it to the model keep the budget)
+    summary = ok.structured_content
+    assert summary["ok"] and summary["object_kind"] == "TOPIC_DOSSIER" and "item" not in summary
+    assert summary["dossier_id"] == full.structured_content["item"]["envelope"]["object_id"]
+    assert summary["budget"]["budget_chars"] == 3000 and summary["budget"]["markdown_chars"] <= 3000
+    assert summary["counts"]["sections"] >= 1 and summary["navigation_only"] is True
+    assert "RETRIEVAL_UNAVAILABLE" in {w["code"] for w in summary["meta"]["warnings"]}
+    assert len(json.dumps(summary, ensure_ascii=False)) < 1500
+    # include_json: the full ApiResponse as before, the same markdown text
+    body = full.structured_content
+    assert full.is_error is False and full.content[0].text == ok.content[0].text
+    assert body["ok"] and body["item"]["envelope"]["object_kind"] == "TOPIC_DOSSIER"
+    assert body["item"]["record"]["formulations"][1]["kind"] == "paraphrase"
+    assert body["item"]["record"]["markdown"] == ok.content[0].text
+    assert len(json.dumps(body, ensure_ascii=False)) > 3 * len(json.dumps(summary, ensure_ascii=False))
     assert bad.is_error

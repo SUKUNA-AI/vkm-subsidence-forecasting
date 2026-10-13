@@ -114,6 +114,38 @@ def _require(dep: Any, name: str, stage: str) -> Any:
     return dep
 
 
+def cursor_offset(cursor: str | None) -> int:
+    """Offset of a numeric page cursor — the ``next_cursor`` of the previous page; none (or empty) → the first page.
+    Anything else (letters, a sign, spaces) is INVALID_ARGUMENT: a foreign cursor never silently restarts the list."""
+    if not cursor:
+        return 0
+    if not (cursor.isascii() and cursor.isdigit()):
+        raise ApiFailure("INVALID_ARGUMENT", f"cursor {cursor[:12]!r} is not a page cursor",
+                         hint="pass next_cursor of the previous answer unchanged (digits: an offset), or no cursor "
+                              "for the first page; next_cursor null means the list has ended")
+    return int(cursor)
+
+
+def past_end(offset: int, served: int, end: int | None = None) -> list[ApiWarning]:
+    """``CURSOR_PAST_END`` when a cursor points at or beyond the end of the list (the page is empty and
+    ``next_cursor`` null; ``end`` = the list's length when known)."""
+    if offset <= 0 or served or (end is not None and offset < end):
+        return []
+    where = f"the list ends at {end}" if end is not None else "the list ended before this offset"
+    return [ApiWarning(code="CURSOR_PAST_END", message=f"{where}: an empty page (next_cursor was null)", count=end)]
+
+
+def hybrid_depth(response: dict[str, Any], candidates: int, kinds: list[str]) -> int:
+    """How deep a hybrid answer pages: with fused formulations the fused list is the whole answer (fixed depth),
+    otherwise the first ``candidates`` × kinds of the final order. Hits beyond it are not served, so a cursor and
+    ``next_cursor`` agree."""
+    fused_total = int(response.get("fused_total") or 0)
+    fstage = (response.get("stages") or {}).get("formulations")
+    if isinstance(fstage, dict) and fstage.get("status") == "APPLIED":
+        return fused_total
+    return min(fused_total, candidates * len(kinds))
+
+
 def _window(text: str | None, offset: int, max_chars: int) -> tuple[str | None, dict[str, Any]]:
     if text is None:
         return None, {"offset": 0, "chars_total": 0, "truncated": False}
@@ -304,12 +336,13 @@ class ApiService:
         self._get("SOURCE", source_id)
         if not 1 <= limit <= 500:
             raise ApiFailure("INVALID_ARGUMENT", "limit must be 1…500")
-        offset = int(cursor) if cursor and cursor.isdigit() else 0
+        offset = cursor_offset(cursor)
         rows = self.canon.pages_of_source(source_id, from_page, to_page, limit + 1, offset)
         more = len(rows) > limit
         items = [Item(envelope=self.envelope("PAGE", self._get("PAGE", r["page_id"]), payload_form="REFERENCE"),
                       record=jsonable(r)) for r in rows[:limit]]
-        return Result(items=items, next_cursor=str(offset + limit) if more else None)
+        return Result(items=items, next_cursor=str(offset + limit) if more else None,
+                      warnings=past_end(offset, len(rows)))
 
     def get_work(self, work_id: str) -> Result:
         self._check("work", work_id)
@@ -460,13 +493,14 @@ class ApiService:
     def search(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
                include_duplicates: bool = False, exact: bool = False) -> Result:
         backend = _require(self.deps.search, "opensearch", "opensearch")
-        offset = int(cursor) if cursor and cursor.isdigit() else 0
+        offset = cursor_offset(cursor)
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
                    "include_duplicates": include_duplicates, "exact": exact}
         response = backend.search(request)
         items, warnings = self._search_items(response)
         hits = response.get("hits", [])
         more = len(hits) == limit and offset + limit < 1000
+        warnings += past_end(offset, len(hits))
         return Result(items=items, warnings=warnings, next_cursor=str(offset + limit) if more else None)
 
     def search_hybrid(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
@@ -488,11 +522,13 @@ class ApiService:
         formulation and fuse the final orders by RRF (``stages.formulations``; the caller's wordings first, at most
         :data:`~vkm_corpus.search.hybrid.MAX_FORMULATIONS` with the query; each formulation gets its own translation
         legs when ``translate`` is on); ``max_per_source`` caps the final order per source (the overflow follows,
-        nothing is dropped; ``stages.source_cap``). With fused formulations the cursor pages through the fused list."""
+        nothing is dropped; ``stages.source_cap``). With fused formulations the cursor pages through the fused list.
+        The answer ends at :func:`hybrid_depth`: no hit past it is served, a cursor at or past it gives an empty page
+        with ``CURSOR_PAST_END``."""
         from vkm_corpus.search.hybrid import MAX_FORMULATIONS, MAX_PER_SOURCE
 
         backend = _require(self.deps.hybrid, "hybrid search", "hybrid")
-        offset = int(cursor) if cursor and cursor.isdigit() else 0
+        offset = cursor_offset(cursor)
         caller = [" ".join(str(f).split()) for f in formulations or []]
         if len(caller) > MAX_FORMULATIONS - 1 or any(not f or len(f) > 512 for f in caller):
             raise ApiFailure("INVALID_ARGUMENT", f"formulations: at most {MAX_FORMULATIONS - 1} wordings of 1..512 "
@@ -527,6 +563,8 @@ class ApiService:
         if max_per_source is not None:
             request["max_per_source"] = int(max_per_source)
         response = backend.search(request)
+        depth = hybrid_depth(response, candidates, kinds)          # never serve past the end next_cursor reports
+        response = {**response, "hits": list(response.get("hits") or [])[:max(0, depth - offset)]}
         stages = response.get("stages") or {}
         dense = stages.get("dense") or {}
         vis = stages.get("visual_route") if isinstance(stages.get("visual_route"), dict) else {}
@@ -549,12 +587,8 @@ class ApiService:
                             review_status="NOT_APPLICABLE", layer="SERVICE", payload_form="NORMALIZED",
                             provenance=Provenance(model_id=dense.get("model_key"), model_revision=None),
                             canonical_snapshot_id=self.canon.snapshot_id())
-        fused_total = int(response.get("fused_total") or 0)
-        fstage = stages.get("formulations")
-        if isinstance(fstage, dict) and fstage.get("status") == "APPLIED":
-            more = offset + limit < fused_total             # the fused list is the whole answer (fixed depth)
-        else:
-            more = offset + limit < min(fused_total, candidates * len(kinds))
+        more = offset + limit < depth
+        warnings += past_end(offset, len(response["hits"]), depth)
         return Result(item=Item(envelope=envelope, record=jsonable(record)), items=items, warnings=warnings,
                       next_cursor=str(offset + limit) if more else None)
 
@@ -648,7 +682,7 @@ class ApiService:
         return {r["formula_id"]: str(r["equation_number"]) for r in rows if r.get("equation_number")}
 
     def query_objects(self, kinds: list[str], limit: int, cursor: str | None, **filters: Any) -> Result:
-        offset = int(cursor) if cursor and cursor.isdigit() else 0
+        offset = cursor_offset(cursor)
         if not kinds or any(k not in QUERYABLE_KINDS for k in kinds):
             raise ApiFailure("INVALID_ARGUMENT", f"kinds must be values of {QUERYABLE_KINDS}")
         items: list[Item] = []
@@ -661,7 +695,8 @@ class ApiService:
                 items.append(Item(envelope=self.envelope(kind, row, payload_form="REFERENCE"), record=record))
         items.sort(key=lambda it: it.envelope.object_id)
         more = len(items) > limit
-        return Result(items=items[:limit], next_cursor=str(offset + limit) if more else None)
+        return Result(items=items[:limit], next_cursor=str(offset + limit) if more else None,
+                      warnings=past_end(offset, len(items)))
 
     # ================================================================================================ rerank
     def text_rerank_backend(self) -> str:

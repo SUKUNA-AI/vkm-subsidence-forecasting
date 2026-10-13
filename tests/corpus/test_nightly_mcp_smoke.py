@@ -86,7 +86,7 @@ def test_all_read_tools_are_called_with_harvested_ids():
     rep = run(client)
     assert rep["verdict"] == "PASS" and rep["tools_listed"] == 49 and rep["missing_tools"] == []
     assert rep["summary"] == {"PASS": 49, "WARN": 0, "FAIL": 0, "SKIP": 0} and rep["not_called"] == []
-    assert rep["version"] == "nightly-mcp-smoke-6"
+    assert rep["version"] == "nightly-mcp-smoke-7"
     args = {}
     for name, a in client.calls:
         args.setdefault(name, a)
