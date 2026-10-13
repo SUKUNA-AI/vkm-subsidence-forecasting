@@ -294,7 +294,8 @@ def build_read_server(api: ApiClient) -> MCPServer:
                                                                     "are fused by RRF (record stages.formulations); "
                                                                     "write them in Russian with other terms — the "
                                                                     "server already searches the English translation "
-                                                                    "(E6b: two Russian wordings beat a Russian + "
+                                                                    "(E6b, E6c: two Russian wordings add about "
+                                                                    "+0.05…0.10 page recall@50 and beat a Russian + "
                                                                     "English pair)")]
             = None,
             expand: Annotated[Literal["none", "terms"], Field(description="terms: up to 3 more wordings from the NAV "
@@ -826,7 +827,7 @@ def build_read_server(api: ApiClient) -> MCPServer:
                 max_length=4, description="1–2 other wordings of the topic in Russian with other terms (the "
                                           "translation to English is added by the server): searched too and fused "
                                           "with the query by RRF; the topic benchmark found more evidence pages "
-                                          "with them (E6b)")] = None,
+                                          "with them (E6b, E6c)")] = None,
             include_json: Annotated[bool, Field(description=(
                 "also return the full JSON dossier as structured content (large: ranked pages per tier, data of "
                 "every entry); default: the markdown text and a compact summary"))] = False) -> CallToolResult:
