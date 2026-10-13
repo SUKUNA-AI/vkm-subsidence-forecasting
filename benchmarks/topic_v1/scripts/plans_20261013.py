@@ -95,7 +95,10 @@ def plan_e7r() -> list[dict]:
             for q in retrieval_queries() for system, graph in GRAPHS.items()]
 
 
-def plan_e10(path: Path = QT_SET) -> list[dict]:
+NO_ROUTES = {"author_route": False, "entity_route": False}     # registry author / entity index routes (685a099)
+
+
+def plan_e10(path: Path = QT_SET, with_noroutes: bool = False) -> list[dict]:
     out = []
     for x in path.read_text(encoding="utf-8").splitlines():
         if not x.strip():
@@ -105,7 +108,15 @@ def plan_e10(path: Path = QT_SET) -> list[dict]:
                         {"route": BM25, "request": {"query": q["text"], "kinds": ["PAGE"], "limit": 50}}))
         out.append(line(q["query_id"], q.get("topic_id"), "hybrid", hybrid(q["text"])))
         out.append(line(q["query_id"], q.get("topic_id"), "hybrid_g0", hybrid(q["text"], graph=[])))
+        if with_noroutes:
+            out.append(line(q["query_id"], q.get("topic_id"), "hybrid_noroutes", hybrid(q["text"], **NO_ROUTES)))
     return out
+
+
+def plan_routes_r() -> list[dict]:
+    """Descriptive (after 685a099): retrieval_v1 with the server defaults and with both registry routes off."""
+    return [line(q["query_id"], None, system, hybrid(q["text"], **extra))
+            for q in retrieval_queries() for system, extra in (("rv_default", {}), ("rv_noroutes", NO_ROUTES))]
 
 
 def e11_systems(fusion_field: str, rrf_value: str, query_field: str, bt_value: str) -> dict[str, dict]:
@@ -113,7 +124,7 @@ def e11_systems(fusion_field: str, rrf_value: str, query_field: str, bt_value: s
             "late_both": {fusion_field: rrf_value, query_field: bt_value}}
 
 
-def plan_e11(topics: list[dict], systems: dict[str, dict]) -> list[dict]:
+def plan_e11(topics: list[dict], systems: dict[str, dict], retrieval_extra: dict | None = None) -> list[dict]:
     out = []
     for t in topics:
         for q in t["queries"]:
@@ -121,7 +132,8 @@ def plan_e11(topics: list[dict], systems: dict[str, dict]) -> list[dict]:
                 out.append(line(q["query_id"], t["topic_id"], system, hybrid(q["text"], graph=[], **extra)))
     for q in retrieval_queries():
         for system, extra in systems.items():
-            out.append(line(q["query_id"], None, system, hybrid(q["text"], graph=[], **extra)))
+            out.append(line(q["query_id"], None, system,
+                            hybrid(q["text"], graph=[], **(retrieval_extra or {}), **extra)))
     return out
 
 
@@ -139,21 +151,27 @@ def write(plan: list[dict], out: Path) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("which", choices=["e6e7", "e7r", "e10", "e11"])
+    ap.add_argument("which", choices=["e6e7", "e7r", "e10", "e11", "routes_r"])
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--fusion-field", default="late_fusion")
     ap.add_argument("--rrf-value", default="rrf")
     ap.add_argument("--query-field", default="late_query")
     ap.add_argument("--bt-value", default="best_translation")
+    ap.add_argument("--retrieval-no-routes", action="store_true",
+                    help="e11: author_route / entity_route false on every retrieval_v1 line (deviation, 685a099)")
+    ap.add_argument("--with-noroutes", action="store_true", help="e10: add hybrid_noroutes (both routes off)")
     args = ap.parse_args()
     if args.which == "e6e7":
         plan = plan_e6e7(load_topics(), {v: load_llm(v) for v in E6_VARIANTS})
     elif args.which == "e7r":
         plan = plan_e7r()
     elif args.which == "e10":
-        plan = plan_e10()
+        plan = plan_e10(with_noroutes=args.with_noroutes)
+    elif args.which == "routes_r":
+        plan = plan_routes_r()
     else:
-        plan = plan_e11(load_topics(), e11_systems(args.fusion_field, args.rrf_value, args.query_field, args.bt_value))
+        plan = plan_e11(load_topics(), e11_systems(args.fusion_field, args.rrf_value, args.query_field, args.bt_value),
+                        NO_ROUTES if args.retrieval_no_routes else None)
     write(plan, args.out)
 
 
