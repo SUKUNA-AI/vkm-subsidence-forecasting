@@ -81,8 +81,8 @@ def score(qs: list[dict], runs: dict, topics_v: dict[str, TB.Topic], topics_p: d
             if line is None:
                 continue
             r = SE.ranking(line, "ordinary")
-            base = {"query_id": q["query_id"], "topic_id": q["query_id"], "type": q["type"], "system": s,
-                    "error": line.get("error")}
+            base = {"query_id": q["query_id"], "topic_id": q["query_id"], "type": q["type"],
+                    "subtype": q.get("subtype"), "system": s, "error": line.get("error")}
             truth = q["truth"]
             if truth["kind"] == "TOPIC":
                 for tname, tmap in (("V", topics_v), ("P", topics_p)):
@@ -105,6 +105,12 @@ def summary(rows: list[dict]) -> dict:
                 names = SOURCE_METRICS if t == "D_AUTHOR" else PAGE_METRICS
                 out.setdefault(t, {}).setdefault(tname, {})[s] = {
                     "n_queries": len(xs), **{m: round(mean(x[m] for x in xs), 4) for m in names}}
+    for sub in sorted({r["subtype"] for r in rows if r["type"] == "C_OBJECT" and r.get("subtype")}):
+        for s in SYSTEMS:
+            xs = [r for r in rows if r["type"] == "C_OBJECT" and r.get("subtype") == sub and r["system"] == s]
+            if xs:
+                out.setdefault("C_OBJECT:" + sub, {}).setdefault("AUTO", {})[s] = {
+                    "n_queries": len(xs), **{m: round(mean(x[m] for x in xs), 4) for m in PAGE_METRICS}}
     return out
 
 
