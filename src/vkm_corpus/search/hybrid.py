@@ -74,6 +74,10 @@ interaction stage (mLateOn MaxSim), with a per-stage trace (постановка
   (:func:`promote_ref_pages`; other kinds keep their positions) — the Q5 rule: the topic ranks, the number lifts
   inside the topic's top. Hits carry ``trace.object_ref`` (matched by phrase / label, the page rank before, the label
   object). The dense leg and the late stage score the whole query as before.
+* Registry routes (agent Г, 13.10; ``vkm_corpus.search.registry_routes``, ``registry`` = ``RegistrySignals``): a query
+  naming a registry author («работы Баряха …») adds the leg ``author:PAGE`` (his own works' pages; ``stages.
+  author_route``, ``trace.author``); a numbered borehole / line / block / panel / benchmark adds the leg ``entity:PAGE``
+  (pages of the catalogue entity index; ``matched`` ``entity`` in ``trace.object_ref``). Other queries: unchanged.
 * Area filter: ``source_scope_or_source_id`` (the API's ``include_ambiguous``: the area OR the sources a plain area
   filter leaves out — ``vkm_corpus.search.scope_filter``) compiles to one clause on ``source_site_scope`` /
   ``source_id`` for every leg: BM25, dense k-NN (unit documents carry both), the page-image channel and the
@@ -112,6 +116,7 @@ from typing import Any, Callable, Iterable, Mapping
 
 from vkm_corpus.retrieval_lab.fusion import rrf
 from vkm_corpus.search import graph_stages as GS
+from vkm_corpus.search import registry_routes as RR
 from vkm_corpus.search.intent import bibliographic_intent, visual_intent
 from vkm_corpus.search.mappings import alias_name
 from vkm_corpus.search.object_refs import ObjectRef, has_topic, parse_refs, strip_refs
@@ -379,6 +384,8 @@ class HybridRequest:
     # the final orders are fused by RRF (opt-in; () → the query alone, today's path)
     formulations: tuple[Any, ...] = ()
     max_per_source: int | None = None      # at most N keys of one source before the overflow (None → off)
+    author_route: bool | None = None       # registry author route (None → a registry author in the query decides)
+    entity_route: bool | None = None       # entity-index pages of a numbered object (None → on when one is named)
 
     def validate(self) -> None:
         if not self.query or not self.query.strip() or len(self.query) > 512:
@@ -748,15 +755,16 @@ def _graph_bm25(client: Any, req: HybridRequest, prefix: str):
 def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str, *,
                   meta: dict[str, Any] | None = None, visual: VisualRouteSettings | None = None,
                   vmeta: Any = None, graph: Any = None, graph_defaults: Iterable[str] | None = None,
-                  graph_params: GS.GraphParams | None = None) -> dict[str, Any]:
+                  graph_params: GS.GraphParams | None = None, registry: Any = None) -> dict[str, Any]:
     """BM25 + dense → RRF (→ late MaxSim when ``req.late``) (→ the graph stages' legs) (→ the visual route's RRF with
     the page-image channel) (→ G1 collapse); hits carry ids, the per-stage trace and E's highlights/best blocks when
-    BM25 found them. ``graph`` is a :class:`graph_stages.GraphSignals` (the navigation layer). With
+    BM25 found them. ``graph`` is a :class:`graph_stages.GraphSignals` (the navigation layer), ``registry`` a
+    :class:`registry_routes.RegistrySignals` (authors, entity index). With
     ``req.formulations`` every formulation runs this pipeline and the final orders are fused (:func:`_multi_search`);
     ``req.max_per_source`` caps the final order per source (:func:`cap_per_source`)."""
     req.validate()
     kw = {"meta": meta, "visual": visual, "vmeta": vmeta, "graph": graph, "graph_defaults": graph_defaults,
-          "graph_params": graph_params}
+          "graph_params": graph_params, "registry": registry}
     if req.formulations:
         return _multi_search(client, embed, req, prefix, **kw)
     return _one_search(client, embed, req, prefix, **kw)
@@ -765,7 +773,7 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
 def _one_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str, *, meta: dict[str, Any] | None,
                 visual: VisualRouteSettings | None, vmeta: Any, graph: Any, graph_defaults: Iterable[str] | None,
                 graph_params: GS.GraphParams | None, window: tuple[int, int] | None = None,
-                cap: bool = True) -> dict[str, Any]:
+                cap: bool = True, registry: Any = None) -> dict[str, Any]:
     """One pipeline run of a validated request; ``window`` = (offset, size) of the hits instead of the request's,
     ``cap`` = apply ``req.max_per_source`` here (off when the fusion of formulations caps afterwards)."""
     timings: dict[str, float] = {}
@@ -779,7 +787,7 @@ def _one_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str
     pool = ThreadPoolExecutor(max_workers=3) if grun.on("concepts") or grun.on("cites") else None
     try:
         return _hybrid_search(client, embed, req, prefix, meta=meta, visual=visual, vmeta=vmeta, grun=grun,
-                              pool=pool, timings=timings, t0=t0, window=window, cap=cap)
+                              pool=pool, timings=timings, t0=t0, window=window, cap=cap, registry=registry)
     finally:
         if pool is not None:
             pool.shutdown(wait=False, cancel_futures=True)
@@ -788,7 +796,7 @@ def _one_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str
 def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str, *, meta: dict[str, Any] | None,
                    visual: VisualRouteSettings | None, vmeta: Any, grun: GS.GraphRun, pool: ThreadPoolExecutor | None,
                    timings: dict[str, float], t0: float, window: tuple[int, int] | None = None,
-                   cap: bool = True) -> dict[str, Any]:
+                   cap: bool = True, registry: Any = None) -> dict[str, Any]:
     gp = grun.params
 
     def concepts_task() -> tuple[list[str], list[list[str]]]:
@@ -900,6 +908,18 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
         elif label_refs:
             ref_stage["label_route"] = {"status": "NO_TOPIC", "reason": "a printed number alone names an object in "
                                                                         "every book: the label route needs a topic"}
+    # registry routes (agent Г): pages of a registry author's own works and entity-index pages of a numbered object
+    author_list, author_info, author_stage = RR.author_leg(client, req, prefix, registry,
+                                                           _graph_bm25(client, req, prefix), timings)
+    entity_list, entity_info, entity_stage = RR.entity_leg(client, req, prefix, registry, refs, ref_topic,
+                                                           page_filter, timings)
+    for leg_name, leg in (("author:PAGE", author_list), ("entity:PAGE", entity_list)):
+        if leg:
+            rankings[leg_name] = leg
+            for pid, _s in leg:
+                kind_of.setdefault(pid, "PAGE")
+    if entity_stage is not None and ref_stage is not None:
+        ref_stage["entity_route"] = entity_stage
     bib_status, intent = bib_route_status(req)
     bib_stage: dict[str, Any] = {"status": bib_status, "cues": list(intent.cues), "weak_cues": list(intent.weak)}
     bib_info: dict[str, dict[str, Any]] = {}
@@ -1066,17 +1086,36 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
                 ref_flagged.setdefault(key, []).append("phrase")
         for pid in label_info:
             ref_flagged.setdefault(pid, []).append("label")
-        keys, ref_moved = promote_ref_pages([key for key, _s in order], kind_of, ref_flagged)
-        if ref_moved:
+        for pid in entity_info:
+            ref_flagged.setdefault(pid, []).append("entity")
+        keys0 = [key for key, _s in order]
+        keys, ref_moved = promote_ref_pages(keys0, kind_of, ref_flagged)
+        if entity_info and not has_topic(ref_topic):          # no topic: the entity-index pages go first (agent Г)
+            pre = {p: i for i, p in enumerate((k for k in keys0 if kind_of.get(k) == "PAGE"), 1)}
+            keys, front = RR.promote(keys, kind_of, [p for p, _s in entity_list], front=True)
+            ref_moved.update({p: pre.get(p) for p in front})
+        if keys != keys0:
             score_of = dict(order)
             order = [(key, score_of.get(key, 0.0)) for key in keys]
         head = [key for key, _s in order if kind_of.get(key) == "PAGE"][:OBJECT_REF_PROMOTE_K]
         ref_stage.update({"status": "APPLIED" if ref_flagged else "NO_MATCH", "flagged": len(ref_flagged),
                           "flagged_in_head": sum(1 for p in head if p in ref_flagged), "moved": len(ref_moved),
                           "promote_k": OBJECT_REF_PROMOTE_K,
-                          "rule": f"pages holding the asked numbered object (the BM25 reference phrase or the label "
-                                  f"route) move to the front inside E's first {OBJECT_REF_PROMOTE_K} pages, order "
-                                  f"kept; the topic ranks (Q5)"})
+                          "rule": f"pages holding the asked numbered object (the BM25 reference phrase, the label "
+                                  f"route or the entity index) move to the front inside E's first "
+                                  f"{OBJECT_REF_PROMOTE_K} pages, order kept; the topic ranks (Q5)"})
+    # registry author (agent Г): his own pages move up inside E's first pages (topic) or go first (no topic)
+    author_moved: dict[str, int | None] = {}
+    if author_list and author_stage.get("promotion") != "OFF_CITATION_QUERY":
+        keys0 = [key for key, _s in order]
+        keys, author_moved = RR.promote(keys0, kind_of, [p for p, _s in author_list], k=RR.AUTHOR_PROMOTE_K,
+                                        front=author_stage.get("mode") != "TOPIC")
+        if author_moved:
+            score_of = dict(order)
+            order = [(key, score_of.get(key, 0.0)) for key in keys]
+        head = [key for key, _s in order if kind_of.get(key) == "PAGE"][:RR.AUTHOR_PROMOTE_K]
+        author_stage.update({"in_head": sum(1 for p in head if p in author_info), "moved": len(author_moved),
+                             "promote_k": RR.AUTHOR_PROMOTE_K})
     # G1: copies leave the ranking (last step, every kind) and are listed on the hit that stays
     if grun.on("collapse"):
         t1 = time.perf_counter()
@@ -1153,7 +1192,11 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
         if key in ref_flagged:
             trace["object_ref"] = {"matched": ref_flagged[key], "page_rank_before": ref_moved.get(key),
                                    "label_rank": ranks.get("label:PAGE", {}).get(key),
-                                   **({"label_object_id": label_info[key]["object_id"]} if key in label_info else {})}
+                                   **({"label_object_id": label_info[key]["object_id"]} if key in label_info else {}),
+                                   **({"entity": entity_info[key]} if key in entity_info else {})}
+        if key in author_info:                       # registry author route (agent Г)
+            trace["author_rank"] = author_info[key]["rank"]
+            trace["author"] = {**author_info[key], "page_rank_before": author_moved.get(key)}
         gtrace = grun.trace(key)
         if gtrace:
             trace["graph"] = gtrace
@@ -1205,6 +1248,7 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
         out["stages"]["source_cap"] = cap_stage
     if ref_stage is not None:                          # only queries that name a numbered object
         out["stages"]["object_ref"] = ref_stage
+    out["stages"]["author_route"] = author_stage       # registry author route (agent Г): status for every query
     return out
 
 

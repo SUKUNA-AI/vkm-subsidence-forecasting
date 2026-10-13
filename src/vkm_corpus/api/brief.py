@@ -37,7 +37,7 @@ NOTE = ("AUTO_EXTRACTED_UNREVIEWED candidates of rebuildable projections: scores
 _DEFAULTED = ("review_status", "origin")
 _SAID_ONCE_FLAGS = frozenset({"SCOPE_INHERITED_FROM_SOURCE"})        # every document object has it: the note says it
 _HYBRID_RANKS = ("bm25_rank", "dense_rank", "fused_rank")
-_ROUTE_RANKS = ("vis_rank", "bib_rank")
+_ROUTE_RANKS = ("vis_rank", "bib_rank", "author_rank")
 _LEAD_CODE = re.compile(r"^(?:f\d+:\s*)?([A-Z][A-Z0-9_]{2,})")
 _TAG = re.compile(r"</?em>")
 _STATUS_HEAD = re.compile(r"^[A-Z][A-Z_]*")
@@ -281,6 +281,8 @@ def _run(rec: dict[str, Any]) -> dict[str, Any]:
         out["translation"] = {"status": tr.get("status"), **({"text": cut(tr["text"], 200)} if tr.get("text") else {})}
     st: dict[str, Any] = {name: _status(stages.get(name)) for name in ("bib_route", "visual_route")
                           if stages.get(name) is not None}
+    if _status(stages.get("author_route")) not in (None, "NOT_DETECTED"):     # registry author route (agent Г)
+        st["author_route"] = _status(stages["author_route"])
     graph = stages.get("graph")
     if isinstance(graph, dict):
         status = {k: v for k, v in (graph.get("status") or {}).items() if v != "OFF"}
