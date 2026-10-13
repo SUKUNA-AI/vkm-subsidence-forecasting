@@ -21,6 +21,7 @@ usage: PYTHONPATH=src python benchmarks/topic_v1/scripts/score_experiments_20261
            --topic-runs <e6e7_topic.jsonl> --retrieval-runs <e7_retrieval.jsonl> [--group-runs <more.jsonl> …] \
            --out benchmarks/topic_v1/results_experiments_20261013.json
        … e11 --topic-runs <e11.jsonl> --retrieval-runs <e11.jsonl> [--group-runs …] --out <json>
+       … routes --retrieval-runs <routes_r.jsonl> --out <json>     (descriptive, after 685a099)
 """
 from __future__ import annotations
 
@@ -53,6 +54,7 @@ E6_PAIRS = (("llm3", "base"), ("human3", "base"), ("llm3", "human3"))
 E7_SYSTEMS = ("g0", "g1", "g15")
 E7_FAMILY = (("g1", "g0"), ("g15", "g1"))
 E11_SYSTEMS = ("late_default", "late_rrf", "late_bt", "late_both")
+ROUTES_NAMED = ("T-BIB-003", "T-BIB-006", "T-BIB-005", "T-BIB-007", "T-ENT-008", "V-BLOCK-002", "V-LEVEL-002")
 JUDGED_MIN = 0.85
 RETRIEVAL_DIR = REPO / "benchmarks" / "retrieval_v0"
 POOLED_FILES = (REPO / "benchmarks" / "retrieval_v1" / "qrels_v1_pooled.tsv",
@@ -426,19 +428,136 @@ def run_e11(args: argparse.Namespace) -> dict:
     for k in fam:
         fam[k] = {**fam[k], "p_holm": round(adj[k], 5)}
     return {"benchmark": "TOPIC_BENCHMARK_V1 + RETRIEVAL_BENCHMARK_V1", "kind": "pre-registered experiment E11",
-            "snapshot_id": SNAPSHOT, "labels": label_info, "runs": {"files": files, "meta": meta},
-            "E11": res, "E11_retrieval": retr, "E11_primary_family": fam}
+            "snapshot_id": SNAPSHOT, "labels": label_info,
+            "runs": {"files": files, "meta": [{k: m.get(k) for k in ("kind", "harness_version", "label", "systems",
+                                                                      "n_lines", "canonical_snapshot_id", "started_at",
+                                                                      "finished_at", "calls", "errors", "retries")
+                                               if m.get(k) is not None} for m in meta]},
+            "errors": dict(Counter(s for (q, s), line in runs.items() if line.get("error"))),
+            "E11": res, "E11_retrieval": retr, "E11_primary_family": fam,
+            "E11_decision": decide_e11(res, retr, fam)}
+
+
+E11_HARM_TOPIC = (("V", "mrr@50"), ("V", "success@10"), ("P", "page_recall@50"))
+E11_HARM_RETRIEVAL = (("V", "text", "ndcg@10"), ("P", "text", "ndcg@10"), ("V", "text", "recall@50"),
+                      ("P", "text", "recall@50"), ("V", "visual", "ndcg@10"), ("P", "visual", "ndcg@10"))
+
+
+def decide_e11(res: dict, retr: dict, fam: dict) -> dict:
+    """The E11 rule of the pre-registration (§5): gain on a primary difference (≥ +0.02, CI > 0, p_Holm < 0.05 over
+    the family of 6), no harm (p < 0.05 uncorrected), P parts only where judged@10 ≥ 0.85."""
+    out: dict = {}
+    topic_p_ok = {s: res["judged"][s]["judged@10"] >= JUDGED_MIN for s in E11_SYSTEMS}
+    by_track = retr["summary"]["ordinary"]["P"]
+    for v in E11_SYSTEMS[1:]:
+        # judged@10 ≥ 0.85 for the two systems of the comparison (the variant and late_default), per track
+        retr_p_ok = {tr: all((by[s].get("judged@10") or 0.0) >= JUDGED_MIN for s in (v, "late_default"))
+                     for tr, by in by_track.items()}
+        pair = f"{v} - late_default"
+        prim = {k: x for k, x in fam.items() if f"| {pair} |" in k}
+        gain = [k for k, x in prim.items() if x["delta"] >= 0.02 and x["ci_lo"] > 0 and x["p_holm"] < 0.05
+                and (not k.startswith("retrieval P") or retr_p_ok.get("text", False))]
+        harm, stopped = [], []
+        if not retr_p_ok.get("text", False):
+            stopped.append("retrieval P text ndcg@10 (primary)")
+        for tname, metric in E11_HARM_TOPIC:
+            if tname == "P" and not (topic_p_ok[v] and topic_p_ok["late_default"]):
+                stopped.append(f"topic P {metric}")
+                continue
+            x = res["comparisons"][tname][f"{pair} | {metric}"]
+            if x["delta"] < 0 and x["p_value"] < 0.05:
+                harm.append(f"topic {tname} {metric}: {x['delta']:+.4f} (p {x['p_value']})")
+        for tname, track, metric in E11_HARM_RETRIEVAL:
+            if tname == "P" and not retr_p_ok.get(track, False):
+                stopped.append(f"retrieval P {track} {metric}")
+                continue
+            x = retr["comparisons"][f"ordinary|{tname}|{track}|{pair}|{metric}"]
+            if x["delta"] < 0 and x["p_value"] < 0.05:
+                harm.append(f"retrieval {tname} {track} {metric}: {x['delta']:+.4f} (p {x['p_value']})")
+        out[v] = {"gain": gain, "harm": harm, "stopped_judged": stopped, "passes": bool(gain) and not harm}
+    singles = [v for v in ("late_rrf", "late_bt") if out[v]["passes"]]
+    if out["late_both"]["passes"] and singles:
+        ok = True
+        for v in singles:
+            for k in out[v]["gain"]:
+                kb = k.replace(f"{v} - late_default", "late_both - late_default")
+                if fam[kb]["delta"] < fam[k]["delta"]:
+                    ok = False
+        out["late_both"]["preferred_over_singles"] = ok
+    if out["late_both"]["passes"] and out["late_both"].get("preferred_over_singles", True):
+        chosen = "late_both"
+    elif singles:
+        chosen = max(singles, key=lambda v: max(fam[k]["delta"] for k in out[v]["gain"]))
+    else:
+        chosen = None
+    out["default"] = chosen
+    return out
+
+
+def run_routes(args: argparse.Namespace) -> dict:
+    """Descriptive (after 685a099): retrieval_v1 with the server defaults (rv_default) and with the registry author and
+    entity routes off (rv_noroutes); means on all queries and on the queries the routes touched."""
+    runs, meta, files = load_runs(args.retrieval_runs)
+    groups = Groups()
+    groups.add_runs(runs)
+    for p in args.group_runs or []:
+        groups.add_runs(load_runs([p])[0])
+    retr = retrieval_block(runs, ("rv_default", "rv_noroutes"), [("rv_default", "rv_noroutes")], groups)
+    touched = {}
+    for (q, s), line in runs.items():
+        if s != "rv_default":
+            continue
+        ar = (line.get("author_route") or {}).get("status")
+        er = (line.get("object_ref") or {}).get("entity_route")
+        if ar == "APPLIED" or er == "APPLIED" or q in ROUTES_NAMED:
+            other = runs.get((q, "rv_noroutes")) or {}
+            a10 = [h["page_id"] for h in line.get("hits") or []][:10]
+            b10 = [h["page_id"] for h in other.get("hits") or []][:10]
+            touched[q] = {"author_route": ar, "entity_route": er,
+                          "author_in_head": (line.get("author_route") or {}).get("in_head"),
+                          "named_by_agent_G": q in ROUTES_NAMED, "top10_identical": a10 == b10,
+                          "new_in_top10": len(set(a10) - set(b10))}
+    gs = PT.load_module("gs_run", REPO / "benchmarks" / "graph_search_v1" / "scripts" / "run.py")
+    _bench, judged, hn, _info, _tracks = retrieval_truth()
+    group_of = groups.group_of()
+    per = {}
+    for form in ("ordinary", "groups"):
+        for tname, js in judged.items():
+            for s in ("rv_default", "rv_noroutes"):
+                per[(form, tname, s)] = retrieval_eval(runs, s, sorted(touched), js, hn, form, group_of,
+                                                       gs.dedup_metrics)
+    for q in touched:
+        for form in ("ordinary", "groups"):
+            for tname in ("V", "P"):
+                a = per[(form, tname, "rv_default")].get(q)
+                b = per[(form, tname, "rv_noroutes")].get(q)
+                touched[q][f"{form}|{tname}"] = None if a is None or b is None else {
+                    "ndcg@10_default": round(a["ndcg@10"], 4), "ndcg@10_noroutes": round(b["ndcg@10"], 4),
+                    "recall@50_default": round(a["recall@50"], 4), "recall@50_noroutes": round(b["recall@50"], 4),
+                    "judged@10_default": round(a["judged@10"], 4), "judged@10_noroutes": round(b["judged@10"], 4)}
+    sub = {}
+    for form in ("ordinary", "groups"):
+        for tname in ("V", "P"):
+            a, b = per[(form, tname, "rv_default")], per[(form, tname, "rv_noroutes")]
+            sub[f"{form}|{tname}"] = {m: r_compare(a, b, m) for m in ("ndcg@10", "recall@50")}
+    return {"benchmark": "RETRIEVAL_BENCHMARK_V1", "kind": "descriptive: registry routes on / off (after 685a099)",
+            "snapshot_id": SNAPSHOT,
+            "runs": {"files": files, "meta": [{k: m.get(k) for k in ("kind", "harness_version", "label", "n_lines",
+                                                                      "canonical_snapshot_id", "started_at",
+                                                                      "finished_at", "calls", "errors")
+                                               if m.get(k) is not None} for m in meta]},
+            "all_queries": retr, "touched": touched, "touched_comparison": sub}
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("which", choices=["e6e7", "e11"])
-    ap.add_argument("--topic-runs", action="append", required=True)
+    ap.add_argument("which", choices=["e6e7", "e11", "routes"])
+    ap.add_argument("--topic-runs", action="append", default=[])
     ap.add_argument("--retrieval-runs", action="append", default=[])
     ap.add_argument("--group-runs", action="append", default=[])
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
-    out = run_e6e7(args) if args.which == "e6e7" else run_e11(args)
+    out = {"e6e7": run_e6e7, "e11": run_e11, "routes": run_routes}[args.which](args)
     text = json.dumps(out, ensure_ascii=False, indent=1) + "\n"
     Path(args.out).write_bytes(text.encode("utf-8"))
     print(f"wrote {args.out} sha256 {hashlib.sha256(text.encode('utf-8')).hexdigest()[:16]}")

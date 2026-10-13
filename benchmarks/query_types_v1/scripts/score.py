@@ -28,7 +28,7 @@ import score_experiments_20261013 as SE  # noqa: E402  (pool_t1 puts <repo>/src 
 from vkm_corpus.retrieval_lab import topic_bench as TB  # noqa: E402
 
 SET_FILE = REPO / "benchmarks" / "query_types_v1" / "query_types_v1.jsonl"
-SYSTEMS = ("bm25", "hybrid", "hybrid_g0")
+SYSTEMS = ("bm25", "hybrid", "hybrid_g0", "hybrid_noroutes")     # hybrid_noroutes: after 685a099 only
 TYPES = ("A_NL", "B_EN", "C_OBJECT", "D_AUTHOR", "E_PARAM")
 PAGE_METRICS = ("page_recall@10", "page_recall@50", "capped_recall@10", "capped_recall@50", "mrr@50", "success@10",
                 "precision@10")
@@ -36,6 +36,7 @@ SOURCE_METRICS = ("source_capped_recall@10", "source_recall@50", "precision@10",
 PRIMARY = {"A_NL": "page_recall@50", "B_EN": "page_recall@50", "C_OBJECT": "success@10",
            "D_AUTHOR": "source_capped_recall@10", "E_PARAM": "capped_recall@50"}
 PAIRS = (("hybrid", "bm25"), ("hybrid", "hybrid_g0"))
+BEFORE_AFTER = ("bm25", "hybrid", "hybrid_g0")
 
 
 def load_set(path: Path = SET_FILE) -> list[dict]:
@@ -130,9 +131,43 @@ def comparisons(rows: list[dict]) -> dict:
     return out
 
 
+def before_after(qs: list[dict], before: dict, after: dict, tv: dict, tp: dict) -> dict:
+    """Descriptive (repeat after 685a099): each system after − before and hybrid − hybrid_noroutes (after) on each
+    type's primary metric (truth V for A/B), Holm over this family; and the queries the registry routes touched."""
+    rows = [{**r, "system": r["system"] + "@before"} for r in score(qs, before, tv, tp)]
+    rows += [{**r, "system": r["system"] + "@after"} for r in score(qs, after, tv, tp)]
+    pairs = [(f"{s}@after", f"{s}@before") for s in BEFORE_AFTER] + [("hybrid@after", "hybrid_noroutes@after")]
+    out, pvals = {}, {}
+    for t in TYPES:
+        tname = "V" if t in ("A_NL", "B_EN") else "AUTO"
+        sub = [r for r in rows if r["type"] == t and r["truth"] == tname]
+        for k, v in TB.compare_systems(sub, pairs, (PRIMARY[t],)).items():
+            out[f"{t} | {k}"] = v
+            pvals[f"{t} | {k}"] = v["p_value"]
+    adj = TB.holm(pvals)
+    out = {k: {**v, "p_holm": round(adj[k], 5)} for k, v in out.items()}
+    touched = {}
+    for q in qs:
+        line = after.get((q["query_id"], "hybrid")) or {}
+        ar = (line.get("author_route") or {}).get("status")
+        er = (line.get("object_ref") or {}).get("entity_route")
+        if ar == "APPLIED" or er == "APPLIED":
+            prim = PRIMARY[q["type"]]
+            tname = "V" if q["type"] in ("A_NL", "B_EN") else "AUTO"
+            vals = {r["system"]: round(r[prim], 4) for r in rows
+                    if r["query_id"] == q["query_id"] and r["truth"] == tname}
+            touched[q["query_id"]] = {"type": q["type"], "subtype": q.get("subtype"), "author_route": ar,
+                                      "entity_route": er, "metric": prim, **vals}
+    return {"summary_before": summary([dict(r, system=r["system"][:-7]) for r in rows
+                                       if r["system"].endswith("@before")]),
+            "comparisons": out, "touched_by_routes": touched}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", action="append", required=True)
+    ap.add_argument("--before", action="append", default=[], help="runs of the baseline (repeat: before / after)")
+    ap.add_argument("--kind", default="experiment E10 (baseline before the 13.10 search changes)")
     ap.add_argument("--out", default=str(REPO / "benchmarks" / "query_types_v1" / "results_v1.json"))
     args = ap.parse_args()
     qs = load_set()
@@ -148,7 +183,7 @@ def main() -> None:
         rk = {q: SE.ranking(line, "ordinary") for (q, sy), line in runs.items() if sy == s and q in qtopic}
         judged_ab[s] = {"judged@10": SE.S2.judged_at(rk, qtopic, judged),
                         "unjudged_top10": SE.unjudged(rk, qtopic, judged)}
-    out = {"benchmark": "QUERY_TYPES_V1", "kind": "experiment E10 (baseline before the 13.10 search changes)",
+    out = {"benchmark": "QUERY_TYPES_V1", "kind": args.kind,
            "set_sha256": hashlib.sha256(SET_FILE.read_bytes().replace(b"\r\n", b"\n")).hexdigest(),
            "snapshot_id": SE.SNAPSHOT, "labels": label_info,
            "runs": {"files": files, "meta": [{k: m.get(k) for k in ("kind", "harness_version", "label", "n_lines",
@@ -159,6 +194,9 @@ def main() -> None:
            "n_queries": dict(Counter(q["type"] for q in qs)), "summary": summary(rows),
            "comparisons": comparisons(rows), "judged_A_B_P": judged_ab,
            "per_query": [{k: (round(v, 4) if isinstance(v, float) else v) for k, v in r.items()} for r in rows]}
+    if args.before:
+        before, bmeta, bfiles = SE.load_runs(args.before)
+        out["before_after"] = {"before_runs": bfiles, **before_after(qs, before, runs, tv, tp)}
     text = json.dumps(out, ensure_ascii=False, indent=1) + "\n"
     Path(args.out).write_bytes(text.encode("utf-8"))
     print(f"wrote {args.out} sha256 {hashlib.sha256(text.encode('utf-8')).hexdigest()[:16]}")

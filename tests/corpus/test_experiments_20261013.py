@@ -220,6 +220,36 @@ def test_decide_e6():
     assert d["verdict"].startswith("НОРМА") and not d["per_set"]["PARA1"]["P_reported"]
 
 
+def test_decide_e11():
+    S = _scorer()
+    variants = S.E11_SYSTEMS[1:]
+    res = {"judged": {s: {"judged@10": 0.95} for s in S.E11_SYSTEMS},
+           "comparisons": {t: {f"{v} - late_default | {m}": _cmp(0.0, 1.0, p=0.9) for v in variants
+                               for m in S.TOPIC_METRICS} for t in ("V", "P")}}
+    retr = {"summary": {"ordinary": {"P": {"text": {s: {"judged@10": 0.9} for s in S.E11_SYSTEMS},
+                                           "visual": {s: {"judged@10": 0.9} for s in S.E11_SYSTEMS}}}},
+            "comparisons": {f"ordinary|{t}|{tr}|{v} - late_default|{m}": {"delta": 0.0, "p_value": 1.0}
+                            for t in ("V", "P") for tr in ("text", "visual") for v in variants
+                            for m in ("ndcg@10", "recall@50")}}
+    fam = {}
+    for v in variants:
+        fam[f"topic V | {v} - late_default | page_recall@50"] = _cmp(0.0, 1.0, ci_lo=-0.01)
+        fam[f"retrieval P text | {v} - late_default | ndcg@10"] = _cmp(0.0, 1.0, ci_lo=-0.01)
+    assert S.decide_e11(res, retr, fam)["default"] is None
+    fam["retrieval P text | late_rrf - late_default | ndcg@10"] = _cmp(0.03, 0.01, ci_lo=0.01)
+    d = S.decide_e11(res, retr, fam)
+    assert d["late_rrf"]["passes"] and d["default"] == "late_rrf"
+    retr["comparisons"]["ordinary|V|visual|late_rrf - late_default|ndcg@10"] = {"delta": -0.03, "p_value": 0.02}
+    d = S.decide_e11(res, retr, fam)
+    assert not d["late_rrf"]["passes"] and d["late_rrf"]["harm"] and d["default"] is None
+    retr["comparisons"]["ordinary|V|visual|late_rrf - late_default|ndcg@10"] = {"delta": 0.0, "p_value": 1.0}
+    retr["summary"]["ordinary"]["P"]["text"]["late_bt"]["judged@10"] = 0.8       # another pair: no effect
+    assert S.decide_e11(res, retr, fam)["late_rrf"]["passes"]
+    retr["summary"]["ordinary"]["P"]["text"]["late_rrf"]["judged@10"] = 0.8      # the P gain is stopped
+    d = S.decide_e11(res, retr, fam)
+    assert not d["late_rrf"]["passes"] and "retrieval P text ndcg@10" in d["late_rrf"]["stopped_judged"]
+
+
 def test_decide_e7():
     S = _scorer()
     fam = {f"{a} - {b} | {m}": _cmp(0.0, 1.0, ci_lo=-0.01, p=0.9) for a, b in S.E7_FAMILY for m in S.TOPIC_METRICS}
