@@ -1,0 +1,48 @@
+{
+ "schema": "vkm.deploy_receipt/1",
+ "date": "2026-10-13",
+ "host": "CORE",
+ "authorization": "owner in chat 2026-10-13: items 6–11 of the search plan in parallel on a new branch («с 6 по 11 делаем паралелльно … на новой ветке»), deploys on CORE authorized the same day («выкатывай на core»); ordinary compose path",
+ "change": "api/mcp/mcp-admin and the vkm-job wrapper: 4cefa90 → 85bf6c1 (10:29Z) → 685a099 (10:33Z) of branch claude/search-next-2026-10-13: registry author route (author:PAGE, own works only — AUTHOR / CORPORATE_AUTHOR / unknown role; supervised theses excluded after the live check of «работы Баряха по сдвижению»), find_works, entity index route (entity:PAGE) and find_entities, figure fragments grouped for the FIGURE kind (group_fragments), late-stage experiment flags late_fusion / late_query (off by default; the path without them is byte-identical); catalogue pack 4cefa905d39a → 85bf6c1e00d9 (117 CSV, entity_index added); nightly MCP smoke 7 → 8 (51 tools); canonical snapshot, projections, NAV, evidence journal, policy and profile unchanged",
+ "image": {
+  "tag": "vkm-corpus-api:0.1.0-685a099c11bf",
+  "id": "sha256:8028f085d63fa8df5bccba06de4f5d9b77fc65a46696e9978d4aa87c2fcd29a5",
+  "built_on": "CORE from git archive of 685a099 (pyproject.toml, requirements, src, infra/core/api)",
+  "intermediate": "vkm-corpus-api:0.1.0-85bf6c1e00d9 (sha256:252520426fd58299e6bd95155ce55791d36e42860773ff8a02604fe56a14777f), live 10:29–10:33Z; replaced because its author route put supervised works first"
+ },
+ "previous_image": {
+  "tag": "vkm-corpus-api:0.1.0-4cefa905d39a",
+  "id": "sha256:0081aed6a66a6dbee907174f9d4d189df08e13c4a11af58d372a56f3083f0d29",
+  "rollback": "restore .env.bak-next-20261013T102904Z and vkm-job.bak-next-20261013T102904Z (image 4cefa90), `docker compose up -d --no-deps api mcp mcp-admin`; nightly/mcp_smoke.py.bak-next-20261013T102904Z (smoke 7); catalogue pack: write 4cefa905d39a into derived/catalogues/CURRENT (kept)"
+ },
+ "catalogue_pack": {
+  "pack_id": "85bf6c1e00d9",
+  "git_commit": "85bf6c1e00d9 (catalogue files identical in 685a099)",
+  "working_tree": "clean",
+  "files": 117,
+  "db_sha256": "295ebd70a3fb8df0f6842d9eef32cbdf3ffab4ddcbf211d67171a5e032d062de",
+  "new_tables": ["entity_index"]
+ },
+ "checks": {
+  "containers_after": {
+   "vkm-core-api-1": {"image": "vkm-corpus-api:0.1.0-685a099c11bf", "health": "healthy", "restart_count": 0},
+   "vkm-core-mcp-1": {"image": "vkm-corpus-api:0.1.0-685a099c11bf", "health": "healthy", "restart_count": 0},
+   "vkm-core-mcp-admin-1": {"image": "vkm-corpus-api:0.1.0-685a099c11bf", "health": "healthy", "restart_count": 0}
+  },
+  "mcp_smoke": {"version": "nightly-mcp-smoke-8", "summary": {"PASS": 51, "WARN": 0, "FAIL": 0, "SKIP": 0}, "verdict": "PASS",
+                "tools_listed": 51, "seconds": 8.8,
+                "output_sha256": "12aa77c1b8e0b65140d20b986b0af68887b865a2fba99d28073e9bfb8e2b406d"},
+  "live": {
+   "скважина 75": "VKM-SRC-012:p0064 (табл. 3.1 Лебедевой; «Скважина» и «75» в разных ячейках) first — entity index row BH-SOL-75",
+   "работы Баряха по сдвижению (85bf6c1)": "supervised dissertations VKM-SRC-065 (Щеголков) first — role SUPERVISOR in the registry → fixed in 685a099",
+   "работы Баряха по сдвижению (685a099)": "own works VKM-SRC-102, 087, 077 lead; the bibliographic route keeps the citing pages"
+  }
+ },
+ "tests": "branch: search/API/MCP/registry 585 passed (+56 author/registry after the fix), tests/world 807 passed, test_public_hygiene 6/6, verify_canonical_repository PASS_WITH_NONBLOCKING (36 PASS, 7 tag anchors skipped)",
+ "limits": {
+  "edge": "unchanged",
+  "serving_profile": "COMPATIBILITY (unchanged)",
+  "science": "authors are name-key clusters (NAME_KEY_ONLY), not identified persons; the entity index is navigation built from the PUBLIC catalogues (identity across sources not guessed); late flags are an experiment (benchmark E11 runs on this image)"
+ },
+ "work_dir": "work/deploy_search_next_20261013 (deploy_core.sh, deploy_core_2.sh; git-ignored)"
+}
