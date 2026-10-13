@@ -89,6 +89,10 @@ LATE_FUSION = ("experiment (late stage): replace = the late score orders each ki
                "head's RRF order and its late order (trace late_fusion_rank)")
 LATE_QUERY = ("experiment (late stage): original = the query alone (default); best_translation = also its translation "
               "(with translate): late score = max of MaxSim / query tokens (trace late_query)")
+LongQuery = Annotated[Literal["strict", "relax", "strip", "relax_strip"], Field(description=(
+    "experiment (BM25 of a long question, >= 6 content terms): strict = as typed (default); relax = "
+    "minimum_should_match '3<70% 5<50%'; strip = without the question frame (какие, в каком году, что известно, "
+    "наблюдались …; terms stay); relax_strip = both; record stages.long_query"))]
 StrList = Annotated[list[Annotated[str, Field(max_length=60)]] | None, Field(max_length=20)]
 SearchKind = Literal["PAGE", "BLOCK", "FIGURE", "TABLE", "FORMULA"]
 HybridKind = Literal["PAGE", "FIGURE", "TABLE", "FORMULA"]
@@ -210,7 +214,8 @@ def build_read_server(api: ApiClient) -> MCPServer:
             cursor: Cursor = None,
             include_ambiguous: Annotated[bool, Field(description=INCLUDE_AMBIGUOUS)] = False,
             view: View = "brief",
-            group_fragments: Annotated[bool, Field(description=GROUP_FRAGMENTS)] = True) -> CallToolResult:
+            group_fragments: Annotated[bool, Field(description=GROUP_FRAGMENTS)] = True,
+            long_query: LongQuery = "strict") -> CallToolResult:
         """Full-text BM25 search over pages, blocks, figures, tables and formulas. Returns candidate objects with
         index snippets (a projection, not the object's text): brief by default (id, rank, bm25_score, snippet, label;
         source cards); view="full" adds canonical envelopes and a rerank_candidate for rerank_text. Regions of one
@@ -223,7 +228,8 @@ def build_read_server(api: ApiClient) -> MCPServer:
             "unknown_policy": unknown_policy, "quality_flags_none": quality_flags_none,
             "include_ambiguous": include_ambiguous or None}.items() if v is not None}
         body = {"query": query, "kinds": kinds, "filters": filters, "limit": limit, "cursor": cursor,
-                **({} if group_fragments else {"group_fragments": False})}      # the default body is unchanged
+                **({} if group_fragments else {"group_fragments": False}),      # the default body is unchanged
+                **({"long_query": long_query} if long_query != "strict" else {})}
         return await call("search_text", "POST", "/v1/search", body=_with_view(body, view))
 
     def hybrid_body(query: str, kinds: list[str], source_ids: list[str] | None, work_ids: list[str] | None,
@@ -235,7 +241,7 @@ def build_read_server(api: ApiClient) -> MCPServer:
                     formulations: list[str] | None = None, expand: str = "none",
                     max_per_source: int | None = None, include_ambiguous: bool = False, *,
                     group_fragments: bool = True, late_fusion: str = "replace",
-                    late_query: str = "original") -> dict[str, Any]:
+                    late_query: str = "original", long_query: str = "strict") -> dict[str, Any]:
         filters = {k: v for k, v in {
             "source_ids": source_ids, "work_ids": work_ids, "source_scope": source_scope, "year_from": year_from,
             "year_to": year_to, "available_until": available_until, "unknown_policy": unknown_policy,
@@ -249,7 +255,8 @@ def build_read_server(api: ApiClient) -> MCPServer:
                 **({"max_per_source": max_per_source} if max_per_source is not None else {}),
                 **({} if group_fragments else {"group_fragments": False}),
                 **({"late_fusion": late_fusion} if late_fusion != "replace" else {}),
-                **({"late_query": late_query} if late_query != "original" else {})}
+                **({"late_query": late_query} if late_query != "original" else {}),
+                **({"long_query": long_query} if long_query != "strict" else {})}
 
     @server.tool(name="search_hybrid", annotations=READ_ONLY)
     async def search_hybrid(
@@ -294,7 +301,8 @@ def build_read_server(api: ApiClient) -> MCPServer:
                                                                     "are fused by RRF (record stages.formulations); "
                                                                     "write them in Russian with other terms — the "
                                                                     "server already searches the English translation "
-                                                                    "(E6b: two Russian wordings beat a Russian + "
+                                                                    "(E6b, E6c: two Russian wordings add about "
+                                                                    "+0.05…0.10 page recall@50 and beat a Russian + "
                                                                     "English pair)")]
             = None,
             expand: Annotated[Literal["none", "terms"], Field(description="terms: up to 3 more wordings from the NAV "
@@ -308,7 +316,8 @@ def build_read_server(api: ApiClient) -> MCPServer:
             include_ambiguous: Annotated[bool, Field(description=INCLUDE_AMBIGUOUS)] = False,
             group_fragments: Annotated[bool, Field(description=GROUP_FRAGMENTS)] = True,
             late_fusion: Annotated[Literal["replace", "rrf"], Field(description=LATE_FUSION)] = "replace",
-            late_query: Annotated[Literal["original", "best_translation"], Field(description=LATE_QUERY)] = "original"
+            late_query: Annotated[Literal["original", "best_translation"], Field(description=LATE_QUERY)] = "original",
+            long_query: LongQuery = "strict"
             ) -> CallToolResult:
         """Hybrid search: BM25 + dense embeddings (RX580 query encoder, OpenSearch k-NN over embedding units),
         fused by reciprocal rank, then (late) re-scored by late interaction (mLateOn MaxSim over token vectors; a page
@@ -332,7 +341,7 @@ def build_read_server(api: ApiClient) -> MCPServer:
             query, kinds, source_ids, work_ids, source_scope, year_from, year_to, available_until, unknown_policy,
             limit, candidates, cursor, late, late_candidates, bib_route, visual_route, graph, formulations, expand,
             max_per_source, include_ambiguous, group_fragments=group_fragments, late_fusion=late_fusion,
-            late_query=late_query), view))
+            late_query=late_query, long_query=long_query), view))
 
     @server.tool(name="retrieval_trace", annotations=READ_ONLY)
     async def retrieval_trace(
@@ -826,7 +835,7 @@ def build_read_server(api: ApiClient) -> MCPServer:
                 max_length=4, description="1–2 other wordings of the topic in Russian with other terms (the "
                                           "translation to English is added by the server): searched too and fused "
                                           "with the query by RRF; the topic benchmark found more evidence pages "
-                                          "with them (E6b)")] = None,
+                                          "with them (E6b, E6c)")] = None,
             include_json: Annotated[bool, Field(description=(
                 "also return the full JSON dossier as structured content (large: ranked pages per tier, data of "
                 "every entry); default: the markdown text and a compact summary"))] = False) -> CallToolResult:

@@ -98,5 +98,23 @@
   },
   "rollback": ".env.bak-next4-20261013T121438Z and vkm-job.bak-next4-20261013T121438Z (image 1b20e03)",
   "also": "nightly_checks.sh on CORE: dry-run compares planned smoke calls with the smoke's own expected list (51), backup nightly_checks.sh.bak-20261013T113543Z"
+ },
+ "followup_long_query": {
+  "at": "2026-10-13T13:18Z",
+  "tag": "vkm-corpus-api:0.1.0-5c7ad8d1f983",
+  "id": "sha256:1f0e89725a677bf7937a32d0669c1a91765c92b93c6fedf807d6f2c3d16cfdd7",
+  "change": "long_query field of POST /v1/search/hybrid and MCP search_hybrid (strict / relax / strip / relax_strip; default strict = previous path byte for byte); MCP guidance after E6c; catalogue pack 85bf6c1e00d9 and smoke-8 unchanged",
+  "smoke": {
+   "version": "nightly-mcp-smoke-8",
+   "summary": {
+    "PASS": 51,
+    "WARN": 0,
+    "FAIL": 0,
+    "SKIP": 0
+   }
+  },
+  "live_check": "review question «Какие максимальные оседания земной поверхности наблюдались на СКРУ-1 и в каком году?»: BM25 hits strict 24, relax 399, strip 664, relax_strip 1449; translation APPLIED with strip; ranking effect not measured here (benchmark E12)",
+  "rollback": ".env.bak-lq-20261013T131820Z and vkm-job.bak-lq-20261013T131820Z (image e15f9b3)",
+  "containers": "api, mcp, mcp-admin healthy, restarts 0"
  }
 }

@@ -46,6 +46,10 @@ VIEW_DOC = ("full (default): the ApiResponse with envelopes, records and traces;
 CURSOR_DOC = "next_cursor of the previous page (an offset); anything else is INVALID_ARGUMENT"
 GROUP_FRAGMENTS_DOC = ("FIGURE: regions of one page that share one caption block are one hit (the largest region at "
                        "the best-ranked one's place; the others in record.fragments); false = every detected region")
+LongQuery = Literal["strict", "relax", "strip", "relax_strip"]
+LONG_QUERY_DOC = ("BM25 of a long question (>= 6 content terms; search.long_query): strict (default) = today's "
+                  "query; relax = minimum_should_match '3<70% 5<50%'; strip = without the question frame (какие, в "
+                  "каком году, что известно, наблюдались …); relax_strip = both; record.stages.long_query")
 
 
 @dataclass
@@ -159,6 +163,7 @@ class SearchBody(_Body):
     include_duplicates: bool = False
     exact: bool = Field(False, description="unstemmed word forms instead of morphology")
     group_fragments: bool = Field(True, description=GROUP_FRAGMENTS_DOC)
+    long_query: LongQuery = Field("strict", description=LONG_QUERY_DOC)
 
 
 HybridKind = Literal["PAGE", "FIGURE", "TABLE", "FORMULA"]
@@ -217,6 +222,8 @@ class HybridSearchBody(_Body):
     entity_route: bool | None = Field(None, description="entity-index pages of a numbered borehole / line / block / "
                                                         "panel / benchmark (stages.object_ref.entity_route); null = on "
                                                         "when one is named; false = off")
+    long_query: LongQuery = Field("strict", description=LONG_QUERY_DOC + "; dense, late and the routes keep the "
+                                                                          "original query")
 
 
 class ObjectsQueryBody(_Body):
@@ -475,7 +482,9 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
         request.state.query_sha256 = hashlib.sha256(body.query.encode("utf-8")).hexdigest()
         return respond(request, service.search(body.query, list(body.kinds), body.filters.to_search(), body.limit,
                                                body.cursor, body.include_duplicates, body.exact,
-                                               group_fragments=body.group_fragments),
+                                               group_fragments=body.group_fragments,
+                                               **({"long_query": body.long_query} if body.long_query != "strict"
+                                                  else {})),
                        view=body.view, brief_kind="search")
 
     @app.get("/v1/search", tags=["search"], **JSON_RESPONSES)
@@ -500,7 +509,9 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
                                                       group_fragments=body.group_fragments,
                                                       late_fusion=body.late_fusion, late_query=body.late_query,
                                                       author_route=body.author_route,
-                                                      entity_route=body.entity_route),
+                                                      entity_route=body.entity_route,
+                                                      **({"long_query": body.long_query}
+                                                         if body.long_query != "strict" else {})),
                        view=body.view, brief_kind="hybrid")
 
     @app.get("/v1/search/hybrid", tags=["search"], **JSON_RESPONSES)

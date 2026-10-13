@@ -9,9 +9,10 @@ read from the file mounted in the container (``VKM_API_TOKEN_FILE``) and is neve
 Output (stdout), the line format of ``harness_core.py``: a ``meta`` line, one ``kind = run`` line per plan line —
 ``hits`` = ``[{page_id, source_id, duplicates, copies}]`` in rank order (``duplicates``: the collapsed duplicate pages
 of the hit; ``copies``: the G1 copies listed on the hit, page ids only), ``error``, ``api_ms`` and, for the hybrid
-route, ids / statuses / counters of the stages (late, translation, graph, formulations, object_ref, routes) — then an
-``end`` line. No page text, snippets, highlights, titles or formulation texts. ``score.load_runs`` and
-``score.ranking_of`` (frozen) read the lines unchanged (copies ignored there; the 13.10 scorer adds them).
+route, ids / statuses / counters of the stages (late, translation, graph, formulations, object_ref, routes; since -4
+also the PAGE ``totals`` counters and ``stages.long_query`` statuses and term counts) — then an ``end`` line. No
+page text, snippets, highlights, titles or formulation texts. ``score.load_runs`` and ``score.ranking_of`` (frozen)
+read the lines unchanged (copies ignored there; the 13.10 scorer adds them).
 
 A preflight request per distinct set of request fields (limit 1) stops the run before the first measurement when the
 API refuses a field (an image without it answers 400): a variant is never measured as the default in disguise.
@@ -26,7 +27,7 @@ import time
 import urllib.error
 import urllib.request
 
-HARNESS_VERSION = "plan-harness-20261013-3"
+HARNESS_VERSION = "plan-harness-20261013-4"      # -4 (E12): + BM25 totals, translation built_from, stages.long_query
 BASE = os.environ.get("VKM_BENCH_API", "http://127.0.0.1:8000")
 PAGE_RE = re.compile(r"VKM-SRC-\d{3}:[a-z]\d{4}")
 ROUTES = ("/v1/search", "/v1/search/hybrid")
@@ -111,7 +112,18 @@ def diagnostics(rec: dict) -> dict:
                  "candidates": rec.get("candidates"), "fused_total": rec.get("fused_total"), "route": rec.get("route"),
                  "server_ms": (rec.get("timings_ms") or {}).get("total"),
                  "translation_status": (rec.get("translation") or {}).get("status")
+                 if isinstance(rec.get("translation"), dict) else None,
+                 "translation_built_from": (rec.get("translation") or {}).get("built_from")
                  if isinstance(rec.get("translation"), dict) else None}
+    totals = rec.get("totals")
+    if isinstance(totals, dict) and isinstance(totals.get("PAGE"), dict):        # BM25 / dense counters (E12)
+        out["totals_page"] = {k: v for k, v in totals["PAGE"].items() if isinstance(v, int)}
+    lq = stages.get("long_query")
+    if isinstance(lq, dict):                     # long questions (agent M, E12): statuses and counts, no texts
+        keys = ("status", "long", "terms", "msm", "strip", "terms_after_strip")
+        out["long_query"] = {**{k: lq.get(k) for k in ("mode", *keys)}, "n_removed": len(lq.get("removed") or []),
+                             "expansions": [{k: x.get(k) for k in keys} for x in lq.get("expansions") or []
+                                            if isinstance(x, dict)]}
     g = stages.get("graph")
     out["graph"] = ({"requested": g.get("requested"), "status": g.get("status")} if isinstance(g, dict)
                     else (str(g)[:80] if g is not None else None))
