@@ -1,0 +1,4343 @@
+{
+ "benchmark": "TOPIC_BENCHMARK_V1",
+ "kind": "pre-registered experiment E6b (PREREGISTRATION_E6B_2026-10-13.md)",
+ "snapshot_id": "snap-20261007T103222Z-2d71e9e8",
+ "labels": {
+  "t1_rows": 9058,
+  "t2_rows": 1558,
+  "t1_qrels_sha256": "90b23a11a28a60b93ad8c3f26a97f6399c3ba2f52b369ad747acef476dfee2ee",
+  "t2_qrels_sha256": "b608390c34bbffd98bfc29018e3bb8c47e96017e15c6d237d039ea953e77e1b1",
+  "t2_groups_sha256": "5c82fc8c136ef5c5952874c1fc93009796b72401e9fc3b6689cfacf3dc4cf160",
+  "t1_alias_links": 1,
+  "t3_rows": 1142,
+  "t3_qrels_sha256": "e9c47e6836be563f63c1ac88d71a3499093f600ae26a874009d3dd2b895939bf",
+  "t3_groups_sha256": "b344ae2e369062d9b9d5a8e32945e3ebbf6a8bf53a12326bd8335eb4c9044f49",
+  "t3_alias_links": 1
+ },
+ "inputs": {
+  "llm_ru_name.jsonl": "52a0c3410e4c4aa4d62cd29c65e208a0ef8161a852c5a28c671fcbf70ccf2036",
+  "llm_ru_para1.jsonl": "9bdef5bcfde229e47eb82f26d7f042872124c39144849aa69ecea6384f605c00"
+ },
+ "runs": {
+  "files": [
+   {
+    "sha256": "86ca70f0609293f8ccf774d6ab90fbcdc13e425bb2e08214a36526fb0bf38997",
+    "lines": 938
+   }
+  ],
+  "meta": [
+   {
+    "kind": "meta",
+    "harness_version": "plan-harness-20261013-3",
+    "label": "e6b",
+    "systems": [
+     "base",
+     "human3",
+     "llm3",
+     "llm3ru"
+    ],
+    "n_lines": 936,
+    "canonical_snapshot_id": "snap-20261007T103222Z-2d71e9e8",
+    "started_at": "2026-10-13T11:23:56Z",
+    "requests": {
+     "base": [
+      "author_route",
+      "candidates",
+      "entity_route",
+      "graph",
+      "kinds",
+      "limit"
+     ],
+     "human3": [
+      "author_route",
+      "candidates",
+      "entity_route",
+      "formulations",
+      "graph",
+      "kinds",
+      "limit"
+     ],
+     "llm3": [
+      "author_route",
+      "candidates",
+      "entity_route",
+      "formulations",
+      "graph",
+      "kinds",
+      "limit"
+     ],
+     "llm3ru": [
+      "author_route",
+      "candidates",
+      "entity_route",
+      "formulations",
+      "graph",
+      "kinds",
+      "limit"
+     ]
+    }
+   },
+   {
+    "kind": "end",
+    "finished_at": "2026-10-13T11:31:28Z",
+    "calls": 939,
+    "errors": 0,
+    "retries": 0
+   }
+  ]
+ },
+ "errors": {},
+ "E6b": {
+  "systems": [
+   "base",
+   "human3",
+   "llm3",
+   "llm3ru"
+  ],
+  "sets": {
+   "NAME": {
+    "n_queries": 117,
+    "base": 117,
+    "human3": 117,
+    "llm3": 117,
+    "llm3ru": 117
+   },
+   "PARA1": {
+    "n_queries": 117,
+    "base": 117,
+    "human3": 117,
+    "llm3": 117,
+    "llm3ru": 117
+   }
+  },
+  "judged": {
+   "NAME:base": {
+    "judged@10": 1.0,
+    "unjudged_top10": {
+     "slots": 0,
+     "pairs": 0,
+     "pair_ids": []
+    }
+   },
+   "NAME:human3": {
+    "judged@10": 1.0,
+    "unjudged_top10": {
+     "slots": 0,
+     "pairs": 0,
+     "pair_ids": []
+    }
+   },
+   "NAME:llm3": {
+    "judged@10": 0.841,
+    "unjudged_top10": {
+     "slots": 186,
+     "pairs": 186,
+     "pair_ids": [
+      [
+       "MM-BACKFILL",
+       "VKM-SRC-173:p0074"
+      ],
+      [
+       "MM-BLAST",
+       "VKM-SRC-054:p0267"
+      ],
+      [
+       "MM-CONTACT",
+       "VKM-SRC-054:p0063"
+      ],
+      [
+       "MM-CONTACT",
+       "VKM-SRC-193:p0184"
+      ],
+      [
+       "MM-CREEP",
+       "VKM-SRC-045:p0012"
+      ],
+      [
+       "MM-CREEP",
+       "VKM-SRC-193:p0072"
+      ],
+      [
+       "MM-CREEP",
+       "VKM-SRC-193:p0146"
+      ],
+      [
+       "MM-CREEP",
+       "VKM-SRC-193:p0153"
+      ],
+      [
+       "MM-DAMAGE",
+       "VKM-SRC-111:p0002"
+      ],
+      [
+       "MM-DAMAGE",
+       "VKM-SRC-193:p0122"
+      ],
+      [
+       "MM-DAMAGE",
+       "VKM-SRC-193:p0205"
+      ],
+      [
+       "MM-DAMAGE",
+       "VKM-SRC-193:p0207"
+      ],
+      [
+       "MM-DEF",
+       "VKM-SRC-184:p0005"
+      ],
+      [
+       "MM-DEF",
+       "VKM-SRC-210:p0081"
+      ],
+      [
+       "MM-DEM",
+       "VKM-SRC-246:p0089"
+      ],
+      [
+       "MM-DEM",
+       "VKM-SRC-246:p0238"
+      ],
+      [
+       "MM-DEM",
+       "VKM-SRC-246:p0239"
+      ],
+      [
+       "MM-DISS",
+       "VKM-SRC-086:p0004"
+      ],
+      [
+       "MM-ECON",
+       "VKM-SRC-252:r0073"
+      ],
+      [
+       "MM-ECON",
+       "VKM-SRC-268:p0055"
+      ],
+      [
+       "MM-ELAST",
+       "VKM-SRC-134:p0005"
+      ],
+      [
+       "MM-FRAC",
+       "VKM-SRC-044:p0046"
+      ],
+      [
+       "MM-FRAC",
+       "VKM-SRC-193:p0195"
+      ],
+      [
+       "MM-FRAC",
+       "VKM-SRC-205:p0035"
+      ],
+      [
+       "MM-FRAC",
+       "VKM-SRC-205:p0036"
+      ],
+      [
+       "MM-GASDYN",
+       "VKM-SRC-069:p0001"
+      ],
+      [
+       "MM-GEOCHEM",
+       "VKM-SRC-011:p0182"
+      ],
+      [
+       "MM-GEOCHEM",
+       "VKM-SRC-150:p0007"
+      ],
+      [
+       "MM-GEOCHEM",
+       "VKM-SRC-150:p0054"
+      ],
+      [
+       "MM-GEOCHEM",
+       "VKM-SRC-202:p0012"
+      ],
+      [
+       "MM-GEOD",
+       "VKM-SRC-184:p0002"
+      ],
+      [
+       "MM-GEOD",
+       "VKM-SRC-203:p0228"
+      ],
+      [
+       "MM-GEOD",
+       "VKM-SRC-232:p0023"
+      ],
+      [
+       "MM-GEOL",
+       "VKM-SRC-011:p0174"
+      ],
+      [
+       "MM-GEOL",
+       "VKM-SRC-011:p0177"
+      ],
+      [
+       "MM-GEOL",
+       "VKM-SRC-150:p0011"
+      ],
+      [
+       "MM-GEOL",
+       "VKM-SRC-156:p0001"
+      ],
+      [
+       "MM-GEOMECH",
+       "VKM-SRC-193:p0594"
+      ],
+      [
+       "MM-GEOMECH",
+       "VKM-SRC-204:p0097"
+      ],
+      [
+       "MM-GPR",
+       "VKM-SRC-191:p0006"
+      ],
+      [
+       "MM-GPR",
+       "VKM-SRC-191:p0027"
+      ],
+      [
+       "MM-GPR",
+       "VKM-SRC-191:p0125"
+      ],
+      [
+       "MM-GPR",
+       "VKM-SRC-193:p0485"
+      ],
+      [
+       "MM-HYDRO",
+       "VKM-SRC-239:p0029"
+      ],
+      [
+       "MM-HYDRO",
+       "VKM-SRC-269:r0010"
+      ],
+      [
+       "MM-HYDTR",
+       "VKM-SRC-212:p0136"
+      ],
+      [
+       "MM-HYDTR",
+       "VKM-SRC-265:p0003"
+      ],
+      [
+       "MM-INSAR",
+       "VKM-SRC-145:p0006"
+      ],
+      [
+       "MM-INV",
+       "VKM-SRC-187:p0006"
+      ],
+      [
+       "MM-INV",
+       "VKM-SRC-226:p0757"
+      ],
+      [
+       "MM-INV",
+       "VKM-SRC-226:p0760"
+      ],
+      [
+       "MM-IS",
+       "VKM-SRC-266:p0062"
+      ],
+      [
+       "MM-LAB",
+       "VKM-SRC-054:p0078"
+      ],
+      [
+       "MM-MINE",
+       "VKM-SRC-014:p0052"
+      ],
+      [
+       "MM-MINE",
+       "VKM-SRC-026:p0013"
+      ],
+      [
+       "MM-MINE",
+       "VKM-SRC-027:p0006"
+      ],
+      [
+       "MM-ML",
+       "VKM-SRC-152:p0008"
+      ],
+      [
+       "MM-NUM",
+       "VKM-SRC-036:p0003"
+      ],
+      [
+       "MM-NUM",
+       "VKM-SRC-193:p0414"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-001:p0003"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-186:p0001"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-186:p0005"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-186:p0017"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-232:p0040"
+      ],
+      [
+       "MM-PETRO",
+       "VKM-SRC-012:p0102"
+      ],
+      [
+       "MM-PETRO",
+       "VKM-SRC-211:p0001"
+      ],
+      [
+       "MM-PETRO",
+       "VKM-SRC-267:p0017"
+      ],
+      [
+       "MM-PILLAR",
+       "VKM-SRC-067:p0021"
+      ],
+      [
+       "MM-PROT",
+       "VKM-SRC-210:p0071"
+      ],
+      [
+       "MM-PROT",
+       "VKM-SRC-210:p0076"
+      ],
+      [
+       "MM-RISK",
+       "VKM-SRC-197:p0003"
+      ],
+      [
+       "MM-ROOF",
+       "VKM-SRC-054:p0191"
+      ],
+      [
+       "MM-ROOF",
+       "VKM-SRC-176:p0003"
+      ],
+      [
+       "MM-RS",
+       "VKM-SRC-006:p0011"
+      ],
+      [
+       "MM-RS",
+       "VKM-SRC-147:p0015"
+      ],
+      [
+       "MM-SCALE",
+       "VKM-SRC-060:p0002"
+      ],
+      [
+       "MM-SCALE",
+       "VKM-SRC-194:p0013"
+      ],
+      [
+       "MM-STAT",
+       "VKM-SRC-152:p0007"
+      ],
+      [
+       "MM-STRESS",
+       "VKM-SRC-029:p0128"
+      ],
+      [
+       "MM-STRESS",
+       "VKM-SRC-231:p0161"
+      ],
+      [
+       "MM-STRESS",
+       "VKM-SRC-231:p0166"
+      ],
+      [
+       "MM-SUBS",
+       "VKM-SRC-042:p0003"
+      ],
+      [
+       "MM-SUBS",
+       "VKM-SRC-159:p0002"
+      ],
+      [
+       "MM-THERM",
+       "VKM-SRC-173:p0083"
+      ],
+      [
+       "PC-01",
+       "VKM-SRC-231:p0409"
+      ],
+      [
+       "PC-01",
+       "VKM-SRC-238:p0131"
+      ],
+      [
+       "PC-02",
+       "VKM-SRC-193:p0218"
+      ],
+      [
+       "PC-02",
+       "VKM-SRC-231:p0164"
+      ],
+      [
+       "PC-02",
+       "VKM-SRC-235:p0368"
+      ],
+      [
+       "PC-03",
+       "VKM-SRC-212:p0048"
+      ],
+      [
+       "PC-04",
+       "VKM-SRC-249:s0192"
+      ],
+      [
+       "PC-06",
+       "VKM-SRC-193:p0404"
+      ],
+      [
+       "PC-06",
+       "VKM-SRC-226:p0427"
+      ],
+      [
+       "PC-06",
+       "VKM-SRC-231:p0055"
+      ],
+      [
+       "PC-07",
+       "VKM-SRC-047:p0049"
+      ],
+      [
+       "PC-08",
+       "VKM-SRC-203:p0006"
+      ],
+      [
+       "PC-09",
+       "VKM-SRC-011:p0124"
+      ],
+      [
+       "PC-09",
+       "VKM-SRC-231:p0136"
+      ],
+      [
+       "PC-11",
+       "VKM-SRC-066:p0037"
+      ],
+      [
+       "PC-11",
+       "VKM-SRC-066:p0041"
+      ],
+      [
+       "PC-11",
+       "VKM-SRC-089:p0087"
+      ],
+      [
+       "PC-11",
+       "VKM-SRC-193:p0473"
+      ],
+      [
+       "PC-12",
+       "VKM-SRC-163:p0054"
+      ],
+      [
+       "PC-12",
+       "VKM-SRC-226:p0410"
+      ],
+      [
+       "PC-13",
+       "VKM-SRC-193:p0423"
+      ],
+      [
+       "PC-14",
+       "VKM-SRC-011:p0075"
+      ],
+      [
+       "PC-14",
+       "VKM-SRC-269:r0004"
+      ],
+      [
+       "PC-15",
+       "VKM-SRC-193:p0430"
+      ],
+      [
+       "PC-19",
+       "VKM-SRC-193:p0158"
+      ],
+      [
+       "PC-20",
+       "VKM-SRC-101:p0002"
+      ],
+      [
+       "PC-20",
+       "VKM-SRC-193:p0061"
+      ],
+      [
+       "PC-21",
+       "VKM-SRC-193:p0104"
+      ],
+      [
+       "PC-21",
+       "VKM-SRC-193:p0105"
+      ],
+      [
+       "PC-22",
+       "VKM-SRC-094:p0006"
+      ],
+      [
+       "PC-22",
+       "VKM-SRC-231:p0542"
+      ],
+      [
+       "PC-23",
+       "VKM-SRC-067:p0026"
+      ],
+      [
+       "PC-23",
+       "VKM-SRC-204:p0079"
+      ],
+      [
+       "PC-24",
+       "VKM-SRC-238:p0206"
+      ],
+      [
+       "PC-26",
+       "VKM-SRC-161:p0004"
+      ],
+      [
+       "PC-29",
+       "VKM-SRC-169:p0005"
+      ],
+      [
+       "PC-31",
+       "VKM-SRC-089:p0088"
+      ],
+      [
+       "PC-32",
+       "VKM-SRC-193:p0499"
+      ],
+      [
+       "PC-32",
+       "VKM-SRC-212:p0048"
+      ],
+      [
+       "PC-32",
+       "VKM-SRC-231:p0428"
+      ],
+      [
+       "PC-32",
+       "VKM-SRC-231:p0435"
+      ],
+      [
+       "PC-32",
+       "VKM-SRC-231:p0436"
+      ],
+      [
+       "PC-32",
+       "VKM-SRC-231:p0444"
+      ],
+      [
+       "PC-33",
+       "VKM-SRC-016:p0010"
+      ],
+      [
+       "PC-34",
+       "VKM-SRC-043:p0007"
+      ],
+      [
+       "PC-34",
+       "VKM-SRC-152:p0002"
+      ],
+      [
+       "PC-35",
+       "VKM-SRC-204:p0189"
+      ],
+      [
+       "PC-35",
+       "VKM-SRC-267:p0034"
+      ],
+      [
+       "PC-36",
+       "VKM-SRC-012:p0040"
+      ],
+      [
+       "PC-38",
+       "VKM-SRC-226:p0667"
+      ],
+      [
+       "PC-40",
+       "VKM-SRC-193:p0103"
+      ],
+      [
+       "PC-40",
+       "VKM-SRC-193:p0344"
+      ],
+      [
+       "PC-40",
+       "VKM-SRC-193:p0526"
+      ],
+      [
+       "PC-40",
+       "VKM-SRC-193:p0528"
+      ],
+      [
+       "PC-42",
+       "VKM-SRC-234:p0080"
+      ],
+      [
+       "PC-42",
+       "VKM-SRC-236:p0512"
+      ],
+      [
+       "PC-44",
+       "VKM-SRC-267:p0039"
+      ],
+      [
+       "PC-45",
+       "VKM-SRC-011:p0183"
+      ],
+      [
+       "PC-45",
+       "VKM-SRC-123:p0002"
+      ],
+      [
+       "PC-45",
+       "VKM-SRC-193:p0607"
+      ],
+      [
+       "PC-46",
+       "VKM-SRC-011:p0182"
+      ],
+      [
+       "PC-46",
+       "VKM-SRC-011:p0183"
+      ],
+      [
+       "PC-48",
+       "VKM-SRC-193:p0259"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-150:p0172"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-189:p0002"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-193:p0151"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-193:p0153"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-193:p0572"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-193:p0596"
+      ],
+      [
+       "PC-50",
+       "VKM-SRC-173:p0038"
+      ],
+      [
+       "PC-50",
+       "VKM-SRC-173:p0088"
+      ],
+      [
+       "PC-52",
+       "VKM-SRC-246:p0354"
+      ],
+      [
+       "PC-52",
+       "VKM-SRC-246:p0366"
+      ],
+      [
+       "PC-53",
+       "VKM-SRC-231:p0290"
+      ],
+      [
+       "PC-53",
+       "VKM-SRC-231:p0326"
+      ],
+      [
+       "PC-53",
+       "VKM-SRC-231:p0327"
+      ],
+      [
+       "PC-56",
+       "VKM-SRC-203:p0269"
+      ],
+      [
+       "PC-56",
+       "VKM-SRC-266:p0036"
+      ],
+      [
+       "PC-57",
+       "VKM-SRC-130:p0002"
+      ],
+      [
+       "PC-58",
+       "VKM-SRC-146:p0004"
+      ],
+      [
+       "PC-58",
+       "VKM-SRC-191:p0114"
+      ],
+      [
+       "PC-58",
+       "VKM-SRC-191:p0120"
+      ],
+      [
+       "PC-58",
+       "VKM-SRC-191:p0156"
+      ],
+      [
+       "PC-59",
+       "VKM-SRC-029:p0069"
+      ],
+      [
+       "PC-59",
+       "VKM-SRC-029:p0121"
+      ],
+      [
+       "PC-60",
+       "VKM-SRC-218:p0174"
+      ],
+      [
+       "PC-61",
+       "VKM-SRC-148:p0018"
+      ],
+      [
+       "PC-62",
+       "VKM-SRC-099:p0007"
+      ],
+      [
+       "PC-62",
+       "VKM-SRC-099:p0008"
+      ],
+      [
+       "PC-63",
+       "VKM-SRC-249:s0094"
+      ],
+      [
+       "PC-64",
+       "VKM-SRC-090:p0005"
+      ],
+      [
+       "PC-64",
+       "VKM-SRC-098:p0083"
+      ],
+      [
+       "PC-64",
+       "VKM-SRC-217:p0187"
+      ],
+      [
+       "PC-65",
+       "VKM-SRC-103:p0030"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-054:p0027"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-086:p0002"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-086:p0014"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-091:p0001"
+      ],
+      [
+       "PC-68",
+       "VKM-SRC-231:p0534"
+      ],
+      [
+       "PC-69",
+       "VKM-SRC-148:p0040"
+      ],
+      [
+       "PC-71",
+       "VKM-SRC-203:p0078"
+      ],
+      [
+       "PC-71",
+       "VKM-SRC-249:s0034"
+      ]
+     ]
+    }
+   },
+   "NAME:llm3ru": {
+    "judged@10": 0.8641,
+    "unjudged_top10": {
+     "slots": 159,
+     "pairs": 159,
+     "pair_ids": [
+      [
+       "MM-BACKFILL",
+       "VKM-SRC-173:p0039"
+      ],
+      [
+       "MM-BACKFILL",
+       "VKM-SRC-173:p0074"
+      ],
+      [
+       "MM-CONTACT",
+       "VKM-SRC-044:p0106"
+      ],
+      [
+       "MM-CREEP",
+       "VKM-SRC-045:p0012"
+      ],
+      [
+       "MM-CREEP",
+       "VKM-SRC-047:p0144"
+      ],
+      [
+       "MM-DAMAGE",
+       "VKM-SRC-044:p0037"
+      ],
+      [
+       "MM-DAMAGE",
+       "VKM-SRC-054:p0080"
+      ],
+      [
+       "MM-DAMAGE",
+       "VKM-SRC-054:p0092"
+      ],
+      [
+       "MM-DISS",
+       "VKM-SRC-025:p0017"
+      ],
+      [
+       "MM-DISS",
+       "VKM-SRC-202:p0017"
+      ],
+      [
+       "MM-ECON",
+       "VKM-SRC-266:p0005"
+      ],
+      [
+       "MM-ECON",
+       "VKM-SRC-266:p0009"
+      ],
+      [
+       "MM-FRAC",
+       "VKM-SRC-044:p0046"
+      ],
+      [
+       "MM-FRAC",
+       "VKM-SRC-047:p0035"
+      ],
+      [
+       "MM-FRAC",
+       "VKM-SRC-054:p0065"
+      ],
+      [
+       "MM-FRAC",
+       "VKM-SRC-205:p0035"
+      ],
+      [
+       "MM-FRAC",
+       "VKM-SRC-205:p0036"
+      ],
+      [
+       "MM-FRAC",
+       "VKM-SRC-205:p0040"
+      ],
+      [
+       "MM-GEOCHEM",
+       "VKM-SRC-054:p0265"
+      ],
+      [
+       "MM-GEOD",
+       "VKM-SRC-217:p0102"
+      ],
+      [
+       "MM-GEOD",
+       "VKM-SRC-218:p0039"
+      ],
+      [
+       "MM-GEODYN",
+       "VKM-SRC-083:p0002"
+      ],
+      [
+       "MM-GEODYN",
+       "VKM-SRC-203:p0092"
+      ],
+      [
+       "MM-GEOL",
+       "VKM-SRC-011:p0012"
+      ],
+      [
+       "MM-GEOL",
+       "VKM-SRC-011:p0113"
+      ],
+      [
+       "MM-GEOL",
+       "VKM-SRC-023:r0013"
+      ],
+      [
+       "MM-GEOL",
+       "VKM-SRC-045:p0076"
+      ],
+      [
+       "MM-GEOMECH",
+       "VKM-SRC-204:p0097"
+      ],
+      [
+       "MM-GEOMECH",
+       "VKM-SRC-205:p0051"
+      ],
+      [
+       "MM-GPR",
+       "VKM-SRC-191:p0024"
+      ],
+      [
+       "MM-GPR",
+       "VKM-SRC-191:p0027"
+      ],
+      [
+       "MM-GPR",
+       "VKM-SRC-191:p0156"
+      ],
+      [
+       "MM-HYDRO",
+       "VKM-SRC-144:p0006"
+      ],
+      [
+       "MM-HYDTR",
+       "VKM-SRC-212:p0007"
+      ],
+      [
+       "MM-HYDTR",
+       "VKM-SRC-212:p0038"
+      ],
+      [
+       "MM-HYDTR",
+       "VKM-SRC-212:p0136"
+      ],
+      [
+       "MM-HYDTR",
+       "VKM-SRC-212:p0145"
+      ],
+      [
+       "MM-HYDTR",
+       "VKM-SRC-212:p0159"
+      ],
+      [
+       "MM-INSAR",
+       "VKM-SRC-003:p0013"
+      ],
+      [
+       "MM-INSAR",
+       "VKM-SRC-007:p0003"
+      ],
+      [
+       "MM-INSAR",
+       "VKM-SRC-023:r0021"
+      ],
+      [
+       "MM-INV",
+       "VKM-SRC-089:p0147"
+      ],
+      [
+       "MM-INV",
+       "VKM-SRC-184:p0006"
+      ],
+      [
+       "MM-INV",
+       "VKM-SRC-187:p0006"
+      ],
+      [
+       "MM-IS",
+       "VKM-SRC-266:p0062"
+      ],
+      [
+       "MM-LAB",
+       "VKM-SRC-054:p0052"
+      ],
+      [
+       "MM-LAB",
+       "VKM-SRC-054:p0055"
+      ],
+      [
+       "MM-LAB",
+       "VKM-SRC-054:p0078"
+      ],
+      [
+       "MM-LAB",
+       "VKM-SRC-054:p0097"
+      ],
+      [
+       "MM-MINE",
+       "VKM-SRC-026:p0013"
+      ],
+      [
+       "MM-MINE",
+       "VKM-SRC-067:p0021"
+      ],
+      [
+       "MM-ML",
+       "VKM-SRC-197:p0014"
+      ],
+      [
+       "MM-NUM",
+       "VKM-SRC-045:p0040"
+      ],
+      [
+       "MM-NUM",
+       "VKM-SRC-045:p0041"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-148:p0015"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-208:p0046"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-209:p0041"
+      ],
+      [
+       "MM-PILLAR",
+       "VKM-SRC-067:p0157"
+      ],
+      [
+       "MM-PILLAR",
+       "VKM-SRC-212:p0075"
+      ],
+      [
+       "MM-PROT",
+       "VKM-SRC-210:p0061"
+      ],
+      [
+       "MM-RISK",
+       "VKM-SRC-267:p0034"
+      ],
+      [
+       "MM-ROOF",
+       "VKM-SRC-054:p0191"
+      ],
+      [
+       "MM-RS",
+       "VKM-SRC-006:p0011"
+      ],
+      [
+       "MM-RS",
+       "VKM-SRC-023:r0021"
+      ],
+      [
+       "MM-RS",
+       "VKM-SRC-232:p0327"
+      ],
+      [
+       "MM-SCALE",
+       "VKM-SRC-047:p0048"
+      ],
+      [
+       "MM-SCALE",
+       "VKM-SRC-194:p0010"
+      ],
+      [
+       "MM-STAT",
+       "VKM-SRC-003:p0005"
+      ],
+      [
+       "MM-STR",
+       "VKM-SRC-054:p0056"
+      ],
+      [
+       "MM-STRESS",
+       "VKM-SRC-029:p0128"
+      ],
+      [
+       "MM-SUBS",
+       "VKM-SRC-003:p0085"
+      ],
+      [
+       "MM-SUBS",
+       "VKM-SRC-023:r0103"
+      ],
+      [
+       "MM-SUBS",
+       "VKM-SRC-039:p0001"
+      ],
+      [
+       "MM-SUBS",
+       "VKM-SRC-204:p0097"
+      ],
+      [
+       "MM-THERM",
+       "VKM-SRC-173:p0063"
+      ],
+      [
+       "MM-THERM",
+       "VKM-SRC-173:p0083"
+      ],
+      [
+       "MM-VENT",
+       "VKM-SRC-203:p0222"
+      ],
+      [
+       "MM-WPS",
+       "VKM-SRC-087:p0001"
+      ],
+      [
+       "MM-WPS",
+       "VKM-SRC-204:p0103"
+      ],
+      [
+       "PC-01",
+       "VKM-SRC-054:p0241"
+      ],
+      [
+       "PC-01",
+       "VKM-SRC-238:p0131"
+      ],
+      [
+       "PC-02",
+       "VKM-SRC-029:p0011"
+      ],
+      [
+       "PC-05",
+       "VKM-SRC-212:p0073"
+      ],
+      [
+       "PC-05",
+       "VKM-SRC-258:p0005"
+      ],
+      [
+       "PC-05",
+       "VKM-SRC-259:p0004"
+      ],
+      [
+       "PC-06",
+       "VKM-SRC-122:p0005"
+      ],
+      [
+       "PC-06",
+       "VKM-SRC-174:p0003"
+      ],
+      [
+       "PC-06",
+       "VKM-SRC-230:p0329"
+      ],
+      [
+       "PC-09",
+       "VKM-SRC-202:p0112"
+      ],
+      [
+       "PC-11",
+       "VKM-SRC-066:p0041"
+      ],
+      [
+       "PC-11",
+       "VKM-SRC-066:p0056"
+      ],
+      [
+       "PC-11",
+       "VKM-SRC-103:p0036"
+      ],
+      [
+       "PC-11",
+       "VKM-SRC-230:p0417"
+      ],
+      [
+       "PC-12",
+       "VKM-SRC-067:p0070"
+      ],
+      [
+       "PC-12",
+       "VKM-SRC-163:p0054"
+      ],
+      [
+       "PC-14",
+       "VKM-SRC-011:p0010"
+      ],
+      [
+       "PC-14",
+       "VKM-SRC-205:p0029"
+      ],
+      [
+       "PC-15",
+       "VKM-SRC-025:p0154"
+      ],
+      [
+       "PC-15",
+       "VKM-SRC-047:p0132"
+      ],
+      [
+       "PC-16",
+       "VKM-SRC-048:p0049"
+      ],
+      [
+       "PC-17",
+       "VKM-SRC-073:p0003"
+      ],
+      [
+       "PC-17",
+       "VKM-SRC-103:p0031"
+      ],
+      [
+       "PC-17",
+       "VKM-SRC-116:p0002"
+      ],
+      [
+       "PC-18",
+       "VKM-SRC-054:p0144"
+      ],
+      [
+       "PC-19",
+       "VKM-SRC-044:p0049"
+      ],
+      [
+       "PC-19",
+       "VKM-SRC-054:p0141"
+      ],
+      [
+       "PC-21",
+       "VKM-SRC-044:p0074"
+      ],
+      [
+       "PC-21",
+       "VKM-SRC-193:p0040"
+      ],
+      [
+       "PC-21",
+       "VKM-SRC-193:p0216"
+      ],
+      [
+       "PC-24",
+       "VKM-SRC-048:p0348"
+      ],
+      [
+       "PC-25",
+       "VKM-SRC-089:p0106"
+      ],
+      [
+       "PC-28",
+       "VKM-SRC-037:p0056"
+      ],
+      [
+       "PC-28",
+       "VKM-SRC-050:p0030"
+      ],
+      [
+       "PC-29",
+       "VKM-SRC-044:p0151"
+      ],
+      [
+       "PC-29",
+       "VKM-SRC-067:p0027"
+      ],
+      [
+       "PC-31",
+       "VKM-SRC-266:p0052"
+      ],
+      [
+       "PC-32",
+       "VKM-SRC-266:p0053"
+      ],
+      [
+       "PC-33",
+       "VKM-SRC-065:p0125"
+      ],
+      [
+       "PC-33",
+       "VKM-SRC-210:p0012"
+      ],
+      [
+       "PC-34",
+       "VKM-SRC-091:p0006"
+      ],
+      [
+       "PC-35",
+       "VKM-SRC-208:p0015"
+      ],
+      [
+       "PC-37",
+       "VKM-SRC-044:p0171"
+      ],
+      [
+       "PC-38",
+       "VKM-SRC-044:p0171"
+      ],
+      [
+       "PC-38",
+       "VKM-SRC-266:p0145"
+      ],
+      [
+       "PC-39",
+       "VKM-SRC-163:p0023"
+      ],
+      [
+       "PC-42",
+       "VKM-SRC-023:r0035"
+      ],
+      [
+       "PC-42",
+       "VKM-SRC-237:p0128"
+      ],
+      [
+       "PC-43",
+       "VKM-SRC-026:p0009"
+      ],
+      [
+       "PC-43",
+       "VKM-SRC-266:p0010"
+      ],
+      [
+       "PC-48",
+       "VKM-SRC-089:p0262"
+      ],
+      [
+       "PC-48",
+       "VKM-SRC-193:p0259"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-189:p0002"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-193:p0145"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-193:p0153"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-193:p0550"
+      ],
+      [
+       "PC-50",
+       "VKM-SRC-173:p0037"
+      ],
+      [
+       "PC-50",
+       "VKM-SRC-173:p0038"
+      ],
+      [
+       "PC-52",
+       "VKM-SRC-183:p0007"
+      ],
+      [
+       "PC-53",
+       "VKM-SRC-108:p0004"
+      ],
+      [
+       "PC-56",
+       "VKM-SRC-266:p0036"
+      ],
+      [
+       "PC-56",
+       "VKM-SRC-266:p0111"
+      ],
+      [
+       "PC-57",
+       "VKM-SRC-051:p0061"
+      ],
+      [
+       "PC-58",
+       "VKM-SRC-040:p0132"
+      ],
+      [
+       "PC-58",
+       "VKM-SRC-191:p0114"
+      ],
+      [
+       "PC-58",
+       "VKM-SRC-191:p0127"
+      ],
+      [
+       "PC-59",
+       "VKM-SRC-029:p0069"
+      ],
+      [
+       "PC-59",
+       "VKM-SRC-029:p0121"
+      ],
+      [
+       "PC-61",
+       "VKM-SRC-148:p0018"
+      ],
+      [
+       "PC-62",
+       "VKM-SRC-217:p0093"
+      ],
+      [
+       "PC-62",
+       "VKM-SRC-244:p0203"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-049:p0054"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-054:p0027"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-054:p0028"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-091:p0001"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-148:p0037"
+      ],
+      [
+       "PC-67",
+       "VKM-SRC-070:p0005"
+      ],
+      [
+       "PC-67",
+       "VKM-SRC-210:p0087"
+      ],
+      [
+       "PC-72",
+       "VKM-SRC-025:p0031"
+      ],
+      [
+       "PC-72",
+       "VKM-SRC-231:p0107"
+      ]
+     ]
+    }
+   },
+   "PARA1:base": {
+    "judged@10": 1.0,
+    "unjudged_top10": {
+     "slots": 0,
+     "pairs": 0,
+     "pair_ids": []
+    }
+   },
+   "PARA1:human3": {
+    "judged@10": 1.0,
+    "unjudged_top10": {
+     "slots": 0,
+     "pairs": 0,
+     "pair_ids": []
+    }
+   },
+   "PARA1:llm3": {
+    "judged@10": 0.8179,
+    "unjudged_top10": {
+     "slots": 213,
+     "pairs": 213,
+     "pair_ids": [
+      [
+       "MM-BACKFILL",
+       "VKM-SRC-037:p0170"
+      ],
+      [
+       "MM-BLAST",
+       "VKM-SRC-190:p0051"
+      ],
+      [
+       "MM-BLAST",
+       "VKM-SRC-212:p0096"
+      ],
+      [
+       "MM-CONTACT",
+       "VKM-SRC-044:p0106"
+      ],
+      [
+       "MM-CONTACT",
+       "VKM-SRC-202:p0081"
+      ],
+      [
+       "MM-DAMAGE",
+       "VKM-SRC-207:p0040"
+      ],
+      [
+       "MM-DEF",
+       "VKM-SRC-196:p0116"
+      ],
+      [
+       "MM-DEF",
+       "VKM-SRC-208:p0066"
+      ],
+      [
+       "MM-DEF",
+       "VKM-SRC-210:p0088"
+      ],
+      [
+       "MM-DEM",
+       "VKM-SRC-023:r0065"
+      ],
+      [
+       "MM-DEM",
+       "VKM-SRC-197:p0001"
+      ],
+      [
+       "MM-DEM",
+       "VKM-SRC-197:p0002"
+      ],
+      [
+       "MM-DISS",
+       "VKM-SRC-050:p0025"
+      ],
+      [
+       "MM-DISS",
+       "VKM-SRC-193:p0526"
+      ],
+      [
+       "MM-ELAST",
+       "VKM-SRC-134:p0005"
+      ],
+      [
+       "MM-ELAST",
+       "VKM-SRC-226:p0184"
+      ],
+      [
+       "MM-ELAST",
+       "VKM-SRC-226:p0535"
+      ],
+      [
+       "MM-ELAST",
+       "VKM-SRC-226:p0625"
+      ],
+      [
+       "MM-ELEC",
+       "VKM-SRC-173:p0178"
+      ],
+      [
+       "MM-GASDYN",
+       "VKM-SRC-011:p0117"
+      ],
+      [
+       "MM-GASDYN",
+       "VKM-SRC-089:p0088"
+      ],
+      [
+       "MM-GASDYN",
+       "VKM-SRC-204:p0245"
+      ],
+      [
+       "MM-GEOCHEM",
+       "VKM-SRC-234:p0675"
+      ],
+      [
+       "MM-GEOD",
+       "VKM-SRC-098:p0086"
+      ],
+      [
+       "MM-GEODYN",
+       "VKM-SRC-105:p0002"
+      ],
+      [
+       "MM-GEODYN",
+       "VKM-SRC-232:p0214"
+      ],
+      [
+       "MM-GEOL",
+       "VKM-SRC-011:p0067"
+      ],
+      [
+       "MM-GEOL",
+       "VKM-SRC-023:r0033"
+      ],
+      [
+       "MM-GEOL",
+       "VKM-SRC-048:p0027"
+      ],
+      [
+       "MM-GEOMECH",
+       "VKM-SRC-045:p0060"
+      ],
+      [
+       "MM-GEOMECH",
+       "VKM-SRC-187:p0007"
+      ],
+      [
+       "MM-GEOMECH",
+       "VKM-SRC-212:p0072"
+      ],
+      [
+       "MM-GEOMECH",
+       "VKM-SRC-226:p0078"
+      ],
+      [
+       "MM-GPR",
+       "VKM-SRC-128:p0028"
+      ],
+      [
+       "MM-GPR",
+       "VKM-SRC-146:p0004"
+      ],
+      [
+       "MM-HYDRO",
+       "VKM-SRC-011:p0184"
+      ],
+      [
+       "MM-HYDTR",
+       "VKM-SRC-212:p0145"
+      ],
+      [
+       "MM-INSAR",
+       "VKM-SRC-003:p0020"
+      ],
+      [
+       "MM-INSAR",
+       "VKM-SRC-023:r0021"
+      ],
+      [
+       "MM-INV",
+       "VKM-SRC-143:p0002"
+      ],
+      [
+       "MM-INV",
+       "VKM-SRC-145:p0006"
+      ],
+      [
+       "MM-IS",
+       "VKM-SRC-055:p0001"
+      ],
+      [
+       "MM-IS",
+       "VKM-SRC-104:p0007"
+      ],
+      [
+       "MM-LAB",
+       "VKM-SRC-054:p0052"
+      ],
+      [
+       "MM-MINE",
+       "VKM-SRC-014:p0231"
+      ],
+      [
+       "MM-NUM",
+       "VKM-SRC-036:p0003"
+      ],
+      [
+       "MM-NUM",
+       "VKM-SRC-036:p0015"
+      ],
+      [
+       "MM-NUM",
+       "VKM-SRC-213:p0052"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-024:p0157"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-082:p0002"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-117:p0006"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-155:p0004"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-249:s0120"
+      ],
+      [
+       "MM-PETRO",
+       "VKM-SRC-234:p0502"
+      ],
+      [
+       "MM-PETRO",
+       "VKM-SRC-234:p0522"
+      ],
+      [
+       "MM-PETRO",
+       "VKM-SRC-234:p0617"
+      ],
+      [
+       "MM-PETRO",
+       "VKM-SRC-267:p0019"
+      ],
+      [
+       "MM-PILLAR",
+       "VKM-SRC-266:p0063"
+      ],
+      [
+       "MM-PROT",
+       "VKM-SRC-020:p0011"
+      ],
+      [
+       "MM-PROT",
+       "VKM-SRC-160:p0006"
+      ],
+      [
+       "MM-PROT",
+       "VKM-SRC-193:p0650"
+      ],
+      [
+       "MM-RISK",
+       "VKM-SRC-011:p0028"
+      ],
+      [
+       "MM-RISK",
+       "VKM-SRC-103:p0035"
+      ],
+      [
+       "MM-ROOF",
+       "VKM-SRC-047:p0059"
+      ],
+      [
+       "MM-ROOF",
+       "VKM-SRC-049:p0057"
+      ],
+      [
+       "MM-ROOF",
+       "VKM-SRC-176:p0003"
+      ],
+      [
+       "MM-STAT",
+       "VKM-SRC-203:p0212"
+      ],
+      [
+       "MM-STAT",
+       "VKM-SRC-250:p0191"
+      ],
+      [
+       "MM-STAT",
+       "VKM-SRC-250:p0205"
+      ],
+      [
+       "MM-STR",
+       "VKM-SRC-049:p0213"
+      ],
+      [
+       "MM-STR",
+       "VKM-SRC-054:p0049"
+      ],
+      [
+       "MM-STRESS",
+       "VKM-SRC-231:p0174"
+      ],
+      [
+       "MM-SUBS",
+       "VKM-SRC-070:p0010"
+      ],
+      [
+       "MM-SUBS",
+       "VKM-SRC-070:p0011"
+      ],
+      [
+       "MM-SUPPORT",
+       "VKM-SRC-049:p0091"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-193:p0426"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-193:p0625"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-193:p0643"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-193:p0648"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-193:p0672"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-193:p0673"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-231:p0509"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-238:p0108"
+      ],
+      [
+       "MM-VENT",
+       "VKM-SRC-089:p0308"
+      ],
+      [
+       "MM-WPS",
+       "VKM-SRC-208:p0079"
+      ],
+      [
+       "MM-WPS",
+       "VKM-SRC-208:p0086"
+      ],
+      [
+       "PC-02",
+       "VKM-SRC-193:p0535"
+      ],
+      [
+       "PC-04",
+       "VKM-SRC-174:p0002"
+      ],
+      [
+       "PC-05",
+       "VKM-SRC-231:p0161"
+      ],
+      [
+       "PC-05",
+       "VKM-SRC-231:p0162"
+      ],
+      [
+       "PC-05",
+       "VKM-SRC-231:p0166"
+      ],
+      [
+       "PC-05",
+       "VKM-SRC-231:p0179"
+      ],
+      [
+       "PC-06",
+       "VKM-SRC-204:p0160"
+      ],
+      [
+       "PC-06",
+       "VKM-SRC-207:p0040"
+      ],
+      [
+       "PC-07",
+       "VKM-SRC-141:p0006"
+      ],
+      [
+       "PC-08",
+       "VKM-SRC-105:p0005"
+      ],
+      [
+       "PC-08",
+       "VKM-SRC-208:p0016"
+      ],
+      [
+       "PC-08",
+       "VKM-SRC-238:p0010"
+      ],
+      [
+       "PC-09",
+       "VKM-SRC-023:r0035"
+      ],
+      [
+       "PC-09",
+       "VKM-SRC-193:p0168"
+      ],
+      [
+       "PC-10",
+       "VKM-SRC-194:p0019"
+      ],
+      [
+       "PC-11",
+       "VKM-SRC-044:p0051"
+      ],
+      [
+       "PC-11",
+       "VKM-SRC-056:p0002"
+      ],
+      [
+       "PC-12",
+       "VKM-SRC-264:p0010"
+      ],
+      [
+       "PC-13",
+       "VKM-SRC-150:p0159"
+      ],
+      [
+       "PC-13",
+       "VKM-SRC-193:p0146"
+      ],
+      [
+       "PC-13",
+       "VKM-SRC-193:p0147"
+      ],
+      [
+       "PC-13",
+       "VKM-SRC-193:p0423"
+      ],
+      [
+       "PC-17",
+       "VKM-SRC-025:p0155"
+      ],
+      [
+       "PC-17",
+       "VKM-SRC-044:p0088"
+      ],
+      [
+       "PC-18",
+       "VKM-SRC-047:p0143"
+      ],
+      [
+       "PC-19",
+       "VKM-SRC-044:p0049"
+      ],
+      [
+       "PC-19",
+       "VKM-SRC-193:p0032"
+      ],
+      [
+       "PC-19",
+       "VKM-SRC-226:p0446"
+      ],
+      [
+       "PC-20",
+       "VKM-SRC-150:p0020"
+      ],
+      [
+       "PC-20",
+       "VKM-SRC-193:p0358"
+      ],
+      [
+       "PC-21",
+       "VKM-SRC-193:p0043"
+      ],
+      [
+       "PC-22",
+       "VKM-SRC-088:p0001"
+      ],
+      [
+       "PC-22",
+       "VKM-SRC-094:p0006"
+      ],
+      [
+       "PC-22",
+       "VKM-SRC-168:p0001"
+      ],
+      [
+       "PC-23",
+       "VKM-SRC-050:p0035"
+      ],
+      [
+       "PC-23",
+       "VKM-SRC-103:p0015"
+      ],
+      [
+       "PC-25",
+       "VKM-SRC-065:p0017"
+      ],
+      [
+       "PC-26",
+       "VKM-SRC-264:p0003"
+      ],
+      [
+       "PC-27",
+       "VKM-SRC-202:p0118"
+      ],
+      [
+       "PC-28",
+       "VKM-SRC-024:p0014"
+      ],
+      [
+       "PC-28",
+       "VKM-SRC-024:p0117"
+      ],
+      [
+       "PC-29",
+       "VKM-SRC-193:p0417"
+      ],
+      [
+       "PC-30",
+       "VKM-SRC-063:p0002"
+      ],
+      [
+       "PC-30",
+       "VKM-SRC-267:p0034"
+      ],
+      [
+       "PC-30",
+       "VKM-SRC-267:p0035"
+      ],
+      [
+       "PC-32",
+       "VKM-SRC-077:p0002"
+      ],
+      [
+       "PC-32",
+       "VKM-SRC-104:p0007"
+      ],
+      [
+       "PC-34",
+       "VKM-SRC-044:p0182"
+      ],
+      [
+       "PC-34",
+       "VKM-SRC-048:p0267"
+      ],
+      [
+       "PC-35",
+       "VKM-SRC-092:p0004"
+      ],
+      [
+       "PC-35",
+       "VKM-SRC-205:p0055"
+      ],
+      [
+       "PC-36",
+       "VKM-SRC-157:p0001"
+      ],
+      [
+       "PC-36",
+       "VKM-SRC-209:p0015"
+      ],
+      [
+       "PC-36",
+       "VKM-SRC-231:p0373"
+      ],
+      [
+       "PC-36",
+       "VKM-SRC-231:p0503"
+      ],
+      [
+       "PC-36",
+       "VKM-SRC-231:p0505"
+      ],
+      [
+       "PC-36",
+       "VKM-SRC-231:p0516"
+      ],
+      [
+       "PC-37",
+       "VKM-SRC-087:p0003"
+      ],
+      [
+       "PC-37",
+       "VKM-SRC-203:p0195"
+      ],
+      [
+       "PC-38",
+       "VKM-SRC-231:p0429"
+      ],
+      [
+       "PC-38",
+       "VKM-SRC-231:p0444"
+      ],
+      [
+       "PC-39",
+       "VKM-SRC-169:p0005"
+      ],
+      [
+       "PC-39",
+       "VKM-SRC-266:p0144"
+      ],
+      [
+       "PC-40",
+       "VKM-SRC-054:p0189"
+      ],
+      [
+       "PC-42",
+       "VKM-SRC-134:p0005"
+      ],
+      [
+       "PC-42",
+       "VKM-SRC-166:p0008"
+      ],
+      [
+       "PC-42",
+       "VKM-SRC-237:p0153"
+      ],
+      [
+       "PC-43",
+       "VKM-SRC-014:p0211"
+      ],
+      [
+       "PC-43",
+       "VKM-SRC-237:p0339"
+      ],
+      [
+       "PC-43",
+       "VKM-SRC-266:p0022"
+      ],
+      [
+       "PC-45",
+       "VKM-SRC-082:p0008"
+      ],
+      [
+       "PC-45",
+       "VKM-SRC-193:p0606"
+      ],
+      [
+       "PC-45",
+       "VKM-SRC-193:p0607"
+      ],
+      [
+       "PC-46",
+       "VKM-SRC-011:p0183"
+      ],
+      [
+       "PC-46",
+       "VKM-SRC-040:p0016"
+      ],
+      [
+       "PC-46",
+       "VKM-SRC-191:p0058"
+      ],
+      [
+       "PC-48",
+       "VKM-SRC-154:p0002"
+      ],
+      [
+       "PC-48",
+       "VKM-SRC-193:p0259"
+      ],
+      [
+       "PC-48",
+       "VKM-SRC-249:s0256"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-150:p0172"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-189:p0005"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-193:p0072"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-193:p0145"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-193:p0572"
+      ],
+      [
+       "PC-50",
+       "VKM-SRC-011:p0104"
+      ],
+      [
+       "PC-50",
+       "VKM-SRC-150:p0237"
+      ],
+      [
+       "PC-50",
+       "VKM-SRC-193:p0634"
+      ],
+      [
+       "PC-50",
+       "VKM-SRC-193:p0671"
+      ],
+      [
+       "PC-51",
+       "VKM-SRC-173:p0098"
+      ],
+      [
+       "PC-52",
+       "VKM-SRC-155:p0004"
+      ],
+      [
+       "PC-53",
+       "VKM-SRC-106:p0001"
+      ],
+      [
+       "PC-55",
+       "VKM-SRC-011:p0181"
+      ],
+      [
+       "PC-56",
+       "VKM-SRC-089:p0186"
+      ],
+      [
+       "PC-56",
+       "VKM-SRC-231:p0537"
+      ],
+      [
+       "PC-56",
+       "VKM-SRC-231:p0542"
+      ],
+      [
+       "PC-56",
+       "VKM-SRC-231:p0547"
+      ],
+      [
+       "PC-56",
+       "VKM-SRC-231:p0553"
+      ],
+      [
+       "PC-57",
+       "VKM-SRC-193:p0482"
+      ],
+      [
+       "PC-57",
+       "VKM-SRC-193:p0485"
+      ],
+      [
+       "PC-57",
+       "VKM-SRC-193:p0489"
+      ],
+      [
+       "PC-62",
+       "VKM-SRC-117:p0002"
+      ],
+      [
+       "PC-62",
+       "VKM-SRC-117:p0007"
+      ],
+      [
+       "PC-62",
+       "VKM-SRC-155:p0001"
+      ],
+      [
+       "PC-62",
+       "VKM-SRC-187:p0006"
+      ],
+      [
+       "PC-63",
+       "VKM-SRC-075:p0013"
+      ],
+      [
+       "PC-63",
+       "VKM-SRC-136:p0013"
+      ],
+      [
+       "PC-64",
+       "VKM-SRC-098:p0024"
+      ],
+      [
+       "PC-65",
+       "VKM-SRC-208:p0096"
+      ],
+      [
+       "PC-65",
+       "VKM-SRC-210:p0030"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-003:p0086"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-075:p0015"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-117:p0002"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-134:p0009"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-210:p0030"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-210:p0108"
+      ],
+      [
+       "PC-67",
+       "VKM-SRC-204:p0098"
+      ],
+      [
+       "PC-67",
+       "VKM-SRC-208:p0022"
+      ],
+      [
+       "PC-68",
+       "VKM-SRC-066:p0171"
+      ],
+      [
+       "PC-68",
+       "VKM-SRC-134:p0001"
+      ],
+      [
+       "PC-68",
+       "VKM-SRC-266:p0060"
+      ],
+      [
+       "PC-69",
+       "VKM-SRC-210:p0093"
+      ],
+      [
+       "PC-70",
+       "VKM-SRC-011:p0069"
+      ],
+      [
+       "PC-70",
+       "VKM-SRC-191:p0148"
+      ],
+      [
+       "PC-71",
+       "VKM-SRC-037:p0169"
+      ],
+      [
+       "PC-71",
+       "VKM-SRC-208:p0022"
+      ],
+      [
+       "PC-72",
+       "VKM-SRC-054:p0044"
+      ],
+      [
+       "PC-72",
+       "VKM-SRC-054:p0060"
+      ]
+     ]
+    }
+   },
+   "PARA1:llm3ru": {
+    "judged@10": 0.8462,
+    "unjudged_top10": {
+     "slots": 180,
+     "pairs": 180,
+     "pair_ids": [
+      [
+       "MM-CONTACT",
+       "VKM-SRC-044:p0106"
+      ],
+      [
+       "MM-CONTACT",
+       "VKM-SRC-054:p0063"
+      ],
+      [
+       "MM-CREEP",
+       "VKM-SRC-047:p0135"
+      ],
+      [
+       "MM-DAMAGE",
+       "VKM-SRC-200:p0005"
+      ],
+      [
+       "MM-DAMAGE",
+       "VKM-SRC-207:p0040"
+      ],
+      [
+       "MM-DEF",
+       "VKM-SRC-210:p0024"
+      ],
+      [
+       "MM-DEM",
+       "VKM-SRC-152:p0005"
+      ],
+      [
+       "MM-DISS",
+       "VKM-SRC-019:p0002"
+      ],
+      [
+       "MM-DISS",
+       "VKM-SRC-050:p0025"
+      ],
+      [
+       "MM-ECON",
+       "VKM-SRC-037:p0046"
+      ],
+      [
+       "MM-ELAST",
+       "VKM-SRC-134:p0005"
+      ],
+      [
+       "MM-ELEC",
+       "VKM-SRC-266:p0054"
+      ],
+      [
+       "MM-FRAC",
+       "VKM-SRC-045:p0014"
+      ],
+      [
+       "MM-FRAC",
+       "VKM-SRC-107:p0002"
+      ],
+      [
+       "MM-GASDYN",
+       "VKM-SRC-011:p0117"
+      ],
+      [
+       "MM-GASDYN",
+       "VKM-SRC-020:p0029"
+      ],
+      [
+       "MM-GEOCHEM",
+       "VKM-SRC-048:p0201"
+      ],
+      [
+       "MM-GEOCHEM",
+       "VKM-SRC-089:p0003"
+      ],
+      [
+       "MM-GEOD",
+       "VKM-SRC-210:p0039"
+      ],
+      [
+       "MM-GEOD",
+       "VKM-SRC-217:p0123"
+      ],
+      [
+       "MM-GEODYN",
+       "VKM-SRC-085:p0014"
+      ],
+      [
+       "MM-GEODYN",
+       "VKM-SRC-100:p0005"
+      ],
+      [
+       "MM-GEODYN",
+       "VKM-SRC-126:p0003"
+      ],
+      [
+       "MM-GEODYN",
+       "VKM-SRC-238:p0209"
+      ],
+      [
+       "MM-GEOL",
+       "VKM-SRC-023:r0033"
+      ],
+      [
+       "MM-GEOL",
+       "VKM-SRC-050:p0006"
+      ],
+      [
+       "MM-GEOL",
+       "VKM-SRC-181:p0004"
+      ],
+      [
+       "MM-GEOMECH",
+       "VKM-SRC-049:p0194"
+      ],
+      [
+       "MM-GEOMECH",
+       "VKM-SRC-066:p0103"
+      ],
+      [
+       "MM-GEOMECH",
+       "VKM-SRC-066:p0155"
+      ],
+      [
+       "MM-HYDRO",
+       "VKM-SRC-011:p0040"
+      ],
+      [
+       "MM-HYDRO",
+       "VKM-SRC-011:p0184"
+      ],
+      [
+       "MM-HYDRO",
+       "VKM-SRC-238:p0210"
+      ],
+      [
+       "MM-HYDTR",
+       "VKM-SRC-212:p0151"
+      ],
+      [
+       "MM-INSAR",
+       "VKM-SRC-003:p0020"
+      ],
+      [
+       "MM-INV",
+       "VKM-SRC-085:p0006"
+      ],
+      [
+       "MM-INV",
+       "VKM-SRC-115:p0002"
+      ],
+      [
+       "MM-INV",
+       "VKM-SRC-134:p0009"
+      ],
+      [
+       "MM-INV",
+       "VKM-SRC-143:p0006"
+      ],
+      [
+       "MM-IS",
+       "VKM-SRC-055:p0001"
+      ],
+      [
+       "MM-IS",
+       "VKM-SRC-096:p0004"
+      ],
+      [
+       "MM-LAB",
+       "VKM-SRC-162:p0001"
+      ],
+      [
+       "MM-MINE",
+       "VKM-SRC-266:p0077"
+      ],
+      [
+       "MM-ML",
+       "VKM-SRC-152:p0003"
+      ],
+      [
+       "MM-NUM",
+       "VKM-SRC-036:p0003"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-098:p0067"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-148:p0017"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-148:p0032"
+      ],
+      [
+       "MM-OBS",
+       "VKM-SRC-209:p0062"
+      ],
+      [
+       "MM-PETRO",
+       "VKM-SRC-067:p0058"
+      ],
+      [
+       "MM-PILLAR",
+       "VKM-SRC-266:p0062"
+      ],
+      [
+       "MM-PROT",
+       "VKM-SRC-020:p0011"
+      ],
+      [
+       "MM-RISK",
+       "VKM-SRC-017:p0001"
+      ],
+      [
+       "MM-RISK",
+       "VKM-SRC-089:p0124"
+      ],
+      [
+       "MM-RISK",
+       "VKM-SRC-090:p0010"
+      ],
+      [
+       "MM-RISK",
+       "VKM-SRC-116:p0002"
+      ],
+      [
+       "MM-RISK",
+       "VKM-SRC-208:p0083"
+      ],
+      [
+       "MM-RISK",
+       "VKM-SRC-210:p0049"
+      ],
+      [
+       "MM-RISK",
+       "VKM-SRC-210:p0078"
+      ],
+      [
+       "MM-ROOF",
+       "VKM-SRC-266:p0121"
+      ],
+      [
+       "MM-RS",
+       "VKM-SRC-233:p0211"
+      ],
+      [
+       "MM-STAT",
+       "VKM-SRC-025:p0063"
+      ],
+      [
+       "MM-STAT",
+       "VKM-SRC-054:p0171"
+      ],
+      [
+       "MM-STAT",
+       "VKM-SRC-202:p0063"
+      ],
+      [
+       "MM-STR",
+       "VKM-SRC-049:p0213"
+      ],
+      [
+       "MM-SUBS",
+       "VKM-SRC-209:p0079"
+      ],
+      [
+       "MM-THERM",
+       "VKM-SRC-150:p0083"
+      ],
+      [
+       "MM-THERM",
+       "VKM-SRC-183:p0004"
+      ],
+      [
+       "MM-THERM",
+       "VKM-SRC-249:s0246"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-089:p0322"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-193:p0426"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-193:p0625"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-193:p0643"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-193:p0672"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-208:p0012"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-208:p0013"
+      ],
+      [
+       "MM-UGS",
+       "VKM-SRC-266:p0096"
+      ],
+      [
+       "MM-VENT",
+       "VKM-SRC-089:p0308"
+      ],
+      [
+       "MM-VENT",
+       "VKM-SRC-203:p0226"
+      ],
+      [
+       "MM-VENT",
+       "VKM-SRC-203:p0227"
+      ],
+      [
+       "MM-WPS",
+       "VKM-SRC-166:p0002"
+      ],
+      [
+       "PC-01",
+       "VKM-SRC-031:p0002"
+      ],
+      [
+       "PC-01",
+       "VKM-SRC-050:p0025"
+      ],
+      [
+       "PC-01",
+       "VKM-SRC-054:p0253"
+      ],
+      [
+       "PC-01",
+       "VKM-SRC-090:p0012"
+      ],
+      [
+       "PC-01",
+       "VKM-SRC-168:p0003"
+      ],
+      [
+       "PC-02",
+       "VKM-SRC-044:p0149"
+      ],
+      [
+       "PC-02",
+       "VKM-SRC-049:p0054"
+      ],
+      [
+       "PC-02",
+       "VKM-SRC-212:p0083"
+      ],
+      [
+       "PC-04",
+       "VKM-SRC-044:p0122"
+      ],
+      [
+       "PC-05",
+       "VKM-SRC-212:p0069"
+      ],
+      [
+       "PC-05",
+       "VKM-SRC-238:p0204"
+      ],
+      [
+       "PC-07",
+       "VKM-SRC-025:p0084"
+      ],
+      [
+       "PC-07",
+       "VKM-SRC-049:p0010"
+      ],
+      [
+       "PC-07",
+       "VKM-SRC-202:p0084"
+      ],
+      [
+       "PC-07",
+       "VKM-SRC-202:p0087"
+      ],
+      [
+       "PC-08",
+       "VKM-SRC-025:p0063"
+      ],
+      [
+       "PC-08",
+       "VKM-SRC-045:p0024"
+      ],
+      [
+       "PC-08",
+       "VKM-SRC-089:p0226"
+      ],
+      [
+       "PC-08",
+       "VKM-SRC-202:p0063"
+      ],
+      [
+       "PC-09",
+       "VKM-SRC-054:p0057"
+      ],
+      [
+       "PC-10",
+       "VKM-SRC-047:p0048"
+      ],
+      [
+       "PC-11",
+       "VKM-SRC-044:p0051"
+      ],
+      [
+       "PC-11",
+       "VKM-SRC-049:p0009"
+      ],
+      [
+       "PC-11",
+       "VKM-SRC-054:p0109"
+      ],
+      [
+       "PC-13",
+       "VKM-SRC-202:p0155"
+      ],
+      [
+       "PC-15",
+       "VKM-SRC-025:p0156"
+      ],
+      [
+       "PC-16",
+       "VKM-SRC-054:p0026"
+      ],
+      [
+       "PC-16",
+       "VKM-SRC-204:p0124"
+      ],
+      [
+       "PC-16",
+       "VKM-SRC-207:p0006"
+      ],
+      [
+       "PC-17",
+       "VKM-SRC-073:p0003"
+      ],
+      [
+       "PC-17",
+       "VKM-SRC-116:p0002"
+      ],
+      [
+       "PC-18",
+       "VKM-SRC-047:p0143"
+      ],
+      [
+       "PC-19",
+       "VKM-SRC-052:p0016"
+      ],
+      [
+       "PC-19",
+       "VKM-SRC-053:p0059"
+      ],
+      [
+       "PC-23",
+       "VKM-SRC-037:p0087"
+      ],
+      [
+       "PC-23",
+       "VKM-SRC-050:p0048"
+      ],
+      [
+       "PC-23",
+       "VKM-SRC-103:p0014"
+      ],
+      [
+       "PC-23",
+       "VKM-SRC-103:p0015"
+      ],
+      [
+       "PC-23",
+       "VKM-SRC-169:p0004"
+      ],
+      [
+       "PC-26",
+       "VKM-SRC-264:p0003"
+      ],
+      [
+       "PC-28",
+       "VKM-SRC-014:p0035"
+      ],
+      [
+       "PC-28",
+       "VKM-SRC-024:p0014"
+      ],
+      [
+       "PC-28",
+       "VKM-SRC-045:p0022"
+      ],
+      [
+       "PC-30",
+       "VKM-SRC-267:p0035"
+      ],
+      [
+       "PC-31",
+       "VKM-SRC-209:p0016"
+      ],
+      [
+       "PC-32",
+       "VKM-SRC-012:p0095"
+      ],
+      [
+       "PC-32",
+       "VKM-SRC-066:p0165"
+      ],
+      [
+       "PC-32",
+       "VKM-SRC-203:p0215"
+      ],
+      [
+       "PC-35",
+       "VKM-SRC-066:p0171"
+      ],
+      [
+       "PC-36",
+       "VKM-SRC-209:p0015"
+      ],
+      [
+       "PC-37",
+       "VKM-SRC-014:p0151"
+      ],
+      [
+       "PC-37",
+       "VKM-SRC-044:p0171"
+      ],
+      [
+       "PC-37",
+       "VKM-SRC-087:p0003"
+      ],
+      [
+       "PC-37",
+       "VKM-SRC-090:p0008"
+      ],
+      [
+       "PC-37",
+       "VKM-SRC-203:p0195"
+      ],
+      [
+       "PC-38",
+       "VKM-SRC-212:p0083"
+      ],
+      [
+       "PC-38",
+       "VKM-SRC-212:p0089"
+      ],
+      [
+       "PC-39",
+       "VKM-SRC-050:p0019"
+      ],
+      [
+       "PC-39",
+       "VKM-SRC-050:p0034"
+      ],
+      [
+       "PC-42",
+       "VKM-SRC-231:p0024"
+      ],
+      [
+       "PC-42",
+       "VKM-SRC-239:p0108"
+      ],
+      [
+       "PC-43",
+       "VKM-SRC-103:p0023"
+      ],
+      [
+       "PC-45",
+       "VKM-SRC-086:p0007"
+      ],
+      [
+       "PC-45",
+       "VKM-SRC-132:p0001"
+      ],
+      [
+       "PC-45",
+       "VKM-SRC-132:p0002"
+      ],
+      [
+       "PC-45",
+       "VKM-SRC-132:p0003"
+      ],
+      [
+       "PC-48",
+       "VKM-SRC-267:p0013"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-150:p0172"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-193:p0145"
+      ],
+      [
+       "PC-49",
+       "VKM-SRC-193:p0466"
+      ],
+      [
+       "PC-50",
+       "VKM-SRC-011:p0104"
+      ],
+      [
+       "PC-50",
+       "VKM-SRC-193:p0671"
+      ],
+      [
+       "PC-54",
+       "VKM-SRC-168:p0003"
+      ],
+      [
+       "PC-54",
+       "VKM-SRC-204:p0074"
+      ],
+      [
+       "PC-55",
+       "VKM-SRC-037:p0013"
+      ],
+      [
+       "PC-56",
+       "VKM-SRC-089:p0186"
+      ],
+      [
+       "PC-57",
+       "VKM-SRC-051:p0019"
+      ],
+      [
+       "PC-57",
+       "VKM-SRC-204:p0185"
+      ],
+      [
+       "PC-58",
+       "VKM-SRC-040:p0142"
+      ],
+      [
+       "PC-58",
+       "VKM-SRC-203:p0097"
+      ],
+      [
+       "PC-59",
+       "VKM-SRC-148:p0060"
+      ],
+      [
+       "PC-59",
+       "VKM-SRC-200:p0001"
+      ],
+      [
+       "PC-59",
+       "VKM-SRC-202:p0048"
+      ],
+      [
+       "PC-62",
+       "VKM-SRC-136:p0007"
+      ],
+      [
+       "PC-63",
+       "VKM-SRC-075:p0013"
+      ],
+      [
+       "PC-63",
+       "VKM-SRC-196:p0027"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-012:p0044"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-069:p0003"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-148:p0023"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-193:p0575"
+      ],
+      [
+       "PC-66",
+       "VKM-SRC-211:p0004"
+      ],
+      [
+       "PC-67",
+       "VKM-SRC-204:p0098"
+      ],
+      [
+       "PC-68",
+       "VKM-SRC-045:p0119"
+      ],
+      [
+       "PC-70",
+       "VKM-SRC-035:p0003"
+      ],
+      [
+       "PC-70",
+       "VKM-SRC-066:p0171"
+      ],
+      [
+       "PC-72",
+       "VKM-SRC-025:p0032"
+      ],
+      [
+       "PC-72",
+       "VKM-SRC-054:p0041"
+      ],
+      [
+       "PC-72",
+       "VKM-SRC-054:p0044"
+      ],
+      [
+       "PC-72",
+       "VKM-SRC-202:p0032"
+      ]
+     ]
+    }
+   }
+  },
+  "summary": {
+   "V": {
+    "NAME:base": {
+     "n_queries": 117,
+     "page_recall@10": 0.1504,
+     "page_recall@20": 0.22,
+     "page_recall@50": 0.2846,
+     "mrr@50": 0.2321,
+     "success@10": 0.4615,
+     "source_recall@10": 0.4289
+    },
+    "NAME:human3": {
+     "n_queries": 117,
+     "page_recall@10": 0.1963,
+     "page_recall@20": 0.2909,
+     "page_recall@50": 0.4267,
+     "mrr@50": 0.3008,
+     "success@10": 0.6325,
+     "source_recall@10": 0.4414
+    },
+    "NAME:llm3": {
+     "n_queries": 117,
+     "page_recall@10": 0.1383,
+     "page_recall@20": 0.2287,
+     "page_recall@50": 0.3272,
+     "mrr@50": 0.2214,
+     "success@10": 0.4701,
+     "source_recall@10": 0.4201
+    },
+    "NAME:llm3ru": {
+     "n_queries": 117,
+     "page_recall@10": 0.1688,
+     "page_recall@20": 0.2447,
+     "page_recall@50": 0.3856,
+     "mrr@50": 0.2469,
+     "success@10": 0.5043,
+     "source_recall@10": 0.4247
+    },
+    "PARA1:base": {
+     "n_queries": 117,
+     "page_recall@10": 0.174,
+     "page_recall@20": 0.2472,
+     "page_recall@50": 0.3323,
+     "mrr@50": 0.2654,
+     "success@10": 0.5385,
+     "source_recall@10": 0.4059
+    },
+    "PARA1:human3": {
+     "n_queries": 117,
+     "page_recall@10": 0.1991,
+     "page_recall@20": 0.2923,
+     "page_recall@50": 0.4267,
+     "mrr@50": 0.301,
+     "success@10": 0.6496,
+     "source_recall@10": 0.4485
+    },
+    "PARA1:llm3": {
+     "n_queries": 117,
+     "page_recall@10": 0.1819,
+     "page_recall@20": 0.2486,
+     "page_recall@50": 0.3266,
+     "mrr@50": 0.2785,
+     "success@10": 0.5385,
+     "source_recall@10": 0.4305
+    },
+    "PARA1:llm3ru": {
+     "n_queries": 117,
+     "page_recall@10": 0.1739,
+     "page_recall@20": 0.2515,
+     "page_recall@50": 0.3823,
+     "mrr@50": 0.2782,
+     "success@10": 0.5812,
+     "source_recall@10": 0.4477
+    }
+   },
+   "P": {
+    "NAME:base": {
+     "n_queries": 117,
+     "page_recall@10": 0.1747,
+     "page_recall@20": 0.2626,
+     "page_recall@50": 0.3984,
+     "mrr@50": 0.8594,
+     "success@10": 0.9829,
+     "source_recall@10": 0.3812
+    },
+    "NAME:human3": {
+     "n_queries": 117,
+     "page_recall@10": 0.2108,
+     "page_recall@20": 0.3389,
+     "page_recall@50": 0.6034,
+     "mrr@50": 0.8838,
+     "success@10": 0.9829,
+     "source_recall@10": 0.4091
+    },
+    "NAME:llm3": {
+     "n_queries": 117,
+     "page_recall@10": 0.1672,
+     "page_recall@20": 0.2619,
+     "page_recall@50": 0.4156,
+     "mrr@50": 0.8456,
+     "success@10": 0.9744,
+     "source_recall@10": 0.376
+    },
+    "NAME:llm3ru": {
+     "n_queries": 117,
+     "page_recall@10": 0.1682,
+     "page_recall@20": 0.2802,
+     "page_recall@50": 0.4666,
+     "mrr@50": 0.8554,
+     "success@10": 0.9487,
+     "source_recall@10": 0.3819
+    },
+    "PARA1:base": {
+     "n_queries": 117,
+     "page_recall@10": 0.1933,
+     "page_recall@20": 0.2948,
+     "page_recall@50": 0.4209,
+     "mrr@50": 0.8744,
+     "success@10": 0.9829,
+     "source_recall@10": 0.3759
+    },
+    "PARA1:human3": {
+     "n_queries": 117,
+     "page_recall@10": 0.2116,
+     "page_recall@20": 0.339,
+     "page_recall@50": 0.6041,
+     "mrr@50": 0.8838,
+     "success@10": 0.9829,
+     "source_recall@10": 0.4093
+    },
+    "PARA1:llm3": {
+     "n_queries": 117,
+     "page_recall@10": 0.1801,
+     "page_recall@20": 0.2748,
+     "page_recall@50": 0.4149,
+     "mrr@50": 0.8908,
+     "success@10": 0.9744,
+     "source_recall@10": 0.3679
+    },
+    "PARA1:llm3ru": {
+     "n_queries": 117,
+     "page_recall@10": 0.1884,
+     "page_recall@20": 0.2908,
+     "page_recall@50": 0.4692,
+     "mrr@50": 0.9094,
+     "success@10": 0.9744,
+     "source_recall@10": 0.3831
+    }
+   }
+  },
+  "comparisons": {
+   "V": {
+    "NAME:llm3ru - NAME:base | page_recall@50": {
+     "n_topics": 117,
+     "delta": 0.101,
+     "ci_lo": 0.0674,
+     "ci_hi": 0.1387,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "NAME:llm3ru - NAME:base | page_recall@20": {
+     "n_topics": 117,
+     "delta": 0.0247,
+     "ci_lo": -0.0057,
+     "ci_hi": 0.0571,
+     "p_value": 0.12709,
+     "p_holm": 1.0
+    },
+    "NAME:llm3ru - NAME:base | mrr@50": {
+     "n_topics": 117,
+     "delta": 0.0148,
+     "ci_lo": -0.025,
+     "ci_hi": 0.0555,
+     "p_value": 0.48415,
+     "p_holm": 1.0
+    },
+    "NAME:llm3ru - NAME:base | success@10": {
+     "n_topics": 117,
+     "delta": 0.0427,
+     "ci_lo": -0.0256,
+     "ci_hi": 0.1111,
+     "p_value": 0.36236,
+     "p_holm": 1.0
+    },
+    "NAME:llm3ru - NAME:llm3 | page_recall@50": {
+     "n_topics": 117,
+     "delta": 0.0583,
+     "ci_lo": 0.0311,
+     "ci_hi": 0.089,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "NAME:llm3ru - NAME:llm3 | page_recall@20": {
+     "n_topics": 117,
+     "delta": 0.0159,
+     "ci_lo": -0.0123,
+     "ci_hi": 0.0422,
+     "p_value": 0.26957,
+     "p_holm": 1.0
+    },
+    "NAME:llm3ru - NAME:llm3 | mrr@50": {
+     "n_topics": 117,
+     "delta": 0.0255,
+     "ci_lo": -0.0153,
+     "ci_hi": 0.0662,
+     "p_value": 0.23438,
+     "p_holm": 1.0
+    },
+    "NAME:llm3ru - NAME:llm3 | success@10": {
+     "n_topics": 117,
+     "delta": 0.0342,
+     "ci_lo": -0.0342,
+     "ci_hi": 0.1026,
+     "p_value": 0.44756,
+     "p_holm": 1.0
+    },
+    "NAME:llm3ru - NAME:human3 | page_recall@50": {
+     "n_topics": 117,
+     "delta": -0.0411,
+     "ci_lo": -0.0925,
+     "ci_hi": 0.0091,
+     "p_value": 0.11289,
+     "p_holm": 1.0
+    },
+    "NAME:llm3ru - NAME:human3 | page_recall@20": {
+     "n_topics": 117,
+     "delta": -0.0462,
+     "ci_lo": -0.0844,
+     "ci_hi": -0.0082,
+     "p_value": 0.0134,
+     "p_holm": 0.2546
+    },
+    "NAME:llm3ru - NAME:human3 | mrr@50": {
+     "n_topics": 117,
+     "delta": -0.0539,
+     "ci_lo": -0.1117,
+     "ci_hi": 0.0016,
+     "p_value": 0.06139,
+     "p_holm": 0.98224
+    },
+    "NAME:llm3ru - NAME:human3 | success@10": {
+     "n_topics": 117,
+     "delta": -0.1282,
+     "ci_lo": -0.2051,
+     "ci_hi": -0.0513,
+     "p_value": 0.0036,
+     "p_holm": 0.0756
+    },
+    "PARA1:llm3ru - PARA1:base | page_recall@50": {
+     "n_topics": 117,
+     "delta": 0.05,
+     "ci_lo": 0.0169,
+     "ci_hi": 0.0861,
+     "p_value": 0.0038,
+     "p_holm": 0.076
+    },
+    "PARA1:llm3ru - PARA1:base | page_recall@20": {
+     "n_topics": 117,
+     "delta": 0.0044,
+     "ci_lo": -0.0215,
+     "ci_hi": 0.0298,
+     "p_value": 0.74673,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3ru - PARA1:base | mrr@50": {
+     "n_topics": 117,
+     "delta": 0.0128,
+     "ci_lo": -0.0443,
+     "ci_hi": 0.0698,
+     "p_value": 0.66553,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3ru - PARA1:base | success@10": {
+     "n_topics": 117,
+     "delta": 0.0427,
+     "ci_lo": -0.0427,
+     "ci_hi": 0.1282,
+     "p_value": 0.42346,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3ru - PARA1:llm3 | page_recall@50": {
+     "n_topics": 117,
+     "delta": 0.0556,
+     "ci_lo": 0.0251,
+     "ci_hi": 0.0893,
+     "p_value": 0.0003,
+     "p_holm": 0.0066
+    },
+    "PARA1:llm3ru - PARA1:llm3 | page_recall@20": {
+     "n_topics": 117,
+     "delta": 0.0029,
+     "ci_lo": -0.0215,
+     "ci_hi": 0.0269,
+     "p_value": 0.81812,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3ru - PARA1:llm3 | mrr@50": {
+     "n_topics": 117,
+     "delta": -0.0003,
+     "ci_lo": -0.0557,
+     "ci_hi": 0.054,
+     "p_value": 0.9929,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3ru - PARA1:llm3 | success@10": {
+     "n_topics": 117,
+     "delta": 0.0427,
+     "ci_lo": -0.0342,
+     "ci_hi": 0.1197,
+     "p_value": 0.38166,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3ru - PARA1:human3 | page_recall@50": {
+     "n_topics": 117,
+     "delta": -0.0444,
+     "ci_lo": -0.0894,
+     "ci_hi": 0.0008,
+     "p_value": 0.05759,
+     "p_holm": 0.97903
+    },
+    "PARA1:llm3ru - PARA1:human3 | page_recall@20": {
+     "n_topics": 117,
+     "delta": -0.0407,
+     "ci_lo": -0.0751,
+     "ci_hi": -0.0091,
+     "p_value": 0.0178,
+     "p_holm": 0.3204
+    },
+    "PARA1:llm3ru - PARA1:human3 | mrr@50": {
+     "n_topics": 117,
+     "delta": -0.0227,
+     "ci_lo": -0.0896,
+     "ci_hi": 0.0428,
+     "p_value": 0.50395,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3ru - PARA1:human3 | success@10": {
+     "n_topics": 117,
+     "delta": -0.0684,
+     "ci_lo": -0.1624,
+     "ci_hi": 0.0256,
+     "p_value": 0.21508,
+     "p_holm": 1.0
+    }
+   },
+   "P": {
+    "NAME:llm3ru - NAME:base | page_recall@50": {
+     "n_topics": 117,
+     "delta": 0.0683,
+     "ci_lo": 0.0493,
+     "ci_hi": 0.088,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "NAME:llm3ru - NAME:base | page_recall@20": {
+     "n_topics": 117,
+     "delta": 0.0176,
+     "ci_lo": 0.0035,
+     "ci_hi": 0.0332,
+     "p_value": 0.021,
+     "p_holm": 0.315
+    },
+    "NAME:llm3ru - NAME:base | mrr@50": {
+     "n_topics": 117,
+     "delta": -0.004,
+     "ci_lo": -0.0571,
+     "ci_hi": 0.0489,
+     "p_value": 0.88401,
+     "p_holm": 1.0
+    },
+    "NAME:llm3ru - NAME:base | success@10": {
+     "n_topics": 117,
+     "delta": -0.0342,
+     "ci_lo": -0.0769,
+     "ci_hi": 0.0,
+     "p_value": 0.21378,
+     "p_holm": 1.0
+    },
+    "NAME:llm3ru - NAME:llm3 | page_recall@50": {
+     "n_topics": 117,
+     "delta": 0.0511,
+     "ci_lo": 0.0361,
+     "ci_hi": 0.0664,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "NAME:llm3ru - NAME:llm3 | page_recall@20": {
+     "n_topics": 117,
+     "delta": 0.0183,
+     "ci_lo": 0.0068,
+     "ci_hi": 0.0301,
+     "p_value": 0.0019,
+     "p_holm": 0.0304
+    },
+    "NAME:llm3ru - NAME:llm3 | mrr@50": {
+     "n_topics": 117,
+     "delta": 0.0098,
+     "ci_lo": -0.0352,
+     "ci_hi": 0.0555,
+     "p_value": 0.67623,
+     "p_holm": 1.0
+    },
+    "NAME:llm3ru - NAME:llm3 | success@10": {
+     "n_topics": 117,
+     "delta": -0.0256,
+     "ci_lo": -0.0684,
+     "ci_hi": 0.0085,
+     "p_value": 0.37646,
+     "p_holm": 1.0
+    },
+    "NAME:llm3ru - NAME:human3 | page_recall@50": {
+     "n_topics": 117,
+     "delta": -0.1368,
+     "ci_lo": -0.1611,
+     "ci_hi": -0.1137,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "NAME:llm3ru - NAME:human3 | page_recall@20": {
+     "n_topics": 117,
+     "delta": -0.0587,
+     "ci_lo": -0.0759,
+     "ci_hi": -0.0425,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "NAME:llm3ru - NAME:human3 | mrr@50": {
+     "n_topics": 117,
+     "delta": -0.0284,
+     "ci_lo": -0.081,
+     "ci_hi": 0.0223,
+     "p_value": 0.28237,
+     "p_holm": 1.0
+    },
+    "NAME:llm3ru - NAME:human3 | success@10": {
+     "n_topics": 117,
+     "delta": -0.0342,
+     "ci_lo": -0.0684,
+     "ci_hi": -0.0085,
+     "p_value": 0.12269,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3ru - PARA1:base | page_recall@50": {
+     "n_topics": 117,
+     "delta": 0.0483,
+     "ci_lo": 0.0288,
+     "ci_hi": 0.0683,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "PARA1:llm3ru - PARA1:base | page_recall@20": {
+     "n_topics": 117,
+     "delta": -0.0039,
+     "ci_lo": -0.0179,
+     "ci_hi": 0.011,
+     "p_value": 0.60224,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3ru - PARA1:base | mrr@50": {
+     "n_topics": 117,
+     "delta": 0.0349,
+     "ci_lo": -0.0118,
+     "ci_hi": 0.0833,
+     "p_value": 0.15788,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3ru - PARA1:base | success@10": {
+     "n_topics": 117,
+     "delta": -0.0085,
+     "ci_lo": -0.0256,
+     "ci_hi": 0.0,
+     "p_value": 1.0,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3ru - PARA1:llm3 | page_recall@50": {
+     "n_topics": 117,
+     "delta": 0.0542,
+     "ci_lo": 0.0363,
+     "ci_hi": 0.0725,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "PARA1:llm3ru - PARA1:llm3 | page_recall@20": {
+     "n_topics": 117,
+     "delta": 0.016,
+     "ci_lo": 0.0017,
+     "ci_hi": 0.0312,
+     "p_value": 0.0334,
+     "p_holm": 0.4676
+    },
+    "PARA1:llm3ru - PARA1:llm3 | mrr@50": {
+     "n_topics": 117,
+     "delta": 0.0185,
+     "ci_lo": -0.0308,
+     "ci_hi": 0.0679,
+     "p_value": 0.46955,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3ru - PARA1:llm3 | success@10": {
+     "n_topics": 117,
+     "delta": 0.0,
+     "ci_lo": -0.0256,
+     "ci_hi": 0.0256,
+     "p_value": 1.0,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3ru - PARA1:human3 | page_recall@50": {
+     "n_topics": 117,
+     "delta": -0.1349,
+     "ci_lo": -0.1623,
+     "ci_hi": -0.1077,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "PARA1:llm3ru - PARA1:human3 | page_recall@20": {
+     "n_topics": 117,
+     "delta": -0.0481,
+     "ci_lo": -0.0647,
+     "ci_hi": -0.0316,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "PARA1:llm3ru - PARA1:human3 | mrr@50": {
+     "n_topics": 117,
+     "delta": 0.0256,
+     "ci_lo": -0.0171,
+     "ci_hi": 0.0691,
+     "p_value": 0.24908,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3ru - PARA1:human3 | success@10": {
+     "n_topics": 117,
+     "delta": -0.0085,
+     "ci_lo": -0.0256,
+     "ci_hi": 0.0,
+     "p_value": 1.0,
+     "p_holm": 1.0
+    }
+   }
+  },
+  "replication_descriptive": {
+   "V": {
+    "NAME:llm3 - NAME:base | page_recall@50": {
+     "n_topics": 117,
+     "delta": 0.0427,
+     "ci_lo": 0.0145,
+     "ci_hi": 0.0742,
+     "p_value": 0.0039,
+     "p_holm": 0.0663
+    },
+    "NAME:llm3 - NAME:base | page_recall@20": {
+     "n_topics": 117,
+     "delta": 0.0087,
+     "ci_lo": -0.0235,
+     "ci_hi": 0.0437,
+     "p_value": 0.61654,
+     "p_holm": 1.0
+    },
+    "NAME:llm3 - NAME:base | mrr@50": {
+     "n_topics": 117,
+     "delta": -0.0107,
+     "ci_lo": -0.0497,
+     "ci_hi": 0.0268,
+     "p_value": 0.60044,
+     "p_holm": 1.0
+    },
+    "NAME:llm3 - NAME:base | success@10": {
+     "n_topics": 117,
+     "delta": 0.0085,
+     "ci_lo": -0.0513,
+     "ci_hi": 0.0684,
+     "p_value": 1.0,
+     "p_holm": 1.0
+    },
+    "NAME:human3 - NAME:base | page_recall@50": {
+     "n_topics": 117,
+     "delta": 0.1421,
+     "ci_lo": 0.0922,
+     "ci_hi": 0.1927,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "NAME:human3 - NAME:base | page_recall@20": {
+     "n_topics": 117,
+     "delta": 0.0708,
+     "ci_lo": 0.0317,
+     "ci_hi": 0.1128,
+     "p_value": 0.0008,
+     "p_holm": 0.0144
+    },
+    "NAME:human3 - NAME:base | mrr@50": {
+     "n_topics": 117,
+     "delta": 0.0686,
+     "ci_lo": 0.0177,
+     "ci_hi": 0.122,
+     "p_value": 0.0112,
+     "p_holm": 0.147
+    },
+    "NAME:human3 - NAME:base | success@10": {
+     "n_topics": 117,
+     "delta": 0.1709,
+     "ci_lo": 0.094,
+     "ci_hi": 0.2479,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "NAME:llm3 - NAME:human3 | page_recall@50": {
+     "n_topics": 117,
+     "delta": -0.0994,
+     "ci_lo": -0.1511,
+     "ci_hi": -0.0484,
+     "p_value": 0.0002,
+     "p_holm": 0.004
+    },
+    "NAME:llm3 - NAME:human3 | page_recall@20": {
+     "n_topics": 117,
+     "delta": -0.0621,
+     "ci_lo": -0.1063,
+     "ci_hi": -0.0181,
+     "p_value": 0.0064,
+     "p_holm": 0.096
+    },
+    "NAME:llm3 - NAME:human3 | mrr@50": {
+     "n_topics": 117,
+     "delta": -0.0794,
+     "ci_lo": -0.1355,
+     "ci_hi": -0.0255,
+     "p_value": 0.0054,
+     "p_holm": 0.0864
+    },
+    "NAME:llm3 - NAME:human3 | success@10": {
+     "n_topics": 117,
+     "delta": -0.1624,
+     "ci_lo": -0.2479,
+     "ci_hi": -0.0855,
+     "p_value": 0.0003,
+     "p_holm": 0.0057
+    },
+    "PARA1:llm3 - PARA1:base | page_recall@50": {
+     "n_topics": 117,
+     "delta": -0.0057,
+     "ci_lo": -0.0261,
+     "ci_hi": 0.0157,
+     "p_value": 0.60214,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3 - PARA1:base | page_recall@20": {
+     "n_topics": 117,
+     "delta": 0.0014,
+     "ci_lo": -0.0238,
+     "ci_hi": 0.0267,
+     "p_value": 0.91221,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3 - PARA1:base | mrr@50": {
+     "n_topics": 117,
+     "delta": 0.0132,
+     "ci_lo": -0.0334,
+     "ci_hi": 0.0615,
+     "p_value": 0.60064,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3 - PARA1:base | success@10": {
+     "n_topics": 117,
+     "delta": 0.0,
+     "ci_lo": -0.0769,
+     "ci_hi": 0.0769,
+     "p_value": 1.0,
+     "p_holm": 1.0
+    },
+    "PARA1:human3 - PARA1:base | page_recall@50": {
+     "n_topics": 117,
+     "delta": 0.0943,
+     "ci_lo": 0.0576,
+     "ci_hi": 0.1343,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "PARA1:human3 - PARA1:base | page_recall@20": {
+     "n_topics": 117,
+     "delta": 0.0451,
+     "ci_lo": 0.012,
+     "ci_hi": 0.0806,
+     "p_value": 0.0105,
+     "p_holm": 0.147
+    },
+    "PARA1:human3 - PARA1:base | mrr@50": {
+     "n_topics": 117,
+     "delta": 0.0356,
+     "ci_lo": -0.0261,
+     "ci_hi": 0.0991,
+     "p_value": 0.27307,
+     "p_holm": 1.0
+    },
+    "PARA1:human3 - PARA1:base | success@10": {
+     "n_topics": 117,
+     "delta": 0.1111,
+     "ci_lo": 0.0171,
+     "ci_hi": 0.2051,
+     "p_value": 0.0289,
+     "p_holm": 0.2893
+    },
+    "PARA1:llm3 - PARA1:human3 | page_recall@50": {
+     "n_topics": 117,
+     "delta": -0.1,
+     "ci_lo": -0.1402,
+     "ci_hi": -0.0618,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "PARA1:llm3 - PARA1:human3 | page_recall@20": {
+     "n_topics": 117,
+     "delta": -0.0437,
+     "ci_lo": -0.0792,
+     "ci_hi": -0.0099,
+     "p_value": 0.0131,
+     "p_holm": 0.1572
+    },
+    "PARA1:llm3 - PARA1:human3 | mrr@50": {
+     "n_topics": 117,
+     "delta": -0.0224,
+     "ci_lo": -0.0901,
+     "ci_hi": 0.0444,
+     "p_value": 0.51865,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3 - PARA1:human3 | success@10": {
+     "n_topics": 117,
+     "delta": -0.1111,
+     "ci_lo": -0.1966,
+     "ci_hi": -0.0171,
+     "p_value": 0.0263,
+     "p_holm": 0.2893
+    }
+   },
+   "P": {
+    "NAME:llm3 - NAME:base | page_recall@50": {
+     "n_topics": 117,
+     "delta": 0.0172,
+     "ci_lo": 0.0009,
+     "ci_hi": 0.0336,
+     "p_value": 0.0381,
+     "p_holm": 0.5715
+    },
+    "NAME:llm3 - NAME:base | page_recall@20": {
+     "n_topics": 117,
+     "delta": -0.0007,
+     "ci_lo": -0.0151,
+     "ci_hi": 0.0146,
+     "p_value": 0.93161,
+     "p_holm": 1.0
+    },
+    "NAME:llm3 - NAME:base | mrr@50": {
+     "n_topics": 117,
+     "delta": -0.0138,
+     "ci_lo": -0.066,
+     "ci_hi": 0.0389,
+     "p_value": 0.60944,
+     "p_holm": 1.0
+    },
+    "NAME:llm3 - NAME:base | success@10": {
+     "n_topics": 117,
+     "delta": -0.0085,
+     "ci_lo": -0.0427,
+     "ci_hi": 0.0171,
+     "p_value": 1.0,
+     "p_holm": 1.0
+    },
+    "NAME:human3 - NAME:base | page_recall@50": {
+     "n_topics": 117,
+     "delta": 0.205,
+     "ci_lo": 0.1783,
+     "ci_hi": 0.2328,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "NAME:human3 - NAME:base | page_recall@20": {
+     "n_topics": 117,
+     "delta": 0.0763,
+     "ci_lo": 0.0575,
+     "ci_hi": 0.0964,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "NAME:human3 - NAME:base | mrr@50": {
+     "n_topics": 117,
+     "delta": 0.0244,
+     "ci_lo": -0.025,
+     "ci_hi": 0.0733,
+     "p_value": 0.32767,
+     "p_holm": 1.0
+    },
+    "NAME:human3 - NAME:base | success@10": {
+     "n_topics": 117,
+     "delta": 0.0,
+     "ci_lo": -0.0256,
+     "ci_hi": 0.0256,
+     "p_value": 1.0,
+     "p_holm": 1.0
+    },
+    "NAME:llm3 - NAME:human3 | page_recall@50": {
+     "n_topics": 117,
+     "delta": -0.1878,
+     "ci_lo": -0.2113,
+     "ci_hi": -0.1654,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "NAME:llm3 - NAME:human3 | page_recall@20": {
+     "n_topics": 117,
+     "delta": -0.077,
+     "ci_lo": -0.0941,
+     "ci_hi": -0.0609,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "NAME:llm3 - NAME:human3 | mrr@50": {
+     "n_topics": 117,
+     "delta": -0.0382,
+     "ci_lo": -0.096,
+     "ci_hi": 0.0165,
+     "p_value": 0.19538,
+     "p_holm": 1.0
+    },
+    "NAME:llm3 - NAME:human3 | success@10": {
+     "n_topics": 117,
+     "delta": -0.0085,
+     "ci_lo": -0.0342,
+     "ci_hi": 0.0171,
+     "p_value": 1.0,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3 - PARA1:base | page_recall@50": {
+     "n_topics": 117,
+     "delta": -0.0059,
+     "ci_lo": -0.0216,
+     "ci_hi": 0.0104,
+     "p_value": 0.47195,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3 - PARA1:base | page_recall@20": {
+     "n_topics": 117,
+     "delta": -0.0199,
+     "ci_lo": -0.0324,
+     "ci_hi": -0.0078,
+     "p_value": 0.0011,
+     "p_holm": 0.0176
+    },
+    "PARA1:llm3 - PARA1:base | mrr@50": {
+     "n_topics": 117,
+     "delta": 0.0164,
+     "ci_lo": -0.0211,
+     "ci_hi": 0.0571,
+     "p_value": 0.41356,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3 - PARA1:base | success@10": {
+     "n_topics": 117,
+     "delta": -0.0085,
+     "ci_lo": -0.0427,
+     "ci_hi": 0.0171,
+     "p_value": 1.0,
+     "p_holm": 1.0
+    },
+    "PARA1:human3 - PARA1:base | page_recall@50": {
+     "n_topics": 117,
+     "delta": 0.1832,
+     "ci_lo": 0.1564,
+     "ci_hi": 0.2102,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "PARA1:human3 - PARA1:base | page_recall@20": {
+     "n_topics": 117,
+     "delta": 0.0442,
+     "ci_lo": 0.0255,
+     "ci_hi": 0.0625,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "PARA1:human3 - PARA1:base | mrr@50": {
+     "n_topics": 117,
+     "delta": 0.0094,
+     "ci_lo": -0.041,
+     "ci_hi": 0.0614,
+     "p_value": 0.71703,
+     "p_holm": 1.0
+    },
+    "PARA1:human3 - PARA1:base | success@10": {
+     "n_topics": 117,
+     "delta": 0.0,
+     "ci_lo": -0.0256,
+     "ci_hi": 0.0256,
+     "p_value": 1.0,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3 - PARA1:human3 | page_recall@50": {
+     "n_topics": 117,
+     "delta": -0.1892,
+     "ci_lo": -0.213,
+     "ci_hi": -0.1663,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "PARA1:llm3 - PARA1:human3 | page_recall@20": {
+     "n_topics": 117,
+     "delta": -0.0641,
+     "ci_lo": -0.0813,
+     "ci_hi": -0.0477,
+     "p_value": 0.0001,
+     "p_holm": 0.0024
+    },
+    "PARA1:llm3 - PARA1:human3 | mrr@50": {
+     "n_topics": 117,
+     "delta": 0.007,
+     "ci_lo": -0.0395,
+     "ci_hi": 0.0531,
+     "p_value": 0.76392,
+     "p_holm": 1.0
+    },
+    "PARA1:llm3 - PARA1:human3 | success@10": {
+     "n_topics": 117,
+     "delta": -0.0085,
+     "ci_lo": -0.0256,
+     "ci_hi": 0.0,
+     "p_value": 1.0,
+     "p_holm": 1.0
+    }
+   }
+  }
+ },
+ "E6b_decision": {
+  "per_set": {
+   "NAME": {
+    "R1_gain": true,
+    "R1_harm": [],
+    "R1_passes": true,
+    "R1_P_harm_checked": true,
+    "delta_R50_V": 0.101,
+    "ci_R50_V": [
+     0.0674,
+     0.1387
+    ],
+    "p_holm_R50_V": 0.0024,
+    "R2_llm3ru_vs_human3": "не определено",
+    "R3_llm3ru_vs_llm3": "две русские лучше пары рус+англ"
+   },
+   "PARA1": {
+    "R1_gain": false,
+    "R1_harm": [],
+    "R1_passes": false,
+    "R1_P_harm_checked": false,
+    "delta_R50_V": 0.05,
+    "ci_R50_V": [
+     0.0169,
+     0.0861
+    ],
+    "p_holm_R50_V": 0.076,
+    "R2_llm3ru_vs_human3": "не определено",
+    "R3_llm3ru_vs_llm3": "две русские лучше пары рус+англ"
+   }
+  },
+  "verdict": "ЧАСТИЧНО: принято на одном наборе",
+  "P_interpretable": {
+   "NAME:llm3ru - NAME:base": true,
+   "NAME:llm3ru - NAME:llm3": false,
+   "NAME:llm3ru - NAME:human3": true,
+   "NAME:llm3 - NAME:base": false,
+   "NAME:human3 - NAME:base": true,
+   "NAME:llm3 - NAME:human3": false,
+   "PARA1:llm3ru - PARA1:base": false,
+   "PARA1:llm3ru - PARA1:llm3": false,
+   "PARA1:llm3ru - PARA1:human3": false,
+   "PARA1:llm3 - PARA1:base": false,
+   "PARA1:human3 - PARA1:base": true,
+   "PARA1:llm3 - PARA1:human3": false
+  }
+ },
+ "descriptive": {
+  "new_pages_top10": {
+   "NAME:human3": {
+    "mean_new": 5.77,
+    "mean_new_targets_V": 0.436
+   },
+   "NAME:llm3": {
+    "mean_new": 4.57,
+    "mean_new_targets_V": 0.12
+   },
+   "NAME:llm3ru": {
+    "mean_new": 4.94,
+    "mean_new_targets_V": 0.274
+   },
+   "PARA1:human3": {
+    "mean_new": 6.42,
+    "mean_new_targets_V": 0.513
+   },
+   "PARA1:llm3": {
+    "mean_new": 4.49,
+    "mean_new_targets_V": 0.239
+   },
+   "PARA1:llm3ru": {
+    "mean_new": 4.9,
+    "mean_new_targets_V": 0.393
+   }
+  },
+  "new_pages_top50": {
+   "NAME:human3": {
+    "mean_new": 23.4,
+    "mean_new_targets_V": 1.214
+   },
+   "NAME:llm3": {
+    "mean_new": 18.25,
+    "mean_new_targets_V": 0.419
+   },
+   "NAME:llm3ru": {
+    "mean_new": 17.85,
+    "mean_new_targets_V": 0.641
+   },
+   "PARA1:human3": {
+    "mean_new": 25.17,
+    "mean_new_targets_V": 0.838
+   },
+   "PARA1:llm3": {
+    "mean_new": 18.12,
+    "mean_new_targets_V": 0.205
+   },
+   "PARA1:llm3ru": {
+    "mean_new": 19.87,
+    "mean_new_targets_V": 0.419
+   }
+  },
+  "diagnostics": {
+   "base": {
+    "n": 234,
+    "errors": 0,
+    "api_ms_p50": 213.2,
+    "api_ms_p90": 271.3,
+    "formulations_status": {
+     "None": 234
+    },
+    "formulations_answered": {
+     "None": 234
+    },
+    "formulations_duplicates_merged_mean": 0,
+    "author_route": {
+     "OFF": 234
+    },
+    "entity_route": {
+     "None": 234
+    },
+    "graph": {
+     "NOT_RUN (no graph stage requested; server default: collapse)": 234
+    },
+    "translation": {
+     "APPLIED": 167,
+     "NOT_COVERED": 67
+    },
+    "late": {
+     "True": 234
+    },
+    "warnings": {
+     "WORK_HAS_MULTIPLE_COPIES": 116
+    }
+   },
+   "human3": {
+    "n": 234,
+    "errors": 0,
+    "api_ms_p50": 552.7,
+    "api_ms_p90": 655.9,
+    "formulations_status": {
+     "APPLIED": 234
+    },
+    "formulations_answered": {
+     "3": 234
+    },
+    "formulations_duplicates_merged_mean": 0.01,
+    "author_route": {
+     "OFF": 234
+    },
+    "entity_route": {
+     "None": 234
+    },
+    "graph": {
+     "NOT_RUN (no graph stage requested; server default: collapse)": 234
+    },
+    "translation": {
+     "APPLIED": 167,
+     "NOT_COVERED": 67
+    },
+    "late": {
+     "True": 234
+    },
+    "warnings": {
+     "WORK_HAS_MULTIPLE_COPIES": 128
+    }
+   },
+   "llm3": {
+    "n": 234,
+    "errors": 0,
+    "api_ms_p50": 577.3,
+    "api_ms_p90": 713.2,
+    "formulations_status": {
+     "APPLIED": 234
+    },
+    "formulations_answered": {
+     "3": 234
+    },
+    "formulations_duplicates_merged_mean": 0.02,
+    "author_route": {
+     "OFF": 234
+    },
+    "entity_route": {
+     "None": 234
+    },
+    "graph": {
+     "NOT_RUN (no graph stage requested; server default: collapse)": 234
+    },
+    "translation": {
+     "APPLIED": 167,
+     "NOT_COVERED": 67
+    },
+    "late": {
+     "True": 234
+    },
+    "warnings": {
+     "WORK_HAS_MULTIPLE_COPIES": 100
+    }
+   },
+   "llm3ru": {
+    "n": 234,
+    "errors": 0,
+    "api_ms_p50": 583.2,
+    "api_ms_p90": 692.8,
+    "formulations_status": {
+     "APPLIED": 234
+    },
+    "formulations_answered": {
+     "3": 234
+    },
+    "formulations_duplicates_merged_mean": 0.03,
+    "author_route": {
+     "OFF": 234
+    },
+    "entity_route": {
+     "None": 234
+    },
+    "graph": {
+     "NOT_RUN (no graph stage requested; server default: collapse)": 234
+    },
+    "translation": {
+     "APPLIED": 167,
+     "NOT_COVERED": 67
+    },
+    "late": {
+     "True": 234
+    },
+    "warnings": {
+     "WORK_HAS_MULTIPLE_COPIES": 122
+    }
+   }
+  },
+  "formulations": {
+   "llm_ru_name.jsonl": {
+    "rows": 117,
+    "formulations": 234,
+    "words_min": 5,
+    "words_median": 8.0,
+    "words_max": 11,
+    "with_latin": [
+     "TQ-PC-14-0",
+     "TQ-PC-25-0"
+    ],
+    "with_digits": [
+     "TQ-PC-36-0",
+     "TQ-PC-54-0"
+    ]
+   },
+   "llm_ru_para1.jsonl": {
+    "rows": 117,
+    "formulations": 234,
+    "words_min": 4,
+    "words_median": 7.0,
+    "words_max": 10,
+    "with_latin": [],
+    "with_digits": []
+   }
+  },
+  "vs_e6_image_4cefa90": {
+   "files": [
+    {
+     "sha256": "4d5520c0c7c6b1392f7aafebec1b4445f242c36dfcbc13f707a8c96fcdb07afb",
+     "lines": 1523
+    }
+   ],
+   "base": {
+    "n": 234,
+    "identical_top50": 233
+   },
+   "human3": {
+    "n": 234,
+    "identical_top50": 232
+   },
+   "llm3": {
+    "n": 234,
+    "identical_top50": 232
+   }
+  }
+ }
+}
