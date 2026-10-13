@@ -1,0 +1,1190 @@
+{
+ "kind": "post-hoc, descriptive (not pre-registered)",
+ "qrels_sha256": "c89162ba40738994157277280404ce7f2add668e38079c86535729497a32b91e",
+ "pool_sha256": "f4321eda268952a63a869224aaf61aadab071392bae6814e7705364737fc3249",
+ "truths": {
+  "labels": {
+   "excluded_queries": [],
+   "mean": {
+    "ndcg@10": {
+     "C": {
+      "bm25": 0.5715,
+      "hybrid": 0.9043,
+      "hybrid_g0": 0.9007,
+      "hybrid_noroutes": 0.4802
+     },
+     "D": {
+      "bm25": 0.3643,
+      "hybrid": 0.9762,
+      "hybrid_g0": 0.9762,
+      "hybrid_noroutes": 0.5002
+     }
+    },
+    "p@10": {
+     "C": {
+      "bm25": 0.2625,
+      "hybrid": 0.4875,
+      "hybrid_g0": 0.4875,
+      "hybrid_noroutes": 0.225
+     },
+     "D": {
+      "bm25": 0.2333,
+      "hybrid": 0.7,
+      "hybrid_g0": 0.7,
+      "hybrid_noroutes": 0.2667
+     }
+    }
+   },
+   "ndcg@10": {
+    "C | hybrid - hybrid_noroutes": {
+     "n_queries": 8,
+     "delta": 0.42408,
+     "ci_lo": 0.20861,
+     "ci_hi": 0.64706,
+     "p_value": 0.0083
+    },
+    "C | hybrid - bm25": {
+     "n_queries": 8,
+     "delta": 0.33274,
+     "ci_lo": 0.16611,
+     "ci_hi": 0.49574,
+     "p_value": 0.014
+    },
+    "D | hybrid - hybrid_noroutes": {
+     "n_queries": 12,
+     "delta": 0.47599,
+     "ci_lo": 0.369,
+     "ci_hi": 0.59294,
+     "p_value": 0.0005
+    },
+    "D | hybrid - bm25": {
+     "n_queries": 12,
+     "delta": 0.61191,
+     "ci_lo": 0.44678,
+     "ci_hi": 0.77577,
+     "p_value": 0.0005
+    }
+   },
+   "p@10": {
+    "C | hybrid - hybrid_noroutes": {
+     "n_queries": 8,
+     "delta": 0.2625,
+     "ci_lo": 0.15,
+     "ci_hi": 0.375,
+     "p_value": 0.014
+    },
+    "C | hybrid - bm25": {
+     "n_queries": 8,
+     "delta": 0.225,
+     "ci_lo": 0.1375,
+     "ci_hi": 0.3125,
+     "p_value": 0.014
+    },
+    "D | hybrid - hybrid_noroutes": {
+     "n_queries": 12,
+     "delta": 0.43333,
+     "ci_lo": 0.33333,
+     "ci_hi": 0.55833,
+     "p_value": 0.0005
+    },
+    "D | hybrid - bm25": {
+     "n_queries": 12,
+     "delta": 0.46667,
+     "ci_lo": 0.325,
+     "ci_hi": 0.625,
+     "p_value": 0.0011
+    }
+   },
+   "per_query_ndcg@10": {
+    "QT-C-B1 | bm25": 0.8749,
+    "QT-C-B1 | hybrid": 0.92668,
+    "QT-C-B1 | hybrid_g0": 0.92668,
+    "QT-C-B1 | hybrid_noroutes": 0.8749,
+    "QT-C-B2 | bm25": 0.72366,
+    "QT-C-B2 | hybrid": 0.68637,
+    "QT-C-B2 | hybrid_g0": 0.68637,
+    "QT-C-B2 | hybrid_noroutes": 0.65766,
+    "QT-C-B3 | bm25": 0.46928,
+    "QT-C-B3 | hybrid": 1.0,
+    "QT-C-B3 | hybrid_g0": 1.0,
+    "QT-C-B3 | hybrid_noroutes": 0.29608,
+    "QT-C-B4 | bm25": 0.62643,
+    "QT-C-B4 | hybrid": 0.83422,
+    "QT-C-B4 | hybrid_g0": 0.83422,
+    "QT-C-B4 | hybrid_noroutes": 0.59586,
+    "QT-C-B5 | bm25": 0.63574,
+    "QT-C-B5 | hybrid": 0.88555,
+    "QT-C-B5 | hybrid_g0": 0.88555,
+    "QT-C-B5 | hybrid_noroutes": 0.69602,
+    "QT-C-B6 | bm25": 0.53437,
+    "QT-C-B6 | hybrid": 0.92376,
+    "QT-C-B6 | hybrid_g0": 0.92376,
+    "QT-C-B6 | hybrid_noroutes": 0.39413,
+    "QT-C-B7 | bm25": 0.31742,
+    "QT-C-B7 | hybrid": 0.97752,
+    "QT-C-B7 | hybrid_g0": 0.9491,
+    "QT-C-B7 | hybrid_noroutes": 0.20927,
+    "QT-C-B8 | bm25": 0.39038,
+    "QT-C-B8 | hybrid": 1.0,
+    "QT-C-B8 | hybrid_g0": 1.0,
+    "QT-C-B8 | hybrid_noroutes": 0.11752,
+    "QT-D-01 | bm25": 0.62251,
+    "QT-D-01 | hybrid": 0.98975,
+    "QT-D-01 | hybrid_g0": 0.98975,
+    "QT-D-01 | hybrid_noroutes": 0.56095,
+    "QT-D-02 | bm25": 0.0,
+    "QT-D-02 | hybrid": 1.0,
+    "QT-D-02 | hybrid_g0": 1.0,
+    "QT-D-02 | hybrid_noroutes": 0.33916,
+    "QT-D-03 | bm25": 0.29988,
+    "QT-D-03 | hybrid": 0.97117,
+    "QT-D-03 | hybrid_g0": 0.97117,
+    "QT-D-03 | hybrid_noroutes": 0.61608,
+    "QT-D-04 | bm25": 0.30174,
+    "QT-D-04 | hybrid": 0.95759,
+    "QT-D-04 | hybrid_g0": 0.95759,
+    "QT-D-04 | hybrid_noroutes": 0.64181,
+    "QT-D-05 | bm25": 0.63136,
+    "QT-D-05 | hybrid": 1.0,
+    "QT-D-05 | hybrid_g0": 1.0,
+    "QT-D-05 | hybrid_noroutes": 0.68204,
+    "QT-D-06 | bm25": 0.71795,
+    "QT-D-06 | hybrid": 0.97129,
+    "QT-D-06 | hybrid_g0": 0.97129,
+    "QT-D-06 | hybrid_noroutes": 0.68613,
+    "QT-D-07 | bm25": 0.08461,
+    "QT-D-07 | hybrid": 0.9436,
+    "QT-D-07 | hybrid_g0": 0.9436,
+    "QT-D-07 | hybrid_noroutes": 0.40785,
+    "QT-D-08 | bm25": 0.0,
+    "QT-D-08 | hybrid": 0.95207,
+    "QT-D-08 | hybrid_g0": 0.95207,
+    "QT-D-08 | hybrid_noroutes": 0.0413,
+    "QT-D-09 | bm25": 0.23022,
+    "QT-D-09 | hybrid": 1.0,
+    "QT-D-09 | hybrid_g0": 1.0,
+    "QT-D-09 | hybrid_noroutes": 0.33333,
+    "QT-D-10 | bm25": 0.0,
+    "QT-D-10 | hybrid": 0.97145,
+    "QT-D-10 | hybrid_g0": 0.97145,
+    "QT-D-10 | hybrid_noroutes": 0.33349,
+    "QT-D-11 | bm25": 0.82547,
+    "QT-D-11 | hybrid": 0.95759,
+    "QT-D-11 | hybrid_g0": 0.95759,
+    "QT-D-11 | hybrid_noroutes": 0.77686,
+    "QT-D-12 | bm25": 0.6579,
+    "QT-D-12 | hybrid": 1.0,
+    "QT-D-12 | hybrid_g0": 1.0,
+    "QT-D-12 | hybrid_noroutes": 0.58361
+   }
+  },
+  "labels_binary": {
+   "excluded_queries": [],
+   "mean": {
+    "ndcg@10": {
+     "C": {
+      "bm25": 0.6138,
+      "hybrid": 0.8989,
+      "hybrid_g0": 0.8945,
+      "hybrid_noroutes": 0.5248
+     },
+     "D": {
+      "bm25": 0.2921,
+      "hybrid": 0.9747,
+      "hybrid_g0": 0.9747,
+      "hybrid_noroutes": 0.3638
+     }
+    },
+    "p@10": {
+     "C": {
+      "bm25": 0.2625,
+      "hybrid": 0.4875,
+      "hybrid_g0": 0.4875,
+      "hybrid_noroutes": 0.225
+     },
+     "D": {
+      "bm25": 0.2333,
+      "hybrid": 0.7,
+      "hybrid_g0": 0.7,
+      "hybrid_noroutes": 0.2667
+     }
+    }
+   },
+   "ndcg@10": {
+    "C | hybrid - hybrid_noroutes": {
+     "n_queries": 8,
+     "delta": 0.37412,
+     "ci_lo": 0.06799,
+     "ci_hi": 0.63856,
+     "p_value": 0.06189
+    },
+    "C | hybrid - bm25": {
+     "n_queries": 8,
+     "delta": 0.28511,
+     "ci_lo": 0.01912,
+     "ci_hi": 0.49954,
+     "p_value": 0.07009
+    },
+    "D | hybrid - hybrid_noroutes": {
+     "n_queries": 12,
+     "delta": 0.61099,
+     "ci_lo": 0.47705,
+     "ci_hi": 0.74922,
+     "p_value": 0.0005
+    },
+    "D | hybrid - bm25": {
+     "n_queries": 12,
+     "delta": 0.68263,
+     "ci_lo": 0.48996,
+     "ci_hi": 0.86493,
+     "p_value": 0.0005
+    }
+   },
+   "p@10": {
+    "C | hybrid - hybrid_noroutes": {
+     "n_queries": 8,
+     "delta": 0.2625,
+     "ci_lo": 0.15,
+     "ci_hi": 0.375,
+     "p_value": 0.014
+    },
+    "C | hybrid - bm25": {
+     "n_queries": 8,
+     "delta": 0.225,
+     "ci_lo": 0.1375,
+     "ci_hi": 0.3125,
+     "p_value": 0.014
+    },
+    "D | hybrid - hybrid_noroutes": {
+     "n_queries": 12,
+     "delta": 0.43333,
+     "ci_lo": 0.33333,
+     "ci_hi": 0.55833,
+     "p_value": 0.0005
+    },
+    "D | hybrid - bm25": {
+     "n_queries": 12,
+     "delta": 0.46667,
+     "ci_lo": 0.325,
+     "ci_hi": 0.625,
+     "p_value": 0.0011
+    }
+   },
+   "per_query_ndcg@10": {
+    "QT-C-B1 | bm25": 0.89718,
+    "QT-C-B1 | hybrid": 0.96833,
+    "QT-C-B1 | hybrid_g0": 0.96833,
+    "QT-C-B1 | hybrid_noroutes": 0.89718,
+    "QT-C-B2 | bm25": 1.0,
+    "QT-C-B2 | hybrid": 0.5,
+    "QT-C-B2 | hybrid_g0": 0.5,
+    "QT-C-B2 | hybrid_noroutes": 1.0,
+    "QT-C-B3 | bm25": 0.46928,
+    "QT-C-B3 | hybrid": 1.0,
+    "QT-C-B3 | hybrid_g0": 1.0,
+    "QT-C-B3 | hybrid_noroutes": 0.29608,
+    "QT-C-B4 | bm25": 0.62664,
+    "QT-C-B4 | hybrid": 0.82657,
+    "QT-C-B4 | hybrid_g0": 0.82657,
+    "QT-C-B4 | hybrid_noroutes": 0.54622,
+    "QT-C-B5 | bm25": 0.63668,
+    "QT-C-B5 | hybrid": 0.98289,
+    "QT-C-B5 | hybrid_g0": 0.98289,
+    "QT-C-B5 | hybrid_noroutes": 0.63668,
+    "QT-C-B6 | bm25": 0.55464,
+    "QT-C-B6 | hybrid": 0.91329,
+    "QT-C-B6 | hybrid_g0": 0.91329,
+    "QT-C-B6 | hybrid_noroutes": 0.4483,
+    "QT-C-B7 | bm25": 0.3354,
+    "QT-C-B7 | hybrid": 1.0,
+    "QT-C-B7 | hybrid_g0": 0.96521,
+    "QT-C-B7 | hybrid_noroutes": 0.25617,
+    "QT-C-B8 | bm25": 0.39038,
+    "QT-C-B8 | hybrid": 1.0,
+    "QT-C-B8 | hybrid_g0": 1.0,
+    "QT-C-B8 | hybrid_noroutes": 0.11752,
+    "QT-D-01 | bm25": 0.48523,
+    "QT-D-01 | hybrid": 0.98185,
+    "QT-D-01 | hybrid_g0": 0.98185,
+    "QT-D-01 | hybrid_noroutes": 0.27168,
+    "QT-D-02 | bm25": 0.0,
+    "QT-D-02 | hybrid": 1.0,
+    "QT-D-02 | hybrid_g0": 1.0,
+    "QT-D-02 | hybrid_noroutes": 0.33916,
+    "QT-D-03 | bm25": 0.16958,
+    "QT-D-03 | hybrid": 1.0,
+    "QT-D-03 | hybrid_g0": 1.0,
+    "QT-D-03 | hybrid_noroutes": 0.48523,
+    "QT-D-04 | bm25": 0.0,
+    "QT-D-04 | hybrid": 0.93638,
+    "QT-D-04 | hybrid_g0": 0.93638,
+    "QT-D-04 | hybrid_noroutes": 0.46271,
+    "QT-D-05 | bm25": 0.56582,
+    "QT-D-05 | hybrid": 1.0,
+    "QT-D-05 | hybrid_g0": 1.0,
+    "QT-D-05 | hybrid_noroutes": 0.66783,
+    "QT-D-06 | bm25": 0.70129,
+    "QT-D-06 | hybrid": 0.96711,
+    "QT-D-06 | hybrid_g0": 0.96711,
+    "QT-D-06 | hybrid_noroutes": 0.64158,
+    "QT-D-07 | bm25": 0.0,
+    "QT-D-07 | hybrid": 0.90837,
+    "QT-D-07 | hybrid_g0": 0.90837,
+    "QT-D-07 | hybrid_noroutes": 0.07946,
+    "QT-D-08 | bm25": 0.0,
+    "QT-D-08 | hybrid": 1.0,
+    "QT-D-08 | hybrid_g0": 1.0,
+    "QT-D-08 | hybrid_noroutes": 0.0,
+    "QT-D-09 | bm25": 0.0,
+    "QT-D-09 | hybrid": 1.0,
+    "QT-D-09 | hybrid_g0": 1.0,
+    "QT-D-09 | hybrid_noroutes": 0.0,
+    "QT-D-10 | bm25": 0.0,
+    "QT-D-10 | hybrid": 0.96683,
+    "QT-D-10 | hybrid_g0": 0.96683,
+    "QT-D-10 | hybrid_noroutes": 0.23386,
+    "QT-D-11 | bm25": 0.9216,
+    "QT-D-11 | hybrid": 0.93638,
+    "QT-D-11 | hybrid_g0": 0.93638,
+    "QT-D-11 | hybrid_noroutes": 0.70197,
+    "QT-D-12 | bm25": 0.66183,
+    "QT-D-12 | hybrid": 1.0,
+    "QT-D-12 | hybrid_g0": 1.0,
+    "QT-D-12 | hybrid_noroutes": 0.48153
+   }
+  },
+  "auto_binary": {
+   "excluded_queries": [],
+   "mean": {
+    "ndcg@10": {
+     "C": {
+      "bm25": 0.3371,
+      "hybrid": 0.9892,
+      "hybrid_g0": 0.9848,
+      "hybrid_noroutes": 0.2425
+     },
+     "D": {
+      "bm25": 0.2141,
+      "hybrid": 0.9686,
+      "hybrid_g0": 0.9686,
+      "hybrid_noroutes": 0.308
+     }
+    },
+    "p@10": {
+     "C": {
+      "bm25": 0.175,
+      "hybrid": 0.5,
+      "hybrid_g0": 0.5,
+      "hybrid_noroutes": 0.1375
+     },
+     "D": {
+      "bm25": 0.15,
+      "hybrid": 0.6833,
+      "hybrid_g0": 0.6833,
+      "hybrid_noroutes": 0.2167
+     }
+    }
+   },
+   "ndcg@10": {
+    "C | hybrid - hybrid_noroutes": {
+     "n_queries": 8,
+     "delta": 0.74663,
+     "ci_lo": 0.63094,
+     "ci_hi": 0.85347,
+     "p_value": 0.0083
+    },
+    "C | hybrid - bm25": {
+     "n_queries": 8,
+     "delta": 0.65205,
+     "ci_lo": 0.53368,
+     "ci_hi": 0.77569,
+     "p_value": 0.0083
+    },
+    "D | hybrid - hybrid_noroutes": {
+     "n_queries": 12,
+     "delta": 0.6606,
+     "ci_lo": 0.54193,
+     "ci_hi": 0.78431,
+     "p_value": 0.0005
+    },
+    "D | hybrid - bm25": {
+     "n_queries": 12,
+     "delta": 0.75445,
+     "ci_lo": 0.59872,
+     "ci_hi": 0.89555,
+     "p_value": 0.0005
+    }
+   },
+   "p@10": {
+    "C | hybrid - hybrid_noroutes": {
+     "n_queries": 8,
+     "delta": 0.3625,
+     "ci_lo": 0.275,
+     "ci_hi": 0.4375,
+     "p_value": 0.0083
+    },
+    "C | hybrid - bm25": {
+     "n_queries": 8,
+     "delta": 0.325,
+     "ci_lo": 0.2625,
+     "ci_hi": 0.375,
+     "p_value": 0.0083
+    },
+    "D | hybrid - hybrid_noroutes": {
+     "n_queries": 12,
+     "delta": 0.46667,
+     "ci_lo": 0.35833,
+     "ci_hi": 0.6,
+     "p_value": 0.0005
+    },
+    "D | hybrid - bm25": {
+     "n_queries": 12,
+     "delta": 0.53333,
+     "ci_lo": 0.40833,
+     "ci_hi": 0.675,
+     "p_value": 0.0005
+    }
+   },
+   "per_query_ndcg@10": {
+    "QT-C-B1 | bm25": 0.49056,
+    "QT-C-B1 | hybrid": 1.0,
+    "QT-C-B1 | hybrid_g0": 1.0,
+    "QT-C-B1 | hybrid_noroutes": 0.46705,
+    "QT-C-B2 | bm25": 0.0,
+    "QT-C-B2 | hybrid": 1.0,
+    "QT-C-B2 | hybrid_g0": 1.0,
+    "QT-C-B2 | hybrid_noroutes": 0.0,
+    "QT-C-B3 | bm25": 0.33916,
+    "QT-C-B3 | hybrid": 1.0,
+    "QT-C-B3 | hybrid_g0": 1.0,
+    "QT-C-B3 | hybrid_noroutes": 0.21399,
+    "QT-C-B4 | bm25": 0.19633,
+    "QT-C-B4 | hybrid": 1.0,
+    "QT-C-B4 | hybrid_g0": 1.0,
+    "QT-C-B4 | hybrid_noroutes": 0.19092,
+    "QT-C-B5 | bm25": 0.39038,
+    "QT-C-B5 | hybrid": 1.0,
+    "QT-C-B5 | hybrid_g0": 1.0,
+    "QT-C-B5 | hybrid_noroutes": 0.2463,
+    "QT-C-B6 | bm25": 0.55464,
+    "QT-C-B6 | hybrid": 0.91329,
+    "QT-C-B6 | hybrid_g0": 0.91329,
+    "QT-C-B6 | hybrid_noroutes": 0.4483,
+    "QT-C-B7 | bm25": 0.3354,
+    "QT-C-B7 | hybrid": 1.0,
+    "QT-C-B7 | hybrid_g0": 0.96521,
+    "QT-C-B7 | hybrid_noroutes": 0.25617,
+    "QT-C-B8 | bm25": 0.39038,
+    "QT-C-B8 | hybrid": 1.0,
+    "QT-C-B8 | hybrid_g0": 1.0,
+    "QT-C-B8 | hybrid_noroutes": 0.11752,
+    "QT-D-01 | bm25": 0.48523,
+    "QT-D-01 | hybrid": 0.98185,
+    "QT-D-01 | hybrid_g0": 0.98185,
+    "QT-D-01 | hybrid_noroutes": 0.27168,
+    "QT-D-02 | bm25": 0.0,
+    "QT-D-02 | hybrid": 1.0,
+    "QT-D-02 | hybrid_g0": 1.0,
+    "QT-D-02 | hybrid_noroutes": 0.33916,
+    "QT-D-03 | bm25": 0.16958,
+    "QT-D-03 | hybrid": 1.0,
+    "QT-D-03 | hybrid_g0": 1.0,
+    "QT-D-03 | hybrid_noroutes": 0.48523,
+    "QT-D-04 | bm25": 0.0,
+    "QT-D-04 | hybrid": 0.93638,
+    "QT-D-04 | hybrid_g0": 0.93638,
+    "QT-D-04 | hybrid_noroutes": 0.46271,
+    "QT-D-05 | bm25": 0.25881,
+    "QT-D-05 | hybrid": 1.0,
+    "QT-D-05 | hybrid_g0": 1.0,
+    "QT-D-05 | hybrid_noroutes": 0.17319,
+    "QT-D-06 | bm25": 0.70129,
+    "QT-D-06 | hybrid": 0.96711,
+    "QT-D-06 | hybrid_g0": 0.96711,
+    "QT-D-06 | hybrid_noroutes": 0.64158,
+    "QT-D-07 | bm25": 0.0,
+    "QT-D-07 | hybrid": 0.90837,
+    "QT-D-07 | hybrid_g0": 0.90837,
+    "QT-D-07 | hybrid_noroutes": 0.07946,
+    "QT-D-08 | bm25": 0.0,
+    "QT-D-08 | hybrid": 1.0,
+    "QT-D-08 | hybrid_g0": 1.0,
+    "QT-D-08 | hybrid_noroutes": 0.0,
+    "QT-D-09 | bm25": 0.0,
+    "QT-D-09 | hybrid": 1.0,
+    "QT-D-09 | hybrid_g0": 1.0,
+    "QT-D-09 | hybrid_noroutes": 0.0,
+    "QT-D-10 | bm25": 0.0,
+    "QT-D-10 | hybrid": 0.96683,
+    "QT-D-10 | hybrid_g0": 0.96683,
+    "QT-D-10 | hybrid_noroutes": 0.23386,
+    "QT-D-11 | bm25": 0.67624,
+    "QT-D-11 | hybrid": 0.92585,
+    "QT-D-11 | hybrid_g0": 0.92585,
+    "QT-D-11 | hybrid_noroutes": 0.52722,
+    "QT-D-12 | bm25": 0.2782,
+    "QT-D-12 | hybrid": 0.93638,
+    "QT-D-12 | hybrid_g0": 0.93638,
+    "QT-D-12 | hybrid_noroutes": 0.48153
+   }
+  }
+ },
+ "disagreements": {
+  "C": {
+   "AUTO_NONREL / LABEL_NONREL": {
+    "n": 102,
+    "grades": {
+     "0": 101,
+     "1": 1
+    },
+    "brought_by": {
+     "bm25": 47,
+     "hybrid": 33,
+     "hybrid_g0": 31,
+     "hybrid_noroutes": 60
+    },
+    "pairs": []
+   },
+   "AUTO_NONREL / LABEL_REL": {
+    "n": 7,
+    "grades": {
+     "2": 2,
+     "3": 5
+    },
+    "brought_by": {
+     "bm25": 7,
+     "hybrid": 6,
+     "hybrid_g0": 6,
+     "hybrid_noroutes": 7
+    },
+    "pairs": [
+     {
+      "query_id": "QT-C-B1",
+      "page_id": "VKM-SRC-045:p0103",
+      "grade": 2,
+      "systems": {
+       "bm25": 4,
+       "hybrid": 7,
+       "hybrid_g0": 7,
+       "hybrid_noroutes": 3
+      }
+     },
+     {
+      "query_id": "QT-C-B1",
+      "page_id": "VKM-SRC-045:p0109",
+      "grade": 3,
+      "systems": {
+       "bm25": 5,
+       "hybrid": 8,
+       "hybrid_g0": 8,
+       "hybrid_noroutes": 5
+      }
+     },
+     {
+      "query_id": "QT-C-B1",
+      "page_id": "VKM-SRC-048:p0036",
+      "grade": 3,
+      "systems": {
+       "bm25": 1,
+       "hybrid": 6,
+       "hybrid_g0": 6,
+       "hybrid_noroutes": 1
+      }
+     },
+     {
+      "query_id": "QT-C-B2",
+      "page_id": "VKM-SRC-048:p0053",
+      "grade": 3,
+      "systems": {
+       "bm25": 1,
+       "hybrid": 3,
+       "hybrid_g0": 3,
+       "hybrid_noroutes": 1
+      }
+     },
+     {
+      "query_id": "QT-C-B4",
+      "page_id": "VKM-SRC-012:p0083",
+      "grade": 2,
+      "systems": {
+       "bm25": 2,
+       "hybrid_noroutes": 6
+      }
+     },
+     {
+      "query_id": "QT-C-B4",
+      "page_id": "VKM-SRC-266:p0164",
+      "grade": 3,
+      "systems": {
+       "bm25": 1,
+       "hybrid": 7,
+       "hybrid_g0": 7,
+       "hybrid_noroutes": 1
+      }
+     },
+     {
+      "query_id": "QT-C-B5",
+      "page_id": "VKM-SRC-269:r0003",
+      "grade": 3,
+      "systems": {
+       "bm25": 2,
+       "hybrid": 5,
+       "hybrid_g0": 5,
+       "hybrid_noroutes": 1
+      }
+     }
+    ]
+   },
+   "AUTO_NONREL / LABEL_UNKNOWN": {
+    "n": 4,
+    "grades": {
+     "UNKNOWN": 4
+    },
+    "brought_by": {
+     "hybrid_noroutes": 2,
+     "bm25": 1,
+     "hybrid": 1,
+     "hybrid_g0": 1
+    },
+    "pairs": []
+   },
+   "AUTO_REL / LABEL_NONREL": {
+    "n": 3,
+    "grades": {
+     "1": 2,
+     "0": 1
+    },
+    "brought_by": {
+     "hybrid": 3,
+     "hybrid_g0": 3
+    },
+    "pairs": [
+     {
+      "query_id": "QT-C-B2",
+      "page_id": "VKM-SRC-011:p0131",
+      "grade": 1,
+      "systems": {
+       "hybrid": 1,
+       "hybrid_g0": 1
+      }
+     },
+     {
+      "query_id": "QT-C-B2",
+      "page_id": "VKM-SRC-014:p0078",
+      "grade": 1,
+      "systems": {
+       "hybrid": 2,
+       "hybrid_g0": 2
+      }
+     },
+     {
+      "query_id": "QT-C-B5",
+      "page_id": "VKM-SRC-014:p0078",
+      "grade": 0,
+      "systems": {
+       "hybrid": 4,
+       "hybrid_g0": 4
+      }
+     }
+    ]
+   },
+   "AUTO_REL / LABEL_REL": {
+    "n": 34,
+    "grades": {
+     "3": 7,
+     "2": 27
+    },
+    "brought_by": {
+     "bm25": 14,
+     "hybrid": 32,
+     "hybrid_g0": 34,
+     "hybrid_noroutes": 11
+    },
+    "pairs": []
+   },
+   "AUTO_REL / LABEL_UNKNOWN": {
+    "n": 5,
+    "grades": {
+     "UNKNOWN": 5
+    },
+    "brought_by": {
+     "hybrid": 5,
+     "hybrid_g0": 5
+    },
+    "pairs": [
+     {
+      "query_id": "QT-C-B1",
+      "page_id": "VKM-SRC-012:p0028",
+      "grade": "UNKNOWN",
+      "systems": {
+       "hybrid": 4,
+       "hybrid_g0": 4
+      }
+     },
+     {
+      "query_id": "QT-C-B3",
+      "page_id": "VKM-SRC-011:p0024",
+      "grade": "UNKNOWN",
+      "systems": {
+       "hybrid": 5,
+       "hybrid_g0": 5
+      }
+     },
+     {
+      "query_id": "QT-C-B3",
+      "page_id": "VKM-SRC-011:p0047",
+      "grade": "UNKNOWN",
+      "systems": {
+       "hybrid": 4,
+       "hybrid_g0": 4
+      }
+     },
+     {
+      "query_id": "QT-C-B4",
+      "page_id": "VKM-SRC-011:p0049",
+      "grade": "UNKNOWN",
+      "systems": {
+       "hybrid": 2,
+       "hybrid_g0": 2
+      }
+     },
+     {
+      "query_id": "QT-C-B7",
+      "page_id": "VKM-SRC-011:p0007",
+      "grade": "UNKNOWN",
+      "systems": {
+       "hybrid": 4,
+       "hybrid_g0": 4
+      }
+     }
+    ]
+   }
+  },
+  "D": {
+   "AUTO_NONREL / LABEL_NONREL": {
+    "n": 113,
+    "grades": {
+     "1": 67,
+     "0": 36,
+     "2": 10
+    },
+    "brought_by": {
+     "hybrid": 36,
+     "hybrid_g0": 36,
+     "hybrid_noroutes": 88,
+     "bm25": 41
+    },
+    "pairs": []
+   },
+   "AUTO_NONREL / LABEL_REL": {
+    "n": 7,
+    "grades": {
+     "3": 7
+    },
+    "brought_by": {
+     "bm25": 3,
+     "hybrid_noroutes": 4,
+     "hybrid": 2,
+     "hybrid_g0": 2
+    },
+    "pairs": [
+     {
+      "query_id": "QT-D-05",
+      "page_id": "VKM-SRC-089:p0142",
+      "grade": 3,
+      "systems": {
+       "bm25": 2,
+       "hybrid_noroutes": 2
+      }
+     },
+     {
+      "query_id": "QT-D-05",
+      "page_id": "VKM-SRC-204:p0129",
+      "grade": 3,
+      "systems": {
+       "hybrid_noroutes": 9
+      }
+     },
+     {
+      "query_id": "QT-D-11",
+      "page_id": "VKM-SRC-204:p0151",
+      "grade": 3,
+      "systems": {
+       "hybrid_noroutes": 8
+      }
+     },
+     {
+      "query_id": "QT-D-11",
+      "page_id": "VKM-SRC-204:p0153",
+      "grade": 3,
+      "systems": {
+       "hybrid": 8,
+       "hybrid_g0": 8,
+       "hybrid_noroutes": 2
+      }
+     },
+     {
+      "query_id": "QT-D-12",
+      "page_id": "VKM-SRC-089:p0125",
+      "grade": 3,
+      "systems": {
+       "bm25": 5
+      }
+     },
+     {
+      "query_id": "QT-D-12",
+      "page_id": "VKM-SRC-152:p0001",
+      "grade": 3,
+      "systems": {
+       "hybrid": 10,
+       "hybrid_g0": 10
+      }
+     },
+     {
+      "query_id": "QT-D-12",
+      "page_id": "VKM-SRC-206:p0026",
+      "grade": 3,
+      "systems": {
+       "bm25": 6
+      }
+     }
+    ]
+   },
+   "AUTO_NONREL / LABEL_UNKNOWN": {
+    "n": 3,
+    "grades": {
+     "UNKNOWN": 3
+    },
+    "brought_by": {
+     "hybrid_noroutes": 2,
+     "bm25": 1
+    },
+    "pairs": []
+   },
+   "AUTO_REL / LABEL_REL": {
+    "n": 97,
+    "grades": {
+     "3": 97
+    },
+    "brought_by": {
+     "hybrid": 82,
+     "hybrid_g0": 82,
+     "bm25": 18,
+     "hybrid_noroutes": 26
+    },
+    "pairs": []
+   }
+  }
+ },
+ "sensitivity_flagged_C": {
+  "carry_over_to_0": {
+   "changed": [
+    {
+     "query_id": "QT-C-B5",
+     "page_id": "VKM-SRC-011:p0024",
+     "from": 2,
+     "to": 0,
+     "systems": {
+      "hybrid": 3,
+      "hybrid_g0": 3
+     }
+    },
+    {
+     "query_id": "QT-C-B7",
+     "page_id": "VKM-SRC-014:p0017",
+     "from": 3,
+     "to": 0,
+     "systems": {
+      "hybrid_g0": 5
+     }
+    },
+    {
+     "query_id": "QT-C-B8",
+     "page_id": "VKM-SRC-011:p0024",
+     "from": 2,
+     "to": 0,
+     "systems": {
+      "hybrid": 3,
+      "hybrid_g0": 3
+     }
+    }
+   ],
+   "excluded_queries": [],
+   "mean_ndcg@10": {
+    "C": {
+     "bm25": 0.5944,
+     "hybrid": 0.8946,
+     "hybrid_g0": 0.891,
+     "hybrid_noroutes": 0.4974
+    },
+    "D": {
+     "bm25": 0.3643,
+     "hybrid": 0.9762,
+     "hybrid_g0": 0.9762,
+     "hybrid_noroutes": 0.5002
+    }
+   },
+   "primary_ndcg@10": {
+    "C | hybrid - hybrid_noroutes": {
+     "n_queries": 8,
+     "delta": 0.39717,
+     "ci_lo": 0.17283,
+     "ci_hi": 0.6226,
+     "p_value": 0.0083,
+     "p_holm": 0.0166
+    },
+    "C | hybrid - bm25": {
+     "n_queries": 8,
+     "delta": 0.30017,
+     "ci_lo": 0.13865,
+     "ci_hi": 0.4622,
+     "p_value": 0.014,
+     "p_holm": 0.0166
+    },
+    "D | hybrid - hybrid_noroutes": {
+     "n_queries": 12,
+     "delta": 0.47599,
+     "ci_lo": 0.369,
+     "ci_hi": 0.59294,
+     "p_value": 0.0005,
+     "p_holm": 0.002
+    },
+    "D | hybrid - bm25": {
+     "n_queries": 12,
+     "delta": 0.61191,
+     "ci_lo": 0.44678,
+     "ci_hi": 0.77577,
+     "p_value": 0.0005,
+     "p_holm": 0.002
+    }
+   },
+   "verdicts": {
+    "C": "ВЫИГРЫШ",
+    "D": "ВЫИГРЫШ"
+   }
+  },
+  "borderline_lowered": {
+   "changed": [
+    {
+     "query_id": "QT-C-B4",
+     "page_id": "VKM-SRC-012:p0067",
+     "from": 2,
+     "to": 1,
+     "systems": {
+      "hybrid": 6,
+      "hybrid_g0": 6
+     }
+    },
+    {
+     "query_id": "QT-C-B8",
+     "page_id": "VKM-SRC-012:p0028",
+     "from": 2,
+     "to": 1,
+     "systems": {
+      "hybrid": 4,
+      "hybrid_g0": 4
+     }
+    },
+    {
+     "query_id": "QT-C-B6",
+     "page_id": "VKM-SRC-012:p0028",
+     "from": 2,
+     "to": 1,
+     "systems": {
+      "hybrid": 6,
+      "hybrid_g0": 6
+     }
+    },
+    {
+     "query_id": "QT-C-B2",
+     "page_id": "VKM-SRC-011:p0131",
+     "from": 1,
+     "to": 0,
+     "systems": {
+      "hybrid": 1,
+      "hybrid_g0": 1
+     }
+    }
+   ],
+   "excluded_queries": [],
+   "mean_ndcg@10": {
+    "C": {
+     "bm25": 0.5911,
+     "hybrid": 0.8811,
+     "hybrid_g0": 0.8776,
+     "hybrid_noroutes": 0.4949
+    },
+    "D": {
+     "bm25": 0.3643,
+     "hybrid": 0.9762,
+     "hybrid_g0": 0.9762,
+     "hybrid_noroutes": 0.5002
+    }
+   },
+   "primary_ndcg@10": {
+    "C | hybrid - hybrid_noroutes": {
+     "n_queries": 8,
+     "delta": 0.38621,
+     "ci_lo": 0.13666,
+     "ci_hi": 0.63245,
+     "p_value": 0.0363,
+     "p_holm": 0.07259
+    },
+    "C | hybrid - bm25": {
+     "n_queries": 8,
+     "delta": 0.29,
+     "ci_lo": 0.07884,
+     "ci_hi": 0.47928,
+     "p_value": 0.0465,
+     "p_holm": 0.07259
+    },
+    "D | hybrid - hybrid_noroutes": {
+     "n_queries": 12,
+     "delta": 0.47599,
+     "ci_lo": 0.369,
+     "ci_hi": 0.59294,
+     "p_value": 0.0005,
+     "p_holm": 0.002
+    },
+    "D | hybrid - bm25": {
+     "n_queries": 12,
+     "delta": 0.61191,
+     "ci_lo": 0.44678,
+     "ci_hi": 0.77577,
+     "p_value": 0.0005,
+     "p_holm": 0.002
+    }
+   },
+   "verdicts": {
+    "C": "НЕ ХУЖЕ",
+    "D": "ВЫИГРЫШ"
+   }
+  },
+  "both": {
+   "changed": [
+    {
+     "query_id": "QT-C-B5",
+     "page_id": "VKM-SRC-011:p0024",
+     "from": 2,
+     "to": 0,
+     "systems": {
+      "hybrid": 3,
+      "hybrid_g0": 3
+     }
+    },
+    {
+     "query_id": "QT-C-B7",
+     "page_id": "VKM-SRC-014:p0017",
+     "from": 3,
+     "to": 0,
+     "systems": {
+      "hybrid_g0": 5
+     }
+    },
+    {
+     "query_id": "QT-C-B8",
+     "page_id": "VKM-SRC-011:p0024",
+     "from": 2,
+     "to": 0,
+     "systems": {
+      "hybrid": 3,
+      "hybrid_g0": 3
+     }
+    },
+    {
+     "query_id": "QT-C-B4",
+     "page_id": "VKM-SRC-012:p0067",
+     "from": 2,
+     "to": 1,
+     "systems": {
+      "hybrid": 6,
+      "hybrid_g0": 6
+     }
+    },
+    {
+     "query_id": "QT-C-B8",
+     "page_id": "VKM-SRC-012:p0028",
+     "from": 2,
+     "to": 1,
+     "systems": {
+      "hybrid": 4,
+      "hybrid_g0": 4
+     }
+    },
+    {
+     "query_id": "QT-C-B6",
+     "page_id": "VKM-SRC-012:p0028",
+     "from": 2,
+     "to": 1,
+     "systems": {
+      "hybrid": 6,
+      "hybrid_g0": 6
+     }
+    },
+    {
+     "query_id": "QT-C-B2",
+     "page_id": "VKM-SRC-011:p0131",
+     "from": 1,
+     "to": 0,
+     "systems": {
+      "hybrid": 1,
+      "hybrid_g0": 1
+     }
+    }
+   ],
+   "excluded_queries": [],
+   "mean_ndcg@10": {
+    "C": {
+     "bm25": 0.6173,
+     "hybrid": 0.8732,
+     "hybrid_g0": 0.8696,
+     "hybrid_noroutes": 0.5131
+    },
+    "D": {
+     "bm25": 0.3643,
+     "hybrid": 0.9762,
+     "hybrid_g0": 0.9762,
+     "hybrid_noroutes": 0.5002
+    }
+   },
+   "primary_ndcg@10": {
+    "C | hybrid - hybrid_noroutes": {
+     "n_queries": 8,
+     "delta": 0.36006,
+     "ci_lo": 0.10684,
+     "ci_hi": 0.60934,
+     "p_value": 0.0443,
+     "p_holm": 0.08859
+    },
+    "C | hybrid - bm25": {
+     "n_queries": 8,
+     "delta": 0.25587,
+     "ci_lo": 0.05494,
+     "ci_hi": 0.44376,
+     "p_value": 0.06259,
+     "p_holm": 0.08859
+    },
+    "D | hybrid - hybrid_noroutes": {
+     "n_queries": 12,
+     "delta": 0.47599,
+     "ci_lo": 0.369,
+     "ci_hi": 0.59294,
+     "p_value": 0.0005,
+     "p_holm": 0.002
+    },
+    "D | hybrid - bm25": {
+     "n_queries": 12,
+     "delta": 0.61191,
+     "ci_lo": 0.44678,
+     "ci_hi": 0.77577,
+     "p_value": 0.0005,
+     "p_holm": 0.002
+    }
+   },
+   "verdicts": {
+    "C": "НЕ ХУЖЕ",
+    "D": "ВЫИГРЫШ"
+   }
+  }
+ }
+}
