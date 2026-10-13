@@ -507,6 +507,44 @@ def test_degradation_without_concepts_catalogues_nav(env, tmp_path):
     assert record["sections"] == [] and record["catalogue"]["processes"][0]["process_id"] == "PC-01"
 
 
+def test_model_formula_links_reach_formula_context_and_topic(env, tmp_path):
+    """Catalogue ``model_formula_links`` (scripts/build_model_formula_links.py): get_formula_context lists the
+    registry models of the formula (NOT_FOUND and REJECTED rows left out; None without a catalogue pack) and
+    reconstruct_topic gives each model its linked formula ids; no NAV rebuild."""
+    service, canon, root = env
+    fid = canon.ids["formula"]
+    assert service.nav_formula(fid).item.record["registry_models"] == []            # the pack has no links table
+    record, _w, _e = _dossier(service)
+    assert record["catalogue"]["models"][0]["formula_ids"] == []
+    repo = tmp_path / "public-links"
+    write_catalogues(repo)
+    base = {"source_id": "VKM-SRC-001", "form_similarity": "0.950", "rule_version": "model_formula_links_v1",
+            "review_status": "AUTO_EXTRACTED_UNREVIEWED", "epistemic_status": "DERIVATION"}
+    links = [dict(base, model_id="MM-T-001", equation_ref="2.1", formula_id=fid, match_status="EXACT",
+                  check="NOT_REVIEWED"),
+             dict(base, model_id="MM-T-002", equation_ref="-", formula_id=fid, match_status="CANDIDATE",
+                  check="REJECTED"),
+             dict(base, model_id="MM-T-003", equation_ref="4.1", formula_id="", match_status="NOT_FOUND", check="")]
+    path = repo / "catalogues" / "mathematics" / "model_formula_links.csv"
+    with open(path, "w", encoding="utf-8", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=list(links[0]))
+        w.writeheader()
+        w.writerows(links)
+    cpack.pack(repo, tmp_path / "pack-links", commit="cd" * 20)
+    cpack.publish(root, tmp_path / "pack-links")
+    got = service.nav_formula(fid).item.record["registry_models"]
+    assert got == [{"model_id": "MM-T-001", "name": "Синтетическая модель оседания", "equation_ref": "2.1",
+                    "match_status": "EXACT", "check": "NOT_REVIEWED"}]
+    record, _w, _e = _dossier(service)
+    model = record["catalogue"]["models"][0]
+    assert model["model_id"] == "MM-T-001" and model["formula_ids"] == [fid]
+    assert f"формулы: `{fid}`" in record["markdown"]
+    service.deps.catalogues = None
+    assert service.nav_formula(fid).item.record["registry_models"] is None
+    service.deps.catalogues = CatalogueStore(tmp_path / "no-root")
+    assert service.nav_formula(fid).item.record["registry_models"] is None
+
+
 def test_topics_are_used_when_the_build_has_them(env):
     service, canon, root = env
     service.deps.nav = nav_store.NavStore(root, canonical_db=canon.duckdb_path, functions={  # agent T's shapes

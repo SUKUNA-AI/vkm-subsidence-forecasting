@@ -18,6 +18,7 @@
 | `RECORD_TO_MODEL_MAP.csv` | 1026 | Каждая релевантная запись (formula / rheology_law / subsidence_method / engineering_rule) и её судьба: MAPPED или EXCLUDED с причиной. |
 | `FORMULA_CONFLICTS.csv` | 42 | Конфликты форм, значений, обозначений, единиц и режимов проверки (FC-001…FC-042). |
 | `FORMULA_VISUAL_CHECKS.csv` | 6 | Перепроверки по отрендеренным страницам и текстовому слою (FVC-001…006). |
+| `MODEL_FORMULA_LINKS.csv` | 1064 | Добавлено 13.10.2026: привязка уравнений моделей к объектам формул корпуса (номер и форма, статусы EXACT … NOT_FOUND, проверка спорных). Навигация, не evidence. PUBLIC — [model_formula_links.csv](../../catalogues/mathematics/model_formula_links.csv), описание — [MODEL_FORMULA_LINKS_RU.md](MODEL_FORMULA_LINKS_RU.md). |
 | `build_registry.py`, `defs/f00…f99*.py`, `vn_snapshot.json` | — | Детерминированная сборка. Запуск: `python3 build_registry.py --unmapped`, затем `python3 apply_review_fixes.py` (порядок — `RUN_ORDER.txt`). Проверки: ошибок 0, несопоставленных 0. |
 | `review_fixes.csv`, `apply_review_fixes.py`, `review_fix_authoring.py`, `RUN_ORDER.txt` | 195 исправлений | Построчные исправления самопроверки 26.09.2026 (старое → новое значение, находка, основание); применяются последним шагом с проверкой старого значения. |
 | `FIX_DIFF.md`, `FIX_LOG.csv`, `FIX_PROGRESS.md` | — | Разница с канонической копией до исправлений, журнал по находкам, ход работ. |
