@@ -82,6 +82,25 @@ LINK_DIAGNOSTIC_FIELDS = ("vn_id", "kind", "source_id", "locator", "pdf_page", "
                           "scope", "scale", "confidence", "role", "extraction_method", "quote_check",
                           "record_normalization")
 CAUSAL_DIAGNOSTIC_FIELDS = ("status", "scope", "scale", "confidence", "locator", "quote_check", "notes")
+# catalogue model_formula_links (scripts/build_model_formula_links.py): usable links, best first
+LINK_STATUS_ORDER = {"EXACT": 0, "NUMBER_MATCH": 1, "FORM_MATCH": 2, "CANDIDATE": 3}
+LINK_CHECK_ORDER = {"CONFIRMED": 0, "NOT_REVIEWED": 1, "": 1, "UNSURE": 2}
+LINK_FIELDS = ("model_id", "equation_ref", "source_id", "formula_id", "match_status", "check", "form_similarity")
+MODEL_FORMULA_IDS = 8
+
+
+def model_formula_links(cat: Any) -> list[dict[str, Any]]:
+    """Rows of the catalogue ``model_formula_links`` that link a model to a formula object: status EXACT,
+    NUMBER_MATCH, FORM_MATCH or CANDIDATE and a manual check other than REJECTED; best first (status, check, model,
+    formula). Navigation links (AUTO_EXTRACTED_UNREVIEWED / DERIVATION), never a check of the law; [] when the pack
+    has no such table. Raises ``CataloguesUnavailable`` without a pack."""
+    rows = cat.rows("model_formula_links", LINK_FIELDS)
+    out = [r for r in rows if r.get("formula_id") and r.get("match_status") in LINK_STATUS_ORDER
+           and (r.get("check") or "") != "REJECTED"]
+    out.sort(key=lambda r: (LINK_STATUS_ORDER[r["match_status"]], LINK_CHECK_ORDER.get(r.get("check") or "", 3),
+                            r.get("model_id") or "", r["formula_id"]))
+    return out
+
 
 # ============================================================================================================ text
 _WORD = re.compile(r"[^\W\d_]+", re.UNICODE)
@@ -1629,13 +1648,20 @@ class DossierBuilder:
             scored.append((round((1.0 + 0.2 * (len(ref) - 1) if ref else 0.0) + ws, 6), m, ref))
         scored.sort(key=lambda x: (-x[0], x[1].get("model_id") or ""))
         st.extra["models"] = max(0, len(scored) - 6)
+        formula_ids: dict[str, list[str]] = {}
+        for link in model_formula_links(cat) if scored else []:
+            ids = formula_ids.setdefault(link["model_id"], [])
+            if link["formula_id"] not in ids:
+                ids.append(link["formula_id"])
         for rank, (score, m, ref) in enumerate(scored[:6], 1):
             st.models.append({"rank": rank, "model_id": m.get("model_id"), "name": short(m.get("name_ru"), 110),
                               "math_class": m.get("math_class"), "equation": short(m.get("equation_plain"), 140),
                               "status": m.get("status"), "confidence": m.get("confidence"), "scale": m.get("scale"),
                               "site_applicability": short(m.get("site_applicability"), 60),
                               "source_ids": split_ids(m.get("source_ids"))[:4],
-                              "locator": short(m.get("locator"), 90), "processes": ref, "score": score})
+                              "locator": short(m.get("locator"), 90), "processes": ref,
+                              "formula_ids": formula_ids.get(m.get("model_id") or "", [])[:MODEL_FORMULA_IDS],
+                              "score": score})
 
     def _conflicts(self, st: _State, cat: Any, top_ids: set[str]) -> None:
         model_ids = {m["model_id"] for m in st.models}
@@ -1958,7 +1984,9 @@ class DossierBuilder:
             out.append(Entry("models", m["model_id"], _prio("models", m["rank"] - 1), [
                 f"- `{m['model_id']}` {m['name']} · {m['math_class']} · {m['status']}/{m['confidence']} · "
                 f"{m['scale']} · {m['locator'] or ', '.join(m['source_ids'])}"
-                + (f" · {', '.join(m['processes'])}" if m["processes"] else "")], m))
+                + (f" · {', '.join(m['processes'])}" if m["processes"] else "")
+                + (f" · формулы: {', '.join('`' + f + '`' for f in m['formula_ids'][:3])}"
+                   if m.get("formula_ids") else "")], m))
         for c in st.conflicts:
             out.append(Entry("conflicts", c["conflict_id"] or "?", _prio("conflicts", c["rank"] - 1), [
                 f"- `{c['conflict_id']}` [{c['label']}] {c['topic']} · {c['status']}"

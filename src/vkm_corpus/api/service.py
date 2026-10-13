@@ -1096,7 +1096,27 @@ class ApiService:
         data, snap = self._nav_run(lambda nav: nav.run("formula_context", formula_id))
         src = data.get("source_id") if isinstance(data, dict) else None
         page = data.get("page_id") if isinstance(data, dict) else None
+        if isinstance(data, dict) and data:
+            data = {**data, "registry_models": self._registry_models(formula_id)}
         return self._nav_result("NAV_FORMULA", formula_id, data, snap, source_id=src, page_id=page)
+
+    def _registry_models(self, formula_id: str) -> list[dict[str, Any]] | None:
+        """Formula-registry models linked to this formula (catalogue ``model_formula_links``: AUTO_EXTRACTED_UNREVIEWED
+        navigation links, DERIVATION; a REJECTED check is left out) — None when no catalogue pack is served."""
+        from vkm_corpus.api import topic
+        from vkm_corpus.catalogues.store import CataloguesUnavailable
+
+        if self.deps.catalogues is None:
+            return None
+        try:
+            links = [r for r in topic.model_formula_links(self.deps.catalogues) if r["formula_id"] == formula_id]
+            names = {m.get("model_id"): m.get("name_ru") for m in self.deps.catalogues.rows(
+                "mathematical_model_registry", ["model_id", "name_ru"])} if links else {}
+        except CataloguesUnavailable:
+            return None
+        return [{"model_id": r["model_id"], "name": topic.short(names.get(r["model_id"]), 110),
+                 "equation_ref": r.get("equation_ref"), "match_status": r["match_status"],
+                 "check": r.get("check") or "NOT_REVIEWED"} for r in links]
 
     def nav_formulas(self, concept: str | None, symbol: str | None, source_id: str | None, limit: int) -> Result:
         if not (concept or symbol):
