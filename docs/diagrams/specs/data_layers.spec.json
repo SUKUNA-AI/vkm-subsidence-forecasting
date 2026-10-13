@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "Контракт теории v0.2 (L0…L4) + NAV. Снимок snap-20261007T103222Z-2d71e9e8 (OCR v2), 07.10.2026. AUTO EXTRACTION ≠ REVIEWED EVIDENCE.",
+     "label": "Контракт теории v0.2 (L0…L4) + NAV. Снимок snap-20261007T103222Z-2d71e9e8 (OCR v2); состояние 13.10.2026. AUTO EXTRACTION ≠ REVIEWED EVIDENCE.",
      "x": 20,
      "y": 44,
      "w": 1670,
@@ -143,41 +143,41 @@
      "x": 60,
      "y": 373,
      "w": 180,
-     "h": 70,
+     "h": 100,
      "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;"
     },
     {
      "id": "nav_what",
-     "label": "разделы, формулы с «где…», параметры-кандидаты, понятия, темы, дубликаты",
+     "label": "разделы, формулы с «где…», параметры-кандидаты, понятия, темы, дубликаты; из каталогов — указатель объектов мира и связи моделей реестра с формулами",
      "x": 255,
      "y": 373,
      "w": 320,
-     "h": 70,
+     "h": 100,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
     },
     {
      "id": "nav_where",
-     "label": "derived/navigation/<снимок>/nav.duckdb (NavStore в API); граф NavigationLayer в Neo4j",
+     "label": "derived/navigation/<снимок>/nav.duckdb (NavStore в API); граф NavigationLayer в Neo4j; entity_index и model_formula_links — в пакете каталогов",
      "x": 590,
      "y": 373,
      "w": 330,
-     "h": 70,
+     "h": 100,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
     },
     {
      "id": "nav_st",
-     "label": "DERIVED / AUTO_EXTRACTED_UNREVIEWED: 9 378 разделов; Neo4j NAV 133 096 узлов, 2 348 208 связей; навигация, не evidence",
+     "label": "DERIVED / AUTO_EXTRACTED_UNREVIEWED: 9 378 разделов; Neo4j NAV 133 096 узлов, 2 348 208 связей; entity_index 2 838 строк, model_formula_links 1 064; навигация, не evidence",
      "x": 935,
      "y": 373,
      "w": 320,
-     "h": 70,
+     "h": 100,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
     },
     {
      "id": "l2",
      "label": "L2 EVIDENCE",
      "x": 60,
-     "y": 481,
+     "y": 511,
      "w": 180,
      "h": 100,
      "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;"
@@ -186,16 +186,16 @@
      "id": "l2_what",
      "label": "проверенные утверждения, измерения, эксперименты, выводы: FACT, DERIVATION, INTERPOLATION, MODEL_CHOICE, ENGINEERING_ASSUMPTION, ANALOGUE, UNKNOWN; scope, scale, локатор",
      "x": 255,
-     "y": 481,
+     "y": 511,
      "w": 320,
      "h": 100,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
     },
     {
      "id": "l2_where",
-     "label": "PRIVATE 11_evidence_vnext/ (с цитатами); PUBLIC evidence/ и catalogues/ без цитат — 79 CSV; пакет derived/catalogues на CORE (53 943 строки)",
+     "label": "PRIVATE 11_evidence_vnext/ (с цитатами); PUBLIC evidence/ и catalogues/ без цитат — 117 CSV; пакет derived/catalogues на CORE — 85bf6c1e00d9",
      "x": 590,
-     "y": 481,
+     "y": 511,
      "w": 330,
      "h": 100,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
@@ -204,7 +204,7 @@
      "id": "l2_st",
      "label": "проверенные записи; статусы не смешиваются, конфликты записываются; в граф пока не проецируются",
      "x": 935,
-     "y": 481,
+     "y": 511,
      "w": 320,
      "h": 100,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
@@ -213,7 +213,7 @@
      "id": "l3",
      "label": "L3 PHYSICAL KNOWLEDGE / WorldSpec",
      "x": 60,
-     "y": 619,
+     "y": 649,
      "w": 180,
      "h": 85,
      "style": "fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;"
@@ -222,16 +222,16 @@
      "id": "l3_what",
      "label": "поля, законы, параметры, материалы, связи; WorldSpec — мир в 3D и во времени",
      "x": 255,
-     "y": 619,
+     "y": 649,
      "w": 320,
      "h": 85,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
     },
     {
      "id": "l3_where",
-     "label": "src/vkm_world, schemas/worldspec_vnext.schema.json; каталоги physics (PC-01…PC-72), mathematics (280 моделей), causal (110 узлов, 241 связь)",
+     "label": "src/vkm_world, schemas/worldspec_vnext.schema.json; каталоги physics (PC-01…PC-72), mathematics (279 моделей), causal (110 узлов, 241 связь)",
      "x": 590,
-     "y": 619,
+     "y": 649,
      "w": 330,
      "h": 85,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
@@ -240,7 +240,7 @@
      "id": "l3_st",
      "label": "FACT / RANGE / DISCRETE_SET / UNKNOWN / MODEL_CHOICE / ANALOGUE / TRANSFER с провенансом; UNKNOWN порождает возможные достраивания",
      "x": 935,
-     "y": 619,
+     "y": 649,
      "w": 320,
      "h": 85,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
@@ -249,7 +249,7 @@
      "id": "l4",
      "label": "L4 WORLDS / REPRESENTATIONS / OBSERVATIONS",
      "x": 60,
-     "y": 742,
+     "y": 772,
      "w": 180,
      "h": 85,
      "style": "fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=13;fontStyle=1;"
@@ -258,7 +258,7 @@
      "id": "l4_what",
      "label": "PhysicalWorld, WorldRepresentation, Microkernel, ObservationWorld, SyntheticObservationDataset, SolverRun, ForecastMethod, ValidationExperiment, статусы NROY",
      "x": 255,
-     "y": 742,
+     "y": 772,
      "w": 320,
      "h": 85,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
@@ -267,7 +267,7 @@
      "id": "l4_where",
      "label": "план: src/vkm_world/worlds, representations, observation, forecast; тяжёлые данные вне git",
      "x": 590,
-     "y": 742,
+     "y": 772,
      "w": 330,
      "h": 85,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
@@ -276,7 +276,7 @@
      "id": "l4_st",
      "label": "ACCEPTED_DRAFT (контракт §62); не реализовано — проект v2 отложен; синтетика ≠ наблюдение",
      "x": 935,
-     "y": 742,
+     "y": 772,
      "w": 320,
      "h": 85,
      "style": "fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontColor=#333333;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
@@ -296,7 +296,7 @@
      "x": 1290,
      "y": 265,
      "w": 400,
-     "h": 65,
+     "h": 80,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=13;align=left;spacingLeft=6;spacingRight=4;"
     },
     {
@@ -511,7 +511,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: README.md §2; docs/theory/THEORY_TO_SCIENTIFIC_DATA_SYSTEM_CONTRACT_V0_2_RU.md §3, §12, §47, §52, §62; docs/corpus_platform/CORPUS_PLATFORM_ARCHITECTURE.md; docs/corpus_platform/NAVIGATION_LAYER.md; src/vkm_corpus/graph/schema.py; docs/worldspec/WORLD_KERNELS_DESIGN_RU.md §0–§1, §8; docs/corpus_platform/receipts/evening_deploy_final.json.",
+     "label": "Источники: README.md §2; docs/theory/THEORY_TO_SCIENTIFIC_DATA_SYSTEM_CONTRACT_V0_2_RU.md §3, §12, §47, §52, §62; docs/corpus_platform/CORPUS_PLATFORM_ARCHITECTURE.md; docs/corpus_platform/NAVIGATION_LAYER.md; src/vkm_corpus/graph/schema.py; docs/worldspec/WORLD_KERNELS_DESIGN_RU.md §0–§1, §8; docs/corpus_platform/receipts/evening_deploy_final.json, deploy_20261013_search_next.json; docs/science/MODEL_FORMULA_LINKS_RU.md; catalogues/entities/build_receipt.json.",
      "x": 20,
      "y": 1020,
      "w": 1670,
@@ -548,7 +548,7 @@
       ],
       [
        22,
-       531.0
+       561.0
       ]
      ]
     },

@@ -7,7 +7,7 @@
         <mxCell id="title" value="Слои научной системы данных: что где живёт и с каким статусом" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="12" width="1670" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="subtitle" value="Контракт теории v0.2 (L0…L4) + NAV. Снимок snap-20261007T103222Z-2d71e9e8 (OCR v2), 07.10.2026. AUTO EXTRACTION ≠ REVIEWED EVIDENCE." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="subtitle" value="Контракт теории v0.2 (L0…L4) + NAV. Снимок snap-20261007T103222Z-2d71e9e8 (OCR v2); состояние 13.10.2026. AUTO EXTRACTION ≠ REVIEWED EVIDENCE." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="44" width="1670" height="25" as="geometry" />
         </mxCell>
         <mxCell id="h0" value="Что это" style="fillColor=#eeeeee;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
@@ -47,58 +47,58 @@
           <mxGeometry x="935" y="250" width="320" height="85" as="geometry" />
         </mxCell>
         <mxCell id="nav" value="NAV (навигация)" style="fillColor=#dae8fc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="60" y="373" width="180" height="70" as="geometry" />
+          <mxGeometry x="60" y="373" width="180" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="nav_what" value="разделы, формулы с «где…», параметры-кандидаты, понятия, темы, дубликаты" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="255" y="373" width="320" height="70" as="geometry" />
+        <mxCell id="nav_what" value="разделы, формулы с «где…», параметры-кандидаты, понятия, темы, дубликаты; из каталогов — указатель объектов мира и связи моделей реестра с формулами" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="255" y="373" width="320" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="nav_where" value="derived/navigation/&amp;lt;снимок&amp;gt;/nav.duckdb (NavStore в API); граф NavigationLayer в Neo4j" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="590" y="373" width="330" height="70" as="geometry" />
+        <mxCell id="nav_where" value="derived/navigation/&amp;lt;снимок&amp;gt;/nav.duckdb (NavStore в API); граф NavigationLayer в Neo4j; entity_index и model_formula_links — в пакете каталогов" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="590" y="373" width="330" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="nav_st" value="DERIVED / AUTO_EXTRACTED_UNREVIEWED: 9 378 разделов; Neo4j NAV 133 096 узлов, 2 348 208 связей; навигация, не evidence" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="935" y="373" width="320" height="70" as="geometry" />
+        <mxCell id="nav_st" value="DERIVED / AUTO_EXTRACTED_UNREVIEWED: 9 378 разделов; Neo4j NAV 133 096 узлов, 2 348 208 связей; entity_index 2 838 строк, model_formula_links 1 064; навигация, не evidence" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="935" y="373" width="320" height="100" as="geometry" />
         </mxCell>
         <mxCell id="l2" value="L2 EVIDENCE" style="fillColor=#d5e8d4;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="60" y="481" width="180" height="100" as="geometry" />
+          <mxGeometry x="60" y="511" width="180" height="100" as="geometry" />
         </mxCell>
         <mxCell id="l2_what" value="проверенные утверждения, измерения, эксперименты, выводы: FACT, DERIVATION, INTERPOLATION, MODEL_CHOICE, ENGINEERING_ASSUMPTION, ANALOGUE, UNKNOWN; scope, scale, локатор" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="255" y="481" width="320" height="100" as="geometry" />
+          <mxGeometry x="255" y="511" width="320" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="l2_where" value="PRIVATE 11_evidence_vnext/ (с цитатами); PUBLIC evidence/ и catalogues/ без цитат — 79 CSV; пакет derived/catalogues на CORE (53 943 строки)" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="590" y="481" width="330" height="100" as="geometry" />
+        <mxCell id="l2_where" value="PRIVATE 11_evidence_vnext/ (с цитатами); PUBLIC evidence/ и catalogues/ без цитат — 117 CSV; пакет derived/catalogues на CORE — 85bf6c1e00d9" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="590" y="511" width="330" height="100" as="geometry" />
         </mxCell>
         <mxCell id="l2_st" value="проверенные записи; статусы не смешиваются, конфликты записываются; в граф пока не проецируются" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="935" y="481" width="320" height="100" as="geometry" />
+          <mxGeometry x="935" y="511" width="320" height="100" as="geometry" />
         </mxCell>
         <mxCell id="l3" value="L3 PHYSICAL KNOWLEDGE / WorldSpec" style="fillColor=#d5e8d4;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="60" y="619" width="180" height="85" as="geometry" />
+          <mxGeometry x="60" y="649" width="180" height="85" as="geometry" />
         </mxCell>
         <mxCell id="l3_what" value="поля, законы, параметры, материалы, связи; WorldSpec — мир в 3D и во времени" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="255" y="619" width="320" height="85" as="geometry" />
+          <mxGeometry x="255" y="649" width="320" height="85" as="geometry" />
         </mxCell>
-        <mxCell id="l3_where" value="src/vkm_world, schemas/worldspec_vnext.schema.json; каталоги physics (PC-01…PC-72), mathematics (280 моделей), causal (110 узлов, 241 связь)" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="590" y="619" width="330" height="85" as="geometry" />
+        <mxCell id="l3_where" value="src/vkm_world, schemas/worldspec_vnext.schema.json; каталоги physics (PC-01…PC-72), mathematics (279 моделей), causal (110 узлов, 241 связь)" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="590" y="649" width="330" height="85" as="geometry" />
         </mxCell>
         <mxCell id="l3_st" value="FACT / RANGE / DISCRETE_SET / UNKNOWN / MODEL_CHOICE / ANALOGUE / TRANSFER с провенансом; UNKNOWN порождает возможные достраивания" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="935" y="619" width="320" height="85" as="geometry" />
+          <mxGeometry x="935" y="649" width="320" height="85" as="geometry" />
         </mxCell>
         <mxCell id="l4" value="L4 WORLDS / REPRESENTATIONS / OBSERVATIONS" style="fillColor=#ffe6cc;fontSize=13;fontStyle=1;html=1;rounded=1;strokeColor=#d79b00;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="60" y="742" width="180" height="85" as="geometry" />
+          <mxGeometry x="60" y="772" width="180" height="85" as="geometry" />
         </mxCell>
         <mxCell id="l4_what" value="PhysicalWorld, WorldRepresentation, Microkernel, ObservationWorld, SyntheticObservationDataset, SolverRun, ForecastMethod, ValidationExperiment, статусы NROY" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="255" y="742" width="320" height="85" as="geometry" />
+          <mxGeometry x="255" y="772" width="320" height="85" as="geometry" />
         </mxCell>
         <mxCell id="l4_where" value="план: src/vkm_world/worlds, representations, observation, forecast; тяжёлые данные вне git" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="590" y="742" width="330" height="85" as="geometry" />
+          <mxGeometry x="590" y="772" width="330" height="85" as="geometry" />
         </mxCell>
         <mxCell id="l4_st" value="ACCEPTED_DRAFT (контракт §62); не реализовано — проект v2 отложен; синтетика ≠ наблюдение" style="align=left;dashed=1;fillColor=#f5f5f5;fontColor=#333333;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="935" y="742" width="320" height="85" as="geometry" />
+          <mxGeometry x="935" y="772" width="320" height="85" as="geometry" />
         </mxCell>
         <mxCell id="gate" value="Гейт AUTO ≠ REVIEWED&lt;br&gt;Валидатор канона не пускает FACT, REVIEWED_MEASUREMENT, ACCEPTED_PARAMETER, ACCEPTED_FORMULA в автоматические объекты. Значение попадает в WorldSpec только через evidence-запись с цитатой, статусом, областью и масштабом." style="align=left;fillColor=#f8cecc;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#b85450;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1290" y="100" width="400" height="115" as="geometry" />
         </mxCell>
         <mxCell id="review" value="Состояния ревью (контракт §47)&lt;br&gt;UNSEEN → QUICK_LOOK_ONLY → AUTO_EXTRACTED_UNREVIEWED → RELEVANT_SECTIONS_REVIEWED → FULLY_REVIEWED" style="align=left;fillColor=#ffffff;fontSize=13;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#666666;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="1290" y="265" width="400" height="65" as="geometry" />
+          <mxGeometry x="1290" y="265" width="400" height="80" as="geometry" />
         </mxCell>
         <mxCell id="dag" value="Логические графы в одном Neo4j&lt;br&gt;(schema.py, LAYER_DEPENDENCIES)" style="align=left;collapsible=0;container=1;dashed=1;fillColor=none;fontSize=12;fontStyle=1;html=1;rounded=0;spacingLeft=8;spacingTop=2;strokeColor=#999999;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="1290" y="385" width="400" height="335" as="geometry" />
@@ -160,7 +160,7 @@
         <mxCell id="lg_tx_paused" value="приостановлено, в работе или будущее (пунктир)" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
           <mxGeometry x="52" y="159" width="340" height="25" as="geometry" />
         </mxCell>
-        <mxCell id="sources" value="Источники: README.md §2; docs/theory/THEORY_TO_SCIENTIFIC_DATA_SYSTEM_CONTRACT_V0_2_RU.md §3, §12, §47, §52, §62; docs/corpus_platform/CORPUS_PLATFORM_ARCHITECTURE.md; docs/corpus_platform/NAVIGATION_LAYER.md; src/vkm_corpus/graph/schema.py; docs/worldspec/WORLD_KERNELS_DESIGN_RU.md §0–§1, §8; docs/corpus_platform/receipts/evening_deploy_final.json." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="sources" value="Источники: README.md §2; docs/theory/THEORY_TO_SCIENTIFIC_DATA_SYSTEM_CONTRACT_V0_2_RU.md §3, §12, §47, §52, §62; docs/corpus_platform/CORPUS_PLATFORM_ARCHITECTURE.md; docs/corpus_platform/NAVIGATION_LAYER.md; src/vkm_corpus/graph/schema.py; docs/worldspec/WORLD_KERNELS_DESIGN_RU.md §0–§1, §8; docs/corpus_platform/receipts/evening_deploy_final.json, deploy_20261013_search_next.json; docs/science/MODEL_FORMULA_LINKS_RU.md; catalogues/entities/build_receipt.json." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="1020" width="1670" height="40" as="geometry" />
         </mxCell>
         <mxCell id="f01" value="конвейер" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="l0" target="l1">
@@ -173,7 +173,7 @@
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="22" y="292.5" />
-              <mxPoint x="22" y="531" />
+              <mxPoint x="22" y="561" />
             </Array>
           </mxGeometry>
         </mxCell>

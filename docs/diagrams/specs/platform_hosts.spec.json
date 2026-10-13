@@ -11,7 +11,7 @@
    "nodes": [
     {
      "id": "title",
-     "label": "Платформа корпуса: хосты и сервисы (07.10.2026)",
+     "label": "Платформа корпуса: хосты и сервисы (13.10.2026)",
      "x": 20,
      "y": 12,
      "w": 1760,
@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "Снимок snap-20261007T103222Z-2d71e9e8 (OCR v2): 271 источник, 27 135 страниц. api, mcp, mcp-admin и vkm-job — образ коммита 475e92f.",
+     "label": "Снимок snap-20261007T103222Z-2d71e9e8 (OCR v2): 271 источник, 27 135 страниц. api, mcp, mcp-admin и vkm-job — образ коммита 1b20e03 (13.10); пакет каталогов 85bf6c1e00d9 (117 CSV).",
      "x": 20,
      "y": 44,
      "w": 1760,
@@ -216,7 +216,7 @@
     },
     {
      "id": "mcp",
-     "label": "vkm-corpus: 49 read-only инструментов",
+     "label": "vkm-corpus: 51 read-only инструмент",
      "x": 15,
      "y": 35,
      "w": 180,
@@ -308,7 +308,7 @@
     },
     {
      "id": "derived",
-     "label": "derived/ — navigation/<снимок> (nav.duckdb) · catalogues/<коммит> (пакет каталогов) · embeddings/ (dense, late pack)",
+     "label": "derived/ — navigation/<снимок> (nav.duckdb) · catalogues/<пакет> + CURRENT (пакет каталогов) · embeddings/ (dense, late pack)",
      "x": 15,
      "y": 165,
      "w": 300,
@@ -489,7 +489,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: PROJECT_STATE_RU.md; docs/corpus_platform/receipts/deploy_20261006_ocr_v2_core.json, deploy_20261007_readd_053_230.json; DEPLOYMENT.md; MODEL_SERVICES.md.",
+     "label": "Источники: PROJECT_STATE_RU.md; docs/corpus_platform/receipts/deploy_20261006_ocr_v2_core.json, deploy_20261007_readd_053_230.json, deploy_20261013_search_next.json; DEPLOYMENT.md; MODEL_SERVICES.md.",
      "x": 20,
      "y": 1040,
      "w": 1760,

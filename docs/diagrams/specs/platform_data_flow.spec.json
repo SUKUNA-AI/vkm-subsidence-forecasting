@@ -11,7 +11,7 @@
    "nodes": [
     {
      "id": "title",
-     "label": "Платформа корпуса: source → DOCUMENT → NAV → проекции → MCP (07.10.2026)",
+     "label": "Платформа корпуса: source → DOCUMENT → NAV → проекции → MCP (13.10.2026)",
      "x": 20,
      "y": 12,
      "w": 1920,
@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "Канон CORE: snap-20261007T103222Z-2d71e9e8 (OCR v2). 271 источник, 27 135 страниц; 253 COMPLETE, 16 PARTIAL, 2 SKIPPED. Проекции пересобираемы; автоматические результаты не evidence.",
+     "label": "Канон CORE: snap-20261007T103222Z-2d71e9e8 (OCR v2). 271 источник, 27 135 страниц; 253 COMPLETE, 16 PARTIAL, 2 SKIPPED. API и MCP — образ 1b20e03, пакет каталогов 85bf6c1e00d9. Проекции пересобираемы; автоматические результаты не evidence.",
      "x": 20,
      "y": 44,
      "w": 1920,
@@ -102,7 +102,7 @@
     },
     {
      "id": "pubcat",
-     "label": "catalogues/ и evidence/ — 79 CSV без цитат (статус, scope, scale)",
+     "label": "catalogues/ и evidence/ — 117 CSV без цитат (статус, scope, scale)",
      "x": 15,
      "y": 45,
      "w": 220,
@@ -119,6 +119,16 @@
      "h": 105,
      "style": "fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;",
      "parent": "pub"
+    },
+    {
+     "id": "newcat",
+     "label": "13.10 в пакете (навигация, не evidence):\n• entity_index — указатель объектов мира, 2 838 строк (build_entity_index.py)\n• model_formula_links — модели реестра ↔ формулы корпуса, 1 064 строки (build_model_formula_links.py)",
+     "x": 15,
+     "y": 285,
+     "w": 220,
+     "h": 115,
+     "parent": "pub",
+     "style": "fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
     },
     {
      "id": "ws",
@@ -337,7 +347,7 @@
     },
     {
      "id": "s_cat",
-     "label": "derived/ catalogues/ <коммит12> + CURRENT: 79 файлов, 53 943 строки",
+     "label": "derived/ catalogues/ <пакет> + CURRENT: 85bf6c1e00d9, 117 CSV",
      "x": 475,
      "y": 60,
      "w": 125,
@@ -387,7 +397,7 @@
     },
     {
      "id": "api",
-     "label": "VKM API /v1\n\nобъекты — по ID из DuckDB канона; кандидаты поиска — ID из OpenSearch; соседи — из Neo4j; NavStore (nav.duckdb + канон); досье — пакет каталогов; вектор запроса и MaxSim — rx580-retrieval\n\nконверт vkm.envelope/1; подмены канона текстом проекции нет",
+     "label": "VKM API /v1\n\nобъекты — по ID из DuckDB канона; кандидаты поиска — ID из OpenSearch; соседи — из Neo4j; NavStore (nav.duckdb + канон); досье, указатель объектов (find_entities, ветвь entity:PAGE) и модели формул (registry_models) — пакет каталогов; работы автора (find_works, ветвь author:PAGE) — авторы канона; вектор запроса и MaxSim — rx580-retrieval\n\nконверт vkm.envelope/1; MCP-поиск по умолчанию — краткий вид vkm.brief/1; подмены канона текстом проекции нет",
      "x": 640,
      "y": 60,
      "w": 210,
@@ -397,7 +407,7 @@
     },
     {
      "id": "mcp",
-     "label": "vkm-corpus: 49 read-only инструментов",
+     "label": "vkm-corpus: 51 read-only инструмент",
      "x": 870,
      "y": 620,
      "w": 115,
@@ -585,11 +595,11 @@
     },
     {
      "id": "sources",
-     "label": "Источники: PROJECT_STATE_RU.md; docs/corpus_platform/receipts/deploy_20261006_ocr_v2_core.json, deploy_20261007_readd_053_230.json, evidence_rebase_20261007.json; docs/evidence/REBASE_RU.md; MODEL_SERVICES.md.",
+     "label": "Источники: PROJECT_STATE_RU.md; docs/corpus_platform/receipts/deploy_20261006_ocr_v2_core.json, deploy_20261007_readd_053_230.json, evidence_rebase_20261007.json, deploy_20261013_search_fixes_formulas.json, deploy_20261013_search_next.json; docs/evidence/REBASE_RU.md; docs/science/MODEL_FORMULA_LINKS_RU.md; catalogues/entities/build_receipt.json; MODEL_SERVICES.md.",
      "x": 20,
-     "y": 1150,
-     "w": 1920,
-     "h": 25,
+     "y": 1100,
+     "w": 1280,
+     "h": 50,
      "preset": "text",
      "style": "fontSize=11;align=left;fontColor=#555555;"
     }
@@ -823,6 +833,13 @@
      "target": "catpack",
      "label": "",
      "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+    },
+    {
+     "id": "e_newcat",
+     "source": "newcat",
+     "target": "catpack",
+     "label": "",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;"
     },
     {
      "id": "e_cat",

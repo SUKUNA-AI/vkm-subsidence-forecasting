@@ -4,10 +4,10 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Платформа корпуса: source → DOCUMENT → NAV → проекции → MCP (07.10.2026)" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="title" value="Платформа корпуса: source → DOCUMENT → NAV → проекции → MCP (13.10.2026)" style="text;align=left;fontSize=20;fontStyle=1;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="12" width="1920" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="subtitle" value="Канон CORE: snap-20261007T103222Z-2d71e9e8 (OCR v2). 271 источник, 27 135 страниц; 253 COMPLETE, 16 PARTIAL, 2 SKIPPED. Проекции пересобираемы; автоматические результаты не evidence." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="subtitle" value="Канон CORE: snap-20261007T103222Z-2d71e9e8 (OCR v2). 271 источник, 27 135 страниц; 253 COMPLETE, 16 PARTIAL, 2 SKIPPED. API и MCP — образ 1b20e03, пакет каталогов 85bf6c1e00d9. Проекции пересобираемы; автоматические результаты не evidence." style="text;align=left;fontColor=#444444;fontSize=12;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="20" y="44" width="1920" height="25" as="geometry" />
         </mxCell>
         <mxCell id="priv" value="PRIVATE-репозиторий (Git + LFS)" style="swimlane;collapsible=0;container=1;fillColor=#d5e8d4;fontSize=14;fontStyle=1;html=1;rounded=0;startSize=28;strokeColor=#82b366;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
@@ -31,11 +31,14 @@
         <mxCell id="pub" value="PUBLIC-репозиторий" style="swimlane;collapsible=0;container=1;fillColor=#d5e8d4;fontSize=14;fontStyle=1;html=1;rounded=0;startSize=28;strokeColor=#82b366;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="30" y="580" width="250" height="410" as="geometry" />
         </mxCell>
-        <mxCell id="pubcat" value="catalogues/ и evidence/ — 79 CSV без цитат (статус, scope, scale)" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="pub">
+        <mxCell id="pubcat" value="catalogues/ и evidence/ — 117 CSV без цитат (статус, scope, scale)" style="fillColor=#d5e8d4;fontSize=13;html=1;rounded=1;strokeColor=#82b366;whiteSpace=wrap;" vertex="1" parent="pub">
           <mxGeometry x="15" y="45" width="220" height="75" as="geometry" />
         </mxCell>
         <mxCell id="catpack" value="vkm-corpus catalogues pack → catalogues.duckdb + manifest.json (коммит PUBLIC, sha256 и строки файлов)" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="pub">
           <mxGeometry x="15" y="160" width="220" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="newcat" value="13.10 в пакете (навигация, не evidence):&lt;br&gt;• entity_index — указатель объектов мира, 2 838 строк (build_entity_index.py)&lt;br&gt;• model_formula_links — модели реестра ↔ формулы корпуса, 1 064 строки (build_model_formula_links.py)" style="align=left;fillColor=#dae8fc;fontSize=12;html=1;rounded=1;spacingLeft=6;spacingRight=4;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="pub">
+          <mxGeometry x="15" y="285" width="220" height="115" as="geometry" />
         </mxCell>
         <mxCell id="ws" value="WORKSTATION · WSL — producer" style="swimlane;collapsible=0;container=1;fillColor=#dae8fc;fontSize=14;fontStyle=1;html=1;rounded=0;startSize=28;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="320" y="90" width="320" height="900" as="geometry" />
@@ -100,7 +103,7 @@
         <mxCell id="s_nav" value="NAV текущего снимка: nav.duckdb + CURRENT; Neo4j DOCUMENT/NAV" style="fillColor=#dae8fc;fontSize=12;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
           <mxGeometry x="330" y="60" width="135" height="175" as="geometry" />
         </mxCell>
-        <mxCell id="s_cat" value="derived/ catalogues/ &amp;lt;коммит12&amp;gt; + CURRENT: 79 файлов, 53 943 строки" style="fillColor=#dae8fc;fontSize=12;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
+        <mxCell id="s_cat" value="derived/ catalogues/ &amp;lt;пакет&amp;gt; + CURRENT: 85bf6c1e00d9, 117 CSV" style="fillColor=#dae8fc;fontSize=12;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
           <mxGeometry x="475" y="60" width="125" height="175" as="geometry" />
         </mxCell>
         <mxCell id="s_duck" value="DuckDB канона (только чтение)" style="fillColor=#dae8fc;fontSize=13;html=1;rounded=1;strokeColor=#6c8ebf;whiteSpace=wrap;" vertex="1" parent="core">
@@ -115,10 +118,10 @@
         <mxCell id="s_rx" value="CORE rx580-retrieval: dense, late MaxSim, Qwen3-VL page-visual query" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="core">
           <mxGeometry x="330" y="775" width="270" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="api" value="VKM API /v1&lt;br&gt;&lt;br&gt;объекты — по ID из DuckDB канона; кандидаты поиска — ID из OpenSearch; соседи — из Neo4j; NavStore (nav.duckdb + канон); досье — пакет каталогов; вектор запроса и MaxSim — rx580-retrieval&lt;br&gt;&lt;br&gt;конверт vkm.envelope/1; подмены канона текстом проекции нет" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;spacingTop=4;strokeColor=#d6b656;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="core">
+        <mxCell id="api" value="VKM API /v1&lt;br&gt;&lt;br&gt;объекты — по ID из DuckDB канона; кандидаты поиска — ID из OpenSearch; соседи — из Neo4j; NavStore (nav.duckdb + канон); досье, указатель объектов (find_entities, ветвь entity:PAGE) и модели формул (registry_models) — пакет каталогов; работы автора (find_works, ветвь author:PAGE) — авторы канона; вектор запроса и MaxSim — rx580-retrieval&lt;br&gt;&lt;br&gt;конверт vkm.envelope/1; MCP-поиск по умолчанию — краткий вид vkm.brief/1; подмены канона текстом проекции нет" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;spacingTop=4;strokeColor=#d6b656;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="core">
           <mxGeometry x="640" y="60" width="210" height="800" as="geometry" />
         </mxCell>
-        <mxCell id="mcp" value="vkm-corpus: 49 read-only инструментов" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="core">
+        <mxCell id="mcp" value="vkm-corpus: 51 read-only инструмент" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="core">
           <mxGeometry x="870" y="620" width="115" height="95" as="geometry" />
         </mxCell>
         <mxCell id="mcpadmin" value="MCP vkm-corpus-admin: задания plan-first" style="fillColor=#fff2cc;fontSize=13;html=1;rounded=1;strokeColor=#d6b656;whiteSpace=wrap;" vertex="1" parent="core">
@@ -172,8 +175,8 @@
         <mxCell id="lg_tx_agent" value="агент Claude" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
           <mxGeometry x="52" y="115" width="560" height="25" as="geometry" />
         </mxCell>
-        <mxCell id="sources" value="Источники: PROJECT_STATE_RU.md; docs/corpus_platform/receipts/deploy_20261006_ocr_v2_core.json, deploy_20261007_readd_053_230.json, evidence_rebase_20261007.json; docs/evidence/REBASE_RU.md; MODEL_SERVICES.md." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
-          <mxGeometry x="20" y="1150" width="1920" height="25" as="geometry" />
+        <mxCell id="sources" value="Источники: PROJECT_STATE_RU.md; docs/corpus_platform/receipts/deploy_20261006_ocr_v2_core.json, deploy_20261007_readd_053_230.json, evidence_rebase_20261007.json, deploy_20261013_search_fixes_formulas.json, deploy_20261013_search_next.json; docs/evidence/REBASE_RU.md; docs/science/MODEL_FORMULA_LINKS_RU.md; catalogues/entities/build_receipt.json; MODEL_SERVICES.md." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1100" width="1280" height="50" as="geometry" />
         </mxCell>
         <mxCell id="e_reg" value="реестр" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.3;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="reg" target="regimport">
           <mxGeometry relative="1" as="geometry" />
@@ -274,6 +277,9 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e_pk" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0.5;exitY=1;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="pubcat" target="catpack">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_newcat" value="" style="dashed=1;edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=1;exitDx=0;exitDy=0;exitX=0.5;exitY=0;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="newcat" target="catpack">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e_cat" value="catalogues publish" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0.5;entryY=0;exitDx=0;exitDy=0;exitX=0;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="catpack" target="s_cat">

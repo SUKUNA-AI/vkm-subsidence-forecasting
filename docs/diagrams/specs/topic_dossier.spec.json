@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "Один вызов (≈ 3–4 с) — бюджетированная карта темы с ID и страницами; дальше Claude открывает только нужное (get_section, get_formula_context, get_page, get_object). Навигация, не evidence.",
+     "label": "Один вызов (≈ 3–4 с) — бюджетированная карта темы с ID и страницами; дальше Claude открывает только нужное (get_section, get_formula_context с registry_models, get_page, get_object). Навигация, не evidence.",
      "x": 20,
      "y": 44,
      "w": 1720,
@@ -31,11 +31,11 @@
     },
     {
      "id": "in",
-     "label": "Вход\nquery; paraphrases ≤ 4; source_ids ≤ 20; budget_chars 1 000–60 000 (по умолчанию 12 000)",
+     "label": "Вход\nquery; paraphrases ≤ 4; source_ids ≤ 20; budget_chars 1 000–60 000 (по умолчанию 12 000); include_json (по умолчанию false)",
      "x": 20,
      "y": 110,
      "w": 230,
-     "h": 125,
+     "h": 140,
      "style": "fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;"
     },
     {
@@ -85,7 +85,7 @@
     },
     {
      "id": "out",
-     "label": "Ответ: markdown-оглавление + structured_content (ApiResponse TOPIC_DOSSIER)",
+     "label": "Ответ: markdown-оглавление + короткая сводка; include_json — полный TOPIC_DOSSIER",
      "x": 900,
      "y": 95,
      "w": 840,
@@ -145,7 +145,7 @@
     },
     {
      "id": "o6",
-     "label": "Каталоги: процессы PC-xx с уравнениями, параметрами, готовностью и записями evidence (vn_id, страница, status, scope, scale); модели, конфликты, причинные связи, операторы наблюдения",
+     "label": "Каталоги: процессы PC-xx с уравнениями, параметрами, готовностью и записями evidence (vn_id, страница, status, scope, scale); модели — у каждой formula_ids: до 8 формул корпуса (model_formula_links), в markdown — 3; конфликты, причинные связи, операторы наблюдения",
      "x": 425,
      "y": 395,
      "w": 400,
@@ -192,7 +192,7 @@
     },
     {
      "id": "d_cat",
-     "label": "Пакет каталогов evidence: derived/catalogues/<коммит> (79 файлов PUBLIC)",
+     "label": "Пакет каталогов evidence: derived/catalogues/<пакет> (85bf6c1e00d9: 117 CSV, в том числе model_formula_links)",
      "x": 1240,
      "y": 760,
      "w": 290,
@@ -205,16 +205,16 @@
      "x": 20,
      "y": 870,
      "w": 830,
-     "h": 65,
+     "h": 80,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
     },
     {
      "id": "meas",
-     "label": "Измерено 28.09: «механика закладки» (2 перефразы, 6 000 знаков) — 3,85 с; «начальные напряжения» (6 000 знаков) — 2,71 с. Рецепт из topic_v1: три формулировки в RRF дают page_recall@50 0,446 против 0,303 у одной. Досье-примеры: docs/science/topic_dossiers/.",
+     "label": "Измерено 28.09: «механика закладки» (2 перефразы, 6 000 знаков) — 3,85 с; «начальные напряжения» (6 000 знаков) — 2,71 с. Рецепт из topic_v1: три формулировки в RRF дают page_recall@50 0,446 против 0,303 у одной. 13.10: полный JSON досье на CORE ≈ 25 тыс. знаков при budget_chars = 4000; короткая сводка на синтетическом досье — 18 220 → 837 знаков.",
      "x": 880,
      "y": 870,
      "w": 860,
-     "h": 65,
+     "h": 80,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
     },
     {
@@ -339,11 +339,11 @@
     },
     {
      "id": "sources",
-     "label": "Источники: docs/corpus_platform/NAVIGATION_LAYER.md §5 (досье темы, пакет каталогов); MCP_TOOLS.md §2 (reconstruct_topic); README.md §7; receipts/evening_deploy_final.json (mcp_smoke); benchmarks/topic_v1/RESULTS_V1.md §0; src/vkm_corpus/api/topic.py.",
+     "label": "Источники: docs/corpus_platform/NAVIGATION_LAYER.md §5 (досье темы, пакет каталогов); MCP_TOOLS.md §1.1, §2 (reconstruct_topic); docs/science/MODEL_FORMULA_LINKS_RU.md; receipts/deploy_20261013_search_fixes_formulas.json, deploy_20261013_search_next.json; README.md §7; benchmarks/topic_v1/RESULTS_V1.md §0; src/vkm_corpus/api/topic.py.",
      "x": 20,
      "y": 1040,
      "w": 1720,
-     "h": 25,
+     "h": 40,
      "preset": "text",
      "style": "fontSize=11;align=left;fontColor=#555555;"
     }
@@ -403,19 +403,19 @@
      "source": "d_search",
      "target": "search",
      "label": "",
-     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0.8;exitY=0;exitDx=0;exitDy=0;entryX=0.2;entryY=1;entryDx=0;entryDy=0;",
+     "style": "rounded=1;fontSize=11;labelBackgroundColor=#ffffff;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;",
      "waypoints": [
       [
-       506,
-       740
+       278,
+       795
       ],
       [
-       506,
-       250
+       278,
+       88
       ],
       [
-       650,
-       250
+       725,
+       88
       ]
      ]
     },
