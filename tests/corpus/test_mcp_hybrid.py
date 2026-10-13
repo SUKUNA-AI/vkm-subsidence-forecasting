@@ -53,11 +53,14 @@ def test_hybrid_tools_are_read_only_and_typed(stack):
 def test_search_hybrid_returns_the_api_response_with_traces(stack):
     server, canon, service = stack
     result = asyncio.run(_call(server, "search_hybrid", {"query": "оседание земной поверхности", "limit": 5,
-                                                         "source_scope": ["SKRU1"]}))
+                                                         "source_scope": ["SKRU1"], "view": "full"}))
     body = result.structured_content
     assert result.is_error is False and body["ok"]
     assert [it["record"]["trace"]["fused_rank"] for it in body["items"]] == [1, 2, 3]
     assert service.deps.hybrid.requests[-1]["filters"] == {"source_scope": ["SKRU1"]}
+    brief = asyncio.run(_call(server, "search_hybrid", {"query": "оседание земной поверхности", "limit": 5}))
+    assert brief.structured_content["view"] == "brief"                       # the default of the MCP tool
+    assert [it["fused_rank"] for it in brief.structured_content["items"]] == [1, 2, 3]
     trace = asyncio.run(_call(server, "retrieval_trace", {"query": "оседание",
                                                           "object_ids": [canon.ids["figure"], "VKM-SRC-009:p0001"]}))
     tb = trace.structured_content
