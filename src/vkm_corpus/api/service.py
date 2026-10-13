@@ -652,6 +652,21 @@ class ApiService:
             return {}
         return {r["formula_id"]: str(r["equation_number"]) for r in rows if r.get("equation_number")}
 
+    def _nav_object_groups(self, object_ids: Any) -> dict[str, str]:
+        """object id → its NAV ``object_dup_clusters`` group (BOILERPLATE groups left out) for merging copies of one
+        work (best effort: a build without the part only means no group key)."""
+        ids = sorted({str(o) for o in object_ids if o})
+        nav = self.deps.nav
+        if not ids or nav is None or not hasattr(nav, "query"):
+            return {}
+        try:
+            ph = ", ".join("?" for _ in ids)
+            rows = nav.query(f"SELECT object_id, cluster_id FROM object_dup_members WHERE object_id IN ({ph}) "
+                             "AND kind <> 'BOILERPLATE'", ids)
+        except Exception:  # noqa: BLE001 - NavUnavailable, missing table
+            return {}
+        return {r["object_id"]: r["cluster_id"] for r in rows if r.get("cluster_id")}
+
     def query_objects(self, kinds: list[str], limit: int, cursor: str | None, **filters: Any) -> Result:
         offset = int(cursor) if cursor and cursor.isdigit() else 0
         if not kinds or any(k not in QUERYABLE_KINDS for k in kinds):
@@ -1174,7 +1189,14 @@ class ApiService:
             raise ApiFailure("INVALID_ARGUMENT", "source_id has the form VKM-SRC-NNN")
         data, snap = self._nav_run(lambda nav: nav.run("find_parameters", property=property, material=material,
                                                        site=site, scale=scale.upper() if scale else None,
-                                                       source_id=source_id, limit=limit))
+                                                       source_id=source_id, limit=min(2 * int(limit), 400)))
+        if isinstance(data, dict) and isinstance(data.get("candidates"), list):   # copies of one work: one position
+            from vkm_corpus.navigation.work_rollup import merge_copies, parameter_keys
+
+            work_of = self.works_of_sources(c.get("source_id") for c in data["candidates"])
+            cands, by_work = merge_copies(data["candidates"], work_of, parameter_keys, id_field="candidate_id",
+                                          limit=limit)
+            data = {**data, "candidates": cands, "by_work": by_work}
         key = "|".join(str(x) for x in (property, material, site, scale, source_id) if x)[:60]
         return self._nav_result("NAV_PARAMETERS", f"parameters:{key}", data, snap, source_id=source_id)
 
@@ -1182,6 +1204,11 @@ class ApiService:
         if not property or len(property) > 200:
             raise ApiFailure("INVALID_ARGUMENT", "property is 1..200 characters")
         data, snap = self._nav_run(lambda nav: nav.run("parameter_summary", property, material=material))
+        if isinstance(data, dict) and isinstance(data.get("rows"), list):          # n_works next to n_sources
+            from vkm_corpus.navigation.work_rollup import NOTE, summary_by_work
+
+            work_of = self.works_of_sources(s for r in data["rows"] for s in r.get("source_ids") or [])
+            data = {**data, "rows": summary_by_work(data["rows"], work_of), "by_work_note": NOTE}
         return self._nav_result("NAV_PARAMETER_SUMMARY", f"parameter_summary:{property[:40]}", data, snap)
 
     # ------------------------------------------------------------------ term dictionary (agent TR)
@@ -1372,7 +1399,16 @@ class ApiService:
         if not 1 <= int(limit) <= 100:
             raise ApiFailure("INVALID_ARGUMENT", "limit is 1..100")
         data, snap = self._nav_run_parts(self._TABLE_DATASETS, lambda nav: nav.run(
-            "find_tables", property=property, material=material, source_id=source_id, text=text, limit=int(limit)))
+            "find_tables", property=property, material=material, source_id=source_id, text=text,
+            limit=min(2 * int(limit), 200)))
+        if isinstance(data, dict) and isinstance(data.get("tables"), list):        # copies of one work: one position
+            from vkm_corpus.navigation.work_rollup import merge_copies, table_keys
+
+            work_of = self.works_of_sources(t.get("source_id") for t in data["tables"])
+            groups = self._nav_object_groups(t.get("table_id") for t in data["tables"])
+            tables, by_work = merge_copies(data["tables"], work_of, lambda t, w: table_keys(t, w, groups),
+                                           id_field="table_id", limit=int(limit))
+            data = {**data, "tables": tables, "by_work": by_work}
         key = "|".join(str(x) for x in (property, material, source_id, text) if x)[:60]
         return self._nav_result("NAV_TABLES", f"tables:{key}", data, snap, source_id=source_id, search=True)
 
