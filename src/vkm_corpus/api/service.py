@@ -530,12 +530,16 @@ class ApiService:
         return SF.widen(filters, remapped + (found if include else [])), [warning]
 
     def search(self, query: str, kinds: list[str], filters: dict[str, Any], limit: int, cursor: str | None,
-               include_duplicates: bool = False, exact: bool = False) -> Result:
+               include_duplicates: bool = False, exact: bool = False, group_fragments: bool = True) -> Result:
+        """BM25 search hydrated from the canon. ``group_fragments`` (default on): FIGURE regions of one page sharing a
+        caption block are one hit, the others in ``record.fragments`` (``vkm_corpus.search.fragments``)."""
         backend = _require(self.deps.search, "opensearch", "opensearch")
         offset = cursor_offset(cursor)
         filters, scope_warnings = self._scope_filter(filters)
         request = {"query": query, "kinds": tuple(kinds), "filters": filters, "size": limit, "offset": offset,
                    "include_duplicates": include_duplicates, "exact": exact}
+        if group_fragments and "FIGURE" in kinds:
+            request["group_fragments"] = True
         response = backend.search(request)
         items, warnings = self._search_items(response)
         warnings = scope_warnings + warnings
@@ -549,7 +553,8 @@ class ApiService:
                       late: bool | None = None, late_candidates: int = 100,
                       bib_route: bool | None = None, visual_route: bool | None = None,
                       translate: bool | None = None, graph: Any = None, formulations: list[str] | None = None,
-                      expand: str = "none", max_per_source: int | None = None) -> Result:
+                      expand: str = "none", max_per_source: int | None = None, group_fragments: bool = True,
+                      late_fusion: str = "replace", late_query: str = "original") -> Result:
         """BM25 + dense k-NN fused by RRF, optionally re-scored by late interaction (``vkm_corpus.search.hybrid``);
         hits are hydrated from the canon exactly as in :meth:`search` and carry the per-stage trace. Without the query
         encoder, the vectors build or (with late) the token store the answer is DEPENDENCY_UNAVAILABLE — never BM25
@@ -565,8 +570,13 @@ class ApiService:
         legs when ``translate`` is on); ``max_per_source`` caps the final order per source (the overflow follows,
         nothing is dropped; ``stages.source_cap``). With fused formulations the cursor pages through the fused list.
         The answer ends at :func:`hybrid_depth`: no hit past it is served, a cursor at or past it gives an empty page
-        with ``CURSOR_PAST_END``."""
-        from vkm_corpus.search.hybrid import MAX_FORMULATIONS, MAX_PER_SOURCE
+        with ``CURSOR_PAST_END``.
+
+        ``group_fragments`` (default on): FIGURE regions of one page sharing a caption block are one hit (the others in
+        ``record.fragments``). Experiment flags of the late stage, off by default (``vkm_corpus.search.hybrid``):
+        ``late_fusion`` = ``replace`` | ``rrf``, ``late_query`` = ``original`` | ``best_translation``; they travel to
+        the backend only when not default and apply to every formulation."""
+        from vkm_corpus.search.hybrid import LATE_FUSIONS, LATE_QUERIES, MAX_FORMULATIONS, MAX_PER_SOURCE
 
         backend = _require(self.deps.hybrid, "hybrid search", "hybrid")
         offset = cursor_offset(cursor)
@@ -579,6 +589,9 @@ class ApiService:
         if max_per_source is not None and (isinstance(max_per_source, bool) or
                                            not 1 <= int(max_per_source) <= MAX_PER_SOURCE):
             raise ApiFailure("INVALID_ARGUMENT", f"max_per_source is 1..{MAX_PER_SOURCE}")
+        if late_fusion not in LATE_FUSIONS or late_query not in LATE_QUERIES:
+            raise ApiFailure("INVALID_ARGUMENT", f"late_fusion is one of {', '.join(LATE_FUSIONS)}; late_query one of "
+                                                 f"{', '.join(LATE_QUERIES)}")
         use_translation = self._hybrid_translate_default(late) if translate is None else bool(translate)
         expansions, translation = self._query_translation(query) if use_translation else ([], None)
         filters, scope_warnings = self._scope_filter(filters)
@@ -604,6 +617,12 @@ class ApiService:
                                                 for f in plan["sent"])
         if max_per_source is not None:
             request["max_per_source"] = int(max_per_source)
+        if group_fragments and "FIGURE" in kinds:
+            request["group_fragments"] = True
+        if late_fusion != "replace":                        # experiment flags: sent only when not default
+            request["late_fusion"] = late_fusion
+        if late_query != "original":
+            request["late_query"] = late_query
         response = backend.search(request)
         depth = hybrid_depth(response, candidates, kinds)          # never serve past the end next_cursor reports
         response = {**response, "hits": list(response.get("hits") or [])[:max(0, depth - offset)]}
@@ -696,6 +715,14 @@ class ApiService:
                 unit = trace.get("dense_unit") or {}
                 if not ordered_blocks and hit.get("object_type") == "PAGE" and unit.get("object_ids"):
                     record["rerank_candidate"]["object_ids"] = list(unit["object_ids"])[:20]
+            # fragments of one figure (vkm_corpus.search.fragments): the other regions of its page and caption block
+            fields = hit.get("fields") if isinstance(hit.get("fields"), dict) else {}
+            fragments = hit.get("fragments") or fields.get("fragments")
+            if fragments:
+                record["fragments"] = [str(f) for f in fragments]
+                group = fields.get("fragment_group") or (record.get("trace") or {}).get("fragments")
+                if group:
+                    record["fragment_group"] = dict(group)
             items.append(Item(envelope=self.envelope(kind, row, payload_form="REFERENCE", projection=projection,
                                                      work_id=work_id), record=jsonable(record)))
         if mismatched:

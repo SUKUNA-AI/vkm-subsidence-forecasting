@@ -44,6 +44,8 @@ View = Literal["full", "brief"]
 VIEW_DOC = ("full (default): the ApiResponse with envelopes, records and traces; brief: vkm.brief/1 — one short entry "
             "per hit (id, ranks, one snippet, labels), source cards, warning codes, the run summary (api.brief)")
 CURSOR_DOC = "next_cursor of the previous page (an offset); anything else is INVALID_ARGUMENT"
+GROUP_FRAGMENTS_DOC = ("FIGURE: regions of one page that share one caption block are one hit (the largest region at "
+                       "the best-ranked one's place; the others in record.fragments); false = every detected region")
 
 
 @dataclass
@@ -156,6 +158,7 @@ class SearchBody(_Body):
     view: View = Field("full", description=VIEW_DOC)
     include_duplicates: bool = False
     exact: bool = Field(False, description="unstemmed word forms instead of morphology")
+    group_fragments: bool = Field(True, description=GROUP_FRAGMENTS_DOC)
 
 
 HybridKind = Literal["PAGE", "FIGURE", "TABLE", "FORMULA"]
@@ -202,6 +205,13 @@ class HybridSearchBody(_Body):
     max_per_source: int | None = Field(None, ge=1, le=50, description=(
         "at most N hits of one source before the other sources' hits; the overflow follows (nothing is dropped, "
         "stages.source_cap); null = off"))
+    group_fragments: bool = Field(True, description=GROUP_FRAGMENTS_DOC)
+    late_fusion: Literal["replace", "rrf"] = Field("replace", description=(
+        "experiment: replace = the late score orders each kind's head (default); rrf = RRF(rrf_k) of the head's RRF "
+        "order and its late order (trace late_fusion_rank)"))
+    late_query: Literal["original", "best_translation"] = Field("original", description=(
+        "experiment: original = the late stage scores the query (default); best_translation = also its translation "
+        "(translate), late score = max of MaxSim / query tokens (trace late_query)"))
 
 
 class ObjectsQueryBody(_Body):
@@ -459,7 +469,8 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
     def search_post(request: Request, body: SearchBody, _auth: Read) -> JSONResponse:
         request.state.query_sha256 = hashlib.sha256(body.query.encode("utf-8")).hexdigest()
         return respond(request, service.search(body.query, list(body.kinds), body.filters.to_search(), body.limit,
-                                               body.cursor, body.include_duplicates, body.exact),
+                                               body.cursor, body.include_duplicates, body.exact,
+                                               group_fragments=body.group_fragments),
                        view=body.view, brief_kind="search")
 
     @app.get("/v1/search", tags=["search"], **JSON_RESPONSES)
@@ -480,7 +491,9 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
                                                       late_candidates=body.late_candidates, bib_route=body.bib_route,
                                                       visual_route=body.visual_route, translate=body.translate,
                                                       graph=body.graph, formulations=body.formulations,
-                                                      expand=body.expand, max_per_source=body.max_per_source),
+                                                      expand=body.expand, max_per_source=body.max_per_source,
+                                                      group_fragments=body.group_fragments,
+                                                      late_fusion=body.late_fusion, late_query=body.late_query),
                        view=body.view, brief_kind="hybrid")
 
     @app.get("/v1/search/hybrid", tags=["search"], **JSON_RESPONSES)

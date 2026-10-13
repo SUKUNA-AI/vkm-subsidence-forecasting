@@ -24,6 +24,10 @@
 * The filter ``source_scope_or_source_id`` (``{source_scope, source_id}``) is the area OR one of the sources — the
   API's ``include_ambiguous`` (``vkm_corpus.search.scope_filter``).
 * Blocks collapse by ``page_id`` (``best_blocks``); pages collapse duplicate pages by ``dup_group_id``.
+* Fragments of one figure (``group_fragments``, agent Д; the API turns it on for FIGURE): figures of one page with the
+  same ``caption_block_id`` are one hit — the largest region, at the place of the best-ranked one; the others in
+  ``fields.fragments`` (``vkm_corpus.search.fragments``). The FIGURE kind is then ranked from the top at least
+  ``FRAGMENT_DEPTH`` deep and the window is cut from the grouped list.
 * Several kinds are never ranked by raw BM25 across indices (their statistics differ): one query per kind
   (``_msearch``), then reciprocal-rank fusion (H-44).
 * Rerank candidates are IDs plus a passage reference by rule ``rerank_text_v1``; the text is read from agent D's
@@ -37,6 +41,7 @@ from datetime import date
 from typing import Any
 
 from vkm_corpus.contracts import vocab
+from vkm_corpus.search.fragments import FRAGMENT_DEPTH, group_hits
 from vkm_corpus.search.mappings import KIND_INDEX, TEXT_FIELDS, alias_name, properties
 from vkm_corpus.search.object_refs import ObjectRef, has_topic, parse_refs, strip_refs
 
@@ -135,6 +140,7 @@ class SearchRequest:
     minimum_should_match: str = "3<70%"
     rrf_k: int = RRF_K
     window: int = 50
+    group_fragments: bool = False            # FIGURE: one hit per page + caption block (vkm_corpus.search.fragments)
 
     def validate(self) -> None:
         if not self.query or not self.query.strip() or len(self.query) > 512:
@@ -448,6 +454,8 @@ def search(client: Any, req: SearchRequest, prefix: str, *, indices: dict[str, s
     warnings: list[str] = []
     if len(req.kinds) == 1:
         kind = req.kinds[0]
+        if req.group_fragments and kind == "FIGURE":      # fragments of one figure: group from the top, then the window
+            return _grouped_figures(client, req, targets[kind])
         gate = _gated_label(req, kind)
         rgate = ref_gate(req, kind) if gate is None else None
         if rgate is not None:                  # the topic first, then the pages holding the numbered object
@@ -477,6 +485,8 @@ def search(client: Any, req: SearchRequest, prefix: str, *, indices: dict[str, s
         body_req = gates[kind][1] if gates[kind] else req
         depth = max(window, LABEL_TOPIC_K) if gates[kind] else (
             min(max(window, OBJECT_REF_TOPIC_K), MAX_WINDOW) if rgates[kind] else window)
+        if req.group_fragments and kind == "FIGURE":
+            depth = min(max(depth, FRAGMENT_DEPTH), MAX_WINDOW)
         lines += [{"index": targets[kind]}, build_body(KIND_INDEX[kind], body_req, size=depth, offset=0)]
     responses = client.msearch(body=lines)["responses"]
     per_kind: dict[str, list[SearchHit]] = {}
@@ -488,12 +498,35 @@ def search(client: Any, req: SearchRequest, prefix: str, *, indices: dict[str, s
             per_kind[kind] = promote_labels(per_kind[kind], gates[kind][0], LABEL_FIELD[KIND_INDEX[kind]])
         elif rgates[kind]:
             per_kind[kind] = promote_refs(per_kind[kind])
+        if req.group_fragments and kind == "FIGURE":
+            per_kind[kind] = group_hits(per_kind[kind])
         warnings += w
         totals[kind] = int(resp["hits"]["total"]["value"])
         for key, n in _availability(resp).items():
             availability[key] = availability.get(key, 0) + n
     fused = fuse_rrf(per_kind, req.kinds, req.rrf_k)[req.offset:req.offset + req.size]
     return SearchResponse(req.query, req.kinds, fused, totals, availability, "RRF", warnings)
+
+
+def _grouped_figures(client: Any, req: SearchRequest, target: str) -> SearchResponse:
+    """FIGURE alone with ``group_fragments``: E's ranking (with the label gate) from the top, at least
+    ``FRAGMENT_DEPTH`` deep and deeper while the grouped list is shorter than ``offset + size`` (up to MAX_WINDOW),
+    grouped (``vkm_corpus.search.fragments``); the window is cut from the grouped list."""
+    gate = _gated_label(req, "FIGURE")
+    body_req = gate[1] if gate else req
+    need = req.offset + req.size
+    depth = min(max(need, FRAGMENT_DEPTH), MAX_WINDOW)
+    while True:
+        resp = client.search(index=target, body=build_body("figures", body_req, size=depth, offset=0))
+        hits, warnings = parse_hits(resp, "FIGURE")
+        if gate:
+            hits = promote_labels(hits, gate[0], LABEL_FIELD["figures"])
+        grouped = group_hits(hits)
+        if len(grouped) >= need or len(hits) < depth or depth >= MAX_WINDOW:
+            break
+        depth = min(depth * 2, MAX_WINDOW)
+    total = {"FIGURE": int(resp["hits"]["total"]["value"])}         # index objects, not groups
+    return SearchResponse(req.query, req.kinds, grouped[req.offset:need], total, _availability(resp), "NONE", warnings)
 
 
 # ---------------------------------------------------------------- rerank candidates (IDs + passage references)
