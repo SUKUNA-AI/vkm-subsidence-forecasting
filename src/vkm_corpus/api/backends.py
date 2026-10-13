@@ -121,7 +121,7 @@ class HybridBackend:
 
     def __init__(self, settings: Any, search: OpenSearchBackend | None = None, *, embed: Any = None,
                  late_default: bool | None = None, visual: Any = None, graph: Any = None,
-                 graph_defaults: Any = None, environ: Any = None) -> None:
+                 graph_defaults: Any = None, environ: Any = None, registry: Any = None) -> None:
         import os
         environ = os.environ if environ is None else environ
 
@@ -147,6 +147,7 @@ class HybridBackend:
                                          ef_search=int(ef) if ef.isdigit() else None)
         self.visual = visual
         self.graph = graph
+        self.registry = registry               # search.registry_routes.RegistrySignals (author / entity routes)
         self.graph_error: str | None = None
         if graph_defaults is None and environ.get("VKM_HYBRID_GRAPH") is not None:
             try:
@@ -188,7 +189,8 @@ class HybridBackend:
                 "visual_route": {"enabled": bool(self.visual.enabled), "search": self.visual.mode,
                                  "ef_search": self.visual.ef_search},
                 "graph": {"defaults": defaults, "navigation": self.graph is not None,
-                          **({"error": self.graph_error} if self.graph_error else {})}}
+                          **({"error": self.graph_error} if self.graph_error else {})},
+                "registry_routes": self.registry.status() if self.registry is not None else None}
 
     def search(self, request: dict[str, Any]) -> dict[str, Any]:
         from vkm_corpus.search.hybrid import HybridError, HybridRequest, hybrid_search
@@ -201,7 +203,8 @@ class HybridBackend:
             meta = self._vectors_meta(client)
             return hybrid_search(client, self._embed, HybridRequest(**request),
                                  self.settings.opensearch_index_prefix, meta=meta, visual=self.visual,
-                                 vmeta=self._visual_meta, graph=self.graph, graph_defaults=self.graph_defaults)
+                                 vmeta=self._visual_meta, graph=self.graph, graph_defaults=self.graph_defaults,
+                                 registry=self.registry)
         except HybridError as exc:
             if exc.stage == "vectors":
                 self._meta = None

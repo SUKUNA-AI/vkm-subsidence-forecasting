@@ -1,0 +1,117 @@
+{"query_id": "TQ-PC-01-0", "f1": "Нагрузка от собственного веса вышележащих пород на соляной массив", "f2": "gravity loading self-weight of overburden rock mass"}
+{"query_id": "TQ-PC-02-0", "f1": "Литостатическое давление вышележащих пород с глубиной, исходное напряжённое состояние массива", "f2": "initial vertical stress lithostatic overburden pressure with depth"}
+{"query_id": "TQ-PC-03-0", "f1": "Коэффициент бокового давления, соотношение горизонтальных и вертикальных напряжений в нетронутом массиве", "f2": "initial horizontal stress lateral earth pressure coefficient K0 lambda"}
+{"query_id": "TQ-PC-04-0", "f1": "Региональное поле тектонических напряжений, направление максимального горизонтального сжатия", "f2": "tectonic horizontal compression regional stress regime SHmax orientation"}
+{"query_id": "TQ-PC-05-0", "f1": "Влияние рельефа поверхности и речной долины на напряжённое состояние массива", "f2": "Kama river valley topography stress perturbation escarpment relief"}
+{"query_id": "TQ-PC-06-0", "f1": "Упругие модули и коэффициент Пуассона слоёв, линейно-упругая модель толщи", "f2": "linear isotropic elasticity layered rock mass Young's modulus Poisson ratio"}
+{"query_id": "TQ-PC-07-0", "f1": "Зависимость модуля деформации от напряжений, нелинейно-упругое поведение пород", "f2": "stress-dependent elastic modulus nonlinear elasticity salt rock"}
+{"query_id": "TQ-PC-08-0", "f1": "Изменчивость свойств пород по простиранию: складчатость, зоны замещения, фациальная изменчивость пласта В", "f2": "lateral heterogeneity of rock properties folding replacement zones facies variability"}
+{"query_id": "TQ-PC-09-0", "f1": "Трансверсально-изотропная модель слоистого соляного массива с глинистыми прослоями", "f2": "anisotropy of layered salt rock clay interlayers transverse isotropy"}
+{"query_id": "TQ-PC-10-0", "f1": "Коэффициент структурного ослабления, переход от прочности образца к прочности массива", "f2": "scale effect strength reduction from laboratory specimen to rock mass"}
+{"query_id": "TQ-PC-11-0", "f1": "Условие прочности Кулона–Мора и Друкера–Прагера, предельное состояние при объёмном сжатии", "f2": "plasticity yield criterion Mohr-Coulomb Drucker-Prager confining pressure effect"}
+{"query_id": "TQ-PC-12-0", "f1": "Запредельное деформирование, ниспадающая ветвь диаграммы, остаточная прочность, влияние скорости нагружения", "f2": "post-peak strain softening residual strength strain rate dependence"}
+{"query_id": "TQ-PC-13-0", "f1": "Неустановившаяся и установившаяся ползучесть каменной соли, кривые ползучести", "f2": "rock salt creep transient and steady-state stages"}
+{"query_id": "TQ-PC-14-0", "f1": "Ползучесть сильвинитовых междукамерных целиков пластов КрII, АБ, Вс: неустановившаяся и установившаяся стадии", "f2": "sylvinite pillar creep primary and steady-state stages"}
+{"query_id": "TQ-PC-15-0", "f1": "Реологические свойства карналлитовых пород пласта В, деформирование во времени", "f2": "carnallite creep behaviour carnallite zone bed V"}
+{"query_id": "TQ-PC-16-0", "f1": "Реологические свойства глин и мергелей соляно-мергельной, терригенно-карбонатной и пестроцветной толщ", "f2": "creep of non-salt overburden rocks clay marl"}
+{"query_id": "TQ-PC-17-0", "f1": "Ускоренная стадия ползучести и разрушение целиков с течением времени", "f2": "tertiary accelerating creep time-dependent pillar failure"}
+{"query_id": "TQ-PC-18-0", "f1": "Предел длительной прочности соляных пород, переход ползучести к разрушению", "f2": "long-term strength creep failure threshold salt rock"}
+{"query_id": "TQ-PC-19-0", "f1": "Релаксация напряжений в соляных породах при постоянной деформации", "f2": "stress relaxation salt rock constant strain test"}
+{"query_id": "TQ-PC-20-0", "f1": "Галокинез, соляная тектоника, течение соли в геологическом масштабе времени", "f2": "salt tectonics halokinesis viscous salt flow geological timescale"}
+{"query_id": "TQ-PC-21-0", "f1": "Накопление повреждений, разуплотнение и рост микротрещин в соли при деформировании", "f2": "damage dilatancy microcracking salt rock"}
+{"query_id": "TQ-PC-22-0", "f1": "Горные удары, динамическое разрушение целиков, жёсткое и мягкое нагружение", "f2": "brittle dynamic failure rockburst hazard soft loading of pillars"}
+{"query_id": "TQ-PC-23-0", "f1": "Разрушение краевых зон междукамерных целиков, отжим, податливые целики", "f2": "pillar degradation edge spalling yielding pillars room-and-pillar"}
+{"query_id": "TQ-PC-24-0", "f1": "Обрушение кровли очистных камер, заколы и вывалы пород, расслоение кровли", "f2": "roof delamination and fall in mining rooms slabbing"}
+{"query_id": "TQ-PC-25-0", "f1": "Устойчивость междупластья при отработке сближенных пластов АБ, КрII и Вс", "f2": "interlayer failure between closely spaced seams delamination"}
+{"query_id": "TQ-PC-26-0", "f1": "Проскальзывание по глинистым прослоям, сдвиговые деформации и раскрытие контактов слоёв", "f2": "shear slip and creep along clay seams interface dilatancy"}
+{"query_id": "TQ-PC-27-0", "f1": "Влияние глинистых прослоев на прочность целиков, снижение контактного трения", "f2": "clay interlayers reduce pillar strength end friction removal"}
+{"query_id": "TQ-PC-28-0", "f1": "Порядок и календарь отработки, разгрузка массива при выемке руды", "f2": "excavation sequence and mining history unloading of rock mass"}
+{"query_id": "TQ-PC-29-0", "f1": "Смещения контуров камер: прогиб кровли, пучение почвы, выдавливание целиков", "f2": "room convergence large deformations roof sag floor heave"}
+{"query_id": "TQ-PC-30-0", "f1": "Зоны опорного давления у краевых частей выработок и барьерных целиков", "f2": "stress redistribution abutment pressure barrier pillars mining boundary"}
+{"query_id": "TQ-PC-31-0", "f1": "Совместная отработка нескольких пластов, взаимное влияние и порядок выемки пластов", "f2": "multi-seam mining interaction superposition seam extraction order"}
+{"query_id": "TQ-PC-32-0", "f1": "Осреднённые деформационные свойства выработанного пласта с целиками и закладкой", "f2": "equivalent medium mined-out layer effective compressibility rooms pillars backfill"}
+{"query_id": "TQ-PC-33-0", "f1": "Изгиб водозащитной толщи как защемлённой плиты или балки над выработками", "f2": "bending of undermined strata clamped plate beam model"}
+{"query_id": "TQ-PC-34-0", "f1": "Сплошность водозащитной толщи, зоны трещин сдвига от кромки и растяжения", "f2": "water-protecting strata integrity shear cracks tensile fractures"}
+{"query_id": "TQ-PC-35-0", "f1": "Концентрация деформаций в зонах тектонических нарушений и геодинамически активных разломах", "f2": "strain localization in faults and weakened zones"}
+{"query_id": "TQ-PC-36-0", "f1": "Наложение мульд сдвижения соседних рудников через межрудничный целик СКРУ-1 и СКРУ-2", "f2": "superposition of subsidence troughs adjacent mines inter-mine barrier pillar"}
+{"query_id": "TQ-PC-37-0", "f1": "Коэффициент заполнения камер закладкой, незаполненное пространство под кровлей", "f2": "incomplete backfilling of rooms gap to roof filling ratio"}
+{"query_id": "TQ-PC-38-0", "f1": "Уплотнение и усадка закладочного массива, обезвоживание, изменение деформационных свойств", "f2": "backfill consolidation compaction dewatering stiffness increase"}
+{"query_id": "TQ-PC-39-0", "f1": "Контакт кровли с закладкой, начало работы закладки как опоры", "f2": "roof-backfill contact closure backfill support reaction"}
+{"query_id": "TQ-PC-40-0", "f1": "Растворение краёв целиков рассолами закладки и шламами, увлажнение соли", "f2": "brine from backfill slurry effect on pillars dissolution"}
+{"query_id": "TQ-PC-41-0", "f1": "Водоносные горизонты надсолевых пород, напоры подземных вод и фильтрация", "f2": "aquifer system overlying salt hydraulic heads Darcy flow"}
+{"query_id": "TQ-PC-42-0", "f1": "Поровое давление и эффективные напряжения в надсолевых породах, консолидация", "f2": "pore pressure effective stress consolidation hydromechanical coupling overburden"}
+{"query_id": "TQ-PC-43-0", "f1": "Водопроводящие трещины, прорыв подземных вод и рассолов в горные выработки", "f2": "water-conducting fractures brine inflow into mine workings"}
+{"query_id": "TQ-PC-44-0", "f1": "Аварийный прорыв вод в рудник и его затопление", "f2": "mine flooding catastrophic water inrush"}
+{"query_id": "TQ-PC-45-0", "f1": "Техногенный карст, растворение соляных пород и образование провалов на поверхности", "f2": "salt dissolution human-induced karst sinkhole formation"}
+{"query_id": "TQ-PC-46-0", "f1": "Выщелачивание кровли соляной залежи, соляное зеркало, природный карст", "f2": "natural salt karst dissolution at salt table geological time"}
+{"query_id": "TQ-PC-47-0", "f1": "Влияние влажности и увлажнения на прочность и деформируемость соли и глин", "f2": "moisture effect on salt and clay properties humidity"}
+{"query_id": "TQ-PC-48-0", "f1": "Температура горных пород на глубине разработки, геотермический градиент", "f2": "geothermal field rock temperature at mining depth"}
+{"query_id": "TQ-PC-49-0", "f1": "Зависимость скорости ползучести соли от температуры, перенос лабораторных данных на массив", "f2": "temperature dependence of salt creep rate in situ conditions"}
+{"query_id": "TQ-PC-50-0", "f1": "Коэффициент линейного теплового расширения горных пород", "f2": "thermal expansion of rock mass"}
+{"query_id": "TQ-PC-51-0", "f1": "Сезонные колебания температуры и влажности рудничного воздуха в выработках", "f2": "mine microclimate seasonal ventilation air temperature humidity"}
+{"query_id": "TQ-PC-52-0", "f1": "Морозное пучение грунтовых реперов и сезонные температурные смещения зданий", "f2": "seasonal thermal effects frost heave benchmarks persistent scatterers buildings"}
+{"query_id": "TQ-PC-53-0", "f1": "Наведённая сейсмичность при горных работах, энергия сейсмических событий", "f2": "mining-induced seismicity dynamic events seismic energy release"}
+{"query_id": "TQ-PC-54-0", "f1": "Массовое разрушение междукамерных целиков, катастрофическое обрушение на СКРУ-2 в 1995 году", "f2": "massive pillar collapse catastrophic failure room-and-pillar mine"}
+{"query_id": "TQ-PC-55-0", "f1": "Внезапные выбросы соли и газа, газодинамические явления, суфлярные выделения", "f2": "gas-dynamic phenomena sudden outbursts of salt and gas blowers"}
+{"query_id": "TQ-PC-56-0", "f1": "Влияние взрывных работ на массив, отбойка руды взрывом, торпедирование карналлитовых пород", "f2": "blasting effects drill-and-blast ore breaking carnallite"}
+{"query_id": "TQ-PC-57-0", "f1": "Сейсморазведка методом общей глубинной точки, шахтная сейсморазведка, акустический каротаж", "f2": "seismic wave propagation reflection survey in-mine seismic acoustic logging"}
+{"query_id": "TQ-PC-58-0", "f1": "Георадарное зондирование соляного массива, распространение электромагнитных волн", "f2": "ground penetrating radar electromagnetic wave propagation salt"}
+{"query_id": "TQ-PC-59-0", "f1": "Эффект Кайзера, акустическая эмиссия и ультразвуковой контроль нарушенности пород", "f2": "acoustic emission Kaiser effect ultrasonic damage monitoring"}
+{"query_id": "TQ-PC-60-0", "f1": "Нивелирование реперов профильных линий, вертикальные оседания земной поверхности", "f2": "geometric levelling of benchmarks along survey lines vertical displacement"}
+{"query_id": "TQ-PC-61-0", "f1": "Измерение длин интервалов между реперами, горизонтальные деформации на профильных линиях", "f2": "horizontal strain measurement distances between benchmarks survey lines"}
+{"query_id": "TQ-PC-62-0", "f1": "Спутниковые наблюдения ГНСС/GPS, пространственные смещения пунктов", "f2": "GNSS monitoring 3D position of survey points"}
+{"query_id": "TQ-PC-63-0", "f1": "Спутниковая радарная интерферометрия, смещения вдоль линии визирования", "f2": "InSAR line-of-sight displacement satellite radar interferometry"}
+{"query_id": "TQ-PC-64-0", "f1": "Гидростатическое нивелирование, неравномерные осадки зданий и сооружений", "f2": "hydrostatic levelling differential settlement of structures"}
+{"query_id": "TQ-PC-65-0", "f1": "Подземные наблюдательные станции, конвергенция камер, глубинные реперы в целиках", "f2": "underground monitoring stations convergence pillar deformation deep benchmarks"}
+{"query_id": "TQ-PC-66-0", "f1": "Помехи наблюдениям: солеотвалы, земляные работы, осушение, неустойчивость исходных реперов", "f2": "non-mining surface signals salt tailings piles construction dewatering unstable reference benchmarks"}
+{"query_id": "TQ-PC-67-0", "f1": "Мульда сдвижения земной поверхности, граничные углы и углы сдвижения, полная подработка", "f2": "subsidence trough formation angle of draw full extraction zone"}
+{"query_id": "TQ-PC-68-0", "f1": "Процесс сдвижения во времени, стадии оседаний, затухание и активизация", "f2": "time development of subsidence stages stabilization acceleration"}
+{"query_id": "TQ-PC-69-0", "f1": "Горизонтальные смещения, наклоны, кривизна и относительные деформации земной поверхности", "f2": "horizontal displacement tilt curvature ground strain subsidence"}
+{"query_id": "TQ-PC-70-0", "f1": "Трещины на поверхности у границ мульды сдвижения, суффозионные провалы", "f2": "surface tension cracks trough edges suffosion sinkholes"}
+{"query_id": "TQ-PC-71-0", "f1": "Современные вертикальные движения земной коры, неотектоника, геодинамические активные зоны", "f2": "regional neotectonic ground movements background geodynamic zones"}
+{"query_id": "TQ-PC-72-0", "f1": "Лабораторные испытания образцов пород, физико-механические свойства материала", "f2": "laboratory specimen tests material state sample scale"}
+{"query_id": "TQ-MM-BACKFILL-0", "f1": "Закладка выработанного пространства, расчёт параметров закладочных работ", "f2": "backfill design calculation mined-out space"}
+{"query_id": "TQ-MM-BLAST-0", "f1": "Паспорт буровзрывных работ, расчёт зарядов при отбойке соляных пород", "f2": "drilling and blasting parameters salt rock"}
+{"query_id": "TQ-MM-CONTACT-0", "f1": "Сопротивление сдвигу по контактам соли с глинистыми прослоями", "f2": "constitutive laws for salt-clay interface shear strength"}
+{"query_id": "TQ-MM-CREEP-0", "f1": "Уравнения ползучести и реологические модели соляных пород", "f2": "creep constitutive laws for salt rock"}
+{"query_id": "TQ-MM-DAMAGE-0", "f1": "Лабораторная оценка повреждённости и трещиноватости образцов соли", "f2": "laboratory damage indicators salt rock specimens"}
+{"query_id": "TQ-MM-DEF-0", "f1": "Расчёт наклонов, кривизны и горизонтальных деформаций по результатам нивелирования", "f2": "computing ground surface deformation parameters from monitoring data"}
+{"query_id": "TQ-MM-DEM-0", "f1": "Морфометрический анализ рельефа по цифровой модели рельефа, уклоны", "f2": "terrain morphometric attributes from digital elevation model"}
+{"query_id": "TQ-MM-DISS-0", "f1": "Растворение целиков рассолами и водой при затоплении выработок", "f2": "pillar dissolution during mine flooding"}
+{"query_id": "TQ-MM-ECON-0", "f1": "Себестоимость и технико-экономические показатели добычи калийной руды", "f2": "economic indicators of potash ore mining"}
+{"query_id": "TQ-MM-ELAST-0", "f1": "Аналитические решения теории упругости для смещений поверхности над выработкой", "f2": "elastic solutions for ground surface displacement"}
+{"query_id": "TQ-MM-ELEC-0", "f1": "Релейная защита и токи короткого замыкания в шахтных электросетях", "f2": "relay protection calculation mine electrical networks"}
+{"query_id": "TQ-MM-FRAC-0", "f1": "Механика трещин и разрушения соляных пород, трещиностойкость", "f2": "fracture mechanics of salt rock"}
+{"query_id": "TQ-MM-GASDYN-0", "f1": "Прогнозирование внезапных выбросов соли и газа в калийных рудниках", "f2": "gas-dynamic phenomena prediction potash mines"}
+{"query_id": "TQ-MM-GEOCHEM-0", "f1": "Химический и минеральный состав соляных пород, геохимические индикаторы", "f2": "geochemical indicators of salt rocks"}
+{"query_id": "TQ-MM-GEOD-0", "f1": "Точность маркшейдерско-геодезических измерений, погрешности нивелирования", "f2": "mine surveying geodetic measurements accuracy"}
+{"query_id": "TQ-MM-GEODYN-0", "f1": "Оценка опасности активных разломов, геодинамическое районирование", "f2": "hazard criterion for active tectonic faults"}
+{"query_id": "TQ-MM-GEOL-0", "f1": "Мощность пластов, глубина залегания, количественное описание строения соляной залежи", "f2": "quantitative geological structure of salt deposit"}
+{"query_id": "TQ-MM-GEOMECH-0", "f1": "Конечно-элементное моделирование напряжённо-деформированного состояния подработанного массива", "f2": "numerical geomechanical modelling of undermined strata"}
+{"query_id": "TQ-MM-GPR-0", "f1": "Георадарное зондирование соляных пород, моделирование распространения радиоволн", "f2": "ground penetrating radar modelling in salt"}
+{"query_id": "TQ-MM-HYDRO-0", "f1": "Модели подземных вод и фильтрации в соляном бассейне", "f2": "hydrogeological models of salt basin"}
+{"query_id": "TQ-MM-HYDTR-0", "f1": "Трубопроводный гидравлический транспорт закладочной пульпы, расчёт потерь напора", "f2": "hydraulic transport of backfill slurry pipelines"}
+{"query_id": "TQ-MM-INSAR-0", "f1": "Обработка радарных интерферограмм, методы постоянных отражателей", "f2": "InSAR data processing models"}
+{"query_id": "TQ-MM-INV-0", "f1": "Обратный анализ смещений, определение параметров массива по наблюдениям", "f2": "inverse problem back analysis from displacement monitoring"}
+{"query_id": "TQ-MM-IS-0", "f1": "Устойчивость междупластья между отрабатываемыми пластами", "f2": "stability of interlayer between mined seams"}
+{"query_id": "TQ-MM-LAB-0", "f1": "Влияние формы и размеров образца на прочность соли, хрупкость", "f2": "salt rock lab tests specimen shape effect brittleness"}
+{"query_id": "TQ-MM-MINE-0", "f1": "Параметры камерной системы разработки: ширина камер и целиков", "f2": "room-and-pillar mining system design parameters"}
+{"query_id": "TQ-MM-ML-0", "f1": "Искусственные нейронные сети и нечёткая логика для прогноза деформаций", "f2": "neural networks fuzzy models deformation assessment"}
+{"query_id": "TQ-MM-NUM-0", "f1": "Численные схемы интегрирования вязкопластических определяющих уравнений", "f2": "numerical integration of viscoplastic constitutive equations"}
+{"query_id": "TQ-MM-OBS-0", "f1": "Проект наблюдательной станции, размещение профильных линий и реперов", "f2": "design of ground surface deformation monitoring"}
+{"query_id": "TQ-MM-PETRO-0", "f1": "Корреляция прочности и модулей упругости с геофизическими данными", "f2": "petrophysical relationships strength modulus geophysical parameters"}
+{"query_id": "TQ-MM-PILLAR-0", "f1": "Нагрузка на междукамерные целики и их несущая способность", "f2": "pillar load and strength calculation"}
+{"query_id": "TQ-MM-PROT-0", "f1": "Размеры предохранительных и барьерных целиков, методика расчёта", "f2": "protective and barrier pillar width design"}
+{"query_id": "TQ-MM-RISK-0", "f1": "Комплексная оценка геодинамического риска, интегральный показатель опасности", "f2": "integrated geodynamic risk indicators"}
+{"query_id": "TQ-MM-ROOF-0", "f1": "Устойчивость кровли камер, расчёт пролёта и прочности кровли", "f2": "stability of stope roof calculation"}
+{"query_id": "TQ-MM-RS-0", "f1": "Вегетационные и спектральные индексы по данным дистанционного зондирования", "f2": "spectral indices satellite imagery"}
+{"query_id": "TQ-MM-SCALE-0", "f1": "Масштабный эффект, снижение прочности массива относительно лабораторного образца", "f2": "structural weakening coefficient specimen to rock mass"}
+{"query_id": "TQ-MM-STAT-0", "f1": "Статистическая обработка, корреляционный и регрессионный анализ маркшейдерско-геологических данных", "f2": "statistical methods geological and mine survey data"}
+{"query_id": "TQ-MM-STR-0", "f1": "Условия прочности и определяющие уравнения для соляных пород", "f2": "strength criteria constitutive models for salt rock"}
+{"query_id": "TQ-MM-STRESS-0", "f1": "Определение напряжённого состояния массива натурными методами измерений", "f2": "in situ stress measurement methods rock mass"}
+{"query_id": "TQ-MM-SUBS-0", "f1": "Методики прогноза сдвижения и оседаний поверхности при подработке калийными рудниками", "f2": "subsidence prediction methods over potash mines"}
+{"query_id": "TQ-MM-SUPPORT-0", "f1": "Анкерное крепление выработок, длина и плотность установки анкеров", "f2": "rock bolt support parameters mine workings"}
+{"query_id": "TQ-MM-THERM-0", "f1": "Теплообмен и нагрев горных пород, расчёт температуры поверхности", "f2": "thermal models surface temperature rock heating"}
+{"query_id": "TQ-MM-UGS-0", "f1": "Сдвижение земной поверхности над подземными газохранилищами", "f2": "ground deformation above underground gas storage"}
+{"query_id": "TQ-MM-VENT-0", "f1": "Проветривание рудников, расчёт количества воздуха, главные вентиляторы", "f2": "mine ventilation fan installations"}
+{"query_id": "TQ-MM-WPS-0", "f1": "Условия безопасной подработки водозащитной толщи, допустимые деформации", "f2": "safe undermining criteria water-protective strata"}

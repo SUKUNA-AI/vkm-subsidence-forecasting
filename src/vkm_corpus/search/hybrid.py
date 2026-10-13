@@ -74,6 +74,10 @@ interaction stage (mLateOn MaxSim), with a per-stage trace (постановка
   (:func:`promote_ref_pages`; other kinds keep their positions) — the Q5 rule: the topic ranks, the number lifts
   inside the topic's top. Hits carry ``trace.object_ref`` (matched by phrase / label, the page rank before, the label
   object). The dense leg and the late stage score the whole query as before.
+* Registry routes (agent Г, 13.10; ``vkm_corpus.search.registry_routes``, ``registry`` = ``RegistrySignals``): a query
+  naming a registry author («работы Баряха …») adds the leg ``author:PAGE`` (his own works' pages; ``stages.
+  author_route``, ``trace.author``); a numbered borehole / line / block / panel / benchmark adds the leg ``entity:PAGE``
+  (pages of the catalogue entity index; ``matched`` ``entity`` in ``trace.object_ref``). Other queries: unchanged.
 * Area filter: ``source_scope_or_source_id`` (the API's ``include_ambiguous``: the area OR the sources a plain area
   filter leaves out — ``vkm_corpus.search.scope_filter``) compiles to one clause on ``source_site_scope`` /
   ``source_id`` for every leg: BM25, dense k-NN (unit documents carry both), the page-image channel and the
@@ -95,6 +99,21 @@ interaction stage (mLateOn MaxSim), with a per-stage trace (постановка
   depend on the window, so offsets page through it. A window inside the first round holds ≤ N keys per source; it
   can hold more only when the candidates come from fewer than ``size / N`` sources. Hits beyond their source's first
   N carry ``trace.source_cap`` (round, rank before the cap); ``stages.source_cap`` counts them.
+* Late-stage experiment flags (agent Д, 13.10; off by default — without them the path is the one above, byte for byte):
+  ``late_fusion = "rrf"`` (default ``"replace"``): inside each kind's head (H-44) the positions are not re-ordered by
+  the late score alone but by RRF(``rrf_k``) of two orders of the kind's candidates — their RRF order (BM25 + dense +
+  routes) and their late order (scored ones; an unscored candidate has the RRF term only; ties: the RRF order); the
+  tail is unchanged; trace ``late_rank`` and ``late_fusion_rank``. Review: late scores are compressed (2–3 % per
+  query token across the first hundred) while replacing moves the first 100 by a median 20–26 places.
+  ``late_query = "best_translation"`` (default ``"original"``): with a translation of the query (``expansions``) every
+  expansion is scored by its own ``/search/late`` call over the same targets and a candidate's late score is the max of
+  the normalised MaxSim — MaxSim / the query's token count (MaxSim sums over query tokens: the raw scales of two
+  queries are not comparable); the trace says which query gave the max (``late_query``). Without an expansion nothing
+  changes (``NO_TRANSLATION``). Each formulation runs with the same flags. The modes are recorded in ``stages.late``.
+* Fragments of one figure (``group_fragments``, agent Д; on in the API for FIGURE; ``vkm_corpus.search.fragments``):
+  after G1 the FIGURE keys of one page with the same caption block become one key — the largest region, at the place
+  of the best-ranked one; the others in ``fragments`` (regions of keys the BM25 leg did not return are looked up in the
+  figures index by id); ``stages.fragments``.
 * Late pool (:data:`MAX_LATE_CANDIDATES` = 300): the RX580 service accepts up to 1000 targets per ``/search/late``
   call (``LateSearchBody``); with ``candidates`` ≤ 200 per leg the RRF list (BM25 ∪ dense) is usually long enough to
   fill it — when it is shorter, every fused key is a candidate.
@@ -111,7 +130,9 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Iterable, Mapping
 
 from vkm_corpus.retrieval_lab.fusion import rrf
+from vkm_corpus.search import fragments as FR
 from vkm_corpus.search import graph_stages as GS
+from vkm_corpus.search import registry_routes as RR
 from vkm_corpus.search.intent import bibliographic_intent, visual_intent
 from vkm_corpus.search.mappings import alias_name
 from vkm_corpus.search.object_refs import ObjectRef, has_topic, parse_refs, strip_refs
@@ -145,6 +166,8 @@ MAX_PER_SOURCE = 50                       # largest per-source cap a request may
 OBJECT_REF_PROMOTE_K = 100                # pages holding an asked numbered object move up inside E's first K pages
 LABEL_ROUTE_DEPTH = 20                    # objects with the asked printed number in the label route (MODEL_CHOICE)
 LABEL_INDEX = {"FIGURE": "figures", "TABLE": "tables", "FORMULA": "formulas"}
+LATE_FUSIONS = ("replace", "rrf")         # late_fusion: replace = today's order by late score; rrf = RRF(RRF, late)
+LATE_QUERIES = ("original", "best_translation")   # late_query: which query the late stage scores
 _SOURCE_PREFIX = re.compile(r"^(VKM-SRC-\d{3,}):")
 
 
@@ -379,10 +402,18 @@ class HybridRequest:
     # the final orders are fused by RRF (opt-in; () → the query alone, today's path)
     formulations: tuple[Any, ...] = ()
     max_per_source: int | None = None      # at most N keys of one source before the overflow (None → off)
+    late_fusion: str = "replace"           # LATE_FUSIONS (experiment flag; default = today's late order)
+    late_query: str = "original"           # LATE_QUERIES (experiment flag; default = the original query only)
+    group_fragments: bool = False          # FIGURE: one key per page + caption block (vkm_corpus.search.fragments)
+    author_route: bool | None = None       # registry author route (None → a registry author in the query decides)
+    entity_route: bool | None = None       # entity-index pages of a numbered object (None → on when one is named)
 
     def validate(self) -> None:
         if not self.query or not self.query.strip() or len(self.query) > 512:
             raise SearchRequestError("E_BAD_QUERY", "query must be 1..512 characters")
+        if self.late_fusion not in LATE_FUSIONS or self.late_query not in LATE_QUERIES:
+            raise SearchRequestError("E_BAD_MODE", f"late_fusion is one of {LATE_FUSIONS}, late_query one of "
+                                                   f"{LATE_QUERIES}")
         try:
             self.graph = GS.parse_stages(self.graph)
         except ValueError as exc:
@@ -677,6 +708,96 @@ def late_order(fused: list[tuple[str, float]], kind_of: dict[str, str], results:
     return [it for it in new_head if it is not None] + tail, late_rank
 
 
+def late_order_rrf(fused: list[tuple[str, float]], kind_of: dict[str, str], results: dict[str, dict[str, Any]],
+                   n: int, *, k: int = RRF_K
+                   ) -> tuple[list[tuple[str, float]], dict[str, int], dict[str, int], dict[str, float]]:
+    """``late_fusion = "rrf"``: like :func:`late_order`, but per kind the RRF positions are refilled in the order of
+    RRF(``k``) of the kind's candidates' RRF order and their late order (``1/(k + rrf position) + 1/(k + late rank)``;
+    an unscored candidate has the first term only; ties: the RRF order); keys beyond ``n`` keep the RRF order.
+    → (order, late rank within the kind, fusion rank within the kind, fusion score)."""
+    head, tail = fused[:n], fused[n:]
+    fused_rank = {key: i for i, (key, _s) in enumerate(fused)}
+    positions: dict[str, list[int]] = {}
+    for pos, (key, _s) in enumerate(head):
+        positions.setdefault(kind_of[key], []).append(pos)
+    new_head: list[tuple[str, float] | None] = [None] * len(head)
+    late_rank: dict[str, int] = {}
+    fusion_rank: dict[str, int] = {}
+    fusion_score: dict[str, float] = {}
+    for _kind, slots in positions.items():
+        items = [head[p] for p in slots]                       # the kind's RRF order
+        rrf_pos = {key: i for i, (key, _s) in enumerate(items, 1)}
+        scored = [it for it in items if (results.get(it[0]) or {}).get("status") == "SCORED"]
+        scored.sort(key=lambda it: (-float(results[it[0]]["late_score"]), fused_rank[it[0]]))
+        for r, (key, _s) in enumerate(scored, 1):
+            late_rank[key] = r
+        for key, _s in items:
+            fusion_score[key] = 1.0 / (k + rrf_pos[key]) + (1.0 / (k + late_rank[key]) if key in late_rank else 0.0)
+        ordered = sorted(items, key=lambda it: (-fusion_score[it[0]], rrf_pos[it[0]]))
+        for r, (key, _s) in enumerate(ordered, 1):
+            fusion_rank[key] = r
+        for p, it in zip(slots, ordered):
+            new_head[p] = it
+    return [it for it in new_head if it is not None] + tail, late_rank, fusion_rank, fusion_score
+
+
+def best_translation(original: "LateResult", others: list[tuple[str, "LateResult"]]
+                     ) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+    """``late_query = "best_translation"``: per target the max of the normalised MaxSim (late score / the query's
+    token count) over the original query and its translations (``others`` = [(label, result)], label ``x1`` …);
+    ties: the original first. The winning query's unit stays on the target. → (results with ``late_score`` = the max,
+    ``late_query`` = its label, ``late_query_scores`` = every normalised score; the record). Without a token count
+    the scores cannot be compared: the original results stay (``NOT_NORMALISABLE``)."""
+    runs = [("original", original), *others]
+    record: dict[str, Any] = {"mode": "best_translation", "normalisation": "MaxSim / query tokens",
+                              "queries": [{"query": label, "tokens": res.n_query_tokens,
+                                           "query_signature": res.query_signature} for label, res in runs]}
+    if any(not res.n_query_tokens for _label, res in runs):
+        record["status"] = "NOT_NORMALISABLE"
+        return original.results, record
+    out: dict[str, dict[str, Any]] = {}
+    wins: dict[str, int] = {}
+    for tid, base in original.results.items():
+        scores: dict[str, float] = {}
+        best_label, best_res = None, None
+        for label, res in runs:
+            r = res.results.get(tid) or {}
+            if r.get("status") != "SCORED" or r.get("late_score") is None:
+                continue
+            scores[label] = round(float(r["late_score"]) / int(res.n_query_tokens), 6)
+            if best_label is None or scores[label] > scores[best_label]:
+                best_label, best_res = label, r
+        if best_label is None:
+            out[tid] = dict(base)
+            continue
+        wins[best_label] = wins.get(best_label, 0) + 1
+        out[tid] = {**base, **{k: best_res.get(k) for k in ("best_unit_id", "units", "tokens") if k in best_res},
+                    "status": "SCORED", "late_score": scores[best_label], "late_query": best_label,
+                    "late_query_scores": scores}
+    record.update({"status": "APPLIED", "best_counts": wins})
+    return out, record
+
+
+def _late_translations(embed: EmbedClient, xq: list[tuple[str, Any]], targets: list[dict[str, str]],
+                       page_excl: tuple[str, ...], lr: "LateResult", timings: dict[str, float]
+                       ) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+    """The late scores of ``late_query = "best_translation"``: one more ``/search/late`` call per expansion (the
+    service scores one query per call) over the same targets, then :func:`best_translation`."""
+    if not xq:
+        return lr.results, {"mode": "best_translation", "status": "NO_TRANSLATION",
+                            "reason": "no expansion of the query (translate off or no dictionary entry): the original "
+                                      "query alone"}
+    others = []
+    for n, (text, _vector) in enumerate(xq, 1):
+        t1 = time.perf_counter()
+        others.append((f"x{n}", embed.late_scores(text, targets, page_exclude_kinds=page_excl)))
+        timings[f"late_x{n}"] = round((time.perf_counter() - t1) * 1e3, 2)
+    results, record = best_translation(lr, others)
+    for q, (text, _vector) in zip(record["queries"][1:], xq):
+        q["text"] = text
+    return results, record
+
+
 # ---------------------------------------------------------------- numbered objects (agent Б, 13.10)
 def label_route(client: Any, req: HybridRequest, prefix: str, refs: list[ObjectRef], topic: str,
                 depth: int = LABEL_ROUTE_DEPTH) -> list[dict[str, Any]]:
@@ -748,15 +869,16 @@ def _graph_bm25(client: Any, req: HybridRequest, prefix: str):
 def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str, *,
                   meta: dict[str, Any] | None = None, visual: VisualRouteSettings | None = None,
                   vmeta: Any = None, graph: Any = None, graph_defaults: Iterable[str] | None = None,
-                  graph_params: GS.GraphParams | None = None) -> dict[str, Any]:
+                  graph_params: GS.GraphParams | None = None, registry: Any = None) -> dict[str, Any]:
     """BM25 + dense → RRF (→ late MaxSim when ``req.late``) (→ the graph stages' legs) (→ the visual route's RRF with
     the page-image channel) (→ G1 collapse); hits carry ids, the per-stage trace and E's highlights/best blocks when
-    BM25 found them. ``graph`` is a :class:`graph_stages.GraphSignals` (the navigation layer). With
+    BM25 found them. ``graph`` is a :class:`graph_stages.GraphSignals` (the navigation layer), ``registry`` a
+    :class:`registry_routes.RegistrySignals` (authors, entity index). With
     ``req.formulations`` every formulation runs this pipeline and the final orders are fused (:func:`_multi_search`);
     ``req.max_per_source`` caps the final order per source (:func:`cap_per_source`)."""
     req.validate()
     kw = {"meta": meta, "visual": visual, "vmeta": vmeta, "graph": graph, "graph_defaults": graph_defaults,
-          "graph_params": graph_params}
+          "graph_params": graph_params, "registry": registry}
     if req.formulations:
         return _multi_search(client, embed, req, prefix, **kw)
     return _one_search(client, embed, req, prefix, **kw)
@@ -765,7 +887,7 @@ def hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
 def _one_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str, *, meta: dict[str, Any] | None,
                 visual: VisualRouteSettings | None, vmeta: Any, graph: Any, graph_defaults: Iterable[str] | None,
                 graph_params: GS.GraphParams | None, window: tuple[int, int] | None = None,
-                cap: bool = True) -> dict[str, Any]:
+                cap: bool = True, registry: Any = None) -> dict[str, Any]:
     """One pipeline run of a validated request; ``window`` = (offset, size) of the hits instead of the request's,
     ``cap`` = apply ``req.max_per_source`` here (off when the fusion of formulations caps afterwards)."""
     timings: dict[str, float] = {}
@@ -779,7 +901,7 @@ def _one_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str
     pool = ThreadPoolExecutor(max_workers=3) if grun.on("concepts") or grun.on("cites") else None
     try:
         return _hybrid_search(client, embed, req, prefix, meta=meta, visual=visual, vmeta=vmeta, grun=grun,
-                              pool=pool, timings=timings, t0=t0, window=window, cap=cap)
+                              pool=pool, timings=timings, t0=t0, window=window, cap=cap, registry=registry)
     finally:
         if pool is not None:
             pool.shutdown(wait=False, cancel_futures=True)
@@ -788,7 +910,7 @@ def _one_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str
 def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: str, *, meta: dict[str, Any] | None,
                    visual: VisualRouteSettings | None, vmeta: Any, grun: GS.GraphRun, pool: ThreadPoolExecutor | None,
                    timings: dict[str, float], t0: float, window: tuple[int, int] | None = None,
-                   cap: bool = True) -> dict[str, Any]:
+                   cap: bool = True, registry: Any = None) -> dict[str, Any]:
     gp = grun.params
 
     def concepts_task() -> tuple[list[str], list[list[str]]]:
@@ -900,6 +1022,18 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
         elif label_refs:
             ref_stage["label_route"] = {"status": "NO_TOPIC", "reason": "a printed number alone names an object in "
                                                                         "every book: the label route needs a topic"}
+    # registry routes (agent Г): pages of a registry author's own works and entity-index pages of a numbered object
+    author_list, author_info, author_stage = RR.author_leg(client, req, prefix, registry,
+                                                           _graph_bm25(client, req, prefix), timings)
+    entity_list, entity_info, entity_stage = RR.entity_leg(client, req, prefix, registry, refs, ref_topic,
+                                                           page_filter, timings)
+    for leg_name, leg in (("author:PAGE", author_list), ("entity:PAGE", entity_list)):
+        if leg:
+            rankings[leg_name] = leg
+            for pid, _s in leg:
+                kind_of.setdefault(pid, "PAGE")
+    if entity_stage is not None and ref_stage is not None:
+        ref_stage["entity_route"] = entity_stage
     bib_status, intent = bib_route_status(req)
     bib_stage: dict[str, Any] = {"status": bib_status, "cues": list(intent.cues), "weak_cues": list(intent.weak)}
     bib_info: dict[str, dict[str, Any]] = {}
@@ -955,6 +1089,11 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
 
     late_stage: dict[str, Any] | str = "NOT_RUN (late=false; MaxSim over token vectors on the RX580 with late=true)"
     order, late_rank, late_results = fused, {}, {}
+    late_fusion_rank: dict[str, int] = {}                 # late_fusion = rrf (experiment flag)
+    late_fusion_score: dict[str, float] = {}
+    if not req.late and (req.late_fusion != "replace" or req.late_query != "original"):
+        warnings.append(f"LATE_FLAGS_IGNORED: late_fusion={req.late_fusion}, late_query={req.late_query} need the late "
+                        "stage (late=true)")
     window_added: dict[str, str] = {}
     if req.late and fused:
         head = fused[:req.late_candidates]
@@ -975,7 +1114,15 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
                                page_exclude_kinds=page_excl)
         timings["late"] = round((time.perf_counter() - t1) * 1e3, 2)
         late_results = lr.results
-        order, late_rank = late_order(fused, kind_of, late_results, len(head))
+        lq_record: dict[str, Any] | None = None
+        if req.late_query == "best_translation":           # experiment flag: the translations scored as well
+            late_results, lq_record = _late_translations(embed, xq, [{"id": key, "kind": kind_of[key]}
+                                                                     for key, _s in head], page_excl, lr, timings)
+        if req.late_fusion == "rrf":                        # experiment flag: RRF of the RRF and late orders per kind
+            order, late_rank, late_fusion_rank, late_fusion_score = late_order_rrf(fused, kind_of, late_results,
+                                                                                   len(head), k=req.rrf_k)
+        else:
+            order, late_rank = late_order(fused, kind_of, late_results, len(head))
         unscored = [key for key, _s in head if late_results[key].get("status") != "SCORED"]
         store_snapshot = lr.store.get("snapshot_id")
         if store_snapshot and meta.get("built_from_snapshot_id") and store_snapshot != meta["built_from_snapshot_id"]:
@@ -991,6 +1138,13 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
                       "page_exclude_kinds": list(page_excl), "timings_ms": lr.timings_ms}
         if window_added:
             late_stage["graph_window_added"] = len(window_added)
+        if req.late_fusion == "rrf":
+            late_stage["ordering"] = ("per kind: RRF(k) of the kind's RRF order (BM25 + dense + routes) and its late "
+                                      "order inside the kind's RRF positions (H-44); an unscored candidate has the RRF "
+                                      "term only")
+            late_stage["fusion"] = {"mode": "rrf", "k": req.rrf_k, "orders": ["rrf", "late"]}
+        if lq_record is not None:
+            late_stage["late_query"] = lq_record
         # graph legs after late: the first positions stay, the rest is fused with the legs (graph_stages.fuse_post)
         if any(grun.on(s) for s in GS.PAGE_STAGES):
             collect(post=True)
@@ -1066,23 +1220,59 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
                 ref_flagged.setdefault(key, []).append("phrase")
         for pid in label_info:
             ref_flagged.setdefault(pid, []).append("label")
-        keys, ref_moved = promote_ref_pages([key for key, _s in order], kind_of, ref_flagged)
-        if ref_moved:
+        for pid in entity_info:
+            ref_flagged.setdefault(pid, []).append("entity")
+        keys0 = [key for key, _s in order]
+        keys, ref_moved = promote_ref_pages(keys0, kind_of, ref_flagged)
+        if entity_info and not has_topic(ref_topic):          # no topic: the entity-index pages go first (agent Г)
+            pre = {p: i for i, p in enumerate((k for k in keys0 if kind_of.get(k) == "PAGE"), 1)}
+            keys, front = RR.promote(keys, kind_of, [p for p, _s in entity_list], front=True)
+            ref_moved.update({p: pre.get(p) for p in front})
+        if keys != keys0:
             score_of = dict(order)
             order = [(key, score_of.get(key, 0.0)) for key in keys]
         head = [key for key, _s in order if kind_of.get(key) == "PAGE"][:OBJECT_REF_PROMOTE_K]
         ref_stage.update({"status": "APPLIED" if ref_flagged else "NO_MATCH", "flagged": len(ref_flagged),
                           "flagged_in_head": sum(1 for p in head if p in ref_flagged), "moved": len(ref_moved),
                           "promote_k": OBJECT_REF_PROMOTE_K,
-                          "rule": f"pages holding the asked numbered object (the BM25 reference phrase or the label "
-                                  f"route) move to the front inside E's first {OBJECT_REF_PROMOTE_K} pages, order "
-                                  f"kept; the topic ranks (Q5)"})
+                          "rule": f"pages holding the asked numbered object (the BM25 reference phrase, the label "
+                                  f"route or the entity index) move to the front inside E's first "
+                                  f"{OBJECT_REF_PROMOTE_K} pages, order kept; the topic ranks (Q5)"})
+    # registry author (agent Г): his own pages move up inside E's first pages (topic) or go first (no topic)
+    author_moved: dict[str, int | None] = {}
+    if author_list and author_stage.get("promotion") != "OFF_CITATION_QUERY":
+        keys0 = [key for key, _s in order]
+        # «работы X о …» with the bibliographic route reads both ways (his works / the records of them): capped;
+        # without a topic («работы Баряха») the list of his works is the answer — not capped
+        cap = RR.AUTHOR_PROMOTE_MAX_BIB if bib_status == "APPLIED" and author_stage.get("mode") == "TOPIC" else None
+        keys, author_moved = RR.promote(keys0, kind_of, [p for p, _s in author_list], k=RR.AUTHOR_PROMOTE_K,
+                                        front=author_stage.get("mode") != "TOPIC", limit=cap)
+        if cap is not None:
+            author_stage.update({"promotion": "CAPPED_BIBLIOGRAPHIC", "promote_max": cap})
+        if author_moved:
+            score_of = dict(order)
+            order = [(key, score_of.get(key, 0.0)) for key in keys]
+        head = [key for key, _s in order if kind_of.get(key) == "PAGE"][:RR.AUTHOR_PROMOTE_K]
+        author_stage.update({"in_head": sum(1 for p in head if p in author_info), "moved": len(author_moved),
+                             "promote_k": RR.AUTHOR_PROMOTE_K})
     # G1: copies leave the ranking (last step, every kind) and are listed on the hit that stays
     if grun.on("collapse"):
         t1 = time.perf_counter()
         kept = set(grun.finish([key for key, _s in order], kind_of))
         order = [(key, s) for key, s in order if key in kept]
         timings["graph_collapse"] = round((time.perf_counter() - t1) * 1e3, 2)
+    # fragments of one figure (agent Д): FIGURE keys of one page sharing a caption block → one key, after G1
+    frag_info: dict[str, dict[str, Any]] = {}
+    frag_stage: dict[str, Any] | None = None
+    if req.group_fragments and "FIGURE" in req.kinds:
+        t1 = time.perf_counter()
+        known = {key: FR.Region.of(h.page_id, h.fields) for key, h in bm25_hits.items() if kind_of.get(key) == "FIGURE"}
+        order, frag_info, frag_stage = FR.group_ranked(
+            order, kind_of, known, lambda ids: FR.lookup_regions(client, alias_name(prefix, "figures"), ids))
+        if frag_stage.get("lookup_error"):
+            warnings.append(f"FRAGMENTS_LOOKUP_FAILED: {frag_stage['lookup_error']} (only the regions the BM25 leg "
+                            "returned were grouped)")
+        timings["fragments"] = round((time.perf_counter() - t1) * 1e3, 2)
     # per-source cap (opt-in): last, over the whole final order — the overflow moves back, nothing is dropped
     moved: dict[str, dict[str, int]] = {}
     cap_stage: dict[str, Any] | None = None
@@ -1145,6 +1335,12 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
             if res is not None and res.get("best_unit_id"):
                 trace["late_unit"] = {"unit_id": res.get("best_unit_id"), "units": res.get("units"),
                                       "tokens": res.get("tokens")}
+            if req.late_fusion == "rrf":                    # experiment flags (absent on the default path)
+                trace["late_fusion_rank"] = late_fusion_rank.get(key)
+                if key in late_fusion_score:
+                    trace["late_fusion_score"] = round(late_fusion_score[key], 8)
+            if res is not None and "late_query" in res:
+                trace["late_query"] = {"best": res["late_query"], "scores": res.get("late_query_scores")}
         if vis_status == "APPLIED" and kind == "PAGE":
             trace.update({"e_rank": e_rank.get(key), "vis_rank": vis_rank.get(key),
                           "vis_score": None if key not in vis_scores else round(vis_scores[key], 6),
@@ -1153,12 +1349,19 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
         if key in ref_flagged:
             trace["object_ref"] = {"matched": ref_flagged[key], "page_rank_before": ref_moved.get(key),
                                    "label_rank": ranks.get("label:PAGE", {}).get(key),
-                                   **({"label_object_id": label_info[key]["object_id"]} if key in label_info else {})}
+                                   **({"label_object_id": label_info[key]["object_id"]} if key in label_info else {}),
+                                   **({"entity": entity_info[key]} if key in entity_info else {})}
+        if key in author_info:                       # registry author route (agent Г)
+            trace["author_rank"] = author_info[key]["rank"]
+            trace["author"] = {**author_info[key], "page_rank_before": author_moved.get(key)}
         gtrace = grun.trace(key)
         if gtrace:
             trace["graph"] = gtrace
         if key in moved:
             trace.update({"source_cap": moved[key], "final_rank": rank})
+        if key in frag_info:
+            trace["fragments"] = {k: frag_info[key][k] for k in ("caption_block_id", "members", "rank_before",
+                                                                 "position_from", "tiny")}
         if dh is not None:
             trace["dense_unit"] = {"unit_id": dh.unit_id, "unit_kind": dh.unit_kind, "object_ids": dh.object_ids}
         src = dh.source if dh is not None else vis_src.get(key, {})
@@ -1178,6 +1381,8 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
             "duplicates": list(bmh.duplicates) if bmh else [], "trace": trace}
         if grun.on("collapse") or grun.status.get("collapse") == "NOT_TRIGGERED":
             hit["copies"] = list(grun.copies.get(key, []))
+        if key in frag_info:
+            hit["fragments"] = list(frag_info[key]["fragments"])
         hits.append(hit)
     timings["total"] = round((time.perf_counter() - t0) * 1e3, 2)
     routes = [name for name, st in (("bibliographic", bib_status), ("visual", vis_status)) if st == "APPLIED"]
@@ -1205,6 +1410,12 @@ def _hybrid_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: 
         out["stages"]["source_cap"] = cap_stage
     if ref_stage is not None:                          # only queries that name a numbered object
         out["stages"]["object_ref"] = ref_stage
+    if frag_stage is not None:                         # FIGURE with group_fragments
+        out["stages"]["fragments"] = frag_stage
+    if isinstance(late_stage, dict) and (late_stage.get("late_query") or {}).get("status") == "APPLIED" and xq:
+        out["stages"]["expansion"]["fusion"] = ("extra RRF legs of the expansions; the late stage scores the query and "
+                                                "every expansion (late_query = best_translation)")
+    out["stages"]["author_route"] = author_stage       # registry author route (agent Г): status for every query
     return out
 
 
@@ -1315,8 +1526,9 @@ def _multi_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
         "runs": runs}
     if len(answered) >= 2:
         # dedupe: a page another formulation served as the representative of its duplicate group (E's collapsed
-        # ``duplicates``) or of its copies (G1 ``copies``) joins that representative — the first one seen (the query
-        # first); a hit whose own copies include an earlier representative joins it too (G1 kept the other copy there)
+        # ``duplicates``), of its copies (G1 ``copies``) or of its figure's fragments (``fragments``) joins that
+        # representative — the first one seen (the query first); a hit whose own copies include an earlier
+        # representative joins it too (G1 kept the other copy there)
         hit_of: dict[str, dict[str, Any]] = {}
         alias: dict[str, str] = {}
         lists: list[tuple[int, list[str]]] = []
@@ -1326,6 +1538,7 @@ def _multi_search(client: Any, embed: EmbedClient, req: HybridRequest, prefix: s
             for h in res["hits"][:FUSION_DEPTH]:
                 copy_ids = [str(c.get("page_id") or c.get("object_id")) for c in h.get("copies") or []
                             if c.get("page_id") or c.get("object_id")]
+                copy_ids += [str(f) for f in h.get("fragments") or []]       # fragments of one figure join it too
                 rep = alias.get(h["id"]) or next((alias[c] for c in copy_ids if c in alias), None) or h["id"]
                 alias.setdefault(h["id"], rep)
                 merged += rep != h["id"]

@@ -1,0 +1,104 @@
+{
+ "counts": {
+  "by_catalogue": {
+   "evidence/boreholes/borehole_catalog.csv": 2263,
+   "evidence/mining/mining_geometry_catalog.csv": 7,
+   "evidence/monitoring/monitoring_observation_catalog.csv": 201,
+   "evidence/world/c4/bkpru4_mining_calendar.csv": 44,
+   "evidence/world/c4/skru1_mining_calendar.csv": 82,
+   "evidence/world/c4/skru2_mining_calendar.csv": 100,
+   "evidence/world/c4/skru3_mining_calendar.csv": 123,
+   "evidence/world/observations/world_observation_catalog.csv": 18
+  },
+  "by_kind": {
+   "BENCHMARK": 155,
+   "BLOCK": 89,
+   "BOREHOLE": 2249,
+   "PANEL": 237,
+   "PROFILE_LINE": 70,
+   "SHAFT": 38
+  },
+  "by_page_basis": {
+   "CATALOGUE_PAGE_ID": 363,
+   "CATALOGUE_PAGE_ID;LOCATOR_PAGE": 4,
+   "LOCATOR_PAGE": 2471
+  },
+  "objects": 1755,
+  "pages": 375,
+  "r_page_sources": [
+   "VKM-SRC-023",
+   "VKM-SRC-252",
+   "VKM-SRC-269",
+   "VKM-SRC-270",
+   "VKM-SRC-271"
+  ],
+  "rows_without_number": 0,
+  "rows_without_page": 0,
+  "sources": 51
+ },
+ "generator": "scripts/build_entity_index.py",
+ "identity_rule": "one row per (object, source, page); an object is a catalogue record — the same number in another source, mine or catalogue is not asserted to be the same object",
+ "inputs": [
+  {
+   "path": "evidence/boreholes/borehole_catalog.csv",
+   "sha256": "eccd04ecb225bd006560f75e914354489ce12358f82cb3551ff914cffaa8073a"
+  },
+  {
+   "path": "evidence/boreholes/borehole_identity_issues.csv",
+   "sha256": "3680ade9a664111ffabd9cd83f708c0a847c00b2fbdbbcc0623b71cbb6bfae14"
+  },
+  {
+   "path": "evidence/boreholes/borehole_picks.csv",
+   "sha256": "3d8659ce7b9fc530ae053b98d105172b266a20e6c83a96874273f933321732c5"
+  },
+  {
+   "path": "evidence/world/c4/bkpru4_mining_calendar.csv",
+   "sha256": "c6525adb82703da621efa2f3acd5f46a5a25201502b6e8f2a3e837fd7f6f038f"
+  },
+  {
+   "path": "evidence/world/c4/skru1_mining_calendar.csv",
+   "sha256": "22ade4179580a56f4ca2571ae07ecbc476d13931498aa0b82db3bdfcab793298"
+  },
+  {
+   "path": "evidence/world/c4/skru2_mining_calendar.csv",
+   "sha256": "4923e507bdef83cd0b705dbf528f3f4a3d0f5111fed0fef72f91b11c024089cf"
+  },
+  {
+   "path": "evidence/world/c4/skru3_mining_calendar.csv",
+   "sha256": "df1ceee037fe099c8736fe0295b4723811de637aa8df85c0728dd0f05b34d716"
+  },
+  {
+   "path": "evidence/world/observations/world_observation_catalog.csv",
+   "sha256": "3ca837de3a93b260c3ec9a6871b74ccee9283b2611b011cc9c134d83b3560006"
+  },
+  {
+   "path": "evidence/monitoring/monitoring_observation_catalog.csv",
+   "sha256": "4df5b5cc693683171c6a202c3ba366c29dc8241f6eed35fe9b8d033e35778dd8"
+  },
+  {
+   "path": "evidence/mining/mining_geometry_catalog.csv",
+   "sha256": "4be32d8ef33ca984d789921fc18ae01214bc2f9da64405b329e8c78cd8359710"
+  },
+  {
+   "path": "evidence/sources/record_index.csv",
+   "sha256": "79d92f02ccd0fe367438c3ed1539f38e39364e621c2d7fb7ceb18989d9c86481"
+  }
+ ],
+ "note": "navigation index built from the PUBLIC catalogues (AUTO, no quotes): where a catalogued object is mentioned; the site is the catalogue's attribution, not established by the index; not evidence",
+ "output": "catalogues/entities/entity_index.csv",
+ "output_sha256": "df2547a4c6ae676def8c5eff883253ace578f7ab360dea94cc033b1e84ae5422",
+ "page_basis": "physical page from 1 (pdf_page of the evidence records, page_index of the canon); locator pages agree with the records' pdf_page: picks 714/714, monitoring 504/504, mining geometry 563/563; spot check VKM-SRC-012 p64 = VKM-SRC-012:p0064 (page_index 64, printed 63)",
+ "rows": 2838,
+ "rule": "entity_index_v1",
+ "skipped": {
+  "borehole_catalog: label without a number (not indexed)": 123,
+  "borehole_picks: borehole not indexed (not in the catalogue or without a number)": 272,
+  "evidence/mining/mining_geometry_catalog.csv: no numbered object id (mine, field, area, zone, working or empty)": 555,
+  "evidence/world/c4/bkpru4_mining_calendar.csv: no numbered object id (mine, field, area, zone, working or empty)": 90,
+  "evidence/world/c4/skru1_mining_calendar.csv: no numbered object id (mine, field, area, zone, working or empty)": 120,
+  "evidence/world/c4/skru2_mining_calendar.csv: no numbered object id (mine, field, area, zone, working or empty)": 123,
+  "evidence/world/c4/skru3_mining_calendar.csv: no numbered object id (mine, field, area, zone, working or empty)": 65,
+  "monitoring_observation_catalog: survey line / benchmark without a number": 32,
+  "world_observation_catalog: line_or_benchmark not a PL/PROFILE code (kind unknown)": 2768
+ }
+}

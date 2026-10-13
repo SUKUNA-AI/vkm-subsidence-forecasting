@@ -44,6 +44,8 @@ View = Literal["full", "brief"]
 VIEW_DOC = ("full (default): the ApiResponse with envelopes, records and traces; brief: vkm.brief/1 — one short entry "
             "per hit (id, ranks, one snippet, labels), source cards, warning codes, the run summary (api.brief)")
 CURSOR_DOC = "next_cursor of the previous page (an offset); anything else is INVALID_ARGUMENT"
+GROUP_FRAGMENTS_DOC = ("FIGURE: regions of one page that share one caption block are one hit (the largest region at "
+                       "the best-ranked one's place; the others in record.fragments); false = every detected region")
 
 
 @dataclass
@@ -156,6 +158,7 @@ class SearchBody(_Body):
     view: View = Field("full", description=VIEW_DOC)
     include_duplicates: bool = False
     exact: bool = Field(False, description="unstemmed word forms instead of morphology")
+    group_fragments: bool = Field(True, description=GROUP_FRAGMENTS_DOC)
 
 
 HybridKind = Literal["PAGE", "FIGURE", "TABLE", "FORMULA"]
@@ -202,6 +205,18 @@ class HybridSearchBody(_Body):
     max_per_source: int | None = Field(None, ge=1, le=50, description=(
         "at most N hits of one source before the other sources' hits; the overflow follows (nothing is dropped, "
         "stages.source_cap); null = off"))
+    group_fragments: bool = Field(True, description=GROUP_FRAGMENTS_DOC)
+    late_fusion: Literal["replace", "rrf"] = Field("replace", description=(
+        "experiment: replace = the late score orders each kind's head (default); rrf = RRF(rrf_k) of the head's RRF "
+        "order and its late order (trace late_fusion_rank)"))
+    late_query: Literal["original", "best_translation"] = Field("original", description=(
+        "experiment: original = the late stage scores the query (default); best_translation = also its translation "
+        "(translate), late score = max of MaxSim / query tokens (trace late_query)"))
+    author_route: bool | None = Field(None, description="pages of a registry author's own works (stages.author_route); "
+                                                        "null = on when the query names a registry author; false = off")
+    entity_route: bool | None = Field(None, description="entity-index pages of a numbered borehole / line / block / "
+                                                        "panel / benchmark (stages.object_ref.entity_route); null = on "
+                                                        "when one is named; false = off")
 
 
 class ObjectsQueryBody(_Body):
@@ -459,7 +474,8 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
     def search_post(request: Request, body: SearchBody, _auth: Read) -> JSONResponse:
         request.state.query_sha256 = hashlib.sha256(body.query.encode("utf-8")).hexdigest()
         return respond(request, service.search(body.query, list(body.kinds), body.filters.to_search(), body.limit,
-                                               body.cursor, body.include_duplicates, body.exact),
+                                               body.cursor, body.include_duplicates, body.exact,
+                                               group_fragments=body.group_fragments),
                        view=body.view, brief_kind="search")
 
     @app.get("/v1/search", tags=["search"], **JSON_RESPONSES)
@@ -480,7 +496,11 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
                                                       late_candidates=body.late_candidates, bib_route=body.bib_route,
                                                       visual_route=body.visual_route, translate=body.translate,
                                                       graph=body.graph, formulations=body.formulations,
-                                                      expand=body.expand, max_per_source=body.max_per_source),
+                                                      expand=body.expand, max_per_source=body.max_per_source,
+                                                      group_fragments=body.group_fragments,
+                                                      late_fusion=body.late_fusion, late_query=body.late_query,
+                                                      author_route=body.author_route,
+                                                      entity_route=body.entity_route),
                        view=body.view, brief_kind="hybrid")
 
     @app.get("/v1/search/hybrid", tags=["search"], **JSON_RESPONSES)
@@ -777,6 +797,29 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
         return respond(request, service.nav_figure_series_get(ref, max_points))
     # end digitized chart series (agent FD2)
 
+    # registry (agent Г): works of an author by name key; the entity index of the catalogues — navigation
+    @app.get("/v1/works", tags=["registry"], **JSON_RESPONSES)
+    def find_works(request: Request, _auth: Read, author: Annotated[str, Query(min_length=2, max_length=200)],
+                   limit: Annotated[int, Query(ge=1, le=200)] = 50,
+                   cursor: Annotated[str | None, Query(max_length=10, description=CURSOR_DOC)] = None) -> JSONResponse:
+        return respond(request, service.find_works(author, limit, cursor))
+
+    @app.get("/v1/entities", tags=["registry"], **JSON_RESPONSES)
+    def find_entities(request: Request, _auth: Read,
+                      kind: Annotated[str | None, Query(max_length=20, description="BOREHOLE, PROFILE_LINE (LINE), "
+                                                                                   "BENCHMARK, BLOCK, PANEL, SHAFT")]
+                      = None,
+                      number: Annotated[str | None, Query(max_length=60, description="«75», «9 ВП», «скв. 75»")]
+                      = None,
+                      site: Annotated[str | None, Query(max_length=100)] = None,
+                      source_id: Annotated[str | None, Query(max_length=20)] = None,
+                      page_id: Annotated[str | None, Query(max_length=40)] = None,
+                      limit: Annotated[int, Query(ge=1, le=500)] = 50,
+                      cursor: Annotated[str | None, Query(max_length=10, description=CURSOR_DOC)] = None
+                      ) -> JSONResponse:
+        return respond(request, service.find_entities(kind, number, site, source_id, page_id, limit, cursor))
+    # end registry (agent Г)
+
     # ---------------------------------------------------------------- topic dossier (navigation + catalogues)
     @app.get("/v1/topic", tags=["navigation"], **JSON_RESPONSES)
     def topic_get(request: Request, _auth: Read, q: Annotated[str, Query(min_length=1, max_length=512)],
@@ -882,6 +925,11 @@ def build_from_settings(settings: Any = None, *, environ=None, _defer_generation
                 pass
 
     deps.catalogues = CatalogueStore(root)     # served only once derived/catalogues/CURRENT is published
+    from vkm_corpus.search.registry_routes import RegistrySignals
+
+    deps.registry = RegistrySignals(deps.canon, deps.catalogues)    # authors (canon) + entity index (catalogues)
+    if deps.hybrid is not None:                # author / entity routes of the hybrid search (agent Г)
+        deps.hybrid.registry = deps.registry
     import os
     from pathlib import Path as FilePath
     from vkm_corpus.contracts.policy_store import SourcePolicyStore

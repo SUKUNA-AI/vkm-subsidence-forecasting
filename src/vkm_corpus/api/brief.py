@@ -37,7 +37,7 @@ NOTE = ("AUTO_EXTRACTED_UNREVIEWED candidates of rebuildable projections: scores
 _DEFAULTED = ("review_status", "origin")
 _SAID_ONCE_FLAGS = frozenset({"SCOPE_INHERITED_FROM_SOURCE"})        # every document object has it: the note says it
 _HYBRID_RANKS = ("bm25_rank", "dense_rank", "fused_rank")
-_ROUTE_RANKS = ("vis_rank", "bib_rank")
+_ROUTE_RANKS = ("vis_rank", "bib_rank", "author_rank")
 _LEAD_CODE = re.compile(r"^(?:f\d+:\s*)?([A-Z][A-Z0-9_]{2,})")
 _TAG = re.compile(r"</?em>")
 _STATUS_HEAD = re.compile(r"^[A-Z][A-Z_]*")
@@ -189,6 +189,10 @@ def _hit(item: dict[str, Any], kind: str, defaults: dict[str, Any], seen: dict[s
         out.update({k: trace[k] for k in _HYBRID_RANKS if trace.get(k) is not None})
         if trace.get("late_score") is not None:
             out["late_score"] = round(float(trace["late_score"]), 4)
+        if trace.get("late_fusion_rank") is not None:                  # experiment flags of the late stage
+            out["late_fusion_rank"] = trace["late_fusion_rank"]
+        if isinstance(trace.get("late_query"), dict):
+            out["late_query"] = trace["late_query"].get("best")
         out.update({k: trace[k] for k in _ROUTE_RANKS if trace.get(k) is not None})
     elif rec.get("bm25_score") is not None:
         out["bm25_score"] = round(float(rec["bm25_score"]), 3)
@@ -208,6 +212,8 @@ def _hit(item: dict[str, Any], kind: str, defaults: dict[str, Any], seen: dict[s
                          for c in copies]
     elif isinstance(trace.get("graph"), dict) and trace["graph"].get("copies"):
         out["copies_count"] = trace["graph"]["copies"]
+    if rec.get("fragments"):                                  # other regions of the figure (one page, one caption)
+        out["fragments"] = [str(f) for f in rec["fragments"]]
     _scientific(out, env, defaults)
     _note_source(seen, out, env, rec)
     return out
@@ -281,6 +287,8 @@ def _run(rec: dict[str, Any]) -> dict[str, Any]:
         out["translation"] = {"status": tr.get("status"), **({"text": cut(tr["text"], 200)} if tr.get("text") else {})}
     st: dict[str, Any] = {name: _status(stages.get(name)) for name in ("bib_route", "visual_route")
                           if stages.get(name) is not None}
+    if _status(stages.get("author_route")) not in (None, "NOT_DETECTED"):     # registry author route (agent Г)
+        st["author_route"] = _status(stages["author_route"])
     graph = stages.get("graph")
     if isinstance(graph, dict):
         status = {k: v for k, v in (graph.get("status") or {}).items() if v != "OFF"}
@@ -293,6 +301,13 @@ def _run(rec: dict[str, Any]) -> dict[str, Any]:
     cap = stages.get("source_cap")
     if isinstance(cap, dict):
         st["source_cap"] = {"max_per_source": cap.get("max_per_source"), "moved": cap.get("moved")}
+    frag = stages.get("fragments")
+    if isinstance(frag, dict):
+        st["fragments"] = {"status": frag.get("status"), "groups": frag.get("groups")}
+    late = stages.get("late")
+    if isinstance(late, dict) and (late.get("fusion") or late.get("late_query")):     # experiment flags only
+        st["late"] = {k: v for k, v in (("fusion", (late.get("fusion") or {}).get("mode")),
+                                        ("late_query", _status(late.get("late_query")))) if v}
     out["stages"] = st
     plan = rec.get("formulations")
     if isinstance(plan, dict):

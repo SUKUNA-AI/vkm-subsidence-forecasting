@@ -26,7 +26,7 @@ import sys
 import time
 from datetime import datetime, timezone
 
-VERSION = "nightly-mcp-smoke-7"
+VERSION = "nightly-mcp-smoke-8"
 EXPECTED_TOOLS = (
     "search_text", "search_hybrid", "retrieval_trace", "search_objects", "get_source", "get_work", "get_page",
     "get_page_image", "get_figure", "get_table", "get_formula", "get_object", "get_document_neighbors",
@@ -39,6 +39,8 @@ EXPECTED_TOOLS = (
     "get_table_structured", "find_tables", "copies_of_object", "shared_formulas",
     # digitized chart series (agent FD2, 29.09)
     "find_figure_series", "get_figure_series",
+    # registry: works of an author, the entity index of the catalogues (agent Г, 13.10)
+    "find_works", "find_entities",
     # versioned, access-filtered evidence (production data program, 01.10)
     "list_evidence", "get_evidence_record", "get_evidence_dependencies", "get_evidence_review_packet",
 )
@@ -173,6 +175,8 @@ def plan():
          {"object_id": (hv.image_figures or hv.ids["figure"])[0], "limit": 5}),
         ("shared_formulas", lambda hv: hv.first("formula") and {"ref": hv.first("formula"), "limit": 5}),
         ("find_figure_series", {"text": "оседание", "limit": 3}),
+        ("find_works", {"author": "Барях", "limit": 3}),
+        ("find_entities", {"kind": "BOREHOLE", "number": "75", "limit": 5}),
         ("get_figure_series", lambda hv: hv.first("figure_series") and {"ref": hv.first("figure_series"),
                                                                          "max_points": 20}),
         ("reconstruct_topic", {"query": "механика закладки", "budget_chars": 2000}),

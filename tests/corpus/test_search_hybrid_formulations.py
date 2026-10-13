@@ -29,7 +29,7 @@ META = {"build_id": "20261005t120000z-aaaaaaaa-bbbbbbbb", "built_from_snapshot_i
         "build_status": "COMPLETE"}
 # BM25 pages per query word (the dense leg finds nothing: the order of a formulation is its BM25 order)
 BM25 = {"альфа": [A1, A2, A3, B1, C1], "бета": [B1, A1, C1], "гамма": [C1], "дельта": [A2]}
-STAGES = {"bm25", "dense", "late", "bib_route", "visual_route", "expansion", "graph", "rerank"}
+STAGES = {"bm25", "dense", "late", "bib_route", "visual_route", "expansion", "graph", "rerank", "author_route"}
 
 
 def _client(bm25=None):
