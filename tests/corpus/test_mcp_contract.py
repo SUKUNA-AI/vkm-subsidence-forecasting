@@ -54,7 +54,9 @@ READ_TOOLS = {"get_evidence_record", "list_evidence", "get_evidence_dependencies
               # structured tables (agent TB) and repeated figures/tables/formulas (agent U2), served by agent G2
               "get_table_structured", "find_tables", "copies_of_object", "shared_formulas",
               # digitized chart series (agent FD2)
-              "find_figure_series", "get_figure_series"}
+              "find_figure_series", "get_figure_series",
+              # registry: works of an author, the entity index of the catalogues (agent Г)
+              "find_works", "find_entities"}
 ADMIN_TOOLS = {"reprocess_source", "reprocess_page", "get_job", "cancel_job"}
 
 
