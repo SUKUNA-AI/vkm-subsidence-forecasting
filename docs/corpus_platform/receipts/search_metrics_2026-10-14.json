@@ -1,0 +1,102 @@
+{
+ "schema": "vkm.search_metrics_live_rerun/1",
+ "date": "2026-10-14",
+ "status": "COMPLETE_READ_ONLY_WITH_FROZEN_TRUTH_LIMITS",
+ "purpose": "Re-run retrieval_v1 (189 queries) on the live CORE after OCR v2 (07.10) and the search changes of 13.10: BM25, hybrid without late, hybrid with mLateOn as served, and a control arm without copy collapse.",
+ "code_commit_at_run": "efd6f7c",
+ "core": {
+  "api_image": "vkm-corpus-api:0.1.0-5c7ad8d1f983",
+  "status_at": "2026-10-14T13:40:29Z",
+  "canonical_snapshot_id": "snap-20261007T103222Z-2d71e9e8",
+  "up_to_date": true,
+  "late_interaction": {
+   "default": true,
+   "model": "lightonai/mLateOn@edd378f99593c0ac8a15518b97ad89786b02685e (GGUF Q8_0, RX 580)",
+   "pack_id": "snap-20261007T103222Z-2d71e9e8-3e15680f8b02",
+   "config_signature": "65c7e886cdd4cfe612be36582f17109208ea6377d33363999cd9d33ceb035241",
+   "units": 184006,
+   "tokens": 23449978
+  }
+ },
+ "truth": {
+  "V": "benchmarks/retrieval_v0/qrels.tsv, VERIFIED, PAGE level",
+  "P": "V plus benchmarks/retrieval_v1/qrels_v1_pooled.tsv (frozen LLM CANDIDATE labels); a VERIFIED grade wins",
+  "not_covered": "benchmarks/retrieval_v1/results_v1.json not_covered excluded, as on 30.09",
+  "new_labels": 0
+ },
+ "systems": {
+  "bm25": "POST /v1/search, kinds PAGE, limit 50, two pages of results",
+  "hybrid": "POST /v1/search/hybrid, candidates 100, late false, server defaults otherwise",
+  "hybrid_late": "POST /v1/search/hybrid, candidates 100, late true, late_candidates 100, server defaults (graph [\"collapse\"], routes on)",
+  "hybrid_late_g0": "as hybrid_late with graph [] (no copy collapse); control arm"
+ },
+ "scoring_form": "ordinary: every returned page id scored on its own; copies hidden inside a collapsed hit are not counted",
+ "results": {
+  "text_144": {
+   "P": {
+    "ndcg@10": {"bm25": 0.532, "hybrid": 0.623, "hybrid_late": 0.663, "hybrid_late_g0": 0.684},
+    "recall@50": {"bm25": 0.518, "hybrid": 0.752, "hybrid_late": 0.725, "hybrid_late_g0": 0.785},
+    "judged@10": {"bm25": 0.80, "hybrid": 0.89, "hybrid_late": 0.87, "hybrid_late_g0": 0.88}
+   },
+   "V": {
+    "ndcg@10": {"bm25": 0.247, "hybrid": 0.290, "hybrid_late": 0.300, "hybrid_late_g0": 0.332},
+    "recall@50": {"bm25": 0.407, "hybrid": 0.566, "hybrid_late": 0.530, "hybrid_late_g0": 0.607}
+   },
+   "pairs_ndcg@10": {
+    "P hybrid_late_g0 - hybrid": {"delta": 0.061, "ci": [0.034, 0.088], "p": 0.0001},
+    "P hybrid_late - hybrid": {"delta": 0.041, "ci": [0.013, 0.070], "p": 0.0065},
+    "P hybrid_late - bm25": {"delta": 0.131, "ci": [0.092, 0.172], "p": 0.0001},
+    "P hybrid_late - hybrid_late_g0": {"delta": -0.020, "ci": [-0.031, -0.011], "p": 0.0001},
+    "V hybrid_late_g0 - hybrid": {"delta": 0.042, "ci": [0.012, 0.073], "p": 0.0057},
+    "V hybrid_late - hybrid": {"delta": 0.010, "ci": [-0.020, 0.040], "p": 0.5272},
+    "V hybrid_late - bm25": {"delta": 0.053, "ci": [0.012, 0.094], "p": 0.0139}
+   }
+  },
+  "visual_42": {
+   "P": {"ndcg@10": {"bm25": 0.566, "hybrid": 0.607, "hybrid_late": 0.619, "hybrid_late_g0": 0.629}},
+   "V": {"ndcg@10": {"bm25": 0.331, "hybrid": 0.388, "hybrid_late": 0.421, "hybrid_late_g0": 0.443}},
+   "pairs_ndcg@10": {
+    "P hybrid_late_g0 - hybrid": {"delta": 0.023, "ci": [-0.022, 0.068], "p": 0.3353},
+    "V hybrid_late_g0 - hybrid": {"delta": 0.055, "ci": [-0.015, 0.124], "p": 0.1366}
+   }
+  },
+  "russian_queries_only": {
+   "rule": "more Cyrillic than Latin letters in the query text; 179 of 189 queries (text 134 of 144 scored, visual 42 of 42)",
+   "text_134": {
+    "P ndcg@10": {"bm25": 0.553, "hybrid": 0.641, "hybrid_late_g0": 0.689},
+    "V ndcg@10": {"bm25": 0.257, "hybrid": 0.301, "hybrid_late_g0": 0.332},
+    "P hybrid_late_g0 - hybrid": {"delta": 0.048, "ci": [0.022, 0.074], "p": 0.0006},
+    "V hybrid_late_g0 - hybrid": {"delta": 0.031, "ci": [0.002, 0.061], "p": 0.0425}
+   }
+  },
+  "server_latency_p50_ms": {"hybrid": 52.0, "hybrid_late": 162.0, "hybrid_late_g0": 162.1},
+  "api_errors": {"bm25": 0, "hybrid": 0, "hybrid_late": 0, "hybrid_late_g0": 0}
+ },
+ "history_P_text_ndcg@10": {
+  "2026-09-28 (V1, snap 5d669f09)": {"bm25": 0.551, "hybrid": 0.650, "hybrid_late": 0.725},
+  "2026-09-30 (snap 574daaac)": {"bm25": 0.530, "hybrid": 0.614, "hybrid_late": 0.689},
+  "2026-10-14 (snap 2d71e9e8, image 5c7ad8d)": {"bm25": 0.532, "hybrid": 0.623, "hybrid_late": 0.663, "hybrid_late_g0": 0.684}
+ },
+ "limitations": [
+  "p values are not Holm-adjusted; the main contrast hybrid_late_g0 - hybrid repeats E_bare - C of 30.09, the other pairs are descriptive.",
+  "P includes frozen LLM CANDIDATE labels; judged@10 is 0.77-0.89, so unjudged pages lower P scores; V covers only about 15 % of top-10 pages.",
+  "The -0.020 of copy collapse is a property of ordinary scoring (hidden copies are not counted); E7 of 13.10 found no harm in the grouped form.",
+  "Before/after across dates is not a controlled experiment: snapshot, OCR layer, vectors and routing changed together.",
+  "The Russian subset is the same benchmark split by query script; there is no separate Russian-vs-English test (only 10 English queries).",
+  "Search scores are retrieval signals over the AUTO canon, not evidence."
+ ],
+ "commands": [
+  "PYTHONPATH=src J_V1=<WORK>/retrieval_default python benchmarks/retrieval_v1/scripts/run_v1.py api bm25,hybrid,hybrid_late",
+  "PYTHONPATH=src J_V1=<WORK>/retrieval_default python <WORK>/control_nocollapse.py",
+  "python <WORK>/score_v1.py; PYTHONPATH=src python <WORK>/score_ru.py"
+ ],
+ "host_local_outputs": {
+  "WORKSTATION_WORK/search_metrics_2026-10-14/retrieval_default/out/api.json": "1a86a0b42767e06e2c42189fa04044e646627b02d944b4e01feaead2bba62b5b",
+  "WORKSTATION_WORK/search_metrics_2026-10-14/retrieval_scores_2026-10-14.json": "0a5b9ea09f2341c2e266cdc4afbd31ef088f6b9be17098e74dbc05cc0bf41eef",
+  "WORKSTATION_WORK/search_metrics_2026-10-14/retrieval_scores_ru_2026-10-14.json": "ea18e0b91734bbd4b9e6ac5cda5a4b57577e11ae3631d10496d983647a0121f1",
+  "WORKSTATION_WORK/search_metrics_2026-10-14/score_v1.py": "d7a5e74a27f6e19c016e27d5b8c58c7691118e5a36b2073ca9b71f8dd907b8fb",
+  "WORKSTATION_WORK/search_metrics_2026-10-14/score_ru.py": "2bd3c7fa455bbc47d719b55892b9b3daa61c0f7cda16f856ba9bfe0c0bcdb04a",
+  "WORKSTATION_WORK/search_metrics_2026-10-14/control_nocollapse.py": "db5ceba52809158190be5a19140336b2bcfcf6e7306955e8859fd62d375da7d1"
+ },
+ "deployed_changes": "none: read-only API calls"
+}

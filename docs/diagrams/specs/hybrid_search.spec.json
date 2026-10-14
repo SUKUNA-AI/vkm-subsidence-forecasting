@@ -21,7 +21,7 @@
     },
     {
      "id": "subtitle",
-     "label": "CORE, образ 1b20e03 (13.10.2026), пакет каталогов 85bf6c1e00d9; снимок snap-20261007T103222Z-2d71e9e8 (OCR v2): 184 006 units. Оценки поиска — кандидаты, не evidence.",
+     "label": "CORE, образ 5c7ad8d (13.10.2026), пакет каталогов 85bf6c1e00d9; снимок snap-20261007T103222Z-2d71e9e8 (OCR v2): 184 006 units. Оценки поиска — кандидаты, не evidence.",
      "x": 20,
      "y": 44,
      "w": 1860,
@@ -257,11 +257,11 @@
     },
     {
      "id": "meas_old",
-     "label": "Измерено раньше\n• задержка на прогретом индексе: гибрид p50 76 мс; с late p50 148 мс\n• V1 (186 запросов): схема E — 0,725 nDCG@10 на тексте против 0,551 у BM25; без dense E теряет 0,115\n• маршрут библиографии: +0,195 nDCG@10 на библиографических запросах\n• реранкер v3.5 по тексту значимо не помогает; визуальные — глубина 12 даёт +0,043 (пул)\n• CP-42: записи BIB_ENTRY не ранжируют страницы",
+     "label": "Измерено 14.10: retrieval V1, 186 запросов (снимок 2d71e9e8)\n• nDCG@10 текст (P): BM25 0,532 · гибрид 0,623 · → mLateOn 0,663\n• 28.09 было: 0,551 / 0,650 / 0,725\n• mLateOn к гибриду: +0,061 (P), +0,042 (V); русские запросы +0,048\n• схлопывание копий: −0,020 в постраничном подсчёте, с группами 0\n• визуальные: mLateOn незначимо; p50: гибрид 52 мс, с late 162 мс\n• 28.09: без dense E −0,115; маршрут библиографии +0,195\n• реранкер v3.5 не помогает; CP-42: BIB_ENTRY не ранжируют страницы",
      "x": 680,
-     "y": 705,
+     "y": 688,
      "w": 500,
-     "h": 145,
+     "h": 168,
      "style": "fillColor=#ffffff;strokeColor=#666666;fontSize=12;align=left;spacingLeft=6;spacingRight=4;"
     },
     {
@@ -406,7 +406,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: docs/corpus_platform/MCP_TOOLS.md §1.1–1.5, §2; src/vkm_corpus/search/hybrid.py, registry_routes.py; docs/corpus_platform/receipts/deploy_20261013_search_fixes_formulas.json, deploy_20261013_search_next.json; benchmarks/topic_v1/RESULTS_EXPERIMENTS_2026-10-13.md; benchmarks/query_types_v1/RESULTS_V1.md; PROJECT_STATE_RU.md; PLATFORM_INTEGRITY_2026-09-30_RU.md; receipts/intake_2026-09-29.json; MODEL_SERVICES.md.",
+     "label": "Источники: docs/corpus_platform/MCP_TOOLS.md §1.1–1.5, §2; src/vkm_corpus/search/hybrid.py, registry_routes.py; docs/corpus_platform/receipts/deploy_20261013_search_fixes_formulas.json, deploy_20261013_search_next.json; benchmarks/topic_v1/RESULTS_EXPERIMENTS_2026-10-13.md; benchmarks/query_types_v1/RESULTS_V1.md; PROJECT_STATE_RU.md; docs/corpus_platform/SEARCH_METRICS_2026-10-14_RU.md, receipts/search_metrics_2026-10-14.json; PLATFORM_INTEGRITY_2026-09-30_RU.md; receipts/intake_2026-09-29.json; MODEL_SERVICES.md.",
      "x": 20,
      "y": 1095,
      "w": 1860,
