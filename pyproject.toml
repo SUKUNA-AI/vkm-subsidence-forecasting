@@ -14,6 +14,13 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest>=9.1.1"]
+# Geometric diagnostics; QGIS/GDAL and ParaView use existing external runtimes.
+geometry = [
+    "scipy>=1.18,<1.19",
+    "shapely>=2.1,<3",
+    "pillow>=12.3,<13",
+    "matplotlib>=3.11,<4",
+]
 # VKM Corpus Platform v0 (decision CP-02): exact pins live in requirements/corpus*.lock.txt, built with
 # `-c requirements/worldspec.lock.txt` so that pydantic/pydantic-core never move (the WorldSpec schema depends on them).
 corpus = [

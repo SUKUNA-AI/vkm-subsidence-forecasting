@@ -30,6 +30,7 @@ import math
 import os
 import shutil
 import sys
+import tempfile
 import zipfile
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -75,6 +76,18 @@ FIELDS = ("xcoord", "ycoord", "exel_Load", "TRI_mean", "TRI_range", "Canny_mean"
 THEMES = ("exel_Load", "Rel_mera", "Disp500_mera", "Disp1000_mera", "Disp500_Rel_mera", "Disp1000_Rel_mera",
           "TRI_mean", "Disp_mean_1000")
 CODE_FILES = ("scripts/build_dma_surface_package.py", "src/vkm_datasets/gis.py", "src/vkm_datasets/manifest.py")
+_QGIS_APP = None
+
+
+def ensure_qgis_application():
+    """Keep the native application's Python owner alive; do not initialize an existing host twice."""
+    global _QGIS_APP
+    from qgis.core import QgsApplication
+    _QGIS_APP = QgsApplication.instance()
+    if _QGIS_APP is None:
+        _QGIS_APP = QgsApplication([], False)
+        _QGIS_APP.initQgis()
+    return _QGIS_APP
 
 
 def sha(data: bytes) -> str:
@@ -365,13 +378,22 @@ def dem_products(inp: dict, aoi, out: Path) -> dict:
     hill = out / "data" / "hillshade_utm40n_30m.tif"
     gdal.DEMProcessing(str(hill), str(surf), "hillshade", azimuth=315, altitude=45, zFactor=1.0, computeEdges=True,
                        creationOptions=co)
+    # GDAL inherits the input band unit and compound CRS. Brightness is dimensionless, not EGM2008 elevation.
+    hs = gdal.Open(str(hill), gdal.GA_Update)
+    horizontal = osr.SpatialReference()
+    horizontal.ImportFromEPSG(WORK_EPSG)
+    hs.SetSpatialRef(horizontal)
+    hs.GetRasterBand(1).SetUnitType("1")
+    hs = None
     quality = {}
     for code, rel in AUX.items():
         q = out / "data" / f"quality_{code.lower()}_utm40n_30m.tif"
         nodata = {"srcNodata": -32767, "dstNodata": -32767} if code == "HEM" else {}   # HEM: edited pixels
-        gdal.Warp(str(q), str(inp["dem_dir"] / rel), srcSRS="EPSG:4326", dstSRS=f"EPSG:{WORK_EPSG}",
-                  outputBounds=aoi, xRes=PIXEL, yRes=PIXEL, resampleAlg="bilinear" if code == "HEM" else "near",
-                  creationOptions=co, **nodata)
+        quality_ds = gdal.Warp(str(q), str(inp["dem_dir"] / rel), srcSRS="EPSG:4326", dstSRS=f"EPSG:{WORK_EPSG}",
+                               outputBounds=aoi, xRes=PIXEL, yRes=PIXEL, resampleAlg="bilinear" if code == "HEM" else "near",
+                               creationOptions=co, **nodata)
+        quality_ds.GetRasterBand(1).SetUnitType("m" if code == "HEM" else "1")
+        quality_ds = None
         quality[code] = q
     return {"native": native, "surface": surf, "hillshade": hill, "quality": quality, "projwin_wgs84": win}
 
@@ -812,26 +834,31 @@ def previews(out: Path, L: dict, ovl: list[dict], prod: dict, align: dict, osm: 
     rgb[edges == 1] = (0.0, 0.0, 0.0)
     rgb[edges == 2] = (0.1, 0.25, 1.0)
     rgb[edges == 3] = (0.9, 0.0, 0.0)
-    ve = 10
     yy, xx = np.mgrid[0:z.shape[0], 0:z.shape[1]]
     X = (ext[0] + (xx + 0.5) * gt[1]) / 1000
     Y = (ext[3] + (yy + 0.5) * gt[5]) / 1000
     Z = zm.filled(np.nan)
-    fig = plt.figure(figsize=(11, 8.5))
-    ax = fig.add_subplot(111, projection="3d", computed_zorder=False)
-    ax.plot_surface(X, Y, Z, facecolors=rgb, rcount=z.shape[0], ccount=z.shape[1], linewidth=0, antialiased=False,
-                    shade=False)
     dx, dy = X.max() - X.min(), Y.max() - Y.min()
-    ax.set_box_aspect((dx, dy, ve * (np.nanmax(Z) - np.nanmin(Z)) / 1000))
-    ax.set_xlabel("E, км (UTM 40N)")
-    ax.set_ylabel("N, км")
-    ax.set_zlabel("высота, м (EGM2008)")
-    ax.set_title(f"Поверхность DSM с контурами ДМА (вертикальное преувеличение ×{ve})")
-    ax.view_init(elev=38, azim=-62)
-    foot(fig, f"Вертикальное преувеличение ×{ve} (ось высот — в истинных метрах). Сетка 30 м (билинейное "
-         "перепроецирование исходных 1″×1,5″, без уплотнения). Чёрное — контуры, синее — контуры без показателей, "
-         "красное — перекрытия; контуры нанесены текстурой на поверхность, своей высоты не имеют.")
-    save(fig, "04_relief_3d.png")
+    for ve in (1, 10):
+        fig = plt.figure(figsize=(11, 8.5))
+        ax = fig.add_subplot(111, projection="3d", computed_zorder=False)
+        ax.plot_surface(X, Y, Z, facecolors=rgb, rcount=z.shape[0], ccount=z.shape[1], linewidth=0, antialiased=False,
+                        shade=False)
+        ax.set_box_aspect((dx, dy, ve * (np.nanmax(Z) - np.nanmin(Z)) / 1000))
+        ax.set_xlabel("E, км (UTM 40N)")
+        ax.set_ylabel("N, км")
+        ax.set_zlabel("высота, м (EGM2008)")
+        if ve == 1:
+            # At true scale the 130 m vertical range is only a few display pixels over an 11 km footprint.
+            # Suppress overlapping numeric ticks and retain the measured range in the axis label.
+            ax.set_zticks([])
+            ax.set_zlabel(f"высота {np.nanmin(Z):.1f}–{np.nanmax(Z):.1f} м (EGM2008)")
+        ax.set_title(f"Поверхность DSM с контурами ДМА (вертикальное преувеличение ×{ve})")
+        ax.view_init(elev=38, azim=-62)
+        foot(fig, f"Вертикальное преувеличение ×{ve} (ось высот — в истинных метрах). Сетка 30 м (билинейное "
+             "перепроецирование исходных 1″×1,5″, без уплотнения). Чёрное — контуры, синее — контуры без показателей, "
+             "красное — перекрытия; контуры нанесены текстурой на поверхность, своей высоты не имеют.")
+        save(fig, "04_relief_3d_x1.png" if ve == 1 else "04_relief_3d.png")
     # 5. other disputed objects
     special = []
     for c in L["groups"]:
@@ -871,9 +898,10 @@ def qgis_project(out: Path, L: dict) -> dict:
                            QgsGraduatedSymbolRenderer, QgsRendererRange, QgsFillSymbol, QgsRasterDemTerrainProvider,
                            QgsSingleSymbolRenderer, QgsLayerTreeGroup)
     from qgis.PyQt.QtGui import QColor
-    app = QgsApplication.instance() or QgsApplication([], False)
-    if not QgsApplication.instance().platform() or True:
-        app.initQgis()
+    # Providers accept cwd-relative paths, but the project writer can then persist them relative to the wrong
+    # directory. Supply absolute IO paths and let QgsProject relativize them against its absolute filename.
+    out = out.resolve()
+    app = ensure_qgis_application()
     project = QgsProject.instance()
     project.clear()
     qgz = out / "dma_skru1_surface.qgz"
@@ -895,7 +923,10 @@ def qgis_project(out: Path, L: dict) -> dict:
         return lyr
 
     def vector(name, table, group, sql=None):
-        lyr = QgsVectorLayer(f"{gpkg}|layername={table}", name, "ogr")
+        options = QgsVectorLayer.LayerOptions()
+        options.forceReadOnly = True
+        lyr = QgsVectorLayer(f"{gpkg}|layername={table}|option:IMMUTABLE=YES", name, "ogr", options)
+        lyr.setReadOnly(True)
         if not lyr.isValid():
             raise RuntimeError("invalid vector " + name)
         if sql:
@@ -913,7 +944,7 @@ def qgis_project(out: Path, L: dict) -> dict:
     g_base = root.addGroup("Контуры")
     g_dem = root.addGroup("Рельеф: " + DEM_LABEL)
     vector("Перекрытия контуров", "overlaps", g_qa).renderer().symbol().setColor(QColor(220, 0, 0, 200))
-    vector("Точки xcoord/ycoord (координатные группы)", "coord_groups", g_qa)
+    vector("Точки xcoord/ycoord (координатные группы)", "coord_groups", g_qa).renderer().symbol().setColor(QColor("#777777"))
     added["Точки xcoord/ycoord (координатные группы)"].setFlags(added["Точки xcoord/ycoord (координатные группы)"].flags())
     root.findLayer(added["Точки xcoord/ycoord (координатные группы)"].id()).setItemVisibilityChecked(False)
     for t in ("qa_issues", "links", "value_records", "csv_rows", "source_features", "controls_osm_shafts"):
@@ -965,8 +996,9 @@ def qgis_project(out: Path, L: dict) -> dict:
     rs.setRasterShaderFunction(shader)
     dem.setRenderer(QgsSingleBandPseudoColorRenderer(dem.dataProvider(), 1, rs))
     dem.renderer().setOpacity(0.55)
-    raster("Точность высоты HEM, м", out / "data" / "quality_hem_utm40n_30m.tif", g_dem)
-    root.findLayer(added["Точность высоты HEM, м"].id()).setItemVisibilityChecked(False)
+    hem_name = "HEM: случайная ошибка высоты, σ, м (не полная неопределённость)"
+    raster(hem_name, out / "data" / "quality_hem_utm40n_30m.tif", g_dem)
+    root.findLayer(added[hem_name].id()).setItemVisibilityChecked(False)
     raster("Маска заполнения FLM", out / "data" / "quality_flm_utm40n_30m.tif", g_dem)
     root.findLayer(added["Маска заполнения FLM"].id()).setItemVisibilityChecked(False)
     # terrain for 3D views and elevation profiles: the DSM, true heights (exaggeration is a 3D-view setting)
@@ -990,18 +1022,26 @@ def qgis_project(out: Path, L: dict) -> dict:
 def verify_project_fresh(out: Path) -> dict:
     """The project opened by a fresh QGIS process (as a user would open it), not by the process that wrote it."""
     import subprocess
-    r = subprocess.run([sys.executable, "-B", str(Path(__file__).resolve()), "--verify-project", str(out)],
-                       capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300,
-                       env={**os.environ, "QT_QPA_PLATFORM": "offscreen"})
+    # An unrelated cwd prevents a broken project from passing because the build's working directory happens to
+    # contain its source files. The package path itself is explicit and absolute only for this reader process.
+    with tempfile.TemporaryDirectory(prefix="vkm-qgis-read-") as unrelated_cwd:
+        r = subprocess.run([sys.executable, "-B", str(Path(__file__).resolve()), "--verify-project", str(out.resolve())],
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300,
+                           cwd=unrelated_cwd, env={**os.environ, "QT_QPA_PLATFORM": "offscreen"})
     line = next((x for x in reversed(r.stdout.splitlines()) if x.startswith("{")), None)
-    if r.returncode != 0 or line is None:
+    if line is None:
         return {"status": "FAIL", "returncode": r.returncode, "stderr": r.stderr[-1500:]}
-    return json.loads(line)
+    result = json.loads(line)
+    if r.returncode != 0:
+        result["status"] = "FAIL"
+        result["returncode"] = r.returncode
+    return result
 
 
 def verify_project(out: Path) -> dict:
     """Open the written project in a fresh QgsProject: every layer valid, every data source relative."""
     from qgis.core import QgsProject
+    out = out.resolve()
     qgz = out / "dma_skru1_surface.qgz"
     with zipfile.ZipFile(qgz) as z:
         name = next(n for n in z.namelist() if n.endswith(".qgs"))
@@ -1009,16 +1049,28 @@ def verify_project(out: Path) -> dict:
     import re
     sources = re.findall(r"<datasource>([^<]*)</datasource>", xml)
     absolute = [s for s in sources if re.match(r"^([A-Za-z]:|/|\\\\)", s)]
+    # Do not accept relative paths that escape the package or only work from the original cwd.
+    missing, escaping = [], []
+    for source in sources:
+        if not source:
+            continue
+        source_file = source.split("|")[0]
+        candidate = (out / source_file).resolve()
+        if not candidate.is_relative_to(out):
+            escaping.append(source)
+        elif not candidate.is_file():
+            missing.append(source)
     p = QgsProject()
     ok = p.read(str(qgz))
     invalid = [l.name() for l in p.mapLayers().values() if not l.isValid()]
     res = {"read": bool(ok), "layers": len(p.mapLayers()), "invalid_layers": invalid,
            "datasources": len(sources), "absolute_datasources": absolute,
+           "missing_datasources": missing, "escaping_datasources": escaping,
            "relative_examples": sorted(set(s.split("|")[0] for s in sources))[:6],
            "terrain_layer": (p.elevationProperties().terrainProvider().layer().name()
                              if p.elevationProperties().terrainProvider().layer() else None)}
     p.clear()
-    res["status"] = "PASS" if ok and not invalid and not absolute and res["terrain_layer"] else "FAIL"
+    res["status"] = "PASS" if ok and not invalid and not absolute and not missing and not escaping and res["terrain_layer"] else "FAIL"
     return res
 
 
@@ -1065,6 +1117,8 @@ def content_digest(p: Path) -> str:
 
 # ---------------------------------------------------------------------------------------------------------- main
 def build(res: Path, out: Path) -> dict:
+    # Keep IO paths anchored independently of the caller's cwd. Persisted references are still made relative.
+    res, out = res.resolve(), out.resolve()
     inp = load_inputs(res)
     L = link(inp["features"], inp["rows"])
     met = metric(L)
@@ -1096,15 +1150,22 @@ def build(res: Path, out: Path) -> dict:
     outputs = sorted(p for p in out.rglob("*") if p.is_file() and p.name != "receipt.json")
     receipt = {"rule": RULE, "dataset_version": inp["manifest"].digest,
                "inputs": {"originals": {f.path: f.sha256 for f in inp["manifest"].files},
+                          "metadata": {p.as_posix(): sha_file(res / p) for p in
+                                       (DSET / "dataset_manifest.json", DEMD / "INTAKE_RECEIPT.json", OSMD / "INTAKE_RECEIPT.json")},
                           "conversion_receipts": {k: v["receipt_sha256"] for k, v in inp["proofs"].items()},
                           "dem": {f["path"]: f["sha256"] for f in inp["dem_intake"]["files"] if f["path"].endswith((".tif", ".kml"))},
                           "osm": inp["osm_intake"]["file"]["sha256"], "osm_snapshot": inp["osm_intake"]["timestamp_osm_base"]},
                "code_sha256": {f: sha((ROOT / f).read_bytes().replace(b"\r\n", b"\n")) for f in CODE_FILES},
-               "runtime": {"gdal": gdal.VersionInfo("RELEASE_NAME"), "python": sys.version.split()[0]},
+               "runtime": {"gdal": gdal.VersionInfo("RELEASE_NAME"), "python": sys.version.split()[0],
+                           "qgis": __import__("qgis.core", fromlist=["Qgis"]).Qgis.QGIS_VERSION,
+                           "numpy": np.__version__},
                "parameters": {"working_crs": f"EPSG:{WORK_EPSG}+{VERT_EPSG} (WGS 84 / UTM 40N + EGM2008 height)",
                               "pixel_m": PIXEL, "resampling": "bilinear (surface), nearest (masks), bilinear (HEM)",
                               "aoi_buffer_m": AOI_BUFFER, "aoi_utm": list(aoi), "native_clip_wgs84": prod["projwin_wgs84"],
-                              "vertical_datum": "EGM2008 as delivered; Baltic 1977 transformation UNKNOWN — not applied"},
+                              "vertical_datum": "EGM2008 as delivered; Baltic 1977 transformation UNKNOWN — not applied",
+                              "hem_scope": "Resampled source random height error sigma only; excludes DSM/DTM bias, registration, datum and resampling uncertainty",
+                              "osm_control_scope": "Topographic plausibility diagnostics; not independent georegistration validation of OSM-registered DMA contours",
+                              "preview_vertical_scales": [1, 10]},
                "counts": counts, "transform_roundtrip_max_m": met["roundtrip_max_m"], "dem_checks": checks,
                "alignment": align, "qgis_project": proj, "qgis_verification": ver,
                "status": {"surface": "BUILT_ON_REAL_ELEVATIONS (DSM, not bare earth)", "geometry_admission": "DERIVATION",
@@ -1123,11 +1184,10 @@ def main() -> int:
     ap.add_argument("--verify", type=Path, help="existing package: rebuild into --out and compare content digests")
     a = ap.parse_args()
     if a.verify_project:
-        from qgis.core import QgsApplication
-        app = QgsApplication([], False)
-        app.initQgis()
-        print(json.dumps(verify_project(a.verify_project), ensure_ascii=False, default=str))
-        return 0
+        app = ensure_qgis_application()
+        result = verify_project(a.verify_project)
+        print(json.dumps(result, ensure_ascii=False, default=str))
+        return 0 if result["status"] == "PASS" else 1
     if not a.out:
         ap.error("--out is required")
     res = os.environ.get("VKM_RESOURCES_ROOT")
@@ -1145,10 +1205,10 @@ def main() -> int:
         same_bytes = sorted(k for k in old if old[k]["sha256"] == rec["outputs"].get(k, {}).get("sha256"))
         print(json.dumps({"verify": "PASS" if not diff else "FAIL", "content_differs": diff,
                           "byte_identical": len(same_bytes), "files": len(old)}, ensure_ascii=False))
-        return 1 if diff else 0
+        return 1 if diff or rec["qgis_verification"]["status"] != "PASS" else 0
     print(json.dumps({k: rec[k] for k in ("counts", "transform_roundtrip_max_m", "qgis_verification")},
                      ensure_ascii=False, indent=1, default=str))
-    return 0
+    return 0 if rec["qgis_verification"]["status"] == "PASS" else 1
 
 
 if __name__ == "__main__":
