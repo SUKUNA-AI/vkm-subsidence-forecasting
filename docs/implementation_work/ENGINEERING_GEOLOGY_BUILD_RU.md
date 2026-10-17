@@ -41,3 +41,15 @@ python scripts/verify_canonical_repository.py --output work/verification/canonic
 `scripts/audit_skru1_surface.py` выпускает паспорт и маски поверхности. `scripts/register_geology_supports.py` связывает инженерные XY с исходным растром и сохраняет сценарный диапазон по области размещения. Модули `mesh_audit.py`, `material_partition.py`, `height_frames.py`, `constrained_geology.py` содержат проверки, используемые при сборке и употреблении данных.
 
 PINCHOUT_CONTACT_ONLY — отдельный продукт из контактных VTP/NPZ и GIS-маски. Совпадающие кровли допустимы; такой файл не выдаётся за готовый объёмный конечный элемент. Ансамбль альтернатив не складывается как одновременные материалы.
+
+## Передача локальных координат в GIS
+
+Для GIS предназначен GeoPackage с пользовательским `LOCAL_CS` SH1, единицами в метрах и явно неизвестной глобальной привязкой. Локальные массивы координат в файлах `.geojson` не являются географическим GeoJSON RFC 7946. Экспорт не назначает EPSG и не преобразует координаты. Z скважин сохраняет статус инженерного устья по DSM; полевые отметки этим не устанавливаются.
+
+В существующем Python-окружении GDAL/QGIS:
+
+```powershell
+python scripts/export_engineering_gpkg.py --boreholes work/geology_surface_view_rebuild/mapped_boreholes.geojson --coverage work/geology_surface_view_rebuild/coverage.geojson --absence work/pinchout_rebuild/absence_scenarios.geojson --output work/geology_gis_rebuild --epoch 2026-10-17T00:00:00.000Z
+```
+
+Имена входных слоёв проверяют по `gis/receipt.json` из PRIVATE-поставки. Приёмка требует повторного чтения координат и атрибутов независимым GIS-клиентом, проверки SQLite и отсутствия необоснованного EPSG. Поставка от 17.10.2026 прочитана в QGIS и `ogrinfo`; повторная сборка GeoPackage побайтово идентична.
