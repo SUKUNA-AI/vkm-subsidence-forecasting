@@ -36,12 +36,12 @@
   async function start() {
     note('Декодирование полной сетки…'); await nextFrame();
     const xy = decode(D.xy), triangles = decode(D.triangles), heights = decode(D.levels), delta = decode(J.delta), edges = decode(D.edges);
-    const N = xy.length / 2;
-    if (heights.length !== 10 * N || delta.length !== N || D.units.length !== 9) throw new Error('Нужны 10 контактов, 9 толщ и одна поправка на колонку');
+    const N = xy.length / 2, U = D.units.length;
+    if (!U || heights.length !== (U+1) * N || delta.length !== N) throw new Error('Число контактов не соответствует числу интервалов и узлов');
     const bounds = D.meta.bounds, cx = (bounds[0] + bounds[2]) / 2, cy = (bounds[1] + bounds[3]) / 2;
     const span = Math.max(bounds[2] - bounds[0], bounds[3] - bounds[1]), scale = 20 / span;
     let minZ = Infinity, maxZ = -Infinity;
-    for (let i = 0; i < N; i++) {minZ = Math.min(minZ, heights[i] + delta[i]); maxZ = Math.max(maxZ, heights[9*N+i] + delta[i]);}
+    for (let i = 0; i < N; i++) {minZ = Math.min(minZ, heights[i] + delta[i]); maxZ = Math.max(maxZ, heights[U*N+i] + delta[i]);}
     const cz = (minZ + maxZ) / 2;
     const nx = x => (x-cx)*scale, ny = y => (y-cy)*scale, nz = z => (z-cz)*scale;
     const world = new T.Scene(); world.background = new T.Color('#e6edf1');
@@ -108,9 +108,9 @@
       const mat=material(D.units[unit].color);shellMaterials.push(mat);
       const mesh=new T.Mesh(geometry(pos,triangles),mat);groups.shell.add(mesh);return mesh;
     }
-    note('Полная оболочка: нижняя граница, верх и девять боковых толщ…');await nextFrame();
-    const bottom=cap(0,0),top=cap(9,8);
-    for(let u=0;u<9;u++){
+    note('Полная оболочка: нижняя граница, верх и интервалы…');await nextFrame();
+    const bottom=cap(0,0),top=cap(U,U-1);
+    for(let u=0;u<U;u++){
       const pos=new Float32Array(edges.length*2*3),ind=new Uint32Array(edges.length*3);
       for(let e=0;e<edges.length;e+=2){const a=edges[e],b=edges[e+1],v=e*2;
         for(let k=0;k<4;k++){const id=k===0||k===3?a:b,l=k<2?u:u+1;pos[(v+k)*3]=nx(xy[id*2]);pos[(v+k)*3+1]=ny(xy[id*2+1]);pos[(v+k)*3+2]=nz(heights[l*N+id]+delta[id]);}
@@ -155,6 +155,21 @@
     const dates=[...new Set((D.recent_points||[]).map(p=>p.date))].sort(),datePoints=[];
     dates.forEach((date,i)=>{const m=markers(D.recent_points.filter(p=>p.date===date),groups.recent,['#1456da','#ce7b05','#ce3056'][i%3],5);m.userData.date=date;datePoints.push(m);});
     const axis=new T.AxesHelper(1.2);axis.position.set(nx(bounds[0])-.8,ny(bounds[1])-.8,nz(minZ));root.add(axis);
+    function axisLabel(text,x,y,z) {
+      const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;
+      const ctx=canvas.getContext('2d');ctx.fillStyle='rgba(255,255,255,.85)';ctx.fillRect(0,0,512,96);
+      ctx.font='40px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#223746';ctx.fillText(text,256,48);
+      const sprite=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(canvas),depthTest:false,transparent:true}));
+      sprite.position.set(nx(x),ny(y),nz(z));sprite.scale.set(2.5,.47,1);sprite.renderOrder=20;root.add(sprite);
+    }
+    const cornerX=bounds[0],cornerY=bounds[1],fmt=x=>Math.round(x).toLocaleString('ru-RU');
+    for(let k=0;k<=2;k++){
+      const x=bounds[0]+(bounds[2]-bounds[0])*k/2,y=bounds[1]+(bounds[3]-bounds[1])*k/2;
+      axisLabel(`X ${fmt(x)} м`,x,cornerY-span*.04,minZ);
+      axisLabel(`Y ${fmt(y)} м`,cornerX-span*.06,y,minZ);
+    }
+    axisLabel(`Z ${fmt(minZ)} м`,cornerX-span*.04,cornerY,minZ);
+    axisLabel(`Z ${fmt(maxZ)} м`,cornerX-span*.04,cornerY,maxZ);
     const legend=$('legend');if(legend)legend.innerHTML=[...D.units].reverse().map(u=>`<div><span class="swatch" style="background:${escape(u.color)}"></span>${escape(u.name)}</div>`).join('');
     let currentCutX=NaN,currentCutY=NaN,sectionOnly=null,cutBusy=false,pendingCut=null;
     function clearGroup(group){for(const child of [...group.children]){group.remove(child);child.geometry.dispose();child.material.dispose();}}
@@ -170,7 +185,7 @@
         if(Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1])<1e-6)continue;
         segments.push({hits,p});
       }
-      for(let u=0;u<9;u++){
+      for(let u=0;u<U;u++){
         const pos=new Float32Array(segments.length*18);let at=0;
         for(const seg of segments){
           const vertices=[];
@@ -204,8 +219,8 @@
       for(const [id,mesh] of meshes){const m=mesh.userData.metadata||{};mesh.visible=!selected||m.region_id===selected;}
       for(const p of datePoints)p.visible=$('epoch').value==='all'||p.userData.date===$('epoch').value;
       const recentVisible=groups.recent.visible?datePoints.filter(p=>p.visible).reduce((s,p)=>s+p.userData.records.length,0):0;
-      Object.assign(state,{mode,zscale:v.zscale,cutx:v.cutx,cuty:v.cuty,units:9,rooms:(O.meshes||[]).filter(m=>m.group==='room').length,wellSymbols:(O.boreholes||[]).length,recentVisible,fullTrianglesPerContact:triangles.length/3,heightMode:J.meta.height_mode,localStrataVisible:groups.local_strata.visible,region:v.region});
-      if(status)status.textContent=`9 толщ · ${state.fullTrianglesPerContact.toLocaleString('ru-RU')} треугольника на контакт · ${state.rooms} сценариев камер · ${state.wellSymbols} знаков скважин · ICESat-2: ${recentVisible} · Z × ${v.zscale} · ${mode} · высотная увязка — сценарий`;
+      Object.assign(state,{mode,zscale:v.zscale,cutx:v.cutx,cuty:v.cuty,units:U,rooms:(O.meshes||[]).filter(m=>m.group==='room').length,wellSymbols:(O.boreholes||[]).length,recentVisible,fullTrianglesPerContact:triangles.length/3,heightMode:J.meta.height_mode,localStrataVisible:groups.local_strata.visible,region:v.region});
+      if(status)status.textContent=`${U} интервалов · ${state.fullTrianglesPerContact.toLocaleString('ru-RU')} треугольников на контакт · ${state.wellSymbols} скважин · Z × ${v.zscale} · ${J.meta.height_label||J.meta.height_mode} · ${D.meta.frame_label||'Z: исходная система, связь с DSM неизвестна'}`;
       requestRender();
     }
     async function rebuildCuts() {

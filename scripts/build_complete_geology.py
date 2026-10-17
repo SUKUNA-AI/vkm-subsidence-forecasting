@@ -74,6 +74,9 @@ def build(args):
         'terrain': args.terrain,
         'surface_display': args.surface_display,
         'plans': args.plans,
+        'terrain_vtp': args.terrain.with_name('terrain_local_SH1_EGM2008_full.vtp'),
+        'display_vtp': args.surface_display.with_suffix('.vtp'),
+        'plotly_runtime': args.previous / 'plotly.min.js',
     }
     pins = {k: sha(p) for k, p in files.items()}
     source = read(files['base_manifest'])
@@ -145,7 +148,7 @@ def build(args):
         'base_manifest_reference': os.path.relpath(files['base_manifest'], out / 'data').replace('\\', '/'),
         'surface_smoothing': smooth.get('smoothing_metadata', smooth.get('smoothing')),
         'geology_to_DSM_vertical_tie': None,
-        'joint_display_delta_Z_m': 0,
+        'joint_display_delta_Z_m': None,
         'source_terrain_unchanged': True,
         'default_cutaway': False, 'default_all_9_units': True,
         'default_vertical_exaggeration': 1,

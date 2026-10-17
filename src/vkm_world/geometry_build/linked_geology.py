@@ -22,28 +22,86 @@ def polygon_parts(geometry):
 
 
 def plan_triangles(polygon, spacing):
-    """Clip a grid to the source footprint; preserve concavities and holes."""
+    """Clip a conforming grid to the footprint, preserving concavities and holes.
+
+    Clipping can introduce a vertex in the middle of a shared grid side. Both
+    cells receive the union of those side vertices before triangulation. Merely
+    welding equal coordinates afterwards does not repair a hanging vertex.
+    """
     if not polygon.is_valid or polygon.is_empty or not math.isfinite(spacing) or spacing <= 0:
         raise ValueError("valid nonempty polygon and positive spacing required")
     source_area=polygon.area
     # Nanometre-scale computational snapping removes machine-epsilon slivers at
     # coincident source/grid edges. Source records are never rewritten.
     polygon=set_precision(polygon,1e-8)
+    if polygon.is_empty:
+        raise ValueError("footprint collapsed at computational precision")
     xmin, ymin, xmax, ymax = polygon.bounds
     # Bulk classify complete interior grid cells, reserving polygon operations for
     # the source boundary. This retains every cell at fine display resolutions.
-    gx,gy=np.meshgrid(np.arange(xmin,xmax,spacing),np.arange(ymin,ymax,spacing),indexing='ij')
-    x=np.round(gx.ravel(),8);y=np.round(gy.ravel(),8)
-    xx=np.round(np.minimum(x+spacing,xmax),8);yy=np.round(np.minimum(y+spacing,ymax),8)
+    x_edges = np.round(np.append(np.arange(xmin, xmax, spacing), xmax), 8)
+    y_edges = np.round(np.append(np.arange(ymin, ymax, spacing), ymax), 8)
+    if np.any(np.diff(x_edges) <= 0) or np.any(np.diff(y_edges) <= 0):
+        raise ValueError("spacing creates collapsed grid cells at computational precision")
+    gx,gy=np.meshgrid(x_edges[:-1],y_edges[:-1],indexing='ij')
+    hx,hy=np.meshgrid(x_edges[1:],y_edges[1:],indexing='ij')
+    x=gx.ravel();y=gy.ravel();xx=hx.ravel();yy=hy.ravel()
     cells=vector_boxes(x,y,xx,yy);prepare(polygon)
     interior=covers(polygon,cells);boundary=intersects(polygon,cells)&~interior
+    ny = gy.shape[1]
+    clipped_parts = {}
+    side_nodes = {}
+    affected_interior = set()
+    for index in np.flatnonzero(boundary):
+        parts = polygon_parts(polygon.intersection(cells[index], grid_size=1e-8))
+        clipped_parts[index] = parts
+        # Keys describe the entire grid side, so adjacent cells share a key.
+        sides = ((0, x[index], y[index], yy[index], index-ny),
+                 (0, xx[index], y[index], yy[index], index+ny),
+                 (1, y[index], x[index], xx[index], index-1),
+                 (1, yy[index], x[index], xx[index], index+1))
+        for part in parts:
+            for ring in (part.exterior, *part.interiors):
+                for vertex in ring.coords[:-1]:
+                    for axis, constant, low, high, neighbour in sides:
+                        other = 1-axis
+                        if vertex[axis] == constant and low < vertex[other] < high:
+                            side_nodes.setdefault((axis, constant, low, high), set()).add(vertex[other])
+                            # A horizontal side at the row end has no neighbour
+                            # across the array wrap, even when that index exists.
+                            same_column = axis == 0 or index//ny == neighbour//ny
+                            if same_column and 0 <= neighbour < len(cells) and interior[neighbour]:
+                                affected_interior.add(neighbour)
+    for index in sorted(affected_interior):
+        interior[index] = False
+        clipped_parts[index] = [cells[index]]
+
+    def node_ring(ring, index):
+        result = []
+        coords = list(ring.coords)
+        for a, b in zip(coords, coords[1:]):
+            result.append(a)
+            for axis, constant, low, high in (
+                (0, x[index], y[index], yy[index]), (0, xx[index], y[index], yy[index]),
+                (1, y[index], x[index], xx[index]), (1, yy[index], x[index], xx[index]),
+            ):
+                if a[axis] != constant or b[axis] != constant:
+                    continue
+                other = 1-axis
+                values = side_nodes.get((axis, constant, low, high), ())
+                values = sorted((v for v in values if min(a[other], b[other]) < v < max(a[other], b[other])),
+                                reverse=b[other] < a[other])
+                result.extend((constant, v) if axis == 0 else (v, constant) for v in values)
+        return result
+
     lo=np.column_stack([x[interior],y[interior]]);hi=np.column_stack([xx[interior],yy[interior]])
     se=np.column_stack([hi[:,0],lo[:,1]]);nw=np.column_stack([lo[:,0],hi[:,1]])
     full=np.concatenate([np.stack([lo,se,hi],axis=1),np.stack([lo,hi,nw],axis=1)])
     triangles = []
-    for cell in cells[boundary]:
-        clipped = polygon.intersection(cell,grid_size=1e-8)
-        for part in polygon_parts(clipped):
+    for index, parts in sorted(clipped_parts.items()):
+        for part in parts:
+            part = Polygon(node_ring(part.exterior, index),
+                           [node_ring(ring, index) for ring in part.interiors])
             for triangle in constrained_delaunay_triangles(part).geoms:
                 if triangle.area < 1e-10:
                     continue
