@@ -1,0 +1,15 @@
+{
+ "files": [
+  {
+   "source": "GEOLOGY_COORDS/ENGINEERING_REVIEW_20261017_RU.md",
+   "source_sha256": "2365d327add801a3929f11d109a1e5e7f8244f63e5ba2f3392473493a49e409b",
+   "status": "OK",
+   "target": "docs/science/ENGINEERING_REVIEW_20261017_RU.md",
+   "target_sha256": "255f2f71a4872ff003f87275e87c78802a738789cf31644e0e776b274f275a06"
+  }
+ ],
+ "generator": "docs/reset_2026_09/run_kit/tools/publish_reports.py",
+ "leakage_problems": [],
+ "private_root_rel": "11_evidence_vnext/canonical",
+ "schema": "vkm.public_reports_manifest/1"
+}

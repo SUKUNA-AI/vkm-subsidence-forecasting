@@ -26,9 +26,9 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0, verified remote tag
         with:
           python-version: '3.13.5'
-      - name: Install exact core and wheel-build pins
+      - name: Install exact core, geometry test and wheel-build pins
         run: |
-          python -m pip install --no-deps -r requirements/worldspec.lock.txt
+          python -m pip install --no-deps -r requirements/worldspec.lock.txt -r requirements/geometry-test.lock.txt
           python -m pip install --no-deps -c requirements/corpus-layout.lock.txt setuptools
           python -m pip check
       - name: World tests, public integrity, installed wheel
@@ -73,7 +73,9 @@ jobs:
 
   windows-offline:
     runs-on: windows-2025
-    timeout-minutes: 25
+    # Tests plus evidence upload and post-job cleanup exceeded 25 minutes on
+    # hosted runners even when every check passed; retain time for finalization.
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, verified remote tag
         with:

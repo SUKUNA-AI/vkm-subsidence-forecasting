@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Explicit engineering contact reconstruction configuration",
+  "type": "object",
+  "required": ["methods", "accepted_method_before_scoring", "spacing_m", "site_offset_m", "site_offset_sensitivity_m", "scopes", "acceptance", "evidence_inputs"],
+  "properties": {
+    "methods": {"const": ["nearest", "idw2", "linear"]},
+    "accepted_method_before_scoring": {"enum": ["linear"]},
+    "spacing_m": {"type": "number", "exclusiveMinimum": 0},
+    "site_offset_m": {"type": "number"},
+    "site_offset_sensitivity_m": {"type": "array", "items": {"type": "number"}, "minItems": 2},
+    "scopes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["SKRU1", "SKRU1_SKRU2_PILLAR", "SKRU2", "FULL_CONTEXT"]}},
+    "full_context": {"type": "string", "description": "Document the explicitly selected IDW2 depth continuation separately from bounded linear models."},
+    "evidence_inputs": {"type": "array", "items": {"type": "string", "pattern": "^(?!/|[A-Za-z]:).+"}},
+    "acceptance": {
+      "type": "object",
+      "required": ["source_fit_tolerance_m", "negative_thickness_allowed", "absolute_accuracy_claim"],
+      "properties": {
+        "source_fit_tolerance_m": {"type": "number", "minimum": 0, "maximum": 0.0001},
+        "negative_thickness_allowed": {"const": false},
+        "absolute_accuracy_claim": {"const": "NOT_ESTABLISHED"}
+      }
+    }
+  },
+  "allOf": [{"if": {"properties": {"scopes": {"contains": {"const": "FULL_CONTEXT"}}}}, "then": {"required": ["full_context"]}}]
+}

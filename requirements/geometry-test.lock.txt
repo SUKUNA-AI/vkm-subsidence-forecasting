@@ -1,0 +1,16 @@
+# CPU geometry test closure, installed alongside worldspec.lock.txt.
+# Versions are reused verbatim from offline-test.lock.txt (geometry),
+# corpus.lock.txt (Pillow), and corpus-services.lock.txt (dateutil/six).
+# numpy and packaging are already supplied by worldspec.lock.txt.
+# No source/model runtime, optional test skips, or GPU packages are added.
+contourpy==1.4.0
+cycler==0.12.1
+fonttools==4.66.0
+kiwisolver==1.5.1
+matplotlib==3.11.2
+pillow==12.3.0
+pyparsing==3.3.3
+python-dateutil==2.9.0.post0
+scipy==1.18.1
+shapely==2.1.2
+six==1.17.0

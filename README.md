@@ -15,6 +15,10 @@ Ansys — основной решатель геомеханики, OGS + MFront
 GIS-данные предприятия не получены; геометрия — только по схемам корпуса (DERIVATION, CRS UNKNOWN).
 Каноническое состояние и границы готовности — [PROJECT_STATE_RU.md](PROJECT_STATE_RU.md), решения — [D-18/D-19](docs/governance/PHASE1_DESIGN_DECISIONS_RU.md).
 
+Инженерная реконструкция по отдельной задаче 17.10.2026: [исправления геологии и поверхности](docs/science/ENGINEERING_REVIEW_20261017_RU.md),
+[воспроизводимая сборка и проверки](docs/implementation_work/ENGINEERING_GEOLOGY_BUILD_RU.md). Native-координаты,
+инженерная DSM-привязка и display-представление разделены; маска показывает продолжение за пределами опор.
+
 Реализация производственной программы данных ведётся по [S01–S26](docs/planning/PRODUCTION_DATA_PROGRAM_2026-10-01_RU.md).
 Добавлены [dataset intake](docs/datasets/README_RU.md), [evidence/review/admission](docs/evidence/README_RU.md)
 и [контролируемый update runtime](docs/corpus_platform/UPDATE_RUNTIME_RUNBOOK_RU.md). Квалификация полного корпуса,
