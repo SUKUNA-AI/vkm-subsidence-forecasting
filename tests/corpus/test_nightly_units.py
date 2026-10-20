@@ -1,4 +1,4 @@
-"""Static checks of the nightly jobs (agent OPS): systemd user units and timers (04:00 / 02:00 / 02:30 Moscow time,
+"""Static checks of the nightly jobs (agent OPS): systemd user units and timers (14:00 / 12:00 / 12:30 Moscow time,
 resource caps, paths only through the env files), env templates in systemd EnvironmentFile syntax, the capped
 read-only ``vkm-nightly`` compose service, shell scripts (dry-run option, strict mode, LF, ``bash -n``) and the
 forced command of the backup key. Runs everywhere; ``bash -n`` only where bash exists."""
@@ -37,7 +37,7 @@ def minutes(calendar: str) -> int:
 
 def test_timers_run_in_moscow_time_in_the_right_order():
     cal = {p.name: unit(p)["Timer"]["OnCalendar"] for p in UNITS if p.suffix == ".timer"}
-    assert cal["vkm-nightly.timer"] == "*-*-* 04:00:00 Europe/Moscow"
+    assert cal["vkm-nightly.timer"] == "*-*-* 14:00:00 Europe/Moscow"
     assert minutes(cal["vkm-backup-prepare.timer"]) < minutes(cal["vkm-backup.timer"]) < minutes(cal["vkm-nightly.timer"])
     for p in UNITS:
         if p.suffix == ".timer":

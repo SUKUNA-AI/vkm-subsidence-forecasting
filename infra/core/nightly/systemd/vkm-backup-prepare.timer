@@ -1,9 +1,10 @@
-# 02:00 Moscow time, every day: the source manifest is ready before EDGE starts copying at 02:30.
+# 12:00 Moscow time, every day (moved from 02:00 by the user on 20.10.2026: no night noise): the source manifest is
+# ready before EDGE starts copying at 12:30.
 [Unit]
-Description=VKM backup source manifest at 02:00 MSK
+Description=VKM backup source manifest at 12:00 MSK
 
 [Timer]
-OnCalendar=*-*-* 02:00:00 Europe/Moscow
+OnCalendar=*-*-* 12:00:00 Europe/Moscow
 Persistent=true
 AccuracySec=1min
 Unit=vkm-backup-prepare.service

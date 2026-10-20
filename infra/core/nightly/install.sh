@@ -8,7 +8,7 @@
 #   bash install.sh --no-enable   units installed, timers not enabled
 #   bash install.sh --uninstall   timers disabled, units removed (receipts, dossiers and nightly.env stay)
 #
-# Timers: vkm-backup-prepare.timer 02:00 MSK (source manifest for the EDGE copy), vkm-nightly.timer 04:00 MSK.
+# Timers: vkm-backup-prepare.timer 12:00 MSK (source manifest for the EDGE copy), vkm-nightly.timer 14:00 MSK.
 # The EDGE backup key is authorized separately (a forced command, printed at the end).
 set -Eeuo pipefail
 
