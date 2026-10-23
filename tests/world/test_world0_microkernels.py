@@ -147,6 +147,14 @@ def test_kachanov_rupture():
     assert laws.kachanov_damage(tr * 1.001, 2.0, 0.01, 3.0)[()] == 1.0
 
 
+def test_vkm_damage_kinetics_threshold():
+    """W0-L-07b (VKM-SRC-047 form): no growth below the barrier, linear in L_ω above it."""
+    assert laws.vkm_damage_rate(1.0, 3.0, 1.5e-5, 3.85, 5.5) == 0.0
+    r = laws.vkm_damage_rate(5.0 / 3.0, 5.0, 1.5e-5, 3.85, 5.5)
+    assert r > 0 and math.isclose(laws.vkm_damage_rate(5.0 / 3.0, 5.0, 3.0e-5, 3.85, 5.5), 2 * r)
+    assert "RA-010" in laws.LAW_SPECS["W0-L-07b"].evidence_ids
+
+
 def test_mohr_coulomb_and_vzt_margin():
     assert math.isclose(laws.mohr_coulomb_sigma1(0.0, 1e6, 30.0), 2e6 * math.cos(math.pi / 6) / 0.5)
     assert laws.vzt_strain_margin(0.001)[()] == 2.0

@@ -10,6 +10,11 @@ step3_materials.json): modulus scenarios M10/M05/M03 = 1.0/0.5/0.3 × LAB means 
 transferred by assumption. Norton viscosities: Transfer TR-CREEP-ERMASHOV2015-SKRU1-SLICE-V6_2 (VKM-SRC-045, n = 5):
 FIELD sylvinite 7.58e7, salt 3.33e8, carnallite 3.70e7 MPa·yr; LAB sylvinite 1.85e7, salt 8.21e7 MPa·yr.
 All values are scenario inputs of a PhysicalWorld hypothesis, not SKRU-1 facts.
+
+Multi-route corpus re-check (23.10.2026, PRIVATE WORLD0_MICROKERNELS/recheck_crosscheck.csv): the 0.5/0.3 × LAB
+multipliers of M05/M03 are NOT supported by the corpus (massif/LAB = 0.07–0.19) — corpus-supported sets are NORM and C044;
+LAB sylvinite 1.85e7 is the red-sylvinite subgroup (author's mean 1.43e7); FIELD salt/carnallite viscosities are SKRU-2
+fits; ρ(Q) = 1900 has no source (C044: γ ≈ 20 kN/m³); γ→ρ used g = 9.81 while σ_v uses 9.80665 (0.035 %).
 """
 from __future__ import annotations
 

@@ -95,32 +95,49 @@ def a1_aquifer() -> dict:
 
 
 def v1_vzt() -> dict:
-    """Sublayers above КрII up to the ТКТ base (v6_2 column): СЗ 10 | СКЗ 75.3 | ПКС 31.3 | СМТ 90.3 m."""
-    names = ("SZ_ABOVE", "SKZ", "PKS", "SMT")
-    h = (10.0, 75.3, 31.3, 90.3)
-    salt_K = 1e-8 / DAY                     # «≤ 10⁻⁸ м/сут» (MP-0125, VKM_REGIONAL) — an upper bound
+    """Two compositions of the barrier (MODEL_CHOICE, both kept):
+    KRII_ONLY  — blocks where КрII is the upper mined seam: СЗ 10 | СКЗ 75.3 | ПКС 31.3 | СМТ 90.3 m (v6_2 column);
+    SRC252_V   — SKRU-1 plan 2013 (VKM-SRC-252, RA-039/040): ВЗТ 100–110 m above the roof of seam В →
+                 СКЗ above В 58.7 | ПКС 31.3 | ПП / lower СМТ 15 m (split of the 105 m is a MODEL_CHOICE)."""
+    comps = {"KRII_ONLY": (("SZ_ABOVE", "SKZ", "PKS", "SMT"), (10.0, 75.3, 31.3, 90.3)),
+             "SRC252_V": (("SKZ_ABOVE_V", "PKS", "PP_SMT_LOW"), (58.7, 31.3, 15.0))}
+    # salt: LAB permeability ~1e-5 mD under isotropic loading, «×десятки» at a 1 MPa deviator (MP-0127, VKM_REGIONAL,
+    # cited) → K = kρg/μ with water (MODEL_CHOICE); the «≤ 10⁻⁸ м/сут» row MP-0125 is UNSUPPORTED (re-check B6)
+    k_iso = 1e-5 * 9.869233e-16                             # m²
+    salt_K = {"iso": laws.permeability_to_conductivity(k_iso), "deviatoric_x100": 100 * laws.permeability_to_conductivity(k_iso)}
     smt_K = 0.1 / DAY                       # «доли–21 м/сут» (MP-0123) → scenario 0.1 m/d (lower part)
     frac = 1.0 / DAY                        # fractured conductivity scenario 1 m/d (MODEL_CHOICE)
-    Ki = (salt_K, salt_K, salt_K, smt_K)
-    Kf = (frac, frac, frac, frac)
     head = 250.0                            # head difference ТКТ → workings, scenario (rassol horizon head 120–150 m)
     cases = {}
-    for label, d in (("intact", (0, 0, 0, 0)), ("SMT_fractured", (0, 0, 0, 1)), ("salt_except_PKS", (1, 1, 0, 1)),
-                     ("all_fractured", (1, 1, 1, 1))):
-        k = VZTKernel(h, Ki, Kf, list(d))
-        q = k.leakage(head)
-        cases[label] = {"K_eff_m_per_day": k.K_eff() * DAY, "q_m3_per_day_per_km2": q * DAY * 1e6,
-                        "controlling_layer": names[k.controlling_layer()]}
-    return {"sublayers": dict(zip(names, h)), "head_drop_m": head, "cases": cases,
-            "note": "conductivities are labelled scenarios from VKM_REGIONAL rows; SKRU-1 values UNKNOWN (HYD-146)"}
+    for cname, (names, h) in comps.items():
+        n = len(h)
+        Kf = (frac,) * n
+        salt_idx = [i for i, nm in enumerate(names) if not nm.startswith(("SMT", "PP"))]
+        for sk, Ks in salt_K.items():
+            Ki = tuple(Ks if i in salt_idx else smt_K for i in range(n))
+            scen = {"intact": [0] * n, "marl_fractured": [0 if i in salt_idx else 1 for i in range(n)],
+                    "salt_except_PKS": [0 if names[i] == "PKS" else 1 for i in range(n)], "all_fractured": [1] * n}
+            for label, d in scen.items():
+                k = VZTKernel(h, Ki, Kf, list(d))
+                q = k.leakage(head)
+                cases[f"{cname}:{sk}:{label}"] = {"total_m": float(sum(h)), "K_salt_m_per_day": Ks * DAY,
+                                                  "K_eff_m_per_day": k.K_eff() * DAY,
+                                                  "q_m3_per_day_per_km2": q * DAY * 1e6,
+                                                  "controlling_layer": names[k.controlling_layer()]}
+    return {"compositions": {k: dict(zip(*v)) for k, v in comps.items()}, "head_drop_m": head, "cases": cases,
+            "note": "salt K from MP-0127 (LAB, cited) for isotropic and ×100 deviatoric loading; SMT, fractured K and "
+                    "head are labelled scenarios; SKRU-1 values UNKNOWN (HYD-146)"}
 
 
 def t1_thermal() -> dict:
-    T_ref = 273.15 + 9.5          # salt +9…+10 °C at BKPRU-3 (MP-0129, FIELD) — ANALOGUE for SKRU-1 depth
-    out = {"T_ref_K": T_ref}
+    # rock temperature: 7–9 °C «калийные рудники Верхнекамья» (RA-002, SRC-050) vs +9…+10 °C salt at BKPRU-3 (MP-0129)
+    # — conflict CF-RA-02 kept; SKRU-1 UNKNOWN → T_ref = 9 °C with ±2 K covering both
+    T_ref = 273.15 + 9.0
+    out = {"T_ref_K": T_ref, "T_range_C": [7.0, 10.0]}
     for Q in (24.5e3, 42e3, 54e3):            # VKM-SRC-193, NON_VKM (ML-04, ML-05): Transfer required
         out[f"Q_{Q / 1e3:g}kJ"] = {f"dT_{dT:+g}K": laws.arrhenius_factor(T_ref + dT, T_ref, Q) for dT in (-2, -1, 1, 2)}
-    kappa = 6.0 / (2160.0 * 860.0)           # halite λ≈6 W/mK, c≈860 J/kgK — GENERAL_METHOD, outside the corpus
+    kappa = 6.65 / (2242.6 * 854.0)         # λ 6.65 W/(m·K) (RA-007, NBS), c 854 J/(kg·K) (RA-004), ρ normative salt —
+    #                                          GENERAL values found in the corpus (re-check A4), not VKM measurements
     out["diffusivity_m2_s"] = kappa
     out["conduction_time_5m_yr"] = laws.diffusion_time(5.0, kappa) / laws.YEAR_S
     out["conduction_time_100m_yr"] = laws.diffusion_time(100.0, kappa) / laws.YEAR_S

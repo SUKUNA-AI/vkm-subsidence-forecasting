@@ -111,7 +111,8 @@ _law(LawSpec("W0-L-02a", "plane-strain free-face factor of Norton creep", "CREEP
 
 _law(LawSpec("W0-L-03", "Arrhenius temperature factor of creep", "TEMPERATURE_FACTOR", "KNOWN_PHYSICS",
              "f(T) = exp(−Q/R·(1/T − 1/T_ref))", "CAUSAL",
-             note="Q for VKM salts: UNKNOWN in the corpus unless an evidence row gives it", evidence_ids=('ML-04', 'ML-05')))
+             note="Q and A for VKM salts: NOT_IN_CORPUS after 12 search routes (re-check A1); only NON_VKM values",
+             evidence_ids=("ML-04", "ML-05")))
 
 
 def arrhenius_factor(T: float, T_ref: float, Q: float) -> float:
@@ -249,6 +250,20 @@ def kachanov_rupture_time(sigma: float, B: float, m: float) -> float:
     return 1.0 / ((m + 1.0) * B * sigma ** m)
 
 
+_law(LawSpec("W0-L-07b", "barrier-type damage kinetics of salt rocks (VKM form)", "DAMAGE", "PHYSICAL_HYPOTHESIS",
+             "ω̇ = L_ω·⟨p − p*·[1 − (σ_u/σ_u*)²]⟩ (VKM-SRC-047 eq. 5.74–5.76)", "CAUSAL",
+             evidence_ids=("ML-16", "RA-009", "RA-010", "RA-011", "RA-012", "RA-013", "RA-018", "RA-019", "RA-020",
+                           "RA-022"),
+             note="LAB, VKM_REGIONAL: p* = 3.85 MPa, σ_u* = 5.5 (salt) / 5.9 (sylvinite) MPa; L_ω0 differs ≈87× between "
+                  "the creep and relaxation fits (CF-RA-03); 20-minute tests — extrapolation to years not justified by "
+                  "the source; sign convention of p as in the source"))
+
+
+def vkm_damage_rate(p: float, sigma_u: float, L_omega: float, p_star: float, sigma_u_star: float) -> float:
+    """W0-L-07b as printed: ω̇ = L_ω·⟨p − p*[1 − (σ_u/σ_u*)²]⟩ (Macaulay bracket ⟨x⟩ = max(x, 0))."""
+    return L_omega * max(0.0, p - p_star * (1.0 - (sigma_u / sigma_u_star) ** 2))
+
+
 # ------------------------------------------------------------------------------------------------ backfill
 _law(LawSpec("W0-L-08", "hyperbolic compaction of granular backfill", "BACKFILL_COMPACTION", "PHYSICAL_HYPOTHESIS",
              "σ_b = E0·ε/(1 − ε/ε_m), 0 ≤ ε < ε_m; unloading linear with E_u (memory ε_max)", "CAUSAL",
@@ -339,7 +354,8 @@ def terzaghi_pressure(zeta, Tv: float, n_terms: int = 200):
 # ------------------------------------------------------------------------------------------------ thermal
 _law(LawSpec("W0-L-11", "Fourier heat conduction", "HEAT_CONDUCTION", "KNOWN_PHYSICS",
              "q_T = −λ_T ∇T; ρc ∂T/∂t = ∇·(λ_T ∇T)", "CAUSAL",
-             note="T is a prescribed field in World-0 unless the thermal port is activated (MS §20)", evidence_ids=('ML-23',)))
+             note="T is a prescribed field in World-0 unless the thermal port is activated (MS §20)",
+             evidence_ids=("ML-23", "RA-003", "RA-004", "RA-007", "RA-008")))
 
 
 def geotherm(z_depth, T_surface: float, gradient: float):
