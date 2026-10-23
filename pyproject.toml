@@ -114,6 +114,7 @@ vkm_corpus = ["duckdb/sql/*.sql", "ops/schema.sql"]
 vkm_cad = ["plugin/*.cs"]
 vkm_matlab = ["entry/*.m"]
 vkm_ansys = ["ladder/*.inp", "ladder/*.json"]
+vkm_world = ["physics/data/*.json"]
 
 [tool.pytest.ini_options]
 addopts = "-ra -p no:cacheprovider"
