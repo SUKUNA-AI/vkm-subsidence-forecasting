@@ -217,7 +217,7 @@ class ContactPredictor:
                 "constraint_adjustment_m": adjusted, "undetermined_contact_rows": int(undetermined.sum())}
 
 
-def _solve_node(w, lo, hi, thickness, k, max_iter=50):
+def _solve_node(w, lo, hi, thickness, k):
     """Ordered weighted least squares at one target in increment (isopach) form.
 
     Each support contributes the level misfit of its shallowest point reading
@@ -228,7 +228,8 @@ def _solve_node(w, lo, hi, thickness, k, max_iter=50):
     contact inherits the local thickness pattern instead of being interpolated
     independently. Variables (p_0, t_j >= 0), so zero thickness is allowed and
     order is exact. Interval readings enter only while violated; thickness
-    readings (incl. observed absence) likewise. A contact outside the row
+    readings (incl. observed absence) likewise, through bounded auxiliary
+    variables in one exact bounded least-squares call. A contact outside the row
     space of the weighted readings is returned as NaN (no regulariser).
     """
     from scipy.optimize import lsq_linear
@@ -262,37 +263,35 @@ def _solve_node(w, lo, hi, thickness, k, max_iter=50):
     upper = np.full(k, np.inf)
     raw = np.linalg.lstsq(np.asarray(base_rows), np.asarray(base_b), rcond=None)[0]
     raw_z = a @ raw
-    active_iv, active_th = set(), set()
-    soft = [j for j, t in enumerate(thick) if t not in exact_thick]
-    z = raw_z
-    for _ in range(max_iter):
-        rows, b = list(base_rows), list(base_b)
-        for (r, c) in sorted(active_iv):
-            bound = lo[r, c] if (np.isfinite(lo[r, c]) and z[c] < lo[r, c]) else hi[r, c]
-            rows.append(np.sqrt(w[r])*a[c]); b.append(np.sqrt(w[r])*bound)
-        for j in sorted(active_th):
-            t = thick[j]
-            val = z[t["top"]]-z[t["bottom"]]
-            bound = t["lower"] if (t.get("lower") is not None and val < t["lower"]) else t["upper"]
-            rows.append(np.sqrt(w[t["row"]])*(a[t["top"]]-a[t["bottom"]])); b.append(np.sqrt(w[t["row"]])*bound)
-        fit = lsq_linear(np.asarray(rows), np.asarray(b), bounds=(lower, upper), method="bvls")
+    # Exact formulation (audit F, 23.10): dist(v, [lo, hi])^2 = min_{y in [lo, hi]} (v - y)^2.
+    # Every interval/soft-thickness reading gets one auxiliary bounded variable y, so the whole
+    # convex problem is a single bounded least-squares call; no active-set iteration.
+    soft = [t for t in thick if t not in exact_thick]
+    terms = []  # (sqrt weight, coefficient row over contacts, lo, hi)
+    for r, c in zip(*np.nonzero(interval)):
+        terms.append((np.sqrt(w[r]), a[c], lo[r, c], hi[r, c]))
+    for t in soft:
+        lo_t = -np.inf if t.get("lower") is None else t["lower"]
+        hi_t = np.inf if t.get("upper") is None else t["upper"]
+        terms.append((np.sqrt(w[t["row"]]), a[t["top"]]-a[t["bottom"]], lo_t, hi_t))
+    m = len(terms)
+    if m:
+        base = np.hstack([np.asarray(base_rows), np.zeros((len(base_rows), m))])
+        extra = np.zeros((m, k+m))
+        for j, (sw, row, _, _) in enumerate(terms):
+            extra[j, :k] = sw*row
+            extra[j, k+j] = -sw
+        matrix = np.vstack([base, extra])
+        target = np.r_[np.asarray(base_b), np.zeros(m)]
+        lower_all = np.r_[lower, [tl for _, _, tl, _ in terms]]
+        upper_all = np.r_[upper, [th for _, _, _, th in terms]]
+        fit = lsq_linear(matrix, target, bounds=(lower_all, upper_all), method="bvls")
+        z = a @ fit.x[:k]
+    else:
+        fit = lsq_linear(np.asarray(base_rows), np.asarray(base_b), bounds=(lower, upper), method="bvls")
         z = a @ fit.x
-        viol_iv = {(int(r), int(c)) for r, c in zip(*np.nonzero(interval)) if z[c] < lo[r, c]-1e-9 or z[c] > hi[r, c]+1e-9}
-        inside_iv = {(r, c) for (r, c) in active_iv if lo[r, c]+1e-6 < z[c] < hi[r, c]-1e-6}
-        new_iv = (active_iv | viol_iv) - inside_iv
-        new_th = set(active_th)
-        for j in soft:
-            t = thick[j]
-            val = z[t["top"]]-z[t["bottom"]]
-            below = t.get("lower") is not None and val < t["lower"]-1e-9
-            above = t.get("upper") is not None and val > t["upper"]+1e-9
-            if below or above:
-                new_th.add(j)
-            elif j in new_th and (t.get("lower") is None or val > t["lower"]+1e-6) and (t.get("upper") is None or val < t["upper"]-1e-6):
-                new_th.discard(j)
-        if new_iv == active_iv and new_th == active_th:
-            break
-        active_iv, active_th = new_iv, new_th
+    if not fit.success:
+        raise RuntimeError("ordered least squares failed: "+str(fit.message))
     z = np.where(determined, z, np.nan)
     shift = float(np.nanmax(np.abs(z-raw_z))) if np.isfinite(z).any() else 0.0
     return z, shift
@@ -353,8 +352,10 @@ def cross_validate(predictor_factory, supports, methods, block_size_m=None, grou
                 result = predictor.predict(training, supports.xy[held])
             except ValueError as error:
                 for j in held:
+                    inside = hull is not None and hull.buffer(1e-6).covers(Point(supports.xy[j]))
                     records.append({"fold": kind, "label": label, "method": method, "well": supports.ids[j],
-                                    "position": None, "status": "NOT_APPLICABLE", "reason": str(error)})
+                                    "training_wells": int(train.sum()), "position": "INTERPOLATION" if inside else "EXTRAPOLATION",
+                                    "status": "NOT_APPLICABLE", "reason": str(error), "predicted_contacts": 0})
                 continue
             for r, j in enumerate(held):
                 z = result["levels"][r]

@@ -108,6 +108,18 @@ def insert_support_vertices(raw_triangles, supports):
     return triangles
 
 
+def fem_quality(nodes, triangles):
+    """Plan-element quality. Geometric conformity is not FEM readiness (audit F, 23.10.2026)."""
+    p = nodes[triangles]
+    area = 0.5*np.abs((p[:, 1, 0]-p[:, 0, 0])*(p[:, 2, 1]-p[:, 0, 1])-(p[:, 2, 0]-p[:, 0, 0])*(p[:, 1, 1]-p[:, 0, 1]))
+    edges = np.stack([np.linalg.norm(p[:, 1]-p[:, 0], axis=1), np.linalg.norm(p[:, 2]-p[:, 1], axis=1), np.linalg.norm(p[:, 0]-p[:, 2], axis=1)], axis=1)
+    aspect = edges.max(axis=1)**2/(2*np.maximum(area, 1e-300))
+    slivers = int(np.sum((area < 1.0) | (aspect > 100)))
+    return {"min_plan_area_m2": float(area.min()), "max_aspect_ratio": float(aspect.max()), "sliver_elements": slivers,
+            "criterion": "area < 1 m2 or edge^2/(2 area) > 100", "status": "NOT_FEM_READY" if slivers else "NO_SLIVERS_BY_CRITERION",
+            "note": "volume FEM requires a separate remeshing step; conforming=true refers to topology only"}
+
+
 def read_extra_observations(path, contacts):
     """Verified readings beyond table 3.1 point depths: intervals, not-reached, thickness, absence.
 
@@ -375,7 +387,7 @@ def run(args):
         save(model_dir/"sections.json",{"geometry_version":geometry_version,"operator":section["operator"],
                                       "route_physical_ids":[supports.ids[i] for i in ordered],"route_xy":route.tolist(),"route_kind":"BROKEN_LINE_THROUGH_COMPLETE_SUPPORTS",
                                       "distance_m":distance.tolist(),"xy":query.tolist(),"new_contact_z_m":section_z.tolist(),
-                                      "unknown_points":int(np.sum(~np.isfinite(section_z).all(axis=1))),
+                                      "unknown_points":int(np.sum(~np.isfinite(section_z).all(axis=1))),"gaps_across_mesh_holes":section["gaps"],"gap_after":section["gap_after"].tolist(),
                                       "continuous_vs_exported":discretization,
                                       "boreholes_on_trace":[{"physical_id":supports.ids[i],"distance_to_trace_m":float(projection["distance_m"][i]),"chainage_m":float(projection["chainage_m"][i])} for i in range(len(xy))],
                                       "comparison":comparisons})
@@ -402,6 +414,8 @@ def run(args):
                 "predictor":spec_for(selected_method).describe(),
                 "extension":full_context,"support_mask_counts":dict(Counter(map(str,masks))),
                 "source_support_hull_area_m2":support_hull.area,"complete_support_hull_area_m2":complete_hull.area,
+                "DSM_sampling_operator_max_difference_m":float(np.max(abs(supports.collar-surface.sample(xy)-config["site_offset_m"]))) if full_context else None,
+                "fem_quality":fem_quality(nodes,triangles),
                 "section_discretization":discretization,
                 "comparison":comparisons}
         save(model_dir/"qa.json",report);reports.append(report);links.append(scope)

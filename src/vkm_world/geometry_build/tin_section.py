@@ -107,7 +107,22 @@ def section_through_tin(nodes, triangles, values, polyline):
                     out[i] = bary @ values[triangles[t]]
                     tri_of[i] = t
                     break
+    # Roundoff just outside the mesh boundary: accept a containing triangle within 1e-9 relative tolerance.
+    missing = np.flatnonzero(~np.isfinite(out).all(axis=1))
+    if len(missing):
+        scale = max(float(np.ptp(nodes[:, 0])), float(np.ptp(nodes[:, 1])), 1.0)
+        for i in missing:
+            bary = _barycentric(nodes, triangles, np.repeat(xy[[i]], len(triangles), axis=0))
+            t = int(np.argmax(bary.min(axis=1)))
+            if bary[t].min() >= -1e-9*scale:
+                out[i] = np.clip(bary[t], 0, None)/np.clip(bary[t], 0, None).sum() @ values[triangles[t]]
+                tri_of[i] = t
+    # An interval whose midpoint lies outside the mesh is a gap (hole/notch): consumers must break the line.
+    gap_after = np.zeros(len(xy), bool)
+    if len(mids):
+        gap_after[:-1] = tri_mid < 0
     return {"chainage_m": chain, "xy": xy, "values": out, "segment": np.asarray(seg), "triangle": tri_of,
+            "gap_after": gap_after, "gaps": int(gap_after.sum()),
             "breakpoints": int(len(xy)), "operator": "EXACT_P1_ON_EXPORTED_TIN"}
 
 

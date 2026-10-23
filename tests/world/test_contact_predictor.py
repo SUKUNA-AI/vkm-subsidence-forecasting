@@ -214,3 +214,62 @@ def test_review_triangulation_regression_no_hanging_or_false_boundary():
             s = (p-xy[a])@v/(v@v)
             assert not (1e-8 < s < 1-1e-8 and np.linalg.norm(p-xy[a]-s*v) < 1e-9)
     assert abs(sum(Polygon(x).area for x in t)-polygon.area) < 1e-9
+
+
+def test_section_marks_gap_across_mesh_notch_and_snaps_boundary_roundoff():
+    nodes = np.array([[0, 0], [1, 0], [1, 1], [0, 1], [2, 1], [2, 0], [3, 0], [3, 1]], float)
+    tri = np.array([[0, 1, 2], [0, 2, 3], [5, 6, 7], [5, 7, 4]])
+    sec = section_through_tin(nodes, tri, np.arange(8.0), [[0.0, 0.5], [3.0, 0.5]])
+    assert sec["gaps"] == 1
+    i = int(np.flatnonzero(sec["gap_after"])[0])
+    np.testing.assert_allclose(sec["xy"][i], [1, .5]); np.testing.assert_allclose(sec["xy"][i+1], [2, .5])
+    edge = section_through_tin(nodes[:4], tri[:2], np.arange(4.0), [[0, 1e-13], [1, -1e-13]])
+    assert np.isfinite(edge["values"]).all()
+
+
+def test_two_sided_interval_reaches_the_bounded_least_squares_optimum():
+    # Auditor case: the violated side switches during an active-set iteration.
+    from scipy.optimize import minimize
+    from vkm_world.geometry_build.contact_predictor import _solve_node
+    rng = np.random.default_rng(512)
+    checked = 0
+    for _ in range(25):
+        n, k = 6, 4
+        lo = np.full((n, k), -np.inf); hi = np.full((n, k), np.inf)
+        for i in range(n):
+            z = -np.sort(rng.uniform(0, 100, k))
+            lo[i, 0] = hi[i, 0] = z[0]
+            for c in range(1, k):
+                u = rng.random()
+                if u < .4:
+                    lo[i, c] = hi[i, c] = z[c]
+                elif u < .8:
+                    lo[i, c] = z[c]-rng.uniform(0, 10); hi[i, c] = lo[i, c]+rng.uniform(0, 8)
+        th = [{"row": int(rng.integers(n)), "top": 1, "bottom": 2, "lower": float(rng.uniform(0, 20)), "upper": None}]
+        w = rng.uniform(.05, 1, n); w /= w.sum()
+        z, _ = _solve_node(w, lo, hi, th, k)
+        if not np.isfinite(z).all():
+            continue  # an undetermined contact is NaN by design (no regulariser)
+        checked += 1
+
+        point = np.isfinite(lo) & np.isfinite(hi) & (np.abs(hi-lo) <= 1e-9)
+
+        def objective(v):
+            # Increment form: first point level and gaps between consecutive point readings,
+            # plus squared distance to interval readings and the soft thickness bound.
+            zz = np.r_[v[0], v[0]-np.cumsum(v[1:])]
+            f = 0.0
+            for i in range(n):
+                obs = np.flatnonzero(point[i])
+                f += w[i]*(zz[obs[0]]-lo[i, obs[0]])**2
+                for ca, cb in zip(obs[:-1], obs[1:]):
+                    f += w[i]*((zz[ca]-zz[cb])-(lo[i, ca]-lo[i, cb]))**2
+                for c in np.flatnonzero(~point[i]):
+                    f += w[i]*(max(lo[i, c]-zz[c], 0)+max(zz[c]-hi[i, c], 0))**2
+            tt = zz[1]-zz[2]
+            return f+w[th[0]["row"]]*max(th[0]["lower"]-tt, 0)**2
+        start = np.r_[z[0], -np.diff(z)]
+        ref = minimize(objective, start, bounds=[(None, None)]+[(0, None)]*(k-1), method="L-BFGS-B",
+                       options={"ftol": 1e-15, "gtol": 1e-12, "maxiter": 5000})
+        assert objective(start) <= ref.fun*(1+1e-6)+1e-9
+    assert checked >= 10
