@@ -36,6 +36,8 @@ DELTA_CUR, PSI_CUR = 55.0, 55.0   # VKM-SRC-012 с. 54 (ред. 2022, посто
 DELTA_92, PSI_92 = 50.0, 55.0     # VKM-SRC-037 с. 337 (ред. 1990/1992)
 AVERSHIN_B = (0.15, 0.18)         # B = (0,15–0,18)·H — VKM-SRC-208 с. 67 (Авершин; уголь)
 A_RATIO_92 = (0.2, 0.26)          # ξ0 = a·η0 (8.137) VKM-SRC-037 с. 338
+C_SKRU1 = (0.192, 0.303)          # проектные C, СКРУ-1 ГУ-2, пласт Кр.2: VKM-SRC-252 r0024 (ПРГР 2013) — не измерения
+T_YEARS = (10.0, 20.0, 40.0)      # сравнение во времени; t — годы (VKM-SRC-103 с. 26 (1.12))
 BASE = 15.0                       # база разностей для модельных профилей, м (приведение к 15 м: (1.15), MM-OBS-002)
 PALETTE = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"]
 INK, INK2, GRID = "#0b0b0b", "#52514e", "#d9d8d4"
@@ -173,7 +175,10 @@ def amplitude_table(fem, H):
                "transfer_volume_ratio": vol_s / vol_c if vol_c > 0 else None,
                "void_closed_fraction_fem": conv_c / (M0 * omega),
                "eta_norm_k09_mm": eta_k09 * 1000,
-               "fem_over_norm": r["s_max_mm"] / (eta_k09 * 1000)}
+               "fem_over_norm": r["s_max_mm"] / (eta_k09 * 1000),
+               "eta_norm_skru1_C_min_mm": eta_k09 * sf.loading_factor_k(C_SKRU1[0]) / 0.9 * 1000,
+               "eta_norm_skru1_C_max_mm": eta_k09 * sf.loading_factor_k(C_SKRU1[1]) / 0.9 * 1000,
+               "fem_over_norm_skru1_C_min": r["s_max_mm"] / (eta_k09 * sf.loading_factor_k(C_SKRU1[0]) / 0.9 * 1000)}
         if var == "C":
             ps = [sf.backfill_factor(a, b) for a in A_FILL for b in B_FILL.values()]
             row["eta_norm_backfill_min_mm"] = min(ps) * eta_k09 * 1000
@@ -200,10 +205,15 @@ def _style(ax, xlabel=None, ylabel=None):
 
 def fig_amplitudes(path, amp, creep, pl12):
     import matplotlib.pyplot as plt
-    items = []  # (label, value_m, group)
+    items = []  # (label, value_m, group[, low_m])
     for tag, omega in (("A: ω = 37,8 %", OMEGA["A"]), ("B: ω = 51 %", OMEGA["B"])):
-        items.append((f"Норматив «Указаний», {tag}, C ≥ 0,32", sf.eta_max_current(M0, omega, 1, 0.9), 0))
-        items.append((f"Норматив, {tag}, C = 0,20", sf.eta_max_current(M0, omega, 1, sf.loading_factor_k(0.2)), 0))
+        items.append((f"Норматив, {tag}, C ≥ 0,32 (k = 0,9)", sf.eta_max_current(M0, omega, 1, 0.9), 0))
+        items.append((f"Норматив, {tag}, C = 0,19–0,30 (проект СКРУ-1)",
+                      sf.eta_max_current(M0, omega, 1, sf.loading_factor_k(C_SKRU1[1])), 0,
+                      sf.eta_max_current(M0, omega, 1, sf.loading_factor_k(C_SKRU1[0]))))
+        items.append((f"Норматив, {tag}, C = 0,19–0,30, через 40 лет (0,002·t)",
+                      sf.time_fraction_ukazaniya(40.0, C_SKRU1[1]) * sf.eta_max_current(M0, omega, 1, sf.loading_factor_k(C_SKRU1[1])), 0,
+                      sf.time_fraction_ukazaniya(40.0, C_SKRU1[0]) * sf.eta_max_current(M0, omega, 1, sf.loading_factor_k(C_SKRU1[0]))))
     byc = {r["case"]: r for r in amp}
     for case, lab in (("M10_K0_A", "FEM упругий, LAB×1,0, A"), ("M05_K0_A", "FEM упругий, LAB×0,5, A"),
                       ("M03_K0_B", "FEM упругий, LAB×0,3, B"), ("NORM_K0_B", "FEM упругий, модули «Указаний», B"),
@@ -222,15 +232,20 @@ def fig_amplitudes(path, amp, creep, pl12):
     fig, ax = plt.subplots(figsize=(8.6, 0.32 * len(items) + 1.9), dpi=150)
     y = np.arange(len(items))[::-1]
     seen = set()
-    for yi, (lab, v, g) in zip(y, items):
+    for yi, it in zip(y, items):
+        lab, v, g = it[:3]
+        if len(it) > 3:  # диапазон
+            ax.plot([it[3], v], [yi, yi], color=colors[g], linewidth=2.0, zorder=2)
+            ax.plot(it[3], yi, "o", color=colors[g], markersize=6, markeredgecolor="white", markeredgewidth=1.2, zorder=3)
         ax.plot(v, yi, "o", color=colors[g], markersize=7, markeredgecolor="white", markeredgewidth=1.5, zorder=3,
                 label=names[g] if g not in seen else None)
         seen.add(g)
-        ax.text(v * 1.25, yi, f"{v * 1000:.0f} мм" if v >= 0.0995 else f"{v * 1000:.1f} мм", va="center", fontsize=7.5,
-                color=INK)
+        txt = (f"{it[3] * 1000:.0f}–{v * 1000:.0f} мм" if len(it) > 3 else
+               (f"{v * 1000:.0f} мм" if v >= 0.0995 else f"{v * 1000:.1f} мм"))
+        ax.text(v * 1.25, yi, txt, va="center", fontsize=7.5, color=INK)
     ax.set_yticks(y, [it[0] for it in items], fontsize=7.5, color=INK)
     ax.set_xscale("log")
-    ax.set_xlim(5e-4, 8)
+    ax.set_xlim(5e-4, 20)
     _style(ax, "максимальное оседание поверхности, м (логарифмическая шкала)")
     ax.legend(loc="upper center", bbox_to_anchor=(0.35, -0.09), ncol=2, fontsize=7.5, frameon=False)
     ax.set_title("Максимальное оседание: формулы, FEM и наблюдение ПЛ 12", fontsize=10, color=INK, loc="left")
@@ -310,33 +325,33 @@ def fig_transfer(path, amp):
 
 
 def fig_creep(path, creep, pl12):
+    """FEM с ползучестью против нормативной функции времени: η(t) = 0,002·t·η_ok(C), C = 0,19–0,30 (C < 0,32)."""
     import matplotlib.pyplot as plt
-    fig, ax = plt.subplots(figsize=(8.6, 4.2), dpi=150)
-    spec = (("M05_FIELD_A27", "FEM FIELD, 27 м (ω ≈ 37,8 %)", PALETTE[2], "-", OMEGA["A"]),
-            ("M05_LAB_A27", "FEM LAB, 27 м", PALETTE[2], "--", OMEGA["A"]),
-            ("M05_FIELD_B20", "FEM FIELD, 20 м (ω ≈ 51 %)", PALETTE[3], "-", OMEGA["B"]),
-            ("M05_LAB_B20", "FEM LAB, 20 м", PALETTE[3], "--", OMEGA["B"]))
-    for case, lab, col, ls, om in spec:
-        c = creep["cases"].get(case)
-        if not c:
-            continue
-        t = sorted(c["profiles"])
-        ax.plot(t, [np.max(c["profiles"][k]) for k in t], color=col, linestyle=ls, linewidth=1.8, label=lab)
-    for om, lab in ((OMEGA["A"], "норматив, ω = 37,8 %"), (OMEGA["B"], "норматив, ω = 51 %")):
-        v = sf.eta_max_current(M0, om, 1, 0.9)
-        ax.axhline(v, color=PALETTE[0], linewidth=1.2, linestyle="-" if om == OMEGA["B"] else "--")
-        ax.text(0.5, v * 1.04, lab + " (к концу процесса, C ≥ 0,32)", fontsize=7.5, color=INK2)
-    if pl12:
-        ep = [e for e in pl12 if not e.startswith("_")]
-        tt = [int(e) - 1989 for e in ep]  # нуль отсчёта на рисунке не указан; 1989 — вероятный (INTERPRETATION)
-        ax.plot(tt, [np.max(pl12[e][:, 1]) for e in ep], "s", color=PALETTE[6], markersize=6, markeredgecolor="white",
-                label="ПЛ 12, наблюдение (другое место, 2 пласта; t от 1989 г. — допущение)")
-    ax.set_xlim(0, 42)
-    ax.set_ylim(0, 2.8)
-    _style(ax, "время после мгновенной выемки, лет (у FEM); у ПЛ 12 — лет после 1989 г.", "максимум оседания, м")
-    ax.legend(fontsize=7.5, frameon=False, loc="center right")
-    ax.set_title("Ползучесть приближает FEM к нормативной амплитуде, но за 40 лет не доходит", fontsize=10,
-                 color=INK, loc="left")
+    fig, axes = plt.subplots(1, 2, figsize=(8.6, 3.9), dpi=150, sharey=True)
+    tt = np.linspace(0, 40, 81)
+    for ax, (geo, om, cases) in zip(axes, (("межосевое 27 м", OMEGA["A"], ("M05_FIELD_A27", "M05_LAB_A27")),
+                                          ("межосевое 20 м", OMEGA["B"], ("M05_FIELD_B20", "M05_LAB_B20")))):
+        lo = [sf.time_fraction_ukazaniya(t, C_SKRU1[0]) * sf.eta_max_current(M0, om, 1, sf.loading_factor_k(C_SKRU1[0]))
+              for t in tt]
+        hi = [sf.time_fraction_ukazaniya(t, C_SKRU1[1]) * sf.eta_max_current(M0, om, 1, sf.loading_factor_k(C_SKRU1[1]))
+              for t in tt]
+        ax.fill_between(tt, lo, hi, color=PALETTE[0], alpha=0.18, linewidth=0,
+                        label=f"норматив: 0,002·t·η_ok, C = 0,19–0,30, ω = {om * 100:.1f} %")
+        ax.plot(tt, hi, color=PALETTE[0], linewidth=1.2)
+        ax.plot(tt, lo, color=PALETTE[0], linewidth=1.2)
+        for case, ls, lab in ((cases[0], "-", "FEM, вязкость FIELD"), (cases[1], "--", "FEM, вязкость LAB")):
+            c = creep["cases"].get(case)
+            if not c:
+                continue
+            t = sorted(c["profiles"])
+            ax.plot(t, [np.max(c["profiles"][k]) for k in t], color=PALETTE[2], linestyle=ls, linewidth=1.8, label=lab)
+        ax.set_xlim(0, 40)
+        _style(ax, "время, лет", "максимум оседания, м" if ax is axes[0] else None)
+        ax.set_title(geo, fontsize=9.5, color=INK, loc="left")
+        ax.legend(fontsize=7, frameon=False, loc="upper left")
+    axes[0].set_ylim(0, 0.6)
+    fig.suptitle("Ползучесть FEM и нормативная функция времени «Указаний» (t — годы)", fontsize=10, color=INK, x=0.01,
+                 ha="left")
     fig.tight_layout()
     fig.savefig(path)
     plt.close(fig)
@@ -480,6 +495,11 @@ def main() -> int:
                         "regime": "полная подработка: D1 > 1,4H, D2 = ∞ (2D), χ ≥ 1,4 → f0 = 1 (VKM-SRC-065 (1.9)–(1.10))"
                         if panel[1] - panel[0] >= 1.4 * H else "неполная подработка",
                         "f0": sf.incomplete_factor_f0(sf.undermining_chi(panel[1] - panel[0], 1e9, H))},
+        "normative_time": {f"omega={om}": {f"C={C}": {"k": sf.loading_factor_k(C), "eta_ok_m": sf.eta_max_current(M0, om, 1, sf.loading_factor_k(C)),
+                                                      **{f"eta_t{int(ty)}_m": sf.time_fraction_ukazaniya(ty, C) * sf.eta_max_current(M0, om, 1, sf.loading_factor_k(C)) for ty in T_YEARS}}
+                                           for C in C_SKRU1} for om in (OMEGA["A"], OMEGA["B"])},
+        "creep_vs_time": ({case: {f"s_t{int(ty)}_m": float(np.max(c["profiles"][ty])) for ty in T_YEARS if ty in c["profiles"]}
+                           for case, c in creep["cases"].items()} if creep else None),
         "amplitude": amp, "shapes": shapes, "matlab_check": matlab_check,
         "inputs": {"fem": fem["inputs"], "creep_sha256": creep["sha256"] if creep else None,
                    "creep_status": creep["status"] if creep else None,
