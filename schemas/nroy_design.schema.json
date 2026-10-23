@@ -249,6 +249,15 @@
     "kind": {
      "$ref": "#/$defs/ToleranceComponentKind"
     },
+    "metric_ids": {
+     "default": [],
+     "description": "metrics the component applies to; empty = every metric",
+     "items": {
+      "type": "string"
+     },
+     "title": "Metric Ids",
+     "type": "array"
+    },
     "relative": {
      "default": false,
      "description": "sigma / bound in % of the predicted value (e.g. a representation error)",

@@ -66,6 +66,7 @@ class ClassBudget:
     unit: str
     central: float
     swings: list[Swing] = field(default_factory=list)
+    representation_context: str = ""
 
     def ranked(self) -> list[Swing]:
         return sorted(self.swings, key=lambda s: s.magnitude(), reverse=True)
@@ -86,14 +87,20 @@ class ClassBudget:
         return self.central * math.exp(lo), self.central * math.exp(hi)
 
 
-def build_class_budgets(swings: Sequence[Swing]) -> dict[tuple[UncertaintyClass, str, float | None], ClassBudget]:
-    """Group swings by (class, qoi, time); the central value must be the same inside a group."""
-    out: dict[tuple[UncertaintyClass, str, float | None], ClassBudget] = {}
+BudgetKey = tuple[UncertaintyClass, str, "float | None", str]
+
+
+def build_class_budgets(swings: Sequence[Swing]) -> dict[BudgetKey, ClassBudget]:
+    """Group swings by (class, qoi, time, representation_context); the central value must be the same inside a group.
+
+    A world effect is meaningful only inside the representation it was computed in, so effects of different
+    representation contexts are never merged into one ranking or envelope."""
+    out: dict[BudgetKey, ClassBudget] = {}
     for s in swings:
-        key = (s.uncertainty_class, s.qoi, s.time_yr)
+        key = (s.uncertainty_class, s.qoi, s.time_yr, s.representation_context)
         b = out.get(key)
         if b is None:
-            out[key] = ClassBudget(s.uncertainty_class, s.qoi, s.unit, s.central, [s])
+            out[key] = ClassBudget(s.uncertainty_class, s.qoi, s.unit, s.central, [s], s.representation_context)
         else:
             if not math.isclose(b.central, s.central, rel_tol=1e-9, abs_tol=1e-12) or b.unit != s.unit:
                 raise ValueError(f"{s.element_id}: central/unit differ inside {key}")

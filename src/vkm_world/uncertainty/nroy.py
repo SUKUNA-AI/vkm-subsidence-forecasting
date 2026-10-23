@@ -78,6 +78,7 @@ class ToleranceComponent(_Strict):
     bound: float | None = Field(None, ge=0)
     unit: str
     relative: bool = Field(False, description="sigma / bound in % of the predicted value (e.g. a representation error)")
+    metric_ids: list[str] = Field([], description="metrics the component applies to; empty = every metric")
     status: str = Field(description="EVIDENCE / DERIVATION / MODEL_CHOICE ...")
     element_ids: list[str] = []
 
@@ -155,11 +156,26 @@ def check_design(d: NroyDesign) -> list[str]:
         p.append(f"screening and target share epochs: {sorted(scr & tgt)}")
     if not scr:
         p.append("no screening data")
+    if not tgt:
+        p.append("no held-out target data: the post-t0 method test is impossible")
+    metric_ids = {m.metric_id for m in d.metrics}
     for c in d.tolerance:
         if COMPONENT_CLASS[c.kind] is not c.uncertainty_class:
             p.append(f"tolerance {c.kind.value}: class {c.uncertainty_class.value} != {COMPONENT_CLASS[c.kind].value}")
         if c.sigma is None and c.bound is None:
             p.append(f"tolerance {c.kind.value}: needs sigma or bound")
+        if d.rule.combination == "VARIANCE_SUM_IMPLAUSIBILITY" and c.sigma is None:
+            p.append(f"tolerance {c.kind.value}: VARIANCE_SUM needs sigma (a bound is not silently converted)")
+        unknown = sorted(set(c.metric_ids) - metric_ids)
+        if unknown:
+            p.append(f"tolerance {c.kind.value}: unknown metric ids {unknown}")
+    for m in d.metrics:
+        comps = components_for(d, m.metric_id)
+        if not comps:
+            p.append(f"metric {m.metric_id}: no tolerance component applies")
+        for c in comps:
+            if not _unit_ok(c, m.unit):
+                p.append(f"metric {m.metric_id} [{m.unit}]: tolerance {c.kind.value} in {c.unit} (units differ)")
     kinds = {c.kind for c in d.tolerance}
     for need in (ToleranceComponentKind.REPRESENTATION_ERROR, ToleranceComponentKind.MODEL_DISCREPANCY):
         if need not in kinds:
@@ -181,16 +197,34 @@ def check_design(d: NroyDesign) -> list[str]:
     return p
 
 
+def _unit_ok(c: ToleranceComponent, unit: str) -> bool:
+    return (c.relative and c.unit == "%") or (not c.relative and c.unit == unit)
+
+
+def components_for(d: NroyDesign, metric_id: str) -> list[ToleranceComponent]:
+    """Tolerance components that apply to one metric (empty metric_ids = every metric)."""
+    return [c for c in d.tolerance if not c.metric_ids or metric_id in c.metric_ids]
+
+
 def implausibility(residual: float, components: Sequence[ToleranceComponent],
-                   combination: str = "VARIANCE_SUM_IMPLAUSIBILITY", prediction: float | None = None) -> float:
+                   combination: str = "VARIANCE_SUM_IMPLAUSIBILITY", prediction: float | None = None,
+                   unit: str | None = None) -> float:
     """|z - f(w)| scaled by the tolerance. VARIANCE_SUM: / sqrt(sum sigma^2); BOUND_SUM: / sum bounds;
     PER_COMPONENT_ALL: min over components of |r| / scale_i (rule out only if every single component is exceeded).
-    Relative components (%, e.g. representation error) are scaled by the predicted value."""
+    Relative components (%, e.g. representation error) are scaled by the predicted value. With `unit`, every absolute
+    component must be in that unit. VARIANCE_SUM refuses bound-only components (no silent conversion)."""
+    if unit is not None:
+        bad = [c.kind.value for c in components if not _unit_ok(c, unit)]
+        if bad:
+            raise ValueError(f"tolerance units differ from the residual unit {unit}: {bad}")
     r = abs(residual)
     sig = [c.scale(prediction, "sigma") for c in components]
     bnd = [c.scale(prediction, "bound") for c in components]
     if combination == "VARIANCE_SUM_IMPLAUSIBILITY":
-        v = sum((s or 0.0) ** 2 for s in sig)
+        missing = [c.kind.value for c, s in zip(components, sig) if s is None]
+        if missing:
+            raise ValueError(f"VARIANCE_SUM needs sigma for every component; bound-only: {missing}")
+        v = sum(s ** 2 for s in sig)
         return math.inf if v == 0 else r / math.sqrt(v)
     if combination == "BOUND_SUM":
         b = sum(bb if bb is not None else 2.0 * (s or 0.0) for s, bb in zip(sig, bnd))

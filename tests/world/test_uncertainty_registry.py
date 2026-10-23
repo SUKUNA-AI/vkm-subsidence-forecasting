@@ -104,14 +104,30 @@ def test_budget_never_mixes_classes():
     with pytest.raises(MixedClassesError):
         total_over_classes([w, r])
     b = build_class_budgets([w, w2, r])
-    world = b[(UncertaintyClass.PHYSICAL_HYPOTHESIS, "s", None)]
-    rep = b[(UncertaintyClass.REPRESENTATION_CHOICE, "s", None)]
+    world = b[(UncertaintyClass.PHYSICAL_HYPOTHESIS, "s", None, "")]
+    rep = b[(UncertaintyClass.REPRESENTATION_CHOICE, "s", None, "")]
     assert [s.element_id for s in world.ranked()] == ["UE-W-A-01", "UE-W-B-01"]
     assert world.oat_envelope() == (5.0, 30.0)
     lo, hi = world.log_additive_envelope()
     assert math.isclose(lo, 10 * 0.5 * 0.9) and math.isclose(hi, 10 * 3.0 * 1.2)
     assert rep.oat_envelope() == (9.9, 10.1)
     assert w.magnitude() == pytest.approx(math.log(3.0))
+
+
+def test_budget_separates_representation_contexts():
+    a = Swing("UE-W-A-01", UncertaintyClass.PHYSICAL_HYPOTHESIS, "s", "mm", 10.0, 5.0, 30.0, representation_context="MAPDL")
+    b = Swing("UE-W-B-01", UncertaintyClass.PHYSICAL_HYPOTHESIS, "s", "mm", 10.0, 9.0, 12.0, representation_context="OGS")
+    budgets = build_class_budgets([a, b])
+    assert len(budgets) == 2
+    assert {k[3] for k in budgets} == {"MAPDL", "OGS"}
+
+
+def test_source_free_evidence_status_rejected():
+    rep = {"kind": "RANGE", "subjectivity": "MODEL_CHOICE", "rationale_ru": "сценарий",
+           "range": {"low": 1, "high": 2, "unit": "Pa"}}
+    with pytest.raises(RegistryError, match="evidence-backed"):
+        validate_registry(_registry([_element(sources=[], representation=rep, evidence_status=["FACT", "MODEL_CHOICE"])]))
+    validate_registry(_registry([_element(sources=[], representation=rep, evidence_status=["MODEL_CHOICE"])]))
 
 
 def test_interaction_index():
@@ -184,6 +200,30 @@ def test_nroy_design_catches_traps():
     d = _design()
     d.rule.owner_approved = False
     assert any(p.startswith("OWNER:") for p in nroy.check_design(d))
+
+
+def test_nroy_design_requires_target_sigma_and_units():
+    d = _design()
+    d.data = [x for x in d.data if x.role == "SCREENING"]
+    assert any("no held-out target" in p for p in nroy.check_design(d))
+    d = _design()
+    d.tolerance[0].sigma = None
+    d.tolerance[0].bound = 9.0
+    assert any("VARIANCE_SUM needs sigma" in p for p in nroy.check_design(d))
+    with pytest.raises(ValueError, match="bound-only"):
+        nroy.implausibility(10.0, d.tolerance)
+    d = _design()
+    d.tolerance[0].unit = "m"
+    assert any("units differ" in p for p in nroy.check_design(d))
+    with pytest.raises(ValueError, match="units differ"):
+        nroy.implausibility(10.0, d.tolerance, unit="mm")
+    d = _design()
+    d.metrics.append(nroy.Metric(metric_id="SHAPE", definition_ru="форма", unit="1"))
+    for c in d.tolerance:
+        c.metric_ids = ["M1"]
+    assert any("SHAPE: no tolerance component" in p for p in nroy.check_design(d))
+    d.tolerance[0].metric_ids = ["NOPE"]
+    assert any("unknown metric ids" in p for p in nroy.check_design(d))
 
 
 def test_implausibility_math_synthetic():

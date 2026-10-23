@@ -35,6 +35,8 @@ from .taxonomy import (CLASS_PREFIX, KINDS, ChainStage, MeasurementStatus, Narro
 
 SCHEMA_ID = "vkm.uncertainty_registry/1"
 ID_RE = re.compile(r"^UE-([WRFEO])-[A-Z0-9]+-\d{2}$")
+#: statuses that are assumptions, not evidence: the only ones allowed on an element without a source
+ASSUMPTION_STATUSES = frozenset({EpistemicStatus.MODEL_CHOICE, EpistemicStatus.ENGINEERING_ASSUMPTION, EpistemicStatus.UNKNOWN})
 
 
 class _Strict(BaseModel):
@@ -207,9 +209,13 @@ class UncertaintyElement(_Strict):
         if self.kind not in KINDS[self.uncertainty_class]:
             raise ValueError(f"{self.element_id}: kind {self.kind} not allowed for {self.uncertainty_class.value}")
         r = self.representation
-        if not self.sources and r.kind is not RepresentationKind.UNKNOWN \
-                and r.subjectivity not in (Subjectivity.MODEL_CHOICE, Subjectivity.MIXED):
-            raise ValueError(f"{self.element_id}: no source — mark the representation MODEL_CHOICE with a rationale or UNKNOWN")
+        if not self.sources:
+            if r.kind is not RepresentationKind.UNKNOWN and r.subjectivity not in (Subjectivity.MODEL_CHOICE, Subjectivity.MIXED):
+                raise ValueError(f"{self.element_id}: no source — mark the representation MODEL_CHOICE with a rationale or UNKNOWN")
+            backed = sorted(s.value for s in self.evidence_status if s not in ASSUMPTION_STATUSES)
+            if backed:
+                raise ValueError(f"{self.element_id}: evidence-backed status {backed} without a source; "
+                                 "a source-free element may only carry MODEL_CHOICE / ENGINEERING_ASSUMPTION / UNKNOWN")
         if EpistemicStatus.UNKNOWN in self.evidence_status and r.kind is not RepresentationKind.UNKNOWN \
                 and r.subjectivity is Subjectivity.EVIDENCE:
             raise ValueError(f"{self.element_id}: UNKNOWN completed by a scenario must be MODEL_CHOICE / MIXED, not EVIDENCE")
