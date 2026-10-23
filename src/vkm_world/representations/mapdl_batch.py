@@ -38,10 +38,31 @@ def count_errors(out_text: str) -> int | None:
     return None
 
 
+STALE_PATTERNS = ("*.txt", "*.npz", "receipt.json", "run.log")
+
+
+def clear_outputs(workdir: Path, deck: str = "case.inp", jobname: str = "case") -> list[str]:
+    """Remove results of any previous run in ``workdir`` (solver text tables, derived .npz, receipt, job files),
+    keeping only the input deck, so that a failed or shorter rerun can never be read as the new result."""
+    workdir = Path(workdir)
+    removed = []
+    candidates = set()
+    for pat in STALE_PATTERNS + (f"{jobname}*",):
+        candidates.update(workdir.glob(pat))
+    for p in sorted(candidates):
+        if p.is_file() and p.name != deck:
+            p.unlink()
+            removed.append(p.name)
+    return removed
+
+
 def run_deck(workdir: Path, deck: str = "case.inp", jobname: str = "case", n_proc: int = 4,
              timeout_s: float | None = None, keep_scratch: bool = False) -> dict:
-    """Run ``MAPDL -b -np n -i deck -o case.out -j jobname`` in ``workdir``; return the receipt dict."""
+    """Run ``MAPDL -b -np n -i deck -o case.out -j jobname`` in ``workdir``; return the receipt dict.
+
+    Outputs of a previous run in the same directory are removed first (``clear_outputs``)."""
     workdir = Path(workdir)
+    stale = clear_outputs(workdir, deck, jobname)
     cmd = [mapdl_exe(), "-b", "-np", str(n_proc), "-i", deck, "-o", f"{jobname}.out", "-j", jobname]
     t0 = time.time()
     with open(workdir / "run.log", "w", encoding="utf-8", errors="replace") as log:
@@ -64,5 +85,6 @@ def run_deck(workdir: Path, deck: str = "case.inp", jobname: str = "case", n_pro
         "runtime_s": round(dt, 2),
         "n_errors": count_errors(out_text),
         "not_converged": ("SOLUTION NOT CONVERGED" in out_text) or ("unconverged" in out_text.lower()),
+        "stale_outputs_removed": stale,
         "result_files_sha256": results,
     }

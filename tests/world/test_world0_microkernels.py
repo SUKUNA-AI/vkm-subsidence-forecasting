@@ -287,6 +287,24 @@ def test_fine_mode_excavation_forces_balance():
     assert abs(fx) < 1e-6 and abs(fy) < 1e-6
 
 
+def test_rerun_never_reads_stale_outputs(tmp_path, monkeypatch):
+    """A failed rerun in the same directory must not leave the previous results behind (review of PR #29)."""
+    import sys
+
+    from vkm_world.representations.mapdl_batch import run_deck
+    (tmp_path / "case.inp").write_text("/BATCH\n", encoding="ascii")
+    for stale in ("history.txt", "ls001.txt", "compliance.npz", "receipt.json", "case.out", "case.rst"):
+        (tmp_path / stale).write_text("old", encoding="ascii")
+    monkeypatch.setenv("VKM_MAPDL_EXE", sys.executable)        # python rejects '-np' → a failing "solver" run
+    rec = run_deck(tmp_path, n_proc=1, timeout_s=60)
+    assert rec["exit_code"] != 0
+    assert (tmp_path / "case.inp").exists()
+    for stale in ("history.txt", "ls001.txt", "compliance.npz", "receipt.json", "case.rst"):
+        assert not (tmp_path / stale).exists()
+    assert "history.txt" not in rec["result_files_sha256"]
+    assert set(rec["stale_outputs_removed"]) >= {"history.txt", "ls001.txt", "compliance.npz", "receipt.json"}
+
+
 def test_pillar_cell_deck_has_ladder_steps():
     m = Material("P", 6.9e9, 0.2, 2100.0, 7.58e7, 5.0)
     cell = PillarCellModel(a=27.0, w=16.8, h=5.5, t_roof=20.0, t_floor=20.0, pillar=m, roof=m, floor=m, sigma0=6.86e6,
