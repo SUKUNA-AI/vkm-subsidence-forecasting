@@ -3,9 +3,9 @@
  "n_regions": 315,
  "n_units": 800,
  "timing_class_counts": {
-  "UNKNOWN": 612,
+  "UNKNOWN": 473,
+  "PLAN_SNAPSHOT_ONLY": 185,
   "DERIVED_DATES": 35,
-  "PLAN_SNAPSHOT_ONLY": 46,
   "TEXT_DATED": 33,
   "PLANNED_ONLY": 3,
   "TEXT_UNDATED": 7,
@@ -187,8 +187,75 @@
    "check_worked_plus_remaining_le_layout": "PASS"
   }
  },
+ "worked_c1990_037": {
+  "КрII": {
+   "area_km2": 12.303,
+   "outside_field_km2": 0.773,
+   "overlap_with_064_worked_2007_km2": 1.821,
+   "worked_2022_074_km2": 12.4
+  },
+  "АБ": {
+   "area_km2": 9.861,
+   "outside_field_km2": 0.844,
+   "overlap_with_064_worked_2007_km2": 0.0,
+   "worked_2022_074_km2": 7.65
+  },
+  "В (Вс|Вк)": {
+   "area_km2": 5.918,
+   "outside_field_km2": 0.28,
+   "overlap_with_064_worked_2007_km2": 0.351,
+   "worked_2022_074_km2": null
+  },
+  "note": "площади штриховки «отработанные запасы» рис. 2.7 — брутто-контуры участков (с целиками и неотработанными пятнами); с площадями VKM-SRC-074 (01.2022) напрямую не сравнимы — конфликт SKM-CF-M11"
+ },
+ "fig2_7_vs_text_dates": {
+  "mined_before_1990_by_text": 36,
+  "before_worked_ge_0_5": 30,
+  "before_worked_ge_0_2": 33,
+  "mined_after_1990_by_text": 17,
+  "after_worked_ge_0_5": 0,
+  "disagreements": [
+   {
+    "unit": "SKU-BLK-129-VK",
+    "timing_class": "DERIVED_DATES",
+    "years": "1960–1971",
+    "worked_1990_frac": 0.0
+   },
+   {
+    "unit": "SKU-BLK-18-AB",
+    "timing_class": "TEXT_DATED",
+    "years": "1956–1957",
+    "worked_1990_frac": 0.32
+   },
+   {
+    "unit": "SKU-BLK-19-KR2",
+    "timing_class": "TEXT_DATED",
+    "years": "1934–1935",
+    "worked_1990_frac": 0.26
+   },
+   {
+    "unit": "SKU-BLK-46-AB",
+    "timing_class": "TEXT_DATED",
+    "years": "1961–1961",
+    "worked_1990_frac": 0.19
+   },
+   {
+    "unit": "SKU-BLK-5-VK",
+    "timing_class": "DERIVED_DATES",
+    "years": "1939–1942",
+    "worked_1990_frac": 0.39
+   },
+   {
+    "unit": "SKU-BLK-76-AB",
+    "timing_class": "DERIVED_DATES",
+    "years": "1962–1978",
+    "worked_1990_frac": 0.0
+   }
+  ],
+  "note": "независимая проверка оцифровки и привязки рис. 2.7: даты из текста и выведенные даты не использовались при выделении"
+ },
  "worldspec": {
-  "mining_objects": 132,
+  "mining_objects": 271,
   "events": 55,
   "errors": []
  },
