@@ -1,0 +1,3 @@
+fix_id,target,row_id,column,action,text,reason,date
+W0-FIX-01,laws,ML-03,visual_check,APPEND,"p.35 (VKM-SRC-045:p0035), ф. (2.1.4): F_s = p0(σ_eff/p0)^n, Q_s = σ_eff, η_s = p0/a; p0 можно принять 1 МПа — PAGE_IMAGE_CONFIRMED 23.10.2026","проверка формулы по изображению страницы, на которой определена η_s (конфликт C-07)",2026-10-23
+W0-FIX-02,laws,ML-03,applicability_notes,APPEND,"C-07 СНЯТ: η_s = p0/a напечатано на с.35, поэтому ε̇ = a(σ_eff/p0)^n = (p0/η_s)(σ_eff/p0)^n — запись соседней сессии (Transfer TR-CREEP-ERMASHOV2015-SKRU1-SLICE-V6_2) верна; World-0 W0-L-02 использует эту форму; A и Q для ВКМ по-прежнему UNKNOWN",разрешение конфликта C-07 по первичному изображению,2026-10-23
