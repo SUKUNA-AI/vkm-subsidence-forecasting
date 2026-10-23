@@ -46,7 +46,9 @@ def run(args):
               "builder": Path(__file__)}
     pins = {k: sha(v) for k, v in inputs.items()}
     out.mkdir(parents=True)
-    g, p = np.load(inputs["ensemble_G"]), np.load(inputs["ensemble_P90"])
+    # materialise once: indexing an NpzFile decompresses the array on every access
+    g = dict(np.load(inputs["ensemble_G"]))
+    p = dict(np.load(inputs["ensemble_P90"]))
     contacts = [str(c) for c in g["contacts"]]
     gdal.UseExceptions(); ogr.UseExceptions(); osr.UseExceptions()
     gdal.SetConfigOption("OGR_CURRENT_DATE", args.epoch)
@@ -69,6 +71,7 @@ def run(args):
                 {**common, "REALIZATIONS_G": str(int(g["realizations"])), "REALIZATIONS_P90": str(int(p["realizations"]))})
     xy = g["xy"]
     k_pks = contacts.index("PKS")
+    lyr.StartTransaction()  # one transaction per layer: per-feature commits are very slow in GPKG
     for i in range(len(xy)):
         f = ogr.Feature(lyr.GetLayerDefn()); f.SetFID(i + 1)
         pt = ogr.Geometry(ogr.wkbPoint); pt.AddPoint_2D(float(xy[i, 0]), float(xy[i, 1])); f.SetGeometry(pt)
@@ -80,6 +83,7 @@ def run(args):
             f.SetField(c + "_v62", float(g["v62_contacts"][i, k]))
         f.SetField("p_zero_PKS", float(g["p_zero"][k_pks, i]))
         lyr.CreateFeature(f)
+    lyr.CommitTransaction()
     records.append({"layer": "ensemble_nodes", "features": len(xy)})
     # supports with LOO calibration counts (variant G, nested type selection)
     qa, mapped = read(inputs["qa"]), {r["physical_id"]: r for r in read(inputs["mapped"])}
