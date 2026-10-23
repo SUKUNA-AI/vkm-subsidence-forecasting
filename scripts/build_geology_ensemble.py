@@ -328,7 +328,14 @@ def run_grid(args, data, grid, samplers, selection, out):
     f = data["fields"]
     nodes, tri, z62, mask = f["xy"], f["triangles"], f["contacts"], f["support_mask"]
     N, K = len(nodes), readings.n_fields
-    torch.cuda.set_per_process_memory_fraction(min(1.0, args.gpu_memory_gb * 2**30 / torch.cuda.get_device_properties(0).total_memory))
+    dev = torch.device(args.device)
+    if dev.type != "cuda":
+        raise ValueError("the grid stage needs a CUDA device")
+    if dev.index is None:
+        dev = torch.device("cuda", torch.cuda.current_device())
+    torch.cuda.set_device(dev)  # every later default-device CUDA call targets the selected GPU
+    torch.cuda.set_per_process_memory_fraction(
+        min(1.0, args.gpu_memory_gb * 2**30 / torch.cuda.get_device_properties(dev).total_memory), device=dev)
     data_idx = ge.data_node_index(nodes, readings.xy)
     s_nodes = data["surface"].sample(nodes)
     if not np.isfinite(s_nodes).all():
@@ -367,7 +374,7 @@ def run_grid(args, data, grid, samplers, selection, out):
             idx_all = N + np.arange(n_sup)[None, :] * sampler.candidates.shape[1] + choice
             positions = ext_nodes[idx_all]
             shifts = data["base_shift"][None, :] + sampler.vertical(rng_plan, R)
-        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.reset_peak_memory_stats(dev)
         start, stop = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
         start.record()
         wall = time.perf_counter()
@@ -437,9 +444,9 @@ def run_grid(args, data, grid, samplers, selection, out):
                     sec[name].setdefault("_raw", {})[CONTACTS[k]] = backend.to_numpy(vals)
                 del vals
             del level
-        stop.record(); torch.cuda.synchronize()
+        stop.record(); torch.cuda.synchronize(dev)
         gpu_ms = start.elapsed_time(stop)
-        peak = torch.cuda.max_memory_allocated() / 2**30
+        peak = torch.cuda.max_memory_allocated(dev) / 2**30
         # honouring of point readings (depth below the true collar = shift + reference depth)
         point = np.isfinite(readings.depth) & ~readings.filled
         true_depth = support_depth + shifts[:, :, None].astype(np.float32)
@@ -561,8 +568,10 @@ def main():
         import torch
         selection, evidence = selected_kinds(data["readings"], np.arange(len(data["ids"])), grid)
         save(out / "selection_full_data.json", {"rule": "PREREGISTRATION.json type_selection_rule", "selected": dict(zip(FIELDS, selection)),
-                                                "log_evidence": dict(zip(FIELDS, evidence)), "fixed_at": time.strftime("%Y-%m-%dT%H:%M:%S")})
-        receipt["versions"].update({"torch": torch.__version__, "cuda": torch.version.cuda, "gpu": torch.cuda.get_device_name(0)})
+                                                "log_evidence": dict(zip(FIELDS, evidence)),
+                                                "fixed_before_grid_under_prereg_sha256": pins["prereg"]})
+        receipt["versions"].update({"torch": torch.__version__, "cuda": torch.version.cuda, "gpu": torch.cuda.get_device_name(torch.device(args.device)),
+                                     "device": args.device})
         receipt["grid"] = run_grid(args, data, grid, samplers, selection, out)
         receipt["collar_samplers"] = {k: v.describe() for k, v in samplers.items()}
     receipt["outputs_sha256"] = {pth.name: sha(pth) for pth in sorted(out.iterdir()) if pth.is_file() and not pth.name.startswith("receipt")}

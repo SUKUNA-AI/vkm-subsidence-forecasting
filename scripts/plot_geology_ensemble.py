@@ -7,8 +7,11 @@ Coordinates are the local engineering frame SH1 (metres, no EPSG).
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
+import platform
+import sys
 
 import numpy as np
 
@@ -19,6 +22,10 @@ STATUS = "Синтетический ансамбль (DERIVATION): не наб�
 FRAME = "X, Y — местная система SH1, м (EPSG нет; глобальная привязка UNKNOWN). Z — DSM + глубины (инженерное допущение)"
 ZOOM = (-2900.0, 4100.0, -5300.0, -500.0)
 LINE12 = ((2680.0, -960.0), (3710.0, -960.0))
+
+
+def sha(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
 def read(path):
@@ -272,6 +279,18 @@ def main():
     summary = read(args.cv / "cv_summary.json")["summary"]
     f = out / "calibration_coverage"
     calibration_figure(summary, f); made.append(f)
+    inputs = {"ensemble_G": args.grid / "ensemble_G.npz", "ensemble_P90": args.grid / "ensemble_P90.npz",
+              "sections_G": args.grid / "sections_G.json", "sections_P90": args.grid / "sections_P90.json",
+              "cv_summary": args.cv / "cv_summary.json", "model_qa": args.model_dir / "FULL_CONTEXT_PARTIAL" / "qa.json",
+              "mapped_boreholes": args.model_dir / "mapped_boreholes.json", "script": Path(__file__)}
+    import matplotlib
+    outputs = sorted(f.with_suffix(ext) for f in made for ext in (".png", ".pdf"))
+    receipt = {"schema": "vkm.receipt/1", "transformation": "plot_geology_ensemble",
+               "command": [Path(sys.argv[0]).name] + sys.argv[1:], "inputs_sha256": {k: sha(v) for k, v in inputs.items()},
+               "versions": {"python": platform.python_version(), "numpy": np.__version__, "matplotlib": matplotlib.__version__},
+               "outputs_sha256": {f.name: sha(f) for f in outputs},
+               "status": "figures of a synthetic ensemble (DERIVATION); not observations"}
+    (out / "figures_receipt.json").write_text(json.dumps(receipt, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(json.dumps([m.name for m in made], ensure_ascii=False))
 
 

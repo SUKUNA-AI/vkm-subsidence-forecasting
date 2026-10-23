@@ -1,19 +1,28 @@
 """Monte Carlo convergence of the geology ensemble: 5 000 vs 10 000 realizations.
 
-Compares (a) two independent grid runs (different seeds and counts), (b) the nested first
-N realizations of the larger run against all of it, for P10/P50/P90 of the SZ and PDKS roofs
+Compares (a) two separate grid runs (different realization counts; streams diverge but are
+not formally independent when the master seed is shared), (b) the nested first N
+realizations of the larger run against all of it, for P10/P50/P90 of the SZ and PDKS roofs
 and P(zero PKS thickness); and LOO coverage of runs with different draws per fold.
 Differences are Monte Carlo noise of synthetic statistics, not uncertainty of geology.
+Writes the comparison JSON and ``<output stem>_receipt.json`` (inputs, command, output hash).
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
+import platform
+import sys
 
 import numpy as np
 
 KEY = ("SZ", "PDKS")
+
+
+def sha(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 PROBS = {1: "P10", 2: "P50", 3: "P90"}
 
 
@@ -73,7 +82,25 @@ def main():
     result = {"status": "Monte Carlo noise of synthetic statistics; not geological uncertainty",
               "grid": {v: grid_compare(args.grid_small, args.grid_large, v) for v in ("G", "P90")},
               "loo_coverage": cv_compare({s.split("=", 1)[0]: Path(s.split("=", 1)[1]) for s in args.cv})}
+    cv = {s.split("=", 1)[0]: Path(s.split("=", 1)[1]) for s in args.cv}
+    inputs = {"script": Path(__file__)}
+    for label, grid in (("grid_small", args.grid_small), ("grid_large", args.grid_large)):
+        for v in ("G", "P90"):
+            inputs["%s/ensemble_%s.npz" % (label, v)] = grid / ("ensemble_%s.npz" % v)
+        if (grid / "receipt_grid.json").is_file():
+            inputs[label + "/receipt_grid.json"] = grid / "receipt_grid.json"
+    for label, path in cv.items():
+        inputs["cv_%s/cv_summary.json" % label] = path / "cv_summary.json"
+    pins = {k: sha(v) for k, v in inputs.items()}
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    if pins != {k: sha(v) for k, v in inputs.items()}:
+        raise RuntimeError("an input changed during the comparison")
+    receipt = {"schema": "vkm.receipt/1", "transformation": "compare_ensemble_convergence",
+               "command": [Path(sys.argv[0]).name] + sys.argv[1:], "inputs_sha256": pins,
+               "versions": {"python": platform.python_version(), "numpy": np.__version__},
+               "outputs_sha256": {args.output.name: sha(args.output)}}
+    args.output.with_name(args.output.stem + "_receipt.json").write_text(
+        json.dumps(receipt, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(json.dumps(result["loo_coverage"], ensure_ascii=False))
 
 
