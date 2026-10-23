@@ -169,7 +169,10 @@ def test_grid_simulation_honours_data_numpy():
     assert log and all(entry["jitter_used"] >= GRID.jitter for entry in log)
 
 
+@pytest.mark.gpu
 def test_grid_simulation_honours_data_torch_cpu():
+    """GPU-backend parity (torch, here on the CPU device). torch belongs to the GPU stack, not to
+    the locked CPU pins, so the CPU suite deselects it; the NumPy path is covered above."""
     pytest.importorskip("torch")
     rng = np.random.default_rng(8)
     nodes, data_idx, y, post, yy, params = _grid_case(rng)
