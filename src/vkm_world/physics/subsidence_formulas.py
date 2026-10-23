@@ -215,9 +215,13 @@ class Profile:
     meta: dict = field(default_factory=dict)
 
     def maxima(self) -> dict:
-        return {"s_max_m": float(np.max(self.s)), "tilt_max": float(np.max(np.abs(self.tilt))),
-                "curvature_max_per_m": float(np.max(np.abs(self.curvature))),
-                "u_h_max_m": float(np.max(np.abs(self.u_h))), "eps_h_max": float(np.max(np.abs(self.eps_h)))}
+        """Наибольшие значения; величина, которую метод не задаёт (все NaN, например u у «Указаний»), — None."""
+        def max_abs(v):
+            v = np.asarray(v, dtype=float)
+            return float(np.nanmax(np.abs(v))) if np.any(np.isfinite(v)) else None
+        return {"s_max_m": float(np.max(self.s)), "tilt_max": max_abs(self.tilt),
+                "curvature_max_per_m": max_abs(self.curvature), "u_h_max_m": max_abs(self.u_h),
+                "eps_h_max": max_abs(self.eps_h)}
 
 
 def _interp(table: dict, key: str, z: np.ndarray) -> np.ndarray:

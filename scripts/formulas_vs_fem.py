@@ -43,6 +43,19 @@ PALETTE = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6
 INK, INK2, GRID = "#0b0b0b", "#52514e", "#d9d8d4"
 
 
+def strict_json(obj):
+    """Значения для строгого JSON: NaN/inf → None, числа numpy → float/int (ревью PR #20, summary.json)."""
+    if isinstance(obj, dict):
+        return {k: strict_json(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [strict_json(v) for v in obj]
+    if isinstance(obj, np.integer):
+        return int(obj)
+    if isinstance(obj, (float, np.floating)):
+        return float(obj) if math.isfinite(float(obj)) else None
+    return obj
+
+
 def sha256(p: Path) -> str:
     return hashlib.sha256(p.read_bytes()).hexdigest()
 
@@ -419,7 +432,7 @@ def main() -> int:
     (out / "scenario_for_matlab.json").write_text(json.dumps(
         {"x": [float(v) for v in x], "panel": list(panel), "H": H, "m0": M0, "omega_A": OMEGA["A"],
          "omega_B": OMEGA["B"], "delta_cur": DELTA_CUR, "psi_cur": PSI_CUR, "delta_92": DELTA_92, "psi_92": PSI_92,
-         "B_avershin_over_H": float(np.mean(AVERSHIN_B))}, indent=0) + "\n", encoding="utf-8")
+         "B_avershin_over_H": float(np.mean(AVERSHIN_B))}, indent=0) + "\n", encoding="utf-8", newline="\n")
 
     shapes = {}
     for name, p in norm.items():
@@ -462,19 +475,19 @@ def main() -> int:
     # таблицы
     with (out / "amplitude_comparison.csv").open("w", encoding="utf-8", newline="") as f:
         keys = sorted({k for r in amp for k in r}, key=lambda k: list(amp[0]).index(k) if k in amp[0] else 99)
-        w = csv.DictWriter(f, fieldnames=keys)
+        w = csv.DictWriter(f, fieldnames=keys, lineterminator="\n")
         w.writeheader()
         for r in amp:
             w.writerow({k: (f"{v:.6g}" if isinstance(v, float) else v) for k, v in r.items()})
     with (out / "formula_profiles.csv").open("w", encoding="utf-8", newline="") as f:
-        w = csv.writer(f)
+        w = csv.writer(f, lineterminator="\n")
         w.writerow(["case", "x", "s", "tilt", "curvature", "u_h", "eps_h"])
         for name, p in norm.items():
             for j in range(len(x)):
                 w.writerow([name, f"{x[j]:.4f}", f"{p.s[j]:.9e}", f"{p.tilt[j]:.9e}", f"{p.curvature[j]:.9e}",
                             f"{p.u_h[j]:.9e}", f"{p.eps_h[j]:.9e}"])
     with (out / "fem_surface_profiles.csv").open("w", encoding="utf-8", newline="") as f:
-        w = csv.writer(f)
+        w = csv.writer(f, lineterminator="\n")
         w.writerow(["case", "x", "s", "u_h", "seam_convergence"])
         for case, d in fem["cases"].items():
             for j in range(len(x)):
@@ -516,8 +529,8 @@ def main() -> int:
                         "tilt_over_s_per_m": float(np.max(np.abs(tilt)) / ss.max())}
         summary["pl12_diagnostic"] = {"status": "OBSERVATION_AS_PUBLISHED (оцифровка, вторичная публикация); только "
                                                 "диагностика формы и порядка величин", "epochs": diag}
-    (out / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1, default=float) + "\n",
-                                      encoding="utf-8")
+    (out / "summary.json").write_text(json.dumps(strict_json(summary), ensure_ascii=False, indent=1, allow_nan=False)
+                                      + "\n", encoding="utf-8", newline="\n")
 
     import matplotlib
     matplotlib.use("Agg")

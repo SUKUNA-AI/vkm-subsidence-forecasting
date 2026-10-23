@@ -146,6 +146,16 @@ def test_typical_profile_symmetry_flat_bottom_and_boundary(edition, curve):
     assert np.all(np.sign(p.eps_h[p.curvature != 0]) == np.sign(p.curvature[p.curvature != 0]))
 
 
+def test_maxima_are_strict_json():
+    """Величина, не заданная методом (u у «Указаний»), — None, а не NaN: сводки должны быть строгим JSON."""
+    import json
+    x = np.linspace(-1000, 1000, 401)
+    p = sf.typical_curve_profile(x, -300, 300, 320.0, 2.0, "VKM_UKAZANIYA_T4_SRC065", 55, 55)
+    m = p.maxima()
+    assert m["u_h_max_m"] is None and m["eps_h_max"] > 0
+    json.dumps(m, allow_nan=False)
+
+
 def test_typical_profile_incomplete_undermining_peaks_at_centre():
     H = 300.0
     x = np.linspace(-800, 800, 1601)
