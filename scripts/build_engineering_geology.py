@@ -141,8 +141,10 @@ def read_extra_observations(path, contacts):
     return by_id
 
 
-def support_set(rows, names, extra_by_id, config):
+def support_set(rows, names, extra_by_id, config, use_extra=True):
+    """Supports of one scope. Extra readings apply only to partial-observation scopes (use_extra)."""
     k = len(names)
+    extra_by_id = extra_by_id if use_extra else {}
     lower = np.full((len(rows), k), np.nan); upper = np.full((len(rows), k), np.nan)
     thickness = []
     for i, r in enumerate(rows):
@@ -160,8 +162,12 @@ def support_set(rows, names, extra_by_id, config):
                     lo, hi = e.get("lower_m", e.get("value_m")), None
                 else:
                     lo, hi = e.get("lower_m"), e.get("upper_m")
-                lower[i, c] = np.nan if lo is None else lo
-                upper[i, c] = np.nan if hi is None else hi
+                # Several readings of one contact are intersected (order-independent); a contradiction stops the build.
+                new_lo = np.nanmax([lower[i, c], np.nan if lo is None else lo]) if (np.isfinite(lower[i, c]) or lo is not None) else np.nan
+                new_hi = np.nanmin([upper[i, c], np.nan if hi is None else hi]) if (np.isfinite(upper[i, c]) or hi is not None) else np.nan
+                if np.isfinite(new_lo) and np.isfinite(new_hi) and new_lo > new_hi + 1e-9:
+                    raise ValueError(f"contradictory interval readings for {r['physical_id']} {e['contact']}: resolve upstream")
+                lower[i, c], upper[i, c] = new_lo, new_hi
             else:
                 top, bottom = names.index(e["top_contact"]), names.index(e["bottom_contact"])
                 if e["kind"] == "absent":
@@ -259,7 +265,7 @@ def run(args):
         if complete_count<3:
             reports.append({"scope":scope,"status":"INSUFFICIENT_COMPLETE_COLUMNS","complete_columns":complete_count})
             continue
-        supports=support_set(rows,names,extra_by_id,config)
+        supports=support_set(rows,names,extra_by_id,config,use_extra=partial)
         xy=supports.xy
         levels=supports.levels()
         support_hull=MultiPoint(xy).convex_hull
@@ -341,21 +347,31 @@ def run(args):
             # Wedges in mathematical CCW winding. Writer converts explicitly to OGS convention.
             n=len(nodes); points=np.vstack([np.column_stack([nodes,z[:,k+1]]),np.column_stack([nodes,z[:,k]])])
             cells=np.column_stack([triangles,triangles+n])
-            check=audit_vertical_wedges(points,cells,polygon,winding="ccw")
             thickness_here=z[:,k]-z[:,k+1]
+            pinch_note=None
             if partial and np.min(thickness_here)<=1e-9 and np.min(thickness_here)>=-1e-9:
-                # Observed or inferred zero thickness: degenerate wedges are not a volume
-                # element. Contacts stay in contact_fields.npz (PINCHOUT_CONTACT_ONLY).
-                pinchouts.append({"interval":names[k]+"_to_"+names[k+1],"zero_thickness_nodes":int(np.sum(thickness_here<=1e-9)),
-                                  "export":"PINCHOUT_CONTACT_ONLY; no VTU volume","check":{a:b for a,b in check.items() if not isinstance(b,(list,dict))}})
-                continue
+                # Observed or inferred zero thickness: only triangles with positive thickness at all three
+                # vertices become wedges; the pinch-out zone stays as contacts in contact_fields.npz (audit F/Sol, 23.10).
+                keep=np.all(thickness_here[triangles]>1e-9,axis=1)
+                from shapely.ops import unary_union
+                kept_polygon=unary_union([Polygon(nodes[t]) for t in triangles[keep]])
+                excluded_area=float(polygon.area-kept_polygon.area)
+                cells=np.column_stack([triangles[keep],triangles[keep]+n])
+                check=audit_vertical_wedges(points,cells,kept_polygon,winding="ccw")
+                pinch_note={"interval":names[k]+"_to_"+names[k+1],"zero_thickness_nodes":int(np.sum(thickness_here<=1e-9)),
+                            "excluded_triangles":int((~keep).sum()),"excluded_plan_area_m2":excluded_area,
+                            "export":"VTU volume without the pinch-out zone; zone kept as contacts (PINCHOUT_CONTACT_ONLY)"}
+                pinchouts.append(pinch_note)
+            else:
+                check=audit_vertical_wedges(points,cells,polygon,winding="ccw")
             if not check["conforming"]:
                 raise ValueError("nonconforming engineering volume in %s %s->%s: %s"%(scope,names[k],names[k+1],json.dumps({a:b for a,b in check.items() if not isinstance(b,(list,dict))},default=str)))
             filename=f"{names[k]}_to_{names[k+1]}.vtu"
             tagged_vtu(model_dir/filename,points,cells,k,{"GeometryRole":"ENGINEERING_SCENARIO","HeightFrame":"DSM_EGM2008_ANCHORED_DEPTH_MODEL",
                        "HorizontalFrame":"SH1_LOCAL","Source":"VKM-SRC-012 p64-65","VerticalTie":"ASSUMED_COLLAR_EQUALS_DSM_PLUS_SITE_OFFSET",
                        "Convention":"SOURCE012_ROOF_PRIMARY_WITH_RETAINED_UPPER_CONFLICT","GeometryVersion":geometry_version,
-                       "Observations":"COMPLETE_AND_PARTIAL" if partial else "COMPLETE_COLUMNS_ONLY"})
+                       "Observations":"COMPLETE_AND_PARTIAL" if partial else "COMPLETE_COLUMNS_ONLY",
+                       "PinchoutZone":"EXCLUDED_AS_CONTACTS_ONLY" if pinch_note else "NONE"})
             native_entries.append((names[k]+" to "+names[k+1],filename))
             mesh_checks.append(check);meshes.append((points,cells))
         interface_checks=[] if pinchouts else [audit_layer_interface(meshes[k+1][0],meshes[k+1][1],meshes[k][0],meshes[k][1]) for k in range(len(meshes)-1)]
@@ -391,7 +407,7 @@ def run(args):
                                       "continuous_vs_exported":discretization,
                                       "boreholes_on_trace":[{"physical_id":supports.ids[i],"distance_to_trace_m":float(projection["distance_m"][i]),"chainage_m":float(projection["chainage_m"][i])} for i in range(len(xy))],
                                       "comparison":comparisons})
-        render_sections(model_dir,scope,query,distance,section_z,names,old_top,old_contacts,old_delta,surface,rows)
+        render_sections(model_dir,scope,query,distance,section_z,names,old_top,old_contacts,old_delta,surface,rows,section["gap_after"])
         export_view(model_dir,scope,nodes,triangles,edges,z,names,colors,terrain_xy,terrain_z,terrain_tri,rows,args.three,full_context,support_hull)
         # Rank is tested on thickness-only observations, before the declared DSM hypothesis.
         first=next(r for r in rows if all(v is not None for v in r["depths_m"]))
@@ -434,18 +450,29 @@ def run(args):
     print(json.dumps({"models":links,"mapped_boreholes":len(joined),"output":str(out)},ensure_ascii=False))
 
 
-def render_sections(out,scope,query,distance,section,names,old_top,old_contacts,old_delta,surface,rows):
+def render_sections(out,scope,query,distance,section,names,old_top,old_contacts,old_delta,surface,rows,gap_after=None):
+    query=np.asarray(query,float); distance=np.asarray(distance,float); section=np.asarray(section,float)
+    natives={name:old_top.sample(query,z_values=old_contacts[name]) for name in names if name in old_contacts}
+    dsm=surface.sample(query)
+
+    def broken(values):
+        # Break plotted lines across mesh holes (gap_after) by inserting NaN after each gap breakpoint.
+        values=np.asarray(values,float)
+        if gap_after is None or not np.any(gap_after):
+            return values
+        return np.insert(values,np.flatnonzero(gap_after)+1,np.nan,axis=0)
+
+    x=broken(distance)
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     fig,axes=plt.subplots(2,1,figsize=(13,8),sharex=True,layout="constrained")
     for k,name in enumerate(names):
-        line,=axes[0].plot(distance,section[:,k],label=name)
-        if name in old_contacts:
-            native=old_top.sample(query,z_values=old_contacts[name])
-            axes[0].plot(distance,native,"--",color=line.get_color(),alpha=.55)
-            axes[1].plot(distance,section[:,k]-native,label=name)
-    axes[0].plot(distance,surface.sample(query),color="black",label="DSM 2011–2015")
+        line,=axes[0].plot(x,broken(section[:,k]),label=name)
+        if name in natives:
+            axes[0].plot(x,broken(natives[name]),"--",color=line.get_color(),alpha=.55)
+            axes[1].plot(x,broken(section[:,k]-natives[name]),label=name)
+    axes[0].plot(x,broken(dsm),color="black",label="DSM 2011–2015")
     axes[0].set_title(scope+": solid = engineering contacts; dashed = previous native; source012 p64–65")
     axes[0].set_ylabel("Z, m; DSM EGM2008 anchor assumed")
     axes[1].set_ylabel("New − previous native, m");axes[1].set_xlabel("Distance along support route, m")

@@ -111,11 +111,20 @@ def section_through_tin(nodes, triangles, values, polyline):
     missing = np.flatnonzero(~np.isfinite(out).all(axis=1))
     if len(missing):
         scale = max(float(np.ptp(nodes[:, 0])), float(np.ptp(nodes[:, 1])), 1.0)
+        tol = 1e-9*scale  # metres: only floating-point roundoff at the boundary is snapped
         for i in missing:
             bary = _barycentric(nodes, triangles, np.repeat(xy[[i]], len(triangles), axis=0))
             t = int(np.argmax(bary.min(axis=1)))
-            if bary[t].min() >= -1e-9*scale:
-                out[i] = np.clip(bary[t], 0, None)/np.clip(bary[t], 0, None).sum() @ values[triangles[t]]
+            p = nodes[triangles[t]]
+            # Barycentric coordinates are dimensionless: convert the most negative one into a distance
+            # through the altitude of its vertex (2 * area / opposite edge length).
+            area2 = abs((p[1, 0]-p[0, 0])*(p[2, 1]-p[0, 1])-(p[2, 0]-p[0, 0])*(p[1, 1]-p[0, 1]))
+            vertex = int(np.argmin(bary[t]))
+            opposite = np.linalg.norm(p[(vertex+2) % 3]-p[(vertex+1) % 3])
+            distance = -bary[t, vertex]*area2/max(opposite, 1e-300)
+            if distance <= tol:
+                w = np.clip(bary[t], 0, None)
+                out[i] = (w/w.sum()) @ values[triangles[t]]
                 tri_of[i] = t
     # An interval whose midpoint lies outside the mesh is a gap (hole/notch): consumers must break the line.
     gap_after = np.zeros(len(xy), bool)

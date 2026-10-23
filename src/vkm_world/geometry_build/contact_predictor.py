@@ -292,6 +292,13 @@ def _solve_node(w, lo, hi, thickness, k):
         z = a @ fit.x
     if not fit.success:
         raise RuntimeError("ordered least squares failed: "+str(fit.message))
+    # Order constraints can determine a contact the equality rows leave free: if the nearest determined
+    # contacts above and below coincide, every ordered solution puts it there (audit Sol, 23.10.2026).
+    for c in np.flatnonzero(~determined):
+        above = [i for i in range(c) if determined[i]]
+        below = [i for i in range(c+1, k) if determined[i]]
+        if above and below and abs(z[above[-1]]-z[below[0]]) <= 1e-9:
+            determined[c] = True
     z = np.where(determined, z, np.nan)
     shift = float(np.nanmax(np.abs(z-raw_z))) if np.isfinite(z).any() else 0.0
     return z, shift
@@ -375,6 +382,33 @@ def cross_validate(predictor_factory, supports, methods, block_size_m=None, grou
                     else:
                         thick.append(None)
                 rec["thickness_error_m"] = thick
+                # Held interval readings: violation (m) of the prediction against the reading, 0 when satisfied.
+                lo_j, hi_j = supports.depth_lower[j], supports.depth_upper[j]
+                interval = (np.isfinite(lo_j) | np.isfinite(hi_j)) & ~obs
+                depth_pred = supports.collar[j] - z
+                viol = []
+                for c in np.flatnonzero(interval):
+                    if not ok[c]:
+                        viol.append({"contact": supports.contacts[c], "violation_m": None})
+                        continue
+                    v = max((lo_j[c]-depth_pred[c]) if np.isfinite(lo_j[c]) else 0.0,
+                            (depth_pred[c]-hi_j[c]) if np.isfinite(hi_j[c]) else 0.0, 0.0)
+                    viol.append({"contact": supports.contacts[c], "violation_m": float(v)})
+                rec["interval_violations"] = viol
+                thick_read = []
+                for t in supports.thickness:
+                    if t["row"] != j:
+                        continue
+                    if ok[t["top"]] and ok[t["bottom"]]:
+                        val = float(z[t["top"]]-z[t["bottom"]])
+                        lo_t = t.get("lower"); hi_t = t.get("upper")
+                        v = max((lo_t-val) if lo_t is not None else 0.0, (val-hi_t) if hi_t is not None else 0.0, 0.0)
+                        thick_read.append({"top": supports.contacts[t["top"]], "bottom": supports.contacts[t["bottom"]],
+                                           "predicted_m": val, "violation_m": float(v)})
+                    else:
+                        thick_read.append({"top": supports.contacts[t["top"]], "bottom": supports.contacts[t["bottom"]],
+                                           "predicted_m": None, "violation_m": None})
+                rec["thickness_reading_checks"] = thick_read
                 if supports.independent_collar is not None and np.isfinite(supports.independent_collar[j]):
                     rec["independent_level_error_m"] = [float(z[c]-(supports.independent_collar[j]-supports.depth_lower[j, c]))
                                                         if comp[c] else None for c in range(len(z))]

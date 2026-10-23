@@ -273,3 +273,40 @@ def test_two_sided_interval_reaches_the_bounded_least_squares_optimum():
                        options={"ftol": 1e-15, "gtol": 1e-12, "maxiter": 5000})
         assert objective(start) <= ref.fun*(1+1e-6)+1e-9
     assert checked >= 10
+
+
+def test_order_determines_a_contact_sandwiched_between_equal_neighbours():
+    # Review (Codex Sol, 23.10): equality rows leave the middle contact free, order fixes it.
+    from vkm_world.geometry_build.contact_predictor import _solve_node
+    lo = np.array([[-5, np.nan, -5]] * 3, float)
+    z, _ = _solve_node(np.array([.2, .3, .5]), np.where(np.isnan(lo), -np.inf, lo), np.where(np.isnan(lo), np.inf, lo), [], 3)
+    np.testing.assert_allclose(z, [-5, -5, -5])
+
+
+def test_solve_node_equals_independent_mean_on_complete_columns():
+    from vkm_world.geometry_build.contact_predictor import _solve_node
+    rng = np.random.default_rng(7)
+    levels = -np.sort(rng.uniform(0, 300, (6, 4)), axis=1)
+    w = rng.uniform(.1, 1, 6); w /= w.sum()
+    z, shift = _solve_node(w, levels, levels.copy(), [], 4)
+    np.testing.assert_allclose(z, (w[:, None]*levels).sum(axis=0), atol=1e-8)
+    assert shift < 1e-8
+
+
+def test_cv_reports_held_interval_violation_and_absence_check():
+    lower = np.array([[10, 40], [10, 40], [10, 40], [10, 40], [10, np.nan]], float)
+    upper = lower.copy(); lower[4, 1] = 120.0
+    xy = np.array([[0, 0], [4, 0], [0, 4], [4, 4], [2, 2]], float)
+    ids = list("abcde")
+    s = SupportSet(ids, ids, xy, np.zeros(5), lower, upper, ["T", "B"],
+                   thickness=[{"row": 4, "top": 0, "bottom": 1, "lower": 0.0, "upper": 0.0}])
+    cv = cross_validate(lambda m, t: ContactPredictor(PredictorSpec("idw2", "LEVEL", allow_partial=True)), s, ["idw2"])
+    rec = next(r for r in cv["records"] if r["fold"] == "leave_one_physical_borehole_out" and r["well"] == "e")
+    assert rec["interval_violations"][0]["violation_m"] == pytest.approx(80.0)
+    assert rec["thickness_reading_checks"][0]["violation_m"] == pytest.approx(30.0)
+
+
+def test_section_tolerance_is_geometric_not_dimensionless():
+    nodes = np.array([[0, 0], [100000, 0], [0, 100000]], float)
+    sec = section_through_tin(nodes, [[0, 1, 2]], np.zeros(3), [[10000, -1], [20000, -1]])
+    assert np.isnan(sec["values"]).all()   # one metre outside the mesh is outside
