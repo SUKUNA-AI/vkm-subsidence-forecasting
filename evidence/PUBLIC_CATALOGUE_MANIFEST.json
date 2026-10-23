@@ -693,6 +693,88 @@
   },
   {
    "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_coverage_gaps.csv",
+   "source_sha256": "1fb588fba3fde5b8364f9f33b847b30a15e1e2b22bd7d76d406bfc9cea5c4aab",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_coverage_gaps.csv",
+   "target_sha256": "b573a6b9b4bc478a71b57107034985f90e057010e49b5a4e22b7c5c8c6320f2a"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_depth_vs_dsm_checks.csv",
+   "source_sha256": "9955ac6045440f9602d862040adf20ab21e4d0c1fc410a50a984b9dd0fe462a5",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_depth_vs_dsm_checks.csv",
+   "target_sha256": "1bcf2ff0ea97dcae3275e694fb876a0cded2fb2e7b6234ea84b971c641230cc2"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_mine_checks.json",
+   "source_sha256": "85c41f07d4acb67ac8869b39bea76eef5d2af69007f99b1b5b118ae2e02376f2",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_mine_checks.json",
+   "target_sha256": "9b196f6b86ddc27fef11f2cce7d6035179751382a544e49cb1acadbc6a964f4a"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_mine_conflicts.csv",
+   "source_sha256": "b78709fab324c8df693dbdbd1df367f7953b4a7ed6bd4a0ce91145dc834c3b69",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_mine_conflicts.csv",
+   "target_sha256": "c11d68c31d6e8227f4df8029029db03bc0681cc97a925014563725e038795ee8"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "SITE_SKRU1_MINE/skru1_mine_evidence.csv",
+   "source_sha256": "e12ced1d60a105e56ed1674aeab1034343a799c3df5939304963d3c38b08244c",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_mine_evidence.csv",
+   "target_sha256": "91abb7e56f3e6cd2736b05dc7524b9df6e686de145c27c1e141cb7ecfd4b3145"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_mining_units.csv",
+   "source_sha256": "84df30b5cd145b50c3aa911de7f1167ca61569564122077fd26c4ce6a74d7e05",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_mining_units.csv",
+   "target_sha256": "6ff0fdab613b84d029c2f88594456bb6ce6d915f1470d4ff151068875ef4911f"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_observation_index.csv",
+   "source_sha256": "55cb15400f3a49d746a78202cf97baebf08dee4e3b89586c07ff2618b9c5379f",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_observation_index.csv",
+   "target_sha256": "bb3a93d33564bc0e788f4aeeb95529e1008d195731382aee186e09ef3691c8ac"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_region_geology_frame.csv",
+   "source_sha256": "31398ba9c33c403f6485735a7349e12a8a4a8e3701da413e3da4353cda0756f9",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_region_geology_frame.csv",
+   "target_sha256": "411ca44fcf7363b0affff1636ecfdbb4b22a9f30207eae08bf49f48b29dbe393"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_seam_position_checks.csv",
+   "source_sha256": "3b5ee9fed96c957d90bc52a4b279538c790f2fc38a7853482343738ea00163ff",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_seam_position_checks.csv",
+   "target_sha256": "6ac5c35cebc9ee3e745a06fffa2262a665c4b28de127a4543429b779e7eb1657"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_seams_by_area.csv",
+   "source_sha256": "c65cb3a5cec811e518a63f7e89cb56d966a0d997661c95540b458f48871abb45",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_seams_by_area.csv",
+   "target_sha256": "60ea768d21b13cdc4b9af5c5c41a576c67319580ab5e5f51f91797b218d8078b"
+  },
+  {
+   "dropped_columns": [],
    "source": "SOURCES/SOURCE_COVERAGE_MASTER.csv",
    "source_sha256": "16e4e9ae3e079a92046dc2ebb7607db6f1bb24c4eb4aaf3bc4390f931cc700f4",
    "status": "OK",
