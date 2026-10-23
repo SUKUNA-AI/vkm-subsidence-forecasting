@@ -98,7 +98,9 @@ def test_time_function_misprint_is_documented():
     assert printed < 0
     assert fixed == pytest.approx(upper, rel=2e-3)
     assert sf.time_fraction_ukazaniya(100.0, 0.32) == pytest.approx(0.4)
+    # C < 0,32: k_t = 0,2·t/100, t в годах (VKM-SRC-103 с. 26 (1.12)); 500 лет — полная реализация
     assert sf.time_fraction_ukazaniya(100.0, 0.2) == pytest.approx(0.2)
+    assert sf.time_fraction_ukazaniya(40.0, 0.25) == pytest.approx(0.08)
 
 
 @pytest.mark.parametrize("H,eta,s1max,printed", [(320, 2.5, 2.0, 10.1), (400, 2.5, 2.0, 8.1), (250, 2.5, 2.0, 13.0),

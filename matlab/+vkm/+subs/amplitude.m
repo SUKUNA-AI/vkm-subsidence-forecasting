@@ -14,8 +14,9 @@ function out = amplitude(name, varargin)
 %   out = vkm.subs.amplitude('L', H, delta0, psi)     L = H(ctg delta0 + ctg psi), углы в градусах
 %   out = vkm.subs.amplitude('vzt', H, h, S2max, m, omega, A, B [, epsLim])  предельная мощность слоя соли ВЗТ
 %                                                     (8.144) VKM-SRC-037 печ. с. 341, [eps] = 0,002 по умолчанию
-%   out = vkm.subs.amplitude('time', t, C, variant)   (1.2)-(1.7) VKM-SRC-065 с. 29-30, только справочно:
-%                                                     единицы t UNKNOWN; variant 'as_printed' | 'beta15_plus'
+%   out = vkm.subs.amplitude('time', t, C, variant)   (1.2)-(1.7) VKM-SRC-065 с. 29-30; t — годы (та же форма
+%                                                     в VKM-SRC-103 с. 26 (1.12): «t – ... лет»); ветвь C >= 0,32 —
+%                                                     только справочно; variant 'as_printed' | 'beta15_plus'
 %   Формулы — нормативная эмпирика (DESIGN), не наблюдения. Реализация повторяет Python-модуль
 %   vkm_world.physics.subsidence_formulas; сверка двух реализаций — в matlab/tests и scripts/formulas_vs_fem.py.
 switch name
