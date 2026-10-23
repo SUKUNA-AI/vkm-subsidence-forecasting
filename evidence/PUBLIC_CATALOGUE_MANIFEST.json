@@ -228,6 +228,16 @@
    "target_sha256": "7618261f217778f91102e9cd289e6d45a3e8758d1dd788adc164ab79ba6a1a3c"
   },
   {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "FORMULAS/SUBSIDENCE_CALC_FORMULAS.csv",
+   "source_sha256": "361119a1e623b0efd92ddf308e65d62c1b62de8ab327d8b118bcc779524f9547",
+   "status": "OK",
+   "target": "catalogues/mathematics/subsidence_calc_formulas.csv",
+   "target_sha256": "6bd6bf4b0d9be1dfeb022fe8b68507da2fa76c7f5068f47a9ca246e7ee452d22"
+  },
+  {
    "dropped_columns": [],
    "source": "GEOLOGY_COORDS/FIX_LOG.csv",
    "source_sha256": "37d7e473ac631d6d5b6623161e60a706be3af08f534cf609d85d45327656b89a",
