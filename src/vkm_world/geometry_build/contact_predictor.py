@@ -374,6 +374,9 @@ def cross_validate(predictor_factory, supports, methods, block_size_m=None, grou
                        "status": str(result["masks"][r]), "constraint_adjustment_m": float(result["constraint_adjustment_m"][r])}
                 comp = obs & ok
                 rec["predicted_contacts"] = int(comp.sum()); rec["observed_contacts"] = int(obs.sum())
+                # A held support with only interval/thickness readings is still a prediction (review Codex, 23.10):
+                # it counts as predicted and is scored through its interval and thickness checks.
+                rec["prediction_finite"] = bool(ok.any())
                 rec["level_error_m"] = [float(z[c]-levels[j, c]) if comp[c] else None for c in range(len(z))]
                 thick = []
                 for c in range(len(z)-1):
@@ -432,16 +435,20 @@ def summarize_cv(records, methods, k):
             subset = [r for r in records if r["fold"] == kind and r.get("position") == position]
             if not subset:
                 continue
-            own = {m: {r["well"] for r in subset if r["method"] == m and r.get("predicted_contacts")} for m in methods}
+            own = {m: {r["well"] for r in subset if r["method"] == m and r.get("prediction_finite")} for m in methods}
             common = set.intersection(*own.values()) if own else set()
             for m in methods:
                 rows = [r for r in subset if r["method"] == m]
-                predicted = [r for r in rows if r.get("predicted_contacts")]
+                predicted = [r for r in rows if r.get("prediction_finite")]
+                checks = [v["violation_m"] for r in predicted for v in r.get("interval_violations", []) + r.get("thickness_reading_checks", [])
+                          if v.get("violation_m") is not None]
                 summary[f"{kind}/{position}/{m}"] = {
                     "attempted": len(rows), "predicted": len(predicted), "refused": len(rows)-len(predicted),
                     "own_coverage_wells": sorted(own[m]), "common_coverage_wells": sorted(common),
                     "own_level_scores": scores(predicted, "level_error_m", k),
                     "common_level_scores": scores([r for r in predicted if r["well"] in common], "level_error_m", k),
                     "common_thickness_scores": scores([r for r in predicted if r["well"] in common], "thickness_error_m", k-1),
-                    "independent_collar_level_scores": scores([r for r in predicted if r.get("independent_level_error_m")], "independent_level_error_m", k)}
+                    "independent_collar_level_scores": scores([r for r in predicted if r.get("independent_level_error_m")], "independent_level_error_m", k),
+                    "interval_and_thickness_checks": {"n": len(checks), "violated": int(sum(v > 1e-6 for v in checks)),
+                                                      "max_violation_m": float(max(checks)) if checks else None}}
     return summary

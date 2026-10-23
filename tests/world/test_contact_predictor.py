@@ -310,3 +310,16 @@ def test_section_tolerance_is_geometric_not_dimensionless():
     nodes = np.array([[0, 0], [100000, 0], [0, 100000]], float)
     sec = section_through_tin(nodes, [[0, 1, 2]], np.zeros(3), [[10000, -1], [20000, -1]])
     assert np.isnan(sec["values"]).all()   # one metre outside the mesh is outside
+
+
+def test_cv_counts_interval_only_support_as_predicted():
+    lower = np.array([[10, 40], [10, 40], [10, 40], [10, 40], [np.nan, np.nan]], float)
+    upper = lower.copy(); lower[4, 1] = 120.0
+    xy = np.array([[0, 0], [4, 0], [0, 4], [4, 4], [2, 2]], float)
+    ids = list("abcde")
+    s = SupportSet(ids, ids, xy, np.zeros(5), lower, upper, ["T", "B"])
+    cv = cross_validate(lambda m, t: ContactPredictor(PredictorSpec("idw2", "LEVEL", allow_partial=True)), s, ["idw2"])
+    rec = next(r for r in cv["records"] if r["fold"] == "leave_one_physical_borehole_out" and r["well"] == "e")
+    assert rec["prediction_finite"] and rec["predicted_contacts"] == 0
+    summ = cv["summary"]["leave_one_physical_borehole_out/INTERPOLATION/idw2"]
+    assert summ["predicted"] == summ["attempted"] and summ["interval_and_thickness_checks"]["violated"] == 1

@@ -494,7 +494,10 @@ def export_view(out,scope,nodes,triangles,edges,z,names,colors,txy,tz,ttri,rows,
     objects={"meshes":[],"lines":[],"boreholes":[{"id":r["physical_id"],"label":r["physical_id"],"x":r["x"],"y":r["y"],"display_z":r["collar_scenario_m"],
               "status":"ENGINEERING_ASSUMPTION","source_id":"VKM-SRC-012","display_anchor_status":"DSM_COLLAR_ASSUMPTION"} for r in rows]}
     for r in rows:
-        pts=np.array([[r["x"],r["y"],r["collar_scenario_m"]],[r["x"],r["y"],r["collar_scenario_m"]-max(v for v in r["depths_m"] if v is not None)]])
+        point_depths=[v for v in r["depths_m"] if v is not None]
+        if not point_depths:
+            continue  # thickness- or absence-only support: no measured borehole length to draw (review Codex, 23.10)
+        pts=np.array([[r["x"],r["y"],r["collar_scenario_m"]],[r["x"],r["y"],r["collar_scenario_m"]-max(point_depths)]])
         objects["lines"].append({"id":r["physical_id"],"group":"borehole","paths":[{"points":encode(pts),"delta":encode([0,0])}],"z_status":"SOURCE_DEPTHS_AT_ENGINEERING_COLLAR"})
     js(out/"data/scene.js","VKM_SCENE",scene)
     js(out/"data/unified.js","VKM_UNIFIED",{"delta":encode(np.zeros(len(nodes))),"meta":{"height_mode":"ENGINEERING_DSM_COLLAR_DEPTHS; NO_POSTHOC_WARP","height_label":"Глубины скважин + DSM; инженерное продолжение" if full_context else "Контрольный участок по скважинам"}})
