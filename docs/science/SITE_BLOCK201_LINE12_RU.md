@@ -1,3 +1,4 @@
+<!-- Опубликовано из PRIVATE 11_evidence_vnext/canonical/SITE_BLOCK201_LINE12/SITE_BLOCK201_LINE12_RU.md (синтез Phase 1). Дословные цитаты источников — только в PRIVATE. -->
 # Участок специальной части: блок 201 СКРУ-1 — профильная линия 12 — скв. 128 (23.10.2026)
 
 Публичная сводка. Записи с цитатами, рисунки и скрипты лежат в PRIVATE: поток `11_evidence_vnext/canonical/SITE_BLOCK201_LINE12/`

@@ -40,12 +40,12 @@ def fix(text: str, report_name: str, out_dir: pathlib.Path = DEST, stream: str =
         dst = (mapping.get(f'{stream}/{path.removeprefix("./")}') or mapping.get(f'{stream}/{name}')
                or by_name.get(name))
         if dst:
-            rel = os.path.relpath(PUB / dst, out_dir)
+            rel = pathlib.Path(os.path.relpath(PUB / dst, out_dir)).as_posix()   # Markdown links: '/' on every OS
             return f'{bang}[{label}]({rel})'
         if name.endswith('.md'):
             hit = next((q for q in (out_dir / name, DEST / name, DEST / 'external' / name) if q.exists()), None)
             if hit is not None:
-                return f'[{label}]({os.path.relpath(hit, out_dir)})'
+                return f'[{label}]({pathlib.Path(os.path.relpath(hit, out_dir)).as_posix()})'
         notes.append(f'unlinked: {target}')
         return f'{label} (`{target}`, PRIVATE/рабочие материалы)' if label != target else f'`{target}`'
     out = LINK.sub(rep, text)

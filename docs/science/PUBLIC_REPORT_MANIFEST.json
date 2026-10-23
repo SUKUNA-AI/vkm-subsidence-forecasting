@@ -6,6 +6,13 @@
    "status": "OK",
    "target": "docs/science/ENGINEERING_REVIEW_20261017_RU.md",
    "target_sha256": "255f2f71a4872ff003f87275e87c78802a738789cf31644e0e776b274f275a06"
+  },
+  {
+   "source": "SITE_BLOCK201_LINE12/SITE_BLOCK201_LINE12_RU.md",
+   "source_sha256": "69448e7a0530fb2a1b1cf76cb0abcdc853ee7726c6615ba2258357a0b400a0d2",
+   "status": "OK",
+   "target": "docs/science/SITE_BLOCK201_LINE12_RU.md",
+   "target_sha256": "64cb66b5798a928d311283b2b26c7f6255ec83e90b8b87d0cec009a6017d16dc"
   }
  ],
  "generator": "docs/reset_2026_09/run_kit/tools/publish_reports.py",
