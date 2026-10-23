@@ -27,6 +27,8 @@ FAMILY = {
     "ref_like": ED.MESH_SPECS["ref_like"],
     "fine2": MeshSpec(rows=(2, 10, 8, 6, 10, 16, 6, 6, 12, 18), chamber_elems=16, pillar_h=0.65, outer_h0=0.65,
                       outer_growth=1.15, outer_hmax=10.0),
+    "fine3": MeshSpec(rows=(2, 10, 8, 6, 10, 24, 9, 9, 18, 18), chamber_elems=24, pillar_h=0.433, outer_h0=0.433,
+                      outer_growth=1.12, outer_hmax=10.0),
 }
 
 
@@ -39,6 +41,8 @@ def main():
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--sched", default="0.01,1.25,0.5")
     ap.add_argument("--mem-gb", type=float, default=3.5)
+    ap.add_argument("--only", nargs="*", help="subset of mesh names; results are merged into --out")
+    ap.add_argument("--method", default="cr", choices=["cr", "thomas"])
     a = ap.parse_args()
     free, total = torch.cuda.mem_get_info()
     torch.cuda.set_per_process_memory_fraction(min(a.mem_gb * 1e9, free - 1.0e9) / total)
@@ -49,11 +53,15 @@ def main():
     prof["base_z"] = sec["model_choices"]["base_elevation_m"][0]
     sched = tuple(float(v) for v in a.sched.split(","))
     steps = time_steps(40.0, *sched, marks=ED.OUT_TIMES[1:])
-    EC.SOLVER_KW = dict(factor_dtype=torch.float32, keep_factor_between_steps=True, reuse_ratio=0.4)
+    EC.SOLVER_KW = dict(factor_dtype=torch.float32, keep_factor_between_steps=True, reuse_ratio=0.4, method=a.method)
     res = {"schema": "vkm.gpu_ensemble.mesh_convergence/1", "schedule": a.sched, "n_steps": len(steps), "times": ED.OUT_TIMES,
            "cases": {}}
+    if a.only and a.out.exists():
+        res = json.loads(a.out.read_text(encoding="utf-8"))
     for var, L, visc in (("A27", 27.0, "FIELD"), ("B20", 20.0, "LAB")):
         for name, spec in FAMILY.items():
+            if a.only and name not in a.only:
+                continue
             P = {"E_factor": [0.5], "eta_sylv": [tab.eta(visc, "sylvinite")], "eta_salt": [tab.eta(visc, "rock_salt")],
                  "eta_carn": [tab.eta(visc, "carnallite")], "L_axis": [L], "d_roof": [10.0], "h_seam": [5.5], "fill_on": [0],
                  "fill_frac": [0.5], "E_fill": [2e8], "k0": [0], "geo": [-1], "norm": [0]}

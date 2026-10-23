@@ -70,8 +70,12 @@ def load(out: Path, tags):
     return D, M, extra, prof, grid, gpu
 
 
-def sobol_groups(D, Y, ok, n_boot=500, seed=1):
-    """Saltelli 2010 first-order and Jansen total indices by groups with bootstrap 90 % intervals."""
+def sobol_groups(D, Y, ok, n_boot=500, seed=1, lambda_one_only=False):
+    """Saltelli 2010 first-order and Jansen total indices by groups with bootstrap 90 % intervals.
+
+    lambda_one_only: keep only tuples whose A and B rows both have λ = 1 — then every AB_i row has λ = 1 as well,
+    and the tuples form a valid Saltelli design conditional on the admissible initial state (rule UE-E-ADMIT-01 of
+    the uncertainty budget: without excavation a world must be quasi-stationary; K0 worlds drift)."""
     N = int((D["block"] == "A").sum())
     g = len(ED.GROUPS)
     blk, grp = D["block"], D["group"]
@@ -81,7 +85,11 @@ def sobol_groups(D, Y, ok, n_boot=500, seed=1):
     valid = ok[iA] & ok[iB] & np.all([ok[i] for i in iAB], axis=0) & np.isfinite(Y[iA]) & np.isfinite(Y[iB])
     for i in iAB:
         valid &= np.isfinite(Y[i])
+    if lambda_one_only:
+        valid &= (D["k0"][iA] == 0) & (D["k0"][iB] == 0)
     rows = np.where(valid)[0]
+    if len(rows) < 30:
+        return None, int(len(rows)), N
 
     def est(sel):
         fA, fB = Y[iA[sel]], Y[iB[sel]]
@@ -138,7 +146,7 @@ def q(a, ps=(0.05, 0.25, 0.5, 0.75, 0.95)):
                                                                               "max": float(a.max()), "n": int(len(a))}
 
 
-def figures(D, M, ok, prof, grid, sob, obs, rep, figdir: Path):
+def figures(D, M, ok, prof, grid, sob, obs, rep, figdir: Path, sob_l1=None):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -176,28 +184,33 @@ def figures(D, M, ok, prof, grid, sob, obs, rep, figdir: Path):
     fig.tight_layout()
     fig.savefig(figdir / "fig_e2_smax_hist.png", dpi=150)
     plt.close(fig)
-    # 3 Sobol bars
+    # 3 Sobol bars: full design (row 1) and admissible λ = 1 subset (row 2)
     names = [g for g, _ in ED.GROUPS]
-    fig, ax = plt.subplots(1, 3, figsize=(13, 4.2), sharey=True)
-    for a_, t in zip(ax, ("10", "20", "40")):
-        r = sob[f"log10_s_max_t{t}"]["indices"]
-        y = np.arange(len(names))
-        S1 = [r[n]["S1"] for n in names]
-        ST = [r[n]["ST"] for n in names]
-        e1 = [[r[n]["S1"] - r[n]["S1_q05"] for n in names], [r[n]["S1_q95"] - r[n]["S1"] for n in names]]
-        eT = [[r[n]["ST"] - r[n]["ST_q05"] for n in names], [r[n]["ST_q95"] - r[n]["ST"] for n in names]]
-        a_.barh(y + 0.2, ST, 0.4, xerr=eT, color="#fdae6b", label="полный ST")
-        a_.barh(y - 0.2, S1, 0.4, xerr=e1, color="#3182bd", label="первого порядка S1")
-        a_.set_yticks(y, [GROUP_RU[n] for n in names])
-        a_.set_title(f"lg s_max, {t} лет")
-        a_.axvline(0, color="k", lw=0.5)
-        a_.grid(alpha=0.3, axis="x")
-    ax[0].invert_yaxis()
-    ax[0].legend(loc="lower right")
-    fig.suptitle("Индексы Соболя по элементам неопределённости (90 % бутстреп)")
-    fig.tight_layout()
-    fig.savefig(figdir / "fig_e3_sobol.png", dpi=150)
-    plt.close(fig)
+    sets = [("все миры (λ = 1 и K0)", sob)]
+    if sob_l1 and sob_l1.get("log10_s_max_t40", {}).get("indices") is not None:
+        sets.append(("только λ = 1 (допустимое начальное поле)", sob_l1))
+    if sob.get("log10_s_max_t40", {}).get("indices") is not None:
+        fig, axs = plt.subplots(len(sets), 3, figsize=(13, 4.2 * len(sets)), sharey=True, squeeze=False)
+        for row, (title, S_) in enumerate(sets):
+            for a_, t in zip(axs[row], ("10", "20", "40")):
+                r = S_[f"log10_s_max_t{t}"]["indices"]
+                y = np.arange(len(names))
+                S1 = [r[n]["S1"] for n in names]
+                ST = [r[n]["ST"] for n in names]
+                e1 = [[max(0, r[n]["S1"] - r[n]["S1_q05"]) for n in names], [max(0, r[n]["S1_q95"] - r[n]["S1"]) for n in names]]
+                eT = [[max(0, r[n]["ST"] - r[n]["ST_q05"]) for n in names], [max(0, r[n]["ST_q95"] - r[n]["ST"]) for n in names]]
+                a_.barh(y + 0.2, ST, 0.4, xerr=eT, color="#fdae6b", label="полный ST")
+                a_.barh(y - 0.2, S1, 0.4, xerr=e1, color="#3182bd", label="первого порядка S1")
+                a_.set_yticks(y, [GROUP_RU[n] for n in names])
+                a_.set_title(f"{title}: lg s_max, {t} лет (N = {S_[f'log10_s_max_t{t}']['N_valid']})", fontsize=8)
+                a_.axvline(0, color="k", lw=0.5)
+                a_.grid(alpha=0.3, axis="x")
+            axs[row][0].legend(loc="lower right", fontsize=7)
+        axs[0][0].invert_yaxis()
+        fig.suptitle("Индексы Соболя по элементам неопределённости (90 % бутстреп)")
+        fig.tight_layout()
+        fig.savefig(figdir / "fig_e3_sobol.png", dpi=150)
+        plt.close(fig)
     # 4 scatter vs key parameters
     keys = ["eta_sylv", "L_axis", "E_factor", "d_roof", "h_seam", "E_fill"]
     j40 = ED.OUT_TIMES.index(40.0)
@@ -325,10 +338,20 @@ def main():
     outputs["creep_part_t40"] = s[:, j40] - s[:, j0]
     outputs["log10_tilt_t40"] = np.log10(np.maximum(M["tilt_max_mm_per_m"][:, j40], 1e-9))
     outputs["width_10mm_t40"] = np.nan_to_num(M["width_10mm_m"][:, j40], nan=0.0)
+    sob_l1 = {}
     for name, Y in outputs.items():
         r, nvalid, N = sobol_groups(D, Y, ok, n_boot=a.boot)
         sob[name] = {"indices": r, "N_valid": nvalid, "N": N}
+        r, nvalid, N = sobol_groups(D, Y, ok, n_boot=a.boot, lambda_one_only=True)
+        sob_l1[name] = {"indices": r, "N_valid": nvalid, "N": N}
     res["sobol_groups"] = sob
+    res["sobol_groups_lambda1_admissible"] = {"status": "conditional on λ = 1 (K0 worlds drift without excavation; "
+                                              "admissibility threshold is the owner's decision)", "results": sob_l1}
+    l1 = ok & (D["k0"] == 0)
+    res["distributions_lambda1_admissible"] = {f"s_max_mm_t{t:g}": q(s[l1, T.index(t)]) for t in (0.0, 10.0, 20.0, 40.0)} | {
+        "width_10mm_m_t40": q(np.nan_to_num(M["width_10mm_m"][l1, j40], nan=0.0)),
+        "tilt_max_mm_per_m_t40": q(M["tilt_max_mm_per_m"][l1, j40]),
+        "rate_mm_per_yr_35_40": q((s[l1, j40] - s[l1, T.index(35.0)]) / 5.0)}
     AB = np.isin(D["block"], ["A", "B"]) & ok
     res["first_order_by_parameter_given_data"] = {
         name: {p[0]: first_order_by_bins(D[p[0]][AB], Y[AB]) for p in ED.param_list()}
@@ -358,7 +381,7 @@ def main():
                                   "series_sha256": h, "by_epoch": diag}
     figdir = a.out / "figures"
     figdir.mkdir(exist_ok=True)
-    figures(D, M, ok, prof, grid, sob, obs, res["representation_error"], figdir)
+    figures(D, M, ok, prof, grid, sob, obs, res["representation_error"], figdir, sob_l1)
     (a.out / "analysis.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
     # compact table of all runs
     with open(a.out / "runs_table.csv", "w", encoding="utf-8", newline="") as f:
