@@ -320,6 +320,40 @@ UNIT_COLS = ["unit_id", "object_key", "object_label", "object_kind", "seam", "pl
              "source_ids", "evidence_ids", "conflict_ids", "notes"]
 
 
+def cap_end(u: dict, cap: int, note: str) -> None:
+    """Apply an upper bound to the end of mining. Dependent bounds follow it (start_max ≤ end_max, end_min ≤ end_max);
+    the caller has checked that the earliest start is not later than the cap."""
+    u["mining_end_max"] = cap
+    for k in ("mining_start_max", "mining_end_min"):
+        if u.get(k) not in ("", None) and int(u[k]) > cap:
+            u[k] = cap
+    u["mining_open_bounds"] = (u["mining_open_bounds"] + "; " if u["mining_open_bounds"] else "") + note
+
+
+def timing_records(acts: list[dict]) -> list[dict]:
+    """Printed timing of the FACT mining rows of a unit, each with its own source, in the WorldSpec event vocabulary:
+    PERIOD (start and end printed), START (start year printed, end open), END (end year printed, start open), END_BY
+    / BOUND (only «not later than» or a start range — no event, the bound stays a note). Field-wide fallback bounds are never used here."""
+    out = []
+    for r in acts:
+        iv = interval_from_row(r["start_min"], r["start_max"], r["end_min"], r["end_max"])
+        if iv is None:
+            continue
+        base = {"source_id": r["source_id"], "ev_id": r["ev_id"]}
+        if iv.start_min is not None and iv.end_max is not None:
+            out.append({**base, "kind": "PERIOD", "y0": iv.start_min, "y1": iv.end_max})
+        elif iv.start_min is not None and iv.start_min == iv.start_max:
+            out.append({**base, "kind": "START", "y0": iv.start_min, "y1": None})
+        elif iv.end_max is not None and iv.end_min == iv.end_max:
+            out.append({**base, "kind": "END", "y0": None, "y1": iv.end_max})
+        elif iv.end_max is not None:
+            out.append({**base, "kind": "BOUND", "y0": None, "y1": iv.end_max, "text": f"END≤{iv.end_max}"})
+        elif iv.start_min is not None:
+            out.append({**base, "kind": "BOUND", "y0": iv.start_min, "y1": None,
+                        "text": f"START {iv.start_min}–{iv.start_max}" if iv.start_max else f"START≥{iv.start_min}"})
+    return out
+
+
 def worked_1990(u: dict, seam: str) -> str | None:
     """Text of the ≈1990 bound when the unit is ≥ 0.5 worked on VKM-SRC-037 fig. 2.7; for seam В the composition of the
     worked area is not shown, so the bound is used for Вк only where the Вк extent (legend 5) or plan 064 shows Вк in
@@ -523,12 +557,12 @@ def build_units(evidence, key_index, regions, layers, aliases=None, cal_sources=
                               ("; " + u["notes"] if u["notes"] else "")).rstrip("; ")
             elif u["mining_open_bounds"] and u["mining_end_max"] not in ("", None) and int(u["mining_end_max"]) > 1990 \
                     and not u["mining_core"]:
-                u["mining_end_max"] = 1990
-                u["mining_open_bounds"] += f"; END≤1990 ({w90b})"
+                cap_end(u, 1990, f"END≤1990 ({w90b})")
         f07 = re.match(r"WORKED_(Вк|Вс)_(\d\.\d+)", u["state_2007_064"])
-        if f07 and float(f07.group(2)) >= 0.5 and u["mining_end_max"] not in ("", None) and                 int(u["mining_end_max"]) > 2006 and int(u["mining_start_min"] or open_lo) <= 2006 and not u["mining_core"]:
-            u["mining_end_max"] = 2006
-            u["mining_open_bounds"] = (u["mining_open_bounds"] + "; " if u["mining_open_bounds"] else "") +                 "END≤2006 по схеме 064 (отработано на 01.01.2007, доля площади ≥ 0,5)"
+        if (f07 and float(f07.group(2)) >= 0.5 and u["mining_end_max"] not in ("", None)
+                and int(u["mining_end_max"]) > 2006 and int(u["mining_start_min"] or open_lo) <= 2006 and not u["mining_core"]):
+            cap_end(u, 2006, "END≤2006 по схеме 064 (отработано на 01.01.2007, доля площади ≥ 0,5)")
+        u["_timing"] = timing_records(acts)
         if plans:
             ys = sorted({y for r in plans for y in (r["start_min"], r["end_max"]) if y not in ("", None)})
             u["planned_years"] = ";".join(str(y) for y in ys)
@@ -566,6 +600,10 @@ def build_units(evidence, key_index, regions, layers, aliases=None, cal_sources=
             bmaxs = [int(r["end_max"]) for r in bfs if r["end_max"] not in ("", None)]
             u["backfill_start_min"] = min(bmins) if bmins else ""
             u["backfill_end_max"] = max(bmaxs) if bmaxs else ""
+            u["_backfill"] = [{"y0": int(r["start_min"]), "y1": int(r["end_max"]) if r["end_max"] not in ("", None) else None,
+                               "source_id": r["source_id"], "ev_id": r["ev_id"]}
+                              for r in bfs if r["start_min"] not in ("", None) and r["status"] == "FACT"
+                              and r["planned_or_actual"] != "STATE_SNAPSHOT"]   # a state on a date is not a period
         u["secondary_mining"] = " | ".join(sorted({f"{r['value_as_printed'][:80]} [{r['planned_or_actual']}]"
                                                    for r in rows if r["attribute"] == "SECONDARY_MINING"}))[:300]
         u["events"] = " | ".join(sorted({f"{r['attribute']}: {r['value_as_printed'][:70]} ({r['date_as_printed'][:20]})"
@@ -1123,10 +1161,10 @@ def main(argv=None) -> int:
     bad = []
     for u, g in units:
         vals = [u[c] for c in ("mining_start_min", "mining_start_max", "mining_end_min", "mining_end_max")]
-        if all(v not in ("", None) for v in vals):
-            a0, a1, b0, b1 = (int(v) for v in vals)
-            if not (a0 <= a1 and b0 <= b1 and a0 <= b1):
-                bad.append(u["unit_id"])
+        v = [int(x) if x not in ("", None) else None for x in vals]
+        pairs = [(v[0], v[1]), (v[2], v[3]), (v[0], v[3]), (v[1], v[3]), (v[0], v[2])]  # smin≤smax, emin≤emax, smin≤emax,
+        if any(p is not None and q is not None and p > q for p, q in pairs):         # smax≤emax, smin≤emin
+            bad.append(u["unit_id"])
     checks["interval_order_errors"] = bad
     # same seam overlap of certainly simultaneous units
     ulist = []
@@ -1418,52 +1456,77 @@ def gap_table(units, regions):
 
 
 def build_worldspec(units, out_path: Path) -> dict:
-    """Mining objects and extraction events as vkm_world models; validated by the chronology rules."""
+    """Mining objects and extraction/backfill events as vkm_world models; validated by the chronology rules.
+
+    Events come only from printed (FACT) dates and cite only the rows that gave them: a printed period →
+    EXTRACTION_PERIOD, a printed start with an open end → EXTRACTION_START, a printed end with an open start →
+    EXTRACTION_END. «Not later than» bounds, plan snapshots and derived dates produce no event — they stay in the
+    object's notes. Field-wide fallback years (1930/1936, 2026) are never written as event dates."""
     from vkm_world.chronology.events import Event, EventType, chronology_errors
     from vkm_world.core.provenance import (EpistemicStatus, EvidenceType, Provenance, Scale, Scope, SourceRef,
                                            TemporalSupport)
     from vkm_world.mining.objects import DesignOrActual, MiningObject, MiningObjectKind, mining_object_errors
+
+    def refs(ids):
+        return tuple(SourceRef(source_id=s) for s in sorted(set(ids)) if s.startswith(("VKM-SRC", "EXT")))
+
+    def fact(srcs):
+        return Provenance(status=EpistemicStatus.FACT, sources=srcs, evidence_type=EvidenceType.DESCRIPTIVE,
+                          scope=Scope.SKRU1, scale=Scale.NOT_APPLICABLE)
+
     objs, events = [], []
     for u, g in units:
         if u["seam"] not in SEAMS or u["timing_class"] in ("UNKNOWN",):
             continue
-        srcs = tuple(SourceRef(source_id=s) for s in u["source_ids"].split(";") if s.startswith(("VKM-SRC", "EXT"))) or ()
+        srcs = refs(u["source_ids"].split(";"))
         oid = u["unit_id"].replace("?", "Q")
         prov = Provenance(status=EpistemicStatus.DERIVATION if srcs else EpistemicStatus.UNKNOWN, sources=srcs,
                           evidence_type=EvidenceType.DESCRIPTIVE if srcs else EvidenceType.NOT_APPLICABLE,
                           scope=Scope.SKRU1, scale=Scale.NOT_APPLICABLE,
                           method="build_skru1_mine_history: объект × пласт, контур плана 014 в SH1" if srcs else None)
+        rec = u.get("_timing", [])
+        bounds = sorted({f"{r['text']} ({r['ev_id']})" for r in rec if r["kind"] == "BOUND"})
+        note = "; ".join(x for x in (u["mining_open_bounds"], "; ".join(bounds), u["derived_periods"] and
+                                     f"выведенные периоды: {u['derived_periods']}") if x) or None
         objs.append(MiningObject(id=oid, name=f"{u['object_label']} / {u['seam']}", provenance=prov,
-                                 kind=MiningObjectKind.MINED_AREA,
+                                 kind=MiningObjectKind.MINED_AREA, notes=note,
                                  design_or_actual={"ACTUAL": DesignOrActual.ACTUAL, "PLANNED": DesignOrActual.DESIGN,
                                                    "DESIGN": DesignOrActual.DESIGN}.get(u["design_or_actual"],
                                                                                         DesignOrActual.UNKNOWN),
                                  seams=(u["seam"],), mining_system=u["system_as_printed"][:200] or None,
-                                 geometry_ref=f"skru1_mine_history_sh1.gpkg:mining_units:{u['unit_id']}"))
-        if u["timing_class"] in ("TEXT_DATED", "TEXT_PARTLY_DATED", "TEXT_OPEN_ENDED") and srcs:
-            spans = [tuple(int(x) for x in p.split("–")) for p in u["mining_core"].split(";") if p]
-            if not spans or u["mining_open_bounds"]:
-                # open-ended records: one envelope event so that backfill/commissioning order is checked against it
-                spans = [(int(u["mining_start_min"]), int(u["mining_end_max"]))] + spans
-            for n, (s0, e1) in enumerate(spans, 1):
-                events.append(Event(id=f"{oid}:EXTRACTION:{n}", event_type=EventType.EXTRACTION_PERIOD, objects=(oid,),
-                                    time=TemporalSupport(event_date=date(s0, 1, 1), event_date_end=date(e1, 12, 31),
-                                                         precision="year",
-                                                         notes=f"период {s0}–{e1} по тексту; открытые записи: "
-                                                               f"{u['mining_open_bounds'] or 'нет'}"),
-                                    provenance=Provenance(status=EpistemicStatus.FACT, sources=srcs,
-                                                          evidence_type=EvidenceType.DESCRIPTIVE, scope=Scope.SKRU1,
-                                                          scale=Scale.NOT_APPLICABLE)))
-            if u["backfill_start_min"] not in ("", None):
-                b0 = int(u["backfill_start_min"])
-                b1 = int(u["backfill_end_max"]) if u["backfill_end_max"] not in ("", None) else None
-                events.append(Event(id=oid + ":BACKFILL", event_type=EventType.BACKFILL_PERIOD, objects=(oid,),
-                                    time=TemporalSupport(event_date=date(b0, 1, 1),
-                                                         event_date_end=date(b1, 12, 31) if b1 and b1 >= b0 else None,
-                                                         precision="year"),
-                                    provenance=Provenance(status=EpistemicStatus.FACT, sources=srcs,
-                                                          evidence_type=EvidenceType.DESCRIPTIVE, scope=Scope.SKRU1,
-                                                          scale=Scale.NOT_APPLICABLE)))
+                                 geometry_ref=(f"skru1_mine_history_sh1.gpkg:mining_units:{u['unit_id']}"
+                                               if g is not None else None)))
+        if u["timing_class"] not in ("TEXT_DATED", "TEXT_PARTLY_DATED", "TEXT_OPEN_ENDED"):
+            continue
+        periods = [r for r in rec if r["kind"] == "PERIOD"]
+        for n, (s0, e1) in enumerate(merge_periods([(r["y0"], r["y1"]) for r in periods]), 1):
+            ps = refs(r["source_id"] for r in periods if r["y0"] <= e1 and r["y1"] >= s0)
+            if not ps:
+                continue
+            events.append(Event(id=f"{oid}:EXTRACTION:{n}", event_type=EventType.EXTRACTION_PERIOD, objects=(oid,),
+                                time=TemporalSupport(event_date=date(s0, 1, 1), event_date_end=date(e1, 12, 31),
+                                                     precision="year", notes=f"напечатанный период {s0}–{e1}"),
+                                provenance=fact(ps)))
+        for kind, et in (("START", EventType.EXTRACTION_START), ("END", EventType.EXTRACTION_END)):
+            years = sorted({r["y0"] if kind == "START" else r["y1"] for r in rec if r["kind"] == kind})
+            for y in years:
+                ps = refs(r["source_id"] for r in rec if r["kind"] == kind and (r["y0"] if kind == "START" else r["y1"]) == y)
+                if ps:
+                    events.append(Event(id=f"{oid}:{kind}:{y}", event_type=et, objects=(oid,),
+                                        time=TemporalSupport(event_date=date(y, 1, 1), precision="year",
+                                                             notes="напечатан год; другая граница открыта"),
+                                        provenance=fact(ps)))
+        spans = defaultdict(set)
+        for r in u.get("_backfill", []):
+            spans[(r["y0"], r["y1"])].add(r["source_id"])
+        for k, ((y0, y1), sids) in enumerate(sorted(spans.items(), key=lambda kv: (kv[0][0], kv[0][1] or 0)), 1):
+            ps = refs(sids)
+            if not ps:
+                continue
+            end = date(y1, 12, 31) if y1 and y1 >= y0 else None
+            events.append(Event(id=f"{oid}:BACKFILL:{k}", event_type=EventType.BACKFILL_PERIOD, objects=(oid,),
+                                time=TemporalSupport(event_date=date(y0, 1, 1), event_date_end=end, precision="year"),
+                                provenance=fact(ps)))
     errs = mining_object_errors(objs) + chronology_errors(events, known_ids={o.id for o in objs})
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps({"schema": "vkm.worldspec.mining_layer/1", "frame": SH1,

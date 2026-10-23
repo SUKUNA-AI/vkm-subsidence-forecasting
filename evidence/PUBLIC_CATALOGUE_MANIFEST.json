@@ -710,10 +710,10 @@
   {
    "dropped_columns": [],
    "source": "SITE_SKRU1_MINE/skru1_mine_checks.json",
-   "source_sha256": "577a2f25623c62788219e274bf50cfa26a2b736c5b81e6f02ca21535de689cc3",
+   "source_sha256": "c47a6aa1a6c91502c808f0b5c15ca7f3b052299c6044d61449c23bf7113a6c5e",
    "status": "OK",
    "target": "evidence/world/skru1_mine/skru1_mine_checks.json",
-   "target_sha256": "9eda0edbe0e613ec06328b0a60ce5c7d7ffc5109f4700bf7555a1003546e203e"
+   "target_sha256": "ff18c7421755aea0b9633d3690399c6b8c83e49c2ea04d20c2e76492181a337d"
   },
   {
    "dropped_columns": [],
@@ -736,10 +736,10 @@
   {
    "dropped_columns": [],
    "source": "SITE_SKRU1_MINE/skru1_mining_units.csv",
-   "source_sha256": "6f4deeeaf6eb4bca9d2945ae6e2249b8affc8cc6558280736b8295029dbf9166",
+   "source_sha256": "5746db1c422ee99e366b919ac90eb5994cd0540677bc9b77257cdd06d69112b8",
    "status": "OK",
    "target": "evidence/world/skru1_mine/skru1_mining_units.csv",
-   "target_sha256": "59d7974aafb35dab7ba9681fbc137a7110032f195dad60fc801d921de6b28ae4"
+   "target_sha256": "84e0c14eb729470219c75f3cd872105e27241d1ebda826e43883d9a7e90edd07"
   },
   {
    "dropped_columns": [],

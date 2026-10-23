@@ -120,10 +120,11 @@ def test_units_intervals_and_vocabularies():
                "PLAN_SNAPSHOT_ONLY", "PLANNED_ONLY", "UNKNOWN"}
     for r in rows:
         assert r["timing_class"] in classes, r["unit_id"]
-        b = [r[c] for c in ("mining_start_min", "mining_start_max", "mining_end_min", "mining_end_max")]
-        if all(b):
-            s0, s1, e0, e1 = map(int, b)
-            assert s0 <= s1 and e0 <= e1 and s0 <= e1, r["unit_id"]
+        s0, s1, e0, e1 = (int(r[c]) if r[c] else None for c in
+                          ("mining_start_min", "mining_start_max", "mining_end_min", "mining_end_max"))
+        # every pair of known bounds, also after a plan snapshot caps the end (start_max ≤ end_max, end_min ≤ end_max)
+        for lo, hi in ((s0, s1), (e0, e1), (s0, e1), (s1, e1), (s0, e0)):
+            assert lo is None or hi is None or lo <= hi, r["unit_id"]
         if r["timing_class"] in ("UNKNOWN", "DERIVED_DATES", "PLAN_SNAPSHOT_ONLY", "PLANNED_ONLY"):
             assert not r["mining_core"], r["unit_id"]   # a certain period comes only from printed (FACT) dates
         for p in filter(None, r["mining_core"].split(";")):
