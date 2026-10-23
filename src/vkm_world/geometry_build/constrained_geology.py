@@ -69,51 +69,45 @@ def interval_envelope(n, constraints, ordered=True):
     return result
 
 
-def joint_predict(xy, contacts, targets, method, support=None, *, extrapolate=False):
-    """Return contact vectors, masks and physical-support weights.
+def support_weights(xy, targets, method, support=None, *, extrapolate=False):
+    """Physical-support weights and masks; shared by every contact predictor.
 
-    Contacts must be complete and ordered top-to-bottom (Z upwards). An absent
-    interval is allowed. Missing contacts require a separate support component.
+    Weights depend only on support locations, the declared support polygon,
+    the method and the extrapolation policy, never on contact values.
     support is a Shapely Polygon/MultiPolygon: holes and structural boundaries
     are respected; it must not span an independently established discontinuity.
     """
     xy = np.asarray(xy, dtype=float)
-    values = np.asarray(contacts, dtype=float)
     q = np.asarray(targets, dtype=float).reshape(-1, 2)
-    if xy.ndim != 2 or xy.shape[1] != 2 or len(xy) != len(values) or values.ndim != 2:
-        raise ValueError("one complete contact vector per support coordinate is required")
-    if not len(xy) or not all(np.isfinite(v).all() for v in (xy, values, q)):
+    if xy.ndim != 2 or xy.shape[1] != 2 or not len(xy):
+        raise ValueError("nonempty support coordinates are required")
+    if not (np.isfinite(xy).all() and np.isfinite(q).all()):
         raise ValueError("finite, nonempty supports are required")
-    if np.any(np.diff(values, axis=1) > 1e-9):
-        raise ValueError("crossing source contacts: retain the conflict before interpolation")
     if len(np.unique(xy, axis=0)) != len(xy):
         raise ValueError("duplicate locations must be resolved by physical identity first")
     if method not in {"nearest", "idw2", "linear"}:
         raise ValueError("unsupported joint method")
     if extrapolate and method == "linear":
         raise ValueError("linear extrapolation can invert layers; select an explicit convex extension")
+    from shapely.geometry import Point, Polygon, LineString
     if support is not None and support.geom_type == "MultiPolygon":
-        from shapely.geometry import Point
-        combined = np.full((len(q), values.shape[1]), np.nan)
-        masks = np.full(len(q), "UNKNOWN", dtype="U20")
         weights = np.zeros((len(q), len(xy)))
+        masks = np.full(len(q), "UNKNOWN", dtype="U20")
         for part in support.geoms:
             si = np.array([i for i, p in enumerate(xy) if part.buffer(1e-8).covers(Point(p))], dtype=int)
             qi = np.array([i for i, p in enumerate(q) if part.buffer(1e-8).covers(Point(p))], dtype=int)
             if not len(si) or not len(qi):
                 continue
-            prediction, part_masks, part_weights = joint_predict(xy[si], values[si], q[qi], method, part, extrapolate=extrapolate)
-            combined[qi], masks[qi] = prediction, part_masks
+            part_weights, part_masks = support_weights(xy[si], q[qi], method, part, extrapolate=extrapolate)
+            masks[qi] = part_masks
             weights[np.ix_(qi, si)] = part_weights
-        return combined, masks, weights
+        return weights, masks
     weights = np.zeros((len(q), len(xy)))
-    output = np.full((len(q), values.shape[1]), np.nan)
     masks = np.full(len(q), "UNKNOWN", dtype="U20")
     try:
         triangulation = Delaunay(xy) if len(xy) >= 3 else None
     except QhullError:
         triangulation = None
-    from shapely.geometry import Point, Polygon, LineString
     from shapely.prepared import prep
     # Prepare once: buffering a detailed field outline for each query/support
     # pair otherwise dominates an engineering grid build without changing it.
@@ -125,32 +119,54 @@ def joint_predict(xy, contacts, targets, method, support=None, *, extrapolate=Fa
             continue
         if distances[j] <= 1e-8:
             weights[i, j] = 1.; masks[i] = "DIRECT_CONSTRAINT"
+            continue
+        cell = -1 if triangulation is None else int(triangulation.find_simplex(point))
+        if cell < 0 and not extrapolate:
+            continue
+        if cell >= 0 and support_region is not None and not support_region.covers(Polygon(xy[triangulation.simplices[cell]])):
+            continue
+        if method == "nearest":
+            weights[i, j] = 1.
+        elif method == "idw2":
+            w = distances**-2
+            if support_region is not None:
+                w *= np.array([support_region.covers(LineString([point, p])) for p in xy])
+            if not w.sum():
+                continue
+            weights[i] = w/w.sum()
         else:
-            cell = -1 if triangulation is None else int(triangulation.find_simplex(point))
-            if cell < 0 and not extrapolate:
-                continue
-            if cell >= 0 and support_region is not None and not support_region.covers(Polygon(xy[triangulation.simplices[cell]])):
-                continue
-            if method == "nearest":
-                weights[i, j] = 1.
-            elif method == "idw2":
-                w = distances**-2
-                if support_region is not None:
-                    w *= np.array([support_region.covers(LineString([point, p])) for p in xy])
-                if not w.sum():
-                    continue
-                weights[i] = w/w.sum()
-            else:
-                transform = triangulation.transform[cell]
-                uv = transform[:2].dot(point-transform[2])
-                bary = np.r_[uv, 1-uv.sum()]
-                if np.min(bary) < -1e-10:
-                    raise RuntimeError("invalid convex interpolation weights")
-                # Roundoff of hull arithmetic only; never correct geological Z.
-                bary = np.maximum(bary, 0.); bary /= bary.sum()
-                weights[i, triangulation.simplices[cell]] = bary
-            masks[i] = "EXTRAPOLATION" if cell < 0 else "INTERPOLATION"
-        output[i] = weights[i] @ values
+            transform = triangulation.transform[cell]
+            uv = transform[:2].dot(point-transform[2])
+            bary = np.r_[uv, 1-uv.sum()]
+            if np.min(bary) < -1e-10:
+                raise RuntimeError("invalid convex interpolation weights")
+            # Roundoff of hull arithmetic only; never correct geological Z.
+            bary = np.maximum(bary, 0.); bary /= bary.sum()
+            weights[i, triangulation.simplices[cell]] = bary
+        masks[i] = "EXTRAPOLATION" if cell < 0 else "INTERPOLATION"
+    return weights, masks
+
+
+def joint_predict(xy, contacts, targets, method, support=None, *, extrapolate=False):
+    """Return contact vectors, masks and physical-support weights.
+
+    Contacts must be complete and ordered top-to-bottom (Z upwards). An absent
+    interval is allowed. Missing contacts require a separate support component
+    or the partial-observation predictor in contact_predictor.py.
+    """
+    xy = np.asarray(xy, dtype=float)
+    values = np.asarray(contacts, dtype=float)
+    q = np.asarray(targets, dtype=float).reshape(-1, 2)
+    if xy.ndim != 2 or xy.shape[1] != 2 or len(xy) != len(values) or values.ndim != 2:
+        raise ValueError("one complete contact vector per support coordinate is required")
+    if not len(xy) or not all(np.isfinite(v).all() for v in (xy, values, q)):
+        raise ValueError("finite, nonempty supports are required")
+    if np.any(np.diff(values, axis=1) > 1e-9):
+        raise ValueError("crossing source contacts: retain the conflict before interpolation")
+    weights, masks = support_weights(xy, q, method, support, extrapolate=extrapolate)
+    output = np.full((len(q), values.shape[1]), np.nan)
+    known = masks != "UNKNOWN"
+    output[known] = weights[known] @ values
     return output, masks, weights
 
 
