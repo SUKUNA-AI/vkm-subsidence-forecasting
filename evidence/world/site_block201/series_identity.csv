@@ -1,0 +1,13 @@
+record_id,catalogue,row_id,describes,origin_figure,independent,note
+B201-ID-001,PRIVATE WORLD_OBSERVATIONS/world_observation_catalog.csv,WOB-DIG-VKM-SRC-011:F4.7b:1992,эпоха 1992,VKM-SRC-011 рис. 4.7б / с. 259,"NO (одна публикация, один рисунок)",оцифровка 09.10
+B201-ID-002,PRIVATE WORLD_OBSERVATIONS/world_observation_catalog.csv,WOB-DIG-VKM-SRC-011:F4.7b:1995,эпоха 1995,VKM-SRC-011 рис. 4.7б / с. 259,"NO (одна публикация, один рисунок)",оцифровка 09.10
+B201-ID-003,PRIVATE WORLD_OBSERVATIONS/world_observation_catalog.csv,WOB-DIG-VKM-SRC-011:F4.7b:2004,эпоха 2004,VKM-SRC-011 рис. 4.7б / с. 259,"NO (одна публикация, один рисунок)",оцифровка 09.10
+B201-ID-004,PRIVATE WORLD_OBSERVATIONS/world_observation_catalog.csv,WOB-DIG-VKM-SRC-011:F4.7b:2007,эпоха 2007,VKM-SRC-011 рис. 4.7б / с. 259,"NO (одна публикация, один рисунок)",оцифровка 09.10
+B201-ID-005,PRIVATE WORLD_OBSERVATIONS/world_observation_catalog.csv,WOB-DIG-VKM-SRC-011:F4.7b:2010,эпоха 2010,VKM-SRC-011 рис. 4.7б / с. 259,"NO (одна публикация, один рисунок)",оцифровка 09.10
+B201-ID-006,PRIVATE WORLD_OBSERVATIONS/world_observation_catalog.csv,WOB-MON-MON-0012,набор данных линии 12 (с 1989 г.),VKM-SRC-011 рис. 4.7б / с. 259,"NO (одна публикация, один рисунок)",каталог Phase 1
+B201-ID-007,PRIVATE WORLD_OBSERVATIONS/world_observation_catalog.csv,WOB-MON-MON-0013,кривые 1992–2010,VKM-SRC-011 рис. 4.7б / с. 259,"NO (одна публикация, один рисунок)",каталог Phase 1 (чтение 550/910/1020/1090 мм у Rp64)
+B201-ID-008,PRIVATE MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0012,набор данных линии 12,VKM-SRC-011 рис. 4.7б / с. 259,"NO (одна публикация, один рисунок)",Phase 1
+B201-ID-009,PRIVATE MONITORING_LIFECYCLE/monitoring_observation_catalog.csv,MON-0013,кривые 1992–2010,VKM-SRC-011 рис. 4.7б / с. 259,"NO (одна публикация, один рисунок)",Phase 1
+B201-ID-010,PRIVATE MONITORING_LIFECYCLE/monitoring_campaigns_timeline.csv,CMP-001,кампания нивелирования 1989–≥2010,VKM-SRC-011 рис. 4.7б / с. 259,"NO (одна публикация, один рисунок)",Phase 1
+B201-ID-011,PRIVATE WORLD_OBSERVATIONS/world_observation_catalog.csv,WOB-TXT-double:VKM-SRC-011_p0124-0130:063,интервал Rp62–66,VKM-SRC-011 рис. 4.7б / с. 259,"NO (одна публикация, один рисунок)",извлечение текста
+B201-ID-012,PRIVATE WORLD_OBSERVATIONS/world_observation_catalog.csv,WOB-TXT-high_full:VKM-SRC-011_p0124-0130:087,интервал Rp62–66,VKM-SRC-011 рис. 4.7б / с. 259,"NO (одна публикация, один рисунок)",извлечение текста

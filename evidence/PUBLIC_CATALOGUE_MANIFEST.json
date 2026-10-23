@@ -693,6 +693,64 @@
   },
   {
    "dropped_columns": [],
+   "source": "SITE_BLOCK201_LINE12/block201_mining_history.csv",
+   "source_sha256": "69369ed7d586eec8f3ee9699c5e851c151f056380a542bd35fbe1867ba8bfade",
+   "status": "OK",
+   "target": "evidence/world/site_block201/block201_mining_history.csv",
+   "target_sha256": "69369ed7d586eec8f3ee9699c5e851c151f056380a542bd35fbe1867ba8bfade"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_BLOCK201_LINE12/information_availability.csv",
+   "source_sha256": "5b093d0843fd3dade9c8f63853249825d27d3441f3b27c85c1001c09baf1ad35",
+   "status": "OK",
+   "target": "evidence/world/site_block201/information_availability.csv",
+   "target_sha256": "5b093d0843fd3dade9c8f63853249825d27d3441f3b27c85c1001c09baf1ad35"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_BLOCK201_LINE12/line12_levelling_points.csv",
+   "source_sha256": "b79134a737d44d3b1cb5712683df936a4d9998e47726cea191829da8a28589b9",
+   "status": "OK",
+   "target": "evidence/world/site_block201/line12_levelling_points.csv",
+   "target_sha256": "b79134a737d44d3b1cb5712683df936a4d9998e47726cea191829da8a28589b9"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_BLOCK201_LINE12/series_identity.csv",
+   "source_sha256": "5d3f54eb4a767359399a57c747f0560b21b69ad34eac4539d0cab611848aef0a",
+   "status": "OK",
+   "target": "evidence/world/site_block201/series_identity.csv",
+   "target_sha256": "5d3f54eb4a767359399a57c747f0560b21b69ad34eac4539d0cab611848aef0a"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_BLOCK201_LINE12/site_conflicts.csv",
+   "source_sha256": "afb15f10f046935c8cdb16e28f73d07f9fa5f8cc7ee6b41046c56db4bf2c2c0c",
+   "status": "OK",
+   "target": "evidence/world/site_block201/site_conflicts.csv",
+   "target_sha256": "afb15f10f046935c8cdb16e28f73d07f9fa5f8cc7ee6b41046c56db4bf2c2c0c"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "SITE_BLOCK201_LINE12/site_evidence.csv",
+   "source_sha256": "84f2a71a6440fa18c3209bda7c1e317601e2d6cad4da43489471ecc64fdd2095",
+   "status": "OK",
+   "target": "evidence/world/site_block201/site_evidence.csv",
+   "target_sha256": "f360a0709659d2f0a5fbc711de0122da8f7a2da669ac4c650b4787860e14ca7c"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_BLOCK201_LINE12/site_objects_sh1.csv",
+   "source_sha256": "145843e08f09f8d75186357e8aff617ccc2568f9bc563e81f001e53e5e31237e",
+   "status": "OK",
+   "target": "evidence/world/site_block201/site_objects_sh1.csv",
+   "target_sha256": "145843e08f09f8d75186357e8aff617ccc2568f9bc563e81f001e53e5e31237e"
+  },
+  {
+   "dropped_columns": [],
    "source": "SOURCES/SOURCE_COVERAGE_MASTER.csv",
    "source_sha256": "16e4e9ae3e079a92046dc2ebb7607db6f1bb24c4eb4aaf3bc4390f931cc700f4",
    "status": "OK",
