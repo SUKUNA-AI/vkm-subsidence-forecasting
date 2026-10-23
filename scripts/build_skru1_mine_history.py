@@ -9,7 +9,8 @@ Inputs (all read-only):
   - ``WORLD_OBSERVATIONS/world_observation_catalog.csv``.
 * optional ``--block201`` — the SITE_BLOCK201_LINE12 stream (benchmarks of profile line 12 in SH1, block 201 history);
 * ``--geology-npz`` — contact fields of the geology model v6_2 (FULL_CONTEXT_PARTIAL, absolute heights, DSM-anchored);
-* ``--terrain`` — Copernicus GLO-30 DSM resampled to SH1 (EGM2008; 2011–2015; DSM, not bare earth).
+* ``--terrain`` — Copernicus GLO-30 DSM resampled to SH1 (EGM2008; 2011–2015; DSM, not bare earth);
+* optional ``--state-1990`` — worked-out areas ≈1990 by seam digitised from VKM-SRC-037 fig. 2.7 (state ≤ 1990).
 
 Outputs: the canonical stream tables (``--stream-out``, no coordinates, quotes only in the evidence file) and the
 delivery (``--delivery``: GeoPackage in SH1 without EPSG, CSV with geometry, WorldSpec JSON, figures, checks, receipt).
@@ -315,8 +316,26 @@ UNIT_COLS = ["unit_id", "object_key", "object_label", "object_kind", "seam", "pl
              "chamber_width_m", "pillar_width_m", "extracted_height_m", "design_chamber_width_m", "design_pillar_width_m",
              "design_extracted_height_m", "extraction_ratio", "extraction_ratio_basis", "loading_degree",
              "backfill_type", "backfill_start_min", "backfill_end_max", "backfill_ratio", "backfill_lag_y",
-             "secondary_mining", "events", "state_2007_064", "state_2013_014", "design_or_actual", "status",
+             "secondary_mining", "events", "state_1990_037", "state_2007_064", "state_2013_014", "design_or_actual", "status",
              "source_ids", "evidence_ids", "conflict_ids", "notes"]
+
+
+def worked_1990(u: dict, seam: str) -> str | None:
+    """Text of the ≈1990 bound when the unit is ≥ 0.5 worked on VKM-SRC-037 fig. 2.7; for seam В the composition of the
+    worked area is not shown, so the bound is used for Вк only where the Вк extent (legend 5) or plan 064 shows Вк in
+    the unit, and for Вс only where plan 064 shows Вс worked (INTERPRETATION)."""
+    st = u.get("state_1990_037") or ""
+    m = re.match(r"WORKED_[^_]+(?:\(Вс\|Вк\))?_(\d\.\d+)", st)
+    if not m or float(m.group(1)) < 0.5:
+        return None
+    if seam in ("КрII", "АБ"):
+        return f"рис. 2.7 VKM-SRC-037: {seam} отработан на ≥ {float(m.group(1)):.2f} площади, состояние ≤ 1990"
+    vk = re.search(r"VK_EXTENT_(\d\.\d+)", st)
+    if seam == "Вк" and ((vk and float(vk.group(1)) >= 0.2) or "WORKED_Вк" in u.get("state_2007_064", "")):
+        return "рис. 2.7в VKM-SRC-037: пласт В отработан, состав по соседству — Вк (INTERPRETATION), состояние ≤ 1990"
+    if seam == "Вс" and "WORKED_Вс" in u.get("state_2007_064", ""):
+        return "рис. 2.7в VKM-SRC-037: пласт В отработан, состав — Вс по схеме 064 (INTERPRETATION), состояние ≤ 1990"
+    return None
 
 
 def merge_periods(iv: list[tuple[int, int]]) -> list[tuple[int, int]]:
@@ -418,6 +437,15 @@ def build_units(evidence, key_index, regions, layers, aliases=None, cal_sources=
                                        (f"WORKED_{'AB_OR_KR2' if cls == 'АБ|КрII' else s}_{f07:.2f}" if f07 >= 0.05 else
                                         f"NOT_SHOWN_WORKED_{f07:.2f}"))
                 u["state_2013_014"] = f"REMAINING_{f13:.2f}" if f13 >= 0.05 else f"NOT_REMAINING_{f13:.2f}"
+                s90 = layers.get("STATE_C1990_037", [])
+                if s90:
+                    key90 = {"КрII": "КрII", "АБ": "АБ", "Вс": "В (Вс|Вк)", "Вк": "В (Вс|Вк)"}[s]
+                    w90 = sum(geom.intersection(x["geom"]).area for x in s90
+                              if x["kind"] == "WORKED_C1990" and x["seam"] == key90) / geom.area
+                    vk = sum(geom.intersection(x["geom"]).area for x in s90 if x["kind"] == "VK_EXTENT_VERTICAL") / geom.area
+                    tag = "WORKED_V(Вс|Вк)" if s in ("Вс", "Вк") else f"WORKED_{s}"
+                    u["state_1990_037"] = (f"{tag}_{w90:.2f}" if w90 >= 0.05 else f"NOT_SHOWN_WORKED_{w90:.2f}") + (
+                        f";VK_EXTENT_{vk:.2f}" if s in ("Вс", "Вк") and vk >= 0.05 else "")
         all_acts = [r for r in rows if r["attribute"] in MINING_ATTR and r["planned_or_actual"] in ("ACTUAL", "UNKNOWN")]
         acts = [r for r in all_acts if r["status"] == "FACT"]
         derived = [r for r in all_acts if r["status"] in ("DERIVATION", "INTERPRETATION")]
@@ -477,12 +505,26 @@ def build_units(evidence, key_index, regions, layers, aliases=None, cal_sources=
             u["mining_open_bounds"] = "даты выведены (DERIVATION/INTERPRETATION), не напечатаны"
         elif acts or derived:
             u["timing_class"] = "TEXT_UNDATED"
+        elif worked_1990(u, s) is not None:
+            u["timing_class"] = "PLAN_SNAPSHOT_ONLY"
+            u["mining_start_min"], u["mining_end_max"] = open_lo, 1990
+            u["mining_open_bounds"] = f"START≥{open_lo};END≤1990 ({worked_1990(u, s)})"
         elif u["state_2007_064"].startswith("WORKED"):
             u["timing_class"] = "PLAN_SNAPSHOT_ONLY"
             u["mining_start_min"], u["mining_end_max"] = open_lo, 2006
             u["mining_open_bounds"] = f"START≥{open_lo};END≤2006 (064: отработано на 01.01.2007)"
         else:
             u["timing_class"] = "UNKNOWN"
+        w90b = worked_1990(u, s)
+        if w90b and u["timing_class"] in ("TEXT_DATED", "TEXT_PARTLY_DATED", "TEXT_OPEN_ENDED"):
+            if u["mining_start_min"] not in ("", None) and int(u["mining_start_min"]) > 1990:
+                u["mining_conflict"] = "CHECK"
+                u["notes"] = (f"текст: выемка с {u['mining_start_min']} г., но {w90b} — " +
+                              ("; " + u["notes"] if u["notes"] else "")).rstrip("; ")
+            elif u["mining_open_bounds"] and u["mining_end_max"] not in ("", None) and int(u["mining_end_max"]) > 1990 \
+                    and not u["mining_core"]:
+                u["mining_end_max"] = 1990
+                u["mining_open_bounds"] += f"; END≤1990 ({w90b})"
         f07 = re.match(r"WORKED_(Вк|Вс)_(\d\.\d+)", u["state_2007_064"])
         if f07 and float(f07.group(2)) >= 0.5 and u["mining_end_max"] not in ("", None) and                 int(u["mining_end_max"]) > 2006 and int(u["mining_start_min"] or open_lo) <= 2006 and not u["mining_core"]:
             u["mining_end_max"] = 2006
@@ -654,7 +696,7 @@ def write_gpkg(path: Path, layers: dict[str, tuple[str, list[dict], list[str]]],
 
 
 # ----------------------------------------------------------------------------- figures
-SEAM_COLOURS = {"ACTIVE": "#c0392b", "POSSIBLE": "#f5b041", "DONE": "#7f8c8d", "NOT_YET": "#d6eaf8",
+SEAM_COLOURS = {"ACTIVE": "#c0392b", "POSSIBLE": "#f5b041", "DONE": "#7f8c8d", "NOT_YET": "#d6eaf8", "PLAN_1990": "#6c3483",
                 "PLAN_2007": "#a569bd", "UNKNOWN": "#f2f3f4", "PLANNED": "#5dade2"}
 
 
@@ -713,6 +755,9 @@ def make_figures(out: Path, regions, units, layers, field):
                 env = (int(u["mining_start_min"]), int(u["mining_end_max"]))
                 if env[0] <= d1 and env[1] >= d0:
                     best = "POSSIBLE"
+            elif u["timing_class"] == "PLAN_SNAPSHOT_ONLY" and best == "UNKNOWN" and "END≤1990" in u["mining_open_bounds"] \
+                    and decade >= 1990:
+                best = "PLAN_1990"
             elif u["timing_class"] == "PLAN_SNAPSHOT_ONLY" and best == "UNKNOWN" and decade >= 2010:
                 best = "PLAN_2007"
             elif u["timing_class"] == "PLANNED_ONLY" and best == "UNKNOWN" and decade >= 2010:
@@ -725,6 +770,7 @@ def make_figures(out: Path, regions, units, layers, field):
         ("ACTIVE", "выемка в десятилетии (по тексту, наверняка)"),
         ("POSSIBLE", "выемка возможна (границы интервала или выведенные даты)"),
         ("DONE", "отработано раньше (по тексту)"), ("NOT_YET", "ещё не начато (по тексту)"),
+        ("PLAN_1990", "отработано к ≈1990 (рис. 2.7 VKM-SRC-037), дата UNKNOWN"),
         ("PLAN_2007", "отработано к 01.01.2007 (схема 064), дата UNKNOWN"), ("PLANNED", "только план (ПРГР)"),
         ("UNKNOWN", "нет датированных сведений"))]
     for seam in SEAMS:
@@ -749,17 +795,23 @@ def make_figures(out: Path, regions, units, layers, field):
                 return "#c0392b"
             if any(u["timing_class"] == "TEXT_UNDATED" for u in us):
                 return "#e59866"
+            if any(u["timing_class"] == "DERIVED_DATES" for u in us):
+                return "#f4d03f"
+            if any("END≤1990" in u["mining_open_bounds"] for u in us):
+                return "#6c3483"
             if any(u["state_2007_064"].startswith("WORKED") for u in us):
                 return "#a569bd"
             if any(u["state_2013_014"].startswith("REMAINING") for u in us):
                 return "#82e0aa"
             return "#f2f3f4"
         draw_regions(ax, regions, col, field, f"пласт {seam}")
-    fig.legend(handles=[Patch(color="#c0392b", label="выемка с датами из текста"),
+    fig.legend(ncol=3, handles=[Patch(color="#c0392b", label="выемка с датами из текста"),
                         Patch(color="#e59866", label="выемка названа без дат"),
+                        Patch(color="#f4d03f", label="даты выведены (DERIVATION/INTERPRETATION)"),
+                        Patch(color="#6c3483", label="отработано к ≈1990 (037 рис. 2.7)"),
                         Patch(color="#a569bd", label="отработано к 01.01.2007 (064)"),
                         Patch(color="#82e0aa", label="остаток балансовых запасов (014, ≤2013)"),
-                        Patch(color="#f2f3f4", label="нет сведений")], loc="lower center", ncol=5, fontsize=7, frameon=False)
+                        Patch(color="#f2f3f4", label="нет сведений")], loc="lower center", fontsize=7, frameon=False)
     fig.suptitle("СКРУ-1: что известно о выемке по пластам (SH1)", fontsize=9)
     fig.tight_layout(rect=(0, 0.06, 1, 0.95))
     f = out / "seam_state_overview.png"
@@ -795,6 +847,7 @@ def main(argv=None) -> int:
     ap.add_argument("--block201", type=Path, default=None)
     ap.add_argument("--geology-npz", type=Path, default=None)
     ap.add_argument("--terrain", type=Path, default=None)
+    ap.add_argument("--state-1990", type=Path, default=None, help="VKM-SRC-037 fig. 2.7 worked areas ≈1990 (SH1 GeoJSON)")
     ap.add_argument("--epoch", default="2026-10-23T00:00:00Z", help="fixed GeoPackage timestamp (not an observation date)")
     ap.add_argument("--no-figures", action="store_true")
     a = ap.parse_args(argv)
@@ -819,6 +872,7 @@ def main(argv=None) -> int:
     pin("SITE_SKRU1_MINE/skru1_mine_evidence.csv", new_ev)
     pin("geology_npz", a.geology_npz)
     pin("terrain", a.terrain)
+    pin("state_1990_037", a.state_1990)
     if a.block201:
         for n in ("block201_mining_history.csv", "site_objects_sh1.csv"):
             pin("block201/" + n, a.block201 / n)
@@ -826,6 +880,15 @@ def main(argv=None) -> int:
     pin("library", ROOT / "src" / "vkm_world" / "mining" / "skru1_history.py")
 
     regions, layers, key_index, field, points, bounds = load_plan(c4map)
+    if a.state_1990 and a.state_1990.is_file():
+        from shapely.geometry import shape as _shape
+        s90 = json.loads(a.state_1990.read_text(encoding="utf-8"))
+        for f_ in s90["features"]:
+            p_ = f_["properties"]
+            g_ = _shape(f_["geometry"])
+            layers["STATE_C1990_037"].append({"id": p_["id"], "layer": "STATE_C1990_037", "kind": p_["class"],
+                                              "label": "", "parent": "", "seam": p_["seam"],
+                                              "geom": g_ if g_.is_valid else g_.buffer(0), "props": p_})
     cal = read_csv(curated / "skru1_mining_calendar_20261010.csv")
     known_phase1 = {x.strip() for r in cal for x in r.get("phase1_ref", "").split(";") if x.strip()}
     evidence = (load_calendar(curated) + load_chamber_design(curated) + load_phase1(canon / "MINING", known_phase1)
@@ -1141,6 +1204,39 @@ def main(argv=None) -> int:
                   "worked_plus_remaining_km2": round(w + rm, 3),
                   "check_worked_plus_remaining_le_layout": "PASS" if w + rm <= lay else "FAIL"}
     checks["worked_areas_2022_vs_plan"] = wa
+    s90 = layers.get("STATE_C1990_037", [])
+    if s90:
+        from shapely.ops import unary_union as _uu
+        w90 = {k: _uu([x["geom"] for x in s90 if x["kind"] == "WORKED_C1990" and x["seam"] == k])
+               for k in ("КрII", "АБ", "В (Вс|Вк)")}
+        w07u = _uu([x["geom"] for x in layers.get("WORKED_OUT_2007_064", [])])
+        checks["worked_c1990_037"] = {
+            k: {"area_km2": round(g_.area / 1e6, 3), "outside_field_km2": round(g_.difference(field).area / 1e6, 3),
+                "overlap_with_064_worked_2007_km2": round(g_.intersection(w07u).area / 1e6, 3),
+                "worked_2022_074_km2": worked22.get({"КрII": "КрII", "АБ": "АБ"}.get(k, ""), None)}
+            for k, g_ in w90.items()}
+        pre, post = [], []
+        for u_, g_ in units:
+            m_ = re.match(r"(?:WORKED_[^_]+(?:\(Вс\|Вк\))?|NOT_SHOWN_WORKED)_(\d\.\d+)", u_.get("state_1990_037") or "")
+            if (not m_ or u_["seam"] not in ("КрII", "АБ", "Вк") or u_["plan_match"] == "MINE_LEVEL"
+                    or u_["timing_class"] not in ("TEXT_DATED", "TEXT_PARTLY_DATED", "TEXT_OPEN_ENDED", "DERIVED_DATES")
+                    or u_["mining_end_max"] in ("", None)):
+                continue
+            row_ = {"unit": u_["unit_id"], "timing_class": u_["timing_class"], "years": f"{u_['mining_start_min']}–{u_['mining_end_max']}",
+                    "worked_1990_frac": float(m_.group(1))}
+            if int(u_["mining_end_max"]) <= 1989:
+                pre.append(row_)
+            elif int(u_["mining_start_min"] or 0) >= 1991:
+                post.append(row_)
+        checks["fig2_7_vs_text_dates"] = {
+            "mined_before_1990_by_text": len(pre), "before_worked_ge_0_5": sum(r["worked_1990_frac"] >= 0.5 for r in pre),
+            "before_worked_ge_0_2": sum(r["worked_1990_frac"] >= 0.2 for r in pre),
+            "mined_after_1990_by_text": len(post), "after_worked_ge_0_5": sum(r["worked_1990_frac"] >= 0.5 for r in post),
+            "disagreements": [r for r in pre if r["worked_1990_frac"] < 0.5] + [r for r in post if r["worked_1990_frac"] >= 0.5],
+            "note": "независимая проверка оцифровки и привязки рис. 2.7: даты из текста и выведенные даты не использовались при выделении"}
+        checks["worked_c1990_037"]["note"] = (
+            "площади штриховки «отработанные запасы» рис. 2.7 — брутто-контуры участков (с целиками и неотработанными "
+            "пятнами); с площадями VKM-SRC-074 (01.2022) напрямую не сравнимы — конфликт SKM-CF-M11")
     # chronology via vkm_world models
     checks["worldspec"] = build_worldspec(units, a.delivery / "data" / "worldspec_mining_layer.json")
 
@@ -1208,9 +1304,10 @@ def main(argv=None) -> int:
                      "pos_err_basis": region_error(r["geom"].centroid.x)[2], "geom": r["geom"]} for r in regions]
     layer_feats = []
     for lname in ("REMAINING_RESERVES_2013_014", "WORKED_OUT_2007_064", "PROTECTIVE_PILLAR_STIPPLE_014",
-                  "PLANNED_064", "ATTACHED_AREA_064", "OFFBALANCE_OR_OVERLAP_064"):
+                  "PLANNED_064", "ATTACHED_AREA_064", "OFFBALANCE_OR_OVERLAP_064", "STATE_C1990_037"):
         for x in layers.get(lname, []):
-            layer_feats.append({"feature_id": x["id"], "layer": lname, "seam": x["seam"],
+            layer_feats.append({"feature_id": x["id"], "layer": lname if lname != "STATE_C1990_037" else f"{lname}:{x['kind']}",
+                                "seam": x["seam"],
                                 "state_date": x["props"].get("state_date_as_printed", ""),
                                 "meaning": x["props"].get("meaning_as_printed", ""), "source_id": x["props"]["source_id"],
                                 "page_id": x["props"]["page_id"], "status": x["props"]["status"],
@@ -1236,7 +1333,7 @@ def main(argv=None) -> int:
                   "meaning": f["properties"].get("meaning_as_printed", "") or f["properties"].get("note", "")} for f in bounds]
     meta = {"mining_units": "Объект × пласт: интервалы выемки/закладки как границы годов; DERIVATION/FACT по столбцу status",
             "plan_regions_014": "Раскройка поля (VKM-SRC-014 рис. 3.1–3.3) в SH1; ошибки положения pos_err_m",
-            "plan_states": "Состояния схем: остаток 2013 (014), отработано к 01.01.2007 (064), целики",
+            "plan_states": "Состояния схем: отработано к ≈1990 (037 рис. 2.7), отработано к 01.01.2007 (064), остаток 2013 (014), целики",
             "points": "Стволы, знаки скважин, центры зон ВКР, реперы ПЛ 12 (если дан --block201)",
             "boundaries": "Границы горного отвода и линии схем"}
     unit_cols = [c for c in UNIT_COLS if c != "evidence_ids"] + ["evidence_ids"]
@@ -1305,6 +1402,10 @@ def gap_table(units, regions):
         rows.append({"topic": "параметры камер и целиков", "scope": f"подписанные области × {s}", "n_known": len(params),
                      "n_total": len(us), "share": f"{len(params) / len(us):.3f}" if us else "",
                      "what_is_missing": "ширины камер/целиков, вынимаемая мощность по блоку"})
+        b90 = [u for u in us if "END≤1990" in u["mining_open_bounds"] and u["timing_class"] == "PLAN_SNAPSHOT_ONLY"]
+        rows.append({"topic": "только граница «отработано к ≈1990» (рис. 2.7 VKM-SRC-037)", "scope": f"подписанные области × {s}",
+                     "n_known": len(b90), "n_total": len(us), "share": f"{len(b90) / len(us):.3f}" if us else "",
+                     "what_is_missing": "годы выемки внутри интервала [начало поля; 1990]"})
         bf = [u for u in us if u["backfill_type"]]
         rows.append({"topic": "закладка", "scope": f"подписанные области × {s}", "n_known": len(bf), "n_total": len(us),
                      "share": f"{len(bf) / len(us):.3f}" if us else "",
