@@ -640,6 +640,14 @@
    "target_sha256": "3be0e0b88ee1ac15fe95b3dfd79d14eb9824165b1b0edd59af267d05c9eae2a1"
   },
   {
+   "dropped_columns": [],
+   "source": "WORLD0_MICROKERNELS/FIX_LOG.csv",
+   "source_sha256": "213daca1adb60c71ecc1db2f0c72306032113c5ef51b2e6b3649a0636a68e50a",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/world0_microkernels_fix_log.csv",
+   "target_sha256": "6638014d56ce19fe973cffeae10ce3e82ba4e28783096cedc13dcb3525b5ed65"
+  },
+  {
    "dropped_columns": [
     "quote"
    ],
@@ -1276,6 +1284,76 @@
    "status": "OK",
    "target": "evidence/world/skru1_mine/skru1_seams_by_area.csv",
    "target_sha256": "60ea768d21b13cdc4b9af5c5c41a576c67319580ab5e5f51f91797b218d8078b"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "WORLD0_MICROKERNELS/microkernel_law_evidence.csv",
+   "source_sha256": "7dd847d0801a954f904517cd7290d2b3dc923656bb14b04f90094308d80c91d2",
+   "status": "OK",
+   "target": "evidence/world/world0/microkernel_law_evidence.csv",
+   "target_sha256": "5132302057d1459798c11cd9a4fe62f9ca63761ed7d6cde725fd5f497930baeb"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD0_MICROKERNELS/microkernel_law_registry.csv",
+   "source_sha256": "17555daaeeb4c809e0a2cb1d082da683d56aa506490650dd8c796d42b5b2d011",
+   "status": "OK",
+   "target": "evidence/world/world0/microkernel_law_registry.csv",
+   "target_sha256": "17555daaeeb4c809e0a2cb1d082da683d56aa506490650dd8c796d42b5b2d011"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "WORLD0_MICROKERNELS/microkernel_parameter_evidence.csv",
+   "source_sha256": "862ee445e70b315f6855e1278b0ad370a5158a842ca4c828af43ecbbc1588762",
+   "status": "OK",
+   "target": "evidence/world/world0/microkernel_parameter_evidence.csv",
+   "target_sha256": "9e5f3c399e446af658511849ba061f2732c4aa07fe04da998dbefa69230ca74e"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD0_MICROKERNELS/microkernel_types.csv",
+   "source_sha256": "2f5af36856ba7ab09848299ef1674100b17511a5637bee49aba463bc78a67573",
+   "status": "OK",
+   "target": "evidence/world/world0/microkernel_types.csv",
+   "target_sha256": "2f5af36856ba7ab09848299ef1674100b17511a5637bee49aba463bc78a67573"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD0_MICROKERNELS/recheck_crosscheck.csv",
+   "source_sha256": "3359db0e96297fffcc34f4919cd4e2ea9a6777515aac838f5d799ca628a7cc3c",
+   "status": "OK",
+   "target": "evidence/world/world0/recheck_crosscheck.csv",
+   "target_sha256": "3359db0e96297fffcc34f4919cd4e2ea9a6777515aac838f5d799ca628a7cc3c"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD0_MICROKERNELS/recheck_findings.csv",
+   "source_sha256": "1745eabb065d30142bdb55dbc5feee17aa1a778aaf41bf681a8665a464faf5fb",
+   "status": "OK",
+   "target": "evidence/world/world0/recheck_findings.csv",
+   "target_sha256": "1745eabb065d30142bdb55dbc5feee17aa1a778aaf41bf681a8665a464faf5fb"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "WORLD0_MICROKERNELS/recheck_rows.csv",
+   "source_sha256": "d456d8f624161221c87b9e8e05389e861fd23006a7c2cd230629424e380f3697",
+   "status": "OK",
+   "target": "evidence/world/world0/recheck_rows.csv",
+   "target_sha256": "78bc7c0280f1f94b3f5da16069911a141c5742bcac470a5e7db4e2fb679a8a26"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD0_MICROKERNELS/search_coverage_log.csv",
+   "source_sha256": "caa8b9c9461c7cceb597920eb178619e08ec5f39a7a433951cfbb8cdaa60e47d",
+   "status": "OK",
+   "target": "evidence/world/world0/search_coverage_log.csv",
+   "target_sha256": "caa8b9c9461c7cceb597920eb178619e08ec5f39a7a433951cfbb8cdaa60e47d"
   }
  ],
  "generator": "scripts/build_public_catalogues.py",
