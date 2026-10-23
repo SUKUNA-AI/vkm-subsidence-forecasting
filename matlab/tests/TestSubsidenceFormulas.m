@@ -52,6 +52,15 @@ classdef TestSubsidenceFormulas < matlab.unittest.TestCase
             tc.verifyTrue(all(sign(P.eps_h(nz)) == sign(P.curvature(nz))));
         end
 
+        function tabulatedExtremaAreKnots(tc)
+            H = 320; eta = 2; L = vkm.subs.amplitude('L', H, 50, 55);
+            xl = -300 + H * cotd(55);
+            P = vkm.subs.typical_profile(xl - 0.35 * L, -300, 300, H, eta, 'VKM1992_T8_26_MODE3', 50, 55, '1992', 'F');
+            tc.verifyEqual(P.tilt, eta * 5.5 / L, 'RelTol', 1e-12);
+            Q = vkm.subs.typical_profile(xl - 0.45 * L, -300, 300, H, eta, 'VKM1992_T8_26_MODE2', 50, 55, '1992', 'F');
+            tc.verifyEqual(Q.curvature, eta * 26 / L^2, 'RelTol', 1e-12);
+        end
+
         function knotheVolumeAndLimits(tc)
             H = 300; w = 1.5; x = linspace(-3000, 3000, 12001)';
             P = vkm.subs.knothe_profile(x, -200, 200, H, w, 55, 0.16 * H);

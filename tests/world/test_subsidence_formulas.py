@@ -146,6 +146,54 @@ def test_typical_profile_symmetry_flat_bottom_and_boundary(edition, curve):
     assert np.all(np.sign(p.eps_h[p.curvature != 0]) == np.sign(p.curvature[p.curvature != 0]))
 
 
+def test_tabulated_extrema_are_interpolation_knots():
+    """Экстремумы табл. 8.26 (звёздочки): S′ = 4,0 и 5,5 при Z = 0,35, S″ = +26 при Z = 0,45 — узлы интерполяции."""
+    c = sf.typical_curves()
+    z = np.array([0.35, 0.45])
+    assert sf._interp(c["VKM1992_T8_26_MODE2"], "S1", z)[0] == pytest.approx(4.0)
+    assert sf._interp(c["VKM1992_T8_26_MODE2"], "S2", z)[1] == pytest.approx(26.0)
+    assert sf._interp(c["VKM1992_T8_26_MODE3"], "S1", z)[0] == pytest.approx(5.5)
+    # обычные узлы не сдвигаются
+    assert sf._interp(c["VKM1992_T8_26_MODE2"], "S1", np.array([0.3, 0.4])) == pytest.approx([2.4, 3.5])
+    # наибольший наклон профиля = η·S′max/L при z = 0,35
+    H, eta = 320.0, 2.0
+    L = sf.half_trough_length(H, 50, 55)
+    xl = -300 + H / math.tan(math.radians(55))
+    x = np.array([xl - 0.35 * L])
+    p = sf.typical_curve_profile(x, -300, 300, H, eta, "VKM1992_T8_26_MODE3", 50, 55, edition="1992",
+                                 strain_method="F")
+    assert p.tilt[0] == pytest.approx(eta * 5.5 / L)
+
+
+def test_matlab_check_rejects_empty_or_partial_files(tmp_path):
+    """Сверка MATLAB ↔ Python (scripts/formulas_vs_fem.py) не «проходит» на пустом, неполном или чужом файле."""
+    import importlib.util
+    from pathlib import Path
+    spec = importlib.util.spec_from_file_location(
+        "formulas_vs_fem", Path(__file__).resolve().parents[2] / "scripts" / "formulas_vs_fem.py")
+    fvf = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fvf)
+    x = np.linspace(-500, 500, 41)
+    norm = {"K": sf.knothe_profile(x, -100, 100, 300.0, 1.0, 55.0)}
+    header = "case,x,s,tilt,curvature,u_h,eps_h\n"
+
+    def rows(name, prof, n=None):
+        n = len(x) if n is None else n
+        return "".join(f"{name},{x[j]:.4f},{prof.s[j]:.12e},{prof.tilt[j]:.12e},{prof.curvature[j]:.12e},"
+                       f"{prof.u_h[j]:.12e},{prof.eps_h[j]:.12e}\n" for j in range(n))
+    empty, partial, alien, full = (tmp_path / f for f in ("e.csv", "p.csv", "a.csv", "f.csv"))
+    empty.write_text(header, encoding="utf-8")
+    partial.write_text(header + rows("K", norm["K"], 10), encoding="utf-8")
+    alien.write_text(header + rows("OTHER", norm["K"]), encoding="utf-8")
+    full.write_text(header + rows("K", norm["K"]), encoding="utf-8")
+    assert not fvf.compare_with_matlab(empty, norm, x)["pass"]
+    assert not fvf.compare_with_matlab(partial, norm, x)["pass"]
+    assert not fvf.compare_with_matlab(alien, norm, x)["pass"]
+    assert not fvf.compare_with_matlab(tmp_path / "missing.csv", norm, x)["pass"]
+    good = fvf.compare_with_matlab(full, norm, x)
+    assert good["pass"] and good["problems"] == []
+
+
 def test_maxima_are_strict_json():
     """Величина, не заданная методом (u у «Указаний»), — None, а не NaN: сводки должны быть строгим JSON."""
     import json

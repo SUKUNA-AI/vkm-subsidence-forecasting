@@ -225,7 +225,16 @@ class Profile:
 
 
 def _interp(table: dict, key: str, z: np.ndarray) -> np.ndarray:
-    return np.interp(z, np.asarray(table["z"], float), np.asarray(table[key], float))
+    """Линейная интерполяция столбца таблицы; экстремумы, отмеченные в таблице звёздочкой (поле extremes:
+    S′ = 4,0 и 5,5 при Z = 0,35, S″ = +26,0 при Z = 0,45 табл. 8.26), добавляются как дополнительные узлы."""
+    zt = list(map(float, table["z"]))
+    vt = list(map(float, table[key]))
+    ext = (table.get("extremes") or {}).get("S1" if key == "S1_used" else key)
+    if ext:
+        zt.append(float(ext[0]))
+        vt.append(float(ext[1]))
+    order = np.argsort(zt, kind="stable")
+    return np.interp(z, np.asarray(zt)[order], np.asarray(vt)[order])
 
 
 def _flank_coordinates(x, x1, x2, H, delta0_deg, psi_deg):

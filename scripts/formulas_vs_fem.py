@@ -70,10 +70,13 @@ def load_fem(root: Path) -> dict:
     top = np.arange(len(xs)) * (nz + 1)
     ic = int(np.argmin(abs(xs - 0.5 * (p0 + p1))))
     res = json.loads((root / "results.json").read_text(encoding="utf-8"))
-    cases = {}
+    cases, disp_sha = {}, {}
     for case in res["cases"]:
-        U1 = np.loadtxt(root / "step6_cases" / case / "u_ls1.txt")
-        U4 = np.loadtxt(root / "step6_cases" / case / "u_ls4.txt")
+        f1, f4 = root / "step6_cases" / case / "u_ls1.txt", root / "step6_cases" / case / "u_ls4.txt"
+        disp_sha[f"step6_cases/{case}/u_ls1.txt"] = sha256(f1)
+        disp_sha[f"step6_cases/{case}/u_ls4.txt"] = sha256(f4)
+        U1 = np.loadtxt(f1)
+        U4 = np.loadtxt(f4)
         d = U4 - U1
         s = -d[top, 1]
         h = d[top, 0]
@@ -83,7 +86,7 @@ def load_fem(root: Path) -> dict:
     return {"x": xs, "panel": (p0, p1), "H_roof": float(I[ic, 0] - I[ic, 6]), "H_floor": float(I[ic, 0] - I[ic, 7]),
             "cases": cases, "results": res,
             "inputs": {"mesh.npz": sha256(root / "step10_slice" / "mesh.npz"),
-                       "results.json": sha256(root / "results.json")}}
+                       "results.json": sha256(root / "results.json"), "displacements": disp_sha}}
 
 
 def load_creep(path: Path) -> dict:
@@ -410,6 +413,84 @@ def fig_deformations(path, x, panel, H, fem, norm):
     plt.close(fig)
 
 
+# --------------------------------------------------------------------------------- MATLAB check, receipt
+
+def compare_with_matlab(path: Path, norm: dict, x: np.ndarray, tol: float = 1e-9) -> dict:
+    """Сверка профилей MATLAB и Python. Проходит, только если в файле есть все ожидаемые случаи, точки x совпадают
+    по числу и значениям, маски NaN совпадают (NaN допустим лишь там, где величину не задаёт метод), и наибольшее
+    относительное расхождение ≤ tol. Пустой или неполный файл — не «совпадение» (ревью PR #27)."""
+    problems, worst = [], 0.0
+    if not path.is_file():
+        return {"pass": False, "problems": ["файл MATLAB не найден"], "max_rel_diff": None}
+    rows = list(csv.DictReader(path.open(encoding="utf-8")))
+    known = set(norm)
+    extra = sorted({r.get("case", "") for r in rows} - known)
+    if extra:
+        problems.append(f"неожиданные случаи: {extra[:5]}")
+    for name, p in norm.items():
+        got = [r for r in rows if r.get("case") == name]
+        if len(got) != len(x):
+            problems.append(f"{name}: строк {len(got)}, ожидалось {len(x)}")
+            continue
+        xm = np.array([float(r["x"]) for r in got])
+        if not np.allclose(xm, x, atol=1e-3, rtol=0):
+            problems.append(f"{name}: координаты x не совпадают")
+            continue
+        for key in ("s", "tilt", "curvature", "u_h", "eps_h"):
+            m = np.array([float(r[key]) for r in got])
+            v = np.asarray(getattr(p, key), dtype=float)
+            if not np.array_equal(np.isnan(m), np.isnan(v)) or np.any(np.isinf(m)):
+                problems.append(f"{name}.{key}: маска NaN/inf не совпадает")
+                continue
+            fin = np.isfinite(v)
+            if not fin.any():
+                continue
+            scale = max(float(np.max(np.abs(v[fin]))), 1e-30)
+            worst = max(worst, float(np.max(np.abs(m[fin] - v[fin]))) / scale)
+    ok = not problems and worst <= tol
+    return {"pass": ok, "max_rel_diff": worst, "tolerance": tol, "cases_expected": len(norm), "problems": problems,
+            "matlab_csv_sha256": sha256(path)}
+
+
+def write_receipt(out: Path, args, fem: dict, creep, pl12, matlab_check) -> None:
+    """Квитанция преобразования: все прочитанные входы (сетка, results.json, u_ls1/u_ls4 каждого случая, ползучесть,
+    ПЛ 12, CSV MATLAB), команда (пути заменены метками), версия кода, SHA-256 всех выходов (ревью PR #27)."""
+    import platform
+    import subprocess
+    import matplotlib
+    try:
+        commit = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True,
+                                check=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        commit = None
+    cmd = ["python", "scripts/formulas_vs_fem.py", "--fem-root", "<G_solver>", "--out", "<out>"]
+    for flag, label in (("creep_json", "<G_creep/results_creep.json>"), ("pl12_csv", "<series.csv>"),
+                        ("matlab_csv", "<out>/formula_profiles_matlab.csv")):
+        if getattr(args, flag):
+            cmd += ["--" + flag.replace("_", "-"), label]
+    inputs = {f"G_solver/step10_slice/mesh.npz": fem["inputs"]["mesh.npz"],
+              f"G_solver/results.json": fem["inputs"]["results.json"],
+              **{f"G_solver/{k}": v for k, v in fem["inputs"]["displacements"].items()}}
+    if creep:
+        inputs["G_creep/results_creep.json"] = creep["sha256"]
+    if pl12:
+        inputs["WORLD_OBSERVATIONS/digitized/VKM-SRC-011/fig_4_7b/series.csv"] = pl12["_sha256"]
+    if matlab_check and matlab_check.get("matlab_csv_sha256"):
+        inputs["formula_profiles_matlab.csv"] = matlab_check["matlab_csv_sha256"]
+    produced = ["scenario_for_matlab.json", "amplitude_comparison.csv", "formula_profiles.csv",
+                "fem_surface_profiles.csv", "summary.json", "fig1_amplitudes.png", "fig2_shapes.png", "fig3_transfer.png",
+                "fig4_deformations.png", "fig5_creep_vs_norm.png"]
+    outputs = {name: sha256(out / name) for name in produced if (out / name).is_file()}
+    rec = {"schema": "vkm.receipt/1", "generator": "scripts/formulas_vs_fem.py", "code_commit": commit,
+           "status": "NORMATIVE CALCULATION + MODEL RESULT; не наблюдение, не прогноз, не валидация",
+           "command": " ".join(cmd), "environment": {"python": platform.python_version(), "numpy": np.__version__,
+                                                     "matplotlib": matplotlib.__version__},
+           "inputs": inputs, "n_inputs": len(inputs), "outputs": outputs,
+           "checks": {"matlab_check": matlab_check, "summary_json_strict": True}}
+    (out / "receipt.json").write_text(json.dumps(strict_json(rec), ensure_ascii=False, indent=1, allow_nan=False) + "\n",
+                                      encoding="utf-8", newline="\n")
+
+
 # ------------------------------------------------------------------------------------------------- main
 
 def main() -> int:
@@ -459,18 +540,8 @@ def main() -> int:
 
     # MATLAB ↔ Python по тем же нормативным профилям
     matlab_check = None
-    if a.matlab_csv and a.matlab_csv.exists():
-        rows = list(csv.DictReader(a.matlab_csv.open(encoding="utf-8")))
-        worst = 0.0
-        for name, p in norm.items():
-            got = [r for r in rows if r["case"] == name]
-            if not got:
-                continue
-            for key in ("s", "tilt", "curvature", "eps_h"):
-                m = np.array([float(r[key]) for r in got])
-                v = getattr(p, key)
-                worst = max(worst, float(np.nanmax(np.abs(m - v)) / max(np.nanmax(np.abs(v)), 1e-30)))
-        matlab_check = {"max_rel_diff": worst, "pass": worst < 1e-9, "matlab_csv_sha256": sha256(a.matlab_csv)}
+    if a.matlab_csv:
+        matlab_check = compare_with_matlab(a.matlab_csv, norm, x)
 
     # таблицы
     with (out / "amplitude_comparison.csv").open("w", encoding="utf-8", newline="") as f:
@@ -540,7 +611,11 @@ def main() -> int:
     fig_deformations(out / "fig4_deformations.png", x, panel, H, fem, norm)
     if creep:
         fig_creep(out / "fig5_creep_vs_norm.png", creep, pl12)
-    print(json.dumps({"out": out.name, "cases": len(amp), "matlab_check": matlab_check}, ensure_ascii=False))
+    write_receipt(out, a, fem, creep, pl12, matlab_check)
+    print(json.dumps(strict_json({"out": out.name, "cases": len(amp), "matlab_check": matlab_check}), ensure_ascii=False))
+    if matlab_check is not None and not matlab_check["pass"]:
+        print("MATLAB ↔ Python: сверка не пройдена", file=sys.stderr)
+        return 3
     return 0
 
 
