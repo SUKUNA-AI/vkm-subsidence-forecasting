@@ -9,41 +9,177 @@
  "files": [
   {
    "dropped_columns": [],
-   "source": "PHYSICS_CAUSAL/causal_graph.json",
-   "source_sha256": "71a17b338b45f460bd43f412f0a39783d0a875cc0edf87370d9084f62fe058c6",
+   "source": "BOREHOLES/FIX_LOG.csv",
+   "source_sha256": "f734ec1e7b27b5fbc744aae54cdf80aab8dac4bf0f317061e400c002ed530509",
    "status": "OK",
-   "target": "catalogues/causal/causal_graph.json",
-   "target_sha256": "71a17b338b45f460bd43f412f0a39783d0a875cc0edf87370d9084f62fe058c6"
+   "target": "evidence/qa/review_fixes/boreholes_fix_log.csv",
+   "target_sha256": "73c718cfda6548a7b52011bf9bfa68b2eab92990655719969a87f53fd1729922"
   },
   {
    "dropped_columns": [
     "quote"
    ],
-   "source": "PHYSICS_CAUSAL/causal_graph_edges.csv",
-   "source_sha256": "5cb4c1e451f0f2bc7e1b449d71f384a46d5e0c85bc92fb0cc617adec952c5ed2",
+   "source": "BOREHOLES/borehole_catalog.csv",
+   "source_sha256": "a0056127970432e7f58e176d3a94b987af58fa5f91c194c1121e72fc4bae29d7",
    "status": "OK",
-   "target": "catalogues/causal/causal_graph_edges.csv",
-   "target_sha256": "35251c77cc0a396da48047b6f6f469e227d3aa84a8ca4837604d55a77c8f1681"
+   "target": "evidence/boreholes/borehole_catalog.csv",
+   "target_sha256": "eccd04ecb225bd006560f75e914354489ce12358f82cb3551ff914cffaa8073a"
   },
   {
    "dropped_columns": [
     "quote"
    ],
-   "source": "PHYSICS_CAUSAL/causal_graph_nodes.csv",
-   "source_sha256": "c19f984f9609b4d0838779b5e4bf264406d33355b9109471b8d8fefa8052e2c6",
+   "source": "BOREHOLES/borehole_identity_issues.csv",
+   "source_sha256": "829f130816ca1d177cdd2f635e098244c73eb16a051edb7323bb5e6dac6cc0ff",
    "status": "OK",
-   "target": "catalogues/causal/causal_graph_nodes.csv",
-   "target_sha256": "6523801f5e336d063d9a64c22ed22dfc1e83e97a0686c1f64e9171306d13c2bc"
+   "target": "evidence/boreholes/borehole_identity_issues.csv",
+   "target_sha256": "3680ade9a664111ffabd9cd83f708c0a847c00b2fbdbbcc0623b71cbb6bfae14"
   },
   {
    "dropped_columns": [
     "quote"
    ],
-   "source": "FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv",
-   "source_sha256": "498805eb02fad038c86a7894a1b48894983c4263708c399ec5a64f452c7161b3",
+   "source": "BOREHOLES/borehole_picks.csv",
+   "source_sha256": "9b92a56c1880b9d433ed3f1c3856498a0c4601654c5ab7a3701e3d6e501cba62",
    "status": "OK",
-   "target": "catalogues/mathematics/MATHEMATICAL_MODEL_REGISTRY.csv",
-   "target_sha256": "ed6ac41848293d67849059992e298d7d3a2257e72dd03e1773dc86174148b0ec"
+   "target": "evidence/boreholes/borehole_picks.csv",
+   "target_sha256": "3d8659ce7b9fc530ae053b98d105172b266a20e6c83a96874273f933321732c5"
+  },
+  {
+   "dropped_columns": [],
+   "source": "BOREHOLES/build/horizon_pick_routing.csv",
+   "source_sha256": "9972cd076b7d0c5c8f3c28f550b20c5c92138c1f59a108451f0fc8c2776c269a",
+   "status": "OK",
+   "target": "evidence/boreholes/horizon_pick_routing.csv",
+   "target_sha256": "346b83cd8d4265c07fd85e3b6760f5ca2ed590edd13a020de4e3e7ddc84d06b4"
+  },
+  {
+   "dropped_columns": [],
+   "source": "CITATIONS/FIX_LOG.csv",
+   "source_sha256": "031f5a13d542144fea6db71da080a66c6ab0b6278c41d108d088aac4597698da",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/citations_fix_log.csv",
+   "target_sha256": "09ec7cf1e31780b1a4ca7f9af667368e04a9f1a2ffbe68676978c59b5da0f19b"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "CITATIONS/SOURCE_CITATION_GRAPH.csv",
+   "source_sha256": "060123993acd6169a4cb676923f27b153b87c7d043a747c70876e8d4e88d3c4d",
+   "status": "OK",
+   "target": "evidence/sources/SOURCE_CITATION_GRAPH.csv",
+   "target_sha256": "abc3e700dc4e94c9d2f3525a51a9c8ce695984f3420a0d0413478b31d3fe1135"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "CITATIONS/foreign_page_references.csv",
+   "source_sha256": "35b970eef19e5aca05dab3ce5703f3695c7ab3509e78ee6d8ac056adc55eca6e",
+   "status": "OK",
+   "target": "evidence/sources/foreign_page_references.csv",
+   "target_sha256": "377ee8fdcd6fc6ceb9cd47db1ec0de5d61d60a46237473d1c2c922879e95607c"
+  },
+  {
+   "dropped_columns": [],
+   "source": "CITATIONS/lineage_affected_records.csv",
+   "source_sha256": "65c7b6f7b410e173e6d0c2a26a6ad2d9aac7bbb43aca087c7947a7c98cf39c93",
+   "status": "OK",
+   "target": "evidence/sources/lineage_affected_records.csv",
+   "target_sha256": "46c8502b61758aa7776ca11562f757005bebe08d53e3b9d55adb5364739d5592"
+  },
+  {
+   "dropped_columns": [],
+   "source": "CITATIONS/multi_source_cited_works.csv",
+   "source_sha256": "8164cc2e387df2cbc3c8e7cb0ef3df85c1c050b835e6e86824c17d358fb67f22",
+   "status": "OK",
+   "target": "evidence/sources/multi_source_cited_works.csv",
+   "target_sha256": "5ea09c46348ddeda236feab68175317232eaf3971507ca8c0d48f82c54d76e62"
+  },
+  {
+   "dropped_columns": [],
+   "source": "CITATIONS/primary_source_targets.csv",
+   "source_sha256": "9bfb7ad2c1bd4de566961bbc4a29897929005470b8b1d54c0b34d1b72802af08",
+   "status": "OK",
+   "target": "evidence/sources/primary_source_targets.csv",
+   "target_sha256": "9dccd080215ef928443fe6d48d968ce38def001cfa44c8add95c6b741ca39c89"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "CITATIONS/repeated_secondary_citations.csv",
+   "source_sha256": "cfa69046c215cb28a619307fc3ca6c88647089edb39cedc703e8e496360dc694",
+   "status": "OK",
+   "target": "evidence/sources/repeated_secondary_citations.csv",
+   "target_sha256": "79f58ba24f762504b0672a0811ff22f5ea8347411243e591522aa03d96f4057f"
+  },
+  {
+   "dropped_columns": [],
+   "source": "CITATIONS/source_families.csv",
+   "source_sha256": "0d5802b35afbeff72f49ae5588e983aa9e078ebe5b61866f84f1671091dbc078",
+   "status": "OK",
+   "target": "evidence/sources/source_families.csv",
+   "target_sha256": "cd8a73cd8cf91085bc7cb24d957ef0eedde2d0072e083135d6febd3cff5715d9"
+  },
+  {
+   "dropped_columns": [],
+   "source": "CITATIONS/source_family_membership.csv",
+   "source_sha256": "191b93e61f0a54334029861c2bd486915bf8be6161feb12a085e691a1dd8bc29",
+   "status": "OK",
+   "target": "evidence/sources/source_family_membership.csv",
+   "target_sha256": "4f857714f777fca67c20cea69ac70b91b5de9873f6f0719969512a749a25266a"
+  },
+  {
+   "dropped_columns": [],
+   "source": "CITATIONS/visual_checks.csv",
+   "source_sha256": "23b8d755c57fc199eb7af773e3eea2371d8f95a2597592e23e6d25c3bde3bb41",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/citations_visual_checks.csv",
+   "target_sha256": "8c2cf79d50c2155880543955326e7e6a78c7308ec4ce37e8ddd7b6087c579165"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "EXTERNAL/external_findings.csv",
+   "source_sha256": "c89c9cd80f9c4ab26be4cd75d00ae8fe87c136c93d1ba42b69926569004d566d",
+   "status": "OK",
+   "target": "evidence/external/external_findings.csv",
+   "target_sha256": "497feeed97d721868f260ea2b86791471242c30a1f00f377faad084ba6bf9a48"
+  },
+  {
+   "dropped_columns": [],
+   "source": "EXTERNAL/external_sources.csv",
+   "source_sha256": "ee9c48bc29a9d60bf5397aba66b2eb335debbf56f75d692472cfe879fed13e37",
+   "status": "OK",
+   "target": "evidence/external/external_sources.csv",
+   "target_sha256": "ee9c48bc29a9d60bf5397aba66b2eb335debbf56f75d692472cfe879fed13e37"
+  },
+  {
+   "dropped_columns": [],
+   "source": "EXTERNAL/formula_verifications.csv",
+   "source_sha256": "e52df939e9c088bf3b81f7bb5f7b2b42a058dd93c4c47e6a166365d70f81e5ed",
+   "status": "OK",
+   "target": "evidence/external/formula_verifications.csv",
+   "target_sha256": "e52df939e9c088bf3b81f7bb5f7b2b42a058dd93c4c47e6a166365d70f81e5ed"
+  },
+  {
+   "dropped_columns": [],
+   "source": "EXTERNAL/target_resolution.csv",
+   "source_sha256": "8d7bf9065038573dce4a9bf981f581f440c0bd22872d12ba72893c91404de507",
+   "status": "OK",
+   "target": "evidence/external/target_resolution.csv",
+   "target_sha256": "8d7bf9065038573dce4a9bf981f581f440c0bd22872d12ba72893c91404de507"
+  },
+  {
+   "dropped_columns": [],
+   "source": "FORMULAS/FIX_LOG.csv",
+   "source_sha256": "879d96e99f5146481dfa93523ead84937f89ff933bd2b9edc24f49da8de0497f",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/formulas_fix_log.csv",
+   "target_sha256": "0289c29909e044d1b373fa74e4df84572cff6779da528909ef1e1be958b44ed5"
   },
   {
    "dropped_columns": [
@@ -64,6 +200,16 @@
    "status": "OK",
    "target": "catalogues/mathematics/formula_visual_checks.csv",
    "target_sha256": "0e60f17bf4d87fadb6dc146e5f1e62804bbed8e27cf31b3579d6babde69cba5e"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "FORMULAS/MATHEMATICAL_MODEL_REGISTRY.csv",
+   "source_sha256": "498805eb02fad038c86a7894a1b48894983c4263708c399ec5a64f452c7161b3",
+   "status": "OK",
+   "target": "catalogues/mathematics/MATHEMATICAL_MODEL_REGISTRY.csv",
+   "target_sha256": "ed6ac41848293d67849059992e298d7d3a2257e72dd03e1773dc86174148b0ec"
   },
   {
    "dropped_columns": [],
@@ -110,92 +256,12 @@
    "target_sha256": "c83cb7b304381e11b1a920a6f4385ecfaaf049c508302808d6c6f6716d462278"
   },
   {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "PHYSICS_CAUSAL/observation_operator_design.csv",
-   "source_sha256": "f4c4226d41b74afa0221f5140a36ca9eb37119d701c54bc70a11f79ff9633ea8",
-   "status": "OK",
-   "target": "catalogues/observations/observation_operator_design.csv",
-   "target_sha256": "821cc1857a033f072f3ccadf6f190ad23020a5ac128bb20071333a3bb4b15307"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "PHYSICS_CAUSAL/physics_conflicts.csv",
-   "source_sha256": "131de95d3c1b086d68a5ae859c53e4f623ef467a7081fe6fbf28d74350e039a3",
-   "status": "OK",
-   "target": "catalogues/physics/physics_conflicts.csv",
-   "target_sha256": "c8379d6a8bc165bd680495053d78c0ba12f9a0dcc99f45b5740465ff5bb77d84"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "PHYSICS_CAUSAL/physics_coverage_and_execution_matrix.csv",
-   "source_sha256": "6d7a293a404cd44271a641df2d0f08c71e83e4503be80566ea1d1f6007e3ba70",
-   "status": "OK",
-   "target": "catalogues/physics/physics_coverage_and_execution_matrix.csv",
-   "target_sha256": "d77c81eba72a96b8fb0e06eb559acde55bbdaedeb35fd27dd7eccd15316802eb"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "PHYSICS_CAUSAL/process_evidence_links.csv",
-   "source_sha256": "0126203d71522090258c55f28eeed4e800fd1a432c0f004d65e2e59bebeffb54",
-   "status": "OK",
-   "target": "catalogues/physics/process_evidence_links.csv",
-   "target_sha256": "8d8c7aa130123bd9b4ea69dc2d2b8521f8a2135cffb9f16979da4d14f7d1e3df"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "MINING/backfill_event_catalog.csv",
-   "source_sha256": "e4a493b502d5e988628f8b9c82d6636cdc53a95f8c5f2f7e2d5a486f634c5e4f",
-   "status": "OK",
-   "target": "evidence/backfill/backfill_event_catalog.csv",
-   "target_sha256": "4129859d0c24bd986b1d547dc96733735d5cc566490d059143da401dc0c3afdd"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "BOREHOLES/borehole_catalog.csv",
-   "source_sha256": "a0056127970432e7f58e176d3a94b987af58fa5f91c194c1121e72fc4bae29d7",
-   "status": "OK",
-   "target": "evidence/boreholes/borehole_catalog.csv",
-   "target_sha256": "eccd04ecb225bd006560f75e914354489ce12358f82cb3551ff914cffaa8073a"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "BOREHOLES/borehole_identity_issues.csv",
-   "source_sha256": "829f130816ca1d177cdd2f635e098244c73eb16a051edb7323bb5e6dac6cc0ff",
-   "status": "OK",
-   "target": "evidence/boreholes/borehole_identity_issues.csv",
-   "target_sha256": "3680ade9a664111ffabd9cd83f708c0a847c00b2fbdbbcc0623b71cbb6bfae14"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "BOREHOLES/borehole_picks.csv",
-   "source_sha256": "9b92a56c1880b9d433ed3f1c3856498a0c4601654c5ab7a3701e3d6e501cba62",
-   "status": "OK",
-   "target": "evidence/boreholes/borehole_picks.csv",
-   "target_sha256": "3d8659ce7b9fc530ae053b98d105172b266a20e6c83a96874273f933321732c5"
-  },
-  {
    "dropped_columns": [],
-   "source": "BOREHOLES/build/horizon_pick_routing.csv",
-   "source_sha256": "9972cd076b7d0c5c8f3c28f550b20c5c92138c1f59a108451f0fc8c2776c269a",
+   "source": "GEOLOGY_COORDS/FIX_LOG.csv",
+   "source_sha256": "37d7e473ac631d6d5b6623161e60a706be3af08f534cf609d85d45327656b89a",
    "status": "OK",
-   "target": "evidence/boreholes/horizon_pick_routing.csv",
-   "target_sha256": "346b83cd8d4265c07fd85e3b6760f5ca2ed590edd13a020de4e3e7ddc84d06b4"
+   "target": "evidence/qa/review_fixes/geology_coords_fix_log.csv",
+   "target_sha256": "818d273d767c8ad23a94c42d6546e24eeaa6f59665cc854b130ffff09545a874"
   },
   {
    "dropped_columns": [
@@ -206,40 +272,6 @@
    "status": "OK",
    "target": "evidence/coordinates/coordinate_datum_evidence.csv",
    "target_sha256": "0fc46086154ecdd0ab2d168053fcc85b4a5f748eae0b75181ac6f819fb243d9d"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "EXTERNAL/external_findings.csv",
-   "source_sha256": "c89c9cd80f9c4ab26be4cd75d00ae8fe87c136c93d1ba42b69926569004d566d",
-   "status": "OK",
-   "target": "evidence/external/external_findings.csv",
-   "target_sha256": "497feeed97d721868f260ea2b86791471242c30a1f00f377faad084ba6bf9a48"
-  },
-  {
-   "dropped_columns": [],
-   "source": "EXTERNAL/external_sources.csv",
-   "source_sha256": "ee9c48bc29a9d60bf5397aba66b2eb335debbf56f75d692472cfe879fed13e37",
-   "status": "OK",
-   "target": "evidence/external/external_sources.csv",
-   "target_sha256": "ee9c48bc29a9d60bf5397aba66b2eb335debbf56f75d692472cfe879fed13e37"
-  },
-  {
-   "dropped_columns": [],
-   "source": "EXTERNAL/formula_verifications.csv",
-   "source_sha256": "e52df939e9c088bf3b81f7bb5f7b2b42a058dd93c4c47e6a166365d70f81e5ed",
-   "status": "OK",
-   "target": "evidence/external/formula_verifications.csv",
-   "target_sha256": "e52df939e9c088bf3b81f7bb5f7b2b42a058dd93c4c47e6a166365d70f81e5ed"
-  },
-  {
-   "dropped_columns": [],
-   "source": "EXTERNAL/target_resolution.csv",
-   "source_sha256": "8d7bf9065038573dce4a9bf981f581f440c0bd22872d12ba72893c91404de507",
-   "status": "OK",
-   "target": "evidence/external/target_resolution.csv",
-   "target_sha256": "8d7bf9065038573dce4a9bf981f581f440c0bd22872d12ba72893c91404de507"
   },
   {
    "dropped_columns": [
@@ -278,6 +310,14 @@
    "target_sha256": "93c5941a9462ee120866c168e5ffdaeb78fbbf614b4991105a5246b294a53fe9"
   },
   {
+   "dropped_columns": [],
+   "source": "HYDRO_THERMAL_GEOPHYS/FIX_LOG.csv",
+   "source_sha256": "f98e459f3c29f28b983e248d4b9c90c812c47365703de550d3098a410a7e5fcc",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/hydro_thermal_geophys_fix_log.csv",
+   "target_sha256": "80de8cf1d615a61570eed170211825121015ca315b21d9de86455b1b094e649e"
+  },
+  {
    "dropped_columns": [
     "quote"
    ],
@@ -286,16 +326,6 @@
    "status": "OK",
    "target": "evidence/geophysics/gpr_evidence_catalog.csv",
    "target_sha256": "7511fa6929e2e6ef640ce6c7e3ab543e2b392c61d2795f9cf61d896bfd5afa46"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "HYDRO_THERMAL_GEOPHYS/seismic_geophysics_catalog.csv",
-   "source_sha256": "251d778a07a8424aabd2e8db9b8b47576ff789215bb51e8ae7680757f61c7bb7",
-   "status": "OK",
-   "target": "evidence/geophysics/seismic_geophysics_catalog.csv",
-   "target_sha256": "be500cca4e989acf5c1a24b3551e1994a1608ace04d0ed8afc335d00802fd958"
   },
   {
    "dropped_columns": [
@@ -311,6 +341,16 @@
    "dropped_columns": [
     "quote"
    ],
+   "source": "HYDRO_THERMAL_GEOPHYS/seismic_geophysics_catalog.csv",
+   "source_sha256": "251d778a07a8424aabd2e8db9b8b47576ff789215bb51e8ae7680757f61c7bb7",
+   "status": "OK",
+   "target": "evidence/geophysics/seismic_geophysics_catalog.csv",
+   "target_sha256": "be500cca4e989acf5c1a24b3551e1994a1608ace04d0ed8afc335d00802fd958"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
    "source": "HYDRO_THERMAL_GEOPHYS/thermal_evidence_catalog.csv",
    "source_sha256": "b969e8dc209329639cb075e1b6fad2b2617c4ce4d82ab0fd4553ddf071dc83ca",
    "status": "OK",
@@ -318,52 +358,12 @@
    "target_sha256": "d9f86e49946a67600842014700cde7fd32fa4011ae68a39c6a0936b3ca494258"
   },
   {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "MONITORING_LIFECYCLE/information_lifecycle_matrix.csv",
-   "source_sha256": "195e82aa628a7ca1e71c89ec194e41c62238cbbafe24abdf3ebd3b4a78985849",
-   "status": "OK",
-   "target": "evidence/lifecycle/information_lifecycle_matrix.csv",
-   "target_sha256": "d938e0fb9afbd31b35c94368fb156b04a96f3dc39aaa82f0f08ec9e162330718"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "MONITORING_LIFECYCLE/information_lifecycle_record_map.csv",
-   "source_sha256": "ce5bdf0b89232cf633925f0463b6d9ed22c295dc39629a59953521f2fdac4207",
-   "status": "OK",
-   "target": "evidence/lifecycle/information_lifecycle_record_map.csv",
-   "target_sha256": "8d3e470f4a729f0c9b502ae45cda1f898e4d931ffe9f4b3896fe18195d270787"
-  },
-  {
    "dropped_columns": [],
-   "source": "MONITORING_LIFECYCLE/lifecycle_graph_edges.csv",
-   "source_sha256": "7f8926ccc89375dd24e8c6fa2b3e6dc3446c81089b2aee27a38e641272bfa877",
+   "source": "MECH_RHEO/FIX_LOG.csv",
+   "source_sha256": "e977437e04c6a66f6b555c250e75bae7e8c4eecb379e61e0c1c6caafabd157d5",
    "status": "OK",
-   "target": "evidence/lifecycle/lifecycle_graph_edges.csv",
-   "target_sha256": "996bc7f650dad66a1a09970802d83deb95360e4a4c0e7bd01f3329cccee87bc8"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "MONITORING_LIFECYCLE/lifecycle_stage_record_map.csv",
-   "source_sha256": "05070d6c9e6fedbc002679ca7b2ff77c8a1404f5cb9ed787b924e39edbd922e1",
-   "status": "OK",
-   "target": "evidence/lifecycle/lifecycle_stage_record_map.csv",
-   "target_sha256": "a9591533abf478c34b60986639c0e56389d12d7cbd19847a37d8f25a5a78e2da"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "MONITORING_LIFECYCLE/lifecycle_stages.csv",
-   "source_sha256": "e47afd0b5e083ec5cdbda06282a71307d4bee397e9bb6fdb179756515f0e0817",
-   "status": "OK",
-   "target": "evidence/lifecycle/lifecycle_stages.csv",
-   "target_sha256": "4ad4210d873502c4870b0cd1fc2fb84392840b1c066e3c4b2133a8f022861b38"
+   "target": "evidence/qa/review_fixes/mech_rheo_fix_log.csv",
+   "target_sha256": "e977437e04c6a66f6b555c250e75bae7e8c4eecb379e61e0c1c6caafabd157d5"
   },
   {
    "dropped_columns": [
@@ -402,6 +402,32 @@
    "status": "OK",
    "target": "evidence/materials/rheology_evidence_catalog.csv",
    "target_sha256": "aedab3e6aefe7b4c05bfa0e157aeca249484545d48b00d84455301a0877ba1d6"
+  },
+  {
+   "dropped_columns": [],
+   "source": "MECH_RHEO/visual_rechecks.csv",
+   "source_sha256": "afe9d34533291613db5c33f1211298952e16d6119007a57c8cf832d88e36a2d1",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/mech_rheo_visual_rechecks.csv",
+   "target_sha256": "ae7c5b75a157960efbe5e8701c10f9ba4578e99ac741558495512e97e4d0d1fd"
+  },
+  {
+   "dropped_columns": [],
+   "source": "MINING/FIX_LOG.csv",
+   "source_sha256": "4aaf7dff4141b8cece74bb07b8e8424223a0b217b4bec9dbf5ae4673a41f9750",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/mining_fix_log.csv",
+   "target_sha256": "51c3b0ef683989cd5001c2f4d5bca1d1b86a8944c73432d20d175d4d811bc1c5"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MINING/backfill_event_catalog.csv",
+   "source_sha256": "e4a493b502d5e988628f8b9c82d6636cdc53a95f8c5f2f7e2d5a486f634c5e4f",
+   "status": "OK",
+   "target": "evidence/backfill/backfill_event_catalog.csv",
+   "target_sha256": "4129859d0c24bd986b1d547dc96733735d5cc566490d059143da401dc0c3afdd"
   },
   {
    "dropped_columns": [
@@ -463,11 +489,75 @@
   },
   {
    "dropped_columns": [],
+   "source": "MINING/visual_rechecks.csv",
+   "source_sha256": "c6055f759a1be7000367204949bd8d787d8ac6fa76adebbe941666e09a13a76b",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/mining_visual_rechecks.csv",
+   "target_sha256": "7d729a298ceb85246d0dd8c125df8c2ba886e5ef2b845998289ef0bb6a6892b4"
+  },
+  {
+   "dropped_columns": [],
+   "source": "MONITORING_LIFECYCLE/FIX_LOG.csv",
+   "source_sha256": "5b68ed99b049a4c5929e86aab152864f40883c3b0780bdd0574450aa2f4ae05f",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/monitoring_lifecycle_fix_log.csv",
+   "target_sha256": "5b68ed99b049a4c5929e86aab152864f40883c3b0780bdd0574450aa2f4ae05f"
+  },
+  {
+   "dropped_columns": [],
    "source": "MONITORING_LIFECYCLE/catalogue_id_map.csv",
    "source_sha256": "1d6d64471988fc2700d577bcd96c765ec64338314a8e6340c0087572dfd9dc55",
    "status": "OK",
    "target": "evidence/monitoring/catalogue_id_map.csv",
    "target_sha256": "1d6d64471988fc2700d577bcd96c765ec64338314a8e6340c0087572dfd9dc55"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MONITORING_LIFECYCLE/information_lifecycle_matrix.csv",
+   "source_sha256": "195e82aa628a7ca1e71c89ec194e41c62238cbbafe24abdf3ebd3b4a78985849",
+   "status": "OK",
+   "target": "evidence/lifecycle/information_lifecycle_matrix.csv",
+   "target_sha256": "d938e0fb9afbd31b35c94368fb156b04a96f3dc39aaa82f0f08ec9e162330718"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MONITORING_LIFECYCLE/information_lifecycle_record_map.csv",
+   "source_sha256": "ce5bdf0b89232cf633925f0463b6d9ed22c295dc39629a59953521f2fdac4207",
+   "status": "OK",
+   "target": "evidence/lifecycle/information_lifecycle_record_map.csv",
+   "target_sha256": "8d3e470f4a729f0c9b502ae45cda1f898e4d931ffe9f4b3896fe18195d270787"
+  },
+  {
+   "dropped_columns": [],
+   "source": "MONITORING_LIFECYCLE/lifecycle_graph_edges.csv",
+   "source_sha256": "7f8926ccc89375dd24e8c6fa2b3e6dc3446c81089b2aee27a38e641272bfa877",
+   "status": "OK",
+   "target": "evidence/lifecycle/lifecycle_graph_edges.csv",
+   "target_sha256": "996bc7f650dad66a1a09970802d83deb95360e4a4c0e7bd01f3329cccee87bc8"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MONITORING_LIFECYCLE/lifecycle_stage_record_map.csv",
+   "source_sha256": "05070d6c9e6fedbc002679ca7b2ff77c8a1404f5cb9ed787b924e39edbd922e1",
+   "status": "OK",
+   "target": "evidence/lifecycle/lifecycle_stage_record_map.csv",
+   "target_sha256": "a9591533abf478c34b60986639c0e56389d12d7cbd19847a37d8f25a5a78e2da"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "MONITORING_LIFECYCLE/lifecycle_stages.csv",
+   "source_sha256": "e47afd0b5e083ec5cdbda06282a71307d4bee397e9bb6fdb179756515f0e0817",
+   "status": "OK",
+   "target": "evidence/lifecycle/lifecycle_stages.csv",
+   "target_sha256": "4ad4210d873502c4870b0cd1fc2fb84392840b1c066e3c4b2133a8f022861b38"
   },
   {
    "dropped_columns": [
@@ -509,6 +599,14 @@
   },
   {
    "dropped_columns": [],
+   "source": "MONITORING_LIFECYCLE/visual_rechecks.csv",
+   "source_sha256": "237668d4939d29364d435be972b73bc3aace49b25833547ecdb2f040a39a97be",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/monitoring_lifecycle_visual_rechecks.csv",
+   "target_sha256": "579e2ceab70813bc0b1e8083120b46de0a638dc1e9564ba89ef6eb3180f469e5"
+  },
+  {
+   "dropped_columns": [],
    "source": "OCR_VISUAL_QA/correction_impact.csv",
    "source_sha256": "86dc8708def50ba2b9f7ed9f512bbb917b5c759dcf8d69a8c6d791a5fd1856b9",
    "status": "OK",
@@ -526,100 +624,14 @@
    "target_sha256": "1cc0ee0ff2bda46dbaf7b5214d29e98dea70d0014175e9de4c25c2eed9ea9769"
   },
   {
-   "dropped_columns": [],
-   "source": "BOREHOLES/FIX_LOG.csv",
-   "source_sha256": "f734ec1e7b27b5fbc744aae54cdf80aab8dac4bf0f317061e400c002ed530509",
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "OCR_VISUAL_QA/visual_ocr_qa_ledger.csv",
+   "source_sha256": "1663ea48614cf26a6dbefa9c5296d31ca16692e0aa85d455427ada9e4fbba7a6",
    "status": "OK",
-   "target": "evidence/qa/review_fixes/boreholes_fix_log.csv",
-   "target_sha256": "73c718cfda6548a7b52011bf9bfa68b2eab92990655719969a87f53fd1729922"
-  },
-  {
-   "dropped_columns": [],
-   "source": "CITATIONS/FIX_LOG.csv",
-   "source_sha256": "031f5a13d542144fea6db71da080a66c6ab0b6278c41d108d088aac4597698da",
-   "status": "OK",
-   "target": "evidence/qa/review_fixes/citations_fix_log.csv",
-   "target_sha256": "09ec7cf1e31780b1a4ca7f9af667368e04a9f1a2ffbe68676978c59b5da0f19b"
-  },
-  {
-   "dropped_columns": [],
-   "source": "CITATIONS/visual_checks.csv",
-   "source_sha256": "23b8d755c57fc199eb7af773e3eea2371d8f95a2597592e23e6d25c3bde3bb41",
-   "status": "OK",
-   "target": "evidence/qa/review_fixes/citations_visual_checks.csv",
-   "target_sha256": "8c2cf79d50c2155880543955326e7e6a78c7308ec4ce37e8ddd7b6087c579165"
-  },
-  {
-   "dropped_columns": [],
-   "source": "FORMULAS/FIX_LOG.csv",
-   "source_sha256": "879d96e99f5146481dfa93523ead84937f89ff933bd2b9edc24f49da8de0497f",
-   "status": "OK",
-   "target": "evidence/qa/review_fixes/formulas_fix_log.csv",
-   "target_sha256": "0289c29909e044d1b373fa74e4df84572cff6779da528909ef1e1be958b44ed5"
-  },
-  {
-   "dropped_columns": [],
-   "source": "GEOLOGY_COORDS/FIX_LOG.csv",
-   "source_sha256": "37d7e473ac631d6d5b6623161e60a706be3af08f534cf609d85d45327656b89a",
-   "status": "OK",
-   "target": "evidence/qa/review_fixes/geology_coords_fix_log.csv",
-   "target_sha256": "818d273d767c8ad23a94c42d6546e24eeaa6f59665cc854b130ffff09545a874"
-  },
-  {
-   "dropped_columns": [],
-   "source": "HYDRO_THERMAL_GEOPHYS/FIX_LOG.csv",
-   "source_sha256": "f98e459f3c29f28b983e248d4b9c90c812c47365703de550d3098a410a7e5fcc",
-   "status": "OK",
-   "target": "evidence/qa/review_fixes/hydro_thermal_geophys_fix_log.csv",
-   "target_sha256": "80de8cf1d615a61570eed170211825121015ca315b21d9de86455b1b094e649e"
-  },
-  {
-   "dropped_columns": [],
-   "source": "MECH_RHEO/FIX_LOG.csv",
-   "source_sha256": "e977437e04c6a66f6b555c250e75bae7e8c4eecb379e61e0c1c6caafabd157d5",
-   "status": "OK",
-   "target": "evidence/qa/review_fixes/mech_rheo_fix_log.csv",
-   "target_sha256": "e977437e04c6a66f6b555c250e75bae7e8c4eecb379e61e0c1c6caafabd157d5"
-  },
-  {
-   "dropped_columns": [],
-   "source": "MECH_RHEO/visual_rechecks.csv",
-   "source_sha256": "afe9d34533291613db5c33f1211298952e16d6119007a57c8cf832d88e36a2d1",
-   "status": "OK",
-   "target": "evidence/qa/review_fixes/mech_rheo_visual_rechecks.csv",
-   "target_sha256": "ae7c5b75a157960efbe5e8701c10f9ba4578e99ac741558495512e97e4d0d1fd"
-  },
-  {
-   "dropped_columns": [],
-   "source": "MINING/FIX_LOG.csv",
-   "source_sha256": "4aaf7dff4141b8cece74bb07b8e8424223a0b217b4bec9dbf5ae4673a41f9750",
-   "status": "OK",
-   "target": "evidence/qa/review_fixes/mining_fix_log.csv",
-   "target_sha256": "51c3b0ef683989cd5001c2f4d5bca1d1b86a8944c73432d20d175d4d811bc1c5"
-  },
-  {
-   "dropped_columns": [],
-   "source": "MINING/visual_rechecks.csv",
-   "source_sha256": "c6055f759a1be7000367204949bd8d787d8ac6fa76adebbe941666e09a13a76b",
-   "status": "OK",
-   "target": "evidence/qa/review_fixes/mining_visual_rechecks.csv",
-   "target_sha256": "7d729a298ceb85246d0dd8c125df8c2ba886e5ef2b845998289ef0bb6a6892b4"
-  },
-  {
-   "dropped_columns": [],
-   "source": "MONITORING_LIFECYCLE/FIX_LOG.csv",
-   "source_sha256": "5b68ed99b049a4c5929e86aab152864f40883c3b0780bdd0574450aa2f4ae05f",
-   "status": "OK",
-   "target": "evidence/qa/review_fixes/monitoring_lifecycle_fix_log.csv",
-   "target_sha256": "5b68ed99b049a4c5929e86aab152864f40883c3b0780bdd0574450aa2f4ae05f"
-  },
-  {
-   "dropped_columns": [],
-   "source": "MONITORING_LIFECYCLE/visual_rechecks.csv",
-   "source_sha256": "237668d4939d29364d435be972b73bc3aace49b25833547ecdb2f040a39a97be",
-   "status": "OK",
-   "target": "evidence/qa/review_fixes/monitoring_lifecycle_visual_rechecks.csv",
-   "target_sha256": "579e2ceab70813bc0b1e8083120b46de0a638dc1e9564ba89ef6eb3180f469e5"
+   "target": "evidence/qa/visual_ocr_qa_ledger.csv",
+   "target_sha256": "77bcfc958b451262bd2d39038ff0767f00f2c08fc43e238449c5a206fef5439b"
   },
   {
    "dropped_columns": [],
@@ -630,6 +642,64 @@
    "target_sha256": "70b46672e0c2467beef3a62f939600c731916ebde06c7b5eb6279bcbfe2a197e"
   },
   {
+   "dropped_columns": [],
+   "source": "PHYSICS_CAUSAL/causal_graph.json",
+   "source_sha256": "71a17b338b45f460bd43f412f0a39783d0a875cc0edf87370d9084f62fe058c6",
+   "status": "OK",
+   "target": "catalogues/causal/causal_graph.json",
+   "target_sha256": "71a17b338b45f460bd43f412f0a39783d0a875cc0edf87370d9084f62fe058c6"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "PHYSICS_CAUSAL/causal_graph_edges.csv",
+   "source_sha256": "5cb4c1e451f0f2bc7e1b449d71f384a46d5e0c85bc92fb0cc617adec952c5ed2",
+   "status": "OK",
+   "target": "catalogues/causal/causal_graph_edges.csv",
+   "target_sha256": "35251c77cc0a396da48047b6f6f469e227d3aa84a8ca4837604d55a77c8f1681"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "PHYSICS_CAUSAL/causal_graph_nodes.csv",
+   "source_sha256": "c19f984f9609b4d0838779b5e4bf264406d33355b9109471b8d8fefa8052e2c6",
+   "status": "OK",
+   "target": "catalogues/causal/causal_graph_nodes.csv",
+   "target_sha256": "6523801f5e336d063d9a64c22ed22dfc1e83e97a0686c1f64e9171306d13c2bc"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "PHYSICS_CAUSAL/observation_operator_design.csv",
+   "source_sha256": "f4c4226d41b74afa0221f5140a36ca9eb37119d701c54bc70a11f79ff9633ea8",
+   "status": "OK",
+   "target": "catalogues/observations/observation_operator_design.csv",
+   "target_sha256": "821cc1857a033f072f3ccadf6f190ad23020a5ac128bb20071333a3bb4b15307"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "PHYSICS_CAUSAL/physics_conflicts.csv",
+   "source_sha256": "131de95d3c1b086d68a5ae859c53e4f623ef467a7081fe6fbf28d74350e039a3",
+   "status": "OK",
+   "target": "catalogues/physics/physics_conflicts.csv",
+   "target_sha256": "c8379d6a8bc165bd680495053d78c0ba12f9a0dcc99f45b5740465ff5bb77d84"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "PHYSICS_CAUSAL/physics_coverage_and_execution_matrix.csv",
+   "source_sha256": "6d7a293a404cd44271a641df2d0f08c71e83e4503be80566ea1d1f6007e3ba70",
+   "status": "OK",
+   "target": "catalogues/physics/physics_coverage_and_execution_matrix.csv",
+   "target_sha256": "d77c81eba72a96b8fb0e06eb559acde55bbdaedeb35fd27dd7eccd15316802eb"
+  },
+  {
    "dropped_columns": [
     "quote"
    ],
@@ -638,6 +708,172 @@
    "status": "OK",
    "target": "evidence/qa/review_fixes/physics_visual_checks.csv",
    "target_sha256": "3be0e0b88ee1ac15fe95b3dfd79d14eb9824165b1b0edd59af267d05c9eae2a1"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "PHYSICS_CAUSAL/process_evidence_links.csv",
+   "source_sha256": "0126203d71522090258c55f28eeed4e800fd1a432c0f004d65e2e59bebeffb54",
+   "status": "OK",
+   "target": "catalogues/physics/process_evidence_links.csv",
+   "target_sha256": "8d8c7aa130123bd9b4ea69dc2d2b8521f8a2135cffb9f16979da4d14f7d1e3df"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_BLOCK201_LINE12/block201_mining_history.csv",
+   "source_sha256": "69369ed7d586eec8f3ee9699c5e851c151f056380a542bd35fbe1867ba8bfade",
+   "status": "OK",
+   "target": "evidence/world/site_block201/block201_mining_history.csv",
+   "target_sha256": "69369ed7d586eec8f3ee9699c5e851c151f056380a542bd35fbe1867ba8bfade"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_BLOCK201_LINE12/information_availability.csv",
+   "source_sha256": "5b093d0843fd3dade9c8f63853249825d27d3441f3b27c85c1001c09baf1ad35",
+   "status": "OK",
+   "target": "evidence/world/site_block201/information_availability.csv",
+   "target_sha256": "5b093d0843fd3dade9c8f63853249825d27d3441f3b27c85c1001c09baf1ad35"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_BLOCK201_LINE12/line12_levelling_points.csv",
+   "source_sha256": "b79134a737d44d3b1cb5712683df936a4d9998e47726cea191829da8a28589b9",
+   "status": "OK",
+   "target": "evidence/world/site_block201/line12_levelling_points.csv",
+   "target_sha256": "b79134a737d44d3b1cb5712683df936a4d9998e47726cea191829da8a28589b9"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_BLOCK201_LINE12/series_identity.csv",
+   "source_sha256": "5d3f54eb4a767359399a57c747f0560b21b69ad34eac4539d0cab611848aef0a",
+   "status": "OK",
+   "target": "evidence/world/site_block201/series_identity.csv",
+   "target_sha256": "5d3f54eb4a767359399a57c747f0560b21b69ad34eac4539d0cab611848aef0a"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_BLOCK201_LINE12/site_conflicts.csv",
+   "source_sha256": "afb15f10f046935c8cdb16e28f73d07f9fa5f8cc7ee6b41046c56db4bf2c2c0c",
+   "status": "OK",
+   "target": "evidence/world/site_block201/site_conflicts.csv",
+   "target_sha256": "afb15f10f046935c8cdb16e28f73d07f9fa5f8cc7ee6b41046c56db4bf2c2c0c"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "SITE_BLOCK201_LINE12/site_evidence.csv",
+   "source_sha256": "84f2a71a6440fa18c3209bda7c1e317601e2d6cad4da43489471ecc64fdd2095",
+   "status": "OK",
+   "target": "evidence/world/site_block201/site_evidence.csv",
+   "target_sha256": "f360a0709659d2f0a5fbc711de0122da8f7a2da669ac4c650b4787860e14ca7c"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_BLOCK201_LINE12/site_objects_sh1.csv",
+   "source_sha256": "145843e08f09f8d75186357e8aff617ccc2568f9bc563e81f001e53e5e31237e",
+   "status": "OK",
+   "target": "evidence/world/site_block201/site_objects_sh1.csv",
+   "target_sha256": "145843e08f09f8d75186357e8aff617ccc2568f9bc563e81f001e53e5e31237e"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_coverage_gaps.csv",
+   "source_sha256": "a43d53551f05afc0b8cb50977ac3e3d24476f223f27575c92dcd7c4894c8de59",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_coverage_gaps.csv",
+   "target_sha256": "268223644a4460b809ce33b99bc12390cbbff5e5385d071872ee571010780344"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_depth_vs_dsm_checks.csv",
+   "source_sha256": "9955ac6045440f9602d862040adf20ab21e4d0c1fc410a50a984b9dd0fe462a5",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_depth_vs_dsm_checks.csv",
+   "target_sha256": "1bcf2ff0ea97dcae3275e694fb876a0cded2fb2e7b6234ea84b971c641230cc2"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_mine_checks.json",
+   "source_sha256": "c47a6aa1a6c91502c808f0b5c15ca7f3b052299c6044d61449c23bf7113a6c5e",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_mine_checks.json",
+   "target_sha256": "ff18c7421755aea0b9633d3690399c6b8c83e49c2ea04d20c2e76492181a337d"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_mine_conflicts.csv",
+   "source_sha256": "d982d09e9eb4373979e2d2af5170f12ab2cae5591dc13516ae6c3fb922673124",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_mine_conflicts.csv",
+   "target_sha256": "fa39cf3f2293cc844726b77e4e4e1b1d7f3227be0604284958b218878ebd2e80"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "SITE_SKRU1_MINE/skru1_mine_evidence.csv",
+   "source_sha256": "887e946d3096e95e7d14fd7fdcccf227b31eb695689874fba656368df60917cd",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_mine_evidence.csv",
+   "target_sha256": "346e98c051d6661c52f326e0d7ebb590afdc1b8661ac9c3e6923e90d5a01450c"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_mining_units.csv",
+   "source_sha256": "5746db1c422ee99e366b919ac90eb5994cd0540677bc9b77257cdd06d69112b8",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_mining_units.csv",
+   "target_sha256": "84e0c14eb729470219c75f3cd872105e27241d1ebda826e43883d9a7e90edd07"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_observation_index.csv",
+   "source_sha256": "dbccebeceff133837038b8debde5c5626d79576cd8b2293b4c36eefb6b736c71",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_observation_index.csv",
+   "target_sha256": "2067ae438b9014e3d972896930e23edfc778ad52c392938919a544cf070fa353"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_region_geology_frame.csv",
+   "source_sha256": "31398ba9c33c403f6485735a7349e12a8a4a8e3701da413e3da4353cda0756f9",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_region_geology_frame.csv",
+   "target_sha256": "411ca44fcf7363b0affff1636ecfdbb4b22a9f30207eae08bf49f48b29dbe393"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_seam_position_checks.csv",
+   "source_sha256": "3b5ee9fed96c957d90bc52a4b279538c790f2fc38a7853482343738ea00163ff",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_seam_position_checks.csv",
+   "target_sha256": "6ac5c35cebc9ee3e745a06fffa2262a665c4b28de127a4543429b779e7eb1657"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_seams_by_area.csv",
+   "source_sha256": "c65cb3a5cec811e518a63f7e89cb56d966a0d997661c95540b458f48871abb45",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_seams_by_area.csv",
+   "target_sha256": "60ea768d21b13cdc4b9af5c5c41a576c67319580ab5e5f51f91797b218d8078b"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SOURCES/SOURCE_COVERAGE_MASTER.csv",
+   "source_sha256": "16e4e9ae3e079a92046dc2ebb7607db6f1bb24c4eb4aaf3bc4390f931cc700f4",
+   "status": "OK",
+   "target": "evidence/sources/SOURCE_COVERAGE_MASTER.csv",
+   "target_sha256": "b76358585fd1549e41e38003e8755bd0879badbbbdeddb13e722cc966b9b025a"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SOURCES/vn_index.csv",
+   "source_sha256": "79d92f02ccd0fe367438c3ed1539f38e39364e621c2d7fb7ceb18989d9c86481",
+   "status": "OK",
+   "target": "evidence/sources/record_index.csv",
+   "target_sha256": "79d92f02ccd0fe367438c3ed1539f38e39364e621c2d7fb7ceb18989d9c86481"
   },
   {
    "dropped_columns": [],
@@ -651,113 +887,151 @@
    "dropped_columns": [
     "quote"
    ],
-   "source": "OCR_VISUAL_QA/visual_ocr_qa_ledger.csv",
-   "source_sha256": "1663ea48614cf26a6dbefa9c5296d31ca16692e0aa85d455427ada9e4fbba7a6",
+   "source": "WORLD0_MICROKERNELS/microkernel_law_evidence.csv",
+   "source_sha256": "7dd847d0801a954f904517cd7290d2b3dc923656bb14b04f90094308d80c91d2",
    "status": "OK",
-   "target": "evidence/qa/visual_ocr_qa_ledger.csv",
-   "target_sha256": "77bcfc958b451262bd2d39038ff0767f00f2c08fc43e238449c5a206fef5439b"
+   "target": "evidence/world/world0/microkernel_law_evidence.csv",
+   "target_sha256": "5132302057d1459798c11cd9a4fe62f9ca63761ed7d6cde725fd5f497930baeb"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD0_MICROKERNELS/microkernel_law_registry.csv",
+   "source_sha256": "17555daaeeb4c809e0a2cb1d082da683d56aa506490650dd8c796d42b5b2d011",
+   "status": "OK",
+   "target": "evidence/world/world0/microkernel_law_registry.csv",
+   "target_sha256": "17555daaeeb4c809e0a2cb1d082da683d56aa506490650dd8c796d42b5b2d011"
   },
   {
    "dropped_columns": [
     "quote"
    ],
-   "source": "CITATIONS/SOURCE_CITATION_GRAPH.csv",
-   "source_sha256": "060123993acd6169a4cb676923f27b153b87c7d043a747c70876e8d4e88d3c4d",
+   "source": "WORLD0_MICROKERNELS/microkernel_parameter_evidence.csv",
+   "source_sha256": "862ee445e70b315f6855e1278b0ad370a5158a842ca4c828af43ecbbc1588762",
    "status": "OK",
-   "target": "evidence/sources/SOURCE_CITATION_GRAPH.csv",
-   "target_sha256": "abc3e700dc4e94c9d2f3525a51a9c8ce695984f3420a0d0413478b31d3fe1135"
+   "target": "evidence/world/world0/microkernel_parameter_evidence.csv",
+   "target_sha256": "9e5f3c399e446af658511849ba061f2732c4aa07fe04da998dbefa69230ca74e"
   },
   {
    "dropped_columns": [],
-   "source": "SOURCES/SOURCE_COVERAGE_MASTER.csv",
-   "source_sha256": "16e4e9ae3e079a92046dc2ebb7607db6f1bb24c4eb4aaf3bc4390f931cc700f4",
+   "source": "WORLD0_MICROKERNELS/microkernel_types.csv",
+   "source_sha256": "2f5af36856ba7ab09848299ef1674100b17511a5637bee49aba463bc78a67573",
    "status": "OK",
-   "target": "evidence/sources/SOURCE_COVERAGE_MASTER.csv",
-   "target_sha256": "b76358585fd1549e41e38003e8755bd0879badbbbdeddb13e722cc966b9b025a"
+   "target": "evidence/world/world0/microkernel_types.csv",
+   "target_sha256": "2f5af36856ba7ab09848299ef1674100b17511a5637bee49aba463bc78a67573"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD0_MICROKERNELS/recheck_crosscheck.csv",
+   "source_sha256": "3359db0e96297fffcc34f4919cd4e2ea9a6777515aac838f5d799ca628a7cc3c",
+   "status": "OK",
+   "target": "evidence/world/world0/recheck_crosscheck.csv",
+   "target_sha256": "3359db0e96297fffcc34f4919cd4e2ea9a6777515aac838f5d799ca628a7cc3c"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD0_MICROKERNELS/recheck_findings.csv",
+   "source_sha256": "1745eabb065d30142bdb55dbc5feee17aa1a778aaf41bf681a8665a464faf5fb",
+   "status": "OK",
+   "target": "evidence/world/world0/recheck_findings.csv",
+   "target_sha256": "1745eabb065d30142bdb55dbc5feee17aa1a778aaf41bf681a8665a464faf5fb"
   },
   {
    "dropped_columns": [
     "quote"
    ],
-   "source": "CITATIONS/foreign_page_references.csv",
-   "source_sha256": "35b970eef19e5aca05dab3ce5703f3695c7ab3509e78ee6d8ac056adc55eca6e",
+   "source": "WORLD0_MICROKERNELS/recheck_rows.csv",
+   "source_sha256": "d456d8f624161221c87b9e8e05389e861fd23006a7c2cd230629424e380f3697",
    "status": "OK",
-   "target": "evidence/sources/foreign_page_references.csv",
-   "target_sha256": "377ee8fdcd6fc6ceb9cd47db1ec0de5d61d60a46237473d1c2c922879e95607c"
+   "target": "evidence/world/world0/recheck_rows.csv",
+   "target_sha256": "78bc7c0280f1f94b3f5da16069911a141c5742bcac470a5e7db4e2fb679a8a26"
   },
   {
    "dropped_columns": [],
-   "source": "CITATIONS/lineage_affected_records.csv",
-   "source_sha256": "65c7b6f7b410e173e6d0c2a26a6ad2d9aac7bbb43aca087c7947a7c98cf39c93",
+   "source": "WORLD0_MICROKERNELS/search_coverage_log.csv",
+   "source_sha256": "caa8b9c9461c7cceb597920eb178619e08ec5f39a7a433951cfbb8cdaa60e47d",
    "status": "OK",
-   "target": "evidence/sources/lineage_affected_records.csv",
-   "target_sha256": "46c8502b61758aa7776ca11562f757005bebe08d53e3b9d55adb5364739d5592"
+   "target": "evidence/world/world0/search_coverage_log.csv",
+   "target_sha256": "caa8b9c9461c7cceb597920eb178619e08ec5f39a7a433951cfbb8cdaa60e47d"
   },
   {
    "dropped_columns": [],
-   "source": "CITATIONS/multi_source_cited_works.csv",
-   "source_sha256": "8164cc2e387df2cbc3c8e7cb0ef3df85c1c050b835e6e86824c17d358fb67f22",
+   "source": "WORLD_EXTRACTION/compare/double__high_full/summary.json",
+   "source_sha256": "7fccc0a891a46690ccdfd579a03d833eddeddefe4cc4afa54a69c32d6b421505",
    "status": "OK",
-   "target": "evidence/sources/multi_source_cited_works.csv",
-   "target_sha256": "5ea09c46348ddeda236feab68175317232eaf3971507ca8c0d48f82c54d76e62"
+   "target": "evidence/world/extraction/sol_vs_double_summary.json",
+   "target_sha256": "7fccc0a891a46690ccdfd579a03d833eddeddefe4cc4afa54a69c32d6b421505"
   },
   {
    "dropped_columns": [],
-   "source": "CITATIONS/primary_source_targets.csv",
-   "source_sha256": "9bfb7ad2c1bd4de566961bbc4a29897929005470b8b1d54c0b34d1b72802af08",
+   "source": "WORLD_EXTRACTION/compare/trial_high__trial_medium/summary.json",
+   "source_sha256": "dafc0bcf483a53aad8f12ccfd01380b3598151d015496a03885c4475ea0091ac",
    "status": "OK",
-   "target": "evidence/sources/primary_source_targets.csv",
-   "target_sha256": "9dccd080215ef928443fe6d48d968ce38def001cfa44c8add95c6b741ca39c89"
+   "target": "evidence/world/extraction/trial_high_vs_medium_summary.json",
+   "target_sha256": "dafc0bcf483a53aad8f12ccfd01380b3598151d015496a03885c4475ea0091ac"
   },
   {
    "dropped_columns": [],
-   "source": "SOURCES/vn_index.csv",
-   "source_sha256": "79d92f02ccd0fe367438c3ed1539f38e39364e621c2d7fb7ceb18989d9c86481",
+   "source": "WORLD_EXTRACTION/double/summary.json",
+   "source_sha256": "9311dd1487233f0ad0c2b8224e3d4bba00e2066ac559ee25b893441713070e4b",
    "status": "OK",
-   "target": "evidence/sources/record_index.csv",
-   "target_sha256": "79d92f02ccd0fe367438c3ed1539f38e39364e621c2d7fb7ceb18989d9c86481"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "CITATIONS/repeated_secondary_citations.csv",
-   "source_sha256": "cfa69046c215cb28a619307fc3ca6c88647089edb39cedc703e8e496360dc694",
-   "status": "OK",
-   "target": "evidence/sources/repeated_secondary_citations.csv",
-   "target_sha256": "79f58ba24f762504b0672a0811ff22f5ea8347411243e591522aa03d96f4057f"
+   "target": "evidence/world/extraction/double_entry_summary.json",
+   "target_sha256": "9311dd1487233f0ad0c2b8224e3d4bba00e2066ac559ee25b893441713070e4b"
   },
   {
    "dropped_columns": [],
-   "source": "CITATIONS/source_families.csv",
-   "source_sha256": "0d5802b35afbeff72f49ae5588e983aa9e078ebe5b61866f84f1671091dbc078",
+   "source": "WORLD_EXTRACTION/high_full/summary.json",
+   "source_sha256": "84e7e94d50e3c81b48c0b4af3aa19a9806641a75cbe3319c3f9d4fe0cfede146",
    "status": "OK",
-   "target": "evidence/sources/source_families.csv",
-   "target_sha256": "cd8a73cd8cf91085bc7cb24d957ef0eedde2d0072e083135d6febd3cff5715d9"
+   "target": "evidence/world/extraction/sol_high_full_summary.json",
+   "target_sha256": "84e7e94d50e3c81b48c0b4af3aa19a9806641a75cbe3319c3f9d4fe0cfede146"
   },
   {
    "dropped_columns": [],
-   "source": "CITATIONS/source_family_membership.csv",
-   "source_sha256": "191b93e61f0a54334029861c2bd486915bf8be6161feb12a085e691a1dd8bc29",
+   "source": "WORLD_EXTRACTION/packets_receipt.json",
+   "source_sha256": "666dc7a3f20c266739094dba872a02e1a3f1af85772293e1a4907b6c5cabc1f5",
    "status": "OK",
-   "target": "evidence/sources/source_family_membership.csv",
-   "target_sha256": "4f857714f777fca67c20cea69ac70b91b5de9873f6f0719969512a749a25266a"
+   "target": "evidence/world/extraction/packets_receipt.json",
+   "target_sha256": "666dc7a3f20c266739094dba872a02e1a3f1af85772293e1a4907b6c5cabc1f5"
   },
   {
    "dropped_columns": [],
-   "source": "WORLD_PARAMETERS/curated/c3_gaps.csv",
-   "source_sha256": "44c82049cc809dc5743590223b4d723e778412c6b0b044037c3ca35f573af54d",
+   "source": "WORLD_EXTRACTION/pages_receipt.json",
+   "source_sha256": "f898f525ea8b9bb6358cf07234e20d56a7a7c861274e0dd3a6e6561654ca03f5",
    "status": "OK",
-   "target": "evidence/world/c3/c3_gaps.csv",
-   "target_sha256": "382dd371b922221b1b49555bb48e81b23800b2a5f3fa6e87cbe87a5f7f032dce"
+   "target": "evidence/world/extraction/pages_receipt.json",
+   "target_sha256": "aa4181624cfb293f54024d0db9a5af5bec2415a0b3416005ac9e73948017006d"
   },
   {
    "dropped_columns": [],
-   "source": "WORLD_PARAMETERS/curated/c3_hypotheses.csv",
-   "source_sha256": "9d8f681d6b4d24538ec34bc6a12a6f6c9a22772b330cd974d831076176cd7e07",
+   "source": "WORLD_OBSERVATIONS/build_receipt.json",
+   "source_sha256": "650345950e6d529ee7ef048aab4db729201e42027bb4f0cdc2e92ecf3e7ae6e0",
    "status": "OK",
-   "target": "evidence/world/c3/c3_hypotheses.csv",
-   "target_sha256": "40ad8278f54a6b1d1607d6028d351ff4d3f6c87492acccd7de011f498eb93df1"
+   "target": "evidence/world/observations/build_receipt.json",
+   "target_sha256": "650345950e6d529ee7ef048aab4db729201e42027bb4f0cdc2e92ecf3e7ae6e0"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD_OBSERVATIONS/calibration_use_20261010.csv",
+   "source_sha256": "6a30cb5ef4acb71d62d6468d380b1fda08fcb40c0ec28adc8e527253b9906c62",
+   "status": "OK",
+   "target": "evidence/world/observations/calibration_use.csv",
+   "target_sha256": "0932b05194727d3f5fb49c2a3addd0441cff8aa024b39b80dd10f81c575dc1e6"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD_OBSERVATIONS/digitized_series_points.csv",
+   "source_sha256": "41deb0005d61482a23954ba4500945e40004be52597d10de3f331df21c088e94",
+   "status": "OK",
+   "target": "evidence/world/observations/digitized_series_points.csv",
+   "target_sha256": "41deb0005d61482a23954ba4500945e40004be52597d10de3f331df21c088e94"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD_OBSERVATIONS/world_observation_catalog.csv",
+   "source_sha256": "3ca837de3a93b260c3ec9a6871b74ccee9283b2611b011cc9c134d83b3560006",
+   "status": "OK",
+   "target": "evidence/world/observations/world_observation_catalog.csv",
+   "target_sha256": "3ca837de3a93b260c3ec9a6871b74ccee9283b2611b011cc9c134d83b3560006"
   },
   {
    "dropped_columns": [],
@@ -776,6 +1050,22 @@
    "status": "OK",
    "target": "evidence/world/c4/bkpru4_mining_calendar.csv",
    "target_sha256": "c6525adb82703da621efa2f3acd5f46a5a25201502b6e8f2a3e837fd7f6f038f"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD_PARAMETERS/curated/c3_gaps.csv",
+   "source_sha256": "44c82049cc809dc5743590223b4d723e778412c6b0b044037c3ca35f573af54d",
+   "status": "OK",
+   "target": "evidence/world/c3/c3_gaps.csv",
+   "target_sha256": "382dd371b922221b1b49555bb48e81b23800b2a5f3fa6e87cbe87a5f7f032dce"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD_PARAMETERS/curated/c3_hypotheses.csv",
+   "source_sha256": "9d8f681d6b4d24538ec34bc6a12a6f6c9a22772b330cd974d831076176cd7e07",
+   "status": "OK",
+   "target": "evidence/world/c3/c3_hypotheses.csv",
+   "target_sha256": "40ad8278f54a6b1d1607d6028d351ff4d3f6c87492acccd7de011f498eb93df1"
   },
   {
    "dropped_columns": [],
@@ -833,83 +1123,11 @@
   },
   {
    "dropped_columns": [],
-   "source": "WORLD_EXTRACTION/double/summary.json",
-   "source_sha256": "9311dd1487233f0ad0c2b8224e3d4bba00e2066ac559ee25b893441713070e4b",
+   "source": "WORLD_PARAMETERS/curated/source_site_ranges_20261010.csv",
+   "source_sha256": "cdef9ef6946e304caf9c8c86e602b880547cac41d7715bd8e3d6f7c047ba9f1e",
    "status": "OK",
-   "target": "evidence/world/extraction/double_entry_summary.json",
-   "target_sha256": "9311dd1487233f0ad0c2b8224e3d4bba00e2066ac559ee25b893441713070e4b"
-  },
-  {
-   "dropped_columns": [],
-   "source": "WORLD_EXTRACTION/packets_receipt.json",
-   "source_sha256": "666dc7a3f20c266739094dba872a02e1a3f1af85772293e1a4907b6c5cabc1f5",
-   "status": "OK",
-   "target": "evidence/world/extraction/packets_receipt.json",
-   "target_sha256": "666dc7a3f20c266739094dba872a02e1a3f1af85772293e1a4907b6c5cabc1f5"
-  },
-  {
-   "dropped_columns": [],
-   "source": "WORLD_EXTRACTION/pages_receipt.json",
-   "source_sha256": "f898f525ea8b9bb6358cf07234e20d56a7a7c861274e0dd3a6e6561654ca03f5",
-   "status": "OK",
-   "target": "evidence/world/extraction/pages_receipt.json",
-   "target_sha256": "aa4181624cfb293f54024d0db9a5af5bec2415a0b3416005ac9e73948017006d"
-  },
-  {
-   "dropped_columns": [],
-   "source": "WORLD_EXTRACTION/high_full/summary.json",
-   "source_sha256": "84e7e94d50e3c81b48c0b4af3aa19a9806641a75cbe3319c3f9d4fe0cfede146",
-   "status": "OK",
-   "target": "evidence/world/extraction/sol_high_full_summary.json",
-   "target_sha256": "84e7e94d50e3c81b48c0b4af3aa19a9806641a75cbe3319c3f9d4fe0cfede146"
-  },
-  {
-   "dropped_columns": [],
-   "source": "WORLD_EXTRACTION/compare/double__high_full/summary.json",
-   "source_sha256": "7fccc0a891a46690ccdfd579a03d833eddeddefe4cc4afa54a69c32d6b421505",
-   "status": "OK",
-   "target": "evidence/world/extraction/sol_vs_double_summary.json",
-   "target_sha256": "7fccc0a891a46690ccdfd579a03d833eddeddefe4cc4afa54a69c32d6b421505"
-  },
-  {
-   "dropped_columns": [],
-   "source": "WORLD_EXTRACTION/compare/trial_high__trial_medium/summary.json",
-   "source_sha256": "dafc0bcf483a53aad8f12ccfd01380b3598151d015496a03885c4475ea0091ac",
-   "status": "OK",
-   "target": "evidence/world/extraction/trial_high_vs_medium_summary.json",
-   "target_sha256": "dafc0bcf483a53aad8f12ccfd01380b3598151d015496a03885c4475ea0091ac"
-  },
-  {
-   "dropped_columns": [],
-   "source": "WORLD_OBSERVATIONS/build_receipt.json",
-   "source_sha256": "650345950e6d529ee7ef048aab4db729201e42027bb4f0cdc2e92ecf3e7ae6e0",
-   "status": "OK",
-   "target": "evidence/world/observations/build_receipt.json",
-   "target_sha256": "650345950e6d529ee7ef048aab4db729201e42027bb4f0cdc2e92ecf3e7ae6e0"
-  },
-  {
-   "dropped_columns": [],
-   "source": "WORLD_OBSERVATIONS/calibration_use_20261010.csv",
-   "source_sha256": "6a30cb5ef4acb71d62d6468d380b1fda08fcb40c0ec28adc8e527253b9906c62",
-   "status": "OK",
-   "target": "evidence/world/observations/calibration_use.csv",
-   "target_sha256": "0932b05194727d3f5fb49c2a3addd0441cff8aa024b39b80dd10f81c575dc1e6"
-  },
-  {
-   "dropped_columns": [],
-   "source": "WORLD_OBSERVATIONS/digitized_series_points.csv",
-   "source_sha256": "41deb0005d61482a23954ba4500945e40004be52597d10de3f331df21c088e94",
-   "status": "OK",
-   "target": "evidence/world/observations/digitized_series_points.csv",
-   "target_sha256": "41deb0005d61482a23954ba4500945e40004be52597d10de3f331df21c088e94"
-  },
-  {
-   "dropped_columns": [],
-   "source": "WORLD_OBSERVATIONS/world_observation_catalog.csv",
-   "source_sha256": "3ca837de3a93b260c3ec9a6871b74ccee9283b2611b011cc9c134d83b3560006",
-   "status": "OK",
-   "target": "evidence/world/observations/world_observation_catalog.csv",
-   "target_sha256": "3ca837de3a93b260c3ec9a6871b74ccee9283b2611b011cc9c134d83b3560006"
+   "target": "evidence/world/passport/source_site_ranges.csv",
+   "target_sha256": "cdef9ef6946e304caf9c8c86e602b880547cac41d7715bd8e3d6f7c047ba9f1e"
   },
   {
    "dropped_columns": [],
@@ -1080,14 +1298,6 @@
    "target_sha256": "9313d6c5698af8accd21950df8df4a9167d27b77c2be2de2c4497fb0569464f9"
   },
   {
-   "dropped_columns": [],
-   "source": "WORLD_PARAMETERS/curated/source_site_ranges_20261010.csv",
-   "source_sha256": "cdef9ef6946e304caf9c8c86e602b880547cac41d7715bd8e3d6f7c047ba9f1e",
-   "status": "OK",
-   "target": "evidence/world/passport/source_site_ranges.csv",
-   "target_sha256": "cdef9ef6946e304caf9c8c86e602b880547cac41d7715bd8e3d6f7c047ba9f1e"
-  },
-  {
    "dropped_columns": [
     "quote"
    ],
@@ -1144,216 +1354,6 @@
    "status": "OK",
    "target": "evidence/world/passport/world_priors_proposal_receipt.json",
    "target_sha256": "f6b10d0465ba68b40b1bd299dd3820c3b2268d7920821957c302e5214c4c9697"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_BLOCK201_LINE12/block201_mining_history.csv",
-   "source_sha256": "69369ed7d586eec8f3ee9699c5e851c151f056380a542bd35fbe1867ba8bfade",
-   "status": "OK",
-   "target": "evidence/world/site_block201/block201_mining_history.csv",
-   "target_sha256": "69369ed7d586eec8f3ee9699c5e851c151f056380a542bd35fbe1867ba8bfade"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_BLOCK201_LINE12/information_availability.csv",
-   "source_sha256": "5b093d0843fd3dade9c8f63853249825d27d3441f3b27c85c1001c09baf1ad35",
-   "status": "OK",
-   "target": "evidence/world/site_block201/information_availability.csv",
-   "target_sha256": "5b093d0843fd3dade9c8f63853249825d27d3441f3b27c85c1001c09baf1ad35"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_BLOCK201_LINE12/line12_levelling_points.csv",
-   "source_sha256": "b79134a737d44d3b1cb5712683df936a4d9998e47726cea191829da8a28589b9",
-   "status": "OK",
-   "target": "evidence/world/site_block201/line12_levelling_points.csv",
-   "target_sha256": "b79134a737d44d3b1cb5712683df936a4d9998e47726cea191829da8a28589b9"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_BLOCK201_LINE12/series_identity.csv",
-   "source_sha256": "5d3f54eb4a767359399a57c747f0560b21b69ad34eac4539d0cab611848aef0a",
-   "status": "OK",
-   "target": "evidence/world/site_block201/series_identity.csv",
-   "target_sha256": "5d3f54eb4a767359399a57c747f0560b21b69ad34eac4539d0cab611848aef0a"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_BLOCK201_LINE12/site_conflicts.csv",
-   "source_sha256": "afb15f10f046935c8cdb16e28f73d07f9fa5f8cc7ee6b41046c56db4bf2c2c0c",
-   "status": "OK",
-   "target": "evidence/world/site_block201/site_conflicts.csv",
-   "target_sha256": "afb15f10f046935c8cdb16e28f73d07f9fa5f8cc7ee6b41046c56db4bf2c2c0c"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "SITE_BLOCK201_LINE12/site_evidence.csv",
-   "source_sha256": "84f2a71a6440fa18c3209bda7c1e317601e2d6cad4da43489471ecc64fdd2095",
-   "status": "OK",
-   "target": "evidence/world/site_block201/site_evidence.csv",
-   "target_sha256": "f360a0709659d2f0a5fbc711de0122da8f7a2da669ac4c650b4787860e14ca7c"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_BLOCK201_LINE12/site_objects_sh1.csv",
-   "source_sha256": "145843e08f09f8d75186357e8aff617ccc2568f9bc563e81f001e53e5e31237e",
-   "status": "OK",
-   "target": "evidence/world/site_block201/site_objects_sh1.csv",
-   "target_sha256": "145843e08f09f8d75186357e8aff617ccc2568f9bc563e81f001e53e5e31237e"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_SKRU1_MINE/skru1_coverage_gaps.csv",
-   "source_sha256": "a43d53551f05afc0b8cb50977ac3e3d24476f223f27575c92dcd7c4894c8de59",
-   "status": "OK",
-   "target": "evidence/world/skru1_mine/skru1_coverage_gaps.csv",
-   "target_sha256": "268223644a4460b809ce33b99bc12390cbbff5e5385d071872ee571010780344"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_SKRU1_MINE/skru1_depth_vs_dsm_checks.csv",
-   "source_sha256": "9955ac6045440f9602d862040adf20ab21e4d0c1fc410a50a984b9dd0fe462a5",
-   "status": "OK",
-   "target": "evidence/world/skru1_mine/skru1_depth_vs_dsm_checks.csv",
-   "target_sha256": "1bcf2ff0ea97dcae3275e694fb876a0cded2fb2e7b6234ea84b971c641230cc2"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_SKRU1_MINE/skru1_mine_checks.json",
-   "source_sha256": "c47a6aa1a6c91502c808f0b5c15ca7f3b052299c6044d61449c23bf7113a6c5e",
-   "status": "OK",
-   "target": "evidence/world/skru1_mine/skru1_mine_checks.json",
-   "target_sha256": "ff18c7421755aea0b9633d3690399c6b8c83e49c2ea04d20c2e76492181a337d"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_SKRU1_MINE/skru1_mine_conflicts.csv",
-   "source_sha256": "d982d09e9eb4373979e2d2af5170f12ab2cae5591dc13516ae6c3fb922673124",
-   "status": "OK",
-   "target": "evidence/world/skru1_mine/skru1_mine_conflicts.csv",
-   "target_sha256": "fa39cf3f2293cc844726b77e4e4e1b1d7f3227be0604284958b218878ebd2e80"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "SITE_SKRU1_MINE/skru1_mine_evidence.csv",
-   "source_sha256": "887e946d3096e95e7d14fd7fdcccf227b31eb695689874fba656368df60917cd",
-   "status": "OK",
-   "target": "evidence/world/skru1_mine/skru1_mine_evidence.csv",
-   "target_sha256": "346e98c051d6661c52f326e0d7ebb590afdc1b8661ac9c3e6923e90d5a01450c"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_SKRU1_MINE/skru1_mining_units.csv",
-   "source_sha256": "5746db1c422ee99e366b919ac90eb5994cd0540677bc9b77257cdd06d69112b8",
-   "status": "OK",
-   "target": "evidence/world/skru1_mine/skru1_mining_units.csv",
-   "target_sha256": "84e0c14eb729470219c75f3cd872105e27241d1ebda826e43883d9a7e90edd07"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_SKRU1_MINE/skru1_observation_index.csv",
-   "source_sha256": "dbccebeceff133837038b8debde5c5626d79576cd8b2293b4c36eefb6b736c71",
-   "status": "OK",
-   "target": "evidence/world/skru1_mine/skru1_observation_index.csv",
-   "target_sha256": "2067ae438b9014e3d972896930e23edfc778ad52c392938919a544cf070fa353"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_SKRU1_MINE/skru1_region_geology_frame.csv",
-   "source_sha256": "31398ba9c33c403f6485735a7349e12a8a4a8e3701da413e3da4353cda0756f9",
-   "status": "OK",
-   "target": "evidence/world/skru1_mine/skru1_region_geology_frame.csv",
-   "target_sha256": "411ca44fcf7363b0affff1636ecfdbb4b22a9f30207eae08bf49f48b29dbe393"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_SKRU1_MINE/skru1_seam_position_checks.csv",
-   "source_sha256": "3b5ee9fed96c957d90bc52a4b279538c790f2fc38a7853482343738ea00163ff",
-   "status": "OK",
-   "target": "evidence/world/skru1_mine/skru1_seam_position_checks.csv",
-   "target_sha256": "6ac5c35cebc9ee3e745a06fffa2262a665c4b28de127a4543429b779e7eb1657"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_SKRU1_MINE/skru1_seams_by_area.csv",
-   "source_sha256": "c65cb3a5cec811e518a63f7e89cb56d966a0d997661c95540b458f48871abb45",
-   "status": "OK",
-   "target": "evidence/world/skru1_mine/skru1_seams_by_area.csv",
-   "target_sha256": "60ea768d21b13cdc4b9af5c5c41a576c67319580ab5e5f51f91797b218d8078b"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "WORLD0_MICROKERNELS/microkernel_law_evidence.csv",
-   "source_sha256": "7dd847d0801a954f904517cd7290d2b3dc923656bb14b04f90094308d80c91d2",
-   "status": "OK",
-   "target": "evidence/world/world0/microkernel_law_evidence.csv",
-   "target_sha256": "5132302057d1459798c11cd9a4fe62f9ca63761ed7d6cde725fd5f497930baeb"
-  },
-  {
-   "dropped_columns": [],
-   "source": "WORLD0_MICROKERNELS/microkernel_law_registry.csv",
-   "source_sha256": "17555daaeeb4c809e0a2cb1d082da683d56aa506490650dd8c796d42b5b2d011",
-   "status": "OK",
-   "target": "evidence/world/world0/microkernel_law_registry.csv",
-   "target_sha256": "17555daaeeb4c809e0a2cb1d082da683d56aa506490650dd8c796d42b5b2d011"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "WORLD0_MICROKERNELS/microkernel_parameter_evidence.csv",
-   "source_sha256": "862ee445e70b315f6855e1278b0ad370a5158a842ca4c828af43ecbbc1588762",
-   "status": "OK",
-   "target": "evidence/world/world0/microkernel_parameter_evidence.csv",
-   "target_sha256": "9e5f3c399e446af658511849ba061f2732c4aa07fe04da998dbefa69230ca74e"
-  },
-  {
-   "dropped_columns": [],
-   "source": "WORLD0_MICROKERNELS/microkernel_types.csv",
-   "source_sha256": "2f5af36856ba7ab09848299ef1674100b17511a5637bee49aba463bc78a67573",
-   "status": "OK",
-   "target": "evidence/world/world0/microkernel_types.csv",
-   "target_sha256": "2f5af36856ba7ab09848299ef1674100b17511a5637bee49aba463bc78a67573"
-  },
-  {
-   "dropped_columns": [],
-   "source": "WORLD0_MICROKERNELS/recheck_crosscheck.csv",
-   "source_sha256": "3359db0e96297fffcc34f4919cd4e2ea9a6777515aac838f5d799ca628a7cc3c",
-   "status": "OK",
-   "target": "evidence/world/world0/recheck_crosscheck.csv",
-   "target_sha256": "3359db0e96297fffcc34f4919cd4e2ea9a6777515aac838f5d799ca628a7cc3c"
-  },
-  {
-   "dropped_columns": [],
-   "source": "WORLD0_MICROKERNELS/recheck_findings.csv",
-   "source_sha256": "1745eabb065d30142bdb55dbc5feee17aa1a778aaf41bf681a8665a464faf5fb",
-   "status": "OK",
-   "target": "evidence/world/world0/recheck_findings.csv",
-   "target_sha256": "1745eabb065d30142bdb55dbc5feee17aa1a778aaf41bf681a8665a464faf5fb"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "WORLD0_MICROKERNELS/recheck_rows.csv",
-   "source_sha256": "d456d8f624161221c87b9e8e05389e861fd23006a7c2cd230629424e380f3697",
-   "status": "OK",
-   "target": "evidence/world/world0/recheck_rows.csv",
-   "target_sha256": "78bc7c0280f1f94b3f5da16069911a141c5742bcac470a5e7db4e2fb679a8a26"
-  },
-  {
-   "dropped_columns": [],
-   "source": "WORLD0_MICROKERNELS/search_coverage_log.csv",
-   "source_sha256": "caa8b9c9461c7cceb597920eb178619e08ec5f39a7a433951cfbb8cdaa60e47d",
-   "status": "OK",
-   "target": "evidence/world/world0/search_coverage_log.csv",
-   "target_sha256": "caa8b9c9461c7cceb597920eb178619e08ec5f39a7a433951cfbb8cdaa60e47d"
   }
  ],
  "generator": "scripts/build_public_catalogues.py",
@@ -1361,18 +1361,6 @@
  "private_root_rel": "11_evidence_vnext/canonical",
  "verbatim_guard": {
   "cells_shortened": [
-   {
-    "column": "variables",
-    "copied_words": 26,
-    "row": 7,
-    "target": "catalogues/mathematics/MATHEMATICAL_MODEL_REGISTRY.csv"
-   },
-   {
-    "column": "form_as_printed",
-    "copied_words": 27,
-    "row": 109,
-    "target": "catalogues/mathematics/subsidence_calc_variants.csv"
-   },
    {
     "column": "lithology",
     "copied_words": 44,
@@ -1446,16 +1434,22 @@
     "target": "evidence/boreholes/borehole_catalog.csv"
    },
    {
+    "column": "variables",
+    "copied_words": 26,
+    "row": 7,
+    "target": "catalogues/mathematics/MATHEMATICAL_MODEL_REGISTRY.csv"
+   },
+   {
+    "column": "form_as_printed",
+    "copied_words": 27,
+    "row": 109,
+    "target": "catalogues/mathematics/subsidence_calc_variants.csv"
+   },
+   {
     "column": "what_is_stated",
     "copied_words": 32,
     "row": 442,
     "target": "evidence/coordinates/coordinate_datum_evidence.csv"
-   },
-   {
-    "column": "description",
-    "copied_words": 32,
-    "row": 708,
-    "target": "evidence/geology/geology_evidence.csv"
    },
    {
     "column": "name_as_printed",
@@ -1466,12 +1460,18 @@
    {
     "column": "description",
     "copied_words": 32,
-    "row": 987,
+    "row": 708,
     "target": "evidence/geology/geology_evidence.csv"
    },
    {
     "column": "dimensions_as_printed",
     "copied_words": 25,
+    "row": 987,
+    "target": "evidence/geology/geology_evidence.csv"
+   },
+   {
+    "column": "description",
+    "copied_words": 32,
     "row": 987,
     "target": "evidence/geology/geology_evidence.csv"
    },
