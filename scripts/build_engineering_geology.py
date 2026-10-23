@@ -22,7 +22,10 @@ from shapely.geometry import MultiPoint, Point, Polygon, mapping
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
-from vkm_world.geometry_build.constrained_geology import joint_predict, grouped_contact_cv, interval_envelope
+from vkm_world.geometry_build.constrained_geology import interval_envelope
+from vkm_world.geometry_build.contact_predictor import ContactPredictor, PredictorSpec, SupportSet, cross_validate, geometry_digest
+from vkm_world.geometry_build.tin_section import section_through_tin, project_onto_trace, compare_continuous
+from dataclasses import replace
 from vkm_world.geometry_build.linked_geology import write_vtu, write_vtm, plan_triangles
 from vkm_world.geometry_build.mesh_audit import audit_plan_triangles, audit_vertical_wedges, audit_layer_interface
 from vkm_world.geometry_build.column_display import TINSurface
@@ -105,6 +108,81 @@ def insert_support_vertices(raw_triangles, supports):
     return triangles
 
 
+def fem_quality(nodes, triangles):
+    """Plan-element quality. Geometric conformity is not FEM readiness (audit F, 23.10.2026)."""
+    p = nodes[triangles]
+    area = 0.5*np.abs((p[:, 1, 0]-p[:, 0, 0])*(p[:, 2, 1]-p[:, 0, 1])-(p[:, 2, 0]-p[:, 0, 0])*(p[:, 1, 1]-p[:, 0, 1]))
+    edges = np.stack([np.linalg.norm(p[:, 1]-p[:, 0], axis=1), np.linalg.norm(p[:, 2]-p[:, 1], axis=1), np.linalg.norm(p[:, 0]-p[:, 2], axis=1)], axis=1)
+    aspect = edges.max(axis=1)**2/(2*np.maximum(area, 1e-300))
+    slivers = int(np.sum((area < 1.0) | (aspect > 100)))
+    return {"min_plan_area_m2": float(area.min()), "max_aspect_ratio": float(aspect.max()), "sliver_elements": slivers,
+            "criterion": "area < 1 m2 or edge^2/(2 area) > 100", "status": "NOT_FEM_READY" if slivers else "NO_SLIVERS_BY_CRITERION",
+            "note": "volume FEM requires a separate remeshing step; conforming=true refers to topology only"}
+
+
+def read_extra_observations(path, contacts):
+    """Verified readings beyond table 3.1 point depths: intervals, not-reached, thickness, absence.
+
+    Only rows for already placed physical boreholes in the same depth frame are
+    used; everything else is reported as not used, never silently converted.
+    """
+    data = read(path)
+    if data.get("schema") != "vkm.borehole_observation_matrix/1":
+        raise ValueError("unsupported observation matrix")
+    by_id = {}
+    for row in data["rows"]:
+        if row.get("use_in_model") is not True:
+            continue
+        if row["kind"] not in ("depth", "interval", "not_reached", "thickness", "absent"):
+            continue
+        if row.get("contact") is not None and row["contact"] not in contacts:
+            continue
+        by_id.setdefault(row["physical_id"], []).append(row)
+    return by_id
+
+
+def support_set(rows, names, extra_by_id, config, use_extra=True):
+    """Supports of one scope. Extra readings apply only to partial-observation scopes (use_extra)."""
+    k = len(names)
+    extra_by_id = extra_by_id if use_extra else {}
+    lower = np.full((len(rows), k), np.nan); upper = np.full((len(rows), k), np.nan)
+    thickness = []
+    for i, r in enumerate(rows):
+        for c, v in enumerate(r["depths_m"]):
+            if v is not None:
+                lower[i, c] = upper[i, c] = v
+        for e in extra_by_id.get(r["physical_id"], []):
+            if e["kind"] in ("depth", "interval", "not_reached"):
+                c = names.index(e["contact"])
+                if np.isfinite(lower[i, c]) and lower[i, c] == upper[i, c]:
+                    continue  # table point reading already present; conflicts are recorded upstream
+                if e["kind"] == "depth":
+                    lo = hi = e["value_m"]
+                elif e["kind"] == "not_reached":
+                    lo, hi = e.get("lower_m", e.get("value_m")), None
+                else:
+                    lo, hi = e.get("lower_m"), e.get("upper_m")
+                # Several readings of one contact are intersected (order-independent); a contradiction stops the build.
+                new_lo = np.nanmax([lower[i, c], np.nan if lo is None else lo]) if (np.isfinite(lower[i, c]) or lo is not None) else np.nan
+                new_hi = np.nanmin([upper[i, c], np.nan if hi is None else hi]) if (np.isfinite(upper[i, c]) or hi is not None) else np.nan
+                if np.isfinite(new_lo) and np.isfinite(new_hi) and new_lo > new_hi + 1e-9:
+                    raise ValueError(f"contradictory interval readings for {r['physical_id']} {e['contact']}: resolve upstream")
+                lower[i, c], upper[i, c] = new_lo, new_hi
+            else:
+                top, bottom = names.index(e["top_contact"]), names.index(e["bottom_contact"])
+                if e["kind"] == "absent":
+                    lo = hi = 0.0
+                else:
+                    lo = e.get("lower_m", e.get("value_m")); hi = e.get("upper_m", e.get("value_m"))
+                thickness.append({"row": i, "top": top, "bottom": bottom, "lower": lo, "upper": hi, "id": e.get("source_id")})
+    groups = config.get("identity_groups", {})
+    independent = config.get("independent_collars", {})
+    indep = [independent.get(r["physical_id"], {}).get("value_m", np.nan) for r in rows]
+    return SupportSet([r["physical_id"] for r in rows], [groups.get(r["physical_id"], r["physical_id"]) for r in rows],
+                      [[r["x"], r["y"]] for r in rows], [r["collar_scenario_m"] for r in rows], lower, upper, list(names), thickness,
+                      independent_collar=np.asarray(indep, float))
+
+
 def tagged_vtu(path, points, cells, material, note):
     write_vtu(path, {"points": points, "wedges": cells}, material_id=material)
     tree = ET.parse(path)
@@ -124,7 +202,7 @@ def run(args):
         raise ValueError("real spatial outputs belong in ignored work/")
     if out.exists():
         raise ValueError("use a new versioned output directory")
-    for key in ("methods", "spacing_m", "site_offset_m", "site_offset_sensitivity_m", "scopes"):
+    for key in ("methods", "spacing_m", "site_offset_m", "site_offset_sensitivity_m", "scopes", "cv_block_size_m"):
         if key not in config:
             raise ValueError("explicit configuration required: "+key)
     if config["methods"] != ["nearest", "idw2", "linear"]:
@@ -132,7 +210,9 @@ def run(args):
     paths = {"builder": Path(__file__), "contacts": args.contacts, "placements": args.placements,
              "config": args.config, "previous_scene": args.previous_scene, "three_runtime": args.three,
              "viewer": REPO/"scripts/unified_world_viewer.js", "template": REPO/"scripts/finalize_unified_world_view.py"}
-    for name in ("constrained_geology", "linked_geology", "mesh_audit", "column_display"):
+    if args.observations is not None:
+        paths["observations"] = args.observations
+    for name in ("constrained_geology", "linked_geology", "mesh_audit", "column_display", "contact_predictor", "tin_section"):
         paths[name] = REPO/("src/vkm_world/geometry_build/"+name+".py")
     for n, filename in enumerate(config.get("evidence_inputs", [])):
         paths["evidence_"+str(n)] = REPO/filename
@@ -167,20 +247,29 @@ def run(args):
         features.append({"type":"Feature", "geometry":{"type":"Point","coordinates":[row["x"],row["y"],row["collar_scenario_m"]]},
                          "properties":{k:row.get(k) for k in ("physical_id","scope","xy_status","terrain_status","depths_m","input_ids")}})
     save(out/"mapped_boreholes.geojson", {"type":"FeatureCollection","name":"SH1_LOCAL_engineering_placements","features":features})
+    extra_by_id = read_extra_observations(args.observations, source["ordered_contacts"]) if args.observations else {}
     reports, compare_rows, links, coverage = [], [], [], []
     colors=["#b9b382","#c2d0b2","#d6a7bd","#b5a6ce","#e7cda6"]
     names=source["ordered_contacts"]
     for scope in config["scopes"]:
-        full_context=scope=="FULL_CONTEXT"
-        rows=[r for r in joined if (full_context or r["scope"]==scope) and all(v is not None for v in r["depths_m"])]
-        if len(rows)<3:
-            reports.append({"scope":scope,"status":"INSUFFICIENT_COMPLETE_COLUMNS","complete_columns":len(rows)})
+        print("scope",scope,file=sys.stderr,flush=True)
+        full_context=scope.startswith("FULL_CONTEXT")
+        partial=scope.endswith("_PARTIAL")
+        base_scope=scope.removesuffix("_PARTIAL")
+        in_scope=[r for r in joined if (full_context or r["scope"]==base_scope)]
+        if partial:
+            rows=[r for r in in_scope if any(v is not None for v in r["depths_m"]) or r["physical_id"] in extra_by_id]
+        else:
+            rows=[r for r in in_scope if all(v is not None for v in r["depths_m"])]
+        complete_count=sum(all(v is not None for v in r["depths_m"]) for r in rows)
+        if complete_count<3:
+            reports.append({"scope":scope,"status":"INSUFFICIENT_COMPLETE_COLUMNS","complete_columns":complete_count})
             continue
-        xy=np.array([[r["x"],r["y"]] for r in rows])
-        depths=np.array([r["depths_m"] for r in rows])
-        collars=np.array([r["collar_scenario_m"] for r in rows])
-        levels=collars[:,None]-depths
+        supports=support_set(rows,names,extra_by_id,config,use_extra=partial)
+        xy=supports.xy
+        levels=supports.levels()
         support_hull=MultiPoint(xy).convex_hull
+        complete_hull=MultiPoint(xy[supports.complete_rows()]).convex_hull
         polygon=boundary_polygon(oldxy,decode(previous["edges"])) if full_context else support_hull
         if polygon.area<=0:
             continue
@@ -203,73 +292,97 @@ def run(args):
         edge_counts=Counter(tuple(sorted((int(a),int(b)))) for t in triangles for a,b in zip(t,np.roll(t,-1)))
         edges=np.array([edge for edge,count in sorted(edge_counts.items()) if count==1])
         plan_qa=audit_plan_triangles(nodes[triangles],polygon)
-        spatial_groups=["west" if x<=np.median(xy[:,0]) else "east" for x in xy[:,0]]
-        cv=grouped_contact_cv(xy,levels,[r["physical_id"] for r in rows],spatial_groups)
-        relative_cv=grouped_contact_cv(xy,-(depths-depths[:,[0]]),[r["physical_id"] for r in rows],spatial_groups)
+        selected_method="idw2" if (full_context or partial) else "linear"
+
+        def spec_for(method):
+            # Production policy of each method, identical in the build and in every fold (R2-01).
+            return PredictorSpec(method,"SURFACE" if full_context else "LEVEL",config["site_offset_m"],
+                                 extrapolate=full_context and method!="linear",allow_partial=partial and method=="idw2")
+
+        def predictor(method):
+            return ContactPredictor(spec_for(method),surface=surface.sample if full_context else None,support=polygon)
+
+        compared=[m for m in config["methods"] if not partial or m=="idw2"]
+        cv=cross_validate(lambda m,training:predictor(m),supports,compared,block_size_m=config["cv_block_size_m"])
         coverage.append({"type":"Feature","geometry":mapping(polygon),"properties":{"scope":scope,"support":"ENGINEERING_EXTENSION_WITH_SEPARATE_SUPPORT_MASK" if full_context else "INTERPOLATION_WITH_ENGINEERING_XY_AND_DSM_COLLAR","physical_groups":len(rows),"area_m2":polygon.area}})
         model_dir=out/scope;model_dir.mkdir()
-        save(model_dir/"cross_validation.json",{"absolute_engineering_scenario":cv,"collar_invariant_intervals":relative_cv,
-                                               "purpose":"source consistency, not surveyed elevation accuracy"})
-        source_fit=[]; all_method_levels={}
-        terrain_here=surface.sample(nodes)
-        support_surface=surface.sample(xy)
-        depth_operator=-depths+(collars-support_surface-config["site_offset_m"])[:,None]
-        for method in config["methods"]:
-            z,masks,weights=joint_predict(xy,depth_operator if full_context else levels,nodes,method,polygon,extrapolate=full_context and method!="linear")
-            if full_context:
-                z+=terrain_here[:,None]+config["site_offset_m"]
+        save(model_dir/"cross_validation.json",{"operator":{m:spec_for(m).describe() for m in compared},
+            "same_operator_as_build":True,"block_size_m":config["cv_block_size_m"],"block_basis":config.get("cv_block_basis"),
+            "absolute_height_validation":"NOT_AVAILABLE: collars are DSM-derived (ENGINEERING_ASSUMPTION); level errors equal minus depth errors under that assumption",
+            "purpose":"source consistency of the published operator, not surveyed elevation accuracy",**cv})
+        source_fit=[]; all_method_levels={}; all_results={}
+        observed=np.isfinite(levels)
+        for method in compared:
+            result=predictor(method).predict(supports,nodes)
+            z=result["levels"]
             if not np.isfinite(z).all() and not (full_context and method=="linear"):
-                raise ValueError("mesh node outside declared support")
-            all_method_levels[method]=z
-            fit,_,_=joint_predict(xy,depth_operator if full_context else levels,xy,method,polygon)
-            if full_context:fit+=support_surface[:,None]+config["site_offset_m"]
-            source_fit.append({"method":method,"max_used_source_residual_m":float(np.max(abs(fit-levels)))})
-        selected_method="idw2" if full_context else "linear"
+                raise ValueError("mesh node outside declared support or undetermined contact: "+method)
+            all_method_levels[method]=z; all_results[method]=result
+            fit=predictor(method).predict(supports,xy)["levels"]
+            source_fit.append({"method":method,"max_used_source_residual_m":float(np.max(abs(fit-levels)[observed]))})
         z=all_method_levels[selected_method]
+        result=all_results[selected_method]
+        masks=result["masks"]
+        geometry_version=geometry_digest(nodes,triangles,z)
         # Source evaluation alone can conceal grid discretization errors.
         exported_fit=np.column_stack([TINSurface(np.column_stack([nodes,z[:,k]]),triangles).sample(xy) for k in range(len(names))])
-        exported_residual=float(np.max(abs(exported_fit-levels)))
+        exported_residual=float(np.max(abs(exported_fit-levels)[observed]))
         if not np.isfinite(exported_residual) or exported_residual>config["acceptance"]["source_fit_tolerance_m"]:
-            raise ValueError("exported mesh fails source-contact reproduction")
-        _,masks,_=joint_predict(xy,levels,nodes,selected_method,polygon,extrapolate=full_context)
+            raise ValueError("exported mesh fails source-contact reproduction: %g"%exported_residual)
+        base=predictor(selected_method)
+        lo_par,hi_par=base.parameter_bounds(supports)
+        s_sup=base.surface_at(xy)[:,None]
+        interval_violations=int(np.sum((exported_fit<lo_par+s_sup-1e-6)|(exported_fit>hi_par+s_sup+1e-6)))
         low_collar=np.array([r.get("terrain_min_m",r["terrain_height_m"]) for r in rows])+min(config["site_offset_sensitivity_m"])
         high_collar=np.array([r.get("terrain_max_m",r["terrain_height_m"]) for r in rows])+max(config["site_offset_sensitivity_m"])
-        low,_,_=joint_predict(xy,low_collar[:,None]-depths,nodes,selected_method,polygon,extrapolate=full_context)
-        high,_,_=joint_predict(xy,high_collar[:,None]-depths,nodes,selected_method,polygon,extrapolate=full_context)
-        if full_context:
-            interpolated,_,_=joint_predict(xy,levels,nodes,selected_method,polygon,extrapolate=True)
-            low+=z-interpolated;high+=z-interpolated
-        np.savez_compressed(model_dir/"contact_fields.npz",xy=nodes,triangles=triangles,contacts=z,lower_sensitivity=low,upper_sensitivity=high,
-                            support_mask=masks,**{"contacts_"+k:v for k,v in all_method_levels.items()})
+        sens={label:base.predict(replace(supports,collar=collar),nodes)["levels"] for label,collar in (("low",low_collar),("high",high_collar))}
+        np.savez_compressed(model_dir/"contact_fields.npz",xy=nodes,triangles=triangles,contacts=z,lower_sensitivity=sens["low"],upper_sensitivity=sens["high"],
+                            support_mask=masks,constraint_adjustment_m=result["constraint_adjustment_m"],geometry_version=np.array(geometry_version),
+                            **{"contacts_"+k:v for k,v in all_method_levels.items()})
+        terrain_here=surface.sample(nodes)
         terrain_checks={"known_samples":int(np.isfinite(terrain_here).sum()),
                         "TKT_above_DSM_nodes":int(np.sum(z[:,0]>terrain_here)),"correction":"none; discrepancy retained"}
-        native_entries=[]; mesh_checks=[]; meshes=[]
+        native_entries=[]; mesh_checks=[]; meshes=[]; pinchouts=[]
         for k in range(len(names)-1):
             # Wedges in mathematical CCW winding. Writer converts explicitly to OGS convention.
             n=len(nodes); points=np.vstack([np.column_stack([nodes,z[:,k+1]]),np.column_stack([nodes,z[:,k]])])
             cells=np.column_stack([triangles,triangles+n])
-            check=audit_vertical_wedges(points,cells,polygon,winding="ccw")
+            thickness_here=z[:,k]-z[:,k+1]
+            pinch_note=None
+            if partial and np.min(thickness_here)<=1e-9 and np.min(thickness_here)>=-1e-9:
+                # Observed or inferred zero thickness: only triangles with positive thickness at all three
+                # vertices become wedges; the pinch-out zone stays as contacts in contact_fields.npz (audit F/Sol, 23.10).
+                keep=np.all(thickness_here[triangles]>1e-9,axis=1)
+                from shapely.ops import unary_union
+                kept_polygon=unary_union([Polygon(nodes[t]) for t in triangles[keep]])
+                excluded_area=float(polygon.area-kept_polygon.area)
+                cells=np.column_stack([triangles[keep],triangles[keep]+n])
+                check=audit_vertical_wedges(points,cells,kept_polygon,winding="ccw")
+                pinch_note={"interval":names[k]+"_to_"+names[k+1],"zero_thickness_nodes":int(np.sum(thickness_here<=1e-9)),
+                            "excluded_triangles":int((~keep).sum()),"excluded_plan_area_m2":excluded_area,
+                            "export":"VTU volume without the pinch-out zone; zone kept as contacts (PINCHOUT_CONTACT_ONLY)"}
+                pinchouts.append(pinch_note)
+            else:
+                check=audit_vertical_wedges(points,cells,polygon,winding="ccw")
             if not check["conforming"]:
-                raise ValueError("nonconforming engineering volume")
+                raise ValueError("nonconforming engineering volume in %s %s->%s: %s"%(scope,names[k],names[k+1],json.dumps({a:b for a,b in check.items() if not isinstance(b,(list,dict))},default=str)))
             filename=f"{names[k]}_to_{names[k+1]}.vtu"
             tagged_vtu(model_dir/filename,points,cells,k,{"GeometryRole":"ENGINEERING_SCENARIO","HeightFrame":"DSM_EGM2008_ANCHORED_DEPTH_MODEL",
                        "HorizontalFrame":"SH1_LOCAL","Source":"VKM-SRC-012 p64-65","VerticalTie":"ASSUMED_COLLAR_EQUALS_DSM_PLUS_SITE_OFFSET",
-                       "Convention":"SOURCE012_ROOF_PRIMARY_WITH_RETAINED_UPPER_CONFLICT"})
+                       "Convention":"SOURCE012_ROOF_PRIMARY_WITH_RETAINED_UPPER_CONFLICT","GeometryVersion":geometry_version,
+                       "Observations":"COMPLETE_AND_PARTIAL" if partial else "COMPLETE_COLUMNS_ONLY",
+                       "PinchoutZone":"EXCLUDED_AS_CONTACTS_ONLY" if pinch_note else "NONE"})
             native_entries.append((names[k]+" to "+names[k+1],filename))
             mesh_checks.append(check);meshes.append((points,cells))
-        interface_checks=[audit_layer_interface(meshes[k+1][0],meshes[k+1][1],meshes[k][0],meshes[k][1]) for k in range(len(meshes)-1)]
+        interface_checks=[] if pinchouts else [audit_layer_interface(meshes[k+1][0],meshes[k+1][1],meshes[k][0],meshes[k][1]) for k in range(len(meshes)-1)]
         write_vtm(model_dir/"unified_world.vtm",native_entries)
-        # Real section line passes through every support in increasing X order.
-        ordered=np.argsort(xy[:,0]); route=xy[ordered]
-        query=[]; distance=[]; chainage=0.
-        for a,b in zip(route[:-1],route[1:]):
-            length=float(np.linalg.norm(b-a))
-            for t in np.linspace(0,1,max(3,int(length/step)+1),endpoint=False):
-                query.append(a+(b-a)*t);distance.append(chainage+t*length)
-            chainage+=length
-        query.append(route[-1]);distance.append(chainage);query=np.array(query)
-        section,_,_=joint_predict(xy,depth_operator if full_context else levels,query,selected_method,polygon,extrapolate=full_context)
-        if full_context:section+=surface.sample(query)[:,None]+config["site_offset_m"]
+        # Diagnostic broken route through the complete-column supports in increasing X, cut from the exported TIN (R2-03).
+        route_ids=np.flatnonzero(supports.complete_rows())
+        ordered=route_ids[np.argsort(xy[route_ids,0])]; route=xy[ordered]
+        section=section_through_tin(nodes,triangles,z,route)
+        query=section["xy"]; distance=section["chainage_m"]; section_z=section["values"]
+        continuous=base.predict(supports,query)["levels"]
+        discretization=compare_continuous(section,continuous)
         old_smooth=decode(previous["terrain_smooth_z"]).ravel()
         display_surface=TINSurface(np.column_stack([terrain_xy,old_smooth]),terrain_tri)
         old_delta=display_surface.sample(query)-old_top.sample(query)
@@ -279,32 +392,47 @@ def run(args):
                 continue
             old_native=old_top.sample(query,z_values=old_contacts[name])
             old_display=old_native+old_delta
-            valid=np.isfinite(old_native)&np.isfinite(section[:,k])
-            error=section[valid,k]-old_native[valid]
+            valid=np.isfinite(old_native)&np.isfinite(section_z[:,k])
+            error=section_z[valid,k]-old_native[valid]
             comparisons[name]={"common_points":int(valid.sum()),"mean_change_from_old_native_m":float(error.mean()) if len(error) else None,
                                "max_abs_change_m":float(np.max(abs(error))) if len(error) else None}
             for i in np.where(valid)[0]:
                 compare_rows.append({"scope":scope,"contact":name,"distance_m":distance[i],"x":query[i,0],"y":query[i,1],
-                                     "old_native_z_m":old_native[i],"old_display_z_m":old_display[i],"new_scenario_z_m":section[i,k]})
-        save(model_dir/"sections.json",{"route_physical_ids":[rows[i]["physical_id"] for i in ordered],"distance_m":distance,
-                                      "xy":query.tolist(),"new_contact_z_m":section.tolist(),"unknown_points":int(np.sum(~np.isfinite(section).all(axis=1))),"comparison":comparisons})
-        render_sections(model_dir,scope,query,distance,section,names,old_top,old_contacts,old_delta,surface,rows)
+                                     "old_native_z_m":old_native[i],"old_display_z_m":old_display[i],"new_scenario_z_m":section_z[i,k]})
+        projection=project_onto_trace(xy,route)
+        save(model_dir/"sections.json",{"geometry_version":geometry_version,"operator":section["operator"],
+                                      "route_physical_ids":[supports.ids[i] for i in ordered],"route_xy":route.tolist(),"route_kind":"BROKEN_LINE_THROUGH_COMPLETE_SUPPORTS",
+                                      "distance_m":distance.tolist(),"xy":query.tolist(),"new_contact_z_m":section_z.tolist(),
+                                      "unknown_points":int(np.sum(~np.isfinite(section_z).all(axis=1))),"gaps_across_mesh_holes":section["gaps"],"gap_after":section["gap_after"].tolist(),
+                                      "continuous_vs_exported":discretization,
+                                      "boreholes_on_trace":[{"physical_id":supports.ids[i],"distance_to_trace_m":float(projection["distance_m"][i]),"chainage_m":float(projection["chainage_m"][i])} for i in range(len(xy))],
+                                      "comparison":comparisons})
+        render_sections(model_dir,scope,query,distance,section_z,names,old_top,old_contacts,old_delta,surface,rows,section["gap_after"])
         export_view(model_dir,scope,nodes,triangles,edges,z,names,colors,terrain_xy,terrain_z,terrain_tri,rows,args.three,full_context,support_hull)
         # Rank is tested on thickness-only observations, before the declared DSM hypothesis.
+        first=next(r for r in rows if all(v is not None for v in r["depths_m"]))
         rank_constraints=[]
-        for k,value in enumerate(np.diff(depths[0])):
+        for k,value in enumerate(np.diff(first["depths_m"])):
             coefficients=np.zeros(len(names));coefficients[k]=1;coefficients[k+1]=-1
-            rank_constraints.append({"id":rows[0]["physical_id"]+":"+names[k],"coefficients":coefficients.tolist(),"lower":value,"upper":value})
-        report={"scope":scope,"status":"ENGINEERING_MODEL_BUILT","physical_groups":[r["physical_id"] for r in rows],
+            rank_constraints.append({"id":first["physical_id"]+":"+names[k],"coefficients":coefficients.tolist(),"lower":value,"upper":value})
+        point=supports.point_mask()
+        report={"scope":scope,"status":"ENGINEERING_MODEL_BUILT","geometry_version":geometry_version,"physical_groups":supports.ids,
+                "observations":{"supports":len(supports.ids),"complete_columns":int(supports.complete_rows().sum()),
+                                "point_readings":int(point.sum()),"interval_readings":int(((np.isfinite(supports.depth_lower)|np.isfinite(supports.depth_upper))&~point).sum()),
+                                "thickness_readings":len(supports.thickness),"partial_supports":[supports.ids[i] for i in np.flatnonzero(~supports.complete_rows())]},
                 "area_m2":polygon.area,"vertices_per_contact":len(nodes),"wedges_per_interval":len(triangles),
-                "source_fit":source_fit,"exported_mesh_source_residual_m":exported_residual,"plan_qa":plan_qa,"mesh_qa":mesh_checks,"interface_qa":interface_checks,
+                "source_fit":source_fit,"exported_mesh_source_residual_m":exported_residual,"exported_interval_violations":interval_violations,
+                "constraint_adjustment_max_m":float(np.max(result["constraint_adjustment_m"])),"constraint_adjusted_nodes":int(np.sum(result["constraint_adjustment_m"]>1e-6)),
+                "plan_qa":plan_qa,"mesh_qa":mesh_checks,"interface_qa":interface_checks if interface_checks else "NOT_RUN: a zero-thickness interval breaks volume adjacency; see pinchout_intervals","pinchout_intervals":pinchouts,
                 "thickness_only_identifiability":interval_envelope(len(names),rank_constraints),"terrain_checks":terrain_checks,
                 "absolute_height_status":"ENGINEERING_ASSUMPTION; independent collar heights unknown",
                 "method_choice":selected_method+" selected before field build; CV does not establish field accuracy",
+                "predictor":spec_for(selected_method).describe(),
                 "extension":full_context,"support_mask_counts":dict(Counter(map(str,masks))),
-                "vertical_operator":"local DSM minus joint source-depth field; bilinear-versus-TIN sampling residual reconciled at source wells" if full_context else "interpolated DSM collars minus source depths",
-                "DSM_sampling_operator_max_difference_m":float(np.max(abs(collars-support_surface-config["site_offset_m"]))),
-                "source_support_hull_area_m2":support_hull.area,
+                "source_support_hull_area_m2":support_hull.area,"complete_support_hull_area_m2":complete_hull.area,
+                "DSM_sampling_operator_max_difference_m":float(np.max(abs(supports.collar-surface.sample(xy)-config["site_offset_m"]))) if full_context else None,
+                "fem_quality":fem_quality(nodes,triangles),
+                "section_discretization":discretization,
                 "comparison":comparisons}
         save(model_dir/"qa.json",report);reports.append(report);links.append(scope)
     save(out/"coverage.geojson",{"type":"FeatureCollection","name":"SH1_LOCAL_support_masks","features":coverage})
@@ -322,18 +450,29 @@ def run(args):
     print(json.dumps({"models":links,"mapped_boreholes":len(joined),"output":str(out)},ensure_ascii=False))
 
 
-def render_sections(out,scope,query,distance,section,names,old_top,old_contacts,old_delta,surface,rows):
+def render_sections(out,scope,query,distance,section,names,old_top,old_contacts,old_delta,surface,rows,gap_after=None):
+    query=np.asarray(query,float); distance=np.asarray(distance,float); section=np.asarray(section,float)
+    natives={name:old_top.sample(query,z_values=old_contacts[name]) for name in names if name in old_contacts}
+    dsm=surface.sample(query)
+
+    def broken(values):
+        # Break plotted lines across mesh holes (gap_after) by inserting NaN after each gap breakpoint.
+        values=np.asarray(values,float)
+        if gap_after is None or not np.any(gap_after):
+            return values
+        return np.insert(values,np.flatnonzero(gap_after)+1,np.nan,axis=0)
+
+    x=broken(distance)
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     fig,axes=plt.subplots(2,1,figsize=(13,8),sharex=True,layout="constrained")
     for k,name in enumerate(names):
-        line,=axes[0].plot(distance,section[:,k],label=name)
-        if name in old_contacts:
-            native=old_top.sample(query,z_values=old_contacts[name])
-            axes[0].plot(distance,native,"--",color=line.get_color(),alpha=.55)
-            axes[1].plot(distance,section[:,k]-native,label=name)
-    axes[0].plot(distance,surface.sample(query),color="black",label="DSM 2011–2015")
+        line,=axes[0].plot(x,broken(section[:,k]),label=name)
+        if name in natives:
+            axes[0].plot(x,broken(natives[name]),"--",color=line.get_color(),alpha=.55)
+            axes[1].plot(x,broken(section[:,k]-natives[name]),label=name)
+    axes[0].plot(x,broken(dsm),color="black",label="DSM 2011–2015")
     axes[0].set_title(scope+": solid = engineering contacts; dashed = previous native; source012 p64–65")
     axes[0].set_ylabel("Z, m; DSM EGM2008 anchor assumed")
     axes[1].set_ylabel("New − previous native, m");axes[1].set_xlabel("Distance along support route, m")
@@ -355,7 +494,10 @@ def export_view(out,scope,nodes,triangles,edges,z,names,colors,txy,tz,ttri,rows,
     objects={"meshes":[],"lines":[],"boreholes":[{"id":r["physical_id"],"label":r["physical_id"],"x":r["x"],"y":r["y"],"display_z":r["collar_scenario_m"],
               "status":"ENGINEERING_ASSUMPTION","source_id":"VKM-SRC-012","display_anchor_status":"DSM_COLLAR_ASSUMPTION"} for r in rows]}
     for r in rows:
-        pts=np.array([[r["x"],r["y"],r["collar_scenario_m"]],[r["x"],r["y"],r["collar_scenario_m"]-max(r["depths_m"])]])
+        point_depths=[v for v in r["depths_m"] if v is not None]
+        if not point_depths:
+            continue  # thickness- or absence-only support: no measured borehole length to draw (review Codex, 23.10)
+        pts=np.array([[r["x"],r["y"],r["collar_scenario_m"]],[r["x"],r["y"],r["collar_scenario_m"]-max(point_depths)]])
         objects["lines"].append({"id":r["physical_id"],"group":"borehole","paths":[{"points":encode(pts),"delta":encode([0,0])}],"z_status":"SOURCE_DEPTHS_AT_ENGINEERING_COLLAR"})
     js(out/"data/scene.js","VKM_SCENE",scene)
     js(out/"data/unified.js","VKM_UNIFIED",{"delta":encode(np.zeros(len(nodes))),"meta":{"height_mode":"ENGINEERING_DSM_COLLAR_DEPTHS; NO_POSTHOC_WARP","height_label":"Глубины скважин + DSM; инженерное продолжение" if full_context else "Контрольный участок по скважинам"}})
@@ -381,4 +523,5 @@ if __name__=="__main__":
     parser=argparse.ArgumentParser()
     for name in ("config","contacts","placements","previous-scene","three","output"):
         parser.add_argument("--"+name,type=Path,required=True)
+    parser.add_argument("--observations",type=Path,default=None,help="verified observation matrix (vkm.borehole_observation_matrix/1)")
     run(parser.parse_args())
