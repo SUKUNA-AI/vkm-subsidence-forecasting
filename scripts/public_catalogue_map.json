@@ -25,6 +25,8 @@
  "FORMULAS/MODEL_FORMULA_LINKS.csv": "catalogues/mathematics/model_formula_links.csv",
  "FORMULAS/RECORD_TO_MODEL_MAP.csv": "catalogues/mathematics/record_to_model_map.csv",
  "FORMULAS/SUBSIDENCE_CALC_FORMULAS.csv": "catalogues/mathematics/subsidence_calc_formulas.csv",
+ "FORMULAS/SUBSIDENCE_CALC_SEARCH_COVERAGE.csv": "catalogues/mathematics/subsidence_calc_search_coverage.csv",
+ "FORMULAS/SUBSIDENCE_CALC_VARIANTS.csv": "catalogues/mathematics/subsidence_calc_variants.csv",
  "GEOLOGY_COORDS/FIX_LOG.csv": "evidence/qa/review_fixes/geology_coords_fix_log.csv",
  "GEOLOGY_COORDS/coordinate_datum_evidence.csv": "evidence/coordinates/coordinate_datum_evidence.csv",
  "GEOLOGY_COORDS/geology_evidence.csv": "evidence/geology/geology_evidence.csv",

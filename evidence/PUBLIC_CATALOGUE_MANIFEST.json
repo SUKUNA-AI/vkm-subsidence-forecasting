@@ -232,10 +232,28 @@
     "quote"
    ],
    "source": "FORMULAS/SUBSIDENCE_CALC_FORMULAS.csv",
-   "source_sha256": "361119a1e623b0efd92ddf308e65d62c1b62de8ab327d8b118bcc779524f9547",
+   "source_sha256": "5eccb82f70b2b5f9dd90d690cdcb566e9a40b6f94209c2b875d0a904ed9831ce",
    "status": "OK",
    "target": "catalogues/mathematics/subsidence_calc_formulas.csv",
-   "target_sha256": "6bd6bf4b0d9be1dfeb022fe8b68507da2fa76c7f5068f47a9ca246e7ee452d22"
+   "target_sha256": "d9d633600934ada40ab0a02c2e856a66da1510b6fc67f72910fc12cb8e068d05"
+  },
+  {
+   "dropped_columns": [],
+   "source": "FORMULAS/SUBSIDENCE_CALC_SEARCH_COVERAGE.csv",
+   "source_sha256": "240f0532adf80ef79ec1f3f257a42dc26ad792d1a9a5096dc5aaaf4037b45021",
+   "status": "OK",
+   "target": "catalogues/mathematics/subsidence_calc_search_coverage.csv",
+   "target_sha256": "240f0532adf80ef79ec1f3f257a42dc26ad792d1a9a5096dc5aaaf4037b45021"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "FORMULAS/SUBSIDENCE_CALC_VARIANTS.csv",
+   "source_sha256": "8130a328292f68222f01ba90443898fb64257f8e3c6f29dfc91f6d94f964d015",
+   "status": "OK",
+   "target": "catalogues/mathematics/subsidence_calc_variants.csv",
+   "target_sha256": "c83cb7b304381e11b1a920a6f4385ecfaaf049c508302808d6c6f6716d462278"
   },
   {
    "dropped_columns": [],
@@ -1202,6 +1220,12 @@
     "copied_words": 26,
     "row": 7,
     "target": "catalogues/mathematics/MATHEMATICAL_MODEL_REGISTRY.csv"
+   },
+   {
+    "column": "form_as_printed",
+    "copied_words": 27,
+    "row": 109,
+    "target": "catalogues/mathematics/subsidence_calc_variants.csv"
    },
    {
     "column": "what_is_stated",
