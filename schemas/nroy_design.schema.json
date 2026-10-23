@@ -1,0 +1,396 @@
+{
+ "$defs": {
+  "AvailabilityMode": {
+   "enum": [
+    "PUBLICATION_DATE",
+    "SIMULATED_ENTERPRISE_VIEW"
+   ],
+   "title": "AvailabilityMode",
+   "type": "string"
+  },
+  "InverseCrimeGuard": {
+   "additionalProperties": false,
+   "properties": {
+    "calibration_datasets": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Calibration Datasets",
+     "type": "array"
+    },
+    "generator_families": {
+     "items": {
+      "type": "string"
+     },
+     "minItems": 1,
+     "title": "Generator Families",
+     "type": "array"
+    },
+    "generator_resolution": {
+     "title": "Generator Resolution",
+     "type": "string"
+    },
+    "generator_solver": {
+     "title": "Generator Solver",
+     "type": "string"
+    },
+    "held_out_families": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Held Out Families",
+     "type": "array"
+    },
+    "test_resolution": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Test Resolution"
+    },
+    "test_solver": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Test Solver"
+    }
+   },
+   "required": [
+    "generator_families",
+    "generator_solver",
+    "generator_resolution"
+   ],
+   "title": "InverseCrimeGuard",
+   "type": "object"
+  },
+  "Metric": {
+   "additionalProperties": false,
+   "properties": {
+    "definition_ru": {
+     "title": "Definition Ru",
+     "type": "string"
+    },
+    "epochs_used": {
+     "const": "SCREENING_ONLY",
+     "default": "SCREENING_ONLY",
+     "title": "Epochs Used",
+     "type": "string"
+    },
+    "metric_id": {
+     "title": "Metric Id",
+     "type": "string"
+    },
+    "unit": {
+     "title": "Unit",
+     "type": "string"
+    }
+   },
+   "required": [
+    "metric_id",
+    "definition_ru",
+    "unit"
+   ],
+   "title": "Metric",
+   "type": "object"
+  },
+  "Rule": {
+   "additionalProperties": false,
+   "properties": {
+    "aggregate_over_metrics": {
+     "default": "MAX",
+     "enum": [
+      "MAX",
+      "SECOND_MAX",
+      "PER_METRIC"
+     ],
+     "title": "Aggregate Over Metrics",
+     "type": "string"
+    },
+    "combination": {
+     "enum": [
+      "VARIANCE_SUM_IMPLAUSIBILITY",
+      "BOUND_SUM",
+      "PER_COMPONENT_ALL"
+     ],
+     "title": "Combination",
+     "type": "string"
+    },
+    "owner_approved": {
+     "default": false,
+     "title": "Owner Approved",
+     "type": "boolean"
+    },
+    "threshold": {
+     "exclusiveMinimum": 0,
+     "title": "Threshold",
+     "type": "number"
+    },
+    "threshold_status": {
+     "const": "MODEL_CHOICE",
+     "default": "MODEL_CHOICE",
+     "title": "Threshold Status",
+     "type": "string"
+    }
+   },
+   "required": [
+    "combination",
+    "threshold"
+   ],
+   "title": "Rule",
+   "type": "object"
+  },
+  "ScreeningData": {
+   "additionalProperties": false,
+   "properties": {
+    "dataset_id": {
+     "title": "Dataset Id",
+     "type": "string"
+    },
+    "dataset_type": {
+     "enum": [
+      "REAL",
+      "SYNTHETIC",
+      "SEMI_SYNTHETIC"
+     ],
+     "title": "Dataset Type",
+     "type": "string"
+    },
+    "epochs": {
+     "items": {
+      "format": "date",
+      "type": "string"
+     },
+     "minItems": 1,
+     "title": "Epochs",
+     "type": "array"
+    },
+    "observation_world_id": {
+     "title": "Observation World Id",
+     "type": "string"
+    },
+    "publication_date": {
+     "format": "date",
+     "title": "Publication Date",
+     "type": "string"
+    },
+    "role": {
+     "enum": [
+      "SCREENING",
+      "HELD_OUT_TARGET"
+     ],
+     "title": "Role",
+     "type": "string"
+    },
+    "source_ids": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Source Ids",
+     "type": "array"
+    },
+    "station_ids": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Station Ids",
+     "type": "array"
+    }
+   },
+   "required": [
+    "dataset_id",
+    "dataset_type",
+    "role",
+    "observation_world_id",
+    "epochs",
+    "publication_date"
+   ],
+   "title": "ScreeningData",
+   "type": "object"
+  },
+  "ToleranceComponent": {
+   "additionalProperties": false,
+   "properties": {
+    "bound": {
+     "anyOf": [
+      {
+       "minimum": 0,
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Bound"
+    },
+    "element_ids": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Element Ids",
+     "type": "array"
+    },
+    "kind": {
+     "$ref": "#/$defs/ToleranceComponentKind"
+    },
+    "metric_ids": {
+     "default": [],
+     "description": "metrics the component applies to; empty = every metric",
+     "items": {
+      "type": "string"
+     },
+     "title": "Metric Ids",
+     "type": "array"
+    },
+    "relative": {
+     "default": false,
+     "description": "sigma / bound in % of the predicted value (e.g. a representation error)",
+     "title": "Relative",
+     "type": "boolean"
+    },
+    "sigma": {
+     "anyOf": [
+      {
+       "minimum": 0,
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Sigma"
+    },
+    "status": {
+     "description": "EVIDENCE / DERIVATION / MODEL_CHOICE ...",
+     "title": "Status",
+     "type": "string"
+    },
+    "uncertainty_class": {
+     "$ref": "#/$defs/UncertaintyClass"
+    },
+    "unit": {
+     "title": "Unit",
+     "type": "string"
+    }
+   },
+   "required": [
+    "kind",
+    "uncertainty_class",
+    "unit",
+    "status"
+   ],
+   "title": "ToleranceComponent",
+   "type": "object"
+  },
+  "ToleranceComponentKind": {
+   "enum": [
+    "OBSERVATION_NOISE",
+    "DIGITIZATION",
+    "STATION_POSITION",
+    "EPOCH_DATING",
+    "REPRESENTATION_ERROR",
+    "EMULATOR",
+    "MODEL_DISCREPANCY"
+   ],
+   "title": "ToleranceComponentKind",
+   "type": "string"
+  },
+  "UncertaintyClass": {
+   "enum": [
+    "PHYSICAL_HYPOTHESIS",
+    "REPRESENTATION_CHOICE",
+    "FORECAST_METHOD",
+    "EPISTEMIC_RULE",
+    "OBSERVATION"
+   ],
+   "title": "UncertaintyClass",
+   "type": "string"
+  }
+ },
+ "$id": "https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/schemas/nroy_design.schema.json",
+ "additionalProperties": false,
+ "properties": {
+  "availability_mode": {
+   "$ref": "#/$defs/AvailabilityMode"
+  },
+  "availability_mode_owner_approved": {
+   "default": false,
+   "title": "Availability Mode Owner Approved",
+   "type": "boolean"
+  },
+  "data": {
+   "items": {
+    "$ref": "#/$defs/ScreeningData"
+   },
+   "minItems": 1,
+   "title": "Data",
+   "type": "array"
+  },
+  "design_id": {
+   "title": "Design Id",
+   "type": "string"
+  },
+  "guard": {
+   "$ref": "#/$defs/InverseCrimeGuard"
+  },
+  "metrics": {
+   "items": {
+    "$ref": "#/$defs/Metric"
+   },
+   "minItems": 1,
+   "title": "Metrics",
+   "type": "array"
+  },
+  "rule": {
+   "$ref": "#/$defs/Rule"
+  },
+  "status": {
+   "const": "DESIGN_ONLY",
+   "default": "DESIGN_ONLY",
+   "title": "Status",
+   "type": "string"
+  },
+  "t0": {
+   "format": "date",
+   "title": "T0",
+   "type": "string"
+  },
+  "tolerance": {
+   "items": {
+    "$ref": "#/$defs/ToleranceComponent"
+   },
+   "minItems": 1,
+   "title": "Tolerance",
+   "type": "array"
+  }
+ },
+ "required": [
+  "design_id",
+  "t0",
+  "availability_mode",
+  "data",
+  "metrics",
+  "tolerance",
+  "rule",
+  "guard"
+ ],
+ "title": "VKM/SKRU-1 NROY screening design (design only)",
+ "type": "object"
+}

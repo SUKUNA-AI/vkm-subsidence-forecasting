@@ -1,0 +1,874 @@
+{
+ "$defs": {
+  "ChainStage": {
+   "description": "Where along the chain an element arises / which later stages it affects (FW §36, CT §63).",
+   "enum": [
+    "REAL_OBJECT",
+    "EVIDENCE",
+    "WORLDSPEC",
+    "PHYSICAL_WORLD",
+    "REPRESENTATION",
+    "SOLVER_RUN",
+    "OBSERVATION_WORLD",
+    "FORECAST_METHOD",
+    "VALIDATION"
+   ],
+   "title": "ChainStage",
+   "type": "string"
+  },
+  "Distribution": {
+   "additionalProperties": false,
+   "properties": {
+    "basis_ru": {
+     "default": "",
+     "title": "Basis Ru",
+     "type": "string"
+    },
+    "family": {
+     "title": "Family",
+     "type": "string"
+    },
+    "parameters": {
+     "additionalProperties": {
+      "type": "number"
+     },
+     "title": "Parameters",
+     "type": "object"
+    },
+    "subjectivity": {
+     "$ref": "#/$defs/Subjectivity"
+    }
+   },
+   "required": [
+    "family",
+    "parameters",
+    "subjectivity"
+   ],
+   "title": "Distribution",
+   "type": "object"
+  },
+  "EnsembleRef": {
+   "additionalProperties": false,
+   "properties": {
+    "generator": {
+     "title": "Generator",
+     "type": "string"
+    },
+    "n_realizations": {
+     "minimum": 2,
+     "title": "N Realizations",
+     "type": "integer"
+    },
+    "nature": {
+     "const": "SYNTHETIC",
+     "default": "SYNTHETIC",
+     "title": "Nature",
+     "type": "string"
+    },
+    "reference": {
+     "description": "logical location of the realizations",
+     "title": "Reference",
+     "type": "string"
+    }
+   },
+   "required": [
+    "n_realizations",
+    "reference",
+    "generator"
+   ],
+   "title": "EnsembleRef",
+   "type": "object"
+  },
+  "EpistemicStatus": {
+   "enum": [
+    "FACT",
+    "DERIVATION",
+    "INTERPOLATION",
+    "MODEL_CHOICE",
+    "ENGINEERING_ASSUMPTION",
+    "ANALOGUE",
+    "UNKNOWN"
+   ],
+   "title": "EpistemicStatus",
+   "type": "string"
+  },
+  "EvidenceType": {
+   "enum": [
+    "MEASURED",
+    "FIELD_OBSERVATION",
+    "LAB_TEST",
+    "NORMATIVE",
+    "DESIGN_VALUE",
+    "CALCULATED_BY_AUTHOR",
+    "MODEL_CALIBRATED",
+    "TEACHING_EXAMPLE",
+    "LITERATURE_CITED",
+    "INTERPRETATION",
+    "DESCRIPTIVE",
+    "COMPUTED_THIS_PROJECT",
+    "NOT_APPLICABLE"
+   ],
+   "title": "EvidenceType",
+   "type": "string"
+  },
+  "Links": {
+   "additionalProperties": false,
+   "properties": {
+    "conflict_ids": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Conflict Ids",
+     "type": "array"
+    },
+    "passport_prior_ids": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Passport Prior Ids",
+     "type": "array"
+    },
+    "related_elements": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Related Elements",
+     "type": "array"
+    },
+    "sessions": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Sessions",
+     "type": "array"
+    },
+    "transfer_ids": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Transfer Ids",
+     "type": "array"
+    },
+    "unknown_ids": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Unknown Ids",
+     "type": "array"
+    }
+   },
+   "title": "Links",
+   "type": "object"
+  },
+  "Measurement": {
+   "additionalProperties": false,
+   "properties": {
+    "by_ru": {
+     "title": "By Ru",
+     "type": "string"
+    },
+    "effects": {
+     "default": [],
+     "items": {
+      "$ref": "#/$defs/QoIEffect"
+     },
+     "title": "Effects",
+     "type": "array"
+    },
+    "experiment_id": {
+     "title": "Experiment Id",
+     "type": "string"
+    },
+    "representation_context": {
+     "description": "representation the effect was computed in",
+     "title": "Representation Context",
+     "type": "string"
+    },
+    "result_status": {
+     "enum": [
+      "MODEL_RESULT",
+      "DERIVATION",
+      "DIAGNOSTIC_COMPARISON"
+     ],
+     "title": "Result Status",
+     "type": "string"
+    },
+    "where": {
+     "description": "logical location: PRIVATE:12_work_exports/..., PUBLIC:..., session name",
+     "title": "Where",
+     "type": "string"
+    }
+   },
+   "required": [
+    "experiment_id",
+    "by_ru",
+    "where",
+    "result_status",
+    "representation_context"
+   ],
+   "title": "Measurement",
+   "type": "object"
+  },
+  "MeasurementStatus": {
+   "description": "Has the project already measured the effect of the element on a quantity of interest?",
+   "enum": [
+    "MEASURED",
+    "PARTIALLY_MEASURED",
+    "NOT_MEASURED",
+    "PENDING_PARALLEL_WORK",
+    "NOT_APPLICABLE"
+   ],
+   "title": "MeasurementStatus",
+   "type": "string"
+  },
+  "Narrowing": {
+   "additionalProperties": false,
+   "properties": {
+    "action_ru": {
+     "title": "Action Ru",
+     "type": "string"
+    },
+    "expected_ru": {
+     "default": "",
+     "title": "Expected Ru",
+     "type": "string"
+    },
+    "priority": {
+     "default": 2,
+     "maximum": 3,
+     "minimum": 1,
+     "title": "Priority",
+     "type": "integer"
+    },
+    "route": {
+     "$ref": "#/$defs/NarrowingRoute"
+    }
+   },
+   "required": [
+    "action_ru",
+    "route"
+   ],
+   "title": "Narrowing",
+   "type": "object"
+  },
+  "NarrowingRoute": {
+   "enum": [
+    "CORPUS",
+    "NEW_DATA",
+    "COMPUTATION",
+    "OWNER_DECISION",
+    "PARALLEL_SESSION"
+   ],
+   "title": "NarrowingRoute",
+   "type": "string"
+  },
+  "Option": {
+   "additionalProperties": false,
+   "properties": {
+    "label_ru": {
+     "title": "Label Ru",
+     "type": "string"
+    },
+    "option_id": {
+     "title": "Option Id",
+     "type": "string"
+    },
+    "source_ids": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Source Ids",
+     "type": "array"
+    },
+    "status": {
+     "$ref": "#/$defs/EpistemicStatus"
+    },
+    "unit": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Unit"
+    },
+    "value": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Value"
+    }
+   },
+   "required": [
+    "option_id",
+    "label_ru",
+    "status"
+   ],
+   "title": "Option",
+   "type": "object"
+  },
+  "QoIDefinition": {
+   "additionalProperties": false,
+   "properties": {
+    "definition_ru": {
+     "title": "Definition Ru",
+     "type": "string"
+    },
+    "name_ru": {
+     "title": "Name Ru",
+     "type": "string"
+    },
+    "qoi_id": {
+     "title": "Qoi Id",
+     "type": "string"
+    },
+    "unit": {
+     "title": "Unit",
+     "type": "string"
+    }
+   },
+   "required": [
+    "qoi_id",
+    "name_ru",
+    "unit",
+    "definition_ru"
+   ],
+   "title": "QoIDefinition",
+   "type": "object"
+  },
+  "QoIEffect": {
+   "additionalProperties": false,
+   "description": "Effect of the element on one quantity of interest, measured inside one representation.",
+   "properties": {
+    "central": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Central"
+    },
+    "high": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "High"
+    },
+    "low": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Low"
+    },
+    "note": {
+     "default": "",
+     "title": "Note",
+     "type": "string"
+    },
+    "qoi": {
+     "title": "Qoi",
+     "type": "string"
+    },
+    "time_yr": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Time Yr"
+    },
+    "unit": {
+     "title": "Unit",
+     "type": "string"
+    }
+   },
+   "required": [
+    "qoi",
+    "unit"
+   ],
+   "title": "QoIEffect",
+   "type": "object"
+  },
+  "Representation": {
+   "additionalProperties": false,
+   "properties": {
+    "distribution": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Distribution"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "ensemble": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/EnsembleRef"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "kind": {
+     "$ref": "#/$defs/RepresentationKind"
+    },
+    "options": {
+     "default": [],
+     "items": {
+      "$ref": "#/$defs/Option"
+     },
+     "title": "Options",
+     "type": "array"
+    },
+    "range": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/ValueRange"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "rationale_ru": {
+     "default": "",
+     "title": "Rationale Ru",
+     "type": "string"
+    },
+    "subjectivity": {
+     "$ref": "#/$defs/Subjectivity"
+    },
+    "weights": {
+     "anyOf": [
+      {
+       "additionalProperties": {
+        "type": "number"
+       },
+       "type": "object"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Weights"
+    }
+   },
+   "required": [
+    "kind",
+    "subjectivity"
+   ],
+   "title": "Representation",
+   "type": "object"
+  },
+  "RepresentationKind": {
+   "description": "How an element is represented in the ensemble / analysis.",
+   "enum": [
+    "RANGE",
+    "DISCRETE_SET",
+    "DISTRIBUTION",
+    "ENSEMBLE",
+    "BOUND",
+    "POINT_ASSUMPTION",
+    "UNKNOWN"
+   ],
+   "title": "RepresentationKind",
+   "type": "string"
+  },
+  "Scale": {
+   "enum": [
+    "LAB",
+    "MASSIF",
+    "CALIBRATED_EFFECTIVE_MODEL",
+    "FIELD",
+    "DESIGN",
+    "NOT_APPLICABLE",
+    "UNSTATED"
+   ],
+   "title": "Scale",
+   "type": "string"
+  },
+  "Scope": {
+   "description": "Site scope of a datum. Only SKRU1 is field-wide site-specific for SKRU-1.\n\nThe SKRU-1/SKRU-2 joint labels are kept apart (review finding TRANSFER-023):\n``SKRU1_SKRU2_PILLAR`` — the intermine pillar zone on the SKRU-1/SKRU-2 boundary (usable for SKRU-1 only locally,\nat the pillar, or through an explicit Transfer); ``SKRU1_OR_SKRU2_UNATTRIBUTED`` — the source does not say which\nof the two mines; ``SOLIKAMSK_GROUP`` — pooled over SKRU-1, SKRU-2 and SKRU-3. ``SKRU1_SKRU2`` is the legacy\nambiguous label of the first Phase-1 catalogues; it is valid but never counts as SKRU-1 data.",
+   "enum": [
+    "SKRU1",
+    "SKRU1_SKRU2_PILLAR",
+    "SKRU1_OR_SKRU2_UNATTRIBUTED",
+    "SOLIKAMSK_GROUP",
+    "SKRU1_SKRU2",
+    "SKRU2",
+    "SKRU3",
+    "BKPRU1",
+    "BKPRU2",
+    "BKPRU3",
+    "BKPRU4",
+    "USOLSKY",
+    "OTHER_VKM_SITE",
+    "VKM_REGIONAL",
+    "OTHER_POTASH_SITE",
+    "NON_VKM",
+    "GENERAL_METHOD",
+    "PROJECT",
+    "UNSTATED"
+   ],
+   "title": "Scope",
+   "type": "string"
+  },
+  "SourceRef": {
+   "additionalProperties": false,
+   "properties": {
+    "locator": {
+     "default": "",
+     "description": "page / table / figure / file path (logical, no machine paths)",
+     "title": "Locator",
+     "type": "string"
+    },
+    "note": {
+     "default": "",
+     "title": "Note",
+     "type": "string"
+    },
+    "scope": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/Scope"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "source_id": {
+     "description": "VKM-SRC-xxx, project artifact id, catalogue id or session deliverable",
+     "title": "Source Id",
+     "type": "string"
+    }
+   },
+   "required": [
+    "source_id"
+   ],
+   "title": "SourceRef",
+   "type": "object"
+  },
+  "Subjectivity": {
+   "enum": [
+    "EVIDENCE",
+    "MODEL_CHOICE",
+    "MIXED",
+    "NOT_REPRESENTED"
+   ],
+   "title": "Subjectivity",
+   "type": "string"
+  },
+  "UncertaintyClass": {
+   "enum": [
+    "PHYSICAL_HYPOTHESIS",
+    "REPRESENTATION_CHOICE",
+    "FORECAST_METHOD",
+    "EPISTEMIC_RULE",
+    "OBSERVATION"
+   ],
+   "title": "UncertaintyClass",
+   "type": "string"
+  },
+  "UncertaintyElement": {
+   "additionalProperties": false,
+   "properties": {
+    "affects": {
+     "items": {
+      "$ref": "#/$defs/ChainStage"
+     },
+     "title": "Affects",
+     "type": "array"
+    },
+    "arises_at": {
+     "$ref": "#/$defs/ChainStage"
+    },
+    "description_ru": {
+     "title": "Description Ru",
+     "type": "string"
+    },
+    "element_id": {
+     "title": "Element Id",
+     "type": "string"
+    },
+    "evidence_status": {
+     "items": {
+      "$ref": "#/$defs/EpistemicStatus"
+     },
+     "minItems": 1,
+     "title": "Evidence Status",
+     "type": "array"
+    },
+    "evidence_types": {
+     "default": [],
+     "items": {
+      "$ref": "#/$defs/EvidenceType"
+     },
+     "title": "Evidence Types",
+     "type": "array"
+    },
+    "kind": {
+     "title": "Kind",
+     "type": "string"
+    },
+    "links": {
+     "$ref": "#/$defs/Links",
+     "default": {
+      "conflict_ids": [],
+      "passport_prior_ids": [],
+      "related_elements": [],
+      "sessions": [],
+      "transfer_ids": [],
+      "unknown_ids": []
+     }
+    },
+    "measured": {
+     "$ref": "#/$defs/MeasurementStatus"
+    },
+    "measurements": {
+     "default": [],
+     "items": {
+      "$ref": "#/$defs/Measurement"
+     },
+     "title": "Measurements",
+     "type": "array"
+    },
+    "narrowing": {
+     "default": [],
+     "items": {
+      "$ref": "#/$defs/Narrowing"
+     },
+     "title": "Narrowing",
+     "type": "array"
+    },
+    "quantity": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Quantity"
+    },
+    "representation": {
+     "$ref": "#/$defs/Representation"
+    },
+    "scale": {
+     "$ref": "#/$defs/Scale"
+    },
+    "site_scope": {
+     "$ref": "#/$defs/Scope"
+    },
+    "sources": {
+     "default": [],
+     "items": {
+      "$ref": "#/$defs/SourceRef"
+     },
+     "title": "Sources",
+     "type": "array"
+    },
+    "title_ru": {
+     "title": "Title Ru",
+     "type": "string"
+    },
+    "uncertainty_class": {
+     "$ref": "#/$defs/UncertaintyClass"
+    },
+    "unit": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Unit"
+    },
+    "unknown_ru": {
+     "description": "what remains unknown",
+     "minLength": 1,
+     "title": "Unknown Ru",
+     "type": "string"
+    }
+   },
+   "required": [
+    "element_id",
+    "title_ru",
+    "uncertainty_class",
+    "kind",
+    "arises_at",
+    "affects",
+    "description_ru",
+    "site_scope",
+    "scale",
+    "evidence_status",
+    "representation",
+    "measured",
+    "unknown_ru"
+   ],
+   "title": "UncertaintyElement",
+   "type": "object"
+  },
+  "ValueRange": {
+   "additionalProperties": false,
+   "properties": {
+    "central": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Central"
+    },
+    "high": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "High"
+    },
+    "low": {
+     "anyOf": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Low"
+    },
+    "unit": {
+     "title": "Unit",
+     "type": "string"
+    }
+   },
+   "required": [
+    "unit"
+   ],
+   "title": "ValueRange",
+   "type": "object"
+  }
+ },
+ "$id": "https://github.com/SUKUNA-AI/vkm-subsidence-forecasting/schemas/uncertainty_registry.schema.json",
+ "additionalProperties": false,
+ "properties": {
+  "central_world_ru": {
+   "default": "",
+   "title": "Central World Ru",
+   "type": "string"
+  },
+  "created": {
+   "format": "date",
+   "title": "Created",
+   "type": "string"
+  },
+  "elements": {
+   "items": {
+    "$ref": "#/$defs/UncertaintyElement"
+   },
+   "title": "Elements",
+   "type": "array"
+  },
+  "notes_ru": {
+   "default": [],
+   "items": {
+    "type": "string"
+   },
+   "title": "Notes Ru",
+   "type": "array"
+  },
+  "qois": {
+   "items": {
+    "$ref": "#/$defs/QoIDefinition"
+   },
+   "title": "Qois",
+   "type": "array"
+  },
+  "registry_id": {
+   "title": "Registry Id",
+   "type": "string"
+  },
+  "schema_id": {
+   "const": "vkm.uncertainty_registry/1",
+   "default": "vkm.uncertainty_registry/1",
+   "title": "Schema Id",
+   "type": "string"
+  },
+  "target_ru": {
+   "title": "Target Ru",
+   "type": "string"
+  }
+ },
+ "required": [
+  "registry_id",
+  "created",
+  "target_ru",
+  "qois",
+  "elements"
+ ],
+ "title": "VKM/SKRU-1 uncertainty registry (theory v0.2 classes)",
+ "type": "object"
+}
