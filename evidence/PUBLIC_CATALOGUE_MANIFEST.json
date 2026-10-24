@@ -228,6 +228,34 @@
    "target_sha256": "7618261f217778f91102e9cd289e6d45a3e8758d1dd788adc164ab79ba6a1a3c"
   },
   {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "FORMULAS/SUBSIDENCE_CALC_FORMULAS.csv",
+   "source_sha256": "673fa54f06e92d568054c3720b300547037c0cbe6544e13f7086529c1b91300e",
+   "status": "OK",
+   "target": "catalogues/mathematics/subsidence_calc_formulas.csv",
+   "target_sha256": "a39b654afb871fc1987ba7ab0c823659876e6065bbb2470020d918d8e1e1cb9d"
+  },
+  {
+   "dropped_columns": [],
+   "source": "FORMULAS/SUBSIDENCE_CALC_SEARCH_COVERAGE.csv",
+   "source_sha256": "240f0532adf80ef79ec1f3f257a42dc26ad792d1a9a5096dc5aaaf4037b45021",
+   "status": "OK",
+   "target": "catalogues/mathematics/subsidence_calc_search_coverage.csv",
+   "target_sha256": "240f0532adf80ef79ec1f3f257a42dc26ad792d1a9a5096dc5aaaf4037b45021"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "FORMULAS/SUBSIDENCE_CALC_VARIANTS.csv",
+   "source_sha256": "8130a328292f68222f01ba90443898fb64257f8e3c6f29dfc91f6d94f964d015",
+   "status": "OK",
+   "target": "catalogues/mathematics/subsidence_calc_variants.csv",
+   "target_sha256": "c83cb7b304381e11b1a920a6f4385ecfaaf049c508302808d6c6f6716d462278"
+  },
+  {
    "dropped_columns": [],
    "source": "GEOLOGY_COORDS/FIX_LOG.csv",
    "source_sha256": "37d7e473ac631d6d5b6623161e60a706be3af08f534cf609d85d45327656b89a",
@@ -751,6 +779,88 @@
   },
   {
    "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_coverage_gaps.csv",
+   "source_sha256": "a43d53551f05afc0b8cb50977ac3e3d24476f223f27575c92dcd7c4894c8de59",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_coverage_gaps.csv",
+   "target_sha256": "268223644a4460b809ce33b99bc12390cbbff5e5385d071872ee571010780344"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_depth_vs_dsm_checks.csv",
+   "source_sha256": "9955ac6045440f9602d862040adf20ab21e4d0c1fc410a50a984b9dd0fe462a5",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_depth_vs_dsm_checks.csv",
+   "target_sha256": "1bcf2ff0ea97dcae3275e694fb876a0cded2fb2e7b6234ea84b971c641230cc2"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_mine_checks.json",
+   "source_sha256": "c47a6aa1a6c91502c808f0b5c15ca7f3b052299c6044d61449c23bf7113a6c5e",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_mine_checks.json",
+   "target_sha256": "ff18c7421755aea0b9633d3690399c6b8c83e49c2ea04d20c2e76492181a337d"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_mine_conflicts.csv",
+   "source_sha256": "d982d09e9eb4373979e2d2af5170f12ab2cae5591dc13516ae6c3fb922673124",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_mine_conflicts.csv",
+   "target_sha256": "fa39cf3f2293cc844726b77e4e4e1b1d7f3227be0604284958b218878ebd2e80"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "SITE_SKRU1_MINE/skru1_mine_evidence.csv",
+   "source_sha256": "887e946d3096e95e7d14fd7fdcccf227b31eb695689874fba656368df60917cd",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_mine_evidence.csv",
+   "target_sha256": "346e98c051d6661c52f326e0d7ebb590afdc1b8661ac9c3e6923e90d5a01450c"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_mining_units.csv",
+   "source_sha256": "5746db1c422ee99e366b919ac90eb5994cd0540677bc9b77257cdd06d69112b8",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_mining_units.csv",
+   "target_sha256": "84e0c14eb729470219c75f3cd872105e27241d1ebda826e43883d9a7e90edd07"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_observation_index.csv",
+   "source_sha256": "dbccebeceff133837038b8debde5c5626d79576cd8b2293b4c36eefb6b736c71",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_observation_index.csv",
+   "target_sha256": "2067ae438b9014e3d972896930e23edfc778ad52c392938919a544cf070fa353"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_region_geology_frame.csv",
+   "source_sha256": "31398ba9c33c403f6485735a7349e12a8a4a8e3701da413e3da4353cda0756f9",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_region_geology_frame.csv",
+   "target_sha256": "411ca44fcf7363b0affff1636ecfdbb4b22a9f30207eae08bf49f48b29dbe393"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_seam_position_checks.csv",
+   "source_sha256": "3b5ee9fed96c957d90bc52a4b279538c790f2fc38a7853482343738ea00163ff",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_seam_position_checks.csv",
+   "target_sha256": "6ac5c35cebc9ee3e745a06fffa2262a665c4b28de127a4543429b779e7eb1657"
+  },
+  {
+   "dropped_columns": [],
+   "source": "SITE_SKRU1_MINE/skru1_seams_by_area.csv",
+   "source_sha256": "c65cb3a5cec811e518a63f7e89cb56d966a0d997661c95540b458f48871abb45",
+   "status": "OK",
+   "target": "evidence/world/skru1_mine/skru1_seams_by_area.csv",
+   "target_sha256": "60ea768d21b13cdc4b9af5c5c41a576c67319580ab5e5f51f91797b218d8078b"
+  },
+  {
+   "dropped_columns": [],
    "source": "SOURCES/SOURCE_COVERAGE_MASTER.csv",
    "source_sha256": "16e4e9ae3e079a92046dc2ebb7607db6f1bb24c4eb4aaf3bc4390f931cc700f4",
    "status": "OK",
@@ -764,6 +874,84 @@
    "status": "OK",
    "target": "evidence/sources/record_index.csv",
    "target_sha256": "79d92f02ccd0fe367438c3ed1539f38e39364e621c2d7fb7ceb18989d9c86481"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD0_MICROKERNELS/FIX_LOG.csv",
+   "source_sha256": "213daca1adb60c71ecc1db2f0c72306032113c5ef51b2e6b3649a0636a68e50a",
+   "status": "OK",
+   "target": "evidence/qa/review_fixes/world0_microkernels_fix_log.csv",
+   "target_sha256": "6638014d56ce19fe973cffeae10ce3e82ba4e28783096cedc13dcb3525b5ed65"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "WORLD0_MICROKERNELS/microkernel_law_evidence.csv",
+   "source_sha256": "7dd847d0801a954f904517cd7290d2b3dc923656bb14b04f90094308d80c91d2",
+   "status": "OK",
+   "target": "evidence/world/world0/microkernel_law_evidence.csv",
+   "target_sha256": "5132302057d1459798c11cd9a4fe62f9ca63761ed7d6cde725fd5f497930baeb"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD0_MICROKERNELS/microkernel_law_registry.csv",
+   "source_sha256": "17555daaeeb4c809e0a2cb1d082da683d56aa506490650dd8c796d42b5b2d011",
+   "status": "OK",
+   "target": "evidence/world/world0/microkernel_law_registry.csv",
+   "target_sha256": "17555daaeeb4c809e0a2cb1d082da683d56aa506490650dd8c796d42b5b2d011"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "WORLD0_MICROKERNELS/microkernel_parameter_evidence.csv",
+   "source_sha256": "862ee445e70b315f6855e1278b0ad370a5158a842ca4c828af43ecbbc1588762",
+   "status": "OK",
+   "target": "evidence/world/world0/microkernel_parameter_evidence.csv",
+   "target_sha256": "9e5f3c399e446af658511849ba061f2732c4aa07fe04da998dbefa69230ca74e"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD0_MICROKERNELS/microkernel_types.csv",
+   "source_sha256": "2f5af36856ba7ab09848299ef1674100b17511a5637bee49aba463bc78a67573",
+   "status": "OK",
+   "target": "evidence/world/world0/microkernel_types.csv",
+   "target_sha256": "2f5af36856ba7ab09848299ef1674100b17511a5637bee49aba463bc78a67573"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD0_MICROKERNELS/recheck_crosscheck.csv",
+   "source_sha256": "3359db0e96297fffcc34f4919cd4e2ea9a6777515aac838f5d799ca628a7cc3c",
+   "status": "OK",
+   "target": "evidence/world/world0/recheck_crosscheck.csv",
+   "target_sha256": "3359db0e96297fffcc34f4919cd4e2ea9a6777515aac838f5d799ca628a7cc3c"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD0_MICROKERNELS/recheck_findings.csv",
+   "source_sha256": "1745eabb065d30142bdb55dbc5feee17aa1a778aaf41bf681a8665a464faf5fb",
+   "status": "OK",
+   "target": "evidence/world/world0/recheck_findings.csv",
+   "target_sha256": "1745eabb065d30142bdb55dbc5feee17aa1a778aaf41bf681a8665a464faf5fb"
+  },
+  {
+   "dropped_columns": [
+    "quote"
+   ],
+   "source": "WORLD0_MICROKERNELS/recheck_rows.csv",
+   "source_sha256": "d456d8f624161221c87b9e8e05389e861fd23006a7c2cd230629424e380f3697",
+   "status": "OK",
+   "target": "evidence/world/world0/recheck_rows.csv",
+   "target_sha256": "78bc7c0280f1f94b3f5da16069911a141c5742bcac470a5e7db4e2fb679a8a26"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD0_MICROKERNELS/search_coverage_log.csv",
+   "source_sha256": "caa8b9c9461c7cceb597920eb178619e08ec5f39a7a433951cfbb8cdaa60e47d",
+   "status": "OK",
+   "target": "evidence/world/world0/search_coverage_log.csv",
+   "target_sha256": "caa8b9c9461c7cceb597920eb178619e08ec5f39a7a433951cfbb8cdaa60e47d"
   },
   {
    "dropped_columns": [],
@@ -1250,6 +1438,12 @@
     "copied_words": 26,
     "row": 7,
     "target": "catalogues/mathematics/MATHEMATICAL_MODEL_REGISTRY.csv"
+   },
+   {
+    "column": "form_as_printed",
+    "copied_words": 27,
+    "row": 109,
+    "target": "catalogues/mathematics/subsidence_calc_variants.csv"
    },
    {
     "column": "what_is_stated",

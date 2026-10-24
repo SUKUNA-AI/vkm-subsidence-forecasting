@@ -11,4 +11,5 @@ production-схема: утверждения RC-* и G* остаются RESEAR
 | [THEORY_TO_SCIENTIFIC_DATA_SYSTEM_CONTRACT_V0_2_RU.md](THEORY_TO_SCIENTIFIC_DATA_SYSTEM_CONTRACT_V0_2_RU.md) | контракт теории и системы данных: слои L0–L4, сущности будущих слоёв, провенансы |
 
 Проект миров на их основе — [../worldspec/WORLD_KERNELS_DESIGN_RU.md](../worldspec/WORLD_KERNELS_DESIGN_RU.md)
-(не реализуется до отдельного решения пользователя).
+(реализуется по решению пользователя 23.10.2026 — сначала сами микроядра и их попарные взаимодействия, без графа
+и нейросети; результат — [../worldspec/RESULT_MICROKERNELS_RU.md](../worldspec/RESULT_MICROKERNELS_RU.md)).

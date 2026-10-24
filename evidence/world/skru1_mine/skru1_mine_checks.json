@@ -1,0 +1,267 @@
+{
+ "field_area_m2": 50891932,
+ "n_regions": 315,
+ "n_units": 800,
+ "timing_class_counts": {
+  "UNKNOWN": 473,
+  "PLAN_SNAPSHOT_ONLY": 185,
+  "DERIVED_DATES": 35,
+  "TEXT_DATED": 33,
+  "PLANNED_ONLY": 3,
+  "TEXT_UNDATED": 7,
+  "TEXT_PARTLY_DATED": 1,
+  "TEXT_OPEN_ENDED": 7
+ },
+ "interval_order_errors": [],
+ "same_seam_simultaneous_overlaps": [],
+ "units_outside_field": [],
+ "plan_areas_km2": {
+  "remaining_2013_014": {
+   "В (сильвинитовый, Вс)": 0.495,
+   "В (карналлитовый, Вк)": 4.803,
+   "UNKNOWN_ORIENTATION": 0.061,
+   "АБ": 6.294,
+   "КрII": 14.683
+  },
+  "worked_2007_064_east_only": {
+   "АБ|КрII (в скане не различимы)": 3.335,
+   "UNKNOWN": 0.156,
+   "В (сильвинитовый)": 0.526,
+   "В (карналлитовый)": 2.545
+  },
+  "field_layout_014": 44.726
+ },
+ "reserves_vs_plan_area": {
+  "КрII": {
+   "balance_reserves_kt_20120101": 141465,
+   "remaining_area_014_km2": 14.683,
+   "in_place_from_area_kt": "156358–193519",
+   "ratio_reserves_to_area_tonnage": "0.73–0.90",
+   "basis": "DERIVATION: площадь штриховки 014 × мощность 5,1–6,3 м × плотность 2,088–2,092 т/м³ (ГУ-2, ПРГР 2013 — перенос на всё поле = ENGINEERING_ASSUMPTION); балансовые запасы включают запасы в целиках и под охраняемыми объектами, поэтому отношение > 1 ожидаемо"
+  },
+  "АБ": {
+   "balance_reserves_kt_20120101": 81688,
+   "remaining_area_014_km2": 6.294
+  },
+  "Вс": {
+   "balance_reserves_kt_20120101": 6315,
+   "remaining_area_014_km2": 0.495
+  },
+  "Вк": {
+   "balance_reserves_kt_20120101": 167696,
+   "remaining_area_014_km2": 4.803
+  }
+ },
+ "plan2013_extinguished_vs_block_area": [
+  {
+   "object": "PAN:1ЮЗП",
+   "extinguished_plan_2013_t": 939302.0,
+   "plan_area_m2": 377058,
+   "area_equivalent_m2": "71269–88207",
+   "share_of_block_area": "0.189–0.234",
+   "verdict": "PLAUSIBLE"
+  },
+  {
+   "object": "BLK:27",
+   "extinguished_plan_2013_t": 95545.0,
+   "plan_area_m2": 61245,
+   "area_equivalent_m2": "7249–8972",
+   "share_of_block_area": "0.118–0.147",
+   "verdict": "PLAUSIBLE"
+  },
+  {
+   "object": "BLK:11",
+   "extinguished_plan_2013_t": 195412.0,
+   "plan_area_m2": 95751,
+   "area_equivalent_m2": "14827–18351",
+   "share_of_block_area": "0.155–0.192",
+   "verdict": "PLAUSIBLE"
+  },
+  {
+   "object": "BLK:53",
+   "extinguished_plan_2013_t": 972256.0,
+   "plan_area_m2": 117499,
+   "area_equivalent_m2": "73770–91302",
+   "share_of_block_area": "0.628–0.777",
+   "verdict": "WARN: за один год погашается > 50 % площади контура 014 — границы блока на схеме 014 и в ПРГР, вероятно, не совпадают (или «Бл.49-51» — общий участок)"
+  },
+  {
+   "object": "BLK:49",
+   "extinguished_plan_2013_t": 129086.0,
+   "plan_area_m2": 101001,
+   "area_equivalent_m2": "9794–12122",
+   "share_of_block_area": "0.097–0.120",
+   "verdict": "PLAUSIBLE"
+  },
+  {
+   "object": "BLK:51",
+   "extinguished_plan_2013_t": 1041924.0,
+   "plan_area_m2": 105216,
+   "area_equivalent_m2": "79056–97844",
+   "share_of_block_area": "0.751–0.930",
+   "verdict": "WARN: за один год погашается > 50 % площади контура 014 — границы блока на схеме 014 и в ПРГР, вероятно, не совпадают (или «Бл.49-51» — общий участок)"
+  },
+  {
+   "object": "PAN:2ЮЗП",
+   "extinguished_plan_2013_t": 1363960.0,
+   "plan_area_m2": 378028,
+   "area_equivalent_m2": "103490–128086",
+   "share_of_block_area": "0.274–0.339",
+   "verdict": "PLAUSIBLE"
+  }
+ ],
+ "seam_field_means_vs_v62_scenario": {
+  "v62_SZ_roof_elev_median_m": -131.8,
+  "v62_SZ_roof_elev_p10_p90_m": [
+   -195.3,
+   -107.5
+  ],
+  "n_nodes": 3159,
+  "support_mask": {
+   "EXTRAPOLATION": 2906,
+   "INTERPOLATION": 252,
+   "DIRECT_CONSTRAINT": 1
+  },
+  "АБ_floor": {
+   "printed_field_mean_m": -134.05,
+   "scenario_m": -133.2,
+   "printed_minus_scenario_m": -0.9
+  },
+  "КрII_floor": {
+   "printed_field_mean_m": -150.35,
+   "scenario_m": [
+    -150.5,
+    -143.8
+   ],
+   "printed_minus_scenario_m": [
+    -6.5,
+    0.2
+   ]
+  },
+  "В_floor": {
+   "printed_field_mean_m": -125.53,
+   "scenario_m": [
+    -125.7,
+    -122.7
+   ],
+   "printed_minus_scenario_m": [
+    -2.9,
+    0.1
+   ]
+  },
+  "caveat": "средние по ~1100–1700 скважинам предприятия (СКО 46–53 м) против медианы узлов v6_2 по подписанным областям плана; системы высот разные (рудник / EGM2008+DSM); диагностика смещения, не поправка",
+  "scenario_sources": {
+   "A_thickness_m": "VKM-SRC-020 p0007: средняя мощность пласта А по ВКМ 1,4 м (регионально)",
+   "KR2_roof_below_SZ_m": "VKM-SRC-014 p0013 рис. 1.2: 6,1 м (типовой разрез ВКМ, DERIVATION суммы средних); скв. 139 (СКРУ-2, VKM-SRC-012/045): 12,8 м",
+   "KR2_thickness_m": "VKM-SRC-254 p0005: средняя мощность КрII по полю СКРУ-1 5,97 м (n≈1438)",
+   "V_floor_above_AB_floor_m": "VKM-SRC-254 p0006: пласт В выше АБ на 7,5–10,5 м (Соликамская площадь)"
+  }
+ },
+ "worked_areas_2022_vs_plan": {
+  "КрII": {
+   "worked_2022_074_km2": 12.4,
+   "remaining_2013_014_km2": 14.683,
+   "field_layout_014_km2": 44.726,
+   "worked_plus_remaining_km2": 27.083,
+   "check_worked_plus_remaining_le_layout": "PASS"
+  },
+  "АБ": {
+   "worked_2022_074_km2": 7.65,
+   "remaining_2013_014_km2": 6.294,
+   "field_layout_014_km2": 44.726,
+   "worked_plus_remaining_km2": 13.944,
+   "check_worked_plus_remaining_le_layout": "PASS"
+  },
+  "Вс": {
+   "worked_2022_074_km2": 0.72,
+   "remaining_2013_014_km2": 0.495,
+   "field_layout_014_km2": 44.726,
+   "worked_plus_remaining_km2": 1.215,
+   "check_worked_plus_remaining_le_layout": "PASS"
+  },
+  "Вк": {
+   "worked_2022_074_km2": 2.5,
+   "remaining_2013_014_km2": 4.803,
+   "field_layout_014_km2": 44.726,
+   "worked_plus_remaining_km2": 7.303,
+   "check_worked_plus_remaining_le_layout": "PASS"
+  }
+ },
+ "worked_c1990_037": {
+  "КрII": {
+   "area_km2": 12.303,
+   "outside_field_km2": 0.773,
+   "overlap_with_064_worked_2007_km2": 1.821,
+   "worked_2022_074_km2": 12.4
+  },
+  "АБ": {
+   "area_km2": 9.861,
+   "outside_field_km2": 0.844,
+   "overlap_with_064_worked_2007_km2": 0.0,
+   "worked_2022_074_km2": 7.65
+  },
+  "В (Вс|Вк)": {
+   "area_km2": 5.918,
+   "outside_field_km2": 0.28,
+   "overlap_with_064_worked_2007_km2": 0.351,
+   "worked_2022_074_km2": null
+  },
+  "note": "площади штриховки «отработанные запасы» рис. 2.7 — брутто-контуры участков (с целиками и неотработанными пятнами); с площадями VKM-SRC-074 (01.2022) напрямую не сравнимы — конфликт SKM-CF-M11"
+ },
+ "fig2_7_vs_text_dates": {
+  "mined_before_1990_by_text": 36,
+  "before_worked_ge_0_5": 30,
+  "before_worked_ge_0_2": 33,
+  "mined_after_1990_by_text": 17,
+  "after_worked_ge_0_5": 0,
+  "disagreements": [
+   {
+    "unit": "SKU-BLK-129-VK",
+    "timing_class": "DERIVED_DATES",
+    "years": "1960–1971",
+    "worked_1990_frac": 0.0
+   },
+   {
+    "unit": "SKU-BLK-18-AB",
+    "timing_class": "TEXT_DATED",
+    "years": "1956–1957",
+    "worked_1990_frac": 0.32
+   },
+   {
+    "unit": "SKU-BLK-19-KR2",
+    "timing_class": "TEXT_DATED",
+    "years": "1934–1935",
+    "worked_1990_frac": 0.26
+   },
+   {
+    "unit": "SKU-BLK-46-AB",
+    "timing_class": "TEXT_DATED",
+    "years": "1961–1961",
+    "worked_1990_frac": 0.19
+   },
+   {
+    "unit": "SKU-BLK-5-VK",
+    "timing_class": "DERIVED_DATES",
+    "years": "1939–1942",
+    "worked_1990_frac": 0.39
+   },
+   {
+    "unit": "SKU-BLK-76-AB",
+    "timing_class": "DERIVED_DATES",
+    "years": "1962–1978",
+    "worked_1990_frac": 0.0
+   }
+  ],
+  "note": "независимая проверка оцифровки и привязки рис. 2.7: даты из текста и выведенные даты не использовались при выделении"
+ },
+ "worldspec": {
+  "mining_objects": 271,
+  "events": 58,
+  "errors": []
+ },
+ "seam_position_verdicts": {
+  "SEE_ROOF_ROWS": 13,
+  "CONSISTENT": 5,
+  "PRINTED_HIGHER": 2
+ }
+}
