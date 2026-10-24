@@ -240,3 +240,10 @@ def test_implausibility_math_synthetic():
     rule = nroy.Rule(combination="VARIANCE_SUM_IMPLAUSIBILITY", threshold=3.0, aggregate_over_metrics="SECOND_MAX")
     assert nroy.verdict([5.0, 1.0], rule) == "NOT_RULED_OUT_YET"
     assert nroy.verdict([5.0, 4.0], rule) == "RULED_OUT"
+
+
+def test_nroy_design_rejects_held_out_family_shared_with_generator():
+    # Review Codex, PR #32: a "held-out" family that the generator also uses is not held out.
+    d = _design()
+    d.guard.held_out_families = ["norton"]
+    assert any("also generator families" in p for p in nroy.check_design(d))

@@ -186,6 +186,9 @@ def check_design(d: NroyDesign) -> list[str]:
         p.append(f"calibration datasets declared {d.guard.calibration_datasets}: NROY rules worlds out, it does not calibrate")
     if not d.guard.held_out_families:
         p.append("inverse crime: no held-out physical family declared for the method test")
+    shared = sorted(set(d.guard.held_out_families) & set(d.guard.generator_families))
+    if shared:
+        p.append(f"inverse crime: held-out families {shared} are also generator families (review Codex, PR #32)")
     if not d.guard.test_solver or d.guard.test_solver == d.guard.generator_solver:
         p.append("inverse crime: the method test needs a solver different from the generator")
     if not d.guard.test_resolution or d.guard.test_resolution == d.guard.generator_resolution:

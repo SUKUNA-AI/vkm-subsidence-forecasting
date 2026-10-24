@@ -340,8 +340,20 @@ def timing_records(acts: list[dict]) -> list[dict]:
         if iv is None:
             continue
         base = {"source_id": r["source_id"], "ev_id": r["ev_id"]}
-        if iv.start_min is not None and iv.end_max is not None:
+        start_exact = iv.start_min is not None and iv.start_min == iv.start_max
+        end_exact = iv.end_max is not None and iv.end_min == iv.end_max
+        if start_exact and end_exact:
             out.append({**base, "kind": "PERIOD", "y0": iv.start_min, "y1": iv.end_max})
+        elif iv.start_min is not None and iv.end_max is not None:
+            # Uncertain endpoints stay bounds, never an exact printed period (review Codex, PR #32): an exact endpoint
+            # is still an event, the uncertain one only a note.
+            if start_exact:
+                out.append({**base, "kind": "START", "y0": iv.start_min, "y1": None})
+            if end_exact:
+                out.append({**base, "kind": "END", "y0": None, "y1": iv.end_max})
+            s_txt = f"START {iv.start_min}" if start_exact else f"START {iv.start_min}–{iv.start_max}"
+            e_txt = f"END {iv.end_max}" if end_exact else f"END {iv.end_min}–{iv.end_max}"
+            out.append({**base, "kind": "BOUND", "y0": iv.start_min, "y1": iv.end_max, "text": f"{s_txt}; {e_txt}"})
         elif iv.start_min is not None and iv.start_min == iv.start_max:
             out.append({**base, "kind": "START", "y0": iv.start_min, "y1": None})
         elif iv.end_max is not None and iv.end_min == iv.end_max:
