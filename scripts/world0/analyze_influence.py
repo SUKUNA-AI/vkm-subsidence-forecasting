@@ -112,7 +112,7 @@ def fine_vs_coarse(root: Path, coarse_case: str = "PS_M05_A27", fine_case: str =
     variants = [("tributary_plane_strain_free", (1 - k) * Ep / h)]
     for cell_case in cell_cases:
         hp = root.parent / "cells" / cell_case / "history.npz"
-        if hp.exists():
+        if hp.exists(, out_dir: Path | None = None):
             hc = np.load(hp)
             variants.append((f"unit_cell_{cell_case}", k * sig0 / float(hc["cell_convergence"][-1])))
     for label, Ecell in variants:
@@ -131,7 +131,7 @@ def fine_vs_coarse(root: Path, coarse_case: str = "PS_M05_A27", fine_case: str =
             "E_ext_surface_rel": external_equivalence(s_fine, s_coarse, "sup", relative_to=float(s_fine.max())),
             "E_ext_cells_rel": external_equivalence(v_fine, v, "sup", relative_to=float(v_fine.max())),
         }
-        np.savez(root.parent / "analysis" / f"fine_vs_coarse_{fine_case}_{label}.npz", x=x, s_fine=s_fine,
+        np.savez((out_dir or root.parent / "analysis") / f"fine_vs_coarse_{fine_case}_{label}.npz", x=x, s_fine=s_fine,
                  s_coarse=s_coarse,
                  v_fine=v_fine, v_coarse=v, edges=edges)
         out[label]["surface_area_ratio_coarse_to_fine"] = float(np.trapezoid(s_coarse, x) / np.trapezoid(s_fine, x))
@@ -171,13 +171,13 @@ def main():
         if f.exists():
             res[cd.name] = summarize(cd.name, np.load(f))
     if (a.root / "PS_M05_FINE27" / "fine.npz").exists() and (a.root / "PS_M05_A27" / "compliance.npz").exists():
-        res["FINE_VS_COARSE_A27"] = fine_vs_coarse(a.root)
+        res["FINE_VS_COARSE_A27"] = fine_vs_coarse(a.root, out_dir=a.out)
     if (a.root / "PS_M05_FINE27F" / "fine.npz").exists() and (a.root / "PS_M05_A27F" / "compliance.npz").exists():
-        res["FINE_VS_COARSE_A27F"] = fine_vs_coarse(a.root, "PS_M05_A27F", "PS_M05_FINE27F", ("CELL_A27_F_EL",))
+        res["FINE_VS_COARSE_A27F"] = fine_vs_coarse(a.root, "PS_M05_A27F", "PS_M05_FINE27F", ("CELL_A27_F_EL",), out_dir=a.out)
     if (a.root / "PS_M05_FINE27N" / "fine.npz").exists():
-        res["FINE_VS_COARSE_A27_noabut"] = fine_vs_coarse(a.root, "PS_M05_A27", "PS_M05_FINE27N", ("CELL_A27_B_EL",))
+        res["FINE_VS_COARSE_A27_noabut"] = fine_vs_coarse(a.root, "PS_M05_A27", "PS_M05_FINE27N", ("CELL_A27_B_EL",), out_dir=a.out)
     if (a.root / "PS_M05_FINE27FN" / "fine.npz").exists():
-        res["FINE_VS_COARSE_A27F_noabut"] = fine_vs_coarse(a.root, "PS_M05_A27F", "PS_M05_FINE27FN", ("CELL_A27_F_EL",))
+        res["FINE_VS_COARSE_A27F_noabut"] = fine_vs_coarse(a.root, "PS_M05_A27F", "PS_M05_FINE27FN", ("CELL_A27_F_EL",), out_dir=a.out)
     res["VZT_COUPLING"] = {cd.name: vzt_coupling(cd) for cd in sorted(a.root.iterdir()) if (cd / "probes.npz").exists()}
     (a.out / "influence_summary.json").write_text(json.dumps(res, indent=1, ensure_ascii=False, default=float),
                                                   encoding="utf-8")
