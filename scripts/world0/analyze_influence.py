@@ -97,7 +97,7 @@ def summarize(case: str, d) -> dict:
 
 
 def fine_vs_coarse(root: Path, coarse_case: str = "PS_M05_A27", fine_case: str = "PS_M05_FINE27",
-                   cell_cases=("CELL_A27_B_EL", "CELL_A27_F_EL")) -> dict:
+                   cell_cases=("CELL_A27_B_EL", "CELL_A27_F_EL"), out_dir: Path | None = None) -> dict:
     """AG §31: is MK-MINED-CELL (pillar + chamber merged) externally equivalent to the explicit pillars/chambers?"""
     dc = np.load(root / coarse_case / "compliance.npz")
     df = np.load(root / fine_case / "fine.npz")
@@ -112,7 +112,7 @@ def fine_vs_coarse(root: Path, coarse_case: str = "PS_M05_A27", fine_case: str =
     variants = [("tributary_plane_strain_free", (1 - k) * Ep / h)]
     for cell_case in cell_cases:
         hp = root.parent / "cells" / cell_case / "history.npz"
-        if hp.exists(, out_dir: Path | None = None):
+        if hp.exists():
             hc = np.load(hp)
             variants.append((f"unit_cell_{cell_case}", k * sig0 / float(hc["cell_convergence"][-1])))
     for label, Ecell in variants:
