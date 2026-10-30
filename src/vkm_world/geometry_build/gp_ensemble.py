@@ -56,10 +56,11 @@ class ParameterGrid:
     jitter: float = 1e-4
 
     def __post_init__(self):
-        if not self.ranges_m or min(self.ranges_m) <= 0:
-            raise ValueError("positive ranges required")
-        if not self.nugget_ratios or min(self.nugget_ratios) < 0 or max(self.nugget_ratios) >= 1:
-            raise ValueError("nugget ratios must lie in [0, 1)")
+        if not self.ranges_m or not np.isfinite(self.ranges_m).all() or min(self.ranges_m) <= 0:
+            raise ValueError("finite positive ranges required")
+        if (not self.nugget_ratios or not np.isfinite(self.nugget_ratios).all()
+                or min(self.nugget_ratios) < 0 or max(self.nugget_ratios) >= 1):
+            raise ValueError("finite nugget ratios must lie in [0, 1)")
         if not 0 <= self.jitter < 1e-2:
             raise ValueError("jitter is a numerical regulariser, keep it below 1e-2")
 
@@ -609,6 +610,8 @@ def simulate_on_nodes(backend, nodes, data_idx, kind, grid, params, y_data, batc
     per realization, so data nodes reproduce ``y_data`` up to float32 rounding.
     """
     nodes = np.asarray(nodes, float)
+    if nodes.ndim != 2 or nodes.shape[1] != 2 or not len(nodes) or not np.isfinite(nodes).all():
+        raise ValueError("nonempty finite (N, 2) grid nodes required")
     y_data = np.atleast_2d(np.asarray(y_data, float))
     R, N = len(y_data), len(nodes)
     data_idx = np.asarray(data_idx)
@@ -624,13 +627,24 @@ def simulate_on_nodes(backend, nodes, data_idx, kind, grid, params, y_data, batc
         rng_m = grid.ranges_m[int(a)]
         jitter = grid.jitter
         L = None
+        attempts = 0
         while L is None:
+            attempts += 1
             L, info = backend.cholesky(backend.correlation_matrix(nodes, kind, rng_m, jitter))
             if L is None:
-                if jitter >= 1e-2:
-                    raise RuntimeError("Cholesky failed even with jitter 1e-2")
-                jitter *= 10.0
-        log.append({"kind": kind, "range_m": rng_m, "jitter_used": jitter, "realizations": int(len(rows_a))})
+                # Zero explicitly requests no regularisation: adding one after
+                # failure would change the declared covariance. Never multiply
+                # zero forever, and bound all positive-jitter retry paths.
+                if jitter == 0 or jitter >= 1e-2 or attempts >= 12:
+                    reason = "ZERO_JITTER" if jitter == 0 else "RETRY_LIMIT"
+                    log.append({"kind": kind, "range_m": rng_m, "jitter_requested": grid.jitter,
+                                "jitter_used": jitter, "cholesky_attempts": attempts,
+                                "status": "CHOLESKY_FAILED_" + reason})
+                    raise RuntimeError("Cholesky failed: " + reason + "; no implicit covariance change")
+                jitter = min(jitter * 10.0, 1e-2)
+        log.append({"kind": kind, "range_m": rng_m, "jitter_requested": grid.jitter,
+                    "jitter_used": jitter, "cholesky_attempts": attempts,
+                    "status": "CHOLESKY_OK", "realizations": int(len(rows_a))})
         for s in range(0, len(rows_a), batch):
             rows = rows_a[s:s + batch]
             b = len(rows)
@@ -673,6 +687,34 @@ def sorted_quantiles(backend, realizations, probs, chunk=2048):
         srt = backend.to_numpy(srt).astype(float)
         out[:, s:s + chunk] = srt[lo] * (1 - frac)[:, None] + srt[hi] * frac[:, None]
     return out
+
+
+def seam_envelope_admissibility(roof, floor, parent_roof, parent_floor, tolerance_m=0.01):
+    """Check an explicitly chosen seam envelope, without repairing or rejecting draws.
+
+    All arrays are finite levels (positive up), shape (world, location). The
+    parent envelope is a supplied interpretation, never inferred from a seam
+    name. This check covers thickness and containment only; passing it does
+    not prove material partition, history or FEM readiness. A world passes
+    only if every checked location passes, so reporting marginal conflict
+    fractions cannot silently admit an invalid realization to mechanics.
+    """
+    arrays = [np.asarray(a, float) for a in (roof, floor, parent_roof, parent_floor)]
+    if arrays[0].ndim != 2 or any(a.shape != arrays[0].shape for a in arrays):
+        raise ValueError("one equal (world, location) array per envelope surface required")
+    if not arrays[0].size or not all(np.isfinite(a).all() for a in arrays):
+        raise ValueError("nonempty finite envelope surfaces required; UNKNOWN cannot be admitted")
+    if not np.isfinite(tolerance_m) or tolerance_m < 0:
+        raise ValueError("finite nonnegative tolerance required")
+    roof, floor, parent_roof, parent_floor = arrays
+    violations = {"negative_seam_thickness": floor > roof + tolerance_m,
+                  "inverted_parent_envelope": parent_floor > parent_roof + tolerance_m,
+                  "roof_above_parent": roof > parent_roof + tolerance_m,
+                  "floor_below_parent": floor < parent_floor - tolerance_m}
+    invalid = np.logical_or.reduce(list(violations.values()))
+    return {"valid_locations": ~invalid, "valid_worlds": ~invalid.any(axis=1),
+            "violations": violations, "tolerance_m": float(tolerance_m),
+            "checked_scope": "explicit envelope at supplied locations; no geometry repair or physical admission"}
 
 
 def tin_sampling_operator(nodes, triangles, points):

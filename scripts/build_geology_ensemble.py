@@ -465,8 +465,13 @@ def run_grid(args, data, grid, samplers, selection, out):
             entry = {}
             for u in KR2_OFFSETS_M:
                 roof = zsz - u
+                admissibility = ge.seam_envelope_admissibility(roof, roof - KR2_THICKNESS_M, zsz, zpd, TOL_M)
                 entry["offset_%g" % u] = {"roof_q": np.quantile(roof, probs, axis=0),
-                                          "conflict_fraction": np.mean(roof - KR2_THICKNESS_M < zpd, axis=0)}
+                                          "conflict_fraction": np.mean(roof - KR2_THICKNESS_M < zpd, axis=0),
+                                          "envelope_worlds_checked": int(len(zsz)),
+                                          "envelope_worlds_invalid": int((~admissibility["valid_worlds"]).sum()),
+                                          "envelope_tolerance_m": TOL_M,
+                                          "mechanical_admission": "NOT_ADMITTED; section envelope check alone is insufficient"}
             kr2[name] = entry
             del sec[name]["_raw"]
         # comparison with v6_2 surfaces
@@ -492,6 +497,10 @@ def run_grid(args, data, grid, samplers, selection, out):
                             **({"%s_q_subset" % c: stats[c]["q_sub"].astype(np.float32) for c in CONTACTS} if sub else {}),
                             **({"p_zero_subset": np.array(pzero_sub, np.float32)} if sub else {}))
         np.savez_compressed(out / ("realizations_subset_%s.npz" % variant), levels=kept, contacts=np.array(CONTACTS),
+                            xy=nodes, triangles=tri, geometry_version=np.array(str(f["geometry_version"])),
+                            realization_ids=np.array(["%s:R%06d" % (variant, i) for i in range(sample_keep)]),
+                            sampling_path=np.array("simulate_on_nodes: joint prior + residual conditioning"),
+                            mechanical_admission=np.array("NOT_ADMITTED; productive seams/material state require separate validation"),
                             note=np.array("first %d synthetic realizations of %d; SYNTHETIC, not observations" % (sample_keep, R)))
         save(out / ("sections_%s.json" % variant), {
             "variant": variant, "realizations": R, "probs": probs, "geometry_version": str(f["geometry_version"]),

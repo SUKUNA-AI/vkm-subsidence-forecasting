@@ -361,6 +361,7 @@ def cross_validate(predictor_factory, supports, methods, block_size_m=None, grou
                 for j in held:
                     inside = hull is not None and hull.buffer(1e-6).covers(Point(supports.xy[j]))
                     records.append({"fold": kind, "label": label, "method": method, "well": supports.ids[j],
+                                    "physical_well": supports.groups[j],
                                     "training_wells": int(train.sum()), "position": "INTERPOLATION" if inside else "EXTRAPOLATION",
                                     "status": "NOT_APPLICABLE", "reason": str(error), "predicted_contacts": 0})
                 continue
@@ -370,6 +371,7 @@ def cross_validate(predictor_factory, supports, methods, block_size_m=None, grou
                 obs = point[j]
                 ok = np.isfinite(z)
                 rec = {"fold": kind, "label": label, "method": method, "well": supports.ids[j],
+                       "physical_well": supports.groups[j],
                        "training_wells": int(train.sum()), "position": "INTERPOLATION" if inside else "EXTRAPOLATION",
                        "status": str(result["masks"][r]), "constraint_adjustment_m": float(result["constraint_adjustment_m"][r])}
                 comp = obs & ok
@@ -422,10 +424,42 @@ def cross_validate(predictor_factory, supports, methods, block_size_m=None, grou
 
 
 def summarize_cv(records, methods, k):
-    def scores(rows, key, width):
+    """Scores on identical observation keys, not merely identical well names.
+
+    ``well`` is the source-reading row; ``physical_well`` joins copies of one
+    object. Both are retained: different readings are not silently merged.
+    Older records without physical_well use their well ID. Common coverage
+    intersects experiment, fold, held group, physical object, reading row and
+    observed contact (or adjacent contact pair for a thickness score).
+    """
+    if k < 1 or len(set(methods)) != len(methods):
+        raise ValueError("positive contact count and unique methods required")
+
+    def record_key(r):
+        return (r.get("experiment", ""), r["fold"], r.get("label", ""),
+                r.get("physical_well", r["well"]), r["well"])
+
+    seen = set()
+    for r in records:
+        key = (r["method"],) + record_key(r)
+        if key in seen:
+            raise ValueError("duplicate CV record for method/fold/physical well/reading")
+        seen.add(key)
+        for name, width in (("level_error_m", k), ("independent_level_error_m", k), ("thickness_error_m", k-1)):
+            values = r.get(name)
+            if values is not None and (len(values) != width or any(v is not None and not np.isfinite(v) for v in values)):
+                raise ValueError("CV residuals must have the declared width and finite values or None")
+
+    def observation_keys(rows, key, width):
+        return {record_key(r) + ((c, c+1) if key == "thickness_error_m" else (c,))
+                for r in rows if r.get(key) for c in range(width) if r[key][c] is not None}
+
+    def scores(rows, key, width, common=None):
         cols = []
         for c in range(width):
-            e = np.array([r[key][c] for r in rows if r.get(key) and r[key][c] is not None])
+            observation = (c, c+1) if key == "thickness_error_m" else (c,)
+            e = np.array([r[key][c] for r in rows if r.get(key) and r[key][c] is not None
+                          and (common is None or record_key(r) + observation in common)])
             cols.append(None if not len(e) else {"n": int(len(e)), "bias_m": float(e.mean()), "mae_m": float(np.abs(e).mean()),
                                                  "rmse_m": float(np.sqrt(np.mean(e**2))), "max_abs_m": float(np.abs(e).max())})
         return cols
@@ -437,6 +471,11 @@ def summarize_cv(records, methods, k):
                 continue
             own = {m: {r["well"] for r in subset if r["method"] == m and r.get("prediction_finite")} for m in methods}
             common = set.intersection(*own.values()) if own else set()
+            paired = {}
+            for name, width in (("level_error_m", k), ("thickness_error_m", k-1)):
+                keys = [observation_keys([r for r in subset if r["method"] == m and r.get("prediction_finite")], name, width)
+                        for m in methods]
+                paired[name] = set.intersection(*keys) if keys else set()
             for m in methods:
                 rows = [r for r in subset if r["method"] == m]
                 predicted = [r for r in rows if r.get("prediction_finite")]
@@ -446,8 +485,11 @@ def summarize_cv(records, methods, k):
                     "attempted": len(rows), "predicted": len(predicted), "refused": len(rows)-len(predicted),
                     "own_coverage_wells": sorted(own[m]), "common_coverage_wells": sorted(common),
                     "own_level_scores": scores(predicted, "level_error_m", k),
-                    "common_level_scores": scores([r for r in predicted if r["well"] in common], "level_error_m", k),
-                    "common_thickness_scores": scores([r for r in predicted if r["well"] in common], "thickness_error_m", k-1),
+                    "common_score_key_fields": ["experiment", "fold", "held_group", "physical_well", "reading_row", "contact_or_pair"],
+                    "common_level_observation_keys": [list(key) for key in sorted(paired["level_error_m"])],
+                    "common_thickness_observation_keys": [list(key) for key in sorted(paired["thickness_error_m"])],
+                    "common_level_scores": scores(predicted, "level_error_m", k, paired["level_error_m"]),
+                    "common_thickness_scores": scores(predicted, "thickness_error_m", k-1, paired["thickness_error_m"]),
                     "independent_collar_level_scores": scores([r for r in predicted if r.get("independent_level_error_m")], "independent_level_error_m", k),
                     "interval_and_thickness_checks": {"n": len(checks), "violated": int(sum(v > 1e-6 for v in checks)),
                                                       "max_violation_m": float(max(checks)) if checks else None}}
