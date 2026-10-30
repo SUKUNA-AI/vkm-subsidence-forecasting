@@ -21,13 +21,18 @@ from vkm_world.representations.world0 import laws  # noqa: E402
 from vkm_world.representations.world0.closure import external_equivalence  # noqa: E402
 
 
-def aggregate(C: np.ndarray, S: np.ndarray, m: int):
-    """Merge m adjacent cells: unit traction on a coarse cell = on its m fine cells; convergence averaged."""
+def aggregate(C: np.ndarray, S: np.ndarray, m: int, areas: np.ndarray | None = None):
+    """Merge cells by uniform coarse traction and work-conjugate area-weighted convergence."""
+    C, _ = I.accepted_compliance(C, symmetrize=False, areas=areas)
+    areas = np.ones(C.shape[0]) if areas is None else np.asarray(areas, float)
+    if not isinstance(m, int) or m < 1 or C.shape[0] % m:
+        raise ValueError("aggregation requires complete groups of a positive integer number of cells")
     n = C.shape[0] // m
     P = np.zeros((C.shape[0], n))
     for J in range(n):
         P[J * m:(J + 1) * m, J] = 1.0
-    return P.T @ C @ P / m, S @ P
+    coarse_areas = P.T @ areas
+    return ((P.T * areas) @ C @ P) / coarse_areas[:, None], S @ P
 
 
 def summarize(case: str, d) -> dict:
@@ -37,8 +42,18 @@ def summarize(case: str, d) -> dict:
     edges = d["cell_edges"]
     a = float(edges[1] - edges[0])
     out = {"case": case, "axisym": axisym, "cell_width_m": a, "n_cells": int(C.shape[0]), "depth_roof_m": depth}
+    areas = np.pi * np.diff(edges ** 2) if axisym else np.diff(edges)
+    # Axisymmetric radial trapezoid sampling has a finite quadrature reciprocity residual. Preserve raw C;
+    # do not silently repair it. This declared numerical cap is checked on every case, not a field error bound.
+    policy = dict(areas=areas, symmetrize=not axisym, reciprocity_tol=1e-3 if axisym else 1e-6)
+    accepted, asym = I.accepted_compliance(C, **policy)
+    K, _ = I.stiffness_from_compliance(accepted, **policy)
+    G = I.surface_operator(S, accepted, **policy)
+    out["operator_policy"] = {"port_metric": "ring_area_m2" if axisym else "width_m_per_unit_thickness",
+                              "areas": areas.tolist(), "symmetrize": not axisym,
+                              "reciprocity_tol": policy["reciprocity_tol"], "energy_asymmetry": asym,
+                              "K_G_share_accepted_compliance": True}
     if not axisym:
-        K, asym = I.stiffness_from_compliance(C)
         out["betti_asymmetry"] = asym
     if not axisym:
         ss = I.sign_structure(K)
@@ -49,14 +64,13 @@ def summarize(case: str, d) -> dict:
         for m in (2, 3, 5, 10):
             if C.shape[0] % m == 0 or C.shape[0] // m >= 3:
                 nn = (C.shape[0] // m) * m
-                Cc, Sc = aggregate(C[:nn, :nn], S[:, :nn], m)
-                Kc, _ = I.stiffness_from_compliance(Cc)
+                Cc, Sc = aggregate(accepted[:nn, :nn], S[:, :nn], m, areas=areas[:nn])
+                Kc, _ = I.stiffness_from_compliance(Cc, areas=areas[:nn].reshape(-1, m).sum(axis=1))
                 sc = I.sign_structure(Kc)
                 agg[f"{a * m:.0f}m"] = {"z_matrix": sc["z_matrix"], "first_positive_lag": sc["first_positive_lag"],
                                         "lag_profile_0_4": [float(v) for v in sc["lag_profile"][:5]],
                                         "max_positive_offdiag_rel": sc["max_positive_offdiag_rel"]}
         out["K_aggregated"] = agg
-        G = I.surface_operator(S, C)
         j = C.shape[0] // 2
         fit = I.knothe_fit(x, G[:, j], depth=depth)
         out["G_mid"] = {k: float(v) for k, v in fit.items()}
@@ -70,7 +84,6 @@ def summarize(case: str, d) -> dict:
         out["C_row_mid_rel_lag"] = [float(v) for v in (C[j, j:j + 10] / C[j, j])]
     else:
         # axisymmetric: unit convergence of the central disc (others held) → 3D point-source influence
-        G = I.surface_operator(S, C)
         r = x
         g = G[:, 0]
         area0 = math.pi * edges[1] ** 2
@@ -90,7 +103,7 @@ def summarize(case: str, d) -> dict:
         A = np.pi * (edges[1:] ** 2 - edges[:-1] ** 2)
         Aw = np.diag(A) @ C                       # reciprocity: A_i·C_ij symmetric
         out["betti_asymmetry_area_weighted"] = float(np.max(np.abs(Aw - Aw.T)) / np.max(np.abs(Aw)))
-        ss = I.sign_structure(np.linalg.inv(C))   # no symmetrisation of C in axisymmetry
+        ss = I.sign_structure(K)   # same accepted raw C as G; no symmetrisation in axisymmetry
         out["K_rings"] = {"z_matrix": ss["z_matrix"], "first_positive_lag": ss["first_positive_lag"],
                           "lag_profile_0_4": [float(v) for v in ss["lag_profile"][:5]]}
     return out
@@ -106,7 +119,7 @@ def fine_vs_coarse(root: Path, coarse_case: str = "PS_M05_A27", fine_case: str =
     sig0 = float(df["sigma0"])
     E = setup.E_SCEN["SYLV"][setup.SCEN_INDEX["M05"]]
     Ep = laws.plane_strain_modulus(E, setup.NU["SYLV"])
-    K = np.linalg.inv(0.5 * (C + C.T))
+    K, _ = I.stiffness_from_compliance(C, areas=np.diff(dc["cell_edges"]))
     n = K.shape[0]
     out = {}
     variants = [("tributary_plane_strain_free", (1 - k) * Ep / h)]
@@ -118,7 +131,7 @@ def fine_vs_coarse(root: Path, coarse_case: str = "PS_M05_A27", fine_case: str =
     for label, Ecell in variants:
         # (1−k)(σ0 + E'v/h) = σ0 − K v  →  (K + (1−k)E'/h) v = k σ0
         v = np.linalg.solve(K + Ecell * np.eye(n), k * sig0 * np.ones(n))
-        s_coarse = S @ np.linalg.solve(0.5 * (C + C.T), v)     # s = G v = S C⁻¹ v
+        s_coarse = S @ K @ v
         conv = df["floor_uy"] - df["roof_uy"]
         edges = dc["cell_edges"]
         v_fine = np.array([np.trapezoid(conv[(x >= edges[i] - 1e-9) & (x <= edges[i + 1] + 1e-9)],
@@ -146,7 +159,7 @@ def vzt_coupling(cd: Path) -> dict | None:
     d = np.load(cd / "compliance.npz")
     p = np.load(pf)
     C, x, ut = d["C"], d["x"], float(d["unit_traction"])
-    Ci = np.linalg.inv(0.5 * (C + C.T))
+    Ci, _ = I.stiffness_from_compliance(C, areas=np.diff(d["cell_edges"]))
     out = {}
     v = np.ones(C.shape[0])                     # uniform unit convergence of every cell (others' tractions adjust)
     for q, name in enumerate(p["layers"]):

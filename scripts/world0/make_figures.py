@@ -43,7 +43,7 @@ def fig_k_sign(work: Path, out: Path):
     w = 0.16
     for q, (c, lab) in enumerate(cases):
         d = np.load(comp / c / "compliance.npz")
-        K, _ = I.stiffness_from_compliance(d["C"])
+        K, _ = I.stiffness_from_compliance(d["C"], areas=np.diff(d["cell_edges"]))
         prof = I.lag_profile(K)[:7]
         ax[0].bar(lags + (q - 2) * w, prof, width=w * 0.9, color=SERIES[q], label=lab)
     ax[0].axhline(0, color=MUTED, lw=0.8)
@@ -80,16 +80,17 @@ def fig_g(work: Path, out: Path):
                                   ("PS_M05_F1", "проскальзывание ПКС|СМТ"), ("PS_NORM_B", "NORM"),
                                   ("PS_C044_B", "C044"), ("PS_M05_HOMO", "однородная")]):
         d = np.load(comp / c / "compliance.npz")
-        G = I.surface_operator(d["S"], d["C"])
+        G = I.surface_operator(d["S"], d["C"], areas=np.diff(d["cell_edges"]))
         j = G.shape[1] // 2
-        ax[0].plot(d["x"], G[:, j] * 20.0, color=SERIES[q], label=lab)      # per unit convergence of a 20 m cell
+        ax[0].plot(d["x"], G[:, j] * 20.0, color=SERIES[q], label=lab)      # dimensionless G, scalar display factor 20
     ax[0].set_xlim(-1200, 1200)
     ax[0].set_xlabel("x, м (центр ячейки в 0)")
-    ax[0].set_ylabel("оседание / (v·a), 1/м ×20 м")
+    ax[0].set_ylabel("20 × оседание / конвергенция (безразмерно)")
     ax[0].set_title("G: поверхность от единичной конвергенции одной ячейки", fontsize=9, color=INK)
     ax[0].legend(fontsize=7)
     d = np.load(comp / "AX_M05_B" / "compliance.npz")
-    G = I.surface_operator(d["S"], d["C"])
+    G = I.surface_operator(d["S"], d["C"], areas=np.pi * np.diff(d["cell_edges"] ** 2),
+                           symmetrize=False, reciprocity_tol=1e-3)
     r = d["x"]
     area = np.pi * d["cell_edges"][1] ** 2
     g = G[:, 0] / area
@@ -99,7 +100,7 @@ def fig_g(work: Path, out: Path):
     ax[1].set_xlim(0, 1200)
     ax[1].set_xlabel("r, м")
     ax[1].set_ylabel("оседание на 1 м³ конвергенции, 10⁻⁶ 1/м²")
-    ax[1].set_title("Точечный источник в 3D: tgβ ≈ 0,96; объём мульды = объём конвергенции", fontsize=9, color=INK)
+    ax[1].set_title("Осесимметричный отклик: tgβ ≈ 0,96\nОбъём мульды ≈ объёму конвергенции", fontsize=9, color=INK)
     ax[1].legend(fontsize=7)
     stamp(fig)
     fig.tight_layout()
