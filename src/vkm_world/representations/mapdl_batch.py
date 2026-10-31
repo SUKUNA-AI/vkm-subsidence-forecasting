@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -41,7 +42,7 @@ def count_errors(out_text: str) -> int | None:
 STALE_PATTERNS = ("*.txt", "*.npz", "receipt.json", "run.log")
 
 
-def clear_outputs(workdir: Path, deck: str = "case.inp", jobname: str = "case") -> list[str]:
+def clear_outputs(workdir: Path, deck: str = "case.inp", jobname: str = "case", *, restart: bool = False) -> list[str]:
     """Remove results of any previous run in ``workdir`` (solver text tables, derived .npz, receipt, job files),
     keeping only the input deck, so that a failed or shorter rerun can never be read as the new result."""
     workdir = Path(workdir)
@@ -50,19 +51,34 @@ def clear_outputs(workdir: Path, deck: str = "case.inp", jobname: str = "case") 
     for pat in STALE_PATTERNS + (f"{jobname}*",):
         candidates.update(workdir.glob(pat))
     for p in sorted(candidates):
-        if p.is_file() and p.name != deck:
+        # A multiframe restart needs the existing solver state, including the result file.
+        # Clear stale extracted tables/logs, but never erase its binary checkpoint.
+        checkpoint = restart and p.name.startswith(jobname + ".") and p.suffix.lower() not in {
+            ".txt", ".out", ".err", ".log", ".npz"
+        }
+        if p.is_file() and p.name != deck and not checkpoint:
             p.unlink()
             removed.append(p.name)
     return removed
 
 
 def run_deck(workdir: Path, deck: str = "case.inp", jobname: str = "case", n_proc: int = 4,
-             timeout_s: float | None = None, keep_scratch: bool = False) -> dict:
+             timeout_s: float | None = None, keep_scratch: bool = False, *, restart: bool = False) -> dict:
     """Run ``MAPDL -b -np n -i deck -o case.out -j jobname`` in ``workdir``; return the receipt dict.
 
-    Outputs of a previous run in the same directory are removed first (``clear_outputs``)."""
+    Outputs of a previous run are removed first. For ``restart=True``, require and preserve
+    multiframe checkpoint files; this never turns a missing checkpoint into a fresh solve.
+    Use ``keep_scratch=True`` when a subsequent process will continue this run.
+    """
     workdir = Path(workdir)
-    stale = clear_outputs(workdir, deck, jobname)
+    checkpoint_hashes = {}
+    if restart:
+        required = [workdir / f"{jobname}.rdb", workdir / f"{jobname}.ldhi"]
+        frames = [p for p in workdir.glob(f"{jobname}.*") if re.fullmatch(r"\.r\d{3}", p.suffix.lower())]
+        if not all(p.is_file() for p in required) or not frames:
+            raise FileNotFoundError("multiframe restart requires .rdb, .ldhi and .rNNN checkpoint files")
+        checkpoint_hashes = {p.name: sha256(p) for p in required + sorted(frames)}
+    stale = clear_outputs(workdir, deck, jobname, restart=restart)
     cmd = [mapdl_exe(), "-b", "-np", str(n_proc), "-i", deck, "-o", f"{jobname}.out", "-j", jobname]
     t0 = time.time()
     with open(workdir / "run.log", "w", encoding="utf-8", errors="replace") as log:
@@ -86,5 +102,7 @@ def run_deck(workdir: Path, deck: str = "case.inp", jobname: str = "case", n_pro
         "n_errors": count_errors(out_text),
         "not_converged": ("SOLUTION NOT CONVERGED" in out_text) or ("unconverged" in out_text.lower()),
         "stale_outputs_removed": stale,
+        "restart": restart,
+        "checkpoint_input_sha256": checkpoint_hashes,
         "result_files_sha256": results,
     }
