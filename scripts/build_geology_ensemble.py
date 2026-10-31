@@ -38,6 +38,8 @@ MASTER_SEED = 20261023
 LINE12 = ((2680.0, -960.0), (3710.0, -960.0))
 KR2_OFFSETS_M = (7.5, 16.0)
 KR2_THICKNESS_M = 5.97
+# Historical recipe retained for diagnosis, not an accepted local geological law.
+KR2_RECIPE_STATUS = "MODEL_CHOICE; pooled offsets and fixed mean thickness; local applicability unresolved"
 TOL_M = 0.01  # float32 rounding of levels at exactly honoured supports
 
 
@@ -419,6 +421,7 @@ def run_grid(args, data, grid, samplers, selection, out):
         sample_keep = min(args.keep_realizations, R)
         kept = np.empty((sample_keep, K, N), np.float32)
         support_depth = np.empty((R, len(ids), K), np.float32)
+        grid_kr2 = {}
         for k in range(K):
             if k > 0:
                 h = torch.clamp(latent[k].to(args.device), min=0.0)
@@ -427,6 +430,19 @@ def run_grid(args, data, grid, samplers, selection, out):
                 if sub:
                     pzero_sub.append(backend.to_numpy((h[:sub, :N] <= 0).float().mean(dim=0)))
                 thick_q.append(ge.sorted_quantiles(backend, h[:, :N], [0.1, 0.5, 0.9]))
+                if CONTACTS[k] == "PDKS":
+                    # H_SZ_PDKS is the exact parent interval used for these draws.
+                    # All grid nodes/all draws are checked, not marginal bands
+                    # or the first saved subset. Nothing is repaired or selected.
+                    for offset in KR2_OFFSETS_M:
+                        bad = h[:, :N] < offset + KR2_THICKNESS_M - TOL_M
+                        counts = backend.to_numpy(bad.sum(dim=1)).astype(int)
+                        grid_kr2["offset_%g" % offset] = {
+                            "invalid_locations_per_world": counts,
+                            "invalid_world_ids": ["%s:R%06d" % (variant, i) for i in np.flatnonzero(counts)],
+                            "valid_world_ids": ["%s:R%06d" % (variant, i) for i in np.flatnonzero(counts == 0)],
+                            "required_parent_thickness_m": offset + KR2_THICKNESS_M,
+                            "violation": "floor_below_parent", "tolerance_m": TOL_M}
                 depth = depth + h
                 del h
             support_depth[:, :, k] = backend.to_numpy(backend.take_rows(depth, idx_all))
@@ -502,6 +518,12 @@ def run_grid(args, data, grid, samplers, selection, out):
                             sampling_path=np.array("simulate_on_nodes: joint prior + residual conditioning"),
                             mechanical_admission=np.array("NOT_ADMITTED; productive seams/material state require separate validation"),
                             note=np.array("first %d synthetic realizations of %d; SYNTHETIC, not observations" % (sample_keep, R)))
+        save(out / ("productive_seam_pre_admission_%s.json" % variant), {
+            "schema": "vkm.productive_seam_pre_admission/1", "parent": ["SZ", "PDKS"],
+            "worlds_checked": R, "locations_per_world": N, "scenarios": grid_kr2,
+            "recipe_status": KR2_RECIPE_STATUS, "selection_policy": "all original draws retained",
+            "checked_scope": "all common P1 TIN vertices; nodal containment extends through each triangle",
+            "mechanical_admission": "NOT_ADMITTED; interpretation/material partition/history remain prerequisites"})
         save(out / ("sections_%s.json" % variant), {
             "variant": variant, "realizations": R, "probs": probs, "geometry_version": str(f["geometry_version"]),
             "status": "SYNTHETIC ENSEMBLE BANDS (DERIVATION); not observations",
