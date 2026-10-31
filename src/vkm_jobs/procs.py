@@ -277,8 +277,11 @@ class ProcessTree:
                 raise err
             self._job = job
             flags = CREATE_SUSPENDED | CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP
+            startup = subprocess.STARTUPINFO()
+            startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startup.wShowWindow = subprocess.SW_HIDE
             self.proc = subprocess.Popen(list(argv), cwd=str(cwd), env=dict(env), stdin=subprocess.DEVNULL,
-                                         stdout=stdout, stderr=stderr, creationflags=flags)
+                                         stdout=stdout, stderr=stderr, creationflags=flags, startupinfo=startup)
             if _k32.AssignProcessToJobObject(job, int(self.proc._handle)):     # noqa: SLF001 - Popen handle
                 self.isolation = "WIN_JOB_OBJECT"
             else:
@@ -325,7 +328,11 @@ class ProcessTree:
             except (ProcessLookupError, PermissionError):
                 pass
         elif IS_WINDOWS:
-            subprocess.run(["taskkill", "/T", "/F", "/PID", str(self.proc.pid)], capture_output=True, check=False)
+            startup = subprocess.STARTUPINFO()
+            startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startup.wShowWindow = subprocess.SW_HIDE
+            subprocess.run(["taskkill", "/T", "/F", "/PID", str(self.proc.pid)], capture_output=True, check=False,
+                           creationflags=CREATE_NO_WINDOW, startupinfo=startup)
         else:
             self.proc.kill()
 
@@ -374,10 +381,13 @@ def spawn_detached(argv: Sequence[str], *, cwd: Path, env: Mapping[str, str], lo
     with open(log_path, "ab") as log:
         if IS_WINDOWS:
             base = DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
+            startup = subprocess.STARTUPINFO()
+            startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startup.wShowWindow = subprocess.SW_HIDE
             for flags, mode in ((base | CREATE_BREAKAWAY_FROM_JOB, "BREAKAWAY"), (base, "NO_BREAKAWAY")):
                 try:
                     proc = subprocess.Popen(list(argv), cwd=str(cwd), env=dict(env), stdin=subprocess.DEVNULL,
-                                            stdout=log, stderr=log, creationflags=flags, close_fds=True)
+                                            stdout=log, stderr=log, creationflags=flags, close_fds=True, startupinfo=startup)
                 except OSError as exc:
                     if getattr(exc, "winerror", None) == 5 and mode == "BREAKAWAY":
                         continue               # the parent job forbids breakaway: stay in it

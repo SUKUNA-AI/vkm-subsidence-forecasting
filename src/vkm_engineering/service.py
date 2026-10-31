@@ -174,6 +174,11 @@ class EngineeringService:
                 draft.copy_input(p, name)
             for name, text in (generated or {}).items():
                 draft.write_input(name, text)
+            if tool == "gmsh" and operation == "inspect_msh":
+                # Validate the COPY that will actually be read, not the mutable
+                # original; suffix alone can dispatch renamed GEO to readGEO.
+                from vkm_engineering.msh import validate_msh
+                meta = {**(meta or {}), "msh_validation": validate_msh(draft.dir / "in/mesh.msh")}
             spec = draft.spec(kind=f"engineering_{tool}_{operation}", pool="engineering", argv=[str(exe), *args],
                 timeout_s=timeout_s, tree_grace_s=3, checks=[{"name": "native_exit", "kind": "exit_code", "expected": 0}, *(checks or [])],
                 app_info={"native_tool": tool, "executable_sha256": sha256_file(exe)},
@@ -184,6 +189,8 @@ class EngineeringService:
         except Exception:
             # Preserve any submitted job; discard only a never-submitted draft.
             if not (draft.dir / "job.json").exists():
+                if not is_inside(draft.dir.resolve(), self.root.require().resolve()):
+                    raise RuntimeError("draft cleanup escaped configured job root")
                 draft.discard()
             raise
 

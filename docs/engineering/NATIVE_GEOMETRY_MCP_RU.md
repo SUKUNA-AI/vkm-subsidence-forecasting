@@ -49,7 +49,7 @@
 | Tool | Фиксированное действие и выходы |
 |---|---|
 | `gmsh_mesh` | Ровно один вход: `box_lengths:[x,y,z]` либо CAD STEP/BREP/IGES или один связный замкнутый STL; `size`, `order:1/2`; новый `out/mesh.msh` |
-| `gmsh_inspect` | Нативный `-check` скопированного `.msh`; результат — stdout/stderr и квитанция |
+| `gmsh_inspect` | Нативный `-check` скопированного ASCII MSH2.2/4.1; строгие signature/sections/EOF до запуска; результат — stdout/stderr и квитанция |
 | `paraview_inspect` | Фиксированные reader для VTU/VTP/legacy VTK/STL/PLY; `out/report.json`: counts, bounds, arrays, signed-volume range |
 | `paraview_render` | Нативные `out/view.png`, `out/view.pvsm`, report; масштаб XYZ `[1,1,1]`, параллельная камера |
 | `paraview_slice` | Явные конечные `origin:[x,y,z]`, ненулевой `normal:[x,y,z]`; дополнительно `out/slice.vtp`; пустой срез — ошибка |
@@ -60,6 +60,13 @@ STL-профиль Gmsh требует **одну** связную замкну�
 молча независимые тела и не исправляет дефектную оболочку. Пользовательские
 `.geo`, Python, PVSM и связные многокомпонентные VTK-документы не принимаются.
 Ошибка нативной программы/проверки сохраняется как FAILED/CHECK_FAILED.
+Для inspect поддерживаются только ASCII MSH2.2/4.1 с MeshFormat, Nodes,
+Elements и необязательными Entities/PhysicalNames. Неизвестные/повторные секции,
+binary MSH, Comments, scripts и содержимое после закрытых секций отклоняются;
+проверяется фактически скопированный файл. Это важно: Gmsh может направить
+неузнанный header даже файла `.msh` в GEO-парсер. В Gmsh4.15.2 CAD/STL
+расширения направляются прямо в datareader, без этого fallback
+([upstream OpenFile.cpp](https://raw.githubusercontent.com/live-clones/gmsh/gmsh_4_15_2/src/common/OpenFile.cpp)).
 
 CloudCompare принимает облака PLY/XYZ/ASC/LAS/LAZ, сетки PLY/STL. BIN-вход
 отклоняется: содержащийся в нём global shift может переопределить CLI.
