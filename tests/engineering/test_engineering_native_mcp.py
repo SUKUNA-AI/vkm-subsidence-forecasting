@@ -15,6 +15,8 @@ from vkm_engineering.service import EngineeringService, OWNER
 from vkm_jobs.errors import ToolFailure
 from vkm_jobs.spec import atomic_write_json
 
+VALID_MSH = "$MeshFormat\n2.2 0 8\n$EndMeshFormat\n$Nodes\n1\n1 0 0 0\n$EndNodes\n$Elements\n0\n$EndElements\n"
+
 
 @pytest.fixture
 def service(tmp_path):
@@ -22,7 +24,7 @@ def service(tmp_path):
     source.mkdir()
     (source / "cube.stl").write_text("solid fixture\nendsolid fixture\n")
     (source / "cube.vtu").write_text("<VTKFile/>\n")
-    (source / "mesh.msh").write_text("$MeshFormat\n4.1 0 8\n$EndMeshFormat\n")
+    (source / "mesh.msh").write_text(VALID_MSH)
     config = {"job_root": str(tmp_path / "newjobs"), "read_roots": {"fixture": str(source)},
               "executables": {"gmsh": sys.executable, "paraview": sys.executable, "cloudcompare": None}}
     svc = EngineeringService(config=config)
@@ -135,7 +137,7 @@ def test_cloudcompare_explicit_unsigned_native_scalars_no_bin_input(service):
 
 def test_input_size_and_optionlike_names(service):
     source = Path(service.read_roots["fixture"])
-    (source / "-version.msh").write_text("fixture")
+    (source / "-version.msh").write_text(VALID_MSH)
     job = service.gmsh_inspect("fixture:-version.msh")
     spec = json.loads((service.jobs.job_dir(job["job_id"]) / "job.json").read_text())
     assert spec["argv"][1] == "../in/mesh.msh"
@@ -147,6 +149,41 @@ def test_input_size_and_optionlike_names(service):
 def test_reject_jobroot_inside_readroot(tmp_path):
     with pytest.raises(ToolFailure, match="outside all read_roots"):
         EngineeringService(config={"job_root": str(tmp_path/'jobs'), "read_roots": {"all": str(tmp_path)}})
+
+
+@pytest.mark.parametrize("payload", [
+    'Printf("renamed_geo_executed");\n',
+    VALID_MSH + 'Printf("trailing_script");\n',
+    VALID_MSH.replace("1 0 0 0", 'Printf("inside_section");'),
+    VALID_MSH.replace("$EndNodes", "$EndElements"),
+    VALID_MSH.replace("2.2 0 8", "4.1 1 8"),
+    VALID_MSH + "$Comments\nnot allowed\n$EndComments\n",
+    VALID_MSH + "$Nodes\n0\n$EndNodes\n",
+    "$Comments\n$MeshFormat\n2.2 0 8\n$EndMeshFormat\n$EndComments\n",
+])
+def test_renamed_geo_and_trailing_msh_scripts_rejected_before_launch(service, payload):
+    calls = []
+    service.jobs._spawner = lambda *args: calls.append(args)
+    (Path(service.read_roots["fixture"]) / "payload.msh").write_text(payload)
+    with pytest.raises(ToolFailure, match="data-only ASCII MSH"):
+        service.gmsh_inspect("fixture:payload.msh")
+    assert calls == []
+    assert not list(service.root.path.glob("jobs/*/job.json"))
+
+
+def test_msh_validation_checks_actual_copy(service, monkeypatch):
+    from vkm_jobs.service import JobDraft
+    original = JobDraft.copy_input
+    calls = []
+    service.jobs._spawner = lambda *args: calls.append(args)
+    def copy_then_change(draft, source, name=None):
+        result = original(draft, source, name)
+        (draft.dir / "in/mesh.msh").write_text('Printf("copy_tamper");\n')
+        return result
+    monkeypatch.setattr(JobDraft, "copy_input", copy_then_change)
+    with pytest.raises(ToolFailure, match="data-only ASCII MSH"):
+        service.gmsh_inspect("fixture:mesh.msh")
+    assert calls == []
 
 
 def test_sdk_schemas_annotations_and_failures(service):
