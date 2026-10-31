@@ -312,4 +312,3 @@ class EngineeringService:
         if spec.get("meta", {}).get("owner") != OWNER:
             fail("job is not owned by vkm-engineering", "PATH_OUTSIDE_ROOT")
         return self.jobs
-
