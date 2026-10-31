@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import base64
 import hashlib
+import inspect
 import json
 from pathlib import Path
 import platform
@@ -41,6 +42,24 @@ KR2_THICKNESS_M = 5.97
 # Historical recipe retained for diagnosis, not an accepted local geological law.
 KR2_RECIPE_STATUS = "MODEL_CHOICE; pooled offsets and fixed mean thickness; local applicability unresolved"
 TOL_M = 0.01  # float32 rounding of levels at exactly honoured supports
+
+
+def generation_settings(args):
+    """Resolved sampling settings; defaults omitted from CLI still affect draw identity."""
+    return {
+        "master_seed": MASTER_SEED,
+        "seed_streams": "SeedSequence spawn keys: plan=(0,), CV=(1,), grid=(2,); ordered child streams",
+        "draw_field_support_chunk": inspect.signature(ge.draw_field).parameters["chunk"].default,
+        "draw_field_censoring_sweeps": 30,
+        "simulate_on_nodes_realization_batch": args.batch,
+        "realization_counts": {"G": args.realizations_g, "P90": args.realizations_p90, "P200": args.realizations_p200},
+        "cv_draws": args.cv_draws,
+        "grid_backend": "torch", "grid_dtype": "float32", "device": args.device,
+        "ordering": "input support/node order; appended plan supports; variant/field order as in pinned code",
+        "reproducibility_contract": "Batch/chunk changes may preserve the sampling law while changing fixed-seed draw paths. "
+                                    "A seed alone does not identify a realization.",
+        "world_id_scope": "variant:Rindex identifies a row only within this generation identity and hashed output; "
+                          "not a persistent world ID across generation settings"}
 
 
 def sha(path):
@@ -434,13 +453,20 @@ def run_grid(args, data, grid, samplers, selection, out):
                     # H_SZ_PDKS is the exact parent interval used for these draws.
                     # All grid nodes/all draws are checked, not marginal bands
                     # or the first saved subset. Nothing is repaired or selected.
+                    unknown = (~torch.isfinite(h[:, :N]) | ~torch.isfinite(depth[:, :N])
+                               | ~torch.isfinite(S)[None, :])
+                    unknown_counts = backend.to_numpy(unknown.sum(dim=1)).astype(int)
                     for offset in KR2_OFFSETS_M:
                         bad = h[:, :N] < offset + KR2_THICKNESS_M - TOL_M
                         counts = backend.to_numpy(bad.sum(dim=1)).astype(int)
+                        valid_worlds = (counts == 0) & (unknown_counts == 0)
                         grid_kr2["offset_%g" % offset] = {
                             "invalid_locations_per_world": counts,
-                            "invalid_world_ids": ["%s:R%06d" % (variant, i) for i in np.flatnonzero(counts)],
-                            "valid_world_ids": ["%s:R%06d" % (variant, i) for i in np.flatnonzero(counts == 0)],
+                            "unknown_locations_per_world": unknown_counts,
+                            "finite_worlds": unknown_counts == 0, "valid_worlds": valid_worlds,
+                            "unknown_world_ids": ["%s:R%06d" % (variant, i) for i in np.flatnonzero(unknown_counts)],
+                            "invalid_world_ids": ["%s:R%06d" % (variant, i) for i in np.flatnonzero(~valid_worlds)],
+                            "valid_world_ids": ["%s:R%06d" % (variant, i) for i in np.flatnonzero(valid_worlds)],
                             "required_parent_thickness_m": offset + KR2_THICKNESS_M,
                             "violation": "floor_below_parent", "tolerance_m": TOL_M}
                 depth = depth + h
@@ -522,7 +548,9 @@ def run_grid(args, data, grid, samplers, selection, out):
             "schema": "vkm.productive_seam_pre_admission/1", "parent": ["SZ", "PDKS"],
             "worlds_checked": R, "locations_per_world": N, "scenarios": grid_kr2,
             "recipe_status": KR2_RECIPE_STATUS, "selection_policy": "all original draws retained",
-            "checked_scope": "all common P1 TIN vertices; nodal containment extends through each triangle",
+            "checked_scope": "all grid nodes; containment extends through each triangle only when parent/seam "
+                             "surfaces share the same P1 interpolant and connectivity",
+            "unknown_policy": "nonfinite parent thickness/depth or DSM refuses the entire world; no implicit validity",
             "mechanical_admission": "NOT_ADMITTED; interpretation/material partition/history remain prerequisites"})
         save(out / ("sections_%s.json" % variant), {
             "variant": variant, "realizations": R, "probs": probs, "geometry_version": str(f["geometry_version"]),
@@ -584,6 +612,7 @@ def main():
     receipt_path = out / ("receipt_%s.json" % args.stage)
     receipt = {"schema": "vkm.receipt/1", "command": [Path(a).name if i == 0 else a for i, a in enumerate(sys.argv)],
                "stage": args.stage, "inputs_sha256": pins, "grid": grid.describe(), "master_seed": MASTER_SEED,
+               "generation_settings": generation_settings(args),
                "versions": {"python": platform.python_version(), "numpy": np.__version__}, "status": "SYNTHETIC ENSEMBLE; not observations; not field validation"}
     import scipy
     receipt["versions"]["scipy"] = scipy.__version__
@@ -605,6 +634,14 @@ def main():
                                      "device": args.device})
         receipt["grid"] = run_grid(args, data, grid, samplers, selection, out)
         receipt["collar_samplers"] = {k: v.describe() for k, v in samplers.items()}
+    # Resolve versions after backend discovery. This identity pins configuration,
+    # not byte equality across hardware/library implementations. Output hashes
+    # identify the actual generated arrays; row IDs are meaningful with both.
+    receipt["generation_identity"] = {
+        "stage": args.stage, "inputs_sha256": pins, "parameter_grid": grid.describe(),
+        "settings": receipt["generation_settings"], "versions": dict(receipt["versions"])}
+    receipt["generation_identity_sha256"] = hashlib.sha256(
+        json.dumps(receipt["generation_identity"], sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
     receipt["outputs_sha256"] = {pth.name: sha(pth) for pth in sorted(out.iterdir()) if pth.is_file() and not pth.name.startswith("receipt")}
     save(receipt_path, receipt)
     if pins != {k: sha(v) for k, v in inputs.items()}:

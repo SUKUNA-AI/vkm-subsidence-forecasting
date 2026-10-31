@@ -334,7 +334,13 @@ def draw_field(rng, xy, kind, grid, y, censored, sweeps=30, chunk=400):
     """Parameter draws and conditioning readings for one field.
 
     ``xy`` is (n, 2), or (R, n, 2) for per-realization support positions; then the posterior
-    is built per realization in chunks (memory) and the result is identical to one batch.
+    is built per realization in chunks to bound memory. Chunking preserves the
+    sampling law, not fixed-seed pathwise identity: each chunk consumes uniforms,
+    gamma variates and normals before the next chunk, assigning different RNG
+    innovations to rows when ``chunk`` changes (also within censoring sweeps).
+    Reproducing particular draws therefore requires the chunk size, input/row
+    order, RNG implementation/state and sampler version in addition to the seed.
+    Statistical equivalence does not imply identical realization arrays or IDs.
     Returns (posterior or list of (rows, posterior), params, readings used).
     """
     y = np.atleast_2d(np.asarray(y, float))
