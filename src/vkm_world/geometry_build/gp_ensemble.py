@@ -2,6 +2,9 @@
 
 Everything here is a declared MODEL_CHOICE, not evidence:
 
+The following describes the historical default. An explicit ``positive_law``
+may opt into a versioned squareplus top link; it never changes the default replay.
+
 * the top contact is modelled through ``Y0 = ln(depth below the reference collar)``;
 * each interval thickness is a clipped Gaussian ``H = max(Y, 0)``: zero thickness is the
   event ``Y <= 0``, an observed absence is the censored datum ``Y <= 0``, and the contact
@@ -324,9 +327,17 @@ class LayeredReadings:
 TOP_FLOOR_M = 0.1
 
 
-def top_latent(depth0, shift):
-    """Latent top reading under a collar shift (true collar = reference + shift)."""
+def top_latent(depth0, shift, positive_law=None):
+    """Latent top reading under a collar shift (true collar = reference + shift).
+
+    An explicitly supplied squareplus law uses its pinned scale and rejects
+    nonpositive corrected readings. The historical default floor/log is unchanged.
+    """
     d = np.asarray(depth0, float) - np.asarray(shift, float)
+    if positive_law is not None:
+        from .positive_field_law import SQUAREPLUS_LAW
+        if positive_law.law_id == SQUAREPLUS_LAW:
+            return positive_law.encode_top(d), 0
     return np.log(np.maximum(d, TOP_FLOOR_M)), int(np.sum(d < TOP_FLOOR_M))
 
 
@@ -379,13 +390,17 @@ def _kriging_parts(rng, parts, used, params, targets):
 
 
 def layered_predictive(rng, readings, train_rows, targets, kinds, draws, grid=ParameterGrid(),
-                       train_shift=None, sweeps=30, train_xy=None, target_xy=None):
+                       train_shift=None, sweeps=30, train_xy=None, target_xy=None, positive_law=None,
+                       field_reading_mask=None):
     """Predictive draws of contact depths below the reference collar at ``targets``.
 
     ``kinds``: covariance type per latent field. ``train_shift``: (draws, n) vertical collar
     shifts of all supports (true collar = reference + shift; only the top reading changes).
     ``train_xy``: (draws, n, 2) per-realization support positions (plan registration) and
     ``target_xy``: (draws, m, 2) per-realization target positions; None = as placed.
+    ``positive_law`` is an explicit versioned top link. None preserves legacy replay.
+    ``field_reading_mask`` optionally selects supports per field (K, n); this keeps
+    relative-only supports in the intervals while excluding their absolute TOP.
     Returns dict with ``depth`` (draws, m, K) and ``thickness`` (draws, m, K-1).
     """
     t = np.asarray(targets, float).reshape(-1, 2) if target_xy is None else np.asarray(target_xy, float)
@@ -393,20 +408,35 @@ def layered_predictive(rng, readings, train_rows, targets, kinds, draws, grid=Pa
     K = readings.n_fields
     latent = np.empty((draws, m, K))
     info = []
+    mask = None if field_reading_mask is None else np.asarray(field_reading_mask)
+    if mask is not None and (mask.dtype != np.bool_ or mask.shape != (K, len(readings.ids))):
+        raise ValueError("field reading mask must be boolean (K, n)")
     for f in range(K):
-        rows, value, censored = readings.field_readings(f, train_rows)
+        selected_rows = train_rows
+        if mask is not None:
+            selected_rows = np.asarray(train_rows)[mask[f, np.asarray(train_rows)]]
+        rows, value, censored = readings.field_readings(f, selected_rows)
         if len(rows) < 2:
             raise ValueError("field %d has fewer than two training readings" % f)
+        if f == 0 and positive_law is not None and train_shift is None:
+            value = positive_law.encode_top(readings.depth[rows, 0])
         y = np.broadcast_to(value, (draws, len(rows))).copy()
         floored = 0
         if f == 0 and train_shift is not None:
-            y, floored = top_latent(readings.depth[rows, 0][None, :], train_shift[:, rows])
+            y, floored = top_latent(readings.depth[rows, 0][None, :], train_shift[:, rows], positive_law)
+        if positive_law is not None:
+            from .positive_field_law import SQUAREPLUS_LAW
+            if positive_law.law_id == SQUAREPLUS_LAW:
+                if np.count_nonzero(~censored) < 4 or np.any(np.ptp(y[:, ~censored], axis=1) == 0):
+                    raise ValueError("new positive law requires >=4 nondegenerate exact readings per field")
+                if f == 0 and positive_law.top_support_count not in (None, len(rows)):
+                    raise ValueError("derive the law scale from these training TOP supports, not a different fold/mask")
         xy = readings.xy[rows] if train_xy is None else np.asarray(train_xy)[:, rows]
         parts, params, used = draw_field(rng, xy, kinds[f], grid, y, censored, sweeps)
         latent[:, :, f] = _kriging_parts(rng, parts, used, params, t)
         info.append({"field": f, "kind": kinds[f], "readings": int(len(rows)), "censored": int(censored.sum()),
                      "top_floor_hits": floored})
-    top = np.exp(latent[:, :, 0])
+    top = np.exp(latent[:, :, 0]) if positive_law is None else positive_law.decode_top(latent[:, :, 0])
     thickness = np.maximum(latent[:, :, 1:], 0.0)
     depth = np.concatenate([top[:, :, None], top[:, :, None] + np.cumsum(thickness, axis=2)], axis=2)
     return {"depth": depth, "thickness": thickness, "fields": info}
