@@ -78,6 +78,20 @@ def test_posix_specific_skips_are_only_allowed_on_windows(nodeid, reason):
                               "not_run": [{"nodeid": nodeid, "reason": reason}]}, 0) == "PASS_WITH_NOT_RUN"
 
 
+@pytest.mark.parametrize("nodeid,reason", CHECKS.LINUX_NOT_RUN)
+def test_windows_creation_flags_are_not_run_only_on_linux(nodeid, reason):
+    assert CHECKS.allowed_skip(nodeid, reason, host_platform="linux")
+    for platform in ("win32", "darwin"):
+        assert not CHECKS.allowed_skip(nodeid, reason, host_platform=platform)
+    assert not CHECKS.allowed_skip(nodeid + "_new", reason, host_platform="linux")
+    assert not CHECKS.allowed_skip(nodeid, "new unrelated reason", host_platform="linux")
+    stats = {"selected": 2, "passed": 1, "skipped": 1,
+             "not_run": [{"nodeid": nodeid, "reason": reason}]}
+    assert CHECKS.test_status(stats, 0) == "PASS_WITH_NOT_RUN"
+    stats["unexpected_skips"] = stats["not_run"]
+    assert CHECKS.test_status(stats, 0) == "FAIL"
+
+
 def test_missing_windows_symlink_privilege_is_still_a_failure():
     assert not CHECKS.allowed_skip("tests/qgis/test_unit.py::test_symlink_escape_if_supported",
                                    "Symlink privilege unavailable", host_platform="win32")
