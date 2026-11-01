@@ -61,7 +61,7 @@
     "Full original acceptance matrix and fresh CI qualification"
   ],
   "ML": "OUT_OF_CURRENT_SCOPE_NOT_TRAINED",
-  "publication_authority": "User request 2026-11-01: save results to GitHub and update memory/state; no main merge",
+  "publication_authority": "User request 2026-11-01: save results to GitHub and update memory/state; subsequent request consolidates branches into main",
   "publication_checks": {
     "canonical_verifier_exit": 0,
     "windows_world_tests": {
@@ -76,5 +76,14 @@
       "skipped_reason": "torch not installed in selected CI venv"
     },
     "hosted_CI": "OBSERVE_CURRENT_RUN_SEPARATELY"
+  },
+  "code_integration": {
+    "user_requested_main_merge": true,
+    "source_heads": {
+      "staged_mechanics": "1384d262fe85c4e03e933cc674dd56f0d0306cf7",
+      "wholemine_geology": "08df0b8d7933532428ade543a4d135d222082545",
+      "native_engineering_mcp": "3d56163f820e954ce72b5a8adc6ec5a988060953"
+    },
+    "scientific_results_not_recomputed": true
   }
 }
