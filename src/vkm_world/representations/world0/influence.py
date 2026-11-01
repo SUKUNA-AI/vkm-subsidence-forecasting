@@ -15,17 +15,76 @@ import math
 import numpy as np
 
 
-def stiffness_from_compliance(C: np.ndarray, symmetrize: bool = True) -> tuple[np.ndarray, float]:
-    """K = C⁻¹; returns (K, relative asymmetry of C) — Betti reciprocity demands C·diag(a) symmetric."""
-    C = np.asarray(C, float)
-    asym = float(np.max(np.abs(C - C.T)) / np.max(np.abs(C)))
-    Cs = 0.5 * (C + C.T) if symmetrize else C
-    return np.linalg.inv(Cs), asym
+def _square_finite(matrix: np.ndarray, name: str) -> np.ndarray:
+    if np.iscomplexobj(matrix):
+        raise ValueError(f"{name} must be real")
+    result = np.asarray(matrix, dtype=float)
+    if result.ndim != 2 or result.shape[0] != result.shape[1] or not result.shape[0]:
+        raise ValueError(f"{name} must be a nonempty square matrix")
+    if not np.all(np.isfinite(result)):
+        raise ValueError(f"{name} must contain only finite values")
+    return result
 
 
-def surface_operator(S: np.ndarray, C: np.ndarray) -> np.ndarray:
-    """G = S·C⁻¹: surface displacement per unit cell convergence (columns = cells)."""
-    return np.asarray(S, float) @ np.linalg.inv(np.asarray(C, float))
+def accepted_compliance(C: np.ndarray, symmetrize: bool = True, *, areas: np.ndarray | None = None,
+                        reciprocity_tol: float = 1e-6, condition_limit: float = 1e12) -> tuple[np.ndarray, float]:
+    """Accept a reciprocal positive-energy compliance for mean traction/convergence ports.
+
+    Work is ``t.T @ diag(areas) @ dv``; hence ``A C = C.T A``, not ``C A = A C.T``.
+    ``areas=None`` explicitly selects the historical **equal-area port contract** (unit common metric),
+    not a rule for unknown or unequal areas. In 2D the metric is width times unit out-of-plane thickness.
+    Symmetrization, when requested, is performed on ``sqrt(A) C inv(sqrt(A))`` and is refused above
+    ``reciprocity_tol``. The returned asymmetry is measured in this energy normalization before correction.
+    No historical input is overwritten. Numerical tolerances are acceptance choices, not site measurements.
+    """
+    C = _square_finite(C, "C")
+    if not np.isfinite(reciprocity_tol) or reciprocity_tol < 0:
+        raise ValueError("reciprocity_tol must be finite and nonnegative")
+    if not np.isfinite(condition_limit) or condition_limit < 1:
+        raise ValueError("condition_limit must be finite and at least one")
+    a = np.ones(C.shape[0]) if areas is None else np.asarray(areas, dtype=float)
+    if a.shape != (C.shape[0],) or not np.all(np.isfinite(a)) or np.any(a <= 0):
+        raise ValueError("areas must have one finite strictly positive value per port")
+    # Normalize the metric by a common factor; its physical units cancel in the similarity transform.
+    w = np.sqrt(a / np.max(a))
+    if np.any(w == 0):
+        raise ValueError("port-area ratio is outside the floating-point range")
+    energy = w[:, None] * C / w[None, :]
+    scale = float(np.max(np.abs(energy)))
+    if not np.isfinite(scale) or scale == 0:
+        raise ValueError("C has zero or nonfinite energy scale")
+    normalized = energy / scale
+    asym = float(np.max(np.abs(normalized - normalized.T)))
+    if asym > reciprocity_tol:
+        raise ValueError(f"C violates port-work reciprocity: {asym:.6g} > {reciprocity_tol:.6g}")
+    symmetric = 0.5 * (normalized + normalized.T)
+    if np.min(np.linalg.eigvalsh(symmetric)) <= 0:
+        raise ValueError("C must have strictly positive energy; nullspaces require an explicit gauge")
+    accepted = symmetric if symmetrize else normalized
+    condition = float(np.linalg.cond(accepted))
+    if not np.isfinite(condition) or condition > condition_limit:
+        raise ValueError(f"C is ill-conditioned in the port-work metric: {condition:.6g}")
+    return accepted * scale * w[None, :] / w[:, None], asym
+
+
+def stiffness_from_compliance(C: np.ndarray, symmetrize: bool = True, *, areas: np.ndarray | None = None,
+                              reciprocity_tol: float = 1e-6,
+                              condition_limit: float = 1e12) -> tuple[np.ndarray, float]:
+    """K = accepted(C)⁻¹ and pre-correction energy asymmetry; see ``accepted_compliance``."""
+    accepted, asym = accepted_compliance(C, symmetrize, areas=areas, reciprocity_tol=reciprocity_tol,
+                                         condition_limit=condition_limit)
+    return np.linalg.solve(accepted, np.eye(accepted.shape[0])), asym
+
+
+def surface_operator(S: np.ndarray, C: np.ndarray, symmetrize: bool = True, *, areas: np.ndarray | None = None,
+                     reciprocity_tol: float = 1e-6, condition_limit: float = 1e12) -> np.ndarray:
+    """G = S·accepted(C)⁻¹ using exactly the stiffness acceptance policy, not the raw C."""
+    accepted, _ = accepted_compliance(C, symmetrize, areas=areas, reciprocity_tol=reciprocity_tol,
+                                     condition_limit=condition_limit)
+    S = np.asarray(S, dtype=float)
+    if S.ndim != 2 or S.shape[1] != accepted.shape[0] or not np.all(np.isfinite(S)):
+        raise ValueError("S must be a finite (surface targets, ports) matrix")
+    return np.linalg.solve(accepted.T, S.T).T
 
 
 def lag_profile(K: np.ndarray, interior: int | None = None) -> np.ndarray:
@@ -37,6 +96,8 @@ def lag_profile(K: np.ndarray, interior: int | None = None) -> np.ndarray:
     prof = np.zeros(n)
     cnt = np.zeros(n)
     for i in rows:
+        if K[i, i] == 0:
+            continue  # A normalized row is undefined; do not turn this into a finite lag statistic.
         for j in range(n):
             lag = abs(j - i)
             prof[lag] += K[i, j] / K[i, i]
@@ -46,29 +107,52 @@ def lag_profile(K: np.ndarray, interior: int | None = None) -> np.ndarray:
 
 
 def sign_structure(K: np.ndarray, rel_tol: float = 1e-6) -> dict:
-    """Classify the influence matrix: Z-matrix, M-matrix, cooperative class, sign changes by distance."""
-    K = np.asarray(K, float)
+    """Classify a general real matrix, keeping M- and energy-positivity tests distinct.
+
+    A real Z-matrix is a nonsingular M-matrix iff all its eigenvalues have positive real parts.
+    Positive definiteness of sym(K) is neither used nor necessary. Near singular/poorly resolved cases
+    return ``m_matrix=None`` (INDETERMINATE), never a false mathematical disproof. Cooperative dynamics
+    additionally require the monotone local law stated in RC-T1; the structural flag alone proves no physics.
+    """
+    K = _square_finite(K, "K")
+    if not np.isfinite(rel_tol) or not 0 < rel_tol < 1:
+        raise ValueError("rel_tol must be finite and between zero and one")
     n = K.shape[0]
     d = np.diag(K)
     off = K - np.diag(d)
-    scale = np.max(np.abs(d))
-    pos_off = off > rel_tol * scale
+    scale = float(np.max(np.abs(K)))
+    diag_scale = float(np.max(np.abs(d)))
+    tol = rel_tol * scale
+    pos_off = off > tol
     z = bool(not np.any(pos_off))
+    z_exact = bool(not np.any(off > 0))
     sym = 0.5 * (K + K.T)
     eig_min = float(np.min(np.linalg.eigvalsh(sym)))
+    real_min = float(np.min(np.linalg.eigvals(K).real))
+    condition = float(np.linalg.cond(K))
     try:
-        inv_nonneg = bool(np.all(np.linalg.inv(K) >= -rel_tol * np.max(np.abs(np.linalg.inv(K)))))
+        inverse = np.linalg.solve(K, np.eye(n))
+        inv_nonneg = bool(np.all(inverse >= -rel_tol * np.max(np.abs(inverse))))
     except np.linalg.LinAlgError:
-        inv_nonneg = False
+        inv_nonneg = None
+    if not z or real_min < -tol:
+        m_matrix, status = False, "FAIL"
+    elif not z_exact or real_min <= tol or not np.isfinite(condition) or condition > 1 / rel_tol:
+        m_matrix, status = None, "INDETERMINATE"
+    else:
+        m_matrix, status = True, "PASS"
     prof = lag_profile(K)
     first_pos = next((l for l in range(1, n) if np.isfinite(prof[l]) and prof[l] > rel_tol), None)
     return {
-        "n": n, "diag_positive": bool(np.all(d > 0)), "z_matrix": z,
+        "n": n, "diag_positive": bool(np.all(d > 0)), "z_matrix": z, "z_matrix_exact": z_exact,
         "positive_offdiag_fraction": float(pos_off.sum() / max(1, n * (n - 1))),
-        "max_positive_offdiag_rel": float(np.max(np.where(pos_off, off, 0.0)) / scale) if np.any(pos_off) else 0.0,
+        "max_positive_offdiag_rel": float(np.max(np.where(pos_off, off, 0.0)) / max(diag_scale, scale * rel_tol)) if np.any(pos_off) else 0.0,
         "min_eig_sym": eig_min, "inverse_nonnegative": inv_nonneg,
-        "m_matrix": bool(z and eig_min > 0),
-        "cooperative_world0": z,   # ∂v̇_i/∂v_j = −φ'·K_ij ≥ 0 for i ≠ j  ⇔  K_ij ≤ 0 (Kamke condition, RC-T1)
+        "min_eig_real": real_min, "condition_number": condition,
+        "m_matrix": m_matrix, "m_matrix_status": status,
+        # Exact sign is required for the theorem. A tolerance-only Z classification
+        # is numerical uncertainty, not permission to delete a positive coupling.
+        "cooperative_world0": True if z_exact else (None if z else False),
         "first_positive_lag": first_pos, "lag_profile": prof,
     }
 

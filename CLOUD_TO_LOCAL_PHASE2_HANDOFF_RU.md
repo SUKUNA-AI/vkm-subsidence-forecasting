@@ -1,5 +1,7 @@
 # CLOUD → LOCAL: передача Phase 2 (вычисления на workstation)
 
+**Актуализация 01.11.2026:** workstation-этап уже выполнялся. Продолжение начинать с [контрольной точки всего СКРУ-1](docs/implementation_work/SKRU1_WHOLEMINE_CHECKPOINT_20261101_RU.md) и [PROJECT_STATE_RU.md](PROJECT_STATE_RU.md). Ниже исходный исторический план; установочные шаги и прежние NOT_RUN не повторять без проверки поздних receipts. ML сейчас вне задачи.
+
 Дата: 26.09.2026.
 
 - Составлено в cloud-сессии «CLOUD ULTRACODE — продолжение scientific reset».

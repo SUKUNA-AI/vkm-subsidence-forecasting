@@ -1,0 +1,96 @@
+{
+  "schema": "vkm.public.wholemine_checkpoint/1",
+  "date": "2026-11-01",
+  "scope": "WHOLE_SKRU1_ENGINEERING_GEOLOGY_GEOMETRY_ENSEMBLES_AND_BOUNDED_ELASTIC_MECHANICS",
+  "scientific_status": "ACCEPTED_BOUNDED_SCENARIOS_NOT_FULL_STAGED_MINE_MODEL",
+  "private_repository": "SUKUNA-AI/vkm-subsidence-forecasting_resourses",
+  "private_branch": "gpt/skru1-wholemine-checkpoint-2026-11-01",
+  "private_package": "12_work_exports/skru1_wholemine_20261101",
+  "source_receipt_pins": [
+    {
+      "id": "assembly",
+      "sha256": "ba02ff322775fedc7002acf852685450194e1dd25c7f235071dfb65abb875f98"
+    },
+    {
+      "id": "global25",
+      "sha256": "ee87d5929d8658c407cac05b15a0b6e3b1d299655eadff7a0e0f174b28a6a869"
+    },
+    {
+      "id": "localAR",
+      "sha256": "00eba79851786d48085acb23cab90e04bd23bd7e121ef438c24a641a0b1c36a9"
+    },
+    {
+      "id": "million",
+      "sha256": "c7a46c1509f123492acb1e1014b64f7a5f32b229e09a7d92f506f069eb597145"
+    },
+    {
+      "id": "newG03",
+      "sha256": "c84c66b469ad6c1f24044bd541c6577d980dcbe7839c0ac5a052ced04f7bc988"
+    }
+  ],
+  "objects": {
+    "total": 347,
+    "contours": 315,
+    "unknown_geometry": 32
+  },
+  "ensemble": {
+    "existing_geometries": 1000000,
+    "strata": 18,
+    "saved": 64,
+    "new_internal_partitions": 100000,
+    "new_selected": 32,
+    "full_FEM_worlds": 0
+  },
+  "mechanics": {
+    "global_equations": 4210300,
+    "global_step_m": 25,
+    "global_warning_elements": 6,
+    "local_equations": 729120,
+    "local_SHPP_warnings": 0,
+    "local_SHPP_errors": 0,
+    "scope": "Elastic gravity from unloaded state; one-way regional/local displacement transfer"
+  },
+  "height": {
+    "product_reference": "EGM2008_KNOWN",
+    "historical_mine_collar_epoch_join": "UNKNOWN"
+  },
+  "not_completed": [
+    "Actual wholemine chamber geometry and complete extraction/backfill chronology",
+    "Staged excavation/backfill/contact/creep FEM",
+    "Field validation and full scientific admission",
+    "Full original acceptance matrix and fresh CI qualification"
+  ],
+  "ML": "OUT_OF_CURRENT_SCOPE_NOT_TRAINED",
+  "publication_authority": "User request 2026-11-01: save results to GitHub and update memory/state; subsequent request consolidates branches into main",
+  "publication_checks": {
+    "canonical_verifier_exit": 0,
+    "windows_world_tests": {
+      "passed": 1771,
+      "failed": 2,
+      "skipped": 2,
+      "full_pass": false,
+      "failures": [
+        "test_fresh_bytecode_namespace_ignores_stale_same_size_timestamp_cache",
+        "test_resolve_repo_path_rejects_symlink_escape"
+      ],
+      "skipped_reason": "torch not installed in selected CI venv"
+    },
+    "hosted_CI": "OBSERVE_CURRENT_RUN_SEPARATELY",
+    "integrated_windows_tests": {
+      "passed": 2000,
+      "failed": 2,
+      "skipped": 5,
+      "full_pass": false,
+      "unchanged_failure_sources": true
+    }
+  },
+  "code_integration": {
+    "user_requested_main_merge": true,
+    "source_heads": {
+      "staged_mechanics": "1384d262fe85c4e03e933cc674dd56f0d0306cf7",
+      "wholemine_geology": "08df0b8d7933532428ade543a4d135d222082545",
+      "native_engineering_mcp": "3d56163f820e954ce72b5a8adc6ec5a988060953"
+    },
+    "scientific_results_not_recomputed": true
+  }
+}

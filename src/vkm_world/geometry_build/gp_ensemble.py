@@ -2,6 +2,9 @@
 
 Everything here is a declared MODEL_CHOICE, not evidence:
 
+The following describes the historical default. An explicit ``positive_law``
+may opt into a versioned squareplus top link; it never changes the default replay.
+
 * the top contact is modelled through ``Y0 = ln(depth below the reference collar)``;
 * each interval thickness is a clipped Gaussian ``H = max(Y, 0)``: zero thickness is the
   event ``Y <= 0``, an observed absence is the censored datum ``Y <= 0``, and the contact
@@ -56,10 +59,11 @@ class ParameterGrid:
     jitter: float = 1e-4
 
     def __post_init__(self):
-        if not self.ranges_m or min(self.ranges_m) <= 0:
-            raise ValueError("positive ranges required")
-        if not self.nugget_ratios or min(self.nugget_ratios) < 0 or max(self.nugget_ratios) >= 1:
-            raise ValueError("nugget ratios must lie in [0, 1)")
+        if not self.ranges_m or not np.isfinite(self.ranges_m).all() or min(self.ranges_m) <= 0:
+            raise ValueError("finite positive ranges required")
+        if (not self.nugget_ratios or not np.isfinite(self.nugget_ratios).all()
+                or min(self.nugget_ratios) < 0 or max(self.nugget_ratios) >= 1):
+            raise ValueError("finite nugget ratios must lie in [0, 1)")
         if not 0 <= self.jitter < 1e-2:
             raise ValueError("jitter is a numerical regulariser, keep it below 1e-2")
 
@@ -323,9 +327,17 @@ class LayeredReadings:
 TOP_FLOOR_M = 0.1
 
 
-def top_latent(depth0, shift):
-    """Latent top reading under a collar shift (true collar = reference + shift)."""
+def top_latent(depth0, shift, positive_law=None):
+    """Latent top reading under a collar shift (true collar = reference + shift).
+
+    An explicitly supplied squareplus law uses its pinned scale and rejects
+    nonpositive corrected readings. The historical default floor/log is unchanged.
+    """
     d = np.asarray(depth0, float) - np.asarray(shift, float)
+    if positive_law is not None:
+        from .positive_field_law import SQUAREPLUS_LAW
+        if positive_law.law_id == SQUAREPLUS_LAW:
+            return positive_law.encode_top(d), 0
     return np.log(np.maximum(d, TOP_FLOOR_M)), int(np.sum(d < TOP_FLOOR_M))
 
 
@@ -333,7 +345,13 @@ def draw_field(rng, xy, kind, grid, y, censored, sweeps=30, chunk=400):
     """Parameter draws and conditioning readings for one field.
 
     ``xy`` is (n, 2), or (R, n, 2) for per-realization support positions; then the posterior
-    is built per realization in chunks (memory) and the result is identical to one batch.
+    is built per realization in chunks to bound memory. Chunking preserves the
+    sampling law, not fixed-seed pathwise identity: each chunk consumes uniforms,
+    gamma variates and normals before the next chunk, assigning different RNG
+    innovations to rows when ``chunk`` changes (also within censoring sweeps).
+    Reproducing particular draws therefore requires the chunk size, input/row
+    order, RNG implementation/state and sampler version in addition to the seed.
+    Statistical equivalence does not imply identical realization arrays or IDs.
     Returns (posterior or list of (rows, posterior), params, readings used).
     """
     y = np.atleast_2d(np.asarray(y, float))
@@ -372,13 +390,17 @@ def _kriging_parts(rng, parts, used, params, targets):
 
 
 def layered_predictive(rng, readings, train_rows, targets, kinds, draws, grid=ParameterGrid(),
-                       train_shift=None, sweeps=30, train_xy=None, target_xy=None):
+                       train_shift=None, sweeps=30, train_xy=None, target_xy=None, positive_law=None,
+                       field_reading_mask=None):
     """Predictive draws of contact depths below the reference collar at ``targets``.
 
     ``kinds``: covariance type per latent field. ``train_shift``: (draws, n) vertical collar
     shifts of all supports (true collar = reference + shift; only the top reading changes).
     ``train_xy``: (draws, n, 2) per-realization support positions (plan registration) and
     ``target_xy``: (draws, m, 2) per-realization target positions; None = as placed.
+    ``positive_law`` is an explicit versioned top link. None preserves legacy replay.
+    ``field_reading_mask`` optionally selects supports per field (K, n); this keeps
+    relative-only supports in the intervals while excluding their absolute TOP.
     Returns dict with ``depth`` (draws, m, K) and ``thickness`` (draws, m, K-1).
     """
     t = np.asarray(targets, float).reshape(-1, 2) if target_xy is None else np.asarray(target_xy, float)
@@ -386,20 +408,35 @@ def layered_predictive(rng, readings, train_rows, targets, kinds, draws, grid=Pa
     K = readings.n_fields
     latent = np.empty((draws, m, K))
     info = []
+    mask = None if field_reading_mask is None else np.asarray(field_reading_mask)
+    if mask is not None and (mask.dtype != np.bool_ or mask.shape != (K, len(readings.ids))):
+        raise ValueError("field reading mask must be boolean (K, n)")
     for f in range(K):
-        rows, value, censored = readings.field_readings(f, train_rows)
+        selected_rows = train_rows
+        if mask is not None:
+            selected_rows = np.asarray(train_rows)[mask[f, np.asarray(train_rows)]]
+        rows, value, censored = readings.field_readings(f, selected_rows)
         if len(rows) < 2:
             raise ValueError("field %d has fewer than two training readings" % f)
+        if f == 0 and positive_law is not None and train_shift is None:
+            value = positive_law.encode_top(readings.depth[rows, 0])
         y = np.broadcast_to(value, (draws, len(rows))).copy()
         floored = 0
         if f == 0 and train_shift is not None:
-            y, floored = top_latent(readings.depth[rows, 0][None, :], train_shift[:, rows])
+            y, floored = top_latent(readings.depth[rows, 0][None, :], train_shift[:, rows], positive_law)
+        if positive_law is not None:
+            from .positive_field_law import SQUAREPLUS_LAW
+            if positive_law.law_id == SQUAREPLUS_LAW:
+                if np.count_nonzero(~censored) < 4 or np.any(np.ptp(y[:, ~censored], axis=1) == 0):
+                    raise ValueError("new positive law requires >=4 nondegenerate exact readings per field")
+                if f == 0 and positive_law.top_support_count not in (None, len(rows)):
+                    raise ValueError("derive the law scale from these training TOP supports, not a different fold/mask")
         xy = readings.xy[rows] if train_xy is None else np.asarray(train_xy)[:, rows]
         parts, params, used = draw_field(rng, xy, kinds[f], grid, y, censored, sweeps)
         latent[:, :, f] = _kriging_parts(rng, parts, used, params, t)
         info.append({"field": f, "kind": kinds[f], "readings": int(len(rows)), "censored": int(censored.sum()),
                      "top_floor_hits": floored})
-    top = np.exp(latent[:, :, 0])
+    top = np.exp(latent[:, :, 0]) if positive_law is None else positive_law.decode_top(latent[:, :, 0])
     thickness = np.maximum(latent[:, :, 1:], 0.0)
     depth = np.concatenate([top[:, :, None], top[:, :, None] + np.cumsum(thickness, axis=2)], axis=2)
     return {"depth": depth, "thickness": thickness, "fields": info}
@@ -609,6 +646,8 @@ def simulate_on_nodes(backend, nodes, data_idx, kind, grid, params, y_data, batc
     per realization, so data nodes reproduce ``y_data`` up to float32 rounding.
     """
     nodes = np.asarray(nodes, float)
+    if nodes.ndim != 2 or nodes.shape[1] != 2 or not len(nodes) or not np.isfinite(nodes).all():
+        raise ValueError("nonempty finite (N, 2) grid nodes required")
     y_data = np.atleast_2d(np.asarray(y_data, float))
     R, N = len(y_data), len(nodes)
     data_idx = np.asarray(data_idx)
@@ -624,13 +663,24 @@ def simulate_on_nodes(backend, nodes, data_idx, kind, grid, params, y_data, batc
         rng_m = grid.ranges_m[int(a)]
         jitter = grid.jitter
         L = None
+        attempts = 0
         while L is None:
+            attempts += 1
             L, info = backend.cholesky(backend.correlation_matrix(nodes, kind, rng_m, jitter))
             if L is None:
-                if jitter >= 1e-2:
-                    raise RuntimeError("Cholesky failed even with jitter 1e-2")
-                jitter *= 10.0
-        log.append({"kind": kind, "range_m": rng_m, "jitter_used": jitter, "realizations": int(len(rows_a))})
+                # Zero explicitly requests no regularisation: adding one after
+                # failure would change the declared covariance. Never multiply
+                # zero forever, and bound all positive-jitter retry paths.
+                if jitter == 0 or jitter >= 1e-2 or attempts >= 12:
+                    reason = "ZERO_JITTER" if jitter == 0 else "RETRY_LIMIT"
+                    log.append({"kind": kind, "range_m": rng_m, "jitter_requested": grid.jitter,
+                                "jitter_used": jitter, "cholesky_attempts": attempts,
+                                "status": "CHOLESKY_FAILED_" + reason})
+                    raise RuntimeError("Cholesky failed: " + reason + "; no implicit covariance change")
+                jitter = min(jitter * 10.0, 1e-2)
+        log.append({"kind": kind, "range_m": rng_m, "jitter_requested": grid.jitter,
+                    "jitter_used": jitter, "cholesky_attempts": attempts,
+                    "status": "CHOLESKY_OK", "realizations": int(len(rows_a))})
         for s in range(0, len(rows_a), batch):
             rows = rows_a[s:s + batch]
             b = len(rows)
@@ -673,6 +723,34 @@ def sorted_quantiles(backend, realizations, probs, chunk=2048):
         srt = backend.to_numpy(srt).astype(float)
         out[:, s:s + chunk] = srt[lo] * (1 - frac)[:, None] + srt[hi] * frac[:, None]
     return out
+
+
+def seam_envelope_admissibility(roof, floor, parent_roof, parent_floor, tolerance_m=0.01):
+    """Check an explicitly chosen seam envelope, without repairing or rejecting draws.
+
+    All arrays are finite levels (positive up), shape (world, location). The
+    parent envelope is a supplied interpretation, never inferred from a seam
+    name. This check covers thickness and containment only; passing it does
+    not prove material partition, history or FEM readiness. A world passes
+    only if every checked location passes, so reporting marginal conflict
+    fractions cannot silently admit an invalid realization to mechanics.
+    """
+    arrays = [np.asarray(a, float) for a in (roof, floor, parent_roof, parent_floor)]
+    if arrays[0].ndim != 2 or any(a.shape != arrays[0].shape for a in arrays):
+        raise ValueError("one equal (world, location) array per envelope surface required")
+    if not arrays[0].size or not all(np.isfinite(a).all() for a in arrays):
+        raise ValueError("nonempty finite envelope surfaces required; UNKNOWN cannot be admitted")
+    if not np.isfinite(tolerance_m) or tolerance_m < 0:
+        raise ValueError("finite nonnegative tolerance required")
+    roof, floor, parent_roof, parent_floor = arrays
+    violations = {"negative_seam_thickness": floor > roof + tolerance_m,
+                  "inverted_parent_envelope": parent_floor > parent_roof + tolerance_m,
+                  "roof_above_parent": roof > parent_roof + tolerance_m,
+                  "floor_below_parent": floor < parent_floor - tolerance_m}
+    invalid = np.logical_or.reduce(list(violations.values()))
+    return {"valid_locations": ~invalid, "valid_worlds": ~invalid.any(axis=1),
+            "violations": violations, "tolerance_m": float(tolerance_m),
+            "checked_scope": "explicit envelope at supplied locations; no geometry repair or physical admission"}
 
 
 def tin_sampling_operator(nodes, triangles, points):

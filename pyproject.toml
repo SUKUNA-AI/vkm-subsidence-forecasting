@@ -97,16 +97,18 @@ ansys = [
     "ansys-workbench-core==0.14.0",
     "ansys-optislang-core==1.6.1",
 ]
+engineering = ["mcp==2.2.0"]
 
 [project.scripts]
 vkm-corpus = "vkm_corpus.cli:main"
 vkm-qgis = "vkm_qgis.mcp_server:main"
 vkm-datasets = "vkm_datasets.cli:main"
 vkm-evidence = "vkm_evidence.cli:main"
+vkm-engineering = "vkm_engineering.mcp_server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["vkm_world*", "vkm_corpus*", "vkm_cad*", "vkm_drawio*", "vkm_qgis*", "vkm_jobs*", "vkm_matlab*", "vkm_ansys*", "vkm_datasets*", "vkm_evidence*"]
+include = ["vkm_world*", "vkm_corpus*", "vkm_cad*", "vkm_drawio*", "vkm_qgis*", "vkm_jobs*", "vkm_matlab*", "vkm_ansys*", "vkm_datasets*", "vkm_evidence*", "vkm_engineering*"]
 
 [tool.setuptools.package-data]
 # non-Python files read at run time (a non-editable install, e.g. the CORE image, has only what is listed here)

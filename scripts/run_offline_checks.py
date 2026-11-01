@@ -68,6 +68,14 @@ KNOWN_SKIPS = (
     ("tests/corpus/test_stream_fileset.py::test_failed_job_assignment_never_resumes_actual_child",
      "NOT_RUN: suspended Windows Job memory-cap qualification"),
 )
+# These Win32 process primitives cannot run on Linux; Windows-offline executes
+# both tests as mandatory. Match exact cases and reason, never neighbouring tests.
+LINUX_NOT_RUN = (
+    ("tests/engineering/test_engineering_hidden_launch.py::test_actual_native_process_and_detached_runner_hidden",
+     "Windows creation flags only"),
+    ("tests/engineering/test_engineering_hidden_launch.py::test_taskkill_fallback_hidden_without_running_taskkill",
+     "Windows creation flags only"),
+)
 # These primitives do not exist on Windows. Missing symlink/locking privileges
 # remain failures; they must never be added to this operating-system allowance.
 LINUX_RECEIVER_REASON = ("NOT_RUN: qualified production receiver requires Linux filesystem change-time semantics; "
@@ -230,7 +238,8 @@ def allowed_skip(nodeid: str, reason: str, *, host_platform: str | None = None) 
     reason = reason.removeprefix("Skipped: ")
     platform = sys.platform if host_platform is None else host_platform
     return ((nodeid, reason) in KNOWN_SKIPS or (module, reason) in KNOWN_SKIPS
-            or (platform == "win32" and (nodeid, reason) in WINDOWS_NOT_RUN))
+            or (platform == "win32" and (nodeid, reason) in WINDOWS_NOT_RUN)
+            or (platform == "linux" and (nodeid, reason) in LINUX_NOT_RUN))
 
 
 def test_status(stats: dict, exit_code: int) -> str:
