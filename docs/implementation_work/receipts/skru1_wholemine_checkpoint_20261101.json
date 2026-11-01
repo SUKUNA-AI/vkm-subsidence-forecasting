@@ -75,7 +75,14 @@
       ],
       "skipped_reason": "torch not installed in selected CI venv"
     },
-    "hosted_CI": "OBSERVE_CURRENT_RUN_SEPARATELY"
+    "hosted_CI": "OBSERVE_CURRENT_RUN_SEPARATELY",
+    "integrated_windows_tests": {
+      "passed": 2000,
+      "failed": 2,
+      "skipped": 5,
+      "full_pass": false,
+      "unchanged_failure_sources": true
+    }
   },
   "code_integration": {
     "user_requested_main_merge": true,

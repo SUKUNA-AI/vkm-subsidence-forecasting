@@ -24,7 +24,9 @@
 
 ## Проверки при сохранении
 
-Канонический верификатор завершился с кодом 0: ссылки, public/private синхронизация, хеши источников и проверка утечки пройдены. Native Windows tests/world: 1771 passed, 2 failed, 2 skipped. Ошибки: test_fresh_bytecode_namespace_ignores_stale_same_size_timestamp_cache и test_resolve_repo_path_rejects_symlink_escape (WinError 1314). Два GPU-теста пропущены из-за отсутствия torch в выбранном CI-окружении. Это фиксация текущего состояния, не общий зелёный статус тестов; код и права Windows ради сохранения не менялись. Статус GitHub CI фиксируется отдельно по фактическому запуску.
+До объединения канонический верификатор завершился с кодом 0: ссылки, public/private синхронизация, хеши источников и проверка утечки пройдены. Native Windows tests/world: 1771 passed, 2 failed, 2 skipped. Ошибки: test_fresh_bytecode_namespace_ignores_stale_same_size_timestamp_cache и test_resolve_repo_path_rejects_symlink_escape (WinError 1314). Два GPU-теста пропущены из-за отсутствия torch в выбранном CI-окружении. Это фиксация текущего состояния, не общий зелёный статус тестов; код и права Windows ради сохранения не менялись. Статус GitHub CI фиксируется отдельно по фактическому запуску.
+
+После объединения кода tests/world + tests/engineering: **2000 passed, 2 failed, 5 skipped**. Остались те же две ошибки; их исходные тесты и реализации не менялись относительно исходного main. Четыре GPU-теста пропущены без torch и один тест символьных ссылок — из-за прав хоста. Этот результат не называется полным прохождением тестов.
 
 ## Продолжение
 
