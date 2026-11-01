@@ -174,6 +174,7 @@ def test_relative_only_support_mask_honours_five_gaps_without_absolute_top():
                              ["spherical"] * 6, 2, positive_law=wrong_scale, field_reading_mask=mask)
 
 
+@pytest.mark.gpu
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_torch_fixed_values_cpu_cuda_forward_inverse(device):
     torch = pytest.importorskip("torch")
