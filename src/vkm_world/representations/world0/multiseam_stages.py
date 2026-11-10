@@ -196,7 +196,8 @@ class TensorStages:
         dissipation = float(np.einsum("egv,egv,eg->", stress, delta_creep, self.weights))
         if dissipation < -1e-7:
             raise RuntimeError("negative creep dissipation")
-        reaction = residual.reshape(-1, 3).sum(axis=0)
+        fixed = mesh.fixed_dofs
+        reaction = np.bincount(fixed % 3, weights=residual[fixed], minlength=3)
         body = base.reshape(-1, 3).sum(axis=0)
         balance = float(np.linalg.norm(reaction + body, ord=np.inf) / max(1.0, np.linalg.norm(body, ord=np.inf)))
         if balance > 1e-8:
