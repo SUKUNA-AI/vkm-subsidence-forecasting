@@ -59,6 +59,8 @@ class ApiConfig:
     max_body_bytes: int = 1_000_000
     access_contexts: dict[str, AccessContext] = field(default_factory=dict)
     deployment_token: str | None = field(default=None, repr=False)
+    scientific_manifest_path: str | None = None
+    scientific_manifest_sha256: str | None = None
 
     def __post_init__(self):
         if self.deployment_token is not None and (not 32 <= len(self.deployment_token) <= 256
@@ -93,7 +95,10 @@ class ApiConfig:
         if token_file := environ.get("VKM_DEPLOYMENT_TOKEN_FILE"):
             from vkm_corpus.update.receiver import operator_token
             deployment_token = operator_token(FilePath(token_file))
-        return cls(read_tokens=read, write_tokens=write, access_contexts=contexts, deployment_token=deployment_token)
+        return cls(read_tokens=read, write_tokens=write, access_contexts=contexts,
+                   deployment_token=deployment_token,
+                   scientific_manifest_path=environ.get("VKM_SCIENTIFIC_SNAPSHOT_FILE"),
+                   scientific_manifest_sha256=environ.get("VKM_SCIENTIFIC_SNAPSHOT_SHA256"))
 
 
 # ---------------------------------------------------------------------------------------------------- bodies
@@ -894,6 +899,14 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
 
     from vkm_evidence.api import mount_evidence_routes
     mount_evidence_routes(app, service, config, respond, Read, Write)
+    if config.scientific_manifest_path or config.scientific_manifest_sha256:
+        if not config.scientific_manifest_path or not config.scientific_manifest_sha256:
+            raise ValueError("scientific reader requires manifest path and SHA-256 together")
+        from pathlib import Path as ScientificPath
+        from vkm_corpus.api.scientific import ScientificReader, mount_scientific_routes
+        reader = ScientificReader(ScientificPath(config.scientific_manifest_path),
+                                  config.scientific_manifest_sha256, service.canon.snapshot_id)
+        mount_scientific_routes(app, reader, read_access)
     return app
 
 

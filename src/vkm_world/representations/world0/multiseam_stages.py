@@ -7,7 +7,7 @@ import numpy as np
 from scipy.sparse import coo_matrix
 from scipy.sparse.linalg import splu
 
-from .multiseam import _quadrature, quadrature_data
+from .multiseam import _quadrature, elastic_matrix, quadrature_data
 
 
 def deviator(strain):
@@ -44,9 +44,12 @@ class TensorStages:
 
     def __init__(self, mesh, *, young_pa, poisson, density, rock_cells, patch_index,
                  excavation_fraction, events, viscosity_pa_s, fill_young_pa, fill_density, fill_fraction,
-                 gravity=9.80665):
+                 gravity=9.80665, creep_enabled=None):
         if mesh.volumetric_average:
             raise ValueError("tensor stages use full quadrature, not an averaged volumetric tangent")
+        material = elastic_matrix(np.asarray(young_pa, dtype=float), np.asarray(poisson, dtype=float))
+        if material.shape != mesh.D.shape or not np.array_equal(material, mesh.D):
+            raise ValueError("material field differs from the assembled ElasticMesh stiffness")
         self.mesh = mesh
         self.rock = np.flatnonzero(rock_cells)
         self.patch_index = np.asarray(patch_index, dtype=int)[self.rock]
@@ -73,10 +76,22 @@ class TensorStages:
         if any(a.shape != (len(mesh.cells),) or not np.isfinite(a).all() or np.any(a <= 0)
                for a in (self.bulk, self.shear, self.density)):
             raise ValueError("invalid bulk, shear or density field")
-        constants = [viscosity_pa_s, fill_young_pa, fill_density, fill_fraction, gravity]
+        constants = [fill_young_pa, fill_density, fill_fraction, gravity]
         if not all(np.isfinite(x) and x > 0 for x in constants) or fill_fraction > 1:
             raise ValueError("invalid scenario constants")
-        self.eta = viscosity_pa_s
+        viscosity = np.asarray(viscosity_pa_s, dtype=float)
+        if viscosity.ndim == 0:
+            viscosity = np.full(len(self.rock), float(viscosity))
+        enabled = np.ones(len(self.rock), dtype=bool) if creep_enabled is None else np.asarray(creep_enabled)
+        if enabled.shape != (len(self.rock),) or enabled.dtype.kind != "b":
+            raise ValueError("creep_enabled must be one boolean per support cell")
+        if (viscosity.shape != (len(self.rock),) or np.isinf(viscosity).any()
+                or not np.isfinite(viscosity[enabled]).all()
+                or np.any(viscosity[np.isfinite(viscosity)] <= 0)):
+            raise ValueError("viscosity must be positive and finite on creep-enabled cells")
+        self.eta = viscosity.copy()
+        self.creep_enabled = enabled.copy()
+        self.creep_enabled.flags.writeable = False
         self.fill_young = fill_young_pa
         self.fill_density = fill_density
         self.fill_fraction = fill_fraction
@@ -108,6 +123,14 @@ class TensorStages:
         self.base_k[self.rock] = 0
         self.base_matrix = mesh.assemble(self.base_k)
         self._cache = None
+
+    def creep_ratio(self, dt_s):
+        """Return zero creep rate on explicitly elastic support domains."""
+        if not np.isfinite(dt_s) or dt_s < 0:
+            raise ValueError("invalid constitutive time increment")
+        ratio = np.zeros(len(self.rock))
+        np.divide(dt_s * self.shear[self.rock], self.eta, out=ratio, where=self.creep_enabled)
+        return ratio
 
     def element_body_force(self, support, fill):
         rho = self.density.copy()
@@ -143,7 +166,7 @@ class TensorStages:
         if not np.isfinite(dt) or dt < 0:
             raise ValueError("invalid step")
         local_g = self.shear[self.rock]
-        ratio = dt * local_g / self.eta
+        ratio = self.creep_ratio(dt)
         bulk = self.bulk[self.rock] * support
         shear = local_g * support / (1 + ratio)
         base = self._body_force(support, fill)
@@ -156,7 +179,8 @@ class TensorStages:
         fill_k = fill[:, None] * self.fill_young
         free = mesh.free_dofs
         for _ in range(24):
-            key = (dt, support.tobytes(), fill.tobytes(), active.tobytes(), free.tobytes())
+            key = (dt, bulk.tobytes(), shear.tobytes(), fill_k.tobytes(),
+                   active.tobytes(), free.tobytes())
             if self._cache is None or key != self._cache[0]:
                 self.rock_k[:] = (bulk[:, None, None] * self.bulk_basis
                                   + shear[:, None, None] * self.shear_basis)
