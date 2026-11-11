@@ -20,6 +20,12 @@ from vkm_corpus.api.errors import ApiFailure
 
 
 TABLE_ROLES = {
+    "current_source_joins": "SOURCE_TO_CONDITIONAL_OPERATOR_RUN_FIELD_REFERENCE",
+    "current_depth_intervals": "MODEL_CURRENT_DEPTH_CONDITIONAL_GEOLOGY",
+    "current_depth_materials": "MODEL_CURRENT_DEPTH_CONDITIONAL_C2",
+    "current_depth_patches": "MODEL_CURRENT_DEPTH_PATCH_COVERAGE",
+    "current_depth_events": "MODEL_SOURCE_DRIVEN_C4",
+    "final_producers": "MODEL_AND_NUMERICAL_PRODUCER_METADATA",
     "intervals": "MODEL_GEOLOGY",
     "constraints": "SOURCE_EVIDENCE_REFERENCE",
     "patches": "MODEL_GEOMETRY",
