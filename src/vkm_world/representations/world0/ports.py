@@ -16,6 +16,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
+import numpy as np
+
 
 class PortKind(str, Enum):
     MECHANICAL = "MECHANICAL"
@@ -26,8 +28,8 @@ class PortKind(str, Enum):
 
 # (symbol, SI unit, meaning); the first item is the "effort"-like, the second the "flow"-like variable.
 PORT_VARIABLES: dict[PortKind, tuple[tuple[str, str, str], ...]] = {
-    PortKind.MECHANICAL: (("u", "m", "mean normal displacement of the port face"),
-                          ("t", "Pa", "mean normal traction t = σ·n on the port face (compression +)")),
+    PortKind.MECHANICAL: (("u", "m", "three-component displacement of the port face"),
+                          ("t", "Pa", "three-component traction on the port face in the declared sign convention")),
     PortKind.HYDRAULIC: (("p", "Pa", "fluid (pore) pressure"),
                          ("q_n", "m/s", "normal Darcy flux through the port face")),
     PortKind.THERMAL: (("T", "K", "temperature"),
@@ -54,14 +56,42 @@ class Port:
         return tuple(v[0] for v in PORT_VARIABLES[self.kind])
 
 
-def port_power_density(kind: PortKind, effort: float, flow_rate: float) -> float:
+def mechanical_port_basis(normal, tangent, opposite_normal) -> np.ndarray:
+    """Return rows [normal, tangent, second tangent] for an oriented paired face.
+
+    The two outward normals must oppose each other. The supplied normal and
+    first tangent must already be unit, perpendicular directions in one frame.
+    Coordinates transform to this local basis as basis @ global_vector.
+    """
+    directions = np.asarray([normal, tangent, opposite_normal], dtype=float)
+    if directions.shape != (3, 3) or not np.isfinite(directions).all():
+        raise ValueError("mechanical port directions must be finite three-vectors")
+    normal, tangent, opposite = directions
+    if not np.allclose(np.linalg.norm(directions, axis=1), 1.0, rtol=0, atol=1e-12):
+        raise ValueError("mechanical port directions must be unit vectors")
+    if not np.allclose(normal, -opposite, rtol=0, atol=1e-12):
+        raise ValueError("paired mechanical port normals must oppose")
+    if not np.isclose(normal @ tangent, 0.0, rtol=0, atol=1e-12):
+        raise ValueError("mechanical port tangent must be perpendicular to its normal")
+    return np.stack((normal, tangent, np.cross(normal, tangent)))
+
+
+def port_power_density(kind: PortKind, effort, flow_rate) -> float:
     """Power density exchanged through a port [W/m²].
 
     MECHANICAL: t·u̇ (traction × displacement rate); HYDRAULIC: p·q_n; THERMAL: the heat flux itself
     (q_T is already a power density; ``effort`` is ignored). CONTACT has no single conjugate pair
     (normal and tangential parts are separate) and raises.
     """
-    if kind is PortKind.MECHANICAL or kind is PortKind.HYDRAULIC:
+    if kind is PortKind.MECHANICAL:
+        traction = np.asarray(effort, dtype=float)
+        velocity = np.asarray(flow_rate, dtype=float)
+        if traction.shape != velocity.shape or traction.shape not in ((), (3,)):
+            raise ValueError("mechanical power needs matching scalars or three-vectors")
+        if not np.isfinite(traction).all() or not np.isfinite(velocity).all():
+            raise ValueError("mechanical power needs finite traction and velocity")
+        return float(np.sum(traction * velocity))
+    if kind is PortKind.HYDRAULIC:
         return float(effort) * float(flow_rate)
     if kind is PortKind.THERMAL:
         return float(flow_rate)
