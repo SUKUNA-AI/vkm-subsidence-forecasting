@@ -90,6 +90,8 @@ jobs:
       - name: Install exact CPU locks
         run: |
           python -m pip install --no-deps -r requirements/worldspec.lock.txt -r requirements/corpus.lock.txt -r requirements/corpus-services.lock.txt -r requirements/offline-test.lock.txt
+          python -m pip install --no-deps -r requirements/world-torch-cpu.lock.txt
+          python -m pip install --no-deps --index-url https://download.pytorch.org/whl/cpu torch==2.13.0+cpu
           python -m pip check
       - name: Windows filesystem, jobs, pure GIS and future-clock checks
         shell: pwsh
