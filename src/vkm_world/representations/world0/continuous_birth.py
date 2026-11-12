@@ -89,12 +89,24 @@ class ContinuousModel:
 
     def restore(self,path,identity):
         with np.load(path,allow_pickle=False) as f: data={k:f[k].copy() for k in f.files}
+        if set(data)!={'time','state','times','refs','identity','checksum'}:
+            raise ValueError('checkpoint schema')
         checksum=str(data.pop('checksum'))
-        if set(data)!={'time','state','times','refs','identity'} or str(data['identity'])!=identity or payload(data)!=checksum:
+        if str(data['identity'])!=identity or payload(data)!=checksum:
             raise ValueError('checkpoint identity/checksum')
-        t=float(data['time']); y=data['state']; ts=data['times']; rr=data['refs']
-        if y.shape!=(2*self.n+2,) or ts.ndim!=1 or rr.shape!=(len(ts),self.ng) or ts[0]!=0 or ts[-1]!=t or np.any(np.diff(ts)<=0) or not 0<t<=1 or not all(np.isfinite(a).all() for a in (y,ts,rr)):
+        tt=data['time']; y=data['state']; ts=data['times']; rr=data['refs']
+        # Validate raw arrays before scalar conversion or numerical coercion.
+        # Complex (even zero-imaginary), bool, object and strings are not real
+        # physical checkpoint numbers. Preserve valid arrays without casting.
+        if any(a.dtype.kind not in 'iuf' for a in (tt,y,ts,rr)):
+            raise ValueError('checkpoint numeric dtype/domain')
+        if tt.shape!=() or y.shape!=(2*self.n+2,) or ts.ndim!=1 or ts.size==0 or rr.shape!=(ts.size,self.ng):
+            raise ValueError('checkpoint shape/domain')
+        if not all(np.isfinite(a).all() for a in (tt,y,ts,rr)):
+            raise ValueError('checkpoint finite/domain')
+        if ts[0]!=0 or ts[-1]!=tt or np.any(ts[1:]<=ts[:-1]) or not 0<tt<=1:
             raise ValueError('checkpoint domain')
+        t=float(tt)
         if not np.array_equal(rr[-1],self.Q@y[:self.n]): raise ValueError('checkpoint reference state')
         self.times=ts; self.refs=rr
         return t,y
