@@ -1,5 +1,6 @@
 """Independent analytical values and checkpoint lifecycle regressions."""
 from pathlib import Path
+import sys
 from unittest.mock import patch
 
 import pytest
@@ -75,7 +76,9 @@ def test_fresh_cleanup_still_clears_checkpoint(tmp_path):
     assert "case.r001" in clear_outputs(tmp_path, "input.inp")
 
 
-def test_missing_checkpoint_fails_before_solver_or_cleanup(tmp_path):
+def test_missing_checkpoint_fails_before_solver_or_cleanup(tmp_path, monkeypatch):
+    monkeypatch.setenv("VKM_MAPDL_EXE", sys.executable)
+    (tmp_path / "case.inp").write_text("/PREP7")
     (tmp_path / "history.txt").write_text("keep until validation")
     with patch("subprocess.call") as launch:
         with pytest.raises(FileNotFoundError, match="multiframe restart"):
@@ -86,7 +89,7 @@ def test_missing_checkpoint_fails_before_solver_or_cleanup(tmp_path):
 
 def test_restart_receipt_binds_checkpoint_hashes(tmp_path, monkeypatch):
     _checkpoint(tmp_path)
-    monkeypatch.setenv("VKM_MAPDL_EXE", "synthetic-test-executable")
+    monkeypatch.setenv("VKM_MAPDL_EXE", sys.executable)
 
     def fake_solver(*args, **kwargs):
         assert (tmp_path / "case.r001").is_file()

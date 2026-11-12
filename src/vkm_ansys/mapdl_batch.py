@@ -266,9 +266,12 @@ def run_job(job_dir: Path, env: dict[str, str] | None = None) -> int:
         summary["lock_holder"] = lock.holder()
         return finish(EXIT["pool_busy"], "POOL_BUSY")
     summary["lock_wait_s"] = round(time.monotonic() - t_lock, 3)
-    job = _job_object()
+    job = None
     timed_out = False
     try:
+        # Creation may fail (for example, if the required memory cap cannot be
+        # installed). The already acquired licence must still be released.
+        job = _job_object()
         summary["started_at"] = _utc()
         t0 = time.monotonic()
         with open(logs / "mapdl.stdout.txt", "wb") as so, open(logs / "mapdl.stderr.txt", "wb") as se:

@@ -33,6 +33,21 @@ class StageState:
     fill_ref: np.ndarray
     event_cursor: int
 
+    def __post_init__(self):
+        # An immutable bytes owner prevents callers from re-enabling WRITEABLE.
+        # Copying also disconnects accepted history from mutable trial arrays.
+        for name in ("displacement_m", "creep", "support", "fill", "fill_ref"):
+            value = np.asarray(getattr(self, name))
+            if value.dtype.hasobject:
+                raise ValueError("StageState arrays must not contain Python objects")
+            frozen = np.frombuffer(value.tobytes(order="C"), dtype=value.dtype).reshape(value.shape)
+            object.__setattr__(self, name, frozen)
+
+    def __deepcopy__(self, memo):
+        # All fields are immutable; deepcopy must not create writable ndarrays.
+        memo[id(self)] = self
+        return self
+
 
 class TensorStages:
     """Geometrically linear mixture with solid KrII and compression-only fill.

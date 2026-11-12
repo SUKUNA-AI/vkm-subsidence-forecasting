@@ -115,7 +115,15 @@ def gnss(displacements, weights, time_index, zero_index, *, model_to_enu, **kwar
 
 
 def insar(displacements, weights, time_index, zero_index, *, model_to_enu,
-          enu_toward_satellite, positive_toward_satellite, **kwargs):
+          enu_toward_satellite, positive_toward_satellite, reference_weights=None,
+          reference_enu_toward_satellite=None, reference_station_weights=None, **kwargs):
+    """Project temporal motion, then subtract the scalar spatial reference.
+
+    ``reference_weights`` remains a support over model nodes. For varying LOS,
+    its LOS must be explicit unless that support exactly identifies an observed
+    station with unambiguous LOS. ``reference_station_weights`` instead averages
+    already projected station measurements. These reference modes are exclusive.
+    """
     if not isinstance(positive_toward_satellite, (bool, np.bool_)):
         raise ValueError("The LOS sign convention must be explicitly boolean")
     vectors = gnss(displacements, weights, time_index, zero_index,
@@ -128,6 +136,37 @@ def insar(displacements, weights, time_index, zero_index, *, model_to_enu,
     if not np.allclose(np.linalg.norm(los, axis=1), 1, rtol=0, atol=1e-12):
         raise ValueError("LOS directions must already be unit vectors")
     projected = np.einsum("ij,ij->i", vectors, los)
+    if reference_station_weights is not None:
+        if reference_weights is not None or reference_enu_toward_satellite is not None:
+            raise ValueError("Choose either node or station reference support")
+        reference = np.asarray(reference_station_weights, dtype=np.float64)
+        if (reference.shape != projected.shape or not np.isfinite(reference).all()
+                or not np.isclose(reference.sum(), 1, rtol=0, atol=1e-12)):
+            raise ValueError("Reference station weights must be finite and sum to one")
+        projected = projected - reference @ projected
+    elif reference_weights is not None:
+        reference = np.asarray(reference_weights, dtype=np.float64)
+        if reference.ndim != 1:
+            raise ValueError("Reference support must be one-dimensional node weights")
+        # Use the same support validation as GNSS; do not change GNSS semantics.
+        reference_vector = gnss(displacements, reference[None, :], time_index, zero_index,
+                                model_to_enu=model_to_enu, **kwargs)[0]
+        if reference_enu_toward_satellite is None:
+            if len(los) and np.all(los == los[0]):
+                reference_los = los[0]
+            else:
+                matches = np.flatnonzero(np.all(np.asarray(weights) == reference, axis=1))
+                if not len(matches) or not np.all(los[matches] == los[matches[0]]):
+                    raise ValueError("Variable LOS requires explicit reference LOS or reference_station_weights")
+                reference_los = los[matches[0]]
+        else:
+            reference_los = np.asarray(reference_enu_toward_satellite, dtype=np.float64)
+        if (reference_los.shape != (3,) or not np.isfinite(reference_los).all()
+                or not np.isclose(np.linalg.norm(reference_los), 1, rtol=0, atol=1e-12)):
+            raise ValueError("Reference LOS must be an explicit unit vector")
+        projected = projected - reference_vector @ reference_los
+    elif reference_enu_toward_satellite is not None:
+        raise ValueError("Reference LOS requires reference_weights")
     return projected if positive_toward_satellite else -projected
 
 

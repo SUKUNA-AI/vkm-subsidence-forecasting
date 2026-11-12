@@ -1,4 +1,5 @@
 """Elastic support with unknown creep data must retain mass and stiffness."""
+from dataclasses import replace
 import numpy as np
 import pytest
 
@@ -38,7 +39,9 @@ def test_unknown_creep_support_retains_mass_and_excavation_response():
 def test_disabled_memory_is_preserved_instead_of_reset():
     case = model([1.e16, np.nan], [True, False])
     state, _ = case.initial()
-    state.creep[1, :, :3] = [-.0005, -.0005, .001]
+    memory = state.creep.copy()
+    memory[1, :, :3] = [-.0005, -.0005, .001]
+    state = replace(state, creep=memory)
     previous = state.creep.copy()
     updated, _ = case.advance(state, 1.e7)
     np.testing.assert_array_equal(updated.creep[1], previous[1])
