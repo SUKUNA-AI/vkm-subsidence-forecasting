@@ -23,7 +23,6 @@ from scipy import sparse
 from vkm_ansys import coupled_bridge as base
 from vkm_ansys import mapdl_batch
 from vkm_ansys.licence_lock import LicenceLock
-from vkm_jobs.procs import _resume_process
 
 
 @dataclass(frozen=True)
@@ -68,6 +67,9 @@ def native_argv(config, work):
 
 
 def dependency_receipt():
+    if os.name != 'nt':
+        raise RuntimeError('qualified native runtime requires Windows')
+    from vkm_jobs.procs import _resume_process
     from ansys.mapdl.core.mapdl_grpc import MapdlGrpc
     from ansys.math.core.math import AnsMath
     modules = [base, mapdl_batch, inspect.getmodule(LicenceLock), inspect.getmodule(_resume_process),
@@ -126,6 +128,7 @@ class PersistentSession:
         if self._client is not None: return
         c = self.config
         if os.name != 'nt': raise RuntimeError('qualified native runtime requires Windows')
+        from vkm_jobs.procs import _resume_process
         if os.environ.get('VKM_DEEP_GPU_OWNER') != c.lease_owner or os.environ.get('ANSGPU_OVERRIDE'):
             raise RuntimeError('external lease mismatch or forbidden GPU override')
         if base.sha(c.executable) != c.executable_sha256: raise RuntimeError('executable pin changed')

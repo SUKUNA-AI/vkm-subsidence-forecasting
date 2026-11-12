@@ -157,3 +157,20 @@ def test_callback_mass_force_state_and_b_change_invalidate_factor(tmp_path,monke
     assert len(list(bridge.store.glob('*.npz')))==2
     bridge.close()
     assert json.loads((bridge.folder/'execution.json').read_text())['CPU_fallback_count']==0
+
+
+def test_unsupported_host_rejects_before_native_preflight(tmp_path, monkeypatch):
+    session = p.PersistentSession(tmp_path/'unsupported', config(tmp_path))
+    monkeypatch.setattr(p, 'os', SimpleNamespace(name='posix', environ={}))
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError('unsupported host reached native preflight')
+
+    monkeypatch.setattr(p.base, 'sha', forbidden)
+    monkeypatch.setattr(session._lock, 'acquire', forbidden)
+    with pytest.raises(RuntimeError, match='requires Windows'):
+        p.dependency_receipt()
+    with pytest.raises(RuntimeError, match='requires Windows'):
+        session.start()
+    assert session._proc is None and session._job is None
+    assert not (session.folder/'dependencies.json').exists()
