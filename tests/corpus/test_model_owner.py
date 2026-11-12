@@ -147,9 +147,10 @@ s=socket.socket();s.bind((a.host,a.port));s.listen(8)
 control=Path(a.control)
 while True:
  if control.exists():
-  action=control.read_text();control.unlink()
+  action=control.read_text()
   if action=='unmap-mmproj':maps.pop('mmproj').close()
   if action=='close-listener':s.close()
+  control.unlink()  # acknowledge only after the requested resource mutation
   if action=='exit':raise SystemExit(0)
  time.sleep(.005)
 '''
@@ -249,6 +250,9 @@ def test_actual_owned_child_fences_each_replacement_and_load_time_event(tmp_path
             deadline = time.monotonic() + 1
             while (tmp_path / "control").exists() and time.monotonic() < deadline:
                 time.sleep(.005)
+            assert not (tmp_path / "control").exists(), "child did not acknowledge the action"
+            if change == "exit":
+                assert owner.proc.wait(timeout=5) == 0  # acknowledgement is not process exit
         with pytest.raises((ValueError, FileNotFoundError, ProcessLookupError)):
             owner.observe()
         with pytest.raises(ValueError, match="permanently invalid"):
