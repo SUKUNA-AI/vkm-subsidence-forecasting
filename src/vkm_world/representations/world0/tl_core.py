@@ -16,6 +16,8 @@ def frozen(a, dtype=float):
 
 
 def _finite(a, name):
+    if np.iscomplexobj(a):
+        raise ValueError(name + ' must be real')
     a = np.asarray(a, dtype=float)
     if not np.isfinite(a).all():
         raise ValueError(name + ' must be finite')
