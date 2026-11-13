@@ -20,6 +20,9 @@ from vkm_corpus.api.errors import ApiFailure
 
 
 TABLE_ROLES = {
+    "stage_arrays": "MODEL_STAGE_ARRAY_CATALOG",
+    "stage_values": "MODEL_STAGE_NUMERIC_VALUES",
+    "storage": "STORAGE_AVAILABILITY_METADATA",
     "current_source_joins": "SOURCE_TO_CONDITIONAL_OPERATOR_RUN_FIELD_REFERENCE",
     "current_depth_intervals": "MODEL_CURRENT_DEPTH_CONDITIONAL_GEOLOGY",
     "current_depth_materials": "MODEL_CURRENT_DEPTH_CONDITIONAL_C2",

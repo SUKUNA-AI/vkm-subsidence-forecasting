@@ -15,8 +15,8 @@ from vkm_corpus.api.errors import ApiFailure
 from vkm_corpus.api.scientific import ScientificReader
 
 
-def build_snapshot(tmp_path, *, role="MODEL_GEOLOGY", sql="SELECT name FROM intervals"):
-    data = tmp_path / "intervals.parquet"
+def build_snapshot(tmp_path, *, role="MODEL_GEOLOGY", sql="SELECT name FROM intervals", table_name="intervals"):
+    data = tmp_path / (table_name + ".parquet")
     pq.write_table(pa.table({"name": ["synthetic_interval"]}), data)
     manifest = {
         "schema": "vkm.scientific-query-snapshot/1",
@@ -24,7 +24,7 @@ def build_snapshot(tmp_path, *, role="MODEL_GEOLOGY", sql="SELECT name FROM inte
         "snapshot_id": "synthetic-science-snapshot",
         "source_snapshot_id": "synthetic-document-snapshot",
         "allowed_token_labels": ["read"],
-        "tables": {"intervals": {"path": data.name, "data_role": role, "rows": 1,
+        "tables": {table_name: {"path": data.name, "data_role": role, "rows": 1,
                                 "sha256": hashlib.sha256(data.read_bytes()).hexdigest()}},
         "queries": {"intervals": {"sql": sql}},
     }
@@ -48,6 +48,27 @@ def test_named_native_query_reads_bound_parquet(tmp_path):
 
 def test_simulation_table_cannot_be_relabeled_as_observation(tmp_path):
     path, digest = build_snapshot(tmp_path, role="OBSERVATION_INDEX")
+    with pytest.raises(ValueError, match="cannot become REAL measurements"):
+        reader(path, digest)
+
+
+@pytest.mark.parametrize("table_name,role", [
+    ("stage_arrays", "MODEL_STAGE_ARRAY_CATALOG"),
+    ("stage_values", "MODEL_STAGE_NUMERIC_VALUES"),
+    ("storage", "STORAGE_AVAILABILITY_METADATA"),
+])
+def test_numeric_stage_reader_keeps_model_and_storage_roles(tmp_path, table_name, role):
+    path, digest = build_snapshot(tmp_path, table_name=table_name, role=role,
+                                  sql="SELECT name FROM " + table_name)
+    instance = reader(path, digest)
+    assert instance.status()['tables'][table_name]['data_role'] == role
+    assert instance.query('intervals', 'synthetic-science-snapshot')['row_count'] == 1
+
+
+@pytest.mark.parametrize("table_name", ["stage_arrays", "stage_values", "storage"])
+def test_stage_and_storage_rows_cannot_be_promoted_to_observations(tmp_path, table_name):
+    path, digest = build_snapshot(tmp_path, table_name=table_name, role="OBSERVATION_INDEX",
+                                  sql="SELECT name FROM " + table_name)
     with pytest.raises(ValueError, match="cannot become REAL measurements"):
         reader(path, digest)
 
