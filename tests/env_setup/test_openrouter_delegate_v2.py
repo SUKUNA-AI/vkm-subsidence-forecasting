@@ -335,3 +335,92 @@ def test_fresh_capability_change_is_not_downgraded_or_paid(tmp_path, monkeypatch
     receipt = d.run(job(), metadata(), tmp_path / "run", transport=t, ledger=tmp_path / "scratch.json", budget="20")
     assert receipt["verification"] == "UNSUPPORTED_REASONING_MODE" and t.posts == 0
     assert receipt["execution_cost_status"] == "NOT_SENT"
+
+
+@pytest.mark.parametrize("profile", list(d.PROFILES))
+@pytest.mark.parametrize("limits", [{"limit": None, "limit_remaining": None},
+                                  {"limit": 1, "limit_remaining": 1}])
+@pytest.mark.parametrize("synthetic", [True, False])
+def test_v2_live_legacy_override_rejected_before_discovery_or_reservation(
+        tmp_path, monkeypatch, profile, limits, synthetic):
+    class ObservedFake(FakeV2Transport):
+        def request(self, method, path, body=None):
+            calls.append((method, path))
+            if path == "key":
+                return {"data": limits}
+            return super().request(method, path, body)
+
+    calls = []
+    t = ObservedFake(profile)
+    assert not isinstance(t, d.ReplayTransport)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-v1-fake-regression-only")
+    def forbidden(*args, **kwargs):
+        pytest.fail("Policy rejection must precede prepare/discovery/reservation")
+    monkeypatch.setattr(d, "prepare", forbidden)
+    monkeypatch.setattr(d, "reserve", forbidden)
+    monkeypatch.setattr(d, "settle", forbidden)
+    ledger = tmp_path / "existing-scratch-ledger.json"
+    before = b'{"preserved_scratch_sentinel":true}\n'
+    ledger.write_bytes(before)
+    j = job(profile) if synthetic else real_job(profile)
+    with pytest.raises(d.DelegateError, match="V2_LEGACY_OVERRIDE_FORBIDDEN"):
+        d.run(j, metadata(), tmp_path / "blocked", ledger=ledger, budget="1",
+              transport=t, owner_local_cap_only=True)
+    assert calls == [] and t.posts == 0 and ledger.read_bytes() == before
+    assert not (tmp_path / "blocked").exists()
+
+
+@pytest.mark.parametrize("credential_present", [True, False])
+def test_v2_cli_cannot_enable_historical_override(tmp_path, monkeypatch, capsys, credential_present):
+    if credential_present:
+        monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-v1-fake-regression-only")
+    else:
+        monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    def forbidden(*args, **kwargs):
+        pytest.fail("CLI policy rejection must not create a transport or reserve")
+    monkeypatch.setattr(d.Transport, "__init__", forbidden)
+    monkeypatch.setattr(d, "reserve", forbidden)
+    jpath, mpath = tmp_path / "job.json", tmp_path / "metadata.json"
+    jpath.write_text(json.dumps(job()), encoding="utf-8")
+    mpath.write_text(json.dumps(metadata()), encoding="utf-8")
+    ledger, target = tmp_path / "absent-ledger.json", tmp_path / "blocked"
+    assert d.main(["call", "--job", str(jpath), "--metadata", str(mpath),
+                   "--run-dir", str(target), "--ledger", str(ledger),
+                   "--budget-usd", "1", "--owner-local-cap-only"]) == 2
+    assert json.loads(capsys.readouterr().out)["status"] == "V2_LEGACY_OVERRIDE_FORBIDDEN"
+    assert not ledger.exists() and not target.exists()
+
+
+def test_v2_mock_historical_override_still_has_no_live_authority(tmp_path, monkeypatch):
+    monkeypatch.setattr(d.Transport, "__init__", lambda *a, **kw: pytest.fail("No network in mock"))
+    monkeypatch.setattr(d, "reserve", lambda *a, **kw: pytest.fail("No reservation in mock"))
+    receipt = d.run(job(), metadata(), tmp_path / "mock", mock=True, owner_local_cap_only=True)
+    assert receipt["verification"] == "MOCK_PASS" and receipt["mode"] == "mock"
+    assert receipt["acceptance"]["API_SUCCESS"] == "MOCK_ONLY"
+
+
+def test_v2_explicit_frozen_replay_retains_historical_override_offline_only(tmp_path, monkeypatch):
+    rows = metadata()
+    model = d.PROFILES["cheap_code"][0]
+    r = response()
+    transcript = [
+        {"method": "GET", "path": "models/" + model + "/endpoints", "response": rows[0]["metadata"]},
+        {"method": "GET", "path": "models", "response": {"data": [row["model_capabilities"]["model"] for row in rows]}},
+        {"method": "GET", "path": "key", "response": {"data": {"limit": None, "limit_remaining": None}}},
+        {"method": "POST", "path": "chat/completions", "response": r},
+        {"method": "GET", "path": "generation?id=" + r["id"], "response": {"data": {"id": r["id"], "model": r["model"],
+            "provider_name": r["provider"], "provider_endpoint": r["provider_endpoint"]}}},
+    ]
+    t = d.ReplayTransport(transcript)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-v1-fake-replay-only")
+    monkeypatch.setattr(d.Transport, "__init__", lambda *a, **kw: pytest.fail("No network in replay"))
+    monkeypatch.setattr(d, "reserve", lambda *a, **kw: "fake-replay-token")
+    monkeypatch.setattr(d, "settle", lambda *a, **kw: None)
+    monkeypatch.setattr(d, "reservation_metadata", lambda *a, **kw: {"scope": "FAKE_ONLY"})
+    ledger = tmp_path / "never-created.json"
+    receipt = d.run(job(), rows, tmp_path / "replay", transport=t, ledger=ledger,
+                    budget="1", owner_local_cap_only=True)
+    assert t.position == len(transcript) and not ledger.exists()
+    assert receipt["verification"] == "PASS" and receipt["mode"] == "offline_replay"
+    assert receipt["acceptance"]["API_SUCCESS"] == "MOCK_ONLY"
+    assert receipt["live_authorization"] == "NONE_OFFLINE_TRANSPORT_DECLARATION_ONLY"

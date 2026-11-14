@@ -1048,9 +1048,13 @@ def redact(value, secret):
 
 
 def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=False, owner_local_cap_only=False):
+    replay = not mock and isinstance(transport, ReplayTransport) and type(transport) is not Transport
+    # The historical three-smoke exception is never V2 live authorization.
+    # Reject before credentials, discovery, directory creation or reservation.
+    if is_v2(job) and owner_local_cap_only and not mock and not replay:
+        fail("V2_LEGACY_OVERRIDE_FORBIDDEN")
     secret = None if mock else os.environ.get("OPENROUTER_API_KEY")
     request, estimate, evidence = prepare(job, metadata, secret)
-    replay = not mock and isinstance(transport, ReplayTransport) and type(transport) is not Transport
     if not mock and not is_v2(job) and not replay:
         fail("V2_TASK_KIND_REQUIRED")
     receipt = {"task_id": job["task_id"], "profile": job["profile"], "input_sha256": digest(job), "prompt_sha256": digest(job["prompt"]), "config_sha256": digest({k: v for k, v in request.items() if k != "messages"}), "started_at": now(), "requested_model": request["model"], "requested_provider": request["provider"], "endpoint_evidence": evidence, "reasoning": {"enabled": True}, "reservation_usd": str(estimate), "currency": "USD", "mode": "mock" if mock else "live", "cost_usd": None, "verification": "NOT_RUN"}
