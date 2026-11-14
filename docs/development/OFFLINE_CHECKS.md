@@ -1,5 +1,13 @@
 # PUBLIC offline CPU checks
 
+The two TA1 SQL-key read/repair cases require a separately prepared compatible
+ta1-geopackage/Fiona runtime. They carry `ta1_runtime` and are explicitly reported
+as `NOT_RUN` by the offline selector; pure transport/GPB checks remain selected.
+Run `python -m pytest -q -m ta1_runtime tests/geometry/test_gpkg_metadata.py` in
+that existing runtime for native qualification. Explicit selection has no
+dependency skip or installation fallback: an absent prerequisite fails. Native
+host receipts are separate evidence, not a claim that offline CI ran TA1.
+
 Owner/table integration on 04.10 adds both narrow model-owner bridge suites,
 native vocabulary binding, table continuations and historical schema checks to
 Windows selection. The 21 exact visual procfs/inotify cases are Windows NOT_RUN;
