@@ -47,6 +47,7 @@ TABLE_ROLES = {
     # Values of figure series digitized from publications: DERIVATION, never a project measurement.
     "source_series_points": "SOURCE_FIGURE_SERIES_DIGITIZATION",
     "source_digitization_batches": "SOURCE_DIGITIZATION_BATCH_METADATA",
+    "source_series_nav_links": "SOURCE_DIGITIZATION_CROSS_LINK",
 }
 IDENTIFIER = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 
