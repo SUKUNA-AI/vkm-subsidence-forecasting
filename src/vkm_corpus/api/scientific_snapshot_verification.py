@@ -1,6 +1,7 @@
 """Full-result and historical-proof guards; no reader activation or production writes."""
 from collections import Counter
 import datetime as dt
+from decimal import Decimal
 import hashlib
 import json
 import math
@@ -11,6 +12,10 @@ def normalized(value):
         return {"$date": value.isoformat()}
     if isinstance(value, bytes):
         return {"$bytes": value.hex()}
+    if isinstance(value, Decimal):
+        # Decimal text retains every digit and the stored scale; float would
+        # round DECIMAL(38,...) cells and could hide a changed full-row result.
+        return {"$decimal": str(value)}
     if isinstance(value, float) and not math.isfinite(value):
         return {"$float": repr(value)}
     if isinstance(value, dict):
@@ -92,7 +97,10 @@ def historical_receipt_audit(receipt):
     for field in ("links_truncated", "series_summary_truncated"):
         if field in receipt and receipt[field] is not False:
             issues.append("HISTORICAL_NEW_QUERY_TRUNCATED")
-    if "links_full_read" in receipt and receipt["links_full_read"] is not True:
+    # A missing truncation flag is not evidence of a full links read. Require
+    # the positive field used by the saved strict receipt, without inventing
+    # a links_truncated field for that historical record.
+    if receipt.get("links_full_read") is not True:
         issues.append("INCOMPLETE_LINKS_FULL_READ")
     return {"historical_receipt_unchanged": True, "current_full_proof": not issues,
             "issues": issues, "exit_code": 0 if not issues else 1}

@@ -1,4 +1,5 @@
 import copy
+from decimal import Decimal
 import json
 from pathlib import Path
 import statistics
@@ -7,7 +8,7 @@ import unittest
 import duckdb
 from vkm_corpus.figures.scoped_correspondence import (apply_overlay, compare_scoped, coverage_errors, identity_guard,
                                    sha256_json, split_trace, validate_overlay)
-from vkm_corpus.api.scientific_snapshot_verification import full_checksum, historical_receipt_audit
+from vkm_corpus.api.scientific_snapshot_verification import encoded, normalized, full_checksum, historical_receipt_audit
 
 
 def points(values):
@@ -128,6 +129,62 @@ class OverlayTests(unittest.TestCase):
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_unknown_links_full_read_is_not_proof_even_if_not_truncated(self):
+        for value in (None,False,0,1,"true"):
+            with self.subTest(value=value):
+                receipt=dict(self.complete_receipt(),links_full_read=value)
+                self.assertFalse(historical_receipt_audit(receipt)["current_full_proof"])
+        for truncation in ("absent",False):
+            receipt=self.complete_receipt()
+            del receipt["links_full_read"]
+            if truncation is False:
+                receipt["links_truncated"]=False
+            self.assertIn("INCOMPLETE_LINKS_FULL_READ",historical_receipt_audit(receipt)["issues"])
+
+    def test_positive_links_full_read_and_contradictory_truncation(self):
+        receipt=self.complete_receipt()
+        self.assertTrue(historical_receipt_audit(receipt)["current_full_proof"])
+        self.assertTrue(historical_receipt_audit(dict(receipt,links_truncated=False))["current_full_proof"])
+        for value in (True,None,0,"false"):
+            with self.subTest(value=value):
+                self.assertFalse(historical_receipt_audit(dict(receipt,links_truncated=value))["current_full_proof"])
+
+    def test_decimal_tag_retains38digits_and_scale_without_float(self):
+        for text in ("12345678901234567890.123456789012345678","12345678901234567890123456789012345678","1.2300","-0.0000"):
+            value=Decimal(text)
+            tagged=normalized(value)
+            self.assertEqual(tagged,{"$decimal":text})
+            self.assertEqual(Decimal(tagged["$decimal"]).as_tuple(),value.as_tuple())
+            self.assertEqual(json.loads(encoded(value)),tagged)
+
+    def test_real_duckdb_decimal38_both_scales_and_captured_type(self):
+        with duckdb.connect(":memory:") as con:
+            for text,scale in (("12345678901234567890.123456789012345678",18),("12345678901234567890123456789012345678",0)):
+                with self.subTest(scale=scale):
+                    result=full_checksum(con,f"SELECT '{text}'::DECIMAL(38,{scale}) AS d",capture=True)
+                    self.assertIsInstance(result["captured_rows"][0]["d"],Decimal)
+                    self.assertEqual(str(result["captured_rows"][0]["d"]),text)
+                    self.assertEqual(json.loads(encoded(result))["captured_rows"][0]["d"],{"$decimal":text})
+
+    def test_decimal_row_after500_and4096_changes_full_multiset(self):
+        old="12345678901234567890.123456789012345678"
+        new="12345678901234567890.123456789012345679"
+        with duckdb.connect(":memory:") as con:
+            for rows in (600,4100):
+                with self.subTest(rows=rows):
+                    before=full_checksum(con,f"SELECT i,'{old}'::DECIMAL(38,18) d FROM range({rows}) t(i)")
+                    after=full_checksum(con,f"SELECT i,CASE WHEN i={rows-1} THEN '{new}' ELSE '{old}' END::DECIMAL(38,18) d FROM range({rows}) t(i)")
+                    self.assertEqual(before["rows"],rows)
+                    self.assertNotEqual(before["multiset_sha256"],after["multiset_sha256"])
+
+    def test_decimal_scale_and_multiplicity_remain_part_of_digest(self):
+        with duckdb.connect(":memory:") as con:
+            two=full_checksum(con,"SELECT '1.23'::DECIMAL(38,2) AS d")
+            four=full_checksum(con,"SELECT '1.2300'::DECIMAL(38,4) AS d")
+            duplicate=full_checksum(con,"SELECT '1.23'::DECIMAL(38,2) AS d FROM range(2)")
+        self.assertNotEqual(two["multiset_sha256"],four["multiset_sha256"])
+        self.assertNotEqual(two["multiset_sha256"],duplicate["multiset_sha256"])
+
     @staticmethod
     def complete_receipt():
         # Shape of the actual recorded full proof; no private values or data.
