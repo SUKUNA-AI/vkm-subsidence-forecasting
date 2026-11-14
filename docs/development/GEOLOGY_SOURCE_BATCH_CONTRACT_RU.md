@@ -42,6 +42,10 @@ python scripts/geometry_pipeline.py cad --rows work/geo-prepare-01/source.wkb.js
 
 PRIVATE_BATCH, PRIVATE_ROOT и QGIS_ROOT — параметры выбранной поставки и существующих runtime, а не пути установки. Каждая команда требует новую директорию. Prepare проверяет JSONL/WKB/DXF, QGIS вызывает существующий мост и проверяет физический GeoPackage, CAD выполняет native DWG/DXF readback в существующем изолированном job-механизме. Одно сохранение DXF не является успешным CAD-чтением. Сохранять audit и результат job, включая отрицательные проверки; текущий bridge/runtime должен быть квалифицирован отдельно.
 
+QGIS сохраняет проверенный `qgis_readback.jsonl` и `receipt.json` до рендера и создания проекта. `status=PASS` имеет явную область `status_scope=LOSSLESS_GEOMETRY_TRANSPORT_ONLY`: координаты, типы, IDs и полные A/B сохранены; это не допуск топологии или рендера. Отдельные `source_topology_status`, `render_status`, `project_status` и `qualification_status` показывают исход каждого вида проверки.
+
+Слой с невалидной исходной топологией сохраняется без MakeValid и целиком исключается из рендера, включая его валидные объекты. Для такого кадра рендер имеет `SKIPPED_SOURCE_INVALID`; если отображены другие допустимые слои той же рамки — `PARTIAL_SOURCE_INVALID`. Общий `qualification_status=PARTIAL_SOURCE_TOPOLOGY_FAILURE` сохраняет ограничение. Создание QGIS-проекта со ссылками на исходные слои проверяется отдельно. Неожиданный сбой рендера или проекта сохраняется как `FAIL` соответствующей проверки с `qualification_status=DOWNSTREAM_CHECK_FAILED`, после чего исключение передаётся вызывающему коду; ранее проверенные readback и receipt остаются доступны. Потеря координат/атрибутов по-прежнему отклоняется до объявления успешного транспорта.
+
 TA1 выполняется отдельным совместимым Python, не в QGIS venv. Из существующего Linux/WSL TA1 окружения, с разрешёнными путями входов и outputs:
 
 ```bash

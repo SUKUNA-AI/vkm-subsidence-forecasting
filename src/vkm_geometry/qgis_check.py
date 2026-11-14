@@ -1,4 +1,8 @@
-"""Real QGIS worker and native CAD checks using the existing project bridges."""
+"""Real QGIS worker and native CAD checks using the existing project bridges.
+
+QGIS status PASS covers lossless geometry transport only. Source topology,
+render coverage and project creation have separate statuses in its receipt.
+"""
 from __future__ import annotations
 
 from collections import defaultdict
@@ -72,7 +76,8 @@ def check_qgis(rows, output: Path, *, public_root: Path, private_root: Path, qgi
                 (output / "qgis_calls.json").write_text(json.dumps(calls, ensure_ascii=False, indent=2), encoding="utf-8")
                 frame_layers[frame_json].append(name)
                 layer_index.append({"layer": name, "frame": frame, "geometry_type": geometry_type,
-                                    "features": len(features), "topology_status": imported["topology_status"]})
+                                    "features": len(features), "topology_status": imported["topology_status"],
+                                    "invalid_geometry_count": imported["invalid_geometry_count"]})
                 offset = 0
                 while offset < len(features):
                     page = call("qgis_feature", path="work:source.qgis.gpkg", layer=name, action="list", limit=100, offset=offset)
@@ -91,19 +96,67 @@ def check_qgis(rows, output: Path, *, public_root: Path, private_root: Path, qgi
                     offset += len(page["features"])
                 call("qgis_export_layer", path="work:source.qgis.gpkg", layer=name, output_path=f"work:{name}.export.geojson")
         call("qgis_list_layers", path="work:source.qgis.gpkg")
-        # Different frames are never superposed in one render/project.
-        for index, (frame_json, layers) in enumerate(sorted(frame_layers.items())):
-            if len(layers) > 30: raise ValueError("Frame exceeds bounded QGIS render layer count")
-            call("qgis_render", path="work:source.qgis.gpkg", layers=layers, output_path=f"work:frame_{index:03d}.png", width=1024, height=768)
-            call("qgis_project", path=f"work:frame_{index:03d}.qgz", action="create",
-                 layers=[{"path": "work:source.qgis.gpkg", "layer": name, "name": name} for name in layers])
+        # A presentation check must never discard an already verified lossless
+        # readback. Persist it and a scoped receipt before downstream operations.
         assert_rows_equal(rows, readback)
         write_wkb_jsonl(readback, output / "qgis_readback.jsonl")
+        invalid_layers = {x["layer"] for x in layer_index if x["topology_status"] == "FAIL"}
         result = {"status": "PASS", "bridge": "vkm_qgis.QgisService -> existing isolated QGIS worker", "qgis": status,
+                  "status_scope": "LOSSLESS_GEOMETRY_TRANSPORT_ONLY", "geometry_transport_status": "PASS",
+                  "qualification_status": "NOT_COMPLETE",
+                  "source_topology_status": "FAIL" if invalid_layers else "PASS",
+                  "invalid_source_geometry_count": sum(x["invalid_geometry_count"] for x in layer_index),
                   "features": len(readback), "frames": len(frame_layers), "layers": layer_index,
                   "vertex_tolerance": 1e-9, "source_topology_failures_preserved": sum(x["topology_status"] == "FAIL" for x in layer_index),
+                  "render_status": "NOT_RUN", "render_checks": [], "project_status": "NOT_RUN", "project_checks": [],
+                  "limitations": (["Invalid source topology is preserved, not repaired or admitted as valid. Any affected layer is excluded in full from rendering; its valid features are not selectively extracted."] if invalid_layers else []),
                   "geometry_policy": "source coordinates preserved; no georeferencing/MakeValid/FACT promotion"}
-        (output / "receipt.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        def save_receipt():
+            (output / "receipt.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        save_receipt()
+        # Different frames are never superposed in one render/project. A mixed
+        # frame may render only unaffected layers, with explicit partial coverage.
+        for index, (frame_json, layers) in enumerate(sorted(frame_layers.items())):
+            eligible = [name for name in layers if name not in invalid_layers]
+            skipped = [name for name in layers if name in invalid_layers]
+            check = {"frame": json.loads(frame_json), "requested_layers": layers,
+                     "rendered_layers": [], "skipped_invalid_source_layers": skipped}
+            try:
+                if len(layers) > 30: raise ValueError("Frame exceeds bounded QGIS render layer count")
+                if eligible:
+                    call("qgis_render", path="work:source.qgis.gpkg", layers=eligible, output_path=f"work:frame_{index:03d}.png", width=1024, height=768)
+                    check.update(status="PARTIAL_SOURCE_INVALID" if skipped else "PASS", rendered_layers=eligible)
+                else:
+                    check.update(status="SKIPPED_SOURCE_INVALID", reason="Every layer in this frame contains invalid source geometry")
+            except Exception as exc:
+                check.update(status="FAIL", error=f"{type(exc).__name__}: {exc}")
+                result["render_checks"].append(check); result["render_status"] = "FAIL"
+                result["qualification_status"] = "DOWNSTREAM_CHECK_FAILED"
+                save_receipt()
+                raise
+            result["render_checks"].append(check)
+            checks = result["render_checks"]
+            result["render_status"] = ("NOT_COMPLETE" if len(checks) < len(frame_layers)
+                                       else "PASS" if all(c["status"] == "PASS" for c in checks)
+                                       else "PARTIAL_SOURCE_INVALID" if any(c["rendered_layers"] for c in checks)
+                                       else "SKIPPED_SOURCE_INVALID")
+            save_receipt()
+            project = {"frame": json.loads(frame_json), "layers": layers}
+            try:
+                call("qgis_project", path=f"work:frame_{index:03d}.qgz", action="create",
+                     layers=[{"path": "work:source.qgis.gpkg", "layer": name, "name": name} for name in layers])
+                project["status"] = "PASS"
+            except Exception as exc:
+                project.update(status="FAIL", error=f"{type(exc).__name__}: {exc}")
+                result["project_checks"].append(project); result["project_status"] = "FAIL"
+                result["qualification_status"] = "DOWNSTREAM_CHECK_FAILED"
+                save_receipt()
+                raise
+            result["project_checks"].append(project)
+            result["project_status"] = "PASS" if len(result["project_checks"]) == len(frame_layers) else "NOT_COMPLETE"
+            save_receipt()
+        result["qualification_status"] = "PARTIAL_SOURCE_TOPOLOGY_FAILURE" if invalid_layers else "PASS"
+        save_receipt()
         return result
     finally:
         if original is None: os.environ.pop("VKM_QGIS_ROOT", None)
