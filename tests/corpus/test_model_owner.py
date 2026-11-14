@@ -211,6 +211,53 @@ LINUX = pytest.mark.skipif(platform.system() != "Linux", reason="NOT_RUN: actual
 
 
 @LINUX
+@pytest.mark.parametrize("error_type", [PermissionError, FileNotFoundError])
+@pytest.mark.parametrize("failure_at", ["fd-open", "fd-next", "fd-readlink"])
+def test_listener_descriptor_read_errors_fail_closed(monkeypatch, error_type, failure_at):
+    root = Path("/proc") / str(os.getpid())
+    fd_root = root / "fd"
+    original_iterdir = Path.iterdir
+    original_readlink = os.readlink
+    original_read_text = Path.read_text
+
+    def entries(path):
+        if path != fd_root:
+            return original_iterdir(path)
+        if failure_at == "fd-open":
+            raise error_type("synthetic descriptor directory unavailable")
+        if failure_at == "fd-next":
+            def interrupted():
+                yield fd_root / "synthetic-fd"
+                raise error_type("synthetic descriptor iteration interrupted")
+            return interrupted()
+        return iter([fd_root / "synthetic-fd"])
+
+    def readlink(path, *args, **kwargs):
+        if Path(path).parent == fd_root:
+            if failure_at == "fd-readlink":
+                raise error_type("synthetic descriptor link unavailable")
+            return "socket:[42]"
+        return original_readlink(path, *args, **kwargs)
+
+    def read_text(path, *args, **kwargs):
+        if path == root / "net/tcp":
+            return "synthetic TCP header only\n"
+        return original_read_text(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "iterdir", entries)
+    monkeypatch.setattr(os, "readlink", readlink)
+    monkeypatch.setattr(Path, "read_text", read_text)
+    with pytest.raises(ValueError) as caught:
+        mo._listener_record(os.getpid(), 12345)
+    if failure_at == "fd-readlink" and error_type is FileNotFoundError:
+        # An already closed individual descriptor is not a socket witness.
+        assert "not uniquely owned" in str(caught.value)
+    else:
+        assert "descriptor inventory unavailable" in str(caught.value)
+        assert isinstance(caught.value.__cause__, error_type)
+
+
+@LINUX
 def test_actual_owned_child_socket_maps_and_client_qualify_without_inference(tmp_path):
     recipe, client, holder, files = _recipe(tmp_path)
     with mo.OwnedChildModelOwner.start(recipe, inference_client=client,
