@@ -33,12 +33,18 @@ rsync is unavailable; publication integrity and symlink cases remain mandatory.
 The ten exact shared-admission-gate cases in receiver/deployment suites need
 POSIX file locking and likewise remain Windows `NOT_RUN`; unrelated cases in
 those files still execute. These allowances never apply on Linux.
-The nightly MCP smoke contract now covers 49 read tools, including the four evidence
+The nightly MCP smoke contract now covers 53 read tools, including the four evidence
 queries. It discovers a permitted record with a bounded list query before reading its
 record, dependency page and review packet. User-defined evidence ids and payloads are
 not written to the smoke report. An absent backend or missing tool fails; an empty
 permitted list leaves dependent calls `SKIP` and the overall smoke `WARN`, never `PASS`.
 These synthetic client checks do not qualify a deployed service or scientific evidence.
+The two scientific tools are `scientific_status` and `scientific_query`: the smoke
+calls status first and uses only its successfully returned permitted query ID and
+snapshot ID, with `limit=1`. It sends no client SQL or invented query ID. Without
+a published permitted query, the query call is explicitly `SKIP` and the smoke is
+`WARN`, not `PASS`. Query/snapshot IDs are omitted from the smoke report arguments.
+This contract change does not enable the optional scientific reader or deploy it.
 
 Run after installing the exact lock files used by the corresponding workflow job:
 
@@ -66,6 +72,23 @@ as `NOT_RUN`, with their node and exact reason. Deselected `services`, `gpu`,
 `NOT_RUN`; their markers describe real external prerequisites. PyQGIS runtime
 tests remain runnable locally with their marker; pure Python QGIS unit tests run
 in the offline corpus job. Two existing GPU parity tests now have GPU markers.
+
+Only `tests/geometry/test_db_adapter.py::test_duckdb_reference_wkb_idempotence_and_conflict`
+is marked `duckdb_spatial`: it needs the existing platform/version-specific native
+DuckDB spatial binary, which the offline CPU locks do not provide. The offline
+runner deselects that exact test and records its node/marker as `NOT_RUN`; the
+suite is `PASS_WITH_NOT_RUN`. DuckDB itself and the neighboring pure database and
+snapshot contracts remain mandatory. No extension is downloaded, installed or
+automatically skipped by this test. To qualify the native dependency separately:
+
+```bash
+python -m pytest -q -m duckdb_spatial tests/geometry/test_db_adapter.py::test_duckdb_reference_wkb_idempotence_and_conflict
+```
+
+Run in an already prepared runtime. This explicit invocation executes the unchanged
+`LOAD spatial` and fails when the native extension is absent; an offline `NOT_RUN`
+does not replace it. Existing Windows DuckDB/PostGIS geometry receipts remain
+separate evidence for their exact inputs/runtime, not hosted Linux qualification.
 
 CPU Python dependencies are now required: OpenCV, Snowball and morphology skips
 fail the job. Their distribution METADATA was inspected on 01.10.2026 in the

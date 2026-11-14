@@ -22,6 +22,7 @@ SEC, TOP, WORK, ART = "SEC-" + "1" * 16, "TOP-" + "2" * 16, "VKM-WRK-014", "sha2
 TBL, TAB2 = "TBL-" + "4" * 16, "VKM-SRC-015:p0007:t0123456789ac"             # a structured table of find_tables
 FS = "FS-" + "4" * 16                                                           # a series of find_figure_series
 EVIDENCE = "synthetic-evidence-record"
+SCI_QUERY, SCI_SNAPSHOT = "synthetic_scientific_query", "synthetic-scientific-snapshot"
 
 
 def env(oid, **extra):
@@ -63,6 +64,8 @@ class FakeClient:
             body["item"] = {"record": {"works": [{"work_id": WORK}]}}
         elif name == "list_evidence":
             body["item"] = {"record": {"items": [{"record_id": EVIDENCE}], "has_more": False}}
+        elif name == "scientific_status":
+            body["scientific"] = {"snapshot_id": SCI_SNAPSHOT, "query_ids": [SCI_QUERY]}
         elif name == "get_outline":
             body["item"] = {"record": {"sections": [{"section_id": SEC}]}}
         elif name == "find_topics":
@@ -84,9 +87,9 @@ def run(client, **kw):
 def test_all_read_tools_are_called_with_harvested_ids():
     client = FakeClient(page_size=10)                       # six pages of tools: pagination is followed
     rep = run(client)
-    assert rep["verdict"] == "PASS" and rep["tools_listed"] == 51 and rep["missing_tools"] == []
-    assert rep["summary"] == {"PASS": 51, "WARN": 0, "FAIL": 0, "SKIP": 0} and rep["not_called"] == []
-    assert rep["version"] == "nightly-mcp-smoke-8"
+    assert rep["verdict"] == "PASS" and rep["tools_listed"] == 53 and rep["missing_tools"] == []
+    assert rep["summary"] == {"PASS": 53, "WARN": 0, "FAIL": 0, "SKIP": 0} and rep["not_called"] == []
+    assert rep["version"] == "nightly-mcp-smoke-9"
     args = {}
     for name, a in client.calls:
         args.setdefault(name, a)
@@ -97,6 +100,8 @@ def test_all_read_tools_are_called_with_harvested_ids():
     assert args["get_object"]["object_id"] == BLOCK and args["rerank_visual"]["candidate_ids"] == [FIG]
     assert args["reconstruct_topic"]["budget_chars"] == 2000
     assert args["list_evidence"] == {"limit": 1}
+    assert args["scientific_status"] == {}
+    assert args["scientific_query"] == {"query_id": SCI_QUERY, "snapshot_id": SCI_SNAPSHOT, "limit": 1}
     for tool in ("get_evidence_record", "get_evidence_dependencies", "get_evidence_review_packet"):
         assert args[tool]["record_id"] == EVIDENCE
     assert args["get_evidence_dependencies"]["limit"] == 3
@@ -113,6 +118,40 @@ def test_all_read_tools_are_called_with_harvested_ids():
     assert calls["get_figure"]["n_images"] == 1 and len(calls["search_text"]["sha256"]) == 64
     assert "query" not in calls["search_text"]["args"]                   # the report keeps no query text
     assert EVIDENCE not in json.dumps(rep)                            # user-defined ids are not logged
+    assert SCI_QUERY not in json.dumps(rep) and SCI_SNAPSHOT not in json.dumps(rep)
+
+
+def test_scientific_query_without_a_permitted_published_status_is_skip_and_warn():
+    for scientific in ({}, {"snapshot_id": SCI_SNAPSHOT, "query_ids": []},
+                       {"snapshot_id": "", "query_ids": [SCI_QUERY]},
+                       {"snapshot_id": SCI_SNAPSHOT, "query_ids": ["../not-a-query"]}):
+        class NoQuery(FakeClient):
+            async def call_tool(self, name, arguments=None):
+                result = await super().call_tool(name, arguments)
+                if name == "scientific_status":
+                    result.structured_content = {"ok": True, "scientific": scientific}
+                return result
+        client = NoQuery()
+        rep = run(client)
+        assert rep["verdict"] == "WARN" and rep["per_tool"]["scientific_query"] == "SKIP"
+        assert not any(name == "scientific_query" for name, _ in client.calls)
+        assert next(c for c in rep["calls"] if c["tool"] == "scientific_query")["error_code"] == \
+            "SCIENTIFIC_QUERY_NOT_PUBLISHED"
+
+
+def test_scientific_query_does_not_harvest_catalogue_from_failed_status():
+    class Denied(FakeClient):
+        async def call_tool(self, name, arguments=None):
+            result = await super().call_tool(name, arguments)
+            if name == "scientific_status":
+                result.structured_content = {"ok": False, "error": {"code": "NOT_FOUND"},
+                                             "scientific": {"snapshot_id": SCI_SNAPSHOT, "query_ids": [SCI_QUERY]}}
+                result.is_error = True
+            return result
+    client = Denied()
+    rep = run(client)
+    assert rep["verdict"] == "WARN" and rep["per_tool"]["scientific_query"] == "SKIP"
+    assert not any(name == "scientific_query" for name, _ in client.calls)
 
 
 def test_data_errors_warn_and_dependency_errors_fail():
@@ -210,7 +249,7 @@ def test_dry_run_plans_every_expected_tool():
     with redirect_stdout(buf):
         assert SMOKE.main(["--dry-run"]) == 0
     out = json.loads(buf.getvalue())
-    assert out["planned_tools"] == sorted(SMOKE.EXPECTED_TOOLS) and out["expected"] == 51
+    assert out["planned_tools"] == sorted(SMOKE.EXPECTED_TOOLS) and out["expected"] == 53
 
 
 def test_expected_tools_match_the_read_server():

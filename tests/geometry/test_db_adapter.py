@@ -107,6 +107,7 @@ def test_postgres_write_scope_rejects_production():
         _scope(Connection(), SCOPE)
 
 
+@pytest.mark.duckdb_spatial
 def test_duckdb_reference_wkb_idempotence_and_conflict(tmp_path):
     import duckdb
     plan, *_ = fixture_plan()

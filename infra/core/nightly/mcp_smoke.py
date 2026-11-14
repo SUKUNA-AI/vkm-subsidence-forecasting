@@ -26,7 +26,7 @@ import sys
 import time
 from datetime import datetime, timezone
 
-VERSION = "nightly-mcp-smoke-8"
+VERSION = "nightly-mcp-smoke-9"
 EXPECTED_TOOLS = (
     "search_text", "search_hybrid", "retrieval_trace", "search_objects", "get_source", "get_work", "get_page",
     "get_page_image", "get_figure", "get_table", "get_formula", "get_object", "get_document_neighbors",
@@ -43,6 +43,8 @@ EXPECTED_TOOLS = (
     "find_works", "find_entities",
     # versioned, access-filtered evidence (production data program, 01.10)
     "list_evidence", "get_evidence_record", "get_evidence_dependencies", "get_evidence_review_packet",
+    # optional, operator-bound scientific snapshot (read-only; never client SQL)
+    "scientific_status", "scientific_query",
 )
 EVIDENCE_TOOLS = frozenset({"list_evidence", "get_evidence_record", "get_evidence_dependencies",
                             "get_evidence_review_packet"})
@@ -78,6 +80,7 @@ class Harvest:
         self.ids["evidence_record"] = []
         self.image_figures = []
         self.evidence_journal = None             # production_controls.evidence_journal of get_corpus_status
+        self.scientific_query = None             # only a permitted successful status catalogue
 
     def add(self, body):
         text = json.dumps(body, ensure_ascii=False)
@@ -113,12 +116,29 @@ class Harvest:
                 if record_id not in self.ids["evidence_record"]:
                     self.ids["evidence_record"].append(record_id)
 
+    def add_scientific_status(self, body):
+        """Do not invent a query/snapshot or harvest ids from error/quoted content."""
+        if not body.get("ok") or not isinstance(body.get("scientific"), dict):
+            return
+        status = body["scientific"]
+        snapshot = status.get("snapshot_id")
+        queries = status.get("query_ids")
+        if (not isinstance(snapshot, str) or not 1 <= len(snapshot) <= 200
+                or re.search(r"[\x00-\x1f]", snapshot) or not isinstance(queries, list)):
+            return
+        query = next((q for q in queries if isinstance(q, str)
+                      and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}", q)), None)
+        if query:
+            self.scientific_query = {"query_id": query, "snapshot_id": snapshot, "limit": 1}
+
 
 def plan():
     """(tool, arguments or a function of the harvest → arguments or None) in call order."""
     h = lambda kind: (lambda hv: hv.first(kind))  # noqa: E731
     return [
         ("get_corpus_status", {}),
+        ("scientific_status", {}),
+        ("scientific_query", lambda hv: hv.scientific_query),
         ("list_evidence", {"limit": 1}),
         ("get_evidence_record", lambda hv: hv.first("evidence_record") and
          {"record_id": hv.first("evidence_record")}),
@@ -222,7 +242,8 @@ async def run(client, deadline_s=600.0, call_timeout_s=240.0):
         if callable(args):
             args = args(hv)
         if not args and args != {}:
-            entry.update(status="SKIP", error_code="NO_INPUT_ID")
+            entry.update(status="SKIP", error_code="SCIENTIFIC_QUERY_NOT_PUBLISHED" if tool == "scientific_query"
+                         else "NO_INPUT_ID")
             calls.append(entry)
             continue
         if time.monotonic() - started > deadline_s:
@@ -246,6 +267,8 @@ async def run(client, deadline_s=600.0, call_timeout_s=240.0):
             hv.add_status(body)
         if tool == "list_evidence":
             hv.add_evidence_page(body)
+        if tool == "scientific_status":
+            hv.add_scientific_status(body)
         if tool == "search_objects" and args.get("has_image") and body.get("ok"):
             for it in body.get("items") or []:          # full view: the envelope; brief view (default): id
                 oid = (it.get("envelope") or {}).get("object_id") or it.get("id")
@@ -255,7 +278,7 @@ async def run(client, deadline_s=600.0, call_timeout_s=240.0):
                      ms=round((time.perf_counter() - t0) * 1000, 1), n_items=len(body.get("items") or []),
                      n_images=n_images, sha256=sha(body) if body else None,
                      # Evidence record ids are caller-defined and can themselves carry private labels.
-                     args={k: v for k, v in args.items() if k not in ("query", "record_id")})
+                     args={k: v for k, v in args.items() if k not in ("query", "record_id", "query_id", "snapshot_id")})
         calls.append(entry)
     return report(names, calls, started)
 

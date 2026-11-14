@@ -196,6 +196,50 @@ def test_vendor_gis_rehearsal_has_explicit_external_marker():
     assert "not qgis_runtime" in CHECKS.MARKER_EXPRESSION
 
 
+def test_only_native_duckdb_spatial_node_declares_the_runtime_boundary():
+    import ast
+
+    tree = ast.parse((ROOT / "tests/geometry/test_db_adapter.py").read_text(encoding="utf-8"))
+    marked = [node.name for node in tree.body if isinstance(node, ast.FunctionDef)
+              and any(ast.unparse(d) == "pytest.mark.duckdb_spatial" for d in node.decorator_list)]
+    assert marked == ["test_duckdb_reference_wkb_idempotence_and_conflict"]
+    assert "not duckdb_spatial" in CHECKS.MARKER_EXPRESSION
+
+
+def test_native_spatial_deselection_is_not_run_and_explicit_selection_still_fails(tmp_path):
+    import json
+    import subprocess
+
+    root = tmp_path / "checkout"
+    suite = root / "tests/geometry"
+    suite.mkdir(parents=True)
+    (root / "pyproject.toml").write_text(
+        '[tool.pytest.ini_options]\nmarkers = ["duckdb_spatial: existing native extension required"]\n',
+        encoding="utf-8")
+    node = suite / "test_native_selection.py"
+    node.write_text("import pytest\n"
+                    "def test_pure_db_contract(): assert True\n"
+                    "@pytest.mark.duckdb_spatial\n"
+                    "def test_native(): raise RuntimeError('native extension unavailable')\n", encoding="utf-8")
+    out = tmp_path / "offline-proof"
+    out.mkdir()
+    child = """import importlib.util,json,pathlib,sys
+spec=importlib.util.spec_from_file_location('checks',sys.argv[1]);checks=importlib.util.module_from_spec(spec);spec.loader.exec_module(checks)
+print(json.dumps(checks.run_tests(pathlib.Path(sys.argv[2]),'corpus-offline',pathlib.Path(sys.argv[3]))))
+"""
+    result = subprocess.run([sys.executable, "-B", "-c", child, str(ROOT / "scripts/run_offline_checks.py"),
+                             str(root), str(out)], cwd=root, capture_output=True, text=True, check=True)
+    report = json.loads(result.stdout.splitlines()[-1])
+    assert report["status"] == "PASS_WITH_NOT_RUN" and report["passed"] == 1
+    assert report["selected"] == 1 and report["skipped"] == 0 and report["unexpected_skips"] == []
+    assert report["deselected"] == [{"nodeid": "tests/geometry/test_native_selection.py::test_native",
+                                      "status": "NOT_RUN", "markers": ["duckdb_spatial"]}]
+    explicit = subprocess.run([sys.executable, "-B", "-m", "pytest", "-q", "-m", "duckdb_spatial",
+                               str(node) + "::test_native"], cwd=root, capture_output=True, text=True)
+    assert explicit.returncode == 1 and "native extension unavailable" in explicit.stdout
+    assert "1 failed" in explicit.stdout and "skipped" not in explicit.stdout
+
+
 def test_frozen_object_missing_fails_even_when_verifier_is_nonblocking():
     report = {"exit_code": 0, "checks": [
         {"id": "catalogue_sync:manifest", "status": "PASS", "details": {}},

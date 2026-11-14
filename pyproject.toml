@@ -130,4 +130,5 @@ markers = [
     "ansys: needs Ansys 2026 R1 and takes an Ansys licence (run only with -m ansys and VKM_ANSYS_LIVE=1)",
     "qgis_runtime: needs an existing configured PyQGIS/GDAL runtime",
     "native_source: needs separately supplied exact pinned native-owner sources; no source download or vendoring",
+    "duckdb_spatial: needs an existing DuckDB native spatial extension; explicit native invocation fails if unavailable; no download",
 ]
