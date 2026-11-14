@@ -91,3 +91,50 @@ def test_no_overwrite_and_exact_batch_read(tmp_path):
     write_dxf(rows, tmp_path / "one.dxf")
     with pytest.raises(FileExistsError):
         write_dxf(rows, tmp_path / "one.dxf")
+
+
+@pytest.mark.parametrize("field,value", [("elevation", 2), ("thickness", 1), ("extrusion", (0, 1, 1)), ("elevation", float("nan"))])
+def test_dxf_rejects_ocs_elevation_and_nonfinite(tmp_path, field, value):
+    import ezdxf
+    rows = batch_rows(synthetic_batch())
+    path = tmp_path / "not_2d.dxf"
+    write_dxf(rows, path)
+    doc = ezdxf.readfile(path)
+    entity = next(e for e in doc.modelspace() if e.dxftype() == "LWPOLYLINE")
+    setattr(entity.dxf, field, value)
+    doc.saveas(path)
+    with pytest.raises(ValueError): read_dxf(path)
+
+
+def test_dxf_rejects_point_z_and_affine_tampering(tmp_path):
+    import ezdxf
+    import hashlib
+    from vkm_geometry.transport import APPID, _read_xrecord, _xrecord
+    rows = batch_rows(synthetic_batch())
+    path = tmp_path / "point_z.dxf"
+    write_dxf(rows, path)
+    doc = ezdxf.readfile(path)
+    next(e for e in doc.modelspace() if e.dxftype() == "POINT").dxf.location = (1.125, -2.25, 1)
+    doc.saveas(path)
+    with pytest.raises(ValueError, match="point Z"): read_dxf(path)
+    path = tmp_path / "affine.dxf"
+    write_dxf(rows, path)
+    doc = ezdxf.readfile(path)
+    dictionary = doc.rootdict[APPID]
+    token = hashlib.sha256(rows[0]["source_feature_id"].encode()).hexdigest()
+    record = _read_xrecord(dictionary, token)
+    record["affine"]["forward"][0][2] = 10
+    _xrecord(dictionary, token, record)
+    doc.saveas(path)
+    with pytest.raises(ValueError, match="affine metadata"): read_dxf(path)
+
+
+def test_wkb_nonfinite_and_actual_bool_are_rejected():
+    from shapely.geometry import Point
+    from vkm_geometry.transport import row_digest, validate_rows, assert_geometry_equal
+    rows = batch_rows(synthetic_batch())
+    rows[0]["wkb_hex"] = Point(float("nan"), 2).wkb_hex
+    rows[0]["row_sha256"] = row_digest(rows[0])
+    with pytest.raises(ValueError): validate_rows(rows)
+    with pytest.raises(ValueError):
+        assert_geometry_equal({"type": "Point", "coordinates": [1, 2]}, {"type": "Point", "coordinates": [True, 2]})

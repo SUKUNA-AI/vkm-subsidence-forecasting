@@ -134,7 +134,7 @@ def batch_rows(batch: dict) -> list[dict]:
 
 def _assert_coordinates(left, right, tolerance=TOLERANCE):
     if isinstance(left, (int, float)) and not isinstance(left, bool):
-        if not isinstance(right, (int, float)) or abs(left - right) > tolerance:
+        if not math.isfinite(left) or isinstance(right, bool) or not isinstance(right, (int, float)) or not math.isfinite(right) or abs(left - right) > tolerance:
             raise ValueError("Geometry vertex differs")
     else:
         if not isinstance(right, (list, tuple)) or len(left) != len(right):
@@ -158,13 +158,35 @@ def validate_rows(rows: list[dict]) -> list[dict]:
             raise ValueError("Duplicate or changed transport row")
         seen.add(row["source_feature_id"])
         feature = json.loads(row["feature_json"])
-        assert_geometry_equal(feature["geometry"], mapping(from_wkb(bytes.fromhex(row["wkb_hex"]))))
+        geometry_to_wkb(feature)
+        actual_geometry = mapping(from_wkb(bytes.fromhex(row["wkb_hex"])))
+        _coordinates(actual_geometry)
+        assert_geometry_equal(feature["geometry"], actual_geometry)
         for key, want in (("source_feature_id", feature["source_feature_id"]), ("source_id", feature["source_id"]),
                           ("work_id", feature["work_id"]), ("frame_id", feature["image_coordinate_frame"]["id"]),
                           ("coordinate_unit", feature["image_coordinate_frame"]["unit"]), ("geometry_type", feature["geometry"]["type"])):
             if row[key] != want:
                 raise ValueError(f"Transport metadata differs: {key}")
     return rows
+
+
+def _strict_2d_entity(entity):
+    def zero(value):
+        return math.isfinite(float(value)) and float(value) == 0
+    extrusion = tuple(entity.dxf.get("extrusion", (0, 0, 1)))
+    if len(extrusion) != 3 or not all(math.isfinite(float(x)) for x in extrusion) or extrusion != (0, 0, 1):
+        raise ValueError("Non-default DXF extrusion/OCS is outside the 2D contract")
+    if not zero(entity.dxf.get("thickness", 0)):
+        raise ValueError("Nonzero/nonfinite DXF thickness")
+    if entity.dxftype() == "POINT":
+        if not zero(entity.dxf.location.z): raise ValueError("Nonzero/nonfinite DXF point Z")
+        if not all(math.isfinite(float(x)) for x in entity.dxf.location): raise ValueError("Nonfinite DXF point")
+    elif entity.dxftype() == "LWPOLYLINE":
+        if not zero(entity.dxf.get("elevation", 0)) or not zero(entity.dxf.get("const_width", 0)):
+            raise ValueError("Nonzero/nonfinite DXF elevation or width")
+        for point in entity.get_points():
+            if not all(math.isfinite(float(x)) for x in point) or any(not zero(point[i]) for i in (2, 3, 4)):
+                raise ValueError("Unexpected nonfinite DXF vertex, width or bulge")
 
 
 def write_wkb_jsonl(rows: list[dict], path: Path | str):
@@ -272,6 +294,7 @@ def read_dxf(path: Path | str) -> list[dict]:
     manifest = _read_xrecord(metadata, "MANIFEST")
     grouped = {}
     for entity in doc.modelspace():
+        _strict_2d_entity(entity)
         tags = entity.get_xdata(APPID)
         token, index, role = tags[0].value, tags[1].value, tags[2].value
         if index in grouped.setdefault(token, {}): raise ValueError("Duplicate DXF representation part")
@@ -290,6 +313,8 @@ def read_dxf(path: Path | str) -> list[dict]:
         token = hashlib.sha256(fid.encode()).hexdigest()
         record = _read_xrecord(metadata, token); row = record["row"]
         feature = json.loads(row["feature_json"]); geometry = copy.deepcopy(feature["geometry"])
+        if row["source_feature_id"] != fid or record["affine"] != cad_affine(feature["image_coordinate_frame"]):
+            raise ValueError("DXF identity or affine metadata changed")
         parts = record["parts"]
         if set(grouped.get(token, {})) != set(range(len(parts))): raise ValueError("DXF part count changed")
         sign = record["affine"]["inverse"][1][1]
