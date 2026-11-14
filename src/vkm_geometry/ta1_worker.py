@@ -11,13 +11,147 @@ import hashlib
 import importlib.metadata
 import json
 from pathlib import Path
+import re
+import shutil
 import sqlite3
+import struct
 
 from .transport import (assert_geometry_equal, assert_rows_equal, canonical_json, read_wkb_jsonl,
                         row_digest, validate_rows, write_wkb_jsonl, coordinate_frame)
 
 
 def _token(value): return hashlib.sha256(canonical_json(value).encode()).hexdigest()[:24]
+
+
+def _identifier(value):
+    if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", value):
+        raise ValueError("Unexpected GeoPackage table/column identifier")
+    return '"' + value + '"'
+
+
+def _header_srs(blob):
+    blob = bytes(blob)
+    if len(blob) < 8 or blob[:2] != b"GP" or blob[2] != 0:
+        raise ValueError("Expected an actual GeoPackage geometry header")
+    return struct.unpack("<i" if blob[3] & 1 else ">i", blob[4:8])[0]
+
+
+def _cartesian_header(blob, *, allowed_srs=(0, -1)):
+    blob = bytes(blob)
+    if _header_srs(blob) not in allowed_srs:
+        raise ValueError("Only undefined source-coordinate GeoPackage outputs may be normalized")
+    changed = blob[:4] + struct.pack("<i" if blob[3] & 1 else ">i", -1) + blob[8:]
+    if blob[:4] != changed[:4] or blob[8:] != changed[8:]:
+        raise ValueError("SRS-header update changed envelope/WKB bytes")
+    return changed
+
+
+def _set_srs_record(connection, row):
+    names = ["srs_name", "srs_id", "organization", "organization_coordsys_id", "definition", "description"]
+    if connection.execute("SELECT 1 FROM gpkg_spatial_ref_sys WHERE srs_id=?", [row[1]]).fetchone():
+        connection.execute("UPDATE gpkg_spatial_ref_sys SET srs_name=?,organization=?,organization_coordsys_id=?,definition=?,description=? WHERE srs_id=?", [row[0], row[2], row[3], row[4], row[5], row[1]])
+    else:
+        values = list(row)
+        if "definition_12_063" in {r[1] for r in connection.execute("PRAGMA table_info(gpkg_spatial_ref_sys)")}:
+            if row[1] == 4326:
+                raise ValueError("A missing WKT2 WGS84 registry entry needs the owning GDAL writer")
+            names.append("definition_12_063"); values.append("undefined")
+        connection.execute("INSERT INTO gpkg_spatial_ref_sys(" + ",".join(names) + ") VALUES(" + ",".join("?" for _ in names) + ")", values)
+
+
+def normalize_new_cartesian_package(path: Path | str) -> dict:
+    """Only a caller-owned NEW output: correct SRS metadata/header, never coordinates.
+
+    GeoPackage Req11 reserves -1 for undefined Cartesian and 0 for undefined
+    geographic. PostGIS SRID0 is a separate format-specific convention.
+    """
+    path = Path(path)
+    changed_headers = 0
+    payload_digest = hashlib.sha256()
+    with sqlite3.connect(path) as connection:
+        connection.execute("BEGIN IMMEDIATE")
+        geometry_columns = connection.execute("SELECT table_name,column_name,srs_id FROM gpkg_geometry_columns ORDER BY table_name,column_name").fetchall()
+        allowed_srs = {0, -1}
+        # The existing GDAL/QGIS SOURCE_COORDINATES writer emits this exact
+        # undefined placeholder. It is not a defined CRS or an authority claim.
+        gdal_undefined = connection.execute("SELECT organization,organization_coordsys_id,definition FROM gpkg_spatial_ref_sys WHERE srs_id=99999").fetchone()
+        if gdal_undefined == ('GDAL', 99999, 'LOCAL_CS["Undefined SRS",LOCAL_DATUM["unknown",32767],UNIT["unknown",0],AXIS["Easting",EAST],AXIS["Northing",NORTH]]'):
+            allowed_srs.add(99999)
+        if any(srs not in allowed_srs for _, _, srs in geometry_columns):
+            raise ValueError("Do not relabel an existing defined CRS")
+        triggers = connection.execute("SELECT name,sql FROM sqlite_master WHERE type='trigger' ORDER BY name").fetchall()
+        # Headers alone change. Preserve existing RTree/feature counts exactly:
+        # temporarily suspend triggers in our NEW output, restore their exact SQL.
+        for name, sql in triggers:
+            connection.execute('DROP TRIGGER "' + name.replace('"', '""') + '"')
+        for table, column, _ in geometry_columns:
+            t, c = _identifier(table), _identifier(column)
+            if not connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", [table]).fetchone():
+                raise ValueError("GeoPackage geometry table missing")
+            for rowid, blob in connection.execute(f"SELECT rowid,{c} FROM {t} WHERE {c} IS NOT NULL").fetchall():
+                original = bytes(blob); corrected = _cartesian_header(original, allowed_srs=allowed_srs)
+                payload_digest.update(canonical_json([table, rowid]).encode() + original[:4] + original[8:])
+                if corrected != original:
+                    connection.execute(f"UPDATE {t} SET {c}=? WHERE rowid=?", [corrected, rowid])
+                    changed_headers += 1
+                actual = bytes(connection.execute(f"SELECT {c} FROM {t} WHERE rowid=?", [rowid]).fetchone()[0])
+                if actual != corrected:
+                    raise ValueError("GeoPackage geometry header write/readback differs")
+        for _, sql in triggers:
+            connection.execute(sql)
+        if connection.execute("SELECT name,sql FROM sqlite_master WHERE type='trigger' ORDER BY name").fetchall() != triggers:
+            raise ValueError("New-output trigger definitions changed")
+        for row in [("Undefined Cartesian SRS", -1, "NONE", -1, "undefined", "Undefined Cartesian reference system; actual source frame and units are explicit metadata"),
+                    ("Undefined geographic SRS", 0, "NONE", 0, "undefined", "Undefined geographic reference system; not used by these Cartesian features")]:
+            _set_srs_record(connection, row)
+        if not connection.execute("SELECT 1 FROM gpkg_spatial_ref_sys WHERE srs_id=4326").fetchone():
+            # Mandatory GeoPackage registry entry only, NEVER assigned to these
+            # source-coordinate features. Standard WGS84 WKT1 definition.
+            _set_srs_record(connection, ("WGS 84 geodetic", 4326, "EPSG", 4326,
+                'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433],AUTHORITY["EPSG","4326"]]',
+                "Mandatory GeoPackage registry entry; not assigned to source geometry"))
+        srs_columns = {r[1] for r in connection.execute("PRAGMA table_info(gpkg_spatial_ref_sys)")}
+        if "definition_12_063" in srs_columns:
+            connection.execute("UPDATE gpkg_spatial_ref_sys SET definition_12_063='undefined' WHERE srs_id IN (-1,0)")
+        connection.execute("UPDATE gpkg_geometry_columns SET srs_id=-1")
+        connection.execute("UPDATE gpkg_contents SET srs_id=-1 WHERE data_type='features'")
+        if connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='geometry_columns'").fetchone():
+            connection.execute("UPDATE geometry_columns SET srid=-1")
+        if connection.execute("PRAGMA foreign_key_check").fetchall():
+            raise ValueError("GeoPackage foreign keys failed after SRS metadata update")
+    standard = assert_cartesian_package(path)
+    return {"status": "PASS", "changed_geometry_headers": changed_headers,
+            "envelope_WKB_payload_sha256_excluding_SRS": payload_digest.hexdigest(), "standard": standard,
+            "coordinate_changes": False, "trigger_definitions_preserved": True}
+
+
+def assert_cartesian_package(path: Path | str) -> dict:
+    with sqlite3.connect("file:" + Path(path).resolve().as_posix() + "?mode=ro", uri=True) as connection:
+        srs = {r[1]: r for r in connection.execute("SELECT srs_name,srs_id,organization,organization_coordsys_id,definition,description FROM gpkg_spatial_ref_sys")}
+        for identifier in (-1, 0):
+            if identifier not in srs or srs[identifier][2:5] != ("NONE", identifier, "undefined"):
+                raise ValueError("Nonstandard undefined GeoPackage SRS record")
+        if "pixel" in canonical_json([srs[-1], srs[0]]).lower():
+            raise ValueError("Unknown Cartesian/geographic SRS must not claim a pixel coordinate system")
+        if "definition_12_063" in {r[1] for r in connection.execute("PRAGMA table_info(gpkg_spatial_ref_sys)")}:
+            if any(r[0] != "undefined" for r in connection.execute("SELECT definition_12_063 FROM gpkg_spatial_ref_sys WHERE srs_id IN(-1,0)")):
+                raise ValueError("Secondary WKT definition disagrees with undefined SRS")
+        if 4326 not in srs or str(srs[4326][2]).upper() != "EPSG" or srs[4326][3] != 4326 or srs[4326][4] in ("", "undefined"):
+            raise ValueError("Mandatory standard WGS84 registry record missing; it must not be assigned to source geometry")
+        geometry_columns = connection.execute("SELECT table_name,column_name,srs_id FROM gpkg_geometry_columns").fetchall()
+        if any(r[2] != -1 for r in geometry_columns):
+            raise ValueError("Unknown Cartesian geometry must use GeoPackage SRS -1")
+        if connection.execute("SELECT count(*) FROM gpkg_contents WHERE data_type='features' AND (srs_id IS NULL OR srs_id<>-1)").fetchone()[0]:
+            raise ValueError("GeoPackage contents SRS disagrees with geometry columns")
+        checked = 0
+        for table, column, _ in geometry_columns:
+            for (blob,) in connection.execute(f"SELECT {_identifier(column)} FROM {_identifier(table)} WHERE {_identifier(column)} IS NOT NULL"):
+                if _header_srs(blob) != -1:
+                    raise ValueError("Actual GeoPackage geometry binary header SRS is not -1")
+                checked += 1
+    return {"gpkg_srs_id": -1, "organization": "NONE", "definition": "undefined", "actual_geometry_headers_checked": checked,
+            "raw_WKB": "no SRS field", "PostGIS_SRID": 0, "EPSG_assigned_to_geometry": False,
+            "standard": "OGC GeoPackage Req11: -1 undefined Cartesian; 0 undefined geographic"}
 
 
 def _parts(feature):
@@ -40,8 +174,10 @@ def write_ta1(rows: list[dict], path: Path | str) -> dict:
     if not rows: raise ValueError("Empty geometry batch")
     path = Path(path)
     if path.exists(): raise FileExistsError(path)
-    # SRID0 is undefined planar, not a declaration that local metres are pixels.
+    # Pinned TA1's bootstrap uses a pixel SRS; normalize OUR new package before
+    # any geometry write. Standard GPKG -1 and PostGIS0 are distinct conventions.
     db = GeopackageDatabase(path, crs="CRITICALMAAS:0")
+    normalize_new_cartesian_package(path)
     maps, types, prepared = {}, {}, []
     for row in rows:
         feature = json.loads(row["feature_json"]); frame = coordinate_frame(feature)
@@ -86,20 +222,25 @@ def write_ta1(rows: list[dict], path: Path | str) -> dict:
             "schema": "vkm.geometry-ta1/1", "ta1_provenance_code": "modelled",
             "provenance_translation": "TA1 coarse enum for an algorithmic adapter output only; NOT a WORLD/MODEL_RESULT and NOT human/expert verification. Exact original epistemic/review/primitive roles remain in full A JSON",
             "default_polygon_color": "DISPLAY_ONLY #808080; not a source legend colour",
-            "coordinate_policy": "explicit source geometry frames and units preserved; SRID0 is undefined planar, not pixels/metres/EPSG inferred from a value unit",
+            "coordinate_policy": "explicit source geometry frames/units preserved; GeoPackage -1 undefined Cartesian, raw WKB has no SRS, PostGIS0 is format-specific unknown. No EPSG/pixel/metre inference from value units",
             "geometry_policy": "single LineString/Polygon wrapped only in TA1 storage; MultiPoint has explicit derived component IDs",
             "header_adapter": "new output container only, GPKG1.2 header; not a full OGC conformance claim"})])
         if connection.execute("PRAGMA foreign_key_check").fetchall(): raise ValueError("TA1 foreign keys failed")
-        srids = connection.execute("SELECT DISTINCT srs_id FROM gpkg_geometry_columns").fetchall()
-        if srids != [(0,)]: raise ValueError("Source-coordinate package acquired a geographic SRID")
+    standard = assert_cartesian_package(path)
     actual = read_ta1(path)
     assert_rows_equal(rows, actual)
     return {"status": "PASS", "writer": "criticalmaas.ta1_geopackage.GeopackageDatabase", "version": importlib.metadata.version("criticalmaas-ta1-geopackage"),
             "features": len(rows), "physical_features": sum(len(parts) for _, parts in prepared), "maps": len(maps),
-            "foreign_keys": "PASS", "source_frames_kept_distinct_by_map_id": True, "srid": 0, "vertex_tolerance": 1e-9}
+            "foreign_keys": "PASS", "source_frames_kept_distinct_by_map_id": True, "srid": -1,
+            "standard_SRS": standard, "vertex_tolerance": 1e-9}
 
 
 def read_ta1(path: Path | str) -> list[dict]:
+    assert_cartesian_package(path)
+    return _read_ta1_rows(path)
+
+
+def _read_ta1_rows(path: Path | str, *, allow_legacy_srs=False) -> list[dict]:
     from criticalmaas.ta1_geopackage import GeopackageDatabase
     from shapely.geometry import shape, mapping
     from shapely import to_wkb
@@ -111,6 +252,10 @@ def read_ta1(path: Path | str) -> list[dict]:
     physical = {}
     for layer in ("point_feature", "line_feature", "polygon_feature"):
         with db.open_layer(layer) as source:
+            if source.crs.to_epsg() is not None:
+                raise ValueError("Fiona assigned an EPSG to source Cartesian geometry")
+            if not allow_legacy_srs and "pixel" in (source.crs_wkt or "").lower():
+                raise ValueError("Fiona still sees a false pixel SRS")
             for item in source:
                 fid = item["properties"]["id"]
                 if fid in physical: raise ValueError("Duplicate TA1 representation ID")
@@ -140,11 +285,46 @@ def read_ta1(path: Path | str) -> list[dict]:
     return validate_rows(rows)
 
 
+def repair_srs_copy(source: Path, target: Path) -> dict:
+    """Metadata/header correction in a NEW immutable derivative; old file untouched."""
+    if target.exists(): raise FileExistsError(target)
+    source_sha = hashlib.sha256(source.read_bytes()).hexdigest()
+    before_rows = _read_ta1_rows(source, allow_legacy_srs=True)
+    with sqlite3.connect("file:" + source.resolve().as_posix() + "?mode=ro", uri=True) as connection:
+        before_transport = connection.execute("SELECT source_feature_id,row_json,parts_json FROM vkm_transport_rows ORDER BY source_feature_id").fetchall()
+        before_srs = connection.execute("SELECT * FROM gpkg_spatial_ref_sys ORDER BY srs_id").fetchall()
+        before_maps = connection.execute("SELECT * FROM map ORDER BY id").fetchall()
+    with source.open("rb") as src, target.open("xb") as dst:
+        shutil.copyfileobj(src, dst)
+    normalization = normalize_new_cartesian_package(target)
+    with sqlite3.connect(target) as connection:
+        policy_json = connection.execute("SELECT value_json FROM vkm_representation_metadata WHERE key='policy'").fetchone()[0]
+        policy = json.loads(policy_json)
+        policy["coordinate_policy"] = "GeoPackage -1 undefined Cartesian; raw WKB has no SRS; PostGIS0 is format-specific unknown. Actual source frames/units retained; no EPSG inference"
+        policy["standard_SRS_correction"] = {"source_gpkg_sha256": source_sha, "new_gpkg_srs_id": -1,
+            "geometry_coordinates_changed": False, "old_package_immutable": True}
+        connection.execute("UPDATE vkm_representation_metadata SET value_json=? WHERE key='policy'", [canonical_json(policy)])
+        if before_transport != connection.execute("SELECT source_feature_id,row_json,parts_json FROM vkm_transport_rows ORDER BY source_feature_id").fetchall():
+            raise ValueError("SRS correction changed source A/B rows or TA1 part identity")
+        if before_maps != connection.execute("SELECT * FROM map ORDER BY id").fetchall():
+            raise ValueError("SRS correction changed original image map metadata")
+    after_rows = read_ta1(target)
+    assert_rows_equal(before_rows, after_rows)
+    if hashlib.sha256(source.read_bytes()).hexdigest() != source_sha:
+        raise ValueError("Original package changed during derived-copy correction")
+    return {"status": "PASS", "scope": "new derived copy only; standard metadata and geometry SRS header correction",
+            "source_gpkg_sha256": source_sha, "corrected_gpkg_sha256": hashlib.sha256(target.read_bytes()).hexdigest(),
+            "old_standard_SRS": before_srs, "normalization": normalization, "features": len(after_rows),
+            "A_B_rows_exact": True, "image_map_metadata_exact": True, "vertices_types_IDs_exact_1e9": True,
+            "original_unchanged": True}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("write", "read"))
+    parser.add_argument("action", choices=("write", "read", "repair-srs"))
     parser.add_argument("--rows", type=Path)
     parser.add_argument("--gpkg", type=Path, required=True)
+    parser.add_argument("--source-gpkg", type=Path)
     parser.add_argument("--readback", type=Path, required=True)
     parser.add_argument("--receipt", type=Path, required=True)
     args = parser.parse_args()
@@ -152,6 +332,7 @@ def main():
     result = {"status": "FAIL", "action": args.action}
     try:
         if args.action == "write": result.update(write_ta1(read_wkb_jsonl(args.rows), args.gpkg))
+        elif args.action == "repair-srs": result.update(repair_srs_copy(args.source_gpkg, args.gpkg))
         rows = read_ta1(args.gpkg)
         write_wkb_jsonl(rows, args.readback)
         result.update(status="PASS", readback_features=len(rows), gpkg_sha256=hashlib.sha256(args.gpkg.read_bytes()).hexdigest())

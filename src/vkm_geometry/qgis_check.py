@@ -15,6 +15,7 @@ from .transport import (assert_geometry_equal, assert_rows_equal, canonical_json
 def check_qgis(rows, output: Path, *, public_root: Path, private_root: Path, qgis_root: Path):
     from vkm_qgis.service import QgisService
     from vkm_qgis.policy import Paths
+    from .ta1_worker import normalize_new_cartesian_package
     from shapely.geometry import shape
     from shapely import to_wkb
     validate_rows(rows)
@@ -64,6 +65,11 @@ def check_qgis(rows, output: Path, *, public_root: Path, private_root: Path, qgi
                 imported = call("qgis_import_vector", source_path=source_ref, path="work:source.qgis.gpkg", name=name,
                                 crs_kind="SOURCE_COORDINATES", frame_id=frame["id"], unit=frame["unit"], geometry_type=geometry_type,
                                 preserve_invalid_source=True)
+                # Existing worker writes OUR new GPKG. Normalize its standard
+                # undefined Cartesian SRS too; source coordinates/attrs stay exact.
+                normalized = normalize_new_cartesian_package(output / "source.qgis.gpkg")
+                calls.append({"operation": "new_output_standard_Cartesian_SRS", "result": normalized})
+                (output / "qgis_calls.json").write_text(json.dumps(calls, ensure_ascii=False, indent=2), encoding="utf-8")
                 frame_layers[frame_json].append(name)
                 layer_index.append({"layer": name, "frame": frame, "geometry_type": geometry_type,
                                     "features": len(features), "topology_status": imported["topology_status"]})
