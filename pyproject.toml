@@ -131,4 +131,5 @@ markers = [
     "qgis_runtime: needs an existing configured PyQGIS/GDAL runtime",
     "ta1_runtime: needs an existing compatible ta1-geopackage/Fiona runtime; explicit invocation fails if absent",
     "native_source: needs separately supplied exact pinned native-owner sources; no source download or vendoring",
+    "duckdb_spatial: needs an existing DuckDB native spatial extension; explicit native invocation fails if unavailable; no download",
 ]

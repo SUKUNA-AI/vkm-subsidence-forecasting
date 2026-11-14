@@ -134,6 +134,7 @@ def test_snapshot_cannot_open_parent_paths(tmp_path):
     ("source_series_points", "SOURCE_FIGURE_SERIES_DIGITIZATION"),
     ("source_digitization_batches", "SOURCE_DIGITIZATION_BATCH_METADATA"),
     ("source_series_nav_links", "SOURCE_DIGITIZATION_CROSS_LINK"),
+    ("source_geometry_features", "SOURCE_GEOMETRY_DIGITIZATION"),
 ])
 def test_source_digitization_tables_keep_their_roles(tmp_path, table_name, role):
     path, digest = build_snapshot(tmp_path, table_name=table_name, role=role,
@@ -143,7 +144,7 @@ def test_source_digitization_tables_keep_their_roles(tmp_path, table_name, role)
     assert instance.query("intervals", "synthetic-science-snapshot")["scientific_admission"] == "NOT_GRANTED_BY_READER"
 
 
-@pytest.mark.parametrize("table_name", ["source_series_points", "source_digitization_batches", "source_series_nav_links"])
+@pytest.mark.parametrize("table_name", ["source_series_points", "source_digitization_batches", "source_series_nav_links", "source_geometry_features"])
 def test_digitized_series_cannot_be_relabeled_as_observation_index(tmp_path, table_name):
     path, digest = build_snapshot(tmp_path, table_name=table_name, role="OBSERVATION_INDEX",
                                   sql="SELECT name FROM " + table_name)

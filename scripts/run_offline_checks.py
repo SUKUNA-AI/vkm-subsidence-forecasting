@@ -21,7 +21,7 @@ import sys
 import tempfile
 import tomllib
 
-EXTERNAL_MARKERS = ("services", "gpu", "desktop", "matlab", "ansys", "qgis_runtime", "native_source", "ta1_runtime")
+EXTERNAL_MARKERS = ("services", "gpu", "desktop", "matlab", "ansys", "qgis_runtime", "native_source", "ta1_runtime", "duckdb_spatial")
 MARKER_EXPRESSION = " and ".join(f"not {marker}" for marker in EXTERNAL_MARKERS)
 ROOT = Path(__file__).resolve().parents[1]
 WINDOWS_PATHS = ("tests/world", "tests/engineering", "tests/qgis", "tests/evidence", "tests/datasets",

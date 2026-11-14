@@ -919,6 +919,28 @@ def build_read_server(api: ApiClient) -> MCPServer:
         and licences, control-plane jobs; host roles only."""
         return await call("get_corpus_status", "GET", "/v1/status")
 
+    @server.tool(name="scientific_status", annotations=READ_ONLY)
+    async def scientific_status() -> CallToolResult:
+        """Status and named query IDs of the operator-bound scientific snapshot.
+
+        Availability does not activate a snapshot or grant scientific admission.
+        """
+        return await call("scientific_status", "GET", "/v1/science/status")
+
+    @server.tool(name="scientific_query", annotations=READ_ONLY)
+    async def scientific_query(
+        query_id: Annotated[str, Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")],
+        snapshot_id: Annotated[str, Field(min_length=1, max_length=200)],
+        limit: Annotated[int, Field(ge=1, le=500)] = 100,
+    ) -> CallToolResult:
+        """Read one predeclared query at an exact snapshot; no client SQL.
+
+        A truncated response is incomplete. Use operator-provided partition IDs
+        and the declared per-page limit to traverse a large projection fully.
+        """
+        return await call("scientific_query", "GET", f"/v1/science/query/{query_id}",
+                          params={"snapshot_id": snapshot_id, "limit": limit})
+
     @server.tool(name="get_evidence_record", annotations=READ_ONLY)
     async def get_evidence_record(record_id: Annotated[str, Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_.:@+-]{0,199}$")],
                                   journal_revision: Annotated[str | None, Field(pattern=r"^[a-f0-9]{64}$")] = None,
