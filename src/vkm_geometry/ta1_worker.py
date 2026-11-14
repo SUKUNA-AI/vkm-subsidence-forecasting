@@ -265,7 +265,7 @@ def _read_ta1_rows(path: Path | str, *, allow_legacy_srs=False) -> list[dict]:
     path = Path(path)
     db = GeopackageDatabase(path, create=False)
     with sqlite3.connect(path) as connection:
-        stored = connection.execute("SELECT row_json,parts_json FROM vkm_transport_rows ORDER BY rowid").fetchall()
+        stored = connection.execute("SELECT source_feature_id,row_json,parts_json FROM vkm_transport_rows ORDER BY rowid").fetchall()
         maps = {r[0]: r[1:] for r in connection.execute("SELECT id,name,source_url,image_url,image_width,image_height FROM map")}
         if connection.execute("PRAGMA foreign_key_check").fetchall(): raise ValueError("TA1 foreign keys failed")
     physical = {}
@@ -280,8 +280,11 @@ def _read_ta1_rows(path: Path | str, *, allow_legacy_srs=False) -> list[dict]:
                 if fid in physical: raise ValueError("Duplicate TA1 representation ID")
                 physical[fid] = (layer, dict(item["properties"]), mapping(shape(item["geometry"])))
     rows, used = [], set()
-    for row_json, parts_json in stored:
-        row = json.loads(row_json); feature = json.loads(row["feature_json"]); parts = json.loads(parts_json)
+    for stored_fid, row_json, parts_json in stored:
+        row = json.loads(row_json)
+        if stored_fid != row.get("source_feature_id"):
+            raise ValueError("TA1 transport key differs from original source_feature_id")
+        feature = json.loads(row["feature_json"]); parts = json.loads(parts_json)
         validate_rows([row])
         _validate_ta1_parts(feature, parts)
         original = feature["geometry"]; kind = original["type"]

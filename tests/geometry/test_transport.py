@@ -52,6 +52,34 @@ def test_six_geometry_types_full_json_wkb_and_dxf(tmp_path):
     assert cad_affine(batch["features"][0]["image_coordinate_frame"])["forward"] == [[1, 0, 0], [0, -1, 0], [0, 0, 1]]
 
 
+@pytest.mark.parametrize("entrypoint", ["validate", "write_jsonl", "read_jsonl", "write_dxf", "read_dxf"])
+def test_empty_transport_batches_rejected_at_each_boundary(tmp_path, entrypoint):
+    import ezdxf
+    from vkm_geometry.transport import APPID, TOLERANCE, _xrecord, validate_rows
+    if entrypoint == "validate": action = lambda: validate_rows([])
+    elif entrypoint == "write_jsonl": action = lambda: write_wkb_jsonl([], tmp_path / "written.jsonl")
+    elif entrypoint == "read_jsonl":
+        (tmp_path / "empty.jsonl").write_text("\n  \n", encoding="utf-8")
+        action = lambda: read_wkb_jsonl(tmp_path / "empty.jsonl")
+    elif entrypoint == "write_dxf": action = lambda: write_dxf([], tmp_path / "written.dxf")
+    else:
+        # Independent corrupt-input fixture, not our writer's output.
+        doc = ezdxf.new("R2013"); doc.header["$INSUNITS"] = 0; doc.appids.new(APPID)
+        _xrecord(doc.rootdict.get_required_dict(APPID), "MANIFEST", {"schema": "vkm.geometry-dxf/1", "ids": [], "tolerance": TOLERANCE})
+        doc.saveas(tmp_path / "empty.dxf")
+        action = lambda: read_dxf(tmp_path / "empty.dxf")
+    with pytest.raises(ValueError, match="nonempty list"):
+        action()
+    assert not (tmp_path / "written.jsonl").exists()
+    assert not (tmp_path / "written.dxf").exists()
+
+
+def test_nonlist_transport_container_rejected():
+    from vkm_geometry.transport import validate_rows
+    with pytest.raises(ValueError, match="nonempty list"):
+        validate_rows(tuple(batch_rows(synthetic_batch())))
+
+
 def test_deleted_native_entity_is_not_hidden_by_metadata(tmp_path):
     import ezdxf
     rows = batch_rows(synthetic_batch())

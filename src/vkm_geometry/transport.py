@@ -179,6 +179,8 @@ def assert_geometry_equal(expected: dict, actual: dict, tolerance=TOLERANCE):
 
 
 def validate_rows(rows: list[dict]) -> list[dict]:
+    if not isinstance(rows, list) or not rows:
+        raise ValueError("Transport rows must be a nonempty list")
     from shapely import from_wkb
     from shapely.geometry import mapping
     seen = set()

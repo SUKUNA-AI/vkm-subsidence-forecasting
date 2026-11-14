@@ -76,3 +76,27 @@ def test_ta1_source_manifest_cannot_hide_missing_or_misidentified_components(cor
     else: parts[0]["component_index"] = False
     with pytest.raises(ValueError, match="part manifest"):
         _validate_ta1_parts(feature, parts)
+
+
+@pytest.mark.parametrize("entrypoint", ["read", "repair_copy"])
+def test_actual_ta1_sql_key_must_match_embedded_source_id(tmp_path, entrypoint):
+    pytest.importorskip("criticalmaas.ta1_geopackage", reason="Runs in the existing TA1 data runtime")
+    import hashlib
+    from test_transport import synthetic_batch
+    from vkm_geometry.transport import batch_rows, assert_rows_equal
+    from vkm_geometry.ta1_worker import write_ta1, read_ta1, repair_srs_copy
+    batch = synthetic_batch(); batch["features"] = batch["features"][:1]; batch["project_matches"] = batch["project_matches"][:1]
+    rows = batch_rows(batch); package = tmp_path / "synthetic.gpkg"
+    write_ta1(rows, package); assert_rows_equal(rows, read_ta1(package))
+    with sqlite3.connect(package) as db:
+        original = db.execute("SELECT row_json,parts_json FROM vkm_transport_rows").fetchall()
+        geometry = db.execute("SELECT geometry FROM point_feature").fetchall()
+        db.execute("UPDATE vkm_transport_rows SET source_feature_id='renamed-key'")
+        assert original == db.execute("SELECT row_json,parts_json FROM vkm_transport_rows").fetchall()
+        assert geometry == db.execute("SELECT geometry FROM point_feature").fetchall()
+    before = hashlib.sha256(package.read_bytes()).hexdigest()
+    with pytest.raises(ValueError, match="transport key"):
+        if entrypoint == "read": read_ta1(package)
+        else: repair_srs_copy(package, tmp_path / "repaired.gpkg")
+    assert hashlib.sha256(package.read_bytes()).hexdigest() == before
+    assert not (tmp_path / "repaired.gpkg").exists()
