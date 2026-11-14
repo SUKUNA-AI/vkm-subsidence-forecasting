@@ -138,3 +138,27 @@ def test_wkb_nonfinite_and_actual_bool_are_rejected():
     with pytest.raises(ValueError): validate_rows(rows)
     with pytest.raises(ValueError):
         assert_geometry_equal({"type": "Point", "coordinates": [1, 2]}, {"type": "Point", "coordinates": [True, 2]})
+
+
+def test_local_vector_frame_separate_from_image_provenance(tmp_path):
+    from vkm_geometry.transport import coordinate_frame
+    batch = synthetic_batch()
+    for feature in batch["features"]:
+        feature["geometry_coordinate_frame"] = {"id": "SYNTHETIC:SH5", "kind": "LOCAL_ENGINEERING", "origin": "UNKNOWN",
+            "x_axis": "east", "y_axis": "north", "unit": "m", "crs": None, "registration_status": "SOURCE_VECTOR_FRAME"}
+        feature["source_artifact"] = {"kind": "VECTOR", "logical_path": "private:synthetic.geojson", "sha256": "2" * 64}
+        feature["source_image"] = feature["source_image_sha256"] = feature["image_coordinate_frame"] = None
+    rows = batch_rows(batch)
+    assert {r["coordinate_unit"] for r in rows} == {"m"}
+    assert coordinate_frame(batch["features"][0])["id"] == "SYNTHETIC:SH5"
+    write_dxf(rows, tmp_path / "local.dxf")
+    assert_rows_equal(rows, read_dxf(tmp_path / "local.dxf"))
+    bad = copy.deepcopy(batch)
+    bad["features"][0]["geometry_coordinate_frame"]["crs"] = "EPSG:32640"
+    with pytest.raises(ValueError, match="UNKNOWN CRS"): batch_rows(bad)
+    bad = copy.deepcopy(batch)
+    bad["features"][0]["source_artifact"] = None
+    with pytest.raises(ValueError, match="VECTOR"): batch_rows(bad)
+    bad = synthetic_batch()
+    bad["features"][0]["image_coordinate_frame"]["unit"] = "m"
+    with pytest.raises(ValueError, match="relabelled"): batch_rows(bad)

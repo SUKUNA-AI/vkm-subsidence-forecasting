@@ -20,6 +20,7 @@ A_FIELDS = {"source_feature_id", "source_id", "work_id", "pdf_page", "printed_pa
             "legend_reference", "horizon", "source_image", "source_image_sha256", "extraction_status",
             "epistemic_role", "review_status", "primitive_role", "provenance"}
 FRAME_FIELDS = {"id", "origin", "x_axis", "y_axis", "unit", "width", "height", "pixel_to_pdf_page_pt", "crs", "registration_status"}
+LOCAL_FRAME_FIELDS = {"id", "kind", "origin", "x_axis", "y_axis", "unit", "crs", "registration_status"}
 B_FIELDS = {"source_feature_id", "candidate_project_object_ids", "match_status", "match_evidence", "conflicts", "limitations"}
 ROW_FIELDS = ("batch_id", "source_feature_id", "source_id", "work_id", "frame_id", "coordinate_unit",
               "geometry_type", "wkb_hex", "feature_json", "matches_json", "batch_provenance_json")
@@ -32,6 +33,16 @@ def canonical_json(value: Any) -> str:
 
 def row_digest(row: dict) -> str:
     return hashlib.sha256(canonical_json({key: row[key] for key in ROW_FIELDS}).encode("utf-8")).hexdigest()
+
+
+def coordinate_frame(feature: dict) -> dict:
+    """Geometry's frame; the optional image frame remains untouched provenance."""
+    frame = feature.get("geometry_coordinate_frame")
+    if frame is None:
+        frame = feature.get("image_coordinate_frame")
+    if not isinstance(frame, dict):
+        raise ValueError("An explicit geometry/image coordinate frame is required")
+    return frame
 
 
 def _coordinates(geometry: dict) -> None:
@@ -88,11 +99,25 @@ def validate_batch(batch: dict) -> dict:
             raise ValueError("work_id needs an explicit existing identity/basis")
         if not isinstance(feature["pdf_page"], int) or isinstance(feature["pdf_page"], bool) or feature["pdf_page"] < 1:
             raise ValueError("pdf_page must be 1-based")
-        frame = feature["image_coordinate_frame"]
-        if not isinstance(frame, dict) or not FRAME_FIELDS <= frame.keys() or not frame["id"] or not frame["unit"]:
-            raise ValueError("Incomplete explicit image coordinate frame")
-        if any(isinstance(frame[k], bool) or not isinstance(frame[k], (int, float)) or frame[k] <= 0 for k in ("width", "height")):
-            raise ValueError("Source image dimensions must be positive")
+        frame = coordinate_frame(feature)
+        local = feature.get("geometry_coordinate_frame") is not None
+        required_frame = LOCAL_FRAME_FIELDS if local else FRAME_FIELDS
+        if not required_frame <= frame.keys() or not frame["id"] or not frame["unit"]:
+            raise ValueError("Incomplete explicit geometry coordinate frame")
+        if local:
+            if frame["kind"] != "LOCAL_ENGINEERING" or frame["unit"] not in {"m", "metre", "meter", "unknown"} or frame["crs"] not in (None, "UNKNOWN"):
+                raise ValueError("Local engineering geometry needs declared units and UNKNOWN CRS, no fabricated pixel/metre/EPSG frame")
+        else:
+            if frame["unit"].lower() not in {"px", "pixel", "pixels"}:
+                raise ValueError("Image pixel coordinates cannot be relabelled as metres; use an explicit geometry frame")
+        image_frame = feature.get("image_coordinate_frame")
+        if image_frame is not None:
+            if not isinstance(image_frame, dict) or not FRAME_FIELDS <= image_frame.keys():
+                raise ValueError("Incomplete original image provenance frame")
+            if image_frame["unit"].lower() not in {"px", "pixel", "pixels"}:
+                raise ValueError("Original image provenance dimensions are pixels, never metres")
+            if any(isinstance(image_frame[k], bool) or not isinstance(image_frame[k], (int, float)) or not math.isfinite(image_frame[k]) or image_frame[k] <= 0 for k in ("width", "height")):
+                raise ValueError("Source image dimensions must be positive pixels")
         encoded = canonical_json(frame)
         if frame["id"] in frames and frames[frame["id"]] != encoded:
             raise ValueError("Conflicting definitions of one coordinate frame")
@@ -102,7 +127,12 @@ def validate_batch(batch: dict) -> dict:
         provenance = feature["provenance"]
         if not isinstance(provenance, dict) or not {"input_sha256", "extraction_version", "transformation_history"} <= provenance.keys():
             raise ValueError("Incomplete feature provenance")
-        if not isinstance(feature["source_image_sha256"], str) or len(feature["source_image_sha256"]) != 64:
+        image, image_sha = feature["source_image"], feature["source_image_sha256"]
+        artifact = feature.get("source_artifact")
+        if image is None or image_sha is None:
+            if image is not None or image_sha is not None or not local or not isinstance(artifact, dict) or artifact.get("kind") != "VECTOR" or not artifact.get("logical_path") or not isinstance(artifact.get("sha256"), str) or len(artifact["sha256"]) != 64:
+                raise ValueError("Absent source image requires a pinned VECTOR source_artifact and explicit local geometry frame")
+        elif not isinstance(image_sha, str) or len(image_sha) != 64:
             raise ValueError("Source image SHA-256 is required")
         geometry_to_wkb(feature)
     for match in batch["project_matches"]:
@@ -120,7 +150,7 @@ def batch_rows(batch: dict) -> list[dict]:
     validate_batch(batch)
     rows = []
     for feature in batch["features"]:
-        frame = feature["image_coordinate_frame"]
+        frame = coordinate_frame(feature)
         row = {"batch_id": batch["batch_id"], "source_feature_id": feature["source_feature_id"],
                "source_id": feature["source_id"], "work_id": feature["work_id"], "frame_id": frame["id"],
                "coordinate_unit": frame["unit"], "geometry_type": feature["geometry"]["type"],
@@ -163,8 +193,8 @@ def validate_rows(rows: list[dict]) -> list[dict]:
         _coordinates(actual_geometry)
         assert_geometry_equal(feature["geometry"], actual_geometry)
         for key, want in (("source_feature_id", feature["source_feature_id"]), ("source_id", feature["source_id"]),
-                          ("work_id", feature["work_id"]), ("frame_id", feature["image_coordinate_frame"]["id"]),
-                          ("coordinate_unit", feature["image_coordinate_frame"]["unit"]), ("geometry_type", feature["geometry"]["type"])):
+                          ("work_id", feature["work_id"]), ("frame_id", coordinate_frame(feature)["id"]),
+                          ("coordinate_unit", coordinate_frame(feature)["unit"]), ("geometry_type", feature["geometry"]["type"])):
             if row[key] != want:
                 raise ValueError(f"Transport metadata differs: {key}")
     return rows
@@ -218,7 +248,7 @@ def assert_rows_equal(expected: list[dict], actual: list[dict], tolerance=TOLERA
 
 def cad_affine(frame: dict) -> dict:
     x, y = str(frame["x_axis"]).lower(), str(frame["y_axis"]).lower()
-    if x not in {"right", "x right", "positive right"} or y not in {"down", "up", "y down", "y up"}:
+    if x not in {"right", "x right", "positive right", "east", "x east"} or y not in {"down", "up", "y down", "y up", "north", "y north"}:
         raise ValueError("CAD representation requires explicit right/up-or-down source axes")
     sign = -1 if "down" in y else 1
     return {"forward": [[1, 0, 0], [0, sign, 0], [0, 0, 1]], "inverse": [[1, 0, 0], [0, sign, 0], [0, 0, 1]],
@@ -263,7 +293,7 @@ def write_dxf(rows: list[dict], path: Path | str):
     for row in rows:
         fid = row["source_feature_id"]; token = hashlib.sha256(fid.encode()).hexdigest()
         feature = json.loads(row["feature_json"])
-        affine = cad_affine(feature["image_coordinate_frame"])
+        affine = cad_affine(coordinate_frame(feature))
         sign = affine["forward"][1][1]
         parts = []
         for index, (partpath, role, points) in enumerate(geometry_parts(feature["geometry"])):
@@ -313,7 +343,7 @@ def read_dxf(path: Path | str) -> list[dict]:
         token = hashlib.sha256(fid.encode()).hexdigest()
         record = _read_xrecord(metadata, token); row = record["row"]
         feature = json.loads(row["feature_json"]); geometry = copy.deepcopy(feature["geometry"])
-        if row["source_feature_id"] != fid or record["affine"] != cad_affine(feature["image_coordinate_frame"]):
+        if row["source_feature_id"] != fid or record["affine"] != cad_affine(coordinate_frame(feature)):
             raise ValueError("DXF identity or affine metadata changed")
         parts = record["parts"]
         if set(grouped.get(token, {})) != set(range(len(parts))): raise ValueError("DXF part count changed")
