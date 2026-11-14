@@ -128,3 +128,23 @@ def test_snapshot_cannot_open_parent_paths(tmp_path):
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     with pytest.raises(ValueError, match="contained"):
         reader(path, digest)
+
+
+@pytest.mark.parametrize("table_name,role", [
+    ("source_series_points", "SOURCE_FIGURE_SERIES_DIGITIZATION"),
+    ("source_digitization_batches", "SOURCE_DIGITIZATION_BATCH_METADATA"),
+])
+def test_source_digitization_tables_keep_their_roles(tmp_path, table_name, role):
+    path, digest = build_snapshot(tmp_path, table_name=table_name, role=role,
+                                  sql="SELECT name FROM " + table_name)
+    instance = reader(path, digest)
+    assert instance.status()["tables"][table_name]["data_role"] == role
+    assert instance.query("intervals", "synthetic-science-snapshot")["scientific_admission"] == "NOT_GRANTED_BY_READER"
+
+
+@pytest.mark.parametrize("table_name", ["source_series_points", "source_digitization_batches"])
+def test_digitized_series_cannot_be_relabeled_as_observation_index(tmp_path, table_name):
+    path, digest = build_snapshot(tmp_path, table_name=table_name, role="OBSERVATION_INDEX",
+                                  sql="SELECT name FROM " + table_name)
+    with pytest.raises(ValueError, match="cannot become REAL measurements"):
+        reader(path, digest)
