@@ -103,7 +103,7 @@ def normalize_new_cartesian_package(path: Path | str) -> dict:
         # OGC Req146: do not silently fix contradictory CRS declarations, even
         # when both numeric IDs are undefined variants. Only coherent outputs
         # of the known writer may receive the explicit Cartesian correction.
-        if set(contents) != {table for table, _, _ in geometry_columns} or any(contents.get(table) != srs for table, _, srs in geometry_columns):
+        if any(table not in contents or contents[table] != srs for table, _, srs in geometry_columns):
             raise ValueError("GeoPackage contents/geometry columns have inconsistent SRS declarations")
         triggers = connection.execute("SELECT name,sql FROM sqlite_master WHERE type='trigger' ORDER BY name").fetchall()
         # Headers alone change. Preserve existing RTree/feature counts exactly:
@@ -224,6 +224,11 @@ def write_ta1(rows: list[dict], path: Path | str) -> dict:
     # Pinned TA1's bootstrap uses a pixel SRS; normalize OUR new package before
     # any geometry write. Standard GPKG -1 and PostGIS0 are distinct conventions.
     db = GeopackageDatabase(path, crs="CRITICALMAAS:0")
+    # Pinned TA1's new, empty bootstrap leaves contents SRS NULL. Initialize
+    # only its declared geometry tables before any feature write. Existing
+    # packages with contradictory/NULL declarations are never auto-repaired.
+    with sqlite3.connect(path) as connection:
+        connection.execute("UPDATE gpkg_contents SET srs_id=(SELECT g.srs_id FROM gpkg_geometry_columns g WHERE g.table_name=gpkg_contents.table_name) WHERE data_type='features' AND srs_id IS NULL AND EXISTS(SELECT 1 FROM gpkg_geometry_columns g WHERE g.table_name=gpkg_contents.table_name)")
     normalize_new_cartesian_package(path)
     maps, types, prepared = {}, {}, []
     for row in rows:

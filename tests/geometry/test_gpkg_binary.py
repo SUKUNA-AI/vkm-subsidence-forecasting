@@ -202,3 +202,16 @@ def test_contradictory_srs_declarations_rejected_without_mutation(tmp_path, cont
         normalize_new_cartesian_package(path)
     with sqlite3.connect(path) as db:
         assert list(db.iterdump()) == before
+
+
+def test_nongeometry_contents_do_not_require_geometry_column(tmp_path):
+    path = tmp_path / "attributes.gpkg"
+    _create_gpkg(path, [("one", _gpb(1, payload=_point_wkb()), "unchanged")])
+    with sqlite3.connect(path) as db:
+        db.execute("CREATE TABLE annotations(id TEXT,label TEXT)")
+        db.execute("INSERT INTO gpkg_contents VALUES('annotations','attributes',NULL)")
+        db.execute("INSERT INTO annotations VALUES('one','source text')")
+    normalize_new_cartesian_package(path)
+    with sqlite3.connect(path) as db:
+        assert db.execute("SELECT srs_id FROM gpkg_contents WHERE table_name='annotations'").fetchone() == (None,)
+        assert db.execute("SELECT * FROM annotations").fetchall() == [("one", "source text")]
