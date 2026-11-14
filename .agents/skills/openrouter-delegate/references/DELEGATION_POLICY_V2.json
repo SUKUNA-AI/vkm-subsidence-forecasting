@@ -1,0 +1,17 @@
+{
+  "schema": "vkm.delegate-policy/2",
+  "authorization_scope": "VKM-MULTIAGENT-DELEGATION-V2",
+  "task_kinds": ["visual_analysis", "geological_analysis", "math_physics", "engineering_design", "code_implementation", "code_review", "tests", "data_transform", "mechanical"],
+  "profiles": {
+    "vision_documents": {"model": "google/gemini-4-hydrogen", "provider_only": "google-ai-studio/flex", "default_effort": "high", "hard_efforts": ["xhigh", "max"], "per_call_usd": "0.30"},
+    "engineering_research": {"model": "moonshotai/kimi-k3.1-pro", "provider_only": "decart/mxfp4", "default_effort": "high", "hard_efforts": ["max", "xhigh"], "per_call_usd": "1.00"},
+    "cheap_code": {"model": "deepseek/deepseek-v4.1-flash-1017", "provider_only": "stepfun/fp8", "default_effort": "high", "task_efforts": {"mechanical": "none", "data_transform": "low"}, "hard_efforts": ["max", "xhigh"], "per_call_usd": "0.10"}
+  },
+  "routing": "CALLER_SELECTS_ONE_PROFILE_NO_AUTOMATIC_FALLBACK",
+  "reasoning_capability_source": "FRESH_EXACT_MODEL_CATALOGUE_AND_ENDPOINT_SUPPORTED_PARAMETERS",
+  "legacy": "CHECK_MOCK_AND_EXPLICIT_OFFLINE_REPLAY_ONLY",
+  "context_policy": "FRESH_ENDPOINT_CONTEXT_AND_COMPLETION_LIMITS_PLUS_CONSERVATIVE_PRICED_RESERVATION",
+  "input_policy": "EXPLICIT_RELEVANT_INLINE_ARTIFACTS_NO_AUTOMATIC_SOURCE_FILE_URL_OR_ENV_READS",
+  "confirmation_policy": "REQUEST_IS_NOT_PROVIDER_EFFECTIVE_EFFORT_CONFIRMATION",
+  "blocked_profiles": {"critical_review": "BLOCKED_403"}
+}

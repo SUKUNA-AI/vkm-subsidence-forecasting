@@ -1,36 +1,38 @@
 ---
 name: openrouter-delegate
-description: "Делегировать ограниченную задачу ВКМ закреплённым моделям OpenRouter: визуальный анализ Hydrogen, инженерная разработка Kimi или небольшой вспомогательный код DeepSeek. Результат проверяет основной агент."
+description: "Делегировать содержательные задачи ВКМ закреплённым специалистам OpenRouter: программирование, данные и SQL DeepSeek; визуальный анализ, математика, геология и код Hydrogen; сложные GIS/CAD и инженерные алгоритмы Kimi. Главный Codex проверяет результат."
 ---
 
-# OpenRouter Delegate для ВКМ
+# Делегирование ВКМ через OpenRouter
 
-Главным исполнителем остаётся Codex. Сначала используй существующие сведения проекта; передавай только ограниченную задачу. Удалённая модель возвращает JSON, без shell, Git, SQL, инструментов или самостоятельного доступа к файлам. Её вывод проверяет и применяет основной агент.
+Используй один существующий клиент `scripts/openrouter_call.py`. Внешний специалист получает явный пакет нужных артефактов и возвращает кандидат результата; native-исполнитель проверяет исходники, код, геометрию и утверждения. Модель не получает shell, Git, CAD, БД, ключи или самостоятельное чтение файлов. Это проектный Skill, без отдельного MCP и агентской платформы.
 
-Выбирай один профиль и одну модель на операцию: `vision_documents` — Hydrogen для визуального анализа; `engineering_research` — Kimi для сложной инженерной разработки; `cheap_code` — DeepSeek для дешёвых вспомогательных задач. Несколько моделей нужны лишь при конкретной проверяемой необходимости; зафиксируй вопрос для каждой и вызывай отдельно. Профиль `critical_review` / Carbon имеет статус `BLOCKED_403`: call, mock и discover запрещены, автоматической замены нет.
+Выбирай специалиста по задаче; имя профиля не ограничивает его компетенцию:
 
-Прочитай [MODELS.md](references/MODELS.md) перед выбором профиля и [VKM_WORKFLOWS.md](references/VKM_WORKFLOWS.md) при подготовке задания. Одна установка относится только к этому проекту. Скрипт не читает ключевые файлы: `OPENROUTER_API_KEY` поступает только через окружение процесса. Не передавай ключ через argv, чат или журнал.
+| Профиль | Специализация | Обычный reasoning |
+|---|---|---|
+| `cheap_code` / DeepSeek | Код и ограниченные модули, backend, CLI, SQL/ETL, научные данные, A/B/provenance, GIS-утилиты и тесты | Обычно `high`; policy defaults: mechanical→`none`, data_transform→`low`; для сложного преобразования явно выбрать `high` |
+| `vision_documents` / Hydrogen | Изображения вместе с кодом, CV/PyQGIS, геометрия, математика, геология, противоречия источников и документация | `high` |
+| `engineering_research` / Kimi | Сложные GIS/CAD/Civil 3D, 3D/численные алгоритмы и архитектура нескольких модулей | `high` |
 
-Текущий ограниченный пилот принимает только явно подготовленный synthetic job JSON: prompt, необязательные inline PNG/JPEG и схема результата. Файловые пути и сетевые изображения в задании запрещены. Для закрытых исходников нужна отдельная реализация явного разрешённого пакета входов; этот пилот автоматически их не читает.
+Перед запросом прочитай [точные модели и маршруты](references/MODELS.md); для выбора, reasoning и бюджета — [ROUTING_V2.md](references/ROUTING_V2.md); при упаковке и проверке результата — [VKM_WORKFLOWS.md](references/VKM_WORKFLOWS.md). `critical_review` / Carbon остаётся `BLOCKED_403`. Автоматическая замена модели, провайдера, тарифного маршрута или reasoning запрещена.
+
+Разделяй независимые подзадачи и назначай одного native-владельца каждого результата. Не отправляй трём моделям одинаковый вопрос ради голосования. Повторно используй принятый результат при совпадающих входах и вопросе. Backlog содержит кандидатов работ, а не обязательные платные вызовы.
+
+V2 использует свежие возможности **точного endpoint**: контекст, max completion, modalities, поддерживаемые reasoning и тариф. Не ограничивай модели прежними smoke-пределами 16 KiB/4096 tokens/2048 px. Контекст ограничивается вопросом, доказательствами, действительными возможностями и резервом стоимости; весь корпус/репозиторий не передавай ради заполнения окна. Неизвестный тариф или неподдержанный режим блокирует POST, без тихого снижения. Консервативная оценка token reserve — отдельная величина, не измеренная токенизация; текущая методика раскрыта в [MODELS.md](references/MODELS.md).
+
+Реальные файлы передавай как `synthetic:false` с явным `input_package` V2, хешами, локаторами и основанием выбора. `synthetic:true` допустим только для настоящей синтетики. Клиент не открывает пути и URL из задания; логическое имя — происхождение, не инструкция загрузить файл. Ключ поступает только через `OPENROUTER_API_KEY` окружения процесса.
 
 Из корня проекта:
 
 ```powershell
-python .agents/skills/openrouter-delegate/scripts/openrouter_call.py discover --profile cheap_code --output work/delegate-endpoints.json
-python .agents/skills/openrouter-delegate/scripts/openrouter_call.py check --job work/job.json --metadata work/delegate-endpoints.json
-python .agents/skills/openrouter-delegate/scripts/openrouter_call.py mock --job work/job.json --metadata work/delegate-endpoints.json --run-dir work/mock-delegate
+python .agents/skills/openrouter-delegate/scripts/openrouter_call.py discover --task-kind engineering_design --profile engineering_research --output work/endpoint.json
+python .agents/skills/openrouter-delegate/scripts/openrouter_call.py check --job work/job.json --metadata work/endpoint.json
+python .agents/skills/openrouter-delegate/scripts/openrouter_call.py mock --job work/job.json --metadata work/endpoint.json --run-dir work/mock-result
 ```
 
-Платный `call` требует разрешённый владельцем бюджет партии `--budget-usd`, общий для партии `--ledger`, отдельный `--run-dir`, ключ в окружении и проверенный через GET `/key` конечный лимит ключа. Указывать баланс вместо бюджета нельзя. Команда выполняет ровно один POST без повторов; timeout, неизвестная стоимость или незавершённая reservation блокируют новые расходы партии до ручной сверки. Не удаляй ledger/lock ради повторного вызова.
+Live выполняется только с действующим разрешением, конечным лимитом ключа, явным общим бюджетом, **тем же ledger партии** и отдельной директорией результата. Учитывай прежние расходы и все активные резервации; максимум профиля не создаёт новый бюджет. Не обнуляй ledger и не меняй ключ ради продолжения. Один POST без слепого платного повтора; неизвестный исход/стоимость блокирует новые расходы до сверки с сохранением исходной evidence.
 
-```powershell
-python .agents/skills/openrouter-delegate/scripts/openrouter_call.py call --job work/job.json --metadata work/delegate-endpoints.json --budget-usd 0.05 --ledger work/private-batch/ledger.json --run-dir work/private-batch/probe-1
-```
+Параллельные запросы разрешены лишь при атомарном учёте подтверждённых активных leases; чужие/просроченные/неизвестные резервации не удаляются автоматически. [ROUTING_V2.md](references/ROUTING_V2.md) определяет режимы и отдельный legacy smoke-путь.
 
-`0.05` — пример синтаксиса, не расходное разрешение. Пиши receipts и результаты в приватный/ignored каталог. Скрипт сохраняет хеши, разрешённые metadata, usage и стоимость; reasoning и секреты не сохраняет. Ошибки дают ненулевой exit code. Mock не доказывает доступность API. `PROVENANCE_UNCONFIRMED` означает известную стоимость, но недостаточное подтверждение точного endpoint; научного PASS или принятия результата моделью здесь нет.
-
-Ответ OpenRouter может содержать подтверждённый canonical ID вместо запрошенного alias: разрешены только три фиксированные пары из [MODELS.md](references/MODELS.md). POST запрашивает routing metadata заголовком `X-OpenRouter-Metadata: enabled`. Для Kimi предусмотрен ограниченный вывод о маршруте по единственному Decart endpoint и полному router selection; receipt помечает его `UNIQUE_PINNED_ENDPOINT_AND_ROUTER_SELECTION`. Это вывод из каталога и routing metadata, не измерение физической precision; отсутствующие наблюдаемые endpoint/quantization не заполняются значениями из каталога.
-
-Узкое явно разрешённое владельцем исключение для трёх synthetic smoke-проб: `call --owner-local-cap-only --budget-usd 1` с **одним и тем же ledger для всей партии**. Допускается бюджет не более $1; максимум три успешные reservation за всё время ledger, включая известные ошибки исполнения. Обнуление счётчика и создание нового ledger ради дополнительных вызовов не разрешены. При `GET /key` с `limit=null, limit_remaining=null` receipt честно пишет `server_key_limit_status=UNLIMITED_OBSERVED`, `override=EXPLICIT_OWNER_LOCAL_CAP_FOR_THREE_SMOKES`; лимит1 не выдаётся за серверный. Без явного флага сохраняется `LIVE_BLOCKED_KEY_LIMIT`. Unknown/pending блокируют партию и при этом исключении. Флаг не является общим разрешением на будущие расходы.
-
-Смена активных профилей не обновляет бюджет и не сбрасывает счётчик прежней партии. Потолок вызова Kimi $1 — ограничение профиля, не новое разрешение потратить $1.
+Сохраняй requested reasoning, отправленный wire и фактические наблюдения **раздельно**. HTTP 200 и наличие `high` в запросе не подтверждают эффективный режим. Нет echo — `UNCONFIRMED`, без выдуманного HIGH_CONFIRMED. Отдельно оцени API, схему ответа, тесты, согласованность с источником и проверку агентом/человеком; научный допуск не возникает из успешного API или согласия моделей.

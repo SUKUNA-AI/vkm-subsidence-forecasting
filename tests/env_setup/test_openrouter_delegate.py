@@ -42,7 +42,10 @@ def response(profile="cheap_code"):
     return {"id": "gen-synthetic", "model": model, "provider": provider, "provider_endpoint": tag, "choices": [{"finish_reason": "stop", "message": {"content": '{"result":"def add(a,b): return a+b"}', "reasoning_details": [{"text": "MUST_NOT_PERSIST"}]}}], "usage": {"prompt_tokens": 8, "completion_tokens": 12, "total_tokens": 20, "cost": 0.00001}}
 
 
-class FakeTransport:
+class FakeTransport(d.ReplayTransport):
+    # Historical protocol/budget fixtures replay locally; this is never an
+    # authorization for a legacy job through the actual network Transport.
+    offline_replay = True
     def __init__(self, reply=None, timeout=False, limit=1):
         self.reply = response() if reply is None else reply
         self.timeout = timeout
@@ -227,7 +230,8 @@ def test_15_secret_reasoning_absent_and_error_exit(tmp_path, monkeypatch):
     env = dict(os.environ)
     env.pop("OPENROUTER_API_KEY", None)
     proc = subprocess.run([sys.executable, str(SCRIPT), "call", "--job", str(j), "--metadata", str(m), "--run-dir", str(tmp_path / "cli")], env=env, capture_output=True, text=True)
-    assert proc.returncode == 2 and "LIVE_BLOCKED_SECRET" in proc.stdout
+    # New paid CLI calls require an explicit V2 task before credential access.
+    assert proc.returncode == 2 and "V2_TASK_KIND_REQUIRED" in proc.stdout
     assert secret not in proc.stdout + proc.stderr
 
 
@@ -266,9 +270,10 @@ def test_transport_errors_and_authorization_each_call(monkeypatch, status, paylo
             pass
 
         def settimeout(self, value):
-            assert value == 120
+            self.read_timeout = value
 
         def request(self, method, path, **kwargs):
+            assert self.read_timeout == (330 if method == "POST" else 30)
             seen.append((method, path, kwargs["headers"]))
 
         def getresponse(self):
@@ -734,3 +739,196 @@ def test_run_records_inferred_route_basis_and_preserves_observed_null_fields(tmp
     assert receipt["model_identity"]["requested_alias"] == "moonshotai/kimi-k3.1-pro"
     assert receipt["actual_generation_model"] == "moonshotai/kimi-k3.1-pro-20261023"
     assert receipt["model_identity"]["generation_observed"] == receipt["actual_generation_model"]
+
+
+def source_visual_job():
+    """Generated test pixels imitate a caller package; no real source is read."""
+    j = job("vision_documents")
+    j["task_id"] = "geo-provenance-fixture"
+    j["synthetic"] = False
+    j["input_package"] = {"work_id": "VKM-SRC-011", "source_id": "VKM-SRC-011", "page": {"number": 1, "scheme": "PDF_1_BASED"}, "figure_id": "1.25", "panel_id": "main", "frame": {"id": "source011_fig1_25_pixel_fixture", "units": "pixel", "crs": "UNKNOWN"}, "image_sha256": __import__("hashlib").sha256(base64.b64decode(j["images"][0]["data_base64"])).hexdigest(), "authorization_scope": "VKM-GEO-01"}
+    return j
+
+
+@pytest.mark.parametrize("units,scheme", [("pixel", "PDF_1_BASED"), ("px", "PRINTED")])
+def test_explicit_real_visual_package_is_bounded_and_frame_preserved(units, scheme):
+    j = source_visual_job()
+    j["input_package"]["frame"]["units"] = units
+    j["input_package"]["page"]["scheme"] = scheme
+    original = copy.deepcopy(j)
+    request, estimate, _ = d.prepare(j, metadata())
+    assert request["model"] == "google/gemini-4-hydrogen" and estimate > 0
+    assert request["messages"][0]["content"][1]["image_url"]["url"].startswith("data:image/png;base64,")
+    assert "input_package" not in request and j == original
+
+
+@pytest.mark.parametrize("field", ["work_id", "source_id", "page", "figure_id", "panel_id", "frame", "image_sha256", "authorization_scope"])
+def test_real_visual_package_requires_every_provenance_field(field):
+    j = source_visual_job()
+    del j["input_package"][field]
+    with pytest.raises(d.DelegateError, match="INVALID_PROVENANCE"):
+        d.prepare(j, metadata())
+
+
+@pytest.mark.parametrize("field,value", [("authorization_scope", "OTHER-TASK"), ("source_id", "SRC-011"), ("source_id", "VKM-SRC-012"), ("figure_id", "1.24"), ("figure_id", "1.32")])
+def test_real_visual_package_rejects_unauthorized_scope_source_or_figure(field, value):
+    j = source_visual_job()
+    j["input_package"][field] = value
+    with pytest.raises(d.DelegateError, match="UNAUTHORIZED_SOURCE_PACKAGE"):
+        d.prepare(j, metadata())
+
+
+@pytest.mark.parametrize("mutation", [
+    {"page": {"number": 0, "scheme": "PDF_1_BASED"}},
+    {"page": {"number": True, "scheme": "PDF_1_BASED"}},
+    {"page": {"number": 1, "scheme": "UNKNOWN"}},
+    {"page": {"number": 1, "scheme": []}},
+    {"work_id": ""}, {"panel_id": "../../private"},
+    {"figure_id": []}, {"image_sha256": "not-a-hash"},
+    {"frame": {"id": "frame", "units": "m", "crs": "UNKNOWN"}},
+    {"frame": {"id": "frame", "units": "pixel", "crs": "EPSG:4326"}},
+    {"frame": {"id": "frame", "units": "pixel", "crs": None}},
+])
+def test_real_visual_package_rejects_malformed_locators_frame_or_hash(mutation):
+    j = source_visual_job()
+    j["input_package"].update(mutation)
+    with pytest.raises(d.DelegateError, match="INVALID_PROVENANCE"):
+        d.prepare(j, metadata())
+
+
+def test_real_visual_package_hash_matches_decoded_file_bytes_not_base64_text():
+    j = source_visual_job()
+    j["input_package"]["image_sha256"] = __import__("hashlib").sha256(j["images"][0]["data_base64"].encode()).hexdigest()
+    with pytest.raises(d.DelegateError, match="IMAGE_PROVENANCE_MISMATCH"):
+        d.prepare(j, metadata())
+
+
+def test_real_visual_package_cannot_mislabel_input_as_synthetic_or_use_other_profile():
+    j = source_visual_job()
+    j["synthetic"] = True
+    with pytest.raises(d.DelegateError, match="FORBIDDEN_INPUT"):
+        d.prepare(j, metadata())
+    j["synthetic"] = False
+    j["profile"] = "engineering_research"
+    with pytest.raises(d.DelegateError, match="FORBIDDEN_INPUT"):
+        d.prepare(j, metadata())
+
+
+@pytest.mark.parametrize("count", [0, 2])
+def test_one_real_source_visual_package_binds_exactly_one_image(count):
+    j = source_visual_job()
+    j["images"] = j["images"] * count
+    with pytest.raises(d.DelegateError, match="INVALID_PROVENANCE"):
+        d.prepare(j, metadata())
+
+
+@pytest.mark.parametrize("field,value", [("source_path", "../../PRIVATE/source.pdf"), ("image_url", "https://example.invalid/source.png")])
+def test_source_visual_package_never_opens_source_paths_or_urls(field, value):
+    j = source_visual_job()
+    j["input_package"][field] = value
+    with pytest.raises(d.DelegateError, match="INVALID_PROVENANCE"):
+        d.prepare(j, metadata())
+
+
+def test_real_visual_package_receipt_has_provenance_without_inline_image(tmp_path, monkeypatch):
+    j = source_visual_job()
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-synthetic-test-only")
+    t = FakeTransport(reply=response("vision_documents"))
+    receipt = d.run(j, metadata(), tmp_path / "run", ledger=tmp_path / "ledger.json", budget=".01", transport=t)
+    assert receipt["verification"] == "PASS" and t.posts == 1
+    assert receipt["synthetic"] is False and receipt["input_kind"] == "AUTHORIZED_SOURCE_VISUAL"
+    assert receipt["input_provenance"] == j["input_package"]
+    assert receipt["input_provenance"]["frame"]["units"] == "pixel"
+    assert receipt["input_authorization_basis"] == "EXPLICIT_CALLER_ASSERTION"
+    persisted = (tmp_path / "run/receipt.json").read_text(encoding="utf8")
+    assert j["images"][0]["data_base64"] not in persisted and "data_base64" not in persisted
+    assert receipt["input_sha256"] == d.digest(j)
+
+
+def test_real_visual_package_does_not_expand_synthetic_local_cap_exception(tmp_path, monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-synthetic-test-only")
+    t = FakeTransport(reply=response("vision_documents"), limit=None)
+    receipt = d.run(source_visual_job(), metadata(), tmp_path / "run", ledger=tmp_path / "ledger.json", budget="1", transport=t, owner_local_cap_only=True)
+    assert receipt["verification"] == "OWNER_LOCAL_CAP_REJECTED" and t.posts == 0
+    assert not (tmp_path / "ledger.json").exists()
+
+
+def test_invalid_source_package_is_rejected_before_any_transport_or_attempt(tmp_path, monkeypatch):
+    class NoNetwork:
+        def request(self, *args, **kwargs):
+            raise AssertionError("invalid package must not call transport")
+
+    j = source_visual_job()
+    j["input_package"]["authorization_scope"] = "NOT_AUTHORIZED"
+    with pytest.raises(d.DelegateError, match="UNAUTHORIZED_SOURCE_PACKAGE"):
+        d.run(j, metadata(), tmp_path / "run", transport=NoNetwork())
+    assert not (tmp_path / "run").exists()
+
+
+@pytest.mark.parametrize("figure", ["1.25", "1.42", "1.52", "1.63"])
+def test_ma_scope_allows_pinned_work_source_and_authorized_figure_range(figure):
+    j = source_visual_job()
+    j["input_package"].update(authorization_scope="VKM-GEO-01-MA", work_id="VKM-WRK-011", figure_id=figure)
+    d.prepare(j, metadata())
+
+
+@pytest.mark.parametrize("figure", ["1.24", "1.64", "1.025", "1.25-extra", "2.25"])
+def test_ma_scope_rejects_figures_outside_exact_range(figure):
+    j = source_visual_job()
+    j["input_package"].update(authorization_scope="VKM-GEO-01-MA", work_id="VKM-WRK-011", figure_id=figure)
+    with pytest.raises(d.DelegateError, match="UNAUTHORIZED_SOURCE_PACKAGE"):
+        d.prepare(j, metadata())
+
+
+def test_ma_scope_requires_actual_work_source_link():
+    j = source_visual_job()
+    j["input_package"]["authorization_scope"] = "VKM-GEO-01-MA"
+    with pytest.raises(d.DelegateError, match="UNAUTHORIZED_SOURCE_PACKAGE"):
+        d.prepare(j, metadata())
+
+
+def test_authorized_jpeg_hash_binds_exact_decoded_container_bytes():
+    from PIL import Image
+    j = source_visual_job()
+    buf = io.BytesIO()
+    Image.new("RGB", (32, 16), "white").save(buf, format="JPEG")
+    j["images"][0].update(mime="image/jpeg", data_base64=base64.b64encode(buf.getvalue()).decode())
+    j["input_package"]["image_sha256"] = __import__("hashlib").sha256(buf.getvalue()).hexdigest()
+    assert d.prepare(j, metadata())[0]["messages"][0]["content"][1]["image_url"]["url"].startswith("data:image/jpeg;base64,")
+
+
+def actual_kimi_limits_metadata():
+    rows = metadata()
+    ep = next(r for r in rows if r["model"] == "moonshotai/kimi-k3.1-pro")["metadata"]["data"]["endpoints"][0]
+    ep.update(max_completion_tokens=368640, context_length=409600)
+    ep["pricing"] = {"prompt": "0.00000122", "completion": "0.0000061", "input_cache_read": "0.000000122", "discount": 0.39}
+    return rows
+
+
+@pytest.mark.parametrize("tokens", [4097, 16384, 32768])
+def test_engineering_output_budget_accepts_bounded_profile_specific_limit(tokens):
+    j = job("engineering_research")
+    j["max_tokens"] = tokens
+    request, reserve, _ = d.prepare(j, actual_kimi_limits_metadata())
+    assert request["max_tokens"] == tokens and request["reasoning"] == {"enabled": True}
+    assert reserve < 1 and d.PROFILES["engineering_research"][3] == "1.00"
+
+
+@pytest.mark.parametrize("profile,tokens", [("engineering_research", 32769), ("cheap_code", 4097), ("vision_documents", 4097)])
+def test_output_budget_rejects_above_each_profile_limit(profile, tokens):
+    j = job(profile)
+    j["max_tokens"] = tokens
+    with pytest.raises(d.DelegateError, match="INPUT_LIMIT"):
+        d.prepare(j, actual_kimi_limits_metadata())
+
+
+def test_declared_endpoint_max_still_limits_engineering_output():
+    rows = actual_kimi_limits_metadata()
+    ep = next(r for r in rows if r["model"] == "moonshotai/kimi-k3.1-pro")["metadata"]["data"]["endpoints"][0]
+    ep["max_completion_tokens"] = 8192
+    j = job("engineering_research"); j["max_tokens"] = 16384
+    with pytest.raises(d.DelegateError, match="UNSUPPORTED_PARAMETERS"):
+        d.prepare(j, rows)
+    ep["max_completion_tokens"] = None
+    with pytest.raises(d.DelegateError, match="UNSUPPORTED_PARAMETERS"):
+        d.prepare(j, rows)
