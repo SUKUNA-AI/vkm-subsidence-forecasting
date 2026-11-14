@@ -3,8 +3,8 @@
   "excluded_historical_logs": "Preserved in original private archive copy, not PUBLIC source payload",
   "files": {
     ".agents/skills/vkm-opencode-worker/.gitattributes": {
-      "bytes": 72,
-      "sha256": "aa1804c8500ec4b5e6c1ef8cd46a63fae73d71e3068a9dc8648c3f85d2b51ec2"
+      "bytes": 136,
+      "sha256": "e6ff2bbc6aed86c3584c3e6863d636f00763fe4a1c7633b7241d341a881adf37"
     },
     ".agents/skills/vkm-opencode-worker/SKILL.md": {
       "bytes": 5889,
@@ -23,8 +23,8 @@
       "sha256": "086073234054aefcda77646133b94bb88a96a494c7be8235687f76ee87284c90"
     },
     "tools/vkm_opencode_worker/.gitattributes": {
-      "bytes": 152,
-      "sha256": "f1a4e3e186bfe60c0c06b5505695487ca1ebf3cbd6eb4df7d7543b94a8db8bdb"
+      "bytes": 216,
+      "sha256": "6e0766c89403e12e28038a56475ea4e29dc42791c47bf1eff1c8deb0e1660333"
     },
     "tools/vkm_opencode_worker/.gitignore": {
       "bytes": 100,
