@@ -26,13 +26,15 @@ PROFILES = {
     "cheap_code": ("deepseek/deepseek-v4.1-flash-1017", "stepfun/fp8", "StepFun", "0.10"),
     "vision_documents": ("google/gemini-4-hydrogen", "google-ai-studio/flex", "Google AI Studio", "0.30"),
     "engineering_research": ("moonshotai/kimi-k3.1-pro", "decart/mxfp4", "Decart", "1.00"),
+    "critical_review": ("anthropic/claude-opus-5.5", "google-vertex/global", "Google", "1.00"),
 }
-BLOCKED_PROFILES = {"critical_review": {"model": "google/gemini-4-carbon", "status": "BLOCKED_403"}}
+BLOCKED_PROFILES = {"carbon_historical": {"model": "google/gemini-4-carbon", "status": "BLOCKED_403"}}
 BLOCKED_MODEL_IDS = frozenset({"google/gemini-4-carbon", "google/gemini-4-carbon-20261110"})
 CANONICAL_MODEL_PINS = MappingProxyType({
     "google/gemini-4-hydrogen": "google/gemini-4-hydrogen-20261112",
     "deepseek/deepseek-v4.1-flash-1017": "deepseek/deepseek-v4.1-flash-20261017",
     "moonshotai/kimi-k3.1-pro": "moonshotai/kimi-k3.1-pro-20261023",
+    "anthropic/claude-opus-5.5": "anthropic/claude-opus-5.5-20260921",
 })
 MAX_TOKENS_BY_PROFILE = MappingProxyType({
     "cheap_code": 4096,
@@ -268,6 +270,8 @@ def reasoning_configuration(job, row, ep):
     if effort in spec["hard_efforts"] and (not isinstance(job.get("reasoning_justification"), str) or not job["reasoning_justification"].strip()):
         fail("HARD_REASONING_JUSTIFICATION_REQUIRED")
     wire = {"enabled": effort != "none", "effort": effort}
+    if job["profile"] == "critical_review":
+        wire["exclude"] = True  # retain token/cost evidence, not private reasoning text
     return wire, {"project_policy_sha256": digest(policy), "task_kind": job["task_kind"],
         "caller_requested_effort": explicit, "selected_effort": effort,
         "selection_basis": "CALLER_EXPLICIT" if explicit is not None else "PROJECT_TASK_DEFAULT",
@@ -341,6 +345,8 @@ def validate_job(job, secret=None):
     if not isinstance(job, dict) or set(job) - allowed or type(job.get("synthetic")) is not bool:
         fail("FORBIDDEN_INPUT")
     profile_spec(job.get("profile"))
+    if job["profile"] == "critical_review" and not v2:
+        fail("V2_TASK_KIND_REQUIRED")
     if v2 and job["task_kind"] not in delegation_policy()["task_kinds"]:
         fail("UNKNOWN_TASK_KIND")
     artifact_package = isinstance(job.get("input_package"), dict) and job["input_package"].get("schema") == "vkm.delegate-artifact-package/2"
@@ -467,9 +473,24 @@ def prepare(job, metadata, secret=None):
     pricing = ep["pricing"]
     # Reject newly advertised charge categories that this bounded client cannot price.
     known = {"prompt", "completion", "internal_reasoning", "image", "audio", "web_search", "input_audio_cache", "input_cache_read", "input_cache_write", "discount", "request"}
+    if job["profile"] == "critical_review":
+        known.add("input_cache_write_1h")
     if set(pricing) - known:
         fail("UNKNOWN_PRICING")
     prompt_rate = money(pricing.get("prompt"), "UNKNOWN_PRICING")
+    input_rate_method = "PROMPT_RATE"
+    if job["profile"] == "critical_review":
+        # Validate cache tariffs and conservatively bound implicit writes when
+        # applicable. Existing H/K/D accounting is unchanged.
+        cache_rates = [money(pricing.get(key, 0), "UNKNOWN_PRICING")
+                       for key in ("input_cache_read", "input_cache_write", "input_cache_write_1h")]
+        if ep.get("supports_implicit_caching") is False:
+            # This request exposes no cache-control/TTL option. Price optional
+            # cache writes only when the endpoint might apply them implicitly.
+            input_rate_method = "PROMPT_RATE_NO_REQUESTED_OR_IMPLICIT_CACHING"
+        else:
+            prompt_rate = max(prompt_rate, *cache_rates)
+            input_rate_method = "MAX_PROMPT_AND_ADVERTISED_CACHE_RATES_CONSERVATIVE"
     output_rate = (money(pricing.get("completion"), "UNKNOWN_PRICING") + money(pricing.get("internal_reasoning", 0))) if is_v2(job) else max(money(pricing.get("completion"), "UNKNOWN_PRICING"), money(pricing.get("internal_reasoning", 0)))
     textual_request = request
     if is_v2(job):
@@ -489,6 +510,7 @@ def prepare(job, metadata, secret=None):
             "quantity_status": "CONSERVATIVE_ESTIMATE_NOT_MODEL_TOKENIZATION_OR_ACTUAL_USAGE",
             "image_method_status": "LEGACY_SAFETY_OVERESTIMATE_PENDING_EXACT_PROVIDER_ACCOUNTING" if pixels else "NO_IMAGES",
             "estimated_input_token_bound": input_bound, "completion_token_cap_includes_reasoning": job["max_tokens"],
+            "input_rate_bound": str(prompt_rate), "input_rate_method": input_rate_method,
             "image_tariff_method": "USD_PER_INPUT_IMAGE_TIMES_IMAGE_COUNT_PLUS_CONSERVATIVE_PROMPT_TOKEN_ESTIMATE_POSSIBLE_OVERCOUNT",
             "image_tariff_usd_per_image": str(money(pricing.get("image", 0))),
             "image_tariff_specification": "https://openrouter.ai/openapi.json (pricing.image: USD per input image)",
@@ -977,7 +999,7 @@ def verify_route(response, generation, profile, endpoint_evidence=None):
         fail("ROUTING_MISMATCH")
     if tag.endswith("/mxfp4") and any(quant != "mxfp4" for quant in quants):
         fail("ROUTING_MISMATCH")
-    if profile == "engineering_research":
+    if profile in {"engineering_research", "critical_review"}:
         if tiers or any(obj.get("is_byok") is not None and obj["is_byok"] is not False for obj in observations):
             fail("ROUTING_MISMATCH")
     if tag in exacts or (tag.endswith("/flex") and "flex" in tiers) or (tag.endswith("/fp8") and "fp8" in quants) or (tag.endswith("/mxfp4") and "mxfp4" in quants):
@@ -1041,13 +1063,17 @@ def redact(value, secret):
             value = value.replace(secret, "[REDACTED]")
         return re.sub(r"sk-or-[A-Za-z0-9_-]+", "[REDACTED]", value)
     if isinstance(value, dict):
-        return {redact(k, secret): redact(v, secret) for k, v in value.items() if k not in {"reasoning_details", "reasoning_content"}}
+        return {redact(k, secret): redact(v, secret) for k, v in value.items()
+                if k not in {"reasoning_details", "reasoning_content"}
+                and not (k == "reasoning" and isinstance(v, (str, list)))}
     if isinstance(value, list):
         return [redact(v, secret) for v in value]
     return value
 
 
-def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=False, owner_local_cap_only=False):
+def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=False, owner_local_cap_only=False, mock_output=None):
+    if mock_output is not None and not mock:
+        fail("MOCK_OUTPUT_ONLY")
     replay = not mock and isinstance(transport, ReplayTransport) and type(transport) is not Transport
     # The historical three-smoke exception is never V2 live authorization.
     # Reject before credentials, discovery, directory creation or reservation.
@@ -1088,7 +1114,9 @@ def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=F
     cost = None
     try:
         if mock:
-            response = {"id": "mock-generation", "model": request["model"], "provider": PROFILES[job["profile"]][2], "provider_endpoint": PROFILES[job["profile"]][1], "choices": [{"finish_reason": "stop", "message": {"content": json.dumps({"result": "synthetic mock; no API request"})}}], "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2, "cost": 0}}
+            payload = mock_output if mock_output is not None else {"result": "synthetic mock; no API request"}
+            receipt["mock_output_source"] = "EXPLICIT_OFFLINE_FIXTURE_NOT_MODEL_OUTPUT" if mock_output is not None else "BUILTIN_SYNTHETIC_RESPONSE"
+            response = {"id": "mock-generation", "model": request["model"], "provider": PROFILES[job["profile"]][2], "provider_endpoint": PROFILES[job["profile"]][1], "choices": [{"finish_reason": "stop", "message": {"content": json.dumps(payload)}}], "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2, "cost": 0}}
             generation = {}
         else:
             if not secret or not secret.strip():
@@ -1200,6 +1228,8 @@ def main(argv=None):
         s.add_argument("--reasoning-justification", help="Specific necessity for max/xhigh")
         if name != "check":
             s.add_argument("--run-dir", required=True)
+        if name == "mock":
+            s.add_argument("--mock-output", help="Explicit offline JSON fixture for the job's output schema; never available to live call")
         if name == "call":
             s.add_argument("--ledger")
             s.add_argument("--budget-usd")
@@ -1225,7 +1255,8 @@ def main(argv=None):
             _, estimate, _ = prepare(job, metadata)
             print(json.dumps({"status": "CHECK_PASS", "reservation_usd": str(estimate)}))
             return 0
-        receipt = run(job, metadata, args.run_dir, ledger=getattr(args, "ledger", None), budget=getattr(args, "budget_usd", None), mock=args.command == "mock", owner_local_cap_only=getattr(args, "owner_local_cap_only", False))
+        mock_path = getattr(args, "mock_output", None)
+        receipt = run(job, metadata, args.run_dir, ledger=getattr(args, "ledger", None), budget=getattr(args, "budget_usd", None), mock=args.command == "mock", owner_local_cap_only=getattr(args, "owner_local_cap_only", False), mock_output=load_json(mock_path) if mock_path else None)
         print(json.dumps({"status": receipt["verification"], "cost_usd": receipt["cost_usd"]}))
         return 0 if receipt["verification"] in ("PASS", "MOCK_PASS") else 2
     except DelegateError as exc:

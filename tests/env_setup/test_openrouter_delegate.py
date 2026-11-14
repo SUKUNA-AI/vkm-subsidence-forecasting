@@ -17,6 +17,7 @@ SCRIPT = ROOT / ".agents/skills/openrouter-delegate/scripts/openrouter_call.py"
 spec = importlib.util.spec_from_file_location("vkm_openrouter_delegate", SCRIPT)
 d = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(d)
+LEGACY_PROFILES = tuple(profile for profile in d.PROFILES if profile != "critical_review")
 
 
 def metadata():
@@ -75,7 +76,7 @@ def invoke(tmp_path, monkeypatch, reply=None, transport=None, **kwargs):
     return d.run(job(), metadata(), tmp_path / "run", ledger=tmp_path / "ledger.json", budget="0.01", transport=transport or FakeTransport(reply), **kwargs)
 
 
-@pytest.mark.parametrize("profile", list(d.PROFILES))
+@pytest.mark.parametrize("profile", LEGACY_PROFILES)
 def test_exact_profiles_and_structured_response(profile):
     j = job(profile)
     req, estimate, _ = d.prepare(j, metadata())
@@ -468,7 +469,7 @@ def test_public_metadata_artifact_is_sanitized_including_keys(tmp_path, monkeypa
     assert d.digest(json.loads(raw)) == r["endpoint_evidence"]["snapshot_sha256"]
 
 
-@pytest.mark.parametrize("profile", ["critical_review", "google/gemini-4-carbon", "google/gemini-4-carbon-20261110"])
+@pytest.mark.parametrize("profile", ["carbon_historical", "google/gemini-4-carbon", "google/gemini-4-carbon-20261110"])
 @pytest.mark.parametrize("mode", ["check", "mock", "call", "discover"])
 def test_carbon_is_blocked_in_every_cli_mode_before_transport(tmp_path, monkeypatch, capsys, profile, mode):
     class NoNetwork:
@@ -491,7 +492,8 @@ def test_carbon_is_blocked_in_every_cli_mode_before_transport(tmp_path, monkeypa
     assert json.loads(capsys.readouterr().out)["status"] == "BLOCKED_403"
     assert not (tmp_path / "discovered.json").exists()
     assert not (tmp_path / "blocked-run").exists()
-    assert "critical_review" not in d.PROFILES
+    assert "carbon_historical" not in d.PROFILES
+    assert d.PROFILES["critical_review"][0] == "anthropic/claude-opus-5.5"
 
 
 @pytest.mark.parametrize("profiles", [None, [], ["cheap_code", "vision_documents"], ["cheap_code", "cheap_code"]])
@@ -504,7 +506,7 @@ def test_discover_never_fans_out_without_a_single_selected_profile(profiles):
         d.discover(NoNetwork(), profiles)
 
 
-@pytest.mark.parametrize("profile", list(d.PROFILES))
+@pytest.mark.parametrize("profile", LEGACY_PROFILES)
 def test_discover_calls_only_selected_model(profile):
     class RecordingTransport(FakeTransport):
         def __init__(self):
@@ -526,6 +528,7 @@ def test_active_profiles_match_owner_selection_without_carbon_fallback():
         "cheap_code": ("deepseek/deepseek-v4.1-flash-1017", "stepfun/fp8", "StepFun", "0.10"),
         "vision_documents": ("google/gemini-4-hydrogen", "google-ai-studio/flex", "Google AI Studio", "0.30"),
         "engineering_research": ("moonshotai/kimi-k3.1-pro", "decart/mxfp4", "Decart", "1.00"),
+        "critical_review": ("anthropic/claude-opus-5.5", "google-vertex/global", "Google", "1.00"),
     }
 
 
@@ -594,7 +597,7 @@ def test_cli_discover_reports_selected_endpoint_failure_nonzero(tmp_path, monkey
     assert rows[0]["error"] == "HTTP_403"
 
 
-@pytest.mark.parametrize("profile", list(d.PROFILES))
+@pytest.mark.parametrize("profile", LEGACY_PROFILES)
 def test_cli_discover_success_names_only_selected_profile(tmp_path, monkeypatch, capsys, profile):
     monkeypatch.setattr(d, "Transport", FakeTransport)
     out = tmp_path / "discovery.json"
@@ -615,7 +618,7 @@ def kimi_evidence():
     return d.prepare(job("engineering_research"), metadata())[2]
 
 
-@pytest.mark.parametrize("profile", list(d.PROFILES))
+@pytest.mark.parametrize("profile", LEGACY_PROFILES)
 def test_only_pinned_alias_canonical_pairs_are_valid(profile):
     reply = response(profile)
     canonical = d.CANONICAL_MODEL_PINS[d.PROFILES[profile][0]]

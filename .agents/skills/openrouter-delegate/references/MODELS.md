@@ -7,10 +7,11 @@
 | `vision_documents` | `google/gemini-4-hydrogen` | `google-ai-studio/flex` | `Google AI Studio` | $0.30 |
 | `engineering_research` | `moonshotai/kimi-k3.1-pro` | `decart/mxfp4` | `Decart` | $1.00 |
 | `cheap_code` | `deepseek/deepseek-v4.1-flash-1017` | `stepfun/fp8` | `StepFun` | $0.10 |
+| `critical_review` | `anthropic/claude-opus-5.5` | `google-vertex/global` | `Google` | $1.00 |
 
 Потолки — финансовые ограничения, не цены моделей и не дополнительный бюджет. Текущая партия использует ранее разрешённые $20 совокупно, тот же ledger с прежними расходами/резервациями и отдельным диагностическим reserve. Более высокий внешний server cap не расширяет это разрешение; новый ключ, пополнение или сброс ledger не выполняются. Запись $1 в старом budget-template не переопределяет принятое разрешение этой сессии; legacy smoke-исключение <=$1 остаётся отдельным узким режимом и не даёт V2 live bypass.
 
-`critical_review` / Carbon остаётся **BLOCKED_403**, включая `google/gemini-4-carbon` и canonical `google/gemini-4-carbon-20261110`. Его нет в активных профилях. Check/mock/discover/call не обходят блокировку; автоматического fallback на другую модель/провайдера/тарифный маршрут нет.
+По явному выбору владельца `critical_review` теперь активный Opus 5.5 через Google Vertex global. Это изменение назначения профиля, не автоматический fallback. Carbon сохраняется отдельно как `carbon_historical` **BLOCKED_403**, включая `google/gemini-4-carbon` и canonical `google/gemini-4-carbon-20261110`. Check/mock/discover/call не обходят Carbon-блокировку. Исторические receipts не переписываются; автоматического fallback нет. Opus требует V2 `task_kind`, чтобы legacy wire без явной effort-policy не выбрал другой default.
 
 ## Alias и canonical
 
@@ -33,6 +34,7 @@
 | Hydrogen | `medium`, reasoning mandatory | `xhigh`, `high`, `medium`, `low` | `high` для содержательных задач |
 | Kimi | `max` | `max`, `high`, `low`, `none` | `high`, не неявный catalog `max` |
 | DeepSeek | `high` | `max`, `high`, `low`, `none` | обычно `high`; task defaults ниже |
+| Opus 5.5 | `high`, reasoning mandatory | `max`, `xhigh`, `high`, `medium`, `low` | `high` |
 
 Это датированный capability snapshot, не обещание текущего provider-effective effort. Исполняемая политика задаёт для DeepSeek `mechanical→none`, `data_transform→low`, остальные задачи→`high`. Для сложной ETL/алгоритма/преобразования native-координатор явно указывает `reasoning_effort:"high"`; общий label `data_transform` не должен незаметно снижать требуемую содержательную работу. Kimi `max` или Hydrogen `xhigh` требуют обоснованного исключения, достаточного резерва и подтверждённой поддержки; одного наличия уровня в policy `hard_efforts` недостаточно. Unsupported/unknown отклоняется до POST, без тихого снижения.
 
@@ -80,3 +82,12 @@ POST включает `X-OpenRouter-Metadata: enabled`. Проверяются c
 Receipt сохраняет basis, snapshot hash/date, catalog endpoint и router selection отдельно от observed полей. `physical_precision:NOT_MEASURED` остаётся таким и при подтверждённом маршруте: реклама MXFP4/FP8 не является измерением исполнения или научной валидацией. Для Hydrogen/DeepSeek эта ветка вывода недоступна.
 
 Privacy/data collection/retention/training/ZDR фиксируются по свежему exact endpoint; отсутствующие сведения UNKNOWN. Не объявляй Flex ZDR по старой концепции или screenshot. Действующие разрешения PRIVATE и явный V2 input package не разрешают публикацию источников, раскрытие секретов или model tool execution.
+
+
+## Opus HIGH: отдельный активный профиль
+
+Снимок exact `google-vertex/global` от14.11.2026: контекст1M, max completion128000, prompt$0.000004/completion$0.00002 за token; это capabilities/тариф, не доступный output budget за$1. Перед live обычный клиент обновляет exact endpoint и модельный каталог. [Официальная схема reasoning](https://openrouter.ai/docs/guides/best-practices/reasoning-tokens) описывает `reasoning.effort` и discovery `supported_efforts`; запрос HIGH не доказывает effective HIGH.
+
+Opus wire: `reasoning:{enabled:true,effort:"high",exclude:true}`. Текст внутреннего reasoning не нужен для одношагового ревью и не сохраняется; token counts/usage/cost и requested/effective evidence сохраняются. Санитайзер также удаляет raw string/list `reasoning`, сохраняя typed configuration. Без фактического provider echo effective остаётся null/UNCONFIRMED. Одного provider name `Google` недостаточно подтвердить `google-vertex/global`: существующий strict route fence требует явный endpoint и не использует Carbon/другой Google region как fallback.
+
+`input_cache_write_1h` распознаётся только в новом профиле. Если свежий endpoint явно сообщает `supports_implicit_caching:false`, cache-control/TTL не запрошен и вход резервируется по prompt-rate без выдуманного cache discount. При true/UNKNOWN используется максимум prompt/cache rates как консервативная граница. Метод и использованная цена записаны в accounting. H/K/D цены/потолки/маршруты не меняются. `check` должен поместить весь input+completion+reasoning reserve в$1; клиент не уменьшает `max_tokens` или HIGH автоматически. Shared ledger/ключ и совокупные$20 остаются прежними.

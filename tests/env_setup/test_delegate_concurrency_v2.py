@@ -96,13 +96,13 @@ def test_contested_last_money_has_one_winner_under_mutex(tmp_path):
         assert len(read(ledger)["reservations"]) == 1
 
 
-def test_three_profiles_share_the_twenty_dollar_ceiling(tmp_path):
+def test_four_profiles_share_the_twenty_dollar_ceiling(tmp_path):
     d, ledger = module(), tmp_path / "profiles.json"
     # Synthetic settled history: count and spent are never reset for the V2 batch.
-    for amount in ["1"] * 18 + [".6"]:
+    for amount in ["1"] * 17 + [".6"]:
         token = d.reserve(ledger, "20", "same-key", "100", amount)
         d.settle(ledger, token, amount)
-    with workers(ledger, [(".1", "cheap_code"), (".3", "vision_documents"), ("1", "engineering_research")]) as (results, _):
+    with workers(ledger, [(".1", "cheap_code"), (".3", "vision_documents"), ("1", "engineering_research"), ("1", "critical_review")]) as (results, _):
         assert all(result["status"] == "RESERVED" for result in results)
         state = read(ledger)
         assert Decimal(state["spent_usd"]) + sum(map(Decimal, state["reservations"].values())) == Decimal("20")

@@ -1,6 +1,6 @@
 ---
 name: openrouter-delegate
-description: "Делегировать содержательные задачи ВКМ закреплённым специалистам OpenRouter: программирование, данные и SQL DeepSeek; визуальный анализ, математика, геология и код Hydrogen; сложные GIS/CAD и инженерные алгоритмы Kimi. Главный Codex проверяет результат."
+description: "Делегировать содержательные задачи ВКМ закреплённым специалистам OpenRouter: код, данные и SQL DeepSeek; визуальный анализ и математика Hydrogen; GIS/CAD и инженерные алгоритмы Kimi; сложное критическое ревью Opus 5.5 HIGH. Главный Codex проверяет результат."
 ---
 
 # Делегирование ВКМ через OpenRouter
@@ -14,10 +14,13 @@ description: "Делегировать содержательные задачи
 | `cheap_code` / DeepSeek | Код и ограниченные модули, backend, CLI, SQL/ETL, научные данные, A/B/provenance, GIS-утилиты и тесты | Обычно `high`; policy defaults: mechanical→`none`, data_transform→`low`; для сложного преобразования явно выбрать `high` |
 | `vision_documents` / Hydrogen | Изображения вместе с кодом, CV/PyQGIS, геометрия, математика, геология, противоречия источников и документация | `high` |
 | `engineering_research` / Kimi | Сложные GIS/CAD/Civil 3D, 3D/численные алгоритмы и архитектура нескольких модулей | `high` |
+| `critical_review` / Opus 5.5 | Сложное критическое ревью алгоритма, допуска данных или межмодульного контракта с конкретным контрпримером/патчем и проверкой | `high` |
 
-Перед запросом прочитай [точные модели и маршруты](references/MODELS.md); для выбора, reasoning и бюджета — [ROUTING_V2.md](references/ROUTING_V2.md); при упаковке и проверке результата — [VKM_WORKFLOWS.md](references/VKM_WORKFLOWS.md). `critical_review` / Carbon остаётся `BLOCKED_403`. Автоматическая замена модели, провайдера, тарифного маршрута или reasoning запрещена.
+Перед запросом прочитай [точные модели и маршруты](references/MODELS.md); для выбора, reasoning и бюджета — [ROUTING_V2.md](references/ROUTING_V2.md); при упаковке и проверке результата — [VKM_WORKFLOWS.md](references/VKM_WORKFLOWS.md). `critical_review` закреплён за Opus; отдельный `carbon_historical` и оба Carbon model ID остаются `BLOCKED_403`. Автоматическая замена модели, провайдера, тарифного маршрута или reasoning запрещена.
 
 Разделяй независимые подзадачи и назначай одного native-владельца каждого результата. Не отправляй трём моделям одинаковый вопрос ради голосования. Повторно используй принятый результат при совпадающих входах и вопросе. Backlog содержит кандидатов работ, а не обязательные платные вызовы.
+
+Экономь объём, сохраняя сложность задачи: передай точный вопрос, воспроизводимый сбой/инвариант, необходимые SHA-закреплённые фрагменты и критерий проверки. Не добавляй большую переписку, весь репозиторий или несвязанные артефакты. Opus использует V2 и HIGH по умолчанию; сначала `check` и `mock`, затем явный `max_tokens`, помещающийся в резерв. Уменьшай лишний контекст или явно выбранный output cap, не reasoning без указания владельца. Лимит $1 Opus не расширяет тот же общий ledger.
 
 V2 использует свежие возможности **точного endpoint**: контекст, max completion, modalities, поддерживаемые reasoning и тариф. Не ограничивай модели прежними smoke-пределами 16 KiB/4096 tokens/2048 px. Контекст ограничивается вопросом, доказательствами, действительными возможностями и резервом стоимости; весь корпус/репозиторий не передавай ради заполнения окна. Неизвестный тариф или неподдержанный режим блокирует POST, без тихого снижения. Консервативная оценка token reserve — отдельная величина, не измеренная токенизация; текущая методика раскрыта в [MODELS.md](references/MODELS.md).
 
@@ -30,6 +33,8 @@ python .agents/skills/openrouter-delegate/scripts/openrouter_call.py discover --
 python .agents/skills/openrouter-delegate/scripts/openrouter_call.py check --job work/job.json --metadata work/endpoint.json
 python .agents/skills/openrouter-delegate/scripts/openrouter_call.py mock --job work/job.json --metadata work/endpoint.json --run-dir work/mock-result
 ```
+
+Для задания с собственной output-schema используй тот же `mock` с `--mock-output work/mock-schema-fixture.json`: явный offline JSON проверяется по schema, а receipt помечает его `EXPLICIT_OFFLINE_FIXTURE_NOT_MODEL_OUTPUT`/`MOCK_ONLY`. Это не результат модели. Флаг недоступен live `call` и не создаёт платный запрос.
 
 Live выполняется только с действующим разрешением, конечным лимитом ключа, явным общим бюджетом, **тем же ledger партии** и отдельной директорией результата. Учитывай прежние расходы и все активные резервации; максимум профиля не создаёт новый бюджет. Не обнуляй ledger и не меняй ключ ради продолжения. Один POST без слепого платного повтора; неизвестный исход/стоимость блокирует новые расходы до сверки с сохранением исходной evidence.
 
