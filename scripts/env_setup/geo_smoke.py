@@ -342,6 +342,8 @@ def main():
     p.add_argument("--gpkg-wkb", type=Path)
     p.add_argument("--postgis", type=Path)
     args = p.parse_args()
+    if args.output.exists() and (not args.output.is_dir() or any(args.output.iterdir())):
+        p.error("Use a fresh empty output directory; existing results must be preserved")
     args.output.mkdir(parents=True, exist_ok=True)
     start = time.time()
     report = {"mode": args.mode, "python": sys.version, "executable": sys.executable, "platform": platform.platform(), "started_unix": start, "scope": "SYNTHETIC_RUNTIME_TEST", "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), "fixture_sha256": hashlib.sha256(json.dumps(fixture(), sort_keys=True).encode()).hexdigest()}
