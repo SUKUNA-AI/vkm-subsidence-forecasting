@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 
@@ -34,6 +35,49 @@ class PartialApply(RuntimeError):
     def __init__(self, receipt, error):
         self.receipt = receipt
         super().__init__(f"Two-database operation incomplete: {receipt['state']}; {type(error).__name__}")
+
+
+def _validate_geometry_row(row, feature):
+    """Validate supplied transport bytes against A, independently of their hash."""
+    from shapely import from_wkb, get_coordinate_dimension, get_srid, to_wkb
+    from shapely.geometry import mapping
+    if feature["geometry"]["type"] not in {"Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon"}:
+        raise ValueError("unsupported source geometry type")
+    actual = from_wkb(bytes.fromhex(row["wkb_hex"]))
+    if actual.is_empty or get_coordinate_dimension(actual) != 2 or get_srid(actual) != 0:
+        raise ValueError("WKB must contain nonempty 2D source coordinates with SRID 0")
+    decoded = mapping(actual)
+    if decoded["type"] != feature["geometry"]["type"]:
+        raise ValueError("WKB geometry type differs from original A")
+    def compare(expected, received):
+        if not isinstance(expected, (list, tuple)) or not expected or not isinstance(received, (list, tuple)) or len(expected) != len(received):
+            raise ValueError("WKB vertex/component structure differs from original A")
+        if isinstance(expected[0], (int, float)):
+            if len(expected) != 2:
+                raise ValueError("Only finite 2D source vertices are permitted")
+            for left, right in zip(expected, received):
+                if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in (left, right)):
+                    raise ValueError("Only finite 2D source vertices are permitted")
+                if abs(left - right) > 1e-9:
+                    raise ValueError("WKB vertex differs from original A")
+        else:
+            for left, right in zip(expected, received):
+                compare(left, right)
+    compare(feature["geometry"]["coordinates"], decoded["coordinates"])
+    if to_wkb(actual, byte_order=1, output_dimension=2, include_srid=False).hex() != row["wkb_hex"]:
+        raise ValueError("WKB must use the canonical transport NDR encoding")
+    frame = feature.get("geometry_coordinate_frame")
+    if frame is None:
+        frame = feature.get("image_coordinate_frame")
+    if not isinstance(frame, dict) or not frame.get("id") or not frame.get("unit"):
+        raise ValueError("Source geometry requires its explicit coordinate frame")
+    for key, expected in (("source_feature_id", feature["source_feature_id"]),
+                          ("frame_id", frame["id"]), ("coordinate_unit", frame["unit"]),
+                          ("geometry_type", feature["geometry"]["type"])):
+        if row[key] != expected:
+            raise ValueError(f"Transport metadata differs from original A: {key}")
+    if frame["unit"].lower() in {"px", "pixel", "pixels"} and frame.get("crs") not in (None, "UNKNOWN", "CRITICALMAAS:pixel"):
+        raise ValueError("Pixels cannot acquire a geographic CRS")
 
 
 def prepare_batch(batch, registry, *, rows=None):
@@ -82,6 +126,9 @@ def prepare_batch(batch, registry, *, rows=None):
         expected_matches = [match for match in batch["project_matches"] if match["source_feature_id"] == row["source_feature_id"]]
         if json.loads(row["matches_json"]) != expected_matches:
             raise ValueError("transport differs from original B")
+        if json.loads(row["batch_provenance_json"]) != {k: v for k, v in batch.items() if k not in {"features", "project_matches"}}:
+            raise ValueError("transport batch provenance differs from original batch")
+        _validate_geometry_row(row, feature)
         refs[pair] = {"source_id": pair[0], "work_id": pair[1], "reference_json": canonical({
             "source": sources[pair[0]], "work": works[pair[1]], "link": links[pair],
             "source_snapshot_id": registry["source_snapshot_id"]})}
@@ -101,6 +148,48 @@ def verify_plan(plan):
         raise ValueError("unsupported target/schema")
     if digest({key: value for key, value in plan.items() if key != "content_digest"}) != plan["content_digest"]:
         raise ValueError("plan content digest mismatch")
+    # A self-consistent hash is not validation of the scientific payload. Recheck
+    # typed rows and original A/B links even for a freshly rehashed supplied plan.
+    batch = json.loads(plan["batch_json"])
+    if batch["batch_id"] != plan["batch_id"] or batch["extraction_version"] != plan["extraction_version"]:
+        raise ValueError("plan identity differs from original batch")
+    if plan.get("scientific_admission") != "NOT_GRANTED_BY_DB_LOAD" or not re.fullmatch(r"[0-9a-f]{64}", plan["registry_sha256"]):
+        raise ValueError("plan admission/registry binding is invalid")
+    features = {feature["source_feature_id"]: feature for feature in batch["features"]}
+    rows = plan["rows"]
+    if (not rows or len(features) != len(batch["features"]) or
+            len({row["source_feature_id"] for row in rows}) != len(rows) or
+            {row["source_feature_id"] for row in rows} != set(features)):
+        raise ValueError("plan must preserve the exact A feature ID set")
+    references = {}
+    for ref in plan["source_refs"]:
+        pair = ref["source_id"], ref["work_id"]
+        if pair in references:
+            raise ValueError("duplicate source/work reference")
+        reference = json.loads(ref["reference_json"])
+        if (reference["source"]["record"]["source_id"] != pair[0] or
+                reference["work"]["record"]["work_id"] != pair[1] or
+                reference["link"]["source_id"] != pair[0] or reference["link"]["work_id"] != pair[1] or
+                reference["link"].get("curation_status") == "REJECTED" or
+                reference["source_snapshot_id"] != plan["source_snapshot_id"]):
+            raise ValueError("source/work reference linkage differs from its pin")
+        references[pair] = reference
+    if set(references) != {(row["source_id"], row["work_id"]) for row in rows}:
+        raise ValueError("plan source/work reference coverage mismatch")
+    provenance = {key: value for key, value in batch.items() if key not in {"features", "project_matches"}}
+    for row in rows:
+        if set(row) != set(COLUMNS) or any(not isinstance(row[key], str) for key in COLUMNS):
+            raise ValueError("invalid typed transport columns")
+        if row["batch_id"] != plan["batch_id"] or digest({key: row[key] for key in COLUMNS[:-1]}) != row["row_sha256"]:
+            raise ValueError("plan row identity/SHA mismatch")
+        feature = features[row["source_feature_id"]]
+        if json.loads(row["feature_json"]) != feature or any(row[key] != feature[key] for key in ("source_id", "work_id")):
+            raise ValueError("plan feature differs from original A")
+        if json.loads(row["matches_json"]) != [match for match in batch["project_matches"] if match["source_feature_id"] == row["source_feature_id"]]:
+            raise ValueError("plan differs from original B")
+        if json.loads(row["batch_provenance_json"]) != provenance:
+            raise ValueError("plan batch provenance differs from original batch")
+        _validate_geometry_row(row, feature)
 
 
 def _q(connection, pg, sql, params=()):

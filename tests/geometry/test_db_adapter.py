@@ -6,7 +6,7 @@ import struct
 import pytest
 
 from vkm_geometry.db_adapter import (COLUMNS, Conflict, SCOPE, _assert_rows, _current,
-    _ddl, _scope, build_query_snapshot, canonical, digest, prepare_batch, verify_plan)
+    _ddl, _scope, apply_batch, build_query_snapshot, canonical, digest, prepare_batch, verify_plan)
 
 
 def fixture_plan(count=3, snapshot="synthetic-source-snapshot"):
@@ -14,6 +14,7 @@ def fixture_plan(count=3, snapshot="synthetic-source-snapshot"):
     for index in range(count):
         feature = {"source_feature_id": f"synthetic:{index:04d}", "source_id": "VKM-SRC-011",
                    "work_id": "VKM-WRK-011", "geometry": {"type": "Point", "coordinates": [index, index + 1]},
+                   "image_coordinate_frame": {"id": "synthetic-pixel", "unit": "px", "crs": None},
                    "figure_id": "1.25", "panel_id": "a", "pdf_page": 12, "horizon": None,
                    "extraction_status": "PARTIAL", "review_status": "AUTO_EXTRACTED_UNREVIEWED",
                    "primitive_role": "OBSERVED_MARK", "epistemic_role": "DERIVATION",
@@ -25,6 +26,9 @@ def fixture_plan(count=3, snapshot="synthetic-source-snapshot"):
         rows.append(row)
     batch = {"batch_id": "synthetic-batch", "extraction_version": "test-v1", "features": features,
              "project_matches": [], "provenance": {}}
+    for row in rows:
+        row["batch_provenance_json"] = canonical({k: v for k, v in batch.items() if k not in {"features", "project_matches"}})
+        row["row_sha256"] = digest({k: row[k] for k in COLUMNS[:-1]})
     registry = {"source_snapshot_id": snapshot, "sources": [{"record": {"source_id": "VKM-SRC-011"}}],
                 "works": [{"record": {"work_id": "VKM-WRK-011"}}],
                 "source_work_links": [{"source_id": "VKM-SRC-011", "work_id": "VKM-WRK-011", "curation_status": "AUTO_PROPOSED"}]}
@@ -46,6 +50,53 @@ def test_plan_and_transport_tampering_rejected():
     rows[0]["wkb_hex"] = rows[1]["wkb_hex"]
     with pytest.raises(ValueError, match="row SHA mismatch"):
         prepare_batch(batch, registry, rows=rows)
+
+
+@pytest.mark.parametrize("changed", ["vertices", "xyz", "nan", "frame", "unit", "type", "provenance", "matches"])
+def test_resigned_supplied_rows_cannot_change_source_semantics(changed):
+    _, batch, registry, rows = fixture_plan()
+    if changed == "vertices":
+        rows[0]["wkb_hex"] = struct.pack("<BIdd", 1, 1, 8, 9).hex()
+    elif changed == "xyz":
+        rows[0]["wkb_hex"] = struct.pack("<BIddd", 1, 1001, 0, 1, 2).hex()
+    elif changed == "nan":
+        rows[0]["wkb_hex"] = struct.pack("<BIdd", 1, 1, float("nan"), 1).hex()
+    elif changed == "frame":
+        rows[0]["frame_id"] = "another-frame"
+    elif changed == "unit":
+        rows[0]["coordinate_unit"] = "m"
+    elif changed == "type":
+        rows[0]["geometry_type"] = "LineString"
+    elif changed == "provenance":
+        rows[0]["batch_provenance_json"] = '{"other":"batch"}'
+    else:
+        rows[0]["matches_json"] = '[{"match_status":"CONFIRMED"}]'
+    rows[0]["row_sha256"] = digest({k: rows[0][k] for k in COLUMNS[:-1]})
+    with pytest.raises(ValueError):
+        prepare_batch(batch, registry, rows=rows)
+
+
+@pytest.mark.parametrize("changed", ["vertices", "provenance", "matches", "reference"])
+def test_rehashed_crafted_plan_is_rejected_before_database_or_snapshot(changed, tmp_path):
+    plan, *_ = fixture_plan()
+    row = plan["rows"][0]
+    if changed == "vertices":
+        row["wkb_hex"] = struct.pack("<BIdd", 1, 1, 8, 9).hex()
+    elif changed == "provenance":
+        row["batch_provenance_json"] = "{}"
+    elif changed == "matches":
+        row["matches_json"] = '[{"match_status":"CONFIRMED"}]'
+    else:
+        plan["source_refs"][0]["work_id"] = "VKM-WRK-999"
+    row["row_sha256"] = digest({key: row[key] for key in COLUMNS[:-1]})
+    plan["content_digest"] = digest({key: value for key, value in plan.items() if key != "content_digest"})
+    with pytest.raises(ValueError):
+        verify_plan(plan)
+    with pytest.raises(ValueError):
+        apply_batch(plan, None, None, scope=SCOPE)  # would crash if DB access preceded validation
+    with pytest.raises(ValueError):
+        build_query_snapshot(plan, tmp_path / "must_not_exist", allowed_token_labels=["read"])
+    assert not (tmp_path / "must_not_exist").exists()
 
 
 def test_postgres_write_scope_rejects_production():
@@ -138,6 +189,7 @@ def test_combined_projection_keeps_producer_batch_ids(tmp_path):
         row["source_feature_id"] = feature["source_feature_id"]
         row["feature_json"] = canonical(feature)
         row["batch_id"] = batch["batch_id"]
+        row["batch_provenance_json"] = canonical({k: v for k, v in batch.items() if k not in {"features", "project_matches"}})
         row["row_sha256"] = digest({k: row[k] for k in COLUMNS[:-1]})
     second = prepare_batch(batch, registry, rows=rows)
     snap = build_query_snapshot([first, second], tmp_path / "combined", allowed_token_labels=["read"])

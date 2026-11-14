@@ -25,6 +25,10 @@ locator/version и source snapshot сохраняются целиком. Нал
 registry SHA и content digest. Подмена строк/плана отклоняется. Исходные A/B,
 изображения, host-local paths и receipts остаются PRIVATE/ignored work.
 Публичные тесты используют только synthetic records.
+Проверки prepare и verify_plan независимо декодируют WKB, сравнивают тип,
+все конечные 2D vertices/components, frame/unit, исходные A/B и batch provenance.
+Правильно пересчитанный SHA не разрешает несогласованные данные; такой план
+отклоняется до DB write и до создания query snapshot.
 
 ## Таблицы и границы FK
 
