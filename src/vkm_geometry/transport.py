@@ -279,6 +279,33 @@ def _read_xrecord(dictionary, name: str):
     return json.loads(base64.b64decode(data, validate=True).decode("utf-8"))
 
 
+def _expected_dxf_parts(feature: dict) -> list[dict]:
+    """Canonical representation manifest; never trust a shortened stored list."""
+    fid = feature["source_feature_id"]
+    source_parts = geometry_parts(feature["geometry"])
+    return [{"path": list(path), "role": role, "component_index": index,
+             "source_feature_id": fid if len(source_parts) == 1 else f"{fid}:component:{index:04d}",
+             "parent_source_feature_id": fid, "vertex_count": 1 if role == "point" else len(points)}
+            for index, (path, role, points) in enumerate(source_parts)]
+
+
+def _geometry_from_actual_parts(kind: str, parts: list[tuple[dict, list]]) -> dict:
+    """Build solely from observed native vertices; source coordinates never fill gaps."""
+    if kind in {"Point", "LineString"}:
+        coordinates = parts[0][1]
+    elif kind in {"MultiPoint", "MultiLineString", "Polygon"}:
+        coordinates = [points for _, points in parts]
+    elif kind == "MultiPolygon":
+        polygons = {}
+        for metadata, points in parts:
+            polygon, ring = metadata["path"]
+            polygons.setdefault(polygon, {})[ring] = points
+        coordinates = [[rings[index] for index in sorted(rings)] for _, rings in sorted(polygons.items())]
+    else:
+        raise ValueError("Unsupported DXF geometry type")
+    return {"type": kind, "coordinates": coordinates}
+
+
 def write_dxf(rows: list[dict], path: Path | str):
     import ezdxf
     validate_rows(rows)
@@ -295,7 +322,7 @@ def write_dxf(rows: list[dict], path: Path | str):
         feature = json.loads(row["feature_json"])
         affine = cad_affine(coordinate_frame(feature))
         sign = affine["forward"][1][1]
-        parts = []
+        parts = _expected_dxf_parts(feature)
         for index, (partpath, role, points) in enumerate(geometry_parts(feature["geometry"])):
             layer = "VKM_" + role.upper()
             if layer not in doc.layers: doc.layers.new(layer)
@@ -306,9 +333,6 @@ def write_dxf(rows: list[dict], path: Path | str):
                 vertices = points[:-1] if closed else points
                 entity = space.add_lwpolyline([(p[0], sign * p[1]) for p in vertices], close=closed, dxfattribs={"layer": layer})
             entity.set_xdata(APPID, [(1000, token), (1071, index), (1000, role)])
-            parts.append({"path": list(partpath), "role": role, "component_index": index,
-                          "source_feature_id": fid if len(geometry_parts(feature["geometry"])) == 1 else f"{fid}:component:{index:04d}",
-                          "parent_source_feature_id": fid, "vertex_count": 1 if role == "point" else len(points)})
         _xrecord(metadata, token, {"row": row, "affine": affine, "parts": parts})
     doc.saveas(path)
     return {"path": str(path), "features": len(rows), "entities": len(space), "metadata": "named-object XRECORD base64 chunks; lightweight entity XDATA"}
@@ -342,25 +366,23 @@ def read_dxf(path: Path | str) -> list[dict]:
     for fid in manifest["ids"]:
         token = hashlib.sha256(fid.encode()).hexdigest()
         record = _read_xrecord(metadata, token); row = record["row"]
-        feature = json.loads(row["feature_json"]); geometry = copy.deepcopy(feature["geometry"])
-        if row["source_feature_id"] != fid or record["affine"] != cad_affine(coordinate_frame(feature)):
+        feature = json.loads(row["feature_json"])
+        if row["source_feature_id"] != fid or canonical_json(record["affine"]) != canonical_json(cad_affine(coordinate_frame(feature))):
             raise ValueError("DXF identity or affine metadata changed")
         parts = record["parts"]
+        if canonical_json(parts) != canonical_json(_expected_dxf_parts(feature)):
+            raise ValueError("DXF representation part manifest changed; source metadata cannot replace native geometry")
         if set(grouped.get(token, {})) != set(range(len(parts))): raise ValueError("DXF part count changed")
         sign = record["affine"]["inverse"][1][1]
+        observed_parts = []
         for index, part in enumerate(parts):
             role, points = grouped[token][index]
             if role != part["role"]: raise ValueError("DXF ring/component role changed")
             if role == "point": native = [points[0], sign * points[1]]
             else: native = [[p[0], sign * p[1]] for p in points]
             if (1 if role == "point" else len(native)) != part["vertex_count"]: raise ValueError("DXF vertex count changed")
-            target = geometry["coordinates"]
-            partpath = part["path"]
-            if geometry["type"] == "Polygon": partpath = partpath[1:]
-            if not partpath: geometry["coordinates"] = native
-            else:
-                for key in partpath[:-1]: target = target[key]
-                target[partpath[-1]] = native
+            observed_parts.append((part, native))
+        geometry = _geometry_from_actual_parts(feature["geometry"]["type"], observed_parts)
         assert_geometry_equal(feature["geometry"], geometry)
         actual = dict(row, wkb_hex=to_wkb(shape(geometry), byte_order=1, include_srid=False).hex())
         actual["row_sha256"] = row_digest(actual)

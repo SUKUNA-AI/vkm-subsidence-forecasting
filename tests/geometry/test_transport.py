@@ -64,6 +64,45 @@ def test_deleted_native_entity_is_not_hidden_by_metadata(tmp_path):
         read_dxf(path)
 
 
+def test_coordinated_entity_and_manifest_deletion_cannot_backfill_source_geometry(tmp_path):
+    import ezdxf
+    import hashlib
+    from vkm_geometry.transport import APPID, _read_xrecord, _xrecord
+    rows = batch_rows(synthetic_batch())
+    path = tmp_path / "coordinated_missing.dxf"
+    write_dxf(rows, path)
+    doc = ezdxf.readfile(path)
+    token = hashlib.sha256(b"SYNTHETIC:3").hexdigest()
+    for entity in list(doc.modelspace()):
+        tags = entity.get_xdata(APPID)
+        if tags[0].value == token and tags[1].value == 1:
+            doc.modelspace().delete_entity(entity)
+    record = _read_xrecord(doc.rootdict[APPID], token)
+    record["parts"].pop()
+    _xrecord(doc.rootdict[APPID], token, record)
+    doc.saveas(path)
+    with pytest.raises(ValueError, match="part manifest"):
+        read_dxf(path)
+
+
+@pytest.mark.parametrize("field,value", [("source_feature_id", "WRONG:COMPONENT"), ("parent_source_feature_id", "WRONG:PARENT"), ("component_index", False)])
+def test_part_identity_and_typed_manifest_tamper_rejected(tmp_path, field, value):
+    import ezdxf
+    import hashlib
+    from vkm_geometry.transport import APPID, _read_xrecord, _xrecord
+    rows = batch_rows(synthetic_batch())
+    path = tmp_path / "wrong_part_id.dxf"
+    write_dxf(rows, path)
+    doc = ezdxf.readfile(path)
+    token = hashlib.sha256(b"SYNTHETIC:3").hexdigest()
+    record = _read_xrecord(doc.rootdict[APPID], token)
+    record["parts"][0][field] = value
+    _xrecord(doc.rootdict[APPID], token, record)
+    doc.saveas(path)
+    with pytest.raises(ValueError, match="part manifest"):
+        read_dxf(path)
+
+
 def test_changed_source_attrs_and_unknown_frame_rejected():
     batch = synthetic_batch()
     batch["features"][0]["image_coordinate_frame"]["crs"] = "EPSG:32640"
