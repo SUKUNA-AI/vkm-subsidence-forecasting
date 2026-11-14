@@ -270,8 +270,9 @@ class _FakePG:
             return _FakeResult([(1,)])
         if sql.startswith("SELECT count(*) FROM information_schema.schemata"):
             return _FakeResult([(1,)])
-        if sql.startswith("SELECT content_digest,extraction_version,registry_sha256,batch_json FROM "):
-            records = [] if self.record is None else [tuple(self.record)]
+        if sql.startswith("SELECT content_digest,extraction_version,registry_sha256,CAST(batch_json AS TEXT) AS batch_json FROM "):
+            # Model the SQL CAST boundary, including a stored JSONB string.
+            records = [] if self.record is None else [tuple(self.record[:3]) + (json.dumps(self.record[3]),)]
             return _FakeResult(records * (2 if self.duplicate else 1))
         if sql.startswith("SELECT " + ",".join(COLUMNS) + " FROM "):
             return _FakeResult(self.rows)
@@ -521,3 +522,29 @@ def test_native_duckdb_missing_invalid_or_schema_protected_record(tmp_path, kind
             dd.close()
         assert pg.commits == 0 and pg.rollbacks == 1
     assert _native_record(path, plan) == damaged
+
+
+@pytest.mark.duckdb_spatial
+@pytest.mark.parametrize("operation", ["fresh_readback", "repeat_apply"])
+def test_jsonb_string_containing_plan_json_is_not_a_batch_object(tmp_path, operation):
+    import duckdb
+    plan, *_ = fixture_plan()
+    path = tmp_path / "jsonb-string.duckdb"
+    _seed_native(plan, path)
+    pg = _FakePG(plan)
+    # psycopg would decode this JSONB scalar into a str equal to valid plan JSON.
+    # CAST(batch_json AS TEXT) must retain its outer JSON quotes.
+    pg.record[3] = plan["batch_json"]
+    before = _native_record(path, plan)
+    with pytest.raises(Conflict, match="not an object"):
+        if operation == "fresh_readback":
+            readback(plan, lambda: pg, lambda: duckdb.connect(str(path)))
+        else:
+            dd = duckdb.connect(str(path))
+            try:
+                apply_batch(plan, pg, dd, commit=True, scope=SCOPE)
+            finally:
+                dd.close()
+    if operation == "repeat_apply":
+        assert pg.commits == 0 and pg.rollbacks == 1
+    assert _native_record(path, plan) == before

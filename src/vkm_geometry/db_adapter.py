@@ -235,6 +235,8 @@ def _assert_batch_record(plan, records):
     expected = (plan["content_digest"], plan["extraction_version"], plan["registry_sha256"])
     if any(not isinstance(value, str) for value in stored[:3]) or tuple(stored[:3]) != expected:
         raise Conflict("stored batch metadata differs from plan")
+    # Persisted reads cast to text before decoding, preserving a JSONB string
+    # as a quoted JSON string rather than reparsing its contents as an object.
     value = stored[3]
     try:
         decoded = json.loads(value) if isinstance(value, str) else value
@@ -253,7 +255,7 @@ def _current(connection, pg, plan):
         if any(_exists(connection, pg, table) for table in TABLES[1:]):
             raise Conflict("orphan projection tables")
         return False
-    records = _q(connection, pg, f"SELECT content_digest,extraction_version,registry_sha256,batch_json FROM {SCHEMA}.{TABLES[0]} WHERE batch_id=?", (plan["batch_id"],)).fetchall()
+    records = _q(connection, pg, f"SELECT content_digest,extraction_version,registry_sha256,CAST(batch_json AS TEXT) AS batch_json FROM {SCHEMA}.{TABLES[0]} WHERE batch_id=?", (plan["batch_id"],)).fetchall()
     if not records:
         for table in TABLES[1:]:
             if _exists(connection, pg, table) and _q(connection, pg, f"SELECT count(*) FROM {SCHEMA}.{table} WHERE batch_id=?", (plan["batch_id"],)).fetchone()[0]:
@@ -265,7 +267,7 @@ def _current(connection, pg, plan):
 
 
 def _assert_rows(connection, pg, plan):
-    records = _q(connection, pg, f"SELECT content_digest,extraction_version,registry_sha256,batch_json FROM {SCHEMA}.{TABLES[0]} WHERE batch_id=?", (plan["batch_id"],)).fetchall()
+    records = _q(connection, pg, f"SELECT content_digest,extraction_version,registry_sha256,CAST(batch_json AS TEXT) AS batch_json FROM {SCHEMA}.{TABLES[0]} WHERE batch_id=?", (plan["batch_id"],)).fetchall()
     _assert_batch_record(plan, records)
     raw = _q(connection, pg, f"SELECT {','.join(COLUMNS)} FROM {SCHEMA}.{TABLES[2]} WHERE batch_id=? ORDER BY source_feature_id", (plan["batch_id"],)).fetchall()
     rows = [dict(zip(COLUMNS, row)) for row in raw]
