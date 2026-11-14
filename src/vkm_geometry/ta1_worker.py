@@ -168,6 +168,24 @@ def _parts(feature):
     return [{"id": fid, "path": [], "layer": family + "_feature", "geometry": physical}]
 
 
+def _validate_ta1_parts(feature, parts):
+    """Validate the complete source-derived manifest before reading vertices.
+
+    Map IDs remain opaque: older valid packages used a different map-ID recipe.
+    Their actual map provenance and physical map/type associations are checked
+    separately. No metadata entry can omit a source representation component.
+    """
+    if not isinstance(parts, list):
+        raise ValueError("TA1 part manifest must be a complete list")
+    base = []
+    for part in parts:
+        if not isinstance(part, dict) or any(not isinstance(part.get(k), str) or not part[k] for k in ("map_id", "type_id")):
+            raise ValueError("TA1 part manifest lacks map/type identity")
+        base.append({k: v for k, v in part.items() if k not in {"map_id", "type_id"}})
+    if canonical_json(base) != canonical_json(_parts(feature)):
+        raise ValueError("TA1 part manifest differs from complete source geometry/identity")
+
+
 def write_ta1(rows: list[dict], path: Path | str) -> dict:
     from criticalmaas.ta1_geopackage import GeopackageDatabase
     validate_rows(rows)
@@ -248,6 +266,7 @@ def _read_ta1_rows(path: Path | str, *, allow_legacy_srs=False) -> list[dict]:
     db = GeopackageDatabase(path, create=False)
     with sqlite3.connect(path) as connection:
         stored = connection.execute("SELECT row_json,parts_json FROM vkm_transport_rows ORDER BY rowid").fetchall()
+        maps = {r[0]: r[1:] for r in connection.execute("SELECT id,name,source_url,image_url,image_width,image_height FROM map")}
         if connection.execute("PRAGMA foreign_key_check").fetchall(): raise ValueError("TA1 foreign keys failed")
     physical = {}
     for layer in ("point_feature", "line_feature", "polygon_feature"):
@@ -263,19 +282,29 @@ def _read_ta1_rows(path: Path | str, *, allow_legacy_srs=False) -> list[dict]:
     rows, used = [], set()
     for row_json, parts_json in stored:
         row = json.loads(row_json); feature = json.loads(row["feature_json"]); parts = json.loads(parts_json)
+        validate_rows([row])
+        _validate_ta1_parts(feature, parts)
         original = feature["geometry"]; kind = original["type"]
-        actual_geometry = copy.deepcopy(original)
-        if kind == "MultiPoint": actual_geometry["coordinates"] = []
+        # Reconstruct solely from actual physical feature geometry. Source JSON
+        # supplies comparison/identity, never replacement vertices for omissions.
+        actual_geometry = {"type": kind, "coordinates": []} if kind == "MultiPoint" else None
         for part in parts:
             layer, properties, actual = physical[part["id"]]
             if layer != part["layer"] or properties["map_id"] != part["map_id"] or properties["type"] != part["type_id"]:
                 raise ValueError("TA1 ID/type/map association changed")
+            image_frame = feature.get("image_coordinate_frame")
+            expected_map = (coordinate_frame(feature)["id"], "urn:vkm:source:" + row["source_id"],
+                            "urn:sha256:" + str(feature["source_image_sha256"]), image_frame["width"], image_frame["height"])
+            family = layer.split("_")[0]
+            expected_type = "type-" + _token([family, row["source_id"], feature["legend_reference"]])
+            if maps.get(part["map_id"]) != expected_map or part["type_id"] != expected_type:
+                raise ValueError("TA1 map provenance/type no longer agrees with original source")
             assert_geometry_equal(part["geometry"], actual)
             used.add(part["id"])
             if kind == "MultiPoint": actual_geometry["coordinates"].append(actual["coordinates"])
             elif kind in {"LineString", "Polygon"}:
                 if len(actual["coordinates"]) != 1: raise ValueError("Wrapped TA1 geometry gained components")
-                actual_geometry["coordinates"] = actual["coordinates"][0]
+                actual_geometry = {"type": kind, "coordinates": actual["coordinates"][0]}
             else: actual_geometry = actual
         assert_geometry_equal(original, actual_geometry)
         actual_row = dict(row, wkb_hex=to_wkb(shape(actual_geometry), byte_order=1, include_srid=False).hex())

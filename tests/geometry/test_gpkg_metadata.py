@@ -5,6 +5,7 @@ import pytest
 from shapely.geometry import Point
 
 from vkm_geometry.ta1_worker import (_cartesian_header, _header_srs,
+                                     _parts, _validate_ta1_parts,
                                      assert_cartesian_package, normalize_new_cartesian_package)
 
 
@@ -59,3 +60,19 @@ def test_false_pixel_standard_metadata_rejected_and_corrected_in_new_output(tmp_
         normalize_new_cartesian_package(path)
     with sqlite3.connect(path) as db:
         assert db.execute("SELECT srs_id FROM gpkg_geometry_columns").fetchone()[0] == 4326
+
+
+@pytest.mark.parametrize("corruption", ["missing", "parent", "child", "typed_index"])
+def test_ta1_source_manifest_cannot_hide_missing_or_misidentified_components(corruption):
+    from test_transport import synthetic_batch
+    feature = synthetic_batch()["features"][1]  # actual MultiPoint components
+    parts = _parts(feature)
+    for part in parts:
+        part.update(map_id="historical-opaque-map", type_id="type-identity")
+    _validate_ta1_parts(feature, parts)
+    if corruption == "missing": parts.pop()
+    elif corruption == "parent": parts[0]["parent_source_feature_id"] = "WRONG:PARENT"
+    elif corruption == "child": parts[0]["id"] = "WRONG:CHILD"
+    else: parts[0]["component_index"] = False
+    with pytest.raises(ValueError, match="part manifest"):
+        _validate_ta1_parts(feature, parts)
