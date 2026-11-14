@@ -81,22 +81,42 @@ as `NOT_RUN`, with their node and exact reason. Deselected `services`, `gpu`,
 tests remain runnable locally with their marker; pure Python QGIS unit tests run
 in the offline corpus job. Two existing GPU parity tests now have GPU markers.
 
-Only `tests/geometry/test_db_adapter.py::test_duckdb_reference_wkb_idempotence_and_conflict`
-is marked `duckdb_spatial`: it needs the existing platform/version-specific native
-DuckDB spatial binary, which the offline CPU locks do not provide. The offline
-runner deselects that exact test and records its node/marker as `NOT_RUN`; the
-suite is `PASS_WITH_NOT_RUN`. DuckDB itself and the neighboring pure database and
-snapshot contracts remain mandatory. No extension is downloaded, installed or
-automatically skipped by this test. To qualify the native dependency separately:
+Seven function families in `tests/geometry/test_db_adapter.py` carry the
+`duckdb_spatial` boundary, with an independent exact allowlist checked by
+`tests/world/test_offline_checks.py`:
+
+- `test_duckdb_reference_wkb_idempotence_and_conflict`
+- `test_every_persisted_metadata_field_fails_closed_without_overwrite`
+- `test_missing_duplicate_and_invalid_batch_records_fail_closed`
+- `test_original_repeat_and_reordered_pg_dict_duckdb_text_are_equivalent`
+- `test_nested_json_boolean_true_is_not_integer_one`
+- `test_native_duckdb_missing_invalid_or_schema_protected_record`
+- `test_jsonb_string_containing_plan_json_is_not_a_batch_object`
+
+The original function executes `LOAD spatial` directly; the six metadata
+families seed real owned DuckDB files via `_seed_native`, which also executes
+`LOAD spatial`. Their parameterization currently collects **42 native cases**;
+the remaining **20 pure database/snapshot cases** stay mandatory offline.
+Unrelated pure tests cannot acquire this marker without failing the independent
+allowlist regression. These counts describe this file, not the whole suite.
+
+The existing platform/version-specific native binary is absent from the offline
+CPU locks. The offline runner records each deselected native node/marker as
+`NOT_RUN`, yielding `PASS_WITH_NOT_RUN` when the selected tests pass. It does not
+count them as passed, download/install the extension, or silently skip an
+explicit native invocation. Qualify the dependency separately in an already
+prepared runtime:
 
 ```bash
-python -m pytest -q -m duckdb_spatial tests/geometry/test_db_adapter.py::test_duckdb_reference_wkb_idempotence_and_conflict
+python -m pytest -q -m duckdb_spatial tests/geometry/test_db_adapter.py
+python -m pytest --collect-only -q -m duckdb_spatial tests/geometry/test_db_adapter.py
+python -m pytest -q -m "not duckdb_spatial" tests/geometry/test_db_adapter.py
 ```
 
-Run in an already prepared runtime. This explicit invocation executes the unchanged
-`LOAD spatial` and fails when the native extension is absent; an offline `NOT_RUN`
-does not replace it. Existing Windows DuckDB/PostGIS geometry receipts remain
-separate evidence for their exact inputs/runtime, not hosted Linux qualification.
+The first command executes the unchanged native dependency and fails when it is
+absent; an offline `NOT_RUN` does not replace it. Existing Windows
+DuckDB/PostGIS geometry receipts remain separate evidence for their exact
+inputs/runtime, not hosted Linux qualification.
 
 CPU Python dependencies are now required: OpenCV, Snowball and morphology skips
 fail the job. Their distribution METADATA was inspected on 01.10.2026 in the
