@@ -153,3 +153,16 @@ scope до записи, dry-run/apply/fresh read/repeat/rollback/reapply, expec
 conflict, partial-commit fault injection/recovery, local MCP calls, all-ID WKB
 reassembly и vertex counts. Native CAD/QGIS артефакты проверяются своими владельцами.
 Schema readiness, synthetic tests и успешный import не дают научного допуска.
+
+
+## Переносимая поставка по явному списку
+
+`pack_geometry_delivery.py` копирует только утверждённые файлы с SHA-256; поиск входов по дереву не выполняется. План — JSON вида `{"entries":[{"source":"relative/input.json","target":"inputs/input.json","sha256":"<64 lowercase hex>","role":"source-batch"}]}`. Source root и output должны находиться отдельно; новый output не перезаписывается. В план не входят ключи, env, host configs и runtime-профили. Упаковка не меняет статус научной достоверности.
+
+```powershell
+python scripts/pack_geometry_delivery.py --source-root PRIVATE_ROOT --plan PRIVATE_PLAN.json --output DELIVERY_ROOT
+python scripts/pack_geometry_delivery.py --source-root PRIVATE_ROOT --plan PRIVATE_PLAN.json --output DELIVERY_ROOT --verify
+python scripts/pack_geometry_delivery.py --output DELIVERY_ROOT --verify
+```
+
+Последняя команда проверяет полученный каталог без доступного PRIVATE root: точные SHA/размеры, manifest и отсутствие посторонних файлов. Для URI внешних зависимостей поставка должна содержать отдельный индекс с SHA и исходными локаторами; packer сам не скачивает источники. Повторная проверка не создаёт новую партию и не меняет исходники. Symlink/junction, traversal, коллизии имён/директорий, специальные имена Windows и ошибки перечисления отклоняются. Защита от конкурентного злонамеренного изменения файловой системы между проверками и открытием файлов не квалифицирована; поставку формирует один назначенный writer на неподвижных входах.
