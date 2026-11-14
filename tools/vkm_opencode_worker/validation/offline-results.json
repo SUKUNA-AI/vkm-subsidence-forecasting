@@ -1,0 +1,526 @@
+{
+  "schema": "vkm.offline.test-results/2",
+  "created_at": "2026-11-14T20:36:47.484813+00:00",
+  "python": "3.13.5",
+  "platform": "linux",
+  "os_name": "posix",
+  "scope": "stdlib contracts; temporary real Git; fake OpenCode; local process supervision",
+  "model_calls": 0,
+  "real_opencode_calls": 0,
+  "native_mcp_calls": 0,
+  "native_opencode_acceptance": "NOT_RUN",
+  "windows_job_object": "NOT_RUN",
+  "tests_run": 101,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "successful": true,
+  "duration_sec": 11.489,
+  "tests": [
+    {
+      "id": "test_bundle.BundleTests.test_all_python_sources_parse",
+      "status": "PASS",
+      "duration_sec": 0.021278
+    },
+    {
+      "id": "test_bundle.BundleTests.test_all_worker_skills_exist",
+      "status": "PASS",
+      "duration_sec": 0.001033
+    },
+    {
+      "id": "test_bundle.BundleTests.test_coordinator_skill_frontmatter",
+      "status": "PASS",
+      "duration_sec": 0.00011
+    },
+    {
+      "id": "test_bundle.BundleTests.test_host_template_cannot_be_mistaken_for_live",
+      "status": "PASS",
+      "duration_sec": 0.000112
+    },
+    {
+      "id": "test_bundle.BundleTests.test_input_archives_identified",
+      "status": "PASS",
+      "duration_sec": 0.000149
+    },
+    {
+      "id": "test_bundle.BundleTests.test_job_template_requires_actual_base",
+      "status": "PASS",
+      "duration_sec": 0.000176
+    },
+    {
+      "id": "test_bundle.BundleTests.test_native_status_is_honest",
+      "status": "PASS",
+      "duration_sec": 9.7e-05
+    },
+    {
+      "id": "test_bundle.BundleTests.test_required_documents_present",
+      "status": "PASS",
+      "duration_sec": 8e-05
+    },
+    {
+      "id": "test_bundle.BundleTests.test_v1_counterexamples_preserved",
+      "status": "PASS",
+      "duration_sec": 7.2e-05
+    },
+    {
+      "id": "test_worker.BudgetTests.test_byok_not_outside_cap",
+      "status": "PASS",
+      "duration_sec": 9.1e-05
+    },
+    {
+      "id": "test_worker.BudgetTests.test_counter_regression_rejected",
+      "status": "PASS",
+      "duration_sec": 7.2e-05
+    },
+    {
+      "id": "test_worker.BudgetTests.test_exhausted_rejected",
+      "status": "PASS",
+      "duration_sec": 4.8e-05
+    },
+    {
+      "id": "test_worker.BudgetTests.test_finite_cap",
+      "status": "PASS",
+      "duration_sec": 5.9e-05
+    },
+    {
+      "id": "test_worker.BudgetTests.test_key_rotation_rejected",
+      "status": "PASS",
+      "duration_sec": 3.7e-05
+    },
+    {
+      "id": "test_worker.BudgetTests.test_nonfinite_money_rejected",
+      "status": "PASS",
+      "duration_sec": 0.000159
+    },
+    {
+      "id": "test_worker.BudgetTests.test_reduced_remaining_valid",
+      "status": "PASS",
+      "duration_sec": 5.6e-05
+    },
+    {
+      "id": "test_worker.BudgetTests.test_remaining_exceeds_authorization",
+      "status": "PASS",
+      "duration_sec": 4.2e-05
+    },
+    {
+      "id": "test_worker.BudgetTests.test_resets_rejected",
+      "status": "PASS",
+      "duration_sec": 4.2e-05
+    },
+    {
+      "id": "test_worker.BudgetTests.test_unlimited_rejected",
+      "status": "PASS",
+      "duration_sec": 3.3e-05
+    },
+    {
+      "id": "test_worker.ConfigTests.test_code_mode_off_for_every_server",
+      "status": "PASS",
+      "duration_sec": 0.000504
+    },
+    {
+      "id": "test_worker.ConfigTests.test_context7_hyphens_preserved",
+      "status": "PASS",
+      "duration_sec": 1.6e-05
+    },
+    {
+      "id": "test_worker.ConfigTests.test_floating_mcp_dependency_rejected",
+      "status": "PASS",
+      "duration_sec": 0.000276
+    },
+    {
+      "id": "test_worker.ConfigTests.test_hosted_graphify_rejected",
+      "status": "PASS",
+      "duration_sec": 0.000141
+    },
+    {
+      "id": "test_worker.ConfigTests.test_internal_relative_edit_path",
+      "status": "PASS",
+      "duration_sec": 9.6e-05
+    },
+    {
+      "id": "test_worker.ConfigTests.test_maintenance_model_is_pinned",
+      "status": "PASS",
+      "duration_sec": 7e-05
+    },
+    {
+      "id": "test_worker.ConfigTests.test_mutating_mcp_review_rejected",
+      "status": "PASS",
+      "duration_sec": 8.2e-05
+    },
+    {
+      "id": "test_worker.ConfigTests.test_no_auto_shell",
+      "status": "PASS",
+      "duration_sec": 6.5e-05
+    },
+    {
+      "id": "test_worker.ConfigTests.test_no_endpoint_fallback",
+      "status": "PASS",
+      "duration_sec": 5.9e-05
+    },
+    {
+      "id": "test_worker.ConfigTests.test_no_user_key_in_config",
+      "status": "PASS",
+      "duration_sec": 8.8e-05
+    },
+    {
+      "id": "test_worker.ConfigTests.test_obsolete_opencode_rejected",
+      "status": "PASS",
+      "duration_sec": 4.4e-05
+    },
+    {
+      "id": "test_worker.ConfigTests.test_only_openrouter_provider",
+      "status": "PASS",
+      "duration_sec": 5.9e-05
+    },
+    {
+      "id": "test_worker.ConfigTests.test_reasoning_is_provider_body",
+      "status": "PASS",
+      "duration_sec": 5.9e-05
+    },
+    {
+      "id": "test_worker.ConfigTests.test_shell_glob_rejected",
+      "status": "PASS",
+      "duration_sec": 5.8e-05
+    },
+    {
+      "id": "test_worker.ConfigTests.test_skills_really_allowed",
+      "status": "PASS",
+      "duration_sec": 5.7e-05
+    },
+    {
+      "id": "test_worker.ConfigTests.test_steps_bound_is_used",
+      "status": "PASS",
+      "duration_sec": 0.000147
+    },
+    {
+      "id": "test_worker.ConfigTests.test_wildcard_tools_rejected",
+      "status": "PASS",
+      "duration_sec": 7.7e-05
+    },
+    {
+      "id": "test_worker.EventTests.test_environment_does_not_inherit_other_tokens",
+      "status": "PASS",
+      "duration_sec": 0.000652
+    },
+    {
+      "id": "test_worker.EventTests.test_error_event_counted",
+      "status": "PASS",
+      "duration_sec": 4.5e-05
+    },
+    {
+      "id": "test_worker.EventTests.test_malformed_line_not_success",
+      "status": "PASS",
+      "duration_sec": 4e-05
+    },
+    {
+      "id": "test_worker.EventTests.test_no_fictional_cost",
+      "status": "PASS",
+      "duration_sec": 2.6e-05
+    },
+    {
+      "id": "test_worker.EventTests.test_reasoning_not_persisted",
+      "status": "PASS",
+      "duration_sec": 0.000127
+    },
+    {
+      "id": "test_worker.EventTests.test_secret_redacted_from_text",
+      "status": "PASS",
+      "duration_sec": 0.000149
+    },
+    {
+      "id": "test_worker.EventTests.test_tool_payload_not_persisted",
+      "status": "PASS",
+      "duration_sec": 9.9e-05
+    },
+    {
+      "id": "test_worker.EventTests.test_truncation_detected",
+      "status": "PASS",
+      "duration_sec": 2.3e-05
+    },
+    {
+      "id": "test_worker.IntegrationTests.test_allowed_new_file_exported",
+      "status": "PASS",
+      "duration_sec": 0.973776
+    },
+    {
+      "id": "test_worker.IntegrationTests.test_collision_does_not_delete_original_worktree_file",
+      "status": "PASS",
+      "duration_sec": 0.046309
+    },
+    {
+      "id": "test_worker.IntegrationTests.test_directory_scope_blocked_before_inference",
+      "status": "PASS",
+      "duration_sec": 0.050433
+    },
+    {
+      "id": "test_worker.IntegrationTests.test_dirty_source_preserved_and_explicit_base",
+      "status": "PASS",
+      "duration_sec": 0.958496
+    },
+    {
+      "id": "test_worker.IntegrationTests.test_duplicate_task_no_overwrite",
+      "status": "PASS",
+      "duration_sec": 0.743336
+    },
+    {
+      "id": "test_worker.IntegrationTests.test_error_event_exit_zero_not_success",
+      "status": "PASS",
+      "duration_sec": 0.773514
+    },
+    {
+      "id": "test_worker.IntegrationTests.test_new_ignored_file_is_still_audited",
+      "status": "PASS",
+      "duration_sec": 0.84743
+    },
+    {
+      "id": "test_worker.IntegrationTests.test_out_of_scope_edit_is_detected",
+      "status": "PASS",
+      "duration_sec": 0.728174
+    },
+    {
+      "id": "test_worker.IntegrationTests.test_plan_is_side_effect_free",
+      "status": "PASS",
+      "duration_sec": 0.022556
+    },
+    {
+      "id": "test_worker.IntegrationTests.test_required_mcp_tool_not_inferred",
+      "status": "PASS",
+      "duration_sec": 0.814423
+    },
+    {
+      "id": "test_worker.IntegrationTests.test_runs_cannot_be_inside_repo",
+      "status": "PASS",
+      "duration_sec": 0.021632
+    },
+    {
+      "id": "test_worker.IntegrationTests.test_second_task_blocked_by_unsettled_run",
+      "status": "PASS",
+      "duration_sec": 0.731853
+    },
+    {
+      "id": "test_worker.IntegrationTests.test_secret_not_persisted",
+      "status": "PASS",
+      "duration_sec": 0.791314
+    },
+    {
+      "id": "test_worker.IntegrationTests.test_staged_out_of_scope_detected",
+      "status": "PASS",
+      "duration_sec": 0.725685
+    },
+    {
+      "id": "test_worker.JobTests.test_bool_steps_denied",
+      "status": "PASS",
+      "duration_sec": 8.5e-05
+    },
+    {
+      "id": "test_worker.JobTests.test_case_colliding_paths",
+      "status": "PASS",
+      "duration_sec": 8.6e-05
+    },
+    {
+      "id": "test_worker.JobTests.test_duplicate_json_keys",
+      "status": "PASS",
+      "duration_sec": 3.8e-05
+    },
+    {
+      "id": "test_worker.JobTests.test_duplicate_mcps",
+      "status": "PASS",
+      "duration_sec": 3.2e-05
+    },
+    {
+      "id": "test_worker.JobTests.test_edit_requires_files",
+      "status": "PASS",
+      "duration_sec": 3.1e-05
+    },
+    {
+      "id": "test_worker.JobTests.test_invalid_json",
+      "status": "PASS",
+      "duration_sec": 3.5e-05
+    },
+    {
+      "id": "test_worker.JobTests.test_missing_base",
+      "status": "PASS",
+      "duration_sec": 1.8e-05
+    },
+    {
+      "id": "test_worker.JobTests.test_nan_json",
+      "status": "PASS",
+      "duration_sec": 3e-05
+    },
+    {
+      "id": "test_worker.JobTests.test_negative_time",
+      "status": "PASS",
+      "duration_sec": 3.2e-05
+    },
+    {
+      "id": "test_worker.JobTests.test_review_edit_denied",
+      "status": "PASS",
+      "duration_sec": 3.3e-05
+    },
+    {
+      "id": "test_worker.JobTests.test_step_bound",
+      "status": "PASS",
+      "duration_sec": 2.7e-05
+    },
+    {
+      "id": "test_worker.JobTests.test_symbolic_base_forbidden",
+      "status": "PASS",
+      "duration_sec": 2e-05
+    },
+    {
+      "id": "test_worker.JobTests.test_unknown_field",
+      "status": "PASS",
+      "duration_sec": 1.5e-05
+    },
+    {
+      "id": "test_worker.JobTests.test_valid",
+      "status": "PASS",
+      "duration_sec": 5.9e-05
+    },
+    {
+      "id": "test_worker.OwnershipTests.test_cleanup_only_owned_files",
+      "status": "PASS",
+      "duration_sec": 0.000269
+    },
+    {
+      "id": "test_worker.OwnershipTests.test_control_tampering_preserved_and_flagged",
+      "status": "PASS",
+      "duration_sec": 0.000376
+    },
+    {
+      "id": "test_worker.OwnershipTests.test_key_lock_exclusive",
+      "status": "PASS",
+      "duration_sec": 0.000265
+    },
+    {
+      "id": "test_worker.OwnershipTests.test_manifest_hash_mismatch",
+      "status": "PASS",
+      "duration_sec": 0.000373
+    },
+    {
+      "id": "test_worker.OwnershipTests.test_pending_blocks_new_task",
+      "status": "PASS",
+      "duration_sec": 0.00037
+    },
+    {
+      "id": "test_worker.PathTests.test_instructions_denied",
+      "status": "PASS",
+      "duration_sec": 0.0001
+    },
+    {
+      "id": "test_worker.PathTests.test_literal_file",
+      "status": "PASS",
+      "duration_sec": 3.3e-05
+    },
+    {
+      "id": "test_worker.PathTests.test_symlink_denied",
+      "status": "PASS",
+      "duration_sec": 0.000276
+    },
+    {
+      "id": "test_worker.PathTests.test_traversal",
+      "status": "PASS",
+      "duration_sec": 0.000109
+    },
+    {
+      "id": "test_worker.PathTests.test_wildcard_regression",
+      "status": "PASS",
+      "duration_sec": 4.3e-05
+    },
+    {
+      "id": "test_worker.PathTests.test_windows_device_regression",
+      "status": "PASS",
+      "duration_sec": 7.7e-05
+    },
+    {
+      "id": "test_worker.ProcessTests.test_both_pipes_drained",
+      "status": "PASS",
+      "duration_sec": 0.684486
+    },
+    {
+      "id": "test_worker.ProcessTests.test_callback_failure_still_reaps",
+      "status": "PASS",
+      "duration_sec": 0.585742
+    },
+    {
+      "id": "test_worker.ProcessTests.test_invalid_utf8",
+      "status": "PASS",
+      "duration_sec": 0.560948
+    },
+    {
+      "id": "test_worker.ProcessTests.test_line_limit",
+      "status": "PASS",
+      "duration_sec": 0.546333
+    },
+    {
+      "id": "test_worker.ProcessTests.test_timeout",
+      "status": "PASS",
+      "duration_sec": 0.202865
+    },
+    {
+      "id": "test_worker.ProcessTests.test_total_output_limit",
+      "status": "PASS",
+      "duration_sec": 0.581773
+    },
+    {
+      "id": "test_worker.ReviewRegressionTests.test_credential_header_env_reference_allowed",
+      "status": "PASS",
+      "duration_sec": 0.000244
+    },
+    {
+      "id": "test_worker.ReviewRegressionTests.test_credential_header_literal_denied",
+      "status": "PASS",
+      "duration_sec": 3.6e-05
+    },
+    {
+      "id": "test_worker.ReviewRegressionTests.test_disguised_openrouter_key_denied",
+      "status": "PASS",
+      "duration_sec": 2.7e-05
+    },
+    {
+      "id": "test_worker.ReviewRegressionTests.test_do_not_rely_on_ignored_project_update_setting",
+      "status": "PASS",
+      "duration_sec": 0.000152
+    },
+    {
+      "id": "test_worker.ReviewRegressionTests.test_event_schema_qualification_required",
+      "status": "PASS",
+      "duration_sec": 1.4e-05
+    },
+    {
+      "id": "test_worker.ReviewRegressionTests.test_key_environment_literal_denied",
+      "status": "PASS",
+      "duration_sec": 2.2e-05
+    },
+    {
+      "id": "test_worker.ReviewRegressionTests.test_owned_cleanup_never_follows_changed_parent",
+      "status": "PASS",
+      "duration_sec": 0.000485
+    },
+    {
+      "id": "test_worker.ReviewRegressionTests.test_relative_state_path_rejected",
+      "status": "PASS",
+      "duration_sec": 0.023003
+    },
+    {
+      "id": "test_worker.ReviewRegressionTests.test_secret_in_argv_denied",
+      "status": "PASS",
+      "duration_sec": 5.9e-05
+    },
+    {
+      "id": "test_worker.ReviewRegressionTests.test_task_id_trailing_dot_rejected",
+      "status": "PASS",
+      "duration_sec": 3.6e-05
+    },
+    {
+      "id": "test_worker.ReviewRegressionTests.test_url_query_secret_denied",
+      "status": "PASS",
+      "duration_sec": 4.5e-05
+    },
+    {
+      "id": "test_worker.ReviewRegressionTests.test_windows_device_task_id_rejected",
+      "status": "PASS",
+      "duration_sec": 2.6e-05
+    }
+  ]
+}

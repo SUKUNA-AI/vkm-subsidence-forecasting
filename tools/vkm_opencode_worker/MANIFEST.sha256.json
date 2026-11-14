@@ -1,0 +1,203 @@
+{
+  "base_commit": "ae0117deb411625de947a93719d9c1de4cfade1b",
+  "files": {
+    ".agents/skills/vkm-opencode-worker/SKILL.md": {
+      "bytes": 5889,
+      "sha256": "e0575f011dd608fb410423e62439a295e0766b34b249ab76801baacde2e1d782"
+    },
+    ".agents/skills/vkm-opencode-worker/references/OPERATIONS.md": {
+      "bytes": 4264,
+      "sha256": "1ec0ea46b89f961b82495d46f6266c711ae32a9746d8c48385fceee146b2866d"
+    },
+    "scripts/run_offline_checks.py": {
+      "bytes": 30521,
+      "sha256": "277b746797a96a5aed2732ea93b42f9a16f6fe56827a9f8217fa0fe169b4d2fc"
+    },
+    "tests/opencode_worker/test_bundle.py": {
+      "bytes": 1095,
+      "sha256": "086073234054aefcda77646133b94bb88a96a494c7be8235687f76ee87284c90"
+    },
+    "tools/vkm_opencode_worker/.gitignore": {
+      "bytes": 100,
+      "sha256": "04a94c0e9c9f4d67a4890c810beb9eaeefef4a9744022e5e6b94151ef7e57771"
+    },
+    "tools/vkm_opencode_worker/CODEX_TASK_RU.md": {
+      "bytes": 14447,
+      "sha256": "a80ec5739c59d3458b08b8e0375dba2fd257ffec7518d5aad5b4541f18c24c93"
+    },
+    "tools/vkm_opencode_worker/README.md": {
+      "bytes": 8909,
+      "sha256": "ebd451417742d335571eba007c703706576e7d05cc6235f3892cb188ef752230"
+    },
+    "tools/vkm_opencode_worker/docs/CONTRACT_RU.md": {
+      "bytes": 11245,
+      "sha256": "458fcb687706da5547ddcb5a4b7818759bf18c47ffef04394e709bec05dfe26b"
+    },
+    "tools/vkm_opencode_worker/docs/DEPLOYMENT_RU.md": {
+      "bytes": 12362,
+      "sha256": "eecaf57d10a1638a3045e925bfc9168527b55855ea8250fd40f7a76e92a1e304"
+    },
+    "tools/vkm_opencode_worker/docs/INTEGRATION_RU.md": {
+      "bytes": 7661,
+      "sha256": "1d247feb8b26346b496021523f8aac9ce7ca5a414b45096b98da9ea7ab7cf8f3"
+    },
+    "tools/vkm_opencode_worker/docs/MCP_AND_MEMORY_RU.md": {
+      "bytes": 7024,
+      "sha256": "0420b0e4bc72cff1fa0286bdebfe2c5fd57e1cea4da1e6f8bfae939714379530"
+    },
+    "tools/vkm_opencode_worker/docs/REVIEW_RU.md": {
+      "bytes": 13331,
+      "sha256": "a38c467f6bf7368393762f50f899c7541b2c980243c3b4072d62b99984d4e927"
+    },
+    "tools/vkm_opencode_worker/docs/SOURCES.md": {
+      "bytes": 3091,
+      "sha256": "d96d2e1abd569bc952ae4a9093a5f281a3004c422d3920f44b29399e1e5cfb8c"
+    },
+    "tools/vkm_opencode_worker/empty-hooks/.gitkeep": {
+      "bytes": 82,
+      "sha256": "50f9f03e7e9e5a217ca6a4838f113cf4971f5c1853005ad8f8e881c92522c248"
+    },
+    "tools/vkm_opencode_worker/examples/coverage-investigation.template.json": {
+      "bytes": 1274,
+      "sha256": "17e4196616b71fad8db0dbc2aae1eee0fd1b28567d5d85acd80cc83d7641a48b"
+    },
+    "tools/vkm_opencode_worker/templates/README.md": {
+      "bytes": 1390,
+      "sha256": "9ca4923e8aefdeb7b972dff8fa9fe57c42d9168493967c35f6c98900c9bdfe90"
+    },
+    "tools/vkm_opencode_worker/templates/host.template.json": {
+      "bytes": 2542,
+      "sha256": "7276810b636091c1d7263b2d93a49716b054447597b0fd9d51ba48dea19535d7"
+    },
+    "tools/vkm_opencode_worker/templates/qualification.template.json": {
+      "bytes": 479,
+      "sha256": "6df18d4a2675242e353256ab4d66d1b43a9744a59a801d395357a5ee9f9e5453"
+    },
+    "tools/vkm_opencode_worker/templates/settlement.template.json": {
+      "bytes": 204,
+      "sha256": "3098e11d913360b50642f42e30f837e8b49e25f44fec80ea9d0bc0157f3089ff"
+    },
+    "tools/vkm_opencode_worker/tests/test_bundle.py": {
+      "bytes": 2542,
+      "sha256": "d4ed2f21e71beb910d0a5b3c5802cb31e5ccfdfd09f99b864a65451d0655db76"
+    },
+    "tools/vkm_opencode_worker/tests/test_mcp_preparation.py": {
+      "bytes": 3709,
+      "sha256": "b277a0d6007b8298458f62c30597d2f0671e783a2327dbb08c95f9fd8e85b3cc"
+    },
+    "tools/vkm_opencode_worker/tests/test_request_gate.py": {
+      "bytes": 6549,
+      "sha256": "f7e5656d1c8fe8c14afb1a3f09698c4b5444b04a38cb1b629421dae9a84b7718"
+    },
+    "tools/vkm_opencode_worker/tests/test_tool_scope.py": {
+      "bytes": 3734,
+      "sha256": "4016cbb12ed5a22a91c936a3247f1358bb22fb3d675a6e14e89320668f3f7b89"
+    },
+    "tools/vkm_opencode_worker/tests/test_worker.py": {
+      "bytes": 26331,
+      "sha256": "b46fce756228139539cd7bd970b74aa9cd6d49b97169032e371065abd267be19"
+    },
+    "tools/vkm_opencode_worker/tools/Get-VkmNativeInventory.ps1": {
+      "bytes": 2121,
+      "sha256": "8c11aaecc52a900fffe50208db31ebeca273068d02a165bf03da53aa2f79db5c"
+    },
+    "tools/vkm_opencode_worker/tools/Initialize-VkmCredential.ps1": {
+      "bytes": 1945,
+      "sha256": "1c08d3803924abf7638c89e2cd6e56e15b8a010c0ca84b66970daba8616df676"
+    },
+    "tools/vkm_opencode_worker/tools/Invoke-VkmWorker.ps1": {
+      "bytes": 2124,
+      "sha256": "0b258f8638c4855e6dbd8e59e4b2a986487bce3146b3ac86a3bc056b8f9d5447"
+    },
+    "tools/vkm_opencode_worker/tools/budget_guard.js": {
+      "bytes": 4477,
+      "sha256": "b3f1d51a0d50c04332c94b1145985009c4da1d7b6206f098c01f042313e90f73"
+    },
+    "tools/vkm_opencode_worker/tools/mcp_preparation.py": {
+      "bytes": 3415,
+      "sha256": "8339a68ee2cebd297609f71905c729309a2a5993cb9c7f62eed05673b531e6aa"
+    },
+    "tools/vkm_opencode_worker/tools/process_tree.py": {
+      "bytes": 9508,
+      "sha256": "07976e568cee0ce86b2e81c7d24a571f7040ed0a549323045a42a612e0ca9d94"
+    },
+    "tools/vkm_opencode_worker/tools/qualify_hook.py": {
+      "bytes": 14710,
+      "sha256": "666c6882c39236a15e11db44b80d8ab31bbb7440da673a7a1c88e8f163f78e59"
+    },
+    "tools/vkm_opencode_worker/tools/request_gate.py": {
+      "bytes": 12494,
+      "sha256": "11ecada8a5989818c78c2945ee1af62bbf2360c29dae28c7ef86f0dad548358f"
+    },
+    "tools/vkm_opencode_worker/tools/run_tests.py": {
+      "bytes": 3670,
+      "sha256": "c90a44e6afda1121eb2961e229d4f332ebafa0f6441e7507b897ba954fc1fc6a"
+    },
+    "tools/vkm_opencode_worker/tools/shared_budget.py": {
+      "bytes": 24589,
+      "sha256": "4e4367a3c8208ca73ffff44c3373b55cc04952be7debe08a9e1b555a127f4572"
+    },
+    "tools/vkm_opencode_worker/tools/tool_scope.py": {
+      "bytes": 3750,
+      "sha256": "e5f7e802bb831ed8ad5564444191cc1377fd6a13b0e1678d97a596adcfbc44d2"
+    },
+    "tools/vkm_opencode_worker/tools/vkm_opencode_worker.py": {
+      "bytes": 29821,
+      "sha256": "683b4e0d08d4b2b903b123fb1dafbd56586c68e1f4311c641a97e19ccaeb75f6"
+    },
+    "tools/vkm_opencode_worker/tools/vkm_worker_core.py": {
+      "bytes": 28078,
+      "sha256": "b537f63188831a1671ea44d4ac7bc76cda8b2201f851d4e096d9e553f5272b91"
+    },
+    "tools/vkm_opencode_worker/validation/input-packages.json": {
+      "bytes": 411,
+      "sha256": "d90797d622aa509ed94051a0b6a1c2e01a9fa815cb60e9bf34f122806a057781"
+    },
+    "tools/vkm_opencode_worker/validation/integration-status.json": {
+      "bytes": 433,
+      "sha256": "931c1935af41ec284e0360f5a0abc53f87f03f17c773065aefa7b5744e229c2a"
+    },
+    "tools/vkm_opencode_worker/validation/native-status.json": {
+      "bytes": 976,
+      "sha256": "9318c4b0923f8a09b1cee8613ff5b583647ca1567c54b86692e809ab82aad1ab"
+    },
+    "tools/vkm_opencode_worker/validation/offline-results.json": {
+      "bytes": 14439,
+      "sha256": "518fe1f5ac49bb0b7a46cb08ac52d63e0596953f6e43e1cfdfd1b752c45a9f71"
+    },
+    "tools/vkm_opencode_worker/validation/offline-results.log": {
+      "bytes": 9607,
+      "sha256": "096520a0dd5ebfe0b646406a7201093c6a6c7e6e5fd7f720ca88e107fa218ed5"
+    },
+    "tools/vkm_opencode_worker/validation/reproduce_v1.py": {
+      "bytes": 2667,
+      "sha256": "d86d34e15a95d598f2bec6ce9edf19df8dd517439dbed84f536bd1d2375934aa"
+    },
+    "tools/vkm_opencode_worker/validation/v1-baseline-tests.log": {
+      "bytes": 1063,
+      "sha256": "9acff09e1132c96e9ec1dc3dff5a139ab70438ec71c5fad7d17ecb548458d2c2"
+    },
+    "tools/vkm_opencode_worker/validation/v1-counterexamples.json": {
+      "bytes": 490,
+      "sha256": "d84d348ceb5848f4020137180ea8ae7005003df398a0eb2249377ae8b0b0d9f0"
+    },
+    "tools/vkm_opencode_worker/worker_skills/vkm-code-investigation/SKILL.md": {
+      "bytes": 2629,
+      "sha256": "474581ebc22324d3f52552d093f12097543599ed7e9043af89682b9afa228aa1"
+    },
+    "tools/vkm_opencode_worker/worker_skills/vkm-independent-review/SKILL.md": {
+      "bytes": 1999,
+      "sha256": "c6acf0d753ae410143da2759d81db3acec36ff2004cfff8f4b7c755fa8a2e969"
+    },
+    "tools/vkm_opencode_worker/worker_skills/vkm-source-research/SKILL.md": {
+      "bytes": 2513,
+      "sha256": "9eaf4e3b0dbc35ca5a325ce39b0bc89f6a4c444bc2419b07ba14afda5a3b4efb"
+    },
+    "tools/vkm_opencode_worker/worker_skills/vkm-structural-change/SKILL.md": {
+      "bytes": 2378,
+      "sha256": "465f8c028c87e453e6dea1922941681ac0fe3b6d52345ac6e57d35b3faf99392"
+    }
+  },
+  "schema": "vkm.opencode.code-manifest/2",
+  "self_excluded": true
+}

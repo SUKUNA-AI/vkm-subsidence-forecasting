@@ -1,0 +1,23 @@
+[
+  {
+    "case": "collision_deletes_preexisting_config",
+    "reproduced": true,
+    "original_preserved": true,
+    "result": {
+      "raised": "worker config/task filename conflicts with source checkout"
+    }
+  },
+  {
+    "case": "out_of_scope_edit_is_not_rejected",
+    "reproduced": true,
+    "result": "CLI_COMPLETE_UNVERIFIED"
+  },
+  {
+    "case": "wildcard_scope_accepted",
+    "reproduced": true
+  },
+  {
+    "case": "windows_reserved_name_accepted",
+    "reproduced": true
+  }
+]

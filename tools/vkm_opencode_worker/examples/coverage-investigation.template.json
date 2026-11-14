@@ -1,0 +1,26 @@
+{
+  "schema": "vkm.opencode.job/2",
+  "task_id": "VKM-COVERAGE-REVIEW-001",
+  "base_sha": null,
+  "mode": "review",
+  "profile": "deepseek",
+  "scenario": "code_investigation",
+  "objective": "Установи полный ожидаемый и фактический охват скважин для построений 25/5/1 м. Проверь №75 как частный случай, не как представителя всех скважин. Сначала выясни, не устранена ли прежняя ошибка. Не изменяй файлы.",
+  "acceptance_criteria": [
+    "Найден источник полного множества borehole IDs и путь до каждой стадии построения.",
+    "Для каждой ожидаемой скважины указан observed статус с file:line или результатом инструмента.",
+    "Все гипотезы о потере объектов имеют контрпример либо явно NOT_VERIFIED."
+  ],
+  "mcp": [],
+  "edit_paths": [],
+  "max_steps": 10,
+  "max_runtime_sec": 600,
+  "source_locators": [],
+  "required_tools": [
+    "read"
+  ],
+  "read_paths": [
+    "AGENTS.md",
+    "README.md"
+  ]
+}
