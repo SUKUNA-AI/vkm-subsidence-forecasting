@@ -56,7 +56,7 @@ READ_TOOLS = {"get_evidence_record", "list_evidence", "get_evidence_dependencies
               # digitized chart series (agent FD2)
               "find_figure_series", "get_figure_series",
               # registry: works of an author, the entity index of the catalogues (agent Г)
-              "find_works", "find_entities"}
+              "find_works", "find_entities", "scientific_status", "scientific_query"}
 ADMIN_TOOLS = {"reprocess_source", "reprocess_page", "get_job", "cancel_job"}
 
 

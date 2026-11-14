@@ -48,6 +48,7 @@ TABLE_ROLES = {
     "source_series_points": "SOURCE_FIGURE_SERIES_DIGITIZATION",
     "source_digitization_batches": "SOURCE_DIGITIZATION_BATCH_METADATA",
     "source_series_nav_links": "SOURCE_DIGITIZATION_CROSS_LINK",
+    "source_geometry_features": "SOURCE_GEOMETRY_DIGITIZATION",
 }
 IDENTIFIER = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 
@@ -137,6 +138,7 @@ class ScientificReader:
             "tables": {name: {"rows": table["rows"], "data_role": table["data_role"]}
                        for name, table in self.manifest["tables"].items()},
             "query_ids": sorted(self.manifest["queries"]),
+            "query_catalogue": self.manifest.get("query_catalogue", []),
             "native_reader": "duckdb",
             "scientific_admission": "NOT_GRANTED_BY_READER",
         }
