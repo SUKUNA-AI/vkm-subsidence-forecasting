@@ -403,6 +403,7 @@ def main():
         write_wkb_jsonl(rows, args.readback)
         result.update(status="PASS", readback_features=len(rows), gpkg_sha256=hashlib.sha256(args.gpkg.read_bytes()).hexdigest())
     except Exception as exc:
+        result["status"] = "FAIL"
         result["error"] = f"{type(exc).__name__}: {exc}"
     args.receipt.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(result, ensure_ascii=True))
