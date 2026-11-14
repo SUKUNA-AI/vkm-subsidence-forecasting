@@ -140,11 +140,46 @@ def schema_check(schema, depth=0):
         fail("INVALID_SCHEMA")
 
 
+def validate_source_package(package, image_sha256):
+    """Validate the caller's explicit scope/locator assertion; never read sources."""
+    fields = {"work_id", "source_id", "page", "figure_id", "panel_id", "frame", "image_sha256", "authorization_scope"}
+    if not isinstance(package, dict) or set(package) != fields:
+        fail("INVALID_PROVENANCE")
+    scope = package["authorization_scope"]
+    if scope not in ("VKM-GEO-01", "VKM-GEO-01-MA") or package["source_id"] != "VKM-SRC-011":
+        fail("UNAUTHORIZED_SOURCE_PACKAGE")
+    for value in (package["work_id"], package["panel_id"]):
+        if not isinstance(value, str) or not re.fullmatch(r"\w[\w.:-]{0,127}", value):
+            fail("INVALID_PROVENANCE")
+    if not isinstance(package["figure_id"], str):
+        fail("INVALID_PROVENANCE")
+    if not re.fullmatch(r"1\.[0-9]{2}", package["figure_id"]) or not 25 <= int(package["figure_id"].split(".")[1]) <= (63 if scope == "VKM-GEO-01-MA" else 31):
+        fail("UNAUTHORIZED_SOURCE_PACKAGE")
+    if scope == "VKM-GEO-01-MA" and package["work_id"] != "VKM-WRK-011":
+        fail("UNAUTHORIZED_SOURCE_PACKAGE")
+    page = package["page"]
+    if not isinstance(page, dict) or set(page) != {"number", "scheme"} or type(page["number"]) is not int or not 1 <= page["number"] <= 10000 or not isinstance(page["scheme"], str) or page["scheme"] not in {"PDF_1_BASED", "PRINTED"}:
+        fail("INVALID_PROVENANCE")
+    frame = package["frame"]
+    if not isinstance(frame, dict) or set(frame) != {"id", "units", "crs"}:
+        fail("INVALID_PROVENANCE")
+    if not isinstance(frame["id"], str) or not re.fullmatch(r"\w[\w.:-]{0,127}", frame["id"]) or not isinstance(frame["units"], str) or frame["units"] not in {"px", "pixel"} or frame["crs"] != "UNKNOWN":
+        fail("INVALID_PROVENANCE")
+    if not isinstance(package["image_sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", package["image_sha256"]):
+        fail("INVALID_PROVENANCE")
+    if package["image_sha256"] != image_sha256:
+        fail("IMAGE_PROVENANCE_MISMATCH")
+
+
 def validate_job(job, secret=None):
-    allowed = {"task_id", "synthetic", "profile", "prompt", "max_tokens", "schema", "images"}
-    if not isinstance(job, dict) or set(job) - allowed or job.get("synthetic") is not True:
+    allowed = {"task_id", "synthetic", "profile", "prompt", "max_tokens", "schema", "images", "input_package"}
+    if not isinstance(job, dict) or set(job) - allowed or type(job.get("synthetic")) is not bool:
         fail("FORBIDDEN_INPUT")
     profile_spec(job.get("profile"))
+    if job["synthetic"] is True and "input_package" in job:
+        fail("FORBIDDEN_INPUT")
+    if job["synthetic"] is False and (job["profile"] != "vision_documents" or "input_package" not in job):
+        fail("FORBIDDEN_INPUT")
     if not isinstance(job.get("task_id"), str) or not re.fullmatch(r"[a-zA-Z0-9_-]{1,64}", job["task_id"]):
         fail("FORBIDDEN_INPUT")
     prompt = job.get("prompt")
@@ -162,7 +197,10 @@ def validate_job(job, secret=None):
     images = job.get("images", [])
     if not isinstance(images, list) or len(images) > 2:
         fail("INPUT_LIMIT")
+    if job["synthetic"] is False and len(images) != 1:
+        fail("INVALID_PROVENANCE")
     pixels = 0
+    image_hashes = []
     for img in images:
         if not isinstance(img, dict) or set(img) != {"mime", "data_base64", "width", "height", "bbox"}:
             fail("INVALID_IMAGE")
@@ -189,11 +227,14 @@ def validate_job(job, secret=None):
             raise
         except Exception:
             fail("INVALID_IMAGE")
+        image_hashes.append(hashlib.sha256(raw).hexdigest())
         pixels += w * h
     if pixels > 4_000_000:
         fail("INPUT_LIMIT")
     if job["profile"] == "vision_documents" and not images:
         fail("INVALID_IMAGE")
+    if job["synthetic"] is False:
+        validate_source_package(job["input_package"], image_hashes[0])
     return schema, pixels
 
 
@@ -549,6 +590,11 @@ def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=F
     secret = None if mock else os.environ.get("OPENROUTER_API_KEY")
     request, estimate, evidence = prepare(job, metadata, secret)
     receipt = {"task_id": job["task_id"], "profile": job["profile"], "input_sha256": digest(job), "prompt_sha256": digest(job["prompt"]), "config_sha256": digest({k: v for k, v in request.items() if k != "messages"}), "started_at": now(), "requested_model": request["model"], "requested_provider": request["provider"], "endpoint_evidence": evidence, "reasoning": {"enabled": True}, "reservation_usd": str(estimate), "currency": "USD", "mode": "mock" if mock else "live", "cost_usd": None, "verification": "NOT_RUN"}
+    receipt["input_kind"] = "SYNTHETIC" if job["synthetic"] else "AUTHORIZED_SOURCE_VISUAL"
+    receipt["synthetic"] = job["synthetic"]
+    if job["synthetic"] is False:
+        receipt["input_provenance"] = json.loads(encoded(job["input_package"]))
+        receipt["input_authorization_basis"] = "EXPLICIT_CALLER_ASSERTION"
     target = Path(run_dir)
     target.mkdir(parents=True, exist_ok=False)  # each attempt is immutable
     start = time.monotonic()

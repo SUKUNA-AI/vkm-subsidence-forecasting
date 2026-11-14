@@ -734,3 +734,159 @@ def test_run_records_inferred_route_basis_and_preserves_observed_null_fields(tmp
     assert receipt["model_identity"]["requested_alias"] == "moonshotai/kimi-k3.1-pro"
     assert receipt["actual_generation_model"] == "moonshotai/kimi-k3.1-pro-20261023"
     assert receipt["model_identity"]["generation_observed"] == receipt["actual_generation_model"]
+
+
+def source_visual_job():
+    """Generated test pixels imitate a caller package; no real source is read."""
+    j = job("vision_documents")
+    j["task_id"] = "geo-provenance-fixture"
+    j["synthetic"] = False
+    j["input_package"] = {"work_id": "VKM-SRC-011", "source_id": "VKM-SRC-011", "page": {"number": 1, "scheme": "PDF_1_BASED"}, "figure_id": "1.25", "panel_id": "main", "frame": {"id": "source011_fig1_25_pixel_fixture", "units": "pixel", "crs": "UNKNOWN"}, "image_sha256": __import__("hashlib").sha256(base64.b64decode(j["images"][0]["data_base64"])).hexdigest(), "authorization_scope": "VKM-GEO-01"}
+    return j
+
+
+@pytest.mark.parametrize("units,scheme", [("pixel", "PDF_1_BASED"), ("px", "PRINTED")])
+def test_explicit_real_visual_package_is_bounded_and_frame_preserved(units, scheme):
+    j = source_visual_job()
+    j["input_package"]["frame"]["units"] = units
+    j["input_package"]["page"]["scheme"] = scheme
+    original = copy.deepcopy(j)
+    request, estimate, _ = d.prepare(j, metadata())
+    assert request["model"] == "google/gemini-4-hydrogen" and estimate > 0
+    assert request["messages"][0]["content"][1]["image_url"]["url"].startswith("data:image/png;base64,")
+    assert "input_package" not in request and j == original
+
+
+@pytest.mark.parametrize("field", ["work_id", "source_id", "page", "figure_id", "panel_id", "frame", "image_sha256", "authorization_scope"])
+def test_real_visual_package_requires_every_provenance_field(field):
+    j = source_visual_job()
+    del j["input_package"][field]
+    with pytest.raises(d.DelegateError, match="INVALID_PROVENANCE"):
+        d.prepare(j, metadata())
+
+
+@pytest.mark.parametrize("field,value", [("authorization_scope", "OTHER-TASK"), ("source_id", "SRC-011"), ("source_id", "VKM-SRC-012"), ("figure_id", "1.24"), ("figure_id", "1.32")])
+def test_real_visual_package_rejects_unauthorized_scope_source_or_figure(field, value):
+    j = source_visual_job()
+    j["input_package"][field] = value
+    with pytest.raises(d.DelegateError, match="UNAUTHORIZED_SOURCE_PACKAGE"):
+        d.prepare(j, metadata())
+
+
+@pytest.mark.parametrize("mutation", [
+    {"page": {"number": 0, "scheme": "PDF_1_BASED"}},
+    {"page": {"number": True, "scheme": "PDF_1_BASED"}},
+    {"page": {"number": 1, "scheme": "UNKNOWN"}},
+    {"page": {"number": 1, "scheme": []}},
+    {"work_id": ""}, {"panel_id": "../../private"},
+    {"figure_id": []}, {"image_sha256": "not-a-hash"},
+    {"frame": {"id": "frame", "units": "m", "crs": "UNKNOWN"}},
+    {"frame": {"id": "frame", "units": "pixel", "crs": "EPSG:4326"}},
+    {"frame": {"id": "frame", "units": "pixel", "crs": None}},
+])
+def test_real_visual_package_rejects_malformed_locators_frame_or_hash(mutation):
+    j = source_visual_job()
+    j["input_package"].update(mutation)
+    with pytest.raises(d.DelegateError, match="INVALID_PROVENANCE"):
+        d.prepare(j, metadata())
+
+
+def test_real_visual_package_hash_matches_decoded_file_bytes_not_base64_text():
+    j = source_visual_job()
+    j["input_package"]["image_sha256"] = __import__("hashlib").sha256(j["images"][0]["data_base64"].encode()).hexdigest()
+    with pytest.raises(d.DelegateError, match="IMAGE_PROVENANCE_MISMATCH"):
+        d.prepare(j, metadata())
+
+
+def test_real_visual_package_cannot_mislabel_input_as_synthetic_or_use_other_profile():
+    j = source_visual_job()
+    j["synthetic"] = True
+    with pytest.raises(d.DelegateError, match="FORBIDDEN_INPUT"):
+        d.prepare(j, metadata())
+    j["synthetic"] = False
+    j["profile"] = "engineering_research"
+    with pytest.raises(d.DelegateError, match="FORBIDDEN_INPUT"):
+        d.prepare(j, metadata())
+
+
+@pytest.mark.parametrize("count", [0, 2])
+def test_one_real_source_visual_package_binds_exactly_one_image(count):
+    j = source_visual_job()
+    j["images"] = j["images"] * count
+    with pytest.raises(d.DelegateError, match="INVALID_PROVENANCE"):
+        d.prepare(j, metadata())
+
+
+@pytest.mark.parametrize("field,value", [("source_path", "../../PRIVATE/source.pdf"), ("image_url", "https://example.invalid/source.png")])
+def test_source_visual_package_never_opens_source_paths_or_urls(field, value):
+    j = source_visual_job()
+    j["input_package"][field] = value
+    with pytest.raises(d.DelegateError, match="INVALID_PROVENANCE"):
+        d.prepare(j, metadata())
+
+
+def test_real_visual_package_receipt_has_provenance_without_inline_image(tmp_path, monkeypatch):
+    j = source_visual_job()
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-synthetic-test-only")
+    t = FakeTransport(reply=response("vision_documents"))
+    receipt = d.run(j, metadata(), tmp_path / "run", ledger=tmp_path / "ledger.json", budget=".01", transport=t)
+    assert receipt["verification"] == "PASS" and t.posts == 1
+    assert receipt["synthetic"] is False and receipt["input_kind"] == "AUTHORIZED_SOURCE_VISUAL"
+    assert receipt["input_provenance"] == j["input_package"]
+    assert receipt["input_provenance"]["frame"]["units"] == "pixel"
+    assert receipt["input_authorization_basis"] == "EXPLICIT_CALLER_ASSERTION"
+    persisted = (tmp_path / "run/receipt.json").read_text(encoding="utf8")
+    assert j["images"][0]["data_base64"] not in persisted and "data_base64" not in persisted
+    assert receipt["input_sha256"] == d.digest(j)
+
+
+def test_real_visual_package_does_not_expand_synthetic_local_cap_exception(tmp_path, monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-synthetic-test-only")
+    t = FakeTransport(reply=response("vision_documents"), limit=None)
+    receipt = d.run(source_visual_job(), metadata(), tmp_path / "run", ledger=tmp_path / "ledger.json", budget="1", transport=t, owner_local_cap_only=True)
+    assert receipt["verification"] == "OWNER_LOCAL_CAP_REJECTED" and t.posts == 0
+    assert not (tmp_path / "ledger.json").exists()
+
+
+def test_invalid_source_package_is_rejected_before_any_transport_or_attempt(tmp_path, monkeypatch):
+    class NoNetwork:
+        def request(self, *args, **kwargs):
+            raise AssertionError("invalid package must not call transport")
+
+    j = source_visual_job()
+    j["input_package"]["authorization_scope"] = "NOT_AUTHORIZED"
+    with pytest.raises(d.DelegateError, match="UNAUTHORIZED_SOURCE_PACKAGE"):
+        d.run(j, metadata(), tmp_path / "run", transport=NoNetwork())
+    assert not (tmp_path / "run").exists()
+
+
+@pytest.mark.parametrize("figure", ["1.25", "1.42", "1.52", "1.63"])
+def test_ma_scope_allows_pinned_work_source_and_authorized_figure_range(figure):
+    j = source_visual_job()
+    j["input_package"].update(authorization_scope="VKM-GEO-01-MA", work_id="VKM-WRK-011", figure_id=figure)
+    d.prepare(j, metadata())
+
+
+@pytest.mark.parametrize("figure", ["1.24", "1.64", "1.025", "1.25-extra", "2.25"])
+def test_ma_scope_rejects_figures_outside_exact_range(figure):
+    j = source_visual_job()
+    j["input_package"].update(authorization_scope="VKM-GEO-01-MA", work_id="VKM-WRK-011", figure_id=figure)
+    with pytest.raises(d.DelegateError, match="UNAUTHORIZED_SOURCE_PACKAGE"):
+        d.prepare(j, metadata())
+
+
+def test_ma_scope_requires_actual_work_source_link():
+    j = source_visual_job()
+    j["input_package"]["authorization_scope"] = "VKM-GEO-01-MA"
+    with pytest.raises(d.DelegateError, match="UNAUTHORIZED_SOURCE_PACKAGE"):
+        d.prepare(j, metadata())
+
+
+def test_authorized_jpeg_hash_binds_exact_decoded_container_bytes():
+    from PIL import Image
+    j = source_visual_job()
+    buf = io.BytesIO()
+    Image.new("RGB", (32, 16), "white").save(buf, format="JPEG")
+    j["images"][0].update(mime="image/jpeg", data_base64=base64.b64encode(buf.getvalue()).decode())
+    j["input_package"]["image_sha256"] = __import__("hashlib").sha256(buf.getvalue()).hexdigest()
+    assert d.prepare(j, metadata())[0]["messages"][0]["content"][1]["image_url"]["url"].startswith("data:image/jpeg;base64,")

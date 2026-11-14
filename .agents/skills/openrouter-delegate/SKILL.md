@@ -11,7 +11,7 @@ description: "Делегировать ограниченную задачу В�
 
 Прочитай [MODELS.md](references/MODELS.md) перед выбором профиля и [VKM_WORKFLOWS.md](references/VKM_WORKFLOWS.md) при подготовке задания. Одна установка относится только к этому проекту. Скрипт не читает ключевые файлы: `OPENROUTER_API_KEY` поступает только через окружение процесса. Не передавай ключ через argv, чат или журнал.
 
-Текущий ограниченный пилот принимает только явно подготовленный synthetic job JSON: prompt, необязательные inline PNG/JPEG и схема результата. Файловые пути и сетевые изображения в задании запрещены. Для закрытых исходников нужна отдельная реализация явного разрешённого пакета входов; этот пилот автоматически их не читает.
+Клиент принимает ограниченный job JSON: prompt, inline PNG/JPEG и схему результата. Для синтетики указывай `synthetic=true`. Для разрешённого ограниченного визуального задания VKM-GEO-01 или VKM-GEO-01-MA по VKM-SRC-011 указывай `synthetic=false` и строгий `input_package` из [VKM_WORKFLOWS.md](references/VKM_WORKFLOWS.md). Пакет связывает work/source/page/figure/panel/frame с SHA256 конкретного изображения; он является явным утверждением вызывающего агента, который проверяет разрешение и исходные локаторы. Клиент не читает источники, пути или URL и не превращает утверждение в доказанный факт.
 
 Из корня проекта:
 
@@ -27,7 +27,7 @@ python .agents/skills/openrouter-delegate/scripts/openrouter_call.py mock --job 
 python .agents/skills/openrouter-delegate/scripts/openrouter_call.py call --job work/job.json --metadata work/delegate-endpoints.json --budget-usd 0.05 --ledger work/private-batch/ledger.json --run-dir work/private-batch/probe-1
 ```
 
-`0.05` — пример синтаксиса, не расходное разрешение. Пиши receipts и результаты в приватный/ignored каталог. Скрипт сохраняет хеши, разрешённые metadata, usage и стоимость; reasoning и секреты не сохраняет. Ошибки дают ненулевой exit code. Mock не доказывает доступность API. `PROVENANCE_UNCONFIRMED` означает известную стоимость, но недостаточное подтверждение точного endpoint; научного PASS или принятия результата моделью здесь нет.
+`0.05` — пример синтаксиса, не расходное разрешение. Пиши receipts и результаты в приватный/ignored каталог. Скрипт сохраняет хеши, разрешённые metadata, usage и стоимость; для реального визуального входа — также `synthetic=false` и provenance-пакет без base64. Reasoning и секреты не сохраняются. Ошибки дают ненулевой exit code. Mock не доказывает доступность API. `PROVENANCE_UNCONFIRMED` означает известную стоимость, но недостаточное подтверждение точного endpoint; научного PASS или принятия результата моделью здесь нет.
 
 Ответ OpenRouter может содержать подтверждённый canonical ID вместо запрошенного alias: разрешены только три фиксированные пары из [MODELS.md](references/MODELS.md). POST запрашивает routing metadata заголовком `X-OpenRouter-Metadata: enabled`. Для Kimi предусмотрен ограниченный вывод о маршруте по единственному Decart endpoint и полному router selection; receipt помечает его `UNIQUE_PINNED_ENDPOINT_AND_ROUTER_SELECTION`. Это вывод из каталога и routing metadata, не измерение физической precision; отсутствующие наблюдаемые endpoint/quantization не заполняются значениями из каталога.
 
