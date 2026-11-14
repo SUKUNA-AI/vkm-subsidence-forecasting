@@ -22,7 +22,8 @@ spec.loader.exec_module(d)
 def metadata():
     rows = []
     for model, tag, provider, _ in d.PROFILES.values():
-        rows.append({"model": model, "checked_at": d.now(), "http_status": 200, "metadata": {"data": {"architecture": {"input_modalities": ["text", "image"]}, "endpoints": [{"model_id": model, "provider_name": provider, "tag": tag, "service_tier": "flex" if tag.endswith("flex") else None, "quantization": "fp8" if tag.endswith("fp8") else "unknown", "status": 0, "context_length": 1000000, "max_completion_tokens": 10000, "supported_parameters": ["reasoning", "max_tokens", "response_format", "structured_outputs"], "pricing": {"prompt": "0.0000001", "completion": "0.0000005"}}]}}})
+        quantization = tag.rsplit("/", 1)[-1] if tag.endswith(("/fp8", "/mxfp4")) else "unknown"
+        rows.append({"model": model, "checked_at": d.now(), "http_status": 200, "metadata": {"data": {"architecture": {"input_modalities": ["text", "image"]}, "endpoints": [{"model_id": model, "provider_name": provider, "tag": tag, "service_tier": "flex" if tag.endswith("flex") else None, "quantization": quantization, "status": 0, "context_length": 1000000, "max_completion_tokens": 10000, "supported_parameters": ["reasoning", "max_tokens", "response_format", "structured_outputs"], "pricing": {"prompt": "0.0000001", "completion": "0.0000005"}}]}}})
     return rows
 
 
@@ -100,7 +101,7 @@ def test_03_missing_exact_endpoint_does_not_block_others():
     m[0]["metadata"]["data"]["endpoints"][0]["tag"] = "stepfun"
     with pytest.raises(d.DelegateError, match="ENDPOINT_UNAVAILABLE"):
         d.prepare(job(), m)
-    d.prepare(job("critical_review"), m)
+    d.prepare(job("vision_documents"), m)
 
 
 @pytest.mark.parametrize("field,value", [("provider", {"allow_fallbacks": True}), ("models", ["other"]), ("plugins", [{"id": "web"}]), ("tools", [{}])])
@@ -239,11 +240,11 @@ def test_response_identity_and_choices(change, code):
 
 
 def test_google_provider_alone_cannot_prove_flex():
-    reply = response("critical_review")
+    reply = response("vision_documents")
     del reply["provider_endpoint"]
     with pytest.raises(d.DelegateError, match="PROVENANCE_UNCONFIRMED"):
-        d.validate_response(reply, {}, job("critical_review"))
-    assert d.validate_response(reply, {"service_tier": "flex"}, job("critical_review"))
+        d.validate_response(reply, {}, job("vision_documents"))
+    assert d.validate_response(reply, {"service_tier": "flex"}, job("vision_documents"))
 
 
 def test_mock_saves_sanitized_success(tmp_path):
@@ -288,6 +289,8 @@ def test_transport_errors_and_authorization_each_call(monkeypatch, status, paylo
         assert "secret upstream details" not in str(exc.value)
     assert len(seen) == 2
     assert all(headers["Authorization"] == "Bearer sk-or-synthetic-test-only" for _, _, headers in seen)
+    assert "X-OpenRouter-Metadata" not in seen[0][2]
+    assert seen[1][2]["X-OpenRouter-Metadata"] == "enabled"
 
 
 def test_post_unknown_failure_retains_reservation_and_prevents_second_post(tmp_path, monkeypatch):
@@ -321,10 +324,10 @@ def test_unicode_escaped_secret_is_rejected_before_output_write(tmp_path, monkey
     assert secret not in (tmp_path / "run/receipt.json").read_text()
 
 
-@pytest.mark.parametrize("profile,field,conflict", [("critical_review", "provider_endpoint", "google-ai-studio/standard"), ("critical_review", "service_tier", "standard"), ("cheap_code", "quantization", "fp16")])
+@pytest.mark.parametrize("profile,field,conflict", [("vision_documents", "provider_endpoint", "google-ai-studio/standard"), ("vision_documents", "service_tier", "standard"), ("cheap_code", "quantization", "fp16")])
 def test_conflicting_generation_observation_cannot_be_masked(profile, field, conflict):
     reply = response(profile)
-    reply["service_tier"] = "flex" if profile == "critical_review" else None
+    reply["service_tier"] = "flex" if profile == "vision_documents" else None
     reply["quantization"] = "fp8" if profile == "cheap_code" else "unknown"
     with pytest.raises(d.DelegateError, match="ROUTING_MISMATCH"):
         d.validate_response(reply, {field: conflict}, job(profile))
@@ -458,3 +461,276 @@ def test_public_metadata_artifact_is_sanitized_including_keys(tmp_path, monkeypa
     raw = (tmp_path / "run/endpoint_metadata.json").read_text(encoding="utf8")
     assert "sk-or-synthetic-test-only" not in raw and "OPAQUE_REASONING_MUST_NOT_PERSIST" not in raw
     assert d.digest(json.loads(raw)) == r["endpoint_evidence"]["snapshot_sha256"]
+
+
+@pytest.mark.parametrize("profile", ["critical_review", "google/gemini-4-carbon", "google/gemini-4-carbon-20261110"])
+@pytest.mark.parametrize("mode", ["check", "mock", "call", "discover"])
+def test_carbon_is_blocked_in_every_cli_mode_before_transport(tmp_path, monkeypatch, capsys, profile, mode):
+    class NoNetwork:
+        def request(self, *args, **kwargs):
+            raise AssertionError("blocked model must never reach transport")
+
+    monkeypatch.setattr(d, "Transport", lambda *args, **kwargs: NoNetwork())
+    j = job()
+    j["profile"] = profile
+    path, meta = tmp_path / "job.json", tmp_path / "metadata.json"
+    path.write_text(json.dumps(j))
+    meta.write_text(json.dumps(metadata()))
+    if mode == "discover":
+        argv = [mode, "--profile", profile, "--output", str(tmp_path / "discovered.json")]
+    else:
+        argv = [mode, "--job", str(path), "--metadata", str(meta)]
+        if mode != "check":
+            argv += ["--run-dir", str(tmp_path / "blocked-run")]
+    assert d.main(argv) == 2
+    assert json.loads(capsys.readouterr().out)["status"] == "BLOCKED_403"
+    assert not (tmp_path / "discovered.json").exists()
+    assert not (tmp_path / "blocked-run").exists()
+    assert "critical_review" not in d.PROFILES
+
+
+@pytest.mark.parametrize("profiles", [None, [], ["cheap_code", "vision_documents"], ["cheap_code", "cheap_code"]])
+def test_discover_never_fans_out_without_a_single_selected_profile(profiles):
+    class NoNetwork:
+        def request(self, *args, **kwargs):
+            raise AssertionError("invalid selection must not reach transport")
+
+    with pytest.raises(d.DelegateError, match="SINGLE_PROFILE_REQUIRED"):
+        d.discover(NoNetwork(), profiles)
+
+
+@pytest.mark.parametrize("profile", list(d.PROFILES))
+def test_discover_calls_only_selected_model(profile):
+    class RecordingTransport(FakeTransport):
+        def __init__(self):
+            super().__init__()
+            self.paths = []
+
+        def request(self, method, path, body=None):
+            self.paths.append((method, path))
+            return super().request(method, path, body)
+
+    t = RecordingTransport()
+    rows = d.discover(t, profile)
+    assert t.paths == [("GET", "models/" + d.PROFILES[profile][0] + "/endpoints")]
+    assert len(rows) == 1 and rows[0]["model"] == d.PROFILES[profile][0]
+
+
+def test_active_profiles_match_owner_selection_without_carbon_fallback():
+    assert d.PROFILES == {
+        "cheap_code": ("deepseek/deepseek-v4.1-flash-1017", "stepfun/fp8", "StepFun", "0.10"),
+        "vision_documents": ("google/gemini-4-hydrogen", "google-ai-studio/flex", "Google AI Studio", "0.30"),
+        "engineering_research": ("moonshotai/kimi-k3.1-pro", "decart/mxfp4", "Decart", "1.00"),
+    }
+
+
+@pytest.mark.parametrize("quantization", [None, "unknown", "fp8", "fp4"])
+def test_kimi_requires_exact_mxfp4_metadata(quantization):
+    m = metadata()
+    row = next(row for row in m if row["model"] == "moonshotai/kimi-k3.1-pro")
+    row["metadata"]["data"]["endpoints"][0]["quantization"] = quantization
+    with pytest.raises(d.DelegateError, match="ENDPOINT_UNAVAILABLE"):
+        d.prepare(job("engineering_research"), m)
+
+
+@pytest.mark.parametrize("parameter", ["reasoning", "max_tokens", "response_format", "structured_outputs"])
+def test_kimi_mandatory_parameters_must_be_supported(parameter):
+    m = metadata()
+    row = next(row for row in m if row["model"] == "moonshotai/kimi-k3.1-pro")
+    row["metadata"]["data"]["endpoints"][0]["supported_parameters"].remove(parameter)
+    with pytest.raises(d.DelegateError, match="UNSUPPORTED_PARAMETERS"):
+        d.prepare(job("engineering_research"), m)
+
+
+def test_kimi_generic_provider_cannot_prove_mxfp4():
+    reply = response("engineering_research")
+    del reply["provider_endpoint"]
+    with pytest.raises(d.DelegateError, match="PROVENANCE_UNCONFIRMED"):
+        d.validate_response(reply, {}, job("engineering_research"))
+    assert d.validate_response(reply, {"quantization": "mxfp4"}, job("engineering_research"))
+
+
+@pytest.mark.parametrize("response_change,generation", [
+    ({}, {"quantization": "fp8"}),
+    ({"quantization": "mxfp4"}, {"provider_endpoint": "decart/fp4"}),
+    ({"quantization": "fp4"}, {}),
+    ({"provider_endpoint": "decart"}, {}),
+    ({"model": "moonshotai/kimi-latest"}, {}),
+])
+def test_kimi_actual_endpoint_and_quantization_conflicts_fail(response_change, generation):
+    reply = response("engineering_research")
+    reply.update(response_change)
+    with pytest.raises(d.DelegateError, match="ROUTING_MISMATCH"):
+        d.validate_response(reply, generation, job("engineering_research"))
+
+
+def test_kimi_call_fake_transport_and_mock_remain_single_profile(tmp_path, monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-synthetic-test-only")
+    t = FakeTransport(reply=response("engineering_research"))
+    receipt = d.run(job("engineering_research"), metadata(), tmp_path / "fake-call", ledger=tmp_path / "ledger.json", budget=".01", transport=t)
+    assert receipt["verification"] == "PASS" and t.posts == 1
+    assert receipt["requested_model"] == "moonshotai/kimi-k3.1-pro"
+    assert receipt["requested_provider"]["only"] == ["decart/mxfp4"]
+    mock = d.run(job("engineering_research"), metadata(), tmp_path / "mock", transport=t, mock=True)
+    assert mock["verification"] == "MOCK_PASS" and t.posts == 1
+
+
+def test_cli_discover_reports_selected_endpoint_failure_nonzero(tmp_path, monkeypatch, capsys):
+    class Unavailable:
+        def request(self, *args, **kwargs):
+            d.fail("HTTP_403")
+
+    monkeypatch.setattr(d, "Transport", lambda: Unavailable())
+    out = tmp_path / "discovery.json"
+    assert d.main(["discover", "--profile", "engineering_research", "--output", str(out)]) == 2
+    assert json.loads(capsys.readouterr().out)["status"] == "ENDPOINT_UNAVAILABLE"
+    rows = json.loads(out.read_text())
+    assert len(rows) == 1 and rows[0]["model"] == "moonshotai/kimi-k3.1-pro"
+    assert rows[0]["error"] == "HTTP_403"
+
+
+@pytest.mark.parametrize("profile", list(d.PROFILES))
+def test_cli_discover_success_names_only_selected_profile(tmp_path, monkeypatch, capsys, profile):
+    monkeypatch.setattr(d, "Transport", FakeTransport)
+    out = tmp_path / "discovery.json"
+    assert d.main(["discover", "--profile", profile, "--output", str(out)]) == 0
+    status = json.loads(capsys.readouterr().out)
+    assert status == {"status": "DISCOVERED", "profile": profile, "model": d.PROFILES[profile][0]}
+    assert len(json.loads(out.read_text())) == 1
+
+
+def kimi_router_response():
+    reply = response("engineering_research")
+    del reply["provider_endpoint"]
+    reply["openrouter_metadata"] = {"requested": "moonshotai/kimi-k3.1-pro", "strategy": "direct", "attempt": 1, "is_byok": False, "endpoints": {"total": 24, "available": [{"model": "moonshotai/kimi-k3.1-pro-20261023", "provider": "Decart", "selected": True}]}}
+    return reply
+
+
+def kimi_evidence():
+    return d.prepare(job("engineering_research"), metadata())[2]
+
+
+@pytest.mark.parametrize("profile", list(d.PROFILES))
+def test_only_pinned_alias_canonical_pairs_are_valid(profile):
+    reply = response(profile)
+    canonical = d.CANONICAL_MODEL_PINS[d.PROFILES[profile][0]]
+    reply["model"] = canonical
+    assert d.validate_response(reply, {"model": canonical}, job(profile))
+    reply["model"] = canonical + "-latest"
+    with pytest.raises(d.DelegateError, match="ROUTING_MISMATCH"):
+        d.validate_response(reply, {}, job(profile))
+
+
+def test_canonical_mapping_is_immutable_and_carbon_canonical_blocked():
+    with pytest.raises(TypeError):
+        d.CANONICAL_MODEL_PINS["moonshotai/kimi-k3.1-pro"] = "moonshotai/other"
+    reply = response("engineering_research")
+    with pytest.raises(d.DelegateError, match="BLOCKED_403"):
+        d.validate_response(reply, {"model": "google/gemini-4-carbon-20261110"}, job("engineering_research"))
+
+
+def test_unique_catalog_and_router_selection_can_confirm_kimi_without_quant_field():
+    reply, ev = kimi_router_response(), kimi_evidence()
+    proof = {}
+    assert d.validate_response(reply, {"model": "moonshotai/kimi-k3.1-pro-20261023"}, job("engineering_research"), endpoint_evidence=ev, verification_evidence=proof)
+    assert proof["basis"] == "UNIQUE_PINNED_ENDPOINT_AND_ROUTER_SELECTION"
+    assert proof["physical_precision"] == "NOT_MEASURED"
+    assert proof["catalog_provider_endpoint_count"] == 1
+    assert "provider_endpoint" not in reply and "quantization" not in reply
+    assert len(ev["provider_endpoints"]) == 1
+    assert set(ev["provider_endpoints"][0]) == {"model_id", "provider_name", "tag", "quantization", "service_tier", "status"}
+
+
+@pytest.mark.parametrize("field,value", [("selected", False), ("selected", 1), ("provider", None), ("model", None)])
+def test_inference_requires_complete_single_router_selection(field, value):
+    reply = kimi_router_response()
+    reply["openrouter_metadata"]["endpoints"]["available"][0][field] = value
+    with pytest.raises(d.DelegateError, match="PROVENANCE_UNCONFIRMED"):
+        d.validate_response(reply, {}, job("engineering_research"), endpoint_evidence=kimi_evidence())
+
+
+@pytest.mark.parametrize("field,value", [("strategy", "fallback"), ("attempt", 2), ("attempt", True), ("is_byok", True), ("is_byok", 0)])
+def test_inference_rejects_retries_fallback_and_missing_no_byok_proof(field, value):
+    reply = kimi_router_response()
+    reply["openrouter_metadata"][field] = value
+    with pytest.raises(d.DelegateError, match="PROVENANCE_UNCONFIRMED"):
+        d.validate_response(reply, {}, job("engineering_research"), endpoint_evidence=kimi_evidence())
+
+
+@pytest.mark.parametrize("field", ["openrouter_metadata", "requested", "endpoints"])
+def test_inference_requires_routing_metadata_fields(field):
+    reply = kimi_router_response()
+    if field == "openrouter_metadata":
+        del reply[field]
+    else:
+        del reply["openrouter_metadata"][field]
+    with pytest.raises(d.DelegateError, match="PROVENANCE_UNCONFIRMED"):
+        d.validate_response(reply, {}, job("engineering_research"), endpoint_evidence=kimi_evidence())
+
+
+def test_inference_rejects_ambiguous_catalog_or_router_candidates():
+    reply = kimi_router_response()
+    m = metadata()
+    endpoints = next(r for r in m if r["model"] == "moonshotai/kimi-k3.1-pro")["metadata"]["data"]["endpoints"]
+    other = copy.deepcopy(endpoints[0]); other["tag"] = "decart/fp8"; other["quantization"] = "fp8"
+    endpoints.append(other)
+    evidence = d.prepare(job("engineering_research"), m)[2]
+    assert len(evidence["provider_endpoints"]) == 2
+    with pytest.raises(d.DelegateError, match="PROVENANCE_UNCONFIRMED"):
+        d.validate_response(reply, {}, job("engineering_research"), endpoint_evidence=evidence)
+    reply["openrouter_metadata"]["endpoints"]["available"].append({"provider": "Other", "model": "other/model", "selected": False})
+    with pytest.raises(d.DelegateError, match="PROVENANCE_UNCONFIRMED"):
+        d.validate_response(reply, {}, job("engineering_research"), endpoint_evidence=kimi_evidence())
+
+
+@pytest.mark.parametrize("variant", ["absent", "missing_catalog", "stale", "future", "wrong_model", "mismatched_endpoint"])
+def test_inference_needs_fresh_complete_matching_endpoint_evidence(variant):
+    evidence = kimi_evidence()
+    if variant == "absent":
+        evidence = None
+    elif variant == "missing_catalog":
+        del evidence["provider_endpoints"]
+    elif variant == "stale":
+        evidence["checked_at"] = "2020-01-01T00:00:00+00:00"
+    elif variant == "future":
+        evidence["checked_at"] = "2099-01-01T00:00:00+00:00"
+    elif variant == "wrong_model":
+        evidence["catalog_model"] = "moonshotai/other-model"
+    else:
+        evidence["provider_endpoints"][0]["quantization"] = "fp8"
+    with pytest.raises(d.DelegateError, match="PROVENANCE_UNCONFIRMED"):
+        d.validate_response(kimi_router_response(), {}, job("engineering_research"), endpoint_evidence=evidence)
+
+
+@pytest.mark.parametrize("field,value", [("provider", "Other"), ("model", "moonshotai/kimi-k3.1-pro-20261024"), ("provider_endpoint", "decart/fp8"), ("quantization", "fp8"), ("service_tier", "flex")])
+def test_inference_never_hides_explicit_selected_route_conflicts(field, value):
+    reply = kimi_router_response()
+    reply["openrouter_metadata"]["endpoints"]["available"][0][field] = value
+    with pytest.raises(d.DelegateError, match="ROUTING_MISMATCH"):
+        d.validate_response(reply, {}, job("engineering_research"), endpoint_evidence=kimi_evidence())
+
+
+@pytest.mark.parametrize("generation", [{"model": "moonshotai/kimi-k3.1-pro-20261024"}, {"provider_endpoint": "decart/fp8"}, {"quantization": "fp8"}, {"service_tier": "priority"}, {"is_byok": True}, {"provider_responses": [{"provider_name": "Decart", "model_permaslug": "moonshotai/other"}]}])
+def test_generation_conflicts_override_valid_inference(generation):
+    with pytest.raises(d.DelegateError, match="ROUTING_MISMATCH"):
+        d.validate_response(kimi_router_response(), generation, job("engineering_research"), endpoint_evidence=kimi_evidence())
+
+
+def test_run_records_inferred_route_basis_and_preserves_observed_null_fields(tmp_path, monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-synthetic-test-only")
+
+    class CanonicalGeneration(FakeTransport):
+        def request(self, method, path, body=None):
+            obj = super().request(method, path, body)
+            if path.startswith("generation?"):
+                obj["data"]["model"] = "moonshotai/kimi-k3.1-pro-20261023"
+            return obj
+
+    t = CanonicalGeneration(reply=kimi_router_response())
+    receipt = d.run(job("engineering_research"), metadata(), tmp_path / "run", ledger=tmp_path / "ledger.json", budget=".01", transport=t)
+    assert receipt["verification"] == "PASS" and t.posts == 1
+    assert receipt["route_verification"]["basis"] == "UNIQUE_PINNED_ENDPOINT_AND_ROUTER_SELECTION"
+    assert receipt["observed_endpoint"] == {"provider_endpoint": None, "quantization": None, "service_tier": None}
+    assert receipt["model_identity"]["requested_alias"] == "moonshotai/kimi-k3.1-pro"
+    assert receipt["actual_generation_model"] == "moonshotai/kimi-k3.1-pro-20261023"
+    assert receipt["model_identity"]["generation_observed"] == receipt["actual_generation_model"]

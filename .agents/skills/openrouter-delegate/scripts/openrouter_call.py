@@ -19,12 +19,20 @@ from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from urllib.parse import quote
 import uuid
+from types import MappingProxyType
 
 PROFILES = {
     "cheap_code": ("deepseek/deepseek-v4.1-flash-1017", "stepfun/fp8", "StepFun", "0.10"),
     "vision_documents": ("google/gemini-4-hydrogen", "google-ai-studio/flex", "Google AI Studio", "0.30"),
-    "critical_review": ("google/gemini-4-carbon", "google-ai-studio/flex", "Google AI Studio", "1.00"),
+    "engineering_research": ("moonshotai/kimi-k3.1-pro", "decart/mxfp4", "Decart", "1.00"),
 }
+BLOCKED_PROFILES = {"critical_review": {"model": "google/gemini-4-carbon", "status": "BLOCKED_403"}}
+BLOCKED_MODEL_IDS = frozenset({"google/gemini-4-carbon", "google/gemini-4-carbon-20261110"})
+CANONICAL_MODEL_PINS = MappingProxyType({
+    "google/gemini-4-hydrogen": "google/gemini-4-hydrogen-20261112",
+    "deepseek/deepseek-v4.1-flash-1017": "deepseek/deepseek-v4.1-flash-20261017",
+    "moonshotai/kimi-k3.1-pro": "moonshotai/kimi-k3.1-pro-20261023",
+})
 DEFAULT_SCHEMA = {"type": "object", "properties": {"result": {"type": "string"}}, "required": ["result"], "additionalProperties": False}
 MAX_RESPONSE = 2 * 1024 * 1024
 
@@ -37,6 +45,31 @@ class DelegateError(Exception):
 
 def fail(code):
     raise DelegateError(code)
+
+
+def profile_spec(profile):
+    if not isinstance(profile, str):
+        fail("UNKNOWN_PROFILE")
+    if profile in BLOCKED_PROFILES or profile in BLOCKED_MODEL_IDS:
+        fail("BLOCKED_403")
+    if profile not in PROFILES:
+        fail("UNKNOWN_PROFILE")
+    return PROFILES[profile]
+
+
+def allowed_model_ids(alias):
+    return frozenset({alias, CANONICAL_MODEL_PINS[alias]})
+
+
+def check_observed_model(value, alias):
+    if isinstance(value, str) and value in BLOCKED_MODEL_IDS:
+        fail("BLOCKED_403")
+    if not isinstance(value, str) or value not in allowed_model_ids(alias):
+        fail("ROUTING_MISMATCH")
+
+
+def endpoint_identity(endpoint):
+    return {k: endpoint.get(k) for k in ("model_id", "provider_name", "tag", "quantization", "service_tier", "status")}
 
 
 def now():
@@ -111,8 +144,7 @@ def validate_job(job, secret=None):
     allowed = {"task_id", "synthetic", "profile", "prompt", "max_tokens", "schema", "images"}
     if not isinstance(job, dict) or set(job) - allowed or job.get("synthetic") is not True:
         fail("FORBIDDEN_INPUT")
-    if job.get("profile") not in PROFILES:
-        fail("UNKNOWN_PROFILE")
+    profile_spec(job.get("profile"))
     if not isinstance(job.get("task_id"), str) or not re.fullmatch(r"[a-zA-Z0-9_-]{1,64}", job["task_id"]):
         fail("FORBIDDEN_INPUT")
     prompt = job.get("prompt")
@@ -166,14 +198,12 @@ def validate_job(job, secret=None):
 
 
 def select_endpoint(metadata, profile, fresh=True):
-    if profile not in PROFILES:
-        fail("UNKNOWN_PROFILE")
-    model, tag, provider, _ = PROFILES[profile]
+    model, tag, provider, _ = profile_spec(profile)
     try:
         row = next(x for x in metadata if x["model"] == model and x["http_status"] == 200)
         data = row["metadata"]["data"]
-        ep = next(e for e in data["endpoints"] if e.get("tag") == tag and e.get("model_id") == model and e.get("status") == 0)
-        if data.get("id", model) != model or ep.get("provider_name") != provider:
+        ep = next(e for e in data["endpoints"] if e.get("tag") == tag and e.get("model_id") in allowed_model_ids(model) and e.get("status") == 0)
+        if data.get("id", model) not in allowed_model_ids(model) or ep.get("provider_name") != provider:
             fail("ENDPOINT_UNAVAILABLE")
         stamp = datetime.fromisoformat(row["checked_at"].replace("Z", "+00:00"))
         age = (datetime.now(timezone.utc) - stamp).total_seconds()
@@ -182,6 +212,8 @@ def select_endpoint(metadata, profile, fresh=True):
         if tag.endswith("/flex") and ep.get("service_tier") != "flex":
             fail("ENDPOINT_UNAVAILABLE")
         if tag.endswith("/fp8") and ep.get("quantization") != "fp8":
+            fail("ENDPOINT_UNAVAILABLE")
+        if tag.endswith("/mxfp4") and ep.get("quantization") != "mxfp4":
             fail("ENDPOINT_UNAVAILABLE")
         if not {"reasoning", "max_tokens", "response_format", "structured_outputs"} <= set(ep["supported_parameters"]):
             fail("UNSUPPORTED_PARAMETERS")
@@ -217,7 +249,7 @@ def prepare(job, metadata, secret=None):
         estimate += money(pricing.get("image", 0)) * pixels * 4
     if estimate > Decimal(cap):
         fail("CALL_COST_CAP")
-    return request, estimate, {"snapshot_sha256": digest(metadata), "checked_at": row["checked_at"], "endpoint": ep, "policy": {k: ep.get(k, "UNKNOWN") for k in ("data_policy", "data_collection", "retention", "training", "zdr")}}
+    return request, estimate, {"snapshot_sha256": digest(metadata), "checked_at": row["checked_at"], "catalog_model": data.get("id", model), "endpoint": ep, "provider_endpoints": [endpoint_identity(e) for e in data["endpoints"] if e.get("provider_name") == PROFILES[job["profile"]][2]], "policy": {k: ep.get(k, "UNKNOWN") for k in ("data_policy", "data_collection", "retention", "training", "zdr")}}
 
 
 class Transport:
@@ -229,6 +261,8 @@ class Transport:
     def request(self, method, path, body=None):
         conn = http.client.HTTPSConnection("openrouter.ai", timeout=self.connect_timeout, context=ssl.create_default_context())
         headers = {"Content-Type": "application/json"}
+        if method == "POST":
+            headers["X-OpenRouter-Metadata"] = "enabled"
         if self.key:
             headers["Authorization"] = "Bearer " + self.key
         try:
@@ -258,8 +292,12 @@ class Transport:
 
 
 def discover(transport, profiles=None):
+    selected = [profiles] if isinstance(profiles, str) else profiles
+    if not isinstance(selected, (list, tuple)) or len(selected) != 1:
+        fail("SINGLE_PROFILE_REQUIRED")
+    model = profile_spec(selected[0])[0]  # validate before any network operation
     rows = []
-    for model in dict.fromkeys(PROFILES[p][0] for p in (profiles or PROFILES)):
+    for model in [model]:
         row = {"model": model, "url": "https://openrouter.ai/api/v1/models/" + model + "/endpoints", "checked_at": now()}
         try:
             row.update(http_status=200, metadata=transport.request("GET", "models/" + model + "/endpoints"))
@@ -362,28 +400,103 @@ def usage_cost(response, generation):
     return compact, cost
 
 
-def validate_response(response, generation, job, secret=None):
-    model, tag, provider, _ = PROFILES[job["profile"]]
+def infer_unique_kimi_route(response, endpoint_evidence):
+    """Infer a catalog route, never measured physical execution precision."""
+    model, tag, provider, _ = PROFILES["engineering_research"]
+    try:
+        ev = endpoint_evidence
+        stamp = datetime.fromisoformat(ev["checked_at"].replace("Z", "+00:00"))
+        age = (datetime.now(timezone.utc) - stamp).total_seconds()
+        if not -60 <= age <= 86400 or not re.fullmatch(r"[0-9a-f]{64}", ev["snapshot_sha256"]):
+            return None
+        if ev["catalog_model"] not in allowed_model_ids(model):
+            return None
+        candidates = ev["provider_endpoints"]
+        ep = endpoint_identity(ev["endpoint"])
+        if not isinstance(candidates, list) or len(candidates) != 1 or candidates[0] != ep:
+            return None
+        if ep["model_id"] not in allowed_model_ids(model) or ep["provider_name"] != provider or ep["tag"] != tag or ep["quantization"] != "mxfp4" or ep["service_tier"] is not None or type(ep["status"]) is not int or ep["status"] != 0:
+            return None
+        routing = response["openrouter_metadata"]
+        if routing["requested"] != model or routing["strategy"] != "direct" or type(routing["attempt"]) is not int or routing["attempt"] != 1 or routing["is_byok"] is not False:
+            return None
+        available = routing["endpoints"]["available"]
+        if not isinstance(available, list) or len(available) != 1:
+            return None
+        selected = available[0]
+        if selected["selected"] is not True or selected["provider"] != provider or selected["model"] not in allowed_model_ids(model):
+            return None
+        return {"basis": "UNIQUE_PINNED_ENDPOINT_AND_ROUTER_SELECTION", "snapshot_sha256": ev["snapshot_sha256"], "catalog_checked_at": ev["checked_at"], "catalog_model": ev["catalog_model"], "catalog_provider_endpoint_count": 1, "catalog_endpoint": ep, "router_selection": {"requested": model, "strategy": "direct", "attempt": 1, "available_count": 1, "selected": True, "provider": provider, "model": selected["model"], "is_byok": False}, "physical_precision": "NOT_MEASURED"}
+    except (KeyError, TypeError, ValueError, AttributeError):
+        return None
+
+
+def verify_route(response, generation, profile, endpoint_evidence=None):
+    model, tag, provider, _ = profile_spec(profile)
     if response.get("error") is not None:
         fail("API_ERROR")
-    if response.get("model") != model or generation.get("model", model) != model:
-        fail("ROUTING_MISMATCH")
+    check_observed_model(response.get("model"), model)
+    if "model" in generation:
+        check_observed_model(generation["model"], model)
     providers = [response.get("provider"), generation.get("provider_name")]
     if not any(p == provider for p in providers) or any(p not in (None, provider) for p in providers):
         fail("ROUTING_MISMATCH")
     if generation.get("id", response.get("id")) != response.get("id"):
         fail("GENERATION_MISMATCH")
-    exacts = [obj["provider_endpoint"] for obj in (response, generation) if obj.get("provider_endpoint") is not None]
-    tiers = [obj["service_tier"] for obj in (response, generation) if obj.get("service_tier") is not None]
-    quants = [obj["quantization"] for obj in (response, generation) if obj.get("quantization") is not None]
+    observations = [response, generation]
+    provider_responses = generation.get("provider_responses")
+    if provider_responses is not None:
+        if not isinstance(provider_responses, list) or any(not isinstance(x, dict) for x in provider_responses):
+            fail("ROUTING_MISMATCH")
+        for item in provider_responses:
+            if item.get("provider_name") not in (None, provider):
+                fail("ROUTING_MISMATCH")
+            for key in ("model", "model_permaslug"):
+                if item.get(key) is not None:
+                    check_observed_model(item[key], model)
+            observations.append(item)
+    routing = response.get("openrouter_metadata")
+    if isinstance(routing, dict):
+        if isinstance(routing.get("requested"), str) and routing["requested"] in BLOCKED_MODEL_IDS:
+            fail("BLOCKED_403")
+        if routing.get("requested") not in (None, model):
+            fail("ROUTING_MISMATCH")
+        available = routing.get("endpoints", {}).get("available", []) if isinstance(routing.get("endpoints", {}), dict) else []
+        if isinstance(available, list):
+            for selected in available:
+                if isinstance(selected, dict) and selected.get("selected") is True:
+                    if selected.get("provider") not in (None, provider):
+                        fail("ROUTING_MISMATCH")
+                    if selected.get("model") is not None:
+                        check_observed_model(selected["model"], model)
+                    observations.append(selected)
+    exacts = [obj["provider_endpoint"] for obj in observations if obj.get("provider_endpoint") is not None]
+    tiers = [obj["service_tier"] for obj in observations if obj.get("service_tier") is not None]
+    quants = [obj["quantization"] for obj in observations if obj.get("quantization") is not None]
     if any(exact != tag for exact in exacts):
         fail("ROUTING_MISMATCH")
     if tag.endswith("/flex") and any(tier != "flex" for tier in tiers):
         fail("ROUTING_MISMATCH")
     if tag.endswith("/fp8") and any(quant != "fp8" for quant in quants):
         fail("ROUTING_MISMATCH")
-    if not (tag in exacts or (tag.endswith("/flex") and "flex" in tiers) or (tag.endswith("/fp8") and "fp8" in quants)):
-        fail("PROVENANCE_UNCONFIRMED")
+    if tag.endswith("/mxfp4") and any(quant != "mxfp4" for quant in quants):
+        fail("ROUTING_MISMATCH")
+    if profile == "engineering_research":
+        if tiers or any(obj.get("is_byok") is not None and obj["is_byok"] is not False for obj in observations):
+            fail("ROUTING_MISMATCH")
+    if tag in exacts or (tag.endswith("/flex") and "flex" in tiers) or (tag.endswith("/fp8") and "fp8" in quants) or (tag.endswith("/mxfp4") and "mxfp4" in quants):
+        return {"basis": "EXPLICIT_ENDPOINT_TIER_OR_QUANTIZATION", "observed_provider_endpoints": exacts, "observed_service_tiers": tiers, "observed_quantizations": quants, "physical_precision": "NOT_MEASURED"}
+    if profile == "engineering_research":
+        inferred = infer_unique_kimi_route(response, endpoint_evidence)
+        if inferred is not None:
+            return inferred
+    fail("PROVENANCE_UNCONFIRMED")
+
+
+def validate_response(response, generation, job, secret=None, *, endpoint_evidence=None, verification_evidence=None):
+    route = verify_route(response, generation, job["profile"], endpoint_evidence)
+    if verification_evidence is not None:
+        verification_evidence.update(route)
     choices = response.get("choices")
     if not isinstance(choices, list) or len(choices) != 1 or not isinstance(choices[0], dict):
         fail("INVALID_CHOICES")
@@ -492,10 +605,11 @@ def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=F
         receipt["http_status"] = 200
         receipt["api_status"] = "ERROR" if response.get("error") is not None else "OK"
         usage, cost = usage_cost(response, generation)
-        receipt.update(usage=usage, cost_usd=str(cost), actual_model=response.get("model"), actual_provider=response.get("provider"), observed_endpoint={k: generation.get(k, response.get(k)) for k in ("provider_endpoint", "service_tier", "quantization")})
+        receipt.update(usage=usage, cost_usd=str(cost), actual_model=response.get("model"), actual_generation_model=generation.get("model"), model_identity={"requested_alias": request["model"], "canonical_pin": CANONICAL_MODEL_PINS[request["model"]], "response_observed": response.get("model"), "generation_observed": generation.get("model")}, actual_provider=response.get("provider"), observed_endpoint={k: generation.get(k, response.get(k)) for k in ("provider_endpoint", "service_tier", "quantization")})
         if cost > estimate:
             fail("COST_BOUND_EXCEEDED")
-        output = validate_response(response, generation, job, secret)
+        receipt["route_verification"] = {}
+        output = validate_response(response, generation, job, secret, endpoint_evidence=evidence, verification_evidence=receipt["route_verification"])
         receipt["output_sha256"] = digest(output)
         write_json(target / "output.json", output)
         receipt["verification"] = "MOCK_PASS" if mock else "PASS"
@@ -525,6 +639,7 @@ def main(argv=None):
     sub = p.add_subparsers(dest="command", required=True)
     d = sub.add_parser("discover")
     d.add_argument("--output", required=True)
+    d.add_argument("--profile", required=True, help="One active profile; blocked profiles never trigger discovery")
     for name in ("check", "call", "mock"):
         s = sub.add_parser(name)
         s.add_argument("--job", required=True)
@@ -538,9 +653,10 @@ def main(argv=None):
     args = p.parse_args(argv)
     try:
         if args.command == "discover":
-            result = discover(Transport())
+            result = redact(discover(Transport(), args.profile), None)
             write_json(args.output, result)
-            print(json.dumps({"status": "DISCOVERED", "profiles": list(PROFILES)}))
+            select_endpoint(result, args.profile)
+            print(json.dumps({"status": "DISCOVERED", "profile": args.profile, "model": profile_spec(args.profile)[0]}))
             return 0
         job, metadata = load_json(args.job), load_json(args.metadata)
         if args.command == "check":
