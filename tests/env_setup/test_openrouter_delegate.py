@@ -42,7 +42,10 @@ def response(profile="cheap_code"):
     return {"id": "gen-synthetic", "model": model, "provider": provider, "provider_endpoint": tag, "choices": [{"finish_reason": "stop", "message": {"content": '{"result":"def add(a,b): return a+b"}', "reasoning_details": [{"text": "MUST_NOT_PERSIST"}]}}], "usage": {"prompt_tokens": 8, "completion_tokens": 12, "total_tokens": 20, "cost": 0.00001}}
 
 
-class FakeTransport:
+class FakeTransport(d.ReplayTransport):
+    # Historical protocol/budget fixtures replay locally; this is never an
+    # authorization for a legacy job through the actual network Transport.
+    offline_replay = True
     def __init__(self, reply=None, timeout=False, limit=1):
         self.reply = response() if reply is None else reply
         self.timeout = timeout
@@ -227,7 +230,8 @@ def test_15_secret_reasoning_absent_and_error_exit(tmp_path, monkeypatch):
     env = dict(os.environ)
     env.pop("OPENROUTER_API_KEY", None)
     proc = subprocess.run([sys.executable, str(SCRIPT), "call", "--job", str(j), "--metadata", str(m), "--run-dir", str(tmp_path / "cli")], env=env, capture_output=True, text=True)
-    assert proc.returncode == 2 and "LIVE_BLOCKED_SECRET" in proc.stdout
+    # New paid CLI calls require an explicit V2 task before credential access.
+    assert proc.returncode == 2 and "V2_TASK_KIND_REQUIRED" in proc.stdout
     assert secret not in proc.stdout + proc.stderr
 
 
@@ -266,9 +270,10 @@ def test_transport_errors_and_authorization_each_call(monkeypatch, status, paylo
             pass
 
         def settimeout(self, value):
-            assert value == 120
+            self.read_timeout = value
 
         def request(self, method, path, **kwargs):
+            assert self.read_timeout == (330 if method == "POST" else 30)
             seen.append((method, path, kwargs["headers"]))
 
         def getresponse(self):
@@ -890,3 +895,40 @@ def test_authorized_jpeg_hash_binds_exact_decoded_container_bytes():
     j["images"][0].update(mime="image/jpeg", data_base64=base64.b64encode(buf.getvalue()).decode())
     j["input_package"]["image_sha256"] = __import__("hashlib").sha256(buf.getvalue()).hexdigest()
     assert d.prepare(j, metadata())[0]["messages"][0]["content"][1]["image_url"]["url"].startswith("data:image/jpeg;base64,")
+
+
+def actual_kimi_limits_metadata():
+    rows = metadata()
+    ep = next(r for r in rows if r["model"] == "moonshotai/kimi-k3.1-pro")["metadata"]["data"]["endpoints"][0]
+    ep.update(max_completion_tokens=368640, context_length=409600)
+    ep["pricing"] = {"prompt": "0.00000122", "completion": "0.0000061", "input_cache_read": "0.000000122", "discount": 0.39}
+    return rows
+
+
+@pytest.mark.parametrize("tokens", [4097, 16384, 32768])
+def test_engineering_output_budget_accepts_bounded_profile_specific_limit(tokens):
+    j = job("engineering_research")
+    j["max_tokens"] = tokens
+    request, reserve, _ = d.prepare(j, actual_kimi_limits_metadata())
+    assert request["max_tokens"] == tokens and request["reasoning"] == {"enabled": True}
+    assert reserve < 1 and d.PROFILES["engineering_research"][3] == "1.00"
+
+
+@pytest.mark.parametrize("profile,tokens", [("engineering_research", 32769), ("cheap_code", 4097), ("vision_documents", 4097)])
+def test_output_budget_rejects_above_each_profile_limit(profile, tokens):
+    j = job(profile)
+    j["max_tokens"] = tokens
+    with pytest.raises(d.DelegateError, match="INPUT_LIMIT"):
+        d.prepare(j, actual_kimi_limits_metadata())
+
+
+def test_declared_endpoint_max_still_limits_engineering_output():
+    rows = actual_kimi_limits_metadata()
+    ep = next(r for r in rows if r["model"] == "moonshotai/kimi-k3.1-pro")["metadata"]["data"]["endpoints"][0]
+    ep["max_completion_tokens"] = 8192
+    j = job("engineering_research"); j["max_tokens"] = 16384
+    with pytest.raises(d.DelegateError, match="UNSUPPORTED_PARAMETERS"):
+        d.prepare(j, rows)
+    ep["max_completion_tokens"] = None
+    with pytest.raises(d.DelegateError, match="UNSUPPORTED_PARAMETERS"):
+        d.prepare(j, rows)
