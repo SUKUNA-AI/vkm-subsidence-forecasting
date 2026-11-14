@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import sys
 
@@ -11,6 +12,8 @@ from vkm_geometry.transport import (assert_rows_equal, batch_rows, load_batch, r
 
 
 def main():
+    for name in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
+        os.environ[name] = "2"
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("prepare", "qgis", "cad"))
     parser.add_argument("--batch", type=Path)
@@ -39,7 +42,8 @@ def main():
                 raise RuntimeError("Input batch changed during transport preparation")
             result.update(status="PASS", features=len(rows), batch_id=rows[0]["batch_id"],
                           input_batch_sha256=input_sha,
-                          native_frame_preserved=True, cad_transform="explicit y reflection only; no geodetic registration")
+                          native_frame_preserved=True,
+                          cad_transform="explicit per-frame affine: identity for up-axis, reflection for down-axis; no geodetic registration")
         elif args.action == "qgis":
             from vkm_geometry.qgis_check import check_qgis
             result.update(check_qgis(read_wkb_jsonl(args.rows), args.output, public_root=args.public_root,

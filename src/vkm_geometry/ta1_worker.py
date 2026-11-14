@@ -24,7 +24,8 @@ def _parts(feature):
     geometry = feature["geometry"]; kind = geometry["type"]; coords = geometry["coordinates"]
     fid = feature["source_feature_id"]
     if kind == "MultiPoint":
-        return [{"id": f"{fid}:component:{i:04d}", "path": [i], "layer": "point_feature",
+        return [{"id": f"{fid}:representation:TA1:component:{i:04d}", "path": [i], "parent_source_feature_id": fid,
+                 "component_index": i, "layer": "point_feature",
                  "geometry": {"type": "Point", "coordinates": point}} for i, point in enumerate(coords)]
     family = "point" if kind == "Point" else "line" if "LineString" in kind else "polygon"
     physical = copy.deepcopy(geometry)
@@ -47,7 +48,9 @@ def write_ta1(rows: list[dict], path: Path | str) -> dict:
         image_frame = feature.get("image_coordinate_frame")
         if image_frame is None:
             raise ValueError("NOT_APPLICABLE_VECTOR_ONLY: standard TA1 map requires real original image dimensions; use a separate OGC vector annex")
-        map_id = "map-" + _token([row["source_id"], frame])
+        # Different source images may describe one local engineering frame.
+        # Geometry frame alone must never make their image provenance identical.
+        map_id = "map-" + _token([row["source_id"], frame, image_frame, feature["source_image_sha256"]])
         if map_id not in maps:
             maps[map_id] = db.model.map(id=map_id, name=frame["id"], source_url="urn:vkm:source:" + row["source_id"],
                 image_url="urn:sha256:" + str(feature["source_image_sha256"]), image_width=image_frame["width"], image_height=image_frame["height"])
@@ -83,12 +86,12 @@ def write_ta1(rows: list[dict], path: Path | str) -> dict:
             "schema": "vkm.geometry-ta1/1", "ta1_provenance_code": "modelled",
             "provenance_translation": "TA1 coarse enum for an algorithmic adapter output only; NOT a WORLD/MODEL_RESULT and NOT human/expert verification. Exact original epistemic/review/primitive roles remain in full A JSON",
             "default_polygon_color": "DISPLAY_ONLY #808080; not a source legend colour",
-            "coordinate_policy": "native source pixels; SRID0 does not imply matching frames",
+            "coordinate_policy": "explicit source geometry frames and units preserved; SRID0 is undefined planar, not pixels/metres/EPSG inferred from a value unit",
             "geometry_policy": "single LineString/Polygon wrapped only in TA1 storage; MultiPoint has explicit derived component IDs",
             "header_adapter": "new output container only, GPKG1.2 header; not a full OGC conformance claim"})])
         if connection.execute("PRAGMA foreign_key_check").fetchall(): raise ValueError("TA1 foreign keys failed")
         srids = connection.execute("SELECT DISTINCT srs_id FROM gpkg_geometry_columns").fetchall()
-        if srids != [(0,)]: raise ValueError("Native pixel package acquired a geographic SRID")
+        if srids != [(0,)]: raise ValueError("Source-coordinate package acquired a geographic SRID")
     actual = read_ta1(path)
     assert_rows_equal(rows, actual)
     return {"status": "PASS", "writer": "criticalmaas.ta1_geopackage.GeopackageDatabase", "version": importlib.metadata.version("criticalmaas-ta1-geopackage"),
