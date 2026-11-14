@@ -230,13 +230,18 @@ def _listener_record(pid: int, port: int) -> dict:
     if (root / "ns/net").stat().st_ino != Path("/proc/self/ns/net").stat().st_ino:
         raise ValueError("owned inference child network namespace differs")
     sockets = set()
-    for fd in (root / "fd").iterdir():
-        try:
-            link = os.readlink(fd)
-        except FileNotFoundError:
-            continue
-        if link.startswith("socket:["):
-            sockets.add(link[8:-1])
+    try:
+        for fd in (root / "fd").iterdir():
+            try:
+                link = os.readlink(fd)
+            except FileNotFoundError:
+                continue
+            if link.startswith("socket:["):
+                sockets.add(link[8:-1])
+    except OSError as exc:
+        # Procfs iteration is lazy and the child may exit or become unreadable
+        # at any point. An incomplete inventory cannot prove socket ownership.
+        raise ValueError("actual inference child listener descriptor inventory unavailable") from exc
     address = f"0100007F:{port:04X}"
     listeners = [row[9] for row in (line.split() for line in (root / "net/tcp").read_text().splitlines()[1:])
                  if len(row) > 9 and row[1] == address and row[3] == "0A" and row[9] in sockets]
