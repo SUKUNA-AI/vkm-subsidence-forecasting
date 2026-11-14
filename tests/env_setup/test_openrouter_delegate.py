@@ -661,7 +661,9 @@ def test_inference_requires_complete_single_router_selection(field, value):
 def test_inference_rejects_retries_fallback_and_missing_no_byok_proof(field, value):
     reply = kimi_router_response()
     reply["openrouter_metadata"][field] = value
-    with pytest.raises(d.DelegateError, match="PROVENANCE_UNCONFIRMED"):
+    # An explicit BYOK contradiction is now rejected before route inference.
+    expected = "ROUTING_MISMATCH" if field == "is_byok" else "PROVENANCE_UNCONFIRMED"
+    with pytest.raises(d.DelegateError, match=expected):
         d.validate_response(reply, {}, job("engineering_research"), endpoint_evidence=kimi_evidence())
 
 

@@ -975,6 +975,7 @@ def verify_route(response, generation, profile, endpoint_evidence=None):
             observations.append(item)
     routing = response.get("openrouter_metadata")
     if isinstance(routing, dict):
+        observations.append(routing)
         if isinstance(routing.get("requested"), str) and routing["requested"] in BLOCKED_MODEL_IDS:
             fail("BLOCKED_403")
         if routing.get("requested") not in (None, model):
@@ -1063,9 +1064,32 @@ def redact(value, secret):
             value = value.replace(secret, "[REDACTED]")
         return re.sub(r"sk-or-[A-Za-z0-9_-]+", "[REDACTED]", value)
     if isinstance(value, dict):
-        return {redact(k, secret): redact(v, secret) for k, v in value.items()
-                if k not in {"reasoning_details", "reasoning_content"}
-                and not (k == "reasoning" and isinstance(v, (str, list)))}
+        result = {}
+        for key, item in value.items():
+            if key in {"reasoning_details", "reasoning_content"}:
+                continue
+            if key == "reasoning":
+                # Both request configuration and fresh catalogue capabilities pass
+                # here. Never persist provider prose or arbitrary nested objects.
+                if not isinstance(item, dict):
+                    continue
+                efforts = {"none", "minimal", "low", "medium", "high", "xhigh", "max"}
+                clean = {}
+                for field, setting in item.items():
+                    if field in {"enabled", "exclude", "mandatory"} and type(setting) is bool:
+                        clean[field] = setting
+                    elif field in {"effort", "default_effort"} and isinstance(setting, str) and setting in efforts:
+                        clean[field] = setting
+                    elif field == "max_tokens" and type(setting) is int and setting > 0:
+                        clean[field] = setting
+                    elif (field == "supported_efforts" and isinstance(setting, list) and setting
+                          and all(isinstance(effort, str) and effort in efforts for effort in setting)):
+                        clean[field] = list(setting)
+                if clean:
+                    result[key] = clean
+            else:
+                result[redact(key, secret)] = redact(item, secret)
+        return result
     if isinstance(value, list):
         return [redact(v, secret) for v in value]
     return value

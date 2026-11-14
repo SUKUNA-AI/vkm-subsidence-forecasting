@@ -121,3 +121,44 @@ def test_explicit_complex_mock_output_checks_same_schema_but_never_live(tmp_path
     with pytest.raises(d.DelegateError, match="MOCK_OUTPUT_ONLY"):
         d.run(j, metadata(), tmp_path / "live", mock_output=fixture)
     assert not (tmp_path / "live").exists()
+
+
+@pytest.mark.parametrize("contradiction", [
+    {"is_byok": True}, {"is_byok": 1}, {"is_byok": "false"},
+    {"service_tier": "flex"}, {"provider_endpoint": "google-vertex/us"},
+])
+def test_opus_router_metadata_cannot_override_exact_endpoint(contradiction):
+    observed = response("critical_review")
+    observed["openrouter_metadata"] = {"requested": observed["model"], **contradiction}
+    with pytest.raises(d.DelegateError, match="ROUTING_MISMATCH"):
+        d.verify_route(observed, {}, "critical_review")
+
+
+def test_opus_router_metadata_explicit_non_byok_control():
+    observed = response("critical_review")
+    observed["openrouter_metadata"] = {"requested": observed["model"], "is_byok": False}
+    assert d.verify_route(observed, {}, "critical_review")["basis"] == "EXPLICIT_ENDPOINT_TIER_OR_QUANTIZATION"
+
+
+@pytest.mark.parametrize("payload", [
+    {"text": "PRIVATE_REASONING_SENTINEL"},
+    {"enabled": True, "effort": "high", "text": "PRIVATE_REASONING_SENTINEL"},
+    {"enabled": True, "effort": "high", "vendor": {"summary": "PRIVATE_REASONING_SENTINEL"}},
+    {"enabled": "PRIVATE_REASONING_SENTINEL", "exclude": {}, "mandatory": [],
+     "effort": "PRIVATE_REASONING_SENTINEL", "default_effort": "PRIVATE_REASONING_SENTINEL",
+     "supported_efforts": ["high", "PRIVATE_REASONING_SENTINEL"], "max_tokens": True},
+])
+def test_redact_reasoning_dict_rejects_unknown_fields_and_wrong_types(payload):
+    cleaned = d.redact({"message": {"reasoning": payload, "content": "public answer"}}, None)
+    assert "PRIVATE_REASONING_SENTINEL" not in json.dumps(cleaned)
+    assert cleaned["message"]["content"] == "public answer"
+
+
+def test_redact_retains_typed_wire_and_catalogue_reasoning():
+    wire = {"enabled": True, "exclude": True, "effort": "high", "max_tokens": 12000}
+    capability = {"mandatory": True, "default_effort": "high", "supported_efforts": ["high", "medium", "low"]}
+    assert d.redact({"reasoning": wire}, None) == {"reasoning": wire}
+    assert d.redact({"reasoning": capability}, None) == {"reasoning": capability}
+    # Live discovery is sanitized BEFORE prepare: retain capabilities for H/K/D/O.
+    for profile in d.PROFILES:
+        d.prepare(real_job(profile), d.redact(all_metadata(), None))
