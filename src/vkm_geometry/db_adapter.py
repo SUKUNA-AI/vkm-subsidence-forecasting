@@ -227,24 +227,46 @@ def _ddl(connection, pg):
     connection.execute(f"CREATE TABLE IF NOT EXISTS {SCHEMA}.{TABLES[2]} ({cols}{geometry}, PRIMARY KEY(batch_id,source_feature_id){source_fk})")
 
 
+def _assert_batch_record(plan, records):
+    """Compare persisted provenance for fresh reads and idempotent operations."""
+    if len(records) != 1:
+        raise Conflict("stored batch metadata record is missing or duplicated")
+    stored = records[0]
+    expected = (plan["content_digest"], plan["extraction_version"], plan["registry_sha256"])
+    if any(not isinstance(value, str) for value in stored[:3]) or tuple(stored[:3]) != expected:
+        raise Conflict("stored batch metadata differs from plan")
+    value = stored[3]
+    try:
+        decoded = json.loads(value) if isinstance(value, str) else value
+        if not isinstance(decoded, dict):
+            raise ValueError("batch_json must contain an object")
+        actual = canonical(decoded)
+        expected_batch = canonical(json.loads(plan["batch_json"]))
+    except (TypeError, ValueError) as error:
+        raise Conflict("stored batch_json is corrupt or is not an object") from error
+    if actual != expected_batch:
+        raise Conflict("stored batch_json differs from plan")
+
+
 def _current(connection, pg, plan):
     if not _exists(connection, pg, TABLES[0]):
         if any(_exists(connection, pg, table) for table in TABLES[1:]):
             raise Conflict("orphan projection tables")
         return False
-    records = _q(connection, pg, f"SELECT content_digest FROM {SCHEMA}.{TABLES[0]} WHERE batch_id=?", (plan["batch_id"],)).fetchall()
+    records = _q(connection, pg, f"SELECT content_digest,extraction_version,registry_sha256,batch_json FROM {SCHEMA}.{TABLES[0]} WHERE batch_id=?", (plan["batch_id"],)).fetchall()
     if not records:
         for table in TABLES[1:]:
             if _exists(connection, pg, table) and _q(connection, pg, f"SELECT count(*) FROM {SCHEMA}.{table} WHERE batch_id=?", (plan["batch_id"],)).fetchone()[0]:
                 raise Conflict("orphan batch rows")
         return False
-    if records != [(plan["content_digest"],)]:
-        raise Conflict("batch_id already has another content digest")
+    _assert_batch_record(plan, records)
     _assert_rows(connection, pg, plan)
     return True
 
 
 def _assert_rows(connection, pg, plan):
+    records = _q(connection, pg, f"SELECT content_digest,extraction_version,registry_sha256,batch_json FROM {SCHEMA}.{TABLES[0]} WHERE batch_id=?", (plan["batch_id"],)).fetchall()
+    _assert_batch_record(plan, records)
     raw = _q(connection, pg, f"SELECT {','.join(COLUMNS)} FROM {SCHEMA}.{TABLES[2]} WHERE batch_id=? ORDER BY source_feature_id", (plan["batch_id"],)).fetchall()
     rows = [dict(zip(COLUMNS, row)) for row in raw]
     if rows != plan["rows"]:

@@ -5,8 +5,8 @@ import struct
 
 import pytest
 
-from vkm_geometry.db_adapter import (COLUMNS, Conflict, SCOPE, _assert_rows, _current,
-    _ddl, _scope, apply_batch, build_query_snapshot, canonical, digest, prepare_batch, verify_plan)
+from vkm_geometry.db_adapter import (COLUMNS, Conflict, SCHEMA, SCOPE, TABLES, _assert_rows, _current,
+    _ddl, _scope, apply_batch, build_query_snapshot, canonical, digest, prepare_batch, readback, verify_plan)
 
 
 def fixture_plan(count=3, snapshot="synthetic-source-snapshot"):
@@ -237,3 +237,287 @@ def test_existing_mcp_handshake_queries_and_api_principals(tmp_path):
             assert not response["ok"]
             await denied.aclose()
     asyncio.run(scenario())
+
+
+class _FakeResult:
+    def __init__(self, rows=()):
+        self.rows = list(rows)
+
+    def fetchall(self):
+        return self.rows
+
+    def fetchone(self):
+        return self.rows[0] if self.rows else None
+
+
+class _FakePG:
+    """Existing-row PostgreSQL protocol; batch_json is driver-decoded like JSON/JSONB."""
+
+    def __init__(self, plan):
+        self.record = [plan[key] for key in ("content_digest", "extraction_version", "registry_sha256", "batch_json")]
+        self.record[3] = json.loads(plan["batch_json"])
+        self.rows = [tuple(row[key] for key in COLUMNS) for row in plan["rows"]]
+        self.refs = [(ref["source_id"], ref["work_id"], ref["reference_json"]) for ref in plan["source_refs"]]
+        self.duplicate = False
+        self.commits = 0
+        self.rollbacks = 0
+        self.info = type("Info", (), {"host": "127.0.0.1", "dbname": "vkm_geo_test", "transaction_status": 0})()
+
+    def execute(self, sql, params=()):
+        if sql.startswith("SELECT table_name FROM information_schema.tables"):
+            return _FakeResult()
+        if sql.startswith("SELECT count(*) FROM information_schema.tables"):
+            return _FakeResult([(1,)])
+        if sql.startswith("SELECT count(*) FROM information_schema.schemata"):
+            return _FakeResult([(1,)])
+        if sql.startswith("SELECT content_digest,extraction_version,registry_sha256,batch_json FROM "):
+            records = [] if self.record is None else [tuple(self.record)]
+            return _FakeResult(records * (2 if self.duplicate else 1))
+        if sql.startswith("SELECT " + ",".join(COLUMNS) + " FROM "):
+            return _FakeResult(self.rows)
+        if sql.startswith("SELECT source_id,work_id,reference_json FROM "):
+            return _FakeResult(self.refs)
+        if sql.startswith("SELECT bool_and("):
+            return _FakeResult([(True,)])
+        if sql.startswith("SELECT count(*) FROM "):
+            return _FakeResult([(1 if self.rows or self.refs else 0,)])
+        if sql.startswith(("BEGIN", "SET ", "CREATE TABLE ")):
+            return _FakeResult()
+        raise AssertionError(f"unexpected fake PostgreSQL SQL: {sql}")
+
+    def commit(self):
+        self.commits += 1
+
+    def rollback(self):
+        self.rollbacks += 1
+
+    def close(self):
+        pass
+
+
+def _seed_native(plan, path):
+    import duckdb
+    connection = duckdb.connect(str(path))
+    connection.execute("LOAD spatial")
+    connection.execute(f"CREATE SCHEMA {SCHEMA}")
+    _ddl(connection, False)
+    connection.execute(f"INSERT INTO {SCHEMA}.{TABLES[0]} VALUES(?,?,?,?,?)",
+                       [plan[key] for key in ("batch_id", "content_digest", "extraction_version", "registry_sha256", "batch_json")])
+    for ref in plan["source_refs"]:
+        connection.execute(f"INSERT INTO {SCHEMA}.{TABLES[1]} VALUES(?,?,?,?)",
+                           [plan["batch_id"], ref["source_id"], ref["work_id"], ref["reference_json"]])
+    for row in plan["rows"]:
+        connection.execute(f"INSERT INTO {SCHEMA}.{TABLES[2]} VALUES(" + ",".join("?" for _ in COLUMNS) + ")",
+                           [row[key] for key in COLUMNS])
+    connection.commit()
+    connection.close()
+
+
+def _native_record(path, plan):
+    import duckdb
+    connection = duckdb.connect(str(path))
+    result = connection.execute(
+        f"SELECT content_digest,extraction_version,registry_sha256,batch_json FROM {SCHEMA}.{TABLES[0]} WHERE batch_id=?",
+        [plan["batch_id"]]).fetchone()
+    connection.close()
+    return result
+
+
+def _update_native(path, plan, field, value):
+    import duckdb
+    connection = duckdb.connect(str(path))
+    connection.execute(f"UPDATE {SCHEMA}.{TABLES[0]} SET {field}=? WHERE batch_id=?", [value, plan["batch_id"]])
+    connection.commit()
+    connection.close()
+
+
+@pytest.mark.duckdb_spatial
+@pytest.mark.parametrize("field", ["content_digest", "extraction_version", "registry_sha256", "batch_json"])
+@pytest.mark.parametrize("operation", ["fresh_readback", "repeat_apply"])
+def test_every_persisted_metadata_field_fails_closed_without_overwrite(tmp_path, field, operation):
+    import duckdb
+    plan, *_ = fixture_plan()
+    path = tmp_path / "native.duckdb"
+    _seed_native(plan, path)
+    replacements = {"content_digest": "0" * 64, "extraction_version": "test-v2", "registry_sha256": "f" * 64}
+    if field == "batch_json":
+        changed = json.loads(plan["batch_json"])
+        changed["provenance"] = {"semantically": "changed"}
+        value = canonical(changed)
+    else:
+        value = replacements[field]
+    _update_native(path, plan, field, value)
+    damaged = _native_record(path, plan)
+    if operation == "fresh_readback":
+        with pytest.raises(Conflict):
+            readback(plan, lambda: _FakePG(plan), lambda: duckdb.connect(str(path)))
+    else:
+        pg = _FakePG(plan)
+        dd = duckdb.connect(str(path))
+        try:
+            with pytest.raises(Conflict):
+                apply_batch(plan, pg, dd, commit=True, scope=SCOPE)
+        finally:
+            dd.close()
+        assert pg.commits == 0 and pg.rollbacks == 1
+    assert _native_record(path, plan) == damaged
+
+
+@pytest.mark.duckdb_spatial
+@pytest.mark.parametrize("kind", ["missing", "duplicate", "corrupt", "null", "json_null", "scalar", "array", "semantic"])
+@pytest.mark.parametrize("operation", ["fresh_readback", "repeat_apply"])
+def test_missing_duplicate_and_invalid_batch_records_fail_closed(tmp_path, kind, operation):
+    plan, *_ = fixture_plan()
+    path = tmp_path / "native.duckdb"
+    _seed_native(plan, path)
+    pg = _FakePG(plan)
+    if kind == "missing":
+        pg.record = None
+    elif kind == "duplicate":
+        pg.duplicate = True
+    elif kind == "corrupt":
+        pg.record[3] = "{"
+    elif kind == "null":
+        pg.record[3] = None
+    elif kind == "json_null":
+        pg.record[3] = "null"
+    elif kind == "scalar":
+        pg.record[3] = "1"
+    elif kind == "array":
+        pg.record[3] = "[]"
+    else:
+        changed = json.loads(plan["batch_json"])
+        changed["features"][0]["image_coordinate_frame"]["unit"] = "m"
+        pg.record[3] = changed
+    import duckdb
+    if operation == "fresh_readback":
+        with pytest.raises(Conflict):
+            readback(plan, lambda: pg, lambda: duckdb.connect(str(path)))
+    else:
+        dd = duckdb.connect(str(path))
+        try:
+            with pytest.raises(Conflict):
+                apply_batch(plan, pg, dd, commit=True, scope=SCOPE)
+        finally:
+            dd.close()
+        assert pg.commits == 0 and pg.rollbacks == 1
+
+
+def _rich_plan():
+    _, batch, registry, rows = fixture_plan()
+    batch["provenance"] = {"source": {"B": {"quantity": {"value": 1, "unit": "px"}}},
+                           "unknown": {"nested": [{"enabled": True}, 1, "1"]}}
+    batch["quantity"] = {"value": 1.25, "frame": {"id": "nested-frame", "keep": False}}
+    batch["project_matches"] = [{"source_feature_id": batch["features"][0]["source_feature_id"],
+                                 "match_status": "AUTO_PROPOSED", "quantity": {"value": 2, "unit": "px"},
+                                 "unknown_b": {"frame": {"id": "b-frame"}, "keep": [False, 1]}}]
+    for row in rows:
+        row["matches_json"] = canonical([match for match in batch["project_matches"]
+                                         if match["source_feature_id"] == row["source_feature_id"]])
+        row["batch_provenance_json"] = canonical({key: value for key, value in batch.items()
+                                                   if key not in {"features", "project_matches"}})
+        row["row_sha256"] = digest({key: row[key] for key in COLUMNS[:-1]})
+    return prepare_batch(batch, registry, rows=rows)
+
+
+def _reverse_objects(value):
+    if isinstance(value, dict):
+        return {key: _reverse_objects(value[key]) for key in reversed(list(value))}
+    if isinstance(value, list):
+        return [_reverse_objects(item) for item in value]
+    return value
+
+
+@pytest.mark.duckdb_spatial
+@pytest.mark.parametrize("reordered", [False, True])
+def test_original_repeat_and_reordered_pg_dict_duckdb_text_are_equivalent(tmp_path, reordered):
+    import duckdb
+    plan = _rich_plan()
+    path = tmp_path / "native.duckdb"
+    _seed_native(plan, path)
+    stored = json.loads(plan["batch_json"])
+    if reordered:
+        stored = _reverse_objects(stored)
+    text = json.dumps(stored, ensure_ascii=False, indent=2) if reordered else canonical(stored)
+    _update_native(path, plan, "batch_json", text)
+
+    def pg_factory():
+        pg = _FakePG(plan)
+        pg.record[3] = stored
+        return pg
+
+    pg = pg_factory()
+    dd = duckdb.connect(str(path))
+    try:
+        receipt = apply_batch(plan, pg, dd, commit=True, scope=SCOPE)
+    finally:
+        dd.close()
+    assert receipt["postgres_inserted"] == receipt["duckdb_inserted"] == 0
+    result = readback(plan, pg_factory, lambda: duckdb.connect(str(path)))
+    assert result["status"] == "PASS" and result["rows"] == len(plan["rows"])
+
+
+@pytest.mark.duckdb_spatial
+def test_nested_json_boolean_true_is_not_integer_one(tmp_path):
+    import duckdb
+    plan = _rich_plan()
+    path = tmp_path / "native.duckdb"
+    _seed_native(plan, path)
+    pg = _FakePG(plan)
+    pg.record[3]["provenance"]["unknown"]["nested"][0]["enabled"] = 1
+    with pytest.raises(Conflict, match="batch_json differs"):
+        readback(plan, lambda: pg, lambda: duckdb.connect(str(path)))
+
+
+
+@pytest.mark.duckdb_spatial
+@pytest.mark.parametrize('kind', ['missing', 'corrupt', 'sql_null', 'json_null', 'scalar', 'array'])
+@pytest.mark.parametrize('operation', ['fresh_readback', 'repeat_apply'])
+def test_native_duckdb_missing_invalid_or_schema_protected_record(tmp_path, kind, operation):
+    import duckdb
+    plan, *_ = fixture_plan()
+    path = tmp_path / 'owner.duckdb'
+    _seed_native(plan, path)
+    if kind == 'sql_null':
+        # Current real schema already prevents SQL NULL. Verify that constraint
+        # and the unchanged valid-record positive path; never drop NOT NULL.
+        before = _native_record(path, plan)
+        c = duckdb.connect(str(path))
+        try:
+            with pytest.raises(duckdb.ConstraintException, match='NOT NULL'):
+                c.execute(f'UPDATE {SCHEMA}.{TABLES[0]} SET batch_json=NULL WHERE batch_id=?', [plan['batch_id']])
+        finally:
+            c.close()
+        assert _native_record(path, plan) == before
+        pg = _FakePG(plan)
+        if operation == 'fresh_readback':
+            assert readback(plan, lambda: pg, lambda: duckdb.connect(str(path)))['status'] == 'PASS'
+        else:
+            dd = duckdb.connect(str(path))
+            try:
+                result = apply_batch(plan, pg, dd, commit=True, scope=SCOPE)
+            finally:
+                dd.close()
+            assert result['postgres_inserted'] == result['duckdb_inserted'] == 0
+        return
+    if kind == 'missing':
+        c = duckdb.connect(str(path))
+        c.execute(f'DELETE FROM {SCHEMA}.{TABLES[0]} WHERE batch_id=?', [plan['batch_id']])
+        c.close()
+    else:
+        replacement = {'corrupt': '{', 'sql_null': None, 'json_null': 'null', 'scalar': '1', 'array': '[]'}[kind]
+        _update_native(path, plan, 'batch_json', replacement)
+    damaged = _native_record(path, plan)
+    pg = _FakePG(plan)
+    if operation == 'fresh_readback':
+        with pytest.raises(Conflict):
+            readback(plan, lambda: pg, lambda: duckdb.connect(str(path)))
+    else:
+        dd = duckdb.connect(str(path))
+        try:
+            with pytest.raises(Conflict):
+                apply_batch(plan, pg, dd, commit=True, scope=SCOPE)
+        finally:
+            dd.close()
+        assert pg.commits == 0 and pg.rollbacks == 1
+    assert _native_record(path, plan) == damaged
