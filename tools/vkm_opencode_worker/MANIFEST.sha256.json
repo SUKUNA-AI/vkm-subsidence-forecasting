@@ -1,6 +1,11 @@
 {
   "base_commit": "ae0117deb411625de947a93719d9c1de4cfade1b",
+  "excluded_historical_logs": "Preserved in original private archive copy, not PUBLIC source payload",
   "files": {
+    ".agents/skills/vkm-opencode-worker/.gitattributes": {
+      "bytes": 72,
+      "sha256": "aa1804c8500ec4b5e6c1ef8cd46a63fae73d71e3068a9dc8648c3f85d2b51ec2"
+    },
     ".agents/skills/vkm-opencode-worker/SKILL.md": {
       "bytes": 5889,
       "sha256": "e0575f011dd608fb410423e62439a295e0766b34b249ab76801baacde2e1d782"
@@ -16,6 +21,10 @@
     "tests/opencode_worker/test_bundle.py": {
       "bytes": 1095,
       "sha256": "086073234054aefcda77646133b94bb88a96a494c7be8235687f76ee87284c90"
+    },
+    "tools/vkm_opencode_worker/.gitattributes": {
+      "bytes": 152,
+      "sha256": "f1a4e3e186bfe60c0c06b5505695487ca1ebf3cbd6eb4df7d7543b94a8db8bdb"
     },
     "tools/vkm_opencode_worker/.gitignore": {
       "bytes": 100,
@@ -165,17 +174,9 @@
       "bytes": 14439,
       "sha256": "518fe1f5ac49bb0b7a46cb08ac52d63e0596953f6e43e1cfdfd1b752c45a9f71"
     },
-    "tools/vkm_opencode_worker/validation/offline-results.log": {
-      "bytes": 9607,
-      "sha256": "096520a0dd5ebfe0b646406a7201093c6a6c7e6e5fd7f720ca88e107fa218ed5"
-    },
     "tools/vkm_opencode_worker/validation/reproduce_v1.py": {
       "bytes": 2667,
       "sha256": "d86d34e15a95d598f2bec6ce9edf19df8dd517439dbed84f536bd1d2375934aa"
-    },
-    "tools/vkm_opencode_worker/validation/v1-baseline-tests.log": {
-      "bytes": 1063,
-      "sha256": "9acff09e1132c96e9ec1dc3dff5a139ab70438ec71c5fad7d17ecb548458d2c2"
     },
     "tools/vkm_opencode_worker/validation/v1-counterexamples.json": {
       "bytes": 490,

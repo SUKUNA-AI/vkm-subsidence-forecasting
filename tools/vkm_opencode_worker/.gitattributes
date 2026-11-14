@@ -1,0 +1,3 @@
+# Native qualification and code manifests bind exact installed bytes.
+# Preserve them across Windows/Linux checkouts; keep ordinary text diffs.
+* -text
