@@ -1,0 +1,36 @@
+# Sanitized example: merge only missing tables into a trusted project's config.
+# Resolve every placeholder locally; credentials remain environment variables/files.
+[mcp_servers.vkm-corpus]
+url = "http://<CORE_HOST>:<MCP_PORT>/mcp"
+bearer_token_env_var = "VKM_MCP_TOKEN"
+
+[mcp_servers.vkm-cad]
+command = '<MCP_PYTHON>'
+args = ['-X', 'utf8', '-B', '-m', 'vkm_cad.mcp_server']
+cwd = '<PUBLIC_ROOT>'
+[mcp_servers.vkm-cad.env]
+PYTHONUTF8 = '1'
+VKM_WORK = '<PRIVATE_WORK>'
+
+[mcp_servers.vkm-drawio]
+command = '<MCP_PYTHON>'
+args = ['-X', 'utf8', '-B', '-m', 'vkm_drawio.mcp_server']
+cwd = '<PUBLIC_ROOT>'
+[mcp_servers.vkm-drawio.env]
+PYTHONUTF8 = '1'
+VKM_WORK = '<PRIVATE_WORK>'
+
+[mcp_servers.vkm-qgis]
+command = '<MCP_PYTHON>'
+args = ['-X', 'utf8', '-B', '-m', 'vkm_qgis.mcp_server']
+cwd = '<PUBLIC_ROOT>'
+startup_timeout_sec = 60
+tool_timeout_sec = 180
+[mcp_servers.vkm-qgis.env]
+PYTHONUTF8 = '1'
+PYTHONDONTWRITEBYTECODE = '1'
+PYTHONPATH = '<PUBLIC_SRC>'
+VKM_PUBLIC_ROOT = '<PUBLIC_ROOT>'
+VKM_WORK = '<PRIVATE_WORK>'
+VKM_RESOURCES_ROOT = '<PRIVATE_ROOT>'
+VKM_QGIS_ROOT = '<EXISTING_QGIS_ROOT>'
