@@ -29,11 +29,29 @@ def _identifier(value):
     return '"' + value + '"'
 
 
+_GPB_ENVELOPE_BYTES = {0: 0, 1: 32, 2: 48, 3: 48, 4: 64}
+
+
 def _header_srs(blob):
     blob = bytes(blob)
     if len(blob) < 8 or blob[:2] != b"GP" or blob[2] != 0:
         raise ValueError("Expected an actual GeoPackage geometry header")
-    return struct.unpack("<i" if blob[3] & 1 else ">i", blob[4:8])[0]
+    flags = blob[3]
+    if flags & 0xC0:
+        raise ValueError("Reserved GeoPackage geometry header flags must be zero")
+    if flags & 0x20:
+        raise ValueError("Extended GeoPackage binary types are outside this adapter")
+    envelope_code = (flags >> 1) & 7
+    if envelope_code not in _GPB_ENVELOPE_BYTES:
+        raise ValueError("Unsupported GeoPackage geometry envelope indicator")
+    wkb_offset = 8 + _GPB_ENVELOPE_BYTES[envelope_code]
+    if len(blob) < wkb_offset + 5:
+        raise ValueError("Truncated GeoPackage geometry envelope or WKB payload")
+    if blob[wkb_offset] not in (0, 1):
+        raise ValueError("Invalid WKB byte-order marker")
+    # This checks framing only. Existing Fiona/OGR reads and validates the WKB;
+    # its own byte order is independent of the GPB header's byte order.
+    return struct.unpack("<i" if flags & 1 else ">i", blob[4:8])[0]
 
 
 def _cartesian_header(blob, *, allowed_srs=(0, -1)):
@@ -79,17 +97,28 @@ def normalize_new_cartesian_package(path: Path | str) -> dict:
             allowed_srs.add(99999)
         if any(srs not in allowed_srs for _, _, srs in geometry_columns):
             raise ValueError("Do not relabel an existing defined CRS")
+        contents = {table: srs for table, srs in connection.execute("SELECT table_name,srs_id FROM gpkg_contents WHERE data_type='features'")}
+        if any(srs is not None and srs not in allowed_srs for srs in contents.values()):
+            raise ValueError("Do not relabel an existing defined CRS")
+        # OGC Req146: do not silently fix contradictory CRS declarations, even
+        # when both numeric IDs are undefined variants. Only coherent outputs
+        # of the known writer may receive the explicit Cartesian correction.
+        if set(contents) != {table for table, _, _ in geometry_columns} or any(contents.get(table) != srs for table, _, srs in geometry_columns):
+            raise ValueError("GeoPackage contents/geometry columns have inconsistent SRS declarations")
         triggers = connection.execute("SELECT name,sql FROM sqlite_master WHERE type='trigger' ORDER BY name").fetchall()
         # Headers alone change. Preserve existing RTree/feature counts exactly:
         # temporarily suspend triggers in our NEW output, restore their exact SQL.
         for name, sql in triggers:
             connection.execute('DROP TRIGGER "' + name.replace('"', '""') + '"')
-        for table, column, _ in geometry_columns:
+        for table, column, column_srs in geometry_columns:
             t, c = _identifier(table), _identifier(column)
             if not connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", [table]).fetchone():
                 raise ValueError("GeoPackage geometry table missing")
             for rowid, blob in connection.execute(f"SELECT rowid,{c} FROM {t} WHERE {c} IS NOT NULL").fetchall():
-                original = bytes(blob); corrected = _cartesian_header(original, allowed_srs=allowed_srs)
+                original = bytes(blob)
+                if _header_srs(original) != column_srs:
+                    raise ValueError("GeoPackage binary header/table SRS declarations differ")
+                corrected = _cartesian_header(original, allowed_srs=allowed_srs)
                 payload_digest.update(canonical_json([table, rowid]).encode() + original[:4] + original[8:])
                 if corrected != original:
                     connection.execute(f"UPDATE {t} SET {c}=? WHERE rowid=?", [corrected, rowid])
