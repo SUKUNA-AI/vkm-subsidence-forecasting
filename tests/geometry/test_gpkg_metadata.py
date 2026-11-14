@@ -78,9 +78,10 @@ def test_ta1_source_manifest_cannot_hide_missing_or_misidentified_components(cor
         _validate_ta1_parts(feature, parts)
 
 
+@pytest.mark.ta1_runtime
 @pytest.mark.parametrize("entrypoint", ["read", "repair_copy"])
 def test_actual_ta1_sql_key_must_match_embedded_source_id(tmp_path, entrypoint):
-    pytest.importorskip("criticalmaas.ta1_geopackage", reason="Runs in the existing TA1 data runtime")
+    from criticalmaas import ta1_geopackage  # noqa: F401: explicit native prerequisite
     import hashlib
     from test_transport import synthetic_batch
     from vkm_geometry.transport import batch_rows, assert_rows_equal
