@@ -172,6 +172,9 @@ WINDOWS_NOT_RUN = (
           ("unlock_writer", "unlock_gate", "shared", "closed_fd", "replace_gate", "mutate_restore")))) + tuple(
     ("tests/corpus/test_model_owner.py::" + case,
      "NOT_RUN: actual owned child procfs/inotify qualification requires Linux") for case in (
+        *("test_listener_descriptor_read_errors_fail_closed[" + location + "-" + error + "]"
+          for location in ("fd-open", "fd-next", "fd-readlink")
+          for error in ("PermissionError", "FileNotFoundError")),
         "test_actual_owned_child_socket_maps_and_client_qualify_without_inference",
         "test_mmproj_read_or_digest_without_mapping_is_never_loaded_proof",
         "test_foreign_ready_listener_and_saved_hash_cannot_qualify_child",
