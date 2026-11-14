@@ -59,6 +59,31 @@ def test_external_deselection_is_not_counted_as_pass():
     assert CHECKS.test_status(stats, 0) == "PASS_WITH_NOT_RUN"
 
 
+def test_ta1_native_cases_are_explicit_not_run_without_weakening_pure_checks(tmp_path):
+    import json
+    import subprocess
+
+    (tmp_path / "tests/world").mkdir(parents=True)
+    (tmp_path / "pyproject.toml").write_text('[tool.pytest.ini_options]\nmarkers=["ta1_runtime: native prerequisite"]\n')
+    (tmp_path / "tests/world/test_probe.py").write_text(
+        'import pytest\ndef test_pure(): pass\n'
+        '@pytest.mark.ta1_runtime\n@pytest.mark.parametrize("case", ["read", "repair"])\n'
+        'def test_native(case): raise AssertionError("explicit native selection must execute")\n')
+    output = tmp_path / "output"
+    output.mkdir()
+    script = "import importlib.util,json,pathlib,sys; s=importlib.util.spec_from_file_location('checks',sys.argv[1]); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); print('ACCOUNTING='+json.dumps(m.run_tests(pathlib.Path(sys.argv[2]),'world-integrity',pathlib.Path(sys.argv[3]))))"
+    result = subprocess.run([sys.executable, "-c", script, str(ROOT / "scripts/run_offline_checks.py"),
+                             str(tmp_path), str(output)], cwd=tmp_path, text=True, capture_output=True, check=True)
+    report = json.loads(result.stdout.split("ACCOUNTING=", 1)[1])
+    assert report["status"] == "PASS_WITH_NOT_RUN"
+    assert report["passed"] == 1 and report["skipped"] == 0 and report["failed"] == 0
+    assert len(report["deselected"]) == 2
+    assert all(item["status"] == "NOT_RUN" and item["markers"] == ["ta1_runtime"] for item in report["deselected"])
+    explicit = subprocess.run([sys.executable, "-m", "pytest", "-q", "-m", "ta1_runtime", "tests/world/test_probe.py"],
+                              cwd=tmp_path, text=True, capture_output=True)
+    assert explicit.returncode == 1 and "2 failed" in explicit.stdout
+
+
 def test_skip_allowance_is_module_and_reason_specific():
     assert CHECKS.allowed_skip("tests/corpus/test_extract_djvu.py", "DjVuLibre not installed (NOT_RUN)")
     assert not CHECKS.allowed_skip("tests/corpus/test_figures_raster.py", "could not import 'cv2': No module named 'cv2'")
