@@ -44,6 +44,9 @@ MAX_TOKENS_BY_PROFILE = MappingProxyType({
 DEFAULT_SCHEMA = {"type": "object", "properties": {"result": {"type": "string"}}, "required": ["result"], "additionalProperties": False}
 MAX_RESPONSE = 64 * 1024 * 1024  # transport RAM guard, not a model context limit
 MAX_DECODED_IMAGE_BYTES = 256 * 1024 * 1024  # decoder RAM guard, not model resolution
+MAX_HTTP_ERROR_BODY_BYTES = 64 * 1024  # diagnostic prefix, never a persisted raw body
+MAX_HTTP_ERROR_MESSAGE_BYTES = 1024
+HTTP_ERROR_HEADER_ALLOWLIST = ("x-request-id", "x-openrouter-request-id", "request-id", "cf-ray", "content-type", "retry-after")
 # Explicit owner authorization 2026-11-15; callers still supply the exact
 # existing ledger budget. This ceiling never migrates or resets that ledger.
 AUTHORIZED_TOTAL_BUDGET_CEILING = Decimal("40")
@@ -601,6 +604,94 @@ class ReplayTransport:
         return json.loads(encoded(item["response"]))
 
 
+def _safe_http_error_text(value, secret, limit=MAX_HTTP_ERROR_MESSAGE_BYTES):
+    if not isinstance(value, str):
+        return None, False, value is not None
+    probe = value[:MAX_HTTP_ERROR_BODY_BYTES].replace("\x00", "")
+    # Treat diagnostics as plain text only. Any backslash can introduce a
+    # reversible escape, even after an arbitrary prose prefix or in a header.
+    # Omit the whole value; do not decode or retain hidden credentials/CoT.
+    if "\\" in probe or probe.lstrip().startswith(("{", "[", '"')) or re.search(
+            r"reasoning_details|reasoning_content|<think\b|<analysis\b|\breasoning[\"']?\s*[:=]", probe, re.I):
+        return None, False, True
+    try:
+        guard_input_text(probe, secret)
+        guard_input_text(re.sub(r"\s+", "", probe), secret)
+    except DelegateError:
+        return None, False, True
+    clean = " ".join(re.sub(r"[\x00-\x1f\x7f]", " ", probe).split())
+    raw = clean.encode("utf-8")
+    return raw[:limit].decode("utf-8", errors="ignore"), len(raw) > limit or len(value) > len(probe), False
+
+
+def _safe_http_error_id(value, secret, generation=False):
+    text, truncated, omitted = _safe_http_error_text(value, secret, 256)
+    pattern = r"gen-[A-Za-z0-9_-]{1,160}" if generation else r"[A-Za-z0-9._:/=-]{1,160}"
+    return text if text and not truncated and not omitted and re.fullmatch(pattern, text) else None
+
+
+def _http_error_evidence(response, raw, secret, *, parsed=None, read_failed=False):
+    """Allowlisted diagnostics only; no raw provider metadata, choices or CoT."""
+    headers = {}
+    getter = getattr(response, "getheader", None)
+    if callable(getter):
+        for name in HTTP_ERROR_HEADER_ALLOWLIST:
+            try:
+                value = getter(name)
+            except Exception:
+                continue
+            clean, truncated, omitted = _safe_http_error_text(value, secret, 256)
+            if clean and not truncated and not omitted:
+                if name in HTTP_ERROR_HEADER_ALLOWLIST[:4] and not _safe_http_error_id(clean, secret):
+                    continue
+                headers[name] = clean
+    prefix = raw[:MAX_HTTP_ERROR_BODY_BYTES] if isinstance(raw, bytes) else b""
+    truncated = isinstance(raw, bytes) and len(raw) > MAX_HTTP_ERROR_BODY_BYTES
+    json_status = "READ_FAILED" if read_failed else "TRUNCATED" if truncated else "UNAVAILABLE"
+    if parsed is None and prefix and not truncated:
+        try:
+            parsed = json.loads(prefix, parse_constant=lambda _: fail("INVALID_JSON"))
+            json_status = "PARSED"
+        except (ValueError, UnicodeError, RecursionError, DelegateError):
+            pass
+    elif parsed is not None:
+        json_status = "PARSED"
+    obj = parsed if isinstance(parsed, dict) else {}
+    error = obj.get("error", obj)
+    if isinstance(error, str):
+        error = {"message": error}
+    if not isinstance(error, dict):
+        error = {}
+    message, message_truncated, omitted = _safe_http_error_text(error.get("message"), secret)
+    code = error.get("code")
+    if type(code) is int:
+        code = code if len(str(code)) <= 20 else None
+    else:
+        code, cut, hidden = _safe_http_error_text(code, secret, 80)
+        if not code or cut or hidden or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,80}", code):
+            code = None
+    metadata = error.get("metadata")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    request_ids = [obj.get("request_id"), error.get("request_id"), metadata.get("request_id"),
+                   headers.get("x-request-id"), headers.get("x-openrouter-request-id"), headers.get("request-id")]
+    generation_ids = [obj.get("id"), obj.get("generation_id"), error.get("generation_id"), metadata.get("generation_id")]
+    request_id = next((value for item in request_ids if (value := _safe_http_error_id(item, secret))), None)
+    generation_id = next((value for item in generation_ids if (value := _safe_http_error_id(item, secret, True))), None)
+    return {"schema": "vkm.http-error-evidence/1", "http_status": response.status, "headers": headers,
+            "request_id": request_id, "generation_id": generation_id,
+            "identifiers_status": "UPSTREAM_REPORTED_NOT_INDEPENDENTLY_VERIFIED", "error_code": code,
+            "error_message": message, "message_truncated": message_truncated, "message_omitted": omitted,
+            "body_capture": {"observed_prefix_bytes": len(prefix), "observed_prefix_sha256": hashlib.sha256(prefix).hexdigest() if prefix else None,
+                             "truncated": truncated, "read_failed": read_failed, "json_status": json_status,
+                             "raw_body_persisted": False}}
+
+
+def _raise_http_evidence(code, response, raw, secret, **kwargs):
+    exc = DelegateError(code)  # str/repr retain the historical code-only contract
+    exc.http_error_evidence = _http_error_evidence(response, raw, secret, **kwargs)
+    raise exc
+
+
 class Transport:
     def __init__(self, key=None, connect_timeout=10, read_timeout=330):
         self.key = key
@@ -619,18 +710,22 @@ class Transport:
             conn.sock.settimeout(self.read_timeout if method == "POST" else min(self.read_timeout, 30))
             conn.request(method, "/api/v1/" + path, body=encoded(body) if body is not None else None, headers=headers)
             res = conn.getresponse()
+            status = res.status
+            if status != 200:
+                try:
+                    raw = res.read(MAX_HTTP_ERROR_BODY_BYTES + 1)
+                except Exception:
+                    _raise_http_evidence("HTTP_" + str(status), res, None, self.key, read_failed=True)
+                _raise_http_evidence("HTTP_" + str(status), res, raw, self.key)
             raw = res.read(MAX_RESPONSE + 1)
             if len(raw) > MAX_RESPONSE:
                 fail("RESPONSE_LIMIT")
-            status = res.status
             try:
                 obj = json.loads(raw, parse_constant=lambda _: fail("INVALID_JSON"))
-            except (ValueError, UnicodeError):
-                fail("INVALID_JSON")
-            if status != 200:
-                fail("HTTP_" + str(status))
+            except (ValueError, UnicodeError, RecursionError, DelegateError):
+                _raise_http_evidence("INVALID_JSON", res, raw, self.key)
             if not isinstance(obj, dict) or obj.get("error") is not None:
-                fail("API_ERROR")
+                _raise_http_evidence("API_ERROR", res, raw, self.key, parsed=obj)
             return obj
         except DelegateError:
             raise
@@ -1278,6 +1373,8 @@ def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=F
         receipt["verification"] = "MOCK_PASS" if mock else "PASS"
     except DelegateError as exc:
         receipt["verification"] = exc.code
+        if isinstance(getattr(exc, "http_error_evidence", None), dict):
+            receipt["http_error_evidence"] = exc.http_error_evidence
         if exc.code.startswith("HTTP_"):
             receipt["http_status"] = int(exc.code[5:])
         if exc.code == "API_ERROR":
