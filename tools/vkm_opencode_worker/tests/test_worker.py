@@ -131,7 +131,7 @@ class PathTests(unittest.TestCase):
         for path in ['CON','src/nul.py','COM1.txt','LPT9','PRN','AUX','CONOUT$']:
             with self.subTest(path=path),self.assertRaises(c.WorkerError):c.relative_file(path)
     def test_traversal(self):
-        for path in ['../x','/abs','C:/x','src\\file.py','src/../file.py','a//b','a\n.py','file:stream','trailing.','trailing ']:
+        for path in ['../x','/abs','C:/x','src\\file.py','src/../file.py','a//b','a\n.py','file:stream','trailing.','trailing ']:  # host-path-ok: synthetic negative Windows path fixture
             with self.subTest(path=path),self.assertRaises(c.WorkerError):c.relative_file(path)
     def test_instructions_denied(self):
         for path in ['AGENTS.md','src/agents.md','.git/config','.opencode/foo','CLAUDE.md']:

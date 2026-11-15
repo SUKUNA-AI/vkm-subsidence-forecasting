@@ -20,7 +20,7 @@ class ToolScopeTests(unittest.TestCase):
         (self.tree/'other.txt').write_text('other')
         with self.assertRaises(WorkerError):self.scope.inspect('read',{'path':'other.txt'})
     def test_traversal_abs_and_ads(self):
-        for path in ['../outside.txt',str(self.root/'outside.txt'),'ok.py:stream','//host/share/file','C:/CON']:
+        for path in ['../outside.txt',str(self.root/'outside.txt'),'ok.py:stream','//host/share/file','C:/CON']:  # host-path-ok: synthetic negative Windows path fixture
             with self.subTest(path=path),self.assertRaises(WorkerError):self.scope.inspect('read',{'path':path})
     def test_edit_exact(self):
         self.scope.inspect('edit',{'path':'new.py'})

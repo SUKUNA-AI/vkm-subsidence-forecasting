@@ -119,12 +119,12 @@
       "sha256": "e1cfb539cbe1220c25aa6146f1cd912af6abdbf58ade0e173ab29355b7b61e70"
     },
     "tools/vkm_opencode_worker/tests/test_tool_scope.py": {
-      "bytes": 3734,
-      "sha256": "4016cbb12ed5a22a91c936a3247f1358bb22fb3d675a6e14e89320668f3f7b89"
+      "bytes": 3791,
+      "sha256": "a825c9d466de6cd2046f6968dd0fdd381068df12211812576d6ecaa41352e001"
     },
     "tools/vkm_opencode_worker/tests/test_worker.py": {
-      "bytes": 27418,
-      "sha256": "83464f3f745b488bda33e945420c8e79d74e0c00d330092b358f96e6ae567dab"
+      "bytes": 27475,
+      "sha256": "c88d9d159f6d58b641ec1e30f2a59e0ea9aabb2e6dfb2ed919fc43bb870ce1ba"
     },
     "tools/vkm_opencode_worker/tools/Get-VkmNativeInventory.ps1": {
       "bytes": 2121,
