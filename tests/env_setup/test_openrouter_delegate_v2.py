@@ -91,9 +91,9 @@ class FakeV2Transport:
 
 
 @pytest.mark.parametrize("profile", list(d.PROFILES))
-def test_all_three_profiles_are_text_and_code_coexecutors_high_default(profile):
+def test_all_active_profiles_are_text_and_code_coexecutors_high_default(profile):
     req, _, evidence = d.prepare(real_job(profile), metadata())
-    assert req["reasoning"] == {"enabled": True, "effort": "high"}
+    assert req["reasoning"] == ({"enabled": True, "effort": "high", "exclude": True} if profile == "critical_review" else {"enabled": True, "effort": "high"})
     assert req["provider"] == {"only": [d.PROFILES[profile][1]], "allow_fallbacks": False, "require_parameters": True}
     assert "def useful" in req["messages"][0]["content"][1]["text"]
     assert evidence["reasoning_policy"]["effective_confirmation"] == "UNCONFIRMED"

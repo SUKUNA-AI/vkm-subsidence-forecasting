@@ -13,6 +13,8 @@ import os
 from pathlib import Path
 import re
 import ssl
+import struct
+import zlib
 import sys
 import time
 from contextlib import contextmanager
@@ -26,13 +28,15 @@ PROFILES = {
     "cheap_code": ("deepseek/deepseek-v4.1-flash-1017", "stepfun/fp8", "StepFun", "0.10"),
     "vision_documents": ("google/gemini-4-hydrogen", "google-ai-studio/flex", "Google AI Studio", "0.30"),
     "engineering_research": ("moonshotai/kimi-k3.1-pro", "decart/mxfp4", "Decart", "1.00"),
+    "critical_review": ("anthropic/claude-opus-5.5", "google-vertex/global", "Google", "10.00"),
 }
-BLOCKED_PROFILES = {"critical_review": {"model": "google/gemini-4-carbon", "status": "BLOCKED_403"}}
+BLOCKED_PROFILES = {"carbon_historical": {"model": "google/gemini-4-carbon", "status": "BLOCKED_403"}}
 BLOCKED_MODEL_IDS = frozenset({"google/gemini-4-carbon", "google/gemini-4-carbon-20261110"})
 CANONICAL_MODEL_PINS = MappingProxyType({
     "google/gemini-4-hydrogen": "google/gemini-4-hydrogen-20261112",
     "deepseek/deepseek-v4.1-flash-1017": "deepseek/deepseek-v4.1-flash-20261017",
     "moonshotai/kimi-k3.1-pro": "moonshotai/kimi-k3.1-pro-20261023",
+    "anthropic/claude-opus-5.5": "anthropic/claude-opus-5.5-20260921",
 })
 MAX_TOKENS_BY_PROFILE = MappingProxyType({
     "cheap_code": 4096,
@@ -42,6 +46,12 @@ MAX_TOKENS_BY_PROFILE = MappingProxyType({
 DEFAULT_SCHEMA = {"type": "object", "properties": {"result": {"type": "string"}}, "required": ["result"], "additionalProperties": False}
 MAX_RESPONSE = 64 * 1024 * 1024  # transport RAM guard, not a model context limit
 MAX_DECODED_IMAGE_BYTES = 256 * 1024 * 1024  # decoder RAM guard, not model resolution
+MAX_HTTP_ERROR_BODY_BYTES = 64 * 1024  # diagnostic prefix, never a persisted raw body
+MAX_HTTP_ERROR_MESSAGE_BYTES = 1024
+HTTP_ERROR_HEADER_ALLOWLIST = ("x-request-id", "x-openrouter-request-id", "request-id", "cf-ray", "content-type", "retry-after")
+# Explicit owner authorization 2026-11-15; callers still supply the exact
+# existing ledger budget. This ceiling never migrates or resets that ledger.
+AUTHORIZED_TOTAL_BUDGET_CEILING = Decimal("40")
 POLICY_PATH = Path(__file__).resolve().parents[1] / "references" / "DELEGATION_POLICY_V2.json"
 
 
@@ -268,6 +278,8 @@ def reasoning_configuration(job, row, ep):
     if effort in spec["hard_efforts"] and (not isinstance(job.get("reasoning_justification"), str) or not job["reasoning_justification"].strip()):
         fail("HARD_REASONING_JUSTIFICATION_REQUIRED")
     wire = {"enabled": effort != "none", "effort": effort}
+    if job["profile"] == "critical_review":
+        wire["exclude"] = True  # retain token/cost evidence, not private reasoning text
     return wire, {"project_policy_sha256": digest(policy), "task_kind": job["task_kind"],
         "caller_requested_effort": explicit, "selected_effort": effort,
         "selection_basis": "CALLER_EXPLICIT" if explicit is not None else "PROJECT_TASK_DEFAULT",
@@ -333,6 +345,58 @@ def validate_source_package(package, image_sha256):
         fail("IMAGE_PROVENANCE_MISMATCH")
 
 
+def guard_input_text(value, secret=None, *, v2=True, depth=0):
+    """Inspect semantic text/metadata, never compressed pixel base64 as prose."""
+    if depth > 64:
+        fail("INPUT_LIMIT")
+    if isinstance(value, str):
+        if ((secret and secret in value) or
+                re.search(r"sk-or-[A-Za-z0-9_-]+|(?:api[_ -]?key|password|authorization)[\"']?\s*[:=]\s*[\"']?\s*\S+", value, re.I)):
+            fail("FORBIDDEN_INPUT")
+        if v2 and re.search(r"(?:gh[pousr]_[A-Za-z0-9]{20,}|AKIA[A-Z0-9]{16}|-----BEGIN (?:RSA |OPENSSH )?PRIVATE KEY-----|(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?):/{2}[^\s/]*@|Bearer\s+sk-[A-Za-z0-9_-]+)", value, re.I):
+            fail("FORBIDDEN_INPUT")
+        # An inline JSON artifact can encode a credential/key using \u escapes.
+        if value.lstrip().startswith(("{", "[", '"')):
+            try:
+                nested = json.loads(value)
+            except (ValueError, RecursionError):
+                return
+            if nested != value:
+                guard_input_text(nested, secret, v2=v2, depth=depth + 1)
+    elif isinstance(value, bytes):
+        # Metadata bytes (EXIF/XMP/comments), not the image pixel container.
+        # Latin1 preserves literal ASCII; UTF16 covers XP/UserComment fields.
+        for encoding in ("latin1", "utf-16-le", "utf-16-be"):
+            guard_input_text(value.decode(encoding, errors="ignore"), secret, v2=v2, depth=depth + 1)
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            guard_input_text(key, secret, v2=v2, depth=depth + 1)
+            if (isinstance(key, str) and re.fullmatch(r"api[_ -]?key|password|authorization", key, re.I)
+                    and (bool(item) if isinstance(item, (str, bytes, dict, list, tuple)) else item is not None)):
+                # Credential context is not lost by wrapping the value in a
+                # list/dictionary/schema enum. Nonempty containers fail closed.
+                fail("FORBIDDEN_INPUT")
+            guard_input_text(item, secret, v2=v2, depth=depth + 1)
+    elif isinstance(value, (list, tuple)):
+        for item in value:
+            guard_input_text(item, secret, v2=v2, depth=depth + 1)
+
+
+def guard_image_metadata(image, secret, *, v2):
+    """Pillow exposes decoded PNG text and EXIF; do not scan pixel encoding."""
+    guard_input_text(image.info, secret, v2=v2)
+    exif = image.getexif()
+    guard_input_text(dict(exif), secret, v2=v2)
+    for tag in (0x8769, 0x8825):  # Exif and GPS nested IFDs
+        if tag in exif:
+            guard_input_text(exif.get_ifd(tag), secret, v2=v2)
+    # Some decoders return Windows XP Unicode comments as numeric byte tuples.
+    for tag in range(0x9c9b, 0x9ca0):
+        value = exif.get(tag)
+        if isinstance(value, tuple) and all(type(x) is int and 0 <= x <= 255 for x in value):
+            guard_input_text(bytes(value), secret, v2=v2)
+
+
 def validate_job(job, secret=None):
     allowed = {"task_id", "synthetic", "profile", "prompt", "max_tokens", "schema", "images", "input_package"}
     v2 = is_v2(job)
@@ -341,6 +405,8 @@ def validate_job(job, secret=None):
     if not isinstance(job, dict) or set(job) - allowed or type(job.get("synthetic")) is not bool:
         fail("FORBIDDEN_INPUT")
     profile_spec(job.get("profile"))
+    if job["profile"] == "critical_review" and not v2:
+        fail("V2_TASK_KIND_REQUIRED")
     if v2 and job["task_kind"] not in delegation_policy()["task_kinds"]:
         fail("UNKNOWN_TASK_KIND")
     artifact_package = isinstance(job.get("input_package"), dict) and job["input_package"].get("schema") == "vkm.delegate-artifact-package/2"
@@ -358,10 +424,11 @@ def validate_job(job, secret=None):
     text = encoded(job).decode("utf-8")
     if len(text.encode("utf-8")) > MAX_RESPONSE:
         fail("TRANSPORT_RAM_GUARD")
-    if (secret and secret in text) or re.search(r"sk-or-[A-Za-z0-9_-]+|(?:api[_ -]?key|password|authorization)\s*[:=]\s*\S+", text, re.I):
-        fail("FORBIDDEN_INPUT")
-    if v2 and re.search(r"(?:gh[pousr]_[A-Za-z0-9]{20,}|AKIA[A-Z0-9]{16}|-----BEGIN (?:RSA |OPENSSH )?PRIVATE KEY-----|(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?):/{2}[^\s/]*@|Bearer\s+sk-[A-Za-z0-9_-]+)", text, re.I):
-        fail("FORBIDDEN_INPUT")
+    textual = dict(job)
+    if isinstance(job.get("images"), list):
+        textual["images"] = [{k: v for k, v in img.items() if k != "data_base64"}
+                             if isinstance(img, dict) else img for img in job["images"]]
+    guard_input_text(textual, secret, v2=v2)
     if type(job.get("max_tokens")) is not int or job["max_tokens"] < (1 if v2 else 64) or (not v2 and job["max_tokens"] > MAX_TOKENS_BY_PROFILE[job["profile"]]):
         fail("INPUT_LIMIT")
     schema = job.get("schema", DEFAULT_SCHEMA)
@@ -378,7 +445,7 @@ def validate_job(job, secret=None):
     for img in images:
         if not isinstance(img, dict) or set(img) != {"mime", "data_base64", "width", "height", "bbox"}:
             fail("INVALID_IMAGE")
-        if img["mime"] not in {"image/png", "image/jpeg"}:
+        if not isinstance(img["mime"], str) or img["mime"] not in {"image/png", "image/jpeg"}:
             fail("INVALID_IMAGE")
         w, h = img["width"], img["height"]
         if type(w) is not int or type(h) is not int or w < 1 or h < 1 or (not v2 and (w > 2048 or h > 2048)):
@@ -399,6 +466,7 @@ def validate_job(job, secret=None):
                 im.verify()
             with Image.open(io.BytesIO(raw)) as im:
                 im.load()  # verify CRC/header alone does not validate decoded pixels
+                guard_image_metadata(im, secret, v2=v2)
         except DelegateError:
             raise
         except Exception:
@@ -442,7 +510,101 @@ def select_endpoint(metadata, profile, fresh=True):
         fail("ENDPOINT_UNAVAILABLE")
 
 
-def prepare(job, metadata, secret=None):
+def approved_image_bound(job, request, row, ep, proof, approved_sha):
+    """Optional coordinator authority, never inferred from a job or model name.
+
+    Reuses native ImageAdmission GEMINI4_MAX2240 + 256/image + global4096.
+    The primary docs specify approximate allocations: this remains a guarded
+    conservative estimate, not measured tokenization or a billing guarantee.
+    No proof-provided path is opened. Decoder files come from imported modules.
+    """
+    if proof is None and approved_sha is None:
+        return None
+    try:
+        fields = {"schema", "status", "task_id", "input_sha256", "model_id", "provider_only", "rule", "checked_at", "expires_at", "sources", "total_pixels", "decoder", "primary_docs", "qualification", "supported_parameters"}
+        if not isinstance(proof, dict) or set(proof) != fields or not valid_hash(approved_sha) or digest(proof) != approved_sha:
+            fail("IMAGE_RULE_PROOF_INVALID")
+        if proof["schema"] != "vkm.delegate.image-rule/1" or proof["status"] != "APPROVED_BY_MAIN_CODEX":
+            fail("IMAGE_RULE_APPROVAL_REQUIRED")
+        if not is_v2(job) or job["profile"] != "vision_documents" or request["model"] != "google/gemini-4-hydrogen" or request["provider"]["only"] != ["google-ai-studio/flex"]:
+            fail("IMAGE_RULE_ROUTE_UNSUPPORTED")
+        if proof["model_id"] != request["model"] or proof["provider_only"] != request["provider"]["only"] or proof["rule"] != "GEMINI4_MAX2240" or ep["tag"] != "google-ai-studio/flex" or ep["service_tier"] != "flex":
+            fail("IMAGE_RULE_ROUTE_UNSUPPORTED")
+        if proof["task_id"] != job["task_id"] or proof["input_sha256"] != digest(job):
+            fail("IMAGE_RULE_INPUT_CHANGED")
+        checked = datetime.fromisoformat(proof["checked_at"].replace("Z", "+00:00"))
+        expires = datetime.fromisoformat(proof["expires_at"].replace("Z", "+00:00"))
+        current = datetime.now(timezone.utc)
+        if not checked.tzinfo or not expires.tzinfo or not -60 <= (current-checked).total_seconds() <= 86400 or not checked < expires or not current < expires or (expires-checked).total_seconds() > 86400:
+            fail("IMAGE_RULE_PROOF_STALE")
+        params = proof["supported_parameters"]
+        known_params = {"reasoning", "include_reasoning", "max_tokens", "temperature", "top_p", "seed", "response_format", "tools", "tool_choice", "stop", "structured_outputs", "reasoning_effort"}
+        if set(ep["supported_parameters"]) - known_params:
+            fail("IMAGE_RULE_PARAMETERS_CHANGED")
+        if not isinstance(params, list) or any(not isinstance(x,str) for x in params) or len(set(params)) != len(params) or set(params) != set(ep["supported_parameters"]):
+            fail("IMAGE_RULE_PARAMETERS_CHANGED")
+        required_urls = {"https://aistudio.google.com/docs/media-resolution", "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/4-hydrogen"}
+        docs = proof["primary_docs"]
+        if not isinstance(docs,list) or len(docs) != 2 or any(not isinstance(x,dict) or set(x) != {"url","sha256"} or not valid_hash(x["sha256"]) for x in docs) or {x["url"] for x in docs} != required_urls:
+            fail("IMAGE_RULE_DOCUMENT_PROOF_REQUIRED")
+        qualification = proof["qualification"]
+        if not isinstance(qualification,dict) or set(qualification) != {"algorithm_sha256","native_receipt_sha256"} or qualification["algorithm_sha256"] != "7898955b61f16c83b15713d67dc6d95dea4603c407f2cd1cf30c78ea1c2cb08a" or not valid_hash(qualification["native_receipt_sha256"]):
+            fail("IMAGE_RULE_QUALIFICATION_REQUIRED")
+        import PIL
+        from PIL import Image, PngImagePlugin, JpegImagePlugin
+        modules = [PIL, Image, PngImagePlugin, JpegImagePlugin, Image.core]
+        decoder = proof["decoder"]
+        expected = {Path(m.__file__).name: hashlib.sha256(Path(m.__file__).read_bytes()).hexdigest() for m in modules}
+        if not isinstance(decoder,dict) or set(decoder) != {"version","files"} or decoder["version"] != PIL.__version__ or decoder["files"] != expected:
+            fail("IMAGE_RULE_DECODER_CHANGED")
+        approved_sources = proof["sources"]
+        source_fields = {"sha256", "mime", "width", "height", "bbox"}
+        if not isinstance(approved_sources,list) or any(not isinstance(x,dict) or set(x) != source_fields or not valid_hash(x["sha256"]) or type(x["width"]) is not int or type(x["height"]) is not int or not isinstance(x["bbox"],list) or any(type(v) is not int for v in x["bbox"]) for x in approved_sources):
+            fail("IMAGE_RULE_SOURCES_CHANGED")
+        sources = []
+        for image in job.get("images",[]):
+            raw = base64.b64decode(image["data_base64"], validate=True)
+            # Independent container/header check; validate_job has already fully
+            # decoded, verified pixels, rejected frames and inspected metadata.
+            if image["mime"] == "image/png":
+                if raw[:16] != b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR":
+                    fail("IMAGE_RULE_HEADER_INVALID")
+                offset=8; ended=False
+                while offset < len(raw):
+                    if offset+12 > len(raw): fail("IMAGE_RULE_HEADER_INVALID")
+                    size=int.from_bytes(raw[offset:offset+4],"big"); kind=raw[offset+4:offset+8]; end=offset+12+size
+                    if end > len(raw) or kind in {b"acTL",b"fcTL",b"fdAT"} or zlib.crc32(raw[offset+4:end-4]) & 0xffffffff != int.from_bytes(raw[end-4:end],"big"):
+                        fail("IMAGE_RULE_HEADER_INVALID")
+                    if kind == b"IEND":
+                        if size or end != len(raw): fail("IMAGE_RULE_HEADER_INVALID")
+                        ended=True
+                    offset=end
+                if not ended or struct.unpack(">II",raw[16:24]) != (image["width"],image["height"]): fail("IMAGE_RULE_HEADER_INVALID")
+            elif not raw.startswith(b"\xff\xd8") or not raw.endswith(b"\xff\xd9"):
+                fail("IMAGE_RULE_HEADER_INVALID")
+            sources.append({"sha256":hashlib.sha256(raw).hexdigest(),"mime":image["mime"],"width":image["width"],"height":image["height"],"bbox":image["bbox"]})
+        pixels=sum(x["width"]*x["height"] for x in sources)
+        if not sources or proof["sources"] != sources or type(proof["total_pixels"]) is not int or proof["total_pixels"] != pixels:
+            fail("IMAGE_RULE_SOURCES_CHANGED")
+        safe = {**request, "messages":[]}
+        for message in request["messages"]:
+            parts=[]
+            image_index=0
+            for part in message["content"]:
+                if part["type"] == "text": parts.append(part)
+                elif part["type"] == "image_url":
+                    parts.append({"type":"text","text":"[APPROVED_IMAGE_SHA256:"+sources[image_index]["sha256"]+"]"}); image_index+=1
+                else: fail("IMAGE_RULE_CONTENT_UNSUPPORTED")
+            safe["messages"].append({**message,"content":parts})
+        text_bytes=len(encoded(safe))
+        return text_bytes+4096+len(sources)*(2240+256), {"rule":"GEMINI4_MAX2240","proof_sha256":approved_sha,"image_count":len(sources),"images":sources,"total_pixels":pixels,"text_and_schema_bytes":text_bytes,"visual_tokens_per_image":2240,"protocol_guard_per_image":256,"global_protocol_guard":4096,"provider_token_count":"NOT_MEASURED","effective_media_resolution":"UNCONFIRMED_MAX_ALLOCATION_USED"}
+    except DelegateError:
+        raise
+    except Exception:
+        fail("IMAGE_RULE_PROOF_INVALID")
+
+
+def prepare(job, metadata, secret=None, *, image_rule_proof=None, approved_image_rule_sha256=None):
     schema, pixels = validate_job(job, secret)
     row, data, ep = select_endpoint(metadata, job["profile"])
     if pixels and "image" not in data.get("architecture", {}).get("input_modalities", []):
@@ -467,14 +629,37 @@ def prepare(job, metadata, secret=None):
     pricing = ep["pricing"]
     # Reject newly advertised charge categories that this bounded client cannot price.
     known = {"prompt", "completion", "internal_reasoning", "image", "audio", "web_search", "input_audio_cache", "input_cache_read", "input_cache_write", "discount", "request"}
+    if job["profile"] == "critical_review":
+        known.add("input_cache_write_1h")
     if set(pricing) - known:
         fail("UNKNOWN_PRICING")
     prompt_rate = money(pricing.get("prompt"), "UNKNOWN_PRICING")
+    input_rate_method = "PROMPT_RATE"
+    if job["profile"] == "critical_review":
+        # Validate cache tariffs and conservatively bound implicit writes when
+        # applicable. Existing H/K/D accounting is unchanged.
+        cache_rates = [money(pricing.get(key, 0), "UNKNOWN_PRICING")
+                       for key in ("input_cache_read", "input_cache_write", "input_cache_write_1h")]
+        if ep.get("supports_implicit_caching") is False:
+            # This request exposes no cache-control/TTL option. Price optional
+            # cache writes only when the endpoint might apply them implicitly.
+            input_rate_method = "PROMPT_RATE_NO_REQUESTED_OR_IMPLICIT_CACHING"
+        else:
+            prompt_rate = max(prompt_rate, *cache_rates)
+            input_rate_method = "MAX_PROMPT_AND_ADVERTISED_CACHE_RATES_CONSERVATIVE"
     output_rate = (money(pricing.get("completion"), "UNKNOWN_PRICING") + money(pricing.get("internal_reasoning", 0))) if is_v2(job) else max(money(pricing.get("completion"), "UNKNOWN_PRICING"), money(pricing.get("internal_reasoning", 0)))
     textual_request = request
     if is_v2(job):
         textual_request = {**request, "messages": [{"role": "user", "content": [part for part in content if part["type"] == "text"]}]}
     input_bound = len(encoded(textual_request)) + 4096 + pixels * 4
+    image_accounting = approved_image_bound(job, request, row, ep, image_rule_proof, approved_image_rule_sha256)
+    if image_accounting is not None:
+        input_bound, image_evidence = image_accounting
+        prompt_cap = ep.get("max_prompt_tokens")
+        if prompt_cap is not None and (type(prompt_cap) is not int or prompt_cap < input_bound):
+            fail("INPUT_LIMIT")
+        prompt_rate = max(prompt_rate, *(money(pricing.get(key, 0), "UNKNOWN_PRICING") for key in ("input_cache_read", "input_cache_write")))
+        input_rate_method = "MAX_PROMPT_AND_ADVERTISED_CACHE_RATES_CONSERVATIVE"
     if type(ep.get("context_length")) is not int or ep["context_length"] < 1 or input_bound + job["max_tokens"] > ep["context_length"]:
         fail("INPUT_LIMIT")
     estimate = (prompt_rate * input_bound + output_rate * job["max_tokens"] + money(pricing.get("request", 0))) * Decimal("1.25")
@@ -489,12 +674,15 @@ def prepare(job, metadata, secret=None):
             "quantity_status": "CONSERVATIVE_ESTIMATE_NOT_MODEL_TOKENIZATION_OR_ACTUAL_USAGE",
             "image_method_status": "LEGACY_SAFETY_OVERESTIMATE_PENDING_EXACT_PROVIDER_ACCOUNTING" if pixels else "NO_IMAGES",
             "estimated_input_token_bound": input_bound, "completion_token_cap_includes_reasoning": job["max_tokens"],
+            "input_rate_bound": str(prompt_rate), "input_rate_method": input_rate_method,
             "image_tariff_method": "USD_PER_INPUT_IMAGE_TIMES_IMAGE_COUNT_PLUS_CONSERVATIVE_PROMPT_TOKEN_ESTIMATE_POSSIBLE_OVERCOUNT",
             "image_tariff_usd_per_image": str(money(pricing.get("image", 0))),
             "image_tariff_specification": "https://openrouter.ai/openapi.json (pricing.image: USD per input image)",
             "output_rate_bound": str(output_rate), "output_rate_method": "COMPLETION_PLUS_INTERNAL_REASONING_CONSERVATIVE",
             "endpoint_context_length": ep["context_length"], "endpoint_max_completion_tokens": endpoint_max,
             "technical_ram_guard_bytes": MAX_RESPONSE, "model_input_bytes_limit": None}
+    if image_accounting is not None:
+        evidence["accounting"].update(method="CONSERVATIVE_TEXT_UTF8_BYTE_BOUND_PLUS_APPROVED_GEMINI4_IMAGE_MAX", image_method_status="ROOT_APPROVED_MODEL_SPECIFIC_CONSERVATIVE_ESTIMATE", image_rule=image_evidence)
     return request, estimate, evidence
 
 
@@ -522,6 +710,94 @@ class ReplayTransport:
         return json.loads(encoded(item["response"]))
 
 
+def _safe_http_error_text(value, secret, limit=MAX_HTTP_ERROR_MESSAGE_BYTES):
+    if not isinstance(value, str):
+        return None, False, value is not None
+    probe = value[:MAX_HTTP_ERROR_BODY_BYTES].replace("\x00", "")
+    # Treat diagnostics as plain text only. Any backslash can introduce a
+    # reversible escape, even after an arbitrary prose prefix or in a header.
+    # Omit the whole value; do not decode or retain hidden credentials/CoT.
+    if "\\" in probe or probe.lstrip().startswith(("{", "[", '"')) or re.search(
+            r"reasoning_details|reasoning_content|<think\b|<analysis\b|\breasoning[\"']?\s*[:=]", probe, re.I):
+        return None, False, True
+    try:
+        guard_input_text(probe, secret)
+        guard_input_text(re.sub(r"\s+", "", probe), secret)
+    except DelegateError:
+        return None, False, True
+    clean = " ".join(re.sub(r"[\x00-\x1f\x7f]", " ", probe).split())
+    raw = clean.encode("utf-8")
+    return raw[:limit].decode("utf-8", errors="ignore"), len(raw) > limit or len(value) > len(probe), False
+
+
+def _safe_http_error_id(value, secret, generation=False):
+    text, truncated, omitted = _safe_http_error_text(value, secret, 256)
+    pattern = r"gen-[A-Za-z0-9_-]{1,160}" if generation else r"[A-Za-z0-9._:/=-]{1,160}"
+    return text if text and not truncated and not omitted and re.fullmatch(pattern, text) else None
+
+
+def _http_error_evidence(response, raw, secret, *, parsed=None, read_failed=False):
+    """Allowlisted diagnostics only; no raw provider metadata, choices or CoT."""
+    headers = {}
+    getter = getattr(response, "getheader", None)
+    if callable(getter):
+        for name in HTTP_ERROR_HEADER_ALLOWLIST:
+            try:
+                value = getter(name)
+            except Exception:
+                continue
+            clean, truncated, omitted = _safe_http_error_text(value, secret, 256)
+            if clean and not truncated and not omitted:
+                if name in HTTP_ERROR_HEADER_ALLOWLIST[:4] and not _safe_http_error_id(clean, secret):
+                    continue
+                headers[name] = clean
+    prefix = raw[:MAX_HTTP_ERROR_BODY_BYTES] if isinstance(raw, bytes) else b""
+    truncated = isinstance(raw, bytes) and len(raw) > MAX_HTTP_ERROR_BODY_BYTES
+    json_status = "READ_FAILED" if read_failed else "TRUNCATED" if truncated else "UNAVAILABLE"
+    if parsed is None and prefix and not truncated:
+        try:
+            parsed = json.loads(prefix, parse_constant=lambda _: fail("INVALID_JSON"))
+            json_status = "PARSED"
+        except (ValueError, UnicodeError, RecursionError, DelegateError):
+            pass
+    elif parsed is not None:
+        json_status = "PARSED"
+    obj = parsed if isinstance(parsed, dict) else {}
+    error = obj.get("error", obj)
+    if isinstance(error, str):
+        error = {"message": error}
+    if not isinstance(error, dict):
+        error = {}
+    message, message_truncated, omitted = _safe_http_error_text(error.get("message"), secret)
+    code = error.get("code")
+    if type(code) is int:
+        code = code if len(str(code)) <= 20 else None
+    else:
+        code, cut, hidden = _safe_http_error_text(code, secret, 80)
+        if not code or cut or hidden or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,80}", code):
+            code = None
+    metadata = error.get("metadata")
+    metadata = metadata if isinstance(metadata, dict) else {}
+    request_ids = [obj.get("request_id"), error.get("request_id"), metadata.get("request_id"),
+                   headers.get("x-request-id"), headers.get("x-openrouter-request-id"), headers.get("request-id")]
+    generation_ids = [obj.get("id"), obj.get("generation_id"), error.get("generation_id"), metadata.get("generation_id")]
+    request_id = next((value for item in request_ids if (value := _safe_http_error_id(item, secret))), None)
+    generation_id = next((value for item in generation_ids if (value := _safe_http_error_id(item, secret, True))), None)
+    return {"schema": "vkm.http-error-evidence/1", "http_status": response.status, "headers": headers,
+            "request_id": request_id, "generation_id": generation_id,
+            "identifiers_status": "UPSTREAM_REPORTED_NOT_INDEPENDENTLY_VERIFIED", "error_code": code,
+            "error_message": message, "message_truncated": message_truncated, "message_omitted": omitted,
+            "body_capture": {"observed_prefix_bytes": len(prefix), "observed_prefix_sha256": hashlib.sha256(prefix).hexdigest() if prefix else None,
+                             "truncated": truncated, "read_failed": read_failed, "json_status": json_status,
+                             "raw_body_persisted": False}}
+
+
+def _raise_http_evidence(code, response, raw, secret, **kwargs):
+    exc = DelegateError(code)  # str/repr retain the historical code-only contract
+    exc.http_error_evidence = _http_error_evidence(response, raw, secret, **kwargs)
+    raise exc
+
+
 class Transport:
     def __init__(self, key=None, connect_timeout=10, read_timeout=330):
         self.key = key
@@ -540,18 +816,22 @@ class Transport:
             conn.sock.settimeout(self.read_timeout if method == "POST" else min(self.read_timeout, 30))
             conn.request(method, "/api/v1/" + path, body=encoded(body) if body is not None else None, headers=headers)
             res = conn.getresponse()
+            status = res.status
+            if status != 200:
+                try:
+                    raw = res.read(MAX_HTTP_ERROR_BODY_BYTES + 1)
+                except Exception:
+                    _raise_http_evidence("HTTP_" + str(status), res, None, self.key, read_failed=True)
+                _raise_http_evidence("HTTP_" + str(status), res, raw, self.key)
             raw = res.read(MAX_RESPONSE + 1)
             if len(raw) > MAX_RESPONSE:
                 fail("RESPONSE_LIMIT")
-            status = res.status
             try:
                 obj = json.loads(raw, parse_constant=lambda _: fail("INVALID_JSON"))
-            except (ValueError, UnicodeError):
-                fail("INVALID_JSON")
-            if status != 200:
-                fail("HTTP_" + str(status))
+            except (ValueError, UnicodeError, RecursionError, DelegateError):
+                _raise_http_evidence("INVALID_JSON", res, raw, self.key)
             if not isinstance(obj, dict) or obj.get("error") is not None:
-                fail("API_ERROR")
+                _raise_http_evidence("API_ERROR", res, raw, self.key, parsed=obj)
             return obj
         except DelegateError:
             raise
@@ -721,7 +1001,7 @@ def _ledger_fields(ledger):
         budget, spent = money(ledger["budget_usd"]), money(ledger["spent_usd"])
     except (KeyError, DelegateError):
         fail("LEDGER_CONTRACT_MISMATCH")
-    if budget <= 0:
+    if budget <= 0 or budget > AUTHORIZED_TOTAL_BUDGET_CEILING:
         fail("LEDGER_CONTRACT_MISMATCH")
     for token, amount in ledger["reservations"].items():
         if not isinstance(token, str) or not token or not isinstance(amount, str) or money(amount) <= 0:
@@ -778,7 +1058,7 @@ def reserve(path, budget, key_id, key_remaining, amount, *, owner_local_cap_only
     budget, amount = money(budget, "LIVE_BLOCKED_BUDGET"), money(amount)
     if owner_local_cap_only and (budget <= 0 or budget > 1):
         fail("OWNER_LOCAL_CAP_REJECTED")
-    if budget <= 0 or budget > 20:
+    if budget <= 0 or budget > AUTHORIZED_TOTAL_BUDGET_CEILING:
         fail("LIVE_BLOCKED_BUDGET")
     if amount <= 0:
         fail("INVALID_RESERVATION_AMOUNT")
@@ -953,6 +1233,7 @@ def verify_route(response, generation, profile, endpoint_evidence=None):
             observations.append(item)
     routing = response.get("openrouter_metadata")
     if isinstance(routing, dict):
+        observations.append(routing)
         if isinstance(routing.get("requested"), str) and routing["requested"] in BLOCKED_MODEL_IDS:
             fail("BLOCKED_403")
         if routing.get("requested") not in (None, model):
@@ -977,7 +1258,7 @@ def verify_route(response, generation, profile, endpoint_evidence=None):
         fail("ROUTING_MISMATCH")
     if tag.endswith("/mxfp4") and any(quant != "mxfp4" for quant in quants):
         fail("ROUTING_MISMATCH")
-    if profile == "engineering_research":
+    if profile in {"engineering_research", "critical_review"}:
         if tiers or any(obj.get("is_byok") is not None and obj["is_byok"] is not False for obj in observations):
             fail("ROUTING_MISMATCH")
     if tag in exacts or (tag.endswith("/flex") and "flex" in tiers) or (tag.endswith("/fp8") and "fp8" in quants) or (tag.endswith("/mxfp4") and "mxfp4" in quants):
@@ -1041,20 +1322,54 @@ def redact(value, secret):
             value = value.replace(secret, "[REDACTED]")
         return re.sub(r"sk-or-[A-Za-z0-9_-]+", "[REDACTED]", value)
     if isinstance(value, dict):
-        return {redact(k, secret): redact(v, secret) for k, v in value.items() if k not in {"reasoning_details", "reasoning_content"}}
+        result = {}
+        for key, item in value.items():
+            if key in {"reasoning_details", "reasoning_content"}:
+                continue
+            if key == "reasoning":
+                # Both request configuration and fresh catalogue capabilities pass
+                # here. Never persist provider prose or arbitrary nested objects.
+                if not isinstance(item, dict):
+                    continue
+                efforts = {"none", "minimal", "low", "medium", "high", "xhigh", "max"}
+                clean = {}
+                for field, setting in item.items():
+                    if field in {"enabled", "exclude", "mandatory"} and type(setting) is bool:
+                        clean[field] = setting
+                    elif field in {"effort", "default_effort"} and isinstance(setting, str) and setting in efforts:
+                        clean[field] = setting
+                    elif field == "max_tokens" and type(setting) is int and setting > 0:
+                        clean[field] = setting
+                    elif (field == "supported_efforts" and isinstance(setting, list) and setting
+                          and all(isinstance(effort, str) and effort in efforts for effort in setting)):
+                        clean[field] = list(setting)
+                if clean:
+                    result[key] = clean
+            else:
+                result[redact(key, secret)] = redact(item, secret)
+        return result
     if isinstance(value, list):
         return [redact(v, secret) for v in value]
     return value
 
 
-def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=False, owner_local_cap_only=False):
+def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=False, owner_local_cap_only=False, mock_output=None, image_rule_proof=None, approved_image_rule_sha256=None):
+    if mock_output is not None and not mock:
+        fail("MOCK_OUTPUT_ONLY")
     replay = not mock and isinstance(transport, ReplayTransport) and type(transport) is not Transport
     # The historical three-smoke exception is never V2 live authorization.
     # Reject before credentials, discovery, directory creation or reservation.
     if is_v2(job) and owner_local_cap_only and not mock and not replay:
         fail("V2_LEGACY_OVERRIDE_FORBIDDEN")
+    # Owner now uses Kimi through the existing subscription runtime only.
+    # Preserve offline/history pins and metadata GET; never fall back to API.
+    if not mock and not replay and isinstance(job, dict) and job.get("profile") == "engineering_research":
+        fail("KIMI_SUBSCRIPTION_ONLY_API_DISABLED")
+    image_options = {"image_rule_proof": image_rule_proof, "approved_image_rule_sha256": approved_image_rule_sha256}
+    if image_rule_proof is not None or approved_image_rule_sha256 is not None:
+        prepare(job, metadata, **image_options)
     secret = None if mock else os.environ.get("OPENROUTER_API_KEY")
-    request, estimate, evidence = prepare(job, metadata, secret)
+    request, estimate, evidence = prepare(job, metadata, secret, **image_options)
     if not mock and not is_v2(job) and not replay:
         fail("V2_TASK_KIND_REQUIRED")
     receipt = {"task_id": job["task_id"], "profile": job["profile"], "input_sha256": digest(job), "prompt_sha256": digest(job["prompt"]), "config_sha256": digest({k: v for k, v in request.items() if k != "messages"}), "started_at": now(), "requested_model": request["model"], "requested_provider": request["provider"], "endpoint_evidence": evidence, "reasoning": {"enabled": True}, "reservation_usd": str(estimate), "currency": "USD", "mode": "mock" if mock else "live", "cost_usd": None, "verification": "NOT_RUN"}
@@ -1088,7 +1403,9 @@ def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=F
     cost = None
     try:
         if mock:
-            response = {"id": "mock-generation", "model": request["model"], "provider": PROFILES[job["profile"]][2], "provider_endpoint": PROFILES[job["profile"]][1], "choices": [{"finish_reason": "stop", "message": {"content": json.dumps({"result": "synthetic mock; no API request"})}}], "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2, "cost": 0}}
+            payload = mock_output if mock_output is not None else {"result": "synthetic mock; no API request"}
+            receipt["mock_output_source"] = "EXPLICIT_OFFLINE_FIXTURE_NOT_MODEL_OUTPUT" if mock_output is not None else "BUILTIN_SYNTHETIC_RESPONSE"
+            response = {"id": "mock-generation", "model": request["model"], "provider": PROFILES[job["profile"]][2], "provider_endpoint": PROFILES[job["profile"]][1], "choices": [{"finish_reason": "stop", "message": {"content": json.dumps(payload)}}], "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2, "cost": 0}}
             generation = {}
         else:
             if not secret or not secret.strip():
@@ -1102,7 +1419,7 @@ def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=F
                 receipt["max_live_reservations"] = 3
             transport = transport or Transport(secret)
             fresh = redact(discover(transport, [job["profile"]], include_reasoning=is_v2(job)), secret)
-            request, estimate, evidence = prepare(job, fresh, secret)
+            request, estimate, evidence = prepare(job, fresh, secret, **image_options)
             write_json(target / "endpoint_metadata.json", fresh)
             receipt.update(endpoint_evidence=evidence, reservation_usd=str(estimate))
             if is_v2(job):
@@ -1165,6 +1482,8 @@ def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=F
         receipt["verification"] = "MOCK_PASS" if mock else "PASS"
     except DelegateError as exc:
         receipt["verification"] = exc.code
+        if isinstance(getattr(exc, "http_error_evidence", None), dict):
+            receipt["http_error_evidence"] = exc.http_error_evidence
         if exc.code.startswith("HTTP_"):
             receipt["http_status"] = int(exc.code[5:])
         if exc.code == "API_ERROR":
@@ -1195,11 +1514,15 @@ def main(argv=None):
         s = sub.add_parser(name)
         s.add_argument("--job", required=True)
         s.add_argument("--metadata", required=True)
+        s.add_argument("--image-rule-proof", help="Optional root-reviewed image rule JSON; never loaded from job")
+        s.add_argument("--approved-image-rule-sha256", help="Root-approved canonical JSON SHA256, separate from proof file")
         s.add_argument("--task-kind", help="Explicit V2 task kind, must match any task_kind in job")
         s.add_argument("--reasoning-effort", help="Explicit supported effort; no automatic fallback")
         s.add_argument("--reasoning-justification", help="Specific necessity for max/xhigh")
         if name != "check":
             s.add_argument("--run-dir", required=True)
+        if name == "mock":
+            s.add_argument("--mock-output", help="Explicit offline JSON fixture for the job's output schema; never available to live call")
         if name == "call":
             s.add_argument("--ledger")
             s.add_argument("--budget-usd")
@@ -1221,11 +1544,13 @@ def main(argv=None):
                 if name in job and job[name] != value:
                     fail("CLI_JOB_POLICY_CONFLICT")
                 job[name] = value
+        image_options = {"image_rule_proof": load_json(args.image_rule_proof) if args.image_rule_proof else None, "approved_image_rule_sha256": args.approved_image_rule_sha256}
         if args.command == "check":
-            _, estimate, _ = prepare(job, metadata)
+            _, estimate, _ = prepare(job, metadata, **image_options)
             print(json.dumps({"status": "CHECK_PASS", "reservation_usd": str(estimate)}))
             return 0
-        receipt = run(job, metadata, args.run_dir, ledger=getattr(args, "ledger", None), budget=getattr(args, "budget_usd", None), mock=args.command == "mock", owner_local_cap_only=getattr(args, "owner_local_cap_only", False))
+        mock_path = getattr(args, "mock_output", None)
+        receipt = run(job, metadata, args.run_dir, ledger=getattr(args, "ledger", None), budget=getattr(args, "budget_usd", None), mock=args.command == "mock", owner_local_cap_only=getattr(args, "owner_local_cap_only", False), mock_output=load_json(mock_path) if mock_path else None, **image_options)
         print(json.dumps({"status": receipt["verification"], "cost_usd": receipt["cost_usd"]}))
         return 0 if receipt["verification"] in ("PASS", "MOCK_PASS") else 2
     except DelegateError as exc:

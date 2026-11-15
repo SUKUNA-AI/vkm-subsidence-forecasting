@@ -96,13 +96,13 @@ def test_contested_last_money_has_one_winner_under_mutex(tmp_path):
         assert len(read(ledger)["reservations"]) == 1
 
 
-def test_three_profiles_share_the_twenty_dollar_ceiling(tmp_path):
+def test_four_profiles_share_the_twenty_dollar_ceiling(tmp_path):
     d, ledger = module(), tmp_path / "profiles.json"
     # Synthetic settled history: count and spent are never reset for the V2 batch.
-    for amount in ["1"] * 18 + [".6"]:
+    for amount in ["1"] * 17 + [".6"]:
         token = d.reserve(ledger, "20", "same-key", "100", amount)
         d.settle(ledger, token, amount)
-    with workers(ledger, [(".1", "cheap_code"), (".3", "vision_documents"), ("1", "engineering_research")]) as (results, _):
+    with workers(ledger, [(".1", "cheap_code"), (".3", "vision_documents"), ("1", "engineering_research"), ("1", "critical_review")]) as (results, _):
         assert all(result["status"] == "RESERVED" for result in results)
         state = read(ledger)
         assert Decimal(state["spent_usd"]) + sum(map(Decimal, state["reservations"].values())) == Decimal("20")
@@ -217,7 +217,7 @@ def test_profile_caps_and_global_budget_cannot_expand(tmp_path):
         with pytest.raises(d.DelegateError, match="PER_CALL_CAP_EXCEEDED"):
             d.reserve(tmp_path / "never.json", "20", "same-key", "100", amount, profile=profile)
     with pytest.raises(d.DelegateError, match="LIVE_BLOCKED_BUDGET"):
-        d.reserve(tmp_path / "never.json", "20.00001", "same-key", "100", ".01")
+        d.reserve(tmp_path / "never.json", "40.000001", "same-key", "100", ".01")
 
 
 def test_empty_legacy_migration_preserves_spent_and_lifetime_count(tmp_path):
