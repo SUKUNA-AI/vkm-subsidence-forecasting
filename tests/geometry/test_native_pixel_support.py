@@ -268,6 +268,17 @@ class TestNativePixelSupport(unittest.TestCase):
         result = self.proof([[.5, .5]], [[0, 0]], source_sha256=SHA.upper(), expected_source_sha256=SHA.upper())
         self.assertEqual(result['source_sha256'], SHA.upper())
 
+    def test_metric_spelling_variants_rejected_even_with_matching_frame_pin(self):
+        for key in ('metres_per_pixel', 'metres-per-pixel', 'METRES-PER-PIXEL',
+                    'meters_per_pixel', 'meter-per-pixel', 'metre_per_pixel'):
+            f = frame() | {key: 1000.0}
+            pins = dict(frame=f, expected_frame=copy.deepcopy(f))
+            with self.subTest(key=key):
+                with self.assertRaisesRegex(ValueError, 'EPSG_OR_METRIC_CALIBRATION_NOT_ADMITTED'):
+                    self.proof([[.5, .5]], [[0, 0]], **pins)
+                with self.assertRaisesRegex(ValueError, 'EPSG_OR_METRIC_CALIBRATION_NOT_ADMITTED'):
+                    self.simplify([[.5, .5]], [[0, 0]], .1, **pins)
+
     def test_bad_paths_rejected(self):
         for bad in ([], 'path', [[True, 0]], [[float('nan'), 0]],
                     [[float('inf'), 0]], [[0]], [[0, 0, 0]], [[None, 0]],

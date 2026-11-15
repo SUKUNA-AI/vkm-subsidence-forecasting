@@ -42,6 +42,7 @@ _FORBIDDEN_FRAME_KEYS = {
     "metre_per_pixel",
     "meter_per_pixel",
     "meters_per_pixel",
+    "metres_per_pixel",
 }
 
 
