@@ -7,7 +7,7 @@
 | `vision_documents` | `google/gemini-4-hydrogen` | `google-ai-studio/flex` | `Google AI Studio` | $0.30 |
 | `engineering_research` | `moonshotai/kimi-k3.1-pro` | `decart/mxfp4` | `Decart` | $1.00 |
 | `cheap_code` | `deepseek/deepseek-v4.1-flash-1017` | `stepfun/fp8` | `StepFun` | $0.10 |
-| `critical_review` | `anthropic/claude-opus-5.5` | `google-vertex/global` | `Google` | $1.00 |
+| `critical_review` | `anthropic/claude-opus-5.5` | `google-vertex/global` | `Google` | $10.00 |
 
 Потолки — финансовые ограничения, не цены моделей и не дополнительный бюджет. По явному разрешению владельца 15.11.2026 текущий общий потолок увеличен с $20 до **$40**, с тем же ledger, ключом, прежними расходами/резервациями и отдельным диагностическим reserve. Клиент сам не мигрирует ledger и требует точного совпадения переданного бюджета с его сохранённым значением; запрос $40.000001 отклоняется. Более высокий внешний server cap не расширяет это разрешение; новый ключ или сброс ledger не выполняются. Запись $1 в старом budget-template не переопределяет принятое разрешение этой сессии; legacy smoke-исключение <=$1 остаётся отдельным узким режимом и не даёт V2 live bypass.
 

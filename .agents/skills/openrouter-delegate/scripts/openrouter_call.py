@@ -28,7 +28,7 @@ PROFILES = {
     "cheap_code": ("deepseek/deepseek-v4.1-flash-1017", "stepfun/fp8", "StepFun", "0.10"),
     "vision_documents": ("google/gemini-4-hydrogen", "google-ai-studio/flex", "Google AI Studio", "0.30"),
     "engineering_research": ("moonshotai/kimi-k3.1-pro", "decart/mxfp4", "Decart", "1.00"),
-    "critical_review": ("anthropic/claude-opus-5.5", "google-vertex/global", "Google", "1.00"),
+    "critical_review": ("anthropic/claude-opus-5.5", "google-vertex/global", "Google", "10.00"),
 }
 BLOCKED_PROFILES = {"carbon_historical": {"model": "google/gemini-4-carbon", "status": "BLOCKED_403"}}
 BLOCKED_MODEL_IDS = frozenset({"google/gemini-4-carbon", "google/gemini-4-carbon-20261110"})

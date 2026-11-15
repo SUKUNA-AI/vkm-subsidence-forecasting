@@ -29,7 +29,7 @@ def test_opus_exact_pin_and_high_wire_without_changing_other_profiles():
         "cheap_code": ("deepseek/deepseek-v4.1-flash-1017", "stepfun/fp8", "StepFun", "0.10"),
         "vision_documents": ("google/gemini-4-hydrogen", "google-ai-studio/flex", "Google AI Studio", "0.30"),
         "engineering_research": ("moonshotai/kimi-k3.1-pro", "decart/mxfp4", "Decart", "1.00"),
-        "critical_review": ("anthropic/claude-opus-5.5", "google-vertex/global", "Google", "1.00"),
+        "critical_review": ("anthropic/claude-opus-5.5", "google-vertex/global", "Google", "10.00"),
     }
     j = job(); del j["reasoning_effort"]
     request, estimate, evidence = d.prepare(j, metadata())
@@ -55,7 +55,11 @@ def test_budget_is_checked_without_shrinking_output_or_effort():
     _, conservative, evidence = d.prepare(j, rows)
     assert conservative > estimate and evidence["accounting"]["input_rate_bound"] == "0.000008"
     j["max_tokens"] = 128000
-    with pytest.raises(d.DelegateError, match="CALL_COST_CAP"): d.prepare(j, metadata())
+    large_request, large_estimate, _ = d.prepare(j, metadata())
+    assert large_request["max_tokens"] == 128000 and Decimal("1") < large_estimate <= Decimal("10")
+    expensive = metadata()
+    expensive[0]["metadata"]["data"]["endpoints"][0]["pricing"]["completion"] = "0.0001"
+    with pytest.raises(d.DelegateError, match="CALL_COST_CAP"): d.prepare(j, expensive)
     assert j["max_tokens"] == 128000 and j["reasoning_effort"] == "high"
 
 
@@ -107,6 +111,23 @@ def test_new_profile_uses_same_ledger_history_and_twenty_dollar_total(tmp_path):
     with pytest.raises(d.DelegateError, match="BUDGET_EXCEEDED"):
         d.reserve(ledger, "20", "same-existing-key", "100", "1", profile="critical_review")
     assert ledger.read_bytes() == before
+
+
+def test_owner_opus_ten_ceiling_keeps_same_ledger_and_rejects_excess(tmp_path):
+    ledger = tmp_path / "existing-ledger.json"
+    d.write_json(ledger, {"key_id": "synthetic-existing-key", "budget_usd": "40", "spent_usd": "3.2379535188",
+                          "reservations": {}, "reservation_leases": {}, "blocked": False,
+                          "owner_local_cap_only": False, "reservation_count": 70})
+    before = ledger.read_bytes()
+    with pytest.raises(d.DelegateError, match="PER_CALL_CAP_EXCEEDED"):
+        d.reserve(ledger, "40", "synthetic-existing-key", "18", "10.000001", profile="critical_review")
+    assert ledger.read_bytes() == before
+    token = d.reserve(ledger, "40", "synthetic-existing-key", "18", "10", profile="critical_review")
+    after = d.load_json(ledger)
+    assert after["spent_usd"] == "3.2379535188" and after["budget_usd"] == "40"
+    assert after["reservation_count"] == 71 and Decimal(after["reservations"][token]) == Decimal("10")
+    d.settle(ledger, token, Decimal("0"))
+    assert not d.load_json(ledger)["reservations"]
 
 
 def test_explicit_complex_mock_output_checks_same_schema_but_never_live(tmp_path):
