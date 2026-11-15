@@ -1,0 +1,89 @@
+{
+  "schema": "vkm.ds05.diagnostic-contract/1",
+  "diagnostic_schema": "vkm.opencode.denied-telemetry/1",
+  "filename": "denied-<monotonic sequence>.json; fresh exclusive file, coordinator sequence only",
+  "stages": [
+    "HOOK_HANDLER",
+    "WIRE_POLICY",
+    "BUDGET_BEFORE",
+    "TOOL_SCOPE",
+    "DISPATCH",
+    "DISPATCH_AFTER",
+    "UNCLASSIFIED"
+  ],
+  "reason_codes": [
+    "UNCLASSIFIED",
+    "HOOK_AUTHENTICATION_FAILED",
+    "MALFORMED_REQUEST",
+    "ENDPOINT_CONTEXT_LIMIT",
+    "MODEL_PIN_MISMATCH",
+    "PROVIDER_FALLBACK_PIN_MISMATCH",
+    "REASONING_PIN_MISMATCH",
+    "OUTPUT_CAP_INVALID",
+    "SESSION_BUDGET_EXHAUSTED",
+    "INFLIGHT_OR_UNKNOWN_ATTEMPT",
+    "UNKNOWN_EXECUTION_COST",
+    "RUNTIME_LEASE_EXPIRED",
+    "RETRIES_DISABLED",
+    "EXACT_REQUEST_BYTES_REQUIRED",
+    "REQUEST_BODY_DIGEST_MISMATCH",
+    "REQUEST_BODY_INVALID_JSON",
+    "REQUEST_BODY_PIN_MISMATCH",
+    "FINITE_OUTPUT_TOKEN_BOUND_REQUIRED",
+    "POSITIVE_UPPER_BOUND_REQUIRED"
+  ],
+  "WorkerError_exact_map": {
+    "hook authentication failed": "HOOK_AUTHENTICATION_FAILED",
+    "endpoint context bound exceeded": "ENDPOINT_CONTEXT_LIMIT",
+    "request model differs from selected model": "MODEL_PIN_MISMATCH",
+    "request provider policy differs": "PROVIDER_FALLBACK_PIN_MISMATCH",
+    "request reasoning differs": "REASONING_PIN_MISMATCH",
+    "missing/ambiguous/oversized output cap": "OUTPUT_CAP_INVALID",
+    "unexpected hook request fields": "MALFORMED_REQUEST",
+    "invalid JSON": "MALFORMED_REQUEST"
+  },
+  "BudgetError_rule": "Only actual imported shared_budget.BudgetError with type(code) is str and exact membership in reason_codes (budget subset). Never accept arbitrary exception.code/name or prefix/regex normalization. Unknown→UNCLASSIFIED.",
+  "WorkerError_rule": "Only actual WorkerError; match one exact static string arg in map (type(arg) is str). Do not invoke str/repr on exceptions or log args. Dynamic messages/unmapped values→UNCLASSIFIED.",
+  "minimum_fields": [
+    "schema",
+    "stage",
+    "reason_code",
+    "body_sha256",
+    "body_utf8_bytes",
+    "metrics",
+    "request_admitted",
+    "content_saved",
+    "accounting_changed"
+  ],
+  "metric_allowlist": {
+    "integer_nonnegative": [
+      "input_bound",
+      "output_cap",
+      "context_limit",
+      "image_count",
+      "messages_count"
+    ],
+    "decimal_nonnegative_finite": [
+      "estimated_upper_usd",
+      "session_remaining_usd"
+    ]
+  },
+  "body_rule": "Hash and UTF8 byte length of body_text ONLY if trusted authenticated /before payload makes a str available; no raw body/control envelope/header storage. Otherwise null/omitted. Do not parse model payload fields to create diagnostics capabilities.",
+  "no_leak": [
+    "rawbody",
+    "messages",
+    "reasoning",
+    "errorstr",
+    "exception.args",
+    "key",
+    "token",
+    "fingerprint",
+    "headers",
+    "sourcepath",
+    "ciphertext",
+    "tool_arguments"
+  ],
+  "ordering": "Keep all existing guard checks, serialization, atomic reserve-before-permit, POSSIBLY_SENT, after_known and unknown/abort unchanged. Record exactly one diagnostic for each logical denied operation whether direct dispatch or Handler; Handler still403.",
+  "metrics_rule": "Use already trusted inspect evidence or safely available sanitized prior known budget receipt snapshot only. No new ledger reads/RPC/money mutation for diagnostics; omit unknown values, never infer from key delta. Session remaining if derivable from complete allKNOWN previous session snapshot, otherwise omitted.",
+  "failure_rule": "Malformed metric serialization/write failure cannot return permit, make valid payload bypass checks, clear inflight/blocked, settle, or replace original rejection with success. No fallback/retry/provider/price/cap change."
+}

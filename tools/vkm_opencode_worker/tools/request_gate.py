@@ -17,6 +17,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 from vkm_worker_core import WorkerError, need, finite_money, json_bytes, sha256_file, write_json, parse_json, read_json, verify_file_record
+from shared_budget import BudgetError
+import denied_telemetry
 
 PROFILE_NAMES = {"deepseek": "cheap_code", "kimi": "engineering_research",
                  "hydrogen": "vision_documents", "opus": "critical_review"}
@@ -159,10 +161,15 @@ class HookGate:
         self.plugin_ready = False
         self.plugin_sha256 = sha256_file(Path(__file__).with_name('budget_guard.js'))
         self.mutex = threading.Lock(); self.settled = []; self.denied = 0; self.denials = []
+        self.denied_sequence = 0
+        self.denial_lock = threading.Lock()
+        self._denial_ctx = threading.local()
         outer = self
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, *args): pass
             def do_POST(self):
+                ctx = outer._denial_ctx
+                ctx.state = None
                 try:
                     need(hmac.compare_digest(self.headers.get("Authorization", ""), "Bearer " + outer.token), "hook authentication failed")
                     length = int(self.headers.get("Content-Length", "0"))
@@ -172,8 +179,13 @@ class HookGate:
                     self.send_response(200); self.send_header("Content-Type", "application/json"); self.end_headers()
                     self.wfile.write(json_bytes(result))
                 except BaseException as exc:
+                    # dispatch() records its own phase exactly once. Only failures
+                    # before dispatch (auth/size/JSON) are recorded here. Never
+                    # persist exception text, args, headers, token or control body.
+                    if getattr(ctx, "state", None) is None:
+                        outer._record_denial("HOOK_HANDLER", outer._denial_reason(exc))
                     outer.denied += 1
-                    outer.denials.append(str(exc) if isinstance(exc, WorkerError) else type(exc).__name__)
+                    outer.denials.append(outer._denial_reason(exc))
                     self.send_response(403); self.end_headers(); self.wfile.write(b'{"error":"ADMISSION_DENIED"}')
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True); self.thread.start()
@@ -181,13 +193,101 @@ class HookGate:
     @property
     def url(self): return "http://127.0.0.1:" + str(self.server.server_port)
 
+    def _denial_reason(self, exc):
+        """Classify only exact library exception types; never str/repr/args text.
+
+        Anything not an exact WorkerError static message or an exact allowlisted
+        BudgetError code is UNCLASSIFIED. No prefix/regex normalization.
+        """
+        try:
+            if type(exc) is WorkerError:
+                return denied_telemetry.worker_reason(exc.args)
+            if type(exc) is BudgetError:
+                return denied_telemetry.budget_reason(exc.code)
+        except Exception:
+            return 'UNCLASSIFIED'
+        return 'UNCLASSIFIED'
+
+    @staticmethod
+    def _denial_body(payload):
+        """Trusted /before body_text only; never parse or store body content."""
+        if isinstance(payload, dict):
+            text = payload.get('body_text')
+            if type(text) is str:
+                try:
+                    return text.encode('utf-8')
+                except UnicodeError:
+                    return None
+        return None
+
+    @staticmethod
+    def _denial_metrics(evidence, bound):
+        """Bounded numeric evidence already computed by the wire inspection."""
+        metrics = {}
+        if isinstance(evidence, dict):
+            for source, name in (('input_bound', 'input_bound'), ('max_tokens', 'output_cap')):
+                value = evidence.get(source)
+                if type(value) is int and 0 <= value <= 2 ** 63 - 1:
+                    metrics[name] = value
+        try:
+            metrics['estimated_upper_usd'] = denied_telemetry.money_text(bound)
+        except Exception:
+            pass
+        return metrics
+
+    def _endpoint_metrics(self):
+        """Trusted endpoint config only, for refusals raised before evidence exists."""
+        metrics = {}
+        try:
+            endpoint = getattr(self.policy, 'endpoint', None)
+            value = endpoint.get('context_length') if isinstance(endpoint, dict) else None
+        except Exception:
+            return {}
+        if type(value) is int and 0 <= value <= 2 ** 63 - 1:
+            metrics['context_limit'] = value
+        return metrics
+
+    def _record_denial(self, stage, reason_code, *, body_bytes=None, metrics=None):
+        """Persist one bounded record; failure is silent and never changes refusal."""
+        try:
+            record = denied_telemetry.build_record(stage=stage, reason_code=reason_code,
+                                                   body_bytes=body_bytes, metrics=metrics)
+        except Exception:
+            return False
+        with self.denial_lock:
+            self.denied_sequence += 1
+            sequence = self.denied_sequence
+        try:
+            write_json(self.run_dir / ("denied-" + str(sequence) + ".json"), record, exclusive=True)
+        except Exception:
+            return False
+        return True
+
     def dispatch(self, path, payload):
+        """Record one denial per logical refusal, then re-raise the original error."""
+        ctx = self._denial_ctx
+        ctx.state = 'PENDING'; ctx.stage = 'DISPATCH'; ctx.body = None; ctx.metrics = None
+        try:
+            result = self._dispatch(path, payload)
+        except BaseException as exc:
+            if ctx.state == 'PENDING':
+                stage = ctx.stage if ctx.stage in denied_telemetry.STAGES else 'UNCLASSIFIED'
+                ok = self._record_denial(stage, self._denial_reason(exc),
+                                         body_bytes=ctx.body, metrics=ctx.metrics)
+                ctx.state = 'RECORDED' if ok else 'FAILED'
+            raise
+        ctx.state = 'OK'
+        return result
+
+    def _dispatch(self, path, payload):
+        ctx = self._denial_ctx
         with self.mutex:
             if path == '/ready':
                 need(payload == {'protocol':2,'plugin_sha256':self.plugin_sha256},'native guard pin mismatch')
                 self.plugin_ready=True
                 return {'ready':True}
             if path == '/tool':
+                ctx.stage = 'TOOL_SCOPE'
                 need(self.plugin_ready and self.tool_scope is not None,'tool scope not configured')
                 need(isinstance(payload,dict) and set(payload)=={'tool','input'},'invalid tool envelope')
                 result=self.tool_scope.inspect(payload['tool'],payload['input'])
@@ -195,6 +295,7 @@ class HookGate:
                 write_json(self.run_dir / ('tool-'+str(len(self.tool_calls))+'.scope.json'),result,exclusive=True)
                 return {'permit':True}
             if path == '/unresolved':
+                ctx.stage = 'DISPATCH_AFTER'
                 need(isinstance(payload,dict) and set(payload)=={'attempt_id','http_status','response_sha256','reason','generation_id','error_code','error_message'},'invalid unresolved evidence')
                 need(self.inflight is not None and payload['attempt_id']==self.inflight,'unresolved attempt mismatch')
                 need(payload['reason'] in {'HTTP_ERROR','NON_JSON_RESPONSE','GENERATION_COST_UNKNOWN'},'unknown unresolved reason')
@@ -205,6 +306,7 @@ class HookGate:
                 # explicit main-Codex reconciliation, never assume zero cost.
                 return {'recorded':True,'accounting':'UNKNOWN_HOLD_REQUIRED'}
             if path == '/response-metadata':
+                ctx.stage = 'DISPATCH_AFTER'
                 need(isinstance(payload,dict) and set(payload)=={'attempt_id','http_status','response_sha256','content_type','headers'},'invalid transport metadata')
                 need(self.inflight is not None and payload['attempt_id']==self.inflight,'transport attempt mismatch')
                 need(type(payload['http_status']) is int and 100<=payload['http_status']<=599,'invalid transport status')
@@ -216,21 +318,30 @@ class HookGate:
                 write_json(self.run_dir/(self.inflight+'.transport.json'),{**payload,'billing_status':'IDENTIFIERS_ONLY_NOT_SETTLEMENT'},exclusive=True)
                 return {'recorded':True,'accounting':'UNCHANGED'}
             if path == "/before":
+                ctx.stage = 'WIRE_POLICY'
+                ctx.body = self._denial_body(payload)
                 need(self.plugin_ready,'native guard handshake missing')
                 need(self.inflight is None, "concurrent request not admitted")
                 pins, bound, evidence = self.policy.inspect(payload)
+                ctx.metrics = self._denial_metrics(evidence, bound)
+                ctx.stage = 'BUDGET_BEFORE'
                 self.sequence += 1; ident = "http-" + str(self.sequence)
                 # This call durably marks POSSIBLY_SENT before returning permit.
                 admitted = self.budget.call("before_attempt", ident, str(bound), pins, request_body=payload["body_text"].encode("utf-8"))
+                # Ledger state may already have changed; no denial is claimed past
+                # this point, so a later file error cannot look like "not admitted".
+                ctx.state = 'ADMITTED'
                 self.inflight = ident
                 write_json(self.run_dir / (ident + ".admission.json"), {"id": ident, "pins": pins, "accounting": evidence, "admission": admitted}, exclusive=True)
                 return {"permit": True, "attempt_id": ident}
+            ctx.stage = 'DISPATCH_AFTER'
             need(path == "/after" and isinstance(payload, dict), "unknown hook operation")
             need(set(payload) == {"attempt_id", "generation_id", "cost", "response_sha256", "http_status"}, "unexpected response evidence")
             need(payload["attempt_id"] == self.inflight and self.inflight is not None, "attempt response mismatch")
             need(type(payload["http_status"]) is int and 200 <= payload["http_status"] < 300, "provider HTTP failure remains unresolved")
             cost = finite_money(payload["cost"], "generation cost")
             result = self.budget.call("after_attempt", self.inflight, payload["generation_id"], str(cost), payload["response_sha256"], evidence_kind="response_usage")
+            ctx.state = 'ADMITTED'
             write_json(self.run_dir / (self.inflight + ".response.json"), {**payload, "settlement": result}, exclusive=True)
             self.settled.append(self.inflight); self.inflight = None
             return {"recorded": True}
