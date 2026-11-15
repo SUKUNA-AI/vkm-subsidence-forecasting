@@ -13,6 +13,8 @@ import os
 from pathlib import Path
 import re
 import ssl
+import struct
+import zlib
 import sys
 import time
 from contextlib import contextmanager
@@ -508,7 +510,101 @@ def select_endpoint(metadata, profile, fresh=True):
         fail("ENDPOINT_UNAVAILABLE")
 
 
-def prepare(job, metadata, secret=None):
+def approved_image_bound(job, request, row, ep, proof, approved_sha):
+    """Optional coordinator authority, never inferred from a job or model name.
+
+    Reuses native ImageAdmission GEMINI4_MAX2240 + 256/image + global4096.
+    The primary docs specify approximate allocations: this remains a guarded
+    conservative estimate, not measured tokenization or a billing guarantee.
+    No proof-provided path is opened. Decoder files come from imported modules.
+    """
+    if proof is None and approved_sha is None:
+        return None
+    try:
+        fields = {"schema", "status", "task_id", "input_sha256", "model_id", "provider_only", "rule", "checked_at", "expires_at", "sources", "total_pixels", "decoder", "primary_docs", "qualification", "supported_parameters"}
+        if not isinstance(proof, dict) or set(proof) != fields or not valid_hash(approved_sha) or digest(proof) != approved_sha:
+            fail("IMAGE_RULE_PROOF_INVALID")
+        if proof["schema"] != "vkm.delegate.image-rule/1" or proof["status"] != "APPROVED_BY_MAIN_CODEX":
+            fail("IMAGE_RULE_APPROVAL_REQUIRED")
+        if not is_v2(job) or job["profile"] != "vision_documents" or request["model"] != "google/gemini-4-hydrogen" or request["provider"]["only"] != ["google-ai-studio/flex"]:
+            fail("IMAGE_RULE_ROUTE_UNSUPPORTED")
+        if proof["model_id"] != request["model"] or proof["provider_only"] != request["provider"]["only"] or proof["rule"] != "GEMINI4_MAX2240" or ep["tag"] != "google-ai-studio/flex" or ep["service_tier"] != "flex":
+            fail("IMAGE_RULE_ROUTE_UNSUPPORTED")
+        if proof["task_id"] != job["task_id"] or proof["input_sha256"] != digest(job):
+            fail("IMAGE_RULE_INPUT_CHANGED")
+        checked = datetime.fromisoformat(proof["checked_at"].replace("Z", "+00:00"))
+        expires = datetime.fromisoformat(proof["expires_at"].replace("Z", "+00:00"))
+        current = datetime.now(timezone.utc)
+        if not checked.tzinfo or not expires.tzinfo or not -60 <= (current-checked).total_seconds() <= 86400 or not checked < expires or not current < expires or (expires-checked).total_seconds() > 86400:
+            fail("IMAGE_RULE_PROOF_STALE")
+        params = proof["supported_parameters"]
+        known_params = {"reasoning", "include_reasoning", "max_tokens", "temperature", "top_p", "seed", "response_format", "tools", "tool_choice", "stop", "structured_outputs", "reasoning_effort"}
+        if set(ep["supported_parameters"]) - known_params:
+            fail("IMAGE_RULE_PARAMETERS_CHANGED")
+        if not isinstance(params, list) or any(not isinstance(x,str) for x in params) or len(set(params)) != len(params) or set(params) != set(ep["supported_parameters"]):
+            fail("IMAGE_RULE_PARAMETERS_CHANGED")
+        required_urls = {"https://aistudio.google.com/docs/media-resolution", "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/4-hydrogen"}
+        docs = proof["primary_docs"]
+        if not isinstance(docs,list) or len(docs) != 2 or any(not isinstance(x,dict) or set(x) != {"url","sha256"} or not valid_hash(x["sha256"]) for x in docs) or {x["url"] for x in docs} != required_urls:
+            fail("IMAGE_RULE_DOCUMENT_PROOF_REQUIRED")
+        qualification = proof["qualification"]
+        if not isinstance(qualification,dict) or set(qualification) != {"algorithm_sha256","native_receipt_sha256"} or qualification["algorithm_sha256"] != "7898955b61f16c83b15713d67dc6d95dea4603c407f2cd1cf30c78ea1c2cb08a" or not valid_hash(qualification["native_receipt_sha256"]):
+            fail("IMAGE_RULE_QUALIFICATION_REQUIRED")
+        import PIL
+        from PIL import Image, PngImagePlugin, JpegImagePlugin
+        modules = [PIL, Image, PngImagePlugin, JpegImagePlugin, Image.core]
+        decoder = proof["decoder"]
+        expected = {Path(m.__file__).name: hashlib.sha256(Path(m.__file__).read_bytes()).hexdigest() for m in modules}
+        if not isinstance(decoder,dict) or set(decoder) != {"version","files"} or decoder["version"] != PIL.__version__ or decoder["files"] != expected:
+            fail("IMAGE_RULE_DECODER_CHANGED")
+        approved_sources = proof["sources"]
+        source_fields = {"sha256", "mime", "width", "height", "bbox"}
+        if not isinstance(approved_sources,list) or any(not isinstance(x,dict) or set(x) != source_fields or not valid_hash(x["sha256"]) or type(x["width"]) is not int or type(x["height"]) is not int or not isinstance(x["bbox"],list) or any(type(v) is not int for v in x["bbox"]) for x in approved_sources):
+            fail("IMAGE_RULE_SOURCES_CHANGED")
+        sources = []
+        for image in job.get("images",[]):
+            raw = base64.b64decode(image["data_base64"], validate=True)
+            # Independent container/header check; validate_job has already fully
+            # decoded, verified pixels, rejected frames and inspected metadata.
+            if image["mime"] == "image/png":
+                if raw[:16] != b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR":
+                    fail("IMAGE_RULE_HEADER_INVALID")
+                offset=8; ended=False
+                while offset < len(raw):
+                    if offset+12 > len(raw): fail("IMAGE_RULE_HEADER_INVALID")
+                    size=int.from_bytes(raw[offset:offset+4],"big"); kind=raw[offset+4:offset+8]; end=offset+12+size
+                    if end > len(raw) or kind in {b"acTL",b"fcTL",b"fdAT"} or zlib.crc32(raw[offset+4:end-4]) & 0xffffffff != int.from_bytes(raw[end-4:end],"big"):
+                        fail("IMAGE_RULE_HEADER_INVALID")
+                    if kind == b"IEND":
+                        if size or end != len(raw): fail("IMAGE_RULE_HEADER_INVALID")
+                        ended=True
+                    offset=end
+                if not ended or struct.unpack(">II",raw[16:24]) != (image["width"],image["height"]): fail("IMAGE_RULE_HEADER_INVALID")
+            elif not raw.startswith(b"\xff\xd8") or not raw.endswith(b"\xff\xd9"):
+                fail("IMAGE_RULE_HEADER_INVALID")
+            sources.append({"sha256":hashlib.sha256(raw).hexdigest(),"mime":image["mime"],"width":image["width"],"height":image["height"],"bbox":image["bbox"]})
+        pixels=sum(x["width"]*x["height"] for x in sources)
+        if not sources or proof["sources"] != sources or type(proof["total_pixels"]) is not int or proof["total_pixels"] != pixels:
+            fail("IMAGE_RULE_SOURCES_CHANGED")
+        safe = {**request, "messages":[]}
+        for message in request["messages"]:
+            parts=[]
+            image_index=0
+            for part in message["content"]:
+                if part["type"] == "text": parts.append(part)
+                elif part["type"] == "image_url":
+                    parts.append({"type":"text","text":"[APPROVED_IMAGE_SHA256:"+sources[image_index]["sha256"]+"]"}); image_index+=1
+                else: fail("IMAGE_RULE_CONTENT_UNSUPPORTED")
+            safe["messages"].append({**message,"content":parts})
+        text_bytes=len(encoded(safe))
+        return text_bytes+4096+len(sources)*(2240+256), {"rule":"GEMINI4_MAX2240","proof_sha256":approved_sha,"image_count":len(sources),"images":sources,"total_pixels":pixels,"text_and_schema_bytes":text_bytes,"visual_tokens_per_image":2240,"protocol_guard_per_image":256,"global_protocol_guard":4096,"provider_token_count":"NOT_MEASURED","effective_media_resolution":"UNCONFIRMED_MAX_ALLOCATION_USED"}
+    except DelegateError:
+        raise
+    except Exception:
+        fail("IMAGE_RULE_PROOF_INVALID")
+
+
+def prepare(job, metadata, secret=None, *, image_rule_proof=None, approved_image_rule_sha256=None):
     schema, pixels = validate_job(job, secret)
     row, data, ep = select_endpoint(metadata, job["profile"])
     if pixels and "image" not in data.get("architecture", {}).get("input_modalities", []):
@@ -556,6 +652,14 @@ def prepare(job, metadata, secret=None):
     if is_v2(job):
         textual_request = {**request, "messages": [{"role": "user", "content": [part for part in content if part["type"] == "text"]}]}
     input_bound = len(encoded(textual_request)) + 4096 + pixels * 4
+    image_accounting = approved_image_bound(job, request, row, ep, image_rule_proof, approved_image_rule_sha256)
+    if image_accounting is not None:
+        input_bound, image_evidence = image_accounting
+        prompt_cap = ep.get("max_prompt_tokens")
+        if prompt_cap is not None and (type(prompt_cap) is not int or prompt_cap < input_bound):
+            fail("INPUT_LIMIT")
+        prompt_rate = max(prompt_rate, *(money(pricing.get(key, 0), "UNKNOWN_PRICING") for key in ("input_cache_read", "input_cache_write")))
+        input_rate_method = "MAX_PROMPT_AND_ADVERTISED_CACHE_RATES_CONSERVATIVE"
     if type(ep.get("context_length")) is not int or ep["context_length"] < 1 or input_bound + job["max_tokens"] > ep["context_length"]:
         fail("INPUT_LIMIT")
     estimate = (prompt_rate * input_bound + output_rate * job["max_tokens"] + money(pricing.get("request", 0))) * Decimal("1.25")
@@ -577,6 +681,8 @@ def prepare(job, metadata, secret=None):
             "output_rate_bound": str(output_rate), "output_rate_method": "COMPLETION_PLUS_INTERNAL_REASONING_CONSERVATIVE",
             "endpoint_context_length": ep["context_length"], "endpoint_max_completion_tokens": endpoint_max,
             "technical_ram_guard_bytes": MAX_RESPONSE, "model_input_bytes_limit": None}
+    if image_accounting is not None:
+        evidence["accounting"].update(method="CONSERVATIVE_TEXT_UTF8_BYTE_BOUND_PLUS_APPROVED_GEMINI4_IMAGE_MAX", image_method_status="ROOT_APPROVED_MODEL_SPECIFIC_CONSERVATIVE_ESTIMATE", image_rule=image_evidence)
     return request, estimate, evidence
 
 
@@ -1247,7 +1353,7 @@ def redact(value, secret):
     return value
 
 
-def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=False, owner_local_cap_only=False, mock_output=None):
+def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=False, owner_local_cap_only=False, mock_output=None, image_rule_proof=None, approved_image_rule_sha256=None):
     if mock_output is not None and not mock:
         fail("MOCK_OUTPUT_ONLY")
     replay = not mock and isinstance(transport, ReplayTransport) and type(transport) is not Transport
@@ -1259,8 +1365,11 @@ def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=F
     # Preserve offline/history pins and metadata GET; never fall back to API.
     if not mock and not replay and isinstance(job, dict) and job.get("profile") == "engineering_research":
         fail("KIMI_SUBSCRIPTION_ONLY_API_DISABLED")
+    image_options = {"image_rule_proof": image_rule_proof, "approved_image_rule_sha256": approved_image_rule_sha256}
+    if image_rule_proof is not None or approved_image_rule_sha256 is not None:
+        prepare(job, metadata, **image_options)
     secret = None if mock else os.environ.get("OPENROUTER_API_KEY")
-    request, estimate, evidence = prepare(job, metadata, secret)
+    request, estimate, evidence = prepare(job, metadata, secret, **image_options)
     if not mock and not is_v2(job) and not replay:
         fail("V2_TASK_KIND_REQUIRED")
     receipt = {"task_id": job["task_id"], "profile": job["profile"], "input_sha256": digest(job), "prompt_sha256": digest(job["prompt"]), "config_sha256": digest({k: v for k, v in request.items() if k != "messages"}), "started_at": now(), "requested_model": request["model"], "requested_provider": request["provider"], "endpoint_evidence": evidence, "reasoning": {"enabled": True}, "reservation_usd": str(estimate), "currency": "USD", "mode": "mock" if mock else "live", "cost_usd": None, "verification": "NOT_RUN"}
@@ -1310,7 +1419,7 @@ def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=F
                 receipt["max_live_reservations"] = 3
             transport = transport or Transport(secret)
             fresh = redact(discover(transport, [job["profile"]], include_reasoning=is_v2(job)), secret)
-            request, estimate, evidence = prepare(job, fresh, secret)
+            request, estimate, evidence = prepare(job, fresh, secret, **image_options)
             write_json(target / "endpoint_metadata.json", fresh)
             receipt.update(endpoint_evidence=evidence, reservation_usd=str(estimate))
             if is_v2(job):
@@ -1405,6 +1514,8 @@ def main(argv=None):
         s = sub.add_parser(name)
         s.add_argument("--job", required=True)
         s.add_argument("--metadata", required=True)
+        s.add_argument("--image-rule-proof", help="Optional root-reviewed image rule JSON; never loaded from job")
+        s.add_argument("--approved-image-rule-sha256", help="Root-approved canonical JSON SHA256, separate from proof file")
         s.add_argument("--task-kind", help="Explicit V2 task kind, must match any task_kind in job")
         s.add_argument("--reasoning-effort", help="Explicit supported effort; no automatic fallback")
         s.add_argument("--reasoning-justification", help="Specific necessity for max/xhigh")
@@ -1433,12 +1544,13 @@ def main(argv=None):
                 if name in job and job[name] != value:
                     fail("CLI_JOB_POLICY_CONFLICT")
                 job[name] = value
+        image_options = {"image_rule_proof": load_json(args.image_rule_proof) if args.image_rule_proof else None, "approved_image_rule_sha256": args.approved_image_rule_sha256}
         if args.command == "check":
-            _, estimate, _ = prepare(job, metadata)
+            _, estimate, _ = prepare(job, metadata, **image_options)
             print(json.dumps({"status": "CHECK_PASS", "reservation_usd": str(estimate)}))
             return 0
         mock_path = getattr(args, "mock_output", None)
-        receipt = run(job, metadata, args.run_dir, ledger=getattr(args, "ledger", None), budget=getattr(args, "budget_usd", None), mock=args.command == "mock", owner_local_cap_only=getattr(args, "owner_local_cap_only", False), mock_output=load_json(mock_path) if mock_path else None)
+        receipt = run(job, metadata, args.run_dir, ledger=getattr(args, "ledger", None), budget=getattr(args, "budget_usd", None), mock=args.command == "mock", owner_local_cap_only=getattr(args, "owner_local_cap_only", False), mock_output=load_json(mock_path) if mock_path else None, **image_options)
         print(json.dumps({"status": receipt["verification"], "cost_usd": receipt["cost_usd"]}))
         return 0 if receipt["verification"] in ("PASS", "MOCK_PASS") else 2
     except DelegateError as exc:
