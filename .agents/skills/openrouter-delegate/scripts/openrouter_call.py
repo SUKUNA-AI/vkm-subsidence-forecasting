@@ -44,6 +44,9 @@ MAX_TOKENS_BY_PROFILE = MappingProxyType({
 DEFAULT_SCHEMA = {"type": "object", "properties": {"result": {"type": "string"}}, "required": ["result"], "additionalProperties": False}
 MAX_RESPONSE = 64 * 1024 * 1024  # transport RAM guard, not a model context limit
 MAX_DECODED_IMAGE_BYTES = 256 * 1024 * 1024  # decoder RAM guard, not model resolution
+# Explicit owner authorization 2026-11-15; callers still supply the exact
+# existing ledger budget. This ceiling never migrates or resets that ledger.
+AUTHORIZED_TOTAL_BUDGET_CEILING = Decimal("40")
 POLICY_PATH = Path(__file__).resolve().parents[1] / "references" / "DELEGATION_POLICY_V2.json"
 
 
@@ -337,6 +340,58 @@ def validate_source_package(package, image_sha256):
         fail("IMAGE_PROVENANCE_MISMATCH")
 
 
+def guard_input_text(value, secret=None, *, v2=True, depth=0):
+    """Inspect semantic text/metadata, never compressed pixel base64 as prose."""
+    if depth > 64:
+        fail("INPUT_LIMIT")
+    if isinstance(value, str):
+        if ((secret and secret in value) or
+                re.search(r"sk-or-[A-Za-z0-9_-]+|(?:api[_ -]?key|password|authorization)[\"']?\s*[:=]\s*[\"']?\s*\S+", value, re.I)):
+            fail("FORBIDDEN_INPUT")
+        if v2 and re.search(r"(?:gh[pousr]_[A-Za-z0-9]{20,}|AKIA[A-Z0-9]{16}|-----BEGIN (?:RSA |OPENSSH )?PRIVATE KEY-----|(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?):/{2}[^\s/]*@|Bearer\s+sk-[A-Za-z0-9_-]+)", value, re.I):
+            fail("FORBIDDEN_INPUT")
+        # An inline JSON artifact can encode a credential/key using \u escapes.
+        if value.lstrip().startswith(("{", "[", '"')):
+            try:
+                nested = json.loads(value)
+            except (ValueError, RecursionError):
+                return
+            if nested != value:
+                guard_input_text(nested, secret, v2=v2, depth=depth + 1)
+    elif isinstance(value, bytes):
+        # Metadata bytes (EXIF/XMP/comments), not the image pixel container.
+        # Latin1 preserves literal ASCII; UTF16 covers XP/UserComment fields.
+        for encoding in ("latin1", "utf-16-le", "utf-16-be"):
+            guard_input_text(value.decode(encoding, errors="ignore"), secret, v2=v2, depth=depth + 1)
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            guard_input_text(key, secret, v2=v2, depth=depth + 1)
+            if (isinstance(key, str) and re.fullmatch(r"api[_ -]?key|password|authorization", key, re.I)
+                    and (bool(item) if isinstance(item, (str, bytes, dict, list, tuple)) else item is not None)):
+                # Credential context is not lost by wrapping the value in a
+                # list/dictionary/schema enum. Nonempty containers fail closed.
+                fail("FORBIDDEN_INPUT")
+            guard_input_text(item, secret, v2=v2, depth=depth + 1)
+    elif isinstance(value, (list, tuple)):
+        for item in value:
+            guard_input_text(item, secret, v2=v2, depth=depth + 1)
+
+
+def guard_image_metadata(image, secret, *, v2):
+    """Pillow exposes decoded PNG text and EXIF; do not scan pixel encoding."""
+    guard_input_text(image.info, secret, v2=v2)
+    exif = image.getexif()
+    guard_input_text(dict(exif), secret, v2=v2)
+    for tag in (0x8769, 0x8825):  # Exif and GPS nested IFDs
+        if tag in exif:
+            guard_input_text(exif.get_ifd(tag), secret, v2=v2)
+    # Some decoders return Windows XP Unicode comments as numeric byte tuples.
+    for tag in range(0x9c9b, 0x9ca0):
+        value = exif.get(tag)
+        if isinstance(value, tuple) and all(type(x) is int and 0 <= x <= 255 for x in value):
+            guard_input_text(bytes(value), secret, v2=v2)
+
+
 def validate_job(job, secret=None):
     allowed = {"task_id", "synthetic", "profile", "prompt", "max_tokens", "schema", "images", "input_package"}
     v2 = is_v2(job)
@@ -364,10 +419,11 @@ def validate_job(job, secret=None):
     text = encoded(job).decode("utf-8")
     if len(text.encode("utf-8")) > MAX_RESPONSE:
         fail("TRANSPORT_RAM_GUARD")
-    if (secret and secret in text) or re.search(r"sk-or-[A-Za-z0-9_-]+|(?:api[_ -]?key|password|authorization)\s*[:=]\s*\S+", text, re.I):
-        fail("FORBIDDEN_INPUT")
-    if v2 and re.search(r"(?:gh[pousr]_[A-Za-z0-9]{20,}|AKIA[A-Z0-9]{16}|-----BEGIN (?:RSA |OPENSSH )?PRIVATE KEY-----|(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?):/{2}[^\s/]*@|Bearer\s+sk-[A-Za-z0-9_-]+)", text, re.I):
-        fail("FORBIDDEN_INPUT")
+    textual = dict(job)
+    if isinstance(job.get("images"), list):
+        textual["images"] = [{k: v for k, v in img.items() if k != "data_base64"}
+                             if isinstance(img, dict) else img for img in job["images"]]
+    guard_input_text(textual, secret, v2=v2)
     if type(job.get("max_tokens")) is not int or job["max_tokens"] < (1 if v2 else 64) or (not v2 and job["max_tokens"] > MAX_TOKENS_BY_PROFILE[job["profile"]]):
         fail("INPUT_LIMIT")
     schema = job.get("schema", DEFAULT_SCHEMA)
@@ -384,7 +440,7 @@ def validate_job(job, secret=None):
     for img in images:
         if not isinstance(img, dict) or set(img) != {"mime", "data_base64", "width", "height", "bbox"}:
             fail("INVALID_IMAGE")
-        if img["mime"] not in {"image/png", "image/jpeg"}:
+        if not isinstance(img["mime"], str) or img["mime"] not in {"image/png", "image/jpeg"}:
             fail("INVALID_IMAGE")
         w, h = img["width"], img["height"]
         if type(w) is not int or type(h) is not int or w < 1 or h < 1 or (not v2 and (w > 2048 or h > 2048)):
@@ -405,6 +461,7 @@ def validate_job(job, secret=None):
                 im.verify()
             with Image.open(io.BytesIO(raw)) as im:
                 im.load()  # verify CRC/header alone does not validate decoded pixels
+                guard_image_metadata(im, secret, v2=v2)
         except DelegateError:
             raise
         except Exception:
@@ -743,7 +800,7 @@ def _ledger_fields(ledger):
         budget, spent = money(ledger["budget_usd"]), money(ledger["spent_usd"])
     except (KeyError, DelegateError):
         fail("LEDGER_CONTRACT_MISMATCH")
-    if budget <= 0:
+    if budget <= 0 or budget > AUTHORIZED_TOTAL_BUDGET_CEILING:
         fail("LEDGER_CONTRACT_MISMATCH")
     for token, amount in ledger["reservations"].items():
         if not isinstance(token, str) or not token or not isinstance(amount, str) or money(amount) <= 0:
@@ -800,7 +857,7 @@ def reserve(path, budget, key_id, key_remaining, amount, *, owner_local_cap_only
     budget, amount = money(budget, "LIVE_BLOCKED_BUDGET"), money(amount)
     if owner_local_cap_only and (budget <= 0 or budget > 1):
         fail("OWNER_LOCAL_CAP_REJECTED")
-    if budget <= 0 or budget > 20:
+    if budget <= 0 or budget > AUTHORIZED_TOTAL_BUDGET_CEILING:
         fail("LIVE_BLOCKED_BUDGET")
     if amount <= 0:
         fail("INVALID_RESERVATION_AMOUNT")
@@ -1103,6 +1160,10 @@ def run(job, metadata, run_dir, ledger=None, budget=None, transport=None, mock=F
     # Reject before credentials, discovery, directory creation or reservation.
     if is_v2(job) and owner_local_cap_only and not mock and not replay:
         fail("V2_LEGACY_OVERRIDE_FORBIDDEN")
+    # Owner now uses Kimi through the existing subscription runtime only.
+    # Preserve offline/history pins and metadata GET; never fall back to API.
+    if not mock and not replay and isinstance(job, dict) and job.get("profile") == "engineering_research":
+        fail("KIMI_SUBSCRIPTION_ONLY_API_DISABLED")
     secret = None if mock else os.environ.get("OPENROUTER_API_KEY")
     request, estimate, evidence = prepare(job, metadata, secret)
     if not mock and not is_v2(job) and not replay:

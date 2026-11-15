@@ -217,7 +217,7 @@ def test_profile_caps_and_global_budget_cannot_expand(tmp_path):
         with pytest.raises(d.DelegateError, match="PER_CALL_CAP_EXCEEDED"):
             d.reserve(tmp_path / "never.json", "20", "same-key", "100", amount, profile=profile)
     with pytest.raises(d.DelegateError, match="LIVE_BLOCKED_BUDGET"):
-        d.reserve(tmp_path / "never.json", "20.00001", "same-key", "100", ".01")
+        d.reserve(tmp_path / "never.json", "40.000001", "same-key", "100", ".01")
 
 
 def test_empty_legacy_migration_preserves_spent_and_lifetime_count(tmp_path):
