@@ -26,11 +26,13 @@ Native V2 `edit` не создаёт файл через пустой oldString;
 
 ## Учёт расходов и маршруты
 
-Используется тот же существующий TOTAL20 ledger, что у `openrouter-delegate`.
-Профили переиспользуют его точные policy pins: Hydrogen/flex, Kimi/decart mxfp4,
+Используется тот же существующий ledger, что у `openrouter-delegate`: текущий явно разрешённый TOTAL40 сохраняет историю TOTAL20, расходы, holds и счётчики. Допустимы только явно подтверждённые total20/40, совпадающие с ledger.
+Профили переиспользуют его точные policy pins: Hydrogen/flex, архивный Kimi/decart mxfp4,
 DeepSeek/stepfun fp8 и Opus/Vertex global. Carbon блокирован. Fable и любой
 другой запасной/вспомогательный профиль не используются. Переключения
 model/provider/reasoning автоматически нет.
+
+Текущий владелец запретил дальнейшие Kimi API-вызовы: поле профиля оставлено для чтения истории, но `run` и wire admission отклоняют его. Подписочный Kimi — отдельный маршрут. Переход на DeepSeek оформляется новым task ID и явным решением владельца, а не fallback.
 
 SDK получает invalid sentinel credential. Native `http.request` hook передаёт
 точный captured UTF8 body в локальный accounting control endpoint, который
@@ -89,3 +91,5 @@ billing idempotence. Проверить shared receipt, generation evidence, pen
 процессы; сверку выполняет Codex. Rollback — отключить только новый Skill/host
 descriptor, сохранив source worktrees, ledger и все receipts; не сбрасывать
 pending, не менять ключ и не удалять исходную авторизацию Codex.
+
+SSE response parsing допускает BOM, heartbeat/comment preambles, CRLF и multiline data. До разбора сохраняются только status, digest, content type и разрешённые request/generation header IDs. Эти идентификаторы не являются доказательством стоимости; malformed/error response сохраняет UNKNOWN hold.

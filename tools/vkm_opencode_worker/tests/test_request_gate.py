@@ -21,6 +21,10 @@ def mutate(p, field, value):
     body=json.loads(p['body_text']);body[field]=value;p['body_text']=json.dumps(body);return p
 
 class PolicyTests(unittest.TestCase):
+    def test_owner_revoked_kimi_api(self):
+        p={**P,'model_id':'moonshotai/kimi-k3.1-pro'}
+        with self.assertRaisesRegex(WorkerError,'revoked'):
+            WirePolicy(p,E).inspect(mutate(payload(),'model',p['model_id']))
     def test_captured_bytes_hash(self):
         p=payload();pins, cost, evidence=WirePolicy(P,E).inspect(p)
         self.assertEqual(pins['request_sha256'],hashlib.sha256(p['body_text'].encode()).hexdigest())
@@ -60,6 +64,18 @@ class FakeSession:
     def abort(self,*a):self.calls.append(('abort',a));return {'unknown':True}
 
 class ControlTests(unittest.TestCase):
+    def test_transport_ids_survive_parse_failure_without_settlement(self):
+        with tempfile.TemporaryDirectory() as td:
+            s=FakeSession();g=HookGate(BudgetThread(lambda:s),WirePolicy(P,E),Path(td))
+            try:
+                g.dispatch('/ready',{'protocol':2,'plugin_sha256':g.plugin_sha256});g.dispatch('/before',payload())
+                evidence={'attempt_id':'http-1','http_status':200,'response_sha256':'a'*64,'content_type':'text/event-stream','headers':{'x-request-id':'request-fixture','x-generation-id':'gen-fixture'}}
+                g.dispatch('/response-metadata',evidence)
+                self.assertEqual(json.loads((Path(td)/'http-1.transport.json').read_bytes())['headers'],evidence['headers'])
+                self.assertEqual([x[0] for x in s.calls],['before'])
+                for bad in [{**evidence,'headers':{'authorization':'Bearer-secret'}},{**evidence,'headers':{'x-request-id':'unsafe\nvalue'}},{**evidence,'attempt_id':'other'}]:
+                    with self.assertRaises(WorkerError):g.dispatch('/response-metadata',bad)
+            finally:self.assertTrue(g.close(clean=False)['unknown'])
     def test_http_error_preserved_without_zero_settlement(self):
         with tempfile.TemporaryDirectory() as td:
             s=FakeSession();g=HookGate(BudgetThread(lambda:s),WirePolicy(P,E),Path(td))

@@ -236,6 +236,21 @@ class EventTests(unittest.TestCase):
 
 
 class OwnershipTests(unittest.TestCase):
+    def test_checkout_byte_preservation_with_inherited_autocrlf(self):
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td);repo,_=make_repo(root)
+            (repo/'main.py').write_bytes(b'x = 2\n')
+            (repo/'literal.dat').write_bytes(b'literal\r\nbytes\r\n')
+            (repo/'.gitattributes').write_bytes(b'literal.dat -text\n')
+            run('git','-C',str(repo),'-c','core.autocrlf=false','add','.')
+            run('git','-C',str(repo),'commit','-m','pin exact input bytes')
+            base=run('git','-C',str(repo),'rev-parse','HEAD').decode().strip()
+            before=(repo/'.git/config').read_bytes();tree=root/'fresh byte worktree'
+            with patch.dict(os.environ,{'GIT_CONFIG_COUNT':'1','GIT_CONFIG_KEY_0':'core.autocrlf','GIT_CONFIG_VALUE_0':'true'}):
+                w.checkout_base(repo,tree,base)
+            self.assertEqual((tree/'main.py').read_bytes(),b'x = 2\n')
+            self.assertEqual((tree/'literal.dat').read_bytes(),b'literal\r\nbytes\r\n')
+            self.assertEqual((repo/'.git/config').read_bytes(),before)
     def test_cleanup_only_owned_files(self):
         with tempfile.TemporaryDirectory() as td:
             p=Path(td)/'existing';p.write_text('keep');owned={}

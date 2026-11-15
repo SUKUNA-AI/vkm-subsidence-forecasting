@@ -254,6 +254,18 @@ def check_config_secrets(config: dict) -> None:
 def validate_host(host: dict, job: dict, *, evidence: bool = True) -> None:
     need(isinstance(host, dict) and host.get("schema") == "vkm.opencode.host/2", "invalid host manifest")
     need(host.get("platform") == "windows-native", "native Windows required")
+    if 'image_admission' in host:
+        image_records=host['image_admission']
+        need(isinstance(image_records,dict) and set(image_records)<={'hydrogen','opus'},'invalid image admission profile mapping')
+        for image_record in image_records.values():
+            need(isinstance(image_record,dict) and set(image_record)=={'path','sha256'},'invalid image admission file record')
+            if evidence: verify_file_record(image_record)
+    if 'output_rate_policy' in host:
+        rates = host['output_rate_policy']
+        need(isinstance(rates, dict) and set(rates) <= {'hydrogen'}, 'unsupported output rate policy profile')
+        for record in rates.values():
+            need(isinstance(record, dict) and set(record) == {'path', 'sha256'}, 'invalid output rate proof record')
+            if evidence: verify_file_record(record)
     op = host.get("opencode", {})
     need(isinstance(op.get("path"), str) and bool(HASH.fullmatch(op.get("sha256", ""))), "OpenCode executable hash missing")
     version = op.get("version", "")
@@ -311,7 +323,7 @@ def validate_host(host: dict, job: dict, *, evidence: bool = True) -> None:
         verify_file_record(b.get("authorization_receipt"))
 
 
-def build_config(job: dict, host: dict, tree: Path, run_dir: Path) -> dict:
+def build_config(job: dict, host: dict, tree: Path, run_dir: Path, *, source_root: Path | None = None) -> dict:
     validate_host(host, job, evidence=False)
     p = host["profiles"][job["profile"]]
     model = "openrouter/" + p["model_id"]
@@ -371,12 +383,15 @@ def build_config(job: dict, host: dict, tree: Path, run_dir: Path) -> dict:
         "vkm-worker": {"mode": "primary", "model": model, "description": "Bounded VKM worker controlled by Codex", "steps": job["max_steps"], "permissions": rules},
         **{name: {"model": model} for name in ("title", "summary", "compaction")},
     }
-    return {
+    model_config={"limit":{"output":p["max_output_tokens"]}}
+    if job['profile'] in host.get('image_admission',{}):
+        model_config['modalities']={'input':['text','image'],'output':['text']}
+    config = {
         "$schema": "https://opencode.ai/config.json", "model": model,
         "default_agent": "vkm-worker", "warming": False, "snapshots": False,
         "formatter": False, "tool_output": {"max_lines": 400, "max_bytes": 24000},
         "providers": {"openrouter": {"settings": {"apiKey": "VKM_RUNTIME_GATE_REQUIRED_INVALID"},
-            "models": {p["model_id"]: {"limit": {"output": p["max_output_tokens"]}}},
+            "models": {p["model_id"]: model_config},
             "headers": {"X-OpenRouter-Metadata": "enabled"},
             "body": {"provider": {"only": p["provider_only"], "allow_fallbacks": False, "require_parameters": True},
                      "reasoning": {"enabled": True, "effort": p["reasoning_effort"], "exclude": True},
@@ -386,10 +401,40 @@ def build_config(job: dict, host: dict, tree: Path, run_dir: Path) -> dict:
         "compaction": {"auto": False},
         "plugins": host.get("plugin_directories", []),
     }
+    if job['profile'] in host.get('image_admission', {}):
+        from image_admission import ImageAdmission
+        policy = read_json(verify_file_record(host['image_admission'][job['profile']]))
+        ImageAdmission(policy, p, task_id=job['task_id'])
+        sizes = []
+        for source in policy['sources']:
+            name = relative_file(source['path'], read_only=True)
+            need(name in job.get('read_paths', []), 'native image limit source outside read paths')
+            # Plan precedes worktree creation; caller may supply the verified
+            # input checkout. Runtime independently verifies the new checkout.
+            input_root = source_root if source_root is not None else tree
+            target = input_root / name
+            inside(target, input_root)
+            verify_file_record({'path': str(target), 'sha256': source['sha256']})
+            sizes.append(4 * ((target.stat().st_size + 2) // 3))
+        need(max(sizes) + 1024 * 1024 <= 32 * 1024 * 1024, 'approved image event exceeds existing total stdio bound')
+        config['media'] = {'image': {
+            'auto_resize': False,
+            'max_width': max(x['width'] for x in policy['sources']),
+            'max_height': max(x['height'] for x in policy['sources']),
+            'max_base64_bytes': max(sizes),
+        }}
+    return config
 
 
 def validate_generated_config(config: dict) -> None:
     """Reject unknown native statements instead of relying on ignored warnings."""
+    if 'media' in config:
+        media = config['media']
+        need(isinstance(media, dict) and set(media) == {'image'}, 'unqualified native media config')
+        image = media['image']
+        need(isinstance(image, dict) and set(image) == {'auto_resize', 'max_width', 'max_height', 'max_base64_bytes'}, 'invalid native image limits')
+        need(image['auto_resize'] is False, 'native image auto transform forbidden')
+        need(all(type(image[k]) is int and image[k] > 0 for k in ['max_width', 'max_height', 'max_base64_bytes']), 'invalid native image bound')
     policy_actions = {"provider.use", "mcp.use", "plugin.use", "skill.use", "tool.use"}
     permission_actions = {"*", "read", "edit", "write", "shell", "skill"}
     for field, known in (("policies", policy_actions), ("permissions", permission_actions)):

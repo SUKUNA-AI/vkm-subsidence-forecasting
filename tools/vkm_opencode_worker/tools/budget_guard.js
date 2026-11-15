@@ -1,6 +1,31 @@
 // Native OpenCode V2 server plugin; accounting control only, no provider proxy.
 import crypto from "node:crypto";
 import fs from "node:fs";
+// SSE allows comment/heartbeat preambles, CRLF, metadata fields, and multiple
+// data lines per event. Never infer JSON framing from the first bytes alone.
+export function decodeProviderFrames(text, contentType = '') {
+  const normalized = text.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const sse = /text\/event-stream/i.test(contentType) || /(^|\n)(?:data:|:|event:|id:|retry:)/.test(normalized);
+  if (!sse) return [JSON.parse(normalized)];
+  const frames = []; let data = [];
+  const flush = () => {
+    if (!data.length) return;
+    const value = data.join('\n'); data = [];
+    if (value.trim() !== '[DONE]') frames.push(JSON.parse(value));
+  };
+  for (const line of normalized.split('\n')) {
+    if (line === '') {flush();continue;}
+    if (line.startsWith(':')) continue;
+    const colon = line.indexOf(':');
+    const field = colon < 0 ? line : line.slice(0, colon);
+    let value = colon < 0 ? '' : line.slice(colon + 1);
+    if (value.startsWith(' ')) value = value.slice(1);
+    if (field === 'data') data.push(value);
+  }
+  flush();
+  if (!frames.length) throw new Error('VKM_EMPTY_SSE_RESPONSE');
+  return frames;
+}
 export default {
   id: "vkm-budget-guard",
   async setup(ctx) {
@@ -52,6 +77,16 @@ export default {
       }
       const raw = Buffer.concat(chunks); const text = raw.toString("utf8");
       const response_sha256=crypto.createHash('sha256').update(raw).digest('hex');
+      // Persist only transport identifiers BEFORE parsing. Body framing errors
+      // must not discard the identifiers needed for explicit billing recovery.
+      const headers = {};
+      for (const name of ['x-request-id','x-generation-id','x-openrouter-request-id','cf-ray']) {
+        const value=e.response.headers.get(name);
+        if(value && /^[A-Za-z0-9._:/-]{1,256}$/.test(value))headers[name]=value;
+      }
+      const content_type=(e.response.headers.get('content-type') || '').split(';')[0].trim();
+      await rpc('/response-metadata',{attempt_id:pending,http_status:e.response.status,response_sha256,
+        content_type:/^[A-Za-z0-9.+/-]{0,128}$/.test(content_type)?content_type:'',headers});
       async function unresolved(reason, parsed) {
         const error=parsed?.error || {};
         let message=String(error.message || '').slice(0,2000);
@@ -59,16 +94,14 @@ export default {
         if(auth)message=message.split(auth).join('[REDACTED]');
         message=message.replace(/sk-or-[A-Za-z0-9_-]+/g,'[REDACTED]');
         await rpc('/unresolved',{attempt_id:pending,http_status:e.response.status,response_sha256,reason,
-          generation_id:typeof parsed?.id==='string'?parsed.id:null,
+          generation_id:typeof parsed?.id==='string'?parsed.id:(headers['x-generation-id'] || null),
           error_code:typeof error.code==='string'||typeof error.code==='number'?String(error.code):null,
           error_message:message});
         throw new Error('VKM_COST_UNRESOLVED');
       }
       let items;
       try {
-        items=text.trimStart().startsWith('data:')
-          ? text.split(/\r?\n/).filter(x=>x.startsWith('data:')&&!x.includes('[DONE]')).map(x=>JSON.parse(x.slice(5).trim()))
-          : [JSON.parse(text)];
+        items=decodeProviderFrames(text,e.response.headers.get('content-type') || '');
       } catch {await unresolved('NON_JSON_RESPONSE',null);}
       if(!e.response.ok)await unresolved('HTTP_ERROR',items[0]);
       const ids = [...new Set(items.map(x=>x.id).filter(Boolean))];

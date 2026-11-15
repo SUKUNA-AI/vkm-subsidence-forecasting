@@ -36,6 +36,7 @@ def main():
     parser.add_argument('--exe',type=Path,required=True);parser.add_argument('--out',type=Path,required=True)
     parser.add_argument('--case',choices=['positive','missing-plugin','over-cap','wrong-route','tool-outside','tool-junction','edit-new','write-new','shell-env','skill-only','http-error'],default='positive')
     parser.add_argument('--ledger-fixture',type=Path,help='Read-only input copied to output; NEVER mutate the supplied ledger')
+    parser.add_argument('--delegate-record',type=Path,help='Explicit frozen client/policy record for a copied-ledger qualification')
     args=parser.parse_args();args.out.mkdir(parents=True,exist_ok=False)
     seen=[]; auth_denials=[]
     class Handler(BaseHTTPRequestHandler):
@@ -89,7 +90,9 @@ def main():
         fixture=args.out/'fixture-ledger.json';fixture.write_bytes(args.ledger_fixture.read_bytes())
         record={'client_path':str(client),'client_sha256':sha256_file(client),'policy_path':str(policy),'policy_sha256':sha256_file(policy),
                 'requested_reasoning':{'enabled':True,'effort':'high','exclude':True}}
-        budget={'ledger_path':str(fixture),'total_budget_usd':'20','key_fingerprint':json.loads(fixture.read_bytes())['key_id'],
+        if args.delegate_record:
+            record={**json.loads(args.delegate_record.read_bytes()),'requested_reasoning':{'enabled':True,'effort':'high','exclude':True}}
+        budget={'ledger_path':str(fixture),'total_budget_usd':str(json.loads(fixture.read_bytes())['budget_usd']),'key_fingerprint':json.loads(fixture.read_bytes())['key_id'],
                 'key_remaining_usd':'18','diagnostic_reserve_usd':'.025'}
         factory=lambda:SharedSession.begin(budget,record,'cheap_code','.10','LOCAL-NATIVE-HOOK-FIXTURE',90,args.out/'shared-session.json')
     scope=ToolScope(workspace,{'read_paths':['fixture.txt'],'edit_paths':['newdir/generated.py'] if args.case in {'edit-new','write-new'} else [],'scenario':'code_investigation'},

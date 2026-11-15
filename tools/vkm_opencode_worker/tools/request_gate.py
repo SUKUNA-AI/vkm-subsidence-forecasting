@@ -9,24 +9,38 @@ import hashlib
 import hmac
 import json
 import queue
+import re
 import secrets
 import threading
 from decimal import Decimal
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
-from vkm_worker_core import WorkerError, need, finite_money, json_bytes, sha256_file, write_json, parse_json
+from vkm_worker_core import WorkerError, need, finite_money, json_bytes, sha256_file, write_json, parse_json, read_json, verify_file_record
 
 PROFILE_NAMES = {"deepseek": "cheap_code", "kimi": "engineering_research",
                  "hydrogen": "vision_documents", "opus": "critical_review"}
+INCLUSIVE_CAP_PROOF_SHA256 = "9fa36159effa948b24ad6fdd191625a6319c210dc58c31248e262999d29a9553"
+
 KINDS = {"primary": "main", "title": "title", "compaction": "compaction", "generate": "summary"}
 
 
 class WirePolicy:
-    def __init__(self, profile: dict, endpoint: dict, *, target_url="https://openrouter.ai/api/v1/chat/completions"):
+    def __init__(self, profile: dict, endpoint: dict, *, target_url="https://openrouter.ai/api/v1/chat/completions", image_policy=None, output_rate_policy=None):
         self.profile = profile
         self.endpoint = endpoint
         self.target_url = target_url
+        self.image_policy = image_policy
+        self.output_rate_policy = None
+        if output_rate_policy is not None:
+            policy = read_json(verify_file_record(output_rate_policy))
+            need(isinstance(policy, dict) and set(policy) == {'schema', 'status', 'model_id', 'provider_only', 'inclusive_output_cap', 'cap_fields', 'pricing_condition', 'proof'}, 'invalid output rate opt-in')
+            need(policy['schema'] == 'vkm.opencode.output-cap-accounting/1' and policy['status'] == 'APPROVED_BY_MAIN_CODEX', 'output rate policy awaits main review')
+            need(profile['model_id'] == policy['model_id'] == 'google/gemini-4-hydrogen' and profile['provider_only'] == policy['provider_only'] == ['google-ai-studio/flex'] and endpoint.get('tag') == 'google-ai-studio/flex', 'inclusive cap endpoint binding differs')
+            need(policy['inclusive_output_cap'] is True and policy['cap_fields'] == ['max_tokens', 'max_completion_tokens'] and policy['pricing_condition'] == 'FRESH_COMPLETION_EQUALS_INTERNAL_REASONING', 'unproved output cap semantics')
+            need(isinstance(policy['proof'], dict) and policy['proof'].get('sha256') == INCLUSIVE_CAP_PROOF_SHA256, 'output cap derivation proof differs')
+            verify_file_record(policy['proof'])
+            self.output_rate_policy = policy
 
     def inspect(self, payload: dict) -> tuple[dict, Decimal, dict]:
         need(set(payload) == {"body_text", "url", "kind"}, "unexpected hook request fields")
@@ -37,6 +51,7 @@ class WirePolicy:
         body = parse_json(payload["body_text"])
         need(isinstance(body, dict), "request body missing")
         p = self.profile
+        need(p.get('model_id') != 'moonshotai/kimi-k3.1-pro', 'Kimi API revoked by owner; use subscription workflow')
         need(body.get("model") == p["model_id"], "request model differs from selected model")
         provider = body.get("provider")
         need(provider == {"only": p["provider_only"], "allow_fallbacks": False, "require_parameters": True}, "request provider policy differs")
@@ -45,19 +60,25 @@ class WirePolicy:
         limits = [body[k] for k in ("max_tokens", "max_completion_tokens", "max_output_tokens") if k in body]
         need(len(limits) == 1 and type(limits[0]) is int and 0 < limits[0] <= p["max_output_tokens"], "missing/ambiguous/oversized output cap")
         output_cap = limits[0]
-        forbidden = sorted(set(body) & {"models", "route", "transforms", "plugins"})
+        forbidden = sorted(set(body) & {"models", "route", "transforms", "plugins", "web_search_options", "image_config", "audio"})
         need(not forbidden, "unqualified body routing/extension: " + ",".join(forbidden))
+        need(body.get('modalities',['text'])==['text'],'unqualified nontext output modality')
         # Bound text and tool schemas together. Multimodal inputs require a
         # separately qualified image/file accounting policy; never price as text.
         messages = body.get("messages")
         need(isinstance(messages, list) and messages, "missing messages")
-        for message in messages:
-            need(isinstance(message, dict), "invalid message")
-            content = message.get("content")
-            if isinstance(content, list):
-                need(all(isinstance(x, dict) and x.get("type") == "text" and isinstance(x.get("text"), str) for x in content), "unqualified nontext accounting")
-            else:
-                need(content is None or isinstance(content, str), "unqualified content")
+        image_evidence=None
+        if self.image_policy is not None:
+            input_bound,image_evidence=self.image_policy.body_bound(body)
+        else:
+            for message in messages:
+                need(isinstance(message, dict), "invalid message")
+                content = message.get("content")
+                if isinstance(content, list):
+                    need(all(isinstance(x, dict) and x.get("type") == "text" and isinstance(x.get("text"), str) for x in content), "unqualified nontext accounting")
+                else:
+                    need(content is None or isinstance(content, str), "unqualified content")
+            input_bound=len(raw)+4096
         ep = self.endpoint
         need(type(ep.get("context_length")) is int and type(ep.get("max_completion_tokens")) is int, "endpoint limits unknown")
         need(output_cap <= ep["max_completion_tokens"], "endpoint output limit exceeded")
@@ -68,15 +89,33 @@ class WirePolicy:
         # Tool-use may trigger caching. Use worst advertised cache tariff for
         # every profile, rather than assuming a cheaper cached request.
         prompt_rate = max(prompt_rate, *(finite_money(pricing.get(k, 0)) for k in ("input_cache_read", "input_cache_write", "input_cache_write_1h")))
-        output_rate = finite_money(pricing.get("completion"), "output tariff") + finite_money(pricing.get("internal_reasoning", 0))
-        input_bound = len(raw) + 4096
+        completion_rate = finite_money(pricing.get("completion"), "output tariff")
+        reasoning_rate = finite_money(pricing.get("internal_reasoning", 0), "reasoning tariff")
+        output_rate = completion_rate + reasoning_rate
+        output_evidence = {'method': 'SUM_UNVERIFIED_OUTPUT_CLASS_QUOTAS',
+                           'completion_rate': str(completion_rate), 'reasoning_rate': str(reasoning_rate)}
+        if self.output_rate_policy is not None:
+            need('internal_reasoning' in pricing and completion_rate == reasoning_rate, 'inclusive cap equal fresh rates condition failed')
+            cap_field = next(k for k in ['max_tokens', 'max_completion_tokens', 'max_output_tokens'] if k in body)
+            need(cap_field in self.output_rate_policy['cap_fields'], 'unproved inclusive output cap field')
+            output_rate = max(completion_rate, reasoning_rate)
+            output_evidence.update(method='MAX_DISJOINT_VISIBLE_REASONING_ONE_INCLUSIVE_CAP',
+                                   formula='V>=0,R>=0,V+R<=N => V*pc+R*pr<=N*max(pc,pr)',
+                                   cap_field=cap_field, inclusive_output_cap=True,
+                                   proof=self.output_rate_policy['proof'],
+                                   actual_provider_partition='NOT_ASSUMED_OR_INFERRED',
+                                   allowance='UNCHANGED_125_PERCENT_AND_CACHE_MAX')
         need(input_bound + output_cap <= ep["context_length"], "endpoint context bound exceeded")
-        estimate = (prompt_rate * input_bound + output_rate * output_cap + finite_money(pricing.get("request", 0))) * Decimal("1.25")
+        image_count=image_evidence['image_count'] if image_evidence else 0
+        image_fee=finite_money(pricing.get('image',0),'image tariff')*image_count
+        estimate = (prompt_rate * input_bound + output_rate * output_cap + finite_money(pricing.get("request", 0)) + image_fee) * Decimal("1.25")
         evidence = {"method": "EXACT_CAPTURED_BODY_UTF8_BYTES_PLUS_4096_PROTOCOL_GUARD_125_PERCENT",
                     "quantity_status": "CONSERVATIVE_ESTIMATE_NOT_PROVIDER_TOKENIZATION",
                     "request_bytes": len(raw), "input_bound": input_bound,
                     "max_tokens": output_cap, "input_rate_bound": str(prompt_rate),
-                    "output_rate_bound": str(output_rate), "upper_usd": str(estimate)}
+                    "output_rate_bound": str(output_rate), "output_rate_accounting": output_evidence, "upper_usd": str(estimate)}
+        if image_evidence:
+            evidence.update(method='APPROVED_IMAGE_NATIVE_MAX_PLUS_CANONICAL_TEXT_BYTES_PROTOCOL_GUARDS_125_PERCENT',images=image_evidence,image_fee_bound_usd=str(image_fee))
         pins = {"model": body["model"], "provider": provider, "reasoning": reason,
                 "request_sha256": hashlib.sha256(raw).hexdigest(), "kind": KINDS[payload["kind"]], "retry_count": 0}
         return pins, estimate, evidence
@@ -165,6 +204,17 @@ class HookGate:
                 # Deliberately no settle: POSSIBLY_SENT remains until abort/
                 # explicit main-Codex reconciliation, never assume zero cost.
                 return {'recorded':True,'accounting':'UNKNOWN_HOLD_REQUIRED'}
+            if path == '/response-metadata':
+                need(isinstance(payload,dict) and set(payload)=={'attempt_id','http_status','response_sha256','content_type','headers'},'invalid transport metadata')
+                need(self.inflight is not None and payload['attempt_id']==self.inflight,'transport attempt mismatch')
+                need(type(payload['http_status']) is int and 100<=payload['http_status']<=599,'invalid transport status')
+                need(isinstance(payload['response_sha256'],str) and re.fullmatch('[a-f0-9]{64}',payload['response_sha256']),'invalid transport digest')
+                need(isinstance(payload['content_type'],str) and re.fullmatch('[A-Za-z0-9.+/-]{0,128}',payload['content_type']),'invalid content type')
+                headers=payload['headers']
+                need(isinstance(headers,dict) and set(headers)<={'x-request-id','x-generation-id','x-openrouter-request-id','cf-ray'},'unapproved transport headers')
+                need(all(isinstance(v,str) and re.fullmatch('[A-Za-z0-9._:/-]{1,256}',v) for v in headers.values()),'invalid transport identifier')
+                write_json(self.run_dir/(self.inflight+'.transport.json'),{**payload,'billing_status':'IDENTIFIERS_ONLY_NOT_SETTLEMENT'},exclusive=True)
+                return {'recorded':True,'accounting':'UNCHANGED'}
             if path == "/before":
                 need(self.plugin_ready,'native guard handshake missing')
                 need(self.inflight is None, "concurrent request not admitted")

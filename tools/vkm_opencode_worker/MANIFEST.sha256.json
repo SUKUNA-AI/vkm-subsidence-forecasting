@@ -7,12 +7,12 @@
       "sha256": "e6ff2bbc6aed86c3584c3e6863d636f00763fe4a1c7633b7241d341a881adf37"
     },
     ".agents/skills/vkm-opencode-worker/SKILL.md": {
-      "bytes": 5889,
-      "sha256": "e0575f011dd608fb410423e62439a295e0766b34b249ab76801baacde2e1d782"
+      "bytes": 6541,
+      "sha256": "207aa3f600294043b29c76f742a08313c1b3097191300d9fa229b03d6a04e563"
     },
     ".agents/skills/vkm-opencode-worker/references/OPERATIONS.md": {
-      "bytes": 4264,
-      "sha256": "1ec0ea46b89f961b82495d46f6266c711ae32a9746d8c48385fceee146b2866d"
+      "bytes": 7241,
+      "sha256": "fd3c38beb385c37f88ac511decd1e85134c3e37d884f2bfd51c65b171f7d651b"
     },
     "scripts/run_offline_checks.py": {
       "bytes": 30521,
@@ -31,24 +31,24 @@
       "sha256": "04a94c0e9c9f4d67a4890c810beb9eaeefef4a9744022e5e6b94151ef7e57771"
     },
     "tools/vkm_opencode_worker/CODEX_TASK_RU.md": {
-      "bytes": 14447,
-      "sha256": "a80ec5739c59d3458b08b8e0375dba2fd257ffec7518d5aad5b4541f18c24c93"
+      "bytes": 15206,
+      "sha256": "0ac61b21442489292dbee69d73b7e64bcac1b71a277c1ad09ab0d6b2d50a166b"
     },
     "tools/vkm_opencode_worker/README.md": {
-      "bytes": 8909,
-      "sha256": "ebd451417742d335571eba007c703706576e7d05cc6235f3892cb188ef752230"
+      "bytes": 10798,
+      "sha256": "ab1df5dc6aba3c0ad4b6fce5db33e78a8d73fe8f70d4d9e4c30481c4df946926"
     },
     "tools/vkm_opencode_worker/docs/CONTRACT_RU.md": {
       "bytes": 11245,
       "sha256": "458fcb687706da5547ddcb5a4b7818759bf18c47ffef04394e709bec05dfe26b"
     },
     "tools/vkm_opencode_worker/docs/DEPLOYMENT_RU.md": {
-      "bytes": 12362,
-      "sha256": "eecaf57d10a1638a3045e925bfc9168527b55855ea8250fd40f7a76e92a1e304"
+      "bytes": 14258,
+      "sha256": "124f0e3b5bf83982ca5c03851cb44eb200cbf923c36ef334d71e4424c373524e"
     },
     "tools/vkm_opencode_worker/docs/INTEGRATION_RU.md": {
-      "bytes": 7661,
-      "sha256": "1d247feb8b26346b496021523f8aac9ce7ca5a414b45096b98da9ea7ab7cf8f3"
+      "bytes": 8775,
+      "sha256": "890fd9e1fe15ba6e5908f09422c4ad43e929c2ed23aa44529a90318634ef2963"
     },
     "tools/vkm_opencode_worker/docs/MCP_AND_MEMORY_RU.md": {
       "bytes": 7024,
@@ -87,24 +87,44 @@
       "sha256": "3098e11d913360b50642f42e30f837e8b49e25f44fec80ea9d0bc0157f3089ff"
     },
     "tools/vkm_opencode_worker/tests/test_bundle.py": {
-      "bytes": 2542,
-      "sha256": "d4ed2f21e71beb910d0a5b3c5802cb31e5ccfdfd09f99b864a65451d0655db76"
+      "bytes": 2682,
+      "sha256": "c8d49e92e4db304b52f7fc2a3e7a8ee43fb2bab8a212348fc5d900505359e6a4"
+    },
+    "tools/vkm_opencode_worker/tests/test_image_admission.py": {
+      "bytes": 7458,
+      "sha256": "9b0669e49e183d054fac0edec9699a0b703058548e0df49438b41ad9d270d597"
     },
     "tools/vkm_opencode_worker/tests/test_mcp_preparation.py": {
       "bytes": 3709,
       "sha256": "b277a0d6007b8298458f62c30597d2f0671e783a2327dbb08c95f9fd8e85b3cc"
     },
+    "tools/vkm_opencode_worker/tests/test_output_cap_accounting.py": {
+      "bytes": 8546,
+      "sha256": "2587f8800542f075beb524f53bbd4518890e91fbfbbb416f0711b76101fedfe6"
+    },
     "tools/vkm_opencode_worker/tests/test_request_gate.py": {
-      "bytes": 6549,
-      "sha256": "f7e5656d1c8fe8c14afb1a3f09698c4b5444b04a38cb1b629421dae9a84b7718"
+      "bytes": 7924,
+      "sha256": "5a2babce8e916c2f058950bc677cbedb5bf27527e1cd562819199acb3fbdf6e0"
+    },
+    "tools/vkm_opencode_worker/tests/test_shared_budget_portable.py": {
+      "bytes": 5816,
+      "sha256": "1d044a45136f93f85bbf6f4775b70c2d6f6088889a83a96237963267280d5297"
+    },
+    "tools/vkm_opencode_worker/tests/test_sse.mjs": {
+      "bytes": 1197,
+      "sha256": "12b1b40347745ef729e75a50e98f1a51ec1b99a7526fe31acdf64c5bc1224a5c"
+    },
+    "tools/vkm_opencode_worker/tests/test_sse_bridge.py": {
+      "bytes": 1567,
+      "sha256": "e1cfb539cbe1220c25aa6146f1cd912af6abdbf58ade0e173ab29355b7b61e70"
     },
     "tools/vkm_opencode_worker/tests/test_tool_scope.py": {
       "bytes": 3734,
       "sha256": "4016cbb12ed5a22a91c936a3247f1358bb22fb3d675a6e14e89320668f3f7b89"
     },
     "tools/vkm_opencode_worker/tests/test_worker.py": {
-      "bytes": 26331,
-      "sha256": "b46fce756228139539cd7bd970b74aa9cd6d49b97169032e371065abd267be19"
+      "bytes": 27418,
+      "sha256": "83464f3f745b488bda33e945420c8e79d74e0c00d330092b358f96e6ae567dab"
     },
     "tools/vkm_opencode_worker/tools/Get-VkmNativeInventory.ps1": {
       "bytes": 2121,
@@ -119,44 +139,48 @@
       "sha256": "0b258f8638c4855e6dbd8e59e4b2a986487bce3146b3ac86a3bc056b8f9d5447"
     },
     "tools/vkm_opencode_worker/tools/budget_guard.js": {
-      "bytes": 4477,
-      "sha256": "b3f1d51a0d50c04332c94b1145985009c4da1d7b6206f098c01f042313e90f73"
+      "bytes": 6260,
+      "sha256": "eec3df3fcb333942808ff63dd2f0a8e7a6543d2fdb01acfffd9441baa2785173"
+    },
+    "tools/vkm_opencode_worker/tools/image_admission.py": {
+      "bytes": 10123,
+      "sha256": "7898955b61f16c83b15713d67dc6d95dea4603c407f2cd1cf30c78ea1c2cb08a"
     },
     "tools/vkm_opencode_worker/tools/mcp_preparation.py": {
       "bytes": 3415,
       "sha256": "8339a68ee2cebd297609f71905c729309a2a5993cb9c7f62eed05673b531e6aa"
     },
     "tools/vkm_opencode_worker/tools/process_tree.py": {
-      "bytes": 9508,
-      "sha256": "07976e568cee0ce86b2e81c7d24a571f7040ed0a549323045a42a612e0ca9d94"
+      "bytes": 12020,
+      "sha256": "92c94da4de4d03c3d92f777a5da8b57e6c210a640a78416404153c899943a437"
     },
     "tools/vkm_opencode_worker/tools/qualify_hook.py": {
-      "bytes": 14710,
-      "sha256": "666c6882c39236a15e11db44b80d8ab31bbb7440da673a7a1c88e8f163f78e59"
+      "bytes": 15062,
+      "sha256": "a4dd8039d36892577c48d8c55dfcdef933cfe2b12b59aeb3d837a61736008efb"
     },
     "tools/vkm_opencode_worker/tools/request_gate.py": {
-      "bytes": 12494,
-      "sha256": "11ecada8a5989818c78c2945ee1af62bbf2360c29dae28c7ef86f0dad548358f"
+      "bytes": 17705,
+      "sha256": "c29257e5dac3027f4f668d1e396fcb6356987e769e233cbb5b0fc146ab1f44c1"
     },
     "tools/vkm_opencode_worker/tools/run_tests.py": {
       "bytes": 3670,
       "sha256": "c90a44e6afda1121eb2961e229d4f332ebafa0f6441e7507b897ba954fc1fc6a"
     },
     "tools/vkm_opencode_worker/tools/shared_budget.py": {
-      "bytes": 24589,
-      "sha256": "4e4367a3c8208ca73ffff44c3373b55cc04952be7debe08a9e1b555a127f4572"
+      "bytes": 25003,
+      "sha256": "639a448e6c7e8e2c6cc4c7af39d8e2c913ad14c5e5a8d9a31e16e3f3215650b0"
     },
     "tools/vkm_opencode_worker/tools/tool_scope.py": {
       "bytes": 3750,
       "sha256": "e5f7e802bb831ed8ad5564444191cc1377fd6a13b0e1678d97a596adcfbc44d2"
     },
     "tools/vkm_opencode_worker/tools/vkm_opencode_worker.py": {
-      "bytes": 29821,
-      "sha256": "683b4e0d08d4b2b903b123fb1dafbd56586c68e1f4311c641a97e19ccaeb75f6"
+      "bytes": 33706,
+      "sha256": "68f5bfb048121c83bdfa6246b92dd98f9a5d553d56bf73d0200ec31f86875901"
     },
     "tools/vkm_opencode_worker/tools/vkm_worker_core.py": {
-      "bytes": 28078,
-      "sha256": "b537f63188831a1671ea44d4ac7bc76cda8b2201f851d4e096d9e553f5272b91"
+      "bytes": 31595,
+      "sha256": "de83f1398f14ea623ed35642e94f759da269a0ac1112046ff42e69c744bad6eb"
     },
     "tools/vkm_opencode_worker/validation/input-packages.json": {
       "bytes": 411,
@@ -174,9 +198,17 @@
       "bytes": 14439,
       "sha256": "518fe1f5ac49bb0b7a46cb08ac52d63e0596953f6e43e1cfdfd1b752c45a9f71"
     },
+    "tools/vkm_opencode_worker/validation/offline-results.log": {
+      "bytes": 9607,
+      "sha256": "096520a0dd5ebfe0b646406a7201093c6a6c7e6e5fd7f720ca88e107fa218ed5"
+    },
     "tools/vkm_opencode_worker/validation/reproduce_v1.py": {
       "bytes": 2667,
       "sha256": "d86d34e15a95d598f2bec6ce9edf19df8dd517439dbed84f536bd1d2375934aa"
+    },
+    "tools/vkm_opencode_worker/validation/v1-baseline-tests.log": {
+      "bytes": 1063,
+      "sha256": "9acff09e1132c96e9ec1dc3dff5a139ab70438ec71c5fad7d17ecb548458d2c2"
     },
     "tools/vkm_opencode_worker/validation/v1-counterexamples.json": {
       "bytes": 490,
@@ -200,5 +232,8 @@
     }
   },
   "schema": "vkm.opencode.code-manifest/2",
-  "self_excluded": true
+  "self_excluded": true,
+  "runtime_implementation_sha256": "031ffc74898582e2d5b6353de4094f3b88a7fe78d7fa5737f40f28c605cd0f95",
+  "runtime_hash_scope": "tools/*.{py,js,ps1} + worker_skills/**/*.md; tests/docs/thismanifest excluded",
+  "current_scope": "PUBLIC_CODE_DOCS_SCHEMAS_SYNTHETIC_TESTS_ONLY; native/runtime/paid/source receipts and hosts are private and not granted by thismanifest"
 }

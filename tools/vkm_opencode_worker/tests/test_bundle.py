@@ -20,25 +20,25 @@ class BundleTests(unittest.TestCase):
         self.assertTrue((skill/'references/OPERATIONS.md').is_file())
     def test_all_worker_skills_exist(self):
         for name in c.SCENARIOS.values():
-            p=ROOT/'worker_skills'/name/'SKILL.md';s=p.read_text()
+            p=ROOT/'worker_skills'/name/'SKILL.md';s=p.read_text(encoding="utf-8")
             self.assertTrue(s.startswith('---\n'));self.assertIn('name: '+name+'\n',s)
     def test_host_template_cannot_be_mistaken_for_live(self):
-        h=json.loads((ROOT/'templates/host.template.json').read_text())
+        h=json.loads((ROOT/'templates/host.template.json').read_text(encoding="utf-8"))
         with self.assertRaises(c.WorkerError):c.validate_host(h,{'profile':'deepseek','mcp':[],'mode':'review'},evidence=False)
     def test_job_template_requires_actual_base(self):
-        j=json.loads((ROOT/'examples/coverage-investigation.template.json').read_text())
+        j=json.loads((ROOT/'examples/coverage-investigation.template.json').read_text(encoding="utf-8"))
         with self.assertRaises(c.WorkerError):c.validate_job(j)
     def test_native_status_is_honest(self):
-        n=json.loads((ROOT/'validation/native-status.json').read_text())
+        n=json.loads((ROOT/'validation/native-status.json').read_text(encoding="utf-8"))
         self.assertFalse(n['checked_here']);self.assertEqual(set(n['checks'].values()),{'NOT_RUN'})
     def test_required_documents_present(self):
         for name in ['README.md','CODEX_TASK_RU.md','docs/REVIEW_RU.md','docs/DEPLOYMENT_RU.md','docs/CONTRACT_RU.md','docs/MCP_AND_MEMORY_RU.md','docs/SOURCES.md']:
             self.assertGreater((ROOT/name).stat().st_size,100)
     def test_input_archives_identified(self):
-        e=json.loads((ROOT/'validation/input-packages.json').read_text());self.assertEqual(len(e['inputs']),2)
+        e=json.loads((ROOT/'validation/input-packages.json').read_text(encoding="utf-8"));self.assertEqual(len(e['inputs']),2)
         for item in e['inputs']:self.assertRegex(item['sha256'],r'^[a-f0-9]{64}$')
     def test_v1_counterexamples_preserved(self):
-        e=json.loads((ROOT/'validation/v1-counterexamples.json').read_text());self.assertEqual(len(e),4)
+        e=json.loads((ROOT/'validation/v1-counterexamples.json').read_text(encoding="utf-8"));self.assertEqual(len(e),4)
         self.assertTrue(all(r['reproduced'] for r in e))
 
 if __name__=='__main__':unittest.main(verbosity=2)

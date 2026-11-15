@@ -42,7 +42,9 @@ import time
 import types
 import uuid
 
-TOTAL = Decimal('20')
+# Explicit owner-authorized history: original20 and later40 on the SAME ledger.
+# An arbitrary caller number (including observed server22) remains forbidden.
+AUTHORIZED_TOTALS = frozenset({Decimal('20'), Decimal('40')})
 DIAGNOSTIC = Decimal('.025')
 SCHEMA = 'vkm.opencode.shared-budget/1'
 KINDS = frozenset({'main', 'title', 'summary', 'compaction', 'tool_followup'})
@@ -137,7 +139,7 @@ class SharedSession:
         obj._deadline = time.monotonic() + runtime_sec
         obj._state = {'schema': SCHEMA, 'task_id': task_id, 'profile': profile,
                       'model': spec[0], 'provider_only': spec[1], 'session_cap_usd': str(cap),
-                      'total_budget_usd': str(TOTAL), 'diagnostic_reserve_usd': str(DIAGNOSTIC),
+                      'total_budget_usd': str(obj.total), 'diagnostic_reserve_usd': str(DIAGNOSTIC),
                       'ledger_path': str(obj.ledger), 'key_fingerprint': obj.key_id,
                       'client_record': dict(obj.record), 'runtime_sec': runtime_sec,
                       'state': 'PREPARING', 'attempts': [], 'violations': [],
@@ -146,18 +148,18 @@ class SharedSession:
             obj._acquire()
             ledger = obj.backend.load_json(obj.ledger)
             budget, spent, holds, _, _ = obj.backend._ledger_fields(ledger)
-            _need(budget == TOTAL and ledger['key_id'] == obj.key_id, 'SHARED_LEDGER_IDENTITY_MISMATCH')
+            _need(budget == obj.total and ledger['key_id'] == obj.key_id, 'SHARED_LEDGER_IDENTITY_MISMATCH')
             _need(ledger.get('owner_local_cap_only', False) is False, 'SECOND_BUDGET_REJECTED')
             _need(ledger['blocked'] is False, 'UNKNOWN_EXECUTION_COST')
             _need(not holds, 'PENDING_EXECUTION_COST')
             amount = obj.backend._ledger_money_sum((spent, cap, DIAGNOSTIC))
-            _need(amount <= TOTAL and obj.backend._ledger_money_sum((cap, DIAGNOSTIC)) <= obj.key_remaining,
+            _need(amount <= obj.total and obj.backend._ledger_money_sum((cap, DIAGNOSTIC)) <= obj.key_remaining,
                   'DIAGNOSTIC_RESERVE_PROTECTED')
             obj._expected_spent = spent
             obj._state['spent_before_usd'] = str(spent)
             obj._state['ledger_before_sha256'] = _sha(obj.ledger.read_bytes())
             obj._save()
-            token = obj.backend.reserve(obj.ledger, '20', obj.key_id, obj.key_remaining,
+            token = obj.backend.reserve(obj.ledger, str(obj.total), obj.key_id, obj.key_remaining,
                                         cap, profile=profile, lease_seconds=runtime_sec + 60)
             obj._state.update(reservation_token=token, state='OPEN')
             obj._save()
@@ -177,7 +179,8 @@ class SharedSession:
         self.record['policy_path'] = str(_path(record['policy_path']))
         self.ledger = _path(host['ledger_path'])
         _need(self.ledger.is_file(), 'EXISTING_LEDGER_REQUIRED')
-        _need(self.backend.money(host.get('total_budget_usd')) == TOTAL, 'SECOND_BUDGET_REJECTED')
+        self.total = self.backend.money(host.get('total_budget_usd'))
+        _need(self.total in AUTHORIZED_TOTALS, 'SECOND_BUDGET_REJECTED')
         _need(self.backend.money(host.get('diagnostic_reserve_usd')) == DIAGNOSTIC, 'DIAGNOSTIC_RESERVE_REQUIRED')
         self.key_id = host.get('key_fingerprint')
         _need(_hex(self.key_id), 'KEY_FINGERPRINT_REQUIRED')
@@ -255,7 +258,7 @@ class SharedSession:
         self._check_lock()
         ledger = self.backend.load_json(self.ledger)
         budget, spent, holds, _, _ = self.backend._ledger_fields(ledger)
-        _need(budget == TOTAL and ledger['key_id'] == self.key_id, 'SHARED_LEDGER_IDENTITY_MISMATCH')
+        _need(budget == self.total and ledger['key_id'] == self.key_id, 'SHARED_LEDGER_IDENTITY_MISMATCH')
         token = self._state.get('reservation_token')
         _need(token in holds and self.backend.money(holds[token]) == self.cap, 'RESERVATION_IDENTITY_MISMATCH')
         _need(set(holds) == {token}, 'FOREIGN_RESERVATION_DURING_SERIAL_SESSION')
@@ -419,6 +422,8 @@ class SharedSession:
         obj._receipt_sha = _sha(obj.receipt_path.read_bytes())
         _need(obj._state.get('schema') == SCHEMA and obj._state.get('key_fingerprint') == obj.key_id,
               'RECONCILIATION_IDENTITY_MISMATCH')
+        _need(obj.backend.money(obj._state.get('total_budget_usd')) == obj.total,
+              'RECONCILIATION_AUTHORIZATION_VERSION_MISMATCH')
         _need(_path(obj._state.get('ledger_path')) == obj.ledger, 'RECONCILIATION_IDENTITY_MISMATCH')
         for field in ('client_sha256', 'policy_sha256'):
             _need(obj._state.get('client_record', {}).get(field) == current_client_record.get(field),

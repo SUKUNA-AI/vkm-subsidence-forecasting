@@ -53,6 +53,40 @@ class WindowsJob:
             raise WorkerError("cannot contain Windows worker process tree")
         self.handle = h; self.kernel = k
 
+    def terminate_and_verify_empty(self, timeout=15.0):
+        """Explicit owned-job completion proof; handle stays valid until query0."""
+        proof = {"method": "WINDOWS_OWNED_JOB_TERMINATE_QUERY_ACTIVE_PROCESSES",
+                 "tree_cleanup_proven": False, "active_processes": None,
+                 "termination_succeeded": False, "query_succeeded": False}
+        if os.name != "nt" or not self.handle:
+            return proof
+        from ctypes import wintypes as W
+        class ACCOUNTING(ctypes.Structure):
+            _fields_ = [("TotalUserTime", ctypes.c_int64), ("TotalKernelTime", ctypes.c_int64),
+                        ("ThisPeriodTotalUserTime", ctypes.c_int64), ("ThisPeriodTotalKernelTime", ctypes.c_int64),
+                        ("TotalPageFaultCount", W.DWORD), ("TotalProcesses", W.DWORD),
+                        ("ActiveProcesses", W.DWORD), ("TotalTerminatedProcesses", W.DWORD)]
+        k = self.kernel
+        k.TerminateJobObject.argtypes = [W.HANDLE, W.UINT]; k.TerminateJobObject.restype = W.BOOL
+        k.QueryInformationJobObject.argtypes = [W.HANDLE, ctypes.c_int, ctypes.c_void_p, W.DWORD, ctypes.c_void_p]
+        k.QueryInformationJobObject.restype = W.BOOL
+        proof["termination_succeeded"] = bool(k.TerminateJobObject(self.handle, 1))
+        if not proof["termination_succeeded"]:
+            return proof
+        deadline = time.monotonic() + timeout
+        while True:
+            info = ACCOUNTING()
+            if not k.QueryInformationJobObject(self.handle, 1, ctypes.byref(info), ctypes.sizeof(info), None):
+                return proof
+            proof["query_succeeded"] = True
+            proof["active_processes"] = int(info.ActiveProcesses)
+            if info.ActiveProcesses == 0:
+                proof["tree_cleanup_proven"] = True
+                return proof
+            if time.monotonic() >= deadline:
+                return proof
+            time.sleep(0.02)
+
     def close(self):
         if self.handle:
             self.kernel.CloseHandle(self.handle)
@@ -103,10 +137,14 @@ def resume_suspended(proc) -> None:
         k.CloseHandle(thread)
 
 
-def stop_tree(proc, job: WindowsJob | None) -> None:
+def stop_tree(proc, job: WindowsJob | None) -> dict:
+    proof = {"method": "NO_EXPLICIT_WINDOWS_JOB_QUERY_PROOF", "tree_cleanup_proven": False}
     if os.name == "nt":
         if job and job.handle:
-            job.close()
+            try:
+                proof = job.terminate_and_verify_empty()
+            finally:
+                job.close()
         elif proc.poll() is None:
             subprocess.run(["taskkill.exe", "/T", "/F", "/PID", str(proc.pid)],
                            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
@@ -123,6 +161,7 @@ def stop_tree(proc, job: WindowsJob | None) -> None:
         proc.wait(timeout=15)
     except subprocess.TimeoutExpired as exc:
         raise WorkerError("process tree did not stop") from exc
+    return proof
 
 
 def supervise(argv: list[str], *, cwd: Path, env: dict, timeout: int, stdout_line,
@@ -201,11 +240,12 @@ def supervise(argv: list[str], *, cwd: Path, env: dict, timeout: int, stdout_lin
                 status = "TIMED_OUT"
     finally:
         stopped.set()
-        stop_tree(proc, job)
+        cleanup = stop_tree(proc, job)
         for stream in (proc.stdout, proc.stderr):
             if stream:
                 stream.close()
         for thread in threads:
             thread.join(timeout=2)
     return {"lifecycle": status, "returncode": proc.returncode, "bytes_observed": size,
+            "tree_cleanup_proven": cleanup.get("tree_cleanup_proven") is True, "tree_cleanup": cleanup,
             "duration_sec": round(time.monotonic() - started, 3)}

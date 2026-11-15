@@ -191,7 +191,7 @@ def plan(job: dict, host: dict, repo: Path) -> dict:
     return {"schema": "vkm.opencode.plan/2", "task_id": job["task_id"], "repo": str(repo), "base_sha": base,
             "worktree": str(tree), "run_dir": str(run_dir), "profile": job["profile"],
             "model": "openrouter/" + host["profiles"][job["profile"]]["model_id"],
-            "config": build_config(job, host, tree, run_dir), "job_sha256": digest(job),
+            "config": build_config(job, host, tree, run_dir, source_root=repo), "job_sha256": digest(job),
             "inference_performed": False, "native_acceptance": "REQUIRED_BEFORE_RUN"}
 
 
@@ -202,6 +202,12 @@ def checkout_controls(tree: Path) -> None:
         need(not p.exists() and not p.is_symlink(), "source has OpenCode control files: reconcile in a dedicated integration, never overwrite")
     for path in tree.rglob("*"):
         no_reparse(path)
+
+
+def checkout_base(repo: Path, tree: Path, base_sha: str) -> None:
+    # Command-scoped only: tracked attributes retain their intended semantics.
+    git(repo, '-c', 'core.autocrlf=false', '-c', 'core.eol=lf',
+        'worktree', 'add', '--detach', str(tree), base_sha)
 
 
 def write_owned(path: Path, data: bytes, owned: dict) -> None:
@@ -272,6 +278,13 @@ def start_budget_gate(job, host, run_dir, key_before):
     from shared_budget import SharedSession
     settings = host.get("shared_ledger")
     need(isinstance(settings, dict), "existing shared ledger is required for instrumental runs")
+    total = finite_money(host['budget']['authorized_total_usd'])
+    if total == 40:
+        authority = read_json(verify_file_record(host['budget'].get('authorization_receipt')))
+        need(authority.get('schema') == 'vkm.owner-budget-authorization/2', 'explicit40 owner authority required')
+        need(finite_money(authority.get('authorized_total_usd')) == total and authority.get('key_fingerprint') == host['budget']['key_fingerprint'], '40 authority identity mismatch')
+        need(Path(authority.get('ledger_path','')).resolve() == Path(settings['ledger_path']).resolve(), '40 authority ledger differs')
+        need(authority.get('per_call_caps_changed') is False and authority.get('fallback_authorized') is False and authority.get('key_rotation_authorized_by_this_receipt') is False, '40 authority cannot change model caps/routes/key')
     record = settings.get("current_client", {})
     for name in ("client", "policy"):
         verify_file_record({"path": record.get(name + "_path"), "sha256": record.get(name + "_sha256")})
@@ -285,13 +298,20 @@ def start_budget_gate(job, host, run_dir, key_before):
     policy = read_json(Path(record["policy_path"]))["profiles"][profile_name]
     need(selected["reasoning_effort"] == policy["default_effort"], "host reasoning differs from explicit policy default")
     metadata = read_json(verify_file_record(selected.get("endpoint_metadata")), limit=32 * 1024 * 1024)
-    _, _, endpoint = client.select_endpoint(metadata, profile_name, fresh=True)
+    _, model_metadata, endpoint = client.select_endpoint(metadata, profile_name, fresh=True)
     need({"tools", "tool_choice"} <= set(endpoint["supported_parameters"]), "selected endpoint tools unsupported")
+    image_policy=None
+    image_record=host.get('image_admission',{}).get(job['profile'])
+    if image_record is not None:
+        need('image' in model_metadata.get('architecture',{}).get('input_modalities',[]),'selected model image capability unconfirmed')
+        from image_admission import ImageAdmission
+        image_policy=ImageAdmission(read_json(verify_file_record(image_record)),selected,
+                                    workspace=run_dir/'worktree',read_paths=job.get('read_paths',[]),task_id=job['task_id'],metadata_guard=getattr(client,'guard_image_metadata',None))
     financial = read_json(verify_file_record(host.get("accounting_qualification")))
     need(financial.get("schema") == "vkm.opencode.accounting-qualification/2" and financial.get("status") == "APPROVED_BY_MAIN_CODEX", "per-request bounds/accounting not approved")
     need(financial.get("implementation_sha256") == implementation_hash(), "accounting qualification changed")
     cap = str(settings.get("session_caps", {}).get(job["profile"], cap))
-    budget_record = {"ledger_path": settings["ledger_path"], "total_budget_usd": "20",
+    budget_record = {"ledger_path": settings["ledger_path"], "total_budget_usd": str(total),
                      "key_fingerprint": host["budget"]["key_fingerprint"], "key_remaining_usd": key_before["remaining"],
                      "diagnostic_reserve_usd": ".025"}
     record = {**record, "requested_reasoning": {"enabled": True, "effort": selected["reasoning_effort"], "exclude": True}}
@@ -300,11 +320,15 @@ def start_budget_gate(job, host, run_dir, key_before):
                                    job["max_runtime_sec"], run_dir / "shared-accounting.json")
     tool_scope = ToolScope(run_dir / 'worktree',job,host.get('shell_commands',{}).get(job['scenario'],[]),
                            host.get('mcp_tool_guards',{}))
-    return HookGate(BudgetThread(factory), WirePolicy(selected, endpoint), run_dir,tool_scope=tool_scope)
+    # Reject malformed opt-in before any reservation/ledger supervisor begins.
+    wire_policy = WirePolicy(selected, endpoint, image_policy=image_policy,
+                             output_rate_policy=host.get('output_rate_policy', {}).get(job['profile']))
+    return HookGate(BudgetThread(factory), wire_policy, run_dir, tool_scope=tool_scope)
 
 
 def execute(job: dict, host: dict, repo: Path) -> dict:
     require_windows()
+    need(job.get('profile') != 'kimi', 'Kimi API revoked by owner; use subscription workflow')
     p = plan(job, host, repo)
     validate_host(host, job, evidence=True)
     verify_native(host)
@@ -329,7 +353,9 @@ def execute(job: dict, host: dict, repo: Path) -> dict:
         write_json(run_dir / "job.json", job, exclusive=True)
         write_json(run_dir / "plan.json", p, exclusive=True)
         # An explicit immutable base, not implicit HEAD and not the dirty checkout.
-        git(repo, "worktree", "add", "--detach", str(tree), job["base_sha"])
+        # Do not inherit host autocrlf conversion for frozen scientific/code
+        # inputs. Explicit tracked attributes still apply; no Git config is saved.
+        checkout_base(repo,tree,job['base_sha'])
         checkout_controls(tree)
         for rel in job["edit_paths"]:
             inside(tree / rel, tree)
@@ -337,6 +363,12 @@ def execute(job: dict, host: dict, repo: Path) -> dict:
         for rel in job.get("read_paths", []):
             inside(tree / rel, tree)
             need((tree / rel).is_file(), "explicit read file missing")
+        write_json(run_dir / 'checkout-inputs.json', {
+            'policy':'PER_COMMAND_AUTOCRLF_FALSE_EOL_LF_TRACKED_ATTRIBUTES_PRESERVED',
+            'global_or_repository_config_changed':False,
+            'base_sha':job['base_sha'],
+            'read_files':[{ 'path':rel,'sha256':sha256_file(tree / rel)}
+                          for rel in job.get('read_paths',[])]}, exclusive=True)
         git_hash = sha256_file(tree / ".git")
         receipt['mcp_preparation'] = prepare_mcp(job,host,tree,run_dir,write_owned,owned)
         gate = start_budget_gate(job, host, run_dir, before)
@@ -375,6 +407,13 @@ def execute(job: dict, host: dict, repo: Path) -> dict:
         launched = True
         receipt["status"] = "RUNNING"
         write_json(run_dir / "receipt.json", receipt)
+        # Image tool events contain original base64 bytes. Permit only the
+        # SHA-approved largest image plus the unchanged 1MiB event envelope;
+        # total stdout/stderr remains bounded by the original 32MiB limit.
+        output_line_limit = min(MAX_ARTIFACT, 1024 * 1024 + p['config'].get('media', {}).get('image', {}).get('max_base64_bytes', 0))
+        need(output_line_limit <= MAX_ARTIFACT, 'image event exceeds existing total stdio bound')
+        receipt['stdio_bounds'] = {'max_line_bytes': output_line_limit, 'max_total_bytes': MAX_ARTIFACT,
+                                   'basis': 'EXACT_APPROVED_IMAGE_BASE64_PLUS_1MIB_ENVELOPE_OR_UNCHANGED_TEXT_1MIB'}
         with (run_dir / "events.meta.jsonl").open("x", encoding="utf-8") as out, (run_dir / "stderr.redacted.log").open("x", encoding="utf-8") as err:
             def event_line(line):
                 if line.strip():
@@ -382,8 +421,9 @@ def execute(job: dict, host: dict, repo: Path) -> dict:
             def error_line(line):
                 err.write(sanitize(line, [key])); err.flush()
             proc = supervise(argv, cwd=tree, env=env, timeout=job["max_runtime_sec"], stdout_line=event_line, stderr_line=error_line,
+                             max_line=output_line_limit, max_bytes=MAX_ARTIFACT,
                              stdin_bytes=prompt(job).encode("utf-8"))
-        receipt["shared_accounting"] = gate.close(clean=proc["lifecycle"] == "EXITED" and proc["returncode"] == 0)
+        receipt["shared_accounting"] = gate.close(clean=proc.get("tree_cleanup_proven") is True)
         gate = None
         receipt["process"] = proc
         receipt["events"] = events.summary()

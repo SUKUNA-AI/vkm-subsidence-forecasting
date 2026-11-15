@@ -1,5 +1,12 @@
 > Текущая интеграция: [docs/INTEGRATION_RU.md](docs/INTEGRATION_RU.md). Ниже сохранено описание исходного архива; исходные 101 offline checks не являются текущей native/API-приёмкой. Координаторский Skill находится в корне PUBLIC `.agents/skills/vkm-opencode-worker/`.
 
+
+Текущие API-задачи используют DeepSeek, Hydrogen и Opus; Kimi API отозван владельцем, подписочный маршрут оформляется отдельно. Историческое описание ниже не является текущей матрицей допусков. Точный профиль, бюджет, native-доказательства и состояние конкретного запуска задаются отдельным одобренным host manifest и receipts; конфигурация сама по себе не доказывает доступность.
+
+Текущая CPU-процедура `tools/run_tests.py` и repository bridge обнаруживают Python-контракты, реальные tempfile SharedSession/Delegate-проверки и девять JS SSE-контрпримеров через Node. Отсутствие Node — ошибка проверки, не PASS/SKIP; source bytes теста и JS модуля копируются без изменений в временный ESM-каталог. Эти проверки не обращаются к API и не заменяют native/OpenCode/source QA.
+
+Для imagejob единый предел строки stdout **и stderr** вычисляется как `min(32MiB, largest SHA-approved original base64 bytes + 1MiB)`. Он действует на все строки этого job, включая обычный текст: это не отдельная гарантия 1MiB для не-графического содержимого. Для TEXT_ONLY остаётся 1MiB; общий лимит stdout+stderr остаётся 32MiB. Ни размеры изображения, ни кадры источника ради прохождения лимита не уменьшаются.
+
 # VKM · Codex → OpenCode Windows → OpenRouter · v2
 
 Дата ревью: 14.11.2026. Этот пакет заменяет **оба** предыдущих пакета: Skill Draft и Windows Integration v1.
