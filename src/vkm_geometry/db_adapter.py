@@ -266,15 +266,53 @@ def _current(connection, pg, plan):
     return True
 
 
+def _order_exact(records, key, label):
+    """Impose one exact-identity order shared by both engines and the plan.
+
+    Python string comparison is code-point based, so database locale and
+    collation cannot decide row order. Equal identities are a Conflict rather
+    than being merged by a map/set: cardinality stays visible in the comparison.
+    """
+    try:
+        ordered = sorted(records, key=key)
+    except (IndexError, KeyError, TypeError) as error:
+        raise Conflict(f"{label} are malformed") from error
+    previous = None
+    for record in ordered:
+        identity = key(record)
+        if identity == previous:
+            raise Conflict(f"{label} contain a duplicated identity")
+        previous = identity
+    return ordered
+
+
 def _assert_rows(connection, pg, plan):
     records = _q(connection, pg, f"SELECT content_digest,extraction_version,registry_sha256,CAST(batch_json AS TEXT) AS batch_json FROM {SCHEMA}.{TABLES[0]} WHERE batch_id=?", (plan["batch_id"],)).fetchall()
     _assert_batch_record(plan, records)
     raw = _q(connection, pg, f"SELECT {','.join(COLUMNS)} FROM {SCHEMA}.{TABLES[2]} WHERE batch_id=? ORDER BY source_feature_id", (plan["batch_id"],)).fetchall()
-    rows = [dict(zip(COLUMNS, row)) for row in raw]
-    if rows != plan["rows"]:
+    rows = []
+    for row in raw:
+        if isinstance(row, (str, bytes)) or not isinstance(row, (tuple, list)) or len(row) != len(COLUMNS):
+            raise Conflict("stored feature rows differ from plan")
+        rows.append(dict(zip(COLUMNS, row)))
+    feature_key = lambda record: (record["source_feature_id"],)
+    rows = _order_exact(rows, feature_key, "stored feature rows")
+    expected_rows = _order_exact(plan["rows"], feature_key, "plan feature rows")
+    if rows != expected_rows:
         raise Conflict("stored feature rows differ from plan")
     refs = _q(connection, pg, f"SELECT source_id,work_id,reference_json FROM {SCHEMA}.{TABLES[1]} WHERE batch_id=? ORDER BY source_id,work_id", (plan["batch_id"],)).fetchall()
-    if refs != [(r["source_id"], r["work_id"], r["reference_json"]) for r in plan["source_refs"]]:
+    try:
+        expected_refs = [(r["source_id"], r["work_id"], r["reference_json"]) for r in plan["source_refs"]]
+    except (KeyError, TypeError) as error:
+        raise Conflict("plan source/work references are malformed") from error
+    actual_refs = []
+    for ref in refs:
+        if isinstance(ref, (str, bytes)) or not isinstance(ref, (tuple, list)) or len(ref) != 3:
+            raise Conflict("stored source/work references differ from plan")
+        actual_refs.append(tuple(ref))
+    ref_key = lambda record: (record[0], record[1])
+    if (_order_exact(actual_refs, ref_key, "stored source/work references") !=
+            _order_exact(expected_refs, ref_key, "plan source/work references")):
         raise Conflict("stored source/work references differ from plan")
     if pg:
         checks = _q(connection, pg, f"SELECT bool_and(geom IS NOT NULL AND ST_SRID(geom)=0 AND encode(ST_AsBinary(geom,'NDR'),'hex')=wkb_hex) FROM {SCHEMA}.{TABLES[2]} WHERE batch_id=?", (plan["batch_id"],)).fetchone()[0]
