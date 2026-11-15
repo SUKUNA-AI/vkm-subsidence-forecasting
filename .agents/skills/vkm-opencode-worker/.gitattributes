@@ -1,0 +1,2 @@
+# The companion runtime manifest binds these exact Skill bytes.
+* -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

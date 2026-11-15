@@ -1,0 +1,12 @@
+{
+  "Carbon": "BLOCKED_403",
+  "Fable": "NOT_USED",
+  "host_configs_and_receipts": "PRIVATE_OUTSIDE_REPOSITORY",
+  "model_provider_fallback": false,
+  "native_runtime": "WINDOWS_ONLY",
+  "one_shot_delegate": "PRESERVED",
+  "paid_acceptance": "SEPARATE_REQUIRED_GATE",
+  "schema": "vkm.opencode.integration-code-status/1",
+  "scientific_acceptance": "NOT_IMPLIED",
+  "status": "IMPLEMENTATION_CANDIDATE_REQUIRES_HOST_QUALIFICATION"
+}

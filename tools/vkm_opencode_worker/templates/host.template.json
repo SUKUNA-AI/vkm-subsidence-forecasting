@@ -1,0 +1,115 @@
+{
+  "schema": "vkm.opencode.host/2",
+  "platform": "windows-native",
+  "opencode": {
+    "path": null,
+    "sha256": null,
+    "version": null
+  },
+  "run_root": null,
+  "state_root": null,
+  "protected_roots": [],
+  "qualification_receipt": {
+    "path": null,
+    "sha256": null
+  },
+  "ambient_inputs": [],
+  "approved_plugins": [],
+  "environment_names": [],
+  "shell_commands": {},
+  "profiles": {
+    "deepseek": {
+      "model_id": null,
+      "provider_only": [],
+      "reasoning_effort": null,
+      "max_output_tokens": null,
+      "checked_at": null,
+      "capability_receipt": {
+        "path": null,
+        "sha256": null
+      },
+      "endpoint_metadata": {
+        "path": null,
+        "sha256": null
+      }
+    },
+    "kimi": {
+      "model_id": null,
+      "provider_only": [],
+      "reasoning_effort": null,
+      "max_output_tokens": null,
+      "checked_at": null,
+      "capability_receipt": {
+        "path": null,
+        "sha256": null
+      },
+      "endpoint_metadata": {
+        "path": null,
+        "sha256": null
+      }
+    },
+    "hydrogen": {
+      "model_id": null,
+      "provider_only": [],
+      "reasoning_effort": null,
+      "max_output_tokens": null,
+      "checked_at": null,
+      "capability_receipt": {
+        "path": null,
+        "sha256": null
+      },
+      "endpoint_metadata": {
+        "path": null,
+        "sha256": null
+      }
+    },
+    "opus": {
+      "model_id": null,
+      "provider_only": [],
+      "reasoning_effort": null,
+      "max_output_tokens": null,
+      "checked_at": null,
+      "capability_receipt": {
+        "path": null,
+        "sha256": null
+      },
+      "endpoint_metadata": {
+        "path": null,
+        "sha256": null
+      }
+    }
+  },
+  "mcp": {},
+  "budget": {
+    "authorization_id": null,
+    "authorized_total_usd": null,
+    "baseline_usage_usd": null,
+    "key_fingerprint": null,
+    "authorization_receipt": {
+      "path": null,
+      "sha256": null
+    }
+  },
+  "accounting_qualification": {
+    "path": null,
+    "sha256": null
+  },
+  "shared_ledger": {
+    "ledger_path": null,
+    "current_client": {
+      "client_path": null,
+      "client_sha256": null,
+      "policy_path": null,
+      "policy_sha256": null
+    },
+    "session_caps": {
+      "deepseek": ".10",
+      "hydrogen": ".30",
+      "kimi": "1",
+      "opus": "1"
+    }
+  },
+  "mcp_tool_guards": {},
+  "mcp_preparation": {},
+  "plugin_directories": []
+}

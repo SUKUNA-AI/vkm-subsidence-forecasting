@@ -1,0 +1,15 @@
+{
+  "review_date": "2026-11-14",
+  "inputs": [
+    {
+      "filename": "VKM_OpenCode_Worker_Skill_Draft.zip",
+      "sha256": "f3f005a2068b881fa78099f944ba882085784c5e38f5f8467aa9770ce8a7e50f",
+      "bytes": 8708
+    },
+    {
+      "filename": "VKM_OpenCode_Windows_Codex_Integration_v1.zip",
+      "sha256": "ad0014604b1ca3bf3a6c7f1a8936dcbb06f88122106f24d59c76f84167f595c2",
+      "bytes": 25616
+    }
+  ]
+}

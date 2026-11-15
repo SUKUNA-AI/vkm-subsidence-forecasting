@@ -1,0 +1,25 @@
+{
+  "schema": "vkm.validation.native-status/2",
+  "checked_here": false,
+  "reason": "No user WORKSTATION, Windows kernel, installed OpenCode, OpenRouter credentials or native MCP in this environment.",
+  "checks": {
+    "windows_installation": "NOT_RUN",
+    "windows_job_object": "NOT_RUN",
+    "hidden_cli": "NOT_RUN",
+    "real_opencode_config_schema": "NOT_RUN",
+    "real_opencode_event_schema": "NOT_RUN",
+    "real_permissions_negative": "NOT_RUN",
+    "graphify_native": "NOT_RUN",
+    "serena_native": "NOT_RUN",
+    "ast_grep_native": "NOT_RUN",
+    "context7_authenticated": "NOT_RUN",
+    "existing_vkm_mcp": "NOT_RUN",
+    "openrouter_model_catalog_for_account": "NOT_RUN",
+    "openrouter_real_tools": "NOT_RUN",
+    "provider_route_reasoning_echo": "NOT_RUN",
+    "codex_app_to_worker_e2e": "NOT_RUN",
+    "token_cost_comparison": "NOT_RUN",
+    "cad_qgis_native": "NOT_RUN"
+  },
+  "user_action": "Authentication only; Codex performs deployment and checks."
+}

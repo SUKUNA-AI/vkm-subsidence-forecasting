@@ -1,0 +1,9 @@
+{
+  "schema": "vkm.opencode.settlement/2",
+  "task_id": null,
+  "key_fingerprint": null,
+  "no_inflight_requests_confirmed": false,
+  "all_generations_settled": false,
+  "basis": null,
+  "evidence": []
+}

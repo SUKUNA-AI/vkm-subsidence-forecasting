@@ -1,0 +1,18 @@
+{
+  "schema": "vkm.opencode.qualification/2",
+  "platform": "win32",
+  "opencode_sha256": null,
+  "implementation_sha256": null,
+  "checks": {
+    "windows_native": "NOT_RUN",
+    "headless_flags": "NOT_RUN",
+    "config_schema": "NOT_RUN",
+    "effective_permissions": "NOT_RUN",
+    "ambient_config_review": "NOT_RUN",
+    "process_tree_cleanup": "NOT_RUN",
+    "auth_isolation": "NOT_RUN",
+    "provider_body": "NOT_RUN",
+    "event_schema": "NOT_RUN"
+  },
+  "evidence": []
+}
