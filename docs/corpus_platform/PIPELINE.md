@@ -199,7 +199,7 @@ origin `EMBEDDED_OCR` и при маршруте `OCR_REQUIRED`, когда сл
 ## 8. CLI
 
 ```text
-vkm-corpus run plan     [--source ID ...|--canary] [--page A-B] [--force] [--failed-only] [--recall-model]
+vkm-corpus run plan     [--source ID ...|--canary] [--page A-B] [--force] [--failed-only] [--recall-model] [--no-write]
 vkm-corpus run extract  [--source ID ...|--canary] [--page A-B] [--resume [RUN]] [--force] [--failed-only]
                         [--plan-only] [--max-model-calls N] [--recall-model --confirm-plan SHA] [--no-ocr]
                         [--concurrency N] [--workers N] [--scan-dpi-max N] [--no-scenario-b]
@@ -212,6 +212,8 @@ vkm-corpus ocr check | ocr smoke
 - **`--force`** имеет один смысл: пересобрать строки и сводки, кеш моделей использовать.
 - **`--recall-model`** повторно вызывает модель для закешированной подписи. Он работает только с подтверждённым
   планом: `run plan --recall-model` печатает `plan_sha256`, затем `run extract --recall-model --confirm-plan <sha>`.
+  `run plan --no-write` печатает тот же план в stdout без записи запуска и артефактов. Обычный
+  `run plan` и `run extract --plan-only` сохраняют квитанцию планирования.
   Если план изменился, прогон отказывается.
 - **Повторный прогон** без изменений: источник `UP_TO_DATE`, 0 вызовов модели, 0 новых коммитов. Коммит с тем же
   содержимым — no-op писателя D.

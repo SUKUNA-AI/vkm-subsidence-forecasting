@@ -16,7 +16,7 @@ import zlib
 from pathlib import Path, PureWindowsPath
 from typing import Any
 
-from vkm_corpus.artifacts.store import ArtifactStore, canonical_json_bytes
+from vkm_corpus.artifacts.store import ArtifactReader, ArtifactStore, canonical_json_bytes
 from vkm_corpus.extract import classify as cls
 from vkm_corpus.extract.detect import inspect_file
 from vkm_corpus.extract.model import SourceInput
@@ -68,16 +68,6 @@ def docx_grid_current(value: dict[str, Any], source: SourceInput) -> bool:
     return all(value.get(key) == expected for key, expected in docx_grid_identity(source).items())
 
 
-class _ReadOnlyNativeStore:
-    """Artifact reads without ArtifactStore's directory-creating constructor."""
-    find = ArtifactStore.find
-    read_bytes = ArtifactStore.read_bytes
-    read_json = ArtifactStore.read_json
-
-    def __init__(self, root: Path):
-        self.root = Path(root)
-
-
 def docx_grid_cache_current(prep: dict[str, Any], source: SourceInput, *, store=None, data_root=None) -> bool:
     """Fresh native child metadata in both summary and hash-verified artifact; no filesystem writes."""
     if (not isinstance(prep, dict) or (prep.get("inspect") or {}).get("file_format") != "DOCX"
@@ -89,7 +79,7 @@ def docx_grid_cache_current(prep: dict[str, Any], source: SourceInput, *, store=
     if store is None:
         if data_root is None:
             return False
-        store = _ReadOnlyNativeStore(Path(data_root) / "artifacts")
+        store = ArtifactReader(Path(data_root) / "artifacts")
     try:
         raw = store.read_json(aid)
         return (isinstance(raw, dict) and raw.get("schema") == "vkm.native_raw.docx_document/1"

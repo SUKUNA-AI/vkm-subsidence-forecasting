@@ -72,9 +72,10 @@ def _iter_lines(root: Path) -> Iterator[dict[str, Any]]:
 class StageCache:
     """Index of cached stage outputs and model calls of one data root."""
 
-    def __init__(self, data_root: Path, run_id: str, *, writer_name: str | None = None):
+    def __init__(self, data_root: Path, run_id: str, *, writer_name: str | None = None, read_only: bool = False):
         self.root = Path(data_root) / "cache"
         self.run_id = run_id
+        self._read_only = read_only
         name = writer_name or f"{os.getpid()}"
         self._calls_w = None
         self._stages_w = None
@@ -93,6 +94,8 @@ class StageCache:
             self.stages[rec["stage_signature"]] = rec
 
     def _writer(self, kind: str) -> JsonlAppender:
+        if self._read_only:
+            raise RuntimeError("cannot write to a read-only stage cache")
         attr = "_calls_w" if kind == "calls" else "_stages_w"
         w = getattr(self, attr)
         if w is None:

@@ -23,7 +23,7 @@ registry verify → registry import → run plan → run extract → run status
 |---|---|---|---|
 | 1 | WORKSTATION | `vkm-corpus registry verify` | проверяет наличие, размер и SHA-256 каждого файла реестра |
 | 2 | WORKSTATION | `vkm-corpus registry import` | строит наборы Source и Work из `SOURCE_REGISTER.csv` и курируемых таблиц `00_registry/work_registry/` и коммитит их в STAGING |
-| 3 | WORKSTATION | `vkm-corpus run plan --source VKM-SRC-044` (или `--canary`) | план без записи: что будет пересчитано и сколько вызовов моделей |
+| 3 | WORKSTATION | `vkm-corpus run plan --no-write --source VKM-SRC-044` (или `--canary`) | план в stdout без создания каталога данных, записи запуска, журналов и кэша |
 | 4 | WORKSTATION | `vkm-corpus run extract --source …` | извлечение → layout → OCR → коммит источника |
 | 5 | WORKSTATION | `vkm-corpus run status` | сводка последнего прогона: статусы страниц, ошибки, вызовы моделей |
 | 6 | WORKSTATION | `vkm-corpus core publish --target core:/srv/vkm/data` | копирует новые неизменяемые файлы на CORE; маркеры коммитов — последними |
