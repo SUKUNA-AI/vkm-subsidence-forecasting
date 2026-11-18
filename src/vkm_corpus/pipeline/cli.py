@@ -1,6 +1,6 @@
 """``vkm-corpus run``: the document pipeline.
 
-    run plan     [--source ...] [--canary] [--page A-B] [--force] [--failed-only] [--recall-model]
+    run plan     [--source ...] [--canary] [--page A-B] [--force] [--failed-only] [--recall-model] [--no-write]
     run extract  [--source ...] [--canary] [--page A-B] [--resume [RUN]] [--force] [--failed-only] [--plan-only]
                  [--max-model-calls N] [--recall-model --confirm-plan SHA] [--no-ocr] [--concurrency N] [--workers N]
     run render-docx --source VKM-SRC-023      (on the Docker host: pinned LibreOffice render → cached artifact)
@@ -55,6 +55,7 @@ def register(subparsers: Any) -> None:
     sub = run.add_subparsers(dest="run_cmd", metavar="<command>")
     p_plan = sub.add_parser("plan", help="plan only: what would run and how many model calls")
     _common(p_plan)
+    p_plan.add_argument("--no-write", action="store_true", help="print the plan without creating a run, logs or artifacts")
     p_plan.set_defaults(func=cmd_plan)
     p_ext = sub.add_parser("extract", help="run the pipeline over the selection")
     _common(p_ext)
@@ -144,6 +145,37 @@ def cmd_plan(args: argparse.Namespace) -> int:
     return cmd_extract(args)
 
 
+def _plan_sources(plan: dict[str, Any]) -> list[dict[str, Any]]:
+    return [{k: v for k, v in entry.items() if k in (
+        "source_id", "action", "reasons", "prepare", "layout_pending_pages", "ocr_tasks_known",
+        "ocr_cached_known", "ocr_calls_known", "imported_layer", "commit")} for entry in plan["sources"]]
+
+
+def _plan_without_writes(cfg: Any, sources: list[Any], args: argparse.Namespace) -> int:
+    from vkm_corpus.artifacts.store import ArtifactReader
+    from vkm_corpus.parquet.layout import open_root
+    from vkm_corpus.pipeline.cache import StageCache
+    from vkm_corpus.pipeline.plan import build_plan
+
+    try:
+        root = Path(cfg.data_root)
+        if root.exists():
+            open_root(root, "STAGING")  # validate an existing root without initializing an absent one
+        cache = StageCache(root, "plan-without-writes", read_only=True)
+        try:
+            plan = build_plan(cfg, sources, cache, ArtifactReader(root / "artifacts"), force=args.force,
+                              failed_only=args.failed_only, recall=args.recall_model, page_range=args.page,
+                              no_ocr=args.no_ocr)
+        finally:
+            cache.close()
+    except Exception as exc:  # noqa: BLE001 - preserve a nonzero CLI exit without opening a run log
+        print(f"read-only plan failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    print(json.dumps({"plan_sha256": plan["plan_sha256"], "totals": plan["totals"], "sources": _plan_sources(plan)},
+                     ensure_ascii=False, indent=1))
+    return 0
+
+
 def cmd_extract(args: argparse.Namespace) -> int:
     from vkm_corpus.parquet.blobs import put_blob
     from vkm_corpus.pipeline import commit as cm
@@ -165,6 +197,8 @@ def cmd_extract(args: argparse.Namespace) -> int:
     if args.page and len(sources) != 1:
         print("--page needs exactly one --source", file=sys.stderr)
         return 2
+    if getattr(args, "no_write", False):
+        return _plan_without_writes(cfg, sources, args)
     log, _ = _logger(cfg)
     from vkm_corpus.pipeline.imported_layer import imported_run_models
 
@@ -192,10 +226,7 @@ def cmd_extract(args: argparse.Namespace) -> int:
         if args.plan_only:
             write_json_atomic(orch.dir / "plan.json", plan)
             print(json.dumps(report["plan"] | {"run_id": orch.run_id,
-                                              "sources": [{k: v for k, v in e.items() if k in (
-                                                  "source_id", "action", "reasons", "prepare", "layout_pending_pages",
-                                                  "ocr_tasks_known", "ocr_cached_known", "ocr_calls_known",
-                                                  "imported_layer", "commit")} for e in plan["sources"]]},
+                                              "sources": _plan_sources(plan)},
                              ensure_ascii=False, indent=1))
             return 0
         if (args.recall_model or cfg.profile == "production") and args.confirm_plan != plan["plan_sha256"]:
