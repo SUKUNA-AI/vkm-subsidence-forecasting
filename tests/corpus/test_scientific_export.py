@@ -136,6 +136,27 @@ def test_revocation_between_batches_stops_stream_without_success_seal(tmp_path):
     assert stop == {"type": "incomplete", "reason": "FORBIDDEN"}
 
 
+@pytest.mark.parametrize("input_name", ["manifest.json", "observations.parquet"])
+def test_changed_input_after_first_batch_never_completes(tmp_path, input_name):
+    client, config, _, params, _, _ = fixture(tmp_path, row_count=260)
+    target = tmp_path / input_name
+
+    class Policy:
+        checks = 0
+
+        def require_served_corpus(self, context):
+            self.checks += 1
+            if self.checks == 5:
+                target.write_bytes(target.read_bytes() + b"changed during export")
+
+    client.app.state.service.deps.access_policy = Policy()
+    config.access_contexts["read"] = object()
+    metadata, *rows, stop = records(client.get(URL, params=params, headers=HEADERS))
+    assert metadata["type"] == "metadata"
+    assert len(rows) >= 128 and all(row["type"] == "row" for row in rows)
+    assert stop == {"type": "incomplete", "reason": "SNAPSHOT_UNAVAILABLE"}
+
+
 @pytest.mark.parametrize(("kwargs", "reason"), [
     ({"key": ("bucket",)}, "INVALID_RESULT_IDENTITY"),
     ({"sql": "SELECT bucket, point_id, value, observed, evidence, value AS VALUE FROM observations"},
