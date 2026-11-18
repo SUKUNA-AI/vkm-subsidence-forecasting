@@ -87,6 +87,7 @@ class PipelineConfig:
     spread_aspect: float = 1.25
     use_gpu_layout: bool = True     # False = explicit no-model configuration (different extractor id)
     normalize_tag: str | None = None  # test knob: changes only the NORMALIZE stage configuration
+    local_ocr_packet_sha256: str | None = None  # only set by the explicit exploratory local import
     profile: str = "exploratory"  # production is fail-closed; no implicit promotion of exploratory receipts
     expected_commit: str | None = None
     dependency_locks: tuple[str, ...] = ()  # additional exact locks, relative to the clean source checkout

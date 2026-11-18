@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from vkm_corpus.extract.model import ErrorRec, SourceInput, StepRec
+from vkm_corpus.pipeline import local_transformers_ocr
 from vkm_corpus.pipeline import scenario_b as sb
 from vkm_corpus.pipeline.assemble import Assembler
 from vkm_corpus.pipeline.cache import JsonlAppender, _iter_lines
@@ -180,6 +181,9 @@ def commit_signature(cfg: PipelineConfig, cache: Any, src: SourceInput, prep: di
         if (prep.get("inspect") or {}).get("file_format") in ("PDF", "DJVU") else None
     if imported is not None:  # only sources with an imported layer: the signature of every other source is unchanged
         inputs["imported_layer"] = imported.digest()
+    local = local_transformers_ocr.source_entry(cfg, cache, src)
+    if local is not None:
+        inputs["local_transformers_ocr"] = local["stage_signature"]
     return _cfg_hash(inputs)
 
 

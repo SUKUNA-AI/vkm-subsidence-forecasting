@@ -22,7 +22,7 @@ from vkm_corpus.layout.regions import Region, assign, overlap_share
 from vkm_corpus.ocr import normalize as onorm
 from vkm_corpus.ocr.quality import call_flags
 from vkm_corpus.pipeline import imported_layer as il
-from vkm_corpus.pipeline import ocr_stage, scenario_b
+from vkm_corpus.pipeline import local_transformers_ocr, ocr_stage, scenario_b
 from vkm_corpus.pipeline.cache import StageCache
 from vkm_corpus.pipeline.config import EXTRACTOR_VERSIONS, GENERATIONS, PipelineConfig
 
@@ -92,6 +92,7 @@ class Assembler:
         # imported recognition layer (OCR v2): read only from the stage cache, never re-imported here
         self.imports = il.load_source_import(cache, src.source_id, src.sha256) if self.fmt in ("PDF", "DJVU") \
             else None
+        self.local_ocr = local_transformers_ocr.source_entry(cfg, cache, src) if self.fmt == "PDF" else None
 
     # ------------------------------------------------------------------ helpers
     def err(self, code: str, stage: str, message: str, page_index: int | None = None, retryable: bool = False,
@@ -585,6 +586,8 @@ class Assembler:
                 self.result.blocks.extend(imported)
             self._page_status(page, route, text_specs, text_done, ocr_blocks, native_blocks, empty_on_ink, truncated,
                               specs, crops, imported=imported)
+            if self.local_ocr is not None:
+                local_transformers_ocr.assemble_page(self, page, self.local_ocr)
             if route == "OCR_OPTIONAL" and ocr_blocks and native_blocks:
                 layer = "\n".join(b.text for b in sorted(native_blocks, key=lambda b: b.reading_order or 0))
                 glm = "\n".join(onorm.text_from_markdown(b.text) for b in ocr_blocks)
