@@ -75,6 +75,26 @@ def test_evidence_rows_and_summary(wp):
     assert all(x["wpe_id"].startswith("WPE-") for x in ev)
 
 
+def test_kaiser_study_counts_once_and_retains_citation_occurrences(wp):
+    evidence = dict(parameter="LAMBDA", material_class="SALT_GENERAL", scale="MASSIF", site_scope="VKM_REGIONAL",
+                    site_group="VKM_REGIONAL", status="FACT", evidence_type="LITERATURE_CITED", si_unit="1",
+                    si_min="0.71", si_max="0.71", original_or_cited="CITED: Асанов В.А., Токсаров В.Н. 1999")
+    lebedeva = dict(evidence, wpe_id="WPE-00851", source_id="VKM-SRC-012",
+                    catalogue_row_id="MR-MECH-1560", pdf_page="27")
+    beltyukov = dict(evidence, wpe_id="WPE-00852", source_id="VKM-SRC-029",
+                    catalogue_row_id="MR-MECH-1564", pdf_page="45")
+    unknown = dict(evidence, wpe_id="WPE-other", source_id="VKM-SRC-999", catalogue_row_id="MR-unknown",
+                   pdf_page="1", si_min="0.60", si_max="0.60")
+    rows = [lebedeva, beltyukov, unknown]
+    result, = wp.summary_rows(rows)
+    assert result["wpe_ids"] == "WPE-00851;WPE-00852;WPE-other"
+    assert (result["n_rows"], result["n_sources"], result["n_converted"]) == (3, 3, 2)
+    assert float(result["si_median"]) == pytest.approx(0.655)
+    assert wp.summary_rows([lebedeva, dict(beltyukov, pdf_page="46")])[0]["n_converted"] == 2
+    assert wp.summary_rows([lebedeva, dict(beltyukov, si_max="0.72")])[0]["n_converted"] == 2
+    assert wp.summary_rows([lebedeva])[0]["n_converted"] == 1
+
+
 def test_non_salt_stress_rows_keep_ids_and_leave_salt_summary(wp):
     stress = dict(material_lithology="mixed", unit_seam="", scale="MASSIF", site_scope="VKM_REGIONAL",
                   source_id="VKM-SRC-030", transfer_status_SKRU1="NON_TRANSFERABLE | VKM_REGIONAL_PRIOR",
