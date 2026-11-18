@@ -53,3 +53,17 @@ def test_invalid_face_orientation_rejected(normal, tangent, opposite):
 def test_invalid_vector_power_rejected(traction, velocity):
     with pytest.raises(ValueError):
         port_power_density(PortKind.MECHANICAL, traction, velocity)
+
+
+@pytest.mark.parametrize(
+    "kind,effort,flow",
+    [
+        (PortKind.MECHANICAL, [1e200, 0., 0.], [1e200, 0., 0.]),
+        (PortKind.HYDRAULIC, np.nan, 0.),
+        (PortKind.HYDRAULIC, 1e200, 1e200),
+        (PortKind.THERMAL, 300., np.inf),
+    ],
+)
+def test_nonfinite_port_power_cannot_enter_balance(kind, effort, flow):
+    with pytest.raises(ValueError, match="port power must be finite"):
+        port_power_density(kind, effort, flow)
