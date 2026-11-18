@@ -143,6 +143,18 @@ def library_versions() -> dict[str, str]:
     return out
 
 
+def _native_extraction_rule(file_format: str | None) -> str | None:
+    if file_format == "PDF":
+        from vkm_corpus.extract.text_repair import CP1251_REPAIR_RULE
+
+        return CP1251_REPAIR_RULE
+    if file_format == "EPUB":
+        from vkm_corpus.extract.epub import EPUB_EXTRACTION_RULE
+
+        return EPUB_EXTRACTION_RULE
+    return None
+
+
 def prepare_signature(cfg: PipelineConfig, source: SourceInput, extra: dict[str, Any] | None = None,
                       *, file_format: str | None = None) -> str:
     conf = {"native": cfg.stage_config("NATIVE_TEXT"), "classify": cfg.stage_config("CLASSIFY"),
@@ -157,14 +169,11 @@ def prepare_signature(cfg: PipelineConfig, source: SourceInput, extra: dict[str,
             file_format = inspect_file(path, hash_file=False).file_format
         except (RegisterError, OSError):
             file_format = "UNKNOWN"
+    rule = _native_extraction_rule(file_format)
     if file_format == "PDF":
-        from vkm_corpus.extract.text_repair import CP1251_REPAIR_RULE
-
-        conf["pdf_text_repair_rule"] = CP1251_REPAIR_RULE
+        conf["pdf_text_repair_rule"] = rule
     elif file_format == "EPUB":
-        from vkm_corpus.extract.epub import EPUB_EXTRACTION_RULE
-
-        conf["epub_extractor"] = {"rule": EPUB_EXTRACTION_RULE, "generation": GENERATIONS["epub-xhtml"],
+        conf["epub_extractor"] = {"rule": rule, "generation": GENERATIONS["epub-xhtml"],
                                   "version": EXTRACTOR_VERSIONS["epub-xhtml"]}
         try:
             from lxml import etree
@@ -183,9 +192,15 @@ def prep_path(data_root: Path, source_id: str, signature: str) -> Path:
 
 def load_prep(data_root: Path, source_id: str, signature: str) -> dict[str, Any] | None:
     p = prep_path(data_root, source_id, signature)
-    if p.exists():
-        return json.loads(p.read_text(encoding="utf-8"))
-    return None
+    if not p.exists():
+        return None
+    record = json.loads(p.read_text(encoding="utf-8"))
+    rule = _native_extraction_rule((record.get("inspect") or {}).get("file_format"))
+    # Without materialized originals the diagnostic path cannot sniff the current format, so it may
+    # address the generic legacy signature. Never offer that record to an active consumer as current.
+    if rule is not None and record.get("native_extraction_rule") != rule:
+        return None
+    return record
 
 
 def _page_id(source_id: str, unit: str, index: int) -> str:
@@ -456,6 +471,8 @@ def prepare_source(cfg: PipelineConfig, store: ArtifactStore, cache: StageCache,
                        "is_lfs_pointer": info.is_lfs_pointer, "file_format": info.file_format,
                        "format_version": info.format_version, "container_detail": info.container_detail,
                        "leading_bytes": info.leading_bytes, "flags": info.flags}
+    if rule := _native_extraction_rule(info.file_format):
+        prep["native_extraction_rule"] = rule
     if not info.path_exists:
         prep["status"] = "FAILED"
         prep["errors"].append(_err("SOURCE_FILE_MISSING", "INSPECT", "file not found", retryable=False))

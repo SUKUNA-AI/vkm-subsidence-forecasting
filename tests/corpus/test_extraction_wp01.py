@@ -210,6 +210,9 @@ def test_epub_current_prepare_does_not_reuse_legacy_cache_or_merge_duplicate_run
         PREP_SCHEMA, legacy_sig)
     legacy.write_text(old, encoding="utf-8")
     assert load_state(cfg, src) == (None, None)
+    path.unlink()
+    assert load_state(cfg, src) == (None, None)
+    path.write_bytes(raw_bytes)
     store, cache = open_store(cfg, run, "wp01"), open_cache(cfg, run, "wp01")
     prep = prepare_source(cfg, store, cache, src)
     assert prep["status"] == "PREPARED" and prep["prepare_signature"] != legacy_sig
