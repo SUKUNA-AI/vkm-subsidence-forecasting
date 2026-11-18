@@ -15,7 +15,7 @@ Inputs (all read-only):
 
 Outputs: the canonical stream tables (``--stream-out``, no coordinates, quotes only in the evidence file) and the
 delivery (``--delivery``: GeoPackage in SH1 without EPSG, CSV with geometry, WorldSpec JSON, figures, checks, receipt).
-Contours held for source validity are retained in the delivery's private source_geometry_holds.json.
+Features held for source validity are retained in the delivery's private source_geometry_holds.json.
 
 Nothing here is an observation of mining: plan contours are DERIVATION of schematic figures, dates are as printed,
 intervals are bounds, UNKNOWN stays UNKNOWN. Plan ≠ fact; design chambers ≠ actual extraction.
@@ -108,28 +108,27 @@ def rel(p: Path, base: Path) -> str:
 
 
 # ----------------------------------------------------------------------------- plan
-def eligible_polygons(path: Path, holds: list[dict]):
+def eligible_plan_features(path: Path, family: str, holds: list[dict]):
     raw = path.read_bytes()
     source_sha256 = hashlib.sha256(raw).hexdigest()
     for source_row, feature in enumerate(json.loads(raw)["features"]):
-        geometry, issue = plan_geometry.inspect_plan_geometry(feature["geometry"])
-        if issue is None and geometry.geom_type not in {"Polygon", "MultiPolygon"}:
-            issue = f"Expected polygon geometry; got {geometry.geom_type}"
+        geometry, issue = plan_geometry.inspect_plan_geometry(feature["geometry"], family)
         if issue:
             holds.append({"source_file": path.name, "source_sha256": source_sha256,
                           "source_row": source_row, "status": "HELD_SOURCE_GEOMETRY",
                           "reason": issue, "feature": feature})
         else:
-            yield feature["properties"], geometry
+            yield feature, geometry
 
 
 def load_plan(c4map: Path, holds: list[dict]):
     from shapely.ops import unary_union
 
-    pts = json.loads((c4map / "skru1_points.geojson").read_text(encoding="utf-8"))
-    bnd = json.loads((c4map / "skru1_boundaries.geojson").read_text(encoding="utf-8"))
+    pts = list(eligible_plan_features(c4map / "skru1_points.geojson", "points", holds))
+    bnd = list(eligible_plan_features(c4map / "skru1_boundaries.geojson", "boundaries", holds))
     regions, layers = [], defaultdict(list)
-    for p, g in eligible_polygons(c4map / "skru1_workings.geojson", holds):
+    for feature, g in eligible_plan_features(c4map / "skru1_workings.geojson", "workings", holds):
+        p = feature["properties"]
         item = {"id": p["id"], "layer": p["layer"], "kind": p["kind"], "label": p.get("label_as_printed", ""),
                 "parent": p.get("parent_panel", ""), "seam": p.get("seam", ""), "geom": g, "props": p}
         if p["layer"] == "PANEL_BLOCK_LAYOUT_014":
@@ -142,26 +141,33 @@ def load_plan(c4map: Path, holds: list[dict]):
     for r in regions:
         if r["key"]:
             key_index[r["key"]].append(r)
-    return regions, layers, key_index, field, pts["features"], bnd["features"]
+    return regions, layers, key_index, field, pts, bnd
 
 
 def plan_points_for_export(features, symbols):
-    from shapely.geometry import Point, shape
+    from shapely.geometry import Point
 
-    for feature in features:
+    control_links = plan_geometry.checked_control_symbol_links(symbols, [f for f, _ in features])
+    active, controls = [], []
+    for feature, geometry in features:
         p = feature["properties"]
         kind = p.get("kind", "")
         if plan_geometry.is_skru1_bha_auto_hit(p["id"]):
             continue
         if "SHAFT" in kind or kind.startswith(("BOREHOLE", "ZONE")):
-            yield {"point_id": p["id"], "kind": kind, "label": p.get("label_as_printed", ""),
+            row = {"point_id": p["id"], "kind": kind, "label": p.get("label_as_printed", ""),
                    "object_id": p.get("object_id", ""), "source_id": p.get("source_id", ""),
-                   "status": p.get("status", ""), "geom": shape(feature["geometry"])}
+                   "status": p.get("status", ""), "geom": geometry}
+            if p["id"] in control_links:
+                controls.append({**row, "checked_symbol_id": control_links[p["id"]]})
+            else:
+                active.append(row)
     for symbol in symbols:
-        yield {"point_id": plan_geometry.checked_well_symbol_id(symbol), "kind": "BOREHOLE_CHECKED_SYMBOL",
-               "label": symbol["label_checked"], "object_id": symbol["borehole_id_catalogue"],
-               "source_id": "VKM-SRC-014", "status": symbol["status"],
-               "geom": Point(float(symbol["x_local_m"]), float(symbol["y_local_m"]))}
+        active.append({"point_id": plan_geometry.checked_well_symbol_id(symbol), "kind": "BOREHOLE_CHECKED_SYMBOL",
+                       "label": symbol["label_checked"], "object_id": symbol["borehole_id_catalogue"],
+                       "source_id": "VKM-SRC-014", "status": symbol["status"],
+                       "geom": Point(float(symbol["x_local_m"]), float(symbol["y_local_m"]))})
+    return active, controls
 
 
 def region_error(cx: float) -> tuple[float, float, str]:
@@ -969,8 +975,10 @@ def main(argv=None) -> int:
         read_csv(c4map / unique_symbols), read_csv(c4map / checked_symbols))
     geometry_holds = []
     regions, layers, key_index, field, points, bounds = load_plan(c4map, geometry_holds)
+    pt_feats, control_feats = plan_points_for_export(points, symbols)
     if a.state_1990 and a.state_1990.is_file():
-        for p_, g_ in eligible_polygons(a.state_1990, geometry_holds):
+        for f_, g_ in eligible_plan_features(a.state_1990, "workings", geometry_holds):
+            p_ = f_["properties"]
             layers["STATE_C1990_037"].append({"id": p_["id"], "layer": "STATE_C1990_037", "kind": p_["class"],
                                               "label": "", "parent": "", "seam": p_["seam"],
                                               "geom": g_, "props": p_})
@@ -1400,31 +1408,37 @@ def main(argv=None) -> int:
                                 "meaning": x["props"].get("meaning_as_printed", ""), "source_id": x["props"]["source_id"],
                                 "page_id": x["props"]["page_id"], "status": x["props"]["status"],
                                 "area_m2": round(x["geom"].area), "geom": x["geom"]})
-    from shapely.geometry import shape
-    pt_feats = list(plan_points_for_export(points, symbols))
+    block201_context = []
     for o in b201_objs:
         try:
             from shapely import wkt as _wkt
             g = _wkt.loads(o["wkt_sh1"])
         except Exception:  # noqa: BLE001 - optional input
             continue
-        pt_feats.append({"point_id": o["record_id"], "kind": o["feature_kind"], "label": o["label"], "object_id": "",
-                         "source_id": o["source_id"], "status": o["status"], "geom": g})
-    bnd_feats = [{"boundary_id": f["properties"]["id"], "geom": shape(f["geometry"]),
-                  "meaning": f["properties"].get("meaning_as_printed", "") or f["properties"].get("note", "")} for f in bounds]
+        row = {"point_id": o["record_id"], "kind": o["feature_kind"], "label": o["label"], "object_id": "",
+               "source_id": o["source_id"], "status": o["status"], "geom": g}
+        (pt_feats if g.geom_type == "Point" else block201_context).append(row)
+    bnd_feats = [{"boundary_id": f["properties"]["id"], "geom": g,
+                  "meaning": f["properties"].get("meaning_as_printed", "") or f["properties"].get("note", "")}
+                 for f, g in bounds]
     meta = {"mining_units": "Объект × пласт: интервалы выемки/закладки как границы годов; DERIVATION/FACT по столбцу status",
             "plan_regions_014": "Пригодные по топологии контуры VKM-SRC-014 в SH1; отклонённые в source_geometry_holds.json",
             "plan_states": "Состояния схем: отработано к ≈1990 (037 рис. 2.7), отработано к 01.01.2007 (064), остаток 2013 (014), целики",
             "points": "Стволы, знаки скважин, центры зон ВКР, реперы ПЛ 12 (если дан --block201)",
+            "control_points_source": "Исходные опоры F014. Рабочий знак указан в checked_symbol_id",
+            "block201_context": "Линии и контуры блока 201 (если дан --block201)",
             "boundaries": "Границы горного отвода и линии схем"}
     unit_cols = [c for c in UNIT_COLS if c != "evidence_ids"] + ["evidence_ids"]
+    point_cols = ["point_id", "kind", "label", "object_id", "source_id", "status"]
     gp_layers = {
         "mining_units": ("MULTIPOLYGON", [{**u, "geom": _multi(u["geom"])} for u in unit_feats], unit_cols),
         "plan_regions_014": ("MULTIPOLYGON", [{**r, "geom": _multi(r["geom"])} for r in region_feats],
                              ["region_id", "kind", "label", "parent", "object_key", "area_m2", "pos_err_m", "pos_err_basis"]),
         "plan_states": ("MULTIPOLYGON", [{**r, "geom": _multi(r["geom"])} for r in layer_feats],
                         ["feature_id", "layer", "seam", "state_date", "meaning", "source_id", "page_id", "status", "area_m2"]),
-        "points": ("POINT", pt_feats, ["point_id", "kind", "label", "object_id", "source_id", "status"]),
+        "points": ("POINT", pt_feats, point_cols),
+        "control_points_source": ("POINT", control_feats, [*point_cols, "checked_symbol_id"]),
+        "block201_context": ("GEOMETRY", block201_context, point_cols),
         "boundaries": ("LINESTRING", bnd_feats, ["boundary_id", "meaning"]),
     }
     gpkg = d / "data" / "skru1_mine_history_sh1.gpkg"
@@ -1440,7 +1454,7 @@ def main(argv=None) -> int:
         for p in sorted(base.rglob("*")):
             if p.is_file() and p.name != "receipt.json" and "_work" not in p.parts:
                 outputs[rel(p, a.private)] = sha(p)
-    receipt = {"schema": "vkm.skru1_mine_history/1", "command": [Path(sys.argv[0]).name] + [
+    receipt = {"schema": "vkm.skru1_mine_history/2", "command": [Path(sys.argv[0]).name] + [
         x if not os.path.isabs(x) else "<path>" for x in sys.argv[1:]], "inputs": inputs,
         "geology_version": geo["version"] if geo else None, "terrain_id": ter["id"] if ter else None,
         "counts": {"evidence_rows": len(evidence), "by_origin": dict(Counter(r["origin"] for r in evidence)),

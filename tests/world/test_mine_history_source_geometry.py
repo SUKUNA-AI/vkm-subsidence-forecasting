@@ -90,12 +90,12 @@ def source(tmp_path):
     return plan, unique
 
 
-def run_history(root):
+def run_history(root, *extra_args):
     return subprocess.run(
         [sys.executable, "-I", "-B", "-X", "utf8", str(ROOT / "scripts/build_skru1_mine_history.py"),
          "--private", str(root / "private"), "--stream-out", str(root / "stream"),
          "--delivery", str(root / "delivery"), "--state-1990", str(root / "1990.geojson"),
-         "--no-figures"],
+         "--no-figures", *extra_args],
         cwd=root, capture_output=True, text=True, encoding="utf-8", timeout=40,
     )
 
@@ -151,6 +151,71 @@ def test_points_use_checked_symbol_identities_and_keep_other_points(tmp_path, so
         assert label == "129"
         assert object_id == f"BH-{key}"
         assert tuple(from_wkb(blob[40:]).coords)[0] == xyz
+
+
+def test_explicit_control_lineage_has_one_active_symbol(tmp_path, source):
+    plan, unique = source
+    point_path = plan / "skru1_points.geojson"
+    points = json.loads(point_path.read_text(encoding="utf-8"))["features"]
+    geometry = {"type": "Point", "coordinates": [8, 0]}
+    control = next(row for row in points if row["properties"]["id"] == "control")
+    control["properties"].update(control_point=True, source_id="VKM-SRC-014")
+    points.append(feature(geometry, "independent-control", kind="BOREHOLE", source_id="VKM-SRC-064"))
+    collection(point_path, points)
+    unique.append({**unique[0], "key": "new", "in_auto_layer": "CONTROL_POINT control",
+                   "x_local_m": 8, "y_local_m": 0})
+    write_rows(plan / "skru1_boreholes_014_unique.csv", unique)
+
+    result = run_history(tmp_path)
+    assert result.returncode == 0, result.stderr
+    with gpkg(tmp_path) as db:
+        active = dict(db.execute("SELECT point_id, geom FROM points"))
+        assert "control" not in active
+        assert "independent-control" in active
+        assert db.execute(
+            "SELECT point_id, checked_symbol_id, geom FROM control_points_source"
+        ).fetchone() == ("control", "C4:skru1:well_symbol:new", active["C4:skru1:well_symbol:new"])
+
+
+def test_wrong_geometry_family_is_not_exported_as_point_or_boundary(tmp_path, source):
+    plan, _ = source
+    point_path = plan / "skru1_points.geojson"
+    points = json.loads(point_path.read_text(encoding="utf-8"))["features"]
+    line = {"type": "LineString", "coordinates": [[0, 0], [4, 4]]}
+    point = {"type": "Point", "coordinates": [1, 2]}
+    points.append(feature(line, "wrong-point", kind="BOREHOLE"))
+    collection(point_path, points)
+    collection(plan / "skru1_boundaries.geojson", [feature(point, "wrong-boundary", kind="BOUNDARY")])
+
+    result = run_history(tmp_path)
+    assert result.returncode == 0, result.stderr
+    with gpkg(tmp_path) as db:
+        assert db.execute("SELECT point_id FROM points WHERE point_id='wrong-point'").fetchall() == []
+        assert db.execute("SELECT boundary_id FROM boundaries").fetchall() == []
+    hold = json.loads((tmp_path / "delivery/data/source_geometry_holds.json").read_text(encoding="utf-8"))
+    geometries = {row["feature"]["properties"]["id"]: row["feature"]["geometry"] for row in hold}
+    assert geometries["wrong-point"] == line
+    assert geometries["wrong-boundary"] == point
+
+
+def test_block201_context_preserves_nonpoints_separately(tmp_path, source):
+    block201 = tmp_path / "block201"
+    block201.mkdir()
+    (block201 / "block201_mining_history.csv").write_text("unused_header\n", encoding="utf-8")
+    rows = [{"record_id": id_, "feature_kind": kind, "label": id_, "source_id": "S",
+             "status": "DERIVATION", "wkt_sh1": shape}
+            for id_, kind, shape in (("benchmark", "BENCHMARK", "POINT (0 0)"),
+                                       ("trace", "LINE_TRACE", "LINESTRING (0 0, 1 1)"))]
+    write_rows(block201 / "site_objects_sh1.csv", rows)
+
+    result = run_history(tmp_path, "--block201", str(block201))
+    assert result.returncode == 0, result.stderr
+    with gpkg(tmp_path) as db:
+        assert db.execute(
+            "SELECT point_id FROM points WHERE source_id='S'"
+        ).fetchall() == [("benchmark",)]
+        (blob,) = db.execute("SELECT geom FROM block201_context WHERE point_id='trace'").fetchone()
+        assert from_wkb(blob[40:]).wkt == "LINESTRING (0 0, 1 1)"
 
 
 @pytest.mark.parametrize("conflict", ["rejected", "duplicate_key", "changed_position"])
