@@ -4,10 +4,10 @@ The carrier triangles do not approximate the physical contacts. Each numerical
 prism is restricted to one original affine face. Quality is measured after
 materialization, before admission to a consuming solver.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, fields, replace
 import hashlib
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 import numpy as np
 import shapely
@@ -71,7 +71,9 @@ def _lineage(path, overlay, source_sha):
                 raise ValueError('drain lineage receipt digest mismatch')
             receipt = json.load(stream)
         rows = [r for r in receipt['nested_representations'] if r['source_sha256'] == source_sha]
-        if (len(rows) != 1 or _text(overlay, 'source_drain_named37_sha256') not in receipt['source_inputs'].values()
+        named37 = [digest for name, digest in receipt['source_inputs'].items()
+                   if PureWindowsPath(name).parts[-2:] == ('full_stack', 'wholemine_named37.npz')]
+        if (len(rows) != 1 or named37 != [_text(overlay, 'source_drain_named37_sha256')]
                 or _text(overlay, 'drain_binding') != DRAIN_ROLE):
             raise ValueError('drain lineage is incompatible with source TIN')
         return np.asarray(rows[0]['restored']['indices'])
@@ -128,9 +130,17 @@ def _same_partition(ids, area, expected, label):
 
 
 def _readonly(value):
-    result = np.array(value, copy=True)
-    result.setflags(write=False)
-    return result
+    # A read-only owning ndarray can be made writeable again. A bytes-backed
+    # view has immutable storage even for callers who try to reset the flag.
+    contiguous = np.ascontiguousarray(value)
+    return np.frombuffer(contiguous.tobytes(), dtype=contiguous.dtype).reshape(contiguous.shape)
+
+
+def _quality(points):
+    a = np.roll(points, -1, axis=1) - points
+    b = np.roll(points, -2, axis=1) - points
+    return ((a[:, :, 0]*b[:, :, 1]-a[:, :, 1]*b[:, :, 0]) /
+            (np.linalg.norm(a, axis=2)*np.linalg.norm(b, axis=2))).min(axis=1)
 
 
 @dataclass(frozen=True)
@@ -166,9 +176,41 @@ class ExactP1Wedges:
     vertical_datum: str = 'UNKNOWN'
 
     def require_quality(self):
-        below = int(np.count_nonzero(self.quality < MINIMUM_PLAN_QUALITY))
+        n, nt, nl = len(self.xy), len(self.plan_triangles), len(self.layer_names)
+        if (self.nodes.shape != ((nl+1)*n, 3) or self.cells.shape != (nl*nt, 6)
+                or not np.isfinite(self.nodes).all()):
+            raise ValueError('invalid WEDGE6 extrusion shape')
+        stack = self.nodes.reshape(nl+1, n, 3)
+        cells = self.cells.reshape(nl, nt, 6)
+        offsets = np.arange(nl)[:, None, None]*n + self.plan_triangles[None]
+        if (not np.all(stack[:, :, :2] == self.xy) or np.any(np.diff(stack[:, :, 2], axis=0) >= 0)
+                or not np.array_equal(cells[:, :, :3], offsets+n) or not np.array_equal(cells[:, :, 3:], offsets)):
+            raise ValueError('WEDGE6 extrusion does not match the plan and layer columns')
+        quality = _quality(_faces(stack[0, :, :2], self.plan_triangles))
+        if not np.isfinite(quality).all() or not np.array_equal(self.quality, quality):
+            raise ValueError('WEDGE6 quality metadata does not match the materialized cells')
+        below = int(np.count_nonzero(quality < MINIMUM_PLAN_QUALITY))
         if below:
             raise ValueError(f'WEDGE6 PLAN_QUALITY_HOLD: {below} plan cells below {MINIMUM_PLAN_QUALITY:g}')
+        if self.mesh_identity != self._identity():
+            raise ValueError('WEDGE6 mesh identity does not bind the materialized geometry and provenance')
+        if any(isinstance(value, np.ndarray) and value.flags.writeable for value in vars(self).values()):
+            raise ValueError('WEDGE6 geometry and provenance arrays must be immutable')
+
+    def _identity(self):
+        digest = hashlib.sha256(b'EXACT_P1_WEDGE6/2')
+        for field in fields(self):
+            if field.name == 'mesh_identity':
+                continue
+            value = getattr(self, field.name)
+            digest.update(field.name.encode())
+            if isinstance(value, np.ndarray):
+                digest.update(repr((value.dtype.str, value.shape)).encode())
+                digest.update(value.tobytes())
+            else:
+                encoded = str(value).encode()
+                digest.update(str(len(encoded)).encode() + b':' + encoded)
+        return digest.hexdigest()
 
     def lateral_faces(self, layer):
         """Return oriented quad vertices and their cell pair, with -1 outside.
@@ -272,9 +314,7 @@ def _read(overlay_path, source_path, lineage_path, expected_sha):
     _same_partition(piece_ids, shapely.area(shapely.polygons(points)), area, 'overlay piece')
     source_id, carrier_id = piece_source[piece_ids], piece_carrier[piece_ids]
     z = _heights(xy, triangles, source_id, source, contacts)
-    a, b = np.roll(points, -1, axis=1)-points, np.roll(points, -2, axis=1)-points
-    quality = ((a[:, :, 0]*b[:, :, 1]-a[:, :, 1]*b[:, :, 0]) /
-               (np.linalg.norm(a, axis=2)*np.linalg.norm(b, axis=2))).min(axis=1)
+    quality = _quality(points)
     if not np.isfinite(quality).all() or np.any(quality <= 0):
         raise ValueError('degenerate overlay triangle')
     return _extrude(tin, overlay, xy, z, triangles, source_id, carrier_id,
@@ -300,11 +340,9 @@ def _extrude(tin, overlay, xy, z, tri, source, carrier, drain, quality, overlay_
         raise ValueError('invalid bound layer material values')
     drain_sha = _text(overlay, 'drain_lineage_receipt_sha256')
     edges, owners = _edges(tri)
-    h = hashlib.sha256(f'EXACT_P1_WEDGE6/1:{overlay_sha}:{source_sha}:{drain_sha}'.encode())
-    for value in (nodes, cells, source, carrier, pressure, drain):
-        h.update(value.tobytes())
     data = (nodes, cells, layers, xy, tri, source, carrier, tin['triangle_patch_id'][source],
             tin['patch_ids'], tin['layer_names'], tin['horizon_names'], edges, owners, pressure,
             (roof-1)*nt + np.flatnonzero(drain), tri[drain][:, [0, 2, 1]]+roof*n,
             density, young, poisson, quality)
-    return ExactP1Wedges(*map(_readonly, data), overlay_sha, source_sha, drain_sha, world, h.hexdigest())
+    geometry = ExactP1Wedges(*map(_readonly, data), overlay_sha, source_sha, drain_sha, world, '')
+    return replace(geometry, mesh_identity=geometry._identity())

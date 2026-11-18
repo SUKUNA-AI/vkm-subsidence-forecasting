@@ -1,5 +1,6 @@
 import hashlib
 import json
+from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -28,7 +29,8 @@ def write_case(root, alter=None, scale_y=1.):
              wave4_active_C1_geometry_sha256='a' * 64, **common)
     s_sha = sha(source)
     receipt = root / 'lineage.json'
-    receipt.write_text(json.dumps(dict(source_inputs={'source-named37.npz': 'b' * 64},
+    receipt.write_text(json.dumps(dict(source_inputs={'named37/full_stack/wholemine_named37.npz': 'b' * 64,
+                                                     'hydro/hydro_parameter_pack.json': 'e' * 64},
         nested_representations=[dict(source_sha256=s_sha, restored=dict(indices=[0]))])), encoding='utf-8')
     wkb, parents, carriers = [], [], []
     for i, s in enumerate(shapely.polygons(xy[source_tris])):
@@ -85,11 +87,45 @@ def test_quality_guard_blocks_a_valid_exact_but_slender_geometry(tmp_path):
         WedgeMesh.from_exact_p1_geometry(g)
 
 
+@pytest.mark.parametrize('forgery', ('nan', 'empty', 'padded'))
+def test_admission_rejects_untrusted_quality_metadata(tmp_path, forgery):
+    g = read_exact_p1_wedges(*write_case(tmp_path, scale_y=.01))
+    replacement = {'nan': np.full_like(g.quality, np.nan), 'empty': np.empty(0),
+                   'padded': np.ones_like(g.quality)}[forgery]
+    with pytest.raises(ValueError, match='PLAN_QUALITY_HOLD|quality metadata'):
+        WedgeMesh.from_exact_p1_geometry(replace(g, quality=replacement))
+
+
+@pytest.mark.parametrize('field', ('nodes', 'cells', 'source_face'))
+def test_stale_mesh_identity_rejects_changed_geometry_or_lineage(tmp_path, field):
+    g = read_exact_p1_wedges(*write_case(tmp_path))
+    changed = getattr(g, field).copy()
+    if field == 'nodes':
+        changed[:, 2] += 5  # mechanically admissible, but a different geometry and identity
+    elif field == 'cells':
+        changed[[0, 1]] = changed[[1, 0]]
+    else:
+        changed[0] = 1 - changed[0]
+    with pytest.raises(ValueError, match='mesh identity|extrusion'):
+        WedgeMesh.from_exact_p1_geometry(replace(g, **{field: changed}))
+
+
+def test_exact_geometry_array_cannot_be_made_writeable(tmp_path):
+    g = read_exact_p1_wedges(*write_case(tmp_path))
+    for value in vars(g).values():
+        if isinstance(value, np.ndarray):
+            with pytest.raises(ValueError):
+                value.setflags(write=True)
+    with pytest.raises(ValueError, match='immutable'):
+        WedgeMesh.from_exact_p1_geometry(replace(g, nodes=g.nodes.copy()))
+
+
 @pytest.mark.parametrize(('key','value','message'), [
     ('overlay_drain_class', [False] * 4, 'drain lineage'),
     ('overlay_source_affine_face', [0, 0, 0, 1], 'outside the bonded source'),
     ('source_tin_sha256', 'f' * 64, 'source TIN digest'),
     ('source_world_id', 'different-world', 'source world'),
+    ('source_drain_named37_sha256', 'e' * 64, 'drain lineage'),
 ])
 def test_exact_input_fails_closed(tmp_path, key, value, message):
     items = write_case(tmp_path, lambda data: data.update({key: value}))
