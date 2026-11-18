@@ -1,6 +1,7 @@
 """Expected-result checks evaluated by the runner after the process ends (plan §2.3).
 
-``file_exists`` (path, glob allowed), ``json_value`` (JSON Pointer equals ``expected``; numbers compared with
+``file_exists`` (path or glob; ``expected=False`` requires no matching file),
+``json_value`` (JSON Pointer equals ``expected``; numbers compared with
 ``rtol``/``atol`` when given), ``number_close`` (JSON Pointer, |actual − expected| ≤ atol + rtol·|expected|),
 ``text_contains`` / ``text_absent`` (substring in a text file), ``exit_code``. A check never raises: a missing file or
 pointer is a failed check with a message.
@@ -124,11 +125,12 @@ def run_check(job_dir: Path, check: dict[str, Any], exit_code: int | None, *, sh
             return out
         rel = check["path"]
         if kind == "file_exists":
+            expected_present = check["expected"] is not False
             if any(ch in rel for ch in "*?["):
-                hits = sorted(p for p in job_dir.glob(rel) if p.is_file())
-                out.update(actual=len(hits), passed=bool(hits))
+                actual = sum(1 for path in job_dir.glob(rel) if path.is_file())
             else:
-                out.update(actual=_file(job_dir, rel).is_file(), passed=_file(job_dir, rel).is_file())
+                actual = _file(job_dir, rel).is_file()
+            out.update(actual=actual, passed=bool(actual) == expected_present)
             return out
         path = _file(job_dir, rel)
         if not path.is_file():

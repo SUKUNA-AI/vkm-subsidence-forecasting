@@ -51,6 +51,10 @@ MODEL_RESULT на игрушечных задачах:
 
 ## Как продолжить
 
+Для проверки готовых результатов в текущем runtime используй общий
+[`vkm_jobs.checks.run_checks`](../development/CHECKS_COMPATIBILITY.md#current-ansys-jobs-and-replay).
+Ниже сохранён порядок ручного запуска из рабочей записи от 28.09.2026.
+
 - Интерпретатор — `work/venv-ansys` основного клона; для кода из worktree — `PYTHONPATH=<worktree>/src`.
 - Окружение: `VKM_SIM_ROOT` — ASCII-путь без пробелов на диске данных, вне клонов; `AWP_ROOT261` уже задан.
 - Ступень без MCP: создать `<job>/in/input.inp` из `ladder.deck_text(step, ladder.resolve_params(step, {}))` и
