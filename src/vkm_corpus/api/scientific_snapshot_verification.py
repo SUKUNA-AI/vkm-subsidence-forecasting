@@ -33,6 +33,8 @@ def full_checksum(connection, sql, *, capture=False):
     cursor = connection.execute(sql)
     columns = [(c[0], str(c[1])) for c in cursor.description]
     names = [c[0] for c in columns]
+    if capture and len(set(names)) != len(names):
+        raise ValueError("duplicate result column names cannot be captured")
     counts, rows, total = Counter(), [], 0
     while True:
         chunk = cursor.fetchmany(4096)
