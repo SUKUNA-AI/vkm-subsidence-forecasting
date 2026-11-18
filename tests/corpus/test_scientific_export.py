@@ -2,8 +2,11 @@
 
 from datetime import date
 from decimal import Decimal
+import asyncio
 import hashlib
 import json
+import tempfile
+from urllib.parse import urlencode
 
 import duckdb
 from fastapi.testclient import TestClient
@@ -127,6 +130,32 @@ def test_export_can_pin_the_named_sql_order_without_projected_keys(tmp_path, dir
     else:
         assert len(data) == len(rows)
         assert seal == {"type": "incomplete", "reason": "RESULT_PROOF_MISMATCH"}
+
+
+def test_disconnect_releases_export_scratch(tmp_path, monkeypatch):
+    scratch = tmp_path / "scratch"
+    scratch.mkdir()
+    monkeypatch.setattr(tempfile, "tempdir", str(scratch))
+    client, _, _, params, _, _ = fixture(tmp_path)
+    scope = {
+        "type": "http", "asgi": {"version": "3.0", "spec_version": "2.4"}, "http_version": "1.1",
+        "method": "GET", "scheme": "http", "path": URL, "raw_path": URL.encode(), "root_path": "",
+        "query_string": urlencode(params).encode(), "headers": [(b"authorization", f"Bearer {TOKEN}".encode())],
+        "client": ("127.0.0.1", 1), "server": ("localhost", 80),
+    }
+
+    async def receive():
+        return {"type": "http.request", "body": b"", "more_body": False}
+
+    async def send(event):
+        if event.get("body", b"").startswith(b'{"type":"row"'):
+            assert list(scratch.glob("vkm-science-export-*"))
+            raise OSError("test peer disconnected")
+
+    with pytest.raises(OSError, match="test peer disconnected"):
+        asyncio.run(client.app(scope, receive, send))
+
+    assert not list(scratch.glob("vkm-science-export-*"))
 
 
 def test_no_preview_only_export_and_cardinality_bound_request_identity(tmp_path):

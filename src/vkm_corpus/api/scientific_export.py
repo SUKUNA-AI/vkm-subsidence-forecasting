@@ -10,8 +10,10 @@ from shutil import copyfile
 from tempfile import TemporaryDirectory
 from typing import Annotated
 
+from anyio import CancelScope
 from fastapi import Depends, Query, Request
 from fastapi.responses import StreamingResponse
+from starlette.concurrency import run_in_threadpool
 
 from vkm_corpus.api.errors import ApiFailure
 from vkm_corpus.api.scientific import _sha256
@@ -26,6 +28,21 @@ _R3_RANGE_ROWS = 2048
 # Only the verified R3_ports definition admits this range lowering. Changing
 # its filter, projection or ordering requires a fresh qualification.
 _R3_PORTS_SQL_SHA256 = "648502ad80e904641b8cbb029e6b89aaac901eed1ff192da2f176071eae26773"
+
+
+class _ScientificExportResponse(StreamingResponse):
+    def __init__(self, rows):
+        self.rows = rows
+        super().__init__(rows, media_type="application/x-ndjson", headers={"Cache-Control": "no-store"})
+
+    async def __call__(self, scope, receive, send):
+        try:
+            await super().__call__(scope, receive, send)
+        finally:
+            # A disconnect can cancel the response while the sync iterator
+            # still owns its DuckDB connection and temporary Parquet files.
+            with CancelScope(shield=True):
+                await run_in_threadpool(self.rows.close)
 
 
 def _contract(query):
@@ -284,6 +301,5 @@ def mount_scientific_export_route(app, reader, read_access) -> None:
             if authenticated(request) != label:
                 raise ApiFailure("FORBIDDEN", "scientific export principal changed")
 
-        return StreamingResponse(_rows(reader, query_id, query["sql"].rstrip().rstrip(";"),
-                                      order, expected_count, expected_sha, multiset, authorize),
-                                 media_type="application/x-ndjson", headers={"Cache-Control": "no-store"})
+        return _ScientificExportResponse(_rows(reader, query_id, query["sql"].rstrip().rstrip(";"),
+                                               order, expected_count, expected_sha, multiset, authorize))
