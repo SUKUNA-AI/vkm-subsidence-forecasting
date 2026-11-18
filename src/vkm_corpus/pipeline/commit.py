@@ -170,6 +170,10 @@ def commit_signature(cfg: PipelineConfig, cache: Any, src: SourceInput, prep: di
     if docx:
         inputs["docx_native_grid"] = {"signature": prep["docx_grid_signature"],
                                       "native_artifact_id": prep["document_raw_artifact_id"]}
+    if (prep.get("inspect") or {}).get("file_format") == "EPUB":
+        from vkm_corpus.ocr.normalize import XHTML_TABLE_NORMALIZE_RULE
+
+        inputs["epub_table_normalization"] = XHTML_TABLE_NORMALIZE_RULE
     from vkm_corpus.pipeline.imported_layer import load_source_import
 
     imported = load_source_import(cache, src.source_id, src.sha256) \

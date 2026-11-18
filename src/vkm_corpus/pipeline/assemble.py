@@ -973,6 +973,7 @@ class Assembler:
         cfg = self.cfg
         recog = _recog_model(cfg)
         epub_hash = _cfg_hash({"epub": EPUB_EXTRACTION_RULE})
+        table_hash = _cfg_hash({"epub": EPUB_EXTRACTION_RULE, "table_normalization": onorm.XHTML_TABLE_NORMALIZE_RULE})
         for row in self.prep["pages"]:
             idx = row["page_index"]
             page = PageX(page_index=idx, page_kind="EPUB_SPINE_ITEM", bbox_space="NONE", page_class="REFLOWABLE",
@@ -1014,10 +1015,10 @@ class Assembler:
                                   "reading_order_method": "DOCUMENT_ORDER"})
                 self.result.blocks.append(blk)
             for t in raw.get("tables", []):
-                norm = onorm.normalize_table(t["html"], preserve_empty=True)
+                norm = onorm.normalize_table(t["html"], preserve_empty=True, xhtml=True)
                 tb = TableX(page_index=idx, bbox=None, origin="NATIVE", region_origin="EPUB_ELEMENT",
                             extractor_id="epub-xhtml", extractor_version=EXTRACTOR_VERSIONS["epub-xhtml"],
-                            generation=str(GENERATIONS["epub-xhtml"]), raw_config_hash=epub_hash,
+                            generation=str(GENERATIONS["epub-xhtml"]), raw_config_hash=table_hash,
                             raw_artifact_id=page.native_raw_artifact_id,
                             raw_artifacts=[("SOURCE_MARKUP", page.native_raw_artifact_id)], raw_locator=t["xpath"],
                             raw_format="XHTML", raw_output=t["html"], recognition_method="EPUB_XHTML",
