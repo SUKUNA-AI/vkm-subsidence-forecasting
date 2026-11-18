@@ -5,6 +5,7 @@ from decimal import Decimal
 import hashlib
 import json
 
+import duckdb
 from fastapi.testclient import TestClient
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -12,7 +13,7 @@ import pytest
 
 from vkm_corpus.api.app import ApiConfig, create_app
 from vkm_corpus.api.fixtures import SNAPSHOT_ID, synthetic_service
-from vkm_corpus.api.scientific_snapshot_verification import encoded
+from vkm_corpus.api.scientific_snapshot_verification import encoded, full_checksum
 
 
 SNAPSHOT = "scientific-test"
@@ -27,7 +28,7 @@ CHART_VALUE = Decimal("1234567890123456789.0123456789012345678")
 
 
 def fixture(tmp_path, *, row_count=513, key=("bucket", "point_id"), wrong_digest=False,
-            expected_count=None, payload=b"\xff\x00",
+            expected_count=None, payload=b"\xff\x00", use_multiset=False,
             sql="SELECT bucket, point_id, value, observed, evidence FROM observations"):
     rows = [(i // 4, i, CHART_VALUE if i % 2 else None, date(2025, 1, 3), payload)
             for i in range(row_count)]
@@ -43,6 +44,12 @@ def fixture(tmp_path, *, row_count=513, key=("bucket", "point_id"), wrong_digest
         "order_by": list(key), "row_count": row_count if expected_count is None else expected_count,
         "ordered_sha256": "0" * 64 if wrong_digest else h.hexdigest(),
     }
+    if use_multiset:
+        with duckdb.connect(":memory:") as connection:
+            connection.read_parquet(str(parquet)).create("observations")
+            receipt = full_checksum(connection, sql)
+        del contract["ordered_sha256"]
+        contract["multiset_sha256"] = "0" * 64 if wrong_digest else receipt["multiset_sha256"]
     snapshot = {
         "schema": "vkm.scientific-query-snapshot/1", "scope": "SYNTHETIC_EXPORT_TEST",
         "snapshot_id": SNAPSHOT, "source_snapshot_id": SNAPSHOT_ID,
@@ -171,3 +178,40 @@ def test_incomplete_result_never_carries_a_success_seal(tmp_path, kwargs, reason
     result = records(client.get(URL, params=params, headers=HEADERS))
     assert not any(item["type"] == "complete" for item in result)
     assert result[-1] == {"type": "incomplete", "reason": reason}
+
+
+def test_multiset_proof_reuses_receipt_and_enforces_total_order(tmp_path):
+    client, _, _, params, rows, contract = fixture(tmp_path, use_multiset=True)
+    header, *data, seal = records(client.get(URL, params=params, headers=HEADERS))
+    assert header["expected_multiset_sha256"] == contract["multiset_sha256"]
+    assert header["order_by"] == ["bucket", "point_id"]
+    assert [record["values"] for record in data] == [json.loads(encoded(row)) for row in rows]
+    ordered_digest = hashlib.sha256(encoded(COLUMNS) + b"\n" + b"".join(encoded(row) + b"\n" for row in rows))
+    assert seal == {"type": "complete", "row_count": len(rows), "ordered_sha256": ordered_digest.hexdigest(),
+                    "multiset_sha256": contract["multiset_sha256"]}
+
+
+@pytest.mark.parametrize(("count", "expected"), [(0, 200), (1, 200), (2, 503)])
+def test_multiset_without_key_requires_trivial_order(tmp_path, count, expected):
+    client, _, _, params, _, _ = fixture(tmp_path, row_count=count, key=(), use_multiset=True)
+    response = client.get(URL, params=params, headers=HEADERS)
+    assert response.status_code == expected
+    if expected == 200:
+        assert records(response)[-1]["type"] == "complete"
+
+
+@pytest.mark.parametrize(("options", "reason"), [
+    ({"key": ("bucket",)}, "INVALID_RESULT_IDENTITY"),
+    ({"wrong_digest": True}, "RESULT_PROOF_MISMATCH"),
+])
+def test_multiset_proof_cannot_hide_identity_or_content_mismatch(tmp_path, options, reason):
+    client, _, _, params, _, _ = fixture(tmp_path, row_count=9, use_multiset=True, **options)
+    assert records(client.get(URL, params=params, headers=HEADERS))[-1] == {"type": "incomplete", "reason": reason}
+
+
+def test_multiset_work_above_budget_is_refused_before_stream(tmp_path, monkeypatch):
+    from vkm_corpus.api import scientific_export
+
+    client, _, _, params, _, _ = fixture(tmp_path, row_count=9, use_multiset=True)
+    monkeypatch.setattr(scientific_export, "MAX_MULTISET_ROWS", 8, raising=False)
+    assert client.get(URL, params=params, headers=HEADERS).status_code == 413

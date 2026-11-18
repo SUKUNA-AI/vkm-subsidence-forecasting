@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 import hashlib
 import re
 from typing import Annotated
@@ -15,6 +16,7 @@ from vkm_corpus.api.scientific_snapshot_verification import encoded
 
 BATCH_ROWS = 128
 MAX_ROW_BYTES = 1_048_576
+MAX_MULTISET_ROWS = 300_000
 SHA256_PATTERN = r"^[0-9a-f]{64}$"
 
 
@@ -22,16 +24,25 @@ def _contract(query):
     contract = query.get("export")
     if contract is None:
         raise ApiFailure("NOT_FOUND", "named query has no qualified full export")
-    if not isinstance(contract, dict) or contract.keys() != {"order_by", "row_count", "ordered_sha256"}:
+    if not isinstance(contract, dict):
         raise ApiFailure("SNAPSHOT_UNAVAILABLE", "invalid scientific export contract")
-    order, count, digest = (contract[key] for key in ("order_by", "row_count", "ordered_sha256"))
-    if (not isinstance(order, list) or not order
+    proof_fields = contract.keys() - {"order_by", "row_count"}
+    if (not {"order_by", "row_count"} <= contract.keys()
+            or proof_fields not in ({"ordered_sha256"}, {"multiset_sha256"})):
+        raise ApiFailure("SNAPSHOT_UNAVAILABLE", "invalid scientific export contract")
+    proof, = proof_fields
+    order, count, digest = contract["order_by"], contract["row_count"], contract[proof]
+    multiset = proof == "multiset_sha256"
+    if (not isinstance(order, list)
             or any(not isinstance(name, str) or not name for name in order)
             or len(set(order)) != len(order)
             or type(count) is not int or count < 0
+            or not order and (not multiset or count > 1)
             or not isinstance(digest, str) or not re.fullmatch(SHA256_PATTERN, digest)):
         raise ApiFailure("SNAPSHOT_UNAVAILABLE", "invalid scientific export contract")
-    return order, count, digest
+    if multiset and count > MAX_MULTISET_ROWS:
+        raise ApiFailure("PAYLOAD_TOO_LARGE", "scientific multiset proof exceeds the row budget")
+    return order, count, digest, multiset
 
 
 def _line(record):
@@ -42,7 +53,16 @@ def _incomplete(reason):
     return _line({"type": "incomplete", "reason": reason})
 
 
-def _rows(reader, query_id, sql, order, expected_count, expected_sha, authorize):
+def _multiset_sha256(schema, counts):
+    # Same byte format as full_checksum; the retained hash keys use bytes to
+    # bound the extra memory of proving a large streamed result.
+    digest = hashlib.sha256(schema)
+    for row_hash, count in sorted(counts.items()):
+        digest.update(f"{row_hash.hex()}:{count}\n".encode("ascii"))
+    return digest.hexdigest()
+
+
+def _rows(reader, query_id, sql, order, expected_count, expected_sha, multiset, authorize):
     import duckdb
 
     try:
@@ -68,7 +88,8 @@ def _rows(reader, query_id, sql, order, expected_count, expected_sha, authorize)
             result = connection.execute(
                 f"SELECT *, count(*) OVER (PARTITION BY {keys}) "
                 f"FROM ({sql}\n) AS scientific_export_result ORDER BY {keys}"
-            )
+            ) if order else connection.execute(sql)
+            proof_key = "multiset_sha256" if multiset else "ordered_sha256"
             authorize()
             yield _line({
                 "type": "metadata", "schema": "vkm.scientific-query-export/1", "query_id": query_id,
@@ -76,33 +97,39 @@ def _rows(reader, query_id, sql, order, expected_count, expected_sha, authorize)
                 "source_snapshot_id": reader.manifest["source_snapshot_id"], "scope": reader.manifest["scope"],
                 "result_role": "DERIVED_PROVENANCE_QUERY", "scientific_admission": "NOT_GRANTED_BY_READER",
                 "columns": columns, "order_by": order, "expected_row_count": expected_count,
-                "expected_ordered_sha256": expected_sha,
+                f"expected_{proof_key}": expected_sha,
             })
             count = 0
-            digest = hashlib.sha256(encoded(columns) + b"\n")
+            schema = encoded(columns)
+            digest = hashlib.sha256(schema + b"\n")
+            counts = Counter() if multiset else None
             while batch := result.fetchmany(BATCH_ROWS):
                 authorize()
                 for row in batch:
-                    if row[-1] != 1 or any(row[index] is None for index in positions):
+                    if order and (row[-1] != 1 or any(row[index] is None for index in positions)):
                         yield _incomplete("INVALID_RESULT_IDENTITY")
                         return
                     count += 1
                     if count > expected_count:
                         yield _incomplete("RESULT_PROOF_MISMATCH")
                         return
-                    data = encoded(row[:-1])
+                    data = encoded(row[:-1] if order else row)
                     if len(data) > MAX_ROW_BYTES:
                         yield _incomplete("RESULT_ROW_LIMIT")
                         return
                     digest.update(data + b"\n")
+                    if counts is not None:
+                        counts[hashlib.sha256(data).digest()] += 1
                     yield b'{"type":"row","values":' + data + b'}\n'
         authorize()
         reader._verify()
-        actual_sha = digest.hexdigest()
-        if count != expected_count or actual_sha != expected_sha:
+        seal = {"type": "complete", "row_count": count, "ordered_sha256": digest.hexdigest()}
+        if counts is not None:
+            seal["multiset_sha256"] = _multiset_sha256(schema, counts)
+        if count != expected_count or seal[proof_key] != expected_sha:
             yield _incomplete("RESULT_PROOF_MISMATCH")
         else:
-            yield _line({"type": "complete", "row_count": count, "ordered_sha256": actual_sha})
+            yield _line(seal)
     except ApiFailure as error:
         yield _incomplete(error.code)
     except duckdb.OutOfMemoryException:
@@ -135,7 +162,7 @@ def mount_scientific_export_route(app, reader, read_access) -> None:
         query = reader.manifest["queries"].get(query_id)
         if query is None:
             raise ApiFailure("NOT_FOUND", "no such named scientific query")
-        order, expected_count, expected_sha = _contract(query)
+        order, expected_count, expected_sha, multiset = _contract(query)
         try:
             reader._verify()
         except OSError as error:
@@ -146,5 +173,5 @@ def mount_scientific_export_route(app, reader, read_access) -> None:
                 raise ApiFailure("FORBIDDEN", "scientific export principal changed")
 
         return StreamingResponse(_rows(reader, query_id, query["sql"].rstrip().rstrip(";"),
-                                      order, expected_count, expected_sha, authorize),
+                                      order, expected_count, expected_sha, multiset, authorize),
                                  media_type="application/x-ndjson", headers={"Cache-Control": "no-store"})
