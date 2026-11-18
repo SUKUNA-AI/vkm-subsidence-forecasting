@@ -13,6 +13,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import math
 import re
 import sqlite3
 from collections import Counter
@@ -24,7 +25,7 @@ CURATED = Path("11_evidence_vnext/canonical/WORLD_PARAMETERS/curated")
 MAPS = CURATED / "c4_map"
 DMA = Path("08_data_archives/dma_skru1_losev_20261011")
 FRAMES = {"skru1": "SKRU1_LOCAL_SH1", "skru2": "SKRU2_LOCAL_SH5", "skru3": "SKRU3_LOCAL_SH1"}
-VERSION = "mining_geometry_links_v2"
+VERSION = "mining_geometry_links_v3"
 SCENARIO = "C4_GRATICULE_003_CHECKED_SYMBOLS_V2"
 
 
@@ -57,6 +58,94 @@ def _json(value):
 
 def _sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def plan_geometry_issue(geometry) -> str | None:
+    """Gate source geometry for use in derived layers without normalizing it."""
+    if geometry is None or geometry.is_empty:
+        return "Missing or empty geometry"
+    if not geometry.is_valid:
+        from shapely.validation import explain_validity
+
+        return explain_validity(geometry)
+    return None
+
+
+def inspect_plan_geometry(source: dict | None):
+    """Read a source geometry without letting the parser silently close rings."""
+    from shapely.errors import GEOSException
+    from shapely.geometry import shape
+
+    if source is None:
+        return None, "Missing geometry"
+    try:
+        if _open_polygon_ring(source):
+            return None, "Source polygon has an open or undersized ring"
+        geometry = shape(source)
+    except (AttributeError, KeyError, TypeError, ValueError, GEOSException) as exc:
+        return None, f"Unreadable source geometry: {exc}"
+    return geometry, plan_geometry_issue(geometry)
+
+
+def _open_polygon_ring(source: dict) -> bool:
+    kind = source["type"]
+    if kind == "GeometryCollection":
+        return any(_open_polygon_ring(child) for child in source["geometries"])
+    if kind == "Polygon":
+        polygons = (source["coordinates"],)
+    elif kind == "MultiPolygon":
+        polygons = source["coordinates"]
+    else:
+        return False
+    return any(len(ring) < 4 or ring[0] != ring[-1] for polygon in polygons for ring in polygon)
+
+
+def is_skru1_bha_auto_hit(feature_id: str) -> bool:
+    return "-BHA-" in feature_id
+
+
+def checked_well_symbol_id(row: dict) -> str:
+    return "C4:skru1:well_symbol:" + row["key"]
+
+
+def checked_skru1_well_symbols(unique: list[dict], reviews: list[dict]) -> list[dict]:
+    """Bind unique F014 symbols to checked source rows, never to printed labels alone."""
+    by_point = {row["point_id"]: row for row in reviews}
+    if len(by_point) != len(reviews):
+        raise ValueError("Duplicate checked SKRU-1 symbol review")
+    eligible = {point_id for point_id, row in by_point.items()
+                if row["status"] in {"CONFIRMED", "CORRECTED"}}
+    keys, bound = set(), set()
+    for row in unique:
+        key, reference = row["key"], row["in_auto_layer"]
+        if not key or key in keys or row["status"] != "DERIVATION":
+            raise ValueError(f"Invalid or duplicate checked SKRU-1 symbol: {key!r}")
+        keys.add(key)
+        x, y = _checked_symbol_xy(row)
+        if is_skru1_bha_auto_hit(reference):
+            if reference not in eligible or reference in bound:
+                raise ValueError(f"Unapproved or duplicate checked SKRU-1 symbol reference: {reference!r}")
+            review = by_point[reference]
+            if ((x, y) != _checked_symbol_xy(review)
+                    or row["borehole_id_catalogue"] != review["borehole_id_catalogue"]
+                    or row["label_checked"] != review["label_checked"]):
+                raise ValueError(f"Conflicting checked SKRU-1 symbol review: {reference!r}")
+            bound.add(reference)
+        elif reference != "MISSED_BY_AUTO" and not reference.startswith("CONTROL_POINT "):
+            raise ValueError(f"Unknown checked SKRU-1 symbol provenance: {reference!r}")
+    if bound != eligible:
+        raise ValueError("Missing approved checked SKRU-1 symbol references in the unique overlay")
+    return unique
+
+
+def _checked_symbol_xy(row: dict) -> tuple[float, float]:
+    try:
+        x, y = float(row["x_local_m"]), float(row["y_local_m"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("Malformed checked SKRU-1 symbol coordinates") from exc
+    if not math.isfinite(x) or not math.isfinite(y):
+        raise ValueError("Nonfinite checked SKRU-1 symbol coordinates")
+    return x, y
 
 
 def semantic_role(layer: str) -> str:
@@ -280,7 +369,8 @@ def build_mining_package(resources_root: Path, out: Path) -> dict:
         frames.append({"frame_id": FRAMES[site], "mine": site.upper(), "units": "m", "axes": ["east", "north"], "horizontal_crs": None, "vertical_crs": None, "source": "private:" + (folder / frame_files[site]).as_posix(), "status": "DERIVATION", "z_status": "UNKNOWN"})
     calibration = {"skru2_links": read(MAPS / "skru2/calibration/skru2_links_and_checks.json"), "skru3_local": read(MAPS / "skru3/calibration/local_system_skru3.json")}
     unique_path = MAPS / "skru1/skru1_boreholes_014_unique.csv"
-    unique = read(unique_path, "csv")
+    reviews = read(MAPS / "skru1/skru1_boreholes_checked.csv", "csv")
+    unique = checked_skru1_well_symbols(read(unique_path, "csv"), reviews)
     skru2_points = read(MAPS / "skru2/skru2_points.geojson")["features"]
     old_link = calibration["skru2_links"]["C_link_skru1"]
     pairs = []
@@ -340,7 +430,8 @@ def build_mining_package(resources_root: Path, out: Path) -> dict:
             value = record.get(key)
             if value is not None:
                 f.SetField(key, _json(value) if isinstance(value, (dict, list)) else str(value))
-        f.SetGeometry(geom)
+        if geom is not None:
+            f.SetGeometry(geom)
         layer_.CreateFeature(f)
 
     def scene_geometry(site, geometry):
@@ -369,40 +460,43 @@ def build_mining_package(resources_root: Path, out: Path) -> dict:
             for index, feature in enumerate(features):
                 p = feature["properties"]
                 source_id = p.get("id", str(index))
-                auto_bad = site == "skru1" and family == "points" and "-BHA-" in source_id
+                auto_bad = site == "skru1" and family == "points" and is_skru1_bha_auto_hit(source_id)
                 role = semantic_role(p.get("layer", "")) if family == "workings" else p.get("kind", family)
                 seams = seam_candidates(p.get("seam"))
                 record = {"record_id": observation_ids[index], "source_feature_id": source_id, "mine": p.get("mine") or p.get("site_norm") or None, "mine_context": site.upper(), "mine_attribution_status": "SOURCE_ATTRIBUTE" if p.get("mine") or p.get("site_norm") else "UNKNOWN_PLAN_CONTEXT_ONLY", "frame_id": frame, "semantic_role": role, "seam": seams[0] if len(seams) == 1 else None, "seam_candidates": seams, "seam_status": "SOURCE_INTERPRETATION" if len(seams) == 1 else "AMBIGUOUS" if seams else "UNKNOWN", **plan_state(p), "interpretation_id": "SOURCE_LOCAL_V1", "source_path": "private:" + source_path.as_posix(), "source_sha256": inventory[source_path.as_posix()]["sha256"], "source_row": index, "raw_properties_json": p, "geometry_z": None, "geometry_status": "DERIVATION", "review_status": "AUTO_EXTRACTED_UNREVIEWED", "usable_symbol_position": not auto_bad}
                 records.append(record)
-                geom = ogr.CreateGeometryFromJson(_json(feature["geometry"]))
-                source_shape = shape(feature["geometry"])
-                record["geometry_valid"] = source_shape.is_valid
-                if not source_shape.is_valid:
-                    from shapely.validation import explain_validity
-                    diagnostics.append({"record_id": record["record_id"], "result": "FAILED_SOURCE_GEOMETRY_VALIDITY", "reason": explain_validity(source_shape), "repair": "NOT_RUN; source preserved, no physical interpretation of repair asserted", "solid_or_volume_use": "BLOCKED"})
-                if p.get("kind") == "SHAFT":
+                source_shape, issue = inspect_plan_geometry(feature["geometry"])
+                geom = ogr.CreateGeometryFromJson(_json(feature["geometry"])) if source_shape is not None else None
+                record["geometry_valid"] = issue is None
+                if issue:
+                    diagnostics.append({"record_id": record["record_id"], "result": "FAILED_SOURCE_GEOMETRY_VALIDITY", "reason": issue, "repair": "NOT_RUN; source preserved, no physical interpretation of repair asserted", "solid_or_volume_use": "BLOCKED"})
+                if p.get("kind") == "SHAFT" and issue is None:
                     shaft_records.append((site, record, feature["geometry"]["coordinates"]))
                 add(local_layer, record, geom)
-                if not auto_bad:
-                    scene_geom = scene_geometry(site, geom)
-                    add(scene_layer, {**record, "frame_id": "EPSG:32640", "interpretation_id": SCENARIO}, scene_geom)
-                    if site == "skru1" and role == "PANEL_OR_BLOCK_DOMAIN":
-                        scenario_panels.append((record, shape(json.loads(scene_geom.ExportToJson()))))
-                else:
+                if auto_bad:
                     point_corrections.append({"source_record_id": record["record_id"], "status": "EXCLUDED_AUTO_SYMBOL_COORDINATE", "reason": "existing source review detects labels/false positives; use checked unique-symbol overlay"})
+                elif issue is None:
+                    scene_geom = scene_geometry(site, geom)
+                    scene_shape = shape(json.loads(scene_geom.ExportToJson()))
+                    scene_issue = plan_geometry_issue(scene_shape)
+                    if scene_issue:
+                        diagnostics.append({"record_id": record["record_id"], "result": "FAILED_SCENARIO_GEOMETRY_VALIDITY", "reason": scene_issue, "solid_or_volume_use": "BLOCKED"})
+                    else:
+                        add(scene_layer, {**record, "frame_id": "EPSG:32640", "interpretation_id": SCENARIO}, scene_geom)
+                        if site == "skru1" and role == "PANEL_OR_BLOCK_DOMAIN":
+                            scenario_panels.append((record, scene_shape))
                 if dated_layer is not None and record["state_date"] is not None:
                     add(dated_layer, record, geom)
                 for object_id in filter(None, p.get("object_id", "").split(";")):
                     object_links.append({"record_id": record["record_id"], "object_id": object_id, "status": "SOURCE_INTERPRETATION", "basis": "explicit input object_id; not a new name match"})
                 for object_id in p.get("related_object_ids", []):
                     object_links.append({"record_id": record["record_id"], "object_id": object_id, "status": "CANDIDATE", "basis": p.get("related_basis")})
-    read(MAPS / "skru1/skru1_boreholes_checked.csv", "csv")
     checked_local = osr.SpatialReference(); checked_local.SetLocalCS(FRAMES["skru1"]); checked_local.SetLinearUnits("metre", 1)
     checked = layer("skru1_boreholes_checked_local", checked_local)
     checked_scene = layer("skru1_boreholes_checked_utm_scenario", utm)
     for row in unique:
         point = ogr.Geometry(ogr.wkbPoint); point.AddPoint_2D(float(row["x_local_m"]), float(row["y_local_m"]))
-        rec = {"record_id": "C4:skru1:well_symbol:" + row["key"], "source_feature_id": row["key"], "mine": "SKRU1_PLAN_CONTEXT", "frame_id": FRAMES["skru1"], "semantic_role": "CHECKED_WELL_SYMBOL", "source_path": "private:" + unique_path.as_posix(), "source_sha256": inventory[unique_path.as_posix()]["sha256"], "raw_properties_json": row}
+        rec = {"record_id": checked_well_symbol_id(row), "source_feature_id": row["key"], "mine": "SKRU1_PLAN_CONTEXT", "frame_id": FRAMES["skru1"], "semantic_role": "CHECKED_WELL_SYMBOL", "source_path": "private:" + unique_path.as_posix(), "source_sha256": inventory[unique_path.as_posix()]["sha256"], "raw_properties_json": row}
         add(checked, rec, point); add(checked_scene, {**rec, "frame_id": "EPSG:32640", "interpretation_id": SCENARIO}, scene_geometry("skru1", point))
     table("checked_well_symbols", unique)
     table("point_exclusions", point_corrections)

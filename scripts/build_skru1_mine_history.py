@@ -5,6 +5,7 @@ Inputs (all read-only):
   - ``SITE_SKRU1_MINE/skru1_mine_evidence.csv`` — new evidence of this build (quotes, PRIVATE);
   - ``WORLD_PARAMETERS/curated/skru1_mining_calendar_20261010.csv`` (+ conflicts), ``skru1_c4_chamber_design.csv``;
   - ``WORLD_PARAMETERS/curated/c4_map/skru1/*.geojson`` — the mine-field plan in SKRU1_LOCAL_SH1 (CRS UNKNOWN);
+  - ``WORLD_PARAMETERS/curated/c4_map/skru1/skru1_boreholes_{checked,014_unique}.csv`` — checked symbol positions;
   - ``MINING/mining_chronology_catalog.csv``, ``mining_geometry_catalog.csv``, ``backfill_event_catalog.csv`` (Phase 1);
   - ``WORLD_OBSERVATIONS/world_observation_catalog.csv``.
 * optional ``--block201`` — the SITE_BLOCK201_LINE12 stream (benchmarks of profile line 12 in SH1, block 201 history);
@@ -14,6 +15,7 @@ Inputs (all read-only):
 
 Outputs: the canonical stream tables (``--stream-out``, no coordinates, quotes only in the evidence file) and the
 delivery (``--delivery``: GeoPackage in SH1 without EPSG, CSV with geometry, WorldSpec JSON, figures, checks, receipt).
+Contours held for source validity are retained in the delivery's private source_geometry_holds.json.
 
 Nothing here is an observation of mining: plan contours are DERIVATION of schematic figures, dates are as printed,
 intervals are bounds, UNKNOWN stays UNKNOWN. Plan ≠ fact; design chambers ≠ actual extraction.
@@ -38,6 +40,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from vkm_world.geometry_build import mining as plan_geometry  # noqa: E402
 from vkm_world.mining.skru1_history import (  # noqa: E402
     DECADES, SEAMS, YearInterval, areal_extraction_ratio, ascii_id, combine_intervals, decade_state, interval_from_row,
     normalize_objects, normalize_seams, overlapping_same_seam, plan_key)
@@ -105,18 +108,28 @@ def rel(p: Path, base: Path) -> str:
 
 
 # ----------------------------------------------------------------------------- plan
-def load_plan(c4map: Path):
-    from shapely.geometry import shape
+def eligible_polygons(path: Path, holds: list[dict]):
+    raw = path.read_bytes()
+    source_sha256 = hashlib.sha256(raw).hexdigest()
+    for source_row, feature in enumerate(json.loads(raw)["features"]):
+        geometry, issue = plan_geometry.inspect_plan_geometry(feature["geometry"])
+        if issue is None and geometry.geom_type not in {"Polygon", "MultiPolygon"}:
+            issue = f"Expected polygon geometry; got {geometry.geom_type}"
+        if issue:
+            holds.append({"source_file": path.name, "source_sha256": source_sha256,
+                          "source_row": source_row, "status": "HELD_SOURCE_GEOMETRY",
+                          "reason": issue, "feature": feature})
+        else:
+            yield feature["properties"], geometry
+
+
+def load_plan(c4map: Path, holds: list[dict]):
     from shapely.ops import unary_union
-    work = json.loads((c4map / "skru1_workings.geojson").read_text(encoding="utf-8"))
+
     pts = json.loads((c4map / "skru1_points.geojson").read_text(encoding="utf-8"))
     bnd = json.loads((c4map / "skru1_boundaries.geojson").read_text(encoding="utf-8"))
     regions, layers = [], defaultdict(list)
-    for f in work["features"]:
-        p = f["properties"]
-        g = shape(f["geometry"])
-        if not g.is_valid:
-            g = g.buffer(0)
+    for p, g in eligible_polygons(c4map / "skru1_workings.geojson", holds):
         item = {"id": p["id"], "layer": p["layer"], "kind": p["kind"], "label": p.get("label_as_printed", ""),
                 "parent": p.get("parent_panel", ""), "seam": p.get("seam", ""), "geom": g, "props": p}
         if p["layer"] == "PANEL_BLOCK_LAYOUT_014":
@@ -130,6 +143,25 @@ def load_plan(c4map: Path):
         if r["key"]:
             key_index[r["key"]].append(r)
     return regions, layers, key_index, field, pts["features"], bnd["features"]
+
+
+def plan_points_for_export(features, symbols):
+    from shapely.geometry import Point, shape
+
+    for feature in features:
+        p = feature["properties"]
+        kind = p.get("kind", "")
+        if plan_geometry.is_skru1_bha_auto_hit(p["id"]):
+            continue
+        if "SHAFT" in kind or kind.startswith(("BOREHOLE", "ZONE")):
+            yield {"point_id": p["id"], "kind": kind, "label": p.get("label_as_printed", ""),
+                   "object_id": p.get("object_id", ""), "source_id": p.get("source_id", ""),
+                   "status": p.get("status", ""), "geom": shape(feature["geometry"])}
+    for symbol in symbols:
+        yield {"point_id": plan_geometry.checked_well_symbol_id(symbol), "kind": "BOREHOLE_CHECKED_SYMBOL",
+               "label": symbol["label_checked"], "object_id": symbol["borehole_id_catalogue"],
+               "source_id": "VKM-SRC-014", "status": symbol["status"],
+               "geom": Point(float(symbol["x_local_m"]), float(symbol["y_local_m"]))}
 
 
 def region_error(cx: float) -> tuple[float, float, str]:
@@ -911,7 +943,10 @@ def main(argv=None) -> int:
             inputs[name] = {"path": rel(Path(p), a.private) if str(Path(p).resolve()).startswith(str(a.private.resolve()))
                             else Path(p).name, "sha256": sha(Path(p))}
 
-    for n in ("skru1_workings.geojson", "skru1_points.geojson", "skru1_boundaries.geojson"):
+    unique_symbols = "skru1_boreholes_014_unique.csv"
+    checked_symbols = "skru1_boreholes_checked.csv"
+    for n in ("skru1_workings.geojson", "skru1_points.geojson", "skru1_boundaries.geojson",
+              unique_symbols, checked_symbols):
         pin("c4map/" + n, c4map / n)
     for n in ("skru1_mining_calendar_20261010.csv", "skru1_calendar_conflicts_20261010.csv", "skru1_c4_chamber_design.csv"):
         pin("curated/" + n, curated / n)
@@ -928,17 +963,17 @@ def main(argv=None) -> int:
             pin("block201/" + n, a.block201 / n)
     pin("builder", Path(__file__))
     pin("library", ROOT / "src" / "vkm_world" / "mining" / "skru1_history.py")
+    pin("plan_geometry_policy", Path(plan_geometry.__file__))
 
-    regions, layers, key_index, field, points, bounds = load_plan(c4map)
+    symbols = plan_geometry.checked_skru1_well_symbols(
+        read_csv(c4map / unique_symbols), read_csv(c4map / checked_symbols))
+    geometry_holds = []
+    regions, layers, key_index, field, points, bounds = load_plan(c4map, geometry_holds)
     if a.state_1990 and a.state_1990.is_file():
-        from shapely.geometry import shape as _shape
-        s90 = json.loads(a.state_1990.read_text(encoding="utf-8"))
-        for f_ in s90["features"]:
-            p_ = f_["properties"]
-            g_ = _shape(f_["geometry"])
+        for p_, g_ in eligible_polygons(a.state_1990, geometry_holds):
             layers["STATE_C1990_037"].append({"id": p_["id"], "layer": "STATE_C1990_037", "kind": p_["class"],
                                               "label": "", "parent": "", "seam": p_["seam"],
-                                              "geom": g_ if g_.is_valid else g_.buffer(0), "props": p_})
+                                              "geom": g_, "props": p_})
     cal = read_csv(curated / "skru1_mining_calendar_20261010.csv")
     known_phase1 = {x.strip() for r in cal for x in r.get("phase1_ref", "").split(";") if x.strip()}
     evidence = (load_calendar(curated) + load_chamber_design(curated) + load_phase1(canon / "MINING", known_phase1)
@@ -1168,6 +1203,7 @@ def main(argv=None) -> int:
     # --- checks
     from shapely.ops import unary_union
     checks = {"field_area_m2": round(field.area), "n_regions": len(regions), "n_units": len(units),
+              "source_geometry_hold_count": len(geometry_holds),
               "timing_class_counts": dict(Counter(u["timing_class"] for u, _ in units if u["seam"] in SEAMS))}
     # interval sanity
     bad = []
@@ -1344,6 +1380,8 @@ def main(argv=None) -> int:
     # --- delivery: GeoPackage + CSV with geometry + figures
     d = a.delivery
     (d / "data").mkdir(parents=True, exist_ok=True)
+    (d / "data/source_geometry_holds.json").write_text(
+        json.dumps(geometry_holds, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     unit_feats = []
     for u, g in units:
         if g is not None:
@@ -1363,14 +1401,7 @@ def main(argv=None) -> int:
                                 "page_id": x["props"]["page_id"], "status": x["props"]["status"],
                                 "area_m2": round(x["geom"].area), "geom": x["geom"]})
     from shapely.geometry import shape
-    pt_feats = []
-    for f in points:
-        p = f["properties"]
-        if p.get("kind") in ("SHAFT", "BOREHOLE_COMMON", "ZONE_CENTER") or "SHAFT" in p.get("kind", "") or \
-                p.get("kind", "").startswith("BOREHOLE") or p.get("kind", "").startswith("ZONE"):
-            pt_feats.append({"point_id": p["id"], "kind": p.get("kind", ""), "label": p.get("label_as_printed", ""),
-                             "object_id": p.get("object_id", ""), "source_id": p.get("source_id", ""),
-                             "status": p.get("status", ""), "geom": shape(f["geometry"])})
+    pt_feats = list(plan_points_for_export(points, symbols))
     for o in b201_objs:
         try:
             from shapely import wkt as _wkt
@@ -1382,7 +1413,7 @@ def main(argv=None) -> int:
     bnd_feats = [{"boundary_id": f["properties"]["id"], "geom": shape(f["geometry"]),
                   "meaning": f["properties"].get("meaning_as_printed", "") or f["properties"].get("note", "")} for f in bounds]
     meta = {"mining_units": "Объект × пласт: интервалы выемки/закладки как границы годов; DERIVATION/FACT по столбцу status",
-            "plan_regions_014": "Раскройка поля (VKM-SRC-014 рис. 3.1–3.3) в SH1; ошибки положения pos_err_m",
+            "plan_regions_014": "Пригодные по топологии контуры VKM-SRC-014 в SH1; отклонённые в source_geometry_holds.json",
             "plan_states": "Состояния схем: отработано к ≈1990 (037 рис. 2.7), отработано к 01.01.2007 (064), остаток 2013 (014), целики",
             "points": "Стволы, знаки скважин, центры зон ВКР, реперы ПЛ 12 (если дан --block201)",
             "boundaries": "Границы горного отвода и линии схем"}

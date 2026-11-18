@@ -108,7 +108,7 @@ vkm-engineering = "vkm_engineering.mcp_server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["vkm_world*", "vkm_corpus*", "vkm_cad*", "vkm_drawio*", "vkm_qgis*", "vkm_jobs*", "vkm_matlab*", "vkm_ansys*", "vkm_datasets*", "vkm_evidence*", "vkm_engineering*"]
+include = ["vkm_world*", "vkm_corpus*", "vkm_cad*", "vkm_drawio*", "vkm_qgis*", "vkm_jobs*", "vkm_matlab*", "vkm_ansys*", "vkm_datasets*", "vkm_evidence*", "vkm_engineering*", "vkm_geometry*"]
 
 [tool.setuptools.package-data]
 # non-Python files read at run time (a non-editable install, e.g. the CORE image, has only what is listed here)

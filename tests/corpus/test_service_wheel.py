@@ -24,8 +24,11 @@ class Forbidden(importlib.abc.MetaPathFinder):
             raise ImportError('forbidden unrelated API/model runtime import: ' + fullname)
 sys.meta_path.insert(0, Forbidden())
 import vkm_corpus, vkm_evidence
+from vkm_geometry import association, db_adapter, native_pixel_support, qgis_check, ta1_worker, transport
 assert Path(vkm_corpus.__file__).resolve().is_relative_to(target)
 assert Path(vkm_evidence.__file__).resolve().is_relative_to(target)
+for module in (association, db_adapter, native_pixel_support, qgis_check, ta1_worker, transport):
+    assert Path(module.__file__).resolve().is_relative_to(target)
 from vkm_corpus.update.service_identity import *
 from vkm_corpus.update.service_identity import _source_path
 inventories = {p: {'code': code_inventory(p), 'dependencies': dependency_inventory(p)}
