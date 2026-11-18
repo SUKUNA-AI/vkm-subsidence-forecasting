@@ -10,6 +10,8 @@ import json
 import numpy as np
 
 def write_raw_checkpoint(model, path, state, *, accepted=True):
+    if type(accepted) is not bool:
+        raise ValueError('accepted must be bool')
     model._check_state(state)
     path = Path(path)
     arrays = dict(time_s=state.time_s, displacement_m=state.displacement_m, support=state.support, event_cursor=state.event_cursor, identity=model.identity, domain_cells=model.domain)
@@ -29,5 +31,5 @@ def write_raw_checkpoint(model, path, state, *, accepted=True):
         metadata['water_topology_id'] = state.water.topology_id
     arrays['metadata_json'] = json.dumps(metadata, sort_keys=True)
     np.savez(path, **arrays)
-    sidecar = dict(schema='vkm.grouped-history-binding/1', identity=model.identity, accepted=bool(accepted), sha256=hashlib.sha256(path.read_bytes()).hexdigest(), dependencies=model.identity_payload)
+    sidecar = dict(schema='vkm.grouped-history-binding/1', identity=model.identity, accepted=accepted, sha256=hashlib.sha256(path.read_bytes()).hexdigest(), dependencies=model.identity_payload)
     Path(str(path) + '.binding.json').write_text(json.dumps(sidecar, ensure_ascii=False, indent=2), encoding='utf-8')
