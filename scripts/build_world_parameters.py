@@ -35,7 +35,7 @@ from pathlib import Path
 csv.field_size_limit(sys.maxsize)
 
 G = 9.80665
-RULE_VERSION = "world_parameters_v0"
+RULE_VERSION = "world_parameters_v1"
 
 # material classes of the world (owner decision 08.10.2026: 7 classes + salt rocks without a class)
 MATERIAL_CLASSES = ("ROCKSALT", "SYLVINITE", "CARNALLITE", "CLAY_CONTACT", "TRANSITION_OVERBURDEN", "COVER", "BACKFILL",
@@ -54,6 +54,13 @@ _MATERIAL_RULES = (            # first match wins; text = lithology + layer as p
     ("ROCKSALT", r"\bсоль\b|\bsalt\b"),
 )
 _SEAM_TO_CLASS = {"MPS": "ROCKSALT", "PKS": "ROCKSALT", "PDKS": "ROCKSALT"}   # межпластовая / подстилающая / покровная соль
+
+# Source-qualified exceptions to the Phase 1 "mixed" label (VKM-EXEC-SPEC-20261116, REQ-038).
+_MATERIAL_CORRECTIONS = {
+    ("VKM-SRC-030", "MR-MECH-1612", "SIGMA_H"): "PDF 5 / printed 38 / table 2: deep mixed sedimentary formations.",
+    ("VKM-SRC-030", "MR-MECH-1613", "SIGMA_H"): "PDF 5 / printed 38 / table 2: deep mixed sedimentary formations.",
+    ("VKM-SRC-023", "MR-MECH-1561", "LAMBDA"): "§2.3 / paragraph 214 / ref. [23]: hard-rock open-pit citation.",
+}
 
 # world parameters (module, quantity) ← catalogue variables; unit kind decides the SI conversion
 PARAMETERS = {
@@ -151,6 +158,20 @@ def site_group(scope: str) -> str:
     return "NON_VKM"
 
 
+def material_correction_basis(row: dict) -> str | None:
+    key = (row.get("source_id"), row.get("catalogue_row_id"), row.get("parameter"))
+    return _MATERIAL_CORRECTIONS.get(key)
+
+
+def correct_material_class(row: dict) -> dict:
+    """Project reviewed catalogue rows without reassigning their evidence IDs."""
+    basis = material_correction_basis(row)
+    if basis is None or row["material_class"] != "SALT_GENERAL":
+        return row
+    return dict(row, material_class="UNCLASSIFIED", param_id=f"{row['parameter']}.UNCLASSIFIED",
+                phase1_notes=f"Material correction REQ-038 (NON_TRANSFERABLE): {basis} {row['phase1_notes']}")
+
+
 def evidence_rows(mech: list[dict]) -> tuple[list[dict], Counter]:
     out, skipped = [], Counter()
     for r in mech:
@@ -190,7 +211,9 @@ def evidence_rows(mech: list[dict]) -> tuple[list[dict], Counter]:
                             x["scale"], x["site_group"], x["source_id"], x["catalogue_row_id"]))
     for i, x in enumerate(out, 1):
         x["wpe_id"] = f"WPE-{i:05d}"
-    return out, skipped
+    # Legacy numbering depended on the original class sort. Correct the class
+    # only after assigning those IDs to preserve existing WPE and WPV links.
+    return [correct_material_class(x) for x in out], skipped
 
 
 def _q(xs: list[float], p: float) -> float:

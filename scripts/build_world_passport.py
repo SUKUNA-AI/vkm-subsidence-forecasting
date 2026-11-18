@@ -197,7 +197,8 @@ class Units:
 # ------------------------------------------------------------------------------------------------ evidence
 def phase1_rows(canon: Path) -> list[dict]:
     out = []
-    for r in _rows(canon / "WORLD_PARAMETERS" / "world_parameter_evidence.csv"):
+    for historical in _rows(canon / "WORLD_PARAMETERS" / "world_parameter_evidence.csv"):
+        r = WP.correct_material_class(historical)
         scale = SCALE_NORM.get(r["scale"], r["scale"])
         out.append(dict(producer="PHASE1_CATALOGUE", producer_record_id=r["wpe_id"], module=r["module"],
                         parameter=r["parameter"], target=r["material_class"], material_class=r["material_class"],
@@ -209,6 +210,8 @@ def phase1_rows(canon: Path) -> list[dict]:
                         origin=(r["original_or_cited"] or "UNKNOWN").upper(), cited_ref="", source_id=r["source_id"],
                         page_id=_page_id(r["source_id"], r["pdf_page"]), locator=r["locator"], quote="",
                         status=r["status"], verification="PHASE1_REVIEWED", notes=r["phase1_notes"][:300]))
+        if r["material_class"] == "UNCLASSIFIED" and WP.material_correction_basis(r):
+            out[-1]["non_transferable_material_correction"] = True
     for r in _rows(canon / "WORLD_PARAMETERS" / "world_c1_thickness_evidence.csv"):
         out.append(dict(producer="PHASE1_CATALOGUE", producer_record_id=r["obs_id"], module="C1",
                         parameter="THICKNESS", target=r["unit_id"] or r["unit"], material_class="",
@@ -759,6 +762,8 @@ def world_status(rows: list[dict], branch: str, site: str) -> tuple[str, str]:
     ORIGINAL, the name of the mine or a number alone never gives FACT."""
     if not rows:
         return "UNKNOWN", "нет evidence"
+    if any(x.get("non_transferable_material_correction") for x in rows):
+        return "UNKNOWN", "REQ-038: NON_TRANSFERABLE, класс породы для переноса не установлен"
     if branch == "N":
         return "SCENARIO_RANGE", "норматив / проектное значение: не измерение, отдельная ветка N"
     if branch == "A":

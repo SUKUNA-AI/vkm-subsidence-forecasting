@@ -181,6 +181,27 @@ def _write(path: Path, rs: list[dict]):
         w.writerows(rs)
 
 
+def test_phase1_passport_excludes_old_material_label_from_salt_registry(wpp, tmp_path):
+    canon = tmp_path / "canonical"
+    history = dict(WPE, wpe_id="WPE-00848", param_id="LAMBDA.SALT_GENERAL", parameter="LAMBDA", module="C3",
+                   material_class="SALT_GENERAL", site_scope="NON_VKM", site_group="NON_VKM", scale="MASSIF",
+                   si_min="1.2", si_max="1.5", si_unit="1", source_id="VKM-SRC-023", locator="PARA 214",
+                   catalogue_row_id="MR-MECH-1561", transfer_status_SKRU1="NON_TRANSFERABLE | NON_VKM_ANALOGUE",
+                   original_or_cited="CITED: [23]")
+    _write(canon / "WORLD_PARAMETERS" / "world_parameter_evidence.csv", [history])
+    rows = wpp.phase1_rows(canon)
+    assert rows[0]["producer_record_id"] == "WPE-00848"
+    assert rows[0]["material_class"] == rows[0]["target"] == "UNCLASSIFIED"
+    assert rows[0]["site_norm"] == "NON_VKM" and rows[0]["origin"] == "CITED: [23]"
+    assert "NON_TRANSFERABLE" in rows[0]["notes"]
+    rows[0]["ev_id"] = "WPV-022254"
+    registry, links = wpp.registry(rows, {})
+    linked = {r["passport_id"] for r in links if r["ev_id"] == "WPV-022254"}
+    assert {(r["target"], r["world_status"]) for r in registry if r["passport_id"] in linked} == {
+        ("UNCLASSIFIED", "UNKNOWN"),
+    }
+
+
 @pytest.fixture()
 def canon(tmp_path):
     c = tmp_path / "canonical"
