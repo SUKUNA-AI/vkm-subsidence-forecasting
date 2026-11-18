@@ -59,7 +59,7 @@ def build_plan(cfg: PipelineConfig, sources: list[SourceInput], cache: Any, stor
             totals["skipped_by_register"] += 1
             out.append(e)
             continue
-        sig = cm.prep_signature_for(cfg, s)
+        sig = cm.prep_signature_for(cfg, s, file_format=fresh.get(s.source_id, {}).get("file_format"))
         prep = load_prep(cfg.data_root, s.source_id, sig)
         admitted = {"_fresh_source_identity": fresh[s.source_id]} if s.source_id in fresh else {}
         if prep is not None and not source_format_admitted(cfg, s, prep, **admitted):

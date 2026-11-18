@@ -1,13 +1,13 @@
 """Text-layer diagnostics: glyph statistics, function-word plausibility, deterministic CP1251 mojibake repair.
 
-The repair re-reads Latin-1-range glyphs (U+00C0..U+00FF, U+00A8, U+00B8) as CP1251 bytes – the typical defect of
-single-byte Cyrillic fonts without a proper ``/ToUnicode``. It is a DERIVATION: the raw layer is kept, the repaired
-text is accepted only if it passes the plausibility check, otherwise the page goes to OCR.
+Only word-shaped stretches consistent with a misdecoded Cyrillic word are eligible. ASCII-bearing words and
+standalone mathematical operators are outside the repair. Keep raw text and locate each change or ambiguity.
 """
 from __future__ import annotations
 
 import re
 from collections.abc import Iterable
+from dataclasses import dataclass
 
 FUNC_WORDS = frozenset(
     """и в во не на с со что по из к ко а о об от для при до как это или то же за но так их его ее её был была были
@@ -19,8 +19,15 @@ FUNC_WORDS = frozenset(
     nach aus wie oder bei sind wurde wurden
     le la les et des du un une est dans pour par sur que qui au aux ce ces avec""".split())
 WORD_RE = re.compile(r"[A-Za-zА-Яа-яЁё]+")
-_GOOD_PUNCT = set(".,;:!?-–—()[]{}\"'«»„“”‘’/\\%+=*<>№§°±×·…_|~^&#@$")
+_GOOD_PUNCT = set(".,;:!?-–—()[]{}\"'«»„“”‘’/\\%+=*<>№§°±×÷·…_|~^&#@$")
 _WS = {0x20, 0x09, 0x0A, 0x0D, 0x0C, 0xA0}
+CP1251_REPAIR_RULE = "cp1251_contextual_word_v1"
+_TOKEN = re.compile(r"[\w\u00a8\u00b8×÷]+")
+_LATIN1_BYTES = frozenset(chr(i) for i in range(0xC0, 0x100)) | {"¨", "¸"}
+_RUSSIAN_WORD = re.compile(r"[А-Яа-яЁё]+\Z")
+_RUSSIAN_VOWELS = frozenset("аеёиоуыэюя")
+# Byte glyphs with no ordinary use inside Latin words. They only count within a plausible mapped word.
+_WORD_SIGNAL = frozenset("×÷¨¸ÐðÞþß")
 
 
 def char_stats(codes: Iterable[int]) -> dict[str, int]:
@@ -36,6 +43,8 @@ def char_stats(codes: Iterable[int]) -> dict[str, int]:
             lat += 1
         elif 0x30 <= o <= 0x39:
             digits += 1
+        elif o in (0xD7, 0xF7):
+            punct += 1
         elif 0x00C0 <= o <= 0x024F:
             latext += 1
         elif 0x0370 <= o <= 0x03FF:
@@ -58,15 +67,60 @@ def text_char_stats(text: str) -> dict[str, int]:
     return char_stats(ord(c) for c in text)
 
 
-def remap_cp1251(text: str) -> str:
-    out = []
-    for ch in text:
-        o = ord(ch)
-        if 0xC0 <= o <= 0xFF or o in (0xA8, 0xB8):
-            out.append(bytes([o]).decode("cp1251"))
+@dataclass(frozen=True)
+class RepairSpan:
+    start: int
+    end: int
+    raw: str
+    replacement: str | None
+    reason: str
+
+
+@dataclass(frozen=True)
+class TextRepair:
+    text: str
+    spans: tuple[RepairSpan, ...]
+
+
+def contextual_cp1251(text: str, *, mapped_font: bool = False) -> TextRepair:
+    """Return a candidate transcription and offsets into the unchanged input layer."""
+    tokens = []
+    for match in _TOKEN.finditer(text):
+        raw = match.group()
+        if raw in ("×", "÷") or any(char not in _LATIN1_BYTES for char in raw):
+            continue
+        repaired = raw.encode("latin-1").decode("cp1251")
+        if not _RUSSIAN_WORD.fullmatch(repaired):
+            continue
+        letters = set(repaired.lower())
+        word_shape = bool(letters & _RUSSIAN_VOWELS and letters - _RUSSIAN_VOWELS)
+        operator_expression = len(raw) == 3 and raw[1] in "×÷"
+        strong = (not operator_expression and len(raw) >= 3 and word_shape and len(letters) >= 3
+                  and (any(char in _WORD_SIGNAL for char in raw)
+                       or len(raw) >= 4 and repaired[1:].islower()))
+        tokens.append((match, repaired, strong))
+    contextual = any(strong for _, _, strong in tokens)
+    spans = []
+    parts = []
+    start = 0
+    for match, repaired, strong in tokens:
+        raw = match.group()
+        # Short prepositions often occur in a broken run. Require supporting word evidence in the same run.
+        accepted = not mapped_font and (strong or contextual and repaired.lower() in FUNC_WORDS)
+        replacement = repaired if accepted else None
+        if accepted:
+            reason = "CP1251_WORD_SHAPE" if strong else "CP1251_CONTEXT_FUNCTION_WORD"
         else:
-            out.append(ch)
-    return "".join(out)
+            reason = "DECLARED_UNICODE_FONT" if mapped_font else "AMBIGUOUS_CP1251_WORD"
+        parts.extend((text[start:match.start()], replacement or raw))
+        spans.append(RepairSpan(match.start(), match.end(), raw, replacement, reason))
+        start = match.end()
+    parts.append(text[start:])
+    return TextRepair("".join(parts), tuple(spans))
+
+
+def remap_cp1251(text: str) -> str:
+    return contextual_cp1251(text).text
 
 
 def word_stats(text: str) -> tuple[int, int]:

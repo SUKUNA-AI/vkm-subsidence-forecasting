@@ -30,14 +30,15 @@ def _cfg_hash(d: dict[str, Any]) -> str:
     return config_hash(d)
 
 
-def prep_signature_for(cfg: PipelineConfig, src: SourceInput) -> str:
+def prep_signature_for(cfg: PipelineConfig, src: SourceInput, *, file_format: str | None = None) -> str:
     return prepare_signature(cfg, src, {"docx_image": cfg.docx_render_image}
-                             if src.canonical_path.lower().endswith(".docx") else None)
+                             if src.canonical_path.lower().endswith(".docx") else None, file_format=file_format)
 
 
 def load_state(cfg: PipelineConfig, src: SourceInput, *, _fresh_source_identity: dict[str, Any] | None = None
                ) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
-    prep = load_prep(cfg.data_root, src.source_id, prep_signature_for(cfg, src))
+    prep = load_prep(cfg.data_root, src.source_id, prep_signature_for(
+        cfg, src, file_format=(_fresh_source_identity or {}).get("file_format")))
     if prep is None:
         return None, None
     if not source_format_admitted(cfg, src, prep, _fresh_source_identity=_fresh_source_identity):

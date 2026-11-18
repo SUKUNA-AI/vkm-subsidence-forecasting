@@ -399,7 +399,7 @@ class CanonMapper:
                 "pages", env, page_index=p.page_index, page_kind=p.page_kind, page_class=page_class, page_route=route,
                 printed_page_raw=p.printed_page_raw, printed_page_labels=list(p.printed_page_labels),
                 printed_label_origin=p.printed_label_origin,
-                printed_label_status=p.extra.get("printed_label_status", "NONE") if p.printed_page_labels else "NONE",
+                printed_label_status=p.extra.get("printed_label_status", "NONE"),
                 printed_label_extractor=p.printed_label_extractor, is_spread=p.is_spread, width_pt=p.width_pt,
                 height_pt=p.height_pt, rotation_deg=int(p.rotation_deg or 0), page_box=p.page_box,
                 native_dpi=float(p.native_dpi) if p.native_dpi else None, bbox_space=p.bbox_space,

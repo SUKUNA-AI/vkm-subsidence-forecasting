@@ -325,18 +325,29 @@ class Assembler:
             rid = owner[idxs[0]]
             region = text_regions[rid] if rid is not None else None
             flags: list[str] = []
+            extractor_version = EXTRACTOR_VERSIONS[extractor]
+            generation, native_hash = GENERATIONS[extractor], self.native_hash
             if route == "NATIVE_REPAIR" and not embedded:
-                from vkm_corpus.extract.text_repair import remap_cp1251
+                from vkm_corpus.extract.pdf_native import CP1251_REPAIRED_BLOCK_GENERATION, CP1251_REPAIRED_BLOCK_VERSION
+                from vkm_corpus.extract.text_repair import CP1251_REPAIR_RULE
 
-                text = remap_cp1251(text)
-                flags.append("ENCODING_REPAIRED")
+                repair = raw.get("cp1251_repair") or {}
+                if repair.get("rule") != CP1251_REPAIR_RULE:
+                    raise ValueError("NATIVE_REPAIR_REQUIRES_CURRENT_PROVENANCE")
+                # A block preserved by the current rule may have been changed by the previous global remap.
+                generation, extractor_version = CP1251_REPAIRED_BLOCK_GENERATION, CP1251_REPAIRED_BLOCK_VERSION
+                native_hash = _cfg_hash({"native": self.native_hash, "repair": CP1251_REPAIR_RULE})
+                candidate = repair["blocks"].get(str(units[idxs[0]][2]))
+                if candidate and candidate["text"] != text:
+                    text = candidate["text"]
+                    flags.append("ENCODING_REPAIRED")
             if page.page_class == "BROKEN_TEXT_LAYER":
                 flags.append("BROKEN_TEXT_LAYER")
             if embedded:
                 flags.append("EMBEDDED_TEXT_LAYER")
             b = BlockX(page_index=page.page_index, bbox=bbox, origin=origin, region_origin=region_origin,
-                       extractor_id=extractor, extractor_version=EXTRACTOR_VERSIONS[extractor],
-                       generation=str(GENERATIONS[extractor]), raw_config_hash=self.native_hash,
+                       extractor_id=extractor, extractor_version=extractor_version,
+                       generation=str(generation), raw_config_hash=native_hash,
                        models=[LAYOUT_MODEL] if region is not None else [],
                        raw_artifact_id=page.native_raw_artifact_id,
                        raw_artifacts=[("EMBEDDED_TEXT_LAYER" if embedded else "NATIVE_EXTRACT",
@@ -372,16 +383,19 @@ class Assembler:
     def _page_steps(self, page: PageX, row: dict[str, Any], vis: dict[str, Any]) -> None:
         """NATIVE_TEXT and LAYOUT steps of a page (EXECUTED in this run or REUSED_CACHED)."""
         from vkm_corpus.contracts.signatures import stage_signature
+        from vkm_corpus.extract.text_repair import CP1251_REPAIR_RULE
 
         unit = "r" if self.fmt == "DOCX" else "p"
         this_run = self.cache.run_id
+        native_hash = _cfg_hash({"native": self.native_hash, "repair": CP1251_REPAIR_RULE}) if self.fmt == "PDF" \
+            else self.native_hash
         sig = stage_signature(source_sha256=self.src.sha256, stage="NATIVE_TEXT", pipeline_version=_pv(),
                               extractor_id="djvulibre-cli" if self.fmt == "DJVU" else "pymupdf-native",
-                              extractor_version="0.1.0", stage_config_hash=self.native_hash, page_unit=unit,
+                              extractor_version="0.1.0", stage_config_hash=native_hash, page_unit=unit,
                               page_index=page.page_index)
         self.step("NATIVE_TEXT", page.page_index, "EXECUTED" if self.prep.get("run_id") == this_run else
                   "REUSED_CACHED", "NATIVE_OK" if row.get("route") != "FAILED" else "FAILED", sig,
-                  "djvulibre-cli" if self.fmt == "DJVU" else "pymupdf-native", self.native_hash,
+                  "djvulibre-cli" if self.fmt == "DJVU" else "pymupdf-native", native_hash,
                   output_artifact_ids=[a for a in [page.native_raw_artifact_id] if a])
         if vis.get("layout_call_signature"):
             lsig = vis["layout_call_signature"]
@@ -953,12 +967,12 @@ class Assembler:
 
     # ------------------------------------------------------------------ EPUB
     def _epub(self) -> None:
+        from vkm_corpus.extract.epub import EPUB_EXTRACTION_RULE
         from vkm_corpus.pipeline.ocr_stage import make_page_crops, plan_epub_tasks
 
         cfg = self.cfg
         recog = _recog_model(cfg)
-        epub_hash = _cfg_hash({"epub": "blocks_v2_mathml"})
-        source_page_list = (self.prep.get("document") or {}).get("page_list_source")
+        epub_hash = _cfg_hash({"epub": EPUB_EXTRACTION_RULE})
         for row in self.prep["pages"]:
             idx = row["page_index"]
             page = PageX(page_index=idx, page_kind="EPUB_SPINE_ITEM", bbox_space="NONE", page_class="REFLOWABLE",
@@ -974,25 +988,29 @@ class Assembler:
             raw = self.store.read_json(page.native_raw_artifact_id)
             self.accounting.native(raw, page.native_raw_artifact_id, idx)
             anchors = raw.get("page_anchors") or []
+            if any(d.get("code") == "PAGE_ANCHOR_CONFLICT" for d in raw.get("diagnostics", [])):
+                page.extra["printed_label_status"] = "CONFLICT"
             if anchors:
                 page.printed_page_labels = [a[0] for a in anchors]
                 page.printed_page_raw = ",".join(page.printed_page_labels)
                 page.printed_label_origin = "EPUB_PAGE_ANCHOR"
-                page.printed_label_extractor = "epub-xhtml 0.1.0"
-                if source_page_list == "CALIBRE_PAGE_ID":
+                page.printed_label_extractor = f"epub-xhtml {EXTRACTOR_VERSIONS['epub-xhtml']}"
+                page.extra.setdefault("printed_label_status", "ISOLATED")
+                if any(a[1] == "CALIBRE_PAGE_ID" for a in anchors):
                     page.quality_flags.append("EPUB_PAGE_ANCHOR_CALIBRE")
             ordinal = 0
             for b in raw.get("blocks", []):
                 ordinal += 1
+                locator = b.get("locator") or b["xpath"]
                 blk = BlockX(page_index=idx, bbox=None, origin="NATIVE", region_origin="EPUB_ELEMENT",
                              extractor_id="epub-xhtml", extractor_version=EXTRACTOR_VERSIONS["epub-xhtml"],
                              generation=str(GENERATIONS["epub-xhtml"]), raw_config_hash=epub_hash,
                              raw_artifact_id=page.native_raw_artifact_id,
                              raw_artifacts=[("SOURCE_MARKUP", page.native_raw_artifact_id)],
-                             raw_locator=b["xpath"], text=b["text"], block_type=b["block_type"],
+                             raw_locator=locator, text=b["text"], block_type=b["block_type"],
                              text_layer="EPUB_XHTML", is_primary_layer=True, reading_order=ordinal,
-                             anchor_ordinal=ordinal)
-                blk.extra.update({"element_path": b["xpath"], "element_id": b.get("element_id"),
+                             anchor_ordinal=b["order"])
+                blk.extra.update({"element_path": locator, "element_id": b.get("element_id"),
                                   "reading_order_method": "DOCUMENT_ORDER"})
                 self.result.blocks.append(blk)
             for t in raw.get("tables", []):

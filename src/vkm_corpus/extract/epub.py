@@ -1,28 +1,30 @@
 """EPUB via zipfile + lxml (EbookLib is AGPL and not used).
 
-Page unit = spine item (``VKM-SRC-249:sNNNN``); there is no page geometry (``bbox_space = NONE``). Printed pages come
-from anchors in priority order: nav ``page-list`` → NCX ``pageList`` → ``epub:type="pagebreak"`` → the calibre
-convention ``id="page_N"``. Blocks are block-level XHTML elements in document order (locator: spine idref + XPath +
-element id). GIF images without ``alt`` are formula candidates (OCR ``Formula Recognition:``); other images are
-figures whose embedded bytes are kept as they are.
+Page unit = spine item (``bbox_space = NONE``). Printed-page candidates retain a target member and XPath. Conflicting
+labels at one target remain diagnostics. Text runs are split only at block boundaries or typed objects, preserving
+each source text slot's position in the XHTML. GIF images with no alt are formula candidates.
 """
 from __future__ import annotations
 
-import posixpath
 import base64
+import posixpath
 import re
 import zipfile
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote, urlsplit
 
 EXTRACTOR_ID = "epub-xhtml"
+EPUB_EXTRACTION_RULE = "epub_dom_and_pagination_v3"
 BLOCK_TAGS = {"p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "pre", "blockquote", "dt", "dd", "caption",
-              "figcaption", "td", "th", "div", "section", "aside", "header", "footer", "address"}
-LEAF_BLOCK_TAGS = {"p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "pre", "dt", "dd", "caption", "figcaption",
-                   "address"}
+              "figcaption", "td", "th", "div", "section", "aside", "header", "footer", "address", "ul", "ol", "dl",
+              "body", "article", "main", "figure", "nav"}
 HEADING = {"h1", "h2", "h3", "h4", "h5", "h6"}
+EPUB_TYPE = "{http://www.idpf.org/2007/ops}type"
+XML_ID = "{http://www.w3.org/XML/1998/namespace}id"
+XML_BASE = "{http://www.w3.org/XML/1998/namespace}base"
 PAGE_ANCHOR = re.compile(r"^page[_-]?(\w+)$", re.I)
 EQN_ID = re.compile(r"^EQN", re.I)
 EQ_LABEL = re.compile(r"\((\d+(?:\.\d+)*[a-z]?)\)\s*$")
@@ -53,6 +55,8 @@ class EpubBlock:
     element_id: str | None
     order: int
     block_type: str
+    locator: str
+    text_slots: list[str]
 
 
 @dataclass
@@ -73,6 +77,19 @@ class EpubMath:
     order: int
 
 
+@dataclass(frozen=True)
+class PageAnchor:
+    label: str
+    origin: str
+    member: str
+    fragment: str | None
+    xpath: str
+    order: int
+    source_member: str
+    source_xpath: str
+    source_href: str | None = None
+
+
 @dataclass
 class SpineUnit:
     index: int
@@ -90,6 +107,10 @@ class SpineUnit:
     raw_markup: str | None = None
     raw_markup_base64: str | None = None
     diagnostics: list[dict[str, Any]] = field(default_factory=list)
+    page_anchor_details: list[dict[str, Any]] = field(default_factory=list)
+    _anchors: list[PageAnchor] = field(default_factory=list)
+    _targets: dict[str, list[tuple[str, int]]] = field(default_factory=dict)
+    _file_target: str = ""
 
 
 @dataclass
@@ -98,10 +119,11 @@ class EpubDoc:
     version: str | None
     metadata: dict[str, list[str]]
     spine: list[SpineUnit]
-    page_list_source: str      # NAV_PAGE_LIST | NCX_PAGE_LIST | EPUB_PAGEBREAK | CALIBRE_PAGE_ID | NONE
+    page_list_source: str      # NAV_PAGE_LIST | NCX_PAGE_LIST | EPUB_PAGEBREAK | CALIBRE_PAGE_ID | MIXED | NONE
     n_page_anchors: int
     manifest_media_types: dict[str, int]
     package_manifest: list[dict[str, Any]] = field(default_factory=list)
+    pagination_diagnostics: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _xml(data: bytes):
@@ -110,17 +132,64 @@ def _xml(data: bytes):
     try:
         return etree.fromstring(data, etree.XMLParser(resolve_entities=False, no_network=True))
     except etree.XMLSyntaxError:
-        return etree.fromstring(data, etree.HTMLParser(recover=True, no_network=True))
+        root = etree.fromstring(data, etree.HTMLParser(recover=True, no_network=True))
+        if root is None:
+            raise ValueError("EMPTY_MARKUP")
+        return root
+
+
+def _resolve_href(base: str, href: str) -> tuple[str, str | None]:
+    """Resolve a package-relative URL without using the filesystem or network."""
+    if re.search(r"[\\\x00-\x1f\x7f]|%(?![a-fA-F0-9]{2})", href):
+        raise ValueError("INVALID_URI")
+    uri = urlsplit(href)
+    if uri.scheme or uri.netloc or uri.path.startswith("/"):
+        raise ValueError("NON_PACKAGE_URI")
+    if uri.query or re.search(r"%2f|%5c", uri.path, flags=re.I):
+        raise ValueError("INVALID_MEMBER_URI")
+    path = unquote(uri.path, errors="strict")
+    if re.search(r"[\\:\x00-\x1f\x7f]", path):
+        raise ValueError("INVALID_MEMBER_URI")
+    if path:
+        folder = base if base.endswith("/") else posixpath.dirname(base)
+        member = posixpath.normpath(posixpath.join(folder, path))
+        if member == ".." or member.startswith("../"):
+            raise ValueError("MEMBER_ESCAPES_PACKAGE")
+        if path.endswith("/") or posixpath.basename(path) in (".", ".."):
+            member = "" if member == "." else member + "/"
+    else:
+        member = base
+    return member, unquote(uri.fragment, errors="strict") or None
+
+
+def _element_href(el: Any, href: str, member: str, html_base: str | None = None) -> tuple[str, str | None]:
+    base = member
+    if html_base is not None:
+        base, _ = _resolve_href(base, html_base)
+    for ancestor in [*reversed(list(el.iterancestors())), el]:
+        if (xml_base := ancestor.get(XML_BASE)) is not None:
+            base, _ = _resolve_href(base, xml_base)
+    return _resolve_href(base, href)
+
+
+def _html_base(root: Any) -> str | None:
+    return next(iter(root.xpath("//*[local-name()='head']/*[local-name()='base'][@href]/@href")), None)
 
 
 def read_structure(z: zipfile.ZipFile) -> tuple[str, Any, dict[str, tuple[str, str | None, str]], list[tuple[str, bool]]]:
     container = _xml(z.read("META-INF/container.xml"))
     opf_path = container.xpath("//*[local-name()='rootfile']/@full-path")[0]
-    base = posixpath.dirname(opf_path)
     opf = _xml(z.read(opf_path))
     manifest: dict[str, tuple[str, str | None, str]] = {}
     for it in opf.xpath("//*[local-name()='manifest']/*[local-name()='item']"):
-        href = posixpath.normpath(posixpath.join(base, it.get("href") or ""))
+        href = ""
+        if it.get("href"):
+            try:
+                href, fragment = _element_href(it, it.get("href"), opf_path)
+                if fragment is not None:
+                    href = ""
+            except (UnicodeError, ValueError):
+                pass  # remote/invalid resources cannot supply an admitted spine item
         manifest[it.get("id")] = (href, it.get("media-type"), it.get("properties") or "")
     spine = [(ir.get("idref"), (ir.get("linear") or "yes") != "no")
              for ir in opf.xpath("//*[local-name()='spine']/*[local-name()='itemref']")]
@@ -140,16 +209,8 @@ def _text_of(el: Any) -> str:
     return re.sub(r"\s+", " ", "".join(el.itertext())).strip()
 
 
-def _own_text(el: Any) -> str:
-    """Text of ``el`` excluding descendants that are themselves block elements."""
-    parts: list[str] = [el.text or ""]
-    for ch in el:
-        if _local(ch.tag) in BLOCK_TAGS or _local(ch.tag) == "table":
-            parts.append(ch.tail or "")
-        else:
-            parts.append("".join(ch.itertext()))
-            parts.append(ch.tail or "")
-    return re.sub(r"\s+", " ", "".join(parts)).strip()
+def _element_id(el: Any) -> str | None:
+    return el.get("id") or el.get(XML_ID)
 
 
 def parse_unit(z: zipfile.ZipFile, unit: SpineUnit, manifest_by_href: dict[str, str | None]) -> None:
@@ -166,101 +227,212 @@ def parse_unit(z: zipfile.ZipFile, unit: SpineUnit, manifest_by_href: dict[str, 
         unit.parse_error = f"{type(exc).__name__}: {exc}"[:300]
         return
     tree = root.getroottree()
-    base = posixpath.dirname(unit.href)
-    order = 0
-    for el in root.iter():
+    body = next(iter(root.xpath("//*[local-name()='body']")), root)
+    unit._file_target = tree.getpath(body)
+    for order, el in enumerate(root.iter(), 1):
         if not isinstance(el.tag, str):
             continue
-        tag = _local(el.tag)
-        el_id = el.get("id")
-        if el_id:
-            m = PAGE_ANCHOR.match(el_id)
-            if m:
-                unit.page_anchors.append((m.group(1), "CALIBRE_PAGE_ID"))
-            if el_id.startswith("BIBe"):
-                unit.bib_ids.append(el_id)
-        et = el.get("{http://www.idpf.org/2007/ops}type") or ""
-        if "pagebreak" in et.split():
+        el_id = _element_id(el)
+        xpath = tree.getpath(el)
+        key = el_id or (el.get("name") if _local(el.tag) == "a" else None)
+        if key:
+            unit._targets.setdefault(key, []).append((xpath, order))
+        if el_id and el_id.startswith("BIBe"):
+            unit.bib_ids.append(el_id)
+        label, origin = "", ""
+        if "pagebreak" in (el.get(EPUB_TYPE) or "").split():
             label = el.get("title") or el.get("aria-label") or _text_of(el) or (el_id or "")
-            unit.page_anchors.append((label, "EPUB_PAGEBREAK"))
-        if tag == "math":
+            origin = "EPUB_PAGEBREAK"
+        if not label and (match := PAGE_ANCHOR.fullmatch(el_id or "")):
+            label, origin = match.group(1), "CALIBRE_PAGE_ID"
+        if label.strip():
+            unit._anchors.append(PageAnchor(label.strip(), origin, unit.href, el_id, xpath, order, unit.href, xpath))
+
+    html_base = _html_base(root)
+    order = 0
+    owner = None
+    parts: list[tuple[str, str | None]] = []
+    runs: dict[str, list[EpubBlock]] = {}
+
+    def flush() -> None:
+        nonlocal order
+        text = "".join(value for value, _ in parts)
+        slots = [slot for _, slot in parts if slot is not None]
+        parts.clear()
+        if owner is None or not text.strip():
+            return
+        tag = _local(owner.tag)
+        if tag != "pre":
+            text = " ".join(text.split())
+        el_id = _element_id(owner)
+        btype = "HEADING" if tag in HEADING else "LIST_ITEM" if tag == "li" else (
+            "CAPTION" if tag in ("caption", "figcaption") else "TEXT")
+        if {"footnote", "endnote"} & set((owner.get(EPUB_TYPE) or "").split()):
+            btype = "FOOTNOTE"
+        if (el_id or "").startswith("BIBe"):
+            btype = "REFERENCE_LIST"
+        order += 1
+        xpath = tree.getpath(owner)
+        block_runs = runs.setdefault(xpath, [])
+        block = EpubBlock(tag, text, xpath, el_id, order, btype, xpath, slots)
+        block_runs.append(block)
+        unit.blocks.append(block)
+
+    def walk(el: Any, *, typed_only: bool = False) -> None:
+        nonlocal order, owner
+        tag = _local(el.tag)
+        if not tag or tag in {"head", "script", "style", "template"}:
+            return
+        xpath = tree.getpath(el)
+        el_id = _element_id(el)
+        if tag in {"table", "math", "img", "image", "svg", "object", "iframe"}:
+            flush()
             order += 1
-            unit.maths.append(EpubMath(tree.getpath(el), el_id, etree.tostring(el, encoding="unicode"),
-                                       _text_of(el), el.get("display") == "block", order))
-            continue
-        if tag in ("svg", "object", "iframe"):
-            unit.diagnostics.append({"code": "RAW_ONLY_" + tag.upper(), "xpath": tree.getpath(el)})
-        if tag == "table":
-            order += 1
-            unit.tables.append(EpubTable(xpath=tree.getpath(el), element_id=el_id,
-                                         html=etree.tostring(el, encoding="unicode"), order=order))
-            continue
-        if tag in ("img", "image"):
-            src = el.get("src") or el.get("{http://www.w3.org/1999/xlink}href") or ""
-            href = posixpath.normpath(posixpath.join(base, src)) if src else ""
-            media = manifest_by_href.get(href)
-            alt = el.get("alt")
-            is_gif = (media == "image/gif") or href.lower().endswith(".gif")
-            parent = el.getparent()
-            block = next((a for a in el.iterancestors() if _local(a.tag) in BLOCK_TAGS), None)
-            block_text = _text_of(block) if block is not None else ""
-            m2 = EQ_LABEL.search(block_text)
-            eq_label = f"({m2.group(1)})" if (m2 and is_gif) else None
-            rest = EQ_LABEL.sub("", block_text).strip() if block_text else ""
-            # inline: the image sits in running text; display: the block holds only the image (and its number)
-            inline = len(rest) > 3
-            anc_ids = [a.get("id") for a in el.iterancestors() if a.get("id")]
-            eq_anchor = next((i for i in anc_ids if EQN_ID.match(i)), None)
-            order += 1
-            unit.images.append(EpubImage(href=href, media_type=media, alt=alt,
-                                         is_formula_candidate=is_gif and not (alt or "").strip(),
-                                         inline=inline, element_id=el_id or eq_anchor, xpath=tree.getpath(el),
-                                         order=order, equation_label=eq_label))
-            continue
-        if tag in BLOCK_TAGS:
-            inside_table = any(_local(a.tag) == "table" for a in el.iterancestors())
-            if inside_table:
+            if tag == "table":
+                unit.tables.append(EpubTable(xpath, el_id, etree.tostring(el, encoding="unicode", with_tail=False), order))
+                for child in el:
+                    walk(child, typed_only=True)
+            elif tag == "math":
+                unit.maths.append(EpubMath(xpath, el_id, etree.tostring(el, encoding="unicode", with_tail=False),
+                                           _text_of(el), el.get("display") == "block", order))
+            elif tag in {"svg", "object", "iframe"}:
+                unit.diagnostics.append({"code": "RAW_ONLY_" + tag.upper(), "xpath": xpath})
+                for child in el:
+                    walk(child, typed_only=True)
+            else:
+                src = el.get("src") or el.get("{http://www.w3.org/1999/xlink}href") or ""
+                try:
+                    href, _ = _element_href(el, src, unit.href, html_base)
+                    if not src or href not in z.NameToInfo or href.endswith("/"):
+                        raise ValueError("IMAGE_MEMBER_NOT_FOUND")
+                except (ValueError, UnicodeError) as exc:
+                    unit.diagnostics.append({"code": "UNRESOLVED_IMAGE", "xpath": xpath, "href": src,
+                                             "reason": str(exc)})
+                    return
+                media, alt = manifest_by_href.get(href), el.get("alt")
+                is_gif = media == "image/gif" or href.lower().endswith(".gif")
+                image_parent = next((a for a in el.iterancestors() if _local(a.tag) in BLOCK_TAGS), None)
+                block_text = _text_of(image_parent) if image_parent is not None else ""
+                match = EQ_LABEL.search(block_text)
+                eq_label = f"({match.group(1)})" if match and is_gif else None
+                eq_anchor = next((identifier for a in el.iterancestors() if
+                                  (identifier := _element_id(a)) and EQN_ID.match(identifier)), None)
+                unit.images.append(EpubImage(href, media, alt, is_gif and not (alt or "").strip(),
+                                             len(EQ_LABEL.sub("", block_text).strip()) > 3, el_id or eq_anchor,
+                                             xpath, order, eq_label))
+            return
+        if typed_only:
+            for child in el:
+                walk(child, typed_only=True)
+            return
+        if tag == "br":
+            parts.append(("\n", None))
+            return
+        enclosing = owner
+        if tag in BLOCK_TAGS or owner is None:
+            flush()
+            owner = el
+        text_index = 0
+        if el.text is not None:
+            text_index = 1
+            parts.append((el.text, f"{xpath}/text()[1]"))
+        for child in el:
+            walk(child)
+            if child.tail is not None:
+                text_index += 1
+                parts.append((child.tail, f"{xpath}/text()[{text_index}]"))
+        if owner is el:
+            flush()
+            owner = enclosing
+
+    walk(body)
+    for xpath, blocks in runs.items():
+        if len(blocks) > 1:
+            for ordinal, block in enumerate(blocks, 1):
+                block.locator = f"{xpath}#text-run={ordinal}"
+
+
+def _listed_page_anchors(z: zipfile.ZipFile, manifest: dict[str, tuple[str, str | None, str]],
+                         units: list[SpineUnit], diagnostics: list[dict[str, Any]],
+                         ncx_id: str | None) -> None:
+    by_member: dict[str, list[SpineUnit]] = {}
+    for unit in units:
+        if unit.href and not unit.parse_error:
+            by_member.setdefault(unit.href, []).append(unit)
+    navs = [v[0] for v in manifest.values() if "nav" in v[2].split()]
+    ncx = [manifest[ncx_id][0]] if ncx_id in manifest else [
+        v[0] for v in manifest.values() if v[1] == "application/x-dtbncx+xml"]
+
+    def read_listing(member: str, is_nav: bool) -> None:
+        origin = "NAV_PAGE_LIST" if is_nav else "NCX_PAGE_LIST"
+        try:
+            root = _xml(z.read(member))
+        except (KeyError, ValueError, OSError) as exc:
+            diagnostics.append({"code": "PAGE_LIST_DOCUMENT_UNREADABLE", "member": member,
+                                "origin": origin, "reason": str(exc)})
+            return
+        tree = root.getroottree()
+        html_base = _html_base(root) if is_nav else None
+        if is_nav:
+            nodes = root.xpath("//*[local-name()='nav']//*[local-name()='a']")
+            entries = [(_text_of(a), a.get("href"), a)
+                       for a in nodes if any(_local(n.tag) == "nav"
+                       and "page-list" in (n.get(EPUB_TYPE) or n.get("type") or "").split()
+                       for n in a.iterancestors())]
+        else:
+            entries = []
+            for pt in root.xpath("//*[local-name()='pageList']/*[local-name()='pageTarget']"):
+                contents = pt.xpath("./*[local-name()='content']")
+                labels = pt.xpath("./*[local-name()='navLabel']")
+                entries.append((_text_of(labels[0]) if labels else "", contents[0].get("src") if contents else None,
+                                contents[0] if contents else pt))
+        for label, href, el in entries:
+            source_xpath = tree.getpath(el)
+            try:
+                if not href or not label:
+                    raise ValueError("EMPTY_PAGE_LABEL_OR_LINK")
+                target, fragment = _element_href(el, href, member, html_base)
+                matches = by_member.get(target, [])
+                if not matches:
+                    raise ValueError("PAGE_LINK_NOT_ADMITTED_SPINE_MEMBER")
+                if len(matches) != 1:
+                    raise ValueError("AMBIGUOUS_SPINE_MEMBER")
+                unit, = matches
+                locations = unit._targets.get(fragment, []) if fragment else [(unit._file_target, 0)]
+                if not locations:
+                    raise ValueError("PAGE_FRAGMENT_NOT_FOUND")
+                if len(locations) != 1:
+                    raise ValueError("AMBIGUOUS_PAGE_FRAGMENT")
+                (xpath, order), = locations
+                unit._anchors.append(PageAnchor(label, origin, target, fragment, xpath, order,
+                                                member, source_xpath, href))
+            except (UnicodeError, ValueError) as exc:
+                diagnostics.append({"code": "UNRESOLVED_PAGE_LINK", "origin": origin, "member": member,
+                                    "xpath": source_xpath, "href": href, "label": label, "reason": str(exc)})
+
+    for member in navs:
+        read_listing(member, True)
+    for member in ncx:
+        read_listing(member, False)
+
+
+def _effective_page_anchors(units: list[SpineUnit]) -> str:
+    priority = {"NAV_PAGE_LIST": 0, "NCX_PAGE_LIST": 1, "EPUB_PAGEBREAK": 2, "CALIBRE_PAGE_ID": 3}
+    origins = set()
+    for unit in units:
+        by_location: dict[str, list[PageAnchor]] = {}
+        for anchor in sorted(unit._anchors, key=lambda a: (a.order, priority[a.origin])):
+            by_location.setdefault(anchor.xpath, []).append(anchor)
+        for xpath, candidates in by_location.items():
+            if len({a.label for a in candidates}) > 1:
+                unit.diagnostics.append({"code": "PAGE_ANCHOR_CONFLICT", "member": unit.href, "xpath": xpath,
+                                         "candidates": [a.__dict__ for a in candidates]})
                 continue
-            has_block_child = any(_local(d.tag) in BLOCK_TAGS or _local(d.tag) == "table"
-                                  for d in el.iterdescendants() if isinstance(d.tag, str))
-            text = _own_text(el) if has_block_child else _text_of(el)
-            if not text:
-                continue
-            if has_block_child and tag not in LEAF_BLOCK_TAGS and len(text) < 2:
-                continue
-            order += 1
-            btype = "HEADING" if tag in HEADING else "LIST_ITEM" if tag == "li" else \
-                "CAPTION" if tag in ("caption", "figcaption") else "TEXT"
-            if "footnote" in et.split() or "endnote" in et.split():
-                btype = "FOOTNOTE"
-            if el_id and el_id.startswith("BIBe"):
-                btype = "REFERENCE_LIST"
-            unit.blocks.append(EpubBlock(tag=tag, text=text, xpath=tree.getpath(el), element_id=el_id, order=order,
-                                         block_type=btype))
-
-
-def _page_list_nav(z: zipfile.ZipFile, manifest: dict[str, tuple[str, str | None, str]]) -> list[tuple[str, str]]:
-    navs = [v for v in manifest.values() if "nav" in v[2].split()]
-    if not navs:
-        return []
-    nd = _xml(z.read(navs[0][0]))
-    out = []
-    for a in nd.xpath("//*[local-name()='nav'][@*[local-name()='type']='page-list']//*[local-name()='a']"):
-        out.append((_text_of(a), a.get("href") or ""))
-    return out
-
-
-def _page_list_ncx(z: zipfile.ZipFile, manifest: dict[str, tuple[str, str | None, str]]) -> list[tuple[str, str]]:
-    ncx = [v for v in manifest.values() if v[1] == "application/x-dtbncx+xml"]
-    if not ncx:
-        return []
-    nc = _xml(z.read(ncx[0][0]))
-    out = []
-    for pt in nc.xpath("//*[local-name()='pageTarget']"):
-        label = " ".join(t.strip() for t in pt.xpath(".//*[local-name()='text']/text()"))
-        src = (pt.xpath(".//*[local-name()='content']/@src") or [""])[0]
-        out.append((label, src))
-    return out
+            effective = candidates[0]
+            origins.add(effective.origin)
+            unit.page_anchors.append((effective.label, effective.origin))
+            unit.page_anchor_details.append({**effective.__dict__, "candidates": [a.__dict__ for a in candidates]})
+    return next(iter(origins)) if len(origins) == 1 else "MIXED" if origins else "NONE"
 
 
 def read_epub(path: Path) -> EpubDoc:
@@ -283,29 +455,13 @@ def read_epub(path: Path) -> EpubDoc:
             else:
                 unit.parse_error = "spine idref not in manifest"
             units.append(unit)
-        # printed pagination source, by priority; anchors found in the units are re-assigned when a list exists
-        nav = _page_list_nav(z, manifest)
-        ncx = _page_list_ncx(z, manifest) if not nav else []
-        source = "NONE"
-        listed = nav or ncx
-        if listed:
-            source = "NAV_PAGE_LIST" if nav else "NCX_PAGE_LIST"
-            by_file: dict[str, list[str]] = {}
-            opf_base = posixpath.dirname(opf_path)
-            for label, href in listed:
-                f = posixpath.normpath(posixpath.join(opf_base, href.split("#", 1)[0]))
-                by_file.setdefault(f, []).append(label)
-            for u in units:
-                u.page_anchors = [(lbl, source) for lbl in by_file.get(u.href, [])]
-        elif any(o == "EPUB_PAGEBREAK" for u in units for _, o in u.page_anchors):
-            source = "EPUB_PAGEBREAK"
-            for u in units:
-                u.page_anchors = [a for a in u.page_anchors if a[1] == "EPUB_PAGEBREAK"]
-        elif any(u.page_anchors for u in units):
-            source = "CALIBRE_PAGE_ID"
+        diagnostics: list[dict[str, Any]] = []
+        ncx_id = next(iter(opf.xpath("//*[local-name()='spine']/@toc")), None)
+        _listed_page_anchors(z, manifest, units, diagnostics, ncx_id)
+        source = _effective_page_anchors(units)
         return EpubDoc(opf_path=opf_path, version=opf.get("version"), metadata=md, spine=units,
                        page_list_source=source, n_page_anchors=sum(len(u.page_anchors) for u in units),
-                       manifest_media_types=mt,
+                       manifest_media_types=mt, pagination_diagnostics=diagnostics,
                        package_manifest=[{"member": info.filename, "size_bytes": info.file_size, "crc32": info.CRC,
                            "disposition": "SPINE_PARSED" if any(u.href == info.filename and not u.parse_error for u in units)
                            else "RAW_ONLY"} for info in sorted(z.infolist(), key=lambda x: x.filename) if not info.is_dir()])

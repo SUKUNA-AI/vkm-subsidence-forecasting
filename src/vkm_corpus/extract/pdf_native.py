@@ -11,14 +11,17 @@ from __future__ import annotations
 
 import hashlib
 import math
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
+from itertools import groupby
 from pathlib import Path
 from typing import Any
 
-from vkm_corpus.extract.text_repair import FUNC_WORDS, WORD_RE, char_stats, remap_cp1251
+from vkm_corpus.extract.text_repair import CP1251_REPAIR_RULE, char_stats, contextual_cp1251, word_stats
 
 GRID = 64
 EXTRACTOR_ID = "pymupdf-native"
+CP1251_REPAIRED_BLOCK_VERSION = "0.2.0"
+CP1251_REPAIRED_BLOCK_GENERATION = 3
 
 
 def pymupdf_version() -> str:
@@ -165,8 +168,50 @@ def _font_table(doc: Any, cache: dict[int, tuple[bool, str, str]], xref: int) ->
     return cache[xref]
 
 
+def _contextual_blocks(raw: dict[str, Any], features: dict[str, Any], plain: str) -> None:
+    # Span names omit subsetting prefixes and may match several resources. Preserve raw if any has a Unicode map.
+    def font_name(name: str) -> str:
+        return name.split("+", 1)[-1]
+
+    by_font: dict[str, list[dict[str, Any]]] = {}
+    for font in raw["fonts"]:
+        by_font.setdefault(font_name(font.get("basefont") or ""), []).append(font)
+    repaired, texts, changed = {}, [], 0
+    for block in raw["blocks"]:
+        lines, evidence = [], []
+        for line_index, line in enumerate(block["lines"]):
+            text_parts, start = [], 0
+            for font, spans in groupby(line["spans"], key=lambda span: span["font"]):
+                spans = list(spans)
+                text = "".join(span["text"] for span in spans)
+                resources = by_font.get(font_name(font or ""), [])
+                candidate = contextual_cp1251(text, mapped_font=any(f.get("to_unicode") for f in resources))
+                text_parts.append(candidate.text)
+                if candidate.spans:
+                    evidence.append({"line": line_index, "span_start": start, "span_count": len(spans), "font": font,
+                                     "font_resources": [f["xref"] for f in resources],
+                                     "spans": [asdict(edit) for edit in candidate.spans]})
+                    changed += sum(edit.end - edit.start for edit in candidate.spans if edit.replacement is not None)
+                start += len(spans)
+            lines.append("".join(text_parts))
+        text = "\n".join(lines)
+        texts.append(text)
+        if evidence:
+            repaired[str(block["n"])] = {"text": text, "runs": evidence}
+    if repaired:
+        raw["cp1251_repair"] = {"rule": CP1251_REPAIR_RULE, "raw_plain_text": plain, "blocks": repaired}
+    features["remap_changed_chars"] = changed
+    if changed:
+        text = "\n".join(texts)
+        n = sum(not c.isspace() for c in text) or 1
+        words, func = word_stats(text)
+        features["remap_cyr_share"] = round(sum("Ѐ" <= c <= "ӿ" for c in text) / n, 4)
+        features["remap_words"] = words
+        features["remap_func_rate"] = round(func / max(1, words), 4)
+
+
 def extract_page(doc: Any, index0: int, font_cache: dict[int, tuple[bool, str, str]] | None = None,
-                 with_drawings_count: bool = True) -> NativePage:
+                 with_drawings_count: bool = True, *, probe_cp1251: bool = True) -> NativePage:
     """Native extraction of page ``index0`` (0-based): text dict, fonts, images (no hashing), path counts, labels."""
     import pymupdf
 
@@ -211,16 +256,7 @@ def extract_page(doc: Any, index0: int, font_cache: dict[int, tuple[bool, str, s
     f["chars_invisible"] = invisible
     plain = page.get_text()  # default flags: byte-compatible with the Phase-1 text manifest (K-11)
     raw["plain_text_sha256"] = hashlib.sha256(plain.encode("utf-8")).hexdigest()
-    words = WORD_RE.findall(plain)
-    f["word_tokens"] = len(words)
-    f["func_hits"] = sum(1 for w in words if w.lower() in FUNC_WORDS)
-    if f["chars"] and f["latext"] / f["chars"] > 0.2:
-        rt = remap_cp1251(plain)
-        rw = WORD_RE.findall(rt)
-        rn = sum(1 for c in rt if not c.isspace()) or 1
-        f["remap_cyr_share"] = round(sum(1 for c in rt if "Ѐ" <= c <= "ӿ") / rn, 4)
-        f["remap_words"] = len(rw)
-        f["remap_func_rate"] = round(sum(1 for w in rw if w.lower() in FUNC_WORDS) / max(1, len(rw)), 4)
+    f["word_tokens"], f["func_hits"] = word_stats(plain)
     # -- text dict (blocks → lines → spans) in PAGE_PT_TL
     flags = pymupdf.TEXTFLAGS_DICT & ~pymupdf.TEXT_PRESERVE_IMAGES
     d = page.get_text("dict", flags=flags)
@@ -255,6 +291,8 @@ def extract_page(doc: Any, index0: int, font_cache: dict[int, tuple[bool, str, s
     f["n_fonts"] = len(fonts)
     f["n_fonts_nonstd_no_tounicode"] = n_no_tu
     f["n_type3_fonts"] = n_type3
+    if probe_cp1251 and f["latext"]:
+        _contextual_blocks(raw, f, plain)
     # -- images: geometry and parameters only (no decoding, no hashing)
     images = []
     for im in page.get_image_info():
