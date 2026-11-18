@@ -159,6 +159,16 @@ class WedgeMesh:
  weights:np.ndarray=field(init=False)
  dofs:np.ndarray=field(init=False)
  signature:str=field(init=False)
+ @classmethod
+ def from_exact_p1_geometry(cls, geometry):
+  """Admit a validated exact P1 materialization to the existing WEDGE6 path."""
+  from vkm_world.representations.world0.exact_p1_wedges import ExactP1Wedges
+  if not isinstance(geometry, ExactP1Wedges):
+   raise TypeError('expected an ExactP1Wedges materialization')
+  geometry.require_quality()
+  mesh=cls(geometry.nodes,geometry.cells,geometry.layer_density[geometry.layer_index])
+  object.__setattr__(mesh,'signature',signature(mesh.signature,geometry.mesh_identity))
+  return mesh
  def __post_init__(self):
   x=real(self.nodes,'nodes');c=indices(self.cells,'cells')
   if x.ndim!=2 or x.shape[1]!=3 or c.ndim!=2 or c.shape[1]!=6 or len(c)==0:raise ValueError('WEDGE nodes/cells shape')
