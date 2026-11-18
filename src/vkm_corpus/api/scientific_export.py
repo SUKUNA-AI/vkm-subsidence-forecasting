@@ -45,7 +45,7 @@ def _contract(query):
             or any(not isinstance(name, str) or not name for name in order)
             or len(set(order)) != len(order)
             or type(count) is not int or count < 0
-            or not order and (not multiset or count > 1)
+            or not order and multiset and count > 1
             or not isinstance(digest, str) or not re.fullmatch(SHA256_PATTERN, digest)):
         raise ApiFailure("SNAPSHOT_UNAVAILABLE", "invalid scientific export contract")
     if multiset and count > MAX_MULTISET_ROWS:

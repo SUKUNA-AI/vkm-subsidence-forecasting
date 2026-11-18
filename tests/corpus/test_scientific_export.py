@@ -112,6 +112,23 @@ def test_empty_result_is_explicitly_complete(tmp_path):
     assert seal == {"type": "complete", "row_count": 0, "ordered_sha256": contract["ordered_sha256"]}
 
 
+@pytest.mark.parametrize("direction,completed", [("ASC", True), ("DESC", False)])
+def test_export_can_pin_the_named_sql_order_without_projected_keys(tmp_path, direction, completed):
+    client, _, _, params, rows, contract = fixture(
+        tmp_path, key=(),
+        sql=f"SELECT bucket, point_id, value, observed, evidence FROM observations ORDER BY point_id {direction}",
+    )
+    header, *data, seal = records(client.get(URL, params=params, headers=HEADERS))
+    assert header["order_by"] == []
+    assert header["expected_ordered_sha256"] == contract["ordered_sha256"]
+    if completed:
+        assert [record["values"] for record in data] == [json.loads(encoded(row)) for row in rows]
+        assert seal == {"type": "complete", "row_count": len(rows), "ordered_sha256": contract["ordered_sha256"]}
+    else:
+        assert len(data) == len(rows)
+        assert seal == {"type": "incomplete", "reason": "RESULT_PROOF_MISMATCH"}
+
+
 def test_no_preview_only_export_and_cardinality_bound_request_identity(tmp_path):
     client, _, manifest, params, _, _ = fixture(tmp_path, row_count=5)
     assert client.get("/v1/science/export/preview_only", params=params, headers=HEADERS).status_code == 404
