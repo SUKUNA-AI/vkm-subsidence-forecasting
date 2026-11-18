@@ -2,7 +2,7 @@
 
 One job at a time, taken from the control plane with a lease::
 
-    PLAN_REQUESTED → `vkm-corpus run plan`     → PLANNED (plan + hash stored, lease released)
+    PLAN_REQUESTED → `vkm-corpus run plan --no-write` → PLANNED (plan + hash stored, lease released)
     CONFIRMED      → re-plan; another hash drops the confirmation (back to PLANNED)
                    → RUNNING → `run extract` → `core publish` → PUBLISHED
                    → reconcile on CORE (``VKM_RECONCILE_CMD``) → ADMITTED | REJECTED | FAILED
@@ -216,7 +216,7 @@ class Worker:
 
     # -------------------------------------------------------------- stages
     def _pipeline_plan(self, sel: Selection) -> dict[str, Any]:
-        res = self.runner(vkm("run", "plan", *sel.cli_args()), self.config.stage_timeout)
+        res = self.runner(vkm("run", "plan", "--no-write", *sel.cli_args()), self.config.stage_timeout)
         if res.returncode != 0:
             raise RuntimeError(f"run plan exited {res.returncode}: {res.stderr.strip()[-400:]}")
         return parse_json_tail(res.stdout)

@@ -1,3 +1,4 @@
+import json
 import numpy as np
 import pytest
 from scipy.sparse import csr_matrix
@@ -5,6 +6,7 @@ from vkm_world.representations.world0.multiseam import ElasticMesh
 from vkm_world.representations.world0.constitutive import Nishihara,Lubby2
 from vkm_world.representations.world0.constitutive_history import MaterialGroup,ConstitutiveHistory,StepFailure
 from vkm_world.representations.world0.hydromechanics import WaterModel
+from vkm_world.representations.world0.checkpoint_storage import write_raw_checkpoint
 
 
 def make(*,water=False,events=False,strain_limit=.05,variant=1.):
@@ -86,6 +88,38 @@ def test_failed_state_keeps_memory_and_candidate(tmp_path):
     assert failure.candidate_state is not None
     model.checkpoint(tmp_path/'rejected.npz',failure.candidate_state,accepted=False)
     with pytest.raises(ValueError,match='rejected trial'):model.reopen(tmp_path/'rejected.npz')
+
+
+@pytest.mark.parametrize("marker", ["missing", None, 0, 1, "false"])
+def test_restart_requires_explicit_boolean_acceptance(tmp_path, marker):
+    model = make(strain_limit=1e-12)
+    with pytest.raises(StepFailure) as error:
+        model.initial()
+    path = tmp_path / "rejected.npz"
+    model.checkpoint(path, error.value.candidate_state, accepted=False)
+    binding = path.with_suffix(".npz.binding.json")
+    metadata = json.loads(binding.read_text(encoding="utf-8"))
+    if marker == "missing":
+        metadata.pop("accepted")
+    else:
+        metadata["accepted"] = marker
+    binding.write_text(json.dumps(metadata), encoding="utf-8")
+    with pytest.raises(ValueError, match="rejected trial"):
+        model.reopen(path)
+
+
+@pytest.mark.parametrize("accepted", [None, 0, 1, "false"])
+@pytest.mark.parametrize("raw", [False, True])
+def test_checkpoint_writers_reject_non_boolean_before_writing(tmp_path, accepted, raw):
+    model = make()
+    state, _ = model.initial()
+    path = tmp_path / "state.npz"
+    with pytest.raises(ValueError, match="accepted must be bool"):
+        if raw:
+            write_raw_checkpoint(model, path, state, accepted=accepted)
+        else:
+            model.checkpoint(path, state, accepted=accepted)
+    assert not path.exists() and not path.with_suffix(".npz.binding.json").exists()
 
 
 def test_material_change_invalidates_restart(tmp_path):

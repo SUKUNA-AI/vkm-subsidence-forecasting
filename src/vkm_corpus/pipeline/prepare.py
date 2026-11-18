@@ -16,7 +16,7 @@ import zlib
 from pathlib import Path, PureWindowsPath
 from typing import Any
 
-from vkm_corpus.artifacts.store import ArtifactStore, canonical_json_bytes
+from vkm_corpus.artifacts.store import ArtifactReader, ArtifactStore, canonical_json_bytes
 from vkm_corpus.extract import classify as cls
 from vkm_corpus.extract.detect import inspect_file
 from vkm_corpus.extract.model import SourceInput
@@ -68,16 +68,6 @@ def docx_grid_current(value: dict[str, Any], source: SourceInput) -> bool:
     return all(value.get(key) == expected for key, expected in docx_grid_identity(source).items())
 
 
-class _ReadOnlyNativeStore:
-    """Artifact reads without ArtifactStore's directory-creating constructor."""
-    find = ArtifactStore.find
-    read_bytes = ArtifactStore.read_bytes
-    read_json = ArtifactStore.read_json
-
-    def __init__(self, root: Path):
-        self.root = Path(root)
-
-
 def docx_grid_cache_current(prep: dict[str, Any], source: SourceInput, *, store=None, data_root=None) -> bool:
     """Fresh native child metadata in both summary and hash-verified artifact; no filesystem writes."""
     if (not isinstance(prep, dict) or (prep.get("inspect") or {}).get("file_format") != "DOCX"
@@ -89,7 +79,7 @@ def docx_grid_cache_current(prep: dict[str, Any], source: SourceInput, *, store=
     if store is None:
         if data_root is None:
             return False
-        store = _ReadOnlyNativeStore(Path(data_root) / "artifacts")
+        store = ArtifactReader(Path(data_root) / "artifacts")
     try:
         raw = store.read_json(aid)
         return (isinstance(raw, dict) and raw.get("schema") == "vkm.native_raw.docx_document/1"
@@ -143,10 +133,51 @@ def library_versions() -> dict[str, str]:
     return out
 
 
-def prepare_signature(cfg: PipelineConfig, source: SourceInput, extra: dict[str, Any] | None = None) -> str:
+def _native_extraction_rule(file_format: str | None) -> str | None:
+    if file_format == "PDF":
+        from vkm_corpus.extract.text_repair import CP1251_REPAIR_RULE
+
+        return CP1251_REPAIR_RULE
+    if file_format == "EPUB":
+        from vkm_corpus.extract.epub import EPUB_EXTRACTION_RULE
+
+        return EPUB_EXTRACTION_RULE
+    return None
+
+
+def native_extraction_cache_current(prep: dict[str, Any]) -> bool:
+    # A diagnostic lookup without the original may address the generic legacy signature.
+    # Affected formats need the rule marker irrespective of how the cache was located.
+    rule = _native_extraction_rule((prep.get("inspect") or {}).get("file_format"))
+    return rule is None or prep.get("native_extraction_rule") == rule
+
+
+def prepare_signature(cfg: PipelineConfig, source: SourceInput, extra: dict[str, Any] | None = None,
+                      *, file_format: str | None = None) -> str:
     conf = {"native": cfg.stage_config("NATIVE_TEXT"), "classify": cfg.stage_config("CLASSIFY"),
             "libraries": library_versions(), "spread_aspect": cfg.spread_aspect,
             "native_fidelity_rule": NATIVE_FIDELITY_RULE, **(extra or {})}
+    if file_format is None:
+        # Use the byte-signature path used by PREPARE, including for renamed source files.
+        from vkm_corpus.registry.sources import RegisterError, resource_path
+
+        try:
+            path = resource_path(cfg.resources_root, source.canonical_path)
+            file_format = inspect_file(path, hash_file=False).file_format
+        except (RegisterError, OSError):
+            file_format = "UNKNOWN"
+    rule = _native_extraction_rule(file_format)
+    if file_format == "PDF":
+        conf["pdf_text_repair_rule"] = rule
+    elif file_format == "EPUB":
+        conf["epub_extractor"] = {"rule": rule, "generation": GENERATIONS["epub-xhtml"],
+                                  "version": EXTRACTOR_VERSIONS["epub-xhtml"]}
+        try:
+            from lxml import etree
+
+            conf["epub_extractor"].update(lxml=etree.LXML_VERSION, libxml2=etree.LIBXML_VERSION)
+        except ImportError:
+            pass  # PREPARE will report the missing parser when invoking the extractor
     return _sig(source_sha256=source.sha256, stage="PREPARE", pipeline_version=PIPELINE_VERSION,
                 extractor_id="vkm-pipeline", extractor_version=EXTRACTOR_VERSIONS["vkm-pipeline"],
                 stage_config_hash=_cfg_hash(conf))
@@ -299,9 +330,10 @@ def _prepare_epub(cfg: PipelineConfig, store: ArtifactStore, src: SourceInput, p
     prep["pagination"] = pag.__dict__
     ed = epub.read_epub(path)
     rec = store.put_json({"schema": "vkm.native_raw.epub_document/1", "opf_path": ed.opf_path, "version": ed.version,
+                          "extraction_rule": epub.EPUB_EXTRACTION_RULE,
                           "metadata": ed.metadata, "page_list_source": ed.page_list_source,
                           "n_page_anchors": ed.n_page_anchors, "manifest_media_types": ed.manifest_media_types,
-                          "package_manifest": ed.package_manifest},
+                          "package_manifest": ed.package_manifest, "pagination_diagnostics": ed.pagination_diagnostics},
                          "NATIVE_RAW", compress=True, source_id=src.source_id)
     prep["document_raw_artifact_id"] = rec.artifact_id
     prep["document"] = {"is_encrypted": False, "has_native_page_labels": ed.n_page_anchors > 0,
@@ -316,6 +348,7 @@ def _prepare_epub(cfg: PipelineConfig, store: ArtifactStore, src: SourceInput, p
                "linear": unit.linear, "media_type": unit.media_type,
                "blocks": [b.__dict__ for b in unit.blocks], "images": [i.__dict__ for i in unit.images],
                "tables": [t.__dict__ for t in unit.tables], "page_anchors": unit.page_anchors,
+               "page_anchor_details": unit.page_anchor_details, "extraction_rule": epub.EPUB_EXTRACTION_RULE,
                "bib_ids": unit.bib_ids, "parse_error": unit.parse_error,
                "maths": [m.__dict__ for m in unit.maths], "raw_markup": unit.raw_markup,
                "raw_markup_base64": unit.raw_markup_base64,
@@ -382,7 +415,7 @@ def _prepare_docx(cfg: PipelineConfig, store: ArtifactStore, cache: StageCache, 
             idx = i + 1
             row: dict[str, Any] = {"page_index": idx, "page_kind": "DOCX_RENDERED_PAGE"}
             try:
-                npg = pdf_native.extract_page(doc, i, {}, with_drawings_count=False)
+                npg = pdf_native.extract_page(doc, i, {}, with_drawings_count=False, probe_cp1251=False)
                 r = store.put_json(npg.raw, "NATIVE_RAW", compress=True, source_id=src.source_id,
                                    page_id=_page_id(src.source_id, "r", idx))
                 row.update({"width_pt": npg.raw["width_pt"], "height_pt": npg.raw["height_pt"],
@@ -417,10 +450,10 @@ def prepare_source(cfg: PipelineConfig, store: ArtifactStore, cache: StageCache,
             raise ValueError("source path escapes PRIVATE root")
         if not src.sha256 or not re.fullmatch(r"[0-9a-f]{64}", src.sha256):
             raise ValueError("source requires registered lowercase SHA-256")
-        sig = prepare_signature(cfg, src, {"docx_image": cfg.docx_render_image}
-                                if src.canonical_path.lower().endswith(".docx") else None)
-        prep["prepare_signature"] = sig
         info = inspect_file(path, src.sha256)
+        sig = prepare_signature(cfg, src, {"docx_image": cfg.docx_render_image}
+                                if src.canonical_path.lower().endswith(".docx") else None, file_format=info.file_format)
+        prep["prepare_signature"] = sig
     except (OSError, ValueError) as exc:
         prep.update(status="FAILED", transient_errors=False)
         prep["errors"].append(_err("NATIVE_EXTRACT_FAILED", "INSPECT", str(exc)))
@@ -429,6 +462,8 @@ def prepare_source(cfg: PipelineConfig, store: ArtifactStore, cache: StageCache,
                        "is_lfs_pointer": info.is_lfs_pointer, "file_format": info.file_format,
                        "format_version": info.format_version, "container_detail": info.container_detail,
                        "leading_bytes": info.leading_bytes, "flags": info.flags}
+    if rule := _native_extraction_rule(info.file_format):
+        prep["native_extraction_rule"] = rule
     if not info.path_exists:
         prep["status"] = "FAILED"
         prep["errors"].append(_err("SOURCE_FILE_MISSING", "INSPECT", "file not found", retryable=False))
@@ -460,6 +495,7 @@ def prepare_source(cfg: PipelineConfig, store: ArtifactStore, cache: StageCache,
                     and info.file_format in {"PDF", "DJVU", "EPUB", "DOCX"}
                     and (cfg.profile != "production"
                          or (cached.get("inspect") or {}).get("file_format") == info.file_format)
+                    and native_extraction_cache_current(cached)
                     and docx_cache_current):
                 return cached
         try:

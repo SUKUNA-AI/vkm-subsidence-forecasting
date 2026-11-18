@@ -191,7 +191,8 @@ def test_legacy_api_keeps_regex_negative_existence_and_exit_defaults(tmp_path):
     checks = [{"name": "absent", "kind": "file_exists", "path": "missing", "expected": False},
               {"name": "exit", "kind": "exit_code"}]
     assert all(result["passed"] for result in legacy.evaluate_all(checks, tmp_path, 0))
-    assert not run_check(tmp_path, checks[0], 0)["passed"]
+    assert run_check(tmp_path, checks[0], 0)["passed"]
+    assert not run_check(tmp_path, checks[1], 0)["passed"]
 
 
 def test_legacy_numeric_defaults_and_error_outputs_are_preserved(tmp_path):

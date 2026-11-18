@@ -10,10 +10,13 @@ No semantics is added: no variables, no units, no numeric parsing (Formula v0, c
 from __future__ import annotations
 
 import re
+from collections.abc import Callable, Iterator
 from typing import Any
 
 # v3: retain raw grid and explicit dispositions; native tables preserve empty rows.
 OCR_NORMALIZE_RULE = "ocr_normalize_v3"
+XHTML_TABLE_NORMALIZE_RULE = "xhtml_table_dom_order_v1"
+_XHTML_NAMESPACE = "{http://www.w3.org/1999/xhtml}"
 
 _MD_HEADING = re.compile(r"^\s{0,3}#{1,6}\s+", re.M)
 _MD_EMPH = re.compile(r"(\*\*|__)(.+?)\1", re.S)
@@ -98,6 +101,21 @@ def normalize_formula(content: str | None) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------------------------------- table
+def _table_tag(el: Any) -> str:
+    return el.tag.removeprefix(_XHTML_NAMESPACE) if isinstance(el.tag, str) else ""
+
+
+def _xhtml_cell_text(el: Any) -> str:
+    def ordered_text(node: Any) -> Iterator[str]:
+        yield node.text or ""
+        for child in node:
+            if isinstance(child.tag, str) and _table_tag(child) != "table":
+                yield from ordered_text(child)
+            yield child.tail or ""
+
+    return " ".join("".join(ordered_text(el)).split())
+
+
 def _cell_text(el: Any) -> str:
     # Nested tables are separate objects, not additional rows/text in the parent.
     parts = []
@@ -140,19 +158,36 @@ def parse_html_table(html: str, *, preserve_empty: bool = False) -> dict[str, An
     table = root if root.tag == "table" else root.find(".//table")
     if table is None:
         return None
+    return _table_grid(table, preserve_empty=preserve_empty, cell_text=_cell_text)
+
+
+def _parse_xhtml_table(markup: str, *, preserve_empty: bool) -> dict[str, Any] | None:
+    from lxml import etree
+
+    try:
+        root = etree.fromstring(markup.encode("utf-8"), etree.XMLParser(resolve_entities=False, no_network=True))
+    except etree.XMLSyntaxError:
+        return None
+    if _table_tag(root) != "table":
+        return None
+    return _table_grid(root, preserve_empty=preserve_empty, cell_text=_xhtml_cell_text)
+
+
+def _table_grid(table: Any, *, preserve_empty: bool, cell_text: Callable[[Any], str]) -> dict[str, Any]:
     occupied: set[tuple[int, int]] = set()
     cells = []
-    rows = [tr for tr in table.iter("tr")
-            if next((a for a in tr.iterancestors() if a.tag == "table"), None) is table]
+    rows = [tr for tr in table.iter() if _table_tag(tr) == "tr"
+            and next((a for a in tr.iterancestors() if _table_tag(a) == "table"), None) is table]
     dispositions = []
-    for nested in table.iter("table"):
-        if nested is not table:
+    for nested in table.iterdescendants():
+        if _table_tag(nested) == "table":
             dispositions.append({"code": "NESTED_TABLE_SEPARATE", "locator": nested.getroottree().getpath(nested)})
     for r, tr in enumerate(rows):
         c = 0
-        in_head = any(a.tag == "thead" for a in tr.iterancestors())
+        in_head = any(_table_tag(a) == "thead" for a in tr.iterancestors())
         for td in tr:
-            if td.tag not in ("td", "th"):
+            tag = _table_tag(td)
+            if tag not in ("td", "th"):
                 continue
             while (r, c) in occupied:
                 c += 1
@@ -165,7 +200,7 @@ def parse_html_table(html: str, *, preserve_empty: bool = False) -> dict[str, An
                 for dc in range(cs):
                     occupied.add((r + dr, c + dc))
             cells.append({"row": r, "col": c, "row_span": rs, "col_span": cs,
-                          "is_header": td.tag == "th" or in_head, "text": _cell_text(td)})
+                          "is_header": tag == "th" or in_head, "text": cell_text(td)})
             c += cs
     raw_grid = {"cells": [dict(x) for x in cells], "n_rows": max(len(rows), max((r for r, _ in occupied), default=-1) + 1),
                 "n_cols": max((c for _, c in occupied), default=-1) + 1}
@@ -213,11 +248,13 @@ def table_text(cells: list[dict[str, Any]]) -> str:
     return "\n".join(" | ".join(t for _, t in sorted(v)) for _, v in sorted(by_row.items()))
 
 
-def normalize_table(content: str | None, *, preserve_empty: bool = False) -> dict[str, Any]:
+def normalize_table(content: str | None, *, preserve_empty: bool = False, xhtml: bool = False) -> dict[str, Any]:
     if not content or not content.strip():
         return {"cells": [], "n_rows": None, "n_cols": None, "raw_format": "TEXT", "normalized_text": None,
                 "structure_ok": False}
-    parsed = parse_html_table(content, preserve_empty=preserve_empty) if "<table" in content.lower() else None
+    parsed = _parse_xhtml_table(content, preserve_empty=preserve_empty) if xhtml else None
+    if parsed is None and "<table" in content.lower():
+        parsed = parse_html_table(content, preserve_empty=preserve_empty)
     if parsed is None:
         parsed = parse_markdown_table(content)
     if parsed is None:

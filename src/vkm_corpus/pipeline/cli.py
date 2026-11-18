@@ -1,6 +1,6 @@
 """``vkm-corpus run``: the document pipeline.
 
-    run plan     [--source ...] [--canary] [--page A-B] [--force] [--failed-only] [--recall-model]
+    run plan     [--source ...] [--canary] [--page A-B] [--force] [--failed-only] [--recall-model] [--no-write]
     run extract  [--source ...] [--canary] [--page A-B] [--resume [RUN]] [--force] [--failed-only] [--plan-only]
                  [--max-model-calls N] [--recall-model --confirm-plan SHA] [--no-ocr] [--concurrency N] [--workers N]
     run render-docx --source VKM-SRC-023      (on the Docker host: pinned LibreOffice render → cached artifact)
@@ -55,6 +55,7 @@ def register(subparsers: Any) -> None:
     sub = run.add_subparsers(dest="run_cmd", metavar="<command>")
     p_plan = sub.add_parser("plan", help="plan only: what would run and how many model calls")
     _common(p_plan)
+    p_plan.add_argument("--no-write", action="store_true", help="print the plan without creating a run, logs or artifacts")
     p_plan.set_defaults(func=cmd_plan)
     p_ext = sub.add_parser("extract", help="run the pipeline over the selection")
     _common(p_ext)
@@ -73,6 +74,14 @@ def register(subparsers: Any) -> None:
     p_imp.add_argument("--source", action="append", default=[], help="source id(s); default: all of the run")
     p_imp.add_argument("--dry-run", action="store_true", help="check and count only; nothing is stored")
     p_imp.set_defaults(func=cmd_import_layer)
+    p_local = sub.add_parser("import-local-ocr", help="read a pinned offline Transformers PDF packet into STAGING")
+    p_local.add_argument("--source", required=True)
+    p_local.add_argument("--isolated-staging", required=True, type=Path, help="exact disposable VKM_DATA_ROOT")
+    p_local.add_argument("--page", type=int, required=True, action="append")
+    p_local.add_argument("--receipt", required=True, type=Path)
+    p_local.add_argument("--receipt-sha256", required=True)
+    p_local.add_argument("--execution", required=True, type=Path)
+    p_local.set_defaults(func=cmd_import_local_ocr)
     p_st = sub.add_parser("status", help="summary of a run (default: the latest)")
     p_st.add_argument("--run", default=None)
     p_st.set_defaults(func=cmd_status)
@@ -144,6 +153,37 @@ def cmd_plan(args: argparse.Namespace) -> int:
     return cmd_extract(args)
 
 
+def _plan_sources(plan: dict[str, Any]) -> list[dict[str, Any]]:
+    return [{k: v for k, v in entry.items() if k in (
+        "source_id", "action", "reasons", "prepare", "layout_pending_pages", "ocr_tasks_known",
+        "ocr_cached_known", "ocr_calls_known", "imported_layer", "commit")} for entry in plan["sources"]]
+
+
+def _plan_without_writes(cfg: Any, sources: list[Any], args: argparse.Namespace) -> int:
+    from vkm_corpus.artifacts.store import ArtifactReader
+    from vkm_corpus.parquet.layout import open_root
+    from vkm_corpus.pipeline.cache import StageCache
+    from vkm_corpus.pipeline.plan import build_plan
+
+    try:
+        root = Path(cfg.data_root)
+        if root.exists():
+            open_root(root, "STAGING")  # validate an existing root without initializing an absent one
+        cache = StageCache(root, "plan-without-writes", read_only=True)
+        try:
+            plan = build_plan(cfg, sources, cache, ArtifactReader(root / "artifacts"), force=args.force,
+                              failed_only=args.failed_only, recall=args.recall_model, page_range=args.page,
+                              no_ocr=args.no_ocr)
+        finally:
+            cache.close()
+    except Exception as exc:  # noqa: BLE001 - preserve a nonzero CLI exit without opening a run log
+        print(f"read-only plan failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    print(json.dumps({"plan_sha256": plan["plan_sha256"], "totals": plan["totals"], "sources": _plan_sources(plan)},
+                     ensure_ascii=False, indent=1))
+    return 0
+
+
 def cmd_extract(args: argparse.Namespace) -> int:
     from vkm_corpus.parquet.blobs import put_blob
     from vkm_corpus.pipeline import commit as cm
@@ -165,6 +205,8 @@ def cmd_extract(args: argparse.Namespace) -> int:
     if args.page and len(sources) != 1:
         print("--page needs exactly one --source", file=sys.stderr)
         return 2
+    if getattr(args, "no_write", False):
+        return _plan_without_writes(cfg, sources, args)
     log, _ = _logger(cfg)
     from vkm_corpus.pipeline.imported_layer import imported_run_models
 
@@ -192,10 +234,7 @@ def cmd_extract(args: argparse.Namespace) -> int:
         if args.plan_only:
             write_json_atomic(orch.dir / "plan.json", plan)
             print(json.dumps(report["plan"] | {"run_id": orch.run_id,
-                                              "sources": [{k: v for k, v in e.items() if k in (
-                                                  "source_id", "action", "reasons", "prepare", "layout_pending_pages",
-                                                  "ocr_tasks_known", "ocr_cached_known", "ocr_calls_known",
-                                                  "imported_layer", "commit")} for e in plan["sources"]]},
+                                              "sources": _plan_sources(plan)},
                              ensure_ascii=False, indent=1))
             return 0
         if (args.recall_model or cfg.profile == "production") and args.confirm_plan != plan["plan_sha256"]:
@@ -379,6 +418,77 @@ def cmd_import_layer(args: argparse.Namespace) -> int:
                                                                          receipt["sources"].items() if r["refused"]}},
                      ensure_ascii=False, indent=1))
     return 0
+
+
+def cmd_import_local_ocr(args: argparse.Namespace) -> int:
+    from vkm_corpus import ids
+    from vkm_corpus.pipeline import local_transformers_ocr as local
+    from vkm_corpus.pipeline.config import load_pipeline_config
+    from vkm_corpus.pipeline.context import open_cache, open_store, write_json_atomic
+    from vkm_corpus.pipeline.imported_layer import imported_run_models
+    from vkm_corpus.pipeline.runner import Orchestrator
+    from vkm_corpus.pipeline.sources import load_sources, select
+    from vkm_corpus.parquet.layout import open_root
+
+    try:
+        cfg = load_pipeline_config(profile="exploratory", workers=1, use_gpu_layout=False, max_model_calls=0,
+                                   local_ocr_packet_sha256=args.receipt_sha256)
+        cfg.scenario_b.enabled = False
+        source, = select(load_sources(cfg.resources_root), [args.source])
+        layout = open_root(cfg.data_root, "STAGING")
+        if (layout.root.resolve() != args.isolated_staging.resolve()
+                or (layout.canonical / layout.CURRENT).exists()
+                or (layout.canonical / "_admission").exists()):
+            raise ValueError("local OCR needs the explicit disposable staging root without publication state")
+        lock = layout.root / ".local-transformers-ocr.lock"
+        with lock.open("x"):
+            pass
+    except (OSError, ValueError, KeyError, RuntimeError) as exc:
+        print(f"local OCR refused: {exc}", file=sys.stderr)
+        return 1
+    try:
+        decoded = local.read_packet(cfg, source, args.receipt, args.receipt_sha256, args.execution, args.page)
+        transfer = ids.new_run_id()
+        store = open_store(cfg, transfer, "local-transformers-ocr")
+        cache = open_cache(cfg, transfer, "local-transformers-ocr")
+        try:
+            entry = local.stage_packet(source, store, cache, args.receipt_sha256, decoded)
+        finally:
+            cache.close()
+            store.close()
+        log, _ = _logger(cfg)
+        models = imported_run_models(cfg, [source.source_id]) + [
+            {"role": "LAYOUT", "model_id": local.LAYOUT.model_id,
+             "model_revision": local.LAYOUT.model_revision, "weights_sha256": local.layout_model.WEIGHTS_SHA256,
+             "backend": "transformers", "device": "cuda"},
+            {"role": "RECOGNITION", "model_id": local.RECOGNITION.model_id,
+             "model_revision": local.RECOGNITION.model_revision, "weights_sha256": cfg.model.weights_sha256,
+             "backend": "transformers", "device": "cuda"},
+        ]
+        attrs = ["vkm-corpus", "run", "import-local-ocr", "--source", source.source_id, "--receipt-sha256",
+                 args.receipt_sha256]
+        for page in sorted(args.page):
+            attrs.extend(["--page", str(page)])
+        orch = Orchestrator(cfg, argv=attrs, flags=["--no-ocr"], log=log, run_models=models)
+        status = "FAILED"
+        try:
+            orch.commit([source])
+            result = orch.results.get(source.source_id)
+            status = "SUCCEEDED" if result and result.get("commit_id") and not result["missing_artifacts"] else "FAILED"
+            report = {"status": status, "run_id": orch.run_id, "receipt_sha256": args.receipt_sha256,
+                      "local_stage_signature": entry["stage_signature"], "pages": args.page,
+                      "result": result, "crashes": orch.crashed, "counters": orch.counters}
+            write_json_atomic(orch.dir / "report.json", report)
+            print(json.dumps(report, ensure_ascii=False))
+            return int(status != "SUCCEEDED")
+        finally:
+            orch.record_crashes()
+            orch.finish(status, log_path=None)
+    except (OSError, ValueError, KeyError, IndexError, RuntimeError) as exc:
+        print(f"local OCR refused: {exc}", file=sys.stderr)
+        return 1
+    finally:
+        lock.unlink()
 
 
 def cmd_status(args: argparse.Namespace) -> int:

@@ -7,6 +7,7 @@ import json
 import os
 import signal
 import time
+from types import SimpleNamespace
 
 import pytest
 
@@ -67,6 +68,27 @@ def test_failed_check_failed_and_licence(tmp_path):
     assert check["actual"] == 136 and check["passed"] is False
     lic, _ = submit(jobs, "import sys; print('License checkout failed for feature X'); sys.exit(1)", wait_s=60)
     assert lic["status"] == "LICENSE_UNAVAILABLE"
+
+
+@pytest.mark.parametrize(("path", "matched"), [("out/result.json", True), ("out/*.json", 1),
+                                               ("out/missing.json", False), ("out/missing*.json", 0)])
+def test_ansys_product_has_explicit_negative_existence_check(tmp_path, path, matched):
+    from vkm_ansys import product_jobs, product_submit
+    from vkm_ansys.product_schema import CheckIn, dump
+
+    jobs = service(tmp_path)
+    ctx = SimpleNamespace(env={}, jobs_service=lambda: jobs)
+    checks = dump([CheckIn(name="absent", kind="file_exists", path=path, expected=False)])
+    job = product_jobs.ProductJob(app="MECH", kind="test.absence", argv=[PY, "-c", OK_APP],
+                                  checks=product_jobs.validate_checks(checks), pool="py", uses_license=False)
+    ref = product_submit.submit(ctx, job, wait_s=60)
+
+    assert ref["status"] == ("CHECK_FAILED" if matched else "SUCCEEDED")
+    [result] = jobs.receipt(ref["job_id"])["checks"]
+    assert result["expected"] is False
+    assert type(result["actual"]) is type(matched)
+    assert result["actual"] == matched
+    assert result["passed"] is not bool(matched)
 
 
 def test_timeout_kills_the_whole_tree(tmp_path):

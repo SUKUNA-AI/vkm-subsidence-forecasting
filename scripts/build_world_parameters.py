@@ -8,8 +8,9 @@ Reads the PRIVATE canonical catalogue ``11_evidence_vnext/canonical/MECH_RHEO/me
                                   (materials) or C3 (initial state): the value converted to SI, the material class of
                                   the world (7 classes, owner decision 08.10.2026), scale, site scope, status and the
                                   locator of the catalogue row. No quotes are copied.
-``world_parameter_summary.csv``   per parameter × material class × scale × site group: number of rows and sources,
-                                  min / quartiles / max of the SI values, the statuses behind them.
+``world_parameter_summary.csv``   per parameter × material class × scale × site group: number of citation rows
+                                  and their publications, and the distribution over converted values with
+                                  confirmed repetitions of the same study counted once.
 ``build_receipt.json``            input and output sha256, counts, unmapped rows by reason.
 
 Numbers are copied, never invented. A row whose unit cannot be converted is kept with ``si_value`` empty and
@@ -35,7 +36,7 @@ from pathlib import Path
 csv.field_size_limit(sys.maxsize)
 
 G = 9.80665
-RULE_VERSION = "world_parameters_v0"
+RULE_VERSION = "world_parameters_v2"
 
 # material classes of the world (owner decision 08.10.2026: 7 classes + salt rocks without a class)
 MATERIAL_CLASSES = ("ROCKSALT", "SYLVINITE", "CARNALLITE", "CLAY_CONTACT", "TRANSITION_OVERBURDEN", "COVER", "BACKFILL",
@@ -54,6 +55,21 @@ _MATERIAL_RULES = (            # first match wins; text = lithology + layer as p
     ("ROCKSALT", r"\bсоль\b|\bsalt\b"),
 )
 _SEAM_TO_CLASS = {"MPS": "ROCKSALT", "PKS": "ROCKSALT", "PDKS": "ROCKSALT"}   # межпластовая / подстилающая / покровная соль
+
+# Source-qualified exceptions to the Phase 1 "mixed" label (VKM-EXEC-SPEC-20261116, REQ-038).
+_MATERIAL_CORRECTIONS = {
+    ("VKM-SRC-030", "MR-MECH-1612", "SIGMA_H"): "PDF 5 / printed 38 / table 2: deep mixed sedimentary formations.",
+    ("VKM-SRC-030", "MR-MECH-1613", "SIGMA_H"): "PDF 5 / printed 38 / table 2: deep mixed sedimentary formations.",
+    ("VKM-SRC-023", "MR-MECH-1561", "LAMBDA"): "§2.3 / paragraph 214 / ref. [23]: hard-rock open-pit citation.",
+}
+
+# LIN-14: the bibliography in SRC-012 (p. 118, ref. 2) and SRC-029
+# (p. 154, ref. 62) both identify the Asanov–Toksarov 1999 Kaiser-effect study.
+# SRC-029 pp. 44–45 preserves its assumptions and is the representative.
+_KAISER_CITATIONS = {
+    "WPE-00851": ("VKM-SRC-012", "MR-MECH-1560", "27"),
+    "WPE-00852": ("VKM-SRC-029", "MR-MECH-1564", "45"),
+}
 
 # world parameters (module, quantity) ← catalogue variables; unit kind decides the SI conversion
 PARAMETERS = {
@@ -151,6 +167,20 @@ def site_group(scope: str) -> str:
     return "NON_VKM"
 
 
+def material_correction_basis(row: dict) -> str | None:
+    key = (row.get("source_id"), row.get("catalogue_row_id"), row.get("parameter"))
+    return _MATERIAL_CORRECTIONS.get(key)
+
+
+def correct_material_class(row: dict) -> dict:
+    """Project reviewed catalogue rows without reassigning their evidence IDs."""
+    basis = material_correction_basis(row)
+    if basis is None or row["material_class"] != "SALT_GENERAL":
+        return row
+    return dict(row, material_class="UNCLASSIFIED", param_id=f"{row['parameter']}.UNCLASSIFIED",
+                phase1_notes=f"Material correction REQ-038 (NON_TRANSFERABLE): {basis} {row['phase1_notes']}")
+
+
 def evidence_rows(mech: list[dict]) -> tuple[list[dict], Counter]:
     out, skipped = [], Counter()
     for r in mech:
@@ -190,7 +220,9 @@ def evidence_rows(mech: list[dict]) -> tuple[list[dict], Counter]:
                             x["scale"], x["site_group"], x["source_id"], x["catalogue_row_id"]))
     for i, x in enumerate(out, 1):
         x["wpe_id"] = f"WPE-{i:05d}"
-    return out, skipped
+    # Legacy numbering depended on the original class sort. Correct the class
+    # only after assigning those IDs to preserve existing WPE and WPV links.
+    return [correct_material_class(x) for x in out], skipped
 
 
 def _q(xs: list[float], p: float) -> float:
@@ -202,17 +234,41 @@ def _q(xs: list[float], p: float) -> float:
     return xs[lo] + (xs[min(lo + 1, len(xs) - 1)] - xs[lo]) * (k - lo)
 
 
+def kaiser_study_duplicate_ids(rows: list[dict]) -> set[str]:
+    """Exclude a confirmed secondary repetition only with both bounded occurrences present."""
+    counts = Counter(row["wpe_id"] for row in rows if row["wpe_id"] in _KAISER_CITATIONS)
+    if counts != {"WPE-00851": 1, "WPE-00852": 1}:
+        return set()
+    verified = set()
+    for row in rows:
+        wid = row["wpe_id"]
+        if wid not in _KAISER_CITATIONS:
+            continue
+        origin = (row.get("original_or_cited") or "").casefold()
+        if ((row.get("source_id"), row.get("catalogue_row_id"), row.get("pdf_page")) == _KAISER_CITATIONS[wid]
+                and (row.get("parameter"), row.get("material_class"), row.get("scale"),
+                     row.get("site_scope"), row.get("site_group"))
+                == ("LAMBDA", "SALT_GENERAL", "MASSIF", "VKM_REGIONAL", "VKM_REGIONAL")
+                and (row.get("si_min"), row.get("si_max"), row.get("si_unit")) == ("0.71", "0.71", "1")
+                and row.get("evidence_type") == "LITERATURE_CITED"
+                and origin.startswith("cited:") and all(t in origin for t in ("асанов", "токсаров", "1999"))):
+            verified.add(wid)
+    return {"WPE-00851"} if verified == _KAISER_CITATIONS.keys() else set()
+
+
 def summary_rows(ev: list[dict]) -> list[dict]:
     groups: dict[tuple, list[dict]] = defaultdict(list)
     for x in ev:
         groups[(x["parameter"], x["material_class"], x["scale"], x["site_group"])].append(x)
     out = []
     for (param, cls, scale, site), rows in groups.items():
-        vals = [float(v) for x in rows for v in {x["si_min"], x["si_max"]} if v != ""]
+        duplicates = kaiser_study_duplicate_ids(rows)
+        converted = [x for x in rows if x["si_min"] and x["wpe_id"] not in duplicates]
+        vals = [float(v) for x in converted for v in {x["si_min"], x["si_max"]} if v != ""]
         rec = {"param_id": f"{param}.{cls}", "parameter": param, "module": PARAMETERS[param][0],
                "quantity": PARAMETERS[param][1], "material_class": cls, "scale": scale, "site_group": site,
                "n_rows": len(rows), "n_sources": len({x["source_id"] for x in rows}),
-               "n_converted": sum(1 for x in rows if x["si_min"] != ""), "si_unit": PARAMETERS[param][2],
+               "n_converted": len(converted), "si_unit": PARAMETERS[param][2],
                "si_min": "", "si_p25": "", "si_median": "", "si_p75": "", "si_max": "",
                "statuses": ";".join(f"{k}:{v}" for k, v in sorted(Counter(x["status"] for x in rows).items())),
                "sources": ";".join(sorted({x["source_id"] for x in rows})),

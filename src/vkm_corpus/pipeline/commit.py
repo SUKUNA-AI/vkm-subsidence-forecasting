@@ -15,11 +15,14 @@ from pathlib import Path
 from typing import Any
 
 from vkm_corpus.extract.model import ErrorRec, SourceInput, StepRec
+from vkm_corpus.pipeline import local_transformers_ocr
 from vkm_corpus.pipeline import scenario_b as sb
 from vkm_corpus.pipeline.assemble import Assembler
 from vkm_corpus.pipeline.cache import JsonlAppender, _iter_lines
 from vkm_corpus.pipeline.config import PipelineConfig
-from vkm_corpus.pipeline.prepare import docx_grid_cache_current, load_prep, prepare_signature, source_format_admitted
+from vkm_corpus.pipeline.prepare import (
+    docx_grid_cache_current, load_prep, native_extraction_cache_current, prepare_signature, source_format_admitted,
+)
 from vkm_corpus.pipeline.visual import load_visual, visual_signature
 from vkm_corpus.versions import PIPELINE_VERSION
 
@@ -30,17 +33,20 @@ def _cfg_hash(d: dict[str, Any]) -> str:
     return config_hash(d)
 
 
-def prep_signature_for(cfg: PipelineConfig, src: SourceInput) -> str:
+def prep_signature_for(cfg: PipelineConfig, src: SourceInput, *, file_format: str | None = None) -> str:
     return prepare_signature(cfg, src, {"docx_image": cfg.docx_render_image}
-                             if src.canonical_path.lower().endswith(".docx") else None)
+                             if src.canonical_path.lower().endswith(".docx") else None, file_format=file_format)
 
 
 def load_state(cfg: PipelineConfig, src: SourceInput, *, _fresh_source_identity: dict[str, Any] | None = None
                ) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
-    prep = load_prep(cfg.data_root, src.source_id, prep_signature_for(cfg, src))
+    prep = load_prep(cfg.data_root, src.source_id, prep_signature_for(
+        cfg, src, file_format=(_fresh_source_identity or {}).get("file_format")))
     if prep is None:
         return None, None
     if not source_format_admitted(cfg, src, prep, _fresh_source_identity=_fresh_source_identity):
+        return None, None
+    if not native_extraction_cache_current(prep):
         return None, None
     if prep.get("inspect", {}).get("file_format") == "DOCX" and not docx_grid_cache_current(
             prep, src, data_root=cfg.data_root):
@@ -138,6 +144,8 @@ def commit_signature(cfg: PipelineConfig, cache: Any, src: SourceInput, prep: di
         return None
     if not source_format_admitted(cfg, src, prep, _fresh_source_identity=_fresh_source_identity):
         return None
+    if not native_extraction_cache_current(prep):
+        return None
     docx = (prep.get("inspect") or {}).get("file_format") == "DOCX"
     if docx and not docx_grid_cache_current(prep, src, data_root=cfg.data_root):
         return None
@@ -163,12 +171,19 @@ def commit_signature(cfg: PipelineConfig, cache: Any, src: SourceInput, prep: di
     if docx:
         inputs["docx_native_grid"] = {"signature": prep["docx_grid_signature"],
                                       "native_artifact_id": prep["document_raw_artifact_id"]}
+    if (prep.get("inspect") or {}).get("file_format") == "EPUB":
+        from vkm_corpus.ocr.normalize import XHTML_TABLE_NORMALIZE_RULE
+
+        inputs["epub_table_normalization"] = XHTML_TABLE_NORMALIZE_RULE
     from vkm_corpus.pipeline.imported_layer import load_source_import
 
     imported = load_source_import(cache, src.source_id, src.sha256) \
         if (prep.get("inspect") or {}).get("file_format") in ("PDF", "DJVU") else None
     if imported is not None:  # only sources with an imported layer: the signature of every other source is unchanged
         inputs["imported_layer"] = imported.digest()
+    local = local_transformers_ocr.source_entry(cfg, cache, src)
+    if local is not None:
+        inputs["local_transformers_ocr"] = local["stage_signature"]
     return _cfg_hash(inputs)
 
 

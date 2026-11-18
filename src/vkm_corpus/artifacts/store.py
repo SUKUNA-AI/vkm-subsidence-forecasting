@@ -105,11 +105,52 @@ class ArtifactRecord:
         return d
 
 
-class ArtifactStore:
+class ArtifactReader:
+    """Content-addressed reads without initializing directories or an index writer."""
+
+    def __init__(self, root: Path):
+        self.root = Path(root)
+
+    def path_for(self, record: ArtifactRecord) -> Path:
+        if record.storage_relpath is None:
+            raise FileNotFoundError(f"{record.artifact_id} is not materialized ({record.materialization})")
+        return self.root / record.storage_relpath
+
+    def find(self, artifact_id: str) -> Path | None:
+        """Locate a stored blob by id (scans the kind directories; use the index when available)."""
+        digest = hex_of(artifact_id)
+        for kd in sorted(set(_vocab().ARTIFACT_KIND_DIR.values())):
+            base = self.root / kd / digest[0:2] / digest[2:4]
+            if base.is_dir():
+                for cand in base.glob(digest + ".*"):
+                    return cand
+        return None
+
+    # ------------------------------------------------------------------ reads
+    def read_bytes(self, artifact_id: str, record: ArtifactRecord | None = None) -> bytes:
+        path = self.path_for(record) if record is not None else self.find(artifact_id)
+        if path is None or not path.exists():
+            raise FileNotFoundError(artifact_id)
+        data = path.read_bytes()
+        if sha256_hex(data) != hex_of(artifact_id):
+            raise RuntimeError(f"ARTIFACT_HASH_MISMATCH: {artifact_id}")
+        return data
+
+    def read_json(self, artifact_id: str) -> Any:
+        data = self.read_bytes(artifact_id)
+        if data[:2] == b"\x1f\x8b":
+            data = gzip.decompress(data)
+        return json.loads(data.decode("utf-8"))
+
+    def exists(self, artifact_id: str) -> bool:
+        return self.find(artifact_id) is not None
+
+
+class ArtifactStore(ArtifactReader):
     """Write-once content-addressed store rooted at ``$VKM_DATA_ROOT/artifacts``."""
 
     def __init__(self, root: Path, index_path: Path | None = None):
-        self.root = Path(root)
+        super().__init__(root)
         self.root.mkdir(parents=True, exist_ok=True)
         self._tmp = self.root / ".tmp"
         self._tmp.mkdir(exist_ok=True)
@@ -139,21 +180,6 @@ class ArtifactStore:
     def relpath(kind: str, digest: str, media_type: str) -> str:
         """``<kind_dir>/<hh>/<hh>/<hex>.<ext>`` – the rule of ``vkm_corpus.parquet.layout.CanonLayout.blob_relpath``."""
         return f"{kind_dir(kind)}/{digest[0:2]}/{digest[2:4]}/{digest}.{media_ext(media_type)}"
-
-    def path_for(self, record: ArtifactRecord) -> Path:
-        if record.storage_relpath is None:
-            raise FileNotFoundError(f"{record.artifact_id} is not materialized ({record.materialization})")
-        return self.root / record.storage_relpath
-
-    def find(self, artifact_id: str) -> Path | None:
-        """Locate a stored blob by id (scans the kind directories; use the index when available)."""
-        digest = hex_of(artifact_id)
-        for kd in sorted(set(_vocab().ARTIFACT_KIND_DIR.values())):
-            base = self.root / kd / digest[0:2] / digest[2:4]
-            if base.is_dir():
-                for cand in base.glob(digest + ".*"):
-                    return cand
-        return None
 
     # ------------------------------------------------------------------ writes
     def put_bytes(self, data: bytes, kind: str, media_type: str, *, recipe: dict[str, Any] | None = None,
@@ -221,25 +247,6 @@ class ArtifactStore:
                 self.records.append(rec)
             self._append_index(rec)
         return rec
-
-    # ------------------------------------------------------------------ reads
-    def read_bytes(self, artifact_id: str, record: ArtifactRecord | None = None) -> bytes:
-        path = self.path_for(record) if record is not None else self.find(artifact_id)
-        if path is None or not path.exists():
-            raise FileNotFoundError(artifact_id)
-        data = path.read_bytes()
-        if sha256_hex(data) != hex_of(artifact_id):
-            raise RuntimeError(f"ARTIFACT_HASH_MISMATCH: {artifact_id}")
-        return data
-
-    def read_json(self, artifact_id: str) -> Any:
-        data = self.read_bytes(artifact_id)
-        if data[:2] == b"\x1f\x8b":
-            data = gzip.decompress(data)
-        return json.loads(data.decode("utf-8"))
-
-    def exists(self, artifact_id: str) -> bool:
-        return self.find(artifact_id) is not None
 
     # ------------------------------------------------------------------ index
     def take_records(self) -> list[ArtifactRecord]:

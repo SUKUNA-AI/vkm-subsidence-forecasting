@@ -904,9 +904,11 @@ def create_app(service: ApiService, config: ApiConfig, *, lifespan=None) -> Fast
             raise ValueError("scientific reader requires manifest path and SHA-256 together")
         from pathlib import Path as ScientificPath
         from vkm_corpus.api.scientific import ScientificReader, mount_scientific_routes
+        from vkm_corpus.api.scientific_export import mount_scientific_export_route
         reader = ScientificReader(ScientificPath(config.scientific_manifest_path),
                                   config.scientific_manifest_sha256, service.canon.snapshot_id)
         mount_scientific_routes(app, reader, read_access)
+        mount_scientific_export_route(app, reader, read_access)
     return app
 
 

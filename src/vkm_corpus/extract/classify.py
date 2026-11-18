@@ -90,6 +90,8 @@ def classify_pdf_page(f: dict[str, Any], t: Thresholds = DEFAULT_THRESHOLDS) -> 
             return "BROKEN_TEXT_LAYER", flags + ["GARBAGE_GLYPHS"]
         if words >= 40 and func < t.func_min:
             flags.append("LOW_FUNCTION_WORD_RATE")
+        if f.get("remap_changed_chars"):
+            flags.append("REPAIRABLE_CP1251_REMAP")
     inv = int(f.get("chars_invisible") or 0) / T
     if cov >= t.scan_cov:
         flags.append("HIDDEN_TEXT_LAYER" if inv >= t.invisible_share else "VISIBLE_TEXT_OVER_IMAGE")

@@ -465,6 +465,8 @@ class ConstitutiveHistory:
         return updated,diag
 
     def checkpoint(self,path,state,*,accepted=True):
+        if type(accepted) is not bool:
+            raise ValueError('accepted must be bool')
         self._check_state(state)
         path = Path(path)
         arrays = dict(time_s=state.time_s,displacement_m=state.displacement_m,support=state.support,
@@ -483,14 +485,15 @@ class ConstitutiveHistory:
             metadata['water_topology_id']=state.water.topology_id
         arrays['metadata_json']=json.dumps(metadata,sort_keys=True)
         np.savez_compressed(path,**arrays)
-        sidecar=dict(schema='vkm.grouped-history-binding/1',identity=self.identity,accepted=bool(accepted),
+        sidecar=dict(schema='vkm.grouped-history-binding/1',identity=self.identity,accepted=accepted,
             sha256=hashlib.sha256(path.read_bytes()).hexdigest(),dependencies=self.identity_payload)
         Path(str(path)+'.binding.json').write_text(json.dumps(sidecar,ensure_ascii=False,indent=2),encoding='utf-8')
 
     def reopen(self,path):
         path=Path(path)
         side=json.loads(Path(str(path)+'.binding.json').read_text(encoding='utf-8'))
-        if side.get('accepted') is False:raise ValueError('rejected trial cannot be restored as accepted memory')
+        if side.get('accepted') is not True:
+            raise ValueError('rejected trial or unchecked checkpoint cannot be restored as accepted memory')
         if side['identity']!=self.identity or side['sha256']!=hashlib.sha256(path.read_bytes()).hexdigest():
             raise ValueError('checkpoint hash/dependency mismatch')
         with np.load(path,allow_pickle=False) as d:

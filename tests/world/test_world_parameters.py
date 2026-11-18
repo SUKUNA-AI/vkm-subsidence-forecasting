@@ -74,6 +74,54 @@ def test_evidence_rows_and_summary(wp):
     assert (s["n_rows"], s["n_sources"], float(s["si_min"]), float(s["si_max"])) == (2, 2, 20e6, 30e6)
     assert all(x["wpe_id"].startswith("WPE-") for x in ev)
 
+
+def test_kaiser_study_counts_once_and_retains_citation_occurrences(wp):
+    evidence = dict(parameter="LAMBDA", material_class="SALT_GENERAL", scale="MASSIF", site_scope="VKM_REGIONAL",
+                    site_group="VKM_REGIONAL", status="FACT", evidence_type="LITERATURE_CITED", si_unit="1",
+                    si_min="0.71", si_max="0.71", original_or_cited="CITED: Асанов В.А., Токсаров В.Н. 1999")
+    lebedeva = dict(evidence, wpe_id="WPE-00851", source_id="VKM-SRC-012",
+                    catalogue_row_id="MR-MECH-1560", pdf_page="27")
+    beltyukov = dict(evidence, wpe_id="WPE-00852", source_id="VKM-SRC-029",
+                    catalogue_row_id="MR-MECH-1564", pdf_page="45")
+    unknown = dict(evidence, wpe_id="WPE-other", source_id="VKM-SRC-999", catalogue_row_id="MR-unknown",
+                   pdf_page="1", si_min="0.60", si_max="0.60")
+    rows = [lebedeva, beltyukov, unknown]
+    result, = wp.summary_rows(rows)
+    assert result["wpe_ids"] == "WPE-00851;WPE-00852;WPE-other"
+    assert (result["n_rows"], result["n_sources"], result["n_converted"]) == (3, 3, 2)
+    assert float(result["si_median"]) == pytest.approx(0.655)
+    assert wp.summary_rows([lebedeva, dict(beltyukov, pdf_page="46")])[0]["n_converted"] == 2
+    assert wp.summary_rows([lebedeva, dict(beltyukov, si_max="0.72")])[0]["n_converted"] == 2
+    assert wp.summary_rows([lebedeva])[0]["n_converted"] == 1
+
+
+def test_non_salt_stress_rows_keep_ids_and_leave_salt_summary(wp):
+    stress = dict(material_lithology="mixed", unit_seam="", scale="MASSIF", site_scope="VKM_REGIONAL",
+                  source_id="VKM-SRC-030", transfer_status_SKRU1="NON_TRANSFERABLE | VKM_REGIONAL_PRIOR",
+                  test_method="in_situ", status="DERIVATION", evidence_type="CALCULATED_BY_AUTHOR")
+    cited = dict(stress, source_id="VKM-SRC-023", site_scope="NON_VKM", unit_as_printed="-",
+                 value_point="1.4", original_or_cited="CITED: [23]", locator="PARA 214",
+                 transfer_status_SKRU1="NON_TRANSFERABLE | NON_VKM_ANALOGUE")
+    mech = [
+        row(**stress, row_id="MR-MECH-1612", variable="max_horizontal_stress"),
+        row(**stress, row_id="MR-MECH-1613", variable="min_horizontal_stress"),
+        row(**cited, row_id="MR-MECH-1561", variable="lateral_stress_ratio"),
+        row(**dict(stress, source_id="VKM-SRC-041", material_lithology="salt rocks"),
+            row_id="MR-other", variable="horizontal_stress_magnitude"),
+    ]
+    ev, skipped = wp.evidence_rows(mech)
+    by_source = {r["catalogue_row_id"]: r for r in ev}
+    assert not skipped
+    assert [(r["wpe_id"], r["material_class"]) for r in by_source.values()] == [
+        ("WPE-00001", "UNCLASSIFIED"), ("WPE-00002", "UNCLASSIFIED"),
+        ("WPE-00003", "SALT_GENERAL"), ("WPE-00004", "UNCLASSIFIED"),
+    ]
+    assert all("NON_TRANSFERABLE" in r["transfer_status_SKRU1"] for r in ev)
+    assert by_source["MR-MECH-1612"]["status"] == "DERIVATION"
+    assert by_source["MR-MECH-1561"]["original_or_cited"] == "CITED: [23]"
+    salt = [x for x in wp.summary_rows(ev) if x["material_class"] == "SALT_GENERAL"]
+    assert [(x["param_id"], x["wpe_ids"]) for x in salt] == [("SIGMA_H.SALT_GENERAL", "WPE-00003")]
+
 @pytest.mark.parametrize("value,unit,kind,expected", [
     (450, "мм", "length", 0.45), (12, "м", "length", 12.0), (1.5, "км", "length", 1500.0), (35, "см", "length", 0.35),
     (70, "%", "fraction", 0.7), (0.65, "доли", "fraction", 0.65), (24, "°C", "temperature", 24.0)])

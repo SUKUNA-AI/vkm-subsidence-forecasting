@@ -110,6 +110,26 @@ def test_passport_branches_status_unknown_and_copies(wpp, canon):
     assert files == wpp.build(canon, ["high_full"], None)                              # deterministic
 
 
+def test_passport_counts_the_kaiser_study_once(wpp, canon):
+    wpe = dict(WPE, parameter="LAMBDA", module="C3", material_class="SALT_GENERAL", scale="MASSIF",
+               si_min="0.71", si_max="0.71", si_unit="1", value_as_printed="0,71",
+               evidence_type="LITERATURE_CITED", original_or_cited="CITED: Асанов В.А., Токсаров В.Н. 1999")
+    _write(canon / "WORLD_PARAMETERS" / "world_parameter_evidence.csv",
+           [dict(wpe, wpe_id="WPE-00851", source_id="VKM-SRC-012", catalogue_row_id="MR-MECH-1560", pdf_page="27"),
+            dict(wpe, wpe_id="WPE-00852", source_id="VKM-SRC-029", catalogue_row_id="MR-MECH-1564", pdf_page="45"),
+            dict(wpe, wpe_id="WPE-other", source_id="VKM-SRC-999", catalogue_row_id="MR-other", pdf_page="1")])
+    files = wpp.build(canon, [], None)
+    evidence = {r["producer_record_id"]: r for r in
+                csv.DictReader(files["passport_evidence_c3.csv"].decode().splitlines())}
+    assert set(evidence) == {"WPE-00851", "WPE-00852", "WPE-other"}
+    assert evidence["WPE-00851"]["copy_role"] == "COPY_CITED_CONFIRMED"
+    assert evidence["WPE-other"]["copy_role"] != "COPY_CITED_CONFIRMED"
+    assert "LIN-14" in evidence["WPE-00851"]["notes"]
+    entry, = (r for r in csv.DictReader(files["world_passport.csv"].decode().splitlines())
+              if r["parameter"] == "LAMBDA" and r["target"] == "SALT_GENERAL")
+    assert entry["n_evidence"] == "2"
+
+
 def test_observation_catalogue_keeps_statuses(wob, canon):
     fig = canon / "WORLD_OBSERVATIONS" / "digitized" / "VKM-SRC-045" / "fig_4_3_4"
     _write(fig / "series.csv", [dict(series_id="045-F434-2012", epoch_or_date="2012", line_id="SKRU2_PL7",

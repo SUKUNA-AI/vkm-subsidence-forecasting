@@ -90,9 +90,14 @@ def port_power_density(kind: PortKind, effort, flow_rate) -> float:
             raise ValueError("mechanical power needs matching scalars or three-vectors")
         if not np.isfinite(traction).all() or not np.isfinite(velocity).all():
             raise ValueError("mechanical power needs finite traction and velocity")
-        return float(np.sum(traction * velocity))
-    if kind is PortKind.HYDRAULIC:
-        return float(effort) * float(flow_rate)
-    if kind is PortKind.THERMAL:
-        return float(flow_rate)
-    raise ValueError("CONTACT power is split into normal (p_c·δ̇_n) and tangential parts; use them explicitly")
+        with np.errstate(over="ignore", invalid="ignore"):
+            power = float(np.sum(traction * velocity))
+    elif kind is PortKind.HYDRAULIC:
+        power = float(effort) * float(flow_rate)
+    elif kind is PortKind.THERMAL:
+        power = float(flow_rate)
+    else:
+        raise ValueError("CONTACT power is split into normal (p_c·δ̇_n) and tangential parts; use them explicitly")
+    if not np.isfinite(power):
+        raise ValueError("port power must be finite")
+    return power

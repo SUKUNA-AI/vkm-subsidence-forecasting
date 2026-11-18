@@ -19,11 +19,11 @@ from vkm_corpus.ocr.quality import QUALITY_RULE
 from vkm_corpus.ocr.prompts import DEFAULT_MODEL, DEFAULT_SAMPLING, ModelIdentity, Sampling
 
 # semantic extraction generations (H-14): bumped consciously, they enter producer keys and object ids
-GENERATIONS: dict[str, int] = {"pymupdf-native": 2, "djvulibre-cli": 1, "epub-xhtml": 2, "docx-xml": 2,
+GENERATIONS: dict[str, int] = {"pymupdf-native": 2, "djvulibre-cli": 1, "epub-xhtml": 3, "docx-xml": 2,
                                "pp-doclayoutv3-hf": 1, "vkm-glm-ocr-client": 1, "pymupdf-find-tables": 1,
                                "paddleocr-vl-import": 1}
 # paddleocr-vl-import: the imported OCR v2 layer (pipeline.imported_layer; PaddleX PP-DocLayoutV3 + PaddleOCR-VL-1.6)
-EXTRACTOR_VERSIONS: dict[str, str] = {"pymupdf-native": "0.1.0", "djvulibre-cli": "0.1.0", "epub-xhtml": "0.1.0",
+EXTRACTOR_VERSIONS: dict[str, str] = {"pymupdf-native": "0.1.0", "djvulibre-cli": "0.1.0", "epub-xhtml": "0.2.0",
                                       "docx-xml": "0.1.0", "pp-doclayoutv3-hf": "0.1.0",
                                       "vkm-glm-ocr-client": "0.1.0", "pymupdf-find-tables": "0.1.0",
                                       "vkm-pipeline": "0.1.0", "libreoffice-docx-pdf": "0.1.0",
@@ -87,6 +87,7 @@ class PipelineConfig:
     spread_aspect: float = 1.25
     use_gpu_layout: bool = True     # False = explicit no-model configuration (different extractor id)
     normalize_tag: str | None = None  # test knob: changes only the NORMALIZE stage configuration
+    local_ocr_packet_sha256: str | None = None  # only set by the explicit exploratory local import
     profile: str = "exploratory"  # production is fail-closed; no implicit promotion of exploratory receipts
     expected_commit: str | None = None
     dependency_locks: tuple[str, ...] = ()  # additional exact locks, relative to the clean source checkout

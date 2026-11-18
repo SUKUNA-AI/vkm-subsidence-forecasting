@@ -191,7 +191,7 @@ class SourceAccounting:
         elif "epub" in raw.get("schema", ""):
             for key, kind in (("blocks", "TEXT"), ("tables", "TABLE"), ("maths", "FORMULA"), ("images", "FIGURE")):
                 specs += [("FORMULA" if key == "images" and obj.get("is_formula_candidate") else kind,
-                           obj["xpath"], obj, None) for obj in raw.get(key, [])]
+                           obj.get("locator") or obj["xpath"], obj, None) for obj in raw.get(key, [])]
         elif "djvu" in raw.get("schema", ""):
             specs += [("TEXT", f"/lines/{i}", line, None) for i, line in enumerate(raw.get("lines", []))]
         else:

@@ -129,6 +129,11 @@ class OverlayTests(unittest.TestCase):
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_full_checksum_refuses_ambiguous_named_columns_on_capture(self):
+        with duckdb.connect(":memory:") as connection:
+            with self.assertRaisesRegex(ValueError, "duplicate result column names"):
+                full_checksum(connection, "SELECT 1 AS value, 2 AS value", capture=True)
+
     def test_unknown_links_full_read_is_not_proof_even_if_not_truncated(self):
         for value in (None,False,0,1,"true"):
             with self.subTest(value=value):

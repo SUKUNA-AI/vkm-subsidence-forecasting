@@ -61,7 +61,8 @@ def guarded_worker_command(cmd: list[str], memory_gb: float) -> list[str]:
 class Orchestrator:
     def __init__(self, cfg: PipelineConfig, *, argv: list[str], flags: list[str], log: Any, run_kind: str = "EXTRACTION",
                  plan_only: bool = False, parent_run_id: str | None = None,
-                 extra_models: list[dict[str, Any]] | None = None):
+                 extra_models: list[dict[str, Any]] | None = None,
+                 run_models: list[dict[str, Any]] | None = None):
         from vkm_corpus.parquet.layout import init_root
         from vkm_corpus.parquet.runs import RunRecorder
 
@@ -73,7 +74,7 @@ class Orchestrator:
         self.layout = init_root(cfg.data_root, "STAGING")
         rev, dirty = code_revision(strict=cfg.profile == "production")
         self.code_rev = rev + ("+dirty" if dirty else "")
-        models = [{"role": "LAYOUT", "model_id": "PaddlePaddle/PP-DocLayoutV3_safetensors",
+        models = run_models if run_models is not None else [{"role": "LAYOUT", "model_id": "PaddlePaddle/PP-DocLayoutV3_safetensors",
                    "model_revision": "97d101e6db2642e162a1d05392d1b0231c91033e",
                    "weights_sha256": "5ea422c6cc5fe759a47e1357c35639b58173508e025a3131cbe4b6ac59e2b85e",
                    "backend": "transformers", "device": "cuda"},

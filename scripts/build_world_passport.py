@@ -197,7 +197,9 @@ class Units:
 # ------------------------------------------------------------------------------------------------ evidence
 def phase1_rows(canon: Path) -> list[dict]:
     out = []
-    for r in _rows(canon / "WORLD_PARAMETERS" / "world_parameter_evidence.csv"):
+    wpe = [WP.correct_material_class(r) for r in _rows(canon / "WORLD_PARAMETERS" / "world_parameter_evidence.csv")]
+    duplicates = WP.kaiser_study_duplicate_ids(wpe)
+    for r in wpe:
         scale = SCALE_NORM.get(r["scale"], r["scale"])
         out.append(dict(producer="PHASE1_CATALOGUE", producer_record_id=r["wpe_id"], module=r["module"],
                         parameter=r["parameter"], target=r["material_class"], material_class=r["material_class"],
@@ -209,6 +211,11 @@ def phase1_rows(canon: Path) -> list[dict]:
                         origin=(r["original_or_cited"] or "UNKNOWN").upper(), cited_ref="", source_id=r["source_id"],
                         page_id=_page_id(r["source_id"], r["pdf_page"]), locator=r["locator"], quote="",
                         status=r["status"], verification="PHASE1_REVIEWED", notes=r["phase1_notes"][:300]))
+        if r["material_class"] == "UNCLASSIFIED" and WP.material_correction_basis(r):
+            out[-1]["non_transferable_material_correction"] = True
+        if r["wpe_id"] in duplicates:
+            out[-1]["confirmed_phase1_study_duplicate"] = True
+            out[-1]["notes"] = "LIN-14: повтор того же исследования; численный представитель WPE-00852. " + out[-1]["notes"]
     for r in _rows(canon / "WORLD_PARAMETERS" / "world_c1_thickness_evidence.csv"):
         out.append(dict(producer="PHASE1_CATALOGUE", producer_record_id=r["obs_id"], module="C1",
                         parameter="THICKNESS", target=r["unit_id"] or r["unit"], material_class="",
@@ -635,6 +642,7 @@ def clusters(ev: list[dict], reextracted: dict[str, str] | None = None,
       double record id → producer record id), when the producer row is counted;
     - ``COPY_CITED_CONFIRMED`` — a CITED row whose cited work resolves to the source of the ORIGINAL primary
       (``cited_sources``: ev id → corpus sources of the resolved cited works), same scale, branch and site group.
+      The explicitly reviewed Phase-1 LIN-14 repetitions also use this role when both cited occurrences are present.
 
     Everything else stays counted: ``SAME_PAGE_VALUE_CANDIDATE`` (same page as the primary: possibly another cell),
     ``COPY_CITED_CANDIDATE`` (a retelling without a resolved link to the primary), ``SAME_VALUE_OTHER_SOURCE``."""
@@ -668,12 +676,14 @@ def clusters(ev: list[dict], reextracted: dict[str, str] | None = None,
                 if x["producer"] == "CLAUDE_DOUBLE_ENTRY" else None
             if partner is not None and id(partner) in members and partner["module"] in COUNTED_MODULES:
                 reext.add(id(x))
-        pool = [x for x in xs if id(x) not in reext]
+        pool = [x for x in xs if id(x) not in reext and not x.get("confirmed_phase1_study_duplicate")]
         orig = [x for x in pool if PR.origin_class(x["origin"]) == PR.ORIGINAL]
         prim = min(orig or pool, key=lambda x: (x["source_id"], x["producer"] != "PHASE1_CATALOGUE", x["page_id"]))
         for x in xs:
             if id(x) in reext:
                 x["copy_role"] = "CONFIRMED_REEXTRACTION"
+            elif x.get("confirmed_phase1_study_duplicate"):
+                x["copy_role"] = "COPY_CITED_CONFIRMED"
             elif x is prim:
                 x["copy_role"] = "PRIMARY"
             elif PR.origin_class(x["origin"]) == PR.CITED:
@@ -759,6 +769,8 @@ def world_status(rows: list[dict], branch: str, site: str) -> tuple[str, str]:
     ORIGINAL, the name of the mine or a number alone never gives FACT."""
     if not rows:
         return "UNKNOWN", "нет evidence"
+    if any(x.get("non_transferable_material_correction") for x in rows):
+        return "UNKNOWN", "REQ-038: NON_TRANSFERABLE, класс породы для переноса не установлен"
     if branch == "N":
         return "SCENARIO_RANGE", "норматив / проектное значение: не измерение, отдельная ветка N"
     if branch == "A":
