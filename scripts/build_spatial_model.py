@@ -77,7 +77,8 @@ def code_paths(name):
     own = {"terrain":["scripts/build_dma_surface_package.py", "src/vkm_datasets/gis.py",
                       "src/vkm_datasets/manifest.py", "src/vkm_datasets/__init__.py",
                       "src/vkm_datasets/policy.py", "src/vkm_corpus/contracts/access_vocab.py"],
-           "geology":["src/vkm_world/geometry_build/geology.py", "src/vkm_world/geometry_build/source_section.py"],
+           "geology":["src/vkm_world/geometry_build/geology.py", "src/vkm_world/geometry_build/source_section.py",
+                      "src/vkm_world/geometry_build/mining.py"],
            "mining":["src/vkm_world/geometry_build/mining.py", "scripts/check_dma_formulas.py"],
            "regional":["src/vkm_world/geometry_build/scene.py", "scripts/build_dma_surface_package.py"]}
     return common + own[name]

@@ -1,5 +1,10 @@
-import numpy as np
+import json
 
+import numpy as np
+import pytest
+
+from scripts.build_spatial_model import code_paths
+from vkm_world.geometry_build import geology
 from vkm_world.geometry_build.geology import grouped_cv,number,predict,qualified_matches,unique_depths,render_source_columns
 
 
@@ -10,6 +15,35 @@ def test_qualified_matching_preserves_area_and_does_not_match_bare_number():
     joined=qualified_matches(symbols,picks)
     assert len(joined)==1 and joined[0]["picks"]==[]
     assert not joined[0]["accepted_physical_identity"]
+
+
+def test_geology_recipe_pins_the_checked_symbol_reviews_points_and_policy(tmp_path):
+    configuration = tmp_path / geology.SECTION
+    configuration.parent.mkdir(parents=True)
+    configuration.write_text(json.dumps({"image": "image.png", "source": {"document": "origin.pdf"}}),
+                             encoding="utf-8")
+    paths = set(geology.input_paths(tmp_path))
+    assert {geology.SYMBOLS.with_name(name).as_posix() for name in (
+        "skru1_boreholes_checked.csv", "skru1_points.geojson",
+    )} <= paths
+    assert "src/vkm_world/geometry_build/mining.py" in code_paths("geology")
+
+
+def test_qualified_matching_rejects_two_positions_for_one_catalogue_id():
+    symbols = [{"key": key, "borehole_id_catalogue": "BH-ONE-7", "catalogue_match": "HIGH"}
+               for key in ("A", "B")]
+    picks = [{"borehole_id": "BH-ONE-7", "pick_id": "pick-7"}]
+    with pytest.raises(ValueError, match="Ambiguous qualified borehole position.*BH-ONE-7"):
+        qualified_matches(symbols, picks)
+
+
+def test_each_qualified_position_uses_only_its_own_picks():
+    ids = ("BH-AREA1-7", "BH-AREA2-7", "BH-AREA2-75")
+    symbols = [{"borehole_id_catalogue": well, "catalogue_match": "HIGH"} for well in ids]
+    picks = [{"borehole_id": ids[0], "pick_id": "pick-a", "top_depth_m": "9"},
+             {"borehole_id": ids[1], "pick_id": "pick-b", "top_depth_m": "13"}]
+    linked = qualified_matches(symbols, picks)
+    assert [[row["top_depth_m"] for row in result["picks"]] for result in linked] == [["9"], ["13"], []]
 
 
 def test_repeated_depths_do_not_add_support_and_conflicts_are_not_averaged():

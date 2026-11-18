@@ -13,19 +13,22 @@ from pathlib import Path
 
 import numpy as np
 
+from . import mining
 from .pipeline import pinned_files,verify_pins,write_json,inventory
 
 BASE = Path("11_evidence_vnext/canonical")
 CATALOG = BASE/"BOREHOLES/borehole_catalog.csv"
 PICKS = BASE/"BOREHOLES/borehole_picks.csv"
 SYMBOLS = BASE/"WORLD_PARAMETERS/curated/c4_map/skru1/skru1_boreholes_014_unique.csv"
+SYMBOL_REVIEWS = SYMBOLS.with_name("skru1_boreholes_checked.csv")
+PLAN_POINTS = SYMBOLS.with_name("skru1_points.geojson")
 COLUMN = BASE/"WORLD_PARAMETERS/curated/skru1_c1_column.csv"
 SECTION = Path("12_work_exports/spatial_model_20261016/geology_source/section_011_v3.json")
 
 
 def input_paths(resources_root:Path)->list[str]:
     config=json.loads((resources_root/SECTION).read_text(encoding="utf-8"))
-    return sorted(str(p).replace("\\","/") for p in [CATALOG,PICKS,SYMBOLS,COLUMN,SECTION,
+    return sorted(str(p).replace("\\","/") for p in [CATALOG,PICKS,SYMBOLS,SYMBOL_REVIEWS,PLAN_POINTS,COLUMN,SECTION,
         SECTION.parent/"receipt.json",SECTION.parent/"receipt_v2.json",SECTION.parent/"receipt_v3.json",
         SECTION.parent/"section_011.json",SECTION.parent/"section_011_v2.json",
         Path(config["image"]),Path(config["source"]["document"])])
@@ -41,13 +44,17 @@ def number(value):
 
 def qualified_matches(symbols,picks):
     """Use existing qualified catalogue IDs; no bare-number cross-mine matching."""
+    qualified = [row for row in symbols if row["borehole_id_catalogue"] and row["catalogue_match"] == "HIGH"]
+    counts = Counter(row["borehole_id_catalogue"] for row in qualified)
+    ambiguous = sorted(well for well, count in counts.items() if count > 1)
+    if ambiguous:
+        raise ValueError(f"Ambiguous qualified borehole position: {', '.join(ambiguous)}")
     by_well=defaultdict(list)
     for row in picks:
         by_well[row["borehole_id"]].append(row)
     return [{"symbol":s,"picks":by_well.get(s["borehole_id_catalogue"],[]),
              "identity_status":"EXISTING_QUALIFIED_SOURCE_INTERPRETATION",
-             "accepted_physical_identity":False} for s in symbols
-            if s["borehole_id_catalogue"] and s["catalogue_match"]=="HIGH"]
+             "accepted_physical_identity":False} for s in qualified]
 
 
 def unique_depths(rows):
@@ -181,7 +188,6 @@ def build_geology_package(resources_root:Path,out:Path)->dict:
 
     resources_root,out=resources_root.resolve(),out.resolve()
     pins=pinned_files(resources_root,input_paths(resources_root))
-    out.mkdir(parents=True,exist_ok=False)
     def read(path):
         with (resources_root/path).open(encoding="utf-8-sig",newline="") as stream:
             return list(csv.DictReader(stream))
@@ -190,8 +196,12 @@ def build_geology_package(resources_root:Path,out:Path)->dict:
             for row in rows:
                 stream.write(json.dumps(row,ensure_ascii=False,sort_keys=True,allow_nan=False)+"\n")
     catalog,picks,symbols,column=map(read,[CATALOG,PICKS,SYMBOLS,COLUMN])
-    jsonl("source_catalogue",catalog); jsonl("source_picks",picks); jsonl("source_columns",column)
+    symbols = mining.checked_skru1_well_symbols(symbols, read(SYMBOL_REVIEWS))
+    plan_points = json.loads((resources_root / PLAN_POINTS).read_bytes())["features"]
+    mining.checked_control_symbol_links(symbols, plan_points)
     joined=qualified_matches(symbols,picks)
+    out.mkdir(parents=True,exist_ok=False)
+    jsonl("source_catalogue",catalog); jsonl("source_picks",picks); jsonl("source_columns",column)
     matches=[]
     numeric=[]
     for match in joined:
@@ -200,6 +210,7 @@ def build_geology_package(resources_root:Path,out:Path)->dict:
                 ("top_depth_m","bottom_depth_m","top_abs_m","bottom_abs_m"))]
         numeric.extend(rows)
         matches.append({"borehole_id":s["borehole_id_catalogue"],"symbol_source":s,
+            "checked_symbol_id":mining.checked_well_symbol_id(s),
             "pick_ids":[r["pick_id"] for r in rows],"numeric_pick_rows":len(rows),
             "absolute_pick_rows":sum(any(number(r[k]) is not None for k in ("top_abs_m","bottom_abs_m")) for r in rows),
             "absolute_z_relation_to_DSM":"UNKNOWN","status":"DERIVATION",
@@ -232,6 +243,7 @@ def build_geology_package(resources_root:Path,out:Path)->dict:
         return lyr
     layer("checked_symbols_local",ogr.wkbPoint,[(
         {"record_id":"GEO-SYMBOL:"+s["key"],"borehole_id":s["borehole_id_catalogue"],"frame_kind":"LOCAL_HORIZONTAL",
+         "checked_symbol_id":mining.checked_well_symbol_id(s),
          "frame_id":"SKRU1_LOCAL_SH1","status":"DERIVATION","review_status":s["review_status"],
          "position_source":s["position_source"],"absolute_Z":"UNKNOWN"},
         {"type":"Point","coordinates":[float(s["x_local_m"]),float(s["y_local_m"])]}) for s in symbols])
@@ -317,6 +329,7 @@ def build_geology_package(resources_root:Path,out:Path)->dict:
     receipt={"schema":"vkm.geology_package/1","inputs":pins,"counts":{"catalogue":len(catalog),"picks":len(picks),
         "symbol_links":len(matches),"interval_observations":len(observations),"interval_grid_records":len(grids)},
         "outputs_sha256":inventory(out),"code_sha256":hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "checked_symbol_policy_sha256":hashlib.sha256(Path(mining.__file__).read_bytes()).hexdigest(),
         "status":"DERIVATION_WITH_EXPLICIT_UNKNOWNS","scientific_admission":"NOT_CHECKED"}
     write_json(out/"receipt.json",receipt)
     return receipt
