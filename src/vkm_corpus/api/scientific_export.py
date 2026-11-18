@@ -4,13 +4,17 @@ from __future__ import annotations
 
 from collections import Counter
 import hashlib
+from pathlib import Path
 import re
+from shutil import copyfile
+from tempfile import TemporaryDirectory
 from typing import Annotated
 
 from fastapi import Depends, Query, Request
 from fastapi.responses import StreamingResponse
 
 from vkm_corpus.api.errors import ApiFailure
+from vkm_corpus.api.scientific import _sha256
 from vkm_corpus.api.scientific_snapshot_verification import encoded
 
 
@@ -18,6 +22,10 @@ BATCH_ROWS = 128
 MAX_ROW_BYTES = 1_048_576
 MAX_MULTISET_ROWS = 300_000
 SHA256_PATTERN = r"^[0-9a-f]{64}$"
+_R3_RANGE_ROWS = 2048
+# Only the verified R3_ports definition admits this range lowering. Changing
+# its filter, projection or ordering requires a fresh qualification.
+_R3_PORTS_SQL_SHA256 = "648502ad80e904641b8cbb029e6b89aaac901eed1ff192da2f176071eae26773"
 
 
 def _contract(query):
@@ -57,9 +65,50 @@ def _multiset_sha256(schema, counts):
     # Same byte format as full_checksum; the retained hash keys use bytes to
     # bound the extra memory of proving a large streamed result.
     digest = hashlib.sha256(schema)
-    for row_hash, count in sorted(counts.items()):
-        digest.update(f"{row_hash.hex()}:{count}\n".encode("ascii"))
+    for row_hash in sorted(counts):
+        digest.update(f"{row_hash.hex()}:{counts[row_hash]}\n".encode("ascii"))
     return digest.hexdigest()
+
+
+def _declared_order_start(sql, order, duckdb):
+    """Locate an exact terminal ORDER BY of simple identifiers, with no limit."""
+    if any(not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name) for name in order):
+        return None
+    exact = re.compile(r"ORDER\s+BY\s+" + r"\s*,\s*".join(map(re.escape, order)) + r"\s*", re.IGNORECASE)
+    # A suffix inside a quoted literal or a SQL comment is not an ORDER BY.
+    for offset, token in reversed(duckdb.tokenize(sql)):
+        if token == duckdb.token_type.keyword and exact.fullmatch(sql[offset:]):
+            return offset
+    return None
+
+
+def _uses_r3_ranges(query_id, sql, order, multiset):
+    return (query_id == "R3_ports" and order == ["r3_entity_id"] and multiset
+            and hashlib.sha256(sql.encode()).hexdigest() == _R3_PORTS_SQL_SHA256)
+
+
+def _r3_boundaries(connection, unordered_sql):
+    return connection.execute(
+        "SELECT ordinal, r3_entity_id FROM ("
+        "SELECT row_number() OVER (ORDER BY r3_entity_id) - 1 AS ordinal, r3_entity_id "
+        f"FROM ({unordered_sql}\n) AS qualified_ports"
+        ") AS numbered_keys WHERE ordinal % ? = 0 ORDER BY ordinal",
+        [_R3_RANGE_ROWS],
+    ).fetchall()
+
+
+def _r3_results(connection, unordered_sql, boundaries, expected_count, authorize):
+    for index, (ordinal, lower) in enumerate(boundaries):
+        authorize()
+        sql = unordered_sql + " AND r3_entity_id >= ?"
+        params = [lower]
+        end = expected_count
+        if index + 1 < len(boundaries):
+            end, upper = boundaries[index + 1]
+            sql += " AND r3_entity_id < ?"
+            params.append(upper)
+        result = connection.execute(sql + " ORDER BY r3_entity_id", params)
+        yield result, end - ordinal
 
 
 def _rows(reader, query_id, sql, order, expected_count, expected_sha, multiset, authorize):
@@ -67,10 +116,26 @@ def _rows(reader, query_id, sql, order, expected_count, expected_sha, multiset, 
 
     try:
         authorize()
-        with duckdb.connect(":memory:", config={"memory_limit": "256MB",
-                                                "max_temp_directory_size": "0B", "threads": "2"}) as connection:
+        # Keep an immutable byte copy for the life of this stream. Scanning
+        # views over those copies avoids materializing all Parquet tables in
+        # DuckDB before a query has selected its inputs.
+        with (
+            TemporaryDirectory(prefix="vkm-science-export-") as directory,
+            duckdb.connect(":memory:", config={
+                "memory_limit": "256MB", "threads": "2",
+                "temp_directory": str(Path(directory) / "spill"), "max_temp_directory_size": "512MB",
+            }) as connection,
+        ):
+            allowed_paths = []
             for name, path in reader.tables.items():
-                connection.read_parquet(str(path)).create(name)
+                copy = Path(directory) / f"{name}.parquet"
+                copyfile(path, copy)
+                if _sha256(copy) != reader.manifest["tables"][name]["sha256"]:
+                    yield _incomplete("SNAPSHOT_UNAVAILABLE")
+                    return
+                allowed_paths.append(copy.as_posix())
+                connection.read_parquet(copy.as_posix()).create_view(name)
+            connection.execute("SET allowed_paths = ?", [allowed_paths])
             connection.execute("SET enable_external_access = false")
             reader._verify()
             # DESCRIBE keeps the original result names. Subquery binding can
@@ -84,11 +149,38 @@ def _rows(reader, query_id, sql, order, expected_count, expected_sha, multiset, 
                 yield _incomplete("INVALID_RESULT_IDENTITY")
                 return
             positions = [names.index(name) for name in order]
-            keys = ", ".join('"' + name.replace('"', '""') + '"' for name in order)
-            result = connection.execute(
-                f"SELECT *, count(*) OVER (PARTITION BY {keys}) "
-                f"FROM ({sql}\n) AS scientific_export_result ORDER BY {keys}"
-            ) if order else connection.execute(sql)
+            ordered_sql = sql
+            use_ranges = False
+            if positions:
+                keys = ['"' + name.replace('"', '""') + '"' for name in order]
+                key_tuple = ", ".join(keys)
+                nonnull = " AND ".join(f"{key} IS NOT NULL" for key in keys)
+                order_start = _declared_order_start(sql, order, duckdb)
+                census_sql = sql[:order_start].rstrip() if order_start is not None else sql
+                # Keep row payloads out of the key census. A matching terminal
+                # order is already enforced by DuckDB for the subsequent read.
+                actual, non_null, unique = connection.execute(
+                    f"SELECT count(*), count(*) FILTER (WHERE {nonnull}), count(DISTINCT ({key_tuple})) "
+                    f"FROM ({census_sql}\n) AS scientific_export_keys"
+                ).fetchone()
+                if actual != expected_count:
+                    yield _incomplete("RESULT_PROOF_MISMATCH")
+                    return
+                if non_null != actual or unique != actual:
+                    yield _incomplete("INVALID_RESULT_IDENTITY")
+                    return
+                if order_start is None:
+                    ordered_sql = f"SELECT * FROM ({sql}\n) AS scientific_export_result ORDER BY {key_tuple}"
+                elif _uses_r3_ranges(query_id, sql, order, multiset):
+                    boundaries = _r3_boundaries(connection, census_sql)
+                    if [item[0] for item in boundaries] != list(range(0, expected_count, _R3_RANGE_ROWS)):
+                        yield _incomplete("RESULT_PROOF_MISMATCH")
+                        return
+                    use_ranges = True
+            if use_ranges:
+                results = _r3_results(connection, census_sql, boundaries, expected_count, authorize)
+            else:
+                results = ((connection.execute(ordered_sql), expected_count),)
             proof_key = "multiset_sha256" if multiset else "ordered_sha256"
             authorize()
             yield _line({
@@ -103,24 +195,44 @@ def _rows(reader, query_id, sql, order, expected_count, expected_sha, multiset, 
             schema = encoded(columns)
             digest = hashlib.sha256(schema + b"\n")
             counts = Counter() if multiset else None
-            while batch := result.fetchmany(BATCH_ROWS):
-                authorize()
-                for row in batch:
-                    if order and (row[-1] != 1 or any(row[index] is None for index in positions)):
-                        yield _incomplete("INVALID_RESULT_IDENTITY")
-                        return
-                    count += 1
-                    if count > expected_count:
-                        yield _incomplete("RESULT_PROOF_MISMATCH")
-                        return
-                    data = encoded(row[:-1] if order else row)
-                    if len(data) > MAX_ROW_BYTES:
-                        yield _incomplete("RESULT_ROW_LIMIT")
-                        return
-                    digest.update(data + b"\n")
-                    if counts is not None:
-                        counts[hashlib.sha256(data).digest()] += 1
-                    yield b'{"type":"row","values":' + data + b'}\n'
+            previous_key = previous_key_encoded = None
+            for result, expected_range_rows in results:
+                range_start = count
+                while batch := result.fetchmany(BATCH_ROWS):
+                    authorize()
+                    frame = bytearray() if use_ranges else None
+                    for row in batch:
+                        if positions:
+                            row_key = tuple(row[index] for index in positions)
+                            key_encoded = encoded(row_key)
+                            if None in row_key or row_key == previous_key or key_encoded == previous_key_encoded:
+                                yield _incomplete("INVALID_RESULT_IDENTITY")
+                                return
+                            previous_key, previous_key_encoded = row_key, key_encoded
+                        count += 1
+                        if count - range_start > expected_range_rows:
+                            yield _incomplete("RESULT_PROOF_MISMATCH")
+                            return
+                        data = encoded(row)
+                        if len(data) > MAX_ROW_BYTES:
+                            yield _incomplete("RESULT_ROW_LIMIT")
+                            return
+                        digest.update(data + b"\n")
+                        if counts is not None:
+                            counts[hashlib.sha256(data).digest()] += 1
+                        line = b'{"type":"row","values":' + data + b'}\n'
+                        if frame is None:
+                            yield line
+                            continue
+                        if frame and len(frame) + len(line) > MAX_ROW_BYTES:
+                            yield bytes(frame)
+                            frame.clear()
+                        frame.extend(line)
+                    if frame:
+                        yield bytes(frame)
+                if count - range_start != expected_range_rows:
+                    yield _incomplete("RESULT_PROOF_MISMATCH")
+                    return
         authorize()
         reader._verify()
         seal = {"type": "complete", "row_count": count, "ordered_sha256": digest.hexdigest()}

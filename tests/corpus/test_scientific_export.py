@@ -13,6 +13,7 @@ import pytest
 
 from vkm_corpus.api.app import ApiConfig, create_app
 from vkm_corpus.api.fixtures import SNAPSHOT_ID, synthetic_service
+from vkm_corpus.api import scientific_export
 from vkm_corpus.api.scientific_snapshot_verification import encoded, full_checksum
 
 
@@ -29,14 +30,19 @@ CHART_VALUE = Decimal("1234567890123456789.0123456789012345678")
 
 def fixture(tmp_path, *, row_count=513, key=("bucket", "point_id"), wrong_digest=False,
             expected_count=None, payload=b"\xff\x00", use_multiset=False,
-            sql="SELECT bucket, point_id, value, observed, evidence FROM observations"):
+            sql="SELECT bucket, point_id, value, observed, evidence FROM observations", ranges=False):
     rows = [(i // 4, i, CHART_VALUE if i % 2 else None, date(2025, 1, 3), payload)
             for i in range(row_count)]
     schema = pa.schema([("bucket", pa.int64()), ("point_id", pa.int64()), ("value", pa.decimal128(38, 19)),
                         ("observed", pa.date32()), ("evidence", pa.binary())])
-    parquet = tmp_path / "observations.parquet"
-    pq.write_table(pa.Table.from_pylist([dict(zip(schema.names, row)) for row in reversed(rows)], schema=schema),
-                   parquet)
+    table, point, query, role = "observations", "point_id", "series", "OBSERVATION_INDEX"
+    source_rows = list(reversed(rows))
+    if ranges:
+        table, point, query, role = "ports", "r3_entity_id", "R3_ports", "MODEL_TOPOLOGY"
+        schema = schema.set(1, pa.field(point, pa.int64())).append(pa.field("r3_generation_id", pa.int64()))
+        source_rows = [(*row, 1) for row in source_rows] + [(-1, -1, None, None, None, None)]
+    parquet = tmp_path / f"{table}.parquet"
+    pq.write_table(pa.Table.from_pylist([dict(zip(schema.names, row)) for row in source_rows], schema=schema), parquet)
     h = hashlib.sha256(encoded(COLUMNS) + b"\n")
     for row in rows:
         h.update(encoded(row) + b"\n")
@@ -46,7 +52,7 @@ def fixture(tmp_path, *, row_count=513, key=("bucket", "point_id"), wrong_digest
     }
     if use_multiset:
         with duckdb.connect(":memory:") as connection:
-            connection.read_parquet(str(parquet)).create("observations")
+            connection.read_parquet(str(parquet)).create(table)
             receipt = full_checksum(connection, sql)
         del contract["ordered_sha256"]
         contract["multiset_sha256"] = "0" * 64 if wrong_digest else receipt["multiset_sha256"]
@@ -54,13 +60,13 @@ def fixture(tmp_path, *, row_count=513, key=("bucket", "point_id"), wrong_digest
         "schema": "vkm.scientific-query-snapshot/1", "scope": "SYNTHETIC_EXPORT_TEST",
         "snapshot_id": SNAPSHOT, "source_snapshot_id": SNAPSHOT_ID,
         "allowed_token_labels": ["read"],
-        "tables": {"observations": {
-            "data_role": "OBSERVATION_INDEX", "sha256": hashlib.sha256(parquet.read_bytes()).hexdigest(),
-            "path": parquet.name, "rows": row_count,
+        "tables": {table: {
+            "data_role": role, "sha256": hashlib.sha256(parquet.read_bytes()).hexdigest(),
+            "path": parquet.name, "rows": len(source_rows),
         }},
         "queries": {
-            "series": {"sql": sql, "export": contract},
-            "preview_only": {"sql": "SELECT point_id FROM observations"},
+            query: {"sql": sql, "export": contract},
+            "preview_only": {"sql": f"SELECT {point} FROM {table}"},
         },
     }
     manifest = tmp_path / "manifest.json"
@@ -145,7 +151,7 @@ def test_revocation_between_batches_stops_stream_without_success_seal(tmp_path):
 
 @pytest.mark.parametrize("input_name", ["manifest.json", "observations.parquet"])
 def test_changed_input_after_first_batch_never_completes(tmp_path, input_name):
-    client, config, _, params, _, _ = fixture(tmp_path, row_count=260)
+    client, config, _, params, expected, _ = fixture(tmp_path, row_count=260)
     target = tmp_path / input_name
 
     class Policy:
@@ -161,6 +167,7 @@ def test_changed_input_after_first_batch_never_completes(tmp_path, input_name):
     metadata, *rows, stop = records(client.get(URL, params=params, headers=HEADERS))
     assert metadata["type"] == "metadata"
     assert len(rows) >= 128 and all(row["type"] == "row" for row in rows)
+    assert [row["values"] for row in rows] == [json.loads(encoded(row)) for row in expected[:len(rows)]]
     assert stop == {"type": "incomplete", "reason": "SNAPSHOT_UNAVAILABLE"}
 
 
@@ -215,3 +222,51 @@ def test_multiset_work_above_budget_is_refused_before_stream(tmp_path, monkeypat
     client, _, _, params, _, _ = fixture(tmp_path, row_count=9, use_multiset=True)
     monkeypatch.setattr(scientific_export, "MAX_MULTISET_ROWS", 8, raising=False)
     assert client.get(URL, params=params, headers=HEADERS).status_code == 413
+
+
+@pytest.mark.parametrize(("sql", "suffix"), [
+    ("SELECT * FROM observations ORDER BY bucket, point_id", "ORDER BY bucket, point_id"),
+    ("SELECT * FROM observations -- ORDER BY bucket, point_id", None),
+    ("SELECT * FROM observations ORDER BY bucket, point_id LIMIT 1", None),
+    ("SELECT * FROM observations ORDER BY bucket DESC, point_id", None),
+])
+def test_only_an_exact_terminal_order_can_skip_the_wrapper_sort(sql, suffix):
+    from vkm_corpus.api.scientific_export import _declared_order_start
+
+    offset = _declared_order_start(sql, ["bucket", "point_id"], duckdb)
+    assert (sql[offset:] if offset is not None else None) == suffix
+
+
+def test_qualified_ranges_preserve_exact_projected_rows_and_bound_each_native_read(tmp_path, monkeypatch):
+    query = "R3_ports"
+    sql = ("SELECT bucket, r3_entity_id, value, observed, evidence FROM ports "
+           "WHERE r3_generation_id IS NOT NULL ORDER BY r3_entity_id")
+    order = ["r3_entity_id"]
+    client, _, _, params, rows, contract = fixture(
+        tmp_path, row_count=9, key=order, use_multiset=True, sql=sql, ranges=True,
+    )
+    # Qualify this fixture's precise SQL without changing the actual selected path.
+    monkeypatch.setattr(scientific_export, "_R3_PORTS_SQL_SHA256", hashlib.sha256(sql.encode()).hexdigest(),
+                        raising=False)
+    monkeypatch.setattr(scientific_export, "_R3_RANGE_ROWS", 3, raising=False)
+    executions = []
+    execute_ranges = getattr(scientific_export, "_r3_results", None)
+
+    def observed_ranges(*args):
+        for result, expected in execute_ranges(*args):
+            executions.append(expected)
+            yield result, expected
+
+    monkeypatch.setattr(scientific_export, "_r3_results", observed_ranges, raising=False)
+    header, *data, seal = records(client.get("/v1/science/export/" + query, params=params, headers=HEADERS))
+    assert executions == [3, 3, 3]
+    columns = [COLUMNS[0], (order[0], "BIGINT"), *COLUMNS[2:]]
+    assert header["columns"] == json.loads(encoded(columns))
+    assert [item["values"] for item in data] == [json.loads(encoded(row)) for row in rows]
+    ordered_digest = hashlib.sha256(encoded(columns) + b"\n" + b"".join(encoded(row) + b"\n" for row in rows))
+    assert seal == {"type": "complete", "row_count": len(rows), "ordered_sha256": ordered_digest.hexdigest(),
+                    "multiset_sha256": contract["multiset_sha256"]}
+    assert not scientific_export._uses_r3_ranges("other_query", sql, order, True)
+    assert not scientific_export._uses_r3_ranges(query, sql.replace("IS NOT NULL", "IS NULL"), order, True)
+    assert not scientific_export._uses_r3_ranges(query, sql, ["bucket"], True)
+    assert not scientific_export._uses_r3_ranges(query, sql, order, False)
