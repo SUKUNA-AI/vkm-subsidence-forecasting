@@ -180,12 +180,14 @@ def _contextual_blocks(raw: dict[str, Any], features: dict[str, Any], plain: str
     for block in raw["blocks"]:
         lines, evidence = [], []
         for line_index, line in enumerate(block["lines"]):
-            text_parts, start = [], 0
+            line_text = "".join(span["text"] for span in line["spans"])
+            text_parts, start, offset = [], 0, 0
             for font, spans in groupby(line["spans"], key=lambda span: span["font"]):
                 spans = list(spans)
                 text = "".join(span["text"] for span in spans)
                 resources = by_font.get(font_name(font or ""), [])
-                candidate = contextual_cp1251(text, mapped_font=any(f.get("to_unicode") for f in resources))
+                candidate = contextual_cp1251(text, mapped_font=any(f.get("to_unicode") for f in resources),
+                                              line_context=(line_text, offset))
                 text_parts.append(candidate.text)
                 if candidate.spans:
                     evidence.append({"line": line_index, "span_start": start, "span_count": len(spans), "font": font,
@@ -193,6 +195,7 @@ def _contextual_blocks(raw: dict[str, Any], features: dict[str, Any], plain: str
                                      "spans": [asdict(edit) for edit in candidate.spans]})
                     changed += sum(edit.end - edit.start for edit in candidate.spans if edit.replacement is not None)
                 start += len(spans)
+                offset += len(text)
             lines.append("".join(text_parts))
         text = "\n".join(lines)
         texts.append(text)

@@ -24,7 +24,11 @@ def test_contextual_repair_preserves_ambiguous_and_declared_unicode_runs():
     assert value.text == "ä÷ó, été"
     span, = value.spans
     assert (span.start, span.end, span.raw, span.replacement, span.reason) == (
-        0, 3, "ä÷ó", None, "AMBIGUOUS_CP1251_WORD")
+        0, 3, "ä÷ó", None, "AMBIGUOUS_ARITHMETIC")
+    assert remap_cp1251("×èñëî; èçó÷åíèå; é÷è÷à") == "Число; изучение; é÷è÷à"
+    neighboring_font = contextual_cp1251("éé÷èè", line_context=("E = éé÷èè", 4))
+    assert neighboring_font.text == "éé÷èè"
+    assert neighboring_font.spans[0].reason == "AMBIGUOUS_ARITHMETIC"
     mapped = contextual_cp1251("×èñëî", mapped_font=True)
     assert mapped.text == "×èñëî"
     assert mapped.spans[0].reason == "DECLARED_UNICODE_FONT"
@@ -187,6 +191,36 @@ def test_pdf_native_repair_keeps_raw_runs_and_flags_only_changes(tmp_path):
     assert [b.text for b in built.blocks] == ["Число; E = 2 × 10^3; a ÷ b; Müller", "Valide déjà vu"]
     assert ["ENCODING_REPAIRED" in b.quality_flags for b in built.blocks] == [True, False]
     assert {b.generation for b in built.blocks} == {"3"}
+
+
+@pytest.mark.parametrize("formula", ["é×è×à", "é÷è÷à", "éé÷èè"])
+def test_pdf_no_space_formulas_stay_native_with_diacritics(tmp_path, formula):
+    pymupdf = pytest.importorskip("pymupdf")
+    from vkm_corpus.extract.model import SourceInput
+    from vkm_corpus.pipeline.assemble import Assembler
+    from vkm_corpus.pipeline.config import PipelineConfig
+    from vkm_corpus.pipeline.context import open_cache, open_store
+    from vkm_corpus.pipeline.prepare import prepare_source
+
+    line = f"E = {formula}; this is valid arithmetic and French diacritics, written as a normal PDF text layer."
+    path = tmp_path / "formula.pdf"
+    with pymupdf.open() as doc:
+        doc.new_page().insert_text((40, 30), line, fontname="helv")
+        doc.save(path)
+    source = path.read_bytes()
+    src = SourceInput("VKM-SRC-901", path.name, hashlib.sha256(source).hexdigest(), len(source))
+    cfg = PipelineConfig(tmp_path / "data", tmp_path)
+    run = "RUN-20260928T000000Z-0000c0de"
+    store, cache = open_store(cfg, run, "wp01"), open_cache(cfg, run, "wp01")
+    prep = prepare_source(cfg, store, cache, src)
+    built = Assembler(cfg, store, cache, src, prep, None).build()
+    block, = built.blocks
+    assert block.text == line and "ENCODING_REPAIRED" not in block.quality_flags
+    assert prep["pages"][0]["route"] == "NATIVE"
+    raw = store.read_json(prep["pages"][0]["native_raw_artifact_id"])
+    candidate, = next(iter(raw["cp1251_repair"]["blocks"].values()))["runs"][0]["spans"]
+    assert (candidate["raw"], candidate["replacement"]) == (formula, None)
+    assert candidate["reason"] == "AMBIGUOUS_ARITHMETIC"
 
 
 def test_epub_current_prepare_does_not_reuse_legacy_cache_or_merge_duplicate_runs(tmp_path):
