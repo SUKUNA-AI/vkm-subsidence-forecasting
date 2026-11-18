@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import json
+from types import SimpleNamespace
 from zipfile import ZipFile
 
 import pytest
@@ -191,9 +193,10 @@ def test_epub_current_prepare_does_not_reuse_legacy_cache_or_merge_duplicate_run
     from vkm_corpus.extract.model import SourceInput
     from vkm_corpus.extract.to_canon import CanonMapper
     from vkm_corpus.pipeline.assemble import Assembler
-    from vkm_corpus.pipeline.commit import load_state
+    from vkm_corpus.pipeline.commit import commit_signature, load_state
     from vkm_corpus.pipeline.config import PipelineConfig
     from vkm_corpus.pipeline.context import open_cache, open_store
+    from vkm_corpus.pipeline.plan import build_plan
     from vkm_corpus.pipeline.prepare import PREP_SCHEMA, prep_path, prepare_signature, prepare_source
     _epub(tmp_path, body='<div>SAME<p id="n" epub:type="pagebreak" title="8">MIDDLE</p>SAME</div>',
           nav='<body><nav epub:type="page-list"><a href="../text/ch%20one.xhtml#n">9</a></nav></body>')
@@ -212,6 +215,10 @@ def test_epub_current_prepare_does_not_reuse_legacy_cache_or_merge_duplicate_run
     assert load_state(cfg, src) == (None, None)
     path.unlink()
     assert load_state(cfg, src) == (None, None)
+    empty_cache = SimpleNamespace(calls={})
+    assert commit_signature(cfg, empty_cache, src, json.loads(old), None) is None
+    plan = build_plan(cfg, [src], empty_cache, None)
+    assert "NATIVE_EXTRACTION_CACHE_STALE" in plan["sources"][0]["reasons"]
     path.write_bytes(raw_bytes)
     store, cache = open_store(cfg, run, "wp01"), open_cache(cfg, run, "wp01")
     prep = prepare_source(cfg, store, cache, src)

@@ -455,6 +455,7 @@ def test_actual_planner_cannot_keep_docx_up_to_date_after_child_or_native_artifa
 def test_non_docx_commit_signature_matches_exact_previous_payload_and_reuses_ocr(tmp_path, monkeypatch):
     from vkm_corpus.extract.bibliography import CONFIG_HASH as BIBLIOGRAPHY_RULES
     from vkm_corpus.extract.model import SourceInput
+    from vkm_corpus.extract.text_repair import CP1251_REPAIR_RULE
     from vkm_corpus.pipeline import commit
     from vkm_corpus.pipeline.config import PipelineConfig
     from vkm_corpus.versions import PIPELINE_VERSION
@@ -464,7 +465,7 @@ def test_non_docx_commit_signature_matches_exact_previous_payload_and_reuses_ocr
                                                 "raw_artifact_id": "sha256:" + "c" * 64}]})
     source = SourceInput("VKM-SRC-902", "source.pdf", "b" * 64, 123)
     prep = {"source_id": source.source_id, "source_sha256": source.sha256, "prepare_signature": "a" * 64,
-            "inspect": {"file_format": "PDF"}}
+            "inspect": {"file_format": "PDF"}, "native_extraction_rule": CP1251_REPAIR_RULE}
     monkeypatch.setattr(commit, "load_decision", lambda *_: None)
     expected = commit._cfg_hash({"pipeline": PIPELINE_VERSION, "prep": prep["prepare_signature"],
         "visual": None, "visual_complete": None,
@@ -565,7 +566,9 @@ def test_production_cached_format_gate_requires_current_original_bytes(tmp_path,
 def test_production_non_docx_admission_preserves_signatures_and_plan_hashes_source_once(tmp_path, monkeypatch, fmt):
     import json
     from dataclasses import replace
+    from vkm_corpus.extract.epub import EPUB_EXTRACTION_RULE
     from vkm_corpus.extract.model import SourceInput
+    from vkm_corpus.extract.text_repair import CP1251_REPAIR_RULE
     from vkm_corpus.pipeline import commit, plan, prepare
     from vkm_corpus.pipeline.config import PipelineConfig
     from vkm_corpus.pipeline.ocr_stage import call_signature_for
@@ -588,6 +591,9 @@ def test_production_non_docx_admission_preserves_signatures_and_plan_hashes_sour
     prep = {"schema": prepare.PREP_SCHEMA, "source_id": source.source_id, "source_sha256": source.sha256,
             "prepare_signature": commit.prep_signature_for(cfg, source), "status": "PREPARED",
             "inspect": {"file_format": fmt}, "pages": []}
+    rule = {"PDF": CP1251_REPAIR_RULE, "EPUB": EPUB_EXTRACTION_RULE}.get(fmt)
+    if rule:
+        prep["native_extraction_rule"] = rule
     before = commit.commit_signature(diagnostic, cache, source, prep, None, accounting_events=[])
     assert before == commit.commit_signature(cfg, cache, source, prep, None, accounting_events=[])
     assert commit.prep_signature_for(cfg, source) == commit.prep_signature_for(diagnostic, source)

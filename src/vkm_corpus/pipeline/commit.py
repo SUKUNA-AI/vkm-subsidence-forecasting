@@ -19,7 +19,9 @@ from vkm_corpus.pipeline import scenario_b as sb
 from vkm_corpus.pipeline.assemble import Assembler
 from vkm_corpus.pipeline.cache import JsonlAppender, _iter_lines
 from vkm_corpus.pipeline.config import PipelineConfig
-from vkm_corpus.pipeline.prepare import docx_grid_cache_current, load_prep, prepare_signature, source_format_admitted
+from vkm_corpus.pipeline.prepare import (
+    docx_grid_cache_current, load_prep, native_extraction_cache_current, prepare_signature, source_format_admitted,
+)
 from vkm_corpus.pipeline.visual import load_visual, visual_signature
 from vkm_corpus.versions import PIPELINE_VERSION
 
@@ -42,6 +44,8 @@ def load_state(cfg: PipelineConfig, src: SourceInput, *, _fresh_source_identity:
     if prep is None:
         return None, None
     if not source_format_admitted(cfg, src, prep, _fresh_source_identity=_fresh_source_identity):
+        return None, None
+    if not native_extraction_cache_current(prep):
         return None, None
     if prep.get("inspect", {}).get("file_format") == "DOCX" and not docx_grid_cache_current(
             prep, src, data_root=cfg.data_root):
@@ -138,6 +142,8 @@ def commit_signature(cfg: PipelineConfig, cache: Any, src: SourceInput, prep: di
     if prep is None:
         return None
     if not source_format_admitted(cfg, src, prep, _fresh_source_identity=_fresh_source_identity):
+        return None
+    if not native_extraction_cache_current(prep):
         return None
     docx = (prep.get("inspect") or {}).get("file_format") == "DOCX"
     if docx and not docx_grid_cache_current(prep, src, data_root=cfg.data_root):

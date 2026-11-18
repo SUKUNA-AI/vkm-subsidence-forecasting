@@ -17,7 +17,9 @@ from vkm_corpus.extract.model import SourceInput
 from vkm_corpus.pipeline import commit as cm
 from vkm_corpus.pipeline import ocr_stage
 from vkm_corpus.pipeline.config import PipelineConfig
-from vkm_corpus.pipeline.prepare import docx_grid_cache_current, load_prep, source_format_admitted
+from vkm_corpus.pipeline.prepare import (
+    docx_grid_cache_current, load_prep, native_extraction_cache_current, source_format_admitted,
+)
 from vkm_corpus.pipeline.context import producer_identity
 from vkm_corpus.registry.sources import fresh_source_identity
 
@@ -65,6 +67,9 @@ def build_plan(cfg: PipelineConfig, sources: list[SourceInput], cache: Any, stor
         if prep is not None and not source_format_admitted(cfg, s, prep, **admitted):
             prep = None
             e["reasons"].append("SOURCE_FORMAT_CACHE_MISMATCH")
+        if prep is not None and not native_extraction_cache_current(prep):
+            prep = None
+            e["reasons"].append("NATIVE_EXTRACTION_CACHE_STALE")
         if prep is not None and (prep.get("inspect") or {}).get("file_format") == "DOCX" \
                 and not docx_grid_cache_current(prep, s, store=store):
             prep = None

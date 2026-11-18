@@ -155,6 +155,13 @@ def _native_extraction_rule(file_format: str | None) -> str | None:
     return None
 
 
+def native_extraction_cache_current(prep: dict[str, Any]) -> bool:
+    # A diagnostic lookup without the original may address the generic legacy signature.
+    # Affected formats need the rule marker irrespective of how the cache was located.
+    rule = _native_extraction_rule((prep.get("inspect") or {}).get("file_format"))
+    return rule is None or prep.get("native_extraction_rule") == rule
+
+
 def prepare_signature(cfg: PipelineConfig, source: SourceInput, extra: dict[str, Any] | None = None,
                       *, file_format: str | None = None) -> str:
     conf = {"native": cfg.stage_config("NATIVE_TEXT"), "classify": cfg.stage_config("CLASSIFY"),
@@ -192,15 +199,9 @@ def prep_path(data_root: Path, source_id: str, signature: str) -> Path:
 
 def load_prep(data_root: Path, source_id: str, signature: str) -> dict[str, Any] | None:
     p = prep_path(data_root, source_id, signature)
-    if not p.exists():
-        return None
-    record = json.loads(p.read_text(encoding="utf-8"))
-    rule = _native_extraction_rule((record.get("inspect") or {}).get("file_format"))
-    # Without materialized originals the diagnostic path cannot sniff the current format, so it may
-    # address the generic legacy signature. Never offer that record to an active consumer as current.
-    if rule is not None and record.get("native_extraction_rule") != rule:
-        return None
-    return record
+    if p.exists():
+        return json.loads(p.read_text(encoding="utf-8"))
+    return None
 
 
 def _page_id(source_id: str, unit: str, index: int) -> str:
@@ -504,6 +505,7 @@ def prepare_source(cfg: PipelineConfig, store: ArtifactStore, cache: StageCache,
                     and info.file_format in {"PDF", "DJVU", "EPUB", "DOCX"}
                     and (cfg.profile != "production"
                          or (cached.get("inspect") or {}).get("file_format") == info.file_format)
+                    and native_extraction_cache_current(cached)
                     and docx_cache_current):
                 return cached
         try:
