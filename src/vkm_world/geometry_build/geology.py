@@ -57,32 +57,40 @@ def qualified_matches(symbols,picks):
              "accepted_physical_identity":False} for s in qualified]
 
 
-def unique_depths(rows):
-    """Conflicting readings remain conflicts; repeated equal values do not add wells."""
-    groups=defaultdict(list)
+def unique_depths(rows, *, source_ids=None):
+    """Collect qualified collar-relative readings without an implicit source filter."""
+    groups = defaultdict(list)
     for row in rows:
-        if row["source_id"]=="VKM-SRC-012" and row["reference"]=="depth_below_collar" and row["units"]=="m":
-            value=number(row["top_depth_m"])
-            if value is not None:
-                groups[(row["borehole_id"],row["unit_canonical_guess"])].append((value,row["pick_id"]))
-    values,conflicts={},[]
-    for key,items in groups.items():
-        distinct={x[0] for x in items}
-        if len(distinct)==1:
-            values[key]={"depth_m":items[0][0],"pick_ids":[x[1] for x in items]}
+        if source_ids is not None and row["source_id"] not in source_ids:
+            continue
+        if row["reference"] != "depth_below_collar" or row["units"] != "m":
+            continue
+        value = number(row["top_depth_m"])
+        key = row["borehole_id"], row["unit_canonical_guess"]
+        if value is not None and value >= 0 and all(key):
+            groups[key].append((value, row["pick_id"]))
+
+    values, conflicts = {}, []
+    for key, items in sorted(groups.items()):
+        readings = sorted(set(items))
+        distinct = {value for value, _ in readings}
+        if len(distinct) == 1:
+            values[key] = {"depth_m": readings[0][0], "pick_ids": [pick for _, pick in readings]}
         else:
-            conflicts.append({"borehole_id":key[0],"unit":key[1],"readings":items,"status":"CONFLICT_NOT_AVERAGED"})
-    return values,conflicts
+            conflicts.append({"borehole_id": key[0], "unit": key[1], "readings": readings,
+                              "status": "CONFLICT_NOT_AVERAGED"})
+    return values, conflicts
 
 
 def predict(xy,values,target,method):
     distance=np.linalg.norm(np.asarray(xy)-target,axis=1)
     if not len(distance):
         return None
-    if distance.min()<1e-9:
-        return float(values[np.argmin(distance)])
-    if method=="nearest":
-        return float(values[np.argmin(distance)])
+    nearest = float(distance.min())
+    if nearest < 1e-9 or method == "nearest":
+        tied = np.isclose(distance, nearest, rtol=1e-12, atol=1e-9)
+        readings = np.unique(np.asarray(values)[tied])
+        return float(readings[0]) if len(readings) == 1 else None
     if method in {"idw1","idw2"}:
         weights=distance**(-int(method[-1]))
         return float(np.dot(weights,values)/weights.sum())
@@ -222,7 +230,8 @@ def build_geology_package(resources_root:Path,out:Path)->dict:
                   {"id":"S012_PROSE_FLOOR","status":"MODEL_CHOICE","meaning":"prose floor convention",
                    "competing_evidence":"source table header says roof"}]
     write_json(out/"interpretations.json",alternatives)
-    depths,conflicts=unique_depths(picks)
+    # This historical diagnostic is tied to the SRC-012 roof/floor alternatives below.
+    depths,conflicts=unique_depths(picks, source_ids={"VKM-SRC-012"})
     write_json(out/"pick_conflicts.json",conflicts)
     ogr.UseExceptions()
     gpkg=ogr.GetDriverByName("GPKG").CreateDataSource(str(out/"geology.gpkg"))
