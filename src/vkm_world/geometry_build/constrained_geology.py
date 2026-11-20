@@ -117,6 +117,9 @@ def support_weights(xy, targets, method, support=None, *, extrapolate=False):
         j = int(np.argmin(distances))
         if support_region is not None and not support_region.covers(Point(point)):
             continue
+        if (method == "nearest" or distances[j] <= 1e-8) and np.count_nonzero(distances == distances[j]) > 1:
+            # An equidistant support has no source-backed priority. Keep the query unknown.
+            continue
         if distances[j] <= 1e-8:
             weights[i, j] = 1.; masks[i] = "DIRECT_CONSTRAINT"
             continue
