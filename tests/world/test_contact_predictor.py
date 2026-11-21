@@ -323,3 +323,15 @@ def test_cv_counts_interval_only_support_as_predicted():
     assert rec["prediction_finite"] and rec["predicted_contacts"] == 0
     summ = cv["summary"]["leave_one_physical_borehole_out/INTERPOLATION/idw2"]
     assert summ["predicted"] == summ["attempted"] and summ["interval_and_thickness_checks"]["violated"] == 1
+
+
+
+def test_nearest_tie_preserves_unknown_in_both_input_orders():
+    from vkm_world.geometry_build.constrained_geology import support_weights
+
+    locations = np.asarray([[-1., 0.], [1., 0.]])
+    target = [[0., 0.], [-0.75, 0.]]
+    for order in ([0, 1], [1, 0]):
+        weights, masks = support_weights(locations[order], target, "nearest", extrapolate=True)
+        assert masks.tolist() == ["UNKNOWN", "EXTRAPOLATION"]
+        np.testing.assert_array_equal(weights[:, np.argsort(order)], [[0., 0.], [1., 0.]])

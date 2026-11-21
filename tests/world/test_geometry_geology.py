@@ -90,3 +90,27 @@ def test_column_png_is_identical_across_host_styles_and_preserves_source_rows(tm
     assert images[0]==images[1]==images[2]
     assert rows==original
     assert stats=={"columns":2,"shortened_labels":1}
+
+
+def test_depth_preparation_accepts_other_explicit_sources_without_first_row_fallback():
+    rows = [
+        {"pick_id": "p3", "borehole_id": "BH-75", "source_id": "VKM-SRC-012",
+         "reference": "depth_below_collar", "units": "m", "unit_canonical_guess": "U", "top_depth_m": "10"},
+        {"pick_id": "p2", "borehole_id": "BH-128", "source_id": "VKM-SRC-101",
+         "reference": "depth_below_collar", "units": "m", "unit_canonical_guess": "U", "top_depth_m": "20"},
+        {"pick_id": "p1", "borehole_id": "BH-128", "source_id": "VKM-SRC-101",
+         "reference": "depth_below_collar", "units": "m", "unit_canonical_guess": "U", "top_depth_m": "20"},
+    ]
+    expected = {("BH-75", "U"): {"depth_m": 10.0, "pick_ids": ["p3"]},
+                ("BH-128", "U"): {"depth_m": 20.0, "pick_ids": ["p1", "p2"]}}
+    assert unique_depths(rows) == unique_depths(reversed(rows)) == (expected, [])
+    assert unique_depths(rows, source_ids={"VKM-SRC-012"}) == ({("BH-75", "U"): expected[("BH-75", "U")]}, [])
+
+
+
+def test_nearest_and_coincident_conflicts_do_not_depend_on_first_well():
+    for xy in ([(0, 0), (2, 0)], [(1, 0), (1, 0)]):
+        values = [10.0, 20.0]
+        assert predict(xy, values, (1, 0), "nearest") is None
+        assert predict(xy[::-1], values[::-1], (1, 0), "nearest") is None
+        assert predict(xy, [10, 10], (1, 0), "nearest") == 10.0
