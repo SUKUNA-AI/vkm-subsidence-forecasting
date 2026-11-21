@@ -61,14 +61,19 @@ def read_foundation_bundle(manifest_path, *, require_acceptance=False):
             or target != set(verticals["target_ids"]) or support != set(verticals["support_ids"])):
         raise ValueError("Input/solution/vertical inventory mismatch")
     records = verticals["records_by_object"]
-    if known != records.keys():
+    if not known <= records.keys():
         raise ValueError("Missing per-object vertical disposition")
     vertical_owners = {}
     for key, record in records.items():
+        required_role = "TARGET" if key in target else "SUPPORT" if key in support else "CONTEXT"
+        if record["role"] != required_role:
+            raise ValueError("Invalid vertical membership")
         if record["object_id"] != key or (not record["vertical_links"] and not record.get("reason")):
             raise ValueError("Invalid vertical owner or absent omission rationale")
         for link in record["vertical_links"]:
             link_id = link["link_id"]
+            if link["ownership"] != key:
+                raise ValueError("Foreign vertical record owner")
             if link_id in vertical_owners:
                 raise ValueError("Ambiguous vertical link ownership")
             vertical_owners[link_id] = key
@@ -120,7 +125,7 @@ def read_foundation_bundle(manifest_path, *, require_acceptance=False):
         "positions": projected, "realization_count": len(realization_ids),
         "target_role_rows": dict(Counter(row["role"] for row in projected if row["object_id"] in target)),
         "own_vertical_target_count": sum(bool(records[key]["vertical_links"]) for key in target),
-        "datum": verticals["absolute_datum"],
+        "datum": verticals["absolute_datum"], "preserved_vertical_context_count": len(records) - len(known),
     }
 
 

@@ -29,8 +29,10 @@ def write_bundle(root, bad=None):
         },
         "vertical": {"target_ids": ["target"], "support_ids": ["support"], "absolute_datum": None,
                      "records_by_object": {
-                         "target": {"object_id": "target", "vertical_links": [{"link_id": "L1"}]},
-                         "support": {"object_id": "support", "vertical_links": [], "reason": "no column"},
+                         "target": {"object_id": "target", "role": "TARGET",
+                                    "vertical_links": [{"link_id": "L1", "ownership": "target"}]},
+                         "support": {"object_id": "support", "role": "SUPPORT",
+                                     "vertical_links": [], "reason": "no column"},
                      }},
     }
     if bad is not None:
@@ -89,3 +91,24 @@ def test_checksum_failure_is_not_hidden_by_json_validity(tmp_path):
     file.write_text(file.read_text().replace("column", "object"))
     with pytest.raises(ValueError, match="Checksum"):
         read_foundation_bundle(manifest)
+
+
+def test_unmodeled_vertical_context_survives_without_joining_these_positions(tmp_path):
+    def add_context(data):
+        data["vertical"]["records_by_object"]["elsewhere"] = {
+            "object_id": "elsewhere", "role": "CONTEXT", "vertical_links": [], "reason": "other area",
+        }
+
+    result = read_foundation_bundle(write_bundle(tmp_path, add_context), require_acceptance=True)
+    assert result["preserved_vertical_context_count"] == 1
+    assert len(result["positions"]) == 2
+
+
+def test_context_cannot_claim_target_membership_or_link_ownership(tmp_path):
+    def promote_context(data):
+        data["vertical"]["records_by_object"]["elsewhere"] = {
+            "object_id": "elsewhere", "role": "TARGET", "vertical_links": [], "reason": "other area",
+        }
+
+    with pytest.raises(ValueError, match="Invalid vertical membership"):
+        read_foundation_bundle(write_bundle(tmp_path, promote_context), require_acceptance=True)
