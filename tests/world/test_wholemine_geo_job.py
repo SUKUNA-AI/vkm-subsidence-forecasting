@@ -45,7 +45,7 @@ def test_profile_uses_only_qualified_frame_transform():
     assert unstated["native_context_profiles"][0]["native"]["registration"] == reg
     bridge = {"id": "qualified-native-axis", "from_frame": "NATIVE", "to_frame": "SH1",
               "registration_sha256": job.digest({"frame": "NATIVE", "registration": reg, "stations": stations}),
-              "admission": "QUALIFIED_PROFILE_BRIDGE", "source_refs": [{"id": "synthetic-tie"}],
+              "admission": "QUALIFIED_PROFILE_BRIDGE", "source_refs": [{"source_id": "synthetic-plan", "locator": "tie"}],
               "affine": [[1, 0, 1], [0, 1, 0]]}
     with_bridge = job.profiles(problem, field, cfg, domain, "geo", {"p": bridge})
     translated = next(row for row in with_bridge["profiles"] if row["id"] == "p")
@@ -55,6 +55,9 @@ def test_profile_uses_only_qualified_frame_transform():
     assert translated["values_m"]["TOP"][-1] == pytest.approx(3)
     with pytest.raises(ValueError, match="qualify"):
         job.profiles(problem, field, cfg, domain, "geo", {"p": {**bridge, "registration_sha256": "old"}})
+    for override in ({"source_refs": "untyped"}, {"affine": [[1, 0, "1"], [0, True, 0]]}):
+        with pytest.raises(ValueError, match="Profile bridge"):
+            job.profiles(problem, field, cfg, domain, "geo", {"p": {**bridge, **override}})
 
 
 @pytest.fixture
@@ -126,7 +129,7 @@ def test_resume_validates_committed_payload_and_can_restore_explicitly(prepared,
     shutil.copytree(out, snapshot)
     stem = state["jobs"][0]["stem"]
     name = {"npz": stem + ".npz", "fit": stem + "-FIT.json", "queries": stem + "-QUERIES.jsonl",
-            "selected": "SELECTED_FIELD.npz"}[damaged]
+            "selected": "selected/SELECTED_FIELD.npz"}[damaged]
     if damaged == "npz":
         (out / name).unlink()
     else:
@@ -161,8 +164,55 @@ def test_partial_write_without_marker_reruns_only_uncommitted_job(prepared, monk
     assert job.read(out / "SCENARIO_INDEX.json")["jobs"] == [first]
     assert job.execute(*prepared, resume=True, require_all=True) == 0
     assert job.read(out / "SCENARIO_INDEX.json")["jobs"][0] == first
-    query = json.loads((out / "TARGET_QUERIES.jsonl").read_text(encoding="utf-8").splitlines()[0])
+    query = json.loads((job.read_committed_selection(out) / "TARGET_QUERIES.jsonl").read_text(encoding="utf-8").splitlines()[0])
     assert query["bound_factor_ids"] == ["native-md"]
     assert query["own_factor_ids"] == []
     assert query["source_attachment_count"] == 1
     assert query["spatial_role"] == "CONDITIONAL_MODEL_CONTINUATION"
+
+def test_selected_bundle_is_complete_before_marker_and_hidden_from_consumer(prepared, monkeypatch):
+    out = prepared[-1]
+    original_write = job.write
+
+    def interrupted(path, value):
+        if path == out / "SCENARIO_INDEX.json" and value["selected"] is not None:
+            raise RuntimeError("crash before selected commit")
+        original_write(path, value)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(job, "write", interrupted)
+        with pytest.raises(RuntimeError, match="selected commit"):
+            job.execute(*prepared, stop_after=1)
+    assert not (out / "SELECTED_FIELD.npz").exists()
+    assert set(path.name for path in (out / "selected").iterdir()) == job._SELECTED_FILES
+    with pytest.raises(ValueError, match="No committed primary field"):
+        job.read_committed_selection(out)
+    assert job.execute(*prepared, resume=True, require_all=True) == 0
+    assert job.read_committed_selection(out) == out / "selected"
+
+
+def test_duplicate_design_fails_before_any_generation_write(prepared):
+    field, out = prepared[-2:]
+    path = field / "BHJ_INDEX.json"
+    design = job.read(path)
+    design["selected"].append(design["selected"][0])
+    job.write(path, design)
+    with pytest.raises(ValueError, match="Duplicate BHJ"):
+        job.execute(*prepared, require_all=True)
+    assert not out.exists()
+
+def test_job_refuses_wrong_query_provenance_even_before_artifact_hashes(prepared, monkeypatch):
+    original_queries = job.query_rows
+
+    def wrong_query(*args):
+        rows = original_queries(*args)
+        rows[0]["frame"] = "UNREGISTERED"
+        rows[0]["applied_operator_ids"] = ["invented"]
+        rows[0]["values_m"] = {"TOP": "not a height", "BASE": 0}
+        return rows
+
+    monkeypatch.setattr(job, "query_rows", wrong_query)
+    with pytest.raises(ValueError, match="query rows differ"):
+        job.execute(*prepared, require_all=True)
+    state = job.read(prepared[-1] / "SCENARIO_INDEX.json")
+    assert not state["jobs"] and state["selected"] is None

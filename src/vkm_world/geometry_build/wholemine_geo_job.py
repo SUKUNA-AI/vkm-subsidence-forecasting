@@ -6,12 +6,14 @@ from collections import defaultdict
 from dataclasses import asdict
 from hashlib import file_digest, sha256
 from importlib.metadata import version
+from numbers import Real
 import json
 import os
 from pathlib import Path
 import shutil
 import sys
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 import time
 
 from . import geology_area_operators, geology_reconstruction, joint_borehole_handoff, wholemine_foundation
@@ -122,7 +124,18 @@ def _profile_bridge(bridge, native, target_frame):
             or bridge.get("registration_sha256") != digest(native) or not bridge.get("id")
             or not bridge.get("source_refs") or bridge.get("admission") != "QUALIFIED_PROFILE_BRIDGE"):
         raise ValueError("Profile bridge does not qualify this native registration and field frame")
-    matrix = np.asarray(bridge["affine"], dtype=float)
+    refs = bridge["source_refs"]
+    if not isinstance(refs, list) or not all(
+            isinstance(ref, dict) and isinstance(ref.get("source_id"), str) and ref["source_id"].strip()
+            and any(isinstance(ref.get(key), str) and ref[key].strip() for key in ("locator", "record_id"))
+            for ref in refs):
+        raise ValueError("Profile bridge requires typed source references")
+    values = bridge.get("affine")
+    if (not isinstance(values, list) or len(values) != 2
+            or any(not isinstance(row, list) or len(row) != 3 for row in values)
+            or any(isinstance(v, bool) or not isinstance(v, Real) for row in values for v in row)):
+        raise ValueError("Profile bridge needs two numeric affine rows")
+    matrix = np.asarray(values, dtype=float)
     if matrix.shape != (2, 3) or not np.isfinite(matrix).all() or np.linalg.matrix_rank(matrix[:, :2]) != 2:
         raise ValueError("Profile bridge requires an invertible finite 2D affine map")
     return matrix
@@ -280,12 +293,16 @@ def _check_job(directory, record, identity, config, contact_ids, nodes, triangle
             or operator_ledger["run_identity"] != identity):
         raise ValueError("FIT or operator ledger identity differs from the committed job")
     expected_ids = {row["id"] for row in operator_ledger["operators"]}
+    if len(expected_ids) != len(operator_ledger["operators"]):
+        raise ValueError("Committed operator ledger contains duplicate identities")
     own = defaultdict(list)
+    applied_ids = defaultdict(list)
     for factor in operator_ledger["factors"]:
         if not expected_ids.issuperset(factor["operator_ids"]):
             raise ValueError("Applied factor refers to a missing compiled operator")
         if factor["operator_ids"]:
             own[factor["physical_id"]].append(factor["factor_id"])
+            applied_ids[factor["physical_id"]].extend(factor["operator_ids"])
     geometry_id = record["geometry_id"]
     if geometry_id is None:
         return
@@ -303,11 +320,17 @@ def _check_job(directory, record, identity, config, contact_ids, nodes, triangle
     queries = _read_rows(directory / (stem + "-QUERIES.jsonl"))
     if len(queries) != len(config.positions):
         raise ValueError("Committed query inventory is incomplete")
+    carrier = SimpleNamespace(nodes=nodes, triangles=triangles, contact_ids=contact_ids, frame_id=config.frame)
+    values = _interp_rows(carrier, {"contacts": contacts}, config.positions)
     for row, position in zip(queries, config.positions, strict=True):
+        key = position["object_id"]
+        expected = dict(zip(contact_ids, values[key].tolist(), strict=True)) if key in values else None
+        reported = row["values_m"]
         if (row["scenario_id"] != geometry_id or row["bhj_id"] != config.id
-                or row["object_id"] != position["object_id"] or row["xy"] != position["xy"]
-                or row["own_factor_ids"] != own[position["object_id"]]
-                or (row["values_m"] is not None and set(row["values_m"]) != set(contact_ids))):
+                or any(row.get(name) != value for name, value in position.items())
+                or row["own_factor_ids"] != own[key] or row["applied_operator_ids"] != applied_ids[key]
+                or (reported is not None and any(isinstance(value, bool) for value in reported.values()))
+                or reported != expected or row["column_role"] != ("MODEL_RESULT" if key in values else None)):
             raise ValueError("Committed query rows differ from field or compiled operators")
 
 
@@ -321,6 +344,9 @@ def _check_selected(directory, state, roof, by_id):
         return
     if selected is None or selected["identity"] != chosen["identity"]:
         raise ValueError("Selected field does not refer to the committed primary job")
+    directory = directory / "selected"
+    if directory.is_symlink():
+        raise ValueError("Selected bundle is not an owned generation directory")
     _check_files(directory, selected["artifacts"], _SELECTED_FILES)
     stem = chosen["identity"]["stem"]
     for source, alias in ((stem + ".npz", "SELECTED_FIELD.npz"),
@@ -340,6 +366,33 @@ def _check_selected(directory, state, roof, by_id):
         raise ValueError("Selected active factors differ from compiled operators")
 
 
+def read_committed_selection(directory):
+    """Resolve the selected bundle through its marker before opening consumer data."""
+    directory = Path(directory)
+    state = read(directory / "SCENARIO_INDEX.json")
+    if state.get("schema") != _RUN_SCHEMA or digest(state["input_components"]) != state["input_signature"]:
+        raise ValueError("Unqualified generation marker")
+    selected = state["selected"]
+    if selected is None:
+        raise ValueError("No committed primary field")
+    identity = selected["identity"]
+    bundle = directory / "selected"
+    if bundle.is_symlink():
+        raise ValueError("Selected bundle is not an owned generation directory")
+    _check_files(bundle, selected["artifacts"], _SELECTED_FILES)
+    anchor = next((row for row in state["jobs"] if row["identity"] == identity), None)
+    if anchor is None or anchor["geometry_id"] is None:
+        raise ValueError("Selected bundle lacks a committed geometry")
+    stem = identity["stem"]
+    aliases = {stem + ".npz": "SELECTED_FIELD.npz", stem + "-QUERIES.jsonl": "TARGET_QUERIES.jsonl",
+               stem + "-OPERATORS.json": "APPLIED_OPERATORS.json"}
+    if any(anchor["artifacts"][name] != selected["artifacts"][alias] for name, alias in aliases.items()):
+        raise ValueError("Selected bundle digests do not match the committed job")
+    if read(bundle / "SELECTED_IDENTITY.json") != {**identity, "geometry_id": anchor["geometry_id"]}:
+        raise ValueError("Selected bundle identity does not match the marker")
+    return bundle
+
+
 def _check_run(directory, state, signature, planned, roof, by_id, contact_ids, nodes, triangles):
     if (state.get("schema") != _RUN_SCHEMA or state.get("input_signature") != signature
             or digest(state["input_components"]) != signature):
@@ -357,19 +410,33 @@ def _restore_run(output, backup, state):
     records = dict(state["static_artifacts"])
     for job in state["jobs"]:
         records.update(job["artifacts"])
+    _restore_files(output, backup, records)
     if state["selected"] is not None:
-        records.update(state["selected"]["artifacts"])
+        _restore_files(output / "selected", backup / "selected", state["selected"]["artifacts"])
+
+
+def _restore_files(output, backup, records):
+    if output.is_symlink():
+        raise ValueError("Restore destination is not an owned generation directory")
     _check_files(backup, records, set(records))
+    if not output.exists():
+        with TemporaryDirectory(prefix=".restore-bundle-", dir=output.parent) as work:
+            stage = Path(work) / output.name
+            stage.mkdir()
+            for name in records:
+                shutil.copyfile(backup / name, stage / name)
+            _check_files(stage, records, set(records))
+            stage.rename(output)
+        return
     with TemporaryDirectory(prefix=".restore-", dir=output) as work:
         stage = Path(work)
         for name, record in records.items():
             destination = output / name
             if not destination.is_file() or destination.is_symlink() or _file_signature(destination) != record:
                 shutil.copyfile(backup / name, stage / name)
-        for prepared in stage.iterdir():
-            if _file_signature(prepared) != records[prepared.name]:
-                raise ValueError("Restored bytes do not match the committed manifest")
-        _publish_stage(stage, output, {path.name for path in stage.iterdir()})
+        files = {path.name for path in stage.iterdir()}
+        _check_files(stage, {name: records[name] for name in files}, files)
+        _publish_stage(stage, output, files)
 
 
 def _publish_stage(stage, output, names):
@@ -416,6 +483,10 @@ def execute(manifest, inputs, field, output, *, pilot=False, resume=False,
     all_bindings=[]
     bound_by_id={}
     design_ids = {row["id"] for row in design}
+    if len(by_id) != len(foundation.configurations) or len(design_ids) != len(design):
+        raise ValueError("Duplicate BHJ configuration in the foundation or run design")
+    if len(branches) != 2 or not design_ids or not design_ids <= by_id.keys():
+        raise ValueError("Run design and geological branches must match the accepted foundation")
     for config in foundation.configurations:
         states={}
         for branch,native_joins in branches.items():
@@ -435,6 +506,8 @@ def execute(manifest, inputs, field, output, *, pilot=False, resume=False,
         if row["reason"]=="WITHIN_BRANCH_MEDOID" and not pilot:
             jobs.append((row["id"],floor,"baseline",row["reason"]))
     planned = [_job_identity(by_id[key], branch, completion, reason) for key, branch, completion, reason in jobs]
+    if len({identity["stem"] for identity in planned}) != len(planned):
+        raise ValueError("Duplicate planned geological job artifact stem")
     implementations = (geology_area_operators, geology_reconstruction, wholemine_foundation,
                        joint_borehole_handoff)
     code = {Path(__file__).name: _file_signature(Path(__file__))}
@@ -442,6 +515,7 @@ def execute(manifest, inputs, field, output, *, pilot=False, resume=False,
     signature_inputs = {
         "files": input_files, "code": code, "python": list(sys.version_info[:3]),
         "runtime": {name: version(name) for name in ("numpy", "scipy", "shapely")},
+        "thread_limits": {name: os.getenv(name) for name in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS")},
         "bound_configurations_sha256": digest(all_bindings),
         "resolved_foundation_sha256": digest(asdict(foundation)),
         "effective_footprint_sha256": sha256(footprint.wkb).hexdigest(),
@@ -503,9 +577,15 @@ def _run_jobs(output, state_path, state, planned, by_id, bindings, verticals, fo
             names = _job_files(job)
             if selected is not None:
                 _check_selected(stage, {"jobs": [job], "selected": selected}, roof, by_id)
-                names |= _SELECTED_FILES
             _publish_stage(stage, output, names)
             if selected is not None:
+                bundle = output / "selected"
+                if bundle.exists():
+                    # The previous process may have published the complete
+                    # bundle immediately before committing its marker.
+                    _check_selected(output, {"jobs": [job], "selected": selected}, roof, by_id)
+                else:
+                    (stage / "selected").rename(bundle)
                 state["selected"] = selected
             jobs.append(job)
             write(state_path, state)
@@ -528,16 +608,17 @@ def _stage_job(stage, problem, result, identity, config, bound, verticals, footp
         queries = stage / (stem + "-QUERIES.jsonl")
         jsonl(queries, query_rows(problem, result, config, geometry_id, compiled, verticals))
         if select:
-            shutil.copyfile(field, stage / "SELECTED_FIELD.npz")
-            shutil.copyfile(queries, stage / "TARGET_QUERIES.jsonl")
-            shutil.copyfile(operator_path, stage / "APPLIED_OPERATORS.json")
-            write(stage / "PROFILES.json", profiles(problem, result, config, footprint, geometry_id, bridges))
-            ids = {row["factor_id"] for row in compiled["factors"] if row["operator_ids"]}
+            bundle = stage / "selected"
+            bundle.mkdir()
+            shutil.copyfile(field, bundle / "SELECTED_FIELD.npz")
+            shutil.copyfile(queries, bundle / "TARGET_QUERIES.jsonl")
+            shutil.copyfile(operator_path, bundle / "APPLIED_OPERATORS.json")
+            write(bundle / "PROFILES.json", profiles(problem, result, config, footprint, geometry_id, bridges))
             active = {row["factor_id"]: row for row in bound}
-            jsonl(stage / "ACTIVE_FACTORS.jsonl",
-                  [active[row["factor_id"]] for row in compiled["factors"] if row["factor_id"] in ids])
-            write(stage / "SELECTED_IDENTITY.json", {**identity, "geometry_id": geometry_id})
-            selected = {"identity": identity, "artifacts": _file_manifest(stage, _SELECTED_FILES)}
+            jsonl(bundle / "ACTIVE_FACTORS.jsonl",
+                  [active[row["factor_id"]] for row in compiled["factors"] if row["operator_ids"]])
+            write(bundle / "SELECTED_IDENTITY.json", {**identity, "geometry_id": geometry_id})
+            selected = {"identity": identity, "artifacts": _file_manifest(bundle, _SELECTED_FILES)}
     incumbent = result.get("incumbent_contacts")
     if isinstance(incumbent, np.ndarray):
         np.savez_compressed(stage / (stem + "-INCUMBENT.npz"), xy=nodes, triangles=triangles, contacts=incumbent)
