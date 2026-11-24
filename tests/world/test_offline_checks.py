@@ -351,10 +351,12 @@ def test_real_pytest_run_accounts_for_collection_and_skips(tmp_path, source, exp
         assert report["passed"] == 0 and report["unexpected_skips"]
 
 
-def test_actual_history_is_not_run_offline_and_fails_explicitly_without_sources(tmp_path):
+@pytest.mark.parametrize("outer_git_redirects", [False, True])
+def test_actual_history_is_not_run_offline_and_fails_explicitly_without_sources(tmp_path, monkeypatch, outer_git_redirects):
     """Use the unchanged actual test/verifier/11-ref registry in a Git tree with no history refs."""
     import ast
     import json
+    import hashlib
     import os
     import shutil
     import subprocess
@@ -368,6 +370,28 @@ def test_actual_history_is_not_run_offline_and_fails_explicitly_without_sources(
     actual = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == target)
     assert not any("skip" in ast.unparse(d) for d in actual.decorator_list)
 
+    # Reuse the exact existing Git-isolation policy, including caller-supplied
+    # config entries, before the FIRST Git command or child pytest process.
+    redirects = next(ast.literal_eval(node.value) for node in tree.body
+                     if isinstance(node, ast.Assign)
+                     and any(isinstance(name, ast.Name) and name.id == "_GIT_REDIRECT_VARS" for name in node.targets))
+    def safe_env():
+        env = {k: v for k, v in os.environ.items() if k not in redirects
+               and not k.startswith(("GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_")) and k != "GIT_CONFIG_COUNT"}
+        return dict(env, PYTHONPATH=str(ROOT / "src"), PYTHONUTF8="1")
+
+    victim = tmp_path / "outer-git-victim"
+    subprocess.run(["git", "init", "-q", str(victim)], check=True, env=safe_env())
+    def victim_fingerprint():
+        return {p.relative_to(victim).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                for p in victim.rglob("*") if p.is_file()}
+    victim_before = victim_fingerprint()
+    if outer_git_redirects:
+        for key, value in {"GIT_DIR": str(victim / ".git"), "GIT_WORK_TREE": str(victim),
+                           "GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "core.bare", "GIT_CONFIG_VALUE_0": "true"}.items():
+            monkeypatch.setenv(key, value)
+    env = safe_env()
+
     root = tmp_path / "current-only-checkout"
     (root / "tests/world").mkdir(parents=True)
     (root / "scripts").mkdir()
@@ -375,17 +399,17 @@ def test_actual_history_is_not_run_offline_and_fails_explicitly_without_sources(
         shutil.copyfile(ROOT / relative, root / relative)
     (root / "pyproject.toml").write_text(
         '[tool.pytest.ini_options]\nmarkers=["native_source: separately supplied pinned sources"]\n', encoding="utf-8")
-    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    subprocess.run(["git", "init", "-q", str(root)], check=True, env=env)
+    assert (root / ".git" / "config").is_file()
     for ref in ("legacy", "origin/legacy"):
         assert subprocess.run(["git", "-C", str(root), "rev-parse", "--verify", "--quiet", ref+"^{commit}"],
-                              capture_output=True).returncode != 0
+                              capture_output=True, env=env).returncode != 0
     output = tmp_path / "offline-proof"
     output.mkdir()
     child = """import importlib.util,json,pathlib,sys
 spec=importlib.util.spec_from_file_location('checks',sys.argv[1]);checks=importlib.util.module_from_spec(spec);spec.loader.exec_module(checks)
 print('ACCOUNTING='+json.dumps(checks.run_tests(pathlib.Path(sys.argv[2]),'world-integrity',pathlib.Path(sys.argv[3]))))
 """
-    env = dict(os.environ, PYTHONPATH=str(ROOT / "src"), PYTHONUTF8="1")
     result = subprocess.run([sys.executable, "-B", "-c", child, str(ROOT / "scripts/run_offline_checks.py"),
                              str(root), str(output)], cwd=root, capture_output=True, text=True, check=True, env=env)
     report = json.loads(result.stdout.split("ACCOUNTING=", 1)[1])
@@ -399,3 +423,4 @@ print('ACCOUNTING='+json.dumps(checks.run_tests(pathlib.Path(sys.argv[2]),'world
     assert explicit.returncode == 1 and "1 failed" in explicit.stdout
     assert "Historical source qualification requires locally available" in explicit.stdout
     assert "skipped" not in explicit.stdout
+    assert victim_fingerprint() == victim_before, "fixture must not change a caller-selected Git repository"
