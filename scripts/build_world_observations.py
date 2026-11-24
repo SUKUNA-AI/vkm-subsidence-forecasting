@@ -323,7 +323,7 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
                             usable_for_validation="PARTIAL" if r.get("site_norm") not in ("UNKNOWN", None) else "NO",
                             producer=f"page extraction {run}", review_status="AUTO_EXTRACTED_UNREVIEWED",
                             notes=(r.get("notes") or "")[:300]))
-    points.extend(CR.point_rows(CR.load(canon)))
+    points.extend(CR.point_rows(CR.load(canon), CR.load_source_identities(canon)))
     obs.sort(key=lambda o: ({"YES": 0, "SKRU1_OR_SKRU2": 1, "NO": 2}[o["skru1_flag"]], o["item_kind"], o["obs_id"]))
     files = {"world_observation_catalog.csv": _csv(obs), "digitized_series_points.csv": _csv(points)}
     receipt = {"rule_version": RULE_VERSION, "runs": runs,
@@ -337,7 +337,9 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
                           "digitized_points_georeferenced": sum(1 for x in points if x.get("x_local_m") != ""),
                           "digitized_points_excluded_not_observation": dict(excluded),
                           "without_available_from": sum(1 for o in obs if not o["available_from"])},
-               "nav_used": bool(avail)}
+               "nav_used": bool(avail),
+               "curated_source_identity_sha256": hashlib.sha256((canon / CR.IDENTITIES_INPUT).read_bytes()).hexdigest()
+               if (canon / CR.IDENTITIES_INPUT).is_file() else None}
     files["build_receipt.json"] = (json.dumps(receipt, ensure_ascii=False, indent=1) + "\n").encode("utf-8")
     return files
 

@@ -44,7 +44,7 @@ MANIFEST_JSON = f"{OUT_DIR}/musikhin_vkm_src002_p15_manifest.json"
 SOURCE_TABLES = {
     "readings": ("evidence/monitoring/source_readings.csv", "f429ddb2ef9d01048c99aeabb14fc9efe34992f1ffcc828001d1740bf88d2428", "reviewed readings with independent cross-checks"),
     "comparison": ("evidence/monitoring/source_comparison.csv", "f906841b436cc3b1f8ea04ff3b46756ede3860ecb861e97ad439379d0a4eb223", "published modality comparison to reproduce"),
-    "aliases": ("evidence/sources/source_identifier_aliases.csv", "07e74a1114d187c272e6d08b11afa9ccb45a399ce427f1add308ff465d07400b", "source identifiers joined to the actual register"),
+    "aliases": ("evidence/sources/source_identifier_aliases.csv", "dc8e239014631b9cbfee5f44f53f4b3a5dc8c7b5530f6c0cb295a06ada56faf8", "source identifiers joined to the actual register"),
 }
 # The frozen digitization normalised a few x labels (trailing zeros). Checked visually on the native rasters of
 # VKM-SRC-002 p.15 (26.09.2026); the categorical label is written exactly as printed. key: (line, position).
@@ -367,10 +367,14 @@ def build_sources() -> dict[str, bytes]:
     rows = []
     data = verified_inputs({"aliases": SOURCE_TABLES["aliases"]})["aliases"]
     for m in read_csv(data):
+        if m.get("source_namespace") != "LEGACY_PUBLIC":
+            continue
         hits = by_sha.get(m["sha256"].strip().lower(), [])
         if len(hits) != 1:
             raise BuildError(f"{m['source_id']}: {len(hits)} register rows with its sha256 (expected exactly 1)")
         reg = hits[0]
+        if reg["resource_id"] != m["vkm_src_id"]:
+            raise BuildError("source alias resolves to a different canonical ID")
         if reg["size_bytes"] != m["size_bytes"]:
             raise BuildError(f"{m['source_id']}: size differs from the register")
         rows.append({"legacy_source_id": m["source_id"], "legacy_manifest": m["origin_manifest"],
@@ -380,6 +384,8 @@ def build_sources() -> dict[str, bytes]:
                      "register_source_class": reg["source_class"], "register_evidence_scope": reg["evidence_scope"],
                      "match_method": "sha256_exact+size", "note": SRC_NOTES.get(m["source_id"], "")})
     rows.sort(key=lambda r: (r["legacy_source_id"].startswith("SUP"), r["legacy_source_id"]))
+    if len(rows) != 12:
+        raise BuildError("expected twelve LEGACY_PUBLIC source aliases")
     if len({r["vkm_src_id"] for r in rows}) != len(rows):
         raise BuildError("two legacy ids map to the same VKM-SRC id")
     return {SRC_MAP_CSV: csv_bytes(SRC_COLUMNS, rows)}

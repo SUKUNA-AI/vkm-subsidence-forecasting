@@ -17,6 +17,11 @@
 Текущий вход — `source_identifier_aliases.csv`, проекция PRIVATE
 `SOURCES/source_identifier_aliases.csv`. Она сохраняет исходные ID, имена, классы,
 область, SHA-256/размер и исторические manifest/commit как provenance.
+`source_namespace` разделяет старые ID `LEGACY_PUBLIC` и канонические ID
+`SOURCE_REGISTER`; `vkm_src_id` указывает зарегистрированный файл. Одно текстовое
+обозначение в разных пространствах имён не соединяется автоматически. Пересборка
+старой карты ID использует только строки `LEGACY_PUBLIC`, а общие курируемые
+источниковые записи разрешают свои ссылки по явной паре пространство/ID.
 Второй вход — актуальный PRIVATE `00_registry/SOURCE_REGISTER.csv`.
 Сам исторический Git commit для пересборки не открывается.
 

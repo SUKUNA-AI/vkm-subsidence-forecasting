@@ -7,7 +7,7 @@
  ],
  "outputs": {
   "world_observation_catalog.csv": "3ca837de3a93b260c3ec9a6871b74ccee9283b2611b011cc9c134d83b3560006",
-  "digitized_series_points.csv": "e2ea1c42ebd2982c950a7ea10adf0b4a2c229c4be8d61ef5a729db7b4afc6fe5"
+  "digitized_series_points.csv": "84ab139d20b52e2966f7a89c7f3606f5dd4f5bea327236093f8b83d9441cf4b1"
  },
  "counts": {
   "items": 4755,
@@ -69,5 +69,6 @@
   },
   "without_available_from": 18
  },
- "nav_used": true
+ "nav_used": true,
+ "curated_source_identity_sha256": "dc8e239014631b9cbfee5f44f53f4b3a5dc8c7b5530f6c0cb295a06ada56faf8"
 }

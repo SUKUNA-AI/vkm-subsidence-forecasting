@@ -49,13 +49,80 @@ def test_bad_migration_contract_is_rejected_before_consumption(tmp_path, change)
 
 
 def test_equal_labels_do_not_merge_distinct_geometries():
-    a = entry("OBJECT_GEOMETRY", feature_kind="TRACE", label="profile", page_id="P:1", source_id="S",
+    a = entry("OBJECT_GEOMETRY", feature_kind="TRACE", label="profile", page_id="P:1", source_id="VKM-SRC-001",
               wkt_sh1="LINESTRING (0 0, 1 1)", frame="UNKNOWN")
     b = entry("OBJECT_GEOMETRY", **dict(a["source_record"], record_id="LOCAL-2", wkt_sh1="LINESTRING (0 0, 2 2)"))
-    rows = CR.object_rows([a, b])
+    rows = CR.object_rows([a, b], {("SOURCE_REGISTER", "VKM-SRC-001"): ("VKM-SRC-001", "1" * 64)})
     assert len(rows) == 2
     assert rows[0]["object_id"] != rows[1]["object_id"]
     assert rows[0]["geometry_wkt"] != rows[1]["geometry_wkt"]
+
+
+def write_aliases(canon, rows):
+    p = canon / CR.IDENTITIES_INPUT
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with p.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(stream, list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def test_derived_table_hash_is_not_a_publication_hash(tmp_path):
+    import hashlib
+    import sys
+    private, public = tmp_path / "private", tmp_path / "public"
+    publication = private / "source.txt"
+    publication.parent.mkdir()
+    publication.write_bytes(b"actual registered publication")
+    digest = hashlib.sha256(publication.read_bytes()).hexdigest()
+    table_digest = hashlib.sha256(b"derived CSV input").hexdigest()
+    write_aliases(private, [dict(source_id="VKM-SRC-001", source_namespace="SOURCE_REGISTER",
+                                 vkm_src_id="VKM-SRC-001", sha256=digest)])
+    original = entry(source_id="VKM-SRC-001")
+    original["source_sha256"] = table_digest  # immutable import envelope: hashes its CSV, not source.txt
+    row, = CR.passport_rows([original], CR.load_source_identities(private))
+    assert row["source_table_sha256"] == table_digest and row["source_sha256"] == digest
+    assert row["original_source_id"] == "VKM-SRC-001"
+    assert row["resolved_source_ref"] == f"SOURCE_REGISTER:VKM-SRC-001@sha256:{digest}"
+    assert original["source_sha256"] == table_digest
+    root = Path(__file__).resolve().parents[2]
+    spec = importlib.util.spec_from_file_location("identity_test_verifier", root / "scripts/verify_canonical_repository.py")
+    verifier = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = verifier
+    spec.loader.exec_module(verifier)
+    register = private / "00_registry/SOURCE_REGISTER.csv"
+    register.parent.mkdir()
+    register.write_text(f"resource_id,canonical_path,sha256\nVKM-SRC-001,source.txt,{digest}\n", encoding="utf-8")
+    target = public / "evidence/identity.csv"
+    target.parent.mkdir(parents=True)
+
+    def publish(value):
+        with target.open("w", encoding="utf-8", newline="") as stream:
+            writer = csv.DictWriter(stream, ["source_id", "source_sha256", "source_table_sha256"])
+            writer.writeheader()
+            writer.writerow({k: value[k] for k in writer.fieldnames})
+
+    publish(row)
+    valid = verifier.verify(public, resources_root=private, groups=["private_sources"], use_env=False)
+    assert next(c for c in valid["checks"] if c["id"] == "private:public_catalogues")["status"] == "PASS"
+    publish(dict(row, source_sha256=table_digest))  # original false join must still fail the unchanged verifier
+    invalid = verifier.verify(public, resources_root=private, groups=["private_sources"], use_env=False)
+    assert invalid["exit_code"] == 1
+    assert next(c for c in invalid["checks"] if c["id"] == "private:public_catalogues")["status"] == "FAIL"
+
+
+@pytest.mark.parametrize("problem", ["wrong_namespace", "duplicate_alias", "wrong_register_id"])
+def test_source_identity_cannot_join_by_identifier_text_alone(tmp_path, problem):
+    alias = dict(source_id="VKM-SRC-001", source_namespace="SOURCE_REGISTER",
+                 vkm_src_id="VKM-SRC-001", sha256="1" * 64)
+    original = entry(source_id="VKM-SRC-001")
+    if problem == "wrong_register_id":
+        alias["vkm_src_id"] = "VKM-SRC-002"
+    if problem == "wrong_namespace":
+        original["source_namespace"] = "LEGACY_PUBLIC"
+    write_aliases(tmp_path, [alias, alias] if problem == "duplicate_alias" else [alias])
+    with pytest.raises(ValueError):
+        CR.passport_rows([original], CR.load_source_identities(tmp_path))
 
 
 def test_passport_rebuild_reads_common_input_and_keeps_quote_separate(tmp_path):

@@ -58,6 +58,12 @@
   },
   "site_norm": {
    "type": "string"
+  },
+  "source_namespace": {
+   "type": "string",
+   "minLength": 1,
+   "default": "SOURCE_REGISTER",
+   "description": "Identifier namespace in SOURCES/source_identifier_aliases.csv; source_sha256 in this envelope hashes the imported derived table."
   }
  },
  "patternProperties": {
