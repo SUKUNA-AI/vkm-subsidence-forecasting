@@ -112,3 +112,16 @@ def test_context_cannot_claim_target_membership_or_link_ownership(tmp_path):
 
     with pytest.raises(ValueError, match="Invalid vertical membership"):
         read_foundation_bundle(write_bundle(tmp_path, promote_context), require_acceptance=True)
+
+
+
+def test_foundation_source_count_reads_complete_typed_handoff(tmp_path):
+    from vkm_world.geometry_build.wholemine_foundation import load_foundation
+    from vkm_world.geometry_build.wholemine_geo_job import source_attachment_count
+    def complete(data):
+        data["solution"]["realizations"][0].update(hypothesis_id="hypothesis", profiles=[], transforms={})
+    manifest = write_bundle(tmp_path, complete)
+    foundation = load_foundation(manifest)
+    assert source_attachment_count(foundation.verticals, "target") == 1
+    assert source_attachment_count(foundation.verticals, "support") == 0
+    assert source_attachment_count(foundation.verticals, "absent") == 0

@@ -68,7 +68,10 @@ def prepared(tmp_path, monkeypatch):
     inputs.mkdir()
     field.mkdir()
     configs = tuple(configuration(name) for name in ("first", "second"))
-    foundation = Foundation(("A", "N"), (), configs, {"A": ["source-record"]}, "UNKNOWN")
+    foundation = Foundation(("A", "N"), (), configs, {"A": {"object_id": "A", "role": "TARGET", "reason": None,
+                                      "vertical_links": [{"link_id": "source-record", "ownership": "A"}]},
+                                                   "N": {"object_id": "N", "role": "TARGET",
+                                                         "vertical_links": [], "reason": "UNKNOWN"}}, "UNKNOWN")
     monkeypatch.setattr(job, "load_foundation", lambda _: foundation)
     job.write(field / "BHJ_INDEX.json", {
         "bhj_manifest_sha256": sha256(manifest.read_bytes()).hexdigest(),
@@ -216,3 +219,93 @@ def test_job_refuses_wrong_query_provenance_even_before_artifact_hashes(prepared
         job.execute(*prepared, require_all=True)
     state = job.read(prepared[-1] / "SCENARIO_INDEX.json")
     assert not state["jobs"] and state["selected"] is None
+
+
+@pytest.mark.parametrize("count", [0, 1, 3])
+def test_source_count_uses_typed_owned_links(count):
+    record = {"object_id": "A", "role": "TARGET", "reason": "UNKNOWN" if count == 0 else None,
+              "vertical_links": [{"link_id": f"link-{i}", "ownership": "A"} for i in range(count)]}
+    assert job.source_attachment_count({"A": record}, "A") == count
+    assert job.source_attachment_count({"A": record}, "missing") == 0
+
+
+@pytest.mark.parametrize("record", [
+    ["untyped-legacy-list"],
+    {"object_id": "B", "vertical_links": []},
+    {"object_id": "A", "vertical_links": [{"link_id": "L", "ownership": "B"}]},
+    {"object_id": "A", "vertical_links": [{"link_id": "L", "ownership": "A"}] * 2},
+])
+def test_source_count_rejects_wrong_owner_and_untyped_contract(record):
+    with pytest.raises(ValueError, match="vertical"):
+        job.source_attachment_count({"A": record}, "A")
+
+
+def test_field_identity_binds_names_frame_and_run_material_context():
+    nodes = np.array([[0., 0.], [1., 0.], [0., 1.]])
+    triangles = np.array([[0, 1, 2]])
+    contacts = np.array([[50., 50., 50.], [18., 18., 18.], [16., 16., 16.]])
+    names = ["PDKS", "MG", "MG_BASE"]
+    identity = {"configuration_id": "cfg", "material_mapping_digest": "mapping-a"}
+    original = job.field_identity(nodes, triangles, contacts, identity, names, "SH1")
+    assert original != job.field_identity(nodes, triangles, contacts, identity, names[::-1], "SH1")
+    assert original != job.field_identity(nodes, triangles, contacts, identity, names, "UTM40N")
+    assert original != job.field_identity(nodes, triangles, contacts,
+                                           {**identity, "material_mapping_digest": "mapping-b"}, names, "SH1")
+
+
+@pytest.mark.parametrize("artifact", ["PROFILES.json", "TARGET_QUERIES.jsonl", "SELECTED_FIELD.npz"])
+def test_reader_rejects_resealed_semantic_mismatch(prepared, artifact):
+    out = prepared[-1]
+    assert job.execute(*prepared, require_all=True) == 0
+    state = job.read(out / "SCENARIO_INDEX.json")
+    selected = out / "selected"
+    path = selected / artifact
+    if artifact == "PROFILES.json":
+        data = job.read(path)
+        data["frame"] = "wrong-frame"
+        job.write(path, data)
+    elif artifact == "TARGET_QUERIES.jsonl":
+        rows = job._read_rows(path)
+        rows[0]["values_m"]["TOP"] += 5
+        job.jsonl(path, rows)
+    else:
+        with np.load(path, allow_pickle=False) as stored:
+            data = {key: stored[key] for key in stored.files}
+        data["contact_ids"] = data["contact_ids"][::-1]
+        np.savez_compressed(path, **data)
+    signature = job._file_signature(path)
+    state["selected"]["artifacts"][artifact] = signature
+    aliases = {"SELECTED_FIELD.npz": ".npz", "TARGET_QUERIES.jsonl": "-QUERIES.jsonl"}
+    if artifact in aliases:
+        chosen = next(row for row in state["jobs"] if row["identity"] == state["selected"]["identity"])
+        chosen["artifacts"][chosen["identity"]["stem"] + aliases[artifact]] = signature
+    job.write(out / "SCENARIO_INDEX.json", state)
+    with pytest.raises(ValueError, match="semantic identity"):
+        job.read_committed_selection(out)
+
+
+def test_primary_failure_selects_next_input_candidate_deterministically(prepared, monkeypatch):
+    original = job._fit
+    def fit(*args):
+        problem, result = original(*args)
+        if args[3].id == "first":
+            result = {**result, "contacts": None, "status": "INFEASIBLE"}
+        return problem, result
+    monkeypatch.setattr(job, "_fit", fit)
+    assert job.execute(*prepared) == 0
+    state = job.read(prepared[-1] / "SCENARIO_INDEX.json")
+    assert state["selection_policy"] == job._SELECTION_POLICY
+    assert state["selected"]["identity"]["configuration_id"] == "second"
+    assert job.read_committed_selection(prepared[-1]) == prepared[-1] / "selected"
+
+
+
+def test_selection_order_is_input_defined_and_independent_of_manifest_listing(prepared):
+    field = prepared[-2]
+    path = field / "BHJ_INDEX.json"
+    payload = job.read(path)
+    payload["selected"].reverse()
+    job.write(path, payload)
+    assert job.execute(*prepared, require_all=True) == 0
+    selected = job.read(prepared[-1] / "SCENARIO_INDEX.json")["selected"]
+    assert selected["identity"]["configuration_id"] == "first"

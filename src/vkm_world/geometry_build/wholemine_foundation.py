@@ -64,6 +64,49 @@ def load_foundation(manifest):
                       tuple(configurations), vertical["records_by_object"], result["datum"])
 
 
+def bind_interval_semantics(contact_ids, document, *, frame_id, source_identity):
+    """Validate explicit upper/lower body meanings against one field generation.
+
+    No unit or material is inferred from either boundary name. Unknown lithology
+    remains null; numerical buffers cannot masquerade as geological units.
+    The returned rows follow the top-to-bottom contact order.
+    """
+    if (document.get("schema") != "vkm.interval-semantics/1"
+            or document.get("frame_id") != frame_id
+            or not isinstance(source_identity, str) or not source_identity.strip()
+            or document.get("source_identity") != source_identity):
+        raise ValueError("Interval semantics source/frame identity mismatch")
+    if len(contact_ids) < 2 or len(set(contact_ids)) != len(contact_ids):
+        raise ValueError("Unique ordered contact identities are required")
+    expected = list(zip(contact_ids[:-1], contact_ids[1:]))
+    rows = document.get("intervals")
+    if not isinstance(rows, list):
+        raise ValueError("Explicit interval semantics list is required")
+    by_pair = {}
+    for row in rows:
+        if not isinstance(row, Mapping):
+            raise ValueError("Typed interval semantics are required")
+        pair = (row.get("upper_contact_id"), row.get("lower_contact_id"))
+        if pair not in expected or pair in by_pair:
+            raise ValueError("Invalid or duplicate ordered boundary pair")
+        refs = row.get("source_refs")
+        if (not isinstance(refs, list) or not refs
+                or not all(isinstance(ref, Mapping) and ref.get("source_id")
+                           and (ref.get("locator") or ref.get("record_id")) for ref in refs)):
+            raise ValueError("Each interval requires locatable source references")
+        role = row.get("role")
+        if role not in {"GEOLOGICAL_UNIT", "UNKNOWN_LITHOLOGY", "NUMERICAL_BUFFER"}:
+            raise ValueError("Explicit geological or numerical role is required")
+        if role == "GEOLOGICAL_UNIT" and not row.get("unit_id"):
+            raise ValueError("A geological unit requires its explicit unit identity")
+        if role != "GEOLOGICAL_UNIT" and (row.get("unit_id") is not None or row.get("material_id") is not None):
+            raise ValueError("Unknown lithology or numerical buffer cannot acquire a unit/material")
+        by_pair[pair] = dict(row)
+    if set(by_pair) != set(expected):
+        raise ValueError("Incomplete interval semantics coverage")
+    return [by_pair[pair] for pair in expected]
+
+
 def load_footprint(path):
     document = _read(path)
     geometries = ([shape(feature["geometry"]) for feature in document["features"]]
@@ -95,8 +138,18 @@ def target_coverage(foundation, polygon):
     return rows
 
 
+def representative_reason(reason):
+    """Translate the historical label without changing the input-only criterion."""
+    return "WITHIN_BRANCH_MEDIAN_NEAREST" if reason == "WITHIN_BRANCH_MEDOID" else reason
+
+
 def choose_design(foundation, additional=12):
-    """Choose input-only within-branch medoids plus physical-space extremes."""
+    """Choose nearest observed configurations to branchwise component medians.
+
+    Distance is squared L2 over target XY, scaled by the all-configuration range
+    per target (at least one metre). Equal distances choose the lowest config ID.
+    This criterion preserves the historical selected inputs; it is not a medoid.
+    """
     configs = sorted(foundation.configurations, key=lambda config: config.id)
     active = [key for key in foundation.targets if all(key in c.xy_by_id() for c in configs)]
     xy = np.asarray([[c.xy_by_id()[key] for key in active] for c in configs])
@@ -112,7 +165,7 @@ def choose_design(foundation, additional=12):
         midpoint = np.median(features[candidates], axis=0)
         distances = ((features[candidates] - midpoint) ** 2).sum(axis=(1, 2))
         selected = candidates[int(np.argmin(distances))]
-        branches.append((selected, "WITHIN_BRANCH_MEDOID"))
+        branches.append((selected, "WITHIN_BRANCH_MEDIAN_NEAREST"))
     remaining = set(range(len(configs))) - {index for index, _ in branches}
     for _ in range(min(additional, len(remaining))):
         distances = np.min([

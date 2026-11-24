@@ -3,6 +3,7 @@
 from __future__ import annotations
 import argparse
 from collections import defaultdict
+from collections.abc import Mapping
 from dataclasses import asdict
 from hashlib import file_digest, sha256
 from importlib.metadata import version
@@ -50,13 +51,25 @@ def jsonl(path, rows):
             stream.write(json.dumps(row, sort_keys=True, ensure_ascii=False, allow_nan=False) + "\n")
 
 
+def field_identity(nodes, triangles, contacts, identity, contact_ids, frame):
+    """Bind numerical geometry and its geological meaning in the same identity."""
+    return "C1-" + digest({
+        "schema": "vkm.geological-field/2", "run_identity": identity,
+        "xy": nodes.tolist(), "triangles": triangles.tolist(), "contacts": contacts.tolist(),
+        "contact_ids": list(contact_ids), "frame": frame,
+        "vertical_frame": "LOCAL_SCENARIO_VERTICAL_GAUGE",
+    })[:24]
+
+
 def pack_field(out, nodes, tri, result, identity, frame):
     coefficients = result["contacts"]
-    geometry_id = "C1-" + digest([identity, nodes.tolist(), tri.tolist(), coefficients.tolist()])[:24]
+    geometry_id = field_identity(nodes, tri, coefficients, identity, result["contact_ids"], frame)
     np.savez_compressed(out, xy=nodes, triangles=tri, z=coefficients[::-1].T, contacts=coefficients,
                        horizon_names=np.asarray(result["contact_ids"][::-1]),
                        contact_ids=np.asarray(result["contact_ids"]), geometry_id=np.array(geometry_id),
-                       bhj_id=np.array(result["configuration_id"]), frame=np.array(frame))
+                       bhj_id=np.array(result["configuration_id"]), frame=np.array(frame),
+                       field_schema=np.array("vkm.geological-field/2"),
+                       vertical_frame=np.array("LOCAL_SCENARIO_VERTICAL_GAUGE"))
     return geometry_id
 
 
@@ -81,6 +94,26 @@ def applied_operators(problem, bound):
         })
     return {"variable_ids": list(problem.variable_ids), "factors": factors,
             "operators": list(operators.values())}
+
+
+def source_attachment_count(verticals, object_id):
+    """Count owned source links in the accepted records_by_object contract."""
+    record = verticals.get(object_id)
+    if record is None:
+        return 0
+    if not isinstance(record, Mapping) or record.get("object_id") != object_id:
+        raise ValueError("Invalid vertical record owner")
+    links = record.get("vertical_links")
+    if not isinstance(links, list):
+        raise ValueError("Expected typed vertical_links list")
+    identifiers = set()
+    for link in links:
+        if (not isinstance(link, Mapping) or link.get("ownership") != object_id
+                or not isinstance(link.get("link_id"), str) or not link["link_id"]
+                or link["link_id"] in identifiers):
+            raise ValueError("Invalid or duplicate vertical link ownership")
+        identifiers.add(link["link_id"])
+    return len(links)
 
 
 def query_rows(problem, result, config, geometry_id, compiled, verticals):
@@ -110,7 +143,7 @@ def query_rows(problem, result, config, geometry_id, compiled, verticals):
             "column_role": None if values is None else "MODEL_RESULT",
             "surface_reference": "LOCAL_SCENARIO_VERTICAL_GAUGE",
             "values_m": None if values is None else dict(zip(result["contact_ids"], values.tolist(), strict=True)),
-            "source_attachment_count": len(verticals.get(key, ())),
+            "source_attachment_count": source_attachment_count(verticals, key),
             "bound_factor_ids": direct[key],
             "own_factor_ids": [condition["factor_id"] for condition in own],
             "applied_operator_ids": [operator for condition in own for operator in condition["operator_ids"]],
@@ -236,7 +269,8 @@ def _fit(nodes, triangle, contact_ids, config, factors, priors, policy, branch):
     return problem, solve_model(problem,policy)
 
 
-_RUN_SCHEMA = "vkm.wholemine-geo-run/2"
+_RUN_SCHEMA = "vkm.wholemine-geo-run/3"
+_SELECTION_POLICY = "FIRST_CLOSED_PRIMARY_IN_INPUT_REPRESENTATIVE_THEN_ID_ORDER"
 _STATIC_FILES = {"ALL_CONFIGURATIONS_LEDGER.jsonl", "AREAL_OPERATOR_DISPOSITION.json"}
 _SELECTED_FILES = {"SELECTED_FIELD.npz", "TARGET_QUERIES.jsonl", "ACTIVE_FACTORS.jsonl",
                    "SELECTED_IDENTITY.json", "PROFILES.json", "APPLIED_OPERATORS.json"}
@@ -281,7 +315,7 @@ def _check_files(directory, recorded, names):
             raise ValueError(f"Committed artifact failed size/SHA verification: {name}")
 
 
-def _check_job(directory, record, identity, config, contact_ids, nodes, triangles):
+def _check_job(directory, record, identity, config, contact_ids, nodes, triangles, verticals):
     if record["identity"] != identity or record["geometry_id"] is not None and record["status"] != "MODEL_CLOSED_WITH_ASSUMPTIONS":
         raise ValueError("Committed job identity or status differs from the plan")
     _check_files(directory, record["artifacts"], _job_files(record))
@@ -308,12 +342,16 @@ def _check_job(directory, record, identity, config, contact_ids, nodes, triangle
         return
     with np.load(directory / (stem + ".npz"), allow_pickle=False) as field:
         contacts = field["contacts"]
-        identifier = "C1-" + digest([identity, nodes.tolist(), triangles.tolist(), contacts.tolist()])[:24]
+        identifier = field_identity(nodes, triangles, contacts, identity, contact_ids, config.frame)
         if (identifier != geometry_id or field["geometry_id"].item() != identifier
+                or field["field_schema"].item() != "vkm.geological-field/2"
+                or field["vertical_frame"].item() != "LOCAL_SCENARIO_VERTICAL_GAUGE"
                 or field["bhj_id"].item() != config.id or field["frame"].item() != config.frame
                 or field["contact_ids"].tolist() != contact_ids
                 or not np.array_equal(field["xy"], nodes) or not np.array_equal(field["triangles"], triangles)
                 or contacts.shape != (len(contact_ids), len(nodes)) or not np.isfinite(contacts).all()
+                or contacts.shape != (len(contact_ids), len(field["xy"])) or not np.isfinite(contacts).all()
+                or len(set(contact_ids)) != len(contact_ids)
                 or not np.array_equal(field["z"], contacts[::-1].T)
                 or field["horizon_names"].tolist() != contact_ids[::-1]):
             raise ValueError("Field payload differs from committed geometry identity")
@@ -328,6 +366,7 @@ def _check_job(directory, record, identity, config, contact_ids, nodes, triangle
         reported = row["values_m"]
         if (row["scenario_id"] != geometry_id or row["bhj_id"] != config.id
                 or any(row.get(name) != value for name, value in position.items())
+                or row["source_attachment_count"] != source_attachment_count(verticals, key)
                 or row["own_factor_ids"] != own[key] or row["applied_operator_ids"] != applied_ids[key]
                 or (reported is not None and any(isinstance(value, bool) for value in reported.values()))
                 or reported != expected or row["column_role"] != ("MODEL_RESULT" if key in values else None)):
@@ -370,11 +409,21 @@ def read_committed_selection(directory):
     """Resolve the selected bundle through its marker before opening consumer data."""
     directory = Path(directory)
     state = read(directory / "SCENARIO_INDEX.json")
-    if state.get("schema") != _RUN_SCHEMA or digest(state["input_components"]) != state["input_signature"]:
+    if (state.get("schema") != _RUN_SCHEMA or state.get("selection_policy") != _SELECTION_POLICY
+            or digest(state["input_components"]) != state["input_signature"]):
         raise ValueError("Unqualified generation marker")
+    planned = state["input_components"]["jobs"]
+    if (not planned or state["input_components"].get("selection_policy") != _SELECTION_POLICY
+            or [record["identity"] for record in state["jobs"]] != planned[:len(state["jobs"])]):
+        raise ValueError("Selected generation does not follow the declared input order")
     selected = state["selected"]
     if selected is None:
         raise ValueError("No committed primary field")
+    primary = planned[0]["branch"]
+    chosen = next((record for record in state["jobs"]
+                   if record["identity"]["branch"] == primary and record["geometry_id"] is not None), None)
+    if chosen is None or chosen["identity"] != selected["identity"]:
+        raise ValueError("Selected generation violates its declared primary selection rule")
     identity = selected["identity"]
     bundle = directory / "selected"
     if bundle.is_symlink():
@@ -390,10 +439,59 @@ def read_committed_selection(directory):
         raise ValueError("Selected bundle digests do not match the committed job")
     if read(bundle / "SELECTED_IDENTITY.json") != {**identity, "geometry_id": anchor["geometry_id"]}:
         raise ValueError("Selected bundle identity does not match the marker")
+    # Verify semantic payloads as well as their byte signatures. A resealed but
+    # inconsistent profile/query/field bundle must not reach CAD or physics.
+    with np.load(bundle / "SELECTED_FIELD.npz", allow_pickle=False) as field:
+        frame = field["frame"].item()
+        contact_ids = field["contact_ids"].tolist()
+        contacts = field["contacts"]
+        identifier = field_identity(field["xy"], field["triangles"], contacts,
+                                    identity, contact_ids, frame)
+        if (field["field_schema"].item() != "vkm.geological-field/2"
+                or identifier != anchor["geometry_id"] or field["geometry_id"].item() != identifier
+                or field["bhj_id"].item() != identity["configuration_id"]
+                or field["vertical_frame"].item() != "LOCAL_SCENARIO_VERTICAL_GAUGE"
+                or contacts.shape != (len(contact_ids), len(field["xy"])) or not np.isfinite(contacts).all()
+                or len(set(contact_ids)) != len(contact_ids)
+                or not np.array_equal(field["z"], contacts[::-1].T)
+                or field["horizon_names"].tolist() != contact_ids[::-1]):
+            raise ValueError("Selected field semantic identity mismatch")
+        carrier = SimpleNamespace(nodes=field["xy"], triangles=field["triangles"],
+                                  contact_ids=contact_ids, frame_id=frame)
+    profile = read(bundle / "PROFILES.json")
+    if (profile["scenario_id"] != identifier or profile["frame"] != frame
+            or profile["vertical_frame"] != "LOCAL_SCENARIO_VERTICAL_GAUGE"):
+        raise ValueError("Selected profile semantic identity mismatch")
+    queries = _read_rows(bundle / "TARGET_QUERIES.jsonl")
+    if len({row["object_id"] for row in queries}) != len(queries):
+        raise ValueError("Duplicate selected query owner")
+    expected_values = _interp_rows(carrier, {"contacts": contacts}, queries)
+    ledger = read(bundle / "APPLIED_OPERATORS.json")
+    if ledger["run_identity"] != identity:
+        raise ValueError("Selected operator identity mismatch")
+    factors = {row["factor_id"]: row for row in ledger["factors"]}
+    for row in queries:
+        expected = (dict(zip(contact_ids, expected_values[row["object_id"]].tolist(), strict=True))
+                    if row["object_id"] in expected_values else None)
+        owned = [factor for factor in factors.values() if factor["physical_id"] == row["object_id"]]
+        applied = [factor for factor in owned if factor["operator_ids"]]
+        if (row["scenario_id"] != identifier or row["bhj_id"] != identity["configuration_id"]
+                or row["values_m"] != expected
+                or row["surface_reference"] != "LOCAL_SCENARIO_VERTICAL_GAUGE"
+                or row["bound_factor_ids"] != [f["factor_id"] for f in owned]
+                or row["own_factor_ids"] != [f["factor_id"] for f in applied]
+                or row["applied_operator_ids"] != [op for f in applied for op in f["operator_ids"]]):
+            raise ValueError("Selected query semantic identity mismatch")
+    for item in profile["profiles"]:
+        expected = evaluate_contacts(carrier, contacts, item["xy"])
+        for index, contact_id in enumerate(contact_ids):
+            values = [float(value) if np.isfinite(value) else None for value in expected[:, index]]
+            if item["values_m"].get(contact_id) != values:
+                raise ValueError("Selected profile values differ from field")
     return bundle
 
 
-def _check_run(directory, state, signature, planned, roof, by_id, contact_ids, nodes, triangles):
+def _check_run(directory, state, signature, planned, roof, by_id, contact_ids, nodes, triangles, verticals):
     if (state.get("schema") != _RUN_SCHEMA or state.get("input_signature") != signature
             or digest(state["input_components"]) != signature):
         raise ValueError("Resumed input, policy or implementation changed; use a new generation")
@@ -402,7 +500,7 @@ def _check_run(directory, state, signature, planned, roof, by_id, contact_ids, n
     _check_files(directory, state["static_artifacts"], _STATIC_FILES)
     for record, identity in zip(state["jobs"], planned):
         _check_job(directory, record, identity, by_id[identity["configuration_id"]],
-                   contact_ids, nodes, triangles)
+                   contact_ids, nodes, triangles, verticals)
     _check_selected(directory, state, roof, by_id)
 
 
@@ -461,7 +559,11 @@ def execute(manifest, inputs, field, output, *, pilot=False, resume=False,
     actual_manifest_sha = sha256(Path(manifest).read_bytes()).hexdigest()
     if actual_manifest_sha != index["bhj_manifest_sha256"]:
         raise ValueError("BHJ index belongs to a different accepted manifest")
-    design=index["selected"]
+    # Preserve the historical input representative, correcting its misleading name.
+    # This is an input-only ordering and never a score against validation truth.
+    design = [{**row, "reason": wholemine_foundation.representative_reason(row["reason"])}
+              for row in index["selected"]]
+    design.sort(key=lambda row: (row["reason"] != "WITHIN_BRANCH_MEDIAN_NEAREST", row["id"]))
     by_id={item.id:item for item in foundation.configurations}
     priors=read(inputs/"PRIORS.json")
     policy=read(inputs/"FIELD_POLICY.json")
@@ -503,7 +605,7 @@ def execute(manifest, inputs, field, output, *, pilot=False, resume=False,
                              "branch":config.branch,"frame":config.frame,"vertical_stage":states})
     for row in design[:1] if pilot else design:
         jobs.append((row["id"],roof,"baseline",row["reason"]))
-        if row["reason"]=="WITHIN_BRANCH_MEDOID" and not pilot:
+        if row["reason"]=="WITHIN_BRANCH_MEDIAN_NEAREST" and not pilot:
             jobs.append((row["id"],floor,"baseline",row["reason"]))
     planned = [_job_identity(by_id[key], branch, completion, reason) for key, branch, completion, reason in jobs]
     if len({identity["stem"] for identity in planned}) != len(planned):
@@ -519,7 +621,7 @@ def execute(manifest, inputs, field, output, *, pilot=False, resume=False,
         "bound_configurations_sha256": digest(all_bindings),
         "resolved_foundation_sha256": digest(asdict(foundation)),
         "effective_footprint_sha256": sha256(footprint.wkb).hexdigest(),
-        "jobs": planned,
+        "jobs": planned, "selection_policy": _SELECTION_POLICY,
     }
     signature = digest(signature_inputs)
     if input_files != {name: _file_signature(path) for name, path in input_paths.items()}:
@@ -537,14 +639,15 @@ def execute(manifest, inputs, field, output, *, pilot=False, resume=False,
                 backup = Path(restore_from)
                 if read(backup / state_path.name) != state:
                     raise ValueError("Backup does not match the committed generation")
-                _check_run(backup, state, signature, planned, roof, by_id, contact_ids, nodes, triangles)
+                _check_run(backup, state, signature, planned, roof, by_id, contact_ids, nodes, triangles, foundation.verticals)
                 _restore_run(output, backup, state)
-            _check_run(output, state, signature, planned, roof, by_id, contact_ids, nodes, triangles)
+            _check_run(output, state, signature, planned, roof, by_id, contact_ids, nodes, triangles, foundation.verticals)
         else:
             jsonl(output/"ALL_CONFIGURATIONS_LEDGER.jsonl",all_bindings)
             write(output/"AREAL_OPERATOR_DISPOSITION.json",
                   {"bound_ids": [row["factor_id"] for row in area_rows], "omitted": area_omitted})
             state = {"schema": _RUN_SCHEMA, "input_signature": signature, "input_components": signature_inputs,
+                     "selection_policy": _SELECTION_POLICY,
                      "jobs": [], "planned": len(planned), "selected": None,
                      "static_artifacts": _file_manifest(output, _STATIC_FILES)}
             write(state_path, state)
@@ -573,7 +676,7 @@ def _run_jobs(output, state_path, state, planned, by_id, bindings, verticals, fo
                                        footprint, nodes, triangles,
                                        select=state["selected"] is None and branch == roof,
                                        bridges=policy.get("profile_frame_bridges", {}).get(config.id))
-            _check_job(stage, job, identity, config, contact_ids, nodes, triangles)
+            _check_job(stage, job, identity, config, contact_ids, nodes, triangles, verticals)
             names = _job_files(job)
             if selected is not None:
                 _check_selected(stage, {"jobs": [job], "selected": selected}, roof, by_id)
