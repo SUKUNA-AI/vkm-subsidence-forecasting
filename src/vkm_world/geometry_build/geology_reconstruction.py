@@ -266,9 +266,16 @@ def compile_model(nodes, triangles, contact_ids, factors, *, frame_id, configura
             _string(support.get("basis"), f"{identity}.area_basis")
             stencil = indices, weights
         expected = factor.get("epistemic_status")
-        if expected == "ENGINEERING_ASSUMPTION":
+        spatial = support.get("spatial_provenance") or {}
+        conditional_depth = quantity in {"DEPTH_TVD", "DEPTH_MD", "BOTTOM_INSIDE_UNIT", "NOT_REACHED"} and (
+            factor.get("depth_basis") == "DECLARED_VERTICAL_SCENARIO"
+            or quantity == "DEPTH_MD" and factor.get("trajectory_basis") == "DECLARED_VERTICAL_SCENARIO"
+        )
+        if spatial.get("application_role") == "CONDITIONAL_SCENARIO_OPERATOR":
+            role = "CONDITIONAL_DATA_HARD"
+        elif expected == "ENGINEERING_ASSUMPTION":
             role = "SCENARIO_HARD"
-        elif expected == "MODEL_CHOICE" or admission == "CONDITIONAL":
+        elif expected == "MODEL_CHOICE" or admission == "CONDITIONAL" or conditional_depth:
             role = "CONDITIONAL_DATA_HARD"
         else:
             role = "DATA_HARD"
@@ -507,38 +514,120 @@ def _regularizer(problem, length, contact_weight, thickness_weight):
     return regularization
 
 
-def _closure_report(problem, hard_rows, soft_rows, hard_matrix, soft_matrix, contact_weight,
-                    rtol, max_dense_elements):
-    """Check unresolved contact motions remaining under declared scenario closure."""
+def _contact_motion_basis(problem, contact_weight, thickness_weight):
+    """Represent the regularizer kernel with contact columns before nuisance columns."""
+    n, k, nodes = len(problem.variable_ids), len(problem.contact_ids), len(problem.nodes)
+    if contact_weight == thickness_weight == 0.:
+        return eye(n, format="csr"), k * nodes, None, "FULL_VARIABLE_SPACE"
+
     from scipy.sparse.csgraph import connected_components
 
-    n, k, nodes = len(problem.variable_ids), len(problem.contact_ids), len(problem.nodes)
+    triangles = problem.triangles
+    edge_from, edge_to = triangles.ravel(), triangles[:, [1, 2, 0]].ravel()
+    adjacency = coo_matrix((np.ones(len(edge_from)), (edge_from, edge_to)), shape=(nodes, nodes))
+    components, labels = connected_components(adjacency, directed=False)
     if contact_weight > 0.:
-        triangles = problem.triangles
-        edge_from, edge_to = triangles.ravel(), triangles[:, [1, 2, 0]].ravel()
-        adjacency = coo_matrix((np.ones(len(edge_from)), (edge_from, edge_to)), shape=(nodes, nodes))
-        components, labels = connected_components(adjacency, directed=False)
-        count = components * k + n - k * nodes
-        columns = np.r_[(labels[None, :] + components * np.arange(k)[:, None]).ravel(),
-                        np.arange(components * k, count)]
-        basis = coo_matrix((np.ones(n), (np.arange(n), columns)), shape=(n, count)).tocsr()
         ncontact = components * k
+        columns = np.r_[(labels[None, :] + components * np.arange(k)[:, None]).ravel(),
+                         np.arange(ncontact, ncontact + n - k * nodes)]
+        basis = coo_matrix((np.ones(n), (np.arange(n), columns))).tocsr()
+        return basis, ncontact, components, "CONNECTED_CONSTANT_CONTACT_MODES"
+
+    # Thickness smoothing leaves one common nodal field and constant
+    # per-component offsets of the remaining contacts relative to the first.
+    ncontact = nodes + (k - 1) * components
+    columns = np.r_[np.tile(np.arange(nodes), k),
+                     (nodes + labels[None, :] + components * np.arange(k - 1)[:, None]).ravel(),
+                     np.arange(ncontact, ncontact + n - k * nodes)]
+    rows = np.r_[np.arange(k * nodes), np.arange(nodes, n)]
+    basis = coo_matrix((np.ones(len(rows)), (rows, columns))).tocsr()
+    return basis, ncontact, components, "THICKNESS_CONSTANT_DIFFERENCE_MODES"
+
+
+def _normalized_bounds(matrix, lower, upper):
+    """Rescale equivalent rows without changing any feasible direction."""
+    norm = np.sqrt(np.asarray(matrix.multiply(matrix).sum(axis=1)).ravel())
+    norm[norm == 0.] = 1.
+    return (diags(1. / norm) @ matrix).tocsr(), lower / norm, upper / norm
+
+
+def _coordinate_witness(matrix, lower, upper, soft, ncontact, step, deadline, tolerance):
+    """Test all signed contact coordinates in the projected feasible set."""
+    matrix, lower, upper = _normalized_bounds(matrix, lower, upper)
+    zero = np.zeros(soft.shape[0])
+    soft, _, _ = _normalized_bounds(soft, zero, zero)
+    eq, exact, ub, limits = _split_constraints(matrix, lower, upper)
+    eq = vstack((eq, soft), format="csr")
+    exact = np.r_[exact, zero]
+    n = matrix.shape[1]
+    free = [(None, None)] * n
+    objective = np.zeros(n)
+    tested = 0
+    for coordinate in range(ncontact):
+        for sign in (1., -1.):
+            remaining = deadline - monotonic()
+            if remaining <= 0.:
+                return {"status": "SEARCH_INCOMPLETE", "tests_completed": tested, "reason": "TIME_LIMIT"}
+            bounds = free.copy()
+            # The recession cone is homogeneous. A nonzero coordinate can
+            # always be scaled to reach this finite directional threshold.
+            bounds[coordinate] = (step, None) if sign > 0. else (None, -step)
+            result = linprog(objective, A_eq=eq, b_eq=exact, A_ub=ub, b_ub=limits,
+                             bounds=bounds, method="highs",
+                             options={"time_limit": remaining, "primal_feasibility_tolerance": tolerance,
+                                      "dual_feasibility_tolerance": tolerance})
+            tested += 1
+            if result.status == 2:
+                continue
+            if not result.success or not np.isfinite(result.x).all():
+                return {"status": "SEARCH_INCOMPLETE", "tests_completed": tested,
+                        "reason": "DIRECTION_NOT_VERIFIED", "optimizer_status": int(result.status)}
+            error = max(float(np.max(_violation(matrix @ result.x, lower, upper), initial=0.)),
+                        float(np.max(np.abs(soft @ result.x), initial=0.)),
+                        step - sign * float(result.x[coordinate]))
+            if error > tolerance:
+                return {"status": "SEARCH_INCOMPLETE", "tests_completed": tested,
+                        "reason": "DIRECTION_FAILED_READBACK", "max_normalized_violation": error}
+            return {"status": "DIRECTION_FOUND", "tests_completed": tested, "coordinate": coordinate,
+                    "direction": result.x.tolist(), "max_normalized_violation": error}
+    return {"status": "NO_CONTACT_DIRECTION", "tests_completed": tested}
+
+
+def _closure_report(basis, ncontact, components, name, hard_rows, hard, soft,
+                    rank_rtol, max_dense, deadline, tolerance):
+    """Distinguish a sufficient rank proof from computed recession bounds."""
+    lo, hi = _row_bounds(hard_rows)
+    paired = np.isfinite(lo) & np.isfinite(hi)
+    report = _rank(vstack((hard[paired], soft), format="csr"), rank_rtol, max_dense)
+    if report["rank"] == basis.shape[1]:
+        method = {"status": "NO_CONTACT_DIRECTION", "method": "FULL_PROJECTED_RANK", "tests_completed": 0}
     else:
-        basis = eye(n, format="csr")
-        components, count, ncontact = None, n, k * nodes
-    bounded = np.asarray([row.lower is not None and row.upper is not None for row in hard_rows])
-    projection = vstack((hard_matrix[bounded], soft_matrix), format="csr") @ basis
-    report = _rank(projection, rtol, max_dense_elements)
-    if report["rank"] is None:
-        bounded_contact = None
-    else:
-        nuisance = _rank(projection[:, ncontact:], rtol, max_dense_elements)["rank"]
-        # The difference in ranks is the dimension controlled among contact
-        # directions after every free nuisance direction is removed.
-        bounded_contact = report["rank"] - nuisance == ncontact
+        lower = np.where(np.isfinite(lo), 0., -np.inf)
+        upper = np.where(np.isfinite(hi), 0., np.inf)
+        method = _coordinate_witness(hard, lower, upper, soft, ncontact, 1., deadline, tolerance)
+        method["method"] = "NORMALIZED_CONTACT_RECESSION_LP"
+    bounded = {"NO_CONTACT_DIRECTION": True, "DIRECTION_FOUND": False, "SEARCH_INCOMPLETE": None}
     return report | {"gradient_null_contact_dimensions": ncontact, "horizontal_components": components,
-                     "declared_contact_closure": bounded_contact, "basis_columns": count,
-                     "basis": "CONNECTED_CONSTANT_CONTACT_MODES" if contact_weight > 0. else "FULL_VARIABLE_SPACE"}
+                     "declared_contact_closure": bounded[method["status"]], "basis_columns": basis.shape[1],
+                     "basis": name, "boundedness": method,
+                     "scope": "CONTACT_PROJECTION_OF_SCENARIO_OBJECTIVE_SUBLEVEL"}
+
+
+def _contact_uniqueness(hard, lo, hi, soft, ncontact, tolerances, limits):
+    """Check contact variations with all objective operators held fixed."""
+    rank_rtol, primal, hard_atol = tolerances
+    max_dense, deadline = limits
+    rank = _rank(vstack((hard[lo == hi], soft), format="csr"), rank_rtol, max_dense)
+    if rank["rank"] == hard.shape[1]:
+        return {"status": "UNIQUE_WITH_FIXED_OBJECTIVE_OPERATORS", "method": "FULL_EQUALITY_RANK"}
+    step = 4. * hard_atol
+    result = _coordinate_witness(hard, lo, hi, soft, ncontact, step, deadline, primal)
+    status = {"NO_CONTACT_DIRECTION": "UNIQUE_TO_TOLERANCE_WITH_FIXED_OBJECTIVE_OPERATORS",
+              "DIRECTION_FOUND": "NONUNIQUE_WITH_FIXED_OBJECTIVE_OPERATORS",
+              "SEARCH_INCOMPLETE": "SEARCH_INCOMPLETE"}
+    return result | {"status": status[result["status"]], "method": "FIXED_OBJECTIVE_BOUND_LP",
+                     "coordinate_test_step_m": step}
+
 
 
 def _field_values(problem, x):
@@ -713,12 +802,15 @@ def solve_model(problem, policy):
         return finish("NUMERIC_FAILURE", hard_feasibility="LP_WITNESS_NOT_VERIFIED",
                       witness_max_violation_m=max(x["violation_m"] for x in verified))
     result["hard_feasibility"] = "VERIFIED_CONTINUOUS_WITNESS"
-    closure = _closure_report(problem, hard, soft, A, S, contact_weight, rank_rtol, max_dense)
+    basis, ncontact, components, basis_name = _contact_motion_basis(problem, contact_weight, thickness_weight)
+    projected_hard, projected_soft = (A @ basis).tocsr(), (S @ basis).tocsr()
+    closure = _closure_report(basis, ncontact, components, basis_name, hard, projected_hard,
+                              projected_soft, rank_rtol, max_dense, deadline, primal)
     result["scenario_conditioned_rank"] = closure
     if closure["declared_contact_closure"] is not True:
-        return finish("UNBOUNDED" if closure["declared_contact_closure"] is False else "SEARCH_INCOMPLETE",
-                      unclosed_reason="SCENARIO_HAS_UNRESOLVED_CONTACT_DIRECTIONS" if
-                      closure["declared_contact_closure"] is False else "CLOSURE_RANK_NOT_ESTABLISHED")
+        if closure["declared_contact_closure"] is False:
+            return finish("UNBOUNDED", unclosed_reason="VERIFIED_SCENARIO_CONTACT_RECESSION")
+        return finish("SEARCH_INCOMPLETE", unclosed_reason="CONTACT_BOUNDEDNESS_NOT_ESTABLISHED")
     if monotonic() >= deadline:
         return finish("SEARCH_INCOMPLETE")
     regularizer = _regularizer(problem, length, contact_weight, thickness_weight)
@@ -809,7 +901,12 @@ def solve_model(problem, policy):
                       minimum_nodal_thickness_m=float(thickness.min()), diagnostic="NEGATIVE_THICKNESS")
     nuisance = [{"id": name, "model_value_m": float(val), "status": "CONDITIONAL_MODEL_VARIABLE"}
                 for name, val in zip(problem.variable_ids[fields.size:], x[fields.size:], strict=True)]
+    hard_at_solution = A @ x
+    uniqueness = _contact_uniqueness(projected_hard, lo - hard_at_solution, hi - hard_at_solution,
+                                     projected_soft, ncontact, (rank_rtol, primal, hard_atol),
+                                     (max_dense, deadline))
     return finish("MODEL_CLOSED_WITH_ASSUMPTIONS", contacts=fields, nuisance=nuisance,
+                  contact_uniqueness=uniqueness,
                   minimum_nodal_thickness_m=float(thickness.min()), worst_hard_residual_m=worst,
                   source_and_prior_checks=_raw_readback(problem.rows, x), optimization=optimization,
                   robust_weights_by_group={group: float(weights[indices[0]]) for group, indices in source_groups.items()},
