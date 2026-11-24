@@ -259,6 +259,9 @@ reproduction as `NOT_REQUESTED`; that is not a PASS for old releases.
 Run `python scripts/verify_canonical_repository.py --include-history` separately
 when historical frozen/retired reproduction is required. That mode keeps all old
 hash and closure checks, reports unavailable refs as NOT_RUN and never creates tags.
+Its `historical_reproduction` summary reports NOT_RUN when none of the requested
+historical checks completes, and PARTIAL when only some complete. The overall
+report uses NOT_RUN or PASS_WITH_NOT_RUN in those cases; current failures still fail.
 The current source-reading builder reproduces its 258 points and seven comparisons
 from hash-pinned ordinary source tables, without a legacy branch or retired inputs.
 PRIVATE source/catalogue synchronization still requires a separately authorized

@@ -358,8 +358,8 @@ def run_integrity(root: Path, output: Path) -> dict:
     groups = [group for group in verifier.CURRENT_GROUPS if group != "private_sources"]
     report = verifier.verify(root, groups=groups, use_env=False)
     report["verification_scope"] = "CURRENT"
-    report["historical_reproduction"] = {"status": "NOT_REQUESTED",
-        "command": "python scripts/verify_canonical_repository.py --include-history"}
+    report["historical_reproduction"]["command"] = (
+        "python scripts/verify_canonical_repository.py --include-history")
     (output / "canonical-verification.json").write_text(json.dumps(report, indent=2) + "\n")
     return integrity_status(report)
 

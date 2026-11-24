@@ -82,10 +82,48 @@ def test_report_structure_is_json_and_complete(tmp_path):
     json.loads(json.dumps(report))
     assert list(report)[0] == "status"
     assert report["status"] == "PASS" and report["exit_code"] == 0 and report["blocking_failures"] == []
+    assert report["historical_reproduction"]["status"] == "NOT_REQUESTED"
+    assert report["historical_reproduction"]["executed_checks"] == 0
     assert report["guarantees"]["models_executed"] == 0 and report["guarantees"]["evaluator_truth_parsed"] is False
     for check in report["checks"]:
         assert set(check) == {"id", "group", "status", "blocking", "summary", "details"}
         assert check["status"] in STATUSES
+
+
+@pytest.mark.parametrize("current,history,overall,historical,executed,exit_code", [
+    (None, ["SKIPPED_REF_UNAVAILABLE", "WARN"], "NOT_RUN", "NOT_RUN", 0, 0),
+    ("PASS", ["SKIPPED_REF_UNAVAILABLE", "WARN"], "PASS_WITH_NOT_RUN", "NOT_RUN", 0, 0),
+    ("PASS", ["PASS", "SKIPPED_REF_UNAVAILABLE"], "PASS_WITH_NOT_RUN", "PARTIAL", 1, 0),
+    ("FAIL", ["SKIPPED_REF_UNAVAILABLE", "WARN"], "FAIL", "NOT_RUN", 0, 1),
+    ("PASS", ["FAIL"], "FAIL", "FAIL", 1, 1),
+])
+def test_missing_history_never_masks_unexecuted_or_failed_checks(
+        tmp_path, monkeypatch, current, history, overall, historical, executed, exit_code):
+    monkeypatch.setitem(V.CHECKS, "frozen_references", lambda ctx: [
+        V.Check(f"frozen:test:{i}", "frozen_references", status, status == "FAIL", "synthetic historical check")
+        for i, status in enumerate(history)])
+    monkeypatch.setitem(V.CHECKS, "markdown_links", lambda ctx: [
+        V.Check("markdown:test", "markdown_links", current, True, "synthetic mandatory current check")])
+    groups = ["frozen_references"] + (["markdown_links"] if current else [])
+    report = V.verify(tmp_path, groups=groups, use_env=False)
+    assert report["status"] == overall and report["exit_code"] == exit_code
+    summary = report["historical_reproduction"]
+    assert summary["status"] == historical and summary["executed_checks"] == executed
+    assert summary["checks"] == len(history)
+    if current == "FAIL":
+        assert "markdown:test" in report["blocking_failures"]
+
+
+def test_api_default_does_not_request_historical_reproduction(tmp_path, monkeypatch):
+    for group in V.CURRENT_GROUPS:
+        monkeypatch.setitem(V.CHECKS, group, lambda ctx, g=group: [
+            V.Check(f"{g}:test", g, "PASS", True, "synthetic current check")])
+    for group in V.HISTORY_GROUPS:
+        monkeypatch.setitem(V.CHECKS, group, lambda ctx: pytest.fail("history was not requested"))
+    report = V.verify(tmp_path, use_env=False)
+    assert report["status"] == "PASS" and report["exit_code"] == 0
+    assert report["historical_reproduction"]["status"] == "NOT_REQUESTED"
+    assert report["summary"]["groups_run"] == list(V.CURRENT_GROUPS)
 
 
 def test_never_raises_on_missing_root_or_broken_registry(tmp_path):

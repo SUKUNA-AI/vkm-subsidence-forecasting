@@ -51,6 +51,7 @@ DEFAULT_OUTPUT = "work/verification/canonical_verification.json"
 
 PASS, FAIL, WARN = "PASS", "FAIL", "WARN"
 PASS_WITH_NONBLOCKING = "PASS_WITH_NONBLOCKING"   # overall: no blocking FAIL, but SKIPPED/WARN entries exist
+PASS_WITH_NOT_RUN, NOT_RUN = "PASS_WITH_NOT_RUN", "NOT_RUN"
 SKIPPED, SKIPPED_REF = "SKIPPED", "SKIPPED_REF_UNAVAILABLE"
 GROUPS = ("registry", "frozen_references", "retired_references", "private_sources", "markdown_links", "leakage",
           "host_paths", "worldspec_schema", "catalogue_sync")
@@ -1049,10 +1050,28 @@ def _display_path(path: Path, root: Path) -> str:
         return f"<outside root>/{path.name}"
 
 
+def historical_reproduction(checks: list[Check], selected: list[str]) -> dict:
+    """Unavailable historical objects are unexecuted checks, never successful reproduction."""
+    groups = [group for group in selected if group in HISTORY_GROUPS]
+    rows = [check for check in checks if check.group in groups]
+    passed = sum(check.status == PASS for check in rows)
+    failed = sum(check.status == FAIL for check in rows)
+    unavailable = sum(check.status in (SKIPPED, SKIPPED_REF) for check in rows)
+    warnings = sum(check.status == WARN for check in rows)
+    status = ("NOT_REQUESTED" if not groups else FAIL if failed else NOT_RUN if not passed
+              else "PARTIAL" if unavailable or warnings else PASS)
+    return {"status": status, "groups_requested": groups, "checks": len(rows),
+            "executed_checks": passed + failed, "passed_checks": passed, "failed_checks": failed,
+            "unavailable_checks": unavailable, "warnings": warnings}
+
+
 def verify(root: str | Path = DEFAULT_ROOT, registry_path: str | Path | None = None,
            resources_root: str | Path | None = None, groups: list[str] | tuple[str, ...] | None = None,
            use_env: bool = True) -> dict:
-    """Run the selected check groups and return the JSON-serialisable report (never raises for check errors)."""
+    """Run current groups by default; historical groups require explicit selection.
+
+    Return the JSON-serialisable report (never raises for check errors).
+    """
     started = time.monotonic()
     root = Path(root)
     source = None
@@ -1063,7 +1082,7 @@ def verify(root: str | Path = DEFAULT_ROOT, registry_path: str | Path | None = N
     ctx = Context(root=root, registry_path=Path(registry_path) if registry_path else DEFAULT_REGISTRY,
                   resources_root=Path(resources_root) if resources_root else None, resources_source=source,
                   git=Git(root))
-    selected = [g for g in GROUPS if groups is None or g in groups]
+    selected = list(CURRENT_GROUPS) if groups is None else [g for g in GROUPS if g in groups]
     checks: list[Check] = []
     try:
         if not root.is_dir():
@@ -1088,11 +1107,15 @@ def verify(root: str | Path = DEFAULT_ROOT, registry_path: str | Path | None = N
         by_status[c.status] = by_status.get(c.status, 0) + 1
     blocking = [c.id for c in checks if c.status == FAIL and c.blocking]
     status = FAIL if blocking else (PASS if all(c.status == PASS for c in checks) else PASS_WITH_NONBLOCKING)
+    history = historical_reproduction(checks, selected)
+    if not blocking and history["status"] in (NOT_RUN, "PARTIAL"):
+        status = PASS_WITH_NOT_RUN if any(c.status == PASS for c in checks) else NOT_RUN
     head = ctx.git.resolve("HEAD") if ctx.git.available else None
     return {
         "status": status,
         "exit_code": 1 if blocking else 0,
         "blocking_failures": blocking,
+        "historical_reproduction": history,
         "summary": {"checks": len(checks), "by_status": dict(sorted(by_status.items())), "groups_run": selected,
                     "elapsed_s": round(time.monotonic() - started, 3)},
         "verifier": {"script": "scripts/verify_canonical_repository.py", "version": VERSION,
@@ -1125,7 +1148,7 @@ def main(argv: list[str] | None = None) -> int:
     report = verify(root, registry_path=args.registry, resources_root=args.resources_root,
                     groups=args.only if args.only is not None else GROUPS if args.include_history else CURRENT_GROUPS)
     report["verification_scope"] = "EXPLICIT_GROUPS" if args.only else "CURRENT_AND_HISTORY" if args.include_history else "CURRENT"
-    report["historical_checks_requested"] = bool(args.include_history or (args.only and any(g in HISTORY_GROUPS for g in args.only)))
+    report["historical_checks_requested"] = bool(report["historical_reproduction"]["groups_requested"])
     text = json.dumps(report, ensure_ascii=False, indent=1) + "\n"
     if args.output:
         destination = Path(args.output)
