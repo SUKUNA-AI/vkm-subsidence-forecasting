@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Mapping
 from dataclasses import dataclass
+from numbers import Real
 from pathlib import Path
 import json
 
@@ -123,9 +125,64 @@ def choose_design(foundation, additional=12):
     return [(configs[index], reason) for index, reason in branches]
 
 
-def bind_factors(templates, config, interpretation, polygon, allowed_supports=()):
-    """Bind only approved horizontal supports without manufacturing XY for any factor."""
+_LOCAL_MAP_CONTROL = "CONDITIONAL_LOCAL_MAP_CONTROL"
+_NO_CONTROL = "DO_NOT_USE_AS_SPATIAL_CONTROL"
+_CONDITIONAL_POSITION_ROLES = {
+    "IDENTIFIED_IN_DECLARED_FRAME", "UNDERIDENTIFIED", "PRIOR_DOMINATED",
+}
+
+
+def _same_xy(value, xy):
+    return (isinstance(value, (list, tuple)) and len(value) == 2
+            and all(isinstance(v, Real) and not isinstance(v, bool) for v in value)
+            and list(value) == list(xy))
+
+
+def _qualified_local_map(point):
+    return (point.get("role") == "IDENTIFIED_IN_DECLARED_FRAME"
+            and point.get("epistemic_status") == "DERIVATION"
+            and bool(point.get("source_factor_ids")))
+
+
+def _scenario_admission(admission, config, point, factor_id):
+    if not (
+        isinstance(admission, Mapping)
+        and admission.get("physical_id") == point["object_id"]
+        and admission.get("frame_id") == config.frame
+        and _same_xy(admission.get("xy"), point["xy"])
+        and isinstance(admission.get("reason"), str)
+        and admission["reason"].strip()
+        and isinstance(admission.get("source_refs"), (list, tuple))
+        and admission["source_refs"]
+        and all(
+            (isinstance(ref, str) and ref.strip())
+            or (isinstance(ref, Mapping) and ref.get("source_id")
+                and (ref.get("locator") or ref.get("record_id")))
+            for ref in admission["source_refs"]
+        )
+        and point.get("role") in _CONDITIONAL_POSITION_ROLES
+    ):
+        raise ValueError(f"Invalid scenario spatial admission for {config.id}/{factor_id}")
+    return dict(admission)
+
+
+def bind_factors(templates, config, interpretation, polygon, allowed_supports=(), *,
+                 spatial_admissions=None):
+    """Bind local-map or explicitly conditional XY, preserving independent vertical provenance.
+
+    Spatial admissions are indexed by configuration ID and factor ID. External
+    supports also require their own vertical admission in allowed_supports.
+    """
+    if spatial_admissions is not None and not isinstance(spatial_admissions, Mapping):
+        raise ValueError("Scenario spatial admissions must be indexed by configuration")
+    if not isinstance(allowed_supports, (list, tuple, set, frozenset)) or any(
+        not isinstance(owner, str) or not owner.strip() for owner in allowed_supports
+    ):
+        raise ValueError("External vertical admissions require exact owner IDs")
     point_map = {row["object_id"]: row for row in config.positions}
+    admissions = {} if spatial_admissions is None else spatial_admissions.get(config.id, {})
+    if not isinstance(admissions, Mapping):
+        raise ValueError(f"Invalid scenario spatial admissions for {config.id}")
     records = []
     excluded = {}
     template_ids = set()
@@ -153,9 +210,41 @@ def bind_factors(templates, config, interpretation, polygon, allowed_supports=()
             excluded[factor_id] = "OUTSIDE_FIELD_DOMAIN"
         elif support["kind"] not in {"NONE", "POINT"}:
             excluded[factor_id] = "NEEDS_EXPLICIT_PROFILE_LINE_OR_AREA_OPERATOR"
+        elif support["kind"] == "POINT" and (
+            support.get("frame_id") != config.frame
+            or support.get("configuration_id") not in (None, config.id)
+            or not _same_xy(support.get("xy"), point["xy"])
+        ):
+            excluded[factor_id] = "POINT_SUPPORT_DOES_NOT_MATCH_BHJ_BINDING"
         else:
+            mask = point.get("scientific_use_mask")
+            if mask == _LOCAL_MAP_CONTROL and _qualified_local_map(point):
+                role = "QUALIFIED_LOCAL_MAP_CONTROL"
+                admission = None
+            elif mask == _NO_CONTROL:
+                if factor_id not in admissions:
+                    excluded[factor_id] = "NO_CONDITIONAL_SPATIAL_ADMISSION"
+                    continue
+                role = "CONDITIONAL_SCENARIO_OPERATOR"
+                admission = _scenario_admission(admissions[factor_id], config, point, factor_id)
+            else:
+                excluded[factor_id] = "UNQUALIFIED_BHJ_SPATIAL_CONTROL"
+                continue
+            provenance = {
+                "application_role": role,
+                "membership": point["membership"],
+                "scientific_use_mask": mask,
+                "position_role": point.get("role"),
+                "position_epistemic_status": point.get("epistemic_status"),
+                "position_reason": point.get("reason"),
+                "source_factor_ids": point.get("source_factor_ids", []),
+                "relation_ids": point.get("relation_ids", []),
+                "vertical_template_support": dict(support),
+                "scenario_admission": admission,
+            }
             records.append({
                 **row, "support": {**support, "kind": "POINT", "xy": point["xy"],
-                                    "frame_id": config.frame, "configuration_id": config.id}
+                                    "frame_id": config.frame, "configuration_id": config.id,
+                                    "spatial_provenance": provenance},
             })
     return records, excluded

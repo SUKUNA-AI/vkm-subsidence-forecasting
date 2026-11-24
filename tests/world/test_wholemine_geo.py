@@ -10,7 +10,10 @@ from vkm_world.geometry_build.wholemine_foundation import (
 
 def cfg(key, branch, xy):
     return SpatialConfiguration(key, branch, "SH1", (
-        {"object_id": "a", "xy": xy, "membership": "TARGET", "frame": "SH1"},
+        {"object_id": "a", "xy": xy, "membership": "TARGET", "frame": "SH1",
+         "scientific_use_mask": "CONDITIONAL_LOCAL_MAP_CONTROL",
+         "epistemic_status": "DERIVATION", "role": "IDENTIFIED_IN_DECLARED_FRAME",
+         "source_factor_ids": ["A-LOCAL-MAP-MARK"]},
         {"object_id": "b", "xy": None, "membership": "TARGET", "frame": None},
         {"object_id": "external", "xy": [1, 1], "membership": "SUPPORT", "frame": "SH1"},
     ), (), {})
