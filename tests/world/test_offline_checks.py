@@ -352,7 +352,7 @@ def test_real_pytest_run_accounts_for_collection_and_skips(tmp_path, source, exp
 
 
 @pytest.mark.parametrize("outer_git_redirects", [False, True])
-def test_actual_history_is_not_run_offline_and_fails_explicitly_without_sources(tmp_path, monkeypatch, outer_git_redirects):
+def test_actual_history_is_not_run_offline_and_fails_explicitly_without_sources(tmp_path, outer_git_redirects):
     """Use the unchanged actual test/verifier/11-ref registry in a Git tree with no history refs."""
     import ast
     import json
@@ -387,9 +387,18 @@ def test_actual_history_is_not_run_offline_and_fails_explicitly_without_sources(
                 for p in victim.rglob("*") if p.is_file()}
     victim_before = victim_fingerprint()
     if outer_git_redirects:
-        for key, value in {"GIT_DIR": str(victim / ".git"), "GIT_WORK_TREE": str(victim),
-                           "GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "core.bare", "GIT_CONFIG_VALUE_0": "true"}.items():
-            monkeypatch.setenv(key, value)
+        # Do not monkeypatch host Git config variables: restoring a native empty
+        # value via os.putenv deletes it on Windows. Give only a disposable child
+        # the hostile environment; its ordinary case must sanitize real os.environ.
+        hostile = dict(safe_env(), GIT_DIR=str(victim / ".git"), GIT_WORK_TREE=str(victim),
+                       GIT_CONFIG_COUNT="1", GIT_CONFIG_KEY_0="core.bare", GIT_CONFIG_VALUE_0="true")
+        node = "tests/world/test_offline_checks.py::test_actual_history_is_not_run_offline_and_fails_explicitly_without_sources[False]"
+        child = subprocess.run([sys.executable, "-B", "-m", "pytest", "-q", node],
+                               cwd=ROOT, capture_output=True, text=True, env=hostile)
+        assert child.returncode == 0, child.stdout + child.stderr
+        assert "1 passed" in child.stdout
+        assert victim_fingerprint() == victim_before, "hostile child must not change caller Git repository"
+        return
     env = safe_env()
 
     root = tmp_path / "current-only-checkout"
