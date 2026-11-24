@@ -3,6 +3,7 @@ from pathlib import Path
 import importlib.util
 import json
 import os
+import shutil
 import subprocess
 
 import pytest
@@ -40,10 +41,41 @@ printf 'new-log' > "$1/ogs.log"
 
 
 def git_bash():
-    executable = os.getenv("VKM_TEST_GIT_BASH")
-    if not executable or not Path(executable).is_file():
-        pytest.skip("explicit native Git Bash executable not supplied")
-    return Path(executable)
+    """Discover the test prerequisite; the production CLI still needs --bash.
+
+    Never probe Windows' WSL launcher. An explicit override must itself pass
+    validation; it must not silently fall back to a different installation.
+    """
+    override = os.getenv("VKM_TEST_GIT_BASH")
+    candidates = [Path(override)] if override else []
+    if not override:
+        if os.name == "nt":
+            for variable in ("ProgramW6432", "ProgramFiles", "ProgramFiles(x86)"):
+                if root := os.getenv(variable):
+                    candidates.append(Path(root) / "Git/bin/bash.exe")
+            if root := os.getenv("LOCALAPPDATA"):
+                candidates.append(Path(root) / "Programs/Git/bin/bash.exe")
+            if executable := shutil.which("git"):
+                root = Path(executable).parent.parent
+                candidates.extend((root / "bin/bash.exe", root / "usr/bin/bash.exe"))
+        if executable := shutil.which("bash"):
+            candidates.append(Path(executable))
+    for executable in dict.fromkeys(candidates):
+        if not executable.is_file():
+            continue
+        executable = executable.resolve()
+        if os.name == "nt" and any(part.casefold() in {"system32", "syswow64", "windowsapps"}
+                                    for part in executable.parts):
+            continue
+        try:
+            result = subprocess.run([str(executable), "--version"], capture_output=True, text=True, timeout=10)
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+        if (result.returncode == 0 and "GNU bash" in result.stdout
+                and (os.name != "nt" or "-msys" in result.stdout)):
+            return executable
+    pytest.fail("Native Bash prerequisite unavailable or invalid: install Git Bash on Windows or Bash on POSIX; "
+                "VKM_TEST_GIT_BASH may name a validated executable. WSL launchers are not supported.")
 
 
 def test_native_shell_writes_only_to_new_runtime_workspace(source, tmp_path):
