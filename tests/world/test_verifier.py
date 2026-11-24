@@ -71,9 +71,6 @@ def _has_ref(ref: str) -> bool:
                           capture_output=True).returncode == 0
 
 
-LEGACY_AVAILABLE = _has_ref("legacy") or _has_ref("origin/legacy")
-
-
 # ---------------------------------------------------------------- report structure / never raises
 def test_report_structure_is_json_and_complete(tmp_path):
     root = _tree(tmp_path, {"README.md": "[ok](docs/a.md) [dir](docs) [web](https://example.org/x) [top](#t)\n",
@@ -367,8 +364,12 @@ def test_frozen_registry_is_well_formed():
     assert pins["GATE_B3_T1_B3_V1"].startswith("127fa194")
 
 
-@pytest.mark.skipif(not LEGACY_AVAILABLE, reason="branch 'legacy' not available locally (shallow clone?)")
+@pytest.mark.native_source
 def test_frozen_references_verify_against_legacy(tmp_path):
+    assert _has_ref("legacy") or _has_ref("origin/legacy"), (
+        "Historical source qualification requires locally available legacy/origin/legacy Git objects; "
+        "explicit selection must fail without those sources. Offline CPU records this native_source test as NOT_RUN."
+    )
     registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
     for entry in registry["references"]:
         entry["verify_at"] = ["legacy"]

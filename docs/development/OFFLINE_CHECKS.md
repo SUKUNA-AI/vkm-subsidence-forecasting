@@ -256,6 +256,23 @@ the future or without a recognised terminal verdict fail.
 The world job checks current integrity, leakage, schemas, links and the complete
 public catalogue map/manifest using a shallow checkout. Its report marks historical
 reproduction as `NOT_REQUESTED`; that is not a PASS for old releases.
+The one actual historical Git-source test,
+`tests/world/test_verifier.py::test_frozen_references_verify_against_legacy`, carries
+`native_source`: its separately supplied inputs are the pinned `legacy` or
+`origin/legacy` Git objects. Offline CPU deselects exactly that test as NOT_RUN;
+its absence is neither a passed historical check nor an allowed dependency skip.
+Pure Git-fixture closure tests in the same file remain CPU checks. To qualify the
+real historical sources in an already prepared checkout, run:
+
+```bash
+python -m pytest -q -m native_source tests/world/test_verifier.py::test_frozen_references_verify_against_legacy
+```
+
+Explicit invocation without the required refs fails. It does not fetch history,
+install anything, substitute synthetic sources, or relax the eleven registry
+reference/hash assertions. Record the actual history anchor SHA with the result;
+a shallow public CI run does not claim this qualification.
+
 Run `python scripts/verify_canonical_repository.py --include-history` separately
 when historical frozen/retired reproduction is required. That mode keeps all old
 hash and closure checks, reports unavailable refs as NOT_RUN and never creates tags.
