@@ -101,6 +101,7 @@ jobs:
           if-no-files-found: error
 
   windows-offline:
+    needs: windows-bash-prerequisite
     runs-on: windows-2025
     # Tests plus evidence upload and post-job cleanup exceeded 25 minutes on
     # hosted runners even when every check passed; retain time for finalization.
