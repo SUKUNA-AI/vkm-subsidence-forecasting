@@ -116,8 +116,38 @@ def source_attachment_count(verticals, object_id):
     return len(links)
 
 
+def _input_support_roles(compiled):
+    """Classify applied input by the compiler contract, never by link presence.
+
+    DATA operators are source-relative; CONDITIONAL_DATA and SCENARIO operators
+    remain conditional even with qualified map control. Neither is a measurement
+    of the resulting column. An owner with both kinds is explicitly mixed.
+    """
+    source_roles = {"DATA_HARD", "DATA_SOFT"}
+    conditional_roles = {"CONDITIONAL_DATA_HARD", "CONDITIONAL_DATA_SOFT", "SCENARIO_HARD", "SCENARIO_SOFT"}
+    operators = {row["id"]: row for row in compiled["operators"]}
+    if len(operators) != len(compiled["operators"]):
+        raise ValueError("Duplicate compiled operator identity")
+    owned = defaultdict(set)
+    for factor in compiled["factors"]:
+        for key in factor["operator_ids"]:
+            role = operators.get(key, {}).get("role")
+            if role not in source_roles | conditional_roles or role != factor["compiler_disposition"]:
+                raise ValueError("Applied input disposition differs from compiled operator role")
+            if role in source_roles and (factor["source_epistemic_status"] in {"MODEL_CHOICE", "ENGINEERING_ASSUMPTION"}
+                    or factor["support"].get("spatial_provenance", {}).get("application_role")
+                    == "CONDITIONAL_SCENARIO_OPERATOR"):
+                raise ValueError("Conditional input cannot have a source-only compiled role")
+            owned[factor["physical_id"]].add(role in conditional_roles)
+    labels = {frozenset({False}): "BORING_RELATIVE_INPUT",
+              frozenset({True}): "CONDITIONAL_BORING_RELATIVE_INPUT",
+              frozenset({False, True}): "MIXED_BORING_RELATIVE_INPUT"}
+    return {key: labels[frozenset(kinds)] for key, kinds in owned.items()}
+
+
 def query_rows(problem, result, config, geometry_id, compiled, verticals):
     numeric = _interp_rows(problem, result, config.positions)
+    support_roles = _input_support_roles(compiled)
     direct = defaultdict(list)
     for condition in compiled["factors"]:
         direct[condition["physical_id"]].append(condition["factor_id"])
@@ -131,12 +161,7 @@ def query_rows(problem, result, config, geometry_id, compiled, verticals):
         values = numeric.get(key)
         reason = "UNKNOWN_XY" if row["xy"] is None else "OUTSIDE_DOMAIN_OR_NATIVE_ONLY"
         own = applied[key]
-        if own:
-            conditional = all(condition["support"].get("spatial_provenance", {}).get("application_role")
-                              == "CONDITIONAL_SCENARIO_OPERATOR" for condition in own)
-            support_role = "CONDITIONAL_BORING_RELATIVE_INPUT" if conditional else "BORING_RELATIVE_INPUT"
-        else:
-            support_role = "CONDITIONAL_MODEL_CONTINUATION"
+        support_role = support_roles.get(key, "CONDITIONAL_MODEL_CONTINUATION")
         rows.append({
             **row, "source_role": row["role"], "scenario_id": geometry_id, "bhj_id": config.id,
             "spatial_role": reason if values is None else support_role,

@@ -397,3 +397,78 @@ def test_planning_rejects_unqualified_material_mapping(prepared, change):
     with pytest.raises(ValueError, match="identity mismatch|boundary pair"):
         job.execute(*prepared)
     assert not out.exists()
+
+
+@pytest.mark.parametrize("statuses,admission,expected", [
+    (["FACT"], "HARD", "BORING_RELATIVE_INPUT"),
+    (["DERIVATION"], "SOFT", "BORING_RELATIVE_INPUT"),
+    (["MODEL_CHOICE"], "HARD", "CONDITIONAL_BORING_RELATIVE_INPUT"),
+    (["MODEL_CHOICE"], "SOFT", "CONDITIONAL_BORING_RELATIVE_INPUT"),
+    (["ENGINEERING_ASSUMPTION"], "HARD", "CONDITIONAL_BORING_RELATIVE_INPUT"),
+    (["FACT", "MODEL_CHOICE"], "HARD", "MIXED_BORING_RELATIVE_INPUT"),
+    (["MODEL_CHOICE", "FACT"], "SOFT", "MIXED_BORING_RELATIVE_INPUT"),
+])
+def test_query_role_uses_actual_compiled_source_conditional_and_mixed_inputs(prepared, statuses, admission, expected):
+    inputs, out = prepared[1], prepared[-1]
+    path = inputs / "TYPED_VERTICAL_FACTORS.jsonl"
+    factors = job._read_rows(path)
+    for index, status in enumerate(statuses):
+        factors.append({"factor_id": f"qualified-thickness-{index}", "physical_id": "A",
+                        "interpretation_id": "ROOF", "admission": admission, "scale_m": 1.,
+                        "quantity": "THICKNESS_VERTICAL", "epistemic_status": status,
+                        "support": {"kind": "NONE"}, "contact_ids": ["TOP", "BASE"],
+                        "source_refs": [{"source_id": "synthetic", "record_id": f"source-{index}"}],
+                        "bounds": {"lower": 20., "upper": 20., "unit": "m"},
+                        "independence_group": f"source-{index}"})
+        if status == "MODEL_CHOICE":
+            # Match the actual shared-source-offset contract, rather than add
+            # duplicate hard thickness equations at one point.
+            factors[-1].update(quantity="ELEVATION_LOCAL", contact_ids=["TOP"],
+                               datum_mode="LATENT_SOURCE_OFFSET", datum_group="synthetic-source-origin",
+                               bounds={"lower": 50., "upper": 50., "unit": "m"})
+    job.jsonl(path, factors)
+    assert job.execute(*prepared, require_all=True) == 0
+    bundle = job.read_committed_selection(out)
+    query = job._read_rows(bundle / "TARGET_QUERIES.jsonl")[0]
+    ledger = job.read(bundle / "APPLIED_OPERATORS.json")
+    # All positions have QUALIFIED_LOCAL_MAP_CONTROL: it must not erase the
+    # compiler's MODEL_CHOICE/assumption distinction or the presence of mixed data.
+    assert all(f["support"]["spatial_provenance"]["application_role"] == "QUALIFIED_LOCAL_MAP_CONTROL"
+               for f in ledger["factors"])
+    assert query["spatial_role"] == expected
+    assert query["column_role"] == "MODEL_RESULT"
+    assert query["source_attachment_count"] == 1
+    assert len(query["own_factor_ids"]) == len(statuses)
+    if expected == "BORING_RELATIVE_INPUT":
+        return
+    state = job.read(out / "SCENARIO_INDEX.json")
+    query_path = bundle / "TARGET_QUERIES.jsonl"
+    rows = job._read_rows(query_path)
+    rows[0]["spatial_role"] = "BORING_RELATIVE_INPUT"
+    job.jsonl(query_path, rows)
+    signature = job._file_signature(query_path)
+    state["selected"]["artifacts"]["TARGET_QUERIES.jsonl"] = signature
+    anchor = next(row for row in state["jobs"] if row["identity"] == state["selected"]["identity"])
+    anchor["artifacts"][anchor["identity"]["stem"] + "-QUERIES.jsonl"] = signature
+    job.write(out / "SCENARIO_INDEX.json", state)
+    with pytest.raises(ValueError, match="query semantic identity"):
+        job.read_committed_selection(out)
+    # Altering both the factor disposition and operator role cannot launder an
+    # explicitly conditional source status into a DATA-only input.
+    changed = next(f for f in ledger["factors"] if f["source_epistemic_status"] != "FACT")
+    changed["compiler_disposition"] = "DATA_HARD"
+    for operator in ledger["operators"]:
+        if operator["id"] in changed["operator_ids"]:
+            operator["role"] = "DATA_HARD"
+    with pytest.raises(ValueError, match="source-only compiled role"):
+        job._input_support_roles(ledger)
+
+
+def test_query_input_classification_rejects_inconsistent_compiler_ledger():
+    factor = {"factor_id": "f", "physical_id": "A", "operator_ids": ["op"],
+              "compiler_disposition": "CONDITIONAL_DATA_HARD", "source_epistemic_status": "MODEL_CHOICE",
+              "support": {"spatial_provenance": {"application_role": "QUALIFIED_LOCAL_MAP_CONTROL"}}}
+    for operators in ([{"id": "op", "role": "DATA_HARD"}], [],
+                      [{"id": "op", "role": "CONDITIONAL_DATA_HARD"}] * 2):
+        with pytest.raises(ValueError, match="compiled operator|Duplicate compiled"):
+            job._input_support_roles({"factors": [factor], "operators": operators})
