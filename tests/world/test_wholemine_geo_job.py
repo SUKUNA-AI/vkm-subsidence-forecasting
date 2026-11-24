@@ -309,3 +309,91 @@ def test_selection_order_is_input_defined_and_independent_of_manifest_listing(pr
     assert job.execute(*prepared, require_all=True) == 0
     selected = job.read(prepared[-1] / "SCENARIO_INDEX.json")["selected"]
     assert selected["identity"]["configuration_id"] == "first"
+
+
+@pytest.mark.parametrize("change", ["source_count", "queries_removed", "position", "membership",
+                                   "column_role", "spatial_role", "unknown_reason", "profile_removed",
+                                   "profile_station", "profile_id", "profile_context"])
+def test_reader_requires_bound_source_queries_and_metric_profile_inventory(prepared, change):
+    assert job.execute(*prepared, require_all=True) == 0
+    out = prepared[-1]
+    state = job.read(out / "SCENARIO_INDEX.json")
+    artifact = "PROFILES.json" if change.startswith("profile_") else "TARGET_QUERIES.jsonl"
+    path = out / "selected" / artifact
+    if artifact == "TARGET_QUERIES.jsonl":
+        rows = job._read_rows(path)
+        if change == "source_count": rows[0]["source_attachment_count"] = 999
+        if change == "queries_removed": rows = []
+        if change == "position": rows[0]["xy"] = [0, 0]  # same values in the constant test field
+        if change == "membership": rows[0]["membership"] = "SUPPORT"
+        if change == "column_role": rows[0]["column_role"] = "MEASURED"
+        if change == "spatial_role": rows[0]["spatial_role"] = "BORING_RELATIVE_INPUT"
+        if change == "unknown_reason": rows[1]["no_numeric_query_reason"] = None
+        job.jsonl(path, rows)
+    else:
+        data = job.read(path)
+        if change == "profile_removed": data["profiles"] = []
+        if change == "profile_station":
+            data["profiles"][0]["station_m"] = [v * 1000 for v in data["profiles"][0]["station_m"]]
+        if change == "profile_id": data["profiles"][0]["id"] = "substituted"
+        if change == "profile_context": data["native_context_profiles"] = [{"id": "unbound"}]
+        job.write(path, data)
+    signature = job._file_signature(path)
+    state["selected"]["artifacts"][artifact] = signature
+    if artifact == "TARGET_QUERIES.jsonl":
+        anchor = next(row for row in state["jobs"] if row["identity"] == state["selected"]["identity"])
+        anchor["artifacts"][anchor["identity"]["stem"] + "-QUERIES.jsonl"] = signature
+    job.write(out / "SCENARIO_INDEX.json", state)
+    with pytest.raises(ValueError, match="semantic identity"):
+        job.read_committed_selection(out)
+
+
+def test_actual_planned_identity_binds_explicit_material_mapping(prepared):
+    manifest, inputs, field, out = prepared
+    policy_path = inputs / "FIELD_POLICY.json"
+    policy = job.read(policy_path)
+    mapping = {"schema": "vkm.interval-semantics/1", "frame_id": "SH1",
+               "source_identity": sha256(manifest.read_bytes()).hexdigest(),
+               "intervals": [{"upper_contact_id": "TOP", "lower_contact_id": "BASE",
+                              "unit_id": "synthetic-rock", "material_id": "material-a",
+                              "role": "GEOLOGICAL_UNIT",
+                              "source_refs": [{"source_id": "synthetic", "locator": "table 1"}]}]}
+    job.write(policy_path, {**policy, "interval_semantics": mapping})
+    assert job.execute(*prepared, require_all=True) == 0
+    first = job.read(out / "SCENARIO_INDEX.json")
+    identity = first["selected"]["identity"]
+    assert identity["material_mapping_sha256"] == job.digest(mapping)
+    assert job.read_committed_selection(out) == out / "selected"
+    mapping["intervals"][0]["material_id"] = "material-b"
+    job.write(policy_path, {**policy, "interval_semantics": mapping})
+    other = out.with_name("different-material")
+    assert job.execute(manifest, inputs, field, other, require_all=True) == 0
+    second = job.read(other / "SCENARIO_INDEX.json")
+    assert identity != second["selected"]["identity"]
+    assert first["jobs"][0]["geometry_id"] != second["jobs"][0]["geometry_id"]
+    with np.load(out / "selected/SELECTED_FIELD.npz") as a, np.load(other / "selected/SELECTED_FIELD.npz") as b:
+        np.testing.assert_array_equal(a["contacts"], b["contacts"])
+    assert job.read_committed_selection(other) == other / "selected"
+    # Even a newly signed marker cannot relabel a field whose job identity binds the old map.
+    first["input_components"]["interval_semantics"] = mapping
+    first["input_signature"] = job.digest(first["input_components"])
+    job.write(out / "SCENARIO_INDEX.json", first)
+    with pytest.raises(ValueError, match="material semantic identity"):
+        job.read_committed_selection(out)
+
+
+@pytest.mark.parametrize("change", ["source_identity", "pair"])
+def test_planning_rejects_unqualified_material_mapping(prepared, change):
+    manifest, inputs, _, out = prepared
+    policy_path = inputs / "FIELD_POLICY.json"
+    mapping = {"schema": "vkm.interval-semantics/1", "frame_id": "SH1",
+               "source_identity": sha256(manifest.read_bytes()).hexdigest(),
+               "intervals": [{"upper_contact_id": "TOP", "lower_contact_id": "BASE",
+                              "unit_id": None, "material_id": None, "role": "UNKNOWN_LITHOLOGY",
+                              "source_refs": [{"source_id": "synthetic", "locator": "unknown"}]}]}
+    if change == "source_identity": mapping["source_identity"] = "another-input"
+    if change == "pair": mapping["intervals"][0]["upper_contact_id"] = "BASE"
+    job.write(policy_path, {**job.read(policy_path), "interval_semantics": mapping})
+    with pytest.raises(ValueError, match="identity mismatch|boundary pair"):
+        job.execute(*prepared)
+    assert not out.exists()

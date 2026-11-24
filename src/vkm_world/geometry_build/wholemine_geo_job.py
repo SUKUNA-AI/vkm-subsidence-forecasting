@@ -174,9 +174,8 @@ def _profile_bridge(bridge, native, target_frame):
     return matrix
 
 
-def profiles(problem, result, config, polygon, geometry_id, bridges=None):
-    if config.frame != problem.frame_id:
-        raise ValueError("BHJ field configuration frame differs from the reconstructed field")
+def _profile_axes(config, polygon, bridges=None):
+    """Derive profile inventory from inputs, independently of a solved field."""
     center = polygon.representative_point()
     xmin,ymin,xmax,ymax = polygon.bounds
     paths = [
@@ -200,12 +199,12 @@ def profiles(problem, result, config, polygon, geometry_id, bridges=None):
         endpoints = np.array([origin + min(along)*direction, origin + max(along)*direction])
         metadata = {"native": native, "native_direction": direction.tolist(),
                     "native_station_m": np.linspace(min(along), max(along), 257).tolist()}
-        if native["frame"] != problem.frame_id:
+        if native["frame"] != config.frame:
             bridge = (bridges or {}).get(profile["id"])
             if bridge is None:
                 contexts.append({**context, "disposition": "NATIVE_CONTEXT_WITHOUT_QUALIFIED_BRIDGE"})
                 continue
-            matrix = _profile_bridge(bridge, native, problem.frame_id)
+            matrix = _profile_bridge(bridge, native, config.frame)
             endpoints = endpoints @ matrix[:, :2].T + matrix[:, 2]
             metadata["frame_bridge"] = bridge
         path = LineString(endpoints)
@@ -214,14 +213,24 @@ def profiles(problem, result, config, polygon, geometry_id, bridges=None):
     for key,label,path,refs,metadata in paths:
         stations=np.linspace(0,path.length,257)
         xy = [list(path.interpolate(value).coords[0]) for value in stations]
-        result_z=evaluate_contacts(problem,result["contacts"],xy)
         entries.append({
             **metadata, "id":key,"label":label,"xy":xy,"station_m":stations.tolist(),"source_refs":refs,
-            "vertical_exaggeration":1.,"values_m":{
+            "vertical_exaggeration":1.,
+        })
+    return entries, contexts
+
+
+def profiles(problem, result, config, polygon, geometry_id, bridges=None):
+    if config.frame != problem.frame_id:
+        raise ValueError("BHJ field configuration frame differs from the reconstructed field")
+    axes, contexts = _profile_axes(config, polygon, bridges)
+    entries = []
+    for axis in axes:
+        result_z = evaluate_contacts(problem, result["contacts"], axis["xy"])
+        entries.append({**axis, "values_m": {
                 contact:[float(value) if np.isfinite(value) else None for value in result_z[:,i]]
                 for i,contact in enumerate(result["contact_ids"])
-            },
-        })
+            }})
     return {"scenario_id":geometry_id,"frame":config.frame,"vertical_frame":"LOCAL_SCENARIO_VERTICAL_GAUGE",
             "profiles":entries,"native_context_profiles":contexts}
 
@@ -269,7 +278,7 @@ def _fit(nodes, triangle, contact_ids, config, factors, priors, policy, branch):
     return problem, solve_model(problem,policy)
 
 
-_RUN_SCHEMA = "vkm.wholemine-geo-run/3"
+_RUN_SCHEMA = "vkm.wholemine-geo-run/4"
 _SELECTION_POLICY = "FIRST_CLOSED_PRIMARY_IN_INPUT_REPRESENTATIVE_THEN_ID_ORDER"
 _STATIC_FILES = {"ALL_CONFIGURATIONS_LEDGER.jsonl", "AREAL_OPERATOR_DISPOSITION.json"}
 _SELECTED_FILES = {"SELECTED_FIELD.npz", "TARGET_QUERIES.jsonl", "ACTIVE_FACTORS.jsonl",
@@ -290,10 +299,29 @@ def _read_rows(path):
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
 
 
-def _job_identity(config, branch, completion, reason):
-    stem = "FIELD-" + digest([config.id, branch, completion])[:16]
+def _job_identity(config, branch, completion, reason, consumer_contract, material_mapping_sha256):
+    contract_sha256 = digest(consumer_contract)
+    stem = "FIELD-" + digest([config.id, branch, completion, contract_sha256, material_mapping_sha256])[:16]
     return {"stem": stem, "configuration_id": config.id, "spatial_branch": config.branch,
-            "branch": branch, "completion": completion, "design_reason": reason}
+            "branch": branch, "completion": completion, "design_reason": reason,
+            "consumer_contract_sha256": contract_sha256, "material_mapping_sha256": material_mapping_sha256}
+
+
+def _consumer_contract(config, verticals, polygon, bridges):
+    axes, contexts = _profile_axes(config, polygon, bridges)
+    if (not config.positions or len({row["object_id"] for row in config.positions}) != len(config.positions)
+            or len({axis["id"] for axis in axes}) != len(axes)):
+        raise ValueError("Unique nonempty query and profile input inventories are required")
+    links = {}
+    for position in config.positions:
+        key = position["object_id"]
+        source_attachment_count(verticals, key)
+        links[key] = {"object_id": key, "vertical_links": [
+            {"link_id": link["link_id"], "ownership": link["ownership"]}
+            for link in verticals.get(key, {}).get("vertical_links", [])]}
+    return {"frame": config.frame, "positions": list(config.positions), "source_links": links,
+            "profiles": [{"id": axis["id"], "axis_sha256": digest(axis)} for axis in axes],
+            "native_context_profiles_sha256": digest(contexts)}
 
 
 def _job_files(record):
@@ -425,6 +453,12 @@ def read_committed_selection(directory):
     if chosen is None or chosen["identity"] != selected["identity"]:
         raise ValueError("Selected generation violates its declared primary selection rule")
     identity = selected["identity"]
+    contract = state["input_components"]["consumer_contracts"][identity["configuration_id"]]
+    mapping = state["input_components"]["interval_semantics"]
+    mapping_sha256 = digest(mapping) if mapping is not None else None
+    if (identity["consumer_contract_sha256"] != digest(contract)
+            or identity["material_mapping_sha256"] != mapping_sha256):
+        raise ValueError("Selected input or material semantic identity mismatch")
     bundle = directory / "selected"
     if bundle.is_symlink():
         raise ValueError("Selected bundle is not an owned generation directory")
@@ -458,31 +492,41 @@ def read_committed_selection(directory):
             raise ValueError("Selected field semantic identity mismatch")
         carrier = SimpleNamespace(nodes=field["xy"], triangles=field["triangles"],
                                   contact_ids=contact_ids, frame_id=frame)
+    if frame != contract["frame"]:
+        raise ValueError("Selected field frame differs from bound inputs")
+    if mapping is not None:
+        wholemine_foundation.bind_interval_semantics(
+            contact_ids, mapping, frame_id=frame,
+            source_identity=state["input_components"]["files"]["bhj"]["sha256"])
     profile = read(bundle / "PROFILES.json")
     if (profile["scenario_id"] != identifier or profile["frame"] != frame
             or profile["vertical_frame"] != "LOCAL_SCENARIO_VERTICAL_GAUGE"):
         raise ValueError("Selected profile semantic identity mismatch")
     queries = _read_rows(bundle / "TARGET_QUERIES.jsonl")
-    if len({row["object_id"] for row in queries}) != len(queries):
-        raise ValueError("Duplicate selected query owner")
-    expected_values = _interp_rows(carrier, {"contacts": contacts}, queries)
     ledger = read(bundle / "APPLIED_OPERATORS.json")
     if ledger["run_identity"] != identity:
         raise ValueError("Selected operator identity mismatch")
-    factors = {row["factor_id"]: row for row in ledger["factors"]}
-    for row in queries:
-        expected = (dict(zip(contact_ids, expected_values[row["object_id"]].tolist(), strict=True))
-                    if row["object_id"] in expected_values else None)
-        owned = [factor for factor in factors.values() if factor["physical_id"] == row["object_id"]]
-        applied = [factor for factor in owned if factor["operator_ids"]]
-        if (row["scenario_id"] != identifier or row["bhj_id"] != identity["configuration_id"]
-                or row["values_m"] != expected
-                or row["surface_reference"] != "LOCAL_SCENARIO_VERTICAL_GAUGE"
-                or row["bound_factor_ids"] != [f["factor_id"] for f in owned]
-                or row["own_factor_ids"] != [f["factor_id"] for f in applied]
-                or row["applied_operator_ids"] != [op for f in applied for op in f["operator_ids"]]):
-            raise ValueError("Selected query semantic identity mismatch")
+    config = SimpleNamespace(id=identity["configuration_id"], positions=contract["positions"])
+    expected_queries = query_rows(carrier, {"contacts": contacts, "contact_ids": contact_ids},
+                                  config, identifier, ledger, contract["source_links"])
+    if digest(queries) != digest(expected_queries):
+        raise ValueError("Selected query semantic identity mismatch: bound inventory, source links or roles")
+    axes = [{"id": item["id"], "axis_sha256": digest({key: value for key, value in item.items()
+                                                       if key != "values_m"})}
+            for item in profile["profiles"]]
+    if (axes != contract["profiles"]
+            or digest(profile["native_context_profiles"]) != contract["native_context_profiles_sha256"]):
+        raise ValueError("Selected profile semantic identity mismatch: bound axis inventory")
     for item in profile["profiles"]:
+        xy = np.asarray(item["xy"], dtype=float)
+        stations = np.asarray(item["station_m"], dtype=float)
+        if (xy.ndim != 2 or xy.shape[1] != 2 or len(xy) < 2 or stations.shape != (len(xy),)
+                or not np.isfinite(xy).all() or not np.isfinite(stations).all()
+                or stations[0] != 0 or np.any(np.diff(stations) <= 0)
+                or not np.allclose(np.diff(stations), np.linalg.norm(np.diff(xy, axis=0), axis=1),
+                                   rtol=1e-10, atol=1e-8)
+                or set(item["values_m"]) != set(contact_ids)):
+            raise ValueError("Selected profile station metric differs from field XY")
         expected = evaluate_contacts(carrier, contacts, item["xy"])
         for index, contact_id in enumerate(contact_ids):
             values = [float(value) if np.isfinite(value) else None for value in expected[:, index]]
@@ -502,6 +546,8 @@ def _check_run(directory, state, signature, planned, roof, by_id, contact_ids, n
         _check_job(directory, record, identity, by_id[identity["configuration_id"]],
                    contact_ids, nodes, triangles, verticals)
     _check_selected(directory, state, roof, by_id)
+    if state["selected"] is not None:
+        read_committed_selection(directory)
 
 
 def _restore_run(output, backup, state):
@@ -607,7 +653,19 @@ def execute(manifest, inputs, field, output, *, pilot=False, resume=False,
         jobs.append((row["id"],roof,"baseline",row["reason"]))
         if row["reason"]=="WITHIN_BRANCH_MEDIAN_NEAREST" and not pilot:
             jobs.append((row["id"],floor,"baseline",row["reason"]))
-    planned = [_job_identity(by_id[key], branch, completion, reason) for key, branch, completion, reason in jobs]
+    consumer_contracts = {
+        key: _consumer_contract(by_id[key], foundation.verticals, footprint,
+                               policy.get("profile_frame_bridges", {}).get(key))
+        for key in sorted(design_ids)
+    }
+    interval_semantics = policy.get("interval_semantics")
+    if interval_semantics is not None:
+        for frame in {by_id[key].frame for key in design_ids}:
+            wholemine_foundation.bind_interval_semantics(
+                contact_ids, interval_semantics, frame_id=frame, source_identity=actual_manifest_sha)
+    material_mapping_sha256 = digest(interval_semantics) if interval_semantics is not None else None
+    planned = [_job_identity(by_id[key], branch, completion, reason, consumer_contracts[key],
+                             material_mapping_sha256) for key, branch, completion, reason in jobs]
     if len({identity["stem"] for identity in planned}) != len(planned):
         raise ValueError("Duplicate planned geological job artifact stem")
     implementations = (geology_area_operators, geology_reconstruction, wholemine_foundation,
@@ -621,6 +679,7 @@ def execute(manifest, inputs, field, output, *, pilot=False, resume=False,
         "bound_configurations_sha256": digest(all_bindings),
         "resolved_foundation_sha256": digest(asdict(foundation)),
         "effective_footprint_sha256": sha256(footprint.wkb).hexdigest(),
+        "consumer_contracts": consumer_contracts, "interval_semantics": interval_semantics,
         "jobs": planned, "selection_policy": _SELECTION_POLICY,
     }
     signature = digest(signature_inputs)
