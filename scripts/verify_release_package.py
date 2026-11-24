@@ -54,6 +54,15 @@ def verify(manifest_path):
         with target.open("rb") as stream:
             if digest(stream) != record["sha256"]:
                 raise ValueError(f"payload hash mismatch: {relative}")
+    complete_inventory = manifest.get("complete_tree_inventory", False)
+    if type(complete_inventory) is not bool:
+        raise ValueError("complete_tree_inventory must be boolean")
+    if complete_inventory:
+        actual = {path.relative_to(root).as_posix() for path in root.rglob("*")
+                  if path.is_file() and path != manifest_path
+                  and "__pycache__" not in path.relative_to(root).parts and path.suffix != ".pyc"}
+        if actual != paths:
+            raise ValueError(f"complete delivery inventory mismatch: unlisted={sorted(actual - paths)}, missing={sorted(paths - actual)}")
     members_checked = 0
     for archive in manifest.get("archives", []):
         archive_path = str(safe_relative(archive["path"]))
@@ -77,7 +86,7 @@ def verify(manifest_path):
                 members_checked += 1
     return {"status": "PASS_FOR_PAYLOAD_INTEGRITY_ONLY", "files": len(paths),
             "archive_members": members_checked, "schema": manifest.get("schema"),
-            "edition": manifest.get("edition")}
+            "edition": manifest.get("edition"), "complete_tree_inventory": complete_inventory}
 
 
 if __name__ == "__main__":

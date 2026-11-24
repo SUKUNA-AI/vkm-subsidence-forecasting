@@ -41,3 +41,22 @@ def test_conflicting_size_is_rejected(tmp_path):
     manifest.write_text(json.dumps({'files': {'file': {'size': 1, 'bytes': 2, 'sha256': sha256(b'a').hexdigest()}}}))
     with pytest.raises(ValueError, match='conflicting'):
         MODULE.verify(manifest)
+
+
+def test_complete_delivery_cannot_hide_an_unlisted_new_document(tmp_path):
+    payload = tmp_path / 'diploma.docx'
+    payload.write_bytes(b'current')
+    manifest = tmp_path / 'MANIFEST.json'
+    manifest.write_text(json.dumps({'complete_tree_inventory': True, 'files': [
+        {'path': payload.name, 'size': 7, 'sha256': sha256(b'current').hexdigest()}]}))
+    assert MODULE.verify(manifest)['complete_tree_inventory'] is True
+    (tmp_path / 'unchecked.pdf').write_bytes(b'unchecked')
+    with pytest.raises(ValueError, match=r'complete delivery inventory mismatch:.*unchecked.pdf'):
+        MODULE.verify(manifest)
+
+
+def test_complete_inventory_mode_rejects_a_string_switch(tmp_path):
+    manifest = tmp_path / 'MANIFEST.json'
+    manifest.write_text(json.dumps({'complete_tree_inventory': 'false', 'files': []}))
+    with pytest.raises(ValueError, match='must be boolean'):
+        MODULE.verify(manifest)
