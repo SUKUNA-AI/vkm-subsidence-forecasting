@@ -7,7 +7,7 @@
 - `THEORY_TO_SCIENTIFIC_DATA_SYSTEM_CONTRACT_V0_2_RU.md` (CT).
 
 Решения пользователя — D-18, D-19 ([PHASE1_DESIGN_DECISIONS_RU.md](../governance/PHASE1_DESIGN_DECISIONS_RU.md)); план
-— [PHASE2_PLAN_OCT_NOV_2026_RU.md](../planning/PHASE2_PLAN_OCT_NOV_2026_RU.md); модель данных знаний о мире —
+— [PROMPT_GPT_AGENTS_RU.md](../planning/PROMPT_GPT_AGENTS_RU.md); модель данных знаний о мире —
 [WORLD_SPEC_VNEXT_RU.md](WORLD_SPEC_VNEXT_RU.md).
 
 v1 этого документа называл «микроядрами» этапы сборки мира. По теории это неверно: микроядро — единица

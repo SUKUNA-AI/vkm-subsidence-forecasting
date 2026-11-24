@@ -22,10 +22,9 @@
 | [causal_subsidence](causal_subsidence.svg) | причинная цепь оседаний: группы процессов PC-01…PC-72, ветви закладки, гидро и термо, ключевые рёбра CE-xxx причинного графа | [physics_coverage_and_execution_matrix.csv](../../catalogues/physics/physics_coverage_and_execution_matrix.csv), [causal_graph_edges.csv](../../catalogues/causal/causal_graph_edges.csv), [CAUSAL_GRAPH_RU.md](../science/CAUSAL_GRAPH_RU.md) |
 | [initial_stress](initial_stress.svg) | гипотезы начальных напряжений IS-H, значения λ по методам и школам, сценарии IS-SC-A…E, UNKNOWN для СКРУ-1 | [INITIAL_STRESS_RU.md](../science/topic_dossiers/INITIAL_STRESS_RU.md) |
 | [backfill_mechanics](backfill_mechanics.svg) | механика закладки PC-37…PC-40 в цепи оседаний: известно, оспаривается, неизвестно; гипотезы DB-H и сценарные диапазоны DB-S | [BACKFILL_MECHANICS_RU.md](../science/topic_dossiers/BACKFILL_MECHANICS_RU.md) |
-| [solver_ladder](solver_ladder.svg) | лестница решателя из 10 ступеней и роли Ansys, OGS + MFront, MATLAB, Civil 3D, PyTorch, gprMax с текущим статусом | [CLAUDE.md](../../CLAUDE.md), [README.md](../../README.md), [PHASE2_PLAN_OCT_NOV_2026_RU.md](../planning/PHASE2_PLAN_OCT_NOV_2026_RU.md) |
+| [solver_ladder](solver_ladder.svg) | лестница решателя из 10 ступеней и роли Ansys, OGS + MFront, MATLAB, Civil 3D, PyTorch, gprMax с текущим статусом | [CLAUDE.md](../../CLAUDE.md), [README.md](../../README.md), [PROMPT_GPT_AGENTS_RU.md](../planning/PROMPT_GPT_AGENTS_RU.md) |
 | [civil3d_pipeline](civil3d_pipeline.svg) | конвейер Civil 3D в vkm-cad: таблица точек → COGO → TIN → горизонтали → мульда → профиль → лист → PDF; решение CP-43 | [MCP_TOOLS.md](../corpus_platform/MCP_TOOLS.md) §4.1, [AGENT_CAD_V1.md](../implementation_work/AGENT_CAD_V1.md) |
 | [benchmarks](benchmarks.svg) | бенчмарки retrieval_v0 → v1 → v2 → topic_v1 (с дозаразметкой T2 и T3): постановка, главные числа, решения | [README.md](../../README.md), [benchmarks/](../../benchmarks/) |
-| [phase2_timeline](phase2_timeline.svg) | план Phase 2 на октябрь–ноябрь: периоды, работы, гейты, решения пользователя и риски | [PHASE2_PLAN_OCT_NOV_2026_RU.md](../planning/PHASE2_PLAN_OCT_NOV_2026_RU.md), [WORLD_KERNELS_DESIGN_RU.md](../worldspec/WORLD_KERNELS_DESIGN_RU.md) §9 |
 
 ## Цвета
 

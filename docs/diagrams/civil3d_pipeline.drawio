@@ -82,7 +82,7 @@
         <mxCell id="lg_tx_paused" value="выключено решением пользователя" style="text;align=left;fontSize=12;html=1;verticalAlign=top;whiteSpace=wrap;" vertex="1" parent="legend">
           <mxGeometry x="52" y="115" width="800" height="25" as="geometry" />
         </mxCell>
-        <mxCell id="sources" value="Источники: docs/corpus_platform/MCP_TOOLS.md §4.1; implementation_work/AGENT_CAD_V1.md §1–§4, §7; receipts/cad_v1_smoke.json; implementation_work/COORDINATOR_DECISIONS.md (CP-43); README.md §10; docs/planning/PHASE2_PLAN_OCT_NOV_2026_RU.md §1, §3." style="text;align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="sources" value="Источники: docs/corpus_platform/MCP_TOOLS.md §4.1; implementation_work/AGENT_CAD_V1.md §1–§4, §7; receipts/cad_v1_smoke.json; implementation_work/COORDINATOR_DECISIONS.md (CP-43); README.md §10; align=left;fontColor=#555555;fontSize=11;html=1;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
           <mxGeometry x="910" y="750" width="870" height="40" as="geometry" />
         </mxCell>
         <mxCell id="e0" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=classic;entryDx=0;entryDy=0;entryX=0;entryY=0.5;exitDx=0;exitDy=0;exitX=1;exitY=0.5;fontSize=11;html=1;labelBackgroundColor=#ffffff;rounded=1;" edge="1" parent="1" source="t_in" target="t_pts">
