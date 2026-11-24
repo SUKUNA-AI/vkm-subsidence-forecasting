@@ -14,7 +14,36 @@ env:
   PYTHONDONTWRITEBYTECODE: '1'
 
 jobs:
+  windows-bash-prerequisite:
+    runs-on: windows-2025
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, verified remote tag
+        with:
+          fetch-depth: 1
+          lfs: false
+          persist-credentials: false
+      - name: Diagnose installed native Bash with the actual test helper
+        shell: pwsh
+        run: |
+          @'
+          import ast, json, os, shutil, subprocess
+          from pathlib import Path
+          from types import SimpleNamespace
+          path = Path("tests/world/test_isolated_ogs_toys.py")
+          function = next(node for node in ast.parse(path.read_text(encoding="utf-8")).body
+                          if isinstance(node, ast.FunctionDef) and node.name == "git_bash")
+          def fail(message):
+              raise RuntimeError(message)
+          namespace = dict(Path=Path, os=os, json=json, shutil=shutil, subprocess=subprocess,
+                           pytest=SimpleNamespace(fail=fail))
+          exec(compile(ast.Module(body=[function], type_ignores=[]), str(path), "exec"), namespace)
+          print(json.dumps({"selected_native_bash": str(namespace["git_bash"]())}))
+          '@ | python -
+
   world-integrity:
+    # Diagnostic-only pushes deliberately run just the independent short probe.
+    if: ${{ !startsWith(github.ref, 'refs/heads/codex/vkm-bash-diagnostic-') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -44,6 +73,7 @@ jobs:
           if-no-files-found: error
 
   corpus-offline:
+    if: ${{ !startsWith(github.ref, 'refs/heads/codex/vkm-bash-diagnostic-') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -74,6 +104,7 @@ jobs:
           if-no-files-found: error
 
   windows-offline:
+    if: ${{ !startsWith(github.ref, 'refs/heads/codex/vkm-bash-diagnostic-') }}
     runs-on: windows-2025
     # Tests plus evidence upload and post-job cleanup exceeded 25 minutes on
     # hosted runners even when every check passed; retain time for finalization.

@@ -46,6 +46,17 @@ def git_bash():
     Never probe Windows' WSL launcher. An explicit override must itself pass
     validation; it must not silently fall back to a different installation.
     """
+    def note(executable, outcome, **details):
+        # Only executable/probe facts, never an environment dump. Bound output
+        # and omit any unexpected credential-bearing lines from a wrapper.
+        for name in ("stdout", "stderr"):
+            if name in details:
+                details[name] = "\n".join(line for line in details[name].splitlines()
+                    if not any(word in line.casefold() for word in
+                               ("token", "password", "authorization", "secret")))[:512]
+        print(json.dumps({"bash_probe": outcome, "candidate": str(executable) if executable else None,
+                          **details}, ensure_ascii=True))
+
     override = os.getenv("VKM_TEST_GIT_BASH")
     candidates = [Path(override)] if override else []
     if not override:
@@ -60,20 +71,29 @@ def git_bash():
                 candidates.extend((root / "bin/bash.exe", root / "usr/bin/bash.exe"))
         if executable := shutil.which("bash"):
             candidates.append(Path(executable))
+    note(None, "inventory", count=len(dict.fromkeys(candidates)), explicit_override=bool(override))
     for executable in dict.fromkeys(candidates):
         if not executable.is_file():
+            note(executable, "not_a_file")
             continue
         executable = executable.resolve()
         if os.name == "nt" and any(part.casefold() in {"system32", "syswow64", "windowsapps"}
                                     for part in executable.parts):
+            note(executable, "blocked_wsl_or_store_path")
             continue
         try:
             result = subprocess.run([str(executable), "--version"], capture_output=True, text=True, timeout=10)
-        except (OSError, subprocess.TimeoutExpired):
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            note(executable, "probe_error", error_type=type(exc).__name__,
+                 winerror=getattr(exc, "winerror", None))
             continue
+        note(executable, "version_result", returncode=result.returncode,
+             stdout=result.stdout, stderr=result.stderr)
         if (result.returncode == 0 and "GNU bash" in result.stdout
                 and (os.name != "nt" or "-msys" in result.stdout)):
+            note(executable, "accepted")
             return executable
+        note(executable, "rejected_version")
     pytest.fail("Native Bash prerequisite unavailable or invalid: install Git Bash on Windows or Bash on POSIX; "
                 "VKM_TEST_GIT_BASH may name a validated executable. WSL launchers are not supported.")
 
