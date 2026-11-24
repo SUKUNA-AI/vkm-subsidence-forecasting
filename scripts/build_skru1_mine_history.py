@@ -8,7 +8,7 @@ Inputs (all read-only):
   - ``WORLD_PARAMETERS/curated/c4_map/skru1/skru1_boreholes_{checked,014_unique}.csv`` — checked symbol positions;
   - ``MINING/mining_chronology_catalog.csv``, ``mining_geometry_catalog.csv``, ``backfill_event_catalog.csv`` (Phase 1);
   - ``WORLD_OBSERVATIONS/world_observation_catalog.csv``.
-* optional ``--block201`` — the SITE_BLOCK201_LINE12 stream (benchmarks of profile line 12 in SH1, block 201 history);
+* ``WORLD_PARAMETERS/curated/source_records.jsonl`` — local source records within the common curated input;
 * ``--geology-npz`` — contact fields of the geology model v6_2 (FULL_CONTEXT_PARTIAL, absolute heights, DSM-anchored);
 * ``--terrain`` — Copernicus GLO-30 DSM resampled to SH1 (EGM2008; 2011–2015; DSM, not bare earth);
 * optional ``--state-1990`` — worked-out areas ≈1990 by seam digitised from VKM-SRC-037 fig. 2.7 (state ≤ 1990).
@@ -41,6 +41,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from vkm_world.geometry_build import mining as plan_geometry  # noqa: E402
+from vkm_world.extraction import curated_records as CR  # noqa: E402
 from vkm_world.mining.skru1_history import (  # noqa: E402
     DECADES, SEAMS, YearInterval, areal_extraction_ratio, ascii_id, combine_intervals, decade_state, interval_from_row,
     normalize_objects, normalize_seams, overlapping_same_seam, plan_key)
@@ -331,18 +332,25 @@ def load_new_evidence(path: Path) -> list[dict]:
     return out
 
 
-def load_block201(path: Path | None) -> tuple[list[dict], list[dict]]:
-    if not path or not path.is_dir():
-        return [], []
+def load_curated_context(canon: Path) -> tuple[list[dict], list[dict]]:
+    entries = CR.load(canon)
     hist = []
-    for r in read_csv(path / "block201_mining_history.csv"):
+    for entry in entries:
+        if entry["record_type"] != "MINING_HISTORY":
+            continue
+        r = entry["source_record"]
         att = {"MINING_PERIOD": "MINING_PERIOD", "BACKFILL_PERIOD": "BACKFILL_PERIOD"}.get(r["event"], r["event"])
-        hist.append(ev("B201", r["record_id"], "блок 201 (" + r["part_of_block"] + ")", r["seam"], att,
-                       "ACTUAL" if "FACT" in r["status"] else "UNKNOWN", "SKRU1", r["status"].split()[0],
+        object_text = re.sub(r"^([^:]+):BLK:(\d+)$", r"блок \2", r["object"])
+        hist.append(ev(entry.get("consumer_origin", CR.PRODUCER), r["record_id"],
+                       object_text + " (" + r["part_of_block"] + ")", r["seam"], att,
+                       ("PLANNED" if r["status"].startswith("PLANNED") else
+                        "ACTUAL" if r["status"].startswith("FACT") else "UNKNOWN"),
+                       entry.get("site_norm", "UNKNOWN"), r["status"].split()[0],
                        r["source_id"], r["page_id"], r["locator"], start_min=yr(r["start_min"]), start_max=yr(r["start_max"]),
-                       end_min=yr(r["end_min"]), end_max=yr(r["end_max"]), value_as_printed=r["method_as_printed"],
+                       end_min=yr(r["end_min"]), end_max=yr(re.sub(r"^≤\s*", "", r["end_max"])),
+                       value_as_printed=r["method_as_printed"],
                        date_as_printed=r["time_basis"], note=r["notes"]))
-    objs = read_csv(path / "site_objects_sh1.csv")
+    objs = [entry["source_record"] for entry in entries if entry["record_type"] == "OBJECT_GEOMETRY"]
     return hist, objs
 
 
@@ -932,7 +940,6 @@ def main(argv=None) -> int:
     ap.add_argument("--private", type=Path, default=Path(os.environ.get("VKM_RESOURCES_ROOT", "")))
     ap.add_argument("--stream-out", type=Path, required=True, help="PRIVATE canonical SITE_SKRU1_MINE directory")
     ap.add_argument("--delivery", type=Path, required=True, help="PRIVATE 12_work_exports/skru1_mine_history_<date>")
-    ap.add_argument("--block201", type=Path, default=None)
     ap.add_argument("--geology-npz", type=Path, default=None)
     ap.add_argument("--terrain", type=Path, default=None)
     ap.add_argument("--state-1990", type=Path, default=None, help="VKM-SRC-037 fig. 2.7 worked areas ≈1990 (SH1 GeoJSON)")
@@ -964,9 +971,8 @@ def main(argv=None) -> int:
     pin("geology_npz", a.geology_npz)
     pin("terrain", a.terrain)
     pin("state_1990_037", a.state_1990)
-    if a.block201:
-        for n in ("block201_mining_history.csv", "site_objects_sh1.csv"):
-            pin("block201/" + n, a.block201 / n)
+    pin(CR.INPUT, canon / CR.INPUT)
+    pin("curated_source_records_code", Path(CR.__file__))
     pin("builder", Path(__file__))
     pin("library", ROOT / "src" / "vkm_world" / "mining" / "skru1_history.py")
     pin("plan_geometry_policy", Path(plan_geometry.__file__))
@@ -986,8 +992,8 @@ def main(argv=None) -> int:
     known_phase1 = {x.strip() for r in cal for x in r.get("phase1_ref", "").split(";") if x.strip()}
     evidence = (load_calendar(curated) + load_chamber_design(curated) + load_phase1(canon / "MINING", known_phase1)
                 + load_new_evidence(new_ev))
-    b201_hist, b201_objs = load_block201(a.block201)
-    evidence += b201_hist
+    local_hist, local_objs = load_curated_context(canon)
+    evidence += local_hist
     units = build_units(evidence, key_index, regions, layers, zone_aliases(curated, regions),
                         {r["row_id"]: r["source_id"] for r in cal})
     geo, ter = load_fields(a.geology_npz, a.terrain)
@@ -1013,6 +1019,14 @@ def main(argv=None) -> int:
         for r in read_csv(new_conf):
             conflicts.append({c: r.get(c, "") for c in ("conflict_id", "topic", "object", "seam", "kind", "value_a",
                                                          "source_a", "value_b", "source_b", "resolution", "origin", "note")})
+
+    # Reviewed manual conflicts are inputs in the common curated source layer.
+    # Older deliveries appended them to an output but did not retain the manual CSV.
+    for entry in CR.load(canon):
+        r = entry["source_record"]
+        if entry["record_type"] == "CONFLICT" and "conflict_id" in r:
+            conflicts.append({c: r.get(c, "") for c in ("conflict_id", "topic", "object", "seam", "kind", "value_a",
+                                                       "source_a", "value_b", "source_b", "resolution", "origin", "note")})
 
     # --- seams by area: printed seam attributes + v6_2 contacts and DSM over the unit polygons
     seam_rows = []
@@ -1408,8 +1422,8 @@ def main(argv=None) -> int:
                                 "meaning": x["props"].get("meaning_as_printed", ""), "source_id": x["props"]["source_id"],
                                 "page_id": x["props"]["page_id"], "status": x["props"]["status"],
                                 "area_m2": round(x["geom"].area), "geom": x["geom"]})
-    block201_context = []
-    for o in b201_objs:
+    source_context = []
+    for o in local_objs:
         try:
             from shapely import wkt as _wkt
             g = _wkt.loads(o["wkt_sh1"])
@@ -1417,16 +1431,16 @@ def main(argv=None) -> int:
             continue
         row = {"point_id": o["record_id"], "kind": o["feature_kind"], "label": o["label"], "object_id": "",
                "source_id": o["source_id"], "status": o["status"], "geom": g}
-        (pt_feats if g.geom_type == "Point" else block201_context).append(row)
+        (pt_feats if g.geom_type == "Point" else source_context).append(row)
     bnd_feats = [{"boundary_id": f["properties"]["id"], "geom": g,
                   "meaning": f["properties"].get("meaning_as_printed", "") or f["properties"].get("note", "")}
                  for f, g in bounds]
     meta = {"mining_units": "Объект × пласт: интервалы выемки/закладки как границы годов; DERIVATION/FACT по столбцу status",
             "plan_regions_014": "Пригодные по топологии контуры VKM-SRC-014 в SH1; отклонённые в source_geometry_holds.json",
             "plan_states": "Состояния схем: отработано к ≈1990 (037 рис. 2.7), отработано к 01.01.2007 (064), остаток 2013 (014), целики",
-            "points": "Стволы, знаки скважин, центры зон ВКР, реперы ПЛ 12 (если дан --block201)",
+            "points": "Стволы, знаки скважин, центры зон ВКР и реперы из общих курируемых записей",
             "control_points_source": "Исходные опоры F014. Рабочий знак указан в checked_symbol_id",
-            "block201_context": "Линии и контуры блока 201 (если дан --block201)",
+            "source_context": "Линии и контуры из общих курируемых источниковых записей",
             "boundaries": "Границы горного отвода и линии схем"}
     unit_cols = [c for c in UNIT_COLS if c != "evidence_ids"] + ["evidence_ids"]
     point_cols = ["point_id", "kind", "label", "object_id", "source_id", "status"]
@@ -1438,7 +1452,7 @@ def main(argv=None) -> int:
                         ["feature_id", "layer", "seam", "state_date", "meaning", "source_id", "page_id", "status", "area_m2"]),
         "points": ("POINT", pt_feats, point_cols),
         "control_points_source": ("POINT", control_feats, [*point_cols, "checked_symbol_id"]),
-        "block201_context": ("GEOMETRY", block201_context, point_cols),
+        "source_context": ("GEOMETRY", source_context, point_cols),
         "boundaries": ("LINESTRING", bnd_feats, ["boundary_id", "meaning"]),
     }
     gpkg = d / "data" / "skru1_mine_history_sh1.gpkg"

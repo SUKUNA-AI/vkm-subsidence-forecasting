@@ -13,13 +13,6 @@
    "status": "OK",
    "target": "docs/science/ENGINEERING_REVIEW_20261023_RU.md",
    "target_sha256": "ed20c4da27ecb37e6923846607afcbf1fa6724e878cefdd714fb52245645eb32"
-  },
-  {
-   "source": "SITE_BLOCK201_LINE12/SITE_BLOCK201_LINE12_RU.md",
-   "source_sha256": "69448e7a0530fb2a1b1cf76cb0abcdc853ee7726c6615ba2258357a0b400a0d2",
-   "status": "OK",
-   "target": "docs/science/SITE_BLOCK201_LINE12_RU.md",
-   "target_sha256": "64cb66b5798a928d311283b2b26c7f6255ec83e90b8b87d0cec009a6017d16dc"
   }
  ],
  "generator": "docs/reset_2026_09/run_kit/tools/publish_reports.py",

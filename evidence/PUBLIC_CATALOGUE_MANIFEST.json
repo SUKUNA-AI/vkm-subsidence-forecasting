@@ -1,9 +1,11 @@
 {
  "dropped_columns": [
   "full_text",
+  "geometry_wkt",
   "ocr_text",
   "page_text",
   "quote",
+  "source_record_json",
   "verbatim_quote"
  ],
  "files": [
@@ -721,64 +723,6 @@
   },
   {
    "dropped_columns": [],
-   "source": "SITE_BLOCK201_LINE12/block201_mining_history.csv",
-   "source_sha256": "69369ed7d586eec8f3ee9699c5e851c151f056380a542bd35fbe1867ba8bfade",
-   "status": "OK",
-   "target": "evidence/world/site_block201/block201_mining_history.csv",
-   "target_sha256": "69369ed7d586eec8f3ee9699c5e851c151f056380a542bd35fbe1867ba8bfade"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_BLOCK201_LINE12/information_availability.csv",
-   "source_sha256": "5b093d0843fd3dade9c8f63853249825d27d3441f3b27c85c1001c09baf1ad35",
-   "status": "OK",
-   "target": "evidence/world/site_block201/information_availability.csv",
-   "target_sha256": "5b093d0843fd3dade9c8f63853249825d27d3441f3b27c85c1001c09baf1ad35"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_BLOCK201_LINE12/line12_levelling_points.csv",
-   "source_sha256": "b79134a737d44d3b1cb5712683df936a4d9998e47726cea191829da8a28589b9",
-   "status": "OK",
-   "target": "evidence/world/site_block201/line12_levelling_points.csv",
-   "target_sha256": "b79134a737d44d3b1cb5712683df936a4d9998e47726cea191829da8a28589b9"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_BLOCK201_LINE12/series_identity.csv",
-   "source_sha256": "5d3f54eb4a767359399a57c747f0560b21b69ad34eac4539d0cab611848aef0a",
-   "status": "OK",
-   "target": "evidence/world/site_block201/series_identity.csv",
-   "target_sha256": "5d3f54eb4a767359399a57c747f0560b21b69ad34eac4539d0cab611848aef0a"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_BLOCK201_LINE12/site_conflicts.csv",
-   "source_sha256": "afb15f10f046935c8cdb16e28f73d07f9fa5f8cc7ee6b41046c56db4bf2c2c0c",
-   "status": "OK",
-   "target": "evidence/world/site_block201/site_conflicts.csv",
-   "target_sha256": "afb15f10f046935c8cdb16e28f73d07f9fa5f8cc7ee6b41046c56db4bf2c2c0c"
-  },
-  {
-   "dropped_columns": [
-    "quote"
-   ],
-   "source": "SITE_BLOCK201_LINE12/site_evidence.csv",
-   "source_sha256": "84f2a71a6440fa18c3209bda7c1e317601e2d6cad4da43489471ecc64fdd2095",
-   "status": "OK",
-   "target": "evidence/world/site_block201/site_evidence.csv",
-   "target_sha256": "f360a0709659d2f0a5fbc711de0122da8f7a2da669ac4c650b4787860e14ca7c"
-  },
-  {
-   "dropped_columns": [],
-   "source": "SITE_BLOCK201_LINE12/site_objects_sh1.csv",
-   "source_sha256": "145843e08f09f8d75186357e8aff617ccc2568f9bc563e81f001e53e5e31237e",
-   "status": "OK",
-   "target": "evidence/world/site_block201/site_objects_sh1.csv",
-   "target_sha256": "145843e08f09f8d75186357e8aff617ccc2568f9bc563e81f001e53e5e31237e"
-  },
-  {
-   "dropped_columns": [],
    "source": "SITE_SKRU1_MINE/skru1_coverage_gaps.csv",
    "source_sha256": "a43d53551f05afc0b8cb50977ac3e3d24476f223f27575c92dcd7c4894c8de59",
    "status": "OK",
@@ -796,10 +740,10 @@
   {
    "dropped_columns": [],
    "source": "SITE_SKRU1_MINE/skru1_mine_checks.json",
-   "source_sha256": "c47a6aa1a6c91502c808f0b5c15ca7f3b052299c6044d61449c23bf7113a6c5e",
+   "source_sha256": "d367ce9c91a62dc82b0ff0fb176718ccd962b22c13debe6b74b5734cd8d99562",
    "status": "OK",
    "target": "evidence/world/skru1_mine/skru1_mine_checks.json",
-   "target_sha256": "ff18c7421755aea0b9633d3690399c6b8c83e49c2ea04d20c2e76492181a337d"
+   "target_sha256": "5a5009b66e63be50acc62689aa90fa114c13933d2be50d31b95b1dfcf76870e2"
   },
   {
    "dropped_columns": [],
@@ -807,7 +751,7 @@
    "source_sha256": "d982d09e9eb4373979e2d2af5170f12ab2cae5591dc13516ae6c3fb922673124",
    "status": "OK",
    "target": "evidence/world/skru1_mine/skru1_mine_conflicts.csv",
-   "target_sha256": "fa39cf3f2293cc844726b77e4e4e1b1d7f3227be0604284958b218878ebd2e80"
+   "target_sha256": "ef7f97c8d533d7d50e99c743c2c967c7ccd86f8be006a94ac788e9d0b5bdcccf"
   },
   {
    "dropped_columns": [
@@ -822,18 +766,18 @@
   {
    "dropped_columns": [],
    "source": "SITE_SKRU1_MINE/skru1_mining_units.csv",
-   "source_sha256": "5746db1c422ee99e366b919ac90eb5994cd0540677bc9b77257cdd06d69112b8",
+   "source_sha256": "6be0d784b9a720dfc8018292faa4a9ecbf9ccb1f534378c9b4de530b5bb557c5",
    "status": "OK",
    "target": "evidence/world/skru1_mine/skru1_mining_units.csv",
-   "target_sha256": "84e0c14eb729470219c75f3cd872105e27241d1ebda826e43883d9a7e90edd07"
+   "target_sha256": "31eae9e5edf45841b4e31ab7a359bc34bab9ea1c547eae93310d171d42d10911"
   },
   {
    "dropped_columns": [],
    "source": "SITE_SKRU1_MINE/skru1_observation_index.csv",
-   "source_sha256": "dbccebeceff133837038b8debde5c5626d79576cd8b2293b4c36eefb6b736c71",
+   "source_sha256": "355737daed2badba490709f4ca7a6b97819cc84ee6108449f286a1b6020a4cbe",
    "status": "OK",
    "target": "evidence/world/skru1_mine/skru1_observation_index.csv",
-   "target_sha256": "2067ae438b9014e3d972896930e23edfc778ad52c392938919a544cf070fa353"
+   "target_sha256": "e0e7c3b2c7002098353ce834ca9843666deb364784876293867e9ae16fdc2659"
   },
   {
    "dropped_columns": [],
@@ -1004,10 +948,10 @@
   {
    "dropped_columns": [],
    "source": "WORLD_OBSERVATIONS/build_receipt.json",
-   "source_sha256": "650345950e6d529ee7ef048aab4db729201e42027bb4f0cdc2e92ecf3e7ae6e0",
+   "source_sha256": "e58925cd5cbb8e48aec878654759f2ee549ee4e3a2a7aaa5656eb7829a443d23",
    "status": "OK",
    "target": "evidence/world/observations/build_receipt.json",
-   "target_sha256": "650345950e6d529ee7ef048aab4db729201e42027bb4f0cdc2e92ecf3e7ae6e0"
+   "target_sha256": "e58925cd5cbb8e48aec878654759f2ee549ee4e3a2a7aaa5656eb7829a443d23"
   },
   {
    "dropped_columns": [],
@@ -1018,12 +962,14 @@
    "target_sha256": "0932b05194727d3f5fb49c2a3addd0441cff8aa024b39b80dd10f81c575dc1e6"
   },
   {
-   "dropped_columns": [],
+   "dropped_columns": [
+    "source_record_json"
+   ],
    "source": "WORLD_OBSERVATIONS/digitized_series_points.csv",
-   "source_sha256": "41deb0005d61482a23954ba4500945e40004be52597d10de3f331df21c088e94",
+   "source_sha256": "e2ea1c42ebd2982c950a7ea10adf0b4a2c229c4be8d61ef5a729db7b4afc6fe5",
    "status": "OK",
    "target": "evidence/world/observations/digitized_series_points.csv",
-   "target_sha256": "41deb0005d61482a23954ba4500945e40004be52597d10de3f331df21c088e94"
+   "target_sha256": "6d2546910f9a18929f344081426c04b88ae5592e1c45566136c18720f5c5acbe"
   },
   {
    "dropped_columns": [],
@@ -1132,10 +1078,10 @@
   {
    "dropped_columns": [],
    "source": "WORLD_PASSPORT/build_receipt.json",
-   "source_sha256": "9a2a1d87d48675743132bf451b1ad986f5dcf9d5d1ef35e21f758299237ec387",
+   "source_sha256": "d0bfbf8a32a8c66444d19ecc1e737f10105d72fc0d18772f6989b3201d127833",
    "status": "OK",
    "target": "evidence/world/passport/build_receipt.json",
-   "target_sha256": "9a2a1d87d48675743132bf451b1ad986f5dcf9d5d1ef35e21f758299237ec387"
+   "target_sha256": "d0bfbf8a32a8c66444d19ecc1e737f10105d72fc0d18772f6989b3201d127833"
   },
   {
    "dropped_columns": [],
@@ -1154,140 +1100,176 @@
    "target_sha256": "8baf8383ea713dd3f0dd70e5e0b408bee718edb3b711f11de0f581b00d9c3381"
   },
   {
-   "dropped_columns": [],
+   "dropped_columns": [
+    "source_record_json"
+   ],
    "source": "WORLD_PASSPORT/passport_conflicts.csv",
-   "source_sha256": "4308e53acd90d662c94f68bfd970faf8835a3e2f20ed909d420e1d0104f23b9d",
+   "source_sha256": "6cc2a46d286e365835a6df0ed221eda8ff30d4bc67eb044f27c0d7539ddb8a00",
    "status": "OK",
    "target": "evidence/world/passport/passport_conflicts.csv",
-   "target_sha256": "4308e53acd90d662c94f68bfd970faf8835a3e2f20ed909d420e1d0104f23b9d"
+   "target_sha256": "73f92e821335ffee2a1373f7549880605a564a2e53643bac12d8c801116ce4b1"
   },
   {
    "dropped_columns": [
-    "quote"
+    "quote",
+    "source_record_json"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c1.csv",
-   "source_sha256": "1824227709ab7cb36f5c56d82114cb195742dba223780b87adb75d5b57d5719f",
+   "source_sha256": "a3468ceabaa25eda6938e19371f776e1948bbc3b8720a44af5a67c6131f188f0",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c1.csv",
-   "target_sha256": "05481b902e5ee81e22c9ce6a8d229d4b066f83b54f357dc2b7c54dd89261c96a"
+   "target_sha256": "d217bb6aad68a3fa4a7ee658468f42979f1682cebec51ff275dc6f5952791bc9"
   },
   {
    "dropped_columns": [
-    "quote"
+    "quote",
+    "source_record_json"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c1_sol_high_full.csv",
-   "source_sha256": "8d442500664290ed6d1391a5ac5014348f39c56cc3f601c5c4206239720d28b5",
+   "source_sha256": "371c3c01205200ad9c7d93025e8a4da1a1d42beb9de9d100e9d3caf0ebc54afd",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c1_sol_high_full.csv",
-   "target_sha256": "b8ba3fa18a90495afe25b5e368b47a16fd3f83dffc1bc5bc07b6986221ad43d8"
+   "target_sha256": "1e590d7bf700ef9854978da6aa4001a1bad7d56075a33838b0695b8f592ebb4a"
   },
   {
    "dropped_columns": [
-    "quote"
+    "quote",
+    "source_record_json"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c1_sol_wave2_high.csv",
-   "source_sha256": "96dcc37ea77e660a29828eb3a7843e19c3e9eb45fc797d297d20dd3f31d5c978",
+   "source_sha256": "1ae57893a705698d91b741a375bbbbb528d30075be0867b5ea5861e4fb8d9875",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c1_sol_wave2_high.csv",
-   "target_sha256": "7fb5b477c59137451961e5284e4ea03de0aa4d0330ef6231fe129929c55233bb"
+   "target_sha256": "5ec0e0e6df1e36cd40b2efe0fc5cbb8790f6126412a3a00056bd494cf2ad0646"
   },
   {
    "dropped_columns": [
-    "quote"
+    "quote",
+    "source_record_json"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c2.csv",
-   "source_sha256": "9347ff71b6011c27cbab91798de5ff95f7f83878d76a02c69d2c1ccaccf77be0",
+   "source_sha256": "d06acc926d2aae7450586be0dc4711518ced37f82058ad62bb89066bc719ab0e",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c2.csv",
-   "target_sha256": "11a164a1def2d62977f923f0e8a7bdd9f104c329840b6c4d00ebb3d067d2a7c4"
+   "target_sha256": "c65c9b1466c1c3cc8bd2ee2161c0b4746750a61eaeb39faae1aa50aa28c1785f"
   },
   {
    "dropped_columns": [
-    "quote"
+    "quote",
+    "source_record_json"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c2_sol_high_full.csv",
-   "source_sha256": "4eea49caf6a7ce9f5f212a7972eac8fd65b3c811e345e1b3116ee08d69267a5a",
+   "source_sha256": "ded42c255a04f816a6b67507b2eb36fed33322197229526e89eb52cd81624fcb",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c2_sol_high_full.csv",
-   "target_sha256": "88105f5f12f96cfc770f2cb2f655d43531586227b567d3a708d353bd7d342db6"
+   "target_sha256": "9b2698d40c6260d974974193740a2c436696517e039d986e59885980aaacbc11"
   },
   {
    "dropped_columns": [
-    "quote"
+    "quote",
+    "source_record_json"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c2_sol_wave2_high.csv",
-   "source_sha256": "de5c3246700fc5862bd395926384979d2fb4d9da86a9e5c74d1f3eaf568e8af6",
+   "source_sha256": "f84824baaad648a4b94666115c41801a12e9e2c7664864326c9cc2686170c591",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c2_sol_wave2_high.csv",
-   "target_sha256": "791553ea491e08073c8f18868a90be1462de4839d92d21e3026169cd590f8a4d"
+   "target_sha256": "3da1ddb06b204d3dbf47636b9f64f55dc062ecd5351d78e69e1b18f299516eb4"
   },
   {
    "dropped_columns": [
-    "quote"
+    "quote",
+    "source_record_json"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c3.csv",
-   "source_sha256": "c2e63804775fd3bfad174d10aaea9bc18c79015a0ed8742b916ff5d7019d1e73",
+   "source_sha256": "aa08e9906aeeaf440eaf812808752ac8d7ae90e1c4fcb389fe039680335e3889",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c3.csv",
-   "target_sha256": "cf8293eff3cacd3d594846e78c1c0d636e93ac3d28d15d9e41aff537f83ba081"
+   "target_sha256": "644b9a8fd1e904a1087cd0c6f63ed791a2514ea1564e9cff186fec02073fe5e6"
   },
   {
    "dropped_columns": [
-    "quote"
+    "quote",
+    "source_record_json"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c3_sol_high_full.csv",
-   "source_sha256": "15960c3a567cb61bcab33a91000481e93b86754e534ec845d111cfc36c4d890f",
+   "source_sha256": "15c4614760da6193d58f4fa6f411a6b9523a34f88ec617f2d07dafa8b1e24691",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c3_sol_high_full.csv",
-   "target_sha256": "96cbf434a1b990ce1e09071cc2101e10eae9e635dc2132cf24577b1ef8b9135d"
+   "target_sha256": "8a1a10f7564fa2b630f9ee8841d71972b82b6313f06ec1ffb8110e5a71ca18ef"
   },
   {
    "dropped_columns": [
-    "quote"
+    "quote",
+    "source_record_json"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c3_sol_wave2_high.csv",
-   "source_sha256": "0c43cd95cc9e3cb36303678e3491eb9b7ce0491d8a7d4825b8bac2a6ea83bae7",
+   "source_sha256": "971fa2b99bc04b0328db40bbc02ab2bb4cf42aaf28e30caef62010656543ade2",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c3_sol_wave2_high.csv",
-   "target_sha256": "b5acad277163c8b9e0053c5227cb2c8ffbd31b23d6991ec5ed5badbc3c1f04cb"
+   "target_sha256": "baf94e5b98419b8030a8890920e218c2f148fe4038a12bd6737ff36bbf78a60a"
   },
   {
    "dropped_columns": [
-    "quote"
+    "quote",
+    "source_record_json"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c4.csv",
-   "source_sha256": "e3c2a35718653e06914e55d460330dc5ea47fbf06cb86f857a4b5c478f6dad87",
+   "source_sha256": "266ecd31a28decac03f1bfc7c5721253c34b50c1d65d5677f63c6fc5d0644c5e",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c4.csv",
-   "target_sha256": "ce5298029c3f7ff46671cf5f4b62926f8e344f305c8d4a759ea1bcacc5689c95"
+   "target_sha256": "e21499607a55fa0b8fb4bee1e57c55a5b3811976a132ddb71aff1de076f1fc6b"
   },
   {
    "dropped_columns": [
-    "quote"
+    "quote",
+    "source_record_json"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c4_sol_high_full.csv",
-   "source_sha256": "709f908e576a2179ee0e5f827866656e545d47a4a782c3eab60904b54af6d1a0",
+   "source_sha256": "d1c8cc30b4752149a9d594420b6493c4cfe1655d9efcd14a9b4d59779b8977e6",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c4_sol_high_full.csv",
-   "target_sha256": "792da09557c7cc5f478be24d6a2efe249bbfc281d44e36d63d1a4ad97f5a1a15"
+   "target_sha256": "19421cdb827d3995c1aa5e7cdb5f76c95f249ff6de2f80531c0ccfaab91e8b13"
   },
   {
    "dropped_columns": [
-    "quote"
+    "quote",
+    "source_record_json"
    ],
    "source": "WORLD_PASSPORT/passport_evidence_c4_sol_wave2_high.csv",
-   "source_sha256": "a23251c2444f134097d444e43a5480f0fc1953d205d6bdf952169b858f6a3cd7",
+   "source_sha256": "7c81081df68fe0150a581f71fc4beb088c7be9ab6bd109681fd02c2a3b7d1182",
    "status": "OK",
    "target": "evidence/world/passport/passport_evidence_c4_sol_wave2_high.csv",
-   "target_sha256": "eb3e21c2ed923a0343146922a6d93a2312850bd6fed004338b95b5c89c3da21d"
+   "target_sha256": "914b1b7047de9f4a4da6d3b69365f7e53a16ff60f4edad20ebcb07233938bb00"
+  },
+  {
+   "dropped_columns": [
+    "quote",
+    "source_record_json"
+   ],
+   "source": "WORLD_PASSPORT/passport_evidence_obs.csv",
+   "source_sha256": "2b9ad61c1cd3106669e1dd139a91fe3bad16627c552147f77f95e799d878a526",
+   "status": "OK",
+   "target": "evidence/world/passport/passport_evidence_obs.csv",
+   "target_sha256": "72146d95d5713663b231503b3fb037b4182818e8c8b51ac4ab9cf9393a2c3730"
+  },
+  {
+   "dropped_columns": [
+    "quote",
+    "source_record_json"
+   ],
+   "source": "WORLD_PASSPORT/passport_evidence_other.csv",
+   "source_sha256": "5bfd4ca6ba70929b4f76263032be7c5303636531d1059b55306ce945c4afb1f5",
+   "status": "OK",
+   "target": "evidence/world/passport/passport_evidence_other.csv",
+   "target_sha256": "78023eea743a5998eb18454e9c8df665f591d05e1c6d779067c287288b0ff62e"
   },
   {
    "dropped_columns": [],
    "source": "WORLD_PASSPORT/passport_id_ledger.csv",
-   "source_sha256": "65bb16cc2c52216363e62c71254d2e725d3672aaf6691770af9c180695dd2622",
+   "source_sha256": "c5cad019177a50a82a8b1c69139c499eb58c004c96ae1b924183e4432fecb7a4",
    "status": "OK",
    "target": "evidence/world/passport/passport_id_ledger.csv",
-   "target_sha256": "65bb16cc2c52216363e62c71254d2e725d3672aaf6691770af9c180695dd2622"
+   "target_sha256": "c5cad019177a50a82a8b1c69139c499eb58c004c96ae1b924183e4432fecb7a4"
   },
   {
    "dropped_columns": [],
@@ -1308,28 +1290,31 @@
    "target_sha256": "ffa2dd08e17f8a371766101cb072cdf4bd1207af3480e5769237c7bc465c1a19"
   },
   {
-   "dropped_columns": [],
+   "dropped_columns": [
+    "geometry_wkt",
+    "source_record_json"
+   ],
    "source": "WORLD_PASSPORT/world_objects.csv",
-   "source_sha256": "8a785892189a3dcbb18b7738d7189ab5f03928101d04da2616dd0c33ceb9e7a2",
+   "source_sha256": "9d55f1adf55fa32a389c917d4055452eccc2196f6c136e5ebdc25740c1dec0ba",
    "status": "OK",
    "target": "evidence/world/passport/world_objects.csv",
-   "target_sha256": "81116fdedf7ad3f5c028a85416358fae764fe5848a666572e248823526f79b7c"
+   "target_sha256": "9ef140960feaad86349a3fd90e60edaf8ceb773ea9004f6e1ce222aeef46ee1b"
   },
   {
    "dropped_columns": [],
    "source": "WORLD_PASSPORT/world_passport.csv",
-   "source_sha256": "451f682d6d6398ba0bbef9587c788c79f3d7eb455c2ab4b400d0283161ce2d6a",
+   "source_sha256": "4cefb2b33449aeead5c726d20750c18a7b5820ba8cb6e8be711d776bbe6e7662",
    "status": "OK",
    "target": "evidence/world/passport/world_passport.csv",
-   "target_sha256": "451f682d6d6398ba0bbef9587c788c79f3d7eb455c2ab4b400d0283161ce2d6a"
+   "target_sha256": "4cefb2b33449aeead5c726d20750c18a7b5820ba8cb6e8be711d776bbe6e7662"
   },
   {
    "dropped_columns": [],
    "source": "WORLD_PASSPORT/world_passport_links.csv",
-   "source_sha256": "d00afc096703d71c1fd55f145882dfc3eacd4d9cbb141f695705ad15c598e939",
+   "source_sha256": "ebd2cf1c2723860d2f56d1bb1442b26571ed9cf54eae0f9d75df7038aa902a64",
    "status": "OK",
    "target": "evidence/world/passport/world_passport_links.csv",
-   "target_sha256": "d00afc096703d71c1fd55f145882dfc3eacd4d9cbb141f695705ad15c598e939"
+   "target_sha256": "ebd2cf1c2723860d2f56d1bb1442b26571ed9cf54eae0f9d75df7038aa902a64"
   },
   {
    "dropped_columns": [],
@@ -1350,10 +1335,10 @@
   {
    "dropped_columns": [],
    "source": "WORLD_PASSPORT/world_priors_proposal_receipt.json",
-   "source_sha256": "f6b10d0465ba68b40b1bd299dd3820c3b2268d7920821957c302e5214c4c9697",
+   "source_sha256": "0d389b5ed183c3dae09a8e5dac7a4d782ad76c2c829490e8a90f6cd827a865de",
    "status": "OK",
    "target": "evidence/world/passport/world_priors_proposal_receipt.json",
-   "target_sha256": "f6b10d0465ba68b40b1bd299dd3820c3b2268d7920821957c302e5214c4c9697"
+   "target_sha256": "0d389b5ed183c3dae09a8e5dac7a4d782ad76c2c829490e8a90f6cd827a865de"
   }
  ],
  "generator": "scripts/build_public_catalogues.py",
@@ -1492,6 +1477,12 @@
     "copied_words": 30,
     "row": 6234,
     "target": "evidence/qa/visual_ocr_qa_ledger.csv"
+   },
+   {
+    "column": "resolution",
+    "copied_words": 33,
+    "row": 14,
+    "target": "evidence/world/skru1_mine/skru1_mine_conflicts.csv"
    },
    {
     "column": "entry_text",
@@ -2256,6 +2247,24 @@
     "target": "evidence/world/passport/cited_literature.csv"
    },
    {
+    "column": "topic",
+    "copied_words": 25,
+    "row": 210,
+    "target": "evidence/world/passport/passport_conflicts.csv"
+   },
+   {
+    "column": "resolution_status",
+    "copied_words": 33,
+    "row": 228,
+    "target": "evidence/world/passport/passport_conflicts.csv"
+   },
+   {
+    "column": "notes",
+    "copied_words": 26,
+    "row": 2349,
+    "target": "evidence/world/passport/passport_evidence_c1.csv"
+   },
+   {
     "column": "material_as_printed",
     "copied_words": 30,
     "row": 4463,
@@ -2272,6 +2281,24 @@
     "copied_words": 31,
     "row": 835,
     "target": "evidence/world/passport/passport_evidence_c2_sol_wave2_high.csv"
+   },
+   {
+    "column": "notes",
+    "copied_words": 32,
+    "row": 167,
+    "target": "evidence/world/passport/passport_evidence_obs.csv"
+   },
+   {
+    "column": "notes",
+    "copied_words": 25,
+    "row": 22,
+    "target": "evidence/world/passport/passport_evidence_other.csv"
+   },
+   {
+    "column": "notes",
+    "copied_words": 25,
+    "row": 39,
+    "target": "evidence/world/passport/passport_evidence_other.csv"
    },
    {
     "column": "name",

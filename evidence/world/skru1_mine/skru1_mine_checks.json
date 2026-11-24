@@ -2,15 +2,16 @@
  "field_area_m2": 50891932,
  "n_regions": 315,
  "n_units": 800,
+ "source_geometry_hold_count": 0,
  "timing_class_counts": {
   "UNKNOWN": 473,
   "PLAN_SNAPSHOT_ONLY": 185,
   "DERIVED_DATES": 35,
-  "TEXT_DATED": 33,
+  "TEXT_DATED": 32,
   "PLANNED_ONLY": 3,
-  "TEXT_UNDATED": 7,
-  "TEXT_PARTLY_DATED": 1,
-  "TEXT_OPEN_ENDED": 7
+  "TEXT_PARTLY_DATED": 2,
+  "TEXT_OPEN_ENDED": 8,
+  "TEXT_UNDATED": 6
  },
  "interval_order_errors": [],
  "same_seam_simultaneous_overlaps": [],
@@ -209,9 +210,9 @@
   "note": "площади штриховки «отработанные запасы» рис. 2.7 — брутто-контуры участков (с целиками и неотработанными пятнами); с площадями VKM-SRC-074 (01.2022) напрямую не сравнимы — конфликт SKM-CF-M11"
  },
  "fig2_7_vs_text_dates": {
-  "mined_before_1990_by_text": 36,
-  "before_worked_ge_0_5": 30,
-  "before_worked_ge_0_2": 33,
+  "mined_before_1990_by_text": 35,
+  "before_worked_ge_0_5": 29,
+  "before_worked_ge_0_2": 32,
   "mined_after_1990_by_text": 17,
   "after_worked_ge_0_5": 0,
   "disagreements": [

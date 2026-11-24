@@ -7,7 +7,7 @@
  ],
  "outputs": {
   "world_observation_catalog.csv": "3ca837de3a93b260c3ec9a6871b74ccee9283b2611b011cc9c134d83b3560006",
-  "digitized_series_points.csv": "41deb0005d61482a23954ba4500945e40004be52597d10de3f331df21c088e94"
+  "digitized_series_points.csv": "e2ea1c42ebd2982c950a7ea10adf0b4a2c229c4be8d61ef5a729db7b4afc6fe5"
  },
  "counts": {
   "items": 4755,
@@ -61,8 +61,8 @@
    "SKRU1+SKRU3+SKRU2": 1,
    "SKRU3+SKRU2": 1
   },
-  "digitized_points": 10576,
-  "digitized_points_georeferenced": 2405,
+  "digitized_points": 10746,
+  "digitized_points_georeferenced": 2560,
   "digitized_points_excluded_not_observation": {
    "MODEL_RESULT": 476,
    "BENCHMARK_POSITION_AS_PUBLISHED": 23

@@ -34,6 +34,8 @@ from pathlib import Path
 
 csv.field_size_limit(sys.maxsize)
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from vkm_world.extraction import curated_records as CR  # noqa: E402
 RULE_VERSION = "world_observations_v1"
 MUSIKHIN = ROOT / "evidence" / "monitoring" / "musikhin_vkm_src002_p15_profiles.csv"
 OBS_CODES = {"SUBSIDENCE", "SUBSIDENCE_RATE", "SUBSIDENCE_MAX", "TILT", "CURVATURE", "HORIZONTAL_STRAIN",
@@ -321,6 +323,7 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
                             usable_for_validation="PARTIAL" if r.get("site_norm") not in ("UNKNOWN", None) else "NO",
                             producer=f"page extraction {run}", review_status="AUTO_EXTRACTED_UNREVIEWED",
                             notes=(r.get("notes") or "")[:300]))
+    points.extend(CR.point_rows(CR.load(canon)))
     obs.sort(key=lambda o: ({"YES": 0, "SKRU1_OR_SKRU2": 1, "NO": 2}[o["skru1_flag"]], o["item_kind"], o["obs_id"]))
     files = {"world_observation_catalog.csv": _csv(obs), "digitized_series_points.csv": _csv(points)}
     receipt = {"rule_version": RULE_VERSION, "runs": runs,
@@ -343,7 +346,7 @@ def _csv(rows: list[dict]) -> bytes:
     buf = io.StringIO()
     if not rows:
         return b"empty\n"
-    w = csv.DictWriter(buf, fieldnames=list(rows[0]), lineterminator="\n")
+    w = csv.DictWriter(buf, fieldnames=CR.csv_columns(rows), lineterminator="\n")
     w.writeheader()
     w.writerows(rows)
     return buf.getvalue().encode("utf-8")

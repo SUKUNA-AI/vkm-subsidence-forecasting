@@ -13,7 +13,8 @@ import subprocess
 from pathlib import Path
 
 FORBIDDEN_EXT = {".pdf", ".djvu", ".docx", ".doc", ".zip", ".7z", ".rar", ".xlsx", ".xls", ".tif", ".tiff"}
-FORBIDDEN_COLUMNS = {"quote", "verbatim_quote", "ocr_text", "page_text", "full_text"}
+FORBIDDEN_COLUMNS = {"quote", "verbatim_quote", "ocr_text", "page_text", "full_text",
+                     "source_record_json", "geometry_wkt"}
 FORBIDDEN_PATH_FRAGMENTS = ("/home/user/vkm-subsidence-forecasting_resourses/", "E:\\Диплом", "work/ocr/")
 # absolute home/cloud-VM prefixes: never portable, rewritten by ``sanitize_paths`` when publishing
 MACHINE_PATH_FRAGMENTS = ("/home/user/", "/tmp/claude-", "/root/.claude/")
