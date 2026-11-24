@@ -83,3 +83,26 @@ or a native label cannot make a warped mesh pass this gate.
     if actual.shape != expected.shape or not np.allclose(actual, expected, rtol=0, atol=tolerance_m):
         raise ValueError("Points disagree with the declared height operation")
     return actual.copy()
+
+
+def declared_coordinate_frame(declaration, input_names):
+    """Check an explicit identity-frame assertion; never infer a CRS or offset.
+
+    This records the caller's declaration, not geodetic verification. UNKNOWN
+    datum/tie may be retained inside an identified source or scenario frame.
+    """
+    import re
+    if declaration.get("schema") != "vkm.coordinate_frame_declaration/1":
+        raise ValueError("explicit coordinate frame declaration required")
+    for key in ("horizontal_frame", "height_frame"):
+        if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,100}", str(declaration.get(key, ""))) or declaration[key] == "UNKNOWN":
+            raise ValueError("identified source/scenario frame required; datum may remain unknown")
+    if declaration.get("length_unit") != "m" or declaration.get("z_positive") != "UP":
+        raise ValueError("unchanged metre coordinates with Z positive UP required")
+    if not declaration.get("global_tie") or not declaration.get("basis"):
+        raise ValueError("declare global tie (may be UNKNOWN) and assertion basis")
+    for name in input_names:
+        item = declaration.get("inputs", {}).get(name, {})
+        if any(item.get(key) != declaration[key] for key in ("horizontal_frame", "height_frame")):
+            raise ValueError(f"input frame mismatch or missing frame assertion: {name}")
+    return {key: declaration[key] for key in ("horizontal_frame", "height_frame", "length_unit", "z_positive", "global_tie", "basis")}
