@@ -264,7 +264,13 @@
     },
     {
      "id": "sources",
-     "label": "Источники: docs/corpus_platform/MCP_TOOLS.md §4.1; implementation_work/AGENT_CAD_V1.md §1–§4, §7; receipts/cad_v1_smoke.json; implementation_work/COORDINATOR_DECISIONS.md (CP-43); README.md §10; align=left;fontColor=#555555;"
+     "label": "Источники: docs/corpus_platform/MCP_TOOLS.md §4.1; implementation_work/AGENT_CAD_V1.md §1–§4, §7; receipts/cad_v1_smoke.json; implementation_work/COORDINATOR_DECISIONS.md (CP-43); README.md §10.",
+     "x": 910,
+     "y": 750,
+     "w": 870,
+     "h": 40,
+     "preset": "text",
+     "style": "fontSize=11;align=left;fontColor=#555555;"
     }
    ],
    "edges": [
