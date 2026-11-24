@@ -813,6 +813,14 @@
   },
   {
    "dropped_columns": [],
+   "source": "SOURCES/source_identifier_aliases.csv",
+   "source_sha256": "07e74a1114d187c272e6d08b11afa9ccb45a399ce427f1add308ff465d07400b",
+   "status": "OK",
+   "target": "evidence/sources/source_identifier_aliases.csv",
+   "target_sha256": "07e74a1114d187c272e6d08b11afa9ccb45a399ce427f1add308ff465d07400b"
+  },
+  {
+   "dropped_columns": [],
    "source": "SOURCES/vn_index.csv",
    "source_sha256": "79d92f02ccd0fe367438c3ed1539f38e39364e621c2d7fb7ceb18989d9c86481",
    "status": "OK",
@@ -960,6 +968,22 @@
    "status": "OK",
    "target": "evidence/world/observations/calibration_use.csv",
    "target_sha256": "0932b05194727d3f5fb49c2a3addd0441cff8aa024b39b80dd10f81c575dc1e6"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD_OBSERVATIONS/curated/musikhin_p0015_comparison.csv",
+   "source_sha256": "f906841b436cc3b1f8ea04ff3b46756ede3860ecb861e97ad439379d0a4eb223",
+   "status": "OK",
+   "target": "evidence/monitoring/source_comparison.csv",
+   "target_sha256": "f906841b436cc3b1f8ea04ff3b46756ede3860ecb861e97ad439379d0a4eb223"
+  },
+  {
+   "dropped_columns": [],
+   "source": "WORLD_OBSERVATIONS/curated/musikhin_p0015_readings.csv",
+   "source_sha256": "f429ddb2ef9d01048c99aeabb14fc9efe34992f1ffcc828001d1740bf88d2428",
+   "status": "OK",
+   "target": "evidence/monitoring/source_readings.csv",
+   "target_sha256": "f429ddb2ef9d01048c99aeabb14fc9efe34992f1ffcc828001d1740bf88d2428"
   },
   {
    "dropped_columns": [

@@ -253,14 +253,16 @@ by 0, 7, 30 and 60 days and verify deterministic injected results. Freshness sti
 uses the production 26/36-hour thresholds, and receipts more than five minutes in
 the future or without a recognised terminal verdict fail.
 
-The world job checks frozen identities directly from Git objects without downloading
-LFS payloads. Missing objects, unavailable legacy branches, or mismatched frozen
-identities fail even when the general verifier treats them as nonblocking.
-Missing tag anchors remain explicit `NOT_RUN` gaps. The public catalogue map and
-manifest check must run and pass; PRIVATE-dependent catalogue comparisons are
-reported as `NOT_RUN`. The runner never creates tags
-or modifies frozen references. PRIVATE source/catalogue synchronization requires
-a separate authorized environment and is outside this job's scope.
+The world job checks current integrity, leakage, schemas, links and the complete
+public catalogue map/manifest using a shallow checkout. Its report marks historical
+reproduction as `NOT_REQUESTED`; that is not a PASS for old releases.
+Run `python scripts/verify_canonical_repository.py --include-history` separately
+when historical frozen/retired reproduction is required. That mode keeps all old
+hash and closure checks, reports unavailable refs as NOT_RUN and never creates tags.
+The current source-reading builder reproduces its 258 points and seven comparisons
+from hash-pinned ordinary source tables, without a legacy branch or retired inputs.
+PRIVATE source/catalogue synchronization still requires a separately authorized
+environment and is outside the public runner's scope.
 
 The package smoke copies source into an external temporary directory, builds a
 wheel, installs it without dependencies into another external directory, and

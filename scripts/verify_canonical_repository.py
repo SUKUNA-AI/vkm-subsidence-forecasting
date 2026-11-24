@@ -22,7 +22,8 @@ Both byte streams use UTF-8 regardless of the console's locale or PYTHONIOENCODI
 
 Usage::
 
-    python scripts/verify_canonical_repository.py
+    python scripts/verify_canonical_repository.py  # current integrity; no legacy refs needed
+    python scripts/verify_canonical_repository.py --include-history  # optional historical reproduction
     VKM_RESOURCES_ROOT=<private checkout> python scripts/verify_canonical_repository.py --output
 """
 from __future__ import annotations
@@ -53,6 +54,9 @@ PASS_WITH_NONBLOCKING = "PASS_WITH_NONBLOCKING"   # overall: no blocking FAIL, b
 SKIPPED, SKIPPED_REF = "SKIPPED", "SKIPPED_REF_UNAVAILABLE"
 GROUPS = ("registry", "frozen_references", "retired_references", "private_sources", "markdown_links", "leakage",
           "host_paths", "worldspec_schema", "catalogue_sync")
+
+HISTORY_GROUPS = ("frozen_references", "retired_references")
+CURRENT_GROUPS = tuple(group for group in GROUPS if group not in HISTORY_GROUPS)
 
 REF_HELP = ("ref not available locally (shallow clone or tags/branches not fetched): run "
             "'git fetch --unshallow origin' (if shallow), 'git fetch origin legacy:legacy' and "
@@ -1114,9 +1118,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", nargs="?", const=DEFAULT_OUTPUT, default=None,
                         help=f"also write the report to this path (relative to --root; default {DEFAULT_OUTPUT})")
     parser.add_argument("--only", nargs="+", choices=GROUPS, default=None, help="run only these check groups")
+    parser.add_argument("--include-history", action="store_true",
+                        help="also verify historical frozen/retired Git closures; absent refs remain NOT_RUN")
     args = parser.parse_args(argv)
     root = Path(args.root)
-    report = verify(root, registry_path=args.registry, resources_root=args.resources_root, groups=args.only)
+    report = verify(root, registry_path=args.registry, resources_root=args.resources_root,
+                    groups=args.only if args.only is not None else GROUPS if args.include_history else CURRENT_GROUPS)
+    report["verification_scope"] = "EXPLICIT_GROUPS" if args.only else "CURRENT_AND_HISTORY" if args.include_history else "CURRENT"
+    report["historical_checks_requested"] = bool(args.include_history or (args.only and any(g in HISTORY_GROUPS for g in args.only)))
     text = json.dumps(report, ensure_ascii=False, indent=1) + "\n"
     if args.output:
         destination = Path(args.output)

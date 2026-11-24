@@ -1,27 +1,14 @@
 #!/usr/bin/env python3
-"""Build public-safe evidence tables from frozen legacy artifacts (read from git objects, no checkout).
+"""Rebuild reviewed published-figure readings and source-ID aliases from current source tables.
 
-Targets
--------
-``monitoring``  Musikhin digitization, VKM-SRC-002 PDF p.15 (decision D-07) ->
-                ``evidence/monitoring/musikhin_vkm_src002_p15_profiles.csv``,
-                ``evidence/monitoring/musikhin_modality_comparison.csv``,
-                ``evidence/monitoring/musikhin_vkm_src002_p15_manifest.json``.
-                Inputs: the canonical digitization of scenario constraints v2 (atlas readings + the independent
-                detailed re-read of line 1 levelling 2011-2016), the frozen manual digitization (printed labels) and
-                the per-series point tables, all at the legacy commit, each verified by sha256.
-``sources``     ``evidence/sources/legacy_source_id_map.csv``: legacy ids SRC01..SRC11/SUP01 of
-                ``configs/{source_manifest,supplementary_source_manifest}.csv`` -> PRIVATE ``VKM-SRC`` ids, joined by
-                sha256 with ``$VKM_RESOURCES_ROOT/00_registry/SOURCE_REGISTER.csv``. No PRIVATE paths are written.
+Input records are projections of canonical WORLD_OBSERVATIONS/curated and SOURCES.
+Every input is SHA-256 pinned; independent readings, UNKNOWN, printed labels and
+modality arithmetic are checked. Historical Git objects and retired models are
+not runtime dependencies. SOURCE_REGISTER.csv is required only for the sources
+join against the actual PRIVATE source register.
 
-The legacy files were removed from the working tree in the reset; they are read with ``git cat-file`` from the
-pinned commit (branch ``legacy``, tag ``legacy/final``). Outputs are deterministic (fixed row order, LF, no
-timestamps). ``--check`` rebuilds in memory and compares with the committed files (exit 1 on any difference).
-
-Usage::
-
-    python scripts/build_evidence_from_legacy.py monitoring [--check]
-    VKM_RESOURCES_ROOT=<private checkout> python scripts/build_evidence_from_legacy.py sources [--check]
+Usage: python scripts/build_monitoring_evidence.py monitoring [--check]
+       VKM_RESOURCES_ROOT=<PRIVATE> python scripts/build_monitoring_evidence.py sources [--check]
 """
 from __future__ import annotations
 
@@ -33,13 +20,11 @@ import json
 import math
 import os
 import statistics
-import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-LEGACY_COMMIT = "d54025d4c47b79b864076a33a4ecf877174ec922"   # branch legacy, tag legacy/final
-REF_HELP = "run 'git fetch origin legacy:legacy' (and 'git fetch --unshallow' in a shallow clone)"
+ORIGIN_COMMIT = "d54025d4c47b79b864076a33a4ecf877174ec922"  # provenance only; never resolved
 
 # ------------------------------------------------------------------------------------------------ monitoring
 SOURCE_ID, LEGACY_SOURCE_ID = "VKM-SRC-002", "SUP01"
@@ -56,38 +41,10 @@ PROFILES_CSV = f"{OUT_DIR}/musikhin_vkm_src002_p15_profiles.csv"
 COMPARISON_CSV = f"{OUT_DIR}/musikhin_modality_comparison.csv"
 MANIFEST_JSON = f"{OUT_DIR}/musikhin_vkm_src002_p15_manifest.json"
 
-A = "artifacts/reconstruction"
-MON_INPUTS = {   # key: (legacy path, sha256, role)
-    "canonical": (f"{A}/scenario_constraints_v2/canonical_digitization.csv",
-                  "f33c22a8b6af4a8def6aeffc696cedc73434fb704fe174907a453c11f224abe0",
-                  "accepted readings (values, reading status, reading bounds, raster coordinates)"),
-    "comparison": (f"{A}/scenario_constraints_v2/modality_comparison.csv",
-                   "a35539cb7c4e1f112d771ac5fae8faaacbee3ac2697dd9a7572f031cd87fde7e",
-                   "legacy modality comparison, recomputed and compared"),
-    "constraints_manifest": (f"{A}/scenario_constraints_v2/manifest.json",
-                             "96b88b61cf766062c1f831e32b50bdd82441da63c50ce41569a5ffad297de6ef",
-                             "closure link: pins canonical_digitization.csv and modality_comparison.csv"),
-    "digitization": ("data/published_figure_digitization_v1/musikhin_profiles_digitization.csv",
-                     "2fc8ac5cd0a40eff9c230e641fe5a3c1a7e1522d41dd989d9abf7eda4af02761",
-                     "frozen manual digitization (printed x labels, cross-check of values)"),
-    "digitization_manifest": ("data/published_figure_digitization_v1/extraction_manifest.json",
-                              "e8ce3f949feb747a55b99340a7491cb29e8f80546e8235e09e3dfc4727096278",
-                              "provenance of the digitization and native rasters"),
-    "line1_points": (f"{A}/musikhin_line1_2011_2016_v1/points.csv",
-                     "257f643f300a58fce6699cd9938292ae63f0958857b2a996f58b1db13d8274cb",
-                     "independent detailed re-read of line 1 levelling 2011-2016 (cross-check)"),
-    "line1_manifest": (f"{A}/musikhin_line1_2011_2016_v1/manifest.json",
-                       "5081dc8ce463119774cb4a6e3ffdd121a1a38e9b3bd0cee75e0382dbb6ce9f06", "provenance"),
-    "profiles_manifest": (f"{A}/musikhin_profiles_2011_2016_v1/manifest.json",
-                          "7740a92603762c9fb7db3c264db95c257bcf28d635aea54a2775676956e2bac4", "provenance"),
-    "atlas_1": (f"{A}/musikhin_profiles_2011_2016_v1/profile_1/points.csv",
-                "aa60e9e03de1ef5d4caa1a78962efb5287e2984cf17c3da5d0054fba1bb3d109", "atlas readings (cross-check)"),
-    "atlas_5": (f"{A}/musikhin_profiles_2011_2016_v1/profile_5/points.csv",
-                "63553b4642da045cbdf9c324574e96728bff5becae7c8f9005dbde9068c89f95", "atlas readings (cross-check)"),
-    "atlas_17": (f"{A}/musikhin_profiles_2011_2016_v1/profile_17/points.csv",
-                 "425aa933d91e523941b576464ffb82cbb5cba462b9d0d5462940a801a191eac4", "atlas readings (cross-check)"),
-    "atlas_6": (f"{A}/musikhin_profiles_2011_2016_v1/profile_6/points.csv",
-                "cffccc80e392dde55522139528602ee024b86cf40fa59b8c19f91bc49f74bf27", "atlas readings (cross-check)"),
+SOURCE_TABLES = {
+    "readings": ("evidence/monitoring/source_readings.csv", "f429ddb2ef9d01048c99aeabb14fc9efe34992f1ffcc828001d1740bf88d2428", "reviewed readings with independent cross-checks"),
+    "comparison": ("evidence/monitoring/source_comparison.csv", "f906841b436cc3b1f8ea04ff3b46756ede3860ecb861e97ad439379d0a4eb223", "published modality comparison to reproduce"),
+    "aliases": ("evidence/sources/source_identifier_aliases.csv", "07e74a1114d187c272e6d08b11afa9ccb45a399ce427f1add308ff465d07400b", "source identifiers joined to the actual register"),
 }
 # The frozen digitization normalised a few x labels (trailing zeros). Checked visually on the native rasters of
 # VKM-SRC-002 p.15 (26.09.2026); the categorical label is written exactly as printed. key: (line, position).
@@ -129,9 +86,6 @@ LIMITS = [
 
 
 # ------------------------------------------------------------------------------------------------ sources
-SRC_MANIFESTS = {"configs/source_manifest.csv": "8c9de321be4871e63f8300b2a38eaaea546e02cc24ad0ee1f0b20637e3eb5ceb",
-                 "configs/supplementary_source_manifest.csv":
-                     "9ed4885c5e4607fc6445ef4c01c35ab3a1ca70a81dc5301b9aee4a54f0a251ef"}
 SRC_MAP_CSV = "evidence/sources/legacy_source_id_map.csv"
 SRC_COLUMNS = ("legacy_source_id", "legacy_manifest", "legacy_file_name", "legacy_authority_class",
                "legacy_site_scope", "vkm_src_id", "sha256", "size_bytes", "register_source_class",
@@ -150,17 +104,14 @@ def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def git_blob(path: str, commit: str = LEGACY_COMMIT) -> bytes:
-    done = subprocess.run(["git", "-C", str(ROOT), "cat-file", "blob", f"{commit}:{path}"], capture_output=True)
-    if done.returncode != 0:
-        raise BuildError(f"cannot read {commit[:7]}:{path} from git objects ({REF_HELP})")
-    return done.stdout
-
 
 def verified_inputs(spec: dict[str, tuple[str, str, str]]) -> dict[str, bytes]:
     out = {}
     for key, (path, want, _role) in spec.items():
-        data = git_blob(path)
+        try:
+            data = (ROOT / path).read_bytes()
+        except OSError as exc:
+            raise BuildError(f"current source input unavailable: {path}") from exc
         if sha256(data) != want:
             raise BuildError(f"{path}: sha256 {sha256(data)} != pinned {want}")
         out[key] = data
@@ -209,17 +160,29 @@ def same(a: float | None, b: float | None, tol: float = 1e-9) -> bool:
     return (a is None and b is None) or (a is not None and b is not None and abs(a - b) <= tol)
 
 
-def check_constraints_manifest(blobs: dict[str, bytes]) -> None:
-    manifest = json.loads(blobs["constraints_manifest"])
-    outputs = {o["path"]: o["sha256"] for o in manifest["outputs"]}
-    inputs = {i["path"]: i["sha256"] for i in manifest["inputs"]}
-    for key, name in (("canonical", "canonical_digitization.csv"), ("comparison", "modality_comparison.csv")):
-        if outputs.get(name) != MON_INPUTS[key][1]:
-            raise BuildError(f"constraints v2 manifest does not pin {name} with the expected sha256")
-    for key in ("line1_points", "atlas_1", "atlas_5", "atlas_17", "atlas_6", "line1_manifest", "profiles_manifest"):
-        path, want, _ = MON_INPUTS[key]
-        if inputs.get(path) != want:
-            raise BuildError(f"constraints v2 manifest does not pin {path} with the expected sha256")
+def source_reading_blobs() -> dict[str, bytes]:
+    inputs = verified_inputs({k: SOURCE_TABLES[k] for k in ("readings", "comparison")})
+    rows = read_csv(inputs["readings"])
+    columns = ("point_id", "profile_label", "method", "observation_interval_label", "figure_order",
+               "source_sha256", "pdf_page", "origin_class", "eligible_as_t1_time_series", "mapped_synthetic_point_id",
+               "signed_displacement_mm", "digitization_envelope_half_width_mm", "reading_status", "reading_priority",
+               "source_pixel_x", "source_pixel_y")
+    canonical = [{k: row[k] for k in columns} for row in rows]
+    digit, atlas, line1 = [], {}, []
+    for row in rows:
+        digit.append({"profile_label": row["profile_label"], "method": row["method"],
+                      "observation_interval_label": row["observation_interval_label"],
+                      "marker_index": row["figure_order"],
+                      **{k: row["manual_" + k] for k in ("displacement_negative_down_mm", "distance_label_as_printed_km")}})
+        atlas.setdefault(row["profile_label"], []).append({"point_id": row["point_id"],
+            **{k: row["atlas_" + k] for k in ("signed_displacement_mm", "digitization_envelope_half_width_mm", "reading_status")}})
+        if row["reading_priority"] == "accepted_independent_detailed_reread":
+            line1.append({"figure_order": row["figure_order"], **{k: row["recheck_" + k] for k in (
+                "signed_subsidence_mm", "reading_envelope_half_width_mm", "readability")}})
+    tables = {"canonical": canonical, "digitization": digit, "line1_points": line1,
+              **{"atlas_" + line: values for line, values in atlas.items()}}
+    return {"comparison": inputs["comparison"],
+            **{key: csv_bytes(tuple(values[0]), values) for key, values in tables.items()}}
 
 
 def build_profiles(blobs: dict[str, bytes]) -> tuple[list[dict], dict]:
@@ -359,20 +322,19 @@ def build_comparison(rows: list[dict], blobs: dict[str, bytes]) -> list[dict]:
 
 
 def build_monitoring() -> dict[str, bytes]:
-    blobs = verified_inputs(MON_INPUTS)
-    check_constraints_manifest(blobs)
+    blobs = source_reading_blobs()
     rows, stats = build_profiles(blobs)
     comparison = build_comparison(rows, blobs)
     profiles_b, comparison_b = csv_bytes(PROFILE_COLUMNS, rows), csv_bytes(COMPARISON_COLUMNS, comparison)
     manifest = {
         "artifact_id": "OBS-MUS-P15",
         "decision": "D-07, docs/governance/PHASE1_DESIGN_DECISIONS_RU.md",
-        "generator": "scripts/build_evidence_from_legacy.py",
-        "command": "python scripts/build_evidence_from_legacy.py monitoring",
+        "generator": "scripts/build_monitoring_evidence.py",
+        "command": "python scripts/build_monitoring_evidence.py monitoring",
         "source": {"source_id": SOURCE_ID, "legacy_source_id": LEGACY_SOURCE_ID, "sha256": SOURCE_SHA256,
                    "locator": LOCATOR, "pdf_xobjects_by_line": PDF_XOBJECTS, "register_scope": "VKM_Solikamsk"},
-        "legacy_commit": LEGACY_COMMIT,
-        "inputs": [{"key": k, "path": p, "sha256": s, "role": r} for k, (p, s, r) in MON_INPUTS.items()],
+        "origin_commit": ORIGIN_COMMIT,
+        "inputs": [{"key": k, "path": p, "sha256": s, "role": r} for k, (p, s, r) in SOURCE_TABLES.items() if k in ("readings", "comparison")],
         "outputs": [{"path": PROFILES_CSV, "sha256": sha256(profiles_b), "rows": len(rows)},
                     {"path": COMPARISON_CSV, "sha256": sha256(comparison_b), "rows": len(comparison)}],
         "counts": stats,
@@ -383,14 +345,15 @@ def build_monitoring() -> dict[str, bytes]:
                     "id": "OBS-MUS-P15-<line>-<METHOD>-<nnn>, nnn over (interval_start, position_index)",
                     "dropped_legacy_fields": ["eligible_as_t1_time_series", "mapped_synthetic_point_id",
                                               "distance_value_from_label_km", "source_file", "input_table*"]},
-        "checks": {"inputs_sha256_pinned": True, "constraints_v2_manifest_pins_inputs": True,
+        "checks": {"inputs_sha256_pinned": True, "current_reading_tables_pinned": True,
                    "canonical_equals_atlas_or_detailed_reread": True, "atlas_equals_frozen_digitization": True,
                    "unresolved_positions_not_filled": True, "x_labels_identical_across_series_of_a_line": True,
                    "modality_comparison_recomputed_equals_legacy_1e-6": True},
         "limits": LIMITS,
     }
     manifest_b = (json.dumps(manifest, ensure_ascii=False, indent=1) + "\n").encode("utf-8")
-    return {PROFILES_CSV: profiles_b, COMPARISON_CSV: comparison_b, MANIFEST_JSON: manifest_b}
+    return {PROFILES_CSV: profiles_b, COMPARISON_CSV: comparison_b,
+            f"{OUT_DIR}/musikhin_vkm_src002_p15_build_manifest.json": manifest_b}
 
 
 def build_sources() -> dict[str, bytes]:
@@ -402,23 +365,20 @@ def build_sources() -> dict[str, bytes]:
     for r in register:
         by_sha.setdefault(r["sha256"].strip().lower(), []).append(r)
     rows = []
-    for manifest, want in SRC_MANIFESTS.items():
-        data = git_blob(manifest)
-        if sha256(data) != want:
-            raise BuildError(f"{manifest}: sha256 differs from the pinned legacy manifest")
-        for m in read_csv(data):
-            hits = by_sha.get(m["sha256"].strip().lower(), [])
-            if len(hits) != 1:
-                raise BuildError(f"{m['source_id']}: {len(hits)} register rows with its sha256 (expected exactly 1)")
-            reg = hits[0]
-            if reg["size_bytes"] != m["size_bytes"]:
-                raise BuildError(f"{m['source_id']}: size differs from the register")
-            rows.append({"legacy_source_id": m["source_id"], "legacy_manifest": f"{manifest}@{LEGACY_COMMIT[:7]}",
-                         "legacy_file_name": m["name"], "legacy_authority_class": m["authority_class"],
-                         "legacy_site_scope": m["site_scope"], "vkm_src_id": reg["resource_id"],
-                         "sha256": m["sha256"].strip().lower(), "size_bytes": m["size_bytes"],
-                         "register_source_class": reg["source_class"], "register_evidence_scope": reg["evidence_scope"],
-                         "match_method": "sha256_exact+size", "note": SRC_NOTES.get(m["source_id"], "")})
+    data = verified_inputs({"aliases": SOURCE_TABLES["aliases"]})["aliases"]
+    for m in read_csv(data):
+        hits = by_sha.get(m["sha256"].strip().lower(), [])
+        if len(hits) != 1:
+            raise BuildError(f"{m['source_id']}: {len(hits)} register rows with its sha256 (expected exactly 1)")
+        reg = hits[0]
+        if reg["size_bytes"] != m["size_bytes"]:
+            raise BuildError(f"{m['source_id']}: size differs from the register")
+        rows.append({"legacy_source_id": m["source_id"], "legacy_manifest": m["origin_manifest"],
+                     "legacy_file_name": m["name"], "legacy_authority_class": m["authority_class"],
+                     "legacy_site_scope": m["site_scope"], "vkm_src_id": reg["resource_id"],
+                     "sha256": m["sha256"].strip().lower(), "size_bytes": m["size_bytes"],
+                     "register_source_class": reg["source_class"], "register_evidence_scope": reg["evidence_scope"],
+                     "match_method": "sha256_exact+size", "note": SRC_NOTES.get(m["source_id"], "")})
     rows.sort(key=lambda r: (r["legacy_source_id"].startswith("SUP"), r["legacy_source_id"]))
     if len({r["vkm_src_id"] for r in rows}) != len(rows):
         raise BuildError("two legacy ids map to the same VKM-SRC id")

@@ -156,7 +156,7 @@ PUBLIC (`vkm-subsidence-forecasting`) хранит код, схемы, synthetic
 
 Тематическая ветка, коммиты по явным путям, PR на русском. Не трогать чужие изменения, не делать force-push, не переписывать историю и не сливать в main без указания владельца. Отказы cloud LFS/tag policy не обходить; бинарную публикацию передавать разрешённой workstation-среде.
 
-`legacy` и frozen-релизы не изменять. `SKRU1_ACTUAL_DATA_TABLES_v1`, `inputs/bootstrap/**`, старые v3.x reconstructed/model-ready/EDA/target-пакеты и Physical World v1 не являются current evidence. `scripts/build_evidence_from_legacy.py` используется только для предусмотренного извлечения исходных записей с provenance, не возврата отозванных моделей. Исторический generic solver-test не является моделью рудника.
+`legacy` и frozen-релизы не изменять. `SKRU1_ACTUAL_DATA_TABLES_v1`, `inputs/bootstrap/**`, старые v3.x reconstructed/model-ready/EDA/target-пакеты и Physical World v1 не являются current evidence. `scripts/build_monitoring_evidence.py` воспроизводит проверенные оцифровки и соответствие исходных ID по действующим таблицам; исторические Git-объекты и отозванные модели для него не нужны. Исторический generic solver-test не является моделью рудника.
 
 Выполнить затронутые тесты и требуемые проверки по `docs/development/OFFLINE_CHECKS.md`/действующему workflow. Существующие команды из PUBLIC в подготовленном окружении:
 

@@ -1,5 +1,4 @@
-"""Integrity of public evidence tables rebuilt from frozen legacy artifacts (D-07 Musikhin digitization,
-legacy source-id map). Data-free apart from the committed CSVs; the rebuild check needs the legacy git objects."""
+"""Current source readings, identifiers and derived modality comparison; no historical Git runtime."""
 from __future__ import annotations
 
 import csv
@@ -15,7 +14,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 MON = ROOT / "evidence" / "monitoring"
 SRC_MAP = ROOT / "evidence" / "sources" / "legacy_source_id_map.csv"
-BUILDER = ROOT / "scripts" / "build_evidence_from_legacy.py"
+BUILDER = ROOT / "scripts" / "build_monitoring_evidence.py"
 LEGACY_COMMIT = "d54025d4c47b79b864076a33a4ecf877174ec922"
 
 
@@ -72,12 +71,30 @@ def test_legacy_source_id_map_contract():
     assert {r["legacy_source_id"]: r["vkm_src_id"] for r in rows}["SUP01"] == "VKM-SRC-002"
 
 
-def _legacy_objects_available() -> bool:
-    return subprocess.run(["git", "-C", str(ROOT), "cat-file", "-e", f"{LEGACY_COMMIT}^{{commit}}"],
-                          capture_output=True).returncode == 0
-
-
-@pytest.mark.skipif(not _legacy_objects_available(), reason="legacy commit not in this clone (git fetch origin legacy)")
-def test_monitoring_tables_rebuild_identically_from_legacy_objects():
+def test_monitoring_tables_rebuild_identically_from_current_inputs():
     done = subprocess.run([sys.executable, str(BUILDER), "monitoring", "--check"], capture_output=True, text=True)
     assert done.returncode == 0, done.stdout + done.stderr
+
+
+def test_current_readings_rebuild_without_git_or_legacy_checkout(tmp_path):
+    import shutil
+    script = tmp_path / "scripts" / BUILDER.name
+    script.parent.mkdir()
+    shutil.copyfile(BUILDER, script)
+    for relative in ("source_readings.csv", "source_comparison.csv", "musikhin_vkm_src002_p15_profiles.csv",
+                     "musikhin_modality_comparison.csv", "musikhin_vkm_src002_p15_build_manifest.json"):
+        target = tmp_path / "evidence/monitoring" / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(MON / relative, target)
+    assert not (tmp_path / ".git").exists()
+    done = subprocess.run([sys.executable, "-I", str(script), "monitoring", "--check"],
+                          capture_output=True, text=True)
+    assert done.returncode == 0, done.stdout + done.stderr
+    # A changed same-size source reading must fail before any derived file is replaced.
+    source = tmp_path / "evidence/monitoring/source_readings.csv"
+    data = source.read_bytes()
+    source.write_bytes(data.replace(b"VKM", b"XKM", 1) if b"VKM" in data else data[:-1] + b"x")
+    before = (tmp_path / "evidence/monitoring/musikhin_vkm_src002_p15_profiles.csv").read_bytes()
+    bad = subprocess.run([sys.executable, "-I", str(script), "monitoring"], capture_output=True, text=True)
+    assert bad.returncode != 0
+    assert (tmp_path / "evidence/monitoring/musikhin_vkm_src002_p15_profiles.csv").read_bytes() == before

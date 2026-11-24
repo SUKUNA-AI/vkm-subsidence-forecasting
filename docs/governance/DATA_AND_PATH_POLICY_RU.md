@@ -22,7 +22,7 @@
      mapped PUBLIC JSON и PUBLIC receipts JSON, включая массивы, вложенные значения и неизвестные ключи;
      существующее исключение для библиографических значений сохраняется.
 
-   Пути публикации: `scripts/build_public_catalogues.py`, `scripts/build_evidence_from_legacy.py`,
+   Пути публикации: `scripts/build_public_catalogues.py`, `scripts/build_monitoring_evidence.py`,
    `docs/reset_2026_09/run_kit/tools/publish_reports.py`.
    Сборщики сначала проверяют весь обязательный набор входов и весь публикуемый пакет. Отсутствующий либо
    некорректный вход, длинная цитата или finding leakage завершают публикацию ненулевым кодом до замены файлов.
