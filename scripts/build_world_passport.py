@@ -52,10 +52,11 @@ _spec.loader.exec_module(WP)
 convert, material_class, site_group = WP.convert, WP.material_class, WP.site_group
 sys.path.insert(0, str(ROOT / "src"))
 from vkm_world.extraction import passport_rules as PR  # noqa: E402
+from vkm_world.extraction import curated_records as CR  # noqa: E402
 
 CODE_FILES = ("scripts/build_world_passport.py", "scripts/build_world_parameters.py",
               "src/vkm_world/extraction/passport_rules.py", "src/vkm_world/extraction/compare.py",
-              "src/vkm_world/extraction/objects.py")
+              "src/vkm_world/extraction/objects.py", "src/vkm_world/extraction/curated_records.py")
 LEDGERS = {"WPV": "evidence_id_ledger.csv", "WPP": "passport_id_ledger.csv"}   # WPV: PRIVATE only (size)
 # every input file actually read by this build (path relative to the canonical root → SHA-256 or ABSENT)
 _READ: dict[str, str] = {}
@@ -899,6 +900,7 @@ def conflicts(canon: Path, ev: list[dict]) -> tuple[list[dict], dict]:
                                     ";".join(x for x in (r.get("source_a"), r.get("source_b")) if x) or "")[:400],
                         "resolution_status": r.get("resolution_status") or r.get("resolution") or "OPEN",
                         "evidence_ids": ""})
+    out.extend(CR.conflict_rows(CR.load(canon), CR.load_source_identities(canon)))
     groups = defaultdict(list)                      # computed: originals of one parameter disagree by > ×3
     for x in ev:
         if x["module"] in ("C2", "C3") and x["si_min"] != "" and x["origin"] != "CITED" and x["branch"] in "ABFM":
@@ -1037,6 +1039,10 @@ def objects(canon: Path, runs: list[str], units: "Units | None" = None) -> list[
     for o in out.values():
         for k in ("review_basis", "review_page_id", "merged_ids"):
             o.setdefault(k, "")
+    for row in CR.object_rows(CR.load(canon), CR.load_source_identities(canon)):
+        if row["object_id"] in out:
+            raise ValueError("curated geometry ID collides with an existing object")
+        out[row["object_id"]] = row
     res = sorted(out.values(), key=lambda o: (o["origin"] != "PHASE1_SPATIAL_HIERARCHY", o["object_id"]))
     for i, o in enumerate(res, 1):
         o["wo_id"] = f"WOJ-{i:05d}"
@@ -1197,12 +1203,13 @@ EV_COLS = ["ev_id", "producer", "producer_record_id", "module", "parameter", "ki
            "si_min", "si_max", "si_unit", "conversion", "symbol", "equation_as_printed", "time_as_printed",
            "conditions", "method", "n_samples", "origin", "cited_ref", "source_id", "page_id", "locator", "quote",
            "status", "verification", "copy_cluster", "copy_role", "cluster_sources", "cluster_producers",
-           "double_entry", "conflict_ids", "notes"]
+           "double_entry", "conflict_ids", "notes", "record_type", "source_table", "source_table_sha256", "source_record_json",
+           "source_sha256", "original_source_id", "original_source_namespace", "resolved_source_ref", "source_resolution"]
 
 
 def _csv(rows: list[dict], cols: list[str] | None = None) -> bytes:
     buf = io.StringIO()
-    cols = cols or (list(rows[0]) if rows else ["empty"])
+    cols = cols or CR.csv_columns(rows)
     w = csv.DictWriter(buf, fieldnames=cols, lineterminator="\n", extrasaction="ignore")
     w.writeheader()
     for r in rows:
@@ -1256,7 +1263,9 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
     _CANON[:] = [canon]
     units = Units(_rows(canon / "GEOLOGY_COORDS" / "stratigraphic_units.csv"))
     ev = (phase1_rows(canon) + curated_rows(canon) + skru1_rows(canon, units) + calendar_rows(canon)
-          + borehole_rows(canon, units) + extraction_rows(canon, runs, units))
+          + borehole_rows(canon, units) + extraction_rows(canon, runs, units) + CR.passport_rows(CR.load(canon), CR.load_source_identities(canon)))
+    _record(canon / CR.INPUT)
+    _record(canon / CR.IDENTITIES_INPUT)
     prod_order = {"PHASE1_CATALOGUE": 0, "CURATED_SKRU1_20261008": 1, "CURATED_C3_20261009": 2,
                   "CURATED_LAWS_20261009": 3, "CURATED_C4_CALENDAR_20261010": 4, "PHASE1_BOREHOLE_PICKS": 5}
     ev.sort(key=lambda x: (x["module"], x["parameter"], x["target"], prod_order.get(x["producer"], 5), x["producer"],
@@ -1285,8 +1294,9 @@ def build(canon: Path, runs: list[str], nav: Path | None) -> dict[str, bytes]:
     reg, reg_links = registry(ev, by_ev, transfer_links(trans), ledger)
     objs = objects(canon, runs, units)
     files = {"passport_evidence.csv": _csv(ev, EV_COLS)}
-    for mod in ("C1", "C2", "C3", "C4"):    # per-module views; Sol runs apart (PUBLIC text files stay under 5 MB)
-        rows = [x for x in ev if x["module"] == mod]
+    for mod in ("C1", "C2", "C3", "C4", "OBS", "OTHER"):    # per-module views; Sol runs apart (PUBLIC text files stay under 5 MB)
+        rows = [x for x in ev if x["module"] == mod
+                and (mod not in ("OBS", "OTHER") or x["producer"] == CR.PRODUCER)]
         files[f"passport_evidence_{mod.lower()}.csv"] = _csv([x for x in rows if not x["producer"].startswith("SOL_")],
                                                              EV_COLS)
         for run in (r for r in runs if r != "double"):

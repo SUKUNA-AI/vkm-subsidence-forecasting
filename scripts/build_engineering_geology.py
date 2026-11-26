@@ -23,7 +23,8 @@ from shapely.geometry import MultiPoint, Point, Polygon, mapping
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 from vkm_world.geometry_build.constrained_geology import interval_envelope
-from vkm_world.geometry_build.contact_predictor import ContactPredictor, PredictorSpec, SupportSet, cross_validate, geometry_digest
+from vkm_world.geometry_build.contact_predictor import (ContactPredictor, PredictorSpec, SupportSet, cross_validate, geometry_digest,
+    observations_by_borehole, supports_from_borehole_rows as support_set)
 from vkm_world.geometry_build.tin_section import section_through_tin, project_onto_trace, compare_continuous
 from dataclasses import replace
 from vkm_world.geometry_build.linked_geology import write_vtu, write_vtm, plan_triangles
@@ -121,66 +122,7 @@ def fem_quality(nodes, triangles):
 
 
 def read_extra_observations(path, contacts):
-    """Verified readings beyond table 3.1 point depths: intervals, not-reached, thickness, absence.
-
-    Only rows for already placed physical boreholes in the same depth frame are
-    used; everything else is reported as not used, never silently converted.
-    """
-    data = read(path)
-    if data.get("schema") != "vkm.borehole_observation_matrix/1":
-        raise ValueError("unsupported observation matrix")
-    by_id = {}
-    for row in data["rows"]:
-        if row.get("use_in_model") is not True:
-            continue
-        if row["kind"] not in ("depth", "interval", "not_reached", "thickness", "absent"):
-            continue
-        if row.get("contact") is not None and row["contact"] not in contacts:
-            continue
-        by_id.setdefault(row["physical_id"], []).append(row)
-    return by_id
-
-
-def support_set(rows, names, extra_by_id, config, use_extra=True):
-    """Supports of one scope. Extra readings apply only to partial-observation scopes (use_extra)."""
-    k = len(names)
-    extra_by_id = extra_by_id if use_extra else {}
-    lower = np.full((len(rows), k), np.nan); upper = np.full((len(rows), k), np.nan)
-    thickness = []
-    for i, r in enumerate(rows):
-        for c, v in enumerate(r["depths_m"]):
-            if v is not None:
-                lower[i, c] = upper[i, c] = v
-        for e in extra_by_id.get(r["physical_id"], []):
-            if e["kind"] in ("depth", "interval", "not_reached"):
-                c = names.index(e["contact"])
-                if np.isfinite(lower[i, c]) and lower[i, c] == upper[i, c]:
-                    continue  # table point reading already present; conflicts are recorded upstream
-                if e["kind"] == "depth":
-                    lo = hi = e["value_m"]
-                elif e["kind"] == "not_reached":
-                    lo, hi = e.get("lower_m", e.get("value_m")), None
-                else:
-                    lo, hi = e.get("lower_m"), e.get("upper_m")
-                # Several readings of one contact are intersected (order-independent); a contradiction stops the build.
-                new_lo = np.nanmax([lower[i, c], np.nan if lo is None else lo]) if (np.isfinite(lower[i, c]) or lo is not None) else np.nan
-                new_hi = np.nanmin([upper[i, c], np.nan if hi is None else hi]) if (np.isfinite(upper[i, c]) or hi is not None) else np.nan
-                if np.isfinite(new_lo) and np.isfinite(new_hi) and new_lo > new_hi + 1e-9:
-                    raise ValueError(f"contradictory interval readings for {r['physical_id']} {e['contact']}: resolve upstream")
-                lower[i, c], upper[i, c] = new_lo, new_hi
-            else:
-                top, bottom = names.index(e["top_contact"]), names.index(e["bottom_contact"])
-                if e["kind"] == "absent":
-                    lo = hi = 0.0
-                else:
-                    lo = e.get("lower_m", e.get("value_m")); hi = e.get("upper_m", e.get("value_m"))
-                thickness.append({"row": i, "top": top, "bottom": bottom, "lower": lo, "upper": hi, "id": e.get("source_id")})
-    groups = config.get("identity_groups", {})
-    independent = config.get("independent_collars", {})
-    indep = [independent.get(r["physical_id"], {}).get("value_m", np.nan) for r in rows]
-    return SupportSet([r["physical_id"] for r in rows], [groups.get(r["physical_id"], r["physical_id"]) for r in rows],
-                      [[r["x"], r["y"]] for r in rows], [r["collar_scenario_m"] for r in rows], lower, upper, list(names), thickness,
-                      independent_collar=np.asarray(indep, float))
+    return observations_by_borehole(read(path), contacts)
 
 
 def tagged_vtu(path, points, cells, material, note):

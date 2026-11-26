@@ -1,0 +1,74 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "vkm.curated_source_record/1",
+ "title": "Manual source record retained in WORLD_PARAMETERS/curated",
+ "type": "object",
+ "required": [
+  "schema",
+  "record_type",
+  "source_table",
+  "source_sha256",
+  "source_record"
+ ],
+ "properties": {
+  "schema": {
+   "const": "vkm.curated_source_record/1"
+  },
+  "record_type": {
+   "enum": [
+    "EVIDENCE",
+    "OBSERVATION_POINT",
+    "OBJECT_GEOMETRY",
+    "MINING_HISTORY",
+    "SERIES_IDENTITY",
+    "INFORMATION_AVAILABILITY",
+    "CONFLICT"
+   ]
+  },
+  "source_table": {
+   "type": "string",
+   "minLength": 1
+  },
+  "source_sha256": {
+   "type": "string",
+   "pattern": "^[0-9a-f]{64}$"
+  },
+  "consumer_origin": {
+   "type": "string"
+  },
+  "source_record": {
+   "type": "object",
+   "required": [
+    "record_id"
+   ],
+   "properties": {
+    "record_id": {
+     "type": "string",
+     "minLength": 1
+    }
+   },
+   "additionalProperties": {
+    "type": "string"
+   },
+   "propertyNames": {
+    "not": {
+     "const": "quote"
+    }
+   }
+  },
+  "site_norm": {
+   "type": "string"
+  },
+  "source_namespace": {
+   "type": "string",
+   "minLength": 1,
+   "default": "SOURCE_REGISTER",
+   "description": "Identifier namespace in SOURCES/source_identifier_aliases.csv; source_sha256 in this envelope hashes the imported derived table."
+  }
+ },
+ "patternProperties": {
+  "^quote$": {
+   "type": "string"
+  }
+ }
+}

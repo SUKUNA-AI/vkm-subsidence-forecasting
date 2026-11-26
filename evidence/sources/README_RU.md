@@ -14,15 +14,21 @@
 | `register_source_class`, `register_evidence_scope` | классификация из реестра PRIVATE на момент сборки |
 | `match_method` | `sha256_exact+size` |
 
-Входы: `configs/source_manifest.csv` (SHA-256 `8c9de321be4871e63f8300b2a38eaaea546e02cc24ad0ee1f0b20637e3eb5ceb`)
-и `configs/supplementary_source_manifest.csv` (`9ed4885c5e4607fc6445ef4c01c35ab3a1ca70a81dc5301b9aee4a54f0a251ef`),
-оба на legacy-commit `d54025d`. Третий вход — реестр PRIVATE: `SOURCE_REGISTER.csv`, SHA-256
-`0d63373ff2f4e32cef6d23f016e07cfad4227c8fcb78ec42a1733cacbea428db` на 26.09.2026.
+Текущий вход — `source_identifier_aliases.csv`, проекция PRIVATE
+`SOURCES/source_identifier_aliases.csv`. Она сохраняет исходные ID, имена, классы,
+область, SHA-256/размер и исторические manifest/commit как provenance.
+`source_namespace` разделяет старые ID `LEGACY_PUBLIC` и канонические ID
+`SOURCE_REGISTER`; `vkm_src_id` указывает зарегистрированный файл. Одно текстовое
+обозначение в разных пространствах имён не соединяется автоматически. Пересборка
+старой карты ID использует только строки `LEGACY_PUBLIC`, а общие курируемые
+источниковые записи разрешают свои ссылки по явной паре пространство/ID.
+Второй вход — актуальный PRIVATE `00_registry/SOURCE_REGISTER.csv`.
+Сам исторический Git commit для пересборки не открывается.
 
 Пересборка и сверка:
 
 ```bash
-VKM_RESOURCES_ROOT=<private checkout> python scripts/build_evidence_from_legacy.py sources [--check]
+VKM_RESOURCES_ROOT=<private checkout> python scripts/build_monitoring_evidence.py sources [--check]
 ```
 
 `scripts/verify_canonical_repository.py` при заданном `VKM_RESOURCES_ROOT` сверяет каждую строку

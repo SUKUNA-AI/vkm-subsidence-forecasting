@@ -355,8 +355,11 @@ def run_integrity(root: Path, output: Path) -> dict:
     sys.modules[spec.name] = verifier
     spec.loader.exec_module(verifier)
     # These source comparisons require PRIVATE, which this runner never opens.
-    groups = [group for group in verifier.GROUPS if group != "private_sources"]
+    groups = [group for group in verifier.CURRENT_GROUPS if group != "private_sources"]
     report = verifier.verify(root, groups=groups, use_env=False)
+    report["verification_scope"] = "CURRENT"
+    report["historical_reproduction"]["command"] = (
+        "python scripts/verify_canonical_repository.py --include-history")
     (output / "canonical-verification.json").write_text(json.dumps(report, indent=2) + "\n")
     return integrity_status(report)
 

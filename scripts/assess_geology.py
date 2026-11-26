@@ -1,4 +1,4 @@
-"""Paired B/C and collar-anchor diagnostics through the production predictor.
+"""Object/trace-selected source and collar-anchor diagnostics through ContactPredictor.
 
 Real inputs and outputs belong in PRIVATE/ignored work. No geological values
 are embedded here. Comparisons are retrospective source-consistency checks,
@@ -15,8 +15,11 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-import build_engineering_geology as build
-from vkm_world.geometry_build.contact_predictor import ContactPredictor, PredictorSpec, cross_validate
+from vkm_world.geometry_build.contact_predictor import (ContactPredictor, PredictorSpec, cross_validate,
+    observations_by_borehole, supports_from_borehole_rows)
+from vkm_world.geometry_build.height_frames import declared_coordinate_frame
+from vkm_world.geometry_build.pipeline import write_json
+from shapely.geometry import shape
 from vkm_world.geometry_build.column_display import TINSurface
 from vkm_world.geometry_build.relative_constraints import withdraw_absolute_anchors
 
@@ -64,39 +67,57 @@ def run(args):
     out = args.output.resolve()
     if not out.is_relative_to((ROOT / "work").resolve()) or out.exists():
         raise ValueError("use a new output directory under ignored work/")
-    out.mkdir(parents=True)
-    source, cfg = build.read(args.contacts), build.read(args.config)
-    placements = {r["physical_id"]: r for r in build.read(args.placements)["rows"]}
-    scene = json.loads(args.previous_scene.read_text(encoding="utf-8").split("=", 1)[1].strip().removesuffix(";"))
-    xy = build.decode(scene["terrain_xy"]).reshape(-1, 2)
-    surface = TINSurface(np.column_stack([xy, build.decode(scene["terrain_raw_z"]).ravel()]),
-                         build.decode(scene["terrain_triangles"]).reshape(-1, 3))
-    polygon = build.boundary_polygon(build.decode(scene["xy"]).reshape(-1, 2), build.decode(scene["edges"]))
+    source, cfg = read(args.contacts), read(args.config)
+    frame = declared_coordinate_frame(read(args.frame), ("contacts", "placements", "surface", "boundary", "objects"))
+    placement_rows = read(args.placements)["rows"]
+    placements = {r["physical_id"]: r for r in placement_rows}
+    if len(placements) != len(placement_rows):
+        raise ValueError("duplicate placement identity")
+    with np.load(args.surface, allow_pickle=False) as terrain:
+        if terrain["xy"].shape != (len(terrain["z"]), 2):
+            raise ValueError("surface requires matching XY and Z arrays")
+        surface = TINSurface(np.column_stack([terrain["xy"], terrain["z"]]), terrain["triangles"])
+    boundaries = [f for f in read(args.boundary)["features"] if f["properties"].get("object_id") == args.object_id]
+    if len(boundaries) != 1:
+        raise ValueError("select one uniquely identified boundary object")
+    polygon = shape(boundaries[0]["geometry"])
+    if polygon.geom_type not in ("Polygon", "MultiPolygon") or not polygon.is_valid or polygon.is_empty or polygon.area <= 0:
+        raise ValueError("valid nonempty object boundary required")
     rows = [{**r, **placements[r["physical_id"]],
              "collar_scenario_m": placements[r["physical_id"]]["terrain_height_m"] + cfg["site_offset_m"]}
             for r in source["rows"] if r["physical_id"] in placements and
             placements[r["physical_id"]].get("x") is not None and
             placements[r["physical_id"]].get("terrain_height_m") is not None]
     names = source["ordered_contacts"]
-    extra = build.read_extra_observations(args.observations, names)
+    extra = observations_by_borehole(read(args.observations), names)
     absences = {key: [e for e in values if e["kind"] == "absent"] for key, values in extra.items()}
     partial = [r for r in rows if any(v is not None for v in r["depths_m"]) or r["physical_id"] in extra]
     full = [r for r in rows if all(v is not None for v in r["depths_m"])]
     common_wells = sorted(r["physical_id"] for r in full if r["physical_id"] != args.withdraw_collar)
-    geo = build.read(args.site_objects)
+    geo = read(args.objects)
     features = {f["properties"]["object_id"]: f for f in geo["features"]}
-    ends = [features[key]["geometry"]["coordinates"][:2] for key in (args.trace_start, args.trace_end)]
+    if len(features) != len(geo["features"]):
+        raise ValueError("duplicate object identity")
+    if args.withdraw_collar not in {r["physical_id"] for r in partial}:
+        raise ValueError("withdraw-collar must identify an included support")
+    if args.trace_start == args.trace_end:
+        raise ValueError("distinct trace endpoints required")
+    if any(features[key]["geometry"]["type"] != "Point" for key in (args.trace_start, args.trace_end)):
+        raise ValueError("trace endpoints must be Point features")
+    ends = np.asarray([features[key]["geometry"]["coordinates"][:2] for key in (args.trace_start, args.trace_end)], float)
+    if ends.shape != (2, 2) or not np.isfinite(ends).all() or np.linalg.norm(ends[1]-ends[0]) <= 0:
+        raise ValueError("finite distinct trace endpoints required")
     query = np.linspace(ends[0], ends[1], args.query_points)
     variants = {}
     fields = {"xy": query, "contacts": np.asarray(names)}
     for label, extras in (("B", absences), ("C", extra)):
-        parent = build.support_set(partial, names, extras, cfg)
+        parent = supports_from_borehole_rows(partial, names, extras, cfg)
         for anchor in ("baseline", "relative_only"):
             sid = f"{label}_{anchor}"
             supports, ledger = (parent, []) if anchor == "baseline" else withdraw_absolute_anchors(parent, [args.withdraw_collar])
-            predictor = ContactPredictor(PredictorSpec("idw2", "SURFACE", cfg["site_offset_m"],
+            predictor = ContactPredictor(PredictorSpec(args.method, "SURFACE", cfg["site_offset_m"],
                 extrapolate=True, allow_partial=True), surface=surface.sample, support=polygon)
-            cv = cross_validate(lambda method, training: predictor, supports, ["idw2"], block_size_m=cfg["cv_block_size_m"])
+            cv = cross_validate(lambda method, training: predictor, supports, [args.method], block_size_m=cfg["cv_block_size_m"])
             pred = predictor.predict(supports, query)
             fields[sid] = pred["levels"]
             variants[sid] = {"supports": len(supports.ids), "relative_ledger": ledger,
@@ -118,13 +139,14 @@ def run(args):
     delta = fields["C_relative_only"] - fields["B_relative_only"]
     pairs["C_minus_B_relative_only"] = {"per_contact_mean_shift_m": delta.mean(0).tolist(),
         "per_contact_max_abs_shift_m": np.max(np.abs(delta), 0).tolist()}
+    out.mkdir(parents=True)
     np.savez_compressed(out / "trace_fields.npz", **fields)
-    report = {"schema": "vkm.site_geology_assessment/1", "requirements": ["SUR-003", "BH-005", "MOD-004", "VAL-003", "INT-003"],
+    report = {"schema": "vkm.geology_assessment/2", "object_id": args.object_id, "coordinate_declaration": frame, "requirements": ["SUR-003", "BH-005", "MOD-004", "VAL-003", "INT-003"],
         "purpose": "retrospective paired source-consistency diagnosis; not independent field validation",
-        "operator": "production ContactPredictor SURFACE/IDW2/extrapolate/partial",
+        "operator": f"ContactPredictor SURFACE/{args.method}/extrapolate/partial",
         "withdraw_collar": args.withdraw_collar, "common_evaluation_wells": common_wells,
         "position_policy": "fixed by B_baseline per fold; own masks also retained",
-        "trace": {"start_id": args.trace_start, "end_id": args.trace_end, "frame": "SKRU1_LOCAL_SH1",
+        "trace": {"start_id": args.trace_start, "end_id": args.trace_end, "frame": frame["horizontal_frame"], "height_frame": frame["height_frame"],
             "length_m": float(np.linalg.norm(query[-1] - query[0])), "points": len(query),
             "geometry_role": "DERIVATION_FROM_SOURCE_PLAN; absolute datum UNKNOWN"},
         "paired_trace_differences": pairs, "variants": variants,
@@ -133,18 +155,34 @@ def run(args):
                     "path": value.resolve().relative_to(ROOT).as_posix() if value.resolve().is_relative_to(ROOT) else value.name}
                    for key, value in vars(args).items() if isinstance(value, Path) and key != "output"},
         "code": {str(p.relative_to(ROOT)).replace('\\', '/'): hash_file(p) for p in [Path(__file__),
-            ROOT / "scripts/build_engineering_geology.py", ROOT / "src/vkm_world/geometry_build/contact_predictor.py",
+            ROOT / "src/vkm_world/geometry_build/height_frames.py", ROOT / "src/vkm_world/geometry_build/contact_predictor.py",
             ROOT / "src/vkm_world/geometry_build/relative_constraints.py", ROOT / "src/vkm_world/geometry_build/column_display.py",
             ROOT / "src/vkm_world/geometry_build/constrained_geology.py"]},
         "outputs": {"trace_fields.npz": hash_file(out / "trace_fields.npz")}, "seconds": time.monotonic() - started}
-    build.save(out / "assessment.json", report)
+    write_json(out / "assessment.json", finite_json(report))
     print(json.dumps(pairs), flush=True)
+
+
+def read(path):
+    return json.loads(Path(path).read_text(encoding="utf-8-sig"))
+
+
+def finite_json(value):
+    if isinstance(value, dict):
+        return {k: finite_json(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [finite_json(v) for v in value]
+    if isinstance(value, (float, np.floating)) and not np.isfinite(value):
+        return None
+    return value
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    for key in ("config", "contacts", "placements", "observations", "previous-scene", "site-objects", "output"):
+    for key in ("config", "contacts", "placements", "observations", "surface", "boundary", "objects", "frame", "output"):
         parser.add_argument("--" + key, type=Path, required=True)
+    parser.add_argument("--object-id", required=True)
+    parser.add_argument("--method", required=True, choices=["idw2"], help="explicit partial-observation predictor; alternative methods need a compatible experiment")
     parser.add_argument("--withdraw-collar", required=True)
     parser.add_argument("--trace-start", required=True)
     parser.add_argument("--trace-end", required=True)

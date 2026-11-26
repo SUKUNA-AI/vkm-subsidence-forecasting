@@ -198,23 +198,25 @@ def test_wrong_geometry_family_is_not_exported_as_point_or_boundary(tmp_path, so
     assert geometries["wrong-boundary"] == point
 
 
-def test_block201_context_preserves_nonpoints_separately(tmp_path, source):
-    block201 = tmp_path / "block201"
-    block201.mkdir()
-    (block201 / "block201_mining_history.csv").write_text("unused_header\n", encoding="utf-8")
-    rows = [{"record_id": id_, "feature_kind": kind, "label": id_, "source_id": "S",
-             "status": "DERIVATION", "wkt_sh1": shape}
+def test_curated_context_preserves_nonpoints_separately(tmp_path, source):
+    curated = tmp_path / "private/11_evidence_vnext/canonical/WORLD_PARAMETERS/curated"
+    curated.mkdir(parents=True, exist_ok=True)
+    rows = [{"schema": "vkm.curated_source_record/1", "record_type": "OBJECT_GEOMETRY",
+             "source_table": "source_objects.csv", "source_sha256": "0" * 64,
+             "source_record": {"record_id": id_, "feature_kind": kind, "label": id_, "source_id": "S",
+                               "status": "DERIVATION", "wkt_sh1": shape}}
             for id_, kind, shape in (("benchmark", "BENCHMARK", "POINT (0 0)"),
                                        ("trace", "LINE_TRACE", "LINESTRING (0 0, 1 1)"))]
-    write_rows(block201 / "site_objects_sh1.csv", rows)
+    (curated / "source_records.jsonl").write_text(
+        "".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
 
-    result = run_history(tmp_path, "--block201", str(block201))
+    result = run_history(tmp_path)
     assert result.returncode == 0, result.stderr
     with gpkg(tmp_path) as db:
         assert db.execute(
             "SELECT point_id FROM points WHERE source_id='S'"
         ).fetchall() == [("benchmark",)]
-        (blob,) = db.execute("SELECT geom FROM block201_context WHERE point_id='trace'").fetchone()
+        (blob,) = db.execute("SELECT geom FROM source_context WHERE point_id='trace'").fetchone()
         assert from_wkb(blob[40:]).wkt == "LINESTRING (0 0, 1 1)"
 
 

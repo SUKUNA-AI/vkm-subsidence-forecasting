@@ -15,13 +15,16 @@
 | `musikhin_modality_comparison.csv` | 7 | расхождение InSAR − нивелирование по общим позициям, для каждой пары (линия, интервал) |
 | `musikhin_vkm_src002_p15_manifest.json` | — | receipt: входы (legacy-путь + SHA-256), выходы (SHA-256), счётчики, правила отображения, исправления подписей |
 
-Сборка детерминирована: [`scripts/build_evidence_from_legacy.py`](../../scripts/build_evidence_from_legacy.py).
-Входы скрипт читает из git-объектов legacy-commit `d54025d` (ветка `legacy`, тег `legacy/final`), без
-checkout и без LFS, и проверяет SHA-256 каждого входа:
+Сборка детерминирована: [`scripts/build_monitoring_evidence.py`](../../scripts/build_monitoring_evidence.py).
+Текущие источниковые таблицы `source_readings.csv` и `source_comparison.csv` публикуются из
+PRIVATE `WORLD_OBSERVATIONS/curated/`. Они сохраняют принятые чтения, отдельные чтения атласа,
+независимую повторную оцифровку и исходные печатные подписи. SHA-256 проверяется до пересчёта.
+`musikhin_vkm_src002_p15_manifest.json` — неизменённая историческая квитанция;
+новая сборка пишет `musikhin_vkm_src002_p15_build_manifest.json`. Ветка legacy и Git blobs не нужны.
 
 ```bash
-python scripts/build_evidence_from_legacy.py monitoring           # пересобрать
-python scripts/build_evidence_from_legacy.py monitoring --check   # сравнить с закоммиченными файлами
+python scripts/build_monitoring_evidence.py monitoring
+python scripts/build_monitoring_evidence.py monitoring --check
 ```
 
 ## 2. Поля `musikhin_vkm_src002_p15_profiles.csv`

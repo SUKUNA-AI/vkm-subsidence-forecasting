@@ -6,7 +6,7 @@
 Опоры:
 - решение D-19 ([PHASE1_DESIGN_DECISIONS_RU.md](../governance/PHASE1_DESIGN_DECISIONS_RU.md)): Ansys — основной решатель,
   OGS + MFront — проверка;
-- недели и гейты — [PHASE2_PLAN_OCT_NOV_2026_RU.md](PHASE2_PLAN_OCT_NOV_2026_RU.md);
+- недели и гейты — [PROMPT_GPT_AGENTS_RU.md](PROMPT_GPT_AGENTS_RU.md);
 - лестница решателя — [CLAUDE.md](../../CLAUDE.md);
 - стиль серверов и подключение — [MCP_TOOLS.md](../corpus_platform/MCP_TOOLS.md);
 - пути — [DATA_AND_PATH_POLICY_RU.md](../governance/DATA_AND_PATH_POLICY_RU.md). В документе только логические имена:

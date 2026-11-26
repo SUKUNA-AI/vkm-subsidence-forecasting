@@ -266,7 +266,7 @@
     },
     {
      "id": "sources",
-     "label": "Источники: CLAUDE.md (лестница решателя); README.md §10; docs/planning/PHASE2_PLAN_OCT_NOV_2026_RU.md §1–§2; docs/planning/ENGINEERING_TOOLS_MCP_PLAN_RU.md §0–§1; docs/worldspec/WORLD_KERNELS_DESIGN_RU.md §3; docs/governance/PHASE1_DESIGN_DECISIONS_RU.md (D-18, D-19); COORDINATOR_DECISIONS.md (CP-43).",
+     "label": "Источники: CLAUDE.md (лестница решателя); README.md §10; docs/planning/ENGINEERING_TOOLS_MCP_PLAN_RU.md §0–§1; docs/worldspec/WORLD_KERNELS_DESIGN_RU.md §3; docs/governance/PHASE1_DESIGN_DECISIONS_RU.md (D-18, D-19); COORDINATOR_DECISIONS.md (CP-43).",
      "x": 20,
      "y": 885,
      "w": 1760,
