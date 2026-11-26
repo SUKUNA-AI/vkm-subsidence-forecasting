@@ -641,13 +641,13 @@ UNKNOWN — полноправное значение. Масштаб по ум�
 [REPOSITORY_ARCHITECTURE_RU.md](docs/architecture/REPOSITORY_ARCHITECTURE_RU.md),
 [PHASE1_DESIGN_DECISIONS_RU.md](docs/governance/PHASE1_DESIGN_DECISIONS_RU.md).
 
-## 6. Границы (что запрещено без отдельного решения)
+## 6. Исторические границы этапа Phase 1/2 (текущий scope — AMHF выше)
 
 - Интерполяция, кригинг, 3D-реконструкция и сетки — только в Phase 2, как производные объекты со статусом
   INTERPOLATION и списком MODEL_CHOICE.
 - Запуски решателей (OGS + MFront, ANSYS Mechanical, gprMax), Monte Carlo и анализ чувствительности — только в Phase 2
   по отдельному плану.
-- Обучение ML, прогнозный бенчмарк и калибровка по будущей test truth — только после отдельного gate с предрегистрацией.
+- Обучение ML и прогнозный бенчмарк — только после отдельного gate с предрегистрацией; калибровка по будущей test truth запрещена всегда.
 - Аналоговые значения не становятся значениями СКРУ-1 без Transfer. LAB ≠ MASSIF; MODEL_CHOICE ≠ FACT.
 - Нельзя выдавать синтетические, оцифрованные или интерполированные ряды за первичные измерения СКРУ-1.
 - Мир не называется валидированным цифровым двойником СКРУ-1.
@@ -680,7 +680,7 @@ UNKNOWN — полноправное значение. Масштаб по ум�
   Текущие локальные команды и Actions jobs — [OFFLINE_CHECKS.md](docs/development/OFFLINE_CHECKS.md).
 - **Итоговый отчёт cloud-run:** [CLOUD_ULTRACODE_PHASE1_FINAL_REPORT_RU.md](docs/reset_2026_09/CLOUD_ULTRACODE_PHASE1_FINAL_REPORT_RU.md).
 
-## 8. Что дальше
+## 8. Исторический план Phase 2 (не активный маршрут)
 
 Текущий проход — укрепление инженерных контрактов, PUBLIC/PRIVATE boundary и offline CPU CI.
 Дальнейшая оцифровка геометрии и новая геологическая реконструкция приостановлены до получения GIS-данных.
