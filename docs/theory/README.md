@@ -1,5 +1,7 @@
 # Теория пользователя v0.2: физические миры, представления, микроядра
 
+Исследование AMHF-R2-HEREDITARY — [наследственные законы](R2_HEREDITARY_CONSTITUTIVE_THEORY_RU.md), [память и состояние](R2_MINIMAL_STATE_AND_MEMORY_RU.md), [точный контрпример](R2_PREDICTIVE_NONIDENTIFIABILITY_RU.md), [энергия](R2_THERMODYNAMIC_ADMISSIBILITY_RU.md) и [выводы для ВКР](R2_REVIEW_AND_OPEN_QUESTIONS_RU.md).
+
 На ветке исследования R1 доступны [выводы](R1_THEORY_SUBSIDENCE_EVOLUTION_RU.md), [критическое ревью](R1_REVIEW_AND_OPEN_QUESTIONS_RU.md) и [реестр уравнений](R1_EQUATION_AND_CLAIM_LEDGER.csv). В Git представлены [T01](T01_FRAMEWORK_V03_RU.md), [T02](T02_OPERATORS_MICROKERNELS_V03_RU.md), [T03](T03_SURFACE_OBSERVABILITY_HYPOTHESES_V03_RU.md). Расширения r2 и T04 (термодинамика), T05 (события), T06 (целевая ошибка) имеют статус PROPOSED_RESEARCH_SPECIFICATION / TEST_REQUIRED. Решение об их интеграции отдельно от R1.
 
 Рабочие исследовательские спецификации пользователя (статус — в каждом файле). Это не доказанная теория и не
