@@ -1,5 +1,7 @@
 # Физические миры, представления и микроядра: проект v2 (Phase 2, D-19)
 
+> **Навигация 26.11.2026.** Этот документ сохраняет архитектурные контракты и историю v0.2. Текущая миссия, инструменты, запреты и этапы определяются [AMHF active stage](../planning/AMHF_ACTIVE_STAGE_RU.md) и [A01/A02](../amhf/A01_AMHF_ALGORITHM_SPEC_RU.md). OGS/MFront и CAD спецчасти PARK, готовый C1/C4 повторно не строится; v0.3-draft [T01](../theory/T01_FRAMEWORK_V03_RU.md), [T02](../theory/T02_OPERATORS_MICROKERNELS_V03_RU.md), [T03](../theory/T03_SURFACE_OBSERVABILITY_HYPOTHESES_V03_RU.md) уточняют математику без ретроспективной смены статусов. Ниже прежние роли/планы не обязательный маршрут запуска.
+
 Проект следует теории пользователя v0.2 — четыре файла:
 - `COUPLED_FIELD_KERNEL_FRAMEWORK_V0_2_RU.md` (далее FW);
 - `MICROKERNEL_FORMATION_AND_AGGREGATION_RULES_V0_2_RU.md` (AG);
