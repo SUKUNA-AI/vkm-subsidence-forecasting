@@ -1,0 +1,68 @@
+{
+  "purpose": "synthetic exact spatial mechanics, no field data",
+  "python": "3.13.13",
+  "sympy": "1.14.0",
+  "central_length_m": "225/32",
+  "volume_energy_factor": "39/80",
+  "separable": {
+    "gap_over_characteristic_settlement": 0.018145587716504624,
+    "center_gap_mm_synthetic": 0.7655169817900388,
+    "loading_difference_young_to_old": [
+      -0.17327532710970242,
+      0.4222834721368208,
+      -0.8667559196200579,
+      1.0
+    ],
+    "history_rank": 3
+  },
+  "coupled": {
+    "lanes_rank": [
+      3,
+      3,
+      4
+    ],
+    "future_difference": "945/170278912",
+    "second_channel": [
+      "5355/2660608",
+      "150255/170278912",
+      "12915/42569728"
+    ],
+    "compressed_load_contrast": [
+      "-45989/5321216",
+      "223879/1330304",
+      "-7013/8752",
+      "1"
+    ]
+  },
+  "transfer": {
+    "attenuation_kd1_kd3": [
+      0.7357588823428847,
+      0.19914827347145578
+    ],
+    "rate_covariance_equal_height_variance": "Matrix([[2, -1/2], [-1/2, 1/2]])"
+  },
+  "passed": [
+    "S01.compatibility",
+    "S02.equilibrium_free_faces",
+    "S03.tensor_energy",
+    "S04.integrated_energy",
+    "S05.surface_chord",
+    "S06.reachability_zeros",
+    "S07.network_rank_one",
+    "S08.schur_gradient",
+    "S09.coupled_reachable",
+    "S10.geometry_changes_rank",
+    "S11.port_balance",
+    "S12.indefinite_negative_control",
+    "S13.unsupported_rigid_load",
+    "S14.halfspace",
+    "S15.attenuation_without_exact_null",
+    "S16.two_depth_null",
+    "S17.irregular_covariance",
+    "S18.datum",
+    "S19.single_LOS",
+    "S20.kelvin_port",
+    "S21.condensation_with_rhs",
+    "S22.noise_diameter"
+  ]
+}
