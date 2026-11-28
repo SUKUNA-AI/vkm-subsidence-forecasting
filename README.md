@@ -1,8 +1,8 @@
 # ВКМ: корпус, evidence, паспорт физических миров и прогноз оседаний
 
-## Активный этап · 26.11.2026 — AMHF
+## Активный этап · 28.11.2026 — AMHF
 
-Действующий маршрут: [активный этап AMHF](docs/planning/AMHF_ACTIVE_STAGE_RU.md). Готовые геология и горные материалы — вход; приоритет механика, физические поля, память, математические операторы и прогноз. [A01](docs/amhf/A01_AMHF_ALGORITHM_SPEC_RU.md) · [A02](docs/amhf/A02_IMPLEMENTATION_RECALC_VERIFICATION_RU.md) · [A03](docs/amhf/A03_REVIEW_AND_LEGACY_RU.md) · [теория v0.3-draft](docs/theory/T01_FRAMEWORK_V03_RU.md). Актуальные научные результаты — [PROJECT_STATE](PROJECT_STATE_RU.md) и PRIVATE индексы. Ниже — датированные срезы, включая прежние ограничения на исполнение; они не задают новую миссию.
+Действующий маршрут: [активный этап AMHF](docs/planning/AMHF_ACTIVE_STAGE_RU.md). Готовые геология и горные материалы — вход. Действующее исполнение PHYSICAL_HISTORY_2025 охватывает собственные физические состояния и горные события СКРУ-1 до FINAL 2025,0. [A01](docs/amhf/A01_AMHF_ALGORITHM_SPEC_RU.md) · [A02](docs/amhf/A02_IMPLEMENTATION_RECALC_VERIFICATION_RU.md) · [A03](docs/amhf/A03_REVIEW_AND_LEGACY_RU.md) · [теория v0.3-draft](docs/theory/T01_FRAMEWORK_V03_RU.md). Актуальные научные результаты — [PROJECT_STATE](PROJECT_STATE_RU.md) и PRIVATE индексы. Ниже — датированные срезы, включая прежние ограничения на исполнение; они не задают новую миссию.
 
 ## Документная поставка R3 · датированное задание 24–25.11.2026
 

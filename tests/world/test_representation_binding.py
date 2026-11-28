@@ -6,6 +6,7 @@ import pytest
 from scipy.sparse import csr_matrix
 from vkm_world.representations.world0.binding import (
     representation_snapshot,assert_applicable,write_checkpoint_binding,restore_bound,
+    file_digest, physical_history_materials, verify_native_history_state,
 )
 
 
@@ -54,3 +55,52 @@ def test_required_dependencies_and_signature_integrity():
     damaged=deepcopy(original);damaged["components"]["laws"]["digest"]="tampered"
     with pytest.raises(ValueError,match="corrupt representation"):
         assert_applicable(damaged,original)
+
+
+def history_inputs(tmp_path):
+    field = tmp_path / "selected.npz"
+    carrier = tmp_path / "carrier.npz"
+    names = ["floor", "contact", "roof"]
+    bodies = ["BODY:floor:contact", "BODY:contact:roof"]
+    np.savez(field, geometry_id="C1-accepted", bhj_id="BHJ-accepted", horizon_names=names)
+    pin = {"geometry_id": "C1-accepted", "bhj_id": "BHJ-accepted",
+           "source_field": {"sha256": file_digest(field)}}
+    np.savez(carrier, geometry_id=pin["geometry_id"], source_field_sha256=file_digest(field),
+             horizon_names=names, body_ids=bodies)
+    receipt = {"geometry_id": pin["geometry_id"], "source_field_sha256": file_digest(field),
+               "representation_sha256": file_digest(carrier), "geometry_screen_pass": True}
+    cards = [{"body_id": name, "E_pa": float(i)} for i, name in enumerate(bodies, start=1)]
+    return field, carrier, pin, receipt, cards
+
+
+def test_current_history_body_binding_is_by_name(tmp_path):
+    field, carrier, pin, receipt, cards = history_inputs(tmp_path)
+    assert physical_history_materials(field, carrier, pin, receipt, cards[::-1]) == cards
+    with pytest.raises(ValueError, match="named material"):
+        physical_history_materials(field, carrier, pin, receipt, [1., 2.])
+    with pytest.raises(ValueError, match="duplicate"):
+        physical_history_materials(field, carrier, pin, receipt, [cards[0], cards[0]])
+    with pytest.raises(ValueError, match="body IDs mismatch"):
+        physical_history_materials(field, carrier, pin, receipt, [{"body_id": "foreign"}, cards[1]])
+
+
+def test_current_history_checks_raw_field_and_carrier_identity(tmp_path):
+    field, carrier, pin, receipt, cards = history_inputs(tmp_path)
+    with pytest.raises(ValueError, match="different C1"):
+        physical_history_materials(field, carrier, pin, {**receipt, "geometry_id": "C1-legacy"}, cards)
+    field.write_bytes(field.read_bytes() + b"changed")
+    with pytest.raises(ValueError, match="field bytes"):
+        physical_history_materials(field, carrier, pin, receipt, cards)
+
+
+def test_current_history_rejects_foreign_checkpoint_even_with_correct_hash(tmp_path):
+    path = tmp_path / "pre.npz"
+    np.savez(path, signature="same-world", time_year=1939.5)
+    digest = file_digest(path)
+    verify_native_history_state(path, digest, "same-world", 1939.5)
+    with pytest.raises(ValueError, match="foreign"):
+        verify_native_history_state(path, digest, "old-world", 1939.5)
+    with pytest.raises(ValueError, match="foreign"):
+        verify_native_history_state(path, digest, "same-world", 2025.0)
+    with pytest.raises(ValueError, match="bytes mismatch"):
+        verify_native_history_state(path, "wrong-bytes", "same-world", 1939.5)
